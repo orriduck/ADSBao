@@ -1,25 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Info, Monitor, Moon, Search, Sun } from "lucide-react";
+import { Info, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HOME_AIRPORT_COUNTRY } from "../../config/homeAirportDirectory.js";
-import { SITE_DESCRIPTION } from "../../config/site.js";
+import DitherPageShell from "../../features/app-shell/DitherPageShell.jsx";
+import ThemeToggle from "../../features/app-shell/ThemeToggle.jsx";
+import { useThemePreference } from "../../features/app-shell/useThemePreference.js";
 import { airportDirectoryClient } from "../../services/airportDirectory.js";
 import { airportSubtitle } from "../../utils/airport.js";
-import {
-  THEME_DARK,
-  THEME_LIGHT,
-  THEME_SYSTEM,
-  applyThemePreference,
-  initThemePreference,
-  nextTheme,
-  writeStoredTheme,
-} from "../../utils/theme.js";
 import { Input } from "../ui/input.jsx";
-import DitherBackground from "../effects/DitherBackground.jsx";
-import Logo from "../brand/Logo.jsx";
-import MobileTopNav from "../navigation/MobileTopNav.jsx";
 
 const featuredAirports = [
   {
@@ -95,52 +85,9 @@ export default function SearchScreen({ onOpenAirport }) {
   const [results, setResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
-  const [themePreference, setThemePreference] = useState(THEME_SYSTEM);
+  const { themePreference, themeTitle, themeIconKey, cycleTheme } =
+    useThemePreference();
   const activeRequestId = useRef(0);
-  const mediaQueryList = useRef(null);
-
-  useEffect(() => {
-    mediaQueryList.current = window.matchMedia("(prefers-color-scheme: dark)");
-    setThemePreference(
-      initThemePreference({ mediaQueryList: mediaQueryList.current })
-        .preference,
-    );
-    const listener = () => {
-      if (themePreference === THEME_SYSTEM) {
-        applyThemePreference({
-          theme: THEME_SYSTEM,
-          mediaQueryList: mediaQueryList.current,
-        });
-      }
-    };
-    mediaQueryList.current.addEventListener("change", listener);
-    return () =>
-      mediaQueryList.current?.removeEventListener("change", listener);
-  }, [themePreference]);
-
-  const themeTitle = useMemo(() => {
-    if (themePreference === THEME_LIGHT)
-      return "Theme: Light (click to switch)";
-    if (themePreference === THEME_DARK) return "Theme: Dark (click to switch)";
-    return "Theme: System (click to switch)";
-  }, [themePreference]);
-
-  const ThemeIcon =
-    themePreference === THEME_LIGHT
-      ? Sun
-      : themePreference === THEME_DARK
-        ? Moon
-        : Monitor;
-
-  const cycleTheme = () => {
-    const next = nextTheme(themePreference);
-    setThemePreference(next);
-    writeStoredTheme(next);
-    applyThemePreference({
-      theme: next,
-      mediaQueryList: mediaQueryList.current,
-    });
-  };
 
   const searchRows = useMemo(() => {
     const query = q.trim().toUpperCase();
@@ -232,113 +179,77 @@ export default function SearchScreen({ onOpenAirport }) {
     openAirport(exact || searchRows[0]);
   };
 
+  const mobileAboutLink = (
+    <Link
+      href="/about"
+      title="About ADSBao"
+      className="mobile-top-nav-link flex items-center gap-1.5"
+    >
+      <Info className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>About</span>
+    </Link>
+  );
+
+  const footerAboutLink = (
+    <Link
+      href="/about"
+      title="About ADSBao"
+      className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+    >
+      <Info className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>About</span>
+    </Link>
+  );
+
+  const renderThemeToggle = (className) => (
+    <ThemeToggle
+      className={className}
+      iconKey={themeIconKey}
+      preference={themePreference}
+      title={themeTitle}
+      onClick={cycleTheme}
+    />
+  );
+
   return (
-    <div className="dither-page-shell search-screen flex h-screen text-atc-text">
-      <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
-        <MobileTopNav
-          left={
-            <Link
-              href="/about"
-              title="About ADSBao"
-              className="mobile-top-nav-link flex items-center gap-1.5"
-            >
-              <Info className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>About</span>
-            </Link>
-          }
-          right={
-            <button
-              type="button"
-              className="mobile-top-nav-link flex items-center gap-1.5"
-              title={themeTitle}
-              onClick={cycleTheme}
-            >
-              <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>{themePreference}</span>
-            </button>
-          }
+    <DitherPageShell
+      className="search-screen"
+      sectionLabel="Airport search"
+      mobileLeft={mobileAboutLink}
+      footerLeft={footerAboutLink}
+      renderThemeToggle={renderThemeToggle}
+    >
+      <form
+        onSubmit={doSearch}
+        className="flex-none mx-6 flex items-center gap-3 py-3.5"
+      >
+        <Search className="h-5 w-5 shrink-0 text-atc-orange" />
+        <Input
+          value={q}
+          onChange={(event) => setQ(event.target.value)}
+          className="flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
+          placeholder="Search ICAO, IATA, city, or name"
         />
+        <kbd className="hidden shrink-0 items-center px-2 py-1 font-mono text-[10px] uppercase tracking-[0.04em] text-atc-dim sm:inline-flex">
+          {searchLoading ? "..." : "enter"}
+        </kbd>
+      </form>
 
-        <div className="flex-none px-6 pt-7 pb-6">
-          <div className="flex items-center gap-3 max-[720px]:hidden">
-            <Logo size={28} className="text-atc-text" />
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-              Airport search
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-3">
-            <span className="font-mono text-[22px] font-semibold tracking-[0.04em] text-atc-text">
-              ADSBao
-            </span>
-            <span
-              aria-hidden="true"
-              className="h-px flex-1 bg-[var(--atc-line-strong)]"
-            />
-          </div>
-          <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
-            Airport explorer
-          </h1>
-          <p className="mt-3 text-[13px] leading-relaxed text-atc-dim">
-            {SITE_DESCRIPTION}
-          </p>
-        </div>
-
-        <form
-          onSubmit={doSearch}
-          className="flex-none mx-6 flex items-center gap-3 py-3.5"
-        >
-          <Search className="h-5 w-5 shrink-0 text-atc-orange" />
-          <Input
-            value={q}
-            onChange={(event) => setQ(event.target.value)}
-            className="flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
-            placeholder="Search ICAO, IATA, city, or name"
+      <div className="flex-1 overflow-y-auto">
+        {q.trim() ? (
+          <SearchResults
+            q={q}
+            rows={searchRows}
+            loading={searchLoading}
+            error={searchError}
+            countLabel={resultCountLabel}
+            onOpen={openAirport}
           />
-          <kbd className="hidden shrink-0 items-center px-2 py-1 font-mono text-[10px] uppercase tracking-[0.04em] text-atc-dim sm:inline-flex">
-            {searchLoading ? "..." : "enter"}
-          </kbd>
-        </form>
-
-        <div className="flex-1 overflow-y-auto">
-          {q.trim() ? (
-            <SearchResults
-              q={q}
-              rows={searchRows}
-              loading={searchLoading}
-              error={searchError}
-              countLabel={resultCountLabel}
-              onOpen={openAirport}
-            />
-          ) : (
-            <FeaturedAirports onOpen={openAirport} />
-          )}
-        </div>
-
-        <div className="flex-none items-center justify-between border-t border-[var(--atc-line)] px-6 py-3 max-[720px]:hidden sm:flex">
-          <Link
-            href="/about"
-            title="About ADSBao"
-            className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
-          >
-            <Info className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>About</span>
-          </Link>
-          <button
-            type="button"
-            className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
-            title={themeTitle}
-            onClick={cycleTheme}
-          >
-            <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{themePreference}</span>
-          </button>
-        </div>
+        ) : (
+          <FeaturedAirports onOpen={openAirport} />
+        )}
       </div>
-
-      <div className="dither-page-background relative flex-1">
-        <DitherBackground />
-      </div>
-    </div>
+    </DitherPageShell>
   );
 }
 

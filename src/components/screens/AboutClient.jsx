@@ -1,21 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Github, Monitor, Moon, Sun } from "lucide-react";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { SITE_DESCRIPTION } from "../../config/site.js";
-import {
-  THEME_DARK,
-  THEME_LIGHT,
-  THEME_SYSTEM,
-  applyThemePreference,
-  initThemePreference,
-  nextTheme,
-  writeStoredTheme,
-} from "../../utils/theme.js";
-import DitherBackground from "../effects/DitherBackground.jsx";
-import Logo from "../brand/Logo.jsx";
-import MobileTopNav from "../navigation/MobileTopNav.jsx";
+import { ArrowUpRight, Github } from "lucide-react";
+import DitherPageShell from "../../features/app-shell/DitherPageShell.jsx";
+import ThemeToggle from "../../features/app-shell/ThemeToggle.jsx";
+import { useThemePreference } from "../../features/app-shell/useThemePreference.js";
 
 const buildMeta = [
   { label: "Version", value: "0.8.0" },
@@ -80,45 +69,8 @@ const dataSources = [
 ];
 
 export default function AboutClient() {
-  const [themePreference, setThemePreference] = useState(THEME_SYSTEM);
-  const mediaQueryList = useRef(null);
-
-  useEffect(() => {
-    mediaQueryList.current = window.matchMedia("(prefers-color-scheme: dark)");
-    setThemePreference(
-      initThemePreference({ mediaQueryList: mediaQueryList.current }).preference,
-    );
-    const listener = () => {
-      if (themePreference === THEME_SYSTEM) {
-        applyThemePreference({
-          theme: THEME_SYSTEM,
-          mediaQueryList: mediaQueryList.current,
-        });
-      }
-    };
-    mediaQueryList.current.addEventListener("change", listener);
-    return () => mediaQueryList.current?.removeEventListener("change", listener);
-  }, [themePreference]);
-
-  const themeTitle = useMemo(() => {
-    if (themePreference === THEME_LIGHT) return "Theme: Light (click to switch)";
-    if (themePreference === THEME_DARK) return "Theme: Dark (click to switch)";
-    return "Theme: System (click to switch)";
-  }, [themePreference]);
-
-  const ThemeIcon =
-    themePreference === THEME_LIGHT
-      ? Sun
-      : themePreference === THEME_DARK
-        ? Moon
-        : Monitor;
-
-  const cycleTheme = () => {
-    const next = nextTheme(themePreference);
-    setThemePreference(next);
-    writeStoredTheme(next);
-    applyThemePreference({ theme: next, mediaQueryList: mediaQueryList.current });
-  };
+  const { themePreference, themeTitle, themeIconKey, cycleTheme } =
+    useThemePreference();
 
   const openExternalLink = (event, href) => {
     const opened = window.open(href, "_blank");
@@ -127,160 +79,119 @@ export default function AboutClient() {
     event.preventDefault();
   };
 
+  const backLink = (
+    <Link
+      href="/"
+      className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text"
+    >
+      ← ADSBao
+    </Link>
+  );
+
+  const renderThemeToggle = (className) => (
+    <ThemeToggle
+      className={className}
+      iconKey={themeIconKey}
+      preference={themePreference}
+      title={themeTitle}
+      onClick={cycleTheme}
+    />
+  );
+
   return (
-    <div className="dither-page-shell flex h-screen text-atc-text">
-      <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
-        <MobileTopNav
-          left={
-            <Link
-              href="/"
-              className="mobile-top-nav-link"
-            >
-              ← ADSBao
-            </Link>
-          }
-          right={
-            <button
-              type="button"
-              className="mobile-top-nav-link flex items-center gap-1.5"
-              title={themeTitle}
-              onClick={cycleTheme}
-            >
-              <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>{themePreference}</span>
-            </button>
-          }
-        />
-
-        <div className="flex-none px-6 pt-7 pb-6">
-          <div className="flex items-center gap-3 max-[720px]:hidden">
-            <Logo size={28} className="text-atc-text" />
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-              About
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-3">
-            <span className="font-mono text-[22px] font-semibold tracking-[0.04em] text-atc-text">
-              ADSBao
+    <DitherPageShell
+      sectionLabel="About"
+      mobileLeft={
+        <Link href="/" className="mobile-top-nav-link">
+          ← ADSBao
+        </Link>
+      }
+      footerLeft={backLink}
+      footerThemeToggleClassName="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+      renderThemeToggle={renderThemeToggle}
+    >
+      <div className="flex-none grid grid-cols-2 gap-px mx-6 overflow-hidden border border-[var(--atc-line)] bg-[var(--atc-line)]">
+        {buildMeta.map((item) => (
+          <div
+            key={item.label}
+            className="flex min-w-0 flex-col gap-0.5 bg-atc-bg px-3 py-2.5"
+          >
+            <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-atc-faint">
+              {item.label}
             </span>
-            <span
-              aria-hidden="true"
-              className="h-px flex-1 bg-[var(--atc-line-strong)]"
-            />
-          </div>
-          <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
-            Airport explorer
-          </h1>
-          <p className="mt-3 text-[13px] leading-relaxed text-atc-dim">
-            {SITE_DESCRIPTION}
-          </p>
-        </div>
-
-        <div className="flex-none grid grid-cols-2 gap-px mx-6 overflow-hidden border border-[var(--atc-line)] bg-[var(--atc-line)]">
-          {buildMeta.map((item) => (
-            <div
-              key={item.label}
-              className="flex min-w-0 flex-col gap-0.5 bg-atc-bg px-3 py-2.5"
-            >
-              <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-atc-faint">
-                {item.label}
-              </span>
-              <span className="truncate text-[12px] font-semibold text-atc-text">
-                {item.value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex-none px-6 pt-6 pb-3">
-          <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-            <span>Data sources</span>
-            <span className="tracking-[0.18em] text-atc-dim">
-              {dataSources.length} feeds
+            <span className="truncate text-[12px] font-semibold text-atc-text">
+              {item.value}
             </span>
           </div>
+        ))}
+      </div>
+
+      <div className="flex-none px-6 pt-6 pb-3">
+        <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
+          <span>Data sources</span>
+          <span className="tracking-[0.18em] text-atc-dim">
+            {dataSources.length} feeds
+          </span>
         </div>
+      </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <ol className="px-6 divide-y divide-[var(--atc-line)]">
-            {dataSources.map((source) => (
-              <li key={source.glyph}>
-                <a
-                  href={source.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(event) => openExternalLink(event, source.href)}
-                  className="group grid grid-cols-[56px_minmax(0,1fr)] items-center gap-3 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] -mx-6 px-6"
-                >
-                  <span className="font-mono text-[16px] font-bold leading-[1] tracking-[0.02em] text-atc-orange">
-                    {source.glyph}
-                  </span>
-                  <span className="min-w-0">
-                    <strong className="block truncate text-[13px] font-semibold text-atc-text">
-                      {source.title}
-                    </strong>
-                    <small className="mt-0.5 block truncate text-[11.5px] text-atc-dim">
-                      {source.description}
-                    </small>
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ol>
-
-          <div className="px-6 pt-6 pb-6">
-            <a
-              href="https://github.com/orriduck/ADSBao"
-              target="_blank"
-              rel="noreferrer"
-              onClick={(event) =>
-                openExternalLink(event, "https://github.com/orriduck/ADSBao")
-              }
-              className="group flex items-center justify-between gap-3 border border-[var(--atc-line)] px-4 py-3.5 transition-colors hover:border-[var(--atc-line-strong)]"
-            >
-              <div className="flex items-center gap-3">
-                <span className="grid h-8 w-8 place-items-center rounded-full border border-[var(--atc-line)] text-atc-text">
-                  <Github className="h-3.5 w-3.5" aria-hidden="true" />
+      <div className="flex-1 overflow-y-auto">
+        <ol className="px-6 divide-y divide-[var(--atc-line)]">
+          {dataSources.map((source) => (
+            <li key={source.glyph}>
+              <a
+                href={source.href}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(event) => openExternalLink(event, source.href)}
+                className="group grid grid-cols-[56px_minmax(0,1fr)] items-center gap-3 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] -mx-6 px-6"
+              >
+                <span className="font-mono text-[16px] font-bold leading-[1] tracking-[0.02em] text-atc-orange">
+                  {source.glyph}
                 </span>
-                <div>
-                  <strong className="block text-[13px] font-semibold text-atc-text">
-                    orriduck / ADSBao
+                <span className="min-w-0">
+                  <strong className="block truncate text-[13px] font-semibold text-atc-text">
+                    {source.title}
                   </strong>
-                  <small className="mt-0.5 block text-[11.5px] text-atc-dim">
-                    MIT License
+                  <small className="mt-0.5 block truncate text-[11.5px] text-atc-dim">
+                    {source.description}
                   </small>
-                </div>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+
+        <div className="px-6 pt-6 pb-6">
+          <a
+            href="https://github.com/orriduck/ADSBao"
+            target="_blank"
+            rel="noreferrer"
+            onClick={(event) =>
+              openExternalLink(event, "https://github.com/orriduck/ADSBao")
+            }
+            className="group flex items-center justify-between gap-3 border border-[var(--atc-line)] px-4 py-3.5 transition-colors hover:border-[var(--atc-line-strong)]"
+          >
+            <div className="flex items-center gap-3">
+              <span className="grid h-8 w-8 place-items-center rounded-full border border-[var(--atc-line)] text-atc-text">
+                <Github className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              <div>
+                <strong className="block text-[13px] font-semibold text-atc-text">
+                  orriduck / ADSBao
+                </strong>
+                <small className="mt-0.5 block text-[11.5px] text-atc-dim">
+                  MIT License
+                </small>
               </div>
-              <ArrowUpRight
-                className="h-4 w-4 text-atc-faint transition-colors group-hover:text-atc-orange"
-                aria-hidden="true"
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className="flex-none items-center justify-between border-t border-[var(--atc-line)] px-6 py-3 max-[720px]:hidden sm:flex">
-          <Link
-            href="/"
-            className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text"
-          >
-            ← ADSBao
-          </Link>
-          <button
-            type="button"
-            className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
-            title={themeTitle}
-            onClick={cycleTheme}
-          >
-            <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>{themePreference}</span>
-          </button>
+            </div>
+            <ArrowUpRight
+              className="h-4 w-4 text-atc-faint transition-colors group-hover:text-atc-orange"
+              aria-hidden="true"
+            />
+          </a>
         </div>
       </div>
-
-      <div className="dither-page-background relative flex-1">
-        <DitherBackground />
-      </div>
-    </div>
+    </DitherPageShell>
   );
 }
