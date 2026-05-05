@@ -2,7 +2,8 @@
 
 A modern airport-monitoring HUD with dynamic airport search, METAR context, and nearby aircraft overlays.
 
-![Live App Screenshot](screenshot.png)
+<img width="1350" height="1020" alt="image" src="https://github.com/user-attachments/assets/2fbecb18-8d4a-470d-9e8a-a413418c4bd6" />
+
 
 ## Overview
 ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by public airport directory data.
