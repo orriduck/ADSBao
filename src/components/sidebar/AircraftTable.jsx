@@ -3,7 +3,7 @@
 import NumberFlow from "@number-flow/react";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 
-export default function AircraftTable({ aircraft = [] }) {
+export default function AircraftTable({ aircraft = [], fill = true }) {
   const sorted = [...aircraft].sort((a, b) => {
     const aAlt = Number(a.altitude) || 0;
     const bAlt = Number(b.altitude) || 0;
@@ -11,7 +11,7 @@ export default function AircraftTable({ aircraft = [] }) {
   });
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={`flex flex-col ${fill ? "h-full" : ""}`}>
       <div className="flex-none">
         <div className="flex items-baseline justify-between px-6 pt-6 pb-3">
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
@@ -30,7 +30,7 @@ export default function AircraftTable({ aircraft = [] }) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}>
         {sorted.length === 0 ? (
           <div className="px-6 py-10 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-atc-faint">
             No aircraft in range

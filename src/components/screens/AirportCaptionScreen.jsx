@@ -142,12 +142,14 @@ export default function AirportCaptionScreen({
 
       {/* Map area */}
       <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
-        <div
-          className={`airport-map-menu ${
-            isMobile ? "airport-map-menu--mobile" : "airport-map-menu--desktop"
-          }`}
-        >
-          {!(isMobile && sidebarOpen) && (
+        {!(isMobile && sidebarOpen) && (
+          <div
+            className={`airport-map-menu ${
+              isMobile
+                ? "airport-map-menu--mobile"
+                : "airport-map-menu--desktop"
+            }`}
+          >
             <button
               type="button"
               onClick={() => setSidebarOpen((v) => !v)}
@@ -156,17 +158,17 @@ export default function AirportCaptionScreen({
             >
               <PanelLeft className="h-4 w-4" />
             </button>
-          )}
 
-          <MapControlBar
-            activeZoom={mapZoom}
-            showMapLabels={showMapLabels}
-            showTelemetry={showTelemetry}
-            onZoom={setMapZoom}
-            onToggleMapLabels={() => setShowMapLabels((v) => !v)}
-            onToggleTelemetry={() => setShowTelemetry((v) => !v)}
-          />
-        </div>
+            <MapControlBar
+              activeZoom={mapZoom}
+              showMapLabels={showMapLabels}
+              showTelemetry={showTelemetry}
+              onZoom={setMapZoom}
+              onToggleMapLabels={() => setShowMapLabels((v) => !v)}
+              onToggleTelemetry={() => setShowTelemetry((v) => !v)}
+            />
+          </div>
+        )}
 
         <AirportMap
           icao={normalizedIcao}
@@ -183,7 +185,7 @@ export default function AirportCaptionScreen({
 
         {/* Mobile sidebar — full-width overlay on top of map */}
         {isMobile && sidebarOpen && (
-          <div className="absolute inset-0 z-[900]">
+          <div className="absolute inset-0 z-[1100]">
             <AirportSidebar
               {...sidebarProps}
               onClose={() => setSidebarOpen(false)}

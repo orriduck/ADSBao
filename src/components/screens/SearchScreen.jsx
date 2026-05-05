@@ -17,7 +17,7 @@ import {
   writeStoredTheme,
 } from "../../utils/theme.js";
 import { Input } from "../ui/input.jsx";
-import Dither from "../effects/Dither.jsx";
+import DitherBackground from "../effects/DitherBackground.jsx";
 import Logo from "../brand/Logo.jsx";
 
 const featuredAirports = [
@@ -232,8 +232,8 @@ export default function SearchScreen({ onOpenAirport }) {
   };
 
   return (
-    <div className="search-screen flex h-screen text-atc-text">
-      <div className="flex w-[440px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
+    <div className="dither-page-shell search-screen flex h-screen text-atc-text">
+      <div className="dither-page-panel flex w-[440px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
         <div className="flex-none px-6 pt-7 pb-6">
           <div className="flex items-center gap-3">
             <Logo size={28} className="text-atc-text" />
@@ -311,19 +311,8 @@ export default function SearchScreen({ onOpenAirport }) {
         </div>
       </div>
 
-      <div className="flex-1 relative">
-        <Dither
-          waveColor={[
-            0.6431372549019608, 0.7019607843137254, 0.792156862745098,
-          ]}
-          colorNum={15}
-          waveAmplitude={0}
-          waveSpeed={0.1}
-          waveFrequency={0}
-          mouseRadius={0.8}
-          disableAnimation={false}
-          enableMouseInteraction={false}
-        />
+      <div className="dither-page-background relative flex-1">
+        <DitherBackground />
       </div>
     </div>
   );

@@ -387,6 +387,46 @@ body {
     position: relative;
 }
 
+.dither-page-shell {
+    background: var(--atc-bg);
+    overflow: hidden;
+    position: relative;
+}
+
+.dither-page-panel {
+    position: relative;
+    z-index: 1;
+}
+
+.dither-page-background {
+    background: #05070b;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.dither-background {
+    background: #05070b;
+}
+
+.dither-background canvas {
+    display: block;
+}
+
+@media (max-width: 720px) {
+    .dither-page-background {
+        inset: 0;
+        position: absolute;
+        z-index: 0;
+    }
+
+    .dither-page-panel {
+        background: color-mix(in oklab, var(--atc-bg) 84%, transparent);
+        backdrop-filter: blur(10px);
+        box-shadow: 18px 0 40px rgba(0, 0, 0, 0.26);
+        width: min(88vw, 440px) !important;
+    }
+}
+
 .search-screen > main,
 .about-screen > main {
     position: relative;
@@ -2269,6 +2309,27 @@ body {
     height: 100dvh;
     min-width: 0;
     position: relative;
+}
+
+.airport-sidebar-panel--mobile {
+    border-right: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.airport-sidebar-panel--mobile .metar-token-strip {
+    gap: 6px;
+}
+
+.airport-sidebar-panel--mobile .metar-token-strip strong {
+    font-size: clamp(15px, 4.4vw, 18px);
+}
+
+.airport-sidebar-panel--mobile .weather-metar-code {
+    font-size: clamp(12px, 3.25vw, 14px);
+    line-height: 1.35;
+    max-height: none;
 }
 
 .airport-sidebar-rail {

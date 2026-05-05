@@ -22,9 +22,15 @@ export default function AirportSidebar({
   onBack,
   onClose = null,
 }) {
+  const isMobileOverlay = Boolean(onClose);
+
   return (
-    <div className="flex h-full flex-col border-r border-atc-line-strong bg-atc-bg">
-      <div className="flex h-11 flex-none items-center justify-between border-b border-atc-line-strong px-6 gap-4">
+    <div
+      className={`airport-sidebar-panel flex h-full flex-col border-r border-atc-line-strong bg-atc-bg ${
+        isMobileOverlay ? "airport-sidebar-panel--mobile" : ""
+      }`}
+    >
+      <div className="sticky top-0 z-20 flex h-11 flex-none items-center justify-between gap-4 border-b border-atc-line-strong bg-atc-bg px-6">
         <button
           type="button"
           onClick={onBack}
@@ -47,7 +53,13 @@ export default function AirportSidebar({
         )}
       </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div
+        className={
+          isMobileOverlay
+            ? "flex flex-none flex-col overflow-visible"
+            : "flex flex-1 flex-col overflow-hidden"
+        }
+      >
         <div className="flex-none">
           <AirportIdentity
             icao={icao}
@@ -69,8 +81,14 @@ export default function AirportSidebar({
             airportLon={lon}
           />
         </div>
-        <div className="flex-1 overflow-y-auto">
-          <AircraftTable aircraft={aircraft} />
+        <div
+          className={
+            isMobileOverlay
+              ? "flex-none overflow-visible"
+              : "flex-1 overflow-y-auto"
+          }
+        >
+          <AircraftTable aircraft={aircraft} fill={!isMobileOverlay} />
         </div>
       </div>
     </div>
