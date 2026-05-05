@@ -32,7 +32,7 @@ export default function Image() {
             fontSize: 28,
             letterSpacing: 4,
             textTransform: "uppercase",
-            color: "#ff7a33",
+            color: "#8fb7d6",
           }}
         >
           <span>{SITE_NAME}</span>

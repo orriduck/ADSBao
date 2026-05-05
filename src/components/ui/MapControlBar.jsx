@@ -46,7 +46,7 @@ export default function MapControlBar({
   onToggleTelemetry,
 }) {
   const controlZone = useRef(null);
-  const playerEl = useRef(null);
+  const playerHost = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
   const [currentTheme, setCurrentTheme] = useState(THEME_SYSTEM);
@@ -100,10 +100,19 @@ export default function MapControlBar({
   }, [currentTheme]);
 
   useEffect(() => {
+    const playerHostEl = playerHost.current;
+    if (!playerHostEl) return undefined;
+
     let cancelled = false;
+    let playerTarget = null;
+
     loadYouTubeApi().then(() => {
-      if (cancelled || !playerEl.current) return;
-      player.current = new window.YT.Player(playerEl.current, {
+      if (cancelled) return;
+
+      playerTarget = document.createElement("div");
+      playerHostEl.replaceChildren(playerTarget);
+
+      player.current = new window.YT.Player(playerTarget, {
         height: 1,
         width: 1,
         videoId: VIDEO_ID,
@@ -129,6 +138,8 @@ export default function MapControlBar({
       cancelled = true;
       player.current?.destroy();
       player.current = null;
+      playerTarget?.remove();
+      playerHostEl.replaceChildren();
     };
   }, []);
 
@@ -166,7 +177,7 @@ export default function MapControlBar({
 
   return (
     <>
-      <div ref={playerEl} className="yt-sink" />
+      <div ref={playerHost} className="yt-sink" aria-hidden="true" />
       <div ref={controlZone} className="map-ctrl-zone">
         <div
           id="map-action-drawer"

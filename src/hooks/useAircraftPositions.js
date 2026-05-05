@@ -16,6 +16,7 @@ export function useAircraftPositions(icao, lat, lon) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [feedStatus, setFeedStatus] = useState("live");
   const timerRef = useRef(null);
   const wasActiveRef = useRef(false);
   const hiddenSinceRef = useRef(0);
@@ -80,10 +81,14 @@ export function useAircraftPositions(icao, lat, lon) {
         addSnapshots(wideJson.ac);
         setAircraft([...seen.values()]);
         consecutiveFailuresRef.current = 0;
+        setFeedStatus("live");
         setLastUpdated(new Date());
         setInitialLoading(false);
       } catch (e) {
         consecutiveFailuresRef.current++;
+        if (isHttp4xxOr5xx(e)) {
+          setFeedStatus("infer");
+        }
         const isTimeout =
           e.name === "TimeoutError" ||
           /timed out|signal timed out/i.test(e.message);
@@ -99,6 +104,7 @@ export function useAircraftPositions(icao, lat, lon) {
     const start = () => {
       stop();
       consecutiveFailuresRef.current = 0;
+      setFeedStatus("live");
       setInitialLoading(true);
       setLastUpdated(null);
       poll();
@@ -130,6 +136,7 @@ export function useAircraftPositions(icao, lat, lon) {
       stop();
       setInitialLoading(false);
       setLastUpdated(null);
+      setFeedStatus("live");
     }
     document.addEventListener("visibilitychange", handleVisibility);
 
@@ -140,5 +147,14 @@ export function useAircraftPositions(icao, lat, lon) {
     };
   }, [icao, lat, lon]);
 
-  return { aircraft, loading, initialLoading, lastUpdated };
+  return { aircraft, loading, initialLoading, lastUpdated, feedStatus };
+}
+
+function isHttp4xxOr5xx(error) {
+  const status = Number(error?.status ?? error?.statusCode);
+  if (status >= 400 && status < 600) return true;
+  const match = String(error?.message || "").match(/\bHTTP\s+(\d{3})\b/i);
+  if (!match) return false;
+  const parsed = Number(match[1]);
+  return parsed >= 400 && parsed < 600;
 }

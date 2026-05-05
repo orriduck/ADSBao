@@ -33,6 +33,9 @@ export default function MapTileLayers({ theme = "dark", showLabels = true }) {
       subdomains: "abcd",
       maxZoom: 20,
     }).addTo(map);
+    // Tag the layer container so CSS can blend the base tiles into the
+    // canvas (ghost-lines-on-navy chart aesthetic, per .impeccable.md).
+    baseRef.current.getContainer()?.classList.add("atc-tile-base");
 
     labelRef.current?.removeFrom(map);
     if (showLabels) {
@@ -41,6 +44,7 @@ export default function MapTileLayers({ theme = "dark", showLabels = true }) {
         maxZoom: 20,
         opacity: variant.labelOpacity,
       }).addTo(map);
+      labelRef.current.getContainer()?.classList.add("atc-tile-labels");
     }
 
     return () => {

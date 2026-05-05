@@ -1,4 +1,4 @@
-const ACCENT = "#FF5A1F";
+const ACCENT = "var(--atc-accent, #244164)";
 
 export default function Logo({
   size = 24,

@@ -29,7 +29,7 @@ export default function AirportMap({
   lat = 0,
   lon = 0,
   zoom = 13,
-  accent = "#FF5A1F",
+  accent = "var(--atc-accent)",
   aircraft = [],
   airport = null,
   showMapLabels = true,
@@ -104,19 +104,14 @@ export default function AirportMap({
   const lonStr = lon
     ? `${Math.abs(lon).toFixed(2)}${lon >= 0 ? "E" : "W"}`
     : "";
-  const mapBackground = currentTheme === "light" ? "#d6dde8" : "#0e0e12";
   const mapLabelShadowColor =
-    currentTheme === "light" ? "rgba(248,250,252,0.95)" : "#0a0a0b";
+    currentTheme === "light" ? "rgba(250,249,245,0.95)" : "#041a38";
   const mapAttributionColor =
-    currentTheme === "light" ? "rgba(18,21,26,0.45)" : "rgba(245,245,247,0.28)";
+    currentTheme === "light" ? "rgba(14,26,43,0.45)" : "rgba(245,247,250,0.3)";
 
   return (
-    <div className="relative h-full w-full">
-      <div
-        ref={mapEl}
-        className="h-full w-full rounded-lg"
-        style={{ background: mapBackground }}
-      />
+    <div className="relative h-full w-full bg-atc-bg">
+      <div ref={mapEl} className="h-full w-full" />
 
       {mapInstance && (
         <MapContext.Provider value={mapInstance}>
@@ -154,7 +149,7 @@ export default function AirportMap({
       {mapInstance && (
         <>
           <div
-            className="pointer-events-none absolute left-3.5 top-3 font-mono text-[10px] font-semibold tracking-[2px]"
+            className="pointer-events-none absolute left-3.5 top-[56px] font-mono text-[10px] font-semibold tracking-[2px]"
             style={{
               color: accent,
               textShadow: `0 0 6px ${mapLabelShadowColor}`,

@@ -2,48 +2,64 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
-import MobileStatusBar from "../panels/MobileStatusBar";
-import TrafficPanel from "../panels/TrafficPanel";
-import WeatherPanel from "../panels/WeatherPanel";
-import WikiPanel from "../panels/WikiPanel";
+import { PanelLeft } from "lucide-react";
+import AirportSidebar from "../sidebar/AirportSidebar";
 import MapControlBar from "../ui/MapControlBar";
 import Orb from "../ui/Orb";
 import { useAircraftPositions } from "../../hooks/useAircraftPositions.js";
-import { useAirportWiki } from "../../hooks/useAirportWiki.js";
 import { useFlightRoutes } from "../../hooks/useFlightRoutes.js";
 import { useMetar } from "../../hooks/useMetar.js";
-import { useScrollParallax } from "../../hooks/useScrollParallax.js";
-import {
-  DEPARTURE,
-  ARRIVAL,
-  UNKNOWN,
-  resolveMovement,
-} from "../../utils/aircraftMovement.js";
+import { resolveMovement } from "../../utils/aircraftMovement.js";
 import { AIRPORT_FALLBACKS, COORDS } from "../../data/airportFallbacks.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { formatLocalFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
+import {
+  getAirportSidebarMode,
+  getAirportSidebarOpenForMode,
+} from "../../utils/sidebarDisplay.js";
 
 const AirportMap = dynamic(() => import("../map/AirportMap"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-atc-card font-mono text-[11px] tracking-widest text-atc-faint">
-      LOADING MAP...
+    <div className="flex h-full w-full items-center justify-center bg-atc-bg font-mono text-[11px] uppercase tracking-[0.2em] text-atc-faint">
+      Loading map…
     </div>
   ),
 });
 
 const ADSB_LOADING_FADE_MS = 1100;
+const DESKTOP_SIDEBAR_WIDTH = "25rem";
 
 export default function AirportCaptionScreen({
   icao = "",
   airport = null,
   onBack,
 }) {
+  const previousSidebarMode = useRef(null);
+  const [sidebarMode, setSidebarMode] = useState("desktop");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mapZoom, setMapZoom] = useState(ZOOM_APPROACH);
   const [showMapLabels, setShowMapLabels] = useState(true);
   const [showTelemetry, setShowTelemetry] = useState(true);
-  const screenRef = useRef(null);
-  const parallax = useScrollParallax(screenRef);
+  const isMobile = sidebarMode === "mobile";
+
+  useEffect(() => {
+    const syncSidebarMode = () => {
+      setSidebarMode(getAirportSidebarMode(window.innerWidth));
+    };
+
+    syncSidebarMode();
+    window.addEventListener("resize", syncSidebarMode);
+
+    return () => window.removeEventListener("resize", syncSidebarMode);
+  }, []);
+
+  useEffect(() => {
+    if (!sidebarMode || previousSidebarMode.current === sidebarMode) return;
+
+    previousSidebarMode.current = sidebarMode;
+    setSidebarOpen(getAirportSidebarOpenForMode(sidebarMode));
+  }, [sidebarMode]);
 
   const normalizedIcao = String(airport?.icao || icao || "").toUpperCase();
   const airportFallback = AIRPORT_FALLBACKS[normalizedIcao] || null;
@@ -51,6 +67,8 @@ export default function AirportCaptionScreen({
     airport?.iata || airportFallback?.iata || normalizedIcao;
   const airportName =
     airport?.name || airportFallback?.name || normalizedIcao || "Airport";
+  const airportCity = airport?.city || airportFallback?.city || "";
+  const airportCountry = airport?.country || airportFallback?.country || "";
   const airportLat = COORDS[normalizedIcao]?.[0] || airport?.lat || 0;
   const airportLon = COORDS[normalizedIcao]?.[1] || airport?.lon || 0;
 
@@ -64,6 +82,7 @@ export default function AirportCaptionScreen({
     aircraft,
     initialLoading: aircraftInitialLoading,
     lastUpdated,
+    feedStatus,
   } = useAircraftPositions(normalizedIcao, airportLat, airportLon);
   const { routesByCallsign } = useFlightRoutes(aircraft);
 
@@ -73,7 +92,11 @@ export default function AirportCaptionScreen({
         const key = normalizeCallsign(item.callsign);
         const route = routesByCallsign[key] || null;
         const localAirport = { iata: airportCodeLabel, icao: normalizedIcao };
-        const movement = resolveMovement(route, normalizedIcao, airportCodeLabel);
+        const movement = resolveMovement(
+          route,
+          normalizedIcao,
+          airportCodeLabel,
+        );
         return {
           ...item,
           flightRoute: route,
@@ -88,128 +111,91 @@ export default function AirportCaptionScreen({
     [aircraft, routesByCallsign, airportCodeLabel, normalizedIcao],
   );
 
-  const wikiAirport = useMemo(
-    () => ({
-      name: airportName,
-      icao: normalizedIcao,
-      iata: airportCodeLabel,
-    }),
-    [airportName, normalizedIcao, airportCodeLabel],
-  );
-  const { summary: wikiSummary, loading: wikiLoading } =
-    useAirportWiki(wikiAirport);
-
-  const coordinatesLabel = useMemo(() => {
-    if (!airportLat || !airportLon) return "Coordinates pending";
-    const lat = `${Math.abs(airportLat).toFixed(2)} ${airportLat >= 0 ? "N" : "S"}`;
-    const lon = `${Math.abs(airportLon).toFixed(2)} ${airportLon >= 0 ? "E" : "W"}`;
-    return `${lat} / ${lon}`;
-  }, [airportLat, airportLon]);
-
-  const trafficCounts = useMemo(
-    () =>
-      aircraftWithRoutes.reduce(
-        (counts, item) => {
-          if (item.movement === DEPARTURE) counts.departure += 1;
-          else if (item.movement === ARRIVAL) counts.arrival += 1;
-          else counts.unknown += 1;
-          return counts;
-        },
-        { departure: 0, arrival: 0, unknown: 0 },
-      ),
-    [aircraftWithRoutes],
-  );
+  const sidebarProps = {
+    icao: normalizedIcao,
+    iata: airportCodeLabel,
+    name: airportName,
+    city: airportCity,
+    country: airportCountry,
+    lat: airportLat,
+    lon: airportLon,
+    metar,
+    metarRaw,
+    metarLoading,
+    metarError,
+    aircraft: aircraftWithRoutes,
+    lastUpdated,
+    feedStatus,
+    onBack,
+  };
 
   return (
-    <div
-      ref={screenRef}
-      className="airport-screen relative min-h-screen bg-atc-bg font-sans text-atc-text"
-      style={{
-        "--mobile-breadcrumb-opacity": parallax.breadcrumbOpacity,
-        "--mobile-title-opacity": parallax.titleOpacity,
-        "--mobile-compact-title-opacity": parallax.compactTitleOpacity,
-        "--mobile-top-mask-opacity": parallax.topMaskOpacity,
-      }}
-    >
-      <div className="airport-map-layer absolute inset-0 z-0">
+    <div className="flex h-dvh overflow-hidden font-sans text-atc-text">
+      {/* Desktop sidebar — inline, matching the search panel width. */}
+      {!isMobile && (
+        <div
+          className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
+          style={{ width: sidebarOpen ? DESKTOP_SIDEBAR_WIDTH : "0" }}
+        >
+          <div className="h-full" style={{ width: DESKTOP_SIDEBAR_WIDTH }}>
+            <AirportSidebar {...sidebarProps} />
+          </div>
+        </div>
+      )}
+
+      {/* Map area */}
+      <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
+        {!(isMobile && sidebarOpen) && (
+          <div
+            className={`airport-map-menu ${
+              isMobile
+                ? "airport-map-menu--mobile"
+                : "airport-map-menu--desktop"
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((v) => !v)}
+              className="airport-map-menu-toggle"
+              aria-label="Toggle sidebar"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </button>
+
+            <MapControlBar
+              activeZoom={mapZoom}
+              showMapLabels={showMapLabels}
+              showTelemetry={showTelemetry}
+              onZoom={setMapZoom}
+              onToggleMapLabels={() => setShowMapLabels((v) => !v)}
+              onToggleTelemetry={() => setShowTelemetry((v) => !v)}
+            />
+          </div>
+        )}
+
         <AirportMap
           icao={normalizedIcao}
           lat={airportLat}
           lon={airportLon}
           zoom={mapZoom}
-          accent="#FF5A1F"
+          accent="var(--atc-accent)"
           aircraft={aircraftWithRoutes}
           airport={airport}
           showMapLabels={showMapLabels}
           showTelemetry={showTelemetry}
         />
-      </div>
+        <AircraftDataLoadingOverlay active={aircraftInitialLoading} />
 
-      <div className="airport-map-warmth absolute inset-0 z-10 bg-[radial-gradient(circle_at_18%_14%,rgba(255,90,31,0.14),transparent_28%)]" />
-      <AircraftDataLoadingOverlay active={aircraftInitialLoading} />
-      <div className="mobile-map-dim" />
-      <div className="mobile-top-mask" />
-      <div className="mobile-compact-title" aria-hidden="true">
-        <span className="mobile-compact-code">{airportCodeLabel}</span>
-        <span className="mobile-compact-name">{airportName}</span>
-      </div>
-
-      <MapControlBar
-        activeZoom={mapZoom}
-        showMapLabels={showMapLabels}
-        showTelemetry={showTelemetry}
-        onZoom={setMapZoom}
-        onToggleMapLabels={() => setShowMapLabels((value) => !value)}
-        onToggleTelemetry={() => setShowTelemetry((value) => !value)}
-      />
-
-      <div className="airport-content relative z-20 flex min-h-screen flex-col px-5 py-5 md:px-8 lg:px-10">
-        <header className="airport-header">
-          <div className="airport-hero">
-            <nav className="airport-breadcrumb" aria-label="Airport navigation">
-              <button className="airport-back" onClick={onBack} type="button">
-                ADSBao
-              </button>
-              <span>/</span>
-              <span className="airport-breadcrumb-current">{airportName}</span>
-            </nav>
-
-            <div className="airport-title-row">
-              <span className="airport-code">{airportCodeLabel}</span>
-              <div className="airport-title-stack">
-                <h1 className="airport-title">{airportName}</h1>
-              </div>
-            </div>
+        {/* Mobile sidebar — full-width overlay on top of map */}
+        {isMobile && sidebarOpen && (
+          <div className="absolute inset-0 z-[1100]">
+            <AirportSidebar
+              {...sidebarProps}
+              onClose={() => setSidebarOpen(false)}
+            />
           </div>
-          <div className="airport-coordinates">
-            <span>{coordinatesLabel}</span>
-          </div>
-        </header>
-
-        <div className="dashboard-updated">
-          Updated {fmtUpdated(lastUpdated)}
-        </div>
-
-        <main className="airport-dashboard">
-          <WeatherPanel
-            airportCode={airportCodeLabel}
-            airportLat={airportLat}
-            airportLon={airportLon}
-            metar={metar}
-            metarRaw={metarRaw}
-            metarLoading={metarLoading}
-            metarError={metarError}
-          />
-          <TrafficPanel aircraft={aircraft} trafficCounts={trafficCounts} />
-          <WikiPanel
-            wikiSummary={wikiSummary}
-            wikiLoading={wikiLoading}
-            airportName={airportName}
-          />
-        </main>
+        )}
       </div>
-
-      <MobileStatusBar metar={metar} trafficCounts={trafficCounts} />
     </div>
   );
 }
@@ -264,25 +250,25 @@ function AircraftDataLoadingOverlay({ active }) {
     };
   }, [active, visible]);
 
-  if (!visible) return null;
-
   return (
     <div
       className={`adsb-loading-overlay ${exiting ? "is-exiting" : ""}`}
       aria-label="Loading ADS-B aircraft data"
+      aria-hidden={!visible}
       onAnimationEnd={(event) => {
         if (event.currentTarget !== event.target || !exiting) return;
         setVisible(false);
         setExiting(false);
       }}
       role="status"
+      style={{ display: visible ? undefined : "none" }}
     >
       <div className="adsb-loading-orb-shell" aria-hidden="true">
         <Orb
-          backgroundColor={isLightTheme ? "#f8fafc" : "#0a0a0b"}
-          color1="#ff5a1f"
-          color2={isLightTheme ? "#ffd29a" : "#ffb15f"}
-          color3={isLightTheme ? "#fff4ea" : "#5f160b"}
+          backgroundColor={isLightTheme ? "#ffffff" : "#05070b"}
+          color1={isLightTheme ? "#244164" : "#8fb7d6"}
+          color2={isLightTheme ? "#6f8fab" : "#c7e0f5"}
+          color3={isLightTheme ? "#d9e7f2" : "#244164"}
           forceHoverState={false}
           hoverIntensity={0}
           hue={0}
@@ -296,13 +282,3 @@ function AircraftDataLoadingOverlay({ active }) {
     </div>
   );
 }
-
-const fmtUpdated = (date) => {
-  if (!date) return "-";
-  return date.toLocaleTimeString([], {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-};
