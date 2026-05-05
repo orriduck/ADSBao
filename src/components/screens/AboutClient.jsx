@@ -1,8 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Github } from "lucide-react";
+import { ArrowUpRight, Github, Monitor, Moon, Sun } from "lucide-react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { SITE_DESCRIPTION } from "../../config/site.js";
+import {
+  THEME_DARK,
+  THEME_LIGHT,
+  THEME_SYSTEM,
+  applyThemePreference,
+  initThemePreference,
+  nextTheme,
+  writeStoredTheme,
+} from "../../utils/theme.js";
 import Dither from "../effects/Dither.jsx";
 import Logo from "../brand/Logo.jsx";
 
@@ -17,7 +27,8 @@ const dataSources = [
   {
     glyph: "METAR",
     title: "Aviation Weather METAR",
-    description: "Live observations and decoded sky conditions for each airport.",
+    description:
+      "Live observations and decoded sky conditions for each airport.",
     host: "aviationweather.gov",
     href: "https://aviationweather.gov/data/api/",
   },
@@ -31,14 +42,16 @@ const dataSources = [
   {
     glyph: "ROUTE",
     title: "adsbdb Flight Routes",
-    description: "Callsign-to-route lookup for origin and destination airports.",
+    description:
+      "Callsign-to-route lookup for origin and destination airports.",
     host: "adsbdb.com",
     href: "https://www.adsbdb.com/",
   },
   {
     glyph: "WX",
     title: "Open-Meteo Current Weather",
-    description: "Local temperature, wind, and conditions for the airport area.",
+    description:
+      "Local temperature, wind, and conditions for the airport area.",
     host: "open-meteo.com",
     href: "https://open-meteo.com/",
   },
@@ -66,6 +79,46 @@ const dataSources = [
 ];
 
 export default function AboutClient() {
+  const [themePreference, setThemePreference] = useState(THEME_SYSTEM);
+  const mediaQueryList = useRef(null);
+
+  useEffect(() => {
+    mediaQueryList.current = window.matchMedia("(prefers-color-scheme: dark)");
+    setThemePreference(
+      initThemePreference({ mediaQueryList: mediaQueryList.current }).preference,
+    );
+    const listener = () => {
+      if (themePreference === THEME_SYSTEM) {
+        applyThemePreference({
+          theme: THEME_SYSTEM,
+          mediaQueryList: mediaQueryList.current,
+        });
+      }
+    };
+    mediaQueryList.current.addEventListener("change", listener);
+    return () => mediaQueryList.current?.removeEventListener("change", listener);
+  }, [themePreference]);
+
+  const themeTitle = useMemo(() => {
+    if (themePreference === THEME_LIGHT) return "Theme: Light (click to switch)";
+    if (themePreference === THEME_DARK) return "Theme: Dark (click to switch)";
+    return "Theme: System (click to switch)";
+  }, [themePreference]);
+
+  const ThemeIcon =
+    themePreference === THEME_LIGHT
+      ? Sun
+      : themePreference === THEME_DARK
+        ? Moon
+        : Monitor;
+
+  const cycleTheme = () => {
+    const next = nextTheme(themePreference);
+    setThemePreference(next);
+    writeStoredTheme(next);
+    applyThemePreference({ theme: next, mediaQueryList: mediaQueryList.current });
+  };
+
   return (
     <div className="flex h-screen text-atc-text">
       <div className="flex w-[440px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
@@ -93,7 +146,7 @@ export default function AboutClient() {
           </p>
         </div>
 
-        <div className="flex-none grid grid-cols-2 gap-px mx-6 overflow-hidden rounded-[var(--atc-radius-control)] border border-[var(--atc-line)] bg-[var(--atc-line)]">
+        <div className="flex-none grid grid-cols-2 gap-px mx-6 overflow-hidden border border-[var(--atc-line)] bg-[var(--atc-line)]">
           {buildMeta.map((item) => (
             <div
               key={item.label}
@@ -112,7 +165,9 @@ export default function AboutClient() {
         <div className="flex-none px-6 pt-6 pb-3">
           <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
             <span>Data sources</span>
-            <span className="tracking-[0.18em] text-atc-dim">{dataSources.length} feeds</span>
+            <span className="tracking-[0.18em] text-atc-dim">
+              {dataSources.length} feeds
+            </span>
           </div>
         </div>
 
@@ -147,7 +202,7 @@ export default function AboutClient() {
               href="https://github.com/orriduck/ADSBao"
               target="_blank"
               rel="noreferrer"
-              className="group flex items-center justify-between gap-3 rounded-[var(--atc-radius-control)] border border-[var(--atc-line)] px-4 py-3.5 transition-colors hover:border-[var(--atc-line-strong)]"
+              className="group flex items-center justify-between gap-3 border border-[var(--atc-line)] px-4 py-3.5 transition-colors hover:border-[var(--atc-line-strong)]"
             >
               <div className="flex items-center gap-3">
                 <span className="grid h-8 w-8 place-items-center rounded-full border border-[var(--atc-line)] text-atc-text">
@@ -170,13 +225,22 @@ export default function AboutClient() {
           </div>
         </div>
 
-        <div className="flex-none border-t border-[var(--atc-line)] px-6 py-3">
+        <div className="flex-none flex items-center justify-between border-t border-[var(--atc-line)] px-6 py-3">
           <Link
             href="/"
             className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text"
           >
             ← ADSBao
           </Link>
+          <button
+            type="button"
+            className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+            title={themeTitle}
+            onClick={cycleTheme}
+          >
+            <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{themePreference}</span>
+          </button>
         </div>
       </div>
 
@@ -187,9 +251,11 @@ export default function AboutClient() {
           ]}
           colorNum={15}
           waveAmplitude={0}
-          waveSpeed={0.07}
+          waveSpeed={0.1}
           waveFrequency={0}
           mouseRadius={0.8}
+          disableAnimation={false}
+          enableMouseInteraction={false}
         />
       </div>
     </div>

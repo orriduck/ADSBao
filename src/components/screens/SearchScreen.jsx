@@ -16,7 +16,6 @@ import {
   nextTheme,
   writeStoredTheme,
 } from "../../utils/theme.js";
-import { Button } from "../ui/button.jsx";
 import { Input } from "../ui/input.jsx";
 import Dither from "../effects/Dither.jsx";
 import Logo from "../brand/Logo.jsx";
@@ -92,7 +91,6 @@ const featuredAirports = [
 
 export default function SearchScreen({ onOpenAirport }) {
   const [q, setQ] = useState("");
-  const [focused, setFocused] = useState(false);
   const [results, setResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
@@ -103,7 +101,8 @@ export default function SearchScreen({ onOpenAirport }) {
   useEffect(() => {
     mediaQueryList.current = window.matchMedia("(prefers-color-scheme: dark)");
     setThemePreference(
-      initThemePreference({ mediaQueryList: mediaQueryList.current }).preference,
+      initThemePreference({ mediaQueryList: mediaQueryList.current })
+        .preference,
     );
     const listener = () => {
       if (themePreference === THEME_SYSTEM) {
@@ -114,11 +113,13 @@ export default function SearchScreen({ onOpenAirport }) {
       }
     };
     mediaQueryList.current.addEventListener("change", listener);
-    return () => mediaQueryList.current?.removeEventListener("change", listener);
+    return () =>
+      mediaQueryList.current?.removeEventListener("change", listener);
   }, [themePreference]);
 
   const themeTitle = useMemo(() => {
-    if (themePreference === THEME_LIGHT) return "Theme: Light (click to switch)";
+    if (themePreference === THEME_LIGHT)
+      return "Theme: Light (click to switch)";
     if (themePreference === THEME_DARK) return "Theme: Dark (click to switch)";
     return "Theme: System (click to switch)";
   }, [themePreference]);
@@ -134,7 +135,10 @@ export default function SearchScreen({ onOpenAirport }) {
     const next = nextTheme(themePreference);
     setThemePreference(next);
     writeStoredTheme(next);
-    applyThemePreference({ theme: next, mediaQueryList: mediaQueryList.current });
+    applyThemePreference({
+      theme: next,
+      mediaQueryList: mediaQueryList.current,
+    });
   };
 
   const searchRows = useMemo(() => {
@@ -187,7 +191,9 @@ export default function SearchScreen({ onOpenAirport }) {
           if (requestId !== activeRequestId.current) return;
           console.error("Airport search failed", err);
           setResults([]);
-          setSearchError(err?.message || "Airport directory is unavailable right now");
+          setSearchError(
+            err?.message || "Airport directory is unavailable right now",
+          );
         } finally {
           if (requestId === activeRequestId.current) setSearchLoading(false);
         }
@@ -254,23 +260,17 @@ export default function SearchScreen({ onOpenAirport }) {
 
         <form
           onSubmit={doSearch}
-          className={`flex-none mx-6 flex items-center gap-3 rounded-[var(--atc-radius-control)] border px-4 py-3.5 transition-[border-color,box-shadow] duration-150 ${
-            focused
-              ? "border-atc-orange/70 shadow-[0_0_0_1px_rgba(36,65,100,0.18)_inset]"
-              : "border-[var(--atc-line)]"
-          }`}
+          className="flex-none mx-6 flex items-center gap-3 py-3.5"
         >
           <Search className="h-5 w-5 shrink-0 text-atc-orange" />
           <Input
             value={q}
             autoFocus
             onChange={(event) => setQ(event.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
             className="flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
             placeholder="Search ICAO, IATA, city, or name"
           />
-          <kbd className="hidden shrink-0 items-center rounded-[var(--atc-radius-control)] border border-[var(--atc-line)] px-2 py-1 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
+          <kbd className="hidden shrink-0 items-center px-2 py-1 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
             {searchLoading ? "..." : "enter"}
           </kbd>
         </form>
@@ -291,28 +291,23 @@ export default function SearchScreen({ onOpenAirport }) {
         </div>
 
         <div className="flex-none flex items-center justify-between border-t border-[var(--atc-line)] px-6 py-3">
-          <Button
-            asChild
-            variant="atcChip"
-            size="sm"
-            className="gap-1.5 text-[11px] tracking-[0.2px]"
+          <Link
+            href="/about"
+            title="About ADSBao"
+            className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
           >
-            <Link href="/about" title="About ADSBao">
-              <Info className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>About</span>
-            </Link>
-          </Button>
-          <Button
+            <Info className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>About</span>
+          </Link>
+          <button
             type="button"
-            variant="atcChip"
-            size="sm"
-            className="gap-1.5 text-[11px] capitalize tracking-[0.2px]"
+            className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
             title={themeTitle}
             onClick={cycleTheme}
           >
             <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
             <span>{themePreference}</span>
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -323,9 +318,11 @@ export default function SearchScreen({ onOpenAirport }) {
           ]}
           colorNum={15}
           waveAmplitude={0}
-          waveSpeed={0.07}
+          waveSpeed={0.1}
           waveFrequency={0}
           mouseRadius={0.8}
+          disableAnimation={false}
+          enableMouseInteraction={false}
         />
       </div>
     </div>
@@ -334,53 +331,59 @@ export default function SearchScreen({ onOpenAirport }) {
 
 function SearchResults({ q, rows, loading, error, countLabel, onOpen }) {
   return (
-    <div className="px-6 pt-5">
-      <div className="flex items-center justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-        <span>Search results</span>
-        <span className="tracking-[0.18em] text-atc-dim">{countLabel}</span>
+    <>
+      <div className="px-6 pt-5 pb-3">
+        <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
+          <span>Search results</span>
+          <span className="tracking-[0.18em] text-atc-dim">{countLabel}</span>
+        </div>
       </div>
 
       {loading && !rows.length ? (
-        <div className="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
+        <div className="px-6 py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
           Searching airports...
         </div>
       ) : error ? (
-        <div className="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
+        <div className="px-6 py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
           {error}
         </div>
       ) : !rows.length ? (
-        <div className="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
+        <div className="px-6 py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
           No airport matched &quot;{q.trim()}&quot;.
         </div>
       ) : (
-        <ul className="divide-y divide-[var(--atc-line)]">
+        <ul className="px-6 divide-y divide-[var(--atc-line)]">
           {rows.map((airport) => (
-            <AirportRow key={airport.icao || airport.code || airport.name} airport={airport} onOpen={onOpen} />
+            <AirportRow
+              key={airport.icao || airport.code || airport.name}
+              airport={airport}
+              onOpen={onOpen}
+            />
           ))}
         </ul>
       )}
-    </div>
+    </>
   );
 }
 
 function FeaturedAirports({ onOpen }) {
   return (
-    <div className="px-6 pt-5">
-      <div className="flex items-center justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-        <span>Featured airports</span>
-        <span className="tracking-[0.18em] text-atc-dim">{featuredAirports.length}</span>
+    <>
+      <div className="px-6 pt-5 pb-3">
+        <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
+          <span>Featured airports</span>
+          <span className="tracking-[0.18em] text-atc-dim">
+            {featuredAirports.length}
+          </span>
+        </div>
       </div>
 
-      <ul className="divide-y divide-[var(--atc-line)]">
+      <ul className="px-6 divide-y divide-[var(--atc-line)]">
         {featuredAirports.map((airport) => (
-          <AirportRow
-            key={airport.icao}
-            airport={airport}
-            onOpen={onOpen}
-          />
+          <AirportRow key={airport.icao} airport={airport} onOpen={onOpen} />
         ))}
       </ul>
-    </div>
+    </>
   );
 }
 
@@ -389,10 +392,10 @@ function AirportRow({ airport, onOpen }) {
     <li>
       <button
         type="button"
-        className="grid w-full grid-cols-[56px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
+        className="grid w-full grid-cols-[56px_minmax(0,1fr)] items-center gap-3 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] -mx-6 px-6"
         onClick={() => onOpen(airport)}
       >
-        <span className="font-mono text-[20px] font-bold leading-[0.9] tracking-[0.02em] text-atc-orange">
+        <span className="font-mono text-[16px] font-bold leading-[1] tracking-[0.02em] text-atc-orange">
           {airport.iata || airport.icao || airport.code}
         </span>
         <span className="min-w-0">

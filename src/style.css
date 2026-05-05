@@ -189,8 +189,8 @@
     );
 
     --atc-radius-pill: 999px;
-    --atc-radius-panel: 20px;
-    --atc-radius-control: 12px;
+    --atc-radius-panel: 4px;
+    --atc-radius-control: 2px;
 
     --background: var(--atc-bg);
     --foreground: var(--atc-text);
@@ -255,8 +255,8 @@
     --aircraft-ground: #7fa88e;
 
     --atc-radius-pill: 999px;
-    --atc-radius-panel: 20px;
-    --atc-radius-control: 12px;
+    --atc-radius-panel: 4px;
+    --atc-radius-control: 2px;
 
     --background: var(--atc-bg);
     --foreground: var(--atc-text);
