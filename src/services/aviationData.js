@@ -1,4 +1,11 @@
 import { withAuditLogging } from "../utils/apiLogger.js";
+import {
+  AIRCRAFT_TRAFFIC_CONFIG,
+  AVIATION_PROXY_BASES,
+  AVIATION_REQUEST_TIMEOUT_MS,
+  FLIGHT_ROUTE_LOOKUP_CONFIG,
+} from "../config/aviation.js";
+import { normalizeCallsign } from "../utils/callsign.js";
 
 const env = typeof process !== "undefined" ? process.env : {};
 
@@ -63,21 +70,20 @@ export const createRateLimiter = ({ maxTokens = 3, refillMs = 1000 } = {}) => {
   return { acquire, onRateLimited, release };
 };
 
-export const DEFAULT_AIRCRAFT_POLL_MS = 3_000;
-export const DEFAULT_WIDE_RANGE_NM = 20;
-export const DEFAULT_CLOSE_RANGE_NM = 3;
-
-const DEFAULT_METAR_BASE = "/api/proxy/metar";
-const DEFAULT_AIRCRAFT_POSITIONS_BASE = "/api/proxy/aircraft/positions";
-const DEFAULT_FLIGHT_ROUTE_BASE = "/api/proxy/flight-routes/callsign";
-const DEFAULT_LOCAL_WEATHER_BASE = "/api/proxy/local-weather";
+export const DEFAULT_AIRCRAFT_POLL_MS = AIRCRAFT_TRAFFIC_CONFIG.pollMs;
+export const DEFAULT_WIDE_RANGE_NM = AIRCRAFT_TRAFFIC_CONFIG.wideRangeNm;
+export const DEFAULT_CLOSE_RANGE_NM = AIRCRAFT_TRAFFIC_CONFIG.closeRangeNm;
 
 const createTimeoutSignal = (timeoutMs) =>
   typeof AbortSignal !== "undefined" && AbortSignal.timeout
     ? AbortSignal.timeout(timeoutMs)
     : undefined;
 
-const fetchJson = async (fetchImpl, url, { timeoutMs = 14_000 } = {}) => {
+const fetchJson = async (
+  fetchImpl,
+  url,
+  { timeoutMs = AVIATION_REQUEST_TIMEOUT_MS.json } = {},
+) => {
   const response = await fetchImpl(url, {
     signal: createTimeoutSignal(timeoutMs),
     headers: {
@@ -95,7 +101,7 @@ const fetchJson = async (fetchImpl, url, { timeoutMs = 14_000 } = {}) => {
 
 export const createMetarClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
-  baseUrl = env.NEXT_PUBLIC_METAR_PROXY_BASE || DEFAULT_METAR_BASE,
+  baseUrl = env.NEXT_PUBLIC_METAR_PROXY_BASE || AVIATION_PROXY_BASES.metar,
 } = {}) => {
   if (!fetchImpl) throw new Error("METAR client requires fetch support");
 
@@ -116,7 +122,7 @@ export const createMetarClient = ({
         auditedFetch,
         `${baseUrl}/${encodeURIComponent(normalized)}`,
         {
-          timeoutMs: 10_000,
+          timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.metar,
         },
       );
     },
@@ -125,7 +131,8 @@ export const createMetarClient = ({
 
 export const createLocalWeatherClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
-  baseUrl = env.NEXT_PUBLIC_LOCAL_WEATHER_BASE || DEFAULT_LOCAL_WEATHER_BASE,
+  baseUrl =
+    env.NEXT_PUBLIC_LOCAL_WEATHER_BASE || AVIATION_PROXY_BASES.localWeather,
 } = {}) => {
   if (!fetchImpl) throw new Error("Local weather client requires fetch support");
 
@@ -153,7 +160,7 @@ export const createLocalWeatherClient = ({
           String(numericLon),
         )}`,
         {
-          timeoutMs: 10_000,
+          timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.localWeather,
         },
       );
     },
@@ -163,7 +170,8 @@ export const createLocalWeatherClient = ({
 export const createAircraftPositionClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
-    env.NEXT_PUBLIC_AIRCRAFT_POSITIONS_BASE || DEFAULT_AIRCRAFT_POSITIONS_BASE,
+    env.NEXT_PUBLIC_AIRCRAFT_POSITIONS_BASE ||
+    AVIATION_PROXY_BASES.aircraftPositions,
 } = {}) => {
   if (!fetchImpl)
     throw new Error("Aircraft position client requires fetch support");
@@ -189,7 +197,7 @@ export const createAircraftPositionClient = ({
         auditedFetch,
         `${baseUrl}/${encodedLat}/${encodedLon}/${encodedDist}`,
         {
-          timeoutMs: DEFAULT_AIRCRAFT_POLL_MS,
+          timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.aircraftPositions,
         },
       );
     },
@@ -251,15 +259,10 @@ export const normalizeFlightRoute = (payload) => {
   };
 };
 
-const normalizeCallsign = (callsign) =>
-  String(callsign || "")
-    .trim()
-    .toUpperCase()
-    .replace(/\s+/g, "");
-
 export const createFlightRouteClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
-  baseUrl = env.NEXT_PUBLIC_FLIGHT_ROUTE_BASE || DEFAULT_FLIGHT_ROUTE_BASE,
+  baseUrl =
+    env.NEXT_PUBLIC_FLIGHT_ROUTE_BASE || AVIATION_PROXY_BASES.flightRoute,
 } = {}) => {
   if (!fetchImpl) throw new Error("Flight route client requires fetch support");
 
@@ -273,7 +276,10 @@ export const createFlightRouteClient = ({
   // Global rate limiter shared across all calls to the same endpoint.
   // 3 requests per second is conservative — adsbdb's exact limit is unknown,
   // but empirically we saw 429s at ~6 concurrent requests per 3s poll.
-  const limiter = createRateLimiter({ maxTokens: 3, refillMs: 1000 });
+  const limiter = createRateLimiter({
+    maxTokens: FLIGHT_ROUTE_LOOKUP_CONFIG.rateLimitMaxTokens,
+    refillMs: FLIGHT_ROUTE_LOOKUP_CONFIG.rateLimitRefillMs,
+  });
 
   let consecutiveBackoffMs = 0;
 
@@ -287,10 +293,10 @@ export const createFlightRouteClient = ({
       const response = await auditedFetch(
         `${baseUrl}/${encodeURIComponent(normalized)}`,
         {
-          signal: createTimeoutSignal(10_000),
+          signal: createTimeoutSignal(AVIATION_REQUEST_TIMEOUT_MS.flightRoute),
           headers: {
             Accept: "application/json",
-            "User-Agent": "ADSBao/0.9.0 (https://github.com/orriduck/ADSBao)",
+            "User-Agent": FLIGHT_ROUTE_LOOKUP_CONFIG.userAgent,
           },
         },
       );
@@ -304,8 +310,12 @@ export const createFlightRouteClient = ({
       if (response.status === 429) {
         // Exponential backoff: 2s → 4s → 8s → 16s → max 60s
         const backoff = Math.min(
-          Math.max(consecutiveBackoffMs * 2 || 2000, 2000),
-          60_000,
+          Math.max(
+            consecutiveBackoffMs * 2 ||
+              FLIGHT_ROUTE_LOOKUP_CONFIG.backoffInitialMs,
+            FLIGHT_ROUTE_LOOKUP_CONFIG.backoffInitialMs,
+          ),
+          FLIGHT_ROUTE_LOOKUP_CONFIG.backoffMaxMs,
         );
         consecutiveBackoffMs = backoff;
         limiter.onRateLimited(backoff);
