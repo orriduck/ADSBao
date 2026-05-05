@@ -12,16 +12,16 @@ export default function AircraftTable({ aircraft = [], fill = true }) {
   return (
     <div className={`flex flex-col ${fill ? "h-full" : ""}`}>
       <div className="flex-none">
-        <div className="flex items-baseline justify-between px-6 pt-6 pb-3">
-          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
+        <div className="flex items-baseline justify-between px-6 pt-4 pb-2.5">
+          <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint">
             Aircraft
           </div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-atc-dim">
+          <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-atc-dim">
             <NumberFlow value={aircraft.length} suffix=" nearby" />
           </div>
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1fr)_72px_92px] items-center gap-3 border-y border-[var(--atc-line)] px-6 py-2 font-mono text-[9px] uppercase tracking-[0.2em] text-atc-faint">
+        <div className="grid grid-cols-[minmax(0,1fr)_72px_92px] items-center gap-3 border-y border-[var(--atc-line)] px-6 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-atc-faint">
           <span>Callsign / Route</span>
           <span className="text-right">GS</span>
           <span className="text-right">ALT</span>
@@ -30,7 +30,7 @@ export default function AircraftTable({ aircraft = [], fill = true }) {
 
       <div className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}>
         {sorted.length === 0 ? (
-          <div className="px-6 py-10 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-atc-faint">
+          <div className="px-6 py-8 text-center font-mono text-[11px] uppercase tracking-[0.12em] text-atc-faint">
             No aircraft in range
           </div>
         ) : (
@@ -57,9 +57,9 @@ function AircraftRow({ aircraft }) {
   const altValue = toNumber(aircraft.altitude);
 
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_72px_92px] items-center gap-3 px-6 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]">
+    <li className="grid grid-cols-[minmax(0,1fr)_72px_92px] items-center gap-3 px-6 py-2.5 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]">
       <div className="min-w-0">
-        <div className="font-mono text-[12.5px] font-semibold tracking-[0.04em] text-atc-text">
+        <div className="font-mono text-[12.5px] font-semibold tracking-[0.02em] text-atc-text">
           {callsign}
         </div>
         <div className="mt-0.5 truncate text-[11.5px] text-atc-dim">
@@ -90,7 +90,7 @@ function NumberWithUnit({ value, unit }) {
   return (
     <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
       <NumberFlow value={value} />
-      <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none tracking-[0.08em] text-atc-dim">
+      <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none tracking-[0.03em] text-atc-dim">
         {unit}
       </sub>
     </span>

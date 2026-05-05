@@ -36,7 +36,7 @@ export default function AirportSidebar({
         <button
           type="button"
           onClick={onBack}
-          className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text"
+          className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text"
         >
           ← ADSBao
         </button>
@@ -44,14 +44,14 @@ export default function AirportSidebar({
           <button
             type="button"
             onClick={onClose}
-            className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text"
+            className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text"
           >
             Map →
           </button>
         ) : (
           <span
             key={updatedLabel}
-            className={`airport-feed-status airport-feed-status--${feedStatus} font-mono text-[10px] uppercase tracking-[0.18em] text-atc-dim`}
+            className={`airport-feed-status airport-feed-status--${feedStatus} font-mono text-[10px] uppercase tracking-[0.12em] text-atc-dim`}
           >
             {updatedLabel}
           </span>
