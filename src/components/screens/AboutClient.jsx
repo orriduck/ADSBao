@@ -130,16 +130,16 @@ export default function AboutClient() {
     <div className="dither-page-shell flex h-screen text-atc-text">
       <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
         <div className="flex-none px-6 pt-7 pb-6">
-          <div className="mb-4 hidden items-center justify-between border-b border-[var(--atc-line)] pb-2.5 max-[720px]:flex">
+          <div className="mobile-top-nav mb-4 hidden items-center justify-between max-[720px]:flex">
             <Link
               href="/"
-              className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text"
+              className="mobile-top-nav-link"
             >
               ← ADSBao
             </Link>
             <button
               type="button"
-              className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+              className="mobile-top-nav-link flex items-center gap-1.5"
               title={themeTitle}
               onClick={cycleTheme}
             >

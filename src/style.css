@@ -1625,6 +1625,28 @@ body {
     width: 1px;
 }
 
+.mobile-top-nav {
+    align-items: center;
+    background: var(--atc-bg);
+    border-bottom: 1px solid var(--atc-line-strong);
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 12px;
+}
+
+.mobile-top-nav-link {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transition: color 0.15s ease;
+}
+
+.mobile-top-nav-link:hover {
+    color: var(--atc-text);
+}
+
 .airport-map-menu {
     align-items: center;
     --atc-bg: #ffffff;
