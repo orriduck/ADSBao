@@ -19,7 +19,7 @@ export default function DitherBackground() {
         waveFrequency={0.6}
         mouseRadius={0.8}
         disableAnimation={false}
-        enableMouseInteraction={false}
+        enableMouseInteraction={true}
       />
     </div>
   );

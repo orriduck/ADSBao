@@ -89,8 +89,14 @@ float fbm(vec2 p) {
 }
 
 float pattern(vec2 p) {
-  vec2 p2 = p - time * waveSpeed;
-  return fbm(p + fbm(p2)); 
+  float t = time * waveSpeed;
+  vec2 drift = vec2(t * 1.35, t * -0.82);
+  vec2 swirl = 0.22 * vec2(
+    sin(time * 0.27 + p.y * 3.0),
+    cos(time * 0.31 + p.x * 3.0)
+  );
+  vec2 p2 = p + drift + swirl;
+  return fbm(p + fbm(p2) + drift * 0.65); 
 }
 
 vec3 ditherColor(vec3 color) {
@@ -226,7 +232,6 @@ function DitheredWaves({
         onPointerMove={handlePointerMove}
         position={[0, 0, 0.01]}
         scale={[viewport.width, viewport.height, 1]}
-        visible={false}
       >
         <planeGeometry args={[1, 1]} />
         <meshBasicMaterial transparent opacity={0} />

@@ -1,7 +1,6 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
-import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 
 export default function AircraftTable({ aircraft = [], fill = true }) {
   const sorted = [...aircraft].sort((a, b) => {
@@ -18,12 +17,11 @@ export default function AircraftTable({ aircraft = [], fill = true }) {
             Aircraft
           </div>
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-atc-dim">
-            <NumberFlow value={aircraft.length} /> nearby
+            <NumberFlow value={aircraft.length} suffix=" nearby" />
           </div>
         </div>
 
-        <div className="grid grid-cols-[16px_minmax(0,1fr)_56px_56px] items-center gap-3 border-y border-[var(--atc-line)] px-6 py-2 font-mono text-[9px] uppercase tracking-[0.2em] text-atc-faint">
-          <span aria-hidden="true" />
+        <div className="grid grid-cols-[minmax(0,1fr)_72px_92px] items-center gap-3 border-y border-[var(--atc-line)] px-6 py-2 font-mono text-[9px] uppercase tracking-[0.2em] text-atc-faint">
           <span>Callsign / Route</span>
           <span className="text-right">GS</span>
           <span className="text-right">ALT</span>
@@ -51,10 +49,6 @@ export default function AircraftTable({ aircraft = [], fill = true }) {
 }
 
 function AircraftRow({ aircraft }) {
-  const movement = aircraft.onGround
-    ? "ground"
-    : aircraft.movement || "unknown";
-  const dotColor = AIRCRAFT_COLORS[movement] || AIRCRAFT_COLORS.unknown;
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "—";
   const route =
     aircraft.flightRouteLabel ||
@@ -63,12 +57,7 @@ function AircraftRow({ aircraft }) {
   const altValue = toNumber(aircraft.altitude);
 
   return (
-    <li className="grid grid-cols-[16px_minmax(0,1fr)_56px_56px] items-center gap-3 px-6 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]">
-      <span
-        className="block h-1.5 w-1.5 rounded-full justify-self-start"
-        style={{ background: dotColor }}
-        aria-hidden="true"
-      />
+    <li className="grid grid-cols-[minmax(0,1fr)_72px_92px] items-center gap-3 px-6 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]">
       <div className="min-w-0">
         <div className="font-mono text-[12.5px] font-semibold tracking-[0.04em] text-atc-text">
           {callsign}
@@ -81,7 +70,7 @@ function AircraftRow({ aircraft }) {
         {gsValue == null ? (
           <span>—</span>
         ) : (
-          <NumberFlow value={Math.round(gsValue)} />
+          <NumberWithUnit value={Math.round(gsValue)} unit="KT" />
         )}
       </div>
       <div className="text-right font-mono text-[12.5px] font-semibold text-atc-text">
@@ -90,10 +79,21 @@ function AircraftRow({ aircraft }) {
         ) : altValue == null ? (
           <span>—</span>
         ) : (
-          <NumberFlow value={Math.round(altValue)} />
+          <NumberWithUnit value={Math.round(altValue)} unit="FT" />
         )}
       </div>
     </li>
+  );
+}
+
+function NumberWithUnit({ value, unit }) {
+  return (
+    <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
+      <NumberFlow value={value} />
+      <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none tracking-[0.08em] text-atc-dim">
+        {unit}
+      </sub>
+    </span>
   );
 }
 

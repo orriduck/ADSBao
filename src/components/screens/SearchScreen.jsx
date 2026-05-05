@@ -233,7 +233,7 @@ export default function SearchScreen({ onOpenAirport }) {
 
   return (
     <div className="dither-page-shell search-screen flex h-screen text-atc-text">
-      <div className="dither-page-panel flex w-[440px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
+      <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
         <div className="flex-none px-6 pt-7 pb-6">
           <div className="flex items-center gap-3">
             <Logo size={28} className="text-atc-text" />
@@ -381,7 +381,7 @@ function AirportRow({ airport, onOpen }) {
     <li>
       <button
         type="button"
-        className="grid w-full grid-cols-[56px_minmax(0,1fr)] items-center gap-3 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] -mx-6 px-6"
+        className="-mx-6 grid w-[calc(100%+3rem)] grid-cols-[56px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
         onClick={() => onOpen(airport)}
       >
         <span className="font-mono text-[16px] font-bold leading-[1] tracking-[0.02em] text-atc-orange">

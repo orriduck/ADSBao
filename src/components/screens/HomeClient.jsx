@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AirportCaptionScreen from "./AirportCaptionScreen";
 import SearchScreen from "./SearchScreen";
 import { airportDirectoryClient } from "../../services/airportDirectory.js";
 
 export default function HomeClient({ initialIcao = "" }) {
-  const router = useRouter();
   const [airport, setAirport] = useState(null);
   const [currentIcao, setCurrentIcao] = useState(initialIcao);
 
@@ -40,20 +38,36 @@ export default function HomeClient({ initialIcao = "" }) {
     if (initialIcao) loadAirport(initialIcao);
   }, [initialIcao]);
 
+  useEffect(() => {
+    const handlePopState = () => {
+      const pathIcao = normalizePathIcao(window.location.pathname);
+      if (!pathIcao) {
+        setAirport(null);
+        setCurrentIcao("");
+        return;
+      }
+      setCurrentIcao(pathIcao);
+      loadAirport(pathIcao);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const handleOpenAirport = async (selectedAirport) => {
     const nextIcao = String(
       selectedAirport.icao || selectedAirport.code || "",
     ).toUpperCase();
     if (!nextIcao) return;
+    setAirport(selectedAirport);
     setCurrentIcao(nextIcao);
-    router.push(`/${nextIcao}`);
-    await loadAirport(nextIcao);
+    window.history.pushState({ icao: nextIcao }, "", `/${nextIcao}`);
   };
 
   const handleBack = () => {
     setAirport(null);
     setCurrentIcao("");
-    router.push("/");
+    window.history.pushState({}, "", "/");
   };
 
   if (!currentIcao) {
@@ -67,4 +81,12 @@ export default function HomeClient({ initialIcao = "" }) {
       onBack={handleBack}
     />
   );
+}
+
+function normalizePathIcao(pathname) {
+  const segment = String(pathname || "")
+    .split("/")
+    .filter(Boolean)[0];
+  const normalized = String(segment || "").trim().toUpperCase();
+  return /^[A-Z0-9]{3,4}$/.test(normalized) ? normalized : "";
 }

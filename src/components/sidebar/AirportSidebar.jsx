@@ -19,10 +19,12 @@ export default function AirportSidebar({
   metarError = null,
   aircraft = [],
   lastUpdated = null,
+  feedStatus = "live",
   onBack,
   onClose = null,
 }) {
   const isMobileOverlay = Boolean(onClose);
+  const updatedLabel = formatUpdated(lastUpdated, feedStatus);
 
   return (
     <div
@@ -47,8 +49,11 @@ export default function AirportSidebar({
             Map →
           </button>
         ) : (
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-atc-dim">
-            {formatUpdated(lastUpdated)}
+          <span
+            key={updatedLabel}
+            className={`airport-feed-status airport-feed-status--${feedStatus} font-mono text-[10px] uppercase tracking-[0.18em] text-atc-dim`}
+          >
+            {updatedLabel}
           </span>
         )}
       </div>
@@ -95,9 +100,10 @@ export default function AirportSidebar({
   );
 }
 
-function formatUpdated(date) {
-  if (!date) return "Live · syncing";
-  return `Live · ${date.toLocaleTimeString([], {
+function formatUpdated(date, feedStatus = "live") {
+  const label = feedStatus === "infer" ? "Infer" : "Live";
+  if (!date) return `${label} · syncing`;
+  return `${label} · ${date.toLocaleTimeString([], {
     hour12: false,
     hour: "2-digit",
     minute: "2-digit",

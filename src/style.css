@@ -38,7 +38,7 @@
     --color-atc-line: var(--atc-line);
     --color-atc-line-strong: var(--atc-line-strong);
 
-    --font-sans: "Inter", system-ui, sans-serif;
+    --font-sans: "Manrope", system-ui, sans-serif;
     --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
 
     --radius: var(--atc-radius-control);
@@ -104,7 +104,7 @@
 }
 
 :root {
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: "Manrope", system-ui, sans-serif;
     line-height: 1.5;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
@@ -423,7 +423,7 @@ body {
         background: color-mix(in oklab, var(--atc-bg) 84%, transparent);
         backdrop-filter: blur(10px);
         box-shadow: 18px 0 40px rgba(0, 0, 0, 0.26);
-        width: min(88vw, 440px) !important;
+        width: min(88vw, 400px) !important;
     }
 }
 
@@ -545,6 +545,16 @@ body {
 
 .airport-screen {
     overflow: hidden;
+}
+
+.airport-desktop-sidebar {
+    width: 25rem;
+}
+
+@media (max-width: 767px) {
+    .airport-desktop-sidebar {
+        display: none;
+    }
 }
 
 .adsb-loading-overlay {
@@ -2260,6 +2270,12 @@ body {
         animation: none;
     }
 
+    .airport-feed-status {
+        animation: none;
+        transition: none;
+        transform: none;
+    }
+
     .aircraft-label--route-cycle .aircraft-callsign-state {
         opacity: 1;
     }
@@ -2322,8 +2338,13 @@ body {
     gap: 6px;
 }
 
+.airport-sidebar-panel .metar-token-strip strong {
+    font-size: 17px;
+    letter-spacing: 0;
+}
+
 .airport-sidebar-panel--mobile .metar-token-strip strong {
-    font-size: clamp(15px, 4.4vw, 18px);
+    font-size: clamp(15px, 4.4vw, 17px);
 }
 
 .airport-sidebar-panel--mobile .weather-metar-code {
@@ -2341,6 +2362,28 @@ body {
     height: 44px;
     justify-content: space-between;
     padding-inline: 24px;
+}
+
+.airport-feed-status {
+    animation: airport-feed-status-fade 240ms cubic-bezier(0.22, 1, 0.36, 1)
+        both;
+    display: inline-block;
+    will-change: opacity, transform;
+}
+
+.airport-feed-status--infer {
+    color: var(--atc-faint);
+}
+
+@keyframes airport-feed-status-fade {
+    from {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Override carousel slide flex to fit narrower sidebar column */

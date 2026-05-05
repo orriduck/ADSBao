@@ -28,6 +28,7 @@ const AirportMap = dynamic(() => import("../map/AirportMap"), {
 });
 
 const ADSB_LOADING_FADE_MS = 1100;
+const DESKTOP_SIDEBAR_WIDTH = "25rem";
 
 export default function AirportCaptionScreen({
   icao = "",
@@ -35,8 +36,8 @@ export default function AirportCaptionScreen({
   onBack,
 }) {
   const previousSidebarMode = useRef(null);
-  const [sidebarMode, setSidebarMode] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarMode, setSidebarMode] = useState("desktop");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mapZoom, setMapZoom] = useState(ZOOM_APPROACH);
   const [showMapLabels, setShowMapLabels] = useState(true);
   const [showTelemetry, setShowTelemetry] = useState(true);
@@ -81,6 +82,7 @@ export default function AirportCaptionScreen({
     aircraft,
     initialLoading: aircraftInitialLoading,
     lastUpdated,
+    feedStatus,
   } = useAircraftPositions(normalizedIcao, airportLat, airportLon);
   const { routesByCallsign } = useFlightRoutes(aircraft);
 
@@ -123,18 +125,19 @@ export default function AirportCaptionScreen({
     metarError,
     aircraft: aircraftWithRoutes,
     lastUpdated,
+    feedStatus,
     onBack,
   };
 
   return (
     <div className="flex h-dvh overflow-hidden font-sans text-atc-text">
-      {/* Desktop sidebar — inline, width transitions between 25rem and 0 */}
+      {/* Desktop sidebar — inline, matching the search panel width. */}
       {!isMobile && (
         <div
-          className="shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
-          style={{ width: sidebarOpen ? "25rem" : "0" }}
+          className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
+          style={{ width: sidebarOpen ? DESKTOP_SIDEBAR_WIDTH : "0" }}
         >
-          <div className="h-full w-[25rem]">
+          <div className="h-full" style={{ width: DESKTOP_SIDEBAR_WIDTH }}>
             <AirportSidebar {...sidebarProps} />
           </div>
         </div>

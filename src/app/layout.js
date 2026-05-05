@@ -66,7 +66,7 @@ export default function RootLayout({ children }) {
           crossOrigin=""
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Manrope:wght@200..800&display=swap"
           rel="stylesheet"
         />
       </head>
@@ -78,7 +78,7 @@ export default function RootLayout({ children }) {
           position="top-center"
           toastOptions={{
             style: {
-              fontFamily: "'Inter', system-ui, sans-serif",
+              fontFamily: "'Manrope', system-ui, sans-serif",
               fontSize: "14px",
             },
           }}
