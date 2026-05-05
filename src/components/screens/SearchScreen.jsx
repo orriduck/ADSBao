@@ -267,7 +267,7 @@ export default function SearchScreen({ onOpenAirport }) {
             onSubmit={doSearch}
             className={`search-input flex h-auto w-full items-center gap-3 px-4 py-4 text-atc-text transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5 ${
               focused
-                ? "border-atc-orange/70 shadow-[0_30px_100px_rgba(0,0,0,0.42),0_0_0_1px_rgba(255,90,31,0.18)_inset]"
+                ? "border-atc-orange/70 shadow-[0_30px_100px_rgba(0,0,0,0.42),0_0_0_1px_rgba(36,65,100,0.18)_inset]"
                 : ""
             }`}
           >
@@ -368,7 +368,7 @@ function AirportRow({ airport, onOpen, featured = false }) {
       }`}
       onClick={() => onOpen(airport)}
     >
-      <span className="font-display text-[32px] italic leading-[0.8] text-atc-orange sm:text-[38px]">
+      <span className="font-mono text-[24px] font-bold leading-[0.9] tracking-[0.02em] text-atc-orange sm:text-[28px]">
         {airport.iata || airport.icao || airport.code}
       </span>
       <span className="min-w-0">

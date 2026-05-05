@@ -98,7 +98,7 @@ export default function AboutPage() {
 
           <h1 className="about-title mt-4 leading-[0.85] tracking-[-0.02em]">
             <span className="font-extrabold">ADSB</span>
-            <span className="font-display italic text-atc-orange">ao</span>
+            <span className="font-extrabold italic text-atc-orange">ao</span>
           </h1>
 
           <p className="mt-5 max-w-[560px] text-[14px] leading-relaxed text-atc-text/85 sm:text-[15px]">
@@ -131,7 +131,7 @@ export default function AboutPage() {
               <div className="font-mono text-[10px] uppercase tracking-[1.6px] text-atc-faint">
                 Frequencies
               </div>
-              <h2 className="mt-1 font-display text-[26px] italic leading-[1] text-atc-text sm:text-[30px]">
+              <h2 className="mt-1 text-[24px] font-bold leading-[1.1] tracking-[-0.01em] text-atc-text sm:text-[28px]">
                 Data sources
               </h2>
             </div>
@@ -153,7 +153,7 @@ export default function AboutPage() {
                     <span className="font-mono text-[9px] uppercase tracking-[1.6px] text-atc-faint">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="font-display text-[20px] italic leading-[0.9] text-atc-orange sm:text-[22px]">
+                    <span className="font-mono text-[16px] font-bold leading-[1] tracking-[0.02em] text-atc-orange sm:text-[18px]">
                       {source.glyph}
                     </span>
                   </span>
@@ -190,7 +190,7 @@ export default function AboutPage() {
               <div className="font-mono text-[10px] uppercase tracking-[1.6px] text-atc-faint">
                 Source
               </div>
-              <h2 className="mt-1 font-display text-[26px] italic leading-[1] text-atc-text sm:text-[30px]">
+              <h2 className="mt-1 text-[24px] font-bold leading-[1.1] tracking-[-0.01em] text-atc-text sm:text-[28px]">
                 Repository
               </h2>
             </div>

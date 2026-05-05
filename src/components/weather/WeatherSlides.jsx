@@ -14,25 +14,25 @@ import {
 const FLIGHT_RULES = {
   VFR: {
     label: "Visual Flight Rules",
-    color: "#19c37d",
+    color: "var(--atc-text)",
     context:
       "Skies and visibility support normal visual operations. Weather is unlikely to constrain airport capacity.",
   },
   MVFR: {
     label: "Marginal Visual Flight Rules",
-    color: "#2f8cff",
+    color: "var(--atc-dim)",
     context:
       "Visibility or ceiling is reduced. Arrivals and departures usually continue, but pilots watch weather margins closely.",
   },
   IFR: {
     label: "Instrument Flight Rules",
-    color: "#ff453a",
+    color: "var(--atc-faint)",
     context:
       "Low clouds or limited visibility require instrument procedures. Arrival spacing can increase and delays become more likely.",
   },
   LIFR: {
     label: "Low IFR",
-    color: "#e12aa2",
+    color: "var(--atc-line-strong)",
     context:
       "Very low ceiling or visibility limits airport flow. Only aircraft and runways equipped for low-visibility operations can land reliably.",
   },
@@ -71,7 +71,7 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
             ? tokens.map((item) => (
                 <span key={item.label}>
                   <small>{item.label}</small>
-                  <strong>{item.value}</strong>
+                  <strong className="font-mono">{item.value}</strong>
                 </span>
               ))
             : null}
@@ -93,8 +93,8 @@ export function FlightRulesSlide({ metar }) {
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
         <div className="flight-rule-banner">
-          <span style={{ background: rules.color }}>{code}</span>
-          <strong style={{ color: rules.color }}>{rules.label}</strong>
+          <span className="font-mono">{code}</span>
+          <strong>{rules.label}</strong>
         </div>
         <div className="flight-rule-rail" aria-hidden="true">
           {["VFR", "MVFR", "IFR", "LIFR"].map((item) => (
@@ -261,9 +261,9 @@ export function LocalWeatherSlide({
               : condition}
           </p>
           <div className="local-weather-meta">
-            <span>Humidity {humidity == null ? "-" : `${Math.round(humidity)}%`}</span>
+            <span>Humidity <span className="font-mono">{humidity == null ? "-" : `${Math.round(humidity)}%`}</span></span>
             <span>
-              Feels {feelsLike == null ? "-" : `${round1(feelsLike)}°C`}
+              Feels <span className="font-mono">{feelsLike == null ? "-" : `${round1(feelsLike)}°C`}</span>
             </span>
           </div>
         </div>
@@ -290,15 +290,15 @@ function WindVector({ speed, gust, direction }) {
       </div>
       <div>
         <span>Direction</span>
-        <strong>{direction == null ? "VRB" : `${Math.round(direction)}°`}</strong>
+        <strong className="font-mono">{direction == null ? "VRB" : `${Math.round(direction)}°`}</strong>
       </div>
       <div>
         <span>Wind</span>
-        <strong>{Math.round(speed)} kt</strong>
+        <strong className="font-mono">{Math.round(speed)} kt</strong>
       </div>
       <div>
         <span>Gust</span>
-        <strong>{gust == null ? "None" : `${Math.round(gust)} kt`}</strong>
+        <strong className="font-mono">{gust == null ? "None" : `${Math.round(gust)} kt`}</strong>
       </div>
     </div>
   );
@@ -366,7 +366,7 @@ function MetricLine({ label, value, icon = null }) {
         {icon}
         {label}
       </span>
-      <strong>{value}</strong>
+      <strong className="font-mono">{value}</strong>
     </div>
   );
 }

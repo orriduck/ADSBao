@@ -290,7 +290,7 @@ export const createFlightRouteClient = ({
           signal: createTimeoutSignal(10_000),
           headers: {
             Accept: "application/json",
-            "User-Agent": "ADSBao/0.4 (https://github.com/orriduck/ADSBao)",
+            "User-Agent": "ADSBao/0.9.0 (https://github.com/orriduck/ADSBao)",
           },
         },
       );

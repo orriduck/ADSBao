@@ -1,5 +1,24 @@
 # Changelog
 
+
+## v0.9.0 — Navy tracking console redesign
+
+### Added
+- Persistent top navigation bar with ADSBao branding, Airports Search, and About links.
+- Desktop sidebar layout (400px) for airport context alongside full-height Leaflet map.
+- Callsign-first traffic data table with route status badges (PENDING/LOCAL/ROUTE).
+- Navy tracking console dark theme palette (#041A38, #244164, #0A2244).
+
+### Changed
+- Redesigned airport operations screen from full-bleed map overlay to sidebar + map layout.
+- Updated TrafficPanel from summary cards to rich data table with altitude, ground speed, position, and route columns.
+- Darkened the dark theme with deep navy tones and FlightAware-inspired console aesthetic.
+- Dark theme accent orange shifted from #FF5A1F to #FF6B35 for better contrast.
+
+### Fixed
+- TrafficPanel now receives aircraftWithRoutes (with resolved movement and route labels) instead of raw aircraft data.
+- Consolidated theme toggle into the global NavBar, removing duplicate from SearchScreen.
+
 ADSBao uses product releases for user-visible milestones. Vercel deployments happen on every push to `main`, but a deployment is not automatically a product release.
 
 ## v0.8.0 — Next.js Vercel refactor

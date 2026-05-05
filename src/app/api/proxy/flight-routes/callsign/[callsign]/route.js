@@ -1,7 +1,7 @@
 const FLIGHTAWARE_BASE = "https://www.flightaware.com/live/flight";
 
 const USER_AGENT =
-  "ADSBao/0.8.0 (+https://github.com/orriduck/ADSBao) FlightAware-scraper/1.0";
+  "ADSBao/0.9.0 (+https://github.com/orriduck/ADSBao) FlightAware-scraper/1.0";
 
 const TARGETING_RE = /\.setTargeting\('(\w+)',\s*'([^']*)'\)/g;
 

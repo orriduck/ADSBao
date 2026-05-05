@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *), &:is([data-theme="dark"] *));
+
 @theme inline {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -24,8 +26,10 @@
     --color-atc-card: var(--atc-card);
     --color-atc-elev: var(--atc-elev);
     --color-atc-high: var(--atc-high);
-    --color-atc-orange: var(--atc-orange);
-    --color-atc-orange-soft: var(--atc-orange-soft);
+    --color-atc-accent: var(--atc-accent);
+    --color-atc-accent-soft: var(--atc-accent-soft);
+    --color-atc-orange: var(--atc-accent);
+    --color-atc-orange-soft: var(--atc-accent-soft);
     --color-atc-mint: var(--atc-mint);
     --color-atc-red: var(--atc-red);
     --color-atc-text: var(--atc-text);
@@ -35,7 +39,6 @@
     --color-atc-line-strong: var(--atc-line-strong);
 
     --font-sans: "Inter", system-ui, sans-serif;
-    --font-display: "Instrument Serif", "Playfair Display", Georgia, serif;
     --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
 
     --radius: var(--atc-radius-control);
@@ -49,6 +52,14 @@
     --animate-cap-in: capIn 0.4s cubic-bezier(0.2, 0.6, 0.2, 1);
     --animate-caret: caretBlink 0.9s steps(1) infinite;
     --animate-flash-dot: flashDot 1.2s ease-in-out infinite;
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
 }
 
 @keyframes pulseDot {
@@ -67,11 +78,11 @@
     0%,
     100% {
         opacity: 1;
-        box-shadow: 0 0 6px #34d399;
+        box-shadow: 0 0 6px var(--atc-mint);
     }
     50% {
         opacity: 0.2;
-        box-shadow: 0 0 2px #34d399;
+        box-shadow: 0 0 2px var(--atc-mint);
     }
 }
 
@@ -100,19 +111,23 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 
-    --atc-bg: #f8fafc;
-    --atc-card: #eef2f7;
-    --atc-elev: #e5eaf1;
-    --atc-high: #dbe2eb;
-    --atc-orange: #ff5a1f;
-    --atc-orange-soft: rgba(255, 90, 31, 0.15);
-    --atc-mint: #0d9488;
-    --atc-red: #dc2626;
-    --atc-text: #12151a;
-    --atc-dim: rgba(18, 21, 26, 0.62);
-    --atc-faint: rgba(18, 21, 26, 0.45);
-    --atc-line: rgba(0, 0, 0, 0.08);
-    --atc-line-strong: rgba(0, 0, 0, 0.16);
+    /* Light: white canvas with navy ink — neutral grays for surface hierarchy,
+       no warm cream tint. */
+    --atc-bg: #ffffff;
+    --atc-card: #f4f4f4;
+    --atc-elev: #ebebeb;
+    --atc-high: #dedede;
+    --atc-accent: #244164;
+    --atc-accent-soft: rgba(36, 65, 100, 0.14);
+    --atc-orange: var(--atc-accent);
+    --atc-orange-soft: var(--atc-accent-soft);
+    --atc-mint: #0f766e;
+    --atc-red: #b91c1c;
+    --atc-text: #0e1a2b;
+    --atc-dim: rgba(14, 26, 43, 0.62);
+    --atc-faint: rgba(14, 26, 43, 0.42);
+    --atc-line: rgba(14, 26, 43, 0.1);
+    --atc-line-strong: rgba(14, 26, 43, 0.2);
     --glass-card-top: rgba(255, 255, 255, 0.34);
     --glass-card-bottom: rgba(229, 234, 241, 0.46);
     --glass-card-glint-strong: rgba(255, 255, 255, 0.35);
@@ -121,10 +136,12 @@
     --glass-card-inset: rgba(255, 255, 255, 0.3);
     --traffic-level-color: #64748b;
 
-    --aircraft-departure: #ea580c;
-    --aircraft-arrival: #16a34a;
-    --aircraft-unknown: #475569;
-    --aircraft-ground: #15803d;
+    /* Aircraft state: functional encoding kept, but desaturated so the
+       primary blue signal remains reserved for controls and selection. */
+    --aircraft-departure: #8b6f47;
+    --aircraft-arrival: #2a6f7a;
+    --aircraft-unknown: #5c6b7d;
+    --aircraft-ground: #5a8068;
 
     /* Tone tokens — composed from theme colors via color-mix.
        Defined once in :root because their inputs are themeable;
@@ -136,14 +153,30 @@
     --tone-card-bright: color-mix(in oklab, var(--atc-card) 92%, transparent);
     --tone-elev-strong: color-mix(in oklab, var(--atc-elev) 88%, transparent);
     --tone-elev-bright: color-mix(in oklab, var(--atc-elev) 92%, transparent);
-    --tone-orange-wash: color-mix(in oklab, var(--atc-orange) 8%, transparent);
-    --tone-orange-warm: color-mix(in oklab, var(--atc-orange) 16%, transparent);
-    --tone-orange-strong: color-mix(in oklab, var(--atc-orange) 22%, transparent);
-    --tone-orange-edge: color-mix(in oklab, var(--atc-orange) 78%, transparent);
+    --tone-accent-wash: color-mix(in oklab, var(--atc-accent) 8%, transparent);
+    --tone-accent-warm: color-mix(in oklab, var(--atc-accent) 16%, transparent);
+    --tone-accent-strong: color-mix(
+        in oklab,
+        var(--atc-accent) 22%,
+        transparent
+    );
+    --tone-accent-edge: color-mix(in oklab, var(--atc-accent) 78%, transparent);
+    --tone-orange-wash: var(--tone-accent-wash);
+    --tone-orange-warm: var(--tone-accent-warm);
+    --tone-orange-strong: var(--tone-accent-strong);
+    --tone-orange-edge: var(--tone-accent-edge);
     --tone-bg-soft: color-mix(in oklab, var(--atc-bg) 62%, transparent);
     --tone-line-soft: color-mix(in oklab, var(--atc-line) 50%, transparent);
-    --tone-border-soft: color-mix(in oklab, var(--atc-line-strong) 58%, transparent);
-    --tone-border-mid: color-mix(in oklab, var(--atc-line-strong) 70%, transparent);
+    --tone-border-soft: color-mix(
+        in oklab,
+        var(--atc-line-strong) 58%,
+        transparent
+    );
+    --tone-border-mid: color-mix(
+        in oklab,
+        var(--atc-line-strong) 70%,
+        transparent
+    );
     --tone-border-strong: color-mix(
         in oklab,
         var(--atc-line-strong) 78%,
@@ -165,34 +198,45 @@
     --card-foreground: var(--atc-text);
     --popover: var(--atc-card);
     --popover-foreground: var(--atc-text);
-    --primary: var(--atc-orange);
+    --primary: var(--atc-accent);
     --primary-foreground: #ffffff;
     --secondary: var(--atc-elev);
     --secondary-foreground: var(--atc-text);
     --muted: var(--atc-elev);
     --muted-foreground: var(--atc-dim);
-    --accent: color-mix(in oklab, var(--atc-orange) 12%, var(--atc-card));
+    --accent: color-mix(in oklab, var(--atc-accent) 12%, var(--atc-card));
     --accent-foreground: var(--atc-text);
     --destructive: var(--atc-red);
     --border: var(--atc-line);
     --input: var(--atc-line-strong);
-    --ring: var(--atc-orange);
+    --ring: var(--atc-accent);
+    --sidebar: #ffffff;
+    --sidebar-foreground: #0e1a2b;
+    --sidebar-primary: #0e1a2b;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f4f4f4;
+    --sidebar-accent-foreground: #0e1a2b;
+    --sidebar-border: rgba(14, 26, 43, 0.12);
+    --sidebar-ring: var(--atc-accent);
 }
 
 :root[data-theme="dark"] {
-    --atc-bg: #0a0a0b;
-    --atc-card: #151518;
-    --atc-elev: #1d1d22;
-    --atc-high: #27272e;
-    --atc-orange: #ff5a1f;
-    --atc-orange-soft: rgba(255, 90, 31, 0.12);
-    --atc-mint: #34d399;
-    --atc-red: #ff3b30;
-    --atc-text: #f5f5f7;
-    --atc-dim: rgba(245, 245, 247, 0.62);
-    --atc-faint: rgba(245, 245, 247, 0.38);
+    /* Dark: deep navy tracking-console canvas. Primary theme. */
+    --atc-bg: #041a38;
+    --atc-card: #0a2244;
+    --atc-elev: #0f2a52;
+    --atc-high: #244164;
+    --atc-accent: #8fb7d6;
+    --atc-accent-soft: rgba(143, 183, 214, 0.16);
+    --atc-orange: var(--atc-accent);
+    --atc-orange-soft: var(--atc-accent-soft);
+    --atc-mint: #6ba89a;
+    --atc-red: #f87171;
+    --atc-text: #f5f7fa;
+    --atc-dim: rgba(245, 247, 250, 0.62);
+    --atc-faint: rgba(245, 247, 250, 0.42);
     --atc-line: rgba(255, 255, 255, 0.08);
-    --atc-line-strong: rgba(255, 255, 255, 0.16);
+    --atc-line-strong: rgba(255, 255, 255, 0.18);
     --glass-card-top: rgba(38, 40, 46, 0.2);
     --glass-card-bottom: rgba(14, 16, 20, 0.34);
     --glass-card-glint-strong: rgba(255, 255, 255, 0.1);
@@ -201,10 +245,14 @@
     --glass-card-inset: rgba(255, 255, 255, 0.14);
     --traffic-level-color: #94a3b8;
 
-    --aircraft-departure: #fb923c;
-    --aircraft-arrival: #2dd4bf;
-    --aircraft-unknown: #94a3b8;
-    --aircraft-ground: #34d399;
+    /* Dark aircraft state: calmer than v0.8 console palette. Functional
+       encoding preserved but markers should read as graphic-system dots,
+       not neon. Arrival and unknown are navy-shifted to feel cohesive
+       with the dark blue map canvas. */
+    --aircraft-departure: #b6a074;
+    --aircraft-arrival: #4a98c0;
+    --aircraft-unknown: #7090b8;
+    --aircraft-ground: #7fa88e;
 
     --atc-radius-pill: 999px;
     --atc-radius-panel: 20px;
@@ -216,18 +264,26 @@
     --card-foreground: var(--atc-text);
     --popover: var(--atc-card);
     --popover-foreground: var(--atc-text);
-    --primary: var(--atc-orange);
+    --primary: var(--atc-accent);
     --primary-foreground: #0a0a0b;
     --secondary: var(--atc-elev);
     --secondary-foreground: var(--atc-text);
     --muted: var(--atc-elev);
     --muted-foreground: var(--atc-dim);
-    --accent: color-mix(in oklab, var(--atc-orange) 12%, var(--atc-card));
+    --accent: color-mix(in oklab, var(--atc-accent) 12%, var(--atc-card));
     --accent-foreground: var(--atc-text);
     --destructive: var(--atc-red);
     --border: var(--atc-line);
     --input: var(--atc-line-strong);
-    --ring: var(--atc-orange);
+    --ring: var(--atc-accent);
+    --sidebar: #0a2244;
+    --sidebar-foreground: #f5f7fa;
+    --sidebar-primary: #f5f7fa;
+    --sidebar-primary-foreground: #0a2244;
+    --sidebar-accent: #0f2a52;
+    --sidebar-accent-foreground: #f5f7fa;
+    --sidebar-border: rgba(255, 255, 255, 0.12);
+    --sidebar-ring: var(--atc-accent);
 }
 
 body {
@@ -258,18 +314,41 @@ body {
     scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
-/* Leaflet theme override */
-:root[data-theme="dark"] .leaflet-container {
-    background: #0e0e12 !important;
+/* ============================================================
+   Leaflet — chart-paper aesthetic per .impeccable.md.
+   Canvas matches the sidebar bg exactly so the two regions read
+   as one surface. Base tiles blend into the canvas (ghost lines
+   on navy / cream paper). City labels recede to a hairline ink.
+   ============================================================ */
+
+.leaflet-container {
+    background: var(--atc-bg) !important;
 }
-:root[data-theme="dark"] .leaflet-tile {
-    filter: brightness(0.95);
+
+:root[data-theme="dark"] .atc-tile-base {
+    filter: brightness(0.62) contrast(1) sepia(1) hue-rotate(190deg)
+        saturate(0.85);
+    mix-blend-mode: screen;
 }
-:root[data-theme="light"] .leaflet-container {
-    background: #d6dde8 !important;
+
+:root[data-theme="dark"] .atc-tile-labels {
+    filter: saturate(0) brightness(0.85);
+    opacity: 0.4 !important;
 }
-:root[data-theme="light"] .leaflet-tile {
-    filter: none;
+
+/* Light — same trick toward warm sepia ink. sepia(0.5) gives grays a
+   soft brown cast, multiply blend then lays them onto the cream canvas
+   as ink hairlines (chart-paper aesthetic, per .impeccable.md). */
+/* Light — saturate(0) removes all tile color; multiply on white canvas
+   renders the map as neutral gray ink, matching the white+navy sidebar. */
+:root[data-theme="light"] .atc-tile-base {
+    filter: saturate(0) contrast(0.85) brightness(1.02);
+    mix-blend-mode: multiply;
+}
+
+:root[data-theme="light"] .atc-tile-labels {
+    filter: saturate(0) brightness(0.5);
+    opacity: 0.55 !important;
 }
 
 /* Transitions */
@@ -294,7 +373,7 @@ body {
     background:
         radial-gradient(
             circle at 22% 12%,
-            var(--tone-orange-strong),
+            var(--tone-accent-strong),
             transparent 32%
         ),
         radial-gradient(
@@ -302,7 +381,7 @@ body {
             var(--tone-line-soft),
             transparent 34%
         ),
-        linear-gradient(135deg, var(--tone-orange-wash), transparent 38%),
+        linear-gradient(135deg, var(--tone-accent-wash), transparent 38%),
         var(--atc-bg);
     isolation: isolate;
     position: relative;
@@ -339,7 +418,7 @@ body {
 .search-row--featured {
     background: linear-gradient(
         100deg,
-        var(--tone-orange-warm),
+        var(--tone-accent-warm),
         var(--tone-card-mid)
     );
 }
@@ -388,7 +467,7 @@ body {
     background:
         radial-gradient(
             circle at 100% 0%,
-            color-mix(in oklab, var(--atc-orange) 18%, transparent),
+            color-mix(in oklab, var(--atc-accent) 18%, transparent),
             transparent 42%
         ),
         linear-gradient(
@@ -407,7 +486,7 @@ body {
     background: linear-gradient(
         90deg,
         transparent,
-        var(--tone-orange-edge),
+        var(--tone-accent-edge),
         transparent
     );
     content: "";
@@ -424,11 +503,6 @@ body {
     letter-spacing: -0.04em;
 }
 
-.about-title .font-display {
-    font-weight: 400;
-    letter-spacing: -0.02em;
-}
-
 .airport-screen {
     overflow: hidden;
 }
@@ -438,7 +512,7 @@ body {
     background:
         radial-gradient(
             circle at 50% 44%,
-            rgba(255, 90, 31, 0.13),
+            color-mix(in oklab, var(--atc-accent) 13%, transparent),
             transparent 22%
         ),
         radial-gradient(
@@ -475,7 +549,9 @@ body {
 }
 
 :root[data-theme="light"] .adsb-loading-orb-shell {
-    filter: drop-shadow(0 0 28px rgba(255, 90, 31, 0.28));
+    filter: drop-shadow(
+        0 0 28px color-mix(in oklab, var(--atc-accent) 28%, transparent)
+    );
 }
 
 .adsb-loading-overlay.is-exiting {
@@ -489,7 +565,7 @@ body {
         linear-gradient(
             90deg,
             transparent,
-            rgba(255, 90, 31, 0.12),
+            color-mix(in oklab, var(--atc-accent) 12%, transparent),
             transparent
         ),
         repeating-linear-gradient(
@@ -513,8 +589,10 @@ body {
 
 .adsb-loading-orb-shell {
     aspect-ratio: 1;
-    filter: drop-shadow(0 0 26px rgba(255, 90, 31, 0.2))
-        drop-shadow(0 0 48px rgba(52, 211, 153, 0.14));
+    filter: drop-shadow(
+            0 0 26px color-mix(in oklab, var(--atc-accent) 20%, transparent)
+        )
+        drop-shadow(0 0 48px rgba(107, 168, 154, 0.14));
     isolation: isolate;
     position: relative;
     transition:
@@ -548,7 +626,7 @@ body {
 }
 
 .adsb-loading-status span {
-    color: var(--atc-orange);
+    color: var(--atc-accent);
     font-size: 10px;
 }
 
@@ -686,7 +764,7 @@ body {
 }
 
 .airport-back:hover {
-    color: var(--atc-orange);
+    color: var(--atc-accent);
 }
 
 .airport-breadcrumb-current {
@@ -705,13 +783,12 @@ body {
 }
 
 .airport-code {
-    color: var(--atc-orange);
+    color: var(--atc-accent);
     flex-shrink: 0;
-    font-family: "Instrument Serif", serif;
     font-size: clamp(68px, 8.5vw, 126px);
-    font-style: italic;
-    line-height: 0.78;
-    text-shadow: 0 24px 60px rgba(255, 90, 31, 0.24);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.82;
 }
 
 .airport-title-row {
@@ -731,7 +808,7 @@ body {
 .airport-title-stack::before {
     background: linear-gradient(
         90deg,
-        color-mix(in oklab, var(--atc-orange) 62%, transparent),
+        color-mix(in oklab, var(--atc-accent) 62%, transparent),
         color-mix(in oklab, var(--atc-line) 42%, transparent)
     );
     content: "";
@@ -831,14 +908,6 @@ body {
         backdrop-filter: blur(10px);
     }
 
-    .map-ctrl-bar {
-        backdrop-filter: blur(6px) saturate(120%);
-    }
-
-    .map-action-drawer {
-        backdrop-filter: blur(8px) saturate(125%);
-    }
-
     .mobile-status-bar {
         backdrop-filter: blur(10px) saturate(125%);
     }
@@ -890,6 +959,26 @@ body {
     padding-bottom: 13px;
 }
 
+.weather-carousel-section {
+    background:
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--atc-line-strong) 45%, transparent) 0 1px,
+            transparent 1px calc(100% - 1px),
+            color-mix(in oklab, var(--atc-line-strong) 45%, transparent)
+                calc(100% - 1px)
+        ),
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-accent) 7%, transparent),
+            transparent 42%
+        );
+}
+
+.weather-carousel-header {
+    padding-bottom: 11px;
+}
+
 .weather-carousel-heading {
     min-height: 48px;
 }
@@ -914,6 +1003,9 @@ body {
     touch-action: pan-x;
 }
 
+.weather-carousel-section .weather-carousel-track {
+}
+
 .weather-carousel-track::-webkit-scrollbar {
     display: none;
 }
@@ -922,7 +1014,6 @@ body {
     flex: 0 0 100%;
     min-width: 0;
     padding-block: 8px 0;
-    padding-inline: 10px;
     scroll-snap-align: start;
     scroll-snap-stop: always;
 }
@@ -938,12 +1029,13 @@ body {
 
 .weather-slide-readout {
     min-height: 74px;
+    padding-block: 10px;
 }
 
 .weather-slide-description {
-    border-top: 1px solid var(--atc-line);
-    margin-top: 11px;
-    padding-top: 10px;
+    border-top: 0;
+    margin-top: 10px;
+    padding-top: 0;
 }
 
 .weather-visual-layout {
@@ -958,7 +1050,7 @@ body {
     font-size: clamp(14px, 1.1vw, 18px);
     font-weight: 800;
     line-height: 1.3;
-    margin-top: 14px;
+    margin-top: 10px;
     max-height: 156px;
     overflow: auto;
     white-space: pre-wrap;
@@ -971,12 +1063,12 @@ body {
 
 .metar-instrument {
     display: grid;
-    gap: 10px;
+    gap: 0;
 }
 
 .metar-token-strip {
     display: grid;
-    gap: 7px;
+    gap: 0;
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
@@ -985,19 +1077,10 @@ body {
 }
 
 .metar-token-strip span {
-    background:
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--atc-text) 6%, transparent),
-            transparent
-        ),
-        color-mix(in oklab, var(--atc-card) 28%, transparent);
-    border: 1px solid var(--atc-line);
-    border-radius: 11px;
     display: grid;
-    gap: 4px;
+    gap: 6px;
     min-width: 0;
-    padding: 7px 8px;
+    padding: 8px 0;
 }
 
 .metar-token-strip small {
@@ -1012,8 +1095,8 @@ body {
 .metar-token-strip strong {
     color: var(--atc-text);
     font-family: "JetBrains Mono", monospace;
-    font-size: 11px;
-    font-weight: 900;
+    font-size: 22px;
+    font-weight: 800;
     line-height: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1037,10 +1120,10 @@ body {
 }
 
 .weather-metric-line {
-    border-top: 1px solid var(--atc-line);
     display: grid;
     gap: 6px;
-    padding-top: 8px;
+    min-width: 0;
+    padding: 6px 0;
 }
 
 .weather-metric-line span {
@@ -1071,59 +1154,55 @@ body {
 
 .weather-context-copy.weather-slide-description {
     color: color-mix(in oklab, var(--atc-text) 86%, transparent);
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 12px;
+    line-height: 1.45;
 }
 
 .flight-rule-banner {
     align-items: center;
     display: flex;
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    padding: 6px 0;
 }
 
 .flight-rule-banner span {
-    border-radius: 10px;
-    color: white;
+    border: 1.5px solid var(--atc-text);
+    color: var(--atc-text);
     font-size: 12px;
     font-weight: 900;
     line-height: 1;
-    padding: 7px 10px;
+    padding: 6px 10px;
 }
 
 .flight-rule-banner strong {
+    color: var(--atc-text);
     font-size: 19px;
     font-weight: 900;
     line-height: 1.05;
 }
 
 .flight-rule-rail {
-    background: color-mix(in oklab, var(--atc-card) 34%, transparent);
-    border: 1px solid var(--atc-line);
-    border-radius: var(--atc-radius-pill);
     display: grid;
-    gap: 4px;
+    gap: 2px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin: -3px 0 12px;
-    padding: 4px;
+    margin: 0 0 8px;
 }
 
 .flight-rule-rail i {
     background: color-mix(in oklab, var(--rule-color) 22%, transparent);
-    border-radius: var(--atc-radius-pill);
-    height: 7px;
+    height: 8px;
     opacity: 0.55;
 }
 
 .flight-rule-rail i.active {
     background: var(--rule-color);
-    box-shadow: 0 0 14px color-mix(in oklab, var(--rule-color) 44%, transparent);
     opacity: 1;
 }
 
 .temperature-strip {
     display: grid;
-    gap: 12px;
+    gap: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -1133,15 +1212,8 @@ body {
 
 .local-weather-glyph {
     align-items: center;
-    background:
-        radial-gradient(
-            circle at 50% 50%,
-            color-mix(in oklab, var(--atc-orange) 14%, transparent),
-            transparent 58%
-        ),
-        color-mix(in oklab, var(--atc-card) 36%, transparent);
+    background: color-mix(in oklab, var(--atc-accent) 9%, transparent);
     border: 1px solid var(--atc-line);
-    border-radius: 999px;
     color: var(--atc-text);
     display: flex;
     flex-direction: column;
@@ -1154,24 +1226,23 @@ body {
 
 .ceiling-readouts {
     display: grid;
-    gap: 16px;
+    gap: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
 }
 
 .wind-vector-card {
     align-items: stretch;
-    border-top: 1px solid var(--atc-line);
     display: grid;
-    gap: 12px;
+    gap: 0;
     grid-template-columns: 62px repeat(3, minmax(0, 1fr));
-    padding-top: 4px;
 }
 
 .wind-vector-card > div:not(.wind-compass) {
     display: grid;
     gap: 5px;
     min-width: 0;
+    padding: 9px 8px;
 }
 
 .wind-vector-card span {
@@ -1195,7 +1266,7 @@ body {
     background:
         radial-gradient(
             circle,
-            color-mix(in oklab, var(--atc-orange) 15%, transparent) 0 23%,
+            color-mix(in oklab, var(--atc-accent) 15%, transparent) 0 23%,
             transparent 24% 100%
         ),
         repeating-conic-gradient(
@@ -1205,9 +1276,9 @@ body {
         ),
         color-mix(in oklab, var(--atc-card) 34%, transparent);
     border: 1px solid
-        color-mix(in oklab, var(--atc-orange) 35%, var(--atc-line));
+        color-mix(in oklab, var(--atc-accent) 35%, var(--atc-line));
     border-radius: 999px;
-    color: var(--atc-orange);
+    color: var(--atc-accent);
     display: flex;
     justify-content: center;
     min-width: 0;
@@ -1248,19 +1319,22 @@ body {
 
 .wind-compass i {
     display: flex;
-    filter: drop-shadow(0 0 8px color-mix(in oklab, var(--atc-orange) 50%, transparent));
+    filter: drop-shadow(
+        0 0 8px color-mix(in oklab, var(--atc-accent) 50%, transparent)
+    );
     transform: rotate(var(--wind-bearing));
     transform-origin: center;
 }
 
 .local-weather-glyph {
-    color: #ffd24a;
-    text-shadow: 0 0 24px rgba(255, 210, 74, 0.25);
+    color: var(--atc-accent);
+    text-shadow: 0 0 24px
+        color-mix(in oklab, var(--atc-accent) 24%, transparent);
 }
 
 .pressure-strip {
     display: grid;
-    gap: 12px;
+    gap: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -1281,32 +1355,30 @@ body {
 }
 
 .thermal-band i {
-    background: linear-gradient(90deg, #60a5fa, var(--atc-orange));
-    border-radius: var(--atc-radius-pill);
+    background: linear-gradient(90deg, #6f8fab, var(--atc-accent));
     height: 7px;
     position: relative;
 }
 
 .thermal-band i::before,
 .thermal-band i b {
-    border-radius: 50%;
     content: "";
-    height: 13px;
+    height: 15px;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 13px;
+    width: 5px;
 }
 
 .thermal-band i::before {
-    background: var(--atc-orange);
-    border: 2px solid color-mix(in oklab, var(--atc-bg) 80%, white);
+    background: var(--atc-accent);
+    border: 1px solid color-mix(in oklab, var(--atc-bg) 80%, white);
     left: var(--temp-pct);
 }
 
 .thermal-band i b {
     background: color-mix(in oklab, var(--atc-mint) 82%, white);
-    border: 2px solid color-mix(in oklab, var(--atc-bg) 80%, white);
+    border: 1px solid color-mix(in oklab, var(--atc-bg) 80%, white);
     left: var(--dew-pct);
 }
 
@@ -1327,12 +1399,9 @@ body {
 }
 
 .local-weather-meta {
-    border-top: 1px solid var(--atc-line);
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px 12px;
-    margin-top: 12px;
-    padding-top: 10px;
+    gap: 16px;
+    margin-top: 10px;
 }
 
 .local-weather-meta span {
@@ -1397,6 +1466,7 @@ body {
     border-radius: var(--atc-radius-pill);
     cursor: pointer;
     height: 7px;
+    overflow: hidden;
     padding: 0;
     transition:
         background 0.16s ease,
@@ -1406,9 +1476,56 @@ body {
 }
 
 .weather-view-dots button.active {
-    background: var(--atc-orange);
+    background: var(--atc-accent);
     transform: scale(1.08);
     width: 18px;
+}
+
+.weather-view-dots.weather-view-tabs {
+    border: 1px solid var(--atc-line);
+    display: grid;
+    gap: 0;
+    grid-template-columns: repeat(auto-fit, minmax(34px, 1fr));
+    justify-content: stretch;
+    justify-items: stretch;
+    width: 100%;
+}
+
+.weather-view-dots.weather-view-tabs button {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-right: 1px solid var(--atc-line);
+    border-radius: 0;
+    color: var(--atc-faint);
+    display: flex;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    font-weight: 800;
+    height: 24px;
+    justify-content: center;
+    letter-spacing: 0.6px;
+    min-width: 0;
+    padding: 0 4px;
+    text-transform: uppercase;
+    transform: none;
+    width: 100%;
+}
+
+.weather-view-dots.weather-view-tabs button:last-child {
+    border-right: 0;
+}
+
+.weather-view-dots.weather-view-tabs button span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.weather-view-dots.weather-view-tabs button.active {
+    color: var(--atc-text);
+    transform: none;
+    width: 100%;
 }
 
 .traffic-counts {
@@ -1461,40 +1578,108 @@ body {
     width: 1px;
 }
 
+.airport-map-menu {
+    align-items: center;
+    --atc-bg: #ffffff;
+    --atc-card: #f4f4f4;
+    --atc-elev: #ebebeb;
+    --atc-accent: #244164;
+    --atc-orange: var(--atc-accent);
+    --atc-text: #0b1220;
+    --atc-dim: rgba(14, 26, 43, 0.66);
+    --atc-faint: rgba(14, 26, 43, 0.5);
+    --atc-line: rgba(14, 26, 43, 0.1);
+    --atc-line-strong: rgba(14, 26, 43, 0.2);
+    background: #ffffff;
+    border-bottom: 1px solid rgba(14, 26, 43, 0.2);
+    box-sizing: border-box;
+    display: flex;
+    height: 44px;
+    inset: 0 0 auto;
+    padding: 0 16px;
+    position: absolute;
+    z-index: 1000;
+}
+
+:root[data-theme="dark"] .airport-map-menu {
+    --atc-bg: #05070b;
+    --atc-card: #0a1220;
+    --atc-elev: #101b2c;
+    --atc-accent: #8fb7d6;
+    --atc-orange: var(--atc-accent);
+    --atc-text: #f5f7fa;
+    --atc-dim: rgba(199, 224, 245, 0.7);
+    --atc-faint: rgba(199, 224, 245, 0.5);
+    --atc-line: rgba(199, 224, 245, 0.12);
+    --atc-line-strong: rgba(199, 224, 245, 0.24);
+    background: #05070b;
+    border-bottom-color: rgba(199, 224, 245, 0.24);
+}
+
+.airport-map-menu--desktop {
+    justify-content: flex-end;
+}
+
+.airport-map-menu--mobile {
+    justify-content: center;
+    padding-inline: 54px;
+}
+
+.airport-map-menu-toggle {
+    align-items: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--atc-radius-control);
+    color: var(--atc-faint);
+    cursor: pointer;
+    display: flex;
+    height: 32px;
+    justify-content: center;
+    left: 12px;
+    padding: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+    width: 32px;
+}
+
+.airport-map-menu-toggle:hover {
+    background: color-mix(in oklab, var(--atc-line) 60%, transparent);
+    border-color: var(--atc-line-strong);
+    color: var(--atc-text);
+}
+
+.airport-map-menu-toggle:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--atc-accent) 55%, transparent);
+    outline-offset: 2px;
+}
+
 .map-ctrl-zone {
-    bottom: 0;
-    height: 260px;
-    position: fixed;
-    right: 0;
-    width: 112px;
-    z-index: 50;
+    align-items: center;
+    display: flex;
+    height: 100%;
+    position: relative;
+    width: max-content;
+    z-index: 1;
 }
 
 .map-ctrl-bar {
     align-items: center;
-    background: linear-gradient(
-        145deg,
-        color-mix(in oklab, var(--atc-card) 78%, transparent),
-        color-mix(in oklab, var(--atc-elev) 86%, transparent)
-    );
-    backdrop-filter: blur(6px) saturate(120%);
-    -webkit-backdrop-filter: blur(6px) saturate(120%);
-    border: 1px solid var(--atc-line-strong);
-    border-radius: var(--atc-radius-panel);
-    bottom: 18px;
-    box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.18),
-        0 24px 64px rgba(0, 0, 0, 0.22),
-        inset 0 1px 0
-            color-mix(in oklab, var(--atc-line-strong) 90%, transparent);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 2px;
-    overflow: hidden;
-    padding: 6px;
-    position: absolute;
-    right: 14px;
-    transform: translateY(0);
+    overflow: visible;
+    padding: 0;
+    position: relative;
+    transform: none;
     transition:
         border-color 0.18s ease,
         box-shadow 0.18s ease,
@@ -1502,51 +1687,31 @@ body {
 }
 
 .map-ctrl-bar::before {
-    background: linear-gradient(
-        120deg,
-        color-mix(in oklab, var(--atc-line-strong) 84%, transparent) 0%,
-        color-mix(in oklab, var(--atc-line) 64%, transparent) 45%,
-        transparent 60%
-    );
-    content: "";
-    inset: 0;
-    pointer-events: none;
-    position: absolute;
+    content: none;
 }
 
 .map-ctrl-bar:hover,
 .map-ctrl-zone:focus-within .map-ctrl-bar {
-    border-color: color-mix(in oklab, var(--atc-line-strong) 70%, #ff5a1f);
-    transform: translateY(-2px);
+    transform: none;
 }
 
 .map-action-drawer {
     align-items: center;
-    background: linear-gradient(
-        145deg,
-        color-mix(in oklab, var(--atc-card) 70%, transparent),
-        color-mix(in oklab, var(--atc-elev) 82%, transparent)
-    );
-    backdrop-filter: blur(8px) saturate(125%);
-    -webkit-backdrop-filter: blur(8px) saturate(125%);
+    background: var(--atc-bg);
     border: 1px solid var(--atc-line-strong);
-    border-radius: var(--atc-radius-panel);
-    bottom: 18px;
-    box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.18),
-        0 18px 52px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0
-            color-mix(in oklab, var(--atc-line-strong) 80%, transparent);
+    border-radius: var(--atc-radius-control);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 2px;
     opacity: 0;
     padding: 6px;
     pointer-events: none;
     position: absolute;
-    right: 66px;
-    transform: translateX(8px) scale(0.96);
-    transform-origin: right bottom;
+    right: 0;
+    top: calc(100% + 8px);
+    transform: translateY(-4px) scale(0.98);
+    transform-origin: right top;
     transition:
         opacity 0.18s ease,
         transform 0.18s ease;
@@ -1555,7 +1720,18 @@ body {
 .map-action-drawer.open {
     opacity: 1;
     pointer-events: auto;
-    transform: translateX(0) scale(1);
+    transform: translateY(0) scale(1);
+}
+
+.airport-map-menu--mobile .map-action-drawer {
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -4px) scale(0.98);
+    transform-origin: top center;
+}
+
+.airport-map-menu--mobile .map-action-drawer.open {
+    transform: translate(-50%, 0) scale(1);
 }
 
 .ctrl-btn {
@@ -1566,7 +1742,7 @@ body {
     color: var(--atc-faint);
     cursor: pointer;
     display: flex;
-    height: 36px;
+    height: 32px;
     justify-content: center;
     padding: 0;
     position: relative;
@@ -1574,11 +1750,11 @@ body {
         background 0.15s ease,
         border-color 0.15s ease,
         color 0.15s ease;
-    width: 36px;
+    width: 32px;
 }
 
 .ctrl-btn:focus-visible {
-    outline: 2px solid rgba(255, 90, 31, 0.55);
+    outline: 2px solid color-mix(in oklab, var(--atc-accent) 55%, transparent);
     outline-offset: 2px;
 }
 
@@ -1594,23 +1770,23 @@ body {
 }
 
 .ctrl-btn.active {
-    background: rgba(255, 90, 31, 0.12);
-    border-color: rgba(255, 90, 31, 0.4);
-    color: #ff5a1f;
+    background: color-mix(in oklab, var(--atc-accent) 12%, transparent);
+    border-color: color-mix(in oklab, var(--atc-accent) 40%, transparent);
+    color: var(--atc-accent);
 }
 
 .ctrl-sep {
     background: var(--atc-line-strong);
     border-radius: var(--atc-radius-control);
-    height: 1px;
-    margin: 2px 6px;
-    width: calc(100% - 12px);
+    height: 18px;
+    margin: 0 4px;
+    width: 1px;
 }
 
 .ctrl-audio.playing {
-    border-color: rgba(255, 90, 31, 0.5);
-    color: #ff5a1f;
-    box-shadow: 0 0 10px rgba(255, 90, 31, 0.14);
+    border-color: color-mix(in oklab, var(--atc-accent) 50%, transparent);
+    color: var(--atc-accent);
+    box-shadow: 0 0 10px color-mix(in oklab, var(--atc-accent) 14%, transparent);
 }
 
 .ctrl-audio.loading {
@@ -1684,15 +1860,15 @@ body {
 }
 
 :root {
-    --map-label-glow: rgba(248, 250, 252, 0.95);
-    --map-telemetry-color: rgba(18, 21, 26, 0.8);
-    --map-telemetry-dim: rgba(18, 21, 26, 0.5);
+    --map-label-glow: rgba(250, 249, 245, 0.95);
+    --map-telemetry-color: rgba(14, 26, 43, 0.8);
+    --map-telemetry-dim: rgba(14, 26, 43, 0.5);
 }
 
 :root[data-theme="dark"] {
-    --map-label-glow: #0a0a0b;
-    --map-telemetry-color: rgba(245, 245, 247, 0.86);
-    --map-telemetry-dim: rgba(245, 245, 247, 0.54);
+    --map-label-glow: #041a38;
+    --map-telemetry-color: rgba(245, 247, 250, 0.86);
+    --map-telemetry-dim: rgba(245, 247, 250, 0.54);
 }
 
 .leaflet-marker-icon {
@@ -1803,7 +1979,7 @@ body {
 }
 
 .aircraft-telemetry-separator {
-    color: rgba(255, 90, 31, 0.72);
+    color: color-mix(in oklab, var(--atc-accent) 72%, transparent);
     font-size: 0.9em;
 }
 
@@ -1923,12 +2099,12 @@ body {
     }
 
     .mobile-compact-code {
-        color: rgba(255, 90, 31, 0.34);
-        font-family: "Instrument Serif", serif;
-        font-size: 72px;
-        font-style: italic;
+        color: color-mix(in oklab, var(--atc-accent) 34%, transparent);
+        font-size: 60px;
+        font-weight: 800;
         left: 50%;
-        line-height: 0.8;
+        letter-spacing: -0.04em;
+        line-height: 0.85;
         position: absolute;
         top: -8px;
         transform: translateX(-50%);
@@ -1986,24 +2162,6 @@ body {
 
     .mobile-status-bar {
         display: flex;
-    }
-}
-
-@media (max-width: 640px) {
-    .map-ctrl-zone {
-        bottom: 74px;
-        height: 220px;
-        width: 102px;
-    }
-
-    .map-ctrl-bar {
-        bottom: 10px;
-        right: 10px;
-    }
-
-    .map-action-drawer {
-        bottom: 10px;
-        right: 62px;
     }
 }
 
@@ -2069,4 +2227,106 @@ body {
     .aircraft-label--route-cycle .aircraft-route-label {
         display: none;
     }
+}
+
+/* ============================================================
+   Sidebar layout (v0.9 redesign)
+   Two-column shell: fixed sidebar + flexible map. Sidebar surface
+   is bare — hairlines and grid only, per .impeccable.md.
+   ============================================================ */
+
+.airport-shell {
+    display: flex;
+    height: 100dvh;
+    width: 100%;
+    overflow: hidden;
+}
+
+.airport-sidebar {
+    background: var(--atc-bg);
+    border-right: 1px solid var(--atc-line-strong);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 100dvh;
+    /* min-width: 0 is required: as a flex item, the default min-width is
+       auto (= min-content), which long unbroken METAR strings would push
+       past the 400px width and squeeze the map to zero. */
+    min-width: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    width: 400px;
+}
+
+/* Dark sidebar steps up one surface level so it reads as visible navy blue
+   rather than the near-black --atc-bg. The map stays on --atc-bg. */
+:root[data-theme="dark"] .airport-sidebar {
+    background: var(--atc-card);
+}
+
+.airport-map-region {
+    flex: 1 1 auto;
+    height: 100dvh;
+    min-width: 0;
+    position: relative;
+}
+
+.airport-sidebar-rail {
+    align-items: center;
+    border-bottom: 1px solid var(--atc-line);
+    display: flex;
+    flex-shrink: 0;
+    gap: 16px;
+    height: 44px;
+    justify-content: space-between;
+    padding-inline: 24px;
+}
+
+/* Override carousel slide flex to fit narrower sidebar column */
+.airport-sidebar .weather-carousel-track,
+[data-sidebar="sidebar"] .weather-carousel-track {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+
+.airport-sidebar .weather-carousel-slide,
+[data-sidebar="sidebar"] .weather-carousel-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
+
+@media (max-width: 900px) {
+    .airport-shell {
+        flex-direction: column;
+        height: auto;
+        min-height: 100dvh;
+    }
+
+    .airport-sidebar {
+        border-bottom: 1px solid var(--atc-line-strong);
+        border-right: 0;
+        height: auto;
+        max-height: none;
+        width: 100%;
+    }
+
+    .airport-map-region {
+        height: 70dvh;
+        min-height: 480px;
+    }
+}
+
+.dark {
+    --sidebar: hsl(240 5.9% 10%);
+    --sidebar-foreground: hsl(240 4.8% 95.9%);
+    --sidebar-primary: hsl(224.3 76.3% 48%);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(240 3.7% 15.9%);
+    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+    --sidebar-border: hsl(240 3.7% 15.9%);
+    --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
