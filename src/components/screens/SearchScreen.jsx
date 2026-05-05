@@ -235,7 +235,27 @@ export default function SearchScreen({ onOpenAirport }) {
     <div className="dither-page-shell search-screen flex h-screen text-atc-text">
       <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
         <div className="flex-none px-6 pt-7 pb-6">
-          <div className="flex items-center gap-3">
+          <div className="mb-4 hidden items-center justify-between border-b border-[var(--atc-line)] pb-2.5 max-[720px]:flex">
+            <Link
+              href="/about"
+              title="About ADSBao"
+              className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+            >
+              <Info className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>About</span>
+            </Link>
+            <button
+              type="button"
+              className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+              title={themeTitle}
+              onClick={cycleTheme}
+            >
+              <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{themePreference}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 max-[720px]:hidden">
             <Logo size={28} className="text-atc-text" />
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
               Airport search
@@ -265,12 +285,11 @@ export default function SearchScreen({ onOpenAirport }) {
           <Search className="h-5 w-5 shrink-0 text-atc-orange" />
           <Input
             value={q}
-            autoFocus
             onChange={(event) => setQ(event.target.value)}
             className="flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
             placeholder="Search ICAO, IATA, city, or name"
           />
-          <kbd className="hidden shrink-0 items-center px-2 py-1 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
+          <kbd className="hidden shrink-0 items-center px-2 py-1 font-mono text-[10px] uppercase tracking-[0.04em] text-atc-dim sm:inline-flex">
             {searchLoading ? "..." : "enter"}
           </kbd>
         </form>
@@ -290,18 +309,18 @@ export default function SearchScreen({ onOpenAirport }) {
           )}
         </div>
 
-        <div className="flex-none flex items-center justify-between border-t border-[var(--atc-line)] px-6 py-3">
+        <div className="flex-none items-center justify-between border-t border-[var(--atc-line)] px-6 py-3 max-[720px]:hidden sm:flex">
           <Link
             href="/about"
             title="About ADSBao"
-            className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+            className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
           >
             <Info className="h-3.5 w-3.5" aria-hidden="true" />
             <span>About</span>
           </Link>
           <button
             type="button"
-            className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+            className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
             title={themeTitle}
             onClick={cycleTheme}
           >
