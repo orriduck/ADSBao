@@ -19,6 +19,7 @@ import {
 import { Input } from "../ui/input.jsx";
 import DitherBackground from "../effects/DitherBackground.jsx";
 import Logo from "../brand/Logo.jsx";
+import MobileTopNav from "../navigation/MobileTopNav.jsx";
 
 const featuredAirports = [
   {
@@ -234,27 +235,31 @@ export default function SearchScreen({ onOpenAirport }) {
   return (
     <div className="dither-page-shell search-screen flex h-screen text-atc-text">
       <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
-        <div className="flex-none px-6 pt-7 pb-6">
-          <div className="mb-4 hidden items-center justify-between border-b border-[var(--atc-line)] pb-2.5 max-[720px]:flex">
+        <MobileTopNav
+          left={
             <Link
               href="/about"
               title="About ADSBao"
-              className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+              className="mobile-top-nav-link flex items-center gap-1.5"
             >
               <Info className="h-3.5 w-3.5" aria-hidden="true" />
               <span>About</span>
             </Link>
+          }
+          right={
             <button
               type="button"
-              className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+              className="mobile-top-nav-link flex items-center gap-1.5"
               title={themeTitle}
               onClick={cycleTheme}
             >
               <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{themePreference}</span>
             </button>
-          </div>
+          }
+        />
 
+        <div className="flex-none px-6 pt-7 pb-6">
           <div className="flex items-center gap-3 max-[720px]:hidden">
             <Logo size={28} className="text-atc-text" />
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
