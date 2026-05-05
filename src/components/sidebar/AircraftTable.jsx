@@ -1,5 +1,6 @@
 "use client";
 
+import NumberFlow from "@number-flow/react";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 
 export default function AircraftTable({ aircraft = [] }) {
@@ -10,37 +11,41 @@ export default function AircraftTable({ aircraft = [] }) {
   });
 
   return (
-    <div className="pb-8">
-      <div className="flex items-baseline justify-between px-6 pt-6 pb-3">
-        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-          Aircraft
+    <div className="flex flex-col h-full">
+      <div className="flex-none">
+        <div className="flex items-baseline justify-between px-6 pt-6 pb-3">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
+            Aircraft
+          </div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-atc-dim">
+            <NumberFlow value={aircraft.length} /> nearby
+          </div>
         </div>
-        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-atc-dim">
-          {aircraft.length} nearby
+
+        <div className="grid grid-cols-[16px_minmax(0,1fr)_56px_56px] items-center gap-3 border-y border-[var(--atc-line)] px-6 py-2 font-mono text-[9px] uppercase tracking-[0.2em] text-atc-faint">
+          <span aria-hidden="true" />
+          <span>Callsign / Route</span>
+          <span className="text-right">GS</span>
+          <span className="text-right">ALT</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-[16px_minmax(0,1fr)_56px_56px] items-center gap-3 border-y border-[var(--atc-line)] px-6 py-2 font-mono text-[9px] uppercase tracking-[0.2em] text-atc-faint">
-        <span aria-hidden="true" />
-        <span>Callsign / Route</span>
-        <span className="text-right">GS</span>
-        <span className="text-right">ALT</span>
+      <div className="flex-1 overflow-y-auto">
+        {sorted.length === 0 ? (
+          <div className="px-6 py-10 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-atc-faint">
+            No aircraft in range
+          </div>
+        ) : (
+          <ul className="divide-y divide-[var(--atc-line)]">
+            {sorted.map((a) => (
+              <AircraftRow
+                key={`${a.icao24 || a.callsign || "anon"}-${a.callsign || ""}`}
+                aircraft={a}
+              />
+            ))}
+          </ul>
+        )}
       </div>
-
-      {sorted.length === 0 ? (
-        <div className="px-6 py-10 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-atc-faint">
-          No aircraft in range
-        </div>
-      ) : (
-        <ul className="divide-y divide-[var(--atc-line)]">
-          {sorted.map((a) => (
-            <AircraftRow
-              key={`${a.icao24 || a.callsign || "anon"}-${a.callsign || ""}`}
-              aircraft={a}
-            />
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
@@ -54,8 +59,8 @@ function AircraftRow({ aircraft }) {
   const route =
     aircraft.flightRouteLabel ||
     (aircraft.onGround ? "On ground" : "Track unknown");
-  const gs = formatGS(aircraft.velocity);
-  const alt = formatAlt(aircraft.altitude, aircraft.onGround);
+  const gsValue = toNumber(aircraft.velocity);
+  const altValue = toNumber(aircraft.altitude);
 
   return (
     <li className="grid grid-cols-[16px_minmax(0,1fr)_56px_56px] items-center gap-3 px-6 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]">
@@ -72,26 +77,27 @@ function AircraftRow({ aircraft }) {
           {route}
         </div>
       </div>
-      <div className="text-right font-mono text-[12.5px] font-semibold tabular-nums text-atc-text">
-        {gs}
+      <div className="text-right font-mono text-[12.5px] font-semibold text-atc-text">
+        {gsValue == null ? (
+          <span>—</span>
+        ) : (
+          <NumberFlow value={Math.round(gsValue)} />
+        )}
       </div>
-      <div className="text-right font-mono text-[12.5px] font-semibold tabular-nums text-atc-text">
-        {alt}
+      <div className="text-right font-mono text-[12.5px] font-semibold text-atc-text">
+        {aircraft.onGround ? (
+          <span>GND</span>
+        ) : altValue == null ? (
+          <span>—</span>
+        ) : (
+          <NumberFlow value={Math.round(altValue)} />
+        )}
       </div>
     </li>
   );
 }
 
-function formatGS(value) {
+function toNumber(value) {
   const n = Number(value);
-  if (!Number.isFinite(n)) return "—";
-  return Math.round(n).toString();
-}
-
-function formatAlt(value, onGround) {
-  if (onGround) return "GND";
-  const n = Number(value);
-  if (!Number.isFinite(n)) return "—";
-  if (n < 1000) return Math.round(n).toString();
-  return `${(n / 1000).toFixed(1)}k`;
+  return Number.isFinite(n) ? n : null;
 }

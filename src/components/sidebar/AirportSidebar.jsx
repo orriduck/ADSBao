@@ -47,27 +47,31 @@ export default function AirportSidebar({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <AirportIdentity
-          icao={icao}
-          iata={iata}
-          name={name}
-          city={city}
-          country={country}
-          lat={lat}
-          lon={lon}
-        />
-        <StatsStrip metar={metar} aircraftCount={aircraft.length} />
-        <WeatherCarousel
-          metar={metar}
-          metarRaw={metarRaw}
-          metarLoading={metarLoading}
-          metarError={metarError}
-          airportCode={iata || icao}
-          airportLat={lat}
-          airportLon={lon}
-        />
-        <AircraftTable aircraft={aircraft} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-none">
+          <AirportIdentity
+            icao={icao}
+            iata={iata}
+            name={name}
+            city={city}
+            country={country}
+            lat={lat}
+            lon={lon}
+          />
+          <StatsStrip metar={metar} aircraftCount={aircraft.length} />
+          <WeatherCarousel
+            metar={metar}
+            metarRaw={metarRaw}
+            metarLoading={metarLoading}
+            metarError={metarError}
+            airportCode={iata || icao}
+            airportLat={lat}
+            airportLon={lon}
+          />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <AircraftTable aircraft={aircraft} />
+        </div>
       </div>
     </div>
   );

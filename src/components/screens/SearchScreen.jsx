@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Info, Monitor, Moon, Search, Sun } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HOME_AIRPORT_COUNTRY } from "../../config/homeAirportDirectory.js";
+import { SITE_DESCRIPTION } from "../../config/site.js";
 import { airportDirectoryClient } from "../../services/airportDirectory.js";
 import { airportSubtitle } from "../../utils/airport.js";
 import {
@@ -15,10 +16,9 @@ import {
   nextTheme,
   writeStoredTheme,
 } from "../../utils/theme.js";
-import { Badge } from "../ui/badge.jsx";
 import { Button } from "../ui/button.jsx";
 import { Input } from "../ui/input.jsx";
-import BackgroundRays from "../effects/BackgroundRays.jsx";
+import Dither from "../effects/Dither.jsx";
 import Logo from "../brand/Logo.jsx";
 
 const featuredAirports = [
@@ -226,66 +226,56 @@ export default function SearchScreen({ onOpenAirport }) {
   };
 
   return (
-    <div className="search-screen min-h-screen text-atc-text">
-      <BackgroundRays />
-      <main className="grid min-h-screen place-items-start px-5 py-6 sm:place-items-center sm:p-10 lg:p-14">
-        <section className="w-full max-w-[860px]">
-          <div className="mb-4 flex items-center justify-between gap-2.5 font-mono text-[11px] uppercase tracking-[1.4px] text-atc-dim">
-            <div className="flex items-center gap-2.5">
-              <Logo size={20} className="text-atc-text" />
-              <span className="text-atc-text">ADSBao</span>
-              <span className="text-atc-orange">/</span>
-              <span>Airport search</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                asChild
-                variant="atcChip"
-                size="sm"
-                className="theme-chip gap-1.5 text-[12px] capitalize tracking-[0.2px]"
-              >
-                <Link href="/about" title="About ADSBao">
-                  <Info className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>About</span>
-                </Link>
-              </Button>
-              <Button
-                type="button"
-                variant="atcChip"
-                size="sm"
-                className="theme-chip gap-1.5 text-[12px] capitalize tracking-[0.2px]"
-                title={themeTitle}
-                onClick={cycleTheme}
-              >
-                <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{themePreference}</span>
-              </Button>
+    <div className="search-screen flex h-screen text-atc-text">
+      <div className="flex w-[440px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
+        <div className="flex-none px-6 pt-7 pb-6">
+          <div className="flex items-center gap-3">
+            <Logo size={28} className="text-atc-text" />
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
+              Airport search
             </div>
           </div>
-
-          <form
-            onSubmit={doSearch}
-            className={`search-input flex h-auto w-full items-center gap-3 px-4 py-4 text-atc-text transition-[border-color,box-shadow] duration-150 sm:gap-3.5 sm:px-5 sm:py-5 ${
-              focused
-                ? "border-atc-orange/70 shadow-[0_30px_100px_rgba(0,0,0,0.42),0_0_0_1px_rgba(36,65,100,0.18)_inset]"
-                : ""
-            }`}
-          >
-            <Search className="h-5 w-5 shrink-0 text-atc-orange" />
-            <Input
-              value={q}
-              autoFocus
-              onChange={(event) => setQ(event.target.value)}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              className="flex-1 p-0 text-lg font-extrabold tracking-normal text-atc-text sm:text-xl"
-              placeholder="Search by ICAO, IATA, city, or airport name"
+          <div className="mt-3 flex items-baseline gap-3">
+            <span className="font-mono text-[22px] font-semibold tracking-[0.04em] text-atc-text">
+              ADSBao
+            </span>
+            <span
+              aria-hidden="true"
+              className="h-px flex-1 bg-[var(--atc-line-strong)]"
             />
-            <kbd className="search-kbd hidden shrink-0 items-center rounded-[var(--atc-radius-control)] px-2 py-1 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
-              {searchLoading ? "..." : "enter"}
-            </kbd>
-          </form>
+          </div>
+          <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
+            Airport explorer
+          </h1>
+          <p className="mt-3 text-[13px] leading-relaxed text-atc-dim">
+            {SITE_DESCRIPTION}
+          </p>
+        </div>
 
+        <form
+          onSubmit={doSearch}
+          className={`flex-none mx-6 flex items-center gap-3 rounded-[var(--atc-radius-control)] border px-4 py-3.5 transition-[border-color,box-shadow] duration-150 ${
+            focused
+              ? "border-atc-orange/70 shadow-[0_0_0_1px_rgba(36,65,100,0.18)_inset]"
+              : "border-[var(--atc-line)]"
+          }`}
+        >
+          <Search className="h-5 w-5 shrink-0 text-atc-orange" />
+          <Input
+            value={q}
+            autoFocus
+            onChange={(event) => setQ(event.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            className="flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
+            placeholder="Search ICAO, IATA, city, or name"
+          />
+          <kbd className="hidden shrink-0 items-center rounded-[var(--atc-radius-control)] border border-[var(--atc-line)] px-2 py-1 font-mono text-[10px] uppercase tracking-[1px] text-atc-dim sm:inline-flex">
+            {searchLoading ? "..." : "enter"}
+          </kbd>
+        </form>
+
+        <div className="flex-1 overflow-y-auto">
           {q.trim() ? (
             <SearchResults
               q={q}
@@ -298,18 +288,56 @@ export default function SearchScreen({ onOpenAirport }) {
           ) : (
             <FeaturedAirports onOpen={openAirport} />
           )}
-        </section>
-      </main>
+        </div>
+
+        <div className="flex-none flex items-center justify-between border-t border-[var(--atc-line)] px-6 py-3">
+          <Button
+            asChild
+            variant="atcChip"
+            size="sm"
+            className="gap-1.5 text-[11px] tracking-[0.2px]"
+          >
+            <Link href="/about" title="About ADSBao">
+              <Info className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>About</span>
+            </Link>
+          </Button>
+          <Button
+            type="button"
+            variant="atcChip"
+            size="sm"
+            className="gap-1.5 text-[11px] capitalize tracking-[0.2px]"
+            title={themeTitle}
+            onClick={cycleTheme}
+          >
+            <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{themePreference}</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 relative">
+        <Dither
+          waveColor={[
+            0.6431372549019608, 0.7019607843137254, 0.792156862745098,
+          ]}
+          colorNum={15}
+          waveAmplitude={0}
+          waveSpeed={0.07}
+          waveFrequency={0}
+          mouseRadius={0.8}
+        />
+      </div>
     </div>
   );
 }
 
 function SearchResults({ q, rows, loading, error, countLabel, onOpen }) {
   return (
-    <div className="mt-5">
-      <div className="flex items-center justify-between border-b border-atc-line pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
+    <div className="px-6 pt-5">
+      <div className="flex items-center justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
         <span>Search results</span>
-        <span>{countLabel}</span>
+        <span className="tracking-[0.18em] text-atc-dim">{countLabel}</span>
       </div>
 
       {loading && !rows.length ? (
@@ -325,11 +353,11 @@ function SearchResults({ q, rows, loading, error, countLabel, onOpen }) {
           No airport matched &quot;{q.trim()}&quot;.
         </div>
       ) : (
-        <div className="mt-2.5 grid gap-2">
+        <ul className="divide-y divide-[var(--atc-line)]">
           {rows.map((airport) => (
             <AirportRow key={airport.icao || airport.code || airport.name} airport={airport} onOpen={onOpen} />
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
@@ -337,53 +365,45 @@ function SearchResults({ q, rows, loading, error, countLabel, onOpen }) {
 
 function FeaturedAirports({ onOpen }) {
   return (
-    <div className="mt-5">
-      <div className="flex items-center justify-between border-b border-atc-line pb-2.5 font-mono text-[10px] uppercase tracking-[1.5px] text-atc-dim">
+    <div className="px-6 pt-5">
+      <div className="flex items-center justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
         <span>Featured airports</span>
-        <span>{featuredAirports.length}</span>
+        <span className="tracking-[0.18em] text-atc-dim">{featuredAirports.length}</span>
       </div>
 
-      <div className="mt-2.5 grid gap-2">
-        {featuredAirports.map((airport, index) => (
+      <ul className="divide-y divide-[var(--atc-line)]">
+        {featuredAirports.map((airport) => (
           <AirportRow
             key={airport.icao}
             airport={airport}
             onOpen={onOpen}
-            featured={index === 0}
           />
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
 
-function AirportRow({ airport, onOpen, featured = false }) {
+function AirportRow({ airport, onOpen }) {
   return (
-    <Button
-      type="button"
-      variant="atcRow"
-      size="auto"
-      className={`search-row grid w-full grid-cols-[62px_minmax(0,1fr)] gap-4 px-4 py-3.5 normal-case sm:grid-cols-[86px_minmax(0,1fr)_auto] ${
-        featured ? "search-row--featured" : ""
-      }`}
-      onClick={() => onOpen(airport)}
-    >
-      <span className="font-mono text-[24px] font-bold leading-[0.9] tracking-[0.02em] text-atc-orange sm:text-[28px]">
-        {airport.iata || airport.icao || airport.code}
-      </span>
-      <span className="min-w-0">
-        <strong className="block truncate text-[17px] font-extrabold tracking-normal text-atc-text">
-          {airport.name}
-        </strong>
-        <small className="mt-0.5 block truncate text-[13px] text-atc-dim">
-          {featured
-            ? `${airport.city} · ${airport.country}`
-            : airportSubtitle(airport)}
-        </small>
-      </span>
-      <Badge variant="atcCode" className="hidden sm:inline-flex">
-        {airport.icao || airport.code || "-"}
-      </Badge>
-    </Button>
+    <li>
+      <button
+        type="button"
+        className="grid w-full grid-cols-[56px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
+        onClick={() => onOpen(airport)}
+      >
+        <span className="font-mono text-[20px] font-bold leading-[0.9] tracking-[0.02em] text-atc-orange">
+          {airport.iata || airport.icao || airport.code}
+        </span>
+        <span className="min-w-0">
+          <strong className="block truncate text-[13px] font-semibold text-atc-text">
+            {airport.name}
+          </strong>
+          <small className="mt-0.5 block truncate text-[11.5px] text-atc-dim">
+            {airportSubtitle(airport)}
+          </small>
+        </span>
+      </button>
+    </li>
   );
 }

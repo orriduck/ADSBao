@@ -171,9 +171,7 @@ export default function WeatherCarousel({
             aria-selected={activeIndex === index}
             className={activeIndex === index ? "active" : ""}
             onClick={() => scrollToSlide(index)}
-          >
-            <span>{slide.navLabel || slide.label}</span>
-          </button>
+          />
         ))}
       </div>
     </section>
