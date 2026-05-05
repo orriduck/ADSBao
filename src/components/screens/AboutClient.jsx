@@ -119,6 +119,13 @@ export default function AboutClient() {
     applyThemePreference({ theme: next, mediaQueryList: mediaQueryList.current });
   };
 
+  const openExternalLink = (event, href) => {
+    const opened = window.open(href, "_blank");
+    if (!opened) return;
+    opened.opener = null;
+    event.preventDefault();
+  };
+
   return (
     <div className="dither-page-shell flex h-screen text-atc-text">
       <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
@@ -173,12 +180,13 @@ export default function AboutClient() {
 
         <div className="flex-1 overflow-y-auto">
           <ol className="px-6 divide-y divide-[var(--atc-line)]">
-            {dataSources.map((source, index) => (
+            {dataSources.map((source) => (
               <li key={source.glyph}>
                 <a
                   href={source.href}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={(event) => openExternalLink(event, source.href)}
                   className="group grid grid-cols-[56px_minmax(0,1fr)] items-center gap-3 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] -mx-6 px-6"
                 >
                   <span className="font-mono text-[16px] font-bold leading-[1] tracking-[0.02em] text-atc-orange">
@@ -202,6 +210,9 @@ export default function AboutClient() {
               href="https://github.com/orriduck/ADSBao"
               target="_blank"
               rel="noreferrer"
+              onClick={(event) =>
+                openExternalLink(event, "https://github.com/orriduck/ADSBao")
+              }
               className="group flex items-center justify-between gap-3 border border-[var(--atc-line)] px-4 py-3.5 transition-colors hover:border-[var(--atc-line-strong)]"
             >
               <div className="flex items-center gap-3">
