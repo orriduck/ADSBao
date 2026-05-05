@@ -129,25 +129,25 @@ export default function AboutClient() {
   return (
     <div className="dither-page-shell flex h-screen text-atc-text">
       <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
-        <div className="flex-none px-6 pt-7 pb-6">
-          <div className="mobile-top-nav mb-4 hidden items-center justify-between max-[720px]:flex">
-            <Link
-              href="/"
-              className="mobile-top-nav-link"
-            >
-              ← ADSBao
-            </Link>
-            <button
-              type="button"
-              className="mobile-top-nav-link flex items-center gap-1.5"
-              title={themeTitle}
-              onClick={cycleTheme}
-            >
-              <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>{themePreference}</span>
-            </button>
-          </div>
+        <div className="mobile-top-nav hidden items-center justify-between max-[720px]:flex">
+          <Link
+            href="/"
+            className="mobile-top-nav-link"
+          >
+            ← ADSBao
+          </Link>
+          <button
+            type="button"
+            className="mobile-top-nav-link flex items-center gap-1.5"
+            title={themeTitle}
+            onClick={cycleTheme}
+          >
+            <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{themePreference}</span>
+          </button>
+        </div>
 
+        <div className="flex-none px-6 pt-7 pb-6">
           <div className="flex items-center gap-3 max-[720px]:hidden">
             <Logo size={28} className="text-atc-text" />
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
