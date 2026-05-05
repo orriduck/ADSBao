@@ -7,9 +7,10 @@ import {
   DEFAULT_CLOSE_RANGE_NM,
   DEFAULT_WIDE_RANGE_NM,
 } from "../services/aviationData.js";
+import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation.js";
 import { parseAdsbPositionTime } from "../utils/aircraftMotion.js";
 
-const HIDDEN_POLL_GRACE_MS = 5_000;
+const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
 
 export function useAircraftPositions(icao, lat, lon) {
   const [aircraft, setAircraft] = useState([]);

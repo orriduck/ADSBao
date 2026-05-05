@@ -1,24 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../config/aviation.js";
 import { flightRouteClient } from "../services/aviationData.js";
-
-const HIT_CACHE_MS = 6 * 60 * 60 * 1000;
-const MISS_CACHE_MS = 2 * 60 * 60 * 1000;
-const MAX_LOOKUPS_PER_PASS = 6;
+import { isLookupCallsign, normalizeCallsign } from "../utils/callsign.js";
 
 const routeCache = new Map();
 const inFlight = new Set();
 
-const normalizeCallsign = (callsign) =>
-  String(callsign || "").trim().toUpperCase().replace(/\s+/g, "");
-
-const isLookupCandidate = (callsign) => /^[A-Z0-9]{2,8}$/.test(callsign);
-
 const getFreshCacheEntry = (callsign, now = Date.now()) => {
   const cached = routeCache.get(callsign);
   if (!cached) return null;
-  const maxAge = cached.route ? HIT_CACHE_MS : MISS_CACHE_MS;
+  const maxAge = cached.route
+    ? FLIGHT_ROUTE_LOOKUP_CONFIG.hitCacheMs
+    : FLIGHT_ROUTE_LOOKUP_CONFIG.missCacheMs;
   if (now - cached.time <= maxAge) return cached;
   routeCache.delete(callsign);
   return null;
@@ -62,7 +57,7 @@ export function useFlightRoutes(aircraft) {
       ...new Set(
         aircraft
           .map((item) => normalizeCallsign(item.callsign))
-          .filter(isLookupCandidate),
+          .filter(isLookupCallsign),
       ),
     ];
     const pending = callsigns
@@ -70,7 +65,7 @@ export function useFlightRoutes(aircraft) {
         (callsign) =>
           !getFreshCacheEntry(callsign, now) && !inFlight.has(callsign),
       )
-      .slice(0, MAX_LOOKUPS_PER_PASS);
+      .slice(0, FLIGHT_ROUTE_LOOKUP_CONFIG.maxLookupsPerPass);
 
     pending.forEach((callsign, index) => {
       if (index === 0) lookup(callsign);
