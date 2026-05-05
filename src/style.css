@@ -1631,7 +1631,7 @@ body {
     border-bottom: 1px solid var(--atc-line-strong);
     box-sizing: border-box;
     min-height: 44px;
-    padding: 0 12px;
+    padding: 0 16px;
 }
 
 .mobile-top-nav-link {
