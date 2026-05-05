@@ -131,12 +131,12 @@ export default function WeatherCarousel({
   };
 
   return (
-    <section className="weather-carousel-section px-6 pt-5 pb-5">
+    <section className="weather-carousel-section px-6 pt-4 pb-4">
       <div className="weather-carousel-header flex items-baseline justify-between">
-        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
+        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint">
           Weather
         </div>
-        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-atc-dim">
+        <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-atc-dim">
           {activeSlide?.title || "—"}
         </div>
       </div>
@@ -144,7 +144,7 @@ export default function WeatherCarousel({
       <div
         ref={trackRef}
         onScroll={handleScroll}
-        className="weather-carousel-track mt-4 -mx-1 min-h-[180px]"
+        className="weather-carousel-track mt-3 -mx-1 min-h-[148px]"
       >
         {slides.map((slide, index) => (
           <article

@@ -414,16 +414,13 @@ body {
 
 @media (max-width: 720px) {
     .dither-page-background {
-        inset: 0;
-        position: absolute;
-        z-index: 0;
+        display: none;
     }
 
     .dither-page-panel {
-        background: color-mix(in oklab, var(--atc-bg) 84%, transparent);
-        backdrop-filter: blur(10px);
-        box-shadow: 18px 0 40px rgba(0, 0, 0, 0.26);
-        width: min(88vw, 400px) !important;
+        background: var(--atc-bg);
+        box-shadow: none;
+        width: 100vw !important;
     }
 }
 
