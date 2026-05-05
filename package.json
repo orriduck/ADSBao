@@ -13,6 +13,7 @@
     "test:vercel-routing": "node src/config/vercelRouting.test.js",
     "test:airport-wiki": "node src/services/airportWiki.test.js",
     "test:app-shell": "node src/features/app-shell/themePreference.test.js",
+    "test:airport-search": "node src/features/airport-search/airportSearchModel.test.js",
     "test:airport-explorer": "node src/features/airport-explorer/airportExplorerModel.test.js",
     "test:flight-route-display": "node src/utils/flightRouteDisplay.test.js",
     "test:airport-map-display": "node src/utils/airportMapDisplay.test.js",
