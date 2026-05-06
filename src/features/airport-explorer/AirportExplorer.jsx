@@ -11,6 +11,7 @@ import AircraftDataLoadingOverlay from "./AircraftDataLoadingOverlay.jsx";
 import AirportExplorerMapMenu from "./AirportExplorerMapMenu.jsx";
 import { resolveAirportProfile } from "./airportExplorerModel.js";
 import { useAirportExplorerData } from "./useAirportExplorerData.js";
+import { useAirportProcedures } from "../../hooks/useAirportProcedures.js";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -44,6 +45,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     [icao, airport],
   );
   const { weather, traffic } = useAirportExplorerData(airportProfile);
+  const procedures = useAirportProcedures(airportProfile.icao);
 
   const sidebarProps = {
     icao: airportProfile.icao,
@@ -89,6 +91,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           airport={airport}
           showMapLabels={showMapLabels}
           showTelemetry={showTelemetry}
+          procedureGeoJson={procedures.geojson}
         />
         <AircraftDataLoadingOverlay active={traffic.aircraftInitialLoading} />
 
