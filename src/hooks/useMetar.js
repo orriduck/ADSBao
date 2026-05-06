@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { normalizeMetarPayload } from "../features/metar/metarModel.js";
 import { metarClient } from "../services/aviationData.js";
 
 export function useMetar(icao) {
@@ -18,35 +19,9 @@ export function useMetar(icao) {
       try {
         const json = await metarClient.fetchMetar(icao);
         if (cancelled) return;
-        const m = Array.isArray(json) ? json[0] : json;
-        if (!m) {
-          setRaw("");
-          setParsed(null);
-          return;
-        }
-
-        setRaw(m.rawOb || m.rawMETAR || "");
-        setParsed({
-          wind: formatWind(m),
-          vis: m.visib ? `${m.visib} SM` : "-",
-          temp: m.temp != null ? `${m.temp}°C` : "-",
-          dew: m.dewp != null ? `${m.dewp}°C` : "-",
-          altim: m.altim ? `${m.altim} inHg` : "-",
-          ceiling: formatCeiling(m),
-          wxString: m.wxString || "",
-          flightCategory: m.flightCategory || m.fltCat || "",
-          obsTime: m.obsTime || "",
-          rawTemp: m.temp ?? null,
-          rawDewp: m.dewp ?? null,
-          rawVisib: m.visib != null ? Number(m.visib) : null,
-          rawAltim: m.altim != null ? Number(m.altim) : null,
-          rawWspd: m.wspd ?? null,
-          rawWgst: m.wgst ?? null,
-          rawClouds: Array.isArray(m.clouds) ? m.clouds : [],
-          rawWdir:
-            m.wdir === "VRB" ? null : m.wdir != null ? Number(m.wdir) : null,
-          rawWvrb: m.wdir === "VRB",
-        });
+        const normalized = normalizeMetarPayload(json);
+        setRaw(normalized.raw);
+        setParsed(normalized.parsed);
       } catch (e) {
         if (!cancelled) {
           console.warn("METAR fetch failed:", e.message);
@@ -64,21 +39,4 @@ export function useMetar(icao) {
   }, [icao]);
 
   return { raw, parsed, loading, error };
-}
-
-function formatWind(m) {
-  if (!m.wdir && !m.wspd) return "-";
-  const dir =
-    m.wdir === "VRB" ? "VRB" : `${String(m.wdir ?? 0).padStart(3, "0")}°`;
-  const spd = `${m.wspd ?? 0} kt`;
-  return m.wgst ? `${dir} / ${spd} G${m.wgst}kt` : `${dir} / ${spd}`;
-}
-
-export function formatCeiling(m) {
-  const layers = m.clouds || [];
-  const ceiling = layers.find((l) => ["BKN", "OVC", "VV"].includes(l.cover));
-  if (!ceiling) return "CLR";
-  const ft =
-    ceiling.base != null ? `${Number(ceiling.base).toLocaleString()} ft` : "?";
-  return `${ceiling.cover} ${ft}`;
 }
