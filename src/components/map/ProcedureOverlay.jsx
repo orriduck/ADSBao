@@ -3,10 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
-import {
-  buildProcedureLineCollection,
-  getProcedureSilkStyles,
-} from "../../features/airport-map/procedureOverlayModel.js";
+import { buildProcedureRenderLayers } from "../../features/airport-map/procedureOverlayModel.js";
 
 export default function ProcedureOverlay({ geojson, theme = "dark" }) {
   const map = useMapInstance();
@@ -14,17 +11,22 @@ export default function ProcedureOverlay({ geojson, theme = "dark" }) {
 
   useEffect(() => {
     if (!map || !geojson) return undefined;
-    const lineCollection = buildProcedureLineCollection(geojson);
-    if (lineCollection.features.length === 0) return undefined;
+    const renderLayers = buildProcedureRenderLayers(geojson, theme);
+    if (renderLayers.every((layer) => layer.geojson.features.length === 0)) {
+      return undefined;
+    }
 
     const layer = L.layerGroup(
-      getProcedureSilkStyles(theme).map((style) =>
-        L.geoJSON(lineCollection, {
+      renderLayers.map(({ geojson: layerGeoJson, style }) =>
+        L.geoJSON(layerGeoJson, {
           interactive: false,
-          style: {
-            ...style,
-            lineCap: "round",
-            lineJoin: "round",
+          style(feature) {
+            return {
+              ...style,
+              opacity: feature.properties?.layerOpacity ?? style.opacity,
+              lineCap: "round",
+              lineJoin: "round",
+            };
           },
         }),
       ),
