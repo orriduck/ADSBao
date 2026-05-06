@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 
 import {
   isHttp4xxOr5xx,
-  mergeAircraftSnapshots,
   normalizeAdsbAircraft,
+  normalizeAircraftSnapshot,
 } from "./aircraftPositionsModel.js";
 
 const receiveTime = 1_700_000_003_200;
@@ -38,30 +38,26 @@ const responseNow = 1_700_000_003_000;
 }
 
 {
-  const merged = mergeAircraftSnapshots({
-    closeJson: {
+  const normalized = normalizeAircraftSnapshot({
+    json: {
       now: responseNow,
       ac: [
-        { hex: "duplicate", flight: " CLOSE ", lat: 1, lon: 2, gs: 10 },
+        { hex: "wide", flight: " WIDE ", lat: 5, lon: 6, gs: 20 },
         { hex: "near", flight: " NEAR ", lat: 3, lon: 4 },
-      ],
-    },
-    wideJson: {
-      now: responseNow,
-      ac: [
-        { hex: "duplicate", flight: " WIDE ", lat: 5, lon: 6, gs: 20 },
         { hex: "missing", flight: "SKIP", lat: null, lon: 9 },
+        { flight: "NOHEX", lat: 7, lon: 8 },
       ],
     },
     receiveTime,
   });
 
   assert.deepEqual(
-    merged.map((item) => item.icao24),
-    ["duplicate", "near"],
+    normalized.map((item) => item.icao24),
+    ["wide", "near"],
   );
-  assert.equal(merged[0].callsign, "WIDE");
-  assert.equal(merged[0].velocity, 20);
+  assert.equal(normalized[0].callsign, "WIDE");
+  assert.equal(normalized[0].velocity, 20);
+  assert.equal(normalized[0].positionTime, responseNow);
 }
 
 assert.equal(isHttp4xxOr5xx({ status: 500 }), true);

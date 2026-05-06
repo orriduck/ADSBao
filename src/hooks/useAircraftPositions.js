@@ -3,15 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import {
   aircraftPositionClient,
+  DEFAULT_AIRCRAFT_RANGE_NM,
   DEFAULT_AIRCRAFT_POLL_MS,
-  DEFAULT_CLOSE_RANGE_NM,
-  DEFAULT_WIDE_RANGE_NM,
 } from "../services/aviationData.js";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation.js";
 import {
   describeAircraftFetchError,
   isHttp4xxOr5xx,
-  mergeAircraftSnapshots,
+  normalizeAircraftSnapshot,
 } from "../features/aircraft-positions/aircraftPositionsModel.js";
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
@@ -42,24 +41,16 @@ export function useAircraftPositions(icao, lat, lon) {
       if (!lat || !lon) return;
       setLoading(true);
       try {
-        const [wideJson, closeJson] = await Promise.all([
-          aircraftPositionClient.fetchNearbyAircraft({
-            lat,
-            lon,
-            distNm: DEFAULT_WIDE_RANGE_NM,
-          }),
-          aircraftPositionClient.fetchNearbyAircraft({
-            lat,
-            lon,
-            distNm: DEFAULT_CLOSE_RANGE_NM,
-          }),
-        ]);
+        const aircraftJson = await aircraftPositionClient.fetchNearbyAircraft({
+          lat,
+          lon,
+          distNm: DEFAULT_AIRCRAFT_RANGE_NM,
+        });
         if (disposed) return;
         const receiveTime = Date.now();
         setAircraft(
-          mergeAircraftSnapshots({
-            wideJson,
-            closeJson,
+          normalizeAircraftSnapshot({
+            json: aircraftJson,
             receiveTime,
           }),
         );

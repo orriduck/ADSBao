@@ -7,6 +7,7 @@ import {
   createMetarClient,
   createRateLimiter,
   DEFAULT_AIRCRAFT_POLL_MS,
+  DEFAULT_AIRCRAFT_RANGE_NM,
   normalizeFlightRoute,
 } from "./aviationData.js";
 
@@ -152,6 +153,24 @@ try {
   assert.equal(calls.length, 1);
   assert.equal(calls[0], "/api/proxy/aircraft/positions/42.3656/-71.0096/15");
   assert.equal(payload.ac[0].hex, "a1b2c3");
+}
+
+{
+  const calls = [];
+  const client = createAircraftPositionClient({
+    fetchImpl: async (url) => {
+      calls.push(url);
+      return createJsonResponse({ ac: [] });
+    },
+  });
+
+  await client.fetchNearbyAircraft({
+    lat: 42.3656,
+    lon: -71.0096,
+  });
+
+  assert.equal(DEFAULT_AIRCRAFT_RANGE_NM, 30);
+  assert.equal(calls[0], "/api/proxy/aircraft/positions/42.3656/-71.0096/30");
 }
 
 {
