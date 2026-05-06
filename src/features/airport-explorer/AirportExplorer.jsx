@@ -66,7 +66,13 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden font-sans text-atc-text">
+    <div
+      className={`font-sans text-atc-text ${
+        isMobile
+          ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
+          : "flex h-dvh overflow-hidden"
+      }`}
+    >
       {!isMobile && (
         <div
           className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
