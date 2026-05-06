@@ -52,6 +52,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   );
   const { weather, traffic } = useAirportExplorerData(airportProfile);
   const procedures = useAirportProcedures(airportProfile.icao);
+  const [procedurePanelOpen, setProcedurePanelOpen] = useState(false);
   const [procedureInspector, setProcedureInspector] = useState({
     selectedRunway: "",
     selectedProcedureCode: "",
@@ -205,8 +206,15 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       )}
 
       <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
-        {!(isMobile && sidebarOpen) && <AirportExplorerMapMenu />}
         {!(isMobile && sidebarOpen) && (
+          <AirportExplorerMapMenu
+            showProcedurePanel={procedurePanelOpen}
+            onToggleProcedurePanel={() =>
+              setProcedurePanelOpen((current) => !current)
+            }
+          />
+        )}
+        {procedurePanelOpen && !(isMobile && sidebarOpen) && (
           <ProcedureInspectorControls
             runwayProcedures={procedures.runwayProcedures}
             selectedRunway={selectedRunway}

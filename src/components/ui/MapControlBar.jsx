@@ -18,9 +18,11 @@ const DRAWER_ID = "map-action-drawer";
 export default function MapControlBar({
   activeZoom = ZOOM_AIRPORT,
   showMapLabels = true,
+  showProcedurePanel = false,
   showTelemetry = true,
   onZoom,
   onToggleMapLabels,
+  onToggleProcedurePanel,
   onToggleTelemetry,
 }) {
   const controlZone = useRef(null);
@@ -72,12 +74,14 @@ export default function MapControlBar({
           playing={playing}
           audioReady={audioReady}
           showMapLabels={showMapLabels}
+          showProcedurePanel={showProcedurePanel}
           showTelemetry={showTelemetry}
           drawerId={DRAWER_ID}
           onCycleZoom={cycleZoom}
           onToggleAudio={toggleAudio}
           onCycleTheme={cycleTheme}
           onToggleMapLabels={onToggleMapLabels}
+          onToggleProcedurePanel={onToggleProcedurePanel}
           onToggleTelemetry={onToggleTelemetry}
           onToggleDrawer={() => setDrawerOpen((value) => !value)}
         />
