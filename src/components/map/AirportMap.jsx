@@ -8,7 +8,7 @@ import AreaMarker from "./AreaMarker.jsx";
 import AirportMarker from "./AirportMarker.jsx";
 import GroundStatsCounter from "./GroundStatsCounter.jsx";
 import AircraftPosition from "./AircraftPosition.jsx";
-import ProcedureOverlay from "./ProcedureOverlay.jsx";
+import RunwayAnnotationLayer from "./RunwayAnnotationLayer.jsx";
 import {
   AIRPORT_MAP_FALLBACK_CENTER,
   AIRPORT_MAP_TRAFFIC_LEGEND,
@@ -39,7 +39,7 @@ export default function AirportMap({
   airport = null,
   showMapLabels = true,
   showTelemetry = true,
-  procedureGeoJson = null,
+  runwayMap = null,
 }) {
   const mapEl = useRef(null);
   const mapRef = useRef(null);
@@ -129,9 +129,10 @@ export default function AirportMap({
             icao={icao}
             airport={airport}
           />
-          <ProcedureOverlay
-            geojson={procedureGeoJson}
+          <RunwayAnnotationLayer
+            runwayMap={runwayMap}
             theme={currentTheme}
+            zoom={zoom}
           />
           <GroundStatsCounter
             lat={lat}
