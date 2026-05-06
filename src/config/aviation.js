@@ -41,3 +41,11 @@ export const FLIGHT_ROUTE_LOOKUP_CONFIG = {
   backoffMaxMs: 60_000,
   userAgent: "ADSBao/0.9.0 (https://github.com/orriduck/ADSBao)",
 };
+
+export const FAA_CIFP_CONFIG = {
+  downloadPageUrl:
+    "https://www.faa.gov/air_traffic/flight_info/aeronav/digital_products/cifp/download/",
+  cacheMs: 6 * 60 * 60 * 1000,
+  maxProceduresPerAirport: 12,
+  userAgent: "ADSBao/0.9.0 (https://github.com/orriduck/ADSBao)",
+};

@@ -60,7 +60,7 @@ const procedureName = (procedureCode) => {
 };
 
 const procedureId = (airport, procedureCode) =>
-  `${airport}-${procedureName(procedureCode)}`
+  `${airport}-${procedureCode}-${procedureName(procedureCode)}`
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
@@ -218,13 +218,16 @@ export function renderProcedureGeoJson(procedure) {
 
   for (const transition of procedure.transitions) {
     let previous = null;
+    let reachedRunway = false;
     for (const leg of transition.legs) {
       const current = coordinateForLeg(leg);
+      const isRunwayFix = /^RW\d{2}[LRC]?$/.test(leg.fixIdent || "");
       const baseProperties = compactProperties({
         procedureId: procedure.id,
         procedureName: procedure.name,
         runway: procedure.runway,
         transitionName: transition.name,
+        phase: reachedRunway ? "missed" : isRunwayFix ? "runway" : "approach",
         legType: leg.pathTerminator,
         sequence: leg.sequence,
         fixIdent: leg.fixIdent,
@@ -264,6 +267,7 @@ export function renderProcedureGeoJson(procedure) {
       }
 
       if (current) previous = current;
+      if (isRunwayFix) reachedRunway = true;
     }
   }
 

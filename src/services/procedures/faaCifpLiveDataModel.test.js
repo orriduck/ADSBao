@@ -1,10 +1,39 @@
 import assert from "node:assert/strict";
 
 import {
-  buildProcedureIndex,
-  parseFaaCifpProcedures,
-  renderProcedureGeoJson,
-} from "./faaCifpProcedureModel.js";
+  buildLiveProcedurePayload,
+  discoverActiveCifpRelease,
+} from "./faaCifpLiveDataModel.js";
+
+const downloadHtml = `
+  <a href="https://aeronav.faa.gov/Upload_313-d/cifp/CIFP_260416.zip">CIFP 260416</a> (Zip) Apr 16, 2026  May 14, 2026
+  <a href="/Upload_313-d/cifp/CIFP_260514.zip">CIFP 260514</a> (Zip) May 14, 2026  Jun 11, 2026
+`;
+
+assert.deepEqual(
+  discoverActiveCifpRelease({
+    html: downloadHtml,
+    now: new Date("2026-05-06T12:00:00Z"),
+    pageUrl:
+      "https://www.faa.gov/air_traffic/flight_info/aeronav/digital_products/cifp/download/",
+  }),
+  {
+    cycle: "260416",
+    url: "https://aeronav.faa.gov/Upload_313-d/cifp/CIFP_260416.zip",
+    effectiveStart: "2026-04-16",
+    effectiveEnd: "2026-05-14",
+  },
+);
+
+assert.equal(
+  discoverActiveCifpRelease({
+    html: downloadHtml,
+    now: new Date("2026-05-20T12:00:00Z"),
+    pageUrl:
+      "https://www.faa.gov/air_traffic/flight_info/aeronav/digital_products/cifp/download/",
+  }).cycle,
+  "260514",
+);
 
 const sampleLines = [
   "SUSAP KBOSK6CGOSHI K60    W     N42021109W071094714                       W0139     NAR           GOSHI                    384662504",
@@ -25,86 +54,26 @@ const sampleLines = [
   "SUSAP KBOSK6FR04R  R      050OMVOZK6PC0E    010DF                                                                   A JS   392531705",
   "SUSAP KBOSK6FR04R  R      060WAXENK6PC0EY   010TF                                 + 03000                           A JS   392542106",
   "SUSAP KBOSK6FR04R  R      070WAXENK6PC0EE  L   HM                     20900040    + 03000                           A JS   392552106",
+  "SUSAP KBOSK6FI04R  AGOSHI 010GOSHIK6PC0E  A    IF                                   06000     18000210              0 PS   391502208",
+  "SUSAP KBOSK6FI04R  AGOSHI 020WINNIK6PC0EE B 010TF IBOSK6      21470169        PI  + 04000                           0 PS   391512208",
+  "SUSAP KBOSK6FI04R  I      010WINNIK6PC0E  I    IF IBOSK6      21470169        PI  J 040000170018000                 0 DS   391522405",
+  "SUSAP KBOSK6FI04R  I      011NABBOK6PC0E       CF IBOSK6      2147011903500050PI  + 03000                           0 DS   391532405",
+  "SUSAP KBOSK6FI04R  I      020MILTTK6PC0E  F    CF IBOSK6      2147006903500050PI  H 0170001700            BOS   K6D 0 DS   391542405",
+  "SUSAP KBOSK6FI04R  I      030RW04RK6PG0GY M    CF IBOSK6      2147001803500051PI    00069             -300          0 DS   391552405",
 ];
 
-const { procedures, warnings } = parseFaaCifpProcedures({
+const payload = buildLiveProcedurePayload({
   lines: sampleLines,
   airport: "KBOS",
   cycle: "260514",
-  procedureCodes: ["R04R"],
+  maxProcedures: 2,
 });
 
-assert.equal(procedures.length, 1);
-assert.equal(procedures[0].id, "kbos-r04r-rnav-gps-rwy-04r");
-assert.equal(procedures[0].name, "RNAV (GPS) RWY 04R");
-assert.equal(procedures[0].runway, "04R");
-assert.equal(procedures[0].sourceCycle, "260514");
-assert.equal(procedures[0].transitions.length, 2);
-assert.equal(procedures[0].transitions[0].name, "GOSHI");
-assert.equal(procedures[0].transitions[0].legs[0].pathTerminator, "IF");
-assert.equal(procedures[0].transitions[0].legs[0].fixIdent, "GOSHI");
-assert.equal(procedures[0].transitions[0].legs[0].altitudeMinFt, 6000);
-assert.equal(procedures[0].transitions[0].legs[0].speedMaxKt, 210);
-assert.equal(procedures[0].transitions[1].name, "FINAL");
-assert.equal(procedures[0].transitions[1].legs[4].fixIdent, "RW04R");
-assert.equal(procedures[0].transitions[1].legs[5].unsupported, true);
-assert.equal(procedures[0].transitions[1].legs[5].pathTerminator, "CA");
-assert.equal(warnings.some((warning) => warning.includes("CA")), true);
-assert.equal(warnings.some((warning) => warning.includes("HM")), true);
-
-const geojson = renderProcedureGeoJson(procedures[0]);
-const lineStrings = geojson.features.filter(
-  (feature) => feature.geometry.type === "LineString",
-);
-const points = geojson.features.filter(
-  (feature) => feature.geometry.type === "Point",
-);
-
-assert.equal(geojson.type, "FeatureCollection");
-assert.equal(lineStrings.length >= 6, true);
-assert.equal(points.some((feature) => feature.properties.fixIdent === "MILTT"), true);
-assert.deepEqual(lineStrings[0].properties, {
-  procedureId: "kbos-r04r-rnav-gps-rwy-04r",
-  procedureName: "RNAV (GPS) RWY 04R",
-  runway: "04R",
-  transitionName: "GOSHI",
-  phase: "approach",
-  legType: "TF",
-  sequence: 20,
-  fixIdent: "WINNI",
-  altitudeMinFt: 4000,
-});
-
+assert.equal(payload.index.airport, "KBOS");
+assert.equal(payload.index.approaches.length, 2);
+assert.equal(payload.geojson.type, "FeatureCollection");
+assert.equal(payload.geojson.properties.procedureCount, 2);
 assert.equal(
-  lineStrings.some(
-    (feature) =>
-      feature.properties.phase === "runway" &&
-      feature.properties.fixIdent === "RW04R",
-  ),
-  true,
+  new Set(payload.geojson.features.map((feature) => feature.properties.procedureId)).size,
+  2,
 );
-assert.equal(
-  geojson.features.some(
-    (feature) =>
-      feature.properties.phase === "missed" &&
-      feature.properties.fixIdent === "WAXEN",
-  ),
-  true,
-);
-
-const index = buildProcedureIndex({
-  airport: "KBOS",
-  cycle: "260514",
-  procedures,
-});
-
-assert.deepEqual(index.approaches, [
-  {
-    id: "kbos-r04r-rnav-gps-rwy-04r",
-    name: "RNAV (GPS) RWY 04R",
-    runway: "04R",
-    supportedLegCount: 9,
-    unsupportedLegCount: 2,
-    warningCount: 2,
-  },
-]);

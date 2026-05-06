@@ -1,24 +1,12 @@
 const DEFAULT_COUNTRY = "US";
-const DEFAULT_BASE_PATH = "/data/procedures";
+const DEFAULT_BASE_PATH = "/api/proxy/procedures";
 
 const normalizeAirport = (airport) => String(airport || "").trim().toUpperCase();
-
-const normalizeProcedureId = (procedureId) =>
-  String(procedureId || "").trim().toLowerCase();
 
 export const buildProcedureIndexPath = (
   airport,
   { country = DEFAULT_COUNTRY, basePath = DEFAULT_BASE_PATH } = {},
-) => `${basePath}/${country}/${normalizeAirport(airport)}/index.json`;
-
-export const buildProcedureGeoJsonPath = (
-  airport,
-  procedureId,
-  { country = DEFAULT_COUNTRY, basePath = DEFAULT_BASE_PATH } = {},
-) =>
-  `${basePath}/${country}/${normalizeAirport(airport)}/approaches/${normalizeProcedureId(
-    procedureId,
-  )}.geojson`;
+) => `${basePath}/${country}/${normalizeAirport(airport)}`;
 
 const fetchJsonOrNull = async (fetchImpl, url) => {
   const response = await fetchImpl(url);
@@ -43,10 +31,10 @@ export function createProcedureDataClient({
         buildProcedureIndexPath(airport, { country, basePath }),
       );
     },
-    fetchProcedureGeoJson(airport, procedureId) {
+    fetchLiveProcedures(airport) {
       return fetchJsonOrNull(
         fetchImpl,
-        buildProcedureGeoJsonPath(airport, procedureId, { country, basePath }),
+        buildProcedureIndexPath(airport, { country, basePath }),
       );
     },
   };
