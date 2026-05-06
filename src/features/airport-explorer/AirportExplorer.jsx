@@ -120,6 +120,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           showMapLabels={showMapLabels}
           showTelemetry={showTelemetry}
           runwayMap={procedures.runwayMap}
+          runwayProcedures={procedures.runwayProcedures}
         />
         <AircraftDataLoadingOverlay active={traffic.aircraftInitialLoading} />
 

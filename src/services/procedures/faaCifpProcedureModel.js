@@ -1,3 +1,5 @@
+import { reciprocalRunwayIdent } from "./faaCifpRunwayModel.js";
+
 const SUPPORTED_PATH_TERMINATORS = new Set(["IF", "TF", "DF", "CF"]);
 
 const PROCEDURE_TYPE_LABELS = {
@@ -41,6 +43,16 @@ const parseCoordinatePair = (line) => {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   return { lat, lon };
 };
+
+const parseCoordinatePairs = (line) =>
+  [...String(line).matchAll(/([NS]\d{8,10})([EW]\d{9,11})/g)]
+    .map((match) => {
+      const lat = parseCoordinate(match[1], 2);
+      const lon = parseCoordinate(match[2], 3);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+      return { lat, lon };
+    })
+    .filter(Boolean);
 
 const isAirportLine = (line, airport) =>
   line.startsWith("SUSAP ") && line.slice(6, 10).trim() === airport;
@@ -101,9 +113,16 @@ const indexFixes = (lines, airport) => {
     }
     if (line[12] === "P" && line[13] === "R") {
       const runway = line.slice(19, 24).trim();
-      const coords = parseCoordinatePair(line);
-      if (/^RW\d{2}[LRC]?$/.test(runway) && coords) {
-        fixes.set(runway, { ident: runway, ...coords });
+      const coords = parseCoordinatePairs(line);
+      if (/^RW\d{2}[LRC]?$/.test(runway) && coords[0]) {
+        fixes.set(runway, { ident: runway, ...coords[0] });
+        const reciprocal = reciprocalRunwayIdent(runway.replace(/^RW/, ""));
+        if (reciprocal && coords[1]) {
+          fixes.set(`RW${reciprocal}`, {
+            ident: `RW${reciprocal}`,
+            ...coords[1],
+          });
+        }
       }
     }
   }
@@ -112,6 +131,7 @@ const indexFixes = (lines, airport) => {
 
 const createProcedure = ({ airport, cycle, procedureCode }) => ({
   id: procedureId(airport, procedureCode),
+  procedureCode,
   airport,
   name: procedureName(procedureCode),
   type: "IAP",

@@ -7,6 +7,7 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
   const [index, setIndex] = useState(null);
   const [geojson, setGeojson] = useState(null);
   const [runwayMap, setRunwayMap] = useState(null);
+  const [runwayProcedures, setRunwayProcedures] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -19,6 +20,7 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
         setIndex(null);
         setGeojson(null);
         setRunwayMap(null);
+        setRunwayProcedures(null);
         setError(null);
         return;
       }
@@ -26,18 +28,22 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
       setLoading(true);
       setError(null);
       try {
-        const payload =
-          await procedureDataClient.fetchLiveProcedures(normalizedAirport);
+        const [payload, runwayProcedurePayload] = await Promise.all([
+          procedureDataClient.fetchLiveProcedures(normalizedAirport),
+          procedureDataClient.fetchRunwayProcedures(normalizedAirport),
+        ]);
         if (disposed) return;
         const nextIndex = payload?.index || null;
         setIndex(nextIndex);
         setGeojson(payload?.geojson || null);
         setRunwayMap(payload?.runwayMap || null);
+        setRunwayProcedures(runwayProcedurePayload || null);
       } catch (nextError) {
         if (disposed) return;
         setError(nextError);
         setGeojson(null);
         setRunwayMap(null);
+        setRunwayProcedures(null);
       } finally {
         if (!disposed) setLoading(false);
       }
@@ -60,6 +66,7 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
     selectedProcedure,
     geojson,
     runwayMap,
+    runwayProcedures,
     loading,
     error,
   };

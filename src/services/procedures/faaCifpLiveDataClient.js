@@ -4,6 +4,7 @@ import {
   buildLiveProcedurePayload,
   discoverActiveCifpRelease,
 } from "./faaCifpLiveDataModel.js";
+import { buildRunwayProcedurePayload } from "./faaCifpRunwayProcedureModel.js";
 
 let cachedCifp = null;
 
@@ -91,6 +92,21 @@ export async function buildLiveAirportProcedurePayload({
 } = {}) {
   const { release, text } = await getCachedActiveCifp({ fetchImpl, now });
   return buildLiveProcedurePayload({
+    lines: text.split(/\r?\n/).filter(Boolean),
+    airport,
+    cycle: release.cycle,
+    maxProcedures,
+  });
+}
+
+export async function buildLiveAirportRunwayProcedurePayload({
+  airport,
+  fetchImpl = fetch,
+  now = new Date(),
+  maxProcedures = FAA_CIFP_CONFIG.maxProceduresPerAirport,
+} = {}) {
+  const { release, text } = await getCachedActiveCifp({ fetchImpl, now });
+  return buildRunwayProcedurePayload({
     lines: text.split(/\r?\n/).filter(Boolean),
     airport,
     cycle: release.cycle,
