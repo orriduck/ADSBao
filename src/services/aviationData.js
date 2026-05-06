@@ -13,8 +13,7 @@ export { createMetarClient } from "./aviation/metarClient.js";
 export { createRateLimiter } from "./aviation/rateLimiter.js";
 
 export const DEFAULT_AIRCRAFT_POLL_MS = AIRCRAFT_TRAFFIC_CONFIG.pollMs;
-export const DEFAULT_WIDE_RANGE_NM = AIRCRAFT_TRAFFIC_CONFIG.wideRangeNm;
-export const DEFAULT_CLOSE_RANGE_NM = AIRCRAFT_TRAFFIC_CONFIG.closeRangeNm;
+export const DEFAULT_AIRCRAFT_RANGE_NM = AIRCRAFT_TRAFFIC_CONFIG.rangeNm;
 
 export const metarClient = createMetarClient();
 export const aircraftPositionClient = createAircraftPositionClient();

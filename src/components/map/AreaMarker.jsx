@@ -5,7 +5,7 @@ import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_AREA_RADIUS_NM } from "../../config/airportMap.js";
 import { shouldShowAirportArea } from "../../utils/airportMapDisplay.js";
-import { DEFAULT_WIDE_RANGE_NM } from "../../services/aviationData.js";
+import { DEFAULT_AIRCRAFT_RANGE_NM } from "../../services/aviationData.js";
 
 const NM_TO_METERS = 1852;
 
@@ -37,7 +37,7 @@ export default function AreaMarker({ lat, lon, zoom, theme = "dark" }) {
 
     wideRef.current?.removeFrom(map);
     wideRef.current = L.circle([lat, lon], {
-      radius: DEFAULT_WIDE_RANGE_NM * NM_TO_METERS,
+      radius: DEFAULT_AIRCRAFT_RANGE_NM * NM_TO_METERS,
       color: stroke,
       weight: 1,
       dashArray: "6 6",

@@ -12,8 +12,7 @@ export const AIRPORT_EXPLORER_UI_CONFIG = {
 
 export const AIRCRAFT_TRAFFIC_CONFIG = {
   pollMs: 3_000,
-  wideRangeNm: 20,
-  closeRangeNm: 3,
+  rangeNm: 30,
   hiddenPollGraceMs: 5_000,
 };
 

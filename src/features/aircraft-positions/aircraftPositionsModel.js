@@ -21,27 +21,19 @@ export function normalizeAdsbAircraft(
   };
 }
 
-export function mergeAircraftSnapshots({
-  wideJson,
-  closeJson,
+export function normalizeAircraftSnapshot({
+  json,
   receiveTime = Date.now(),
 }) {
-  const seen = new Map();
-  const addSnapshots = (list, responseNow) => {
-    for (const aircraft of list || []) {
-      if (aircraft.lat == null || aircraft.lon == null) continue;
-      const key = aircraft.hex || "";
-      if (!key) continue;
-      seen.set(
-        key,
-        normalizeAdsbAircraft(aircraft, { responseNow, receiveTime }),
-      );
-    }
-  };
-
-  addSnapshots(closeJson?.ac, closeJson?.now);
-  addSnapshots(wideJson?.ac, wideJson?.now);
-  return [...seen.values()];
+  return (json?.ac || [])
+    .filter((aircraft) => aircraft.lat != null && aircraft.lon != null)
+    .filter((aircraft) => aircraft.hex)
+    .map((aircraft) =>
+      normalizeAdsbAircraft(aircraft, {
+        responseNow: json?.now,
+        receiveTime,
+      }),
+    );
 }
 
 export function isHttp4xxOr5xx(error) {

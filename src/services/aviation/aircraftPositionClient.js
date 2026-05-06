@@ -33,7 +33,7 @@ export const createAircraftPositionClient = ({
     fetchNearbyAircraft({
       lat,
       lon,
-      distNm = AIRCRAFT_TRAFFIC_CONFIG.wideRangeNm,
+      distNm = AIRCRAFT_TRAFFIC_CONFIG.rangeNm,
     }) {
       const encodedLat = encodeURIComponent(String(lat));
       const encodedLon = encodeURIComponent(String(lon));
