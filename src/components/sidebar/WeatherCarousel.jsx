@@ -1,16 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { useLocalWeather } from "../../hooks/useLocalWeather.js";
-import {
-  CeilingSlide,
-  FlightRulesSlide,
-  LocalWeatherSlide,
-  MetarSlide,
-  PressureSlide,
-  TemperatureSlide,
-  WindSlide,
-} from "../weather/WeatherSlides";
+import { useWeatherCarouselNavigation } from "../../features/weather/useWeatherCarouselNavigation.js";
+import { useWeatherSlides } from "../../features/weather/useWeatherSlides.jsx";
 
 export default function WeatherCarousel({
   metar = null,
@@ -21,114 +12,23 @@ export default function WeatherCarousel({
   airportLat = 0,
   airportLon = 0,
 }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const trackRef = useRef(null);
-  const {
-    weather: localWeather,
-    loading: localWeatherLoading,
-    error: localWeatherError,
-  } = useLocalWeather(airportLat, airportLon);
-
-  const slides = useMemo(() => {
-    const ceilingFt = getCeilingFeet(metar);
-    const hasVisibility =
-      metar?.rawVisib != null && Number.isFinite(Number(metar.rawVisib));
-    const showCeiling = ceilingFt != null || hasVisibility;
-
-    return [
-      {
-        id: "metar",
-        label: "METAR",
-        navLabel: "METAR",
-        title: "Raw METAR",
-        content: (
-          <MetarSlide
-            metarRaw={metarRaw}
-            metarLoading={metarLoading}
-            metarError={metarError}
-          />
-        ),
-      },
-      {
-        id: "rules",
-        label: "Rules",
-        navLabel: "RULE",
-        title: "Flight rules",
-        content: <FlightRulesSlide metar={metar} />,
-      },
-      showCeiling
-        ? {
-            id: "ceiling",
-            label: "Ceiling",
-            navLabel: "C/V",
-            title: "Ceiling / visibility",
-            content: <CeilingSlide metar={metar} />,
-          }
-        : null,
-      {
-        id: "wind",
-        label: "Wind",
-        navLabel: "WIND",
-        title: "Wind",
-        content: <WindSlide metar={metar} localWeather={localWeather} />,
-      },
-      {
-        id: "temp",
-        label: "Temp",
-        navLabel: "TEMP",
-        title: "Temperature",
-        content: (
-          <TemperatureSlide metar={metar} localWeather={localWeather} />
-        ),
-      },
-      {
-        id: "pressure",
-        label: "Pressure",
-        navLabel: "ALT",
-        title: "Altimeter",
-        content: <PressureSlide metar={metar} localWeather={localWeather} />,
-      },
-      {
-        id: "local",
-        label: "Local",
-        navLabel: "LOCAL",
-        title: "Local conditions",
-        content: (
-          <LocalWeatherSlide
-            airportCode={airportCode}
-            localWeather={localWeather}
-            localWeatherError={localWeatherError}
-            localWeatherLoading={localWeatherLoading}
-          />
-        ),
-      },
-    ].filter(Boolean);
-  }, [
-    airportCode,
-    localWeather,
-    localWeatherError,
-    localWeatherLoading,
+  const slides = useWeatherSlides({
+    variant: "carousel",
     metar,
-    metarError,
-    metarLoading,
     metarRaw,
-  ]);
-
-  const activeSlide = slides[activeIndex] || slides[0];
-
-  const scrollToSlide = (index) => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.scrollTo({ left: track.clientWidth * index, behavior: "smooth" });
-    setActiveIndex(index);
-  };
-
-  const handleScroll = () => {
-    const track = trackRef.current;
-    if (!track) return;
-    const next = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-    setActiveIndex(Math.min(Math.max(next, 0), slides.length - 1));
-  };
+    metarLoading,
+    metarError,
+    airportCode,
+    airportLat,
+    airportLon,
+  });
+  const {
+    activeIndex,
+    activeSlide,
+    trackRef,
+    scrollToSlide,
+    handleScroll,
+  } = useWeatherCarouselNavigation(slides);
 
   return (
     <section className="weather-carousel-section px-6 pt-4 pb-4">
@@ -176,12 +76,4 @@ export default function WeatherCarousel({
       </div>
     </section>
   );
-}
-
-function getCeilingFeet(metar) {
-  const layer = metar?.rawClouds?.find((item) =>
-    ["BKN", "OVC", "VV"].includes(item.cover),
-  );
-  const number = Number(layer?.base);
-  return Number.isFinite(number) ? number : null;
 }

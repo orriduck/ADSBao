@@ -18,6 +18,7 @@
     "test:airport-explorer": "node src/features/airport-explorer/airportExplorerModel.test.js",
     "test:map-controls": "node src/features/map-controls/mapControlModel.test.js",
     "test:airport-map-feature": "node src/features/airport-map/airportMapModel.test.js",
+    "test:weather-feature": "node src/features/weather/weatherModel.test.js",
     "test:flight-route-display": "node src/utils/flightRouteDisplay.test.js",
     "test:airport-map-display": "node src/utils/airportMapDisplay.test.js",
     "test:metar": "node src/hooks/useMetar.test.js",
