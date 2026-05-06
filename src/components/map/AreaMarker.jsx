@@ -17,20 +17,24 @@ export default function AreaMarker({ lat, lon, zoom, theme = "dark" }) {
   useEffect(() => {
     if (!map || !map.getContainer || !lat || !lon) return undefined;
 
-    const stroke =
+    const closeStroke =
       theme === "light" ? "rgba(18,21,26,0.22)" : "rgba(255,255,255,0.28)";
-    const fill =
+    const closeFill =
       theme === "light" ? "rgba(18,21,26,0.06)" : "rgba(255,255,255,0.05)";
+    const wideStroke =
+      theme === "light" ? "rgba(18,21,26,0.12)" : "rgba(255,255,255,0.16)";
+    const wideFill =
+      theme === "light" ? "rgba(18,21,26,0.018)" : "rgba(255,255,255,0.018)";
 
     closeRef.current?.removeFrom(map);
     closeRef.current = null;
     if (shouldShowAirportArea(zoom)) {
       closeRef.current = L.circle([lat, lon], {
         radius: AIRPORT_AREA_RADIUS_NM * NM_TO_METERS,
-        color: stroke,
+        color: closeStroke,
         weight: 1,
         dashArray: "4 4",
-        fillColor: fill,
+        fillColor: closeFill,
         fillOpacity: 1,
       }).addTo(map);
     }
@@ -38,10 +42,10 @@ export default function AreaMarker({ lat, lon, zoom, theme = "dark" }) {
     wideRef.current?.removeFrom(map);
     wideRef.current = L.circle([lat, lon], {
       radius: DEFAULT_AIRCRAFT_RANGE_NM * NM_TO_METERS,
-      color: stroke,
+      color: wideStroke,
       weight: 1,
       dashArray: "6 6",
-      fillColor: fill,
+      fillColor: wideFill,
       fillOpacity: 1,
     }).addTo(map);
 
