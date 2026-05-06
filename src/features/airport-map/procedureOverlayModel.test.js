@@ -22,7 +22,18 @@ const geojson = {
           [-70.9, 42.1],
         ],
       },
-      properties: { fixIdent: "RW04R", phase: "runway" },
+      properties: { fixIdent: "AAALL", phase: "approach", transitionName: "NUNZO" },
+    },
+    {
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          [-70.95, 42.05],
+          [-70.9, 42.1],
+        ],
+      },
+      properties: { fixIdent: "RW04R", phase: "runway", transitionName: "FINAL" },
     },
     {
       type: "Feature",
@@ -33,7 +44,7 @@ const geojson = {
           [-70.8, 42.2],
         ],
       },
-      properties: { fixIdent: "WAXEN", phase: "missed" },
+      properties: { fixIdent: "WAXEN", phase: "missed", transitionName: "FINAL" },
     },
   ],
 };
@@ -53,7 +64,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   darkStyles.map((style) => style.opacity),
-  [0.1, 0.16, 0.28],
+  [0.05, 0.08, 0.14],
 );
 assert.equal(darkStyles[0].weight > darkStyles[1].weight, true);
 assert.equal(darkStyles[1].weight > darkStyles[2].weight, true);
