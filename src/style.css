@@ -351,6 +351,18 @@ body {
     opacity: 0.55 !important;
 }
 
+.procedure-silk--blur {
+    filter: blur(4px);
+}
+
+.procedure-silk--body {
+    filter: blur(1.2px);
+}
+
+.procedure-silk--thread {
+    filter: blur(0.35px);
+}
+
 /* Transitions */
 .screen-enter-active,
 .screen-leave-active {
