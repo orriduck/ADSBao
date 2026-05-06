@@ -6,6 +6,7 @@ import { procedureDataClient } from "../services/procedures/procedureDataClient.
 export function useAirportProcedures(airport, selectedProcedureId = "") {
   const [index, setIndex] = useState(null);
   const [geojson, setGeojson] = useState(null);
+  const [runwayMap, setRunwayMap] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -17,6 +18,7 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
       if (!normalizedAirport) {
         setIndex(null);
         setGeojson(null);
+        setRunwayMap(null);
         setError(null);
         return;
       }
@@ -30,10 +32,12 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
         const nextIndex = payload?.index || null;
         setIndex(nextIndex);
         setGeojson(payload?.geojson || null);
+        setRunwayMap(payload?.runwayMap || null);
       } catch (nextError) {
         if (disposed) return;
         setError(nextError);
         setGeojson(null);
+        setRunwayMap(null);
       } finally {
         if (!disposed) setLoading(false);
       }
@@ -55,6 +59,7 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
     index,
     selectedProcedure,
     geojson,
+    runwayMap,
     loading,
     error,
   };

@@ -29,9 +29,9 @@ export async function GET(_request, { params }) {
       airport: normalizedIcao,
     });
 
-    if (!payload.index.approaches.length) {
+    if (!payload.index.approaches.length && !payload.runwayMap.runways.length) {
       return Response.json(
-        { error: `No FAA CIFP procedures found for ${normalizedIcao}` },
+        { error: `No FAA CIFP airport data found for ${normalizedIcao}` },
         { status: 404, headers: corsHeaders },
       );
     }

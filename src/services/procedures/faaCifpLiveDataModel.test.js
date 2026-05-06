@@ -71,6 +71,12 @@ const payload = buildLiveProcedurePayload({
 
 assert.equal(payload.index.airport, "KBOS");
 assert.equal(payload.index.approaches.length, 2);
+assert.deepEqual(
+  payload.runwayMap.runways.flatMap((runway) =>
+    runway.ends.map((end) => end.ident),
+  ),
+  ["04R", "22L"],
+);
 assert.equal(payload.geojson.type, "FeatureCollection");
 assert.equal(payload.geojson.properties.procedureCount, 2);
 assert.equal(

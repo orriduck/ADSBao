@@ -373,6 +373,38 @@ body {
     filter: blur(0.45px);
 }
 
+.runway-end-label {
+    align-items: center;
+    background: color-mix(in oklab, var(--atc-card) 88%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-accent) 54%, transparent);
+    border-radius: 4px;
+    box-shadow: 0 6px 16px rgb(0 0 0 / 0.24);
+    color: var(--atc-accent);
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    height: 18px;
+    justify-content: center;
+    letter-spacing: 0;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.45);
+    width: 34px;
+}
+
+.runway-end-label span {
+    display: block;
+    transform: translateY(0.5px);
+}
+
+.runway-end-label--light {
+    background: color-mix(in oklab, var(--atc-card) 92%, transparent);
+    border-color: color-mix(in oklab, var(--atc-accent) 62%, transparent);
+    box-shadow: 0 5px 14px rgb(15 23 42 / 0.16);
+    color: var(--atc-accent);
+    text-shadow: none;
+}
+
 /* Transitions */
 .screen-enter-active,
 .screen-leave-active {
