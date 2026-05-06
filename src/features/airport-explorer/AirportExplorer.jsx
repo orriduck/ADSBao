@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import {
   AirportExplorerUiProvider,
@@ -47,6 +47,28 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   const { weather, traffic } = useAirportExplorerData(airportProfile);
   const procedures = useAirportProcedures(airportProfile.icao);
 
+  useEffect(() => {
+    if (!isMobile) return undefined;
+
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalBodyOverscroll = document.body.style.overscrollBehavior;
+    const originalHtmlOverscroll =
+      document.documentElement.style.overscrollBehavior;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+    document.documentElement.style.overscrollBehavior = "none";
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.overscrollBehavior = originalBodyOverscroll;
+      document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
+    };
+  }, [isMobile]);
+
   const sidebarProps = {
     icao: airportProfile.icao,
     iata: airportProfile.iata,
@@ -66,7 +88,13 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden font-sans text-atc-text">
+    <div
+      className={`font-sans text-atc-text ${
+        isMobile
+          ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
+          : "flex h-dvh overflow-hidden"
+      }`}
+    >
       {!isMobile && (
         <div
           className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
