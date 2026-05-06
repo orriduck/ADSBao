@@ -10,6 +10,7 @@
     "test:home-airport-directory": "node src/config/homeAirportDirectory.test.js",
     "test:airport-directory": "node src/services/airportDirectory.test.js",
     "test:aviation-data": "node src/services/aviationData.test.js",
+    "test:aviation-service-model": "node src/services/aviation/aviationServiceModel.test.js",
     "test:vercel-routing": "node src/config/vercelRouting.test.js",
     "test:airport-wiki": "node src/services/airportWiki.test.js",
     "test:about": "node src/features/about/aboutModel.test.js",

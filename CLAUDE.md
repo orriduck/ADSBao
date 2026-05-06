@@ -32,7 +32,8 @@ Frontend runs on `http://localhost:3000` by default.
 | `src/components/screens/SearchScreen.jsx` | Airport directory UI backed by airportsapi.com + frontend cache |
 | `src/components/screens/AirportCaptionScreen.jsx` | Airport explorer map + METAR screen |
 | `src/hooks/*.js` | React hooks for METAR, ADS-B positions, route lookups, wiki summaries, and scroll parallax |
-| `src/services/aviationData.js` | Frontend-owned METAR and ADS-B data access clients |
+| `src/services/aviationData.js` | Public compatibility barrel for aviation data clients |
+| `src/services/aviation/*` | Frontend-owned aviation provider clients, rate limiter, and normalizers |
 | `src/constants/aircraft.js` | Shared aircraft color and threshold constants |
 | `src/utils/math.js` | Shared numeric helpers (`toFiniteNumber`) |
 | `src/utils/airport.js` | Shared airport display helpers (`airportSubtitle`) |
@@ -70,7 +71,7 @@ pnpm build
 ## Tests
 
 ```bash
-pnpm test:home-airport-directory && pnpm test:airport-directory && pnpm test:aviation-data && pnpm test:vercel-routing && pnpm test:airport-wiki && pnpm test:about && pnpm test:app-shell && pnpm test:airport-search && pnpm test:airport-explorer && pnpm test:map-controls && pnpm test:airport-map-feature && pnpm test:weather-feature && pnpm test:flight-route-display && pnpm test:airport-map-display && pnpm test:metar && pnpm test:aircraft-motion && pnpm test:aircraft-traffic-intent
+pnpm test:home-airport-directory && pnpm test:airport-directory && pnpm test:aviation-data && pnpm test:aviation-service-model && pnpm test:vercel-routing && pnpm test:airport-wiki && pnpm test:about && pnpm test:app-shell && pnpm test:airport-search && pnpm test:airport-explorer && pnpm test:map-controls && pnpm test:airport-map-feature && pnpm test:weather-feature && pnpm test:flight-route-display && pnpm test:airport-map-display && pnpm test:metar && pnpm test:aircraft-motion && pnpm test:aircraft-traffic-intent
 ```
 
 ## Runtime config
