@@ -43,6 +43,31 @@ const segmentOpacity = (index, total) => {
   return Number((0.34 + (index / (total - 1)) * 0.56).toFixed(2));
 };
 
+const buildProcedureSegments = ({ runwayDirection, procedure }) => {
+  const segments = [];
+  let previous = null;
+  const legs = displayLegs(procedure);
+
+  for (const leg of legs) {
+    const current = coordinateForLeg(leg);
+    if (current && previous && !leg.unsupported) {
+      segments.push({
+        runway: runwayDirection.runway,
+        runwayPair: runwayDirection.runwayPair,
+        procedure,
+        leg,
+        coordinates: [previous, current],
+      });
+    }
+    if (current) previous = current;
+  }
+
+  return segments.map((segment, index) => ({
+    ...segment,
+    segmentOpacity: segmentOpacity(index, segments.length),
+  }));
+};
+
 export const getProcedureSegmentStyle = (theme = "dark") =>
   PROCEDURE_SEGMENT_STYLES[theme] || PROCEDURE_SEGMENT_STYLES.dark;
 
@@ -51,22 +76,7 @@ export function buildProcedureSegmentCollection(runwayProcedures) {
 
   for (const runwayDirection of runwayProcedures?.runwayDirections || []) {
     for (const procedure of runwayDirection.approaches || []) {
-      let previous = null;
-      const legs = displayLegs(procedure);
-
-      for (const leg of legs) {
-        const current = coordinateForLeg(leg);
-        if (current && previous && !leg.unsupported) {
-          rawSegments.push({
-            runway: runwayDirection.runway,
-            runwayPair: runwayDirection.runwayPair,
-            procedure,
-            leg,
-            coordinates: [previous, current],
-          });
-        }
-        if (current) previous = current;
-      }
+      rawSegments.push(...buildProcedureSegments({ runwayDirection, procedure }));
     }
   }
 
@@ -76,6 +86,7 @@ export function buildProcedureSegmentCollection(runwayProcedures) {
       airport: runwayProcedures?.airport || "",
       source: runwayProcedures?.source || "FAA CIFP",
       cycle: runwayProcedures?.cycle || "",
+      opacityDirection: "toward-runway",
     },
     features: rawSegments.map((segment, index) => ({
       type: "Feature",
@@ -95,8 +106,37 @@ export function buildProcedureSegmentCollection(runwayProcedures) {
         sequence: segment.leg.sequence,
         fixIdent: segment.leg.fixIdent,
         segmentIndex: index,
-        segmentOpacity: segmentOpacity(index, rawSegments.length),
+        segmentOpacity: segment.segmentOpacity,
       },
     })),
   };
+}
+
+export function buildProcedureFixLabels(runwayProcedures) {
+  return buildProcedureSegmentCollection(runwayProcedures).features
+    .map((feature) => {
+      const [lon, lat] = feature.geometry.coordinates.at(-1) || [];
+      const fixIdent = feature.properties?.fixIdent;
+      if (!fixIdent || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+        return null;
+      }
+
+      return {
+        key: [
+          feature.properties.procedureCode,
+          feature.properties.sequence,
+          fixIdent,
+          lat,
+          lon,
+        ].join("-"),
+        runway: feature.properties.runway,
+        procedureId: feature.properties.procedureId,
+        procedureCode: feature.properties.procedureCode,
+        phase: feature.properties.phase,
+        fixIdent,
+        lat,
+        lon,
+      };
+    })
+    .filter(Boolean);
 }

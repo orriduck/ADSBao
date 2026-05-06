@@ -4,13 +4,35 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import {
+  buildProcedureFixLabels,
   buildProcedureSegmentCollection,
   getProcedureSegmentStyle,
 } from "../../features/airport-map/procedureSegmentModel.js";
 
+const escapeHtml = (value) =>
+  String(value).replace(/[&<>"']/g, (character) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    return entities[character];
+  });
+
+const fixLabelIcon = (label, theme) =>
+  L.divIcon({
+    className: `procedure-fix-label procedure-fix-label--${theme}`,
+    html: escapeHtml(label.fixIdent),
+    iconSize: [48, 16],
+    iconAnchor: [24, 8],
+  });
+
 export default function ProcedureSegmentLayer({
   runwayProcedures,
   theme = "dark",
+  showFixLabels = false,
 }) {
   const map = useMapInstance();
   const layerRef = useRef(null);
@@ -19,10 +41,13 @@ export default function ProcedureSegmentLayer({
     if (!map || !runwayProcedures?.runwayDirections?.length) return undefined;
 
     const segments = buildProcedureSegmentCollection(runwayProcedures);
-    if (!segments.features.length) return undefined;
+    const labels = showFixLabels
+      ? buildProcedureFixLabels(runwayProcedures)
+      : [];
+    if (!segments.features.length && !labels.length) return undefined;
 
     const baseStyle = getProcedureSegmentStyle(theme);
-    const layer = L.geoJSON(segments, {
+    const lineLayer = L.geoJSON(segments, {
       interactive: false,
       style(feature) {
         return {
@@ -33,14 +58,25 @@ export default function ProcedureSegmentLayer({
           lineJoin: "round",
         };
       },
-    }).addTo(map);
+    });
+    const labelLayer = L.layerGroup(
+      labels.map((label) =>
+        L.marker([label.lat, label.lon], {
+          interactive: false,
+          keyboard: false,
+          icon: fixLabelIcon(label, theme),
+          zIndexOffset: 470,
+        }),
+      ),
+    );
+    const layer = L.layerGroup([lineLayer, labelLayer]).addTo(map);
     layerRef.current = layer;
 
     return () => {
       layer.remove();
       layerRef.current = null;
     };
-  }, [map, runwayProcedures, theme]);
+  }, [map, runwayProcedures, showFixLabels, theme]);
 
   return null;
 }

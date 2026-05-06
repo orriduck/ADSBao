@@ -24,7 +24,7 @@
     "test:airport-search": "node src/features/airport-search/airportSearchModel.test.js",
     "test:airport-explorer": "node src/features/airport-explorer/airportExplorerModel.test.js",
     "test:map-controls": "node src/features/map-controls/mapControlModel.test.js",
-    "test:airport-map-feature": "node src/features/airport-map/airportMapModel.test.js && node src/features/airport-map/runwayAnnotationModel.test.js && node src/features/airport-map/procedureSegmentModel.test.js",
+    "test:airport-map-feature": "node src/features/airport-map/airportMapModel.test.js && node src/features/airport-map/runwayAnnotationModel.test.js && node src/features/airport-map/procedureSegmentModel.test.js && node src/features/airport-map/procedureInspectorModel.test.js",
     "test:procedure-overlay": "node src/features/airport-map/procedureOverlayModel.test.js",
     "test:weather-feature": "node src/features/weather/weatherModel.test.js",
     "test:aircraft-positions-feature": "node src/features/aircraft-positions/aircraftPositionsModel.test.js",

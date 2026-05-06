@@ -42,6 +42,7 @@ export default function AirportMap({
   showTelemetry = true,
   runwayMap = null,
   runwayProcedures = null,
+  showProcedureFixLabels = false,
 }) {
   const mapEl = useRef(null);
   const mapRef = useRef(null);
@@ -144,6 +145,7 @@ export default function AirportMap({
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
             theme={currentTheme}
+            showFixLabels={showProcedureFixLabels}
           />
           <GroundStatsCounter
             lat={lat}
