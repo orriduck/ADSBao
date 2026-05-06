@@ -72,6 +72,11 @@ export default function AirportMap({
       attributionControl: false,
       scrollWheelZoom: false,
       dragging: false,
+      touchZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      tap: false,
     });
     mapRef.current = map;
     setMapInstance(map);

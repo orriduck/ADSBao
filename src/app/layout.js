@@ -55,6 +55,14 @@ export const metadata = {
   },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -72,7 +80,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <ThemeBootScript />
-        <div className="min-h-screen bg-atc-bg text-atc-text">{children}</div>
+        <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
         <Toaster
           theme="system"
           position="top-center"
