@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import NumberFlow from "@number-flow/react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
+import { AIRPORT_AREA_RADIUS_NM } from "../../config/airportMap.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
-import { AIRPORT_AREA_RADIUS_NM } from "./AreaMarker.jsx";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
 
 export default function GroundStatsCounter({ lat, lon, zoom, icao = "", aircraft = [] }) {

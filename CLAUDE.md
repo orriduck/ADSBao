@@ -70,7 +70,7 @@ pnpm build
 ## Tests
 
 ```bash
-pnpm test:home-airport-directory && pnpm test:airport-directory && pnpm test:aviation-data && pnpm test:vercel-routing && pnpm test:airport-wiki && pnpm test:about && pnpm test:app-shell && pnpm test:airport-search && pnpm test:airport-explorer && pnpm test:map-controls && pnpm test:flight-route-display && pnpm test:airport-map-display && pnpm test:metar && pnpm test:aircraft-motion && pnpm test:aircraft-traffic-intent
+pnpm test:home-airport-directory && pnpm test:airport-directory && pnpm test:aviation-data && pnpm test:vercel-routing && pnpm test:airport-wiki && pnpm test:about && pnpm test:app-shell && pnpm test:airport-search && pnpm test:airport-explorer && pnpm test:map-controls && pnpm test:airport-map-feature && pnpm test:flight-route-display && pnpm test:airport-map-display && pnpm test:metar && pnpm test:aircraft-motion && pnpm test:aircraft-traffic-intent
 ```
 
 ## Runtime config

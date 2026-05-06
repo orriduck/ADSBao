@@ -4,24 +4,28 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContext } from "./MapContext.js";
 import MapTileLayers from "./MapTileLayers.jsx";
-import AreaMarker, { AIRPORT_AREA_RADIUS_NM } from "./AreaMarker.jsx";
+import AreaMarker from "./AreaMarker.jsx";
 import AirportMarker from "./AirportMarker.jsx";
 import GroundStatsCounter from "./GroundStatsCounter.jsx";
 import AircraftPosition from "./AircraftPosition.jsx";
-import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
-import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
-import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
-
-const trafficLegend = [
-  { id: "departure", label: "DEP", color: AIRCRAFT_COLORS.departure },
-  { id: "unknown", label: "UNKN", color: AIRCRAFT_COLORS.unknown },
-  { id: "arrival", label: "ARR", color: AIRCRAFT_COLORS.arrival },
-];
+import {
+  AIRPORT_MAP_FALLBACK_CENTER,
+  AIRPORT_MAP_TRAFFIC_LEGEND,
+} from "../../config/airportMap.js";
+import MapAttribution from "../../features/airport-map/MapAttribution.jsx";
+import MapCoordinateLabel from "../../features/airport-map/MapCoordinateLabel.jsx";
+import MapLoadingState from "../../features/airport-map/MapLoadingState.jsx";
+import MapTrafficLegend from "../../features/airport-map/MapTrafficLegend.jsx";
+import {
+  formatCoordinateLabel,
+  getMapOverlayTheme,
+  getVisibleAircraft,
+  resolveDocumentTheme,
+} from "../../features/airport-map/airportMapModel.js";
 
 const resolveCurrentTheme = () =>
-  typeof document !== "undefined" &&
-  document.documentElement.getAttribute("data-theme") === "light"
-    ? "light"
+  typeof document !== "undefined"
+    ? resolveDocumentTheme(document.documentElement)
     : "dark";
 
 export default function AirportMap({
@@ -57,7 +61,10 @@ export default function AirportMap({
   useEffect(() => {
     if (!mapEl.current || mapRef.current) return undefined;
     const map = L.map(mapEl.current, {
-      center: [lat || 33.9416, lon || -118.4085],
+      center: [
+        lat || AIRPORT_MAP_FALLBACK_CENTER.lat,
+        lon || AIRPORT_MAP_FALLBACK_CENTER.lon,
+      ],
       zoom,
       zoomControl: false,
       attributionControl: false,
@@ -88,26 +95,18 @@ export default function AirportMap({
     }
   }, [lat, lon, zoom]);
 
-  const atApproachZoom = Number(zoom) === ZOOM_APPROACH;
   const visibleAircraft = useMemo(() => {
-    return aircraft.filter((ac) => {
-      if (ac.lat == null || ac.lon == null) return false;
-      if (!atApproachZoom) return true;
-      const distNm = getDistanceNm(lat, lon, ac.lat, ac.lon);
-      return distNm == null || distNm > AIRPORT_AREA_RADIUS_NM;
+    return getVisibleAircraft({
+      aircraft,
+      airportLat: lat,
+      airportLon: lon,
+      zoom,
     });
-  }, [aircraft, atApproachZoom, lat, lon]);
+  }, [aircraft, lat, lon, zoom]);
 
-  const latStr = lat
-    ? `${Math.abs(lat).toFixed(2)}${lat >= 0 ? "N" : "S"}`
-    : "";
-  const lonStr = lon
-    ? `${Math.abs(lon).toFixed(2)}${lon >= 0 ? "E" : "W"}`
-    : "";
-  const mapLabelShadowColor =
-    currentTheme === "light" ? "rgba(250,249,245,0.95)" : "#041a38";
-  const mapAttributionColor =
-    currentTheme === "light" ? "rgba(14,26,43,0.45)" : "rgba(245,247,250,0.3)";
+  const latitudeLabel = formatCoordinateLabel(lat, "lat");
+  const longitudeLabel = formatCoordinateLabel(lon, "lon");
+  const overlayTheme = getMapOverlayTheme(currentTheme);
 
   return (
     <div className="relative h-full w-full bg-atc-bg">
@@ -148,48 +147,22 @@ export default function AirportMap({
 
       {mapInstance && (
         <>
-          <div
-            className="pointer-events-none absolute left-3.5 top-[56px] font-mono text-[10px] font-semibold tracking-[2px]"
-            style={{
-              color: accent,
-              textShadow: `0 0 6px ${mapLabelShadowColor}`,
-            }}
-          >
-            * {icao} / {latStr} {lonStr}
-          </div>
-          <div
-            className="pointer-events-none absolute bottom-3 right-3 whitespace-nowrap font-sans text-[9px]"
-            style={{
-              color: mapAttributionColor,
-              textShadow: `0 0 6px ${mapLabelShadowColor}`,
-            }}
-          >
-            OpenStreetMap / CartoDB
-          </div>
-          <div className="map-traffic-legend pointer-events-none absolute right-3 top-[168px] flex max-w-[calc(100%-24px)] flex-wrap gap-2 rounded px-2.5 py-1.5 font-mono text-[9px] uppercase tracking-[0.8px]">
-            {trafficLegend.map((item) => (
-              <span key={item.id} className="inline-flex items-center gap-1.5">
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{
-                    background: item.color,
-                    boxShadow: `0 0 6px ${item.color}`,
-                  }}
-                />
-                {item.label}
-              </span>
-            ))}
-          </div>
+          <MapCoordinateLabel
+            icao={icao}
+            latitudeLabel={latitudeLabel}
+            longitudeLabel={longitudeLabel}
+            color={accent}
+            shadowColor={overlayTheme.labelShadowColor}
+          />
+          <MapAttribution
+            color={overlayTheme.attributionColor}
+            shadowColor={overlayTheme.labelShadowColor}
+          />
+          <MapTrafficLegend items={AIRPORT_MAP_TRAFFIC_LEGEND} />
         </>
       )}
 
-      {!mapInstance && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-atc-card">
-          <div className="font-mono text-[11px] tracking-widest text-atc-faint">
-            LOADING MAP...
-          </div>
-        </div>
-      )}
+      {!mapInstance && <MapLoadingState />}
     </div>
   );
 }

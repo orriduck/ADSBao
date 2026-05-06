@@ -3,10 +3,10 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
+import { AIRPORT_AREA_RADIUS_NM } from "../../config/airportMap.js";
 import { shouldShowAirportArea } from "../../utils/airportMapDisplay.js";
 import { DEFAULT_WIDE_RANGE_NM } from "../../services/aviationData.js";
 
-export const AIRPORT_AREA_RADIUS_NM = 2.2;
 const NM_TO_METERS = 1852;
 
 export default function AreaMarker({ lat, lon, zoom, theme = "dark" }) {
