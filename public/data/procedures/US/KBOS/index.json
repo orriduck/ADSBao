@@ -1,0 +1,15 @@
+{
+  "airport": "KBOS",
+  "source": "FAA CIFP",
+  "cycle": "260514",
+  "approaches": [
+    {
+      "id": "kbos-rnav-gps-rwy-04r",
+      "name": "RNAV (GPS) RWY 04R",
+      "runway": "04R",
+      "supportedLegCount": 9,
+      "unsupportedLegCount": 2,
+      "warningCount": 2
+    }
+  ]
+}
