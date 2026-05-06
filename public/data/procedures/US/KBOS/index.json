@@ -4,7 +4,7 @@
   "cycle": "260514",
   "approaches": [
     {
-      "id": "kbos-rnav-gps-rwy-04r",
+      "id": "kbos-r04r-rnav-gps-rwy-04r",
       "name": "RNAV (GPS) RWY 04R",
       "runway": "04R",
       "supportedLegCount": 9,

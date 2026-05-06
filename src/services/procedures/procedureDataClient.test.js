@@ -1,18 +1,13 @@
 import assert from "node:assert/strict";
 
 import {
-  buildProcedureGeoJsonPath,
   buildProcedureIndexPath,
   createProcedureDataClient,
 } from "./procedureDataClient.js";
 
 assert.equal(
   buildProcedureIndexPath("kbos"),
-  "/data/procedures/US/KBOS/index.json",
-);
-assert.equal(
-  buildProcedureGeoJsonPath("kbos", "kbos-rnav-gps-rwy-04r"),
-  "/data/procedures/US/KBOS/approaches/kbos-rnav-gps-rwy-04r.geojson",
+  "/api/proxy/procedures/US/KBOS",
 );
 
 {
@@ -32,8 +27,28 @@ assert.equal(
 
   const index = await client.fetchProcedureIndex("kbos");
 
-  assert.equal(calls[0], "/data/procedures/US/KBOS/index.json");
+  assert.equal(calls[0], "/api/proxy/procedures/US/KBOS");
   assert.deepEqual(index.approaches, [{ id: "one" }]);
+}
+
+{
+  const client = createProcedureDataClient({
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          index: { airport: "KBOS", approaches: [{ id: "one" }] },
+          geojson: { type: "FeatureCollection", features: [] },
+        };
+      },
+    }),
+  });
+
+  const payload = await client.fetchLiveProcedures("kbos");
+
+  assert.equal(payload.index.airport, "KBOS");
+  assert.equal(payload.geojson.type, "FeatureCollection");
 }
 
 {
@@ -48,5 +63,5 @@ assert.equal(
   });
 
   assert.equal(await client.fetchProcedureIndex("kxyz"), null);
-  assert.equal(await client.fetchProcedureGeoJson("kxyz", "missing"), null);
+  assert.equal(await client.fetchLiveProcedures("kxyz"), null);
 }

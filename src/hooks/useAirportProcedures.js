@@ -24,24 +24,12 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
       setLoading(true);
       setError(null);
       try {
-        const nextIndex =
-          await procedureDataClient.fetchProcedureIndex(normalizedAirport);
+        const payload =
+          await procedureDataClient.fetchLiveProcedures(normalizedAirport);
         if (disposed) return;
+        const nextIndex = payload?.index || null;
         setIndex(nextIndex);
-
-        const procedureId =
-          selectedProcedureId || nextIndex?.approaches?.[0]?.id || "";
-        if (!procedureId) {
-          setGeojson(null);
-          return;
-        }
-
-        const nextGeojson = await procedureDataClient.fetchProcedureGeoJson(
-          normalizedAirport,
-          procedureId,
-        );
-        if (disposed) return;
-        setGeojson(nextGeojson);
+        setGeojson(payload?.geojson || null);
       } catch (nextError) {
         if (disposed) return;
         setError(nextError);

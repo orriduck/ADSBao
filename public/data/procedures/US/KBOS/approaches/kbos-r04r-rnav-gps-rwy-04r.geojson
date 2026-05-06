@@ -1,15 +1,15 @@
 {
   "type": "FeatureCollection",
   "properties": {
-    "procedureId": "kbos-rnav-gps-rwy-04r",
+    "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
     "airport": "KBOS",
     "name": "RNAV (GPS) RWY 04R",
     "runway": "04R",
     "source": "FAA CIFP",
     "sourceCycle": "260514",
     "warnings": [
-      "kbos-rnav-gps-rwy-04r/FINAL/40: unsupported CA",
-      "kbos-rnav-gps-rwy-04r/FINAL/70: unsupported HM"
+      "kbos-r04r-rnav-gps-rwy-04r/FINAL/40: unsupported CA",
+      "kbos-r04r-rnav-gps-rwy-04r/FINAL/70: unsupported HM"
     ]
   },
   "features": [
@@ -23,10 +23,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "GOSHI",
+        "phase": "approach",
         "legType": "IF",
         "sequence": 10,
         "fixIdent": "GOSHI",
@@ -45,10 +46,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "GOSHI",
+        "phase": "approach",
         "legType": "TF",
         "sequence": 20,
         "fixIdent": "WINNI",
@@ -71,10 +73,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "GOSHI",
+        "phase": "approach",
         "legType": "TF",
         "sequence": 20,
         "fixIdent": "WINNI",
@@ -91,10 +94,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "approach",
         "legType": "IF",
         "sequence": 10,
         "fixIdent": "WINNI",
@@ -112,10 +116,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "approach",
         "legType": "TF",
         "sequence": 11,
         "fixIdent": "NABBO",
@@ -138,10 +143,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "approach",
         "legType": "TF",
         "sequence": 11,
         "fixIdent": "NABBO",
@@ -158,10 +164,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "approach",
         "legType": "TF",
         "sequence": 20,
         "fixIdent": "MILTT",
@@ -184,10 +191,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "approach",
         "legType": "TF",
         "sequence": 20,
         "fixIdent": "MILTT",
@@ -204,10 +212,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "approach",
         "legType": "TF",
         "sequence": 21,
         "fixIdent": "IRSEW",
@@ -230,10 +239,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "approach",
         "legType": "TF",
         "sequence": 21,
         "fixIdent": "IRSEW",
@@ -250,10 +260,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "runway",
         "legType": "TF",
         "sequence": 30,
         "fixIdent": "RW04R"
@@ -275,10 +286,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "runway",
         "legType": "TF",
         "sequence": 30,
         "fixIdent": "RW04R"
@@ -294,10 +306,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "missed",
         "legType": "DF",
         "sequence": 50,
         "fixIdent": "OMVOZ"
@@ -319,10 +332,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "missed",
         "legType": "DF",
         "sequence": 50,
         "fixIdent": "OMVOZ"
@@ -338,10 +352,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "missed",
         "legType": "TF",
         "sequence": 60,
         "fixIdent": "WAXEN",
@@ -364,10 +379,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "missed",
         "legType": "TF",
         "sequence": 60,
         "fixIdent": "WAXEN",
@@ -384,10 +400,11 @@
         ]
       },
       "properties": {
-        "procedureId": "kbos-rnav-gps-rwy-04r",
+        "procedureId": "kbos-r04r-rnav-gps-rwy-04r",
         "procedureName": "RNAV (GPS) RWY 04R",
         "runway": "04R",
         "transitionName": "FINAL",
+        "phase": "missed",
         "legType": "HM",
         "sequence": 70,
         "fixIdent": "WAXEN",
