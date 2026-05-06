@@ -8,7 +8,11 @@ import {
   DEFAULT_WIDE_RANGE_NM,
 } from "../services/aviationData.js";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation.js";
-import { parseAdsbPositionTime } from "../utils/aircraftMotion.js";
+import {
+  describeAircraftFetchError,
+  isHttp4xxOr5xx,
+  mergeAircraftSnapshots,
+} from "../features/aircraft-positions/aircraftPositionsModel.js";
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
 
@@ -52,35 +56,13 @@ export function useAircraftPositions(icao, lat, lon) {
         ]);
         if (disposed) return;
         const receiveTime = Date.now();
-        const seen = new Map();
-        const parseAircraft = (a) => {
-          const parsed = {
-            icao24: a.hex || "",
-            callsign: (a.flight || a.r || "").trim(),
-            lat: a.lat,
-            lon: a.lon,
-            altitude: a.alt_baro ?? a.alt_geom ?? null,
-            baroRate: a.baro_rate ?? null,
-            geomRate: a.geom_rate ?? null,
-            navAltitudeMcp: a.nav_altitude_mcp ?? null,
-            onGround: a.gnd ?? false,
-            velocity: a.gs ?? null,
-            track: a.track ?? 0,
-            positionTime: parseAdsbPositionTime(a, wideJson.now, receiveTime),
+        setAircraft(
+          mergeAircraftSnapshots({
+            wideJson,
+            closeJson,
             receiveTime,
-          };
-          return parsed;
-        };
-        const addSnapshots = (list) => {
-          for (const a of list || []) {
-            if (a.lat == null || a.lon == null) continue;
-            const key = a.hex || "";
-            if (key) seen.set(key, parseAircraft(a));
-          }
-        };
-        addSnapshots(closeJson.ac);
-        addSnapshots(wideJson.ac);
-        setAircraft([...seen.values()]);
+          }),
+        );
         consecutiveFailuresRef.current = 0;
         setFeedStatus("live");
         setLastUpdated(new Date());
@@ -90,10 +72,7 @@ export function useAircraftPositions(icao, lat, lon) {
         if (isHttp4xxOr5xx(e)) {
           setFeedStatus("infer");
         }
-        const isTimeout =
-          e.name === "TimeoutError" ||
-          /timed out|signal timed out/i.test(e.message);
-        const kind = isTimeout ? "timeout" : e.message || "unknown";
+        const kind = describeAircraftFetchError(e);
         console.warn(
           `[${icao}] ADS-B fetch failed (${kind}, consecutive: ${consecutiveFailuresRef.current})`,
         );
@@ -149,13 +128,4 @@ export function useAircraftPositions(icao, lat, lon) {
   }, [icao, lat, lon]);
 
   return { aircraft, loading, initialLoading, lastUpdated, feedStatus };
-}
-
-function isHttp4xxOr5xx(error) {
-  const status = Number(error?.status ?? error?.statusCode);
-  if (status >= 400 && status < 600) return true;
-  const match = String(error?.message || "").match(/\bHTTP\s+(\d{3})\b/i);
-  if (!match) return false;
-  const parsed = Number(match[1]);
-  return parsed >= 400 && parsed < 600;
 }
