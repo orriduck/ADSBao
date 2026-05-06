@@ -46,21 +46,41 @@ const isDisplayLineFeature = (feature) =>
   feature?.properties?.transitionName === "FINAL" &&
   feature?.properties?.phase !== "missed";
 
-const lerp = (start, end, t) => start + (end - start) * t;
+const CURVE_STEPS_PER_LEG = 12;
 
-const smoothCoordinates = (coordinates, steps = 8) => {
+const sameCoordinate = (left, right) =>
+  Array.isArray(left) &&
+  Array.isArray(right) &&
+  Math.abs(left[0] - right[0]) < 1e-8 &&
+  Math.abs(left[1] - right[1]) < 1e-8;
+
+const catmullRom = (previous, start, end, next, t, axis) =>
+  0.5 *
+  (2 * start[axis] +
+    (-previous[axis] + end[axis]) * t +
+    (2 * previous[axis] - 5 * start[axis] + 4 * end[axis] - next[axis]) * t ** 2 +
+    (-previous[axis] + 3 * start[axis] - 3 * end[axis] + next[axis]) * t ** 3);
+
+const curveRouteCoordinates = (coordinates, steps = CURVE_STEPS_PER_LEG) => {
   if (!Array.isArray(coordinates) || coordinates.length < 2) return coordinates;
-  const smoothed = [];
+  const curved = [];
   for (let index = 0; index < coordinates.length - 1; index++) {
+    const previous = coordinates[index - 1] || coordinates[index];
     const start = coordinates[index];
     const end = coordinates[index + 1];
+    const next = coordinates[index + 2] || end;
+
     for (let step = 0; step < steps; step++) {
       const t = step / steps;
-      smoothed.push([lerp(start[0], end[0], t), lerp(start[1], end[1], t)]);
+      const splinePoint = [
+        catmullRom(previous, start, end, next, t, 0),
+        catmullRom(previous, start, end, next, t, 1),
+      ];
+      curved.push(splinePoint);
     }
   }
-  smoothed.push(coordinates.at(-1));
-  return smoothed;
+  curved.push(coordinates.at(-1));
+  return curved;
 };
 
 const segmentFadeOpacity = (progress) => Number((0.2 + progress * 0.8).toFixed(3));
@@ -86,29 +106,39 @@ const buildGradientSegments = (features) => {
 
   return [...groups.values()].flatMap((group) => {
     const sorted = group.toSorted(sortBySequence);
-    const groupSize = Math.max(sorted.length, 1);
+    const routeCoordinates = [];
+    for (const feature of sorted) {
+      const [start, end] = feature.geometry?.coordinates || [];
+      if (!start || !end) continue;
+      if (routeCoordinates.length === 0 || !sameCoordinate(routeCoordinates.at(-1), start)) {
+        routeCoordinates.push(start);
+      }
+      routeCoordinates.push(end);
+    }
 
-    return sorted.flatMap((feature, featureIndex) => {
-      const coordinates = smoothCoordinates(feature.geometry.coordinates);
-      if (!Array.isArray(coordinates) || coordinates.length < 2) return [];
+    const curvedCoordinates = curveRouteCoordinates(routeCoordinates);
+    const totalSegments = Math.max(curvedCoordinates.length - 1, 1);
 
-      return coordinates.slice(0, -1).map((start, segmentIndex) => {
-        const end = coordinates[segmentIndex + 1];
-        const localProgress = segmentIndex / Math.max(coordinates.length - 2, 1);
-        const procedureProgress = (featureIndex + localProgress) / groupSize;
-        return {
-          ...feature,
-          properties: {
-            ...feature.properties,
-            fadeOpacity: segmentFadeOpacity(procedureProgress),
-            gradientSegment: segmentIndex,
-          },
-          geometry: {
-            ...feature.geometry,
-            coordinates: [start, end],
-          },
-        };
-      });
+    return curvedCoordinates.slice(0, -1).map((start, segmentIndex) => {
+      const end = curvedCoordinates[segmentIndex + 1];
+      const sourceFeatureIndex = Math.min(
+        Math.floor((segmentIndex / totalSegments) * sorted.length),
+        sorted.length - 1,
+      );
+      const sourceFeature = sorted[sourceFeatureIndex];
+      const procedureProgress = segmentIndex / Math.max(totalSegments - 1, 1);
+      return {
+        ...sourceFeature,
+        properties: {
+          ...sourceFeature.properties,
+          fadeOpacity: segmentFadeOpacity(procedureProgress),
+          gradientSegment: segmentIndex,
+        },
+        geometry: {
+          ...sourceFeature.geometry,
+          coordinates: [start, end],
+        },
+      };
     });
   });
 };
