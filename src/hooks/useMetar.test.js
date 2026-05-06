@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { formatCeiling } from "./useMetar.js";
+import { formatCeiling } from "../features/metar/metarModel.js";
 
 {
   assert.equal(

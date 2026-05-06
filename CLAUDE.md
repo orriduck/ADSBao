@@ -29,11 +29,14 @@ Frontend runs on `http://localhost:3000` by default.
 | `src/app/page.js` | Search route entry |
 | `src/app/[icao]/page.js` | Airport route entry |
 | `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js` | Next.js Route Handler for callsign route lookup |
-| `src/components/screens/SearchScreen.jsx` | Airport directory UI backed by airportsapi.com + frontend cache |
-| `src/components/screens/AirportCaptionScreen.jsx` | Airport explorer map + METAR screen |
+| `src/components/screens/SearchScreen.jsx` | Thin route entry for airport search UI |
+| `src/components/screens/AirportCaptionScreen.jsx` | Thin route entry for airport explorer map + METAR screen |
+| `src/features/*` | Feature-owned UI orchestration, state hooks, and pure model helpers |
 | `src/hooks/*.js` | React hooks for METAR, ADS-B positions, route lookups, wiki summaries, and scroll parallax |
+| `src/services/airportDirectory.js` | Public compatibility barrel for airport directory clients |
+| `src/services/airport-directory/*` | Airport directory client, cache, and query/normalization model |
 | `src/services/aviationData.js` | Public compatibility barrel for aviation data clients |
-| `src/services/aviation/*` | Frontend-owned aviation provider clients, rate limiter, and normalizers |
+| `src/services/aviation/*` | Frontend-owned aviation provider clients, proxy models, rate limiter, and normalizers |
 | `src/constants/aircraft.js` | Shared aircraft color and threshold constants |
 | `src/utils/math.js` | Shared numeric helpers (`toFiniteNumber`) |
 | `src/utils/airport.js` | Shared airport display helpers (`airportSubtitle`) |
@@ -71,7 +74,7 @@ pnpm build
 ## Tests
 
 ```bash
-pnpm test:home-airport-directory && pnpm test:airport-directory && pnpm test:aviation-data && pnpm test:aviation-service-model && pnpm test:vercel-routing && pnpm test:airport-wiki && pnpm test:about && pnpm test:app-shell && pnpm test:airport-search && pnpm test:airport-explorer && pnpm test:map-controls && pnpm test:airport-map-feature && pnpm test:weather-feature && pnpm test:aircraft-positions-feature && pnpm test:flight-routes-feature && pnpm test:flight-route-display && pnpm test:airport-map-display && pnpm test:metar && pnpm test:aircraft-motion && pnpm test:aircraft-traffic-intent
+pnpm test:all
 ```
 
 ## Runtime config
