@@ -2,40 +2,40 @@ const SILK_STYLES = {
   dark: [
     {
       color: "#64748b",
-      weight: 11,
-      opacity: 0.05,
+      weight: 12,
+      opacity: 0.065,
       className: "procedure-silk procedure-silk--blur",
     },
     {
-      color: "#1e5f8f",
-      weight: 5,
-      opacity: 0.08,
+      color: "#1f6f9f",
+      weight: 5.2,
+      opacity: 0.105,
       className: "procedure-silk procedure-silk--body",
     },
     {
-      color: "#9ccff0",
-      weight: 1.2,
-      opacity: 0.14,
+      color: "#a8d8f3",
+      weight: 1.15,
+      opacity: 0.18,
       className: "procedure-silk procedure-silk--thread",
     },
   ],
   light: [
     {
       color: "#94a3b8",
-      weight: 11,
-      opacity: 0.07,
+      weight: 12,
+      opacity: 0.08,
       className: "procedure-silk procedure-silk--blur",
     },
     {
       color: "#2b6f9f",
-      weight: 5,
-      opacity: 0.1,
+      weight: 5.2,
+      opacity: 0.12,
       className: "procedure-silk procedure-silk--body",
     },
     {
       color: "#4f9fcf",
-      weight: 1.2,
-      opacity: 0.14,
+      weight: 1.15,
+      opacity: 0.18,
       className: "procedure-silk procedure-silk--thread",
     },
   ],
@@ -63,7 +63,20 @@ const smoothCoordinates = (coordinates, steps = 8) => {
   return smoothed;
 };
 
-const addFadeOpacity = (features) => {
+const segmentFadeOpacity = (progress) => Number((0.2 + progress * 0.8).toFixed(3));
+
+const sortBySequence = (left, right) => {
+  const leftSequence = Number(left.properties?.sequence);
+  const rightSequence = Number(right.properties?.sequence);
+  if (Number.isFinite(leftSequence) && Number.isFinite(rightSequence)) {
+    return leftSequence - rightSequence;
+  }
+  if (Number.isFinite(leftSequence)) return -1;
+  if (Number.isFinite(rightSequence)) return 1;
+  return 0;
+};
+
+const buildGradientSegments = (features) => {
   const groups = new Map();
   for (const feature of features) {
     const key = feature.properties?.procedureId || "procedure";
@@ -71,29 +84,32 @@ const addFadeOpacity = (features) => {
     groups.get(key).push(feature);
   }
 
-  return features.map((feature) => {
-    const group = groups.get(feature.properties?.procedureId || "procedure") || [];
-    const sequences = group
-      .map((item) => Number(item.properties?.sequence))
-      .filter(Number.isFinite);
-    const min = Math.min(...sequences);
-    const max = Math.max(...sequences);
-    const sequence = Number(feature.properties?.sequence);
-    const progress =
-      Number.isFinite(sequence) && Number.isFinite(min) && Number.isFinite(max) && max > min
-        ? (sequence - min) / (max - min)
-        : 1;
-    return {
-      ...feature,
-      properties: {
-        ...feature.properties,
-        fadeOpacity: Number((0.35 + progress * 0.65).toFixed(3)),
-      },
-      geometry: {
-        ...feature.geometry,
-        coordinates: smoothCoordinates(feature.geometry.coordinates),
-      },
-    };
+  return [...groups.values()].flatMap((group) => {
+    const sorted = group.toSorted(sortBySequence);
+    const groupSize = Math.max(sorted.length, 1);
+
+    return sorted.flatMap((feature, featureIndex) => {
+      const coordinates = smoothCoordinates(feature.geometry.coordinates);
+      if (!Array.isArray(coordinates) || coordinates.length < 2) return [];
+
+      return coordinates.slice(0, -1).map((start, segmentIndex) => {
+        const end = coordinates[segmentIndex + 1];
+        const localProgress = segmentIndex / Math.max(coordinates.length - 2, 1);
+        const procedureProgress = (featureIndex + localProgress) / groupSize;
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            fadeOpacity: segmentFadeOpacity(procedureProgress),
+            gradientSegment: segmentIndex,
+          },
+          geometry: {
+            ...feature.geometry,
+            coordinates: [start, end],
+          },
+        };
+      });
+    });
   });
 };
 
@@ -102,7 +118,7 @@ export function buildProcedureLineCollection(geojson) {
   return {
     type: "FeatureCollection",
     properties: geojson?.properties || {},
-    features: addFadeOpacity(features),
+    features: buildGradientSegments(features),
   };
 }
 

@@ -351,16 +351,26 @@ body {
     opacity: 0.55 !important;
 }
 
+.procedure-silk {
+    mix-blend-mode: screen;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+:root[data-theme="light"] .procedure-silk {
+    mix-blend-mode: multiply;
+}
+
 .procedure-silk--blur {
-    filter: blur(4px);
+    filter: blur(5px);
 }
 
 .procedure-silk--body {
-    filter: blur(1.2px);
+    filter: blur(1.8px);
 }
 
 .procedure-silk--thread {
-    filter: blur(0.35px);
+    filter: blur(0.45px);
 }
 
 /* Transitions */

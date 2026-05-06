@@ -53,17 +53,18 @@ const geojson = {
 const lineCollection = buildProcedureLineCollection(geojson);
 
 assert.equal(lineCollection.type, "FeatureCollection");
-assert.equal(lineCollection.features.length, 1);
+assert.equal(lineCollection.features.length, 8);
 assert.equal(lineCollection.features[0].properties.fixIdent, "RW04R");
-assert.equal(lineCollection.features[0].properties.fadeOpacity, 1);
-assert.equal(lineCollection.features[0].geometry.coordinates.length > 2, true);
+assert.equal(lineCollection.features[0].properties.fadeOpacity, 0.2);
+assert.equal(lineCollection.features.at(-1).properties.fadeOpacity, 1);
+assert.equal(lineCollection.features[0].geometry.coordinates.length, 2);
 
 const darkStyles = getProcedureSilkStyles("dark");
 
 assert.equal(darkStyles.length, 3);
 assert.deepEqual(
   darkStyles.map((style) => style.color),
-  ["#64748b", "#1e5f8f", "#9ccff0"],
+  ["#64748b", "#1f6f9f", "#a8d8f3"],
 );
 assert.deepEqual(
   darkStyles.map((style) => style.className),
@@ -75,7 +76,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   darkStyles.map((style) => style.opacity),
-  [0.05, 0.08, 0.14],
+  [0.065, 0.105, 0.18],
 );
 assert.equal(darkStyles[0].weight > darkStyles[1].weight, true);
 assert.equal(darkStyles[1].weight > darkStyles[2].weight, true);
@@ -83,8 +84,9 @@ assert.equal(darkStyles[1].weight > darkStyles[2].weight, true);
 const renderLayers = buildProcedureRenderLayers(geojson, "dark");
 
 assert.equal(renderLayers.length, 3);
-assert.equal(renderLayers[0].geojson.features.length, 1);
-assert.equal(renderLayers[0].style.opacity, 0.05);
+assert.equal(renderLayers[0].geojson.features.length, 8);
+assert.equal(renderLayers[0].style.opacity, 0.065);
+assert.equal(renderLayers[0].geojson.features[0].properties.layerOpacity, 0.013);
 
 const multiSegmentGeoJson = {
   type: "FeatureCollection",
@@ -126,6 +128,11 @@ const multiSegmentGeoJson = {
 
 const fadedCollection = buildProcedureLineCollection(multiSegmentGeoJson);
 assert.deepEqual(
-  fadedCollection.features.map((feature) => feature.properties.fadeOpacity),
-  [0.35, 1],
+  [
+    fadedCollection.features[0].properties.fadeOpacity,
+    fadedCollection.features[7].properties.fadeOpacity,
+    fadedCollection.features[8].properties.fadeOpacity,
+    fadedCollection.features.at(-1).properties.fadeOpacity,
+  ],
+  [0.2, 0.6, 0.6, 1],
 );
