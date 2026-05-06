@@ -8,6 +8,11 @@ export const buildProcedureIndexPath = (
   { country = DEFAULT_COUNTRY, basePath = DEFAULT_BASE_PATH } = {},
 ) => `${basePath}/${country}/${normalizeAirport(airport)}`;
 
+export const buildRunwayProceduresPath = (
+  airport,
+  { country = DEFAULT_COUNTRY, basePath = DEFAULT_BASE_PATH } = {},
+) => `${buildProcedureIndexPath(airport, { country, basePath })}/runways`;
+
 const fetchJsonOrNull = async (fetchImpl, url) => {
   const response = await fetchImpl(url);
   if (response.status === 404) return null;
@@ -35,6 +40,12 @@ export function createProcedureDataClient({
       return fetchJsonOrNull(
         fetchImpl,
         buildProcedureIndexPath(airport, { country, basePath }),
+      );
+    },
+    fetchRunwayProcedures(airport) {
+      return fetchJsonOrNull(
+        fetchImpl,
+        buildRunwayProceduresPath(airport, { country, basePath }),
       );
     },
   };
