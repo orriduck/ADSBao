@@ -1,16 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { useLocalWeather } from "../../hooks/useLocalWeather.js";
-import {
-  CeilingSlide,
-  FlightRulesSlide,
-  LocalWeatherSlide,
-  MetarSlide,
-  PressureSlide,
-  TemperatureSlide,
-  WindSlide,
-} from "../weather/WeatherSlides";
+import { useWeatherCarouselNavigation } from "../../features/weather/useWeatherCarouselNavigation.js";
+import { useWeatherSlides } from "../../features/weather/useWeatherSlides.jsx";
+import { formatObsTime } from "../../features/weather/weatherModel.js";
 
 export default function WeatherPanel({
   metar,
@@ -21,117 +13,23 @@ export default function WeatherPanel({
   airportLon = 0,
   airportCode = "",
 }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const trackRef = useRef(null);
+  const slides = useWeatherSlides({
+    variant: "panel",
+    metar,
+    metarRaw,
+    metarLoading,
+    metarError,
+    airportCode,
+    airportLat,
+    airportLon,
+  });
   const {
-    weather: localWeather,
-    loading: localWeatherLoading,
-    error: localWeatherError,
-  } = useLocalWeather(airportLat, airportLon);
-
-  const slides = useMemo(
-    () => {
-      const ceilingFt = getCeilingFeet(metar);
-      const hasVisibility = metar?.rawVisib != null && Number.isFinite(Number(metar.rawVisib));
-      const shouldShowCeiling = ceilingFt != null || hasVisibility;
-
-      return [
-        {
-          id: "metar",
-          label: "METAR",
-          title: "METAR report",
-          eyebrow: "METAR / Weather",
-          content: (
-            <MetarSlide
-              metarRaw={metarRaw}
-              metarLoading={metarLoading}
-              metarError={metarError}
-            />
-          ),
-        },
-        {
-          id: "rules",
-          label: "Rules",
-          title: "Flight rules",
-          eyebrow: "Operational context",
-          content: <FlightRulesSlide metar={metar} />,
-        },
-        shouldShowCeiling
-          ? {
-              id: "ceiling",
-              label: "Ceiling",
-              title: "Ceiling / visibility",
-              eyebrow: "Cloud deck",
-              content: <CeilingSlide metar={metar} />,
-            }
-          : null,
-        {
-          id: "wind",
-          label: "Wind",
-          title: "Wind speed",
-          eyebrow: "Surface flow",
-          content: <WindSlide metar={metar} localWeather={localWeather} />,
-        },
-        {
-          id: "temp",
-          label: "Temp",
-          title: "Temp / dew",
-          eyebrow: "Thermal spread",
-          content: <TemperatureSlide metar={metar} localWeather={localWeather} />,
-        },
-        {
-          id: "pressure",
-          label: "Pressure",
-          title: "Pressure",
-          eyebrow: "Altimeter",
-          content: <PressureSlide metar={metar} localWeather={localWeather} />,
-        },
-        {
-          id: "local",
-          label: "Local",
-          title: "Local weather",
-          eyebrow: "Open-Meteo",
-          content: (
-            <LocalWeatherSlide
-              airportCode={airportCode}
-              localWeather={localWeather}
-              localWeatherError={localWeatherError}
-              localWeatherLoading={localWeatherLoading}
-            />
-          ),
-        },
-      ].filter(Boolean);
-    },
-    [
-      airportCode,
-      localWeather,
-      localWeatherError,
-      localWeatherLoading,
-      metar,
-      metarError,
-      metarLoading,
-      metarRaw,
-    ],
-  );
-
-  const activeSlide = slides[activeIndex] || slides[0];
-
-  const scrollToSlide = (index) => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.scrollTo({
-      left: track.clientWidth * index,
-      behavior: "smooth",
-    });
-    setActiveIndex(index);
-  };
-
-  const handleScroll = () => {
-    const track = trackRef.current;
-    if (!track) return;
-    const nextIndex = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
-    setActiveIndex(Math.min(Math.max(nextIndex, 0), slides.length - 1));
-  };
+    activeIndex,
+    activeSlide,
+    trackRef,
+    scrollToSlide,
+    handleScroll,
+  } = useWeatherCarouselNavigation(slides);
 
   return (
     <section className="glass-panel weather-instrument-panel weather-carousel-panel">
@@ -178,23 +76,4 @@ export default function WeatherPanel({
       </div>
     </section>
   );
-}
-
-function getCeilingFeet(metar) {
-  const layer = metar?.rawClouds?.find((item) =>
-    ["BKN", "OVC", "VV"].includes(item.cover),
-  );
-  const number = Number(layer?.base);
-  return Number.isFinite(number) ? number : null;
-}
-
-function formatObsTime(value) {
-  if (!value) return "latest";
-  const date = new Date(Number(value) < 10_000_000_000 ? Number(value) * 1000 : value);
-  if (Number.isNaN(date.getTime())) return "latest";
-  return date.toLocaleTimeString([], {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }

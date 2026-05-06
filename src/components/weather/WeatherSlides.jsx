@@ -10,55 +10,19 @@ import {
   Sun,
   Thermometer,
 } from "lucide-react";
-
-const FLIGHT_RULES = {
-  VFR: {
-    label: "Visual Flight Rules",
-    color: "var(--atc-text)",
-    context:
-      "Skies and visibility support normal visual operations. Weather is unlikely to constrain airport capacity.",
-  },
-  MVFR: {
-    label: "Marginal Visual Flight Rules",
-    color: "var(--atc-dim)",
-    context:
-      "Visibility or ceiling is reduced. Arrivals and departures usually continue, but pilots watch weather margins closely.",
-  },
-  IFR: {
-    label: "Instrument Flight Rules",
-    color: "var(--atc-faint)",
-    context:
-      "Low clouds or limited visibility require instrument procedures. Arrival spacing can increase and delays become more likely.",
-  },
-  LIFR: {
-    label: "Low IFR",
-    color: "var(--atc-line-strong)",
-    context:
-      "Very low ceiling or visibility limits airport flow. Only aircraft and runways equipped for low-visibility operations can land reliably.",
-  },
-};
-
-const WEATHER_CODES = {
-  0: "Clear",
-  1: "Mainly clear",
-  2: "Partly cloudy",
-  3: "Overcast",
-  45: "Fog",
-  48: "Rime fog",
-  51: "Light drizzle",
-  53: "Drizzle",
-  55: "Dense drizzle",
-  61: "Light rain",
-  63: "Rain",
-  65: "Heavy rain",
-  71: "Light snow",
-  73: "Snow",
-  75: "Heavy snow",
-  80: "Rain showers",
-  81: "Rain showers",
-  82: "Heavy showers",
-  95: "Thunderstorm",
-};
+import { FLIGHT_RULE_ORDER, FLIGHT_RULES } from "../../config/weather.js";
+import {
+  clamp,
+  describeCeiling,
+  describePressure,
+  describeTemperature,
+  describeWind,
+  getCeilingFeet,
+  getMetarTokens,
+  getWeatherConditionLabel,
+  round1,
+  toNumber,
+} from "../../features/weather/weatherModel.js";
 
 export function MetarSlide({ metarRaw, metarLoading, metarError }) {
   const tokens = getMetarTokens(metarRaw);
@@ -97,7 +61,7 @@ export function FlightRulesSlide({ metar }) {
           <strong>{rules.label}</strong>
         </div>
         <div className="flight-rule-rail" aria-hidden="true">
-          {["VFR", "MVFR", "IFR", "LIFR"].map((item) => (
+          {FLIGHT_RULE_ORDER.map((item) => (
             <i
               key={item}
               className={item === code ? "active" : ""}
@@ -233,7 +197,7 @@ export function LocalWeatherSlide({
   localWeatherLoading,
 }) {
   const condition = localWeather
-    ? WEATHER_CODES[localWeather.weatherCode] || "Current conditions"
+    ? getWeatherConditionLabel(localWeather.weatherCode)
     : "Local weather pending";
   const humidity = localWeather?.humidity;
   const feelsLike = localWeather?.apparentTemperatureC;
@@ -308,57 +272,6 @@ function WeatherDescription({ children }) {
   return <p className="weather-context-copy weather-slide-description">{children}</p>;
 }
 
-function describeWind(speed, gust) {
-  const effective = Math.max(speed ?? 0, gust ?? 0);
-  if (effective >= 30) {
-    return "Strong winds or gusts can reduce arrival rates, increase go-around risk, and force stricter runway selection.";
-  }
-  if (effective >= 15) {
-    return "Moderate wind is workable, but crosswind components and gust spread can affect spacing and runway configuration.";
-  }
-  return "Light wind usually gives the airport more runway flexibility and keeps arrival and departure flow stable.";
-}
-
-function describeTemperature(temp, spread) {
-  if (spread != null && spread < 3) {
-    return "A small temperature-dewpoint spread can support fog, haze, or low cloud development near the field.";
-  }
-  if (temp != null && temp >= 32) {
-    return "Hot air reduces aircraft performance, which can lengthen takeoff rolls and affect climb margins.";
-  }
-  if (temp != null && temp <= 0) {
-    return "Cold conditions can improve density altitude, but icing, braking action, and deicing become operational concerns.";
-  }
-  return "Temperature and dewpoint are separated enough that fog risk is lower near the field.";
-}
-
-function describePressure(altim, pressure) {
-  const hpa = pressure ?? (altim != null ? altim * 33.8639 : null);
-  if (hpa == null) {
-    return "Pressure data helps crews set altimeters and judge density-altitude effects around the airport.";
-  }
-  if (hpa < 1000) {
-    return "Lower pressure increases density altitude and can come with unsettled weather, reducing performance margins.";
-  }
-  if (hpa > 1020) {
-    return "Higher pressure generally improves aircraft performance and often accompanies more stable weather.";
-  }
-  return "Pressure is near standard range, so altimeter setting is important but not a major performance driver.";
-}
-
-function describeCeiling(ceilingFt, visibility) {
-  if (ceilingFt == null && visibility == null) {
-    return "No limiting ceiling or visibility value is available in the current METAR.";
-  }
-  if (ceilingFt != null && ceilingFt < 1000) {
-    return "Low ceiling can push arrivals toward instrument procedures and reduce visual runway flexibility.";
-  }
-  if (visibility != null && visibility < 3) {
-    return "Reduced visibility can increase spacing and make surface movement more dependent on tower guidance.";
-  }
-  return "Ceiling and visibility are comfortably above the usual VFR thresholds for airport operations.";
-}
-
 function MetricLine({ label, value, icon = null }) {
   return (
     <div className="weather-metric-line">
@@ -370,40 +283,3 @@ function MetricLine({ label, value, icon = null }) {
     </div>
   );
 }
-
-function getMetarTokens(raw) {
-  const parts = String(raw || "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-  if (!parts.length) return [];
-  const reportPrefix = /^(METAR|SPECI)$/i.test(parts[0]);
-  const station = reportPrefix ? parts[1] : parts[0];
-  const issued = reportPrefix ? parts[2] : parts[1];
-
-  const wind = parts.find((item) => /^(VRB|\d{3})\d{2,3}(G\d{2,3})?KT$/.test(item));
-  const visibility = parts.find((item) => /^(\d{1,2}|\d{1,2}SM|P\d{1,2}SM|\d\/\dSM)$/.test(item));
-
-  return [
-    { label: "Station", value: station || "-" },
-    { label: "Issued", value: issued || "-" },
-    { label: "Wind", value: wind || "-" },
-    { label: "Vis", value: visibility || "-" },
-  ];
-}
-
-function getCeilingFeet(metar) {
-  const layer = metar?.rawClouds?.find((item) =>
-    ["BKN", "OVC", "VV"].includes(item.cover),
-  );
-  return toNumber(layer?.base);
-}
-
-const toNumber = (value) => {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-};
-
-const round1 = (value) => Number(value).toFixed(1);
-
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
