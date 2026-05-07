@@ -3,12 +3,12 @@
 import {
   ArrowDownToLine,
   ArrowUpToLine,
-  Asterisk,
   AudioLines,
+  Badge,
   Crosshair,
-  Flashlight,
   Gauge,
   Layers,
+  ListFilter,
   Monitor,
   Moon,
   Plane,
@@ -16,20 +16,21 @@ import {
   Radar,
   Route,
   SlidersHorizontal,
+  Spotlight,
   Sun,
-  TowerControl,
   Type,
+  Waypoints,
 } from "lucide-react";
 
 export const MAP_CONTROL_ICONS = {
   arrowDownToLine: ArrowDownToLine,
   arrowUpToLine: ArrowUpToLine,
-  asterisk: Asterisk,
   audioLines: AudioLines,
+  badge: Badge,
   crosshair: Crosshair,
-  flashlight: Flashlight,
   gauge: Gauge,
   layers: Layers,
+  listFilter: ListFilter,
   monitor: Monitor,
   moon: Moon,
   plane: Plane,
@@ -37,9 +38,10 @@ export const MAP_CONTROL_ICONS = {
   radar: Radar,
   route: Route,
   slidersHorizontal: SlidersHorizontal,
+  spotlight: Spotlight,
   sun: Sun,
-  towerControl: TowerControl,
   type: Type,
+  waypoints: Waypoints,
 };
 
 export const getMapControlIcon = (iconKey) =>
@@ -51,18 +53,18 @@ export function MapControlIcon({ iconKey }) {
       return <ArrowDownToLine />;
     case "arrowUpToLine":
       return <ArrowUpToLine />;
-    case "asterisk":
-      return <Asterisk />;
     case "audioLines":
       return <AudioLines />;
+    case "badge":
+      return <Badge />;
     case "crosshair":
       return <Crosshair />;
-    case "flashlight":
-      return <Flashlight />;
     case "gauge":
       return <Gauge />;
     case "layers":
       return <Layers />;
+    case "listFilter":
+      return <ListFilter />;
     case "monitor":
       return <Monitor />;
     case "moon":
@@ -75,12 +77,14 @@ export function MapControlIcon({ iconKey }) {
       return <Radar />;
     case "route":
       return <Route />;
+    case "spotlight":
+      return <Spotlight />;
     case "sun":
       return <Sun />;
-    case "towerControl":
-      return <TowerControl />;
     case "type":
       return <Type />;
+    case "waypoints":
+      return <Waypoints />;
     case "slidersHorizontal":
     default:
       return <SlidersHorizontal />;

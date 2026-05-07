@@ -4,9 +4,32 @@ import { ALTITUDE_FOCUS_OPTIONS } from "../airport-context/airportContextUiModel
 import { Button } from "../../components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 
-const BEAM_ICON_KEY = "flashlight";
-const BADGE_ICON_KEY = "towerControl";
-const CONTEXT_ICON_KEY = "radar";
+const LAYER_TOGGLES = [
+  {
+    iconKey: "spotlight",
+    label: "Approach beams",
+    activeLabel: "Hide approach beams",
+    inactiveLabel: "Show approach beams",
+    prop: "showBeams",
+    handler: "onToggleBeams",
+  },
+  {
+    iconKey: "badge",
+    label: "Runway badges",
+    activeLabel: "Hide runway badges",
+    inactiveLabel: "Show runway badges",
+    prop: "showBadges",
+    handler: "onToggleBadges",
+  },
+  {
+    iconKey: "radar",
+    label: "Traffic context",
+    activeLabel: "Disable traffic context",
+    inactiveLabel: "Enable traffic context",
+    prop: "showAirspaceContext",
+    handler: "onToggleAirspaceContext",
+  },
+];
 
 export default function MapLayerDrawer({
   id,
@@ -20,6 +43,15 @@ export default function MapLayerDrawer({
   onToggleAirspaceContext,
   onAltitudeFocus,
 }) {
+  const state = {
+    showBeams,
+    showBadges,
+    showAirspaceContext,
+    onToggleBeams,
+    onToggleBadges,
+    onToggleAirspaceContext,
+  };
+
   return (
     <div
       id={id}
@@ -27,43 +59,29 @@ export default function MapLayerDrawer({
       aria-hidden={!open}
     >
       <div className="map-layer-drawer__toggles">
-        <Button
-          variant="atcIcon"
-          size="icon"
-          className={`ctrl-btn drawer-btn ${showBeams ? "active" : ""}`}
-          aria-pressed={showBeams}
-          title={showBeams ? "Hide approach beams" : "Show approach beams"}
-          onClick={onToggleBeams}
-          type="button"
-        >
-          <MapControlIcon iconKey={BEAM_ICON_KEY} />
-        </Button>
-        <Button
-          variant="atcIcon"
-          size="icon"
-          className={`ctrl-btn drawer-btn ${showBadges ? "active" : ""}`}
-          aria-pressed={showBadges}
-          title={showBadges ? "Hide runway badges" : "Show runway badges"}
-          onClick={onToggleBadges}
-          type="button"
-        >
-          <MapControlIcon iconKey={BADGE_ICON_KEY} />
-        </Button>
-        <Button
-          variant="atcIcon"
-          size="icon"
-          className={`ctrl-btn drawer-btn ${showAirspaceContext ? "active" : ""}`}
-          aria-pressed={showAirspaceContext}
-          title={
-            showAirspaceContext
-              ? "Disable traffic context emphasis"
-              : "Enable traffic context emphasis"
-          }
-          onClick={onToggleAirspaceContext}
-          type="button"
-        >
-          <MapControlIcon iconKey={CONTEXT_ICON_KEY} />
-        </Button>
+        {LAYER_TOGGLES.map((toggle) => {
+          const active = Boolean(state[toggle.prop]);
+          const title = active ? toggle.activeLabel : toggle.inactiveLabel;
+
+          return (
+            <Button
+              key={toggle.prop}
+              variant="atcIcon"
+              size="icon"
+              className={`ctrl-btn drawer-btn map-layer-control map-layer-toggle ${
+                active ? "active" : ""
+              }`}
+              aria-label={title}
+              aria-pressed={active}
+              data-tooltip={toggle.label}
+              title={title}
+              onClick={state[toggle.handler]}
+              type="button"
+            >
+              <MapControlIcon iconKey={toggle.iconKey} />
+            </Button>
+          );
+        })}
       </div>
 
       <div className="map-layer-focus" role="group" aria-label="Altitude focus">
@@ -71,9 +89,10 @@ export default function MapLayerDrawer({
           <button
             key={option.value}
             type="button"
-            className={`map-layer-focus__option ${
+            className={`map-layer-control map-layer-focus__option ${
               altitudeFocus === option.value ? "active" : ""
             }`}
+            data-tooltip={option.title}
             title={option.title}
             aria-label={option.title}
             aria-pressed={altitudeFocus === option.value}

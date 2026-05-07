@@ -1897,27 +1897,99 @@ body {
 .map-layer-drawer {
     align-items: stretch;
     flex-direction: column;
-    gap: 6px;
-    min-width: 214px;
+    gap: 5px;
+    min-width: 0;
+    padding: 7px;
 }
 
 .map-layer-drawer__toggles {
-    display: flex;
-    gap: 2px;
+    background: color-mix(in oklab, var(--atc-line) 22%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line) 72%, transparent);
+    border-radius: var(--atc-radius-control);
+    display: grid;
+    gap: 3px;
+    grid-template-columns: repeat(3, 32px);
+    padding: 3px;
+}
+
+.map-layer-control {
+    position: relative;
+}
+
+.map-layer-control::before,
+.map-layer-control::after {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition:
+        opacity 0.14s ease,
+        transform 0.14s ease;
+    z-index: 20;
+}
+
+.map-layer-control::before {
+    background: color-mix(in oklab, var(--atc-bg) 92%, var(--atc-card));
+    border-bottom: 1px solid var(--atc-line-strong);
+    border-right: 1px solid var(--atc-line-strong);
+    content: "";
+    height: 7px;
+    right: 12px;
+    top: calc(100% + 4px);
+    transform: translateY(-2px) rotate(45deg);
+    width: 7px;
+}
+
+.map-layer-control::after {
+    background: color-mix(in oklab, var(--atc-bg) 92%, var(--atc-card));
+    border: 1px solid var(--atc-line-strong);
+    border-radius: 4px;
+    box-shadow: 0 10px 18px rgb(0 0 0 / 0.28);
+    color: var(--atc-text);
+    content: attr(data-tooltip);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+    padding: 6px 7px;
+    right: 0;
+    text-transform: uppercase;
+    top: calc(100% + 8px);
+    transform: translateY(-2px);
+    white-space: nowrap;
+}
+
+.map-layer-control:hover::before,
+.map-layer-control:hover::after,
+.map-layer-control:focus-visible::before,
+.map-layer-control:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0) rotate(45deg);
+}
+
+.map-layer-control:hover::after,
+.map-layer-control:focus-visible::after {
+    transform: translateY(0);
+}
+
+.map-layer-toggle {
+    background: color-mix(in oklab, var(--atc-card) 34%, transparent);
+    color: var(--atc-dim);
 }
 
 .map-layer-focus {
-    background: color-mix(in oklab, var(--atc-line) 32%, transparent);
-    border: 1px solid var(--atc-line);
+    background: color-mix(in oklab, var(--atc-line) 24%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line) 72%, transparent);
     border-radius: var(--atc-radius-control);
     display: grid;
-    gap: 2px;
+    gap: 3px;
     grid-template-columns: repeat(5, 28px);
     padding: 3px;
 }
 
 .map-layer-focus__option {
-    border: 1px solid transparent;
+    background: color-mix(in oklab, var(--atc-card) 28%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line) 36%, transparent);
     border-radius: 4px;
     color: var(--atc-faint);
     cursor: pointer;
@@ -1926,7 +1998,7 @@ body {
     font-weight: 800;
     letter-spacing: 0;
     line-height: 1;
-    min-height: 24px;
+    min-height: 28px;
     padding: 0;
     transition:
         background 0.15s ease,
@@ -1940,7 +2012,7 @@ body {
 }
 
 .map-layer-focus__option:hover {
-    background: color-mix(in oklab, var(--atc-line) 60%, transparent);
+    background: color-mix(in oklab, var(--atc-line) 58%, transparent);
     border-color: var(--atc-line-strong);
     color: var(--atc-dim);
 }

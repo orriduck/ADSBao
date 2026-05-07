@@ -8,8 +8,8 @@ export const AIRPORT_CONTEXT_GROUP_ORDER = [
 export const DEFAULT_ALTITUDE_FOCUS = "terminal";
 
 export const ALTITUDE_FOCUS_OPTIONS = [
-  { value: "all", iconKey: "asterisk", title: "All traffic" },
-  { value: "terminal", iconKey: "route", title: "Terminal flow" },
+  { value: "all", iconKey: "listFilter", title: "All traffic" },
+  { value: "terminal", iconKey: "waypoints", title: "Terminal flow" },
   { value: "low", iconKey: "arrowDownToLine", title: "Low traffic" },
   { value: "high", iconKey: "arrowUpToLine", title: "High traffic" },
   { value: "overflight", iconKey: "plane", title: "Overflight traffic" },

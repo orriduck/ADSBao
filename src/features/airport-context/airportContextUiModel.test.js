@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  ALTITUDE_FOCUS_OPTIONS,
   DEFAULT_ALTITUDE_FOCUS,
   getAltitudeFocusMatch,
   getContextTagLabel,
@@ -10,6 +11,16 @@ import {
 } from "./airportContextUiModel.js";
 
 assert.equal(DEFAULT_ALTITUDE_FOCUS, "terminal");
+assert.deepEqual(
+  ALTITUDE_FOCUS_OPTIONS.map(({ value, iconKey }) => [value, iconKey]),
+  [
+    ["all", "listFilter"],
+    ["terminal", "waypoints"],
+    ["low", "arrowDownToLine"],
+    ["high", "arrowUpToLine"],
+    ["overflight", "plane"],
+  ],
+);
 
 const aircraft = [
   {
