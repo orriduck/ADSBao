@@ -40,6 +40,8 @@ export default function AirportMap({
   airport = null,
   showMapLabels = true,
   showTelemetry = true,
+  showRunwayBeams = true,
+  showRunwayBadges = true,
   runwayMap = null,
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
@@ -148,6 +150,8 @@ export default function AirportMap({
             runwayMap={runwayMap}
             theme={currentTheme}
             zoom={zoom}
+            showBeams={showRunwayBeams}
+            showBadges={showRunwayBadges}
           />
           <GroundStatsCounter
             lat={lat}

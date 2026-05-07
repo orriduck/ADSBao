@@ -10,10 +10,14 @@ export default function AirportExplorerMapMenu() {
     mapZoom,
     showMapLabels,
     showTelemetry,
+    showRunwayBeams,
+    showRunwayBadges,
     setMapZoom,
     toggleSidebar,
     toggleMapLabels,
     toggleTelemetry,
+    toggleRunwayBeams,
+    toggleRunwayBadges,
   } = useAirportExplorerUi();
 
   return (
@@ -35,9 +39,13 @@ export default function AirportExplorerMapMenu() {
         activeZoom={mapZoom}
         showMapLabels={showMapLabels}
         showTelemetry={showTelemetry}
+        showRunwayBeams={showRunwayBeams}
+        showRunwayBadges={showRunwayBadges}
         onZoom={setMapZoom}
         onToggleMapLabels={toggleMapLabels}
         onToggleTelemetry={toggleTelemetry}
+        onToggleRunwayBeams={toggleRunwayBeams}
+        onToggleRunwayBadges={toggleRunwayBadges}
       />
     </div>
   );

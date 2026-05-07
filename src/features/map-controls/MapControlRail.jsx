@@ -6,6 +6,7 @@ import { MapControlIcon } from "./mapControlIcons.jsx";
 
 const AUDIO_ICON_KEY = "audioLines";
 const GAUGE_ICON_KEY = "gauge";
+const LAYERS_ICON_KEY = "layers";
 const MORE_ICON_KEY = "slidersHorizontal";
 const TYPE_ICON_KEY = "type";
 
@@ -14,17 +15,20 @@ export default function MapControlRail({
   currentTheme,
   themeTitle,
   drawerOpen,
+  runwayDrawerOpen,
   playing,
   audioReady,
   showMapLabels,
   showTelemetry,
   drawerId,
+  runwayDrawerId,
   onCycleZoom,
   onToggleAudio,
   onCycleTheme,
   onToggleMapLabels,
   onToggleTelemetry,
   onToggleDrawer,
+  onToggleRunwayDrawer,
 }) {
   return (
     <div className="map-ctrl-bar">
@@ -88,6 +92,19 @@ export default function MapControlRail({
         type="button"
       >
         <MapControlIcon iconKey={GAUGE_ICON_KEY} />
+      </Button>
+
+      <Button
+        variant="atcIcon"
+        size="icon"
+        className={`ctrl-btn ${runwayDrawerOpen ? "active" : ""}`}
+        aria-expanded={runwayDrawerOpen}
+        aria-controls={runwayDrawerId}
+        title="Runway layers"
+        onClick={onToggleRunwayDrawer}
+        type="button"
+      >
+        <MapControlIcon iconKey={LAYERS_ICON_KEY} />
       </Button>
 
       <Button

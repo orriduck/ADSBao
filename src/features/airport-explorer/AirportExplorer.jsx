@@ -38,6 +38,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     mapZoom,
     showMapLabels,
     showTelemetry,
+    showRunwayBeams,
+    showRunwayBadges,
     closeSidebar,
   } = useAirportExplorerUi();
   const airportProfile = useMemo(
@@ -119,6 +121,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           airport={airport}
           showMapLabels={showMapLabels}
           showTelemetry={showTelemetry}
+          showRunwayBeams={showRunwayBeams}
+          showRunwayBadges={showRunwayBadges}
           runwayMap={procedures.runwayMap}
           runwayProcedures={null}
           procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
