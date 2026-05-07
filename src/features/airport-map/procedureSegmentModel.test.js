@@ -105,10 +105,9 @@ assert.deepEqual(
     label.fixIdent,
   ]),
   [
+    ["R04R", "WINNI"],
     ["R04R", "NABBO"],
-    ["R04R", "RW04R"],
     ["R04R", "WAXEN"],
-    ["L04R", "RW04R"],
   ],
 );
 

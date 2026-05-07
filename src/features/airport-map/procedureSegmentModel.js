@@ -38,6 +38,28 @@ const coordinateForLeg = (leg) => {
   return null;
 };
 
+const isRunwayFix = (fixIdent) => /^RW\d{2}[LRC]?$/.test(fixIdent || "");
+
+const procedurePointLegs = (procedure) => [
+  ...(procedure.transitions || []).flatMap((transition) =>
+    (transition.legs || []).map((leg) => ({
+      ...leg,
+      transitionName: transition.name,
+      phase: leg.phase || "transition",
+    })),
+  ),
+  ...(procedure.final || []).map((leg) => ({
+    ...leg,
+    transitionName: "FINAL",
+    phase: leg.phase || "final",
+  })),
+  ...(procedure.missed || []).map((leg) => ({
+    ...leg,
+    transitionName: "MISSED",
+    phase: leg.phase || "missed",
+  })),
+];
+
 const segmentOpacity = (index, total) => {
   if (total <= 1) return 0.9;
   return Number((0.34 + (index / (total - 1)) * 0.56).toFixed(2));
@@ -113,30 +135,42 @@ export function buildProcedureSegmentCollection(runwayProcedures) {
 }
 
 export function buildProcedureFixLabels(runwayProcedures) {
-  return buildProcedureSegmentCollection(runwayProcedures).features
-    .map((feature) => {
-      const [lon, lat] = feature.geometry.coordinates.at(-1) || [];
-      const fixIdent = feature.properties?.fixIdent;
-      if (!fixIdent || !Number.isFinite(lat) || !Number.isFinite(lon)) {
-        return null;
-      }
+  const labelsByPoint = new Map();
 
-      return {
-        key: [
-          feature.properties.procedureCode,
-          feature.properties.sequence,
+  for (const runwayDirection of runwayProcedures?.runwayDirections || []) {
+    for (const procedure of runwayDirection.approaches || []) {
+      for (const leg of procedurePointLegs(procedure)) {
+        const [lon, lat] = coordinateForLeg(leg) || [];
+        const fixIdent = leg.fixIdent;
+        if (
+          !fixIdent ||
+          isRunwayFix(fixIdent) ||
+          !Number.isFinite(lat) ||
+          !Number.isFinite(lon)
+        ) {
+          continue;
+        }
+
+        const key = [
           fixIdent,
-          lat,
-          lon,
-        ].join("-"),
-        runway: feature.properties.runway,
-        procedureId: feature.properties.procedureId,
-        procedureCode: feature.properties.procedureCode,
-        phase: feature.properties.phase,
-        fixIdent,
-        lat,
-        lon,
-      };
-    })
-    .filter(Boolean);
+          lat.toFixed(6),
+          lon.toFixed(6),
+        ].join("-");
+        if (!labelsByPoint.has(key)) {
+          labelsByPoint.set(key, {
+            key,
+            runway: runwayDirection.runway,
+            procedureId: procedure.id,
+            procedureCode: procedure.procedureCode,
+            phase: leg.phase,
+            fixIdent,
+            lat,
+            lon,
+          });
+        }
+      }
+    }
+  }
+
+  return [...labelsByPoint.values()];
 }
