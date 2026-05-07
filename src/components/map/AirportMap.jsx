@@ -18,6 +18,7 @@ import MapAttribution from "../../features/airport-map/MapAttribution.jsx";
 import MapCoordinateLabel from "../../features/airport-map/MapCoordinateLabel.jsx";
 import MapLoadingState from "../../features/airport-map/MapLoadingState.jsx";
 import MapTrafficLegend from "../../features/airport-map/MapTrafficLegend.jsx";
+import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
 import {
   formatCoordinateLabel,
   getMapOverlayTheme,
@@ -38,10 +39,14 @@ export default function AirportMap({
   accent = "var(--atc-accent)",
   aircraft = [],
   airport = null,
-  showMapLabels = true,
+  showMapLabels = false,
   showTelemetry = true,
   showRunwayBeams = true,
-  showRunwayBadges = true,
+  showRoutingPointBadges = true,
+  showAirspaceContext = true,
+  altitudeFocus = "all",
+  selectedAircraftId = "",
+  onSelectAircraft,
   runwayMap = null,
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
@@ -144,14 +149,14 @@ export default function AirportMap({
             runwayProcedures={runwayProcedures}
             fixLabelRunwayProcedures={procedureFixLabelRunwayProcedures}
             theme={currentTheme}
-            showFixLabels={showProcedureFixLabels}
+            showFixLabels={showProcedureFixLabels && showRoutingPointBadges}
           />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}
             theme={currentTheme}
             zoom={zoom}
             showBeams={showRunwayBeams}
-            showBadges={showRunwayBadges}
+            showBadges={showRoutingPointBadges}
           />
           <GroundStatsCounter
             lat={lat}
@@ -162,10 +167,14 @@ export default function AirportMap({
           />
           {visibleAircraft.map((ac) => (
             <AircraftPosition
-              key={ac.icao24}
+              key={getAircraftIdentity(ac)}
               aircraft={ac}
               theme={currentTheme}
               showTelemetry={showTelemetry}
+              showAirspaceContext={showAirspaceContext}
+              altitudeFocus={altitudeFocus}
+              selected={getAircraftIdentity(ac) === selectedAircraftId}
+              onSelectAircraft={onSelectAircraft}
             />
           ))}
         </MapContext.Provider>

@@ -5,7 +5,7 @@ import { MAP_ZOOM_OPTIONS } from "../../config/mapControls.js";
 import { useThemePreference } from "../../features/app-shell/useThemePreference.js";
 import MapControlRail from "../../features/map-controls/MapControlRail.jsx";
 import MapZoomDrawer from "../../features/map-controls/MapZoomDrawer.jsx";
-import RunwayLayerDrawer from "../../features/map-controls/RunwayLayerDrawer.jsx";
+import MapLayerDrawer from "../../features/map-controls/MapLayerDrawer.jsx";
 import {
   getNextZoomValue,
   resolveZoomOption,
@@ -15,23 +15,27 @@ import { useFocusAudio } from "../../features/map-controls/useFocusAudio.js";
 import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay.js";
 
 const DRAWER_ID = "map-action-drawer";
-const RUNWAY_DRAWER_ID = "map-runway-drawer";
+const LAYER_DRAWER_ID = "map-layer-drawer";
 
 export default function MapControlBar({
   activeZoom = ZOOM_AIRPORT,
-  showMapLabels = true,
+  showMapLabels = false,
   showTelemetry = true,
   showRunwayBeams = true,
-  showRunwayBadges = true,
+  showRoutingPointBadges = true,
+  showAirspaceContext = true,
+  altitudeFocus = "all",
   onZoom,
+  onAltitudeFocus,
   onToggleMapLabels,
   onToggleTelemetry,
   onToggleRunwayBeams,
-  onToggleRunwayBadges,
+  onToggleRoutingPointBadges,
+  onToggleAirspaceContext,
 }) {
   const controlZone = useRef(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [runwayDrawerOpen, setRunwayDrawerOpen] = useState(false);
+  const [layerDrawerOpen, setLayerDrawerOpen] = useState(false);
   const { themePreference, themeTitle, cycleTheme } = useThemePreference();
   const { playerHost, playing, audioReady, toggleAudio } = useFocusAudio();
 
@@ -44,8 +48,8 @@ export default function MapControlBar({
     setDrawerOpen(false);
   }, []);
 
-  const closeRunwayDrawer = useCallback(() => {
-    setRunwayDrawerOpen(false);
+  const closeLayerDrawer = useCallback(() => {
+    setLayerDrawerOpen(false);
   }, []);
 
   useDismissibleDrawer({
@@ -55,9 +59,9 @@ export default function MapControlBar({
   });
 
   useDismissibleDrawer({
-    open: runwayDrawerOpen,
+    open: layerDrawerOpen,
     containerRef: controlZone,
-    onClose: closeRunwayDrawer,
+    onClose: closeLayerDrawer,
   });
 
   const selectZoom = (zoom) => {
@@ -71,11 +75,11 @@ export default function MapControlBar({
 
   const toggleDrawer = () => {
     setDrawerOpen((value) => !value);
-    setRunwayDrawerOpen(false);
+    setLayerDrawerOpen(false);
   };
 
-  const toggleRunwayDrawer = () => {
-    setRunwayDrawerOpen((value) => !value);
+  const toggleLayerDrawer = () => {
+    setLayerDrawerOpen((value) => !value);
     setDrawerOpen(false);
   };
 
@@ -83,13 +87,21 @@ export default function MapControlBar({
     <>
       <div ref={playerHost} className="yt-sink" aria-hidden="true" />
       <div ref={controlZone} className="map-ctrl-zone">
-        <RunwayLayerDrawer
-          id={RUNWAY_DRAWER_ID}
-          open={runwayDrawerOpen}
+        <MapLayerDrawer
+          id={LAYER_DRAWER_ID}
+          open={layerDrawerOpen}
+          showMapLabels={showMapLabels}
+          showTelemetry={showTelemetry}
           showBeams={showRunwayBeams}
-          showBadges={showRunwayBadges}
+          showBadges={showRoutingPointBadges}
+          showAirspaceContext={showAirspaceContext}
+          altitudeFocus={altitudeFocus}
+          onToggleMapLabels={onToggleMapLabels}
+          onToggleTelemetry={onToggleTelemetry}
           onToggleBeams={onToggleRunwayBeams}
-          onToggleBadges={onToggleRunwayBadges}
+          onToggleBadges={onToggleRoutingPointBadges}
+          onToggleAirspaceContext={onToggleAirspaceContext}
+          onAltitudeFocus={onAltitudeFocus}
         />
 
         <MapZoomDrawer
@@ -105,20 +117,16 @@ export default function MapControlBar({
           currentTheme={themePreference}
           themeTitle={themeTitle}
           drawerOpen={drawerOpen}
-          runwayDrawerOpen={runwayDrawerOpen}
+          layerDrawerOpen={layerDrawerOpen}
           playing={playing}
           audioReady={audioReady}
-          showMapLabels={showMapLabels}
-          showTelemetry={showTelemetry}
           drawerId={DRAWER_ID}
-          runwayDrawerId={RUNWAY_DRAWER_ID}
+          layerDrawerId={LAYER_DRAWER_ID}
           onCycleZoom={cycleZoom}
           onToggleAudio={toggleAudio}
           onCycleTheme={cycleTheme}
-          onToggleMapLabels={onToggleMapLabels}
-          onToggleTelemetry={onToggleTelemetry}
           onToggleDrawer={toggleDrawer}
-          onToggleRunwayDrawer={toggleRunwayDrawer}
+          onToggleLayerDrawer={toggleLayerDrawer}
         />
       </div>
     </>

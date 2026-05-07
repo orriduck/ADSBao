@@ -11,13 +11,17 @@ export default function AirportExplorerMapMenu() {
     showMapLabels,
     showTelemetry,
     showRunwayBeams,
-    showRunwayBadges,
+    showRoutingPointBadges,
+    showAirspaceContext,
+    altitudeFocus,
     setMapZoom,
+    setAltitudeFocus,
     toggleSidebar,
     toggleMapLabels,
     toggleTelemetry,
     toggleRunwayBeams,
-    toggleRunwayBadges,
+    toggleRoutingPointBadges,
+    toggleAirspaceContext,
   } = useAirportExplorerUi();
 
   return (
@@ -40,12 +44,16 @@ export default function AirportExplorerMapMenu() {
         showMapLabels={showMapLabels}
         showTelemetry={showTelemetry}
         showRunwayBeams={showRunwayBeams}
-        showRunwayBadges={showRunwayBadges}
+        showRoutingPointBadges={showRoutingPointBadges}
+        showAirspaceContext={showAirspaceContext}
+        altitudeFocus={altitudeFocus}
         onZoom={setMapZoom}
+        onAltitudeFocus={setAltitudeFocus}
         onToggleMapLabels={toggleMapLabels}
         onToggleTelemetry={toggleTelemetry}
         onToggleRunwayBeams={toggleRunwayBeams}
-        onToggleRunwayBadges={toggleRunwayBadges}
+        onToggleRoutingPointBadges={toggleRoutingPointBadges}
+        onToggleAirspaceContext={toggleAirspaceContext}
       />
     </div>
   );

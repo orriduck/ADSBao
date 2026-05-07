@@ -1894,6 +1894,184 @@ body {
     transform: translate(-50%, 0) scale(1);
 }
 
+.map-layer-drawer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+    padding: 8px;
+}
+
+.map-layer-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.map-layer-group__label {
+    align-items: center;
+    color: var(--atc-faint);
+    display: flex;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    font-weight: 800;
+    gap: 7px;
+    letter-spacing: 0;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.map-layer-group__label::after {
+    background: color-mix(in oklab, var(--atc-line-strong) 72%, transparent);
+    content: "";
+    flex: 1;
+    height: 1px;
+    min-width: 16px;
+}
+
+.map-layer-divider {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in oklab, var(--atc-line-strong) 78%, transparent) 18%,
+        color-mix(in oklab, var(--atc-line-strong) 78%, transparent) 82%,
+        transparent
+    );
+    height: 1px;
+    margin: 1px 2px 0;
+}
+
+.map-layer-drawer__toggles {
+    background: color-mix(in oklab, var(--atc-line) 22%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line) 72%, transparent);
+    border-radius: var(--atc-radius-control);
+    display: grid;
+    gap: 3px;
+    grid-template-columns: repeat(5, 32px);
+    padding: 3px;
+    width: max-content;
+}
+
+.map-layer-control {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.map-layer-control::before,
+.map-layer-control::after {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition:
+        opacity 0.14s ease,
+        transform 0.14s ease;
+    z-index: 20;
+}
+
+.map-layer-control::before {
+    background: color-mix(in oklab, var(--atc-bg) 92%, var(--atc-card));
+    border-left: 1px solid var(--atc-line-strong);
+    border-top: 1px solid var(--atc-line-strong);
+    bottom: calc(100% + 4px);
+    content: "";
+    height: 7px;
+    right: 12px;
+    transform: translateY(2px) rotate(45deg);
+    width: 7px;
+}
+
+.map-layer-control::after {
+    background: color-mix(in oklab, var(--atc-bg) 92%, var(--atc-card));
+    border: 1px solid var(--atc-line-strong);
+    border-radius: 4px;
+    box-shadow: 0 10px 18px rgb(0 0 0 / 0.28);
+    color: var(--atc-text);
+    content: attr(data-tooltip);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+    padding: 6px 7px;
+    bottom: calc(100% + 8px);
+    right: 0;
+    text-transform: uppercase;
+    transform: translateY(2px);
+    white-space: nowrap;
+}
+
+.map-layer-control:hover::before,
+.map-layer-control:hover::after,
+.map-layer-control:focus-visible::before,
+.map-layer-control:focus-visible::after {
+    opacity: 1;
+}
+
+.map-layer-control:hover::before,
+.map-layer-control:focus-visible::before {
+    transform: translateY(0) rotate(45deg);
+}
+
+.map-layer-control:hover::after,
+.map-layer-control:focus-visible::after {
+    transform: translateY(0);
+}
+
+.map-layer-toggle {
+    background: color-mix(in oklab, var(--atc-card) 34%, transparent);
+    color: var(--atc-dim);
+}
+
+.map-layer-focus {
+    background: color-mix(in oklab, var(--atc-line) 24%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line) 72%, transparent);
+    border-radius: var(--atc-radius-control);
+    display: grid;
+    gap: 3px;
+    grid-template-columns: repeat(5, 32px);
+    padding: 3px;
+    width: max-content;
+}
+
+.map-layer-focus__option {
+    background: color-mix(in oklab, var(--atc-card) 28%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line) 36%, transparent);
+    border-radius: 4px;
+    color: var(--atc-faint);
+    cursor: pointer;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    font-weight: 800;
+    height: 32px;
+    letter-spacing: 0;
+    line-height: 1;
+    padding: 0;
+    width: 32px;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.map-layer-focus__option svg {
+    height: 14px;
+    width: 14px;
+}
+
+.map-layer-focus__option:hover {
+    background: color-mix(in oklab, var(--atc-line) 58%, transparent);
+    border-color: var(--atc-line-strong);
+    color: var(--atc-dim);
+}
+
+.map-layer-focus__option.active {
+    background: color-mix(in oklab, var(--atc-accent) 14%, transparent);
+    border-color: color-mix(in oklab, var(--atc-accent) 38%, transparent);
+    color: var(--atc-accent);
+}
+
 .procedure-inspector {
     background: color-mix(in oklab, var(--atc-card) 88%, transparent);
     border: 1px solid var(--atc-line-strong);
@@ -2173,6 +2351,19 @@ body {
         0 0 4px var(--map-label-glow),
         0 0 7px var(--map-label-glow);
     white-space: nowrap;
+}
+
+.aircraft-marker {
+    align-items: center;
+    display: flex;
+    position: relative;
+    transition:
+        filter 0.18s ease,
+        opacity 0.18s ease;
+}
+
+.aircraft-marker--selected {
+    filter: saturate(1.22) brightness(1.16);
 }
 
 .aircraft-label-title {

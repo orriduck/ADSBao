@@ -11,6 +11,10 @@ import {
   SLOW_AIRCRAFT_THRESHOLD_KT,
 } from "../../utils/aircraftMotion.js";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
+import {
+  getAircraftIdentity,
+  resolveAircraftContextEmphasis,
+} from "../../features/airport-context/airportContextUiModel.js";
 import { DEPARTURE, ARRIVAL } from "../../utils/aircraftMovement.js";
 
 const getAircraftColor = (ac, showArrow) => {
@@ -27,6 +31,10 @@ export default function AircraftPosition({
   aircraft,
   theme = "dark",
   showTelemetry = true,
+  showAirspaceContext = true,
+  altitudeFocus = "all",
+  selected = false,
+  onSelectAircraft,
 }) {
   const map = useMapInstance();
   const motionRef = useRef(null);
@@ -37,6 +45,20 @@ export default function AircraftPosition({
     el.style.cssText = "position:relative;display:flex;align-items:center";
     return el;
   });
+
+  useEffect(() => {
+    if (!container) return undefined;
+    const aircraftId = getAircraftIdentity(aircraft);
+    if (!aircraftId || !onSelectAircraft) return undefined;
+
+    const handleSelect = (event) => {
+      event.stopPropagation();
+      onSelectAircraft(aircraftId);
+    };
+
+    container.addEventListener("click", handleSelect);
+    return () => container.removeEventListener("click", handleSelect);
+  }, [aircraft, container, onSelectAircraft]);
 
   useEffect(() => {
     if (!map || !map.getContainer || !container) return undefined;
@@ -87,6 +109,12 @@ export default function AircraftPosition({
   const speedKt = Number(aircraft.velocity ?? 0);
   const showArrow = speedKt >= SLOW_AIRCRAFT_THRESHOLD_KT;
   const color = getAircraftColor(aircraft, showArrow);
+  const emphasis = resolveAircraftContextEmphasis({
+    aircraft,
+    altitudeFocus,
+    contextEnabled: showAirspaceContext,
+    selected,
+  });
   const rot = Math.round(aircraft.track || 0);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
   const routeLabel = (aircraft.flightRouteLabel || "").trim();
@@ -95,23 +123,35 @@ export default function AircraftPosition({
     showArrow &&
     isFiniteNumber(aircraft.velocity) &&
     isFiniteNumber(aircraft.altitude);
-  const renderTelemetry = hasTelemetry && showTelemetry;
+  const renderLabel = shouldRenderAircraftLabel(emphasis);
+  const renderTelemetry = hasTelemetry && showTelemetry && emphasis.showTelemetry;
 
   return createPortal(
-    <>
+    <div
+      className={`aircraft-marker aircraft-marker--${emphasis.tone} ${
+        selected ? "aircraft-marker--selected" : ""
+      }`}
+      style={{ opacity: emphasis.opacity }}
+    >
       <Pointer color={color} rot={rot} showArrow={showArrow} />
-      <Label
-        color={color}
-        label={label}
-        routeLabel={routeLabel}
-        showArrow={showArrow}
-        renderTelemetry={renderTelemetry}
-        velocity={aircraft.velocity}
-        altitude={aircraft.altitude}
-      />
-    </>,
+      {renderLabel && (
+        <Label
+          color={color}
+          label={label}
+          routeLabel={routeLabel}
+          showArrow={showArrow}
+          renderTelemetry={renderTelemetry}
+          velocity={aircraft.velocity}
+          altitude={aircraft.altitude}
+        />
+      )}
+    </div>,
     container,
   );
+}
+
+function shouldRenderAircraftLabel(emphasis) {
+  return emphasis.showLabel;
 }
 
 function Pointer({ color, rot, showArrow }) {
