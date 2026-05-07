@@ -58,49 +58,63 @@ export default function MapLayerDrawer({
       className={`map-action-drawer map-layer-drawer ${open ? "open" : ""}`}
       aria-hidden={!open}
     >
-      <div className="map-layer-drawer__toggles">
-        {LAYER_TOGGLES.map((toggle) => {
-          const active = Boolean(state[toggle.prop]);
-          const title = active ? toggle.activeLabel : toggle.inactiveLabel;
+      <div className="map-layer-group">
+        <div className="map-layer-group__label">Map layers</div>
+        <div
+          className="map-layer-drawer__toggles"
+          role="group"
+          aria-label="Map layer overlays"
+        >
+          {LAYER_TOGGLES.map((toggle) => {
+            const active = Boolean(state[toggle.prop]);
+            const title = active ? toggle.activeLabel : toggle.inactiveLabel;
 
-          return (
-            <Button
-              key={toggle.prop}
-              variant="atcIcon"
-              size="icon"
-              className={`ctrl-btn drawer-btn map-layer-control map-layer-toggle ${
-                active ? "active" : ""
-              }`}
-              aria-label={title}
-              aria-pressed={active}
-              data-tooltip={toggle.label}
-              title={title}
-              onClick={state[toggle.handler]}
-              type="button"
-            >
-              <MapControlIcon iconKey={toggle.iconKey} />
-            </Button>
-          );
-        })}
+            return (
+              <Button
+                key={toggle.prop}
+                variant="atcIcon"
+                size="icon"
+                className={`ctrl-btn drawer-btn map-layer-control map-layer-toggle ${
+                  active ? "active" : ""
+                }`}
+                aria-label={title}
+                aria-pressed={active}
+                data-tooltip={toggle.label}
+                onClick={state[toggle.handler]}
+                type="button"
+              >
+                <MapControlIcon iconKey={toggle.iconKey} />
+              </Button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="map-layer-focus" role="group" aria-label="Altitude focus">
-        {ALTITUDE_FOCUS_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={`map-layer-control map-layer-focus__option ${
-              altitudeFocus === option.value ? "active" : ""
-            }`}
-            data-tooltip={option.title}
-            title={option.title}
-            aria-label={option.title}
-            aria-pressed={altitudeFocus === option.value}
-            onClick={() => onAltitudeFocus?.(option.value)}
-          >
-            <MapControlIcon iconKey={option.iconKey} />
-          </button>
-        ))}
+      <div className="map-layer-divider" aria-hidden="true" />
+
+      <div className="map-layer-group">
+        <div className="map-layer-group__label">Traffic focus</div>
+        <div
+          className="map-layer-focus"
+          role="group"
+          aria-label="Traffic focus"
+        >
+          {ALTITUDE_FOCUS_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={`map-layer-control map-layer-focus__option ${
+                altitudeFocus === option.value ? "active" : ""
+              }`}
+              data-tooltip={option.title}
+              aria-label={option.title}
+              aria-pressed={altitudeFocus === option.value}
+              onClick={() => onAltitudeFocus?.(option.value)}
+            >
+              <MapControlIcon iconKey={option.iconKey} />
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

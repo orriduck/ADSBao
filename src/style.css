@@ -1897,9 +1897,48 @@ body {
 .map-layer-drawer {
     align-items: stretch;
     flex-direction: column;
-    gap: 5px;
+    gap: 7px;
     min-width: 0;
-    padding: 7px;
+    padding: 8px;
+}
+
+.map-layer-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.map-layer-group__label {
+    align-items: center;
+    color: var(--atc-faint);
+    display: flex;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    font-weight: 800;
+    gap: 7px;
+    letter-spacing: 0;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.map-layer-group__label::after {
+    background: color-mix(in oklab, var(--atc-line-strong) 72%, transparent);
+    content: "";
+    flex: 1;
+    height: 1px;
+    min-width: 16px;
+}
+
+.map-layer-divider {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in oklab, var(--atc-line-strong) 78%, transparent) 18%,
+        color-mix(in oklab, var(--atc-line-strong) 78%, transparent) 82%,
+        transparent
+    );
+    height: 1px;
+    margin: 1px 2px 0;
 }
 
 .map-layer-drawer__toggles {
@@ -1910,9 +1949,13 @@ body {
     gap: 3px;
     grid-template-columns: repeat(3, 32px);
     padding: 3px;
+    width: max-content;
 }
 
 .map-layer-control {
+    align-items: center;
+    display: flex;
+    justify-content: center;
     position: relative;
 }
 
@@ -1929,13 +1972,13 @@ body {
 
 .map-layer-control::before {
     background: color-mix(in oklab, var(--atc-bg) 92%, var(--atc-card));
-    border-bottom: 1px solid var(--atc-line-strong);
-    border-right: 1px solid var(--atc-line-strong);
+    border-left: 1px solid var(--atc-line-strong);
+    border-top: 1px solid var(--atc-line-strong);
+    bottom: calc(100% + 4px);
     content: "";
     height: 7px;
     right: 12px;
-    top: calc(100% + 4px);
-    transform: translateY(-2px) rotate(45deg);
+    transform: translateY(2px) rotate(45deg);
     width: 7px;
 }
 
@@ -1952,10 +1995,10 @@ body {
     letter-spacing: 0;
     line-height: 1;
     padding: 6px 7px;
+    bottom: calc(100% + 8px);
     right: 0;
     text-transform: uppercase;
-    top: calc(100% + 8px);
-    transform: translateY(-2px);
+    transform: translateY(2px);
     white-space: nowrap;
 }
 
@@ -1964,6 +2007,10 @@ body {
 .map-layer-control:focus-visible::before,
 .map-layer-control:focus-visible::after {
     opacity: 1;
+}
+
+.map-layer-control:hover::before,
+.map-layer-control:focus-visible::before {
     transform: translateY(0) rotate(45deg);
 }
 
@@ -1983,8 +2030,9 @@ body {
     border-radius: var(--atc-radius-control);
     display: grid;
     gap: 3px;
-    grid-template-columns: repeat(5, 28px);
+    grid-template-columns: repeat(5, 32px);
     padding: 3px;
+    width: max-content;
 }
 
 .map-layer-focus__option {
@@ -1996,10 +2044,11 @@ body {
     font-family: "JetBrains Mono", monospace;
     font-size: 8px;
     font-weight: 800;
+    height: 32px;
     letter-spacing: 0;
     line-height: 1;
-    min-height: 28px;
     padding: 0;
+    width: 32px;
     transition:
         background 0.15s ease,
         border-color 0.15s ease,
