@@ -54,7 +54,11 @@ const enriched = enrichAircraftWithRoutes({
 
 assert.equal(enriched[0].movement, DEPARTURE);
 assert.equal(enriched[0].flightRouteLabel, "BOS -> ATL");
+assert.equal(enriched[0].airportContext.airportIcao, "KBOS");
+assert.equal(enriched[0].airportContext.movement, "departure");
 assert.equal(enriched[1].movement, ARRIVAL);
 assert.equal(enriched[1].flightRouteLabel, "LAX -> BOS");
+assert.equal(enriched[1].airportContext.movement, "arrival");
 assert.equal(enriched[2].movement, UNKNOWN);
 assert.equal(enriched[2].flightRouteLabel, "");
+assert.equal(enriched[2].airportContext.movement, "unknown");
