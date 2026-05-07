@@ -69,11 +69,11 @@ export default function RunwayAnnotationLayer({
     });
 
     const sublayers = [lineLayer];
-    let removeGradients = () => {};
+    let beamLayer = null;
 
     if (showBeams) {
       const beams = buildRunwayApproachBeamCollection(runwayMap, { zoom });
-      const beamLayer = L.geoJSON(beams, {
+      beamLayer = L.geoJSON(beams, {
         interactive: false,
         style() {
           return {
@@ -87,11 +87,6 @@ export default function RunwayAnnotationLayer({
         },
       });
       sublayers.unshift(beamLayer);
-      removeGradients = createRunwayBeamGradientController({
-        map,
-        beamLayer,
-        theme,
-      });
     }
 
     if (showBadges) {
@@ -111,6 +106,10 @@ export default function RunwayAnnotationLayer({
 
     const layer = L.layerGroup(sublayers).addTo(map);
     layerRef.current = layer;
+
+    const removeGradients = beamLayer
+      ? createRunwayBeamGradientController({ map, beamLayer, theme })
+      : () => {};
 
     return () => {
       removeGradients();
