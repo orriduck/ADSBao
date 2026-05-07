@@ -19,7 +19,7 @@ const LAYER_DRAWER_ID = "map-layer-drawer";
 
 export default function MapControlBar({
   activeZoom = ZOOM_AIRPORT,
-  showMapLabels = true,
+  showMapLabels = false,
   showTelemetry = true,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
@@ -90,10 +90,14 @@ export default function MapControlBar({
         <MapLayerDrawer
           id={LAYER_DRAWER_ID}
           open={layerDrawerOpen}
+          showMapLabels={showMapLabels}
+          showTelemetry={showTelemetry}
           showBeams={showRunwayBeams}
           showBadges={showRoutingPointBadges}
           showAirspaceContext={showAirspaceContext}
           altitudeFocus={altitudeFocus}
+          onToggleMapLabels={onToggleMapLabels}
+          onToggleTelemetry={onToggleTelemetry}
           onToggleBeams={onToggleRunwayBeams}
           onToggleBadges={onToggleRoutingPointBadges}
           onToggleAirspaceContext={onToggleAirspaceContext}
@@ -116,15 +120,11 @@ export default function MapControlBar({
           layerDrawerOpen={layerDrawerOpen}
           playing={playing}
           audioReady={audioReady}
-          showMapLabels={showMapLabels}
-          showTelemetry={showTelemetry}
           drawerId={DRAWER_ID}
           layerDrawerId={LAYER_DRAWER_ID}
           onCycleZoom={cycleZoom}
           onToggleAudio={toggleAudio}
           onCycleTheme={cycleTheme}
-          onToggleMapLabels={onToggleMapLabels}
-          onToggleTelemetry={onToggleTelemetry}
           onToggleDrawer={toggleDrawer}
           onToggleLayerDrawer={toggleLayerDrawer}
         />

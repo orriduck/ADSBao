@@ -30,7 +30,6 @@ const isFiniteNumber = (value) => Number.isFinite(Number(value));
 export default function AircraftPosition({
   aircraft,
   theme = "dark",
-  showLabel = true,
   showTelemetry = true,
   showAirspaceContext = true,
   altitudeFocus = "all",
@@ -124,7 +123,7 @@ export default function AircraftPosition({
     showArrow &&
     isFiniteNumber(aircraft.velocity) &&
     isFiniteNumber(aircraft.altitude);
-  const renderLabel = showLabel && showMapLabelsForAircraft(emphasis);
+  const renderLabel = shouldRenderAircraftLabel(emphasis);
   const renderTelemetry = hasTelemetry && showTelemetry && emphasis.showTelemetry;
 
   return createPortal(
@@ -151,7 +150,7 @@ export default function AircraftPosition({
   );
 }
 
-function showMapLabelsForAircraft(emphasis) {
+function shouldRenderAircraftLabel(emphasis) {
   return emphasis.showLabel;
 }
 

@@ -39,7 +39,7 @@ export default function AirportMap({
   accent = "var(--atc-accent)",
   aircraft = [],
   airport = null,
-  showMapLabels = true,
+  showMapLabels = false,
   showTelemetry = true,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
@@ -170,7 +170,6 @@ export default function AirportMap({
               key={getAircraftIdentity(ac)}
               aircraft={ac}
               theme={currentTheme}
-              showLabel={showMapLabels}
               showTelemetry={showTelemetry}
               showAirspaceContext={showAirspaceContext}
               altitudeFocus={altitudeFocus}

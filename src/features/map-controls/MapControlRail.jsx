@@ -5,10 +5,8 @@ import { Button } from "../../components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 
 const AUDIO_ICON_KEY = "audioLines";
-const GAUGE_ICON_KEY = "gauge";
 const LAYERS_ICON_KEY = "layers";
 const MORE_ICON_KEY = "slidersHorizontal";
-const TYPE_ICON_KEY = "type";
 
 export default function MapControlRail({
   currentZoomOption,
@@ -18,15 +16,11 @@ export default function MapControlRail({
   layerDrawerOpen,
   playing,
   audioReady,
-  showMapLabels,
-  showTelemetry,
   drawerId,
   layerDrawerId,
   onCycleZoom,
   onToggleAudio,
   onCycleTheme,
-  onToggleMapLabels,
-  onToggleTelemetry,
   onToggleDrawer,
   onToggleLayerDrawer,
 }) {
@@ -68,30 +62,6 @@ export default function MapControlRail({
         type="button"
       >
         <MapControlIcon iconKey={getThemeIconKey(currentTheme)} />
-      </Button>
-
-      <Button
-        variant="atcIcon"
-        size="icon"
-        className={`ctrl-btn ${showMapLabels ? "active" : ""}`}
-        aria-pressed={showMapLabels}
-        title={showMapLabels ? "Hide map labels" : "Show map labels"}
-        onClick={onToggleMapLabels}
-        type="button"
-      >
-        <MapControlIcon iconKey={TYPE_ICON_KEY} />
-      </Button>
-
-      <Button
-        variant="atcIcon"
-        size="icon"
-        className={`ctrl-btn ${showTelemetry ? "active" : ""}`}
-        aria-pressed={showTelemetry}
-        title={showTelemetry ? "Hide speed/altitude" : "Show speed/altitude"}
-        onClick={onToggleTelemetry}
-        type="button"
-      >
-        <MapControlIcon iconKey={GAUGE_ICON_KEY} />
       </Button>
 
       <Button

@@ -1947,7 +1947,7 @@ body {
     border-radius: var(--atc-radius-control);
     display: grid;
     gap: 3px;
-    grid-template-columns: repeat(3, 32px);
+    grid-template-columns: repeat(5, 32px);
     padding: 3px;
     width: max-content;
 }

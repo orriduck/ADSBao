@@ -6,6 +6,22 @@ import { MapControlIcon } from "./mapControlIcons.jsx";
 
 const LAYER_TOGGLES = [
   {
+    iconKey: "type",
+    label: "Map labels",
+    activeLabel: "Hide map labels",
+    inactiveLabel: "Show map labels",
+    prop: "showMapLabels",
+    handler: "onToggleMapLabels",
+  },
+  {
+    iconKey: "gauge",
+    label: "Speed and altitude",
+    activeLabel: "Hide speed and altitude",
+    inactiveLabel: "Show speed and altitude",
+    prop: "showTelemetry",
+    handler: "onToggleTelemetry",
+  },
+  {
     iconKey: "spotlight",
     label: "Approach beams",
     activeLabel: "Hide approach beams",
@@ -34,19 +50,27 @@ const LAYER_TOGGLES = [
 export default function MapLayerDrawer({
   id,
   open,
+  showMapLabels,
+  showTelemetry,
   showBeams,
   showBadges,
   showAirspaceContext,
   altitudeFocus,
+  onToggleMapLabels,
+  onToggleTelemetry,
   onToggleBeams,
   onToggleBadges,
   onToggleAirspaceContext,
   onAltitudeFocus,
 }) {
   const state = {
+    showMapLabels,
+    showTelemetry,
     showBeams,
     showBadges,
     showAirspaceContext,
+    onToggleMapLabels,
+    onToggleTelemetry,
     onToggleBeams,
     onToggleBadges,
     onToggleAirspaceContext,

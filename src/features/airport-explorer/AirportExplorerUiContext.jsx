@@ -24,7 +24,7 @@ export function AirportExplorerUiProvider({ children }) {
   const [sidebarMode, setSidebarMode] = useState("desktop");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mapZoom, setMapZoom] = useState(ZOOM_APPROACH);
-  const [showMapLabels, setShowMapLabels] = useState(true);
+  const [showMapLabels, setShowMapLabels] = useState(false);
   const [showTelemetry, setShowTelemetry] = useState(true);
   const [showRunwayBeams, setShowRunwayBeams] = useState(true);
   const [showRoutingPointBadges, setShowRoutingPointBadges] = useState(true);
