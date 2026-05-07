@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 
 import {
+  DEFAULT_ALTITUDE_FOCUS,
   getAltitudeFocusMatch,
   getContextTagLabel,
   getMovementTagLabel,
   groupAircraftByAirportContext,
   resolveAircraftContextEmphasis,
 } from "./airportContextUiModel.js";
+
+assert.equal(DEFAULT_ALTITUDE_FOCUS, "terminal");
 
 const aircraft = [
   {
@@ -59,6 +62,7 @@ assert.equal(getContextTagLabel(aircraft[1]), "70/20");
 assert.equal(getContextTagLabel(aircraft[0]), "Class A");
 
 assert.equal(getAltitudeFocusMatch(aircraft[1], "terminal"), "in");
+assert.equal(getAltitudeFocusMatch(aircraft[2], "terminal"), "out");
 assert.equal(getAltitudeFocusMatch(aircraft[0], "terminal"), "out");
 assert.equal(getAltitudeFocusMatch(aircraft[1], "low"), "in");
 assert.equal(getAltitudeFocusMatch(aircraft[1], "high"), "out");

@@ -4,7 +4,7 @@ import { ALTITUDE_FOCUS_OPTIONS } from "../airport-context/airportContextUiModel
 import { Button } from "../../components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 
-const BEAM_ICON_KEY = "planeLanding";
+const BEAM_ICON_KEY = "flashlight";
 const BADGE_ICON_KEY = "towerControl";
 const CONTEXT_ICON_KEY = "radar";
 
@@ -75,10 +75,11 @@ export default function MapLayerDrawer({
               altitudeFocus === option.value ? "active" : ""
             }`}
             title={option.title}
+            aria-label={option.title}
             aria-pressed={altitudeFocus === option.value}
             onClick={() => onAltitudeFocus?.(option.value)}
           >
-            {option.label}
+            <MapControlIcon iconKey={option.iconKey} />
           </button>
         ))}
       </div>

@@ -5,12 +5,14 @@ export const AIRPORT_CONTEXT_GROUP_ORDER = [
   "Unknown",
 ];
 
+export const DEFAULT_ALTITUDE_FOCUS = "terminal";
+
 export const ALTITUDE_FOCUS_OPTIONS = [
-  { value: "all", label: "All", title: "All traffic" },
-  { value: "terminal", label: "Terminal", title: "Terminal traffic" },
-  { value: "low", label: "Low", title: "Surface and low terminal traffic" },
-  { value: "high", label: "High", title: "High terminal traffic" },
-  { value: "overflight", label: "Overflight", title: "High passing traffic" },
+  { value: "all", iconKey: "asterisk", title: "All traffic" },
+  { value: "terminal", iconKey: "route", title: "Terminal flow" },
+  { value: "low", iconKey: "arrowDownToLine", title: "Low traffic" },
+  { value: "high", iconKey: "arrowUpToLine", title: "High traffic" },
+  { value: "overflight", iconKey: "plane", title: "Overflight traffic" },
 ];
 
 const GROUP_ORDER_INDEX = new Map(
@@ -115,7 +117,7 @@ export function getAltitudeFocusMatch(aircraft = {}, altitudeFocus = "all") {
   const altitudeBand = context.altitudeBand || "unknown";
 
   if (altitudeFocus === "terminal") {
-    return group === "Airport Area" || group === "Terminal Flow" ? "in" : "out";
+    return group === "Terminal Flow" ? "in" : "out";
   }
 
   if (altitudeFocus === "low") {

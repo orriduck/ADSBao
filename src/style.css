@@ -1912,7 +1912,7 @@ body {
     border-radius: var(--atc-radius-control);
     display: grid;
     gap: 2px;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(5, 28px);
     padding: 3px;
 }
 
@@ -1927,11 +1927,16 @@ body {
     letter-spacing: 0;
     line-height: 1;
     min-height: 24px;
-    padding: 0 5px;
+    padding: 0;
     transition:
         background 0.15s ease,
         border-color 0.15s ease,
         color 0.15s ease;
+}
+
+.map-layer-focus__option svg {
+    height: 14px;
+    width: 14px;
 }
 
 .map-layer-focus__option:hover {

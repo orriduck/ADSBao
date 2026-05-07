@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
+import { DEFAULT_ALTITUDE_FOCUS } from "@/features/airport-context/airportContextUiModel.js";
 import { ZOOM_APPROACH } from "@/utils/airportMapDisplay.js";
 import {
   getAirportSidebarMode,
@@ -28,7 +29,7 @@ export function AirportExplorerUiProvider({ children }) {
   const [showRunwayBeams, setShowRunwayBeams] = useState(true);
   const [showRunwayBadges, setShowRunwayBadges] = useState(true);
   const [showAirspaceContext, setShowAirspaceContext] = useState(true);
-  const [altitudeFocus, setAltitudeFocus] = useState("all");
+  const [altitudeFocus, setAltitudeFocus] = useState(DEFAULT_ALTITUDE_FOCUS);
   const [selectedAircraftId, setSelectedAircraftId] = useState("");
   const isMobile = sidebarMode === "mobile";
 
