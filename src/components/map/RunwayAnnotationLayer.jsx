@@ -70,10 +70,16 @@ export default function RunwayAnnotationLayer({
 
     const sublayers = [lineLayer];
     let beamLayer = null;
+    let beamRenderer = null;
 
     if (showBeams) {
+      // Use a dedicated renderer with extra padding so beams that extend
+      // beyond the viewport edge are not clipped by the default SVG canvas.
+      // At ZOOM_AIRPORT beams reach ~408 px; default padding (0.1) is ~80 px.
+      beamRenderer = L.svg({ padding: 1 });
       const beams = buildRunwayApproachBeamCollection(runwayMap, { zoom });
       beamLayer = L.geoJSON(beams, {
+        renderer: beamRenderer,
         interactive: false,
         style() {
           return {
@@ -114,6 +120,7 @@ export default function RunwayAnnotationLayer({
     return () => {
       removeGradients();
       layer.remove();
+      beamRenderer?.remove();
       layerRef.current = null;
     };
   }, [map, runwayMap, theme, zoom, showBeams, showBadges]);

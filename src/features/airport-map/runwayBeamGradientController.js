@@ -100,7 +100,15 @@ const appendBeamGradientStops = (gradient, color, beamOpacity) => {
 };
 
 export function createRunwayBeamGradientController({ map, beamLayer, theme }) {
-  const svg = map.getPanes().overlayPane.querySelector("svg");
+  // Prefer the beam layer's own renderer SVG so that gradient coordinates
+  // are in the same coordinate space as the beam paths. The beam layer uses
+  // a custom SVG renderer with extra padding; its SVG may not be the first
+  // one returned by querySelector when multiple renderers share the pane.
+  let svg = null;
+  beamLayer.eachLayer((pathLayer) => {
+    if (!svg) svg = pathLayer._renderer?._container ?? null;
+  });
+  if (!svg) svg = map.getPanes().overlayPane.querySelector("svg");
   if (!svg) return () => {};
 
   const defs = document.createElementNS(SVG_NS, "defs");
