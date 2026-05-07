@@ -22,7 +22,7 @@ export default function MapControlBar({
   showMapLabels = true,
   showTelemetry = true,
   showRunwayBeams = true,
-  showRunwayBadges = true,
+  showRoutingPointBadges = true,
   showAirspaceContext = true,
   altitudeFocus = "all",
   onZoom,
@@ -30,7 +30,7 @@ export default function MapControlBar({
   onToggleMapLabels,
   onToggleTelemetry,
   onToggleRunwayBeams,
-  onToggleRunwayBadges,
+  onToggleRoutingPointBadges,
   onToggleAirspaceContext,
 }) {
   const controlZone = useRef(null);
@@ -91,11 +91,11 @@ export default function MapControlBar({
           id={LAYER_DRAWER_ID}
           open={layerDrawerOpen}
           showBeams={showRunwayBeams}
-          showBadges={showRunwayBadges}
+          showBadges={showRoutingPointBadges}
           showAirspaceContext={showAirspaceContext}
           altitudeFocus={altitudeFocus}
           onToggleBeams={onToggleRunwayBeams}
-          onToggleBadges={onToggleRunwayBadges}
+          onToggleBadges={onToggleRoutingPointBadges}
           onToggleAirspaceContext={onToggleAirspaceContext}
           onAltitudeFocus={onAltitudeFocus}
         />

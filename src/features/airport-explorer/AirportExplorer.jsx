@@ -39,7 +39,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showMapLabels,
     showTelemetry,
     showRunwayBeams,
-    showRunwayBadges,
+    showRoutingPointBadges,
     showAirspaceContext,
     altitudeFocus,
     selectedAircraftId,
@@ -139,7 +139,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           showMapLabels={showMapLabels}
           showTelemetry={showTelemetry}
           showRunwayBeams={showRunwayBeams}
-          showRunwayBadges={showRunwayBadges}
+          showRoutingPointBadges={showRoutingPointBadges}
           showAirspaceContext={showAirspaceContext}
           altitudeFocus={altitudeFocus}
           selectedAircraftId={selectedAircraftId}

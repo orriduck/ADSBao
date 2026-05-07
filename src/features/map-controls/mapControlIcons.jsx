@@ -4,11 +4,11 @@ import {
   ArrowDownToLine,
   ArrowUpToLine,
   AudioLines,
-  Badge,
   Crosshair,
   Gauge,
   Layers,
   ListFilter,
+  MapPinned,
   Monitor,
   Moon,
   Plane,
@@ -26,11 +26,11 @@ export const MAP_CONTROL_ICONS = {
   arrowDownToLine: ArrowDownToLine,
   arrowUpToLine: ArrowUpToLine,
   audioLines: AudioLines,
-  badge: Badge,
   crosshair: Crosshair,
   gauge: Gauge,
   layers: Layers,
   listFilter: ListFilter,
+  mapPinned: MapPinned,
   monitor: Monitor,
   moon: Moon,
   plane: Plane,
@@ -55,8 +55,6 @@ export function MapControlIcon({ iconKey }) {
       return <ArrowUpToLine />;
     case "audioLines":
       return <AudioLines />;
-    case "badge":
-      return <Badge />;
     case "crosshair":
       return <Crosshair />;
     case "gauge":
@@ -65,6 +63,8 @@ export function MapControlIcon({ iconKey }) {
       return <Layers />;
     case "listFilter":
       return <ListFilter />;
+    case "mapPinned":
+      return <MapPinned />;
     case "monitor":
       return <Monitor />;
     case "moon":

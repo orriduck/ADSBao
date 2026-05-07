@@ -27,7 +27,7 @@ export function AirportExplorerUiProvider({ children }) {
   const [showMapLabels, setShowMapLabels] = useState(true);
   const [showTelemetry, setShowTelemetry] = useState(true);
   const [showRunwayBeams, setShowRunwayBeams] = useState(true);
-  const [showRunwayBadges, setShowRunwayBadges] = useState(true);
+  const [showRoutingPointBadges, setShowRoutingPointBadges] = useState(true);
   const [showAirspaceContext, setShowAirspaceContext] = useState(true);
   const [altitudeFocus, setAltitudeFocus] = useState(DEFAULT_ALTITUDE_FOCUS);
   const [selectedAircraftId, setSelectedAircraftId] = useState("");
@@ -71,8 +71,8 @@ export function AirportExplorerUiProvider({ children }) {
     setShowRunwayBeams((value) => !value);
   }, []);
 
-  const toggleRunwayBadges = useCallback(() => {
-    setShowRunwayBadges((value) => !value);
+  const toggleRoutingPointBadges = useCallback(() => {
+    setShowRoutingPointBadges((value) => !value);
   }, []);
 
   const toggleAirspaceContext = useCallback(() => {
@@ -95,7 +95,7 @@ export function AirportExplorerUiProvider({ children }) {
       showMapLabels,
       showTelemetry,
       showRunwayBeams,
-      showRunwayBadges,
+      showRoutingPointBadges,
       showAirspaceContext,
       altitudeFocus,
       selectedAircraftId,
@@ -106,7 +106,7 @@ export function AirportExplorerUiProvider({ children }) {
       toggleMapLabels,
       toggleTelemetry,
       toggleRunwayBeams,
-      toggleRunwayBadges,
+      toggleRoutingPointBadges,
       toggleAirspaceContext,
       selectAircraft,
       setSelectedAircraftId,
@@ -119,7 +119,7 @@ export function AirportExplorerUiProvider({ children }) {
       showMapLabels,
       showTelemetry,
       showRunwayBeams,
-      showRunwayBadges,
+      showRoutingPointBadges,
       showAirspaceContext,
       altitudeFocus,
       selectedAircraftId,
@@ -128,7 +128,7 @@ export function AirportExplorerUiProvider({ children }) {
       toggleMapLabels,
       toggleTelemetry,
       toggleRunwayBeams,
-      toggleRunwayBadges,
+      toggleRoutingPointBadges,
       toggleAirspaceContext,
       selectAircraft,
     ],

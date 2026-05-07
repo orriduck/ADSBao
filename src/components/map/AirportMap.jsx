@@ -42,7 +42,7 @@ export default function AirportMap({
   showMapLabels = true,
   showTelemetry = true,
   showRunwayBeams = true,
-  showRunwayBadges = true,
+  showRoutingPointBadges = true,
   showAirspaceContext = true,
   altitudeFocus = "all",
   selectedAircraftId = "",
@@ -149,14 +149,14 @@ export default function AirportMap({
             runwayProcedures={runwayProcedures}
             fixLabelRunwayProcedures={procedureFixLabelRunwayProcedures}
             theme={currentTheme}
-            showFixLabels={showProcedureFixLabels}
+            showFixLabels={showProcedureFixLabels && showRoutingPointBadges}
           />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}
             theme={currentTheme}
             zoom={zoom}
             showBeams={showRunwayBeams}
-            showBadges={showRunwayBadges}
+            showBadges={showRoutingPointBadges}
           />
           <GroundStatsCounter
             lat={lat}
