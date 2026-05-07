@@ -25,6 +25,8 @@ export function AirportExplorerUiProvider({ children }) {
   const [mapZoom, setMapZoom] = useState(ZOOM_APPROACH);
   const [showMapLabels, setShowMapLabels] = useState(true);
   const [showTelemetry, setShowTelemetry] = useState(true);
+  const [showRunwayBeams, setShowRunwayBeams] = useState(true);
+  const [showRunwayBadges, setShowRunwayBadges] = useState(true);
   const isMobile = sidebarMode === "mobile";
 
   useEffect(() => {
@@ -61,6 +63,14 @@ export function AirportExplorerUiProvider({ children }) {
     setShowTelemetry((value) => !value);
   }, []);
 
+  const toggleRunwayBeams = useCallback(() => {
+    setShowRunwayBeams((value) => !value);
+  }, []);
+
+  const toggleRunwayBadges = useCallback(() => {
+    setShowRunwayBadges((value) => !value);
+  }, []);
+
   const value = useMemo(
     () => ({
       desktopSidebarWidth: AIRPORT_EXPLORER_UI_CONFIG.desktopSidebarWidth,
@@ -70,11 +80,15 @@ export function AirportExplorerUiProvider({ children }) {
       mapZoom,
       showMapLabels,
       showTelemetry,
+      showRunwayBeams,
+      showRunwayBadges,
       setMapZoom,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
       toggleTelemetry,
+      toggleRunwayBeams,
+      toggleRunwayBadges,
     }),
     [
       sidebarMode,
@@ -83,10 +97,14 @@ export function AirportExplorerUiProvider({ children }) {
       mapZoom,
       showMapLabels,
       showTelemetry,
+      showRunwayBeams,
+      showRunwayBadges,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
       toggleTelemetry,
+      toggleRunwayBeams,
+      toggleRunwayBadges,
     ],
   );
 

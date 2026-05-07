@@ -4,6 +4,7 @@ import {
   AudioLines,
   Crosshair,
   Gauge,
+  Layers,
   Monitor,
   Moon,
   PlaneLanding,
@@ -17,6 +18,7 @@ export const MAP_CONTROL_ICONS = {
   audioLines: AudioLines,
   crosshair: Crosshair,
   gauge: Gauge,
+  layers: Layers,
   monitor: Monitor,
   moon: Moon,
   planeLanding: PlaneLanding,
@@ -37,6 +39,8 @@ export function MapControlIcon({ iconKey }) {
       return <Crosshair />;
     case "gauge":
       return <Gauge />;
+    case "layers":
+      return <Layers />;
     case "monitor":
       return <Monitor />;
     case "moon":

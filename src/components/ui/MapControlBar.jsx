@@ -5,6 +5,7 @@ import { MAP_ZOOM_OPTIONS } from "../../config/mapControls.js";
 import { useThemePreference } from "../../features/app-shell/useThemePreference.js";
 import MapControlRail from "../../features/map-controls/MapControlRail.jsx";
 import MapZoomDrawer from "../../features/map-controls/MapZoomDrawer.jsx";
+import RunwayLayerDrawer from "../../features/map-controls/RunwayLayerDrawer.jsx";
 import {
   getNextZoomValue,
   resolveZoomOption,
@@ -14,17 +15,23 @@ import { useFocusAudio } from "../../features/map-controls/useFocusAudio.js";
 import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay.js";
 
 const DRAWER_ID = "map-action-drawer";
+const RUNWAY_DRAWER_ID = "map-runway-drawer";
 
 export default function MapControlBar({
   activeZoom = ZOOM_AIRPORT,
   showMapLabels = true,
   showTelemetry = true,
+  showRunwayBeams = true,
+  showRunwayBadges = true,
   onZoom,
   onToggleMapLabels,
   onToggleTelemetry,
+  onToggleRunwayBeams,
+  onToggleRunwayBadges,
 }) {
   const controlZone = useRef(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [runwayDrawerOpen, setRunwayDrawerOpen] = useState(false);
   const { themePreference, themeTitle, cycleTheme } = useThemePreference();
   const { playerHost, playing, audioReady, toggleAudio } = useFocusAudio();
 
@@ -37,10 +44,20 @@ export default function MapControlBar({
     setDrawerOpen(false);
   }, []);
 
+  const closeRunwayDrawer = useCallback(() => {
+    setRunwayDrawerOpen(false);
+  }, []);
+
   useDismissibleDrawer({
     open: drawerOpen,
     containerRef: controlZone,
     onClose: closeDrawer,
+  });
+
+  useDismissibleDrawer({
+    open: runwayDrawerOpen,
+    containerRef: controlZone,
+    onClose: closeRunwayDrawer,
   });
 
   const selectZoom = (zoom) => {
@@ -52,10 +69,29 @@ export default function MapControlBar({
     onZoom?.(getNextZoomValue(activeZoom, MAP_ZOOM_OPTIONS));
   };
 
+  const toggleDrawer = () => {
+    setDrawerOpen((value) => !value);
+    setRunwayDrawerOpen(false);
+  };
+
+  const toggleRunwayDrawer = () => {
+    setRunwayDrawerOpen((value) => !value);
+    setDrawerOpen(false);
+  };
+
   return (
     <>
       <div ref={playerHost} className="yt-sink" aria-hidden="true" />
       <div ref={controlZone} className="map-ctrl-zone">
+        <RunwayLayerDrawer
+          id={RUNWAY_DRAWER_ID}
+          open={runwayDrawerOpen}
+          showBeams={showRunwayBeams}
+          showBadges={showRunwayBadges}
+          onToggleBeams={onToggleRunwayBeams}
+          onToggleBadges={onToggleRunwayBadges}
+        />
+
         <MapZoomDrawer
           id={DRAWER_ID}
           open={drawerOpen}
@@ -69,17 +105,20 @@ export default function MapControlBar({
           currentTheme={themePreference}
           themeTitle={themeTitle}
           drawerOpen={drawerOpen}
+          runwayDrawerOpen={runwayDrawerOpen}
           playing={playing}
           audioReady={audioReady}
           showMapLabels={showMapLabels}
           showTelemetry={showTelemetry}
           drawerId={DRAWER_ID}
+          runwayDrawerId={RUNWAY_DRAWER_ID}
           onCycleZoom={cycleZoom}
           onToggleAudio={toggleAudio}
           onCycleTheme={cycleTheme}
           onToggleMapLabels={onToggleMapLabels}
           onToggleTelemetry={onToggleTelemetry}
-          onToggleDrawer={() => setDrawerOpen((value) => !value)}
+          onToggleDrawer={toggleDrawer}
+          onToggleRunwayDrawer={toggleRunwayDrawer}
         />
       </div>
     </>
