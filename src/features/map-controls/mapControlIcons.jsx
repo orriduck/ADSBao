@@ -8,6 +8,7 @@ import {
   Monitor,
   Moon,
   PlaneLanding,
+  Radar,
   SlidersHorizontal,
   Sun,
   TowerControl,
@@ -22,6 +23,7 @@ export const MAP_CONTROL_ICONS = {
   monitor: Monitor,
   moon: Moon,
   planeLanding: PlaneLanding,
+  radar: Radar,
   slidersHorizontal: SlidersHorizontal,
   sun: Sun,
   towerControl: TowerControl,
@@ -47,6 +49,8 @@ export function MapControlIcon({ iconKey }) {
       return <Moon />;
     case "planeLanding":
       return <PlaneLanding />;
+    case "radar":
+      return <Radar />;
     case "sun":
       return <Sun />;
     case "towerControl":

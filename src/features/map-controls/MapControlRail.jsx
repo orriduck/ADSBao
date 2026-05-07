@@ -15,20 +15,20 @@ export default function MapControlRail({
   currentTheme,
   themeTitle,
   drawerOpen,
-  runwayDrawerOpen,
+  layerDrawerOpen,
   playing,
   audioReady,
   showMapLabels,
   showTelemetry,
   drawerId,
-  runwayDrawerId,
+  layerDrawerId,
   onCycleZoom,
   onToggleAudio,
   onCycleTheme,
   onToggleMapLabels,
   onToggleTelemetry,
   onToggleDrawer,
-  onToggleRunwayDrawer,
+  onToggleLayerDrawer,
 }) {
   return (
     <div className="map-ctrl-bar">
@@ -97,11 +97,11 @@ export default function MapControlRail({
       <Button
         variant="atcIcon"
         size="icon"
-        className={`ctrl-btn ${runwayDrawerOpen ? "active" : ""}`}
-        aria-expanded={runwayDrawerOpen}
-        aria-controls={runwayDrawerId}
-        title="Runway layers"
-        onClick={onToggleRunwayDrawer}
+        className={`ctrl-btn ${layerDrawerOpen ? "active" : ""}`}
+        aria-expanded={layerDrawerOpen}
+        aria-controls={layerDrawerId}
+        title="Map layers"
+        onClick={onToggleLayerDrawer}
         type="button"
       >
         <MapControlIcon iconKey={LAYERS_ICON_KEY} />

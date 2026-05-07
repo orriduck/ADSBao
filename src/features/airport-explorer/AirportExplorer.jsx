@@ -40,7 +40,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showTelemetry,
     showRunwayBeams,
     showRunwayBadges,
+    showAirspaceContext,
+    altitudeFocus,
+    selectedAircraftId,
     closeSidebar,
+    selectAircraft,
+    setSelectedAircraftId,
   } = useAirportExplorerUi();
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
@@ -48,6 +53,14 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   );
   const { weather, traffic } = useAirportExplorerData(airportProfile);
   const procedures = useAirportProcedures(airportProfile.icao);
+
+  useEffect(() => {
+    if (!selectedAircraftId) return;
+    const stillVisible = traffic.aircraft.some(
+      (item) => (item.icao24 || item.callsign) === selectedAircraftId,
+    );
+    if (!stillVisible) setSelectedAircraftId("");
+  }, [selectedAircraftId, setSelectedAircraftId, traffic.aircraft]);
 
   useEffect(() => {
     if (!isMobile) return undefined;
@@ -84,8 +97,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     metarLoading: weather.metarLoading,
     metarError: weather.metarError,
     aircraft: traffic.aircraft,
+    altitudeFocus,
+    showAirspaceContext,
+    selectedAircraftId,
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
+    onSelectAircraft: selectAircraft,
     onBack,
   };
 
@@ -123,6 +140,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           showTelemetry={showTelemetry}
           showRunwayBeams={showRunwayBeams}
           showRunwayBadges={showRunwayBadges}
+          showAirspaceContext={showAirspaceContext}
+          altitudeFocus={altitudeFocus}
+          selectedAircraftId={selectedAircraftId}
+          onSelectAircraft={selectAircraft}
           runwayMap={procedures.runwayMap}
           runwayProcedures={null}
           procedureFixLabelRunwayProcedures={procedures.runwayProcedures}

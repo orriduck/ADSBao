@@ -27,6 +27,9 @@ export function AirportExplorerUiProvider({ children }) {
   const [showTelemetry, setShowTelemetry] = useState(true);
   const [showRunwayBeams, setShowRunwayBeams] = useState(true);
   const [showRunwayBadges, setShowRunwayBadges] = useState(true);
+  const [showAirspaceContext, setShowAirspaceContext] = useState(true);
+  const [altitudeFocus, setAltitudeFocus] = useState("all");
+  const [selectedAircraftId, setSelectedAircraftId] = useState("");
   const isMobile = sidebarMode === "mobile";
 
   useEffect(() => {
@@ -71,6 +74,16 @@ export function AirportExplorerUiProvider({ children }) {
     setShowRunwayBadges((value) => !value);
   }, []);
 
+  const toggleAirspaceContext = useCallback(() => {
+    setShowAirspaceContext((value) => !value);
+  }, []);
+
+  const selectAircraft = useCallback((aircraftId) => {
+    setSelectedAircraftId((currentId) =>
+      currentId === aircraftId ? "" : aircraftId,
+    );
+  }, []);
+
   const value = useMemo(
     () => ({
       desktopSidebarWidth: AIRPORT_EXPLORER_UI_CONFIG.desktopSidebarWidth,
@@ -82,13 +95,20 @@ export function AirportExplorerUiProvider({ children }) {
       showTelemetry,
       showRunwayBeams,
       showRunwayBadges,
+      showAirspaceContext,
+      altitudeFocus,
+      selectedAircraftId,
       setMapZoom,
+      setAltitudeFocus,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
       toggleTelemetry,
       toggleRunwayBeams,
       toggleRunwayBadges,
+      toggleAirspaceContext,
+      selectAircraft,
+      setSelectedAircraftId,
     }),
     [
       sidebarMode,
@@ -99,12 +119,17 @@ export function AirportExplorerUiProvider({ children }) {
       showTelemetry,
       showRunwayBeams,
       showRunwayBadges,
+      showAirspaceContext,
+      altitudeFocus,
+      selectedAircraftId,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
       toggleTelemetry,
       toggleRunwayBeams,
       toggleRunwayBadges,
+      toggleAirspaceContext,
+      selectAircraft,
     ],
   );
 

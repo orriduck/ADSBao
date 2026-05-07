@@ -18,6 +18,7 @@ import MapAttribution from "../../features/airport-map/MapAttribution.jsx";
 import MapCoordinateLabel from "../../features/airport-map/MapCoordinateLabel.jsx";
 import MapLoadingState from "../../features/airport-map/MapLoadingState.jsx";
 import MapTrafficLegend from "../../features/airport-map/MapTrafficLegend.jsx";
+import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
 import {
   formatCoordinateLabel,
   getMapOverlayTheme,
@@ -42,6 +43,10 @@ export default function AirportMap({
   showTelemetry = true,
   showRunwayBeams = true,
   showRunwayBadges = true,
+  showAirspaceContext = true,
+  altitudeFocus = "all",
+  selectedAircraftId = "",
+  onSelectAircraft,
   runwayMap = null,
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
@@ -162,10 +167,15 @@ export default function AirportMap({
           />
           {visibleAircraft.map((ac) => (
             <AircraftPosition
-              key={ac.icao24}
+              key={getAircraftIdentity(ac)}
               aircraft={ac}
               theme={currentTheme}
+              showLabel={showMapLabels}
               showTelemetry={showTelemetry}
+              showAirspaceContext={showAirspaceContext}
+              altitudeFocus={altitudeFocus}
+              selected={getAircraftIdentity(ac) === selectedAircraftId}
+              onSelectAircraft={onSelectAircraft}
             />
           ))}
         </MapContext.Provider>
