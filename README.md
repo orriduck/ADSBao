@@ -2,7 +2,7 @@
 
 A modern airport-monitoring HUD with dynamic airport search, METAR context, and nearby aircraft overlays.
 
-<img width="1350" height="1020" alt="image" src="https://github.com/user-attachments/assets/2fbecb18-8d4a-470d-9e8a-a413418c4bd6" />
+<img width="1385" height="1068" alt="image" src="https://github.com/user-attachments/assets/9b827ff8-a2c8-4d59-96c9-83bd7796e934" />
 
 
 ## Overview
