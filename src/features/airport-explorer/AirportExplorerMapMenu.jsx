@@ -4,10 +4,7 @@ import { PanelLeft } from "lucide-react";
 import MapControlBar from "@/components/ui/MapControlBar";
 import { useAirportExplorerUi } from "./AirportExplorerUiContext.jsx";
 
-export default function AirportExplorerMapMenu({
-  showProcedurePanel = false,
-  onToggleProcedurePanel,
-}) {
+export default function AirportExplorerMapMenu() {
   const {
     isMobile,
     mapZoom,
@@ -37,11 +34,9 @@ export default function AirportExplorerMapMenu({
       <MapControlBar
         activeZoom={mapZoom}
         showMapLabels={showMapLabels}
-        showProcedurePanel={showProcedurePanel}
         showTelemetry={showTelemetry}
         onZoom={setMapZoom}
         onToggleMapLabels={toggleMapLabels}
-        onToggleProcedurePanel={onToggleProcedurePanel}
         onToggleTelemetry={toggleTelemetry}
       />
     </div>

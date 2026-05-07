@@ -405,30 +405,40 @@ body {
     text-shadow: none;
 }
 
+.runway-approach-beam {
+    filter: blur(3.5px);
+    mix-blend-mode: screen;
+}
+
+:root[data-theme="light"] .runway-approach-beam {
+    filter: blur(2.4px);
+    mix-blend-mode: multiply;
+}
+
 .procedure-fix-label {
     align-items: center;
     background: color-mix(in oklab, var(--atc-card) 88%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-accent) 30%, transparent);
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgb(0 0 0 / 0.22);
+    border: 1px solid color-mix(in oklab, var(--atc-accent) 24%, transparent);
+    border-radius: 3px;
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.16);
     box-sizing: border-box;
     color: var(--atc-accent);
     display: flex;
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 7px;
     font-weight: 700;
-    height: 16px;
+    height: 12px;
     justify-content: center;
     letter-spacing: 0;
     line-height: 1;
-    padding: 0 5px;
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+    padding: 0 3px;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.26);
     text-transform: uppercase;
     white-space: nowrap;
 }
 
 .procedure-fix-label--light {
-    box-shadow: 0 4px 12px rgb(15 23 42 / 0.14);
+    box-shadow: 0 3px 8px rgb(15 23 42 / 0.1);
     text-shadow: none;
 }
 

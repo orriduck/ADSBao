@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  buildRunwayApproachBeamCollection,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
   shouldShowRunwayEndLabels,
@@ -37,6 +38,15 @@ const runwayMap = {
   ],
 };
 
+const metersBetween = ([leftLon, leftLat], [rightLon, rightLat]) => {
+  const metersPerDegreeLatitude = 111_320;
+  const metersPerDegreeLongitude =
+    metersPerDegreeLatitude * Math.cos((leftLat * Math.PI) / 180);
+  const dx = (rightLon - leftLon) * metersPerDegreeLongitude;
+  const dy = (rightLat - leftLat) * metersPerDegreeLatitude;
+  return Math.hypot(dx, dy);
+};
+
 assert.deepEqual(buildRunwayEndLabels(runwayMap), [
   {
     key: "04R/22L-04R",
@@ -68,3 +78,39 @@ assert.deepEqual(buildRunwayCenterlineCollection(runwayMap), {
   },
   features: [runwayMap.runways[0].centerline],
 });
+
+const approachBeams = buildRunwayApproachBeamCollection(runwayMap, {
+  zoom: ZOOM_APPROACH,
+});
+assert.equal(approachBeams.features.length, 2);
+assert.deepEqual(
+  approachBeams.features.map((feature) => feature.properties.runwayEnd),
+  ["04R", "22L"],
+);
+assert.deepEqual(
+  approachBeams.features.map((feature) => feature.geometry.type),
+  ["Polygon", "Polygon"],
+);
+
+const approachBeam = approachBeams.features[0];
+assert.equal(approachBeam.properties.beamAngleDegrees, 10);
+assert.equal(Math.round(approachBeam.properties.beamDistanceMeters), 16093);
+assert.equal(approachBeam.geometry.coordinates[0].length, 22);
+assert.ok(
+  metersBetween(
+    approachBeam.geometry.coordinates[0][0],
+    approachBeam.geometry.coordinates[0][1],
+  ) >= 519,
+);
+
+const airportBeam = buildRunwayApproachBeamCollection(runwayMap, {
+  zoom: ZOOM_AIRPORT,
+}).features[0];
+assert.equal(airportBeam.properties.beamAngleDegrees, 12);
+assert.equal(Math.round(airportBeam.properties.beamDistanceMeters), 5794);
+
+const detailBeam = buildRunwayApproachBeamCollection(runwayMap, {
+  zoom: ZOOM_DETAIL,
+}).features[0];
+assert.equal(detailBeam.properties.beamAngleDegrees, 16);
+assert.equal(Math.round(detailBeam.properties.beamDistanceMeters), 2334);

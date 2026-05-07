@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
+import { AIRPORT_MAP_PANES } from "../../config/airportMap.js";
+import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
 import {
   buildProcedureFixLabels,
   buildProcedureSegmentCollection,
@@ -25,12 +27,13 @@ const fixLabelIcon = (label, theme) =>
   L.divIcon({
     className: `procedure-fix-label procedure-fix-label--${theme}`,
     html: escapeHtml(label.fixIdent),
-    iconSize: [48, 16],
-    iconAnchor: [24, 8],
+    iconSize: [38, 12],
+    iconAnchor: [19, 6],
   });
 
 export default function ProcedureSegmentLayer({
   runwayProcedures,
+  fixLabelRunwayProcedures = runwayProcedures,
   theme = "dark",
   showFixLabels = false,
 }) {
@@ -38,15 +41,16 @@ export default function ProcedureSegmentLayer({
   const layerRef = useRef(null);
 
   useEffect(() => {
-    if (!map || !runwayProcedures?.runwayDirections?.length) return undefined;
+    if (!map) return undefined;
 
     const segments = buildProcedureSegmentCollection(runwayProcedures);
     const labels = showFixLabels
-      ? buildProcedureFixLabels(runwayProcedures)
+      ? buildProcedureFixLabels(fixLabelRunwayProcedures)
       : [];
     if (!segments.features.length && !labels.length) return undefined;
 
     const baseStyle = getProcedureSegmentStyle(theme);
+    const fixLabelPane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge);
     const lineLayer = L.geoJSON(segments, {
       interactive: false,
       style(feature) {
@@ -65,7 +69,7 @@ export default function ProcedureSegmentLayer({
           interactive: false,
           keyboard: false,
           icon: fixLabelIcon(label, theme),
-          zIndexOffset: 470,
+          pane: fixLabelPane,
         }),
       ),
     );
@@ -76,7 +80,7 @@ export default function ProcedureSegmentLayer({
       layer.remove();
       layerRef.current = null;
     };
-  }, [map, runwayProcedures, showFixLabels, theme]);
+  }, [fixLabelRunwayProcedures, map, runwayProcedures, showFixLabels, theme]);
 
   return null;
 }

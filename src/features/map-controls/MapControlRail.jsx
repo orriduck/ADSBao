@@ -7,7 +7,6 @@ import { MapControlIcon } from "./mapControlIcons.jsx";
 const AUDIO_ICON_KEY = "audioLines";
 const GAUGE_ICON_KEY = "gauge";
 const MORE_ICON_KEY = "slidersHorizontal";
-const PROCEDURE_ICON_KEY = "planeLanding";
 const TYPE_ICON_KEY = "type";
 
 export default function MapControlRail({
@@ -18,14 +17,12 @@ export default function MapControlRail({
   playing,
   audioReady,
   showMapLabels,
-  showProcedurePanel,
   showTelemetry,
   drawerId,
   onCycleZoom,
   onToggleAudio,
   onCycleTheme,
   onToggleMapLabels,
-  onToggleProcedurePanel,
   onToggleTelemetry,
   onToggleDrawer,
 }) {
@@ -91,20 +88,6 @@ export default function MapControlRail({
         type="button"
       >
         <MapControlIcon iconKey={GAUGE_ICON_KEY} />
-      </Button>
-
-      <Button
-        variant="atcIcon"
-        size="icon"
-        className={`ctrl-btn ${showProcedurePanel ? "active" : ""}`}
-        aria-pressed={showProcedurePanel}
-        title={
-          showProcedurePanel ? "Hide runway procedures" : "Show runway procedures"
-        }
-        onClick={onToggleProcedurePanel}
-        type="button"
-      >
-        <MapControlIcon iconKey={PROCEDURE_ICON_KEY} />
       </Button>
 
       <Button

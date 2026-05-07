@@ -42,6 +42,7 @@ export default function AirportMap({
   showTelemetry = true,
   runwayMap = null,
   runwayProcedures = null,
+  procedureFixLabelRunwayProcedures = runwayProcedures,
   showProcedureFixLabels = false,
 }) {
   const mapEl = useRef(null);
@@ -137,15 +138,16 @@ export default function AirportMap({
             icao={icao}
             airport={airport}
           />
+          <ProcedureSegmentLayer
+            runwayProcedures={runwayProcedures}
+            fixLabelRunwayProcedures={procedureFixLabelRunwayProcedures}
+            theme={currentTheme}
+            showFixLabels={showProcedureFixLabels}
+          />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}
             theme={currentTheme}
             zoom={zoom}
-          />
-          <ProcedureSegmentLayer
-            runwayProcedures={runwayProcedures}
-            theme={currentTheme}
-            showFixLabels={showProcedureFixLabels}
           />
           <GroundStatsCounter
             lat={lat}
