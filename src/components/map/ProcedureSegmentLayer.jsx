@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
+import { AIRPORT_MAP_PANES } from "../../config/airportMap.js";
+import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
 import {
   buildProcedureFixLabels,
   buildProcedureSegmentCollection,
@@ -20,18 +22,6 @@ const escapeHtml = (value) =>
     };
     return entities[character];
   });
-
-const FIX_LABEL_PANE = "procedure-fix";
-
-const ensureFixLabelPane = (map) => {
-  let pane = map.getPane(FIX_LABEL_PANE);
-  if (!pane) {
-    pane = map.createPane(FIX_LABEL_PANE);
-  }
-  pane.style.zIndex = "360";
-  pane.style.pointerEvents = "none";
-  return FIX_LABEL_PANE;
-};
 
 const fixLabelIcon = (label, theme) =>
   L.divIcon({
@@ -60,7 +50,7 @@ export default function ProcedureSegmentLayer({
     if (!segments.features.length && !labels.length) return undefined;
 
     const baseStyle = getProcedureSegmentStyle(theme);
-    const fixLabelPane = ensureFixLabelPane(map);
+    const fixLabelPane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge);
     const lineLayer = L.geoJSON(segments, {
       interactive: false,
       style(feature) {

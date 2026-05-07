@@ -1,42 +1,8 @@
-import {
-  ZOOM_AIRPORT,
-  ZOOM_APPROACH,
-  ZOOM_DETAIL,
-} from "../../utils/airportMapDisplay.js";
+import { RUNWAY_APPROACH_BEAM_CONFIG } from "../../config/airportMap.js";
+import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const STATUTE_MILE_METERS = 1_609.344;
-const BEAM_ARC_SEGMENTS = 18;
-
-const RUNWAY_BEAM_ZOOM_PROFILES = [
-  {
-    zoom: ZOOM_APPROACH,
-    distance: 10 * STATUTE_MILE_METERS,
-    angle: 10,
-    nearDistance: 180,
-    nearAngle: 3.2,
-    nearWidth: 520,
-    opacity: 0.3,
-  },
-  {
-    zoom: ZOOM_AIRPORT,
-    distance: 3.6 * STATUTE_MILE_METERS,
-    angle: 12,
-    nearDistance: 95,
-    nearAngle: 7,
-    nearWidth: 135,
-    opacity: 0.25,
-  },
-  {
-    zoom: ZOOM_DETAIL,
-    distance: 1.45 * STATUTE_MILE_METERS,
-    angle: 16,
-    nearDistance: 70,
-    nearAngle: 12,
-    nearWidth: 92,
-    opacity: 0.27,
-  },
-];
 
 export const shouldShowRunwayEndLabels = (zoom) => Number(zoom) > ZOOM_APPROACH;
 
@@ -49,7 +15,10 @@ const interpolate = (from, to, progress) => from + (to - from) * progress;
 
 const runwayBeamProfileForZoom = (zoom) => {
   const numericZoom = Number.isFinite(Number(zoom)) ? Number(zoom) : ZOOM_APPROACH;
-  const profiles = RUNWAY_BEAM_ZOOM_PROFILES;
+  const profiles = RUNWAY_APPROACH_BEAM_CONFIG.profiles.map((profile) => ({
+    ...profile,
+    distance: profile.distanceSm * STATUTE_MILE_METERS,
+  }));
 
   if (numericZoom <= profiles[0].zoom) return profiles[0];
   if (numericZoom >= profiles.at(-1).zoom) return profiles.at(-1);
@@ -120,8 +89,12 @@ const rotateVector = (vector, degrees) => {
 const arcCoordinates = ({ end, vector, distance, halfAngle, reverse = false }) => {
   const points = [];
 
-  for (let index = 0; index <= BEAM_ARC_SEGMENTS; index += 1) {
-    const progress = index / BEAM_ARC_SEGMENTS;
+  for (
+    let index = 0;
+    index <= RUNWAY_APPROACH_BEAM_CONFIG.arcSegments;
+    index += 1
+  ) {
+    const progress = index / RUNWAY_APPROACH_BEAM_CONFIG.arcSegments;
     const angle = reverse
       ? halfAngle - progress * halfAngle * 2
       : -halfAngle + progress * halfAngle * 2;
