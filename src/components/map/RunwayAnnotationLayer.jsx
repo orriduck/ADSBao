@@ -40,7 +40,7 @@ const runwayLabelIcon = (ident, theme) =>
     className: `runway-end-label runway-end-label--${theme}`,
     html: `<span>${escapeHtml(ident)}</span>`,
     iconSize: [34, 18],
-    iconAnchor: [17, 9],
+    iconAnchor: [17, 22],
   });
 
 export default function RunwayAnnotationLayer({

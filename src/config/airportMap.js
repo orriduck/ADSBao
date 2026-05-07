@@ -17,7 +17,7 @@ export const AIRPORT_MAP_TRAFFIC_LEGEND = [
 export const AIRPORT_MAP_PANES = {
   badge: {
     name: "airport-map-badge",
-    zIndex: 360,
+    zIndex: 420,
   },
 };
 
@@ -58,13 +58,13 @@ export const RUNWAY_ANNOTATION_STYLE_CONFIG = {
   lineStyles: {
     dark: {
       color: "#8fb7d6",
-      weight: 2,
-      opacity: 0.82,
+      weight: 3,
+      opacity: 0.5,
     },
     light: {
       color: "#244164",
-      weight: 2,
-      opacity: 0.76,
+      weight: 3,
+      opacity: 0.5,
     },
   },
   beamColors: {
