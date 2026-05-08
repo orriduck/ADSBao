@@ -18,7 +18,11 @@ import { normalizeLocalWeather } from "./localWeatherNormalizer.js";
       flightroute: {
         callsign: " dal123 ",
         callsign_icao: "dal123",
-        airline: { name: "Delta Air Lines", icao: "dal" },
+        airline: {
+          name: "Delta Air Lines",
+          icao: "dal",
+          icon_url: "https://www.flightaware.com/images/airline_logos/180px/DAL.png",
+        },
         origin: {
           icao_code: "egll",
           iata_code: "lhr",
@@ -39,6 +43,10 @@ import { normalizeLocalWeather } from "./localWeatherNormalizer.js";
 
   assert.equal(route.callsign, "DAL123");
   assert.equal(route.airlineIcao, "DAL");
+  assert.equal(
+    route.airlineIconUrl,
+    "https://www.flightaware.com/images/airline_logos/180px/DAL.png",
+  );
   assert.equal(route.origin.iata, "LHR");
   assert.equal(route.destination.icao, "KBOS");
   assert.equal(route.source, "flightaware");

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 
 import {
   formatFlightRouteLabel,
+  formatFlightNumberLabel,
   formatLocalFlightRouteLabel,
 } from './flightRouteDisplay.js'
 import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
@@ -27,6 +28,29 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
 {
   assert.equal(formatFlightRouteLabel(null), '')
   assert.equal(formatFlightRouteLabel({ origin: { iata: 'BOS' } }), '')
+}
+
+{
+  assert.equal(
+    formatFlightNumberLabel({ callsignIata: 'AA873', callsignIcao: 'AAL873' }),
+    '873',
+  )
+  assert.equal(
+    formatFlightNumberLabel({ callsignIcao: 'DAL1234' }),
+    '1234',
+  )
+  assert.equal(formatFlightNumberLabel(null, 'JBU456'), '456')
+  assert.equal(formatFlightNumberLabel(null, 'N156QX'), '')
+}
+
+{
+  assert.equal(
+    formatFlightRouteLabel({
+      origin: { iata: 'BOS', icao: 'KBOS' },
+      destination: { iata: 'BOS', icao: 'KBOS' },
+    }),
+    '',
+  )
 }
 
 {
@@ -65,6 +89,18 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
   const route = {
     origin: { iata: 'PHX', icao: 'KPHX' },
     destination: { iata: 'MIA', icao: 'KMIA' },
+  }
+
+  assert.equal(
+    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, UNKNOWN),
+    '',
+  )
+}
+
+{
+  const route = {
+    origin: { iata: 'BOS', icao: 'KBOS' },
+    destination: { iata: 'BOS', icao: 'KBOS' },
   }
 
   assert.equal(

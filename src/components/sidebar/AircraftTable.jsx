@@ -3,11 +3,11 @@
 import NumberFlow from "@number-flow/react";
 import {
   getAircraftIdentity,
-  getContextTagLabel,
   getMovementTagLabel,
   groupAircraftByAirportContext,
   resolveAircraftContextEmphasis,
 } from "../../features/airport-context/airportContextUiModel.js";
+import { formatFlightNumberLabel } from "../../utils/flightRouteDisplay.js";
 
 export default function AircraftTable({
   aircraft = [],
@@ -32,7 +32,7 @@ export default function AircraftTable({
         </div>
 
         <div className="grid grid-cols-[minmax(0,1fr)_58px_78px] items-center gap-3 border-y border-[var(--atc-line)] px-6 py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-atc-faint">
-          <span>Callsign / Context</span>
+          <span>Callsign / Route</span>
           <span className="text-right">GS</span>
           <span className="text-right">ALT</span>
         </div>
@@ -115,11 +115,12 @@ function AircraftRow({
   onSelectAircraft,
 }) {
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
-  const route =
-    aircraft.flightRouteLabel ||
-    (aircraft.onGround ? "On ground" : "Track unknown");
+  const route = aircraft.flightRouteLabel || "";
+  const airlineName = aircraft.flightRoute?.airlineName || "";
+  const airlineIconUrl = aircraft.flightRoute?.airlineIconUrl || "";
+  const flightNumber = formatFlightNumberLabel(aircraft.flightRoute, callsign);
+  const hasFlightInfo = Boolean(airlineIconUrl || airlineName || flightNumber);
   const movementLabel = getMovementTagLabel(aircraft);
-  const contextLabel = getContextTagLabel(aircraft);
   const gsValue = toNumber(aircraft.velocity);
   const altValue = toNumber(aircraft.altitude);
   const rowOpacity = selected ? 1 : emphasis.opacity;
@@ -142,13 +143,44 @@ function AircraftRow({
             </span>
             {movementLabel && <AircraftTag>{movementLabel}</AircraftTag>}
           </div>
-          <div className="mt-1 flex min-w-0 items-center gap-1.5">
-            <span className="truncate text-[11px] text-atc-dim">{route}</span>
-            <span className="h-1 w-1 flex-none rounded-full bg-[var(--atc-line-strong)]" />
-            <span className="flex-none truncate font-mono text-[9.5px] uppercase tracking-[0.08em] text-atc-faint">
-              {contextLabel}
-            </span>
-          </div>
+          {route ? (
+            <div className="mt-1 flex min-w-0 items-center gap-1.5">
+              {airlineIconUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- FlightAware logo URLs are dynamic.
+                <img
+                  src={airlineIconUrl}
+                  alt={airlineName ? `${airlineName} logo` : ""}
+                  className="h-4 w-4 flex-none rounded-[3px] border border-[var(--atc-line)] bg-white object-contain p-[1px]"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  onError={(event) => {
+                    event.currentTarget.style.display = "none";
+                  }}
+                />
+              )}
+              <div
+                className={`aircraft-table-route-cycle min-w-0 flex-1 ${
+                  hasFlightInfo ? "aircraft-table-route-cycle--alternate" : ""
+                }`}
+              >
+                {hasFlightInfo && (
+                  <div className="aircraft-table-route-face aircraft-table-route-face--flight">
+                    {airlineName && (
+                      <span className="max-w-[112px] flex-none truncate">
+                        {airlineName}
+                      </span>
+                    )}
+                    {flightNumber && (
+                      <span className="flex-none text-[10px]">{flightNumber}</span>
+                    )}
+                  </div>
+                )}
+                <div className="aircraft-table-route-face aircraft-table-route-face--route">
+                  <span className="truncate text-[10px]">{route}</span>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
         <div className="text-right font-mono text-[12px] font-semibold text-atc-text">
           {gsValue == null ? (

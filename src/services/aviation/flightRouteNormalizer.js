@@ -47,6 +47,8 @@ export const normalizeFlightRoute = (payload) => {
     airlineIata: String(route.airline?.iata || "")
       .trim()
       .toUpperCase(),
+    airlineIconUrl: String(route.airline?.icon_url || route.airline?.iconUrl || "")
+      .trim(),
     origin,
     destination,
     source: "flightaware",
