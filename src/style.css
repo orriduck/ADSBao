@@ -2493,6 +2493,7 @@ body {
 .aircraft-table-route-cycle {
     color: var(--atc-dim);
     font-size: 11px;
+    font-weight: 600;
     height: 16px;
     line-height: 16px;
     overflow: hidden;
