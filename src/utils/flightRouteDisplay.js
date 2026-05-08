@@ -17,9 +17,29 @@ const airportMatches = (routeAirport, airport) => {
     .some((code) => localCodes.has(code))
 }
 
+const sameAirport = (a, b) => {
+  const aCodes = airportCodes(a)
+  const bCodes = airportCodes(b)
+  return [...aCodes].some((code) => bCodes.has(code))
+}
+
+const flightNumberFromIdent = (ident) => {
+  const match = String(ident || '').trim().toUpperCase().match(/^[A-Z]{2,3}(\d{1,5}[A-Z]?)$/)
+  return match?.[1] || ''
+}
+
+export const formatFlightNumberLabel = (route, fallbackCallsign = '') =>
+  flightNumberFromIdent(route?.callsignIata)
+  || flightNumberFromIdent(route?.callsignIcao)
+  || flightNumberFromIdent(route?.callsign)
+  || flightNumberFromIdent(fallbackCallsign)
+
 export const formatFlightRouteLabel = (route) => {
   const origin = airportCode(route?.origin)
   const destination = airportCode(route?.destination)
+  if (origin && destination && sameAirport(route.origin, route.destination)) {
+    return ''
+  }
   return origin && destination ? `${origin} -> ${destination}` : ''
 }
 
