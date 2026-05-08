@@ -1,0 +1,11 @@
+[
+  {
+    "label": "Frontend (Next dev)",
+    "adapter": "JavaScript",
+    "request": "launch",
+    "type": "node",
+    "runtimeExecutable": "pnpm",
+    "runtimeArgs": ["dev"],
+    "cwd": "$ZED_WORKTREE_ROOT"
+  }
+]
