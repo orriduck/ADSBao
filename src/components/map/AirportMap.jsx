@@ -6,6 +6,7 @@ import { MapContext } from "./MapContext.js";
 import MapTileLayers from "./MapTileLayers.jsx";
 import AreaMarker from "./AreaMarker.jsx";
 import AirportMarker from "./AirportMarker.jsx";
+import NearbyAirportLayer from "./NearbyAirportLayer.jsx";
 import GroundStatsCounter from "./GroundStatsCounter.jsx";
 import AircraftPosition from "./AircraftPosition.jsx";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer.jsx";
@@ -38,6 +39,7 @@ export default function AirportMap({
   zoom = 13,
   accent = "var(--atc-accent)",
   aircraft = [],
+  nearbyAirports = [],
   airport = null,
   showMapLabels = false,
   showTelemetry = true,
@@ -145,6 +147,7 @@ export default function AirportMap({
             icao={icao}
             airport={airport}
           />
+          <NearbyAirportLayer airports={nearbyAirports} />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
             fixLabelRunwayProcedures={procedureFixLabelRunwayProcedures}

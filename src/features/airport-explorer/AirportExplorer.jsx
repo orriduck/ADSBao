@@ -12,6 +12,7 @@ import AirportExplorerMapMenu from "./AirportExplorerMapMenu.jsx";
 import { resolveAirportProfile } from "./airportExplorerModel.js";
 import { useAirportExplorerData } from "./useAirportExplorerData.js";
 import { useAirportProcedures } from "../../hooks/useAirportProcedures.js";
+import { useNearbyAirports } from "../../hooks/useNearbyAirports.js";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -53,6 +54,11 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   );
   const { weather, traffic } = useAirportExplorerData(airportProfile);
   const procedures = useAirportProcedures(airportProfile.icao);
+  const nearbyAirports = useNearbyAirports({
+    icao: airportProfile.icao,
+    lat: airportProfile.lat,
+    lon: airportProfile.lon,
+  });
 
   useEffect(() => {
     if (!selectedAircraftId) return;
@@ -135,6 +141,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           zoom={mapZoom}
           accent="var(--atc-accent)"
           aircraft={traffic.aircraft}
+          nearbyAirports={nearbyAirports.airports}
           airport={airport}
           showMapLabels={showMapLabels}
           showTelemetry={showTelemetry}
