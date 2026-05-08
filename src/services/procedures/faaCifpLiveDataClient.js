@@ -25,7 +25,7 @@ export function extractFaaCifpTextFromZip(
     throw new Error("FAA CIFP zip included too many files");
   }
   for (const fileName of fileNames) {
-    if (!/^[A-Z0-9._-]+$/.test(fileName)) {
+    if (!/^[A-Za-z0-9 ._-]{1,160}$/.test(fileName)) {
       throw new Error(`FAA CIFP zip included an unexpected file: ${fileName}`);
     }
   }

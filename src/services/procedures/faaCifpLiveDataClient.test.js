@@ -9,6 +9,18 @@ const zip = zipSync({
 
 assert.equal(extractFaaCifpTextFromZip(zip.buffer), "SUSAP KBOS SAMPLE");
 
+const officialStyleZip = zipSync({
+  "CIFP Readme 2604.pdf": strToU8("readme"),
+  "FAA CIFP Disclaimer.pdf": strToU8("disclaimer"),
+  FAACIFP18: strToU8("SUSAP KBOS SAMPLE"),
+  "Not_in_CIFP_2604.xlsx": strToU8("metadata"),
+});
+
+assert.equal(
+  extractFaaCifpTextFromZip(officialStyleZip.buffer),
+  "SUSAP KBOS SAMPLE",
+);
+
 const oversized = zipSync({
   FAACIFP18: strToU8("abcdef"),
 });
