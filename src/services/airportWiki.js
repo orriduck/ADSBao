@@ -1,4 +1,5 @@
 import { withAuditLogging } from '../utils/apiLogger.js'
+import { readResponseJson } from './apiProxySecurity.js'
 
 const WIKIPEDIA_SUMMARY_BASE = 'https://en.wikipedia.org/api/rest_v1/page/summary'
 
@@ -68,7 +69,12 @@ export const fetchAirportWikiSummary = async (airport, fetchImpl = fetch) => {
         headers: { Accept: 'application/json' },
       })
       if (!response.ok) continue
-      const summary = normalizeWikipediaSummary(await response.json())
+      const summary = normalizeWikipediaSummary(
+        await readResponseJson(response, {
+          label: `Wikipedia summary for ${title}`,
+          maxBytes: 512 * 1024,
+        }),
+      )
       if (summary) return summary
     } catch {
       // Try the next candidate; wiki content is supplemental.

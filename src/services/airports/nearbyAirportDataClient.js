@@ -4,6 +4,7 @@ import {
   normalizeAiracAirportDetail,
   normalizeAiracAirport,
 } from "./nearbyAirportModel.js";
+import { readResponseJson } from "../apiProxySecurity.js";
 
 export const AIRAC_AIRPORT_INDEX_CONFIG = {
   country: "US",
@@ -37,7 +38,10 @@ export async function fetchAiracAirportIndex({
       throw new Error(`AIRAC airport index request failed (${response.status})`);
     }
 
-    const payload = await response.json();
+    const payload = await readResponseJson(response, {
+      label: "AIRAC airport index response",
+      maxBytes: 2 * 1024 * 1024,
+    });
     const records = Array.isArray(payload?.data) ? payload.data : [];
     airports.push(...records.map(normalizeAiracAirport).filter(Boolean));
 
@@ -74,6 +78,9 @@ export async function fetchAiracAirportDetail({
     throw new Error(`AIRAC airport detail request failed (${response.status})`);
   }
 
-  const payload = await response.json();
+  const payload = await readResponseJson(response, {
+    label: `AIRAC airport detail response for ${normalizedIcao}`,
+    maxBytes: 512 * 1024,
+  });
   return normalizeAiracAirportDetail(payload?.data);
 }

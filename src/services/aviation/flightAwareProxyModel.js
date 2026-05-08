@@ -4,6 +4,12 @@ export const FLIGHTAWARE_USER_AGENT =
   "ADSBao/0.9.0 (+https://github.com/orriduck/ADSBao) FlightAware-scraper/1.0";
 
 const TARGETING_RE = /\.setTargeting\('(\w+)',\s*'([^']*)'\)/g;
+const TARGETING_KEYS = new Set([
+  "origin",
+  "origin_IATA",
+  "destination",
+  "destination_IATA",
+]);
 
 export function normalizeRouteCallsign(rawCallsign) {
   const callsign = String(rawCallsign || "")
@@ -20,19 +26,33 @@ export function buildFlightAwareUrl(callsign) {
   return `${FLIGHTAWARE_BASE}/${encodeURIComponent(callsign)}`;
 }
 
+export function sanitizeFlightAwareAirportCode(value, { length }) {
+  const code = String(value || "").trim().toUpperCase();
+  return new RegExp(`^[A-Z0-9]{${length}}$`).test(code) ? code : "";
+}
+
 export function extractFlightAwareTargeting(html) {
   const targeting = {};
   let match;
   TARGETING_RE.lastIndex = 0;
   while ((match = TARGETING_RE.exec(html)) !== null) {
-    targeting[match[1]] = match[2];
+    if (TARGETING_KEYS.has(match[1])) {
+      targeting[match[1]] = match[2];
+    }
   }
   TARGETING_RE.lastIndex = 0;
 
-  const originIcao = targeting.origin || "";
-  const originIata = targeting.origin_IATA || "";
-  const destinationIcao = targeting.destination || "";
-  const destinationIata = targeting.destination_IATA || "";
+  const originIcao = sanitizeFlightAwareAirportCode(targeting.origin, { length: 4 });
+  const originIata = sanitizeFlightAwareAirportCode(targeting.origin_IATA, {
+    length: 3,
+  });
+  const destinationIcao = sanitizeFlightAwareAirportCode(targeting.destination, {
+    length: 4,
+  });
+  const destinationIata = sanitizeFlightAwareAirportCode(
+    targeting.destination_IATA,
+    { length: 3 },
+  );
 
   if (!originIcao && !destinationIcao) return null;
 

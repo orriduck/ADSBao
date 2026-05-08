@@ -21,6 +21,24 @@ export function normalizeCoordinateParam(value) {
   return Number.isFinite(coordinate) ? coordinate : null;
 }
 
+export function normalizeLatitudeParam(value) {
+  const coordinate = normalizeCoordinateParam(value);
+  return coordinate != null && coordinate >= -90 && coordinate <= 90
+    ? coordinate
+    : null;
+}
+
+export function normalizeLongitudeParam(value) {
+  const coordinate = normalizeCoordinateParam(value);
+  return coordinate != null && coordinate >= -180 && coordinate <= 180
+    ? coordinate
+    : null;
+}
+
+export function isValidOpenMeteoCurrentPayload(payload) {
+  return Boolean(payload && typeof payload === "object" && payload.current);
+}
+
 export function buildOpenMeteoCurrentWeatherUrl({ latitude, longitude }) {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
   url.searchParams.set("latitude", String(latitude));

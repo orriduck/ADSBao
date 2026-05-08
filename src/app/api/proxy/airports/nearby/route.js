@@ -1,14 +1,21 @@
 import {
+  createCorsPreflightResponse,
+  enforceProxyRequest,
+  jsonProxyResponse,
+  normalizeLatitude,
+  normalizeLongitude,
+} from "@/services/apiProxySecurity.js";
+import {
   fetchAiracAirportDetail,
   fetchAiracAirportIndex,
 } from "@/services/airports/nearbyAirportDataClient.js";
 import { filterNearbyAirports } from "@/services/airports/nearbyAirportModel.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Max-Age": "86400",
+const rateLimit = {
+  key: "proxy:nearby-airports",
+  maxRequests: 45,
+  windowMs: 60_000,
 };
 
 const DEFAULT_RADIUS_NM = 30;
@@ -21,8 +28,8 @@ const indexCache = new Map();
 
 export const runtime = "nodejs";
 
-export function OPTIONS() {
-  return new Response(null, { status: 200, headers: corsHeaders });
+export function OPTIONS(request) {
+  return createCorsPreflightResponse(request);
 }
 
 const cacheKey = ({ country, minRunwayLength }) =>
@@ -73,9 +80,12 @@ async function attachRunwayMaps(airports) {
 }
 
 export async function GET(request) {
+  const securityResponse = enforceProxyRequest(request, { rateLimit });
+  if (securityResponse) return securityResponse;
+
   const url = new URL(request.url);
-  const lat = queryNumber(url.searchParams, "lat");
-  const lon = queryNumber(url.searchParams, "lon");
+  const lat = normalizeLatitude(url.searchParams.get("lat"));
+  const lon = normalizeLongitude(url.searchParams.get("lon"));
   const icao = String(url.searchParams.get("icao") || "").trim().toUpperCase();
   const radiusNm =
     queryNumber(url.searchParams, "radiusNm") || DEFAULT_RADIUS_NM;
@@ -87,9 +97,27 @@ export async function GET(request) {
     queryNumber(url.searchParams, "minRunwayLength") || DEFAULT_MIN_RUNWAY_LENGTH;
 
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return Response.json(
+    return jsonProxyResponse(
+      request,
       { error: "lat and lon query parameters are required" },
-      { status: 400, headers: corsHeaders },
+      { status: 400 },
+    );
+  }
+
+  if (
+    radiusNm < 1 ||
+    radiusNm > 100 ||
+    limit < 1 ||
+    limit > 12 ||
+    minRunwayLength < 0 ||
+    minRunwayLength > 20_000 ||
+    !/^[A-Z]{2}$/.test(country) ||
+    (icao && !/^[A-Z0-9]{3,4}$/.test(icao))
+  ) {
+    return jsonProxyResponse(
+      request,
+      { error: "Invalid nearby airport query" },
+      { status: 400 },
     );
   }
 
@@ -103,7 +131,8 @@ export async function GET(request) {
     });
     const airports = await attachRunwayMaps(nearbyAirports);
 
-    return Response.json(
+    return jsonProxyResponse(
+      request,
       {
         airports,
         source: index.source,
@@ -112,16 +141,16 @@ export async function GET(request) {
       },
       {
         headers: {
-          ...corsHeaders,
           "Cache-Control": "public, s-maxage=21600, stale-while-revalidate=86400",
         },
       },
     );
   } catch (error) {
     console.error("[airports/nearby] AIRAC airport index load failed", error);
-    return Response.json(
+    return jsonProxyResponse(
+      request,
       { error: "Failed to load nearby airports" },
-      { status: 502, headers: corsHeaders },
+      { status: 502 },
     );
   }
 }
