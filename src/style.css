@@ -415,6 +415,16 @@ body {
     mix-blend-mode: multiply;
 }
 
+.runway-approach-beam--nearby {
+    filter: blur(2.8px);
+    opacity: 0.58;
+}
+
+:root[data-theme="light"] .runway-approach-beam--nearby {
+    filter: blur(2px);
+    opacity: 0.46;
+}
+
 .procedure-fix-label {
     align-items: center;
     background: color-mix(in oklab, var(--atc-card) 88%, transparent);
@@ -2373,6 +2383,53 @@ body {
 .aircraft-label--route-cycle {
     min-height: 20px;
     min-width: 74px;
+}
+
+.nearby-airport-marker {
+    align-items: center;
+    color: color-mix(in oklab, var(--atc-text) 82%, transparent);
+    display: flex;
+    font-family: "JetBrains Mono", monospace;
+    gap: 5px;
+    text-shadow:
+        0 0 5px var(--map-label-glow),
+        0 0 10px var(--map-label-glow);
+    white-space: nowrap;
+}
+
+.nearby-airport-marker-dot {
+    background: color-mix(in oklab, var(--atc-accent) 54%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-text) 46%, transparent);
+    border-radius: 999px;
+    box-shadow: 0 0 14px color-mix(in oklab, var(--atc-accent) 34%, transparent);
+    display: block;
+    height: 9px;
+    width: 9px;
+}
+
+.nearby-airport-marker-label {
+    align-items: baseline;
+    background: color-mix(in oklab, var(--atc-card) 42%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 44%, transparent);
+    border-radius: 4px;
+    display: flex;
+    gap: 5px;
+    padding: 2px 5px;
+}
+
+.nearby-airport-marker-label strong {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+
+.nearby-airport-marker-label small {
+    color: color-mix(in oklab, var(--atc-dim) 86%, transparent);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    line-height: 1;
 }
 
 .aircraft-title-cycle {

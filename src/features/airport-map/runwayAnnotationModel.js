@@ -43,6 +43,13 @@ const runwayBeamProfileForZoom = (zoom) => {
   };
 };
 
+const scaleRunwayBeamProfile = (profile, distanceScale = 1) => ({
+  ...profile,
+  distance: profile.distance * distanceScale,
+  nearDistance: profile.nearDistance * distanceScale,
+  nearWidth: profile.nearWidth * distanceScale,
+});
+
 const runwayEndVector = (end, oppositeEnd) => {
   const lonMeters = metersPerDegreeLongitude(end.lat);
   const dx = (end.lon - oppositeEnd.lon) * lonMeters;
@@ -180,8 +187,14 @@ export function buildRunwayEndLabels(runwayMap, { zoom } = {}) {
   );
 }
 
-export function buildRunwayApproachBeamCollection(runwayMap, { zoom } = {}) {
-  const profile = runwayBeamProfileForZoom(zoom);
+export function buildRunwayApproachBeamCollection(
+  runwayMap,
+  { zoom, distanceScale = 1 } = {},
+) {
+  const profile = scaleRunwayBeamProfile(
+    runwayBeamProfileForZoom(zoom),
+    distanceScale,
+  );
 
   return {
     type: "FeatureCollection",
