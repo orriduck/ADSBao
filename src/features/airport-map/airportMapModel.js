@@ -23,18 +23,37 @@ export const formatCoordinateLabel = (value, axis) => {
   return `${Math.abs(value).toFixed(2)}${value >= 0 ? positiveSuffix : negativeSuffix}`;
 };
 
+const airportGroundFilters = ({ airportLat, airportLon, nearbyAirports = [] }) =>
+  [
+    { lat: airportLat, lon: airportLon },
+    ...nearbyAirports.map((airport) => ({
+      lat: airport?.lat,
+      lon: airport?.lon,
+    })),
+  ].filter((airport) => airport.lat != null && airport.lon != null);
+
+const isInsideAirportGroundArea = (aircraft, airport) => {
+  const distNm = getDistanceNm(airport.lat, airport.lon, aircraft.lat, aircraft.lon);
+  return distNm != null && distNm <= AIRPORT_AREA_RADIUS_NM;
+};
+
 export const getVisibleAircraft = ({
   aircraft,
   airportLat,
   airportLon,
+  nearbyAirports = [],
   zoom,
 }) => {
   const atApproachZoom = Number(zoom) === ZOOM_APPROACH;
+  const groundFilters = airportGroundFilters({
+    airportLat,
+    airportLon,
+    nearbyAirports,
+  });
 
   return aircraft.filter((ac) => {
     if (ac.lat == null || ac.lon == null) return false;
     if (!atApproachZoom) return true;
-    const distNm = getDistanceNm(airportLat, airportLon, ac.lat, ac.lon);
-    return distNm == null || distNm > AIRPORT_AREA_RADIUS_NM;
+    return !groundFilters.some((airport) => isInsideAirportGroundArea(ac, airport));
   });
 };

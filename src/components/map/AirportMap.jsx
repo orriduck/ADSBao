@@ -120,9 +120,10 @@ export default function AirportMap({
       aircraft,
       airportLat: lat,
       airportLon: lon,
+      nearbyAirports,
       zoom,
     });
-  }, [aircraft, lat, lon, zoom]);
+  }, [aircraft, lat, lon, nearbyAirports, zoom]);
 
   const latitudeLabel = formatCoordinateLabel(lat, "lat");
   const longitudeLabel = formatCoordinateLabel(lon, "lon");

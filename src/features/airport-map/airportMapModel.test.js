@@ -10,6 +10,7 @@ import {
 
 const aircraft = [
   { icao24: "near", lat: 42.3657, lon: -71.0097 },
+  { icao24: "near-secondary", lat: 42.58, lon: -70.92 },
   { icao24: "far", lat: 42.55, lon: -71.22 },
   { icao24: "missing", lat: null, lon: -71.22 },
 ];
@@ -25,12 +26,23 @@ assert.equal(formatCoordinateLabel(0, "lat"), "");
 assert.deepEqual(
   getVisibleAircraft({ aircraft, airportLat: 42.3656, airportLon: -71.0096, zoom: ZOOM_AIRPORT })
     .map((item) => item.icao24),
-  ["near", "far"],
+  ["near", "near-secondary", "far"],
 );
 
 assert.deepEqual(
   getVisibleAircraft({ aircraft, airportLat: 42.3656, airportLon: -71.0096, zoom: ZOOM_APPROACH })
     .map((item) => item.icao24),
+  ["near-secondary", "far"],
+);
+
+assert.deepEqual(
+  getVisibleAircraft({
+    aircraft,
+    airportLat: 42.3656,
+    airportLon: -71.0096,
+    nearbyAirports: [{ icao: "KBVY", lat: 42.5842, lon: -70.9165 }],
+    zoom: ZOOM_APPROACH,
+  }).map((item) => item.icao24),
   ["far"],
 );
 
