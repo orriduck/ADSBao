@@ -405,6 +405,10 @@ body {
     text-shadow: none;
 }
 
+.runway-end-label--nearby {
+    opacity: 0.45;
+}
+
 .runway-approach-beam {
     filter: blur(3.5px);
     mix-blend-mode: screen;
@@ -413,6 +417,16 @@ body {
 :root[data-theme="light"] .runway-approach-beam {
     filter: blur(2.4px);
     mix-blend-mode: multiply;
+}
+
+.runway-approach-beam--nearby {
+    filter: blur(2.8px);
+    opacity: 0.58;
+}
+
+:root[data-theme="light"] .runway-approach-beam--nearby {
+    filter: blur(2px);
+    opacity: 0.46;
 }
 
 .procedure-fix-label {

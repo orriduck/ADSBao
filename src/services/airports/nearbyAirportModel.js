@@ -3,6 +3,8 @@ import { toFiniteNumber } from "../../utils/math.js";
 
 export const AIRAC_API_BASE_URL = "https://airac.net/api/v1";
 export const AIRAC_AIRPORT_INDEX_PAGE_SIZE = 100;
+const FEET_TO_METERS = 0.3048;
+const METERS_PER_DEGREE_LATITUDE = 111_320;
 
 export function buildAiracAirportIndexUrl({
   country = "US",
@@ -37,6 +39,84 @@ export function normalizeAiracAirport(record) {
     lon,
     elevationFt: toFiniteNumber(record?.elevation_ft),
     source: "airac.net",
+  };
+}
+
+const metersPerDegreeLongitude = (latitude) =>
+  METERS_PER_DEGREE_LATITUDE * Math.cos((latitude * Math.PI) / 180);
+
+const offsetPoint = ({ lat, lon, bearingDegrees, distanceMeters }) => {
+  const radians = (bearingDegrees * Math.PI) / 180;
+  const eastMeters = Math.sin(radians) * distanceMeters;
+  const northMeters = Math.cos(radians) * distanceMeters;
+  return {
+    lat: lat + northMeters / METERS_PER_DEGREE_LATITUDE,
+    lon: lon + eastMeters / metersPerDegreeLongitude(lat),
+  };
+};
+
+const normalizeAiracRunway = ({ airport, runway }) => {
+  const lengthFt = toFiniteNumber(runway?.length_ft);
+  const bearing = toFiniteNumber(runway?.base_bearing);
+  const baseIdent = String(runway?.base_identifier || "").trim();
+  const reciprocalIdent = String(runway?.reciprocal_identifier || "").trim();
+  if (!lengthFt || !Number.isFinite(bearing) || !baseIdent || !reciprocalIdent) {
+    return null;
+  }
+
+  const halfLengthMeters = (lengthFt * FEET_TO_METERS) / 2;
+  const baseEnd = offsetPoint({
+    lat: airport.lat,
+    lon: airport.lon,
+    bearingDegrees: bearing,
+    distanceMeters: -halfLengthMeters,
+  });
+  const reciprocalEnd = offsetPoint({
+    lat: airport.lat,
+    lon: airport.lon,
+    bearingDegrees: bearing,
+    distanceMeters: halfLengthMeters,
+  });
+  const id = runway.identifier || `${baseIdent}/${reciprocalIdent}`;
+  const ends = [
+    { ident: baseIdent, ...baseEnd },
+    { ident: reciprocalIdent, ...reciprocalEnd },
+  ];
+
+  return {
+    id,
+    ends,
+    centerline: {
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: ends.map((end) => [end.lon, end.lat]),
+      },
+      properties: {
+        id,
+        airport: airport.icao,
+        source: "AIRAC approximate",
+        ends: ends.map((end) => end.ident),
+      },
+    },
+  };
+};
+
+export function normalizeAiracAirportDetail(record) {
+  const airport = normalizeAiracAirport(record);
+  if (!airport) return null;
+  const runways = (record?.runways || [])
+    .map((runway) => normalizeAiracRunway({ airport, runway }))
+    .filter(Boolean);
+
+  return {
+    ...airport,
+    runwayMap: {
+      airport: airport.icao,
+      source: "AIRAC approximate",
+      cycle: "",
+      runways,
+    },
   };
 }
 

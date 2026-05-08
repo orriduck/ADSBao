@@ -109,6 +109,13 @@ const airportBeam = buildRunwayApproachBeamCollection(runwayMap, {
 assert.equal(airportBeam.properties.beamAngleDegrees, 12);
 assert.equal(Math.round(airportBeam.properties.beamDistanceMeters), 5794);
 
+const nearbyAirportBeam = buildRunwayApproachBeamCollection(runwayMap, {
+  zoom: ZOOM_AIRPORT,
+  distanceScale: 0.3,
+}).features[0];
+assert.equal(nearbyAirportBeam.properties.beamAngleDegrees, 12);
+assert.equal(Math.round(nearbyAirportBeam.properties.beamDistanceMeters), 1738);
+
 const detailBeam = buildRunwayApproachBeamCollection(runwayMap, {
   zoom: ZOOM_DETAIL,
 }).features[0];

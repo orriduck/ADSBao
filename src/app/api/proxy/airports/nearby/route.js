@@ -1,4 +1,7 @@
-import { fetchAiracAirportIndex } from "@/services/airports/nearbyAirportDataClient.js";
+import {
+  fetchAiracAirportDetail,
+  fetchAiracAirportIndex,
+} from "@/services/airports/nearbyAirportDataClient.js";
 import { filterNearbyAirports } from "@/services/airports/nearbyAirportModel.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
@@ -50,6 +53,25 @@ async function getCachedAirportIndex({ country, minRunwayLength, now = Date.now 
   }
 }
 
+async function attachRunwayMaps(airports) {
+  const details = await Promise.all(
+    airports.map((airport) =>
+      fetchAiracAirportDetail({ icao: airport.icao }).catch((error) => {
+        console.warn(
+          `[airports/nearby] AIRAC detail load failed for ${airport.icao}`,
+          error,
+        );
+        return null;
+      }),
+    ),
+  );
+
+  return airports.map((airport, index) => ({
+    ...airport,
+    runwayMap: details[index]?.runwayMap || null,
+  }));
+}
+
 export async function GET(request) {
   const url = new URL(request.url);
   const lat = queryNumber(url.searchParams, "lat");
@@ -73,12 +95,13 @@ export async function GET(request) {
 
   try {
     const index = await getCachedAirportIndex({ country, minRunwayLength });
-    const airports = filterNearbyAirports({
+    const nearbyAirports = filterNearbyAirports({
       focus: { icao, lat, lon },
       airports: index.airports,
       radiusNm,
       limit,
     });
+    const airports = await attachRunwayMaps(nearbyAirports);
 
     return Response.json(
       {

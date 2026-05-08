@@ -147,7 +147,11 @@ export default function AirportMap({
             icao={icao}
             airport={airport}
           />
-          <NearbyAirportLayer airports={nearbyAirports} />
+          <NearbyAirportLayer
+            airports={nearbyAirports}
+            theme={currentTheme}
+            zoom={zoom}
+          />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
             fixLabelRunwayProcedures={procedureFixLabelRunwayProcedures}

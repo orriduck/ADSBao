@@ -13,7 +13,7 @@ assert.equal(
     radiusNm: 30,
     limit: 6,
   }),
-  "/api/proxy/airports/nearby?lat=40.639928&lon=-73.778692&icao=KJFK&radiusNm=30&limit=6",
+  "/api/proxy/airports/nearby?lat=40.639928&lon=-73.778692&icao=KJFK&radiusNm=30&limit=6&runways=1",
 );
 
 {
@@ -37,7 +37,10 @@ assert.equal(
     icao: "KJFK",
   });
 
-  assert.equal(calls[0], "/api/proxy/airports/nearby?lat=40.639928&lon=-73.778692&icao=KJFK");
+  assert.equal(
+    calls[0],
+    "/api/proxy/airports/nearby?lat=40.639928&lon=-73.778692&icao=KJFK&runways=1",
+  );
   assert.equal(payload.airports[0].icao, "KLGA");
 }
 

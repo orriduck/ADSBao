@@ -1,5 +1,7 @@
 import {
   buildAiracAirportIndexUrl,
+  AIRAC_API_BASE_URL,
+  normalizeAiracAirportDetail,
   normalizeAiracAirport,
 } from "./nearbyAirportModel.js";
 
@@ -46,4 +48,32 @@ export async function fetchAiracAirportIndex({
     airports,
     source: "airac.net",
   };
+}
+
+export async function fetchAiracAirportDetail({
+  icao,
+  fetchImpl = fetch,
+  baseUrl = AIRAC_API_BASE_URL,
+} = {}) {
+  const normalizedIcao = String(icao || "").trim().toUpperCase();
+  if (!normalizedIcao) return null;
+
+  const url = new URL(`${baseUrl}/airports/${normalizedIcao}`);
+  const response = await fetchImpl(url, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": AIRAC_AIRPORT_INDEX_CONFIG.userAgent,
+    },
+    next: {
+      revalidate: Math.floor(AIRAC_AIRPORT_INDEX_CONFIG.cacheMs / 1000),
+    },
+  });
+
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(`AIRAC airport detail request failed (${response.status})`);
+  }
+
+  const payload = await response.json();
+  return normalizeAiracAirportDetail(payload?.data);
 }

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildAiracAirportIndexUrl,
   filterNearbyAirports,
+  normalizeAiracAirportDetail,
   normalizeAiracAirport,
 } from "./nearbyAirportModel.js";
 
@@ -80,4 +81,39 @@ assert.equal(normalizeAiracAirport({ ...airacRecord, coordinates: {} }), null);
   );
   assert.equal(nearby[0].distanceNm < nearby[1].distanceNm, true);
   assert.equal(Number(nearby[0].distanceNm.toFixed(1)), 9.3);
+}
+
+{
+  const detailed = normalizeAiracAirportDetail({
+    ...airacRecord,
+    runways: [
+      {
+        identifier: "04R/22L",
+        length_ft: 10000,
+        base_identifier: "04R",
+        reciprocal_identifier: "22L",
+        base_bearing: 40,
+      },
+      {
+        identifier: "bad",
+        length_ft: null,
+        base_identifier: "",
+        reciprocal_identifier: "",
+        base_bearing: null,
+      },
+    ],
+  });
+
+  assert.equal(detailed.runwayMap.airport, "KLGA");
+  assert.equal(detailed.runwayMap.source, "AIRAC approximate");
+  assert.equal(detailed.runwayMap.runways.length, 1);
+  assert.equal(detailed.runwayMap.runways[0].id, "04R/22L");
+  assert.deepEqual(
+    detailed.runwayMap.runways[0].ends.map((end) => end.ident),
+    ["04R", "22L"],
+  );
+  assert.equal(
+    detailed.runwayMap.runways[0].centerline.geometry.coordinates.length,
+    2,
+  );
 }
