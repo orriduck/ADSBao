@@ -171,12 +171,12 @@ function AircraftRow({
                       </span>
                     )}
                     {flightNumber && (
-                      <span className="flex-none">{flightNumber}</span>
+                      <span className="flex-none text-[10px]">{flightNumber}</span>
                     )}
                   </div>
                 )}
                 <div className="aircraft-table-route-face aircraft-table-route-face--route">
-                  <span className="truncate">{route}</span>
+                  <span className="truncate text-[10px]">{route}</span>
                 </div>
               </div>
             </div>
