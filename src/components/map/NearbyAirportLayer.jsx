@@ -41,12 +41,12 @@ const runwayLineStyle = (theme) =>
     ? {
         color: "#244164",
         weight: 3,
-        opacity: 0.24,
+        opacity: 0.5,
       }
     : {
         color: "#8fb7d6",
         weight: 3,
-        opacity: 0.24,
+        opacity: 0.5,
       };
 
 const runwayLabelIcon = (ident, theme) =>
@@ -105,7 +105,6 @@ export default function NearbyAirportLayer({ airports = [], theme = "dark", zoom
       );
       L.marker([airport.lat, airport.lon], {
         interactive: false,
-        opacity: 0.72,
         icon: L.divIcon({
           className: "",
           html: markerHtml(airport),

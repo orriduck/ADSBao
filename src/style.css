@@ -405,10 +405,6 @@ body {
     text-shadow: none;
 }
 
-.runway-end-label--nearby {
-    opacity: 0.45;
-}
-
 .runway-approach-beam {
     filter: blur(3.5px);
     mix-blend-mode: screen;
@@ -2395,7 +2391,6 @@ body {
     display: flex;
     font-family: "JetBrains Mono", monospace;
     gap: 5px;
-    opacity: 0.72;
     text-shadow:
         0 0 5px var(--map-label-glow),
         0 0 10px var(--map-label-glow);
