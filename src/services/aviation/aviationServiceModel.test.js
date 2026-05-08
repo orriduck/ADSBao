@@ -41,6 +41,7 @@ import { normalizeLocalWeather } from "./localWeatherNormalizer.js";
   assert.equal(route.airlineIcao, "DAL");
   assert.equal(route.origin.iata, "LHR");
   assert.equal(route.destination.icao, "KBOS");
+  assert.equal(route.source, "flightaware");
 }
 
 {

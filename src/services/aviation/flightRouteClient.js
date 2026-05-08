@@ -19,7 +19,7 @@ export const createFlightRouteClient = ({
   if (!fetchImpl) throw new Error("Flight route client requires fetch support");
 
   const auditedFetch = withAuditLogging(fetchImpl, {
-    service: "adsbdb/FlightRoute",
+    service: "flightaware/FlightRoute",
     getParams(url) {
       return { callsign: decodeURIComponent(url.split("/").pop() || "") };
     },

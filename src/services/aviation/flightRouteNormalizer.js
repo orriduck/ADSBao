@@ -49,6 +49,6 @@ export const normalizeFlightRoute = (payload) => {
       .toUpperCase(),
     origin,
     destination,
-    source: "adsbdb",
+    source: "flightaware",
   };
 };

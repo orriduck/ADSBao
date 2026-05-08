@@ -240,6 +240,7 @@ try {
   assert.equal(route.airlineName, "Delta Air Lines");
   assert.equal(route.origin.icao, "EGPH");
   assert.equal(route.destination.iata, "BOS");
+  assert.equal(route.source, "flightaware");
 }
 
 {

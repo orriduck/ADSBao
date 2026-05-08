@@ -23,11 +23,11 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ROUTE",
-    title: "adsbdb Flight Routes",
+    title: "FlightAware Flight Routes",
     description:
-      "Callsign-to-route lookup for origin and destination airports.",
-    host: "adsbdb.com",
-    href: "https://www.adsbdb.com/",
+      "Callsign-to-route lookup parsed from live flight pages.",
+    host: "flightaware.com",
+    href: "https://www.flightaware.com/live/flight/",
   },
   {
     glyph: "WX",
