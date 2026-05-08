@@ -6,12 +6,9 @@ import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap.js";
 import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
 import {
-  buildRunwayApproachBeamCollection,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport-map/runwayAnnotationModel.js";
-
-const NEARBY_RUNWAY_BEAM_DISTANCE_SCALE = 0.3;
 
 const escapeHtml = (value) =>
   String(value || "")
@@ -52,8 +49,6 @@ const runwayLineStyle = (theme) =>
         opacity: 0.24,
       };
 
-const runwayBeamColor = (theme) => (theme === "light" ? "#8b6f47" : "#d8bd83");
-
 const runwayLabelIcon = (ident, theme) =>
   L.divIcon({
     className: `runway-end-label runway-end-label--nearby runway-end-label--${theme}`,
@@ -67,26 +62,9 @@ const runwayLayers = ({ airport, map, theme, zoom }) => {
   const centerlines = buildRunwayCenterlineCollection(airport.runwayMap);
   const showRunways = Number(zoom) >= 10;
   if (!showRunways) return [];
-  const beams = buildRunwayApproachBeamCollection(airport.runwayMap, {
-    zoom,
-    distanceScale: NEARBY_RUNWAY_BEAM_DISTANCE_SCALE,
-  });
   const labels = buildRunwayEndLabels(airport.runwayMap, { zoom });
 
   return [
-    L.geoJSON(beams, {
-      interactive: false,
-      style() {
-        return {
-          className: "runway-approach-beam runway-approach-beam--nearby",
-          fill: true,
-          fillColor: runwayBeamColor(theme),
-          fillOpacity: 1,
-          opacity: 0,
-          stroke: false,
-        };
-      },
-    }),
     L.geoJSON(centerlines, {
       interactive: false,
       style() {
