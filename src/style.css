@@ -2490,6 +2490,63 @@ body {
     }
 }
 
+.aircraft-table-route-cycle {
+    color: var(--atc-dim);
+    font-size: 11px;
+    height: 16px;
+    line-height: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+.aircraft-table-route-face {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    inset: 0;
+    min-width: 0;
+    opacity: 1;
+    position: absolute;
+    transition: opacity 0.36s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 100%;
+}
+
+.aircraft-table-route-face--route span {
+    min-width: 0;
+}
+
+.aircraft-table-route-cycle--alternate .aircraft-table-route-face--flight {
+    animation: aircraft-table-flight-fade 7.2s infinite;
+}
+
+.aircraft-table-route-cycle--alternate .aircraft-table-route-face--route {
+    animation: aircraft-table-route-fade 7.2s infinite;
+}
+
+@keyframes aircraft-table-flight-fade {
+    0%,
+    42%,
+    100% {
+        opacity: 1;
+    }
+    50%,
+    84% {
+        opacity: 0;
+    }
+}
+
+@keyframes aircraft-table-route-fade {
+    0%,
+    42%,
+    100% {
+        opacity: 0;
+    }
+    50%,
+    84% {
+        opacity: 1;
+    }
+}
+
 .aircraft-telemetry {
     align-items: baseline;
     color: var(--map-telemetry-color);

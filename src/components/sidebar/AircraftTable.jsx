@@ -119,6 +119,7 @@ function AircraftRow({
   const airlineName = aircraft.flightRoute?.airlineName || "";
   const airlineIconUrl = aircraft.flightRoute?.airlineIconUrl || "";
   const flightNumber = formatFlightNumberLabel(aircraft.flightRoute, callsign);
+  const hasFlightInfo = Boolean(airlineIconUrl || airlineName || flightNumber);
   const movementLabel = getMovementTagLabel(aircraft);
   const gsValue = toNumber(aircraft.velocity);
   const altValue = toNumber(aircraft.altitude);
@@ -157,19 +158,27 @@ function AircraftRow({
                   }}
                 />
               )}
-              {airlineName && (
-                <span className="max-w-[112px] flex-none truncate text-[11px] text-atc-dim">
-                  {airlineName}
-                </span>
-              )}
-              {flightNumber && (
-                <span className="flex-none text-[11px] text-atc-dim">
-                  {flightNumber}
-                </span>
-              )}
-              <span className="truncate text-[11px] text-atc-dim">
-                {route}
-              </span>
+              <div
+                className={`aircraft-table-route-cycle min-w-0 flex-1 ${
+                  hasFlightInfo ? "aircraft-table-route-cycle--alternate" : ""
+                }`}
+              >
+                {hasFlightInfo && (
+                  <div className="aircraft-table-route-face aircraft-table-route-face--flight">
+                    {airlineName && (
+                      <span className="max-w-[112px] flex-none truncate">
+                        {airlineName}
+                      </span>
+                    )}
+                    {flightNumber && (
+                      <span className="flex-none">{flightNumber}</span>
+                    )}
+                  </div>
+                )}
+                <div className="aircraft-table-route-face aircraft-table-route-face--route">
+                  <span className="truncate">{route}</span>
+                </div>
+              </div>
             </div>
           ) : null}
         </div>
