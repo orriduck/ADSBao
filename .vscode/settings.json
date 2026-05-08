@@ -1,9 +1,0 @@
-{
-    "github-actions.workflows.pinned.workflows": [
-        ".github/workflows/release.yml"
-    ],
-    "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}/backend"
-    ]
-}

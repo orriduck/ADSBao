@@ -9,6 +9,14 @@
 
 docs/superpowers
 .vercel
+screenshot.png
+public/data/procedures/
+
+# Local editor / agent launch state
+.claude/launch.json
+.claude/settings.local.json
+.vscode/
+.zed/
 
 # Editor
 .idea
