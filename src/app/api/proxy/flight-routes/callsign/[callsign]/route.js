@@ -36,7 +36,7 @@ async function scrapeFlightAware(callsign) {
 
   const html = await readResponseText(response, {
     label: "FlightAware route page",
-    maxBytes: 512 * 1024,
+    maxBytes: 2 * 1024 * 1024,
   });
   return extractFlightAwareTargeting(html);
 }
