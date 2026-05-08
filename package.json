@@ -23,7 +23,7 @@
     "test:about": "node src/features/about/aboutModel.test.js",
     "test:app-shell": "node src/features/app-shell/themePreference.test.js",
     "test:airport-search": "node src/features/airport-search/airportSearchModel.test.js",
-    "test:airport-explorer": "node src/features/airport-explorer/airportExplorerModel.test.js",
+    "test:airport-explorer": "node src/features/airport-explorer/airportExplorerModel.test.js && node src/features/airport-explorer/AirportExplorerUiContext.test.js",
     "test:airport-context": "node src/features/airport-context/airportContextModel.test.js",
     "test:airport-context-ui": "node src/features/airport-context/airportContextUiModel.test.js",
     "test:map-controls": "node src/features/map-controls/mapControlModel.test.js",

@@ -10,8 +10,7 @@ import {
   useState,
 } from "react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
-import { DEFAULT_ALTITUDE_FOCUS } from "@/features/airport-context/airportContextUiModel.js";
-import { ZOOM_APPROACH } from "@/utils/airportMapDisplay.js";
+import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "./airportExplorerUiModel.js";
 import {
   getAirportSidebarMode,
   getAirportSidebarOpenForMode,
@@ -23,13 +22,27 @@ export function AirportExplorerUiProvider({ children }) {
   const previousSidebarMode = useRef(null);
   const [sidebarMode, setSidebarMode] = useState("desktop");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mapZoom, setMapZoom] = useState(ZOOM_APPROACH);
-  const [showMapLabels, setShowMapLabels] = useState(false);
-  const [showTelemetry, setShowTelemetry] = useState(true);
-  const [showRunwayBeams, setShowRunwayBeams] = useState(true);
-  const [showRoutingPointBadges, setShowRoutingPointBadges] = useState(true);
-  const [showAirspaceContext, setShowAirspaceContext] = useState(true);
-  const [altitudeFocus, setAltitudeFocus] = useState(DEFAULT_ALTITUDE_FOCUS);
+  const [mapZoom, setMapZoom] = useState(
+    DEFAULT_AIRPORT_EXPLORER_UI_STATE.mapZoom,
+  );
+  const [showMapLabels, setShowMapLabels] = useState(
+    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showMapLabels,
+  );
+  const [showTelemetry, setShowTelemetry] = useState(
+    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showTelemetry,
+  );
+  const [showRunwayBeams, setShowRunwayBeams] = useState(
+    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showRunwayBeams,
+  );
+  const [showRoutingPointBadges, setShowRoutingPointBadges] = useState(
+    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showRoutingPointBadges,
+  );
+  const [showAirspaceContext, setShowAirspaceContext] = useState(
+    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showAirspaceContext,
+  );
+  const [altitudeFocus, setAltitudeFocus] = useState(
+    DEFAULT_AIRPORT_EXPLORER_UI_STATE.altitudeFocus,
+  );
   const [selectedAircraftId, setSelectedAircraftId] = useState("");
   const isMobile = sidebarMode === "mobile";
 
