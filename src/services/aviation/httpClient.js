@@ -1,4 +1,5 @@
 import { AVIATION_REQUEST_TIMEOUT_MS } from "../../config/aviation.js";
+import { readResponseText } from "../apiProxySecurity.js";
 
 export const createTimeoutSignal = (timeoutMs) =>
   typeof AbortSignal !== "undefined" && AbortSignal.timeout
@@ -8,7 +9,10 @@ export const createTimeoutSignal = (timeoutMs) =>
 export const fetchJson = async (
   fetchImpl,
   url,
-  { timeoutMs = AVIATION_REQUEST_TIMEOUT_MS.json } = {},
+  {
+    timeoutMs = AVIATION_REQUEST_TIMEOUT_MS.json,
+    maxBytes,
+  } = {},
 ) => {
   const response = await fetchImpl(url, {
     signal: createTimeoutSignal(timeoutMs),
@@ -17,7 +21,10 @@ export const fetchJson = async (
     },
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const body = await response.text();
+  const body = await readResponseText(response, {
+    label: String(url),
+    maxBytes,
+  });
   try {
     return JSON.parse(body);
   } catch {

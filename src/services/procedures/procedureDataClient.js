@@ -1,3 +1,5 @@
+import { readResponseJson } from "../apiProxySecurity.js";
+
 const DEFAULT_COUNTRY = "US";
 const DEFAULT_BASE_PATH = "/api/proxy/procedures";
 
@@ -19,7 +21,10 @@ const fetchJsonOrNull = async (fetchImpl, url) => {
   if (!response.ok) {
     throw new Error(`Failed to load procedure data from ${url}: HTTP ${response.status}`);
   }
-  return response.json();
+  return readResponseJson(response, {
+    label: `Procedure data response from ${url}`,
+    maxBytes: 3 * 1024 * 1024,
+  });
 };
 
 export function createProcedureDataClient({

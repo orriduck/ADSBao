@@ -47,5 +47,7 @@ export const FAA_CIFP_CONFIG = {
     "https://www.faa.gov/air_traffic/flight_info/aeronav/digital_products/cifp/download/",
   cacheMs: 6 * 60 * 60 * 1000,
   maxProceduresPerAirport: 12,
+  maxZipBytes: 50 * 1024 * 1024,
+  maxCifpBytes: 120 * 1024 * 1024,
   userAgent: "ADSBao/0.9.0 (https://github.com/orriduck/ADSBao)",
 };

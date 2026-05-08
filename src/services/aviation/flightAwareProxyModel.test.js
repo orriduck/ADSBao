@@ -4,6 +4,7 @@ import {
   buildFlightAwareRouteResponse,
   extractFlightAwareTargeting,
   normalizeRouteCallsign,
+  sanitizeFlightAwareAirportCode,
 } from "./flightAwareProxyModel.js";
 
 const html = `
@@ -17,11 +18,30 @@ const html = `
 
 assert.equal(normalizeRouteCallsign(" baw 213 "), "BAW213");
 assert.equal(normalizeRouteCallsign("bad-call"), "");
+assert.equal(sanitizeFlightAwareAirportCode("kbos", { length: 4 }), "KBOS");
+assert.equal(
+  sanitizeFlightAwareAirportCode("<script>", { length: 4 }),
+  "",
+);
 
 assert.deepEqual(extractFlightAwareTargeting(html), {
   origin: { icao: "EGLL", iata: "LHR" },
   destination: { icao: "KBOS", iata: "BOS" },
 });
+
+assert.deepEqual(
+  extractFlightAwareTargeting(`
+    googletag.pubads().setTargeting('origin', '<img src=x>');
+    googletag.pubads().setTargeting('origin_IATA', 'LHR');
+    googletag.pubads().setTargeting('destination', 'KBOS');
+    googletag.pubads().setTargeting('destination_IATA', 'BOS');
+    googletag.pubads().setTargeting('unexpected', 'payload');
+  `),
+  {
+    origin: { icao: "", iata: "LHR" },
+    destination: { icao: "KBOS", iata: "BOS" },
+  },
+);
 
 assert.deepEqual(buildFlightAwareRouteResponse("BAW213", null), {
   response: null,

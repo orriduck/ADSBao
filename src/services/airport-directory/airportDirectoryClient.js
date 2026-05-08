@@ -1,4 +1,5 @@
 import { withAuditLogging } from "../../utils/apiLogger.js";
+import { readResponseJson } from "../apiProxySecurity.js";
 import { createAirportDirectoryCache } from "./airportDirectoryCache.js";
 import {
   AIRPORT_DIRECTORY_API_BASE_URL,
@@ -44,7 +45,10 @@ export const createAirportDirectoryClient = ({
     if (!response.ok) {
       throw new Error(`Airport directory request failed (${response.status})`);
     }
-    return response.json();
+    return readResponseJson(response, {
+      label: `Airport directory response from ${url}`,
+      maxBytes: 2 * 1024 * 1024,
+    });
   };
 
   const fetchPagedAirports = async ({

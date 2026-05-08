@@ -33,9 +33,18 @@ The app uses same-origin Vercel paths for upstream aviation sources that are not
 |---|---|---|
 | `/api/proxy/metar/:icao` | AviationWeather METAR API | Airport weather context |
 | `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft positions |
-| `/api/proxy/flight-routes/callsign/:callsign` | Local Vercel function | Callsign route lookup |
+| `/api/proxy/flight-routes/callsign/:callsign` | FlightAware page fetcher | Callsign route lookup |
+| `/api/proxy/local-weather/:lat/:lon` | Open-Meteo | Airport-local weather |
+| `/api/proxy/procedures/:country/:icao` | FAA CIFP | US procedure and runway overlays |
+| `/api/proxy/airports/nearby` | AIRAC | Nearby airport overlays |
 
-The route lookup path resolves to `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js`. The handler returns a frontend-compatible route response so UI code can stay focused on display and normalization.
+These paths are implemented as Next.js Route Handlers under `src/app/api/proxy/**`. The handlers keep upstream access same-origin, validate route and query parameters, apply lightweight per-IP rate limits, reject disallowed browser origins, and cap upstream response body sizes before parsing.
+
+### Vercel security posture
+
+Vercel's platform DDoS mitigation remains enabled automatically for the deployment. The repository does not depend on paid Vercel WAF rate limiting for normal operation; proxy throttling lives in application code so the default deployment path does not require a new paid feature.
+
+Security headers are configured in `next.config.mjs` for all routes. Production branch protection and required review settings are still repository or Vercel dashboard controls rather than application code.
 
 ## Local development
 
@@ -44,7 +53,7 @@ pnpm install
 pnpm run dev
 ```
 
-Next.js rewrites in `next.config.mjs` mirror the production METAR and ADS-B data paths for local development. The FlightAware route lookup runs as a local Next.js Route Handler during `pnpm run dev`.
+All proxy paths run through the same Route Handlers during local development and production.
 
 ## Release line
 

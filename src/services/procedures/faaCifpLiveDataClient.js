@@ -1,5 +1,6 @@
 import { unzipSync, strFromU8 } from "fflate";
 import { FAA_CIFP_CONFIG } from "../../config/aviation.js";
+import { readResponseArrayBuffer } from "../apiProxySecurity.js";
 import {
   buildLiveProcedurePayload,
   discoverActiveCifpRelease,
@@ -14,10 +15,26 @@ const assertOk = (response, label) => {
   }
 };
 
-export function extractFaaCifpTextFromZip(arrayBuffer) {
+export function extractFaaCifpTextFromZip(
+  arrayBuffer,
+  { maxCifpBytes = FAA_CIFP_CONFIG.maxCifpBytes } = {},
+) {
   const files = unzipSync(new Uint8Array(arrayBuffer));
+  const fileNames = Object.keys(files);
+  if (fileNames.length > 8) {
+    throw new Error("FAA CIFP zip included too many files");
+  }
+  for (const fileName of fileNames) {
+    if (!/^[A-Za-z0-9 ._-]{1,160}$/.test(fileName)) {
+      throw new Error(`FAA CIFP zip included an unexpected file: ${fileName}`);
+    }
+  }
+
   const cifp = files.FAACIFP18;
   if (!cifp) throw new Error("FAA CIFP zip did not include FAACIFP18");
+  if (cifp.byteLength > maxCifpBytes) {
+    throw new Error("FAA CIFP data exceeded the configured size limit");
+  }
   return strFromU8(cifp);
 }
 
@@ -57,7 +74,12 @@ async function fetchActiveCifpText({
 
   return {
     release,
-    text: extractFaaCifpTextFromZip(await zipResponse.arrayBuffer()),
+    text: extractFaaCifpTextFromZip(
+      await readResponseArrayBuffer(zipResponse, {
+        label: `FAA CIFP zip for ${release.cycle}`,
+        maxBytes: FAA_CIFP_CONFIG.maxZipBytes,
+      }),
+    ),
   };
 }
 

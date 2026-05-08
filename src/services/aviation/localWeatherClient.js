@@ -3,6 +3,7 @@ import {
   AVIATION_REQUEST_TIMEOUT_MS,
 } from "../../config/aviation.js";
 import { withAuditLogging } from "../../utils/apiLogger.js";
+import { normalizeLatitude, normalizeLongitude } from "../apiProxySecurity.js";
 import { fetchJson } from "./httpClient.js";
 
 const env = typeof process !== "undefined" ? process.env : {};
@@ -27,9 +28,9 @@ export const createLocalWeatherClient = ({
 
   return {
     fetchCurrentWeather({ lat, lon }) {
-      const numericLat = Number(lat);
-      const numericLon = Number(lon);
-      if (!Number.isFinite(numericLat) || !Number.isFinite(numericLon)) {
+      const numericLat = normalizeLatitude(lat);
+      const numericLon = normalizeLongitude(lon);
+      if (numericLat == null || numericLon == null) {
         return null;
       }
       return fetchJson(

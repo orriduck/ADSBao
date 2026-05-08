@@ -1,4 +1,11 @@
 import {
+  buildProxyHeaders,
+  createCorsPreflightResponse,
+  enforceProxyRequest,
+  jsonProxyResponse,
+  readResponseText,
+} from "@/services/apiProxySecurity.js";
+import {
   buildFlightAwareRouteResponse,
   buildFlightAwareUrl,
   extractFlightAwareTargeting,
@@ -27,28 +34,35 @@ async function scrapeFlightAware(callsign) {
     return null;
   }
 
-  const html = await response.text();
+  const html = await readResponseText(response, {
+    label: "FlightAware route page",
+    maxBytes: 512 * 1024,
+  });
   return extractFlightAwareTargeting(html);
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Max-Age": "86400",
+const rateLimit = {
+  key: "proxy:flight-routes",
+  maxRequests: 30,
+  windowMs: 60_000,
 };
 
-export function OPTIONS() {
-  return new Response(null, { status: 200, headers: corsHeaders });
+export function OPTIONS(request) {
+  return createCorsPreflightResponse(request);
 }
 
-export async function GET(_request, { params }) {
+export async function GET(request, { params }) {
+  const securityResponse = enforceProxyRequest(request, { rateLimit });
+  if (securityResponse) return securityResponse;
+
   const { callsign: rawCallsign = "" } = await params;
   const callsign = normalizeRouteCallsign(rawCallsign);
 
   if (!callsign) {
-    return Response.json(
+    return jsonProxyResponse(
+      request,
       { error: "Invalid callsign" },
-      { status: 400, headers: corsHeaders },
+      { status: 400 },
     );
   }
 
@@ -58,13 +72,14 @@ export async function GET(_request, { params }) {
 
     return Response.json(body, {
       status: scraped ? 200 : 404,
-      headers: corsHeaders,
+      headers: buildProxyHeaders(request),
     });
   } catch (err) {
     console.error(`[flight-scraper] error for ${callsign}:`, err);
-    return Response.json(
+    return jsonProxyResponse(
+      request,
       { error: "Internal error" },
-      { status: 500, headers: corsHeaders },
+      { status: 500 },
     );
   }
 }
