@@ -2503,7 +2503,7 @@ body {
 .aircraft-table-route-face {
     align-items: center;
     display: flex;
-    gap: 6px;
+    gap: 0.25em;
     inset: 0;
     min-width: 0;
     opacity: 1;

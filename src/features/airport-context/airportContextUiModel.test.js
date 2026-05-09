@@ -75,6 +75,19 @@ assert.equal(getContextTagLabel(aircraft[0]), "Class A");
 assert.equal(getAltitudeFocusMatch(aircraft[1], "terminal"), "in");
 assert.equal(getAltitudeFocusMatch(aircraft[2], "terminal"), "out");
 assert.equal(getAltitudeFocusMatch(aircraft[0], "terminal"), "out");
+assert.equal(
+  getAltitudeFocusMatch(
+    {
+      airportContext: {
+        altitudeBand: "terminal-low",
+        movement: "unknown",
+        display: { group: "Terminal Flow" },
+      },
+    },
+    "terminal",
+  ),
+  "out",
+);
 assert.equal(getAltitudeFocusMatch(aircraft[1], "low"), "in");
 assert.equal(getAltitudeFocusMatch(aircraft[1], "high"), "out");
 assert.equal(getAltitudeFocusMatch(aircraft[0], "overflight"), "in");

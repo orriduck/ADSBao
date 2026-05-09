@@ -25,10 +25,10 @@ export default function MapTileLayers({ theme = "dark", showLabels = true }) {
   const labelRef = useRef(null);
 
   useEffect(() => {
-    if (!map || !map.getContainer) return undefined;
+    if (!hasTilePane(map)) return undefined;
     const variant = TILE_VARIANTS[theme] || TILE_VARIANTS.dark;
 
-    baseRef.current?.removeFrom(map);
+    removeLayer(baseRef.current, map);
     baseRef.current = L.tileLayer(variant.base, {
       subdomains: "abcd",
       maxZoom: 20,
@@ -37,7 +37,7 @@ export default function MapTileLayers({ theme = "dark", showLabels = true }) {
     // canvas (ghost-lines-on-navy chart aesthetic, per .impeccable.md).
     baseRef.current.getContainer()?.classList.add("atc-tile-base");
 
-    labelRef.current?.removeFrom(map);
+    removeLayer(labelRef.current, map);
     if (showLabels) {
       labelRef.current = L.tileLayer(variant.labels, {
         subdomains: "abcd",
@@ -48,12 +48,24 @@ export default function MapTileLayers({ theme = "dark", showLabels = true }) {
     }
 
     return () => {
-      baseRef.current?.removeFrom(map);
-      labelRef.current?.removeFrom(map);
+      removeLayer(baseRef.current, map);
+      removeLayer(labelRef.current, map);
       baseRef.current = null;
       labelRef.current = null;
     };
   }, [map, theme, showLabels]);
 
   return null;
+}
+
+function hasTilePane(map) {
+  if (!map || typeof map.getContainer !== "function") return false;
+  const container = map.getContainer();
+  return Boolean(container?.isConnected && map._panes?.tilePane);
+}
+
+function removeLayer(layer, map) {
+  if (!layer || !map || typeof layer.removeFrom !== "function") return;
+  if (!map._panes) return;
+  layer.removeFrom(map);
 }

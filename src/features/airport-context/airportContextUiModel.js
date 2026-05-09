@@ -117,7 +117,7 @@ export function getAltitudeFocusMatch(aircraft = {}, altitudeFocus = "all") {
   const altitudeBand = context.altitudeBand || "unknown";
 
   if (altitudeFocus === "terminal") {
-    return group === "Terminal Flow" ? "in" : "out";
+    return isRouteTerminalMovement(context.movement) ? "in" : "out";
   }
 
   if (altitudeFocus === "low") {
@@ -195,4 +195,8 @@ function visibilitySortWeight(role) {
   if (role === "primary") return 0;
   if (role === "secondary") return 1;
   return 2;
+}
+
+function isRouteTerminalMovement(movement) {
+  return movement === "arrival" || movement === "departure";
 }

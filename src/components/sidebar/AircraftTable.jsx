@@ -166,12 +166,14 @@ function AircraftRow({
                 {hasFlightInfo && (
                   <div className="aircraft-table-route-face aircraft-table-route-face--flight">
                     {airlineName && (
-                      <span className="max-w-[112px] flex-none truncate">
+                      <span className="max-w-[112px] flex-none truncate text-[10px]">
                         {airlineName}
                       </span>
                     )}
                     {flightNumber && (
-                      <span className="flex-none text-[10px]">{flightNumber}</span>
+                      <span className="flex-none text-[10px]">
+                        {flightNumber}
+                      </span>
                     )}
                   </div>
                 )}

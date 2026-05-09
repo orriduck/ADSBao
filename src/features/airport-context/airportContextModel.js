@@ -35,15 +35,15 @@ export function resolveVisibilityRole({
   movement = "unknown",
   airspace = null,
 } = {}) {
+  if (isRouteTerminalMovement(movement)) {
+    return rangeBand === "outside-airport-context" ? "secondary" : "primary";
+  }
+
   if (altitudeBand === "enroute" || altitudeBand === "class-a") {
     return "dimmed";
   }
 
-  if (
-    movement === "arrival" ||
-    movement === "departure" ||
-    (airspace?.matched && isTerminalAirspace(airspace))
-  ) {
+  if (airspace?.matched && isTerminalAirspace(airspace)) {
     return rangeBand === "outside-airport-context" ? "secondary" : "primary";
   }
 
@@ -62,24 +62,17 @@ export function resolveAirportContextGroup({
   rangeBand,
   altitudeBand,
   movement = "unknown",
-  airspace = null,
 } = {}) {
+  if (isRouteTerminalMovement(movement)) {
+    return "Terminal Flow";
+  }
+
   if (rangeBand === "airport-core" || altitudeBand === "surface-tower") {
     return "Airport Area";
   }
 
   if (altitudeBand === "enroute" || altitudeBand === "class-a") {
     return "High / Passing Over";
-  }
-
-  if (
-    isTerminalAirspace(airspace) ||
-    movement === "arrival" ||
-    movement === "departure" ||
-    rangeBand === "terminal-inner" ||
-    rangeBand === "terminal-outer"
-  ) {
-    return "Terminal Flow";
   }
 
   return "Unknown";
@@ -219,6 +212,10 @@ function normalizeMovement(value) {
   if (ARRIVAL_VALUES.has(value)) return "arrival";
   if (DEPARTURE_VALUES.has(value)) return "departure";
   return "unknown";
+}
+
+function isRouteTerminalMovement(movement) {
+  return movement === "arrival" || movement === "departure";
 }
 
 function parseFaaAltitudeFt(value, code) {

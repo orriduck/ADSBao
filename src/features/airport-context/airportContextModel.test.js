@@ -5,6 +5,7 @@ import {
   enrichAircraftWithAirportContext,
   matchesAirspaceVolume,
   resolveAltitudeBand,
+  resolveAirportContextGroup,
   resolveRangeBand,
   resolveVisibilityRole,
 } from "./airportContextModel.js";
@@ -51,7 +52,7 @@ assert.equal(
     altitudeBand: "class-a",
     movement: "departure",
   }),
-  "dimmed",
+  "primary",
 );
 
 const volume = createAirspaceVolumeFromFaaRecord(
@@ -138,6 +139,23 @@ assert.equal(
     volume,
   ),
   false,
+);
+
+assert.equal(
+  resolveAirportContextGroup({
+    rangeBand: "terminal-inner",
+    altitudeBand: "terminal-low",
+    movement: "unknown",
+  }),
+  "Unknown",
+);
+assert.equal(
+  resolveAirportContextGroup({
+    rangeBand: "outside-airport-context",
+    altitudeBand: "class-a",
+    movement: "arrival",
+  }),
+  "Terminal Flow",
 );
 
 const enriched = enrichAircraftWithAirportContext({
