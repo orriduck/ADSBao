@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 
 import {
+  AIRCRAFT_BASELINE_SCALE,
   AIRCRAFT_ICON_BASE_PATH,
   AIRCRAFT_ICON_NAMES,
   isKnownAircraftIconName,
   resolveAircraftIcon,
+  resolveAircraftSizeScale,
 } from "./aircraftIcon.js";
 
 const expectIcon = (aircraft, expectedName, expectedSource) => {
@@ -129,5 +131,45 @@ assert.equal(AIRCRAFT_ICON_BASE_PATH.startsWith("/"), true);
 assert.ok(AIRCRAFT_ICON_NAMES.includes("a320"));
 assert.ok(AIRCRAFT_ICON_NAMES.includes("c130"));
 assert.ok(AIRCRAFT_ICON_NAMES.includes("crjx"));
+
+// Wake-class scale resolver: A1–0.90 → A5–1.10, baseline elsewhere.
+assert.equal(resolveAircraftSizeScale({ category: "A1" }), 0.9);
+assert.equal(resolveAircraftSizeScale({ category: "A2" }), 0.95);
+assert.equal(resolveAircraftSizeScale({ category: "A3" }), 1);
+assert.equal(resolveAircraftSizeScale({ category: "A4" }), 1.05);
+assert.equal(resolveAircraftSizeScale({ category: "A5" }), 1.1);
+// Lowercase / whitespace tolerated like the icon resolver.
+assert.equal(resolveAircraftSizeScale({ category: " a5 " }), 1.1);
+// Categories outside A1–A5 fall back to baseline so heading/state still reads.
+assert.equal(
+  resolveAircraftSizeScale({ category: "A0" }),
+  AIRCRAFT_BASELINE_SCALE,
+);
+assert.equal(
+  resolveAircraftSizeScale({ category: "A6" }),
+  AIRCRAFT_BASELINE_SCALE,
+);
+assert.equal(
+  resolveAircraftSizeScale({ category: "A7" }),
+  AIRCRAFT_BASELINE_SCALE,
+);
+assert.equal(
+  resolveAircraftSizeScale({ category: "B1" }),
+  AIRCRAFT_BASELINE_SCALE,
+);
+assert.equal(
+  resolveAircraftSizeScale({ category: "" }),
+  AIRCRAFT_BASELINE_SCALE,
+);
+assert.equal(resolveAircraftSizeScale({}), AIRCRAFT_BASELINE_SCALE);
+assert.equal(resolveAircraftSizeScale(), AIRCRAFT_BASELINE_SCALE);
+// Heavies grow, light shrinks, and the baseline is exactly 1.
+assert.ok(
+  resolveAircraftSizeScale({ category: "A5" }) > AIRCRAFT_BASELINE_SCALE,
+);
+assert.ok(
+  resolveAircraftSizeScale({ category: "A1" }) < AIRCRAFT_BASELINE_SCALE,
+);
+assert.equal(AIRCRAFT_BASELINE_SCALE, 1);
 
 console.log("aircraftIcon.test.js ok");

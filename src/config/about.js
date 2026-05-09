@@ -22,6 +22,14 @@ export const ABOUT_DATA_SOURCES = [
     href: "https://api.adsb.lol/",
   },
   {
+    glyph: "ICONS",
+    title: "ADS-B Radar Aircraft Icons",
+    description:
+      "Aircraft type silhouettes on the map. Icons by ADS-B Radar for macOS, used with attribution.",
+    host: "adsb-radar.com",
+    href: "https://adsb-radar.com/",
+  },
+  {
     glyph: "ROUTE",
     title: "VRS Standing-Data Routes",
     description:

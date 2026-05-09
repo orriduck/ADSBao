@@ -170,6 +170,36 @@ const CATEGORY_ICONS = {
 const normalizeKey = (value) =>
   typeof value === "string" ? value.trim().toUpperCase() : "";
 
+// Wake-class scale factors keyed off the ADS-B emitter category (A-level).
+// A1 light → 0.90, A2 small → 0.95, A3 large → 1.00 (baseline), A4 high-vortex
+// large → 1.05, A5 heavy → 1.10. Categories outside A1–A5 (A0 unknown,
+// A6 high-performance, A7 rotorcraft, B*, C*, missing) keep the baseline so
+// shape, not size, carries their signal. Applied to both the silhouette and
+// the vector-arrow fallback so the wake class is visible regardless of
+// whether we resolved a type-specific icon.
+export const AIRCRAFT_BASELINE_SCALE = 1;
+
+const CATEGORY_SIZE_SCALE = {
+  A1: 0.9,
+  A2: 0.95,
+  A3: 1,
+  A4: 1.05,
+  A5: 1.1,
+};
+
+/**
+ * Resolve a marker scale factor for an aircraft based on its ADS-B emitter
+ * category. Returns `1` for unknown / out-of-range categories so callers can
+ * always multiply against this without a null check.
+ *
+ * @param {{ category?: string }} aircraft
+ * @returns {number}
+ */
+export function resolveAircraftSizeScale(aircraft = {}) {
+  const category = normalizeKey(aircraft.category);
+  return CATEGORY_SIZE_SCALE[category] ?? AIRCRAFT_BASELINE_SCALE;
+}
+
 /**
  * Resolve a silhouette icon URL for a given aircraft.
  *

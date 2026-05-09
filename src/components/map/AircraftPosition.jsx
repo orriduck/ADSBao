@@ -16,7 +16,10 @@ import {
   resolveAircraftContextEmphasis,
 } from "../../features/airport-context/airportContextUiModel.js";
 import { DEPARTURE, ARRIVAL } from "../../utils/aircraftMovement.js";
-import { resolveAircraftIcon } from "../../utils/aircraftIcon.js";
+import {
+  resolveAircraftIcon,
+  resolveAircraftSizeScale,
+} from "../../utils/aircraftIcon.js";
 
 // Match the arrow size (18×18) so the icon stays anchored on the marker's
 // geo coordinate without shifting the label layout. Silhouettes are still
@@ -118,6 +121,11 @@ export default function AircraftPosition({
   const color = getAircraftColor(aircraft, showArrow);
   const silhouette =
     showArrow && !aircraft.onGround ? resolveAircraftIcon(aircraft) : null;
+  // Wake-class scale (A1–0.90 → A5–1.10). Applied to the moving marker
+  // glyphs so heavies read larger than light traffic; falls back to 1× for
+  // unknown / out-of-range categories. The slow-traffic dot stays unscaled
+  // because at that point we're encoding "minimal indicator", not class.
+  const sizeScale = showArrow ? resolveAircraftSizeScale(aircraft) : 1;
   const emphasis = resolveAircraftContextEmphasis({
     aircraft,
     altitudeFocus,
@@ -148,6 +156,7 @@ export default function AircraftPosition({
         rot={rot}
         showArrow={showArrow}
         silhouette={silhouette}
+        sizeScale={sizeScale}
       />
       {renderLabel && (
         <Label
@@ -170,7 +179,12 @@ function shouldRenderAircraftLabel(emphasis) {
   return emphasis.showLabel;
 }
 
-function Pointer({ color, rot, showArrow, silhouette }) {
+function Pointer({ color, rot, showArrow, silhouette, sizeScale = 1 }) {
+  // Scale via CSS transform with the default `transform-origin: center` so
+  // the marker stays anchored on the geo coordinate at any wake-class size.
+  // The underlying box stays 18×18, only the visual extent grows / shrinks.
+  const scaledTransform = `rotate(${rot}deg) scale(${sizeScale})`;
+
   if (showArrow && silhouette) {
     // Render the silhouette as a CSS-mask-tinted div so we keep the
     // functional color encoding (departure / arrival / unknown) while
@@ -187,7 +201,7 @@ function Pointer({ color, rot, showArrow, silhouette }) {
           width: `${SILHOUETTE_SIZE_PX}px`,
           height: `${SILHOUETTE_SIZE_PX}px`,
           backgroundColor: color,
-          transform: `rotate(${rot}deg)`,
+          transform: scaledTransform,
           WebkitMaskImage: maskUrl,
           maskImage: maskUrl,
           WebkitMaskRepeat: "no-repeat",
@@ -208,7 +222,7 @@ function Pointer({ color, rot, showArrow, silhouette }) {
         height="18"
         viewBox="0 0 24 24"
         style={{
-          transform: `rotate(${rot}deg)`,
+          transform: scaledTransform,
           filter: `drop-shadow(0 0 4px ${color})`,
         }}
       >
