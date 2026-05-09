@@ -7,7 +7,7 @@ import {
   groupAircraftByAirportContext,
   resolveAircraftContextEmphasis,
 } from "../../features/airport-context/airportContextUiModel.js";
-import { formatFlightRouteNameLabel } from "../../utils/flightRouteDisplay.js";
+import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
 
 export default function AircraftTable({
   aircraft = [],
@@ -116,8 +116,12 @@ function AircraftRow({
 }) {
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
-  const routeNames = formatFlightRouteNameLabel(aircraft.flightRoute);
-  const hasRouteNames = Boolean(routeNames && routeNames !== route);
+  const routeMunicipalities = formatFlightRouteMunicipalityLabel(
+    aircraft.flightRoute,
+  );
+  const hasRouteMunicipalities = Boolean(
+    routeMunicipalities && routeMunicipalities !== route,
+  );
   const movementLabel = getMovementTagLabel(aircraft);
   const gsValue = toNumber(aircraft.velocity);
   const altValue = toNumber(aircraft.altitude);
@@ -145,12 +149,14 @@ function AircraftRow({
             <div className="mt-1 flex min-w-0 items-center">
               <div
                 className={`aircraft-table-route-cycle min-w-0 flex-1 ${
-                  hasRouteNames ? "aircraft-table-route-cycle--alternate" : ""
+                  hasRouteMunicipalities ? "aircraft-table-route-cycle--alternate" : ""
                 }`}
               >
-                {hasRouteNames && (
+                {hasRouteMunicipalities && (
                   <div className="aircraft-table-route-face aircraft-table-route-face--flight">
-                    <span className="truncate text-[10px]">{routeNames}</span>
+                    <span className="truncate text-[10px]">
+                      {routeMunicipalities}
+                    </span>
                   </div>
                 )}
                 <div className="aircraft-table-route-face aircraft-table-route-face--route">

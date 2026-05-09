@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 
 import {
   formatFlightRouteLabel,
-  formatFlightRouteNameLabel,
+  formatFlightRouteMunicipalityLabel,
   formatFlightNumberLabel,
   formatLocalFlightRouteLabel,
 } from './flightRouteDisplay.js'
@@ -27,39 +27,38 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
 }
 
 {
-  const label = formatFlightRouteNameLabel({
+  const label = formatFlightRouteMunicipalityLabel({
     origin: {
       iata: 'FCO',
       icao: 'LIRF',
       name: 'Leonardo Da Vinci (Fiumicino) International Airport',
+      municipality: 'Rome',
     },
     destination: {
       iata: 'AMS',
       icao: 'EHAM',
       name: 'Amsterdam Airport Schiphol',
+      municipality: 'Amsterdam',
     },
   })
 
-  assert.equal(
-    label,
-    'Leonardo Da Vinci (Fiumicino) International Airport -> Amsterdam Airport Schiphol',
-  )
+  assert.equal(label, 'Rome -> Amsterdam')
 }
 
 {
   assert.equal(
-    formatFlightRouteNameLabel({
-      origin: { iata: 'BOS', icao: 'KBOS' },
+    formatFlightRouteMunicipalityLabel({
+      origin: { iata: 'BOS', icao: 'KBOS', name: 'Boston Logan' },
       destination: { iata: 'LHR', icao: 'EGLL', name: 'Heathrow Airport' },
     }),
-    'BOS -> Heathrow Airport',
+    'BOS -> LHR',
   )
 }
 
 {
   assert.equal(formatFlightRouteLabel(null), '')
   assert.equal(formatFlightRouteLabel({ origin: { iata: 'BOS' } }), '')
-  assert.equal(formatFlightRouteNameLabel(null), '')
+  assert.equal(formatFlightRouteMunicipalityLabel(null), '')
 }
 
 {
@@ -84,9 +83,9 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
     '',
   )
   assert.equal(
-    formatFlightRouteNameLabel({
-      origin: { iata: 'BOS', icao: 'KBOS', name: 'Boston Logan' },
-      destination: { iata: 'BOS', icao: 'KBOS', name: 'Boston Logan' },
+    formatFlightRouteMunicipalityLabel({
+      origin: { iata: 'BOS', icao: 'KBOS', municipality: 'Boston' },
+      destination: { iata: 'BOS', icao: 'KBOS', municipality: 'Boston' },
     }),
     '',
   )
