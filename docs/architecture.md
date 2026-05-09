@@ -67,5 +67,6 @@ The current ADSBao web line starts at `v0.4.0`.
 | `v0.7.0` | Flight route and traffic context |
 | `v0.7.1` | Map and mobile polish |
 | `v0.8.0` | Next.js Vercel refactor |
+| `v0.9.0` | Navy tracking console redesign |
 
 `v0.3.x` and earlier are legacy desktop-app history and should not be used as the current ADSBao web product line.

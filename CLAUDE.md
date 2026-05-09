@@ -74,8 +74,18 @@ pnpm build
 ## Tests
 
 ```bash
-pnpm test:all
+pnpm test
 ```
+
+`pnpm test` auto-discovers every `*.test.js` file and runs the full critical mechanism suite. Keep tests focused on data normalization, proxy/routing/security, geometry, aircraft movement/context, and other logic that is hard to validate visually. Verify component behavior in the running app instead of adding one-off package scripts or copy/toggle-level tests.
+
+Local UI verification:
+
+```bash
+pnpm run dev
+```
+
+Open `http://localhost:3000`. For pushed branches, use the Vercel preview deployment created by Git integration. Vercel's documented preview checks are `vercel list --environment preview`, `vercel inspect <preview-url>`, and `vercel curl / --deployment <preview-url>` when deployment protection applies.
 
 ## Runtime config
 
@@ -95,6 +105,7 @@ Use the current ADSBao web release line:
 | `v0.7.0` | Flight route and traffic context |
 | `v0.7.1` | Map and mobile polish |
 | `v0.8.0` | Next.js Vercel refactor |
+| `v0.9.0` | Navy tracking console redesign |
 
 `v0.3.x` and earlier are legacy desktop-app history. Do not use those releases as the current ADSBao web product line.
 

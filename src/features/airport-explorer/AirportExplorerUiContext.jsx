@@ -6,8 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
-  useState,
+  useReducer,
 } from "react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
 import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "./airportExplorerUiModel.js";
@@ -18,37 +17,92 @@ import {
 
 const AirportExplorerUiContext = createContext(null);
 
+const initialUiState = {
+  ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
+  sidebarMode: "desktop",
+  sidebarOpen: true,
+  selectedAircraftId: "",
+};
+
+function toggleValue(value) {
+  return !value;
+}
+
+function airportExplorerUiReducer(state, action) {
+  switch (action.type) {
+    case "setSidebarMode": {
+      if (state.sidebarMode === action.sidebarMode) return state;
+
+      return {
+        ...state,
+        sidebarMode: action.sidebarMode,
+        sidebarOpen: getAirportSidebarOpenForMode(action.sidebarMode),
+      };
+    }
+    case "toggleSidebar":
+      return { ...state, sidebarOpen: toggleValue(state.sidebarOpen) };
+    case "closeSidebar":
+      return { ...state, sidebarOpen: false };
+    case "setMapZoom":
+      return { ...state, mapZoom: action.mapZoom };
+    case "toggleMapLabels":
+      return { ...state, showMapLabels: toggleValue(state.showMapLabels) };
+    case "toggleTelemetry":
+      return { ...state, showTelemetry: toggleValue(state.showTelemetry) };
+    case "toggleRunwayBeams":
+      return { ...state, showRunwayBeams: toggleValue(state.showRunwayBeams) };
+    case "toggleRoutingPointBadges":
+      return {
+        ...state,
+        showRoutingPointBadges: toggleValue(state.showRoutingPointBadges),
+      };
+    case "toggleAirspaceContext":
+      return {
+        ...state,
+        showAirspaceContext: toggleValue(state.showAirspaceContext),
+      };
+    case "setAltitudeFocus":
+      return { ...state, altitudeFocus: action.altitudeFocus };
+    case "selectAircraft":
+      return {
+        ...state,
+        selectedAircraftId:
+          state.selectedAircraftId === action.aircraftId
+            ? ""
+            : action.aircraftId,
+      };
+    case "setSelectedAircraftId":
+      return { ...state, selectedAircraftId: action.aircraftId };
+    default:
+      return state;
+  }
+}
+
 export function AirportExplorerUiProvider({ children }) {
-  const previousSidebarMode = useRef(null);
-  const [sidebarMode, setSidebarMode] = useState("desktop");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mapZoom, setMapZoom] = useState(
-    DEFAULT_AIRPORT_EXPLORER_UI_STATE.mapZoom,
+  const [state, dispatch] = useReducer(
+    airportExplorerUiReducer,
+    initialUiState,
   );
-  const [showMapLabels, setShowMapLabels] = useState(
-    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showMapLabels,
-  );
-  const [showTelemetry, setShowTelemetry] = useState(
-    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showTelemetry,
-  );
-  const [showRunwayBeams, setShowRunwayBeams] = useState(
-    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showRunwayBeams,
-  );
-  const [showRoutingPointBadges, setShowRoutingPointBadges] = useState(
-    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showRoutingPointBadges,
-  );
-  const [showAirspaceContext, setShowAirspaceContext] = useState(
-    DEFAULT_AIRPORT_EXPLORER_UI_STATE.showAirspaceContext,
-  );
-  const [altitudeFocus, setAltitudeFocus] = useState(
-    DEFAULT_AIRPORT_EXPLORER_UI_STATE.altitudeFocus,
-  );
-  const [selectedAircraftId, setSelectedAircraftId] = useState("");
+  const {
+    sidebarMode,
+    sidebarOpen,
+    mapZoom,
+    showMapLabels,
+    showTelemetry,
+    showRunwayBeams,
+    showRoutingPointBadges,
+    showAirspaceContext,
+    altitudeFocus,
+    selectedAircraftId,
+  } = state;
   const isMobile = sidebarMode === "mobile";
 
   useEffect(() => {
     const syncSidebarMode = () => {
-      setSidebarMode(getAirportSidebarMode(window.innerWidth));
+      dispatch({
+        type: "setSidebarMode",
+        sidebarMode: getAirportSidebarMode(window.innerWidth),
+      });
     };
 
     syncSidebarMode();
@@ -57,45 +111,48 @@ export function AirportExplorerUiProvider({ children }) {
     return () => window.removeEventListener("resize", syncSidebarMode);
   }, []);
 
-  useEffect(() => {
-    if (!sidebarMode || previousSidebarMode.current === sidebarMode) return;
-
-    previousSidebarMode.current = sidebarMode;
-    setSidebarOpen(getAirportSidebarOpenForMode(sidebarMode));
-  }, [sidebarMode]);
-
   const toggleSidebar = useCallback(() => {
-    setSidebarOpen((value) => !value);
+    dispatch({ type: "toggleSidebar" });
   }, []);
 
   const closeSidebar = useCallback(() => {
-    setSidebarOpen(false);
+    dispatch({ type: "closeSidebar" });
+  }, []);
+
+  const setMapZoom = useCallback((mapZoom) => {
+    dispatch({ type: "setMapZoom", mapZoom });
   }, []);
 
   const toggleMapLabels = useCallback(() => {
-    setShowMapLabels((value) => !value);
+    dispatch({ type: "toggleMapLabels" });
   }, []);
 
   const toggleTelemetry = useCallback(() => {
-    setShowTelemetry((value) => !value);
+    dispatch({ type: "toggleTelemetry" });
   }, []);
 
   const toggleRunwayBeams = useCallback(() => {
-    setShowRunwayBeams((value) => !value);
+    dispatch({ type: "toggleRunwayBeams" });
   }, []);
 
   const toggleRoutingPointBadges = useCallback(() => {
-    setShowRoutingPointBadges((value) => !value);
+    dispatch({ type: "toggleRoutingPointBadges" });
   }, []);
 
   const toggleAirspaceContext = useCallback(() => {
-    setShowAirspaceContext((value) => !value);
+    dispatch({ type: "toggleAirspaceContext" });
+  }, []);
+
+  const setAltitudeFocus = useCallback((altitudeFocus) => {
+    dispatch({ type: "setAltitudeFocus", altitudeFocus });
   }, []);
 
   const selectAircraft = useCallback((aircraftId) => {
-    setSelectedAircraftId((currentId) =>
-      currentId === aircraftId ? "" : aircraftId,
-    );
+    dispatch({ type: "selectAircraft", aircraftId });
+  }, []);
+
+  const setSelectedAircraftId = useCallback((aircraftId) => {
+    dispatch({ type: "setSelectedAircraftId", aircraftId });
   }, []);
 
   const value = useMemo(
@@ -136,6 +193,8 @@ export function AirportExplorerUiProvider({ children }) {
       showAirspaceContext,
       altitudeFocus,
       selectedAircraftId,
+      setMapZoom,
+      setAltitudeFocus,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
@@ -144,6 +203,7 @@ export function AirportExplorerUiProvider({ children }) {
       toggleRoutingPointBadges,
       toggleAirspaceContext,
       selectAircraft,
+      setSelectedAircraftId,
     ],
   );
 
