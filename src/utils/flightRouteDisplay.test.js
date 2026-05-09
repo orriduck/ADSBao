@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 
 import {
   formatFlightRouteLabel,
+  formatFlightRouteNameLabel,
   formatFlightNumberLabel,
   formatLocalFlightRouteLabel,
 } from './flightRouteDisplay.js'
@@ -26,8 +27,39 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
 }
 
 {
+  const label = formatFlightRouteNameLabel({
+    origin: {
+      iata: 'FCO',
+      icao: 'LIRF',
+      name: 'Leonardo Da Vinci (Fiumicino) International Airport',
+    },
+    destination: {
+      iata: 'AMS',
+      icao: 'EHAM',
+      name: 'Amsterdam Airport Schiphol',
+    },
+  })
+
+  assert.equal(
+    label,
+    'Leonardo Da Vinci (Fiumicino) International Airport -> Amsterdam Airport Schiphol',
+  )
+}
+
+{
+  assert.equal(
+    formatFlightRouteNameLabel({
+      origin: { iata: 'BOS', icao: 'KBOS' },
+      destination: { iata: 'LHR', icao: 'EGLL', name: 'Heathrow Airport' },
+    }),
+    'BOS -> Heathrow Airport',
+  )
+}
+
+{
   assert.equal(formatFlightRouteLabel(null), '')
   assert.equal(formatFlightRouteLabel({ origin: { iata: 'BOS' } }), '')
+  assert.equal(formatFlightRouteNameLabel(null), '')
 }
 
 {
@@ -48,6 +80,13 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
     formatFlightRouteLabel({
       origin: { iata: 'BOS', icao: 'KBOS' },
       destination: { iata: 'BOS', icao: 'KBOS' },
+    }),
+    '',
+  )
+  assert.equal(
+    formatFlightRouteNameLabel({
+      origin: { iata: 'BOS', icao: 'KBOS', name: 'Boston Logan' },
+      destination: { iata: 'BOS', icao: 'KBOS', name: 'Boston Logan' },
     }),
     '',
   )

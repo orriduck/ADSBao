@@ -3,6 +3,9 @@ import { ARRIVAL, DEPARTURE } from './aircraftMovement.js'
 const airportCode = (airport) =>
   String(airport?.iata || airport?.icao || '').trim().toUpperCase()
 
+const airportName = (airport) =>
+  String(airport?.name || airportCode(airport)).trim()
+
 const airportCodes = (airport) =>
   new Set(
     [airport?.iata, airport?.icao]
@@ -37,6 +40,15 @@ export const formatFlightNumberLabel = (route, fallbackCallsign = '') =>
 export const formatFlightRouteLabel = (route) => {
   const origin = airportCode(route?.origin)
   const destination = airportCode(route?.destination)
+  if (origin && destination && sameAirport(route.origin, route.destination)) {
+    return ''
+  }
+  return origin && destination ? `${origin} -> ${destination}` : ''
+}
+
+export const formatFlightRouteNameLabel = (route) => {
+  const origin = airportName(route?.origin)
+  const destination = airportName(route?.destination)
   if (origin && destination && sameAirport(route.origin, route.destination)) {
     return ''
   }

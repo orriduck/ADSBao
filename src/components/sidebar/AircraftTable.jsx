@@ -7,7 +7,7 @@ import {
   groupAircraftByAirportContext,
   resolveAircraftContextEmphasis,
 } from "../../features/airport-context/airportContextUiModel.js";
-import { formatFlightNumberLabel } from "../../utils/flightRouteDisplay.js";
+import { formatFlightRouteNameLabel } from "../../utils/flightRouteDisplay.js";
 
 export default function AircraftTable({
   aircraft = [],
@@ -116,10 +116,8 @@ function AircraftRow({
 }) {
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
-  const airlineName = aircraft.flightRoute?.airlineName || "";
-  const airlineIconUrl = aircraft.flightRoute?.airlineIconUrl || "";
-  const flightNumber = formatFlightNumberLabel(aircraft.flightRoute, callsign);
-  const hasFlightInfo = Boolean(airlineIconUrl || airlineName || flightNumber);
+  const routeNames = formatFlightRouteNameLabel(aircraft.flightRoute);
+  const hasRouteNames = Boolean(routeNames && routeNames !== route);
   const movementLabel = getMovementTagLabel(aircraft);
   const gsValue = toNumber(aircraft.velocity);
   const altValue = toNumber(aircraft.altitude);
@@ -144,37 +142,15 @@ function AircraftRow({
             {movementLabel && <AircraftTag>{movementLabel}</AircraftTag>}
           </div>
           {route ? (
-            <div className="mt-1 flex min-w-0 items-center gap-1.5">
-              {airlineIconUrl && (
-                // eslint-disable-next-line @next/next/no-img-element -- Airline logo URLs are dynamic.
-                <img
-                  src={airlineIconUrl}
-                  alt={airlineName ? `${airlineName} logo` : ""}
-                  className="h-4 w-4 flex-none rounded-[3px] border border-[var(--atc-line)] bg-white object-contain p-[1px]"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                  onError={(event) => {
-                    event.currentTarget.style.display = "none";
-                  }}
-                />
-              )}
+            <div className="mt-1 flex min-w-0 items-center">
               <div
                 className={`aircraft-table-route-cycle min-w-0 flex-1 ${
-                  hasFlightInfo ? "aircraft-table-route-cycle--alternate" : ""
+                  hasRouteNames ? "aircraft-table-route-cycle--alternate" : ""
                 }`}
               >
-                {hasFlightInfo && (
+                {hasRouteNames && (
                   <div className="aircraft-table-route-face aircraft-table-route-face--flight">
-                    {airlineName && (
-                      <span className="max-w-[112px] flex-none truncate text-[10px]">
-                        {airlineName}
-                      </span>
-                    )}
-                    {flightNumber && (
-                      <span className="flex-none text-[10px]">
-                        {flightNumber}
-                      </span>
-                    )}
+                    <span className="truncate text-[10px]">{routeNames}</span>
                   </div>
                 )}
                 <div className="aircraft-table-route-face aircraft-table-route-face--route">
