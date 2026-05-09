@@ -26,6 +26,7 @@ export function resolvePendingRouteLookups({
   aircraft,
   cache,
   inFlight,
+  queued = new Set(),
   now = Date.now(),
   maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxLookupsPerPass,
 }) {
@@ -33,9 +34,38 @@ export function resolvePendingRouteLookups({
     .filter(
       (callsign) =>
         !getFreshRouteCacheEntry(cache, callsign, now) &&
-        !inFlight.has(callsign),
+        !inFlight.has(callsign) &&
+        !queued.has(callsign),
     )
     .slice(0, maxLookups);
+}
+
+export function getRouteLookupStats({
+  aircraft,
+  cache,
+  queued = new Set(),
+  inFlight = new Set(),
+  now = Date.now(),
+}) {
+  const callsigns = getLookupCallsigns(aircraft);
+  let done = 0;
+  let notDone = 0;
+
+  for (const callsign of callsigns) {
+    const cached = getFreshRouteCacheEntry(cache, callsign, now);
+    if (cached) {
+      done += 1;
+    } else if (!queued.has(callsign) && !inFlight.has(callsign)) {
+      notDone += 1;
+    }
+  }
+
+  return {
+    done,
+    in_queue: queued.size,
+    inflight: inFlight.size,
+    not_do: notDone,
+  };
 }
 
 export function buildRoutesByCallsign({ aircraft, cache, now = Date.now() }) {

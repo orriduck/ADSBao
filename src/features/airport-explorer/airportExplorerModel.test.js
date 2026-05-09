@@ -60,5 +60,5 @@ assert.equal(enriched[1].movement, ARRIVAL);
 assert.equal(enriched[1].flightRouteLabel, "LAX -> BOS");
 assert.equal(enriched[1].airportContext.movement, "arrival");
 assert.equal(enriched[2].movement, UNKNOWN);
-assert.equal(enriched[2].flightRouteLabel, "");
+assert.equal(enriched[2].flightRouteLabel, "JFK -> ORD");
 assert.equal(enriched[2].airportContext.movement, "unknown");

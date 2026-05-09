@@ -2,7 +2,7 @@ import { AIRPORT_FALLBACKS, COORDS } from "../../data/airportFallbacks.js";
 import { enrichAircraftWithAirportContext } from "../airport-context/airportContextModel.js";
 import { resolveMovement } from "../../utils/aircraftMovement.js";
 import { normalizeCallsign } from "../../utils/callsign.js";
-import { formatLocalFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
+import { formatFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
 
 export function resolveAirportProfile({ icao = "", airport = null } = {}) {
   const normalizedIcao = String(airport?.icao || icao || "").toUpperCase();
@@ -27,11 +27,6 @@ export function enrichAircraftWithRoutes({
   airportProfile,
   airspaceVolumes = [],
 } = {}) {
-  const localAirport = {
-    iata: airportProfile?.iata,
-    icao: airportProfile?.icao,
-  };
-
   const aircraftWithRoutes = aircraft.map((item) => {
     const key = normalizeCallsign(item.callsign);
     const route = routesByCallsign[key] || null;
@@ -41,11 +36,7 @@ export function enrichAircraftWithRoutes({
       ...item,
       flightRoute: route,
       movement,
-      flightRouteLabel: formatLocalFlightRouteLabel(
-        route,
-        localAirport,
-        movement,
-      ),
+      flightRouteLabel: formatFlightRouteLabel(route),
     };
   });
 
