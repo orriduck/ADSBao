@@ -28,7 +28,9 @@ The visual language is built from four primitives: **dots, lines, type, and grid
 
 **Theme.** Dark navy is the primary canvas — `#041A38` / `#0A2244` / `#244164` from the v0.9.0 line, with off-white text. A light variant is supported as a daytime mode using the same structural rules on a near-white base. The two themes share grid, type, and rhythm; they only swap the canvas.
 
-**Accent.** A single signature orange (`#FF6B35`) is used sparingly — primary action, fresh alert, brand mark — never decoratively. Aircraft direction states (departure / arrival / ground / unknown) keep functional color coding, but with calmer, more graphic-system hues, and the markers themselves are small geometric primitives (dots and short vectors), not detailed airplane silhouettes.
+**Accent.** A single signature orange (`#FF6B35`) is used sparingly — primary action, fresh alert, brand mark — never decoratively. Aircraft direction states (departure / arrival / ground / unknown) keep functional color coding, but with calmer, more graphic-system hues.
+
+**Markers.** The aircraft layer carries two signals at once: *direction state* (color) and *aircraft type* (shape). Slow / unknown traffic is a bare dot; moving traffic without a known type is a short vector arrow oriented to the track; moving traffic with a known ICAO type designator or ADS-B emitter category is a small (~18px) silhouette from the upstream icon set, tinted with the same desaturated state color via CSS mask. Silhouettes are read as data, not decoration — they share the dot/arrow grid, never carry their own outlines, gradients, or fills, and never appear at sizes large enough to compete with the typographic identity (callsign / route / telemetry) next to them. Anything richer — three-quarter views, photographic livery, embellished icons — stays out.
 
 **Surfaces.** Cards are defined by hairline rules and tick marks, not by gradient fills, backdrop-blur, inset highlights, or shadows. Whitespace is the dominant material. A panel earns its border only if it groups truly distinct information.
 
@@ -59,3 +61,5 @@ The visual language is built from four primitives: **dots, lines, type, and grid
 4. **Text is the instrument.** Density comes from typographic hierarchy — weight, size, tracking, mono-vs-sans contrast — not from chrome. Telemetry is monospaced; identity is sans; that's the whole vocabulary.
 
 5. **Motion follows data.** Animation is reserved for actual changes in the world: a value ticks up, a marker moves, a route resolves. We do not animate to show off, to indicate "loading", or to decorate empty states.
+
+6. **Glyphs encode, never decorate.** When a marker uses a shape (dot, arrow, silhouette), the shape must mean something — slow vs. moving, unknown vs. known type. A glyph that doesn't add a signal beyond what color and position already say is removed. Silhouettes inherit the same desaturated state palette as their dot/arrow counterparts; they do not introduce new colors, gradients, strokes, or shadows of their own.

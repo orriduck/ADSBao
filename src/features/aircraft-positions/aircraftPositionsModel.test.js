@@ -25,6 +25,8 @@ const responseNow = 1_700_000_003_000;
       gs: 250,
       track: 87,
       seen_pos: 1.25,
+      t: "b738",
+      category: "a3",
     },
     { responseNow, receiveTime },
   );
@@ -33,8 +35,20 @@ const responseNow = 1_700_000_003_000;
   assert.equal(aircraft.callsign, "DAL123");
   assert.equal(aircraft.altitude, 12000);
   assert.equal(aircraft.velocity, 250);
+  assert.equal(aircraft.type, "B738");
+  assert.equal(aircraft.category, "A3");
   assert.equal(aircraft.positionTime, 1_700_000_001_750);
   assert.equal(aircraft.receiveTime, receiveTime);
+}
+
+{
+  // type / category default to empty strings when adsb.lol omits them.
+  const aircraft = normalizeAdsbAircraft(
+    { hex: "abc", lat: 1, lon: 2 },
+    { responseNow, receiveTime },
+  );
+  assert.equal(aircraft.type, "");
+  assert.equal(aircraft.category, "");
 }
 
 {

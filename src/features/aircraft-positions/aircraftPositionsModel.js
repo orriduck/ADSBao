@@ -16,15 +16,17 @@ export function normalizeAdsbAircraft(
     onGround: aircraft.gnd ?? false,
     velocity: aircraft.gs ?? null,
     track: aircraft.track ?? 0,
+    type: typeof aircraft.t === "string" ? aircraft.t.trim().toUpperCase() : "",
+    category:
+      typeof aircraft.category === "string"
+        ? aircraft.category.trim().toUpperCase()
+        : "",
     positionTime: parseAdsbPositionTime(aircraft, responseNow, receiveTime),
     receiveTime,
   };
 }
 
-export function normalizeAircraftSnapshot({
-  json,
-  receiveTime = Date.now(),
-}) {
+export function normalizeAircraftSnapshot({ json, receiveTime = Date.now() }) {
   return (json?.ac || [])
     .filter((aircraft) => aircraft.lat != null && aircraft.lon != null)
     .filter((aircraft) => aircraft.hex)
