@@ -16,6 +16,16 @@ import {
   resolveAircraftContextEmphasis,
 } from "../../features/airport-context/airportContextUiModel.js";
 import { DEPARTURE, ARRIVAL } from "../../utils/aircraftMovement.js";
+import {
+  resolveAircraftIcon,
+  resolveAircraftSizeScale,
+} from "../../utils/aircraftIcon.js";
+
+// Match the arrow size (18×18) so the icon stays anchored on the marker's
+// geo coordinate without shifting the label layout. Silhouettes are still
+// readable at this size and stay subordinate to the typographic identity
+// (callsign / route / telemetry) the design language privileges.
+const SILHOUETTE_SIZE_PX = 18;
 
 const getAircraftColor = (ac, showArrow) => {
   if (ac.onGround) return AIRCRAFT_COLORS.ground;
@@ -109,6 +119,13 @@ export default function AircraftPosition({
   const speedKt = Number(aircraft.velocity ?? 0);
   const showArrow = speedKt >= SLOW_AIRCRAFT_THRESHOLD_KT;
   const color = getAircraftColor(aircraft, showArrow);
+  const silhouette =
+    showArrow && !aircraft.onGround ? resolveAircraftIcon(aircraft) : null;
+  // Wake-class scale (A1–0.90 → A5–1.10). Applied to the moving marker
+  // glyphs so heavies read larger than light traffic; falls back to 1× for
+  // unknown / out-of-range categories. The slow-traffic dot stays unscaled
+  // because at that point we're encoding "minimal indicator", not class.
+  const sizeScale = showArrow ? resolveAircraftSizeScale(aircraft) : 1;
   const emphasis = resolveAircraftContextEmphasis({
     aircraft,
     altitudeFocus,
@@ -124,7 +141,8 @@ export default function AircraftPosition({
     isFiniteNumber(aircraft.velocity) &&
     isFiniteNumber(aircraft.altitude);
   const renderLabel = shouldRenderAircraftLabel(emphasis);
-  const renderTelemetry = hasTelemetry && showTelemetry && emphasis.showTelemetry;
+  const renderTelemetry =
+    hasTelemetry && showTelemetry && emphasis.showTelemetry;
 
   return createPortal(
     <div
@@ -133,13 +151,20 @@ export default function AircraftPosition({
       }`}
       style={{ opacity: emphasis.opacity }}
     >
-      <Pointer color={color} rot={rot} showArrow={showArrow} />
+      <Pointer
+        color={color}
+        rot={rot}
+        showArrow={showArrow}
+        silhouette={silhouette}
+        sizeScale={sizeScale}
+      />
       {renderLabel && (
         <Label
           color={color}
           label={label}
           routeLabel={routeLabel}
           showArrow={showArrow}
+          hasSilhouette={Boolean(silhouette)}
           renderTelemetry={renderTelemetry}
           velocity={aircraft.velocity}
           altitude={aircraft.altitude}
@@ -154,7 +179,42 @@ function shouldRenderAircraftLabel(emphasis) {
   return emphasis.showLabel;
 }
 
-function Pointer({ color, rot, showArrow }) {
+function Pointer({ color, rot, showArrow, silhouette, sizeScale = 1 }) {
+  // Scale via CSS transform with the default `transform-origin: center` so
+  // the marker stays anchored on the geo coordinate at any wake-class size.
+  // The underlying box stays 18×18, only the visual extent grows / shrinks.
+  const scaledTransform = `rotate(${rot}deg) scale(${sizeScale})`;
+
+  if (showArrow && silhouette) {
+    // Render the silhouette as a CSS-mask-tinted div so we keep the
+    // functional color encoding (departure / arrival / unknown) while
+    // showing the type-specific shape.
+    const maskUrl = `url(${silhouette.src})`;
+    return (
+      <div
+        className="aircraft-silhouette"
+        role="img"
+        aria-label={
+          silhouette.source === "type" ? "aircraft type" : "aircraft category"
+        }
+        style={{
+          width: `${SILHOUETTE_SIZE_PX}px`,
+          height: `${SILHOUETTE_SIZE_PX}px`,
+          backgroundColor: color,
+          transform: scaledTransform,
+          WebkitMaskImage: maskUrl,
+          maskImage: maskUrl,
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+          filter: `drop-shadow(0 0 4px ${color})`,
+        }}
+      />
+    );
+  }
   if (showArrow) {
     return (
       <svg
@@ -162,7 +222,7 @@ function Pointer({ color, rot, showArrow }) {
         height="18"
         viewBox="0 0 24 24"
         style={{
-          transform: `rotate(${rot}deg)`,
+          transform: scaledTransform,
           filter: `drop-shadow(0 0 4px ${color})`,
         }}
       >
@@ -190,12 +250,14 @@ function Label({
   label,
   routeLabel,
   showArrow,
+  hasSilhouette,
   renderTelemetry,
   velocity,
   altitude,
 }) {
   const labelTop = showArrow && renderTelemetry ? "-4px" : "2px";
-  const left = showArrow ? 22 : 18;
+  const baseLeft = hasSilhouette ? SILHOUETTE_SIZE_PX + 4 : 22;
+  const left = showArrow ? baseLeft : SILHOUETTE_SIZE_PX;
   const labelClass = routeLabel
     ? "aircraft-label aircraft-label--route-cycle"
     : "aircraft-label";

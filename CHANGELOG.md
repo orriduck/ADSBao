@@ -8,6 +8,9 @@
 - Desktop sidebar layout (400px) for airport context alongside full-height Leaflet map.
 - Callsign-first traffic data table with route status badges (PENDING/LOCAL/ROUTE).
 - Navy tracking console dark theme palette (#041A38, #244164, #0A2244).
+- Aircraft type silhouette markers on the map: ICAO type designators (A320, B738, CRJ9…) and ADS-B emitter categories (A1–A7, B1–B4) resolve to the upstream ADS-B Radar icon set, served same-origin via `/api/icons/aircraft/[name]` with day-long edge caching. Direction-state color encoding is preserved via CSS mask tinting; the arrow / dot fallback still applies for unknown types and slow traffic.
+- Marker wake-class scaling: ADS-B emitter A-category drives a uniform size nudge (A1 light → 0.90×, A2 → 0.95×, A3 → 1.00×, A4 → 1.05×, A5 heavy → 1.10×) on both the silhouette and the vector-arrow fallback, so heavies read visibly larger than light traffic without changing the grid.
+- About page now credits ADS-B Radar (https://adsb-radar.com) for the aircraft icon set.
 
 ### Changed
 - Redesigned airport operations screen from full-bleed map overlay to sidebar + map layout.
