@@ -23,11 +23,11 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ROUTE",
-    title: "FlightAware Flight Routes",
+    title: "VRS Standing-Data Routes",
     description:
-      "Callsign-to-route lookup parsed from live flight pages.",
-    host: "flightaware.com",
-    href: "https://www.flightaware.com/live/flight/",
+      "Callsign route references inferred from standing data, not official live flight plans.",
+    host: "vrs-standing-data.adsb.lol",
+    href: "https://vrs-standing-data.adsb.lol/",
   },
   {
     glyph: "WX",

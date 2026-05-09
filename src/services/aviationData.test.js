@@ -204,43 +204,43 @@ try {
 
 {
   const route = normalizeFlightRoute({
-    response: {
-      flightroute: {
-        callsign: "DAL123",
-        callsign_icao: "DAL123",
-        callsign_iata: "DL123",
-        airline: {
-          name: "Delta Air Lines",
-          icao: "DAL",
-          iata: "DL",
-        },
-        origin: {
-          icao_code: "EGPH",
-          iata_code: "EDI",
-          name: "Edinburgh Airport",
-          municipality: "Edinburgh",
-          country_name: "United Kingdom",
-          latitude: 55.950145,
-          longitude: -3.372288,
-        },
-        destination: {
-          icao_code: "KBOS",
-          iata_code: "BOS",
-          name: "Logan International Airport",
-          municipality: "Boston",
-          country_name: "United States",
-          latitude: 42.3643,
-          longitude: -71.005203,
-        },
-      },
+    callsign: "DAL123",
+    number: "123",
+    airline: {
+      name: "Delta Air Lines",
+      icao: "DAL",
+      iata: "DL",
     },
+    origin: {
+      icao: "EGPH",
+      iata: "EDI",
+      name: "Edinburgh Airport",
+      municipality: "Edinburgh",
+      country: "GB",
+      lat: 55.950145,
+      lon: -3.372288,
+    },
+    destination: {
+      icao: "KBOS",
+      iata: "BOS",
+      name: "Logan International Airport",
+      municipality: "Boston",
+      country: "US",
+      lat: 42.3643,
+      lon: -71.005203,
+    },
+    airports: [],
+    route: { icao: "EGPH-KBOS", iata: "EDI-BOS" },
+    source: "vrs-standing-data",
+    confidence: "reference-data",
   });
 
   assert.equal(route.callsign, "DAL123");
   assert.equal(route.airlineName, "Delta Air Lines");
   assert.equal(route.origin.icao, "EGPH");
   assert.equal(route.destination.iata, "BOS");
-  assert.equal(route.source, "flightaware");
+  assert.equal(route.source, "vrs-standing-data");
+  assert.equal(route.confidence, "reference-data");
 }
 
 {
@@ -249,25 +249,23 @@ try {
     fetchImpl: async (url) => {
       calls.push(url);
       return createJsonResponse({
-        response: {
-          flightroute: {
-            callsign: "BAW213",
-            origin: {
-              icao_code: "EGLL",
-              iata_code: "LHR",
-              name: "Heathrow Airport",
-              latitude: 51.4706,
-              longitude: -0.461941,
-            },
-            destination: {
-              icao_code: "KBOS",
-              iata_code: "BOS",
-              name: "Logan International Airport",
-              latitude: 42.3643,
-              longitude: -71.005203,
-            },
-          },
+        callsign: "BAW213",
+        airline: { icao: "BAW" },
+        origin: {
+          icao: "EGLL",
+          iata: "LHR",
+          name: "Heathrow Airport",
+          lat: 51.4706,
+          lon: -0.461941,
         },
+        destination: {
+          icao: "KBOS",
+          iata: "BOS",
+          name: "Logan International Airport",
+          lat: 42.3643,
+          lon: -71.005203,
+        },
+        source: "vrs-standing-data",
       });
     },
   });
@@ -298,21 +296,19 @@ try {
       if (calls.length <= 1)
         return createJsonResponse({ response: "rate limited" }, 429);
       return createJsonResponse({
-        response: {
-          flightroute: {
-            callsign: "UAL456",
-            origin: {
-              icao_code: "KSFO",
-              latitude: 37.6213,
-              longitude: -122.379,
-            },
-            destination: {
-              icao_code: "KJFK",
-              latitude: 40.6413,
-              longitude: -73.7781,
-            },
-          },
+        callsign: "UAL456",
+        airline: { icao: "UAL" },
+        origin: {
+          icao: "KSFO",
+          lat: 37.6213,
+          lon: -122.379,
         },
+        destination: {
+          icao: "KJFK",
+          lat: 40.6413,
+          lon: -73.7781,
+        },
+        source: "vrs-standing-data",
       });
     },
   });

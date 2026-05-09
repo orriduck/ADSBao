@@ -14,42 +14,38 @@ import { normalizeLocalWeather } from "./localWeatherNormalizer.js";
 
 {
   const route = normalizeFlightRoute({
-    response: {
-      flightroute: {
-        callsign: " dal123 ",
-        callsign_icao: "dal123",
-        airline: {
-          name: "Delta Air Lines",
-          icao: "dal",
-          icon_url: "https://www.flightaware.com/images/airline_logos/180px/DAL.png",
-        },
-        origin: {
-          icao_code: "egll",
-          iata_code: "lhr",
-          name: "Heathrow Airport",
-          latitude: 51.4706,
-          longitude: -0.461941,
-        },
-        destination: {
-          icao_code: "kbos",
-          iata_code: "bos",
-          name: "Logan International Airport",
-          latitude: 42.3643,
-          longitude: -71.005203,
-        },
-      },
+    callsign: " dal123 ",
+    airline: {
+      name: "Delta Air Lines",
+      icao: "dal",
+      iconUrl: "https://logos.example.test/DAL.png",
     },
+    origin: {
+      icao: "egll",
+      iata: "lhr",
+      name: "Heathrow Airport",
+      lat: 51.4706,
+      lon: -0.461941,
+    },
+    destination: {
+      icao: "kbos",
+      iata: "bos",
+      name: "Logan International Airport",
+      lat: 42.3643,
+      lon: -71.005203,
+    },
+    source: "vrs-standing-data",
   });
 
   assert.equal(route.callsign, "DAL123");
   assert.equal(route.airlineIcao, "DAL");
   assert.equal(
     route.airlineIconUrl,
-    "https://www.flightaware.com/images/airline_logos/180px/DAL.png",
+    "https://logos.example.test/DAL.png",
   );
   assert.equal(route.origin.iata, "LHR");
   assert.equal(route.destination.icao, "KBOS");
-  assert.equal(route.source, "flightaware");
+  assert.equal(route.source, "vrs-standing-data");
 }
 
 {

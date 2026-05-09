@@ -15,7 +15,7 @@ Current web app version: **0.9.0**. See `CHANGELOG.md` for product version histo
 - **Vercel UX integrations**: Vercel Web Analytics and Speed Insights use their Next.js packages.
 - **Component migration**: Former VueBits-style effects are implemented as React components.
 - **Data access**: Browser-managed airport directory requests to airportsapi.com, with conservative client caching.
-- **Vercel routing**: Same-origin Vercel rewrites for AviationWeather METAR and adsb.lol aircraft positions, plus a Vercel serverless function for callsign route lookup.
+- **Vercel routing**: Same-origin Vercel rewrites for AviationWeather METAR and adsb.lol aircraft positions, plus a Next.js route handler for VRS standing-data callsign route lookup.
 - **Typography**: Google Sans Flex & Google Sans Code.
 
 ## Getting Started
