@@ -33,7 +33,7 @@ The app uses same-origin Vercel paths for upstream aviation sources that are not
 |---|---|---|
 | `/api/proxy/metar/:icao` | AviationWeather METAR API | Airport weather context |
 | `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft positions |
-| `/api/proxy/flight-routes/callsign/:callsign` | FlightAware page fetcher | Callsign route lookup |
+| `/api/proxy/flight-routes/callsign/:callsign` | VRS standing-data route fetcher | Callsign route lookup |
 | `/api/proxy/local-weather/:lat/:lon` | Open-Meteo | Airport-local weather |
 | `/api/proxy/procedures/:country/:icao` | FAA CIFP | US procedure and runway overlays |
 | `/api/proxy/airports/nearby` | AIRAC | Nearby airport overlays |

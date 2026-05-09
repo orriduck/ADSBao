@@ -3,42 +3,40 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
-  readResponseText,
+  readResponseJson,
 } from "@/services/apiProxySecurity.js";
 import {
-  buildFlightAwareRouteResponse,
-  buildFlightAwareUrl,
-  extractFlightAwareTargeting,
-  FLIGHTAWARE_USER_AGENT,
+  buildVrsRouteResponse,
+  buildVrsRouteUrl,
   normalizeRouteCallsign,
-} from "@/services/aviation/flightAwareProxyModel.js";
+  VRS_ROUTE_USER_AGENT,
+} from "@/services/aviation/vrsRouteProxyModel.js";
 
-async function scrapeFlightAware(callsign) {
+async function fetchVrsStandingRoute(callsign) {
   let response;
   try {
-    response = await fetch(buildFlightAwareUrl(callsign), {
+    response = await fetch(buildVrsRouteUrl(callsign), {
       headers: {
-        "User-Agent": FLIGHTAWARE_USER_AGENT,
-        "Accept-Language": "en-US,en;q=0.9",
-        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": VRS_ROUTE_USER_AGENT,
+        Accept: "application/json",
       },
       signal: AbortSignal.timeout(9_000),
     });
   } catch (err) {
-    console.warn(`[flight-scraper] fetch failed for ${callsign}:`, err.message);
+    console.warn(`[vrs-route] fetch failed for ${callsign}:`, err.message);
     return null;
   }
 
   if (!response.ok) {
-    console.warn(`[flight-scraper] HTTP ${response.status} for ${callsign}`);
+    console.warn(`[vrs-route] HTTP ${response.status} for ${callsign}`);
     return null;
   }
 
-  const html = await readResponseText(response, {
-    label: "FlightAware route page",
-    maxBytes: 2 * 1024 * 1024,
+  const payload = await readResponseJson(response, {
+    label: "VRS standing-data route",
+    maxBytes: 512 * 1024,
   });
-  return extractFlightAwareTargeting(html);
+  return buildVrsRouteResponse(callsign, payload);
 }
 
 const rateLimit = {
@@ -67,15 +65,14 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const scraped = await scrapeFlightAware(callsign);
-    const body = buildFlightAwareRouteResponse(callsign, scraped);
+    const body = await fetchVrsStandingRoute(callsign);
 
     return Response.json(body, {
-      status: scraped ? 200 : 404,
+      status: body ? 200 : 404,
       headers: buildProxyHeaders(request),
     });
   } catch (err) {
-    console.error(`[flight-scraper] error for ${callsign}:`, err);
+    console.error(`[vrs-route] error for ${callsign}:`, err);
     return jsonProxyResponse(
       request,
       { error: "Internal error" },

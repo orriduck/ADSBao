@@ -146,7 +146,7 @@ function AircraftRow({
           {route ? (
             <div className="mt-1 flex min-w-0 items-center gap-1.5">
               {airlineIconUrl && (
-                // eslint-disable-next-line @next/next/no-img-element -- FlightAware logo URLs are dynamic.
+                // eslint-disable-next-line @next/next/no-img-element -- Airline logo URLs are dynamic.
                 <img
                   src={airlineIconUrl}
                   alt={airlineName ? `${airlineName} logo` : ""}

@@ -1,26 +1,26 @@
 const normalizeAirport = (airport) => {
   if (!airport) return null;
-  const lat = Number(airport.latitude);
-  const lon = Number(airport.longitude);
+  const lat = Number(airport.lat);
+  const lon = Number(airport.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
 
   return {
-    icao: String(airport.icao_code || "")
+    icao: String(airport.icao || "")
       .trim()
       .toUpperCase(),
-    iata: String(airport.iata_code || "")
+    iata: String(airport.iata || "")
       .trim()
       .toUpperCase(),
     name: String(airport.name || "").trim(),
     municipality: String(airport.municipality || "").trim(),
-    country: String(airport.country_name || "").trim(),
+    country: String(airport.country || "").trim(),
     lat,
     lon,
   };
 };
 
 export const normalizeFlightRoute = (payload) => {
-  const route = payload?.response?.flightroute;
+  const route = payload && typeof payload === "object" ? payload : null;
   if (!route) return null;
 
   const origin = normalizeAirport(route.origin);
@@ -31,26 +31,28 @@ export const normalizeFlightRoute = (payload) => {
     .trim()
     .toUpperCase();
   if (!callsign) return null;
+  const number = String(route.number || "").trim();
+  const airlineIata = String(route.airline?.iata || "")
+    .trim()
+    .toUpperCase();
+  const airlineIcao = String(route.airline?.icao || "")
+    .trim()
+    .toUpperCase();
 
   return {
     callsign,
-    callsignIcao: String(route.callsign_icao || "")
-      .trim()
-      .toUpperCase(),
-    callsignIata: String(route.callsign_iata || "")
-      .trim()
-      .toUpperCase(),
+    callsignIcao: callsign,
+    callsignIata: airlineIata && number ? `${airlineIata}${number}` : "",
     airlineName: String(route.airline?.name || "").trim(),
-    airlineIcao: String(route.airline?.icao || "")
-      .trim()
-      .toUpperCase(),
-    airlineIata: String(route.airline?.iata || "")
-      .trim()
-      .toUpperCase(),
-    airlineIconUrl: String(route.airline?.icon_url || route.airline?.iconUrl || "")
+    airlineIcao,
+    airlineIata,
+    airlineIconUrl: String(route.airline?.iconUrl || "")
       .trim(),
     origin,
     destination,
-    source: "flightaware",
+    route: route.route || null,
+    airports: Array.isArray(route.airports) ? route.airports : [],
+    source: route.source || "vrs-standing-data",
+    confidence: route.confidence || "",
   };
 };
