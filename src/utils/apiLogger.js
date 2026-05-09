@@ -3,14 +3,22 @@ export const withAuditLogging = (fetchImpl, { service = 'API', getParams } = {})
     const start = performance.now()
     try {
       const response = await fetchImpl(url, options)
-      const ms = Math.round(performance.now() - start)
+      const duration_ms = Math.round(performance.now() - start)
       const params = typeof getParams === 'function' ? getParams(url) : null
-      const paramsStr = params ? ` ${JSON.stringify(params)}` : ''
-      console.log(`[audit:api] ${service}${paramsStr} → HTTP ${response.status} +${ms}ms`)
+      console.log("[audit:api]", {
+        service,
+        ...(params ? { params } : {}),
+        status: response.status,
+        duration_ms,
+      })
       return response
     } catch (err) {
-      const ms = Math.round(performance.now() - start)
-      console.log(`[audit:api] ${service} → ERROR ${err.message} +${ms}ms`)
+      const duration_ms = Math.round(performance.now() - start)
+      console.log("[audit:api]", {
+        service,
+        error: err.message,
+        duration_ms,
+      })
       throw err
     }
   }

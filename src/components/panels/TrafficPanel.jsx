@@ -2,6 +2,7 @@
 
 import NumberFlow from "@number-flow/react";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
+import PanelHeading from "./PanelHeading.jsx";
 
 export default function TrafficPanel({
   aircraft = [],
@@ -9,12 +10,7 @@ export default function TrafficPanel({
 }) {
   return (
     <section className="glass-panel traffic-panel">
-      <div className="panel-heading">
-        <div>
-          <div className="panel-kicker">Airport traffic</div>
-          <h2>Nearby aircraft</h2>
-        </div>
-      </div>
+      <PanelHeading kicker="Airport traffic" title="Nearby aircraft" />
 
       <div className="traffic-counts">
         <Metric label="Total" value={aircraft.length} color="var(--atc-text)" />

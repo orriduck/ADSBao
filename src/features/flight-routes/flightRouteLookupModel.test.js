@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   buildRoutesByCallsign,
+  getRouteLookupStats,
   getFreshRouteCacheEntry,
   resolvePendingRouteLookups,
 } from "./flightRouteLookupModel.js";
@@ -29,22 +30,52 @@ const route = {
 {
   const cache = new Map([["DAL123", { route, time: now }]]);
   const inFlight = new Set(["UAL456"]);
+  const queued = new Set(["AAL789"]);
   const pending = resolvePendingRouteLookups({
     aircraft: [
       { callsign: " dal123 " },
       { callsign: "UAL456" },
       { callsign: "AAL789" },
       { callsign: "AAL789" },
+      { callsign: "JBU123" },
       { callsign: "TOO-LONG-CALLSIGN" },
       { callsign: "" },
     ],
     cache,
     inFlight,
+    queued,
     now,
     maxLookups: 3,
   });
 
-  assert.deepEqual(pending, ["AAL789"]);
+  assert.deepEqual(pending, ["JBU123"]);
+}
+
+{
+  const cache = new Map([
+    ["DAL123", { route, time: now }],
+    ["AAL789", { route: null, time: now }],
+  ]);
+  const stats = getRouteLookupStats({
+    aircraft: [
+      { callsign: "DAL123" },
+      { callsign: "AAL789" },
+      { callsign: "JBU123" },
+      { callsign: "UAL456" },
+      { callsign: "N12345" },
+    ],
+    cache,
+    queued: new Set(["JBU123"]),
+    inFlight: new Set(["UAL456"]),
+    now,
+  });
+
+  assert.deepEqual(stats, {
+    done: 2,
+    in_queue: 1,
+    inflight: 1,
+    not_do: 1,
+  });
 }
 
 {

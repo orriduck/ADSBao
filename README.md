@@ -40,6 +40,16 @@ vercel
 
 The deployment path intentionally keeps upstream ownership visible: airport search goes to airportsapi.com from the browser, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler.
 
+### Verification
+```bash
+pnpm test
+pnpm build
+```
+
+`pnpm test` discovers every `*.test.js` file and runs the full remaining critical mechanism suite. Do not add package scripts for individual tests; if a test file exists, it is part of the full suite.
+
+For UI/component behavior, verify the running app instead of adding copy or toggle-level tests. Use `pnpm run dev` for local checks at `http://localhost:3000`. For pushed branches, Vercel Git integration creates preview deployments; check the PR deployment URL or run `vercel list --environment preview`, then inspect or hit protected previews with `vercel inspect <preview-url>` and `vercel curl / --deployment <preview-url>`.
+
 ---
 
 ## Contributing
@@ -80,7 +90,7 @@ ADSBao/
 ```
 
 ## External Data Use
-ADSBao uses public aviation data sources and avoids intentionally high-volume polling. The aircraft overlay polls every 15 seconds by default, and airport directory results are cached in the browser for six hours. See `docs/architecture.md` for endpoint decisions, Vercel routing, and release-line context.
+ADSBao uses public aviation data sources and avoids intentionally high-volume polling. The aircraft overlay polls every 3 seconds by default, and airport directory results are cached in the browser for six hours. See `docs/architecture.md` for endpoint decisions, Vercel routing, and release-line context.
 
 ## Release Policy
 Vercel deploys every push to `main`, but deployments are not product releases. Product versions are bumped only when user-visible product scope changes, production behavior changes, or fixes should be documented in `CHANGELOG.md`.

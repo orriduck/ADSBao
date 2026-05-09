@@ -3,6 +3,7 @@
 import { useWeatherCarouselNavigation } from "../../features/weather/useWeatherCarouselNavigation.js";
 import { useWeatherSlides } from "../../features/weather/useWeatherSlides.jsx";
 import { formatObsTime } from "../../features/weather/weatherModel.js";
+import PanelHeading from "./PanelHeading.jsx";
 
 export default function WeatherPanel({
   metar,
@@ -33,13 +34,12 @@ export default function WeatherPanel({
 
   return (
     <section className="glass-panel weather-instrument-panel weather-carousel-panel">
-      <div className="panel-heading weather-carousel-heading">
-        <div>
-          <div className="panel-kicker">{activeSlide.eyebrow}</div>
-          <h2>{activeSlide.title}</h2>
-        </div>
-        <span className="panel-pill">{formatObsTime(metar?.obsTime)}</span>
-      </div>
+      <PanelHeading
+        kicker={activeSlide.eyebrow}
+        title={activeSlide.title}
+        pill={formatObsTime(metar?.obsTime)}
+        className="weather-carousel-heading"
+      />
 
       <div
         ref={trackRef}

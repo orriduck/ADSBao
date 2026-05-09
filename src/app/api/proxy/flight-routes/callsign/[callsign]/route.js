@@ -43,7 +43,7 @@ async function scrapeFlightAware(callsign) {
 
 const rateLimit = {
   key: "proxy:flight-routes",
-  maxRequests: 30,
+  maxRequests: 360,
   windowMs: 60_000,
 };
 
