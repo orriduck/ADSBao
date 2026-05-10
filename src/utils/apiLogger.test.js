@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { withAuditLogging } from "./apiLogger.js";
+import { formatAuditLogLine, withAuditLogging } from "./apiLogger.js";
 
 const originalConsoleLog = console.log;
 const logs = [];
@@ -10,19 +10,26 @@ console.log = (...args) => {
 };
 
 try {
+  assert.equal(
+    formatAuditLogLine({
+      endpointPath: "/api/proxy/flight-routes/callsign/DAL123",
+      status: 200,
+      durationMs: 14,
+    }),
+    "[audit:/api/proxy/flight-routes/callsign/DAL123]: 200 +14ms",
+  );
+
   const okFetch = async () => ({ status: 200 });
   const auditedOkFetch = withAuditLogging(okFetch, {
     service: "example",
-    getParams: () => ({ callsign: "DAL123" }),
   });
 
   const response = await auditedOkFetch("/route/DAL123");
   assert.equal(response.status, 200);
-  assert.equal(logs[0][0], "[audit:api]");
-  assert.equal(logs[0][1].service, "example");
-  assert.deepEqual(logs[0][1].params, { callsign: "DAL123" });
-  assert.equal(logs[0][1].status, 200);
-  assert.equal(typeof logs[0][1].duration_ms, "number");
+  assert.match(
+    logs[0][0],
+    /^\[audit:\/route\/DAL123\]: 200 \+\d+ms$/,
+  );
 
   const auditedErrorFetch = withAuditLogging(
     async () => {
@@ -32,13 +39,7 @@ try {
   );
 
   await assert.rejects(() => auditedErrorFetch("/broken"), /network failed/);
-  assert.equal(logs[1][0], "[audit:api]");
-  assert.deepEqual(logs[1][1], {
-    service: "broken",
-    error: "network failed",
-    duration_ms: logs[1][1].duration_ms,
-  });
-  assert.equal(typeof logs[1][1].duration_ms, "number");
+  assert.match(logs[1][0], /^\[audit:\/broken\]: ERROR \+\d+ms$/);
 } finally {
   console.log = originalConsoleLog;
 }

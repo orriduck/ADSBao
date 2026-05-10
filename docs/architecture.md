@@ -40,6 +40,10 @@ The app uses same-origin Vercel paths for upstream aviation sources that are not
 
 These paths are implemented as Next.js Route Handlers under `src/app/api/proxy/**`. The handlers keep upstream access same-origin, validate route and query parameters, apply lightweight per-IP rate limits, reject disallowed browser origins, and cap upstream response body sizes before parsing.
 
+The nearby-airport proxy can also use Supabase as a persistent response cache. When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are configured in Vercel, `/api/proxy/airports/nearby` reads and writes `public.nearby_airport_cache` records with a 90-day `expires_at` TTL. The migration grants the `anon` role only the select/insert/update permissions needed for this public cache table, with RLS policies restricted to `nearby-airports:%` cache keys. Cache failures are non-fatal: the handler falls back to AIRAC and logs the Supabase read/write error server-side.
+
+Airport identity metadata is cached separately in `public.airport_metadata_cache`. Search and browse responses write normalized rows for ICAO/IATA/code, display name, city, state, country, airport type, latitude, longitude, elevation, and source. Direct airport resolution checks this table first before calling airportsapi.com. The nearby-airport proxy also writes metadata for airports returned by the AIRAC overlay path.
+
 ### Vercel security posture
 
 Vercel's platform DDoS mitigation remains enabled automatically for the deployment. The repository does not depend on paid Vercel WAF rate limiting for normal operation; proxy throttling lives in application code so the default deployment path does not require a new paid feature.

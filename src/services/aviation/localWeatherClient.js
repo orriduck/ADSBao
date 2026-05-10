@@ -17,13 +17,6 @@ export const createLocalWeatherClient = ({
 
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: "Open-Meteo/CurrentWeather",
-    getParams(url) {
-      const p = url.split("/");
-      return {
-        lat: p[p.length - 2],
-        lon: p[p.length - 1],
-      };
-    },
   });
 
   return {

@@ -1,4 +1,5 @@
 import { withAuditLogging } from "../../utils/apiLogger.js";
+import { createAirportMetadataSupabaseCacheFromEnv } from "../airports/airportMetadataSupabaseCache.js";
 import { readResponseJson } from "../apiProxySecurity.js";
 import { createAirportDirectoryCache } from "./airportDirectoryCache.js";
 import {
@@ -21,6 +22,7 @@ export const createAirportDirectoryClient = ({
   storage,
   now = () => Date.now(),
   ttlMs,
+  metadataCache = createAirportMetadataSupabaseCacheFromEnv({ now }),
 } = {}) => {
   if (!fetchImpl) {
     throw new Error("Airport directory client requires fetch support");
@@ -33,6 +35,15 @@ export const createAirportDirectoryClient = ({
   });
 
   const auditedFetch = withAuditLogging(fetchImpl, { service: "airportsapi.com" });
+
+  const writeAirportMetadata = async (airports) => {
+    if (!metadataCache) return;
+    try {
+      await metadataCache.writeMany(airports);
+    } catch (error) {
+      console.warn("[airport-directory] Supabase metadata cache write failed", error);
+    }
+  };
 
   const fetchJson = async (url, { allow404 = false } = {}) => {
     const response = await auditedFetch(url, {
@@ -116,10 +127,12 @@ export const createAirportDirectoryClient = ({
       ),
     ).slice(0, limit);
 
-    return setCached(cacheKey, {
+    const payload = {
       airports,
       source: "airportsapi.com",
-    });
+    };
+    await writeAirportMetadata(airports);
+    return setCached(cacheKey, payload);
   };
 
   const searchAirports = async ({ query, country = "", kind = "all", limit = 60 }) => {
@@ -185,10 +198,12 @@ export const createAirportDirectoryClient = ({
       trimmed,
     ).slice(0, limit);
 
-    return setCached(cacheKey, {
+    const payload = {
       airports,
       source: "airportsapi.com",
-    });
+    };
+    await writeAirportMetadata(airports);
+    return setCached(cacheKey, payload);
   };
 
   return {
@@ -204,12 +219,23 @@ export const createAirportDirectoryClient = ({
         throw new Error("Airport code is required");
       }
 
+      if (metadataCache) {
+        try {
+          const cachedAirport = await metadataCache.read(trimmed);
+          if (cachedAirport) return cachedAirport;
+        } catch (error) {
+          console.warn("[airport-directory] Supabase metadata cache read failed", error);
+        }
+      }
+
       const exactPayload = await fetchJson(
         `${AIRPORT_DIRECTORY_API_BASE_URL}/airports/${trimmed}`,
         { allow404: true },
       );
       if (exactPayload?.data) {
-        return normalizeAirport(exactPayload.data);
+        const airport = normalizeAirport(exactPayload.data);
+        await writeAirportMetadata([airport]);
+        return airport;
       }
 
       const result = await searchAirports({ query: trimmed, limit: 1 });

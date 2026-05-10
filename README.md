@@ -38,7 +38,7 @@ The repo includes `vercel.json` for Git-triggered Vercel builds with same-origin
 vercel
 ```
 
-The deployment path intentionally keeps upstream ownership visible: airport search goes to airportsapi.com from the browser, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler.
+The deployment path intentionally keeps upstream ownership visible: airport search goes to airportsapi.com from the browser, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Nearby-airport overlay responses and normalized airport metadata can be persisted in Supabase for 90 days when Vercel provides the publishable-key env vars from `.env.example`.
 
 ### Verification
 ```bash

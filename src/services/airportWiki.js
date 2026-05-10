@@ -58,9 +58,6 @@ export const fetchAirportWikiSummary = async (airport, fetchImpl = fetch) => {
   const candidates = getAirportWikiTitleCandidates(airport)
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: 'Wikipedia',
-    getParams(url) {
-      return { title: decodeURIComponent(url.split('/').pop() || '') }
-    },
   })
 
   for (const title of candidates) {
