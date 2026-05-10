@@ -4,6 +4,7 @@ import {
   buildVrsRouteResponse,
   buildVrsRouteUrl,
   normalizeRouteCallsign,
+  VRS_ROUTE_MISS_STATUS,
 } from "./vrsRouteProxyModel.js";
 
 const italyToAmsterdam = {
@@ -40,6 +41,7 @@ assert.equal(
   buildVrsRouteUrl("ity110"),
   "https://vrs-standing-data.adsb.lol/routes/IT/ITY110.json",
 );
+assert.equal(VRS_ROUTE_MISS_STATUS, 200);
 
 const response = buildVrsRouteResponse("ity110", italyToAmsterdam);
 

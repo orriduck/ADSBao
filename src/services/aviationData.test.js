@@ -288,6 +288,14 @@ try {
 }
 
 {
+  const client = createFlightRouteClient({
+    fetchImpl: async () => createJsonResponse(null, 200),
+  });
+
+  assert.equal(await client.fetchFlightRoute("NOPE123"), null);
+}
+
+{
   // 429 should throw with rate-limited message
   const calls = [];
   const client = createFlightRouteClient({

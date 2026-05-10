@@ -9,6 +9,7 @@ import {
   buildVrsRouteResponse,
   buildVrsRouteUrl,
   normalizeRouteCallsign,
+  VRS_ROUTE_MISS_STATUS,
   VRS_ROUTE_USER_AGENT,
 } from "@/services/aviation/vrsRouteProxyModel.js";
 
@@ -24,6 +25,10 @@ async function fetchVrsStandingRoute(callsign) {
     });
   } catch (err) {
     console.warn(`[vrs-route] fetch failed for ${callsign}:`, err.message);
+    return null;
+  }
+
+  if (response.status === 404) {
     return null;
   }
 
@@ -68,7 +73,7 @@ export async function GET(request, { params }) {
     const body = await fetchVrsStandingRoute(callsign);
 
     return Response.json(body, {
-      status: body ? 200 : 404,
+      status: body ? 200 : VRS_ROUTE_MISS_STATUS,
       headers: buildProxyHeaders(request),
     });
   } catch (err) {
