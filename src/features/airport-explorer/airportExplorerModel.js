@@ -30,7 +30,10 @@ export function enrichAircraftWithRoutes({
   const aircraftWithRoutes = aircraft.map((item) => {
     const key = normalizeCallsign(item.callsign);
     const route = routesByCallsign[key] || null;
-    const movement = resolveMovement(route, airportProfile?.icao, airportProfile?.iata);
+    const movement = resolveMovement(route, airportProfile?.icao, airportProfile?.iata, {
+      aircraft: item,
+      airport: airportProfile,
+    });
 
     return {
       ...item,

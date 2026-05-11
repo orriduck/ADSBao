@@ -62,3 +62,52 @@ assert.equal(enriched[1].airportContext.movement, "arrival");
 assert.equal(enriched[2].movement, UNKNOWN);
 assert.equal(enriched[2].flightRouteLabel, "JFK -> ORD");
 assert.equal(enriched[2].airportContext.movement, "unknown");
+
+const ordProfile = resolveAirportProfile({ icao: "kord" });
+const roundTripRoute = {
+  origin: { icao: "KORD", iata: "ORD" },
+  destination: { icao: "KORD", iata: "ORD" },
+  airports: [
+    { icao: "KORD", iata: "ORD", lat: 41.9786, lon: -87.9048 },
+    { icao: "KMDT", iata: "MDT", lat: 40.1935, lon: -76.763397 },
+    { icao: "KORD", iata: "ORD", lat: 41.9786, lon: -87.9048 },
+  ],
+};
+
+const roundTripEnriched = enrichAircraftWithRoutes({
+  airportProfile: ordProfile,
+  aircraft: [
+    {
+      icao24: "rt1",
+      callsign: "AAL3243",
+      lat: 42.05,
+      lon: -88.6,
+      track: 96,
+    },
+    {
+      icao24: "rt2",
+      callsign: "AAL3244",
+      lat: 42.05,
+      lon: -88.6,
+      track: 276,
+    },
+    {
+      icao24: "rt3",
+      callsign: "AAL3245",
+      lat: 42.05,
+      lon: -88.6,
+    },
+  ],
+  routesByCallsign: {
+    AAL3243: roundTripRoute,
+    AAL3244: roundTripRoute,
+    AAL3245: roundTripRoute,
+  },
+});
+
+assert.equal(roundTripEnriched[0].movement, ARRIVAL);
+assert.equal(roundTripEnriched[0].airportContext.movement, "arrival");
+assert.equal(roundTripEnriched[1].movement, DEPARTURE);
+assert.equal(roundTripEnriched[1].airportContext.movement, "departure");
+assert.equal(roundTripEnriched[2].movement, UNKNOWN);
+assert.equal(roundTripEnriched[2].airportContext.movement, "unknown");
