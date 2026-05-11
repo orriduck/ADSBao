@@ -4,6 +4,7 @@ import {
   buildVrsRouteResponse,
   buildVrsRouteUrl,
   normalizeRouteCallsign,
+  shouldUseAerodataboxFallback,
   VRS_ROUTE_MISS_STATUS,
 } from "./vrsRouteProxyModel.js";
 
@@ -76,6 +77,27 @@ const multiLeg = buildVrsRouteResponse("BAW123", {
 assert.equal(multiLeg.origin.icao, "EGLL");
 assert.equal(multiLeg.destination.icao, "KJFK");
 assert.equal(multiLeg.airports[1].icao, "KBOS");
+assert.equal(
+  shouldUseAerodataboxFallback(multiLeg, {
+    icao: "KBOS",
+    iata: "BOS",
+  }),
+  true,
+);
+assert.equal(
+  shouldUseAerodataboxFallback(response, {
+    icao: "EHAM",
+    iata: "AMS",
+  }),
+  false,
+);
+assert.equal(
+  shouldUseAerodataboxFallback(response, {
+    icao: "KBOS",
+    iata: "BOS",
+  }),
+  true,
+);
 
 assert.equal(
   buildVrsRouteResponse("NOPE123", {
