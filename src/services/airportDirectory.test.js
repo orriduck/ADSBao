@@ -185,3 +185,59 @@ const makeRecord = (code, overrides = {}) => ({
   assert.equal(airport.name, 'Boston Logan International Airport')
   assert.equal(airport.city, 'Boston')
 }
+
+{
+  const writes = []
+  const client = createAirportDirectoryClient({
+    fetchImpl: async () => createJsonResponse({
+      data: [makeRecord('KBOS', { name: 'Boston Logan International Airport', municipality: 'Boston' })],
+      links: [],
+    }),
+    now: () => 6_000,
+    metadataCache: {
+      async writeMany(airports) {
+        writes.push(airports)
+      },
+    },
+  })
+
+  await client.loadAirports({ country: 'US', kind: 'large_airport', limit: 13 })
+
+  assert.equal(writes.length, 1)
+  assert.equal(writes[0][0].icao, 'KBOS')
+  assert.equal(writes[0][0].name, 'Boston Logan International Airport')
+}
+
+{
+  const calls = []
+  const client = createAirportDirectoryClient({
+    fetchImpl: async (url) => {
+      calls.push(url)
+      throw new Error(`Unexpected URL: ${url}`)
+    },
+    now: () => 7_000,
+    metadataCache: {
+      async read(code) {
+        assert.equal(code, 'KBOS')
+        return {
+          icao: 'KBOS',
+          iata: 'BOS',
+          code: 'KBOS',
+          name: 'Boston Logan International Airport',
+          city: 'Boston',
+          country: 'US',
+          lat: 42.3656,
+          lon: -71.0096,
+          source: 'supabase',
+        }
+      },
+      async writeMany() {},
+    },
+  })
+
+  const airport = await client.resolveAirport('kbos')
+
+  assert.equal(calls.length, 0)
+  assert.equal(airport.icao, 'KBOS')
+  assert.equal(airport.source, 'supabase')
+}

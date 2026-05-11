@@ -31,6 +31,10 @@ function getAuditPayload() {
   return stats;
 }
 
+export function formatFlightRouteQueueAudit(stats) {
+  return `[audit:flight-route-queue]: done=${stats.done},in_queue=${stats.in_queue},inflight=${stats.inflight},not_do=${stats.not_do}`;
+}
+
 function auditRouteQueue() {
   const payload = getAuditPayload();
   const snapshot = JSON.stringify(payload);
@@ -54,7 +58,7 @@ function auditRouteQueue() {
 
   lastAuditSnapshot = snapshot;
   lastAuditLoggedAt = now;
-  console.info("[audit:flight-routes]", payload);
+  console.info(formatFlightRouteQueueAudit(payload));
 }
 
 export function useFlightRoutes(aircraft) {

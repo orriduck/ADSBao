@@ -24,14 +24,6 @@ export const createAircraftPositionClient = ({
 
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: "adsb.lol/Aircraft",
-    getParams(url) {
-      const p = url.split("/");
-      return {
-        lat: p[p.length - 3],
-        lon: p[p.length - 2],
-        distNm: p[p.length - 1],
-      };
-    },
   });
 
   return {

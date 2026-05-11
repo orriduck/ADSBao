@@ -4,6 +4,8 @@ export const VRS_STANDING_DATA_BASE =
 export const VRS_ROUTE_USER_AGENT =
   "ADSBao/0.9.0 (+https://github.com/orriduck/ADSBao) VRS-standing-data/1.0";
 
+export const VRS_ROUTE_MISS_STATUS = 200;
+
 const cleanString = (value) => String(value || "").trim();
 
 const cleanUpper = (value) => cleanString(value).toUpperCase();

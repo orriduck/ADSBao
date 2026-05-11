@@ -9,7 +9,12 @@ import {
   fetchAiracAirportDetail,
   fetchAiracAirportIndex,
 } from "@/services/airports/nearbyAirportDataClient.js";
+import { createAirportMetadataSupabaseCacheFromEnv } from "@/services/airports/airportMetadataSupabaseCache.js";
 import { filterNearbyAirports } from "@/services/airports/nearbyAirportModel.js";
+import {
+  buildNearbyAirportCacheKey,
+  createNearbyAirportSupabaseCacheFromEnv,
+} from "@/services/airports/nearbyAirportSupabaseCache.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
 const rateLimit = {
@@ -32,7 +37,7 @@ export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
 }
 
-const cacheKey = ({ country, minRunwayLength }) =>
+const indexCacheKey = ({ country, minRunwayLength }) =>
   `${country}:${minRunwayLength}`;
 
 const queryNumber = (searchParams, key) => {
@@ -41,7 +46,7 @@ const queryNumber = (searchParams, key) => {
 };
 
 async function getCachedAirportIndex({ country, minRunwayLength, now = Date.now }) {
-  const key = cacheKey({ country, minRunwayLength });
+  const key = indexCacheKey({ country, minRunwayLength });
   const currentTime = now();
   const cached = indexCache.get(key);
   if (cached && cached.expiresAt > currentTime) return cached.promise;
@@ -78,6 +83,24 @@ async function attachRunwayMaps(airports) {
     runwayMap: details[index]?.runwayMap || null,
   }));
 }
+
+const nearbyCacheHeaders = {
+  "Cache-Control": "public, s-maxage=21600, stale-while-revalidate=86400",
+};
+
+const logSupabaseCacheWarning = (action, error) => {
+  console.warn(`[airports/nearby] Supabase cache ${action} failed`, error);
+};
+
+const writeAirportMetadata = async (airports) => {
+  const metadataCache = createAirportMetadataSupabaseCacheFromEnv();
+  if (!metadataCache) return;
+  try {
+    await metadataCache.writeMany(airports);
+  } catch (error) {
+    console.warn("[airports/nearby] Supabase metadata cache write failed", error);
+  }
+};
 
 export async function GET(request) {
   const securityResponse = enforceProxyRequest(request, { rateLimit });
@@ -122,6 +145,31 @@ export async function GET(request) {
   }
 
   try {
+    const cacheQuery = {
+      country,
+      minRunwayLength,
+      icao,
+      lat,
+      lon,
+      radiusNm,
+      limit,
+    };
+    const airportCache = createNearbyAirportSupabaseCacheFromEnv();
+    const airportCacheKey = buildNearbyAirportCacheKey(cacheQuery);
+
+    if (airportCache) {
+      try {
+        const cachedPayload = await airportCache.read(airportCacheKey);
+        if (cachedPayload) {
+          return jsonProxyResponse(request, cachedPayload, {
+            headers: nearbyCacheHeaders,
+          });
+        }
+      } catch (error) {
+        logSupabaseCacheWarning("read", error);
+      }
+    }
+
     const index = await getCachedAirportIndex({ country, minRunwayLength });
     const nearbyAirports = filterNearbyAirports({
       focus: { icao, lat, lon },
@@ -129,22 +177,31 @@ export async function GET(request) {
       radiusNm,
       limit,
     });
+    await writeAirportMetadata(nearbyAirports);
     const airports = await attachRunwayMaps(nearbyAirports);
 
-    return jsonProxyResponse(
-      request,
-      {
-        airports,
-        source: index.source,
-        radiusNm,
-        limit,
-      },
-      {
-        headers: {
-          "Cache-Control": "public, s-maxage=21600, stale-while-revalidate=86400",
-        },
-      },
-    );
+    const payload = {
+      airports,
+      source: index.source,
+      radiusNm,
+      limit,
+    };
+
+    if (airportCache) {
+      try {
+        await airportCache.write({
+          cacheKey: airportCacheKey,
+          query: cacheQuery,
+          response: payload,
+        });
+      } catch (error) {
+        logSupabaseCacheWarning("write", error);
+      }
+    }
+
+    return jsonProxyResponse(request, payload, {
+      headers: nearbyCacheHeaders,
+    });
   } catch (error) {
     console.error("[airports/nearby] AIRAC airport index load failed", error);
     return jsonProxyResponse(

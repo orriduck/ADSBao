@@ -20,9 +20,6 @@ export const createFlightRouteClient = ({
 
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: "vrs-standing-data/FlightRoute",
-    getParams(url) {
-      return { callsign: decodeURIComponent(url.split("/").pop() || "") };
-    },
   });
 
   const limiter = createRateLimiter({
@@ -50,7 +47,7 @@ export const createFlightRouteClient = ({
         },
       );
 
-      if (response.status === 400 || response.status === 404) {
+      if (response.status === 400) {
         limiter.release();
         return null;
       }

@@ -15,9 +15,6 @@ export const createMetarClient = ({
 
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: "AviationWeather/METAR",
-    getParams(url) {
-      return { icao: decodeURIComponent(url.split("/").pop() || "") };
-    },
   });
 
   return {
