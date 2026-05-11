@@ -55,6 +55,8 @@ export default function MapLayerDrawer({
   showBeams,
   showBadges,
   showAirspaceContext,
+  telemetryDisabledForTraffic = false,
+  telemetryTrafficLimit = 50,
   altitudeFocus,
   onToggleMapLabels,
   onToggleTelemetry,
@@ -91,7 +93,13 @@ export default function MapLayerDrawer({
         >
           {LAYER_TOGGLES.map((toggle) => {
             const active = Boolean(state[toggle.prop]);
-            const title = active ? toggle.activeLabel : toggle.inactiveLabel;
+            const disabled =
+              toggle.prop === "showTelemetry" && telemetryDisabledForTraffic;
+            const title = disabled
+              ? `Disabled above ${telemetryTrafficLimit} aircraft`
+              : active
+                ? toggle.activeLabel
+                : toggle.inactiveLabel;
 
             return (
               <Button
@@ -100,17 +108,25 @@ export default function MapLayerDrawer({
                 size="icon"
                 className={`ctrl-btn drawer-btn map-layer-control map-layer-toggle ${
                   active ? "active" : ""
-                }`}
+                } ${disabled ? "disabled" : ""}`}
+                disabled={disabled}
+                aria-disabled={disabled}
+                aria-describedby={disabled ? `${id}-telemetry-limit` : undefined}
                 aria-label={title}
                 aria-pressed={active}
-                data-tooltip={toggle.label}
-                onClick={state[toggle.handler]}
+                title={title}
+                data-tooltip={disabled ? title : toggle.label}
+                onClick={disabled ? undefined : state[toggle.handler]}
                 type="button"
               >
                 <MapControlIcon iconKey={toggle.iconKey} />
               </Button>
             );
           })}
+          <span id={`${id}-telemetry-limit`} className="sr-only">
+            Speed and altitude is disabled when more than{" "}
+            {telemetryTrafficLimit} aircraft are in range.
+          </span>
         </div>
       </div>
 

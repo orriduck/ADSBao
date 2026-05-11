@@ -10,3 +10,13 @@ export const DEFAULT_AIRPORT_EXPLORER_UI_STATE = {
   showAirspaceContext: true,
   altitudeFocus: DEFAULT_ALTITUDE_FOCUS,
 };
+
+export function shouldDisableTelemetryForTraffic({
+  aircraftCount = 0,
+  threshold = 50,
+} = {}) {
+  const count = Number(aircraftCount);
+  const limit = Number(threshold);
+
+  return Number.isFinite(count) && Number.isFinite(limit) && count > limit;
+}

@@ -49,6 +49,12 @@ function airportExplorerUiReducer(state, action) {
       return { ...state, showMapLabels: toggleValue(state.showMapLabels) };
     case "toggleTelemetry":
       return { ...state, showTelemetry: toggleValue(state.showTelemetry) };
+    case "setTelemetry": {
+      const showTelemetry = Boolean(action.showTelemetry);
+      if (state.showTelemetry === showTelemetry) return state;
+
+      return { ...state, showTelemetry };
+    }
     case "toggleRunwayBeams":
       return { ...state, showRunwayBeams: toggleValue(state.showRunwayBeams) };
     case "toggleRoutingPointBadges":
@@ -131,6 +137,10 @@ export function AirportExplorerUiProvider({ children }) {
     dispatch({ type: "toggleTelemetry" });
   }, []);
 
+  const setTelemetry = useCallback((showTelemetry) => {
+    dispatch({ type: "setTelemetry", showTelemetry });
+  }, []);
+
   const toggleRunwayBeams = useCallback(() => {
     dispatch({ type: "toggleRunwayBeams" });
   }, []);
@@ -175,6 +185,7 @@ export function AirportExplorerUiProvider({ children }) {
       closeSidebar,
       toggleMapLabels,
       toggleTelemetry,
+      setTelemetry,
       toggleRunwayBeams,
       toggleRoutingPointBadges,
       toggleAirspaceContext,
@@ -199,6 +210,7 @@ export function AirportExplorerUiProvider({ children }) {
       closeSidebar,
       toggleMapLabels,
       toggleTelemetry,
+      setTelemetry,
       toggleRunwayBeams,
       toggleRoutingPointBadges,
       toggleAirspaceContext,

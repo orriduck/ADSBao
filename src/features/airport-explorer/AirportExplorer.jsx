@@ -2,7 +2,9 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
+import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
 import {
   AirportExplorerUiProvider,
   useAirportExplorerUi,
@@ -10,9 +12,12 @@ import {
 import AircraftDataLoadingOverlay from "./AircraftDataLoadingOverlay.jsx";
 import AirportExplorerMapMenu from "./AirportExplorerMapMenu.jsx";
 import { resolveAirportProfile } from "./airportExplorerModel.js";
+import { shouldDisableTelemetryForTraffic } from "./airportExplorerUiModel.js";
 import { useAirportExplorerData } from "./useAirportExplorerData.js";
 import { useAirportProcedures } from "../../hooks/useAirportProcedures.js";
 import { useNearbyAirports } from "../../hooks/useNearbyAirports.js";
+
+const TELEMETRY_AUTO_DISABLE_TOAST_ID = "airport-telemetry-auto-disable";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -46,6 +51,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectedAircraftId,
     closeSidebar,
     selectAircraft,
+    setTelemetry,
     setSelectedAircraftId,
   } = useAirportExplorerUi();
   const airportProfile = useMemo(
@@ -59,6 +65,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     lat: airportProfile.lat,
     lon: airportProfile.lon,
   });
+  const telemetryTrafficLimit =
+    AIRPORT_EXPLORER_UI_CONFIG.telemetryAutoDisableAircraftLimit;
+  const telemetryDisabledForTraffic = shouldDisableTelemetryForTraffic({
+    aircraftCount: traffic.aircraft.length,
+    threshold: telemetryTrafficLimit,
+  });
 
   useEffect(() => {
     if (!selectedAircraftId) return;
@@ -67,6 +79,22 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     );
     if (!stillVisible) setSelectedAircraftId("");
   }, [selectedAircraftId, setSelectedAircraftId, traffic.aircraft]);
+
+  useEffect(() => {
+    if (!showTelemetry || !telemetryDisabledForTraffic) return;
+
+    setTelemetry(false);
+    toast.info("Speed and altitude hidden", {
+      id: TELEMETRY_AUTO_DISABLE_TOAST_ID,
+      description: `Dense traffic (${traffic.aircraft.length} aircraft) can slow map rendering, so telemetry is disabled above ${telemetryTrafficLimit}.`,
+    });
+  }, [
+    showTelemetry,
+    setTelemetry,
+    telemetryDisabledForTraffic,
+    telemetryTrafficLimit,
+    traffic.aircraft.length,
+  ]);
 
   useEffect(() => {
     if (!isMobile) return undefined;
@@ -132,7 +160,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       )}
 
       <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
-        {!(isMobile && sidebarOpen) && <AirportExplorerMapMenu />}
+        {!(isMobile && sidebarOpen) && (
+          <AirportExplorerMapMenu
+            telemetryDisabledForTraffic={telemetryDisabledForTraffic}
+            telemetryTrafficLimit={telemetryTrafficLimit}
+          />
+        )}
 
         <AirportMap
           icao={airportProfile.icao}

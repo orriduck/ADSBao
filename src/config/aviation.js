@@ -8,6 +8,7 @@ export const AIRPORT_EXPLORER_UI_CONFIG = {
   desktopSidebarWidth: "25rem",
   mobileBreakpointPx: 768,
   adsbLoadingFadeMs: 1100,
+  telemetryAutoDisableAircraftLimit: 50,
 };
 
 export const AIRCRAFT_TRAFFIC_CONFIG = {

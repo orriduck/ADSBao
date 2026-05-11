@@ -24,6 +24,8 @@ export default function MapControlBar({
   showRunwayBeams = true,
   showRoutingPointBadges = true,
   showAirspaceContext = true,
+  telemetryDisabledForTraffic = false,
+  telemetryTrafficLimit = 50,
   altitudeFocus = "all",
   onZoom,
   onAltitudeFocus,
@@ -95,6 +97,8 @@ export default function MapControlBar({
           showBeams={showRunwayBeams}
           showBadges={showRoutingPointBadges}
           showAirspaceContext={showAirspaceContext}
+          telemetryDisabledForTraffic={telemetryDisabledForTraffic}
+          telemetryTrafficLimit={telemetryTrafficLimit}
           altitudeFocus={altitudeFocus}
           onToggleMapLabels={onToggleMapLabels}
           onToggleTelemetry={onToggleTelemetry}
