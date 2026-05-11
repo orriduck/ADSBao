@@ -3,6 +3,8 @@ export const AERODATABOX_RAPIDAPI_BASE =
 
 export const AERODATABOX_RAPIDAPI_HOST = "aerodatabox.p.rapidapi.com";
 
+export const AERODATABOX_MIN_REQUEST_INTERVAL_MS = 1100;
+
 const cleanString = (value) => String(value || "").trim();
 
 const cleanUpper = (value) => cleanString(value).toUpperCase();
@@ -65,6 +67,18 @@ export function buildAerodataboxFlightUrl(callsign, dateLocal) {
   return url.toString();
 }
 
+export function reserveAerodataboxRequestSlot({
+  now = Date.now(),
+  nextAllowedAt = 0,
+  minIntervalMs = AERODATABOX_MIN_REQUEST_INTERVAL_MS,
+} = {}) {
+  const startAt = Math.max(now, nextAllowedAt);
+  return {
+    delayMs: Math.max(0, startAt - now),
+    nextAllowedAt: startAt + minIntervalMs,
+  };
+}
+
 function airportMatchesTarget(airport, targetAirport = {}) {
   const targetIcao = sanitizeCode(targetAirport.icao, { min: 3, max: 4 });
   const targetIata = sanitizeCode(targetAirport.iata, { min: 3, max: 3 });
@@ -96,6 +110,33 @@ function cleanFlightNumber(number, airline = {}) {
   return normalized || cleanString(number);
 }
 
+function flightStatusRank(status) {
+  switch (cleanUpper(status)) {
+    case "EXPECTED":
+    case "DELAYED":
+    case "CHECKIN":
+    case "BOARDING":
+    case "DEPARTED":
+    case "ENROUTE":
+    case "APPROACHING":
+    case "LANDED":
+      return 2;
+    case "ARRIVED":
+    case "CANCELED":
+    case "CANCELLED":
+      return 0;
+    default:
+      return 1;
+  }
+}
+
+function scoreFlightCandidate({ flight, origin, destination, targetAirport }) {
+  let score = flightStatusRank(flight?.status);
+  if (airportMatchesTarget(destination, targetAirport)) score += 4;
+  if (airportMatchesTarget(origin, targetAirport)) score += 2;
+  return score;
+}
+
 export function buildAerodataboxFlightRouteResponse(
   callsign,
   payload,
@@ -104,6 +145,8 @@ export function buildAerodataboxFlightRouteResponse(
   const flights = Array.isArray(payload) ? payload : payload ? [payload] : [];
   const normalizedCallsign = cleanUpper(callsign).replace(/\s+/g, "");
   if (!normalizedCallsign) return null;
+
+  let best = null;
 
   for (const flight of flights) {
     if (!flightMatchesCallsign(flight, normalizedCallsign)) continue;
@@ -118,28 +161,38 @@ export function buildAerodataboxFlightRouteResponse(
       continue;
     }
 
-    return {
-      callsign:
-        cleanUpper(flight?.callSign).replace(/\s+/g, "") || normalizedCallsign,
-      number: cleanFlightNumber(flight?.number, flight?.airline),
-      airline: {
-        icao: sanitizeCode(flight?.airline?.icao, { min: 2, max: 3 }),
-        iata: sanitizeCode(flight?.airline?.iata, { min: 2, max: 2 }),
-        name: cleanString(flight?.airline?.name),
-        callsign: "",
-        iconUrl: "",
-      },
-      origin,
-      destination,
-      route: {
-        icao: `${origin.icao}-${destination.icao}`,
-        iata: origin.iata && destination.iata ? `${origin.iata}-${destination.iata}` : "",
-      },
-      airports: [origin, destination],
-      source: "aerodatabox",
-      confidence: "flight-status",
-    };
+    const score = scoreFlightCandidate({ flight, origin, destination, targetAirport });
+    if (!best || score > best.score) {
+      best = { flight, origin, destination, score };
+    }
   }
 
-  return null;
+  if (!best) return null;
+
+  const { flight, origin, destination } = best;
+
+  return {
+    callsign:
+      cleanUpper(flight?.callSign).replace(/\s+/g, "") || normalizedCallsign,
+    number: cleanFlightNumber(flight?.number, flight?.airline),
+    airline: {
+      icao: sanitizeCode(flight?.airline?.icao, { min: 2, max: 3 }),
+      iata: sanitizeCode(flight?.airline?.iata, { min: 2, max: 2 }),
+      name: cleanString(flight?.airline?.name),
+      callsign: "",
+      iconUrl: "",
+    },
+    origin,
+    destination,
+    route: {
+      icao: `${origin.icao}-${destination.icao}`,
+      iata:
+        origin.iata && destination.iata
+          ? `${origin.iata}-${destination.iata}`
+          : "",
+    },
+    airports: [origin, destination],
+    source: "aerodatabox",
+    confidence: "flight-status",
+  };
 }

@@ -18,12 +18,25 @@ import {
   AERODATABOX_RAPIDAPI_HOST,
   buildAerodataboxFlightRouteResponse,
   buildAerodataboxFlightUrl,
+  reserveAerodataboxRequestSlot,
   resolveAerodataboxDateLocal,
 } from "@/services/aviation/aerodataboxRouteProxyModel.js";
 
 const aerodataboxRapidApiKey = process.env.AERODATABOX_RAPIDAPI_KEY || "";
 const aerodataboxRapidApiHost =
   process.env.AERODATABOX_RAPIDAPI_HOST || AERODATABOX_RAPIDAPI_HOST;
+let nextAerodataboxRequestAt = 0;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitForAerodataboxSlot() {
+  const slot = reserveAerodataboxRequestSlot({
+    now: Date.now(),
+    nextAllowedAt: nextAerodataboxRequestAt,
+  });
+  nextAerodataboxRequestAt = slot.nextAllowedAt;
+  if (slot.delayMs > 0) await sleep(slot.delayMs);
+}
 
 async function fetchVrsStandingRoute(callsign) {
   let response;
@@ -66,6 +79,7 @@ async function fetchAerodataboxRoute(callsign, targetAirport) {
   );
   let response;
   try {
+    await waitForAerodataboxSlot();
     response = await auditedFetch(url, {
       headers: {
         Accept: "application/json",
