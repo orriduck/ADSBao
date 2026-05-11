@@ -69,6 +69,25 @@ const cleanRouteCode = (value) => {
   return route;
 };
 
+const airportMatchesTarget = (airport, targetAirport = {}) => {
+  const targetIcao = sanitizeAirportCode(targetAirport.icao, { min: 3, max: 4 });
+  const targetIata = sanitizeAirportCode(targetAirport.iata, { min: 3, max: 3 });
+  if (!targetIcao && !targetIata) return true;
+  return (
+    (targetIcao && airport?.icao === targetIcao) ||
+    (targetIata && airport?.iata === targetIata)
+  );
+};
+
+export function shouldUseAerodataboxFallback(route, targetAirport = {}) {
+  if (!route) return false;
+  if (Array.isArray(route.airports) && route.airports.length > 2) return true;
+  return (
+    !airportMatchesTarget(route.origin, targetAirport) &&
+    !airportMatchesTarget(route.destination, targetAirport)
+  );
+}
+
 export function buildVrsRouteResponse(callsign, payload) {
   const normalizedCallsign = normalizeRouteCallsign(
     payload?.callsign || callsign,

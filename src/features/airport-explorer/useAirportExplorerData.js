@@ -24,7 +24,7 @@ export function useAirportExplorerData(airportProfile) {
     airportProfile.lon,
   );
   const { routesByCallsign, loadingCount: routeLoadingCount } =
-    useFlightRoutes(aircraft);
+    useFlightRoutes(aircraft, airportProfile);
 
   const aircraftWithRoutes = useMemo(
     () =>

@@ -29,15 +29,26 @@ export const createFlightRouteClient = ({
 
   let consecutiveBackoffMs = 0;
 
+  const routeUrl = (callsign, targetAirport = {}) => {
+    const params = new URLSearchParams();
+    const airportIcao = normalizeCallsign(targetAirport.icao || "");
+    const airportIata = normalizeCallsign(targetAirport.iata || "");
+    if (airportIcao) params.set("airportIcao", airportIcao);
+    if (airportIata) params.set("airportIata", airportIata);
+    const query = params.toString();
+    return `${baseUrl}/${encodeURIComponent(callsign)}${query ? `?${query}` : ""}`;
+  };
+
   return {
-    async fetchFlightRoute(callsign) {
+    async fetchFlightRoute(callsign, targetAirport = {}) {
       const normalized = normalizeCallsign(callsign);
       if (!normalized) return null;
 
       await limiter.acquire();
 
+      const url = routeUrl(normalized, targetAirport);
       const response = await auditedFetch(
-        `${baseUrl}/${encodeURIComponent(normalized)}`,
+        url,
         {
           signal: createTimeoutSignal(AVIATION_REQUEST_TIMEOUT_MS.flightRoute),
           headers: {
@@ -74,7 +85,7 @@ export const createFlightRouteClient = ({
       try {
         return normalizeFlightRoute(JSON.parse(body));
       } catch {
-        throw new Error(`Expected JSON from ${baseUrl}/${normalized}`);
+        throw new Error(`Expected JSON from ${url}`);
       }
     },
   };
