@@ -280,8 +280,7 @@ try {
 
 {
   const client = createFlightRouteClient({
-    fetchImpl: async () =>
-      createJsonResponse({ response: "unknown callsign" }, 404),
+    fetchImpl: async () => createJsonResponse(null, 200),
   });
 
   assert.equal(await client.fetchFlightRoute("NOPE123"), null);
@@ -289,10 +288,14 @@ try {
 
 {
   const client = createFlightRouteClient({
-    fetchImpl: async () => createJsonResponse(null, 200),
+    fetchImpl: async () =>
+      createJsonResponse({ response: "unknown callsign" }, 404),
   });
 
-  assert.equal(await client.fetchFlightRoute("NOPE123"), null);
+  await assert.rejects(
+    () => client.fetchFlightRoute("NOPE123"),
+    /HTTP 404/,
+  );
 }
 
 {

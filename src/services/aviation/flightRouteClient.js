@@ -47,7 +47,7 @@ export const createFlightRouteClient = ({
         },
       );
 
-      if (response.status === 400 || response.status === 404) {
+      if (response.status === 400) {
         limiter.release();
         return null;
       }
