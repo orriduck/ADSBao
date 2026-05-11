@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  buildRouteCacheKey,
   buildRoutesByCallsign,
   getRouteLookupStats,
   resolvePendingRouteLookups,
@@ -19,6 +20,7 @@ let lastLookupStartedAt = 0;
 let lastAuditLoggedAt = 0;
 let lastAuditSnapshot = "";
 let latestAircraft = [];
+let latestRouteContext = {};
 
 function getAuditPayload() {
   const stats = getRouteLookupStats({
@@ -26,6 +28,7 @@ function getAuditPayload() {
     cache: routeCache,
     queued,
     inFlight,
+    routeContext: latestRouteContext,
     now: Date.now(),
   });
   return stats;
@@ -61,10 +64,17 @@ function auditRouteQueue() {
   console.info(formatFlightRouteQueueAudit(payload));
 }
 
-export function useFlightRoutes(aircraft) {
+export function useFlightRoutes(aircraft, routeContextInput = {}) {
   const [version, setVersion] = useState(0);
   const [loadingCount, setLoadingCount] = useState(0);
   const mountedRef = useRef(true);
+  const routeContext = useMemo(
+    () => ({
+      icao: routeContextInput?.icao || "",
+      iata: routeContextInput?.iata || "",
+    }),
+    [routeContextInput?.icao, routeContextInput?.iata],
+  );
 
   useEffect(() => {
     return () => {
@@ -74,6 +84,7 @@ export function useFlightRoutes(aircraft) {
 
   useEffect(() => {
     latestAircraft = aircraft;
+    latestRouteContext = routeContext;
 
     const bump = () => {
       if (mountedRef.current) setVersion((value) => value + 1);
@@ -96,12 +107,21 @@ export function useFlightRoutes(aircraft) {
       updateLoadingCount();
       auditRouteQueue();
       try {
-        const route = await flightRouteClient.fetchFlightRoute(callsign);
-        routeCache.set(callsign, { route, time: Date.now() });
+        const route = await flightRouteClient.fetchFlightRoute(
+          callsign,
+          routeContext,
+        );
+        routeCache.set(buildRouteCacheKey(callsign, routeContext), {
+          route,
+          time: Date.now(),
+        });
         auditRouteQueue();
       } catch (error) {
         console.warn(`Flight route lookup failed for ${callsign}:`, error.message);
-        routeCache.set(callsign, { route: null, time: Date.now() });
+        routeCache.set(buildRouteCacheKey(callsign, routeContext), {
+          route: null,
+          time: Date.now(),
+        });
         auditRouteQueue();
       } finally {
         inFlight.delete(callsign);
@@ -151,6 +171,7 @@ export function useFlightRoutes(aircraft) {
       cache: routeCache,
       inFlight,
       queued,
+      routeContext,
       now: Date.now(),
       maxLookups: Math.min(
         FLIGHT_ROUTE_LOOKUP_CONFIG.maxLookupsPerPass,
@@ -170,16 +191,17 @@ export function useFlightRoutes(aircraft) {
     }
 
     bump();
-  }, [aircraft]);
+  }, [aircraft, routeContext]);
 
   const routesByCallsign = useMemo(() => {
     version;
     return buildRoutesByCallsign({
       aircraft,
       cache: routeCache,
+      routeContext,
       now: Date.now(),
     });
-  }, [aircraft, version]);
+  }, [aircraft, routeContext, version]);
 
   return { routesByCallsign, loadingCount };
 }

@@ -270,10 +270,16 @@ try {
     },
   });
 
-  const route = await client.fetchFlightRoute(" baw213 ");
+  const route = await client.fetchFlightRoute(" baw213 ", {
+    icao: "KBOS",
+    iata: "BOS",
+  });
 
   assert.equal(calls.length, 1);
-  assert.equal(calls[0], "/api/proxy/flight-routes/callsign/BAW213");
+  assert.equal(
+    calls[0],
+    "/api/proxy/flight-routes/callsign/BAW213?airportIcao=KBOS&airportIata=BOS",
+  );
   assert.equal(route.origin.iata, "LHR");
   assert.equal(route.destination.icao, "KBOS");
 }

@@ -1,14 +1,35 @@
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../../config/aviation.js";
 import { isLookupCallsign, normalizeCallsign } from "../../utils/callsign.js";
 
-export function getFreshRouteCacheEntry(cache, callsign, now = Date.now()) {
-  const cached = cache.get(callsign);
+const routeContextCode = (value) =>
+  String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+
+export function buildRouteCacheKey(callsign, routeContext = {}) {
+  const normalizedCallsign = normalizeCallsign(callsign);
+  if (!normalizedCallsign) return "";
+  const airportIcao = routeContextCode(routeContext.icao);
+  const airportIata = routeContextCode(routeContext.iata);
+  const suffix = [airportIcao, airportIata].filter(Boolean).join("|");
+  return suffix ? `${normalizedCallsign}|${suffix}` : normalizedCallsign;
+}
+
+export function getFreshRouteCacheEntry(
+  cache,
+  callsign,
+  now = Date.now(),
+  routeContext = {},
+) {
+  const cacheKey = buildRouteCacheKey(callsign, routeContext);
+  const cached = cache.get(cacheKey);
   if (!cached) return null;
   const maxAge = cached.route
     ? FLIGHT_ROUTE_LOOKUP_CONFIG.hitCacheMs
     : FLIGHT_ROUTE_LOOKUP_CONFIG.missCacheMs;
   if (now - cached.time <= maxAge) return cached;
-  cache.delete(callsign);
+  cache.delete(cacheKey);
   return null;
 }
 
@@ -27,13 +48,14 @@ export function resolvePendingRouteLookups({
   cache,
   inFlight,
   queued = new Set(),
+  routeContext = {},
   now = Date.now(),
   maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxLookupsPerPass,
 }) {
   return getLookupCallsigns(aircraft)
     .filter(
       (callsign) =>
-        !getFreshRouteCacheEntry(cache, callsign, now) &&
+        !getFreshRouteCacheEntry(cache, callsign, now, routeContext) &&
         !inFlight.has(callsign) &&
         !queued.has(callsign),
     )
@@ -45,6 +67,7 @@ export function getRouteLookupStats({
   cache,
   queued = new Set(),
   inFlight = new Set(),
+  routeContext = {},
   now = Date.now(),
 }) {
   const callsigns = getLookupCallsigns(aircraft);
@@ -52,7 +75,7 @@ export function getRouteLookupStats({
   let notDone = 0;
 
   for (const callsign of callsigns) {
-    const cached = getFreshRouteCacheEntry(cache, callsign, now);
+    const cached = getFreshRouteCacheEntry(cache, callsign, now, routeContext);
     if (cached) {
       done += 1;
     } else if (!queued.has(callsign) && !inFlight.has(callsign)) {
@@ -68,11 +91,16 @@ export function getRouteLookupStats({
   };
 }
 
-export function buildRoutesByCallsign({ aircraft, cache, now = Date.now() }) {
+export function buildRoutesByCallsign({
+  aircraft,
+  cache,
+  routeContext = {},
+  now = Date.now(),
+}) {
   const routes = {};
   for (const item of aircraft || []) {
     const callsign = normalizeCallsign(item.callsign);
-    const cached = getFreshRouteCacheEntry(cache, callsign, now);
+    const cached = getFreshRouteCacheEntry(cache, callsign, now, routeContext);
     if (cached?.route) routes[callsign] = cached.route;
   }
   return routes;
