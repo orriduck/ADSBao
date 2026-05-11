@@ -20,6 +20,7 @@ import {
   buildAerodataboxFlightUrl,
   reserveAerodataboxRequestSlot,
   resolveAerodataboxDateLocal,
+  shouldSuppressVrsRouteAfterAerodataboxStatus,
 } from "@/services/aviation/aerodataboxRouteProxyModel.js";
 
 const aerodataboxRapidApiKey = process.env.AERODATABOX_RAPIDAPI_KEY || "";
@@ -70,7 +71,9 @@ async function fetchVrsStandingRoute(callsign) {
 }
 
 async function fetchAerodataboxRoute(callsign, targetAirport) {
-  if (!aerodataboxRapidApiKey) return null;
+  if (!aerodataboxRapidApiKey) {
+    return { route: null, suppressVrsRoute: false };
+  }
 
   const url = buildAerodataboxFlightUrl(callsign, resolveAerodataboxDateLocal());
   const auditedFetch = withAuditLogging(
@@ -90,23 +93,35 @@ async function fetchAerodataboxRoute(callsign, targetAirport) {
     });
   } catch (err) {
     console.warn(`[aerodatabox-route] fetch failed for ${callsign}:`, err.message);
-    return null;
+    return { route: null, suppressVrsRoute: false };
   }
 
   if (response.status === 204 || response.status === 404) {
-    return null;
+    return { route: null, suppressVrsRoute: false };
   }
 
   if (!response.ok) {
     console.warn(`[aerodatabox-route] HTTP ${response.status} for ${callsign}`);
-    return null;
+    return {
+      route: null,
+      suppressVrsRoute: shouldSuppressVrsRouteAfterAerodataboxStatus(
+        response.status,
+      ),
+    };
   }
 
   const payload = await readResponseJson(response, {
     label: "AeroDataBox flight status route",
     maxBytes: 512 * 1024,
   });
-  return buildAerodataboxFlightRouteResponse(callsign, payload, targetAirport);
+  return {
+    route: buildAerodataboxFlightRouteResponse(
+      callsign,
+      payload,
+      targetAirport,
+    ),
+    suppressVrsRoute: false,
+  };
 }
 
 function getTargetAirport(request) {
@@ -146,7 +161,15 @@ export async function GET(request, { params }) {
     const targetAirport = getTargetAirport(request);
     let body = await fetchVrsStandingRoute(callsign);
     if (shouldUseAerodataboxFallback(body, targetAirport)) {
-      body = (await fetchAerodataboxRoute(callsign, targetAirport)) || body;
+      const aerodataboxResult = await fetchAerodataboxRoute(
+        callsign,
+        targetAirport,
+      );
+      if (aerodataboxResult.route) {
+        body = aerodataboxResult.route;
+      } else if (aerodataboxResult.suppressVrsRoute) {
+        body = null;
+      }
     }
 
     return Response.json(body, {

@@ -79,13 +79,17 @@ const airportMatchesTarget = (airport, targetAirport = {}) => {
   );
 };
 
+const routeAirportSetHasTarget = (route, targetAirport = {}) => {
+  const airports = Array.isArray(route?.airports) && route.airports.length > 0
+    ? route.airports
+    : [route?.origin, route?.destination].filter(Boolean);
+  return airports.some((airport) => airportMatchesTarget(airport, targetAirport));
+};
+
 export function shouldUseAerodataboxFallback(route, targetAirport = {}) {
   if (!route) return false;
   if (Array.isArray(route.airports) && route.airports.length > 2) return true;
-  return (
-    !airportMatchesTarget(route.origin, targetAirport) &&
-    !airportMatchesTarget(route.destination, targetAirport)
-  );
+  return !routeAirportSetHasTarget(route, targetAirport);
 }
 
 export function buildVrsRouteResponse(callsign, payload) {

@@ -6,6 +6,7 @@ import {
   buildAerodataboxFlightUrl,
   reserveAerodataboxRequestSlot,
   resolveAerodataboxDateLocal,
+  shouldSuppressVrsRouteAfterAerodataboxStatus,
 } from "./aerodataboxRouteProxyModel.js";
 
 assert.equal(
@@ -33,6 +34,9 @@ assert.deepEqual(
   }),
   { delayMs: 1_050, nextAllowedAt: 3_200 },
 );
+assert.equal(shouldSuppressVrsRouteAfterAerodataboxStatus(429), true);
+assert.equal(shouldSuppressVrsRouteAfterAerodataboxStatus(500), false);
+assert.equal(shouldSuppressVrsRouteAfterAerodataboxStatus(404), false);
 
 const aerodataboxFlights = [
   {

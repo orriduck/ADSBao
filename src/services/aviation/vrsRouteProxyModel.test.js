@@ -98,6 +98,42 @@ assert.equal(
   }),
   true,
 );
+assert.equal(
+  shouldUseAerodataboxFallback(
+    {
+      ...response,
+      origin: { ...response.origin, icao: "KAAA", iata: "AAA" },
+      destination: { ...response.destination, icao: "KBBB", iata: "BBB" },
+      airports: [
+        { ...response.origin, icao: "KAAA", iata: "AAA" },
+        { ...response.destination, icao: "KBBB", iata: "BBB" },
+      ],
+    },
+    {
+      icao: "LIRF",
+      iata: "FCO",
+    },
+  ),
+  true,
+);
+assert.equal(
+  shouldUseAerodataboxFallback(
+    {
+      ...response,
+      origin: { ...response.origin, icao: "KAAA", iata: "AAA" },
+      destination: { ...response.destination, icao: "KBBB", iata: "BBB" },
+      airports: [
+        { ...response.origin, icao: "KAAA", iata: "AAA" },
+        response.origin,
+      ],
+    },
+    {
+      icao: "LIRF",
+      iata: "FCO",
+    },
+  ),
+  false,
+);
 
 assert.equal(
   buildVrsRouteResponse("NOPE123", {

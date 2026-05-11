@@ -79,6 +79,10 @@ export function reserveAerodataboxRequestSlot({
   };
 }
 
+export function shouldSuppressVrsRouteAfterAerodataboxStatus(status) {
+  return Number(status) === 429;
+}
+
 function airportMatchesTarget(airport, targetAirport = {}) {
   const targetIcao = sanitizeCode(targetAirport.icao, { min: 3, max: 4 });
   const targetIata = sanitizeCode(targetAirport.iata, { min: 3, max: 3 });
