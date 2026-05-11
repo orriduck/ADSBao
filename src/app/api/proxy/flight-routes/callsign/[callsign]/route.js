@@ -5,6 +5,7 @@ import {
   jsonProxyResponse,
   readResponseJson,
 } from "@/services/apiProxySecurity.js";
+import { withAuditLogging } from "@/utils/apiLogger.js";
 import {
   buildVrsRouteResponse,
   buildVrsRouteUrl,
@@ -59,9 +60,13 @@ async function fetchAerodataboxRoute(callsign, targetAirport) {
   if (!aerodataboxRapidApiKey) return null;
 
   const url = buildAerodataboxFlightUrl(callsign, resolveAerodataboxDateLocal());
+  const auditedFetch = withAuditLogging(
+    (requestUrl, options) => fetch(requestUrl, options),
+    { service: "aerodatabox/FlightStatus" },
+  );
   let response;
   try {
-    response = await fetch(url, {
+    response = await auditedFetch(url, {
       headers: {
         Accept: "application/json",
         "X-RapidAPI-Key": aerodataboxRapidApiKey,

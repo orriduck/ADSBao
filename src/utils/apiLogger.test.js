@@ -31,6 +31,14 @@ try {
     /^\[audit:\/route\/DAL123\]: 200 \+\d+ms$/,
   );
 
+  await auditedOkFetch(
+    "https://aerodatabox.p.rapidapi.com/flights/CallSign/UAL442/2026-05-11?dateLocalRole=Both",
+  );
+  assert.match(
+    logs[1][0],
+    /^\[audit:\/flights\/CallSign\/UAL442\/2026-05-11\]: 200 \+\d+ms$/,
+  );
+
   const auditedErrorFetch = withAuditLogging(
     async () => {
       throw new Error("network failed");
@@ -39,7 +47,7 @@ try {
   );
 
   await assert.rejects(() => auditedErrorFetch("/broken"), /network failed/);
-  assert.match(logs[1][0], /^\[audit:\/broken\]: ERROR \+\d+ms$/);
+  assert.match(logs[2][0], /^\[audit:\/broken\]: ERROR \+\d+ms$/);
 } finally {
   console.log = originalConsoleLog;
 }
