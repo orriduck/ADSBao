@@ -34,6 +34,22 @@ assert.equal(
   "https://adsbao.test",
 );
 
+assert.equal(buildProxyHeaders(sameOriginRequest).get("Vary"), "Origin");
+
+assert.equal(
+  buildProxyHeaders(sameOriginRequest, {}, { varyOrigin: false }).get("Vary"),
+  null,
+);
+
+assert.equal(
+  buildProxyHeaders(
+    sameOriginRequest,
+    {},
+    { varyOrigin: false },
+  ).get("Access-Control-Allow-Origin"),
+  "https://adsbao.test",
+);
+
 assert.equal(createCorsPreflightResponse(sameOriginRequest).status, 204);
 
 const blockedOriginRequest = new Request(
