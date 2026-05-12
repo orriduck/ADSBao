@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
-import StatsStrip from "./StatsStrip";
-import WeatherCarousel from "./WeatherCarousel";
+import SidebarViewSwitch from "./SidebarViewSwitch";
+import WeatherBriefingStack from "./WeatherBriefingStack";
 
 export default function AirportSidebar({
   icao = "",
@@ -29,6 +30,7 @@ export default function AirportSidebar({
 }) {
   const isMobileOverlay = Boolean(onClose);
   const updatedLabel = formatUpdated(lastUpdated, feedStatus);
+  const [activeView, setActiveView] = useState("traffic");
 
   return (
     <div
@@ -40,7 +42,7 @@ export default function AirportSidebar({
         <button
           type="button"
           onClick={onBack}
-          className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text"
+          className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
         >
           ← ADSBao
         </button>
@@ -48,14 +50,14 @@ export default function AirportSidebar({
           <button
             type="button"
             onClick={onClose}
-            className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text"
+            className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
           >
             Map →
           </button>
         ) : (
           <span
             key={updatedLabel}
-            className={`airport-feed-status airport-feed-status--${feedStatus} font-mono text-[10px] uppercase tracking-[0.12em] text-atc-dim`}
+            className={`airport-feed-status airport-feed-status--${feedStatus} text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
           >
             {updatedLabel}
           </span>
@@ -79,15 +81,11 @@ export default function AirportSidebar({
             lat={lat}
             lon={lon}
           />
-          <StatsStrip metar={metar} aircraftCount={aircraft.length} />
-          <WeatherCarousel
+          <SidebarViewSwitch
+            activeView={activeView}
+            onViewChange={setActiveView}
             metar={metar}
-            metarRaw={metarRaw}
-            metarLoading={metarLoading}
-            metarError={metarError}
-            airportCode={iata || icao}
-            airportLat={lat}
-            airportLon={lon}
+            aircraftCount={aircraft.length}
           />
         </div>
         <div
@@ -97,14 +95,31 @@ export default function AirportSidebar({
               : "flex-1 overflow-y-auto"
           }
         >
-          <AircraftTable
-            aircraft={aircraft}
-            altitudeFocus={altitudeFocus}
-            showAirspaceContext={showAirspaceContext}
-            selectedAircraftId={selectedAircraftId}
-            onSelectAircraft={onSelectAircraft}
-            fill={!isMobileOverlay}
-          />
+          {activeView === "briefing" ? (
+            <WeatherBriefingStack
+              icao={icao}
+              iata={iata}
+              name={name}
+              city={city}
+              country={country}
+              metar={metar}
+              metarRaw={metarRaw}
+              metarLoading={metarLoading}
+              metarError={metarError}
+              airportCode={iata || icao}
+              airportLat={lat}
+              airportLon={lon}
+            />
+          ) : (
+            <AircraftTable
+              aircraft={aircraft}
+              altitudeFocus={altitudeFocus}
+              showAirspaceContext={showAirspaceContext}
+              selectedAircraftId={selectedAircraftId}
+              onSelectAircraft={onSelectAircraft}
+              fill={!isMobileOverlay}
+            />
+          )}
         </div>
       </div>
     </div>

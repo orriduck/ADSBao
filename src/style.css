@@ -113,6 +113,7 @@
 
     /* Light: white canvas with navy ink — neutral grays for surface hierarchy,
        no warm cream tint. */
+    --app-sidebar-width: 22.5rem;
     --atc-bg: #ffffff;
     --atc-card: #f4f4f4;
     --atc-elev: #ebebeb;
@@ -646,7 +647,7 @@ body {
 }
 
 .airport-desktop-sidebar {
-    width: 25rem;
+    width: var(--app-sidebar-width);
 }
 
 @media (max-width: 767px) {
@@ -2841,11 +2842,11 @@ body {
     height: 100dvh;
     /* min-width: 0 is required: as a flex item, the default min-width is
        auto (= min-content), which long unbroken METAR strings would push
-       past the 400px width and squeeze the map to zero. */
+       past the sidebar width and squeeze the map to zero. */
     min-width: 0;
     overflow-y: auto;
     overscroll-behavior-y: contain;
-    width: 400px;
+    width: var(--app-sidebar-width);
 }
 
 /* Dark sidebar steps up one surface level so it reads as visible navy blue
@@ -2907,6 +2908,376 @@ body {
 
 .airport-feed-status--infer {
     color: var(--atc-faint);
+}
+
+.airport-sidebar-panel {
+    --airport-sidebar-inset: 28px;
+    --airport-sidebar-sans: "Inter", var(--font-sans);
+    font-family: var(--airport-sidebar-sans);
+}
+
+.airport-sidebar-identity {
+    padding: 28px var(--airport-sidebar-inset) 24px;
+}
+
+.airport-sidebar-view-switch {
+    border-bottom: 1px solid var(--atc-line);
+    border-top: 1px solid var(--atc-line);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.airport-sidebar-view-switch__button {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--atc-text);
+    cursor: pointer;
+    align-content: center;
+    display: grid;
+    gap: 8px;
+    grid-template-rows: 16px 38px 14px;
+    min-height: 112px;
+    min-width: 0;
+    padding: 22px var(--airport-sidebar-inset) 20px;
+    text-align: left;
+    transition:
+        background 0.18s ease,
+        box-shadow 0.18s ease,
+        color 0.18s ease;
+}
+
+.airport-sidebar-view-switch__button--divided {
+    border-left: 1px solid var(--atc-line);
+}
+
+.airport-sidebar-view-switch__button span,
+.airport-sidebar-view-switch__button small {
+    color: var(--atc-faint);
+    font-family: var(--airport-sidebar-sans);
+    text-transform: uppercase;
+}
+
+.airport-sidebar-view-switch__button span {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.airport-sidebar-view-switch__button strong {
+    align-items: center;
+    color: var(--atc-text);
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+    min-height: 38px;
+}
+
+.airport-sidebar-view-switch__button small {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 14px;
+    min-height: 14px;
+}
+
+.airport-sidebar-view-switch__button:hover,
+.airport-sidebar-view-switch__button--active {
+    background: color-mix(in oklab, var(--atc-card) 58%, transparent);
+}
+
+.airport-sidebar-view-switch__button--active {
+    box-shadow: inset 0 -2px 0 var(--atc-accent);
+}
+
+.airport-sidebar-view-switch__button:focus {
+    outline: none;
+}
+
+.airport-sidebar-view-switch__button:focus-visible {
+    box-shadow:
+        inset 0 0 0 1px var(--atc-line-strong),
+        inset 0 -2px 0 var(--atc-accent);
+}
+
+.airport-briefing-stack {
+    display: grid;
+    gap: 0;
+    padding: 0;
+}
+
+.airport-briefing-card {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--atc-line-strong);
+    border-radius: 0;
+    min-width: 0;
+    padding: 24px var(--airport-sidebar-inset) 26px;
+}
+
+.airport-briefing-card__heading {
+    align-items: baseline;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+    min-width: 0;
+}
+
+.airport-briefing-card__heading span,
+.airport-briefing-card__link {
+    color: var(--atc-faint);
+    font-family: var(--airport-sidebar-sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.airport-briefing-card__heading strong {
+    color: var(--atc-dim);
+    font-family: var(--airport-sidebar-sans);
+    font-size: 12px;
+    letter-spacing: 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.airport-briefing-card .weather-slide-readout {
+    min-height: 0;
+    padding-block: 0 10px;
+}
+
+.airport-briefing-card .metar-token-strip {
+    gap: 12px 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.airport-briefing-card .metar-token-strip strong {
+    font-family: var(--font-mono);
+    font-size: 17px;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
+.airport-briefing-card .metar-token-strip small,
+.airport-briefing-card .weather-metar-code {
+    font-family: var(--font-mono);
+}
+
+.airport-briefing-card .weather-slide-stack {
+    gap: 16px;
+    height: auto;
+    justify-content: start;
+}
+
+.airport-briefing-card .weather-metar-code {
+    max-height: none;
+}
+
+.airport-briefing-card .flight-rule-banner {
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.airport-briefing-card .flight-rule-banner strong {
+    font-family: var(--airport-sidebar-sans);
+    font-size: 20px;
+    min-width: 0;
+}
+
+.airport-briefing-card .flight-rule-rail {
+    margin-bottom: 0;
+}
+
+.airport-briefing-card .weather-context-copy.weather-slide-description {
+    margin-top: 0;
+}
+
+.airport-briefing-card .weather-visual-layout,
+.airport-briefing-card .local-weather-row {
+    min-height: 0;
+}
+
+.airport-briefing-card .ceiling-readouts,
+.airport-briefing-card .pressure-strip,
+.airport-briefing-card .temperature-strip {
+    gap: 14px;
+}
+
+.airport-briefing-card .temperature-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.airport-briefing-card .temperature-strip .weather-metric-line:last-child {
+    grid-column: 1 / -1;
+}
+
+.airport-briefing-card .weather-metric-line strong,
+.airport-briefing-card .wind-vector-card strong {
+    font-family: var(--airport-sidebar-sans);
+    font-size: 18px;
+}
+
+.airport-briefing-card .weather-metric-line span,
+.airport-briefing-card .wind-vector-card span,
+.airport-briefing-card .thermal-band span,
+.airport-briefing-card .local-weather-meta span {
+    font-family: var(--airport-sidebar-sans);
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.airport-briefing-card .local-weather-meta .font-mono {
+    font-family: var(--airport-sidebar-sans);
+}
+
+.airport-briefing-card .wind-vector-card {
+    grid-template-columns: 56px repeat(3, minmax(0, 1fr));
+}
+
+.airport-briefing-card .wind-vector-card > div:not(.wind-compass) {
+    padding-inline: 6px;
+}
+
+.airport-briefing-card .wiki-copy {
+    font-size: 15px;
+    line-height: 1.58;
+    max-height: none;
+}
+
+.airport-briefing-card__link {
+    border-top: 1px solid var(--atc-line);
+    display: block;
+    margin-top: 14px;
+    padding-top: 12px;
+    text-decoration: none;
+}
+
+.aircraft-search-box {
+    align-items: center;
+    border: 1px solid var(--atc-line);
+    color: var(--atc-faint);
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    padding: 8px 10px;
+}
+
+.aircraft-search-box:focus-within {
+    border-color: color-mix(in oklab, var(--atc-accent) 44%, var(--atc-line));
+    color: var(--atc-accent);
+}
+
+.aircraft-search-box input {
+    background: transparent;
+    border: 0;
+    color: var(--atc-text);
+    font-family: var(--airport-sidebar-sans);
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 0;
+    outline: none;
+    width: 100%;
+}
+
+.aircraft-search-box input::placeholder {
+    color: var(--atc-faint);
+    opacity: 0.8;
+    text-transform: uppercase;
+}
+
+.aircraft-filter-stack {
+    border: 1px solid var(--atc-line);
+    border-top: 0;
+    display: grid;
+}
+
+.aircraft-filter-tabs,
+.aircraft-filter-select-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.aircraft-filter-select-row {
+    border-top: 1px solid var(--atc-line);
+}
+
+.aircraft-filter-tabs button,
+.aircraft-filter-select {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    border-right: 1px solid var(--atc-line);
+    color: var(--atc-faint);
+    cursor: pointer;
+    font-family: var(--airport-sidebar-sans);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0;
+    min-width: 0;
+    padding: 7px 4px;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.aircraft-filter-select {
+    align-items: center;
+    display: grid;
+    gap: 2px;
+    justify-items: start;
+    padding: 5px 12px 6px;
+}
+
+.aircraft-filter-tabs button {
+    padding-inline: 12px;
+}
+
+.aircraft-filter-tabs button:last-child,
+.aircraft-filter-select-row .aircraft-filter-select:last-child {
+    border-right: 0;
+}
+
+.aircraft-filter-tabs button:hover,
+.aircraft-filter-tabs button.active {
+    background: color-mix(in oklab, var(--atc-accent) 10%, transparent);
+    color: var(--atc-text);
+}
+
+.aircraft-filter-select span {
+    color: var(--atc-faint);
+    font-family: var(--airport-sidebar-sans);
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.aircraft-filter-select select {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--atc-text);
+    cursor: pointer;
+    font-family: var(--airport-sidebar-sans);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0;
+    min-width: 0;
+    outline: none;
+    text-align: left;
+    text-transform: uppercase;
+    width: 100%;
 }
 
 @keyframes airport-feed-status-fade {

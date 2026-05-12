@@ -20,7 +20,7 @@ export default function DitherPageShell({
     <div
       className={`dither-page-shell flex h-screen text-atc-text ${className}`.trim()}
     >
-      <div className="dither-page-panel flex w-[400px] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
+      <div className="dither-page-panel flex w-[var(--app-sidebar-width)] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
         <MobileTopNav
           left={mobileLeft}
           right={renderThemeToggle?.("mobile-top-nav-link flex items-center gap-1.5")}

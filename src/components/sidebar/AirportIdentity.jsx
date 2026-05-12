@@ -15,8 +15,8 @@ export default function AirportIdentity({
   const coordLine = formatCoord(lat, lon);
 
   return (
-    <div className="px-6 pt-7 pb-6">
-      <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
+    <div className="airport-sidebar-identity">
+      <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
         Airport
       </div>
       <div className="mt-3 flex items-baseline gap-3">
