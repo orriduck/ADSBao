@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
   ABOUT_BUILD_META,
   ABOUT_DATA_SOURCES,
@@ -27,9 +28,10 @@ export default function AboutPanel() {
   const backLink = (
     <Link
       href="/"
-      className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text"
+      className="font-nav flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
     >
-      ← ADSBao
+      <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>ADSBao</span>
     </Link>
   );
 
@@ -47,12 +49,16 @@ export default function AboutPanel() {
     <DitherPageShell
       sectionLabel="About"
       mobileLeft={
-        <Link href="/" className="mobile-top-nav-link">
-          ← ADSBao
+        <Link
+          href="/"
+          className="mobile-top-nav-link flex items-center gap-1.5"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>ADSBao</span>
         </Link>
       }
       footerLeft={backLink}
-      footerThemeToggleClassName="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+      footerThemeToggleClassName="font-nav text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
       renderThemeToggle={renderThemeToggle}
     >
       <AboutMetaGrid items={ABOUT_BUILD_META} />
