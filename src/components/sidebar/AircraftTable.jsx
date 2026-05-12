@@ -20,8 +20,7 @@ const TRAFFIC_FILTERS = [
 const ALTITUDE_LEVELS = [
   { value: "all", label: "Any altitude" },
   { value: "ground", label: "Ground" },
-  { value: "surface", label: "Surface" },
-  { value: "approaching", label: "Approaching" },
+  { value: "climb-descent", label: "Climb / descent" },
   { value: "high", label: "High" },
 ];
 
@@ -317,8 +316,9 @@ function matchesAltitudeLevel(aircraft, altitudeLevel) {
   const altitude = aircraft.onGround ? 0 : toNumber(aircraft.altitude);
   if (altitudeLevel === "ground") return altitude == null || altitude < 100;
   if (altitude == null) return false;
-  if (altitudeLevel === "surface") return altitude >= 100 && altitude < 2500;
-  if (altitudeLevel === "approaching") return altitude >= 2500 && altitude < 12000;
+  if (altitudeLevel === "climb-descent") {
+    return altitude >= 100 && altitude < 12000;
+  }
   if (altitudeLevel === "high") return altitude >= 12000;
   return true;
 }
