@@ -3263,21 +3263,71 @@ body {
     text-transform: uppercase;
 }
 
-.aircraft-filter-select select {
-    appearance: none;
+.aircraft-filter-select-trigger {
     background: transparent;
     border: 0;
+    border-radius: 0;
+    box-shadow: none;
     color: var(--atc-text);
     cursor: pointer;
+    display: inline-flex;
     font-family: var(--airport-sidebar-sans);
     font-size: 9px;
     font-weight: 800;
+    gap: 4px;
+    height: auto;
+    justify-content: flex-start;
     letter-spacing: 0;
+    line-height: 1.1;
     min-width: 0;
     outline: none;
+    padding: 0;
     text-align: left;
     text-transform: uppercase;
     width: 100%;
+}
+
+.aircraft-filter-select-trigger:hover,
+.aircraft-filter-select-trigger:focus,
+.aircraft-filter-select-trigger[data-state="open"] {
+    background: transparent;
+    box-shadow: none;
+}
+
+.aircraft-filter-select-trigger > span {
+    color: var(--atc-text);
+    font-size: 9px;
+    line-height: 1.1;
+}
+
+.aircraft-filter-select-trigger svg {
+    color: var(--atc-faint);
+    height: 10px;
+    opacity: 0.75;
+    width: 10px;
+}
+
+.aircraft-filter-select-content {
+    background: var(--atc-bg);
+    border-color: var(--atc-line);
+    border-radius: 0;
+    color: var(--atc-text);
+    font-family: var(--airport-sidebar-sans);
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.aircraft-filter-select-item {
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.aircraft-filter-select-item:focus {
+    background: color-mix(in oklab, var(--atc-accent) 14%, transparent);
+    color: var(--atc-text);
 }
 
 @keyframes airport-feed-status-fade {

@@ -4,6 +4,15 @@ import { useMemo, useState } from "react";
 import NumberFlow from "@number-flow/react";
 import { Search } from "lucide-react";
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import {
   getAircraftIdentity,
   getContextTagLabel,
   getAircraftContextGroup,
@@ -90,35 +99,27 @@ export default function AircraftTable({
               ))}
             </div>
             <div className="aircraft-filter-select-row">
-              <label className="aircraft-filter-select">
-                <span>Type</span>
-                <select
-                  value={typeFilter}
-                  onChange={(event) => setTypeFilter(event.target.value)}
-                  aria-label="Filter by aircraft type"
-                >
-                  <option value="all">All types</option>
-                  {aircraftTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="aircraft-filter-select aircraft-filter-select--wide">
-                <span>Altitude</span>
-                <select
-                  value={altitudeLevel}
-                  onChange={(event) => setAltitudeLevel(event.target.value)}
-                  aria-label="Filter by altitude level"
-                >
-                  {ALTITUDE_LEVELS.map((level) => (
-                    <option key={level.value} value={level.value}>
-                      {level.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <AircraftFilterSelect
+                label="Type"
+                value={typeFilter}
+                onValueChange={setTypeFilter}
+                options={[
+                  { value: "all", label: "All types" },
+                  ...aircraftTypes.map((type) => ({
+                    value: type,
+                    label: type,
+                  })),
+                ]}
+                ariaLabel="Filter by aircraft type"
+                contentClassName="max-h-44"
+              />
+              <AircraftFilterSelect
+                label="Altitude"
+                value={altitudeLevel}
+                onValueChange={setAltitudeLevel}
+                options={ALTITUDE_LEVELS}
+                ariaLabel="Filter by altitude level"
+              />
             </div>
           </div>
         </div>
@@ -161,6 +162,44 @@ export default function AircraftTable({
           </ul>
         )}
       </div>
+    </div>
+  );
+}
+
+function AircraftFilterSelect({
+  label,
+  value,
+  onValueChange,
+  options,
+  ariaLabel,
+  contentClassName = "",
+}) {
+  return (
+    <div className="aircraft-filter-select">
+      <span>{label}</span>
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger
+          aria-label={ariaLabel}
+          className="aircraft-filter-select-trigger"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent
+          className={cn("aircraft-filter-select-content", contentClassName)}
+        >
+          <SelectGroup>
+            {options.map((option) => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="aircraft-filter-select-item"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     </div>
   );
 }
