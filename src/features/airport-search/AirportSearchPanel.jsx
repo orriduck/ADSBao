@@ -58,7 +58,7 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     <Link
       href="/about"
       title="About ADSBao"
-      className="font-nav text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+      className="font-nav text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
     >
       <Info className="h-3.5 w-3.5" aria-hidden="true" />
       <span>About</span>
