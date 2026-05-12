@@ -27,7 +27,7 @@ export default function AboutPanel() {
   const backLink = (
     <Link
       href="/"
-      className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text"
+      className="font-nav text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text"
     >
       ← ADSBao
     </Link>
@@ -52,7 +52,7 @@ export default function AboutPanel() {
         </Link>
       }
       footerLeft={backLink}
-      footerThemeToggleClassName="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
+      footerThemeToggleClassName="font-nav text-[10px] uppercase tracking-[0.22em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
       renderThemeToggle={renderThemeToggle}
     >
       <AboutMetaGrid items={ABOUT_BUILD_META} />
