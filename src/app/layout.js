@@ -74,7 +74,7 @@ export default function RootLayout({ children }) {
           crossOrigin=""
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Manrope:wght@200..800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Manrope:wght@200..800&display=swap"
           rel="stylesheet"
         />
       </head>
