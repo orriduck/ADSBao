@@ -1,7 +1,5 @@
-import { HOME_AIRPORT_COUNTRY } from "./homeAirportDirectory.js";
-
 export const AIRPORT_SEARCH_CONFIG = {
-  country: HOME_AIRPORT_COUNTRY,
+  country: "",
   kind: "all",
   limit: 12,
   debounceMs: 220,
