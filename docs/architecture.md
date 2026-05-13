@@ -42,7 +42,7 @@ These paths are implemented as Next.js Route Handlers under `src/app/api/proxy/*
 
 The nearby-airport proxy can also use Supabase as a persistent response cache. When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are configured in Vercel, `/api/proxy/airports/nearby` reads and writes `public.nearby_airport_cache` records with a 90-day `expires_at` TTL. The migration grants the `anon` role only the select/insert/update permissions needed for this public cache table, with RLS policies restricted to `nearby-airports:%` cache keys. Cache failures are non-fatal: the handler falls back to AIRAC and logs the Supabase read/write error server-side.
 
-A legacy `public.airport_metadata_cache` table remains populated by the AIRAC-backed `/api/proxy/airports/nearby` proxy to give the nearby-airport overlay fast warm reads. It is no longer consulted by airport search or detail — those paths go directly to the OurAirports tables (`public.airports`, `public.runways`, `public.airport_frequencies`, `public.navaids`).
+Airport search and detail go directly to the OurAirports tables (`public.airports`, `public.runways`, `public.airport_frequencies`, `public.navaids`). The legacy `public.airport_metadata_cache` table from the old airportsapi.com client has been dropped — no live reader remained after the OurAirports cutover.
 
 ### Vercel security posture
 

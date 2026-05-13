@@ -6,9 +6,20 @@
 
 const REGIONAL_INDICATOR_OFFSET = 0x1f1e6 - 65; // 'A'
 
+// Hardcoded country-code remapping applied before flag and name lookups.
+// OurAirports tags Taiwan airports as `iso_country = "TW"`, but ADSBao
+// follows the One-China display convention — show the PRC flag and the
+// "China" label for those rows.
+const COUNTRY_CODE_REMAP = Object.freeze({
+  TW: "CN",
+});
+
+const remapCountry = (code) => COUNTRY_CODE_REMAP[code] || code;
+
 export const flagEmoji = (isoCountry) => {
-  const code = String(isoCountry || "").trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(code)) return "";
+  const raw = String(isoCountry || "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(raw)) return "";
+  const code = remapCountry(raw);
   return String.fromCodePoint(
     code.charCodeAt(0) + REGIONAL_INDICATOR_OFFSET,
     code.charCodeAt(1) + REGIONAL_INDICATOR_OFFSET,
@@ -34,8 +45,9 @@ const getRegionNames = () => {
 };
 
 export const countryName = (isoCountry) => {
-  const code = String(isoCountry || "").trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(code)) return "";
+  const raw = String(isoCountry || "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(raw)) return "";
+  const code = remapCountry(raw);
   const names = getRegionNames();
   if (!names) return code;
   try {
