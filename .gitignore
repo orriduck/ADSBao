@@ -11,7 +11,6 @@ docs/superpowers
 docs/_workspace/
 .vercel
 screenshot.png
-public/data/procedures/
 
 # Local editor / agent launch state
 .claude/launch.json

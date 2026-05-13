@@ -18,7 +18,7 @@
 
 ### Removed
 - `airportsapi.com` integration (the entire `src/services/airport-directory/` package).
-- The `pnpm build:procedures`, `pnpm import:ourairports`, and `pnpm icons:aircraft` script shortcuts — the underlying scripts (when needed) still run via `node --env-file=.env scripts/<name>`. Keeps `package.json` to the daily workflow.
+- The `pnpm build:procedures`, `pnpm import:ourairports`, and `pnpm icons:aircraft` script shortcuts. `scripts/import-ourairports.js` stays (runs via `node --env-file=.env scripts/import-ourairports.js` as the OurAirports backfill); `scripts/build-faa-cifp-procedures.js` and `scripts/download-aircraft-icons.js` deleted entirely since neither output is consumed at runtime.
 
 ## v0.9.0 — Navy tracking console redesign
 
