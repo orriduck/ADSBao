@@ -9,7 +9,7 @@ import {
 } from "./ourAirportsNormalizer.js";
 import { OUR_AIRPORTS_DATASETS } from "./ourAirportsCsvSources.js";
 
-const DEFAULT_BATCH_SIZE = 1000;
+const DEFAULT_BATCH_SIZE = 5000;
 
 const upsertInBatches = async ({
   client,
@@ -30,6 +30,42 @@ const upsertInBatches = async ({
     }
   }
 };
+
+// Per-table descriptors keep the SWR scheduler and the bulk CLI sharing a
+// single source of truth for the dataset → table mapping.
+export const OUR_AIRPORTS_TABLES = Object.freeze({
+  airports: {
+    table: "airports",
+    dataset: OUR_AIRPORTS_DATASETS.airports,
+    normalize: normalizeAirports,
+    onConflict: "ident",
+  },
+  runways: {
+    table: "runways",
+    dataset: OUR_AIRPORTS_DATASETS.runways,
+    normalize: normalizeRunways,
+    onConflict: "id",
+  },
+  frequencies: {
+    table: "airport_frequencies",
+    dataset: OUR_AIRPORTS_DATASETS.frequencies,
+    normalize: normalizeFrequencies,
+    onConflict: "id",
+  },
+  navaids: {
+    table: "navaids",
+    dataset: OUR_AIRPORTS_DATASETS.navaids,
+    normalize: normalizeNavaids,
+    onConflict: "id",
+  },
+});
+
+export const OUR_AIRPORTS_TABLE_ORDER = Object.freeze([
+  "airports",
+  "runways",
+  "frequencies",
+  "navaids",
+]);
 
 export const createOurAirportsImporter = ({
   supabaseUrl,
@@ -55,86 +91,33 @@ export const createOurAirportsImporter = ({
     },
   });
 
-  const downloadAndNormalize = async () => {
-    log("Downloading airports.csv ...");
-    const airportsResult = await downloadAndParseDataset(
-      OUR_AIRPORTS_DATASETS.airports,
-      { fetchImpl },
-    );
-    log("Downloading runways.csv ...");
-    const runwaysResult = await downloadAndParseDataset(
-      OUR_AIRPORTS_DATASETS.runways,
-      { fetchImpl },
-    );
-    log("Downloading airport-frequencies.csv ...");
-    const frequenciesResult = await downloadAndParseDataset(
-      OUR_AIRPORTS_DATASETS.frequencies,
-      { fetchImpl },
-    );
-    log("Downloading navaids.csv ...");
-    const navaidsResult = await downloadAndParseDataset(
-      OUR_AIRPORTS_DATASETS.navaids,
-      { fetchImpl },
-    );
+  const importTable = async (key, { batchSize = DEFAULT_BATCH_SIZE } = {}) => {
+    const spec = OUR_AIRPORTS_TABLES[key];
+    if (!spec) throw new Error(`Unknown OurAirports table key: ${key}`);
 
-    return {
-      airports: normalizeAirports(airportsResult.rows),
-      runways: normalizeRunways(runwaysResult.rows),
-      frequencies: normalizeFrequencies(frequenciesResult.rows),
-      navaids: normalizeNavaids(navaidsResult.rows),
-    };
+    log(`Downloading ${spec.dataset.filename} ...`);
+    const result = await downloadAndParseDataset(spec.dataset, { fetchImpl });
+    const rows = spec.normalize(result.rows);
+    log(`Parsed ${rows.length} rows for ${spec.table}`);
+    log(`Upserting ${spec.table} ...`);
+    await upsertInBatches({
+      client,
+      table: spec.table,
+      rows,
+      onConflict: spec.onConflict,
+      batchSize,
+    });
+    return rows.length;
   };
 
   return {
+    importTable,
     async import({ batchSize = DEFAULT_BATCH_SIZE } = {}) {
-      const data = await downloadAndNormalize();
-      log(`Parsed ${data.airports.length} airports`);
-      log(`Parsed ${data.runways.length} runways`);
-      log(`Parsed ${data.frequencies.length} frequencies`);
-      log(`Parsed ${data.navaids.length} navaids`);
-
-      log("Upserting airports ...");
-      await upsertInBatches({
-        client,
-        table: "airports",
-        rows: data.airports,
-        onConflict: "ident",
-        batchSize,
-      });
-
-      log("Upserting runways ...");
-      await upsertInBatches({
-        client,
-        table: "runways",
-        rows: data.runways,
-        onConflict: "id",
-        batchSize,
-      });
-
-      log("Upserting airport_frequencies ...");
-      await upsertInBatches({
-        client,
-        table: "airport_frequencies",
-        rows: data.frequencies,
-        onConflict: "id",
-        batchSize,
-      });
-
-      log("Upserting navaids ...");
-      await upsertInBatches({
-        client,
-        table: "navaids",
-        rows: data.navaids,
-        onConflict: "id",
-        batchSize,
-      });
-
-      return {
-        airports: data.airports.length,
-        runways: data.runways.length,
-        frequencies: data.frequencies.length,
-        navaids: data.navaids.length,
-      };
+      const counts = {};
+      for (const key of OUR_AIRPORTS_TABLE_ORDER) {
+        counts[key] = await importTable(key, { batchSize });
+      }
+      return counts;
     },
   };
 };

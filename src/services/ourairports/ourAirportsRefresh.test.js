@@ -2,154 +2,179 @@ import assert from "node:assert/strict";
 
 import {
   REFRESH_TTL_MS,
-  isRefreshDue,
-  runRefreshWithLock,
+  pickNextStaleTable,
+  runRefreshStepWithLock,
 } from "./ourAirportsRefresh.js";
 
 const now = Date.now();
 const isoMinusHours = (h) => new Date(now - h * 3600_000).toISOString();
 
-// isRefreshDue: empty meta / null timestamps -> due
-assert.equal(isRefreshDue(null, REFRESH_TTL_MS, now), true);
-assert.equal(isRefreshDue({}, REFRESH_TTL_MS, now), true);
-assert.equal(isRefreshDue({ last_imported_at: null }, REFRESH_TTL_MS, now), true);
-// fresh -> not due
+// pickNextStaleTable: empty meta -> airports (first in priority order)
+assert.equal(pickNextStaleTable(null), "airports");
+assert.equal(pickNextStaleTable({}), "airports");
+
+// All fresh -> null
 assert.equal(
-  isRefreshDue({ last_imported_at: isoMinusHours(2) }, REFRESH_TTL_MS, now),
-  false,
-);
-assert.equal(
-  isRefreshDue({ last_imported_at: isoMinusHours(23) }, REFRESH_TTL_MS, now),
-  false,
-);
-// past TTL -> due
-assert.equal(
-  isRefreshDue({ last_imported_at: isoMinusHours(25) }, REFRESH_TTL_MS, now),
-  true,
-);
-// custom TTL
-assert.equal(
-  isRefreshDue(
-    { last_imported_at: isoMinusHours(3) },
-    2 * 3600_000,
-    now,
-  ),
-  true,
+  pickNextStaleTable({
+    airports_imported_at: isoMinusHours(2),
+    runways_imported_at: isoMinusHours(2),
+    frequencies_imported_at: isoMinusHours(2),
+    navaids_imported_at: isoMinusHours(2),
+  }, REFRESH_TTL_MS, now),
+  null,
 );
 
-// runRefreshWithLock: no service-role key -> skip without error
+// Airports stale, others fresh -> airports
+assert.equal(
+  pickNextStaleTable({
+    airports_imported_at: isoMinusHours(25),
+    runways_imported_at: isoMinusHours(2),
+    frequencies_imported_at: isoMinusHours(2),
+    navaids_imported_at: isoMinusHours(2),
+  }, REFRESH_TTL_MS, now),
+  "airports",
+);
+
+// Airports fresh, runways stale -> runways
+assert.equal(
+  pickNextStaleTable({
+    airports_imported_at: isoMinusHours(2),
+    runways_imported_at: isoMinusHours(25),
+    frequencies_imported_at: isoMinusHours(2),
+    navaids_imported_at: isoMinusHours(2),
+  }, REFRESH_TTL_MS, now),
+  "runways",
+);
+
+// All stale -> airports (priority order)
+assert.equal(
+  pickNextStaleTable({
+    airports_imported_at: isoMinusHours(48),
+    runways_imported_at: isoMinusHours(48),
+    frequencies_imported_at: isoMinusHours(48),
+    navaids_imported_at: isoMinusHours(48),
+  }, REFRESH_TTL_MS, now),
+  "airports",
+);
+
+// Only navaids stale -> navaids
+assert.equal(
+  pickNextStaleTable({
+    airports_imported_at: isoMinusHours(2),
+    runways_imported_at: isoMinusHours(2),
+    frequencies_imported_at: isoMinusHours(2),
+    navaids_imported_at: isoMinusHours(48),
+  }, REFRESH_TTL_MS, now),
+  "navaids",
+);
+
+// runRefreshStepWithLock: no service-role key -> skip cleanly
 {
-  const result = await runRefreshWithLock({
+  const result = await runRefreshStepWithLock({
     env: {},
     createClientImpl: () => {
-      throw new Error("should not construct a client without keys");
+      throw new Error("should not construct client without keys");
     },
   });
   assert.deepEqual(result, { ran: false, reason: "no_service_role" });
 }
 
-// runRefreshWithLock: fresh meta -> skip
-{
-  const calls = [];
-  const fakeClient = createFakeMetaClient({
-    selectData: { last_imported_at: isoMinusHours(2) },
-  }, calls);
-  const result = await runRefreshWithLock({
-    env: { NEXT_PUBLIC_SUPABASE_URL: "https://x.test", SUPABASE_SERVICE_ROLE_KEY: "key" },
-    createClientImpl: () => fakeClient,
-    importerFactory: () => {
-      throw new Error("importer should not be called when meta is fresh");
-    },
-  });
-  assert.deepEqual(result, { ran: false, reason: "fresh" });
-  // Only the select happened; no update / upsert.
-  assert.ok(calls.some((c) => c.kind === "select"));
-  assert.ok(!calls.some((c) => c.kind === "update"));
-}
-
-// runRefreshWithLock: stale meta, lock acquired -> import runs, success recorded
-{
-  const calls = [];
-  const fakeClient = createFakeMetaClient({
-    selectData: { last_imported_at: isoMinusHours(48), last_attempted_at: null, last_status: "" },
-    updateRowCount: 1,
-  }, calls);
-  const importer = {
-    import: async () => ({ airports: 80000, runways: 45000, frequencies: 30000, navaids: 11000 }),
-  };
-  const result = await runRefreshWithLock({
-    env: { NEXT_PUBLIC_SUPABASE_URL: "https://x.test", SUPABASE_SERVICE_ROLE_KEY: "key" },
-    createClientImpl: () => fakeClient,
-    importerFactory: () => importer,
-  });
-  assert.equal(result.ran, true);
-  assert.deepEqual(result.counts, {
-    airports: 80000, runways: 45000, frequencies: 30000, navaids: 11000,
-  });
-  const updates = calls.filter((c) => c.kind === "update");
-  assert.equal(updates.length, 2);
-  assert.equal(updates[0].values.last_status, "in_progress");
-  assert.equal(updates[1].values.last_status, "success");
-  assert.equal(updates[1].values.airports_count, 80000);
-}
-
-// runRefreshWithLock: stale meta but another refresh in flight -> skip
+// runRefreshStepWithLock: fresh -> skip
 {
   const calls = [];
   const fakeClient = createFakeMetaClient({
     selectData: {
-      last_imported_at: isoMinusHours(48),
-      last_attempted_at: isoMinusHours(0.05), // 3 minutes ago
-      last_status: "in_progress",
+      airports_imported_at: isoMinusHours(2),
+      runways_imported_at: isoMinusHours(2),
+      frequencies_imported_at: isoMinusHours(2),
+      navaids_imported_at: isoMinusHours(2),
     },
   }, calls);
-  const result = await runRefreshWithLock({
+  const result = await runRefreshStepWithLock({
     env: { NEXT_PUBLIC_SUPABASE_URL: "https://x.test", SUPABASE_SERVICE_ROLE_KEY: "key" },
     createClientImpl: () => fakeClient,
     importerFactory: () => ({
-      import: async () => { throw new Error("should not import when locked"); },
+      importTable: () => { throw new Error("should not import"); },
     }),
   });
-  assert.deepEqual(result, { ran: false, reason: "locked" });
+  assert.deepEqual(result, { ran: false, reason: "fresh" });
 }
 
-// runRefreshWithLock: lock contended (UPDATE returns zero rows) -> skip
+// runRefreshStepWithLock: airports stale, lock acquired -> imports only airports
 {
   const calls = [];
   const fakeClient = createFakeMetaClient({
-    selectData: { last_imported_at: isoMinusHours(48), last_attempted_at: null },
-    updateRowCount: 0,
+    selectData: {
+      airports_imported_at: isoMinusHours(48),
+      runways_imported_at: isoMinusHours(2),
+      frequencies_imported_at: isoMinusHours(2),
+      navaids_imported_at: isoMinusHours(2),
+      last_attempted_at: null,
+    },
+    updateRowCount: 1,
   }, calls);
-  const result = await runRefreshWithLock({
+  const importerCalls = [];
+  const importer = {
+    importTable: async (key) => {
+      importerCalls.push(key);
+      return 85000;
+    },
+  };
+  const result = await runRefreshStepWithLock({
+    env: { NEXT_PUBLIC_SUPABASE_URL: "https://x.test", SUPABASE_SERVICE_ROLE_KEY: "key" },
+    createClientImpl: () => fakeClient,
+    importerFactory: () => importer,
+  });
+  assert.deepEqual(result, { ran: true, table: "airports", count: 85000 });
+  assert.deepEqual(importerCalls, ["airports"]);
+  const updates = calls.filter((c) => c.kind === "update");
+  assert.equal(updates.length, 2);
+  assert.ok(updates[0].values.last_status.startsWith("in_progress:airports"));
+  assert.equal(updates[1].values.last_status, "success");
+  assert.equal(updates[1].values.airports_count, 85000);
+  assert.ok(updates[1].values.airports_imported_at);
+}
+
+// runRefreshStepWithLock: lock held by another in-progress run -> skip
+{
+  const calls = [];
+  const fakeClient = createFakeMetaClient({
+    selectData: {
+      airports_imported_at: isoMinusHours(48),
+      last_attempted_at: isoMinusHours(0.05),
+      last_status: "in_progress:airports",
+    },
+  }, calls);
+  const result = await runRefreshStepWithLock({
     env: { NEXT_PUBLIC_SUPABASE_URL: "https://x.test", SUPABASE_SERVICE_ROLE_KEY: "key" },
     createClientImpl: () => fakeClient,
     importerFactory: () => ({
-      import: async () => { throw new Error("should not import when lock not acquired"); },
+      importTable: () => { throw new Error("should not import when locked"); },
     }),
   });
   assert.deepEqual(result, { ran: false, reason: "locked" });
 }
 
-// runRefreshWithLock: importer failure -> records error and rethrows
+// runRefreshStepWithLock: importer failure -> records error and rethrows
 {
   const calls = [];
   const fakeClient = createFakeMetaClient({
-    selectData: { last_imported_at: isoMinusHours(48), last_attempted_at: null },
+    selectData: { airports_imported_at: isoMinusHours(48), last_attempted_at: null },
     updateRowCount: 1,
   }, calls);
   await assert.rejects(
-    runRefreshWithLock({
+    runRefreshStepWithLock({
       env: { NEXT_PUBLIC_SUPABASE_URL: "https://x.test", SUPABASE_SERVICE_ROLE_KEY: "key" },
       createClientImpl: () => fakeClient,
       importerFactory: () => ({
-        import: async () => { throw new Error("network down"); },
+        importTable: async () => { throw new Error("network down"); },
       }),
     }),
     /network down/,
   );
   const updates = calls.filter((c) => c.kind === "update");
-  assert.equal(updates[0].values.last_status, "in_progress");
-  assert.equal(updates[1].values.last_status, "error");
+  assert.ok(updates[0].values.last_status.startsWith("in_progress:airports"));
+  assert.ok(updates[1].values.last_status.startsWith("error:airports"));
   assert.ok(updates[1].values.last_error.includes("network down"));
 }
 

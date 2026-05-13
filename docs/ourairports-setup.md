@@ -34,7 +34,7 @@ supabase db push
 
 1. Open <https://supabase.com/dashboard/project/_/sql>.
 2. Paste the contents of `supabase/migrations/20260513140000_create_ourairports_static.sql`, then run.
-3. Repeat for `supabase/migrations/20260513150000_create_ourairports_refresh_meta.sql` (powers the auto-refresh — see "Refresh cadence" below).
+3. Paste the contents of `supabase/migrations/20260513150000_create_ourairports_refresh_meta.sql`, then run. (Powers the auto-refresh — see "Refresh cadence" below.)
 
 Verify with:
 
@@ -98,11 +98,16 @@ You should see records sourced from `ourairports` (note the `"source": "ourairpo
 
 ## Refresh cadence
 
-The runtime handles this automatically. `/api/search` and `/api/airport/[ident]` fire a background refresh check (`scheduleRefreshIfDue` via Next.js `after()`) after every successful response. If `max(imported_at)` on the OurAirports tables is older than **24 hours**, the next request triggers an import — but the user never waits, because the refresh runs after the response is sent. A singleton row in `public.ourairports_refresh_meta` acts as a soft lock so concurrent staleness triggers don't fan out into N parallel imports.
+The runtime handles this automatically. `/api/search` and `/api/airport/[ident]` fire a background refresh check (`scheduleRefreshIfDue` via Next.js `after()`) after every successful response. The user never waits — the refresh runs after the response is sent.
 
-This requires `SUPABASE_SERVICE_ROLE_KEY` to be set on the runtime (Vercel env vars). Without it, the routes still work — they just serve from whatever's in the DB without auto-refresh.
+Each invocation refreshes **at most one table** (airports → runways → frequencies → navaids, in priority order) so a single function call stays comfortably under the Vercel function timeout — even on the Hobby plan's 10-second cap. A full refresh cycle of all four tables completes across the next ~4 visitor requests after the 24-hour TTL elapses.
 
-You can still run `node --env-file=.env scripts/import-ourairports.js` manually whenever you want to force a refresh.
+The singleton row in `public.ourairports_refresh_meta` tracks per-table `*_imported_at` timestamps and acts as a soft lock so concurrent staleness triggers don't fan out into parallel imports of the same table.
+
+Requirements:
+- `SUPABASE_SERVICE_ROLE_KEY` must be set on the runtime (Vercel project env vars). Without it, the routes still serve from the DB but never auto-refresh.
+
+You can still run `node --env-file=.env scripts/import-ourairports.js` manually whenever you want to force a full refresh in one shot.
 
 ## Files added by this migration
 

@@ -1,12 +1,20 @@
 -- Singleton meta row used by the stale-while-revalidate refresh in the
--- Next.js routes: tracks the last successful OurAirports import and acts as
--- a soft lock so concurrent staleness triggers don't fan out into N parallel
--- imports of the same data.
+-- Next.js routes: tracks the last successful OurAirports import per table,
+-- and acts as a soft lock so concurrent staleness triggers don't fan out
+-- into N parallel imports of the same data.
+--
+-- Per-table timestamps let the SWR scheduler split a refresh across multiple
+-- function invocations (one table per call) so each invocation finishes
+-- comfortably inside Vercel's per-function timeout.
 
 create table if not exists public.ourairports_refresh_meta (
   id text primary key default 'singleton'
     check (id = 'singleton'),
   last_imported_at timestamptz,
+  airports_imported_at timestamptz,
+  runways_imported_at timestamptz,
+  frequencies_imported_at timestamptz,
+  navaids_imported_at timestamptz,
   last_attempted_at timestamptz,
   last_status text not null default '',
   last_error text not null default '',
