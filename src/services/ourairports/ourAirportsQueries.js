@@ -197,35 +197,85 @@ export const createOurAirportsQueries = ({ client } = {}) => {
       const normalizedType = String(type || "").trim();
       const safeLimit = Math.max(1, Math.min(Number(limit) || 25, 200));
 
-      let request = select("airports", AIRPORT_COLUMNS).limit(safeLimit);
-      if (normalizedCountry) request = request.eq("iso_country", normalizedCountry);
-      if (normalizedType && normalizedType !== "all") {
-        request = request.eq("type", normalizedType);
+      const applyCommonFilters = (request) => {
+        let next = request;
+        if (normalizedCountry) next = next.eq("iso_country", normalizedCountry);
+        if (normalizedType && normalizedType !== "all") {
+          next = next.eq("type", normalizedType);
+        }
+        return next;
+      };
+
+      if (!trimmed) {
+        const { data, error } = await applyCommonFilters(
+          select("airports", AIRPORT_COLUMNS),
+        ).limit(safeLimit);
+        if (error) throw new Error(`searchAirports failed: ${error.message}`);
+        return (data || []).map(mapAirportRow).filter(Boolean);
       }
 
-      if (trimmed) {
-        const upper = trimmed.toUpperCase();
-        const ilike = `%${escapeIlike(trimmed)}%`;
-        const orFilter = [
-          `ident.eq.${upper}`,
-          `icao_code.eq.${upper}`,
-          `iata_code.eq.${upper}`,
-          `icao_code.ilike.${escapeIlike(upper)}%`,
-          `iata_code.ilike.${escapeIlike(upper)}%`,
-          `name.ilike.${ilike}`,
-          `municipality.ilike.${ilike}`,
-          `keywords.ilike.${ilike}`,
-        ].join(",");
-        request = request.or(orFilter);
+      // Postgres returns rows in undefined order for an unsorted SELECT, so
+      // applying LIMIT to a fat OR query can starve high-value exact-code
+      // matches when the substring fan-out has hundreds of hits. Split the
+      // query into three buckets (exact code, prefix, substring), run them
+      // in parallel, then dedupe + rank client-side.
+      const upper = trimmed.toUpperCase();
+      const ilike = `%${escapeIlike(trimmed)}%`;
+      const prefixIlike = `${escapeIlike(upper)}%`;
+
+      const exactFilter = [
+        `ident.eq.${upper}`,
+        `icao_code.eq.${upper}`,
+        `iata_code.eq.${upper}`,
+      ].join(",");
+      const prefixFilter = [
+        `icao_code.ilike.${prefixIlike}`,
+        `iata_code.ilike.${prefixIlike}`,
+        `ident.ilike.${prefixIlike}`,
+      ].join(",");
+      const substringFilter = [
+        `name.ilike.${ilike}`,
+        `municipality.ilike.${ilike}`,
+        `keywords.ilike.${ilike}`,
+      ].join(",");
+
+      // For substring matches we order server-side by scheduled_service first
+      // (commercial airports beat rural strips of the same name) so the LIMIT
+      // doesn't starve KBOS-class results when there are hundreds of matches.
+      const [exactResult, prefixResult, substringResult] = await Promise.all([
+        applyCommonFilters(select("airports", AIRPORT_COLUMNS))
+          .or(exactFilter)
+          .limit(safeLimit),
+        applyCommonFilters(select("airports", AIRPORT_COLUMNS))
+          .or(prefixFilter)
+          .order("scheduled_service", { ascending: false })
+          .limit(safeLimit),
+        applyCommonFilters(select("airports", AIRPORT_COLUMNS))
+          .or(substringFilter)
+          .order("scheduled_service", { ascending: false })
+          .order("name", { ascending: true })
+          .limit(safeLimit * 4),
+      ]);
+
+      for (const result of [exactResult, prefixResult, substringResult]) {
+        if (result.error) {
+          throw new Error(`searchAirports failed: ${result.error.message}`);
+        }
       }
 
-      const { data, error } = await request;
-      if (error) {
-        throw new Error(`searchAirports failed: ${error.message}`);
+      const seen = new Set();
+      const merged = [];
+      for (const row of [
+        ...(exactResult.data || []),
+        ...(prefixResult.data || []),
+        ...(substringResult.data || []),
+      ]) {
+        if (!row?.ident || seen.has(row.ident)) continue;
+        seen.add(row.ident);
+        merged.push(row);
       }
 
-      const rows = Array.isArray(data) ? data : [];
-      const ranked = trimmed ? sortBySearchRelevance(rows, trimmed) : rows;
+      const ranked = sortBySearchRelevance(merged, trimmed).slice(0, safeLimit);
       return ranked.map(mapAirportRow).filter(Boolean);
     },
 

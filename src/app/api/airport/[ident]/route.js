@@ -36,14 +36,18 @@ export async function GET(request, { params }) {
   }
 
   const url = new URL(request.url);
-  const radiusRaw = Number(url.searchParams.get("nearbyRadiusNm"));
-  const radiusNm = Number.isFinite(radiusRaw)
-    ? Math.max(1, Math.min(radiusRaw, 250))
-    : undefined;
-  const limitRaw = Number(url.searchParams.get("nearbyLimit"));
-  const nearbyLimit = Number.isFinite(limitRaw)
-    ? Math.max(1, Math.min(limitRaw, 50))
-    : undefined;
+  const parseOptionalInt = (key) => {
+    const raw = url.searchParams.get(key);
+    if (raw == null || raw === "") return undefined;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : undefined;
+  };
+  const radiusRaw = parseOptionalInt("nearbyRadiusNm");
+  const radiusNm =
+    radiusRaw === undefined ? undefined : Math.max(1, Math.min(radiusRaw, 250));
+  const limitRaw = parseOptionalInt("nearbyLimit");
+  const nearbyLimit =
+    limitRaw === undefined ? undefined : Math.max(1, Math.min(limitRaw, 50));
 
   const service = createAirportPageDataServiceFromEnv();
   if (!service) {

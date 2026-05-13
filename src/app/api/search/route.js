@@ -34,7 +34,8 @@ export async function GET(request) {
     .trim()
     .toUpperCase();
   const type = String(url.searchParams.get("type") || "").trim();
-  const limitRaw = Number(url.searchParams.get("limit"));
+  const limitParam = url.searchParams.get("limit");
+  const limitRaw = limitParam == null || limitParam === "" ? NaN : Number(limitParam);
   const limit = Number.isFinite(limitRaw)
     ? Math.max(1, Math.min(limitRaw, MAX_LIMIT))
     : DEFAULT_LIMIT;
