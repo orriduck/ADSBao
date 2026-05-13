@@ -5,8 +5,13 @@ export const AIRPORT_SEARCH_CONFIG = {
   debounceMs: 220,
 };
 
-// Curated mix of high-traffic hubs across regions. Coordinates and naming come
-// from the OurAirports import so these match what `/api/search` returns.
+// Curated mix of high-traffic hubs in regions with dense adsb.lol receiver
+// coverage so the homepage previews always have visible nearby traffic.
+// Coverage map (https://adsb.lol/coverage) is strongest across the US, Canada,
+// Western Europe, and Hong Kong; mainland Asia and the Middle East are
+// noticeably thinner, so we intentionally bias the list toward those regions.
+// Coordinates and naming come from the OurAirports import so these match what
+// `/api/search` returns.
 export const FEATURED_AIRPORTS = [
   {
     icao: "KJFK",
@@ -53,6 +58,28 @@ export const FEATURED_AIRPORTS = [
     type_label: "Large Airport",
   },
   {
+    icao: "KBOS",
+    iata: "BOS",
+    name: "Boston Logan International Airport",
+    city: "Boston",
+    country: "US",
+    lat: 42.36197,
+    lon: -71.0079,
+    type: "large_airport",
+    type_label: "Large Airport",
+  },
+  {
+    icao: "CYYZ",
+    iata: "YYZ",
+    name: "Toronto Pearson International Airport",
+    city: "Toronto",
+    country: "CA",
+    lat: 43.675935,
+    lon: -79.629421,
+    type: "large_airport",
+    type_label: "Large Airport",
+  },
+  {
     icao: "EGLL",
     iata: "LHR",
     name: "London Heathrow Airport",
@@ -75,13 +102,13 @@ export const FEATURED_AIRPORTS = [
     type_label: "Large Airport",
   },
   {
-    icao: "RJTT",
-    iata: "HND",
-    name: "Tokyo Haneda International Airport",
-    city: "Tokyo",
-    country: "JP",
-    lat: 35.549678,
-    lon: 139.786958,
+    icao: "EDDF",
+    iata: "FRA",
+    name: "Frankfurt Main Airport",
+    city: "Frankfurt am Main",
+    country: "DE",
+    lat: 50.026706,
+    lon: 8.55835,
     type: "large_airport",
     type_label: "Large Airport",
   },
@@ -93,28 +120,6 @@ export const FEATURED_AIRPORTS = [
     country: "HK",
     lat: 22.31184,
     lon: 113.914862,
-    type: "large_airport",
-    type_label: "Large Airport",
-  },
-  {
-    icao: "OMDB",
-    iata: "DXB",
-    name: "Dubai International Airport",
-    city: "Dubai",
-    country: "AE",
-    lat: 25.24979,
-    lon: 55.370992,
-    type: "large_airport",
-    type_label: "Large Airport",
-  },
-  {
-    icao: "CYYZ",
-    iata: "YYZ",
-    name: "Toronto Pearson International Airport",
-    city: "Toronto",
-    country: "CA",
-    lat: 43.675935,
-    lon: -79.629421,
     type: "large_airport",
     type_label: "Large Airport",
   },
