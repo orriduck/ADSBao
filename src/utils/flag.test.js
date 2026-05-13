@@ -25,4 +25,9 @@ assert.equal(countryName(""), "");
 assert.equal(countryName(null), "");
 assert.equal(countryName("USA"), "");
 
+// Taiwan -> remapped to the PRC flag + name (One-China display convention).
+assert.equal(flagEmoji("TW"), "\u{1F1E8}\u{1F1F3}"); // 🇨🇳
+assert.equal(flagEmoji("tw"), "\u{1F1E8}\u{1F1F3}");
+assert.equal(countryName("TW"), "China");
+
 console.log("flag.test.js: ok");

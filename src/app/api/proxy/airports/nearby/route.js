@@ -9,7 +9,6 @@ import {
   fetchAiracAirportDetail,
   fetchAiracAirportIndex,
 } from "@/services/airports/nearbyAirportDataClient.js";
-import { createAirportMetadataSupabaseCacheFromEnv } from "@/services/airports/airportMetadataSupabaseCache.js";
 import { filterNearbyAirports } from "@/services/airports/nearbyAirportModel.js";
 import {
   buildNearbyAirportCacheKey,
@@ -92,16 +91,6 @@ const logSupabaseCacheWarning = (action, error) => {
   console.warn(`[airports/nearby] Supabase cache ${action} failed`, error);
 };
 
-const writeAirportMetadata = async (airports) => {
-  const metadataCache = createAirportMetadataSupabaseCacheFromEnv();
-  if (!metadataCache) return;
-  try {
-    await metadataCache.writeMany(airports);
-  } catch (error) {
-    console.warn("[airports/nearby] Supabase metadata cache write failed", error);
-  }
-};
-
 export async function GET(request) {
   const securityResponse = enforceProxyRequest(request, { rateLimit });
   if (securityResponse) return securityResponse;
@@ -177,7 +166,6 @@ export async function GET(request) {
       radiusNm,
       limit,
     });
-    await writeAirportMetadata(nearbyAirports);
     const airports = await attachRunwayMaps(nearbyAirports);
 
     const payload = {
