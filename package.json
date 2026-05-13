@@ -8,6 +8,7 @@
     "build": "next build",
     "build:procedures": "node scripts/build-faa-cifp-procedures.js",
     "import:ourairports": "node scripts/import-ourairports.js",
+    "icons:aircraft": "node scripts/download-aircraft-icons.js",
     "lint": "eslint .",
     "test": "node scripts/run-tests.js",
     "test:all": "pnpm test",
