@@ -14,3 +14,33 @@ export const flagEmoji = (isoCountry) => {
     code.charCodeAt(1) + REGIONAL_INDICATOR_OFFSET,
   );
 };
+
+// Lazy singleton so we don't pay Intl.DisplayNames construction cost on every
+// row render. Both Node 18+ and every modern browser ship Intl.DisplayNames;
+// the try/catch keeps us safe in case of an exotic runtime.
+let regionNamesCache = null;
+const getRegionNames = () => {
+  if (regionNamesCache !== null) return regionNamesCache || null;
+  if (typeof Intl === "undefined" || typeof Intl.DisplayNames !== "function") {
+    regionNamesCache = false;
+    return null;
+  }
+  try {
+    regionNamesCache = new Intl.DisplayNames(["en"], { type: "region" });
+  } catch {
+    regionNamesCache = false;
+  }
+  return regionNamesCache || null;
+};
+
+export const countryName = (isoCountry) => {
+  const code = String(isoCountry || "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return "";
+  const names = getRegionNames();
+  if (!names) return code;
+  try {
+    return names.of(code) || code;
+  } catch {
+    return code;
+  }
+};
