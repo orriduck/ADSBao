@@ -11,7 +11,7 @@ export const AIRAC_AIRPORT_INDEX_CONFIG = {
   minRunwayLength: 5000,
   maxPages: 25,
   cacheMs: 6 * 60 * 60 * 1000,
-  userAgent: "ADSBao/0.9.0 (https://github.com/orriduck/ADSBao)",
+  userAgent: "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)",
 };
 
 export async function fetchAiracAirportIndex({

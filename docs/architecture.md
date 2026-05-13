@@ -21,9 +21,9 @@ Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the p
 
 ## Runtime topology
 
-### Browser-owned airport directory
+### Airport directory (OurAirports → Supabase → Next.js API)
 
-Airport directory data is requested by the browser and cached by the frontend.
+Global airport static data (airports, runways, frequencies, navaids) is sourced from [OurAirports](https://ourairports.com/data/), persisted in Supabase via `node --env-file=.env scripts/import-ourairports.js`, and exposed to the browser through `/api/search` and `/api/airport/[ident]`. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the database boundary. See `docs/ourairports-setup.md` for setup and refresh cadence.
 
 ### Vercel data paths
 
@@ -42,7 +42,7 @@ These paths are implemented as Next.js Route Handlers under `src/app/api/proxy/*
 
 The nearby-airport proxy can also use Supabase as a persistent response cache. When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are configured in Vercel, `/api/proxy/airports/nearby` reads and writes `public.nearby_airport_cache` records with a 90-day `expires_at` TTL. The migration grants the `anon` role only the select/insert/update permissions needed for this public cache table, with RLS policies restricted to `nearby-airports:%` cache keys. Cache failures are non-fatal: the handler falls back to AIRAC and logs the Supabase read/write error server-side.
 
-Airport identity metadata is cached separately in `public.airport_metadata_cache`. Search and browse responses write normalized rows for ICAO/IATA/code, display name, city, state, country, airport type, latitude, longitude, elevation, and source. Direct airport resolution checks this table first before calling airportsapi.com. The nearby-airport proxy also writes metadata for airports returned by the AIRAC overlay path.
+A legacy `public.airport_metadata_cache` table remains populated by the AIRAC-backed `/api/proxy/airports/nearby` proxy to give the nearby-airport overlay fast warm reads. It is no longer consulted by airport search or detail — those paths go directly to the OurAirports tables (`public.airports`, `public.runways`, `public.airport_frequencies`, `public.navaids`).
 
 ### Vercel security posture
 
@@ -72,5 +72,6 @@ The current ADSBao web line starts at `v0.4.0`.
 | `v0.7.1` | Map and mobile polish |
 | `v0.8.0` | Next.js Vercel refactor |
 | `v0.9.0` | Navy tracking console redesign |
+| `v0.10.0` | Global airport data layer (OurAirports + Supabase) and richer aircraft silhouettes |
 
 `v0.3.x` and earlier are legacy desktop-app history and should not be used as the current ADSBao web product line.

@@ -2,6 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { procedureDataClient } from "../services/procedures/procedureDataClient.js";
+import { buildRunwayMapFromOurAirports } from "../features/airport-map/ourAirportsRunwayMap.js";
+
+const fetchOurAirportsRunwayMap = async (icao) => {
+  try {
+    const response = await fetch(`/api/airport/${encodeURIComponent(icao)}`);
+    if (!response.ok) return null;
+    const payload = await response.json();
+    return buildRunwayMapFromOurAirports(icao, payload?.runways);
+  } catch {
+    return null;
+  }
+};
 
 export function useAirportProcedures(airport, selectedProcedureId = "") {
   const [index, setIndex] = useState(null);
@@ -28,15 +40,22 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
       setLoading(true);
       setError(null);
       try {
-        const [payload, runwayProcedurePayload] = await Promise.all([
-          procedureDataClient.fetchLiveProcedures(normalizedAirport),
-          procedureDataClient.fetchRunwayProcedures(normalizedAirport),
-        ]);
+        const [payload, runwayProcedurePayload, ourAirportsRunwayMap] =
+          await Promise.all([
+            procedureDataClient.fetchLiveProcedures(normalizedAirport),
+            procedureDataClient.fetchRunwayProcedures(normalizedAirport),
+            fetchOurAirportsRunwayMap(normalizedAirport),
+          ]);
         if (disposed) return;
         const nextIndex = payload?.index || null;
         setIndex(nextIndex);
         setGeojson(payload?.geojson || null);
-        setRunwayMap(payload?.runwayMap || null);
+        // FAA CIFP only covers US airports. For everywhere else, fall back to
+        // the OurAirports-derived runway map so non-US airports still get the
+        // map overlay (thresholds, centerlines, end labels).
+        const cifpRunwayMap = payload?.runwayMap;
+        const hasCifpRunways = cifpRunwayMap?.runways?.length > 0;
+        setRunwayMap(hasCifpRunways ? cifpRunwayMap : ourAirportsRunwayMap);
         setRunwayProcedures(runwayProcedurePayload || null);
       } catch (nextError) {
         if (disposed) return;

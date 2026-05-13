@@ -1,5 +1,5 @@
 export const ABOUT_BUILD_META = [
-  { label: "Version", value: "0.9.0" },
+  { label: "Version", value: "0.10.0" },
   { label: "Release", value: "Next.js Web" },
   { label: "Stack", value: "React 19 · Next 16 · Leaflet" },
   { label: "Scope", value: "Maps · Weather · Traffic" },
@@ -23,11 +23,11 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ICONS",
-    title: "ADS-B Radar Aircraft Icons",
+    title: "AircraftShapesSVG",
     description:
-      "Aircraft type silhouettes on the map. Icons by ADS-B Radar for macOS, used with attribution.",
-    host: "adsb-radar.com",
-    href: "https://adsb-radar.com/",
+      "Top-view aircraft silhouettes on the map. Icons by RexKramer1, licensed GPL-3.0, used with attribution.",
+    host: "github.com/RexKramer1",
+    href: "https://github.com/RexKramer1/AircraftShapesSVG",
   },
   {
     glyph: "ROUTE",
@@ -47,10 +47,10 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "DIR",
-    title: "Airports API Directory",
-    description: "ICAO/IATA directory powering search and resolution.",
-    host: "airportsapi.com",
-    href: "https://airportsapi.com/",
+    title: "OurAirports",
+    description: "Global airport directory powering search and resolution.",
+    host: "ourairports.com",
+    href: "https://ourairports.com/data/",
   },
   {
     glyph: "WIKI",

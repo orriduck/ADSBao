@@ -1,3 +1,7 @@
+import { promises as fs } from "node:fs";
+import { join } from "node:path";
+import process from "node:process";
+
 import {
   buildProxyHeaders,
   createCorsPreflightResponse,
@@ -6,17 +10,17 @@ import {
 } from "@/services/apiProxySecurity.js";
 import { isKnownAircraftIconName } from "@/utils/aircraftIcon.js";
 
-// Aircraft silhouettes are sourced from the "ADS-B Radar Free Aircraft SVG
-// Icons" set published at https://adsb-radar.com/help/icons.html — see the
-// resolver in src/utils/aircraftIcon.js for attribution. Serving them through
-// this same-origin proxy lets us tint with `mask-image` without tripping the
-// browser's cross-origin CSS resource rules.
+// Aircraft silhouettes are sourced from RexKramer1/AircraftShapesSVG
+// (GPL-3.0). The SVGs ship in the repo under `public/icons/aircraft/`; see
+// `public/icons/aircraft/ATTRIBUTION.md` for attribution and the local-rename
+// notes. The route serves them same-origin so CSS `mask-image` tinting works
+// without CORS friction and falls back to an inline arrow SVG when an ident
+// has no on-disk silhouette.
 
-const UPSTREAM_BASE = "https://adsb-radar.com/help/icons";
-const USER_AGENT = "ADSBao/0.9.0 (https://github.com/orriduck/ADSBao)";
-
-// Soft cap on payload size (the upstream icons are a few kB each; anything
-// dramatically larger would be unexpected and we refuse it).
+const ICON_DIR = join(process.cwd(), "public", "icons", "aircraft");
+const FALLBACK_NAME = "arrow";
+const FALLBACK_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L16 20L12 17L8 20Z" fill="black"/></svg>';
 const MAX_BYTES = 64 * 1024;
 
 const rateLimit = {
@@ -25,9 +29,21 @@ const rateLimit = {
   windowMs: 60_000,
 };
 
-// Browser cache aggressively (the icon set is static), and let edge nodes
-// keep a fresh copy for a day with stale-while-revalidate.
-const CACHE_CONTROL = "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800";
+const CACHE_CONTROL =
+  "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800";
+
+export const runtime = "nodejs";
+
+const readIconFile = async (name) => {
+  try {
+    const buffer = await fs.readFile(join(ICON_DIR, `${name}.svg`));
+    if (buffer.byteLength > MAX_BYTES) return null;
+    return buffer;
+  } catch (error) {
+    if (error.code === "ENOENT") return null;
+    throw error;
+  }
+};
 
 export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
@@ -38,67 +54,37 @@ export async function GET(request, { params }) {
   if (securityResponse) return securityResponse;
 
   const { name } = await params;
-  if (!isKnownAircraftIconName(name)) {
-    return jsonProxyResponse(
-      request,
-      { error: "Unknown aircraft icon" },
-      { status: 404 },
-    );
-  }
-
-  const upstream = `${UPSTREAM_BASE}/${encodeURIComponent(name)}.svg`;
+  const requested = isKnownAircraftIconName(name) ? name : null;
 
   try {
-    const response = await fetch(upstream, {
-      headers: {
-        Accept: "image/svg+xml",
-        "User-Agent": USER_AGENT,
-      },
-      // Allow Next.js / the platform to cache the upstream fetch for a day.
-      next: { revalidate: 86_400 },
-    });
+    let body = requested ? await readIconFile(requested) : null;
+    let servedName = requested;
 
-    if (!response.ok) {
-      return jsonProxyResponse(
-        request,
-        { error: "Failed to load aircraft icon" },
-        { status: response.status === 404 ? 404 : 502 },
-      );
+    if (!body) {
+      body = await readIconFile(FALLBACK_NAME);
+      servedName = FALLBACK_NAME;
     }
 
-    const contentType =
-      response.headers.get("content-type") || "image/svg+xml";
-    if (!/svg/i.test(contentType)) {
-      return jsonProxyResponse(
-        request,
-        { error: "Upstream returned a non-SVG payload" },
-        { status: 502 },
-      );
+    if (!body) {
+      body = FALLBACK_SVG;
+      servedName = "inline-arrow";
     }
 
-    const buffer = await response.arrayBuffer();
-    if (buffer.byteLength > MAX_BYTES) {
-      return jsonProxyResponse(
-        request,
-        { error: "Upstream icon too large" },
-        { status: 502 },
-      );
-    }
-
-    return new Response(buffer, {
+    return new Response(body, {
       status: 200,
       headers: buildProxyHeaders(request, {
         "Content-Type": "image/svg+xml; charset=utf-8",
         "Cache-Control": CACHE_CONTROL,
-        "X-Aircraft-Icon-Name": name,
+        "X-Aircraft-Icon-Name": servedName,
+        "X-Aircraft-Icon-Requested": requested || "",
       }),
     });
   } catch (error) {
-    console.error("[aircraft-icons] load failed", error);
+    console.error("[aircraft-icons] disk read failed", error);
     return jsonProxyResponse(
       request,
       { error: "Failed to load aircraft icon" },
-      { status: 502 },
+      { status: 500 },
     );
   }
 }

@@ -106,6 +106,7 @@ Use the current ADSBao web release line:
 | `v0.7.1` | Map and mobile polish |
 | `v0.8.0` | Next.js Vercel refactor |
 | `v0.9.0` | Navy tracking console redesign |
+| `v0.10.0` | Global airport data layer (OurAirports + Supabase) and richer aircraft silhouettes |
 
 `v0.3.x` and earlier are legacy desktop-app history. Do not use those releases as the current ADSBao web product line.
 

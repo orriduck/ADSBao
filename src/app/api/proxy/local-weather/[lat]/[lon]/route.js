@@ -44,7 +44,7 @@ export async function GET(request, { params }) {
     const response = await fetch(url, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "ADSBao/0.8 (https://github.com/orriduck/ADSBao)",
+        "User-Agent": "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)",
       },
       next: {
         revalidate: 300,

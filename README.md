@@ -8,13 +8,13 @@ A modern airport-monitoring HUD with dynamic airport search, METAR context, and 
 ## Overview
 ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by public airport directory data.
 
-Current web app version: **0.9.0**. See `CHANGELOG.md` for product version history and the legacy desktop release split.
+Current web app version: **0.10.0**. See `CHANGELOG.md` for product version history and the legacy desktop release split.
 
 ## Tech Stack
 - **Frontend**: React on Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide Icons.
 - **Vercel UX integrations**: Vercel Web Analytics and Speed Insights use their Next.js packages.
 - **Component migration**: Former VueBits-style effects are implemented as React components.
-- **Data access**: Browser-managed airport directory requests to airportsapi.com, with conservative client caching.
+- **Data access**: OurAirports static data (airports, runways, frequencies, navaids) persisted in Supabase and served through `/api/search` and `/api/airport/[ident]`.
 - **Vercel routing**: Same-origin Vercel rewrites for AviationWeather METAR and adsb.lol aircraft positions, plus a Next.js route handler for VRS standing-data callsign route lookup.
 - **Typography**: Google Sans Flex & Google Sans Code.
 
@@ -38,7 +38,7 @@ The repo includes `vercel.json` for Git-triggered Vercel builds with same-origin
 vercel
 ```
 
-The deployment path intentionally keeps upstream ownership visible: airport search goes to airportsapi.com from the browser, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Nearby-airport overlay responses and normalized airport metadata can be persisted in Supabase for 90 days when Vercel provides the publishable-key env vars from `.env.example`.
+The deployment path intentionally keeps upstream ownership visible: airport search and airport detail hit `/api/search` and `/api/airport/[ident]` backed by Supabase-hosted OurAirports data, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Static airport data is bulk-loaded from OurAirports into Supabase via `node --env-file=.env scripts/import-ourairports.js` (see `docs/ourairports-setup.md`).
 
 ### Verification
 ```bash

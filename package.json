@@ -1,12 +1,11 @@
 {
   "name": "adsbao",
   "private": true,
-  "version": "0.9.0",
+  "version": "0.10.0",
   "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:procedures": "node scripts/build-faa-cifp-procedures.js",
     "lint": "eslint .",
     "test": "node scripts/run-tests.js",
     "test:all": "pnpm test",
