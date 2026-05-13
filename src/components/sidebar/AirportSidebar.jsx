@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
 import SidebarViewSwitch from "./SidebarViewSwitch";
@@ -42,17 +43,19 @@ export default function AirportSidebar({
         <button
           type="button"
           onClick={onBack}
-          className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
+          className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
         >
-          ← ADSBao
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>ADSBao</span>
         </button>
         {onClose ? (
           <button
             type="button"
             onClick={onClose}
-            className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
+            className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
           >
-            Map →
+            <span>Map</span>
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         ) : (
           <span

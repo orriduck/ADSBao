@@ -106,7 +106,9 @@ export function buildProxyHeaders(request, headers = {}, options = {}) {
   output.set("Access-Control-Allow-Methods", DEFAULT_ALLOWED_METHODS.join(", "));
   output.set("Access-Control-Allow-Headers", "Accept, Content-Type");
   output.set("Access-Control-Max-Age", "86400");
-  output.append("Vary", "Origin");
+  if (options.varyOrigin !== false) {
+    output.append("Vary", "Origin");
+  }
   output.set("X-Content-Type-Options", "nosniff");
   return output;
 }

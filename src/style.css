@@ -40,6 +40,7 @@
 
     --font-sans: "Manrope", system-ui, sans-serif;
     --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+    --font-nav: "Inter", "Manrope", system-ui, sans-serif;
 
     --radius: var(--atc-radius-control);
     --radius-xs: calc(var(--radius) * 0.5);
@@ -1732,15 +1733,17 @@ body {
     background: var(--atc-bg);
     border-bottom: 1px solid var(--atc-line-strong);
     box-sizing: border-box;
+    gap: 1rem;
     min-height: 44px;
-    padding: 0 16px;
+    padding: 0 24px;
 }
 
 .mobile-top-nav-link {
     color: var(--atc-faint);
-    font-family: var(--font-mono);
+    font-family: var(--font-nav);
     font-size: 10px;
-    letter-spacing: 0.14em;
+    font-weight: 600;
+    letter-spacing: 0;
     text-transform: uppercase;
     transition: color 0.15s ease;
 }

@@ -12,7 +12,7 @@ export default function DitherPageShell({
   description = SITE_DESCRIPTION,
   mobileLeft,
   footerLeft,
-  footerThemeToggleClassName = "font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5",
+  footerThemeToggleClassName = "font-nav text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5",
   renderThemeToggle,
   children,
 }) {
