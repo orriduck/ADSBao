@@ -10,14 +10,12 @@ import {
 } from "@/services/apiProxySecurity.js";
 import { isKnownAircraftIconName } from "@/utils/aircraftIcon.js";
 
-// Aircraft silhouettes are sourced from the "ADS-B Radar Free Aircraft SVG
-// Icons" set (https://adsb-radar.com/help/icons.html — see the resolver in
-// src/utils/aircraftIcon.js for attribution). Run `pnpm icons:aircraft` to
-// pull the full set into `public/icons/aircraft/`. The route serves the SVGs
-// from disk so we never depend on the upstream CDN at request time and falls
-// back to the bundled `arrow.svg` (which mirrors the UI's inline arrow path)
-// for any name we recognize but haven't downloaded yet. Same-origin serving
-// also keeps `mask-image` tinting working without CORS friction.
+// Aircraft silhouettes are sourced from RexKramer1/AircraftShapesSVG
+// (GPL-3.0). The SVGs ship in the repo under `public/icons/aircraft/`; see
+// `public/icons/aircraft/ATTRIBUTION.md` for attribution and the local-rename
+// notes. The route serves them same-origin so CSS `mask-image` tinting works
+// without CORS friction and falls back to an inline arrow SVG when an ident
+// has no on-disk silhouette.
 
 const ICON_DIR = join(process.cwd(), "public", "icons", "aircraft");
 const FALLBACK_NAME = "arrow";

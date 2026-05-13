@@ -63,7 +63,7 @@ For the Vercel deployment you only need `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUB
 ## Step 3 — run the import
 
 ```bash
-pnpm import:ourairports
+node --env-file=.env scripts/import-ourairports.js
 ```
 
 Expected console output (counts will fluctuate as OurAirports refreshes daily):
@@ -98,7 +98,7 @@ You should see records sourced from `ourairports` (note the `"source": "ourairpo
 
 ## Refresh cadence
 
-OurAirports updates daily. A monthly re-run of `pnpm import:ourairports` is plenty for ADSBao's needs. You can wire it up as a GitHub Actions cron later if you want it fully hands-off.
+OurAirports updates daily. A monthly re-run of `node --env-file=.env scripts/import-ourairports.js` is plenty for ADSBao's needs. You can wire it up as a GitHub Actions cron later if you want it fully hands-off.
 
 ## Files added by this migration
 

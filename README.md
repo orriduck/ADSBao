@@ -38,7 +38,7 @@ The repo includes `vercel.json` for Git-triggered Vercel builds with same-origin
 vercel
 ```
 
-The deployment path intentionally keeps upstream ownership visible: airport search and airport detail hit `/api/search` and `/api/airport/[ident]` backed by Supabase-hosted OurAirports data, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Static airport data is bulk-loaded from OurAirports into Supabase via `pnpm import:ourairports` (see `docs/ourairports-setup.md`).
+The deployment path intentionally keeps upstream ownership visible: airport search and airport detail hit `/api/search` and `/api/airport/[ident]` backed by Supabase-hosted OurAirports data, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Static airport data is bulk-loaded from OurAirports into Supabase via `node --env-file=.env scripts/import-ourairports.js` (see `docs/ourairports-setup.md`).
 
 ### Verification
 ```bash

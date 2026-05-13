@@ -23,11 +23,11 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ICONS",
-    title: "ADS-B Radar Aircraft Icons",
+    title: "AircraftShapesSVG",
     description:
-      "Aircraft type silhouettes on the map. Icons by ADS-B Radar for macOS, used with attribution.",
-    host: "adsb-radar.com",
-    href: "https://adsb-radar.com/",
+      "Top-view aircraft silhouettes on the map. Icons by RexKramer1, licensed GPL-3.0, used with attribution.",
+    host: "github.com/RexKramer1",
+    href: "https://github.com/RexKramer1/AircraftShapesSVG",
   },
   {
     glyph: "ROUTE",

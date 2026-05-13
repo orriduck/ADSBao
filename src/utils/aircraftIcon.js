@@ -1,67 +1,56 @@
-// Mapping from ADS-B aircraft type designators (the `t` field returned by
-// adsb.lol, e.g. "A320", "B738", "CRJ9", "DH8D") and ADS-B emitter categories
-// (the `category` field, e.g. "A3", "A7", "B1") to silhouette icons.
+// Resolves a CSS-mask-friendly silhouette URL for an aircraft based on its
+// ADS-B `type` field (the ICAO type designator, e.g. "A320", "B738", "CRJ9").
 //
-// Icons live on https://adsb-radar.com/help/icons/<name>.svg and are served
-// to the browser via our same-origin proxy at AIRCRAFT_ICON_BASE_PATH so that
-// CSS `mask-image` is not subject to cross-origin restrictions. The proxy is
-// implemented at `src/app/api/icons/aircraft/[name]/route.js`.
+// Icons live on disk under `public/icons/aircraft/<name>.svg` and are served
+// same-origin by `src/app/api/icons/aircraft/[name]/route.js` so CSS
+// `mask-image` tinting works without CORS friction. When a type isn't on disk
+// the API route falls back to an inline arrow SVG.
 //
-// Attribution required by the upstream license:
-//   Icons by ADS-B Radar for macOS — https://adsb-radar.com
+// Silhouette set is RexKramer1/AircraftShapesSVG (GPL-3.0). See
+// `public/icons/aircraft/LICENSE-GPL-3.0.txt` and `ATTRIBUTION.md`.
 //
-// The resolver favours the type designator (more specific) before falling
-// back to the emitter category. Returning `null` means "no silhouette match" —
-// the caller should keep using the arrow / dot fallback.
+// The resolver favours a direct ICAO match (more specific) before falling
+// back to a small family-pattern table for variants that aren't in the set.
+// Returning `null` means "no silhouette match" — the caller renders the
+// arrow/dot baseline.
 
 export const AIRCRAFT_ICON_BASE_PATH = "/api/icons/aircraft";
 
-// Canonical list of icon names available upstream. Used both by the resolver
-// and by the proxy route to allowlist requests (prevents SSRF / arbitrary
-// path traversal). Keep names lowercase, no extension.
+// Canonical list of icon names available on disk. Used by the API route to
+// allowlist incoming names (preventing path traversal) and by the resolver
+// for direct lookup. Names are lowercase, no extension.
 export const AIRCRAFT_ICON_NAMES = Object.freeze([
-  // ADS-B emitter categories
-  "a0",
-  "a1",
-  "a2",
-  "a3",
-  "a4",
-  "a5",
-  "a6",
-  "a7",
-  "b0",
-  "b1",
-  "b2",
-  "b3",
-  "b4",
-  "c0",
-  // Airbus
-  "a320",
-  "a330",
-  "a340",
-  "a380",
-  // Boeing
-  "b737",
-  "b747",
-  "b767",
-  "b777",
-  "b787",
-  // Other commercial
-  "c130",
-  "cessna",
-  "crjx",
-  "dh8a",
-  "e195",
-  "erj",
-  "f100",
-  "fa7x",
-  "glf5",
-  "learjet",
-  "md11",
-  // Military fighters
-  "f5",
-  "f11",
-  "f15",
+  "a10", "a124", "a19n", "a20n", "a21n", "a225", "a306", "a310", "a318",
+  "a320", "a321", "a332", "a333", "a337", "a338", "a339", "a342", "a343",
+  "a345", "a346", "a359", "a35k", "a388", "a3st", "a4", "a400", "ajet",
+  "an12", "an26", "as21", "as32", "as65", "at45", "at75", "atp",
+  "b1", "b190", "b29", "b350", "b38m", "b39m", "b52", "b703", "b712",
+  "b722", "b733", "b734", "b735", "b737", "b738", "b739", "b742", "b744",
+  "b748", "b74s", "b752", "b753", "b762", "b763", "b764", "b772", "b773",
+  "b779", "b77l", "b77w", "b788", "b789", "b78x", "ball", "bcs1", "bcs3",
+  "blcf", "bn2p",
+  "c130", "c160", "c17", "c172", "c2", "c208", "c25b", "c295", "c5m", "c750",
+  "cl2t", "cn35", "crj2", "crj7", "crj9", "crjx",
+  "d228", "d328", "da42", "dc10", "dc3", "dc87", "dh8c", "dh8d", "do27",
+  "do28",
+  "e170", "e195", "e300", "e35l", "e390", "e3cf", "e3tf", "e737", "e8",
+  "ec20", "ec35", "ec45", "eufi",
+  "f15", "f16", "f18h", "f18s", "f22", "f35", "f406", "f5", "f50", "fa7x",
+  "gazl", "gl5t", "glf6", "gyro",
+  "h47", "h60", "h64", "hawk", "hunt",
+  "il62", "il76",
+  "j328",
+  "k35e", "kc2", "kc46",
+  "l159", "lj35", "lynx",
+  "m326", "md11", "mi24", "mira", "mrf1",
+  "nh90",
+  "p1", "p180", "p28a", "p3", "p8", "pa46", "pc12", "pc6t", "pc9",
+  "q4",
+  "r135", "r44", "rfal", "rj85",
+  "s61", "sb39", "sc7", "sf25", "sf34", "sgup", "sr22", "st75", "su95",
+  "t204", "t38", "tigr", "tor",
+  "u2", "uh1", "unidentified",
+  "v22", "vf35",
 ]);
 
 const ICON_NAME_SET = new Set(AIRCRAFT_ICON_NAMES);
@@ -72,100 +61,77 @@ export function isKnownAircraftIconName(name) {
 
 const iconUrl = (name) => `${AIRCRAFT_ICON_BASE_PATH}/${name}`;
 
-// Ordered list of (regex, icon-name) pairs. The first match wins.
-//
-// We map families generously: e.g. all 737 variants (B731..B739, B73G…) share
-// `b737`, all A330 variants share `a330`, and so on. When we don't have a
-// dedicated silhouette (e.g. no B757 icon), we map to the closest visual
-// analogue (a long narrow-body twin → b767) rather than dropping to the arrow.
+// Family fallbacks for ICAO type designators that aren't shipped as direct
+// SVGs. Each target name must exist in AIRCRAFT_ICON_NAMES — the closest
+// visual analogue for variants the set doesn't cover individually.
 const TYPE_PATTERNS = [
-  // Boeing
-  [/^B73\w?$/, "b737"], // B731..B739, B73G/C/Q/etc.
-  [/^B74\w?$/, "b747"], // B741..B748
-  [/^B75\w?$/, "b767"], // B752..B753 — share long narrow-body silhouette
-  [/^B76\w?$/, "b767"],
-  [/^B77\w?$/, "b777"], // B772, B773, B77L, B77W
-  [/^B78\w?$/, "b787"], // B788, B789, B78X
+  // Boeing 737 family fill-ins (B73G/C/Q etc. -> b737)
+  [/^B73[0-2C-Z]$/, "b737"],
+  // 747 variants not directly named
+  [/^B74[0-15-9LR]$/, "b744"],
+  // 757 — direct b752 / b753 exist; others share b753
+  [/^B75\w?$/, "b753"],
+  // 767 variants not directly named
+  [/^B76[0-15-9]$/, "b763"],
+  // 777 variants not directly named
+  [/^B77[0-15-9]$/, "b772"],
+  // 787 variants not directly named
+  [/^B78[0-79A-Z]$/, "b788"],
 
-  // Airbus
-  [/^A19N$/, "a320"], // A220-100 — closest narrow-body twin
-  [/^A2[01]N$/, "a320"], // A20N, A21N (neo)
-  [/^A31\d$/, "a320"], // A318, A319
-  [/^A32\d?$/, "a320"], // A320, A321
-  [/^A33\d$/, "a330"], // A332, A333, A338, A339
-  [/^A34\d$/, "a340"], // A342..A346
-  [/^A35\w$/, "a330"], // A359, A35K — re-use a330 silhouette
-  [/^A38\d$/, "a380"], // A388
+  // Airbus narrow-body
+  [/^A319$/, "a318"],
+  [/^A32\w$/, "a320"],
+  // Airbus wide-body
+  [/^A33\d$/, "a332"],
+  [/^A34\d$/, "a342"],
+  [/^A35\w$/, "a359"],
+  [/^A38\d$/, "a388"],
 
-  // McDonnell Douglas / Douglas
-  [/^MD1[01]$/, "md11"], // MD11, MD10
-  [/^DC10$/, "md11"],
-  [/^MD8\d$/, "md11"], // MD80..MD88 — closest tri-jet/heavy in set
+  // McDonnell Douglas / Lockheed heavy
+  [/^MD8\d$/, "md11"],
+  [/^MD9\d$/, "md11"],
+  [/^DC9\w?$/, "md11"],
+  [/^L101$/, "md11"],
 
-  // Lockheed
-  [/^C130$/, "c130"],
-  [/^L101$/, "md11"], // L-1011 TriStar — share md11 silhouette
+  // Bombardier CRJ
+  [/^CRJ\d?$/, "crjx"],
 
-  // Bombardier CRJ family
-  [/^CRJ\w*$/, "crjx"],
+  // Dash 8 family fill-in (dh8a/b -> dh8c)
+  [/^DH8\w?$/, "dh8c"],
 
-  // Bombardier / De Havilland Dash 8
-  [/^DH8\w?$/, "dh8a"], // DH8A..DH8D
+  // Embraer E-Jets
+  [/^E17\d$/, "e170"],
+  [/^E19\d$/, "e195"],
+  [/^E29\d$/, "e195"],
+  // ERJ-135/140/145
+  [/^E1[345]\d$/, "e35l"],
+  [/^ERJ\w*$/, "e35l"],
 
-  // Embraer
-  [/^E1[97]\d$/, "e195"], // E190, E195, E170, E175 — share E-Jet silhouette
-  [/^E29\d$/, "e195"], // E290, E295 (E2)
-  [/^E1[34]5$/, "erj"], // E135, E145
-  [/^ERJ\w*$/, "erj"],
-
-  // Fokker
-  [/^F100$/, "f100"],
-  [/^F70$/, "f100"],
+  // Fokker (no f100 in the set — closest narrow-body twin in size class)
+  [/^F100$/, "f50"],
+  [/^F70$/, "f50"],
 
   // Dassault Falcon
-  [/^FA7X$/, "fa7x"],
-  [/^F2TH$/, "fa7x"], // Falcon 2000
-  [/^F900$/, "fa7x"], // Falcon 900
+  [/^F2TH$/, "fa7x"],
+  [/^F900$/, "fa7x"],
 
-  // Gulfstream
-  [/^GLF[1-6]$/, "glf5"], // GLF1..GLF6
-  [/^GLEX$/, "glf5"], // Bombardier Global Express
-  [/^G(150|250|280|350|450|500|550|600|650|700)$/, "glf5"],
+  // Gulfstream / Bombardier Global
+  [/^GLF[1-6]$/, "glf6"],
+  [/^GLEX$/, "glf6"],
+  [/^G(150|250|280|350|450|500|550|600|650|700)$/, "glf6"],
 
   // Bombardier Learjet
-  [/^LJ\d{2}$/, "learjet"], // LJ31..LJ75
+  [/^LJ\d{2}$/, "lj35"],
 
-  // Military fighters
-  [/^F15\w?$/, "f15"],
-  [/^F-?5\w?$/, "f5"],
-  [/^F-?11\w?$/, "f11"],
+  // Military fighters that aren't direct
+  [/^F-?14\w?$/, "f15"],
+  [/^F-?18\w?$/, "f18h"],
 
-  // Cessna single-engine pistons
-  [/^C(150|152|162|172|175|177|180|182|185|205|206|207|208|210)$/, "cessna"],
-  // Cessna Citation jets — re-use the cessna silhouette as a generic small GA
-  [/^C(25[0-9A-Z]|5[0-9]{2}|6[0-9]{2}|7[0-9]{2})$/, "cessna"],
+  // Cessna single-engine pistons -> c172
+  [/^C(150|152|162|172|175|177|180|182|185|205|206|207|208|210)$/, "c172"],
+  // Cessna Citation jets -> c25b
+  [/^C(25[1-9A-Z]|5[0-9]{2}|6[0-9]{2}|7[0-4][0-9])$/, "c25b"],
 ];
-
-// ADS-B emitter category fallback. We deliberately skip A0/B0/C0 ("no info")
-// so unknown traffic keeps the arrow/dot rather than picking a default plane.
-//
-// Categories per RTCA DO-260B / ADS-B emitter category set:
-//   A1 = Light (<15.5k lb), A2 = Small, A3 = Large, A4 = High-vortex large,
-//   A5 = Heavy, A6 = High performance, A7 = Rotorcraft.
-//   B1 = Glider, B2 = LTA, B3 = Parachutist, B4 = Ultralight.
-const CATEGORY_ICONS = {
-  A1: "a1",
-  A2: "a2",
-  A3: "a3",
-  A4: "a4",
-  A5: "a5",
-  A6: "a6",
-  A7: "a7",
-  B1: "b1",
-  B2: "b2",
-  B3: "b3",
-  B4: "b4",
-};
 
 const normalizeKey = (value) =>
   typeof value === "string" ? value.trim().toUpperCase() : "";
@@ -203,25 +169,24 @@ export function resolveAircraftSizeScale(aircraft = {}) {
 /**
  * Resolve a silhouette icon URL for a given aircraft.
  *
- * @param {{ type?: string, category?: string }} aircraft
- * @returns {{ src: string, name: string, source: 'type' | 'category' } | null}
+ * @param {{ type?: string }} aircraft
+ * @returns {{ src: string, name: string, source: 'type' } | null}
  *   Returns `null` when no mapping is found — callers should fall back to the
- *   generic arrow/dot marker so the experience remains backward compatible.
+ *   generic arrow marker so the experience remains backward compatible.
  */
 export function resolveAircraftIcon(aircraft = {}) {
   const type = normalizeKey(aircraft.type);
-  if (type) {
-    for (const [pattern, name] of TYPE_PATTERNS) {
-      if (pattern.test(type)) {
-        return { src: iconUrl(name), name, source: "type" };
-      }
-    }
+  if (!type) return null;
+
+  const directName = type.toLowerCase();
+  if (ICON_NAME_SET.has(directName)) {
+    return { src: iconUrl(directName), name: directName, source: "type" };
   }
 
-  const category = normalizeKey(aircraft.category);
-  if (category && CATEGORY_ICONS[category]) {
-    const name = CATEGORY_ICONS[category];
-    return { src: iconUrl(name), name, source: "category" };
+  for (const [pattern, name] of TYPE_PATTERNS) {
+    if (pattern.test(type)) {
+      return { src: iconUrl(name), name, source: "type" };
+    }
   }
 
   return null;
