@@ -47,10 +47,10 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "DIR",
-    title: "Airports API Directory",
-    description: "ICAO/IATA directory powering search and resolution.",
-    host: "airportsapi.com",
-    href: "https://airportsapi.com/",
+    title: "OurAirports",
+    description: "Global airport directory powering search and resolution.",
+    host: "ourairports.com",
+    href: "https://ourairports.com/data/",
   },
   {
     glyph: "WIKI",

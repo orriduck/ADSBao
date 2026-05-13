@@ -63,7 +63,7 @@ assert.deepEqual(
     lat: "42.3656",
     lon: "-71.0096",
     elevationFt: "20",
-    source: "airportsapi.com",
+    source: "ourairports",
   }),
   {
     airport_key: "KBOS",
@@ -79,7 +79,7 @@ assert.deepEqual(
     lat: 42.3656,
     lon: -71.0096,
     elevation_ft: 20,
-    source: "airportsapi.com",
+    source: "ourairports",
     metadata: {},
   },
 );
@@ -100,7 +100,7 @@ assert.deepEqual(
       lat: 42.3656,
       lon: -71.0096,
       elevation_ft: 20,
-      source: "airportsapi.com",
+      source: "ourairports",
       metadata: {},
       expires_at: "2026-08-08T12:00:00.000Z",
     },
@@ -127,7 +127,7 @@ assert.deepEqual(
     lat: 42.3656,
     lon: -71.0096,
     elevationFt: 20,
-    source: "airportsapi.com",
+    source: "ourairports",
   });
   assert.deepEqual(
     calls.filter((call) => call.type !== "createClient"),
