@@ -72,8 +72,18 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
     () => ({
       icao: routeContextInput?.icao || "",
       iata: routeContextInput?.iata || "",
+      // Focal coords flow through to the scheduler so it can rank candidates
+      // farthest-first. They are *not* part of the cache key — see
+      // `buildRouteCacheKey` in flightRouteLookupModel.js.
+      lat: Number(routeContextInput?.lat),
+      lon: Number(routeContextInput?.lon),
     }),
-    [routeContextInput?.icao, routeContextInput?.iata],
+    [
+      routeContextInput?.icao,
+      routeContextInput?.iata,
+      routeContextInput?.lat,
+      routeContextInput?.lon,
+    ],
   );
 
   useEffect(() => {
