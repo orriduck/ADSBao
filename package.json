@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:procedures": "node scripts/build-faa-cifp-procedures.js",
+    "import:ourairports": "node scripts/import-ourairports.js",
     "lint": "eslint .",
     "test": "node scripts/run-tests.js",
     "test:all": "pnpm test",
