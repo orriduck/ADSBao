@@ -1,5 +1,7 @@
 "use client";
 
+import { flagEmoji } from "../../utils/flag.js";
+
 export default function AirportIdentity({
   icao = "",
   iata = "",
@@ -11,7 +13,9 @@ export default function AirportIdentity({
 }) {
   const codeLine =
     iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
-  const placeLine = [city, country].filter(Boolean).join(", ");
+  const flag = flagEmoji(country);
+  const placeText = [city, country].filter(Boolean).join(", ");
+  const placeLine = flag && placeText ? `${flag} ${placeText}` : placeText || flag;
   const coordLine = formatCoord(lat, lon);
 
   return (
