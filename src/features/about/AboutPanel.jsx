@@ -61,9 +61,8 @@ export default function AboutPanel() {
       footerThemeToggleClassName="font-nav text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
       renderThemeToggle={renderThemeToggle}
     >
-      <AboutMetaGrid items={ABOUT_BUILD_META} />
-
       <div className="flex-1 overflow-y-auto">
+        <AboutMetaGrid items={ABOUT_BUILD_META} />
         <AboutDataSources
           sources={ABOUT_DATA_SOURCES}
           onOpenExternalLink={openExternalLink}

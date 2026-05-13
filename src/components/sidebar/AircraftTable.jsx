@@ -65,7 +65,7 @@ export default function AircraftTable({
           <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
             Aircraft
           </div>
-          <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums">
+          <div className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums">
             <NumberFlow value={rows.length} />
             <span> / </span>
             <NumberFlow value={aircraft.length} suffix=" nearby" />
