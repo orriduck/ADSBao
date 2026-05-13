@@ -133,6 +133,19 @@ const TYPE_PATTERNS = [
   [/^C(25[1-9A-Z]|5[0-9]{2}|6[0-9]{2}|7[0-4][0-9])$/, "c25b"],
 ];
 
+// Wake-class category fallback when the aircraft has no usable type code.
+// Targets must exist in AIRCRAFT_ICON_NAMES. Categories outside A1–A7 (A0
+// "no info", B* / C*) fall through to null so the caller draws the arrow.
+const CATEGORY_ICONS = {
+  A1: "c172",  // light piston single
+  A2: "c25b",  // small business jet
+  A3: "a320",  // large narrow-body
+  A4: "b753",  // high-vortex large (757-class)
+  A5: "b77w",  // heavy wide-body
+  A6: "f16",   // high-performance / fighter
+  A7: "h60",   // rotorcraft
+};
+
 const normalizeKey = (value) =>
   typeof value === "string" ? value.trim().toUpperCase() : "";
 
@@ -169,24 +182,32 @@ export function resolveAircraftSizeScale(aircraft = {}) {
 /**
  * Resolve a silhouette icon URL for a given aircraft.
  *
- * @param {{ type?: string }} aircraft
- * @returns {{ src: string, name: string, source: 'type' } | null}
- *   Returns `null` when no mapping is found — callers should fall back to the
- *   generic arrow marker so the experience remains backward compatible.
+ * Tries the ICAO type designator first (direct match, then family fallback),
+ * then falls back to the ADS-B emitter category for traffic that doesn't
+ * broadcast a usable type code. Returns `null` when nothing matches — the
+ * caller draws the generic arrow marker.
+ *
+ * @param {{ type?: string, category?: string }} aircraft
+ * @returns {{ src: string, name: string, source: 'type' | 'category' } | null}
  */
 export function resolveAircraftIcon(aircraft = {}) {
   const type = normalizeKey(aircraft.type);
-  if (!type) return null;
-
-  const directName = type.toLowerCase();
-  if (ICON_NAME_SET.has(directName)) {
-    return { src: iconUrl(directName), name: directName, source: "type" };
+  if (type) {
+    const directName = type.toLowerCase();
+    if (ICON_NAME_SET.has(directName)) {
+      return { src: iconUrl(directName), name: directName, source: "type" };
+    }
+    for (const [pattern, name] of TYPE_PATTERNS) {
+      if (pattern.test(type)) {
+        return { src: iconUrl(name), name, source: "type" };
+      }
+    }
   }
 
-  for (const [pattern, name] of TYPE_PATTERNS) {
-    if (pattern.test(type)) {
-      return { src: iconUrl(name), name, source: "type" };
-    }
+  const category = normalizeKey(aircraft.category);
+  if (category && CATEGORY_ICONS[category]) {
+    const name = CATEGORY_ICONS[category];
+    return { src: iconUrl(name), name, source: "category" };
   }
 
   return null;

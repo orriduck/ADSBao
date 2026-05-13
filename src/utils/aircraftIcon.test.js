@@ -89,14 +89,28 @@ expectIcon({ type: "F-18" }, "f18h", "type");
 expectIcon({ type: "C152" }, "c172", "type");
 expectIcon({ type: "C525" }, "c25b", "type");
 
-// Category is now irrelevant for icon selection — the rich type-designator
-// set replaces the old A1-A7/B1-B4 fallback shapes.
-assert.equal(resolveAircraftIcon({ category: "A3" }), null);
-assert.equal(resolveAircraftIcon({ category: "A5" }), null);
-assert.equal(resolveAircraftIcon({ category: "B1" }), null);
-assert.equal(resolveAircraftIcon({ type: "ZZZZ", category: "A2" }), null);
+// Category fallback when the aircraft has no resolvable type code. Targets
+// are real icons in the new set (no more a1/a2/b1 generic shapes).
+expectIcon({ category: "A1" }, "c172", "category");
+expectIcon({ category: "A2" }, "c25b", "category");
+expectIcon({ category: "A3" }, "a320", "category");
+expectIcon({ category: "A4" }, "b753", "category");
+expectIcon({ category: "A5" }, "b77w", "category");
+expectIcon({ category: "A6" }, "f16", "category");
+expectIcon({ category: "A7" }, "h60", "category");
+expectIcon({ type: "ZZZZ", category: "A3" }, "a320", "category");
 
-// Unknown / empty -> null (caller draws the arrow).
+// Type wins over category when both resolve.
+expectIcon({ type: "A320", category: "A5" }, "a320", "type");
+
+// Non-airplane categories (gliders / LTA / ground vehicles) -> null so the
+// caller draws the arrow / dot.
+assert.equal(resolveAircraftIcon({ category: "A0" }), null);
+assert.equal(resolveAircraftIcon({ category: "B1" }), null);
+assert.equal(resolveAircraftIcon({ category: "B4" }), null);
+assert.equal(resolveAircraftIcon({ category: "C2" }), null);
+
+// Unknown / empty -> null.
 assert.equal(resolveAircraftIcon({}), null);
 assert.equal(resolveAircraftIcon({ type: "" }), null);
 assert.equal(resolveAircraftIcon({ type: "ZZZZ" }), null);
