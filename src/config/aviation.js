@@ -35,7 +35,7 @@ export const AVIATION_REQUEST_TIMEOUT_MS = {
 export const FLIGHT_ROUTE_LOOKUP_CONFIG = {
   hitCacheMs: 6 * 60 * 60 * 1000,
   missCacheMs: 2 * 60 * 60 * 1000,
-  maxConcurrentLookups: 6,
+  maxConcurrentLookups: 10,
   maxLookupsPerPass: 18,
   maxQueueSize: 60,
   auditLogIntervalMs: 2_000,

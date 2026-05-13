@@ -5,6 +5,7 @@ import {
   buildRoutesByCallsign,
   getRouteLookupStats,
   getFreshRouteCacheEntry,
+  rankCandidatesByDistance,
   resolvePendingRouteLookups,
 } from "./flightRouteLookupModel.js";
 
@@ -110,4 +111,66 @@ const route = {
   });
 
   assert.deepEqual(routes, { DAL123: route });
+}
+
+// rankCandidatesByDistance: aircraft farthest from focal airport rank first.
+// KBOS focal -> JBU123 over Lisbon (~3000nm) outranks DAL123 over NYC (~190nm)
+// outranks UAL456 directly over KBOS (~0nm).
+{
+  const ranked = rankCandidatesByDistance(
+    [
+      { callsign: "UAL456", lat: 42.36, lon: -71.01 },
+      { callsign: "DAL123", lat: 40.64, lon: -73.78 },
+      { callsign: "JBU123", lat: 38.78, lon: -9.13 },
+    ],
+    { icao: "KBOS", lat: 42.3656, lon: -71.0096 },
+  );
+  assert.deepEqual(ranked, ["JBU123", "DAL123", "UAL456"]);
+}
+
+// Without focal coords, source order is preserved.
+{
+  const ranked = rankCandidatesByDistance(
+    [
+      { callsign: "UAL456", lat: 42, lon: -71 },
+      { callsign: "DAL123", lat: 40, lon: -73 },
+      { callsign: "JBU123", lat: 38, lon: -9 },
+    ],
+    {},
+  );
+  assert.deepEqual(ranked, ["UAL456", "DAL123", "JBU123"]);
+}
+
+// Aircraft missing lat/lon land last (treated as distance -1).
+{
+  const ranked = rankCandidatesByDistance(
+    [
+      { callsign: "UAL456" },
+      { callsign: "DAL123", lat: 40.64, lon: -73.78 },
+      { callsign: "JBU123", lat: 38.78, lon: -9.13 },
+    ],
+    { icao: "KBOS", lat: 42.3656, lon: -71.0096 },
+  );
+  assert.deepEqual(ranked, ["JBU123", "DAL123", "UAL456"]);
+}
+
+// resolvePendingRouteLookups respects the distance ranking when focal coords
+// are provided.
+{
+  const aircraft = [
+    { callsign: "UAL456", lat: 42.36, lon: -71.01 }, // ~0 nm
+    { callsign: "DAL123", lat: 40.64, lon: -73.78 }, // ~190 nm
+    { callsign: "JBU123", lat: 38.78, lon: -9.13 }, // ~3000 nm
+  ];
+  const pending = resolvePendingRouteLookups({
+    aircraft,
+    cache: new Map(),
+    inFlight: new Set(),
+    queued: new Set(),
+    routeContext: { icao: "KBOS", lat: 42.3656, lon: -71.0096 },
+    now,
+    maxLookups: 2,
+  });
+  // Farthest two first, limited to 2.
+  assert.deepEqual(pending, ["JBU123", "DAL123"]);
 }

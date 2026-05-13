@@ -43,6 +43,60 @@ export function getLookupCallsigns(aircraft) {
   ];
 }
 
+const EARTH_RADIUS_NM = 3440.065;
+
+const haversineNm = (lat1, lon1, lat2, lon2) => {
+  const toRad = (value) => (value * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLon = Math.sin(dLon / 2);
+  const a =
+    sinLat * sinLat +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * sinLon * sinLon;
+  return 2 * EARTH_RADIUS_NM * Math.asin(Math.min(1, Math.sqrt(a)));
+};
+
+// Ranks candidates so aircraft farthest from the focal airport are scheduled
+// first. The default map view zooms out to show the whole nearby airspace, so
+// fetching the far-side traffic first makes more route labels appear quickly
+// where the user's eye is actually looking. Falls back to source order when
+// the focal coords or aircraft coords are missing.
+export function rankCandidatesByDistance(aircraft, routeContext = {}) {
+  const focusLat = Number(routeContext.lat);
+  const focusLon = Number(routeContext.lon);
+  const haveFocus = Number.isFinite(focusLat) && Number.isFinite(focusLon);
+  const seen = new Map();
+
+  (aircraft || []).forEach((item, index) => {
+    const callsign = normalizeCallsign(item?.callsign);
+    if (!isLookupCallsign(callsign)) return;
+    const lat = Number(item?.lat);
+    const lon = Number(item?.lon);
+    const distance =
+      haveFocus && Number.isFinite(lat) && Number.isFinite(lon)
+        ? haversineNm(focusLat, focusLon, lat, lon)
+        : -1;
+    // Keep the farthest occurrence per callsign so duplicates don't pull the
+    // candidate forward by mistake.
+    const prior = seen.get(callsign);
+    if (!prior || distance > prior.distance) {
+      seen.set(callsign, { distance, index });
+    }
+  });
+
+  return [...seen.entries()]
+    .sort((left, right) => {
+      const [, leftMeta] = left;
+      const [, rightMeta] = right;
+      if (leftMeta.distance !== rightMeta.distance) {
+        return rightMeta.distance - leftMeta.distance; // farthest first
+      }
+      return leftMeta.index - rightMeta.index;
+    })
+    .map(([callsign]) => callsign);
+}
+
 export function resolvePendingRouteLookups({
   aircraft,
   cache,
@@ -52,7 +106,7 @@ export function resolvePendingRouteLookups({
   now = Date.now(),
   maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxLookupsPerPass,
 }) {
-  return getLookupCallsigns(aircraft)
+  return rankCandidatesByDistance(aircraft, routeContext)
     .filter(
       (callsign) =>
         !getFreshRouteCacheEntry(cache, callsign, now, routeContext) &&
