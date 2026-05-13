@@ -33,8 +33,8 @@ supabase db push
 **Option B — paste the SQL into the dashboard:**
 
 1. Open <https://supabase.com/dashboard/project/_/sql>.
-2. Paste the contents of `supabase/migrations/20260513140000_create_ourairports_static.sql`.
-3. Click **Run**.
+2. Paste the contents of `supabase/migrations/20260513140000_create_ourairports_static.sql`, then run.
+3. Repeat for `supabase/migrations/20260513150000_create_ourairports_refresh_meta.sql` (powers the auto-refresh — see "Refresh cadence" below).
 
 Verify with:
 
@@ -98,7 +98,11 @@ You should see records sourced from `ourairports` (note the `"source": "ourairpo
 
 ## Refresh cadence
 
-OurAirports updates daily. A monthly re-run of `node --env-file=.env scripts/import-ourairports.js` is plenty for ADSBao's needs. You can wire it up as a GitHub Actions cron later if you want it fully hands-off.
+The runtime handles this automatically. `/api/search` and `/api/airport/[ident]` fire a background refresh check (`scheduleRefreshIfDue` via Next.js `after()`) after every successful response. If `max(imported_at)` on the OurAirports tables is older than **24 hours**, the next request triggers an import — but the user never waits, because the refresh runs after the response is sent. A singleton row in `public.ourairports_refresh_meta` acts as a soft lock so concurrent staleness triggers don't fan out into N parallel imports.
+
+This requires `SUPABASE_SERVICE_ROLE_KEY` to be set on the runtime (Vercel env vars). Without it, the routes still work — they just serve from whatever's in the DB without auto-refresh.
+
+You can still run `node --env-file=.env scripts/import-ourairports.js` manually whenever you want to force a refresh.
 
 ## Files added by this migration
 

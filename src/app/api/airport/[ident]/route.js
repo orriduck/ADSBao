@@ -1,9 +1,12 @@
+import { after } from "next/server";
+
 import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
 } from "@/services/apiProxySecurity.js";
 import { createAirportPageDataServiceFromEnv } from "@/services/airports/airportPageDataService.js";
+import { scheduleRefreshIfDue } from "@/services/ourairports/ourAirportsRefresh.js";
 
 const rateLimit = {
   key: "api:airport-detail",
@@ -60,6 +63,9 @@ export async function GET(request, { params }) {
 
   try {
     const data = await service.getAirportPageData(ident, { radiusNm, nearbyLimit });
+    // Trigger a background OurAirports refresh if the cached data is past
+    // its TTL. Runs after the response is sent so the user never waits.
+    after(() => scheduleRefreshIfDue());
     if (!data.airport) {
       return jsonProxyResponse(
         request,

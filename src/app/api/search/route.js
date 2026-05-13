@@ -1,9 +1,12 @@
+import { after } from "next/server";
+
 import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
 } from "@/services/apiProxySecurity.js";
 import { createOurAirportsQueriesFromEnv } from "@/services/ourairports/ourAirportsQueries.js";
+import { scheduleRefreshIfDue } from "@/services/ourairports/ourAirportsRefresh.js";
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 50;
@@ -59,6 +62,9 @@ export async function GET(request) {
 
   try {
     const airports = await queries.searchAirports({ query, country, type, limit });
+    // Trigger a background OurAirports refresh if the cached data is past
+    // its TTL. Runs after the response is sent so the user never waits.
+    after(() => scheduleRefreshIfDue());
     return jsonProxyResponse(
       request,
       {
