@@ -13,7 +13,7 @@ const rateLimit = {
   windowMs: 60_000,
 };
 
-const USER_AGENT = "ADSBao/0.9.0 (https://github.com/orriduck/ADSBao)";
+const USER_AGENT = "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)";
 
 export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
