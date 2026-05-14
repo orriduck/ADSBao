@@ -2621,20 +2621,30 @@ body {
 }
 
 .aircraft-table-list {
+    contain: layout paint;
     overflow-anchor: none;
 }
 
 .aircraft-table-list__item {
-    transform-origin: center center;
-}
-
-.aircraft-table-list__item--fading .aircraft-table-card {
-    animation: aircraft-table-slot-fade 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-    pointer-events: none;
+    list-style: none;
+    perspective: 800px;
+    position: relative;
 }
 
 .aircraft-table-list__item + .aircraft-table-list__item {
     border-top: 1px solid var(--atc-line);
+}
+
+.aircraft-row-flip-surface {
+    backface-visibility: hidden;
+    will-change: transform, opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aircraft-row-flip-surface {
+        animation: none;
+        transition: none;
+    }
 }
 
 .aircraft-table-card {
@@ -2661,9 +2671,6 @@ body {
     width: 100%;
 }
 
-.aircraft-table-list__item--fading .aircraft-table-route-face {
-    animation-play-state: paused;
-}
 
 .aircraft-table-route-face--route span {
     min-width: 0;
@@ -2701,20 +2708,6 @@ body {
     }
 }
 
-@keyframes aircraft-table-slot-fade {
-    0% {
-        opacity: var(--aircraft-row-opacity, 1);
-    }
-    44% {
-        opacity: calc(var(--aircraft-row-opacity, 1) * 0.28);
-    }
-    56% {
-        opacity: calc(var(--aircraft-row-opacity, 1) * 0.28);
-    }
-    100% {
-        opacity: var(--aircraft-row-opacity, 1);
-    }
-}
 
 @keyframes aircraft-table-callsign-lift {
     0% {

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import NumberFlow from "@number-flow/react";
+import { motion } from "motion/react";
 import { Search } from "lucide-react";
 import {
   Select,
@@ -134,7 +135,10 @@ export default function AircraftTable({
         </div>
       </div>
 
-      <div className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}>
+      <motion.div
+        layoutScroll
+        className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}
+      >
         {rows.length === 0 ? (
           <div className="px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
             {aircraft.length ? "No aircraft match" : "No aircraft in range"}
@@ -148,7 +152,7 @@ export default function AircraftTable({
             onSelectAircraft={onSelectAircraft}
           />
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

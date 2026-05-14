@@ -1,18 +1,23 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  useAnimationControls,
+  useReducedMotion,
+} from "motion/react";
 import {
   getAircraftIdentity,
   resolveAircraftContextEmphasis,
 } from "../../features/airport-context/airportContextUiModel.js";
 import AircraftRow from "./AircraftRow.jsx";
 
-const SLOT_FADE_DURATION_MS = 320;
-const SLOT_FADE_SWAP_MS = 150;
-
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+function getAircraftRowKey(aircraft = {}) {
+  const identity = getAircraftIdentity(aircraft);
+  return identity || aircraft.callsign || "anon";
+}
 
 export default function AircraftList({
   aircraft = [],
@@ -23,41 +28,29 @@ export default function AircraftList({
 }) {
   const listRef = useRef(null);
   const scrollAnchor = useRef(null);
-  const timers = useRef([]);
-  const pendingAircraft = useRef(aircraft);
-  const displayedAircraftRef = useRef(aircraft);
-  const animating = useRef(false);
-  const [displayedAircraft, setDisplayedAircraft] = useState(() => aircraft);
-  const [fadingSlots, setFadingSlots] = useState(() => new Set());
-  const incomingKeys = useMemo(() => buildRowKeySignature(aircraft), [aircraft]);
+  const prevAircraftRef = useRef([]);
 
-  useEffect(() => {
-    pendingAircraft.current = aircraft;
-
-    if (animating.current) return;
-
-    const changedSlots = getChangedSlotIndexes(
-      displayedAircraftRef.current,
-      aircraft,
+  // Detect which rows moved by comparing current order to previous render's order.
+  // prevAircraftRef.current still holds the previous snapshot during render (effect hasn't run yet).
+  const movedKeys = useMemo(() => {
+    const prevMap = new Map(
+      prevAircraftRef.current.map((item, i) => [getAircraftRowKey(item), i]),
     );
+    const moved = new Set();
+    aircraft.forEach((item, i) => {
+      const key = getAircraftRowKey(item);
+      const prevIdx = prevMap.get(key);
+      if (prevIdx !== undefined && prevIdx !== i) moved.add(key);
+    });
+    return moved;
+  }, [aircraft]);
 
-    if (changedSlots.length === 0 || prefersReducedMotion()) {
-      displayedAircraftRef.current = aircraft;
-      setDisplayedAircraft(aircraft);
-      setFadingSlots(new Set());
-      return;
-    }
+  // Save current order as previous for next render's comparison.
+  useEffect(() => {
+    prevAircraftRef.current = aircraft;
+  }, [aircraft]);
 
-    startSlotFade(aircraft, changedSlots);
-  }, [aircraft, incomingKeys]);
-
-  useEffect(
-    () => () => {
-      clearTimers(timers.current);
-    },
-    [],
-  );
-
+  // Track topmost visible row for scroll anchor restore.
   useLayoutEffect(() => {
     const scroller = listRef.current?.parentElement;
     if (!scroller) return undefined;
@@ -68,114 +61,88 @@ export default function AircraftList({
 
     remember();
     scroller.addEventListener("scroll", remember, { passive: true });
-
-    return () => {
-      scroller.removeEventListener("scroll", remember);
-    };
+    return () => scroller.removeEventListener("scroll", remember);
   }, []);
 
-  function startSlotFade(nextAircraft, changedSlots) {
+  // Restore scroll position after reorder so the viewport doesn't jump.
+  useLayoutEffect(() => {
     const scroller = listRef.current?.parentElement;
-    if (scroller && scrollAnchor.current) {
-      restoreScrollAnchor(scroller, scrollAnchor.current);
-    }
-
-    clearTimers(timers.current);
-    animating.current = true;
-    setFadingSlots(new Set(changedSlots));
-
-    timers.current = [
-      window.setTimeout(() => {
-        displayedAircraftRef.current = nextAircraft;
-        setDisplayedAircraft(nextAircraft);
-        if (scroller) scrollAnchor.current = getScrollAnchor(scroller);
-      }, SLOT_FADE_SWAP_MS),
-      window.setTimeout(() => {
-        animating.current = false;
-        setFadingSlots(new Set());
-
-        const pending = pendingAircraft.current;
-        const nextChangedSlots = getChangedSlotIndexes(
-          displayedAircraftRef.current,
-          pending,
-        );
-        if (nextChangedSlots.length > 0 && !prefersReducedMotion()) {
-          startSlotFade(pending, nextChangedSlots);
-          return;
-        }
-
-        displayedAircraftRef.current = pending;
-        setDisplayedAircraft(pending);
-        if (scroller) scrollAnchor.current = getScrollAnchor(scroller);
-      }, SLOT_FADE_DURATION_MS),
-    ];
-  }
+    if (!scroller || !scrollAnchor.current) return;
+    restoreScrollAnchor(scroller, scrollAnchor.current);
+  }, [aircraft]);
 
   return (
-    <ul ref={listRef} className="aircraft-table-list">
-      {displayedAircraft.map((item, index) => {
-        const aircraftId = getAircraftIdentity(item);
-        const rowKey = getAircraftRowKey(item);
-        const selected = aircraftId && aircraftId === selectedAircraftId;
-        const isFading = fadingSlots.has(index);
-        const emphasis = resolveAircraftContextEmphasis({
-          aircraft: item,
-          altitudeFocus,
-          contextEnabled: showAirspaceContext,
-          selected,
-        });
+    <LayoutGroup>
+      <motion.ul ref={listRef} className="aircraft-table-list">
+        <AnimatePresence initial={false} mode="popLayout">
+          {aircraft.map((item, index) => {
+            const rowKey = getAircraftRowKey(item);
+            const aircraftId = getAircraftIdentity(item);
+            const selected = aircraftId && aircraftId === selectedAircraftId;
+            const emphasis = resolveAircraftContextEmphasis({
+              aircraft: item,
+              altitudeFocus,
+              contextEnabled: showAirspaceContext,
+              selected,
+            });
+            const moved = movedKeys.has(rowKey);
 
-        return (
-          <li
-            key={`aircraft-slot-${index}`}
-            className={`aircraft-table-list__item ${
-              isFading ? "aircraft-table-list__item--fading" : ""
-            }`}
-            data-aircraft-row-key={rowKey}
-          >
-            <AircraftRow
-              aircraft={item}
-              aircraftId={aircraftId}
-              emphasis={emphasis}
-              selected={selected}
-              pauseMotion={isFading}
-              onSelectAircraft={onSelectAircraft}
-            />
-          </li>
-        );
-      })}
-    </ul>
+            return (
+              <motion.li
+                key={rowKey}
+                layout="position"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                transition={{
+                  layout: { duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] },
+                  opacity: { duration: 0.22 },
+                }}
+                className="aircraft-table-list__item"
+                data-aircraft-row-key={rowKey}
+              >
+                <RowFlipSurface moved={moved} moveToken={`${rowKey}:${index}`}>
+                  <AircraftRow
+                    aircraft={item}
+                    aircraftId={aircraftId}
+                    emphasis={emphasis}
+                    selected={selected}
+                    onSelectAircraft={onSelectAircraft}
+                  />
+                </RowFlipSurface>
+              </motion.li>
+            );
+          })}
+        </AnimatePresence>
+      </motion.ul>
+    </LayoutGroup>
   );
 }
 
-function getAircraftRowKey(aircraft = {}) {
-  const identity = getAircraftIdentity(aircraft);
-  return identity || aircraft.callsign || "anon";
-}
+// Subtle row surface refresh when a row moves to a new position.
+// Separated from the outer motion.li so layout movement and flip transforms don't conflict.
+function RowFlipSurface({ moved, moveToken, children }) {
+  const reducedMotion = useReducedMotion();
+  const controls = useAnimationControls();
+  const prevToken = useRef(null);
 
-function buildRowKeySignature(aircraft = []) {
-  return aircraft.map((item) => getAircraftRowKey(item)).join("|");
-}
+  useEffect(() => {
+    if (reducedMotion || !moved || moveToken === prevToken.current) return;
+    prevToken.current = moveToken;
 
-function getChangedSlotIndexes(currentAircraft = [], nextAircraft = []) {
-  const maxLength = Math.max(currentAircraft.length, nextAircraft.length);
-  const changed = [];
+    void controls.start({
+      rotateX: [0, -55, 0],
+      opacity: [1, 0.78, 1],
+      filter: ["brightness(1)", "brightness(1.14)", "brightness(1)"],
+      transition: { duration: 0.38, ease: "easeOut" },
+    });
+  }, [controls, moveToken, moved, reducedMotion]);
 
-  for (let index = 0; index < maxLength; index += 1) {
-    if (
-      getAircraftRowKey(currentAircraft[index]) !==
-      getAircraftRowKey(nextAircraft[index])
-    ) {
-      changed.push(index);
-    }
-  }
-
-  return changed;
-}
-
-function clearTimers(timerIds = []) {
-  timerIds.forEach((timerId) => window.clearTimeout(timerId));
-  timerIds.length = 0;
+  return (
+    <motion.div animate={controls} className="aircraft-row-flip-surface">
+      {children}
+    </motion.div>
+  );
 }
 
 function getScrollAnchor(scroller) {
@@ -185,7 +152,6 @@ function getScrollAnchor(scroller) {
   for (const row of rows) {
     const rect = row.getBoundingClientRect();
     if (rect.bottom <= scrollerRect.top) continue;
-
     return {
       key: row.dataset.aircraftRowKey,
       offset: rect.top - scrollerRect.top,
