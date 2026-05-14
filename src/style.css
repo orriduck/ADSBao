@@ -2621,8 +2621,7 @@ body {
 }
 
 .aircraft-table-list {
-    contain: layout paint;
-    overflow-anchor: none;
+    /* overflow-anchor defaults to auto — browser keeps scroll position stable during reorders */
 }
 
 .aircraft-table-list__item {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import {
   AnimatePresence,
   LayoutGroup,
@@ -26,8 +26,6 @@ export default function AircraftList({
   selectedAircraftId = "",
   onSelectAircraft,
 }) {
-  const listRef = useRef(null);
-  const scrollAnchor = useRef(null);
   const prevAircraftRef = useRef([]);
 
   // Detect which rows moved by comparing current order to previous render's order.
@@ -50,30 +48,9 @@ export default function AircraftList({
     prevAircraftRef.current = aircraft;
   }, [aircraft]);
 
-  // Track topmost visible row for scroll anchor restore.
-  useLayoutEffect(() => {
-    const scroller = listRef.current?.parentElement;
-    if (!scroller) return undefined;
-
-    const remember = () => {
-      scrollAnchor.current = getScrollAnchor(scroller);
-    };
-
-    remember();
-    scroller.addEventListener("scroll", remember, { passive: true });
-    return () => scroller.removeEventListener("scroll", remember);
-  }, []);
-
-  // Restore scroll position after reorder so the viewport doesn't jump.
-  useLayoutEffect(() => {
-    const scroller = listRef.current?.parentElement;
-    if (!scroller || !scrollAnchor.current) return;
-    restoreScrollAnchor(scroller, scrollAnchor.current);
-  }, [aircraft]);
-
   return (
     <LayoutGroup>
-      <motion.ul ref={listRef} className="aircraft-table-list">
+      <motion.ul className="aircraft-table-list">
         <AnimatePresence initial={false} mode="popLayout">
           {aircraft.map((item, index) => {
             const rowKey = getAircraftRowKey(item);
@@ -143,32 +120,4 @@ function RowFlipSurface({ moved, moveToken, children }) {
       {children}
     </motion.div>
   );
-}
-
-function getScrollAnchor(scroller) {
-  const scrollerRect = scroller.getBoundingClientRect();
-  const rows = scroller.querySelectorAll("[data-aircraft-row-key]");
-
-  for (const row of rows) {
-    const rect = row.getBoundingClientRect();
-    if (rect.bottom <= scrollerRect.top) continue;
-    return {
-      key: row.dataset.aircraftRowKey,
-      offset: rect.top - scrollerRect.top,
-    };
-  }
-
-  return null;
-}
-
-function restoreScrollAnchor(scroller, anchor) {
-  const row = scroller.querySelector(
-    `[data-aircraft-row-key="${CSS.escape(anchor.key)}"]`,
-  );
-  if (!row) return;
-
-  const scrollerRect = scroller.getBoundingClientRect();
-  const rowRect = row.getBoundingClientRect();
-  const delta = rowRect.top - scrollerRect.top - anchor.offset;
-  if (Math.abs(delta) >= 1) scroller.scrollTop += delta;
 }
