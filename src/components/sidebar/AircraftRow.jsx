@@ -9,7 +9,6 @@ export default function AircraftRow({
   aircraftId,
   emphasis,
   selected,
-  pauseMotion = false,
   onSelectAircraft,
 }) {
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
@@ -44,11 +43,7 @@ export default function AircraftRow({
         {gsValue == null ? (
           <span>-</span>
         ) : (
-          <NumberWithUnit
-            value={Math.round(gsValue)}
-            unit="KT"
-            pauseMotion={pauseMotion}
-          />
+          <NumberWithUnit value={Math.round(gsValue)} unit="KT" />
         )}
       </div>
       <div className="text-right font-mono text-[12px] font-semibold text-atc-text">
@@ -57,11 +52,7 @@ export default function AircraftRow({
         ) : altValue == null ? (
           <span>-</span>
         ) : (
-          <NumberWithUnit
-            value={Math.round(altValue)}
-            unit="FT"
-            pauseMotion={pauseMotion}
-          />
+          <NumberWithUnit value={Math.round(altValue)} unit="FT" />
         )}
       </div>
     </button>
@@ -132,10 +123,13 @@ function AircraftIdentityCell({
   );
 }
 
-function NumberWithUnit({ value, unit, pauseMotion = false }) {
+function NumberWithUnit({ value, unit }) {
   return (
-    <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
-      <NumberFlow animated={!pauseMotion} value={value} />
+    <span
+      className="inline-flex items-baseline justify-end gap-0.5 tabular-nums"
+      style={{ isolation: "isolate", willChange: "contents" }}
+    >
+      <NumberFlow value={value} />
       <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim">
         {unit}
       </sub>
