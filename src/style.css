@@ -2496,12 +2496,71 @@ body {
 
 .aircraft-table-route-cycle {
     color: var(--atc-dim);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    height: 16px;
-    line-height: 16px;
+    height: 14px;
+    line-height: 14px;
     overflow: hidden;
     position: relative;
+}
+
+.aircraft-table-identity {
+    display: grid;
+    min-width: 0;
+}
+
+.aircraft-table-identity--solo {
+    align-items: center;
+}
+
+.aircraft-table-identity--routed {
+    align-content: center;
+    gap: 2px;
+}
+
+.aircraft-table-callsign {
+    display: block;
+    min-width: 0;
+    will-change: transform;
+}
+
+.aircraft-table-identity--route-entering .aircraft-table-callsign {
+    animation: aircraft-table-callsign-lift 0.5s cubic-bezier(0.22, 1, 0.36, 1)
+        both;
+}
+
+.aircraft-table-identity--route-entering .aircraft-table-route-slot {
+    animation: aircraft-table-route-reveal 0.42s cubic-bezier(0.22, 1, 0.36, 1)
+        0.08s both;
+}
+
+.aircraft-table-list {
+    overflow-anchor: none;
+}
+
+.aircraft-table-list__item {
+    transform-origin: center center;
+}
+
+.aircraft-table-list__item--fading .aircraft-table-card {
+    animation: aircraft-table-slot-fade 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
+.aircraft-table-list__item + .aircraft-table-list__item {
+    border-top: 1px solid var(--atc-line);
+}
+
+.aircraft-table-card {
+    height: 64px;
+    min-height: 64px;
+    opacity: var(--aircraft-row-opacity, 1);
+    padding-block: 9px;
+    will-change: opacity;
+}
+
+.aircraft-table-route-slot {
+    height: 14px;
 }
 
 .aircraft-table-route-face {
@@ -2514,6 +2573,10 @@ body {
     position: absolute;
     transition: opacity 0.36s cubic-bezier(0.25, 1, 0.5, 1);
     width: 100%;
+}
+
+.aircraft-table-list__item--fading .aircraft-table-route-face {
+    animation-play-state: paused;
 }
 
 .aircraft-table-route-face--route span {
@@ -2549,6 +2612,42 @@ body {
     50%,
     84% {
         opacity: 1;
+    }
+}
+
+@keyframes aircraft-table-slot-fade {
+    0% {
+        opacity: var(--aircraft-row-opacity, 1);
+    }
+    44% {
+        opacity: calc(var(--aircraft-row-opacity, 1) * 0.28);
+    }
+    56% {
+        opacity: calc(var(--aircraft-row-opacity, 1) * 0.28);
+    }
+    100% {
+        opacity: var(--aircraft-row-opacity, 1);
+    }
+}
+
+@keyframes aircraft-table-callsign-lift {
+    0% {
+        transform: translateY(7px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes aircraft-table-route-reveal {
+    0%,
+    38% {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -2919,6 +3018,35 @@ body {
     font-family: var(--airport-sidebar-sans);
 }
 
+.airport-sidebar-display-mono {
+    background: none;
+    color: inherit;
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    mask: none;
+    -webkit-mask: none;
+    -webkit-text-fill-color: currentColor;
+}
+
+.airport-sidebar-display-mono--hero {
+    font-weight: 800;
+    letter-spacing: 0.105em;
+    line-height: 0.95;
+}
+
+.airport-sidebar-display-mono--metric {
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 0.9;
+}
+
+.aircraft-table-callsign.airport-sidebar-display-mono {
+    max-width: 100%;
+    vertical-align: baseline;
+}
+
 .airport-sidebar-identity {
     padding: 28px var(--airport-sidebar-inset) 24px;
 }
@@ -2939,8 +3067,8 @@ body {
     align-content: center;
     display: grid;
     gap: 8px;
-    grid-template-rows: 16px 38px 14px;
-    min-height: 112px;
+    grid-template-rows: 16px 44px 14px;
+    min-height: 116px;
     min-width: 0;
     padding: 22px var(--airport-sidebar-inset) 20px;
     text-align: left;
@@ -2971,12 +3099,14 @@ body {
     align-items: center;
     color: var(--atc-text);
     display: flex;
-    font-family: var(--font-mono);
-    font-size: 28px;
+    font-size: 34px;
     font-weight: 800;
-    letter-spacing: 0;
     line-height: 1;
-    min-height: 38px;
+    min-height: 44px;
+}
+
+.airport-sidebar-view-switch__button strong.airport-sidebar-display-mono {
+    font-weight: 800;
 }
 
 .airport-sidebar-view-switch__button small {

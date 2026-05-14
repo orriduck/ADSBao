@@ -25,7 +25,7 @@ export default function AirportIdentity({
         Airport
       </div>
       <div className="mt-3 flex items-baseline gap-3">
-        <span className="font-mono text-[22px] font-semibold tracking-[0.04em] text-atc-text">
+        <span className="airport-sidebar-display-mono airport-sidebar-display-mono--hero text-[28px] font-extrabold text-atc-text">
           {codeLine}
         </span>
         <span
