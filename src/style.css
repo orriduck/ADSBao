@@ -1370,16 +1370,6 @@ body {
     opacity: 1;
 }
 
-.temperature-strip {
-    display: grid;
-    gap: 0;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.temperature-strip {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .local-weather-glyph {
     align-items: center;
     background: color-mix(in oklab, var(--atc-accent) 9%, transparent);
@@ -1667,16 +1657,6 @@ body {
     font-family: "JetBrains Mono", monospace;
     font-size: 10px;
     text-transform: uppercase;
-}
-
-.temperature-strip .weather-metric-line {
-    min-width: 0;
-}
-
-.temperature-strip .weather-metric-line strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .weather-readout div {
@@ -3375,44 +3355,23 @@ body {
 }
 
 .airport-briefing-card .ceiling-readouts,
-.airport-briefing-card .pressure-strip,
-.airport-briefing-card .temperature-strip {
+.airport-briefing-card .pressure-strip {
     gap: 14px;
 }
 
-.airport-briefing-card .temperature-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.airport-briefing-card .temperature-strip .weather-metric-line:last-child {
-    grid-column: 1 / -1;
-}
-
-.airport-briefing-card .weather-metric-line strong,
-.airport-briefing-card .wind-vector-card strong {
+.airport-briefing-card .weather-metric-line strong {
     font-family: var(--airport-sidebar-sans);
     font-size: 18px;
 }
 
 .airport-briefing-card .weather-metric-line span,
-.airport-briefing-card .wind-vector-card span,
-.airport-briefing-card .thermal-band span,
 .airport-briefing-card .local-weather-meta span {
     font-family: var(--airport-sidebar-sans);
     font-weight: 600;
-    letter-spacing: 0;
 }
 
 .airport-briefing-card .local-weather-meta .font-mono {
     font-family: var(--airport-sidebar-sans);
-}
-
-.airport-briefing-card .wind-vector-card {
-    grid-template-columns: 56px repeat(3, minmax(0, 1fr));
-}
-
-.airport-briefing-card .wind-vector-card > div:not(.wind-compass) {
-    padding-inline: 6px;
 }
 
 .airport-briefing-card .wiki-copy {
@@ -3609,29 +3568,6 @@ body {
     cursor: pointer;
     font-size: 11px;
     font-weight: 700;
-}
-
-.aircraft-filter-select-content {
-    background: var(--atc-bg);
-    border-color: var(--atc-line);
-    border-radius: 0;
-    color: var(--atc-text);
-    font-family: var(--airport-sidebar-sans);
-    letter-spacing: 0;
-    text-transform: uppercase;
-}
-
-.aircraft-filter-select-item {
-    border-radius: 0;
-    cursor: pointer;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0;
-}
-
-.aircraft-filter-select-item:focus {
-    background: color-mix(in oklab, var(--atc-accent) 14%, transparent);
-    color: var(--atc-text);
 }
 
 @keyframes airport-feed-status-fade {
