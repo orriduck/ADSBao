@@ -60,7 +60,7 @@ export default function AirportSidebar({
           </button>
         ) : (
           <span
-            className={`airport-feed-status airport-feed-status--${feedStatus} inline-flex items-center gap-4 text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
+            className={`airport-feed-status airport-feed-status--${feedStatus} inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
           >
             <RequestPulseDots ariaLabel="Live feed" />
             {updatedLabel ? <span key={updatedLabel}>{updatedLabel}</span> : null}
