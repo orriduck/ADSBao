@@ -12,7 +12,7 @@ export default function WeatherCarousel({
   airportLat = 0,
   airportLon = 0,
 }) {
-  const slides = useWeatherSlides({
+  const { slides, windFlowBearing } = useWeatherSlides({
     variant: "carousel",
     metar,
     metarRaw,
@@ -29,14 +29,26 @@ export default function WeatherCarousel({
     scrollToSlide,
     handleScroll,
   } = useWeatherCarouselNavigation(slides);
+  const showWindStreaks =
+    activeSlide?.id === "wind" && windFlowBearing != null;
 
   return (
-    <section className="weather-carousel-section px-6 pt-4 pb-4">
+    <section
+      className={`weather-carousel-section px-6 pt-4 pb-4 ${
+        showWindStreaks ? "weather-carousel-section--wind" : ""
+      }`}
+      style={
+        showWindStreaks ? { "--wind-flow": `${windFlowBearing}deg` } : undefined
+      }
+    >
+      {showWindStreaks ? (
+        <div className="weather-carousel-section__streaks" aria-hidden="true" />
+      ) : null}
       <div className="weather-carousel-header flex items-baseline justify-between">
-        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-atc-faint">
+        <div className="font-mono text-[10px] uppercase text-atc-faint">
           Weather
         </div>
-        <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-atc-dim">
+        <div className="font-mono text-[10px] uppercase text-atc-dim">
           {activeSlide?.title || "—"}
         </div>
       </div>

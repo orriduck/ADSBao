@@ -14,7 +14,7 @@ export default function WeatherPanel({
   airportLon = 0,
   airportCode = "",
 }) {
-  const slides = useWeatherSlides({
+  const { slides } = useWeatherSlides({
     variant: "panel",
     metar,
     metarRaw,

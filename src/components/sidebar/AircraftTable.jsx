@@ -26,7 +26,7 @@ const TRAFFIC_FILTERS = [
 ];
 
 const ALTITUDE_LEVELS = [
-  { value: "all", label: "Any altitude" },
+  { value: "all", label: "Any" },
   { value: "ground", label: "Ground" },
   { value: "climb-descent", label: "Climb / descent" },
   { value: "high", label: "High" },
@@ -72,8 +72,8 @@ export default function AircraftTable({
         </div>
 
         <div className="px-[var(--airport-sidebar-inset)] pb-3">
-          <label className="aircraft-search-box">
-            <Search size={14} aria-hidden="true" />
+          <label className="aircraft-search">
+            <Search size={13} aria-hidden="true" />
             <input
               type="search"
               value={query}
@@ -82,48 +82,52 @@ export default function AircraftTable({
               aria-label="Search aircraft"
             />
           </label>
-
-          <div className="aircraft-filter-stack" aria-label="Aircraft filter">
-            <div className="aircraft-filter-tabs">
-              {TRAFFIC_FILTERS.map((filter) => (
-                <button
-                  key={filter.value}
-                  type="button"
-                  className={trafficFilter === filter.value ? "active" : ""}
-                  aria-pressed={trafficFilter === filter.value}
-                  onClick={() => setTrafficFilter(filter.value)}
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-            <div className="aircraft-filter-select-row">
-              <AircraftFilterSelect
-                label="Type"
-                value={typeFilter}
-                onValueChange={setTypeFilter}
-                options={[
-                  { value: "all", label: "All types" },
-                  ...aircraftTypes.map((type) => ({
-                    value: type,
-                    label: type,
-                  })),
-                ]}
-                ariaLabel="Filter by aircraft type"
-                contentClassName="max-h-44"
-              />
-              <AircraftFilterSelect
-                label="Altitude"
-                value={altitudeLevel}
-                onValueChange={setAltitudeLevel}
-                options={ALTITUDE_LEVELS}
-                ariaLabel="Filter by altitude level"
-              />
-            </div>
-          </div>
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1fr)_54px_70px] items-center gap-3 border-y border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-atc-faint">
+        <div
+          className="aircraft-filter-cards"
+          role="group"
+          aria-label="Aircraft filters"
+        >
+          <button
+            type="button"
+            className="aircraft-filter-card"
+            data-active={trafficFilter === "routed" ? "true" : undefined}
+            aria-pressed={trafficFilter === "routed"}
+            onClick={() =>
+              setTrafficFilter(trafficFilter === "routed" ? "all" : "routed")
+            }
+          >
+            <span className="aircraft-filter-card__label">Traffic</span>
+            <strong className="aircraft-filter-card__value">
+              {trafficFilter === "routed" ? "Routes only" : "All"}
+            </strong>
+          </button>
+
+          <AircraftFilterCardSelect
+            label="Type"
+            value={typeFilter}
+            onValueChange={setTypeFilter}
+            options={[
+              { value: "all", label: "All" },
+              ...aircraftTypes.map((type) => ({
+                value: type,
+                label: type,
+              })),
+            ]}
+            ariaLabel="Filter by aircraft type"
+            contentClassName="max-h-44"
+          />
+          <AircraftFilterCardSelect
+            label="Alt"
+            value={altitudeLevel}
+            onValueChange={setAltitudeLevel}
+            options={ALTITUDE_LEVELS}
+            ariaLabel="Filter by altitude level"
+          />
+        </div>
+
+        <div className="grid grid-cols-[minmax(0,1fr)_54px_70px] items-center gap-3 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint">
           <span>Callsign / Route</span>
           <span className="text-right">GS</span>
           <span className="text-right">ALT</span>
@@ -149,7 +153,7 @@ export default function AircraftTable({
   );
 }
 
-function AircraftFilterSelect({
+function AircraftFilterCardSelect({
   label,
   value,
   onValueChange,
@@ -158,32 +162,32 @@ function AircraftFilterSelect({
   contentClassName = "",
 }) {
   return (
-    <div className="aircraft-filter-select">
-      <span>{label}</span>
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger
-          aria-label={ariaLabel}
-          className="aircraft-filter-select-trigger"
-        >
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger
+        aria-label={ariaLabel}
+        className="aircraft-filter-card aircraft-filter-card--select"
+      >
+        <span className="aircraft-filter-card__label">{label}</span>
+        <strong className="aircraft-filter-card__value">
           <SelectValue />
-        </SelectTrigger>
-        <SelectContent
-          className={cn("aircraft-filter-select-content", contentClassName)}
-        >
-          <SelectGroup>
-            {options.map((option) => (
-              <SelectItem
-                key={option.value}
-                value={option.value}
-                className="aircraft-filter-select-item"
-              >
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </div>
+        </strong>
+      </SelectTrigger>
+      <SelectContent
+        className={cn("aircraft-filter-card-content", contentClassName)}
+      >
+        <SelectGroup>
+          {options.map((option) => (
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className="aircraft-filter-card-item"
+            >
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }
 

@@ -6,6 +6,7 @@ import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
 import SidebarViewSwitch from "./SidebarViewSwitch";
 import WeatherBriefingStack from "./WeatherBriefingStack";
+import RequestPulseDots from "@/components/ui/RequestPulseDots";
 
 export default function AirportSidebar({
   icao = "",
@@ -30,7 +31,7 @@ export default function AirportSidebar({
   onClose = null,
 }) {
   const isMobileOverlay = Boolean(onClose);
-  const updatedLabel = formatUpdated(lastUpdated, feedStatus);
+  const updatedLabel = formatUpdated(lastUpdated);
   const [activeView, setActiveView] = useState("traffic");
 
   return (
@@ -59,10 +60,10 @@ export default function AirportSidebar({
           </button>
         ) : (
           <span
-            key={updatedLabel}
-            className={`airport-feed-status airport-feed-status--${feedStatus} text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
+            className={`airport-feed-status airport-feed-status--${feedStatus} inline-flex items-center gap-4 text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
           >
-            {updatedLabel}
+            <RequestPulseDots ariaLabel="Live feed" />
+            {updatedLabel ? <span key={updatedLabel}>{updatedLabel}</span> : null}
           </span>
         )}
       </div>
@@ -129,13 +130,12 @@ export default function AirportSidebar({
   );
 }
 
-function formatUpdated(date, feedStatus = "live") {
-  const label = feedStatus === "infer" ? "Infer" : "Live";
-  if (!date) return `${label} · syncing`;
-  return `${label} · ${date.toLocaleTimeString([], {
+function formatUpdated(date) {
+  if (!date) return "";
+  return date.toLocaleTimeString([], {
     hour12: false,
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-  })}`;
+  });
 }
