@@ -1,0 +1,690 @@
+{
+  "generatedAt": "2026-05-14T22:27:08.152Z",
+  "airports": [
+    {
+      "airport": {
+        "icao": "KBOS",
+        "iata": "BOS",
+        "name": "Boston Logan",
+        "municipality": "Boston",
+        "country": "US",
+        "lat": 42.3656,
+        "lon": -71.0096,
+        "timezone": "America/New_York"
+      },
+      "health": {
+        "airportFeedsOk": true,
+        "flightSchedulesStatus": "OK",
+        "liveUpdatesStatus": "OK",
+        "adsbUpdatesStatus": "OKPartial",
+        "minAvailableLocalDate": "2025-05-13",
+        "maxAvailableLocalDate": "2027-05-12"
+      },
+      "liveAircraftCount": 58,
+      "currentPath": {
+        "lookupCount": 55,
+        "vrsCalls": 55,
+        "aerodataboxFallbackCalls": 15,
+        "matchedRoutes": 44,
+        "multiLegRoutes": 7,
+        "missingTargetRoutes": 8,
+        "errors": {
+          "status429": 2,
+          "status204": 2,
+          "status404": 11,
+          "status5xx": 0
+        },
+        "latencies": [
+          535,
+          34,
+          1163,
+          70,
+          65,
+          119,
+          621,
+          90,
+          1120,
+          1041,
+          88,
+          159,
+          69,
+          789,
+          35,
+          54,
+          48,
+          42,
+          52,
+          39,
+          43,
+          46,
+          37,
+          50,
+          46,
+          41,
+          81,
+          47,
+          44,
+          52,
+          36,
+          41,
+          44,
+          43,
+          43,
+          40,
+          50,
+          46,
+          38,
+          351,
+          1132,
+          26,
+          1002,
+          1114,
+          48,
+          1088,
+          1122,
+          2304,
+          42,
+          47,
+          56,
+          43,
+          68,
+          1764,
+          1204
+        ]
+      },
+      "fidsPath": {
+        "calls": 12,
+        "health": {
+          "airportFeedsOk": true,
+          "flightSchedulesStatus": "OK",
+          "liveUpdatesStatus": "OK",
+          "adsbUpdatesStatus": "OKPartial",
+          "minAvailableLocalDate": "2025-05-13",
+          "maxAvailableLocalDate": "2027-05-12"
+        },
+        "currentWindow": {
+          "arrivals": 353,
+          "departures": 299,
+          "dedupedFlights": 644
+        },
+        "future24h": {
+          "windowCount": 2,
+          "totalFlights": 1206,
+          "duplicates": 0,
+          "windows": [
+            {
+              "fromLocal": "2026-05-14T18:24",
+              "toLocal": "2026-05-15T06:24"
+            },
+            {
+              "fromLocal": "2026-05-15T06:24",
+              "toLocal": "2026-05-15T18:24"
+            }
+          ]
+        },
+        "pagination": {
+          "comparisons": {
+            "h2": {
+              "mergedCount": 164,
+              "singleCount": 164
+            },
+            "h4": {
+              "mergedCount": 382,
+              "singleCount": 382
+            },
+            "h6": {
+              "mergedCount": 528,
+              "singleCount": 528
+            },
+            "h12": {
+              "mergedCount": 644,
+              "singleCount": 644
+            }
+          },
+          "splitWindowCount": 644
+        },
+        "paginationRisk": "not-observed",
+        "matched": {
+          "high": 46,
+          "medium": 0,
+          "low": 12,
+          "unmatched": 0
+        },
+        "errors": {
+          "status429": 2,
+          "status204": 0,
+          "status404": 0,
+          "status5xx": 0
+        },
+        "latencies": [
+          317,
+          222,
+          338,
+          231,
+          244,
+          272,
+          290,
+          86,
+          263,
+          371,
+          299,
+          326
+        ]
+      },
+      "latency": {
+        "currentAvgMs": 337,
+        "currentP95Ms": 1204,
+        "fidsAvgMs": 272,
+        "fidsP95Ms": 371
+      },
+      "errors": {
+        "current": {
+          "status429": 2,
+          "status204": 2,
+          "status404": 11,
+          "status5xx": 0
+        },
+        "fids": {
+          "status429": 2,
+          "status204": 0,
+          "status404": 0,
+          "status5xx": 0
+        }
+      },
+      "verdict": {
+        "callReductionPct": 82.9,
+        "matchQuality": "promising",
+        "recommended": true
+      }
+    },
+    {
+      "airport": {
+        "icao": "KJFK",
+        "iata": "JFK",
+        "name": "John F. Kennedy Intl",
+        "municipality": "New York",
+        "country": "US",
+        "lat": 40.6413,
+        "lon": -73.7781,
+        "timezone": "America/New_York"
+      },
+      "health": {
+        "airportFeedsOk": true,
+        "flightSchedulesStatus": "OK",
+        "liveUpdatesStatus": "OK",
+        "adsbUpdatesStatus": "OKPartial",
+        "minAvailableLocalDate": "2025-05-13",
+        "maxAvailableLocalDate": "2027-05-13"
+      },
+      "liveAircraftCount": 124,
+      "currentPath": {
+        "lookupCount": 122,
+        "vrsCalls": 122,
+        "aerodataboxFallbackCalls": 47,
+        "matchedRoutes": 69,
+        "multiLegRoutes": 16,
+        "missingTargetRoutes": 44,
+        "errors": {
+          "status429": 12,
+          "status204": 6,
+          "status404": 52,
+          "status5xx": 0
+        },
+        "latencies": [
+          98,
+          1601,
+          2388,
+          55,
+          876,
+          1186,
+          38,
+          61,
+          888,
+          1161,
+          1130,
+          1011,
+          42,
+          2132,
+          2233,
+          1130,
+          1135,
+          92,
+          1034,
+          1023,
+          1013,
+          1379,
+          1945,
+          2262,
+          1061,
+          70,
+          1073,
+          42,
+          94,
+          915,
+          2,
+          1201,
+          1024,
+          38,
+          61,
+          37,
+          42,
+          44,
+          42,
+          87,
+          45,
+          43,
+          39,
+          35,
+          52,
+          35,
+          46,
+          83,
+          77,
+          43,
+          280,
+          52,
+          57,
+          64,
+          39,
+          30,
+          36,
+          34,
+          36,
+          1885,
+          45,
+          2168,
+          1121,
+          37,
+          1052,
+          41,
+          1190,
+          1196,
+          951,
+          1023,
+          2183,
+          2219,
+          1129,
+          59,
+          925,
+          42,
+          39,
+          35,
+          39,
+          45,
+          42,
+          38,
+          884,
+          1330,
+          55,
+          99,
+          687,
+          47,
+          94,
+          42,
+          65,
+          57,
+          51,
+          52,
+          701,
+          2252,
+          2156,
+          67,
+          1159,
+          44,
+          943,
+          39,
+          48,
+          1061,
+          50,
+          45,
+          47,
+          863,
+          1156,
+          42,
+          38,
+          52,
+          50,
+          36,
+          39,
+          44,
+          37,
+          73,
+          45,
+          45,
+          42,
+          36
+        ]
+      },
+      "fidsPath": {
+        "calls": 12,
+        "health": {
+          "airportFeedsOk": true,
+          "flightSchedulesStatus": "OK",
+          "liveUpdatesStatus": "OK",
+          "adsbUpdatesStatus": "OKPartial",
+          "minAvailableLocalDate": "2025-05-13",
+          "maxAvailableLocalDate": "2027-05-13"
+        },
+        "currentWindow": {
+          "arrivals": 330,
+          "departures": 337,
+          "dedupedFlights": 659
+        },
+        "future24h": {
+          "windowCount": 2,
+          "totalFlights": 1208,
+          "duplicates": 0,
+          "windows": [
+            {
+              "fromLocal": "2026-05-14T18:26",
+              "toLocal": "2026-05-15T06:26"
+            },
+            {
+              "fromLocal": "2026-05-15T06:26",
+              "toLocal": "2026-05-15T18:26"
+            }
+          ]
+        },
+        "pagination": {
+          "comparisons": {
+            "h2": {
+              "mergedCount": 154,
+              "singleCount": 154
+            },
+            "h4": {
+              "mergedCount": 324,
+              "singleCount": 324
+            },
+            "h6": {
+              "mergedCount": 475,
+              "singleCount": 475
+            },
+            "h12": {
+              "mergedCount": 659,
+              "singleCount": 659
+            }
+          },
+          "splitWindowCount": 659
+        },
+        "paginationRisk": "not-observed",
+        "matched": {
+          "high": 26,
+          "medium": 0,
+          "low": 98,
+          "unmatched": 0
+        },
+        "errors": {
+          "status429": 4,
+          "status204": 0,
+          "status404": 0,
+          "status5xx": 0
+        },
+        "latencies": [
+          310,
+          269,
+          332,
+          283,
+          283,
+          213,
+          340,
+          167,
+          278,
+          368,
+          394,
+          288
+        ]
+      },
+      "latency": {
+        "currentAvgMs": 533,
+        "currentP95Ms": 2168,
+        "fidsAvgMs": 294,
+        "fidsP95Ms": 394
+      },
+      "errors": {
+        "current": {
+          "status429": 12,
+          "status204": 6,
+          "status404": 52,
+          "status5xx": 0
+        },
+        "fids": {
+          "status429": 4,
+          "status204": 0,
+          "status404": 0,
+          "status5xx": 0
+        }
+      },
+      "verdict": {
+        "callReductionPct": 92.9,
+        "matchQuality": "weak",
+        "recommended": false
+      }
+    },
+    {
+      "airport": {
+        "icao": "KORD",
+        "iata": "ORD",
+        "name": "Chicago O'Hare",
+        "municipality": "Chicago",
+        "country": "US",
+        "lat": 41.9742,
+        "lon": -87.9073,
+        "timezone": "America/Chicago"
+      },
+      "health": {
+        "airportFeedsOk": true,
+        "flightSchedulesStatus": "OK",
+        "liveUpdatesStatus": "OK",
+        "adsbUpdatesStatus": "OKPartial",
+        "minAvailableLocalDate": "2025-05-13",
+        "maxAvailableLocalDate": "2027-05-08"
+      },
+      "liveAircraftCount": 85,
+      "currentPath": {
+        "lookupCount": 85,
+        "vrsCalls": 85,
+        "aerodataboxFallbackCalls": 19,
+        "matchedRoutes": 35,
+        "multiLegRoutes": 14,
+        "missingTargetRoutes": 7,
+        "errors": {
+          "status429": 5,
+          "status204": 0,
+          "status404": 50,
+          "status5xx": 0
+        },
+        "latencies": [
+          93,
+          81,
+          38,
+          42,
+          36,
+          45,
+          44,
+          43,
+          366,
+          43,
+          35,
+          1056,
+          52,
+          2088,
+          38,
+          45,
+          43,
+          37,
+          39,
+          144,
+          39,
+          1789,
+          34,
+          37,
+          43,
+          40,
+          46,
+          40,
+          34,
+          35,
+          36,
+          42,
+          63,
+          50,
+          701,
+          40,
+          1088,
+          59,
+          53,
+          59,
+          54,
+          57,
+          54,
+          634,
+          35,
+          1073,
+          80,
+          82,
+          47,
+          44,
+          42,
+          805,
+          90,
+          1003,
+          51,
+          2132,
+          42,
+          74,
+          50,
+          38,
+          59,
+          43,
+          49,
+          34,
+          61,
+          1911,
+          1015,
+          87,
+          957,
+          36,
+          1174,
+          38,
+          1094,
+          41,
+          946,
+          37,
+          62,
+          988,
+          45,
+          37,
+          35,
+          38,
+          2176,
+          45,
+          38
+        ]
+      },
+      "fidsPath": {
+        "calls": 12,
+        "health": {
+          "airportFeedsOk": true,
+          "flightSchedulesStatus": "OK",
+          "liveUpdatesStatus": "OK",
+          "adsbUpdatesStatus": "OKPartial",
+          "minAvailableLocalDate": "2025-05-13",
+          "maxAvailableLocalDate": "2027-05-08"
+        },
+        "currentWindow": {
+          "arrivals": 799,
+          "departures": 836,
+          "dedupedFlights": 1595
+        },
+        "future24h": {
+          "windowCount": 2,
+          "totalFlights": 2776,
+          "duplicates": 0,
+          "windows": [
+            {
+              "fromLocal": "2026-05-14T17:27",
+              "toLocal": "2026-05-15T05:27"
+            },
+            {
+              "fromLocal": "2026-05-15T05:27",
+              "toLocal": "2026-05-15T17:27"
+            }
+          ]
+        },
+        "pagination": {
+          "comparisons": {
+            "h2": {
+              "mergedCount": 441,
+              "singleCount": 441
+            },
+            "h4": {
+              "mergedCount": 922,
+              "singleCount": 923
+            },
+            "h6": {
+              "mergedCount": 1281,
+              "singleCount": 1278
+            },
+            "h12": {
+              "mergedCount": 1595,
+              "singleCount": 1595
+            }
+          },
+          "splitWindowCount": 1595
+        },
+        "paginationRisk": "split-window-recommended",
+        "matched": {
+          "high": 29,
+          "medium": 0,
+          "low": 56,
+          "unmatched": 0
+        },
+        "errors": {
+          "status429": 3,
+          "status204": 0,
+          "status404": 0,
+          "status5xx": 0
+        },
+        "latencies": [
+          375,
+          407,
+          283,
+          460,
+          380,
+          306,
+          248,
+          114,
+          333,
+          434,
+          388,
+          300
+        ]
+      },
+      "latency": {
+        "currentAvgMs": 309,
+        "currentP95Ms": 1789,
+        "fidsAvgMs": 336,
+        "fidsP95Ms": 460
+      },
+      "errors": {
+        "current": {
+          "status429": 5,
+          "status204": 0,
+          "status404": 50,
+          "status5xx": 0
+        },
+        "fids": {
+          "status429": 3,
+          "status204": 0,
+          "status404": 0,
+          "status5xx": 0
+        }
+      },
+      "verdict": {
+        "callReductionPct": 88.5,
+        "matchQuality": "weak",
+        "recommended": false
+      }
+    }
+  ]
+}

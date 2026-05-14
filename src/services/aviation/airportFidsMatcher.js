@@ -37,6 +37,8 @@ const normalizeAircraftInput = (aircraft) => ({
 });
 
 const buildMatchResponse = (aircraft, flight, matchMethod, confidence, score = 0) => ({
+  rawAircraftHex: aircraft.icao24,
+  rawAircraftRegistration: aircraft.registration,
   rawCallsign: aircraft.rawCallsign,
   matchedFlightId: flight?.id || "",
   matchedFlightNumber: flight?.flightNumber || "",

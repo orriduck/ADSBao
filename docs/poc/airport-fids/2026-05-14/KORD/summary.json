@@ -1,0 +1,226 @@
+{
+  "airport": {
+    "icao": "KORD",
+    "iata": "ORD",
+    "name": "Chicago O'Hare",
+    "municipality": "Chicago",
+    "country": "US",
+    "lat": 41.9742,
+    "lon": -87.9073,
+    "timezone": "America/Chicago"
+  },
+  "health": {
+    "airportFeedsOk": true,
+    "flightSchedulesStatus": "OK",
+    "liveUpdatesStatus": "OK",
+    "adsbUpdatesStatus": "OKPartial",
+    "minAvailableLocalDate": "2025-05-13",
+    "maxAvailableLocalDate": "2027-05-08"
+  },
+  "liveAircraftCount": 85,
+  "currentPath": {
+    "lookupCount": 85,
+    "vrsCalls": 85,
+    "aerodataboxFallbackCalls": 19,
+    "matchedRoutes": 35,
+    "multiLegRoutes": 14,
+    "missingTargetRoutes": 7,
+    "errors": {
+      "status429": 5,
+      "status204": 0,
+      "status404": 50,
+      "status5xx": 0
+    },
+    "latencies": [
+      93,
+      81,
+      38,
+      42,
+      36,
+      45,
+      44,
+      43,
+      366,
+      43,
+      35,
+      1056,
+      52,
+      2088,
+      38,
+      45,
+      43,
+      37,
+      39,
+      144,
+      39,
+      1789,
+      34,
+      37,
+      43,
+      40,
+      46,
+      40,
+      34,
+      35,
+      36,
+      42,
+      63,
+      50,
+      701,
+      40,
+      1088,
+      59,
+      53,
+      59,
+      54,
+      57,
+      54,
+      634,
+      35,
+      1073,
+      80,
+      82,
+      47,
+      44,
+      42,
+      805,
+      90,
+      1003,
+      51,
+      2132,
+      42,
+      74,
+      50,
+      38,
+      59,
+      43,
+      49,
+      34,
+      61,
+      1911,
+      1015,
+      87,
+      957,
+      36,
+      1174,
+      38,
+      1094,
+      41,
+      946,
+      37,
+      62,
+      988,
+      45,
+      37,
+      35,
+      38,
+      2176,
+      45,
+      38
+    ]
+  },
+  "fidsPath": {
+    "calls": 12,
+    "health": {
+      "airportFeedsOk": true,
+      "flightSchedulesStatus": "OK",
+      "liveUpdatesStatus": "OK",
+      "adsbUpdatesStatus": "OKPartial",
+      "minAvailableLocalDate": "2025-05-13",
+      "maxAvailableLocalDate": "2027-05-08"
+    },
+    "currentWindow": {
+      "arrivals": 799,
+      "departures": 836,
+      "dedupedFlights": 1595
+    },
+    "future24h": {
+      "windowCount": 2,
+      "totalFlights": 2776,
+      "duplicates": 0,
+      "windows": [
+        {
+          "fromLocal": "2026-05-14T17:27",
+          "toLocal": "2026-05-15T05:27"
+        },
+        {
+          "fromLocal": "2026-05-15T05:27",
+          "toLocal": "2026-05-15T17:27"
+        }
+      ]
+    },
+    "pagination": {
+      "comparisons": {
+        "h2": {
+          "mergedCount": 441,
+          "singleCount": 441
+        },
+        "h4": {
+          "mergedCount": 922,
+          "singleCount": 923
+        },
+        "h6": {
+          "mergedCount": 1281,
+          "singleCount": 1278
+        },
+        "h12": {
+          "mergedCount": 1595,
+          "singleCount": 1595
+        }
+      },
+      "splitWindowCount": 1595
+    },
+    "paginationRisk": "split-window-recommended",
+    "matched": {
+      "high": 29,
+      "medium": 0,
+      "low": 56,
+      "unmatched": 0
+    },
+    "errors": {
+      "status429": 3,
+      "status204": 0,
+      "status404": 0,
+      "status5xx": 0
+    },
+    "latencies": [
+      375,
+      407,
+      283,
+      460,
+      380,
+      306,
+      248,
+      114,
+      333,
+      434,
+      388,
+      300
+    ]
+  },
+  "latency": {
+    "currentAvgMs": 309,
+    "currentP95Ms": 1789,
+    "fidsAvgMs": 336,
+    "fidsP95Ms": 460
+  },
+  "errors": {
+    "current": {
+      "status429": 5,
+      "status204": 0,
+      "status404": 50,
+      "status5xx": 0
+    },
+    "fids": {
+      "status429": 3,
+      "status204": 0,
+      "status404": 0,
+      "status5xx": 0
+    }
+  },
+  "verdict": {
+    "callReductionPct": 88.5,
+    "matchQuality": "weak",
+    "recommended": false
+  }
+}

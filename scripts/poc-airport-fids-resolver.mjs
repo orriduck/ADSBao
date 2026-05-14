@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { performance } from "node:perf_hooks";
 import process from "node:process";
 
@@ -35,6 +37,7 @@ const DEFAULTS = {
   futureHours: 24,
   currentLookbackMinutes: 180,
   currentWindowMinutes: 720,
+  artifactsDir: "",
 };
 
 const AIRPORT_TIMEZONES = {
@@ -83,6 +86,15 @@ const countStatus = (buckets, status) => {
   else if (normalized === 404) buckets.status404 += 1;
   else if (normalized >= 500) buckets.status5xx += 1;
 };
+
+const valueOrEmpty = (value) => (value == null ? "" : String(value));
+
+const csvEscape = (value) => {
+  const text = valueOrEmpty(value);
+  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+};
+
+const toJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
 
 const formatLocalParts = (date, timeZone) => {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -187,6 +199,8 @@ export function parseCliArgs(argv) {
       options.currentWindowMinutes =
         Number(arg.slice("--current-window-minutes=".length)) ||
         DEFAULTS.currentWindowMinutes;
+    } else if (arg.startsWith("--artifacts-dir=")) {
+      options.artifactsDir = cleanString(arg.slice("--artifacts-dir=".length));
     }
   }
 
@@ -449,6 +463,7 @@ const runCurrentPathBenchmark = async ({ airport, liveAircraft, aerodataboxClien
   const lookupCallsigns = getLookupCallsigns(buildCurrentRouteAircraft(liveAircraft));
   const errors = statusBuckets();
   const latencies = [];
+  const rows = [];
   let vrsCalls = 0;
   let aerodataboxFallbackCalls = 0;
   let matchedRoutes = 0;
@@ -462,6 +477,8 @@ const runCurrentPathBenchmark = async ({ airport, liveAircraft, aerodataboxClien
     countStatus(errors, vrsResult.status);
 
     let finalRoute = vrsResult.route;
+    let fallbackStatus = null;
+    let suppressVrsRoute = false;
     if (vrsResult.route?.airports?.length > 2) multiLegRoutes += 1;
     if (vrsResult.route && !routeContainsAirport(vrsResult.route, airport)) {
       missingTargetRoutes += 1;
@@ -471,6 +488,8 @@ const runCurrentPathBenchmark = async ({ airport, liveAircraft, aerodataboxClien
       aerodataboxFallbackCalls += 1;
       const adbResult = await aerodataboxClient.fetchFlightStatusRoute(callsign, airport);
       for (const status of adbResult.statuses) countStatus(errors, status);
+      fallbackStatus = adbResult.status;
+      suppressVrsRoute = adbResult.suppressVrsRoute;
       if (adbResult.route) {
         finalRoute = adbResult.route;
       } else if (adbResult.suppressVrsRoute) {
@@ -479,7 +498,30 @@ const runCurrentPathBenchmark = async ({ airport, liveAircraft, aerodataboxClien
     }
 
     if (finalRoute) matchedRoutes += 1;
-    latencies.push(Math.round(performance.now() - startedAt));
+    const totalLatencyMs = Math.round(performance.now() - startedAt);
+    latencies.push(totalLatencyMs);
+    rows.push({
+      callsign,
+      vrsStatus: vrsResult.status,
+      vrsRoute: vrsResult.route
+        ? {
+            route: routeCode(vrsResult.route.origin, vrsResult.route.destination),
+            stops: vrsResult.route.airports?.map((item) => item.icao) || [],
+            source: vrsResult.route.source,
+          }
+        : null,
+      usedAerodataboxFallback: shouldUseAerodataboxFallback(vrsResult.route, airport),
+      aerodataboxStatus: fallbackStatus,
+      suppressVrsRoute,
+      finalRoute: finalRoute
+        ? {
+            route: routeCode(finalRoute.origin, finalRoute.destination),
+            source: finalRoute.source,
+            confidence: finalRoute.confidence,
+          }
+        : null,
+      totalLatencyMs,
+    });
   }
 
   return {
@@ -491,6 +533,7 @@ const runCurrentPathBenchmark = async ({ airport, liveAircraft, aerodataboxClien
     missingTargetRoutes,
     errors,
     latencies,
+    rows,
   };
 };
 
@@ -509,6 +552,251 @@ const detectPaginationRisk = (comparisons) => {
     ({ mergedCount, singleCount }) => mergedCount > singleCount,
   );
   return likelyTruncated ? "split-window-recommended" : "not-observed";
+};
+
+const routeCode = (origin, destination) =>
+  `${origin?.icao || origin?.iata || "?"}-${destination?.icao || destination?.iata || "?"}`;
+
+const summarizeIdentifierAgreement = ({
+  rawAircraftHex,
+  rawAircraftRegistration,
+  matchedFlightModeS,
+  matchedFlightRegistration,
+  rawCallsign,
+  matchedFlightCallsign,
+}) => {
+  if (
+    rawAircraftHex &&
+    matchedFlightModeS &&
+    cleanUpper(rawAircraftHex) === cleanUpper(matchedFlightModeS)
+  ) {
+    return "icao24";
+  }
+  if (
+    rawAircraftRegistration &&
+    matchedFlightRegistration &&
+    cleanUpper(rawAircraftRegistration) === cleanUpper(matchedFlightRegistration)
+  ) {
+    return "registration";
+  }
+  if (
+    rawCallsign &&
+    matchedFlightCallsign &&
+    cleanUpper(rawCallsign).replace(/\s+/g, "") ===
+      cleanUpper(matchedFlightCallsign).replace(/\s+/g, "")
+  ) {
+    return "callsign";
+  }
+  return "none";
+};
+
+export function buildMatchArtifactRows({
+  aircraft = [],
+  matches = [],
+  flights = [],
+} = {}) {
+  const aircraftByHex = new Map(
+    aircraft
+      .filter((item) => cleanUpper(item?.hex))
+      .map((item) => [cleanUpper(item.hex), item]),
+  );
+  const flightById = new Map(
+    flights.filter((item) => item?.id).map((item) => [item.id, item]),
+  );
+
+  return matches.map((match) => {
+    const rawAircraftHex = cleanUpper(match.rawAircraftHex);
+    const liveAircraft =
+      aircraftByHex.get(rawAircraftHex) ||
+      aircraft.find((item) => cleanString(item?.flight).trim() === match.rawCallsign) ||
+      null;
+    const matchedFlight = flightById.get(match.matchedFlightId) || null;
+    const matchedFlightCallsign = matchedFlight?.callsign || "";
+    const matchedFlightModeS = matchedFlight?.aircraft?.modeS || "";
+    const matchedFlightRegistration =
+      matchedFlight?.aircraft?.registration || "";
+    const identifierAgreement = summarizeIdentifierAgreement({
+      rawAircraftHex,
+      rawAircraftRegistration: match.rawAircraftRegistration,
+      matchedFlightModeS,
+      matchedFlightRegistration,
+      rawCallsign: match.rawCallsign,
+      matchedFlightCallsign,
+    });
+
+    return {
+      rawCallsign: match.rawCallsign,
+      rawAircraftRegistration: match.rawAircraftRegistration || cleanUpper(liveAircraft?.r),
+      rawAircraftHex,
+      rawLat: liveAircraft?.lat ?? "",
+      rawLon: liveAircraft?.lon ?? "",
+      rawTrack: liveAircraft?.track ?? "",
+      rawGs: liveAircraft?.gs ?? "",
+      matchMethod: match.matchMethod,
+      confidence: match.confidence,
+      score: match.score ?? "",
+      identifierAgreement,
+      matchedFlightNumber: match.matchedFlightNumber || "",
+      matchedFlightCallsign,
+      matchedFlightRegistration,
+      matchedFlightModeS,
+      matchedFlightConvertedCallsigns:
+        matchedFlight?.matchKeys?.convertedCallsigns || [],
+      airlineIcao: match.airline?.icao || "",
+      airlineIata: match.airline?.iata || "",
+      route: routeCode(match.origin, match.destination),
+      direction: match.direction || "",
+      scheduledTimeLocal: matchedFlight?.scheduledTimeLocal || "",
+      source: match.source || "",
+    };
+  });
+}
+
+export function renderMatchTableMarkdown(rows = []) {
+  const lines = [
+    "| raw callsign | raw reg | raw hex | match method | confidence | agreement | matched flight | matched reg | matched hex | route | score |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---: |",
+  ];
+
+  for (const row of rows) {
+    lines.push(
+      `| ${valueOrEmpty(row.rawCallsign)} | ${valueOrEmpty(row.rawAircraftRegistration)} | ${valueOrEmpty(row.rawAircraftHex)} | ${valueOrEmpty(row.matchMethod)} | ${valueOrEmpty(row.confidence)} | ${valueOrEmpty(row.identifierAgreement)} | ${valueOrEmpty(row.matchedFlightCallsign || row.matchedFlightNumber)} | ${valueOrEmpty(row.matchedFlightRegistration)} | ${valueOrEmpty(row.matchedFlightModeS)} | ${valueOrEmpty(row.route)} | ${valueOrEmpty(row.score)} |`,
+    );
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+const renderMatchTableCsv = (rows = []) => {
+  const headers = [
+    "rawCallsign",
+    "rawAircraftRegistration",
+    "rawAircraftHex",
+    "matchMethod",
+    "confidence",
+    "identifierAgreement",
+    "matchedFlightNumber",
+    "matchedFlightCallsign",
+    "matchedFlightRegistration",
+    "matchedFlightModeS",
+    "airlineIcao",
+    "airlineIata",
+    "route",
+    "direction",
+    "scheduledTimeLocal",
+    "score",
+    "source",
+  ];
+  const lines = [headers.join(",")];
+  for (const row of rows) {
+    lines.push(headers.map((header) => csvEscape(row[header])).join(","));
+  }
+  return `${lines.join("\n")}\n`;
+};
+
+const writeArtifactBundle = async ({
+  artifactsDir,
+  report,
+  airportResults,
+}) => {
+  if (!artifactsDir) return;
+
+  await mkdir(artifactsDir, { recursive: true });
+  await writeFile(path.join(artifactsDir, "report.json"), toJson(report), "utf8");
+  await writeFile(
+    path.join(artifactsDir, "report.md"),
+    renderMarkdownReport(report),
+    "utf8",
+  );
+
+  const readmeLines = [
+    "# Airport FIDS POC Artifacts",
+    "",
+    `Generated at: ${report.generatedAt}`,
+    "",
+    "Files per airport:",
+    "- `live-aircraft.raw.json`: raw adsb.lol snapshot used in the run",
+    "- `airport-fids-current.raw.json`: raw AeroDataBox current-window response",
+    "- `airport-fids-current.flat.json`: flattened/deduped FIDS flights used for matching",
+    "- `match-table.json|csv|md`: aircraft-to-FIDS match table with identifier agreement columns",
+    "- `current-route-lookups.json`: per-callsign current-path lookup details",
+    "",
+  ];
+
+  for (const airportResult of airportResults) {
+    const airportDir = path.join(artifactsDir, airportResult.airport.icao);
+    await mkdir(airportDir, { recursive: true });
+    const matchRows = buildMatchArtifactRows({
+      aircraft: airportResult.debug.liveAircraftRaw?.ac || [],
+      matches: airportResult.debug.matches.matches,
+      flights: airportResult.debug.currentFlights,
+    });
+
+    await writeFile(
+      path.join(airportDir, "summary.json"),
+      toJson(airportResult.summary),
+      "utf8",
+    );
+    await writeFile(
+      path.join(airportDir, "live-aircraft.raw.json"),
+      toJson(airportResult.debug.liveAircraftRaw),
+      "utf8",
+    );
+    await writeFile(
+      path.join(airportDir, "airport-fids-health.raw.json"),
+      toJson(airportResult.debug.healthRaw),
+      "utf8",
+    );
+    await writeFile(
+      path.join(airportDir, "airport-fids-current.raw.json"),
+      toJson(airportResult.debug.currentWindowRaw),
+      "utf8",
+    );
+    await writeFile(
+      path.join(airportDir, "airport-fids-current.flat.json"),
+      toJson(airportResult.debug.currentFlights),
+      "utf8",
+    );
+    await writeFile(
+      path.join(airportDir, "current-route-lookups.json"),
+      toJson(airportResult.debug.currentPathRows),
+      "utf8",
+    );
+    await writeFile(
+      path.join(airportDir, "match-table.json"),
+      toJson(matchRows),
+      "utf8",
+    );
+    await writeFile(
+      path.join(airportDir, "match-table.csv"),
+      renderMatchTableCsv(matchRows),
+      "utf8",
+    );
+    await writeFile(
+      path.join(airportDir, "match-table.md"),
+      renderMatchTableMarkdown(matchRows),
+      "utf8",
+    );
+
+    readmeLines.push(
+      `## ${airportResult.airport.icao}`,
+    );
+    readmeLines.push(
+      `- live aircraft: ${airportResult.summary.liveAircraftCount}`,
+    );
+    readmeLines.push(
+      `- current-path calls: ${airportResult.summary.currentPath.vrsCalls + airportResult.summary.currentPath.aerodataboxFallbackCalls}`,
+    );
+    readmeLines.push(
+      `- fids calls: ${airportResult.summary.fidsPath.calls}`,
+    );
+    readmeLines.push(
+      `- match summary: high ${airportResult.summary.fidsPath.matched.high}, medium ${airportResult.summary.fidsPath.matched.medium}, low ${airportResult.summary.fidsPath.matched.low}, unmatched ${airportResult.summary.fidsPath.matched.unmatched}`,
+    );
+    readmeLines.push("");
+  }
+
+  await writeFile(path.join(artifactsDir, "README.md"), `${readmeLines.join("\n")}\n`, "utf8");
 };
 
 const runFidsBenchmark = async ({
@@ -629,6 +917,10 @@ const runFidsBenchmark = async ({
     matched: matches.summary,
     errors,
     latencies,
+    healthRaw: healthResult.payload,
+    currentWindowRaw: currentWindowResult.payload,
+    currentFlights,
+    matches,
   };
 };
 
@@ -712,12 +1004,31 @@ const runAirport = async (airport, options, aerodataboxClient) => {
     options,
   });
 
-  return {
+  const summary = {
     airport,
     health: fidsPath.health,
     liveAircraftCount: liveAircraftResult.aircraft.length,
-    currentPath,
-    fidsPath,
+    currentPath: {
+      lookupCount: currentPath.lookupCount,
+      vrsCalls: currentPath.vrsCalls,
+      aerodataboxFallbackCalls: currentPath.aerodataboxFallbackCalls,
+      matchedRoutes: currentPath.matchedRoutes,
+      multiLegRoutes: currentPath.multiLegRoutes,
+      missingTargetRoutes: currentPath.missingTargetRoutes,
+      errors: currentPath.errors,
+      latencies: currentPath.latencies,
+    },
+    fidsPath: {
+      calls: fidsPath.calls,
+      health: fidsPath.health,
+      currentWindow: fidsPath.currentWindow,
+      future24h: fidsPath.future24h,
+      pagination: fidsPath.pagination,
+      paginationRisk: fidsPath.paginationRisk,
+      matched: fidsPath.matched,
+      errors: fidsPath.errors,
+      latencies: fidsPath.latencies,
+    },
     latency: {
       currentAvgMs: average(currentPath.latencies),
       currentP95Ms: percentile(currentPath.latencies, 95),
@@ -730,6 +1041,19 @@ const runAirport = async (airport, options, aerodataboxClient) => {
     },
     verdict: buildVerdict({ currentPath, fidsPath }),
   };
+
+  return {
+    airport,
+    summary,
+    debug: {
+      liveAircraftRaw: liveAircraftResult.payload,
+      healthRaw: fidsPath.healthRaw,
+      currentWindowRaw: fidsPath.currentWindowRaw,
+      currentFlights: fidsPath.currentFlights,
+      matches: fidsPath.matches,
+      currentPathRows: currentPath.rows,
+    },
+  };
 };
 
 const main = async () => {
@@ -741,14 +1065,21 @@ const main = async () => {
     apiHost: process.env.AERODATABOX_RAPIDAPI_HOST || AERODATABOX_RAPIDAPI_HOST,
   });
 
+  const airportResults = [];
+  for (const airport of airports) {
+    airportResults.push(await runAirport(airport, options, aerodataboxClient));
+  }
+
   const output = {
     generatedAt: new Date().toISOString(),
-    airports: [],
+    airports: airportResults.map((item) => item.summary),
   };
 
-  for (const airport of airports) {
-    output.airports.push(await runAirport(airport, options, aerodataboxClient));
-  }
+  await writeArtifactBundle({
+    artifactsDir: options.artifactsDir,
+    report: output,
+    airportResults,
+  });
 
   if (options.format === "json") {
     console.log(JSON.stringify(output, null, 2));

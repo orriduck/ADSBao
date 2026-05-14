@@ -1,0 +1,20 @@
+{
+  "flightSchedulesFeed": {
+    "service": "FlightSchedules",
+    "status": "OK",
+    "minAvailableLocalDate": "2025-05-13",
+    "maxAvailableLocalDate": "2027-05-12"
+  },
+  "liveFlightUpdatesFeed": {
+    "service": "FlightLiveUpdates",
+    "status": "OK"
+  },
+  "adsbUpdatesFeed": {
+    "service": "AdsbUpdates",
+    "status": "OKPartial"
+  },
+  "generalAvailability": {
+    "minAvailableLocalDate": "2025-05-13",
+    "maxAvailableLocalDate": "2027-05-12"
+  }
+}

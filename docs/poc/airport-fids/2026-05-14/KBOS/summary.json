@@ -1,0 +1,196 @@
+{
+  "airport": {
+    "icao": "KBOS",
+    "iata": "BOS",
+    "name": "Boston Logan",
+    "municipality": "Boston",
+    "country": "US",
+    "lat": 42.3656,
+    "lon": -71.0096,
+    "timezone": "America/New_York"
+  },
+  "health": {
+    "airportFeedsOk": true,
+    "flightSchedulesStatus": "OK",
+    "liveUpdatesStatus": "OK",
+    "adsbUpdatesStatus": "OKPartial",
+    "minAvailableLocalDate": "2025-05-13",
+    "maxAvailableLocalDate": "2027-05-12"
+  },
+  "liveAircraftCount": 58,
+  "currentPath": {
+    "lookupCount": 55,
+    "vrsCalls": 55,
+    "aerodataboxFallbackCalls": 15,
+    "matchedRoutes": 44,
+    "multiLegRoutes": 7,
+    "missingTargetRoutes": 8,
+    "errors": {
+      "status429": 2,
+      "status204": 2,
+      "status404": 11,
+      "status5xx": 0
+    },
+    "latencies": [
+      535,
+      34,
+      1163,
+      70,
+      65,
+      119,
+      621,
+      90,
+      1120,
+      1041,
+      88,
+      159,
+      69,
+      789,
+      35,
+      54,
+      48,
+      42,
+      52,
+      39,
+      43,
+      46,
+      37,
+      50,
+      46,
+      41,
+      81,
+      47,
+      44,
+      52,
+      36,
+      41,
+      44,
+      43,
+      43,
+      40,
+      50,
+      46,
+      38,
+      351,
+      1132,
+      26,
+      1002,
+      1114,
+      48,
+      1088,
+      1122,
+      2304,
+      42,
+      47,
+      56,
+      43,
+      68,
+      1764,
+      1204
+    ]
+  },
+  "fidsPath": {
+    "calls": 12,
+    "health": {
+      "airportFeedsOk": true,
+      "flightSchedulesStatus": "OK",
+      "liveUpdatesStatus": "OK",
+      "adsbUpdatesStatus": "OKPartial",
+      "minAvailableLocalDate": "2025-05-13",
+      "maxAvailableLocalDate": "2027-05-12"
+    },
+    "currentWindow": {
+      "arrivals": 353,
+      "departures": 299,
+      "dedupedFlights": 644
+    },
+    "future24h": {
+      "windowCount": 2,
+      "totalFlights": 1206,
+      "duplicates": 0,
+      "windows": [
+        {
+          "fromLocal": "2026-05-14T18:24",
+          "toLocal": "2026-05-15T06:24"
+        },
+        {
+          "fromLocal": "2026-05-15T06:24",
+          "toLocal": "2026-05-15T18:24"
+        }
+      ]
+    },
+    "pagination": {
+      "comparisons": {
+        "h2": {
+          "mergedCount": 164,
+          "singleCount": 164
+        },
+        "h4": {
+          "mergedCount": 382,
+          "singleCount": 382
+        },
+        "h6": {
+          "mergedCount": 528,
+          "singleCount": 528
+        },
+        "h12": {
+          "mergedCount": 644,
+          "singleCount": 644
+        }
+      },
+      "splitWindowCount": 644
+    },
+    "paginationRisk": "not-observed",
+    "matched": {
+      "high": 46,
+      "medium": 0,
+      "low": 12,
+      "unmatched": 0
+    },
+    "errors": {
+      "status429": 2,
+      "status204": 0,
+      "status404": 0,
+      "status5xx": 0
+    },
+    "latencies": [
+      317,
+      222,
+      338,
+      231,
+      244,
+      272,
+      290,
+      86,
+      263,
+      371,
+      299,
+      326
+    ]
+  },
+  "latency": {
+    "currentAvgMs": 337,
+    "currentP95Ms": 1204,
+    "fidsAvgMs": 272,
+    "fidsP95Ms": 371
+  },
+  "errors": {
+    "current": {
+      "status429": 2,
+      "status204": 2,
+      "status404": 11,
+      "status5xx": 0
+    },
+    "fids": {
+      "status429": 2,
+      "status204": 0,
+      "status404": 0,
+      "status5xx": 0
+    }
+  },
+  "verdict": {
+    "callReductionPct": 82.9,
+    "matchQuality": "promising",
+    "recommended": true
+  }
+}

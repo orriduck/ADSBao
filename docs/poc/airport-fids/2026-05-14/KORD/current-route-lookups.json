@@ -1,0 +1,1253 @@
+[
+  {
+    "callsign": "N19650",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 93
+  },
+  {
+    "callsign": "AAL338",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KPHX-KORD",
+      "stops": [
+        "KPHX",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KPHX-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 81
+  },
+  {
+    "callsign": "N79CJ",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 38
+  },
+  {
+    "callsign": "N447RA",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 42
+  },
+  {
+    "callsign": "CXK487",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 36
+  },
+  {
+    "callsign": "N2334W",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 45
+  },
+  {
+    "callsign": "N3096B",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 44
+  },
+  {
+    "callsign": "SKW330Z",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KSUX",
+      "stops": [
+        "KORD",
+        "KSUX"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KORD-KSUX",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 43
+  },
+  {
+    "callsign": "ENY3906",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KORD",
+      "stops": [
+        "KORD",
+        "KXNA",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KXNA-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 366
+  },
+  {
+    "callsign": "AWI7393",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 43
+  },
+  {
+    "callsign": "N721SM",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 35
+  },
+  {
+    "callsign": "SKW5990",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KIAH-KMKE",
+      "stops": [
+        "KIAH",
+        "KMKE"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KIAH-KMKE",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 1056
+  },
+  {
+    "callsign": "N920CF",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 52
+  },
+  {
+    "callsign": "DAL2646",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KBOS-KBOS",
+      "stops": [
+        "KBOS",
+        "KORD",
+        "KBOS"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KBOS-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 2088
+  },
+  {
+    "callsign": "N714UF",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 38
+  },
+  {
+    "callsign": "N6896H",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 45
+  },
+  {
+    "callsign": "N497ER",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 43
+  },
+  {
+    "callsign": "N9459P",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 37
+  },
+  {
+    "callsign": "CXK576",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 39
+  },
+  {
+    "callsign": "AAL536",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KCLT-KORD",
+      "stops": [
+        "KCLT",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KCLT-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 144
+  },
+  {
+    "callsign": "N645SD",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 39
+  },
+  {
+    "callsign": "DAL1668",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KDTW-KDTW",
+      "stops": [
+        "KDTW",
+        "KORD",
+        "KDTW"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KDTW-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 1789
+  },
+  {
+    "callsign": "N9637Q",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 34
+  },
+  {
+    "callsign": "N4397Q",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 37
+  },
+  {
+    "callsign": "N336MC",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 43
+  },
+  {
+    "callsign": "N24BQ",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 40
+  },
+  {
+    "callsign": "N80790",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 46
+  },
+  {
+    "callsign": "N827PA",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 40
+  },
+  {
+    "callsign": "N7111W",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 34
+  },
+  {
+    "callsign": "N935RK",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 35
+  },
+  {
+    "callsign": "N117HD",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 36
+  },
+  {
+    "callsign": "N400WT",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 42
+  },
+  {
+    "callsign": "N149UD",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 63
+  },
+  {
+    "callsign": "ENY3962",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KAZO-KORD",
+      "stops": [
+        "KAZO",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KAZO-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 50
+  },
+  {
+    "callsign": "ENY4161",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KORD",
+      "stops": [
+        "KORD",
+        "CYYC",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "CYYC-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 701
+  },
+  {
+    "callsign": "N8375V",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 40
+  },
+  {
+    "callsign": "AAL975",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KORD",
+      "stops": [
+        "KORD",
+        "MKJS",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "MKJS-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 1088
+  },
+  {
+    "callsign": "N6003R",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 59
+  },
+  {
+    "callsign": "N611AM",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 53
+  },
+  {
+    "callsign": "N11228",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 59
+  },
+  {
+    "callsign": "N212GX",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 54
+  },
+  {
+    "callsign": "N104PF",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 57
+  },
+  {
+    "callsign": "ENY3579",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KDTW-KORD",
+      "stops": [
+        "KDTW",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KDTW-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 54
+  },
+  {
+    "callsign": "SWA30",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KHOU-KPHL",
+      "stops": [
+        "KHOU",
+        "KDAL",
+        "KBHM",
+        "KMCO",
+        "KPHL"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KHOU-KPHL",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 634
+  },
+  {
+    "callsign": "EJA273",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 35
+  },
+  {
+    "callsign": "AAL1163",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KORD",
+      "stops": [
+        "KORD",
+        "KIND",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KIND-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 1073
+  },
+  {
+    "callsign": "AAL1309",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "MMPR-KORD",
+      "stops": [
+        "MMPR",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "MMPR-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 80
+  },
+  {
+    "callsign": "ENY3825",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KROC-KORD",
+      "stops": [
+        "KROC",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KROC-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 82
+  },
+  {
+    "callsign": "N517PT",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 47
+  },
+  {
+    "callsign": "CXK175",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 44
+  },
+  {
+    "callsign": "UAL1664",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "MDPC-KORD",
+      "stops": [
+        "MDPC",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "MDPC-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 42
+  },
+  {
+    "callsign": "UAL841",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KTPA-PANC",
+      "stops": [
+        "KTPA",
+        "KORD",
+        "PANC"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KORD-PANC",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 805
+  },
+  {
+    "callsign": "GJS4507",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KGRB-KORD",
+      "stops": [
+        "KGRB",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KGRB-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 90
+  },
+  {
+    "callsign": "RPA4357",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KORD",
+      "stops": [
+        "KORD",
+        "KBDL",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KBDL-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 1003
+  },
+  {
+    "callsign": "AAL2636",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "MMSD-KORD",
+      "stops": [
+        "MMSD",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "MMSD-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 51
+  },
+  {
+    "callsign": "ENY3540",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KORD",
+      "stops": [
+        "KORD",
+        "KCOU",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KCOU-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 2132
+  },
+  {
+    "callsign": "N308GW",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 42
+  },
+  {
+    "callsign": "N4T",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 74
+  },
+  {
+    "callsign": "UAL415",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "LIMC-KORD",
+      "stops": [
+        "LIMC",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "LIMC-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 50
+  },
+  {
+    "callsign": "SKW499X",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KPIT",
+      "stops": [
+        "KORD",
+        "KPIT"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KORD-KPIT",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 38
+  },
+  {
+    "callsign": "N5709P",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 59
+  },
+  {
+    "callsign": "CXK199",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 43
+  },
+  {
+    "callsign": "VTE3012",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KBRL-KORD",
+      "stops": [
+        "KBRL",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KBRL-KORD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 49
+  },
+  {
+    "callsign": "N749US",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 34
+  },
+  {
+    "callsign": "CXK676",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 61
+  },
+  {
+    "callsign": "SWA898",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KCLE-KBNA",
+      "stops": [
+        "KCLE",
+        "KBNA"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KCLE-KBNA",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 1911
+  },
+  {
+    "callsign": "ENY3613",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KORD",
+      "stops": [
+        "KORD",
+        "KGRB",
+        "KORD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KORD-KGRB",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 1015
+  },
+  {
+    "callsign": "CKK228",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-ZSPD",
+      "stops": [
+        "KORD",
+        "ZSPD"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KORD-ZSPD",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 87
+  },
+  {
+    "callsign": "UAL1801",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KPBI-KSEA",
+      "stops": [
+        "KPBI",
+        "KORD",
+        "KSEA"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KORD-KSEA",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 957
+  },
+  {
+    "callsign": "N408ES",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 36
+  },
+  {
+    "callsign": "SWA2170",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KBNA-KLAX",
+      "stops": [
+        "KBNA",
+        "KLAX"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KBNA-KLAX",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 1174
+  },
+  {
+    "callsign": "N6265T",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 38
+  },
+  {
+    "callsign": "ASA3",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KDCA-KSEA",
+      "stops": [
+        "KDCA",
+        "KSEA"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KDCA-KSEA",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 1094
+  },
+  {
+    "callsign": "EJA436",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 41
+  },
+  {
+    "callsign": "DAL1728",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KATL-KATL",
+      "stops": [
+        "KATL",
+        "KMDW",
+        "KATL"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KATL-KATL",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 946
+  },
+  {
+    "callsign": "N653JD",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 37
+  },
+  {
+    "callsign": "N66DD",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 62
+  },
+  {
+    "callsign": "SWA3227",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KDCA-KMSY",
+      "stops": [
+        "KDCA",
+        "KMSY"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KDCA-KMSY",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 988
+  },
+  {
+    "callsign": "N911ZP",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 45
+  },
+  {
+    "callsign": "N688LB",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 37
+  },
+  {
+    "callsign": "N13NN",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 35
+  },
+  {
+    "callsign": "NJM888",
+    "vrsStatus": 404,
+    "vrsRoute": null,
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": null,
+    "totalLatencyMs": 38
+  },
+  {
+    "callsign": "UAL1156",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KLGA-KPSP",
+      "stops": [
+        "KLGA",
+        "KORD",
+        "KPSP"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": true,
+    "aerodataboxStatus": 200,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KLGA-KORD",
+      "source": "aerodatabox",
+      "confidence": "flight-status"
+    },
+    "totalLatencyMs": 2176
+  },
+  {
+    "callsign": "KLM48",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-EHAM",
+      "stops": [
+        "KORD",
+        "EHAM"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KORD-EHAM",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 45
+  },
+  {
+    "callsign": "SKW5376",
+    "vrsStatus": 200,
+    "vrsRoute": {
+      "route": "KORD-KCAK",
+      "stops": [
+        "KORD",
+        "KCAK"
+      ],
+      "source": "vrs-standing-data"
+    },
+    "usedAerodataboxFallback": false,
+    "aerodataboxStatus": null,
+    "suppressVrsRoute": false,
+    "finalRoute": {
+      "route": "KORD-KCAK",
+      "source": "vrs-standing-data",
+      "confidence": "reference-data"
+    },
+    "totalLatencyMs": 38
+  }
+]
