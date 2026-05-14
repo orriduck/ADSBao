@@ -22,7 +22,7 @@ export default function WeatherBriefingStack({
     () => ({ icao, iata, name, city, country }),
     [icao, iata, name, city, country],
   );
-  const slides = useWeatherSlides({
+  const { slides, windFlowBearing } = useWeatherSlides({
     variant: "carousel",
     metar,
     metarRaw,
@@ -36,14 +36,33 @@ export default function WeatherBriefingStack({
 
   return (
     <div className="airport-briefing-stack">
-      {slides.map((slide) => (
-        <section key={slide.id} className="airport-briefing-card">
-          <div className="airport-briefing-card__heading">
-            <span>{slide.navLabel || slide.label}</span>
-          </div>
-          {slide.content}
-        </section>
-      ))}
+      {slides.map((slide) => {
+        const showWindStreaks = slide.id === "wind" && windFlowBearing != null;
+        return (
+          <section
+            key={slide.id}
+            className={`airport-briefing-card ${
+              showWindStreaks ? "airport-briefing-card--wind" : ""
+            }`}
+            style={
+              showWindStreaks
+                ? { "--wind-flow": `${windFlowBearing}deg` }
+                : undefined
+            }
+          >
+            {showWindStreaks ? (
+              <div
+                className="airport-briefing-card__streaks"
+                aria-hidden="true"
+              />
+            ) : null}
+            <div className="airport-briefing-card__heading">
+              <span>{slide.navLabel || slide.label}</span>
+            </div>
+            {slide.content}
+          </section>
+        );
+      })}
 
       <section className="airport-briefing-card airport-briefing-card--wiki">
         <div className="airport-briefing-card__heading">

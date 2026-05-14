@@ -12,7 +12,7 @@ import {
   TemperatureSlide,
   WindSlide,
 } from "../../components/weather/WeatherSlides";
-import { shouldShowCeilingSlide } from "./weatherModel.js";
+import { shouldShowCeilingSlide, toNumber } from "./weatherModel.js";
 
 export function useWeatherSlides({
   variant,
@@ -30,7 +30,20 @@ export function useWeatherSlides({
     error: localWeatherError,
   } = useLocalWeather(airportLat, airportLon);
 
-  return useMemo(() => {
+  // Arrows rotate by the same bearing shown in the "Direction" readout so
+  // the visual matches the number on the card (190° on the label = arrows
+  // tilted to 190° on screen). This is the "wind FROM" bearing in METAR
+  // convention; we don't flip 180° into the "flow" direction because the
+  // mismatch with the displayed number is confusing.
+  const windFlowBearing = useMemo(() => {
+    if (metar?.rawWvrb) return null;
+    const direction =
+      toNumber(metar?.rawWdir) ?? localWeather?.windDirection ?? null;
+    if (direction == null) return null;
+    return Number(direction) % 360;
+  }, [metar, localWeather]);
+
+  const slides = useMemo(() => {
     const copy = WEATHER_SLIDE_COPY[variant];
     const withContent = (id, content) => ({
       id,
@@ -84,4 +97,6 @@ export function useWeatherSlides({
     metarRaw,
     variant,
   ]);
+
+  return { slides, windFlowBearing };
 }

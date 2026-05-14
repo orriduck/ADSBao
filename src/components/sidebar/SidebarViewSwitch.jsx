@@ -51,7 +51,9 @@ function SwitchButton({
       onClick={onClick}
     >
       <span>{label}</span>
-      <strong>{value}</strong>
+      <strong className="airport-sidebar-display-mono airport-sidebar-display-mono--metric">
+        {value}
+      </strong>
       {unit ? <small>{unit}</small> : null}
     </button>
   );

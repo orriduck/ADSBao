@@ -25,6 +25,7 @@
     "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "countries-and-timezones": "^3.9.0",
     "fflate": "^0.8.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",

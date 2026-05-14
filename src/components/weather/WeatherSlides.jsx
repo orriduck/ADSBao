@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Cloud,
-  Droplets,
-  Eye,
-  Gauge,
-  Navigation,
-  Moon,
-  Sun,
-  Thermometer,
-} from "lucide-react";
+import { Cloud, Eye, Gauge, Moon, Sun } from "lucide-react";
 import { FLIGHT_RULE_ORDER, FLIGHT_RULES } from "../../config/weather.js";
 import {
   clamp,
@@ -107,9 +98,26 @@ export function WindSlide({ metar, localWeather }) {
   const direction = metar?.rawWvrb ? null : toNumber(metar?.rawWdir) ?? localWeather?.windDirection;
 
   return (
-    <div className="weather-slide-stack">
+    <div className="weather-slide-stack wind-card">
       <div className="weather-slide-readout">
-        <WindVector speed={speed} gust={gust} direction={direction} />
+        <div className="wind-card__metrics">
+          <div>
+            <span>Direction</span>
+            <strong>
+              {direction == null ? "VRB" : `${Math.round(direction)}°`}
+            </strong>
+          </div>
+          <div>
+            <span>Wind</span>
+            <strong>{Math.round(speed)} kt</strong>
+          </div>
+          <div>
+            <span>Gust</span>
+            <strong>
+              {gust == null ? "None" : `${Math.round(gust)} kt`}
+            </strong>
+          </div>
+        </div>
       </div>
       <WeatherDescription>
         {direction == null
@@ -124,41 +132,43 @@ export function TemperatureSlide({ metar, localWeather }) {
   const temp = toNumber(metar?.rawTemp) ?? localWeather?.temperatureC;
   const dew = toNumber(metar?.rawDewp) ?? null;
   const spread = temp != null && dew != null ? Math.max(0, temp - dew) : null;
-  const tempPct = temp == null ? 0.5 : clamp((temp + 20) / 60, 0.04, 0.96);
+  const tempPct = temp == null ? null : clamp((temp + 20) / 60, 0.04, 0.96);
   const dewPct = dew == null ? null : clamp((dew + 20) / 60, 0.04, 0.96);
 
   return (
     <div className="weather-slide-stack">
-      <div className="weather-slide-readout">
-        <div
-          className="thermal-band"
-          style={{
-            "--temp-pct": `${tempPct * 100}%`,
-            "--dew-pct": `${(dewPct ?? tempPct) * 100}%`,
-          }}
-          aria-hidden="true"
-        >
-          <span>cold</span>
-          <i>
-            <b />
-          </i>
-          <span>hot</span>
+      <div
+        className="weather-slide-readout temp-card"
+        style={{
+          "--temp-pct": tempPct == null ? "50%" : `${tempPct * 100}%`,
+          "--dew-pct": dewPct == null ? "50%" : `${dewPct * 100}%`,
+        }}
+      >
+        <div className="temp-card__metrics">
+          <div>
+            <span>Temp</span>
+            <strong>{temp == null ? "-" : `${round1(temp)}°C`}</strong>
+          </div>
+          <div>
+            <span>Dew</span>
+            <strong>{dew == null ? "-" : `${round1(dew)}°C`}</strong>
+          </div>
+          <div>
+            <span>Spread</span>
+            <strong>{spread == null ? "-" : `${round1(spread)}°C`}</strong>
+          </div>
         </div>
-        <div className="temperature-strip">
-          <MetricLine
-            label="Temperature"
-            value={temp == null ? "-" : `${round1(temp)}°C`}
-            icon={<Thermometer size={16} />}
-          />
-          <MetricLine
-            label="Dew point"
-            value={dew == null ? "-" : `${round1(dew)}°C`}
-            icon={<Droplets size={16} />}
-          />
-          <MetricLine
-            label="Spread"
-            value={spread == null ? "-" : `${round1(spread)}°C`}
-          />
+        <div className="temp-card__band-row" aria-hidden="true">
+          <span className="temp-card__band-label">cold</span>
+          <div className="temp-card__band">
+            {tempPct != null ? (
+              <i className="temp-card__band-marker temp-card__band-marker--temp" />
+            ) : null}
+            {dewPct != null ? (
+              <i className="temp-card__band-marker temp-card__band-marker--dew" />
+            ) : null}
+          </div>
+          <span className="temp-card__band-label">hot</span>
         </div>
       </div>
       <WeatherDescription>{describeTemperature(temp, spread)}</WeatherDescription>
@@ -231,38 +241,6 @@ export function LocalWeatherSlide({
             </span>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function WindVector({ speed, gust, direction }) {
-  return (
-    <div className="wind-vector-card">
-      <div
-        className="wind-compass"
-        style={{ "--wind-bearing": `${direction ?? 0}deg` }}
-        aria-label={direction == null ? "Variable wind" : `Wind from ${Math.round(direction)} degrees`}
-      >
-        <span>N</span>
-        <span>E</span>
-        <span>S</span>
-        <span>W</span>
-        <i>
-          <Navigation size={20} fill="currentColor" />
-        </i>
-      </div>
-      <div>
-        <span>Direction</span>
-        <strong className="font-mono">{direction == null ? "VRB" : `${Math.round(direction)}°`}</strong>
-      </div>
-      <div>
-        <span>Wind</span>
-        <strong className="font-mono">{Math.round(speed)} kt</strong>
-      </div>
-      <div>
-        <span>Gust</span>
-        <strong className="font-mono">{gust == null ? "None" : `${Math.round(gust)} kt`}</strong>
       </div>
     </div>
   );

@@ -167,6 +167,18 @@
     --tone-orange-warm: var(--tone-accent-warm);
     --tone-orange-strong: var(--tone-accent-strong);
     --tone-orange-edge: var(--tone-accent-edge);
+
+    /* Glow used by the active-tab and active-filter-card pseudo-elements.
+     * Light theme accent is a dark navy on white, so at high intensity the
+     * gradient reads almost as a heavy shadow — keep the stops low here. The
+     * dark-theme override (below) reinstates the brighter stops. */
+    --atc-tab-glow: linear-gradient(
+        to top,
+        color-mix(in oklab, var(--atc-accent) 11%, transparent) 0%,
+        color-mix(in oklab, var(--atc-accent) 6%, transparent) 30%,
+        color-mix(in oklab, var(--atc-accent) 2%, transparent) 58%,
+        transparent 80%
+    );
     --tone-bg-soft: color-mix(in oklab, var(--atc-bg) 62%, transparent);
     --tone-line-soft: color-mix(in oklab, var(--atc-line) 50%, transparent);
     --tone-border-soft: color-mix(
@@ -286,6 +298,16 @@
     --sidebar-accent-foreground: #f5f7fa;
     --sidebar-border: rgba(255, 255, 255, 0.12);
     --sidebar-ring: var(--atc-accent);
+
+    /* Brighter glow stops for the dark canvas — the light-blue accent reads
+     * gently here so we can crank the bottom intensity. */
+    --atc-tab-glow: linear-gradient(
+        to top,
+        color-mix(in oklab, var(--atc-accent) 32%, transparent) 0%,
+        color-mix(in oklab, var(--atc-accent) 14%, transparent) 28%,
+        color-mix(in oklab, var(--atc-accent) 4%, transparent) 58%,
+        transparent 85%
+    );
 }
 
 body {
@@ -1237,7 +1259,6 @@ body {
     color: var(--atc-faint);
     font-family: "JetBrains Mono", monospace;
     font-size: 8px;
-    letter-spacing: 1px;
     line-height: 1;
     text-transform: uppercase;
 }
@@ -1257,7 +1278,6 @@ body {
     color: var(--atc-red);
     font-family: "JetBrains Mono", monospace;
     font-size: 10px;
-    letter-spacing: 0.8px;
     margin-top: 10px;
     text-transform: uppercase;
 }
@@ -1283,12 +1303,12 @@ body {
     font-family: "JetBrains Mono", monospace;
     font-size: 10px;
     gap: 6px;
-    letter-spacing: 1.1px;
     text-transform: uppercase;
 }
 
 .weather-metric-line strong,
-.wind-vector-card strong {
+.wind-card__metrics strong,
+.temp-card__metrics strong {
     color: var(--atc-text);
     font-size: 1.1875rem;
     font-weight: 800;
@@ -1350,16 +1370,6 @@ body {
     opacity: 1;
 }
 
-.temperature-strip {
-    display: grid;
-    gap: 0;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.temperature-strip {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .local-weather-glyph {
     align-items: center;
     background: color-mix(in oklab, var(--atc-accent) 9%, transparent);
@@ -1381,99 +1391,141 @@ body {
     min-width: 0;
 }
 
-.wind-vector-card {
-    align-items: stretch;
+/* 4-square dot indicator. Pulses one cell at a time in clockwise rotation
+ * (TL → TR → BR → BL) — used as the "request in flight" cue near places
+ * where we show last-updated timestamps. Fades out smoothly when the host
+ * sets `data-state="idle"`. */
+.request-pulse-dots {
+    display: inline-grid;
+    gap: 1px;
+    grid-template-columns: repeat(2, 3px);
+    grid-template-rows: repeat(2, 3px);
+    line-height: 0;
+    vertical-align: middle;
+}
+
+.request-pulse-dots i {
+    animation: request-pulse-dot 1.2s linear infinite;
+    background-color: currentColor;
+    display: block;
+    height: 3px;
+    opacity: 0.25;
+    width: 3px;
+}
+
+/* Clockwise sequence over the 2 × 2 grid:
+ *   1 = top-left      (delay 0.0s)
+ *   2 = top-right     (delay 0.3s)
+ *   3 = bottom-left   (delay 0.9s) — fires AFTER bottom-right
+ *   4 = bottom-right  (delay 0.6s)
+ */
+.request-pulse-dots i:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.request-pulse-dots i:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.request-pulse-dots i:nth-child(3) {
+    animation-delay: 0.9s;
+}
+
+.request-pulse-dots i:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+@keyframes request-pulse-dot {
+    0%,
+    25% {
+        opacity: 1;
+    }
+    35%,
+    100% {
+        opacity: 0.25;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .request-pulse-dots i {
+        animation: none !important;
+        opacity: 0.6;
+    }
+}
+
+/* Wind background — when a "wind" slide is rendered (either the active
+ * carousel slide or as the wind card inside the briefing stack), the whole
+ * card surface is filled with a tiled aircraft-pointer arrow (the same
+ * kite-shape the map's aircraft markers fall back to). The streaks live at
+ * the card-shell level so they extend behind the WIND heading, padding, and
+ * description copy — not just the metrics area. */
+.weather-carousel-section--wind,
+.airport-briefing-card--wind {
+    isolation: isolate;
+    overflow: hidden;
+    position: relative;
+}
+
+.weather-carousel-section--wind > *:not(.weather-carousel-section__streaks),
+.airport-briefing-card--wind > *:not(.airport-briefing-card__streaks) {
+    position: relative;
+    z-index: 1;
+}
+
+.weather-carousel-section__streaks,
+.airport-briefing-card__streaks {
+    background-color: var(--atc-accent);
+    /* Oversize the layer (300% on both axes) so the rotated tile pattern
+     * still covers every corner at any wind bearing. */
+    inset: -100%;
+    /* Aircraft default pointer — same `M12 2L16 20L12 17L8 20Z` path the
+     * map's fallback aircraft marker draws. Tile is 32 × 32 so the kite
+     * arrows leave a comfortable amount of breathing room. */
+    mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 42 42'><path d='M21 12 L25 30 L21 27 L17 30 Z' fill='black'/></svg>");
+    mask-repeat: repeat;
+    mask-size: 56px 56px;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 42 42'><path d='M21 12 L25 30 L21 27 L17 30 Z' fill='black'/></svg>");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 56px 56px;
+    opacity: 0.1;
+    pointer-events: none;
+    position: absolute;
+    transform: rotate(var(--wind-flow, 0deg));
+    transform-origin: center;
+    transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 0;
+}
+
+.wind-card__metrics {
     display: grid;
     gap: 0;
-    grid-template-columns: 62px repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    position: relative;
+    z-index: 1;
 }
 
-.wind-vector-card > div:not(.wind-compass) {
+.wind-card__metrics > div {
     display: grid;
-    gap: 5px;
+    gap: 6px;
     min-width: 0;
-    padding: 9px 8px;
+    padding: 4px 4px;
 }
 
-.wind-vector-card span {
+.wind-card__metrics span {
     color: var(--atc-faint);
-    font-family: "JetBrains Mono", monospace;
-    font-size: 9px;
-    letter-spacing: 1px;
+    font-family: var(--airport-sidebar-sans);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
     line-height: 1;
     text-transform: uppercase;
 }
 
-.wind-vector-card strong {
+.wind-card__metrics strong {
+    font-family: var(--airport-sidebar-sans);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.wind-compass {
-    align-items: center;
-    aspect-ratio: 1;
-    background:
-        radial-gradient(
-            circle,
-            color-mix(in oklab, var(--atc-accent) 15%, transparent) 0 23%,
-            transparent 24% 100%
-        ),
-        repeating-conic-gradient(
-            from -1deg,
-            color-mix(in oklab, var(--atc-line-strong) 64%, transparent) 0 2deg,
-            transparent 2deg 45deg
-        ),
-        color-mix(in oklab, var(--atc-card) 34%, transparent);
-    border: 1px solid
-        color-mix(in oklab, var(--atc-accent) 35%, var(--atc-line));
-    border-radius: 999px;
-    color: var(--atc-accent);
-    display: flex;
-    justify-content: center;
-    min-width: 0;
-    position: relative;
-    transform-origin: center;
-}
-
-.wind-compass span {
-    color: var(--atc-faint);
-    font-size: 7px;
-    letter-spacing: 0;
-    position: absolute;
-}
-
-.wind-compass span:nth-child(1) {
-    left: 50%;
-    top: 4px;
-    transform: translateX(-50%);
-}
-
-.wind-compass span:nth-child(2) {
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.wind-compass span:nth-child(3) {
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.wind-compass span:nth-child(4) {
-    left: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
-.wind-compass i {
-    display: flex;
-    filter: drop-shadow(
-        0 0 8px color-mix(in oklab, var(--atc-accent) 50%, transparent)
-    );
-    transform: rotate(var(--wind-bearing));
-    transform-origin: center;
 }
 
 .local-weather-glyph {
@@ -1488,47 +1540,93 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.thermal-band {
-    align-items: center;
-    display: grid;
-    gap: 8px;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    margin: 0 0 12px;
-}
-
-.thermal-band span {
-    color: var(--atc-faint);
-    font-family: "JetBrains Mono", monospace;
-    font-size: 8px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.thermal-band i {
-    background: linear-gradient(90deg, #6f8fab, var(--atc-accent));
-    height: 7px;
+/* Temperature card — three inline metrics, with the cold→hot scale running
+ * along the bottom of the card as a thin gradient bar. Two markers show
+ * where the current temperature and dew point sit on the scale, so the
+ * relationship between them is legible at a glance without forcing the
+ * numbers into a separate grid row. */
+.temp-card {
+    isolation: isolate;
+    overflow: hidden;
     position: relative;
 }
 
-.thermal-band i::before,
-.thermal-band i b {
-    content: "";
-    height: 15px;
+.temp-card__metrics {
+    display: grid;
+    gap: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.temp-card__metrics > div {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: 4px 4px;
+}
+
+.temp-card__metrics span {
+    align-items: center;
+    color: var(--atc-faint);
+    display: inline-flex;
+    font-family: var(--airport-sidebar-sans);
+    font-size: 10px;
+    font-weight: 700;
+    gap: 6px;
+    letter-spacing: 0.6px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.temp-card__metrics strong {
+    font-family: var(--airport-sidebar-sans);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.temp-card__band-row {
+    align-items: center;
+    column-gap: 10px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    margin-top: 14px;
+}
+
+.temp-card__band-label {
+    color: var(--atc-faint);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.temp-card__band {
+    background: linear-gradient(
+        90deg,
+        color-mix(in oklab, #4a7ea3 80%, transparent) 0%,
+        color-mix(in oklab, #c1a78a 60%, transparent) 60%,
+        color-mix(in oklab, #d68160 70%, transparent) 100%
+    );
+    height: 6px;
+    position: relative;
+}
+
+.temp-card__band-marker {
+    border: 1px solid color-mix(in oklab, var(--atc-bg) 80%, white);
+    height: 13px;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
     width: 5px;
 }
 
-.thermal-band i::before {
+.temp-card__band-marker--temp {
     background: var(--atc-accent);
-    border: 1px solid color-mix(in oklab, var(--atc-bg) 80%, white);
     left: var(--temp-pct);
 }
 
-.thermal-band i b {
+.temp-card__band-marker--dew {
     background: color-mix(in oklab, var(--atc-mint) 82%, white);
-    border: 1px solid color-mix(in oklab, var(--atc-bg) 80%, white);
     left: var(--dew-pct);
 }
 
@@ -1558,18 +1656,7 @@ body {
     color: var(--atc-dim);
     font-family: "JetBrains Mono", monospace;
     font-size: 10px;
-    letter-spacing: 1px;
     text-transform: uppercase;
-}
-
-.temperature-strip .weather-metric-line {
-    min-width: 0;
-}
-
-.temperature-strip .weather-metric-line strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .weather-readout div {
@@ -1583,7 +1670,6 @@ body {
     display: block;
     font-family: "JetBrains Mono", monospace;
     font-size: 10px;
-    letter-spacing: 1.2px;
     text-transform: uppercase;
 }
 
@@ -2496,12 +2582,71 @@ body {
 
 .aircraft-table-route-cycle {
     color: var(--atc-dim);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    height: 16px;
-    line-height: 16px;
+    height: 14px;
+    line-height: 14px;
     overflow: hidden;
     position: relative;
+}
+
+.aircraft-table-identity {
+    display: grid;
+    min-width: 0;
+}
+
+.aircraft-table-identity--solo {
+    align-items: center;
+}
+
+.aircraft-table-identity--routed {
+    align-content: center;
+    gap: 2px;
+}
+
+.aircraft-table-callsign {
+    display: block;
+    min-width: 0;
+    will-change: transform;
+}
+
+.aircraft-table-identity--route-entering .aircraft-table-callsign {
+    animation: aircraft-table-callsign-lift 0.5s cubic-bezier(0.22, 1, 0.36, 1)
+        both;
+}
+
+.aircraft-table-identity--route-entering .aircraft-table-route-slot {
+    animation: aircraft-table-route-reveal 0.42s cubic-bezier(0.22, 1, 0.36, 1)
+        0.08s both;
+}
+
+.aircraft-table-list {
+    overflow-anchor: none;
+}
+
+.aircraft-table-list__item {
+    transform-origin: center center;
+}
+
+.aircraft-table-list__item--fading .aircraft-table-card {
+    animation: aircraft-table-slot-fade 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
+.aircraft-table-list__item + .aircraft-table-list__item {
+    border-top: 1px solid var(--atc-line);
+}
+
+.aircraft-table-card {
+    height: 64px;
+    min-height: 64px;
+    opacity: var(--aircraft-row-opacity, 1);
+    padding-block: 9px;
+    will-change: opacity;
+}
+
+.aircraft-table-route-slot {
+    height: 14px;
 }
 
 .aircraft-table-route-face {
@@ -2514,6 +2659,10 @@ body {
     position: absolute;
     transition: opacity 0.36s cubic-bezier(0.25, 1, 0.5, 1);
     width: 100%;
+}
+
+.aircraft-table-list__item--fading .aircraft-table-route-face {
+    animation-play-state: paused;
 }
 
 .aircraft-table-route-face--route span {
@@ -2549,6 +2698,42 @@ body {
     50%,
     84% {
         opacity: 1;
+    }
+}
+
+@keyframes aircraft-table-slot-fade {
+    0% {
+        opacity: var(--aircraft-row-opacity, 1);
+    }
+    44% {
+        opacity: calc(var(--aircraft-row-opacity, 1) * 0.28);
+    }
+    56% {
+        opacity: calc(var(--aircraft-row-opacity, 1) * 0.28);
+    }
+    100% {
+        opacity: var(--aircraft-row-opacity, 1);
+    }
+}
+
+@keyframes aircraft-table-callsign-lift {
+    0% {
+        transform: translateY(7px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes aircraft-table-route-reveal {
+    0%,
+    38% {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -2905,7 +3090,6 @@ body {
 .airport-feed-status {
     animation: airport-feed-status-fade 240ms cubic-bezier(0.22, 1, 0.36, 1)
         both;
-    display: inline-block;
     will-change: opacity, transform;
 }
 
@@ -2917,6 +3101,35 @@ body {
     --airport-sidebar-inset: 28px;
     --airport-sidebar-sans: "Inter", var(--font-sans);
     font-family: var(--airport-sidebar-sans);
+}
+
+.airport-sidebar-display-mono {
+    background: none;
+    color: inherit;
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    mask: none;
+    -webkit-mask: none;
+    -webkit-text-fill-color: currentColor;
+}
+
+.airport-sidebar-display-mono--hero {
+    font-weight: 800;
+    letter-spacing: 0.105em;
+    line-height: 0.95;
+}
+
+.airport-sidebar-display-mono--metric {
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 0.9;
+}
+
+.aircraft-table-callsign.airport-sidebar-display-mono {
+    max-width: 100%;
+    vertical-align: baseline;
 }
 
 .airport-sidebar-identity {
@@ -2939,15 +3152,42 @@ body {
     align-content: center;
     display: grid;
     gap: 8px;
-    grid-template-rows: 16px 38px 14px;
-    min-height: 112px;
+    grid-template-rows: 16px 44px 14px;
+    isolation: isolate;
+    min-height: 116px;
     min-width: 0;
+    overflow: hidden;
     padding: 22px var(--airport-sidebar-inset) 20px;
+    position: relative;
     text-align: left;
     transition:
         background 0.18s ease,
         box-shadow 0.18s ease,
         color 0.18s ease;
+}
+
+/* Keep the label / value / unit above the active-state glow pseudo. */
+.airport-sidebar-view-switch__button > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Active glow — same "light from the bottom border rising up" effect used by
+ * the aircraft filter cards. Fades in over ~360ms when the tab becomes
+ * active. */
+.airport-sidebar-view-switch__button::after {
+    background: var(--atc-tab-glow);
+    content: "";
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity 360ms ease;
+    z-index: 0;
+}
+
+.airport-sidebar-view-switch__button--active::after {
+    opacity: 1;
 }
 
 .airport-sidebar-view-switch__button--divided {
@@ -2971,12 +3211,14 @@ body {
     align-items: center;
     color: var(--atc-text);
     display: flex;
-    font-family: var(--font-mono);
-    font-size: 28px;
+    font-size: 34px;
     font-weight: 800;
-    letter-spacing: 0;
     line-height: 1;
-    min-height: 38px;
+    min-height: 44px;
+}
+
+.airport-sidebar-view-switch__button strong.airport-sidebar-display-mono {
+    font-weight: 800;
 }
 
 .airport-sidebar-view-switch__button small {
@@ -3112,44 +3354,23 @@ body {
 }
 
 .airport-briefing-card .ceiling-readouts,
-.airport-briefing-card .pressure-strip,
-.airport-briefing-card .temperature-strip {
+.airport-briefing-card .pressure-strip {
     gap: 14px;
 }
 
-.airport-briefing-card .temperature-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.airport-briefing-card .temperature-strip .weather-metric-line:last-child {
-    grid-column: 1 / -1;
-}
-
-.airport-briefing-card .weather-metric-line strong,
-.airport-briefing-card .wind-vector-card strong {
+.airport-briefing-card .weather-metric-line strong {
     font-family: var(--airport-sidebar-sans);
     font-size: 18px;
 }
 
 .airport-briefing-card .weather-metric-line span,
-.airport-briefing-card .wind-vector-card span,
-.airport-briefing-card .thermal-band span,
 .airport-briefing-card .local-weather-meta span {
     font-family: var(--airport-sidebar-sans);
     font-weight: 600;
-    letter-spacing: 0;
 }
 
 .airport-briefing-card .local-weather-meta .font-mono {
     font-family: var(--airport-sidebar-sans);
-}
-
-.airport-briefing-card .wind-vector-card {
-    grid-template-columns: 56px repeat(3, minmax(0, 1fr));
-}
-
-.airport-briefing-card .wind-vector-card > div:not(.wind-compass) {
-    padding-inline: 6px;
 }
 
 .airport-briefing-card .wiki-copy {
@@ -3166,151 +3387,172 @@ body {
     text-decoration: none;
 }
 
-.aircraft-search-box {
+/* Search input — borderless, hairline underline only. The icon and field sit
+ * on the same baseline as the row above so the panel reads as a continuous
+ * stack of dividers rather than nested boxes. */
+.aircraft-search {
     align-items: center;
-    border: 1px solid var(--atc-line);
+    border-bottom: 1px solid var(--atc-line);
     color: var(--atc-faint);
     display: flex;
     gap: 8px;
     min-width: 0;
-    padding: 8px 10px;
+    padding: 6px 2px;
+    transition: border-color 120ms ease, color 120ms ease;
 }
 
-.aircraft-search-box:focus-within {
-    border-color: color-mix(in oklab, var(--atc-accent) 44%, var(--atc-line));
+.aircraft-search:focus-within {
+    border-color: color-mix(in oklab, var(--atc-accent) 60%, var(--atc-line));
     color: var(--atc-accent);
 }
 
-.aircraft-search-box input {
+.aircraft-search input {
     background: transparent;
     border: 0;
     color: var(--atc-text);
     font-family: var(--airport-sidebar-sans);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     min-width: 0;
     outline: none;
     width: 100%;
 }
 
-.aircraft-search-box input::placeholder {
+.aircraft-search input::placeholder {
     color: var(--atc-faint);
-    opacity: 0.8;
+    opacity: 0.7;
     text-transform: uppercase;
 }
 
-.aircraft-filter-stack {
-    border: 1px solid var(--atc-line);
-    border-top: 0;
-    display: grid;
-}
-
-.aircraft-filter-tabs,
-.aircraft-filter-select-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.aircraft-filter-select-row {
+/* Filter cards — three equal columns mirroring the WEATHER / FLIGHTS card
+ * grid: top + bottom hairline, vertical hairline between columns, each
+ * column stacks a small-caps label over the current value. The Type and Alt
+ * columns wrap a Radix Select trigger whose appended ChevronDown is pinned
+ * to the right of the card. */
+.aircraft-filter-cards {
+    border-bottom: 1px solid var(--atc-line);
     border-top: 1px solid var(--atc-line);
-}
-
-.aircraft-filter-tabs button,
-.aircraft-filter-select {
-    appearance: none;
-    background: transparent;
-    border: 0;
-    border-right: 1px solid var(--atc-line);
-    color: var(--atc-faint);
-    cursor: pointer;
-    font-family: var(--airport-sidebar-sans);
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 0;
-    min-width: 0;
-    padding: 7px 4px;
-    text-align: left;
-    text-transform: uppercase;
-}
-
-.aircraft-filter-select {
-    align-items: center;
     display: grid;
-    gap: 2px;
-    justify-items: start;
-    padding: 5px 12px 6px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.aircraft-filter-tabs button {
-    padding-inline: 12px;
-}
-
-.aircraft-filter-tabs button:last-child,
-.aircraft-filter-select-row .aircraft-filter-select:last-child {
-    border-right: 0;
-}
-
-.aircraft-filter-tabs button:hover,
-.aircraft-filter-tabs button.active {
-    background: color-mix(in oklab, var(--atc-accent) 10%, transparent);
-    color: var(--atc-text);
-}
-
-.aircraft-filter-select span {
-    color: var(--atc-faint);
-    font-family: var(--airport-sidebar-sans);
-    font-size: 7px;
-    font-weight: 800;
-    letter-spacing: 0;
-    line-height: 1;
-    text-transform: uppercase;
-}
-
-.aircraft-filter-select-trigger {
+.aircraft-filter-card {
+    align-items: start;
     background: transparent;
     border: 0;
     border-radius: 0;
     box-shadow: none;
     color: var(--atc-text);
     cursor: pointer;
-    display: inline-flex;
-    font-family: var(--airport-sidebar-sans);
-    font-size: 9px;
-    font-weight: 800;
-    gap: 4px;
+    display: grid;
+    gap: 6px;
+    grid-template-columns: minmax(0, 1fr);
     height: auto;
-    justify-content: flex-start;
-    letter-spacing: 0;
-    line-height: 1.1;
+    isolation: isolate;
+    justify-items: start;
     min-width: 0;
     outline: none;
-    padding: 0;
+    overflow: hidden;
+    padding: 12px var(--airport-sidebar-inset) 14px;
+    position: relative;
     text-align: left;
-    text-transform: uppercase;
+    transition: background 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
     width: 100%;
 }
 
-.aircraft-filter-select-trigger:hover,
-.aircraft-filter-select-trigger:focus,
-.aircraft-filter-select-trigger[data-state="open"] {
-    background: transparent;
-    box-shadow: none;
+/* Keep label/value/chevron above the active-state glow pseudo-element. */
+.aircraft-filter-card > * {
+    position: relative;
+    z-index: 1;
 }
 
-.aircraft-filter-select-trigger > span {
-    color: var(--atc-text);
-    font-size: 9px;
-    line-height: 1.1;
+/* Soft accent glow rising up from the active bottom border. Fades in over
+ * ~340ms when the card becomes active so a tab/dropdown switch reads as a
+ * "the light just turned on" moment. The gradient itself comes from a
+ * theme-scoped variable so light mode (dark navy accent on white) doesn't
+ * end up reading as a heavy shadow. */
+.aircraft-filter-card::after {
+    background: var(--atc-tab-glow);
+    content: "";
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity 340ms ease;
+    z-index: 0;
 }
 
-.aircraft-filter-select-trigger svg {
+.aircraft-filter-card[data-active="true"]::after,
+.aircraft-filter-card[data-state="open"]::after {
+    opacity: 1;
+}
+
+.aircraft-filter-card + .aircraft-filter-card {
+    border-left: 1px solid var(--atc-line);
+}
+
+.aircraft-filter-card__label {
     color: var(--atc-faint);
-    height: 10px;
-    opacity: 0.75;
-    width: 10px;
+    font-family: var(--airport-sidebar-sans);
+    font-size: 10px;
+    font-weight: 700;
+    grid-column: 1;
+    letter-spacing: 0;
+    line-height: 1;
+    text-transform: uppercase;
 }
 
-.aircraft-filter-select-content {
+.aircraft-filter-card__value {
+    color: var(--atc-text);
+    font-family: var(--airport-sidebar-sans);
+    font-size: 12px;
+    font-weight: 800;
+    grid-column: 1;
+    letter-spacing: 0;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-transform: uppercase;
+    word-break: break-word;
+}
+
+/* Select-flavour card — chevron pinned to right column, value/label stay in
+ * the left column. */
+.aircraft-filter-card--select {
+    column-gap: 6px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-content: flex-start;
+}
+
+.aircraft-filter-card--select > svg {
+    align-self: center;
+    color: var(--atc-faint);
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    height: 11px;
+    opacity: 0.7;
+    width: 11px;
+}
+
+.aircraft-filter-card:hover {
+    background: color-mix(in oklab, var(--atc-card) 58%, transparent);
+}
+
+.aircraft-filter-card[data-active="true"],
+.aircraft-filter-card[data-state="open"] {
+    box-shadow: inset 0 -2px 0 var(--atc-accent);
+}
+
+.aircraft-filter-card[data-active="true"] .aircraft-filter-card__value,
+.aircraft-filter-card[data-state="open"] .aircraft-filter-card__value {
+    color: var(--atc-accent);
+}
+
+.aircraft-filter-card:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--atc-line-strong);
+}
+
+.aircraft-filter-card-content {
     background: var(--atc-bg);
     border-color: var(--atc-line);
     border-radius: 0;
@@ -3320,17 +3562,11 @@ body {
     text-transform: uppercase;
 }
 
-.aircraft-filter-select-item {
+.aircraft-filter-card-item {
     border-radius: 0;
     cursor: pointer;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0;
-}
-
-.aircraft-filter-select-item:focus {
-    background: color-mix(in oklab, var(--atc-accent) 14%, transparent);
-    color: var(--atc-text);
+    font-size: 11px;
+    font-weight: 700;
 }
 
 @keyframes airport-feed-status-fade {

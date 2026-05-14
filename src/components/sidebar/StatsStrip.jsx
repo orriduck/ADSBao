@@ -28,17 +28,17 @@ function Stat({ label, value, unit, divided = false, valueColor }) {
         divided ? "border-l border-[var(--atc-line)]" : ""
       }`}
     >
-      <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-atc-faint">
+      <div className="font-mono text-[9px] uppercase text-atc-faint">
         {label}
       </div>
       <div
-        className="mt-2 font-mono text-[16px] font-semibold leading-none tracking-[0.02em] text-atc-text"
+        className="mt-2 font-mono text-[16px] font-semibold leading-none text-atc-text"
         style={valueColor ? { color: valueColor } : undefined}
       >
         {value}
       </div>
       {unit ? (
-        <div className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-atc-faint">
+        <div className="mt-1.5 font-mono text-[9px] uppercase text-atc-faint">
           {unit}
         </div>
       ) : null}
