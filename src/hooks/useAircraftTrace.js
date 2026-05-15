@@ -33,7 +33,10 @@ function liveAircraftToTracePoint(aircraft) {
 
 export function useAircraftTrace(selectedAircraft = null) {
   const hex = selectedAircraft?.icao24 || "";
-  const [tracePoints, setTracePoints] = useState([]);
+  const [traceState, setTraceState] = useState({
+    hex: "",
+    tracePoints: [],
+  });
   const [loading, setLoading] = useState(false);
 
   // Fetch the recent trace once when the selection changes. Merge into
@@ -41,13 +44,13 @@ export function useAircraftTrace(selectedAircraft = null) {
   // positions that polled in between selection and fetch resolution.
   useEffect(() => {
     if (!hex) {
-      setTracePoints([]);
+      setTraceState({ hex: "", tracePoints: [] });
       setLoading(false);
       return undefined;
     }
 
     let disposed = false;
-    setTracePoints([]);
+    setTraceState({ hex, tracePoints: [] });
     setLoading(true);
 
     aircraftTraceClient
@@ -55,12 +58,13 @@ export function useAircraftTrace(selectedAircraft = null) {
       .then((payload) => {
         if (disposed) return;
         const recent = normalizeAdsbTracePayload(payload?.recent);
-        setTracePoints((current) =>
-          mergeTraceHistory({
+        setTraceState((current) => ({
+          hex,
+          tracePoints: mergeTraceHistory({
             recentTrace: recent,
-            fallbackHistory: current,
+            fallbackHistory: current.hex === hex ? current.tracePoints : [],
           }),
-        );
+        }));
       })
       .catch((error) => {
         if (!disposed) {
@@ -88,16 +92,20 @@ export function useAircraftTrace(selectedAircraft = null) {
     if (!hex || loading) return;
     const point = liveAircraftToTracePoint(selectedAircraft);
     if (!point) return;
-    setTracePoints((current) =>
-      mergeTraceHistory({
-        recentTrace: [point],
-        fallbackHistory: current,
-      }),
-    );
+    setTraceState((current) => {
+      if (current.hex !== hex) return current;
+      return {
+        hex,
+        tracePoints: mergeTraceHistory({
+          recentTrace: [point],
+          fallbackHistory: current.tracePoints,
+        }),
+      };
+    });
   }, [hex, loading, selectedAircraft]);
 
   return {
-    tracePoints,
+    tracePoints: traceState.hex === hex ? traceState.tracePoints : [],
     loading,
   };
 }
