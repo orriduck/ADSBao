@@ -311,11 +311,14 @@ export default function SelectedAircraftTrace({
             <span class="aircraft-trace-label__time">${time}</span>
             ${altRow}
           `,
-          iconSize: [76, 30],
-          iconAnchor: [38, 38],
+          iconSize: [56, 24],
+          iconAnchor: [-4, 28],
         }),
         interactive: false,
         keyboard: false,
+        // Head-first iteration means index 0 is the freshest sample; give it
+        // the highest stacking offset so overlapping older cards sit beneath.
+        zIndexOffset: (geometry.labelPoints.length - index) * 10,
       }).addTo(map);
       const el = marker.getElement?.();
       if (el) {
@@ -336,19 +339,41 @@ export default function SelectedAircraftTrace({
     layersRef.current = layers;
     gradientElsRef.current = gradientEls.filter(Boolean);
 
-    // Helper: flip all label markers to visible. Used for both the
-    // immediate (non-fresh / reduced-motion) path and the deferred
-    // post-animation cascade.
-    const revealLabels = (instant) => {
-      labelMarkers.forEach((m) => {
-        const el = m.getElement?.();
-        if (!el) return;
-        if (instant) {
+    // Helper: flip all label markers to visible.
+    // - mode "instant": no transition (reduced-motion).
+    // - mode "staggered": keep the per-marker transitionDelay set at marker
+    //   creation so labels cascade in head-first during a fresh reveal.
+    // - mode "uniform": override delay to 0 so poll-driven re-renders fade
+    //   in together quickly instead of inheriting the long fresh-reveal
+    //   stagger.
+    const revealLabels = (mode = "uniform") => {
+      if (mode === "instant") {
+        labelMarkers.forEach((m) => {
+          const el = m.getElement?.();
+          if (!el) return;
           el.style.transition = "none";
           el.style.opacity = "1";
-        } else {
+        });
+        return;
+      }
+
+      if (mode === "uniform") {
+        labelMarkers.forEach((m) => {
+          const el = m.getElement?.();
+          if (el) el.style.transitionDelay = "0ms";
+        });
+      }
+
+      // Defer one frame so the browser sees the CSS opacity:0 baseline
+      // before the inline opacity:1 lands. Without this, freshly-mounted
+      // labels can skip the transition because the browser hasn't
+      // computed a baseline opacity to interpolate from.
+      requestAnimationFrame(() => {
+        labelMarkers.forEach((m) => {
+          const el = m.getElement?.();
+          if (!el) return;
           el.style.opacity = "1";
-        }
+        });
       });
     };
     const flushPendingTrace = () => {
@@ -370,7 +395,9 @@ export default function SelectedAircraftTrace({
     };
 
     if (!shouldAnimateReveal || reducedMotion) {
-      revealLabels(true);
+      // Poll-driven re-renders (same aircraft) still fade the labels in so
+      // they don't pop every 3s. reducedMotion users get the instant flip.
+      revealLabels(reducedMotion ? "instant" : "uniform");
       if (traceRevealKey) completedRevealKeyRef.current = traceRevealKey;
       return () => {
         if (rafIdRef.current) {
@@ -392,7 +419,7 @@ export default function SelectedAircraftTrace({
       .filter(Boolean);
 
     if (revealPaths.length === 0) {
-      revealLabels(true);
+      revealLabels("instant");
       completedRevealKeyRef.current = traceRevealKey;
       flushPendingTrace();
       return () => {
@@ -427,7 +454,7 @@ export default function SelectedAircraftTrace({
       });
       // Labels fade in mid-trace-fade so the text reads as attached to
       // the same reveal instead of arriving as a separate overlay.
-      revealLabels(false);
+      revealLabels("staggered");
 
       revealTimeoutRef.current = setTimeout(
         () => finishReveal(revealPaths),

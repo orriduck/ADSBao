@@ -2418,52 +2418,54 @@ body {
     );
 }
 
-/* Two-row pill-style marker pinned above a trace sample point. Card
- * surface tone keeps it readable over either basemap; the thin
- * subpixel border + outer shadow lift it just enough off the trail. */
+/* Compact left-aligned card pinned just off a trace sample point. The
+ * container hugs its content (inline-flex, auto width) so the card never
+ * stretches to the divIcon's bounding box. Subpixel border + soft outer
+ * shadow lift it off the trail; surface tone keeps it readable on either
+ * basemap. */
 .aircraft-trace-label {
-    align-items: center;
+    align-items: flex-start;
     background: color-mix(in oklab, var(--atc-card) 86%, transparent);
     border: 1px solid color-mix(in oklab, var(--atc-line-strong) 55%, transparent);
-    border-radius: 3px;
+    border-radius: 2px;
     box-shadow:
-        0 1px 6px color-mix(in oklab, var(--atc-bg) 60%, transparent),
+        0 1px 4px color-mix(in oklab, var(--atc-bg) 60%, transparent),
         inset 0 0 0 1px color-mix(in oklab, var(--atc-line) 22%, transparent);
-    display: flex;
+    display: inline-flex;
     flex-direction: column;
     font-family: "JetBrains Mono", monospace;
-    gap: 1px;
-    height: 100%;
-    justify-content: center;
+    /* !important is needed to beat Leaflet's iconSize inline width/height. */
+    height: max-content !important;
     line-height: 1;
     opacity: 0;
-    padding: 3px 6px 2px;
+    padding: 2px 5px;
     pointer-events: none;
-    text-align: center;
+    text-align: left;
     transition: opacity 360ms ease-out;
     white-space: nowrap;
-    width: 100%;
+    width: max-content !important;
 }
 
 .aircraft-trace-label__time {
     color: var(--atc-text);
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
 }
 
 .aircraft-trace-label__alt {
     color: var(--atc-dim);
-    font-size: 8px;
+    font-size: 7.5px;
     font-weight: 600;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
+    margin-top: 1px;
 }
 
 .aircraft-trace-label__alt-unit {
     color: var(--atc-faint);
-    font-size: 6.5px;
+    font-size: 6px;
     font-weight: 700;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.5px;
     margin-left: 2px;
     text-transform: uppercase;
 }
@@ -2471,7 +2473,7 @@ body {
 .aircraft-trace-label__alt--ground {
     color: var(--atc-faint);
     font-weight: 700;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.6px;
     text-transform: uppercase;
 }
 
