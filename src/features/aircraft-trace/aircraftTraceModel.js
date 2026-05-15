@@ -5,9 +5,10 @@ const DEFAULT_TRACE_MAX_AGE_MS = 3 * 60 * 1000;
 const DEFAULT_TRACE_MIN_DISTANCE_NM = 0.03;
 const DEFAULT_TRACE_MIN_SAMPLE_GAP_MS = 1_500;
 const DEFAULT_CURVE_STEPS = 8;
+const DEFAULT_REMOTE_TRACE_MAX_POINTS = 240;
 
 function isFiniteNumber(value) {
-  return Number.isFinite(Number(value));
+  return value !== null && value !== "" && Number.isFinite(Number(value));
 }
 
 function normalizeTracePoint(point, time = Date.now()) {
@@ -44,6 +45,16 @@ function trimTraceHistory(history, nowMs, config) {
 
 function getAircraftTraceId(aircraft = {}) {
   return aircraft.icao24 || aircraft.callsign || "";
+}
+
+function normalizeTraceTimestampMs(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.round(number * 1000) : null;
+}
+
+function normalizeTraceAltitude(value) {
+  if (value === "ground") return 0;
+  return isFiniteNumber(value) ? Number(value) : null;
 }
 
 export function createAircraftTraceTracker(options = {}) {
@@ -94,6 +105,101 @@ export function createAircraftTraceTracker(options = {}) {
 
 function toLatLng(point) {
   return [point.lat, point.lon];
+}
+
+export function normalizeAdsbTracePayload(payload = {}) {
+  const baseTimestampMs = normalizeTraceTimestampMs(payload?.timestamp);
+  if (baseTimestampMs == null || !Array.isArray(payload?.trace)) return [];
+
+  return payload.trace
+    .map((entry) => {
+      if (!Array.isArray(entry)) return null;
+      const offsetSeconds = Number(entry[0]);
+      const lat = Number(entry[1]);
+      const lon = Number(entry[2]);
+      if (!Number.isFinite(offsetSeconds) || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+        return null;
+      }
+
+      return {
+        timestampMs: baseTimestampMs + Math.round(offsetSeconds * 1000),
+        lat,
+        lon,
+        altitude: normalizeTraceAltitude(entry[3]),
+        onGround: entry[3] === "ground" || entry[6] === 1,
+        velocity: isFiniteNumber(entry[4]) ? Number(entry[4]) : null,
+        track: isFiniteNumber(entry[5]) ? Number(entry[5]) : null,
+        baroRate: isFiniteNumber(entry[7]) ? Number(entry[7]) : null,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.timestampMs - b.timestampMs);
+}
+
+function dedupeTracePointKey(point = {}) {
+  return [
+    point.timestampMs,
+    point.lat?.toFixed?.(5) ?? point.lat,
+    point.lon?.toFixed?.(5) ?? point.lon,
+  ].join(":");
+}
+
+export function mergeTraceHistory({
+  fullTrace = [],
+  recentTrace = [],
+  fallbackHistory = [],
+} = {}) {
+  const normalizedFallback = fallbackHistory
+    .map((point) => {
+      if (!isFiniteNumber(point?.lat) || !isFiniteNumber(point?.lon)) return null;
+      const timestampMs = Number(point?.timestampMs ?? point?.time ?? 0);
+      if (!Number.isFinite(timestampMs)) return null;
+      return {
+        timestampMs,
+        lat: Number(point.lat),
+        lon: Number(point.lon),
+        altitude: isFiniteNumber(point?.altitude) ? Number(point.altitude) : null,
+        onGround: Boolean(point?.onGround),
+        velocity: isFiniteNumber(point?.velocity) ? Number(point.velocity) : null,
+        track: isFiniteNumber(point?.track) ? Number(point.track) : null,
+        baroRate: isFiniteNumber(point?.baroRate) ? Number(point.baroRate) : null,
+      };
+    })
+    .filter(Boolean);
+
+  const merged = [...fullTrace, ...recentTrace, ...normalizedFallback].sort(
+    (a, b) => a.timestampMs - b.timestampMs,
+  );
+  const seen = new Set();
+  const deduped = [];
+  for (const point of merged) {
+    const key = dedupeTracePointKey(point);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(point);
+  }
+  return deduped;
+}
+
+export function downsampleTracePoints(
+  points = [],
+  maxPoints = DEFAULT_REMOTE_TRACE_MAX_POINTS,
+) {
+  if (points.length <= maxPoints) return points;
+  if (maxPoints <= 2) return [points[0], points.at(-1)].filter(Boolean);
+
+  const sampled = [points[0]];
+  const step = (points.length - 1) / (maxPoints - 1);
+  for (let index = 1; index < maxPoints - 1; index++) {
+    sampled.push(points[Math.round(index * step)]);
+  }
+  sampled.push(points.at(-1));
+
+  return sampled.filter(
+    (point, index, array) =>
+      index === 0 ||
+      dedupeTracePointKey(point) !== dedupeTracePointKey(array[index - 1]),
+  );
 }
 
 function interpolateCatmullRom(p0, p1, p2, p3, t) {

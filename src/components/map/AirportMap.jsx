@@ -50,6 +50,7 @@ export default function AirportMap({
   typeFilter = "all",
   altitudeLevel = "all",
   selectedAircraftId = "",
+  selectedAircraftTrace = [],
   onSelectAircraft,
   runwayMap = null,
   runwayProcedures = null,
@@ -191,6 +192,7 @@ export default function AirportMap({
           />
           <SelectedAircraftTrace
             aircraft={selectedAircraft}
+            tracePoints={selectedAircraftTrace}
             theme={currentTheme}
           />
           {visibleAircraft.map((ac) => (

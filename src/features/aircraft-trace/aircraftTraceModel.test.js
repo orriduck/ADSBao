@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 
 import {
   buildAircraftTraceCurve,
+  downsampleTracePoints,
+  mergeTraceHistory,
+  normalizeAdsbTracePayload,
   createAircraftTraceTracker,
 } from "./aircraftTraceModel.js";
 
@@ -95,6 +98,76 @@ import {
   assert.ok(curve.length > 3, "curve should densify the input points");
   assert.deepEqual(curve[0], [42.0, -71.0]);
   assert.deepEqual(curve.at(-1), [42.04, -70.96]);
+}
+
+{
+  const normalized = normalizeAdsbTracePayload({
+    timestamp: 1_778_840_413.111,
+    trace: [
+      [0, 42.1, -71.0, "ground", 12, 182, 1, null],
+      [15.5, 42.2, -70.9, 12500, 310.4, 190.2, 0, 512],
+      ["bad", 42.3, -70.8, 13000, 320, 200, 0, 640],
+    ],
+  });
+
+  assert.equal(normalized.length, 2);
+  assert.deepEqual(normalized[0], {
+    timestampMs: 1_778_840_413_111,
+    lat: 42.1,
+    lon: -71.0,
+    altitude: 0,
+    onGround: true,
+    velocity: 12,
+    track: 182,
+    baroRate: null,
+  });
+  assert.deepEqual(normalized[1], {
+    timestampMs: 1_778_840_428_611,
+    lat: 42.2,
+    lon: -70.9,
+    altitude: 12500,
+    onGround: false,
+    velocity: 310.4,
+    track: 190.2,
+    baroRate: 512,
+  });
+}
+
+{
+  const merged = mergeTraceHistory({
+    fallbackHistory: [
+      { lat: 42.0, lon: -71.0, timestampMs: 1_000 },
+      { lat: 42.01, lon: -70.99, timestampMs: 2_000 },
+    ],
+    fullTrace: [
+      { lat: 41.9, lon: -71.2, timestampMs: 100 },
+      { lat: 42.0, lon: -71.0, timestampMs: 1_000 },
+    ],
+    recentTrace: [
+      { lat: 42.01, lon: -70.99, timestampMs: 2_000 },
+      { lat: 42.02, lon: -70.98, timestampMs: 3_000 },
+    ],
+  });
+
+  assert.deepEqual(
+    merged.map((point) => point.timestampMs),
+    [100, 1_000, 2_000, 3_000],
+  );
+}
+
+{
+  const downsampled = downsampleTracePoints(
+    Array.from({ length: 12 }, (_, index) => ({
+      lat: 40 + index,
+      lon: -70 - index,
+      timestampMs: index * 1000,
+    })),
+    5,
+  );
+
+  assert.equal(downsampled.length, 5);
+  assert.equal(downsampled[0].timestampMs, 0);
+  assert.equal(downsampled.at(-1).timestampMs, 11_000);
 }
 
 console.log("aircraftTraceModel.test.js ok");

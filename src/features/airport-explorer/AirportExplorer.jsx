@@ -13,6 +13,7 @@ import { resolveAirportProfile } from "./airportExplorerModel.js";
 import { useAirportExplorerData } from "./useAirportExplorerData.js";
 import { useAirportProcedures } from "../../hooks/useAirportProcedures.js";
 import { useNearbyAirports } from "../../hooks/useNearbyAirports.js";
+import { useAircraftTrace } from "../../hooks/useAircraftTrace.js";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -59,6 +60,16 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     lat: airportProfile.lat,
     lon: airportProfile.lon,
   });
+  const selectedAircraft = useMemo(
+    () =>
+      traffic.aircraft.find(
+        (item) => (item.icao24 || item.callsign) === selectedAircraftId,
+      ) || null,
+    [selectedAircraftId, traffic.aircraft],
+  );
+  const { tracePoints: selectedAircraftTrace } = useAircraftTrace(
+    selectedAircraft,
+  );
 
   useEffect(() => {
     if (!selectedAircraftId) return;
@@ -148,6 +159,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           typeFilter={typeFilter}
           altitudeLevel={altitudeLevel}
           selectedAircraftId={selectedAircraftId}
+          selectedAircraftTrace={selectedAircraftTrace}
           onSelectAircraft={selectAircraft}
           runwayMap={procedures.runwayMap}
           runwayProcedures={null}

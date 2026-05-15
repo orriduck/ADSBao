@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   createAircraftPositionClient,
+  createAircraftTraceClient,
   createFlightRouteClient,
   createLocalWeatherClient,
   createMetarClient,
@@ -171,6 +172,22 @@ try {
 
   assert.equal(DEFAULT_AIRCRAFT_RANGE_NM, 30);
   assert.equal(calls[0], "/api/proxy/aircraft/positions/42.3656/-71.0096/30");
+}
+
+{
+  const calls = [];
+  const client = createAircraftTraceClient({
+    fetchImpl: async (url) => {
+      calls.push(url);
+      return createJsonResponse({ full: { trace: [] }, recent: { trace: [] } });
+    },
+  });
+
+  const payload = await client.fetchAircraftTrace({ hex: "a7bbe9" });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0], "/api/proxy/aircraft/trace/A7BBE9");
+  assert.deepEqual(payload, { full: { trace: [] }, recent: { trace: [] } });
 }
 
 {
