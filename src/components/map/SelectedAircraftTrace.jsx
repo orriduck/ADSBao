@@ -62,22 +62,16 @@ export default function SelectedAircraftTrace({
     setCommittedTracePoints(tracePoints);
   }, [tracePoints]);
 
-  // When the user switches aircraft mid-animation, we DO want to interrupt:
-  // the committed snapshot belongs to the old plane. Force-commit so the
-  // animation effect picks up the new geometry.
+  // On aircraft change (including initial selection / deselection), reset
+  // committed to empty so the next live-sync fires with whatever
+  // useAircraftTrace publishes for the new aircraft. Skipping this would
+  // leave stale geometry from the previous selection visible (and
+  // animating!) for one render until useAircraftTrace's hex effect clears
+  // it — that's the "trace appears with B's shape under A's selection,
+  // then snaps to A's data" race.
   useEffect(() => {
-    if (!aircraftHex) {
-      pendingTracePointsRef.current = null;
-      setCommittedTracePoints([]);
-      return;
-    }
-    if (aircraftHex !== previousHexRef.current) {
-      pendingTracePointsRef.current = null;
-      setCommittedTracePoints(tracePoints);
-    }
-    // We deliberately don't depend on tracePoints — the live sync above
-    // handles those updates. This branch only fires on aircraft change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    pendingTracePointsRef.current = null;
+    setCommittedTracePoints([]);
   }, [aircraftHex]);
 
   // Pre-computed render geometry. Pure function of committed trace points.
