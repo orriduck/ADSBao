@@ -3735,30 +3735,27 @@ body {
 
 .aircraft-preview-card__header {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 14px;
-    margin-bottom: 14px;
-    /* The icon layer hangs upward via negative margin, so the header only
-       has to reserve space for the small visible "remainder" + the type
-       label next to it. */
-    min-height: 42px;
+    /* No gap below the header so the icon layer's bottom sits flush with
+       the divider — the "right above the line" framing from the design. */
+    margin-bottom: 0;
 }
 
 .aircraft-preview-card__icon-layer {
     flex-shrink: 0;
-    /* Pull the layer up so the silhouette mostly lives ABOVE the card —
-       only the portion that fits inside the clip region is rendered. */
-    margin-top: -88px;
+    /* Fixed-size visible window. The icon child is rendered at 128px but
+       only the top 60px renders thanks to overflow:hidden — so the lower
+       portion of the silhouette (tail / engines) is cleanly clipped, and
+       the layer's bottom edge sits flush with the divider. Negative
+       top-margin pulls the box upward so the visible nose protrudes past
+       the card body. */
+    width: 128px;
+    height: 60px;
+    overflow: hidden;
+    margin-top: -28px;
     margin-left: -10px;
-    margin-bottom: -8px;
     margin-right: -4px;
-    /* Hide the lower portion of the silhouette: only the part above the
-       card's top edge stays visible, matching the "card peeking out of
-       the pocket" sketch. The 56% bottom inset corresponds to where the
-       card's top edge intersects the 128px icon given the margin-top
-       offset above. */
-    clip-path: inset(0 0 56% 0);
-    -webkit-clip-path: inset(0 0 56% 0);
     will-change: transform, opacity;
 }
 
@@ -3800,12 +3797,15 @@ body {
 .aircraft-preview-card__divider {
     height: 1px;
     background: var(--atc-line);
-    margin: 4px 0 10px;
+    /* Negative horizontal margins span the divider edge-to-edge through
+       the card's 18px padding. Zero top margin pairs with the header's
+       zero bottom margin to keep the icon flush against the line. */
+    margin: 0 -18px 10px;
 }
 
 .aircraft-preview-card__divider--soft {
     background: color-mix(in oklab, var(--atc-line) 60%, transparent);
-    margin: 10px 0 8px;
+    margin: 10px -18px 8px;
 }
 
 .aircraft-preview-identity {
