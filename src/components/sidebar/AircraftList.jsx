@@ -19,7 +19,24 @@ export default function AircraftList({
   showAirspaceContext = true,
   selectedAircraftId = "",
   onSelectAircraft,
+  flipStaggerStep = 0.02,
 }) {
+  // Assign each slot whose tenant changed since last render a cascade ordinal
+  // (0, 1, 2, ...) in slot order; unchanged slots get -1. Each flipping slot
+  // delays its rotate by ordinal × flipStaggerStep, so consecutive flips fire
+  // that step apart top→bottom — unchanged slots in between don't add to the gap.
+  const prevKeysRef = useRef([]);
+  const currentKeys = aircraft.map(getAircraftIdentity);
+  const prevKeys = prevKeysRef.current;
+  let cascadeCursor = 0;
+  const cascadeOrders = currentKeys.map((cur, i) => {
+    const prev = prevKeys[i];
+    return prev !== undefined && prev !== cur ? cascadeCursor++ : -1;
+  });
+  useEffect(() => {
+    prevKeysRef.current = currentKeys;
+  });
+
   return (
     <ul className="aircraft-table-list">
       <AnimatePresence initial={false}>
@@ -34,7 +51,8 @@ export default function AircraftList({
           >
             <AircraftSlot
               aircraft={item}
-              slotIndex={index}
+              cascadeOrder={cascadeOrders[index]}
+              flipStaggerStep={flipStaggerStep}
               altitudeFocus={altitudeFocus}
               showAirspaceContext={showAirspaceContext}
               selectedAircraftId={selectedAircraftId}
@@ -49,7 +67,8 @@ export default function AircraftList({
 
 function AircraftSlot({
   aircraft,
-  slotIndex = 0,
+  cascadeOrder = -1,
+  flipStaggerStep = 0.02,
   altitudeFocus,
   showAirspaceContext,
   selectedAircraftId,
@@ -58,6 +77,10 @@ function AircraftSlot({
   const currentKey = getAircraftIdentity(aircraft);
   const lastKeyRef = useRef(currentKey);
   const prevAircraftRef = useRef(aircraft);
+  const cascadeOrderRef = useRef(cascadeOrder);
+  cascadeOrderRef.current = cascadeOrder;
+  const flipStaggerStepRef = useRef(flipStaggerStep);
+  flipStaggerStepRef.current = flipStaggerStep;
   const [freezeAircraft, setFreezeAircraft] = useState(null);
   const controls = useAnimationControls();
   const reducedMotion = useReducedMotion();
@@ -69,9 +92,8 @@ function AircraftSlot({
 
     if (reducedMotion) return;
 
-    // Cascade flips top→bottom so a multi-row reshuffle reads as a wave, not
-    // a snap. Cap the delay so deep-scrolled slots don't stall on stale data.
-    const flipDelay = Math.min(slotIndex * 0.014, 0.35);
+    const flipDelay =
+      Math.max(cascadeOrderRef.current, 0) * flipStaggerStepRef.current;
 
     setFreezeAircraft(oldAircraft);
     let cancelled = false;
@@ -94,7 +116,7 @@ function AircraftSlot({
     return () => {
       cancelled = true;
     };
-  }, [currentKey, controls, reducedMotion, slotIndex]);
+  }, [currentKey, controls, reducedMotion]);
 
   // Track the latest live aircraft so the next tenant swap can freeze on it.
   // Skip while frozen — that's when the displayed row is intentionally stale.
