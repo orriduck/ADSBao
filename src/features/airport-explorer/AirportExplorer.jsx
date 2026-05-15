@@ -15,7 +15,6 @@ import { useAirportProcedures } from "../../hooks/useAirportProcedures.js";
 import { useNearbyAirports } from "../../hooks/useNearbyAirports.js";
 import { SelectedAircraftTraceProvider } from "../aircraft-trace/SelectedAircraftTraceContext.jsx";
 import TraceLoadingToast from "../aircraft-trace/TraceLoadingToast.jsx";
-import { AircraftPreviewProvider } from "../aircraft-preview/AircraftPreviewContext.jsx";
 import AircraftPreviewCard from "../aircraft-preview/AircraftPreviewCard.jsx";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
@@ -124,9 +123,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
 
   return (
     <SelectedAircraftTraceProvider selectedAircraft={selectedAircraft}>
-      <AircraftPreviewProvider>
       <TraceLoadingToast />
-      <AircraftPreviewCard />
+      <AircraftPreviewCard aircraft={selectedAircraft} />
       <div
         className={`font-sans text-atc-text ${
           isMobile
@@ -179,7 +177,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           )}
         </div>
       </div>
-      </AircraftPreviewProvider>
     </SelectedAircraftTraceProvider>
   );
 }
