@@ -8,7 +8,12 @@ import {
   normalizeLongitude,
   readResponseJson,
 } from "@/services/apiProxySecurity.js";
-import { createAircraftPositionFallbackCache } from "@/services/aviation/aircraftPositionFallbackCache.js";
+import { POSITION_PROVIDER_CHAIN } from "@/services/aviation/aircraftDataProviders.js";
+import {
+  createProviderHealthTracker,
+  isRetriableStatus,
+  selectProviderOrder,
+} from "@/services/aviation/providerHealth.js";
 
 const rateLimit = {
   key: "proxy:aircraft-positions",
@@ -17,44 +22,61 @@ const rateLimit = {
 };
 
 const USER_AGENT = "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)";
-const fallbackCache = createAircraftPositionFallbackCache();
-
-function buildFallbackKey(latitude, longitude, distanceNm) {
-  return `${latitude}:${longitude}:${distanceNm}`;
-}
-
-function buildStalePayload(payload, { staleAgeMs, upstreamStatus }) {
-  return {
-    ...payload,
-    stale: true,
-    staleAgeMs,
-    upstreamStatus,
-  };
-}
-
-function createCachedFallbackResponse(request, key, upstreamStatus) {
-  const cached = fallbackCache.recall(key);
-  if (!cached) return null;
-
-  return Response.json(
-    buildStalePayload(cached.payload, {
-      staleAgeMs: cached.staleAgeMs,
-      upstreamStatus,
-    }),
-    {
-      headers: buildProxyHeaders(request, {
-        "Cache-Control": "no-store",
-      }),
-    },
-  );
-}
-
-export function __resetAircraftPositionFallbackCacheForTests() {
-  fallbackCache.clear();
-}
+const POSITION_MAX_BYTES = 2 * 1024 * 1024;
+const healthTracker = createProviderHealthTracker();
 
 export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
+}
+
+async function fetchProviderPayload(provider, { latitude, longitude, distanceNm }) {
+  const url = provider.buildPositionUrl({
+    lat: latitude,
+    lon: longitude,
+    distanceNm,
+  });
+
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": USER_AGENT,
+      },
+      next: { revalidate: 0 },
+    });
+  } catch (networkError) {
+    const error = new Error(`network: ${networkError.message}`);
+    error.retriable = true;
+    throw error;
+  }
+
+  if (!response.ok) {
+    const error = new Error(`HTTP ${response.status}`);
+    error.status = response.status;
+    error.retriable = isRetriableStatus(response.status);
+    throw error;
+  }
+
+  let payload;
+  try {
+    payload = await readResponseJson(response, {
+      label: `${provider.id} aircraft response`,
+      maxBytes: POSITION_MAX_BYTES,
+    });
+  } catch (parseError) {
+    const error = new Error(`parse: ${parseError.message}`);
+    error.retriable = true;
+    throw error;
+  }
+
+  if (!payload || typeof payload !== "object" || !Array.isArray(payload.ac)) {
+    const error = new Error("Invalid aircraft payload");
+    error.retriable = true;
+    throw error;
+  }
+
+  return payload;
 }
 
 export async function GET(request, { params }) {
@@ -74,72 +96,52 @@ export async function GET(request, { params }) {
     );
   }
 
-  const url = `https://api.adsb.lol/v2/lat/${encodeURIComponent(
-    String(latitude),
-  )}/lon/${encodeURIComponent(String(longitude))}/dist/${encodeURIComponent(
-    String(distanceNm),
-  )}`;
-  const fallbackKey = buildFallbackKey(latitude, longitude, distanceNm);
+  const providers = selectProviderOrder(POSITION_PROVIDER_CHAIN, healthTracker);
+  const attempts = [];
+  let lastError = null;
 
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": USER_AGENT,
-      },
-      next: {
-        revalidate: 0,
-      },
-    });
-
-    if (!response.ok) {
-      const fallbackResponse = createCachedFallbackResponse(
-        request,
-        fallbackKey,
-        response.status,
+  for (const provider of providers) {
+    try {
+      const payload = await fetchProviderPayload(provider, {
+        latitude,
+        longitude,
+        distanceNm,
+      });
+      attempts.push(`${provider.id}:200`);
+      return Response.json(
+        { ...payload, source: provider.id },
+        {
+          headers: buildProxyHeaders(request, {
+            "Cache-Control": "no-store",
+            "X-Data-Source": provider.id,
+            "X-Provider-Attempts": attempts.join(";"),
+          }),
+        },
       );
-      if (fallbackResponse) return fallbackResponse;
-
-      return jsonProxyResponse(
-        request,
-        { error: "Failed to load aircraft positions" },
-        { status: response.status },
+    } catch (error) {
+      lastError = error;
+      attempts.push(`${provider.id}:${error.status || "ERR"}`);
+      console.warn(
+        `[aircraft-positions] ${provider.id} failed`,
+        error.status ? `status=${error.status}` : error.message,
       );
+      if (error.retriable) {
+        healthTracker.markUnhealthy(provider.id);
+        continue;
+      }
+      break;
     }
-
-    const payload = await readResponseJson(response, {
-      label: "adsb.lol aircraft response",
-      maxBytes: 2 * 1024 * 1024,
-    });
-
-    if (!payload || typeof payload !== "object" || !Array.isArray(payload.ac)) {
-      return jsonProxyResponse(
-        request,
-        { error: "Invalid aircraft payload" },
-        { status: 502 },
-      );
-    }
-
-    fallbackCache.remember(fallbackKey, payload);
-
-    return Response.json(payload, {
-      headers: buildProxyHeaders(request, {
-        "Cache-Control": "no-store",
-      }),
-    });
-  } catch (error) {
-    console.error("[aircraft-positions] load failed", error);
-    const fallbackResponse = createCachedFallbackResponse(
-      request,
-      fallbackKey,
-      502,
-    );
-    if (fallbackResponse) return fallbackResponse;
-
-    return jsonProxyResponse(
-      request,
-      { error: "Failed to load aircraft positions" },
-      { status: 502 },
-    );
   }
+
+  return jsonProxyResponse(
+    request,
+    { error: "Failed to load aircraft positions" },
+    {
+      status: Number(lastError?.status) || 502,
+      headers: {
+        "X-Data-Source": "failed",
+        "X-Provider-Attempts": attempts.join(";") || "none",
+      },
+    },
+  );
 }

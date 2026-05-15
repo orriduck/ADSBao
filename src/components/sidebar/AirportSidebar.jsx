@@ -24,6 +24,7 @@ export default function AirportSidebar({
   selectedAircraftId = "",
   lastUpdated = null,
   feedStatus = "live",
+  feedSource = "",
   onSelectAircraft,
   onBack,
   onClose = null,
@@ -60,6 +61,9 @@ export default function AirportSidebar({
           <span
             className={`airport-feed-status airport-feed-status--${feedStatus} inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
           >
+            {feedSource ? (
+              <span className="airport-feed-status__source">{feedSource}</span>
+            ) : null}
             <RequestPulseDots ariaLabel="Live feed" />
             {updatedLabel ? <span key={updatedLabel}>{updatedLabel}</span> : null}
           </span>
