@@ -47,14 +47,6 @@ function airportExplorerUiReducer(state, action) {
       return { ...state, mapZoom: action.mapZoom };
     case "toggleMapLabels":
       return { ...state, showMapLabels: toggleValue(state.showMapLabels) };
-    case "toggleTelemetry":
-      return { ...state, showTelemetry: toggleValue(state.showTelemetry) };
-    case "setTelemetry": {
-      const showTelemetry = Boolean(action.showTelemetry);
-      if (state.showTelemetry === showTelemetry) return state;
-
-      return { ...state, showTelemetry };
-    }
     case "toggleRunwayBeams":
       return { ...state, showRunwayBeams: toggleValue(state.showRunwayBeams) };
     case "toggleRoutingPointBadges":
@@ -94,7 +86,6 @@ export function AirportExplorerUiProvider({ children }) {
     sidebarOpen,
     mapZoom,
     showMapLabels,
-    showTelemetry,
     showRunwayBeams,
     showRoutingPointBadges,
     showAirspaceContext,
@@ -133,14 +124,6 @@ export function AirportExplorerUiProvider({ children }) {
     dispatch({ type: "toggleMapLabels" });
   }, []);
 
-  const toggleTelemetry = useCallback(() => {
-    dispatch({ type: "toggleTelemetry" });
-  }, []);
-
-  const setTelemetry = useCallback((showTelemetry) => {
-    dispatch({ type: "setTelemetry", showTelemetry });
-  }, []);
-
   const toggleRunwayBeams = useCallback(() => {
     dispatch({ type: "toggleRunwayBeams" });
   }, []);
@@ -173,7 +156,6 @@ export function AirportExplorerUiProvider({ children }) {
       isMobile,
       mapZoom,
       showMapLabels,
-      showTelemetry,
       showRunwayBeams,
       showRoutingPointBadges,
       showAirspaceContext,
@@ -184,8 +166,6 @@ export function AirportExplorerUiProvider({ children }) {
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
-      toggleTelemetry,
-      setTelemetry,
       toggleRunwayBeams,
       toggleRoutingPointBadges,
       toggleAirspaceContext,
@@ -198,7 +178,6 @@ export function AirportExplorerUiProvider({ children }) {
       isMobile,
       mapZoom,
       showMapLabels,
-      showTelemetry,
       showRunwayBeams,
       showRoutingPointBadges,
       showAirspaceContext,
@@ -209,8 +188,6 @@ export function AirportExplorerUiProvider({ children }) {
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
-      toggleTelemetry,
-      setTelemetry,
       toggleRunwayBeams,
       toggleRoutingPointBadges,
       toggleAirspaceContext,

@@ -102,7 +102,6 @@ assert.deepEqual(
     tone: "dimmed",
     opacity: 0.28,
     showLabel: false,
-    showTelemetry: false,
   },
 );
 

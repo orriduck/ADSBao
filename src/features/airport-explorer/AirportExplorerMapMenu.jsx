@@ -4,22 +4,17 @@ import { PanelLeft } from "lucide-react";
 import MapControlBar from "@/components/ui/MapControlBar";
 import { useAirportExplorerUi } from "./AirportExplorerUiContext.jsx";
 
-export default function AirportExplorerMapMenu({
-  telemetryDisabledForTraffic = false,
-  telemetryTrafficLimit = 50,
-}) {
+export default function AirportExplorerMapMenu() {
   const {
     isMobile,
     mapZoom,
     showMapLabels,
-    showTelemetry,
     showRunwayBeams,
     showRoutingPointBadges,
     showAirspaceContext,
     setMapZoom,
     toggleSidebar,
     toggleMapLabels,
-    toggleTelemetry,
     toggleRunwayBeams,
     toggleRoutingPointBadges,
     toggleAirspaceContext,
@@ -43,15 +38,11 @@ export default function AirportExplorerMapMenu({
       <MapControlBar
         activeZoom={mapZoom}
         showMapLabels={showMapLabels}
-        showTelemetry={showTelemetry}
         showRunwayBeams={showRunwayBeams}
         showRoutingPointBadges={showRoutingPointBadges}
         showAirspaceContext={showAirspaceContext}
-        telemetryDisabledForTraffic={telemetryDisabledForTraffic}
-        telemetryTrafficLimit={telemetryTrafficLimit}
         onZoom={setMapZoom}
         onToggleMapLabels={toggleMapLabels}
-        onToggleTelemetry={toggleTelemetry}
         onToggleRunwayBeams={toggleRunwayBeams}
         onToggleRoutingPointBadges={toggleRoutingPointBadges}
         onToggleAirspaceContext={toggleAirspaceContext}

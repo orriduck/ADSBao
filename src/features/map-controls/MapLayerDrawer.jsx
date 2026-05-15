@@ -13,14 +13,6 @@ const LAYER_TOGGLES = [
     handler: "onToggleMapLabels",
   },
   {
-    iconKey: "gauge",
-    label: "Speed and altitude",
-    activeLabel: "Hide speed and altitude",
-    inactiveLabel: "Show speed and altitude",
-    prop: "showTelemetry",
-    handler: "onToggleTelemetry",
-  },
-  {
     iconKey: "spotlight",
     label: "Approach beams",
     activeLabel: "Hide approach beams",
@@ -50,26 +42,20 @@ export default function MapLayerDrawer({
   id,
   open,
   showMapLabels,
-  showTelemetry,
   showBeams,
   showBadges,
   showAirspaceContext,
-  telemetryDisabledForTraffic = false,
-  telemetryTrafficLimit = 50,
   onToggleMapLabels,
-  onToggleTelemetry,
   onToggleBeams,
   onToggleBadges,
   onToggleAirspaceContext,
 }) {
   const state = {
     showMapLabels,
-    showTelemetry,
     showBeams,
     showBadges,
     showAirspaceContext,
     onToggleMapLabels,
-    onToggleTelemetry,
     onToggleBeams,
     onToggleBadges,
     onToggleAirspaceContext,
@@ -90,13 +76,7 @@ export default function MapLayerDrawer({
         >
           {LAYER_TOGGLES.map((toggle) => {
             const active = Boolean(state[toggle.prop]);
-            const disabled =
-              toggle.prop === "showTelemetry" && telemetryDisabledForTraffic;
-            const title = disabled
-              ? `Disabled above ${telemetryTrafficLimit} aircraft`
-              : active
-                ? toggle.activeLabel
-                : toggle.inactiveLabel;
+            const title = active ? toggle.activeLabel : toggle.inactiveLabel;
 
             return (
               <Button
@@ -105,25 +85,18 @@ export default function MapLayerDrawer({
                 size="icon"
                 className={`ctrl-btn drawer-btn map-layer-control map-layer-toggle ${
                   active ? "active" : ""
-                } ${disabled ? "disabled" : ""}`}
-                disabled={disabled}
-                aria-disabled={disabled}
-                aria-describedby={disabled ? `${id}-telemetry-limit` : undefined}
+                }`}
                 aria-label={title}
                 aria-pressed={active}
                 title={title}
-                data-tooltip={disabled ? title : toggle.label}
-                onClick={disabled ? undefined : state[toggle.handler]}
+                data-tooltip={toggle.label}
+                onClick={state[toggle.handler]}
                 type="button"
               >
                 <MapControlIcon iconKey={toggle.iconKey} />
               </Button>
             );
           })}
-          <span id={`${id}-telemetry-limit`} className="sr-only">
-            Speed and altitude is disabled when more than{" "}
-            {telemetryTrafficLimit} aircraft are in range.
-          </span>
         </div>
       </div>
     </div>

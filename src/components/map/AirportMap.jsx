@@ -42,7 +42,6 @@ export default function AirportMap({
   nearbyAirports = [],
   airport = null,
   showMapLabels = false,
-  showTelemetry = true,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
   showAirspaceContext = true,
@@ -178,7 +177,6 @@ export default function AirportMap({
               key={getAircraftIdentity(ac)}
               aircraft={ac}
               theme={currentTheme}
-              showTelemetry={showTelemetry}
               showAirspaceContext={showAirspaceContext}
               altitudeFocus={altitudeFocus}
               selected={getAircraftIdentity(ac) === selectedAircraftId}

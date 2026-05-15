@@ -64,7 +64,6 @@ export function resolveAircraftContextEmphasis({
       tone: "primary",
       opacity: PRIMARY_OPACITY,
       showLabel: true,
-      showTelemetry: true,
     };
   }
 
@@ -79,7 +78,6 @@ export function resolveAircraftContextEmphasis({
           ? HARD_DIMMED_OPACITY
           : SUBDUED_OPACITY,
       showLabel: false,
-      showTelemetry: false,
     };
   }
 
@@ -88,7 +86,6 @@ export function resolveAircraftContextEmphasis({
       tone: "dimmed",
       opacity: altitudeFocus === "all" ? DIMMED_OPACITY : SECONDARY_OPACITY,
       showLabel: altitudeFocus === "overflight",
-      showTelemetry: false,
     };
   }
 
@@ -97,7 +94,6 @@ export function resolveAircraftContextEmphasis({
       tone: "secondary",
       opacity: SECONDARY_OPACITY,
       showLabel: true,
-      showTelemetry: true,
     };
   }
 
@@ -105,7 +101,6 @@ export function resolveAircraftContextEmphasis({
     tone: "primary",
     opacity: PRIMARY_OPACITY,
     showLabel: true,
-    showTelemetry: true,
   };
 }
 

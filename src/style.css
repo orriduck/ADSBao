@@ -2035,7 +2035,7 @@ body {
     border-radius: var(--atc-radius-control);
     display: grid;
     gap: 3px;
-    grid-template-columns: repeat(5, 32px);
+    grid-template-columns: repeat(4, 32px);
     padding: 3px;
     width: max-content;
 }
@@ -2357,14 +2357,10 @@ body {
 
 :root {
     --map-label-glow: rgba(250, 249, 245, 0.95);
-    --map-telemetry-color: rgba(14, 26, 43, 0.8);
-    --map-telemetry-dim: rgba(14, 26, 43, 0.5);
 }
 
 :root[data-theme="dark"] {
     --map-label-glow: #041a38;
-    --map-telemetry-color: rgba(245, 247, 250, 0.86);
-    --map-telemetry-dim: rgba(245, 247, 250, 0.54);
 }
 
 .leaflet-marker-icon {
@@ -2408,11 +2404,6 @@ body {
 
 .aircraft-label-title {
     font-size: 10px;
-}
-
-.aircraft-label--route-cycle {
-    min-height: 20px;
-    min-width: 74px;
 }
 
 .nearby-airport-marker {
@@ -2460,64 +2451,6 @@ body {
     font-weight: 700;
     letter-spacing: 0.3px;
     line-height: 1;
-}
-
-.aircraft-title-cycle {
-    min-height: 11px;
-    min-width: 74px;
-    position: relative;
-}
-
-.aircraft-callsign-state,
-.aircraft-route-label {
-    transition: opacity 0.32s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.aircraft-label--route-cycle .aircraft-callsign-state {
-    animation: aircraft-callsign-fade 7.2s infinite;
-}
-
-.aircraft-route-label {
-    color: inherit;
-    font-size: 9px;
-    font-weight: 800;
-    left: 0;
-    letter-spacing: 0.4px;
-    line-height: 1.05;
-    opacity: 0;
-    position: absolute;
-    text-shadow:
-        0 0 4px var(--map-label-glow),
-        0 0 8px var(--map-label-glow);
-    top: 0;
-}
-
-.aircraft-label--route-cycle .aircraft-route-label {
-    animation: aircraft-route-fade 7.2s infinite;
-}
-
-@keyframes aircraft-callsign-fade {
-    0%,
-    42%,
-    100% {
-        opacity: 1;
-    }
-    50%,
-    84% {
-        opacity: 0;
-    }
-}
-
-@keyframes aircraft-route-fade {
-    0%,
-    42%,
-    100% {
-        opacity: 0;
-    }
-    50%,
-    84% {
-        opacity: 1;
-    }
 }
 
 .aircraft-table-route-cycle {
@@ -2667,25 +2600,6 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.aircraft-telemetry {
-    align-items: baseline;
-    color: var(--map-telemetry-color);
-    display: flex;
-    font-size: 8.5px;
-    font-weight: 700;
-    gap: 3px;
-    letter-spacing: 0;
-    margin-top: 1px;
-    text-shadow:
-        0 0 4px var(--map-label-glow),
-        0 0 8px var(--map-label-glow);
-}
-
-.aircraft-telemetry-separator {
-    color: color-mix(in oklab, var(--atc-accent) 72%, transparent);
-    font-size: 0.9em;
 }
 
 .airport-overlay-label {
@@ -2920,23 +2834,10 @@ body {
         transition: none;
     }
 
-    .aircraft-label--route-cycle .aircraft-callsign-state,
-    .aircraft-label--route-cycle .aircraft-route-label {
-        animation: none;
-    }
-
     .airport-feed-status {
         animation: none;
         transition: none;
         transform: none;
-    }
-
-    .aircraft-label--route-cycle .aircraft-callsign-state {
-        opacity: 1;
-    }
-
-    .aircraft-label--route-cycle .aircraft-route-label {
-        display: none;
     }
 }
 

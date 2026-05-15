@@ -20,15 +20,11 @@ const LAYER_DRAWER_ID = "map-layer-drawer";
 export default function MapControlBar({
   activeZoom = ZOOM_AIRPORT,
   showMapLabels = false,
-  showTelemetry = true,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
   showAirspaceContext = true,
-  telemetryDisabledForTraffic = false,
-  telemetryTrafficLimit = 50,
   onZoom,
   onToggleMapLabels,
-  onToggleTelemetry,
   onToggleRunwayBeams,
   onToggleRoutingPointBadges,
   onToggleAirspaceContext,
@@ -91,14 +87,10 @@ export default function MapControlBar({
           id={LAYER_DRAWER_ID}
           open={layerDrawerOpen}
           showMapLabels={showMapLabels}
-          showTelemetry={showTelemetry}
           showBeams={showRunwayBeams}
           showBadges={showRoutingPointBadges}
           showAirspaceContext={showAirspaceContext}
-          telemetryDisabledForTraffic={telemetryDisabledForTraffic}
-          telemetryTrafficLimit={telemetryTrafficLimit}
           onToggleMapLabels={onToggleMapLabels}
-          onToggleTelemetry={onToggleTelemetry}
           onToggleBeams={onToggleRunwayBeams}
           onToggleBadges={onToggleRoutingPointBadges}
           onToggleAirspaceContext={onToggleAirspaceContext}
