@@ -12,6 +12,7 @@ import { getAircraftIdentity } from "../airport-context/airportContextUiModel.js
 
 const SelectedAircraftTraceContext = createContext({
   aircraftHex: null,
+  movement: null,
   tracePoints: [],
   loading: false,
 });
@@ -23,11 +24,15 @@ export function SelectedAircraftTraceProvider({
   const aircraftHex = selectedAircraft
     ? getAircraftIdentity(selectedAircraft) || null
     : null;
+  const movement =
+    typeof selectedAircraft?.movement === "string"
+      ? selectedAircraft.movement
+      : null;
   const { tracePoints, loading } = useAircraftTrace(selectedAircraft);
 
   const value = useMemo(
-    () => ({ aircraftHex, tracePoints, loading }),
-    [aircraftHex, tracePoints, loading],
+    () => ({ aircraftHex, movement, tracePoints, loading }),
+    [aircraftHex, movement, tracePoints, loading],
   );
 
   return (

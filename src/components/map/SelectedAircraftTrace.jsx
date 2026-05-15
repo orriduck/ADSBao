@@ -16,6 +16,8 @@ import {
   shouldRenderCommittedTrace,
 } from "../../features/aircraft-trace/traceRevealModel.js";
 import { useSelectedAircraftTrace } from "../../features/aircraft-trace/SelectedAircraftTraceContext.jsx";
+import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
+import { ARRIVAL, DEPARTURE } from "../../utils/aircraftMovement.js";
 
 const TRACE_GROWTH_DURATION_MS = 900;
 const TRACE_LABEL_FADE_STAGGER_MS = 70;
@@ -83,8 +85,11 @@ function ensureSvgDefs(svg) {
 function addGradientStop(gradient, offset, color, opacity) {
   const stop = document.createElementNS(SVG_NS, "stop");
   stop.setAttribute("offset", offset);
-  stop.setAttribute("stop-color", color);
-  stop.setAttribute("stop-opacity", String(opacity));
+  // Inline style instead of attribute so CSS variables work — the
+  // aircraft accent colors live in --aircraft-departure / --aircraft-
+  // arrival and the gradient needs to resolve them at render time.
+  stop.style.stopColor = color;
+  stop.style.stopOpacity = String(opacity);
   gradient.append(stop);
 }
 
@@ -136,7 +141,7 @@ function makeLabelKey(labelPoints) {
 }
 
 export default function SelectedAircraftTrace({ theme = "dark" }) {
-  const { aircraftHex, tracePoints } = useSelectedAircraftTrace();
+  const { aircraftHex, movement, tracePoints } = useSelectedAircraftTrace();
   const map = useMapInstance();
   const lineLayersRef = useRef([]);
   const labelMarkersRef = useRef([]);
@@ -202,6 +207,15 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
     [aircraftHex, committedTrace.tracePoints],
   );
 
+  // Accent color tracks the aircraft marker's color when its movement
+  // is recognized — trail visually pairs with its plane. Falls back to
+  // null (theme default) when the aircraft hasn't been classified.
+  const accentColor = useMemo(() => {
+    if (movement === DEPARTURE) return AIRCRAFT_COLORS.departure;
+    if (movement === ARRIVAL) return AIRCRAFT_COLORS.arrival;
+    return null;
+  }, [movement]);
+
   // labelKey is a string derived from labelPoints. As long as the historic
   // sample set is stable (same timestamps + altitudes), the key is the
   // same string and the label-effect dep doesn't change — labels stay
@@ -248,13 +262,16 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const traceStyle = getTraceStyle(theme);
+    const lineColor = accentColor || traceStyle.lineColor;
+    const glowColor = accentColor || traceStyle.glowColor;
+    const dotColor = accentColor || traceStyle.pointColor;
     const layers = [];
     const gradientEls = [];
     const gradientBase = `${gradientIdPart(aircraftHex)}-${Date.now().toString(36)}`;
 
     const corePolyline = L.polyline(geometry.curve.slice().reverse(), {
       pane,
-      color: traceStyle.lineColor,
+      color: lineColor,
       opacity: 1,
       weight: traceStyle.lineWeight,
       interactive: false,
@@ -269,7 +286,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
         polyline: corePolyline,
         curve: geometry.curve,
         gradientId: `aircraft-trace-core-${gradientBase}`,
-        color: traceStyle.lineColor,
+        color: lineColor,
         tailOpacity: TRACE_CORE_TAIL_OPACITY,
         midOpacity: TRACE_CORE_MID_OPACITY,
         headOpacity: TRACE_CORE_HEAD_OPACITY,
@@ -278,7 +295,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
 
     const glowPolyline = L.polyline(geometry.curve.slice().reverse(), {
       pane,
-      color: traceStyle.glowColor,
+      color: glowColor,
       opacity: 1,
       weight: traceStyle.glowWeight,
       interactive: false,
@@ -293,7 +310,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
         polyline: glowPolyline,
         curve: geometry.curve,
         gradientId: `aircraft-trace-glow-${gradientBase}`,
-        color: traceStyle.glowColor,
+        color: glowColor,
         tailOpacity: 0,
         midOpacity: traceStyle.glowOpacity * 0.38,
         headOpacity: traceStyle.glowOpacity,
@@ -308,7 +325,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
           pane,
           radius: traceStyle.pointRadius,
           stroke: false,
-          fillColor: traceStyle.pointColor,
+          fillColor: dotColor,
           fillOpacity: traceStyle.pointFillOpacity * (0.3 + emphasis * 0.7),
           interactive: false,
           className: "aircraft-trace-point",
@@ -406,7 +423,15 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
       removeElements(gradientElsRef.current);
       gradientElsRef.current = [];
     };
-  }, [map, theme, geometry, aircraftHex, reducedMotion, traceRevealKey]);
+  }, [
+    map,
+    theme,
+    geometry,
+    aircraftHex,
+    accentColor,
+    reducedMotion,
+    traceRevealKey,
+  ]);
 
   // -------------------------------------------------------------------
   // Effect 2: historic time/altitude labels. Keyed by labelKey so it only
