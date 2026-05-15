@@ -2431,33 +2431,61 @@ body {
     );
 }
 
+/* Two-row pill-style marker pinned above a trace sample point. Card
+ * surface tone keeps it readable over either basemap; the thin
+ * subpixel border + outer shadow lift it just enough off the trail. */
 .aircraft-trace-label {
     align-items: center;
+    background: color-mix(in oklab, var(--atc-card) 86%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 55%, transparent);
+    border-radius: 3px;
+    box-shadow:
+        0 1px 6px color-mix(in oklab, var(--atc-bg) 60%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-line) 22%, transparent);
     display: flex;
     flex-direction: column;
     font-family: "JetBrains Mono", monospace;
+    gap: 1px;
+    height: 100%;
+    justify-content: center;
+    line-height: 1;
     opacity: 0;
+    padding: 3px 6px 2px;
     pointer-events: none;
     text-align: center;
-    text-shadow:
-        0 0 4px var(--map-label-glow),
-        0 0 8px var(--map-label-glow);
     transition: opacity 360ms ease-out;
     white-space: nowrap;
+    width: 100%;
 }
 
 .aircraft-trace-label__time {
     color: var(--atc-text);
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 700;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
 }
 
 .aircraft-trace-label__alt {
     color: var(--atc-dim);
     font-size: 8px;
     font-weight: 600;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
+}
+
+.aircraft-trace-label__alt-unit {
+    color: var(--atc-faint);
+    font-size: 6.5px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    margin-left: 2px;
+    text-transform: uppercase;
+}
+
+.aircraft-trace-label__alt--ground {
+    color: var(--atc-faint);
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
 }
 
 .aircraft-trace-head {

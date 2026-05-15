@@ -210,16 +210,22 @@ export default function SelectedAircraftTrace({
       const time = formatTraceLabelTime(point.timestampMs);
       const altitude = formatTraceLabelAltitude(point);
       if (!time && !altitude) return;
+      const isGround = altitude === "GND";
+      const altRow = isGround
+        ? `<span class="aircraft-trace-label__alt aircraft-trace-label__alt--ground">GND</span>`
+        : altitude
+          ? `<span class="aircraft-trace-label__alt">${altitude}<span class="aircraft-trace-label__alt-unit">FT</span></span>`
+          : "";
       const marker = L.marker([point.lat, point.lon], {
         pane,
         icon: L.divIcon({
           className: "aircraft-trace-label",
           html: `
             <span class="aircraft-trace-label__time">${time}</span>
-            <span class="aircraft-trace-label__alt">${altitude}</span>
+            ${altRow}
           `,
-          iconSize: [72, 26],
-          iconAnchor: [36, 32],
+          iconSize: [76, 30],
+          iconAnchor: [38, 38],
         }),
         interactive: false,
         keyboard: false,
