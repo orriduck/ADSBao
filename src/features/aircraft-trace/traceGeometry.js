@@ -39,6 +39,16 @@ function buildTraceSamplePoints(points) {
   return usable.filter((_, index) => index % stride === 0);
 }
 
+// Sparser sample for human-readable text labels. Fewer items than the dot
+// markers so the labels don't pile on top of each other along the trail.
+function buildTraceLabelPoints(points, maxLabels = 5) {
+  const usable = points.slice(0, -1);
+  if (usable.length === 0) return [];
+  if (usable.length <= maxLabels) return usable;
+  const stride = Math.max(1, Math.floor(usable.length / maxLabels));
+  return usable.filter((_, index) => index % stride === 0);
+}
+
 function buildHeadSweepCoords(coords, tailRatio) {
   const startIndex = Math.max(
     0,
@@ -64,6 +74,7 @@ export function computeTraceGeometry({
     curve,
     bands: buildTraceBands(curve, bandCount),
     samplePoints: buildTraceSamplePoints(sampled),
+    labelPoints: buildTraceLabelPoints(sampled),
     sweepCoords: buildHeadSweepCoords(curve, sweepTailRatio),
     headIndex: Math.max(1, curve.length - 1),
   };

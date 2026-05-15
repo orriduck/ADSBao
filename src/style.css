@@ -2431,6 +2431,35 @@ body {
     );
 }
 
+.aircraft-trace-label {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    font-family: "JetBrains Mono", monospace;
+    opacity: 0;
+    pointer-events: none;
+    text-align: center;
+    text-shadow:
+        0 0 4px var(--map-label-glow),
+        0 0 8px var(--map-label-glow);
+    transition: opacity 360ms ease-out;
+    white-space: nowrap;
+}
+
+.aircraft-trace-label__time {
+    color: var(--atc-text);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.aircraft-trace-label__alt {
+    color: var(--atc-dim);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
 .aircraft-trace-head {
     animation: aircraft-trace-pulse 1.9s ease-in-out infinite;
     filter: drop-shadow(

@@ -13,6 +13,26 @@ import { computeTraceGeometry } from "../../features/aircraft-trace/traceGeometr
 import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
 
 const TRACE_GROWTH_DURATION_MS = 900;
+const TRACE_LABEL_FADE_STAGGER_MS = 70;
+const TRACE_LABEL_FADE_DURATION_MS = 360;
+
+function formatTraceLabelTime(timestampMs) {
+  if (!Number.isFinite(timestampMs)) return "";
+  const d = new Date(timestampMs);
+  return d.toLocaleTimeString([], {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatTraceLabelAltitude(point) {
+  if (!point) return "";
+  if (point.onGround || point.altitude === 0) return "GND";
+  const altitude = Number(point.altitude);
+  if (!Number.isFinite(altitude)) return "";
+  return Math.round(altitude).toLocaleString();
+}
 
 const getTraceStyle = (theme) =>
   theme === "light"
@@ -183,9 +203,55 @@ export default function SelectedAircraftTrace({
       );
     });
 
+    // Time / altitude labels for historic sample points. Built head→tail so
+    // the head label can fade in first when we cascade the visibility flip.
+    const labelMarkers = [];
+    [...geometry.labelPoints].reverse().forEach((point, index) => {
+      const time = formatTraceLabelTime(point.timestampMs);
+      const altitude = formatTraceLabelAltitude(point);
+      if (!time && !altitude) return;
+      const marker = L.marker([point.lat, point.lon], {
+        pane,
+        icon: L.divIcon({
+          className: "aircraft-trace-label",
+          html: `
+            <span class="aircraft-trace-label__time">${time}</span>
+            <span class="aircraft-trace-label__alt">${altitude}</span>
+          `,
+          iconSize: [72, 26],
+          iconAnchor: [36, 32],
+        }),
+        interactive: false,
+        keyboard: false,
+      }).addTo(map);
+      const el = marker.getElement?.();
+      if (el) {
+        el.style.transitionDelay = `${index * TRACE_LABEL_FADE_STAGGER_MS}ms`;
+      }
+      labelMarkers.push(marker);
+      layers.push(marker);
+    });
+
     layersRef.current = layers;
 
+    // Helper: flip all label markers to visible. Used for both the
+    // immediate (non-fresh / reduced-motion) path and the deferred
+    // post-animation cascade.
+    const revealLabels = (instant) => {
+      labelMarkers.forEach((m) => {
+        const el = m.getElement?.();
+        if (!el) return;
+        if (instant) {
+          el.style.transition = "none";
+          el.style.opacity = "1";
+        } else {
+          el.style.opacity = "1";
+        }
+      });
+    };
+
     if (!isFreshSelection || reducedMotion) {
+      revealLabels(true);
       return () => {
         if (rafIdRef.current) {
           cancelAnimationFrame(rafIdRef.current);
@@ -282,6 +348,9 @@ export default function SelectedAircraftTrace({
           seg.path.style.strokeDasharray = "";
           seg.path.style.strokeDashoffset = "";
         });
+        // Labels were created at opacity 0 with staggered transitionDelay;
+        // flipping each to opacity 1 here triggers the CSS transition.
+        revealLabels(false);
         // Flush any deferred trace updates that arrived during animation.
         if (pendingTracePointsRef.current) {
           const pending = pendingTracePointsRef.current;
