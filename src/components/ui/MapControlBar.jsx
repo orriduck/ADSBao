@@ -22,12 +22,10 @@ export default function MapControlBar({
   showMapLabels = false,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
-  showAirspaceContext = true,
   onZoom,
   onToggleMapLabels,
   onToggleRunwayBeams,
   onToggleRoutingPointBadges,
-  onToggleAirspaceContext,
 }) {
   const controlZone = useRef(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -89,11 +87,9 @@ export default function MapControlBar({
           showMapLabels={showMapLabels}
           showBeams={showRunwayBeams}
           showBadges={showRoutingPointBadges}
-          showAirspaceContext={showAirspaceContext}
           onToggleMapLabels={onToggleMapLabels}
           onToggleBeams={onToggleRunwayBeams}
           onToggleBadges={onToggleRoutingPointBadges}
-          onToggleAirspaceContext={onToggleAirspaceContext}
         />
 
         <MapZoomDrawer

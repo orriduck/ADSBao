@@ -28,14 +28,6 @@ const LAYER_TOGGLES = [
     prop: "showBadges",
     handler: "onToggleBadges",
   },
-  {
-    iconKey: "radar",
-    label: "Traffic context",
-    activeLabel: "Disable traffic context",
-    inactiveLabel: "Enable traffic context",
-    prop: "showAirspaceContext",
-    handler: "onToggleAirspaceContext",
-  },
 ];
 
 export default function MapLayerDrawer({
@@ -44,21 +36,17 @@ export default function MapLayerDrawer({
   showMapLabels,
   showBeams,
   showBadges,
-  showAirspaceContext,
   onToggleMapLabels,
   onToggleBeams,
   onToggleBadges,
-  onToggleAirspaceContext,
 }) {
   const state = {
     showMapLabels,
     showBeams,
     showBadges,
-    showAirspaceContext,
     onToggleMapLabels,
     onToggleBeams,
     onToggleBadges,
-    onToggleAirspaceContext,
   };
 
   return (

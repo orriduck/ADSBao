@@ -37,7 +37,6 @@ const getAircraftColor = (ac, showArrow) => {
 export default function AircraftPosition({
   aircraft,
   theme = "dark",
-  showAirspaceContext = true,
   altitudeFocus = "all",
   selected = false,
   onSelectAircraft,
@@ -125,7 +124,6 @@ export default function AircraftPosition({
   const emphasis = resolveAircraftContextEmphasis({
     aircraft,
     altitudeFocus,
-    contextEnabled: showAirspaceContext,
     selected,
   });
   const rot = Math.round(aircraft.track || 0);

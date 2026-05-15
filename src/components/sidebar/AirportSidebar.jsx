@@ -22,7 +22,6 @@ export default function AirportSidebar({
   metarError = null,
   aircraft = [],
   altitudeFocus = "all",
-  showAirspaceContext = true,
   selectedAircraftId = "",
   lastUpdated = null,
   feedStatus = "live",
@@ -119,7 +118,6 @@ export default function AirportSidebar({
             <AircraftTable
               aircraft={aircraft}
               altitudeFocus={altitudeFocus}
-              showAirspaceContext={showAirspaceContext}
               selectedAircraftId={selectedAircraftId}
               onSelectAircraft={onSelectAircraft}
               onAltitudeFocus={onAltitudeFocus}

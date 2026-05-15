@@ -6,6 +6,5 @@ export const DEFAULT_AIRPORT_EXPLORER_UI_STATE = {
   showMapLabels: false,
   showRunwayBeams: true,
   showRoutingPointBadges: false,
-  showAirspaceContext: true,
   altitudeFocus: DEFAULT_ALTITUDE_FOCUS,
 };

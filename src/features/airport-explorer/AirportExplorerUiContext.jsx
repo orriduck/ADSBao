@@ -54,11 +54,6 @@ function airportExplorerUiReducer(state, action) {
         ...state,
         showRoutingPointBadges: toggleValue(state.showRoutingPointBadges),
       };
-    case "toggleAirspaceContext":
-      return {
-        ...state,
-        showAirspaceContext: toggleValue(state.showAirspaceContext),
-      };
     case "setAltitudeFocus":
       return { ...state, altitudeFocus: action.altitudeFocus };
     case "selectAircraft":
@@ -88,7 +83,6 @@ export function AirportExplorerUiProvider({ children }) {
     showMapLabels,
     showRunwayBeams,
     showRoutingPointBadges,
-    showAirspaceContext,
     altitudeFocus,
     selectedAircraftId,
   } = state;
@@ -132,10 +126,6 @@ export function AirportExplorerUiProvider({ children }) {
     dispatch({ type: "toggleRoutingPointBadges" });
   }, []);
 
-  const toggleAirspaceContext = useCallback(() => {
-    dispatch({ type: "toggleAirspaceContext" });
-  }, []);
-
   const setAltitudeFocus = useCallback((altitudeFocus) => {
     dispatch({ type: "setAltitudeFocus", altitudeFocus });
   }, []);
@@ -158,7 +148,6 @@ export function AirportExplorerUiProvider({ children }) {
       showMapLabels,
       showRunwayBeams,
       showRoutingPointBadges,
-      showAirspaceContext,
       altitudeFocus,
       selectedAircraftId,
       setMapZoom,
@@ -168,7 +157,6 @@ export function AirportExplorerUiProvider({ children }) {
       toggleMapLabels,
       toggleRunwayBeams,
       toggleRoutingPointBadges,
-      toggleAirspaceContext,
       selectAircraft,
       setSelectedAircraftId,
     }),
@@ -180,7 +168,6 @@ export function AirportExplorerUiProvider({ children }) {
       showMapLabels,
       showRunwayBeams,
       showRoutingPointBadges,
-      showAirspaceContext,
       altitudeFocus,
       selectedAircraftId,
       setMapZoom,
@@ -190,7 +177,6 @@ export function AirportExplorerUiProvider({ children }) {
       toggleMapLabels,
       toggleRunwayBeams,
       toggleRoutingPointBadges,
-      toggleAirspaceContext,
       selectAircraft,
       setSelectedAircraftId,
     ],

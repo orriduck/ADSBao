@@ -96,7 +96,6 @@ assert.deepEqual(
   resolveAircraftContextEmphasis({
     aircraft: aircraft[0],
     altitudeFocus: "all",
-    contextEnabled: true,
   }),
   {
     tone: "dimmed",
@@ -109,7 +108,6 @@ assert.equal(
   resolveAircraftContextEmphasis({
     aircraft: aircraft[0],
     altitudeFocus: "overflight",
-    contextEnabled: true,
   }).tone,
   "dimmed",
 );
@@ -117,7 +115,6 @@ assert.equal(
   resolveAircraftContextEmphasis({
     aircraft: aircraft[0],
     altitudeFocus: "overflight",
-    contextEnabled: true,
   }).showLabel,
   true,
 );
@@ -125,7 +122,6 @@ assert.equal(
   resolveAircraftContextEmphasis({
     aircraft: aircraft[0],
     altitudeFocus: "terminal",
-    contextEnabled: true,
   }).opacity,
   0.18,
 );
@@ -135,11 +131,4 @@ assert.equal(
     selected: true,
   }).opacity,
   1,
-);
-assert.equal(
-  resolveAircraftContextEmphasis({
-    aircraft: aircraft[0],
-    contextEnabled: false,
-  }).tone,
-  "primary",
 );

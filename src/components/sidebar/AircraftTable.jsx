@@ -37,7 +37,6 @@ const ALTITUDE_LEVELS = [
 export default function AircraftTable({
   aircraft = [],
   altitudeFocus = "all",
-  showAirspaceContext = true,
   selectedAircraftId = "",
   onSelectAircraft,
   onAltitudeFocus,
@@ -164,7 +163,6 @@ export default function AircraftTable({
           <AircraftList
             aircraft={rows}
             altitudeFocus={altitudeFocus}
-            showAirspaceContext={showAirspaceContext}
             selectedAircraftId={selectedAircraftId}
             onSelectAircraft={onSelectAircraft}
           />

@@ -40,7 +40,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showMapLabels,
     showRunwayBeams,
     showRoutingPointBadges,
-    showAirspaceContext,
     altitudeFocus,
     selectedAircraftId,
     closeSidebar,
@@ -104,7 +103,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     metarError: weather.metarError,
     aircraft: traffic.aircraft,
     altitudeFocus,
-    showAirspaceContext,
     selectedAircraftId,
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
@@ -147,7 +145,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           showMapLabels={showMapLabels}
           showRunwayBeams={showRunwayBeams}
           showRoutingPointBadges={showRoutingPointBadges}
-          showAirspaceContext={showAirspaceContext}
           altitudeFocus={altitudeFocus}
           selectedAircraftId={selectedAircraftId}
           onSelectAircraft={selectAircraft}

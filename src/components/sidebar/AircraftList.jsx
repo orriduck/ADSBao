@@ -16,7 +16,6 @@ import AircraftRow from "./AircraftRow.jsx";
 export default function AircraftList({
   aircraft = [],
   altitudeFocus = "all",
-  showAirspaceContext = true,
   selectedAircraftId = "",
   onSelectAircraft,
   flipStaggerStep = 0.02,
@@ -54,7 +53,6 @@ export default function AircraftList({
               cascadeOrder={cascadeOrders[index]}
               flipStaggerStep={flipStaggerStep}
               altitudeFocus={altitudeFocus}
-              showAirspaceContext={showAirspaceContext}
               selectedAircraftId={selectedAircraftId}
               onSelectAircraft={onSelectAircraft}
             />
@@ -70,7 +68,6 @@ function AircraftSlot({
   cascadeOrder = -1,
   flipStaggerStep = 0.02,
   altitudeFocus,
-  showAirspaceContext,
   selectedAircraftId,
   onSelectAircraft,
 }) {
@@ -130,7 +127,6 @@ function AircraftSlot({
   const emphasis = resolveAircraftContextEmphasis({
     aircraft: displayed,
     altitudeFocus,
-    contextEnabled: showAirspaceContext,
     selected,
   });
 

@@ -56,10 +56,9 @@ export function groupAircraftByAirportContext(aircraft = []) {
 export function resolveAircraftContextEmphasis({
   aircraft = {},
   altitudeFocus = "all",
-  contextEnabled = true,
   selected = false,
 } = {}) {
-  if (selected || !contextEnabled) {
+  if (selected) {
     return {
       tone: "primary",
       opacity: PRIMARY_OPACITY,
