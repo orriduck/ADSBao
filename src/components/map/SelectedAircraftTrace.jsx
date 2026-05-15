@@ -217,29 +217,32 @@ export default function SelectedAircraftTrace({
       };
     }
 
-    // Start each growable polyline with an empty coord array, then walk the
-    // curve forward. Each polyline reveals only the portion of the curve
-    // that falls inside its [startIndex, endIndex] range, so bands of
-    // different colors light up in sequence as the progress front moves
-    // through them.
+    // Start each growable polyline with an empty coord array, then walk a
+    // "back" cursor from the head index back toward the start. Each polyline
+    // reveals only the portion of the curve to the right of the cursor that
+    // falls inside its [startIndex, endIndex] range, so the most recent
+    // segment lights up first and the trail extends backwards in time —
+    // matching how a controller scope draws a track from the current return
+    // backward through history.
     growable.forEach((g) => g.polyline.setLatLngs([]));
-    const totalSegments = Math.max(1, traceData.curve.length - 1);
+    const headIndex = Math.max(1, traceData.curve.length - 1);
     const startTime =
       typeof performance !== "undefined" ? performance.now() : Date.now();
 
     const tick = (now) => {
       const elapsed = now - startTime;
       const t = Math.min(1, elapsed / TRACE_GROWTH_DURATION_MS);
-      const frontIndex = easeOutCubic(t) * totalSegments;
+      const revealedSegments = easeOutCubic(t) * headIndex;
+      const backCursor = headIndex - revealedSegments;
 
       growable.forEach((g) => {
-        const sliceEnd = Math.min(g.endIndex, Math.floor(frontIndex));
-        if (sliceEnd <= g.startIndex) {
+        const sliceStart = Math.max(g.startIndex, Math.ceil(backCursor));
+        if (sliceStart >= g.endIndex) {
           g.polyline.setLatLngs([]);
           return;
         }
         g.polyline.setLatLngs(
-          traceData.curve.slice(g.startIndex, sliceEnd + 1),
+          traceData.curve.slice(sliceStart, g.endIndex + 1),
         );
       });
 
