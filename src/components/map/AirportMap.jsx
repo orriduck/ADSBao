@@ -204,11 +204,7 @@ export default function AirportMap({
             icao={icao}
             aircraft={aircraft}
           />
-          <SelectedAircraftTrace
-            aircraft={selectedAircraft}
-            tracePoints={selectedAircraftTrace}
-            theme={currentTheme}
-          />
+          <SelectedAircraftTrace theme={currentTheme} />
           {visibleAircraft.map((ac) => (
             <AircraftPosition
               key={getAircraftIdentity(ac)}
