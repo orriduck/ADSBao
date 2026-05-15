@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import NumberFlow from "@number-flow/react";
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
+import { useAircraftPreview } from "../../features/aircraft-preview/AircraftPreviewContext.jsx";
 
 export default function AircraftRow({
   aircraft,
@@ -10,6 +11,7 @@ export default function AircraftRow({
   selected,
   onSelectAircraft,
 }) {
+  const { setPreviewedAircraft } = useAircraftPreview();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
   const routeMunicipalities = formatFlightRouteMunicipalityLabel(
@@ -29,6 +31,8 @@ export default function AircraftRow({
       }`}
       aria-pressed={selected}
       onClick={() => aircraftId && onSelectAircraft?.(aircraftId)}
+      onMouseEnter={() => setPreviewedAircraft(aircraft)}
+      onFocus={() => setPreviewedAircraft(aircraft)}
     >
       <AircraftIdentityCell
         callsign={callsign}

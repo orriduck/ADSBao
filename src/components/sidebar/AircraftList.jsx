@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
+import { useAircraftPreview } from "../../features/aircraft-preview/AircraftPreviewContext.jsx";
 import AircraftSlot from "./AircraftSlot.jsx";
 
 export default function AircraftList({
@@ -11,6 +12,7 @@ export default function AircraftList({
   onSelectAircraft,
   flipStaggerStep = 0.02,
 }) {
+  const { clearPreviewedAircraft } = useAircraftPreview();
   // Assign each slot whose tenant changed since last render a cascade ordinal
   // (0, 1, 2, ...) in slot order; unchanged slots get -1. Each flipping slot
   // delays its rotate by ordinal × flipStaggerStep, so consecutive flips fire
@@ -28,7 +30,17 @@ export default function AircraftList({
   });
 
   return (
-    <ul className="aircraft-table-list">
+    <ul
+      className="aircraft-table-list"
+      onMouseLeave={clearPreviewedAircraft}
+      onBlur={(event) => {
+        // Clear the preview only when focus exits the list entirely, not
+        // when it moves between rows inside the list.
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          clearPreviewedAircraft();
+        }
+      }}
+    >
       <AnimatePresence initial={false}>
         {aircraft.map((item, index) => (
           <motion.li

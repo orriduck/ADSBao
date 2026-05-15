@@ -83,7 +83,7 @@ export default function RootLayout({ children }) {
         <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
         <Toaster
           theme="system"
-          position="bottom-right"
+          position="top-right"
           toastOptions={{ className: "atc-toast" }}
         />
         <Analytics />

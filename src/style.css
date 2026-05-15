@@ -3707,3 +3707,194 @@ body {
     color: var(--atc-text);
 }
 
+/* Aircraft preview card — appears on sidebar-row hover. Rounded surface
+   with a silhouette that visually pokes past the top-left corner ("slides
+   out"), header type next to it, then identity / telemetry / metadata
+   below. Uses design tokens for surface + border so it flips with theme. */
+.aircraft-preview-card {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1200;
+    width: 280px;
+    max-width: calc(100vw - 32px);
+    padding: 18px 18px 14px;
+    background: var(--tone-card-strong);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--tone-border-firm);
+    border-radius: 12px;
+    box-shadow:
+        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
+        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    color: var(--atc-text);
+    font-family: 'Manrope', system-ui, sans-serif;
+    pointer-events: none;
+    user-select: none;
+}
+
+.aircraft-preview-card__header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+
+.aircraft-preview-icon {
+    flex-shrink: 0;
+    /* Negative offsets so the silhouette protrudes past the card's top-left
+       corner — the "big, slides out" treatment the spec called for. */
+    margin-top: -22px;
+    margin-left: -8px;
+    margin-bottom: -6px;
+}
+
+.aircraft-preview-icon--fallback {
+    background: var(--atc-line);
+    border-radius: 8px;
+    opacity: 0.45;
+}
+
+.aircraft-preview-type {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.aircraft-preview-type__code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    color: var(--atc-text);
+}
+
+.aircraft-preview-type__category {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--atc-faint);
+    text-transform: uppercase;
+}
+
+.aircraft-preview-card__divider {
+    height: 1px;
+    background: var(--atc-line);
+    margin: 4px 0 10px;
+}
+
+.aircraft-preview-card__divider--soft {
+    background: color-mix(in oklab, var(--atc-line) 60%, transparent);
+    margin: 10px 0 8px;
+}
+
+.aircraft-preview-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 12px;
+}
+
+.aircraft-preview-identity__callsign {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--atc-text);
+}
+
+.aircraft-preview-identity__route {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--atc-dim);
+}
+
+.aircraft-preview-identity__route--empty {
+    color: var(--atc-faint);
+    font-style: italic;
+    letter-spacing: 0.02em;
+}
+
+.aircraft-preview-telemetry {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 0;
+}
+
+.aircraft-preview-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.aircraft-preview-stat__label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--atc-faint);
+    text-transform: uppercase;
+}
+
+.aircraft-preview-stat__value {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: var(--atc-text);
+}
+
+.aircraft-preview-stat__number {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.aircraft-preview-stat__unit {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--atc-dim);
+    text-transform: uppercase;
+}
+
+.aircraft-preview-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+}
+
+.aircraft-preview-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.aircraft-preview-meta-row__label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--atc-faint);
+    text-transform: uppercase;
+}
+
+.aircraft-preview-meta-row__value {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--atc-dim);
+    font-variant-numeric: tabular-nums;
+}
+
