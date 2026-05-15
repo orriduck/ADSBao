@@ -86,34 +86,40 @@ export async function GET(request, { params }) {
   }
 
   const providers = selectProviderOrder(TRACE_PROVIDER_CHAIN, healthTracker);
-  const attempted = [];
+  const attempts = [];
   let lastError = null;
 
   for (const provider of providers) {
-    attempted.push(provider.id);
     try {
       const recent = await fetchTraceFromProvider(provider, { hex });
       if (!recent) {
+        attempts.push(`${provider.id}:404`);
         return jsonProxyResponse(
           request,
           { error: "Aircraft trace not found" },
           {
             status: 404,
-            headers: { "X-Data-Source": provider.id },
+            headers: {
+              "X-Data-Source": provider.id,
+              "X-Provider-Attempts": attempts.join(";"),
+            },
           },
         );
       }
+      attempts.push(`${provider.id}:200`);
       return Response.json(
         { hex, recent, source: provider.id },
         {
           headers: buildProxyHeaders(request, {
             "Cache-Control": "no-store",
             "X-Data-Source": provider.id,
+            "X-Provider-Attempts": attempts.join(";"),
           }),
         },
       );
     } catch (error) {
       lastError = error;
+      attempts.push(`${provider.id}:${error.status || "ERR"}`);
       console.warn(
         `[aircraft-trace] ${provider.id} failed`,
         error.status ? `status=${error.status}` : error.message,
@@ -131,7 +137,10 @@ export async function GET(request, { params }) {
     { error: "Failed to load aircraft trace" },
     {
       status: Number(lastError?.status) || 502,
-      headers: { "X-Data-Source": attempted.join(",") || "none" },
+      headers: {
+        "X-Data-Source": "failed",
+        "X-Provider-Attempts": attempts.join(";") || "none",
+      },
     },
   );
 }

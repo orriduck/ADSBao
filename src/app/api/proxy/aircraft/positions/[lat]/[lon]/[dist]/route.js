@@ -97,28 +97,30 @@ export async function GET(request, { params }) {
   }
 
   const providers = selectProviderOrder(POSITION_PROVIDER_CHAIN, healthTracker);
-  const attempted = [];
+  const attempts = [];
   let lastError = null;
 
   for (const provider of providers) {
-    attempted.push(provider.id);
     try {
       const payload = await fetchProviderPayload(provider, {
         latitude,
         longitude,
         distanceNm,
       });
+      attempts.push(`${provider.id}:200`);
       return Response.json(
         { ...payload, source: provider.id },
         {
           headers: buildProxyHeaders(request, {
             "Cache-Control": "no-store",
             "X-Data-Source": provider.id,
+            "X-Provider-Attempts": attempts.join(";"),
           }),
         },
       );
     } catch (error) {
       lastError = error;
+      attempts.push(`${provider.id}:${error.status || "ERR"}`);
       console.warn(
         `[aircraft-positions] ${provider.id} failed`,
         error.status ? `status=${error.status}` : error.message,
@@ -131,14 +133,15 @@ export async function GET(request, { params }) {
     }
   }
 
-  // Surface the chain that was attempted so the audit log can show what
-  // failed (e.g. "(adsb.lol,adsb.fi)") instead of an empty source slot.
   return jsonProxyResponse(
     request,
     { error: "Failed to load aircraft positions" },
     {
       status: Number(lastError?.status) || 502,
-      headers: { "X-Data-Source": attempted.join(",") || "none" },
+      headers: {
+        "X-Data-Source": "failed",
+        "X-Provider-Attempts": attempts.join(";") || "none",
+      },
     },
   );
 }
