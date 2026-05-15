@@ -3794,6 +3794,21 @@ body {
     text-transform: uppercase;
 }
 
+.aircraft-preview-card__pocket {
+    /* Front panel of the card — same surface tone as the card itself, but
+       a separate stacking layer so it draws ON TOP of the silhouette
+       layer. As the icon slides up from y:96, this panel hides the lower
+       portion of its travel; only the part that rises above the panel's
+       top edge becomes visible. Full-bleed horizontal + bottom margins
+       so the panel meets the card's outer rounded corners cleanly. */
+    position: relative;
+    background: var(--tone-card-strong);
+    margin: 0 -18px -14px;
+    padding: 0 18px 14px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
 .aircraft-preview-card__divider {
     height: 1px;
     background: var(--atc-line);

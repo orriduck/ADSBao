@@ -59,11 +59,17 @@ export default function AircraftPreviewCard({ aircraft = null }) {
             </motion.div>
             <AircraftPreviewType aircraft={aircraft} />
           </header>
-          <div className="aircraft-preview-card__divider" />
-          <AircraftPreviewIdentity aircraft={aircraft} />
-          <AircraftPreviewTelemetry aircraft={aircraft} />
-          <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
-          <AircraftPreviewMetadata aircraft={aircraft} />
+          {/* Body sits in its own panel so it draws ON TOP of the icon. As
+              the icon slides up from y:96 it travels behind this panel and
+              only emerges above the divider — the "pulled out of the
+              pocket" layering. */}
+          <div className="aircraft-preview-card__pocket">
+            <div className="aircraft-preview-card__divider" />
+            <AircraftPreviewIdentity aircraft={aircraft} />
+            <AircraftPreviewTelemetry aircraft={aircraft} />
+            <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
+            <AircraftPreviewMetadata aircraft={aircraft} />
+          </div>
         </motion.aside>
       )}
     </AnimatePresence>
