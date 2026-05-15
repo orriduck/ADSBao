@@ -3781,11 +3781,16 @@ body {
 
 .aircraft-preview-type__code {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    line-height: 1.1;
+    font-size: 22px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
     color: var(--atc-text);
+    white-space: nowrap;
+    /* Let the type tag visually overhang the card's right edge a touch.
+       Card has overflow:visible so the translation paints freely. */
+    transform: translateX(20px);
 }
 
 .aircraft-preview-type__category {
@@ -3795,6 +3800,7 @@ body {
     letter-spacing: 0.12em;
     color: var(--atc-faint);
     text-transform: uppercase;
+    transform: translateX(20px);
 }
 
 .aircraft-preview-card__pocket {
@@ -3866,9 +3872,11 @@ body {
 
 .aircraft-preview-identity__callsign {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-size: 22px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
     color: var(--atc-text);
 }
 
