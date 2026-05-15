@@ -1,17 +1,38 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
+import { useReducedMotion } from "motion/react";
 import { useMapInstance } from "./MapContext.js";
 import {
   AIRPORT_MAP_PANES,
   SELECTED_AIRCRAFT_TRACE_STYLE,
 } from "../../config/airportMap.js";
 import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
-import {
-  buildAircraftTraceCurve,
-  downsampleTracePoints,
-} from "../../features/aircraft-trace/aircraftTraceModel.js";
+import { computeTraceGeometry } from "../../features/aircraft-trace/traceGeometry.js";
+import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
+
+const TRACE_GROWTH_DURATION_MS = 900;
+const TRACE_LABEL_FADE_STAGGER_MS = 70;
+const TRACE_LABEL_FADE_DURATION_MS = 360;
+
+function formatTraceLabelTime(timestampMs) {
+  if (!Number.isFinite(timestampMs)) return "";
+  const d = new Date(timestampMs);
+  return d.toLocaleTimeString([], {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatTraceLabelAltitude(point) {
+  if (!point) return "";
+  if (point.onGround || point.altitude === 0) return "GND";
+  const altitude = Number(point.altitude);
+  if (!Number.isFinite(altitude)) return "";
+  return Math.round(altitude).toLocaleString();
+}
 
 const getTraceStyle = (theme) =>
   theme === "light"
@@ -24,43 +45,11 @@ function removeLayers(layers = [], map) {
   });
 }
 
-function sliceCurve(coords, startIndex, endIndex) {
-  if (endIndex - startIndex < 1) return [];
-  return coords.slice(startIndex, endIndex + 1);
-}
-
-function buildTraceBands(coords) {
-  const bandCount = SELECTED_AIRCRAFT_TRACE_STYLE.bandCount;
-  const segmentCount = Math.max(0, coords.length - 1);
-  if (segmentCount < 1) return [];
-
-  return Array.from({ length: bandCount }, (_, bandIndex) => {
-    const startIndex = Math.floor((segmentCount * bandIndex) / bandCount);
-    const endIndex = Math.floor((segmentCount * (bandIndex + 1)) / bandCount);
-    return {
-      index: bandIndex,
-      coords: sliceCurve(coords, startIndex, endIndex),
-      emphasis: bandIndex / Math.max(1, bandCount - 1),
-    };
-  }).filter((band) => band.coords.length >= 2);
-}
-
-function buildTraceSamplePoints(points) {
-  const usable = points.slice(0, -1);
-  if (usable.length <= 8) return usable;
-
-  const stride = Math.max(1, Math.floor(usable.length / 8));
-  return usable.filter((_, index) => index % stride === 0);
-}
-
-function buildHeadSweepCoords(coords) {
-  const tailRatio = SELECTED_AIRCRAFT_TRACE_STYLE.sweepTailRatio;
-  const startIndex = Math.max(
-    0,
-    Math.floor(coords.length - Math.max(8, coords.length * tailRatio)),
-  );
-  return coords.slice(startIndex);
-}
+// Cubic ease-in-out — gentle on both ends, fast in the middle. Reads as
+// "the trail is being unfurled" rather than "snap then crawl" that plain
+// ease-out produced when most of the path drew in the first 100ms.
+const easeInOutCubic = (t) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 export default function SelectedAircraftTrace({
   aircraft = null,
@@ -69,71 +58,123 @@ export default function SelectedAircraftTrace({
 }) {
   const map = useMapInstance();
   const layersRef = useRef([]);
-  const traceData = useMemo(() => {
-    const sourcePoints =
-      tracePoints.length > 1
-        ? tracePoints
-        : (aircraft?.traceHistory || []).map((point) => ({
-            ...point,
-            timestampMs: point?.timestampMs ?? point?.time ?? null,
-          }));
-    const sampled = downsampleTracePoints(
-      sourcePoints,
-      SELECTED_AIRCRAFT_TRACE_STYLE.maxRenderPoints,
-    );
-    const curve = buildAircraftTraceCurve(sampled, 5);
+  const rafIdRef = useRef(null);
+  const previousHexRef = useRef(null);
+  const isAnimatingRef = useRef(false);
+  const pendingTracePointsRef = useRef(null);
+  const reducedMotion = useReducedMotion();
+  const aircraftHex = aircraft ? getAircraftIdentity(aircraft) || null : null;
 
-    return {
-      curve,
-      bands: buildTraceBands(curve),
-      samplePoints: buildTraceSamplePoints(sampled),
-      sweepCoords: buildHeadSweepCoords(curve),
-    };
-  }, [aircraft, tracePoints]);
+  // Local "committed" tracePoints decouples render from prop. While the
+  // growth animation is running, live poll appends are held in
+  // pendingTracePointsRef and applied once the animation settles. This is
+  // the key fix for the "two segments" feel: previously each 3-second
+  // poll triggered a full layer rebuild mid-animation, restarting the
+  // reveal from the new state.
+  const [committedTracePoints, setCommittedTracePoints] = useState(tracePoints);
+
+  // Sync prop → committed when not animating. When animating, stash for later.
+  useEffect(() => {
+    if (isAnimatingRef.current) {
+      pendingTracePointsRef.current = tracePoints;
+      return;
+    }
+    setCommittedTracePoints(tracePoints);
+  }, [tracePoints]);
+
+  // On aircraft change (including initial selection / deselection), reset
+  // committed to empty so the next live-sync fires with whatever
+  // useAircraftTrace publishes for the new aircraft. Skipping this would
+  // leave stale geometry from the previous selection visible (and
+  // animating!) for one render until useAircraftTrace's hex effect clears
+  // it — that's the "trace appears with B's shape under A's selection,
+  // then snaps to A's data" race.
+  useEffect(() => {
+    pendingTracePointsRef.current = null;
+    setCommittedTracePoints([]);
+  }, [aircraftHex]);
+
+  // Pre-computed render geometry. Pure function of committed trace points.
+  const geometry = useMemo(
+    () =>
+      computeTraceGeometry({
+        tracePoints: committedTracePoints,
+        maxRenderPoints: SELECTED_AIRCRAFT_TRACE_STYLE.maxRenderPoints,
+        bandCount: SELECTED_AIRCRAFT_TRACE_STYLE.bandCount,
+        sweepTailRatio: SELECTED_AIRCRAFT_TRACE_STYLE.sweepTailRatio,
+      }),
+    [committedTracePoints],
+  );
 
   useEffect(() => {
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
     removeLayers(layersRef.current, map);
     layersRef.current = [];
 
-    if (!map || traceData.curve.length < 2) return undefined;
+    if (!map || !geometry) {
+      previousHexRef.current = null;
+      isAnimatingRef.current = false;
+      return undefined;
+    }
+
+    const isFreshSelection = previousHexRef.current !== aircraftHex;
+    previousHexRef.current = aircraftHex;
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const traceStyle = getTraceStyle(theme);
     const layers = [];
+    // Reveal-eligible polylines (bands + glow). Each carries its
+    // [startIndex, endIndex] within geometry.curve so the animation can
+    // drive every polyline from a single back-cursor in curve-index space —
+    // they all show the same visible curve range at any moment, which is
+    // what makes a 7-band trail look like one unfurling line instead of
+    // staggered segments.
+    const reveal = [];
 
-    traceData.bands.forEach((band) => {
+    geometry.bands.forEach((band) => {
       const opacity = 0.08 + band.emphasis * traceStyle.lineOpacity;
       const weight = traceStyle.lineWeight * (0.82 + band.emphasis * 0.28);
-      layers.push(
-        L.polyline(band.coords, {
-          pane,
-          color: traceStyle.lineColor,
-          opacity,
-          weight,
-          interactive: false,
-          lineCap: "round",
-          lineJoin: "round",
-          className: "aircraft-trace aircraft-trace--band",
-        }).addTo(map),
-      );
-    });
-
-    layers.push(
-      L.polyline(traceData.curve, {
+      const polyline = L.polyline(band.coords.slice().reverse(), {
         pane,
-        color: traceStyle.glowColor,
-        opacity: traceStyle.glowOpacity,
-        weight: traceStyle.glowWeight,
+        color: traceStyle.lineColor,
+        opacity,
+        weight,
         interactive: false,
         lineCap: "round",
         lineJoin: "round",
-        className: "aircraft-trace aircraft-trace--glow",
-      }).addTo(map),
-    );
+        className: "aircraft-trace aircraft-trace--band",
+      }).addTo(map);
+      layers.push(polyline);
+      reveal.push({
+        polyline,
+        startIndex: band.startIndex,
+        endIndex: band.endIndex,
+      });
+    });
 
-    if (traceData.sweepCoords.length >= 2) {
+    const glowPolyline = L.polyline(geometry.curve.slice().reverse(), {
+      pane,
+      color: traceStyle.glowColor,
+      opacity: traceStyle.glowOpacity,
+      weight: traceStyle.glowWeight,
+      interactive: false,
+      lineCap: "round",
+      lineJoin: "round",
+      className: "aircraft-trace aircraft-trace--glow",
+    }).addTo(map);
+    layers.push(glowPolyline);
+    reveal.push({
+      polyline: glowPolyline,
+      startIndex: 0,
+      endIndex: geometry.headIndex,
+    });
+
+    if (geometry.sweepCoords.length >= 2) {
       layers.push(
-        L.polyline(traceData.sweepCoords, {
+        L.polyline(geometry.sweepCoords, {
           pane,
           color: traceStyle.sweepColor,
           opacity: traceStyle.sweepOpacity,
@@ -147,8 +188,8 @@ export default function SelectedAircraftTrace({
       );
     }
 
-    traceData.samplePoints.forEach((point, index) => {
-      const emphasis = (index + 1) / traceData.samplePoints.length;
+    geometry.samplePoints.forEach((point, index) => {
+      const emphasis = (index + 1) / geometry.samplePoints.length;
       layers.push(
         L.circleMarker([point.lat, point.lon], {
           pane,
@@ -162,13 +203,185 @@ export default function SelectedAircraftTrace({
       );
     });
 
+    // Time / altitude labels for historic sample points. Built head→tail so
+    // the head label can fade in first when we cascade the visibility flip.
+    const labelMarkers = [];
+    [...geometry.labelPoints].reverse().forEach((point, index) => {
+      const time = formatTraceLabelTime(point.timestampMs);
+      const altitude = formatTraceLabelAltitude(point);
+      if (!time && !altitude) return;
+      const isGround = altitude === "GND";
+      const altRow = isGround
+        ? `<span class="aircraft-trace-label__alt aircraft-trace-label__alt--ground">GND</span>`
+        : altitude
+          ? `<span class="aircraft-trace-label__alt">${altitude}<span class="aircraft-trace-label__alt-unit">FT</span></span>`
+          : "";
+      const marker = L.marker([point.lat, point.lon], {
+        pane,
+        icon: L.divIcon({
+          className: "aircraft-trace-label",
+          html: `
+            <span class="aircraft-trace-label__time">${time}</span>
+            ${altRow}
+          `,
+          iconSize: [76, 30],
+          iconAnchor: [38, 38],
+        }),
+        interactive: false,
+        keyboard: false,
+      }).addTo(map);
+      const el = marker.getElement?.();
+      if (el) {
+        el.style.transitionDelay = `${index * TRACE_LABEL_FADE_STAGGER_MS}ms`;
+      }
+      labelMarkers.push(marker);
+      layers.push(marker);
+    });
+
     layersRef.current = layers;
 
+    // Helper: flip all label markers to visible. Used for both the
+    // immediate (non-fresh / reduced-motion) path and the deferred
+    // post-animation cascade.
+    const revealLabels = (instant) => {
+      labelMarkers.forEach((m) => {
+        const el = m.getElement?.();
+        if (!el) return;
+        if (instant) {
+          el.style.transition = "none";
+          el.style.opacity = "1";
+        } else {
+          el.style.opacity = "1";
+        }
+      });
+    };
+
+    if (!isFreshSelection || reducedMotion) {
+      revealLabels(true);
+      return () => {
+        if (rafIdRef.current) {
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+        }
+        removeLayers(layersRef.current, map);
+        layersRef.current = [];
+      };
+    }
+
+    // Synchronously hide all reveal paths via visibility:hidden so the
+    // user doesn't see a flash of the full trace during the one-frame
+    // defer below. visibility (vs opacity / display) doesn't trigger
+    // reflow and is cheap to flip.
+    const initialPaths = reveal
+      .map((entry) => entry.polyline.getElement?.())
+      .filter(Boolean);
+    initialPaths.forEach((path) => {
+      path.style.visibility = "hidden";
+    });
+
+    isAnimatingRef.current = true;
+    const { headIndex } = geometry;
+
+    // Defer the actual dash setup + animation start by one rAF tick.
+    // Leaflet's SVG renderer flushes path geometry on the next animation
+    // frame after addTo; calling getTotalLength immediately can return 0
+    // for a brief window (the symptom: animation block is reached but
+    // every segment is filtered out and the polylines just appear at
+    // full state). One rAF gets us past that.
+    rafIdRef.current = requestAnimationFrame(() => {
+      const segments = reveal
+        .map((entry) => {
+          const path = entry.polyline.getElement?.();
+          const length = path?.getTotalLength?.();
+          if (!path || !Number.isFinite(length) || length <= 0) return null;
+          return { ...entry, path, pathLength: length };
+        })
+        .filter(Boolean);
+
+      // Re-show paths (we'll control visibility via dashoffset from here).
+      initialPaths.forEach((path) => {
+        path.style.visibility = "";
+      });
+
+      if (segments.length === 0) {
+        rafIdRef.current = null;
+        isAnimatingRef.current = false;
+        return;
+      }
+
+      // Stage: every path hidden via full dashoffset.
+      segments.forEach((seg) => {
+        seg.path.style.strokeDasharray = `${seg.pathLength}`;
+        seg.path.style.strokeDashoffset = `${seg.pathLength}`;
+      });
+
+      const startTime =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
+
+      // Single back-cursor in curve-index space drives every polyline.
+      // Cursor starts at headIndex (no reveal) and walks toward 0 (full
+      // reveal). Each polyline reveals only the part of its index range
+      // the cursor has swept past, so the head band and the glow draw the
+      // SAME curve segment at the SAME time, no matter their independent
+      // path lengths.
+      const tick = (now) => {
+        const elapsed = now - startTime;
+        const t = Math.min(1, elapsed / TRACE_GROWTH_DURATION_MS);
+        const cursor = headIndex * (1 - easeInOutCubic(t));
+
+        segments.forEach((seg) => {
+          if (cursor <= seg.startIndex) {
+            seg.path.style.strokeDashoffset = "0";
+          } else if (cursor >= seg.endIndex) {
+            seg.path.style.strokeDashoffset = `${seg.pathLength}`;
+          } else {
+            const f =
+              (cursor - seg.startIndex) / (seg.endIndex - seg.startIndex);
+            seg.path.style.strokeDashoffset = `${f * seg.pathLength}`;
+          }
+        });
+
+        if (t < 1) {
+          rafIdRef.current = requestAnimationFrame(tick);
+          return;
+        }
+
+        rafIdRef.current = null;
+        isAnimatingRef.current = false;
+        // Clear inline dash styles so next-poll rebuilds inherit a clean
+        // path, otherwise the freshly-built paths inherit stale values.
+        segments.forEach((seg) => {
+          seg.path.style.strokeDasharray = "";
+          seg.path.style.strokeDashoffset = "";
+        });
+        // Labels were created at opacity 0 with staggered transitionDelay;
+        // flipping each to opacity 1 here triggers the CSS transition.
+        revealLabels(false);
+        // Flush any deferred trace updates that arrived during animation.
+        if (pendingTracePointsRef.current) {
+          const pending = pendingTracePointsRef.current;
+          pendingTracePointsRef.current = null;
+          setCommittedTracePoints(pending);
+        }
+      };
+      rafIdRef.current = requestAnimationFrame(tick);
+    });
+
     return () => {
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      // Restore visibility in case we tore down mid-defer before the rAF
+      // callback got to re-show.
+      initialPaths.forEach((path) => {
+        path.style.visibility = "";
+      });
+      isAnimatingRef.current = false;
       removeLayers(layersRef.current, map);
       layersRef.current = [];
     };
-  }, [map, theme, traceData]);
+  }, [map, theme, geometry, aircraftHex, reducedMotion]);
 
   return null;
 }

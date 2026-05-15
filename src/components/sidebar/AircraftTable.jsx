@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import NumberFlow from "@number-flow/react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { Check, Minus, Search } from "lucide-react";
 import {
   Select,
@@ -34,6 +34,7 @@ import {
 } from "../../features/airport-context/airportContextUiModel.js";
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
 import AircraftList from "./AircraftList.jsx";
+import AircraftSlot from "./AircraftSlot.jsx";
 
 export default function AircraftTable({
   aircraft = [],
@@ -69,6 +70,24 @@ export default function AircraftTable({
       }),
     [aircraft, altitudeLevel, query, trafficFilter, typeFilter],
   );
+  // Pinned aircraft sits above the scrolling list and stays visible even
+  // when filters would otherwise exclude it. Look in the full nearby set,
+  // not the filtered rows, so a user can keep watching a selection without
+  // losing it to a stray filter toggle.
+  const pinnedAircraft = useMemo(() => {
+    if (!selectedAircraftId) return null;
+    return (
+      aircraft.find((item) => getAircraftIdentity(item) === selectedAircraftId) ||
+      null
+    );
+  }, [aircraft, selectedAircraftId]);
+  // Don't duplicate the pinned aircraft inside the scroll list.
+  const listRows = useMemo(() => {
+    if (!pinnedAircraft) return rows;
+    return rows.filter(
+      (item) => getAircraftIdentity(item) !== selectedAircraftId,
+    );
+  }, [pinnedAircraft, rows, selectedAircraftId]);
 
   return (
     <div className={`flex flex-col ${fill ? "h-full" : ""}`}>
@@ -155,19 +174,40 @@ export default function AircraftTable({
           <span className="text-right">GS</span>
           <span className="text-right">ALT</span>
         </div>
+
+        <AnimatePresence initial={false}>
+          {pinnedAircraft && (
+            <motion.div
+              key="aircraft-table-pin"
+              className="aircraft-table-pin"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
+              <AircraftSlot
+                aircraft={pinnedAircraft}
+                cascadeOrder={0}
+                flipStaggerStep={0}
+                selectedAircraftId={selectedAircraftId}
+                onSelectAircraft={onSelectAircraft}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <motion.div
         layoutScroll
         className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}
       >
-        {rows.length === 0 ? (
+        {listRows.length === 0 && !pinnedAircraft ? (
           <div className="px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
             {aircraft.length ? "No aircraft match" : "No aircraft in range"}
           </div>
         ) : (
           <AircraftList
-            aircraft={rows}
+            aircraft={listRows}
             selectedAircraftId={selectedAircraftId}
             onSelectAircraft={onSelectAircraft}
           />

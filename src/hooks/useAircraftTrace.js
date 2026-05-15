@@ -77,10 +77,15 @@ export function useAircraftTrace(selectedAircraft = null) {
   }, [hex]);
 
   // Append the latest polled position to the trace so the trail extends
-  // forward in real time. mergeTraceHistory dedupes by (timestamp, lat, lon),
-  // so repeated polls with the same data don't grow the array.
+  // forward in real time. Wait until the recent-trace fetch has resolved
+  // before doing this — otherwise a 1-point stub from the live append
+  // would render and consume the "fresh selection" animation slot in
+  // SelectedAircraftTrace, so the real full trace would arrive afterward
+  // with no growth animation. mergeTraceHistory dedupes by
+  // (timestamp, lat, lon), so repeated polls with the same data don't
+  // grow the array.
   useEffect(() => {
-    if (!hex) return;
+    if (!hex || loading) return;
     const point = liveAircraftToTracePoint(selectedAircraft);
     if (!point) return;
     setTracePoints((current) =>
@@ -89,7 +94,7 @@ export function useAircraftTrace(selectedAircraft = null) {
         fallbackHistory: current,
       }),
     );
-  }, [hex, selectedAircraft]);
+  }, [hex, loading, selectedAircraft]);
 
   return {
     tracePoints,

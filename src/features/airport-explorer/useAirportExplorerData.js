@@ -18,6 +18,7 @@ export function useAirportExplorerData(airportProfile) {
     initialLoading: aircraftInitialLoading,
     lastUpdated,
     feedStatus,
+    feedSource,
   } = useAircraftPositions(
     airportProfile.icao,
     airportProfile.lat,
@@ -48,6 +49,7 @@ export function useAirportExplorerData(airportProfile) {
       aircraftInitialLoading,
       lastUpdated,
       feedStatus,
+      feedSource,
       routeLoadingCount,
     },
   };

@@ -19,6 +19,16 @@ try {
     "[audit:/api/proxy/flight-routes/callsign/DAL123]: 200 +14ms",
   );
 
+  assert.equal(
+    formatAuditLogLine({
+      endpointPath: "/api/proxy/aircraft/positions/40.6/-73.7/30",
+      status: 200,
+      durationMs: 87,
+      source: "adsb.lol",
+    }),
+    "[audit:/api/proxy/aircraft/positions/40.6/-73.7/30]: 200 +87ms (adsb.lol)",
+  );
+
   const okFetch = async () => ({ status: 200 });
   const auditedOkFetch = withAuditLogging(okFetch, {
     service: "example",
@@ -39,6 +49,62 @@ try {
     /^\[audit:\/flights\/CallSign\/UAL442\/2026-05-11\]: 200 \+\d+ms$/,
   );
 
+  // When the response carries x-data-source, the audit line picks it up.
+  const sourcedOkFetch = withAuditLogging(
+    async () => ({
+      status: 200,
+      headers: {
+        get: (name) => (name.toLowerCase() === "x-data-source" ? "adsb.fi" : null),
+      },
+    }),
+    { service: "example" },
+  );
+  await sourcedOkFetch("/api/proxy/aircraft/positions/40.6/-73.7/30");
+  assert.match(
+    logs[2][0],
+    /^\[audit:\/api\/proxy\/aircraft\/positions\/40\.6\/-73\.7\/30\]: 200 \+\d+ms \(adsb\.fi\)$/,
+  );
+
+  // x-provider-attempts wins when present and shows the chain with statuses
+  // on intermediate hops (the trailing hop drops its status because the outer
+  // log already shows the final HTTP status).
+  const chainedFetch = withAuditLogging(
+    async () => ({
+      status: 502,
+      headers: {
+        get: (name) => {
+          const key = name.toLowerCase();
+          if (key === "x-provider-attempts") return "adsb.lol:502;adsb.fi:429";
+          if (key === "x-data-source") return "failed";
+          return null;
+        },
+      },
+    }),
+    { service: "example" },
+  );
+  await chainedFetch("/api/proxy/aircraft/positions/40.6/-73.7/30");
+  assert.match(
+    logs[3][0],
+    /^\[audit:\/api\/proxy\/aircraft\/positions\/40\.6\/-73\.7\/30\]: 502 \+\d+ms \(adsb\.lol:502 → adsb\.fi\)$/,
+  );
+
+  // Single-attempt success collapses to bare provider id (no status noise).
+  const singleAttemptFetch = withAuditLogging(
+    async () => ({
+      status: 200,
+      headers: {
+        get: (name) =>
+          name.toLowerCase() === "x-provider-attempts" ? "adsb.lol:200" : null,
+      },
+    }),
+    { service: "example" },
+  );
+  await singleAttemptFetch("/api/proxy/aircraft/positions/40.6/-73.7/30");
+  assert.match(
+    logs[4][0],
+    /^\[audit:\/api\/proxy\/aircraft\/positions\/40\.6\/-73\.7\/30\]: 200 \+\d+ms \(adsb\.lol\)$/,
+  );
+
   const auditedErrorFetch = withAuditLogging(
     async () => {
       throw new Error("network failed");
@@ -47,7 +113,7 @@ try {
   );
 
   await assert.rejects(() => auditedErrorFetch("/broken"), /network failed/);
-  assert.match(logs[2][0], /^\[audit:\/broken\]: ERROR \+\d+ms$/);
+  assert.match(logs[5][0], /^\[audit:\/broken\]: ERROR \+\d+ms$/);
 } finally {
   console.log = originalConsoleLog;
 }
