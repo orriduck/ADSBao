@@ -6,22 +6,18 @@ import { MapControlIcon } from "./mapControlIcons.jsx";
 
 const AUDIO_ICON_KEY = "audioLines";
 const LAYERS_ICON_KEY = "layers";
-const MORE_ICON_KEY = "slidersHorizontal";
 
 export default function MapControlRail({
   currentZoomOption,
   currentTheme,
   themeTitle,
-  drawerOpen,
   layerDrawerOpen,
   playing,
   audioReady,
-  drawerId,
   layerDrawerId,
   onCycleZoom,
   onToggleAudio,
   onCycleTheme,
-  onToggleDrawer,
   onToggleLayerDrawer,
 }) {
   return (
@@ -75,19 +71,6 @@ export default function MapControlRail({
         type="button"
       >
         <MapControlIcon iconKey={LAYERS_ICON_KEY} />
-      </Button>
-
-      <Button
-        variant="atcIcon"
-        size="icon"
-        className={`ctrl-btn ctrl-more ${drawerOpen ? "active" : ""}`}
-        aria-expanded={drawerOpen}
-        aria-controls={drawerId}
-        title="Map controls"
-        onClick={onToggleDrawer}
-        type="button"
-      >
-        <MapControlIcon iconKey={MORE_ICON_KEY} />
       </Button>
     </div>
   );
