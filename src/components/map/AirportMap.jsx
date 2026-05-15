@@ -44,6 +44,7 @@ export default function AirportMap({
   altitudeLevel = "all",
   selectedAircraftId = "",
   onSelectAircraft,
+  onRevalidateRoute,
   runwayMap = null,
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
@@ -210,6 +211,7 @@ export default function AirportMap({
               selectionActive={selectionActive}
               traceActive={selectionActive}
               onSelectAircraft={onSelectAircraft}
+              onRevalidateRoute={onRevalidateRoute}
             />
           ))}
         </MapContext.Provider>

@@ -158,6 +158,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             altitudeLevel={altitudeLevel}
             selectedAircraftId={selectedAircraftId}
             onSelectAircraft={selectAircraft}
+            onRevalidateRoute={traffic.revalidateFlightRoute}
             runwayMap={procedures.runwayMap}
             runwayProcedures={null}
             procedureFixLabelRunwayProcedures={procedures.runwayProcedures}

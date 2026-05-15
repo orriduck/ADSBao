@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   buildRouteCacheKey,
   buildRoutesByCallsign,
@@ -9,6 +9,7 @@ import {
 } from "../features/flight-routes/flightRouteLookupModel.js";
 import { flightRouteClient } from "../services/aviationData.js";
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../config/aviation.js";
+import { normalizeCallsign } from "../utils/callsign.js";
 
 const routeCache = new Map();
 const inFlight = new Set();
@@ -213,5 +214,46 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
     });
   }, [aircraft, routeContext, version]);
 
-  return { routesByCallsign, loadingCount };
+  // Bypass the cache + the VRS standing-data step and force a fresh
+  // AeroDataBox lookup. Used when the user explicitly asks to revalidate
+  // a focused aircraft's route (e.g., clicking on the already-selected
+  // plane). The new result overwrites the cached entry.
+  const revalidate = useCallback(
+    async (callsign) => {
+      const normalized = normalizeCallsign(callsign);
+      if (!normalized) return null;
+
+      const cacheKey = buildRouteCacheKey(normalized, routeContext);
+      routeCache.delete(cacheKey);
+      inFlight.add(normalized);
+      if (mountedRef.current) {
+        setLoadingCount(inFlight.size + queued.size);
+      }
+      try {
+        const route = await flightRouteClient.fetchFlightRoute(
+          normalized,
+          routeContext,
+          { forceAerodatabox: true },
+        );
+        routeCache.set(cacheKey, { route, time: Date.now() });
+        return route;
+      } catch (error) {
+        console.warn(
+          `Flight route revalidation failed for ${normalized}:`,
+          error.message,
+        );
+        routeCache.set(cacheKey, { route: null, time: Date.now() });
+        return null;
+      } finally {
+        inFlight.delete(normalized);
+        if (mountedRef.current) {
+          setVersion((v) => v + 1);
+          setLoadingCount(inFlight.size + queued.size);
+        }
+      }
+    },
+    [routeContext],
+  );
+
+  return { routesByCallsign, loadingCount, revalidate };
 }
