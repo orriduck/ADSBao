@@ -24,6 +24,16 @@ const TRACE_REVEAL_EASING = "cubic-bezier(0.25, 1, 0.5, 1)";
 const TRACE_REVEAL_SETTLE_MS = 80;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+// Core trace gradient opacity envelope. Tail floor keeps the oldest segment
+// visible (20%) rather than fading completely to invisible; head ceiling
+// stays just under fully opaque (95%) so the live aircraft marker still
+// reads as the brightest thing on the trail.
+const TRACE_CORE_TAIL_OPACITY = 0.2;
+const TRACE_CORE_HEAD_OPACITY = 0.95;
+const TRACE_CORE_MID_OPACITY =
+  TRACE_CORE_TAIL_OPACITY +
+  (TRACE_CORE_HEAD_OPACITY - TRACE_CORE_TAIL_OPACITY) * 0.34;
+
 function formatTraceLabelTime(timestampMs) {
   if (!Number.isFinite(timestampMs)) return "";
   const d = new Date(timestampMs);
@@ -234,9 +244,9 @@ export default function SelectedAircraftTrace({
         curve: geometry.curve,
         gradientId: `aircraft-trace-core-${gradientBase}`,
         color: traceStyle.lineColor,
-        tailOpacity: 0,
-        midOpacity: traceStyle.lineOpacity * 0.34,
-        headOpacity: traceStyle.lineOpacity,
+        tailOpacity: TRACE_CORE_TAIL_OPACITY,
+        midOpacity: TRACE_CORE_MID_OPACITY,
+        headOpacity: TRACE_CORE_HEAD_OPACITY,
       }),
     );
 
@@ -347,14 +357,13 @@ export default function SelectedAircraftTrace({
       pendingTraceRef.current = null;
       setCommittedTrace(pending);
     };
-    const finishReveal = (segments = []) => {
+    const finishReveal = (paths = []) => {
       rafIdRef.current = null;
       revealTimeoutRef.current = null;
       isAnimatingRef.current = false;
-      segments.forEach((seg) => {
-        seg.path.style.transition = "";
-        seg.path.style.strokeDasharray = "";
-        seg.path.style.strokeDashoffset = "";
+      paths.forEach((path) => {
+        path.style.transition = "";
+        path.style.opacity = "";
       });
       completedRevealKeyRef.current = traceRevealKey;
       flushPendingTrace();
@@ -375,71 +384,55 @@ export default function SelectedAircraftTrace({
       };
     }
 
-    // Synchronously hide all reveal paths via visibility:hidden so the
-    // user doesn't see a flash of the full trace during the one-frame
-    // defer below. visibility (vs opacity / display) doesn't trigger
-    // reflow and is cheap to flip.
-    const initialPaths = revealPolylines
+    // Resolve the SVG <path> elements for the core + glow polylines. Any
+    // path that isn't ready (canvas renderer, unmounted) just renders at
+    // full state — same fallback as before, no animation.
+    const revealPaths = revealPolylines
       .map((polyline) => polyline.getElement?.())
       .filter(Boolean);
-    initialPaths.forEach((path) => {
-      path.style.visibility = "hidden";
-    });
+
+    if (revealPaths.length === 0) {
+      revealLabels(true);
+      completedRevealKeyRef.current = traceRevealKey;
+      flushPendingTrace();
+      return () => {
+        if (rafIdRef.current) {
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+        }
+        removeLayers(layersRef.current, map);
+        layersRef.current = [];
+        removeElements(gradientElsRef.current);
+        gradientElsRef.current = [];
+      };
+    }
 
     isAnimatingRef.current = true;
 
-    // Defer the actual dash setup + animation start by one rAF tick.
-    // Leaflet's SVG renderer flushes path geometry on the next animation
-    // frame after addTo; calling getTotalLength immediately can return 0
-    // for a brief window (the symptom: animation block is reached but
-    // every segment is filtered out and the polylines just appear at
-    // full state). One rAF gets us past that.
+    // Stage: paths at opacity 0 with transitions off so the next paint
+    // commits the hidden state without interpolating from the implicit
+    // default of 1.
+    revealPaths.forEach((path) => {
+      path.style.transition = "none";
+      path.style.opacity = "0";
+    });
+
+    // One rAF later, flip transition on and opacity to 1 — the browser
+    // sees the committed 0 state, schedules the GPU transition, and runs
+    // the fade natively. No per-frame JS, no stroke-dasharray gymnastics.
     rafIdRef.current = requestAnimationFrame(() => {
-      const segments = revealPolylines
-        .map((polyline) => {
-          const path = polyline.getElement?.();
-          const length = path?.getTotalLength?.();
-          if (!path || !Number.isFinite(length) || length <= 0) return null;
-          return { path, pathLength: length };
-        })
-        .filter(Boolean);
-
-      // Re-show paths (we'll control visibility via dashoffset from here).
-      initialPaths.forEach((path) => {
-        path.style.visibility = "";
+      revealPaths.forEach((path) => {
+        path.style.transition = `opacity ${TRACE_GROWTH_DURATION_MS}ms ${TRACE_REVEAL_EASING}`;
+        path.style.opacity = "1";
       });
-
-      if (segments.length === 0) {
-        rafIdRef.current = null;
-        isAnimatingRef.current = false;
-        revealLabels(true);
-        completedRevealKeyRef.current = traceRevealKey;
-        flushPendingTrace();
-        return;
-      }
-
-      // Stage: full reveal paths hidden via full dashoffset. Let CSS own
-      // interpolation so the browser can schedule the paint without a JS
-      // requestAnimationFrame loop writing strokeDashoffset every frame.
-      segments.forEach((seg) => {
-        seg.path.style.strokeDasharray = `${seg.pathLength}`;
-        seg.path.style.strokeDashoffset = `${seg.pathLength}`;
-        seg.path.style.transition = `stroke-dashoffset ${TRACE_GROWTH_DURATION_MS}ms ${TRACE_REVEAL_EASING}`;
-      });
-      // Labels fade in one-by-one while the trace is still drawing, so the
-      // text reads as attached to the same reveal instead of arriving as a
-      // separate overlay after the line has finished.
+      // Labels fade in mid-trace-fade so the text reads as attached to
+      // the same reveal instead of arriving as a separate overlay.
       revealLabels(false);
 
-      rafIdRef.current = requestAnimationFrame(() => {
-        segments.forEach((seg) => {
-          seg.path.style.strokeDashoffset = "0";
-        });
-        revealTimeoutRef.current = setTimeout(
-          () => finishReveal(segments),
-          TRACE_GROWTH_DURATION_MS + TRACE_REVEAL_SETTLE_MS,
-        );
-      });
+      revealTimeoutRef.current = setTimeout(
+        () => finishReveal(revealPaths),
+        TRACE_GROWTH_DURATION_MS + TRACE_REVEAL_SETTLE_MS,
+      );
     });
 
     return () => {
@@ -451,10 +444,11 @@ export default function SelectedAircraftTrace({
         clearTimeout(revealTimeoutRef.current);
         revealTimeoutRef.current = null;
       }
-      // Restore visibility in case we tore down mid-defer before the rAF
-      // callback got to re-show.
-      initialPaths.forEach((path) => {
-        path.style.visibility = "";
+      // Restore inline styles if we tore down mid-fade — otherwise stale
+      // opacity:0 / transition values can carry over to the next render.
+      revealPaths.forEach((path) => {
+        path.style.transition = "";
+        path.style.opacity = "";
       });
       isAnimatingRef.current = false;
       removeLayers(layersRef.current, map);
