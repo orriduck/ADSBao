@@ -84,12 +84,7 @@ export default function RootLayout({ children }) {
         <Toaster
           theme="system"
           position="bottom-right"
-          toastOptions={{
-            style: {
-              fontFamily: "'Manrope', system-ui, sans-serif",
-              fontSize: "14px",
-            },
-          }}
+          toastOptions={{ className: "atc-toast" }}
         />
         <Analytics />
         <SpeedInsights />
