@@ -20,6 +20,7 @@ import MapCoordinateLabel from "../../features/airport-map/MapCoordinateLabel.js
 import MapLoadingState from "../../features/airport-map/MapLoadingState.jsx";
 import MapTrafficLegend from "../../features/airport-map/MapTrafficLegend.jsx";
 import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
+import { aircraftMatchesFilters } from "../../features/aircraft-filters/aircraftFilters.js";
 import {
   formatCoordinateLabel,
   getMapOverlayTheme,
@@ -42,11 +43,11 @@ export default function AirportMap({
   nearbyAirports = [],
   airport = null,
   showMapLabels = false,
-  showTelemetry = true,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
-  showAirspaceContext = true,
-  altitudeFocus = "all",
+  trafficFilter = "all",
+  typeFilter = "all",
+  altitudeLevel = "all",
   selectedAircraftId = "",
   onSelectAircraft,
   runwayMap = null,
@@ -178,9 +179,11 @@ export default function AirportMap({
               key={getAircraftIdentity(ac)}
               aircraft={ac}
               theme={currentTheme}
-              showTelemetry={showTelemetry}
-              showAirspaceContext={showAirspaceContext}
-              altitudeFocus={altitudeFocus}
+              matchesFilters={aircraftMatchesFilters(ac, {
+                trafficFilter,
+                typeFilter,
+                altitudeLevel,
+              })}
               selected={getAircraftIdentity(ac) === selectedAircraftId}
               onSelectAircraft={onSelectAircraft}
             />

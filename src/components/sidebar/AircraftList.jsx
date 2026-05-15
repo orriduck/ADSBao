@@ -1,123 +1,132 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
-  LayoutGroup,
   motion,
   useAnimationControls,
   useReducedMotion,
 } from "motion/react";
-import {
-  getAircraftIdentity,
-  resolveAircraftContextEmphasis,
-} from "../../features/airport-context/airportContextUiModel.js";
+import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
 import AircraftRow from "./AircraftRow.jsx";
-
-function getAircraftRowKey(aircraft = {}) {
-  const identity = getAircraftIdentity(aircraft);
-  return identity || aircraft.callsign || "anon";
-}
 
 export default function AircraftList({
   aircraft = [],
-  altitudeFocus = "all",
-  showAirspaceContext = true,
   selectedAircraftId = "",
   onSelectAircraft,
+  flipStaggerStep = 0.02,
 }) {
-  const prevAircraftRef = useRef([]);
-
-  // Detect which rows moved by comparing current order to previous render's order.
-  // prevAircraftRef.current still holds the previous snapshot during render (effect hasn't run yet).
-  const movedKeys = useMemo(() => {
-    const prevMap = new Map(
-      prevAircraftRef.current.map((item, i) => [getAircraftRowKey(item), i]),
-    );
-    const moved = new Set();
-    aircraft.forEach((item, i) => {
-      const key = getAircraftRowKey(item);
-      const prevIdx = prevMap.get(key);
-      if (prevIdx !== undefined && prevIdx !== i) moved.add(key);
-    });
-    return moved;
-  }, [aircraft]);
-
-  // Save current order as previous for next render's comparison.
+  // Assign each slot whose tenant changed since last render a cascade ordinal
+  // (0, 1, 2, ...) in slot order; unchanged slots get -1. Each flipping slot
+  // delays its rotate by ordinal × flipStaggerStep, so consecutive flips fire
+  // that step apart top→bottom — unchanged slots in between don't add to the gap.
+  const prevKeysRef = useRef([]);
+  const currentKeys = aircraft.map(getAircraftIdentity);
+  const prevKeys = prevKeysRef.current;
+  let cascadeCursor = 0;
+  const cascadeOrders = currentKeys.map((cur, i) => {
+    const prev = prevKeys[i];
+    return prev !== undefined && prev !== cur ? cascadeCursor++ : -1;
+  });
   useEffect(() => {
-    prevAircraftRef.current = aircraft;
-  }, [aircraft]);
+    prevKeysRef.current = currentKeys;
+  });
 
   return (
-    <LayoutGroup>
-      <motion.ul className="aircraft-table-list">
-        <AnimatePresence initial={false} mode="popLayout">
-          {aircraft.map((item, index) => {
-            const rowKey = getAircraftRowKey(item);
-            const aircraftId = getAircraftIdentity(item);
-            const selected = aircraftId && aircraftId === selectedAircraftId;
-            const emphasis = resolveAircraftContextEmphasis({
-              aircraft: item,
-              altitudeFocus,
-              contextEnabled: showAirspaceContext,
-              selected,
-            });
-            const moved = movedKeys.has(rowKey);
-
-            return (
-              <motion.li
-                key={rowKey}
-                layout="position"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                transition={{
-                  layout: { duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] },
-                  opacity: { duration: 0.22 },
-                }}
-                className="aircraft-table-list__item"
-                data-aircraft-row-key={rowKey}
-              >
-                <RowFlipSurface moved={moved} moveToken={`${rowKey}:${index}`}>
-                  <AircraftRow
-                    aircraft={item}
-                    aircraftId={aircraftId}
-                    emphasis={emphasis}
-                    selected={selected}
-                    onSelectAircraft={onSelectAircraft}
-                  />
-                </RowFlipSurface>
-              </motion.li>
-            );
-          })}
-        </AnimatePresence>
-      </motion.ul>
-    </LayoutGroup>
+    <ul className="aircraft-table-list">
+      <AnimatePresence initial={false}>
+        {aircraft.map((item, index) => (
+          <motion.li
+            key={index}
+            initial={{ opacity: 0, scaleY: 0.94 }}
+            animate={{ opacity: 1, scaleY: 1 }}
+            exit={{ opacity: 0, scaleY: 0.94, transition: { duration: 0.2 } }}
+            transition={{ duration: 0.24, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="aircraft-table-list__item"
+          >
+            <AircraftSlot
+              aircraft={item}
+              cascadeOrder={cascadeOrders[index]}
+              flipStaggerStep={flipStaggerStep}
+              selectedAircraftId={selectedAircraftId}
+              onSelectAircraft={onSelectAircraft}
+            />
+          </motion.li>
+        ))}
+      </AnimatePresence>
+    </ul>
   );
 }
 
-// Subtle row surface refresh when a row moves to a new position.
-// Separated from the outer motion.li so layout movement and flip transforms don't conflict.
-function RowFlipSurface({ moved, moveToken, children }) {
-  const reducedMotion = useReducedMotion();
+function AircraftSlot({
+  aircraft,
+  cascadeOrder = -1,
+  flipStaggerStep = 0.02,
+  selectedAircraftId,
+  onSelectAircraft,
+}) {
+  const currentKey = getAircraftIdentity(aircraft);
+  const lastKeyRef = useRef(currentKey);
+  const prevAircraftRef = useRef(aircraft);
+  const cascadeOrderRef = useRef(cascadeOrder);
+  cascadeOrderRef.current = cascadeOrder;
+  const flipStaggerStepRef = useRef(flipStaggerStep);
+  flipStaggerStepRef.current = flipStaggerStep;
+  const [freezeAircraft, setFreezeAircraft] = useState(null);
   const controls = useAnimationControls();
-  const prevToken = useRef(null);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (reducedMotion || !moved || moveToken === prevToken.current) return;
-    prevToken.current = moveToken;
+    if (currentKey === lastKeyRef.current) return;
+    const oldAircraft = prevAircraftRef.current;
+    lastKeyRef.current = currentKey;
 
-    void controls.start({
-      rotateX: [0, -55, 0],
-      opacity: [1, 0.78, 1],
-      filter: ["brightness(1)", "brightness(1.14)", "brightness(1)"],
-      transition: { duration: 0.38, ease: "easeOut" },
-    });
-  }, [controls, moveToken, moved, reducedMotion]);
+    if (reducedMotion) return;
+
+    const flipDelay =
+      Math.max(cascadeOrderRef.current, 0) * flipStaggerStepRef.current;
+
+    setFreezeAircraft(oldAircraft);
+    let cancelled = false;
+    (async () => {
+      await controls.start({
+        rotateX: -90,
+        opacity: 0,
+        filter: "brightness(1.18)",
+        transition: { duration: 0.18, ease: "easeIn", delay: flipDelay },
+      });
+      if (cancelled) return;
+      setFreezeAircraft(null);
+      await controls.start({
+        rotateX: 0,
+        opacity: 1,
+        filter: "brightness(1)",
+        transition: { duration: 0.22, ease: "easeOut" },
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentKey, controls, reducedMotion]);
+
+  // Track the latest live aircraft so the next tenant swap can freeze on it.
+  // Skip while frozen — that's when the displayed row is intentionally stale.
+  useEffect(() => {
+    if (freezeAircraft === null) prevAircraftRef.current = aircraft;
+  });
+
+  const displayed = freezeAircraft ?? aircraft;
+  const aircraftId = getAircraftIdentity(displayed);
+  const selected = Boolean(aircraftId) && aircraftId === selectedAircraftId;
 
   return (
     <motion.div animate={controls} className="aircraft-row-flip-surface">
-      {children}
+      <AircraftRow
+        aircraft={displayed}
+        aircraftId={aircraftId}
+        selected={selected}
+        onSelectAircraft={onSelectAircraft}
+      />
     </motion.div>
   );
 }

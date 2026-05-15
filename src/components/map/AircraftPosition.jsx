@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import NumberFlow from "@number-flow/react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import {
@@ -24,7 +23,7 @@ import {
 // Match the arrow size (18×18) so the icon stays anchored on the marker's
 // geo coordinate without shifting the label layout. Silhouettes are still
 // readable at this size and stay subordinate to the typographic identity
-// (callsign / route / telemetry) the design language privileges.
+// (callsign) the design language privileges.
 const SILHOUETTE_SIZE_PX = 18;
 
 const getAircraftColor = (ac, showArrow) => {
@@ -35,14 +34,10 @@ const getAircraftColor = (ac, showArrow) => {
   return AIRCRAFT_COLORS.unknown;
 };
 
-const isFiniteNumber = (value) => Number.isFinite(Number(value));
-
 export default function AircraftPosition({
   aircraft,
   theme = "dark",
-  showTelemetry = true,
-  showAirspaceContext = true,
-  altitudeFocus = "all",
+  matchesFilters = true,
   selected = false,
   onSelectAircraft,
 }) {
@@ -127,26 +122,15 @@ export default function AircraftPosition({
   // because at that point we're encoding "minimal indicator", not class.
   const sizeScale = showArrow ? resolveAircraftSizeScale(aircraft) : 1;
   const emphasis = resolveAircraftContextEmphasis({
-    aircraft,
-    altitudeFocus,
-    contextEnabled: showAirspaceContext,
+    matchesFilters,
     selected,
   });
   const rot = Math.round(aircraft.track || 0);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
-  const routeLabel = (aircraft.flightRouteLabel || "").trim();
-  const hasTelemetry =
-    !aircraft.onGround &&
-    showArrow &&
-    isFiniteNumber(aircraft.velocity) &&
-    isFiniteNumber(aircraft.altitude);
-  const renderLabel = shouldRenderAircraftLabel(emphasis);
-  const renderTelemetry =
-    hasTelemetry && showTelemetry && emphasis.showTelemetry;
 
   return createPortal(
     <div
-      className={`aircraft-marker aircraft-marker--${emphasis.tone} ${
+      className={`aircraft-marker ${
         selected ? "aircraft-marker--selected" : ""
       }`}
       style={{ opacity: emphasis.opacity }}
@@ -158,25 +142,17 @@ export default function AircraftPosition({
         silhouette={silhouette}
         sizeScale={sizeScale}
       />
-      {renderLabel && (
+      {emphasis.showLabel && (
         <Label
           color={color}
           label={label}
-          routeLabel={routeLabel}
           showArrow={showArrow}
           hasSilhouette={Boolean(silhouette)}
-          renderTelemetry={renderTelemetry}
-          velocity={aircraft.velocity}
-          altitude={aircraft.altitude}
         />
       )}
     </div>,
     container,
   );
-}
-
-function shouldRenderAircraftLabel(emphasis) {
-  return emphasis.showLabel;
 }
 
 function Pointer({ color, rot, showArrow, silhouette, sizeScale = 1 }) {
@@ -245,55 +221,13 @@ function Pointer({ color, rot, showArrow, silhouette, sizeScale = 1 }) {
   );
 }
 
-function Label({
-  color,
-  label,
-  routeLabel,
-  showArrow,
-  hasSilhouette,
-  renderTelemetry,
-  velocity,
-  altitude,
-}) {
-  const labelTop = showArrow && renderTelemetry ? "-4px" : "2px";
+function Label({ color, label, showArrow, hasSilhouette }) {
   const baseLeft = hasSilhouette ? SILHOUETTE_SIZE_PX + 4 : 22;
   const left = showArrow ? baseLeft : SILHOUETTE_SIZE_PX;
-  const labelClass = routeLabel
-    ? "aircraft-label aircraft-label--route-cycle"
-    : "aircraft-label";
 
   return (
-    <div
-      className={labelClass}
-      style={{ left: `${left}px`, top: labelTop, color }}
-    >
-      {routeLabel ? (
-        <div className="aircraft-title-cycle">
-          <div className="aircraft-label-title aircraft-callsign-state">
-            {label}
-          </div>
-          <div className="aircraft-route-label">{routeLabel}</div>
-        </div>
-      ) : (
-        <div className="aircraft-label-title">{label}</div>
-      )}
-      {renderTelemetry && <Telemetry velocity={velocity} altitude={altitude} />}
-    </div>
-  );
-}
-
-function Telemetry({ velocity, altitude }) {
-  return (
-    <div className="aircraft-telemetry">
-      <span>
-        <NumberFlow value={Math.round(Number(velocity) || 0)} />
-        kt
-      </span>
-      <span className="aircraft-telemetry-separator">|</span>
-      <span>
-        <NumberFlow value={Math.round(Number(altitude) || 0)} />
-        ft
-      </span>
+    <div className="aircraft-label" style={{ left: `${left}px`, top: "2px", color }}>
+      <div className="aircraft-label-title">{label}</div>
     </div>
   );
 }

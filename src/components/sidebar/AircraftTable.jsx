@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import NumberFlow from "@number-flow/react";
 import { motion } from "motion/react";
-import { Search } from "lucide-react";
+import { Check, Minus, Search } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -12,40 +13,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { useAirportExplorerUi } from "@/features/airport-explorer/AirportExplorerUiContext.jsx";
+import {
+  ALTITUDE_LEVEL_OPTIONS,
+  aircraftMatchesFilters,
+  aircraftTypeLabel,
+  getAircraftTypeGroups,
+} from "@/features/aircraft-filters/aircraftFilters.js";
+import {
+  getAircraftContextGroup,
   getAircraftIdentity,
   getContextTagLabel,
-  getAircraftContextGroup,
 } from "../../features/airport-context/airportContextUiModel.js";
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
 import AircraftList from "./AircraftList.jsx";
 
-const TRAFFIC_FILTERS = [
-  { value: "all", label: "All" },
-  { value: "routed", label: "Routes only" },
-];
-
-const ALTITUDE_LEVELS = [
-  { value: "all", label: "Any" },
-  { value: "ground", label: "Ground" },
-  { value: "climb-descent", label: "Climb / descent" },
-  { value: "high", label: "High" },
-];
-
 export default function AircraftTable({
   aircraft = [],
-  altitudeFocus = "all",
-  showAirspaceContext = true,
   selectedAircraftId = "",
   onSelectAircraft,
   fill = true,
 }) {
+  const {
+    trafficFilter,
+    typeFilter,
+    altitudeLevel,
+    setTrafficFilter,
+    setTypeFilter,
+    setAltitudeLevel,
+  } = useAirportExplorerUi();
   const [query, setQuery] = useState("");
-  const [trafficFilter, setTrafficFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [altitudeLevel, setAltitudeLevel] = useState("all");
-  const aircraftTypes = useMemo(() => getAircraftTypes(aircraft), [aircraft]);
+  const selectedTypes = useMemo(
+    () => (Array.isArray(typeFilter) ? typeFilter : []),
+    [typeFilter],
+  );
+  const typeGroups = useMemo(
+    () => getAircraftTypeGroups(aircraft, selectedTypes),
+    [aircraft, selectedTypes],
+  );
   const rows = useMemo(
     () =>
       filterAndSortAircraft({
@@ -90,41 +102,51 @@ export default function AircraftTable({
           role="group"
           aria-label="Aircraft filters"
         >
-          <button
-            type="button"
-            className="aircraft-filter-card"
-            data-active={trafficFilter === "routed" ? "true" : undefined}
-            aria-pressed={trafficFilter === "routed"}
-            onClick={() =>
-              setTrafficFilter(trafficFilter === "routed" ? "all" : "routed")
-            }
-          >
-            <span className="aircraft-filter-card__label">Traffic</span>
-            <strong className="aircraft-filter-card__value">
-              {trafficFilter === "routed" ? "Routes only" : "All"}
-            </strong>
-          </button>
+          <TooltipProvider delayDuration={250}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="aircraft-filter-card"
+                  data-active={trafficFilter === "routed" ? "true" : undefined}
+                  aria-pressed={trafficFilter === "routed"}
+                  onClick={() =>
+                    setTrafficFilter(
+                      trafficFilter === "routed" ? "all" : "routed",
+                    )
+                  }
+                >
+                  <span className="aircraft-filter-card__label">Traffic</span>
+                  <strong className="aircraft-filter-card__value">
+                    {trafficFilter === "routed" ? "Routed" : "All"}
+                  </strong>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px] text-left">
+                <strong className="block text-[11px] font-semibold uppercase tracking-wide">
+                  Routed
+                </strong>
+                <span className="mt-1 block text-[11px] font-normal leading-snug">
+                  Only show flights whose callsign resolved to a legitimate
+                  parsed route — both origin and destination airports
+                  identified.
+                </span>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
-          <AircraftFilterCardSelect
-            label="Type"
-            value={typeFilter}
-            onValueChange={setTypeFilter}
-            options={[
-              { value: "all", label: "All" },
-              ...aircraftTypes.map((type) => ({
-                value: type,
-                label: type,
-              })),
-            ]}
-            ariaLabel="Filter by aircraft type"
-            contentClassName="max-h-44"
+          <AircraftTypeFilterCard
+            groups={typeGroups}
+            selectedTypes={selectedTypes}
+            onChange={setTypeFilter}
           />
           <AircraftFilterCardSelect
             label="Alt"
             value={altitudeLevel}
             onValueChange={setAltitudeLevel}
-            options={ALTITUDE_LEVELS}
+            options={ALTITUDE_LEVEL_OPTIONS}
             ariaLabel="Filter by altitude level"
+            contentClassName="min-w-[220px]"
           />
         </div>
 
@@ -146,13 +168,188 @@ export default function AircraftTable({
         ) : (
           <AircraftList
             aircraft={rows}
-            altitudeFocus={altitudeFocus}
-            showAirspaceContext={showAirspaceContext}
             selectedAircraftId={selectedAircraftId}
             onSelectAircraft={onSelectAircraft}
           />
         )}
       </motion.div>
+    </div>
+  );
+}
+
+function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [panelStyle, setPanelStyle] = useState(null);
+  const wrapperRef = useRef(null);
+  const panelRef = useRef(null);
+  const isMultiSelect = selectedTypes.length > 0;
+
+  // Portal the panel to body so the sidebar's overflow-hidden doesn't clip it.
+  // Position it relative to the trigger using fixed coordinates; re-anchor on
+  // scroll and resize so the panel tracks the trigger.
+  useLayoutEffect(() => {
+    if (!open || !wrapperRef.current) return undefined;
+    const update = () => {
+      if (!wrapperRef.current) return;
+      const rect = wrapperRef.current.getBoundingClientRect();
+      setPanelStyle({
+        position: "fixed",
+        top: rect.bottom,
+        left: rect.left,
+        minWidth: Math.max(rect.width, 220),
+      });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handlePointerDown = (event) => {
+      if (
+        wrapperRef.current?.contains(event.target) ||
+        panelRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+    const handleKeydown = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeydown);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeydown);
+    };
+  }, [open]);
+
+  const selectedSet = useMemo(() => new Set(selectedTypes), [selectedTypes]);
+  const displayValue = useMemo(() => {
+    if (!isMultiSelect) return "All";
+    if (selectedTypes.length === 1) return selectedTypes[0];
+    return `${selectedTypes.length} types`;
+  }, [isMultiSelect, selectedTypes]);
+
+  const commit = (next) => {
+    if (!next || next.length === 0) {
+      onChange("all");
+    } else {
+      onChange(next);
+    }
+  };
+
+  const toggleType = (type) => {
+    const next = selectedSet.has(type)
+      ? selectedTypes.filter((t) => t !== type)
+      : [...selectedTypes, type];
+    commit(next);
+  };
+
+  const toggleGroup = (group) => {
+    const allSelected = group.types.every((t) => selectedSet.has(t));
+    const next = allSelected
+      ? selectedTypes.filter((t) => !group.types.includes(t))
+      : [...new Set([...selectedTypes, ...group.types])];
+    commit(next);
+  };
+
+  const clearAll = () => onChange("all");
+
+  return (
+    <div ref={wrapperRef} className="aircraft-filter-type">
+      <button
+        type="button"
+        className="aircraft-filter-card aircraft-filter-card--select"
+        data-state={open ? "open" : "closed"}
+        data-active={isMultiSelect ? "true" : undefined}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Filter by aircraft type"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="aircraft-filter-card__label">Type</span>
+        <strong className="aircraft-filter-card__value">{displayValue}</strong>
+      </button>
+      {open && panelStyle && typeof document !== "undefined" && createPortal(
+        <div
+          ref={panelRef}
+          className="aircraft-filter-type-panel"
+          style={panelStyle}
+          role="listbox"
+          aria-multiselectable="true"
+        >
+          <button
+            type="button"
+            className="aircraft-filter-type-row aircraft-filter-type-row--all"
+            data-selected={!isMultiSelect ? "true" : undefined}
+            onClick={clearAll}
+          >
+            <span className="aircraft-filter-type-row__check">
+              {!isMultiSelect ? <Check size={11} aria-hidden="true" /> : null}
+            </span>
+            <span className="aircraft-filter-type-row__label">All</span>
+          </button>
+          {groups.map((group) => {
+            const groupSelectedCount = group.types.filter((t) =>
+              selectedSet.has(t),
+            ).length;
+            const allSelected = groupSelectedCount === group.types.length;
+            const partialSelected =
+              groupSelectedCount > 0 && !allSelected;
+            return (
+              <div key={group.category} className="aircraft-filter-type-group">
+                <button
+                  type="button"
+                  className="aircraft-filter-type-row aircraft-filter-type-row--header"
+                  data-selected={allSelected ? "true" : undefined}
+                  data-partial={partialSelected ? "true" : undefined}
+                  onClick={() => toggleGroup(group)}
+                >
+                  <span className="aircraft-filter-type-row__check">
+                    {allSelected ? (
+                      <Check size={11} aria-hidden="true" />
+                    ) : partialSelected ? (
+                      <Minus size={11} aria-hidden="true" />
+                    ) : null}
+                  </span>
+                  <span className="aircraft-filter-type-row__label">
+                    {group.label}
+                  </span>
+                  <span className="aircraft-filter-type-row__count">
+                    {group.types.length}
+                  </span>
+                </button>
+                {group.types.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    className="aircraft-filter-type-row aircraft-filter-type-row--item"
+                    data-selected={selectedSet.has(type) ? "true" : undefined}
+                    onClick={() => toggleType(type)}
+                  >
+                    <span className="aircraft-filter-type-row__check">
+                      {selectedSet.has(type) ? (
+                        <Check size={11} aria-hidden="true" />
+                      ) : null}
+                    </span>
+                    <span className="aircraft-filter-type-row__label">
+                      {type}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            );
+          })}
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
@@ -210,40 +407,13 @@ function filterAndSortAircraft({
   const normalizedQuery = query.trim().toLowerCase();
 
   return [...aircraft]
-    .filter((item) => matchesTrafficFilter(item, trafficFilter))
-    .filter((item) => matchesTypeFilter(item, typeFilter))
-    .filter((item) => matchesAltitudeLevel(item, altitudeLevel))
+    .filter((item) =>
+      aircraftMatchesFilters(item, { trafficFilter, typeFilter, altitudeLevel }),
+    )
     .filter((item) =>
       normalizedQuery ? aircraftSearchText(item).includes(normalizedQuery) : true,
     )
     .sort(sortAircraftByAltitude);
-}
-
-function matchesTrafficFilter(aircraft, trafficFilter) {
-  if (trafficFilter === "airborne") return !aircraft.onGround;
-  if (trafficFilter === "ground") return Boolean(aircraft.onGround);
-  if (trafficFilter === "routed") {
-    return Boolean(aircraft.flightRouteLabel || aircraft.flightRoute);
-  }
-  return true;
-}
-
-function matchesTypeFilter(aircraft, typeFilter) {
-  if (typeFilter === "all") return true;
-  return aircraftTypeLabel(aircraft) === typeFilter;
-}
-
-function matchesAltitudeLevel(aircraft, altitudeLevel) {
-  if (altitudeLevel === "all") return true;
-
-  const altitude = aircraft.onGround ? 0 : toNumber(aircraft.altitude);
-  if (altitudeLevel === "ground") return altitude == null || altitude < 100;
-  if (altitude == null) return false;
-  if (altitudeLevel === "climb-descent") {
-    return altitude >= 100 && altitude < 12000;
-  }
-  if (altitudeLevel === "high") return altitude >= 12000;
-  return true;
 }
 
 function aircraftSearchText(aircraft = {}) {
@@ -279,14 +449,4 @@ function sortAircraftByAltitude(a, b) {
 function altitudeSortValue(aircraft = {}) {
   if (aircraft.onGround) return -1;
   return toNumber(aircraft.altitude) ?? -2;
-}
-
-function getAircraftTypes(aircraft = []) {
-  return [...new Set(aircraft.map(aircraftTypeLabel).filter(Boolean))].sort(
-    (a, b) => a.localeCompare(b),
-  );
-}
-
-function aircraftTypeLabel(aircraft = {}) {
-  return String(aircraft.type || aircraft.category || "").trim();
 }

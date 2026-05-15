@@ -47,14 +47,6 @@ function airportExplorerUiReducer(state, action) {
       return { ...state, mapZoom: action.mapZoom };
     case "toggleMapLabels":
       return { ...state, showMapLabels: toggleValue(state.showMapLabels) };
-    case "toggleTelemetry":
-      return { ...state, showTelemetry: toggleValue(state.showTelemetry) };
-    case "setTelemetry": {
-      const showTelemetry = Boolean(action.showTelemetry);
-      if (state.showTelemetry === showTelemetry) return state;
-
-      return { ...state, showTelemetry };
-    }
     case "toggleRunwayBeams":
       return { ...state, showRunwayBeams: toggleValue(state.showRunwayBeams) };
     case "toggleRoutingPointBadges":
@@ -62,13 +54,12 @@ function airportExplorerUiReducer(state, action) {
         ...state,
         showRoutingPointBadges: toggleValue(state.showRoutingPointBadges),
       };
-    case "toggleAirspaceContext":
-      return {
-        ...state,
-        showAirspaceContext: toggleValue(state.showAirspaceContext),
-      };
-    case "setAltitudeFocus":
-      return { ...state, altitudeFocus: action.altitudeFocus };
+    case "setTrafficFilter":
+      return { ...state, trafficFilter: action.trafficFilter };
+    case "setTypeFilter":
+      return { ...state, typeFilter: action.typeFilter };
+    case "setAltitudeLevel":
+      return { ...state, altitudeLevel: action.altitudeLevel };
     case "selectAircraft":
       return {
         ...state,
@@ -94,11 +85,11 @@ export function AirportExplorerUiProvider({ children }) {
     sidebarOpen,
     mapZoom,
     showMapLabels,
-    showTelemetry,
     showRunwayBeams,
     showRoutingPointBadges,
-    showAirspaceContext,
-    altitudeFocus,
+    trafficFilter,
+    typeFilter,
+    altitudeLevel,
     selectedAircraftId,
   } = state;
   const isMobile = sidebarMode === "mobile";
@@ -133,14 +124,6 @@ export function AirportExplorerUiProvider({ children }) {
     dispatch({ type: "toggleMapLabels" });
   }, []);
 
-  const toggleTelemetry = useCallback(() => {
-    dispatch({ type: "toggleTelemetry" });
-  }, []);
-
-  const setTelemetry = useCallback((showTelemetry) => {
-    dispatch({ type: "setTelemetry", showTelemetry });
-  }, []);
-
   const toggleRunwayBeams = useCallback(() => {
     dispatch({ type: "toggleRunwayBeams" });
   }, []);
@@ -149,12 +132,16 @@ export function AirportExplorerUiProvider({ children }) {
     dispatch({ type: "toggleRoutingPointBadges" });
   }, []);
 
-  const toggleAirspaceContext = useCallback(() => {
-    dispatch({ type: "toggleAirspaceContext" });
+  const setTrafficFilter = useCallback((trafficFilter) => {
+    dispatch({ type: "setTrafficFilter", trafficFilter });
   }, []);
 
-  const setAltitudeFocus = useCallback((altitudeFocus) => {
-    dispatch({ type: "setAltitudeFocus", altitudeFocus });
+  const setTypeFilter = useCallback((typeFilter) => {
+    dispatch({ type: "setTypeFilter", typeFilter });
+  }, []);
+
+  const setAltitudeLevel = useCallback((altitudeLevel) => {
+    dispatch({ type: "setAltitudeLevel", altitudeLevel });
   }, []);
 
   const selectAircraft = useCallback((aircraftId) => {
@@ -173,22 +160,21 @@ export function AirportExplorerUiProvider({ children }) {
       isMobile,
       mapZoom,
       showMapLabels,
-      showTelemetry,
       showRunwayBeams,
       showRoutingPointBadges,
-      showAirspaceContext,
-      altitudeFocus,
+      trafficFilter,
+      typeFilter,
+      altitudeLevel,
       selectedAircraftId,
       setMapZoom,
-      setAltitudeFocus,
+      setTrafficFilter,
+      setTypeFilter,
+      setAltitudeLevel,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
-      toggleTelemetry,
-      setTelemetry,
       toggleRunwayBeams,
       toggleRoutingPointBadges,
-      toggleAirspaceContext,
       selectAircraft,
       setSelectedAircraftId,
     }),
@@ -198,22 +184,21 @@ export function AirportExplorerUiProvider({ children }) {
       isMobile,
       mapZoom,
       showMapLabels,
-      showTelemetry,
       showRunwayBeams,
       showRoutingPointBadges,
-      showAirspaceContext,
-      altitudeFocus,
+      trafficFilter,
+      typeFilter,
+      altitudeLevel,
       selectedAircraftId,
       setMapZoom,
-      setAltitudeFocus,
+      setTrafficFilter,
+      setTypeFilter,
+      setAltitudeLevel,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
-      toggleTelemetry,
-      setTelemetry,
       toggleRunwayBeams,
       toggleRoutingPointBadges,
-      toggleAirspaceContext,
       selectAircraft,
       setSelectedAircraftId,
     ],
