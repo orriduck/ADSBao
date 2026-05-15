@@ -196,87 +196,112 @@ export default function SelectedAircraftTrace({
       };
     }
 
-    // Resolve each reveal polyline's SVG <path> element and rendered length.
-    // Skip any whose length isn't ready (canvas renderer or unmounted layer)
-    // — those polylines just appear instantly.
-    const segments = reveal
-      .map((entry) => {
-        const path = entry.polyline.getElement?.();
-        const length = path?.getTotalLength?.();
-        if (!path || !Number.isFinite(length) || length <= 0) return null;
-        return { ...entry, path, pathLength: length };
-      })
+    // Synchronously hide all reveal paths via visibility:hidden so the
+    // user doesn't see a flash of the full trace during the one-frame
+    // defer below. visibility (vs opacity / display) doesn't trigger
+    // reflow and is cheap to flip.
+    const initialPaths = reveal
+      .map((entry) => entry.polyline.getElement?.())
       .filter(Boolean);
-
-    if (segments.length === 0) {
-      return () => {
-        if (rafIdRef.current) {
-          cancelAnimationFrame(rafIdRef.current);
-          rafIdRef.current = null;
-        }
-        removeLayers(layersRef.current, map);
-        layersRef.current = [];
-      };
-    }
-
-    // Stage: every path hidden via full dashoffset.
-    segments.forEach((seg) => {
-      seg.path.style.strokeDasharray = `${seg.pathLength}`;
-      seg.path.style.strokeDashoffset = `${seg.pathLength}`;
+    initialPaths.forEach((path) => {
+      path.style.visibility = "hidden";
     });
 
     isAnimatingRef.current = true;
-    const startTime =
-      typeof performance !== "undefined" ? performance.now() : Date.now();
     const { headIndex } = geometry;
 
-    // Single back-cursor in curve-index space drives every polyline. Cursor
-    // starts at headIndex (no reveal) and walks toward 0 (full reveal). Each
-    // polyline reveals only the part of its index range the cursor has swept
-    // past, so the head band and the glow draw the SAME curve segment at the
-    // SAME time, no matter their independent path lengths.
-    const tick = (now) => {
-      const elapsed = now - startTime;
-      const t = Math.min(1, elapsed / TRACE_GROWTH_DURATION_MS);
-      const cursor = headIndex * (1 - easeInOutCubic(t));
+    // Defer the actual dash setup + animation start by one rAF tick.
+    // Leaflet's SVG renderer flushes path geometry on the next animation
+    // frame after addTo; calling getTotalLength immediately can return 0
+    // for a brief window (the symptom: animation block is reached but
+    // every segment is filtered out and the polylines just appear at
+    // full state). One rAF gets us past that.
+    rafIdRef.current = requestAnimationFrame(() => {
+      const segments = reveal
+        .map((entry) => {
+          const path = entry.polyline.getElement?.();
+          const length = path?.getTotalLength?.();
+          if (!path || !Number.isFinite(length) || length <= 0) return null;
+          return { ...entry, path, pathLength: length };
+        })
+        .filter(Boolean);
 
-      segments.forEach((seg) => {
-        if (cursor <= seg.startIndex) {
-          seg.path.style.strokeDashoffset = "0";
-        } else if (cursor >= seg.endIndex) {
-          seg.path.style.strokeDashoffset = `${seg.pathLength}`;
-        } else {
-          const f = (cursor - seg.startIndex) / (seg.endIndex - seg.startIndex);
-          seg.path.style.strokeDashoffset = `${f * seg.pathLength}`;
-        }
+      // Re-show paths (we'll control visibility via dashoffset from here).
+      initialPaths.forEach((path) => {
+        path.style.visibility = "";
       });
 
-      if (t < 1) {
-        rafIdRef.current = requestAnimationFrame(tick);
+      if (segments.length === 0) {
+        rafIdRef.current = null;
+        isAnimatingRef.current = false;
         return;
       }
 
-      rafIdRef.current = null;
-      isAnimatingRef.current = false;
-      // Clear inline dash styles so next-poll rebuilds inherit a clean path.
+      // Stage: every path hidden via full dashoffset.
       segments.forEach((seg) => {
-        seg.path.style.strokeDasharray = "";
-        seg.path.style.strokeDashoffset = "";
+        seg.path.style.strokeDasharray = `${seg.pathLength}`;
+        seg.path.style.strokeDashoffset = `${seg.pathLength}`;
       });
-      // Flush any deferred trace updates that arrived during the animation.
-      if (pendingTracePointsRef.current) {
-        const pending = pendingTracePointsRef.current;
-        pendingTracePointsRef.current = null;
-        setCommittedTracePoints(pending);
-      }
-    };
-    rafIdRef.current = requestAnimationFrame(tick);
+
+      const startTime =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
+
+      // Single back-cursor in curve-index space drives every polyline.
+      // Cursor starts at headIndex (no reveal) and walks toward 0 (full
+      // reveal). Each polyline reveals only the part of its index range
+      // the cursor has swept past, so the head band and the glow draw the
+      // SAME curve segment at the SAME time, no matter their independent
+      // path lengths.
+      const tick = (now) => {
+        const elapsed = now - startTime;
+        const t = Math.min(1, elapsed / TRACE_GROWTH_DURATION_MS);
+        const cursor = headIndex * (1 - easeInOutCubic(t));
+
+        segments.forEach((seg) => {
+          if (cursor <= seg.startIndex) {
+            seg.path.style.strokeDashoffset = "0";
+          } else if (cursor >= seg.endIndex) {
+            seg.path.style.strokeDashoffset = `${seg.pathLength}`;
+          } else {
+            const f =
+              (cursor - seg.startIndex) / (seg.endIndex - seg.startIndex);
+            seg.path.style.strokeDashoffset = `${f * seg.pathLength}`;
+          }
+        });
+
+        if (t < 1) {
+          rafIdRef.current = requestAnimationFrame(tick);
+          return;
+        }
+
+        rafIdRef.current = null;
+        isAnimatingRef.current = false;
+        // Clear inline dash styles so next-poll rebuilds inherit a clean
+        // path, otherwise the freshly-built paths inherit stale values.
+        segments.forEach((seg) => {
+          seg.path.style.strokeDasharray = "";
+          seg.path.style.strokeDashoffset = "";
+        });
+        // Flush any deferred trace updates that arrived during animation.
+        if (pendingTracePointsRef.current) {
+          const pending = pendingTracePointsRef.current;
+          pendingTracePointsRef.current = null;
+          setCommittedTracePoints(pending);
+        }
+      };
+      rafIdRef.current = requestAnimationFrame(tick);
+    });
 
     return () => {
       if (rafIdRef.current) {
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
+      // Restore visibility in case we tore down mid-defer before the rAF
+      // callback got to re-show.
+      initialPaths.forEach((path) => {
+        path.style.visibility = "";
+      });
       isAnimatingRef.current = false;
       removeLayers(layersRef.current, map);
       layersRef.current = [];
