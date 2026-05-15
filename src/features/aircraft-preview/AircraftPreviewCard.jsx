@@ -19,15 +19,15 @@ const CARD_MOTION = {
   transition: { duration: 0.46, ease: POCKET_EASE },
 };
 
-// Icon rises *up* from inside the card (translateY + scale + fade) with a
-// delay so it visibly trails the card's horizontal pocket-pull. Distinct
-// axis = distinct read: the card slides in from the right, then the
-// silhouette is pulled up out of the top edge.
+// Icon slides on the same horizontal axis as the card but with a small
+// delay and a longer duration, so it visibly trails behind on entry and
+// lingers a beat longer on exit — the parallax-trailing-from-the-pocket
+// feel. Both animations use the same ease-out curve.
 const ICON_MOTION = {
-  initial: { y: 32, opacity: 0, scale: 0.65 },
-  animate: { y: 0, opacity: 1, scale: 1 },
-  exit: { y: 20, opacity: 0, scale: 0.86, transition: { duration: 0.22 } },
-  transition: { duration: 0.55, ease: POCKET_EASE, delay: 0.2 },
+  initial: { x: 96, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: 96, opacity: 0 },
+  transition: { duration: 0.62, ease: POCKET_EASE, delay: 0.1 },
 };
 
 export default function AircraftPreviewCard({ aircraft = null }) {
