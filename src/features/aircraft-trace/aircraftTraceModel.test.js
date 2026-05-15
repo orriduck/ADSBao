@@ -139,11 +139,8 @@ import {
       { lat: 42.0, lon: -71.0, timestampMs: 1_000 },
       { lat: 42.01, lon: -70.99, timestampMs: 2_000 },
     ],
-    fullTrace: [
-      { lat: 41.9, lon: -71.2, timestampMs: 100 },
-      { lat: 42.0, lon: -71.0, timestampMs: 1_000 },
-    ],
     recentTrace: [
+      { lat: 41.95, lon: -71.05, timestampMs: 500 },
       { lat: 42.01, lon: -70.99, timestampMs: 2_000 },
       { lat: 42.02, lon: -70.98, timestampMs: 3_000 },
     ],
@@ -151,7 +148,7 @@ import {
 
   assert.deepEqual(
     merged.map((point) => point.timestampMs),
-    [100, 1_000, 2_000, 3_000],
+    [500, 1_000, 2_000, 3_000],
   );
 }
 

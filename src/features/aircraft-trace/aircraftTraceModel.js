@@ -145,7 +145,6 @@ function dedupeTracePointKey(point = {}) {
 }
 
 export function mergeTraceHistory({
-  fullTrace = [],
   recentTrace = [],
   fallbackHistory = [],
 } = {}) {
@@ -167,7 +166,7 @@ export function mergeTraceHistory({
     })
     .filter(Boolean);
 
-  const merged = [...fullTrace, ...recentTrace, ...normalizedFallback].sort(
+  const merged = [...recentTrace, ...normalizedFallback].sort(
     (a, b) => a.timestampMs - b.timestampMs,
   );
   const seen = new Set();

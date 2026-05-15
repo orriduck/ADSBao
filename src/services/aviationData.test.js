@@ -179,7 +179,7 @@ try {
   const client = createAircraftTraceClient({
     fetchImpl: async (url) => {
       calls.push(url);
-      return createJsonResponse({ full: { trace: [] }, recent: { trace: [] } });
+      return createJsonResponse({ recent: { trace: [] } });
     },
   });
 
@@ -187,7 +187,7 @@ try {
 
   assert.equal(calls.length, 1);
   assert.equal(calls[0], "/api/proxy/aircraft/trace/A7BBE9");
-  assert.deepEqual(payload, { full: { trace: [] }, recent: { trace: [] } });
+  assert.deepEqual(payload, { recent: { trace: [] } });
 }
 
 {

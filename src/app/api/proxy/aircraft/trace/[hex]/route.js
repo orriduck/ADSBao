@@ -20,12 +20,9 @@ export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
 }
 
-function buildTraceUrls(hex) {
+function buildRecentTraceUrl(hex) {
   const suffix = hex.slice(-2).toLowerCase();
-  return {
-    recent: `https://adsb.lol/data/traces/${suffix}/trace_recent_${hex.toLowerCase()}.json`,
-    full: `https://adsb.lol/data/traces/${suffix}/trace_full_${hex.toLowerCase()}.json`,
-  };
+  return `https://adsb.lol/data/traces/${suffix}/trace_recent_${hex.toLowerCase()}.json`;
 }
 
 async function fetchTracePayload(url) {
@@ -66,15 +63,10 @@ export async function GET(request, { params }) {
     );
   }
 
-  const urls = buildTraceUrls(hex);
-
   try {
-    const [recent, full] = await Promise.all([
-      fetchTracePayload(urls.recent),
-      fetchTracePayload(urls.full),
-    ]);
+    const recent = await fetchTracePayload(buildRecentTraceUrl(hex));
 
-    if (!recent && !full) {
+    if (!recent) {
       return jsonProxyResponse(
         request,
         { error: "Aircraft trace not found" },
@@ -86,7 +78,6 @@ export async function GET(request, { params }) {
       {
         hex,
         recent,
-        full,
       },
       {
         headers: buildProxyHeaders(request, {
