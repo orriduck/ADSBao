@@ -1,65 +1,46 @@
-// Per-process cool-down tracker for upstream provider health. When a
-// provider fails with a retriable status (5xx / 429 / network / timeout),
-// the proxy marks it unhealthy for a short window — subsequent requests
-// from the same instance skip straight to the next provider in the chain
-// until the cool-down lapses, then re-probe the primary automatically.
+// Adaptive provider selector for upstream ADS-B feeds.
 //
-// Vercel's serverless model gives each instance its own memory, so this
-// state is per-instance. That's fine for the "lots of 503s in a row from
-// adsb.lol" case: each instance learns independently and recovers
-// independently when adsb.lol comes back.
+// Cold start: no preferred provider → race all providers, stick with the
+// winner. Steady state: use the preferred provider only (single outbound
+// call per request). Failure: clear preferred → next request re-races
+// to pick a fresh winner, including the just-failed provider in case the
+// error was transient.
+//
+// State is per-process. Vercel serverless reuses warm container memory
+// across invocations, so this gives us "sticky on the same instance,
+// re-race on cold start" — the cost is one extra race per cold start,
+// and the happy path is single-provider load.
 
-const DEFAULT_COOL_DOWN_MS = 90_000;
 const RETRIABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
 
 export function isRetriableStatus(status) {
   return RETRIABLE_STATUSES.has(Number(status));
 }
 
-export function createProviderHealthTracker({
-  coolDownMs = DEFAULT_COOL_DOWN_MS,
-  now = () => Date.now(),
-} = {}) {
-  const unhealthyUntil = new Map();
-
-  const isUnhealthy = (providerId) => {
-    const until = unhealthyUntil.get(providerId);
-    if (until == null) return false;
-    if (now() >= until) {
-      unhealthyUntil.delete(providerId);
-      return false;
-    }
-    return true;
-  };
-
+export function createAdaptiveProviderSelector() {
+  let preferredId = null;
   return {
-    markUnhealthy(providerId) {
-      unhealthyUntil.set(providerId, now() + coolDownMs);
+    getPreferredId: () => preferredId,
+    setPreferredId: (id) => {
+      preferredId = id || null;
     },
-    isUnhealthy,
-    snapshot() {
-      const result = {};
-      const currentTime = now();
-      for (const [id, until] of unhealthyUntil.entries()) {
-        if (until > currentTime) result[id] = until - currentTime;
-      }
-      return result;
-    },
-    clear() {
-      unhealthyUntil.clear();
+    clear: () => {
+      preferredId = null;
     },
   };
 }
 
-// Order a provider chain so healthy providers come first, preserving
-// their declared order; unhealthy providers stay in the chain as last-resort
-// fallbacks (the cool-down might be stale). Pure function — no side effects.
-export function selectProviderOrder(chain, healthTracker) {
-  const healthy = [];
-  const unhealthy = [];
-  for (const provider of chain) {
-    if (healthTracker.isUnhealthy(provider.id)) unhealthy.push(provider);
-    else healthy.push(provider);
+// Race providers in parallel; resolve with the first to succeed along with
+// the provider that produced the payload. If every provider rejects, throw
+// the AggregateError raised by Promise.any — its .errors[] mirrors the
+// input order so callers can pair rejections back to providers for logging.
+export async function raceProviders(providers, fetcher) {
+  if (!providers || providers.length === 0) {
+    throw new Error("raceProviders: empty provider list");
   }
-  return [...healthy, ...unhealthy];
+  const attempts = providers.map(async (provider) => {
+    const payload = await fetcher(provider);
+    return { provider, payload };
+  });
+  return Promise.any(attempts);
 }

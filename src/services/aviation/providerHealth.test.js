@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 
 import {
-  createProviderHealthTracker,
+  createAdaptiveProviderSelector,
   isRetriableStatus,
-  selectProviderOrder,
+  raceProviders,
 } from "./providerHealth.js";
 
 // isRetriableStatus
@@ -13,60 +13,70 @@ assert.equal(isRetriableStatus(500), true);
 assert.equal(isRetriableStatus(404), false);
 assert.equal(isRetriableStatus(200), false);
 
-// cool-down lifecycle
+// Selector lifecycle
 {
-  let currentTime = 1_000;
-  const tracker = createProviderHealthTracker({
-    coolDownMs: 5_000,
-    now: () => currentTime,
-  });
-
-  assert.equal(tracker.isUnhealthy("adsb.lol"), false);
-  tracker.markUnhealthy("adsb.lol");
-  assert.equal(tracker.isUnhealthy("adsb.lol"), true);
-  assert.deepEqual(tracker.snapshot(), { "adsb.lol": 5_000 });
-
-  // Halfway through the window — still unhealthy.
-  currentTime = 3_500;
-  assert.equal(tracker.isUnhealthy("adsb.lol"), true);
-
-  // Past the window — auto-recovers and snapshot drops it.
-  currentTime = 7_000;
-  assert.equal(tracker.isUnhealthy("adsb.lol"), false);
-  assert.deepEqual(tracker.snapshot(), {});
+  const selector = createAdaptiveProviderSelector();
+  assert.equal(selector.getPreferredId(), null);
+  selector.setPreferredId("adsb.lol");
+  assert.equal(selector.getPreferredId(), "adsb.lol");
+  selector.clear();
+  assert.equal(selector.getPreferredId(), null);
 }
 
-// selectProviderOrder: healthy first, unhealthy as last-resort fallback
+// raceProviders: first fulfilled wins, carries the provider reference
 {
-  let currentTime = 1_000;
-  const tracker = createProviderHealthTracker({
-    coolDownMs: 5_000,
-    now: () => currentTime,
-  });
-  const chain = [
-    { id: "adsb.lol" },
-    { id: "adsb.fi" },
-  ];
+  const providers = [{ id: "slow" }, { id: "fast" }];
+  const fetcher = (provider) =>
+    new Promise((resolve) => {
+      const delay = provider.id === "fast" ? 1 : 30;
+      setTimeout(() => resolve({ ok: provider.id }), delay);
+    });
 
-  // All healthy: declared order.
-  assert.deepEqual(
-    selectProviderOrder(chain, tracker).map((p) => p.id),
-    ["adsb.lol", "adsb.fi"],
-  );
+  const { provider, payload } = await raceProviders(providers, fetcher);
+  assert.equal(provider.id, "fast");
+  assert.deepEqual(payload, { ok: "fast" });
+}
 
-  // Primary unhealthy: secondary moves to front, primary tails as fallback.
-  tracker.markUnhealthy("adsb.lol");
-  assert.deepEqual(
-    selectProviderOrder(chain, tracker).map((p) => p.id),
-    ["adsb.fi", "adsb.lol"],
-  );
+// raceProviders: AggregateError when every provider rejects
+{
+  const providers = [{ id: "a" }, { id: "b" }];
+  const fetcher = (provider) =>
+    Promise.reject(new Error(`${provider.id} down`));
 
-  // After cool-down: primary is back at the top.
-  currentTime = 7_000;
-  assert.deepEqual(
-    selectProviderOrder(chain, tracker).map((p) => p.id),
-    ["adsb.lol", "adsb.fi"],
-  );
+  let caught = null;
+  try {
+    await raceProviders(providers, fetcher);
+  } catch (error) {
+    caught = error;
+  }
+  assert.ok(caught, "expected raceProviders to reject");
+  assert.equal(caught.name, "AggregateError");
+  assert.equal(caught.errors.length, 2);
+  assert.equal(caught.errors[0].message, "a down");
+  assert.equal(caught.errors[1].message, "b down");
+}
+
+// raceProviders: a single fulfillment is enough even when one rejects
+{
+  const providers = [{ id: "broken" }, { id: "ok" }];
+  const fetcher = (provider) =>
+    provider.id === "broken"
+      ? Promise.reject(new Error("nope"))
+      : Promise.resolve({ ok: true });
+
+  const { provider } = await raceProviders(providers, fetcher);
+  assert.equal(provider.id, "ok");
+}
+
+// raceProviders: empty list is a programmer error
+{
+  let caught = null;
+  try {
+    await raceProviders([], () => Promise.resolve());
+  } catch (error) {
+    caught = error;
+  }
+  assert.ok(caught, "expected raceProviders([]) to throw");
 }
 
 console.log("providerHealth.test.js: ok");

@@ -7,11 +7,6 @@ import {
   readResponseJson,
 } from "@/services/apiProxySecurity.js";
 import { TRACE_PROVIDER_CHAIN } from "@/services/aviation/aircraftDataProviders.js";
-import {
-  createProviderHealthTracker,
-  isRetriableStatus,
-  selectProviderOrder,
-} from "@/services/aviation/providerHealth.js";
 
 const rateLimit = {
   key: "proxy:aircraft-trace",
@@ -19,22 +14,20 @@ const rateLimit = {
   windowMs: 60_000,
 };
 
-const USER_AGENT = "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)";
+const USER_AGENT = "ADSBao/0.11.0 (https://github.com/orriduck/ADSBao)";
 const TRACE_MAX_BYTES = 6 * 1024 * 1024;
-const healthTracker = createProviderHealthTracker();
+
+// Trace data is only published by adsb.lol; airplanes.live exposes no
+// equivalent endpoint. There's nothing to fail over to, so this route
+// just calls the single provider and returns whatever it gets.
+const [TRACE_PROVIDER] = TRACE_PROVIDER_CHAIN;
 
 export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
 }
 
-async function fetchTraceFromProvider(provider, { hex }) {
-  if (!provider.buildTraceUrl) {
-    const error = new Error(`${provider.id} has no trace endpoint`);
-    error.retriable = true;
-    throw error;
-  }
-
-  const url = provider.buildTraceUrl({ hex });
+async function fetchTrace({ hex }) {
+  const url = TRACE_PROVIDER.buildTraceUrl({ hex });
 
   let response;
   try {
@@ -47,7 +40,6 @@ async function fetchTraceFromProvider(provider, { hex }) {
     });
   } catch (networkError) {
     const error = new Error(`network: ${networkError.message}`);
-    error.retriable = true;
     throw error;
   }
 
@@ -55,19 +47,16 @@ async function fetchTraceFromProvider(provider, { hex }) {
   if (!response.ok) {
     const error = new Error(`HTTP ${response.status}`);
     error.status = response.status;
-    error.retriable = isRetriableStatus(response.status);
     throw error;
   }
 
   try {
     return await readResponseJson(response, {
-      label: `${provider.id} aircraft trace response`,
+      label: `${TRACE_PROVIDER.id} aircraft trace response`,
       maxBytes: TRACE_MAX_BYTES,
     });
   } catch (parseError) {
-    const error = new Error(`parse: ${parseError.message}`);
-    error.retriable = true;
-    throw error;
+    throw new Error(`parse: ${parseError.message}`);
   }
 }
 
@@ -85,62 +74,50 @@ export async function GET(request, { params }) {
     );
   }
 
-  const providers = selectProviderOrder(TRACE_PROVIDER_CHAIN, healthTracker);
   const attempts = [];
-  let lastError = null;
-
-  for (const provider of providers) {
-    try {
-      const recent = await fetchTraceFromProvider(provider, { hex });
-      if (!recent) {
-        attempts.push(`${provider.id}:404`);
-        return jsonProxyResponse(
-          request,
-          { error: "Aircraft trace not found" },
-          {
-            status: 404,
-            headers: {
-              "X-Data-Source": provider.id,
-              "X-Provider-Attempts": attempts.join(";"),
-            },
-          },
-        );
-      }
-      attempts.push(`${provider.id}:200`);
-      return Response.json(
-        { hex, recent, source: provider.id },
+  try {
+    const recent = await fetchTrace({ hex });
+    if (!recent) {
+      attempts.push(`${TRACE_PROVIDER.id}:404`);
+      return jsonProxyResponse(
+        request,
+        { error: "Aircraft trace not found" },
         {
-          headers: buildProxyHeaders(request, {
-            "Cache-Control": "no-store",
-            "X-Data-Source": provider.id,
+          status: 404,
+          headers: {
+            "X-Data-Source": TRACE_PROVIDER.id,
             "X-Provider-Attempts": attempts.join(";"),
-          }),
+          },
         },
       );
-    } catch (error) {
-      lastError = error;
-      attempts.push(`${provider.id}:${error.status || "ERR"}`);
-      console.warn(
-        `[aircraft-trace] ${provider.id} failed`,
-        error.status ? `status=${error.status}` : error.message,
-      );
-      if (error.retriable) {
-        healthTracker.markUnhealthy(provider.id);
-        continue;
-      }
-      break;
     }
-  }
-
-  return jsonProxyResponse(
-    request,
-    { error: "Failed to load aircraft trace" },
-    {
-      status: Number(lastError?.status) || 502,
-      headers: {
-        "X-Data-Source": "failed",
-        "X-Provider-Attempts": attempts.join(";") || "none",
+    attempts.push(`${TRACE_PROVIDER.id}:200`);
+    return Response.json(
+      { hex, recent, source: TRACE_PROVIDER.id },
+      {
+        headers: buildProxyHeaders(request, {
+          "Cache-Control": "no-store",
+          "X-Data-Source": TRACE_PROVIDER.id,
+          "X-Provider-Attempts": attempts.join(";"),
+        }),
       },
-    },
-  );
+    );
+  } catch (error) {
+    attempts.push(`${TRACE_PROVIDER.id}:${error.status || "ERR"}`);
+    console.warn(
+      `[aircraft-trace] ${TRACE_PROVIDER.id} failed`,
+      error.status ? `status=${error.status}` : error.message,
+    );
+    return jsonProxyResponse(
+      request,
+      { error: "Failed to load aircraft trace" },
+      {
+        status: Number(error.status) || 502,
+        headers: {
+          "X-Data-Source": "failed",
+          "X-Provider-Attempts": attempts.join(";") || "none",
+        },
+      },
+    );
+  }
 }
