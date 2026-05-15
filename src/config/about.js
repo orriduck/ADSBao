@@ -26,7 +26,7 @@ export const ABOUT_DATA_SOURCES = [
     glyph: "ADS-B",
     title: "airplanes.live Aircraft Feed",
     description:
-      "Backup ADS-B positions feed. The proxy fails over to airplanes.live whenever adsb.lol returns 5xx, 429, or times out.",
+      "Peer ADS-B positions feed. On cold start the proxy races both feeds and sticks with whichever responds first; on error it re-races to pick a fresh winner.",
     host: "api.airplanes.live",
     href: "https://airplanes.live/api-guide/",
   },

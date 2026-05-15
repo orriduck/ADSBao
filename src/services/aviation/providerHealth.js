@@ -11,12 +11,6 @@
 // re-race on cold start" — the cost is one extra race per cold start,
 // and the happy path is single-provider load.
 
-const RETRIABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
-
-export function isRetriableStatus(status) {
-  return RETRIABLE_STATUSES.has(Number(status));
-}
-
 export function createAdaptiveProviderSelector() {
   let preferredId = null;
   return {

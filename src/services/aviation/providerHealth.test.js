@@ -2,16 +2,8 @@ import assert from "node:assert/strict";
 
 import {
   createAdaptiveProviderSelector,
-  isRetriableStatus,
   raceProviders,
 } from "./providerHealth.js";
-
-// isRetriableStatus
-assert.equal(isRetriableStatus(503), true);
-assert.equal(isRetriableStatus(429), true);
-assert.equal(isRetriableStatus(500), true);
-assert.equal(isRetriableStatus(404), false);
-assert.equal(isRetriableStatus(200), false);
 
 // Selector lifecycle
 {
