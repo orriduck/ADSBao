@@ -146,6 +146,7 @@ export default function AircraftTable({
             onValueChange={setAltitudeLevel}
             options={ALTITUDE_LEVEL_OPTIONS}
             ariaLabel="Filter by altitude level"
+            contentClassName="min-w-[220px]"
           />
         </div>
 
