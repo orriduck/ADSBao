@@ -19,6 +19,7 @@ export const AIRCRAFT_TRAFFIC_CONFIG = {
 export const AVIATION_PROXY_BASES = {
   metar: "/api/proxy/metar",
   aircraftPositions: "/api/proxy/aircraft/positions",
+  aircraftTrace: "/api/proxy/aircraft/trace",
   flightRoute: "/api/proxy/flight-routes/callsign",
   localWeather: "/api/proxy/local-weather",
 };
@@ -28,6 +29,7 @@ export const AVIATION_REQUEST_TIMEOUT_MS = {
   metar: 10_000,
   localWeather: 10_000,
   aircraftPositions: AIRCRAFT_TRAFFIC_CONFIG.pollMs,
+  aircraftTrace: 12_000,
   flightRoute: 10_000,
 };
 

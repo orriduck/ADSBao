@@ -64,6 +64,11 @@ export function normalizeIcao(value) {
   return /^[A-Z0-9]{3,4}$/.test(icao) ? icao : "";
 }
 
+export function normalizeAircraftHex(value) {
+  const hex = String(value || "").trim().toUpperCase();
+  return /^(~?[0-9A-F]{6})$/.test(hex) ? hex : "";
+}
+
 export function getClientIp(request) {
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) return forwardedFor.split(",")[0].trim();

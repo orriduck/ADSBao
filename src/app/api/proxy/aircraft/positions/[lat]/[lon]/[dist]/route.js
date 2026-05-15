@@ -8,6 +8,7 @@ import {
   normalizeLongitude,
   readResponseJson,
 } from "@/services/apiProxySecurity.js";
+import { createAircraftPositionFallbackCache } from "@/services/aviation/aircraftPositionFallbackCache.js";
 
 const rateLimit = {
   key: "proxy:aircraft-positions",
@@ -16,6 +17,41 @@ const rateLimit = {
 };
 
 const USER_AGENT = "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)";
+const fallbackCache = createAircraftPositionFallbackCache();
+
+function buildFallbackKey(latitude, longitude, distanceNm) {
+  return `${latitude}:${longitude}:${distanceNm}`;
+}
+
+function buildStalePayload(payload, { staleAgeMs, upstreamStatus }) {
+  return {
+    ...payload,
+    stale: true,
+    staleAgeMs,
+    upstreamStatus,
+  };
+}
+
+function createCachedFallbackResponse(request, key, upstreamStatus) {
+  const cached = fallbackCache.recall(key);
+  if (!cached) return null;
+
+  return Response.json(
+    buildStalePayload(cached.payload, {
+      staleAgeMs: cached.staleAgeMs,
+      upstreamStatus,
+    }),
+    {
+      headers: buildProxyHeaders(request, {
+        "Cache-Control": "no-store",
+      }),
+    },
+  );
+}
+
+export function __resetAircraftPositionFallbackCacheForTests() {
+  fallbackCache.clear();
+}
 
 export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
@@ -43,6 +79,7 @@ export async function GET(request, { params }) {
   )}/lon/${encodeURIComponent(String(longitude))}/dist/${encodeURIComponent(
     String(distanceNm),
   )}`;
+  const fallbackKey = buildFallbackKey(latitude, longitude, distanceNm);
 
   try {
     const response = await fetch(url, {
@@ -56,6 +93,13 @@ export async function GET(request, { params }) {
     });
 
     if (!response.ok) {
+      const fallbackResponse = createCachedFallbackResponse(
+        request,
+        fallbackKey,
+        response.status,
+      );
+      if (fallbackResponse) return fallbackResponse;
+
       return jsonProxyResponse(
         request,
         { error: "Failed to load aircraft positions" },
@@ -76,6 +120,8 @@ export async function GET(request, { params }) {
       );
     }
 
+    fallbackCache.remember(fallbackKey, payload);
+
     return Response.json(payload, {
       headers: buildProxyHeaders(request, {
         "Cache-Control": "no-store",
@@ -83,6 +129,13 @@ export async function GET(request, { params }) {
     });
   } catch (error) {
     console.error("[aircraft-positions] load failed", error);
+    const fallbackResponse = createCachedFallbackResponse(
+      request,
+      fallbackKey,
+      502,
+    );
+    if (fallbackResponse) return fallbackResponse;
+
     return jsonProxyResponse(
       request,
       { error: "Failed to load aircraft positions" },

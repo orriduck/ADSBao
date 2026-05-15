@@ -6,6 +6,7 @@ import {
   checkProxyRateLimit,
   createCorsPreflightResponse,
   enforceProxyRequest,
+  normalizeAircraftHex,
   normalizeDistanceNm,
   normalizeLatitude,
   normalizeLongitude,
@@ -21,6 +22,9 @@ assert.equal(normalizeLongitude("-71"), -71);
 assert.equal(normalizeLongitude("-181"), null);
 assert.equal(normalizeDistanceNm("30"), 30);
 assert.equal(normalizeDistanceNm("251"), null);
+assert.equal(normalizeAircraftHex("a7bbe9"), "A7BBE9");
+assert.equal(normalizeAircraftHex("~abcd12"), "~ABCD12");
+assert.equal(normalizeAircraftHex("JBU1443"), "");
 
 const sameOriginRequest = new Request("https://adsbao.test/api/proxy/metar/KBOS", {
   headers: {

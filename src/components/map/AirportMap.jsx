@@ -9,6 +9,7 @@ import AirportMarker from "./AirportMarker.jsx";
 import NearbyAirportLayer from "./NearbyAirportLayer.jsx";
 import GroundStatsCounter from "./GroundStatsCounter.jsx";
 import AircraftPosition from "./AircraftPosition.jsx";
+import SelectedAircraftTrace from "./SelectedAircraftTrace.jsx";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer.jsx";
 import ProcedureSegmentLayer from "./ProcedureSegmentLayer.jsx";
 import {
@@ -49,6 +50,7 @@ export default function AirportMap({
   typeFilter = "all",
   altitudeLevel = "all",
   selectedAircraftId = "",
+  selectedAircraftTrace = [],
   onSelectAircraft,
   runwayMap = null,
   runwayProcedures = null,
@@ -125,6 +127,16 @@ export default function AirportMap({
       zoom,
     });
   }, [aircraft, lat, lon, nearbyAirports, zoom]);
+  const selectedAircraft = useMemo(
+    () =>
+      visibleAircraft.find(
+        (item) => getAircraftIdentity(item) === selectedAircraftId,
+      ) ||
+      aircraft.find((item) => getAircraftIdentity(item) === selectedAircraftId) ||
+      null,
+    [aircraft, selectedAircraftId, visibleAircraft],
+  );
+  const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
 
   const latitudeLabel = formatCoordinateLabel(lat, "lat");
   const longitudeLabel = formatCoordinateLabel(lon, "lon");
@@ -136,7 +148,11 @@ export default function AirportMap({
 
       {mapInstance && (
         <MapContext.Provider value={mapInstance}>
-          <MapTileLayers theme={currentTheme} showLabels={showMapLabels} />
+          <MapTileLayers
+            theme={currentTheme}
+            showLabels={showMapLabels}
+            selectionActive={selectionActive}
+          />
           <AreaMarker
             lat={lat}
             lon={lon}
@@ -174,6 +190,11 @@ export default function AirportMap({
             icao={icao}
             aircraft={aircraft}
           />
+          <SelectedAircraftTrace
+            aircraft={selectedAircraft}
+            tracePoints={selectedAircraftTrace}
+            theme={currentTheme}
+          />
           {visibleAircraft.map((ac) => (
             <AircraftPosition
               key={getAircraftIdentity(ac)}
@@ -185,6 +206,8 @@ export default function AirportMap({
                 altitudeLevel,
               })}
               selected={getAircraftIdentity(ac) === selectedAircraftId}
+              selectionActive={selectionActive}
+              traceActive={selectionActive}
               onSelectAircraft={onSelectAircraft}
             />
           ))}

@@ -19,7 +19,11 @@ const TILE_VARIANTS = {
   },
 };
 
-export default function MapTileLayers({ theme = "dark", showLabels = true }) {
+export default function MapTileLayers({
+  theme = "dark",
+  showLabels = true,
+  selectionActive = false,
+}) {
   const map = useMapInstance();
   const baseRef = useRef(null);
   const labelRef = useRef(null);
@@ -54,6 +58,24 @@ export default function MapTileLayers({ theme = "dark", showLabels = true }) {
       labelRef.current = null;
     };
   }, [map, theme, showLabels]);
+
+  useEffect(() => {
+    const baseLayer = baseRef.current;
+    const labelLayer = labelRef.current;
+    if (!baseLayer) return;
+
+    if (selectionActive) {
+      baseLayer.setOpacity(theme === "light" ? 0.78 : 0.72);
+      if (labelLayer) {
+        labelLayer.setOpacity(theme === "light" ? 0.38 : 0.28);
+      }
+      return;
+    }
+
+    const variant = TILE_VARIANTS[theme] || TILE_VARIANTS.dark;
+    baseLayer.setOpacity(1);
+    if (labelLayer) labelLayer.setOpacity(variant.labelOpacity);
+  }, [selectionActive, theme, showLabels]);
 
   return null;
 }

@@ -2402,6 +2402,78 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
+.aircraft-trace,
+.aircraft-trace-point {
+    pointer-events: none;
+}
+
+.aircraft-trace--band {
+    transition:
+        opacity 220ms ease,
+        stroke-width 220ms ease;
+}
+
+.aircraft-trace--glow {
+    filter: blur(4px);
+    mix-blend-mode: screen;
+}
+
+.aircraft-trace--sweep {
+    animation: aircraft-trace-flow 2s linear infinite;
+    filter: drop-shadow(
+        0 0 8px color-mix(in oklab, var(--atc-accent) 26%, transparent)
+    );
+}
+
+.aircraft-trace-point {
+    filter: drop-shadow(
+        0 0 7px color-mix(in oklab, var(--atc-accent) 24%, transparent)
+    );
+}
+
+.aircraft-trace-head {
+    animation: aircraft-trace-pulse 1.9s ease-in-out infinite;
+    filter: drop-shadow(
+        0 0 12px color-mix(in oklab, var(--atc-accent) 34%, transparent)
+    );
+}
+
+:root[data-theme="light"] .aircraft-trace--glow {
+    filter: blur(2.5px);
+    mix-blend-mode: multiply;
+}
+
+:root[data-theme="light"] .aircraft-trace--sweep,
+:root[data-theme="light"] .aircraft-trace-point,
+:root[data-theme="light"] .aircraft-trace-head {
+    filter: drop-shadow(
+        0 0 4px color-mix(in oklab, var(--atc-accent) 12%, transparent)
+    );
+}
+
+@keyframes aircraft-trace-flow {
+    from {
+        stroke-dashoffset: 30;
+    }
+
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes aircraft-trace-pulse {
+    0%,
+    100% {
+        opacity: 0.82;
+        transform: scale(0.94);
+    }
+
+    45% {
+        opacity: 1;
+        transform: scale(1.18);
+    }
+}
+
 .aircraft-label-title {
     font-size: 10px;
 }

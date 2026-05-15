@@ -15,9 +15,54 @@ export const AIRPORT_MAP_TRAFFIC_LEGEND = [
 ];
 
 export const AIRPORT_MAP_PANES = {
+  trace: {
+    name: "airport-map-trace",
+    zIndex: 405,
+  },
   badge: {
     name: "airport-map-badge",
     zIndex: 420,
+  },
+};
+
+export const SELECTED_AIRCRAFT_TRACE_STYLE = {
+  maxHistoryPoints: 36,
+  maxRenderPoints: 220,
+  bandCount: 7,
+  sweepTailRatio: 0.22,
+  dark: {
+    glowColor: "#8ec5ff",
+    glowOpacity: 0.18,
+    glowWeight: 12,
+    lineColor: "#d5ecff",
+    lineOpacity: 0.94,
+    lineWeight: 3.2,
+    sweepColor: "#f6fbff",
+    sweepOpacity: 0.9,
+    sweepWeight: 2.2,
+    pointColor: "#d5ecff",
+    pointFillOpacity: 0.42,
+    pointRadius: 2,
+    headColor: "#f6fbff",
+    headOpacity: 0.95,
+    headRadius: 3.6,
+  },
+  light: {
+    glowColor: "#9ab7d6",
+    glowOpacity: 0.1,
+    glowWeight: 9,
+    lineColor: "#234a73",
+    lineOpacity: 0.86,
+    lineWeight: 3,
+    sweepColor: "#2e5a86",
+    sweepOpacity: 0.72,
+    sweepWeight: 2,
+    pointColor: "#234a73",
+    pointFillOpacity: 0.28,
+    pointRadius: 1.8,
+    headColor: "#234a73",
+    headOpacity: 0.82,
+    headRadius: 3.2,
   },
 };
 
