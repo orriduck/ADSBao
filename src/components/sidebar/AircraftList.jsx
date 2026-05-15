@@ -34,6 +34,7 @@ export default function AircraftList({
           >
             <AircraftSlot
               aircraft={item}
+              slotIndex={index}
               altitudeFocus={altitudeFocus}
               showAirspaceContext={showAirspaceContext}
               selectedAircraftId={selectedAircraftId}
@@ -48,6 +49,7 @@ export default function AircraftList({
 
 function AircraftSlot({
   aircraft,
+  slotIndex = 0,
   altitudeFocus,
   showAirspaceContext,
   selectedAircraftId,
@@ -67,6 +69,10 @@ function AircraftSlot({
 
     if (reducedMotion) return;
 
+    // Cascade flips top→bottom so a multi-row reshuffle reads as a wave, not
+    // a snap. Cap the delay so deep-scrolled slots don't stall on stale data.
+    const flipDelay = Math.min(slotIndex * 0.014, 0.35);
+
     setFreezeAircraft(oldAircraft);
     let cancelled = false;
     (async () => {
@@ -74,7 +80,7 @@ function AircraftSlot({
         rotateX: -90,
         opacity: 0,
         filter: "brightness(1.18)",
-        transition: { duration: 0.18, ease: "easeIn" },
+        transition: { duration: 0.18, ease: "easeIn", delay: flipDelay },
       });
       if (cancelled) return;
       setFreezeAircraft(null);
@@ -88,7 +94,7 @@ function AircraftSlot({
     return () => {
       cancelled = true;
     };
-  }, [currentKey, controls, reducedMotion]);
+  }, [currentKey, controls, reducedMotion, slotIndex]);
 
   // Track the latest live aircraft so the next tenant swap can freeze on it.
   // Skip while frozen — that's when the displayed row is intentionally stale.
