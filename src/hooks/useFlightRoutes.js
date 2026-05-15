@@ -237,7 +237,15 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
           routeContext,
           { forceAerodatabox: true },
         );
-        if (route) {
+        // Only overwrite the cache when AeroDataBox returns a *complete*
+        // route. A partial response (origin known, destination missing)
+        // would clobber a perfectly good complete VRS entry, leaving the
+        // user worse off after asking us to "revalidate".
+        const hasOrigin = Boolean(route?.origin?.icao || route?.origin?.iata);
+        const hasDestination = Boolean(
+          route?.destination?.icao || route?.destination?.iata,
+        );
+        if (route && hasOrigin && hasDestination) {
           routeCache.set(cacheKey, { route, time: Date.now() });
         }
         return route;
