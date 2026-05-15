@@ -97,9 +97,11 @@ export async function GET(request, { params }) {
   }
 
   const providers = selectProviderOrder(POSITION_PROVIDER_CHAIN, healthTracker);
+  const attempted = [];
   let lastError = null;
 
   for (const provider of providers) {
+    attempted.push(provider.id);
     try {
       const payload = await fetchProviderPayload(provider, {
         latitude,
@@ -129,9 +131,14 @@ export async function GET(request, { params }) {
     }
   }
 
+  // Surface the chain that was attempted so the audit log can show what
+  // failed (e.g. "(adsb.lol,adsb.fi)") instead of an empty source slot.
   return jsonProxyResponse(
     request,
     { error: "Failed to load aircraft positions" },
-    { status: Number(lastError?.status) || 502 },
+    {
+      status: Number(lastError?.status) || 502,
+      headers: { "X-Data-Source": attempted.join(",") || "none" },
+    },
   );
 }

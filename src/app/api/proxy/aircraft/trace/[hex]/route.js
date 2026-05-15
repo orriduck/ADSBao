@@ -86,20 +86,25 @@ export async function GET(request, { params }) {
   }
 
   const providers = selectProviderOrder(TRACE_PROVIDER_CHAIN, healthTracker);
+  const attempted = [];
   let lastError = null;
 
   for (const provider of providers) {
+    attempted.push(provider.id);
     try {
       const recent = await fetchTraceFromProvider(provider, { hex });
       if (!recent) {
         return jsonProxyResponse(
           request,
           { error: "Aircraft trace not found" },
-          { status: 404 },
+          {
+            status: 404,
+            headers: { "X-Data-Source": provider.id },
+          },
         );
       }
       return Response.json(
-        { hex, recent },
+        { hex, recent, source: provider.id },
         {
           headers: buildProxyHeaders(request, {
             "Cache-Control": "no-store",
@@ -124,6 +129,9 @@ export async function GET(request, { params }) {
   return jsonProxyResponse(
     request,
     { error: "Failed to load aircraft trace" },
-    { status: Number(lastError?.status) || 502 },
+    {
+      status: Number(lastError?.status) || 502,
+      headers: { "X-Data-Source": attempted.join(",") || "none" },
+    },
   );
 }
