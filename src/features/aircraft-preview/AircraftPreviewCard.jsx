@@ -13,20 +13,20 @@ import { getAircraftIdentity } from "../airport-context/airportContextUiModel.js
 const POCKET_EASE = [0.16, 1, 0.3, 1];
 
 const CARD_MOTION = {
-  initial: { opacity: 0, x: 96 },
-  animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: 72 },
+  initial: { opacity: 0, y: 96 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 96 },
   transition: { duration: 0.46, ease: POCKET_EASE },
 };
 
-// Icon slides on the same horizontal axis as the card but with a small
+// Icon slides on the same vertical axis as the card but with a small
 // delay and a longer duration, so it visibly trails behind on entry and
 // lingers a beat longer on exit — the parallax-trailing-from-the-pocket
 // feel. Both animations use the same ease-out curve.
 const ICON_MOTION = {
-  initial: { x: 96, opacity: 0 },
-  animate: { x: 0, opacity: 1 },
-  exit: { x: 96, opacity: 0 },
+  initial: { y: 96, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: 96, opacity: 0 },
   transition: { duration: 0.62, ease: POCKET_EASE, delay: 0.1 },
 };
 
