@@ -144,7 +144,7 @@ export default function AircraftPosition({
         silhouette={silhouette}
         sizeScale={sizeScale}
       />
-      {emphasis.showLabel && !traceActive && (
+      {(selected || (!traceActive && emphasis.showLabel)) && (
         <Label
           color={color}
           label={label}
