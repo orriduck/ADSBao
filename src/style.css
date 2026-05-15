@@ -3778,6 +3778,8 @@ body {
     min-width: 0;
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
     gap: 2px;
 }
 
@@ -3907,6 +3909,18 @@ body {
     flex-direction: column;
     gap: 3px;
     min-width: 0;
+}
+
+/* The right-most stat (V/S) hugs the card's right edge so it stays in
+   visual rhythm with the right-aligned type tag and the metadata
+   rows. */
+.aircraft-preview-telemetry .aircraft-preview-stat:last-child {
+    align-items: flex-end;
+    text-align: right;
+}
+
+.aircraft-preview-telemetry .aircraft-preview-stat:last-child .aircraft-preview-stat__value {
+    justify-content: flex-end;
 }
 
 .aircraft-preview-stat__label {
