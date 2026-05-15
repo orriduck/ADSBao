@@ -207,6 +207,7 @@ export default function AirportMap({
               })}
               selected={getAircraftIdentity(ac) === selectedAircraftId}
               selectionActive={selectionActive}
+              traceActive={selectionActive}
               onSelectAircraft={onSelectAircraft}
             />
           ))}

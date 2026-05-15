@@ -40,6 +40,7 @@ export default function AircraftPosition({
   matchesFilters = true,
   selected = false,
   selectionActive = false,
+  traceActive = false,
   onSelectAircraft,
 }) {
   const map = useMapInstance();
@@ -143,7 +144,7 @@ export default function AircraftPosition({
         silhouette={silhouette}
         sizeScale={sizeScale}
       />
-      {emphasis.showLabel && (
+      {emphasis.showLabel && !traceActive && (
         <Label
           color={color}
           label={label}
