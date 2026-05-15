@@ -31,13 +31,13 @@ export function useAircraftPositions(icao, lat, lon) {
   useEffect(() => {
     let disposed = false;
 
-    const stop = () => {
+    const stop = ({ clearAircraft = true, clearTrace = true } = {}) => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-      traceTrackerRef.current.clear();
-      if (!disposed) setAircraft([]);
+      if (clearTrace) traceTrackerRef.current.clear();
+      if (!disposed && clearAircraft) setAircraft([]);
     };
 
     const poll = async () => {
@@ -52,13 +52,15 @@ export function useAircraftPositions(icao, lat, lon) {
         if (disposed) return;
         const receiveTime = Date.now();
         const snapshot = normalizeAircraftSnapshot({
-            json: aircraftJson,
-            receiveTime,
-          });
+          json: aircraftJson,
+          receiveTime,
+        });
+        const staleAgeMs = Number(aircraftJson?.staleAgeMs ?? 0);
+        const isStale = aircraftJson?.stale === true;
         setAircraft(traceTrackerRef.current.update(snapshot, receiveTime));
         consecutiveFailuresRef.current = 0;
-        setFeedStatus("live");
-        setLastUpdated(new Date());
+        setFeedStatus(isStale ? "infer" : "live");
+        setLastUpdated(new Date(receiveTime - Math.max(0, staleAgeMs)));
         setInitialLoading(false);
       } catch (e) {
         consecutiveFailuresRef.current++;
@@ -75,7 +77,7 @@ export function useAircraftPositions(icao, lat, lon) {
     };
 
     const start = () => {
-      stop();
+      stop({ clearAircraft: false });
       consecutiveFailuresRef.current = 0;
       setFeedStatus("live");
       setInitialLoading(true);
@@ -87,13 +89,13 @@ export function useAircraftPositions(icao, lat, lon) {
     const handleVisibility = () => {
       if (document.hidden) {
         hiddenSinceRef.current = Date.now();
-        stop();
+        stop({ clearAircraft: false, clearTrace: false });
         return;
       }
       const hiddenDuration = Date.now() - hiddenSinceRef.current;
       hiddenSinceRef.current = 0;
       if (wasActiveRef.current && hiddenDuration > HIDDEN_POLL_GRACE_MS) {
-        setAircraft([]);
+        traceTrackerRef.current.clear();
         start();
       } else if (wasActiveRef.current) {
         poll();
