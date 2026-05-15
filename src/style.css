@@ -3744,15 +3744,15 @@ body {
 
 .aircraft-preview-card__icon-layer {
     flex-shrink: 0;
-    /* Fixed-size visible window. The icon child is rendered at 128px but
-       only the top 60px renders thanks to overflow:hidden — so the lower
-       portion of the silhouette (tail / engines) is cleanly clipped, and
-       the layer's bottom edge sits flush with the divider. Negative
-       top-margin pulls the box upward so the visible nose protrudes past
-       the card body. */
+    /* The icon renders at its full 128px — nothing truncates it. The
+       layer's height (60px) is what controls how tall the header is in
+       flex flow, which in turn sets where the pocket panel starts. The
+       silhouette overflows the layer downward, and the pocket (drawn
+       later in DOM, so on top) covers the lower portion. Visible
+       fraction = layer height / icon height ≈ 60 / 128 ≈ 47%.
+       Bump the height up to show more of the plane, down to show less. */
     width: 128px;
     height: 60px;
-    overflow: hidden;
     margin-top: -28px;
     margin-left: -10px;
     margin-right: -4px;
