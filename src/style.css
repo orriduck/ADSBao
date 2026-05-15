@@ -3736,22 +3736,29 @@ body {
 .aircraft-preview-card__header {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     margin-bottom: 14px;
-    /* Reserve enough space for the 96px icon that pokes past the top edge —
-       the visible part inside the card is about 60% of the icon height. */
-    min-height: 56px;
+    /* The icon layer hangs upward via negative margin, so the header only
+       has to reserve space for the small visible "remainder" + the type
+       label next to it. */
+    min-height: 42px;
 }
 
 .aircraft-preview-card__icon-layer {
     flex-shrink: 0;
-    /* The layer is what the parallax motion is applied to; the negative
-       offsets here position the silhouette so it visibly protrudes past
-       the card's top and left edges — the "big, slides out" feel. */
-    margin-top: -36px;
-    margin-left: -14px;
+    /* Pull the layer up so the silhouette mostly lives ABOVE the card —
+       only the portion that fits inside the clip region is rendered. */
+    margin-top: -88px;
+    margin-left: -10px;
     margin-bottom: -8px;
     margin-right: -4px;
+    /* Hide the lower portion of the silhouette: only the part above the
+       card's top edge stays visible, matching the "card peeking out of
+       the pocket" sketch. The 56% bottom inset corresponds to where the
+       card's top edge intersects the 128px icon given the margin-top
+       offset above. */
+    clip-path: inset(0 0 56% 0);
+    -webkit-clip-path: inset(0 0 56% 0);
     will-change: transform, opacity;
 }
 
