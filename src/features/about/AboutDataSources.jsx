@@ -16,7 +16,7 @@ export default function AboutDataSources({ sources, onOpenExternalLink }) {
 
       <ol className="px-6 divide-y divide-[var(--atc-line)]">
         {sources.map((source) => (
-          <li key={source.glyph}>
+          <li key={source.host || source.title || source.glyph}>
             <a
               {...getExternalLinkOpenTarget(source.href)}
               onClick={(event) => onOpenExternalLink(event, source.href)}
