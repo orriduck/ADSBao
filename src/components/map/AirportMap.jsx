@@ -118,6 +118,21 @@ export default function AirportMap({
     }
   }, [lat, lon, zoom]);
 
+  // Clicks on the map background (not on an aircraft marker) clear the
+  // selection so the user can drop "trace mode" without targeting an
+  // explicit element. Aircraft markers stop event propagation in their own
+  // container click handler, so this listener only fires on bare tiles.
+  useEffect(() => {
+    if (!mapInstance || typeof onSelectAircraft !== "function") return undefined;
+    const handleMapClick = () => {
+      if (selectedAircraftId) onSelectAircraft("");
+    };
+    mapInstance.on("click", handleMapClick);
+    return () => {
+      mapInstance.off("click", handleMapClick);
+    };
+  }, [mapInstance, onSelectAircraft, selectedAircraftId]);
+
   const visibleAircraft = useMemo(() => {
     return getVisibleAircraft({
       aircraft,

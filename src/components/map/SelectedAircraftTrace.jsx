@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
+import { useReducedMotion } from "motion/react";
 import { useMapInstance } from "./MapContext.js";
 import {
   AIRPORT_MAP_PANES,
@@ -12,6 +13,9 @@ import {
   buildAircraftTraceCurve,
   downsampleTracePoints,
 } from "../../features/aircraft-trace/aircraftTraceModel.js";
+import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
+
+const TRACE_GROWTH_DURATION_MS = 700;
 
 const getTraceStyle = (theme) =>
   theme === "light"
@@ -39,6 +43,8 @@ function buildTraceBands(coords) {
     const endIndex = Math.floor((segmentCount * (bandIndex + 1)) / bandCount);
     return {
       index: bandIndex,
+      startIndex,
+      endIndex,
       coords: sliceCurve(coords, startIndex, endIndex),
       emphasis: bandIndex / Math.max(1, bandCount - 1),
     };
@@ -62,6 +68,10 @@ function buildHeadSweepCoords(coords) {
   return coords.slice(startIndex);
 }
 
+// Cubic ease-out — fast start that decelerates into the head, which reads as
+// "the plane just left this trail" rather than a uniform linear stripe.
+const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
 export default function SelectedAircraftTrace({
   aircraft = null,
   tracePoints = [],
@@ -69,6 +79,10 @@ export default function SelectedAircraftTrace({
 }) {
   const map = useMapInstance();
   const layersRef = useRef([]);
+  const rafIdRef = useRef(null);
+  const previousHexRef = useRef(null);
+  const reducedMotion = useReducedMotion();
+
   const traceData = useMemo(() => {
     const sourcePoints =
       tracePoints.length > 1
@@ -92,44 +106,67 @@ export default function SelectedAircraftTrace({
   }, [aircraft, tracePoints]);
 
   useEffect(() => {
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
     removeLayers(layersRef.current, map);
     layersRef.current = [];
 
-    if (!map || traceData.curve.length < 2) return undefined;
+    if (!map || traceData.curve.length < 2) {
+      previousHexRef.current = null;
+      return undefined;
+    }
+
+    const currentHex = getAircraftIdentity(aircraft) || null;
+    const isFreshSelection = previousHexRef.current !== currentHex;
+    previousHexRef.current = currentHex;
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const traceStyle = getTraceStyle(theme);
     const layers = [];
+    // Polylines that participate in the growth reveal: each carries the
+    // range of indices it owns within traceData.curve, so a single eased
+    // "progress" value can drive all of them in lockstep.
+    const growable = [];
 
     traceData.bands.forEach((band) => {
       const opacity = 0.08 + band.emphasis * traceStyle.lineOpacity;
       const weight = traceStyle.lineWeight * (0.82 + band.emphasis * 0.28);
-      layers.push(
-        L.polyline(band.coords, {
-          pane,
-          color: traceStyle.lineColor,
-          opacity,
-          weight,
-          interactive: false,
-          lineCap: "round",
-          lineJoin: "round",
-          className: "aircraft-trace aircraft-trace--band",
-        }).addTo(map),
-      );
-    });
-
-    layers.push(
-      L.polyline(traceData.curve, {
+      const polyline = L.polyline(band.coords, {
         pane,
-        color: traceStyle.glowColor,
-        opacity: traceStyle.glowOpacity,
-        weight: traceStyle.glowWeight,
+        color: traceStyle.lineColor,
+        opacity,
+        weight,
         interactive: false,
         lineCap: "round",
         lineJoin: "round",
-        className: "aircraft-trace aircraft-trace--glow",
-      }).addTo(map),
-    );
+        className: "aircraft-trace aircraft-trace--band",
+      }).addTo(map);
+      layers.push(polyline);
+      growable.push({
+        polyline,
+        startIndex: band.startIndex,
+        endIndex: band.endIndex,
+      });
+    });
+
+    const glowPolyline = L.polyline(traceData.curve, {
+      pane,
+      color: traceStyle.glowColor,
+      opacity: traceStyle.glowOpacity,
+      weight: traceStyle.glowWeight,
+      interactive: false,
+      lineCap: "round",
+      lineJoin: "round",
+      className: "aircraft-trace aircraft-trace--glow",
+    }).addTo(map);
+    layers.push(glowPolyline);
+    growable.push({
+      polyline: glowPolyline,
+      startIndex: 0,
+      endIndex: traceData.curve.length - 1,
+    });
 
     if (traceData.sweepCoords.length >= 2) {
       layers.push(
@@ -164,11 +201,63 @@ export default function SelectedAircraftTrace({
 
     layersRef.current = layers;
 
+    // Only grow the trace from origin → head on a fresh selection. On
+    // poll-driven re-renders for the same aircraft we want the new tail
+    // points to extend in place without replaying the whole sweep.
+    if (!isFreshSelection || reducedMotion) {
+      return () => {
+        if (rafIdRef.current) {
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+        }
+        removeLayers(layersRef.current, map);
+        layersRef.current = [];
+      };
+    }
+
+    // Start each growable polyline with an empty coord array, then walk the
+    // curve forward. Each polyline reveals only the portion of the curve
+    // that falls inside its [startIndex, endIndex] range, so bands of
+    // different colors light up in sequence as the progress front moves
+    // through them.
+    growable.forEach((g) => g.polyline.setLatLngs([]));
+    const totalSegments = Math.max(1, traceData.curve.length - 1);
+    const startTime =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / TRACE_GROWTH_DURATION_MS);
+      const frontIndex = easeOutCubic(t) * totalSegments;
+
+      growable.forEach((g) => {
+        const sliceEnd = Math.min(g.endIndex, Math.floor(frontIndex));
+        if (sliceEnd <= g.startIndex) {
+          g.polyline.setLatLngs([]);
+          return;
+        }
+        g.polyline.setLatLngs(
+          traceData.curve.slice(g.startIndex, sliceEnd + 1),
+        );
+      });
+
+      if (t < 1) {
+        rafIdRef.current = requestAnimationFrame(tick);
+      } else {
+        rafIdRef.current = null;
+      }
+    };
+    rafIdRef.current = requestAnimationFrame(tick);
+
     return () => {
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
       removeLayers(layersRef.current, map);
       layersRef.current = [];
     };
-  }, [map, theme, traceData]);
+  }, [map, theme, traceData, aircraft, reducedMotion]);
 
   return null;
 }

@@ -2575,6 +2575,18 @@ body {
     position: relative;
 }
 
+/* Pinned-aircraft slot above the scroll list. Same row layout as a list
+ * item, but with an accent left rail + bottom border so it visually reads
+ * as "this is sticky, the scroll list is below". */
+.aircraft-table-pin {
+    background: color-mix(in oklab, var(--atc-accent) 6%, transparent);
+    border-bottom: 1px solid var(--atc-line-strong);
+    border-left: 2px solid var(--atc-accent);
+    overflow: hidden;
+    perspective: 800px;
+    position: relative;
+}
+
 .aircraft-table-list__item + .aircraft-table-list__item {
     border-top: 1px solid var(--atc-line);
 }
