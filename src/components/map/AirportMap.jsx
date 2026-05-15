@@ -50,7 +50,6 @@ export default function AirportMap({
   typeFilter = "all",
   altitudeLevel = "all",
   selectedAircraftId = "",
-  selectedAircraftTrace = [],
   onSelectAircraft,
   runwayMap = null,
   runwayProcedures = null,

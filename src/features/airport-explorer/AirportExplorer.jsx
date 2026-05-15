@@ -13,7 +13,7 @@ import { resolveAirportProfile } from "./airportExplorerModel.js";
 import { useAirportExplorerData } from "./useAirportExplorerData.js";
 import { useAirportProcedures } from "../../hooks/useAirportProcedures.js";
 import { useNearbyAirports } from "../../hooks/useNearbyAirports.js";
-import { useAircraftTrace } from "../../hooks/useAircraftTrace.js";
+import { SelectedAircraftTraceProvider } from "../aircraft-trace/SelectedAircraftTraceContext.jsx";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -66,9 +66,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         (item) => (item.icao24 || item.callsign) === selectedAircraftId,
       ) || null,
     [selectedAircraftId, traffic.aircraft],
-  );
-  const { tracePoints: selectedAircraftTrace } = useAircraftTrace(
-    selectedAircraft,
   );
 
   useEffect(() => {
@@ -123,58 +120,59 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   };
 
   return (
-    <div
-      className={`font-sans text-atc-text ${
-        isMobile
-          ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
-          : "flex h-dvh overflow-hidden"
-      }`}
-    >
-      {!isMobile && (
-        <div
-          className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
-          style={{ width: sidebarOpen ? desktopSidebarWidth : "0" }}
-        >
-          <div className="h-full" style={{ width: desktopSidebarWidth }}>
-            <AirportSidebar {...sidebarProps} />
-          </div>
-        </div>
-      )}
-
-      <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
-        {!(isMobile && sidebarOpen) && <AirportExplorerMapMenu />}
-
-        <AirportMap
-          icao={airportProfile.icao}
-          lat={airportProfile.lat}
-          lon={airportProfile.lon}
-          zoom={mapZoom}
-          accent="var(--atc-accent)"
-          aircraft={traffic.aircraft}
-          nearbyAirports={nearbyAirports.airports}
-          airport={airport}
-          showMapLabels={showMapLabels}
-          showRunwayBeams={showRunwayBeams}
-          showRoutingPointBadges={showRoutingPointBadges}
-          trafficFilter={trafficFilter}
-          typeFilter={typeFilter}
-          altitudeLevel={altitudeLevel}
-          selectedAircraftId={selectedAircraftId}
-          selectedAircraftTrace={selectedAircraftTrace}
-          onSelectAircraft={selectAircraft}
-          runwayMap={procedures.runwayMap}
-          runwayProcedures={null}
-          procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
-          showProcedureFixLabels
-        />
-        <AircraftDataLoadingOverlay active={traffic.aircraftInitialLoading} />
-
-        {isMobile && sidebarOpen && (
-          <div className="absolute inset-0 z-[1100]">
-            <AirportSidebar {...sidebarProps} onClose={closeSidebar} />
+    <SelectedAircraftTraceProvider selectedAircraft={selectedAircraft}>
+      <div
+        className={`font-sans text-atc-text ${
+          isMobile
+            ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
+            : "flex h-dvh overflow-hidden"
+        }`}
+      >
+        {!isMobile && (
+          <div
+            className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
+            style={{ width: sidebarOpen ? desktopSidebarWidth : "0" }}
+          >
+            <div className="h-full" style={{ width: desktopSidebarWidth }}>
+              <AirportSidebar {...sidebarProps} />
+            </div>
           </div>
         )}
+
+        <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
+          {!(isMobile && sidebarOpen) && <AirportExplorerMapMenu />}
+
+          <AirportMap
+            icao={airportProfile.icao}
+            lat={airportProfile.lat}
+            lon={airportProfile.lon}
+            zoom={mapZoom}
+            accent="var(--atc-accent)"
+            aircraft={traffic.aircraft}
+            nearbyAirports={nearbyAirports.airports}
+            airport={airport}
+            showMapLabels={showMapLabels}
+            showRunwayBeams={showRunwayBeams}
+            showRoutingPointBadges={showRoutingPointBadges}
+            trafficFilter={trafficFilter}
+            typeFilter={typeFilter}
+            altitudeLevel={altitudeLevel}
+            selectedAircraftId={selectedAircraftId}
+            onSelectAircraft={selectAircraft}
+            runwayMap={procedures.runwayMap}
+            runwayProcedures={null}
+            procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
+            showProcedureFixLabels
+          />
+          <AircraftDataLoadingOverlay active={traffic.aircraftInitialLoading} />
+
+          {isMobile && sidebarOpen && (
+            <div className="absolute inset-0 z-[1100]">
+              <AirportSidebar {...sidebarProps} onClose={closeSidebar} />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </SelectedAircraftTraceProvider>
   );
 }
