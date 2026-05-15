@@ -214,17 +214,19 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
     });
   }, [aircraft, routeContext, version]);
 
-  // Bypass the cache + the VRS standing-data step and force a fresh
-  // AeroDataBox lookup. Used when the user explicitly asks to revalidate
-  // a focused aircraft's route (e.g., clicking on the already-selected
-  // plane). The new result overwrites the cached entry.
+  // Force a fresh AeroDataBox lookup for a focused aircraft. When the
+  // upstream returns a route we overwrite the cached entry — the aircraft
+  // gets re-enriched on the next render and downstream (marker color,
+  // sidebar row, trail accent color) repaints with the new data. When
+  // AeroDataBox returns nothing OR the call fails, we deliberately
+  // leave the cached entry alone so a perfectly good VRS route doesn't
+  // get erased by an inconclusive revalidation.
   const revalidate = useCallback(
     async (callsign) => {
       const normalized = normalizeCallsign(callsign);
       if (!normalized) return null;
 
       const cacheKey = buildRouteCacheKey(normalized, routeContext);
-      routeCache.delete(cacheKey);
       inFlight.add(normalized);
       if (mountedRef.current) {
         setLoadingCount(inFlight.size + queued.size);
@@ -235,14 +237,15 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
           routeContext,
           { forceAerodatabox: true },
         );
-        routeCache.set(cacheKey, { route, time: Date.now() });
+        if (route) {
+          routeCache.set(cacheKey, { route, time: Date.now() });
+        }
         return route;
       } catch (error) {
         console.warn(
           `Flight route revalidation failed for ${normalized}:`,
           error.message,
         );
-        routeCache.set(cacheKey, { route: null, time: Date.now() });
         return null;
       } finally {
         inFlight.delete(normalized);
