@@ -8,7 +8,6 @@ import {
   normalizeLongitude,
   readResponseJson,
 } from "@/services/apiProxySecurity.js";
-import { createAircraftPositionFallbackCache } from "@/services/aviation/aircraftPositionFallbackCache.js";
 import { POSITION_PROVIDER_CHAIN } from "@/services/aviation/aircraftDataProviders.js";
 import {
   createProviderHealthTracker,
@@ -24,44 +23,7 @@ const rateLimit = {
 
 const USER_AGENT = "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)";
 const POSITION_MAX_BYTES = 2 * 1024 * 1024;
-const fallbackCache = createAircraftPositionFallbackCache();
 const healthTracker = createProviderHealthTracker();
-
-function buildFallbackKey(latitude, longitude, distanceNm) {
-  return `${latitude}:${longitude}:${distanceNm}`;
-}
-
-function buildStalePayload(payload, { staleAgeMs, upstreamStatus }) {
-  return {
-    ...payload,
-    stale: true,
-    staleAgeMs,
-    upstreamStatus,
-  };
-}
-
-function createCachedFallbackResponse(request, key, upstreamStatus) {
-  const cached = fallbackCache.recall(key);
-  if (!cached) return null;
-
-  return Response.json(
-    buildStalePayload(cached.payload, {
-      staleAgeMs: cached.staleAgeMs,
-      upstreamStatus,
-    }),
-    {
-      headers: buildProxyHeaders(request, {
-        "Cache-Control": "no-store",
-        "X-Data-Source": "cache",
-      }),
-    },
-  );
-}
-
-export function __resetAircraftPositionFallbackCacheForTests() {
-  fallbackCache.clear();
-  healthTracker.clear();
-}
 
 export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
@@ -134,7 +96,6 @@ export async function GET(request, { params }) {
     );
   }
 
-  const fallbackKey = buildFallbackKey(latitude, longitude, distanceNm);
   const providers = selectProviderOrder(POSITION_PROVIDER_CHAIN, healthTracker);
   let lastError = null;
 
@@ -145,7 +106,6 @@ export async function GET(request, { params }) {
         longitude,
         distanceNm,
       });
-      fallbackCache.remember(fallbackKey, payload);
       return Response.json(payload, {
         headers: buildProxyHeaders(request, {
           "Cache-Control": "no-store",
@@ -162,22 +122,13 @@ export async function GET(request, { params }) {
         healthTracker.markUnhealthy(provider.id);
         continue;
       }
-      // Non-retriable upstream error (e.g. 4xx that isn't 429) — stop the chain.
       break;
     }
   }
 
-  const upstreamStatus = Number(lastError?.status) || 502;
-  const fallbackResponse = createCachedFallbackResponse(
-    request,
-    fallbackKey,
-    upstreamStatus,
-  );
-  if (fallbackResponse) return fallbackResponse;
-
   return jsonProxyResponse(
     request,
     { error: "Failed to load aircraft positions" },
-    { status: upstreamStatus },
+    { status: Number(lastError?.status) || 502 },
   );
 }
