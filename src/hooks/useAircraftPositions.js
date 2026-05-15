@@ -12,6 +12,7 @@ import {
   isHttp4xxOr5xx,
   normalizeAircraftSnapshot,
 } from "../features/aircraft-positions/aircraftPositionsModel.js";
+import { createAircraftTraceTracker } from "../features/aircraft-trace/aircraftTraceModel.js";
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
 
@@ -25,6 +26,7 @@ export function useAircraftPositions(icao, lat, lon) {
   const wasActiveRef = useRef(false);
   const hiddenSinceRef = useRef(0);
   const consecutiveFailuresRef = useRef(0);
+  const traceTrackerRef = useRef(createAircraftTraceTracker());
 
   useEffect(() => {
     let disposed = false;
@@ -34,6 +36,7 @@ export function useAircraftPositions(icao, lat, lon) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      traceTrackerRef.current.clear();
       if (!disposed) setAircraft([]);
     };
 
@@ -48,12 +51,11 @@ export function useAircraftPositions(icao, lat, lon) {
         });
         if (disposed) return;
         const receiveTime = Date.now();
-        setAircraft(
-          normalizeAircraftSnapshot({
+        const snapshot = normalizeAircraftSnapshot({
             json: aircraftJson,
             receiveTime,
-          }),
-        );
+          });
+        setAircraft(traceTrackerRef.current.update(snapshot, receiveTime));
         consecutiveFailuresRef.current = 0;
         setFeedStatus("live");
         setLastUpdated(new Date());

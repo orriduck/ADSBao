@@ -39,6 +39,7 @@ export default function AircraftPosition({
   theme = "dark",
   matchesFilters = true,
   selected = false,
+  selectionActive = false,
   onSelectAircraft,
 }) {
   const map = useMapInstance();
@@ -122,7 +123,7 @@ export default function AircraftPosition({
   // because at that point we're encoding "minimal indicator", not class.
   const sizeScale = showArrow ? resolveAircraftSizeScale(aircraft) : 1;
   const emphasis = resolveAircraftContextEmphasis({
-    matchesFilters,
+    matchesFilters: selectionActive ? selected : matchesFilters,
     selected,
   });
   const rot = Math.round(aircraft.track || 0);

@@ -2402,6 +2402,34 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
+.aircraft-trace,
+.aircraft-trace-point {
+    pointer-events: none;
+}
+
+.aircraft-trace--glow {
+    filter: blur(4px);
+    mix-blend-mode: screen;
+}
+
+.aircraft-trace--body {
+    filter: drop-shadow(0 0 10px color-mix(in oklab, var(--atc-accent) 22%, transparent));
+}
+
+.aircraft-trace-point {
+    filter: drop-shadow(0 0 7px color-mix(in oklab, var(--atc-accent) 30%, transparent));
+}
+
+:root[data-theme="light"] .aircraft-trace--glow {
+    filter: blur(2.5px);
+    mix-blend-mode: multiply;
+}
+
+:root[data-theme="light"] .aircraft-trace--body,
+:root[data-theme="light"] .aircraft-trace-point {
+    filter: drop-shadow(0 0 4px color-mix(in oklab, var(--atc-accent) 12%, transparent));
+}
+
 .aircraft-label-title {
     font-size: 10px;
 }
