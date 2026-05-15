@@ -32,5 +32,21 @@ export const ADSB_FI = Object.freeze({
   buildTraceUrl: null,
 });
 
-export const POSITION_PROVIDER_CHAIN = Object.freeze([ADSB_LOL, ADSB_FI]);
+export const AIRPLANES_LIVE = Object.freeze({
+  id: "airplanes.live",
+  label: "airplanes.live",
+  buildPositionUrl: ({ lat, lon, distanceNm }) =>
+    `https://api.airplanes.live/v2/point/${encodeURIComponent(
+      String(lat),
+    )}/${encodeURIComponent(String(lon))}/${encodeURIComponent(
+      String(distanceNm),
+    )}`,
+  buildTraceUrl: null,
+});
+
+export const POSITION_PROVIDER_CHAIN = Object.freeze([
+  ADSB_LOL,
+  ADSB_FI,
+  AIRPLANES_LIVE,
+]);
 export const TRACE_PROVIDER_CHAIN = Object.freeze([ADSB_LOL]);
