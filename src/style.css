@@ -3797,12 +3797,15 @@ body {
 .aircraft-preview-card__pocket {
     /* Front panel of the card — same surface tone as the card itself, but
        a separate stacking layer so it draws ON TOP of the silhouette
-       layer. As the icon slides up from y:96, this panel hides the lower
-       portion of its travel; only the part that rises above the panel's
-       top edge becomes visible. Full-bleed horizontal + bottom margins
-       so the panel meets the card's outer rounded corners cleanly. */
+       layer. Frosted-glass blur on the panel softens the portion of the
+       plane that sits behind it: the silhouette reads as a faint shape
+       through the frosted front instead of being flatly covered. The
+       slightly-more-transparent tone (warm vs. strong) lets the blur
+       actually show through. */
     position: relative;
-    background: var(--tone-card-strong);
+    background: var(--tone-card-warm);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     margin: 0 -18px -14px;
     padding: 0 18px 14px;
     border-bottom-left-radius: 12px;
