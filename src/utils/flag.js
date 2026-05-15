@@ -16,6 +16,16 @@ const COUNTRY_CODE_REMAP = Object.freeze({
 
 const remapCountry = (code) => COUNTRY_CODE_REMAP[code] || code;
 
+// Deterministic country-name overrides applied after remapping and before
+// `Intl.DisplayNames`. Node's bundled ICU and Chromium's ICU disagree on a
+// handful of CLDR labels, which causes React hydration mismatches when SSR and
+// the browser render different text for the same row. Pin the short Chromium
+// form for the codes we know diverge; extend this map if other codes surface.
+const COUNTRY_NAME_OVERRIDES = Object.freeze({
+  HK: "Hong Kong",
+  MO: "Macao",
+});
+
 export const flagEmoji = (isoCountry) => {
   const raw = String(isoCountry || "").trim().toUpperCase();
   if (!/^[A-Z]{2}$/.test(raw)) return "";
@@ -48,6 +58,7 @@ export const countryName = (isoCountry) => {
   const raw = String(isoCountry || "").trim().toUpperCase();
   if (!/^[A-Z]{2}$/.test(raw)) return "";
   const code = remapCountry(raw);
+  if (COUNTRY_NAME_OVERRIDES[code]) return COUNTRY_NAME_OVERRIDES[code];
   const names = getRegionNames();
   if (!names) return code;
   try {
