@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { useReducedMotion } from "motion/react";
 import { useMapInstance } from "./MapContext.js";
@@ -9,10 +9,7 @@ import {
   SELECTED_AIRCRAFT_TRACE_STYLE,
 } from "../../config/airportMap.js";
 import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
-import {
-  buildAircraftTraceCurve,
-  downsampleTracePoints,
-} from "../../features/aircraft-trace/aircraftTraceModel.js";
+import { computeTraceGeometry } from "../../features/aircraft-trace/traceGeometry.js";
 import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
 
 const TRACE_GROWTH_DURATION_MS = 900;
@@ -28,49 +25,9 @@ function removeLayers(layers = [], map) {
   });
 }
 
-function sliceCurve(coords, startIndex, endIndex) {
-  if (endIndex - startIndex < 1) return [];
-  return coords.slice(startIndex, endIndex + 1);
-}
-
-function buildTraceBands(coords) {
-  const bandCount = SELECTED_AIRCRAFT_TRACE_STYLE.bandCount;
-  const segmentCount = Math.max(0, coords.length - 1);
-  if (segmentCount < 1) return [];
-
-  return Array.from({ length: bandCount }, (_, bandIndex) => {
-    const startIndex = Math.floor((segmentCount * bandIndex) / bandCount);
-    const endIndex = Math.floor((segmentCount * (bandIndex + 1)) / bandCount);
-    return {
-      index: bandIndex,
-      startIndex,
-      endIndex,
-      coords: sliceCurve(coords, startIndex, endIndex),
-      emphasis: bandIndex / Math.max(1, bandCount - 1),
-    };
-  }).filter((band) => band.coords.length >= 2);
-}
-
-function buildTraceSamplePoints(points) {
-  const usable = points.slice(0, -1);
-  if (usable.length <= 8) return usable;
-
-  const stride = Math.max(1, Math.floor(usable.length / 8));
-  return usable.filter((_, index) => index % stride === 0);
-}
-
-function buildHeadSweepCoords(coords) {
-  const tailRatio = SELECTED_AIRCRAFT_TRACE_STYLE.sweepTailRatio;
-  const startIndex = Math.max(
-    0,
-    Math.floor(coords.length - Math.max(8, coords.length * tailRatio)),
-  );
-  return coords.slice(startIndex);
-}
-
-// Cubic ease-in-out — slow start that accelerates through the middle then
-// settles into the tail. Reads as "the trail is being unfurled" rather than
-// "snap then crawl", which is what plain ease-out produced for this geometry.
+// Cubic ease-in-out — gentle on both ends, fast in the middle. Reads as
+// "the trail is being unfurled" rather than "snap then crawl" that plain
+// ease-out produced when most of the path drew in the first 100ms.
 const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
@@ -83,29 +40,57 @@ export default function SelectedAircraftTrace({
   const layersRef = useRef([]);
   const rafIdRef = useRef(null);
   const previousHexRef = useRef(null);
+  const isAnimatingRef = useRef(false);
+  const pendingTracePointsRef = useRef(null);
   const reducedMotion = useReducedMotion();
+  const aircraftHex = aircraft ? getAircraftIdentity(aircraft) || null : null;
 
-  const traceData = useMemo(() => {
-    const sourcePoints =
-      tracePoints.length > 1
-        ? tracePoints
-        : (aircraft?.traceHistory || []).map((point) => ({
-            ...point,
-            timestampMs: point?.timestampMs ?? point?.time ?? null,
-          }));
-    const sampled = downsampleTracePoints(
-      sourcePoints,
-      SELECTED_AIRCRAFT_TRACE_STYLE.maxRenderPoints,
-    );
-    const curve = buildAircraftTraceCurve(sampled, 5);
+  // Local "committed" tracePoints decouples render from prop. While the
+  // growth animation is running, live poll appends are held in
+  // pendingTracePointsRef and applied once the animation settles. This is
+  // the key fix for the "two segments" feel: previously each 3-second
+  // poll triggered a full layer rebuild mid-animation, restarting the
+  // reveal from the new state.
+  const [committedTracePoints, setCommittedTracePoints] = useState(tracePoints);
 
-    return {
-      curve,
-      bands: buildTraceBands(curve),
-      samplePoints: buildTraceSamplePoints(sampled),
-      sweepCoords: buildHeadSweepCoords(curve),
-    };
-  }, [aircraft, tracePoints]);
+  // Sync prop → committed when not animating. When animating, stash for later.
+  useEffect(() => {
+    if (isAnimatingRef.current) {
+      pendingTracePointsRef.current = tracePoints;
+      return;
+    }
+    setCommittedTracePoints(tracePoints);
+  }, [tracePoints]);
+
+  // When the user switches aircraft mid-animation, we DO want to interrupt:
+  // the committed snapshot belongs to the old plane. Force-commit so the
+  // animation effect picks up the new geometry.
+  useEffect(() => {
+    if (!aircraftHex) {
+      pendingTracePointsRef.current = null;
+      setCommittedTracePoints([]);
+      return;
+    }
+    if (aircraftHex !== previousHexRef.current) {
+      pendingTracePointsRef.current = null;
+      setCommittedTracePoints(tracePoints);
+    }
+    // We deliberately don't depend on tracePoints — the live sync above
+    // handles those updates. This branch only fires on aircraft change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aircraftHex]);
+
+  // Pre-computed render geometry. Pure function of committed trace points.
+  const geometry = useMemo(
+    () =>
+      computeTraceGeometry({
+        tracePoints: committedTracePoints,
+        maxRenderPoints: SELECTED_AIRCRAFT_TRACE_STYLE.maxRenderPoints,
+        bandCount: SELECTED_AIRCRAFT_TRACE_STYLE.bandCount,
+        sweepTailRatio: SELECTED_AIRCRAFT_TRACE_STYLE.sweepTailRatio,
+      }),
+    [committedTracePoints],
+  );
 
   useEffect(() => {
     if (rafIdRef.current) {
@@ -115,29 +100,27 @@ export default function SelectedAircraftTrace({
     removeLayers(layersRef.current, map);
     layersRef.current = [];
 
-    if (!map || traceData.curve.length < 2) {
+    if (!map || !geometry) {
       previousHexRef.current = null;
+      isAnimatingRef.current = false;
       return undefined;
     }
 
-    // aircraft is explicitly null after a deselect, and getAircraftIdentity's
-    // default param `= {}` doesn't fire on null. Guard explicitly.
-    const currentHex = aircraft ? getAircraftIdentity(aircraft) || null : null;
-    const isFreshSelection = previousHexRef.current !== currentHex;
-    previousHexRef.current = currentHex;
+    const isFreshSelection = previousHexRef.current !== aircraftHex;
+    previousHexRef.current = aircraftHex;
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const traceStyle = getTraceStyle(theme);
     const layers = [];
     // Reveal-eligible polylines (bands + glow). Each carries its
-    // [startIndex, endIndex] within traceData.curve so the animation can
+    // [startIndex, endIndex] within geometry.curve so the animation can
     // drive every polyline from a single back-cursor in curve-index space —
     // they all show the same visible curve range at any moment, which is
     // what makes a 7-band trail look like one unfurling line instead of
     // staggered segments.
     const reveal = [];
 
-    traceData.bands.forEach((band) => {
+    geometry.bands.forEach((band) => {
       const opacity = 0.08 + band.emphasis * traceStyle.lineOpacity;
       const weight = traceStyle.lineWeight * (0.82 + band.emphasis * 0.28);
       const polyline = L.polyline(band.coords.slice().reverse(), {
@@ -158,8 +141,7 @@ export default function SelectedAircraftTrace({
       });
     });
 
-    const headIndex = Math.max(1, traceData.curve.length - 1);
-    const glowPolyline = L.polyline(traceData.curve.slice().reverse(), {
+    const glowPolyline = L.polyline(geometry.curve.slice().reverse(), {
       pane,
       color: traceStyle.glowColor,
       opacity: traceStyle.glowOpacity,
@@ -173,12 +155,12 @@ export default function SelectedAircraftTrace({
     reveal.push({
       polyline: glowPolyline,
       startIndex: 0,
-      endIndex: headIndex,
+      endIndex: geometry.headIndex,
     });
 
-    if (traceData.sweepCoords.length >= 2) {
+    if (geometry.sweepCoords.length >= 2) {
       layers.push(
-        L.polyline(traceData.sweepCoords, {
+        L.polyline(geometry.sweepCoords, {
           pane,
           color: traceStyle.sweepColor,
           opacity: traceStyle.sweepOpacity,
@@ -192,8 +174,8 @@ export default function SelectedAircraftTrace({
       );
     }
 
-    traceData.samplePoints.forEach((point, index) => {
-      const emphasis = (index + 1) / traceData.samplePoints.length;
+    geometry.samplePoints.forEach((point, index) => {
+      const emphasis = (index + 1) / geometry.samplePoints.length;
       layers.push(
         L.circleMarker([point.lat, point.lon], {
           pane,
@@ -209,9 +191,6 @@ export default function SelectedAircraftTrace({
 
     layersRef.current = layers;
 
-    // Only grow the trace from origin → head on a fresh selection. On
-    // poll-driven re-renders for the same aircraft we want the new tail
-    // points to extend in place without replaying the whole sweep.
     if (!isFreshSelection || reducedMotion) {
       return () => {
         if (rafIdRef.current) {
@@ -223,9 +202,9 @@ export default function SelectedAircraftTrace({
       };
     }
 
-    // Resolve each reveal polyline's SVG <path> element and its rendered
-    // length. Skip any whose path or length isn't ready (canvas renderer,
-    // unmounted layer) — that polyline just appears instantly.
+    // Resolve each reveal polyline's SVG <path> element and rendered length.
+    // Skip any whose length isn't ready (canvas renderer or unmounted layer)
+    // — those polylines just appear instantly.
     const segments = reveal
       .map((entry) => {
         const path = entry.polyline.getElement?.();
@@ -246,23 +225,22 @@ export default function SelectedAircraftTrace({
       };
     }
 
-    // Initial frame: every path hidden by setting dashoffset to its own
-    // pathLength. dasharray = pathLength so the dash + gap together cover
-    // 2× the path and we can interpolate the offset between [0, pathLength].
+    // Stage: every path hidden via full dashoffset.
     segments.forEach((seg) => {
       seg.path.style.strokeDasharray = `${seg.pathLength}`;
       seg.path.style.strokeDashoffset = `${seg.pathLength}`;
     });
 
+    isAnimatingRef.current = true;
     const startTime =
       typeof performance !== "undefined" ? performance.now() : Date.now();
+    const { headIndex } = geometry;
 
-    // Single back-cursor in curve-index space drives every polyline. The
-    // cursor starts at headIndex (no reveal) and walks toward 0 (full
-    // reveal). Each polyline reveals only the part of its index range that
-    // currently sits between the cursor and headIndex — so the head band
-    // and the glow draw the SAME curve segment at the SAME time, no matter
-    // their independent path lengths.
+    // Single back-cursor in curve-index space drives every polyline. Cursor
+    // starts at headIndex (no reveal) and walks toward 0 (full reveal). Each
+    // polyline reveals only the part of its index range the cursor has swept
+    // past, so the head band and the glow draw the SAME curve segment at the
+    // SAME time, no matter their independent path lengths.
     const tick = (now) => {
       const elapsed = now - startTime;
       const t = Math.min(1, elapsed / TRACE_GROWTH_DURATION_MS);
@@ -274,9 +252,6 @@ export default function SelectedAircraftTrace({
         } else if (cursor >= seg.endIndex) {
           seg.path.style.strokeDashoffset = `${seg.pathLength}`;
         } else {
-          // f = fraction of this polyline's index range that the cursor
-          // has NOT yet swept through (= the part still hidden, measured
-          // from the tail side of this polyline's curve range).
           const f = (cursor - seg.startIndex) / (seg.endIndex - seg.startIndex);
           seg.path.style.strokeDashoffset = `${f * seg.pathLength}`;
         }
@@ -284,15 +259,21 @@ export default function SelectedAircraftTrace({
 
       if (t < 1) {
         rafIdRef.current = requestAnimationFrame(tick);
-      } else {
-        // Clear dash properties so subsequent same-aircraft updates (which
-        // recreate the polylines on each poll) don't inherit stale dash
-        // styling on the freshly-built paths.
-        segments.forEach((seg) => {
-          seg.path.style.strokeDasharray = "";
-          seg.path.style.strokeDashoffset = "";
-        });
-        rafIdRef.current = null;
+        return;
+      }
+
+      rafIdRef.current = null;
+      isAnimatingRef.current = false;
+      // Clear inline dash styles so next-poll rebuilds inherit a clean path.
+      segments.forEach((seg) => {
+        seg.path.style.strokeDasharray = "";
+        seg.path.style.strokeDashoffset = "";
+      });
+      // Flush any deferred trace updates that arrived during the animation.
+      if (pendingTracePointsRef.current) {
+        const pending = pendingTracePointsRef.current;
+        pendingTracePointsRef.current = null;
+        setCommittedTracePoints(pending);
       }
     };
     rafIdRef.current = requestAnimationFrame(tick);
@@ -302,10 +283,11 @@ export default function SelectedAircraftTrace({
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
+      isAnimatingRef.current = false;
       removeLayers(layersRef.current, map);
       layersRef.current = [];
     };
-  }, [map, theme, traceData, aircraft, reducedMotion]);
+  }, [map, theme, geometry, aircraftHex, reducedMotion]);
 
   return null;
 }
