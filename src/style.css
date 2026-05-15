@@ -3839,7 +3839,7 @@ body {
     width: 128px;
     height: 128px;
     filter: blur(7px);
-    opacity: 0.55;
+    opacity: 0.8;
     will-change: transform, opacity;
 }
 
