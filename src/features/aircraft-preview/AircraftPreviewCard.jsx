@@ -62,8 +62,22 @@ export default function AircraftPreviewCard({ aircraft = null }) {
           {/* Body sits in its own panel so it draws ON TOP of the icon. As
               the icon slides up from y:96 it travels behind this panel and
               only emerges above the divider — the "pulled out of the
-              pocket" layering. */}
+              pocket" layering. A blurred duplicate ("ghost") of the
+              silhouette lives inside the panel so the lower portion of
+              the plane appears as a soft, blurred shape — backdrop-filter
+              alone is unreliable when nested inside another ancestor
+              that already has one. */}
           <div className="aircraft-preview-card__pocket">
+            <div className="aircraft-preview-card__pocket-ghost-clip">
+              <motion.div
+                className="aircraft-preview-card__pocket-ghost"
+                {...(reducedMotion
+                  ? { initial: false, animate: { opacity: 1 } }
+                  : ICON_MOTION)}
+              >
+                <AircraftPreviewIcon aircraft={aircraft} />
+              </motion.div>
+            </div>
             <div className="aircraft-preview-card__divider" />
             <AircraftPreviewIdentity aircraft={aircraft} />
             <AircraftPreviewTelemetry aircraft={aircraft} />

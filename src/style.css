@@ -3798,21 +3798,49 @@ body {
 }
 
 .aircraft-preview-card__pocket {
-    /* Front panel of the card — separate compositor layer (via
-       translateZ + will-change) so the backdrop-filter actually sees
-       the icon layer behind it. Nested backdrop-filter inside another
-       backdrop-filter ancestor (the card itself) gets dropped on
-       Chrome/Safari without this hint. */
+    /* Front panel of the card. Fully opaque so the original silhouette
+       behind it is completely hidden — the blurred version is supplied
+       by a "ghost" duplicate inside the panel (see below). Backdrop-
+       filter is not used here because nested backdrop-filter inside a
+       parent that already has one is unreliable across browsers; the
+       blurred ghost gives us the look we want with plain filter:blur(). */
     position: relative;
-    background: var(--tone-card-soft);
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
-    transform: translateZ(0);
-    will-change: backdrop-filter;
+    background: var(--atc-card);
     margin: 0 -18px -14px;
     padding: 0 18px 14px;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
+}
+
+.aircraft-preview-card__pocket-ghost-clip {
+    /* Bounded window for the blurred silhouette ghost. overflow:hidden
+       here clips the ghost (which extends above the panel) without
+       affecting the sibling dividers' negative horizontal margins. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.aircraft-preview-card__pocket-ghost {
+    /* Geometry mirrors the original .aircraft-preview-card__icon-layer
+       (left:8 in card coords, top offset so the lower portion lands
+       inside the pocket). The CSS filter:blur is what gives us the
+       soft, can't-quite-make-out-the-shape feel — works reliably
+       regardless of any backdrop-filter ancestor. */
+    position: absolute;
+    top: -60px;
+    left: 8px;
+    width: 128px;
+    height: 128px;
+    filter: blur(7px);
+    opacity: 0.55;
+    will-change: transform, opacity;
 }
 
 .aircraft-preview-card__divider {
