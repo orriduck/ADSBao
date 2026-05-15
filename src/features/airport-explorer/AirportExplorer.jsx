@@ -124,7 +124,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   return (
     <SelectedAircraftTraceProvider selectedAircraft={selectedAircraft}>
       <TraceLoadingToast />
-      <AircraftPreviewCard aircraft={selectedAircraft} />
+      {!isMobile && <AircraftPreviewCard aircraft={selectedAircraft} />}
       <div
         className={`font-sans text-atc-text ${
           isMobile
