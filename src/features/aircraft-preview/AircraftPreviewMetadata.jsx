@@ -1,10 +1,11 @@
 "use client";
 
+import NumberFlow from "@number-flow/react";
 import { toFiniteNumber } from "../../utils/math.js";
 
 // Slower-changing identity + spatial metadata: hex, track, and distance
-// from the focal airport. Lives below telemetry so the eye reads "what
-// is it doing now" before "what is it".
+// from the focal airport. Track and distance tween via NumberFlow so the
+// readout reads as live as the aircraft moves through the airspace.
 export default function AircraftPreviewMetadata({ aircraft }) {
   const hex = aircraft?.icao24 ? aircraft.icao24.toUpperCase() : "—";
   const track = toFiniteNumber(aircraft?.track);
@@ -12,23 +13,47 @@ export default function AircraftPreviewMetadata({ aircraft }) {
 
   return (
     <dl className="aircraft-preview-metadata">
-      <MetaRow label="HEX" value={hex} />
-      <MetaRow
+      <TextMeta label="HEX" value={hex} />
+      <NumericMeta
         label="TRK"
-        value={track != null ? `${Math.round(track)}°` : "—"}
+        value={track != null ? Math.round(track) : null}
+        suffix="°"
       />
       {distance != null && (
-        <MetaRow label="DIST" value={`${distance.toFixed(1)} NM`} />
+        <NumericMeta
+          label="DIST"
+          value={distance}
+          format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
+          suffix=" NM"
+        />
       )}
     </dl>
   );
 }
 
-function MetaRow({ label, value }) {
+function TextMeta({ label, value }) {
   return (
     <div className="aircraft-preview-meta-row">
       <dt className="aircraft-preview-meta-row__label">{label}</dt>
       <dd className="aircraft-preview-meta-row__value">{value}</dd>
+    </div>
+  );
+}
+
+function NumericMeta({ label, value, suffix = "", format }) {
+  return (
+    <div className="aircraft-preview-meta-row">
+      <dt className="aircraft-preview-meta-row__label">{label}</dt>
+      <dd className="aircraft-preview-meta-row__value">
+        {value == null ? (
+          "—"
+        ) : (
+          <>
+            <NumberFlow value={value} format={format} />
+            {suffix}
+          </>
+        )}
+      </dd>
     </div>
   );
 }

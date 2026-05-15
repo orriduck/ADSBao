@@ -4,7 +4,7 @@ import { resolveAircraftIcon } from "../../utils/aircraftIcon.js";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 import { ARRIVAL, DEPARTURE } from "../../utils/aircraftMovement.js";
 
-const ICON_SIZE_PX = 56;
+const ICON_SIZE_PX = 96;
 
 function resolveIconColor(aircraft) {
   if (aircraft?.onGround) return AIRCRAFT_COLORS.ground;

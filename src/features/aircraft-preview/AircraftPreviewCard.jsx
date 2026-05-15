@@ -8,22 +8,30 @@ import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry.jsx";
 import AircraftPreviewMetadata from "./AircraftPreviewMetadata.jsx";
 import { getAircraftIdentity } from "../airport-context/airportContextUiModel.js";
 
-// Bottom-right preview card for the currently-focused aircraft. Composes
-// the small per-section components — each consumes the aircraft prop
-// directly so adding / reordering sections doesn't require threading
-// state. Mounts whenever an aircraft is focused (clicked); animates out
-// when focus clears.
+// Card-from-pocket easing: snappy start, smooth landing. Ease-end only,
+// no ease-in — the body should look like it's being pulled, not nudged.
+const POCKET_EASE = [0.16, 1, 0.3, 1];
+
+const CARD_MOTION = {
+  initial: { opacity: 0, x: 96 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 72 },
+  transition: { duration: 0.46, ease: POCKET_EASE },
+};
+
+// Icon has its own (deeper) motion so it visually trails behind the card
+// — the "parallax / pulled-from-pocket" feel the spec calls for. It
+// starts further to the right than the card and arrives later, then
+// scales the last 12% so the silhouette pops out as the card settles.
+const ICON_MOTION = {
+  initial: { x: 160, opacity: 0, scale: 0.78 },
+  animate: { x: 0, opacity: 1, scale: 1 },
+  exit: { x: 96, opacity: 0, scale: 0.92 },
+  transition: { duration: 0.58, ease: POCKET_EASE, delay: 0.14 },
+};
+
 export default function AircraftPreviewCard({ aircraft = null }) {
   const reducedMotion = useReducedMotion();
-
-  const motionProps = reducedMotion
-    ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
-    : {
-        initial: { opacity: 0, x: 24 },
-        animate: { opacity: 1, x: 0 },
-        exit: { opacity: 0, x: 24 },
-        transition: { duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] },
-      };
 
   return (
     <AnimatePresence>
@@ -32,10 +40,23 @@ export default function AircraftPreviewCard({ aircraft = null }) {
           key={getAircraftIdentity(aircraft) || "preview-card"}
           className="aircraft-preview-card"
           aria-label="Aircraft preview"
-          {...motionProps}
+          {...(reducedMotion
+            ? {
+                initial: false,
+                animate: { opacity: 1 },
+                exit: { opacity: 0 },
+              }
+            : CARD_MOTION)}
         >
           <header className="aircraft-preview-card__header">
-            <AircraftPreviewIcon aircraft={aircraft} />
+            <motion.div
+              className="aircraft-preview-card__icon-layer"
+              {...(reducedMotion
+                ? { initial: false, animate: { opacity: 1 } }
+                : ICON_MOTION)}
+            >
+              <AircraftPreviewIcon aircraft={aircraft} />
+            </motion.div>
             <AircraftPreviewType aircraft={aircraft} />
           </header>
           <div className="aircraft-preview-card__divider" />

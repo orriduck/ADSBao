@@ -3736,17 +3736,27 @@ body {
 .aircraft-preview-card__header {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 10px;
+    gap: 16px;
+    margin-bottom: 14px;
+    /* Reserve enough space for the 96px icon that pokes past the top edge —
+       the visible part inside the card is about 60% of the icon height. */
+    min-height: 56px;
+}
+
+.aircraft-preview-card__icon-layer {
+    flex-shrink: 0;
+    /* The layer is what the parallax motion is applied to; the negative
+       offsets here position the silhouette so it visibly protrudes past
+       the card's top and left edges — the "big, slides out" feel. */
+    margin-top: -36px;
+    margin-left: -14px;
+    margin-bottom: -8px;
+    margin-right: -4px;
+    will-change: transform, opacity;
 }
 
 .aircraft-preview-icon {
     flex-shrink: 0;
-    /* Negative offsets so the silhouette protrudes past the card's top-left
-       corner — the "big, slides out" treatment the spec called for. */
-    margin-top: -22px;
-    margin-left: -8px;
-    margin-bottom: -6px;
 }
 
 .aircraft-preview-icon--fallback {

@@ -1,56 +1,74 @@
 "use client";
 
+import NumberFlow from "@number-flow/react";
 import { toFiniteNumber } from "../../utils/math.js";
 
-// Live flight telemetry — speed, altitude, vertical rate. Values are
-// rounded and units stay as small caps so the row reads as instrumentation
-// rather than prose. Ground aircraft show "GND" in place of altitude.
+// Live flight telemetry — GS / ALT / V/S. Values tween between polls via
+// NumberFlow so the readout reads as continuously instrumented (the
+// aircraft is actually moving), not as a stuttering update.
 export default function AircraftPreviewTelemetry({ aircraft }) {
   const speed = toFiniteNumber(aircraft?.velocity);
   const altitude = toFiniteNumber(aircraft?.altitude);
   const vs = toFiniteNumber(aircraft?.baroRate);
+  const onGround = Boolean(aircraft?.onGround);
 
   return (
     <dl className="aircraft-preview-telemetry">
-      <Stat
+      <NumericStat
         label="GS"
-        value={speed != null ? Math.round(speed).toString() : "—"}
-        unit={speed != null ? "kt" : ""}
+        value={speed != null ? Math.round(speed) : null}
+        unit="kt"
       />
-      <Stat
-        label="ALT"
-        value={
-          aircraft?.onGround
-            ? "GND"
-            : altitude != null
-              ? Math.round(altitude).toString()
-              : "—"
-        }
-        unit={!aircraft?.onGround && altitude != null ? "ft" : ""}
-      />
-      <Stat
+      {onGround ? (
+        <TextStat label="ALT" value="GND" />
+      ) : (
+        <NumericStat
+          label="ALT"
+          value={altitude != null ? Math.round(altitude) : null}
+          unit="ft"
+        />
+      )}
+      <NumericStat
         label="V/S"
-        value={vs != null ? formatVerticalRate(vs) : "—"}
-        unit={vs != null ? "fpm" : ""}
+        value={vs != null ? Math.round(vs) : null}
+        unit="fpm"
+        signed
       />
     </dl>
   );
 }
 
-function Stat({ label, value, unit }) {
+function NumericStat({ label, value, unit, signed = false }) {
   return (
     <div className="aircraft-preview-stat">
       <dt className="aircraft-preview-stat__label">{label}</dt>
       <dd className="aircraft-preview-stat__value">
-        <span className="aircraft-preview-stat__number">{value}</span>
-        {unit && <span className="aircraft-preview-stat__unit">{unit}</span>}
+        {value == null ? (
+          <span className="aircraft-preview-stat__number aircraft-preview-stat__number--missing">
+            —
+          </span>
+        ) : (
+          <NumberFlow
+            value={value}
+            format={signed ? { signDisplay: "exceptZero" } : undefined}
+            className="aircraft-preview-stat__number"
+          />
+        )}
+        {value != null && unit && (
+          <span className="aircraft-preview-stat__unit">{unit}</span>
+        )}
       </dd>
     </div>
   );
 }
 
-function formatVerticalRate(value) {
-  const rounded = Math.round(value);
-  if (rounded > 0) return `+${rounded}`;
-  return rounded.toString();
+function TextStat({ label, value }) {
+  return (
+    <div className="aircraft-preview-stat">
+      <dt className="aircraft-preview-stat__label">{label}</dt>
+      <dd className="aircraft-preview-stat__value">
+        <span className="aircraft-preview-stat__number">{value}</span>
+      </dd>
+    </div>
+  );
 }
