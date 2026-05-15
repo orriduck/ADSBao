@@ -3644,3 +3644,66 @@ body {
     --sidebar-border: hsl(240 3.7% 15.9%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
+
+/* Sonner toast — match the console-panel idiom used throughout the app:
+   dense padding, sharp 4px corners, design-token surface + border that
+   flip automatically with [data-theme]. Sonner's defaults live on
+   :where() selectors so a single-class override wins without !important. */
+.atc-toast[data-sonner-toast] {
+    font-family: 'Manrope', system-ui, sans-serif;
+    font-size: 12px;
+    line-height: 1.35;
+    letter-spacing: 0.005em;
+    padding: 8px 12px;
+    gap: 8px;
+    width: auto;
+    min-height: 0;
+    max-width: min(360px, calc(100vw - 32px));
+    background: var(--tone-card-strong);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--tone-border-firm);
+    border-radius: var(--atc-radius-panel);
+    box-shadow: 0 6px 20px color-mix(in oklab, var(--atc-bg) 60%, transparent);
+    color: var(--atc-text);
+}
+
+.atc-toast[data-sonner-toast] [data-icon] {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+}
+
+.atc-toast[data-sonner-toast] [data-icon] > * {
+    width: 14px;
+    height: 14px;
+    color: var(--atc-accent);
+}
+
+.atc-toast[data-sonner-toast] [data-content] {
+    gap: 2px;
+}
+
+.atc-toast[data-sonner-toast] [data-title] {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--atc-text);
+}
+
+.atc-toast[data-sonner-toast] [data-description] {
+    font-size: 11px;
+    color: var(--atc-faint);
+}
+
+.atc-toast[data-sonner-toast] [data-close-button] {
+    width: 16px;
+    height: 16px;
+    background: transparent;
+    border: none;
+    color: var(--atc-faint);
+}
+
+.atc-toast[data-sonner-toast] [data-close-button]:hover {
+    color: var(--atc-text);
+}
+
