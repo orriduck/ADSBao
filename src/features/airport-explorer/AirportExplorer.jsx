@@ -117,6 +117,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectedAircraftId,
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
+    feedSource: traffic.feedSource,
     onSelectAircraft: selectAircraft,
     onBack,
   };

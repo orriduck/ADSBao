@@ -22,6 +22,7 @@ export function useAircraftPositions(icao, lat, lon) {
   const [initialLoading, setInitialLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [feedStatus, setFeedStatus] = useState("live");
+  const [feedSource, setFeedSource] = useState("");
   const timerRef = useRef(null);
   const wasActiveRef = useRef(false);
   const hiddenSinceRef = useRef(0);
@@ -60,6 +61,9 @@ export function useAircraftPositions(icao, lat, lon) {
         setAircraft(traceTrackerRef.current.update(snapshot, receiveTime));
         consecutiveFailuresRef.current = 0;
         setFeedStatus(isStale ? "infer" : "live");
+        setFeedSource(
+          typeof aircraftJson?.source === "string" ? aircraftJson.source : "",
+        );
         setLastUpdated(new Date(receiveTime - Math.max(0, staleAgeMs)));
         setInitialLoading(false);
       } catch (e) {
@@ -112,6 +116,7 @@ export function useAircraftPositions(icao, lat, lon) {
       setInitialLoading(false);
       setLastUpdated(null);
       setFeedStatus("live");
+      setFeedSource("");
     }
     document.addEventListener("visibilitychange", handleVisibility);
 
@@ -122,5 +127,12 @@ export function useAircraftPositions(icao, lat, lon) {
     };
   }, [icao, lat, lon]);
 
-  return { aircraft, loading, initialLoading, lastUpdated, feedStatus };
+  return {
+    aircraft,
+    loading,
+    initialLoading,
+    lastUpdated,
+    feedStatus,
+    feedSource,
+  };
 }

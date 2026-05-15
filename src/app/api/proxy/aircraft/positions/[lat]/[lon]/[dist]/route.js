@@ -106,12 +106,15 @@ export async function GET(request, { params }) {
         longitude,
         distanceNm,
       });
-      return Response.json(payload, {
-        headers: buildProxyHeaders(request, {
-          "Cache-Control": "no-store",
-          "X-Data-Source": provider.id,
-        }),
-      });
+      return Response.json(
+        { ...payload, source: provider.id },
+        {
+          headers: buildProxyHeaders(request, {
+            "Cache-Control": "no-store",
+            "X-Data-Source": provider.id,
+          }),
+        },
+      );
     } catch (error) {
       lastError = error;
       console.warn(

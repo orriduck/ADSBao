@@ -15,7 +15,13 @@ export default function AreaMarker({ lat, lon, zoom, theme = "dark" }) {
   const wideRef = useRef(null);
 
   useEffect(() => {
-    if (!map || !map.getContainer || !lat || !lon) return undefined;
+    // map.getContainer is always defined while the map instance is alive, but
+    // calling it returns null after map.remove(). Invoke it so a stale map
+    // reference (mid-teardown / HMR) doesn't fall through to addTo() and
+    // crash on a missing pane.
+    if (!map || typeof map.getContainer !== "function" || !map.getContainer())
+      return undefined;
+    if (!lat || !lon) return undefined;
 
     const closeStroke =
       theme === "light" ? "rgba(18,21,26,0.22)" : "rgba(255,255,255,0.28)";
