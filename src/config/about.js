@@ -17,9 +17,18 @@ export const ABOUT_DATA_SOURCES = [
   {
     glyph: "ADS-B",
     title: "adsb.lol Aircraft Feed",
-    description: "Crowdsourced ADS-B positions used to render nearby traffic.",
+    description:
+      "Primary crowdsourced ADS-B positions used to render nearby traffic, plus recent flight traces for the selected aircraft.",
     host: "api.adsb.lol",
     href: "https://api.adsb.lol/",
+  },
+  {
+    glyph: "ADS-B",
+    title: "airplanes.live Aircraft Feed",
+    description:
+      "Backup ADS-B positions feed. The proxy fails over to airplanes.live whenever adsb.lol returns 5xx, 429, or times out.",
+    host: "api.airplanes.live",
+    href: "https://airplanes.live/api-guide/",
   },
   {
     glyph: "ICONS",

@@ -1,8 +1,7 @@
-// Upstream ADS-B providers. Each provider builds its own URLs for the
-// shared v2 schema; payloads from both adsb.lol and adsb.fi are
-// readsb/tar1090-compatible, so the position payload passes through
-// untouched in the proxy. Traces use adsb.lol only — adsb.fi does not
-// expose an equivalent public trace_recent endpoint at this time.
+// Upstream ADS-B providers. Each provider builds its own URLs but the
+// payload format is the shared readsb/tar1090 v2 schema, so the proxy passes
+// position payloads through untouched. Traces use adsb.lol only — none of
+// the alternates expose an equivalent public trace_recent endpoint.
 
 export const ADSB_LOL = Object.freeze({
   id: "adsb.lol",
@@ -20,18 +19,6 @@ export const ADSB_LOL = Object.freeze({
   },
 });
 
-export const ADSB_FI = Object.freeze({
-  id: "adsb.fi",
-  label: "adsb.fi",
-  buildPositionUrl: ({ lat, lon, distanceNm }) =>
-    `https://opendata.adsb.fi/api/v2/lat/${encodeURIComponent(
-      String(lat),
-    )}/lon/${encodeURIComponent(String(lon))}/dist/${encodeURIComponent(
-      String(distanceNm),
-    )}`,
-  buildTraceUrl: null,
-});
-
 export const AIRPLANES_LIVE = Object.freeze({
   id: "airplanes.live",
   label: "airplanes.live",
@@ -46,7 +33,6 @@ export const AIRPLANES_LIVE = Object.freeze({
 
 export const POSITION_PROVIDER_CHAIN = Object.freeze([
   ADSB_LOL,
-  ADSB_FI,
   AIRPLANES_LIVE,
 ]);
 export const TRACE_PROVIDER_CHAIN = Object.freeze([ADSB_LOL]);
