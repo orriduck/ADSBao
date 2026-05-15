@@ -1,6 +1,6 @@
 import { AIRPORT_FALLBACKS, COORDS } from "../../data/airportFallbacks.js";
 import { enrichAircraftWithAirportContext } from "../airport-context/airportContextModel.js";
-import { resolveMovement } from "../../utils/aircraftMovement.js";
+import { resolveMovement, UNKNOWN } from "../../utils/aircraftMovement.js";
 import { normalizeCallsign } from "../../utils/callsign.js";
 import { formatFlightRouteLabel } from "../../utils/flightRouteDisplay.js";
 
@@ -30,13 +30,21 @@ export function enrichAircraftWithRoutes({
   const aircraftWithRoutes = aircraft.map((item) => {
     const key = normalizeCallsign(item.callsign);
     const route = routesByCallsign[key] || null;
-    const movement = resolveMovement(route, airportProfile?.icao, airportProfile?.iata);
+    const flightRouteLabel = formatFlightRouteLabel(route);
+    // Tie movement to a renderable label so the marker color and the
+    // sidebar row text never disagree. A partial route (origin known,
+    // destination missing — common in AeroDataBox responses for flights
+    // mid-departure) would otherwise color the marker DEPARTURE while
+    // leaving the route text empty.
+    const movement = flightRouteLabel
+      ? resolveMovement(route, airportProfile?.icao, airportProfile?.iata)
+      : UNKNOWN;
 
     return {
       ...item,
       flightRoute: route,
       movement,
-      flightRouteLabel: formatFlightRouteLabel(route),
+      flightRouteLabel,
     };
   });
 

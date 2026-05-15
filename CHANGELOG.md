@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v0.11.0 — Selected-aircraft trace, focused revalidation, route consistency
+
+### Added
+- Selected-aircraft trace renders the last few minutes of the focused plane's path as a Leaflet polyline with an SVG `linearGradient` core (tail 20% → head 95% opacity) and timestamped fade-in label cards. Trail and labels share a `SelectedAircraftTraceProvider` so the focused-flight state lives outside the marker map and survives the periodic ADS-B refresh without tearing down or re-flashing.
+- When the focused aircraft is classified as `DEPARTURE` or `ARRIVAL`, the trail and label accents pick up the same color the marker uses — orange for departures, teal/blue for arrivals — instead of the neutral theme accent.
+- Clicking an already-focused aircraft marker now triggers an AeroDataBox revalidation of its route (`?force=aerodatabox` on the callsign proxy, `Cache-Control: no-store`) so the user can refresh stale or unresolved routes on demand. The revalidate path only overwrites the route cache when AeroDataBox returns a route with both origin and destination, so a partial response can't clobber a complete VRS entry already in cache.
+
+### Changed
+- `enrichAircraftWithRoutes` now ties `movement` to a renderable `flightRouteLabel`: if the route is missing either endpoint (and therefore has no label to render), the aircraft is classified `UNKNOWN` instead of being colored `DEPARTURE`/`ARRIVAL` with an empty sidebar row. This was the source of ENY3573 / GJS4391 showing as orange "departing" markers with no route text.
+- Map overlays removed: the top-left ICAO + coordinate label and the right-edge DEP/UNKN/ARR traffic legend are gone. Both were holdovers from the earlier console design that the current marker color encoding already communicates.
+- Trail label cards hug their content (`width: max-content`) instead of inheriting the Leaflet `divIcon` 56-px box, and the latest marker stacks on top via `zIndexOffset`. Label re-renders use a stable signature so unchanged labels stay mounted across the 3-second poll instead of fading in every cycle.
+
+### Fixed
+- ADS-B provider failover: the proxy now retries against `airplanes.live` whenever `adsb.lol` returns 5xx, 429, or times out, with a per-process cool-down so we don't hammer a degraded provider. The audit log records the exact provider attempted per outgoing request.
+- Trail and labels no longer briefly flash a previous aircraft's path when switching focus: `committedTracePoints` resets atomically on `aircraftHex` change and the live-position append is gated on `!loading` so the first frame can't ship a half-resolved geometry.
+
 ## v0.10.0 — Global airport data layer + richer silhouettes
 
 ### Added

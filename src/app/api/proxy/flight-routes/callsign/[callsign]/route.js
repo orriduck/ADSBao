@@ -174,22 +174,41 @@ export async function GET(request, { params }) {
 
   try {
     const targetAirport = getTargetAirport(request);
-    let body = await fetchVrsStandingRoute(callsign);
-    if (shouldUseAerodataboxFallback(body, targetAirport)) {
+    const forceAerodatabox =
+      request.nextUrl?.searchParams.get("force") === "aerodatabox";
+
+    let body;
+    if (forceAerodatabox) {
+      // Explicit user-initiated revalidation: skip VRS standing-data and go
+      // straight to AeroDataBox so the freshest authoritative result lands
+      // even if our cache has the VRS answer already.
       const aerodataboxResult = await fetchAerodataboxRoute(
         callsign,
         targetAirport,
       );
-      if (aerodataboxResult.route) {
-        body = aerodataboxResult.route;
-      } else if (aerodataboxResult.suppressVrsRoute) {
-        body = null;
+      body = aerodataboxResult.route;
+    } else {
+      body = await fetchVrsStandingRoute(callsign);
+      if (shouldUseAerodataboxFallback(body, targetAirport)) {
+        const aerodataboxResult = await fetchAerodataboxRoute(
+          callsign,
+          targetAirport,
+        );
+        if (aerodataboxResult.route) {
+          body = aerodataboxResult.route;
+        } else if (aerodataboxResult.suppressVrsRoute) {
+          body = null;
+        }
       }
     }
 
+    const cacheHeaders = forceAerodatabox
+      ? { "Cache-Control": "no-store" }
+      : buildRouteCacheHeaders(body);
+
     return Response.json(body, {
       status: body ? 200 : VRS_ROUTE_MISS_STATUS,
-      headers: buildProxyHeaders(request, buildRouteCacheHeaders(body), {
+      headers: buildProxyHeaders(request, cacheHeaders, {
         varyOrigin: false,
       }),
     });

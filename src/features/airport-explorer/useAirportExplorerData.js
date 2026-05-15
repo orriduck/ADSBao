@@ -24,8 +24,11 @@ export function useAirportExplorerData(airportProfile) {
     airportProfile.lat,
     airportProfile.lon,
   );
-  const { routesByCallsign, loadingCount: routeLoadingCount } =
-    useFlightRoutes(aircraft, airportProfile);
+  const {
+    routesByCallsign,
+    loadingCount: routeLoadingCount,
+    revalidate: revalidateFlightRoute,
+  } = useFlightRoutes(aircraft, airportProfile);
 
   const aircraftWithRoutes = useMemo(
     () =>
@@ -51,6 +54,7 @@ export function useAirportExplorerData(airportProfile) {
       feedStatus,
       feedSource,
       routeLoadingCount,
+      revalidateFlightRoute,
     },
   };
 }

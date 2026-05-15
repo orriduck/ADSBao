@@ -29,24 +29,25 @@ export const createFlightRouteClient = ({
 
   let consecutiveBackoffMs = 0;
 
-  const routeUrl = (callsign, targetAirport = {}) => {
+  const routeUrl = (callsign, targetAirport = {}, options = {}) => {
     const params = new URLSearchParams();
     const airportIcao = normalizeCallsign(targetAirport.icao || "");
     const airportIata = normalizeCallsign(targetAirport.iata || "");
     if (airportIcao) params.set("airportIcao", airportIcao);
     if (airportIata) params.set("airportIata", airportIata);
+    if (options.forceAerodatabox) params.set("force", "aerodatabox");
     const query = params.toString();
     return `${baseUrl}/${encodeURIComponent(callsign)}${query ? `?${query}` : ""}`;
   };
 
   return {
-    async fetchFlightRoute(callsign, targetAirport = {}) {
+    async fetchFlightRoute(callsign, targetAirport = {}, options = {}) {
       const normalized = normalizeCallsign(callsign);
       if (!normalized) return null;
 
       await limiter.acquire();
 
-      const url = routeUrl(normalized, targetAirport);
+      const url = routeUrl(normalized, targetAirport, options);
       const response = await auditedFetch(
         url,
         {

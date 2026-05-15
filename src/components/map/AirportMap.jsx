@@ -12,18 +12,12 @@ import AircraftPosition from "./AircraftPosition.jsx";
 import SelectedAircraftTrace from "./SelectedAircraftTrace.jsx";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer.jsx";
 import ProcedureSegmentLayer from "./ProcedureSegmentLayer.jsx";
-import {
-  AIRPORT_MAP_FALLBACK_CENTER,
-  AIRPORT_MAP_TRAFFIC_LEGEND,
-} from "../../config/airportMap.js";
+import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap.js";
 import MapAttribution from "../../features/airport-map/MapAttribution.jsx";
-import MapCoordinateLabel from "../../features/airport-map/MapCoordinateLabel.jsx";
 import MapLoadingState from "../../features/airport-map/MapLoadingState.jsx";
-import MapTrafficLegend from "../../features/airport-map/MapTrafficLegend.jsx";
 import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
 import { aircraftMatchesFilters } from "../../features/aircraft-filters/aircraftFilters.js";
 import {
-  formatCoordinateLabel,
   getMapOverlayTheme,
   getVisibleAircraft,
   resolveDocumentTheme,
@@ -39,7 +33,6 @@ export default function AirportMap({
   lat = 0,
   lon = 0,
   zoom = 13,
-  accent = "var(--atc-accent)",
   aircraft = [],
   nearbyAirports = [],
   airport = null,
@@ -50,8 +43,8 @@ export default function AirportMap({
   typeFilter = "all",
   altitudeLevel = "all",
   selectedAircraftId = "",
-  selectedAircraftTrace = [],
   onSelectAircraft,
+  onRevalidateRoute,
   runwayMap = null,
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
@@ -153,8 +146,6 @@ export default function AirportMap({
   );
   const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
 
-  const latitudeLabel = formatCoordinateLabel(lat, "lat");
-  const longitudeLabel = formatCoordinateLabel(lon, "lon");
   const overlayTheme = getMapOverlayTheme(currentTheme);
 
   return (
@@ -205,11 +196,7 @@ export default function AirportMap({
             icao={icao}
             aircraft={aircraft}
           />
-          <SelectedAircraftTrace
-            aircraft={selectedAircraft}
-            tracePoints={selectedAircraftTrace}
-            theme={currentTheme}
-          />
+          <SelectedAircraftTrace theme={currentTheme} />
           {visibleAircraft.map((ac) => (
             <AircraftPosition
               key={getAircraftIdentity(ac)}
@@ -224,26 +211,17 @@ export default function AirportMap({
               selectionActive={selectionActive}
               traceActive={selectionActive}
               onSelectAircraft={onSelectAircraft}
+              onRevalidateRoute={onRevalidateRoute}
             />
           ))}
         </MapContext.Provider>
       )}
 
       {mapInstance && (
-        <>
-          <MapCoordinateLabel
-            icao={icao}
-            latitudeLabel={latitudeLabel}
-            longitudeLabel={longitudeLabel}
-            color={accent}
-            shadowColor={overlayTheme.labelShadowColor}
-          />
-          <MapAttribution
-            color={overlayTheme.attributionColor}
-            shadowColor={overlayTheme.labelShadowColor}
-          />
-          <MapTrafficLegend items={AIRPORT_MAP_TRAFFIC_LEGEND} />
-        </>
+        <MapAttribution
+          color={overlayTheme.attributionColor}
+          shadowColor={overlayTheme.labelShadowColor}
+        />
       )}
 
       {!mapInstance && <MapLoadingState />}
