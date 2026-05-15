@@ -16,9 +16,7 @@ export default function AirportExplorerMapMenu({
     showRunwayBeams,
     showRoutingPointBadges,
     showAirspaceContext,
-    altitudeFocus,
     setMapZoom,
-    setAltitudeFocus,
     toggleSidebar,
     toggleMapLabels,
     toggleTelemetry,
@@ -51,9 +49,7 @@ export default function AirportExplorerMapMenu({
         showAirspaceContext={showAirspaceContext}
         telemetryDisabledForTraffic={telemetryDisabledForTraffic}
         telemetryTrafficLimit={telemetryTrafficLimit}
-        altitudeFocus={altitudeFocus}
         onZoom={setMapZoom}
-        onAltitudeFocus={setAltitudeFocus}
         onToggleMapLabels={toggleMapLabels}
         onToggleTelemetry={toggleTelemetry}
         onToggleRunwayBeams={toggleRunwayBeams}

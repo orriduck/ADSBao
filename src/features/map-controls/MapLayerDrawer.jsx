@@ -1,6 +1,5 @@
 "use client";
 
-import { ALTITUDE_FOCUS_OPTIONS } from "../airport-context/airportContextUiModel.js";
 import { Button } from "../../components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 
@@ -57,13 +56,11 @@ export default function MapLayerDrawer({
   showAirspaceContext,
   telemetryDisabledForTraffic = false,
   telemetryTrafficLimit = 50,
-  altitudeFocus,
   onToggleMapLabels,
   onToggleTelemetry,
   onToggleBeams,
   onToggleBadges,
   onToggleAirspaceContext,
-  onAltitudeFocus,
 }) {
   const state = {
     showMapLabels,
@@ -127,33 +124,6 @@ export default function MapLayerDrawer({
             Speed and altitude is disabled when more than{" "}
             {telemetryTrafficLimit} aircraft are in range.
           </span>
-        </div>
-      </div>
-
-      <div className="map-layer-divider" aria-hidden="true" />
-
-      <div className="map-layer-group">
-        <div className="map-layer-group__label">Traffic focus</div>
-        <div
-          className="map-layer-focus"
-          role="group"
-          aria-label="Traffic focus"
-        >
-          {ALTITUDE_FOCUS_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={`map-layer-control map-layer-focus__option ${
-                altitudeFocus === option.value ? "active" : ""
-              }`}
-              data-tooltip={option.title}
-              aria-label={option.title}
-              aria-pressed={altitudeFocus === option.value}
-              onClick={() => onAltitudeFocus?.(option.value)}
-            >
-              <MapControlIcon iconKey={option.iconKey} />
-            </button>
-          ))}
         </div>
       </div>
     </div>

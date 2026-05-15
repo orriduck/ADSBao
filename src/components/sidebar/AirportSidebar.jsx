@@ -27,6 +27,7 @@ export default function AirportSidebar({
   lastUpdated = null,
   feedStatus = "live",
   onSelectAircraft,
+  onAltitudeFocus,
   onBack,
   onClose = null,
 }) {
@@ -121,6 +122,7 @@ export default function AirportSidebar({
               showAirspaceContext={showAirspaceContext}
               selectedAircraftId={selectedAircraftId}
               onSelectAircraft={onSelectAircraft}
+              onAltitudeFocus={onAltitudeFocus}
               fill={!isMobileOverlay}
             />
           )}

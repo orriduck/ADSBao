@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
+  ALTITUDE_FOCUS_OPTIONS,
   getAircraftIdentity,
   getContextTagLabel,
   getAircraftContextGroup,
@@ -39,8 +40,17 @@ export default function AircraftTable({
   showAirspaceContext = true,
   selectedAircraftId = "",
   onSelectAircraft,
+  onAltitudeFocus,
   fill = true,
 }) {
+  const focusOptions = useMemo(
+    () =>
+      ALTITUDE_FOCUS_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.title,
+      })),
+    [],
+  );
   const [query, setQuery] = useState("");
   const [trafficFilter, setTrafficFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -125,6 +135,13 @@ export default function AircraftTable({
             onValueChange={setAltitudeLevel}
             options={ALTITUDE_LEVELS}
             ariaLabel="Filter by altitude level"
+          />
+          <AircraftFilterCardSelect
+            label="Focus"
+            value={altitudeFocus}
+            onValueChange={(value) => onAltitudeFocus?.(value)}
+            options={focusOptions}
+            ariaLabel="Traffic focus"
           />
         </div>
 

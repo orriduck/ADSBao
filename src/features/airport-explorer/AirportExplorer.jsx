@@ -51,6 +51,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectedAircraftId,
     closeSidebar,
     selectAircraft,
+    setAltitudeFocus,
     setTelemetry,
     setSelectedAircraftId,
   } = useAirportExplorerUi();
@@ -137,6 +138,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
     onSelectAircraft: selectAircraft,
+    onAltitudeFocus: setAltitudeFocus,
     onBack,
   };
 

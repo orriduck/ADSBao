@@ -2029,18 +2029,6 @@ body {
     min-width: 16px;
 }
 
-.map-layer-divider {
-    background: linear-gradient(
-        90deg,
-        transparent,
-        color-mix(in oklab, var(--atc-line-strong) 78%, transparent) 18%,
-        color-mix(in oklab, var(--atc-line-strong) 78%, transparent) 82%,
-        transparent
-    );
-    height: 1px;
-    margin: 1px 2px 0;
-}
-
 .map-layer-drawer__toggles {
     background: color-mix(in oklab, var(--atc-line) 22%, transparent);
     border: 1px solid color-mix(in oklab, var(--atc-line) 72%, transparent);
@@ -2122,54 +2110,6 @@ body {
 .map-layer-toggle {
     background: color-mix(in oklab, var(--atc-card) 34%, transparent);
     color: var(--atc-dim);
-}
-
-.map-layer-focus {
-    background: color-mix(in oklab, var(--atc-line) 24%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-line) 72%, transparent);
-    border-radius: var(--atc-radius-control);
-    display: grid;
-    gap: 3px;
-    grid-template-columns: repeat(5, 32px);
-    padding: 3px;
-    width: max-content;
-}
-
-.map-layer-focus__option {
-    background: color-mix(in oklab, var(--atc-card) 28%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-line) 36%, transparent);
-    border-radius: 4px;
-    color: var(--atc-faint);
-    cursor: pointer;
-    font-family: "JetBrains Mono", monospace;
-    font-size: 8px;
-    font-weight: 800;
-    height: 32px;
-    letter-spacing: 0;
-    line-height: 1;
-    padding: 0;
-    width: 32px;
-    transition:
-        background 0.15s ease,
-        border-color 0.15s ease,
-        color 0.15s ease;
-}
-
-.map-layer-focus__option svg {
-    height: 14px;
-    width: 14px;
-}
-
-.map-layer-focus__option:hover {
-    background: color-mix(in oklab, var(--atc-line) 58%, transparent);
-    border-color: var(--atc-line-strong);
-    color: var(--atc-dim);
-}
-
-.map-layer-focus__option.active {
-    background: color-mix(in oklab, var(--atc-accent) 14%, transparent);
-    border-color: color-mix(in oklab, var(--atc-accent) 38%, transparent);
-    color: var(--atc-accent);
 }
 
 .procedure-inspector {
@@ -3425,7 +3365,7 @@ body {
     border-bottom: 1px solid var(--atc-line);
     border-top: 1px solid var(--atc-line);
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .aircraft-filter-card {
@@ -3479,8 +3419,12 @@ body {
     opacity: 1;
 }
 
-.aircraft-filter-card + .aircraft-filter-card {
+.aircraft-filter-card:nth-child(even) {
     border-left: 1px solid var(--atc-line);
+}
+
+.aircraft-filter-card:nth-child(n + 3) {
+    border-top: 1px solid var(--atc-line);
 }
 
 .aircraft-filter-card__label {
