@@ -3719,7 +3719,11 @@ body {
     width: 280px;
     max-width: calc(100vw - 32px);
     padding: 18px 18px 14px;
-    background: var(--tone-card-strong);
+    /* Card top is intentionally transparent — backdrop-filter still
+       frosts the map behind the empty top area, so the plane and type
+       tag float over a soft glass patch. The pocket panel below carries
+       its own opaque surface so the body content stays solid. */
+    background: transparent;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--tone-border-firm);
@@ -3731,8 +3735,6 @@ body {
     font-family: 'Manrope', system-ui, sans-serif;
     pointer-events: none;
     user-select: none;
-    /* Force a clean stacking context so the pocket's backdrop-filter sees
-       the icon layer behind it and actually blurs it. */
     isolation: isolate;
 }
 
