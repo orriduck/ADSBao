@@ -15,7 +15,7 @@ import {
 } from "../../features/aircraft-trace/aircraftTraceModel.js";
 import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
 
-const TRACE_GROWTH_DURATION_MS = 700;
+const TRACE_GROWTH_DURATION_MS = 900;
 
 const getTraceStyle = (theme) =>
   theme === "light"
@@ -127,15 +127,20 @@ export default function SelectedAircraftTrace({
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const traceStyle = getTraceStyle(theme);
     const layers = [];
-    // Polylines that participate in the growth reveal: each carries the
-    // range of indices it owns within traceData.curve, so a single eased
-    // "progress" value can drive all of them in lockstep.
-    const growable = [];
+    // Reveal-eligible polylines (bands + glow). Each is built with REVERSED
+    // coords so its SVG path starts at the head end — then stroke-dasharray /
+    // stroke-dashoffset can animate the path being "drawn" from the head
+    // backwards, which is GPU-accelerated and reads as a continuous trail
+    // unfurling rather than a stepwise polyline replace.
+    const reveal = [];
 
-    traceData.bands.forEach((band) => {
+    // Bands ordered head-first (newest band's coords are highest indices,
+    // so we reverse the band list so the head-most band animates first).
+    const bandsHeadFirst = [...traceData.bands].reverse();
+    bandsHeadFirst.forEach((band) => {
       const opacity = 0.08 + band.emphasis * traceStyle.lineOpacity;
       const weight = traceStyle.lineWeight * (0.82 + band.emphasis * 0.28);
-      const polyline = L.polyline(band.coords, {
+      const polyline = L.polyline(band.coords.slice().reverse(), {
         pane,
         color: traceStyle.lineColor,
         opacity,
@@ -146,14 +151,10 @@ export default function SelectedAircraftTrace({
         className: "aircraft-trace aircraft-trace--band",
       }).addTo(map);
       layers.push(polyline);
-      growable.push({
-        polyline,
-        startIndex: band.startIndex,
-        endIndex: band.endIndex,
-      });
+      reveal.push(polyline);
     });
 
-    const glowPolyline = L.polyline(traceData.curve, {
+    const glowPolyline = L.polyline(traceData.curve.slice().reverse(), {
       pane,
       color: traceStyle.glowColor,
       opacity: traceStyle.glowOpacity,
@@ -164,11 +165,6 @@ export default function SelectedAircraftTrace({
       className: "aircraft-trace aircraft-trace--glow",
     }).addTo(map);
     layers.push(glowPolyline);
-    growable.push({
-      polyline: glowPolyline,
-      startIndex: 0,
-      endIndex: traceData.curve.length - 1,
-    });
 
     if (traceData.sweepCoords.length >= 2) {
       layers.push(
@@ -217,38 +213,83 @@ export default function SelectedAircraftTrace({
       };
     }
 
-    // Start each growable polyline with an empty coord array, then walk a
-    // "back" cursor from the head index back toward the start. Each polyline
-    // reveals only the portion of the curve to the right of the cursor that
-    // falls inside its [startIndex, endIndex] range, so the most recent
-    // segment lights up first and the trail extends backwards in time —
-    // matching how a controller scope draws a track from the current return
-    // backward through history.
-    growable.forEach((g) => g.polyline.setLatLngs([]));
-    const headIndex = Math.max(1, traceData.curve.length - 1);
+    // Walk a single eased "revealed" length from 0 → totalLength across all
+    // reveal polylines (bands ordered head-first, then glow). Each path is
+    // already drawn from head→tail (reversed coords), so animating its own
+    // stroke-dashoffset from `pathLength` → 0 reveals it from the head end
+    // of its slice backwards. Sum-of-band-lengths gates when each band
+    // starts revealing, so head bands fully draw before older bands begin —
+    // visually a continuous trail unfurling backward from the plane.
+    const segments = reveal
+      .map((polyline) => {
+        const path = polyline.getElement?.();
+        const length = path?.getTotalLength?.();
+        if (!path || !Number.isFinite(length) || length <= 0) return null;
+        return { polyline, path, length };
+      })
+      .filter(Boolean);
+
+    if (segments.length === 0) {
+      return () => {
+        if (rafIdRef.current) {
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
+        }
+        removeLayers(layersRef.current, map);
+        layersRef.current = [];
+      };
+    }
+
+    // For each segment, where its head-side end sits in the cumulative
+    // length measured from the overall head. Bands come first (head-first
+    // order), then the glow covers the entire curve.
+    let cumulative = 0;
+    const segmentRanges = segments.map((segment, index) => {
+      // Glow is the last entry and spans the whole curve, but we treat it
+      // as a parallel reveal anchored at 0 so it grows alongside the bands.
+      const isGlow = index === segments.length - 1;
+      const start = isGlow ? 0 : cumulative;
+      const end = isGlow ? segment.length : cumulative + segment.length;
+      if (!isGlow) cumulative += segment.length;
+      return { ...segment, start, end };
+    });
+    const totalLength = cumulative || segmentRanges[0].length;
+
+    // Initial frame: every path hidden via full dashoffset.
+    segmentRanges.forEach((seg) => {
+      seg.path.style.strokeDasharray = `${seg.length}`;
+      seg.path.style.strokeDashoffset = `${seg.length}`;
+    });
+
     const startTime =
       typeof performance !== "undefined" ? performance.now() : Date.now();
 
     const tick = (now) => {
       const elapsed = now - startTime;
       const t = Math.min(1, elapsed / TRACE_GROWTH_DURATION_MS);
-      const revealedSegments = easeOutCubic(t) * headIndex;
-      const backCursor = headIndex - revealedSegments;
+      const revealed = easeOutCubic(t) * totalLength;
 
-      growable.forEach((g) => {
-        const sliceStart = Math.max(g.startIndex, Math.ceil(backCursor));
-        if (sliceStart >= g.endIndex) {
-          g.polyline.setLatLngs([]);
-          return;
+      segmentRanges.forEach((seg) => {
+        if (revealed >= seg.end) {
+          seg.path.style.strokeDashoffset = "0";
+        } else if (revealed <= seg.start) {
+          seg.path.style.strokeDashoffset = `${seg.length}`;
+        } else {
+          // Fraction of this segment that should be visible.
+          const visibleLen = revealed - seg.start;
+          seg.path.style.strokeDashoffset = `${seg.length - visibleLen}`;
         }
-        g.polyline.setLatLngs(
-          traceData.curve.slice(sliceStart, g.endIndex + 1),
-        );
       });
 
       if (t < 1) {
         rafIdRef.current = requestAnimationFrame(tick);
       } else {
+        // Clear dash properties so subsequent same-aircraft updates (which
+        // re-create polylines from scratch) render normally.
+        segmentRanges.forEach((seg) => {
+          seg.path.style.strokeDasharray = "";
+          seg.path.style.strokeDashoffset = "";
+        });
         rafIdRef.current = null;
       }
     };
