@@ -210,6 +210,13 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
     () => (geometry ? makeLabelKey(geometry.labelPoints) : ""),
     [geometry],
   );
+  // Latest labelPoints stay in a ref so the label effect can read them
+  // without subscribing to geometry's reference. geometry is a fresh
+  // object every poll (because the curve extends with the live head),
+  // and including it in deps would re-fire the label effect on every
+  // poll even though the label set is stable.
+  const labelPointsRef = useRef(geometry?.labelPoints || []);
+  labelPointsRef.current = geometry?.labelPoints || [];
 
   // -------------------------------------------------------------------
   // Effect 1: line + glow + sample dots. Re-runs on every geometry change
@@ -415,11 +422,15 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
     removeLayers(labelMarkersRef.current, map);
     labelMarkersRef.current = [];
 
-    if (!map || !geometry || !labelKey) return undefined;
+    if (!map || !labelKey) return undefined;
+    const labelPoints = labelPointsRef.current;
+    if (!Array.isArray(labelPoints) || labelPoints.length === 0) {
+      return undefined;
+    }
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const labelMarkers = [];
-    [...geometry.labelPoints].reverse().forEach((point, index) => {
+    [...labelPoints].reverse().forEach((point, index) => {
       const time = formatTraceLabelTime(point.timestampMs);
       const altitude = formatTraceLabelAltitude(point);
       if (!time && !altitude) return;
@@ -442,7 +453,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
         }),
         interactive: false,
         keyboard: false,
-        zIndexOffset: (geometry.labelPoints.length - index) * 10,
+        zIndexOffset: (labelPoints.length - index) * 10,
       }).addTo(map);
       const el = marker.getElement?.();
       if (el) {
@@ -506,7 +517,11 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
       removeLayers(labelMarkersRef.current, map);
       labelMarkersRef.current = [];
     };
-  }, [map, labelKey, reducedMotion, geometry]);
+    // labelPoints is intentionally accessed via ref so we don't subscribe
+    // to geometry's per-poll reference churn. labelKey changes iff the
+    // sample set actually shifts, at which point the ref's value is the
+    // new set.
+  }, [map, labelKey, reducedMotion]);
 
   return null;
 }
