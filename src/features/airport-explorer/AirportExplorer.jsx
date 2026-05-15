@@ -147,7 +147,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             lat={airportProfile.lat}
             lon={airportProfile.lon}
             zoom={mapZoom}
-            accent="var(--atc-accent)"
             aircraft={traffic.aircraft}
             nearbyAirports={nearbyAirports.airports}
             airport={airport}
