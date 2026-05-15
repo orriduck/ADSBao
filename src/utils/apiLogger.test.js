@@ -19,6 +19,16 @@ try {
     "[audit:/api/proxy/flight-routes/callsign/DAL123]: 200 +14ms",
   );
 
+  assert.equal(
+    formatAuditLogLine({
+      endpointPath: "/api/proxy/aircraft/positions/40.6/-73.7/30",
+      status: 200,
+      durationMs: 87,
+      source: "adsb.lol",
+    }),
+    "[audit:/api/proxy/aircraft/positions/40.6/-73.7/30]: 200 +87ms (adsb.lol)",
+  );
+
   const okFetch = async () => ({ status: 200 });
   const auditedOkFetch = withAuditLogging(okFetch, {
     service: "example",
@@ -39,6 +49,22 @@ try {
     /^\[audit:\/flights\/CallSign\/UAL442\/2026-05-11\]: 200 \+\d+ms$/,
   );
 
+  // When the response carries x-data-source, the audit line picks it up.
+  const sourcedOkFetch = withAuditLogging(
+    async () => ({
+      status: 200,
+      headers: {
+        get: (name) => (name.toLowerCase() === "x-data-source" ? "adsb.fi" : null),
+      },
+    }),
+    { service: "example" },
+  );
+  await sourcedOkFetch("/api/proxy/aircraft/positions/40.6/-73.7/30");
+  assert.match(
+    logs[2][0],
+    /^\[audit:\/api\/proxy\/aircraft\/positions\/40\.6\/-73\.7\/30\]: 200 \+\d+ms \(adsb\.fi\)$/,
+  );
+
   const auditedErrorFetch = withAuditLogging(
     async () => {
       throw new Error("network failed");
@@ -47,7 +73,7 @@ try {
   );
 
   await assert.rejects(() => auditedErrorFetch("/broken"), /network failed/);
-  assert.match(logs[2][0], /^\[audit:\/broken\]: ERROR \+\d+ms$/);
+  assert.match(logs[3][0], /^\[audit:\/broken\]: ERROR \+\d+ms$/);
 } finally {
   console.log = originalConsoleLog;
 }
