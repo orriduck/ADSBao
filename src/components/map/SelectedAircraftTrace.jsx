@@ -68,9 +68,11 @@ function buildHeadSweepCoords(coords) {
   return coords.slice(startIndex);
 }
 
-// Cubic ease-out — fast start that decelerates into the head, which reads as
-// "the plane just left this trail" rather than a uniform linear stripe.
-const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+// Cubic ease-in-out — slow start that accelerates through the middle then
+// settles into the tail. Reads as "the trail is being unfurled" rather than
+// "snap then crawl", which is what plain ease-out produced for this geometry.
+const easeInOutCubic = (t) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 export default function SelectedAircraftTrace({
   aircraft = null,
@@ -127,17 +129,15 @@ export default function SelectedAircraftTrace({
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const traceStyle = getTraceStyle(theme);
     const layers = [];
-    // Reveal-eligible polylines (bands + glow). Each is built with REVERSED
-    // coords so its SVG path starts at the head end — then stroke-dasharray /
-    // stroke-dashoffset can animate the path being "drawn" from the head
-    // backwards, which is GPU-accelerated and reads as a continuous trail
-    // unfurling rather than a stepwise polyline replace.
+    // Reveal-eligible polylines (bands + glow). Each carries its
+    // [startIndex, endIndex] within traceData.curve so the animation can
+    // drive every polyline from a single back-cursor in curve-index space —
+    // they all show the same visible curve range at any moment, which is
+    // what makes a 7-band trail look like one unfurling line instead of
+    // staggered segments.
     const reveal = [];
 
-    // Bands ordered head-first (newest band's coords are highest indices,
-    // so we reverse the band list so the head-most band animates first).
-    const bandsHeadFirst = [...traceData.bands].reverse();
-    bandsHeadFirst.forEach((band) => {
+    traceData.bands.forEach((band) => {
       const opacity = 0.08 + band.emphasis * traceStyle.lineOpacity;
       const weight = traceStyle.lineWeight * (0.82 + band.emphasis * 0.28);
       const polyline = L.polyline(band.coords.slice().reverse(), {
@@ -151,9 +151,14 @@ export default function SelectedAircraftTrace({
         className: "aircraft-trace aircraft-trace--band",
       }).addTo(map);
       layers.push(polyline);
-      reveal.push(polyline);
+      reveal.push({
+        polyline,
+        startIndex: band.startIndex,
+        endIndex: band.endIndex,
+      });
     });
 
+    const headIndex = Math.max(1, traceData.curve.length - 1);
     const glowPolyline = L.polyline(traceData.curve.slice().reverse(), {
       pane,
       color: traceStyle.glowColor,
@@ -165,6 +170,11 @@ export default function SelectedAircraftTrace({
       className: "aircraft-trace aircraft-trace--glow",
     }).addTo(map);
     layers.push(glowPolyline);
+    reveal.push({
+      polyline: glowPolyline,
+      startIndex: 0,
+      endIndex: headIndex,
+    });
 
     if (traceData.sweepCoords.length >= 2) {
       layers.push(
@@ -213,19 +223,15 @@ export default function SelectedAircraftTrace({
       };
     }
 
-    // Walk a single eased "revealed" length from 0 → totalLength across all
-    // reveal polylines (bands ordered head-first, then glow). Each path is
-    // already drawn from head→tail (reversed coords), so animating its own
-    // stroke-dashoffset from `pathLength` → 0 reveals it from the head end
-    // of its slice backwards. Sum-of-band-lengths gates when each band
-    // starts revealing, so head bands fully draw before older bands begin —
-    // visually a continuous trail unfurling backward from the plane.
+    // Resolve each reveal polyline's SVG <path> element and its rendered
+    // length. Skip any whose path or length isn't ready (canvas renderer,
+    // unmounted layer) — that polyline just appears instantly.
     const segments = reveal
-      .map((polyline) => {
-        const path = polyline.getElement?.();
+      .map((entry) => {
+        const path = entry.polyline.getElement?.();
         const length = path?.getTotalLength?.();
         if (!path || !Number.isFinite(length) || length <= 0) return null;
-        return { polyline, path, length };
+        return { ...entry, path, pathLength: length };
       })
       .filter(Boolean);
 
@@ -240,44 +246,39 @@ export default function SelectedAircraftTrace({
       };
     }
 
-    // For each segment, where its head-side end sits in the cumulative
-    // length measured from the overall head. Bands come first (head-first
-    // order), then the glow covers the entire curve.
-    let cumulative = 0;
-    const segmentRanges = segments.map((segment, index) => {
-      // Glow is the last entry and spans the whole curve, but we treat it
-      // as a parallel reveal anchored at 0 so it grows alongside the bands.
-      const isGlow = index === segments.length - 1;
-      const start = isGlow ? 0 : cumulative;
-      const end = isGlow ? segment.length : cumulative + segment.length;
-      if (!isGlow) cumulative += segment.length;
-      return { ...segment, start, end };
-    });
-    const totalLength = cumulative || segmentRanges[0].length;
-
-    // Initial frame: every path hidden via full dashoffset.
-    segmentRanges.forEach((seg) => {
-      seg.path.style.strokeDasharray = `${seg.length}`;
-      seg.path.style.strokeDashoffset = `${seg.length}`;
+    // Initial frame: every path hidden by setting dashoffset to its own
+    // pathLength. dasharray = pathLength so the dash + gap together cover
+    // 2× the path and we can interpolate the offset between [0, pathLength].
+    segments.forEach((seg) => {
+      seg.path.style.strokeDasharray = `${seg.pathLength}`;
+      seg.path.style.strokeDashoffset = `${seg.pathLength}`;
     });
 
     const startTime =
       typeof performance !== "undefined" ? performance.now() : Date.now();
 
+    // Single back-cursor in curve-index space drives every polyline. The
+    // cursor starts at headIndex (no reveal) and walks toward 0 (full
+    // reveal). Each polyline reveals only the part of its index range that
+    // currently sits between the cursor and headIndex — so the head band
+    // and the glow draw the SAME curve segment at the SAME time, no matter
+    // their independent path lengths.
     const tick = (now) => {
       const elapsed = now - startTime;
       const t = Math.min(1, elapsed / TRACE_GROWTH_DURATION_MS);
-      const revealed = easeOutCubic(t) * totalLength;
+      const cursor = headIndex * (1 - easeInOutCubic(t));
 
-      segmentRanges.forEach((seg) => {
-        if (revealed >= seg.end) {
+      segments.forEach((seg) => {
+        if (cursor <= seg.startIndex) {
           seg.path.style.strokeDashoffset = "0";
-        } else if (revealed <= seg.start) {
-          seg.path.style.strokeDashoffset = `${seg.length}`;
+        } else if (cursor >= seg.endIndex) {
+          seg.path.style.strokeDashoffset = `${seg.pathLength}`;
         } else {
-          // Fraction of this segment that should be visible.
-          const visibleLen = revealed - seg.start;
-          seg.path.style.strokeDashoffset = `${seg.length - visibleLen}`;
+          // f = fraction of this polyline's index range that the cursor
+          // has NOT yet swept through (= the part still hidden, measured
+          // from the tail side of this polyline's curve range).
+          const f = (cursor - seg.startIndex) / (seg.endIndex - seg.startIndex);
+          seg.path.style.strokeDashoffset = `${f * seg.pathLength}`;
         }
       });
 
@@ -285,8 +286,9 @@ export default function SelectedAircraftTrace({
         rafIdRef.current = requestAnimationFrame(tick);
       } else {
         // Clear dash properties so subsequent same-aircraft updates (which
-        // re-create polylines from scratch) render normally.
-        segmentRanges.forEach((seg) => {
+        // recreate the polylines on each poll) don't inherit stale dash
+        // styling on the freshly-built paths.
+        segments.forEach((seg) => {
           seg.path.style.strokeDasharray = "";
           seg.path.style.strokeDashoffset = "";
         });
