@@ -33,7 +33,9 @@ const toNumber = (value) => {
 
 export function matchesTrafficFilter(aircraft, trafficFilter) {
   if (trafficFilter === "routed") {
-    return Boolean(aircraft.flightRouteLabel || aircraft.flightRoute);
+    // flightRouteLabel is non-empty only when the route lookup resolved a
+    // distinct origin AND destination — i.e., a legitimately parsed route.
+    return Boolean(aircraft.flightRouteLabel);
   }
   return true;
 }

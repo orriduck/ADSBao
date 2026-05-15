@@ -12,6 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAirportExplorerUi } from "@/features/airport-explorer/AirportExplorerUiContext.jsx";
 import {
@@ -88,20 +94,38 @@ export default function AircraftTable({
           role="group"
           aria-label="Aircraft filters"
         >
-          <button
-            type="button"
-            className="aircraft-filter-card"
-            data-active={trafficFilter === "routed" ? "true" : undefined}
-            aria-pressed={trafficFilter === "routed"}
-            onClick={() =>
-              setTrafficFilter(trafficFilter === "routed" ? "all" : "routed")
-            }
-          >
-            <span className="aircraft-filter-card__label">Traffic</span>
-            <strong className="aircraft-filter-card__value">
-              {trafficFilter === "routed" ? "Routes only" : "All"}
-            </strong>
-          </button>
+          <TooltipProvider delayDuration={250}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="aircraft-filter-card"
+                  data-active={trafficFilter === "routed" ? "true" : undefined}
+                  aria-pressed={trafficFilter === "routed"}
+                  onClick={() =>
+                    setTrafficFilter(
+                      trafficFilter === "routed" ? "all" : "routed",
+                    )
+                  }
+                >
+                  <span className="aircraft-filter-card__label">Traffic</span>
+                  <strong className="aircraft-filter-card__value">
+                    {trafficFilter === "routed" ? "Routed" : "All"}
+                  </strong>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px] text-left">
+                <strong className="block text-[11px] font-semibold uppercase tracking-wide">
+                  Routed
+                </strong>
+                <span className="mt-1 block text-[11px] font-normal leading-snug">
+                  Only show flights whose callsign resolved to a legitimate
+                  parsed route — both origin and destination airports
+                  identified.
+                </span>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           <AircraftFilterCardSelect
             label="Type"
