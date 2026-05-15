@@ -88,7 +88,6 @@ export default function SelectedAircraftTrace({
       bands: buildTraceBands(curve),
       samplePoints: buildTraceSamplePoints(sampled),
       sweepCoords: buildHeadSweepCoords(curve),
-      headPoint: sampled.at(-1) || null,
     };
   }, [aircraft, tracePoints]);
 
@@ -162,20 +161,6 @@ export default function SelectedAircraftTrace({
         }).addTo(map),
       );
     });
-
-    if (traceData.headPoint) {
-      layers.push(
-        L.circleMarker([traceData.headPoint.lat, traceData.headPoint.lon], {
-          pane,
-          radius: traceStyle.headRadius,
-          stroke: false,
-          fillColor: traceStyle.headColor,
-          fillOpacity: traceStyle.headOpacity,
-          interactive: false,
-          className: "aircraft-trace-head",
-        }).addTo(map),
-      );
-    }
 
     layersRef.current = layers;
 
