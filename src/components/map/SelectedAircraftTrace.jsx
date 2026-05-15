@@ -118,7 +118,9 @@ export default function SelectedAircraftTrace({
       return undefined;
     }
 
-    const currentHex = getAircraftIdentity(aircraft) || null;
+    // aircraft is explicitly null after a deselect, and getAircraftIdentity's
+    // default param `= {}` doesn't fire on null. Guard explicitly.
+    const currentHex = aircraft ? getAircraftIdentity(aircraft) || null : null;
     const isFreshSelection = previousHexRef.current !== currentHex;
     previousHexRef.current = currentHex;
 
