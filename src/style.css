@@ -3400,6 +3400,92 @@ body {
     font-weight: 700;
 }
 
+.aircraft-filter-type {
+    position: relative;
+}
+
+.aircraft-filter-type-panel {
+    background: var(--atc-bg);
+    border: 1px solid var(--atc-line);
+    color: var(--atc-text);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--airport-sidebar-sans);
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 4px 0;
+    z-index: 1200;
+}
+
+.aircraft-filter-type-row {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    display: grid;
+    font-family: inherit;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    padding: 6px 10px;
+    text-align: left;
+    width: 100%;
+}
+
+.aircraft-filter-type-row:hover {
+    background: color-mix(in oklab, var(--atc-elev) 55%, transparent);
+}
+
+.aircraft-filter-type-row__check {
+    align-items: center;
+    color: var(--atc-accent);
+    display: flex;
+    height: 14px;
+    justify-content: center;
+    width: 14px;
+}
+
+.aircraft-filter-type-row[data-partial="true"] .aircraft-filter-type-row__check {
+    color: var(--atc-dim);
+}
+
+.aircraft-filter-type-row__label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.aircraft-filter-type-row--item .aircraft-filter-type-row__label {
+    font-weight: 600;
+    padding-left: 8px;
+    text-transform: none;
+}
+
+.aircraft-filter-type-row__count {
+    color: var(--atc-faint);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.aircraft-filter-type-row[data-selected="true"] {
+    background: color-mix(in oklab, var(--atc-accent) 9%, transparent);
+}
+
+.aircraft-filter-type-row[data-selected="true"] .aircraft-filter-type-row__label {
+    color: var(--atc-text);
+}
+
+.aircraft-filter-type-row--header {
+    background: color-mix(in oklab, var(--atc-line) 22%, transparent);
+}
+
+.aircraft-filter-type-row--header:hover {
+    background: color-mix(in oklab, var(--atc-elev) 70%, transparent);
+}
+
+.aircraft-filter-type-group + .aircraft-filter-type-group {
+    border-top: 1px solid color-mix(in oklab, var(--atc-line) 60%, transparent);
+}
+
 @keyframes airport-feed-status-fade {
     from {
         opacity: 0;
