@@ -37,7 +37,7 @@ const getAircraftColor = (ac, showArrow) => {
 export default function AircraftPosition({
   aircraft,
   theme = "dark",
-  altitudeFocus = "all",
+  matchesFilters = true,
   selected = false,
   onSelectAircraft,
 }) {
@@ -122,8 +122,7 @@ export default function AircraftPosition({
   // because at that point we're encoding "minimal indicator", not class.
   const sizeScale = showArrow ? resolveAircraftSizeScale(aircraft) : 1;
   const emphasis = resolveAircraftContextEmphasis({
-    aircraft,
-    altitudeFocus,
+    matchesFilters,
     selected,
   });
   const rot = Math.round(aircraft.track || 0);
@@ -131,7 +130,7 @@ export default function AircraftPosition({
 
   return createPortal(
     <div
-      className={`aircraft-marker aircraft-marker--${emphasis.tone} ${
+      className={`aircraft-marker ${
         selected ? "aircraft-marker--selected" : ""
       }`}
       style={{ opacity: emphasis.opacity }}

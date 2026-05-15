@@ -2522,9 +2522,7 @@ body {
 .aircraft-table-card {
     height: 64px;
     min-height: 64px;
-    opacity: var(--aircraft-row-opacity, 1);
     padding-block: 9px;
-    will-change: opacity;
 }
 
 .aircraft-table-route-slot {
@@ -3266,7 +3264,7 @@ body {
     border-bottom: 1px solid var(--atc-line);
     border-top: 1px solid var(--atc-line);
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .aircraft-filter-card {
@@ -3320,12 +3318,8 @@ body {
     opacity: 1;
 }
 
-.aircraft-filter-card:nth-child(even) {
+.aircraft-filter-card + .aircraft-filter-card {
     border-left: 1px solid var(--atc-line);
-}
-
-.aircraft-filter-card:nth-child(n + 3) {
-    border-top: 1px solid var(--atc-line);
 }
 
 .aircraft-filter-card__label {

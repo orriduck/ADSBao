@@ -40,11 +40,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showMapLabels,
     showRunwayBeams,
     showRoutingPointBadges,
-    altitudeFocus,
+    trafficFilter,
+    typeFilter,
+    altitudeLevel,
     selectedAircraftId,
     closeSidebar,
     selectAircraft,
-    setAltitudeFocus,
     setSelectedAircraftId,
   } = useAirportExplorerUi();
   const airportProfile = useMemo(
@@ -102,12 +103,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     metarLoading: weather.metarLoading,
     metarError: weather.metarError,
     aircraft: traffic.aircraft,
-    altitudeFocus,
     selectedAircraftId,
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
     onSelectAircraft: selectAircraft,
-    onAltitudeFocus: setAltitudeFocus,
     onBack,
   };
 
@@ -145,7 +144,9 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           showMapLabels={showMapLabels}
           showRunwayBeams={showRunwayBeams}
           showRoutingPointBadges={showRoutingPointBadges}
-          altitudeFocus={altitudeFocus}
+          trafficFilter={trafficFilter}
+          typeFilter={typeFilter}
+          altitudeLevel={altitudeLevel}
           selectedAircraftId={selectedAircraftId}
           onSelectAircraft={selectAircraft}
           runwayMap={procedures.runwayMap}

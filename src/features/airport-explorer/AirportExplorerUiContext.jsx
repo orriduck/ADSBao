@@ -54,8 +54,12 @@ function airportExplorerUiReducer(state, action) {
         ...state,
         showRoutingPointBadges: toggleValue(state.showRoutingPointBadges),
       };
-    case "setAltitudeFocus":
-      return { ...state, altitudeFocus: action.altitudeFocus };
+    case "setTrafficFilter":
+      return { ...state, trafficFilter: action.trafficFilter };
+    case "setTypeFilter":
+      return { ...state, typeFilter: action.typeFilter };
+    case "setAltitudeLevel":
+      return { ...state, altitudeLevel: action.altitudeLevel };
     case "selectAircraft":
       return {
         ...state,
@@ -83,7 +87,9 @@ export function AirportExplorerUiProvider({ children }) {
     showMapLabels,
     showRunwayBeams,
     showRoutingPointBadges,
-    altitudeFocus,
+    trafficFilter,
+    typeFilter,
+    altitudeLevel,
     selectedAircraftId,
   } = state;
   const isMobile = sidebarMode === "mobile";
@@ -126,8 +132,16 @@ export function AirportExplorerUiProvider({ children }) {
     dispatch({ type: "toggleRoutingPointBadges" });
   }, []);
 
-  const setAltitudeFocus = useCallback((altitudeFocus) => {
-    dispatch({ type: "setAltitudeFocus", altitudeFocus });
+  const setTrafficFilter = useCallback((trafficFilter) => {
+    dispatch({ type: "setTrafficFilter", trafficFilter });
+  }, []);
+
+  const setTypeFilter = useCallback((typeFilter) => {
+    dispatch({ type: "setTypeFilter", typeFilter });
+  }, []);
+
+  const setAltitudeLevel = useCallback((altitudeLevel) => {
+    dispatch({ type: "setAltitudeLevel", altitudeLevel });
   }, []);
 
   const selectAircraft = useCallback((aircraftId) => {
@@ -148,10 +162,14 @@ export function AirportExplorerUiProvider({ children }) {
       showMapLabels,
       showRunwayBeams,
       showRoutingPointBadges,
-      altitudeFocus,
+      trafficFilter,
+      typeFilter,
+      altitudeLevel,
       selectedAircraftId,
       setMapZoom,
-      setAltitudeFocus,
+      setTrafficFilter,
+      setTypeFilter,
+      setAltitudeLevel,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
@@ -168,10 +186,14 @@ export function AirportExplorerUiProvider({ children }) {
       showMapLabels,
       showRunwayBeams,
       showRoutingPointBadges,
-      altitudeFocus,
+      trafficFilter,
+      typeFilter,
+      altitudeLevel,
       selectedAircraftId,
       setMapZoom,
-      setAltitudeFocus,
+      setTrafficFilter,
+      setTypeFilter,
+      setAltitudeLevel,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,

@@ -21,12 +21,10 @@ export default function AirportSidebar({
   metarLoading = false,
   metarError = null,
   aircraft = [],
-  altitudeFocus = "all",
   selectedAircraftId = "",
   lastUpdated = null,
   feedStatus = "live",
   onSelectAircraft,
-  onAltitudeFocus,
   onBack,
   onClose = null,
 }) {
@@ -117,10 +115,8 @@ export default function AirportSidebar({
           ) : (
             <AircraftTable
               aircraft={aircraft}
-              altitudeFocus={altitudeFocus}
               selectedAircraftId={selectedAircraftId}
               onSelectAircraft={onSelectAircraft}
-              onAltitudeFocus={onAltitudeFocus}
               fill={!isMobileOverlay}
             />
           )}

@@ -1,4 +1,4 @@
-import { DEFAULT_ALTITUDE_FOCUS } from "../airport-context/airportContextUiModel.js";
+import { DEFAULT_AIRCRAFT_FILTERS } from "../aircraft-filters/aircraftFilters.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 
 export const DEFAULT_AIRPORT_EXPLORER_UI_STATE = {
@@ -6,5 +6,5 @@ export const DEFAULT_AIRPORT_EXPLORER_UI_STATE = {
   showMapLabels: false,
   showRunwayBeams: true,
   showRoutingPointBadges: false,
-  altitudeFocus: DEFAULT_ALTITUDE_FOCUS,
+  ...DEFAULT_AIRCRAFT_FILTERS,
 };

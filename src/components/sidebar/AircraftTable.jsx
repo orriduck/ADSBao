@@ -13,47 +13,36 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useAirportExplorerUi } from "@/features/airport-explorer/AirportExplorerUiContext.jsx";
 import {
-  ALTITUDE_FOCUS_OPTIONS,
+  ALTITUDE_LEVEL_OPTIONS,
+  aircraftMatchesFilters,
+  aircraftTypeLabel,
+  getAircraftTypes,
+} from "@/features/aircraft-filters/aircraftFilters.js";
+import {
+  getAircraftContextGroup,
   getAircraftIdentity,
   getContextTagLabel,
-  getAircraftContextGroup,
 } from "../../features/airport-context/airportContextUiModel.js";
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
 import AircraftList from "./AircraftList.jsx";
 
-const TRAFFIC_FILTERS = [
-  { value: "all", label: "All" },
-  { value: "routed", label: "Routes only" },
-];
-
-const ALTITUDE_LEVELS = [
-  { value: "all", label: "Any" },
-  { value: "ground", label: "Ground" },
-  { value: "climb-descent", label: "Climb / descent" },
-  { value: "high", label: "High" },
-];
-
 export default function AircraftTable({
   aircraft = [],
-  altitudeFocus = "all",
   selectedAircraftId = "",
   onSelectAircraft,
-  onAltitudeFocus,
   fill = true,
 }) {
-  const focusOptions = useMemo(
-    () =>
-      ALTITUDE_FOCUS_OPTIONS.map((option) => ({
-        value: option.value,
-        label: option.title,
-      })),
-    [],
-  );
+  const {
+    trafficFilter,
+    typeFilter,
+    altitudeLevel,
+    setTrafficFilter,
+    setTypeFilter,
+    setAltitudeLevel,
+  } = useAirportExplorerUi();
   const [query, setQuery] = useState("");
-  const [trafficFilter, setTrafficFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [altitudeLevel, setAltitudeLevel] = useState("all");
   const aircraftTypes = useMemo(() => getAircraftTypes(aircraft), [aircraft]);
   const rows = useMemo(
     () =>
@@ -132,15 +121,8 @@ export default function AircraftTable({
             label="Alt"
             value={altitudeLevel}
             onValueChange={setAltitudeLevel}
-            options={ALTITUDE_LEVELS}
+            options={ALTITUDE_LEVEL_OPTIONS}
             ariaLabel="Filter by altitude level"
-          />
-          <AircraftFilterCardSelect
-            label="Focus"
-            value={altitudeFocus}
-            onValueChange={(value) => onAltitudeFocus?.(value)}
-            options={focusOptions}
-            ariaLabel="Traffic focus"
           />
         </div>
 
@@ -162,7 +144,6 @@ export default function AircraftTable({
         ) : (
           <AircraftList
             aircraft={rows}
-            altitudeFocus={altitudeFocus}
             selectedAircraftId={selectedAircraftId}
             onSelectAircraft={onSelectAircraft}
           />
@@ -225,40 +206,13 @@ function filterAndSortAircraft({
   const normalizedQuery = query.trim().toLowerCase();
 
   return [...aircraft]
-    .filter((item) => matchesTrafficFilter(item, trafficFilter))
-    .filter((item) => matchesTypeFilter(item, typeFilter))
-    .filter((item) => matchesAltitudeLevel(item, altitudeLevel))
+    .filter((item) =>
+      aircraftMatchesFilters(item, { trafficFilter, typeFilter, altitudeLevel }),
+    )
     .filter((item) =>
       normalizedQuery ? aircraftSearchText(item).includes(normalizedQuery) : true,
     )
     .sort(sortAircraftByAltitude);
-}
-
-function matchesTrafficFilter(aircraft, trafficFilter) {
-  if (trafficFilter === "airborne") return !aircraft.onGround;
-  if (trafficFilter === "ground") return Boolean(aircraft.onGround);
-  if (trafficFilter === "routed") {
-    return Boolean(aircraft.flightRouteLabel || aircraft.flightRoute);
-  }
-  return true;
-}
-
-function matchesTypeFilter(aircraft, typeFilter) {
-  if (typeFilter === "all") return true;
-  return aircraftTypeLabel(aircraft) === typeFilter;
-}
-
-function matchesAltitudeLevel(aircraft, altitudeLevel) {
-  if (altitudeLevel === "all") return true;
-
-  const altitude = aircraft.onGround ? 0 : toNumber(aircraft.altitude);
-  if (altitudeLevel === "ground") return altitude == null || altitude < 100;
-  if (altitude == null) return false;
-  if (altitudeLevel === "climb-descent") {
-    return altitude >= 100 && altitude < 12000;
-  }
-  if (altitudeLevel === "high") return altitude >= 12000;
-  return true;
 }
 
 function aircraftSearchText(aircraft = {}) {
@@ -294,14 +248,4 @@ function sortAircraftByAltitude(a, b) {
 function altitudeSortValue(aircraft = {}) {
   if (aircraft.onGround) return -1;
   return toNumber(aircraft.altitude) ?? -2;
-}
-
-function getAircraftTypes(aircraft = []) {
-  return [...new Set(aircraft.map(aircraftTypeLabel).filter(Boolean))].sort(
-    (a, b) => a.localeCompare(b),
-  );
-}
-
-function aircraftTypeLabel(aircraft = {}) {
-  return String(aircraft.type || aircraft.category || "").trim();
 }

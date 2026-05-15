@@ -7,15 +7,11 @@ import {
   useAnimationControls,
   useReducedMotion,
 } from "motion/react";
-import {
-  getAircraftIdentity,
-  resolveAircraftContextEmphasis,
-} from "../../features/airport-context/airportContextUiModel.js";
+import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
 import AircraftRow from "./AircraftRow.jsx";
 
 export default function AircraftList({
   aircraft = [],
-  altitudeFocus = "all",
   selectedAircraftId = "",
   onSelectAircraft,
   flipStaggerStep = 0.02,
@@ -52,7 +48,6 @@ export default function AircraftList({
               aircraft={item}
               cascadeOrder={cascadeOrders[index]}
               flipStaggerStep={flipStaggerStep}
-              altitudeFocus={altitudeFocus}
               selectedAircraftId={selectedAircraftId}
               onSelectAircraft={onSelectAircraft}
             />
@@ -67,7 +62,6 @@ function AircraftSlot({
   aircraft,
   cascadeOrder = -1,
   flipStaggerStep = 0.02,
-  altitudeFocus,
   selectedAircraftId,
   onSelectAircraft,
 }) {
@@ -124,18 +118,12 @@ function AircraftSlot({
   const displayed = freezeAircraft ?? aircraft;
   const aircraftId = getAircraftIdentity(displayed);
   const selected = Boolean(aircraftId) && aircraftId === selectedAircraftId;
-  const emphasis = resolveAircraftContextEmphasis({
-    aircraft: displayed,
-    altitudeFocus,
-    selected,
-  });
 
   return (
     <motion.div animate={controls} className="aircraft-row-flip-surface">
       <AircraftRow
         aircraft={displayed}
         aircraftId={aircraftId}
-        emphasis={emphasis}
         selected={selected}
         onSelectAircraft={onSelectAircraft}
       />
