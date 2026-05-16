@@ -13,7 +13,7 @@ Frontend runs on `http://localhost:3000` by default.
 ## Stack
 
 - **Frontend**: React + Next.js App Router + Tailwind CSS v4 + DaisyUI, managed by `pnpm`.
-- **Airport data**: Airport directory and route lookup are fetched live from public aviation sources with frontend caching where appropriate.
+- **Airport data**: Airport directory data comes from Supabase-hosted OurAirports tables through Next.js API routes. Route lookup and other live aviation data use public provider APIs with frontend or server caching where appropriate.
 - **Weather/traffic data**: Web deployment uses Vercel data paths under `/api/proxy/*` because AviationWeather, adsb.lol, and route lookups need same-origin handling for production browser use. Local Next.js dev uses equivalent rewrites where possible.
 - **Removed scope**: Live audio/transcription, desktop packaging, Homebrew cask publishing, and Python backend runtime config are no longer part of this repository.
 
@@ -31,16 +31,21 @@ Frontend runs on `http://localhost:3000` by default.
 | `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js` | Next.js Route Handler for callsign route lookup |
 | `src/components/screens/SearchScreen.jsx` | Thin route entry for airport search UI |
 | `src/components/screens/AirportCaptionScreen.jsx` | Thin route entry for airport explorer map + METAR screen |
-| `src/features/*` | Feature-owned UI orchestration, state hooks, and pure model helpers |
+| `src/app/api/_shared/*` | Route-handler-only helpers for validation, rate limits, upstream fetches, and API responses |
+| `src/app/api/dao/*.dao.js` | Persistence boundary for Supabase/SQL reads and writes |
+| `src/features/aircraft/*` | Aircraft filters, icons, photos, positions, preview, and trace feature code |
+| `src/features/airport/*` | Airport context, directory, explorer, map, nearby, procedures, search, and wiki feature code |
+| `src/features/aviation/*` | Aviation provider clients and flight-route mechanisms |
+| `src/features/weather/*` | Weather feature code and METAR mechanisms |
+| `src/features/about/*` | About-page feature code |
+| `src/features/app-shell/*` | App shell and navigation feature code |
 | `src/hooks/*.js` | React hooks for METAR, ADS-B positions, route lookups, wiki summaries, and scroll parallax |
-| `src/services/airportDirectory.js` | Public compatibility barrel for airport directory clients |
-| `src/services/airport-directory/*` | Airport directory client, cache, and query/normalization model |
-| `src/services/aviationData.js` | Public compatibility barrel for aviation data clients |
-| `src/services/aviation/*` | Frontend-owned aviation provider clients, proxy models, rate limiter, and normalizers |
 | `src/constants/aircraft.js` | Shared aircraft color and threshold constants |
 | `src/utils/math.js` | Shared numeric helpers (`toFiniteNumber`) |
 | `src/utils/airport.js` | Shared airport display helpers (`airportSubtitle`) |
 | `src/data/airportFallbacks.js` | Fallback airport metadata and coordinates |
+
+There is no standalone `src/services` or `src/server` layer. Mechanisms, models, clients, and feature-specific utils live inside the owning feature domain, except for API DAOs and route-handler helpers under `src/app/api`.
 
 ## Styling — Tailwind first
 

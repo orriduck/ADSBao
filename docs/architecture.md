@@ -23,7 +23,7 @@ Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the p
 
 ### Airport directory (OurAirports → Supabase → Next.js API)
 
-Global airport static data (airports, runways, frequencies, navaids) is sourced from [OurAirports](https://ourairports.com/data/), persisted in Supabase via `node --env-file=.env scripts/import-ourairports.js`, and exposed to the browser through `/api/search` and `/api/airport/[ident]`. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the database boundary. See `docs/ourairports-setup.md` for setup and refresh cadence.
+Global airport static data (airports, runways, frequencies, navaids) is sourced from [OurAirports](https://ourairports.com/data/), persisted in Supabase via `node --env-file=.env scripts/import-ourairports.js`, and exposed to the browser through `/api/search` and `/api/airport/[ident]`. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the database boundary.
 
 ### Vercel data paths
 

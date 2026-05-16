@@ -38,7 +38,7 @@ export default function MapTileLayers({
       maxZoom: 20,
     }).addTo(map);
     // Tag the layer container so CSS can blend the base tiles into the
-    // canvas (ghost-lines-on-navy chart aesthetic, per .impeccable.md).
+    // canvas using the ghost-lines-on-navy chart aesthetic.
     baseRef.current.getContainer()?.classList.add("atc-tile-base");
 
     removeLayer(labelRef.current, map);
