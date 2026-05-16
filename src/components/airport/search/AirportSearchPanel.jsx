@@ -78,7 +78,7 @@ export default function AirportSearchPanel({ onOpenAirport }) {
   return (
     <DitherPageShell
       className="search-screen"
-      sectionLabel="Airport search"
+
       mobileLeft={mobileAboutLink}
       footerLeft={footerAboutLink}
       renderThemeToggle={renderThemeToggle}

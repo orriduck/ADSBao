@@ -1,13 +1,12 @@
 "use client";
 
 import DitherBackground from "@/components/effects/DitherBackground.jsx";
-import Logo from "@/components/brand/Logo.jsx";
+import BrandLogo from "@/components/brand/BrandLogo.jsx";
 import MobileTopNav from "@/components/navigation/MobileTopNav.jsx";
 import { SITE_DESCRIPTION } from "@/config/site.js";
 
 export default function DitherPageShell({
   className = "",
-  sectionLabel,
   title = "Airport explorer",
   description = SITE_DESCRIPTION,
   mobileLeft,
@@ -27,16 +26,8 @@ export default function DitherPageShell({
         />
 
         <div className="flex-none px-6 pt-7 pb-6">
-          <div className="flex items-center gap-3 max-[720px]:hidden">
-            <Logo size={28} className="text-atc-text" />
-            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-              {sectionLabel}
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-3">
-            <span className="font-mono text-[22px] font-semibold tracking-[0.04em] text-atc-text">
-              ADSBao
-            </span>
+          <div className="flex items-center gap-3">
+            <BrandLogo height={56} />
             <span
               aria-hidden="true"
               className="h-px flex-1 bg-[var(--atc-line-strong)]"

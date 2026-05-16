@@ -47,7 +47,7 @@ export default function AboutPanel() {
 
   return (
     <DitherPageShell
-      sectionLabel="About"
+
       mobileLeft={
         <Link
           href="/"
