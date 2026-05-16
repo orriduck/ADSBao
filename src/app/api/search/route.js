@@ -5,20 +5,26 @@ import {
   enforceProxyRequest,
   jsonProxyResponse,
 } from "@/services/apiProxySecurity.js";
-import { createOurAirportsQueriesFromEnv } from "@/services/ourairports/ourAirportsQueries.js";
-import { scheduleRefreshIfDue } from "@/services/ourairports/ourAirportsRefresh.js";
-
-const DEFAULT_LIMIT = 12;
-const MAX_LIMIT = 50;
+import {
+  refreshAirportDirectoryIfDue,
+  searchAirportDirectory,
+} from "@/server/airport-directory/airportDirectory.mechanism.js";
+import {
+  AIRPORT_DIRECTORY_CACHE_HEADERS,
+  AirportDirectoryConfigurationError,
+} from "@/server/airport-directory/airportDirectory.models.js";
+import {
+  isValidAirportSearchCountry,
+  normalizeAirportSearchCountry,
+  normalizeAirportSearchLimit,
+  normalizeAirportSearchQuery,
+  normalizeAirportSearchType,
+} from "@/server/airport-directory/airportDirectory.utils.js";
 
 const rateLimit = {
   key: "api:search",
   maxRequests: 60,
   windowMs: 60_000,
-};
-
-const cacheHeaders = {
-  "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
 };
 
 export const runtime = "nodejs";
@@ -32,18 +38,12 @@ export async function GET(request) {
   if (securityResponse) return securityResponse;
 
   const url = new URL(request.url);
-  const query = String(url.searchParams.get("q") || "").trim();
-  const country = String(url.searchParams.get("country") || "")
-    .trim()
-    .toUpperCase();
-  const type = String(url.searchParams.get("type") || "").trim();
-  const limitParam = url.searchParams.get("limit");
-  const limitRaw = limitParam == null || limitParam === "" ? NaN : Number(limitParam);
-  const limit = Number.isFinite(limitRaw)
-    ? Math.max(1, Math.min(limitRaw, MAX_LIMIT))
-    : DEFAULT_LIMIT;
+  const query = normalizeAirportSearchQuery(url.searchParams.get("q"));
+  const country = normalizeAirportSearchCountry(url.searchParams.get("country"));
+  const type = normalizeAirportSearchType(url.searchParams.get("type"));
+  const limit = normalizeAirportSearchLimit(url.searchParams.get("limit"));
 
-  if (country && !/^[A-Z]{2}$/.test(country)) {
+  if (!isValidAirportSearchCountry(country)) {
     return jsonProxyResponse(
       request,
       { error: "country must be a 2-letter ISO code" },
@@ -51,33 +51,20 @@ export async function GET(request) {
     );
   }
 
-  const queries = createOurAirportsQueriesFromEnv();
-  if (!queries) {
-    return jsonProxyResponse(
-      request,
-      { error: "Airport database is not configured" },
-      { status: 503 },
-    );
-  }
-
   try {
-    const airports = await queries.searchAirports({ query, country, type, limit });
-    // Trigger a background OurAirports refresh if the cached data is past
-    // its TTL. Runs after the response is sent so the user never waits.
-    after(() => scheduleRefreshIfDue());
-    return jsonProxyResponse(
-      request,
-      {
-        airports,
-        source: "ourairports",
-        query,
-        country,
-        type,
-        limit,
-      },
-      { headers: cacheHeaders },
-    );
+    const payload = await searchAirportDirectory({ query, country, type, limit });
+    after(() => refreshAirportDirectoryIfDue());
+    return jsonProxyResponse(request, payload, {
+      headers: AIRPORT_DIRECTORY_CACHE_HEADERS,
+    });
   } catch (error) {
+    if (error instanceof AirportDirectoryConfigurationError) {
+      return jsonProxyResponse(
+        request,
+        { error: error.message },
+        { status: error.status },
+      );
+    }
     console.error("[api/search] failed", error);
     return jsonProxyResponse(
       request,
