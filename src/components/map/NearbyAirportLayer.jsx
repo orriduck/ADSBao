@@ -4,11 +4,11 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap.js";
-import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
+import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
 import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
-} from "../../features/airport-map/runwayAnnotationModel.js";
+} from "../../features/airport/map/runwayAnnotationModel.js";
 
 const escapeHtml = (value) =>
   String(value || "")

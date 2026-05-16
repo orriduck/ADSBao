@@ -5,11 +5,11 @@ import {
   jsonProxyResponse,
   normalizeIcao,
 } from "@/app/api/_shared/apiProxySecurity.js";
-import { fetchMetar } from "@/features/metar/metar.mechanism.js";
+import { fetchMetar } from "@/features/weather/metar/metar.mechanism.js";
 import {
   METAR_CACHE_HEADERS,
   MetarProviderError,
-} from "@/features/metar/metar.models.js";
+} from "@/features/weather/metar/metar.models.js";
 
 const rateLimit = {
   key: "proxy:metar",

@@ -3,14 +3,14 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { MAP_ZOOM_OPTIONS } from "../../config/mapControls.js";
 import { useThemePreference } from "../../features/app-shell/useThemePreference.js";
-import MapControlRail from "../../features/map-controls/MapControlRail.jsx";
-import MapLayerDrawer from "../../features/map-controls/MapLayerDrawer.jsx";
+import MapControlRail from "../../features/airport/map-controls/MapControlRail.jsx";
+import MapLayerDrawer from "../../features/airport/map-controls/MapLayerDrawer.jsx";
 import {
   getNextZoomValue,
   resolveZoomOption,
-} from "../../features/map-controls/mapControlModel.js";
-import { useDismissibleDrawer } from "../../features/map-controls/useDismissibleDrawer.js";
-import { useFocusAudio } from "../../features/map-controls/useFocusAudio.js";
+} from "../../features/airport/map-controls/mapControlModel.js";
+import { useDismissibleDrawer } from "../../features/airport/map-controls/useDismissibleDrawer.js";
+import { useFocusAudio } from "../../features/airport/map-controls/useFocusAudio.js";
 import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay.js";
 
 const LAYER_DRAWER_ID = "map-layer-drawer";

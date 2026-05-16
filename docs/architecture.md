@@ -49,6 +49,7 @@ Domain code lives under `src/features/<domain>/`, including browser-facing featu
 - `<domain>.mechanism.js` owns source selection, fallback order, cache policy, request parameterization, and provider orchestration.
 - `<domain>.models.js` owns domain constants, result metadata, and mechanism-specific error types.
 - `<domain>.utils.js` owns pure normalization and predicate helpers.
+- Prefix families are grouped by product concept, e.g. `src/features/aircraft/*`, `src/features/airport/*`, `src/features/aviation/flight-routes`, and `src/features/weather/metar`.
 
 Persistence boundaries live under `src/app/api/dao/*.dao.js`. DAO files should contain Supabase/SQL reads and writes only; they should not choose providers, cache policy, fallback behavior, or import mechanism files.
 

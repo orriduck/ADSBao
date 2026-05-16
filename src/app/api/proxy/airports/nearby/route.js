@@ -7,15 +7,15 @@ import {
 } from "@/app/api/_shared/apiProxySecurity.js";
 import {
   getNearbyAirports,
-} from "@/features/nearby-airports/nearbyAirports.mechanism.js";
+} from "@/features/airport/nearby/nearbyAirports.mechanism.js";
 import {
   NEARBY_AIRPORT_CACHE_HEADERS,
-} from "@/features/nearby-airports/nearbyAirports.models.js";
+} from "@/features/airport/nearby/nearbyAirports.models.js";
 import {
   isValidNearbyAirportQuery,
   normalizeNearbyAirportQuery,
   readNearbyAirportNumber,
-} from "@/features/nearby-airports/nearbyAirports.utils.js";
+} from "@/features/airport/nearby/nearbyAirports.utils.js";
 
 const rateLimit = {
   key: "proxy:nearby-airports",

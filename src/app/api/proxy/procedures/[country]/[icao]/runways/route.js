@@ -5,16 +5,16 @@ import {
 } from "@/app/api/_shared/apiProxySecurity.js";
 import {
   getAirportRunwayProcedures,
-} from "@/features/procedures/procedures.mechanism.js";
+} from "@/features/airport/procedures/procedures.mechanism.js";
 import {
   PROCEDURE_CACHE_HEADERS,
   ProcedureNotFoundError,
-} from "@/features/procedures/procedures.models.js";
+} from "@/features/airport/procedures/procedures.models.js";
 import {
   isSupportedFaaProcedureAirport,
   normalizeProcedureCountry,
   normalizeProcedureIcao,
-} from "@/features/procedures/procedures.utils.js";
+} from "@/features/airport/procedures/procedures.utils.js";
 
 const rateLimit = {
   key: "proxy:procedure-runways",

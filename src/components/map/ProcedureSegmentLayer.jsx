@@ -4,12 +4,12 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap.js";
-import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
+import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
 import {
   buildProcedureFixLabels,
   buildProcedureSegmentCollection,
   getProcedureSegmentStyle,
-} from "../../features/airport-map/procedureSegmentModel.js";
+} from "../../features/airport/map/procedureSegmentModel.js";
 
 const escapeHtml = (value) =>
   String(value).replace(/[&<>"']/g, (character) => {

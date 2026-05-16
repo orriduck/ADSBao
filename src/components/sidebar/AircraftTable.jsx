@@ -20,18 +20,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useAirportExplorerUi } from "@/features/airport-explorer/AirportExplorerUiContext.jsx";
+import { useAirportExplorerUi } from "@/features/airport/explorer/AirportExplorerUiContext.jsx";
 import {
   ALTITUDE_LEVEL_OPTIONS,
   aircraftMatchesFilters,
   aircraftTypeLabel,
   getAircraftTypeGroups,
-} from "@/features/aircraft-filters/aircraftFilters.js";
+} from "@/features/aircraft/filters/aircraftFilters.js";
 import {
   getAircraftContextGroup,
   getAircraftIdentity,
   getContextTagLabel,
-} from "../../features/airport-context/airportContextUiModel.js";
+} from "../../features/airport/context/airportContextUiModel.js";
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
 import AircraftList from "./AircraftList.jsx";
 import AircraftSlot from "./AircraftSlot.jsx";

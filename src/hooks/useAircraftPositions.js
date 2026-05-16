@@ -11,8 +11,8 @@ import {
   describeAircraftFetchError,
   isHttp4xxOr5xx,
   normalizeAircraftSnapshot,
-} from "../features/aircraft-positions/aircraftPositionsModel.js";
-import { createAircraftTraceTracker } from "../features/aircraft-trace/aircraftTraceModel.js";
+} from "../features/aircraft/positions/aircraftPositionsModel.js";
+import { createAircraftTraceTracker } from "../features/aircraft/trace/aircraftTraceModel.js";
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
 

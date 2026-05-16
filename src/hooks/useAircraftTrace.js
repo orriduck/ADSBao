@@ -5,7 +5,7 @@ import { aircraftTraceClient } from "../features/aviation/aviationData.js";
 import {
   mergeTraceHistory,
   normalizeAdsbTracePayload,
-} from "../features/aircraft-trace/aircraftTraceModel.js";
+} from "../features/aircraft/trace/aircraftTraceModel.js";
 
 function liveAircraftToTracePoint(aircraft) {
   if (!aircraft) return null;

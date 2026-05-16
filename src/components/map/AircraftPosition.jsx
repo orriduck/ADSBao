@@ -13,7 +13,7 @@ import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 import {
   getAircraftIdentity,
   resolveAircraftContextEmphasis,
-} from "../../features/airport-context/airportContextUiModel.js";
+} from "../../features/airport/context/airportContextUiModel.js";
 import { DEPARTURE, ARRIVAL } from "../../utils/aircraftMovement.js";
 import {
   resolveAircraftIcon,

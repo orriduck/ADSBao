@@ -8,18 +8,18 @@ import {
 import {
   refreshAirportDirectoryIfDue,
   searchAirportDirectory,
-} from "@/features/airport-directory/airportDirectory.mechanism.js";
+} from "@/features/airport/directory/airportDirectory.mechanism.js";
 import {
   AIRPORT_DIRECTORY_CACHE_HEADERS,
   AirportDirectoryConfigurationError,
-} from "@/features/airport-directory/airportDirectory.models.js";
+} from "@/features/airport/directory/airportDirectory.models.js";
 import {
   isValidAirportSearchCountry,
   normalizeAirportSearchCountry,
   normalizeAirportSearchLimit,
   normalizeAirportSearchQuery,
   normalizeAirportSearchType,
-} from "@/features/airport-directory/airportDirectory.utils.js";
+} from "@/features/airport/directory/airportDirectory.utils.js";
 
 const rateLimit = {
   key: "api:search",

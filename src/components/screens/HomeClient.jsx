@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import AirportCaptionScreen from "./AirportCaptionScreen";
 import SearchScreen from "./SearchScreen";
-import { airportDirectoryClient } from "../../features/airport-directory/airportDirectoryClient.js";
+import { airportDirectoryClient } from "../../features/airport/directory/airportDirectoryClient.js";
 
 export default function HomeClient({ initialIcao = "" }) {
   const [airport, setAirport] = useState(null);

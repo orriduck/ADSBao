@@ -6,18 +6,18 @@ import {
 } from "@/app/api/_shared/apiProxySecurity.js";
 import {
   normalizeRouteCallsign,
-} from "@/features/flight-routes/vrsRouteProxyModel.js";
+} from "@/features/aviation/flight-routes/vrsRouteProxyModel.js";
 import {
   buildRouteCacheHeaders,
   VRS_ROUTE_MISS_STATUS,
-} from "@/features/flight-routes/flightRoutes.models.js";
+} from "@/features/aviation/flight-routes/flightRoutes.models.js";
 import {
   resolveFlightRoute,
-} from "@/features/flight-routes/flightRoutes.mechanism.js";
+} from "@/features/aviation/flight-routes/flightRoutes.mechanism.js";
 import {
   getTargetAirportFromSearchParams,
   shouldForceAerodatabox,
-} from "@/features/flight-routes/flightRoutes.utils.js";
+} from "@/features/aviation/flight-routes/flightRoutes.utils.js";
 
 const rateLimit = {
   key: "proxy:flight-routes",

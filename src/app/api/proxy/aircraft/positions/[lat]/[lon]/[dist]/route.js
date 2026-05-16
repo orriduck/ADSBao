@@ -9,10 +9,10 @@ import {
 } from "@/app/api/_shared/apiProxySecurity.js";
 import {
   fetchAircraftPositions,
-} from "@/features/aircraft-positions/aircraftPositions.mechanism.js";
+} from "@/features/aircraft/positions/aircraftPositions.mechanism.js";
 import {
   AircraftPositionProviderError,
-} from "@/features/aircraft-positions/aircraftPositions.models.js";
+} from "@/features/aircraft/positions/aircraftPositions.models.js";
 
 const rateLimit = {
   key: "proxy:aircraft-positions",

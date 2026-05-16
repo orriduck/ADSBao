@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 import { createRateLimiter } from "./rateLimiter.js";
-import { normalizeFlightRoute } from "../flight-routes/flightRouteNormalizer.js";
+import { normalizeFlightRoute } from "./flight-routes/flightRouteNormalizer.js";
 import { normalizeLocalWeather } from "../weather/localWeatherNormalizer.js";
 
 {

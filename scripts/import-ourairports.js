@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import process from "node:process";
 
-import { createOurAirportsImporterFromEnv } from "../src/features/airport-directory/ourairports/ourAirportsImporter.js";
+import { createOurAirportsImporterFromEnv } from "../src/features/airport/directory/ourairports/ourAirportsImporter.js";
 
 const main = async () => {
   if (typeof globalThis.fetch !== "function") {

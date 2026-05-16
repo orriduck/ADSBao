@@ -6,7 +6,7 @@ import {
   useAnimationControls,
   useReducedMotion,
 } from "motion/react";
-import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
+import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
 import AircraftRow from "./AircraftRow.jsx";
 
 // Single row "slot" that flips (rotateX -90°) when its tenant aircraft
