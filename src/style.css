@@ -3707,3 +3707,630 @@ body {
     color: var(--atc-text);
 }
 
+/* Aircraft preview card — appears on sidebar-row hover. Rounded surface
+   with a silhouette that visually pokes past the top-left corner ("slides
+   out"), header type next to it, then identity / telemetry / metadata
+   below. Uses design tokens for surface + border so it flips with theme. */
+.aircraft-preview-card {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1200;
+    width: 280px;
+    max-width: calc(100vw - 32px);
+    padding: 18px 18px 14px;
+    /* Solid theme-color surface — no transparency, no frosted-glass.
+       Top half and pocket panel share the same --atc-card token so
+       the card reads as one continuous opaque surface, with the
+       divider as the only visual seam. */
+    background: var(--atc-card);
+    border: 1px solid var(--tone-border-firm);
+    border-radius: 12px;
+    box-shadow:
+        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
+        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    color: var(--atc-text);
+    font-family: 'Manrope', system-ui, sans-serif;
+    pointer-events: none;
+    user-select: none;
+    isolation: isolate;
+}
+
+.aircraft-preview-card__metadata-panel {
+    position: relative;
+    z-index: 2;
+    margin: -22px -18px -14px;
+    padding: 18px 18px 14px;
+    border: 1px solid color-mix(in oklab, var(--tone-border-firm) 74%, transparent);
+    border-radius: 12px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 58%, transparent),
+            color-mix(in oklab, var(--atc-card) 44%, transparent)
+        );
+    box-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 12%, transparent),
+        0 8px 20px color-mix(in oklab, var(--atc-bg) 32%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(1.08);
+    backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.aircraft-preview-card--has-photo .aircraft-preview-card__metadata-panel {
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 38%, transparent),
+            color-mix(in oklab, var(--atc-card) 24%, transparent)
+        );
+    -webkit-backdrop-filter: blur(10px) saturate(1.08);
+    backdrop-filter: blur(10px) saturate(1.08);
+}
+
+.aircraft-preview-card__header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    /* No gap below the header so the icon layer's bottom sits flush with
+       the divider — the "right above the line" framing from the design. */
+    margin-bottom: 0;
+}
+
+.aircraft-preview-card__icon-layer {
+    flex-shrink: 0;
+    /* The icon renders at its full 128px — nothing truncates it. The
+       layer's height (60px) is what controls how tall the header is in
+       flex flow, which in turn sets where the pocket panel starts. The
+       silhouette overflows the layer downward, and the pocket (drawn
+       later in DOM, so on top) covers the lower portion. Visible
+       fraction = layer height / icon height ≈ 60 / 128 ≈ 47%.
+       Bump the height up to show more of the plane, down to show less. */
+    width: 128px;
+    height: 60px;
+    margin-top: -28px;
+    margin-left: -10px;
+    margin-right: -4px;
+    will-change: transform, opacity;
+}
+
+.aircraft-preview-card--photo-pending .aircraft-preview-card__icon-layer {
+    margin-top: -14px;
+}
+
+.aircraft-preview-icon {
+    flex-shrink: 0;
+}
+
+.aircraft-preview-icon--fallback {
+    background: var(--tone-orange-warm);
+    border-radius: 8px;
+    opacity: 0.36;
+}
+
+.aircraft-preview-card--has-photo {
+    overflow: hidden;
+}
+
+.aircraft-preview-visual-layer {
+    position: relative;
+    margin: -18px -18px 0;
+    height: 178px;
+    z-index: 1;
+    overflow: hidden;
+    border-top-right-radius: 12px;
+    border-top-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    pointer-events: none;
+}
+
+.aircraft-preview-photo-backdrop {
+    position: absolute;
+    inset: 0;
+    left: 0;
+    z-index: 0;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in oklab, black 8%, transparent),
+            color-mix(in oklab, black 24%, transparent)
+        ),
+        var(--aircraft-preview-photo);
+    background-position: 24% center;
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    filter: saturate(0.92) contrast(1.04);
+    pointer-events: none;
+}
+
+.aircraft-preview-photo-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(
+            ellipse at center,
+            transparent 0 42%,
+            color-mix(in oklab, var(--atc-card) 34%, transparent) 100%
+        ),
+        linear-gradient(
+            180deg,
+            transparent 0 44%,
+            color-mix(in oklab, black 42%, transparent)
+        );
+}
+
+.aircraft-preview-visual-layer__fallback {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.55;
+}
+
+.aircraft-preview-photo__credit {
+    position: absolute;
+    right: 6px;
+    bottom: 5px;
+    z-index: 1;
+    max-width: calc(100% - 12px);
+    overflow: hidden;
+    color: color-mix(in oklab, var(--atc-text) 86%, transparent);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 7px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: right;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 4px color-mix(in oklab, black 80%, transparent);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.aircraft-preview-type {
+    width: max-content;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    gap: 2px;
+}
+
+.aircraft-preview-type__code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 22px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--atc-text);
+    white-space: nowrap;
+}
+
+.aircraft-preview-type__category {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--atc-faint);
+    text-transform: uppercase;
+}
+
+.aircraft-preview-card__pocket {
+    /* Front panel of the card. Fully opaque so the original silhouette
+       behind it is completely hidden — the blurred version is supplied
+       by a "ghost" duplicate inside the panel (see below). Backdrop-
+       filter is not used here because nested backdrop-filter inside a
+       parent that already has one is unreliable across browsers; the
+       blurred ghost gives us the look we want with plain filter:blur().
+       Subtle inset top shadow gives the panel a defined upper edge
+       that reads as the "pocket lip" the plane rises out of. */
+    position: relative;
+    background: var(--atc-card);
+    box-shadow: inset 0 1px 0 var(--tone-border-firm);
+    margin: 0 -18px -14px;
+    padding: 0 18px 14px;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.aircraft-preview-card--has-photo .aircraft-preview-card__pocket {
+    z-index: 1;
+    margin-top: 0;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 28%, transparent),
+            color-mix(in oklab, var(--atc-card) 58%, transparent)
+        );
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--atc-line) 76%, transparent);
+}
+
+.aircraft-preview-card__pocket-ghost-clip {
+    /* Bounded window for the blurred silhouette ghost. overflow:hidden
+       here clips the ghost (which extends above the panel) without
+       affecting the sibling dividers' negative horizontal margins. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.aircraft-preview-card__pocket-ghost {
+    /* Geometry mirrors the original .aircraft-preview-card__icon-layer
+       (left:8 in card coords, top offset so the lower portion lands
+       inside the pocket). The CSS filter:blur is what gives us the
+       soft, can't-quite-make-out-the-shape feel — works reliably
+       regardless of any backdrop-filter ancestor. */
+    position: absolute;
+    top: -60px;
+    left: 8px;
+    width: 128px;
+    height: 128px;
+    filter: blur(7px);
+    opacity: 0.8;
+    will-change: transform, opacity;
+}
+
+.aircraft-preview-card__divider {
+    height: 1px;
+    background: var(--atc-line);
+    /* Negative horizontal margins span the divider edge-to-edge through
+       the card's 18px padding. Zero top margin pairs with the header's
+       zero bottom margin to keep the icon flush against the line. */
+    margin: 0 -18px 10px;
+}
+
+.aircraft-preview-card__divider--soft {
+    background: color-mix(in oklab, var(--atc-line) 60%, transparent);
+    /* Symmetric margins so the soft divider sits balanced between
+       telemetry and metadata — matches the rhythm of the main
+       divider above. */
+    margin: 10px -18px 10px;
+}
+
+.aircraft-preview-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.aircraft-preview-identity__top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    column-gap: 14px;
+    min-width: 0;
+}
+
+.aircraft-preview-identity__callsign {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 22px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--atc-text);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aircraft-preview-identity__route {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--atc-dim);
+}
+
+.aircraft-preview-identity__route--empty {
+    color: var(--atc-faint);
+    font-style: italic;
+    letter-spacing: 0.02em;
+}
+
+.aircraft-preview-telemetry {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 0;
+}
+
+.aircraft-preview-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+/* The right-most stat (V/S) hugs the card's right edge so it stays in
+   visual rhythm with the right-aligned type tag and the metadata
+   rows. */
+.aircraft-preview-telemetry .aircraft-preview-stat:last-child {
+    align-items: flex-end;
+    text-align: right;
+}
+
+.aircraft-preview-telemetry .aircraft-preview-stat:last-child .aircraft-preview-stat__value {
+    justify-content: flex-end;
+}
+
+.aircraft-preview-stat__label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--atc-faint);
+    text-transform: uppercase;
+}
+
+.aircraft-preview-stat__value {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: var(--atc-text);
+}
+
+.aircraft-preview-stat__number {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.aircraft-preview-stat__unit {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--atc-dim);
+    text-transform: uppercase;
+}
+
+.aircraft-preview-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+}
+
+.aircraft-preview-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.aircraft-preview-meta-row__label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--atc-faint);
+    text-transform: uppercase;
+}
+
+.aircraft-preview-meta-row__value {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--atc-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Aircraft preview stack v2. The parent owns only fixed placement and
+   layering. The metadata card is always visible above the media card;
+   the media card is mounted only after the photo lookup resolves and
+   slides upward from behind the metadata card. */
+.aircraft-preview-card {
+    width: 280px;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.aircraft-preview-card--has-photo {
+    overflow: visible;
+}
+
+.aircraft-preview-card__media-slot {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% - 22px);
+    left: 0;
+    z-index: 1;
+}
+
+.aircraft-preview-metadata-card {
+    position: relative;
+    z-index: 2;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 18px;
+    border: 1px solid var(--tone-border-firm);
+    border-radius: 12px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 90%, transparent),
+            color-mix(in oklab, var(--atc-card) 82%, transparent)
+        );
+    box-shadow:
+        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
+        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent),
+        inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(1.08);
+    backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.aircraft-preview-metadata-card__credit {
+    display: block;
+    margin-bottom: 8px;
+    overflow: hidden;
+    color: var(--atc-dim);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.aircraft-preview-media-card {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: var(--aircraft-preview-media-height, 116px);
+    overflow: hidden;
+    border: 1px solid var(--tone-border-firm);
+    border-radius: 12px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 82%, transparent),
+            color-mix(in oklab, var(--atc-card) 58%, transparent)
+        );
+    box-shadow:
+        0 12px 30px color-mix(in oklab, var(--atc-bg) 64%, transparent),
+        inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
+}
+
+.aircraft-preview-media-card__photo {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in oklab, var(--atc-card) 70%, black 20%);
+    filter: saturate(0.94) contrast(1.04);
+}
+
+.aircraft-preview-media-card__photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        color-mix(in oklab, black 4%, transparent),
+        color-mix(in oklab, black 20%, transparent)
+    );
+    pointer-events: none;
+}
+
+/* Mobile aircraft preview — rendered by JS only when isMobile is true.
+   Centered at the bottom, callsign + type row + compact telemetry row. */
+.aircraft-preview-mobile-card {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    z-index: 1200;
+    background: var(--atc-card);
+    border: 1px solid var(--tone-border-firm);
+    border-radius: 12px;
+    box-shadow:
+        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
+        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    color: var(--atc-text);
+    pointer-events: none;
+    user-select: none;
+}
+
+.aircraft-preview-mobile-card__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px 12px;
+}
+
+.aircraft-preview-mobile-card__row1 {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.aircraft-preview-mobile-card__callsign,
+.aircraft-preview-mobile-card__type {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 18px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--atc-text);
+}
+
+.aircraft-preview-mobile-card__sep {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--atc-faint);
+    line-height: 1;
+}
+
+.aircraft-preview-mobile-card__row2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    white-space: nowrap;
+}
+
+.aircraft-preview-mobile-card__stat {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.aircraft-preview-mobile-card__num {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--atc-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+.aircraft-preview-mobile-card__unit {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--atc-faint);
+    text-transform: lowercase;
+}
+
+.aircraft-preview-mobile-card__dot {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--atc-faint);
+    margin: 0 5px;
+}
+
+.aircraft-preview-media-card__image {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    pointer-events: none;
+}

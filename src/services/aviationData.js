@@ -1,10 +1,12 @@
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation.js";
+import { createAircraftPhotoClient } from "./aviation/aircraftPhotoClient.js";
 import { createAircraftPositionClient } from "./aviation/aircraftPositionClient.js";
 import { createAircraftTraceClient } from "./aviation/aircraftTraceClient.js";
 import { createFlightRouteClient } from "./aviation/flightRouteClient.js";
 import { createLocalWeatherClient } from "./aviation/localWeatherClient.js";
 import { createMetarClient } from "./aviation/metarClient.js";
 
+export { createAircraftPhotoClient } from "./aviation/aircraftPhotoClient.js";
 export { createAircraftPositionClient } from "./aviation/aircraftPositionClient.js";
 export { createAircraftTraceClient } from "./aviation/aircraftTraceClient.js";
 export { createFlightRouteClient } from "./aviation/flightRouteClient.js";
@@ -18,6 +20,7 @@ export const DEFAULT_AIRCRAFT_POLL_MS = AIRCRAFT_TRAFFIC_CONFIG.pollMs;
 export const DEFAULT_AIRCRAFT_RANGE_NM = AIRCRAFT_TRAFFIC_CONFIG.rangeNm;
 
 export const metarClient = createMetarClient();
+export const aircraftPhotoClient = createAircraftPhotoClient();
 export const aircraftPositionClient = createAircraftPositionClient();
 export const aircraftTraceClient = createAircraftTraceClient();
 export const flightRouteClient = createFlightRouteClient();
