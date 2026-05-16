@@ -6,7 +6,7 @@ import AirportCaptionScreen from "./AirportCaptionScreen";
 import SearchScreen from "./SearchScreen";
 import { airportDirectoryClient } from "../../features/airport/directory/airportDirectoryClient.js";
 
-export default function HomeClient({ initialIcao = "" }) {
+export default function HomeScreen({ initialIcao = "" }) {
   const [airport, setAirport] = useState(null);
   const [currentIcao, setCurrentIcao] = useState(initialIcao);
 

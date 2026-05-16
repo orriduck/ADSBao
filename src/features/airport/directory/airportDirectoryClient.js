@@ -1,6 +1,6 @@
 // Browser-side wrapper over the new `/api/search` and `/api/airport/[ident]`
 // routes. Same public surface as the old airportsapi.com client — feature
-// code (`useAirportSearch`, `HomeClient`) doesn't need to know that the data
+// code (`useAirportSearch`, `HomeScreen`) doesn't need to know that the data
 // source has been swapped to OurAirports + Supabase.
 
 const SEARCH_PATH = "/api/search";
