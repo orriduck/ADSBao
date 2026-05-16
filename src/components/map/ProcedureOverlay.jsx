@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
-import { buildProcedureRenderLayers } from "../../features/airport-map/procedureOverlayModel.js";
+import { buildProcedureRenderLayers } from "../../features/airport/map/procedureOverlayModel.js";
 
 export default function ProcedureOverlay({ geojson, theme = "dark" }) {
   const map = useMapInstance();

@@ -1,4 +1,4 @@
-import HomeClient from "@/components/screens/HomeClient";
+import HomeScreen from "@/components/screens/HomeScreen";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/config/site";
 import { AIRPORT_FALLBACKS } from "@/data/airportFallbacks";
 
@@ -52,5 +52,5 @@ export async function generateMetadata({ params }) {
 
 export default async function AirportPage({ params }) {
   const { icao } = await params;
-  return <HomeClient initialIcao={normalizeIcao(icao)} />;
+  return <HomeScreen initialIcao={normalizeIcao(icao)} />;
 }

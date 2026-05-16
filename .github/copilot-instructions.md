@@ -2,7 +2,7 @@
 
 ADSBao is a Vercel-deployed Next.js App Router app for airport-monitoring: search → ICAO airport view with METAR weather, ADS-B nearby traffic, callsign route resolution, and a Leaflet map. Stack: React 19, Tailwind CSS v4, DaisyUI, shadcn/ui (style: "new-york"), Lucide, Leaflet, OGL.
 
-When generating UI code, follow the Design Context below. The repository's canonical design guide is `.impeccable.md` at the project root — keep this file in sync with that one.
+When generating UI code, follow the Design Context below.
 
 ## Design Context
 

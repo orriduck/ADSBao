@@ -7,13 +7,13 @@ import {
   AIRPORT_MAP_PANES,
   RUNWAY_ANNOTATION_STYLE_CONFIG,
 } from "../../config/airportMap.js";
-import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
-import { createRunwayBeamGradientController } from "../../features/airport-map/runwayBeamGradientController.js";
+import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
+import { createRunwayBeamGradientController } from "../../features/airport/map/runwayBeamGradientController.js";
 import {
   buildRunwayApproachBeamCollection,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
-} from "../../features/airport-map/runwayAnnotationModel.js";
+} from "../../features/airport/map/runwayAnnotationModel.js";
 
 const escapeHtml = (value) =>
   String(value).replace(/[&<>"']/g, (character) => {

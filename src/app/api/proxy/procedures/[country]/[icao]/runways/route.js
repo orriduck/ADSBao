@@ -2,8 +2,19 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
-} from "@/services/apiProxySecurity.js";
-import { buildLiveAirportRunwayProcedurePayload } from "@/services/procedures/faaCifpLiveDataClient.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
+import {
+  getAirportRunwayProcedures,
+} from "@/features/airport/procedures/procedures.mechanism.js";
+import {
+  PROCEDURE_CACHE_HEADERS,
+  ProcedureNotFoundError,
+} from "@/features/airport/procedures/procedures.models.js";
+import {
+  isSupportedFaaProcedureAirport,
+  normalizeProcedureCountry,
+  normalizeProcedureIcao,
+} from "@/features/airport/procedures/procedures.utils.js";
 
 const rateLimit = {
   key: "proxy:procedure-runways",
@@ -22,10 +33,15 @@ export async function GET(request, { params }) {
   if (securityResponse) return securityResponse;
 
   const { country = "", icao = "" } = await params;
-  const normalizedCountry = country.toUpperCase();
-  const normalizedIcao = icao.toUpperCase();
+  const normalizedCountry = normalizeProcedureCountry(country);
+  const normalizedIcao = normalizeProcedureIcao(icao);
 
-  if (normalizedCountry !== "US" || !/^K[A-Z0-9]{3}$/.test(normalizedIcao)) {
+  if (
+    !isSupportedFaaProcedureAirport({
+      country: normalizedCountry,
+      icao: normalizedIcao,
+    })
+  ) {
     return jsonProxyResponse(
       request,
       { error: "FAA CIFP procedures are available for US ICAO airports only" },
@@ -34,24 +50,18 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const payload = await buildLiveAirportRunwayProcedurePayload({
-      airport: normalizedIcao,
-    });
-
-    if (!payload.runwayDirections.length) {
-      return jsonProxyResponse(
-        request,
-        { error: `No FAA CIFP runway procedures found for ${normalizedIcao}` },
-        { status: 404 },
-      );
-    }
-
+    const payload = await getAirportRunwayProcedures({ icao: normalizedIcao });
     return jsonProxyResponse(request, payload, {
-      headers: {
-        "Cache-Control": "public, s-maxage=21600, stale-while-revalidate=86400",
-      },
+      headers: PROCEDURE_CACHE_HEADERS,
     });
   } catch (error) {
+    if (error instanceof ProcedureNotFoundError) {
+      return jsonProxyResponse(
+        request,
+        { error: error.message },
+        { status: error.status },
+      );
+    }
     console.error(
       `[procedures/runways] FAA CIFP load failed for ${normalizedIcao}`,
       error,

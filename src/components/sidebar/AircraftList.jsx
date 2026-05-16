@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
+import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
 import AircraftSlot from "./AircraftSlot.jsx";
 
 export default function AircraftList({

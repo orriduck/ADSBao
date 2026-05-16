@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchAirportWikiSummary } from "../services/airportWiki.js";
+import { fetchAirportWikiSummary } from "../features/airport/wiki/airportWiki.js";
 
 export function useAirportWiki(airport) {
   const [summary, setSummary] = useState(null);

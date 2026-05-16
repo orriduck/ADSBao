@@ -5,14 +5,14 @@ import {
   aircraftPositionClient,
   DEFAULT_AIRCRAFT_RANGE_NM,
   DEFAULT_AIRCRAFT_POLL_MS,
-} from "../services/aviationData.js";
+} from "../features/aviation/aviationData.js";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation.js";
 import {
   describeAircraftFetchError,
   isHttp4xxOr5xx,
   normalizeAircraftSnapshot,
-} from "../features/aircraft-positions/aircraftPositionsModel.js";
-import { createAircraftTraceTracker } from "../features/aircraft-trace/aircraftTraceModel.js";
+} from "../features/aircraft/positions/aircraftPositionsModel.js";
+import { createAircraftTraceTracker } from "../features/aircraft/trace/aircraftTraceModel.js";
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
 

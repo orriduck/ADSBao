@@ -1,5 +1,5 @@
-import HomeClient from "@/components/screens/HomeClient";
+import HomeScreen from "@/components/screens/HomeScreen";
 
 export default function Page() {
-  return <HomeClient />;
+  return <HomeScreen />;
 }

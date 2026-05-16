@@ -20,7 +20,7 @@
 ## v0.10.0 — Global airport data layer + richer silhouettes
 
 ### Added
-- OurAirports as the global airport static-data source, persisted in Supabase via a four-table schema (`airports`, `runways`, `airport_frequencies`, `navaids`) with anon-read / service-role-write RLS. Refresh via `node --env-file=.env scripts/import-ourairports.js`; see `docs/ourairports-setup.md`.
+- OurAirports as the global airport static-data source, persisted in Supabase via a four-table schema (`airports`, `runways`, `airport_frequencies`, `navaids`) with anon-read / service-role-write RLS. Refresh via `node --env-file=.env scripts/import-ourairports.js`.
 - `GET /api/search` and `GET /api/airport/[ident]` — thin Next.js routes over a clean repository → service → API layering. Search supports ICAO / IATA / name / city / keywords with relevance ranking (exact code → prefix → substring) and ordering that prefers commercial-service airports for substring matches.
 - Runway annotation overlay now works globally: for non-US airports the airport map falls back to OurAirports runway thresholds (centerlines, end labels, approach beams) when FAA CIFP has no coverage.
 - Aircraft silhouettes switched to `RexKramer1/AircraftShapesSVG` (GPL-3.0, see `public/icons/aircraft/ATTRIBUTION.md`) — 178 SVGs covering specific ICAO type designators (A320, B738, B77W, CRJ9, BCS3, …) shipping in-repo. ADS-B emitter category fallback (A1–A7) maps to representative silhouettes for type-less traffic.
@@ -33,7 +33,7 @@
 - Aircraft icon route serves SVGs from `public/icons/aircraft/` on disk with an inline arrow as the final fallback; no runtime dependency on any external icon CDN.
 
 ### Removed
-- `airportsapi.com` integration (the entire `src/services/airport-directory/` package).
+- `airportsapi.com` integration and its legacy airport-directory client package.
 - The `pnpm build:procedures`, `pnpm import:ourairports`, and `pnpm icons:aircraft` script shortcuts. `scripts/import-ourairports.js` stays (runs via `node --env-file=.env scripts/import-ourairports.js` as the OurAirports backfill); `scripts/build-faa-cifp-procedures.js` and `scripts/download-aircraft-icons.js` deleted entirely since neither output is consumed at runtime.
 
 ## v0.9.0 — Navy tracking console redesign

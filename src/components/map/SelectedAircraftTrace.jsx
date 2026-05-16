@@ -8,14 +8,14 @@ import {
   AIRPORT_MAP_PANES,
   SELECTED_AIRCRAFT_TRACE_STYLE,
 } from "../../config/airportMap.js";
-import { ensureAirportMapPane } from "../../features/airport-map/mapPane.js";
-import { computeTraceGeometry } from "../../features/aircraft-trace/traceGeometry.js";
+import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
+import { computeTraceGeometry } from "../../features/aircraft/trace/traceGeometry.js";
 import {
   getTraceLabelRevealDelay,
   getTraceRevealKey,
   shouldRenderCommittedTrace,
-} from "../../features/aircraft-trace/traceRevealModel.js";
-import { useSelectedAircraftTrace } from "../../features/aircraft-trace/SelectedAircraftTraceContext.jsx";
+} from "../../features/aircraft/trace/traceRevealModel.js";
+import { useSelectedAircraftTrace } from "../aircraft/trace/SelectedAircraftTraceContext.jsx";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 import { ARRIVAL, DEPARTURE } from "../../utils/aircraftMovement.js";
 

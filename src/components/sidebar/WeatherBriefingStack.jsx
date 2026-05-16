@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useAirportWiki } from "../../hooks/useAirportWiki.js";
-import { useWeatherSlides } from "../../features/weather/useWeatherSlides.jsx";
+import { useWeatherSlides } from "@/components/weather/useWeatherSlides.jsx";
 
 export default function WeatherBriefingStack({
   icao = "",

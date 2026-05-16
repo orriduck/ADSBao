@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   localWeatherClient,
   normalizeLocalWeather,
-} from "../services/aviationData.js";
+} from "../features/aviation/aviationData.js";
 
 export function useLocalWeather(lat, lon) {
   const [weather, setWeather] = useState(null);

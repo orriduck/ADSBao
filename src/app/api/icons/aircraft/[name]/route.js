@@ -1,14 +1,15 @@
-import { promises as fs } from "node:fs";
-import { join } from "node:path";
-import process from "node:process";
-
 import {
   buildProxyHeaders,
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
-} from "@/services/apiProxySecurity.js";
-import { isKnownAircraftIconName } from "@/utils/aircraftIcon.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
+import {
+  getAircraftIcon,
+} from "@/features/aircraft/icons/aircraftIcons.mechanism.js";
+import {
+  AIRCRAFT_ICON_CACHE_CONTROL,
+} from "@/features/aircraft/icons/aircraftIcons.models.js";
 
 // Aircraft silhouettes are sourced from RexKramer1/AircraftShapesSVG
 // (GPL-3.0). The SVGs ship in the repo under `public/icons/aircraft/`; see
@@ -17,33 +18,13 @@ import { isKnownAircraftIconName } from "@/utils/aircraftIcon.js";
 // without CORS friction and falls back to an inline arrow SVG when an ident
 // has no on-disk silhouette.
 
-const ICON_DIR = join(process.cwd(), "public", "icons", "aircraft");
-const FALLBACK_NAME = "arrow";
-const FALLBACK_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L16 20L12 17L8 20Z" fill="black"/></svg>';
-const MAX_BYTES = 64 * 1024;
-
 const rateLimit = {
   key: "proxy:aircraft-icons",
   maxRequests: 240,
   windowMs: 60_000,
 };
 
-const CACHE_CONTROL =
-  "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800";
-
 export const runtime = "nodejs";
-
-const readIconFile = async (name) => {
-  try {
-    const buffer = await fs.readFile(join(ICON_DIR, `${name}.svg`));
-    if (buffer.byteLength > MAX_BYTES) return null;
-    return buffer;
-  } catch (error) {
-    if (error.code === "ENOENT") return null;
-    throw error;
-  }
-};
 
 export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
@@ -54,29 +35,17 @@ export async function GET(request, { params }) {
   if (securityResponse) return securityResponse;
 
   const { name } = await params;
-  const requested = isKnownAircraftIconName(name) ? name : null;
 
   try {
-    let body = requested ? await readIconFile(requested) : null;
-    let servedName = requested;
+    const icon = await getAircraftIcon({ name });
 
-    if (!body) {
-      body = await readIconFile(FALLBACK_NAME);
-      servedName = FALLBACK_NAME;
-    }
-
-    if (!body) {
-      body = FALLBACK_SVG;
-      servedName = "inline-arrow";
-    }
-
-    return new Response(body, {
+    return new Response(icon.body, {
       status: 200,
       headers: buildProxyHeaders(request, {
         "Content-Type": "image/svg+xml; charset=utf-8",
-        "Cache-Control": CACHE_CONTROL,
-        "X-Aircraft-Icon-Name": servedName,
-        "X-Aircraft-Icon-Requested": requested || "",
+        "Cache-Control": AIRCRAFT_ICON_CACHE_CONTROL,
+        "X-Aircraft-Icon-Name": icon.servedName,
+        "X-Aircraft-Icon-Requested": icon.requested,
       }),
     });
   } catch (error) {

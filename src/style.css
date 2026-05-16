@@ -339,7 +339,7 @@ body {
 }
 
 /* ============================================================
-   Leaflet — chart-paper aesthetic per .impeccable.md.
+   Leaflet — chart-paper aesthetic.
    Canvas matches the sidebar bg exactly so the two regions read
    as one surface. Base tiles blend into the canvas (ghost lines
    on navy / cream paper). City labels recede to a hairline ink.
@@ -362,7 +362,7 @@ body {
 
 /* Light — same trick toward warm sepia ink. sepia(0.5) gives grays a
    soft brown cast, multiply blend then lays them onto the cream canvas
-   as ink hairlines (chart-paper aesthetic, per .impeccable.md). */
+   as ink hairlines in the chart-paper aesthetic. */
 /* Light — saturate(0) removes all tile color; multiply on white canvas
    renders the map as neutral gray ink, matching the white+navy sidebar. */
 :root[data-theme="light"] .atc-tile-base {
@@ -2941,7 +2941,7 @@ body {
 /* ============================================================
    Sidebar layout (v0.9 redesign)
    Two-column shell: fixed sidebar + flexible map. Sidebar surface
-   is bare — hairlines and grid only, per .impeccable.md.
+   is bare — hairlines and grid only.
    ============================================================ */
 
 .airport-shell {

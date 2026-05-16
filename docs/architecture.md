@@ -23,7 +23,7 @@ Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the p
 
 ### Airport directory (OurAirports → Supabase → Next.js API)
 
-Global airport static data (airports, runways, frequencies, navaids) is sourced from [OurAirports](https://ourairports.com/data/), persisted in Supabase via `node --env-file=.env scripts/import-ourairports.js`, and exposed to the browser through `/api/search` and `/api/airport/[ident]`. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the database boundary. See `docs/ourairports-setup.md` for setup and refresh cadence.
+Global airport static data (airports, runways, frequencies, navaids) is sourced from [OurAirports](https://ourairports.com/data/), persisted in Supabase via `node --env-file=.env scripts/import-ourairports.js`, and exposed to the browser through `/api/search` and `/api/airport/[ident]`. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the database boundary.
 
 ### Vercel data paths
 
@@ -39,6 +39,23 @@ The app uses same-origin Vercel paths for upstream aviation sources that are not
 | `/api/proxy/airports/nearby` | AIRAC | Nearby airport overlays |
 
 These paths are implemented as Next.js Route Handlers under `src/app/api/proxy/**`. The handlers keep upstream access same-origin, validate route and query parameters, apply lightweight per-IP rate limits, reject disallowed browser origins, and cap upstream response body sizes before parsing.
+
+### Feature/API boundary convention
+
+API routes under `src/app/api/**/route.js` are HTTP adapters. They parse request parameters, enforce proxy/security policy, call a domain mechanism, and translate the mechanism result into `Response` or `NextResponse`.
+
+Functionality-level domain code lives under `src/features/<domain>/` as plain `.js` modules:
+
+- `<domain>.mechanism.js` owns source selection, fallback order, cache policy, request parameterization, and provider orchestration.
+- `<domain>.models.js` owns domain constants, result metadata, and mechanism-specific error types.
+- `<domain>.utils.js` owns pure normalization and predicate helpers.
+- Prefix families are grouped by product concept, e.g. `src/features/aircraft/*`, `src/features/airport/*`, `src/features/aviation/flight-routes`, and `src/features/weather/metar`.
+
+JSX components live under `src/components/**`, grouped by screen or product domain. Components may import feature modules, but feature modules should not import JSX components.
+
+Persistence boundaries live under `src/app/api/dao/*.dao.js`. DAO files should contain Supabase/SQL reads and writes only; they should not choose providers, cache policy, fallback behavior, or import mechanism files.
+
+There is no separate `src/services` layer. Shared provider clients, normalizers, mechanisms, models, and utils live with their owning feature domain.
 
 The nearby-airport proxy can also use Supabase as a persistent response cache. When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are configured in Vercel, `/api/proxy/airports/nearby` reads and writes `public.nearby_airport_cache` records with a 90-day `expires_at` TTL. The migration grants the `anon` role only the select/insert/update permissions needed for this public cache table, with RLS policies restricted to `nearby-airports:%` cache keys. Cache failures are non-fatal: the handler falls back to AIRAC and logs the Supabase read/write error server-side.
 

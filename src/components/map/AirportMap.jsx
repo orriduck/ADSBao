@@ -13,15 +13,15 @@ import SelectedAircraftTrace from "./SelectedAircraftTrace.jsx";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer.jsx";
 import ProcedureSegmentLayer from "./ProcedureSegmentLayer.jsx";
 import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap.js";
-import MapAttribution from "../../features/airport-map/MapAttribution.jsx";
-import MapLoadingState from "../../features/airport-map/MapLoadingState.jsx";
-import { getAircraftIdentity } from "../../features/airport-context/airportContextUiModel.js";
-import { aircraftMatchesFilters } from "../../features/aircraft-filters/aircraftFilters.js";
+import MapAttribution from "./MapAttribution.jsx";
+import MapLoadingState from "./MapLoadingState.jsx";
+import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
+import { aircraftMatchesFilters } from "../../features/aircraft/filters/aircraftFilters.js";
 import {
   getMapOverlayTheme,
   getVisibleAircraft,
   resolveDocumentTheme,
-} from "../../features/airport-map/airportMapModel.js";
+} from "../../features/airport/map/airportMapModel.js";
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"

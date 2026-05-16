@@ -1,0 +1,77 @@
+"use client";
+
+import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
+import { Button } from "@/components/ui/button.jsx";
+import { MapControlIcon } from "./mapControlIcons.jsx";
+
+const AUDIO_ICON_KEY = "audioLines";
+const LAYERS_ICON_KEY = "layers";
+
+export default function MapControlRail({
+  currentZoomOption,
+  currentTheme,
+  themeTitle,
+  layerDrawerOpen,
+  playing,
+  audioReady,
+  layerDrawerId,
+  onCycleZoom,
+  onToggleAudio,
+  onCycleTheme,
+  onToggleLayerDrawer,
+}) {
+  return (
+    <div className="map-ctrl-bar">
+      <Button
+        variant="atcIcon"
+        size="icon"
+        className="ctrl-btn ctrl-view active"
+        title={`${currentZoomOption.title} (click to cycle)`}
+        onClick={onCycleZoom}
+        type="button"
+      >
+        <MapControlIcon iconKey={currentZoomOption.iconKey} />
+      </Button>
+
+      <div className="ctrl-sep" />
+
+      <Button
+        variant="atcIcon"
+        size="icon"
+        className={`ctrl-btn ctrl-audio ${playing ? "playing" : ""} ${
+          !audioReady ? "loading" : ""
+        }`}
+        aria-pressed={playing}
+        title={playing ? "Pause Focus mode" : "Start Focus mode"}
+        onClick={onToggleAudio}
+        type="button"
+      >
+        <MapControlIcon iconKey={AUDIO_ICON_KEY} />
+      </Button>
+
+      <Button
+        variant="atcIcon"
+        size="icon"
+        className="ctrl-btn ctrl-theme"
+        title={themeTitle}
+        onClick={onCycleTheme}
+        type="button"
+      >
+        <MapControlIcon iconKey={getThemeIconKey(currentTheme)} />
+      </Button>
+
+      <Button
+        variant="atcIcon"
+        size="icon"
+        className={`ctrl-btn ${layerDrawerOpen ? "active" : ""}`}
+        aria-expanded={layerDrawerOpen}
+        aria-controls={layerDrawerId}
+        title="Map layers"
+        onClick={onToggleLayerDrawer}
+        type="button"
+      >
+        <MapControlIcon iconKey={LAYERS_ICON_KEY} />
+      </Button>
+    </div>
+  );
+}

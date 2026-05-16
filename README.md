@@ -38,7 +38,7 @@ The repo includes `vercel.json` for Git-triggered Vercel builds with same-origin
 vercel
 ```
 
-The deployment path intentionally keeps upstream ownership visible: airport search and airport detail hit `/api/search` and `/api/airport/[ident]` backed by Supabase-hosted OurAirports data, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Static airport data is bulk-loaded from OurAirports into Supabase via `node --env-file=.env scripts/import-ourairports.js` (see `docs/ourairports-setup.md`).
+The deployment path intentionally keeps upstream ownership visible: airport search and airport detail hit `/api/search` and `/api/airport/[ident]` backed by Supabase-hosted OurAirports data, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Static airport data is bulk-loaded from OurAirports into Supabase via `node --env-file=.env scripts/import-ourairports.js`.
 
 ### Verification
 ```bash
@@ -78,16 +78,28 @@ Frontend available at `http://localhost:3000` by default.
 ### Project structure
 ```
 ADSBao/
-├── docs/             # Architecture and release notes
+├── docs/                  # Current architecture notes
+├── scripts/               # Data import and maintenance scripts
 ├── src/
-│   ├── app/          # Next.js App Router pages and route handlers
-│   ├── components/
-│   ├── hooks/
-│   ├── constants/
-│   └── services/
+│   ├── app/               # Next.js pages, API routes, API shared helpers, and DAOs
+│   ├── components/        # JSX components grouped by screen/domain
+│   ├── features/
+│   │   ├── aircraft/      # Aircraft filters, icons, photos, positions, preview, and trace logic
+│   │   ├── airport/       # Airport context, directory, explorer, map, nearby, procedures, search, and wiki logic
+│   │   ├── aviation/      # Shared aviation clients and flight-route mechanisms
+│   │   ├── weather/       # Weather models and METAR integration
+│   │   ├── about/         # About-page view models
+│   │   └── app-shell/     # Theme preference state and helpers
+│   ├── hooks/             # Shared React hooks
+│   ├── config/            # Runtime and provider configuration
+│   ├── constants/         # Shared product constants
+│   ├── data/              # Static fallback and metadata files
+│   └── utils/             # Cross-feature pure helpers
 ├── package.json
 └── vercel.json       # Vercel deployment config
 ```
+
+JSX belongs under `src/components/**`. Feature mechanisms, models, clients, hooks, and utilities live with their owning feature domain as plain `.js` modules. API persistence boundaries stay under `src/app/api/dao`, and route-handler-only helpers stay under `src/app/api/_shared`.
 
 ## External Data Use
 ADSBao uses public aviation data sources and avoids intentionally high-volume polling. The aircraft overlay polls every 3 seconds by default, and airport directory results are cached in the browser for six hours. See `docs/architecture.md` for endpoint decisions, Vercel routing, and release-line context.
