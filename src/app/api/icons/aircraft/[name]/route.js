@@ -6,10 +6,10 @@ import {
 } from "@/services/apiProxySecurity.js";
 import {
   getAircraftIcon,
-} from "@/server/aircraft-icons/aircraftIcons.mechanism.js";
+} from "@/features/aircraft-icons/aircraftIcons.mechanism.js";
 import {
   AIRCRAFT_ICON_CACHE_CONTROL,
-} from "@/server/aircraft-icons/aircraftIcons.models.js";
+} from "@/features/aircraft-icons/aircraftIcons.models.js";
 
 // Aircraft silhouettes are sourced from RexKramer1/AircraftShapesSVG
 // (GPL-3.0). The SVGs ship in the repo under `public/icons/aircraft/`; see

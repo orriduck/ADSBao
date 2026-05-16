@@ -10,14 +10,14 @@ import {
 import {
   buildRouteCacheHeaders,
   VRS_ROUTE_MISS_STATUS,
-} from "@/server/flight-routes/flightRoutes.models.js";
+} from "@/features/flight-routes/flightRoutes.models.js";
 import {
   resolveFlightRoute,
-} from "@/server/flight-routes/flightRoutes.mechanism.js";
+} from "@/features/flight-routes/flightRoutes.mechanism.js";
 import {
   getTargetAirportFromSearchParams,
   shouldForceAerodatabox,
-} from "@/server/flight-routes/flightRoutes.utils.js";
+} from "@/features/flight-routes/flightRoutes.utils.js";
 
 const rateLimit = {
   key: "proxy:flight-routes",

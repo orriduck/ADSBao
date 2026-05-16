@@ -7,10 +7,10 @@ import {
 } from "@/services/apiProxySecurity.js";
 import {
   getAircraftTrace,
-} from "@/server/aircraft-trace/aircraftTrace.mechanism.js";
+} from "@/features/aircraft-trace/aircraftTrace.mechanism.js";
 import {
   AircraftTraceProviderError,
-} from "@/server/aircraft-trace/aircraftTrace.models.js";
+} from "@/features/aircraft-trace/aircraftTrace.models.js";
 
 const rateLimit = {
   key: "proxy:aircraft-trace",

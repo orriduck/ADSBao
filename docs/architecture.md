@@ -44,7 +44,7 @@ These paths are implemented as Next.js Route Handlers under `src/app/api/proxy/*
 
 API routes under `src/app/api/**/route.js` are HTTP adapters. They parse request parameters, enforce proxy/security policy, call a domain mechanism, and translate the mechanism result into `Response` or `NextResponse`.
 
-Server-side business flow lives under `src/server/<domain>/`:
+Domain code lives under `src/features/<domain>/`, including browser-facing feature UI and server-facing API mechanisms:
 
 - `<domain>.mechanism.js` owns source selection, fallback order, cache policy, request parameterization, and provider orchestration.
 - `<domain>.models.js` owns domain constants, result metadata, and mechanism-specific error types.

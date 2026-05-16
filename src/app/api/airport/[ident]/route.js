@@ -8,16 +8,16 @@ import {
 import {
   getAirportDirectoryPage,
   refreshAirportDirectoryIfDue,
-} from "@/server/airport-directory/airportDirectory.mechanism.js";
+} from "@/features/airport-directory/airportDirectory.mechanism.js";
 import {
   AIRPORT_DIRECTORY_CACHE_HEADERS,
   AirportDirectoryConfigurationError,
-} from "@/server/airport-directory/airportDirectory.models.js";
+} from "@/features/airport-directory/airportDirectory.models.js";
 import {
   isValidAirportIdent,
   normalizeAirportDetailOptions,
   normalizeAirportIdent,
-} from "@/server/airport-directory/airportDirectory.utils.js";
+} from "@/features/airport-directory/airportDirectory.utils.js";
 
 const rateLimit = {
   key: "api:airport-detail",

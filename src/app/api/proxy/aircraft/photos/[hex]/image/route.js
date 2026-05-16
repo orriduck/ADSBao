@@ -7,15 +7,15 @@ import {
 } from "@/services/apiProxySecurity.js";
 import {
   getAircraftPhotoImage,
-} from "@/server/aircraft-photos/aircraftPhotos.mechanism.js";
+} from "@/features/aircraft-photos/aircraftPhotos.mechanism.js";
 import {
   AIRCRAFT_PHOTO_CACHE_HEADERS,
   AIRCRAFT_PHOTO_SOURCE,
   AircraftPhotoProviderError,
-} from "@/server/aircraft-photos/aircraftPhotos.models.js";
+} from "@/features/aircraft-photos/aircraftPhotos.models.js";
 import {
   buildAircraftPhotoQuery,
-} from "@/server/aircraft-photos/aircraftPhotos.utils.js";
+} from "@/features/aircraft-photos/aircraftPhotos.utils.js";
 
 const rateLimit = {
   key: "proxy:aircraft-photo-image",

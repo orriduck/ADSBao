@@ -6,14 +6,14 @@ import {
 } from "@/services/apiProxySecurity.js";
 import {
   fetchLocalWeather,
-} from "@/server/local-weather/localWeather.mechanism.js";
+} from "@/features/weather/localWeather.mechanism.js";
 import {
   LocalWeatherProviderError,
-} from "@/server/local-weather/localWeather.models.js";
+} from "@/features/weather/localWeather.models.js";
 import {
   normalizeLatitudeParam,
   normalizeLongitudeParam,
-} from "@/server/local-weather/localWeather.utils.js";
+} from "@/features/weather/localWeather.utils.js";
 
 const rateLimit = {
   key: "proxy:local-weather",

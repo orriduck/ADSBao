@@ -5,16 +5,16 @@ import {
 } from "@/services/apiProxySecurity.js";
 import {
   getAirportProcedures,
-} from "@/server/procedures/procedures.mechanism.js";
+} from "@/features/procedures/procedures.mechanism.js";
 import {
   PROCEDURE_CACHE_HEADERS,
   ProcedureNotFoundError,
-} from "@/server/procedures/procedures.models.js";
+} from "@/features/procedures/procedures.models.js";
 import {
   isSupportedFaaProcedureAirport,
   normalizeProcedureCountry,
   normalizeProcedureIcao,
-} from "@/server/procedures/procedures.utils.js";
+} from "@/features/procedures/procedures.utils.js";
 
 const rateLimit = {
   key: "proxy:procedures",
