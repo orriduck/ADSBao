@@ -1,34 +1,19 @@
 "use client";
 
+import NumberFlow from "@number-flow/react";
 import { toFiniteNumber } from "../../utils/math.js";
-
-function formatSpeed(v) {
-  const n = toFiniteNumber(v);
-  return n != null ? `${Math.round(n)} kt` : null;
-}
-
-function formatAltitude(altitude, onGround) {
-  if (onGround) return "GND";
-  const n = toFiniteNumber(altitude);
-  return n != null ? `${Math.round(n).toLocaleString()} ft` : null;
-}
-
-function formatVs(v) {
-  const n = toFiniteNumber(v);
-  if (n == null) return null;
-  const rounded = Math.round(n);
-  return `${rounded >= 0 ? "+" : ""}${rounded} fpm`;
-}
 
 export default function AircraftPreviewMobileCard({ aircraft }) {
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
   const type = (aircraft?.type || "").trim().toUpperCase();
 
-  const speed = formatSpeed(aircraft?.velocity);
-  const altitude = formatAltitude(aircraft?.altitude, aircraft?.onGround);
-  const vs = formatVs(aircraft?.baroRate);
-  const telemetryParts = [speed, altitude, vs].filter(Boolean);
+  const speed = toFiniteNumber(aircraft?.velocity);
+  const altitude = toFiniteNumber(aircraft?.altitude);
+  const vs = toFiniteNumber(aircraft?.baroRate);
+  const onGround = Boolean(aircraft?.onGround);
+
+  const hasStats = speed != null || altitude != null || vs != null || onGround;
 
   return (
     <div className="aircraft-preview-mobile-card__inner">
@@ -41,14 +26,40 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
           </>
         )}
       </div>
-      {telemetryParts.length > 0 && (
+      {hasStats && (
         <div className="aircraft-preview-mobile-card__row2">
-          {telemetryParts.map((part, i) => (
-            <span key={i} className="aircraft-preview-mobile-card__stat">
-              {i > 0 && <span className="aircraft-preview-mobile-card__dot">·</span>}
-              {part}
+          {speed != null && (
+            <span className="aircraft-preview-mobile-card__stat">
+              <NumberFlow value={Math.round(speed)} className="aircraft-preview-mobile-card__num" />
+              <span className="aircraft-preview-mobile-card__unit">kt</span>
             </span>
-          ))}
+          )}
+          {(altitude != null || onGround) && (
+            <>
+              <span className="aircraft-preview-mobile-card__dot">·</span>
+              <span className="aircraft-preview-mobile-card__stat">
+                {onGround ? (
+                  <span className="aircraft-preview-mobile-card__num">GND</span>
+                ) : (
+                  <NumberFlow value={Math.round(altitude)} className="aircraft-preview-mobile-card__num" />
+                )}
+                {!onGround && <span className="aircraft-preview-mobile-card__unit">ft</span>}
+              </span>
+            </>
+          )}
+          {vs != null && (
+            <>
+              <span className="aircraft-preview-mobile-card__dot">·</span>
+              <span className="aircraft-preview-mobile-card__stat">
+                <NumberFlow
+                  value={Math.round(vs)}
+                  format={{ signDisplay: "exceptZero" }}
+                  className="aircraft-preview-mobile-card__num"
+                />
+                <span className="aircraft-preview-mobile-card__unit">fpm</span>
+              </span>
+            </>
+          )}
         </div>
       )}
     </div>

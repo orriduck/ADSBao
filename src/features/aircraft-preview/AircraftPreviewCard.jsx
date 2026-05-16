@@ -75,6 +75,7 @@ export default function AircraftPreviewCard({ aircraft = null, isMobile = false,
           key={`mobile-${identityKey}`}
           className="aircraft-preview-mobile-card"
           aria-label="Aircraft preview"
+          style={{ x: "-50%" }}
           {...(reducedMotion
             ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
             : STACK_MOTION)}
