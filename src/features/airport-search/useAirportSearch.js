@@ -5,7 +5,7 @@ import {
   AIRPORT_SEARCH_CONFIG,
   FEATURED_AIRPORTS,
 } from "../../config/airportSearch.js";
-import { airportDirectoryClient } from "../../services/airportDirectory.js";
+import { airportDirectoryClient } from "../../features/airport-directory/airportDirectoryClient.js";
 import {
   getAirportResultCountLabel,
   mergeAirportSearchRows,

@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import { join } from "node:path";
 
-import { isKnownAircraftIconName } from "@/utils/aircraftIcon.js";
+import { isKnownAircraftIconName } from "../../utils/aircraftIcon.js";
 
 import {
   AIRCRAFT_ICON_FALLBACK_NAME,

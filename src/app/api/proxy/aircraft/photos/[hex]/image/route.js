@@ -4,7 +4,7 @@ import {
   enforceProxyRequest,
   jsonProxyResponse,
   normalizeAircraftHex,
-} from "@/services/apiProxySecurity.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
 import {
   getAircraftPhotoImage,
 } from "@/features/aircraft-photos/aircraftPhotos.mechanism.js";

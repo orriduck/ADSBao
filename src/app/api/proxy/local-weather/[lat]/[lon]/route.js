@@ -3,7 +3,7 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
-} from "@/services/apiProxySecurity.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
 import {
   fetchLocalWeather,
 } from "@/features/weather/localWeather.mechanism.js";

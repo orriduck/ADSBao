@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { createAirportDirectoryClient } from "./airportDirectory.js";
+import { createAirportDirectoryClient } from "./airportDirectoryClient.js";
 
 const createJsonResponse = (payload, status = 200) => ({
   ok: status >= 200 && status < 300,

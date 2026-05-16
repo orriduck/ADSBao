@@ -1,12 +1,12 @@
 import {
   fetchAiracAirportDetail,
   fetchAiracAirportIndex,
-} from "@/services/airports/nearbyAirportDataClient.js";
-import { filterNearbyAirports } from "@/services/airports/nearbyAirportModel.js";
+} from "./nearbyAirportDataClient.js";
+import { filterNearbyAirports } from "./nearbyAirportModel.js";
 import {
   buildNearbyAirportCacheKey,
   createNearbyAirportSupabaseCacheFromEnv,
-} from "@/app/api/dao/nearbyAirports.dao.js";
+} from "../../app/api/dao/nearbyAirports.dao.js";
 
 import {
   NEARBY_AIRPORT_INDEX_CACHE_MS,

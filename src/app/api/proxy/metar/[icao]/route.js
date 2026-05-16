@@ -4,7 +4,7 @@ import {
   enforceProxyRequest,
   jsonProxyResponse,
   normalizeIcao,
-} from "@/services/apiProxySecurity.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
 import { fetchMetar } from "@/features/metar/metar.mechanism.js";
 import {
   METAR_CACHE_HEADERS,

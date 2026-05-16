@@ -7,7 +7,7 @@ import {
   getRouteLookupStats,
   resolvePendingRouteLookups,
 } from "../features/flight-routes/flightRouteLookupModel.js";
-import { flightRouteClient } from "../services/aviationData.js";
+import { flightRouteClient } from "../features/aviation/aviationData.js";
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../config/aviation.js";
 import { normalizeCallsign } from "../utils/callsign.js";
 

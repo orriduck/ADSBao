@@ -4,7 +4,7 @@ import {
   enforceProxyRequest,
   jsonProxyResponse,
   normalizeAircraftHex,
-} from "@/services/apiProxySecurity.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
 import {
   getAircraftTrace,
 } from "@/features/aircraft-trace/aircraftTrace.mechanism.js";

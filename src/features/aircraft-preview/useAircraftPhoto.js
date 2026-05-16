@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { aircraftPhotoClient } from "../../services/aviationData.js";
+import { aircraftPhotoClient } from "../../features/aviation/aviationData.js";
 
 const EMPTY_STATE = Object.freeze({ key: "", photo: null, status: "idle" });
 

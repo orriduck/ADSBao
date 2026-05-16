@@ -1,8 +1,8 @@
-import { readResponseJson } from "@/services/apiProxySecurity.js";
+import { readResponseJson } from "../../app/api/_shared/apiProxySecurity.js";
 import {
   buildOpenMeteoCurrentWeatherUrl,
   isValidOpenMeteoCurrentPayload,
-} from "@/services/aviation/localWeatherProxyModel.js";
+} from "./localWeatherProxyModel.js";
 
 import {
   LOCAL_WEATHER_MAX_BYTES,

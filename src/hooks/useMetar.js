@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { normalizeMetarPayload } from "../features/metar/metarModel.js";
-import { metarClient } from "../services/aviationData.js";
+import { metarClient } from "../features/aviation/aviationData.js";
 
 export function useMetar(icao) {
   const [raw, setRaw] = useState("");

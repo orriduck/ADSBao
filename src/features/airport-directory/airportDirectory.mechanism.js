@@ -1,6 +1,6 @@
-import { createAirportPageDataServiceFromEnv } from "@/services/airports/airportPageDataService.js";
-import { createOurAirportsQueriesFromEnv } from "@/app/api/dao/airportDirectory.dao.js";
-import { scheduleRefreshIfDue } from "@/services/ourairports/ourAirportsRefresh.js";
+import { createAirportPageDataServiceFromEnv } from "./airportPageDataService.js";
+import { createOurAirportsQueriesFromEnv } from "../../app/api/dao/airportDirectory.dao.js";
+import { scheduleRefreshIfDue } from "./ourairports/ourAirportsRefresh.js";
 
 import {
   AIRPORT_DIRECTORY_SOURCE,

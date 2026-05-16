@@ -1,6 +1,6 @@
 import { unzipSync, strFromU8 } from "fflate";
 import { FAA_CIFP_CONFIG } from "../../config/aviation.js";
-import { readResponseArrayBuffer } from "../apiProxySecurity.js";
+import { readResponseArrayBuffer } from "../../app/api/_shared/apiProxySecurity.js";
 import {
   buildLiveProcedurePayload,
   discoverActiveCifpRelease,

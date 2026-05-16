@@ -3,7 +3,7 @@
 // become empty-string defaults to match the migration's `not null default ''`
 // columns; identifiers are uppercased for stable lookup.
 
-import { toFiniteNumber } from "../../utils/math.js";
+import { toFiniteNumber } from "../../../utils/math.js";
 
 const trim = (value) => String(value ?? "").trim();
 const upper = (value) => trim(value).toUpperCase();

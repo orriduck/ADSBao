@@ -3,10 +3,10 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
-} from "@/services/apiProxySecurity.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
 import {
   normalizeRouteCallsign,
-} from "@/services/aviation/vrsRouteProxyModel.js";
+} from "@/features/flight-routes/vrsRouteProxyModel.js";
 import {
   buildRouteCacheHeaders,
   VRS_ROUTE_MISS_STATUS,

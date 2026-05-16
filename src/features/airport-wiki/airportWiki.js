@@ -1,5 +1,6 @@
-import { withAuditLogging } from '../utils/apiLogger.js'
-import { readResponseJson } from './apiProxySecurity.js'
+import { readResponseJson } from "../../app/api/_shared/apiProxySecurity.js"
+
+import { withAuditLogging } from "../../utils/apiLogger.js"
 
 const WIKIPEDIA_SUMMARY_BASE = 'https://en.wikipedia.org/api/rest_v1/page/summary'
 

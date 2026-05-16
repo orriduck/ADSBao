@@ -1,11 +1,11 @@
-import { readResponseJson } from "@/services/apiProxySecurity.js";
-import { withAuditLogging } from "@/utils/apiLogger.js";
+import { readResponseJson } from "../../app/api/_shared/apiProxySecurity.js";
+import { withAuditLogging } from "../../utils/apiLogger.js";
 import {
   buildVrsRouteResponse,
   buildVrsRouteUrl,
   shouldUseAerodataboxFallback,
   VRS_ROUTE_USER_AGENT,
-} from "@/services/aviation/vrsRouteProxyModel.js";
+} from "./vrsRouteProxyModel.js";
 import {
   AERODATABOX_RAPIDAPI_HOST,
   buildAerodataboxFlightRouteResponse,
@@ -13,7 +13,7 @@ import {
   reserveAerodataboxRequestSlot,
   resolveAerodataboxDateLocal,
   shouldSuppressVrsRouteAfterAerodataboxStatus,
-} from "@/services/aviation/aerodataboxRouteProxyModel.js";
+} from "./aerodataboxRouteProxyModel.js";
 
 import { sleep } from "./flightRoutes.utils.js";
 

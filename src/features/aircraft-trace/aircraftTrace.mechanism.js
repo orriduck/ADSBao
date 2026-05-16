@@ -1,5 +1,5 @@
-import { readResponseJson } from "@/services/apiProxySecurity.js";
-import { TRACE_PROVIDER_CHAIN } from "@/services/aviation/aircraftDataProviders.js";
+import { readResponseJson } from "../../app/api/_shared/apiProxySecurity.js";
+import { TRACE_PROVIDER_CHAIN } from "../aviation/aircraftDataProviders.js";
 
 import {
   AIRCRAFT_TRACE_MAX_BYTES,

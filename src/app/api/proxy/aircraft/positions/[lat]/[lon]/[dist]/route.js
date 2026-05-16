@@ -6,7 +6,7 @@ import {
   normalizeDistanceNm,
   normalizeLatitude,
   normalizeLongitude,
-} from "@/services/apiProxySecurity.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
 import {
   fetchAircraftPositions,
 } from "@/features/aircraft-positions/aircraftPositions.mechanism.js";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { nearbyAirportClient } from "../services/airports/nearbyAirportClient.js";
+import { nearbyAirportClient } from "../features/nearby-airports/nearbyAirportClient.js";
 
 export function useNearbyAirports({
   icao = "",

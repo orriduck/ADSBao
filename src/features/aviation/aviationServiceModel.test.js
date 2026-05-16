@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
 import { createRateLimiter } from "./rateLimiter.js";
-import { normalizeFlightRoute } from "./flightRouteNormalizer.js";
-import { normalizeLocalWeather } from "./localWeatherNormalizer.js";
+import { normalizeFlightRoute } from "../flight-routes/flightRouteNormalizer.js";
+import { normalizeLocalWeather } from "../weather/localWeatherNormalizer.js";
 
 {
   const limiter = createRateLimiter({ maxTokens: 1, refillMs: 5 });

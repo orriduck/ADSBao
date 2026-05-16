@@ -4,7 +4,7 @@ import {
   jsonProxyResponse,
   normalizeLatitude,
   normalizeLongitude,
-} from "@/services/apiProxySecurity.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
 import {
   getNearbyAirports,
 } from "@/features/nearby-airports/nearbyAirports.mechanism.js";

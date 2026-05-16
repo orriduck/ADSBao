@@ -3,8 +3,8 @@ import {
   AVIATION_REQUEST_TIMEOUT_MS,
 } from "../../config/aviation.js";
 import { withAuditLogging } from "../../utils/apiLogger.js";
-import { normalizeLatitude, normalizeLongitude } from "../apiProxySecurity.js";
-import { fetchJson } from "./httpClient.js";
+import { normalizeLatitude, normalizeLongitude } from "../../app/api/_shared/apiProxySecurity.js";
+import { fetchJson } from "../aviation/httpClient.js";
 
 const env = typeof process !== "undefined" ? process.env : {};
 

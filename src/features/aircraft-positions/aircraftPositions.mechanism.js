@@ -1,9 +1,9 @@
-import { readResponseJson } from "@/services/apiProxySecurity.js";
-import { POSITION_PROVIDER_CHAIN } from "@/services/aviation/aircraftDataProviders.js";
+import { readResponseJson } from "../../app/api/_shared/apiProxySecurity.js";
+import { POSITION_PROVIDER_CHAIN } from "../aviation/aircraftDataProviders.js";
 import {
   createAdaptiveProviderSelector,
   raceProviders,
-} from "@/services/aviation/providerHealth.js";
+} from "../aviation/providerHealth.js";
 
 import {
   AIRCRAFT_POSITIONS_MAX_BYTES,

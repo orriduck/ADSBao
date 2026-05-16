@@ -5,9 +5,9 @@ import {
 } from "../../config/aviation.js";
 import { normalizeCallsign } from "../../utils/callsign.js";
 import { withAuditLogging } from "../../utils/apiLogger.js";
-import { createTimeoutSignal } from "./httpClient.js";
+import { createTimeoutSignal } from "../aviation/httpClient.js";
 import { normalizeFlightRoute } from "./flightRouteNormalizer.js";
-import { createRateLimiter } from "./rateLimiter.js";
+import { createRateLimiter } from "../aviation/rateLimiter.js";
 
 const env = typeof process !== "undefined" ? process.env : {};
 

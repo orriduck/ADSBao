@@ -1,4 +1,4 @@
-import { readResponseJson } from "../apiProxySecurity.js";
+import { readResponseJson } from "../../app/api/_shared/apiProxySecurity.js";
 
 const DEFAULT_COUNTRY = "US";
 const DEFAULT_BASE_PATH = "/api/proxy/procedures";

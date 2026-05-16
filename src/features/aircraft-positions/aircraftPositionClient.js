@@ -8,8 +8,8 @@ import {
   normalizeDistanceNm,
   normalizeLatitude,
   normalizeLongitude,
-} from "../apiProxySecurity.js";
-import { fetchJson } from "./httpClient.js";
+} from "../../app/api/_shared/apiProxySecurity.js";
+import { fetchJson } from "../aviation/httpClient.js";
 
 const env = typeof process !== "undefined" ? process.env : {};
 

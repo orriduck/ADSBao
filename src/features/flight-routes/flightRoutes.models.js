@@ -1,4 +1,4 @@
-import { VRS_ROUTE_MISS_STATUS } from "@/services/aviation/vrsRouteProxyModel.js";
+import { VRS_ROUTE_MISS_STATUS } from "./vrsRouteProxyModel.js";
 
 export { VRS_ROUTE_MISS_STATUS };
 

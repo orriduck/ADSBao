@@ -4,7 +4,7 @@ import {
   normalizeAiracAirportDetail,
   normalizeAiracAirport,
 } from "./nearbyAirportModel.js";
-import { readResponseJson } from "../apiProxySecurity.js";
+import { readResponseJson } from "../../app/api/_shared/apiProxySecurity.js";
 
 export const AIRAC_AIRPORT_INDEX_CONFIG = {
   country: "US",

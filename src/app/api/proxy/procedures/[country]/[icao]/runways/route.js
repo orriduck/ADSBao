@@ -2,7 +2,7 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
-} from "@/services/apiProxySecurity.js";
+} from "@/app/api/_shared/apiProxySecurity.js";
 import {
   getAirportRunwayProcedures,
 } from "@/features/procedures/procedures.mechanism.js";

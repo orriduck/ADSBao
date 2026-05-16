@@ -5,7 +5,7 @@ import {
   aircraftPositionClient,
   DEFAULT_AIRCRAFT_RANGE_NM,
   DEFAULT_AIRCRAFT_POLL_MS,
-} from "../services/aviationData.js";
+} from "../features/aviation/aviationData.js";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation.js";
 import {
   describeAircraftFetchError,

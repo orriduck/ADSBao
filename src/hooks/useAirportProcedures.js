@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { procedureDataClient } from "../services/procedures/procedureDataClient.js";
+import { procedureDataClient } from "../features/procedures/procedureDataClient.js";
 import { buildRunwayMapFromOurAirports } from "../features/airport-map/ourAirportsRunwayMap.js";
 
 const fetchOurAirportsRunwayMap = async (icao) => {

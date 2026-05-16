@@ -1,4 +1,4 @@
-import { readResponseJson } from "@/services/apiProxySecurity.js";
+import { readResponseJson } from "../../app/api/_shared/apiProxySecurity.js";
 
 import {
   METAR_MAX_BYTES,

@@ -5,7 +5,7 @@ import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_AREA_RADIUS_NM } from "../../config/airportMap.js";
 import { shouldShowAirportArea } from "../../utils/airportMapDisplay.js";
-import { DEFAULT_AIRCRAFT_RANGE_NM } from "../../services/aviationData.js";
+import { DEFAULT_AIRCRAFT_RANGE_NM } from "../../features/aviation/aviationData.js";
 
 const NM_TO_METERS = 1852;
 

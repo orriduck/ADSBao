@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { aircraftTraceClient } from "../services/aviationData.js";
+import { aircraftTraceClient } from "../features/aviation/aviationData.js";
 import {
   mergeTraceHistory,
   normalizeAdsbTracePayload,

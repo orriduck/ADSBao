@@ -1,4 +1,4 @@
-import { toFiniteNumber } from "@/utils/math.js";
+import { toFiniteNumber } from "../../utils/math.js";
 
 import {
   NEARBY_AIRPORT_DEFAULTS,
