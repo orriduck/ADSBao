@@ -5,7 +5,7 @@ import {
   buildNearbyAirportCacheKey,
   createNearbyAirportSupabaseCache,
   createNearbyAirportSupabaseCacheFromEnv,
-} from "./nearbyAirportSupabaseCache.js";
+} from "./nearbyAirports.dao.js";
 
 const now = () => Date.parse("2026-05-10T12:00:00.000Z");
 

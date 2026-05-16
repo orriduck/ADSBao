@@ -6,7 +6,7 @@ import {
   mapNavaidRow,
   mapRunwayRow,
   typeRank,
-} from "./ourAirportsQueries.js";
+} from "./airportDirectory.dao.js";
 
 const KBOS = {
   ident: "KBOS",
@@ -341,4 +341,4 @@ const nearbyNavaids = await queries.getNearbyNavaids({
 assert.equal(nearbyNavaids.length, 1);
 assert.equal(nearbyNavaids[0].ident, "BOS");
 
-console.log("ourAirportsQueries.test.js: ok");
+console.log("airportDirectory.dao.test.js: ok");

@@ -50,7 +50,7 @@ Server-side business flow lives under `src/server/<domain>/`:
 - `<domain>.models.js` owns domain constants, result metadata, and mechanism-specific error types.
 - `<domain>.utils.js` owns pure normalization and predicate helpers.
 
-Persistence boundaries live under `src/app/api/dao/*.dao.js`. DAO files should contain Supabase/SQL reads and writes only; they should not choose providers, cache policy, fallback behavior, or import mechanism files. Compatibility barrels may remain under `src/services/**` for stable client/service imports, but new API route work should depend on the DAO/mechanism split.
+Persistence boundaries live under `src/app/api/dao/*.dao.js`. DAO files should contain Supabase/SQL reads and writes only; they should not choose providers, cache policy, fallback behavior, or import mechanism files.
 
 The nearby-airport proxy can also use Supabase as a persistent response cache. When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are configured in Vercel, `/api/proxy/airports/nearby` reads and writes `public.nearby_airport_cache` records with a 90-day `expires_at` TTL. The migration grants the `anon` role only the select/insert/update permissions needed for this public cache table, with RLS policies restricted to `nearby-airports:%` cache keys. Cache failures are non-fatal: the handler falls back to AIRAC and logs the Supabase read/write error server-side.
 

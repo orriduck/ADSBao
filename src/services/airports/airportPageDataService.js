@@ -6,7 +6,7 @@
 import {
   createOurAirportsQueries,
   createOurAirportsQueriesFromEnv,
-} from "../ourairports/ourAirportsQueries.js";
+} from "../../app/api/dao/airportDirectory.dao.js";
 
 const DEFAULT_NEARBY_RADIUS_NM = 60;
 const DEFAULT_NEARBY_LIMIT = 12;

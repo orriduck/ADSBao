@@ -8,7 +8,7 @@ This guide describes the one-time setup the maintainer (not Claude) has to perfo
 
 | Surface | Old path | New path |
 |---|---|---|
-| Search | Browser → `airportsapi.com` (`src/services/airport-directory/`) | `GET /api/search?q=...` → Supabase (`src/services/ourairports/ourAirportsQueries.js`) |
+| Search | Browser → `airportsapi.com` (`src/services/airport-directory/`) | `GET /api/search?q=...` → Supabase (`src/app/api/dao/airportDirectory.dao.js`) |
 | Airport detail (basic info, runways, frequencies, nearby airports, nearby navaids) | Mix of `airportsapi.com`, `airac.net`, hardcoded fallbacks | `GET /api/airport/[ident]` → Supabase (`src/services/airports/airportPageDataService.js`) |
 | FAA CIFP | Procedures + runway-threshold overlay only | Unchanged — CIFP was never used for the static fields this migration covers |
 
@@ -120,10 +120,13 @@ src/services/ourairports/
   ourAirportsNormalizer.js          CSV → DB row coercion (+ test)
   ourAirportsDownloader.js          fetch + parse helpers
   ourAirportsImporter.js            bulk upsert pipeline (+ test)
-  ourAirportsQueries.js             read API for the four tables (+ test)
 
 src/services/airports/
   airportPageDataService.js         service aggregation for airport detail (+ test)
+
+src/app/api/dao/
+  airportDirectory.dao.js           read API for the four airport tables (+ test)
+  nearbyAirports.dao.js             Supabase response cache for nearby-airport overlays (+ test)
 
 src/app/api/search/route.js
 src/app/api/airport/[ident]/route.js
