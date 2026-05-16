@@ -1,5 +1,5 @@
 "use client";
 
-import AirportExplorer from "@/features/airport/explorer/AirportExplorer.jsx";
+import AirportExplorer from "@/components/airport/explorer/AirportExplorer.jsx";
 
 export default AirportExplorer;

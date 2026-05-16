@@ -1,7 +1,7 @@
 "use client";
 
 import { useWeatherCarouselNavigation } from "../../features/weather/useWeatherCarouselNavigation.js";
-import { useWeatherSlides } from "../../features/weather/useWeatherSlides.jsx";
+import { useWeatherSlides } from "@/components/weather/useWeatherSlides.jsx";
 import { formatObsTime } from "../../features/weather/weatherModel.js";
 import PanelHeading from "./PanelHeading.jsx";
 

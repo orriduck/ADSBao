@@ -5,8 +5,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard.jsx";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
-import { useAircraftPhoto } from "./useAircraftPhoto.js";
-import { getAircraftIdentity } from "../../airport/context/airportContextUiModel.js";
+import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto.js";
+import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 
 const POCKET_EASE = [0.16, 1, 0.3, 1];
 

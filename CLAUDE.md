@@ -31,21 +31,26 @@ Frontend runs on `http://localhost:3000` by default.
 | `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js` | Next.js Route Handler for callsign route lookup |
 | `src/components/screens/SearchScreen.jsx` | Thin route entry for airport search UI |
 | `src/components/screens/AirportCaptionScreen.jsx` | Thin route entry for airport explorer map + METAR screen |
+| `src/components/about/*` | About-page JSX components |
+| `src/components/aircraft/*` | Aircraft preview and trace JSX components |
+| `src/components/airport/*` | Airport explorer and search JSX components |
+| `src/components/map/*` | Leaflet map JSX components and map controls |
+| `src/components/weather/*` | Weather slide JSX components and view hooks |
 | `src/app/api/_shared/*` | Route-handler-only helpers for validation, rate limits, upstream fetches, and API responses |
 | `src/app/api/dao/*.dao.js` | Persistence boundary for Supabase/SQL reads and writes |
-| `src/features/aircraft/*` | Aircraft filters, icons, photos, positions, preview, and trace feature code |
-| `src/features/airport/*` | Airport context, directory, explorer, map, nearby, procedures, search, and wiki feature code |
+| `src/features/aircraft/*` | Aircraft filters, icons, photos, positions, preview, and trace logic |
+| `src/features/airport/*` | Airport context, directory, explorer, map, nearby, procedures, search, and wiki logic |
 | `src/features/aviation/*` | Aviation provider clients and flight-route mechanisms |
-| `src/features/weather/*` | Weather feature code and METAR mechanisms |
-| `src/features/about/*` | About-page feature code |
-| `src/features/app-shell/*` | App shell and navigation feature code |
+| `src/features/weather/*` | Weather models and METAR mechanisms |
+| `src/features/about/*` | About-page view models |
+| `src/features/app-shell/*` | Theme preference state and helpers |
 | `src/hooks/*.js` | React hooks for METAR, ADS-B positions, route lookups, wiki summaries, and scroll parallax |
 | `src/constants/aircraft.js` | Shared aircraft color and threshold constants |
 | `src/utils/math.js` | Shared numeric helpers (`toFiniteNumber`) |
 | `src/utils/airport.js` | Shared airport display helpers (`airportSubtitle`) |
 | `src/data/airportFallbacks.js` | Fallback airport metadata and coordinates |
 
-There is no standalone `src/services` or `src/server` layer. Mechanisms, models, clients, and feature-specific utils live inside the owning feature domain, except for API DAOs and route-handler helpers under `src/app/api`.
+There is no standalone `src/services` or `src/server` layer. JSX belongs under `src/components/**`; mechanisms, models, clients, hooks, and feature-specific utils live inside the owning feature domain as plain `.js` modules, except for API DAOs and route-handler helpers under `src/app/api`.
 
 ## Styling — Tailwind first
 

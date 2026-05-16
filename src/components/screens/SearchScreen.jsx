@@ -1,5 +1,5 @@
 "use client";
 
-import AirportSearchPanel from "../../features/airport/search/AirportSearchPanel.jsx";
+import AirportSearchPanel from "@/components/airport/search/AirportSearchPanel.jsx";
 
 export default AirportSearchPanel;

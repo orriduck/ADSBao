@@ -4,17 +4,17 @@ import Link from "next/link";
 import { Info, Search } from "lucide-react";
 import DitherPageShell from "../../app-shell/DitherPageShell.jsx";
 import ThemeToggle from "../../app-shell/ThemeToggle.jsx";
-import { useThemePreference } from "../../app-shell/useThemePreference.js";
-import { Input } from "../../../components/ui/input.jsx";
+import { useThemePreference } from "@/features/app-shell/useThemePreference.js";
+import { Input } from "@/components/ui/input.jsx";
 import {
   createAirportSelection,
   resolveSubmittedAirport,
-} from "./airportSearchModel.js";
+} from "@/features/airport/search/airportSearchModel.js";
 import {
   AirportSearchResults,
   FeaturedAirports,
 } from "./AirportSearchResults.jsx";
-import { useAirportSearch } from "./useAirportSearch.js";
+import { useAirportSearch } from "@/features/airport/search/useAirportSearch.js";
 
 export default function AirportSearchPanel({ onOpenAirport }) {
   const { themePreference, themeTitle, themeIconKey, cycleTheme } =

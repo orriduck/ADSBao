@@ -1,6 +1,6 @@
 "use client";
 
-import { airportSubtitle } from "../../../utils/airport.js";
+import { airportSubtitle } from "@/utils/airport.js";
 
 export default function AirportRow({ airport, onOpen }) {
   return (

@@ -1,8 +1,8 @@
 "use client";
 
 import { createContext, useContext, useMemo } from "react";
-import { useAircraftTrace } from "../../../hooks/useAircraftTrace.js";
-import { getAircraftIdentity } from "../../airport/context/airportContextUiModel.js";
+import { useAircraftTrace } from "@/hooks/useAircraftTrace.js";
+import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 
 // Single source of truth for the currently-focused aircraft's trace.
 // Provider runs the fetch + live-append machinery once, near the top of

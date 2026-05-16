@@ -9,7 +9,7 @@ import {
 } from "../../config/about.js";
 import DitherPageShell from "../app-shell/DitherPageShell.jsx";
 import ThemeToggle from "../app-shell/ThemeToggle.jsx";
-import { useThemePreference } from "../app-shell/useThemePreference.js";
+import { useThemePreference } from "@/features/app-shell/useThemePreference.js";
 import AboutDataSources from "./AboutDataSources.jsx";
 import AboutMetaGrid from "./AboutMetaGrid.jsx";
 import AboutRepositoryLink from "./AboutRepositoryLink.jsx";

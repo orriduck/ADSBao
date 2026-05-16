@@ -1,7 +1,7 @@
 "use client";
 
-import { getThemeIconKey } from "../../app-shell/themePreference.js";
-import { Button } from "../../../components/ui/button.jsx";
+import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
+import { Button } from "@/components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 
 const AUDIO_ICON_KEY = "audioLines";

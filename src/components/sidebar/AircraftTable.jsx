@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useAirportExplorerUi } from "@/features/airport/explorer/AirportExplorerUiContext.jsx";
+import { useAirportExplorerUi } from "@/components/airport/explorer/AirportExplorerUiContext.jsx";
 import {
   ALTITUDE_LEVEL_OPTIONS,
   aircraftMatchesFilters,

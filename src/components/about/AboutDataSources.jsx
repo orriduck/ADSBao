@@ -1,6 +1,9 @@
 "use client";
 
-import { getDataSourceCountLabel, getExternalLinkOpenTarget } from "./aboutModel.js";
+import {
+  getDataSourceCountLabel,
+  getExternalLinkOpenTarget,
+} from "@/features/about/aboutModel.js";
 
 export default function AboutDataSources({ sources, onOpenExternalLink }) {
   return (

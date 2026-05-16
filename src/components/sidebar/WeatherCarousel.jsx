@@ -1,7 +1,7 @@
 "use client";
 
 import { useWeatherCarouselNavigation } from "../../features/weather/useWeatherCarouselNavigation.js";
-import { useWeatherSlides } from "../../features/weather/useWeatherSlides.jsx";
+import { useWeatherSlides } from "@/components/weather/useWeatherSlides.jsx";
 
 export default function WeatherCarousel({
   metar = null,

@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveAircraftIcon } from "../../../utils/aircraftIcon.js";
+import { resolveAircraftIcon } from "@/utils/aircraftIcon.js";
 const ICON_SIZE_PX = 128;
 const ICON_COLOR = "var(--tone-orange-warm)";
 

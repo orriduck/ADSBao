@@ -1,7 +1,7 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
-import { toFiniteNumber } from "../../../utils/math.js";
+import { toFiniteNumber } from "@/utils/math.js";
 
 // Slower-changing identity + spatial metadata: hex, track, and distance
 // from the focal airport. Track and distance tween via NumberFlow so the

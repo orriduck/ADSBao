@@ -1,7 +1,7 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
-import { toFiniteNumber } from "../../../utils/math.js";
+import { toFiniteNumber } from "@/utils/math.js";
 
 // Live flight telemetry — GS / ALT / V/S. Values tween between polls via
 // NumberFlow so the readout reads as continuously instrumented (the

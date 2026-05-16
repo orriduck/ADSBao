@@ -82,14 +82,14 @@ ADSBao/
 ├── scripts/               # Data import and maintenance scripts
 ├── src/
 │   ├── app/               # Next.js pages, API routes, API shared helpers, and DAOs
-│   ├── components/        # Shared and screen-level React components
+│   ├── components/        # JSX components grouped by screen/domain
 │   ├── features/
-│   │   ├── aircraft/      # Filters, icons, photos, positions, preview, and trace
-│   │   ├── airport/       # Context, directory, explorer, map, nearby, procedures, search, and wiki
+│   │   ├── aircraft/      # Aircraft filters, icons, photos, positions, preview, and trace logic
+│   │   ├── airport/       # Airport context, directory, explorer, map, nearby, procedures, search, and wiki logic
 │   │   ├── aviation/      # Shared aviation clients and flight-route mechanisms
-│   │   ├── weather/       # Weather UI/models and METAR integration
-│   │   ├── about/
-│   │   └── app-shell/
+│   │   ├── weather/       # Weather models and METAR integration
+│   │   ├── about/         # About-page view models
+│   │   └── app-shell/     # Theme preference state and helpers
 │   ├── hooks/             # Shared React hooks
 │   ├── config/            # Runtime and provider configuration
 │   ├── constants/         # Shared product constants
@@ -99,7 +99,7 @@ ADSBao/
 └── vercel.json       # Vercel deployment config
 ```
 
-Feature mechanisms, models, clients, and utilities live with their owning feature domain. API persistence boundaries stay under `src/app/api/dao`, and route-handler-only helpers stay under `src/app/api/_shared`.
+JSX belongs under `src/components/**`. Feature mechanisms, models, clients, hooks, and utilities live with their owning feature domain as plain `.js` modules. API persistence boundaries stay under `src/app/api/dao`, and route-handler-only helpers stay under `src/app/api/_shared`.
 
 ## External Data Use
 ADSBao uses public aviation data sources and avoids intentionally high-volume polling. The aircraft overlay polls every 3 seconds by default, and airport directory results are cached in the browser for six hours. See `docs/architecture.md` for endpoint decisions, Vercel routing, and release-line context.

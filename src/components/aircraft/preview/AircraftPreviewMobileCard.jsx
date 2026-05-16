@@ -1,7 +1,7 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
-import { toFiniteNumber } from "../../../utils/math.js";
+import { toFiniteNumber } from "@/utils/math.js";
 
 export default function AircraftPreviewMobileCard({ aircraft }) {
   const callsign =

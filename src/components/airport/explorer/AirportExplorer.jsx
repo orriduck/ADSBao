@@ -9,10 +9,10 @@ import {
 } from "./AirportExplorerUiContext.jsx";
 import AircraftDataLoadingOverlay from "./AircraftDataLoadingOverlay.jsx";
 import AirportExplorerMapMenu from "./AirportExplorerMapMenu.jsx";
-import { resolveAirportProfile } from "./airportExplorerModel.js";
-import { useAirportExplorerData } from "./useAirportExplorerData.js";
-import { useAirportProcedures } from "../../../hooks/useAirportProcedures.js";
-import { useNearbyAirports } from "../../../hooks/useNearbyAirports.js";
+import { resolveAirportProfile } from "@/features/airport/explorer/airportExplorerModel.js";
+import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData.js";
+import { useAirportProcedures } from "@/hooks/useAirportProcedures.js";
+import { useNearbyAirports } from "@/hooks/useNearbyAirports.js";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext.jsx";
 import TraceLoadingToast from "../../aircraft/trace/TraceLoadingToast.jsx";
 import AircraftPreviewCard from "../../aircraft/preview/AircraftPreviewCard.jsx";

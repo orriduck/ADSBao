@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUpRight, Github } from "lucide-react";
-import { getExternalLinkOpenTarget } from "./aboutModel.js";
+import { getExternalLinkOpenTarget } from "@/features/about/aboutModel.js";
 
 export default function AboutRepositoryLink({ repository, onOpenExternalLink }) {
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import { Bug, MapPinned, Tags } from "lucide-react";
-import { buildProcedureInspectorViewModel } from "./procedureInspectorModel.js";
+import { buildProcedureInspectorViewModel } from "@/features/airport/map/procedureInspectorModel.js";
 
 const toggleClass = (active) =>
   `procedure-inspector-toggle${active ? " procedure-inspector-toggle--active" : ""}`;

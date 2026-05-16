@@ -9,7 +9,7 @@ import {
   useReducer,
 } from "react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
-import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "./airportExplorerUiModel.js";
+import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "@/features/airport/explorer/airportExplorerUiModel.js";
 import {
   getAirportSidebarMode,
   getAirportSidebarOpenForMode,

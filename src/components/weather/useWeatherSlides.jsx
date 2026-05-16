@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { WEATHER_SLIDE_COPY } from "../../config/weather.js";
-import { useLocalWeather } from "../../hooks/useLocalWeather.js";
+import { WEATHER_SLIDE_COPY } from "@/config/weather.js";
+import { useLocalWeather } from "@/hooks/useLocalWeather.js";
 import {
   CeilingSlide,
   FlightRulesSlide,
@@ -11,8 +11,8 @@ import {
   PressureSlide,
   TemperatureSlide,
   WindSlide,
-} from "../../components/weather/WeatherSlides";
-import { shouldShowCeilingSlide, toNumber } from "./weatherModel.js";
+} from "./WeatherSlides.jsx";
+import { shouldShowCeilingSlide, toNumber } from "@/features/weather/weatherModel.js";
 
 export function useWeatherSlides({
   variant,

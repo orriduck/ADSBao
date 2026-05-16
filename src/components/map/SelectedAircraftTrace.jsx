@@ -15,7 +15,7 @@ import {
   getTraceRevealKey,
   shouldRenderCommittedTrace,
 } from "../../features/aircraft/trace/traceRevealModel.js";
-import { useSelectedAircraftTrace } from "../../features/aircraft/trace/SelectedAircraftTraceContext.jsx";
+import { useSelectedAircraftTrace } from "../aircraft/trace/SelectedAircraftTraceContext.jsx";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 import { ARRIVAL, DEPARTURE } from "../../utils/aircraftMovement.js";
 

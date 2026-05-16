@@ -3,8 +3,8 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { MAP_ZOOM_OPTIONS } from "../../config/mapControls.js";
 import { useThemePreference } from "../../features/app-shell/useThemePreference.js";
-import MapControlRail from "../../features/airport/map-controls/MapControlRail.jsx";
-import MapLayerDrawer from "../../features/airport/map-controls/MapLayerDrawer.jsx";
+import MapControlRail from "@/components/map/controls/MapControlRail.jsx";
+import MapLayerDrawer from "@/components/map/controls/MapLayerDrawer.jsx";
 import {
   getNextZoomValue,
   resolveZoomOption,
