@@ -1,44 +1,47 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import AircraftPreviewIcon from "./AircraftPreviewIcon.jsx";
-import AircraftPreviewType from "./AircraftPreviewType.jsx";
-import AircraftPreviewIdentity from "./AircraftPreviewIdentity.jsx";
-import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry.jsx";
-import AircraftPreviewMetadata from "./AircraftPreviewMetadata.jsx";
+import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard.jsx";
+import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
+import { useAircraftPhoto } from "./useAircraftPhoto.js";
 import { getAircraftIdentity } from "../airport-context/airportContextUiModel.js";
 
-// Card-from-pocket easing: snappy start, smooth landing. Ease-end only,
-// no ease-in — the body should look like it's being pulled, not nudged.
 const POCKET_EASE = [0.16, 1, 0.3, 1];
 
-const CARD_MOTION = {
+const STACK_MOTION = {
   initial: { opacity: 0, y: 96 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: 96 },
   transition: { duration: 0.46, ease: POCKET_EASE },
 };
 
-// Icon slides on the same vertical axis as the card but with a small
-// delay and a longer duration, so it visibly trails behind on entry and
-// lingers a beat longer on exit — the parallax-trailing-from-the-pocket
-// feel. Both animations use the same ease-out curve.
-const ICON_MOTION = {
-  initial: { y: 96, opacity: 0 },
-  animate: { y: 0, opacity: 1 },
-  exit: { y: 96, opacity: 0 },
-  transition: { duration: 0.62, ease: POCKET_EASE, delay: 0.1 },
+const MEDIA_MOTION = {
+  initial: { opacity: 0, y: 96 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 56 },
+  transition: { duration: 0.52, ease: POCKET_EASE },
 };
+
+const PHOTO_TONE_DARK = "dark";
+const PHOTO_TONE_LIGHT = "light";
 
 export default function AircraftPreviewCard({ aircraft = null }) {
   const reducedMotion = useReducedMotion();
+  const photoState = useAircraftPhoto(aircraft);
+  const photo = photoState.photo;
+  const photoPending = photoState.status === "loading";
+  const hasPhoto = Boolean(photo?.src);
+  const photoTone = usePhotoTone(photo?.src);
 
   return (
     <AnimatePresence>
       {aircraft && (
         <motion.aside
           key={getAircraftIdentity(aircraft) || "preview-card"}
-          className="aircraft-preview-card"
+          className={`aircraft-preview-card ${
+            hasPhoto ? "aircraft-preview-card--has-photo" : ""
+          } aircraft-preview-card--photo-${photoTone}`}
           aria-label="Aircraft preview"
           {...(reducedMotion
             ? {
@@ -46,46 +49,73 @@ export default function AircraftPreviewCard({ aircraft = null }) {
                 animate: { opacity: 1 },
                 exit: { opacity: 0 },
               }
-            : CARD_MOTION)}
+            : STACK_MOTION)}
         >
-          <header className="aircraft-preview-card__header">
-            <motion.div
-              className="aircraft-preview-card__icon-layer"
-              {...(reducedMotion
-                ? { initial: false, animate: { opacity: 1 } }
-                : ICON_MOTION)}
-            >
-              <AircraftPreviewIcon aircraft={aircraft} />
-            </motion.div>
-            <AircraftPreviewType aircraft={aircraft} />
-          </header>
-          {/* Body sits in its own panel so it draws ON TOP of the icon. As
-              the icon slides up from y:96 it travels behind this panel and
-              only emerges above the divider — the "pulled out of the
-              pocket" layering. A blurred duplicate ("ghost") of the
-              silhouette lives inside the panel so the lower portion of
-              the plane appears as a soft, blurred shape — backdrop-filter
-              alone is unreliable when nested inside another ancestor
-              that already has one. */}
-          <div className="aircraft-preview-card__pocket">
-            <div className="aircraft-preview-card__pocket-ghost-clip">
+          <AnimatePresence>
+            {hasPhoto && (
               <motion.div
-                className="aircraft-preview-card__pocket-ghost"
+                className="aircraft-preview-card__media-slot"
+                key={`photo-${photo.src}`}
                 {...(reducedMotion
-                  ? { initial: false, animate: { opacity: 1 } }
-                  : ICON_MOTION)}
+                  ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
+                  : MEDIA_MOTION)}
               >
-                <AircraftPreviewIcon aircraft={aircraft} />
+                <AircraftPreviewMediaCard photo={photo} />
               </motion.div>
-            </div>
-            <div className="aircraft-preview-card__divider" />
-            <AircraftPreviewIdentity aircraft={aircraft} />
-            <AircraftPreviewTelemetry aircraft={aircraft} />
-            <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
-            <AircraftPreviewMetadata aircraft={aircraft} />
-          </div>
+            )}
+          </AnimatePresence>
+          <AircraftPreviewMetadataCard aircraft={aircraft} />
         </motion.aside>
       )}
     </AnimatePresence>
   );
+}
+
+function usePhotoTone(src) {
+  const [tone, setTone] = useState(PHOTO_TONE_DARK);
+
+  useEffect(() => {
+    if (!src) {
+      setTone(PHOTO_TONE_DARK);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => {
+      if (cancelled) return;
+      const canvas = document.createElement("canvas");
+      const width = 24;
+      const height = 16;
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (!context) return;
+      context.drawImage(image, 0, 0, width, height);
+      const { data } = context.getImageData(0, 0, width, height);
+      let luma = 0;
+      for (let index = 0; index < data.length; index += 4) {
+        luma +=
+          data[index] * 0.2126 +
+          data[index + 1] * 0.7152 +
+          data[index + 2] * 0.0722;
+      }
+      setTone(
+        luma / (data.length / 4) > 150
+          ? PHOTO_TONE_LIGHT
+          : PHOTO_TONE_DARK,
+      );
+    };
+    image.onerror = () => {
+      if (!cancelled) setTone(PHOTO_TONE_DARK);
+    };
+    image.src = src;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
+
+  return tone;
 }

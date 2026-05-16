@@ -3736,7 +3736,40 @@ body {
     isolation: isolate;
 }
 
+.aircraft-preview-card__metadata-panel {
+    position: relative;
+    z-index: 2;
+    margin: -22px -18px -14px;
+    padding: 18px 18px 14px;
+    border: 1px solid color-mix(in oklab, var(--tone-border-firm) 74%, transparent);
+    border-radius: 12px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 58%, transparent),
+            color-mix(in oklab, var(--atc-card) 44%, transparent)
+        );
+    box-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 12%, transparent),
+        0 8px 20px color-mix(in oklab, var(--atc-bg) 32%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(1.08);
+    backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.aircraft-preview-card--has-photo .aircraft-preview-card__metadata-panel {
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 38%, transparent),
+            color-mix(in oklab, var(--atc-card) 24%, transparent)
+        );
+    -webkit-backdrop-filter: blur(10px) saturate(1.08);
+    backdrop-filter: blur(10px) saturate(1.08);
+}
+
 .aircraft-preview-card__header {
+    position: relative;
+    z-index: 2;
     display: flex;
     align-items: flex-end;
     gap: 14px;
@@ -3762,17 +3795,102 @@ body {
     will-change: transform, opacity;
 }
 
+.aircraft-preview-card--photo-pending .aircraft-preview-card__icon-layer {
+    margin-top: -14px;
+}
+
 .aircraft-preview-icon {
     flex-shrink: 0;
 }
 
 .aircraft-preview-icon--fallback {
-    background: var(--atc-line);
+    background: var(--tone-orange-warm);
     border-radius: 8px;
-    opacity: 0.45;
+    opacity: 0.36;
+}
+
+.aircraft-preview-card--has-photo {
+    overflow: hidden;
+}
+
+.aircraft-preview-visual-layer {
+    position: relative;
+    margin: -18px -18px 0;
+    height: 178px;
+    z-index: 1;
+    overflow: hidden;
+    border-top-right-radius: 12px;
+    border-top-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    pointer-events: none;
+}
+
+.aircraft-preview-photo-backdrop {
+    position: absolute;
+    inset: 0;
+    left: 0;
+    z-index: 0;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in oklab, black 8%, transparent),
+            color-mix(in oklab, black 24%, transparent)
+        ),
+        var(--aircraft-preview-photo);
+    background-position: 24% center;
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    filter: saturate(0.92) contrast(1.04);
+    pointer-events: none;
+}
+
+.aircraft-preview-photo-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(
+            ellipse at center,
+            transparent 0 42%,
+            color-mix(in oklab, var(--atc-card) 34%, transparent) 100%
+        ),
+        linear-gradient(
+            180deg,
+            transparent 0 44%,
+            color-mix(in oklab, black 42%, transparent)
+        );
+}
+
+.aircraft-preview-visual-layer__fallback {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.55;
+}
+
+.aircraft-preview-photo__credit {
+    position: absolute;
+    right: 6px;
+    bottom: 5px;
+    z-index: 1;
+    max-width: calc(100% - 12px);
+    overflow: hidden;
+    color: color-mix(in oklab, var(--atc-text) 86%, transparent);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 7px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: right;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 4px color-mix(in oklab, black 80%, transparent);
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .aircraft-preview-type {
+    width: max-content;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -3790,9 +3908,29 @@ body {
     line-height: 1;
     color: var(--atc-text);
     white-space: nowrap;
-    /* Let the type tag visually overhang the card's right edge a touch.
-       Card has overflow:visible so the translation paints freely. */
-    transform: translateX(20px);
+}
+
+.aircraft-preview-card--has-photo .aircraft-preview-type__code,
+.aircraft-preview-card--has-photo .aircraft-preview-type__category {
+    text-shadow: 0 1px 8px color-mix(in oklab, black 64%, transparent);
+}
+
+.aircraft-preview-card--has-photo.aircraft-preview-card--photo-light .aircraft-preview-type__code {
+    color: color-mix(in oklab, var(--atc-bg) 88%, black 12%);
+    text-shadow: 0 1px 10px color-mix(in oklab, white 62%, transparent);
+}
+
+.aircraft-preview-card--has-photo.aircraft-preview-card--photo-light .aircraft-preview-type__category {
+    color: color-mix(in oklab, var(--atc-card) 82%, black 18%);
+    text-shadow: 0 1px 8px color-mix(in oklab, white 56%, transparent);
+}
+
+.aircraft-preview-card--has-photo.aircraft-preview-card--photo-dark .aircraft-preview-type__code {
+    color: var(--atc-text);
+}
+
+.aircraft-preview-card--has-photo.aircraft-preview-card--photo-dark .aircraft-preview-type__category {
+    color: color-mix(in oklab, var(--atc-text) 72%, transparent);
 }
 
 .aircraft-preview-type__category {
@@ -3802,7 +3940,6 @@ body {
     letter-spacing: 0.12em;
     color: var(--atc-faint);
     text-transform: uppercase;
-    transform: translateX(20px);
 }
 
 .aircraft-preview-card__pocket {
@@ -3821,6 +3958,18 @@ body {
     padding: 0 18px 14px;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
+}
+
+.aircraft-preview-card--has-photo .aircraft-preview-card__pocket {
+    z-index: 1;
+    margin-top: 0;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 28%, transparent),
+            color-mix(in oklab, var(--atc-card) 58%, transparent)
+        );
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--atc-line) 76%, transparent);
 }
 
 .aircraft-preview-card__pocket-ghost-clip {
@@ -3878,6 +4027,14 @@ body {
     margin-bottom: 10px;
 }
 
+.aircraft-preview-identity__top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    column-gap: 14px;
+    min-width: 0;
+}
+
 .aircraft-preview-identity__callsign {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 22px;
@@ -3886,6 +4043,10 @@ body {
     letter-spacing: -0.02em;
     line-height: 1;
     color: var(--atc-text);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .aircraft-preview-identity__route {
@@ -3992,3 +4153,101 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
+/* Aircraft preview stack v2. The parent owns only fixed placement and
+   layering. The metadata card is always visible above the media card;
+   the media card is mounted only after the photo lookup resolves and
+   slides upward from behind the metadata card. */
+.aircraft-preview-card {
+    width: 280px;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.aircraft-preview-card--has-photo {
+    overflow: visible;
+}
+
+.aircraft-preview-card__media-slot {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% - 22px);
+    left: 0;
+    z-index: 1;
+}
+
+.aircraft-preview-metadata-card {
+    position: relative;
+    z-index: 2;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 18px;
+    border: 1px solid var(--tone-border-firm);
+    border-radius: 12px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 90%, transparent),
+            color-mix(in oklab, var(--atc-card) 82%, transparent)
+        );
+    box-shadow:
+        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
+        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent),
+        inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(1.08);
+    backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.aircraft-preview-media-card {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    height: var(--aircraft-preview-media-height, 116px);
+    overflow: hidden;
+    border: 1px solid var(--tone-border-firm);
+    border-radius: 12px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 82%, transparent),
+            color-mix(in oklab, var(--atc-card) 58%, transparent)
+        );
+    box-shadow:
+        0 12px 30px color-mix(in oklab, var(--atc-bg) 64%, transparent),
+        inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
+}
+
+.aircraft-preview-media-card__photo {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in oklab, var(--atc-card) 70%, black 20%);
+    filter: saturate(0.94) contrast(1.04);
+}
+
+.aircraft-preview-media-card__photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        color-mix(in oklab, black 4%, transparent),
+        color-mix(in oklab, black 20%, transparent)
+    );
+    pointer-events: none;
+}
+
+.aircraft-preview-media-card__image {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    pointer-events: none;
+}

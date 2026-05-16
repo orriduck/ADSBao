@@ -6,6 +6,7 @@ export function normalizeAdsbAircraft(
 ) {
   return {
     icao24: aircraft.hex || "",
+    registration: typeof aircraft.r === "string" ? aircraft.r.trim().toUpperCase() : "",
     callsign: (aircraft.flight || aircraft.r || "").trim(),
     lat: aircraft.lat,
     lon: aircraft.lon,

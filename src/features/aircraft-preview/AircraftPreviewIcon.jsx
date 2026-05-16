@@ -1,25 +1,15 @@
 "use client";
 
 import { resolveAircraftIcon } from "../../utils/aircraftIcon.js";
-import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
-import { ARRIVAL, DEPARTURE } from "../../utils/aircraftMovement.js";
-
 const ICON_SIZE_PX = 128;
-
-function resolveIconColor(aircraft) {
-  if (aircraft?.onGround) return AIRCRAFT_COLORS.ground;
-  if (aircraft?.movement === DEPARTURE) return AIRCRAFT_COLORS.departure;
-  if (aircraft?.movement === ARRIVAL) return AIRCRAFT_COLORS.arrival;
-  return AIRCRAFT_COLORS.unknown;
-}
+const ICON_COLOR = "var(--tone-orange-warm)";
 
 // Large silhouette that visually "slides out" of the card's top-left corner
-// (negative offset is applied in the parent layout). Tinted with the same
-// movement-color encoding the map markers use so the preview is recognizable
-// as a beefier render of the same aircraft.
+// (negative offset is applied in the parent layout). The preview no longer
+// encodes movement direction; it stays inside ADSBao's warm console palette.
 export default function AircraftPreviewIcon({ aircraft }) {
   const icon = resolveAircraftIcon(aircraft);
-  const color = resolveIconColor(aircraft);
+  const color = ICON_COLOR;
 
   if (!icon) {
     return (
