@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard.jsx";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
+import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
 import { useAircraftPhoto } from "./useAircraftPhoto.js";
 import { getAircraftIdentity } from "../airport-context/airportContextUiModel.js";
 
@@ -26,19 +27,21 @@ const MEDIA_MOTION = {
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
 
-export default function AircraftPreviewCard({ aircraft = null }) {
+export default function AircraftPreviewCard({ aircraft = null, isMobile = false, sidebarOpen = false }) {
   const reducedMotion = useReducedMotion();
   const photoState = useAircraftPhoto(aircraft);
   const photo = photoState.photo;
-  const photoPending = photoState.status === "loading";
   const hasPhoto = Boolean(photo?.src);
   const photoTone = usePhotoTone(photo?.src);
 
+  const identityKey = (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
+  const showMobile = isMobile && !sidebarOpen;
+
   return (
     <AnimatePresence>
-      {aircraft && (
+      {aircraft && !isMobile && (
         <motion.aside
-          key={getAircraftIdentity(aircraft) || "preview-card"}
+          key={identityKey}
           className={`aircraft-preview-card ${
             hasPhoto ? "aircraft-preview-card--has-photo" : ""
           } aircraft-preview-card--photo-${photoTone}`}
@@ -64,7 +67,19 @@ export default function AircraftPreviewCard({ aircraft = null }) {
               </motion.div>
             )}
           </AnimatePresence>
-          <AircraftPreviewMetadataCard aircraft={aircraft} />
+          <AircraftPreviewMetadataCard aircraft={aircraft} photo={photo} />
+        </motion.aside>
+      )}
+      {aircraft && showMobile && (
+        <motion.aside
+          key={`mobile-${identityKey}`}
+          className="aircraft-preview-mobile-card"
+          aria-label="Aircraft preview"
+          {...(reducedMotion
+            ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
+            : STACK_MOTION)}
+        >
+          <AircraftPreviewMobileCard aircraft={aircraft} />
         </motion.aside>
       )}
     </AnimatePresence>

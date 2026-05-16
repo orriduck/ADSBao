@@ -3910,29 +3910,6 @@ body {
     white-space: nowrap;
 }
 
-.aircraft-preview-card--has-photo .aircraft-preview-type__code,
-.aircraft-preview-card--has-photo .aircraft-preview-type__category {
-    text-shadow: 0 1px 8px color-mix(in oklab, black 64%, transparent);
-}
-
-.aircraft-preview-card--has-photo.aircraft-preview-card--photo-light .aircraft-preview-type__code {
-    color: color-mix(in oklab, var(--atc-bg) 88%, black 12%);
-    text-shadow: 0 1px 10px color-mix(in oklab, white 62%, transparent);
-}
-
-.aircraft-preview-card--has-photo.aircraft-preview-card--photo-light .aircraft-preview-type__category {
-    color: color-mix(in oklab, var(--atc-card) 82%, black 18%);
-    text-shadow: 0 1px 8px color-mix(in oklab, white 56%, transparent);
-}
-
-.aircraft-preview-card--has-photo.aircraft-preview-card--photo-dark .aircraft-preview-type__code {
-    color: var(--atc-text);
-}
-
-.aircraft-preview-card--has-photo.aircraft-preview-card--photo-dark .aircraft-preview-type__category {
-    color: color-mix(in oklab, var(--atc-text) 72%, transparent);
-}
-
 .aircraft-preview-type__category {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 10px;
@@ -4201,6 +4178,21 @@ body {
     backdrop-filter: blur(12px) saturate(1.08);
 }
 
+.aircraft-preview-metadata-card__credit {
+    display: block;
+    margin-bottom: 8px;
+    overflow: hidden;
+    color: var(--atc-dim);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
 .aircraft-preview-media-card {
     position: relative;
     box-sizing: border-box;
@@ -4240,6 +4232,85 @@ body {
         color-mix(in oklab, black 20%, transparent)
     );
     pointer-events: none;
+}
+
+/* Mobile aircraft preview — rendered by JS only when isMobile is true.
+   Centered at the bottom, callsign + type row + compact telemetry row. */
+.aircraft-preview-mobile-card {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    z-index: 1200;
+    transform: translateX(-50%);
+    background: var(--atc-card);
+    border: 1px solid var(--tone-border-firm);
+    border-radius: 12px;
+    box-shadow:
+        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
+        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    color: var(--atc-text);
+    pointer-events: none;
+    user-select: none;
+}
+
+.aircraft-preview-mobile-card__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px 12px;
+}
+
+.aircraft-preview-mobile-card__row1 {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.aircraft-preview-mobile-card__callsign,
+.aircraft-preview-mobile-card__type {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 18px;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--atc-text);
+}
+
+.aircraft-preview-mobile-card__sep {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--atc-faint);
+    line-height: 1;
+}
+
+.aircraft-preview-mobile-card__row2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    white-space: nowrap;
+}
+
+.aircraft-preview-mobile-card__stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--atc-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+.aircraft-preview-mobile-card__dot {
+    color: var(--atc-faint);
+    font-size: 10px;
+    margin: 0 4px;
 }
 
 .aircraft-preview-media-card__image {
