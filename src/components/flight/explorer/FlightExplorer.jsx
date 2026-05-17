@@ -147,7 +147,7 @@ function FlightExplorerContent({ callsign }) {
   const { airports: nearbyAirports } = useNearbyAirports({
     lat: focalLat || 0,
     lon: focalLon || 0,
-    radiusNm: 60,
+    radiusNm: 40,
     limit: 12,
   });
 

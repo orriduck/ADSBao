@@ -1,5 +1,5 @@
 export const NEARBY_AIRPORT_DEFAULTS = Object.freeze({
-  radiusNm: 60,
+  radiusNm: 40,
   limit: 6,
   country: "US",
   minRunwayLength: 5000,

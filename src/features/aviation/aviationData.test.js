@@ -170,8 +170,8 @@ try {
     lon: -71.0096,
   });
 
-  assert.equal(DEFAULT_AIRCRAFT_RANGE_NM, 60);
-  assert.equal(calls[0], "/api/proxy/aircraft/positions/42.3656/-71.0096/60");
+  assert.equal(DEFAULT_AIRCRAFT_RANGE_NM, 40);
+  assert.equal(calls[0], "/api/proxy/aircraft/positions/42.3656/-71.0096/40");
 }
 
 {
