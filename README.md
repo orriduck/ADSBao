@@ -4,6 +4,7 @@ A modern airport-monitoring HUD with dynamic airport search, METAR context, and 
 
 <img width="2976" height="2142" alt="image" src="https://github.com/user-attachments/assets/ca26b63a-2f88-4f04-90fe-a5c818166f3a" />
 <img width="2984" height="2146" alt="image" src="https://github.com/user-attachments/assets/d6385986-6fb8-4dc0-9736-fe13031e31ae" />
+<img width="2974" height="2140" alt="image" src="https://github.com/user-attachments/assets/fb8ab85d-7a0f-45c5-b4d3-72be3d8b1bb5" />
 <img width="2980" height="2140" alt="image" src="https://github.com/user-attachments/assets/47c8a27f-f5ac-4d9a-8d0b-e20b9897bc66" />
 
 ## Overview
