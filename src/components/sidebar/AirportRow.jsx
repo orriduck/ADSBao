@@ -29,7 +29,10 @@ export default function AirportRow({
       onClick={() => airportId && onSelectAirport?.(airportId)}
     >
       <div className="aircraft-table-identity aircraft-table-identity--solo min-w-0">
-        <span className="aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text">
+        <span
+          translate="no"
+          className="notranslate aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text"
+        >
           {code}
         </span>
         {placeText ? (

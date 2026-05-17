@@ -4419,6 +4419,8 @@ body {
    as a confident action ("Track this aircraft"). Card itself has
    pointer-events:none, so the button restores its own pointer-events. */
 .aircraft-preview-card__track-btn {
+    display: block;
+    box-sizing: border-box;
     width: 100%;
     margin-top: 14px;
     padding: 10px 14px;
@@ -4432,10 +4434,16 @@ body {
     font-style: italic;
     letter-spacing: 0.06em;
     line-height: 1;
+    text-align: center;
+    text-decoration: none;
     text-transform: uppercase;
     cursor: pointer;
     pointer-events: auto;
     transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.aircraft-preview-card__track-btn:visited {
+    color: var(--atc-bg);
 }
 
 .aircraft-preview-card__track-btn:hover {

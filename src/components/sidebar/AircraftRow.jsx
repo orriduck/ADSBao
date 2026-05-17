@@ -85,7 +85,10 @@ function AircraftIdentityCell({
   if (!hasRoute) {
     return (
       <div className="aircraft-table-identity aircraft-table-identity--solo min-w-0">
-        <span className="aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text">
+        <span
+          translate="no"
+          className="notranslate aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text"
+        >
           {callsign}
         </span>
       </div>
@@ -98,7 +101,10 @@ function AircraftIdentityCell({
         routeEntering ? "aircraft-table-identity--route-entering" : ""
       }`}
     >
-      <span className="aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text">
+      <span
+        translate="no"
+        className="notranslate aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text"
+      >
         {callsign}
       </span>
       <div className="aircraft-table-route-slot flex min-w-0 items-center">
