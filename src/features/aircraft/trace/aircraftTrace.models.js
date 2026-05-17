@@ -1,5 +1,5 @@
 export const AIRCRAFT_TRACE_USER_AGENT =
-  "ADSBao/1.0.0 (https://github.com/orriduck/ADSBao)";
+  "ADSBao/1.1.0 (https://github.com/orriduck/ADSBao)";
 
 // Full traces for long-haul flights can run several MB — bump the
 // upstream-response cap accordingly. Recent traces are still small.

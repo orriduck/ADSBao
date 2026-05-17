@@ -7,7 +7,7 @@ export function useNearbyAirports({
   icao = "",
   lat = 0,
   lon = 0,
-  radiusNm = 30,
+  radiusNm = 40,
   limit = 6,
 } = {}) {
   const [airports, setAirports] = useState([]);

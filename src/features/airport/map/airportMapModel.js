@@ -1,6 +1,10 @@
-import { AIRPORT_AREA_RADIUS_NM } from "../../../config/airportMap.js";
 import { ZOOM_APPROACH } from "../../../utils/airportMapDisplay.js";
 import { getDistanceNm } from "../../../utils/aircraftTrafficIntent.js";
+
+// Fallback used when the caller doesn't supply a ground-area radius.
+// Matches the focal-airport's default first-ring interval so the
+// ground filter aligns with the visual layer.
+const DEFAULT_GROUND_AREA_RADIUS_NM = 3;
 
 export const resolveDocumentTheme = (documentElement) =>
   documentElement?.getAttribute("data-theme") === "light" ? "light" : "dark";
@@ -32,9 +36,9 @@ const airportGroundFilters = ({ airportLat, airportLon, nearbyAirports = [] }) =
     })),
   ].filter((airport) => airport.lat != null && airport.lon != null);
 
-const isInsideAirportGroundArea = (aircraft, airport) => {
+const isInsideAirportGroundArea = (aircraft, airport, radiusNm) => {
   const distNm = getDistanceNm(airport.lat, airport.lon, aircraft.lat, aircraft.lon);
-  return distNm != null && distNm <= AIRPORT_AREA_RADIUS_NM;
+  return distNm != null && distNm <= radiusNm;
 };
 
 export const getVisibleAircraft = ({
@@ -43,6 +47,7 @@ export const getVisibleAircraft = ({
   airportLon,
   nearbyAirports = [],
   zoom,
+  groundAreaRadiusNm = DEFAULT_GROUND_AREA_RADIUS_NM,
 }) => {
   const atApproachZoom = Number(zoom) === ZOOM_APPROACH;
   const groundFilters = airportGroundFilters({
@@ -54,6 +59,8 @@ export const getVisibleAircraft = ({
   return aircraft.filter((ac) => {
     if (ac.lat == null || ac.lon == null) return false;
     if (!atApproachZoom) return true;
-    return !groundFilters.some((airport) => isInsideAirportGroundArea(ac, airport));
+    return !groundFilters.some((airport) =>
+      isInsideAirportGroundArea(ac, airport, groundAreaRadiusNm),
+    );
   });
 };

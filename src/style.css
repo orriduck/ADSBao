@@ -442,6 +442,48 @@ body {
     text-shadow: none;
 }
 
+.airport-range-ring-label {
+    align-items: center;
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    height: 14px;
+    justify-content: center;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    pointer-events: none;
+    white-space: nowrap;
+    width: 44px;
+}
+
+.airport-range-ring-label--dark {
+    color: rgb(255 255 255 / 0.62);
+    text-shadow:
+        0 1px 2px rgb(0 0 0 / 0.55),
+        0 0 6px rgb(0 0 0 / 0.32);
+}
+
+.airport-range-ring-label--light {
+    color: rgb(18 21 26 / 0.62);
+    text-shadow:
+        0 1px 2px rgb(255 255 255 / 0.6),
+        0 0 4px rgb(255 255 255 / 0.4);
+}
+
+.airport-range-ring-label--major {
+    font-weight: 700;
+    font-size: 10px;
+}
+
+.airport-range-ring-label--major.airport-range-ring-label--dark {
+    color: rgb(255 255 255 / 0.86);
+}
+
+.airport-range-ring-label--major.airport-range-ring-label--light {
+    color: rgb(18 21 26 / 0.86);
+}
+
 .runway-approach-beam {
     filter: blur(3.5px);
     mix-blend-mode: screen;

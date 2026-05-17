@@ -6,6 +6,22 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.1.0",
+    kind: "feat",
+    title: "Distance rings + map scale bar",
+    summary:
+      "Concentric distance rings on the airport page, an adaptive scale bar at approach zoom, and a uniform 40nm radius for all nearby searches.",
+    highlights: [
+      "All nearby-traffic and nearby-airport searches normalized to 40nm",
+      "Airport page: focal airport rings every 3nm out to 30nm",
+      "Airport page: nearby airports show rings every 3nm out to 10nm",
+      "Flight page: single 5nm proximity ring around each nearby airport; focal aircraft rings suppressed",
+      "Per-ring distance labels at airport / detail zoom",
+      "Scale bar (比例尺) in the bottom-left at approach zoom",
+      "Every third ring rendered slightly bolder as a visual anchor",
+    ],
+  },
+  {
     version: "v1.0.0",
     kind: "feat",
     title: "Persistent tracking sessions + drop-up nav menu",
