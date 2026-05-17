@@ -87,7 +87,7 @@ export default function FlightSidebar({
 
 function FlightIdentity({ callsign, type, category, route }) {
   return (
-    <SidebarIdentityHero label="Tracking" code={callsign} codeClassName="italic">
+    <SidebarIdentityHero label="Tracking" code={callsign}>
       {(type || category) && (
         <div className="mt-2 flex items-baseline gap-2">
           {type && (
@@ -106,11 +106,7 @@ function FlightIdentity({ callsign, type, category, route }) {
         <div className="mt-2 font-mono text-[12px] tracking-[0.04em] text-atc-dim">
           {route}
         </div>
-      ) : (
-        <div className="mt-2 font-mono text-[12px] italic text-atc-faint">
-          No route
-        </div>
-      )}
+      ) : null}
     </SidebarIdentityHero>
   );
 }
@@ -185,7 +181,7 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
           />
           <SidebarMetricCard
             label="Status"
-            value={onGround ? "GND" : "AIR"}
+            value={onGround ? "GND" : altitude != null ? "AIR" : "—"}
             active={activeMetric === "status"}
             onClick={() => toggle("status")}
           />

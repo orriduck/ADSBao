@@ -1,7 +1,5 @@
 "use client";
 
-import NumberFlow from "@number-flow/react";
-
 // Airport equivalent of AircraftRow — same column rhythm so an
 // "airports & aircraft" mixed list reads as one coherent table.
 // Left: ICAO · IATA / city + country. Right: DIST and ELEV (in place of
@@ -60,13 +58,13 @@ export default function AirportRow({
   );
 }
 
+// See AircraftRow.NumberWithUnit — same reasoning: static text to keep
+// the long nearby list from costing framerate on every poll.
 function NumberWithUnit({ value, unit, format }) {
+  const formatted = new Intl.NumberFormat(undefined, format).format(value);
   return (
-    <span
-      className="inline-flex items-baseline justify-end gap-0.5 tabular-nums"
-      style={{ isolation: "isolate", willChange: "contents" }}
-    >
-      <NumberFlow value={value} format={format} />
+    <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
+      <span>{formatted}</span>
       <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim">
         {unit}
       </sub>

@@ -1,43 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { aircraftTraceClient } from "../features/aviation/aviationData.js";
 import {
-  mergeTraceHistory,
+  mergeTracesByPriority,
   normalizeAdsbTracePayload,
 } from "../features/aircraft/trace/aircraftTraceModel.js";
+import {
+  readTrackedTrace,
+  writeTrackedTrace,
+} from "../features/aircraft/tracking/trackedTraceStorage.js";
 
-// Session-level cache of trace points keyed by ICAO24 hex + trace mode
-// (recent vs full). Lets the user flip between aircraft without re-paying
-// the fetch each time: warm-start from any prior render, then a background
-// refresh. Module scope, not persisted across reloads.
+// How long to wait after the last merged-trace change before writing to
+// localStorage. Live polls land every 3s, so a short debounce lets a
+// burst of updates collapse into one write without putting the user
+// more than a tick behind on the persisted set.
+const PERSIST_DEBOUNCE_MS = 750;
+
+// Session-level cache of trace points keyed by ICAO24 hex. Stores the
+// `full` and `recent` source arrays separately (each with its own
+// fetchedAt) so we can warm-start either source without re-paying its
+// fetch and so the priority merge below stays explicit. Module scope,
+// not persisted across reloads.
 const traceCache = new Map();
-const TRACE_CACHE_TTL_MS = 90_000;
+const RECENT_TTL_MS = 90_000;
 // Full traces are heavier and update less often; cache them longer so the
 // user can flip away and back without re-paying the multi-MB fetch.
-const TRACE_FULL_CACHE_TTL_MS = 10 * 60 * 1000;
+const FULL_TTL_MS = 10 * 60 * 1000;
 
-function cacheKey(hex, fullTrace) {
-  return `${fullTrace ? "full" : "recent"}:${hex}`;
-}
-
-function readTraceCache(hex, fullTrace) {
-  const entry = traceCache.get(cacheKey(hex, fullTrace));
+function readCachedSource(hex, source) {
+  const entry = traceCache.get(hex);
   if (!entry) return null;
-  const ttl = fullTrace ? TRACE_FULL_CACHE_TTL_MS : TRACE_CACHE_TTL_MS;
-  if (Date.now() - entry.fetchedAt > ttl) {
-    traceCache.delete(cacheKey(hex, fullTrace));
-    return null;
-  }
-  return entry;
+  const slot = entry[source];
+  if (!slot) return null;
+  const ttl = source === "full" ? FULL_TTL_MS : RECENT_TTL_MS;
+  if (Date.now() - slot.fetchedAt > ttl) return null;
+  return slot.points;
 }
 
-function writeTraceCache(hex, fullTrace, tracePoints) {
+function writeCachedSource(hex, source, points) {
   if (!hex) return;
-  traceCache.set(cacheKey(hex, fullTrace), {
-    tracePoints,
-    fetchedAt: Date.now(),
-  });
+  const entry = traceCache.get(hex) || {};
+  entry[source] = { points, fetchedAt: Date.now() };
+  traceCache.set(hex, entry);
 }
 
 function liveAircraftToTracePoint(aircraft) {
@@ -64,88 +69,195 @@ function liveAircraftToTracePoint(aircraft) {
   };
 }
 
+// Drop trace points older than the cutoff. Applied after merge so every
+// source path honors the clip. When the cutoff is null/non-finite the
+// input is returned untouched.
+function clipTracePointsBefore(points, cutoffMs) {
+  const cutoff = Number(cutoffMs);
+  if (!Number.isFinite(cutoff) || !Array.isArray(points)) return points;
+  return points.filter((point) => Number(point?.timestampMs) >= cutoff);
+}
+
+// Resolves the displayed trace from up to four independent sources, in
+// priority order: live polled position > trace_recent > trace_full >
+// localStorage-persisted points (`persistKey`).
+//   - trace_full is fetched only when `fullTrace` is set (aircraft
+//     detail page). It provides the historical baseline.
+//   - trace_recent is always fetched. It is a rolling tail of the same
+//     stream and may include late corrections, so it wins over full on
+//     overlap.
+//   - The live point grows the trail forward in real time and is the
+//     freshest source, so it wins over both. We append it as a new entry
+//     on every selectedAircraft tick — the priority merge dedupes the
+//     repeats by 1-second timestamp bucket.
+//   - The persisted source seeds the trail instantly on reload so a
+//     refresh of /aircraft/[callsign] doesn't blank the trace while the
+//     fresh fetches resolve. It sits at the lowest priority because the
+//     in-flight sources are by definition more authoritative.
 export function useAircraftTrace(selectedAircraft = null, options = {}) {
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
-  const [traceState, setTraceState] = useState({
-    hex: "",
-    tracePoints: [],
-  });
-  const [loading, setLoading] = useState(false);
+  // Optional lower bound on trace timestamps. The aircraft detail page
+  // sets this to (firstTrackedAt - 30min) so the full trace shows the
+  // current flight rather than days of historical loops.
+  const traceStartAtMs = Number.isFinite(Number(options?.traceStartAtMs))
+    ? Number(options.traceStartAtMs)
+    : null;
+  // When set (typically the focal callsign on /aircraft/[callsign]) the
+  // hook reads/writes the merged trace to localStorage so refreshes
+  // keep the accumulated trail.
+  const persistKey =
+    typeof options?.persistKey === "string" && options.persistKey.trim()
+      ? options.persistKey.trim()
+      : null;
 
-  // Fetch the recent trace once when the selection changes. Warm-start
-  // from the session cache so re-selecting the same aircraft doesn't
-  // black out the trail mid-render; merge into whatever live points have
-  // already accumulated so we don't trample positions that polled in
-  // between selection and fetch resolution.
+  const [fullPoints, setFullPoints] = useState([]);
+  const [recentPoints, setRecentPoints] = useState([]);
+  const [livePoints, setLivePoints] = useState([]);
+  const [persistedPoints, setPersistedPoints] = useState([]);
+  const [activeHex, setActiveHex] = useState("");
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [fullLoading, setFullLoading] = useState(false);
+
+  // Fetch sources whenever the selected aircraft changes. Warm-start
+  // each buffer from cache so flipping back to a prior aircraft doesn't
+  // black out the trail mid-render.
   useEffect(() => {
     if (!hex) {
-      setTraceState({ hex: "", tracePoints: [] });
-      setLoading(false);
+      setActiveHex("");
+      setFullPoints([]);
+      setRecentPoints([]);
+      setLivePoints([]);
+      setRecentLoading(false);
+      setFullLoading(false);
       return undefined;
     }
 
     let disposed = false;
-    const cached = readTraceCache(hex, fullTrace);
-    setTraceState({
-      hex,
-      tracePoints: cached?.tracePoints || [],
-    });
-    setLoading(!cached);
+    setActiveHex(hex);
+    setLivePoints([]);
+
+    const cachedRecent = readCachedSource(hex, "recent");
+    setRecentPoints(cachedRecent || []);
+    setRecentLoading(!cachedRecent);
 
     aircraftTraceClient
-      .fetchAircraftTrace({ hex, full: fullTrace })
+      .fetchAircraftTrace({ hex, full: false })
       .then((payload) => {
         if (disposed) return;
-        const recent = normalizeAdsbTracePayload(payload?.recent);
-        setTraceState((current) => {
-          const merged = mergeTraceHistory({
-            recentTrace: recent,
-            fallbackHistory: current.hex === hex ? current.tracePoints : [],
-          });
-          writeTraceCache(hex, fullTrace, merged);
-          return { hex, tracePoints: merged };
-        });
+        const points = normalizeAdsbTracePayload(payload?.recent);
+        writeCachedSource(hex, "recent", points);
+        setRecentPoints(points);
       })
       .catch((error) => {
         if (!disposed) {
-          console.warn(`[aircraft-trace:${hex}] trace fetch failed`, error);
+          console.warn(`[aircraft-trace:${hex}] recent fetch failed`, error);
         }
       })
       .finally(() => {
-        if (!disposed) setLoading(false);
+        if (!disposed) setRecentLoading(false);
       });
+
+    if (fullTrace) {
+      const cachedFull = readCachedSource(hex, "full");
+      setFullPoints(cachedFull || []);
+      setFullLoading(!cachedFull);
+
+      aircraftTraceClient
+        .fetchAircraftTrace({ hex, full: true })
+        .then((payload) => {
+          if (disposed) return;
+          const points = normalizeAdsbTracePayload(payload?.recent);
+          writeCachedSource(hex, "full", points);
+          setFullPoints(points);
+        })
+        .catch((error) => {
+          if (!disposed) {
+            console.warn(`[aircraft-trace:${hex}] full fetch failed`, error);
+          }
+        })
+        .finally(() => {
+          if (!disposed) setFullLoading(false);
+        });
+    } else {
+      setFullPoints([]);
+      setFullLoading(false);
+    }
 
     return () => {
       disposed = true;
     };
   }, [hex, fullTrace]);
 
-  // Append the latest polled position to the trace so the trail extends
-  // forward in real time. Wait until the recent-trace fetch has resolved
-  // before doing this — otherwise a 1-point stub from the live append
-  // would render and consume the "fresh selection" animation slot in
-  // SelectedAircraftTrace, so the real full trace would arrive afterward
-  // with no growth animation. mergeTraceHistory dedupes by
-  // (timestamp, lat, lon), so repeated polls with the same data don't
-  // grow the array.
+  // Append the latest polled position so the trail extends forward in
+  // real time. We don't gate on loading anymore — the priority merge
+  // resolves overlap correctly even if a live point lands before the
+  // recent fetch resolves.
   useEffect(() => {
-    if (!hex || loading) return;
+    if (!hex) return;
     const point = liveAircraftToTracePoint(selectedAircraft);
     if (!point) return;
-    setTraceState((current) => {
-      if (current.hex !== hex) return current;
-      const merged = mergeTraceHistory({
-        recentTrace: [point],
-        fallbackHistory: current.tracePoints,
-      });
-      writeTraceCache(hex, fullTrace, merged);
-      return { hex, tracePoints: merged };
+    setLivePoints((current) => {
+      // Cheap dedupe on the latest entry so repeated polls with the same
+      // (timestamp, lat, lon) don't grow the array unboundedly. Older
+      // dupes from earlier ticks are deduped by the priority merge.
+      const last = current[current.length - 1];
+      if (
+        last &&
+        last.timestampMs === point.timestampMs &&
+        last.lat === point.lat &&
+        last.lon === point.lon
+      ) {
+        return current;
+      }
+      return [...current, point];
     });
-  }, [hex, loading, selectedAircraft, fullTrace]);
+  }, [hex, selectedAircraft]);
+
+  // Seed the persisted buffer when the persistKey changes so refreshes
+  // pick up the prior trail immediately. The fresh full/recent fetches
+  // overlay this as soon as they resolve.
+  useEffect(() => {
+    if (!persistKey) {
+      setPersistedPoints([]);
+      return;
+    }
+    setPersistedPoints(readTrackedTrace(persistKey));
+  }, [persistKey]);
+
+  const merged = useMemo(
+    () =>
+      mergeTracesByPriority({
+        sources: [
+          { points: livePoints, priority: 3 },
+          { points: recentPoints, priority: 2 },
+          { points: fullPoints, priority: 1 },
+          { points: persistedPoints, priority: 0 },
+        ],
+      }),
+    [livePoints, recentPoints, fullPoints, persistedPoints],
+  );
+
+  const tracePoints = useMemo(
+    () =>
+      activeHex === hex ? clipTracePointsBefore(merged, traceStartAtMs) : [],
+    [activeHex, hex, merged, traceStartAtMs],
+  );
+
+  // Persist the clipped trace back to localStorage. Debounced so a burst
+  // of live polls collapses into one write. We only persist what the
+  // user can see — the cutoff already bounds the size, so the storage
+  // cap rarely kicks in.
+  useEffect(() => {
+    if (!persistKey || tracePoints.length === 0) return undefined;
+    const timer = window.setTimeout(() => {
+      writeTrackedTrace(persistKey, tracePoints);
+    }, PERSIST_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [persistKey, tracePoints]);
 
   return {
-    tracePoints: traceState.hex === hex ? traceState.tracePoints : [],
-    loading,
+    tracePoints,
+    loading: recentLoading || fullLoading,
   };
 }

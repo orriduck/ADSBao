@@ -144,6 +144,51 @@ function dedupeTracePointKey(point = {}) {
   ].join(":");
 }
 
+// Resolve overlapping trace points across multiple sources, preferring
+// the higher-priority source on collision. Sources are bucketed by 1-second
+// timestamp because adsb.lol publishes second-aligned offsets and our live
+// poll rounds to the broadcast second too — so "same physical broadcast"
+// reliably collapses to the same bucket regardless of which endpoint
+// supplied it. Callers pass sources in any order; the explicit `priority`
+// field is what determines the winner (higher wins).
+//
+// Used by the aircraft detail page where three sources overlap:
+//   priority 2 — live polled position (freshest, includes telemetry)
+//   priority 1 — trace_recent (rolling tail, can include corrections)
+//   priority 0 — trace_full (historical baseline)
+export function mergeTracesByPriority({ sources = [] } = {}) {
+  const buckets = new Map();
+  for (const source of sources) {
+    if (!source) continue;
+    const priority = Number(source.priority) || 0;
+    const points = Array.isArray(source.points) ? source.points : [];
+    for (const point of points) {
+      if (!isFiniteNumber(point?.lat) || !isFiniteNumber(point?.lon)) continue;
+      const timestampMs = Number(point?.timestampMs ?? point?.time);
+      if (!Number.isFinite(timestampMs)) continue;
+      const bucket = Math.floor(timestampMs / 1000);
+      const existing = buckets.get(bucket);
+      if (existing && existing.priority >= priority) continue;
+      buckets.set(bucket, {
+        priority,
+        point: {
+          timestampMs,
+          lat: Number(point.lat),
+          lon: Number(point.lon),
+          altitude: isFiniteNumber(point?.altitude) ? Number(point.altitude) : null,
+          onGround: Boolean(point?.onGround),
+          velocity: isFiniteNumber(point?.velocity) ? Number(point.velocity) : null,
+          track: isFiniteNumber(point?.track) ? Number(point.track) : null,
+          baroRate: isFiniteNumber(point?.baroRate) ? Number(point.baroRate) : null,
+        },
+      });
+    }
+  }
+  return Array.from(buckets.values())
+    .map((entry) => entry.point)
+    .sort((a, b) => a.timestampMs - b.timestampMs);
+}
+
 export function mergeTraceHistory({
   recentTrace = [],
   fallbackHistory = [],

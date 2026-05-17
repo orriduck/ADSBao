@@ -48,6 +48,14 @@ export default function MapControlBar({
   });
 
   const cycleZoom = () => {
+    // If the button is currently inactive (auto-follow is off because the
+    // user clicked fit-to-trace), the first click should resume tracking
+    // at the SAME preset zoom they were on — not skip to the next one.
+    // Once auto-follow is back on, subsequent clicks cycle as usual.
+    if (!zoomActive) {
+      onZoom?.(activeZoom);
+      return;
+    }
     onZoom?.(getNextZoomValue(activeZoom, MAP_ZOOM_OPTIONS));
   };
 
