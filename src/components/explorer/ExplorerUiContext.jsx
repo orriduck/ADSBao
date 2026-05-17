@@ -15,13 +15,24 @@ import {
   getAirportSidebarOpenForMode,
 } from "@/utils/sidebarDisplay.js";
 
-const AirportExplorerUiContext = createContext(null);
+const ExplorerUiContext = createContext(null);
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
   sidebarMode: "desktop",
   sidebarOpen: true,
   selectedAircraftId: "",
+  selectedAirportIcao: "",
+  // Monotonic counter. Incremented by the UI when the user wants the map
+  // to fit its viewport to the currently-rendered aircraft trace; a
+  // child of AirportMap listens for changes and runs fitBounds against
+  // the trace points.
+  fitToTraceSignal: 0,
+  // When true (default), the map re-centers on every aircraft position
+  // poll. The user opts out by clicking "fit to trace" — the map then
+  // stays anchored on the trace bounds. Clicking any preset zoom
+  // re-enables auto-follow.
+  mapFollowsAircraft: true,
 };
 
 function toggleValue(value) {
@@ -44,7 +55,14 @@ function airportExplorerUiReducer(state, action) {
     case "closeSidebar":
       return { ...state, sidebarOpen: false };
     case "setMapZoom":
-      return { ...state, mapZoom: action.mapZoom };
+      // Any user-initiated zoom cycle re-engages auto-follow — the user
+      // is asking for one of the named perspectives again, so the map
+      // should resume tracking the focal aircraft from that zoom.
+      return {
+        ...state,
+        mapZoom: action.mapZoom,
+        mapFollowsAircraft: true,
+      };
     case "toggleMapLabels":
       return { ...state, showMapLabels: toggleValue(state.showMapLabels) };
     case "toggleRunwayBeams":
@@ -60,6 +78,8 @@ function airportExplorerUiReducer(state, action) {
       return { ...state, typeFilter: action.typeFilter };
     case "setAltitudeLevel":
       return { ...state, altitudeLevel: action.altitudeLevel };
+    case "setEntityFilter":
+      return { ...state, entityFilter: action.entityFilter };
     case "selectAircraft":
       return {
         ...state,
@@ -67,15 +87,35 @@ function airportExplorerUiReducer(state, action) {
           state.selectedAircraftId === action.aircraftId
             ? ""
             : action.aircraftId,
+        // Selecting an aircraft clears any airport selection so only one
+        // preview card is up at a time.
+        selectedAirportIcao: "",
       };
     case "setSelectedAircraftId":
-      return { ...state, selectedAircraftId: action.aircraftId };
+      return {
+        ...state,
+        selectedAircraftId: action.aircraftId,
+        selectedAirportIcao: "",
+      };
+    case "selectAirport":
+      return {
+        ...state,
+        selectedAirportIcao:
+          state.selectedAirportIcao === action.icao ? "" : action.icao,
+        selectedAircraftId: "",
+      };
+    case "fitToTrace":
+      return {
+        ...state,
+        fitToTraceSignal: state.fitToTraceSignal + 1,
+        mapFollowsAircraft: false,
+      };
     default:
       return state;
   }
 }
 
-export function AirportExplorerUiProvider({ children }) {
+export function ExplorerUiProvider({ children }) {
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
     initialUiState,
@@ -90,7 +130,9 @@ export function AirportExplorerUiProvider({ children }) {
     trafficFilter,
     typeFilter,
     altitudeLevel,
+    entityFilter,
     selectedAircraftId,
+    selectedAirportIcao,
   } = state;
   const isMobile = sidebarMode === "mobile";
 
@@ -144,6 +186,10 @@ export function AirportExplorerUiProvider({ children }) {
     dispatch({ type: "setAltitudeLevel", altitudeLevel });
   }, []);
 
+  const setEntityFilter = useCallback((entityFilter) => {
+    dispatch({ type: "setEntityFilter", entityFilter });
+  }, []);
+
   const selectAircraft = useCallback((aircraftId) => {
     dispatch({ type: "selectAircraft", aircraftId });
   }, []);
@@ -152,6 +198,17 @@ export function AirportExplorerUiProvider({ children }) {
     dispatch({ type: "setSelectedAircraftId", aircraftId });
   }, []);
 
+  const selectAirport = useCallback((icao) => {
+    dispatch({ type: "selectAirport", icao });
+  }, []);
+
+  const fitToTrace = useCallback(() => {
+    dispatch({ type: "fitToTrace" });
+  }, []);
+
+  const fitToTraceSignal = state.fitToTraceSignal;
+  const mapFollowsAircraft = state.mapFollowsAircraft;
+
   const value = useMemo(
     () => ({
       desktopSidebarWidth: AIRPORT_EXPLORER_UI_CONFIG.desktopSidebarWidth,
@@ -159,17 +216,22 @@ export function AirportExplorerUiProvider({ children }) {
       sidebarOpen,
       isMobile,
       mapZoom,
+      mapFollowsAircraft,
       showMapLabels,
       showRunwayBeams,
       showRoutingPointBadges,
       trafficFilter,
       typeFilter,
       altitudeLevel,
+      entityFilter,
       selectedAircraftId,
+      selectedAirportIcao,
+      fitToTraceSignal,
       setMapZoom,
       setTrafficFilter,
       setTypeFilter,
       setAltitudeLevel,
+      setEntityFilter,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
@@ -177,23 +239,30 @@ export function AirportExplorerUiProvider({ children }) {
       toggleRoutingPointBadges,
       selectAircraft,
       setSelectedAircraftId,
+      selectAirport,
+      fitToTrace,
     }),
     [
       sidebarMode,
       sidebarOpen,
       isMobile,
       mapZoom,
+      mapFollowsAircraft,
       showMapLabels,
       showRunwayBeams,
       showRoutingPointBadges,
       trafficFilter,
       typeFilter,
       altitudeLevel,
+      entityFilter,
       selectedAircraftId,
+      selectedAirportIcao,
+      fitToTraceSignal,
       setMapZoom,
       setTrafficFilter,
       setTypeFilter,
       setAltitudeLevel,
+      setEntityFilter,
       toggleSidebar,
       closeSidebar,
       toggleMapLabels,
@@ -201,21 +270,23 @@ export function AirportExplorerUiProvider({ children }) {
       toggleRoutingPointBadges,
       selectAircraft,
       setSelectedAircraftId,
+      selectAirport,
+      fitToTrace,
     ],
   );
 
   return (
-    <AirportExplorerUiContext.Provider value={value}>
+    <ExplorerUiContext.Provider value={value}>
       {children}
-    </AirportExplorerUiContext.Provider>
+    </ExplorerUiContext.Provider>
   );
 }
 
-export function useAirportExplorerUi() {
-  const context = useContext(AirportExplorerUiContext);
+export function useExplorerUi() {
+  const context = useContext(ExplorerUiContext);
   if (!context) {
     throw new Error(
-      "useAirportExplorerUi must be used within AirportExplorerUiProvider",
+      "useExplorerUi must be used within ExplorerUiProvider",
     );
   }
   return context;

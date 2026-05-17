@@ -91,5 +91,6 @@ The current ADSBao web line starts at `v0.4.0`.
 | `v0.9.0` | Navy tracking console redesign |
 | `v0.10.0` | Global airport data layer (OurAirports + Supabase) and richer aircraft silhouettes |
 | `v0.11.0` | Selected-aircraft trace + multi-provider failover + AeroDataBox revalidation |
+| `v0.12.0` | Aircraft tracking page + airport-prefixed routes + polymorphic sidebar/preview |
 
 `v0.3.x` and earlier are legacy desktop-app history and should not be used as the current ADSBao web product line.

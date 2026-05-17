@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-page-custom-font */
+import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Script from "next/script";
 import { Toaster } from "sonner";
 import "leaflet/dist/leaflet.css";
 import {
@@ -63,9 +63,24 @@ export const viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }) {
+// Resolve the theme preference from the request cookie so the server
+// can render <html data-theme="..."> directly — no client-side boot
+// script, no React 19 "script inside component" warning. For users
+// without a cookie or with "system" preference, we default to dark
+// (matches the previous behavior when matchMedia wasn't yet readable).
+// useThemePreference syncs the cookie whenever the user toggles, so
+// subsequent navigations always see their explicit choice.
+async function resolveInitialTheme() {
+  const store = await cookies();
+  const raw = store.get("theme")?.value;
+  if (raw === "light" || raw === "dark") return raw;
+  return "dark";
+}
+
+export default async function RootLayout({ children }) {
+  const initialTheme = await resolveInitialTheme();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme={initialTheme} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -79,7 +94,6 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <ThemeBootScript />
         <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
         <Toaster
           theme="system"
@@ -93,21 +107,3 @@ export default function RootLayout({ children }) {
   );
 }
 
-function ThemeBootScript() {
-  return (
-    <Script id="theme-boot" strategy="beforeInteractive">
-      {`
-        (() => {
-          const themes = new Set(["light", "dark", "system"]);
-          const stored = window.localStorage.getItem("theme");
-          const preference = themes.has(stored) ? stored : "system";
-          const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          document.documentElement.setAttribute(
-            "data-theme",
-            preference === "system" ? (systemDark ? "dark" : "light") : preference
-          );
-        })();
-      `}
-    </Script>
-  );
-}

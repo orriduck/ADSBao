@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import SidebarIdentityHero from "./SidebarIdentityHero";
 import { countryName, flagEmoji } from "../../utils/flag.js";
 import { resolveTimezone } from "../../utils/timezone.js";
 
@@ -24,19 +25,7 @@ export default function AirportIdentity({
   const localTimeLine = useLocalTime(country);
 
   return (
-    <div className="airport-sidebar-identity">
-      <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
-        Airport
-      </div>
-      <div className="mt-3 flex items-baseline gap-3">
-        <span className="airport-sidebar-display-mono airport-sidebar-display-mono--hero text-[28px] font-extrabold text-atc-text">
-          {codeLine}
-        </span>
-        <span
-          aria-hidden="true"
-          className="h-px flex-1 bg-[var(--atc-line-strong)]"
-        />
-      </div>
+    <SidebarIdentityHero label="Airport" code={codeLine}>
       <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
         {name || "Unknown airport"}
       </h1>
@@ -53,7 +42,7 @@ export default function AirportIdentity({
           {localTimeLine}
         </div>
       ) : null}
-    </div>
+    </SidebarIdentityHero>
   );
 }
 

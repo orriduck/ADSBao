@@ -17,6 +17,7 @@ const LAYER_DRAWER_ID = "map-layer-drawer";
 
 export default function MapControlBar({
   activeZoom = ZOOM_AIRPORT,
+  zoomActive = true,
   showMapLabels = false,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
@@ -24,6 +25,7 @@ export default function MapControlBar({
   onToggleMapLabels,
   onToggleRunwayBeams,
   onToggleRoutingPointBadges,
+  onFitToTrace = null,
 }) {
   const controlZone = useRef(null);
   const [layerDrawerOpen, setLayerDrawerOpen] = useState(false);
@@ -70,6 +72,7 @@ export default function MapControlBar({
 
         <MapControlRail
           currentZoomOption={currentZoomOption}
+          zoomActive={zoomActive}
           currentTheme={themePreference}
           themeTitle={themeTitle}
           layerDrawerOpen={layerDrawerOpen}
@@ -77,6 +80,7 @@ export default function MapControlBar({
           audioReady={audioReady}
           layerDrawerId={LAYER_DRAWER_ID}
           onCycleZoom={cycleZoom}
+          onFitToTrace={onFitToTrace}
           onToggleAudio={toggleAudio}
           onCycleTheme={cycleTheme}
           onToggleLayerDrawer={toggleLayerDrawer}

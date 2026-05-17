@@ -37,7 +37,7 @@ assert.deepEqual(resolveAircraftContextEmphasis({ matchesFilters: true }), {
   showLabel: true,
 });
 assert.deepEqual(resolveAircraftContextEmphasis({ matchesFilters: false }), {
-  opacity: 0.28,
+  opacity: 0.55,
   showLabel: false,
 });
 assert.deepEqual(

@@ -20,13 +20,18 @@ export const createAircraftTraceClient = ({
   });
 
   return {
-    fetchAircraftTrace({ hex }) {
+    fetchAircraftTrace({ hex, full = false }) {
       const normalizedHex = normalizeAircraftHex(hex);
       if (!normalizedHex) throw new Error("Invalid aircraft trace query");
 
-      return fetchJson(auditedFetch, `${baseUrl}/${encodeURIComponent(normalizedHex)}`, {
+      const path = `${baseUrl}/${encodeURIComponent(normalizedHex)}${
+        full ? "?full=1" : ""
+      }`;
+      return fetchJson(auditedFetch, path, {
         timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.aircraftTrace,
-        maxBytes: 6 * 1024 * 1024,
+        // Full traces for long-haul flights can run multi-MB — give the
+        // client buffer some headroom too.
+        maxBytes: 24 * 1024 * 1024,
       });
     },
   };

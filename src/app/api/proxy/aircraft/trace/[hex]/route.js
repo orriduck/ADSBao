@@ -36,8 +36,13 @@ export async function GET(request, { params }) {
     );
   }
 
+  // ?full=1 switches the upstream from trace_recent_*.json (rolling
+  // tail) to trace_full_*.json (whole flight). Used on aircraft-detail
+  // page init so the user sees the entire path on load.
+  const full = new URL(request.url).searchParams.get("full") === "1";
+
   try {
-    const result = await getAircraftTrace({ hex });
+    const result = await getAircraftTrace({ hex, full });
     if (!result.found) {
       return jsonProxyResponse(
         request,

@@ -4,11 +4,11 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import {
-  AirportExplorerUiProvider,
-  useAirportExplorerUi,
-} from "./AirportExplorerUiContext.jsx";
+  ExplorerUiProvider,
+  useExplorerUi,
+} from "@/components/explorer/ExplorerUiContext.jsx";
 import AircraftDataLoadingOverlay from "./AircraftDataLoadingOverlay.jsx";
-import AirportExplorerMapMenu from "./AirportExplorerMapMenu.jsx";
+import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu.jsx";
 import { resolveAirportProfile } from "@/features/airport/explorer/airportExplorerModel.js";
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData.js";
 import { useAirportProcedures } from "@/hooks/useAirportProcedures.js";
@@ -28,9 +28,9 @@ const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
 
 export default function AirportExplorer(props) {
   return (
-    <AirportExplorerUiProvider>
+    <ExplorerUiProvider>
       <AirportExplorerContent {...props} />
-    </AirportExplorerUiProvider>
+    </ExplorerUiProvider>
   );
 }
 
@@ -47,10 +47,13 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     typeFilter,
     altitudeLevel,
     selectedAircraftId,
+    selectedAirportIcao,
     closeSidebar,
     selectAircraft,
     setSelectedAircraftId,
-  } = useAirportExplorerUi();
+    selectAirport,
+    mapFollowsAircraft,
+  } = useExplorerUi();
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
@@ -100,6 +103,14 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     };
   }, [isMobile]);
 
+  const selectedAirport = useMemo(
+    () =>
+      nearbyAirports.airports.find(
+        (airport) => airport?.icao === selectedAirportIcao,
+      ) || null,
+    [nearbyAirports.airports, selectedAirportIcao],
+  );
+
   const sidebarProps = {
     icao: airportProfile.icao,
     iata: airportProfile.iata,
@@ -113,18 +124,28 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     metarLoading: weather.metarLoading,
     metarError: weather.metarError,
     aircraft: traffic.aircraft,
+    airports: nearbyAirports.airports,
+    focusLat: airportProfile.lat,
+    focusLon: airportProfile.lon,
     selectedAircraftId,
+    selectedAirportIcao,
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
     feedSource: traffic.feedSource,
     onSelectAircraft: selectAircraft,
+    onSelectAirport: selectAirport,
     onBack,
   };
 
   return (
     <SelectedAircraftTraceProvider selectedAircraft={selectedAircraft}>
       <TraceLoadingToast />
-      <AircraftPreviewCard aircraft={selectedAircraft} isMobile={isMobile} sidebarOpen={sidebarOpen} />
+      <AircraftPreviewCard
+        aircraft={selectedAircraft}
+        airport={selectedAirport}
+        isMobile={isMobile}
+        sidebarOpen={sidebarOpen}
+      />
       <div
         className={`font-sans text-atc-text ${
           isMobile
@@ -144,7 +165,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         )}
 
         <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
-          {!(isMobile && sidebarOpen) && <AirportExplorerMapMenu />}
+          {!(isMobile && sidebarOpen) && <ExplorerMapMenu />}
 
           <AirportMap
             icao={airportProfile.icao}
@@ -161,7 +182,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}
             selectedAircraftId={selectedAircraftId}
+            selectedAirportIcao={selectedAirportIcao}
+            followsCenter={mapFollowsAircraft}
             onSelectAircraft={selectAircraft}
+            onSelectAirport={selectAirport}
             onRevalidateRoute={traffic.revalidateFlightRoute}
             runwayMap={procedures.runwayMap}
             runwayProcedures={null}

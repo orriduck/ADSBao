@@ -43,12 +43,17 @@ export default function AirportMap({
   typeFilter = "all",
   altitudeLevel = "all",
   selectedAircraftId = "",
+  selectedAirportIcao = "",
+  focalAircraftId = "",
+  followsCenter = true,
   onSelectAircraft,
+  onSelectAirport,
   onRevalidateRoute,
   runwayMap = null,
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
   showProcedureFixLabels = false,
+  children = null,
 }) {
   const mapEl = useRef(null);
   const mapRef = useRef(null);
@@ -105,36 +110,55 @@ export default function AirportMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // followsCenter controls whether the map re-centers on every poll.
+  // After "fit to trace" the caller flips this to false so the map
+  // stays anchored to the trace bounds even though the aircraft keeps
+  // moving; clicking a preset zoom flips it back to true upstream.
   useEffect(() => {
-    if (mapRef.current && lat && lon) {
+    if (mapRef.current && lat && lon && followsCenter) {
       mapRef.current.setView([lat, lon], zoom);
     }
-  }, [lat, lon, zoom]);
+  }, [lat, lon, zoom, followsCenter]);
 
   // Clicks on the map background (not on an aircraft marker) clear the
   // selection so the user can drop "trace mode" without targeting an
   // explicit element. Aircraft markers stop event propagation in their own
   // container click handler, so this listener only fires on bare tiles.
   useEffect(() => {
-    if (!mapInstance || typeof onSelectAircraft !== "function") return undefined;
+    if (!mapInstance) return undefined;
     const handleMapClick = () => {
-      if (selectedAircraftId) onSelectAircraft("");
+      if (selectedAircraftId && typeof onSelectAircraft === "function") {
+        onSelectAircraft("");
+      }
+      if (selectedAirportIcao && typeof onSelectAirport === "function") {
+        onSelectAirport("");
+      }
     };
     mapInstance.on("click", handleMapClick);
     return () => {
       mapInstance.off("click", handleMapClick);
     };
-  }, [mapInstance, onSelectAircraft, selectedAircraftId]);
+  }, [
+    mapInstance,
+    onSelectAircraft,
+    onSelectAirport,
+    selectedAircraftId,
+    selectedAirportIcao,
+  ]);
 
   const visibleAircraft = useMemo(() => {
     return getVisibleAircraft({
       aircraft,
-      airportLat: lat,
-      airportLon: lon,
+      // Only apply the airport-ground filter when there's actually an
+      // airport in focus. On the flight page (no icao) the map center is
+      // the focal aircraft's own position — applying the filter there
+      // would silently hide the focal because it's "at the airport".
+      airportLat: icao ? lat : null,
+      airportLon: icao ? lon : null,
       nearbyAirports,
       zoom,
     });
-  }, [aircraft, lat, lon, nearbyAirports, zoom]);
+  }, [aircraft, icao, lat, lon, nearbyAirports, zoom]);
   const selectedAircraft = useMemo(
     () =>
       visibleAircraft.find(
@@ -165,16 +189,20 @@ export default function AirportMap({
             zoom={zoom}
             theme={currentTheme}
           />
-          <AirportMarker
-            lat={lat}
-            lon={lon}
-            icao={icao}
-            airport={airport}
-          />
+          {icao && (
+            <AirportMarker
+              lat={lat}
+              lon={lon}
+              icao={icao}
+              airport={airport}
+            />
+          )}
           <NearbyAirportLayer
             airports={nearbyAirports}
             theme={currentTheme}
             zoom={zoom}
+            selectedIcao={selectedAirportIcao}
+            onSelectAirport={onSelectAirport}
           />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
@@ -189,14 +217,17 @@ export default function AirportMap({
             showBeams={showRunwayBeams}
             showBadges={showRoutingPointBadges}
           />
-          <GroundStatsCounter
-            lat={lat}
-            lon={lon}
-            zoom={zoom}
-            icao={icao}
-            aircraft={aircraft}
-          />
+          {icao && (
+            <GroundStatsCounter
+              lat={lat}
+              lon={lon}
+              zoom={zoom}
+              icao={icao}
+              aircraft={aircraft}
+            />
+          )}
           <SelectedAircraftTrace theme={currentTheme} />
+          {children}
           {visibleAircraft.map((ac) => (
             <AircraftPosition
               key={getAircraftIdentity(ac)}
@@ -210,6 +241,10 @@ export default function AirportMap({
               selected={getAircraftIdentity(ac) === selectedAircraftId}
               selectionActive={selectionActive}
               traceActive={selectionActive}
+              forceSilhouette={
+                Boolean(focalAircraftId) &&
+                getAircraftIdentity(ac) === focalAircraftId
+              }
               onSelectAircraft={onSelectAircraft}
               onRevalidateRoute={onRevalidateRoute}
             />

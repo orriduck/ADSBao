@@ -2,12 +2,13 @@
 
 import { PanelLeft } from "lucide-react";
 import MapControlBar from "@/components/ui/MapControlBar";
-import { useAirportExplorerUi } from "./AirportExplorerUiContext.jsx";
+import { useExplorerUi } from "./ExplorerUiContext.jsx";
 
-export default function AirportExplorerMapMenu() {
+export default function ExplorerMapMenu({ onFitToTrace = null } = {}) {
   const {
     isMobile,
     mapZoom,
+    mapFollowsAircraft,
     showMapLabels,
     showRunwayBeams,
     showRoutingPointBadges,
@@ -16,7 +17,7 @@ export default function AirportExplorerMapMenu() {
     toggleMapLabels,
     toggleRunwayBeams,
     toggleRoutingPointBadges,
-  } = useAirportExplorerUi();
+  } = useExplorerUi();
 
   return (
     <div
@@ -35,6 +36,7 @@ export default function AirportExplorerMapMenu() {
 
       <MapControlBar
         activeZoom={mapZoom}
+        zoomActive={mapFollowsAircraft}
         showMapLabels={showMapLabels}
         showRunwayBeams={showRunwayBeams}
         showRoutingPointBadges={showRoutingPointBadges}
@@ -42,6 +44,7 @@ export default function AirportExplorerMapMenu() {
         onToggleMapLabels={toggleMapLabels}
         onToggleRunwayBeams={toggleRunwayBeams}
         onToggleRoutingPointBadges={toggleRoutingPointBadges}
+        onFitToTrace={onFitToTrace}
       />
     </div>
   );

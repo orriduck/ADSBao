@@ -1,6 +1,43 @@
 # Changelog
 
 
+## v0.12.0 — Aircraft tracking page, airport-prefixed routes, polymorphic sidebar/preview
+
+### Added
+- `/aircraft/[callsign]` route renders the same layout as the airport detail page: same sidebar shell, same nav row, same map controls, same aircraft list. The page centers the map on the focal aircraft, fetches its trace, and follows it as it moves. The focal aircraft renders as a silhouette + callsign on the map regardless of speed/altitude (no slow-traffic dot collapse).
+- Adaptive ADS-B callsign provider chain: `/api/proxy/aircraft/callsign/[callsign]` races `adsb.lol` + `airplanes.live`, with race-then-stick failover.
+- Hover/click on a sidebar row pops a unified preview card. The card is polymorphic — it renders an aircraft variant (callsign hero, photo, telemetry, Track → `/aircraft/[callsign]`) or an airport variant (`IATA · ICAO` hero, flag + place, distance + elevation, Track → `/airport/[icao]`). Clicking an airport marker on the map opens the same preview.
+- Airport markers on the map are now clickable on both pages, sharing the same selection state as aircraft.
+- Sidebar list is now polymorphic: aircraft entries appear first (with identity-flipping animations), nearby airports follow. The "Show" filter (All / Aircraft / Airports) gates which entity types render. Column rhythm switched to `Name / Route · Dist · Alt`.
+- Map control bar gains a "Fit to trace" button that zooms the map to the bounds of the currently-rendered trace and stops auto-following the focal until the user clicks back to a preset zoom.
+- Secondary trace (clicked aircraft that isn't the focal) renders at 40% opacity so the URL-tracked focal stays visually dominant. Trace points cache by `(mode, hex)` so flipping between aircraft doesn't re-pay the recent-trace fetch.
+- Flight detail telemetry strip renders GS / ALT / V/S / HEADING / ICAO24 / STATUS as the same stat-card style the airport sidebar uses for WEATHER / FLIGHTS; cards are individually selectable (radio-group style).
+- Map-label tiles default to ON on the flight detail page so place names give the moving map useful context.
+
+### Changed
+- **Route rename**: airport detail page moved from `/[icao]` to `/airport/[icao]`. The flight detail page is `/aircraft/[callsign]`. Old `/KBOS`-style URLs are not preserved (no automatic redirects).
+- Selection-mode mask (when an aircraft or airport is "selected") is lighter than before — non-selected aircraft go from 28% opacity to 55%, and the base map tile dim drops from 0.72/0.78 to 0.88/0.92 so context stays readable.
+- Theme detection moved from a client-side boot script to a server-rendered `data-theme` attribute driven by a `theme` cookie. The cookie is set in lockstep with `localStorage` by `useThemePreference`, and the cookie value is read server-side via `next/headers#cookies()` on every render. Eliminates the React 19 "script inside React component" console warning and any flash of unstyled content for users with an explicit preference.
+
+### Refactored
+- Extracted shared explorer primitives:
+  - `SidebarShell` — outer panel + sticky nav row, used by both `AirportSidebar` and `FlightSidebar`.
+  - `SidebarIdentityHero` — label + mono-extrabold code + horizontal rule pattern.
+  - `SidebarMetric` (`SidebarMetricGrid` + `SidebarMetricCard`) — two-column stat-card grid, used by both the airport tab strip and the flight telemetry grid.
+  - `ExplorerUiContext` / `ExplorerUiProvider` / `useExplorerUi` — moved from `components/airport/explorer/` to `components/explorer/` since both pages consume it. Renamed exports to drop the misleading "airport" prefix.
+  - `ExplorerMapMenu` — same move + rename for the sidebar toggle + map control bar wrapper.
+- `AirportMap` accepts arbitrary `children` rendered inside `MapContext.Provider`, so per-page concerns (e.g. `MapFitToTraceController` on the flight page) can be composed without touching the map shell.
+- `SelectedAircraftTraceContext` now exposes a deduplicated `traces[]` array; `SelectedAircraftTrace` was split into a thin context-reader + a `SingleAircraftTrace` renderer that takes trace data as props, allowing N coexistent traces with independent animation state.
+- Aircraft + airport preview cards share the same outer `AircraftPreviewCard` shell — the inner `AircraftPreviewMetadataCard` / `AirportPreviewMetadataCard` swap based on which entity is selected.
+
+### Fixed
+- `MapFitToTraceController`'s `leaflet` import crashed SSR with `window is not defined`; the component is now dynamic-imported with `ssr: false`.
+- `getVisibleAircraft` was silently filtering out the focal aircraft on the flight page (the focal sits at "the airport's ground area" because the map's airport-center IS the focal). The ground filter is now skipped when there's no actual airport in focus.
+- Sidebar list rows were collapsing to zero horizontal padding inside the flight sidebar because `--airport-sidebar-inset` was only declared on `.airport-sidebar-panel`. The token now lives on `.sidebar-shell` so both pages get it.
+- React 19 "Encountered a script tag while rendering React component" console warning eliminated (see Changed — cookie-driven theme).
+- Stat cards' big numbers were selectable on text-click, which the focus highlight made look like a click-state. Cards now have `user-select: none` and `cursor: default` by default; the interactive variant overrides.
+
+
 ## v0.11.0 — Selected-aircraft trace, focused revalidation, route consistency
 
 ### Added

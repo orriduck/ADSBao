@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard.jsx";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
+import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard.jsx";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 
@@ -27,25 +28,34 @@ const MEDIA_MOTION = {
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
 
-export default function AircraftPreviewCard({ aircraft = null, isMobile = false, sidebarOpen = false }) {
+export default function AircraftPreviewCard({
+  aircraft = null,
+  airport = null,
+  isMobile = false,
+  sidebarOpen = false,
+}) {
   const reducedMotion = useReducedMotion();
   const photoState = useAircraftPhoto(aircraft);
   const photo = photoState.photo;
   const hasPhoto = Boolean(photo?.src);
   const photoTone = usePhotoTone(photo?.src);
 
-  const identityKey = (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
-  const showMobile = isMobile && !sidebarOpen;
+  const entity = aircraft || airport;
+  const isAirport = !aircraft && Boolean(airport);
+  const identityKey = isAirport
+    ? `airport:${airport?.icao || "preview"}`
+    : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
+  const showMobile = isMobile && !sidebarOpen && Boolean(aircraft);
 
   return (
     <AnimatePresence>
-      {aircraft && !isMobile && (
+      {entity && !isMobile && (
         <motion.aside
           key={identityKey}
           className={`aircraft-preview-card ${
-            hasPhoto ? "aircraft-preview-card--has-photo" : ""
+            !isAirport && hasPhoto ? "aircraft-preview-card--has-photo" : ""
           } aircraft-preview-card--photo-${photoTone}`}
-          aria-label="Aircraft preview"
+          aria-label={isAirport ? "Airport preview" : "Aircraft preview"}
           {...(reducedMotion
             ? {
                 initial: false,
@@ -54,20 +64,26 @@ export default function AircraftPreviewCard({ aircraft = null, isMobile = false,
               }
             : STACK_MOTION)}
         >
-          <AnimatePresence>
-            {hasPhoto && (
-              <motion.div
-                className="aircraft-preview-card__media-slot"
-                key={`photo-${photo.src}`}
-                {...(reducedMotion
-                  ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
-                  : MEDIA_MOTION)}
-              >
-                <AircraftPreviewMediaCard photo={photo} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <AircraftPreviewMetadataCard aircraft={aircraft} photo={photo} />
+          {!isAirport && (
+            <AnimatePresence>
+              {hasPhoto && (
+                <motion.div
+                  className="aircraft-preview-card__media-slot"
+                  key={`photo-${photo.src}`}
+                  {...(reducedMotion
+                    ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
+                    : MEDIA_MOTION)}
+                >
+                  <AircraftPreviewMediaCard photo={photo} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+          {isAirport ? (
+            <AirportPreviewMetadataCard airport={airport} />
+          ) : (
+            <AircraftPreviewMetadataCard aircraft={aircraft} photo={photo} />
+          )}
         </motion.aside>
       )}
       {aircraft && showMobile && (

@@ -27,7 +27,7 @@ const getAirportSeo = (icao) => {
 export async function generateMetadata({ params }) {
   const { icao } = await params;
   const seo = getAirportSeo(icao);
-  const path = seo.normalizedIcao ? `/${seo.normalizedIcao}` : "/";
+  const path = seo.normalizedIcao ? `/airport/${seo.normalizedIcao}` : "/";
 
   return {
     title: seo.title,
