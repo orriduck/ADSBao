@@ -2495,8 +2495,8 @@ body {
 .aircraft-wing-light {
     position: absolute;
     top: 50%;
-    width: 2.4px;
-    height: 2.4px;
+    width: 2px;
+    height: 2px;
     border-radius: 50%;
     transform: translateY(-50%);
     pointer-events: none;
@@ -2506,16 +2506,16 @@ body {
     left: -4%;
     background: #ff5050;
     box-shadow:
-        0 0 3px 0.5px rgba(255, 80, 80, 0.95),
-        0 0 6px 1.5px rgba(255, 80, 80, 0.45);
+        0 0 2.5px 0.4px rgba(255, 80, 80, 0.95),
+        0 0 5px 1px rgba(255, 80, 80, 0.4);
 }
 
 .aircraft-wing-light--starboard {
     right: -4%;
     background: #44ff70;
     box-shadow:
-        0 0 3px 0.5px rgba(68, 255, 112, 0.95),
-        0 0 6px 1.5px rgba(68, 255, 112, 0.45);
+        0 0 2.5px 0.4px rgba(68, 255, 112, 0.95),
+        0 0 5px 1px rgba(68, 255, 112, 0.4);
 }
 
 .aircraft-trace,
