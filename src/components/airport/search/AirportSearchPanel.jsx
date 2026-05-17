@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { Info, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import DitherPageShell from "../../app-shell/DitherPageShell.jsx";
+import NavMenu from "../../navigation/NavMenu.jsx";
 import ThemeToggle from "../../app-shell/ThemeToggle.jsx";
 import { useThemePreference } from "@/features/app-shell/useThemePreference.js";
 import { Input } from "@/components/ui/input.jsx";
@@ -43,28 +43,6 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     if (airport) openAirport(airport);
   };
 
-  const mobileAboutLink = (
-    <Link
-      href="/about"
-      title="About ADSBao"
-      className="mobile-top-nav-link flex items-center gap-1.5"
-    >
-      <Info className="h-3.5 w-3.5" aria-hidden="true" />
-      <span>About</span>
-    </Link>
-  );
-
-  const footerAboutLink = (
-    <Link
-      href="/about"
-      title="About ADSBao"
-      className="font-nav text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5"
-    >
-      <Info className="h-3.5 w-3.5" aria-hidden="true" />
-      <span>About</span>
-    </Link>
-  );
-
   const renderThemeToggle = (className) => (
     <ThemeToggle
       className={className}
@@ -79,8 +57,8 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     <DitherPageShell
       className="search-screen"
 
-      mobileLeft={mobileAboutLink}
-      footerLeft={footerAboutLink}
+      mobileLeft={<NavMenu variant="mobile" />}
+      footerLeft={<NavMenu />}
       renderThemeToggle={renderThemeToggle}
     >
       <form

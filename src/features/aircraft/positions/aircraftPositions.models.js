@@ -1,5 +1,5 @@
 export const AIRCRAFT_POSITIONS_USER_AGENT =
-  "ADSBao/0.12.0 (https://github.com/orriduck/ADSBao)";
+  "ADSBao/1.0.0 (https://github.com/orriduck/ADSBao)";
 
 export const AIRCRAFT_POSITIONS_MAX_BYTES = 2 * 1024 * 1024;
 
