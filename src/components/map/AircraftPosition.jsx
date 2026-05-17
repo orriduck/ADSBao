@@ -269,26 +269,13 @@ function Pointer({
   );
 }
 
-// Dark-theme running lights — a faint forward nose beam plus the
-// standard port (red) / starboard (green) wing-tip nav lights. The
-// nav lights sit at the silhouette box's horizontal extremes at the
-// vertical center; the nose beam glows just past the top edge. The
-// parent .aircraft-pointer-glyph carries the rotation transform so
-// all three orbit with the heading.
+// Dark-theme running lights — a faint forward nose beam past the
+// silhouette's nose. Wing-tip red/green nav lights were too much on
+// top of the silhouette's colored fill, so the visual is just the
+// nose beam now. The parent .aircraft-pointer-glyph carries the
+// rotation transform so the beam orbits with the heading.
 function AircraftRunningLights() {
-  return (
-    <>
-      <span aria-hidden="true" className="aircraft-nose-beam" />
-      <span
-        aria-hidden="true"
-        className="aircraft-wing-light aircraft-wing-light--port"
-      />
-      <span
-        aria-hidden="true"
-        className="aircraft-wing-light aircraft-wing-light--starboard"
-      />
-    </>
-  );
+  return <span aria-hidden="true" className="aircraft-nose-beam" />;
 }
 
 function Label({ color, label, showArrow, hasSilhouette }) {
