@@ -218,6 +218,90 @@ export function buildRunwayApproachBeamCollection(
   };
 }
 
+// Centerline-extension variant used on the light theme — a soft
+// glowing wedge washed out on the bright basemap, so we draw a dashed
+// extended centerline (chart convention) instead.
+const buildRunwayEndApproachLineFeature = (runway, end, oppositeEnd, profile) => {
+  const vector = runwayEndVector(end, oppositeEnd);
+  if (!vector) return null;
+
+  return {
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: [
+        [end.lon, end.lat],
+        coordinateFromVectorMeters({
+          end,
+          vector,
+          distance: profile.distance,
+        }),
+      ],
+    },
+    properties: {
+      runwayId: runway.id,
+      runwayEnd: end.ident,
+      beamDistanceMeters: profile.distance,
+      beamOpacity: profile.opacity,
+    },
+  };
+};
+
+export function buildRunwayApproachLineCollection(
+  runwayMap,
+  { zoom, distanceScale = 1 } = {},
+) {
+  const profile = scaleRunwayBeamProfile(
+    runwayBeamProfileForZoom(zoom),
+    distanceScale,
+  );
+
+  return {
+    type: "FeatureCollection",
+    properties: {
+      airport: runwayMap?.airport || "",
+      source: runwayMap?.source || "FAA CIFP",
+      cycle: runwayMap?.cycle || "",
+    },
+    features: (runwayMap?.runways || []).flatMap((runway) => {
+      const ends = (runway.ends || []).filter(
+        (end) => Number.isFinite(end.lat) && Number.isFinite(end.lon),
+      );
+      if (ends.length < 2) return [];
+
+      return ends
+        .map((end, index) =>
+          buildRunwayEndApproachLineFeature(
+            runway,
+            end,
+            ends[index === 0 ? 1 : 0],
+            profile,
+          ),
+        )
+        .filter(Boolean);
+    }),
+  };
+}
+
+// Theme-aware entry point: returns the variant the active theme wants
+// alongside a `kind` discriminator so the layer can pick its render
+// pipeline. Dark = wedge + gradient; light = dashed extended centerline.
+export function buildRunwayApproachVisualization(
+  runwayMap,
+  { zoom, theme = "dark", distanceScale = 1 } = {},
+) {
+  if (theme === "light") {
+    return {
+      kind: "approach-lines",
+      data: buildRunwayApproachLineCollection(runwayMap, { zoom, distanceScale }),
+    };
+  }
+  return {
+    kind: "approach-beams",
+    data: buildRunwayApproachBeamCollection(runwayMap, { zoom, distanceScale }),
+  };
+}
+
 export function buildRunwayCenterlineCollection(runwayMap) {
   return {
     type: "FeatureCollection",

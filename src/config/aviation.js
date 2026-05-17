@@ -1,7 +1,7 @@
 export const AIRPORT_MAP_ZOOM = {
   approach: 10,
-  airport: 13,
-  detail: 14,
+  airport: 11,
+  detail: 13,
 };
 
 export const AIRPORT_EXPLORER_UI_CONFIG = {

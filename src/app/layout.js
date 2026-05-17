@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Toaster } from "sonner";
+import ThemedToaster from "@/components/app-shell/ThemedToaster.jsx";
 import "leaflet/dist/leaflet.css";
 import {
   SITE_DESCRIPTION,
@@ -95,9 +95,11 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
-        <Toaster
-          theme="system"
+        <ThemedToaster
+          initialTheme={initialTheme}
           position="top-right"
+          // Drop below the 44px airport-map toolbar at top:0.
+          offset={{ top: 64 }}
           toastOptions={{ className: "atc-toast" }}
         />
         <Analytics />

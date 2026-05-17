@@ -504,6 +504,12 @@ body {
     opacity: 0.46;
 }
 
+/* Light-theme approach: dashed extended centerline replaces the dark
+   theme's glowing wedge — reads cleaner on the bright basemap. */
+.runway-approach-line {
+    filter: drop-shadow(0 0 1px color-mix(in oklab, var(--atc-card) 60%, transparent));
+}
+
 .procedure-fix-label {
     align-items: center;
     background: color-mix(in oklab, var(--atc-card) 88%, transparent);
@@ -2455,6 +2461,31 @@ body {
 
 .aircraft-marker--selected {
     filter: saturate(1.22) brightness(1.16);
+}
+
+/* Wrapper carries the rotation so the dark-theme nose beam orbits
+   with the heading. Sits ABOVE the silhouette's drop-shadow halo via
+   overflow: visible. */
+.aircraft-pointer-glyph {
+    position: relative;
+    overflow: visible;
+}
+
+.aircraft-nose-beam {
+    position: absolute;
+    left: 50%;
+    top: -60%;
+    width: 75%;
+    height: 75%;
+    transform: translateX(-50%);
+    background: radial-gradient(
+        ellipse at 50% 95%,
+        rgba(255, 246, 210, 0.55) 0%,
+        rgba(255, 226, 130, 0.22) 28%,
+        rgba(255, 226, 130, 0.08) 58%,
+        rgba(255, 226, 130, 0) 92%
+    );
+    pointer-events: none;
 }
 
 .aircraft-trace,

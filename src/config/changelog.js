@@ -6,6 +6,20 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.2.0",
+    kind: "feat",
+    title: "Themed runway approach + aircraft nose beam + scale-bar polish",
+    summary:
+      "Theme-aware approach visualisation, dark-theme aircraft nose beam, always-on scale bar, and toast theming wired to the app.",
+    highlights: [
+      "Runway approach abstracted: dark = glowing wedge, light = dashed extended centerline",
+      "Aircraft silhouettes get a soft forward nose beam on dark theme",
+      "Scale bar always visible with theme-aware backdrop blur",
+      "Map zoom presets retuned to 10 / 11 / 13",
+      "Toast layer drops below the map toolbar and matches the app theme",
+    ],
+  },
+  {
     version: "v1.1.0",
     kind: "feat",
     title: "Distance rings + map scale bar",

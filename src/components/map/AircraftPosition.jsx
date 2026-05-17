@@ -167,6 +167,7 @@ export default function AircraftPosition({
         showArrow={showArrow}
         silhouette={silhouette}
         sizeScale={sizeScale}
+        theme={theme}
       />
       {(selected ||
         forceSilhouette ||
@@ -183,20 +184,26 @@ export default function AircraftPosition({
   );
 }
 
-function Pointer({ color, rot, showArrow, silhouette, sizeScale = 1 }) {
+function Pointer({
+  color,
+  rot,
+  showArrow,
+  silhouette,
+  sizeScale = 1,
+  theme = "dark",
+}) {
   // Scale via CSS transform with the default `transform-origin: center` so
   // the marker stays anchored on the geo coordinate at any wake-class size.
   // The underlying box stays 18×18, only the visual extent grows / shrinks.
   const scaledTransform = `rotate(${rot}deg) scale(${sizeScale})`;
 
   if (showArrow && silhouette) {
-    // Render the silhouette as a CSS-mask-tinted div so we keep the
-    // functional color encoding (departure / arrival / unknown) while
-    // showing the type-specific shape.
+    // Wrapper carries the rotation so the dark-theme nose beam orbits
+    // with the heading instead of sitting fixed in screen space.
     const maskUrl = `url(${silhouette.src})`;
     return (
       <div
-        className="aircraft-silhouette"
+        className="aircraft-pointer-glyph"
         role="img"
         aria-label={
           silhouette.source === "type" ? "aircraft type" : "aircraft category"
@@ -204,19 +211,30 @@ function Pointer({ color, rot, showArrow, silhouette, sizeScale = 1 }) {
         style={{
           width: `${SILHOUETTE_SIZE_PX}px`,
           height: `${SILHOUETTE_SIZE_PX}px`,
-          backgroundColor: color,
           transform: scaledTransform,
-          WebkitMaskImage: maskUrl,
-          maskImage: maskUrl,
-          WebkitMaskRepeat: "no-repeat",
-          maskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskPosition: "center",
-          WebkitMaskSize: "contain",
-          maskSize: "contain",
-          filter: `drop-shadow(0 0 4px ${color})`,
         }}
-      />
+      >
+        <div
+          className="aircraft-silhouette"
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: color,
+            WebkitMaskImage: maskUrl,
+            maskImage: maskUrl,
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+            WebkitMaskPosition: "center",
+            maskPosition: "center",
+            WebkitMaskSize: "contain",
+            maskSize: "contain",
+            filter: `drop-shadow(0 0 4px ${color})`,
+          }}
+        />
+        {theme === "dark" && (
+          <span aria-hidden="true" className="aircraft-nose-beam" />
+        )}
+      </div>
     );
   }
   if (showArrow) {

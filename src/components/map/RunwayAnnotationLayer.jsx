@@ -10,7 +10,7 @@ import {
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
 import { createRunwayBeamGradientController } from "../../features/airport/map/runwayBeamGradientController.js";
 import {
-  buildRunwayApproachBeamCollection,
+  buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel.js";
@@ -43,6 +43,54 @@ const runwayLabelIcon = (ident, theme) =>
     iconAnchor: [17, 22],
   });
 
+// Dispatches on the `kind` returned by buildRunwayApproachVisualization:
+// light theme draws a dashed extended centerline; dark theme keeps the
+// glowing wedge + gradient controller. The pipelines are different
+// enough (polyline vs. polygon + per-frame gradient) that a single
+// style block would be artificial.
+const buildApproachLayer = ({ kind, data, theme }) => {
+  if (kind === "approach-lines") {
+    const stroke =
+      theme === "light" ? "rgba(36,65,100,0.7)" : "rgba(216,189,131,0.78)";
+    const layer = L.geoJSON(data, {
+      interactive: false,
+      style(feature) {
+        return {
+          className: "runway-approach-line",
+          color: stroke,
+          weight: 1.4,
+          opacity: feature?.properties?.beamOpacity != null
+            ? Math.min(1, 0.55 + Number(feature.properties.beamOpacity))
+            : 0.95,
+          dashArray: "6 8",
+          lineCap: "butt",
+          lineJoin: "round",
+        };
+      },
+    });
+    return { layer, beamLayer: null, beamRenderer: null };
+  }
+
+  // Extra renderer padding so beams that extend past the viewport edge
+  // aren't clipped — default 0.1 is ~80px but beams can reach ~408px.
+  const beamRenderer = L.svg({ padding: 1 });
+  const layer = L.geoJSON(data, {
+    renderer: beamRenderer,
+    interactive: false,
+    style() {
+      return {
+        className: "runway-approach-beam",
+        fill: true,
+        fillColor: runwayBeamColor(theme),
+        fillOpacity: 1,
+        opacity: 0,
+        stroke: false,
+      };
+    },
+  });
+  return { layer, beamLayer: layer, beamRenderer };
+};
+
 export default function RunwayAnnotationLayer({
   runwayMap,
   theme = "dark",
@@ -73,26 +121,18 @@ export default function RunwayAnnotationLayer({
     let beamRenderer = null;
 
     if (showBeams) {
-      // Use a dedicated renderer with extra padding so beams that extend
-      // beyond the viewport edge are not clipped by the default SVG canvas.
-      // At ZOOM_AIRPORT beams reach ~408 px; default padding (0.1) is ~80 px.
-      beamRenderer = L.svg({ padding: 1 });
-      const beams = buildRunwayApproachBeamCollection(runwayMap, { zoom });
-      beamLayer = L.geoJSON(beams, {
-        renderer: beamRenderer,
-        interactive: false,
-        style() {
-          return {
-            className: "runway-approach-beam",
-            fill: true,
-            fillColor: runwayBeamColor(theme),
-            fillOpacity: 1,
-            opacity: 0,
-            stroke: false,
-          };
-        },
+      const visualization = buildRunwayApproachVisualization(runwayMap, {
+        zoom,
+        theme,
       });
-      sublayers.unshift(beamLayer);
+      const built = buildApproachLayer({
+        kind: visualization.kind,
+        data: visualization.data,
+        theme,
+      });
+      sublayers.unshift(built.layer);
+      beamLayer = built.beamLayer;
+      beamRenderer = built.beamRenderer;
     }
 
     if (showBadges) {

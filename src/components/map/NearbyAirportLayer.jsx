@@ -11,10 +11,8 @@ import {
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel.js";
 
-// Default distance-ring band drawn around each nearby airport. Tighter
-// than the primary's rings so the band stays a hint, not a dominant
-// frame, when several nearby airports overlap. The flight-tracking
-// page passes a coarser band (5nm → 15nm).
+// Nearby-airport ring band — tighter than the focal's so overlapping
+// stacks stay subtle.
 const DEFAULT_NEARBY_RING_INTERVAL_NM = 3;
 const DEFAULT_NEARBY_RING_MAX_NM = 10;
 
@@ -125,11 +123,9 @@ export default function NearbyAirportLayer({
       runwayLayers({ airport, map, theme, zoom }).forEach((runwayLayer) =>
         runwayLayer.addTo(layer),
       );
-      // Several nearby airports can overlap on the map; shaded bands
-      // would stack into a dark blob, so the nearby ring stack is
-      // stroke-only and the focal owns the shading. Callers can mark
-      // a band as `prominent` so a single-ring stack (e.g. the
-      // flight-page 5nm proximity ring) renders bold enough to read.
+      // Stroke-only — overlapping nearby stacks would add up into a
+      // dark blob if we let them shade. `prominent` callers (single
+      // ring) override the every-third-major rhythm.
       buildAirportRangeRings(L, {
         lat: airport.lat,
         lon: airport.lon,
