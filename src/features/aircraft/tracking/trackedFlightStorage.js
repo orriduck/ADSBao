@@ -1,13 +1,13 @@
 // Browser-local cache that remembers when the user first started
 // tracking a given callsign. Each entry survives for TRACKING_TTL_MS
-// (12 hours) so reloading the /aircraft/[callsign] page keeps the same
+// (24 hours) so reloading the /aircraft/[callsign] page keeps the same
 // "first tracked at" anchor — used by the trace pipeline to clip the
 // full historical trace to a sensible lookback window
 // (firstTrackedAt - TRACE_LOOKBACK_MS).
 
 const STORAGE_KEY = "adsbao:tracked-flights";
 
-export const TRACKING_TTL_MS = 12 * 60 * 60 * 1000;
+export const TRACKING_TTL_MS = 24 * 60 * 60 * 1000;
 export const TRACE_LOOKBACK_MS = 30 * 60 * 1000;
 
 const isBrowser = () =>

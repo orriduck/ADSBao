@@ -226,6 +226,7 @@ function FlightExplorerContent({ callsign }) {
       focalAircraft={trackedAircraft}
       fullTraceForFocal
       focalTraceStartAtMs={focalTraceStartAtMs}
+      focalPersistKey={callsign || null}
     >
       <TraceLoadingToast />
       <AircraftPreviewCard

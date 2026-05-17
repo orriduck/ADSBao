@@ -45,6 +45,7 @@ export function SelectedAircraftTraceProvider({
   focalAircraft = null,
   fullTraceForFocal = false,
   focalTraceStartAtMs = null,
+  focalPersistKey = null,
   children,
 }) {
   const primaryHook = useAircraftTrace(selectedAircraft);
@@ -52,10 +53,13 @@ export function SelectedAircraftTraceProvider({
   // detail page so the user sees the whole flight on load — not just
   // the rolling tail. The optional cutoff clips the historical points
   // to (firstTrackedAt - 30 min) so we don't show days of unrelated
-  // history. Secondary (clicked) traces stick with recent + no cutoff.
+  // history. The persist key (callsign) keeps the merged trace in
+  // localStorage so refreshes don't blank the trail. Secondary
+  // (clicked) traces stick with recent + no cutoff + no persistence.
   const focalHook = useAircraftTrace(focalAircraft, {
     fullTrace: fullTraceForFocal,
     traceStartAtMs: focalTraceStartAtMs,
+    persistKey: focalPersistKey,
   });
 
   const primary = useMemo(

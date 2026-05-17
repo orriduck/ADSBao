@@ -6,6 +6,16 @@ import {
   mergeTracesByPriority,
   normalizeAdsbTracePayload,
 } from "../features/aircraft/trace/aircraftTraceModel.js";
+import {
+  readTrackedTrace,
+  writeTrackedTrace,
+} from "../features/aircraft/tracking/trackedTraceStorage.js";
+
+// How long to wait after the last merged-trace change before writing to
+// localStorage. Live polls land every 3s, so a short debounce lets a
+// burst of updates collapse into one write without putting the user
+// more than a tick behind on the persisted set.
+const PERSIST_DEBOUNCE_MS = 750;
 
 // Session-level cache of trace points keyed by ICAO24 hex. Stores the
 // `full` and `recent` source arrays separately (each with its own
@@ -68,8 +78,9 @@ function clipTracePointsBefore(points, cutoffMs) {
   return points.filter((point) => Number(point?.timestampMs) >= cutoff);
 }
 
-// Resolves the displayed trace from three independent sources, in
-// priority order: live polled position > trace_recent > trace_full.
+// Resolves the displayed trace from up to four independent sources, in
+// priority order: live polled position > trace_recent > trace_full >
+// localStorage-persisted points (`persistKey`).
 //   - trace_full is fetched only when `fullTrace` is set (aircraft
 //     detail page). It provides the historical baseline.
 //   - trace_recent is always fetched. It is a rolling tail of the same
@@ -79,6 +90,10 @@ function clipTracePointsBefore(points, cutoffMs) {
 //     freshest source, so it wins over both. We append it as a new entry
 //     on every selectedAircraft tick — the priority merge dedupes the
 //     repeats by 1-second timestamp bucket.
+//   - The persisted source seeds the trail instantly on reload so a
+//     refresh of /aircraft/[callsign] doesn't blank the trace while the
+//     fresh fetches resolve. It sits at the lowest priority because the
+//     in-flight sources are by definition more authoritative.
 export function useAircraftTrace(selectedAircraft = null, options = {}) {
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
@@ -88,10 +103,18 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
   const traceStartAtMs = Number.isFinite(Number(options?.traceStartAtMs))
     ? Number(options.traceStartAtMs)
     : null;
+  // When set (typically the focal callsign on /aircraft/[callsign]) the
+  // hook reads/writes the merged trace to localStorage so refreshes
+  // keep the accumulated trail.
+  const persistKey =
+    typeof options?.persistKey === "string" && options.persistKey.trim()
+      ? options.persistKey.trim()
+      : null;
 
   const [fullPoints, setFullPoints] = useState([]);
   const [recentPoints, setRecentPoints] = useState([]);
   const [livePoints, setLivePoints] = useState([]);
+  const [persistedPoints, setPersistedPoints] = useState([]);
   const [activeHex, setActiveHex] = useState("");
   const [recentLoading, setRecentLoading] = useState(false);
   const [fullLoading, setFullLoading] = useState(false);
@@ -191,16 +214,28 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     });
   }, [hex, selectedAircraft]);
 
+  // Seed the persisted buffer when the persistKey changes so refreshes
+  // pick up the prior trail immediately. The fresh full/recent fetches
+  // overlay this as soon as they resolve.
+  useEffect(() => {
+    if (!persistKey) {
+      setPersistedPoints([]);
+      return;
+    }
+    setPersistedPoints(readTrackedTrace(persistKey));
+  }, [persistKey]);
+
   const merged = useMemo(
     () =>
       mergeTracesByPriority({
         sources: [
-          { points: livePoints, priority: 2 },
-          { points: recentPoints, priority: 1 },
-          { points: fullPoints, priority: 0 },
+          { points: livePoints, priority: 3 },
+          { points: recentPoints, priority: 2 },
+          { points: fullPoints, priority: 1 },
+          { points: persistedPoints, priority: 0 },
         ],
       }),
-    [livePoints, recentPoints, fullPoints],
+    [livePoints, recentPoints, fullPoints, persistedPoints],
   );
 
   const tracePoints = useMemo(
@@ -208,6 +243,18 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
       activeHex === hex ? clipTracePointsBefore(merged, traceStartAtMs) : [],
     [activeHex, hex, merged, traceStartAtMs],
   );
+
+  // Persist the clipped trace back to localStorage. Debounced so a burst
+  // of live polls collapses into one write. We only persist what the
+  // user can see — the cutoff already bounds the size, so the storage
+  // cap rarely kicks in.
+  useEffect(() => {
+    if (!persistKey || tracePoints.length === 0) return undefined;
+    const timer = window.setTimeout(() => {
+      writeTrackedTrace(persistKey, tracePoints);
+    }, PERSIST_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [persistKey, tracePoints]);
 
   return {
     tracePoints,
