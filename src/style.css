@@ -206,6 +206,13 @@
     --atc-radius-panel: 4px;
     --atc-radius-control: 2px;
 
+    /* Preview-card drop shadow. Light theme uses a real grey drop
+       shadow so the card reads as elevated off a bright canvas; the
+       dark-theme override (below) swaps to a soft bg-tinted glow. */
+    --preview-card-shadow:
+        0 12px 32px rgba(14, 26, 43, 0.12),
+        0 4px 10px rgba(14, 26, 43, 0.06);
+
     --background: var(--atc-bg);
     --foreground: var(--atc-text);
     --card: var(--atc-card);
@@ -271,6 +278,12 @@
     --atc-radius-pill: 999px;
     --atc-radius-panel: 4px;
     --atc-radius-control: 2px;
+
+    /* Soft bg-tinted glow for the dark canvas — a black drop shadow
+       would just look like a hole, so we mix the bg color back in. */
+    --preview-card-shadow:
+        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
+        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
 
     --background: var(--atc-bg);
     --foreground: var(--atc-text);
@@ -3880,9 +3893,7 @@ body {
     background: var(--atc-card);
     border: 1px solid var(--tone-border-firm);
     border-radius: 12px;
-    box-shadow:
-        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
-        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    box-shadow: var(--preview-card-shadow);
     color: var(--atc-text);
     font-family: 'Manrope', system-ui, sans-serif;
     pointer-events: none;
@@ -4325,8 +4336,7 @@ body {
             color-mix(in oklab, var(--atc-card) 82%, transparent)
         );
     box-shadow:
-        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
-        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent),
+        var(--preview-card-shadow),
         inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
     -webkit-backdrop-filter: blur(12px) saturate(1.08);
     backdrop-filter: blur(12px) saturate(1.08);
@@ -4435,9 +4445,7 @@ body {
     background: var(--atc-card);
     border: 1px solid var(--tone-border-firm);
     border-radius: 12px;
-    box-shadow:
-        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
-        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    box-shadow: var(--preview-card-shadow);
     color: var(--atc-text);
     pointer-events: none;
     user-select: none;
