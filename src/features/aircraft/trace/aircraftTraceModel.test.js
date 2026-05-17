@@ -4,6 +4,7 @@ import {
   buildAircraftTraceCurve,
   downsampleTracePoints,
   mergeTraceHistory,
+  mergeTracesByPriority,
   normalizeAdsbTracePayload,
   createAircraftTraceTracker,
 } from "./aircraftTraceModel.js";
@@ -165,6 +166,71 @@ import {
   assert.equal(downsampled.length, 5);
   assert.equal(downsampled[0].timestampMs, 0);
   assert.equal(downsampled.at(-1).timestampMs, 11_000);
+}
+
+{
+  // Recent wins over full on overlap; live wins over both.
+  const fullSource = [
+    { lat: 42.0, lon: -71.0, timestampMs: 1_000, altitude: 5_000 },
+    { lat: 42.01, lon: -70.99, timestampMs: 2_000, altitude: 6_000 },
+    { lat: 42.02, lon: -70.98, timestampMs: 3_000, altitude: 7_000 },
+  ];
+  const recentSource = [
+    { lat: 42.015, lon: -70.985, timestampMs: 2_500, altitude: 6_500 },
+    { lat: 42.025, lon: -70.975, timestampMs: 3_000, altitude: 7_100 },
+    { lat: 42.03, lon: -70.97, timestampMs: 4_000, altitude: 7_500 },
+  ];
+  const liveSource = [
+    { lat: 42.035, lon: -70.965, timestampMs: 4_200, altitude: 7_600 },
+  ];
+
+  const merged = mergeTracesByPriority({
+    sources: [
+      { points: liveSource, priority: 2 },
+      { points: recentSource, priority: 1 },
+      { points: fullSource, priority: 0 },
+    ],
+  });
+
+  // Recent should win at the 3_000 ms bucket (altitude 7_100, not 7_000).
+  const at3 = merged.find((p) => p.timestampMs === 3_000);
+  assert.equal(at3.altitude, 7_100, "recent should override full at overlap");
+
+  // Live (priority 2) drops in its own bucket (4_200 → bucket 4) and
+  // overrides the recent point at 4_000 (also bucket 4).
+  const bucket4 = merged.filter((p) => Math.floor(p.timestampMs / 1000) === 4);
+  assert.equal(bucket4.length, 1, "1-second bucket should collapse to one point");
+  assert.equal(bucket4[0].timestampMs, 4_200, "live should win the 4s bucket");
+  assert.equal(bucket4[0].altitude, 7_600);
+
+  // Full-only points (1_000) survive when no higher-priority source has them.
+  const at1 = merged.find((p) => p.timestampMs === 1_000);
+  assert.equal(at1.altitude, 5_000);
+
+  // Output is sorted ascending by timestamp.
+  for (let i = 1; i < merged.length; i++) {
+    assert.ok(merged[i].timestampMs >= merged[i - 1].timestampMs);
+  }
+}
+
+{
+  // Source order in the array doesn't matter — priority is explicit.
+  const a = [{ lat: 1, lon: 1, timestampMs: 1_000, altitude: 100 }];
+  const b = [{ lat: 1.5, lon: 1.5, timestampMs: 1_000, altitude: 200 }];
+  const orderOne = mergeTracesByPriority({
+    sources: [
+      { points: a, priority: 0 },
+      { points: b, priority: 5 },
+    ],
+  });
+  const orderTwo = mergeTracesByPriority({
+    sources: [
+      { points: b, priority: 5 },
+      { points: a, priority: 0 },
+    ],
+  });
+  assert.equal(orderOne[0].altitude, 200);
+  assert.equal(orderTwo[0].altitude, 200);
 }
 
 console.log("aircraftTraceModel.test.js ok");
