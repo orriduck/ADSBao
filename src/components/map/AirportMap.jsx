@@ -256,7 +256,7 @@ export default function AirportMap({
             />
           )}
           <SelectedAircraftTrace theme={currentTheme} />
-          <MapRangeLegend zoom={zoom} />
+          <MapRangeLegend theme={currentTheme} />
           {children}
           {visibleAircraft.map((ac) => (
             <AircraftPosition
