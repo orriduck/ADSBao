@@ -60,15 +60,17 @@ export default function AirportMap({
 }) {
   // Single source of truth for the ring bands so the inline labels
   // (AreaMarker), per-airport rings (NearbyAirportLayer), and the
-  // bottom-left legend all agree on what to render.
-  const effectiveFocalRings = focalRangeRings || {
-    intervalNm: 3,
-    maxNm: 30,
-  };
-  const effectiveNearbyRings = nearbyRangeRings || {
-    intervalNm: 3,
-    maxNm: 10,
-  };
+  // bottom-left legend all agree on what to render. Pass `false` to
+  // disable the layer entirely (flight tracking page does this so the
+  // moving viewport stays uncluttered).
+  const effectiveFocalRings =
+    focalRangeRings === false
+      ? null
+      : focalRangeRings || { intervalNm: 3, maxNm: 30 };
+  const effectiveNearbyRings =
+    nearbyRangeRings === false
+      ? null
+      : nearbyRangeRings || { intervalNm: 3, maxNm: 10 };
   const mapEl = useRef(null);
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
@@ -171,9 +173,9 @@ export default function AirportMap({
       airportLon: icao ? lon : null,
       nearbyAirports,
       zoom,
-      groundAreaRadiusNm: effectiveFocalRings.intervalNm,
+      groundAreaRadiusNm: effectiveFocalRings?.intervalNm,
     });
-  }, [aircraft, icao, lat, lon, nearbyAirports, zoom, effectiveFocalRings.intervalNm]);
+  }, [aircraft, icao, lat, lon, nearbyAirports, zoom, effectiveFocalRings?.intervalNm]);
   const selectedAircraft = useMemo(
     () =>
       visibleAircraft.find(
@@ -198,14 +200,16 @@ export default function AirportMap({
             showLabels={showMapLabels}
             selectionActive={selectionActive}
           />
-          <AreaMarker
-            lat={lat}
-            lon={lon}
-            zoom={zoom}
-            theme={currentTheme}
-            ringIntervalNm={effectiveFocalRings.intervalNm}
-            ringMaxNm={effectiveFocalRings.maxNm}
-          />
+          {effectiveFocalRings && (
+            <AreaMarker
+              lat={lat}
+              lon={lon}
+              zoom={zoom}
+              theme={currentTheme}
+              ringIntervalNm={effectiveFocalRings.intervalNm}
+              ringMaxNm={effectiveFocalRings.maxNm}
+            />
+          )}
           {icao && (
             <AirportMarker
               lat={lat}
@@ -220,8 +224,12 @@ export default function AirportMap({
             zoom={zoom}
             selectedIcao={selectedAirportIcao}
             onSelectAirport={onSelectAirport}
-            ringIntervalNm={effectiveNearbyRings.intervalNm}
-            ringMaxNm={effectiveNearbyRings.maxNm}
+            ringIntervalNm={
+              effectiveNearbyRings ? effectiveNearbyRings.intervalNm : null
+            }
+            ringMaxNm={
+              effectiveNearbyRings ? effectiveNearbyRings.maxNm : null
+            }
           />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
@@ -243,7 +251,7 @@ export default function AirportMap({
               zoom={zoom}
               icao={icao}
               aircraft={aircraft}
-              radiusNm={effectiveFocalRings.intervalNm}
+              radiusNm={effectiveFocalRings?.intervalNm}
             />
           )}
           <SelectedAircraftTrace theme={currentTheme} />
