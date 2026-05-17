@@ -1,15 +1,15 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import NumberFlow from "@number-flow/react";
 import { countryName, flagEmoji } from "@/utils/flag.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
 // Airport variant of the bottom-right preview card. Mirrors the aircraft
 // card's chrome (same container class so the slide-in / blur / sizing
-// match) and exposes a Track button that lands on /airport/[icao].
+// match) and exposes a Track link that lands on /airport/[icao].
 export default function AirportPreviewMetadataCard({ airport }) {
-  const router = useRouter();
   const pathname = usePathname();
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
@@ -23,11 +23,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
   const elevation = toFiniteNumber(airport?.elevationFt);
 
   const alreadyTracking = icao && pathname === `/airport/${icao}`;
-
-  const handleTrack = () => {
-    if (!icao || alreadyTracking) return;
-    router.push(`/airport/${icao}`);
-  };
+  const trackHref = icao ? `/airport/${icao}` : null;
 
   return (
     <div className="aircraft-preview-metadata-card">
@@ -79,14 +75,23 @@ export default function AirportPreviewMetadataCard({ airport }) {
         </dd>
       </dl>
 
-      <button
-        type="button"
-        className="aircraft-preview-card__track-btn"
-        onClick={handleTrack}
-        disabled={!icao || alreadyTracking}
-      >
-        {alreadyTracking ? "Tracking" : "Track"}
-      </button>
+      {trackHref && !alreadyTracking ? (
+        <Link
+          href={trackHref}
+          className="aircraft-preview-card__track-btn"
+          aria-label={`Track ${codeLine}`}
+        >
+          Track
+        </Link>
+      ) : (
+        <button
+          type="button"
+          className="aircraft-preview-card__track-btn"
+          disabled
+        >
+          {alreadyTracking ? "Tracking" : "Track"}
+        </button>
+      )}
     </div>
   );
 }
