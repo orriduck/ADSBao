@@ -106,11 +106,7 @@ function FlightIdentity({ callsign, type, category, route }) {
         <div className="mt-2 font-mono text-[12px] tracking-[0.04em] text-atc-dim">
           {route}
         </div>
-      ) : (
-        <div className="mt-2 font-mono text-[12px] italic text-atc-faint">
-          No route
-        </div>
-      )}
+      ) : null}
     </SidebarIdentityHero>
   );
 }
