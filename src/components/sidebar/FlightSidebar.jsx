@@ -185,7 +185,7 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
           />
           <SidebarMetricCard
             label="Status"
-            value={onGround ? "GND" : "AIR"}
+            value={onGround ? "GND" : altitude != null ? "AIR" : "—"}
             active={activeMetric === "status"}
             onClick={() => toggle("status")}
           />
