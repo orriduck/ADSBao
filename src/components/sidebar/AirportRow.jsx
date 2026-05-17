@@ -29,7 +29,10 @@ export default function AirportRow({
       onClick={() => airportId && onSelectAirport?.(airportId)}
     >
       <div className="aircraft-table-identity aircraft-table-identity--solo min-w-0">
-        <span className="aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text">
+        <span
+          className="aircraft-table-callsign airport-sidebar-display-mono notranslate truncate text-[12px] font-semibold text-atc-text"
+          translate="no"
+        >
           {code}
         </span>
         {placeText ? (
@@ -65,7 +68,10 @@ function NumberWithUnit({ value, unit, format }) {
   return (
     <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
       <span>{formatted}</span>
-      <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim">
+      <sub
+        className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
+        translate="no"
+      >
         {unit}
       </sub>
     </span>

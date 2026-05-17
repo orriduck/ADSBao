@@ -31,7 +31,10 @@ export default function AirportPreviewMetadataCard({ airport }) {
         <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-atc-faint">
           Airport
         </span>
-        <span className="airport-sidebar-display-mono airport-sidebar-display-mono--hero text-[24px] font-extrabold text-atc-text">
+        <span
+          className="airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[24px] font-extrabold text-atc-text"
+          translate="no"
+        >
           {codeLine}
         </span>
         <h2 className="text-[15px] font-semibold leading-tight text-atc-text">
@@ -45,7 +48,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
 
       <dl className="grid grid-cols-2 gap-y-1.5 gap-x-3 font-mono text-[11px]">
-        <dt className="text-atc-faint uppercase tracking-[0.12em]">Dist</dt>
+        <dt className="text-atc-faint uppercase tracking-[0.12em]">Distance</dt>
         <dd className="text-right text-atc-text">
           {distance == null ? (
             "—"
@@ -58,18 +61,22 @@ export default function AirportPreviewMetadataCard({ airport }) {
                   minimumFractionDigits: 1,
                 }}
               />
-              <span className="ml-1 text-atc-dim">NM</span>
+              <span className="notranslate ml-1 text-atc-dim" translate="no">
+                NM
+              </span>
             </>
           )}
         </dd>
-        <dt className="text-atc-faint uppercase tracking-[0.12em]">Elev</dt>
+        <dt className="text-atc-faint uppercase tracking-[0.12em]">Elevation</dt>
         <dd className="text-right text-atc-text">
           {elevation == null ? (
             "—"
           ) : (
             <>
               <NumberFlow value={Math.round(elevation)} />
-              <span className="ml-1 text-atc-dim">FT</span>
+              <span className="notranslate ml-1 text-atc-dim" translate="no">
+                FT
+              </span>
             </>
           )}
         </dd>

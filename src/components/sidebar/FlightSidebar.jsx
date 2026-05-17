@@ -91,19 +91,28 @@ function FlightIdentity({ callsign, type, category, route }) {
       {(type || category) && (
         <div className="mt-2 flex items-baseline gap-2">
           {type && (
-            <span className="font-mono text-[13px] font-semibold italic text-atc-text">
+            <span
+              className="notranslate font-mono text-[13px] font-semibold italic text-atc-text"
+              translate="no"
+            >
               {type}
             </span>
           )}
           {category && (
-            <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-atc-faint">
+            <span
+              className="notranslate font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-atc-faint"
+              translate="no"
+            >
               {category}
             </span>
           )}
         </div>
       )}
       {route ? (
-        <div className="mt-2 font-mono text-[12px] tracking-[0.04em] text-atc-dim">
+        <div
+          className="notranslate mt-2 font-mono text-[12px] tracking-[0.04em] text-atc-dim"
+          translate="no"
+        >
           {route}
         </div>
       ) : null}
@@ -126,12 +135,11 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         label="Speed"
         value={
           speed != null ? (
-            <NumberFlow value={Math.round(speed)} />
+            <MetricNumberFlow value={Math.round(speed)} suffix="kt" />
           ) : (
             "—"
           )
         }
-        unit={speed != null ? "kt" : ""}
         active={activeMetric === "speed"}
         onClick={() => toggle("speed")}
       />
@@ -141,33 +149,41 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
           onGround
             ? "GND"
             : altitude != null
-              ? <NumberFlow value={Math.round(altitude)} />
+              ? <MetricNumberFlow value={Math.round(altitude)} suffix="ft" />
               : "—"
         }
-        unit={onGround ? "" : altitude != null ? "ft" : ""}
         active={activeMetric === "altitude"}
         onClick={() => toggle("altitude")}
       />
       <SidebarMetricCard
-        label="V/S"
+        label="Vertical speed"
         value={
           vs != null ? (
-            <NumberFlow
+            <MetricNumberFlow
               value={Math.round(vs)}
               format={{ signDisplay: "exceptZero" }}
+              suffix="fpm"
             />
           ) : (
             "—"
           )
         }
-        unit={vs != null ? "fpm" : ""}
         active={activeMetric === "vs"}
         onClick={() => toggle("vs")}
       />
       <SidebarMetricCard
-        label="Heading"
-        value={track != null ? <NumberFlow value={Math.round(track)} /> : "—"}
-        unit={track != null ? "deg" : ""}
+        label="Track"
+        value={
+          track != null ? (
+            <MetricNumberFlow
+              value={Math.round(track)}
+              suffix="°"
+              suffixPosition="sup"
+            />
+          ) : (
+            "—"
+          )
+        }
         active={activeMetric === "track"}
         onClick={() => toggle("track")}
       />
@@ -178,15 +194,30 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
             value={hex}
             active={activeMetric === "hex"}
             onClick={() => toggle("hex")}
+            valueSize="compact"
           />
           <SidebarMetricCard
-            label="Status"
-            value={onGround ? "GND" : altitude != null ? "AIR" : "—"}
+            label="Flight phase"
+            value={onGround ? "Ground" : altitude != null ? "Airborne" : "—"}
             active={activeMetric === "status"}
             onClick={() => toggle("status")}
+            valueSize="compact"
+            valueTranslate
           />
         </>
       )}
     </SidebarMetricGrid>
+  );
+}
+
+function MetricNumberFlow({ value, suffix, format, suffixPosition = "sub" }) {
+  return (
+    <NumberFlow
+      value={value}
+      suffix={suffix}
+      format={format}
+      className="sidebar-metric-number-flow"
+      data-suffix-position={suffixPosition}
+    />
   );
 }

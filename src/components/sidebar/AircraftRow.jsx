@@ -85,7 +85,10 @@ function AircraftIdentityCell({
   if (!hasRoute) {
     return (
       <div className="aircraft-table-identity aircraft-table-identity--solo min-w-0">
-        <span className="aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text">
+        <span
+          className="aircraft-table-callsign airport-sidebar-display-mono notranslate truncate text-[12px] font-semibold text-atc-text"
+          translate="no"
+        >
           {callsign}
         </span>
       </div>
@@ -98,7 +101,10 @@ function AircraftIdentityCell({
         routeEntering ? "aircraft-table-identity--route-entering" : ""
       }`}
     >
-      <span className="aircraft-table-callsign airport-sidebar-display-mono truncate text-[12px] font-semibold text-atc-text">
+      <span
+        className="aircraft-table-callsign airport-sidebar-display-mono notranslate truncate text-[12px] font-semibold text-atc-text"
+        translate="no"
+      >
         {callsign}
       </span>
       <div className="aircraft-table-route-slot flex min-w-0 items-center">
@@ -109,13 +115,15 @@ function AircraftIdentityCell({
         >
           {hasRouteMunicipalities && (
             <div className="aircraft-table-route-face aircraft-table-route-face--flight">
-              <span className="truncate text-[9.5px]">
+              <span className="notranslate truncate text-[9.5px]" translate="no">
                 {routeMunicipalities}
               </span>
             </div>
           )}
           <div className="aircraft-table-route-face aircraft-table-route-face--route">
-            <span className="truncate text-[9.5px]">{route}</span>
+            <span className="notranslate truncate text-[9.5px]" translate="no">
+              {route}
+            </span>
           </div>
         </div>
       </div>
@@ -133,7 +141,10 @@ function NumberWithUnit({ value, unit, format }) {
   return (
     <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
       <span>{formatted}</span>
-      <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim">
+      <sub
+        className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
+        translate="no"
+      >
         {unit}
       </sub>
     </span>

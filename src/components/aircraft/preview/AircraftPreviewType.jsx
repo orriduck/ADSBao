@@ -11,9 +11,16 @@ export default function AircraftPreviewType({ aircraft }) {
 
   return (
     <div className="aircraft-preview-type">
-      <div className="aircraft-preview-type__code">{primary}</div>
+      <div className="aircraft-preview-type__code notranslate" translate="no">
+        {primary}
+      </div>
       {secondary && (
-        <div className="aircraft-preview-type__category">{secondary}</div>
+        <div
+          className="aircraft-preview-type__category notranslate"
+          translate="no"
+        >
+          {secondary}
+        </div>
       )}
     </div>
   );

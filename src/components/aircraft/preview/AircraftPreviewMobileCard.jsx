@@ -18,11 +18,21 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
   return (
     <div className="aircraft-preview-mobile-card__inner">
       <div className="aircraft-preview-mobile-card__row1">
-        <span className="aircraft-preview-mobile-card__callsign">{callsign}</span>
+        <span
+          className="aircraft-preview-mobile-card__callsign notranslate"
+          translate="no"
+        >
+          {callsign}
+        </span>
         {type && (
           <>
             <span className="aircraft-preview-mobile-card__sep">/</span>
-            <span className="aircraft-preview-mobile-card__type">{type}</span>
+            <span
+              className="aircraft-preview-mobile-card__type notranslate"
+              translate="no"
+            >
+              {type}
+            </span>
           </>
         )}
       </div>
@@ -31,7 +41,12 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
           {speed != null && (
             <span className="aircraft-preview-mobile-card__stat">
               <NumberFlow value={Math.round(speed)} className="aircraft-preview-mobile-card__num" />
-              <span className="aircraft-preview-mobile-card__unit">kt</span>
+              <span
+                className="aircraft-preview-mobile-card__unit notranslate"
+                translate="no"
+              >
+                kt
+              </span>
             </span>
           )}
           {(altitude != null || onGround) && (
@@ -43,7 +58,14 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
                 ) : (
                   <NumberFlow value={Math.round(altitude)} className="aircraft-preview-mobile-card__num" />
                 )}
-                {!onGround && <span className="aircraft-preview-mobile-card__unit">ft</span>}
+                {!onGround && (
+                  <span
+                    className="aircraft-preview-mobile-card__unit notranslate"
+                    translate="no"
+                  >
+                    ft
+                  </span>
+                )}
               </span>
             </>
           )}
@@ -56,7 +78,12 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
                   format={{ signDisplay: "exceptZero" }}
                   className="aircraft-preview-mobile-card__num"
                 />
-                <span className="aircraft-preview-mobile-card__unit">fpm</span>
+                <span
+                  className="aircraft-preview-mobile-card__unit notranslate"
+                  translate="no"
+                >
+                  fpm
+                </span>
               </span>
             </>
           )}

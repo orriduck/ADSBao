@@ -24,7 +24,10 @@ export default function AirportPreviewMobileCard({ airport }) {
   return (
     <div className="aircraft-preview-mobile-card__inner">
       <div className="aircraft-preview-mobile-card__row1">
-        <span className="aircraft-preview-mobile-card__callsign">
+        <span
+          className="aircraft-preview-mobile-card__callsign notranslate"
+          translate="no"
+        >
           {codeLine}
         </span>
       </div>
@@ -40,7 +43,12 @@ export default function AirportPreviewMobileCard({ airport }) {
                 format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
                 className="aircraft-preview-mobile-card__num"
               />
-              <span className="aircraft-preview-mobile-card__unit">NM</span>
+              <span
+                className="aircraft-preview-mobile-card__unit notranslate"
+                translate="no"
+              >
+                NM
+              </span>
             </span>
           )}
           {elevation != null && (
@@ -53,7 +61,12 @@ export default function AirportPreviewMobileCard({ airport }) {
                   value={Math.round(elevation)}
                   className="aircraft-preview-mobile-card__num"
                 />
-                <span className="aircraft-preview-mobile-card__unit">ft</span>
+                <span
+                  className="aircraft-preview-mobile-card__unit notranslate"
+                  translate="no"
+                >
+                  ft
+                </span>
               </span>
             </>
           )}

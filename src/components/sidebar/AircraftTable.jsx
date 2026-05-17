@@ -136,7 +136,7 @@ export default function AircraftTable({
       <div className="flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
           <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
-            {entityFilter === "airports" ? "Airports" : "Traffic"}
+            {entityFilter === "airports" ? "Airports" : "Flights"}
           </div>
           <div className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums">
             <NumberFlow value={filteredAircraft.length + filteredAirports.length} />
@@ -167,7 +167,7 @@ export default function AircraftTable({
           aria-label="Sidebar list filters"
         >
           <AircraftFilterCardSelect
-            label="Show"
+            label="Targets"
             value={entityFilter}
             onValueChange={setEntityFilter}
             options={ENTITY_FILTER_OPTIONS}
@@ -189,7 +189,7 @@ export default function AircraftTable({
                     )
                   }
                 >
-                  <span className="aircraft-filter-card__label">Traffic</span>
+                  <span className="aircraft-filter-card__label">Route</span>
                   <strong className="aircraft-filter-card__value">
                     {trafficFilter === "routed" ? "Routed" : "All"}
                   </strong>
@@ -214,7 +214,7 @@ export default function AircraftTable({
             onChange={setTypeFilter}
           />
           <AircraftFilterCardSelect
-            label="Alt"
+            label="Altitude"
             value={altitudeLevel}
             onValueChange={setAltitudeLevel}
             options={ALTITUDE_LEVEL_OPTIONS}
@@ -224,9 +224,9 @@ export default function AircraftTable({
         </div>
 
         <div className="grid grid-cols-[minmax(0,1fr)_54px_70px] items-center gap-3 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint">
-          <span>Name / Route</span>
-          <span className="text-right">Dist</span>
-          <span className="text-right">Alt</span>
+          <span>Callsign / Route</span>
+          <span className="text-right">Distance</span>
+          <span className="text-right">Altitude</span>
         </div>
 
         <AnimatePresence initial={false}>
@@ -393,7 +393,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
         aria-label="Filter by aircraft type"
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="aircraft-filter-card__label">Type</span>
+        <span className="aircraft-filter-card__label">Aircraft type</span>
         <strong className="aircraft-filter-card__value">{displayValue}</strong>
       </button>
       {open && panelStyle && typeof document !== "undefined" && createPortal(
