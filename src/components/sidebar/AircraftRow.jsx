@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import NumberFlow from "@number-flow/react";
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
 
 export default function AircraftRow({
@@ -124,13 +123,16 @@ function AircraftIdentityCell({
   );
 }
 
+// Plain-text formatter for list rows. NumberFlow's animated digits look
+// great on a couple of metric cards, but rendering ~290 instances (145
+// aircraft × 2 columns) every poll tick costs framerate. Static text
+// via Intl.NumberFormat keeps locale-correct separators without the
+// per-row custom-element overhead.
 function NumberWithUnit({ value, unit, format }) {
+  const formatted = new Intl.NumberFormat(undefined, format).format(value);
   return (
-    <span
-      className="inline-flex items-baseline justify-end gap-0.5 tabular-nums"
-      style={{ isolation: "isolate", willChange: "contents" }}
-    >
-      <NumberFlow value={value} format={format} />
+    <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
+      <span>{formatted}</span>
       <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim">
         {unit}
       </sub>
