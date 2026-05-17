@@ -61,7 +61,7 @@ export default function HomeScreen({ initialIcao = "" }) {
     if (!nextIcao) return;
     setAirport(selectedAirport);
     setCurrentIcao(nextIcao);
-    window.history.pushState({ icao: nextIcao }, "", `/${nextIcao}`);
+    window.history.pushState({ icao: nextIcao }, "", `/airport/${nextIcao}`);
   };
 
   const handleBack = () => {
@@ -84,9 +84,13 @@ export default function HomeScreen({ initialIcao = "" }) {
 }
 
 function normalizePathIcao(pathname) {
-  const segment = String(pathname || "")
+  // Airport pages live under /airport/[icao]; pull the segment that follows
+  // /airport/ rather than the first path segment.
+  const segments = String(pathname || "")
     .split("/")
-    .filter(Boolean)[0];
-  const normalized = String(segment || "").trim().toUpperCase();
+    .filter(Boolean);
+  const airportIndex = segments.indexOf("airport");
+  const candidate = airportIndex >= 0 ? segments[airportIndex + 1] : "";
+  const normalized = String(candidate || "").trim().toUpperCase();
   return /^[A-Z0-9]{3,4}$/.test(normalized) ? normalized : "";
 }

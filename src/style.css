@@ -3027,6 +3027,16 @@ body {
     color: var(--atc-faint);
 }
 
+.sidebar-shell {
+    /* Shared baseline tokens for every sidebar variant: padding inset and
+       the typography stack. Defined on the shell so AircraftTable rows
+       (which read --airport-sidebar-inset for horizontal padding) align
+       identically on the airport and flight pages. */
+    --airport-sidebar-inset: 28px;
+    --airport-sidebar-sans: "Inter", var(--font-sans);
+    font-family: var(--airport-sidebar-sans);
+}
+
 .airport-sidebar-panel {
     --airport-sidebar-inset: 28px;
     --airport-sidebar-sans: "Inter", var(--font-sans);
@@ -3047,13 +3057,13 @@ body {
 
 .airport-sidebar-display-mono--hero {
     font-weight: 800;
-    letter-spacing: 0.105em;
+    letter-spacing: -0.025em;
     line-height: 0.95;
 }
 
 .airport-sidebar-display-mono--metric {
     font-weight: 800;
-    letter-spacing: 0.06em;
+    letter-spacing: -0.025em;
     line-height: 0.9;
 }
 
@@ -3064,6 +3074,137 @@ body {
 
 .airport-sidebar-identity {
     padding: 28px var(--airport-sidebar-inset) 24px;
+}
+
+/* Two-column metric grid shared between the airport sidebar (interactive
+   WEATHER/FLIGHTS tabs) and the flight sidebar (focal aircraft telemetry
+   cards). Auto-divides between columns and across rows so any number of
+   cards reads as a coherent panel. */
+.sidebar-metric-grid {
+    border-bottom: 1px solid var(--atc-line);
+    border-top: 1px solid var(--atc-line);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sidebar-metric-card {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--atc-text);
+    align-content: center;
+    display: grid;
+    gap: 8px;
+    grid-template-rows: 16px 44px 14px;
+    isolation: isolate;
+    min-height: 116px;
+    min-width: 0;
+    overflow: hidden;
+    padding: 22px var(--airport-sidebar-inset) 20px;
+    position: relative;
+    text-align: left;
+    /* Static stat cards on the flight page shouldn't behave like
+       clickable surfaces — disable text selection + the user-agent's
+       text caret so clicking just feels inert. The button variant
+       (interactive) overrides cursor below. */
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+    transition:
+        background 0.18s ease,
+        box-shadow 0.18s ease,
+        color 0.18s ease;
+}
+
+.sidebar-metric-card--interactive {
+    cursor: pointer;
+}
+
+/* Active-state glow — same "light rising from the bottom" treatment the
+   aircraft filter cards use. Fades in over ~360ms when the metric becomes
+   active. */
+.sidebar-metric-card::after {
+    background: var(--atc-tab-glow);
+    content: "";
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transition: opacity 360ms ease;
+    z-index: 0;
+}
+
+.sidebar-metric-card--active::after {
+    opacity: 1;
+}
+
+.sidebar-metric-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Vertical seam between the two columns. */
+.sidebar-metric-card:nth-child(2n) {
+    border-left: 1px solid var(--atc-line);
+}
+
+/* Horizontal seam between rows (anything past the first row). */
+.sidebar-metric-card:nth-child(n + 3) {
+    border-top: 1px solid var(--atc-line);
+}
+
+.sidebar-metric-card__label,
+.sidebar-metric-card__unit {
+    color: var(--atc-faint);
+    font-family: var(--airport-sidebar-sans);
+    text-transform: uppercase;
+}
+
+.sidebar-metric-card__label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.sidebar-metric-card__value {
+    align-items: center;
+    color: var(--atc-text);
+    display: flex;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    min-height: 44px;
+}
+
+.sidebar-metric-card__unit {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 14px;
+    min-height: 14px;
+}
+
+.sidebar-metric-card--interactive:hover,
+.sidebar-metric-card--active {
+    background: color-mix(in oklab, var(--atc-card) 58%, transparent);
+}
+
+/* Active-tab bottom indicator (the accent-colored line) — preserved from
+   the original view-switch design. Painted via inset box-shadow so it
+   doesn't push content / disturb the grid layout. */
+.sidebar-metric-card--active {
+    box-shadow: inset 0 -2px 0 var(--atc-accent);
+}
+
+.sidebar-metric-card--interactive:focus {
+    outline: none;
+}
+
+.sidebar-metric-card--interactive:focus-visible {
+    box-shadow:
+        inset 0 0 0 2px var(--atc-accent),
+        inset 0 -2px 0 var(--atc-accent);
 }
 
 .airport-sidebar-view-switch {
@@ -3364,6 +3505,19 @@ body {
     border-top: 1px solid var(--atc-line);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* 2 × 2 layout for the four-filter variant (Show / Traffic / Type / Alt).
+   Adds a horizontal seam between rows so the grid reads as a panel of
+   cards rather than a single dense strip. */
+.aircraft-filter-cards--grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.aircraft-filter-cards--grid > .aircraft-filter-card:nth-child(n + 3),
+.aircraft-filter-cards--grid > .aircraft-filter-type > .aircraft-filter-card:nth-child(n + 3),
+.aircraft-filter-cards--grid > *:nth-child(n + 3) {
+    border-top: 1px solid var(--atc-line);
 }
 
 .aircraft-filter-card {
@@ -3904,7 +4058,7 @@ body {
     font-size: 22px;
     font-weight: 800;
     font-style: italic;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.05em;
     line-height: 1;
     color: var(--atc-text);
     white-space: nowrap;
@@ -4017,7 +4171,7 @@ body {
     font-size: 22px;
     font-weight: 800;
     font-style: italic;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.05em;
     line-height: 1;
     color: var(--atc-text);
     min-width: 0;
@@ -4178,6 +4332,42 @@ body {
     backdrop-filter: blur(12px) saturate(1.08);
 }
 
+/* Primary CTA inside the preview card — italic-bold Inter that reads
+   as a confident action ("Track this aircraft"). Card itself has
+   pointer-events:none, so the button restores its own pointer-events. */
+.aircraft-preview-card__track-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    background: var(--atc-accent);
+    color: var(--atc-bg);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.aircraft-preview-card__track-btn:hover {
+    opacity: 0.92;
+}
+
+.aircraft-preview-card__track-btn:active {
+    transform: scale(0.98);
+}
+
+.aircraft-preview-card__track-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
 .aircraft-preview-metadata-card__credit {
     display: block;
     margin-bottom: 8px;
@@ -4334,3 +4524,7 @@ body {
     display: block;
     pointer-events: none;
 }
+
+/* Flight tracking sidebar — chrome, identity block, and metric grid are
+   all reused from the airport sidebar via SidebarShell, SidebarIdentityHero,
+   and SidebarMetric. No flight-specific layout CSS remains. */

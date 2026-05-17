@@ -7,6 +7,39 @@ import {
   normalizeAdsbTracePayload,
 } from "../features/aircraft/trace/aircraftTraceModel.js";
 
+// Session-level cache of trace points keyed by ICAO24 hex + trace mode
+// (recent vs full). Lets the user flip between aircraft without re-paying
+// the fetch each time: warm-start from any prior render, then a background
+// refresh. Module scope, not persisted across reloads.
+const traceCache = new Map();
+const TRACE_CACHE_TTL_MS = 90_000;
+// Full traces are heavier and update less often; cache them longer so the
+// user can flip away and back without re-paying the multi-MB fetch.
+const TRACE_FULL_CACHE_TTL_MS = 10 * 60 * 1000;
+
+function cacheKey(hex, fullTrace) {
+  return `${fullTrace ? "full" : "recent"}:${hex}`;
+}
+
+function readTraceCache(hex, fullTrace) {
+  const entry = traceCache.get(cacheKey(hex, fullTrace));
+  if (!entry) return null;
+  const ttl = fullTrace ? TRACE_FULL_CACHE_TTL_MS : TRACE_CACHE_TTL_MS;
+  if (Date.now() - entry.fetchedAt > ttl) {
+    traceCache.delete(cacheKey(hex, fullTrace));
+    return null;
+  }
+  return entry;
+}
+
+function writeTraceCache(hex, fullTrace, tracePoints) {
+  if (!hex) return;
+  traceCache.set(cacheKey(hex, fullTrace), {
+    tracePoints,
+    fetchedAt: Date.now(),
+  });
+}
+
 function liveAircraftToTracePoint(aircraft) {
   if (!aircraft) return null;
   const lat = Number(aircraft.lat);
@@ -31,17 +64,20 @@ function liveAircraftToTracePoint(aircraft) {
   };
 }
 
-export function useAircraftTrace(selectedAircraft = null) {
+export function useAircraftTrace(selectedAircraft = null, options = {}) {
   const hex = selectedAircraft?.icao24 || "";
+  const fullTrace = Boolean(options?.fullTrace);
   const [traceState, setTraceState] = useState({
     hex: "",
     tracePoints: [],
   });
   const [loading, setLoading] = useState(false);
 
-  // Fetch the recent trace once when the selection changes. Merge into
-  // whatever live points have already accumulated so we don't trample
-  // positions that polled in between selection and fetch resolution.
+  // Fetch the recent trace once when the selection changes. Warm-start
+  // from the session cache so re-selecting the same aircraft doesn't
+  // black out the trail mid-render; merge into whatever live points have
+  // already accumulated so we don't trample positions that polled in
+  // between selection and fetch resolution.
   useEffect(() => {
     if (!hex) {
       setTraceState({ hex: "", tracePoints: [] });
@@ -50,21 +86,26 @@ export function useAircraftTrace(selectedAircraft = null) {
     }
 
     let disposed = false;
-    setTraceState({ hex, tracePoints: [] });
-    setLoading(true);
+    const cached = readTraceCache(hex, fullTrace);
+    setTraceState({
+      hex,
+      tracePoints: cached?.tracePoints || [],
+    });
+    setLoading(!cached);
 
     aircraftTraceClient
-      .fetchAircraftTrace({ hex })
+      .fetchAircraftTrace({ hex, full: fullTrace })
       .then((payload) => {
         if (disposed) return;
         const recent = normalizeAdsbTracePayload(payload?.recent);
-        setTraceState((current) => ({
-          hex,
-          tracePoints: mergeTraceHistory({
+        setTraceState((current) => {
+          const merged = mergeTraceHistory({
             recentTrace: recent,
             fallbackHistory: current.hex === hex ? current.tracePoints : [],
-          }),
-        }));
+          });
+          writeTraceCache(hex, fullTrace, merged);
+          return { hex, tracePoints: merged };
+        });
       })
       .catch((error) => {
         if (!disposed) {
@@ -78,7 +119,7 @@ export function useAircraftTrace(selectedAircraft = null) {
     return () => {
       disposed = true;
     };
-  }, [hex]);
+  }, [hex, fullTrace]);
 
   // Append the latest polled position to the trace so the trail extends
   // forward in real time. Wait until the recent-trace fetch has resolved
@@ -94,15 +135,14 @@ export function useAircraftTrace(selectedAircraft = null) {
     if (!point) return;
     setTraceState((current) => {
       if (current.hex !== hex) return current;
-      return {
-        hex,
-        tracePoints: mergeTraceHistory({
-          recentTrace: [point],
-          fallbackHistory: current.tracePoints,
-        }),
-      };
+      const merged = mergeTraceHistory({
+        recentTrace: [point],
+        fallbackHistory: current.tracePoints,
+      });
+      writeTraceCache(hex, fullTrace, merged);
+      return { hex, tracePoints: merged };
     });
-  }, [hex, loading, selectedAircraft]);
+  }, [hex, loading, selectedAircraft, fullTrace]);
 
   return {
     tracePoints: traceState.hex === hex ? traceState.tracePoints : [],

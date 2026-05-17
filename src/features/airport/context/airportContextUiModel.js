@@ -1,5 +1,8 @@
 const PRIMARY_OPACITY = 1;
-const DIMMED_OPACITY = 0.28;
+// Lighter dim than the original 0.28 — selecting an aircraft should
+// privilege the focal/clicked plane but the rest of the traffic still
+// needs to read clearly enough to scan the scene.
+const DIMMED_OPACITY = 0.55;
 
 export function getAircraftIdentity(aircraft = {}) {
   return aircraft.icao24 || aircraft.callsign || "";

@@ -14,7 +14,18 @@ export const DEFAULT_AIRCRAFT_FILTERS = Object.freeze({
   trafficFilter: "all",
   typeFilter: "all",
   altitudeLevel: "all",
+  // What kind of entities to show in the list:
+  //   "all"      — aircraft + nearby airports
+  //   "airports" — nearby airports only
+  //   "aircraft" — aircraft only
+  entityFilter: "all",
 });
+
+export const ENTITY_FILTER_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "aircraft", label: "Aircraft" },
+  { value: "airports", label: "Airports" },
+];
 
 // ADS-B emitter / wake-class categories. A1–A7 map to specific labels; anything
 // outside (B*, C*, A0, blank) collapses into a single "Other" bucket so the

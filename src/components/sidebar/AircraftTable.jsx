@@ -20,9 +20,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useAirportExplorerUi } from "@/components/airport/explorer/AirportExplorerUiContext.jsx";
+import { useExplorerUi } from "@/components/explorer/ExplorerUiContext.jsx";
 import {
   ALTITUDE_LEVEL_OPTIONS,
+  ENTITY_FILTER_OPTIONS,
   aircraftMatchesFilters,
   aircraftTypeLabel,
   getAircraftTypeGroups,
@@ -33,23 +34,32 @@ import {
   getContextTagLabel,
 } from "../../features/airport/context/airportContextUiModel.js";
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
+import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
 import AircraftList from "./AircraftList.jsx";
 import AircraftSlot from "./AircraftSlot.jsx";
+import AirportRow from "./AirportRow.jsx";
 
 export default function AircraftTable({
   aircraft = [],
+  airports = [],
+  focusLat = null,
+  focusLon = null,
   selectedAircraftId = "",
+  selectedAirportIcao = "",
   onSelectAircraft,
+  onSelectAirport,
   fill = true,
 }) {
   const {
     trafficFilter,
     typeFilter,
     altitudeLevel,
+    entityFilter,
     setTrafficFilter,
     setTypeFilter,
     setAltitudeLevel,
-  } = useAirportExplorerUi();
+    setEntityFilter,
+  } = useExplorerUi();
   const [query, setQuery] = useState("");
   const selectedTypes = useMemo(
     () => (Array.isArray(typeFilter) ? typeFilter : []),
@@ -59,17 +69,49 @@ export default function AircraftTable({
     () => getAircraftTypeGroups(aircraft, selectedTypes),
     [aircraft, selectedTypes],
   );
+  // Aircraft entries enriched with a distanceNm relative to the focus
+  // point (focal aircraft or airport). The airport-explorer enrichment
+  // already provides distanceNm in airport-page context; for the flight
+  // page we compute it on the fly here.
+  const aircraftWithDist = useMemo(() => {
+    if (focusLat == null || focusLon == null) return aircraft;
+    return aircraft.map((item) => {
+      const computed = getDistanceNm(focusLat, focusLon, item?.lat, item?.lon);
+      if (computed == null) return item;
+      return { ...item, distanceNm: computed };
+    });
+  }, [aircraft, focusLat, focusLon]);
+
   const rows = useMemo(
     () =>
       filterAndSortAircraft({
-        aircraft,
+        aircraft: aircraftWithDist,
         altitudeLevel,
         query,
         trafficFilter,
         typeFilter,
       }),
-    [aircraft, altitudeLevel, query, trafficFilter, typeFilter],
+    [aircraftWithDist, altitudeLevel, query, trafficFilter, typeFilter],
   );
+
+  const filteredAirports = useMemo(() => {
+    if (entityFilter === "aircraft") return [];
+    const normalizedQuery = query.trim().toLowerCase();
+    return airports
+      .filter((airport) =>
+        normalizedQuery
+          ? airportSearchText(airport).includes(normalizedQuery)
+          : true,
+      )
+      .toSorted(
+        (left, right) => (left.distanceNm || 0) - (right.distanceNm || 0),
+      );
+  }, [airports, entityFilter, query]);
+
+  const filteredAircraft = useMemo(() => {
+    if (entityFilter === "airports") return [];
+    return rows;
+  }, [rows, entityFilter]);
   // Pinned aircraft sits above the scrolling list and stays visible even
   // when filters would otherwise exclude it. Look in the full nearby set,
   // not the filtered rows, so a user can keep watching a selection without
@@ -83,23 +125,26 @@ export default function AircraftTable({
   }, [aircraft, selectedAircraftId]);
   // Don't duplicate the pinned aircraft inside the scroll list.
   const listRows = useMemo(() => {
-    if (!pinnedAircraft) return rows;
-    return rows.filter(
+    if (!pinnedAircraft) return filteredAircraft;
+    return filteredAircraft.filter(
       (item) => getAircraftIdentity(item) !== selectedAircraftId,
     );
-  }, [pinnedAircraft, rows, selectedAircraftId]);
+  }, [pinnedAircraft, filteredAircraft, selectedAircraftId]);
 
   return (
     <div className={`flex flex-col ${fill ? "h-full" : ""}`}>
       <div className="flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
           <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
-            Aircraft
+            {entityFilter === "airports" ? "Airports" : "Traffic"}
           </div>
           <div className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums">
-            <NumberFlow value={rows.length} />
+            <NumberFlow value={filteredAircraft.length + filteredAirports.length} />
             <span> / </span>
-            <NumberFlow value={aircraft.length} suffix=" nearby" />
+            <NumberFlow
+              value={aircraft.length + airports.length}
+              suffix=" nearby"
+            />
           </div>
         </div>
 
@@ -117,10 +162,19 @@ export default function AircraftTable({
         </div>
 
         <div
-          className="aircraft-filter-cards"
+          className="aircraft-filter-cards aircraft-filter-cards--grid"
           role="group"
-          aria-label="Aircraft filters"
+          aria-label="Sidebar list filters"
         >
+          <AircraftFilterCardSelect
+            label="Show"
+            value={entityFilter}
+            onValueChange={setEntityFilter}
+            options={ENTITY_FILTER_OPTIONS}
+            ariaLabel="Filter what to show in the list"
+            contentClassName="min-w-[220px]"
+          />
+
           <TooltipProvider delayDuration={250}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -170,9 +224,9 @@ export default function AircraftTable({
         </div>
 
         <div className="grid grid-cols-[minmax(0,1fr)_54px_70px] items-center gap-3 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint">
-          <span>Callsign / Route</span>
-          <span className="text-right">GS</span>
-          <span className="text-right">ALT</span>
+          <span>Name / Route</span>
+          <span className="text-right">Dist</span>
+          <span className="text-right">Alt</span>
         </div>
 
         <AnimatePresence initial={false}>
@@ -201,16 +255,41 @@ export default function AircraftTable({
         layoutScroll
         className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}
       >
-        {listRows.length === 0 && !pinnedAircraft ? (
+        {listRows.length === 0 &&
+        filteredAirports.length === 0 &&
+        !pinnedAircraft ? (
           <div className="px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
-            {aircraft.length ? "No aircraft match" : "No aircraft in range"}
+            {aircraft.length + airports.length
+              ? "No matches"
+              : "Nothing in range"}
           </div>
         ) : (
-          <AircraftList
-            aircraft={listRows}
-            selectedAircraftId={selectedAircraftId}
-            onSelectAircraft={onSelectAircraft}
-          />
+          <>
+            {listRows.length > 0 && (
+              <AircraftList
+                aircraft={listRows}
+                selectedAircraftId={selectedAircraftId}
+                onSelectAircraft={onSelectAircraft}
+              />
+            )}
+            {filteredAirports.length > 0 && (
+              <ul className="aircraft-table-list">
+                {filteredAirports.map((airport) => (
+                  <li
+                    key={`airport:${airport.icao}`}
+                    className="aircraft-table-list__item"
+                  >
+                    <AirportRow
+                      airport={airport}
+                      airportId={airport.icao}
+                      selected={airport.icao === selectedAirportIcao}
+                      onSelectAirport={onSelectAirport}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </motion.div>
     </div>
@@ -454,6 +533,19 @@ function filterAndSortAircraft({
       normalizedQuery ? aircraftSearchText(item).includes(normalizedQuery) : true,
     )
     .sort(sortAircraftByAltitude);
+}
+
+function airportSearchText(airport = {}) {
+  return [
+    airport.icao,
+    airport.iata,
+    airport.name,
+    airport.city,
+    airport.country,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 }
 
 function aircraftSearchText(aircraft = {}) {

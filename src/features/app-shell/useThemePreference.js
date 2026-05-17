@@ -26,6 +26,10 @@ export function useThemePreference() {
     });
     setThemePreference(initialized.preference);
     themePreferenceRef.current = initialized.preference;
+    // Mirror localStorage into the cookie so the server-rendered
+    // <html data-theme> matches the user's stored choice on the next
+    // request. One-shot migration for users who pre-date the cookie.
+    writeStoredTheme(initialized.preference);
 
     const listener = () => {
       if (themePreferenceRef.current === THEME_SYSTEM) {

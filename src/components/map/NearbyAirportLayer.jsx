@@ -88,9 +88,20 @@ const runwayLayers = ({ airport, map, theme, zoom }) => {
   ];
 };
 
-export default function NearbyAirportLayer({ airports = [], theme = "dark", zoom }) {
+export default function NearbyAirportLayer({
+  airports = [],
+  theme = "dark",
+  zoom,
+  selectedIcao = "",
+  onSelectAirport = null,
+}) {
   const map = useMapInstance();
   const layerRef = useRef(null);
+  // Keep the click handler in a ref so re-rendering the layer doesn't
+  // require tearing down + re-adding the markers each time the callback
+  // identity changes.
+  const onSelectRef = useRef(onSelectAirport);
+  onSelectRef.current = onSelectAirport;
 
   useEffect(() => {
     if (!map || !map.getContainer) return undefined;
@@ -103,15 +114,25 @@ export default function NearbyAirportLayer({ airports = [], theme = "dark", zoom
       runwayLayers({ airport, map, theme, zoom }).forEach((runwayLayer) =>
         runwayLayer.addTo(layer),
       );
-      L.marker([airport.lat, airport.lon], {
-        interactive: false,
+      const interactive = Boolean(onSelectRef.current);
+      const isSelected = selectedIcao && airport.icao === selectedIcao;
+      const marker = L.marker([airport.lat, airport.lon], {
+        interactive,
+        keyboard: interactive,
         icon: L.divIcon({
-          className: "",
+          className: isSelected ? "nearby-airport-marker--selected" : "",
           html: markerHtml(airport),
           iconSize: [96, 24],
           iconAnchor: [12, 12],
         }),
-      }).addTo(layer);
+      });
+      if (interactive) {
+        marker.on("click", (event) => {
+          event?.originalEvent?.stopPropagation?.();
+          onSelectRef.current?.(airport.icao);
+        });
+      }
+      marker.addTo(layer);
     }
 
     layer.addTo(map);
@@ -121,7 +142,7 @@ export default function NearbyAirportLayer({ airports = [], theme = "dark", zoom
       layer.removeFrom(map);
       layerRef.current = null;
     };
-  }, [map, airports, theme, zoom]);
+  }, [map, airports, theme, zoom, selectedIcao]);
 
   return null;
 }

@@ -26,8 +26,17 @@ const applyThemePreference = ({
   return { preference: safeTheme, resolvedTheme }
 }
 
+const THEME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365
+
 const writeStoredTheme = (theme, storage = window.localStorage) => {
-  storage.setItem(THEME_KEY, sanitizeTheme(theme))
+  const safe = sanitizeTheme(theme)
+  storage.setItem(THEME_KEY, safe)
+  // Mirror the preference into a cookie so the Next.js server layout
+  // can read it on the next request and render the right data-theme
+  // attribute directly — no client-side boot script needed.
+  if (typeof document !== 'undefined') {
+    document.cookie = `${THEME_KEY}=${safe}; Path=/; Max-Age=${THEME_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`
+  }
 }
 
 const initThemePreference = ({

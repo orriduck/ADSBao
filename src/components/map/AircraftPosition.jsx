@@ -41,6 +41,7 @@ export default function AircraftPosition({
   selected = false,
   selectionActive = false,
   traceActive = false,
+  forceSilhouette = false,
   onSelectAircraft,
   onRevalidateRoute,
 }) {
@@ -132,10 +133,15 @@ export default function AircraftPosition({
   if (!container) return null;
 
   const speedKt = Number(aircraft.velocity ?? 0);
-  const showArrow = speedKt >= SLOW_AIRCRAFT_THRESHOLD_KT;
+  // forceSilhouette is used on the flight tracking page so the focal
+  // aircraft never collapses to the slow-traffic dot — the "what we're
+  // tracking" plane should always read as a recognizable shape.
+  const showArrow = forceSilhouette || speedKt >= SLOW_AIRCRAFT_THRESHOLD_KT;
   const color = getAircraftColor(aircraft, showArrow);
   const silhouette =
-    showArrow && !aircraft.onGround ? resolveAircraftIcon(aircraft) : null;
+    forceSilhouette || (showArrow && !aircraft.onGround)
+      ? resolveAircraftIcon(aircraft)
+      : null;
   // Wake-class scale (A1–0.90 → A5–1.10). Applied to the moving marker
   // glyphs so heavies read larger than light traffic; falls back to 1× for
   // unknown / out-of-range categories. The slow-traffic dot stays unscaled
@@ -162,7 +168,9 @@ export default function AircraftPosition({
         silhouette={silhouette}
         sizeScale={sizeScale}
       />
-      {(selected || (!traceActive && emphasis.showLabel)) && (
+      {(selected ||
+        forceSilhouette ||
+        (!traceActive && emphasis.showLabel)) && (
         <Label
           color={color}
           label={label}

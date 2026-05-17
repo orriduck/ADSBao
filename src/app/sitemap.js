@@ -24,7 +24,7 @@ export default function sitemap() {
       priority: route.priority,
     })),
     ...FEATURED_AIRPORT_CODES.map((icao) => ({
-      url: getAbsoluteUrl(`/${icao}`),
+      url: getAbsoluteUrl(`/airport/${icao}`),
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.8,

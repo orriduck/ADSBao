@@ -18,7 +18,7 @@ export default function AircraftRow({
   const hasRouteMunicipalities = Boolean(
     routeMunicipalities && routeMunicipalities !== route,
   );
-  const gsValue = toNumber(aircraft.velocity);
+  const distValue = toNumber(aircraft.distanceNm);
   const altValue = toNumber(aircraft.altitude);
 
   return (
@@ -37,10 +37,14 @@ export default function AircraftRow({
         hasRouteMunicipalities={hasRouteMunicipalities}
       />
       <div className="text-right font-mono text-[12px] font-semibold text-atc-text">
-        {gsValue == null ? (
+        {distValue == null ? (
           <span>-</span>
         ) : (
-          <NumberWithUnit value={Math.round(gsValue)} unit="KT" />
+          <NumberWithUnit
+            value={distValue}
+            unit="NM"
+            format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
+          />
         )}
       </div>
       <div className="text-right font-mono text-[12px] font-semibold text-atc-text">
@@ -120,13 +124,13 @@ function AircraftIdentityCell({
   );
 }
 
-function NumberWithUnit({ value, unit }) {
+function NumberWithUnit({ value, unit, format }) {
   return (
     <span
       className="inline-flex items-baseline justify-end gap-0.5 tabular-nums"
       style={{ isolation: "isolate", willChange: "contents" }}
     >
-      <NumberFlow value={value} />
+      <NumberFlow value={value} format={format} />
       <sub className="relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim">
         {unit}
       </sub>

@@ -10,8 +10,10 @@ import { formatAircraftTraceAttempt } from "./aircraftTrace.utils.js";
 
 const [TRACE_PROVIDER] = TRACE_PROVIDER_CHAIN;
 
-async function fetchTrace({ hex }) {
-  const url = TRACE_PROVIDER.buildTraceUrl({ hex });
+async function fetchTrace({ hex, full = false }) {
+  const url = full
+    ? TRACE_PROVIDER.buildFullTraceUrl({ hex })
+    : TRACE_PROVIDER.buildTraceUrl({ hex });
 
   let response;
   try {
@@ -41,9 +43,9 @@ async function fetchTrace({ hex }) {
   }
 }
 
-export const getAircraftTrace = async ({ hex } = {}) => {
+export const getAircraftTrace = async ({ hex, full = false } = {}) => {
   try {
-    const recent = await fetchTrace({ hex });
+    const recent = await fetchTrace({ hex, full });
     if (!recent) {
       return {
         found: false,

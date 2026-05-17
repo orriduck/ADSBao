@@ -65,9 +65,12 @@ export default function MapTileLayers({
     if (!baseLayer) return;
 
     if (selectionActive) {
-      baseLayer.setOpacity(theme === "light" ? 0.78 : 0.72);
+      // Lighter selection-mode dim than before (0.72/0.78) — enough to
+      // signal focus mode but not so heavy that other aircraft / map
+      // context vanish under the mask.
+      baseLayer.setOpacity(theme === "light" ? 0.92 : 0.88);
       if (labelLayer) {
-        labelLayer.setOpacity(theme === "light" ? 0.38 : 0.28);
+        labelLayer.setOpacity(theme === "light" ? 0.55 : 0.5);
       }
       return;
     }

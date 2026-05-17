@@ -140,8 +140,47 @@ function makeLabelKey(labelPoints) {
     .join("·");
 }
 
+// Default export reads the trace context and renders one or two trace
+// instances (e.g. focal + selected on the flight detail page). Each
+// SingleAircraftTrace manages its own animation/layer state, so two
+// instances coexist cleanly without sharing refs.
 export default function SelectedAircraftTrace({ theme = "dark" }) {
-  const { aircraftHex, movement, tracePoints } = useSelectedAircraftTrace();
+  const ctx = useSelectedAircraftTrace();
+  const traces = Array.isArray(ctx?.traces) && ctx.traces.length > 0
+    ? ctx.traces
+    : [
+        {
+          aircraftHex: ctx?.aircraftHex,
+          movement: ctx?.movement,
+          tracePoints: ctx?.tracePoints || [],
+        },
+      ];
+
+  return (
+    <>
+      {traces.map((trace) =>
+        trace?.aircraftHex ? (
+          <SingleAircraftTrace
+            key={trace.aircraftHex}
+            theme={theme}
+            aircraftHex={trace.aircraftHex}
+            movement={trace.movement}
+            tracePoints={trace.tracePoints}
+            opacity={typeof trace.opacity === "number" ? trace.opacity : 1}
+          />
+        ) : null,
+      )}
+    </>
+  );
+}
+
+function SingleAircraftTrace({
+  theme = "dark",
+  aircraftHex,
+  movement,
+  tracePoints,
+  opacity = 1,
+}) {
   const map = useMapInstance();
   const lineLayersRef = useRef([]);
   const labelMarkersRef = useRef([]);
@@ -287,9 +326,9 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
         curve: geometry.curve,
         gradientId: `aircraft-trace-core-${gradientBase}`,
         color: lineColor,
-        tailOpacity: TRACE_CORE_TAIL_OPACITY,
-        midOpacity: TRACE_CORE_MID_OPACITY,
-        headOpacity: TRACE_CORE_HEAD_OPACITY,
+        tailOpacity: TRACE_CORE_TAIL_OPACITY * opacity,
+        midOpacity: TRACE_CORE_MID_OPACITY * opacity,
+        headOpacity: TRACE_CORE_HEAD_OPACITY * opacity,
       }),
     );
 
@@ -312,8 +351,8 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
         gradientId: `aircraft-trace-glow-${gradientBase}`,
         color: glowColor,
         tailOpacity: 0,
-        midOpacity: traceStyle.glowOpacity * 0.38,
-        headOpacity: traceStyle.glowOpacity,
+        midOpacity: traceStyle.glowOpacity * 0.38 * opacity,
+        headOpacity: traceStyle.glowOpacity * opacity,
       }),
     );
     const revealPolylines = [corePolyline, glowPolyline];
@@ -326,7 +365,8 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
           radius: traceStyle.pointRadius,
           stroke: false,
           fillColor: dotColor,
-          fillOpacity: traceStyle.pointFillOpacity * (0.3 + emphasis * 0.7),
+          fillOpacity:
+            traceStyle.pointFillOpacity * (0.3 + emphasis * 0.7) * opacity,
           interactive: false,
           className: "aircraft-trace-point",
         }).addTo(map),
@@ -431,6 +471,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
     accentColor,
     reducedMotion,
     traceRevealKey,
+    opacity,
   ]);
 
   // -------------------------------------------------------------------
@@ -502,7 +543,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
         const el = m.getElement?.();
         if (!el) return;
         el.style.transition = "none";
-        el.style.opacity = "1";
+        el.style.opacity = String(opacity);
       });
       return () => {
         if (labelRafIdRef.current) {
@@ -530,7 +571,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
       labelMarkers.forEach((m) => {
         const el = m.getElement?.();
         if (!el) return;
-        el.style.opacity = "1";
+        el.style.opacity = String(opacity);
       });
     });
 
@@ -546,7 +587,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
     // to geometry's per-poll reference churn. labelKey changes iff the
     // sample set actually shifts, at which point the ref's value is the
     // new set.
-  }, [map, labelKey, reducedMotion]);
+  }, [map, labelKey, reducedMotion, opacity]);
 
   return null;
 }

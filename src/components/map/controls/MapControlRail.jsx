@@ -9,6 +9,7 @@ const LAYERS_ICON_KEY = "layers";
 
 export default function MapControlRail({
   currentZoomOption,
+  zoomActive = true,
   currentTheme,
   themeTitle,
   layerDrawerOpen,
@@ -16,16 +17,30 @@ export default function MapControlRail({
   audioReady,
   layerDrawerId,
   onCycleZoom,
+  onFitToTrace = null,
   onToggleAudio,
   onCycleTheme,
   onToggleLayerDrawer,
 }) {
   return (
     <div className="map-ctrl-bar">
+      {onFitToTrace && (
+        <Button
+          variant="atcIcon"
+          size="icon"
+          className="ctrl-btn ctrl-fit-trace"
+          title="Fit map to trace"
+          onClick={onFitToTrace}
+          type="button"
+        >
+          <MapControlIcon iconKey="route" />
+        </Button>
+      )}
+
       <Button
         variant="atcIcon"
         size="icon"
-        className="ctrl-btn ctrl-view active"
+        className={`ctrl-btn ctrl-view ${zoomActive ? "active" : ""}`}
         title={`${currentZoomOption.title} (click to cycle)`}
         onClick={onCycleZoom}
         type="button"
