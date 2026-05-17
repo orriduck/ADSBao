@@ -3,17 +3,12 @@
 import { useEffect, useState } from "react";
 import { useMapInstance } from "./MapContext.js";
 
-// Bottom-left scale bar (比例尺). Always rendered so the user can
-// gauge distance at any zoom level — the bar adapts to the current
-// map center + zoom and picks the largest "nice" nautical-mile value
-// that fits within ~110 pixels. Theme-aware backdrop blur replaces a
-// bordered card so the scale stays present without visually
-// competing with the map content.
+// Bottom-left adaptive scale bar (比例尺). Snaps to the largest "nice"
+// NM step under TARGET_PX so the label doesn't flicker through
+// arbitrary digits as the user zooms.
 
 const METERS_PER_NM = 1852;
 const TARGET_PX = 110;
-// Ordered round numbers we'll snap the bar's length to. Avoids the
-// scale label flickering through arbitrary digits as the user zooms.
 const NICE_NM_STEPS = [
   1, 2, 3, 5, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500,
 ];
@@ -30,8 +25,6 @@ export default function MapRangeLegend({ theme = "dark" }) {
     const update = () => {
       const size = map.getSize();
       if (!size?.x || !size?.y) return;
-      // Measure how many meters the TARGET_PX-wide horizontal segment
-      // spans at the vertical center of the viewport.
       const y = size.y / 2;
       const left = map.containerPointToLatLng([0, y]);
       const right = map.containerPointToLatLng([TARGET_PX, y]);
@@ -39,14 +32,12 @@ export default function MapRangeLegend({ theme = "dark" }) {
       if (!Number.isFinite(meters) || meters <= 0) return;
       const nmPerPx = meters / METERS_PER_NM / TARGET_PX;
       const targetNm = nmPerPx * TARGET_PX;
-      // Pick the largest nice step at or below the target.
       let chosen = NICE_NM_STEPS[0];
       for (const candidate of NICE_NM_STEPS) {
         if (candidate <= targetNm) chosen = candidate;
         else break;
       }
-      const widthPx = chosen / nmPerPx;
-      setScale({ nm: chosen, widthPx });
+      setScale({ nm: chosen, widthPx: chosen / nmPerPx });
     };
 
     update();

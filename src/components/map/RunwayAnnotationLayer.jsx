@@ -43,19 +43,11 @@ const runwayLabelIcon = (ident, theme) =>
     iconAnchor: [17, 22],
   });
 
-// Renders the runway-approach visualisation in whichever shape the
-// active theme prefers:
-//   - dark theme  → soft glowing beam wedge (preserves the existing
-//                   gradient-controller pipeline so the wedge fades
-//                   outward from the threshold)
-//   - light theme → dashed extended centerline (reads cleanly on the
-//                   bright basemap; mirrors a chart-style approach
-//                   path)
-//
-// The two pipelines are different enough (polygon + gradient vs.
-// polyline + stroke dash) that the component dispatches on the
-// visualisation `kind` returned by buildRunwayApproachVisualization
-// instead of sharing a single style block.
+// Dispatches on the `kind` returned by buildRunwayApproachVisualization:
+// light theme draws a dashed extended centerline; dark theme keeps the
+// glowing wedge + gradient controller. The pipelines are different
+// enough (polyline vs. polygon + per-frame gradient) that a single
+// style block would be artificial.
 const buildApproachLayer = ({ kind, data, theme }) => {
   if (kind === "approach-lines") {
     const stroke =
@@ -79,10 +71,8 @@ const buildApproachLayer = ({ kind, data, theme }) => {
     return { layer, beamLayer: null, beamRenderer: null };
   }
 
-  // approach-beams (default — dark theme)
-  // Use a dedicated renderer with extra padding so beams that extend
-  // beyond the viewport edge are not clipped by the default SVG canvas.
-  // At ZOOM_AIRPORT beams reach ~408 px; default padding (0.1) is ~80 px.
+  // Extra renderer padding so beams that extend past the viewport edge
+  // aren't clipped — default 0.1 is ~80px but beams can reach ~408px.
   const beamRenderer = L.svg({ padding: 1 });
   const layer = L.geoJSON(data, {
     renderer: beamRenderer,
@@ -163,9 +153,6 @@ export default function RunwayAnnotationLayer({
     const layer = L.layerGroup(sublayers).addTo(map);
     layerRef.current = layer;
 
-    // Gradient controller is only meaningful for the wedge variant;
-    // the dashed line uses a plain stroke and doesn't need per-frame
-    // gradient updates.
     const removeGradients = beamLayer
       ? createRunwayBeamGradientController({ map, beamLayer, theme })
       : () => {};

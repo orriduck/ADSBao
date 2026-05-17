@@ -8,7 +8,7 @@ A modern airport-monitoring HUD with dynamic airport search, METAR context, and 
 ## Overview
 ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by public airport directory data.
 
-Current web app version: **1.1.0**. See `src/config/changelog.js` (rendered at `/changelog`) for product version history.
+Current web app version: **1.2.0**. See `src/config/changelog.js` (rendered at `/changelog`) for product version history.
 
 ## Tech Stack
 - **Frontend**: React on Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide Icons.

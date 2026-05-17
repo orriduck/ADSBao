@@ -504,9 +504,8 @@ body {
     opacity: 0.46;
 }
 
-/* Light-theme variant: a chart-style extended centerline replaces the
-   glowing wedge. No blur or blend-mode hacks needed — a plain dashed
-   stroke reads cleanest against the bright basemap. */
+/* Light-theme approach: dashed extended centerline replaces the dark
+   theme's glowing wedge — reads cleaner on the bright basemap. */
 .runway-approach-line {
     filter: drop-shadow(0 0 1px color-mix(in oklab, var(--atc-card) 60%, transparent));
 }
@@ -2464,12 +2463,9 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
-/* Dark-theme nav lights on the aircraft silhouette glyph. The parent
-   .aircraft-pointer-glyph carries the rotation transform so the lights
-   orbit with the heading; positions are anchored to the silhouette's
-   nominal nose (top) and wing tips (left/right at vertical center).
-   The lights sit slightly OUTSIDE the silhouette bounding box so they
-   don't get visually swallowed by the silhouette's drop-shadow halo. */
+/* Wrapper carries the rotation so the dark-theme nose beam orbits
+   with the heading. Sits ABOVE the silhouette's drop-shadow halo via
+   overflow: visible. */
 .aircraft-pointer-glyph {
     position: relative;
     overflow: visible;

@@ -1,21 +1,10 @@
-// Builds a stack of concentric L.circle layers around a coordinate, one
-// every `intervalNm` out to `maxNm`. Used to visualise distance bands on
-// the airport map: the primary focused airport renders 3nm rings out to
-// 30nm; each nearby airport renders the same band out to 10nm.
-//
-// The shape factory is pure (returns the layers; the caller decides
-// where to attach them) so both AreaMarker and NearbyAirportLayer can
-// reuse it without sharing a React component or Leaflet map handle.
+// Pure factory: returns L.circle layers for a concentric distance
+// band. Both AreaMarker and NearbyAirportLayer attach what comes back
+// to their own layer group.
 
 const NM_TO_METERS = 1852;
 
 function ringColors(theme) {
-  // Two roles: `stroke` is the ring line itself; `band` is a very low
-  // alpha fill applied to the MAJOR rings so the user sees alternating
-  // shaded bands between major boundaries. Leaflet draws layers in the
-  // order they're added, so the factory below renders outer → inner;
-  // each major's disk then overlaps the previous, producing widening
-  // concentric shadings.
   if (theme === "light") {
     return {
       minorStroke: "rgba(18,21,26,0.22)",
@@ -57,12 +46,8 @@ export function buildAirportRangeRings(
   const { minorStroke, majorStroke, band } = ringColors(theme);
   const epsilon = 1e-3;
 
-  // Collect the ring radii first so we can render outer → inner. With
-  // a 3nm interval the third ring (and every third afterward) becomes
-  // a "major" anchor, drawn with a stronger stroke. Even-indexed
-  // majors also get a faint fill — since we draw outer first, each
-  // successive fill stacks on top of the disk underneath, producing
-  // alternating shaded bands between major boundaries.
+  // Render outer → inner so successive shaded-band fills stack on top
+  // of the wider disk underneath, producing concentric shadings.
   const radii = [];
   for (let r = intervalNm; r <= maxNm + epsilon; r += intervalNm) {
     radii.push(r);
@@ -70,11 +55,7 @@ export function buildAirportRangeRings(
 
   const layers = [];
   for (let i = radii.length - 1; i >= 0; i -= 1) {
-    const ringIndex = i + 1; // 1-based so the third ring is major
-    // `prominent` callers (e.g. the flight-page nearby band of a
-    // single 5nm ring) want every ring styled as a major anchor; the
-    // default behavior keeps the original every-third rhythm for
-    // longer stacks.
+    const ringIndex = i + 1;
     const isMajor = prominent || ringIndex % 3 === 0;
     const isShadedBand =
       shaded && isMajor && Math.floor(ringIndex / 3) % 2 === 1;
@@ -94,12 +75,9 @@ export function buildAirportRangeRings(
   return layers;
 }
 
-// Builds divIcon marker labels for each ring (e.g. "3 NM", "6 NM"…).
-// Labels are anchored due-east of the center so they stack vertically
-// like ruler ticks. Major rings get a bolder treatment so the eye can
-// scan to the anchor distances at a glance. Callers (currently
-// AreaMarker) gate display on zoom — labels only appear at close-look
-// zoom levels.
+// Distance labels ("3 NM", "6 NM"…) anchored due-east of center so
+// they stack vertically like ruler ticks. Major rings get a bolder
+// treatment. Callers gate display on zoom.
 const EARTH_LAT_METERS_PER_DEG = 111139;
 
 export function buildAirportRangeRingLabels(

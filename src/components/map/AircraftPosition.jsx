@@ -198,12 +198,8 @@ function Pointer({
   const scaledTransform = `rotate(${rot}deg) scale(${sizeScale})`;
 
   if (showArrow && silhouette) {
-    // Render the silhouette as a CSS-mask-tinted div so we keep the
-    // functional color encoding (departure / arrival / unknown) while
-    // showing the type-specific shape. The rotation lives on the
-    // wrapping `.aircraft-pointer-glyph` so the dark-theme running
-    // lights orbit with the heading instead of sitting fixed in screen
-    // space.
+    // Wrapper carries the rotation so the dark-theme nose beam orbits
+    // with the heading instead of sitting fixed in screen space.
     const maskUrl = `url(${silhouette.src})`;
     return (
       <div
@@ -235,7 +231,9 @@ function Pointer({
             filter: `drop-shadow(0 0 4px ${color})`,
           }}
         />
-        {theme === "dark" && <AircraftRunningLights />}
+        {theme === "dark" && (
+          <span aria-hidden="true" className="aircraft-nose-beam" />
+        )}
       </div>
     );
   }
@@ -267,15 +265,6 @@ function Pointer({
       <circle cx="3.5" cy="3.5" r="3.5" fill={color} />
     </svg>
   );
-}
-
-// Dark-theme running lights — a faint forward nose beam past the
-// silhouette's nose. Wing-tip red/green nav lights were too much on
-// top of the silhouette's colored fill, so the visual is just the
-// nose beam now. The parent .aircraft-pointer-glyph carries the
-// rotation transform so the beam orbits with the heading.
-function AircraftRunningLights() {
-  return <span aria-hidden="true" className="aircraft-nose-beam" />;
 }
 
 function Label({ color, label, showArrow, hasSilhouette }) {

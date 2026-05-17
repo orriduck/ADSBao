@@ -218,12 +218,9 @@ export function buildRunwayApproachBeamCollection(
   };
 }
 
-// Centerline-extension variant of the approach visualisation: each
-// runway end emits a single straight LineString from the threshold out
-// to the same range the beam wedge reaches. The light-theme map uses
-// this representation because a soft glowing wedge reads poorly on a
-// bright basemap — a dashed extended centerline is closer to a chart
-// convention and stays legible against the pale background.
+// Centerline-extension variant used on the light theme — a soft
+// glowing wedge washed out on the bright basemap, so we draw a dashed
+// extended centerline (chart convention) instead.
 const buildRunwayEndApproachLineFeature = (runway, end, oppositeEnd, profile) => {
   const vector = runwayEndVector(end, oppositeEnd);
   if (!vector) return null;
@@ -286,10 +283,9 @@ export function buildRunwayApproachLineCollection(
   };
 }
 
-// Single entry point for the runway-approach visualisation. Picks the
-// representation that fits the current theme; the layer component
-// then renders the returned FeatureCollection with the matching style
-// pipeline (wedge + gradient for dark, dashed polyline for light).
+// Theme-aware entry point: returns the variant the active theme wants
+// alongside a `kind` discriminator so the layer can pick its render
+// pipeline. Dark = wedge + gradient; light = dashed extended centerline.
 export function buildRunwayApproachVisualization(
   runwayMap,
   { zoom, theme = "dark", distanceScale = 1 } = {},

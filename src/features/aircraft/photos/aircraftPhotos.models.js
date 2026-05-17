@@ -1,5 +1,5 @@
 export const AIRCRAFT_PHOTOS_USER_AGENT =
-  "ADSBao/1.1.0 (+https://github.com/orriduck/ADSBao)";
+  "ADSBao/1.2.0 (+https://github.com/orriduck/ADSBao)";
 
 export const AIRCRAFT_PHOTO_MAX_BYTES = 256 * 1024;
 export const AIRCRAFT_PHOTO_IMAGE_MAX_BYTES = 2 * 1024 * 1024;

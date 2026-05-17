@@ -98,9 +98,7 @@ export default async function RootLayout({ children }) {
         <ThemedToaster
           initialTheme={initialTheme}
           position="top-right"
-          // The airport-map-menu toolbar sits at top:0 with a 44px
-          // height — nudge the toast stack DOWN below it without
-          // also pushing it inward from the right edge.
+          // Drop below the 44px airport-map toolbar at top:0.
           offset={{ top: 64 }}
           toastOptions={{ className: "atc-toast" }}
         />

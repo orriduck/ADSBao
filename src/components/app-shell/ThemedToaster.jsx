@@ -3,13 +3,10 @@
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
-// Sonner respects a `theme` prop ("light" | "dark" | "system"). Passing
-// "system" reads prefers-color-scheme, which is wrong here because the
-// app's theme is controlled explicitly via the `data-theme` attribute
-// on <html> (set server-side from the `theme` cookie and toggled in
-// the client by useThemePreference). This wrapper mirrors that
-// attribute into the Toaster so toasts stay legible after the user
-// flips the theme without a reload.
+// Mirror <html data-theme> into the Sonner Toaster. Sonner's
+// "system" theme reads prefers-color-scheme, but the app's theme is
+// controlled explicitly via the data-theme cookie/attribute, so
+// "system" can disagree with the rest of the UI.
 const resolveAttrTheme = () => {
   if (typeof document === "undefined") return "dark";
   return document.documentElement.getAttribute("data-theme") === "light"
