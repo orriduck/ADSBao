@@ -504,6 +504,13 @@ body {
     opacity: 0.46;
 }
 
+/* Light-theme variant: a chart-style extended centerline replaces the
+   glowing wedge. No blur or blend-mode hacks needed — a plain dashed
+   stroke reads cleanest against the bright basemap. */
+.runway-approach-line {
+    filter: drop-shadow(0 0 1px color-mix(in oklab, var(--atc-card) 60%, transparent));
+}
+
 .procedure-fix-label {
     align-items: center;
     background: color-mix(in oklab, var(--atc-card) 88%, transparent);
@@ -2455,6 +2462,58 @@ body {
 
 .aircraft-marker--selected {
     filter: saturate(1.22) brightness(1.16);
+}
+
+/* Dark-theme nav lights on the aircraft silhouette glyph. The parent
+   .aircraft-pointer-glyph carries the rotation transform so the lights
+   orbit with the heading; positions are anchored to the silhouette's
+   nominal nose (top) and wing tips (left/right at vertical center). */
+.aircraft-pointer-glyph {
+    position: relative;
+}
+
+.aircraft-nose-beam {
+    position: absolute;
+    left: 50%;
+    top: -32%;
+    width: 28%;
+    height: 38%;
+    transform: translateX(-50%);
+    background: radial-gradient(
+        ellipse at 50% 90%,
+        rgba(255, 244, 210, 0.78) 0%,
+        rgba(255, 224, 138, 0.22) 38%,
+        rgba(255, 224, 138, 0) 78%
+    );
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+.aircraft-wing-light {
+    position: absolute;
+    top: 50%;
+    width: 2.6px;
+    height: 2.6px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
+.aircraft-wing-light--port {
+    left: 4%;
+    background: #ff4848;
+    box-shadow:
+        0 0 4px 1px rgba(255, 72, 72, 0.95),
+        0 0 9px 2px rgba(255, 72, 72, 0.5);
+}
+
+.aircraft-wing-light--starboard {
+    right: 4%;
+    background: #3aff66;
+    box-shadow:
+        0 0 4px 1px rgba(58, 255, 102, 0.95),
+        0 0 9px 2px rgba(58, 255, 102, 0.5);
 }
 
 .aircraft-trace,

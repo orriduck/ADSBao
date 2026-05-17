@@ -10,7 +10,7 @@ import {
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
 import { createRunwayBeamGradientController } from "../../features/airport/map/runwayBeamGradientController.js";
 import {
-  buildRunwayApproachBeamCollection,
+  buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel.js";
@@ -43,6 +43,64 @@ const runwayLabelIcon = (ident, theme) =>
     iconAnchor: [17, 22],
   });
 
+// Renders the runway-approach visualisation in whichever shape the
+// active theme prefers:
+//   - dark theme  → soft glowing beam wedge (preserves the existing
+//                   gradient-controller pipeline so the wedge fades
+//                   outward from the threshold)
+//   - light theme → dashed extended centerline (reads cleanly on the
+//                   bright basemap; mirrors a chart-style approach
+//                   path)
+//
+// The two pipelines are different enough (polygon + gradient vs.
+// polyline + stroke dash) that the component dispatches on the
+// visualisation `kind` returned by buildRunwayApproachVisualization
+// instead of sharing a single style block.
+const buildApproachLayer = ({ kind, data, theme }) => {
+  if (kind === "approach-lines") {
+    const stroke =
+      theme === "light" ? "rgba(36,65,100,0.7)" : "rgba(216,189,131,0.78)";
+    const layer = L.geoJSON(data, {
+      interactive: false,
+      style(feature) {
+        return {
+          className: "runway-approach-line",
+          color: stroke,
+          weight: 1.4,
+          opacity: feature?.properties?.beamOpacity != null
+            ? Math.min(1, 0.55 + Number(feature.properties.beamOpacity))
+            : 0.95,
+          dashArray: "6 8",
+          lineCap: "butt",
+          lineJoin: "round",
+        };
+      },
+    });
+    return { layer, beamLayer: null, beamRenderer: null };
+  }
+
+  // approach-beams (default — dark theme)
+  // Use a dedicated renderer with extra padding so beams that extend
+  // beyond the viewport edge are not clipped by the default SVG canvas.
+  // At ZOOM_AIRPORT beams reach ~408 px; default padding (0.1) is ~80 px.
+  const beamRenderer = L.svg({ padding: 1 });
+  const layer = L.geoJSON(data, {
+    renderer: beamRenderer,
+    interactive: false,
+    style() {
+      return {
+        className: "runway-approach-beam",
+        fill: true,
+        fillColor: runwayBeamColor(theme),
+        fillOpacity: 1,
+        opacity: 0,
+        stroke: false,
+      };
+    },
+  });
+  return { layer, beamLayer: layer, beamRenderer };
+};
+
 export default function RunwayAnnotationLayer({
   runwayMap,
   theme = "dark",
@@ -73,26 +131,18 @@ export default function RunwayAnnotationLayer({
     let beamRenderer = null;
 
     if (showBeams) {
-      // Use a dedicated renderer with extra padding so beams that extend
-      // beyond the viewport edge are not clipped by the default SVG canvas.
-      // At ZOOM_AIRPORT beams reach ~408 px; default padding (0.1) is ~80 px.
-      beamRenderer = L.svg({ padding: 1 });
-      const beams = buildRunwayApproachBeamCollection(runwayMap, { zoom });
-      beamLayer = L.geoJSON(beams, {
-        renderer: beamRenderer,
-        interactive: false,
-        style() {
-          return {
-            className: "runway-approach-beam",
-            fill: true,
-            fillColor: runwayBeamColor(theme),
-            fillOpacity: 1,
-            opacity: 0,
-            stroke: false,
-          };
-        },
+      const visualization = buildRunwayApproachVisualization(runwayMap, {
+        zoom,
+        theme,
       });
-      sublayers.unshift(beamLayer);
+      const built = buildApproachLayer({
+        kind: visualization.kind,
+        data: visualization.data,
+        theme,
+      });
+      sublayers.unshift(built.layer);
+      beamLayer = built.beamLayer;
+      beamRenderer = built.beamRenderer;
     }
 
     if (showBadges) {
@@ -113,6 +163,9 @@ export default function RunwayAnnotationLayer({
     const layer = L.layerGroup(sublayers).addTo(map);
     layerRef.current = layer;
 
+    // Gradient controller is only meaningful for the wedge variant;
+    // the dashed line uses a plain stroke and doesn't need per-frame
+    // gradient updates.
     const removeGradients = beamLayer
       ? createRunwayBeamGradientController({ map, beamLayer, theme })
       : () => {};

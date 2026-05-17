@@ -218,6 +218,94 @@ export function buildRunwayApproachBeamCollection(
   };
 }
 
+// Centerline-extension variant of the approach visualisation: each
+// runway end emits a single straight LineString from the threshold out
+// to the same range the beam wedge reaches. The light-theme map uses
+// this representation because a soft glowing wedge reads poorly on a
+// bright basemap — a dashed extended centerline is closer to a chart
+// convention and stays legible against the pale background.
+const buildRunwayEndApproachLineFeature = (runway, end, oppositeEnd, profile) => {
+  const vector = runwayEndVector(end, oppositeEnd);
+  if (!vector) return null;
+
+  return {
+    type: "Feature",
+    geometry: {
+      type: "LineString",
+      coordinates: [
+        [end.lon, end.lat],
+        coordinateFromVectorMeters({
+          end,
+          vector,
+          distance: profile.distance,
+        }),
+      ],
+    },
+    properties: {
+      runwayId: runway.id,
+      runwayEnd: end.ident,
+      beamDistanceMeters: profile.distance,
+      beamOpacity: profile.opacity,
+    },
+  };
+};
+
+export function buildRunwayApproachLineCollection(
+  runwayMap,
+  { zoom, distanceScale = 1 } = {},
+) {
+  const profile = scaleRunwayBeamProfile(
+    runwayBeamProfileForZoom(zoom),
+    distanceScale,
+  );
+
+  return {
+    type: "FeatureCollection",
+    properties: {
+      airport: runwayMap?.airport || "",
+      source: runwayMap?.source || "FAA CIFP",
+      cycle: runwayMap?.cycle || "",
+    },
+    features: (runwayMap?.runways || []).flatMap((runway) => {
+      const ends = (runway.ends || []).filter(
+        (end) => Number.isFinite(end.lat) && Number.isFinite(end.lon),
+      );
+      if (ends.length < 2) return [];
+
+      return ends
+        .map((end, index) =>
+          buildRunwayEndApproachLineFeature(
+            runway,
+            end,
+            ends[index === 0 ? 1 : 0],
+            profile,
+          ),
+        )
+        .filter(Boolean);
+    }),
+  };
+}
+
+// Single entry point for the runway-approach visualisation. Picks the
+// representation that fits the current theme; the layer component
+// then renders the returned FeatureCollection with the matching style
+// pipeline (wedge + gradient for dark, dashed polyline for light).
+export function buildRunwayApproachVisualization(
+  runwayMap,
+  { zoom, theme = "dark", distanceScale = 1 } = {},
+) {
+  if (theme === "light") {
+    return {
+      kind: "approach-lines",
+      data: buildRunwayApproachLineCollection(runwayMap, { zoom, distanceScale }),
+    };
+  }
+  return {
+    kind: "approach-beams",
+    data: buildRunwayApproachBeamCollection(runwayMap, { zoom, distanceScale }),
+  };
+}
+
 export function buildRunwayCenterlineCollection(runwayMap) {
   return {
     type: "FeatureCollection",
