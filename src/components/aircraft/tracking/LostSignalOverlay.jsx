@@ -46,21 +46,25 @@ export default function LostSignalOverlay({
           <button
             type="button"
             onClick={onKeepShowing}
-            className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-atc-text transition-colors hover:bg-atc-card"
+            style={{ fontFamily: "var(--font-nav)" }}
+            className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[13px] font-medium text-atc-text transition-colors hover:bg-atc-card"
           >
             Keep showing current trace
           </button>
           <button
             type="button"
             onClick={onRetry}
-            className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-atc-text transition-colors hover:bg-atc-card"
+            style={{ fontFamily: "var(--font-nav)" }}
+            className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[13px] font-medium text-atc-text transition-colors hover:bg-atc-card"
           >
             Try again
           </button>
+          {/* Mirrors the Track button on the preview card so the
+              primary action reads as a familiar CTA. */}
           <button
             type="button"
             onClick={onBackHome}
-            className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-atc-faint transition-colors hover:text-atc-text"
+            className="aircraft-preview-card__track-btn"
           >
             Back to home
           </button>
