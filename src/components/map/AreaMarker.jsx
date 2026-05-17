@@ -3,14 +3,10 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
-import { AIRPORT_AREA_RADIUS_NM } from "../../config/airportMap.js";
-import { shouldShowAirportArea } from "../../utils/airportMapDisplay.js";
 import {
   buildAirportRangeRingLabels,
   buildAirportRangeRings,
 } from "../../features/airport/map/airportRangeRings.js";
-
-const NM_TO_METERS = 1852;
 
 // Default distance-ring band for the primary focal: one circle every
 // 3nm out to 30nm. The flight-tracking page passes a coarser band (5nm
@@ -57,7 +53,6 @@ export default function AreaMarker({
   ringMaxNm = DEFAULT_RING_MAX_NM,
 }) {
   const map = useMapInstance();
-  const closeRef = useRef(null);
   const ringsRef = useRef(null);
   const ringLabelsRef = useRef(null);
 
@@ -66,29 +61,10 @@ export default function AreaMarker({
       return undefined;
     if (!lat || !lon) return undefined;
 
-    const closeStroke =
-      theme === "light" ? "rgba(18,21,26,0.22)" : "rgba(255,255,255,0.28)";
-    const closeFill =
-      theme === "light" ? "rgba(18,21,26,0.06)" : "rgba(255,255,255,0.05)";
-
-    safeRemoveFrom(closeRef.current, map);
-    closeRef.current = null;
-    if (shouldShowAirportArea(zoom)) {
-      closeRef.current = safeAddTo(
-        L.circle([lat, lon], {
-          radius: AIRPORT_AREA_RADIUS_NM * NM_TO_METERS,
-          color: closeStroke,
-          weight: 1,
-          dashArray: "4 4",
-          fillColor: closeFill,
-          fillOpacity: 1,
-        }),
-        map,
-      );
-    }
-
-    // Concentric distance rings replace the old single 30nm boundary.
-    // Grouped in a layerGroup so we can attach/detach with one call.
+    // The innermost ring (at `ringIntervalNm`) doubles as the "airport
+    // ground area" boundary that used to be drawn separately. Keeping
+    // a single layer eliminates the alignment drift that had the old
+    // close circle (2.2nm) sitting just inside the first 3nm ring.
     safeRemoveFrom(ringsRef.current, map);
     const rings = buildAirportRangeRings(L, {
       lat,
@@ -116,10 +92,8 @@ export default function AreaMarker({
     }
 
     return () => {
-      safeRemoveFrom(closeRef.current, map);
       safeRemoveFrom(ringsRef.current, map);
       safeRemoveFrom(ringLabelsRef.current, map);
-      closeRef.current = null;
       ringsRef.current = null;
       ringLabelsRef.current = null;
     };

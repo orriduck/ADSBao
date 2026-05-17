@@ -5,11 +5,17 @@ import { createPortal } from "react-dom";
 import NumberFlow from "@number-flow/react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
-import { AIRPORT_AREA_RADIUS_NM } from "../../config/airportMap.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
 
-export default function GroundStatsCounter({ lat, lon, zoom, icao = "", aircraft = [] }) {
+export default function GroundStatsCounter({
+  lat,
+  lon,
+  zoom,
+  icao = "",
+  aircraft = [],
+  radiusNm = 3,
+}) {
   const map = useMapInstance();
   const markerRef = useRef(null);
   const [container] = useState(() =>
@@ -22,9 +28,9 @@ export default function GroundStatsCounter({ lat, lon, zoom, icao = "", aircraft
     if (!visible) return 0;
     return aircraft.filter((item) => {
       const distNm = getDistanceNm(lat, lon, item.lat, item.lon);
-      return distNm != null && distNm <= AIRPORT_AREA_RADIUS_NM;
+      return distNm != null && distNm <= radiusNm;
     }).length;
-  }, [aircraft, visible, lat, lon]);
+  }, [aircraft, visible, lat, lon, radiusNm]);
 
   useEffect(() => {
     if (!map || !map.getContainer || !visible || !container) {

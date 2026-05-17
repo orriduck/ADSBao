@@ -171,8 +171,9 @@ export default function AirportMap({
       airportLon: icao ? lon : null,
       nearbyAirports,
       zoom,
+      groundAreaRadiusNm: effectiveFocalRings.intervalNm,
     });
-  }, [aircraft, icao, lat, lon, nearbyAirports, zoom]);
+  }, [aircraft, icao, lat, lon, nearbyAirports, zoom, effectiveFocalRings.intervalNm]);
   const selectedAircraft = useMemo(
     () =>
       visibleAircraft.find(
@@ -242,6 +243,7 @@ export default function AirportMap({
               zoom={zoom}
               icao={icao}
               aircraft={aircraft}
+              radiusNm={effectiveFocalRings.intervalNm}
             />
           )}
           <SelectedAircraftTrace theme={currentTheme} />
