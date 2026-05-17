@@ -2495,29 +2495,27 @@ body {
 .aircraft-wing-light {
     position: absolute;
     top: 50%;
-    width: 4.5px;
-    height: 4.5px;
+    width: 2.4px;
+    height: 2.4px;
     border-radius: 50%;
     transform: translateY(-50%);
     pointer-events: none;
 }
 
 .aircraft-wing-light--port {
-    left: -8%;
+    left: -4%;
     background: #ff5050;
     box-shadow:
-        0 0 0 0.6px rgba(255, 255, 255, 0.7),
-        0 0 5px 1px rgba(255, 80, 80, 1),
-        0 0 11px 3px rgba(255, 80, 80, 0.6);
+        0 0 3px 0.5px rgba(255, 80, 80, 0.95),
+        0 0 6px 1.5px rgba(255, 80, 80, 0.45);
 }
 
 .aircraft-wing-light--starboard {
-    right: -8%;
+    right: -4%;
     background: #44ff70;
     box-shadow:
-        0 0 0 0.6px rgba(255, 255, 255, 0.7),
-        0 0 5px 1px rgba(68, 255, 112, 1),
-        0 0 11px 3px rgba(68, 255, 112, 0.6);
+        0 0 3px 0.5px rgba(68, 255, 112, 0.95),
+        0 0 6px 1.5px rgba(68, 255, 112, 0.45);
 }
 
 .aircraft-trace,
