@@ -15,7 +15,7 @@ export const CHANGELOG = [
       "All nearby-traffic and nearby-airport searches normalized to 40nm",
       "Airport page: focal airport rings every 3nm out to 30nm",
       "Airport page: nearby airports show rings every 3nm out to 10nm",
-      "Flight page: rings suppressed so the moving viewport stays uncluttered",
+      "Flight page: single 5nm proximity ring around each nearby airport; focal aircraft rings suppressed",
       "Per-ring distance labels at airport / detail zoom",
       "Scale bar (比例尺) in the bottom-left at approach zoom",
       "Every third ring rendered slightly bolder as a visual anchor",
