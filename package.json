@@ -4,8 +4,8 @@
   "version": "1.2.1",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "lint": "eslint .",
     "test": "node scripts/run-tests.js",
     "test:all": "pnpm test",
