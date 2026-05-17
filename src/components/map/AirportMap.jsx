@@ -247,6 +247,7 @@ export default function AirportMap({
             />
           )}
           <SelectedAircraftTrace theme={currentTheme} />
+          <MapRangeLegend zoom={zoom} />
           {children}
           {visibleAircraft.map((ac) => (
             <AircraftPosition
@@ -270,14 +271,6 @@ export default function AirportMap({
             />
           ))}
         </MapContext.Provider>
-      )}
-
-      {mapInstance && (
-        <MapRangeLegend
-          zoom={zoom}
-          focal={effectiveFocalRings}
-          nearby={effectiveNearbyRings}
-        />
       )}
 
       {mapInstance && (
