@@ -206,6 +206,13 @@
     --atc-radius-panel: 4px;
     --atc-radius-control: 2px;
 
+    /* Preview-card drop shadow. Light theme uses a real grey drop
+       shadow so the card reads as elevated off a bright canvas; the
+       dark-theme override (below) swaps to a soft bg-tinted glow. */
+    --preview-card-shadow:
+        0 12px 32px rgba(14, 26, 43, 0.12),
+        0 4px 10px rgba(14, 26, 43, 0.06);
+
     --background: var(--atc-bg);
     --foreground: var(--atc-text);
     --card: var(--atc-card);
@@ -271,6 +278,12 @@
     --atc-radius-pill: 999px;
     --atc-radius-panel: 4px;
     --atc-radius-control: 2px;
+
+    /* Soft bg-tinted glow for the dark canvas — a black drop shadow
+       would just look like a hole, so we mix the bg color back in. */
+    --preview-card-shadow:
+        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
+        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
 
     --background: var(--atc-bg);
     --foreground: var(--atc-text);
@@ -3880,9 +3893,7 @@ body {
     background: var(--atc-card);
     border: 1px solid var(--tone-border-firm);
     border-radius: 12px;
-    box-shadow:
-        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
-        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    box-shadow: var(--preview-card-shadow);
     color: var(--atc-text);
     font-family: 'Manrope', system-ui, sans-serif;
     pointer-events: none;
@@ -4325,8 +4336,7 @@ body {
             color-mix(in oklab, var(--atc-card) 82%, transparent)
         );
     box-shadow:
-        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
-        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent),
+        var(--preview-card-shadow),
         inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
     -webkit-backdrop-filter: blur(12px) saturate(1.08);
     backdrop-filter: blur(12px) saturate(1.08);
@@ -4428,18 +4438,74 @@ body {
    Centered at the bottom, callsign + type row + compact telemetry row. */
 .aircraft-preview-mobile-card {
     position: fixed;
-    bottom: 20px;
+    bottom: 32px;
     left: 50%;
     z-index: 1200;
+    max-width: min(360px, calc(100vw - 32px));
     background: var(--atc-card);
     border: 1px solid var(--tone-border-firm);
     border-radius: 12px;
-    box-shadow:
-        0 12px 32px color-mix(in oklab, var(--atc-bg) 70%, transparent),
-        0 2px 8px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    box-shadow: var(--preview-card-shadow);
     color: var(--atc-text);
     pointer-events: none;
     user-select: none;
+}
+
+/* Stacked variant: variant content + an explicit Track button below.
+   Pointer-events stay disabled at the card level (the Track button
+   re-enables them) so the press target is unambiguous. */
+.aircraft-preview-mobile-card--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 10px;
+}
+
+.aircraft-preview-mobile-card__track {
+    margin: 4px 14px 0;
+    padding: 9px 14px;
+    border: none;
+    border-radius: 6px;
+    background: var(--atc-accent);
+    color: var(--atc-bg);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.15s ease-out, transform 0.12s ease-out;
+}
+
+.aircraft-preview-mobile-card__track:active {
+    transform: scale(0.97);
+}
+
+.aircraft-preview-mobile-card__track:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+/* Airport place line — secondary detail at a smaller font, allowed to
+   wrap to a second line so long airport names don't blow out the
+   card width. */
+.airport-preview-mobile-card__place {
+    padding: 0 20px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    color: var(--atc-dim);
+    text-align: center;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .aircraft-preview-mobile-card__inner {
