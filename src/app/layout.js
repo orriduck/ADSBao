@@ -99,10 +99,9 @@ export default async function RootLayout({ children }) {
           theme="system"
           position="top-right"
           // The airport-map-menu toolbar sits at top:0 with a 44px
-          // height — nudge the toast stack below it so the toolbar
-          // controls stay clickable and visible while toasts are on
-          // screen.
-          offset={64}
+          // height — nudge the toast stack DOWN below it without
+          // also pushing it inward from the right edge.
+          offset={{ top: 64 }}
           toastOptions={{ className: "atc-toast" }}
         />
         <Analytics />
