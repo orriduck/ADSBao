@@ -13,15 +13,15 @@ export default function AircraftPreviewMetadata({ aircraft }) {
 
   return (
     <dl className="aircraft-preview-metadata">
-      <TextMeta label="HEX" value={hex} />
+      <TextMeta label="Hex" value={hex} />
       <NumericMeta
-        label="TRK"
+        label="Track"
         value={track != null ? Math.round(track) : null}
         suffix="°"
       />
       {distance != null && (
         <NumericMeta
-          label="DIST"
+          label="Distance"
           value={distance}
           format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
           suffix=" NM"
@@ -35,7 +35,9 @@ function TextMeta({ label, value }) {
   return (
     <div className="aircraft-preview-meta-row">
       <dt className="aircraft-preview-meta-row__label">{label}</dt>
-      <dd className="aircraft-preview-meta-row__value">{value}</dd>
+      <dd className="aircraft-preview-meta-row__value notranslate" translate="no">
+        {value}
+      </dd>
     </div>
   );
 }
@@ -50,7 +52,11 @@ function NumericMeta({ label, value, suffix = "", format }) {
         ) : (
           <>
             <NumberFlow value={value} format={format} />
-            {suffix}
+            {suffix ? (
+              <span className="notranslate" translate="no">
+                {suffix}
+              </span>
+            ) : null}
           </>
         )}
       </dd>

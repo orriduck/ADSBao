@@ -31,12 +31,12 @@ export const ENTITY_FILTER_OPTIONS = [
 // outside (B*, C*, A0, blank) collapses into a single "Other" bucket so the
 // grouped dropdown never gets cluttered with one-off codes.
 const CATEGORY_LABELS = Object.freeze({
-  A1: "Light",
-  A2: "Small",
-  A3: "Large",
-  A4: "High-vortex",
-  A5: "Heavy",
-  A6: "High-performance",
+  A1: "Lightweight aircraft",
+  A2: "Small aircraft",
+  A3: "Large aircraft",
+  A4: "High-vortex aircraft",
+  A5: "Heavy aircraft",
+  A6: "High-performance aircraft",
   A7: "Rotorcraft",
 });
 

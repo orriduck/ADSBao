@@ -32,7 +32,7 @@ const markerHtml = (airport) => {
     ? `${airport.distanceNm.toFixed(0)}NM`
     : "";
   return `
-    <div class="nearby-airport-marker">
+    <div class="nearby-airport-marker notranslate" translate="no">
       <span class="nearby-airport-marker-dot"></span>
       <span class="nearby-airport-marker-label">
         <strong>${code}</strong>
@@ -58,7 +58,7 @@ const runwayLineStyle = (theme) =>
 const runwayLabelIcon = (ident, theme) =>
   L.divIcon({
     className: `runway-end-label runway-end-label--nearby runway-end-label--${theme}`,
-    html: `<span>${escapeHtml(ident)}</span>`,
+    html: `<span class="notranslate" translate="no">${escapeHtml(ident)}</span>`,
     iconSize: [34, 18],
     iconAnchor: [17, 22],
   });

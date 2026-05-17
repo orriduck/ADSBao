@@ -38,7 +38,7 @@ const runwayBeamColor = (theme) =>
 const runwayLabelIcon = (ident, theme) =>
   L.divIcon({
     className: `runway-end-label runway-end-label--${theme}`,
-    html: `<span>${escapeHtml(ident)}</span>`,
+    html: `<span class="notranslate" translate="no">${escapeHtml(ident)}</span>`,
     iconSize: [34, 18],
     iconAnchor: [17, 22],
   });

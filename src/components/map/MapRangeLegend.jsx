@@ -63,13 +63,13 @@ export default function MapRangeLegend({ theme = "dark" }) {
   return (
     <div
       role="note"
-      aria-label={`Map scale: ${scale.nm} nautical miles`}
+      aria-label={`Map distance: ${scale.nm} nautical miles`}
       className={`pointer-events-none absolute bottom-3 left-3 z-[400] flex items-center gap-2 px-2 py-1 font-mono ${backdrop} ${textTone} backdrop-blur-sm`}
     >
       <span
         className={`text-[9px] font-semibold uppercase tracking-[0.22em] ${labelTone}`}
       >
-        Scale
+        Distance
       </span>
       <div
         style={{ width: `${scale.widthPx}px` }}
@@ -89,7 +89,7 @@ export default function MapRangeLegend({ theme = "dark" }) {
         />
       </div>
       <span className="text-[10px] font-semibold tracking-[0.12em] tabular-nums">
-        {scale.nm} NM
+        {scale.nm} <span className="notranslate" translate="no">NM</span>
       </span>
     </div>
   );

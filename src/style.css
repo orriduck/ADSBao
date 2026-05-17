@@ -3262,6 +3262,26 @@ body {
     min-height: 44px;
 }
 
+.sidebar-metric-card__value--compact {
+    font-size: 30px;
+}
+
+.sidebar-metric-number-flow::part(suffix) {
+    color: var(--atc-faint);
+    display: inline-block;
+    font-size: 0.32em;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-left: 0.18em;
+    text-transform: uppercase;
+    transform: translateY(0.52em);
+    transform-origin: left bottom;
+}
+
+.sidebar-metric-number-flow[data-suffix-position="sup"]::part(suffix) {
+    transform: translateY(-0.7em);
+}
+
 .sidebar-metric-card__unit {
     display: block;
     font-size: 10px;

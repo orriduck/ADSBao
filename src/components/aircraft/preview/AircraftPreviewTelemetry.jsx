@@ -15,21 +15,21 @@ export default function AircraftPreviewTelemetry({ aircraft }) {
   return (
     <dl className="aircraft-preview-telemetry">
       <NumericStat
-        label="GS"
+        label="Speed"
         value={speed != null ? Math.round(speed) : null}
         unit="kt"
       />
       {onGround ? (
-        <TextStat label="ALT" value="GND" />
+        <TextStat label="Altitude" value="GND" />
       ) : (
         <NumericStat
-          label="ALT"
+          label="Altitude"
           value={altitude != null ? Math.round(altitude) : null}
           unit="ft"
         />
       )}
       <NumericStat
-        label="V/S"
+        label="Vertical"
         value={vs != null ? Math.round(vs) : null}
         unit="fpm"
         signed
@@ -55,7 +55,12 @@ function NumericStat({ label, value, unit, signed = false }) {
           />
         )}
         {value != null && unit && (
-          <span className="aircraft-preview-stat__unit">{unit}</span>
+          <span
+            className="aircraft-preview-stat__unit notranslate"
+            translate="no"
+          >
+            {unit}
+          </span>
         )}
       </dd>
     </div>

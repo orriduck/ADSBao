@@ -26,7 +26,7 @@ const escapeHtml = (value) =>
 const fixLabelIcon = (label, theme) =>
   L.divIcon({
     className: `procedure-fix-label procedure-fix-label--${theme}`,
-    html: escapeHtml(label.fixIdent),
+    html: `<span class="notranslate" translate="no">${escapeHtml(label.fixIdent)}</span>`,
     iconSize: [38, 12],
     iconAnchor: [19, 6],
   });

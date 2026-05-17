@@ -45,7 +45,7 @@ export default function AirportMarker({ lat, lon, icao = "", airport = null }) {
   }
 
   return createPortal(
-    <div className="airport-overlay-label">
+    <div className="airport-overlay-label notranslate" translate="no">
       {code}
       {details.map((line) => (
         <span key={line}>{line}</span>

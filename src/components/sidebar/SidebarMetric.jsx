@@ -25,6 +25,8 @@ export function SidebarMetricCard({
   unit = "",
   active = false,
   onClick,
+  valueSize = "default",
+  valueTranslate = false,
 }) {
   const className = [
     "sidebar-metric-card",
@@ -37,11 +39,20 @@ export function SidebarMetricCard({
   const body = (
     <>
       <span className="sidebar-metric-card__label">{label}</span>
-      <strong className="sidebar-metric-card__value airport-sidebar-display-mono airport-sidebar-display-mono--metric">
+      <strong
+        className={`sidebar-metric-card__value airport-sidebar-display-mono airport-sidebar-display-mono--metric ${
+          valueSize === "compact" ? "sidebar-metric-card__value--compact" : ""
+        } ${
+          valueTranslate ? "" : "notranslate"
+        }`}
+        translate={valueTranslate ? undefined : "no"}
+      >
         {value}
       </strong>
       {unit ? (
-        <small className="sidebar-metric-card__unit">{unit}</small>
+        <small className="sidebar-metric-card__unit notranslate" translate="no">
+          {unit}
+        </small>
       ) : (
         <small className="sidebar-metric-card__unit" aria-hidden="true">
           &nbsp;
