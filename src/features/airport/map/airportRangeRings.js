@@ -10,21 +10,29 @@
 const NM_TO_METERS = 1852;
 
 function ringColors(theme) {
+  // Two roles: `stroke` is the ring line itself; `band` is a very low
+  // alpha fill applied to the MAJOR rings so the user sees alternating
+  // shaded bands between major boundaries. Leaflet draws layers in the
+  // order they're added, so the factory below renders outer → inner;
+  // each major's disk then overlaps the previous, producing widening
+  // concentric shadings.
   if (theme === "light") {
     return {
-      minor: "rgba(18,21,26,0.10)",
-      major: "rgba(18,21,26,0.22)",
+      minorStroke: "rgba(18,21,26,0.22)",
+      majorStroke: "rgba(18,21,26,0.45)",
+      band: "rgba(18,21,26,0.05)",
     };
   }
   return {
-    minor: "rgba(255,255,255,0.10)",
-    major: "rgba(255,255,255,0.22)",
+    minorStroke: "rgba(255,255,255,0.22)",
+    majorStroke: "rgba(255,255,255,0.45)",
+    band: "rgba(255,255,255,0.05)",
   };
 }
 
 export function buildAirportRangeRings(
   L,
-  { lat, lon, intervalNm, maxNm, theme = "dark" } = {},
+  { lat, lon, intervalNm, maxNm, theme = "dark", shaded = true } = {},
 ) {
   if (
     !L ||
@@ -38,25 +46,38 @@ export function buildAirportRangeRings(
     return [];
   }
 
-  const { minor, major } = ringColors(theme);
-  const rings = [];
+  const { minorStroke, majorStroke, band } = ringColors(theme);
   const epsilon = 1e-3;
-  // Every third ring is "major" so the user has a visual anchor without
-  // needing per-ring labels. With a 3nm interval that lands every 9nm.
-  let index = 1;
-  for (let radius = intervalNm; radius <= maxNm + epsilon; radius += intervalNm) {
-    const isMajor = index % 3 === 0;
-    rings.push(
+
+  // Collect the ring radii first so we can render outer → inner. With
+  // a 3nm interval the third ring (and every third afterward) becomes
+  // a "major" anchor, drawn with a stronger stroke. Even-indexed
+  // majors also get a faint fill — since we draw outer first, each
+  // successive fill stacks on top of the disk underneath, producing
+  // alternating shaded bands between major boundaries.
+  const radii = [];
+  for (let r = intervalNm; r <= maxNm + epsilon; r += intervalNm) {
+    radii.push(r);
+  }
+
+  const layers = [];
+  for (let i = radii.length - 1; i >= 0; i -= 1) {
+    const ringIndex = i + 1; // 1-based so the third ring is major
+    const isMajor = ringIndex % 3 === 0;
+    const isShadedBand =
+      shaded && isMajor && Math.floor(ringIndex / 3) % 2 === 1;
+    layers.push(
       L.circle([Number(lat), Number(lon)], {
-        radius: radius * NM_TO_METERS,
-        color: isMajor ? major : minor,
-        weight: isMajor ? 0.9 : 0.6,
-        dashArray: isMajor ? "4 6" : "2 6",
-        fill: false,
+        radius: radii[i] * NM_TO_METERS,
+        color: isMajor ? majorStroke : minorStroke,
+        weight: isMajor ? 1.2 : 0.8,
+        dashArray: isMajor ? "5 5" : "2 6",
+        fill: isShadedBand,
+        fillColor: isShadedBand ? band : undefined,
+        fillOpacity: isShadedBand ? 1 : 0,
         interactive: false,
       }),
     );
-    index += 1;
   }
-  return rings;
+  return layers;
 }

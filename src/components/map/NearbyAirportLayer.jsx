@@ -124,12 +124,16 @@ export default function NearbyAirportLayer({
       runwayLayers({ airport, map, theme, zoom }).forEach((runwayLayer) =>
         runwayLayer.addTo(layer),
       );
+      // Several nearby airports can overlap on the map; shaded bands
+      // would stack into a dark blob, so the nearby ring stack is
+      // stroke-only and the focal owns the shading.
       buildAirportRangeRings(L, {
         lat: airport.lat,
         lon: airport.lon,
         intervalNm: ringIntervalNm,
         maxNm: ringMaxNm,
         theme,
+        shaded: false,
       }).forEach((ring) => ring.addTo(layer));
       const interactive = Boolean(onSelectRef.current);
       const isSelected = selectedIcao && airport.icao === selectedIcao;
