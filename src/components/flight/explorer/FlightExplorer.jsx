@@ -147,7 +147,7 @@ function FlightExplorerContent({ callsign }) {
   const { airports: nearbyAirports } = useNearbyAirports({
     lat: focalLat || 0,
     lon: focalLon || 0,
-    radiusNm: 80,
+    radiusNm: 60,
     limit: 12,
   });
 
@@ -281,6 +281,8 @@ function FlightExplorerContent({ callsign }) {
             runwayProcedures={null}
             procedureFixLabelRunwayProcedures={null}
             showProcedureFixLabels={false}
+            focalRangeRings={{ intervalNm: 5, maxNm: 30 }}
+            nearbyRangeRings={{ intervalNm: 5, maxNm: 15 }}
           >
             <MapFitToTraceController />
           </AirportMap>

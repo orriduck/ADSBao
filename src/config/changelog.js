@@ -6,6 +6,21 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.1.0",
+    kind: "feat",
+    title: "Distance rings + 60nm nearby search",
+    summary:
+      "Concentric distance rings on the map and a uniform 60nm radius for all nearby searches.",
+    highlights: [
+      "All nearby-traffic and nearby-airport searches expanded to 60nm",
+      "Airport page: focal airport rings every 3nm out to 30nm",
+      "Airport page: nearby airports show rings every 3nm out to 10nm",
+      "Flight page: focal aircraft rings every 5nm out to 30nm",
+      "Flight page: nearby airports show rings every 5nm out to 15nm",
+      "Every third ring rendered slightly bolder as a visual anchor",
+    ],
+  },
+  {
     version: "v1.0.0",
     kind: "feat",
     title: "Persistent tracking sessions + drop-up nav menu",

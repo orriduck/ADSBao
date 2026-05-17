@@ -53,6 +53,8 @@ export default function AirportMap({
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
   showProcedureFixLabels = false,
+  focalRangeRings = null,
+  nearbyRangeRings = null,
   children = null,
 }) {
   const mapEl = useRef(null);
@@ -188,6 +190,8 @@ export default function AirportMap({
             lon={lon}
             zoom={zoom}
             theme={currentTheme}
+            ringIntervalNm={focalRangeRings?.intervalNm}
+            ringMaxNm={focalRangeRings?.maxNm}
           />
           {icao && (
             <AirportMarker
@@ -203,6 +207,8 @@ export default function AirportMap({
             zoom={zoom}
             selectedIcao={selectedAirportIcao}
             onSelectAirport={onSelectAirport}
+            ringIntervalNm={nearbyRangeRings?.intervalNm}
+            ringMaxNm={nearbyRangeRings?.maxNm}
           />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}

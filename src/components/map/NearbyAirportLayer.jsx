@@ -5,10 +5,18 @@ import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap.js";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
+import { buildAirportRangeRings } from "../../features/airport/map/airportRangeRings.js";
 import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel.js";
+
+// Default distance-ring band drawn around each nearby airport. Tighter
+// than the primary's rings so the band stays a hint, not a dominant
+// frame, when several nearby airports overlap. The flight-tracking
+// page passes a coarser band (5nm → 15nm).
+const DEFAULT_NEARBY_RING_INTERVAL_NM = 3;
+const DEFAULT_NEARBY_RING_MAX_NM = 10;
 
 const escapeHtml = (value) =>
   String(value || "")
@@ -94,6 +102,8 @@ export default function NearbyAirportLayer({
   zoom,
   selectedIcao = "",
   onSelectAirport = null,
+  ringIntervalNm = DEFAULT_NEARBY_RING_INTERVAL_NM,
+  ringMaxNm = DEFAULT_NEARBY_RING_MAX_NM,
 }) {
   const map = useMapInstance();
   const layerRef = useRef(null);
@@ -114,6 +124,13 @@ export default function NearbyAirportLayer({
       runwayLayers({ airport, map, theme, zoom }).forEach((runwayLayer) =>
         runwayLayer.addTo(layer),
       );
+      buildAirportRangeRings(L, {
+        lat: airport.lat,
+        lon: airport.lon,
+        intervalNm: ringIntervalNm,
+        maxNm: ringMaxNm,
+        theme,
+      }).forEach((ring) => ring.addTo(layer));
       const interactive = Boolean(onSelectRef.current);
       const isSelected = selectedIcao && airport.icao === selectedIcao;
       const marker = L.marker([airport.lat, airport.lon], {
@@ -142,7 +159,7 @@ export default function NearbyAirportLayer({
       layer.removeFrom(map);
       layerRef.current = null;
     };
-  }, [map, airports, theme, zoom, selectedIcao]);
+  }, [map, airports, theme, zoom, selectedIcao, ringIntervalNm, ringMaxNm]);
 
   return null;
 }
