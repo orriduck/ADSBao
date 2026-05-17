@@ -6,6 +6,7 @@ import { MapContext } from "./MapContext.js";
 import MapTileLayers from "./MapTileLayers.jsx";
 import AreaMarker from "./AreaMarker.jsx";
 import AirportMarker from "./AirportMarker.jsx";
+import MapRangeLegend from "./MapRangeLegend.jsx";
 import NearbyAirportLayer from "./NearbyAirportLayer.jsx";
 import GroundStatsCounter from "./GroundStatsCounter.jsx";
 import AircraftPosition from "./AircraftPosition.jsx";
@@ -57,6 +58,17 @@ export default function AirportMap({
   nearbyRangeRings = null,
   children = null,
 }) {
+  // Single source of truth for the ring bands so the inline labels
+  // (AreaMarker), per-airport rings (NearbyAirportLayer), and the
+  // bottom-left legend all agree on what to render.
+  const effectiveFocalRings = focalRangeRings || {
+    intervalNm: 3,
+    maxNm: 30,
+  };
+  const effectiveNearbyRings = nearbyRangeRings || {
+    intervalNm: 3,
+    maxNm: 10,
+  };
   const mapEl = useRef(null);
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
@@ -190,8 +202,8 @@ export default function AirportMap({
             lon={lon}
             zoom={zoom}
             theme={currentTheme}
-            ringIntervalNm={focalRangeRings?.intervalNm}
-            ringMaxNm={focalRangeRings?.maxNm}
+            ringIntervalNm={effectiveFocalRings.intervalNm}
+            ringMaxNm={effectiveFocalRings.maxNm}
           />
           {icao && (
             <AirportMarker
@@ -207,8 +219,8 @@ export default function AirportMap({
             zoom={zoom}
             selectedIcao={selectedAirportIcao}
             onSelectAirport={onSelectAirport}
-            ringIntervalNm={nearbyRangeRings?.intervalNm}
-            ringMaxNm={nearbyRangeRings?.maxNm}
+            ringIntervalNm={effectiveNearbyRings.intervalNm}
+            ringMaxNm={effectiveNearbyRings.maxNm}
           />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
@@ -256,6 +268,14 @@ export default function AirportMap({
             />
           ))}
         </MapContext.Provider>
+      )}
+
+      {mapInstance && (
+        <MapRangeLegend
+          zoom={zoom}
+          focal={effectiveFocalRings}
+          nearby={effectiveNearbyRings}
+        />
       )}
 
       {mapInstance && (

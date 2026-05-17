@@ -81,3 +81,57 @@ export function buildAirportRangeRings(
   }
   return layers;
 }
+
+// Builds divIcon marker labels for each ring (e.g. "3 NM", "6 NM"…).
+// Labels are anchored due-east of the center so they stack vertically
+// like ruler ticks. Major rings get a bolder treatment so the eye can
+// scan to the anchor distances at a glance. Callers (currently
+// AreaMarker) gate display on zoom — labels only appear at close-look
+// zoom levels.
+const EARTH_LAT_METERS_PER_DEG = 111139;
+
+export function buildAirportRangeRingLabels(
+  L,
+  { lat, lon, intervalNm, maxNm, theme = "dark" } = {},
+) {
+  if (
+    !L ||
+    !Number.isFinite(Number(lat)) ||
+    !Number.isFinite(Number(lon)) ||
+    !Number.isFinite(Number(intervalNm)) ||
+    intervalNm <= 0 ||
+    !Number.isFinite(Number(maxNm)) ||
+    maxNm <= 0
+  ) {
+    return [];
+  }
+
+  const cosLat = Math.cos((Number(lat) * Math.PI) / 180) || 1;
+  const lonMetersPerDeg = EARTH_LAT_METERS_PER_DEG * cosLat;
+  const epsilon = 1e-3;
+  const labels = [];
+
+  let ringIndex = 1;
+  for (let r = intervalNm; r <= maxNm + epsilon; r += intervalNm) {
+    const isMajor = ringIndex % 3 === 0;
+    const lonOffsetDeg = (r * NM_TO_METERS) / lonMetersPerDeg;
+    const themeSuffix = theme === "light" ? "light" : "dark";
+    const majorClass = isMajor
+      ? "airport-range-ring-label--major"
+      : "airport-range-ring-label--minor";
+    labels.push(
+      L.marker([Number(lat), Number(lon) + lonOffsetDeg], {
+        interactive: false,
+        keyboard: false,
+        icon: L.divIcon({
+          className: `airport-range-ring-label airport-range-ring-label--${themeSuffix} ${majorClass}`,
+          html: `<span>${r} NM</span>`,
+          iconSize: [44, 14],
+          iconAnchor: [22, 7],
+        }),
+      }),
+    );
+    ringIndex += 1;
+  }
+  return labels;
+}

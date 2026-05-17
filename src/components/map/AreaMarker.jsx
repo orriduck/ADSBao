@@ -5,7 +5,10 @@ import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_AREA_RADIUS_NM } from "../../config/airportMap.js";
 import { shouldShowAirportArea } from "../../utils/airportMapDisplay.js";
-import { buildAirportRangeRings } from "../../features/airport/map/airportRangeRings.js";
+import {
+  buildAirportRangeRingLabels,
+  buildAirportRangeRings,
+} from "../../features/airport/map/airportRangeRings.js";
 
 const NM_TO_METERS = 1852;
 
@@ -14,6 +17,11 @@ const NM_TO_METERS = 1852;
 // → 30nm) so the rings don't clutter the moving viewport.
 const DEFAULT_RING_INTERVAL_NM = 3;
 const DEFAULT_RING_MAX_NM = 30;
+
+// Show per-ring distance labels only at the airport-or-closer zoom
+// presets. At approach the ring labels would clutter the map; the
+// MapRangeLegend overlay handles that case instead.
+const RING_LABEL_MIN_ZOOM = 12;
 
 // Leaflet's renderer (_renderer / overlayPane._renderer) can be missing or
 // half-initialized in two situations we hit in practice: HMR (the map
@@ -51,6 +59,7 @@ export default function AreaMarker({
   const map = useMapInstance();
   const closeRef = useRef(null);
   const ringsRef = useRef(null);
+  const ringLabelsRef = useRef(null);
 
   useEffect(() => {
     if (!map || typeof map.getContainer !== "function" || !map.getContainer())
@@ -91,11 +100,28 @@ export default function AreaMarker({
     ringsRef.current =
       rings.length > 0 ? safeAddTo(L.layerGroup(rings), map) : null;
 
+    safeRemoveFrom(ringLabelsRef.current, map);
+    ringLabelsRef.current = null;
+    if (Number(zoom) >= RING_LABEL_MIN_ZOOM) {
+      const labels = buildAirportRangeRingLabels(L, {
+        lat,
+        lon,
+        intervalNm: ringIntervalNm,
+        maxNm: ringMaxNm,
+        theme,
+      });
+      if (labels.length > 0) {
+        ringLabelsRef.current = safeAddTo(L.layerGroup(labels), map);
+      }
+    }
+
     return () => {
       safeRemoveFrom(closeRef.current, map);
       safeRemoveFrom(ringsRef.current, map);
+      safeRemoveFrom(ringLabelsRef.current, map);
       closeRef.current = null;
       ringsRef.current = null;
+      ringLabelsRef.current = null;
     };
   }, [map, lat, lon, zoom, theme, ringIntervalNm, ringMaxNm]);
 
