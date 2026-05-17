@@ -2478,16 +2478,16 @@ body {
 .aircraft-nose-beam {
     position: absolute;
     left: 50%;
-    top: -45%;
-    width: 36%;
-    height: 55%;
+    top: -60%;
+    width: 75%;
+    height: 75%;
     transform: translateX(-50%);
     background: radial-gradient(
-        ellipse at 50% 92%,
-        rgba(255, 246, 210, 0.95) 0%,
-        rgba(255, 226, 130, 0.55) 26%,
-        rgba(255, 226, 130, 0.18) 55%,
-        rgba(255, 226, 130, 0) 85%
+        ellipse at 50% 95%,
+        rgba(255, 246, 210, 0.55) 0%,
+        rgba(255, 226, 130, 0.22) 28%,
+        rgba(255, 226, 130, 0.08) 58%,
+        rgba(255, 226, 130, 0) 92%
     );
     pointer-events: none;
 }
