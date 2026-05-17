@@ -32,7 +32,15 @@ function ringColors(theme) {
 
 export function buildAirportRangeRings(
   L,
-  { lat, lon, intervalNm, maxNm, theme = "dark", shaded = true } = {},
+  {
+    lat,
+    lon,
+    intervalNm,
+    maxNm,
+    theme = "dark",
+    shaded = true,
+    prominent = false,
+  } = {},
 ) {
   if (
     !L ||
@@ -63,7 +71,11 @@ export function buildAirportRangeRings(
   const layers = [];
   for (let i = radii.length - 1; i >= 0; i -= 1) {
     const ringIndex = i + 1; // 1-based so the third ring is major
-    const isMajor = ringIndex % 3 === 0;
+    // `prominent` callers (e.g. the flight-page nearby band of a
+    // single 5nm ring) want every ring styled as a major anchor; the
+    // default behavior keeps the original every-third rhythm for
+    // longer stacks.
+    const isMajor = prominent || ringIndex % 3 === 0;
     const isShadedBand =
       shaded && isMajor && Math.floor(ringIndex / 3) % 2 === 1;
     layers.push(

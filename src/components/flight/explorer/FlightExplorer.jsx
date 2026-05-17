@@ -282,7 +282,7 @@ function FlightExplorerContent({ callsign }) {
             procedureFixLabelRunwayProcedures={null}
             showProcedureFixLabels={false}
             focalRangeRings={false}
-            nearbyRangeRings={{ intervalNm: 5, maxNm: 5 }}
+            nearbyRangeRings={{ intervalNm: 5, maxNm: 5, prominent: true }}
           >
             <MapFitToTraceController />
           </AirportMap>

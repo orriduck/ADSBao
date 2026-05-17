@@ -104,6 +104,7 @@ export default function NearbyAirportLayer({
   onSelectAirport = null,
   ringIntervalNm = DEFAULT_NEARBY_RING_INTERVAL_NM,
   ringMaxNm = DEFAULT_NEARBY_RING_MAX_NM,
+  ringProminent = false,
 }) {
   const map = useMapInstance();
   const layerRef = useRef(null);
@@ -126,7 +127,9 @@ export default function NearbyAirportLayer({
       );
       // Several nearby airports can overlap on the map; shaded bands
       // would stack into a dark blob, so the nearby ring stack is
-      // stroke-only and the focal owns the shading.
+      // stroke-only and the focal owns the shading. Callers can mark
+      // a band as `prominent` so a single-ring stack (e.g. the
+      // flight-page 5nm proximity ring) renders bold enough to read.
       buildAirportRangeRings(L, {
         lat: airport.lat,
         lon: airport.lon,
@@ -134,6 +137,7 @@ export default function NearbyAirportLayer({
         maxNm: ringMaxNm,
         theme,
         shaded: false,
+        prominent: ringProminent,
       }).forEach((ring) => ring.addTo(layer));
       const interactive = Boolean(onSelectRef.current);
       const isSelected = selectedIcao && airport.icao === selectedIcao;
@@ -163,7 +167,16 @@ export default function NearbyAirportLayer({
       layer.removeFrom(map);
       layerRef.current = null;
     };
-  }, [map, airports, theme, zoom, selectedIcao, ringIntervalNm, ringMaxNm]);
+  }, [
+    map,
+    airports,
+    theme,
+    zoom,
+    selectedIcao,
+    ringIntervalNm,
+    ringMaxNm,
+    ringProminent,
+  ]);
 
   return null;
 }

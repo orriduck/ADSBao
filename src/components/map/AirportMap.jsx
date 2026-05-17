@@ -230,6 +230,7 @@ export default function AirportMap({
             ringMaxNm={
               effectiveNearbyRings ? effectiveNearbyRings.maxNm : null
             }
+            ringProminent={Boolean(effectiveNearbyRings?.prominent)}
           />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
