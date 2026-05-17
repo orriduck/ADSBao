@@ -2467,53 +2467,57 @@ body {
 /* Dark-theme nav lights on the aircraft silhouette glyph. The parent
    .aircraft-pointer-glyph carries the rotation transform so the lights
    orbit with the heading; positions are anchored to the silhouette's
-   nominal nose (top) and wing tips (left/right at vertical center). */
+   nominal nose (top) and wing tips (left/right at vertical center).
+   The lights sit slightly OUTSIDE the silhouette bounding box so they
+   don't get visually swallowed by the silhouette's drop-shadow halo. */
 .aircraft-pointer-glyph {
     position: relative;
+    overflow: visible;
 }
 
 .aircraft-nose-beam {
     position: absolute;
     left: 50%;
-    top: -32%;
-    width: 28%;
-    height: 38%;
+    top: -45%;
+    width: 36%;
+    height: 55%;
     transform: translateX(-50%);
     background: radial-gradient(
-        ellipse at 50% 90%,
-        rgba(255, 244, 210, 0.78) 0%,
-        rgba(255, 224, 138, 0.22) 38%,
-        rgba(255, 224, 138, 0) 78%
+        ellipse at 50% 92%,
+        rgba(255, 246, 210, 0.95) 0%,
+        rgba(255, 226, 130, 0.55) 26%,
+        rgba(255, 226, 130, 0.18) 55%,
+        rgba(255, 226, 130, 0) 85%
     );
     pointer-events: none;
-    mix-blend-mode: screen;
 }
 
 .aircraft-wing-light {
     position: absolute;
     top: 50%;
-    width: 2.6px;
-    height: 2.6px;
+    width: 4.5px;
+    height: 4.5px;
     border-radius: 50%;
     transform: translateY(-50%);
     pointer-events: none;
-    mix-blend-mode: screen;
 }
 
 .aircraft-wing-light--port {
-    left: 4%;
-    background: #ff4848;
+    left: -8%;
+    background: #ff5050;
     box-shadow:
-        0 0 4px 1px rgba(255, 72, 72, 0.95),
-        0 0 9px 2px rgba(255, 72, 72, 0.5);
+        0 0 0 0.6px rgba(255, 255, 255, 0.7),
+        0 0 5px 1px rgba(255, 80, 80, 1),
+        0 0 11px 3px rgba(255, 80, 80, 0.6);
 }
 
 .aircraft-wing-light--starboard {
-    right: 4%;
-    background: #3aff66;
+    right: -8%;
+    background: #44ff70;
     box-shadow:
-        0 0 4px 1px rgba(58, 255, 102, 0.95),
-        0 0 9px 2px rgba(58, 255, 102, 0.5);
+        0 0 0 0.6px rgba(255, 255, 255, 0.7),
+        0 0 5px 1px rgba(68, 255, 112, 1),
+        0 0 11px 3px rgba(68, 255, 112, 0.6);
 }
 
 .aircraft-trace,
