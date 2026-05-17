@@ -8,9 +8,27 @@ import { CHANGELOG } from "@/config/changelog.js";
 
 // Sidebar-scoped changelog. Reuses DitherPageShell so the page reads as
 // a sibling of Home and About — same brand block, same footer, same
-// dither background. The release list scrolls inside the sidebar's
-// main slot so we keep the layout coherent regardless of how many
-// versions accumulate.
+// dither background. Each release is a compact card: version + kind
+// badge, one-line summary, short bullet highlights. The list scrolls
+// inside the sidebar's main slot.
+
+const KIND_STYLES = {
+  feat: {
+    label: "FEAT",
+    className:
+      "bg-[color-mix(in_oklab,var(--atc-accent)_22%,transparent)] text-atc-text",
+  },
+  patch: {
+    label: "PATCH",
+    className:
+      "bg-[color-mix(in_oklab,var(--atc-elev)_70%,transparent)] text-atc-dim",
+  },
+  breaking: {
+    label: "BREAKING",
+    className: "bg-atc-orange text-atc-bg",
+  },
+};
+
 export default function ChangelogPanel() {
   const { themePreference, themeTitle, themeIconKey, cycleTheme } =
     useThemePreference();
@@ -63,52 +81,55 @@ export default function ChangelogPanel() {
 }
 
 function ChangelogEntry({ release, isLatest }) {
+  const kindStyle = KIND_STYLES[release.kind] || KIND_STYLES.feat;
   return (
-    <li className="border-b border-[var(--atc-line)] py-5 last:border-b-0">
-      <div className="flex items-baseline gap-2">
+    <li className="border-b border-[var(--atc-line)] py-4 last:border-b-0">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-[13px] font-bold tracking-[0.04em] text-atc-text">
           {release.version}
         </span>
+        <KindBadge style={kindStyle} />
         {isLatest && (
-          <span className="font-nav rounded-sm bg-atc-accent px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-[0.14em] text-atc-bg">
+          <span className="font-nav rounded-sm border border-atc-accent px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-[0.14em] text-atc-accent">
             Current
           </span>
         )}
       </div>
       {release.title ? (
-        <p className="mt-1.5 text-[12px] leading-snug text-atc-dim">
+        <p className="mt-1 text-[12.5px] font-semibold leading-snug text-atc-text">
           {release.title}
         </p>
       ) : null}
-
-      <div className="mt-3 flex flex-col gap-3">
-        {(release.sections || []).map((section) => (
-          <ChangelogSection key={section.label} section={section} />
-        ))}
-      </div>
+      {release.summary ? (
+        <p className="mt-1 text-[11.5px] leading-snug text-atc-dim">
+          {release.summary}
+        </p>
+      ) : null}
+      {Array.isArray(release.highlights) && release.highlights.length > 0 ? (
+        <ul className="mt-2 flex flex-col gap-1">
+          {release.highlights.map((item, index) => (
+            <li
+              key={index}
+              className="grid grid-cols-[10px_minmax(0,1fr)] items-baseline gap-1.5 text-[11.5px] leading-snug text-atc-text"
+            >
+              <span aria-hidden="true" className="text-atc-faint">
+                ·
+              </span>
+              <span className="min-w-0">{item}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </li>
   );
 }
 
-function ChangelogSection({ section }) {
+function KindBadge({ style }) {
   return (
-    <div>
-      <div className="font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-atc-faint">
-        {section.label}
-      </div>
-      <ul className="mt-1.5 flex flex-col gap-1.5">
-        {(section.items || []).map((item, index) => (
-          <li
-            key={index}
-            className="grid grid-cols-[10px_minmax(0,1fr)] items-baseline gap-1.5 text-[12px] leading-relaxed text-atc-text"
-          >
-            <span aria-hidden="true" className="text-atc-faint">
-              ·
-            </span>
-            <span className="min-w-0">{item}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <span
+      className={`font-nav rounded-sm px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-[0.14em] ${style.className}`}
+    >
+      {style.label}
+    </span>
   );
 }
