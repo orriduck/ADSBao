@@ -23,8 +23,7 @@ export default function SidebarIdentityHero({
       </div>
       <div className="mt-3 flex items-baseline gap-3">
         <span
-          translate="no"
-          className={`notranslate airport-sidebar-display-mono airport-sidebar-display-mono--hero text-[28px] font-extrabold text-atc-text ${codeClassName}`}
+          className={`airport-sidebar-display-mono airport-sidebar-display-mono--hero text-[28px] font-extrabold text-atc-text ${codeClassName}`}
         >
           {code}
         </span>

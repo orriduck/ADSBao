@@ -3661,6 +3661,14 @@ body {
     border-left: 1px solid var(--atc-line);
 }
 
+/* AircraftTypeFilterCard wraps its trigger in an .aircraft-filter-type
+   div, so the adjacent-sibling rule above misses the seam between the
+   Type card and Alt card. Target the right-column grid cell directly
+   so the vertical seam is consistent across both rows. */
+.aircraft-filter-cards--grid > *:nth-child(even) {
+    border-left: 1px solid var(--atc-line);
+}
+
 .aircraft-filter-card__label {
     color: var(--atc-faint);
     font-family: var(--airport-sidebar-sans);

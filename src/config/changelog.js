@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.2.1",
+    kind: "patch",
+    title: "Track button opens in a new tab",
+    summary:
+      "Preview-card Track action switches to an anchor so right-click → Open in New Tab works.",
+    highlights: [
+      "AircraftPreviewMetadataCard Track → next/link <Link>",
+      "AirportPreviewMetadataCard Track → next/link <Link>",
+      "Shared .aircraft-preview-card__track-btn rule made anchor-friendly",
+      "Restored the missing vertical seam between Type and Alt filter cards",
+    ],
+  },
+  {
     version: "v1.2.0",
     kind: "feat",
     title: "Themed runway approach + aircraft nose beam + scale-bar polish",

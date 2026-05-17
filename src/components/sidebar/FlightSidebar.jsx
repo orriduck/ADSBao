@@ -91,18 +91,12 @@ function FlightIdentity({ callsign, type, category, route }) {
       {(type || category) && (
         <div className="mt-2 flex items-baseline gap-2">
           {type && (
-            <span
-              translate="no"
-              className="notranslate font-mono text-[13px] font-semibold italic text-atc-text"
-            >
+            <span className="font-mono text-[13px] font-semibold italic text-atc-text">
               {type}
             </span>
           )}
           {category && (
-            <span
-              translate="no"
-              className="notranslate font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-atc-faint"
-            >
+            <span className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-atc-faint">
               {category}
             </span>
           )}
@@ -181,7 +175,7 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         <>
           <SidebarMetricCard
             label="ICAO24"
-            value={<span translate="no" className="notranslate">{hex}</span>}
+            value={hex}
             active={activeMetric === "hex"}
             onClick={() => toggle("hex")}
           />

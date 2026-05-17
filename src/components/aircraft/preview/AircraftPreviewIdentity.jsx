@@ -12,12 +12,7 @@ export default function AircraftPreviewIdentity({ aircraft }) {
   return (
     <div className="aircraft-preview-identity">
       <div className="aircraft-preview-identity__top">
-        <span
-          translate="no"
-          className="notranslate aircraft-preview-identity__callsign"
-        >
-          {callsign}
-        </span>
+        <span className="aircraft-preview-identity__callsign">{callsign}</span>
         <AircraftPreviewType aircraft={aircraft} />
       </div>
       {route ? (
