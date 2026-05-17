@@ -21,7 +21,7 @@ Frontend runs on `http://localhost:3000` by default.
 
 | Path | What |
 |---|---|
-| `CHANGELOG.md` | Product version history and legacy release split |
+| `src/config/changelog.js` | Product release history (source of truth; renders the `/changelog` page) |
 | `docs/architecture.md` | Current Vercel web architecture and data-path notes |
 | `package.json` | App metadata, scripts, dependencies, and current product version |
 | `next.config.mjs` | Next.js config and local proxy rewrites |
@@ -132,7 +132,7 @@ When preparing a new product release:
    - `package.json`
    - `src/app/about/page.js`
    - `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js` User-Agent, if still present
-   - `CHANGELOG.md`
+   - `src/config/changelog.js` (prepend a new entry; this is the source of truth — there is no `CHANGELOG.md` anymore)
    - `README.md`, only if it states the current version
 3. Run `pnpm build` and the test command above before tagging.
 4. Tag only after the release commit is on `main` and the Vercel production deployment is healthy.
@@ -143,4 +143,4 @@ git tag -a vX.Y.Z -m "vX.Y.Z - Short release title"
 git push origin vX.Y.Z
 ```
 
-6. GitHub Release notes should summarize product changes from `CHANGELOG.md`. Do not recreate the old Homebrew cask auto-release flow.
+6. GitHub Release notes should summarize product changes from `src/config/changelog.js`. Do not recreate the old Homebrew cask auto-release flow.
