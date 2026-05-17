@@ -64,9 +64,24 @@ function liveAircraftToTracePoint(aircraft) {
   };
 }
 
+// Drop trace points older than the cutoff. Applied after merge so the
+// session-cache and live-append paths both honor the clip. When the
+// cutoff is null/non-finite the input is returned untouched.
+function clipTracePointsBefore(points, cutoffMs) {
+  const cutoff = Number(cutoffMs);
+  if (!Number.isFinite(cutoff) || !Array.isArray(points)) return points;
+  return points.filter((point) => Number(point?.timestampMs) >= cutoff);
+}
+
 export function useAircraftTrace(selectedAircraft = null, options = {}) {
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
+  // Optional lower bound on trace timestamps. The aircraft detail page
+  // sets this to (firstTrackedAt - 30min) so the full trace shows the
+  // current flight rather than days of historical loops.
+  const traceStartAtMs = Number.isFinite(Number(options?.traceStartAtMs))
+    ? Number(options.traceStartAtMs)
+    : null;
   const [traceState, setTraceState] = useState({
     hex: "",
     tracePoints: [],
@@ -89,7 +104,10 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     const cached = readTraceCache(hex, fullTrace);
     setTraceState({
       hex,
-      tracePoints: cached?.tracePoints || [],
+      tracePoints: clipTracePointsBefore(
+        cached?.tracePoints || [],
+        traceStartAtMs,
+      ),
     });
     setLoading(!cached);
 
@@ -103,8 +121,14 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
             recentTrace: recent,
             fallbackHistory: current.hex === hex ? current.tracePoints : [],
           });
+          // Cache the unclipped merged set so a different consumer with a
+          // less strict cutoff can still benefit from the fetch; clipping
+          // is applied at the consumer boundary below.
           writeTraceCache(hex, fullTrace, merged);
-          return { hex, tracePoints: merged };
+          return {
+            hex,
+            tracePoints: clipTracePointsBefore(merged, traceStartAtMs),
+          };
         });
       })
       .catch((error) => {
@@ -119,7 +143,7 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     return () => {
       disposed = true;
     };
-  }, [hex, fullTrace]);
+  }, [hex, fullTrace, traceStartAtMs]);
 
   // Append the latest polled position to the trace so the trail extends
   // forward in real time. Wait until the recent-trace fetch has resolved
@@ -140,9 +164,12 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
         fallbackHistory: current.tracePoints,
       });
       writeTraceCache(hex, fullTrace, merged);
-      return { hex, tracePoints: merged };
+      return {
+        hex,
+        tracePoints: clipTracePointsBefore(merged, traceStartAtMs),
+      };
     });
-  }, [hex, loading, selectedAircraft, fullTrace]);
+  }, [hex, loading, selectedAircraft, fullTrace, traceStartAtMs]);
 
   return {
     tracePoints: traceState.hex === hex ? traceState.tracePoints : [],

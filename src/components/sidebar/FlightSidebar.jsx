@@ -87,7 +87,7 @@ export default function FlightSidebar({
 
 function FlightIdentity({ callsign, type, category, route }) {
   return (
-    <SidebarIdentityHero label="Tracking" code={callsign} codeClassName="italic">
+    <SidebarIdentityHero label="Tracking" code={callsign}>
       {(type || category) && (
         <div className="mt-2 flex items-baseline gap-2">
           {type && (

@@ -1,10 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu.jsx";
+import LostSignalOverlay from "@/components/aircraft/tracking/LostSignalOverlay.jsx";
+import {
+  getOrCreateTrackedFlight,
+  getTraceCutoffMs,
+} from "@/features/aircraft/tracking/trackedFlightStorage.js";
 
 // MapFitToTraceController imports leaflet, which evaluates `window` at
 // module top — SSR-incompatible. Dynamic-import keeps the controller
@@ -81,7 +86,38 @@ function FlightExplorerContent({ callsign }) {
     aircraft: trackedAircraft,
     feedSource,
     lastUpdated,
+    lostSignal,
+    retry: retryTrackedAircraft,
   } = useTrackedAircraft(callsign);
+
+  // Anchor the tracking session as soon as we have a callsign so the
+  // 12h TTL starts ticking on first load — the hex is recorded once it
+  // becomes available so the cache captures the icao24 we anchored on.
+  // The cutoff (firstTrackedAt - 30 min) drives trace clipping for the
+  // focal aircraft below.
+  const [trackingSession, setTrackingSession] = useState(null);
+  useEffect(() => {
+    if (!callsign) {
+      setTrackingSession(null);
+      return;
+    }
+    const session = getOrCreateTrackedFlight(callsign, {
+      hex: trackedAircraft?.icao24 || null,
+    });
+    if (session) setTrackingSession(session);
+  }, [callsign, trackedAircraft?.icao24]);
+  const focalTraceStartAtMs = useMemo(
+    () => getTraceCutoffMs(trackingSession),
+    [trackingSession],
+  );
+
+  // User can dismiss the lost-signal overlay to keep watching the last
+  // known trace. The dismissal resets whenever the feed comes back so a
+  // later disappearance still prompts.
+  const [lostSignalDismissed, setLostSignalDismissed] = useState(false);
+  useEffect(() => {
+    if (!lostSignal) setLostSignalDismissed(false);
+  }, [lostSignal]);
 
   // Keep the last known position around so the map doesn't snap back when
   // the tracked aircraft is briefly absent from the feed.
@@ -188,6 +224,8 @@ function FlightExplorerContent({ callsign }) {
     <SelectedAircraftTraceProvider
       selectedAircraft={selectedAircraft}
       focalAircraft={trackedAircraft}
+      fullTraceForFocal
+      focalTraceStartAtMs={focalTraceStartAtMs}
     >
       <TraceLoadingToast />
       <AircraftPreviewCard
@@ -250,6 +288,18 @@ function FlightExplorerContent({ callsign }) {
             <div className="absolute inset-0 z-[1100]">
               <FlightSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
+          )}
+
+          {lostSignal && !lostSignalDismissed && (
+            <LostSignalOverlay
+              callsign={callsign}
+              onKeepShowing={() => setLostSignalDismissed(true)}
+              onRetry={() => {
+                setLostSignalDismissed(true);
+                retryTrackedAircraft();
+              }}
+              onBackHome={handleBack}
+            />
           )}
         </div>
       </div>
