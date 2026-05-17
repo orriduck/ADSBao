@@ -7,6 +7,7 @@ import {
   buildAirportRangeRingLabels,
   buildAirportRangeRings,
 } from "../../features/airport/map/airportRangeRings.js";
+import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay.js";
 
 // Default distance-ring band for the primary focal: one circle every
 // 3nm out to 30nm. The flight-tracking page passes a coarser band (5nm
@@ -14,10 +15,10 @@ import {
 const DEFAULT_RING_INTERVAL_NM = 3;
 const DEFAULT_RING_MAX_NM = 30;
 
-// Show per-ring distance labels only at the airport-or-closer zoom
-// presets. At approach the ring labels would clutter the map; the
-// MapRangeLegend overlay handles that case instead.
-const RING_LABEL_MIN_ZOOM = 12;
+// Show per-ring distance labels at the airport preset and closer. At
+// approach the labels would clutter the map; the MapRangeLegend
+// scale-bar overlay handles that zoom range instead.
+const RING_LABEL_MIN_ZOOM = ZOOM_AIRPORT;
 
 // Leaflet's renderer (_renderer / overlayPane._renderer) can be missing or
 // half-initialized in two situations we hit in practice: HMR (the map

@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useMapInstance } from "./MapContext.js";
+import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 
 // Bottom-left scale bar (比例尺) shown at approach-level zoom and
 // below, when the inline per-ring labels would be too small to read.
 // The bar adapts to the current map center + zoom and picks the
 // largest "nice" nautical-mile value that fits within ~110 pixels.
 
-const LEGEND_MAX_ZOOM = 11;
+const LEGEND_MAX_ZOOM = ZOOM_APPROACH;
 const METERS_PER_NM = 1852;
 const TARGET_PX = 110;
 // Ordered round numbers we'll snap the bar's length to. Avoids the
