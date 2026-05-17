@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { ChevronRight } from "lucide-react";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard.jsx";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
 import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard.jsx";
+import AirportPreviewMobileCard from "./AirportPreviewMobileCard.jsx";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 
@@ -45,7 +48,27 @@ export default function AircraftPreviewCard({
   const identityKey = isAirport
     ? `airport:${airport?.icao || "preview"}`
     : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
-  const showMobile = isMobile && !sidebarOpen && Boolean(aircraft);
+  const showMobile = isMobile && !sidebarOpen && Boolean(entity);
+
+  // Mobile preview card is the only way to trigger "Track this entity"
+  // on touch — desktop uses the explicit Track button inside the larger
+  // metadata card. Tapping the mobile card navigates to the right
+  // detail page. If the user is already on that page, the tap is a
+  // no-op so they don't bounce.
+  const router = useRouter();
+  const pathname = usePathname();
+  const trackHref = isAirport
+    ? airport?.icao
+      ? `/airport/${airport.icao.toUpperCase()}`
+      : null
+    : aircraft?.callsign
+      ? `/aircraft/${aircraft.callsign.trim().toUpperCase()}`
+      : null;
+  const alreadyTracking = trackHref && pathname === trackHref;
+  const handleMobileTap = () => {
+    if (!trackHref || alreadyTracking) return;
+    router.push(trackHref);
+  };
 
   return (
     <AnimatePresence>
@@ -86,18 +109,38 @@ export default function AircraftPreviewCard({
           )}
         </motion.aside>
       )}
-      {aircraft && showMobile && (
-        <motion.aside
+      {showMobile && (
+        <motion.button
+          type="button"
           key={`mobile-${identityKey}`}
-          className="aircraft-preview-mobile-card"
-          aria-label="Aircraft preview"
+          className={`aircraft-preview-mobile-card aircraft-preview-mobile-card--tap ${
+            alreadyTracking ? "aircraft-preview-mobile-card--current" : ""
+          }`}
+          aria-label={
+            isAirport
+              ? `Track airport ${airport?.icao || ""}`
+              : `Track flight ${aircraft?.callsign || ""}`
+          }
+          onClick={handleMobileTap}
           style={{ x: "-50%" }}
           {...(reducedMotion
             ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
             : STACK_MOTION)}
         >
-          <AircraftPreviewMobileCard aircraft={aircraft} />
-        </motion.aside>
+          {isAirport ? (
+            <AirportPreviewMobileCard airport={airport} />
+          ) : (
+            <AircraftPreviewMobileCard aircraft={aircraft} />
+          )}
+          {!alreadyTracking && trackHref && (
+            <span
+              className="aircraft-preview-mobile-card__chevron"
+              aria-hidden="true"
+            >
+              <ChevronRight size={16} strokeWidth={2.5} />
+            </span>
+          )}
+        </motion.button>
       )}
     </AnimatePresence>
   );

@@ -4442,6 +4442,46 @@ body {
     user-select: none;
 }
 
+/* Interactive variant: the mobile preview is the only Track surface on
+   touch devices, so the card itself becomes the tap target. Pointer
+   events are re-enabled and a subtle press feedback gives the user
+   confirmation the tap registered. */
+.aircraft-preview-mobile-card--tap {
+    pointer-events: auto;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    appearance: none;
+    font: inherit;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 14px;
+    transition:
+        transform 0.12s ease-out,
+        background 0.12s ease-out;
+}
+
+.aircraft-preview-mobile-card--tap:active {
+    transform: translate(-50%, 1px);
+    background: color-mix(in oklab, var(--atc-card) 88%, var(--atc-accent) 12%);
+}
+
+/* When the user is already on this entity's tracking page, drop the
+   tap affordance — the card becomes informational only. */
+.aircraft-preview-mobile-card--current {
+    cursor: default;
+    pointer-events: none;
+}
+
+.aircraft-preview-mobile-card__chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--atc-accent);
+    flex-shrink: 0;
+}
+
 .aircraft-preview-mobile-card__inner {
     display: flex;
     flex-direction: column;
