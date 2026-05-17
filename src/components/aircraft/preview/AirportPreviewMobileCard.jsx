@@ -4,10 +4,11 @@ import NumberFlow from "@number-flow/react";
 import { countryName, flagEmoji } from "@/utils/flag.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
-// Airport variant of the bottom-of-screen mobile preview card. Mirrors
-// the AircraftPreviewMobileCard column rhythm so swapping between an
-// aircraft selection and an airport selection on mobile doesn't change
-// the card's shape.
+// Airport variant of the bottom-of-screen mobile preview card. Code line
+// is the prominent identifier (same font as the aircraft callsign so
+// swapping selections keeps the card's silhouette stable); the place
+// line drops to a smaller secondary style and is allowed to wrap inside
+// the card's max-width so long airport names stay tidy.
 export default function AirportPreviewMobileCard({ airport }) {
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
@@ -26,15 +27,10 @@ export default function AirportPreviewMobileCard({ airport }) {
         <span className="aircraft-preview-mobile-card__callsign">
           {codeLine}
         </span>
-        {placeLine && (
-          <>
-            <span className="aircraft-preview-mobile-card__sep">/</span>
-            <span className="aircraft-preview-mobile-card__type">
-              {placeLine}
-            </span>
-          </>
-        )}
       </div>
+      {placeLine && (
+        <div className="airport-preview-mobile-card__place">{placeLine}</div>
+      )}
       {hasStats && (
         <div className="aircraft-preview-mobile-card__row2">
           {distance != null && (

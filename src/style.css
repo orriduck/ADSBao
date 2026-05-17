@@ -4428,9 +4428,10 @@ body {
    Centered at the bottom, callsign + type row + compact telemetry row. */
 .aircraft-preview-mobile-card {
     position: fixed;
-    bottom: 20px;
+    bottom: 32px;
     left: 50%;
     z-index: 1200;
+    max-width: min(360px, calc(100vw - 32px));
     background: var(--atc-card);
     border: 1px solid var(--tone-border-firm);
     border-radius: 12px;
@@ -4442,44 +4443,61 @@ body {
     user-select: none;
 }
 
-/* Interactive variant: the mobile preview is the only Track surface on
-   touch devices, so the card itself becomes the tap target. Pointer
-   events are re-enabled and a subtle press feedback gives the user
-   confirmation the tap registered. */
-.aircraft-preview-mobile-card--tap {
-    pointer-events: auto;
+/* Stacked variant: variant content + an explicit Track button below.
+   Pointer-events stay disabled at the card level (the Track button
+   re-enables them) so the press target is unambiguous. */
+.aircraft-preview-mobile-card--stacked {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 10px;
+}
+
+.aircraft-preview-mobile-card__track {
+    margin: 4px 14px 0;
+    padding: 9px 14px;
+    border: none;
+    border-radius: 6px;
+    background: var(--atc-accent);
+    color: var(--atc-bg);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
     cursor: pointer;
+    pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
-    appearance: none;
-    font: inherit;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-right: 14px;
-    transition:
-        transform 0.12s ease-out,
-        background 0.12s ease-out;
+    transition: opacity 0.15s ease-out, transform 0.12s ease-out;
 }
 
-.aircraft-preview-mobile-card--tap:active {
-    transform: translate(-50%, 1px);
-    background: color-mix(in oklab, var(--atc-card) 88%, var(--atc-accent) 12%);
+.aircraft-preview-mobile-card__track:active {
+    transform: scale(0.97);
 }
 
-/* When the user is already on this entity's tracking page, drop the
-   tap affordance — the card becomes informational only. */
-.aircraft-preview-mobile-card--current {
-    cursor: default;
-    pointer-events: none;
+.aircraft-preview-mobile-card__track:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
 }
 
-.aircraft-preview-mobile-card__chevron {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--atc-accent);
-    flex-shrink: 0;
+/* Airport place line — secondary detail at a smaller font, allowed to
+   wrap to a second line so long airport names don't blow out the
+   card width. */
+.airport-preview-mobile-card__place {
+    padding: 0 20px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    color: var(--atc-dim);
+    text-align: center;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .aircraft-preview-mobile-card__inner {

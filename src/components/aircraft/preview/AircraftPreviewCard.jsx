@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ChevronRight } from "lucide-react";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard.jsx";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
@@ -110,18 +109,10 @@ export default function AircraftPreviewCard({
         </motion.aside>
       )}
       {showMobile && (
-        <motion.button
-          type="button"
+        <motion.aside
           key={`mobile-${identityKey}`}
-          className={`aircraft-preview-mobile-card aircraft-preview-mobile-card--tap ${
-            alreadyTracking ? "aircraft-preview-mobile-card--current" : ""
-          }`}
-          aria-label={
-            isAirport
-              ? `Track airport ${airport?.icao || ""}`
-              : `Track flight ${aircraft?.callsign || ""}`
-          }
-          onClick={handleMobileTap}
+          className="aircraft-preview-mobile-card aircraft-preview-mobile-card--stacked"
+          aria-label={isAirport ? "Airport preview" : "Aircraft preview"}
           style={{ x: "-50%" }}
           {...(reducedMotion
             ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
@@ -132,15 +123,17 @@ export default function AircraftPreviewCard({
           ) : (
             <AircraftPreviewMobileCard aircraft={aircraft} />
           )}
-          {!alreadyTracking && trackHref && (
-            <span
-              className="aircraft-preview-mobile-card__chevron"
-              aria-hidden="true"
+          {trackHref && (
+            <button
+              type="button"
+              className="aircraft-preview-mobile-card__track"
+              onClick={handleMobileTap}
+              disabled={alreadyTracking}
             >
-              <ChevronRight size={16} strokeWidth={2.5} />
-            </span>
+              {alreadyTracking ? "Tracking" : "Track"}
+            </button>
           )}
-        </motion.button>
+        </motion.aside>
       )}
     </AnimatePresence>
   );
