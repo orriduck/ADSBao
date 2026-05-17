@@ -73,19 +73,24 @@ export function SelectedAircraftTraceProvider({
 
   const traces = useMemo(() => {
     const out = [];
-    const seen = new Set();
-    // The URL-tracked focal renders at full opacity. A "secondary" trace
-    // — the aircraft the user clicked when it's NOT the focal — renders
-    // at 40% so the eye still privileges the page's anchor flight.
-    const focalKey = focal.aircraftHex;
-    if (primary.aircraftHex) {
-      const isPrimaryFocal =
-        !focalKey || primary.aircraftHex === focalKey;
-      out.push({ ...primary, opacity: isPrimaryFocal ? 1 : 0.4 });
-      seen.add(primary.aircraftHex);
-    }
-    if (focal.aircraftHex && !seen.has(focal.aircraftHex)) {
+    // The URL-tracked focal renders at full opacity and is emitted
+    // first so its richer trace (full + persisted) wins the dedupe.
+    // If the primary refers to the same plane as the focal — the
+    // default state before the user clicks anything — the bare
+    // primary hook (recent-only, no persistence) would otherwise
+    // shadow the focal because it shares the hex.
+    if (focal.aircraftHex) {
       out.push({ ...focal, opacity: 1 });
+    }
+    if (
+      primary.aircraftHex &&
+      primary.aircraftHex !== focal.aircraftHex
+    ) {
+      // Primary differs from focal → user clicked a different plane.
+      // Render it dimmer so the eye still privileges the page's
+      // anchor flight, unless there is no focal at all (airport page).
+      const dim = Boolean(focal.aircraftHex);
+      out.push({ ...primary, opacity: dim ? 0.4 : 1 });
     }
     return out;
   }, [primary, focal]);
