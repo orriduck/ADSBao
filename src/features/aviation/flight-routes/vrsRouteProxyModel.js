@@ -2,7 +2,7 @@ export const VRS_STANDING_DATA_BASE =
   "https://vrs-standing-data.adsb.lol/routes";
 
 export const VRS_ROUTE_USER_AGENT =
-  "ADSBao/0.12.0 (+https://github.com/orriduck/ADSBao) VRS-standing-data/1.0";
+  "ADSBao/1.0.0 (+https://github.com/orriduck/ADSBao) VRS-standing-data/1.0";
 
 export const VRS_ROUTE_MISS_STATUS = 200;
 

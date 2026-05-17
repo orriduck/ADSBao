@@ -1,5 +1,5 @@
 export const ABOUT_BUILD_META = [
-  { label: "Version", value: "0.12.0" },
+  { label: "Version", value: "1.0.0" },
   { label: "Release", value: "Next.js Web" },
   { label: "Stack", value: "React 19 · Next 16 · Leaflet" },
   { label: "Scope", value: "Maps · Weather · Traffic" },

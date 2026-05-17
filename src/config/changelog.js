@@ -6,6 +6,22 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.0.0",
+    kind: "feat",
+    title: "Persistent tracking sessions + drop-up nav menu",
+    summary:
+      "Refresh-safe trace persistence, lost-signal overlay, /changelog page, and a unified sibling-page nav menu.",
+    highlights: [
+      "12h tracking session anchor + 24h trace cache in localStorage",
+      "Full + recent + live trace merge with explicit priority",
+      "Lost-signal overlay (keep / retry / back home)",
+      "Fit-to-trace returns to the same zoom preset",
+      "Sidebar nearby list switches to static digits (framerate)",
+      "Drop-up nav menu shared by Home / About / Changelog",
+      "New /changelog page (data moved from CHANGELOG.md to JS)",
+    ],
+  },
+  {
     version: "v0.12.0",
     kind: "feat",
     title: "Aircraft tracking page + polymorphic explorer",
