@@ -26,8 +26,8 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
         <div className="metar-token-strip" aria-hidden={!tokens.length}>
           {tokens.length
             ? tokens.map((item) => (
-                <span key={item.label}>
-                  <small>{item.label}</small>
+                <span key={item.labelKey}>
+                  <small>{t(item.labelKey)}</small>
                   <strong className="font-mono">{item.value}</strong>
                 </span>
               ))

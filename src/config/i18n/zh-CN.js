@@ -167,6 +167,12 @@ const zhCN = {
     metarMissing: "暂无 METAR 数据",
     ceiling: "云高",
     visibility: "能见度",
+    metarToken: {
+      station: "台站",
+      issued: "发报",
+      wind: "风",
+      vis: "能见度",
+    },
     windPara: {
       strong: "强风或阵风可能降低进场效率,增加复飞风险,并迫使更严格的跑道选择。",
       moderate: "中等风力尚可应对,但侧风分量和阵风差异可能影响间隔与跑道构型。",

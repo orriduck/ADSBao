@@ -168,6 +168,12 @@ const en = {
     metarMissing: "No METAR available.",
     ceiling: "Ceiling",
     visibility: "Visibility",
+    metarToken: {
+      station: "Station",
+      issued: "Issued",
+      wind: "Wind",
+      vis: "Vis",
+    },
     windPara: {
       strong:
         "Strong winds or gusts can reduce arrival rates, increase go-around risk, and force stricter runway selection.",
