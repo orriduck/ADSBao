@@ -3066,7 +3066,12 @@ body {
     position: relative;
 }
 
-.airport-sidebar-panel--mobile {
+.airport-sidebar-panel--mobile,
+.flight-sidebar-panel--mobile {
+    /* SidebarShell on mobile relies on the panel itself owning the vertical
+       scroll (the body wrapper uses overflow:visible). Without this rule the
+       flight sidebar's header + nearby-traffic table can run past the
+       viewport with no way to reach the bottom. */
     border-right: 0;
     overflow-y: auto;
     overscroll-behavior-y: contain;
@@ -4758,6 +4763,118 @@ body {
 .aircraft-preview-mobile-card__track:disabled {
     cursor: not-allowed;
     opacity: 0.45;
+}
+
+/* Compact text-link affordance under the Track button. Mirrors the dashed
+   "Suggest correction" tone on desktop but as a single-line link so it
+   doesn't compete with Track for taps. The card surface has pointer-events
+   disabled by default; this re-enables them like the Track button does. */
+.aircraft-preview-mobile-card__feedback-link {
+    align-self: center;
+    margin: 6px 14px 0;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    color: var(--atc-dim);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--atc-dim) 50%, transparent);
+    text-underline-offset: 3px;
+    text-transform: none;
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease-out;
+}
+
+.aircraft-preview-mobile-card__feedback-link:active,
+.aircraft-preview-mobile-card__feedback-link:hover {
+    color: var(--atc-text);
+}
+
+/* Centered route-feedback modal. Mounted via Radix Dialog so focus trap,
+   Esc-to-close, and outside-click dismissal come for free. */
+.route-feedback-modal__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    background: color-mix(in oklab, var(--atc-bg) 70%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.route-feedback-modal__content {
+    position: fixed;
+    z-index: 1410;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(92vw, 360px);
+    padding: 20px 20px 18px;
+    border: 1px solid var(--tone-border-firm, var(--atc-card));
+    border-radius: 12px;
+    background: var(--atc-card);
+    box-shadow: 0 24px 60px color-mix(in oklab, var(--atc-bg) 60%, transparent);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--atc-text);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    outline: none;
+}
+
+.route-feedback-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.route-feedback-modal__title {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    color: var(--atc-text);
+}
+
+.route-feedback-modal__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--atc-dim);
+    cursor: pointer;
+    transition: color 0.15s ease-out, background 0.15s ease-out;
+}
+
+.route-feedback-modal__close:hover {
+    color: var(--atc-text);
+    background: color-mix(in oklab, var(--atc-text) 8%, transparent);
+}
+
+.route-feedback-modal__callsign {
+    margin: -4px 0 0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--atc-faint);
+    text-transform: uppercase;
+}
+
+.route-feedback-modal__content .route-feedback-form {
+    margin-top: 0;
 }
 
 /* Airport place line — secondary detail at a smaller font, allowed to

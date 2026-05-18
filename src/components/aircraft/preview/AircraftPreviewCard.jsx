@@ -8,7 +8,9 @@ import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
 import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard.jsx";
 import AirportPreviewMobileCard from "./AirportPreviewMobileCard.jsx";
+import RouteFeedbackModal from "./RouteFeedbackModal.jsx";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto.js";
+import { getRouteFeedbackLabel } from "@/features/aviation/flight-routes/useRouteFeedbackSubmit.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 
 const POCKET_EASE = [0.16, 1, 0.3, 1];
@@ -71,7 +73,23 @@ export default function AircraftPreviewCard({
     router.push(trackHref);
   };
 
+  // Mobile route-feedback affordance: small text link → centered modal.
+  // The desktop inline form (in AircraftPreviewMetadataCard) is more
+  // ergonomic at 280px, but on touch we don't have the space to expand
+  // inline without crowding the existing telemetry. The modal is mounted
+  // outside the motion.aside so closing it doesn't ride the card's
+  // animation curve.
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const aircraftCallsign = (aircraft?.callsign || "").trim().toUpperCase();
+  const showMobileFeedbackTrigger =
+    showMobile &&
+    !isAirport &&
+    Boolean(aircraftCallsign) &&
+    typeof onApplyTemporaryRoute === "function";
+  const mobileFeedbackLabel = getRouteFeedbackLabel(aircraft);
+
   return (
+    <>
     <AnimatePresence>
       {entity && !isMobile && (
         <motion.aside
@@ -140,9 +158,28 @@ export default function AircraftPreviewCard({
               {alreadyTracking ? "Tracking" : "Track"}
             </button>
           )}
+          {showMobileFeedbackTrigger && (
+            <button
+              type="button"
+              className="aircraft-preview-mobile-card__feedback-link"
+              onClick={() => setFeedbackModalOpen(true)}
+            >
+              {mobileFeedbackLabel}
+            </button>
+          )}
         </motion.aside>
       )}
     </AnimatePresence>
+    {showMobileFeedbackTrigger && (
+      <RouteFeedbackModal
+        aircraft={aircraft}
+        airportProfile={airportProfile}
+        onApplyTemporaryRoute={onApplyTemporaryRoute}
+        open={feedbackModalOpen}
+        onOpenChange={setFeedbackModalOpen}
+      />
+    )}
+    </>
   );
 }
 
