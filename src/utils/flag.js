@@ -23,8 +23,8 @@ const remapCountry = (code) => COUNTRY_CODE_REMAP[code] || code;
 // Chromium's ICU otherwise produce different labels and break SSR hydration.
 const COUNTRY_NAME_OVERRIDES = Object.freeze({
   en: {
-    HK: "Hong Kong",
-    MO: "Macao",
+    HK: "Hong Kong SAR",
+    MO: "Macau SAR",
     TW: "Taiwan (China)",
   },
   "zh-CN": {
