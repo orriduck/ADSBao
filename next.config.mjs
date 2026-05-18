@@ -1,3 +1,7 @@
+import { withSentryConfig } from "@sentry/nextjs";
+
+import { resolveSentryPluginOptions } from "./src/config/sentryConfig.js";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async headers() {
@@ -37,4 +41,7 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(
+  nextConfig,
+  resolveSentryPluginOptions(process.env),
+);

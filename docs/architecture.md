@@ -7,6 +7,7 @@ ADSBao is a Vercel-first web app for airport lookup, weather context, nearby air
 - React on Next.js App Router.
 - Tailwind CSS v4 with DaisyUI.
 - Vercel Web Analytics and Speed Insights through the Next.js integrations.
+- Sentry Next.js SDK for error monitoring, tracing, privacy-masked Session Replay, and production source-map upload.
 - React component equivalents for the previous VueBits-style UI effects.
 
 ## Current product scope
@@ -66,6 +67,8 @@ Airport search and detail go directly to the OurAirports tables (`public.airport
 Vercel's platform DDoS mitigation remains enabled automatically for the deployment. The repository does not depend on paid Vercel WAF rate limiting for normal operation; proxy throttling lives in application code so the default deployment path does not require a new paid feature.
 
 Security headers are configured in `next.config.mjs` for all routes. Production branch protection and required review settings are still repository or Vercel dashboard controls rather than application code.
+
+Sentry browser transport uses the same-origin `/monitoring` tunnel from `withSentryConfig`, which avoids adding Sentry ingest domains to `connect-src`. Source-map upload is build-time only and requires `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` in Vercel or local build env. Runtime capture stays disabled when no DSN is configured.
 
 ## Local development
 

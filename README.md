@@ -42,6 +42,25 @@ vercel
 
 The deployment path intentionally keeps upstream ownership visible: airport search and airport detail hit `/api/search` and `/api/airport/[ident]` backed by Supabase-hosted OurAirports data, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Static airport data is bulk-loaded from OurAirports into Supabase via `node --env-file=.env scripts/import-ourairports.js`.
 
+### Sentry Onboarding
+The app is wired for Sentry error monitoring, tracing, privacy-masked Session Replay, App Router render errors, server request errors, and production source-map upload.
+
+Create a Sentry Next.js project, then configure these variables locally and in Vercel:
+
+```bash
+NEXT_PUBLIC_SENTRY_DSN=...
+SENTRY_DSN=...
+SENTRY_ORG=...
+SENTRY_PROJECT=...
+SENTRY_AUTH_TOKEN=...
+```
+
+Use `NEXT_PUBLIC_SENTRY_DSN` for browser events. `SENTRY_DSN` is optional when the same DSN is acceptable for server and edge events. `SENTRY_AUTH_TOKEN` is required only for build-time source-map upload and must stay secret.
+
+For Vercel, add the same values with `vercel env add` or through the project dashboard. The Sentry tunnel is configured at `/monitoring`, so browser events stay same-origin and work with the existing content security policy.
+
+After the variables are set, trigger a temporary client or API-route error, then verify the event, trace, replay, and readable source frame in the Sentry dashboard. Remove the temporary test error before merging.
+
 ### Verification
 ```bash
 pnpm test

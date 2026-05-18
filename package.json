@@ -20,6 +20,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-three/fiber": "^9.6.1",
     "@react-three/postprocessing": "^3.0.4",
+    "@sentry/nextjs": "^10.53.1",
     "@supabase/supabase-js": "^2.105.4",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
@@ -45,6 +46,11 @@
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.0.10",
     "tailwindcss": "^4.2.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@sentry/cli"
+    ]
   },
   "license": "MIT"
 }

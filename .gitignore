@@ -1,4 +1,5 @@
 **/.env
+.env.sentry-build-plugin
 **/build
 **/dist
 **/.next
