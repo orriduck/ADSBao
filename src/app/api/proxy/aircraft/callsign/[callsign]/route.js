@@ -10,9 +10,7 @@ import {
 import {
   AircraftCallsignProviderError,
 } from "@/features/aircraft/callsign/aircraftCallsign.models.js";
-import {
-  normalizeRouteCallsign,
-} from "@/features/aviation/flight-routes/vrsRouteProxyModel.js";
+import { normalizeRouteCallsign } from "@/features/aviation/flight-routes/flightRouteCallsign.js";
 
 const rateLimit = {
   key: "proxy:aircraft-callsign",

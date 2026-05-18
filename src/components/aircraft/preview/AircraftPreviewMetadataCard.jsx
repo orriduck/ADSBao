@@ -5,8 +5,14 @@ import { usePathname } from "next/navigation";
 import AircraftPreviewIdentity from "./AircraftPreviewIdentity.jsx";
 import AircraftPreviewMetadata from "./AircraftPreviewMetadata.jsx";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry.jsx";
+import RouteFeedbackForm from "./RouteFeedbackForm.jsx";
 
-export default function AircraftPreviewMetadataCard({ aircraft, photo }) {
+export default function AircraftPreviewMetadataCard({
+  aircraft,
+  photo,
+  airportProfile = null,
+  onApplyTemporaryRoute,
+}) {
   const pathname = usePathname();
   const credit = photo?.photographer || null;
   const trackCallsign = (aircraft?.callsign || "").trim().toUpperCase();
@@ -40,6 +46,11 @@ export default function AircraftPreviewMetadataCard({ aircraft, photo }) {
           {alreadyTracking ? "Tracking" : "Track"}
         </button>
       )}
+      <RouteFeedbackForm
+        aircraft={aircraft}
+        airportProfile={airportProfile}
+        onApplyTemporaryRoute={onApplyTemporaryRoute}
+      />
     </div>
   );
 }

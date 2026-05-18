@@ -31,6 +31,12 @@ const flightNumberFromIdent = (ident) => {
   return match?.[1] || ''
 }
 
+// Community-feedback routes carry a `displaySuffix` (currently "*") so the
+// renderer can mark them as user-supplied at a glance. Suffix only attaches
+// when we *have* a renderable route — an empty label stays empty.
+const routeDisplaySuffix = (route) =>
+  String(route?.displaySuffix || '').trim()
+
 export const formatFlightNumberLabel = (route, fallbackCallsign = '') =>
   flightNumberFromIdent(route?.callsignIata)
   || flightNumberFromIdent(route?.callsignIcao)
@@ -40,19 +46,17 @@ export const formatFlightNumberLabel = (route, fallbackCallsign = '') =>
 export const formatFlightRouteLabel = (route) => {
   const origin = airportCode(route?.origin)
   const destination = airportCode(route?.destination)
-  if (origin && destination && sameAirport(route.origin, route.destination)) {
-    return ''
-  }
-  return origin && destination ? `${origin} -> ${destination}` : ''
+  if (!origin || !destination) return ''
+  if (sameAirport(route.origin, route.destination)) return ''
+  return `${origin} -> ${destination}${routeDisplaySuffix(route)}`
 }
 
 export const formatFlightRouteMunicipalityLabel = (route) => {
   const origin = airportMunicipality(route?.origin)
   const destination = airportMunicipality(route?.destination)
-  if (origin && destination && sameAirport(route.origin, route.destination)) {
-    return ''
-  }
-  return origin && destination ? `${origin} -> ${destination}` : ''
+  if (!origin || !destination) return ''
+  if (sameAirport(route.origin, route.destination)) return ''
+  return `${origin} -> ${destination}${routeDisplaySuffix(route)}`
 }
 
 export const formatLocalFlightRouteLabel = (route, airport, movement) => {

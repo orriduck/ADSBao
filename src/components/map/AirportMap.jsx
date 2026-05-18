@@ -49,7 +49,6 @@ export default function AirportMap({
   followsCenter = true,
   onSelectAircraft,
   onSelectAirport,
-  onRevalidateRoute,
   runwayMap = null,
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
@@ -276,7 +275,6 @@ export default function AirportMap({
                 getAircraftIdentity(ac) === focalAircraftId
               }
               onSelectAircraft={onSelectAircraft}
-              onRevalidateRoute={onRevalidateRoute}
             />
           ))}
         </MapContext.Provider>

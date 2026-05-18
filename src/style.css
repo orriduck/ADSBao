@@ -3066,7 +3066,12 @@ body {
     position: relative;
 }
 
-.airport-sidebar-panel--mobile {
+.airport-sidebar-panel--mobile,
+.flight-sidebar-panel--mobile {
+    /* SidebarShell on mobile relies on the panel itself owning the vertical
+       scroll (the body wrapper uses overflow:visible). Without this rule the
+       flight sidebar's header + nearby-traffic table can run past the
+       viewport with no way to reach the bottom. */
     border-right: 0;
     overflow-y: auto;
     overscroll-behavior-y: contain;
@@ -4487,6 +4492,167 @@ body {
     opacity: 0.4;
 }
 
+.route-feedback-form {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* The preview card sets pointer-events:none so non-interactive surface
+       chrome doesn't block map clicks. Anything inside the form that the
+       user actually needs to click has to re-enable interaction (mirrors
+       what the Track button already does). */
+    pointer-events: auto;
+}
+
+.route-feedback-form--collapsed {
+    margin-top: 8px;
+}
+
+.route-feedback-form__open {
+    align-self: stretch;
+    padding: 6px 8px;
+    border: 1px dashed var(--tone-border-firm, var(--atc-card));
+    border-radius: 6px;
+    background: transparent;
+    color: var(--atc-dim);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.15s ease-out, border-color 0.15s ease-out;
+}
+
+.route-feedback-form__open:hover {
+    color: var(--atc-text);
+    border-color: var(--atc-accent);
+}
+
+.route-feedback-form__hint {
+    margin: 0;
+    color: var(--atc-dim);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10px;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+}
+
+.route-feedback-form__fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    /* The card is narrow (~280px) and the inputs default to their text
+       intrinsic width, which can push past the card's right edge. min-width:0
+       on the track and the field wrapper lets the inputs shrink with the
+       column so the form stays inside the surface. */
+    min-width: 0;
+}
+
+.route-feedback-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.route-feedback-form__label {
+    color: var(--atc-faint);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.route-feedback-form__input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    border: 1px solid var(--tone-border-firm, var(--atc-card));
+    border-radius: 4px;
+    background: var(--tone-card-soft, var(--atc-card));
+    color: var(--atc-text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    outline: none;
+    transition: border-color 0.15s ease-out;
+}
+
+.route-feedback-form__input:focus {
+    border-color: var(--atc-accent);
+}
+
+.route-feedback-form__input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.route-feedback-form__error {
+    margin: 0;
+    color: var(--atc-warn, #d4541f);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10px;
+    line-height: 1.3;
+}
+
+.route-feedback-form__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.route-feedback-form__cancel,
+.route-feedback-form__submit {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.route-feedback-form__cancel {
+    border: 1px solid var(--tone-border-firm, var(--atc-card));
+    background: transparent;
+    color: var(--atc-dim);
+}
+
+.route-feedback-form__cancel:hover {
+    color: var(--atc-text);
+}
+
+.route-feedback-form__submit {
+    border: none;
+    background: var(--atc-accent);
+    color: var(--atc-bg);
+}
+
+.route-feedback-form__submit:hover {
+    opacity: 0.92;
+}
+
+.route-feedback-form__submit:active,
+.route-feedback-form__cancel:active {
+    transform: scale(0.98);
+}
+
+.route-feedback-form__submit:disabled,
+.route-feedback-form__cancel:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .aircraft-preview-metadata-card__credit {
     display: block;
     margin-bottom: 8px;
@@ -4597,6 +4763,118 @@ body {
 .aircraft-preview-mobile-card__track:disabled {
     cursor: not-allowed;
     opacity: 0.45;
+}
+
+/* Compact text-link affordance under the Track button. Mirrors the dashed
+   "Suggest correction" tone on desktop but as a single-line link so it
+   doesn't compete with Track for taps. The card surface has pointer-events
+   disabled by default; this re-enables them like the Track button does. */
+.aircraft-preview-mobile-card__feedback-link {
+    align-self: center;
+    margin: 6px 14px 0;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    color: var(--atc-dim);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--atc-dim) 50%, transparent);
+    text-underline-offset: 3px;
+    text-transform: none;
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.15s ease-out;
+}
+
+.aircraft-preview-mobile-card__feedback-link:active,
+.aircraft-preview-mobile-card__feedback-link:hover {
+    color: var(--atc-text);
+}
+
+/* Centered route-feedback modal. Mounted via Radix Dialog so focus trap,
+   Esc-to-close, and outside-click dismissal come for free. */
+.route-feedback-modal__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    background: color-mix(in oklab, var(--atc-bg) 70%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.route-feedback-modal__content {
+    position: fixed;
+    z-index: 1410;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(92vw, 360px);
+    padding: 20px 20px 18px;
+    border: 1px solid var(--tone-border-firm, var(--atc-card));
+    border-radius: 12px;
+    background: var(--atc-card);
+    box-shadow: 0 24px 60px color-mix(in oklab, var(--atc-bg) 60%, transparent);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--atc-text);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    outline: none;
+}
+
+.route-feedback-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.route-feedback-modal__title {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    color: var(--atc-text);
+}
+
+.route-feedback-modal__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--atc-dim);
+    cursor: pointer;
+    transition: color 0.15s ease-out, background 0.15s ease-out;
+}
+
+.route-feedback-modal__close:hover {
+    color: var(--atc-text);
+    background: color-mix(in oklab, var(--atc-text) 8%, transparent);
+}
+
+.route-feedback-modal__callsign {
+    margin: -4px 0 0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--atc-faint);
+    text-transform: uppercase;
+}
+
+.route-feedback-modal__content .route-feedback-form {
+    margin-top: 0;
 }
 
 /* Airport place line — secondary detail at a smaller font, allowed to

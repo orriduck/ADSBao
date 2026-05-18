@@ -146,3 +146,29 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement.js'
     '',
   )
 }
+
+// Community-feedback routes are displayed with their `*` suffix on the
+// route label only (callsign stays clean). Both the ICAO-coded and
+// municipality variants carry the suffix so the sidebar and the preview
+// card agree.
+{
+  const communityRoute = {
+    origin: { iata: 'JFK', icao: 'KJFK', municipality: 'New York' },
+    destination: { iata: 'BOS', icao: 'KBOS', municipality: 'Boston' },
+    displaySuffix: '*',
+    temporary: true,
+  }
+  assert.equal(formatFlightRouteLabel(communityRoute), 'JFK -> BOS*')
+  assert.equal(
+    formatFlightRouteMunicipalityLabel(communityRoute),
+    'New York -> Boston*',
+  )
+  assert.equal(
+    formatLocalFlightRouteLabel(
+      communityRoute,
+      { iata: 'BOS', icao: 'KBOS' },
+      ARRIVAL,
+    ),
+    'JFK -> BOS*',
+  )
+}

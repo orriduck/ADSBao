@@ -214,57 +214,23 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
     });
   }, [aircraft, routeContext, version]);
 
-  // Force a fresh AeroDataBox lookup for a focused aircraft. When the
-  // upstream returns a route we overwrite the cached entry — the aircraft
-  // gets re-enriched on the next render and downstream (marker color,
-  // sidebar row, trail accent color) repaints with the new data. When
-  // AeroDataBox returns nothing OR the call fails, we deliberately
-  // leave the cached entry alone so a perfectly good VRS route doesn't
-  // get erased by an inconclusive revalidation.
-  const revalidate = useCallback(
-    async (callsign) => {
+  // Splice a freshly-submitted community-feedback route into the in-memory
+  // cache so the UI repaints immediately, without waiting for the next
+  // proxy lookup. Cache time is set to "now" so the entry rides the normal
+  // hit-cache TTL; the upstream Supabase override row independently bounds
+  // visibility to 12h.
+  const applyTemporaryRoute = useCallback(
+    (callsign, route) => {
       const normalized = normalizeCallsign(callsign);
-      if (!normalized) return null;
-
-      const cacheKey = buildRouteCacheKey(normalized, routeContext);
-      inFlight.add(normalized);
-      if (mountedRef.current) {
-        setLoadingCount(inFlight.size + queued.size);
-      }
-      try {
-        const route = await flightRouteClient.fetchFlightRoute(
-          normalized,
-          routeContext,
-          { forceAerodatabox: true },
-        );
-        // Only overwrite the cache when AeroDataBox returns a *complete*
-        // route. A partial response (origin known, destination missing)
-        // would clobber a perfectly good complete VRS entry, leaving the
-        // user worse off after asking us to "revalidate".
-        const hasOrigin = Boolean(route?.origin?.icao || route?.origin?.iata);
-        const hasDestination = Boolean(
-          route?.destination?.icao || route?.destination?.iata,
-        );
-        if (route && hasOrigin && hasDestination) {
-          routeCache.set(cacheKey, { route, time: Date.now() });
-        }
-        return route;
-      } catch (error) {
-        console.warn(
-          `Flight route revalidation failed for ${normalized}:`,
-          error.message,
-        );
-        return null;
-      } finally {
-        inFlight.delete(normalized);
-        if (mountedRef.current) {
-          setVersion((v) => v + 1);
-          setLoadingCount(inFlight.size + queued.size);
-        }
-      }
+      if (!normalized || !route) return;
+      routeCache.set(buildRouteCacheKey(normalized, routeContext), {
+        route,
+        time: Date.now(),
+      });
+      if (mountedRef.current) setVersion((v) => v + 1);
     },
     [routeContext],
   );
 
-  return { routesByCallsign, loadingCount, revalidate };
+  return { routesByCallsign, loadingCount, applyTemporaryRoute };
 }

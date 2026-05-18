@@ -3,7 +3,4 @@ export const getTargetAirportFromSearchParams = (searchParams) => ({
   iata: searchParams?.get("airportIata") || "",
 });
 
-export const shouldForceAerodatabox = (searchParams) =>
-  searchParams?.get("force") === "aerodatabox";
-
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

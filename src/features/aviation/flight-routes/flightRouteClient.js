@@ -19,7 +19,7 @@ export const createFlightRouteClient = ({
   if (!fetchImpl) throw new Error("Flight route client requires fetch support");
 
   const auditedFetch = withAuditLogging(fetchImpl, {
-    service: "vrs-standing-data/FlightRoute",
+    service: "adsbdb/FlightRoute",
   });
 
   const limiter = createRateLimiter({
@@ -29,25 +29,27 @@ export const createFlightRouteClient = ({
 
   let consecutiveBackoffMs = 0;
 
-  const routeUrl = (callsign, targetAirport = {}, options = {}) => {
+  // targetAirport stays in the URL so the server can scope its Supabase
+  // community-feedback override lookup to the same (callsign, airport)
+  // namespace the client uses for its in-memory cache key.
+  const routeUrl = (callsign, targetAirport = {}) => {
     const params = new URLSearchParams();
     const airportIcao = normalizeCallsign(targetAirport.icao || "");
     const airportIata = normalizeCallsign(targetAirport.iata || "");
     if (airportIcao) params.set("airportIcao", airportIcao);
     if (airportIata) params.set("airportIata", airportIata);
-    if (options.forceAerodatabox) params.set("force", "aerodatabox");
     const query = params.toString();
     return `${baseUrl}/${encodeURIComponent(callsign)}${query ? `?${query}` : ""}`;
   };
 
   return {
-    async fetchFlightRoute(callsign, targetAirport = {}, options = {}) {
+    async fetchFlightRoute(callsign, targetAirport = {}) {
       const normalized = normalizeCallsign(callsign);
       if (!normalized) return null;
 
       await limiter.acquire();
 
-      const url = routeUrl(normalized, targetAirport, options);
+      const url = routeUrl(normalized, targetAirport);
       const response = await auditedFetch(
         url,
         {

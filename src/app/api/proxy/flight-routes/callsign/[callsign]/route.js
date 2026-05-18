@@ -4,20 +4,12 @@ import {
   enforceProxyRequest,
   jsonProxyResponse,
 } from "@/app/api/_shared/apiProxySecurity.js";
+import { normalizeRouteCallsign } from "@/features/aviation/flight-routes/flightRouteCallsign.js";
 import {
-  normalizeRouteCallsign,
-} from "@/features/aviation/flight-routes/vrsRouteProxyModel.js";
-import {
+  ROUTE_MISS_STATUS,
   buildRouteCacheHeaders,
-  VRS_ROUTE_MISS_STATUS,
 } from "@/features/aviation/flight-routes/flightRoutes.models.js";
-import {
-  resolveFlightRoute,
-} from "@/features/aviation/flight-routes/flightRoutes.mechanism.js";
-import {
-  getTargetAirportFromSearchParams,
-  shouldForceAerodatabox,
-} from "@/features/aviation/flight-routes/flightRoutes.utils.js";
+import { resolveFlightRoute } from "@/features/aviation/flight-routes/flightRoutes.mechanism.js";
 
 const rateLimit = {
   key: "proxy:flight-routes",
@@ -45,27 +37,16 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const forceAerodatabox = shouldForceAerodatabox(request.nextUrl?.searchParams);
-    const body = await resolveFlightRoute({
-      callsign,
-      targetAirport: getTargetAirportFromSearchParams(
-        request.nextUrl?.searchParams,
-      ),
-      forceAerodatabox,
-    });
-
-    const cacheHeaders = forceAerodatabox
-      ? { "Cache-Control": "no-store" }
-      : buildRouteCacheHeaders(body);
+    const body = await resolveFlightRoute({ callsign });
 
     return Response.json(body, {
-      status: body ? 200 : VRS_ROUTE_MISS_STATUS,
-      headers: buildProxyHeaders(request, cacheHeaders, {
+      status: body ? 200 : ROUTE_MISS_STATUS,
+      headers: buildProxyHeaders(request, buildRouteCacheHeaders(body), {
         varyOrigin: false,
       }),
     });
   } catch (err) {
-    console.error(`[vrs-route] error for ${callsign}:`, err);
+    console.error(`[adsbdb-route] error for ${callsign}:`, err);
     return jsonProxyResponse(
       request,
       { error: "Internal error" },

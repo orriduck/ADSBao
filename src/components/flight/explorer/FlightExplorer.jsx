@@ -23,9 +23,12 @@ import {
   useExplorerUi,
 } from "@/components/explorer/ExplorerUiContext.jsx";
 import { useAircraftPositions } from "@/hooks/useAircraftPositions.js";
+import { useFlightRoutes } from "@/hooks/useFlightRoutes.js";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports.js";
 import { useTrackedAircraft } from "@/hooks/useTrackedAircraft.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
+import { normalizeCallsign } from "@/utils/callsign.js";
+import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay.js";
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
 import TraceLoadingToast from "@/components/aircraft/trace/TraceLoadingToast.jsx";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard.jsx";
@@ -161,7 +164,7 @@ function FlightExplorerContent({ callsign }) {
 
   // Merge tracked aircraft into the nearby list so the map always renders
   // it (the radius poll can lag a beat behind the callsign poll).
-  const aircraft = useMemo(() => {
+  const rawAircraft = useMemo(() => {
     if (!trackedAircraft) return nearbyAircraft;
     const trackedKey = getAircraftIdentity(trackedAircraft);
     const alreadyIn = nearbyAircraft.some(
@@ -169,6 +172,30 @@ function FlightExplorerContent({ callsign }) {
     );
     return alreadyIn ? nearbyAircraft : [trackedAircraft, ...nearbyAircraft];
   }, [trackedAircraft, nearbyAircraft]);
+
+  // Look up routes for the tracked aircraft and any nearby traffic the user
+  // might preview. No airport context on this page — the cache key is just
+  // the callsign — and the same hook gives us the applyTemporaryRoute
+  // callback so the preview-card feedback form can splice an override into
+  // the in-memory cache without a refetch.
+  const { routesByCallsign, applyTemporaryRoute } = useFlightRoutes(
+    rawAircraft,
+    {},
+  );
+
+  const aircraft = useMemo(
+    () =>
+      rawAircraft.map((item) => {
+        const key = normalizeCallsign(item.callsign);
+        const route = key ? routesByCallsign[key] || null : null;
+        return {
+          ...item,
+          flightRoute: route,
+          flightRouteLabel: formatFlightRouteLabel(route),
+        };
+      }),
+    [rawAircraft, routesByCallsign],
+  );
 
   // Default the selection to the focal aircraft so its trace appears on
   // load. Once the user clicks around it's their choice.
@@ -190,6 +217,20 @@ function FlightExplorerContent({ callsign }) {
     [aircraft, selectedAircraftId],
   );
 
+  // The sidebar reads `aircraft.flightRoute` / `flightRouteLabel` to paint
+  // the route header. `trackedAircraft` straight out of useTrackedAircraft
+  // has no route fields — we hand it the enriched entry from the same
+  // array we already fed routes into, so the sidebar shows the route
+  // (community-feedback override or adsbdb) for the focal callsign.
+  const enrichedTrackedAircraft = useMemo(() => {
+    if (!trackedAircraft) return null;
+    const trackedKey = getAircraftIdentity(trackedAircraft);
+    return (
+      aircraft.find((item) => getAircraftIdentity(item) === trackedKey) ||
+      trackedAircraft
+    );
+  }, [aircraft, trackedAircraft]);
+
   useEffect(() => {
     if (!isMobile) return undefined;
     const originalBodyOverflow = document.body.style.overflow;
@@ -206,7 +247,7 @@ function FlightExplorerContent({ callsign }) {
 
   const sidebarProps = {
     callsign,
-    aircraft: trackedAircraft,
+    aircraft: enrichedTrackedAircraft,
     nearbyAircraft: aircraft,
     nearbyAirports,
     focusLat: focalLat,
@@ -234,6 +275,7 @@ function FlightExplorerContent({ callsign }) {
         airport={selectedAirport}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
+        onApplyTemporaryRoute={applyTemporaryRoute}
       />
       <div
         className={`font-sans text-atc-text ${
