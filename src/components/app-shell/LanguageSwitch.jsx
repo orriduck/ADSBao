@@ -1,5 +1,6 @@
 "use client";
 
+import { Languages } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import {
   LOCALE_LABELS,
@@ -8,9 +9,9 @@ import {
 } from "@/features/app-shell/i18n/i18nModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
-// Single-button toggle that flips the locale and labels itself with the
-// locale we'd switch *to* — so users can predict the action without
-// opening a menu. Stays consistent with the icon-button rail visually.
+// Single-button toggle that flips the locale. Uses lucide's Languages
+// icon so it reads the same in EN and zh-CN — no per-locale glyph swap,
+// and the icon implies "translate / switch language" universally.
 export default function LanguageSwitch({ className = "" }) {
   const { locale, cycle, t } = useI18n();
   const target = nextLocale(locale);
@@ -29,9 +30,7 @@ export default function LanguageSwitch({ className = "" }) {
       type="button"
       data-current-locale={locale}
     >
-      <span className="ctrl-language__label notranslate" translate="no">
-        {targetLabel}
-      </span>
+      <Languages className="h-4 w-4" aria-hidden="true" />
     </Button>
   );
 }

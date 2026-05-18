@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { WEATHER_SLIDE_COPY } from "@/config/weather.js";
 import { useLocalWeather } from "@/hooks/useLocalWeather.js";
 import {
   CeilingSlide,
@@ -13,6 +12,20 @@ import {
   WindSlide,
 } from "./WeatherSlides.jsx";
 import { shouldShowCeilingSlide, toNumber } from "@/features/weather/weatherModel.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+
+const SLIDE_COPY_FIELDS = {
+  panel: ["label", "title", "eyebrow"],
+  carousel: ["label", "navLabel", "title"],
+};
+
+const buildSlideCopy = (t, variant, id) => {
+  const fields = SLIDE_COPY_FIELDS[variant] || SLIDE_COPY_FIELDS.carousel;
+  return fields.reduce((acc, field) => {
+    acc[field] = t(`weatherCopy.${variant}.${id}.${field}`);
+    return acc;
+  }, {});
+};
 
 export function useWeatherSlides({
   variant,
@@ -43,11 +56,12 @@ export function useWeatherSlides({
     return Number(direction) % 360;
   }, [metar, localWeather]);
 
+  const { t } = useI18n();
+
   const slides = useMemo(() => {
-    const copy = WEATHER_SLIDE_COPY[variant];
     const withContent = (id, content) => ({
       id,
-      ...copy[id],
+      ...buildSlideCopy(t, variant, id),
       content,
     });
 
@@ -95,6 +109,7 @@ export function useWeatherSlides({
     metarError,
     metarLoading,
     metarRaw,
+    t,
     variant,
   ]);
 

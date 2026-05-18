@@ -2332,23 +2332,6 @@ body {
     color: var(--atc-accent);
 }
 
-.ctrl-language .ctrl-language__label {
-    /* Text-only icon button: keep the glyph optical size close to the
-       16px lucide icons the other rail buttons use so the row reads as
-       one cohesive control strip. */
-    font-family: "Inter", system-ui, sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    line-height: 1;
-}
-
-[data-current-locale="zh-CN"].ctrl-language .ctrl-language__label {
-    /* CJK glyphs render visually larger than Latin two-letter labels at
-       the same px size; nudge down so "EN" and "中文" feel optically
-       balanced inside the 32×32 button. */
-    font-size: 10px;
-}
 
 .ctrl-sep {
     background: var(--atc-line-strong);

@@ -144,6 +144,111 @@ const en = {
   language: {
     switchAria: "Switch language",
   },
+  weather: {
+    direction: "Direction",
+    wind: "Wind",
+    gust: "Gust",
+    none: "None",
+    temp: "Temp",
+    dew: "Dew",
+    spread: "Spread",
+    cold: "cold",
+    hot: "hot",
+    altimeter: "Altimeter",
+    mslPressure: "MSL pressure",
+    local: "Local",
+    airportLocal: "{airport} local",
+    airportFallback: "Airport",
+    humidity: "Humidity",
+    feels: "Feels",
+    loading: "Loading...",
+    pending: "Local weather pending",
+    openMeteoError: "Open-Meteo unavailable: {error}",
+    metarLoading: "Loading METAR...",
+    metarMissing: "No METAR available.",
+    ceiling: "Ceiling",
+    visibility: "Visibility",
+    windPara: {
+      strong:
+        "Strong winds or gusts can reduce arrival rates, increase go-around risk, and force stricter runway selection.",
+      moderate:
+        "Moderate wind is workable, but crosswind components and gust spread can affect spacing and runway configuration.",
+      light:
+        "Light wind usually gives the airport more runway flexibility and keeps arrival and departure flow stable.",
+      variable:
+        "Variable wind makes runway planning less predictable. Tower may switch flows or issue runway-specific guidance.",
+    },
+    tempPara: {
+      fogRisk:
+        "A small temperature-dewpoint spread can support fog, haze, or low cloud development near the field.",
+      hot:
+        "Hot air reduces aircraft performance, which can lengthen takeoff rolls and affect climb margins.",
+      cold:
+        "Cold conditions can improve density altitude, but icing, braking action, and deicing become operational concerns.",
+      normal:
+        "Temperature and dewpoint are separated enough that fog risk is lower near the field.",
+    },
+    pressurePara: {
+      unknown:
+        "Pressure data helps crews set altimeters and judge density-altitude effects around the airport.",
+      low:
+        "Lower pressure increases density altitude and can come with unsettled weather, reducing performance margins.",
+      high:
+        "Higher pressure generally improves aircraft performance and often accompanies more stable weather.",
+      normal:
+        "Pressure is near standard range, so altimeter setting is important but not a major performance driver.",
+    },
+    ceilingPara: {
+      unknown: "No limiting ceiling or visibility value is available in the current METAR.",
+      low: "Low ceiling can push arrivals toward instrument procedures and reduce visual runway flexibility.",
+      reducedVis:
+        "Reduced visibility can increase spacing and make surface movement more dependent on tower guidance.",
+      comfortable:
+        "Ceiling and visibility are comfortably above the usual VFR thresholds for airport operations.",
+    },
+    code: {
+      unknown: "Current conditions",
+      0: "Clear",
+      1: "Mainly clear",
+      2: "Partly cloudy",
+      3: "Overcast",
+      45: "Fog",
+      48: "Rime fog",
+      51: "Light drizzle",
+      53: "Drizzle",
+      55: "Dense drizzle",
+      61: "Light rain",
+      63: "Rain",
+      65: "Heavy rain",
+      71: "Light snow",
+      73: "Snow",
+      75: "Heavy snow",
+      80: "Rain showers",
+      81: "Rain showers",
+      82: "Heavy showers",
+      95: "Thunderstorm",
+    },
+  },
+  weatherCopy: {
+    panel: {
+      metar: { label: "METAR", title: "METAR report", eyebrow: "METAR / Weather" },
+      rules: { label: "Rules", title: "Flight rules", eyebrow: "Operational context" },
+      ceiling: { label: "Ceiling", title: "Ceiling / visibility", eyebrow: "Cloud deck" },
+      wind: { label: "Wind", title: "Wind speed", eyebrow: "Surface flow" },
+      temp: { label: "Temp", title: "Temp / dew", eyebrow: "Thermal spread" },
+      pressure: { label: "Pressure", title: "Pressure", eyebrow: "Altimeter" },
+      local: { label: "Local", title: "Local weather", eyebrow: "Open-Meteo" },
+    },
+    carousel: {
+      metar: { label: "METAR", navLabel: "METAR", title: "Raw METAR" },
+      rules: { label: "Rules", navLabel: "RULE", title: "Flight rules" },
+      ceiling: { label: "Ceiling", navLabel: "C/V", title: "Ceiling / visibility" },
+      wind: { label: "Wind", navLabel: "WIND", title: "Wind" },
+      temp: { label: "Temp", navLabel: "TEMP", title: "Temperature" },
+      pressure: { label: "Pressure", navLabel: "ALT", title: "Altimeter" },
+      local: { label: "Local", navLabel: "LOCAL", title: "Local conditions" },
+    },
+  },
 };
 
 export default en;
