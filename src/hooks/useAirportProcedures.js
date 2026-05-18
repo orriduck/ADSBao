@@ -50,12 +50,13 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
         const nextIndex = payload?.index || null;
         setIndex(nextIndex);
         setGeojson(payload?.geojson || null);
-        // FAA CIFP only covers US airports. For everywhere else, fall back to
-        // the OurAirports-derived runway map so non-US airports still get the
-        // map overlay (thresholds, centerlines, end labels).
-        const cifpRunwayMap = payload?.runwayMap;
-        const hasCifpRunways = cifpRunwayMap?.runways?.length > 0;
-        setRunwayMap(hasCifpRunways ? cifpRunwayMap : ourAirportsRunwayMap);
+        // OurAirports drives the visual runwayMap (centerlines, end labels,
+        // thresholds). CIFP only lists runways with published instrument
+        // procedures, so it would silently drop VFR-only strips (KBOS 09/27,
+        // 14/32, 15L/33R, …). Procedure rendering still consumes its own
+        // `runwayProcedures` payload — that one's keyed only by runways
+        // that *have* procedures, so it doesn't need to share this shape.
+        setRunwayMap(ourAirportsRunwayMap);
         setRunwayProcedures(runwayProcedurePayload || null);
       } catch (nextError) {
         if (disposed) return;

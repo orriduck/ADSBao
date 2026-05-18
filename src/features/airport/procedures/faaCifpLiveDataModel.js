@@ -3,7 +3,6 @@ import {
   parseFaaCifpProcedures,
   renderProcedureGeoJson,
 } from "./faaCifpProcedureModel.js";
-import { buildAirportRunwayMap } from "./faaCifpRunwayModel.js";
 
 const MONTHS = {
   Jan: 0,
@@ -126,7 +125,6 @@ export function buildLiveProcedurePayload({
       cycle,
       procedures: selectedProcedures,
     }),
-    runwayMap: buildAirportRunwayMap({ lines, airport, cycle }),
     geojson: combineProcedureGeoJson({ procedures: selectedProcedures }),
   };
 }
