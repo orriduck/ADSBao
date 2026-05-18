@@ -64,13 +64,14 @@ export const viewport = {
   viewportFit: "cover",
 };
 
-// Resolve the theme preference from the request cookie so the server
-// can render <html data-theme="..."> directly — no client-side boot
-// script, no React 19 "script inside component" warning. For users
-// without a cookie or with "system" preference, we default to dark
-// (matches the previous behavior when matchMedia wasn't yet readable).
-// useThemePreference syncs the cookie whenever the user toggles, so
-// subsequent navigations always see their explicit choice.
+// Resolve the theme from the request cookie so the server can render
+// <html data-theme="..."> directly — no client-side boot script, no
+// React 19 "script inside component" warning. The cookie carries the
+// RESOLVED theme (light/dark), never "system": useThemePreference
+// rewrites it on every applyThemePreference call, so even users on
+// system preference get the correct color on subsequent loads. First-
+// ever visitors without a cookie still fall back to dark, since the
+// server can't see matchMedia.
 async function resolveInitialTheme() {
   const store = await cookies();
   const raw = store.get("theme")?.value;

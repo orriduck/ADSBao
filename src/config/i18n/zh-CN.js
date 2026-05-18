@@ -224,6 +224,8 @@ const zhCN = {
   },
   language: {
     switchAria: "切换语言",
+    menuLabel: "语言",
+    selectAria: "选择语言",
   },
   ui: {
     close: "关闭",

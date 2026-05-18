@@ -5,6 +5,8 @@ import {
   LOCALE_LABELS,
   LOCALE_STORAGE_KEY,
   SUPPORTED_LOCALES,
+  getLocaleMenuItems,
+  normalizeLocaleSelection,
   nextLocale,
   readPersistedLocale,
   resolveInitialLocale,
@@ -17,6 +19,16 @@ assert.deepEqual([...SUPPORTED_LOCALES], ["en", "zh-CN"]);
 assert.equal(LOCALE_STORAGE_KEY, "adsbao:i18n:locale");
 assert.equal(LOCALE_LABELS.en, "EN");
 assert.equal(LOCALE_LABELS["zh-CN"], "中文");
+
+assert.deepEqual(getLocaleMenuItems(), [
+  { locale: "en", label: "EN" },
+  { locale: "zh-CN", label: "中文" },
+]);
+
+assert.equal(normalizeLocaleSelection("zh-CN", "en"), "zh-CN");
+assert.equal(normalizeLocaleSelection("en", "zh-CN"), "en");
+assert.equal(normalizeLocaleSelection("fr", "zh-CN"), "zh-CN");
+assert.equal(normalizeLocaleSelection(null, "en"), "en");
 
 // resolveInitialLocale: trust the persisted choice when valid; otherwise
 // fall back to English. We deliberately don't auto-detect from navigator.
