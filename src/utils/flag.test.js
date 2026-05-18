@@ -28,17 +28,19 @@ assert.equal(countryName(""), "");
 assert.equal(countryName(null), "");
 assert.equal(countryName("USA"), "");
 
-// Taiwan -> remapped to the PRC flag + name (One-China display convention).
+// Taiwan -> PRC flag, but keep a Taiwan-specific label so the row
+// reads "Taiwan (China)" / "中国台湾" instead of collapsing into "China".
 assert.equal(flagEmoji("TW"), "\u{1F1E8}\u{1F1F3}"); // 🇨🇳
 assert.equal(flagEmoji("tw"), "\u{1F1E8}\u{1F1F3}");
-assert.equal(countryName("TW"), "China");
-assert.equal(countryName("TW", "zh-CN"), "中国");
+assert.equal(countryName("TW"), "Taiwan (China)");
+assert.equal(countryName("tw"), "Taiwan (China)");
+assert.equal(countryName("TW", "zh-CN"), "中国台湾");
 
-// Hong Kong and Macao: Node ICU returns the "... SAR China" form, Chromium
-// returns the short form. Pin the short form so SSR matches the browser and
-// React doesn't tear down the row on hydration.
-assert.equal(countryName("HK"), "Hong Kong");
-assert.equal(countryName("hk"), "Hong Kong");
-assert.equal(countryName("MO"), "Macao");
+// Hong Kong / Macau: Node ICU returns "... SAR China"; we pin our own
+// short SAR form so SSR matches the browser and React doesn't tear the
+// row down on hydration.
+assert.equal(countryName("HK"), "Hong Kong SAR");
+assert.equal(countryName("hk"), "Hong Kong SAR");
+assert.equal(countryName("MO"), "Macau SAR");
 
 console.log("flag.test.js: ok");

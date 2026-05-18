@@ -13,6 +13,17 @@ const sanitizeTheme = (theme) => (THEMES.includes(theme) ? theme : FALLBACK_THEM
 
 const readStoredTheme = (storage = window.localStorage) => sanitizeTheme(storage.getItem(THEME_KEY))
 
+const THEME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365
+
+// The cookie carries the RESOLVED theme (light/dark), never "system".
+// SSR can then render the right data-theme directly even when the user
+// runs on system preference — no flash on cold loads / hard refreshes.
+const writeResolvedThemeCookie = (resolvedTheme) => {
+  if (typeof document === 'undefined') return
+  if (resolvedTheme !== THEME_LIGHT && resolvedTheme !== THEME_DARK) return
+  document.cookie = `${THEME_KEY}=${resolvedTheme}; Path=/; Max-Age=${THEME_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`
+}
+
 const applyThemePreference = ({
   theme,
   root = document.documentElement,
@@ -22,21 +33,14 @@ const applyThemePreference = ({
   const resolvedTheme = safeTheme === THEME_SYSTEM ? getSystemTheme(mediaQueryList) : safeTheme
 
   root.setAttribute('data-theme', resolvedTheme)
+  writeResolvedThemeCookie(resolvedTheme)
 
   return { preference: safeTheme, resolvedTheme }
 }
 
-const THEME_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365
-
 const writeStoredTheme = (theme, storage = window.localStorage) => {
   const safe = sanitizeTheme(theme)
   storage.setItem(THEME_KEY, safe)
-  // Mirror the preference into a cookie so the Next.js server layout
-  // can read it on the next request and render the right data-theme
-  // attribute directly — no client-side boot script needed.
-  if (typeof document !== 'undefined') {
-    document.cookie = `${THEME_KEY}=${safe}; Path=/; Max-Age=${THEME_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`
-  }
 }
 
 const initThemePreference = ({

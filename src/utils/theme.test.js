@@ -33,6 +33,18 @@ const createRoot = () => {
   }
 }
 
+// Stub out document.cookie so applyThemePreference doesn't crash in Node
+// and we can assert what gets written.
+const cookieJar = { value: '' }
+globalThis.document = {
+  get cookie() {
+    return cookieJar.value
+  },
+  set cookie(next) {
+    cookieJar.value = next
+  },
+}
+
 assert.equal(sanitizeTheme('light'), THEME_LIGHT)
 assert.equal(sanitizeTheme('wat'), THEME_SYSTEM)
 
@@ -64,5 +76,20 @@ const lightResult = applyThemePreference({
 assert.equal(lightResult.preference, THEME_LIGHT)
 assert.equal(lightResult.resolvedTheme, THEME_LIGHT)
 assert.equal(lightRoot.attrs.get('data-theme'), THEME_LIGHT)
+
+// applyThemePreference writes the RESOLVED theme to the cookie even
+// when the preference is "system" — that's what kills the SSR dark
+// flash for system-preference users on the next page load.
+cookieJar.value = ''
+applyThemePreference({
+  theme: THEME_SYSTEM,
+  root: createRoot(),
+  mediaQueryList: { matches: false },
+})
+assert.ok(cookieJar.value.startsWith('theme=light;'), `expected resolved light cookie, got "${cookieJar.value}"`)
+
+cookieJar.value = ''
+writeStoredTheme(THEME_SYSTEM, storage)
+assert.equal(cookieJar.value, '', 'writeStoredTheme should not touch the cookie')
 
 console.log('theme utility tests passed')
