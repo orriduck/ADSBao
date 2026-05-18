@@ -108,7 +108,10 @@ export function buildProxyHeaders(request, headers = {}, options = {}) {
   const output = new Headers(headers);
   const allowedOrigin = getAllowedRequestOrigin(request, options);
   if (allowedOrigin) output.set("Access-Control-Allow-Origin", allowedOrigin);
-  output.set("Access-Control-Allow-Methods", DEFAULT_ALLOWED_METHODS.join(", "));
+  const allowedMethods = Array.isArray(options.allowedMethods) && options.allowedMethods.length
+    ? options.allowedMethods
+    : DEFAULT_ALLOWED_METHODS;
+  output.set("Access-Control-Allow-Methods", allowedMethods.join(", "));
   output.set("Access-Control-Allow-Headers", "Accept, Content-Type");
   output.set("Access-Control-Max-Age", "86400");
   if (options.varyOrigin !== false) {

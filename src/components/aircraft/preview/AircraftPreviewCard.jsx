@@ -35,6 +35,8 @@ export default function AircraftPreviewCard({
   airport = null,
   isMobile = false,
   sidebarOpen = false,
+  airportProfile = null,
+  onApplyTemporaryRoute,
 }) {
   const reducedMotion = useReducedMotion();
   const photoState = useAircraftPhoto(aircraft);
@@ -104,7 +106,12 @@ export default function AircraftPreviewCard({
           {isAirport ? (
             <AirportPreviewMetadataCard airport={airport} />
           ) : (
-            <AircraftPreviewMetadataCard aircraft={aircraft} photo={photo} />
+            <AircraftPreviewMetadataCard
+              aircraft={aircraft}
+              photo={photo}
+              airportProfile={airportProfile}
+              onApplyTemporaryRoute={onApplyTemporaryRoute}
+            />
           )}
         </motion.aside>
       )}

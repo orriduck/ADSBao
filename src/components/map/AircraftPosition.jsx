@@ -43,15 +43,7 @@ export default function AircraftPosition({
   traceActive = false,
   forceSilhouette = false,
   onSelectAircraft,
-  onRevalidateRoute,
 }) {
-  const selectedRef = useRef(selected);
-  selectedRef.current = selected;
-  const callsignRef = useRef("");
-  callsignRef.current =
-    typeof aircraft?.callsign === "string" ? aircraft.callsign.trim() : "";
-  const onRevalidateRouteRef = useRef(onRevalidateRoute);
-  onRevalidateRouteRef.current = onRevalidateRoute;
   const map = useMapInstance();
   const motionRef = useRef(null);
   const markerRef = useRef(null);
@@ -69,16 +61,6 @@ export default function AircraftPosition({
 
     const handleSelect = (event) => {
       event.stopPropagation();
-      // Clicking the already-focused plane shouldn't toggle it off — that
-      // role belongs to the empty-map click. Instead, route the click to
-      // an explicit AeroDataBox revalidation of the current callsign so
-      // the user can refresh the trail's labeling on demand.
-      if (selectedRef.current && typeof onRevalidateRouteRef.current === "function") {
-        if (callsignRef.current) {
-          onRevalidateRouteRef.current(callsignRef.current);
-        }
-        return;
-      }
       onSelectAircraft(aircraftId);
     };
 

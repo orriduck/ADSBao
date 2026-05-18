@@ -145,6 +145,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         airport={selectedAirport}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
+        airportProfile={airportProfile}
+        onApplyTemporaryRoute={traffic.applyTemporaryRoute}
       />
       <div
         className={`font-sans text-atc-text ${
@@ -186,7 +188,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             followsCenter={mapFollowsAircraft}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
-            onRevalidateRoute={traffic.revalidateFlightRoute}
             runwayMap={procedures.runwayMap}
             runwayProcedures={null}
             procedureFixLabelRunwayProcedures={procedures.runwayProcedures}

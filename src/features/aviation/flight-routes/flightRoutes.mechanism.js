@@ -1,143 +1,79 @@
 import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity.js";
-import { withAuditLogging } from "../../../utils/apiLogger.js";
+import { createRouteFeedbackReportsRepositoryFromEnv } from "../../../app/api/dao/routeFeedbackReports.dao.js";
 import {
-  buildVrsRouteResponse,
-  buildVrsRouteUrl,
-  shouldUseAerodataboxFallback,
-  VRS_ROUTE_USER_AGENT,
-} from "./vrsRouteProxyModel.js";
-import {
-  AERODATABOX_RAPIDAPI_HOST,
-  buildAerodataboxFlightRouteResponse,
-  buildAerodataboxFlightUrl,
-  reserveAerodataboxRequestSlot,
-  resolveAerodataboxDateLocal,
-  shouldSuppressVrsRouteAfterAerodataboxStatus,
-} from "./aerodataboxRouteProxyModel.js";
+  ADSBDB_USER_AGENT,
+  buildAdsbdbCallsignRouteUrl,
+  buildAdsbdbRouteResponse,
+} from "./adsbdbRouteProxyModel.js";
+import { normalizeRouteCallsign } from "./flightRouteCallsign.js";
 
-import { sleep } from "./flightRoutes.utils.js";
+async function fetchAdsbdbRoute(callsign) {
+  const url = buildAdsbdbCallsignRouteUrl(callsign);
+  if (!url) return null;
 
-const aerodataboxRapidApiKey = process.env.AERODATABOX_RAPIDAPI_KEY || "";
-const aerodataboxRapidApiHost =
-  process.env.AERODATABOX_RAPIDAPI_HOST || AERODATABOX_RAPIDAPI_HOST;
-let nextAerodataboxRequestAt = 0;
-
-async function waitForAerodataboxSlot() {
-  const slot = reserveAerodataboxRequestSlot({
-    now: Date.now(),
-    nextAllowedAt: nextAerodataboxRequestAt,
-  });
-  nextAerodataboxRequestAt = slot.nextAllowedAt;
-  if (slot.delayMs > 0) await sleep(slot.delayMs);
-}
-
-async function fetchVrsStandingRoute(callsign) {
   let response;
   try {
-    response = await fetch(buildVrsRouteUrl(callsign), {
+    response = await fetch(url, {
       headers: {
-        "User-Agent": VRS_ROUTE_USER_AGENT,
+        "User-Agent": ADSBDB_USER_AGENT,
         Accept: "application/json",
       },
       signal: AbortSignal.timeout(9_000),
     });
   } catch (err) {
-    console.warn(`[vrs-route] fetch failed for ${callsign}:`, err.message);
+    console.warn(`[adsbdb-route] fetch failed for ${callsign}:`, err.message);
     return null;
   }
 
   if (response.status === 404) return null;
-
   if (!response.ok) {
-    console.warn(`[vrs-route] HTTP ${response.status} for ${callsign}`);
+    console.warn(`[adsbdb-route] HTTP ${response.status} for ${callsign}`);
     return null;
   }
 
   const payload = await readResponseJson(response, {
-    label: "VRS standing-data route",
+    label: "adsbdb callsign route",
     maxBytes: 512 * 1024,
   });
-  return buildVrsRouteResponse(callsign, payload);
+  return buildAdsbdbRouteResponse(callsign, payload);
 }
 
-async function fetchAerodataboxRoute(callsign, targetAirport) {
-  if (!aerodataboxRapidApiKey) {
-    return { route: null, suppressVrsRoute: false };
-  }
-
-  const url = buildAerodataboxFlightUrl(callsign, resolveAerodataboxDateLocal());
-  const auditedFetch = withAuditLogging(
-    (requestUrl, options) => fetch(requestUrl, options),
-    { service: "aerodatabox/FlightStatus" },
-  );
-  let response;
+async function readCommunityFeedbackOverride({
+  feedbackRepository,
+  normalizedCallsign,
+}) {
+  if (!feedbackRepository) return null;
   try {
-    await waitForAerodataboxSlot();
-    response = await auditedFetch(url, {
-      headers: {
-        Accept: "application/json",
-        "X-RapidAPI-Key": aerodataboxRapidApiKey,
-        "X-RapidAPI-Host": aerodataboxRapidApiHost,
-      },
-      signal: AbortSignal.timeout(9_000),
+    const row = await feedbackRepository.readActiveOverride({
+      normalizedCallsign,
     });
+    return row?.route_payload || null;
   } catch (err) {
-    console.warn(`[aerodatabox-route] fetch failed for ${callsign}:`, err.message);
-    return { route: null, suppressVrsRoute: false };
+    console.warn(
+      `[route-feedback] override read failed for ${normalizedCallsign}:`,
+      err.message,
+    );
+    return null;
   }
-
-  if (response.status === 204 || response.status === 404) {
-    return { route: null, suppressVrsRoute: false };
-  }
-
-  if (!response.ok) {
-    console.warn(`[aerodatabox-route] HTTP ${response.status} for ${callsign}`);
-    return {
-      route: null,
-      suppressVrsRoute: shouldSuppressVrsRouteAfterAerodataboxStatus(
-        response.status,
-      ),
-    };
-  }
-
-  const payload = await readResponseJson(response, {
-    label: "AeroDataBox flight status route",
-    maxBytes: 512 * 1024,
-  });
-  return {
-    route: buildAerodataboxFlightRouteResponse(
-      callsign,
-      payload,
-      targetAirport,
-    ),
-    suppressVrsRoute: false,
-  };
 }
 
+// Lookup order: active Supabase community feedback override -> adsbdb ->
+// null. Community feedback intentionally wins so a user-submitted correction
+// can temporarily fix a wrong adsbdb route inside the 12-hour TTL. The
+// override read is keyed by callsign only — submissions made under any
+// airport context apply universally to the same flight number.
 export const resolveFlightRoute = async ({
   callsign,
-  targetAirport,
-  forceAerodatabox = false,
+  feedbackRepository = createRouteFeedbackReportsRepositoryFromEnv(),
 } = {}) => {
-  if (forceAerodatabox) {
-    const aerodataboxResult = await fetchAerodataboxRoute(
-      callsign,
-      targetAirport,
-    );
-    return aerodataboxResult.route;
-  }
+  const normalizedCallsign = normalizeRouteCallsign(callsign);
+  if (!normalizedCallsign) return null;
 
-  let route = await fetchVrsStandingRoute(callsign);
-  if (shouldUseAerodataboxFallback(route, targetAirport)) {
-    const aerodataboxResult = await fetchAerodataboxRoute(
-      callsign,
-      targetAirport,
-    );
-    if (aerodataboxResult.route) {
-      route = aerodataboxResult.route;
-    } else if (aerodataboxResult.suppressVrsRoute) {
-      route = null;
-    }
-  }
-  return route;
+  const override = await readCommunityFeedbackOverride({
+    feedbackRepository,
+    normalizedCallsign,
+  });
+  if (override) return override;
+
+  return fetchAdsbdbRoute(normalizedCallsign);
 };
