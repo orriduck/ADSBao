@@ -2,7 +2,9 @@
 
 import NumberFlow from "@number-flow/react";
 import { countryName, flagEmoji } from "@/utils/flag.js";
+import { airportCityName } from "@/utils/airport.js";
 import { toFiniteNumber } from "@/utils/math.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Airport variant of the bottom-of-screen mobile preview card. Code line
 // is the prominent identifier (same font as the aircraft callsign so
@@ -10,12 +12,14 @@ import { toFiniteNumber } from "@/utils/math.js";
 // line drops to a smaller secondary style and is allowed to wrap inside
 // the card's max-width so long airport names stay tidy.
 export default function AirportPreviewMobileCard({ airport }) {
+  const { locale } = useI18n();
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
   const codeLine = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
   const flag = flagEmoji(airport?.country);
-  const country = countryName(airport?.country) || airport?.country || "";
-  const placeText = [airport?.city, country].filter(Boolean).join(", ");
+  const country = countryName(airport?.country, locale) || airport?.country || "";
+  const city = airportCityName(airport?.city, locale);
+  const placeText = [city, country].filter(Boolean).join(", ");
   const placeLine = flag && placeText ? `${flag} ${placeText}` : placeText;
   const distance = toFiniteNumber(airport?.distanceNm);
   const elevation = toFiniteNumber(airport?.elevationFt);

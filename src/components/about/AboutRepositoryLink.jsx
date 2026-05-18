@@ -2,8 +2,11 @@
 
 import { ArrowUpRight, Github } from "lucide-react";
 import { getExternalLinkOpenTarget } from "@/features/about/aboutModel.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AboutRepositoryLink({ repository, onOpenExternalLink }) {
+  const { t } = useI18n();
+
   return (
     <div className="px-6 pt-6 pb-6">
       <a
@@ -20,7 +23,7 @@ export default function AboutRepositoryLink({ repository, onOpenExternalLink }) 
               {repository.name}
             </strong>
             <small className="mt-0.5 block text-[11.5px] text-atc-dim">
-              {repository.license}
+              {repository.licenseKey ? t(repository.licenseKey) : repository.license}
             </small>
           </div>
         </div>

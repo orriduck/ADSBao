@@ -15,8 +15,10 @@ import {
   FeaturedAirports,
 } from "./AirportSearchResults.jsx";
 import { useAirportSearch } from "@/features/airport/search/useAirportSearch.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AirportSearchPanel({ onOpenAirport }) {
+  const { t } = useI18n();
   const { themePreference, themeTitle, themeIconKey, cycleTheme } =
     useThemePreference();
   const {
@@ -70,10 +72,10 @@ export default function AirportSearchPanel({ onOpenAirport }) {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           className="flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
-          placeholder="Search ICAO, IATA, city, or name"
+          placeholder={t("search.placeholder")}
         />
         <kbd className="hidden shrink-0 items-center px-2 py-1 font-mono text-[10px] uppercase tracking-[0.04em] text-atc-dim sm:inline-flex">
-          {loading ? "..." : "enter"}
+          {loading ? "..." : t("search.enter")}
         </kbd>
       </form>
 

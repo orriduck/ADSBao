@@ -1,24 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 const ICAO_PATTERN = /^[A-Z0-9]{3,4}$/;
-
-// Two phrasings of the same affordance — the one we surface depends on
-// whether adsbdb already returned a route. "Missing route → suggest the
-// right one" reads as helping us fill a gap; "Wrong route → suggest
-// correction" reads as fixing something we already showed. Centralized
-// here so the inline form, the mobile trigger, and the modal title can't
-// drift apart.
-export const ROUTE_FEEDBACK_LABELS = Object.freeze({
-  missing: "Suggest the right one",
-  correction: "Suggest correction",
-});
-
-export const getRouteFeedbackLabel = (aircraft) =>
-  aircraft?.flightRouteLabel
-    ? ROUTE_FEEDBACK_LABELS.correction
-    : ROUTE_FEEDBACK_LABELS.missing;
 
 export const sanitizeIcaoInput = (value) =>
   String(value || "")
@@ -67,6 +52,7 @@ export function useRouteFeedbackSubmit({
   airportProfile,
   onApplyTemporaryRoute,
 }) {
+  const { t } = useI18n();
   const [originIcao, setOriginIcaoState] = useState("");
   const [destinationIcao, setDestinationIcaoState] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -91,16 +77,16 @@ export function useRouteFeedbackSubmit({
     const destination = sanitizeIcaoInput(destinationIcao);
 
     if (!ICAO_PATTERN.test(origin) || !ICAO_PATTERN.test(destination)) {
-      setError("Use 3–4 letter ICAO codes");
+      setError(t("routeFeedback.invalidIcao"));
       return false;
     }
     if (origin === destination) {
-      setError("Origin and destination must differ");
+      setError(t("routeFeedback.sameOriginDestination"));
       return false;
     }
     const callsign = (aircraft?.callsign || "").trim().toUpperCase();
     if (!callsign) {
-      setError("No callsign on record");
+      setError(t("routeFeedback.noCallsign"));
       return false;
     }
 
@@ -125,17 +111,18 @@ export function useRouteFeedbackSubmit({
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         throw new Error(
-          payload?.error || `Submission failed (${response.status})`,
+          payload?.error ||
+            t("routeFeedback.submissionFailed", { status: response.status }),
         );
       }
       const payload = await response.json();
       if (!payload?.route) {
-        throw new Error("Server returned no route");
+        throw new Error(t("routeFeedback.serverNoRoute"));
       }
       onApplyTemporaryRoute(callsign, payload.route);
       return true;
     } catch (err) {
-      setError(err.message || "Could not submit");
+      setError(err.message || t("routeFeedback.submissionGenericFailure"));
       return false;
     } finally {
       setSubmitting(false);
@@ -146,6 +133,7 @@ export function useRouteFeedbackSubmit({
     destinationIcao,
     onApplyTemporaryRoute,
     originIcao,
+    t,
   ]);
 
   return {

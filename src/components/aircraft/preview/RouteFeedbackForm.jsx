@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import RouteFeedbackFields from "./RouteFeedbackFields.jsx";
-import {
-  getRouteFeedbackLabel,
-  useRouteFeedbackSubmit,
-} from "@/features/aviation/flight-routes/useRouteFeedbackSubmit.js";
+import { useRouteFeedbackSubmit } from "@/features/aviation/flight-routes/useRouteFeedbackSubmit.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Desktop inline variant: tucked under the Track button on the preview
 // card. Collapsed state is a single dashed link; expanded state is the
@@ -15,8 +13,11 @@ export default function RouteFeedbackForm({
   airportProfile = null,
   onApplyTemporaryRoute,
 }) {
+  const { t } = useI18n();
   const callsign = (aircraft?.callsign || "").trim().toUpperCase();
-  const triggerLabel = getRouteFeedbackLabel(aircraft);
+  const triggerLabel = aircraft?.flightRouteLabel
+    ? t("routeFeedback.suggestCorrection")
+    : t("routeFeedback.suggestRight");
   const [expanded, setExpanded] = useState(false);
   const submitState = useRouteFeedbackSubmit({
     aircraft,

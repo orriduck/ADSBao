@@ -4,6 +4,7 @@ import DitherPageShell from "@/components/app-shell/DitherPageShell.jsx";
 import NavMenu from "@/components/navigation/NavMenu.jsx";
 import ThemeToggle from "@/components/app-shell/ThemeToggle.jsx";
 import { useThemePreference } from "@/features/app-shell/useThemePreference.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { CHANGELOG } from "@/config/changelog.js";
 
 // Sidebar-scoped changelog. Reuses DitherPageShell so the page reads as
@@ -14,22 +15,191 @@ import { CHANGELOG } from "@/config/changelog.js";
 
 const KIND_STYLES = {
   feat: {
-    label: "FEAT",
+    labelKey: "changelog.kindFeat",
     className:
       "bg-[color-mix(in_oklab,var(--atc-accent)_22%,transparent)] text-atc-text",
   },
   patch: {
-    label: "PATCH",
+    labelKey: "changelog.kindPatch",
     className:
       "bg-[color-mix(in_oklab,var(--atc-elev)_70%,transparent)] text-atc-dim",
   },
   breaking: {
-    label: "BREAKING",
+    labelKey: "changelog.kindBreaking",
     className: "bg-atc-orange text-atc-bg",
   },
 };
 
+const CHINESE_RELEASE_COPY = {
+  "v1.3.0": {
+    title: "adsbdb 航路、社区反馈与完整跑道地图",
+    summary:
+      "航路查询迁移到 api.adsbdb.com,用户可提交临时航路修正,机场跑道地图现在从 OurAirports 渲染所有跑道。",
+    highlights: [
+      "公开航路数据源从 VRS standing-data 切换到 api.adsbdb.com",
+      "社区反馈覆盖: 带 `*` 标记的用户航路在 12 小时内优先",
+      "预览卡: 桌面端内联表单,移动端弹窗,区分建议正确航路与建议修正",
+      "飞行跟踪页现在会拉取并显示航路,也提供同样的反馈入口",
+      "KBOS 类修复: VFR-only 跑道重新显示,全球跑道图来自 OurAirports",
+      "移动端飞行侧栏支持纵向滚动",
+    ],
+  },
+  "v1.2.1": {
+    title: "Track 按钮支持新标签页打开",
+    summary: "预览卡 Track 操作改为链接,右键新标签页打开可以正常工作。",
+    highlights: [
+      "AircraftPreviewMetadataCard Track 改为 next/link <Link>",
+      "AirportPreviewMetadataCard Track 改为 next/link <Link>",
+      "共享按钮样式兼容链接元素",
+      "恢复 Type 与 Alt 筛选卡之间缺失的分隔线",
+    ],
+  },
+  "v1.2.0": {
+    title: "主题化跑道进近、飞机机首光束和比例尺优化",
+    summary: "按主题切换进近可视化、暗色飞机机首光束、常驻比例尺和应用主题 toast。",
+    highlights: [
+      "跑道进近抽象: 暗色为发光楔形,亮色为虚线延长中心线",
+      "暗色主题下飞机轮廓增加柔和前向机首光束",
+      "比例尺始终显示,并带有随主题变化的背景模糊",
+      "地图缩放预设调整为 10 / 11 / 13",
+      "Toast 层下移到地图工具栏下方并匹配应用主题",
+    ],
+  },
+  "v1.1.0": {
+    title: "距离环与地图比例尺",
+    summary: "机场页加入同心距离环、进近缩放下的自适应比例尺,附近搜索统一为 40 海里半径。",
+    highlights: [
+      "所有附近交通和附近机场搜索统一到 40 海里",
+      "机场页: 焦点机场每 3 海里一圈,最大 30 海里",
+      "机场页: 附近机场每 3 海里一圈,最大 10 海里",
+      "飞行页: 每个附近机场只显示 5 海里接近圈,隐藏焦点飞机距离环",
+      "机场和详情缩放级别显示每圈距离标签",
+      "进近缩放时左下角显示比例尺",
+      "每第三圈略加粗作为视觉锚点",
+    ],
+  },
+  "v1.0.0": {
+    title: "持久跟踪会话与上弹导航菜单",
+    summary: "刷新后保留航迹、信号丢失覆盖层、/changelog 页面和统一 sibling-page 导航菜单。",
+    highlights: [
+      "12 小时跟踪会话锚点和 24 小时本地航迹缓存",
+      "完整、近期、实时航迹按明确优先级合并",
+      "信号丢失覆盖层: 保留、重试、返回首页",
+      "适配航迹后回到相同缩放预设",
+      "侧栏附近列表改用静态数字以提升帧率",
+      "Home / About / Changelog 共享上弹导航菜单",
+      "新增 /changelog 页面,数据从 CHANGELOG.md 移到 JS",
+    ],
+  },
+  "v0.12.0": {
+    title: "飞机跟踪页与多形态 explorer",
+    summary: "/aircraft/[callsign] 路由、多形态侧栏和预览、适配航迹、多数据源 failover。",
+    highlights: [
+      "/aircraft/[callsign] 页面复用机场布局",
+      "多形态预览卡支持飞机和机场",
+      "多形态侧栏列表加入显示筛选",
+      "适配航迹地图控制",
+      "ADS-B 呼号数据源竞速与 failover",
+      "Cookie 驱动主题,移除 React 19 警告",
+      "路由重命名: /[icao] 改为 /airport/[icao]",
+    ],
+  },
+  "v0.11.0": {
+    title: "选中飞机航迹与重新验证",
+    summary: "焦点飞机实时航迹线、通过 AeroDataBox 重新验证航路、分类修复。",
+    highlights: [
+      "带渐变和淡入标签卡的航迹线",
+      "尾迹颜色跟随离场/进场强调色",
+      "点击焦点标记重新验证航路",
+      "无标签航路归类为 UNKNOWN",
+      "ADS-B 数据源 failover: 5xx、429、timeout",
+    ],
+  },
+  "v0.10.0": {
+    title: "全球机场数据与更丰富的飞机轮廓",
+    summary: "OurAirports 通过 Supabase 提供全球搜索、178 种 ICAO 类型轮廓和国家旗帜。",
+    highlights: [
+      "OurAirports 支撑 /api/search 和 /api/airport/[ident]",
+      "全球跑道标注: FAA CIFP 加 OurAirports fallback",
+      "178 个飞机轮廓随仓库发布",
+      "推荐机场更多样: JFK、LHR、HND 等",
+      "首页行和机场头部显示国家旗帜与名称",
+    ],
+  },
+  "v0.9.0": {
+    title: "海军蓝跟踪控制台重设计",
+    summary: "侧栏加地图布局、呼号优先交通表、深海军蓝配色和轮廓标记。",
+    highlights: [
+      "常驻顶部导航包含 ADSBao / Search / About",
+      "400px 桌面侧栏搭配全高地图",
+      "呼号优先交通表和航路状态徽标",
+      "飞机轮廓标记支持 ICAO 类型和发射器类别",
+      "尾流等级尺寸微调: A1 为 0.90x,A5 为 1.10x",
+    ],
+  },
+  "v0.8.0": {
+    title: "Next.js Vercel 重构",
+    summary: "应用从 Vue 3/Vite 重建为 Next.js App Router 上的 React 应用。",
+    highlights: [
+      "React on Next.js App Router",
+      "保留 Tailwind CSS v4 和 DaisyUI",
+      "通过 Next 集成接入 Vercel Analytics 和 Speed Insights",
+      "Vue composables 迁移为 React hooks",
+      "FlightAware 航路查询迁移到 Route Handler",
+    ],
+  },
+  "v0.7.1": {
+    title: "地图和移动端打磨",
+    summary: "轮询保护、移动端 sheet 优化和 ADS-B 合并修复。",
+    highlights: [
+      "坐标加载后才开始飞机轮询",
+      "优化移动端机场卡片 sheet",
+      "改进近距和广域 ADS-B 合并",
+    ],
+  },
+  "v0.7.0": {
+    title: "飞行航路与交通上下文",
+    summary: "机场感知航路标签、FlightAware 查询和双范围 ADS-B 轮询。",
+    highlights: [
+      "机场感知飞行航路标签",
+      "通过 Vercel function 查询 FlightAware 航路",
+      "双范围轮询: 广域 20 海里加近距 3 海里",
+      "机场上下文叠加和地面过滤",
+    ],
+  },
+  "v0.6.0": {
+    title: "Vercel 可观测性与生产路由",
+    summary: "Web Analytics、Speed Insights、强化代理和上游日志。",
+    highlights: [
+      "Vercel Web Analytics 和 Speed Insights",
+      "上游数据请求运行时日志",
+      "恢复生产安全的代理 rewrite",
+      "强化代理解析以防上游 HTML/error",
+    ],
+  },
+  "v0.5.0": {
+    title: "Vercel-first Web 架构",
+    summary: "Vercel 部署配置、同源代理、移除 Electron 和 Homebrew。",
+    highlights: [
+      "Vercel 部署配置",
+      "浏览器优先的机场目录和客户端缓存",
+      "METAR 与 ADS-B 上游同源代理路径",
+      "移除 Electron 和 Homebrew cask pipeline",
+    ],
+  },
+  "v0.4.0": {
+    title: "ADSBao Web 转向",
+    summary: "重命名为 ADSBao,移除 LiveATC UI、播放器和转录范围。",
+    highlights: [
+      "项目重命名为 ADSBao",
+      "移除旧 LiveATC 前端和后端",
+      "重新定位为机场 explorer",
+    ],
+  },
+};
+
 export default function ChangelogPanel() {
+  const { locale, t } = useI18n();
   const { themePreference, themeTitle, themeIconKey, cycleTheme } =
     useThemePreference();
 
@@ -48,11 +218,11 @@ export default function ChangelogPanel() {
   return (
     <DitherPageShell
       className="changelog-screen"
-      title="Changelog"
+      title={t("changelog.title")}
       description={
         current
-          ? `Product release history. Currently shipping ${current}.`
-          : "Product release history."
+          ? t("changelog.description", { version: current })
+          : t("changelog.descriptionFallback")
       }
       mobileLeft={<NavMenu variant="mobile" />}
       footerLeft={<NavMenu />}
@@ -60,9 +230,9 @@ export default function ChangelogPanel() {
     >
       <div className="flex-none px-6 pt-6 pb-3">
         <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-          <span>Releases</span>
+          <span>{t("changelog.releases")}</span>
           <span className="tracking-[0.18em] text-atc-dim">
-            {CHANGELOG.length} total
+            {t("changelog.total", { count: CHANGELOG.length })}
           </span>
         </div>
       </div>
@@ -72,6 +242,7 @@ export default function ChangelogPanel() {
           <ChangelogEntry
             key={release.version}
             release={release}
+            locale={locale}
             isLatest={index === 0}
           />
         ))}
@@ -80,8 +251,14 @@ export default function ChangelogPanel() {
   );
 }
 
-function ChangelogEntry({ release, isLatest }) {
+function ChangelogEntry({ release, isLatest, locale }) {
+  const { t } = useI18n();
   const kindStyle = KIND_STYLES[release.kind] || KIND_STYLES.feat;
+  const localizedRelease =
+    locale === "zh-CN" ? CHINESE_RELEASE_COPY[release.version] : null;
+  const title = localizedRelease?.title || release.title;
+  const summary = localizedRelease?.summary || release.summary;
+  const highlights = localizedRelease?.highlights || release.highlights;
   return (
     <li className="border-b border-[var(--atc-line)] py-4 last:border-b-0">
       <div className="flex flex-wrap items-center gap-2">
@@ -91,23 +268,23 @@ function ChangelogEntry({ release, isLatest }) {
         <KindBadge style={kindStyle} />
         {isLatest && (
           <span className="font-nav rounded-sm border border-atc-accent px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-[0.14em] text-atc-accent">
-            Current
+            {t("changelog.current")}
           </span>
         )}
       </div>
-      {release.title ? (
+      {title ? (
         <p className="mt-1 text-[12.5px] font-semibold leading-snug text-atc-text">
-          {release.title}
+          {title}
         </p>
       ) : null}
-      {release.summary ? (
+      {summary ? (
         <p className="mt-1 text-[11.5px] leading-snug text-atc-dim">
-          {release.summary}
+          {summary}
         </p>
       ) : null}
-      {Array.isArray(release.highlights) && release.highlights.length > 0 ? (
+      {Array.isArray(highlights) && highlights.length > 0 ? (
         <ul className="mt-2 flex flex-col gap-1">
-          {release.highlights.map((item, index) => (
+          {highlights.map((item, index) => (
             <li
               key={index}
               className="grid grid-cols-[10px_minmax(0,1fr)] items-baseline gap-1.5 text-[11.5px] leading-snug text-atc-text"
@@ -125,11 +302,12 @@ function ChangelogEntry({ release, isLatest }) {
 }
 
 function KindBadge({ style }) {
+  const { t } = useI18n();
   return (
     <span
       className={`font-nav rounded-sm px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-[0.14em] ${style.className}`}
     >
-      {style.label}
+      {t(style.labelKey)}
     </span>
   );
 }

@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useAirportWiki } from "../../hooks/useAirportWiki.js";
 import { useWeatherSlides } from "@/components/weather/useWeatherSlides.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function WeatherBriefingStack({
   icao = "",
@@ -18,6 +19,7 @@ export default function WeatherBriefingStack({
   airportLat = 0,
   airportLon = 0,
 }) {
+  const { t } = useI18n();
   const wikiAirport = useMemo(
     () => ({ icao, iata, name, city, country }),
     [icao, iata, name, city, country],
@@ -66,14 +68,14 @@ export default function WeatherBriefingStack({
 
       <section className="airport-briefing-card airport-briefing-card--wiki">
         <div className="airport-briefing-card__heading">
-          <span>Wiki</span>
+          <span>{t("panels.wiki")}</span>
         </div>
         <p className="wiki-copy">
           {wiki.summary?.extract
             ? wiki.summary.extract
             : wiki.loading
-              ? "Loading airport introduction..."
-              : "No Wikipedia summary was found for this airport."}
+              ? t("panels.wikiLoading")
+              : t("panels.wikiMissing")}
         </p>
         {wiki.error ? <div className="panel-error">{wiki.error}</div> : null}
         {wiki.summary?.url ? (
@@ -83,7 +85,7 @@ export default function WeatherBriefingStack({
             target="_blank"
             rel="noreferrer"
           >
-            Open Wikipedia
+            {t("panels.openWikipedia")}
           </a>
         ) : null}
       </section>

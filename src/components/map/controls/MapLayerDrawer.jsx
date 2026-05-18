@@ -2,29 +2,30 @@
 
 import { Button } from "@/components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 const LAYER_TOGGLES = [
   {
     iconKey: "type",
-    label: "Map labels",
-    activeLabel: "Hide map labels",
-    inactiveLabel: "Show map labels",
+    labelKey: "mapLayers.mapLabels",
+    activeKey: "mapLayers.hideMapLabels",
+    inactiveKey: "mapLayers.showMapLabels",
     prop: "showMapLabels",
     handler: "onToggleMapLabels",
   },
   {
     iconKey: "spotlight",
-    label: "Approach beams",
-    activeLabel: "Hide approach beams",
-    inactiveLabel: "Show approach beams",
+    labelKey: "mapLayers.approachBeams",
+    activeKey: "mapLayers.hideApproachBeams",
+    inactiveKey: "mapLayers.showApproachBeams",
     prop: "showBeams",
     handler: "onToggleBeams",
   },
   {
     iconKey: "mapPinned",
-    label: "Routing point badges",
-    activeLabel: "Hide routing point badges",
-    inactiveLabel: "Show routing point badges",
+    labelKey: "mapLayers.routingPointBadges",
+    activeKey: "mapLayers.hideRoutingPointBadges",
+    inactiveKey: "mapLayers.showRoutingPointBadges",
     prop: "showBadges",
     handler: "onToggleBadges",
   },
@@ -40,6 +41,7 @@ export default function MapLayerDrawer({
   onToggleBeams,
   onToggleBadges,
 }) {
+  const { t } = useI18n();
   const state = {
     showMapLabels,
     showBeams,
@@ -56,15 +58,15 @@ export default function MapLayerDrawer({
       aria-hidden={!open}
     >
       <div className="map-layer-group">
-        <div className="map-layer-group__label">Map layers</div>
+        <div className="map-layer-group__label">{t("map.layers")}</div>
         <div
           className="map-layer-drawer__toggles"
           role="group"
-          aria-label="Map layer overlays"
+          aria-label={t("map.layerOverlaysAria")}
         >
           {LAYER_TOGGLES.map((toggle) => {
             const active = Boolean(state[toggle.prop]);
-            const title = active ? toggle.activeLabel : toggle.inactiveLabel;
+            const title = active ? t(toggle.activeKey) : t(toggle.inactiveKey);
 
             return (
               <Button
@@ -77,7 +79,7 @@ export default function MapLayerDrawer({
                 aria-label={title}
                 aria-pressed={active}
                 title={title}
-                data-tooltip={toggle.label}
+                data-tooltip={t(toggle.labelKey)}
                 onClick={state[toggle.handler]}
                 type="button"
               >

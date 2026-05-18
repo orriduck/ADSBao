@@ -1,27 +1,29 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
 // Slower-changing identity + spatial metadata: hex, track, and distance
 // from the focal airport. Track and distance tween via NumberFlow so the
 // readout reads as live as the aircraft moves through the airspace.
 export default function AircraftPreviewMetadata({ aircraft }) {
+  const { t } = useI18n();
   const hex = aircraft?.icao24 ? aircraft.icao24.toUpperCase() : "—";
   const track = toFiniteNumber(aircraft?.track);
   const distance = toFiniteNumber(aircraft?.distanceNm);
 
   return (
     <dl className="aircraft-preview-metadata">
-      <TextMeta label="Hex" value={hex} />
+      <TextMeta label={t("metrics.hex")} value={hex} />
       <NumericMeta
-        label="Track"
+        label={t("metrics.track")}
         value={track != null ? Math.round(track) : null}
         suffix="°"
       />
       {distance != null && (
         <NumericMeta
-          label="Distance"
+          label={t("metrics.distance")}
           value={distance}
           format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
           suffix=" NM"

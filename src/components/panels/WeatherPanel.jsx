@@ -4,6 +4,7 @@ import { useWeatherCarouselNavigation } from "../../features/weather/useWeatherC
 import { useWeatherSlides } from "@/components/weather/useWeatherSlides.jsx";
 import { formatObsTime } from "../../features/weather/weatherModel.js";
 import PanelHeading from "./PanelHeading.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function WeatherPanel({
   metar,
@@ -14,6 +15,7 @@ export default function WeatherPanel({
   airportLon = 0,
   airportCode = "",
 }) {
+  const { t } = useI18n();
   const { slides } = useWeatherSlides({
     variant: "panel",
     metar,
@@ -60,7 +62,7 @@ export default function WeatherPanel({
       <div
         className="weather-view-dots weather-carousel-dots"
         role="tablist"
-        aria-label="Weather card view"
+        aria-label={t("weather.cardViewAria")}
       >
         {slides.map((slide, index) => (
           <button

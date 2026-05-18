@@ -4,6 +4,7 @@ import NumberFlow from "@number-flow/react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 const DURATIONS = { fadeOut: 160, resize: 260, fadeIn: 200, expandReveal: 170 };
 const INTERVAL_MS = 4200;
@@ -12,6 +13,7 @@ export default function MobileStatusBar({
   metar,
   trafficCounts = { departure: 0, arrival: 0, unknown: 0 },
 }) {
+  const { t } = useI18n();
   const [phase, setPhase] = useState("idle");
   const [activeView, setActiveView] = useState("metar");
   const [lockWidth, setLockWidth] = useState(null);
@@ -96,11 +98,11 @@ export default function MobileStatusBar({
       >
         <div className="status-kicker">METAR</div>
         <div className="status-main">
-          <span>{metar?.flightCategory || "Observed"}</span>
+          <span>{metar?.flightCategory || t("weather.observed")}</span>
           <span>·</span>
-          <span>{metar?.wind || "Wind —"}</span>
+          <span>{metar?.wind || t("weather.windMissing")}</span>
           <span>·</span>
-          <span>{metar?.vis || "Vis —"}</span>
+          <span>{metar?.vis || t("weather.visMissing")}</span>
         </div>
       </div>
       <div
@@ -109,7 +111,7 @@ export default function MobileStatusBar({
         style={slotStyle("traffic")}
         aria-hidden={activeView !== "traffic"}
       >
-        <div className="status-kicker">Traffic</div>
+        <div className="status-kicker">{t("panels.traffic")}</div>
         <div className="status-main">
           <span style={{ color: AIRCRAFT_COLORS.departure }}>
             ↑ <NumberFlow value={trafficCounts.departure} />

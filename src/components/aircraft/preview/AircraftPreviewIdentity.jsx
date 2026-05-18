@@ -1,10 +1,12 @@
 "use client";
 
 import AircraftPreviewType from "./AircraftPreviewType.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Callsign + parsed route. Mirrors the sidebar row's identity cell so the
 // hover state feels like a richer continuation rather than new data.
 export default function AircraftPreviewIdentity({ aircraft }) {
+  const { t } = useI18n();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
   const route = aircraft?.flightRouteLabel || "";
@@ -29,7 +31,7 @@ export default function AircraftPreviewIdentity({ aircraft }) {
         </span>
       ) : (
         <span className="aircraft-preview-identity__route aircraft-preview-identity__route--empty">
-          No route
+          {t("aircraft.noRoute")}
         </span>
       )}
     </div>

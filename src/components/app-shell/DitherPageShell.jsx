@@ -4,6 +4,7 @@ import DitherBackground from "@/components/effects/DitherBackground.jsx";
 import BrandLogo from "@/components/brand/BrandLogo.jsx";
 import MobileTopNav from "@/components/navigation/MobileTopNav.jsx";
 import { SITE_DESCRIPTION } from "@/config/site.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function DitherPageShell({
   className = "",
@@ -15,6 +16,11 @@ export default function DitherPageShell({
   renderThemeToggle,
   children,
 }) {
+  const { t } = useI18n();
+  const resolvedTitle = title === "Airport explorer" ? t("app.airportExplorer") : title;
+  const resolvedDescription =
+    description === SITE_DESCRIPTION ? t("app.siteDescription") : description;
+
   return (
     <div
       className={`dither-page-shell flex h-screen text-atc-text ${className}`.trim()}
@@ -34,10 +40,10 @@ export default function DitherPageShell({
             />
           </div>
           <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
-            {title}
+            {resolvedTitle}
           </h1>
           <p className="mt-3 text-[13px] leading-relaxed text-atc-dim">
-            {description}
+            {resolvedDescription}
           </p>
         </div>
 

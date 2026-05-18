@@ -27,10 +27,9 @@ export function formatObsTime(value) {
   });
 }
 
-export function getWeatherConditionLabel(code) {
-  return WEATHER_CODES[code] || "Current conditions";
-}
-
+// Token row above the raw METAR string: pulls station / issued / wind /
+// visibility tokens out so the row reads at-a-glance. Labels are i18n
+// keys; the renderer maps them through t().
 export function getMetarTokens(raw) {
   const parts = String(raw || "")
     .trim()
@@ -49,62 +48,50 @@ export function getMetarTokens(raw) {
   );
 
   return [
-    { label: "Station", value: station || "-" },
-    { label: "Issued", value: issued || "-" },
-    { label: "Wind", value: wind || "-" },
-    { label: "Vis", value: visibility || "-" },
+    { labelKey: "weather.metarToken.station", value: station || "-" },
+    { labelKey: "weather.metarToken.issued", value: issued || "-" },
+    { labelKey: "weather.metarToken.wind", value: wind || "-" },
+    { labelKey: "weather.metarToken.vis", value: visibility || "-" },
   ];
 }
 
-export function describeWind(speed, gust) {
+// Each describe* function below now returns an i18n key. The dictionary
+// owns the prose so adding zh-CN didn't require duplicating the branch
+// logic, and translators can rewrite copy without touching JS.
+export function getWeatherConditionKey(code) {
+  return WEATHER_CODES[code] ? `weather.code.${code}` : "weather.code.unknown";
+}
+
+export function describeWindKey(speed, gust) {
   const effective = Math.max(speed ?? 0, gust ?? 0);
-  if (effective >= 30) {
-    return "Strong winds or gusts can reduce arrival rates, increase go-around risk, and force stricter runway selection.";
-  }
-  if (effective >= 15) {
-    return "Moderate wind is workable, but crosswind components and gust spread can affect spacing and runway configuration.";
-  }
-  return "Light wind usually gives the airport more runway flexibility and keeps arrival and departure flow stable.";
+  if (effective >= 30) return "weather.windPara.strong";
+  if (effective >= 15) return "weather.windPara.moderate";
+  return "weather.windPara.light";
 }
 
-export function describeTemperature(temp, spread) {
-  if (spread != null && spread < 3) {
-    return "A small temperature-dewpoint spread can support fog, haze, or low cloud development near the field.";
-  }
-  if (temp != null && temp >= 32) {
-    return "Hot air reduces aircraft performance, which can lengthen takeoff rolls and affect climb margins.";
-  }
-  if (temp != null && temp <= 0) {
-    return "Cold conditions can improve density altitude, but icing, braking action, and deicing become operational concerns.";
-  }
-  return "Temperature and dewpoint are separated enough that fog risk is lower near the field.";
+export function describeTemperatureKey(temp, spread) {
+  if (spread != null && spread < 3) return "weather.tempPara.fogRisk";
+  if (temp != null && temp >= 32) return "weather.tempPara.hot";
+  if (temp != null && temp <= 0) return "weather.tempPara.cold";
+  return "weather.tempPara.normal";
 }
 
-export function describePressure(altim, pressure) {
+export function describePressureKey(altim, pressure) {
   const hpa = pressure ?? (altim != null ? altim * 33.8639 : null);
-  if (hpa == null) {
-    return "Pressure data helps crews set altimeters and judge density-altitude effects around the airport.";
-  }
-  if (hpa < 1000) {
-    return "Lower pressure increases density altitude and can come with unsettled weather, reducing performance margins.";
-  }
-  if (hpa > 1020) {
-    return "Higher pressure generally improves aircraft performance and often accompanies more stable weather.";
-  }
-  return "Pressure is near standard range, so altimeter setting is important but not a major performance driver.";
+  if (hpa == null) return "weather.pressurePara.unknown";
+  if (hpa < 1000) return "weather.pressurePara.low";
+  if (hpa > 1020) return "weather.pressurePara.high";
+  return "weather.pressurePara.normal";
 }
 
-export function describeCeiling(ceilingFt, visibility) {
+export function describeCeilingKey(ceilingFt, visibility) {
   if (ceilingFt == null && visibility == null) {
-    return "No limiting ceiling or visibility value is available in the current METAR.";
+    return "weather.ceilingPara.unknown";
   }
-  if (ceilingFt != null && ceilingFt < 1000) {
-    return "Low ceiling can push arrivals toward instrument procedures and reduce visual runway flexibility.";
-  }
-  if (visibility != null && visibility < 3) {
-    return "Reduced visibility can increase spacing and make surface movement more dependent on tower guidance.";
-  }
-  return "Ceiling and visibility are comfortably above the usual VFR thresholds for airport operations.";
+  if (ceilingFt != null && ceilingFt < 1000) return "weather.ceilingPara.low";
+  if (visibility != null && visibility < 3)
+    return "weather.ceilingPara.reducedVis";
+  return "weather.ceilingPara.comfortable";
 }
 
 export const toNumber = (value) => {

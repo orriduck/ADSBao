@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AircraftRow({
   aircraft,
@@ -9,11 +10,18 @@ export default function AircraftRow({
   selected,
   onSelectAircraft,
 }) {
+  const { locale, t } = useI18n();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
-  const routeMunicipalities = formatFlightRouteMunicipalityLabel(
-    aircraft.flightRoute,
-  );
+  // Municipality labels come from OurAirports / adsbdb as English-only
+  // city names ("Los Angeles → Seattle"). Localizing every world city
+  // would need a separate dictionary; for now we drop the secondary line
+  // in non-English locales and let the ICAO route ("KLAX → KSEA") stand
+  // on its own — still unambiguous, just untranslated.
+  const routeMunicipalities =
+    locale === "en"
+      ? formatFlightRouteMunicipalityLabel(aircraft.flightRoute)
+      : "";
   const hasRouteMunicipalities = Boolean(
     routeMunicipalities && routeMunicipalities !== route,
   );
@@ -48,7 +56,7 @@ export default function AircraftRow({
       </div>
       <div className="text-right font-mono text-[12px] font-semibold text-atc-text">
         {aircraft.onGround ? (
-          <span>GND</span>
+          <span>{t("aircraft.gnd")}</span>
         ) : altValue == null ? (
           <span>-</span>
         ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Presentational form body shared by the desktop inline form and the
 // mobile modal. Keeps the input layout, hint copy, and action buttons in
@@ -15,27 +16,36 @@ export default function RouteFeedbackFields({
   submitting,
   onCancel,
   onSubmit,
-  submitLabel = "Submit",
-  cancelLabel = "Cancel",
-  hint = (
-    <>
-      Submit a temporary route. Marked <span aria-hidden="true">*</span> in
-      the route label, expires in 12 h.
-    </>
-  ),
-  ariaLabel = "Submit a temporary route override",
+  submitLabel,
+  cancelLabel,
+  hint,
+  ariaLabel,
 }) {
   const formId = useId();
+  const { t } = useI18n();
+
+  const resolvedHint = hint ?? (
+    <>
+      {t("routeFeedback.hintPrefix")}
+      <span aria-hidden="true">*</span>
+      {t("routeFeedback.hintSuffix")}
+    </>
+  );
+  const resolvedSubmit = submitLabel ?? t("routeFeedback.submit");
+  const resolvedCancel = cancelLabel ?? t("routeFeedback.cancel");
+  const resolvedAria = ariaLabel ?? t("routeFeedback.ariaLabel");
 
   return (
-    <form className="route-feedback-form" onSubmit={onSubmit} aria-label={ariaLabel}>
-      <p className="route-feedback-form__hint">{hint}</p>
+    <form className="route-feedback-form" onSubmit={onSubmit} aria-label={resolvedAria}>
+      <p className="route-feedback-form__hint">{resolvedHint}</p>
       <div className="route-feedback-form__fields">
         <label
           className="route-feedback-form__field"
           htmlFor={`${formId}-origin`}
         >
-          <span className="route-feedback-form__label">Origin</span>
+          <span className="route-feedback-form__label">
+            {t("routeFeedback.origin")}
+          </span>
           <input
             id={`${formId}-origin`}
             className="route-feedback-form__input notranslate"
@@ -56,7 +66,9 @@ export default function RouteFeedbackFields({
           className="route-feedback-form__field"
           htmlFor={`${formId}-destination`}
         >
-          <span className="route-feedback-form__label">Destination</span>
+          <span className="route-feedback-form__label">
+            {t("routeFeedback.destination")}
+          </span>
           <input
             id={`${formId}-destination`}
             className="route-feedback-form__input notranslate"
@@ -86,14 +98,14 @@ export default function RouteFeedbackFields({
           onClick={onCancel}
           disabled={submitting}
         >
-          {cancelLabel}
+          {resolvedCancel}
         </button>
         <button
           type="submit"
           className="route-feedback-form__submit"
           disabled={submitting}
         >
-          {submitting ? "Sending…" : submitLabel}
+          {submitting ? t("routeFeedback.sending") : resolvedSubmit}
         </button>
       </div>
     </form>
