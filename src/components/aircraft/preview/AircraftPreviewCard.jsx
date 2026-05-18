@@ -10,7 +10,7 @@ import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard.jsx";
 import AirportPreviewMobileCard from "./AirportPreviewMobileCard.jsx";
 import RouteFeedbackModal from "./RouteFeedbackModal.jsx";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto.js";
-import { getRouteFeedbackLabel } from "@/features/aviation/flight-routes/useRouteFeedbackSubmit.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 
 const POCKET_EASE = [0.16, 1, 0.3, 1];
@@ -40,6 +40,7 @@ export default function AircraftPreviewCard({
   airportProfile = null,
   onApplyTemporaryRoute,
 }) {
+  const { t } = useI18n();
   const reducedMotion = useReducedMotion();
   const photoState = useAircraftPhoto(aircraft);
   const photo = photoState.photo;
@@ -86,7 +87,9 @@ export default function AircraftPreviewCard({
     !isAirport &&
     Boolean(aircraftCallsign) &&
     typeof onApplyTemporaryRoute === "function";
-  const mobileFeedbackLabel = getRouteFeedbackLabel(aircraft);
+  const mobileFeedbackLabel = aircraft?.flightRouteLabel
+    ? t("routeFeedback.suggestCorrection")
+    : t("routeFeedback.suggestRight");
 
   return (
     <>
@@ -97,7 +100,7 @@ export default function AircraftPreviewCard({
           className={`aircraft-preview-card ${
             !isAirport && hasPhoto ? "aircraft-preview-card--has-photo" : ""
           } aircraft-preview-card--photo-${photoTone}`}
-          aria-label={isAirport ? "Airport preview" : "Aircraft preview"}
+          aria-label={isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")}
           {...(reducedMotion
             ? {
                 initial: false,
@@ -137,7 +140,7 @@ export default function AircraftPreviewCard({
         <motion.aside
           key={`mobile-${identityKey}`}
           className="aircraft-preview-mobile-card aircraft-preview-mobile-card--stacked"
-          aria-label={isAirport ? "Airport preview" : "Aircraft preview"}
+          aria-label={isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")}
           style={{ x: "-50%" }}
           {...(reducedMotion
             ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
@@ -155,7 +158,7 @@ export default function AircraftPreviewCard({
               onClick={handleMobileTap}
               disabled={alreadyTracking}
             >
-              {alreadyTracking ? "Tracking" : "Track"}
+              {alreadyTracking ? t("preview.tracking") : t("preview.track")}
             </button>
           )}
           {showMobileFeedbackTrigger && (

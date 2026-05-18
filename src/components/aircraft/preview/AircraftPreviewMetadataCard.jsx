@@ -6,6 +6,7 @@ import AircraftPreviewIdentity from "./AircraftPreviewIdentity.jsx";
 import AircraftPreviewMetadata from "./AircraftPreviewMetadata.jsx";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry.jsx";
 import RouteFeedbackForm from "./RouteFeedbackForm.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AircraftPreviewMetadataCard({
   aircraft,
@@ -13,6 +14,7 @@ export default function AircraftPreviewMetadataCard({
   airportProfile = null,
   onApplyTemporaryRoute,
 }) {
+  const { t } = useI18n();
   const pathname = usePathname();
   const credit = photo?.photographer || null;
   const trackCallsign = (aircraft?.callsign || "").trim().toUpperCase();
@@ -23,7 +25,9 @@ export default function AircraftPreviewMetadataCard({
   return (
     <div className="aircraft-preview-metadata-card">
       {credit && (
-        <span className="aircraft-preview-metadata-card__credit">credit@{credit}</span>
+        <span className="aircraft-preview-metadata-card__credit">
+          {t("preview.creditPrefix")}{credit}
+        </span>
       )}
       <AircraftPreviewIdentity aircraft={aircraft} />
       <AircraftPreviewTelemetry aircraft={aircraft} />
@@ -33,9 +37,9 @@ export default function AircraftPreviewMetadataCard({
         <Link
           href={trackHref}
           className="aircraft-preview-card__track-btn"
-          aria-label={`Track ${trackCallsign}`}
+          aria-label={`${t("preview.track")} ${trackCallsign}`}
         >
-          Track
+          {t("preview.track")}
         </Link>
       ) : (
         <button
@@ -43,7 +47,7 @@ export default function AircraftPreviewMetadataCard({
           className="aircraft-preview-card__track-btn"
           disabled
         >
-          {alreadyTracking ? "Tracking" : "Track"}
+          {alreadyTracking ? t("preview.tracking") : t("preview.track")}
         </button>
       )}
       <RouteFeedbackForm

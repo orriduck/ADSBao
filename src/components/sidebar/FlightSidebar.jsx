@@ -7,6 +7,7 @@ import SidebarIdentityHero from "./SidebarIdentityHero";
 import { SidebarMetricCard, SidebarMetricGrid } from "./SidebarMetric";
 import SidebarShell from "./SidebarShell";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
 // Sidebar for /aircraft/[callsign]. Shares chrome (SidebarShell), identity
@@ -86,8 +87,9 @@ export default function FlightSidebar({
 }
 
 function FlightIdentity({ callsign, type, category, route }) {
+  const { t } = useI18n();
   return (
-    <SidebarIdentityHero label="Tracking" code={callsign}>
+    <SidebarIdentityHero label={t("sidebar.tracking")} code={callsign}>
       {(type || category) && (
         <div className="mt-2 flex items-baseline gap-2">
           {type && (
@@ -121,6 +123,7 @@ function FlightIdentity({ callsign, type, category, route }) {
 }
 
 function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
+  const { t } = useI18n();
   // Local "highlighted metric" state — clicking any card toggles its
   // active state so the user can pin a metric the same way the airport
   // page pins WEATHER vs FLIGHTS. Click an already-active card to
@@ -130,9 +133,9 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
     setActiveMetric((current) => (current === id ? null : id));
 
   return (
-    <SidebarMetricGrid label="Flight telemetry">
+    <SidebarMetricGrid label={t("sidebar.flightTelemetry")}>
       <SidebarMetricCard
-        label="Speed"
+        label={t("metrics.speed")}
         value={
           speed != null ? (
             <MetricNumberFlow value={Math.round(speed)} suffix="kt" />
@@ -144,10 +147,10 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         onClick={() => toggle("speed")}
       />
       <SidebarMetricCard
-        label="Altitude"
+        label={t("metrics.altitude")}
         value={
           onGround
-            ? "GND"
+            ? t("aircraft.gnd")
             : altitude != null
               ? <MetricNumberFlow value={Math.round(altitude)} suffix="ft" />
               : "—"
@@ -156,7 +159,7 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         onClick={() => toggle("altitude")}
       />
       <SidebarMetricCard
-        label="Vertical speed"
+        label={t("metrics.verticalSpeed")}
         value={
           vs != null ? (
             <MetricNumberFlow
@@ -172,7 +175,7 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         onClick={() => toggle("vs")}
       />
       <SidebarMetricCard
-        label="Track"
+        label={t("metrics.track")}
         value={
           track != null ? (
             <MetricNumberFlow
@@ -190,15 +193,21 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
       {hex && (
         <>
           <SidebarMetricCard
-            label="ICAO24"
+            label={t("metrics.icao24")}
             value={hex}
             active={activeMetric === "hex"}
             onClick={() => toggle("hex")}
             valueSize="compact"
           />
           <SidebarMetricCard
-            label="Flight phase"
-            value={onGround ? "Ground" : altitude != null ? "Airborne" : "—"}
+            label={t("metrics.flightPhase")}
+            value={
+              onGround
+                ? t("aircraft.ground")
+                : altitude != null
+                  ? t("aircraft.airborne")
+                  : "—"
+            }
             active={activeMetric === "status"}
             onClick={() => toggle("status")}
             valueSize="compact"

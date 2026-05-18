@@ -2,9 +2,8 @@
 import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import GoogleTranslateDomGuard from "@/components/app-shell/GoogleTranslateDomGuard.jsx";
 import ThemedToaster from "@/components/app-shell/ThemedToaster.jsx";
-import TranslationGlossary from "@/components/app-shell/TranslationGlossary.jsx";
+import { I18nProvider } from "@/features/app-shell/i18n/i18nProvider.jsx";
 import "leaflet/dist/leaflet.css";
 import {
   SITE_DESCRIPTION,
@@ -96,9 +95,9 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body>
-        <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
-        <TranslationGlossary />
-        <GoogleTranslateDomGuard />
+        <I18nProvider>
+          <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
+        </I18nProvider>
         <ThemedToaster
           initialTheme={initialTheme}
           position="top-right"

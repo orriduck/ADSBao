@@ -2,6 +2,7 @@
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import RequestPulseDots from "@/components/ui/RequestPulseDots";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Shared chrome for the airport + flight sidebars. Handles:
 //   - The outer panel container + responsive overlay variant.
@@ -20,6 +21,7 @@ export default function SidebarShell({
   children,
   variant = "airport",
 }) {
+  const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
   const updatedLabel = formatUpdated(lastUpdated);
 
@@ -44,7 +46,7 @@ export default function SidebarShell({
           className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
         >
           <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>ADSBao</span>
+          <span className="notranslate" translate="no">ADSBao</span>
         </button>
         {onClose ? (
           <button
@@ -52,7 +54,7 @@ export default function SidebarShell({
             onClick={onClose}
             className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
           >
-            <span>Map</span>
+            <span>{t("nav.map")}</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         ) : (
@@ -62,7 +64,7 @@ export default function SidebarShell({
             {feedSource ? (
               <span className="airport-feed-status__source">{feedSource}</span>
             ) : null}
-            <RequestPulseDots ariaLabel="Live feed" />
+            <RequestPulseDots ariaLabel={t("app.feedLive")} />
             {updatedLabel ? <span key={updatedLabel}>{updatedLabel}</span> : null}
           </span>
         )}

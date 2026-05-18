@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+
 // Modal-style overlay rendered when the tracked callsign drops off the
 // ADS-B feed long enough to look like an arrival rather than a transient
 // gap. The page keeps the last known trace + telemetry visible underneath
@@ -19,6 +21,7 @@ export default function LostSignalOverlay({
   onRetry,
   onBackHome,
 }) {
+  const { t } = useI18n();
   const label = (callsign || "this flight").trim();
 
   return (
@@ -26,21 +29,20 @@ export default function LostSignalOverlay({
       className="pointer-events-none absolute inset-0 z-[1200] flex items-center justify-center px-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Signal lost"
+      aria-label={t("lostSignal.ariaLabel")}
     >
       <div className="absolute inset-0 bg-atc-bg/70 backdrop-blur-sm" />
       <div
         className="pointer-events-auto relative w-full max-w-sm rounded-[var(--atc-radius-panel)] border border-atc-line-strong bg-atc-card p-6 shadow-2xl"
       >
         <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-atc-faint">
-          Signal lost
+          {t("lostSignal.subtitle")}
         </div>
         <h2 className="mt-2 font-mono text-[18px] font-semibold tracking-[0.04em] text-atc-text">
-          {label} stopped reporting
+          {t("lostSignal.title", { callsign: label })}
         </h2>
         <p className="mt-2 text-[12px] leading-relaxed text-atc-dim">
-          The aircraft may have landed or moved out of coverage. The last
-          known position and trace are still on the map.
+          {t("lostSignal.description")}
         </p>
         <div className="mt-5 flex flex-col gap-2">
           <button
@@ -49,7 +51,7 @@ export default function LostSignalOverlay({
             style={{ fontFamily: "var(--font-nav)" }}
             className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[13px] font-medium text-atc-text transition-colors hover:bg-atc-card"
           >
-            Keep showing current trace
+            {t("lostSignal.keep")}
           </button>
           <button
             type="button"
@@ -57,7 +59,7 @@ export default function LostSignalOverlay({
             style={{ fontFamily: "var(--font-nav)" }}
             className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[13px] font-medium text-atc-text transition-colors hover:bg-atc-card"
           >
-            Try again
+            {t("lostSignal.retry")}
           </button>
           {/* Mirrors the Track button on the preview card so the
               primary action reads as a familiar CTA. */}
@@ -66,7 +68,7 @@ export default function LostSignalOverlay({
             onClick={onBackHome}
             className="aircraft-preview-card__track-btn"
           >
-            Back to home
+            {t("lostSignal.home")}
           </button>
         </div>
       </div>

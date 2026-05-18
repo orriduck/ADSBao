@@ -1,6 +1,8 @@
 "use client";
 
 import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
+import LanguageSwitch from "@/components/app-shell/LanguageSwitch.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { Button } from "@/components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 
@@ -22,6 +24,7 @@ export default function MapControlRail({
   onCycleTheme,
   onToggleLayerDrawer,
 }) {
+  const { t } = useI18n();
   return (
     <div className="map-ctrl-bar">
       {onFitToTrace && (
@@ -29,7 +32,7 @@ export default function MapControlRail({
           variant="atcIcon"
           size="icon"
           className="ctrl-btn ctrl-fit-trace"
-          title="Fit map to trace"
+          title={t("map.fitTrace")}
           onClick={onFitToTrace}
           type="button"
         >
@@ -57,7 +60,7 @@ export default function MapControlRail({
           !audioReady ? "loading" : ""
         }`}
         aria-pressed={playing}
-        title={playing ? "Pause Focus mode" : "Start Focus mode"}
+        title={playing ? "Pause Focus mode" : t("map.startFocus")}
         onClick={onToggleAudio}
         type="button"
       >
@@ -75,13 +78,15 @@ export default function MapControlRail({
         <MapControlIcon iconKey={getThemeIconKey(currentTheme)} />
       </Button>
 
+      <LanguageSwitch />
+
       <Button
         variant="atcIcon"
         size="icon"
         className={`ctrl-btn ${layerDrawerOpen ? "active" : ""}`}
         aria-expanded={layerDrawerOpen}
         aria-controls={layerDrawerId}
-        title="Map layers"
+        title={t("map.layers")}
         onClick={onToggleLayerDrawer}
         type="button"
       >

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import SidebarIdentityHero from "./SidebarIdentityHero";
 import { countryName, flagEmoji } from "../../utils/flag.js";
 import { resolveTimezone } from "../../utils/timezone.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AirportIdentity({
   icao = "",
@@ -15,6 +16,7 @@ export default function AirportIdentity({
   lat = 0,
   lon = 0,
 }) {
+  const { t } = useI18n();
   const codeLine =
     iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
   const flag = flagEmoji(country);
@@ -25,9 +27,9 @@ export default function AirportIdentity({
   const localTimeLine = useLocalTime(country);
 
   return (
-    <SidebarIdentityHero label="Airport" code={codeLine}>
+    <SidebarIdentityHero label={t("sidebar.airport")} code={codeLine}>
       <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
-        {name || "Unknown airport"}
+        {name || t("sidebar.unknownAirport")}
       </h1>
       {placeLine ? (
         <div className="mt-3 text-[13px] text-atc-dim">{placeLine}</div>

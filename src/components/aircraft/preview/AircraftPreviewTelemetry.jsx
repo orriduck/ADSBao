@@ -1,12 +1,14 @@
 "use client";
 
 import NumberFlow from "@number-flow/react";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
 // Live flight telemetry — GS / ALT / V/S. Values tween between polls via
 // NumberFlow so the readout reads as continuously instrumented (the
 // aircraft is actually moving), not as a stuttering update.
 export default function AircraftPreviewTelemetry({ aircraft }) {
+  const { t } = useI18n();
   const speed = toFiniteNumber(aircraft?.velocity);
   const altitude = toFiniteNumber(aircraft?.altitude);
   const vs = toFiniteNumber(aircraft?.baroRate);
@@ -15,21 +17,21 @@ export default function AircraftPreviewTelemetry({ aircraft }) {
   return (
     <dl className="aircraft-preview-telemetry">
       <NumericStat
-        label="Speed"
+        label={t("metrics.speed")}
         value={speed != null ? Math.round(speed) : null}
         unit="kt"
       />
       {onGround ? (
-        <TextStat label="Altitude" value="GND" />
+        <TextStat label={t("metrics.altitude")} value={t("aircraft.gnd")} />
       ) : (
         <NumericStat
-          label="Altitude"
+          label={t("metrics.altitude")}
           value={altitude != null ? Math.round(altitude) : null}
           unit="ft"
         />
       )}
       <NumericStat
-        label="Vertical"
+        label={t("metrics.vertical")}
         value={vs != null ? Math.round(vs) : null}
         unit="fpm"
         signed

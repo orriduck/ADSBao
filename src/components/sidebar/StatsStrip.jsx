@@ -1,6 +1,9 @@
 "use client";
 
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+
 export default function StatsStrip({ metar = null, aircraftCount = 0 }) {
+  const { t } = useI18n();
   const wind = formatWind(metar);
   const vis = formatVis(metar);
   const rule = metar?.flightCategory?.toUpperCase() || "—";
@@ -8,10 +11,10 @@ export default function StatsStrip({ metar = null, aircraftCount = 0 }) {
 
   return (
     <div className="grid grid-cols-3 border-y border-[var(--atc-line)]">
-      <Stat label="Wind" value={wind.value} unit={wind.unit} />
-      <Stat label="Vis" value={vis.value} unit={vis.unit} divided />
+      <Stat label={t("metrics.wind")} value={wind.value} unit={wind.unit} />
+      <Stat label={t("metrics.visibility")} value={vis.value} unit={vis.unit} divided />
       <Stat
-        label="Rule"
+        label={t("metrics.rule")}
         value={rule}
         unit={`${aircraftCount} ADS-B`}
         valueColor={ruleColor}

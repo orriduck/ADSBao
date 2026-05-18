@@ -4,10 +4,8 @@ import { useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import RouteFeedbackFields from "./RouteFeedbackFields.jsx";
-import {
-  getRouteFeedbackLabel,
-  useRouteFeedbackSubmit,
-} from "@/features/aviation/flight-routes/useRouteFeedbackSubmit.js";
+import { useRouteFeedbackSubmit } from "@/features/aviation/flight-routes/useRouteFeedbackSubmit.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Modal variant of the route-feedback affordance. The mobile preview card
 // is too narrow to host the inline form ergonomically, so the small text
@@ -20,8 +18,11 @@ export default function RouteFeedbackModal({
   open,
   onOpenChange,
 }) {
+  const { t } = useI18n();
   const callsign = (aircraft?.callsign || "").trim().toUpperCase();
-  const title = getRouteFeedbackLabel(aircraft);
+  const title = aircraft?.flightRouteLabel
+    ? t("routeFeedback.suggestCorrection")
+    : t("routeFeedback.suggestRight");
   const submitState = useRouteFeedbackSubmit({
     aircraft,
     airportProfile,
@@ -55,7 +56,7 @@ export default function RouteFeedbackModal({
               <button
                 type="button"
                 className="route-feedback-modal__close"
-                aria-label="Close"
+                aria-label={t("routeFeedback.close")}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>

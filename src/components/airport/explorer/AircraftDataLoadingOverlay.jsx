@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
 import Orb from "@/components/ui/Orb";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AircraftDataLoadingOverlay({ active }) {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(active);
   const [exiting, setExiting] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
@@ -51,7 +53,7 @@ export default function AircraftDataLoadingOverlay({ active }) {
   return (
     <div
       className={`adsb-loading-overlay ${exiting ? "is-exiting" : ""}`}
-      aria-label="Loading ADS-B aircraft data"
+      aria-label={t("map.loadingAircraftAria")}
       aria-hidden={!visible}
       onAnimationEnd={(event) => {
         if (event.currentTarget !== event.target || !exiting) return;

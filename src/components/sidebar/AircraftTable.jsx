@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import {
   ALTITUDE_LEVEL_OPTIONS,
   ENTITY_FILTER_OPTIONS,
@@ -50,6 +51,7 @@ export default function AircraftTable({
   onSelectAirport,
   fill = true,
 }) {
+  const { t } = useI18n();
   const {
     trafficFilter,
     typeFilter,
@@ -136,14 +138,14 @@ export default function AircraftTable({
       <div className="flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
           <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
-            {entityFilter === "airports" ? "Airports" : "Flights"}
+            {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
           </div>
           <div className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums">
             <NumberFlow value={filteredAircraft.length + filteredAirports.length} />
             <span> / </span>
             <NumberFlow
               value={aircraft.length + airports.length}
-              suffix=" nearby"
+              suffix={` ${t("sidebar.nearby")}`}
             />
           </div>
         </div>
@@ -155,8 +157,8 @@ export default function AircraftTable({
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search callsign, ICAO, route"
-              aria-label="Search aircraft"
+              placeholder={t("sidebar.searchPlaceholder")}
+              aria-label={t("sidebar.searchAria")}
             />
           </label>
         </div>
@@ -164,14 +166,14 @@ export default function AircraftTable({
         <div
           className="aircraft-filter-cards aircraft-filter-cards--grid"
           role="group"
-          aria-label="Sidebar list filters"
+          aria-label={t("sidebar.filtersAria")}
         >
           <AircraftFilterCardSelect
-            label="Targets"
+            label={t("sidebar.targets")}
             value={entityFilter}
             onValueChange={setEntityFilter}
             options={ENTITY_FILTER_OPTIONS}
-            ariaLabel="Filter what to show in the list"
+            ariaLabel={t("filters.showAria")}
             contentClassName="min-w-[220px]"
           />
 
@@ -189,15 +191,15 @@ export default function AircraftTable({
                     )
                   }
                 >
-                  <span className="aircraft-filter-card__label">Route</span>
+                  <span className="aircraft-filter-card__label">{t("sidebar.route")}</span>
                   <strong className="aircraft-filter-card__value">
-                    {trafficFilter === "routed" ? "Routed" : "All"}
+                    {trafficFilter === "routed" ? t("sidebar.routed") : t("sidebar.all")}
                   </strong>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[220px] text-left">
                 <strong className="block text-[11px] font-semibold uppercase tracking-wide">
-                  Routed
+                  {t("sidebar.routed")}
                 </strong>
                 <span className="mt-1 block text-[11px] font-normal leading-snug">
                   Only show flights whose callsign resolved to a legitimate
@@ -214,19 +216,19 @@ export default function AircraftTable({
             onChange={setTypeFilter}
           />
           <AircraftFilterCardSelect
-            label="Altitude"
+            label={t("sidebar.altitudeFilter")}
             value={altitudeLevel}
             onValueChange={setAltitudeLevel}
             options={ALTITUDE_LEVEL_OPTIONS}
-            ariaLabel="Filter by altitude level"
+            ariaLabel={t("filters.altitudeFilterAria")}
             contentClassName="min-w-[220px]"
           />
         </div>
 
         <div className="grid grid-cols-[minmax(0,1fr)_54px_70px] items-center gap-3 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint">
-          <span>Callsign / Route</span>
-          <span className="text-right">Distance</span>
-          <span className="text-right">Altitude</span>
+          <span>{t("sidebar.callsignOrRoute")}</span>
+          <span className="text-right">{t("sidebar.distance")}</span>
+          <span className="text-right">{t("sidebar.altitude")}</span>
         </div>
 
         <AnimatePresence initial={false}>
@@ -260,8 +262,8 @@ export default function AircraftTable({
         !pinnedAircraft ? (
           <div className="px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
             {aircraft.length + airports.length
-              ? "No matches"
-              : "Nothing in range"}
+              ? t("sidebar.noMatches")
+              : t("sidebar.nothingInRange")}
           </div>
         ) : (
           <>
@@ -297,6 +299,7 @@ export default function AircraftTable({
 }
 
 function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState(null);
   const wrapperRef = useRef(null);
@@ -351,10 +354,10 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
 
   const selectedSet = useMemo(() => new Set(selectedTypes), [selectedTypes]);
   const displayValue = useMemo(() => {
-    if (!isMultiSelect) return "All";
+    if (!isMultiSelect) return t("sidebar.all");
     if (selectedTypes.length === 1) return selectedTypes[0];
-    return `${selectedTypes.length} types`;
-  }, [isMultiSelect, selectedTypes]);
+    return t("sidebar.typesCount", { count: selectedTypes.length });
+  }, [isMultiSelect, selectedTypes, t]);
 
   const commit = (next) => {
     if (!next || next.length === 0) {
@@ -390,10 +393,10 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
         data-active={isMultiSelect ? "true" : undefined}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Filter by aircraft type"
+        aria-label={t("filters.aircraftFilterAria")}
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="aircraft-filter-card__label">Aircraft type</span>
+        <span className="aircraft-filter-card__label">{t("sidebar.aircraftType")}</span>
         <strong className="aircraft-filter-card__value">{displayValue}</strong>
       </button>
       {open && panelStyle && typeof document !== "undefined" && createPortal(
@@ -413,7 +416,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
             <span className="aircraft-filter-type-row__check">
               {!isMultiSelect ? <Check size={11} aria-hidden="true" /> : null}
             </span>
-            <span className="aircraft-filter-type-row__label">All</span>
+            <span className="aircraft-filter-type-row__label">{t("sidebar.all")}</span>
           </button>
           {groups.map((group) => {
             const groupSelectedCount = group.types.filter((t) =>
@@ -439,7 +442,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
                     ) : null}
                   </span>
                   <span className="aircraft-filter-type-row__label">
-                    {group.label}
+                    {group.labelKey ? t(group.labelKey) : group.label}
                   </span>
                   <span className="aircraft-filter-type-row__count">
                     {group.types.length}
@@ -481,6 +484,9 @@ function AircraftFilterCardSelect({
   ariaLabel,
   contentClassName = "",
 }) {
+  const { t } = useI18n();
+  const resolveLabel = (option) =>
+    option.labelKey ? t(option.labelKey) : option.label;
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger
@@ -502,7 +508,7 @@ function AircraftFilterCardSelect({
               value={option.value}
               className="aircraft-filter-card-item"
             >
-              {option.label}
+              {resolveLabel(option)}
             </SelectItem>
           ))}
         </SelectGroup>
