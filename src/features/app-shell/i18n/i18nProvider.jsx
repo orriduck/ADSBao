@@ -11,6 +11,7 @@ import { DICTIONARIES } from "@/config/i18n/index.js";
 import {
   DEFAULT_LOCALE,
   nextLocale as cycleLocale,
+  normalizeLocaleSelection,
   readPersistedLocale,
   resolveInitialLocale,
   resolveTranslation,
@@ -44,9 +45,10 @@ export function I18nProvider({ children }) {
 
   const setLocale = useCallback((next) => {
     setLocaleState((current) => {
-      if (current === next) return current;
-      writePersistedLocale(safeStorage(), next);
-      return next;
+      const selected = normalizeLocaleSelection(next, current);
+      if (current === selected) return current;
+      writePersistedLocale(safeStorage(), selected);
+      return selected;
     });
   }, []);
 

@@ -228,6 +228,8 @@ const en = {
   },
   language: {
     switchAria: "Switch language",
+    menuLabel: "Language",
+    selectAria: "Select language",
   },
   ui: {
     close: "Close",

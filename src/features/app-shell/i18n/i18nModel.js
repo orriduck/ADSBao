@@ -13,6 +13,18 @@ export const LOCALE_LABELS = Object.freeze({
 const isSupportedLocale = (value) =>
   typeof value === "string" && SUPPORTED_LOCALES.includes(value);
 
+export function getLocaleMenuItems() {
+  return SUPPORTED_LOCALES.map((locale) => ({
+    locale,
+    label: LOCALE_LABELS[locale] || locale,
+  }));
+}
+
+export function normalizeLocaleSelection(next, current = DEFAULT_LOCALE) {
+  if (isSupportedLocale(next)) return next;
+  return isSupportedLocale(current) ? current : DEFAULT_LOCALE;
+}
+
 // Pick a locale to start with. We deliberately do not auto-detect from
 // navigator.language — the issue scopes us to: persisted preference, else
 // English. Auto-detection causes server/client hydration mismatches and
