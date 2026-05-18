@@ -16,19 +16,21 @@ const COUNTRY_CODE_REMAP = Object.freeze({
 
 const remapCountry = (code) => COUNTRY_CODE_REMAP[code] || code;
 
-// Deterministic country-name overrides applied after remapping and before
-// `Intl.DisplayNames`. Node's bundled ICU and Chromium's ICU disagree on a
-// handful of CLDR labels, which causes React hydration mismatches when SSR and
-// the browser render different text for the same row. Pin the short Chromium
-// form for the codes we know diverge; extend this map if other codes surface.
+// Deterministic country-name overrides. Keyed on the RAW iso code so we can
+// disambiguate codes that share a flag after `COUNTRY_CODE_REMAP` (e.g. TW
+// flies the PRC flag but should still read "Taiwan (China)" / "中国台湾").
+// Also pins the short Chromium form for HK/MO, where Node's bundled ICU and
+// Chromium's ICU otherwise produce different labels and break SSR hydration.
 const COUNTRY_NAME_OVERRIDES = Object.freeze({
   en: {
     HK: "Hong Kong",
     MO: "Macao",
+    TW: "Taiwan (China)",
   },
   "zh-CN": {
     HK: "中国香港",
     MO: "中国澳门",
+    TW: "中国台湾",
   },
 });
 
@@ -69,11 +71,11 @@ const getRegionNames = (locale = "en") => {
 export const countryName = (isoCountry, locale = "en") => {
   const raw = String(isoCountry || "").trim().toUpperCase();
   if (!/^[A-Z]{2}$/.test(raw)) return "";
-  const code = remapCountry(raw);
   const displayLocale = locale === "zh-CN" ? "zh-CN" : "en";
-  if (COUNTRY_NAME_OVERRIDES[displayLocale]?.[code]) {
-    return COUNTRY_NAME_OVERRIDES[displayLocale][code];
-  }
+  const overrides = COUNTRY_NAME_OVERRIDES[displayLocale];
+  if (overrides?.[raw]) return overrides[raw];
+  const code = remapCountry(raw);
+  if (overrides?.[code]) return overrides[code];
   const names = getRegionNames(displayLocale);
   if (!names) return code;
   try {
