@@ -40,11 +40,11 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ROUTE",
-    title: "VRS Standing-Data Routes",
+    title: "adsbdb Callsign Routes",
     description:
-      "Callsign route references inferred from standing data, not official live flight plans.",
-    host: "vrs-standing-data.adsb.lol",
-    href: "https://vrs-standing-data.adsb.lol/",
+      "Public callsign → origin/destination lookup. Community-submitted corrections can temporarily override a route for 12 hours.",
+    host: "api.adsbdb.com",
+    href: "https://www.adsbdb.com/",
   },
   {
     glyph: "WX",
