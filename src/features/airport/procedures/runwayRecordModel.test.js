@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 
-import {
-  buildAirportRunwayMap,
-  parseFaaCifpRunways,
-} from "./faaCifpRunwayModel.js";
+import { parseRunwayRecords } from "./runwayRecordModel.js";
 
 const kbosRunwayLines = [
   "SUSAP KBOSK6PR04R  RW04R001 0000W04A0N4221145450W07100372690-002230300N4222384380W07059566725106750056000512F400350365ED6E5393552004",
@@ -11,7 +8,7 @@ const kbosRunwayLines = [
   "SUSAP KJFKK6PR04L  RW04L001 0000W04A0N4037000000W07347000000-002230300N4040000000W07344000000106750056000512F400350365ED6E5393552004",
 ];
 
-const runways = parseFaaCifpRunways({
+const runways = parseRunwayRecords({
   lines: kbosRunwayLines,
   airport: "KBOS",
   cycle: "260514",
@@ -49,13 +46,15 @@ assert.deepEqual(
   ],
 );
 
-const runwayMap = buildAirportRunwayMap({
+const lowercaseAirport = parseRunwayRecords({
   lines: kbosRunwayLines,
   airport: "kbos",
   cycle: "260514",
 });
 
 assert.deepEqual(
-  runwayMap.runways.flatMap((runway) => runway.ends.map((end) => end.ident)),
+  lowercaseAirport.runways.flatMap((runway) =>
+    runway.ends.map((end) => end.ident),
+  ),
   ["04R", "22L", "09", "27"],
 );

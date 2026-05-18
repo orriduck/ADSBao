@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { buildRunwayProcedurePayload } from "./faaCifpRunwayProcedureModel.js";
+import { buildRunwayProcedurePayload } from "./runwayProcedureModel.js";
 
 const sampleLines = [
   "SUSAP KBOSK6CGOSHI K60    W     N42021109W071094714                       W0139     NAR           GOSHI                    384662504",

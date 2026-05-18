@@ -1,7 +1,7 @@
 import {
   buildLiveAirportProcedurePayload,
   buildLiveAirportRunwayProcedurePayload,
-} from "./faaCifpLiveDataClient.js";
+} from "./procedureSourceClient.js";
 
 import { ProcedureNotFoundError } from "./procedures.models.js";
 
