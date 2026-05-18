@@ -1,9 +1,8 @@
 import {
   buildProcedureIndex,
-  parseFaaCifpProcedures,
+  parseProcedureRecords,
   renderProcedureGeoJson,
-} from "./faaCifpProcedureModel.js";
-import { buildAirportRunwayMap } from "./faaCifpRunwayModel.js";
+} from "./procedureRecordModel.js";
 
 const MONTHS = {
   Jan: 0,
@@ -41,7 +40,7 @@ const before = (left, right) => left.getTime() < right.getTime();
 
 const normalizeUrl = (href, pageUrl) => new URL(href, pageUrl).toString();
 
-export function discoverActiveCifpRelease({ html, now = new Date(), pageUrl }) {
+export function discoverActiveProcedureRelease({ html, now = new Date(), pageUrl }) {
   const releases = [];
   const pattern =
     /href="([^"]*CIFP_(\d{6})\.zip)"[^>]*>[^<]*CIFP\s+\2[^<]*<\/a>[\s\S]*?\(Zip\)[\s\S]*?([A-Z][a-z]{2})\s+(\d{1,2}),\s+(\d{4})[\s\S]*?([A-Z][a-z]{2})\s+(\d{1,2}),\s+(\d{4})/g;
@@ -114,7 +113,7 @@ export function buildLiveProcedurePayload({
   cycle,
   maxProcedures = 12,
 }) {
-  const { procedures } = parseFaaCifpProcedures({ lines, airport, cycle });
+  const { procedures } = parseProcedureRecords({ lines, airport, cycle });
   const selectedProcedures = sortProceduresForDisplay(procedures).slice(
     0,
     maxProcedures,
@@ -126,7 +125,6 @@ export function buildLiveProcedurePayload({
       cycle,
       procedures: selectedProcedures,
     }),
-    runwayMap: buildAirportRunwayMap({ lines, airport, cycle }),
     geojson: combineProcedureGeoJson({ procedures: selectedProcedures }),
   };
 }

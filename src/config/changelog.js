@@ -6,6 +6,21 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.3.0",
+    kind: "feat",
+    title: "adsbdb routes + community feedback + complete runway map",
+    summary:
+      "Route lookups move to api.adsbdb.com, users can submit temporary route corrections, and the airport runway map now renders every runway from OurAirports instead of only the CIFP-procedure subset.",
+    highlights: [
+      "Public route provider switched from VRS standing-data to api.adsbdb.com",
+      "Community-feedback overrides: `*`-marked user-supplied routes win for 12h",
+      "Preview card: inline form on desktop, modal on mobile, with copy that distinguishes 'Suggest the right one' vs 'Suggest correction'",
+      "Flight tracking page now fetches and shows the route, and exposes the same feedback affordance",
+      "KBOS-class fix: VFR-only runways (09/27, 14/32, 15L/33R) render again — runway map sourced from OurAirports globally",
+      "Mobile flight sidebar is vertically scrollable",
+    ],
+  },
+  {
     version: "v1.2.1",
     kind: "patch",
     title: "Track button opens in a new tab",

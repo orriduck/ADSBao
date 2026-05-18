@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 
 import {
   buildProcedureIndex,
-  parseFaaCifpProcedures,
+  parseProcedureRecords,
   renderProcedureGeoJson,
-} from "./faaCifpProcedureModel.js";
+} from "./procedureRecordModel.js";
 
 const sampleLines = [
   "SUSAP KBOSK6CGOSHI K60    W     N42021109W071094714                       W0139     NAR           GOSHI                    384662504",
@@ -27,7 +27,7 @@ const sampleLines = [
   "SUSAP KBOSK6FR04R  R      070WAXENK6PC0EE  L   HM                     20900040    + 03000                           A JS   392552106",
 ];
 
-const { procedures, warnings } = parseFaaCifpProcedures({
+const { procedures, warnings } = parseProcedureRecords({
   lines: sampleLines,
   airport: "KBOS",
   cycle: "260514",

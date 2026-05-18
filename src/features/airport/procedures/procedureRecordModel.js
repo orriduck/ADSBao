@@ -1,4 +1,4 @@
-import { reciprocalRunwayIdent } from "./faaCifpRunwayModel.js";
+import { reciprocalRunwayIdent } from "./runwayRecordModel.js";
 
 const SUPPORTED_PATH_TERMINATORS = new Set(["IF", "TF", "DF", "CF"]);
 
@@ -149,7 +149,7 @@ const getTransition = (procedure, name) => {
   return transition;
 };
 
-export function parseFaaCifpProcedures({
+export function parseProcedureRecords({
   lines,
   airport,
   cycle = "",

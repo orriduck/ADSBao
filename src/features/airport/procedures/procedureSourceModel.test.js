@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 
 import {
   buildLiveProcedurePayload,
-  discoverActiveCifpRelease,
-} from "./faaCifpLiveDataModel.js";
+  discoverActiveProcedureRelease,
+} from "./procedureSourceModel.js";
 
 const downloadHtml = `
   <a href="https://aeronav.faa.gov/Upload_313-d/cifp/CIFP_260416.zip">CIFP 260416</a> (Zip) Apr 16, 2026  May 14, 2026
@@ -11,7 +11,7 @@ const downloadHtml = `
 `;
 
 assert.deepEqual(
-  discoverActiveCifpRelease({
+  discoverActiveProcedureRelease({
     html: downloadHtml,
     now: new Date("2026-05-06T12:00:00Z"),
     pageUrl:
@@ -26,7 +26,7 @@ assert.deepEqual(
 );
 
 assert.equal(
-  discoverActiveCifpRelease({
+  discoverActiveProcedureRelease({
     html: downloadHtml,
     now: new Date("2026-05-20T12:00:00Z"),
     pageUrl:
@@ -71,12 +71,7 @@ const payload = buildLiveProcedurePayload({
 
 assert.equal(payload.index.airport, "KBOS");
 assert.equal(payload.index.approaches.length, 2);
-assert.deepEqual(
-  payload.runwayMap.runways.flatMap((runway) =>
-    runway.ends.map((end) => end.ident),
-  ),
-  ["04R", "22L"],
-);
+assert.equal(payload.runwayMap, undefined);
 assert.equal(payload.geojson.type, "FeatureCollection");
 assert.equal(payload.geojson.properties.procedureCount, 2);
 assert.equal(

@@ -1,5 +1,5 @@
-import { parseFaaCifpProcedures } from "./faaCifpProcedureModel.js";
-import { buildAirportRunwayMap } from "./faaCifpRunwayModel.js";
+import { parseProcedureRecords } from "./procedureRecordModel.js";
+import { parseRunwayRecords } from "./runwayRecordModel.js";
 
 const PROCEDURE_TYPES = {
   R: "RNAV",
@@ -132,12 +132,12 @@ export function buildRunwayProcedurePayload({
   maxProcedures,
 } = {}) {
   const normalizedAirport = String(airport || "").trim().toUpperCase();
-  const { procedures, warnings } = parseFaaCifpProcedures({
+  const { procedures, warnings } = parseProcedureRecords({
     lines,
     airport: normalizedAirport,
     cycle,
   });
-  const runwayMap = buildAirportRunwayMap({
+  const runwayMap = parseRunwayRecords({
     lines,
     airport: normalizedAirport,
     cycle,

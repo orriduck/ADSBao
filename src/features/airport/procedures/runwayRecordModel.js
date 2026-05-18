@@ -81,7 +81,7 @@ const compactRunwayPair = ({ airport, firstEnd, secondEnd }) => {
   };
 };
 
-export function parseFaaCifpRunways({ lines, airport, cycle = "" }) {
+export function parseRunwayRecords({ lines, airport, cycle = "" }) {
   const normalizedAirport = String(airport || "").trim().toUpperCase();
   const runwaysById = new Map();
 
@@ -128,4 +128,3 @@ export function parseFaaCifpRunways({ lines, airport, cycle = "" }) {
   };
 }
 
-export const buildAirportRunwayMap = parseFaaCifpRunways;

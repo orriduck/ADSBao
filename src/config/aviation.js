@@ -52,7 +52,7 @@ export const FLIGHT_ROUTE_LOOKUP_CONFIG = {
   userAgent: "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)",
 };
 
-export const FAA_CIFP_CONFIG = {
+export const PROCEDURE_DATA_CONFIG = {
   downloadPageUrl:
     "https://www.faa.gov/air_traffic/flight_info/aeronav/digital_products/cifp/download/",
   cacheMs: 6 * 60 * 60 * 1000,

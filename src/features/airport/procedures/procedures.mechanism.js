@@ -1,14 +1,14 @@
 import {
   buildLiveAirportProcedurePayload,
   buildLiveAirportRunwayProcedurePayload,
-} from "./faaCifpLiveDataClient.js";
+} from "./procedureSourceClient.js";
 
 import { ProcedureNotFoundError } from "./procedures.models.js";
 
 export async function getAirportProcedures({ icao } = {}) {
   const payload = await buildLiveAirportProcedurePayload({ airport: icao });
 
-  if (!payload.index.approaches.length && !payload.runwayMap.runways.length) {
+  if (!payload.index.approaches.length) {
     throw new ProcedureNotFoundError(`No FAA CIFP airport data found for ${icao}`);
   }
 

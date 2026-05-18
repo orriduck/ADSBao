@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { strToU8, zipSync } from "fflate";
 
-import { extractFaaCifpTextFromZip } from "./faaCifpLiveDataClient.js";
+import { extractProcedureTextFromZip } from "./procedureSourceClient.js";
 
 const zip = zipSync({
   FAACIFP18: strToU8("SUSAP KBOS SAMPLE"),
 });
 
-assert.equal(extractFaaCifpTextFromZip(zip.buffer), "SUSAP KBOS SAMPLE");
+assert.equal(extractProcedureTextFromZip(zip.buffer), "SUSAP KBOS SAMPLE");
 
 const officialStyleZip = zipSync({
   "CIFP Readme 2604.pdf": strToU8("readme"),
@@ -17,7 +17,7 @@ const officialStyleZip = zipSync({
 });
 
 assert.equal(
-  extractFaaCifpTextFromZip(officialStyleZip.buffer),
+  extractProcedureTextFromZip(officialStyleZip.buffer),
   "SUSAP KBOS SAMPLE",
 );
 
@@ -26,7 +26,7 @@ const oversized = zipSync({
 });
 
 assert.throws(
-  () => extractFaaCifpTextFromZip(oversized.buffer, { maxCifpBytes: 5 }),
+  () => extractProcedureTextFromZip(oversized.buffer, { maxBytes: 5 }),
   /exceeded the configured size limit/,
 );
 
@@ -35,6 +35,6 @@ const unexpectedFile = zipSync({
 });
 
 assert.throws(
-  () => extractFaaCifpTextFromZip(unexpectedFile.buffer),
+  () => extractProcedureTextFromZip(unexpectedFile.buffer),
   /unexpected file/,
 );
