@@ -20,6 +20,9 @@ assert.equal(countryName("us"), "United States");
 assert.equal(countryName("GB"), "United Kingdom");
 assert.equal(countryName("FR"), "France");
 assert.equal(countryName("JP"), "Japan");
+assert.equal(countryName("US", "zh-CN"), "美国");
+assert.equal(countryName("GB", "zh-CN"), "英国");
+assert.equal(countryName("JP", "zh-CN"), "日本");
 // Unknown / malformed inputs return empty.
 assert.equal(countryName(""), "");
 assert.equal(countryName(null), "");
@@ -29,6 +32,7 @@ assert.equal(countryName("USA"), "");
 assert.equal(flagEmoji("TW"), "\u{1F1E8}\u{1F1F3}"); // 🇨🇳
 assert.equal(flagEmoji("tw"), "\u{1F1E8}\u{1F1F3}");
 assert.equal(countryName("TW"), "China");
+assert.equal(countryName("TW", "zh-CN"), "中国");
 
 // Hong Kong and Macao: Node ICU returns the "... SAR China" form, Chromium
 // returns the short form. Pin the short form so SSR matches the browser and

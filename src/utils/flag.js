@@ -22,8 +22,14 @@ const remapCountry = (code) => COUNTRY_CODE_REMAP[code] || code;
 // the browser render different text for the same row. Pin the short Chromium
 // form for the codes we know diverge; extend this map if other codes surface.
 const COUNTRY_NAME_OVERRIDES = Object.freeze({
-  HK: "Hong Kong",
-  MO: "Macao",
+  en: {
+    HK: "Hong Kong",
+    MO: "Macao",
+  },
+  "zh-CN": {
+    HK: "中国香港",
+    MO: "中国澳门",
+  },
 });
 
 export const flagEmoji = (isoCountry) => {
@@ -39,27 +45,36 @@ export const flagEmoji = (isoCountry) => {
 // Lazy singleton so we don't pay Intl.DisplayNames construction cost on every
 // row render. Both Node 18+ and every modern browser ship Intl.DisplayNames;
 // the try/catch keeps us safe in case of an exotic runtime.
-let regionNamesCache = null;
-const getRegionNames = () => {
-  if (regionNamesCache !== null) return regionNamesCache || null;
+const regionNamesCache = new Map();
+const getRegionNames = (locale = "en") => {
+  const displayLocale = locale === "zh-CN" ? "zh-CN" : "en";
+  if (regionNamesCache.has(displayLocale)) {
+    return regionNamesCache.get(displayLocale) || null;
+  }
   if (typeof Intl === "undefined" || typeof Intl.DisplayNames !== "function") {
-    regionNamesCache = false;
+    regionNamesCache.set(displayLocale, false);
     return null;
   }
   try {
-    regionNamesCache = new Intl.DisplayNames(["en"], { type: "region" });
+    regionNamesCache.set(
+      displayLocale,
+      new Intl.DisplayNames([displayLocale], { type: "region" }),
+    );
   } catch {
-    regionNamesCache = false;
+    regionNamesCache.set(displayLocale, false);
   }
-  return regionNamesCache || null;
+  return regionNamesCache.get(displayLocale) || null;
 };
 
-export const countryName = (isoCountry) => {
+export const countryName = (isoCountry, locale = "en") => {
   const raw = String(isoCountry || "").trim().toUpperCase();
   if (!/^[A-Z]{2}$/.test(raw)) return "";
   const code = remapCountry(raw);
-  if (COUNTRY_NAME_OVERRIDES[code]) return COUNTRY_NAME_OVERRIDES[code];
-  const names = getRegionNames();
+  const displayLocale = locale === "zh-CN" ? "zh-CN" : "en";
+  if (COUNTRY_NAME_OVERRIDES[displayLocale]?.[code]) {
+    return COUNTRY_NAME_OVERRIDES[displayLocale][code];
+  }
+  const names = getRegionNames(displayLocale);
   if (!names) return code;
   try {
     return names.of(code) || code;

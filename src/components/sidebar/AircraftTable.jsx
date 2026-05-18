@@ -202,9 +202,7 @@ export default function AircraftTable({
                   {t("sidebar.routed")}
                 </strong>
                 <span className="mt-1 block text-[11px] font-normal leading-snug">
-                  Only show flights whose callsign resolved to a legitimate
-                  parsed route — both origin and destination airports
-                  identified.
+                  {t("filters.routedTooltip")}
                 </span>
               </TooltipContent>
             </Tooltip>

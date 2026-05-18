@@ -4,20 +4,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import NumberFlow from "@number-flow/react";
 import { countryName, flagEmoji } from "@/utils/flag.js";
+import { airportCityName, airportDisplayName } from "@/utils/airport.js";
 import { toFiniteNumber } from "@/utils/math.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Airport variant of the bottom-right preview card. Mirrors the aircraft
 // card's chrome (same container class so the slide-in / blur / sizing
 // match) and exposes a Track link that lands on /airport/[icao].
 export default function AirportPreviewMetadataCard({ airport }) {
+  const { locale, t } = useI18n();
   const pathname = usePathname();
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
   const codeLine = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
-  const name = airport?.name || "Unknown airport";
+  const name = airportDisplayName(airport, locale) || t("sidebar.unknownAirport");
   const flag = flagEmoji(airport?.country);
-  const country = countryName(airport?.country) || airport?.country || "";
-  const placeText = [airport?.city, country].filter(Boolean).join(", ");
+  const country = countryName(airport?.country, locale) || airport?.country || "";
+  const city = airportCityName(airport?.city, locale);
+  const placeText = [city, country].filter(Boolean).join(", ");
   const placeLine = flag && placeText ? `${flag} ${placeText}` : placeText;
   const distance = toFiniteNumber(airport?.distanceNm);
   const elevation = toFiniteNumber(airport?.elevationFt);
@@ -29,7 +33,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
     <div className="aircraft-preview-metadata-card">
       <div className="flex flex-col gap-1">
         <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-atc-faint">
-          Airport
+          {t("sidebar.airport")}
         </span>
         <span
           className="airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[24px] font-extrabold text-atc-text"
@@ -48,7 +52,9 @@ export default function AirportPreviewMetadataCard({ airport }) {
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
 
       <dl className="grid grid-cols-2 gap-y-1.5 gap-x-3 font-mono text-[11px]">
-        <dt className="text-atc-faint uppercase tracking-[0.12em]">Distance</dt>
+        <dt className="text-atc-faint uppercase tracking-[0.12em]">
+          {t("metrics.distance")}
+        </dt>
         <dd className="text-right text-atc-text">
           {distance == null ? (
             "—"
@@ -67,7 +73,9 @@ export default function AirportPreviewMetadataCard({ airport }) {
             </>
           )}
         </dd>
-        <dt className="text-atc-faint uppercase tracking-[0.12em]">Elevation</dt>
+        <dt className="text-atc-faint uppercase tracking-[0.12em]">
+          {t("metrics.elevation")}
+        </dt>
         <dd className="text-right text-atc-text">
           {elevation == null ? (
             "—"
@@ -86,9 +94,9 @@ export default function AirportPreviewMetadataCard({ airport }) {
         <Link
           href={trackHref}
           className="aircraft-preview-card__track-btn"
-          aria-label={`Track ${codeLine}`}
+          aria-label={`${t("preview.track")} ${codeLine}`}
         >
-          Track
+          {t("preview.track")}
         </Link>
       ) : (
         <button
@@ -96,7 +104,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
           className="aircraft-preview-card__track-btn"
           disabled
         >
-          {alreadyTracking ? "Tracking" : "Track"}
+          {alreadyTracking ? t("preview.tracking") : t("preview.track")}
         </button>
       )}
     </div>

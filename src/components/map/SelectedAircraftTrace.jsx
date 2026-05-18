@@ -16,6 +16,7 @@ import {
   shouldRenderCommittedTrace,
 } from "../../features/aircraft/trace/traceRevealModel.js";
 import { useSelectedAircraftTrace } from "../aircraft/trace/SelectedAircraftTraceContext.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 import { ARRIVAL, DEPARTURE } from "../../utils/aircraftMovement.js";
 
@@ -181,6 +182,7 @@ function SingleAircraftTrace({
   tracePoints,
   opacity = 1,
 }) {
+  const { t } = useI18n();
   const map = useMapInstance();
   const lineLayersRef = useRef([]);
   const labelMarkersRef = useRef([]);
@@ -502,7 +504,7 @@ function SingleAircraftTrace({
       if (!time && !altitude) return;
       const isGround = altitude === "GND";
       const altRow = isGround
-        ? `<span class="aircraft-trace-label__alt aircraft-trace-label__alt--ground">GND</span>`
+        ? `<span class="aircraft-trace-label__alt aircraft-trace-label__alt--ground">${t("aircraft.gnd")}</span>`
         : altitude
           ? `<span class="aircraft-trace-label__alt">${altitude}<span class="aircraft-trace-label__alt-unit">FT</span></span>`
           : "";
@@ -587,7 +589,7 @@ function SingleAircraftTrace({
     // to geometry's per-poll reference churn. labelKey changes iff the
     // sample set actually shifts, at which point the ref's value is the
     // new set.
-  }, [map, labelKey, reducedMotion, opacity]);
+  }, [map, labelKey, reducedMotion, opacity, t]);
 
   return null;
 }

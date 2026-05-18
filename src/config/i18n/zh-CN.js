@@ -4,10 +4,72 @@
 const zhCN = {
   app: {
     feedLive: "实时数据",
+    live: "实时",
+    airportExplorer: "机场 Explorer",
+    siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场上下文。",
   },
   nav: {
     home: "ADSBao",
+    homePage: "首页",
     map: "地图",
+    about: "关于",
+    changelog: "更新日志",
+  },
+  about: {
+    meta: {
+      version: "版本",
+      release: "发布",
+      stack: "技术栈",
+      scope: "范围",
+      nextWeb: "Next.js Web",
+      mapsWeatherTraffic: "地图 · 天气 · 交通",
+    },
+    dataSources: "数据来源",
+    feedCount: "{count} 个来源",
+    feedsCount: "{count} 个来源",
+    mitLicense: "MIT 许可证",
+    sources: {
+      aviationWeather: {
+        title: "Aviation Weather METAR",
+        description: "为每个机场提供实时观测与解码后的云况。",
+      },
+      adsbLol: {
+        title: "adsb.lol 飞机数据",
+        description:
+          "主要众包 ADS-B 位置源,用于渲染附近交通和选中飞机的近期航迹。",
+      },
+      airplanesLive: {
+        title: "airplanes.live 飞机数据",
+        description:
+          "并行 ADS-B 位置源。冷启动时代理会竞速两个数据源,使用先响应者;出错后重新竞速选择新的数据源。",
+      },
+      aircraftShapes: {
+        title: "AircraftShapesSVG",
+        description:
+          "地图上的俯视飞机轮廓。图标来自 RexKramer1,按 GPL-3.0 授权并保留署名。",
+      },
+      adsbdb: {
+        title: "adsbdb 呼号航路",
+        description:
+          "公开呼号到起降机场查询。社区提交的修正可在 12 小时内临时覆盖航路。",
+      },
+      openMeteo: {
+        title: "Open-Meteo 实时天气",
+        description: "机场区域的本地温度、风和天气状况。",
+      },
+      ourAirports: {
+        title: "OurAirports",
+        description: "为搜索和机场解析提供全球机场目录。",
+      },
+      wikipedia: {
+        title: "Wikipedia 摘要",
+        description: "为机场上下文卡片提供首段摘要。",
+      },
+      mapTiles: {
+        title: "OpenStreetMap · CartoDB",
+        description: "亮色和暗色底图瓦片及参考标签。",
+      },
+    },
   },
   sidebar: {
     weather: "天气",
@@ -103,6 +165,16 @@ const zhCN = {
     categoryA6: "高性能航空器",
     categoryA7: "旋翼航空器",
     categoryOther: "其他",
+    routedTooltip:
+      "仅显示呼号已解析为有效航路的航班: 起飞机场和降落机场都已识别。",
+  },
+  search: {
+    placeholder: "搜索 ICAO、IATA、城市或名称",
+    enter: "回车",
+    searchResults: "搜索结果",
+    searchingAirports: "正在搜索机场…",
+    noAirportMatched: "没有匹配 \"{query}\" 的机场。",
+    featuredAirports: "推荐机场",
   },
   map: {
     layers: "地图图层",
@@ -117,7 +189,17 @@ const zhCN = {
     procedureInspectorAria: "跑道程序查看器",
     runwayDirectionsAria: "跑道方向",
     procedureOverlaysAria: "程序叠加",
+    procedureRunways: "跑道",
+    procedurePicker: "程序",
+    procedureTransitions: "过渡",
+    procedureMissed: "复飞",
+    procedureFix: "航点",
+    procedureAll: "全部",
     loadingAircraftAria: "正在加载 ADS-B 飞机数据",
+    syncingTraffic: "同步交通中",
+    loadingMap: "正在加载地图…",
+    distanceAria: "地图距离:{distance} 海里",
+    distanceLabel: "距离",
   },
   mapLayers: {
     mapLabels: "地图标签",
@@ -143,6 +225,16 @@ const zhCN = {
   language: {
     switchAria: "切换语言",
   },
+  ui: {
+    close: "关闭",
+    sidebar: "侧栏",
+    sidebarDescription: "显示移动端侧栏。",
+    toggleSidebar: "切换侧栏",
+    themeLight: "明亮",
+    themeDark: "暗色",
+    themeSystem: "系统",
+    themeTitle: "主题:{label}(点击切换)",
+  },
   weather: {
     direction: "风向",
     wind: "风",
@@ -165,6 +257,10 @@ const zhCN = {
     openMeteoError: "Open-Meteo 不可用:{error}",
     metarLoading: "正在加载 METAR…",
     metarMissing: "暂无 METAR 数据",
+    observed: "已观测",
+    windMissing: "风 —",
+    visMissing: "能见度 —",
+    cardViewAria: "天气卡片视图",
     ceiling: "云高",
     visibility: "能见度",
     metarToken: {
@@ -219,6 +315,32 @@ const zhCN = {
       82: "强阵雨",
       95: "雷暴",
     },
+  },
+  panels: {
+    wikiKicker: "机场百科",
+    wikiLoading: "正在加载机场介绍…",
+    wikiMissing: "未找到该机场的 Wikipedia 摘要,仪表盘其他数据仍保持实时。",
+    wikiSource: "来源:Wikipedia 摘要 API",
+    wiki: "百科",
+    openWikipedia: "打开 Wikipedia",
+    trafficKicker: "机场交通",
+    nearbyAircraft: "附近飞机",
+    total: "总计",
+    departures: "离场",
+    arrivals: "进场",
+    unknown: "未知",
+    traffic: "交通",
+  },
+  changelog: {
+    title: "更新日志",
+    description: "产品发布历史。当前版本 {version}。",
+    descriptionFallback: "产品发布历史。",
+    releases: "发布记录",
+    total: "共 {count} 条",
+    current: "当前",
+    kindFeat: "功能",
+    kindPatch: "修复",
+    kindBreaking: "破坏性",
   },
   weatherCopy: {
     panel: {

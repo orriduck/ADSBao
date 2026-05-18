@@ -1,12 +1,14 @@
 "use client";
 
 import PanelHeading from "./PanelHeading.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function WikiPanel({
   wikiSummary,
   wikiLoading = false,
-  airportName = "Airport",
+  airportName = "",
 }) {
+  const { t } = useI18n();
   const wikiLink = wikiSummary?.url ? (
     <a
       className="panel-link"
@@ -21,8 +23,8 @@ export default function WikiPanel({
   return (
     <section className="glass-panel wiki-panel">
       <PanelHeading
-        kicker="Airport wiki"
-        title={wikiSummary?.title || airportName}
+        kicker={t("panels.wikiKicker")}
+        title={wikiSummary?.title || airportName || t("weather.airportFallback")}
         action={wikiLink}
       />
 
@@ -30,11 +32,11 @@ export default function WikiPanel({
         {wikiSummary?.extract
           ? wikiSummary.extract
           : wikiLoading
-            ? "Loading airport introduction..."
-            : "No Wikipedia summary was found for this airport. The rest of the dashboard remains live."}
+            ? t("panels.wikiLoading")
+            : t("panels.wikiMissing")}
       </p>
 
-      <div className="wiki-source">Source: Wikipedia summary API</div>
+      <div className="wiki-source">{t("panels.wikiSource")}</div>
     </section>
   );
 }

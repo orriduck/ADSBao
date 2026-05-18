@@ -77,7 +77,7 @@ export default function AircraftDataLoadingOverlay({ active }) {
       </div>
       <div className="adsb-loading-status">
         <span>adsb.lol</span>
-        <strong>SYNCING TRAFFIC</strong>
+        <strong>{t("map.syncingTraffic")}</strong>
       </div>
     </div>
   );

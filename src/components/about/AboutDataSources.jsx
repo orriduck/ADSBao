@@ -4,15 +4,18 @@ import {
   getDataSourceCountLabel,
   getExternalLinkOpenTarget,
 } from "@/features/about/aboutModel.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AboutDataSources({ sources, onOpenExternalLink }) {
+  const { locale, t } = useI18n();
+
   return (
     <>
       <div className="flex-none px-6 pt-6 pb-3">
         <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-          <span>Data sources</span>
+          <span>{t("about.dataSources")}</span>
           <span className="tracking-[0.18em] text-atc-dim">
-            {getDataSourceCountLabel(sources)}
+            {getDataSourceCountLabel(sources, locale)}
           </span>
         </div>
       </div>
@@ -30,10 +33,10 @@ export default function AboutDataSources({ sources, onOpenExternalLink }) {
               </span>
               <span className="min-w-0">
                 <strong className="block truncate text-[13px] font-semibold text-atc-text">
-                  {source.title}
+                  {source.titleKey ? t(source.titleKey) : source.title}
                 </strong>
                 <small className="mt-0.5 block truncate text-[11.5px] text-atc-dim">
-                  {source.description}
+                  {source.descriptionKey ? t(source.descriptionKey) : source.description}
                 </small>
               </span>
             </a>

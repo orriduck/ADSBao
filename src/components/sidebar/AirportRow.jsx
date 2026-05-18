@@ -1,5 +1,9 @@
 "use client";
 
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import { airportCityName, airportDisplayName } from "@/utils/airport.js";
+import { countryName } from "@/utils/flag.js";
+
 // Airport equivalent of AircraftRow — same column rhythm so an
 // "airports & aircraft" mixed list reads as one coherent table.
 // Left: ICAO · IATA / city + country. Right: DIST and ELEV (in place of
@@ -10,12 +14,15 @@ export default function AirportRow({
   selected,
   onSelectAirport,
 }) {
+  const { locale } = useI18n();
   const icao = airport?.icao || "";
   const iata = airport?.iata || "";
   const code = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
-  const city = airport?.city || "";
-  const country = airport?.country || "";
-  const placeText = [city, country].filter(Boolean).join(", ") || airport?.name;
+  const city = airportCityName(airport?.city, locale);
+  const country = countryName(airport?.country, locale) || airport?.country || "";
+  const placeText =
+    [city, country].filter(Boolean).join(", ") ||
+    airportDisplayName(airport, locale);
   const dist = toFiniteNumber(airport?.distanceNm);
   const elevation = toFiniteNumber(airport?.elevationFt);
 

@@ -2,8 +2,10 @@
 
 import NumberFlow from "@number-flow/react";
 import { toFiniteNumber } from "@/utils/math.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AircraftPreviewMobileCard({ aircraft }) {
+  const { t } = useI18n();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
   const type = (aircraft?.type || "").trim().toUpperCase();
@@ -54,7 +56,9 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
               <span className="aircraft-preview-mobile-card__dot">·</span>
               <span className="aircraft-preview-mobile-card__stat">
                 {onGround ? (
-                  <span className="aircraft-preview-mobile-card__num">GND</span>
+                  <span className="aircraft-preview-mobile-card__num">
+                    {t("aircraft.gnd")}
+                  </span>
                 ) : (
                   <NumberFlow value={Math.round(altitude)} className="aircraft-preview-mobile-card__num" />
                 )}

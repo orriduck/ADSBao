@@ -36,6 +36,12 @@ export function I18nProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = locale;
+    }
+  }, [locale]);
+
   const setLocale = useCallback((next) => {
     setLocaleState((current) => {
       if (current === next) return current;

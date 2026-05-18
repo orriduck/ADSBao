@@ -2,6 +2,7 @@
 
 import { Bug, MapPinned, Tags } from "lucide-react";
 import { buildProcedureInspectorViewModel } from "@/features/airport/map/procedureInspectorModel.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 const toggleClass = (active) =>
   `procedure-inspector-toggle${active ? " procedure-inspector-toggle--active" : ""}`;
@@ -21,6 +22,7 @@ export default function ProcedureInspectorControls({
   onToggleFixLabels,
   onToggleAllProceduresDebug,
 }) {
+  const { t } = useI18n();
   const viewModel = buildProcedureInspectorViewModel(runwayProcedures, {
     selectedRunway,
     selectedProcedureCode,
@@ -34,14 +36,14 @@ export default function ProcedureInspectorControls({
   return (
     <section
       className="procedure-inspector"
-      aria-label="Runway procedure inspector"
+      aria-label={t("map.procedureInspectorAria")}
     >
       <div className="procedure-inspector-header">
         <MapPinned className="h-3.5 w-3.5" aria-hidden="true" />
-        <span>RUNWAYS</span>
+        <span>{t("map.procedureRunways")}</span>
       </div>
 
-      <div className="procedure-inspector-runways" aria-label="Runway directions">
+      <div className="procedure-inspector-runways" aria-label={t("map.runwayDirectionsAria")}>
         {viewModel.runwayChoices.map((choice) => {
           const active = choice.runway === viewModel.selectedRunway;
           return (
@@ -63,7 +65,7 @@ export default function ProcedureInspectorControls({
         <label className="procedure-inspector-select-wrap">
           <span>
             <Tags className="h-3.5 w-3.5" aria-hidden="true" />
-            PROC
+            {t("map.procedurePicker")}
           </span>
           <select
             className="procedure-inspector-select"
@@ -79,14 +81,14 @@ export default function ProcedureInspectorControls({
         </label>
       )}
 
-      <div className="procedure-inspector-toggles" aria-label="Procedure overlays">
+      <div className="procedure-inspector-toggles" aria-label={t("map.procedureOverlaysAria")}>
         <button
           type="button"
           className={toggleClass(showTransitions)}
           aria-pressed={showTransitions}
           onClick={onToggleTransitions}
         >
-          TRANS
+          {t("map.procedureTransitions")}
         </button>
         <button
           type="button"
@@ -94,7 +96,7 @@ export default function ProcedureInspectorControls({
           aria-pressed={showMissed}
           onClick={onToggleMissed}
         >
-          MISSED
+          {t("map.procedureMissed")}
         </button>
         <button
           type="button"
@@ -102,7 +104,7 @@ export default function ProcedureInspectorControls({
           aria-pressed={showFixLabels}
           onClick={onToggleFixLabels}
         >
-          FIX
+          {t("map.procedureFix")}
         </button>
         <button
           type="button"
@@ -111,7 +113,7 @@ export default function ProcedureInspectorControls({
           onClick={onToggleAllProceduresDebug}
         >
           <Bug className="h-3 w-3" aria-hidden="true" />
-          ALL
+          {t("map.procedureAll")}
         </button>
       </div>
     </section>

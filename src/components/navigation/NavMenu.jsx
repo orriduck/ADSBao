@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronUp, History, Home, Info } from "lucide-react";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Drop-up menu rendered in the bottom-left footer slot of the
 // DitherPageShell-based pages (Home / About / Changelog). Replaces the
@@ -13,9 +14,9 @@ import { ChevronUp, History, Home, Info } from "lucide-react";
 // of the sidebar.
 
 const ITEMS = [
-  { href: "/", label: "Home", Icon: Home },
-  { href: "/about", label: "About", Icon: Info },
-  { href: "/changelog", label: "Changelog", Icon: History },
+  { href: "/", label: "Home", labelKey: "nav.homePage", Icon: Home },
+  { href: "/about", label: "About", labelKey: "nav.about", Icon: Info },
+  { href: "/changelog", label: "Changelog", labelKey: "nav.changelog", Icon: History },
 ];
 
 function resolveActive(pathname) {
@@ -28,6 +29,7 @@ function resolveActive(pathname) {
 }
 
 export default function NavMenu({ variant = "footer" }) {
+  const { t } = useI18n();
   const pathname = usePathname();
   const active = resolveActive(pathname);
   const [open, setOpen] = useState(false);
@@ -80,7 +82,7 @@ export default function NavMenu({ variant = "footer" }) {
                 }`}
               >
                 <ItemIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </Link>
             );
           })}
@@ -95,7 +97,7 @@ export default function NavMenu({ variant = "footer" }) {
         className={triggerClass}
       >
         <active.Icon className="h-3.5 w-3.5" aria-hidden="true" />
-        <span>{active.label}</span>
+        <span>{t(active.labelKey)}</span>
         <ChevronUp
           className={`h-3 w-3 transition-transform ${open ? "" : "rotate-180"}`}
           aria-hidden="true"

@@ -2,6 +2,7 @@
 
 import { useWeatherCarouselNavigation } from "../../features/weather/useWeatherCarouselNavigation.js";
 import { useWeatherSlides } from "@/components/weather/useWeatherSlides.jsx";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function WeatherCarousel({
   metar = null,
@@ -12,6 +13,7 @@ export default function WeatherCarousel({
   airportLat = 0,
   airportLon = 0,
 }) {
+  const { t } = useI18n();
   const { slides, windFlowBearing } = useWeatherSlides({
     variant: "carousel",
     metar,
@@ -46,7 +48,7 @@ export default function WeatherCarousel({
       ) : null}
       <div className="weather-carousel-header flex items-baseline justify-between">
         <div className="font-mono text-[10px] uppercase text-atc-faint">
-          Weather
+          {t("sidebar.weather")}
         </div>
         <div className="font-mono text-[10px] uppercase text-atc-dim">
           {activeSlide?.title || "—"}
@@ -71,7 +73,7 @@ export default function WeatherCarousel({
 
       <div
         role="tablist"
-        aria-label="Weather views"
+        aria-label={t("sidebar.weatherViews")}
         className="weather-view-dots mt-4"
       >
         {slides.map((slide, index) => (

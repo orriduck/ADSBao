@@ -1,14 +1,26 @@
 export const ABOUT_BUILD_META = [
-  { label: "Version", value: "1.3.0" },
-  { label: "Release", value: "Next.js Web" },
-  { label: "Stack", value: "React 19 · Next 16 · Leaflet" },
-  { label: "Scope", value: "Maps · Weather · Traffic" },
+  { label: "Version", labelKey: "about.meta.version", value: "1.3.0" },
+  {
+    label: "Release",
+    labelKey: "about.meta.release",
+    value: "Next.js Web",
+    valueKey: "about.meta.nextWeb",
+  },
+  { label: "Stack", labelKey: "about.meta.stack", value: "React 19 · Next 16 · Leaflet" },
+  {
+    label: "Scope",
+    labelKey: "about.meta.scope",
+    value: "Maps · Weather · Traffic",
+    valueKey: "about.meta.mapsWeatherTraffic",
+  },
 ];
 
 export const ABOUT_DATA_SOURCES = [
   {
     glyph: "METAR",
+    titleKey: "about.sources.aviationWeather.title",
     title: "Aviation Weather METAR",
+    descriptionKey: "about.sources.aviationWeather.description",
     description:
       "Live observations and decoded sky conditions for each airport.",
     host: "aviationweather.gov",
@@ -16,7 +28,9 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ADS-B",
+    titleKey: "about.sources.adsbLol.title",
     title: "adsb.lol Aircraft Feed",
+    descriptionKey: "about.sources.adsbLol.description",
     description:
       "Primary crowdsourced ADS-B positions used to render nearby traffic, plus recent flight traces for the selected aircraft.",
     host: "api.adsb.lol",
@@ -24,7 +38,9 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ADS-B",
+    titleKey: "about.sources.airplanesLive.title",
     title: "airplanes.live Aircraft Feed",
+    descriptionKey: "about.sources.airplanesLive.description",
     description:
       "Peer ADS-B positions feed. On cold start the proxy races both feeds and sticks with whichever responds first; on error it re-races to pick a fresh winner.",
     host: "api.airplanes.live",
@@ -32,7 +48,9 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ICONS",
+    titleKey: "about.sources.aircraftShapes.title",
     title: "AircraftShapesSVG",
+    descriptionKey: "about.sources.aircraftShapes.description",
     description:
       "Top-view aircraft silhouettes on the map. Icons by RexKramer1, licensed GPL-3.0, used with attribution.",
     host: "github.com/RexKramer1",
@@ -40,7 +58,9 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "ROUTE",
+    titleKey: "about.sources.adsbdb.title",
     title: "adsbdb Callsign Routes",
+    descriptionKey: "about.sources.adsbdb.description",
     description:
       "Public callsign → origin/destination lookup. Community-submitted corrections can temporarily override a route for 12 hours.",
     host: "api.adsbdb.com",
@@ -48,7 +68,9 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "WX",
+    titleKey: "about.sources.openMeteo.title",
     title: "Open-Meteo Current Weather",
+    descriptionKey: "about.sources.openMeteo.description",
     description:
       "Local temperature, wind, and conditions for the airport area.",
     host: "open-meteo.com",
@@ -56,21 +78,27 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "DIR",
+    titleKey: "about.sources.ourAirports.title",
     title: "OurAirports",
+    descriptionKey: "about.sources.ourAirports.description",
     description: "Global airport directory powering search and resolution.",
     host: "ourairports.com",
     href: "https://ourairports.com/data/",
   },
   {
     glyph: "WIKI",
+    titleKey: "about.sources.wikipedia.title",
     title: "Wikipedia Summary",
+    descriptionKey: "about.sources.wikipedia.description",
     description: "First-paragraph summaries for airport context cards.",
     host: "en.wikipedia.org",
     href: "https://en.wikipedia.org/api/rest_v1/",
   },
   {
     glyph: "MAP",
+    titleKey: "about.sources.mapTiles.title",
     title: "OpenStreetMap · CartoDB",
+    descriptionKey: "about.sources.mapTiles.description",
     description: "Light and dark base map tiles plus reference labels.",
     host: "cartocdn.com",
     href: "https://carto.com/attributions",
@@ -80,5 +108,6 @@ export const ABOUT_DATA_SOURCES = [
 export const ABOUT_REPOSITORY = {
   name: "orriduck / ADSBao",
   license: "MIT License",
+  licenseKey: "about.mitLicense",
   href: "https://github.com/orriduck/ADSBao",
 };

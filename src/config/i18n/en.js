@@ -5,10 +5,75 @@
 const en = {
   app: {
     feedLive: "Live feed",
+    live: "Live",
+    airportExplorer: "Airport explorer",
+    siteDescription:
+      "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
   },
   nav: {
     home: "ADSBao",
+    homePage: "Home",
     map: "Map",
+    about: "About",
+    changelog: "Changelog",
+  },
+  about: {
+    meta: {
+      version: "Version",
+      release: "Release",
+      stack: "Stack",
+      scope: "Scope",
+      nextWeb: "Next.js Web",
+      mapsWeatherTraffic: "Maps · Weather · Traffic",
+    },
+    dataSources: "Data sources",
+    feedCount: "{count} feed",
+    feedsCount: "{count} feeds",
+    mitLicense: "MIT License",
+    sources: {
+      aviationWeather: {
+        title: "Aviation Weather METAR",
+        description:
+          "Live observations and decoded sky conditions for each airport.",
+      },
+      adsbLol: {
+        title: "adsb.lol Aircraft Feed",
+        description:
+          "Primary crowdsourced ADS-B positions used to render nearby traffic, plus recent flight traces for the selected aircraft.",
+      },
+      airplanesLive: {
+        title: "airplanes.live Aircraft Feed",
+        description:
+          "Peer ADS-B positions feed. On cold start the proxy races both feeds and sticks with whichever responds first; on error it re-races to pick a fresh winner.",
+      },
+      aircraftShapes: {
+        title: "AircraftShapesSVG",
+        description:
+          "Top-view aircraft silhouettes on the map. Icons by RexKramer1, licensed GPL-3.0, used with attribution.",
+      },
+      adsbdb: {
+        title: "adsbdb Callsign Routes",
+        description:
+          "Public callsign to origin/destination lookup. Community-submitted corrections can temporarily override a route for 12 hours.",
+      },
+      openMeteo: {
+        title: "Open-Meteo Current Weather",
+        description:
+          "Local temperature, wind, and conditions for the airport area.",
+      },
+      ourAirports: {
+        title: "OurAirports",
+        description: "Global airport directory powering search and resolution.",
+      },
+      wikipedia: {
+        title: "Wikipedia Summary",
+        description: "First-paragraph summaries for airport context cards.",
+      },
+      mapTiles: {
+        title: "OpenStreetMap · CartoDB",
+        description: "Light and dark base map tiles plus reference labels.",
+      },
+    },
   },
   sidebar: {
     weather: "Weather",
@@ -104,6 +169,16 @@ const en = {
     categoryA6: "High-performance aircraft",
     categoryA7: "Rotorcraft",
     categoryOther: "Other",
+    routedTooltip:
+      "Only show flights whose callsign resolved to a legitimate parsed route: both origin and destination airports identified.",
+  },
+  search: {
+    placeholder: "Search ICAO, IATA, city, or name",
+    enter: "enter",
+    searchResults: "Search results",
+    searchingAirports: "Searching airports...",
+    noAirportMatched: "No airport matched \"{query}\".",
+    featuredAirports: "Featured airports",
   },
   map: {
     layers: "Map layers",
@@ -118,7 +193,17 @@ const en = {
     procedureInspectorAria: "Runway procedure inspector",
     runwayDirectionsAria: "Runway directions",
     procedureOverlaysAria: "Procedure overlays",
+    procedureRunways: "RUNWAYS",
+    procedurePicker: "PROC",
+    procedureTransitions: "TRANS",
+    procedureMissed: "MISSED",
+    procedureFix: "FIX",
+    procedureAll: "ALL",
     loadingAircraftAria: "Loading ADS-B aircraft data",
+    syncingTraffic: "SYNCING TRAFFIC",
+    loadingMap: "LOADING MAP...",
+    distanceAria: "Map distance: {distance} nautical miles",
+    distanceLabel: "Distance",
   },
   mapLayers: {
     mapLabels: "Map labels",
@@ -144,6 +229,16 @@ const en = {
   language: {
     switchAria: "Switch language",
   },
+  ui: {
+    close: "Close",
+    sidebar: "Sidebar",
+    sidebarDescription: "Displays the mobile sidebar.",
+    toggleSidebar: "Toggle Sidebar",
+    themeLight: "Light",
+    themeDark: "Dark",
+    themeSystem: "System",
+    themeTitle: "Theme: {label} (click to switch)",
+  },
   weather: {
     direction: "Direction",
     wind: "Wind",
@@ -166,6 +261,10 @@ const en = {
     openMeteoError: "Open-Meteo unavailable: {error}",
     metarLoading: "Loading METAR...",
     metarMissing: "No METAR available.",
+    observed: "Observed",
+    windMissing: "Wind —",
+    visMissing: "Vis —",
+    cardViewAria: "Weather card view",
     ceiling: "Ceiling",
     visibility: "Visibility",
     metarToken: {
@@ -234,6 +333,33 @@ const en = {
       82: "Heavy showers",
       95: "Thunderstorm",
     },
+  },
+  panels: {
+    wikiKicker: "Airport wiki",
+    wikiLoading: "Loading airport introduction...",
+    wikiMissing:
+      "No Wikipedia summary was found for this airport. The rest of the dashboard remains live.",
+    wikiSource: "Source: Wikipedia summary API",
+    wiki: "Wiki",
+    openWikipedia: "Open Wikipedia",
+    trafficKicker: "Airport traffic",
+    nearbyAircraft: "Nearby aircraft",
+    total: "Total",
+    departures: "Departures",
+    arrivals: "Arrivals",
+    unknown: "Unknown",
+    traffic: "Traffic",
+  },
+  changelog: {
+    title: "Changelog",
+    description: "Product release history. Currently shipping {version}.",
+    descriptionFallback: "Product release history.",
+    releases: "Releases",
+    total: "{count} total",
+    current: "Current",
+    kindFeat: "FEAT",
+    kindPatch: "PATCH",
+    kindBreaking: "BREAKING",
   },
   weatherCopy: {
     panel: {

@@ -10,7 +10,7 @@ export default function AircraftRow({
   selected,
   onSelectAircraft,
 }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
   // Municipality labels come from OurAirports / adsbdb as English-only
@@ -56,7 +56,7 @@ export default function AircraftRow({
       </div>
       <div className="text-right font-mono text-[12px] font-semibold text-atc-text">
         {aircraft.onGround ? (
-          <span>GND</span>
+          <span>{t("aircraft.gnd")}</span>
         ) : altValue == null ? (
           <span>-</span>
         ) : (

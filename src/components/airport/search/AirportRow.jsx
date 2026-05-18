@@ -1,8 +1,11 @@
 "use client";
 
-import { airportSubtitle } from "@/utils/airport.js";
+import { airportDisplayName, airportSubtitle } from "@/utils/airport.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AirportRow({ airport, onOpen }) {
+  const { locale } = useI18n();
+
   return (
     <li>
       <button
@@ -15,10 +18,10 @@ export default function AirportRow({ airport, onOpen }) {
         </span>
         <span className="min-w-0">
           <strong className="block truncate text-[13px] font-semibold text-atc-text">
-            {airport.name}
+            {airportDisplayName(airport, locale)}
           </strong>
           <small className="mt-0.5 block truncate text-[11.5px] text-atc-dim">
-            {airportSubtitle(airport)}
+            {airportSubtitle(airport, locale)}
           </small>
         </span>
       </button>

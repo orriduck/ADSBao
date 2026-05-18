@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMapInstance } from "./MapContext.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Bottom-left adaptive scale bar (比例尺). Snaps to the largest "nice"
 // NM step under TARGET_PX so the label doesn't flicker through
@@ -14,6 +15,7 @@ const NICE_NM_STEPS = [
 ];
 
 export default function MapRangeLegend({ theme = "dark" }) {
+  const { t } = useI18n();
   const map = useMapInstance();
   const [scale, setScale] = useState(null);
 
@@ -63,13 +65,13 @@ export default function MapRangeLegend({ theme = "dark" }) {
   return (
     <div
       role="note"
-      aria-label={`Map distance: ${scale.nm} nautical miles`}
+      aria-label={t("map.distanceAria", { distance: scale.nm })}
       className={`pointer-events-none absolute bottom-3 left-3 z-[400] flex items-center gap-2 px-2 py-1 font-mono ${backdrop} ${textTone} backdrop-blur-sm`}
     >
       <span
         className={`text-[9px] font-semibold uppercase tracking-[0.22em] ${labelTone}`}
       >
-        Distance
+        {t("map.distanceLabel")}
       </span>
       <div
         style={{ width: `${scale.widthPx}px` }}
