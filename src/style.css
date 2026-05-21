@@ -110,6 +110,27 @@
     }
 }
 
+/* User-selectable primary color. Two tones cover every accent usage in
+   the app:
+     --primary-bright : solid fills for tabs, chips, CTAs, focused-row
+                        text on ink, brand mark. Saturated, high
+                        luminance so it sits on ink/grey backgrounds.
+     --primary-deep   : darker variant used as yellow-tinted text on the
+                        light-mode grey paper (where --primary-bright
+                        would be unreadable).
+   The default is yellow. Selecting "teal" in the nav menu sets
+   data-primary="teal" on <html>, which the override block below picks
+   up — every token that aliases these vars follows automatically. */
+:root {
+    --primary-bright: #ffe600;
+    --primary-deep: #a86a1f;
+}
+
+:root[data-primary="teal"] {
+    --primary-bright: #5fb8b9;
+    --primary-deep: #397e7f;
+}
+
 :root {
     font-family: "Saira", "Noto Sans SC", system-ui, sans-serif;
     line-height: 1.5;
@@ -126,9 +147,10 @@
     --atc-high: oklch(0.78 0.006 100);
     --atc-accent: oklch(0.2 0.006 100);
     --atc-accent-soft: color-mix(in oklab, var(--atc-accent) 14%, transparent);
-    /* Light theme: deep amber so yellow-tinted text still reads on grey
-       paper. Solid yellow surfaces use --endf-yellow instead. */
-    --atc-orange: oklch(0.58 0.16 78);
+    /* Deep variant of the user-selected primary — tinted text on the
+       light grey paper. Solid primary surfaces use --endf-yellow
+       (aliased to --primary-bright). */
+    --atc-orange: var(--primary-deep);
     --atc-orange-soft: color-mix(in oklab, var(--atc-orange) 18%, transparent);
     --atc-mint: oklch(0.61 0.045 104);
     --atc-red: oklch(0.49 0.16 27);
@@ -139,11 +161,11 @@
     --atc-line-strong: color-mix(in oklab, var(--atc-text) 22%, transparent);
     --atc-click-bg: oklch(0.17 0.006 100);
     /* Click/active surfaces are ALWAYS ink regardless of theme, so text
-       on top must be saturated yellow — not the light-theme amber that
-       --atc-orange resolves to. Muted variants mix DOWN toward ink so
-       secondary text on the ink card stays in the same hue family
-       instead of getting blended with the light canvas. */
-    --atc-click-fg: oklch(0.91 0.18 101);
+       on top must be the bright primary color — not the light-theme
+       deep variant that --atc-orange resolves to. Muted variants mix
+       DOWN toward ink so secondary text on the ink card stays in the
+       same hue family instead of getting blended with the light canvas. */
+    --atc-click-fg: var(--primary-bright);
     --atc-click-muted: color-mix(
         in oklab,
         var(--atc-click-fg) 58%,
@@ -263,14 +285,14 @@
 }
 
 :root[data-theme="dark"] {
-    /* Dark: black operations canvas with bright yellow active state. */
+    /* Dark: black operations canvas with bright primary active state. */
     --atc-bg: oklch(0.12 0.004 100);
     --atc-card: oklch(0.18 0.005 100);
     --atc-elev: oklch(0.25 0.006 100);
     --atc-high: oklch(0.34 0.008 100);
-    --atc-accent: oklch(0.91 0.18 101);
+    --atc-accent: var(--primary-bright);
     --atc-accent-soft: color-mix(in oklab, var(--atc-accent) 16%, transparent);
-    --atc-orange: oklch(0.91 0.18 101);
+    --atc-orange: var(--primary-bright);
     --atc-orange-soft: color-mix(in oklab, var(--atc-orange) 17%, transparent);
     --atc-mint: oklch(0.78 0.055 104);
     --atc-red: oklch(0.68 0.17 27);
@@ -280,7 +302,7 @@
     --atc-line: color-mix(in oklab, var(--atc-text) 9%, transparent);
     --atc-line-strong: color-mix(in oklab, var(--atc-text) 18%, transparent);
     --atc-click-bg: oklch(0.1 0.004 100);
-    --atc-click-fg: oklch(0.92 0.11 101);
+    --atc-click-fg: var(--primary-bright);
     /* Muted variants mix toward the click ink, not the canvas card —
        keeps secondary text on the active surface in the same hue family
        regardless of theme. */
@@ -5224,15 +5246,14 @@ body {
 
 :root {
     --endf-skew: -18deg;
-    /* Always-bright yellow for solid surfaces — CTA bars, parallelogram
-       tabs, chips. Decoupled from --atc-orange because in light theme
-       --atc-orange darkens for text contrast (see override below). */
-    --endf-yellow: oklch(0.91 0.18 101);
+    /* Bright primary for solid surfaces — CTA bars, parallelogram tabs,
+       chips. Aliases --primary-bright (user-switchable yellow/teal). */
+    --endf-yellow: var(--primary-bright);
     --endf-ink: oklch(0.14 0.005 100);
     /* Micro-accent color — used for `//` prefixes, diamond bullets,
-       ghost chip text, hairline ticks. Bright yellow on dark mode reads
-       fine; on light mode yellow on grey is too faint, so we use ink
-       there. Solid yellow CTAs / tabs keep --endf-yellow regardless. */
+       ghost chip text, hairline ticks. Bright primary reads fine on
+       dark; on light mode it's too faint against grey, so we fall back
+       to ink. Solid CTAs / tabs keep --endf-yellow regardless. */
     --endf-accent-ink: var(--endf-ink);
 }
 

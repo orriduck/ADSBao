@@ -228,6 +228,11 @@ const zhCN = {
     menuLabel: "语言",
     selectAria: "选择语言",
   },
+  primary: {
+    menuLabel: "主色调",
+    yellow: "黄色",
+    teal: "青色",
+  },
   ui: {
     close: "关闭",
     sidebar: "侧栏",

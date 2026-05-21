@@ -3,9 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronUp, History, Home, Info, Languages } from "lucide-react";
+import {
+  Check,
+  ChevronUp,
+  History,
+  Home,
+  Info,
+  Languages,
+  Palette,
+} from "lucide-react";
 import { getLocaleMenuItems } from "@/features/app-shell/i18n/i18nModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import { usePrimaryColor } from "@/features/app-shell/usePrimaryColor.js";
+import { PRIMARY_COLOR_MAP } from "@/utils/primaryColor.js";
 
 // Navigation menu for DitherPageShell pages (Home / About / Changelog).
 // The footer variant opens upward; the mobile top-bar variant opens downward.
@@ -27,6 +37,7 @@ function resolveActive(pathname) {
 
 export default function NavMenu({ variant = "footer" }) {
   const { locale, setLocale, t } = useI18n();
+  const { primary, setPrimary, options: primaryOptions } = usePrimaryColor();
   const pathname = usePathname();
   const active = resolveActive(pathname);
   const [open, setOpen] = useState(false);
@@ -53,6 +64,10 @@ export default function NavMenu({ variant = "footer" }) {
   const handleSelect = () => setOpen(false);
   const handleLanguageSelect = (nextLocale) => {
     setLocale(nextLocale);
+    setOpen(false);
+  };
+  const handlePrimarySelect = (next) => {
+    setPrimary(next);
     setOpen(false);
   };
 
@@ -113,6 +128,43 @@ export default function NavMenu({ variant = "footer" }) {
                   }`}
                 >
                   <span>{item.label}</span>
+                  {isActive && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="border-t border-[var(--atc-line)] pt-1">
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              <Palette className="h-3.5 w-3.5 text-atc-faint" aria-hidden="true" />
+              <span className="endf-label endf-label--ghost">
+                {t("primary.menuLabel")}
+              </span>
+            </div>
+            {primaryOptions.map((option) => {
+              const isActive = option === primary;
+              const swatch = PRIMARY_COLOR_MAP[option]?.bright;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={isActive}
+                  onClick={() => handlePrimarySelect(option)}
+                  className={`font-mono relative flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                    isActive
+                      ? "endf-row-active text-atc-orange"
+                      : "text-atc-faint hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span
+                      aria-hidden="true"
+                      className="inline-block h-2.5 w-2.5 rotate-45"
+                      style={{ background: swatch }}
+                    />
+                    <span>{t(`primary.${option}`)}</span>
+                  </span>
                   {isActive && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                 </button>
               );
