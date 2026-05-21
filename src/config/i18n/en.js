@@ -232,6 +232,11 @@ const en = {
     menuLabel: "Language",
     selectAria: "Select language",
   },
+  primary: {
+    menuLabel: "Accent",
+    yellow: "Yellow",
+    teal: "Teal",
+  },
   ui: {
     close: "Close",
     sidebar: "Sidebar",
