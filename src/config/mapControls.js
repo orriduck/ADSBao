@@ -9,7 +9,7 @@ import {
 // accent palette also swaps the focus-mode audio.
 export const MAP_FOCUS_VIDEO_BY_PRIMARY = {
   yellow: "i4PuYS2Yy2A",
-  teal: "VmTfpAgX2",
+  teal: "VmTfpAgX2AU",
 };
 export const MAP_FOCUS_VIDEO_DEFAULT = MAP_FOCUS_VIDEO_BY_PRIMARY.yellow;
 // Backwards-compat re-export — left for any caller still expecting the
