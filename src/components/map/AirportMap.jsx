@@ -8,7 +8,6 @@ import AreaMarker from "./AreaMarker.jsx";
 import AirportMarker from "./AirportMarker.jsx";
 import MapRangeLegend from "./MapRangeLegend.jsx";
 import NearbyAirportLayer from "./NearbyAirportLayer.jsx";
-import GroundStatsCounter from "./GroundStatsCounter.jsx";
 import AircraftPosition from "./AircraftPosition.jsx";
 import SelectedAircraftTrace from "./SelectedAircraftTrace.jsx";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer.jsx";
@@ -215,6 +214,9 @@ export default function AirportMap({
               lon={lon}
               icao={icao}
               airport={airport}
+              aircraft={aircraft}
+              zoom={zoom}
+              groundRadiusNm={effectiveFocalRings?.intervalNm}
             />
           )}
           <NearbyAirportLayer
@@ -230,6 +232,7 @@ export default function AirportMap({
               effectiveNearbyRings ? effectiveNearbyRings.maxNm : null
             }
             ringProminent={Boolean(effectiveNearbyRings?.prominent)}
+            showRunwayBadges={showRoutingPointBadges}
           />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
@@ -244,16 +247,6 @@ export default function AirportMap({
             showBeams={showRunwayBeams}
             showBadges={showRoutingPointBadges}
           />
-          {icao && (
-            <GroundStatsCounter
-              lat={lat}
-              lon={lon}
-              zoom={zoom}
-              icao={icao}
-              aircraft={aircraft}
-              radiusNm={effectiveFocalRings?.intervalNm}
-            />
-          )}
           <SelectedAircraftTrace theme={currentTheme} />
           <MapRangeLegend theme={currentTheme} />
           {children}

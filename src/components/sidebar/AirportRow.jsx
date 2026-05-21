@@ -30,7 +30,7 @@ export default function AirportRow({
     <button
       type="button"
       className={`aircraft-table-card grid w-full grid-cols-[minmax(0,1fr)_54px_70px] items-center gap-3 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,opacity] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
-        selected ? "bg-[color-mix(in_oklab,var(--atc-accent)_11%,transparent)]" : ""
+        selected ? "endf-row-active" : ""
       }`}
       aria-pressed={selected}
       onClick={() => airportId && onSelectAirport?.(airportId)}
@@ -74,7 +74,9 @@ function NumberWithUnit({ value, unit, format }) {
   const formatted = new Intl.NumberFormat(undefined, format).format(value);
   return (
     <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
-      <span>{formatted}</span>
+      <span key={formatted} className="number-fade">
+        {formatted}
+      </span>
       <sub
         className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
         translate="no"

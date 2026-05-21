@@ -65,7 +65,7 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     >
       <form
         onSubmit={doSearch}
-        className="flex-none mx-6 flex items-center gap-3 py-3.5"
+        className="flex-none mx-6 flex items-center gap-3 border-b border-[var(--atc-line)] py-3.5"
       >
         <Search className="h-5 w-5 shrink-0 text-atc-orange" />
         <Input
@@ -74,8 +74,8 @@ export default function AirportSearchPanel({ onOpenAirport }) {
           className="flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
           placeholder={t("search.placeholder")}
         />
-        <kbd className="hidden shrink-0 items-center px-2 py-1 font-mono text-[10px] uppercase tracking-[0.04em] text-atc-dim sm:inline-flex">
-          {loading ? "..." : t("search.enter")}
+        <kbd className="endf-chip hidden shrink-0 sm:inline-flex">
+          <span>{loading ? "..." : t("search.enter")}</span>
         </kbd>
       </form>
 

@@ -6,7 +6,8 @@ const en = {
   app: {
     feedLive: "Live feed",
     live: "Live",
-    airportExplorer: "Airport explorer",
+    airportExplorer: "Airports",
+    aboutTitle: "About",
     siteDescription:
       "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
   },

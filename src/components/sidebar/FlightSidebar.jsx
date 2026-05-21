@@ -102,10 +102,10 @@ function FlightIdentity({ callsign, type, category, route }) {
           )}
           {category && (
             <span
-              className="notranslate font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-atc-faint"
+              className="notranslate endf-chip"
               translate="no"
             >
-              {category}
+              <span>{category}</span>
             </span>
           )}
         </div>

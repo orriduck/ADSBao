@@ -1,7 +1,6 @@
 "use client";
 
 import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
-import LanguageSwitch from "@/components/app-shell/LanguageSwitch.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { Button } from "@/components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
@@ -77,8 +76,6 @@ export default function MapControlRail({
       >
         <MapControlIcon iconKey={getThemeIconKey(currentTheme)} />
       </Button>
-
-      <LanguageSwitch />
 
       <Button
         variant="atcIcon"

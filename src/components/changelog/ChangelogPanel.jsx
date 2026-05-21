@@ -16,17 +16,15 @@ import { CHANGELOG } from "@/config/changelog.js";
 const KIND_STYLES = {
   feat: {
     labelKey: "changelog.kindFeat",
-    className:
-      "bg-[color-mix(in_oklab,var(--atc-accent)_22%,transparent)] text-atc-text",
+    variant: "ghost",
   },
   patch: {
     labelKey: "changelog.kindPatch",
-    className:
-      "bg-[color-mix(in_oklab,var(--atc-elev)_70%,transparent)] text-atc-dim",
+    variant: "outline",
   },
   breaking: {
     labelKey: "changelog.kindBreaking",
-    className: "bg-atc-orange text-atc-bg",
+    variant: "solid",
   },
 };
 
@@ -229,9 +227,9 @@ export default function ChangelogPanel() {
       renderThemeToggle={renderThemeToggle}
     >
       <div className="flex-none px-6 pt-6 pb-3">
-        <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-          <span>{t("changelog.releases")}</span>
-          <span className="tracking-[0.18em] text-atc-dim">
+        <div className="endf-section-head">
+          <span className="endf-label">{t("changelog.releases")}</span>
+          <span className="endf-section-head__count">
             {t("changelog.total", { count: CHANGELOG.length })}
           </span>
         </div>
@@ -262,18 +260,24 @@ function ChangelogEntry({ release, isLatest, locale }) {
   return (
     <li className="border-b border-[var(--atc-line)] py-4 last:border-b-0">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[13px] font-bold tracking-[0.04em] text-atc-text">
-          {release.version}
-        </span>
-        <KindBadge style={kindStyle} />
+        {isLatest ? (
+          <span className="endf-tab">
+            <span>{release.version}</span>
+          </span>
+        ) : (
+          <span className="endf-tab endf-tab--outline">
+            <span>{release.version}</span>
+          </span>
+        )}
+        <KindBadge variant={kindStyle.variant} labelKey={kindStyle.labelKey} />
         {isLatest && (
-          <span className="font-nav rounded-sm border border-atc-accent px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-[0.14em] text-atc-accent">
-            {t("changelog.current")}
+          <span className="endf-chip">
+            <span>{t("changelog.current")}</span>
           </span>
         )}
       </div>
       {title ? (
-        <p className="mt-1 text-[12.5px] font-semibold leading-snug text-atc-text">
+        <p className="mt-2 text-[12.5px] font-semibold leading-snug text-atc-text">
           {title}
         </p>
       ) : null}
@@ -283,15 +287,13 @@ function ChangelogEntry({ release, isLatest, locale }) {
         </p>
       ) : null}
       {Array.isArray(highlights) && highlights.length > 0 ? (
-        <ul className="mt-2 flex flex-col gap-1">
+        <ul className="mt-2 flex flex-col gap-1.5">
           {highlights.map((item, index) => (
             <li
               key={index}
-              className="grid grid-cols-[10px_minmax(0,1fr)] items-baseline gap-1.5 text-[11.5px] leading-snug text-atc-text"
+              className="grid grid-cols-[10px_minmax(0,1fr)] items-baseline gap-2 text-[11.5px] leading-snug text-atc-text"
             >
-              <span aria-hidden="true" className="text-atc-faint">
-                ·
-              </span>
+              <span aria-hidden="true" className="endf-diamond endf-diamond--muted mt-0.5" />
               <span className="min-w-0">{item}</span>
             </li>
           ))}
@@ -301,13 +303,17 @@ function ChangelogEntry({ release, isLatest, locale }) {
   );
 }
 
-function KindBadge({ style }) {
+function KindBadge({ variant, labelKey }) {
   const { t } = useI18n();
+  const className =
+    variant === "solid"
+      ? "endf-chip"
+      : variant === "outline"
+        ? "endf-chip endf-chip--ghost"
+        : "endf-chip endf-chip--ghost";
   return (
-    <span
-      className={`font-nav rounded-sm px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-[0.14em] ${style.className}`}
-    >
-      {t(style.labelKey)}
+    <span className={className}>
+      <span>{t(labelKey)}</span>
     </span>
   );
 }

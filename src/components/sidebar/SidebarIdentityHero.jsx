@@ -18,10 +18,9 @@ export default function SidebarIdentityHero({
 }) {
   return (
     <div className="airport-sidebar-identity">
-      <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
-        {label}
-      </div>
+      <span className="endf-label">{label}</span>
       <div className="mt-3 flex items-baseline gap-3">
+        <span aria-hidden="true" className="endf-diamond self-center" />
         <span
           className={`airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[28px] font-extrabold text-atc-text ${codeClassName}`}
           translate="no"

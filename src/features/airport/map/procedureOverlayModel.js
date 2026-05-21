@@ -1,41 +1,43 @@
+// Endfield silk — warm amber glow on dark, ink hairline on light. No
+// blues. Three layers stack to give the approach a soft glowing thread.
 const SILK_STYLES = {
   dark: [
     {
-      color: "#64748b",
+      color: "#3a3424",
       weight: 12,
-      opacity: 0.065,
+      opacity: 0.085,
       className: "procedure-silk procedure-silk--blur",
     },
     {
-      color: "#1f6f9f",
+      color: "#c79b1f",
       weight: 5.2,
-      opacity: 0.105,
+      opacity: 0.16,
       className: "procedure-silk procedure-silk--body",
     },
     {
-      color: "#a8d8f3",
+      color: "#ffe600",
       weight: 1.15,
-      opacity: 0.18,
+      opacity: 0.32,
       className: "procedure-silk procedure-silk--thread",
     },
   ],
   light: [
     {
-      color: "#94a3b8",
+      color: "#2a2a26",
       weight: 12,
-      opacity: 0.08,
+      opacity: 0.07,
       className: "procedure-silk procedure-silk--blur",
     },
     {
-      color: "#2b6f9f",
+      color: "#1a1a18",
       weight: 5.2,
-      opacity: 0.12,
+      opacity: 0.1,
       className: "procedure-silk procedure-silk--body",
     },
     {
-      color: "#4f9fcf",
+      color: "#1a1a18",
       weight: 1.15,
-      opacity: 0.18,
+      opacity: 0.55,
       className: "procedure-silk procedure-silk--thread",
     },
   ],

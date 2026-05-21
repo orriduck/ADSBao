@@ -29,25 +29,39 @@ export default function AircraftList({
 
   return (
     <ul className="aircraft-table-list">
-      <AnimatePresence initial={false}>
-        {aircraft.map((item, index) => (
-          <motion.li
-            key={index}
-            initial={{ opacity: 0, scaleY: 0.94 }}
-            animate={{ opacity: 1, scaleY: 1 }}
-            exit={{ opacity: 0, scaleY: 0.94, transition: { duration: 0.2 } }}
-            transition={{ duration: 0.24, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="aircraft-table-list__item"
-          >
-            <AircraftSlot
-              aircraft={item}
-              cascadeOrder={cascadeOrders[index]}
-              flipStaggerStep={flipStaggerStep}
-              selectedAircraftId={selectedAircraftId}
-              onSelectAircraft={onSelectAircraft}
-            />
-          </motion.li>
-        ))}
+      {/* initial={true} so the first render cascades visibly when the
+          list first appears (page load / filter change). After mount,
+          AnimatePresence only animates the diff (new arrivals exit
+          animations etc.). */}
+      <AnimatePresence initial={true}>
+        {aircraft.map((item, index) => {
+          // Cascade reveal — each item delays 70ms × its index so the
+          // list fades in top-down. Capped at 18 items so a long
+          // backlog finishes settling in ~1.25 s.
+          const cascadeDelay = Math.min(index, 18) * 0.07;
+          return (
+            <motion.li
+              key={index}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6, transition: { duration: 0.16 } }}
+              transition={{
+                duration: 0.18,
+                ease: [0.2, 0.6, 0.2, 1],
+                delay: cascadeDelay,
+              }}
+              className="aircraft-table-list__item"
+            >
+              <AircraftSlot
+                aircraft={item}
+                cascadeOrder={cascadeOrders[index]}
+                flipStaggerStep={flipStaggerStep}
+                selectedAircraftId={selectedAircraftId}
+                onSelectAircraft={onSelectAircraft}
+              />
+            </motion.li>
+          );
+        })}
       </AnimatePresence>
     </ul>
   );

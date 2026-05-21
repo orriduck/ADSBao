@@ -1,16 +1,39 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
+import NumberFlow from "@number-flow/react";
 import { useMapInstance } from "./MapContext.js";
+import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
+import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
 
-export default function AirportMarker({ lat, lon, icao = "", airport = null }) {
+export default function AirportMarker({
+  lat,
+  lon,
+  icao = "",
+  airport = null,
+  aircraft = [],
+  zoom = null,
+  groundRadiusNm = 3,
+}) {
   const map = useMapInstance();
   const markerRef = useRef(null);
   const [container] = useState(() =>
     typeof document !== "undefined" ? document.createElement("div") : null,
   );
+
+  // Count aircraft within `groundRadiusNm` of the focal airport, shown
+  // as a "NEAR n" line under the badge. Only computed at approach zoom
+  // so the badge stays minimal at wider views.
+  const showAreaCount = Number(zoom) === ZOOM_APPROACH;
+  const areaCount = useMemo(() => {
+    if (!showAreaCount || !lat || !lon) return 0;
+    return aircraft.filter((item) => {
+      const distNm = getDistanceNm(lat, lon, item.lat, item.lon);
+      return distNm != null && distNm <= groundRadiusNm;
+    }).length;
+  }, [aircraft, showAreaCount, lat, lon, groundRadiusNm]);
 
   useEffect(() => {
     if (!map || !map.getContainer || !lat || !lon || !container)
@@ -37,18 +60,27 @@ export default function AirportMarker({ lat, lon, icao = "", airport = null }) {
   const details = [];
   const runways = airport?.runways;
   if (Array.isArray(runways) && runways.length) {
-    details.push(`RWY ${runways.length}`);
+    details.push({ key: "rwy", label: "RWY", value: runways.length });
   }
   const approachCount = Number(airport?.approachCount);
   if (Number.isFinite(approachCount) && approachCount > 0) {
-    details.push(`APP ${approachCount}`);
+    details.push({ key: "app", label: "APP", value: approachCount });
   }
 
   return createPortal(
     <div className="airport-overlay-label notranslate" translate="no">
-      {code}
-      {details.map((line) => (
-        <span key={line}>{line}</span>
+      <span className="airport-overlay-label__code endf-tab endf-tab--code">
+        <span>{code}</span>
+      </span>
+      {showAreaCount && (
+        <span className="airport-overlay-label__detail">
+          NEAR <NumberFlow value={areaCount} />
+        </span>
+      )}
+      {details.map((detail) => (
+        <span key={detail.key} className="airport-overlay-label__detail">
+          {detail.label} {detail.value}
+        </span>
       ))}
     </div>,
     container,

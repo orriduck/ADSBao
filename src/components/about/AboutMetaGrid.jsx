@@ -10,9 +10,11 @@ export default function AboutMetaGrid({ items }) {
       {items.map((item) => (
         <div
           key={item.label}
-          className="flex min-w-0 flex-col gap-0.5 bg-atc-bg px-3 py-2.5"
+          className="relative flex min-w-0 flex-col gap-1 bg-atc-bg px-3 py-2.5"
         >
-          <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-atc-faint">
+          <span className="absolute right-2 top-2 endf-diamond endf-diamond--muted" aria-hidden="true" />
+          <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-atc-faint">
+            <span style={{ color: "var(--endf-accent-ink)" }}>/&zwj;/</span>{" "}
             {item.labelKey ? t(item.labelKey) : item.label}
           </span>
           <span className="truncate text-[12px] font-semibold text-atc-text">

@@ -32,7 +32,7 @@ export default function AircraftRow({
     <button
       type="button"
       className={`aircraft-table-card grid w-full grid-cols-[minmax(0,1fr)_54px_70px] items-center gap-3 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,opacity] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
-        selected ? "bg-[color-mix(in_oklab,var(--atc-accent)_11%,transparent)]" : ""
+        selected ? "endf-row-active" : ""
       }`}
       aria-pressed={selected}
       onClick={() => aircraftId && onSelectAircraft?.(aircraftId)}
@@ -143,12 +143,16 @@ function AircraftIdentityCell({
 // great on a couple of metric cards, but rendering ~290 instances (145
 // aircraft × 2 columns) every poll tick costs framerate. Static text
 // via Intl.NumberFormat keeps locale-correct separators without the
-// per-row custom-element overhead.
+// per-row custom-element overhead. We get a "value refreshed" feedback
+// by keying the inner span on the formatted value — React remounts on
+// change and the .number-fade CSS animation fades the new value in.
 function NumberWithUnit({ value, unit, format }) {
   const formatted = new Intl.NumberFormat(undefined, format).format(value);
   return (
     <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
-      <span>{formatted}</span>
+      <span key={formatted} className="number-fade">
+        {formatted}
+      </span>
       <sub
         className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
         translate="no"

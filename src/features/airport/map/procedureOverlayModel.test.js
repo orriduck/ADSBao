@@ -64,7 +64,7 @@ const darkStyles = getProcedureSilkStyles("dark");
 assert.equal(darkStyles.length, 3);
 assert.deepEqual(
   darkStyles.map((style) => style.color),
-  ["#64748b", "#1f6f9f", "#a8d8f3"],
+  ["#3a3424", "#c79b1f", "#ffe600"],
 );
 assert.deepEqual(
   darkStyles.map((style) => style.className),
@@ -76,7 +76,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   darkStyles.map((style) => style.opacity),
-  [0.065, 0.105, 0.18],
+  [0.085, 0.16, 0.32],
 );
 assert.equal(darkStyles[0].weight > darkStyles[1].weight, true);
 assert.equal(darkStyles[1].weight > darkStyles[2].weight, true);
@@ -85,8 +85,8 @@ const renderLayers = buildProcedureRenderLayers(geojson, "dark");
 
 assert.equal(renderLayers.length, 3);
 assert.equal(renderLayers[0].geojson.features.length, 8);
-assert.equal(renderLayers[0].style.opacity, 0.065);
-assert.equal(renderLayers[0].geojson.features[0].properties.layerOpacity, 0.013);
+assert.equal(renderLayers[0].style.opacity, 0.085);
+assert.equal(renderLayers[0].geojson.features[0].properties.layerOpacity, 0.017);
 
 const multiSegmentGeoJson = {
   type: "FeatureCollection",

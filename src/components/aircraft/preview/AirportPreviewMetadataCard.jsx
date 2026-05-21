@@ -32,9 +32,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
   return (
     <div className="aircraft-preview-metadata-card">
       <div className="flex flex-col gap-1">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-atc-faint">
-          {t("sidebar.airport")}
-        </span>
+        <span className="endf-label">{t("sidebar.airport")}</span>
         <span
           className="airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[24px] font-extrabold text-atc-text"
           translate="no"
