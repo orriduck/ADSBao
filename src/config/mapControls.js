@@ -4,7 +4,7 @@ import {
   ZOOM_DETAIL,
 } from "../utils/airportMapDisplay.js";
 
-export const MAP_FOCUS_VIDEO_ID = "JDQiaRYmTGk";
+export const MAP_FOCUS_VIDEO_ID = "i4PuYS2Yy2A";
 
 export const MAP_ZOOM_OPTIONS = [
   { value: ZOOM_APPROACH, title: "Approaching view", iconKey: "planeLanding" },

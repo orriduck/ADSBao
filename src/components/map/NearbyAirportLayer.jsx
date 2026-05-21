@@ -31,6 +31,9 @@ const markerHtml = (airport) => {
   const distance = Number.isFinite(airport.distanceNm)
     ? `${airport.distanceNm.toFixed(0)}NM`
     : "";
+  // Two parts: the dot sits exactly on the airport position; the badge
+  // is positioned absolutely down-left so the runway / centerline at
+  // the airport stays visible underneath.
   return `
     <div class="nearby-airport-marker notranslate" translate="no">
       <span class="nearby-airport-marker-dot"></span>
@@ -63,14 +66,13 @@ const runwayLabelIcon = (ident, theme) =>
     iconAnchor: [17, 22],
   });
 
-const runwayLayers = ({ airport, map, theme, zoom }) => {
+const runwayLayers = ({ airport, map, theme, zoom, showBadges }) => {
   if (!airport?.runwayMap?.runways?.length) return [];
   const centerlines = buildRunwayCenterlineCollection(airport.runwayMap);
   const showRunways = Number(zoom) >= 10;
   if (!showRunways) return [];
-  const labels = buildRunwayEndLabels(airport.runwayMap, { zoom });
 
-  return [
+  const layers = [
     L.geoJSON(centerlines, {
       interactive: false,
       style() {
@@ -81,17 +83,25 @@ const runwayLayers = ({ airport, map, theme, zoom }) => {
         };
       },
     }),
-    L.layerGroup(
-      labels.map((label) =>
-        L.marker([label.lat, label.lon], {
-          interactive: false,
-          keyboard: false,
-          icon: runwayLabelIcon(label.ident, theme),
-          pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),
-        }),
-      ),
-    ),
   ];
+
+  if (showBadges) {
+    const labels = buildRunwayEndLabels(airport.runwayMap, { zoom });
+    layers.push(
+      L.layerGroup(
+        labels.map((label) =>
+          L.marker([label.lat, label.lon], {
+            interactive: false,
+            keyboard: false,
+            icon: runwayLabelIcon(label.ident, theme),
+            pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),
+          }),
+        ),
+      ),
+    );
+  }
+
+  return layers;
 };
 
 export default function NearbyAirportLayer({
@@ -103,6 +113,7 @@ export default function NearbyAirportLayer({
   ringIntervalNm = DEFAULT_NEARBY_RING_INTERVAL_NM,
   ringMaxNm = DEFAULT_NEARBY_RING_MAX_NM,
   ringProminent = false,
+  showRunwayBadges = true,
 }) {
   const map = useMapInstance();
   const layerRef = useRef(null);
@@ -120,7 +131,7 @@ export default function NearbyAirportLayer({
 
     for (const airport of airports) {
       if (!airport?.lat || !airport?.lon) continue;
-      runwayLayers({ airport, map, theme, zoom }).forEach((runwayLayer) =>
+      runwayLayers({ airport, map, theme, zoom, showBadges: showRunwayBadges }).forEach((runwayLayer) =>
         runwayLayer.addTo(layer),
       );
       // Stroke-only — overlapping nearby stacks would add up into a
@@ -143,8 +154,10 @@ export default function NearbyAirportLayer({
         icon: L.divIcon({
           className: isSelected ? "nearby-airport-marker--selected" : "",
           html: markerHtml(airport),
-          iconSize: [96, 24],
-          iconAnchor: [12, 12],
+          // iconSize/anchor are sized to the dot only — the badge is
+          // absolutely positioned and overflows; CSS handles its offset.
+          iconSize: [6, 6],
+          iconAnchor: [3, 3],
         }),
       });
       if (interactive) {
@@ -172,6 +185,7 @@ export default function NearbyAirportLayer({
     ringIntervalNm,
     ringMaxNm,
     ringProminent,
+    showRunwayBadges,
   ]);
 
   return null;

@@ -16,9 +16,9 @@ export function AirportSearchResults({
   return (
     <>
       <div className="px-6 pt-5 pb-3">
-        <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-          <span>{t("search.searchResults")}</span>
-          <span className="tracking-[0.18em] text-atc-dim">{countLabel}</span>
+        <div className="endf-section-head">
+          <span className="endf-label">{t("search.searchResults")}</span>
+          <span className="endf-section-head__count">{countLabel}</span>
         </div>
       </div>
 
@@ -55,17 +55,20 @@ export function FeaturedAirports({ airports, onOpen }) {
   return (
     <>
       <div className="px-6 pt-5 pb-3">
-        <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-          <span>{t("search.featuredAirports")}</span>
-          <span className="tracking-[0.18em] text-atc-dim">
-            {airports.length}
-          </span>
+        <div className="endf-section-head">
+          <span className="endf-label">{t("search.featuredAirports")}</span>
+          <span className="endf-section-head__count">{airports.length}</span>
         </div>
       </div>
 
       <ul className="px-6 divide-y divide-[var(--atc-line)]">
-        {airports.map((airport) => (
-          <AirportRow key={airport.icao} airport={airport} onOpen={onOpen} />
+        {airports.map((airport, index) => (
+          <AirportRow
+            key={airport.icao}
+            airport={airport}
+            onOpen={onOpen}
+            featured={index === 0}
+          />
         ))}
       </ul>
     </>

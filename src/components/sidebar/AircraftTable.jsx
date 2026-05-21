@@ -137,10 +137,10 @@ export default function AircraftTable({
     <div className={`flex flex-col ${fill ? "h-full" : ""}`}>
       <div className="flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
-          <div className="text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
+          <span className="endf-label endf-label--lead">
             {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
-          </div>
-          <div className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums">
+          </span>
+          <div className="whitespace-nowrap font-mono text-[10px] tracking-[0.18em] text-atc-dim tabular-nums">
             <NumberFlow value={filteredAircraft.length + filteredAirports.length} />
             <span> / </span>
             <NumberFlow
@@ -234,10 +234,16 @@ export default function AircraftTable({
             <motion.div
               key="aircraft-table-pin"
               className="aircraft-table-pin"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
+              // Animate only height — the inner row paints at full ink
+              // opacity from the first frame, and the growing height
+              // reveals it cleanly. Fading opacity would blend the ink
+              // with the light sidebar mid-animation and read as a
+              // white→black flash in light theme.
+              initial={{ height: 0 }}
+              animate={{ height: "auto" }}
+              exit={{ height: 0 }}
               transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ overflow: "hidden" }}
             >
               <AircraftSlot
                 aircraft={pinnedAircraft}

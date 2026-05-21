@@ -12,9 +12,9 @@ export default function AboutDataSources({ sources, onOpenExternalLink }) {
   return (
     <>
       <div className="flex-none px-6 pt-6 pb-3">
-        <div className="flex items-baseline justify-between border-b border-[var(--atc-line)] pb-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-atc-faint">
-          <span>{t("about.dataSources")}</span>
-          <span className="tracking-[0.18em] text-atc-dim">
+        <div className="endf-section-head">
+          <span className="endf-label">{t("about.dataSources")}</span>
+          <span className="endf-section-head__count">
             {getDataSourceCountLabel(sources, locale)}
           </span>
         </div>
@@ -26,10 +26,11 @@ export default function AboutDataSources({ sources, onOpenExternalLink }) {
             <a
               {...getExternalLinkOpenTarget(source.href)}
               onClick={(event) => onOpenExternalLink(event, source.href)}
-              className="group grid grid-cols-[56px_minmax(0,1fr)] items-center gap-3 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] -mx-6 px-6"
+              className="group endf-underline -mx-6 grid grid-cols-[14px_64px_minmax(0,1fr)] items-center gap-3 px-6 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
             >
-              <span className="font-mono text-[16px] font-bold leading-[1] tracking-[0.02em] text-atc-orange">
-                {source.glyph}
+              <span aria-hidden="true" className="endf-diamond endf-diamond--hollow" />
+              <span className="endf-tab endf-tab--code">
+                <span>{source.glyph}</span>
               </span>
               <span className="min-w-0">
                 <strong className="block truncate text-[13px] font-semibold text-atc-text">

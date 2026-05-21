@@ -18,62 +18,110 @@ export default function Image() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#090d12",
-          color: "#f5f0e8",
-          padding: "64px",
-          fontFamily: "Arial, sans-serif",
+          background: "#0e0f10",
+          color: "#f5f3ee",
+          padding: "72px 80px",
+          fontFamily: "system-ui, sans-serif",
         }}
       >
+        {/* Brand row — diamond + // ADSBAO wordmark + section label */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: 28,
-            letterSpacing: 4,
-            textTransform: "uppercase",
-            color: "#8fb7d6",
+            gap: 24,
           }}
         >
-          <span>{SITE_NAME}</span>
-          <span>Airport Context</span>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div
             style={{
-              fontSize: 112,
-              fontWeight: 800,
-              letterSpacing: -4,
-              lineHeight: 0.95,
+              width: 22,
+              height: 22,
+              background: "#ffe600",
+              transform: "rotate(45deg)",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: 14,
+              fontWeight: 900,
+              letterSpacing: 2,
             }}
           >
-            METAR. Traffic. Map.
+            <span style={{ color: "#ffe600", fontSize: 56 }}>//</span>
+            <span style={{ fontSize: 72, color: "#f5f3ee" }}>{SITE_NAME.toUpperCase()}</span>
           </div>
           <div
             style={{
-              width: 760,
-              fontSize: 34,
-              lineHeight: 1.3,
-              color: "#b9c2cc",
+              marginLeft: "auto",
+              fontSize: 24,
+              letterSpacing: 6,
+              color: "#9a9a96",
+              textTransform: "uppercase",
+            }}
+          >
+            Aviation Console
+          </div>
+        </div>
+
+        {/* Headline */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+          <div
+            style={{
+              fontSize: 132,
+              fontWeight: 900,
+              letterSpacing: -2,
+              lineHeight: 0.92,
+              color: "#f5f3ee",
+              textTransform: "uppercase",
+              display: "flex",
+              alignItems: "center",
+              gap: 24,
+            }}
+          >
+            <span style={{ color: "#ffe600" }}>&lt;</span>
+            <span>METAR · Traffic · Map</span>
+            <span style={{ color: "#ffe600" }}>&gt;</span>
+          </div>
+          <div
+            style={{
+              width: 880,
+              fontSize: 30,
+              lineHeight: 1.35,
+              color: "#b8b6ae",
             }}
           >
             {SITE_DESCRIPTION}
           </div>
         </div>
+
+        {/* Yellow parallelogram chips for featured ICAOs */}
         <div
           style={{
             display: "flex",
-            gap: 18,
+            gap: 16,
+            fontWeight: 900,
             fontSize: 24,
-            color: "#f5f0e8",
+            letterSpacing: 2,
           }}
         >
-          <span>KBOS</span>
-          <span>KLAX</span>
-          <span>KJFK</span>
-          <span>KORD</span>
-          <span>KSFO</span>
-          <span>KSEA</span>
+          {["KBOS", "KLAX", "KJFK", "KORD", "KSFO", "KSEA"].map((code) => (
+            <div
+              key={code}
+              style={{
+                display: "flex",
+                background: "#ffe600",
+                color: "#14140f",
+                padding: "10px 22px",
+                transform: "skewX(-18deg)",
+              }}
+            >
+              <span style={{ display: "flex", transform: "skewX(18deg)" }}>
+                {code}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     ),

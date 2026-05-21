@@ -48,6 +48,6 @@ assert.deepEqual(
 
 assert.equal(
   getMapOverlayTheme("light").labelShadowColor,
-  "rgba(250,249,245,0.95)",
+  "rgba(245,243,238,0.95)",
 );
-assert.equal(getMapOverlayTheme("dark").attributionColor, "rgba(245,247,250,0.3)");
+assert.equal(getMapOverlayTheme("dark").attributionColor, "rgba(245,243,238,0.3)");

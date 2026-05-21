@@ -3,18 +3,24 @@
 import { airportDisplayName, airportSubtitle } from "@/utils/airport.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
-export default function AirportRow({ airport, onOpen }) {
+export default function AirportRow({ airport, onOpen, featured = false }) {
   const { locale } = useI18n();
 
   return (
     <li>
       <button
         type="button"
-        className="-mx-6 grid w-[calc(100%+3rem)] grid-cols-[56px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
+        className={`group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[14px_64px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
+          featured ? "endf-row-featured" : ""
+        }`}
         onClick={() => onOpen(airport)}
       >
-        <span className="font-mono text-[16px] font-bold leading-[1] tracking-[0.02em] text-atc-orange">
-          {airport.iata || airport.icao || airport.code}
+        <span
+          aria-hidden="true"
+          className={featured ? "endf-diamond" : "endf-diamond endf-diamond--hollow"}
+        />
+        <span className="endf-tab endf-tab--code">
+          <span>{airport.iata || airport.icao || airport.code}</span>
         </span>
         <span className="min-w-0">
           <strong className="block truncate text-[13px] font-semibold text-atc-text">

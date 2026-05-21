@@ -67,7 +67,7 @@ export default function NavMenu({ variant = "footer" }) {
       {open && (
         <div
           role="menu"
-          className={`absolute ${menuPlacementClass} left-0 z-[1200] w-48 overflow-hidden rounded-md border border-[var(--atc-line-strong)] bg-atc-card shadow-xl`}
+          className={`absolute ${menuPlacementClass} left-0 z-[1200] w-52 overflow-hidden border border-[var(--atc-line-strong)] bg-atc-card shadow-xl`}
         >
           {ITEMS.map((item) => {
             const ItemIcon = item.Icon;
@@ -78,21 +78,24 @@ export default function NavMenu({ variant = "footer" }) {
                 href={item.href}
                 role="menuitem"
                 onClick={handleSelect}
-                className={`font-nav flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors ${
+                className={`font-mono relative flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
                   isActive
-                    ? "bg-[color-mix(in_oklab,var(--atc-accent)_14%,transparent)] text-atc-text"
+                    ? "endf-row-active text-atc-orange"
                     : "text-atc-faint hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
                 }`}
               >
+                <span aria-hidden="true" className="endf-diamond" />
                 <ItemIcon className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>{t(item.labelKey)}</span>
               </Link>
             );
           })}
-          <div className="border-t border-[var(--atc-line)] py-1">
-            <div className="font-nav flex items-center gap-2 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-atc-faint">
-              <Languages className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>{t("language.menuLabel")}</span>
+          <div className="border-t border-[var(--atc-line)] pt-1">
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              <Languages className="h-3.5 w-3.5 text-atc-faint" aria-hidden="true" />
+              <span className="endf-label endf-label--ghost">
+                {t("language.menuLabel")}
+              </span>
             </div>
             {languageItems.map((item) => {
               const isActive = item.locale === locale;
@@ -103,9 +106,9 @@ export default function NavMenu({ variant = "footer" }) {
                   role="menuitemradio"
                   aria-checked={isActive}
                   onClick={() => handleLanguageSelect(item.locale)}
-                  className={`font-nav flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors ${
+                  className={`font-mono relative flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
                     isActive
-                      ? "bg-[color-mix(in_oklab,var(--atc-accent)_14%,transparent)] text-atc-text"
+                      ? "endf-row-active text-atc-orange"
                       : "text-atc-faint hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
                   }`}
                 >

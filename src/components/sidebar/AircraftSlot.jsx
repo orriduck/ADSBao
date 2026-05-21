@@ -28,16 +28,38 @@ export default function AircraftSlot({
   cascadeOrderRef.current = cascadeOrder;
   const flipStaggerStepRef = useRef(flipStaggerStep);
   flipStaggerStepRef.current = flipStaggerStep;
+  const selectedAircraftIdRef = useRef(selectedAircraftId);
+  selectedAircraftIdRef.current = selectedAircraftId;
   const [freezeAircraft, setFreezeAircraft] = useState(null);
   const controls = useAnimationControls();
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (currentKey === lastKeyRef.current) return;
+    const oldKey = lastKeyRef.current;
     const oldAircraft = prevAircraftRef.current;
     lastKeyRef.current = currentKey;
 
     if (reducedMotion) return;
+
+    // Skip the flip animation when the swap is caused by a selection
+    // change. Two cases:
+    //   1. List slot's old aircraft just became selected and moved to
+    //      the pin slot (oldKey === selectedAircraftId). Animating the
+    //      frozen old aircraft would fade an ink+yellow row, which in
+    //      light theme looks like ink washing to white.
+    //   2. Pin slot's incoming aircraft is the just-clicked one
+    //      (currentKey === selectedAircraftId). The frozen previous
+    //      aircraft would briefly render as non-selected (light+ink),
+    //      flashing the pin from ink to light before the swap. Snap
+    //      instead so the pin transitions cleanly from one focused
+    //      aircraft to the next.
+    const selectedId = selectedAircraftIdRef.current;
+    if (oldKey === selectedId || currentKey === selectedId) {
+      setFreezeAircraft(null);
+      controls.set({ y: 0, opacity: 1 });
+      return;
+    }
 
     const flipDelay =
       Math.max(cascadeOrderRef.current, 0) * flipStaggerStepRef.current;
@@ -45,19 +67,20 @@ export default function AircraftSlot({
     setFreezeAircraft(oldAircraft);
     let cancelled = false;
     (async () => {
+      // Slide up + fade out, then slide down + fade in. Clean,
+      // industrial — no brightness flash, no rotate.
       await controls.start({
-        rotateX: -90,
+        y: -6,
         opacity: 0,
-        filter: "brightness(1.18)",
-        transition: { duration: 0.18, ease: "easeIn", delay: flipDelay },
+        transition: { duration: 0.14, ease: "easeIn", delay: flipDelay },
       });
       if (cancelled) return;
       setFreezeAircraft(null);
+      await controls.set({ y: 6, opacity: 0 });
       await controls.start({
-        rotateX: 0,
+        y: 0,
         opacity: 1,
-        filter: "brightness(1)",
-        transition: { duration: 0.22, ease: "easeOut" },
+        transition: { duration: 0.2, ease: [0.2, 0.6, 0.2, 1] },
       });
     })();
     return () => {

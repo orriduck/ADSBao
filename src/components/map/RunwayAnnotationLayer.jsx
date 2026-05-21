@@ -50,8 +50,9 @@ const runwayLabelIcon = (ident, theme) =>
 // style block would be artificial.
 const buildApproachLayer = ({ kind, data, theme }) => {
   if (kind === "approach-lines") {
+    // Endfield palette — ink on light, warm amber on dark. No blues.
     const stroke =
-      theme === "light" ? "rgba(36,65,100,0.7)" : "rgba(216,189,131,0.78)";
+      theme === "light" ? "rgba(26,26,24,0.62)" : "rgba(216,189,131,0.78)";
     const layer = L.geoJSON(data, {
       interactive: false,
       style(feature) {

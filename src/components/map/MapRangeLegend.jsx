@@ -59,8 +59,8 @@ export default function MapRangeLegend({ theme = "dark" }) {
   const backdrop = isLight
     ? "bg-[rgba(250,249,245,0.45)]"
     : "bg-[rgba(8,12,20,0.4)]";
-  const textTone = isLight ? "text-[#0e1a2b]" : "text-[#f5f7fa]";
-  const labelTone = isLight ? "text-[#0e1a2b]/70" : "text-[#f5f7fa]/70";
+  const textTone = isLight ? "text-[#1a1a18]" : "text-[#f5f3ee]";
+  const labelTone = isLight ? "text-[#1a1a18]/70" : "text-[#f5f3ee]/70";
 
   return (
     <div

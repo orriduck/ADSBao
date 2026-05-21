@@ -23,28 +23,30 @@ export const AIRPORT_MAP_PANES = {
   },
 };
 
+// Endfield palette: yellow trail in dark mode, ink trail in light mode.
+// No blues — keeps the map mono with a single saturated yellow accent.
 export const SELECTED_AIRCRAFT_TRACE_STYLE = {
   maxRenderPoints: 140,
   dark: {
-    glowColor: "#8ec5ff",
-    glowOpacity: 0.18,
+    glowColor: "#ffe600",
+    glowOpacity: 0.22,
     glowWeight: 12,
-    lineColor: "#d5ecff",
+    lineColor: "#ffe600",
     lineOpacity: 0.94,
     lineWeight: 3.2,
-    pointColor: "#d5ecff",
-    pointFillOpacity: 0.42,
+    pointColor: "#ffe600",
+    pointFillOpacity: 0.5,
     pointRadius: 2,
   },
   light: {
-    glowColor: "#9ab7d6",
-    glowOpacity: 0.1,
+    glowColor: "#b88a00",
+    glowOpacity: 0.18,
     glowWeight: 9,
-    lineColor: "#234a73",
-    lineOpacity: 0.86,
+    lineColor: "#1a1a18",
+    lineOpacity: 0.82,
     lineWeight: 3,
-    pointColor: "#234a73",
-    pointFillOpacity: 0.28,
+    pointColor: "#1a1a18",
+    pointFillOpacity: 0.34,
     pointRadius: 1.8,
   },
 };
@@ -82,22 +84,24 @@ export const RUNWAY_APPROACH_BEAM_CONFIG = {
   ],
 };
 
+// Endfield palette: warm amber/yellow on dark, ink on light. The
+// previous blues clashed with the yellow-and-grey theme.
 export const RUNWAY_ANNOTATION_STYLE_CONFIG = {
   lineStyles: {
     dark: {
-      color: "#8fb7d6",
+      color: "#d8bd83",
       weight: 3,
-      opacity: 0.5,
+      opacity: 0.55,
     },
     light: {
-      color: "#244164",
+      color: "#1a1a18",
       weight: 3,
-      opacity: 0.5,
+      opacity: 0.42,
     },
   },
   beamColors: {
     dark: "#d8bd83",
-    light: "#8b6f47",
+    light: "#8a6a1e",
   },
   beamGradientStops: [
     { offset: "0%", opacityScale: 1, maxOpacity: 0.42 },

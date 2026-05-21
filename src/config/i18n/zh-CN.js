@@ -5,7 +5,8 @@ const zhCN = {
   app: {
     feedLive: "实时数据",
     live: "实时",
-    airportExplorer: "机场 Explorer",
+    airportExplorer: "机场",
+    aboutTitle: "关于",
     siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场上下文。",
   },
   nav: {
