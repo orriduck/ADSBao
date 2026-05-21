@@ -28,8 +28,8 @@
     --color-atc-high: var(--atc-high);
     --color-atc-accent: var(--atc-accent);
     --color-atc-accent-soft: var(--atc-accent-soft);
-    --color-atc-orange: var(--atc-accent);
-    --color-atc-orange-soft: var(--atc-accent-soft);
+    --color-atc-orange: var(--atc-orange);
+    --color-atc-orange-soft: var(--atc-orange-soft);
     --color-atc-mint: var(--atc-mint);
     --color-atc-red: var(--atc-red);
     --color-atc-text: var(--atc-text);
@@ -112,38 +112,48 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 
-    /* Light: white canvas with navy ink — neutral grays for surface hierarchy,
-       no warm cream tint. */
+    /* Light: operational manual grey with near-black ink and yellow signal. */
     --app-sidebar-width: 22.5rem;
-    --atc-bg: #ffffff;
-    --atc-card: #f4f4f4;
-    --atc-elev: #ebebeb;
-    --atc-high: #dedede;
-    --atc-accent: #244164;
-    --atc-accent-soft: rgba(36, 65, 100, 0.14);
-    --atc-orange: var(--atc-accent);
-    --atc-orange-soft: var(--atc-accent-soft);
-    --atc-mint: #0f766e;
-    --atc-red: #b91c1c;
-    --atc-text: #0e1a2b;
-    --atc-dim: rgba(14, 26, 43, 0.62);
-    --atc-faint: rgba(14, 26, 43, 0.42);
-    --atc-line: rgba(14, 26, 43, 0.1);
-    --atc-line-strong: rgba(14, 26, 43, 0.2);
-    --glass-card-top: rgba(255, 255, 255, 0.34);
-    --glass-card-bottom: rgba(229, 234, 241, 0.46);
-    --glass-card-glint-strong: rgba(255, 255, 255, 0.35);
-    --glass-card-glint-soft: rgba(255, 255, 255, 0.14);
-    --glass-card-border: rgba(0, 0, 0, 0.12);
-    --glass-card-inset: rgba(255, 255, 255, 0.3);
-    --traffic-level-color: #64748b;
+    --atc-bg: oklch(0.925 0.004 100);
+    --atc-card: oklch(0.965 0.003 100);
+    --atc-elev: oklch(0.86 0.004 100);
+    --atc-high: oklch(0.78 0.006 100);
+    --atc-accent: oklch(0.2 0.006 100);
+    --atc-accent-soft: color-mix(in oklab, var(--atc-accent) 14%, transparent);
+    --atc-orange: oklch(0.91 0.18 101);
+    --atc-orange-soft: color-mix(in oklab, var(--atc-orange) 18%, transparent);
+    --atc-mint: oklch(0.61 0.045 104);
+    --atc-red: oklch(0.49 0.16 27);
+    --atc-text: oklch(0.17 0.006 100);
+    --atc-dim: color-mix(in oklab, var(--atc-text) 62%, transparent);
+    --atc-faint: color-mix(in oklab, var(--atc-text) 42%, transparent);
+    --atc-line: color-mix(in oklab, var(--atc-text) 10%, transparent);
+    --atc-line-strong: color-mix(in oklab, var(--atc-text) 22%, transparent);
+    --atc-click-bg: oklch(0.17 0.006 100);
+    --atc-click-fg: var(--atc-orange);
+    --atc-click-muted: color-mix(
+        in oklab,
+        var(--atc-click-fg) 70%,
+        var(--atc-card)
+    );
+    --atc-click-border: color-mix(in oklab, var(--atc-orange) 74%, var(--atc-text));
+    --atc-focus-bg: oklch(0.985 0.003 100);
+    --atc-focus-fg: oklch(0.16 0.006 100);
+    --atc-focus-edge: var(--atc-orange);
+    --glass-card-top: color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    --glass-card-bottom: color-mix(in oklab, var(--atc-elev) 50%, transparent);
+    --glass-card-glint-strong: color-mix(in oklab, var(--atc-bg) 40%, transparent);
+    --glass-card-glint-soft: color-mix(in oklab, var(--atc-bg) 18%, transparent);
+    --glass-card-border: color-mix(in oklab, var(--atc-text) 13%, transparent);
+    --glass-card-inset: color-mix(in oklab, var(--atc-bg) 32%, transparent);
+    --traffic-level-color: oklch(0.46 0.006 100);
 
-    /* Aircraft state: functional encoding kept, but desaturated so the
-       primary blue signal remains reserved for controls and selection. */
-    --aircraft-departure: #8b6f47;
-    --aircraft-arrival: #2a6f7a;
-    --aircraft-unknown: #5c6b7d;
-    --aircraft-ground: #5a8068;
+    /* Aircraft state stays functional while using the yellow/grey/black
+       palette instead of category-colored map clutter. */
+    --aircraft-departure: oklch(0.74 0.13 101);
+    --aircraft-arrival: oklch(0.52 0.008 100);
+    --aircraft-unknown: oklch(0.42 0.006 100);
+    --aircraft-ground: oklch(0.62 0.05 104);
 
     /* Tone tokens — composed from theme colors via color-mix.
        Defined once in :root because their inputs are themeable;
@@ -163,20 +173,18 @@
         transparent
     );
     --tone-accent-edge: color-mix(in oklab, var(--atc-accent) 78%, transparent);
-    --tone-orange-wash: var(--tone-accent-wash);
-    --tone-orange-warm: var(--tone-accent-warm);
-    --tone-orange-strong: var(--tone-accent-strong);
-    --tone-orange-edge: var(--tone-accent-edge);
+    --tone-orange-wash: color-mix(in oklab, var(--atc-orange) 9%, transparent);
+    --tone-orange-warm: color-mix(in oklab, var(--atc-orange) 17%, transparent);
+    --tone-orange-strong: color-mix(in oklab, var(--atc-orange) 24%, transparent);
+    --tone-orange-edge: color-mix(in oklab, var(--atc-orange) 78%, transparent);
 
-    /* Glow used by the active-tab and active-filter-card pseudo-elements.
-     * Light theme accent is a dark navy on white, so at high intensity the
-     * gradient reads almost as a heavy shadow — keep the stops low here. The
-     * dark-theme override (below) reinstates the brighter stops. */
+    /* Glow used by active tabs and filter cards. Light mode uses yellow here
+     * because near-black would read as a heavy shadow. */
     --atc-tab-glow: linear-gradient(
         to top,
-        color-mix(in oklab, var(--atc-accent) 11%, transparent) 0%,
-        color-mix(in oklab, var(--atc-accent) 6%, transparent) 30%,
-        color-mix(in oklab, var(--atc-accent) 2%, transparent) 58%,
+        color-mix(in oklab, var(--atc-orange) 20%, transparent) 0%,
+        color-mix(in oklab, var(--atc-orange) 10%, transparent) 30%,
+        color-mix(in oklab, var(--atc-orange) 3%, transparent) 58%,
         transparent 80%
     );
     --tone-bg-soft: color-mix(in oklab, var(--atc-bg) 62%, transparent);
@@ -220,7 +228,7 @@
     --popover: var(--atc-card);
     --popover-foreground: var(--atc-text);
     --primary: var(--atc-accent);
-    --primary-foreground: #ffffff;
+    --primary-foreground: oklch(0.965 0.003 100);
     --secondary: var(--atc-elev);
     --secondary-foreground: var(--atc-text);
     --muted: var(--atc-elev);
@@ -231,49 +239,57 @@
     --border: var(--atc-line);
     --input: var(--atc-line-strong);
     --ring: var(--atc-accent);
-    --sidebar: #ffffff;
-    --sidebar-foreground: #0e1a2b;
-    --sidebar-primary: #0e1a2b;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #f4f4f4;
-    --sidebar-accent-foreground: #0e1a2b;
-    --sidebar-border: rgba(14, 26, 43, 0.12);
+    --sidebar: var(--atc-bg);
+    --sidebar-foreground: var(--atc-text);
+    --sidebar-primary: var(--atc-text);
+    --sidebar-primary-foreground: oklch(0.965 0.003 100);
+    --sidebar-accent: var(--atc-card);
+    --sidebar-accent-foreground: var(--atc-text);
+    --sidebar-border: var(--atc-line-strong);
     --sidebar-ring: var(--atc-accent);
 }
 
 :root[data-theme="dark"] {
-    /* Dark: deep navy tracking-console canvas. Primary theme. */
-    --atc-bg: #041a38;
-    --atc-card: #0a2244;
-    --atc-elev: #0f2a52;
-    --atc-high: #244164;
-    --atc-accent: #8fb7d6;
-    --atc-accent-soft: rgba(143, 183, 214, 0.16);
-    --atc-orange: var(--atc-accent);
-    --atc-orange-soft: var(--atc-accent-soft);
-    --atc-mint: #6ba89a;
-    --atc-red: #f87171;
-    --atc-text: #f5f7fa;
-    --atc-dim: rgba(245, 247, 250, 0.62);
-    --atc-faint: rgba(245, 247, 250, 0.42);
-    --atc-line: rgba(255, 255, 255, 0.08);
-    --atc-line-strong: rgba(255, 255, 255, 0.18);
-    --glass-card-top: rgba(38, 40, 46, 0.2);
-    --glass-card-bottom: rgba(14, 16, 20, 0.34);
-    --glass-card-glint-strong: rgba(255, 255, 255, 0.1);
-    --glass-card-glint-soft: rgba(255, 255, 255, 0.03);
-    --glass-card-border: rgba(255, 255, 255, 0.13);
-    --glass-card-inset: rgba(255, 255, 255, 0.14);
-    --traffic-level-color: #94a3b8;
+    /* Dark: black operations canvas with bright yellow active state. */
+    --atc-bg: oklch(0.12 0.004 100);
+    --atc-card: oklch(0.18 0.005 100);
+    --atc-elev: oklch(0.25 0.006 100);
+    --atc-high: oklch(0.34 0.008 100);
+    --atc-accent: oklch(0.91 0.18 101);
+    --atc-accent-soft: color-mix(in oklab, var(--atc-accent) 16%, transparent);
+    --atc-orange: oklch(0.91 0.18 101);
+    --atc-orange-soft: color-mix(in oklab, var(--atc-orange) 17%, transparent);
+    --atc-mint: oklch(0.78 0.055 104);
+    --atc-red: oklch(0.68 0.17 27);
+    --atc-text: oklch(0.91 0.005 100);
+    --atc-dim: color-mix(in oklab, var(--atc-text) 66%, transparent);
+    --atc-faint: color-mix(in oklab, var(--atc-text) 43%, transparent);
+    --atc-line: color-mix(in oklab, var(--atc-text) 9%, transparent);
+    --atc-line-strong: color-mix(in oklab, var(--atc-text) 18%, transparent);
+    --atc-click-bg: oklch(0.1 0.004 100);
+    --atc-click-fg: oklch(0.92 0.11 101);
+    --atc-click-muted: color-mix(
+        in oklab,
+        var(--atc-click-fg) 72%,
+        var(--atc-card)
+    );
+    --atc-click-border: color-mix(in oklab, var(--atc-orange) 58%, transparent);
+    --atc-focus-bg: oklch(0.95 0.005 100);
+    --atc-focus-fg: oklch(0.13 0.004 100);
+    --atc-focus-edge: var(--atc-orange);
+    --glass-card-top: color-mix(in oklab, var(--atc-high) 30%, transparent);
+    --glass-card-bottom: color-mix(in oklab, var(--atc-bg) 44%, transparent);
+    --glass-card-glint-strong: color-mix(in oklab, var(--atc-text) 12%, transparent);
+    --glass-card-glint-soft: color-mix(in oklab, var(--atc-text) 4%, transparent);
+    --glass-card-border: color-mix(in oklab, var(--atc-text) 14%, transparent);
+    --glass-card-inset: color-mix(in oklab, var(--atc-text) 15%, transparent);
+    --traffic-level-color: oklch(0.72 0.006 100);
 
-    /* Dark aircraft state: calmer than v0.8 console palette. Functional
-       encoding preserved but markers should read as graphic-system dots,
-       not neon. Arrival and unknown are navy-shifted to feel cohesive
-       with the dark blue map canvas. */
-    --aircraft-departure: #b6a074;
-    --aircraft-arrival: #4a98c0;
-    --aircraft-unknown: #7090b8;
-    --aircraft-ground: #7fa88e;
+    /* Dark aircraft state: yellow leads, grey tiers support. */
+    --aircraft-departure: oklch(0.86 0.15 101);
+    --aircraft-arrival: oklch(0.72 0.008 100);
+    --aircraft-unknown: oklch(0.58 0.006 100);
+    --aircraft-ground: oklch(0.76 0.06 104);
 
     --atc-radius-pill: 999px;
     --atc-radius-panel: 4px;
@@ -292,7 +308,7 @@
     --popover: var(--atc-card);
     --popover-foreground: var(--atc-text);
     --primary: var(--atc-accent);
-    --primary-foreground: #0a0a0b;
+    --primary-foreground: oklch(0.12 0.004 100);
     --secondary: var(--atc-elev);
     --secondary-foreground: var(--atc-text);
     --muted: var(--atc-elev);
@@ -303,17 +319,16 @@
     --border: var(--atc-line);
     --input: var(--atc-line-strong);
     --ring: var(--atc-accent);
-    --sidebar: #0a2244;
-    --sidebar-foreground: #f5f7fa;
-    --sidebar-primary: #f5f7fa;
-    --sidebar-primary-foreground: #0a2244;
-    --sidebar-accent: #0f2a52;
-    --sidebar-accent-foreground: #f5f7fa;
-    --sidebar-border: rgba(255, 255, 255, 0.12);
+    --sidebar: var(--atc-card);
+    --sidebar-foreground: var(--atc-text);
+    --sidebar-primary: var(--atc-text);
+    --sidebar-primary-foreground: var(--atc-card);
+    --sidebar-accent: var(--atc-elev);
+    --sidebar-accent-foreground: var(--atc-text);
+    --sidebar-border: var(--atc-line-strong);
     --sidebar-ring: var(--atc-accent);
 
-    /* Brighter glow stops for the dark canvas — the light-blue accent reads
-     * gently here so we can crank the bottom intensity. */
+    /* Brighter glow stops for the dark canvas and yellow active state. */
     --atc-tab-glow: linear-gradient(
         to top,
         color-mix(in oklab, var(--atc-accent) 32%, transparent) 0%,
@@ -340,22 +355,22 @@ body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: color-mix(in oklab, var(--atc-text) 12%, transparent);
     border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: color-mix(in oklab, var(--atc-text) 22%, transparent);
 }
 * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    scrollbar-color: color-mix(in oklab, var(--atc-text) 12%, transparent) transparent;
 }
 
 /* ============================================================
    Leaflet — chart-paper aesthetic.
    Canvas matches the sidebar bg exactly so the two regions read
-   as one surface. Base tiles blend into the canvas (ghost lines
-   on navy / cream paper). City labels recede to a hairline ink.
+   as one surface. Base tiles blend into the canvas as ghosted
+   monochrome manual lines. City labels recede to a hairline ink.
    ============================================================ */
 
 .leaflet-container {
@@ -363,8 +378,7 @@ body {
 }
 
 :root[data-theme="dark"] .atc-tile-base {
-    filter: brightness(0.62) contrast(1) sepia(1) hue-rotate(190deg)
-        saturate(0.85);
+    filter: saturate(0) brightness(0.58) contrast(1.08) sepia(0.32);
     mix-blend-mode: screen;
 }
 
@@ -373,11 +387,8 @@ body {
     opacity: 0.4 !important;
 }
 
-/* Light — same trick toward warm sepia ink. sepia(0.5) gives grays a
-   soft brown cast, multiply blend then lays them onto the cream canvas
-   as ink hairlines in the chart-paper aesthetic. */
-/* Light — saturate(0) removes all tile color; multiply on white canvas
-   renders the map as neutral gray ink, matching the white+navy sidebar. */
+/* Light — saturate(0) removes tile color; multiply on light gray canvas
+   renders the map as neutral ink. */
 :root[data-theme="light"] .atc-tile-base {
     filter: saturate(0) contrast(0.85) brightness(1.02);
     mix-blend-mode: multiply;
@@ -557,9 +568,19 @@ body {
 .search-screen,
 .about-screen {
     background:
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--atc-line) 54%, transparent) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-line) 42%, transparent) 1px,
+            transparent 1px
+        ),
         radial-gradient(
             circle at 22% 12%,
-            var(--tone-accent-strong),
+            var(--tone-orange-warm),
             transparent 32%
         ),
         radial-gradient(
@@ -569,6 +590,13 @@ body {
         ),
         linear-gradient(135deg, var(--tone-accent-wash), transparent 38%),
         var(--atc-bg);
+    background-size:
+        72px 72px,
+        72px 72px,
+        auto,
+        auto,
+        auto,
+        auto;
     isolation: isolate;
     position: relative;
 }
@@ -585,13 +613,13 @@ body {
 }
 
 .dither-page-background {
-    background: #05070b;
+    background: oklch(0.12 0.004 100);
     min-width: 0;
     overflow: hidden;
 }
 
 .dither-background {
-    background: #05070b;
+    background: oklch(0.12 0.004 100);
 }
 
 .dither-background canvas {
@@ -619,15 +647,26 @@ body {
 /* Pill chips — theme toggle + about link share one surface */
 .theme-chip,
 .about-chip {
-    background: var(--tone-card-mid);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 48%, transparent),
+            color-mix(in oklab, var(--atc-card) 76%, transparent)
+        );
     border: 1px solid var(--tone-border-firm);
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--atc-text) 9%, transparent);
     font-family: var(--font-sans);
 }
 
 /* Selectable rows — featured search rows + about data-source rows */
 .search-row,
 .about-source {
-    background: var(--tone-card-soft);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 20%, transparent),
+            color-mix(in oklab, var(--atc-card) 72%, transparent)
+        );
     border: 1px solid var(--tone-border-strong);
     border-radius: var(--atc-radius-panel);
 }
@@ -641,7 +680,7 @@ body {
 .search-row--featured {
     background: linear-gradient(
         100deg,
-        var(--tone-accent-warm),
+        var(--tone-orange-warm),
         var(--tone-card-mid)
     );
 }
@@ -660,7 +699,7 @@ body {
 }
 
 .search-input:focus-within {
-    outline: 2px solid var(--atc-text);
+    outline: 2px solid var(--atc-orange);
     outline-offset: 2px;
 }
 
@@ -690,7 +729,7 @@ body {
     background:
         radial-gradient(
             circle at 100% 0%,
-            color-mix(in oklab, var(--atc-accent) 18%, transparent),
+            color-mix(in oklab, var(--atc-orange) 16%, transparent),
             transparent 42%
         ),
         linear-gradient(
@@ -709,7 +748,7 @@ body {
     background: linear-gradient(
         90deg,
         transparent,
-        var(--tone-accent-edge),
+        var(--tone-orange-edge),
         transparent
     );
     content: "";
@@ -723,7 +762,7 @@ body {
     font-family: var(--font-sans);
     font-size: clamp(44px, 8vw, 88px);
     font-weight: 900;
-    letter-spacing: -0.04em;
+    letter-spacing: 0;
 }
 
 .airport-screen {
@@ -1020,7 +1059,7 @@ body {
     flex-shrink: 0;
     font-size: clamp(68px, 8.5vw, 126px);
     font-weight: 800;
-    letter-spacing: -0.04em;
+    letter-spacing: 0;
     line-height: 0.82;
 }
 
@@ -1056,7 +1095,7 @@ body {
     color: var(--atc-text);
     font-size: clamp(34px, 4.7vw, 66px);
     font-weight: 800;
-    letter-spacing: -0.055em;
+    letter-spacing: 0;
     line-height: 0.92;
     margin: 0;
     max-width: 1120px;
@@ -1673,7 +1712,7 @@ body {
 }
 
 .temp-card__band-marker {
-    border: 1px solid color-mix(in oklab, var(--atc-bg) 80%, white);
+    border: 1px solid color-mix(in oklab, var(--atc-bg) 80%, var(--atc-text));
     height: 13px;
     position: absolute;
     top: 50%;
@@ -1687,7 +1726,7 @@ body {
 }
 
 .temp-card__band-marker--dew {
-    background: color-mix(in oklab, var(--atc-mint) 82%, white);
+    background: color-mix(in oklab, var(--atc-mint) 82%, var(--atc-text));
     left: var(--dew-pct);
 }
 
@@ -1877,7 +1916,12 @@ body {
 
 .mobile-top-nav {
     align-items: center;
-    background: var(--atc-bg);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 42%, transparent),
+            color-mix(in oklab, var(--atc-bg) 96%, transparent)
+        );
     border-bottom: 1px solid var(--atc-line-strong);
     box-sizing: border-box;
     gap: 1rem;
@@ -1901,18 +1945,19 @@ body {
 
 .airport-map-menu {
     align-items: center;
-    --atc-bg: #ffffff;
-    --atc-card: #f4f4f4;
-    --atc-elev: #ebebeb;
-    --atc-accent: #244164;
-    --atc-orange: var(--atc-accent);
-    --atc-text: #0b1220;
-    --atc-dim: rgba(14, 26, 43, 0.66);
-    --atc-faint: rgba(14, 26, 43, 0.5);
-    --atc-line: rgba(14, 26, 43, 0.1);
-    --atc-line-strong: rgba(14, 26, 43, 0.2);
-    background: #ffffff;
-    border-bottom: 1px solid rgba(14, 26, 43, 0.2);
+    background:
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--atc-orange) 12%, transparent),
+            transparent 34%,
+            color-mix(in oklab, var(--atc-accent) 8%, transparent)
+        ),
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 48%, transparent),
+            color-mix(in oklab, var(--atc-bg) 96%, transparent)
+        );
+    border-bottom: 1px solid var(--atc-line-strong);
     box-sizing: border-box;
     display: flex;
     height: 44px;
@@ -1923,18 +1968,7 @@ body {
 }
 
 :root[data-theme="dark"] .airport-map-menu {
-    --atc-bg: #05070b;
-    --atc-card: #0a1220;
-    --atc-elev: #101b2c;
-    --atc-accent: #8fb7d6;
-    --atc-orange: var(--atc-accent);
-    --atc-text: #f5f7fa;
-    --atc-dim: rgba(199, 224, 245, 0.7);
-    --atc-faint: rgba(199, 224, 245, 0.5);
-    --atc-line: rgba(199, 224, 245, 0.12);
-    --atc-line-strong: rgba(199, 224, 245, 0.24);
-    background: #05070b;
-    border-bottom-color: rgba(199, 224, 245, 0.24);
+    border-bottom-color: var(--atc-line-strong);
 }
 
 .airport-map-menu--desktop {
@@ -1990,15 +2024,22 @@ body {
 
 .map-ctrl-bar {
     align-items: center;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 42%, transparent),
+            color-mix(in oklab, var(--atc-card) 78%, transparent)
+        );
+    border: 1px solid var(--atc-line-strong);
+    border-radius: var(--atc-radius-control);
+    box-shadow:
+        0 10px 24px color-mix(in oklab, var(--atc-bg) 48%, transparent),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 9%, transparent);
     display: flex;
     flex-direction: row;
-    gap: 2px;
+    gap: 1px;
     overflow: visible;
-    padding: 0;
+    padding: 3px;
     position: relative;
     transform: none;
     transition:
@@ -2008,7 +2049,18 @@ body {
 }
 
 .map-ctrl-bar::before {
-    content: none;
+    background: linear-gradient(
+        90deg,
+        var(--tone-orange-edge),
+        transparent 44%,
+        color-mix(in oklab, var(--atc-accent) 58%, transparent)
+    );
+    content: "";
+    height: 1px;
+    inset: 0 0 auto;
+    opacity: 0.66;
+    pointer-events: none;
+    position: absolute;
 }
 
 .map-ctrl-bar:hover,
@@ -2018,10 +2070,17 @@ body {
 
 .map-action-drawer {
     align-items: center;
-    background: var(--atc-bg);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 36%, transparent),
+            color-mix(in oklab, var(--atc-card) 92%, transparent)
+        );
     border: 1px solid var(--atc-line-strong);
     border-radius: var(--atc-radius-control);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+    box-shadow:
+        0 14px 28px color-mix(in oklab, var(--atc-bg) 68%, transparent),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 8%, transparent);
     display: flex;
     flex-direction: row;
     gap: 2px;
@@ -2071,7 +2130,7 @@ body {
 
 .map-layer-group__label {
     align-items: center;
-    color: var(--atc-faint);
+    color: color-mix(in oklab, var(--atc-orange) 76%, var(--atc-faint));
     display: flex;
     font-family: "JetBrains Mono", monospace;
     font-size: 8px;
@@ -2083,7 +2142,11 @@ body {
 }
 
 .map-layer-group__label::after {
-    background: color-mix(in oklab, var(--atc-line-strong) 72%, transparent);
+    background: linear-gradient(
+        90deg,
+        var(--tone-orange-edge),
+        color-mix(in oklab, var(--atc-line-strong) 52%, transparent)
+    );
     content: "";
     flex: 1;
     height: 1px;
@@ -2091,7 +2154,7 @@ body {
 }
 
 .map-layer-drawer__toggles {
-    background: color-mix(in oklab, var(--atc-line) 22%, transparent);
+    background: color-mix(in oklab, var(--atc-bg) 34%, transparent);
     border: 1px solid color-mix(in oklab, var(--atc-line) 72%, transparent);
     border-radius: var(--atc-radius-control);
     display: grid;
@@ -2169,7 +2232,7 @@ body {
 }
 
 .map-layer-toggle {
-    background: color-mix(in oklab, var(--atc-card) 34%, transparent);
+    background: color-mix(in oklab, var(--atc-elev) 42%, transparent);
     color: var(--atc-dim);
 }
 
@@ -2232,6 +2295,7 @@ body {
     transition:
         background 0.15s ease,
         border-color 0.15s ease,
+        box-shadow 0.15s ease,
         color 0.15s ease;
 }
 
@@ -2242,11 +2306,29 @@ body {
     color: var(--atc-text);
 }
 
+.procedure-inspector-runway:focus-visible,
+.procedure-inspector-toggle:focus-visible {
+    background: var(--atc-focus-bg);
+    border-color: var(--atc-focus-edge);
+    box-shadow:
+        inset 0 0 0 1px var(--atc-focus-edge),
+        0 0 0 2px color-mix(in oklab, var(--atc-focus-edge) 24%, transparent);
+    color: var(--atc-focus-fg);
+    outline: none;
+}
+
 .procedure-inspector-runway--active,
 .procedure-inspector-toggle--active {
-    background: color-mix(in oklab, var(--atc-accent) 15%, transparent);
-    border-color: color-mix(in oklab, var(--atc-accent) 62%, transparent);
-    color: var(--atc-accent);
+    background: var(--atc-click-bg);
+    border-color: var(--atc-click-border);
+    box-shadow:
+        inset 0 -2px 0 var(--atc-focus-edge),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-focus-edge) 26%, transparent);
+    color: var(--atc-click-fg);
+}
+
+.procedure-inspector-runway--active small {
+    color: var(--atc-click-muted);
 }
 
 .procedure-inspector-runway small {
@@ -2293,8 +2375,13 @@ body {
 
 .ctrl-btn {
     align-items: center;
-    background: transparent;
-    border: 1px solid transparent;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 36%, transparent),
+            color-mix(in oklab, var(--atc-bg) 20%, transparent)
+        );
+    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 62%, transparent);
     border-radius: var(--atc-radius-control);
     color: var(--atc-faint);
     cursor: pointer;
@@ -2306,13 +2393,19 @@ body {
     transition:
         background 0.15s ease,
         border-color 0.15s ease,
-        color 0.15s ease;
+        color 0.15s ease,
+        box-shadow 0.15s ease;
     width: 32px;
 }
 
 .ctrl-btn:focus-visible {
-    outline: 2px solid color-mix(in oklab, var(--atc-accent) 55%, transparent);
-    outline-offset: 2px;
+    background: var(--atc-focus-bg);
+    border-color: var(--atc-focus-edge);
+    box-shadow:
+        inset 0 0 0 1px var(--atc-focus-edge),
+        0 0 0 2px color-mix(in oklab, var(--atc-focus-edge) 28%, transparent);
+    color: var(--atc-focus-fg);
+    outline: none;
 }
 
 .ctrl-btn svg {
@@ -2321,20 +2414,35 @@ body {
 }
 
 .ctrl-btn:hover {
-    background: color-mix(in oklab, var(--atc-line) 60%, transparent);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-high) 38%, transparent),
+            color-mix(in oklab, var(--atc-elev) 34%, transparent)
+        );
     border-color: var(--atc-line-strong);
-    color: var(--atc-dim);
+    color: var(--atc-text);
 }
 
 .ctrl-btn.active {
-    background: color-mix(in oklab, var(--atc-accent) 12%, transparent);
-    border-color: color-mix(in oklab, var(--atc-accent) 40%, transparent);
-    color: var(--atc-accent);
+    background: var(--atc-click-bg);
+    border-color: var(--atc-click-border);
+    box-shadow:
+        inset 0 -2px 0 var(--atc-focus-edge),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-focus-edge) 22%, transparent),
+        0 0 14px color-mix(in oklab, var(--atc-focus-edge) 12%, transparent);
+    color: var(--atc-click-fg);
 }
 
 
 .ctrl-sep {
-    background: var(--atc-line-strong);
+    background: linear-gradient(
+        180deg,
+        transparent,
+        var(--tone-orange-edge),
+        var(--atc-line-strong),
+        transparent
+    );
     border-radius: var(--atc-radius-control);
     height: 18px;
     margin: 0 4px;
@@ -2342,9 +2450,12 @@ body {
 }
 
 .ctrl-audio.playing {
-    border-color: color-mix(in oklab, var(--atc-accent) 50%, transparent);
-    color: var(--atc-accent);
-    box-shadow: 0 0 10px color-mix(in oklab, var(--atc-accent) 14%, transparent);
+    background: var(--atc-click-bg);
+    border-color: var(--atc-click-border);
+    color: var(--atc-click-fg);
+    box-shadow:
+        inset 0 -2px 0 var(--atc-focus-edge),
+        0 0 10px color-mix(in oklab, var(--atc-focus-edge) 14%, transparent);
 }
 
 .ctrl-audio.loading {
@@ -2422,7 +2533,7 @@ body {
 }
 
 :root[data-theme="dark"] {
-    --map-label-glow: #041a38;
+    --map-label-glow: oklch(0.12 0.004 100);
 }
 
 .leaflet-marker-icon {
@@ -2905,7 +3016,7 @@ body {
         font-size: 60px;
         font-weight: 800;
         left: 50%;
-        letter-spacing: -0.04em;
+        letter-spacing: 0;
         line-height: 0.85;
         position: absolute;
         top: -8px;
@@ -3039,7 +3150,13 @@ body {
 }
 
 .airport-sidebar {
-    background: var(--atc-bg);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 18%, transparent),
+            transparent 24%
+        ),
+        var(--atc-bg);
     border-right: 1px solid var(--atc-line-strong);
     display: flex;
     flex-direction: column;
@@ -3054,10 +3171,15 @@ body {
     width: var(--app-sidebar-width);
 }
 
-/* Dark sidebar steps up one surface level so it reads as visible navy blue
-   rather than the near-black --atc-bg. The map stays on --atc-bg. */
+/* Dark sidebar steps up one graphite surface level from the near-black map. */
 :root[data-theme="dark"] .airport-sidebar {
-    background: var(--atc-card);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-high) 20%, transparent),
+            transparent 28%
+        ),
+        var(--atc-card);
 }
 
 .airport-map-region {
@@ -3074,6 +3196,7 @@ body {
        flight sidebar's header + nearby-traffic table can run past the
        viewport with no way to reach the bottom. */
     border-right: 0;
+    box-shadow: 0 0 0 1px var(--atc-line-strong);
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
@@ -3100,7 +3223,13 @@ body {
 
 .airport-sidebar-rail {
     align-items: center;
-    border-bottom: 1px solid var(--atc-line);
+    background:
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--atc-orange) 9%, transparent),
+            transparent 36%
+        );
+    border-bottom: 1px solid var(--atc-line-strong);
     display: flex;
     flex-shrink: 0;
     gap: 16px;
@@ -3127,6 +3256,19 @@ body {
     --airport-sidebar-inset: 28px;
     --airport-sidebar-sans: "Inter", var(--font-sans);
     font-family: var(--airport-sidebar-sans);
+    background:
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--atc-line) 52%, transparent) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-line) 36%, transparent) 1px,
+            transparent 1px
+        ),
+        var(--sidebar);
+    background-size: 36px 36px;
 }
 
 .airport-sidebar-panel {
@@ -3149,13 +3291,13 @@ body {
 
 .airport-sidebar-display-mono--hero {
     font-weight: 800;
-    letter-spacing: -0.025em;
+    letter-spacing: 0;
     line-height: 0.95;
 }
 
 .airport-sidebar-display-mono--metric {
     font-weight: 800;
-    letter-spacing: -0.025em;
+    letter-spacing: 0;
     line-height: 0.9;
 }
 
@@ -3165,6 +3307,13 @@ body {
 }
 
 .airport-sidebar-identity {
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--atc-orange) 10%, transparent),
+            transparent 48%
+        );
+    border-bottom: 1px solid var(--atc-line);
     padding: 28px var(--airport-sidebar-inset) 24px;
 }
 
@@ -3173,15 +3322,16 @@ body {
    cards). Auto-divides between columns and across rows so any number of
    cards reads as a coherent panel. */
 .sidebar-metric-grid {
-    border-bottom: 1px solid var(--atc-line);
-    border-top: 1px solid var(--atc-line);
+    background: color-mix(in oklab, var(--atc-bg) 22%, transparent);
+    border-bottom: 1px solid var(--atc-line-strong);
+    border-top: 1px solid var(--atc-line-strong);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .sidebar-metric-card {
     appearance: none;
-    background: transparent;
+    background: color-mix(in oklab, var(--atc-card) 20%, transparent);
     border: 0;
     color: var(--atc-text);
     align-content: center;
@@ -3216,7 +3366,13 @@ body {
    aircraft filter cards use. Fades in over ~360ms when the metric becomes
    active. */
 .sidebar-metric-card::after {
-    background: var(--atc-tab-glow);
+    background:
+        var(--atc-tab-glow),
+        linear-gradient(
+            0deg,
+            color-mix(in oklab, var(--atc-orange) 14%, transparent),
+            transparent 58%
+        );
     content: "";
     inset: 0;
     opacity: 0;
@@ -3255,7 +3411,7 @@ body {
 .sidebar-metric-card__label {
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: 0.04em;
 }
 
 .sidebar-metric-card__value {
@@ -3299,14 +3455,28 @@ body {
 
 .sidebar-metric-card--interactive:hover,
 .sidebar-metric-card--active {
-    background: color-mix(in oklab, var(--atc-card) 58%, transparent);
+    background: color-mix(in oklab, var(--atc-elev) 58%, transparent);
 }
 
 /* Active-tab bottom indicator (the accent-colored line) — preserved from
    the original view-switch design. Painted via inset box-shadow so it
    doesn't push content / disturb the grid layout. */
 .sidebar-metric-card--active {
-    box-shadow: inset 0 -2px 0 var(--atc-accent);
+    background: var(--atc-click-bg);
+    color: var(--atc-click-fg);
+    box-shadow:
+        inset 0 -2px 0 var(--atc-focus-edge),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-focus-edge) 24%, transparent);
+}
+
+.sidebar-metric-card--active .sidebar-metric-card__label,
+.sidebar-metric-card--active .sidebar-metric-card__unit,
+.sidebar-metric-card--active .sidebar-metric-number-flow::part(suffix) {
+    color: var(--atc-click-muted);
+}
+
+.sidebar-metric-card--active .sidebar-metric-card__value {
+    color: var(--atc-click-fg);
 }
 
 .sidebar-metric-card--interactive:focus {
@@ -3314,21 +3484,35 @@ body {
 }
 
 .sidebar-metric-card--interactive:focus-visible {
+    background: var(--atc-focus-bg);
+    color: var(--atc-focus-fg);
     box-shadow:
-        inset 0 0 0 2px var(--atc-accent),
-        inset 0 -2px 0 var(--atc-accent);
+        inset 0 0 0 2px var(--atc-focus-edge),
+        inset 0 -2px 0 var(--atc-focus-edge),
+        0 0 0 2px color-mix(in oklab, var(--atc-focus-edge) 22%, transparent);
+}
+
+.sidebar-metric-card--interactive:focus-visible .sidebar-metric-card__label,
+.sidebar-metric-card--interactive:focus-visible .sidebar-metric-card__unit,
+.sidebar-metric-card--interactive:focus-visible .sidebar-metric-number-flow::part(suffix) {
+    color: color-mix(in oklab, var(--atc-focus-fg) 58%, transparent);
+}
+
+.sidebar-metric-card--interactive:focus-visible .sidebar-metric-card__value {
+    color: var(--atc-focus-fg);
 }
 
 .airport-sidebar-view-switch {
-    border-bottom: 1px solid var(--atc-line);
-    border-top: 1px solid var(--atc-line);
+    background: color-mix(in oklab, var(--atc-bg) 22%, transparent);
+    border-bottom: 1px solid var(--atc-line-strong);
+    border-top: 1px solid var(--atc-line-strong);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .airport-sidebar-view-switch__button {
     appearance: none;
-    background: transparent;
+    background: color-mix(in oklab, var(--atc-card) 20%, transparent);
     border: 0;
     color: var(--atc-text);
     cursor: pointer;
@@ -3359,7 +3543,13 @@ body {
  * the aircraft filter cards. Fades in over ~360ms when the tab becomes
  * active. */
 .airport-sidebar-view-switch__button::after {
-    background: var(--atc-tab-glow);
+    background:
+        var(--atc-tab-glow),
+        linear-gradient(
+            0deg,
+            color-mix(in oklab, var(--atc-orange) 14%, transparent),
+            transparent 58%
+        );
     content: "";
     inset: 0;
     opacity: 0;
@@ -3387,7 +3577,7 @@ body {
 .airport-sidebar-view-switch__button span {
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: 0.04em;
 }
 
 .airport-sidebar-view-switch__button strong {
@@ -3415,11 +3605,24 @@ body {
 
 .airport-sidebar-view-switch__button:hover,
 .airport-sidebar-view-switch__button--active {
-    background: color-mix(in oklab, var(--atc-card) 58%, transparent);
+    background: color-mix(in oklab, var(--atc-elev) 58%, transparent);
 }
 
 .airport-sidebar-view-switch__button--active {
-    box-shadow: inset 0 -2px 0 var(--atc-accent);
+    background: var(--atc-click-bg);
+    color: var(--atc-click-fg);
+    box-shadow:
+        inset 0 -2px 0 var(--atc-focus-edge),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-focus-edge) 24%, transparent);
+}
+
+.airport-sidebar-view-switch__button--active span,
+.airport-sidebar-view-switch__button--active small {
+    color: var(--atc-click-muted);
+}
+
+.airport-sidebar-view-switch__button--active strong {
+    color: var(--atc-click-fg);
 }
 
 .airport-sidebar-view-switch__button:focus {
@@ -3427,9 +3630,21 @@ body {
 }
 
 .airport-sidebar-view-switch__button:focus-visible {
+    background: var(--atc-focus-bg);
+    color: var(--atc-focus-fg);
     box-shadow:
-        inset 0 0 0 1px var(--atc-line-strong),
-        inset 0 -2px 0 var(--atc-accent);
+        inset 0 0 0 2px var(--atc-focus-edge),
+        inset 0 -2px 0 var(--atc-focus-edge),
+        0 0 0 2px color-mix(in oklab, var(--atc-focus-edge) 22%, transparent);
+}
+
+.airport-sidebar-view-switch__button:focus-visible span,
+.airport-sidebar-view-switch__button:focus-visible small {
+    color: color-mix(in oklab, var(--atc-focus-fg) 58%, transparent);
+}
+
+.airport-sidebar-view-switch__button:focus-visible strong {
+    color: var(--atc-focus-fg);
 }
 
 .airport-briefing-stack {
@@ -3665,8 +3880,8 @@ body {
 /* Soft accent glow rising up from the active bottom border. Fades in over
  * ~340ms when the card becomes active so a tab/dropdown switch reads as a
  * "the light just turned on" moment. The gradient itself comes from a
- * theme-scoped variable so light mode (dark navy accent on white) doesn't
- * end up reading as a heavy shadow. */
+ * theme-scoped variable so light mode near-black active states do not read
+ * as a heavy shadow. */
 .aircraft-filter-card::after {
     background: var(--atc-tab-glow);
     content: "";
@@ -3744,16 +3959,41 @@ body {
 
 .aircraft-filter-card[data-active="true"],
 .aircraft-filter-card[data-state="open"] {
-    box-shadow: inset 0 -2px 0 var(--atc-accent);
+    background: var(--atc-click-bg);
+    color: var(--atc-click-fg);
+    box-shadow:
+        inset 0 -2px 0 var(--atc-focus-edge),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-focus-edge) 24%, transparent);
+}
+
+.aircraft-filter-card[data-active="true"] .aircraft-filter-card__label,
+.aircraft-filter-card[data-state="open"] .aircraft-filter-card__label,
+.aircraft-filter-card.aircraft-filter-card--select[data-active="true"] > svg,
+.aircraft-filter-card.aircraft-filter-card--select[data-state="open"] > svg {
+    color: var(--atc-click-muted);
 }
 
 .aircraft-filter-card[data-active="true"] .aircraft-filter-card__value,
 .aircraft-filter-card[data-state="open"] .aircraft-filter-card__value {
-    color: var(--atc-accent);
+    color: var(--atc-click-fg);
 }
 
 .aircraft-filter-card:focus-visible {
-    box-shadow: inset 0 0 0 1px var(--atc-line-strong);
+    background: var(--atc-focus-bg);
+    color: var(--atc-focus-fg);
+    box-shadow:
+        inset 0 0 0 2px var(--atc-focus-edge),
+        inset 0 -2px 0 var(--atc-focus-edge),
+        0 0 0 2px color-mix(in oklab, var(--atc-focus-edge) 22%, transparent);
+}
+
+.aircraft-filter-card:focus-visible .aircraft-filter-card__label,
+.aircraft-filter-card.aircraft-filter-card--select:focus-visible > svg {
+    color: color-mix(in oklab, var(--atc-focus-fg) 58%, transparent);
+}
+
+.aircraft-filter-card:focus-visible .aircraft-filter-card__value {
+    color: var(--atc-focus-fg);
 }
 
 .aircraft-filter-card-content {
@@ -3933,12 +4173,17 @@ body {
     width: auto;
     min-height: 0;
     max-width: min(360px, calc(100vw - 32px));
-    background: var(--tone-card-strong);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 34%, transparent),
+            var(--tone-card-strong)
+        );
     border: 1px solid var(--tone-border-firm);
     border-radius: var(--atc-radius-panel);
-    box-shadow: 0 6px 20px color-mix(in oklab, var(--atc-bg) 60%, transparent);
+    box-shadow:
+        0 6px 20px color-mix(in oklab, var(--atc-bg) 60%, transparent),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 8%, transparent);
     color: var(--atc-text);
 }
 
@@ -3999,7 +4244,7 @@ body {
        divider as the only visual seam. */
     background: var(--atc-card);
     border: 1px solid var(--tone-border-firm);
-    border-radius: 12px;
+    border-radius: var(--atc-radius-panel);
     box-shadow: var(--preview-card-shadow);
     color: var(--atc-text);
     font-family: 'Manrope', system-ui, sans-serif;
@@ -4014,7 +4259,7 @@ body {
     margin: -22px -18px -14px;
     padding: 18px 18px 14px;
     border: 1px solid color-mix(in oklab, var(--tone-border-firm) 74%, transparent);
-    border-radius: 12px;
+    border-radius: var(--atc-radius-panel);
     background:
         linear-gradient(
             180deg,
@@ -4022,10 +4267,8 @@ body {
             color-mix(in oklab, var(--atc-card) 44%, transparent)
         );
     box-shadow:
-        inset 0 1px 0 color-mix(in oklab, white 12%, transparent),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent),
         0 8px 20px color-mix(in oklab, var(--atc-bg) 32%, transparent);
-    -webkit-backdrop-filter: blur(12px) saturate(1.08);
-    backdrop-filter: blur(12px) saturate(1.08);
 }
 
 .aircraft-preview-card--has-photo .aircraft-preview-card__metadata-panel {
@@ -4035,8 +4278,6 @@ body {
             color-mix(in oklab, var(--atc-card) 38%, transparent),
             color-mix(in oklab, var(--atc-card) 24%, transparent)
         );
-    -webkit-backdrop-filter: blur(10px) saturate(1.08);
-    backdrop-filter: blur(10px) saturate(1.08);
 }
 
 .aircraft-preview-card__header {
@@ -4077,7 +4318,7 @@ body {
 
 .aircraft-preview-icon--fallback {
     background: var(--tone-orange-warm);
-    border-radius: 8px;
+    border-radius: var(--atc-radius-panel);
     opacity: 0.36;
 }
 
@@ -4091,10 +4332,7 @@ body {
     height: 178px;
     z-index: 1;
     overflow: hidden;
-    border-top-right-radius: 12px;
-    border-top-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-radius: var(--atc-radius-panel);
     pointer-events: none;
 }
 
@@ -4106,8 +4344,8 @@ body {
     background:
         linear-gradient(
             135deg,
-            color-mix(in oklab, black 8%, transparent),
-            color-mix(in oklab, black 24%, transparent)
+            color-mix(in oklab, var(--atc-bg) 8%, transparent),
+            color-mix(in oklab, var(--atc-bg) 24%, transparent)
         ),
         var(--aircraft-preview-photo);
     background-position: 24% center;
@@ -4130,7 +4368,7 @@ body {
         linear-gradient(
             180deg,
             transparent 0 44%,
-            color-mix(in oklab, black 42%, transparent)
+            color-mix(in oklab, var(--atc-bg) 42%, transparent)
         );
 }
 
@@ -4156,7 +4394,7 @@ body {
     line-height: 1;
     text-align: right;
     text-overflow: ellipsis;
-    text-shadow: 0 1px 4px color-mix(in oklab, black 80%, transparent);
+    text-shadow: 0 1px 4px color-mix(in oklab, var(--atc-bg) 80%, transparent);
     text-transform: uppercase;
     white-space: nowrap;
 }
@@ -4176,7 +4414,7 @@ body {
     font-size: 22px;
     font-weight: 800;
     font-style: italic;
-    letter-spacing: -0.05em;
+    letter-spacing: 0;
     line-height: 1;
     color: var(--atc-text);
     white-space: nowrap;
@@ -4205,8 +4443,8 @@ body {
     box-shadow: inset 0 1px 0 var(--tone-border-firm);
     margin: 0 -18px -14px;
     padding: 0 18px 14px;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: var(--atc-radius-panel);
+    border-bottom-right-radius: var(--atc-radius-panel);
 }
 
 .aircraft-preview-card--has-photo .aircraft-preview-card__pocket {
@@ -4232,8 +4470,8 @@ body {
     bottom: 0;
     overflow: hidden;
     pointer-events: none;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: var(--atc-radius-panel);
+    border-bottom-right-radius: var(--atc-radius-panel);
 }
 
 .aircraft-preview-card__pocket-ghost {
@@ -4289,7 +4527,7 @@ body {
     font-size: 22px;
     font-weight: 800;
     font-style: italic;
-    letter-spacing: -0.05em;
+    letter-spacing: 0;
     line-height: 1;
     color: var(--atc-text);
     min-width: 0;
@@ -4435,7 +4673,7 @@ body {
     width: 100%;
     padding: 18px;
     border: 1px solid var(--tone-border-firm);
-    border-radius: 12px;
+    border-radius: var(--atc-radius-panel);
     background:
         linear-gradient(
             180deg,
@@ -4444,9 +4682,7 @@ body {
         );
     box-shadow:
         var(--preview-card-shadow),
-        inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
-    -webkit-backdrop-filter: blur(12px) saturate(1.08);
-    backdrop-filter: blur(12px) saturate(1.08);
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 9%, transparent);
 }
 
 /* Primary CTA inside the preview card — italic-bold Inter that reads
@@ -4459,9 +4695,15 @@ body {
     margin-top: 14px;
     padding: 10px 14px;
     border: none;
-    border-radius: 6px;
-    background: var(--atc-accent);
-    color: var(--atc-bg);
+    border: 1px solid color-mix(in oklab, var(--atc-orange) 58%, transparent);
+    border-radius: var(--atc-radius-control);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-orange) 26%, var(--atc-accent)),
+            color-mix(in oklab, var(--atc-orange) 18%, var(--atc-accent))
+        );
+    color: var(--primary-foreground);
     font-family: 'Inter', system-ui, sans-serif;
     font-size: 13px;
     font-weight: 700;
@@ -4477,7 +4719,7 @@ body {
 }
 
 .aircraft-preview-card__track-btn:visited {
-    color: var(--atc-bg);
+    color: var(--primary-foreground);
 }
 
 .aircraft-preview-card__track-btn:hover {
@@ -4676,7 +4918,7 @@ body {
     height: var(--aircraft-preview-media-height, 116px);
     overflow: hidden;
     border: 1px solid var(--tone-border-firm);
-    border-radius: 12px;
+    border-radius: var(--atc-radius-panel);
     background:
         linear-gradient(
             180deg,
@@ -4685,7 +4927,7 @@ body {
         );
     box-shadow:
         0 12px 30px color-mix(in oklab, var(--atc-bg) 64%, transparent),
-        inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent);
 }
 
 .aircraft-preview-media-card__photo {
@@ -4694,7 +4936,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: color-mix(in oklab, var(--atc-card) 70%, black 20%);
+    background: color-mix(in oklab, var(--atc-card) 70%, var(--atc-bg) 20%);
     filter: saturate(0.94) contrast(1.04);
 }
 
@@ -4704,8 +4946,8 @@ body {
     inset: 0;
     background: linear-gradient(
         135deg,
-        color-mix(in oklab, black 4%, transparent),
-        color-mix(in oklab, black 20%, transparent)
+        color-mix(in oklab, var(--atc-bg) 4%, transparent),
+        color-mix(in oklab, var(--atc-bg) 20%, transparent)
     );
     pointer-events: none;
 }
@@ -4917,7 +5159,7 @@ body {
     font-size: 18px;
     font-weight: 800;
     font-style: italic;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
     line-height: 1;
     color: var(--atc-text);
 }

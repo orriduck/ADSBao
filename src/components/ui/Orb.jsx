@@ -7,10 +7,10 @@ export default function Orb({
   hoverIntensity = 0.2,
   rotateOnHover = true,
   forceHoverState = false,
-  backgroundColor = "#000000",
-  color1 = "#9c43fe",
-  color2 = "#4cc2e9",
-  color3 = "#101499",
+  backgroundColor = "#171714",
+  color1 = "#ffe900",
+  color2 = "#f3f0df",
+  color3 = "#34332b",
 }) {
   const ctnDom = useRef(null);
 

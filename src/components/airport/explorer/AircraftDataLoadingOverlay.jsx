@@ -65,10 +65,10 @@ export default function AircraftDataLoadingOverlay({ active }) {
     >
       <div className="adsb-loading-orb-shell" aria-hidden="true">
         <Orb
-          backgroundColor={isLightTheme ? "#ffffff" : "#05070b"}
-          color1={isLightTheme ? "#244164" : "#8fb7d6"}
-          color2={isLightTheme ? "#6f8fab" : "#c7e0f5"}
-          color3={isLightTheme ? "#d9e7f2" : "#244164"}
+          backgroundColor={isLightTheme ? "#e8e7e1" : "#171714"}
+          color1={isLightTheme ? "#24231f" : "#ffe900"}
+          color2={isLightTheme ? "#ffe900" : "#f3f0df"}
+          color3={isLightTheme ? "#cfcfc8" : "#34332b"}
           forceHoverState={false}
           hoverIntensity={0}
           hue={0}
