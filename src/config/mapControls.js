@@ -4,7 +4,17 @@ import {
   ZOOM_DETAIL,
 } from "../utils/airportMapDisplay.js";
 
-export const MAP_FOCUS_VIDEO_ID = "i4PuYS2Yy2A";
+// Per-primary focus-mode YouTube video. The map is keyed by the same
+// values the primary-color hook uses (yellow / teal) so switching the
+// accent palette also swaps the focus-mode audio.
+export const MAP_FOCUS_VIDEO_BY_PRIMARY = {
+  yellow: "i4PuYS2Yy2A",
+  teal: "VmTfpAgX2",
+};
+export const MAP_FOCUS_VIDEO_DEFAULT = MAP_FOCUS_VIDEO_BY_PRIMARY.yellow;
+// Backwards-compat re-export — left for any caller still expecting the
+// single-ID form.
+export const MAP_FOCUS_VIDEO_ID = MAP_FOCUS_VIDEO_DEFAULT;
 
 export const MAP_ZOOM_OPTIONS = [
   { value: ZOOM_APPROACH, title: "Approaching view", iconKey: "planeLanding" },

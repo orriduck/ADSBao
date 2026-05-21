@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MAP_FOCUS_VIDEO_ID } from "../../../config/mapControls.js";
+import { MAP_FOCUS_VIDEO_DEFAULT } from "../../../config/mapControls.js";
 
-export function useFocusAudio() {
+export function useFocusAudio(videoId = MAP_FOCUS_VIDEO_DEFAULT) {
   const playerHost = useRef(null);
   const player = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [audioReady, setAudioReady] = useState(false);
+  const currentVideoIdRef = useRef(videoId);
 
   useEffect(() => {
     const playerHostEl = playerHost.current;
@@ -25,11 +26,11 @@ export function useFocusAudio() {
       player.current = new window.YT.Player(playerTarget, {
         height: 1,
         width: 1,
-        videoId: MAP_FOCUS_VIDEO_ID,
+        videoId: currentVideoIdRef.current,
         playerVars: {
           autoplay: 0,
           loop: 1,
-          playlist: MAP_FOCUS_VIDEO_ID,
+          playlist: currentVideoIdRef.current,
           controls: 0,
           playsinline: 1,
           rel: 0,
@@ -53,6 +54,26 @@ export function useFocusAudio() {
       playerHostEl.replaceChildren();
     };
   }, []);
+
+  // Swap to a new video without tearing down the player. Calling
+  // loadVideoById preserves the iframe + listeners, keeps the
+  // playing/paused state visible to the UI, and starts the new track
+  // immediately if the user was already in focus mode (which is the
+  // right UX — selecting a new accent means selecting its track).
+  useEffect(() => {
+    if (videoId === currentVideoIdRef.current) return;
+    currentVideoIdRef.current = videoId;
+    if (!audioReady || !player.current) return;
+    const wasPlaying = playing;
+    // cueVideoById buffers without auto-play; loadVideoById plays
+    // immediately. Match the previous play state so a paused user
+    // doesn't suddenly hear audio after a primary-color switch.
+    if (wasPlaying) {
+      player.current.loadVideoById({ videoId, suggestedQuality: "small" });
+    } else {
+      player.current.cueVideoById({ videoId, suggestedQuality: "small" });
+    }
+  }, [videoId, audioReady, playing]);
 
   const toggleAudio = () => {
     if (!player.current || !audioReady) return;

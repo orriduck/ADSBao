@@ -1,8 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import { MAP_ZOOM_OPTIONS } from "../../config/mapControls.js";
+import {
+  MAP_FOCUS_VIDEO_BY_PRIMARY,
+  MAP_FOCUS_VIDEO_DEFAULT,
+  MAP_ZOOM_OPTIONS,
+} from "../../config/mapControls.js";
 import { useThemePreference } from "../../features/app-shell/useThemePreference.js";
+import { usePrimaryColor } from "../../features/app-shell/usePrimaryColor.js";
 import MapControlRail from "@/components/map/controls/MapControlRail.jsx";
 import MapLayerDrawer from "@/components/map/controls/MapLayerDrawer.jsx";
 import {
@@ -30,7 +35,11 @@ export default function MapControlBar({
   const controlZone = useRef(null);
   const [layerDrawerOpen, setLayerDrawerOpen] = useState(false);
   const { themePreference, themeTitle, cycleTheme } = useThemePreference();
-  const { playerHost, playing, audioReady, toggleAudio } = useFocusAudio();
+  const { primary } = usePrimaryColor();
+  const focusVideoId =
+    MAP_FOCUS_VIDEO_BY_PRIMARY[primary] ?? MAP_FOCUS_VIDEO_DEFAULT;
+  const { playerHost, playing, audioReady, toggleAudio } =
+    useFocusAudio(focusVideoId);
 
   const currentZoomOption = useMemo(
     () => resolveZoomOption(activeZoom, MAP_ZOOM_OPTIONS),
