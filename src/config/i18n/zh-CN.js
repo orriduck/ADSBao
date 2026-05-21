@@ -230,8 +230,8 @@ const zhCN = {
   },
   primary: {
     menuLabel: "主色调",
-    yellow: "黄色",
-    teal: "青色",
+    yellow: "四号谷地",
+    teal: "武陵",
   },
   ui: {
     close: "关闭",

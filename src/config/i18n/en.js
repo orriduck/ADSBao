@@ -234,8 +234,8 @@ const en = {
   },
   primary: {
     menuLabel: "Accent",
-    yellow: "Yellow",
-    teal: "Teal",
+    yellow: "Valley IV",
+    teal: "Wuling",
   },
   ui: {
     close: "Close",
