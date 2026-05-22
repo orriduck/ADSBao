@@ -6,49 +6,46 @@ import {
 } from "./clerkRouteProviderAccess.js";
 
 assert.equal(buildClerkUserAccessEntity(null), undefined);
-assert.deepEqual(
-  buildClerkUserAccessEntity({
-    id: "user_123",
-    primaryEmailAddress: { emailAddress: "owner@example.com" },
-    fullName: "Owner Pilot",
-  }),
-  {
-    id: "user_123",
-    email: "owner@example.com",
-    name: "Owner Pilot",
-  },
-);
-assert.deepEqual(
-  buildClerkUserAccessEntity({
-    id: "user_456",
-    emailAddresses: [{ emailAddress: "fallback@example.com" }],
-  }),
-  {
-    id: "user_456",
-    email: "fallback@example.com",
-    name: "",
-  },
-);
+assert.equal(buildClerkUserAccessEntity({}), undefined);
+
 assert.deepEqual(
   buildClerkUserAccessEntity({
     id: "user_owner",
-    primaryEmailAddress: { emailAddress: " Ruyyi0323@Gmail.com " },
+    publicMetadata: { flightAwareEnabled: true },
   }),
-  {
-    id: "user_owner",
-    email: "ruyyi0323@gmail.com",
-    name: "",
-  },
+  { id: "user_owner", flightAwareEnabled: true },
 );
-assert.equal(
-  isFlightAwareOwnerEntity({ email: "ruyyi0323@gmail.com" }),
-  true,
+
+assert.deepEqual(
+  buildClerkUserAccessEntity({
+    id: "user_other",
+    publicMetadata: { flightAwareEnabled: false },
+  }),
+  { id: "user_other", flightAwareEnabled: false },
 );
-assert.equal(
-  isFlightAwareOwnerEntity({ email: " Ruyyi0323@Gmail.com " }),
-  true,
+
+assert.deepEqual(
+  buildClerkUserAccessEntity({ id: "user_blank" }),
+  { id: "user_blank", flightAwareEnabled: false },
 );
+
+// Only strict `=== true` unlocks the flag — string "true" or 1 stays off.
 assert.equal(
-  isFlightAwareOwnerEntity({ email: "owner@example.com" }),
+  buildClerkUserAccessEntity({
+    id: "u",
+    publicMetadata: { flightAwareEnabled: "true" },
+  }).flightAwareEnabled,
   false,
 );
+assert.equal(
+  buildClerkUserAccessEntity({
+    id: "u",
+    publicMetadata: { flightAwareEnabled: 1 },
+  }).flightAwareEnabled,
+  false,
+);
+
+assert.equal(isFlightAwareOwnerEntity({ flightAwareEnabled: true }), true);
+assert.equal(isFlightAwareOwnerEntity({ flightAwareEnabled: false }), false);
+assert.equal(isFlightAwareOwnerEntity({}), false);
+assert.equal(isFlightAwareOwnerEntity(undefined), false);
