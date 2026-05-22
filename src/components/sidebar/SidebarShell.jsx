@@ -2,6 +2,7 @@
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import RequestPulseDots from "@/components/ui/RequestPulseDots";
+import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Shared chrome for the airport + flight sidebars. Handles:
@@ -22,6 +23,7 @@ export default function SidebarShell({
   variant = "airport",
 }) {
   const { t } = useI18n();
+  const flightAwareEnabled = useFlightAwareEnabled();
   const isMobileOverlay = Boolean(onClose);
   const updatedLabel = formatUpdated(lastUpdated);
 
@@ -58,15 +60,28 @@ export default function SidebarShell({
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         ) : (
-          <span
-            className={`airport-feed-status airport-feed-status--${feedStatus} inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
-          >
-            {feedSource ? (
-              <span className="airport-feed-status__source">{feedSource}</span>
+          <div className="flex flex-col items-end gap-0.5">
+            <span
+              className={`airport-feed-status airport-feed-status--${feedStatus} inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
+            >
+              {feedSource ? (
+                <span className="airport-feed-status__source">{feedSource}</span>
+              ) : null}
+              <RequestPulseDots ariaLabel={t("app.feedLive")} />
+              {updatedLabel ? <span key={updatedLabel}>{updatedLabel}</span> : null}
+            </span>
+            {flightAwareEnabled ? (
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-atc-orange">
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-1.5 w-1.5 rotate-45 bg-atc-orange"
+                />
+                <span className="notranslate" translate="no">
+                  FlightAware
+                </span>
+              </span>
             ) : null}
-            <RequestPulseDots ariaLabel={t("app.feedLive")} />
-            {updatedLabel ? <span key={updatedLabel}>{updatedLabel}</span> : null}
-          </span>
+          </div>
         )}
       </div>
 

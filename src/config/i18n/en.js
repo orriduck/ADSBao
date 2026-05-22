@@ -227,9 +227,8 @@ const en = {
     subtitle: "Signal lost",
     title: "{callsign} stopped reporting",
     description:
-      "The aircraft may have landed or moved out of coverage. The last known position and trace are still on the map.",
-    keep: "Keep showing current trace",
-    retry: "Try again",
+      "The aircraft may have landed or moved out of coverage. The last known position and trace are still on the map. Tracking keeps polling in the background — if the signal comes back the live view resumes automatically.",
+    acknowledge: "Keep current view",
     home: "Back to home",
     ariaLabel: "Signal lost",
   },

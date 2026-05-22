@@ -79,6 +79,11 @@ const OVERRIDE_ROUTE = Object.freeze({
   assert.deepEqual(calls, ["flightaware"]);
 }
 
+// FA mode is exclusive: when FlightAware is enabled and the scraper
+// returns null, we do NOT fall back to adsbdb. FA-tier users always
+// receive FA-sourced metadata (or no route at all) so the origin/
+// destination/airline shown in the UI never silently downgrades to
+// the adsbdb static dataset.
 {
   const calls = [];
   const route = await resolveFlightRoute({
@@ -95,6 +100,6 @@ const OVERRIDE_ROUTE = Object.freeze({
     },
   });
 
-  assert.equal(route, ADSBDB_ROUTE);
-  assert.deepEqual(calls, ["flightaware", "adsbdb"]);
+  assert.equal(route, null);
+  assert.deepEqual(calls, ["flightaware"]);
 }

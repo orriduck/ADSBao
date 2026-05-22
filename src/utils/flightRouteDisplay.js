@@ -64,14 +64,18 @@ export const formatFlightRouteMunicipalityLabel = (route) => {
 // raw url that some providers attach — direct hot-links to the upstream
 // CDN get blocked / 403'd in the browser, and the proxy lets both
 // FlightAware and adsbdb routes share the same URL shape so adsbdb users
-// see logos too. Returns "" when the airline code isn't a valid 2-3
-// alphanumeric.
+// see logos too.
+//
+// Strictly 2-3 alphabetic chars. The FlightAware parser falls back to
+// the first 3 chars of the callsign when no airline meta is in the page,
+// so for US general-aviation tail numbers (callsign like N123AB) we'd
+// otherwise request /api/proxy/airlines/N12 which 404s upstream. The
+// alphabetic-only guard short-circuits those before they hit the network.
 export const getFlightRouteAirlineIconUrl = (route) => {
   const code = String(route?.airlineIcao || route?.airline?.icao || '')
     .trim()
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '')
-  if (code.length < 2 || code.length > 3) return ''
+  if (!/^[A-Z]{2,3}$/.test(code)) return ''
   return `/api/proxy/airlines/${code}`
 }
 

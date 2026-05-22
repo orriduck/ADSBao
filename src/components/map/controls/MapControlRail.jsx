@@ -1,5 +1,7 @@
 "use client";
 
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { LogIn } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { Button } from "@/components/ui/button.jsx";
@@ -24,6 +26,8 @@ export default function MapControlRail({
   onToggleLayerDrawer,
 }) {
   const { t } = useI18n();
+  const { isLoaded, isSignedIn } = useUser();
+  const showSignedIn = isLoaded && isSignedIn;
   return (
     <div className="map-ctrl-bar">
       {onFitToTrace && (
@@ -89,6 +93,41 @@ export default function MapControlRail({
       >
         <MapControlIcon iconKey={LAYERS_ICON_KEY} />
       </Button>
+
+      <div className="ctrl-sep" />
+
+      {/* Clerk auth — signed-in users get the UserButton avatar /
+          dropdown, signed-out users get a Sign-in CTA styled like the
+          other ctrl-btns. Uses useUser() (same shared ClerkProvider
+          context every other page reads from) so the state is global,
+          not page-local. While Clerk is still hydrating the session
+          we render a reserved 32px slot so the toolbar doesn't reflow
+          and a signed-in user doesn't see the sign-in icon flicker
+          first. */}
+      {!isLoaded ? (
+        <div className="ctrl-user-button" aria-hidden="true" />
+      ) : showSignedIn ? (
+        <div className="ctrl-user-button" aria-label={t("auth.account")}>
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "h-7 w-7 rounded-[2px]",
+              },
+            }}
+          />
+        </div>
+      ) : (
+        <SignInButton mode="modal">
+          <button
+            type="button"
+            className="ctrl-btn ctrl-sign-in"
+            title={t("auth.signIn")}
+            aria-label={t("auth.signIn")}
+          >
+            <LogIn className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </SignInButton>
+      )}
     </div>
   );
 }
