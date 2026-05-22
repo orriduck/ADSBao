@@ -26,13 +26,26 @@ export function useFlightAwareEnabled() {
     if (!isLoaded || !isSignedIn || !user?.id) return;
     if (reloadedFor.current === user.id) return;
     reloadedFor.current = user.id;
-    user.reload?.().catch(() => {
-      // Network blip / Clerk transient — fine to ignore. If the reload
-      // failed the cached value is still in place; next mount will try
-      // again.
+    user.reload?.().catch((error) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[flightaware-enabled] user.reload() failed", error);
+      }
     });
   }, [isLoaded, isSignedIn, user]);
 
   if (!isLoaded || !isSignedIn || !user) return false;
-  return isFlightAwareOwnerEntity(buildClerkUserAccessEntity(user));
+  const entity = buildClerkUserAccessEntity(user);
+  const enabled = isFlightAwareOwnerEntity(entity);
+
+  // Dev-only single-line trace so the gating decision is visible in the
+  // browser console — exact value of publicMetadata.flightAwareEnabled,
+  // its type, and the resolved boolean. Mirrors the server-side gate
+  // log in flightRoutes.mechanism.js.
+  if (process.env.NODE_ENV !== "production") {
+    const raw = user.publicMetadata?.flightAwareEnabled;
+    console.info(
+      `[flightaware-enabled] clerkUser=${user.id} primaryEmail=${user.primaryEmailAddress?.emailAddress || "(none)"} flightAwareEnabled.raw=${JSON.stringify(raw)} typeof=${typeof raw} → ${enabled}`,
+    );
+  }
+  return enabled;
 }
