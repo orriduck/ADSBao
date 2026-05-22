@@ -332,7 +332,9 @@ function FlightExplorerContent({ callsign }) {
             focalRangeRings={false}
             nearbyRangeRings={{ intervalNm: 5, maxNm: 5, prominent: true }}
           >
-            <MapFitToTraceController />
+            <MapFitToTraceController
+              routeEndpoints={enrichedTrackedAircraft?.flightRoute || null}
+            />
             <PredictedRouteLine
               // Draw whenever we have a route with usable destination
               // coords — the line is just a visual projection of the
