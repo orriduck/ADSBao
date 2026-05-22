@@ -189,6 +189,47 @@ export function mergeTracesByPriority({ sources = [] } = {}) {
     .sort((a, b) => a.timestampMs - b.timestampMs);
 }
 
+// Drop the leading portion of a sorted-by-timestamp trace when there's
+// an implausibly fast jump between adjacent points. Any pair implying a
+// ground speed beyond `maxGroundSpeedKnots` is treated as data error
+// — a stale localStorage point bleeding into a fresh fetch, a
+// cross-flight contamination from an ICAO24 reused later that day, a
+// sensor glitch — and everything up to and including the older side
+// of that jump is discarded. The trailing contiguous tail (which
+// includes the current live position) is what the renderer should
+// show.
+//
+// Threshold of 1500 kt is well above the fastest civil cruise (~600 kt)
+// and above military supersonic (~1300 kt), so any pair beating it is
+// almost certainly bogus rather than a legitimate long-distance gap.
+// Catmull-Rom can't visually distinguish a real 500-nm gap from a
+// stale-data 500-nm jump, so this guard is what stops the renderer
+// from drawing a single long straight line across the artifact.
+const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
+
+export function trimImplausibleTraceSegments(
+  points = [],
+  maxGroundSpeedKnots = TRACE_MAX_GROUND_SPEED_KNOTS,
+) {
+  if (!Array.isArray(points) || points.length < 2) return points;
+  let firstKeptIndex = 0;
+  for (let i = points.length - 1; i > 0; i--) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const gapMs = Number(curr?.timestampMs) - Number(prev?.timestampMs);
+    if (!Number.isFinite(gapMs) || gapMs <= 0) continue;
+    const distanceNm = getDistanceNm(prev.lat, prev.lon, curr.lat, curr.lon);
+    if (!Number.isFinite(distanceNm)) continue;
+    // distance / time → knots. distanceNm is nautical miles, gapMs is ms.
+    const groundSpeedKnots = (distanceNm / gapMs) * 3_600_000;
+    if (groundSpeedKnots > maxGroundSpeedKnots) {
+      firstKeptIndex = i;
+      break;
+    }
+  }
+  return firstKeptIndex === 0 ? points : points.slice(firstKeptIndex);
+}
+
 export function mergeTraceHistory({
   recentTrace = [],
   fallbackHistory = [],

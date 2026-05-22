@@ -7,6 +7,7 @@ import {
   mergeTracesByPriority,
   normalizeAdsbTracePayload,
   createAircraftTraceTracker,
+  trimImplausibleTraceSegments,
 } from "./aircraftTraceModel.js";
 
 {
@@ -231,6 +232,71 @@ import {
   });
   assert.equal(orderOne[0].altitude, 200);
   assert.equal(orderTwo[0].altitude, 200);
+}
+
+// --- trimImplausibleTraceSegments -----------------------------------
+
+// Empty / too-short input passes through untouched.
+assert.deepEqual(trimImplausibleTraceSegments([]), []);
+assert.deepEqual(
+  trimImplausibleTraceSegments([{ lat: 42, lon: -71, timestampMs: 1_000 }]),
+  [{ lat: 42, lon: -71, timestampMs: 1_000 }],
+);
+
+// A normal cruise trace — 4 points over BOS area, ~5 min apart,
+// reasonable ground speed — survives unchanged.
+{
+  const points = [
+    { lat: 42.36, lon: -71.0, timestampMs: 1_700_000_000_000 },
+    { lat: 42.40, lon: -71.2, timestampMs: 1_700_000_300_000 },
+    { lat: 42.44, lon: -71.4, timestampMs: 1_700_000_600_000 },
+    { lat: 42.48, lon: -71.6, timestampMs: 1_700_000_900_000 },
+  ];
+  assert.deepEqual(trimImplausibleTraceSegments(points), points);
+}
+
+// Stale persisted point that "jumps" several thousand miles in a few
+// seconds — must be dropped. Only the contiguous tail (the legitimate
+// fresh segment) is kept.
+{
+  const stale = { lat: 33.6, lon: -84.4, timestampMs: 1_700_000_000_000 }; // ATL
+  const fresh = [
+    { lat: 42.36, lon: -71.0, timestampMs: 1_700_000_010_000 }, // 10s later, BOS — implies ~Mach 80
+    { lat: 42.40, lon: -71.2, timestampMs: 1_700_000_310_000 },
+    { lat: 42.44, lon: -71.4, timestampMs: 1_700_000_610_000 },
+  ];
+  const trimmed = trimImplausibleTraceSegments([stale, ...fresh]);
+  assert.deepEqual(trimmed, fresh);
+}
+
+// Multiple implausible jumps — only the segment after the LAST jump is
+// kept, since everything before is suspect by association.
+{
+  const points = [
+    { lat: 33.6, lon: -84.4, timestampMs: 1_700_000_000_000 },
+    { lat: 51.5, lon: 0.0, timestampMs: 1_700_000_005_000 }, // ATL → LHR in 5s (jump 1)
+    { lat: 51.6, lon: 0.1, timestampMs: 1_700_000_300_000 }, // normal cruise after
+    { lat: 42.36, lon: -71.0, timestampMs: 1_700_000_310_000 }, // jump back to BOS (jump 2)
+    { lat: 42.40, lon: -71.2, timestampMs: 1_700_000_610_000 }, // current segment
+  ];
+  const trimmed = trimImplausibleTraceSegments(points);
+  assert.equal(trimmed.length, 2);
+  assert.deepEqual(trimmed[0], points[3]);
+  assert.deepEqual(trimmed[1], points[4]);
+}
+
+// Long-haul ocean gap with plausible cruise speed is preserved — no
+// false positives. JFK → LHR is ~3000 nm; covered in ~6.5h ≈ 460 kt
+// average. Each ~30 min gap implies ~230 nm @ ~460 kt.
+{
+  const points = [
+    { lat: 40.64, lon: -73.78, timestampMs: 1_700_000_000_000 }, // JFK
+    { lat: 42.0, lon: -69.0, timestampMs: 1_700_000_000_000 + 30 * 60 * 1000 },
+    { lat: 44.0, lon: -60.0, timestampMs: 1_700_000_000_000 + 60 * 60 * 1000 },
+    { lat: 50.0, lon: -30.0, timestampMs: 1_700_000_000_000 + 3 * 60 * 60 * 1000 },
+    { lat: 51.47, lon: -0.45, timestampMs: 1_700_000_000_000 + 6.5 * 60 * 60 * 1000 }, // LHR
+  ];
+  assert.deepEqual(trimImplausibleTraceSegments(points), points);
 }
 
 console.log("aircraftTraceModel.test.js ok");

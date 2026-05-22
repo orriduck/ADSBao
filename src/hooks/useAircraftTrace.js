@@ -5,6 +5,7 @@ import { aircraftTraceClient } from "../features/aviation/aviationData.js";
 import {
   mergeTracesByPriority,
   normalizeAdsbTracePayload,
+  trimImplausibleTraceSegments,
 } from "../features/aircraft/trace/aircraftTraceModel.js";
 import {
   readTrackedTrace,
@@ -238,11 +239,16 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     [livePoints, recentPoints, fullPoints, persistedPoints],
   );
 
-  const tracePoints = useMemo(
-    () =>
-      activeHex === hex ? clipTracePointsBefore(merged, traceStartAtMs) : [],
-    [activeHex, hex, merged, traceStartAtMs],
-  );
+  const tracePoints = useMemo(() => {
+    if (activeHex !== hex) return [];
+    const clipped = clipTracePointsBefore(merged, traceStartAtMs);
+    // Drop the leading portion of the trace when an adjacent pair
+    // implies an impossible ground speed — that catches cross-flight
+    // contamination from localStorage (same callsign reused for a
+    // different aircraft) and one-off sensor glitches. Keeps the
+    // trailing contiguous tail intact.
+    return trimImplausibleTraceSegments(clipped);
+  }, [activeHex, hex, merged, traceStartAtMs]);
 
   // Persist the clipped trace back to localStorage. Debounced so a burst
   // of live polls collapses into one write. We only persist what the
