@@ -8,17 +8,16 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 // so the user can still inspect where the flight ended; the overlay just
 // asks them what to do next.
 //
-//   - Keep showing → dismiss the overlay, leave the current trace on
-//     screen (caller controls the dismissed state).
-//   - Try again → trigger a fresh poll via the hook's retry callback.
+//   - Acknowledge → dismiss the overlay. The tracker keeps polling in
+//     the background, so if the feed comes back the live position
+//     resumes without any further user action.
 //   - Back home → return to the global search/explorer.
 //
-// The component itself is presentational; the parent decides when to mount
-// it and wires the three callbacks to whatever it has in scope.
+// The component itself is presentational; the parent decides when to
+// mount it and wires both callbacks.
 export default function LostSignalOverlay({
   callsign = "",
-  onKeepShowing,
-  onRetry,
+  onAcknowledge,
   onBackHome,
 }) {
   const { t } = useI18n();
@@ -47,19 +46,11 @@ export default function LostSignalOverlay({
         <div className="mt-5 flex flex-col gap-2">
           <button
             type="button"
-            onClick={onKeepShowing}
+            onClick={onAcknowledge}
             style={{ fontFamily: "var(--font-nav)" }}
             className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[13px] font-medium text-atc-text transition-colors hover:bg-atc-card"
           >
-            {t("lostSignal.keep")}
-          </button>
-          <button
-            type="button"
-            onClick={onRetry}
-            style={{ fontFamily: "var(--font-nav)" }}
-            className="rounded-md border border-atc-line-strong bg-atc-bg px-3 py-2 text-[13px] font-medium text-atc-text transition-colors hover:bg-atc-card"
-          >
-            {t("lostSignal.retry")}
+            {t("lostSignal.acknowledge")}
           </button>
           {/* Mirrors the Track button on the preview card so the
               primary action reads as a familiar CTA. */}

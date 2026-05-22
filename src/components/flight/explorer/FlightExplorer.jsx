@@ -32,6 +32,14 @@ import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay.js";
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
 import TraceLoadingToast from "@/components/aircraft/trace/TraceLoadingToast.jsx";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard.jsx";
+import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
+
+// PredictedRouteLine imports leaflet at module top, so dynamic-import it
+// to keep leaflet out of the SSR bundle (same pattern as AirportMap).
+const PredictedRouteLine = dynamic(
+  () => import("@/components/map/PredictedRouteLine.jsx"),
+  { ssr: false },
+);
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -52,6 +60,10 @@ export default function FlightExplorer({ callsign = "" }) {
 
 function FlightExplorerContent({ callsign }) {
   const router = useRouter();
+  // FlightAware mode treats the route metadata as authoritative — only
+  // then do we paint the predicted great-circle line from the aircraft
+  // to its destination (and origin → current at world zoom).
+  const flightAwareEnabled = useFlightAwareEnabled();
   const {
     desktopSidebarWidth,
     sidebarOpen,
@@ -90,7 +102,6 @@ function FlightExplorerContent({ callsign }) {
     feedSource,
     lastUpdated,
     lostSignal,
-    retry: retryTrackedAircraft,
   } = useTrackedAircraft(callsign);
 
   // Anchor the tracking session as soon as we have a callsign so the
@@ -327,6 +338,16 @@ function FlightExplorerContent({ callsign }) {
             nearbyRangeRings={{ intervalNm: 5, maxNm: 5, prominent: true }}
           >
             <MapFitToTraceController />
+            <PredictedRouteLine
+              enabled={flightAwareEnabled}
+              lat={focalLat}
+              lon={focalLon}
+              origin={enrichedTrackedAircraft?.flightRoute?.origin || null}
+              destination={
+                enrichedTrackedAircraft?.flightRoute?.destination || null
+              }
+              zoom={mapZoom}
+            />
           </AirportMap>
 
           {isMobile && sidebarOpen && (
@@ -338,11 +359,7 @@ function FlightExplorerContent({ callsign }) {
           {lostSignal && !lostSignalDismissed && (
             <LostSignalOverlay
               callsign={callsign}
-              onKeepShowing={() => setLostSignalDismissed(true)}
-              onRetry={() => {
-                setLostSignalDismissed(true);
-                retryTrackedAircraft();
-              }}
+              onAcknowledge={() => setLostSignalDismissed(true)}
               onBackHome={handleBack}
             />
           )}
