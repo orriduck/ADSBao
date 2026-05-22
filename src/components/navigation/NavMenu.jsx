@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Show, UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -47,6 +47,13 @@ export default function NavMenu({ variant = "footer" }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const languageItems = getLocaleMenuItems();
+  // Default to "show sign-in / sign-up" until Clerk confirms a signed-in
+  // session. If the Clerk SDK fails to load (CSP block, network error,
+  // misconfigured key), `<Show>` would render nothing and the ACCOUNT
+  // section would be a dead header — which is exactly what happened on
+  // the first production deploy before the custom-domain CSP was added.
+  const { isLoaded, isSignedIn } = useUser();
+  const showSignedIn = isLoaded && isSignedIn;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -116,27 +123,7 @@ export default function NavMenu({ variant = "footer" }) {
                 {t("auth.account")}
               </span>
             </div>
-            <Show when="signed-out">
-              <Link
-                href="/sign-in"
-                role="menuitem"
-                onClick={handleSelect}
-                className="font-mono relative flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-atc-faint transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
-              >
-                <LogIn className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{t("auth.signIn")}</span>
-              </Link>
-              <Link
-                href="/sign-up"
-                role="menuitem"
-                onClick={handleSelect}
-                className="font-mono relative flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-atc-faint transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
-              >
-                <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{t("auth.signUp")}</span>
-              </Link>
-            </Show>
-            <Show when="signed-in">
+            {showSignedIn ? (
               <div className="flex items-center justify-between gap-3 px-3 py-2">
                 <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-atc-text">
                   {t("auth.signedIn")}
@@ -149,7 +136,28 @@ export default function NavMenu({ variant = "footer" }) {
                   }}
                 />
               </div>
-            </Show>
+            ) : (
+              <>
+                <Link
+                  href="/sign-in"
+                  role="menuitem"
+                  onClick={handleSelect}
+                  className="font-mono relative flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-atc-faint transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
+                >
+                  <LogIn className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{t("auth.signIn")}</span>
+                </Link>
+                <Link
+                  href="/sign-up"
+                  role="menuitem"
+                  onClick={handleSelect}
+                  className="font-mono relative flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-atc-faint transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
+                >
+                  <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{t("auth.signUp")}</span>
+                </Link>
+              </>
+            )}
           </div>
           <div className="border-t border-[var(--atc-line)] pt-1">
             <div className="flex items-center gap-2 px-3 py-1.5">
