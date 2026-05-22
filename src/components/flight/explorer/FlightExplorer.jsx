@@ -30,7 +30,6 @@ import { getAircraftIdentity } from "@/features/airport/context/airportContextUi
 import { normalizeCallsign } from "@/utils/callsign.js";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay.js";
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
-import TraceLoadingToast from "@/components/aircraft/trace/TraceLoadingToast.jsx";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard.jsx";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
@@ -268,7 +267,6 @@ function FlightExplorerContent({ callsign }) {
       focalTraceStartAtMs={focalTraceStartAtMs}
       focalPersistKey={callsign || null}
     >
-      <TraceLoadingToast />
       <AircraftPreviewCard
         aircraft={selectedAircraft}
         airport={selectedAirport}

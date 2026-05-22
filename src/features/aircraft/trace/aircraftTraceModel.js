@@ -189,6 +189,75 @@ export function mergeTracesByPriority({ sources = [] } = {}) {
     .sort((a, b) => a.timestampMs - b.timestampMs);
 }
 
+export function composeAircraftTrace({
+  mode = "selected",
+  sources = {},
+  recentLoading = false,
+  fullLoading = false,
+  fullCutoffMs = null,
+  debugLabel = "",
+} = {}) {
+  const isFocusMode = mode === "focus";
+  const fullPoints = isFocusMode
+    ? clipTracePointsBefore(sources.full, fullCutoffMs)
+    : [];
+  const livePoints = Array.isArray(sources.live) ? sources.live : [];
+  const recentPoints = Array.isArray(sources.recent) ? sources.recent : [];
+  const persistedPoints = isFocusMode && Array.isArray(sources.persisted)
+    ? sources.persisted
+    : [];
+  const modeSources = isFocusMode
+    ? [
+        { name: "live", points: livePoints, priority: 3 },
+        { name: "recent", points: recentPoints, priority: 2 },
+        { name: "full", points: fullPoints, priority: 1 },
+        { name: "persisted", points: persistedPoints, priority: 0 },
+      ]
+    : [
+        { name: "live", points: livePoints, priority: 3 },
+        { name: "recent", points: recentPoints, priority: 2 },
+      ];
+  const merged = mergeTracesByPriority({
+    sources: modeSources,
+  });
+  logTraceComposition({
+    debugLabel,
+    mode: isFocusMode ? "focus" : "selected",
+    sources: modeSources,
+    outputCount: merged.length,
+  });
+  return {
+    points: merged,
+    loading: recentLoading && merged.length === 0,
+    fullLoading: isFocusMode ? Boolean(fullLoading) : false,
+    recentLoading: Boolean(recentLoading),
+  };
+}
+
+// Drop trace points older than the cutoff. Applied before merge so only
+// the focus-flight full/persisted source honors the full-history lower
+// bound; selected airport traces stay recent+live only.
+function clipTracePointsBefore(points, cutoffMs) {
+  const cutoff = Number(cutoffMs);
+  if (!Number.isFinite(cutoff) || !Array.isArray(points)) return points || [];
+  return points.filter((point) => Number(point?.timestampMs) >= cutoff);
+}
+
+function logTraceComposition({ debugLabel, mode, sources = [], outputCount = 0 } = {}) {
+  if (typeof console === "undefined") return;
+  console.info("[aircraft-trace:compose]", {
+    label: debugLabel || null,
+    mode,
+    strategy: "direct-priority-stitch",
+    sources: sources.map((source) => ({
+      name: source.name,
+      priority: source.priority,
+      count: Array.isArray(source.points) ? source.points.length : 0,
+    })),
+    outputCount,
+  });
+}
+
 // Drop the leading portion of a sorted-by-timestamp trace at the last
 // adjacent-pair discontinuity. Two kinds of discontinuity count:
 //

@@ -27,6 +27,9 @@ let lastLoggedSignature = "";
 export function useFlightAwareEnabled() {
   const { isLoaded, isSignedIn, user } = useUser();
   const reloadedFor = useRef("");
+  const hasUser = Boolean(isLoaded && isSignedIn && user);
+  const entity = hasUser ? buildClerkUserAccessEntity(user) : null;
+  const enabled = entity ? isFlightAwareOwnerEntity(entity) : false;
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !user?.id) return;
@@ -39,17 +42,14 @@ export function useFlightAwareEnabled() {
     });
   }, [isLoaded, isSignedIn, user]);
 
-  if (!isLoaded || !isSignedIn || !user) return false;
-  const entity = buildClerkUserAccessEntity(user);
-  const enabled = isFlightAwareOwnerEntity(entity);
-
   // Dev-only trace, deduped across the whole app: each consumer of the
   // hook re-renders independently, and several of them re-run on every
   // poll, so emitting unconditionally floods the console. Only log when
   // the resolved signature changes — the first true → true repeat is
   // suppressed, but a flip back to undefined / a different user shows
   // up immediately.
-  if (process.env.NODE_ENV !== "production") {
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" || !hasUser) return;
     const raw = user.publicMetadata?.flightAwareEnabled;
     const signature = `${user.id}|${JSON.stringify(raw)}|${typeof raw}|${enabled}`;
     if (signature !== lastLoggedSignature) {
@@ -58,6 +58,7 @@ export function useFlightAwareEnabled() {
         `[flightaware-enabled] clerkUser=${user.id} primaryEmail=${user.primaryEmailAddress?.emailAddress || "(none)"} flightAwareEnabled.raw=${JSON.stringify(raw)} typeof=${typeof raw} → ${enabled}`,
       );
     }
-  }
+  }, [enabled, hasUser, user]);
+
   return enabled;
 }
