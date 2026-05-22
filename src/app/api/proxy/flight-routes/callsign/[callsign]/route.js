@@ -41,9 +41,17 @@ export async function GET(request, { params }) {
 
     return Response.json(body, {
       status: body ? 200 : ROUTE_MISS_STATUS,
-      headers: buildProxyHeaders(request, buildRouteCacheHeaders(body), {
-        varyOrigin: false,
-      }),
+      headers: buildProxyHeaders(
+        request,
+        {
+          ...buildRouteCacheHeaders(body),
+          // Expose the resolved upstream so the Network tab makes it
+          // obvious which provider answered ("flightaware", "adsbdb",
+          // "community-feedback", or "none" on a miss).
+          "X-Route-Source": body?.source || "none",
+        },
+        { varyOrigin: false },
+      ),
     });
   } catch (err) {
     console.error(`[adsbdb-route] error for ${callsign}:`, err);

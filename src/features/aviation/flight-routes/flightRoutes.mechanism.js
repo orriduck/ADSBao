@@ -22,9 +22,26 @@ async function isFlightAwareRouteProviderEnabled() {
     import("../../app-shell/auth/clerkRouteProviderAccess.js"),
   ]);
   const user = await currentUser();
-  return routeProviderAccess.isFlightAwareOwnerEntity(
-    routeProviderAccess.buildClerkUserAccessEntity(user),
-  );
+  const entity = routeProviderAccess.buildClerkUserAccessEntity(user);
+  const enabled = routeProviderAccess.isFlightAwareOwnerEntity(entity);
+  // Dev-friendly trace of why FA mode resolved the way it did. Logged
+  // once per route lookup so a wrong-provider symptom (e.g. seeing
+  // adsbdb data while expecting FlightAware) shows immediately in the
+  // server console.
+  if (process.env.NODE_ENV !== "production") {
+    if (!user) {
+      console.info("[flightaware-route] gate: no Clerk user → adsbdb");
+    } else if (!entity) {
+      console.info(
+        "[flightaware-route] gate: Clerk user lacks id → adsbdb",
+      );
+    } else {
+      console.info(
+        `[flightaware-route] gate: clerkUser=${entity.id} flightAwareEnabled=${entity.flightAwareEnabled} → ${enabled ? "flightaware" : "adsbdb"}`,
+      );
+    }
+  }
+  return enabled;
 }
 
 export async function fetchAdsbdbRoute(callsign) {
