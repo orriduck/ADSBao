@@ -117,12 +117,19 @@ async function readCommunityFeedbackOverride({
   }
 }
 
-// Lookup order: active Supabase community feedback override -> FlightAware
-// for the owner Clerk account -> adsbdb -> null. Community feedback
-// intentionally wins so a user-submitted correction can temporarily fix a
-// wrong route inside the 12-hour TTL. The override read is keyed by callsign
-// only — submissions made under any airport context apply universally to the
-// same flight number.
+// Lookup order:
+//   1. Active Supabase community feedback override (always wins so a
+//      user-submitted correction can temporarily fix a wrong route
+//      inside the 12-hour TTL). Override is keyed by callsign only —
+//      submissions made under any airport context apply universally
+//      to the same flight number.
+//   2. If the current Clerk user has flightAwareEnabled, FlightAware
+//      is the EXCLUSIVE provider. We return whatever the scraper gives
+//      us (route data or null), no adsbdb fallback. This guarantees
+//      that FlightAware-tier users always see FA-sourced metadata —
+//      origin / destination / airline are pulled from the live
+//      flightaware.com page, not from adsbdb's static dataset.
+//   3. All other users → adsbdb.
 export const resolveFlightRoute = async ({
   callsign,
   feedbackRepository = createRouteFeedbackReportsRepositoryFromEnv(),
@@ -152,8 +159,7 @@ export const resolveFlightRoute = async ({
   }
 
   if (useFlightAware) {
-    const flightAwareRoute = await fetchFlightAwareRouteImpl(normalizedCallsign);
-    if (flightAwareRoute) return flightAwareRoute;
+    return fetchFlightAwareRouteImpl(normalizedCallsign);
   }
 
   return fetchAdsbdbRouteImpl(normalizedCallsign);
