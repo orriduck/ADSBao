@@ -59,8 +59,21 @@ export const formatFlightRouteMunicipalityLabel = (route) => {
   return `${origin} -> ${destination}${routeDisplaySuffix(route)}`
 }
 
-export const getFlightRouteAirlineIconUrl = (route) =>
-  String(route?.airlineIconUrl || route?.airline?.iconUrl || '').trim()
+// Build the airline logo URL from the airline ICAO (e.g. "JBU" → JetBlue).
+// We always route through /api/proxy/airlines/[icao] instead of using the
+// raw url that some providers attach — direct hot-links to the upstream
+// CDN get blocked / 403'd in the browser, and the proxy lets both
+// FlightAware and adsbdb routes share the same URL shape so adsbdb users
+// see logos too. Returns "" when the airline code isn't a valid 2-3
+// alphanumeric.
+export const getFlightRouteAirlineIconUrl = (route) => {
+  const code = String(route?.airlineIcao || route?.airline?.icao || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+  if (code.length < 2 || code.length > 3) return ''
+  return `/api/proxy/airlines/${code}`
+}
 
 export const formatLocalFlightRouteLabel = (route, airport, movement) => {
   if (!route || !airport) return ''
