@@ -6,6 +6,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.4.0",
+    kind: "feat",
+    title: "Account sign-in + cleaner lost-signal handling",
+    summary:
+      "Sign in to your ADSBao account from the map toolbar or nav menu, and the lost-signal modal on a tracked flight now retries silently in the background instead of asking you to retry by hand.",
+    highlights: [
+      "Account sign-in / sign-up via the avatar control on the flight + airport map toolbars (also reachable from the home / about / changelog nav menu)",
+      "Lost-signal modal trimmed to two actions: keep the current view (polling continues silently in the background) or back to home",
+      "Live position resumes automatically once the feed is back — no manual retry needed",
+    ],
+  },
+  {
     version: "v1.3.0",
     kind: "feat",
     title: "adsbdb routes + community feedback + complete runway map",
