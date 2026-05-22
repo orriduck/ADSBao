@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState } from "react";
@@ -6,7 +7,10 @@ import AircraftTable from "./AircraftTable";
 import SidebarIdentityHero from "./SidebarIdentityHero";
 import { SidebarMetricCard, SidebarMetricGrid } from "./SidebarMetric";
 import SidebarShell from "./SidebarShell";
-import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay.js";
+import {
+  formatFlightRouteLabel,
+  getFlightRouteAirlineIconUrl,
+} from "@/utils/flightRouteDisplay.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
@@ -37,6 +41,7 @@ export default function FlightSidebar({
   const type = (aircraft?.type || "").trim().toUpperCase();
   const category = (aircraft?.category || "").trim().toUpperCase();
   const route = formatFlightRouteLabel(aircraft?.flightRoute) || "";
+  const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
   const speed = toFiniteNumber(aircraft?.velocity);
   const altitude = toFiniteNumber(aircraft?.altitude);
   const vs = toFiniteNumber(aircraft?.baroRate);
@@ -50,6 +55,7 @@ export default function FlightSidebar({
         type={type}
         category={category}
         route={route}
+        airlineIconUrl={airlineIconUrl}
       />
       <FlightTelemetryGrid
         speed={speed}
@@ -86,7 +92,7 @@ export default function FlightSidebar({
   );
 }
 
-function FlightIdentity({ callsign, type, category, route }) {
+function FlightIdentity({ callsign, type, category, route, airlineIconUrl }) {
   const { t } = useI18n();
   return (
     <SidebarIdentityHero label={t("sidebar.tracking")} code={callsign}>
@@ -112,10 +118,19 @@ function FlightIdentity({ callsign, type, category, route }) {
       )}
       {route ? (
         <div
-          className="notranslate mt-2 font-mono text-[12px] tracking-[0.04em] text-atc-dim"
+          className="notranslate mt-2 flex items-center gap-2 font-mono text-[12px] tracking-[0.04em] text-atc-dim"
           translate="no"
         >
-          {route}
+          {airlineIconUrl && (
+            <img
+              src={airlineIconUrl}
+              alt=""
+              className="aircraft-table-airline-logo"
+              loading="lazy"
+              decoding="async"
+            />
+          )}
+          <span>{route}</span>
         </div>
       ) : null}
     </SidebarIdentityHero>

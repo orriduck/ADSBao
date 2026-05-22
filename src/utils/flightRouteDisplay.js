@@ -59,6 +59,9 @@ export const formatFlightRouteMunicipalityLabel = (route) => {
   return `${origin} -> ${destination}${routeDisplaySuffix(route)}`
 }
 
+export const getFlightRouteAirlineIconUrl = (route) =>
+  String(route?.airlineIconUrl || route?.airline?.iconUrl || '').trim()
+
 export const formatLocalFlightRouteLabel = (route, airport, movement) => {
   if (!route || !airport) return ''
 

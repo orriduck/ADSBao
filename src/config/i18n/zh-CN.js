@@ -16,6 +16,13 @@ const zhCN = {
     about: "关于",
     changelog: "更新日志",
   },
+  auth: {
+    account: "账户",
+    signIn: "登录",
+    signUp: "注册",
+    signedIn: "已登录",
+    description: "用于按账户开启 owner 专属的航路数据源实验。",
+  },
   about: {
     meta: {
       version: "版本",

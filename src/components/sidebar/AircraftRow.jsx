@@ -1,7 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
+import {
+  formatFlightRouteMunicipalityLabel,
+  getFlightRouteAirlineIconUrl,
+} from "../../utils/flightRouteDisplay.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AircraftRow({
@@ -13,6 +17,7 @@ export default function AircraftRow({
   const { locale, t } = useI18n();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
+  const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft.flightRoute);
   // Municipality labels come from OurAirports / adsbdb as English-only
   // city names ("Los Angeles → Seattle"). Localizing every world city
   // would need a separate dictionary; for now we drop the secondary line
@@ -40,6 +45,7 @@ export default function AircraftRow({
       <AircraftIdentityCell
         callsign={callsign}
         route={route}
+        airlineIconUrl={airlineIconUrl}
         routeMunicipalities={routeMunicipalities}
         hasRouteMunicipalities={hasRouteMunicipalities}
       />
@@ -70,6 +76,7 @@ export default function AircraftRow({
 function AircraftIdentityCell({
   callsign,
   route,
+  airlineIconUrl,
   routeMunicipalities,
   hasRouteMunicipalities,
 }) {
@@ -116,6 +123,15 @@ function AircraftIdentityCell({
         {callsign}
       </span>
       <div className="aircraft-table-route-slot flex min-w-0 items-center">
+        {airlineIconUrl && (
+          <img
+            src={airlineIconUrl}
+            alt=""
+            className="aircraft-table-airline-logo"
+            loading="lazy"
+            decoding="async"
+          />
+        )}
         <div
           className={`aircraft-table-route-cycle min-w-0 flex-1 ${
             hasRouteMunicipalities ? "aircraft-table-route-cycle--alternate" : ""

@@ -32,3 +32,6 @@ dist-ssr
 # Playwright operations
 .playwright-mcp
 *.lock
+
+# clerk configuration (can include secrets)
+/.clerk/

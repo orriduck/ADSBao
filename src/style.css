@@ -2732,6 +2732,16 @@ body {
     position: relative;
 }
 
+.aircraft-table-airline-logo {
+    background: color-mix(in oklab, var(--atc-text) 92%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 65%, transparent);
+    flex: 0 0 auto;
+    height: 14px;
+    object-fit: contain;
+    padding: 1px;
+    width: 22px;
+}
+
 .aircraft-table-identity {
     display: grid;
     min-width: 0;
@@ -4543,10 +4553,24 @@ body {
 }
 
 .aircraft-preview-identity__route {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.04em;
     color: var(--atc-dim);
+    min-width: 0;
+}
+
+.aircraft-preview-identity__airline-logo {
+    background: color-mix(in oklab, var(--atc-text) 92%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 65%, transparent);
+    flex: 0 0 auto;
+    height: 16px;
+    object-fit: contain;
+    padding: 1px;
+    width: 26px;
 }
 
 .aircraft-preview-identity__route--empty {
