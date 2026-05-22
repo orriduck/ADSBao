@@ -21,7 +21,6 @@ const zhCN = {
     signIn: "登录",
     signUp: "注册",
     signedIn: "已登录",
-    description: "用于按账户开启 owner 专属的航路数据源实验。",
   },
   about: {
     meta: {
