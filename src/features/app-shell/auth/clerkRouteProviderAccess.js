@@ -1,36 +1,22 @@
-// Emails allowed to use the FlightAware route provider. All other
-// signed-in (or anonymous) users fall back to adsbdb.
-export const FLIGHTAWARE_OWNER_EMAILS = [
-  "ruyyi0323@gmail.com",
-];
-
-// Legacy single-owner export — kept so any caller still importing the
-// scalar form continues to resolve. Always points at the first entry
-// of the list.
-export const FLIGHTAWARE_OWNER_EMAIL = FLIGHTAWARE_OWNER_EMAILS[0];
-
-const OWNER_EMAIL_SET = new Set(
-  FLIGHTAWARE_OWNER_EMAILS.map((email) => normalizeEmail(email)),
-);
+// Gate for the FlightAware route provider. The previous version
+// hardcoded an email allowlist in source; this reads a per-user flag
+// from Clerk publicMetadata so the list lives in Clerk, not the repo.
+//
+// Setting the flag (Clerk dashboard → user → Public metadata):
+//   { "flightAwareEnabled": true }
+//
+// Only strict `=== true` unlocks the gate so a stray "true" string or
+// truthy non-boolean can't accidentally enable the provider.
+const FLAG_KEY = "flightAwareEnabled";
 
 export function buildClerkUserAccessEntity(user) {
   if (!user?.id) return undefined;
-  const email =
-    user.primaryEmailAddress?.emailAddress ||
-    user.emailAddresses?.find((item) => item?.emailAddress)?.emailAddress ||
-    "";
-
   return {
     id: String(user.id),
-    email: normalizeEmail(email),
-    name: String(user.fullName || "").trim(),
+    flightAwareEnabled: user.publicMetadata?.[FLAG_KEY] === true,
   };
 }
 
 export function isFlightAwareOwnerEntity(userEntity) {
-  return OWNER_EMAIL_SET.has(normalizeEmail(userEntity?.email));
-}
-
-function normalizeEmail(value) {
-  return String(value || "").trim().toLowerCase();
+  return userEntity?.flightAwareEnabled === true;
 }
