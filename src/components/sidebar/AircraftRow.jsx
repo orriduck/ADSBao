@@ -1,8 +1,30 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay.js";
+import {
+  formatFlightRouteMunicipalityLabel,
+  getFlightRouteAirlineIconUrl,
+} from "../../utils/flightRouteDisplay.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+
+// Tiny self-contained <img> that hides itself if the URL 404s. Avoids
+// stamped broken-image icons in dense list rows when the logo isn't
+// served by the airline-icon CDN.
+function AirlineLogo({ src, className }) {
+  const [hidden, setHidden] = useState(false);
+  if (!src || hidden) return null;
+  return (
+    <img
+      src={src}
+      alt=""
+      className={className}
+      loading="lazy"
+      decoding="async"
+      onError={() => setHidden(true)}
+    />
+  );
+}
 
 export default function AircraftRow({
   aircraft,
@@ -13,6 +35,7 @@ export default function AircraftRow({
   const { locale, t } = useI18n();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
+  const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft.flightRoute);
   // Municipality labels come from OurAirports / adsbdb as English-only
   // city names ("Los Angeles → Seattle"). Localizing every world city
   // would need a separate dictionary; for now we drop the secondary line
@@ -40,6 +63,7 @@ export default function AircraftRow({
       <AircraftIdentityCell
         callsign={callsign}
         route={route}
+        airlineIconUrl={airlineIconUrl}
         routeMunicipalities={routeMunicipalities}
         hasRouteMunicipalities={hasRouteMunicipalities}
       />
@@ -70,6 +94,7 @@ export default function AircraftRow({
 function AircraftIdentityCell({
   callsign,
   route,
+  airlineIconUrl,
   routeMunicipalities,
   hasRouteMunicipalities,
 }) {
@@ -116,6 +141,10 @@ function AircraftIdentityCell({
         {callsign}
       </span>
       <div className="aircraft-table-route-slot flex min-w-0 items-center">
+        <AirlineLogo
+          src={airlineIconUrl}
+          className="aircraft-table-airline-logo"
+        />
         <div
           className={`aircraft-table-route-cycle min-w-0 flex-1 ${
             hasRouteMunicipalities ? "aircraft-table-route-cycle--alternate" : ""

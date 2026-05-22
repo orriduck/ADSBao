@@ -49,7 +49,7 @@ export default function Image() {
               letterSpacing: 2,
             }}
           >
-            <span style={{ color: "#ffe600", fontSize: 56 }}>//</span>
+            <span style={{ color: "#ffe600", fontSize: 56 }}>{"//"}</span>
             <span style={{ fontSize: 72, color: "#f5f3ee" }}>{SITE_NAME.toUpperCase()}</span>
           </div>
           <div

@@ -31,7 +31,7 @@ export default function BrandLogo({ height = 44, className = "" }) {
         fontSize="22"
         letterSpacing="0.5"
       >
-        //
+        {"//"}
       </text>
 
       {/* ADSBAO wordmark */}

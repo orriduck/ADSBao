@@ -2732,6 +2732,28 @@ body {
     position: relative;
 }
 
+/* Airline logo thumbnail in route rows. Neutral light pad so logos
+   designed against either light or dark backgrounds stay legible, no
+   border so it doesn't compete with the row's typography, and a tiny
+   margin so the route text doesn't crowd it. */
+.aircraft-table-airline-logo {
+    background: #f5f3ee;
+    border-radius: 2px;
+    flex: 0 0 auto;
+    height: 14px;
+    margin-right: 6px;
+    object-fit: contain;
+    padding: 1px 2px;
+    width: 22px;
+}
+
+/* Inside an active (ink + yellow) row the light pad still keeps the
+   logo readable — no override needed, but suppress any inherited
+   filters / opacity dimming from the row. */
+.endf-row-active .aircraft-table-airline-logo {
+    opacity: 1;
+}
+
 .aircraft-table-identity {
     display: grid;
     min-width: 0;
@@ -4543,10 +4565,26 @@ body {
 }
 
 .aircraft-preview-identity__route {
+    align-items: center;
+    display: inline-flex;
+    gap: 6px;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.04em;
     color: var(--atc-dim);
+    min-width: 0;
+}
+
+/* Neutral pad so logos in either light or dark themes stay legible.
+   Matches the list-row treatment in .aircraft-table-airline-logo. */
+.aircraft-preview-identity__airline-logo {
+    background: #f5f3ee;
+    border-radius: 2px;
+    flex: 0 0 auto;
+    height: 16px;
+    object-fit: contain;
+    padding: 1px 2px;
+    width: 26px;
 }
 
 .aircraft-preview-identity__route--empty {
@@ -5176,6 +5214,40 @@ body {
     font-weight: 400;
     color: var(--atc-faint);
     line-height: 1;
+}
+
+/* Route line on the mobile preview card — sits between the identity
+   row (callsign · type) and the telemetry row. Airline logo + parsed
+   route ("KLAX → KSEA"). Hidden entirely when no flight route is
+   available so the card stays compact. */
+.aircraft-preview-mobile-card__route {
+    align-items: center;
+    color: var(--atc-dim);
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    gap: 8px;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+.aircraft-preview-mobile-card__airline-logo {
+    background: #f5f3ee;
+    border-radius: 2px;
+    flex: 0 0 auto;
+    height: 14px;
+    object-fit: contain;
+    padding: 1px 2px;
+    width: 22px;
+}
+
+.aircraft-preview-mobile-card__route-text {
+    color: var(--atc-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .aircraft-preview-mobile-card__row2 {

@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-page-custom-font */
 import { cookies } from "next/headers";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ThemedToaster from "@/components/app-shell/ThemedToaster.jsx";
@@ -113,18 +114,20 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body>
-        <I18nProvider>
-          <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
-        </I18nProvider>
-        <ThemedToaster
-          initialTheme={initialTheme}
-          position="top-right"
-          // Drop below the 44px airport-map toolbar at top:0.
-          offset={{ top: 64 }}
-          toastOptions={{ className: "atc-toast" }}
-        />
-        <Analytics />
-        <SpeedInsights />
+        <ClerkProvider>
+          <I18nProvider>
+            <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
+          </I18nProvider>
+          <ThemedToaster
+            initialTheme={initialTheme}
+            position="top-right"
+            // Drop below the 44px airport-map toolbar at top:0.
+            offset={{ top: 64 }}
+            toastOptions={{ className: "atc-toast" }}
+          />
+          <Analytics />
+          <SpeedInsights />
+        </ClerkProvider>
       </body>
     </html>
   );
