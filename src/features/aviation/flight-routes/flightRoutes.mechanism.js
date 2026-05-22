@@ -16,6 +16,13 @@ import {
 } from "./flightawareRouteProxyModel.js";
 import { normalizeRouteCallsign } from "./flightRouteCallsign.js";
 
+// Module-scoped dedupe key — each page load fires the route gate ~50
+// times (one per nearby callsign), and logging unconditionally floods
+// the server console. Only emit when the resolved signature changes,
+// so a wrong-provider symptom still shows up immediately but identical
+// repeats stay quiet.
+let lastGateLog = "";
+
 async function isFlightAwareRouteProviderEnabled() {
   const [{ currentUser }, routeProviderAccess] = await Promise.all([
     import("@clerk/nextjs/server"),
@@ -24,21 +31,21 @@ async function isFlightAwareRouteProviderEnabled() {
   const user = await currentUser();
   const entity = routeProviderAccess.buildClerkUserAccessEntity(user);
   const enabled = routeProviderAccess.isFlightAwareOwnerEntity(entity);
-  // Dev-friendly trace of why FA mode resolved the way it did. Logged
-  // once per route lookup so a wrong-provider symptom (e.g. seeing
-  // adsbdb data while expecting FlightAware) shows immediately in the
-  // server console.
   if (process.env.NODE_ENV !== "production") {
-    if (!user) {
-      console.info("[flightaware-route] gate: no Clerk user → adsbdb");
-    } else if (!entity) {
-      console.info(
-        "[flightaware-route] gate: Clerk user lacks id → adsbdb",
-      );
-    } else {
-      console.info(
-        `[flightaware-route] gate: clerkUser=${entity.id} flightAwareEnabled=${entity.flightAwareEnabled} → ${enabled ? "flightaware" : "adsbdb"}`,
-      );
+    const signature = `${user ? entity?.id || "no-id" : "no-user"}|${entity?.flightAwareEnabled ?? "?"}|${enabled}`;
+    if (signature !== lastGateLog) {
+      lastGateLog = signature;
+      if (!user) {
+        console.info("[flightaware-route] gate: no Clerk user → adsbdb");
+      } else if (!entity) {
+        console.info(
+          "[flightaware-route] gate: Clerk user lacks id → adsbdb",
+        );
+      } else {
+        console.info(
+          `[flightaware-route] gate: clerkUser=${entity.id} flightAwareEnabled=${entity.flightAwareEnabled} → ${enabled ? "flightaware" : "adsbdb"}`,
+        );
+      }
     }
   }
   return enabled;

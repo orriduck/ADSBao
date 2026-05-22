@@ -4,6 +4,12 @@ import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import { buildClerkUserAccessEntity, isFlightAwareOwnerEntity } from "./clerkRouteProviderAccess.js";
 
+// Module-scoped dedupe key for the dev log. Every consumer of the hook
+// would otherwise re-emit the same line on every render and the
+// console gets buried. Keyed on the full signature so a *change* in
+// the resolved value still surfaces.
+let lastLoggedSignature = "";
+
 // Client-side mirror of isFlightAwareOwnerEntity. Resolves to true only
 // when Clerk has finished loading, a user is signed in, and their
 // publicMetadata sets { flightAwareEnabled: true }. Anyone else (signed
@@ -37,15 +43,21 @@ export function useFlightAwareEnabled() {
   const entity = buildClerkUserAccessEntity(user);
   const enabled = isFlightAwareOwnerEntity(entity);
 
-  // Dev-only single-line trace so the gating decision is visible in the
-  // browser console — exact value of publicMetadata.flightAwareEnabled,
-  // its type, and the resolved boolean. Mirrors the server-side gate
-  // log in flightRoutes.mechanism.js.
+  // Dev-only trace, deduped across the whole app: each consumer of the
+  // hook re-renders independently, and several of them re-run on every
+  // poll, so emitting unconditionally floods the console. Only log when
+  // the resolved signature changes — the first true → true repeat is
+  // suppressed, but a flip back to undefined / a different user shows
+  // up immediately.
   if (process.env.NODE_ENV !== "production") {
     const raw = user.publicMetadata?.flightAwareEnabled;
-    console.info(
-      `[flightaware-enabled] clerkUser=${user.id} primaryEmail=${user.primaryEmailAddress?.emailAddress || "(none)"} flightAwareEnabled.raw=${JSON.stringify(raw)} typeof=${typeof raw} → ${enabled}`,
-    );
+    const signature = `${user.id}|${JSON.stringify(raw)}|${typeof raw}|${enabled}`;
+    if (signature !== lastLoggedSignature) {
+      lastLoggedSignature = signature;
+      console.info(
+        `[flightaware-enabled] clerkUser=${user.id} primaryEmail=${user.primaryEmailAddress?.emailAddress || "(none)"} flightAwareEnabled.raw=${JSON.stringify(raw)} typeof=${typeof raw} → ${enabled}`,
+      );
+    }
   }
   return enabled;
 }
