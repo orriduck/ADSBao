@@ -45,11 +45,7 @@ assert.equal(
   true,
 );
 assert.equal(
-  isFlightAwareOwnerEntity({ email: "chen.liang@whoop.com" }),
-  true,
-);
-assert.equal(
-  isFlightAwareOwnerEntity({ email: " CHEN.Liang@whoop.com " }),
+  isFlightAwareOwnerEntity({ email: " Ruyyi0323@Gmail.com " }),
   true,
 );
 assert.equal(

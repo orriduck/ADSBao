@@ -2,7 +2,6 @@
 // signed-in (or anonymous) users fall back to adsbdb.
 export const FLIGHTAWARE_OWNER_EMAILS = [
   "ruyyi0323@gmail.com",
-  "chen.liang@whoop.com",
 ];
 
 // Legacy single-owner export — kept so any caller still importing the
