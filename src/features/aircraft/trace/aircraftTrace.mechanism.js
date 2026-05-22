@@ -10,19 +10,28 @@ import { formatAircraftTraceAttempt } from "./aircraftTrace.utils.js";
 
 const [TRACE_PROVIDER] = TRACE_PROVIDER_CHAIN;
 
-async function fetchTrace({ hex, full = false }) {
-  const url = full
+function buildFreshTraceUrl({ hex, full }) {
+  const rawUrl = full
     ? TRACE_PROVIDER.buildFullTraceUrl({ hex })
     : TRACE_PROVIDER.buildTraceUrl({ hex });
+  const url = new URL(rawUrl);
+  url.searchParams.set("_", String(Date.now()));
+  return url.toString();
+}
+
+async function fetchTrace({ hex, full = false }) {
+  const url = buildFreshTraceUrl({ hex, full });
 
   let response;
   try {
     response = await fetch(url, {
+      cache: "no-store",
       headers: {
         Accept: "application/json",
+        "Cache-Control": "no-cache, no-store, max-age=0",
+        Pragma: "no-cache",
         "User-Agent": AIRCRAFT_TRACE_USER_AGENT,
       },
-      next: { revalidate: 0 },
     });
   } catch (networkError) {
     throw new AircraftTraceProviderError(`network: ${networkError.message}`);
