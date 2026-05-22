@@ -2428,6 +2428,18 @@ body {
     width: 1px;
 }
 
+/* Wrapper that hosts Clerk's <UserButton /> on the rail. Sized to match
+   the 32px square ctrl-btn neighbors so the avatar bubble sits flush.
+   The popover Clerk renders on click is positioned by Clerk itself,
+   so we just need to give the trigger the right footprint. */
+.ctrl-user-button {
+    align-items: center;
+    display: inline-flex;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+}
+
 .ctrl-audio.playing {
     background: var(--atc-click-bg);
     border-color: var(--atc-click-border);

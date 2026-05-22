@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
+import { LogIn } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { Button } from "@/components/ui/button.jsx";
@@ -89,6 +96,35 @@ export default function MapControlRail({
       >
         <MapControlIcon iconKey={LAYERS_ICON_KEY} />
       </Button>
+
+      <div className="ctrl-sep" />
+
+      {/* Clerk auth — signed-in users get the UserButton avatar /
+          dropdown, signed-out users get a Sign-in CTA styled like the
+          other ctrl-btns. Sized to match the 32px square rail icons. */}
+      <SignedIn>
+        <div className="ctrl-user-button" aria-label={t("auth.account")}>
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "h-7 w-7 rounded-[2px]",
+              },
+            }}
+          />
+        </div>
+      </SignedIn>
+      <SignedOut>
+        <SignInButton mode="modal">
+          <button
+            type="button"
+            className="ctrl-btn ctrl-sign-in"
+            title={t("auth.signIn")}
+            aria-label={t("auth.signIn")}
+          >
+            <LogIn className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </SignInButton>
+      </SignedOut>
     </div>
   );
 }
