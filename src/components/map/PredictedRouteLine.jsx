@@ -102,16 +102,26 @@ export default function PredictedRouteLine({
     }
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
+    // Stronger contrast than the previous low-opacity stroke — the line
+    // is the only visualization of where the flight is *going*, so it
+    // needs to read clearly against both light grey paper and the dark
+    // canvas without competing with the actual ADS-B trace (which is a
+    // solid bright line).
     const strokeColor =
-      theme === "light" ? "rgba(26, 26, 24, 0.55)" : "rgba(255, 230, 0, 0.62)";
+      theme === "light"
+        ? "rgba(26, 26, 24, 0.78)"
+        : "rgba(255, 230, 0, 0.85)";
 
     const baseOptions = {
       pane,
       color: strokeColor,
-      weight: 1.6,
+      weight: 2,
       opacity: 1,
-      dashArray: "6 7",
-      lineCap: "round",
+      // Longer dash / shorter gap so the projection reads as a deliberate
+      // dashed line even at world zoom where each segment subtends only a
+      // few pixels.
+      dashArray: "10 6",
+      lineCap: "butt",
       lineJoin: "round",
       interactive: false,
       className: "aircraft-predicted-route",
