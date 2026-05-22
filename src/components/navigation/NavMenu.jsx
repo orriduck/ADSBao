@@ -1,7 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { UserButton, useUser } from "@clerk/nextjs";
+import {
+  SignInButton,
+  SignUpButton,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -49,11 +54,14 @@ export default function NavMenu({ variant = "footer" }) {
   const languageItems = getLocaleMenuItems();
   // Default to "show sign-in / sign-up" until Clerk confirms a signed-in
   // session. If the Clerk SDK fails to load (CSP block, network error,
-  // misconfigured key), `<Show>` would render nothing and the ACCOUNT
-  // section would be a dead header — which is exactly what happened on
-  // the first production deploy before the custom-domain CSP was added.
+  // misconfigured key), the modal triggers stay visible — clicking them
+  // is a no-op in that failure mode, but the menu still renders the
+  // affordances instead of going silently dark.
   const { isLoaded, isSignedIn } = useUser();
   const showSignedIn = isLoaded && isSignedIn;
+
+  const authTriggerClass =
+    "font-mono relative flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-atc-faint transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text";
 
   useEffect(() => {
     if (!open) return undefined;
@@ -138,24 +146,28 @@ export default function NavMenu({ variant = "footer" }) {
               </div>
             ) : (
               <>
-                <Link
-                  href="/sign-in"
-                  role="menuitem"
-                  onClick={handleSelect}
-                  className="font-mono relative flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-atc-faint transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
-                >
-                  <LogIn className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{t("auth.signIn")}</span>
-                </Link>
-                <Link
-                  href="/sign-up"
-                  role="menuitem"
-                  onClick={handleSelect}
-                  className="font-mono relative flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-atc-faint transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
-                >
-                  <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>{t("auth.signUp")}</span>
-                </Link>
+                <SignInButton mode="modal">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleSelect}
+                    className={authTriggerClass}
+                  >
+                    <LogIn className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{t("auth.signIn")}</span>
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleSelect}
+                    className={authTriggerClass}
+                  >
+                    <UserPlus className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{t("auth.signUp")}</span>
+                  </button>
+                </SignUpButton>
               </>
             )}
           </div>

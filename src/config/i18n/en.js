@@ -23,8 +23,6 @@ const en = {
     signIn: "Sign in",
     signUp: "Register",
     signedIn: "Signed in",
-    description:
-      "Use your account for owner-only route provider experiments.",
   },
   about: {
     meta: {
