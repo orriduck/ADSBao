@@ -33,13 +33,6 @@ import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/Selec
 import TraceLoadingToast from "@/components/aircraft/trace/TraceLoadingToast.jsx";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard.jsx";
 
-// PredictedRouteLine imports leaflet at module top, so dynamic-import it
-// to keep leaflet out of the SSR bundle (same pattern as AirportMap).
-const PredictedRouteLine = dynamic(
-  () => import("@/components/map/PredictedRouteLine.jsx"),
-  { ssr: false },
-);
-
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
   loading: () => (
@@ -334,24 +327,6 @@ function FlightExplorerContent({ callsign }) {
           >
             <MapFitToTraceController
               routeEndpoints={enrichedTrackedAircraft?.flightRoute || null}
-            />
-            <PredictedRouteLine
-              // Draw whenever we have a route with usable destination
-              // coords — the line is just a visual projection of the
-              // metadata already shown in the sidebar, no FA-trust
-              // claim attached. The destination presence check covers
-              // both FlightAware routes (always carry full airport
-              // data) and adsbdb fallback routes.
-              enabled={Number.isFinite(
-                Number(enrichedTrackedAircraft?.flightRoute?.destination?.lat),
-              )}
-              lat={focalLat}
-              lon={focalLon}
-              origin={enrichedTrackedAircraft?.flightRoute?.origin || null}
-              destination={
-                enrichedTrackedAircraft?.flightRoute?.destination || null
-              }
-              zoom={mapZoom}
             />
           </AirportMap>
 

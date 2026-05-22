@@ -35,3 +35,5 @@ dist-ssr
 
 # clerk configuration (can include secrets)
 /.clerk/
+.claude/dev-server.log
+.claude/*.png

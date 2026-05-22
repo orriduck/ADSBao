@@ -285,18 +285,62 @@ assert.deepEqual(
   assert.deepEqual(trimmed[1], points[4]);
 }
 
-// Long-haul ocean gap with plausible cruise speed is preserved — no
-// false positives. JFK → LHR is ~3000 nm; covered in ~6.5h ≈ 460 kt
-// average. Each ~30 min gap implies ~230 nm @ ~460 kt.
+// Continuous long-haul cruise — steps under 60 min and each spatial
+// delta implies a plausible ground speed (≤ 600 kt). Nothing gets
+// trimmed. JFK→LHR at ~460 kt average; each 30-min step is ~230 nm
+// (~5 deg lon at this latitude).
 {
   const points = [
     { lat: 40.64, lon: -73.78, timestampMs: 1_700_000_000_000 }, // JFK
-    { lat: 42.0, lon: -69.0, timestampMs: 1_700_000_000_000 + 30 * 60 * 1000 },
-    { lat: 44.0, lon: -60.0, timestampMs: 1_700_000_000_000 + 60 * 60 * 1000 },
-    { lat: 50.0, lon: -30.0, timestampMs: 1_700_000_000_000 + 3 * 60 * 60 * 1000 },
-    { lat: 51.47, lon: -0.45, timestampMs: 1_700_000_000_000 + 6.5 * 60 * 60 * 1000 }, // LHR
+    { lat: 43.0, lon: -68.0, timestampMs: 1_700_000_000_000 + 30 * 60 * 1000 },
+    { lat: 45.0, lon: -62.0, timestampMs: 1_700_000_000_000 + 60 * 60 * 1000 },
+    { lat: 47.0, lon: -56.0, timestampMs: 1_700_000_000_000 + 90 * 60 * 1000 },
+    { lat: 49.0, lon: -50.0, timestampMs: 1_700_000_000_000 + 120 * 60 * 1000 },
   ];
   assert.deepEqual(trimImplausibleTraceSegments(points), points);
+}
+
+// Multi-leg aircraft with a 4h turnaround gap (yesterday's flight ended
+// at Detroit on the ground, today's flight is in cruise) — everything
+// before the gap is dropped. This is the exact shape adsb.lol's
+// trace_full returns for a same-hex aircraft that flew multiple flights
+// in the trailing 24h window. Today's samples are dense (≤ 30 min
+// apart, plausible cruise) so the only discontinuity is the
+// turnaround gap.
+{
+  const yesterday = [
+    { lat: 42.21, lon: -83.36, timestampMs: 1_700_000_000_000 }, // DTW (yesterday)
+    { lat: 42.30, lon: -83.40, timestampMs: 1_700_000_000_000 + 10 * 60 * 1000 },
+  ];
+  const todayBase = 1_700_000_000_000 + 4 * 60 * 60 * 1000;
+  // Today's flight in 30-min hops, each one a plausible cruise step
+  // (~5 deg lon eastbound at ~42°N).
+  const today = [
+    { lat: 41.97, lon: -87.91, timestampMs: todayBase }, // ORD (today)
+    { lat: 42.05, lon: -85.0, timestampMs: todayBase + 30 * 60 * 1000 },
+    { lat: 42.12, lon: -82.0, timestampMs: todayBase + 60 * 60 * 1000 },
+    { lat: 42.20, lon: -79.0, timestampMs: todayBase + 90 * 60 * 1000 },
+    { lat: 42.28, lon: -75.0, timestampMs: todayBase + 120 * 60 * 1000 },
+    { lat: 42.36, lon: -71.0, timestampMs: todayBase + 150 * 60 * 1000 }, // BOS
+  ];
+  const trimmed = trimImplausibleTraceSegments([...yesterday, ...today]);
+  assert.deepEqual(trimmed, today);
+}
+
+// Custom thresholds are honored — tighter gap setting trims sooner.
+{
+  const points = [
+    { lat: 42.0, lon: -71.0, timestampMs: 1_700_000_000_000 },
+    { lat: 42.1, lon: -71.1, timestampMs: 1_700_000_000_000 + 20 * 60 * 1000 }, // 20-min gap
+    { lat: 42.2, lon: -71.2, timestampMs: 1_700_000_000_000 + 22 * 60 * 1000 },
+  ];
+  // Default 60-min threshold leaves it intact.
+  assert.deepEqual(trimImplausibleTraceSegments(points), points);
+  // Tighter 15-min threshold trims the leading point.
+  assert.deepEqual(
+    trimImplausibleTraceSegments(points, { maxGapMs: 15 * 60 * 1000 }),
+    points.slice(1),
+  );
 }
 
 console.log("aircraftTraceModel.test.js ok");

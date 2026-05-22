@@ -189,27 +189,37 @@ export function mergeTracesByPriority({ sources = [] } = {}) {
     .sort((a, b) => a.timestampMs - b.timestampMs);
 }
 
-// Drop the leading portion of a sorted-by-timestamp trace when there's
-// an implausibly fast jump between adjacent points. Any pair implying a
-// ground speed beyond `maxGroundSpeedKnots` is treated as data error
-// — a stale localStorage point bleeding into a fresh fetch, a
-// cross-flight contamination from an ICAO24 reused later that day, a
-// sensor glitch — and everything up to and including the older side
-// of that jump is discarded. The trailing contiguous tail (which
-// includes the current live position) is what the renderer should
-// show.
+// Drop the leading portion of a sorted-by-timestamp trace at the last
+// adjacent-pair discontinuity. Two kinds of discontinuity count:
 //
-// Threshold of 1500 kt is well above the fastest civil cruise (~600 kt)
-// and above military supersonic (~1300 kt), so any pair beating it is
-// almost certainly bogus rather than a legitimate long-distance gap.
-// Catmull-Rom can't visually distinguish a real 500-nm gap from a
-// stale-data 500-nm jump, so this guard is what stops the renderer
-// from drawing a single long straight line across the artifact.
+//   1. A temporal gap larger than `maxGapMs` (default 60 minutes). On
+//      a real continuous flight, ADS-B coverage drops rarely exceed
+//      30 min, while a ground-turnaround between flights on the same
+//      ICAO24 hex always exceeds an hour. adsb.lol's trace_full
+//      endpoint returns ~24h of data for a hex — for a multi-leg
+//      aircraft that includes yesterday's flights with a long
+//      stationary stretch between legs. Catmull-Rom can't see the
+//      gap; without this trim it interpolates a single smooth segment
+//      across hours of dead time, producing the long-straight-line
+//      artifact across the map.
+//
+//   2. An implied ground speed beyond `maxGroundSpeedKnots` (default
+//      1500 kt). Faster than Mach-2; treated as data error
+//      (cross-flight contamination with similar timestamps but a
+//      different location, sensor glitch).
+//
+// Walks from the tail backwards because the trailing live segment is
+// what we want to preserve. Returns the slice from the first kept
+// index onward.
 const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
+const TRACE_MAX_GAP_MS = 60 * 60 * 1000;
 
 export function trimImplausibleTraceSegments(
   points = [],
-  maxGroundSpeedKnots = TRACE_MAX_GROUND_SPEED_KNOTS,
+  {
+    maxGroundSpeedKnots = TRACE_MAX_GROUND_SPEED_KNOTS,
+    maxGapMs = TRACE_MAX_GAP_MS,
+  } = {},
 ) {
   if (!Array.isArray(points) || points.length < 2) return points;
   let firstKeptIndex = 0;
@@ -218,6 +228,10 @@ export function trimImplausibleTraceSegments(
     const curr = points[i];
     const gapMs = Number(curr?.timestampMs) - Number(prev?.timestampMs);
     if (!Number.isFinite(gapMs) || gapMs <= 0) continue;
+    if (gapMs > maxGapMs) {
+      firstKeptIndex = i;
+      break;
+    }
     const distanceNm = getDistanceNm(prev.lat, prev.lon, curr.lat, curr.lon);
     if (!Number.isFinite(distanceNm)) continue;
     // distance / time → knots. distanceNm is nautical miles, gapMs is ms.
