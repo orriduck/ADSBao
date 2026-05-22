@@ -51,7 +51,11 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@sentry/cli"
-    ]
+    ],
+    "supportedArchitectures": {
+      "os": ["darwin", "linux"],
+      "cpu": ["x64", "arm64"]
+    }
   },
   "license": "MIT"
 }
