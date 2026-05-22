@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { LogIn } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
@@ -31,6 +26,8 @@ export default function MapControlRail({
   onToggleLayerDrawer,
 }) {
   const { t } = useI18n();
+  const { isLoaded, isSignedIn } = useUser();
+  const showSignedIn = isLoaded && isSignedIn;
   return (
     <div className="map-ctrl-bar">
       {onFitToTrace && (
@@ -101,8 +98,15 @@ export default function MapControlRail({
 
       {/* Clerk auth — signed-in users get the UserButton avatar /
           dropdown, signed-out users get a Sign-in CTA styled like the
-          other ctrl-btns. Sized to match the 32px square rail icons. */}
-      <SignedIn>
+          other ctrl-btns. Uses useUser() (same shared ClerkProvider
+          context every other page reads from) so the state is global,
+          not page-local. While Clerk is still hydrating the session
+          we render a reserved 32px slot so the toolbar doesn't reflow
+          and a signed-in user doesn't see the sign-in icon flicker
+          first. */}
+      {!isLoaded ? (
+        <div className="ctrl-user-button" aria-hidden="true" />
+      ) : showSignedIn ? (
         <div className="ctrl-user-button" aria-label={t("auth.account")}>
           <UserButton
             appearance={{
@@ -112,8 +116,7 @@ export default function MapControlRail({
             }}
           />
         </div>
-      </SignedIn>
-      <SignedOut>
+      ) : (
         <SignInButton mode="modal">
           <button
             type="button"
@@ -124,7 +127,7 @@ export default function MapControlRail({
             <LogIn className="h-4 w-4" aria-hidden="true" />
           </button>
         </SignInButton>
-      </SignedOut>
+      )}
     </div>
   );
 }
