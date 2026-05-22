@@ -334,7 +334,15 @@ function FlightExplorerContent({ callsign }) {
           >
             <MapFitToTraceController />
             <PredictedRouteLine
-              enabled={flightAwareEnabled}
+              // Draw whenever we have a route with usable destination
+              // coords — the line is just a visual projection of the
+              // metadata already shown in the sidebar, no FA-trust
+              // claim attached. The destination presence check covers
+              // both FlightAware routes (always carry full airport
+              // data) and adsbdb fallback routes.
+              enabled={Number.isFinite(
+                Number(enrichedTrackedAircraft?.flightRoute?.destination?.lat),
+              )}
               lat={focalLat}
               lon={focalLon}
               origin={enrichedTrackedAircraft?.flightRoute?.origin || null}
