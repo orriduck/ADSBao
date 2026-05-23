@@ -27,7 +27,7 @@ function formatTracePointTime(point) {
   return Number.isFinite(timestampMs) ? new Date(timestampMs).toISOString() : null;
 }
 
-function fetchTraceSource({ hex, label, source, full }) {
+function fetchTraceSource({ hex, label, source, full, notify = true }) {
   const promise = aircraftTraceClient
     .fetchAircraftTrace({ hex, full })
     .then((payload) => {
@@ -44,12 +44,14 @@ function fetchTraceSource({ hex, label, source, full }) {
       return { payload, points };
     });
 
-  toast.promise(promise, {
-    loading: `Fetching ${source} trace for ${label}...`,
-    success: ({ points }) => `${label} ${source} trace: ${points.length} pts`,
-    error: (error) =>
-      `${label} ${source} trace failed: ${error?.message || "unknown error"}`,
-  });
+  if (notify) {
+    toast.promise(promise, {
+      loading: `Fetching ${source} trace for ${label}...`,
+      success: ({ points }) => `${label} ${source} trace: ${points.length} pts`,
+      error: (error) =>
+        `${label} ${source} trace failed: ${error?.message || "unknown error"}`,
+    });
+  }
 
   return promise;
 }
@@ -114,6 +116,8 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     typeof options?.persistKey === "string" && options.persistKey.trim()
       ? options.persistKey.trim()
       : null;
+  const recentRefreshKey =
+    typeof options?.recentRefreshKey === "string" ? options.recentRefreshKey : "";
   const traceLabel = formatTraceFetchLabel(selectedAircraft, hex);
 
   const [fullPoints, setFullPoints] = useState([]);
@@ -186,6 +190,42 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
       disposed = true;
     };
   }, [hex, fullTrace, traceLabel]);
+
+  // While the lost-signal overlay is visible on the flight page, the
+  // callsign poll keeps ticking. Use that tick to silently refresh the
+  // recent trace behind the modal so newly-arrived upstream points can
+  // appear without asking the user to dismiss or retry by hand.
+  useEffect(() => {
+    if (!hex || !recentRefreshKey) return undefined;
+
+    let disposed = false;
+    const label = traceLabel;
+    setRecentLoading(true);
+
+    fetchTraceSource({
+      hex,
+      label,
+      source: "recent",
+      full: false,
+      notify: false,
+    })
+      .then(({ points }) => {
+        if (disposed) return;
+        setRecentPoints(points);
+      })
+      .catch((error) => {
+        if (!disposed) {
+          console.warn(`[aircraft-trace:${hex}] background recent fetch failed`, error);
+        }
+      })
+      .finally(() => {
+        if (!disposed) setRecentLoading(false);
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, [hex, recentRefreshKey, traceLabel]);
 
   // Append the latest polled position so the trail extends forward in
   // real time. We don't gate on loading anymore — the priority merge

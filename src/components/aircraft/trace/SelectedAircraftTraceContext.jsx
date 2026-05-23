@@ -46,6 +46,7 @@ export function SelectedAircraftTraceProvider({
   fullTraceForFocal = false,
   focalTraceStartAtMs = null,
   focalPersistKey = null,
+  focalTraceRefreshKey = "",
   children,
 }) {
   const primaryHook = useAircraftTrace(selectedAircraft);
@@ -60,6 +61,7 @@ export function SelectedAircraftTraceProvider({
     fullTrace: fullTraceForFocal,
     traceStartAtMs: focalTraceStartAtMs,
     persistKey: focalPersistKey,
+    recentRefreshKey: focalTraceRefreshKey,
   });
 
   const primary = useMemo(
