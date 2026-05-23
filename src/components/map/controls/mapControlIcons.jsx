@@ -3,7 +3,6 @@
 import {
   ArrowDownToLine,
   ArrowUpToLine,
-  AudioLines,
   Crosshair,
   Gauge,
   Layers,
@@ -25,7 +24,6 @@ import {
 export const MAP_CONTROL_ICONS = {
   arrowDownToLine: ArrowDownToLine,
   arrowUpToLine: ArrowUpToLine,
-  audioLines: AudioLines,
   crosshair: Crosshair,
   gauge: Gauge,
   layers: Layers,
@@ -53,8 +51,6 @@ export function MapControlIcon({ iconKey }) {
       return <ArrowDownToLine />;
     case "arrowUpToLine":
       return <ArrowUpToLine />;
-    case "audioLines":
-      return <AudioLines />;
     case "crosshair":
       return <Crosshair />;
     case "gauge":
