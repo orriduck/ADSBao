@@ -10,6 +10,9 @@ import {
   getOrCreateTrackedFlight,
   getTraceCutoffMs,
 } from "@/features/aircraft/tracking/trackedFlightStorage.js";
+import {
+  getLostSignalTraceRefreshKey,
+} from "@/features/aircraft/tracking/lostSignalTrackingModel.js";
 import { buildGreatCirclePath } from "@/features/aviation/flight-routes/greatCircleRouteModel.js";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 
@@ -96,6 +99,7 @@ function FlightExplorerContent({ callsign }) {
     feedSource,
     lastUpdated,
     lostSignal,
+    pollVersion: trackedPollVersion,
   } = useTrackedAircraft(callsign);
 
   // Anchor the tracking session as soon as we have a callsign so the
@@ -117,6 +121,14 @@ function FlightExplorerContent({ callsign }) {
   const focalTraceStartAtMs = useMemo(
     () => getTraceCutoffMs(trackingSession),
     [trackingSession],
+  );
+  const focalTraceRefreshKey = useMemo(
+    () =>
+      getLostSignalTraceRefreshKey({
+        lostSignal,
+        pollVersion: trackedPollVersion,
+      }),
+    [lostSignal, trackedPollVersion],
   );
 
   // User can dismiss the lost-signal overlay to keep watching the last
@@ -281,6 +293,7 @@ function FlightExplorerContent({ callsign }) {
       fullTraceForFocal
       focalTraceStartAtMs={focalTraceStartAtMs}
       focalPersistKey={callsign || null}
+      focalTraceRefreshKey={focalTraceRefreshKey}
     >
       <AircraftPreviewCard
         aircraft={selectedAircraft}

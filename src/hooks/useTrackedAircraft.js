@@ -29,6 +29,7 @@ export function useTrackedAircraft(callsign) {
   const [error, setError] = useState(null);
   const [initialLoading, setInitialLoading] = useState(false);
   const [lostSignal, setLostSignal] = useState(false);
+  const [pollVersion, setPollVersion] = useState(0);
   const timerRef = useRef(null);
   const disposedRef = useRef(false);
   const missesRef = useRef(0);
@@ -49,6 +50,7 @@ export function useTrackedAircraft(callsign) {
       setLastUpdated(null);
       setError(null);
       setLostSignal(false);
+      setPollVersion(0);
       missesRef.current = 0;
       return undefined;
     }
@@ -97,7 +99,10 @@ export function useTrackedAircraft(callsign) {
         console.warn(`[tracked-aircraft] ${callsign} fetch failed`, err);
         setError(err);
       } finally {
-        if (!disposedRef.current) setInitialLoading(false);
+        if (!disposedRef.current) {
+          setPollVersion((value) => value + 1);
+          setInitialLoading(false);
+        }
       }
     };
 
@@ -118,6 +123,7 @@ export function useTrackedAircraft(callsign) {
     initialLoading,
     error,
     lostSignal,
+    pollVersion,
     retry,
   };
 }
