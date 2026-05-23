@@ -1,14 +1,12 @@
 import { ImageResponse } from "next/og";
-import { SITE_DESCRIPTION, SITE_NAME } from "@/config/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_SOCIAL_IMAGE } from "@/config/site";
 
-export const size = {
-  width: 1200,
-  height: 630,
+const imageSize = {
+  width: SITE_SOCIAL_IMAGE.width,
+  height: SITE_SOCIAL_IMAGE.height,
 };
 
-export const contentType = "image/png";
-
-export default function Image() {
+export function GET() {
   return new ImageResponse(
     (
       <div
@@ -24,7 +22,7 @@ export default function Image() {
           fontFamily: "system-ui, sans-serif",
         }}
       >
-        {/* Brand row — diamond + // ADSBAO wordmark + section label */}
+        {/* Brand row: diamond + // ADSBAO wordmark + section label */}
         <div
           style={{
             display: "flex",
@@ -50,7 +48,9 @@ export default function Image() {
             }}
           >
             <span style={{ color: "#ffe600", fontSize: 56 }}>{"//"}</span>
-            <span style={{ fontSize: 72, color: "#f5f3ee" }}>{SITE_NAME.toUpperCase()}</span>
+            <span style={{ fontSize: 72, color: "#f5f3ee" }}>
+              {SITE_NAME.toUpperCase()}
+            </span>
           </div>
           <div
             style={{
@@ -125,6 +125,6 @@ export default function Image() {
         </div>
       </div>
     ),
-    size,
+    imageSize,
   );
 }

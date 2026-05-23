@@ -10,10 +10,20 @@ import {
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
   SITE_NAME,
+  SITE_SOCIAL_IMAGE,
   SITE_TITLE,
+  getSocialImageUrl,
   getSiteUrl,
 } from "@/config/site";
 import "../style.css";
+
+const socialImage = {
+  url: getSocialImageUrl(),
+  width: SITE_SOCIAL_IMAGE.width,
+  height: SITE_SOCIAL_IMAGE.height,
+  type: SITE_SOCIAL_IMAGE.type,
+  alt: SITE_SOCIAL_IMAGE.alt,
+};
 
 export const metadata = {
   metadataBase: getSiteUrl(),
@@ -38,11 +48,13 @@ export const metadata = {
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: [socialImage],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: [socialImage],
   },
   robots: {
     index: true,
