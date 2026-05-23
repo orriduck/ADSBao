@@ -5,6 +5,10 @@ import { createPortal } from "react-dom";
 import L from "leaflet";
 import NumberFlow from "@number-flow/react";
 import { useMapInstance } from "./MapContext.js";
+import {
+  safeAddToMap,
+  safeRemoveFromMap,
+} from "../../features/airport/map/leafletLayerSafety.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
 
@@ -38,18 +42,23 @@ export default function AirportMarker({
   useEffect(() => {
     if (!map || !map.getContainer || !lat || !lon || !container)
       return undefined;
-    const marker = L.marker([lat, lon], {
-      interactive: false,
-      icon: L.divIcon({
-        className: "",
-        html: container,
-        iconSize: [120, 34],
-        iconAnchor: [0, -8],
+    const marker = safeAddToMap(
+      L.marker([lat, lon], {
+        interactive: false,
+        icon: L.divIcon({
+          className: "",
+          html: container,
+          iconSize: [120, 34],
+          iconAnchor: [0, -8],
+        }),
       }),
-    }).addTo(map);
+      map,
+      { label: "AirportMarker" },
+    );
+    if (!marker) return undefined;
     markerRef.current = marker;
     return () => {
-      marker.remove();
+      safeRemoveFromMap(marker, map);
       markerRef.current = null;
     };
   }, [map, lat, lon, container]);

@@ -7,6 +7,10 @@ import {
   buildAirportRangeRingLabels,
   buildAirportRangeRings,
 } from "../../features/airport/map/airportRangeRings.js";
+import {
+  safeAddToMap,
+  safeRemoveFromMap,
+} from "../../features/airport/map/leafletLayerSafety.js";
 import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay.js";
 
 const DEFAULT_RING_INTERVAL_NM = 3;
@@ -15,28 +19,6 @@ const DEFAULT_RING_MAX_NM = 30;
 // Per-ring labels show at the airport preset and closer; below that
 // the MapRangeLegend scale bar carries distance context.
 const RING_LABEL_MIN_ZOOM = ZOOM_AIRPORT;
-
-// HMR + rapid airport switching can land children on a map whose SVG
-// renderer is mid-rebuild — addTo throws "Cannot read properties of
-// undefined (reading 'appendChild')". Swallow it so the next render
-// can succeed.
-const safeAddTo = (layer, map) => {
-  try {
-    return layer.addTo(map);
-  } catch (error) {
-    console.warn("[AreaMarker] addTo skipped (map not ready)", error.message);
-    return null;
-  }
-};
-
-const safeRemoveFrom = (layer, map) => {
-  if (!layer || !map) return;
-  try {
-    layer.removeFrom(map);
-  } catch {
-    /* layer or pane already torn down — nothing to clean up */
-  }
-};
 
 export default function AreaMarker({
   lat,
@@ -55,7 +37,7 @@ export default function AreaMarker({
       return undefined;
     if (!lat || !lon) return undefined;
 
-    safeRemoveFrom(ringsRef.current, map);
+    safeRemoveFromMap(ringsRef.current, map);
     const rings = buildAirportRangeRings(L, {
       lat,
       lon,
@@ -64,9 +46,11 @@ export default function AreaMarker({
       theme,
     });
     ringsRef.current =
-      rings.length > 0 ? safeAddTo(L.layerGroup(rings), map) : null;
+      rings.length > 0
+        ? safeAddToMap(L.layerGroup(rings), map, { label: "AreaMarker" })
+        : null;
 
-    safeRemoveFrom(ringLabelsRef.current, map);
+    safeRemoveFromMap(ringLabelsRef.current, map);
     ringLabelsRef.current = null;
     if (Number(zoom) >= RING_LABEL_MIN_ZOOM) {
       const labels = buildAirportRangeRingLabels(L, {
@@ -77,13 +61,15 @@ export default function AreaMarker({
         theme,
       });
       if (labels.length > 0) {
-        ringLabelsRef.current = safeAddTo(L.layerGroup(labels), map);
+        ringLabelsRef.current = safeAddToMap(L.layerGroup(labels), map, {
+          label: "AreaMarker",
+        });
       }
     }
 
     return () => {
-      safeRemoveFrom(ringsRef.current, map);
-      safeRemoveFrom(ringLabelsRef.current, map);
+      safeRemoveFromMap(ringsRef.current, map);
+      safeRemoveFromMap(ringLabelsRef.current, map);
       ringsRef.current = null;
       ringLabelsRef.current = null;
     };

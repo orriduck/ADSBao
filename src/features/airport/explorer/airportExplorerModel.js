@@ -54,3 +54,24 @@ export function enrichAircraftWithRoutes({
     airspaceVolumes,
   });
 }
+
+const aircraftSelectionId = (aircraft) => aircraft?.icao24 || aircraft?.callsign || "";
+
+export function resolveAirportExplorerSelection({
+  aircraft = [],
+  selectedAircraftId = "",
+  airports = [],
+  selectedAirportIcao = "",
+} = {}) {
+  const selectedAircraft =
+    aircraft.find((item) => aircraftSelectionId(item) === selectedAircraftId) ||
+    null;
+  const selectedAirport =
+    airports.find((airport) => airport?.icao === selectedAirportIcao) || null;
+
+  return {
+    selectedAircraft,
+    selectedAircraftStillVisible: !selectedAircraftId || Boolean(selectedAircraft),
+    selectedAirport,
+  };
+}

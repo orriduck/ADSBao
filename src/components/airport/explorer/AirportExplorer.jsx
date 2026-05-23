@@ -3,13 +3,17 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
+import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar.jsx";
 import {
   ExplorerUiProvider,
   useExplorerUi,
 } from "@/components/explorer/ExplorerUiContext.jsx";
 import AircraftDataLoadingOverlay from "./AircraftDataLoadingOverlay.jsx";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu.jsx";
-import { resolveAirportProfile } from "@/features/airport/explorer/airportExplorerModel.js";
+import {
+  resolveAirportExplorerSelection,
+  resolveAirportProfile,
+} from "@/features/airport/explorer/airportExplorerModel.js";
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData.js";
 import { useAirportProcedures } from "@/hooks/useAirportProcedures.js";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports.js";
@@ -64,21 +68,30 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     lat: airportProfile.lat,
     lon: airportProfile.lon,
   });
-  const selectedAircraft = useMemo(
+  const selection = useMemo(
     () =>
-      traffic.aircraft.find(
-        (item) => (item.icao24 || item.callsign) === selectedAircraftId,
-      ) || null,
-    [selectedAircraftId, traffic.aircraft],
+      resolveAirportExplorerSelection({
+        aircraft: traffic.aircraft,
+        selectedAircraftId,
+        airports: nearbyAirports.airports,
+        selectedAirportIcao,
+      }),
+    [
+      nearbyAirports.airports,
+      selectedAircraftId,
+      selectedAirportIcao,
+      traffic.aircraft,
+    ],
   );
 
   useEffect(() => {
     if (!selectedAircraftId) return;
-    const stillVisible = traffic.aircraft.some(
-      (item) => (item.icao24 || item.callsign) === selectedAircraftId,
-    );
-    if (!stillVisible) setSelectedAircraftId("");
-  }, [selectedAircraftId, setSelectedAircraftId, traffic.aircraft]);
+    if (!selection.selectedAircraftStillVisible) setSelectedAircraftId("");
+  }, [
+    selectedAircraftId,
+    selection.selectedAircraftStillVisible,
+    setSelectedAircraftId,
+  ]);
 
   useEffect(() => {
     if (!isMobile) return undefined;
@@ -101,14 +114,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
     };
   }, [isMobile]);
-
-  const selectedAirport = useMemo(
-    () =>
-      nearbyAirports.airports.find(
-        (airport) => airport?.icao === selectedAirportIcao,
-      ) || null,
-    [nearbyAirports.airports, selectedAirportIcao],
-  );
 
   const sidebarProps = {
     icao: airportProfile.icao,
@@ -137,10 +142,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   };
 
   return (
-    <SelectedAircraftTraceProvider selectedAircraft={selectedAircraft}>
+    <SelectedAircraftTraceProvider selectedAircraft={selection.selectedAircraft}>
       <AircraftPreviewCard
-        aircraft={selectedAircraft}
-        airport={selectedAirport}
+        aircraft={selection.selectedAircraft}
+        airport={selection.selectedAirport}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         airportProfile={airportProfile}
@@ -154,14 +159,11 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         }`}
       >
         {!isMobile && (
-          <div
-            className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
-            style={{ width: sidebarOpen ? desktopSidebarWidth : "0" }}
-          >
-            <div className="h-full" style={{ width: desktopSidebarWidth }}>
-              <AirportSidebar {...sidebarProps} />
-            </div>
-          </div>
+          <AirportExplorerDesktopSidebar
+            open={sidebarOpen}
+            width={desktopSidebarWidth}
+            sidebarProps={sidebarProps}
+          />
         )}
 
         <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">

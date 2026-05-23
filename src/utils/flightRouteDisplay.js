@@ -1,4 +1,5 @@
 import { ARRIVAL, DEPARTURE } from './aircraftMovement.js'
+export { getFlightRouteAirlineIconUrl } from '../features/aviation/airlineLogoModel.js'
 
 const airportCode = (airport) =>
   String(airport?.iata || airport?.icao || '').trim().toUpperCase()
@@ -57,26 +58,6 @@ export const formatFlightRouteMunicipalityLabel = (route) => {
   if (!origin || !destination) return ''
   if (sameAirport(route.origin, route.destination)) return ''
   return `${origin} -> ${destination}${routeDisplaySuffix(route)}`
-}
-
-// Build the airline logo URL from the airline ICAO (e.g. "JBU" → JetBlue).
-// We always route through /api/proxy/airlines/[icao] instead of using the
-// raw url that some providers attach — direct hot-links to the upstream
-// CDN get blocked / 403'd in the browser, and the proxy lets both
-// FlightAware and adsbdb routes share the same URL shape so adsbdb users
-// see logos too.
-//
-// Strictly 2-3 alphabetic chars. The FlightAware parser falls back to
-// the first 3 chars of the callsign when no airline meta is in the page,
-// so for US general-aviation tail numbers (callsign like N123AB) we'd
-// otherwise request /api/proxy/airlines/N12 which 404s upstream. The
-// alphabetic-only guard short-circuits those before they hit the network.
-export const getFlightRouteAirlineIconUrl = (route) => {
-  const code = String(route?.airlineIcao || route?.airline?.icao || '')
-    .trim()
-    .toUpperCase()
-  if (!/^[A-Z]{2,3}$/.test(code)) return ''
-  return `/api/proxy/airlines/${code}`
 }
 
 export const formatLocalFlightRouteLabel = (route, airport, movement) => {
