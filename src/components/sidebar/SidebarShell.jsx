@@ -24,6 +24,7 @@ export default function SidebarShell({
 }) {
   const { t } = useI18n();
   const flightAwareEnabled = useFlightAwareEnabled();
+  const routeProviderLabel = flightAwareEnabled ? "FlightAware" : "adsbdb";
   const isMobileOverlay = Boolean(onClose);
   const updatedLabel = formatUpdated(lastUpdated);
 
@@ -70,17 +71,15 @@ export default function SidebarShell({
               <RequestPulseDots ariaLabel={t("app.feedLive")} />
               {updatedLabel ? <span key={updatedLabel}>{updatedLabel}</span> : null}
             </span>
-            {flightAwareEnabled ? (
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-atc-orange">
-                <span
-                  aria-hidden="true"
-                  className="inline-block h-1.5 w-1.5 rotate-45 bg-atc-orange"
-                />
-                <span className="notranslate" translate="no">
-                  FlightAware
-                </span>
+            <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-atc-orange">
+              <span
+                aria-hidden="true"
+                className="inline-block h-1.5 w-1.5 rotate-45 bg-atc-orange"
+              />
+              <span className="notranslate" translate="no">
+                {routeProviderLabel}
               </span>
-            ) : null}
+            </span>
           </div>
         )}
       </div>
