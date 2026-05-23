@@ -1,5 +1,6 @@
-export const LOCAL_WEATHER_USER_AGENT =
-  "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)";
+import { buildAdsbaoUserAgent } from "../../config/siteMeta.js";
+
+export const LOCAL_WEATHER_USER_AGENT = buildAdsbaoUserAgent();
 
 export const LOCAL_WEATHER_MAX_BYTES = 512 * 1024;
 

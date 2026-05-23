@@ -2029,6 +2029,73 @@ body {
     outline-offset: 2px;
 }
 
+.airport-map-source-status {
+    align-items: flex-end;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    justify-content: center;
+    left: 110px;
+    min-width: 0;
+    position: absolute;
+    right: 12px;
+    top: calc(100% + 10px);
+    white-space: nowrap;
+}
+
+.airport-map-menu--mobile .airport-map-source-status {
+    display: flex;
+}
+
+.airport-map-source-status__line,
+.airport-map-source-status__route {
+    align-items: center;
+    display: flex;
+    justify-content: flex-end;
+    min-width: 0;
+    text-shadow: 0 1px 8px var(--atc-bg);
+    width: 100%;
+}
+
+.airport-map-source-status__line {
+    gap: 8px;
+}
+
+.airport-map-source-status__route {
+    color: var(--atc-orange);
+    font-size: 10px;
+    font-weight: 900;
+    gap: 6px;
+    letter-spacing: 0.24em;
+    line-height: 1;
+}
+
+.airport-map-source-status__source,
+.airport-map-source-status__time {
+    color: var(--atc-faint);
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.airport-map-source-status__source {
+    overflow: visible;
+}
+
+.airport-map-source-status__diamond {
+    background: var(--atc-orange);
+    display: inline-block;
+    height: 9px;
+    transform: rotate(45deg);
+    width: 9px;
+}
+
+.airport-map-source-status--infer .airport-map-source-status__source,
+.airport-map-source-status--infer .airport-map-source-status__time {
+    color: var(--atc-faint);
+}
+
 .map-ctrl-zone {
     align-items: center;
     display: flex;

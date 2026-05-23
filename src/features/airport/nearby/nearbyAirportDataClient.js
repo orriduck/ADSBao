@@ -5,13 +5,14 @@ import {
   normalizeAiracAirport,
 } from "./nearbyAirportModel.js";
 import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity.js";
+import { buildAdsbaoUserAgent } from "../../../config/siteMeta.js";
 
 export const AIRAC_AIRPORT_INDEX_CONFIG = {
   country: "US",
   minRunwayLength: 5000,
   maxPages: 25,
   cacheMs: 6 * 60 * 60 * 1000,
-  userAgent: "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)",
+  userAgent: buildAdsbaoUserAgent(),
 };
 
 export async function fetchAiracAirportIndex({

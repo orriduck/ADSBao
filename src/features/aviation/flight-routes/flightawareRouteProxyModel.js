@@ -2,11 +2,12 @@ import {
   normalizeRouteCallsign,
   sanitizeAirportCode,
 } from "./flightRouteCallsign.js";
+import { buildAdsbaoUserAgent } from "../../../config/siteMeta.js";
 
 export const FLIGHTAWARE_BASE = "https://www.flightaware.com/live/flight";
 
 export const FLIGHTAWARE_USER_AGENT =
-  "ADSBao/1.3.0 (+https://github.com/orriduck/ADSBao) flightaware/html";
+  buildAdsbaoUserAgent("flightaware/html");
 
 const cleanString = (value) => String(value || "").trim();
 const cleanUpper = (value) => cleanString(value).toUpperCase();
