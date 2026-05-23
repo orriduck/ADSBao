@@ -12,7 +12,10 @@ export function buildRouteCacheKey(callsign, routeContext = {}) {
   if (!normalizedCallsign) return "";
   const airportIcao = routeContextCode(routeContext.icao);
   const airportIata = routeContextCode(routeContext.iata);
-  const suffix = [airportIcao, airportIata].filter(Boolean).join("|");
+  const routeProvider = routeContextCode(routeContext.routeProvider);
+  const suffix = [airportIcao, airportIata, routeProvider]
+    .filter(Boolean)
+    .join("|");
   return suffix ? `${normalizedCallsign}|${suffix}` : normalizedCallsign;
 }
 

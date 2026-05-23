@@ -36,8 +36,12 @@ export const createFlightRouteClient = ({
     const params = new URLSearchParams();
     const airportIcao = normalizeCallsign(targetAirport.icao || "");
     const airportIata = normalizeCallsign(targetAirport.iata || "");
+    const routeProvider = normalizeCallsign(targetAirport.routeProvider || "");
     if (airportIcao) params.set("airportIcao", airportIcao);
     if (airportIata) params.set("airportIata", airportIata);
+    if (routeProvider === "FLIGHTAWARE") {
+      params.set("provider", "flightaware");
+    }
     const query = params.toString();
     return `${baseUrl}/${encodeURIComponent(callsign)}${query ? `?${query}` : ""}`;
   };
@@ -58,6 +62,7 @@ export const createFlightRouteClient = ({
             Accept: "application/json",
             "User-Agent": FLIGHT_ROUTE_LOOKUP_CONFIG.userAgent,
           },
+          credentials: "same-origin",
         },
       );
 

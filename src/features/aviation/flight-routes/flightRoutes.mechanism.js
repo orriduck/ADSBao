@@ -86,7 +86,6 @@ export async function fetchFlightAwareRoute(
   callsign,
   { airportQueries = createOurAirportsQueriesFromEnv() } = {},
 ) {
-  if (!airportQueries?.getAirportByIdent) return null;
   const url = buildFlightAwareCallsignRouteUrl(callsign);
   if (!url) return null;
 
@@ -118,7 +117,9 @@ export async function fetchFlightAwareRoute(
   return buildFlightAwareRouteResponse({
     callsign,
     html,
-    resolveAirportByIdent: (ident) => airportQueries.getAirportByIdent(ident),
+    resolveAirportByIdent: airportQueries?.getAirportByIdent
+      ? (ident) => airportQueries.getAirportByIdent(ident)
+      : null,
   });
 }
 

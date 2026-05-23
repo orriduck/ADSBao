@@ -4,9 +4,11 @@ import { useMemo } from "react";
 import { useAircraftPositions } from "@/hooks/useAircraftPositions.js";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes.js";
 import { useMetar } from "@/hooks/useMetar.js";
+import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { enrichAircraftWithRoutes } from "./airportExplorerModel.js";
 
 export function useAirportExplorerData(airportProfile) {
+  const flightAwareEnabled = useFlightAwareEnabled();
   const {
     raw: metarRaw,
     parsed: metar,
@@ -28,7 +30,10 @@ export function useAirportExplorerData(airportProfile) {
     routesByCallsign,
     loadingCount: routeLoadingCount,
     applyTemporaryRoute,
-  } = useFlightRoutes(aircraft, airportProfile);
+  } = useFlightRoutes(aircraft, {
+    ...airportProfile,
+    routeProvider: flightAwareEnabled ? "flightaware" : "",
+  });
 
   const aircraftWithRoutes = useMemo(
     () =>

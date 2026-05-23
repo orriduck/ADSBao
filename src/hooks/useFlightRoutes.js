@@ -78,12 +78,14 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
       // `buildRouteCacheKey` in flightRouteLookupModel.js.
       lat: Number(routeContextInput?.lat),
       lon: Number(routeContextInput?.lon),
+      routeProvider: routeContextInput?.routeProvider || "",
     }),
     [
       routeContextInput?.icao,
       routeContextInput?.iata,
       routeContextInput?.lat,
       routeContextInput?.lon,
+      routeContextInput?.routeProvider,
     ],
   );
 

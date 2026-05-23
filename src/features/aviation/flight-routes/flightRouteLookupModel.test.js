@@ -21,9 +21,26 @@ const route = {
     buildRouteCacheKey("dal123", { icao: "kbos", iata: "bos" }),
     "DAL123|KBOS|BOS",
   );
+  assert.equal(
+    buildRouteCacheKey("dal123", {
+      icao: "kbos",
+      iata: "bos",
+      routeProvider: "flightaware",
+    }),
+    "DAL123|KBOS|BOS|FLIGHTAWARE",
+  );
+  assert.notEqual(
+    buildRouteCacheKey("dal123", { icao: "kbos", iata: "bos" }),
+    buildRouteCacheKey("dal123", {
+      icao: "kbos",
+      iata: "bos",
+      routeProvider: "flightaware",
+    }),
+  );
 
   const cache = new Map([
     ["DAL123|KBOS|BOS", { route, time: now - 1_000 }],
+    ["DAL123|KBOS|BOS|FLIGHTAWARE", { route: null, time: now - 1_000 }],
     ["DAL123|KJFK|JFK", { route: null, time: now - 1_000 }],
     ["MISS1", { route: null, time: now - 1_000 }],
     ["OLD", { route, time: now - 10 * 60 * 60 * 1000 }],
@@ -35,6 +52,14 @@ const route = {
       iata: "BOS",
     })?.route,
     route,
+  );
+  assert.equal(
+    getFreshRouteCacheEntry(cache, "DAL123", now, {
+      icao: "KBOS",
+      iata: "BOS",
+      routeProvider: "flightaware",
+    })?.route,
+    null,
   );
   assert.equal(
     getFreshRouteCacheEntry(cache, "DAL123", now, {

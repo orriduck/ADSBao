@@ -10,10 +10,16 @@ import {
   getOrCreateTrackedFlight,
   getTraceCutoffMs,
 } from "@/features/aircraft/tracking/trackedFlightStorage.js";
+import { buildGreatCirclePath } from "@/features/aviation/flight-routes/greatCircleRouteModel.js";
+import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 
-// MapFitToTraceController imports leaflet, which evaluates `window` at
-// module top — SSR-incompatible. Dynamic-import keeps the controller
+// These map helpers import Leaflet, which evaluates `window` at module
+// top — SSR-incompatible. Dynamic-import keeps those helpers
 // out of the server bundle, same pattern AirportMap uses.
+const FlightAwareRouteArc = dynamic(
+  () => import("@/components/map/FlightAwareRouteArc.jsx"),
+  { ssr: false },
+);
 const MapFitToTraceController = dynamic(
   () => import("@/components/map/MapFitToTraceController.jsx"),
   { ssr: false },
@@ -51,6 +57,7 @@ export default function FlightExplorer({ callsign = "" }) {
 
 function FlightExplorerContent({ callsign }) {
   const router = useRouter();
+  const flightAwareEnabled = useFlightAwareEnabled();
   const {
     desktopSidebarWidth,
     sidebarOpen,
@@ -178,7 +185,7 @@ function FlightExplorerContent({ callsign }) {
   // the in-memory cache without a refetch.
   const { routesByCallsign, applyTemporaryRoute } = useFlightRoutes(
     rawAircraft,
-    {},
+    { routeProvider: flightAwareEnabled ? "flightaware" : "" },
   );
 
   const aircraft = useMemo(
@@ -228,6 +235,14 @@ function FlightExplorerContent({ callsign }) {
       trackedAircraft
     );
   }, [aircraft, trackedAircraft]);
+  const focalFlightAwareRoutePath = useMemo(() => {
+    const route = enrichedTrackedAircraft?.flightRoute;
+    if (route?.source !== "flightaware") return [];
+    return buildGreatCirclePath({
+      from: { lat: focalLat, lon: focalLon },
+      to: route.destination,
+    });
+  }, [enrichedTrackedAircraft?.flightRoute, focalLat, focalLon]);
 
   useEffect(() => {
     if (!isMobile) return undefined;
@@ -323,8 +338,9 @@ function FlightExplorerContent({ callsign }) {
             focalRangeRings={false}
             nearbyRangeRings={{ intervalNm: 5, maxNm: 5, prominent: true }}
           >
+            <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
-              routeEndpoints={enrichedTrackedAircraft?.flightRoute || null}
+              routePath={focalFlightAwareRoutePath}
             />
           </AirportMap>
 
