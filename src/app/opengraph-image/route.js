@@ -1,12 +1,34 @@
 import { ImageResponse } from "next/og";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_SOCIAL_IMAGE } from "@/config/site";
 
+const SAIRA_FONT_URLS = {
+  400: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA71rCosg.ttf",
+  700: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA773Fosg.ttf",
+  900: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA7_PFosg.ttf",
+};
+
 const imageSize = {
   width: SITE_SOCIAL_IMAGE.width,
   height: SITE_SOCIAL_IMAGE.height,
 };
 
-export function GET() {
+const sairaFonts = Promise.all(
+  Object.entries(SAIRA_FONT_URLS).map(async ([weight, url]) => {
+    const response = await fetch(url, { cache: "force-cache" });
+    if (!response.ok) {
+      throw new Error(`Failed to load Saira ${weight} font`);
+    }
+
+    return {
+      name: "Saira",
+      data: await response.arrayBuffer(),
+      weight: Number(weight),
+      style: "normal",
+    };
+  }),
+);
+
+export async function GET() {
   return new ImageResponse(
     (
       <div
@@ -18,8 +40,8 @@ export function GET() {
           justifyContent: "space-between",
           background: "#0e0f10",
           color: "#f5f3ee",
-          padding: "72px 80px",
-          fontFamily: "system-ui, sans-serif",
+          padding: "60px 80px 48px",
+          fontFamily: "Saira, sans-serif",
         }}
       >
         {/* Brand row: diamond + // ADSBAO wordmark + section label */}
@@ -47,7 +69,7 @@ export function GET() {
               letterSpacing: 2,
             }}
           >
-            <span style={{ color: "#ffe600", fontSize: 56 }}>{"//"}</span>
+            <span style={{ color: "#ffe600", fontSize: 52 }}>{"//"}</span>
             <span style={{ fontSize: 72, color: "#f5f3ee" }}>
               {SITE_NAME.toUpperCase()}
             </span>
@@ -69,9 +91,9 @@ export function GET() {
         <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
           <div
             style={{
-              fontSize: 132,
+              fontSize: 108,
               fontWeight: 900,
-              letterSpacing: -2,
+              letterSpacing: 0,
               lineHeight: 0.92,
               color: "#f5f3ee",
               textTransform: "uppercase",
@@ -87,7 +109,7 @@ export function GET() {
           <div
             style={{
               width: 880,
-              fontSize: 30,
+              fontSize: 28,
               lineHeight: 1.35,
               color: "#b8b6ae",
             }}
@@ -102,7 +124,7 @@ export function GET() {
             display: "flex",
             gap: 16,
             fontWeight: 900,
-            fontSize: 24,
+            fontSize: 22,
             letterSpacing: 2,
           }}
         >
@@ -125,6 +147,9 @@ export function GET() {
         </div>
       </div>
     ),
-    imageSize,
+    {
+      ...imageSize,
+      fonts: await sairaFonts,
+    },
   );
 }
