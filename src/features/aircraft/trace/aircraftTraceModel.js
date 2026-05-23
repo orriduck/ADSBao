@@ -6,6 +6,10 @@ const DEFAULT_TRACE_MIN_DISTANCE_NM = 0.03;
 const DEFAULT_TRACE_MIN_SAMPLE_GAP_MS = 1_500;
 const DEFAULT_CURVE_STEPS = 8;
 const DEFAULT_REMOTE_TRACE_MAX_POINTS = 240;
+const DEFAULT_SOLID_TRACE_MAX_GAP_MS = 90 * 1000;
+const DEFAULT_TRACE_CONNECTOR_MAX_GAP_MS = 10 * 60 * 1000;
+const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
+const TRACE_MAX_GAP_MS = 60 * 60 * 1000;
 
 function isFiniteNumber(value) {
   return value !== null && value !== "" && Number.isFinite(Number(value));
@@ -189,13 +193,84 @@ export function mergeTracesByPriority({ sources = [] } = {}) {
     .sort((a, b) => a.timestampMs - b.timestampMs);
 }
 
+function getTraceGroundSpeedKnots(previousPoint, nextPoint, gapMs) {
+  const distanceNm = getDistanceNm(
+    previousPoint.lat,
+    previousPoint.lon,
+    nextPoint.lat,
+    nextPoint.lon,
+  );
+  if (!Number.isFinite(distanceNm) || !Number.isFinite(gapMs) || gapMs <= 0) {
+    return null;
+  }
+  return (distanceNm / gapMs) * 3_600_000;
+}
+
+export function segmentTracePoints(
+  points = [],
+  {
+    solidMaxGapMs = DEFAULT_SOLID_TRACE_MAX_GAP_MS,
+    connectorMaxGapMs = DEFAULT_TRACE_CONNECTOR_MAX_GAP_MS,
+    maxGroundSpeedKnots = TRACE_MAX_GROUND_SPEED_KNOTS,
+  } = {},
+) {
+  const normalized = Array.isArray(points)
+    ? points.filter(
+        (point) =>
+          isFiniteNumber(point?.lat) &&
+          isFiniteNumber(point?.lon) &&
+          Number.isFinite(Number(point?.timestampMs ?? point?.time)),
+      )
+    : [];
+  if (normalized.length === 0) return { segments: [], connectors: [] };
+
+  const segments = [];
+  const connectors = [];
+  let currentSegment = [normalized[0]];
+
+  for (let index = 1; index < normalized.length; index += 1) {
+    const previous = normalized[index - 1];
+    const point = normalized[index];
+    const gapMs =
+      Number(point?.timestampMs ?? point?.time) -
+      Number(previous?.timestampMs ?? previous?.time);
+    const groundSpeedKnots = getTraceGroundSpeedKnots(previous, point, gapMs);
+    const plausibleSpeed =
+      groundSpeedKnots == null || groundSpeedKnots <= maxGroundSpeedKnots;
+
+    if (Number.isFinite(gapMs) && gapMs > 0 && gapMs <= solidMaxGapMs && plausibleSpeed) {
+      currentSegment.push(point);
+      continue;
+    }
+
+    segments.push({ points: currentSegment });
+
+    if (
+      Number.isFinite(gapMs) &&
+      gapMs > solidMaxGapMs &&
+      gapMs <= connectorMaxGapMs &&
+      plausibleSpeed
+    ) {
+      connectors.push({
+        confidence: "low",
+        gapMs,
+        points: [previous, point],
+      });
+    }
+
+    currentSegment = [point];
+  }
+
+  segments.push({ points: currentSegment });
+  return { segments, connectors };
+}
+
 export function composeAircraftTrace({
   mode = "selected",
   sources = {},
   recentLoading = false,
   fullLoading = false,
   fullCutoffMs = null,
-  debugLabel = "",
 } = {}) {
   const isFocusMode = mode === "focus";
   const fullPoints = isFocusMode
@@ -220,12 +295,6 @@ export function composeAircraftTrace({
   const merged = mergeTracesByPriority({
     sources: modeSources,
   });
-  logTraceComposition({
-    debugLabel,
-    mode: isFocusMode ? "focus" : "selected",
-    sources: modeSources,
-    outputCount: merged.length,
-  });
   return {
     points: merged,
     loading: recentLoading && merged.length === 0,
@@ -241,21 +310,6 @@ function clipTracePointsBefore(points, cutoffMs) {
   const cutoff = Number(cutoffMs);
   if (!Number.isFinite(cutoff) || !Array.isArray(points)) return points || [];
   return points.filter((point) => Number(point?.timestampMs) >= cutoff);
-}
-
-function logTraceComposition({ debugLabel, mode, sources = [], outputCount = 0 } = {}) {
-  if (typeof console === "undefined") return;
-  console.info("[aircraft-trace:compose]", {
-    label: debugLabel || null,
-    mode,
-    strategy: "direct-priority-stitch",
-    sources: sources.map((source) => ({
-      name: source.name,
-      priority: source.priority,
-      count: Array.isArray(source.points) ? source.points.length : 0,
-    })),
-    outputCount,
-  });
 }
 
 // Drop the leading portion of a sorted-by-timestamp trace at the last
@@ -280,9 +334,6 @@ function logTraceComposition({ debugLabel, mode, sources = [], outputCount = 0 }
 // Walks from the tail backwards because the trailing live segment is
 // what we want to preserve. Returns the slice from the first kept
 // index onward.
-const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
-const TRACE_MAX_GAP_MS = 60 * 60 * 1000;
-
 export function trimImplausibleTraceSegments(
   points = [],
   {
@@ -304,7 +355,7 @@ export function trimImplausibleTraceSegments(
     const distanceNm = getDistanceNm(prev.lat, prev.lon, curr.lat, curr.lon);
     if (!Number.isFinite(distanceNm)) continue;
     // distance / time → knots. distanceNm is nautical miles, gapMs is ms.
-    const groundSpeedKnots = (distanceNm / gapMs) * 3_600_000;
+    const groundSpeedKnots = getTraceGroundSpeedKnots(prev, curr, gapMs);
     if (groundSpeedKnots > maxGroundSpeedKnots) {
       firstKeptIndex = i;
       break;

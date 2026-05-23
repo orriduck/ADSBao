@@ -84,3 +84,31 @@ assert.equal(
   }),
   null,
 );
+
+const sampleFlightAwareEmbeddedHtml = `
+  <title>YX4397 (RPA4397) Republic Flight Tracking and History - FlightAware</title>
+  <meta name="origin" content="KBOS" />
+  <meta name="destination" content="KLGA" />
+  <meta name="airline" content="RPA" />
+  <meta name="twitter:description" content="Track Republic (YX) #4397 flight from Boston Logan Intl to LaGuardia" />
+  <script>
+    window.__flight = {
+      "origin":{"iata":"BOS","friendlyName":"Boston Logan Intl","friendlyLocation":"Boston, MA","coord":[-71.0064,42.3629],"icao":"KBOS"},
+      "destination":{"iata":"LGA","friendlyName":"LaGuardia","friendlyLocation":"New York, NY","coord":[-73.8726,40.7772],"icao":"KLGA"}
+    };
+  </script>
+`;
+
+const fallbackRoute = await buildFlightAwareRouteResponse({
+  callsign: "RPA4397",
+  html: sampleFlightAwareEmbeddedHtml,
+  resolveAirportByIdent: async () => null,
+});
+assert.equal(fallbackRoute.source, "flightaware");
+assert.equal(fallbackRoute.origin.icao, "KBOS");
+assert.equal(fallbackRoute.origin.iata, "BOS");
+assert.equal(fallbackRoute.origin.lat, 42.3629);
+assert.equal(fallbackRoute.origin.lon, -71.0064);
+assert.equal(fallbackRoute.destination.icao, "KLGA");
+assert.equal(fallbackRoute.destination.iata, "LGA");
+assert.equal(fallbackRoute.route.iata, "BOS-LGA");

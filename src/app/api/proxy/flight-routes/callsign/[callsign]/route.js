@@ -37,6 +37,12 @@ export async function GET(request, { params }) {
   }
 
   try {
+    const requestedProvider = String(
+      request.nextUrl?.searchParams?.get("provider") || "",
+    )
+      .trim()
+      .toLowerCase();
+    const providerSpecificRequest = requestedProvider === "flightaware";
     const body = await resolveFlightRoute({ callsign });
 
     return Response.json(body, {
@@ -44,7 +50,9 @@ export async function GET(request, { params }) {
       headers: buildProxyHeaders(
         request,
         {
-          ...buildRouteCacheHeaders(body),
+          ...buildRouteCacheHeaders(body, {
+            bypassSharedCache: providerSpecificRequest,
+          }),
           // Expose the resolved upstream so the Network tab makes it
           // obvious which provider answered ("flightaware", "adsbdb",
           // "community-feedback", or "none" on a miss).

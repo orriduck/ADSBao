@@ -10,7 +10,11 @@ export const ROUTE_STALE_WHILE_REVALIDATE_SECONDS = 10 * 60;
 // the origin again on the next aircraft pass.
 export const ROUTE_MISS_STATUS = 200;
 
-export function buildRouteCacheHeaders(body) {
+export function buildRouteCacheHeaders(body, { bypassSharedCache = false } = {}) {
+  if (bypassSharedCache || body?.source === "flightaware") {
+    return { "Cache-Control": "no-store" };
+  }
+
   // Community-feedback routes are temporary by design; we deliberately do
   // not let the CDN cache them for the long TTL we use for adsbdb hits.
   // The client hook still caches them in-memory until the local TTL lapses.

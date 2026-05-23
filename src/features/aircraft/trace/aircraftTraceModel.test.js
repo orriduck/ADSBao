@@ -7,6 +7,7 @@ import {
   mergeTracesByPriority,
   normalizeAdsbTracePayload,
   createAircraftTraceTracker,
+  segmentTracePoints,
   trimImplausibleTraceSegments,
 } from "./aircraftTraceModel.js";
 
@@ -232,6 +233,61 @@ import {
   });
   assert.equal(orderOne[0].altitude, 200);
   assert.equal(orderTwo[0].altitude, 200);
+}
+
+{
+  // Normal dense points render as one authoritative segment.
+  const points = [
+    { lat: 42.0, lon: -71.0, timestampMs: 1_000 },
+    { lat: 42.01, lon: -70.99, timestampMs: 31_000 },
+    { lat: 42.02, lon: -70.98, timestampMs: 61_000 },
+  ];
+  const segmented = segmentTracePoints(points);
+
+  assert.equal(segmented.segments.length, 1);
+  assert.deepEqual(segmented.segments[0].points, points);
+  assert.deepEqual(segmented.connectors, []);
+}
+
+{
+  // Trace files can lag live positions by several minutes. Keep the
+  // authoritative samples separate from the visual bridge so the map
+  // does not pretend interpolated latency is real trace history.
+  const points = [
+    { lat: 42.0, lon: -71.0, timestampMs: 1_000 },
+    { lat: 42.05, lon: -70.95, timestampMs: 61_000 },
+    { lat: 42.2, lon: -70.7, timestampMs: 6 * 60_000 },
+  ];
+  const segmented = segmentTracePoints(points);
+
+  assert.equal(segmented.segments.length, 2);
+  assert.deepEqual(
+    segmented.segments.map((segment) => segment.points.length),
+    [2, 1],
+  );
+  assert.equal(segmented.connectors.length, 1);
+  assert.deepEqual(segmented.connectors[0].points, [points[1], points[2]]);
+  assert.equal(segmented.connectors[0].confidence, "low");
+}
+
+{
+  // Very large gaps or impossible jumps are discontinuities, not
+  // connectors. They should render as separate segments with no line
+  // across the gap.
+  const points = [
+    { lat: 42.0, lon: -71.0, timestampMs: 1_000 },
+    { lat: 42.01, lon: -70.99, timestampMs: 31_000 },
+    { lat: 51.5, lon: 0.0, timestampMs: 90_000 },
+    { lat: 51.55, lon: 0.05, timestampMs: 120_000 },
+  ];
+  const segmented = segmentTracePoints(points);
+
+  assert.equal(segmented.segments.length, 2);
+  assert.deepEqual(
+    segmented.segments.map((segment) => segment.points),
+    [points.slice(0, 2), points.slice(2)],
+  );
+  assert.deepEqual(segmented.connectors, []);
 }
 
 // --- trimImplausibleTraceSegments -----------------------------------

@@ -114,6 +114,51 @@ function normalizeDirectoryAirport(airport) {
   };
 }
 
+function extractJsonString(block, key) {
+  const match = new RegExp(`"${escapeRegExp(key)}"\\s*:\\s*"([^"]*)"`, "i").exec(
+    block,
+  );
+  return htmlDecode(match?.[1] || "");
+}
+
+function extractEmbeddedAirport(html, key, expectedIcao) {
+  const pattern = new RegExp(`"${escapeRegExp(key)}"\\s*:\\s*\\{`, "gi");
+  const normalizedExpectedIcao = sanitizeAirportCode(expectedIcao);
+  let match;
+
+  while ((match = pattern.exec(String(html || "")))) {
+    const block = String(html || "").slice(match.index, match.index + 1800);
+    const icao = sanitizeAirportCode(extractJsonString(block, "icao"));
+    if (normalizedExpectedIcao && icao !== normalizedExpectedIcao) continue;
+
+    const coordMatch =
+      /"coord"\s*:\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]/i.exec(
+        block,
+      );
+    const lon = numberOrNull(coordMatch?.[1]);
+    const lat = numberOrNull(coordMatch?.[2]);
+    if (!icao || !inRange(lat, { min: -90, max: 90 }) || !inRange(lon, { min: -180, max: 180 })) {
+      continue;
+    }
+
+    const friendlyLocation = extractJsonString(block, "friendlyLocation");
+    return {
+      icao,
+      iata: sanitizeAirportCode(extractJsonString(block, "iata"), {
+        min: 3,
+        max: 3,
+      }),
+      name: extractJsonString(block, "friendlyName"),
+      municipality: cleanString(friendlyLocation.split(",")[0]),
+      country: "",
+      lat,
+      lon,
+    };
+  }
+
+  return null;
+}
+
 export function buildFlightAwareCallsignRouteUrl(callsign) {
   const normalized = normalizeRouteCallsign(callsign);
   if (!normalized) return "";
@@ -176,14 +221,25 @@ export async function buildFlightAwareRouteResponse({
   resolveAirportByIdent,
 } = {}) {
   const parsed = parseFlightAwareRoutePage(callsign, html);
-  if (!parsed || typeof resolveAirportByIdent !== "function") return null;
+  if (!parsed) return null;
 
-  const [origin, destination] = await Promise.all([
-    resolveAirportByIdent(parsed.originIcao),
-    resolveAirportByIdent(parsed.destinationIcao),
-  ]);
-  const normalizedOrigin = normalizeDirectoryAirport(origin);
-  const normalizedDestination = normalizeDirectoryAirport(destination);
+  const [origin, destination] =
+    typeof resolveAirportByIdent === "function"
+      ? await Promise.all([
+          resolveAirportByIdent(parsed.originIcao),
+          resolveAirportByIdent(parsed.destinationIcao),
+        ])
+      : [null, null];
+  const normalizedOrigin =
+    normalizeDirectoryAirport(origin) ||
+    normalizeDirectoryAirport(
+      extractEmbeddedAirport(html, "origin", parsed.originIcao),
+    );
+  const normalizedDestination =
+    normalizeDirectoryAirport(destination) ||
+    normalizeDirectoryAirport(
+      extractEmbeddedAirport(html, "destination", parsed.destinationIcao),
+    );
   if (!normalizedOrigin || !normalizedDestination) return null;
 
   const routeIata =

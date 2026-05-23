@@ -36,6 +36,7 @@ const TRACE_CORE_HEAD_OPACITY = 0.95;
 const TRACE_CORE_MID_OPACITY =
   TRACE_CORE_TAIL_OPACITY +
   (TRACE_CORE_HEAD_OPACITY - TRACE_CORE_TAIL_OPACITY) * 0.34;
+const TRACE_CONNECTOR_OPACITY = 0.34;
 
 function formatTraceLabelTime(timestampMs) {
   if (!Number.isFinite(timestampMs)) return "";
@@ -309,55 +310,76 @@ function SingleAircraftTrace({
     const layers = [];
     const gradientEls = [];
     const gradientBase = `${gradientIdPart(aircraftHex)}-${Date.now().toString(36)}`;
+    const revealPolylines = [];
 
-    const corePolyline = L.polyline(geometry.curve.slice().reverse(), {
-      pane,
-      color: lineColor,
-      opacity: 1,
-      weight: traceStyle.lineWeight,
-      interactive: false,
-      lineCap: "round",
-      lineJoin: "round",
-      className: "aircraft-trace aircraft-trace--core",
-    }).addTo(map);
-    layers.push(corePolyline);
-    gradientEls.push(
-      applyTraceGradient({
-        map,
-        polyline: corePolyline,
-        curve: geometry.curve,
-        gradientId: `aircraft-trace-core-${gradientBase}`,
+    geometry.connectors.forEach((connector) => {
+      const connectorPolyline = L.polyline(connector.curve.slice().reverse(), {
+        pane,
         color: lineColor,
-        tailOpacity: TRACE_CORE_TAIL_OPACITY * opacity,
-        midOpacity: TRACE_CORE_MID_OPACITY * opacity,
-        headOpacity: TRACE_CORE_HEAD_OPACITY * opacity,
-      }),
-    );
+        opacity: TRACE_CONNECTOR_OPACITY * opacity,
+        weight: Math.max(1, traceStyle.lineWeight - 1),
+        interactive: false,
+        lineCap: "round",
+        lineJoin: "round",
+        dashArray: "5 9",
+        className: "aircraft-trace aircraft-trace--connector",
+      }).addTo(map);
+      layers.push(connectorPolyline);
+      revealPolylines.push(connectorPolyline);
+    });
 
-    const glowPolyline = L.polyline(geometry.curve.slice().reverse(), {
-      pane,
-      color: glowColor,
-      opacity: 1,
-      weight: traceStyle.glowWeight,
-      interactive: false,
-      lineCap: "round",
-      lineJoin: "round",
-      className: "aircraft-trace aircraft-trace--glow",
-    }).addTo(map);
-    layers.push(glowPolyline);
-    gradientEls.push(
-      applyTraceGradient({
-        map,
-        polyline: glowPolyline,
-        curve: geometry.curve,
-        gradientId: `aircraft-trace-glow-${gradientBase}`,
+    geometry.segments.forEach((segment) => {
+      const segmentId = gradientIdPart(segment.id);
+      const corePolyline = L.polyline(segment.curve.slice().reverse(), {
+        pane,
+        color: lineColor,
+        opacity: 1,
+        weight: traceStyle.lineWeight,
+        interactive: false,
+        lineCap: "round",
+        lineJoin: "round",
+        className: "aircraft-trace aircraft-trace--core",
+      }).addTo(map);
+      layers.push(corePolyline);
+      revealPolylines.push(corePolyline);
+      gradientEls.push(
+        applyTraceGradient({
+          map,
+          polyline: corePolyline,
+          curve: segment.curve,
+          gradientId: `aircraft-trace-core-${gradientBase}-${segmentId}`,
+          color: lineColor,
+          tailOpacity: TRACE_CORE_TAIL_OPACITY * opacity,
+          midOpacity: TRACE_CORE_MID_OPACITY * opacity,
+          headOpacity: TRACE_CORE_HEAD_OPACITY * opacity,
+        }),
+      );
+
+      const glowPolyline = L.polyline(segment.curve.slice().reverse(), {
+        pane,
         color: glowColor,
-        tailOpacity: 0,
-        midOpacity: traceStyle.glowOpacity * 0.38 * opacity,
-        headOpacity: traceStyle.glowOpacity * opacity,
-      }),
-    );
-    const revealPolylines = [corePolyline, glowPolyline];
+        opacity: 1,
+        weight: traceStyle.glowWeight,
+        interactive: false,
+        lineCap: "round",
+        lineJoin: "round",
+        className: "aircraft-trace aircraft-trace--glow",
+      }).addTo(map);
+      layers.push(glowPolyline);
+      revealPolylines.push(glowPolyline);
+      gradientEls.push(
+        applyTraceGradient({
+          map,
+          polyline: glowPolyline,
+          curve: segment.curve,
+          gradientId: `aircraft-trace-glow-${gradientBase}-${segmentId}`,
+          color: glowColor,
+          tailOpacity: 0,
+          midOpacity: traceStyle.glowOpacity * 0.38 * opacity,
+          headOpacity: traceStyle.glowOpacity * opacity,
+        }),
+      );
+    });
 
     geometry.samplePoints.forEach((point, index) => {
       const emphasis = (index + 1) / geometry.samplePoints.length;

@@ -238,12 +238,10 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
       recentLoading,
       fullLoading,
       fullCutoffMs: traceStartAtMs,
-      debugLabel: `${traceLabel}:${hex}`,
     });
   }, [
     activeHex,
     hex,
-    traceLabel,
     fullTrace,
     livePoints,
     recentPoints,
