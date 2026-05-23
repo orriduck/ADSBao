@@ -193,7 +193,6 @@ const en = {
     toggleSidebar: "Toggle sidebar",
     fitTrace: "Fit map to trace",
     approachingView: "Approaching view (click to cycle)",
-    startFocus: "Start Focus mode",
     themeButtonAria: "Theme: {label} (click to switch)",
     themeLight: "Light",
     themeDark: "Dark",

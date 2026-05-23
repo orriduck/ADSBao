@@ -7,7 +7,6 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { Button } from "@/components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 
-const AUDIO_ICON_KEY = "audioLines";
 const LAYERS_ICON_KEY = "layers";
 
 export default function MapControlRail({
@@ -16,12 +15,9 @@ export default function MapControlRail({
   currentTheme,
   themeTitle,
   layerDrawerOpen,
-  playing,
-  audioReady,
   layerDrawerId,
   onCycleZoom,
   onFitToTrace = null,
-  onToggleAudio,
   onCycleTheme,
   onToggleLayerDrawer,
 }) {
@@ -55,20 +51,6 @@ export default function MapControlRail({
       </Button>
 
       <div className="ctrl-sep" />
-
-      <Button
-        variant="atcIcon"
-        size="icon"
-        className={`ctrl-btn ctrl-audio ${playing ? "playing" : ""} ${
-          !audioReady ? "loading" : ""
-        }`}
-        aria-pressed={playing}
-        title={playing ? "Pause Focus mode" : t("map.startFocus")}
-        onClick={onToggleAudio}
-        type="button"
-      >
-        <MapControlIcon iconKey={AUDIO_ICON_KEY} />
-      </Button>
 
       <Button
         variant="atcIcon"

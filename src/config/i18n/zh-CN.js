@@ -189,7 +189,6 @@ const zhCN = {
     toggleSidebar: "切换侧栏",
     fitTrace: "适配航迹",
     approachingView: "进近视图(点击循环)",
-    startFocus: "开启专注模式",
     themeButtonAria: "主题:{label}(点击切换)",
     themeLight: "明亮",
     themeDark: "暗色",

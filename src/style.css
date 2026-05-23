@@ -1919,17 +1919,6 @@ body {
     text-transform: uppercase;
 }
 
-.yt-sink {
-    clip-path: inset(100%);
-    height: 1px;
-    left: 0;
-    overflow: hidden;
-    pointer-events: none;
-    position: fixed;
-    top: 0;
-    width: 1px;
-}
-
 .mobile-top-nav {
     align-items: center;
     background:
@@ -2505,20 +2494,6 @@ body {
     height: 32px;
     justify-content: center;
     width: 32px;
-}
-
-.ctrl-audio.playing {
-    background: var(--atc-click-bg);
-    border-color: var(--atc-click-border);
-    color: var(--atc-click-fg);
-    box-shadow:
-        inset 0 -2px 0 var(--atc-focus-edge),
-        0 0 10px color-mix(in oklab, var(--atc-focus-edge) 14%, transparent);
-}
-
-.ctrl-audio.loading {
-    opacity: 0.4;
-    pointer-events: none;
 }
 
 .mobile-status-bar {

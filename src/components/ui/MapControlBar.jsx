@@ -1,13 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  MAP_FOCUS_VIDEO_BY_PRIMARY,
-  MAP_FOCUS_VIDEO_DEFAULT,
-  MAP_ZOOM_OPTIONS,
-} from "../../config/mapControls.js";
+import { MAP_ZOOM_OPTIONS } from "../../config/mapControls.js";
 import { useThemePreference } from "../../features/app-shell/useThemePreference.js";
-import { usePrimaryColor } from "../../features/app-shell/usePrimaryColor.js";
 import MapControlRail from "@/components/map/controls/MapControlRail.jsx";
 import MapLayerDrawer from "@/components/map/controls/MapLayerDrawer.jsx";
 import {
@@ -15,7 +10,6 @@ import {
   resolveZoomOption,
 } from "../../features/airport/map-controls/mapControlModel.js";
 import { useDismissibleDrawer } from "../../features/airport/map-controls/useDismissibleDrawer.js";
-import { useFocusAudio } from "../../features/airport/map-controls/useFocusAudio.js";
 import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay.js";
 
 const LAYER_DRAWER_ID = "map-layer-drawer";
@@ -35,11 +29,6 @@ export default function MapControlBar({
   const controlZone = useRef(null);
   const [layerDrawerOpen, setLayerDrawerOpen] = useState(false);
   const { themePreference, themeTitle, cycleTheme } = useThemePreference();
-  const { primary } = usePrimaryColor();
-  const focusVideoId =
-    MAP_FOCUS_VIDEO_BY_PRIMARY[primary] ?? MAP_FOCUS_VIDEO_DEFAULT;
-  const { playerHost, playing, audioReady, toggleAudio } =
-    useFocusAudio(focusVideoId);
 
   const currentZoomOption = useMemo(
     () => resolveZoomOption(activeZoom, MAP_ZOOM_OPTIONS),
@@ -73,36 +62,30 @@ export default function MapControlBar({
   };
 
   return (
-    <>
-      <div ref={playerHost} className="yt-sink" aria-hidden="true" />
-      <div ref={controlZone} className="map-ctrl-zone">
-        <MapLayerDrawer
-          id={LAYER_DRAWER_ID}
-          open={layerDrawerOpen}
-          showMapLabels={showMapLabels}
-          showBeams={showRunwayBeams}
-          showBadges={showRoutingPointBadges}
-          onToggleMapLabels={onToggleMapLabels}
-          onToggleBeams={onToggleRunwayBeams}
-          onToggleBadges={onToggleRoutingPointBadges}
-        />
+    <div ref={controlZone} className="map-ctrl-zone">
+      <MapLayerDrawer
+        id={LAYER_DRAWER_ID}
+        open={layerDrawerOpen}
+        showMapLabels={showMapLabels}
+        showBeams={showRunwayBeams}
+        showBadges={showRoutingPointBadges}
+        onToggleMapLabels={onToggleMapLabels}
+        onToggleBeams={onToggleRunwayBeams}
+        onToggleBadges={onToggleRoutingPointBadges}
+      />
 
-        <MapControlRail
-          currentZoomOption={currentZoomOption}
-          zoomActive={zoomActive}
-          currentTheme={themePreference}
-          themeTitle={themeTitle}
-          layerDrawerOpen={layerDrawerOpen}
-          playing={playing}
-          audioReady={audioReady}
-          layerDrawerId={LAYER_DRAWER_ID}
-          onCycleZoom={cycleZoom}
-          onFitToTrace={onFitToTrace}
-          onToggleAudio={toggleAudio}
-          onCycleTheme={cycleTheme}
-          onToggleLayerDrawer={toggleLayerDrawer}
-        />
-      </div>
-    </>
+      <MapControlRail
+        currentZoomOption={currentZoomOption}
+        zoomActive={zoomActive}
+        currentTheme={themePreference}
+        themeTitle={themeTitle}
+        layerDrawerOpen={layerDrawerOpen}
+        layerDrawerId={LAYER_DRAWER_ID}
+        onCycleZoom={cycleZoom}
+        onFitToTrace={onFitToTrace}
+        onCycleTheme={cycleTheme}
+        onToggleLayerDrawer={toggleLayerDrawer}
+      />
+    </div>
   );
 }
