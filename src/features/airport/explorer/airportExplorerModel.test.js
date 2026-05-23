@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   enrichAircraftWithRoutes,
   resolveAirportProfile,
+  resolveAirportExplorerSelection,
 } from "./airportExplorerModel.js";
 import { ARRIVAL, DEPARTURE, UNKNOWN } from "../../../utils/aircraftMovement.js";
 
@@ -62,3 +63,28 @@ assert.equal(enriched[1].airportContext.movement, "arrival");
 assert.equal(enriched[2].movement, UNKNOWN);
 assert.equal(enriched[2].flightRouteLabel, "JFK -> ORD");
 assert.equal(enriched[2].airportContext.movement, "unknown");
+
+const selection = resolveAirportExplorerSelection({
+  aircraft: [
+    { icao24: "a1", callsign: "DAL123" },
+    { icao24: "", callsign: "JBU456" },
+  ],
+  selectedAircraftId: "JBU456",
+  airports: [{ icao: "KBOS" }, { icao: "KJFK" }],
+  selectedAirportIcao: "KJFK",
+});
+
+assert.equal(selection.selectedAircraft.callsign, "JBU456");
+assert.equal(selection.selectedAircraftStillVisible, true);
+assert.equal(selection.selectedAirport.icao, "KJFK");
+
+const missingSelection = resolveAirportExplorerSelection({
+  aircraft: [{ icao24: "a1", callsign: "DAL123" }],
+  selectedAircraftId: "gone",
+  airports: [{ icao: "KBOS" }],
+  selectedAirportIcao: "KJFK",
+});
+
+assert.equal(missingSelection.selectedAircraft, null);
+assert.equal(missingSelection.selectedAircraftStillVisible, false);
+assert.equal(missingSelection.selectedAirport, null);
