@@ -5,10 +5,15 @@ import { useAircraftPositions } from "@/hooks/useAircraftPositions.js";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes.js";
 import { useMetar } from "@/hooks/useMetar.js";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
+import {
+  ROUTE_PROVIDER,
+  resolveRouteProvider,
+} from "@/features/aviation/sourceDisplayModel.js";
 import { enrichAircraftWithRoutes } from "./airportExplorerModel.js";
 
 export function useAirportExplorerData(airportProfile) {
   const flightAwareEnabled = useFlightAwareEnabled();
+  const routeProvider = resolveRouteProvider({ flightAwareEnabled });
   const {
     raw: metarRaw,
     parsed: metar,
@@ -32,7 +37,8 @@ export function useAirportExplorerData(airportProfile) {
     applyTemporaryRoute,
   } = useFlightRoutes(aircraft, {
     ...airportProfile,
-    routeProvider: flightAwareEnabled ? "flightaware" : "",
+    routeProvider:
+      routeProvider === ROUTE_PROVIDER.FLIGHTAWARE ? routeProvider : "",
   });
 
   const aircraftWithRoutes = useMemo(
@@ -58,6 +64,7 @@ export function useAirportExplorerData(airportProfile) {
       lastUpdated,
       feedStatus,
       feedSource,
+      routeProvider,
       routeLoadingCount,
       applyTemporaryRoute,
     },

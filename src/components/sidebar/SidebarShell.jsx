@@ -4,6 +4,10 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import RequestPulseDots from "@/components/ui/RequestPulseDots";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import {
+  getRouteProviderDisplayName,
+  resolveRouteProvider,
+} from "@/features/aviation/sourceDisplayModel.js";
 
 // Shared chrome for the airport + flight sidebars. Handles:
 //   - The outer panel container + responsive overlay variant.
@@ -24,7 +28,9 @@ export default function SidebarShell({
 }) {
   const { t } = useI18n();
   const flightAwareEnabled = useFlightAwareEnabled();
-  const routeProviderLabel = flightAwareEnabled ? "FlightAware" : "adsbdb";
+  const routeProviderLabel = getRouteProviderDisplayName(
+    resolveRouteProvider({ flightAwareEnabled }),
+  );
   const isMobileOverlay = Boolean(onClose);
   const updatedLabel = formatUpdated(lastUpdated);
 

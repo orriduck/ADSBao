@@ -5,6 +5,7 @@ import {
   jsonProxyResponse,
   readResponseArrayBuffer,
 } from "@/app/api/_shared/apiProxySecurity.js";
+import { ADSBAO_SITE_VERSION } from "@/config/siteMeta.js";
 
 // Pass-through proxy for airline logo PNGs. Direct hot-links to
 // flightaware.com get blocked or rate-limited in the browser, so we
@@ -80,7 +81,7 @@ export async function GET(request, { params }) {
         // Identify as a regular browser so the CDN serves the image
         // rather than a hot-link block page.
         "User-Agent":
-          "Mozilla/5.0 (compatible; ADSBao/1.0; +https://adsbao.com)",
+          `Mozilla/5.0 (compatible; ADSBao/${ADSBAO_SITE_VERSION}; +https://adsbao.com)`,
         Accept: "image/png,image/*",
       },
       // Next.js fetch dedupe + cache so we don't hammer the CDN.

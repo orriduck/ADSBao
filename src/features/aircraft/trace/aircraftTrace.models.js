@@ -1,5 +1,6 @@
-export const AIRCRAFT_TRACE_USER_AGENT =
-  "ADSBao/1.2.1 (https://github.com/orriduck/ADSBao)";
+import { buildAdsbaoUserAgent } from "../../../config/siteMeta.js";
+
+export const AIRCRAFT_TRACE_USER_AGENT = buildAdsbaoUserAgent();
 
 // Full traces for long-haul flights can run several MB — bump the
 // upstream-response cap accordingly. Recent traces are still small.

@@ -2,10 +2,17 @@
 
 import { PanelLeft } from "lucide-react";
 import MapControlBar from "@/components/ui/MapControlBar";
+import MobileMapSourceStatus from "./MobileMapSourceStatus.jsx";
 import { useExplorerUi } from "./ExplorerUiContext.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
-export default function ExplorerMapMenu({ onFitToTrace = null } = {}) {
+export default function ExplorerMapMenu({
+  feedSource = "",
+  feedStatus = "live",
+  lastUpdated = null,
+  routeProvider = "",
+  onFitToTrace = null,
+} = {}) {
   const { t } = useI18n();
   const {
     isMobile,
@@ -48,6 +55,15 @@ export default function ExplorerMapMenu({ onFitToTrace = null } = {}) {
         onToggleRoutingPointBadges={toggleRoutingPointBadges}
         onFitToTrace={onFitToTrace}
       />
+
+      {isMobile ? (
+        <MobileMapSourceStatus
+          feedSource={feedSource}
+          feedStatus={feedStatus}
+          lastUpdated={lastUpdated}
+          routeProvider={routeProvider}
+        />
+      ) : null}
     </div>
   );
 }

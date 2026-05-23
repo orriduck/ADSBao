@@ -1,12 +1,22 @@
+import { ADSBAO_SITE_VERSION } from "./siteMeta.js";
+
 export const ABOUT_BUILD_META = [
-  { label: "Version", labelKey: "about.meta.version", value: "1.3.0" },
+  {
+    label: "Version",
+    labelKey: "about.meta.version",
+    value: ADSBAO_SITE_VERSION,
+  },
   {
     label: "Release",
     labelKey: "about.meta.release",
     value: "Next.js Web",
     valueKey: "about.meta.nextWeb",
   },
-  { label: "Stack", labelKey: "about.meta.stack", value: "React 19 · Next 16 · Leaflet" },
+  {
+    label: "Stack",
+    labelKey: "about.meta.stack",
+    value: "React 19 · Next 16 · Leaflet",
+  },
   {
     label: "Scope",
     labelKey: "about.meta.scope",

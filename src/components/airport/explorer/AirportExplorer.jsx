@@ -167,7 +167,14 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         )}
 
         <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
-          {!(isMobile && sidebarOpen) && <ExplorerMapMenu />}
+          {!(isMobile && sidebarOpen) && (
+            <ExplorerMapMenu
+              feedSource={traffic.feedSource}
+              feedStatus={traffic.feedStatus}
+              lastUpdated={traffic.lastUpdated}
+              routeProvider={traffic.routeProvider}
+            />
+          )}
 
           <AirportMap
             icao={airportProfile.icao}

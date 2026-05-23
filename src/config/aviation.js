@@ -1,3 +1,5 @@
+import { buildAdsbaoUserAgent } from "./siteMeta.js";
+
 export const AIRPORT_MAP_ZOOM = {
   approach: 10,
   airport: 11,
@@ -49,7 +51,7 @@ export const FLIGHT_ROUTE_LOOKUP_CONFIG = {
   rateLimitRefillMs: 1000,
   backoffInitialMs: 2000,
   backoffMaxMs: 60_000,
-  userAgent: "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)",
+  userAgent: buildAdsbaoUserAgent(),
 };
 
 export const PROCEDURE_DATA_CONFIG = {
@@ -59,5 +61,5 @@ export const PROCEDURE_DATA_CONFIG = {
   maxProceduresPerAirport: 12,
   maxZipBytes: 50 * 1024 * 1024,
   maxCifpBytes: 120 * 1024 * 1024,
-  userAgent: "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)",
+  userAgent: buildAdsbaoUserAgent(),
 };

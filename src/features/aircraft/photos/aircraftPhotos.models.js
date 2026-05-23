@@ -1,5 +1,6 @@
-export const AIRCRAFT_PHOTOS_USER_AGENT =
-  "ADSBao/1.2.1 (+https://github.com/orriduck/ADSBao)";
+import { buildAdsbaoUserAgent } from "../../../config/siteMeta.js";
+
+export const AIRCRAFT_PHOTOS_USER_AGENT = buildAdsbaoUserAgent();
 
 export const AIRCRAFT_PHOTO_MAX_BYTES = 256 * 1024;
 export const AIRCRAFT_PHOTO_IMAGE_MAX_BYTES = 2 * 1024 * 1024;

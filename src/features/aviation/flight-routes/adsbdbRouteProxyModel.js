@@ -2,6 +2,7 @@ import {
   normalizeRouteCallsign,
   sanitizeAirportCode,
 } from "./flightRouteCallsign.js";
+import { buildAdsbaoUserAgent } from "../../../config/siteMeta.js";
 
 // adsbdb.com is the only normal public callsign-route provider we use.
 // See https://www.adsbdb.com — the v0 API returns
@@ -10,7 +11,7 @@ import {
 export const ADSBDB_BASE = "https://api.adsbdb.com/v0";
 
 export const ADSBDB_USER_AGENT =
-  "ADSBao/1.2.1 (+https://github.com/orriduck/ADSBao) adsbdb/v0";
+  buildAdsbaoUserAgent("adsbdb/v0");
 
 export const ADSBDB_ROUTE_MISS_STATUS = 200;
 

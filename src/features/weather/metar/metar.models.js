@@ -1,5 +1,6 @@
-export const METAR_USER_AGENT =
-  "ADSBao/0.10.0 (https://github.com/orriduck/ADSBao)";
+import { buildAdsbaoUserAgent } from "../../../config/siteMeta.js";
+
+export const METAR_USER_AGENT = buildAdsbaoUserAgent();
 
 export const METAR_MAX_BYTES = 512 * 1024;
 
