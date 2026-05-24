@@ -12,12 +12,12 @@ export const resolveDocumentTheme = (documentElement) =>
 export const getMapOverlayTheme = (theme) =>
   theme === "light"
     ? {
-        labelShadowColor: "rgba(245,243,238,0.95)",
-        attributionColor: "rgba(26,26,24,0.45)",
+        labelShadowColor: "var(--map-label-shadow)",
+        attributionColor: "var(--map-attribution)",
       }
     : {
-        labelShadowColor: "#1a1a18",
-        attributionColor: "rgba(245,243,238,0.3)",
+        labelShadowColor: "var(--map-label-shadow)",
+        attributionColor: "var(--map-attribution)",
       };
 
 export const formatCoordinateLabel = (value, axis) => {

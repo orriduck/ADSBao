@@ -1,12 +1,11 @@
-// Endfield palette — warm amber on dark, ink on light. No blues.
 const PROCEDURE_SEGMENT_STYLES = {
   light: {
-    color: "#1a1a18",
+    color: "var(--procedure-segment-line)",
     weight: 3.8,
     opacity: 0.55,
   },
   dark: {
-    color: "#d8bd83",
+    color: "var(--procedure-segment-line)",
     weight: 4.2,
     opacity: 0.78,
   },

@@ -14,7 +14,7 @@ const NICE_NM_STEPS = [
   1, 2, 3, 5, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500,
 ];
 
-export default function MapRangeLegend({ theme = "dark" }) {
+export default function MapRangeLegend() {
   const { t } = useI18n();
   const map = useMapInstance();
   const [scale, setScale] = useState(null);
@@ -55,21 +55,14 @@ export default function MapRangeLegend({ theme = "dark" }) {
 
   if (!scale) return null;
 
-  const isLight = theme === "light";
-  const backdrop = isLight
-    ? "bg-[rgba(250,249,245,0.45)]"
-    : "bg-[rgba(8,12,20,0.4)]";
-  const textTone = isLight ? "text-[#1a1a18]" : "text-[#f5f3ee]";
-  const labelTone = isLight ? "text-[#1a1a18]/70" : "text-[#f5f3ee]/70";
-
   return (
     <div
       role="note"
       aria-label={t("map.distanceAria", { distance: scale.nm })}
-      className={`pointer-events-none absolute bottom-3 left-3 z-[400] flex items-center gap-2 px-2 py-1 font-mono ${backdrop} ${textTone} backdrop-blur-sm`}
+      className="pointer-events-none absolute bottom-3 left-3 z-[400] flex items-center gap-2 bg-[var(--map-range-background)] px-2 py-1 font-mono text-[var(--map-range-text)] backdrop-blur-sm"
     >
       <span
-        className={`text-[9px] font-semibold uppercase tracking-[0.22em] ${labelTone}`}
+        className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--map-range-label)]"
       >
         {t("map.distanceLabel")}
       </span>
