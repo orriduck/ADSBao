@@ -3,7 +3,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import NumberFlow from "@number-flow/react";
-import { AnimatePresence, motion } from "motion/react";
 import { Check, Minus, Search } from "lucide-react";
 import {
   Select,
@@ -38,7 +37,7 @@ import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDispl
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
 import AircraftList from "./AircraftList.jsx";
 import AircraftSlot from "./AircraftSlot.jsx";
-import AirportRow from "./AirportRow.jsx";
+import AirportSlot from "./AirportSlot.jsx";
 
 export default function AircraftTable({
   aircraft = [],
@@ -230,38 +229,20 @@ export default function AircraftTable({
           <span className="text-right">{t("sidebar.altitude")}</span>
         </div>
 
-        <AnimatePresence initial={false}>
-          {pinnedAircraft && (
-            <motion.div
-              key="aircraft-table-pin"
-              className="aircraft-table-pin"
-              // Animate only height — the inner row paints at full ink
-              // opacity from the first frame, and the growing height
-              // reveals it cleanly. Fading opacity would blend the ink
-              // with the light sidebar mid-animation and read as a
-              // white→black flash in light theme.
-              initial={{ height: 0 }}
-              animate={{ height: "auto" }}
-              exit={{ height: 0 }}
-              transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
-              style={{ overflow: "hidden" }}
-            >
-              <AircraftSlot
-                aircraft={pinnedAircraft}
-                cascadeOrder={0}
-                flipStaggerStep={0}
-                selectedAircraftId={selectedAircraftId}
-                onSelectAircraft={onSelectAircraft}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {pinnedAircraft && (
+          <div className="aircraft-table-pin">
+            <AircraftSlot
+              aircraft={pinnedAircraft}
+              cascadeOrder={0}
+              flipStaggerStep={0}
+              selectedAircraftId={selectedAircraftId}
+              onSelectAircraft={onSelectAircraft}
+            />
+          </div>
+        )}
       </div>
 
-      <motion.div
-        layoutScroll
-        className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}
-      >
+      <div className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}>
         {listRows.length === 0 &&
         filteredAirports.length === 0 &&
         !pinnedAircraft ? (
@@ -286,8 +267,9 @@ export default function AircraftTable({
                     key={`airport:${airport.icao}`}
                     className="aircraft-table-list__item"
                   >
-                    <AirportRow
+                    <AirportSlot
                       airport={airport}
+                      cascadeOrder={-1}
                       airportId={airport.icao}
                       selected={airport.icao === selectedAirportIcao}
                       onSelectAirport={onSelectAirport}
@@ -298,7 +280,7 @@ export default function AircraftTable({
             )}
           </>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

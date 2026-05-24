@@ -3104,19 +3104,34 @@ body {
     border-top: 1px solid var(--atc-line);
 }
 
-.aircraft-row-flip-surface {
+.endf-content-swap {
     isolation: isolate;
     overflow: hidden;
     position: relative;
+    --endf-content-swap-delay: 0s;
 }
 
-.aircraft-row-flip-surface__content {
+.endf-content-swap__content {
     will-change: clip-path;
 }
 
-.aircraft-row-flip-surface--replacing::before {
-    animation: aircraft-row-replace-placeholder 470ms steps(1, end)
-        var(--aircraft-row-replace-delay, 0s) both;
+.endf-content-swap__content--erasing {
+    animation: endf-content-swap-erase 140ms cubic-bezier(1, 0, 0.7, 1)
+        var(--endf-content-swap-delay, 0s) both;
+}
+
+.endf-content-swap__content--hidden {
+    clip-path: inset(0 100% 0 0);
+}
+
+.endf-content-swap__content--revealing {
+    animation: endf-content-swap-reveal 220ms cubic-bezier(1, 0, 0.7, 1)
+        both;
+}
+
+.endf-content-swap--replacing::before {
+    animation: endf-content-swap-placeholder 470ms steps(1, end)
+        var(--endf-content-swap-delay, 0s) both;
     background:
         radial-gradient(
             circle,
@@ -3137,9 +3152,9 @@ body {
     z-index: 5;
 }
 
-.aircraft-row-flip-surface--replacing::after {
-    animation: aircraft-row-replace-cursor 470ms steps(1, end)
-        var(--aircraft-row-replace-delay, 0s) both;
+.endf-content-swap--replacing::after {
+    animation: endf-content-swap-cursor 470ms steps(1, end)
+        var(--endf-content-swap-delay, 0s) both;
     background: color-mix(in oklab, var(--endf-yellow) 70%, transparent);
     box-shadow: 0 0 12px color-mix(in oklab, var(--endf-yellow) 24%, transparent);
     content: "";
@@ -3150,6 +3165,42 @@ body {
     top: calc(50% - 11px);
     width: 3px;
     z-index: 6;
+}
+
+@keyframes endf-content-swap-erase {
+    from {
+        clip-path: inset(0 0 0 0);
+    }
+    to {
+        clip-path: inset(0 0 0 100%);
+    }
+}
+
+@keyframes endf-content-swap-reveal {
+    from {
+        clip-path: inset(0 100% 0 0);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+@keyframes endf-content-swap-erase-reverse {
+    from {
+        clip-path: inset(0 0 0 0);
+    }
+    to {
+        clip-path: inset(0 100% 0 0);
+    }
+}
+
+@keyframes endf-content-swap-reveal-reverse {
+    from {
+        clip-path: inset(0 0 0 100%);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+    }
 }
 
 @keyframes endf-cursor-wipe {
@@ -3279,7 +3330,7 @@ body {
     }
 }
 
-@keyframes aircraft-row-replace-placeholder {
+@keyframes endf-content-swap-placeholder {
     0%,
     52% {
         opacity: 1;
@@ -3290,7 +3341,7 @@ body {
     }
 }
 
-@keyframes aircraft-row-replace-cursor {
+@keyframes endf-content-swap-cursor {
     0%,
     8% {
         opacity: 0;
@@ -3314,19 +3365,6 @@ body {
     53%,
     100% {
         opacity: 0;
-    }
-}
-
-/* Refreshed numeric values now reveal by a compact scan instead of
-   fading through the row surface. Triggered by key={formattedValue}. */
-@keyframes number-wipe-in {
-    0% {
-        clip-path: inset(0 100% 0 0);
-        transform: translateX(-1px);
-    }
-    100% {
-        clip-path: inset(0 0% 0 0);
-        transform: translateX(0);
     }
 }
 
@@ -3354,18 +3392,101 @@ body {
     }
 }
 
-.number-fade {
-    animation:
-        number-wipe-in 180ms cubic-bezier(1, 0, 0.7, 1),
-        endf-data-flicker 160ms steps(1, end);
-    display: inline-block;
+.endf-value-swap {
+    display: inline-flex;
+    isolation: isolate;
+    line-height: 1;
+    overflow: hidden;
+    position: relative;
+    --endf-value-swap-surface: var(--sidebar);
+}
+
+.endf-value-swap__content {
     will-change: clip-path;
 }
 
+.endf-value-swap__content--erasing {
+    animation: endf-content-swap-erase 140ms cubic-bezier(1, 0, 0.7, 1)
+        var(--endf-content-swap-delay, 0s) both;
+}
+
+.endf-value-swap__content--hidden {
+    clip-path: inset(0 100% 0 0);
+}
+
+.endf-value-swap__content--revealing {
+    animation: endf-content-swap-reveal 220ms cubic-bezier(1, 0, 0.7, 1)
+        both;
+}
+
+.endf-value-swap--reverse .endf-value-swap__content--erasing {
+    animation-name: endf-content-swap-erase-reverse;
+}
+
+.endf-value-swap--reverse .endf-value-swap__content--hidden {
+    clip-path: inset(0 0 0 100%);
+}
+
+.endf-value-swap--reverse .endf-value-swap__content--revealing {
+    animation-name: endf-content-swap-reveal-reverse;
+}
+
+.endf-value-swap--replacing::before {
+    animation: endf-content-swap-placeholder 470ms steps(1, end) both;
+    background:
+        radial-gradient(
+            circle,
+            color-mix(in oklab, var(--atc-text) 18%, transparent) 0 1px,
+            transparent 1.4px
+        )
+        0 0 / 6px 6px,
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--endf-value-swap-surface) 88%, transparent),
+            color-mix(in oklab, var(--endf-yellow) 12%, var(--endf-value-swap-surface))
+                52%,
+            color-mix(in oklab, var(--endf-value-swap-surface) 88%, transparent)
+        );
+    content: "";
+    inset: -1px 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 2;
+}
+
+.endf-row-active .endf-value-swap {
+    --endf-value-swap-surface: var(--endf-ink);
+}
+
+.endf-value-swap--replacing::after {
+    animation: endf-content-swap-cursor 470ms steps(1, end) both;
+    background: color-mix(in oklab, var(--endf-yellow) 86%, transparent);
+    box-shadow: 0 0 10px color-mix(in oklab, var(--endf-yellow) 34%, transparent);
+    content: "";
+    height: 1.1em;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: calc(50% - 0.55em);
+    width: 3px;
+    z-index: 3;
+}
+
+.endf-value-swap--reverse::after {
+    left: auto;
+    right: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .number-fade,
-    .aircraft-row-flip-surface,
-    .aircraft-row-flip-surface__content {
+    .endf-value-swap--replacing::before,
+    .endf-value-swap--replacing::after {
+        display: none;
+    }
+
+    .endf-value-swap,
+    .endf-value-swap__content,
+    .endf-content-swap,
+    .endf-content-swap__content {
         animation: none;
         clip-path: none;
         filter: none;
@@ -3373,12 +3494,12 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .aircraft-row-flip-surface--replacing::before,
-    .aircraft-row-flip-surface--replacing::after {
+    .endf-content-swap--replacing::before,
+    .endf-content-swap--replacing::after {
         display: none;
     }
 
-    .aircraft-row-flip-surface {
+    .endf-content-swap {
         animation: none;
         transition: none;
     }
@@ -3407,13 +3528,9 @@ body {
     width: 18px;
 }
 
-.endf-row-glyph::before {
-    border-bottom: 2px solid currentColor;
-    border-right: 2px solid currentColor;
-    content: "";
-    height: 8px;
-    transform: translateX(-1px) rotate(-45deg);
-    width: 8px;
+.endf-row-glyph svg {
+    display: block;
+    flex: 0 0 auto;
 }
 
 .endf-row-active .endf-row-glyph {
@@ -3943,9 +4060,7 @@ body {
 }
 
 .airport-feed-status {
-    animation: airport-feed-status-fade 240ms cubic-bezier(0.22, 1, 0.36, 1)
-        both;
-    will-change: opacity, transform;
+    will-change: auto;
 }
 
 .airport-feed-status--infer {
@@ -4774,17 +4889,6 @@ body {
     border-top: 1px solid color-mix(in oklab, var(--atc-line) 60%, transparent);
 }
 
-@keyframes airport-feed-status-fade {
-    from {
-        opacity: 0;
-        transform: translateY(2px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 /* Override carousel slide flex to fit narrower sidebar column */
 .airport-sidebar .weather-carousel-track,
 [data-sidebar="sidebar"] .weather-carousel-track {
@@ -5408,7 +5512,20 @@ body {
     right: 0;
     bottom: calc(100% - 22px);
     left: 0;
+    animation: aircraft-preview-media-reveal 520ms cubic-bezier(0.16, 1, 0.3, 1)
+        both;
     z-index: 1;
+}
+
+@keyframes aircraft-preview-media-reveal {
+    from {
+        clip-path: inset(0 0 100% 0);
+        transform: translateY(22px);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+        transform: translateY(0);
+    }
 }
 
 .aircraft-preview-metadata-card {
@@ -5719,6 +5836,7 @@ body {
     isolation: isolate;
     overflow: hidden;
     pointer-events: none;
+    transform: translateX(-50%);
     user-select: none;
 }
 
@@ -6456,6 +6574,7 @@ body {
 
     .aircraft-preview-card--desktop-reveal > *,
     .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card,
+    .aircraft-preview-card__media-slot,
     .aircraft-preview-mobile-card__inner > *,
     .aircraft-preview-mobile-card__track,
     .aircraft-table-route-cycle--alternate::before,
