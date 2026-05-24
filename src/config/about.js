@@ -113,6 +113,16 @@ export const ABOUT_DATA_SOURCES = [
     host: "cartocdn.com",
     href: "https://carto.com/attributions",
   },
+  {
+    glyph: "VIDEO",
+    titleKey: "about.sources.brandingVideo.title",
+    title: "Bilibili Aircraft Footage",
+    descriptionKey: "about.sources.brandingVideo.description",
+    description:
+      "Aircraft branding footage credit: 【视频分享】素材分享——飞机起飞降落 by 霸波奔bo奔波霸.",
+    host: "bilibili.com",
+    href: "https://www.bilibili.com/video/BV1Aw4m1d7HJ/",
+  },
 ];
 
 export const ABOUT_REPOSITORY = {

@@ -76,6 +76,11 @@ const zhCN = {
         title: "OpenStreetMap · CartoDB",
         description: "亮色和暗色底图瓦片及参考标签。",
       },
+      brandingVideo: {
+        title: "B站飞机视频素材",
+        description:
+          "品牌视频飞机素材署名：【视频分享】素材分享——飞机起飞降落，UP 主：霸波奔bo奔波霸。",
+      },
     },
   },
   sidebar: {
