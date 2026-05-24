@@ -21,6 +21,7 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
   const [runwayMap, setRunwayMap] = useState(null);
   const [runwayProcedures, setRunwayProcedures] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [settled, setSettled] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -34,10 +35,12 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
         setRunwayMap(null);
         setRunwayProcedures(null);
         setError(null);
+        setSettled(false);
         return;
       }
 
       setLoading(true);
+      setSettled(false);
       setError(null);
       try {
         const [payload, runwayProcedurePayload, ourAirportsRunwayMap] =
@@ -65,7 +68,10 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
         setRunwayMap(null);
         setRunwayProcedures(null);
       } finally {
-        if (!disposed) setLoading(false);
+        if (!disposed) {
+          setSettled(true);
+          setLoading(false);
+        }
       }
     };
 
@@ -88,6 +94,7 @@ export function useAirportProcedures(airport, selectedProcedureId = "") {
     runwayMap,
     runwayProcedures,
     loading,
+    settled,
     error,
   };
 }

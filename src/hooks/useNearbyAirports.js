@@ -12,6 +12,7 @@ export function useNearbyAirports({
 } = {}) {
   const [airports, setAirports] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [settled, setSettled] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -22,10 +23,12 @@ export function useNearbyAirports({
         setAirports([]);
         setError(null);
         setLoading(false);
+        setSettled(false);
         return;
       }
 
       setLoading(true);
+      setSettled(false);
       setError(null);
       try {
         const payload = await nearbyAirportClient.fetchNearbyAirports({
@@ -43,7 +46,10 @@ export function useNearbyAirports({
         setError(nextError);
         console.warn("[nearby-airports] load failed", nextError);
       } finally {
-        if (!disposed) setLoading(false);
+        if (!disposed) {
+          setSettled(true);
+          setLoading(false);
+        }
       }
     };
 
@@ -57,6 +63,7 @@ export function useNearbyAirports({
   return {
     airports,
     loading,
+    settled,
     error,
   };
 }

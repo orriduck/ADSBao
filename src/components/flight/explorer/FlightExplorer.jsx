@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu.jsx";
+import AircraftDataLoadingOverlay from "@/components/airport/explorer/AircraftDataLoadingOverlay.jsx";
 import LostSignalOverlay from "@/components/aircraft/tracking/LostSignalOverlay.jsx";
 import {
   getOrCreateTrackedFlight,
@@ -98,6 +99,8 @@ function FlightExplorerContent({ callsign }) {
     aircraft: trackedAircraft,
     feedSource,
     lastUpdated,
+    loadingOverlayActive: trackedLoadingOverlayActive,
+    settled: trackedAircraftSettled,
     lostSignal,
     pollVersion: trackedPollVersion,
   } = useTrackedAircraft(callsign);
@@ -156,15 +159,18 @@ function FlightExplorerContent({ callsign }) {
   const focalLat = lastKnownRef.current.lat;
   const focalLon = lastKnownRef.current.lon;
 
-  const { aircraft: nearbyAircraft } = useAircraftPositions(
-    callsign || "",
-    focalLat,
-    focalLon,
-  );
+  const {
+    aircraft: nearbyAircraft,
+    loadingOverlayActive: nearbyLoadingOverlayActive,
+    settled: nearbyAircraftSettled,
+  } = useAircraftPositions(callsign || "", focalLat, focalLon);
 
   // Pull airports around the focal so the sidebar list and the map's
   // airport layer both show context relative to the moving flight.
-  const { airports: nearbyAirports } = useNearbyAirports({
+  const {
+    airports: nearbyAirports,
+    settled: nearbyAirportsSettled,
+  } = useNearbyAirports({
     lat: focalLat || 0,
     lon: focalLon || 0,
     radiusNm: 40,
@@ -285,6 +291,11 @@ function FlightExplorerContent({ callsign }) {
     lastUpdated,
     onBack: handleBack,
   };
+  const hasFocalLocation = focalLat != null && focalLon != null;
+  const flightCriticalLoadingSettled =
+    trackedAircraftSettled &&
+    (!hasFocalLocation ||
+      (nearbyAircraftSettled && nearbyAirportsSettled));
 
   return (
     <SelectedAircraftTraceProvider
@@ -356,6 +367,13 @@ function FlightExplorerContent({ callsign }) {
               routePath={focalFlightAwareRoutePath}
             />
           </AirportMap>
+          <AircraftDataLoadingOverlay
+            active={
+              !flightCriticalLoadingSettled ||
+              trackedLoadingOverlayActive ||
+              nearbyLoadingOverlayActive
+            }
+          />
 
           {isMobile && sidebarOpen && (
             <div className="absolute inset-0 z-[1100]">

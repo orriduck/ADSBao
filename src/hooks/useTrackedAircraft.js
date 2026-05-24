@@ -6,6 +6,10 @@ import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation.js";
 import {
   normalizeAdsbAircraft,
 } from "../features/aircraft/positions/aircraftPositionsModel.js";
+import {
+  shouldShowAircraftLoadingOverlay,
+  shouldTriggerVisibilityRefreshOverlay,
+} from "../features/aircraft/positions/aircraftLoadingOverlayModel.js";
 
 // Number of consecutive empty callsign responses (no aircraft reporting
 // for that callsign) before we surface lostSignal=true to callers. With
@@ -23,11 +27,15 @@ const LOST_SIGNAL_THRESHOLD = 3;
 // confirmation overlay (the aircraft probably landed — we don't want to
 // just blank the page out).
 export function useTrackedAircraft(callsign) {
+  const hasActiveQuery = Boolean(callsign);
   const [aircraft, setAircraft] = useState(null);
   const [feedSource, setFeedSource] = useState("");
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [visibilityRefreshLoading, setVisibilityRefreshLoading] =
+    useState(false);
+  const [settled, setSettled] = useState(false);
   const [lostSignal, setLostSignal] = useState(false);
   const [pollVersion, setPollVersion] = useState(0);
   const timerRef = useRef(null);
@@ -47,6 +55,8 @@ export function useTrackedAircraft(callsign) {
     if (!callsign) {
       setAircraft(null);
       setInitialLoading(false);
+      setVisibilityRefreshLoading(false);
+      setSettled(false);
       setLastUpdated(null);
       setError(null);
       setLostSignal(false);
@@ -56,7 +66,13 @@ export function useTrackedAircraft(callsign) {
     }
 
     setInitialLoading(true);
+    setSettled(false);
     setError(null);
+
+    const stopPolling = () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = null;
+    };
 
     const poll = async () => {
       try {
@@ -66,6 +82,9 @@ export function useTrackedAircraft(callsign) {
         if (disposedRef.current) return;
         const matches = Array.isArray(payload?.ac) ? payload.ac : [];
         const receiveTime = Date.now();
+        setSettled(true);
+        setInitialLoading(false);
+        setVisibilityRefreshLoading(false);
         if (matches.length === 0) {
           // No matches: don't blank the aircraft snapshot — the user
           // is probably watching a flight that just landed and we want
@@ -100,27 +119,52 @@ export function useTrackedAircraft(callsign) {
         setError(err);
       } finally {
         if (!disposedRef.current) {
-          setPollVersion((value) => value + 1);
+          setSettled(true);
           setInitialLoading(false);
+          setVisibilityRefreshLoading(false);
+          setPollVersion((value) => value + 1);
         }
       }
     };
 
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopPolling();
+        return;
+      }
+      if (
+        shouldTriggerVisibilityRefreshOverlay({
+          wasActive: hasActiveQuery,
+        })
+      ) {
+        setVisibilityRefreshLoading(true);
+      }
+      stopPolling();
+      poll();
+      timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
+    };
+
     poll();
     timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
       disposedRef.current = true;
-      if (timerRef.current) clearInterval(timerRef.current);
-      timerRef.current = null;
+      document.removeEventListener("visibilitychange", handleVisibility);
+      stopPolling();
     };
-  }, [callsign, retrySignal]);
+  }, [callsign, hasActiveQuery, retrySignal]);
 
   return {
     aircraft,
     feedSource,
     lastUpdated,
     initialLoading,
+    loadingOverlayActive: shouldShowAircraftLoadingOverlay({
+      initialLoading: hasActiveQuery && !settled,
+      visibilityRefreshLoading,
+    }),
+    settled,
     error,
     lostSignal,
     pollVersion,
