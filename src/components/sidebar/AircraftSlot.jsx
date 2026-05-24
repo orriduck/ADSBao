@@ -14,6 +14,7 @@ export default function AircraftSlot({
   aircraft,
   cascadeOrder = -1,
   flipStaggerStep = 0.02,
+  disableSwap = false,
   selectedAircraftId,
   onSelectAircraft,
 }) {
@@ -32,7 +33,8 @@ export default function AircraftSlot({
     identityKey: currentKey,
     value: aircraft,
     delaySeconds: flipDelay,
-    disabled: currentKey === selectedId || previousKey === selectedId,
+    disabled:
+      disableSwap || currentKey === selectedId || previousKey === selectedId,
   });
   useEffect(() => {
     previousKeyRef.current = currentKey;
