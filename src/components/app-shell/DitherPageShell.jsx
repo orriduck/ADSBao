@@ -1,7 +1,7 @@
 "use client";
 
-import Waves from "@/components/effects/Waves.jsx";
 import BrandLogo from "@/components/brand/BrandLogo.jsx";
+import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground.jsx";
 import MobileTopNav from "@/components/navigation/MobileTopNav.jsx";
 import { SITE_DESCRIPTION } from "@/config/site.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
@@ -61,19 +61,7 @@ export default function DitherPageShell({
       </div>
 
       <div className="dither-page-background relative isolate flex-1 overflow-hidden">
-        <Waves
-          lineColor="rgba(150, 150, 150, 0.35)"
-          backgroundColor="transparent"
-          waveSpeedX={0.018}
-          waveSpeedY={0.008}
-          waveAmpX={36}
-          waveAmpY={18}
-          xGap={14}
-          yGap={32}
-          friction={0.92}
-          tension={0.008}
-          maxCursorMove={140}
-        />
+        <BrandingVideoBackground />
       </div>
     </div>
   );

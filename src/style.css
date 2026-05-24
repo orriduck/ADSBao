@@ -719,8 +719,8 @@ body {
     z-index: 1;
 }
 
-/* Right-side decorative pane — hosts a <Waves /> animation that follows
-   the canvas color (light grey in light mode, ink in dark mode). */
+/* Right-side decorative pane — hosts the aircraft branding video layer.
+   The video stays neutral; CSS filters and overlays bind it to theme tokens. */
 .dither-page-background {
     background: var(--atc-bg);
     min-width: 0;
@@ -824,6 +824,89 @@ body {
 [data-theme="light"] .background-rays .light-rays-container {
     mix-blend-mode: multiply;
     opacity: 0.35;
+}
+
+.branding-video-background {
+    background:
+        radial-gradient(
+            circle at 72% 38%,
+            color-mix(in oklab, var(--atc-accent) 15%, transparent),
+            transparent 32%
+        ),
+        var(--atc-bg);
+    inset: 0;
+    isolation: isolate;
+    overflow: hidden;
+    position: absolute;
+}
+
+.branding-video-background::after {
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 2;
+}
+
+.branding-video-background::after {
+    background:
+        linear-gradient(
+            color-mix(in oklab, var(--atc-text) 9%, transparent) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            115deg,
+            transparent 0 38%,
+            color-mix(in oklab, var(--atc-orange) 16%, transparent) 48%,
+            transparent 58% 100%
+        );
+    background-size:
+        100% 4px,
+        100% 100%;
+    mix-blend-mode: screen;
+    opacity: 0.34;
+}
+
+.branding-video-background__media {
+    filter: grayscale(1) contrast(1.42) brightness(0.72);
+    height: 100%;
+    inset: 0;
+    mix-blend-mode: screen;
+    object-fit: cover;
+    opacity: 0;
+    position: absolute;
+    transform: scale(1.015);
+    transition: opacity 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 100%;
+    z-index: 1;
+}
+
+.branding-video-background__media.is-visible {
+    opacity: 0.54;
+}
+
+:root[data-theme="light"] .branding-video-background {
+    background:
+        radial-gradient(
+            circle at 74% 42%,
+            color-mix(in oklab, var(--atc-accent) 12%, transparent),
+            transparent 34%
+        ),
+        var(--atc-bg);
+}
+
+:root[data-theme="light"] .branding-video-background::after {
+    mix-blend-mode: multiply;
+    opacity: 0.16;
+}
+
+:root[data-theme="light"] .branding-video-background__media {
+    filter: grayscale(1) contrast(1.28) brightness(1.08);
+    mix-blend-mode: multiply;
+}
+
+:root[data-theme="light"] .branding-video-background__media.is-visible {
+    opacity: 0.28;
 }
 
 .about-hero {
@@ -3056,10 +3139,8 @@ body {
 }
 
 /* =====================================================================
-   <Waves /> — Perlin-driven animated background layer on the right
-   pane. The component itself paints a canvas with mouse-reactive
-   flowing lines (see effects/Waves.jsx); this rule fades the layer in
-   on mount so the home → about / changelog transitions don't snap.
+   Right-pane media background — fades in on mount so the home → about /
+   changelog transitions don't snap.
    ===================================================================== */
 
 .dither-page-background > div {
