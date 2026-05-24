@@ -834,11 +834,30 @@ body {
     position: absolute;
 }
 
+.branding-video-background::before {
+    background:
+        linear-gradient(
+            90deg,
+            transparent 0 50%,
+            color-mix(in oklab, var(--atc-orange) 16%, transparent) 60%,
+            color-mix(in oklab, var(--atc-orange) 34%, transparent) 68%,
+            color-mix(in oklab, var(--atc-orange) 16%, transparent) 76%,
+            transparent 88% 100%
+        );
+    content: "";
+    filter: blur(72px);
+    inset: 0 -14%;
+    opacity: 0.62;
+    pointer-events: none;
+    position: absolute;
+    z-index: 0;
+}
+
 .branding-video-background__media {
     filter: none;
     height: 100%;
     inset: 0;
-    mix-blend-mode: normal;
+    mix-blend-mode: screen;
     object-fit: cover;
     opacity: 0;
     position: absolute;
@@ -848,16 +867,30 @@ body {
     z-index: 1;
 }
 
+:root[data-theme="dark"] .branding-video-background__media {
+    filter: none;
+}
+
 .branding-video-background__media.is-visible {
-    opacity: 0.88;
+    opacity: 0.9;
 }
 
 :root[data-theme="light"] .branding-video-background {
     background: var(--atc-bg);
 }
 
+:root[data-theme="light"] .branding-video-background::before {
+    filter: blur(84px);
+    opacity: 0.37;
+}
+
+:root[data-theme="light"] .branding-video-background__media {
+    filter: invert(1);
+}
+
 :root[data-theme="light"] .branding-video-background__media.is-visible {
-    opacity: 0.82;
+    mix-blend-mode: multiply;
+    opacity: 0.52;
 }
 
 .about-hero {
