@@ -17,9 +17,11 @@ import {
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData.js";
 import { useAirportProcedures } from "@/hooks/useAirportProcedures.js";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports.js";
+import { useSocialEntity } from "@/hooks/useSocialEntity.js";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext.jsx";
 import AircraftPreviewCard from "../../aircraft/preview/AircraftPreviewCard.jsx";
 import { areCriticalLoadingRequestsSettled } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
+import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -84,6 +86,36 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       traffic.aircraft,
     ],
   );
+  const airportSocial = useSocialEntity(
+    {
+      entityType: "airport",
+      entityKey: airportProfile.icao,
+      contextAirportIcao: airportProfile.icao,
+    },
+    { enabled: Boolean(airportProfile.icao) },
+  );
+  const selectedAircraftSocialEntity = useMemo(() => {
+    if (!selection.selectedAircraft) return null;
+    return {
+      entityType: "aircraft",
+      entityKey: getAircraftIdentity(selection.selectedAircraft),
+      contextAirportIcao: airportProfile.icao,
+    };
+  }, [airportProfile.icao, selection.selectedAircraft]);
+  const selectedAircraftSocial = useSocialEntity(selectedAircraftSocialEntity, {
+    enabled: Boolean(selectedAircraftSocialEntity),
+  });
+  const selectedAirportSocialEntity = useMemo(() => {
+    if (!selection.selectedAirport?.icao) return null;
+    return {
+      entityType: "airport",
+      entityKey: selection.selectedAirport.icao,
+      contextAirportIcao: selection.selectedAirport.icao,
+    };
+  }, [selection.selectedAirport]);
+  const selectedAirportSocial = useSocialEntity(selectedAirportSocialEntity, {
+    enabled: Boolean(selectedAirportSocialEntity),
+  });
 
   useEffect(() => {
     if (!selectedAircraftId) return;
@@ -137,6 +169,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
     feedSource: traffic.feedSource,
+    airportSocialSummary: airportSocial.summary,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
     onBack,
@@ -156,6 +189,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         airportProfile={airportProfile}
+        aircraftSocialSummary={selectedAircraftSocial.summary}
+        airportSocialSummary={
+          selection.selectedAirport
+            ? selectedAirportSocial.summary
+            : airportSocial.summary
+        }
         onApplyTemporaryRoute={traffic.applyTemporaryRoute}
       />
       <div
@@ -206,6 +245,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             runwayProcedures={null}
             procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
             showProcedureFixLabels
+            airportSocialSummary={airportSocial.summary}
+            selectedAircraftSocialSummary={selectedAircraftSocial.summary}
+            onAirportSocialReaction={airportSocial.toggleReaction}
+            onSelectedAircraftSocialReaction={
+              selectedAircraftSocial.toggleReaction
+            }
           />
           <AircraftDataLoadingOverlay
             active={

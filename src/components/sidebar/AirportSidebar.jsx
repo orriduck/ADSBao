@@ -6,6 +6,7 @@ import AirportIdentity from "./AirportIdentity";
 import SidebarShell from "./SidebarShell";
 import SidebarViewSwitch from "./SidebarViewSwitch";
 import WeatherBriefingStack from "./WeatherBriefingStack";
+import SocialActivitySummary from "@/components/social/SocialActivitySummary.jsx";
 
 export default function AirportSidebar({
   icao = "",
@@ -28,6 +29,7 @@ export default function AirportSidebar({
   lastUpdated = null,
   feedStatus = "live",
   feedSource = "",
+  airportSocialSummary = null,
   onSelectAircraft,
   onSelectAirport,
   onBack,
@@ -46,6 +48,10 @@ export default function AirportSidebar({
         country={country}
         lat={lat}
         lon={lon}
+      />
+      <SocialActivitySummary
+        summary={airportSocialSummary}
+        className="airport-sidebar-social"
       />
       <SidebarViewSwitch
         activeView={activeView}

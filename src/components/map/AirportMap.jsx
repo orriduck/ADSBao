@@ -54,6 +54,10 @@ export default function AirportMap({
   showProcedureFixLabels = false,
   focalRangeRings = null,
   nearbyRangeRings = null,
+  airportSocialSummary = null,
+  selectedAircraftSocialSummary = null,
+  onAirportSocialReaction,
+  onSelectedAircraftSocialReaction,
   children = null,
 }) {
   // Single source of truth for the ring bands so the inline labels
@@ -217,6 +221,8 @@ export default function AirportMap({
               aircraft={aircraft}
               zoom={zoom}
               groundRadiusNm={effectiveFocalRings?.intervalNm}
+              socialSummary={airportSocialSummary}
+              onSocialReaction={onAirportSocialReaction}
             />
           )}
           <NearbyAirportLayer
@@ -266,6 +272,16 @@ export default function AirportMap({
               forceSilhouette={
                 Boolean(focalAircraftId) &&
                 getAircraftIdentity(ac) === focalAircraftId
+              }
+              socialSummary={
+                getAircraftIdentity(ac) === selectedAircraftId
+                  ? selectedAircraftSocialSummary
+                  : null
+              }
+              onSocialReaction={
+                getAircraftIdentity(ac) === selectedAircraftId
+                  ? onSelectedAircraftSocialReaction
+                  : undefined
               }
               onSelectAircraft={onSelectAircraft}
             />

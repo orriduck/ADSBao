@@ -6,6 +6,7 @@ import NumberFlow from "@number-flow/react";
 import { toFiniteNumber } from "@/utils/math.js";
 import { getFlightRouteAirlineIconUrl } from "@/utils/flightRouteDisplay.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import SocialActivitySummary from "@/components/social/SocialActivitySummary.jsx";
 
 // Same self-hiding-on-error pattern as the list row's logo. Keeps the
 // mobile card tidy when an airline isn't covered by the icon CDN.
@@ -24,7 +25,7 @@ function AirlineLogo({ src, className }) {
   );
 }
 
-export default function AircraftPreviewMobileCard({ aircraft }) {
+export default function AircraftPreviewMobileCard({ aircraft, socialSummary = null }) {
   const { t } = useI18n();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
@@ -74,6 +75,7 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
           </span>
         </div>
       )}
+      <SocialActivitySummary summary={socialSummary} compact />
       {hasStats && (
         <div className="aircraft-preview-mobile-card__row2">
           {speed != null && (

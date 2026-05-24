@@ -2866,6 +2866,68 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
+.aircraft-marker::before,
+.airport-overlay-label::before {
+    position: absolute;
+    z-index: -1;
+    border: 1px solid color-mix(in oklab, var(--atc-orange) 62%, transparent);
+    border-radius: 999px;
+    content: "";
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+}
+
+.aircraft-marker::before {
+    left: 9px;
+    top: 9px;
+    width: 34px;
+    height: 34px;
+}
+
+.airport-overlay-label::before {
+    left: 22px;
+    top: 13px;
+    width: 64px;
+    height: 34px;
+}
+
+.aircraft-marker[data-social-activity="subtle"]::before,
+.airport-overlay-label[data-social-activity="subtle"]::before {
+    opacity: 0.42;
+    box-shadow: 0 0 12px color-mix(in oklab, var(--atc-orange) 22%, transparent);
+}
+
+.aircraft-marker[data-social-activity="pulse"]::before,
+.airport-overlay-label[data-social-activity="pulse"]::before {
+    opacity: 0.58;
+    animation: social-halo-pulse 2.8s ease-out infinite;
+    box-shadow: 0 0 18px color-mix(in oklab, var(--atc-orange) 30%, transparent);
+}
+
+.aircraft-marker[data-social-activity="strong"]::before,
+.airport-overlay-label[data-social-activity="strong"]::before {
+    opacity: 0.72;
+    animation: social-halo-pulse 2.1s ease-out infinite;
+    box-shadow:
+        0 0 18px color-mix(in oklab, var(--atc-orange) 36%, transparent),
+        0 0 34px color-mix(in oklab, var(--atc-orange) 18%, transparent);
+}
+
+@keyframes social-halo-pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.92);
+    }
+    70% {
+        opacity: 0.08;
+        transform: translate(-50%, -50%) scale(1.35);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.35);
+    }
+}
+
 /* Wrapper carries the rotation so the dark-theme nose beam orbits
    with the heading. Sits ABOVE the silhouette's drop-shadow halo via
    overflow: visible. */
@@ -3268,6 +3330,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 3px;
+    position: relative;
 }
 
 .airport-overlay-label__detail {
@@ -3279,6 +3342,159 @@ body {
     letter-spacing: 0.08em;
     padding: 1px 5px;
     text-transform: uppercase;
+}
+
+.social-reaction-ring {
+    position: absolute;
+    left: 9px;
+    top: 9px;
+    z-index: 20;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
+.social-reaction-ring--airport {
+    left: 22px;
+    top: 13px;
+}
+
+.social-reaction-ring__button {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid color-mix(in oklab, var(--atc-orange) 45%, transparent);
+    border-radius: 999px;
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            color-mix(in oklab, var(--atc-text) 18%, transparent),
+            transparent 54%
+        ),
+        color-mix(in oklab, var(--atc-card) 88%, transparent);
+    box-shadow:
+        0 8px 18px color-mix(in oklab, var(--atc-bg) 74%, transparent),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 16%, transparent);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    pointer-events: auto;
+    transform:
+        translate(-50%, -50%)
+        translate(var(--social-x), var(--social-y))
+        scale(0.96);
+    transition:
+        border-color 0.16s ease,
+        opacity 0.16s ease,
+        transform 0.16s ease;
+}
+
+.social-reaction-ring__button:hover,
+.social-reaction-ring__button[data-selected="true"] {
+    border-color: color-mix(in oklab, var(--atc-orange) 86%, white);
+    transform:
+        translate(-50%, -50%)
+        translate(var(--social-x), var(--social-y))
+        scale(1.08);
+}
+
+.social-reaction-ring__button[data-selected="true"] {
+    animation: social-reaction-pop 0.42s ease-out;
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            color-mix(in oklab, var(--atc-orange) 36%, transparent),
+            transparent 60%
+        ),
+        color-mix(in oklab, var(--atc-card) 88%, transparent);
+}
+
+.social-reaction-ring__button:disabled {
+    cursor: default;
+    opacity: 0.62;
+}
+
+@keyframes social-reaction-pop {
+    0% {
+        transform:
+            translate(-50%, -50%)
+            translate(var(--social-x), var(--social-y))
+            scale(0.9);
+    }
+    55% {
+        transform:
+            translate(-50%, -50%)
+            translate(var(--social-x), var(--social-y))
+            scale(1.18);
+    }
+    100% {
+        transform:
+            translate(-50%, -50%)
+            translate(var(--social-x), var(--social-y))
+            scale(1.08);
+    }
+}
+
+.social-activity-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 10px;
+}
+
+.social-activity-summary__label {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.social-activity-summary--compact .social-activity-summary__label {
+    font-size: 9px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.social-activity-summary__reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.social-activity-summary__reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 22px;
+    padding: 2px 7px;
+    border: 1px solid color-mix(in oklab, var(--atc-line) 70%, transparent);
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--tone-card-soft) 72%, transparent);
+    color: var(--atc-text);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.airport-sidebar-social {
+    margin-top: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aircraft-marker[data-social-activity="pulse"]::before,
+    .airport-overlay-label[data-social-activity="pulse"]::before,
+    .aircraft-marker[data-social-activity="strong"]::before,
+    .airport-overlay-label[data-social-activity="strong"]::before,
+    .social-reaction-ring__button[data-selected="true"] {
+        animation: none;
+    }
 }
 
 .airport-ground-count {

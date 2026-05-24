@@ -11,6 +11,8 @@ import {
 } from "../../features/airport/map/leafletLayerSafety.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
+import SocialReactionRing from "../social/SocialReactionRing.jsx";
+import { getSocialActivityLevel } from "../../features/social/socialModel.js";
 
 export default function AirportMarker({
   lat,
@@ -20,12 +22,15 @@ export default function AirportMarker({
   aircraft = [],
   zoom = null,
   groundRadiusNm = 3,
+  socialSummary = null,
+  onSocialReaction,
 }) {
   const map = useMapInstance();
   const markerRef = useRef(null);
   const [container] = useState(() =>
     typeof document !== "undefined" ? document.createElement("div") : null,
   );
+  const [ringOpen, setRingOpen] = useState(false);
 
   // Count aircraft within `groundRadiusNm` of the focal airport, shown
   // as a "NEAR n" line under the badge. Only computed at approach zoom
@@ -44,7 +49,7 @@ export default function AirportMarker({
       return undefined;
     const marker = safeAddToMap(
       L.marker([lat, lon], {
-        interactive: false,
+        interactive: true,
         icon: L.divIcon({
           className: "",
           html: container,
@@ -76,8 +81,26 @@ export default function AirportMarker({
     details.push({ key: "app", label: "APP", value: approachCount });
   }
 
+  const activityLevel = getSocialActivityLevel(socialSummary);
+
   return createPortal(
-    <div className="airport-overlay-label notranslate" translate="no">
+    <div
+      className="airport-overlay-label notranslate"
+      data-social-activity={activityLevel}
+      translate="no"
+      onMouseEnter={() => setRingOpen(true)}
+      onMouseLeave={() => setRingOpen(false)}
+      onClick={(event) => {
+        event.stopPropagation();
+        setRingOpen((current) => !current);
+      }}
+    >
+      <SocialReactionRing
+        open={ringOpen}
+        summary={socialSummary}
+        onReaction={onSocialReaction}
+        className="social-reaction-ring--airport"
+      />
       <span className="airport-overlay-label__code endf-tab endf-tab--code">
         <span>{code}</span>
       </span>

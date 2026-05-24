@@ -35,6 +35,7 @@ import {
 import { useAircraftPositions } from "@/hooks/useAircraftPositions.js";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes.js";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports.js";
+import { useSocialEntity } from "@/hooks/useSocialEntity.js";
 import { useTrackedAircraft } from "@/hooks/useTrackedAircraft.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 import { normalizeCallsign } from "@/utils/callsign.js";
@@ -239,6 +240,28 @@ function FlightExplorerContent({ callsign }) {
       ) || null,
     [aircraft, selectedAircraftId],
   );
+  const selectedAircraftSocialEntity = useMemo(() => {
+    if (!selectedAircraft) return null;
+    return {
+      entityType: "aircraft",
+      entityKey: getAircraftIdentity(selectedAircraft),
+      contextAirportIcao: selectedAirport?.icao || "",
+    };
+  }, [selectedAircraft, selectedAirport?.icao]);
+  const selectedAircraftSocial = useSocialEntity(selectedAircraftSocialEntity, {
+    enabled: Boolean(selectedAircraftSocialEntity),
+  });
+  const selectedAirportSocialEntity = useMemo(() => {
+    if (!selectedAirport?.icao) return null;
+    return {
+      entityType: "airport",
+      entityKey: selectedAirport.icao,
+      contextAirportIcao: selectedAirport.icao,
+    };
+  }, [selectedAirport]);
+  const selectedAirportSocial = useSocialEntity(selectedAirportSocialEntity, {
+    enabled: Boolean(selectedAirportSocialEntity),
+  });
 
   // The sidebar reads `aircraft.flightRoute` / `flightRouteLabel` to paint
   // the route header. `trackedAircraft` straight out of useTrackedAircraft
@@ -311,6 +334,8 @@ function FlightExplorerContent({ callsign }) {
         airport={selectedAirport}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
+        aircraftSocialSummary={selectedAircraftSocial.summary}
+        airportSocialSummary={selectedAirportSocial.summary}
         onApplyTemporaryRoute={applyTemporaryRoute}
       />
       <div
@@ -361,6 +386,10 @@ function FlightExplorerContent({ callsign }) {
             showProcedureFixLabels={false}
             focalRangeRings={false}
             nearbyRangeRings={{ intervalNm: 5, maxNm: 5, prominent: true }}
+            selectedAircraftSocialSummary={selectedAircraftSocial.summary}
+            onSelectedAircraftSocialReaction={
+              selectedAircraftSocial.toggleReaction
+            }
           >
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController

@@ -7,11 +7,13 @@ import AircraftPreviewMetadata from "./AircraftPreviewMetadata.jsx";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry.jsx";
 import RouteFeedbackForm from "./RouteFeedbackForm.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import SocialActivitySummary from "@/components/social/SocialActivitySummary.jsx";
 
 export default function AircraftPreviewMetadataCard({
   aircraft,
   photo,
   airportProfile = null,
+  socialSummary = null,
   onApplyTemporaryRoute,
 }) {
   const { t } = useI18n();
@@ -31,6 +33,7 @@ export default function AircraftPreviewMetadataCard({
       )}
       <AircraftPreviewIdentity aircraft={aircraft} />
       <AircraftPreviewTelemetry aircraft={aircraft} />
+      <SocialActivitySummary summary={socialSummary} compact />
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
       <AircraftPreviewMetadata aircraft={aircraft} />
       {trackHref && !alreadyTracking ? (

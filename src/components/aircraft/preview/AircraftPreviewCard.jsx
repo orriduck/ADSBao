@@ -38,6 +38,8 @@ export default function AircraftPreviewCard({
   isMobile = false,
   sidebarOpen = false,
   airportProfile = null,
+  aircraftSocialSummary = null,
+  airportSocialSummary = null,
   onApplyTemporaryRoute,
 }) {
   const { t } = useI18n();
@@ -125,12 +127,16 @@ export default function AircraftPreviewCard({
             </AnimatePresence>
           )}
           {isAirport ? (
-            <AirportPreviewMetadataCard airport={airport} />
+            <AirportPreviewMetadataCard
+              airport={airport}
+              socialSummary={airportSocialSummary}
+            />
           ) : (
             <AircraftPreviewMetadataCard
               aircraft={aircraft}
               photo={photo}
               airportProfile={airportProfile}
+              socialSummary={aircraftSocialSummary}
               onApplyTemporaryRoute={onApplyTemporaryRoute}
             />
           )}
@@ -147,9 +153,15 @@ export default function AircraftPreviewCard({
             : STACK_MOTION)}
         >
           {isAirport ? (
-            <AirportPreviewMobileCard airport={airport} />
+            <AirportPreviewMobileCard
+              airport={airport}
+              socialSummary={airportSocialSummary}
+            />
           ) : (
-            <AircraftPreviewMobileCard aircraft={aircraft} />
+            <AircraftPreviewMobileCard
+              aircraft={aircraft}
+              socialSummary={aircraftSocialSummary}
+            />
           )}
           {trackHref && (
             <button

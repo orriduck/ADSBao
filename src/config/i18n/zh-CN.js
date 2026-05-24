@@ -352,6 +352,19 @@ const zhCN = {
     unknown: "未知",
     traffic: "交通",
   },
+  social: {
+    live: "实时",
+    liveInterest: "实时关注",
+    watchingCount: "{count} 人在看",
+    reactAria: "对该目标做出反应",
+    reactions: {
+      fire: "火",
+      walk: "路过",
+      like: "赞",
+      ticket: "想坐",
+      camera: "拍它",
+    },
+  },
   changelog: {
     title: "更新日志",
     description: "产品发布历史。当前版本 {version}。",

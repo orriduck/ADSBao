@@ -7,11 +7,12 @@ import { countryName, flagEmoji } from "@/utils/flag.js";
 import { airportCityName, airportDisplayName } from "@/utils/airport.js";
 import { toFiniteNumber } from "@/utils/math.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import SocialActivitySummary from "@/components/social/SocialActivitySummary.jsx";
 
 // Airport variant of the bottom-right preview card. Mirrors the aircraft
 // card's chrome (same container class so the slide-in / blur / sizing
 // match) and exposes a Track link that lands on /airport/[icao].
-export default function AirportPreviewMetadataCard({ airport }) {
+export default function AirportPreviewMetadataCard({ airport, socialSummary = null }) {
   const { locale, t } = useI18n();
   const pathname = usePathname();
   const icao = (airport?.icao || "").trim().toUpperCase();
@@ -46,6 +47,8 @@ export default function AirportPreviewMetadataCard({ airport }) {
           <span className="text-[12px] text-atc-dim">{placeLine}</span>
         ) : null}
       </div>
+
+      <SocialActivitySummary summary={socialSummary} />
 
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
 

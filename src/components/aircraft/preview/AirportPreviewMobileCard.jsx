@@ -5,13 +5,14 @@ import { countryName, flagEmoji } from "@/utils/flag.js";
 import { airportCityName } from "@/utils/airport.js";
 import { toFiniteNumber } from "@/utils/math.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import SocialActivitySummary from "@/components/social/SocialActivitySummary.jsx";
 
 // Airport variant of the bottom-of-screen mobile preview card. Code line
 // is the prominent identifier (same font as the aircraft callsign so
 // swapping selections keeps the card's silhouette stable); the place
 // line drops to a smaller secondary style and is allowed to wrap inside
 // the card's max-width so long airport names stay tidy.
-export default function AirportPreviewMobileCard({ airport }) {
+export default function AirportPreviewMobileCard({ airport, socialSummary = null }) {
   const { locale } = useI18n();
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
@@ -38,6 +39,7 @@ export default function AirportPreviewMobileCard({ airport }) {
       {placeLine && (
         <div className="airport-preview-mobile-card__place">{placeLine}</div>
       )}
+      <SocialActivitySummary summary={socialSummary} compact />
       {hasStats && (
         <div className="aircraft-preview-mobile-card__row2">
           {distance != null && (

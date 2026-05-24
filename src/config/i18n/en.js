@@ -372,6 +372,19 @@ const en = {
     unknown: "Unknown",
     traffic: "Traffic",
   },
+  social: {
+    live: "Live",
+    liveInterest: "Live interest",
+    watchingCount: "{count} watching",
+    reactAria: "React to this target",
+    reactions: {
+      fire: "Fire",
+      walk: "Walk",
+      like: "Like",
+      ticket: "Ticket",
+      camera: "Camera",
+    },
+  },
   changelog: {
     title: "Changelog",
     description: "Product release history. Currently shipping {version}.",

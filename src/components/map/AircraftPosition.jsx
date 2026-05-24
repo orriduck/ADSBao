@@ -19,6 +19,8 @@ import {
   resolveAircraftIcon,
   resolveAircraftSizeScale,
 } from "../../utils/aircraftIcon.js";
+import SocialReactionRing from "../social/SocialReactionRing.jsx";
+import { getSocialActivityLevel } from "../../features/social/socialModel.js";
 
 // Match the arrow size (18×18) so the icon stays anchored on the marker's
 // geo coordinate without shifting the label layout. Silhouettes are still
@@ -42,6 +44,8 @@ export default function AircraftPosition({
   selectionActive = false,
   traceActive = false,
   forceSilhouette = false,
+  socialSummary = null,
+  onSocialReaction,
   onSelectAircraft,
 }) {
   const map = useMapInstance();
@@ -135,14 +139,21 @@ export default function AircraftPosition({
   });
   const rot = Math.round(aircraft.track || 0);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
+  const activityLevel = getSocialActivityLevel(socialSummary);
 
   return createPortal(
     <div
       className={`aircraft-marker ${
         selected ? "aircraft-marker--selected" : ""
       }`}
+      data-social-activity={activityLevel}
       style={{ opacity: emphasis.opacity }}
     >
+      <SocialReactionRing
+        open={selected}
+        summary={socialSummary}
+        onReaction={onSocialReaction}
+      />
       <Pointer
         color={color}
         rot={rot}
