@@ -26,6 +26,9 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     setQuery,
     rows,
     featuredAirports,
+    featuredAirportItems,
+    locationStatus,
+    requestNearestAirport,
     loading,
     error,
     countLabel,
@@ -90,7 +93,13 @@ export default function AirportSearchPanel({ onOpenAirport }) {
             onOpen={openAirport}
           />
         ) : (
-          <FeaturedAirports airports={featuredAirports} onOpen={openAirport} />
+          <FeaturedAirports
+            airports={featuredAirports}
+            items={featuredAirportItems}
+            locationStatus={locationStatus}
+            onRequestLocation={requestNearestAirport}
+            onOpen={openAirport}
+          />
         )}
       </div>
     </DitherPageShell>
