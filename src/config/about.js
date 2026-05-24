@@ -123,6 +123,16 @@ export const ABOUT_DATA_SOURCES = [
     host: "bilibili.com",
     href: "https://www.bilibili.com/video/BV1Aw4m1d7HJ/",
   },
+  {
+    glyph: "COLOR",
+    titleKey: "about.sources.colorReference.title",
+    title: "Arknights: Endfield Color Reference",
+    descriptionKey: "about.sources.colorReference.description",
+    description:
+      "Color direction references Arknights: Endfield, credited to Perlica and Zhuang Fangyi.",
+    host: "endfield.hypergryph.com",
+    href: "https://endfield.hypergryph.com/",
+  },
 ];
 
 export const ABOUT_REPOSITORY = {

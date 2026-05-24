@@ -85,6 +85,11 @@ const en = {
         description:
           "Aircraft branding footage credit: 【视频分享】素材分享——飞机起飞降落 by 霸波奔bo奔波霸.",
       },
+      colorReference: {
+        title: "Arknights: Endfield Color Reference",
+        description:
+          "Color direction references Arknights: Endfield, credited to Perlica and Zhuang Fangyi.",
+      },
     },
   },
   sidebar: {

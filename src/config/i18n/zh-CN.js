@@ -81,6 +81,10 @@ const zhCN = {
         description:
           "品牌视频飞机素材署名：【视频分享】素材分享——飞机起飞降落，UP 主：霸波奔bo奔波霸。",
       },
+      colorReference: {
+        title: "配色参考",
+        description: "配色参考《明日方舟：终末地》，作者：佩丽卡、庄方宜。",
+      },
     },
   },
   sidebar: {
