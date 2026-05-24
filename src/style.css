@@ -827,51 +827,18 @@ body {
 }
 
 .branding-video-background {
-    background:
-        radial-gradient(
-            circle at 72% 38%,
-            color-mix(in oklab, var(--atc-accent) 15%, transparent),
-            transparent 32%
-        ),
-        var(--atc-bg);
+    background: var(--atc-bg);
     inset: 0;
     isolation: isolate;
     overflow: hidden;
     position: absolute;
 }
 
-.branding-video-background::after {
-    content: "";
-    inset: 0;
-    pointer-events: none;
-    position: absolute;
-    z-index: 2;
-}
-
-.branding-video-background::after {
-    background:
-        linear-gradient(
-            color-mix(in oklab, var(--atc-text) 9%, transparent) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            115deg,
-            transparent 0 38%,
-            color-mix(in oklab, var(--atc-orange) 16%, transparent) 48%,
-            transparent 58% 100%
-        );
-    background-size:
-        100% 4px,
-        100% 100%;
-    mix-blend-mode: screen;
-    opacity: 0.34;
-}
-
 .branding-video-background__media {
-    filter: grayscale(1) contrast(1.42) brightness(0.72);
+    filter: none;
     height: 100%;
     inset: 0;
-    mix-blend-mode: screen;
+    mix-blend-mode: normal;
     object-fit: cover;
     opacity: 0;
     position: absolute;
@@ -882,31 +849,15 @@ body {
 }
 
 .branding-video-background__media.is-visible {
-    opacity: 0.54;
+    opacity: 0.88;
 }
 
 :root[data-theme="light"] .branding-video-background {
-    background:
-        radial-gradient(
-            circle at 74% 42%,
-            color-mix(in oklab, var(--atc-accent) 12%, transparent),
-            transparent 34%
-        ),
-        var(--atc-bg);
-}
-
-:root[data-theme="light"] .branding-video-background::after {
-    mix-blend-mode: multiply;
-    opacity: 0.16;
-}
-
-:root[data-theme="light"] .branding-video-background__media {
-    filter: grayscale(1) contrast(1.28) brightness(1.08);
-    mix-blend-mode: multiply;
+    background: var(--atc-bg);
 }
 
 :root[data-theme="light"] .branding-video-background__media.is-visible {
-    opacity: 0.28;
+    opacity: 0.82;
 }
 
 .about-hero {
