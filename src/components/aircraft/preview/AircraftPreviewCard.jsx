@@ -16,10 +16,10 @@ import { getAircraftIdentity } from "@/features/airport/context/airportContextUi
 const POCKET_EASE = [0.16, 1, 0.3, 1];
 
 const STACK_MOTION = {
-  initial: { opacity: 0, y: 96 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 96 },
-  transition: { duration: 0.46, ease: POCKET_EASE },
+  initial: { y: 18 },
+  animate: { y: 0 },
+  exit: { clipPath: "inset(0 0 0 100%)", y: 24 },
+  transition: { duration: 0.2, ease: [1, 0, 0.7, 1] },
 };
 
 const MEDIA_MOTION = {
@@ -97,7 +97,7 @@ export default function AircraftPreviewCard({
       {entity && !isMobile && (
         <motion.aside
           key={identityKey}
-          className={`aircraft-preview-card ${
+          className={`aircraft-preview-card aircraft-preview-card--desktop-reveal ${
             !isAirport && hasPhoto ? "aircraft-preview-card--has-photo" : ""
           } aircraft-preview-card--photo-${photoTone}`}
           aria-label={isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")}
@@ -143,7 +143,11 @@ export default function AircraftPreviewCard({
           aria-label={isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")}
           style={{ x: "-50%" }}
           {...(reducedMotion
-            ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
+            ? {
+                initial: false,
+                animate: { y: 0 },
+                exit: { clipPath: "inset(0 0% 0 0)", y: 0 },
+              }
             : STACK_MOTION)}
         >
           {isAirport ? (

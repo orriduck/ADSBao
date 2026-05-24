@@ -5,11 +5,28 @@ import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
 import { getLoadingOverlayExitDelay } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
-export default function AircraftDataLoadingOverlay({ active }) {
+export default function AircraftDataLoadingOverlay({
+  active,
+  variant = "airport",
+  callsign = "",
+}) {
   const { t } = useI18n();
   const [visible, setVisible] = useState(active);
   const [exiting, setExiting] = useState(false);
   const shownAtRef = useRef(active ? Date.now() : 0);
+  const normalizedCallsign = callsign.trim().toUpperCase();
+  const isFlight = variant === "flight";
+  const ariaLabel = isFlight
+    ? t("map.loadingTrackedAircraftAria")
+    : t("map.loadingAircraftAria");
+  const eyebrow = isFlight
+    ? t("map.flightTrackingFeed")
+    : "adsb.lol position feed";
+  const status = isFlight
+    ? t("map.syncingTrackedAircraft", {
+        callsign: normalizedCallsign || t("map.trackedAircraft"),
+      })
+    : t("map.syncingTraffic");
 
   useEffect(() => {
     let delayTimer;
@@ -45,8 +62,10 @@ export default function AircraftDataLoadingOverlay({ active }) {
 
   return (
     <div
-      className={`adsb-loading-overlay ${exiting ? "is-exiting" : ""}`}
-      aria-label={t("map.loadingAircraftAria")}
+      className={`adsb-loading-overlay adsb-loading-overlay--${variant} ${
+        exiting ? "is-exiting" : ""
+      }`}
+      aria-label={ariaLabel}
       aria-hidden={!visible}
       onAnimationEnd={(event) => {
         if (event.currentTarget !== event.target || !exiting) return;
@@ -61,8 +80,8 @@ export default function AircraftDataLoadingOverlay({ active }) {
         <span className="adsb-loading-grid__scan" />
       </div>
       <div className="adsb-loading-status">
-        <span>adsb.lol position feed</span>
-        <strong>{t("map.syncingTraffic")}</strong>
+        <span>{eyebrow}</span>
+        <strong>{status}</strong>
       </div>
     </div>
   );
