@@ -131,6 +131,25 @@ export default function AircraftTable({
       (item) => getAircraftIdentity(item) !== selectedAircraftId,
     );
   }, [pinnedAircraft, filteredAircraft, selectedAircraftId]);
+  const aircraftListResetKey = useMemo(
+    () =>
+      [
+        query.trim().toLowerCase(),
+        trafficFilter,
+        Array.isArray(typeFilter) ? typeFilter.join("|") : typeFilter,
+        altitudeLevel,
+        entityFilter,
+        selectedAircraftId,
+      ].join("::"),
+    [
+      altitudeLevel,
+      entityFilter,
+      query,
+      selectedAircraftId,
+      trafficFilter,
+      typeFilter,
+    ],
+  );
 
   return (
     <div className={`flex flex-col ${fill ? "h-full" : ""}`}>
@@ -256,6 +275,7 @@ export default function AircraftTable({
             {listRows.length > 0 && (
               <AircraftList
                 aircraft={listRows}
+                resetKey={aircraftListResetKey}
                 selectedAircraftId={selectedAircraftId}
                 onSelectAircraft={onSelectAircraft}
               />
