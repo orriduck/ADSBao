@@ -34,3 +34,38 @@ export function getLoadingOverlayExitDelay({
 } = {}) {
   return Math.max(0, minVisibleMs - Math.max(0, now - shownAt));
 }
+
+export function scheduleAfterOverlayPaint(
+  callback,
+  {
+    requestAnimationFrame = globalThis.requestAnimationFrame?.bind(globalThis),
+    cancelAnimationFrame = globalThis.cancelAnimationFrame?.bind(globalThis),
+    setTimeout = globalThis.setTimeout?.bind(globalThis),
+    clearTimeout = globalThis.clearTimeout?.bind(globalThis),
+  } = {},
+) {
+  if (
+    typeof requestAnimationFrame === "function" &&
+    typeof cancelAnimationFrame === "function"
+  ) {
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(callback);
+    });
+
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      if (secondFrame) cancelAnimationFrame(secondFrame);
+    };
+  }
+
+  if (typeof setTimeout !== "function") {
+    callback();
+    return () => {};
+  }
+
+  const timeout = setTimeout(callback, 0);
+  return () => {
+    if (typeof clearTimeout === "function") clearTimeout(timeout);
+  };
+}

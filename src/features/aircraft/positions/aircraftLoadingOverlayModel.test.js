@@ -4,6 +4,7 @@ import {
   AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
   areCriticalLoadingRequestsSettled,
   getLoadingOverlayExitDelay,
+  scheduleAfterOverlayPaint,
   shouldShowAircraftLoadingOverlay,
   shouldTriggerVisibilityRefreshOverlay,
 } from "./aircraftLoadingOverlayModel.js";
@@ -91,3 +92,39 @@ assert.equal(
   }),
   false,
 );
+
+{
+  const frameCallbacks = [];
+  const cancelledFrames = [];
+  let calls = 0;
+  let frameId = 0;
+
+  const cancel = scheduleAfterOverlayPaint(
+    () => {
+      calls += 1;
+    },
+    {
+      requestAnimationFrame(callback) {
+        frameCallbacks.push(callback);
+        frameId += 1;
+        return frameId;
+      },
+      cancelAnimationFrame(id) {
+        cancelledFrames.push(id);
+      },
+    },
+  );
+
+  assert.equal(calls, 0);
+  assert.equal(frameCallbacks.length, 1);
+
+  frameCallbacks.shift()();
+  assert.equal(calls, 0);
+  assert.equal(frameCallbacks.length, 1);
+
+  frameCallbacks.shift()();
+  assert.equal(calls, 1);
+
+  cancel();
+  assert.deepEqual(cancelledFrames, [1, 2]);
+}

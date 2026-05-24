@@ -7,6 +7,8 @@ import {
   normalizeAdsbAircraft,
 } from "../features/aircraft/positions/aircraftPositionsModel.js";
 import {
+  AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
+  scheduleAfterOverlayPaint,
   shouldShowAircraftLoadingOverlay,
   shouldTriggerVisibilityRefreshOverlay,
 } from "../features/aircraft/positions/aircraftLoadingOverlayModel.js";
@@ -17,6 +19,14 @@ import {
 // ride out a single dropped sample but short enough to react when the
 // flight actually lands.
 const LOST_SIGNAL_THRESHOLD = 3;
+
+const waitUntil = (timestamp) => {
+  const delay = Math.max(0, timestamp - Date.now());
+  if (delay <= 0) return Promise.resolve();
+  return new Promise((resolve) => {
+    globalThis.setTimeout(resolve, delay);
+  });
+};
 
 // Polls the upstream ADS-B feed for the focal callsign so the flight
 // tracking page knows where the aircraft is right now and where to center
@@ -45,6 +55,7 @@ export function useTrackedAircraft(callsign) {
   // poll cadence by incrementing this counter — the effect listens for
   // changes and triggers an immediate fetch.
   const [retrySignal, setRetrySignal] = useState(0);
+  const visibilityRefreshCancelRef = useRef(null);
   const retry = useCallback(() => {
     setRetrySignal((value) => value + 1);
   }, []);
@@ -74,7 +85,13 @@ export function useTrackedAircraft(callsign) {
       timerRef.current = null;
     };
 
-    const poll = async () => {
+    const cancelPendingVisibilityRefresh = () => {
+      if (!visibilityRefreshCancelRef.current) return;
+      visibilityRefreshCancelRef.current();
+      visibilityRefreshCancelRef.current = null;
+    };
+
+    const poll = async ({ commitAfter = 0 } = {}) => {
       try {
         const payload = await aircraftCallsignClient.fetchByCallsign({
           callsign,
@@ -82,6 +99,8 @@ export function useTrackedAircraft(callsign) {
         if (disposedRef.current) return;
         const matches = Array.isArray(payload?.ac) ? payload.ac : [];
         const receiveTime = Date.now();
+        await waitUntil(commitAfter);
+        if (disposedRef.current) return;
         setSettled(true);
         setInitialLoading(false);
         setVisibilityRefreshLoading(false);
@@ -119,6 +138,8 @@ export function useTrackedAircraft(callsign) {
         setError(err);
       } finally {
         if (!disposedRef.current) {
+          await waitUntil(commitAfter);
+          if (disposedRef.current) return;
           setSettled(true);
           setInitialLoading(false);
           setVisibilityRefreshLoading(false);
@@ -129,19 +150,34 @@ export function useTrackedAircraft(callsign) {
 
     const handleVisibility = () => {
       if (document.hidden) {
+        cancelPendingVisibilityRefresh();
         stopPolling();
         return;
       }
-      if (
-        shouldTriggerVisibilityRefreshOverlay({
-          wasActive: hasActiveQuery,
-        })
-      ) {
+      cancelPendingVisibilityRefresh();
+      const showRefreshOverlay = shouldTriggerVisibilityRefreshOverlay({
+        wasActive: hasActiveQuery,
+      });
+      if (showRefreshOverlay) {
         setVisibilityRefreshLoading(true);
       }
-      stopPolling();
-      poll();
-      timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
+      const overlayShownAt = Date.now();
+      const commitAfter = showRefreshOverlay
+        ? overlayShownAt + AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS
+        : 0;
+
+      const refresh = () => {
+        visibilityRefreshCancelRef.current = null;
+        stopPolling();
+        poll({ commitAfter });
+        timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
+      };
+
+      if (showRefreshOverlay) {
+        visibilityRefreshCancelRef.current = scheduleAfterOverlayPaint(refresh);
+      } else {
+        refresh();
+      }
     };
 
     poll();
@@ -151,6 +187,7 @@ export function useTrackedAircraft(callsign) {
     return () => {
       disposedRef.current = true;
       document.removeEventListener("visibilitychange", handleVisibility);
+      cancelPendingVisibilityRefresh();
       stopPolling();
     };
   }, [callsign, hasActiveQuery, retrySignal]);
