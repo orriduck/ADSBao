@@ -43,10 +43,10 @@
        Single family used everywhere; display moments lean on weight 800–
        900 + wider letter-spacing to hit the "Novecento" poster feel.
        Noto Sans SC carries CJK glyphs. */
-    --font-sans: "Saira", "Noto Sans SC", system-ui, sans-serif;
-    --font-mono: "Saira", "Noto Sans SC", system-ui, sans-serif;
-    --font-nav: "Saira", "Noto Sans SC", system-ui, sans-serif;
-    --font-display: "Saira", "Noto Sans SC", system-ui, sans-serif;
+    --font-sans: var(--theme-font-sans);
+    --font-mono: var(--theme-font-mono);
+    --font-nav: var(--theme-font-nav);
+    --font-display: var(--theme-font-display);
 
     --radius: var(--atc-radius-control);
     --radius-xs: calc(var(--radius) * 0.5);
@@ -67,6 +67,9 @@
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
+    --color-sidebar-muted: var(--sidebar-muted);
+    --color-sidebar-faint: var(--sidebar-faint);
+    --color-sidebar-signal: var(--sidebar-signal);
 }
 
 @keyframes pulseDot {
@@ -122,17 +125,33 @@
    data-primary="teal" on <html>, which the override block below picks
    up — every token that aliases these vars follows automatically. */
 :root {
-    --primary-bright: #ffe600;
-    --primary-deep: #a86a1f;
+    --theme-font-sans: "Saira", "Noto Sans SC", system-ui, sans-serif;
+    --theme-font-mono: "Saira", "Noto Sans SC", system-ui, sans-serif;
+    --theme-font-nav: "Saira", "Noto Sans SC", system-ui, sans-serif;
+    --theme-font-display: "Saira", "Noto Sans SC", system-ui, sans-serif;
+    --theme-primary-bright: #ffe600;
+    --theme-primary-deep: #a86a1f;
+    --primary-bright: var(--theme-primary-bright);
+    --primary-deep: var(--theme-primary-deep);
 }
 
 :root[data-primary="teal"] {
-    --primary-bright: #5fb8b9;
-    --primary-deep: #397e7f;
+    --theme-primary-bright: #5fb8b9;
+    --theme-primary-deep: #397e7f;
+    --aircraft-trace-line: #397e7f;
+    --aircraft-trace-glow: #397e7f;
+    --aircraft-trace-point: #397e7f;
+    --runway-annotation-line: #397e7f;
+    --runway-approach-line: rgba(57,126,127,0.62);
+    --runway-approach-beam: #397e7f;
+    --nearby-runway-line: #397e7f;
+    --procedure-segment-line: #397e7f;
+    --procedure-silk-body: #397e7f;
+    --procedure-silk-thread: #397e7f;
 }
 
 :root {
-    font-family: "Saira", "Noto Sans SC", system-ui, sans-serif;
+    font-family: var(--theme-font-sans);
     line-height: 1.5;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
@@ -182,6 +201,25 @@
     --glass-card-border: color-mix(in oklab, var(--atc-text) 13%, transparent);
     --glass-card-inset: color-mix(in oklab, var(--atc-bg) 32%, transparent);
     --traffic-level-color: oklch(0.46 0.006 100);
+    --map-label-shadow: rgba(245,243,238,0.95);
+    --map-attribution: rgba(26,26,24,0.45);
+    --map-range-background: rgba(250,249,245,0.45);
+    --map-range-text: #1a1a18;
+    --map-range-label: rgba(26,26,24,0.7);
+    --airport-range-ring-minor: rgba(18,21,26,0.11);
+    --airport-range-ring-major: rgba(18,21,26,0.20);
+    --airport-range-ring-band: rgba(18,21,26,0.05);
+    --aircraft-trace-line: #1a1a18;
+    --aircraft-trace-glow: #b88a00;
+    --aircraft-trace-point: #1a1a18;
+    --runway-annotation-line: #1a1a18;
+    --runway-approach-line: rgba(26,26,24,0.62);
+    --runway-approach-beam: #8a6a1e;
+    --nearby-runway-line: #24231f;
+    --procedure-segment-line: #1a1a18;
+    --procedure-silk-blur: #2a2a26;
+    --procedure-silk-body: #1a1a18;
+    --procedure-silk-thread: #1a1a18;
 
     /* Single grey for every aircraft regardless of departure/arrival —
        the airport is the only thing painted yellow on the map. */
@@ -281,6 +319,10 @@
     --sidebar-accent: var(--atc-card);
     --sidebar-accent-foreground: var(--atc-text);
     --sidebar-border: var(--atc-line-strong);
+    --sidebar-border-soft: var(--atc-line);
+    --sidebar-muted: var(--atc-dim);
+    --sidebar-faint: var(--atc-faint);
+    --sidebar-signal: var(--atc-orange);
     --sidebar-ring: var(--atc-accent);
 }
 
@@ -322,6 +364,25 @@
     --glass-card-border: color-mix(in oklab, var(--atc-text) 14%, transparent);
     --glass-card-inset: color-mix(in oklab, var(--atc-text) 15%, transparent);
     --traffic-level-color: oklch(0.72 0.006 100);
+    --map-label-shadow: #1a1a18;
+    --map-attribution: rgba(245,243,238,0.3);
+    --map-range-background: rgba(8,12,20,0.4);
+    --map-range-text: #f5f3ee;
+    --map-range-label: rgba(245,243,238,0.7);
+    --airport-range-ring-minor: rgba(255,255,255,0.11);
+    --airport-range-ring-major: rgba(255,255,255,0.20);
+    --airport-range-ring-band: rgba(255,255,255,0.05);
+    --aircraft-trace-line: var(--primary-bright);
+    --aircraft-trace-glow: var(--primary-bright);
+    --aircraft-trace-point: var(--primary-bright);
+    --runway-annotation-line: #d8bd83;
+    --runway-approach-line: rgba(216,189,131,0.78);
+    --runway-approach-beam: #d8bd83;
+    --nearby-runway-line: var(--primary-bright);
+    --procedure-segment-line: #d8bd83;
+    --procedure-silk-blur: #3a3424;
+    --procedure-silk-body: #c79b1f;
+    --procedure-silk-thread: var(--primary-bright);
 
     /* Dark theme: same single grey for every aircraft. */
     --aircraft-departure: oklch(0.62 0.006 100);
@@ -364,6 +425,10 @@
     --sidebar-accent: var(--atc-elev);
     --sidebar-accent-foreground: var(--atc-text);
     --sidebar-border: var(--atc-line-strong);
+    --sidebar-border-soft: var(--atc-line);
+    --sidebar-muted: var(--atc-dim);
+    --sidebar-faint: var(--atc-faint);
+    --sidebar-signal: var(--atc-orange);
     --sidebar-ring: var(--atc-accent);
 
     /* Brighter glow stops for the dark canvas and yellow active state. */
@@ -376,6 +441,14 @@
     );
 }
 
+:root[data-theme="dark"][data-primary="teal"] {
+    --runway-annotation-line: #5fb8b9;
+    --runway-approach-line: rgba(95,184,185,0.78);
+    --runway-approach-beam: #5fb8b9;
+    --procedure-segment-line: #5fb8b9;
+    --procedure-silk-body: #397e7f;
+}
+
 body {
     margin: 0;
     min-width: 320px;
@@ -383,6 +456,18 @@ body {
     background: var(--atc-bg);
     color: var(--atc-text);
     font-family: var(--font-sans);
+}
+
+.sidebar-shell {
+    --atc-bg: var(--sidebar);
+    --atc-card: var(--sidebar-accent);
+    --atc-elev: var(--sidebar-accent);
+    --atc-text: var(--sidebar-foreground);
+    --atc-dim: var(--sidebar-muted);
+    --atc-faint: var(--sidebar-faint);
+    --atc-orange: var(--sidebar-signal);
+    --atc-line: var(--sidebar-border-soft);
+    --atc-line-strong: var(--sidebar-border);
 }
 
 /* Anything previously tagged as monospace (telemetry, METAR, ICAO) now

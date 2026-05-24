@@ -7,15 +7,15 @@ const NM_TO_METERS = 1852;
 function ringColors(theme) {
   if (theme === "light") {
     return {
-      minorStroke: "rgba(18,21,26,0.11)",
-      majorStroke: "rgba(18,21,26,0.20)",
-      band: "rgba(18,21,26,0.05)",
+      minorStroke: "var(--airport-range-ring-minor)",
+      majorStroke: "var(--airport-range-ring-major)",
+      band: "var(--airport-range-ring-band)",
     };
   }
   return {
-    minorStroke: "rgba(255,255,255,0.11)",
-    majorStroke: "rgba(255,255,255,0.20)",
-    band: "rgba(255,255,255,0.05)",
+    minorStroke: "var(--airport-range-ring-minor)",
+    majorStroke: "var(--airport-range-ring-major)",
+    band: "var(--airport-range-ring-band)",
   };
 }
 

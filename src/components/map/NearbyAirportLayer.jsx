@@ -48,12 +48,12 @@ const markerHtml = (airport) => {
 const runwayLineStyle = (theme) =>
   theme === "light"
     ? {
-        color: "#24231f",
+        color: "var(--nearby-runway-line)",
         weight: 3,
         opacity: 0.5,
       }
     : {
-        color: "#ffe900",
+        color: "var(--nearby-runway-line)",
         weight: 3,
         opacity: 0.5,
       };

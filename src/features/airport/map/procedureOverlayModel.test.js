@@ -64,7 +64,11 @@ const darkStyles = getProcedureSilkStyles("dark");
 assert.equal(darkStyles.length, 3);
 assert.deepEqual(
   darkStyles.map((style) => style.color),
-  ["#3a3424", "#c79b1f", "#ffe600"],
+  [
+    "var(--procedure-silk-blur)",
+    "var(--procedure-silk-body)",
+    "var(--procedure-silk-thread)",
+  ],
 );
 assert.deepEqual(
   darkStyles.map((style) => style.className),
