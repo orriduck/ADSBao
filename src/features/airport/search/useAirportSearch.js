@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AIRPORT_SEARCH_CONFIG,
   FEATURED_AIRPORTS,
 } from "../../../config/airportSearch.js";
 import { airportDirectoryClient } from "../directory/airportDirectoryClient.js";
 import {
+  getFeaturedAirportDisplayItems,
   getAirportResultCountLabel,
   mergeAirportSearchRows,
+  orderFeaturedAirportsByNearest,
 } from "./airportSearchModel.js";
 
 export function useAirportSearch({
@@ -20,22 +22,42 @@ export function useAirportSearch({
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationStatus, setLocationStatus] = useState("idle");
   const activeRequestId = useRef(0);
+
+  const orderedFeaturedAirports = useMemo(
+    () =>
+      orderFeaturedAirportsByNearest({
+        featuredAirports,
+        location: userLocation,
+      }),
+    [featuredAirports, userLocation],
+  );
 
   const rows = useMemo(
     () =>
       mergeAirportSearchRows({
         query,
-        featuredAirports,
+        featuredAirports: orderedFeaturedAirports,
         results,
       }),
-    [featuredAirports, query, results],
+    [orderedFeaturedAirports, query, results],
   );
 
   const countLabel = getAirportResultCountLabel({
     loading,
     rowCount: rows.length,
   });
+
+  const featuredAirportItems = useMemo(
+    () =>
+      getFeaturedAirportDisplayItems({
+        featuredAirports: orderedFeaturedAirports,
+        locationStatus,
+      }),
+    [locationStatus, orderedFeaturedAirports],
+  );
 
   useEffect(() => {
     const timer = setTimeout(
@@ -75,11 +97,40 @@ export function useAirportSearch({
     return () => clearTimeout(timer);
   }, [config, directoryClient, query]);
 
+  const requestNearestAirport = useCallback(() => {
+    if (!globalThis.navigator?.geolocation) {
+      setLocationStatus("unavailable");
+      return;
+    }
+
+    setLocationStatus("requesting");
+    globalThis.navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+        setLocationStatus("resolved");
+      },
+      () => {
+        setLocationStatus("unavailable");
+      },
+      {
+        enableHighAccuracy: false,
+        maximumAge: 10 * 60 * 1000,
+        timeout: 2500,
+      },
+    );
+  }, []);
+
   return {
     query,
     setQuery,
     rows,
-    featuredAirports,
+    featuredAirports: orderedFeaturedAirports,
+    featuredAirportItems,
+    locationStatus,
+    requestNearestAirport,
     loading,
     error,
     countLabel,

@@ -1,3 +1,5 @@
+import { getDistanceNm } from "../../../utils/aircraftTrafficIntent.js";
+
 const normalizeAirportQuery = (value) =>
   String(value || "")
     .trim()
@@ -10,6 +12,57 @@ const airportSearchText = (airport) =>
 
 const airportKey = (airport) =>
   normalizeAirportQuery(airport?.icao || airport?.code || airport?.name);
+
+export const LOCATION_PROMPT_ITEM_ID = "current-location-airport";
+
+const airportDisplayItem = (airport) => ({
+  type: "airport",
+  airport,
+});
+
+export function getFeaturedAirportDisplayItems({
+  featuredAirports = [],
+  locationStatus = "idle",
+} = {}) {
+  const airportItems = featuredAirports.map(airportDisplayItem);
+  if (locationStatus === "resolved") return airportItems;
+
+  return [
+    {
+      type: "location-prompt",
+      id: LOCATION_PROMPT_ITEM_ID,
+      status: locationStatus,
+    },
+    ...airportItems,
+  ];
+}
+
+export function orderFeaturedAirportsByNearest({
+  featuredAirports = [],
+  location = null,
+} = {}) {
+  if (!featuredAirports.length || !location) return featuredAirports;
+
+  const distances = featuredAirports
+    .map((airport, index) => ({
+      index,
+      distanceNm: getDistanceNm(location.lat, location.lon, airport?.lat, airport?.lon),
+    }))
+    .filter(({ distanceNm }) => Number.isFinite(distanceNm))
+    .toSorted((left, right) => left.distanceNm - right.distanceNm);
+
+  const nearestIndex = distances[0]?.index;
+  if (!Number.isInteger(nearestIndex) || nearestIndex <= 0) {
+    return featuredAirports;
+  }
+
+  const nearestAirport = featuredAirports[nearestIndex];
+  return [
+    nearestAirport,
+    ...featuredAirports.slice(0, nearestIndex),
+    ...featuredAirports.slice(nearestIndex + 1),
+  ];
+}
 
 export function mergeAirportSearchRows({
   query = "",

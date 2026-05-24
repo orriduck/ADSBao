@@ -191,6 +191,10 @@ const zhCN = {
     searchingAirports: "正在搜索机场…",
     noAirportMatched: "没有匹配 \"{query}\" 的机场。",
     featuredAirports: "推荐机场",
+    locationPrompt: "使用当前位置",
+    locationPromptHint: "点击后按最近机场重新排序。",
+    locationRequesting: "正在请求位置…",
+    locationUnavailable: "无法获取位置，点击重试。",
   },
   map: {
     layers: "地图图层",

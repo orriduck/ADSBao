@@ -196,6 +196,10 @@ const en = {
     searchingAirports: "Searching airports...",
     noAirportMatched: "No airport matched \"{query}\".",
     featuredAirports: "Featured airports",
+    locationPrompt: "Use current location",
+    locationPromptHint: "Click to sort this list by nearest airport.",
+    locationRequesting: "Requesting location...",
+    locationUnavailable: "Location unavailable. Click to try again.",
   },
   map: {
     layers: "Map layers",

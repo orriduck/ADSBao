@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 
 import {
   createAirportSelection,
+  getFeaturedAirportDisplayItems,
   getAirportResultCountLabel,
   mergeAirportSearchRows,
+  orderFeaturedAirportsByNearest,
   resolveSubmittedAirport,
 } from "./airportSearchModel.js";
 
@@ -27,6 +29,46 @@ assert.equal(rows.length, 2);
 assert.equal(rows[0].icao, "KBOS");
 assert.equal(rows[0].name, "Boston Logan");
 assert.equal(rows[1].icao, "KSEA");
+
+const orderedFeatured = orderFeaturedAirportsByNearest({
+  featuredAirports: [
+    { icao: "KJFK", lat: 40.639447, lon: -73.779317 },
+    { icao: "KLAX", lat: 33.942501, lon: -118.407997 },
+    { icao: "KBOS", lat: 42.36197, lon: -71.0079 },
+  ],
+  location: { lat: 34.05, lon: -118.25 },
+});
+
+assert.deepEqual(
+  orderedFeatured.map((airport) => airport.icao),
+  ["KLAX", "KJFK", "KBOS"],
+);
+
+const unchangedFeatured = orderFeaturedAirportsByNearest({
+  featuredAirports: featured,
+  location: null,
+});
+
+assert.deepEqual(unchangedFeatured, featured);
+
+const idleDisplayItems = getFeaturedAirportDisplayItems({
+  featuredAirports: featured,
+  locationStatus: "idle",
+});
+
+assert.equal(idleDisplayItems[0].type, "location-prompt");
+assert.equal(idleDisplayItems[0].status, "idle");
+assert.equal(idleDisplayItems[1].airport.icao, "KBOS");
+
+const resolvedDisplayItems = getFeaturedAirportDisplayItems({
+  featuredAirports: orderedFeatured,
+  locationStatus: "resolved",
+});
+
+assert.deepEqual(
+  resolvedDisplayItems.map((item) => item.airport.icao),
+  ["KLAX", "KJFK", "KBOS"],
+);
 
 assert.deepEqual(
   createAirportSelection({
