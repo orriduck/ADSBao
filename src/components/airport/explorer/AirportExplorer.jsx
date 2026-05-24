@@ -19,6 +19,7 @@ import { useAirportProcedures } from "@/hooks/useAirportProcedures.js";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports.js";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext.jsx";
 import AircraftPreviewCard from "../../aircraft/preview/AircraftPreviewCard.jsx";
+import { areCriticalLoadingRequestsSettled } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -140,6 +141,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     onSelectAirport: selectAirport,
     onBack,
   };
+  const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
+    aircraftPositionsSettled: traffic.aircraftPositionsSettled,
+    metarSettled: weather.metarSettled,
+    nearbyAirportsSettled: nearbyAirports.settled,
+    proceduresSettled: procedures.settled,
+  });
 
   return (
     <SelectedAircraftTraceProvider selectedAircraft={selection.selectedAircraft}>
@@ -200,7 +207,11 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
             showProcedureFixLabels
           />
-          <AircraftDataLoadingOverlay active={traffic.aircraftInitialLoading} />
+          <AircraftDataLoadingOverlay
+            active={
+              !criticalLoadingSettled || traffic.aircraftLoadingOverlayActive
+            }
+          />
 
           {isMobile && sidebarOpen && (
             <div className="absolute inset-0 z-[1100]">

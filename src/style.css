@@ -798,22 +798,16 @@ body {
 .adsb-loading-overlay {
     align-items: center;
     background:
-        radial-gradient(
-            circle at 50% 44%,
-            color-mix(in oklab, var(--atc-accent) 13%, transparent),
-            transparent 22%
-        ),
-        radial-gradient(
-            circle at 52% 50%,
-            color-mix(in oklab, var(--atc-bg) 18%, transparent),
-            color-mix(in oklab, var(--atc-bg) 78%, transparent) 58%,
-            color-mix(in oklab, var(--atc-bg) 92%, transparent) 100%
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-bg) 24%, transparent),
+            color-mix(in oklab, var(--atc-bg) 52%, transparent)
         );
-    -webkit-backdrop-filter: brightness(0.58) saturate(0.78);
-    backdrop-filter: brightness(0.58) saturate(0.78);
+    -webkit-backdrop-filter: brightness(0.82) saturate(0.78);
+    backdrop-filter: brightness(0.82) saturate(0.78);
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 0;
     inset: 0;
     justify-content: center;
     overflow: hidden;
@@ -826,20 +820,14 @@ body {
 }
 
 :root[data-theme="light"] .adsb-loading-overlay {
-    background: radial-gradient(
-        circle at 52% 50%,
-        rgba(255, 255, 255, 0.38),
-        rgba(248, 250, 252, 0.46) 58%,
-        rgba(248, 250, 252, 0.54) 100%
-    );
-    -webkit-backdrop-filter: brightness(1.4) saturate(0.5);
-    backdrop-filter: brightness(1.4) saturate(0.5);
-}
-
-:root[data-theme="light"] .adsb-loading-orb-shell {
-    filter: drop-shadow(
-        0 0 28px color-mix(in oklab, var(--atc-accent) 28%, transparent)
-    );
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-bg) 18%, transparent),
+            color-mix(in oklab, var(--atc-bg) 34%, transparent)
+        );
+    -webkit-backdrop-filter: brightness(1.1) saturate(0.58);
+    backdrop-filter: brightness(1.1) saturate(0.58);
 }
 
 .adsb-loading-overlay.is-exiting {
@@ -848,65 +836,163 @@ body {
     backdrop-filter: brightness(1) saturate(1);
 }
 
-.adsb-loading-overlay::before {
+.adsb-loading-grid {
+    background:
+        linear-gradient(
+            color-mix(in oklab, var(--atc-line) 20%, transparent) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--atc-line) 16%, transparent) 1px,
+            transparent 1px
+        );
+    background-size: 48px 48px;
+    contain: paint;
+    display: block;
+    inset: 0;
+    isolation: isolate;
+    overflow: hidden;
+    position: absolute;
+    transition:
+        opacity 0.7s ease;
+}
+
+.adsb-loading-grid::before,
+.adsb-loading-grid::after,
+.adsb-loading-grid__matrix,
+.adsb-loading-grid__matrix::after,
+.adsb-loading-grid__scan {
+    position: absolute;
+}
+
+.adsb-loading-grid::before {
+    background:
+        radial-gradient(
+            circle at 22% 28%,
+            color-mix(in oklab, var(--atc-accent) 10%, transparent),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 78% 64%,
+            color-mix(in oklab, var(--tone-orange-warm) 8%, transparent),
+            transparent 32%
+        );
+    content: "";
+    inset: 0;
+    opacity: 0.52;
+}
+
+.adsb-loading-grid::after {
+    border: 1px solid color-mix(in oklab, var(--atc-accent) 22%, transparent);
+    border-left: 0;
+    border-right: 0;
+    content: "";
+    inset: 0;
+    opacity: 0.5;
+}
+
+.adsb-loading-grid__matrix {
+    background-image: radial-gradient(
+        circle,
+        color-mix(in oklab, var(--atc-faint) 48%, transparent) 0 1.45px,
+        transparent 1.75px
+    );
+    background-position: 0 0;
+    background-size: 18px 18px;
+    inset: -9px;
+    opacity: 0.86;
+}
+
+.adsb-loading-grid__matrix::after {
+    background-image:
+        radial-gradient(
+            circle,
+            color-mix(in oklab, var(--endf-yellow) 78%, transparent) 0 1.6px,
+            transparent 1.95px
+        ),
+        radial-gradient(
+            circle,
+            color-mix(in oklab, var(--atc-accent) 48%, transparent) 0 1.35px,
+            transparent 1.85px
+        );
+    background-position:
+        0 0,
+        9px 9px;
+    background-size:
+        18px 18px,
+        18px 18px;
+    content: "";
+    inset: 0;
+    opacity: 0.88;
+    -webkit-mask-image: linear-gradient(
+        90deg,
+        transparent,
+        oklch(1% 0.01 100) 42%,
+        transparent 76%
+    );
+    mask-image: linear-gradient(
+        90deg,
+        transparent,
+        oklch(1% 0.01 100) 42%,
+        transparent 76%
+    );
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: min(18vw, 220px) 100%;
+    mask-size: min(18vw, 220px) 100%;
+    animation: adsb-grid-highlight 2.45s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+.adsb-loading-grid__scan {
     background:
         linear-gradient(
             90deg,
             transparent,
-            color-mix(in oklab, var(--atc-accent) 12%, transparent),
-            transparent
-        ),
-        repeating-linear-gradient(
-            0deg,
-            rgba(255, 255, 255, 0.035) 0 1px,
-            transparent 1px 7px
+            color-mix(in oklab, var(--endf-yellow) 18%, transparent) 38%,
+            color-mix(in oklab, var(--endf-yellow) 70%, transparent) 48%,
+            color-mix(in oklab, var(--atc-accent) 24%, transparent) 58%,
+            transparent 100%
         );
-    content: "";
-    inset: 0;
-    mix-blend-mode: screen;
-    opacity: 0.28;
-    position: absolute;
-    transform: translateX(-100%);
-    transition: opacity 0.7s ease;
-    animation: adsb-scan-sweep 3.8s ease-in-out infinite;
+    box-shadow: 0 0 34px color-mix(in oklab, var(--endf-yellow) 18%, transparent);
+    inset: 0 auto 0 0;
+    opacity: 0.76;
+    transform: translateX(-120%);
+    width: min(16vw, 180px);
+    animation: adsb-grid-scan 2.45s cubic-bezier(0.25, 1, 0.5, 1) infinite;
 }
 
-.adsb-loading-overlay.is-exiting::before {
-    animation: adsb-loading-scan-fade-out 1.1s ease forwards;
-}
-
-.adsb-loading-orb-shell {
-    aspect-ratio: 1;
-    filter: drop-shadow(
-            0 0 26px color-mix(in oklab, var(--atc-accent) 20%, transparent)
-        )
-        drop-shadow(0 0 48px rgba(107, 168, 154, 0.14));
-    isolation: isolate;
-    position: relative;
-    transition:
-        transform 0.7s ease,
-        opacity 0.7s ease;
-    width: clamp(150px, 18vw, 240px);
-}
-
-.adsb-loading-overlay.is-exiting .adsb-loading-orb-shell {
-    animation: adsb-loading-orb-fade-out 1.1s ease forwards;
+.adsb-loading-overlay.is-exiting .adsb-loading-grid {
+    animation: adsb-loading-grid-fade-out 1.1s ease forwards;
 }
 
 .adsb-loading-status {
     align-items: center;
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            color-mix(in oklab, var(--atc-bg) 72%, transparent) 18%,
+            color-mix(in oklab, var(--atc-bg) 78%, transparent) 82%,
+            transparent
+        );
+    border-bottom: 1px solid color-mix(in oklab, var(--atc-accent) 24%, transparent);
+    border-top: 1px solid color-mix(in oklab, var(--atc-accent) 24%, transparent);
     color: var(--atc-faint);
     display: flex;
     flex-direction: column;
     font-family: var(--font-mono);
-    gap: 5px;
-    letter-spacing: 1.6px;
+    gap: 6px;
+    letter-spacing: 0;
     position: relative;
+    padding: 10px clamp(24px, 7vw, 96px);
+    text-align: center;
     text-transform: uppercase;
     transition:
         opacity 0.42s ease,
         transform 0.42s ease;
     text-shadow: 0 0 18px color-mix(in oklab, var(--atc-bg) 88%, transparent);
+    z-index: 1;
 }
 
 .adsb-loading-overlay.is-exiting .adsb-loading-status {
@@ -915,22 +1001,37 @@ body {
 
 .adsb-loading-status span {
     color: var(--atc-accent);
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 .adsb-loading-status strong {
     color: var(--atc-text);
-    font-size: 12px;
+    font-size: 14px;
+    font-weight: 900;
 }
 
-@keyframes adsb-scan-sweep {
+@keyframes adsb-grid-scan {
     0%,
-    24% {
-        transform: translateX(-110%);
+    10% {
+        transform: translateX(-120%);
     }
-    58%,
+    74%,
     100% {
-        transform: translateX(110%);
+        transform: translateX(calc(100vw + 120%));
+    }
+}
+
+@keyframes adsb-grid-highlight {
+    0%,
+    10% {
+        -webkit-mask-position: calc(-1 * min(18vw, 220px)) 0;
+        mask-position: calc(-1 * min(18vw, 220px)) 0;
+    }
+    74%,
+    100% {
+        -webkit-mask-position: calc(100% + min(18vw, 220px)) 0;
+        mask-position: calc(100% + min(18vw, 220px)) 0;
     }
 }
 
@@ -943,23 +1044,12 @@ body {
     }
 }
 
-@keyframes adsb-loading-scan-fade-out {
-    from {
-        opacity: 0.28;
-    }
-    to {
-        opacity: 0;
-    }
-}
-
-@keyframes adsb-loading-orb-fade-out {
+@keyframes adsb-loading-grid-fade-out {
     from {
         opacity: 1;
-        transform: scale(1);
     }
     to {
         opacity: 0;
-        transform: scale(0.94);
     }
 }
 
@@ -3217,25 +3307,24 @@ body {
         transition: none;
     }
 
-    .adsb-loading-overlay::before,
     .adsb-loading-overlay.is-exiting,
-    .adsb-loading-overlay.is-exiting::before,
-    .adsb-loading-overlay.is-exiting .adsb-loading-orb-shell,
+    .adsb-loading-overlay.is-exiting .adsb-loading-grid,
     .adsb-loading-overlay.is-exiting .adsb-loading-status,
+    .adsb-loading-grid::after,
+    .adsb-loading-grid__matrix::after,
+    .adsb-loading-grid__scan,
     .orb-container canvas {
         animation: none;
     }
 
     .adsb-loading-overlay.is-exiting,
-    .adsb-loading-overlay.is-exiting::before,
-    .adsb-loading-overlay.is-exiting .adsb-loading-orb-shell,
+    .adsb-loading-overlay.is-exiting .adsb-loading-grid,
     .adsb-loading-overlay.is-exiting .adsb-loading-status {
         opacity: 0;
     }
 
     .adsb-loading-overlay,
-    .adsb-loading-overlay::before,
-    .adsb-loading-orb-shell,
+    .adsb-loading-grid,
     .adsb-loading-status {
         transition: none;
     }

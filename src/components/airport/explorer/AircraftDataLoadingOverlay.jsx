@@ -1,51 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
-import Orb from "@/components/ui/Orb";
+import { getLoadingOverlayExitDelay } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AircraftDataLoadingOverlay({ active }) {
   const { t } = useI18n();
   const [visible, setVisible] = useState(active);
   const [exiting, setExiting] = useState(false);
-  const [isLightTheme, setIsLightTheme] = useState(false);
+  const shownAtRef = useRef(active ? Date.now() : 0);
 
   useEffect(() => {
-    const syncTheme = () => {
-      setIsLightTheme(
-        document.documentElement.getAttribute("data-theme") !== "dark",
-      );
-    };
-    syncTheme();
-
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
+    let delayTimer;
     let fadeTimer;
 
     if (active) {
+      shownAtRef.current = Date.now();
       setVisible(true);
       setExiting(false);
       return undefined;
     }
 
     if (visible) {
-      setExiting(true);
-      fadeTimer = window.setTimeout(() => {
-        setVisible(false);
-        setExiting(false);
-      }, AIRPORT_EXPLORER_UI_CONFIG.adsbLoadingFadeMs);
+      const startExit = () => {
+        setExiting(true);
+        fadeTimer = window.setTimeout(() => {
+          setVisible(false);
+          setExiting(false);
+        }, AIRPORT_EXPLORER_UI_CONFIG.adsbLoadingFadeMs);
+      };
+      const delay = getLoadingOverlayExitDelay({
+        shownAt: shownAtRef.current,
+      });
+      if (delay > 0) delayTimer = window.setTimeout(startExit, delay);
+      else startExit();
     }
 
     return () => {
+      if (delayTimer) window.clearTimeout(delayTimer);
       if (fadeTimer) window.clearTimeout(fadeTimer);
     };
   }, [active, visible]);
@@ -63,20 +56,12 @@ export default function AircraftDataLoadingOverlay({ active }) {
       role="status"
       style={{ display: visible ? undefined : "none" }}
     >
-      <div className="adsb-loading-orb-shell" aria-hidden="true">
-        <Orb
-          backgroundColor={isLightTheme ? "#e8e7e1" : "#171714"}
-          color1={isLightTheme ? "#24231f" : "#ffe900"}
-          color2={isLightTheme ? "#ffe900" : "#f3f0df"}
-          color3={isLightTheme ? "#cfcfc8" : "#34332b"}
-          forceHoverState={false}
-          hoverIntensity={0}
-          hue={0}
-          rotateOnHover
-        />
+      <div className="adsb-loading-grid" aria-hidden="true">
+        <span className="adsb-loading-grid__matrix" />
+        <span className="adsb-loading-grid__scan" />
       </div>
       <div className="adsb-loading-status">
-        <span>adsb.lol</span>
+        <span>adsb.lol position feed</span>
         <strong>{t("map.syncingTraffic")}</strong>
       </div>
     </div>

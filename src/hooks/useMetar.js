@@ -8,13 +8,18 @@ export function useMetar(icao) {
   const [raw, setRaw] = useState("");
   const [parsed, setParsed] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [settled, setSettled] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     const fetchMetar = async () => {
-      if (!icao) return;
+      if (!icao) {
+        setSettled(false);
+        return;
+      }
       setLoading(true);
+      setSettled(false);
       setError(null);
       try {
         const json = await metarClient.fetchMetar(icao);
@@ -28,7 +33,10 @@ export function useMetar(icao) {
           setError(e.message);
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setSettled(true);
+          setLoading(false);
+        }
       }
     };
 
@@ -38,5 +46,5 @@ export function useMetar(icao) {
     };
   }, [icao]);
 
-  return { raw, parsed, loading, error };
+  return { raw, parsed, loading, settled, error };
 }
