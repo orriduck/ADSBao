@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
 import RequestPulseDots from "@/components/ui/RequestPulseDots";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
@@ -72,19 +73,36 @@ export default function SidebarShell({
               className={`airport-feed-status airport-feed-status--${feedStatus} inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
             >
               {feedSource ? (
-                <span className="airport-feed-status__source">{feedSource}</span>
+                <EndfieldValueSwap
+                  identityKey={`source:${feedSource}`}
+                  value={<span>{feedSource}</span>}
+                  className="airport-feed-status__source"
+                  direction="reverse"
+                />
               ) : null}
               <RequestPulseDots ariaLabel={t("app.feedLive")} />
-              {updatedLabel ? <span key={updatedLabel}>{updatedLabel}</span> : null}
+              {updatedLabel ? (
+                <EndfieldValueSwap
+                  identityKey={`updated:${updatedLabel}`}
+                  value={<span>{updatedLabel}</span>}
+                  direction="reverse"
+                />
+              ) : null}
             </span>
             <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-atc-orange">
               <span
                 aria-hidden="true"
                 className="inline-block h-1.5 w-1.5 rotate-45 bg-atc-orange"
               />
-              <span className="notranslate" translate="no">
-                {routeProviderLabel}
-              </span>
+              <EndfieldValueSwap
+                identityKey={`route-provider:${routeProviderLabel}`}
+                value={(
+                  <span className="notranslate" translate="no">
+                    {routeProviderLabel}
+                  </span>
+                )}
+                direction="reverse"
+              />
             </span>
           </div>
         )}

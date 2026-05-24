@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
-import { useReducedMotion } from "motion/react";
+import { usePrefersReducedMotion } from "@/components/effects/usePrefersReducedMotion.js";
 import { useMapInstance } from "./MapContext.js";
 import {
   AIRPORT_MAP_PANES,
@@ -20,11 +20,8 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft.js";
 import { ARRIVAL, DEPARTURE } from "../../utils/aircraftMovement.js";
 
-const TRACE_GROWTH_DURATION_MS = 900;
 const TRACE_LABEL_FADE_STAGGER_MS = 70;
 const TRACE_LABEL_FADE_DURATION_MS = 360;
-const TRACE_REVEAL_EASING = "cubic-bezier(0.25, 1, 0.5, 1)";
-const TRACE_REVEAL_SETTLE_MS = 80;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 // Core trace gradient opacity envelope. Tail floor keeps the oldest segment
@@ -194,7 +191,7 @@ function SingleAircraftTrace({
   const completedRevealKeyRef = useRef("");
   const isAnimatingRef = useRef(false);
   const pendingTraceRef = useRef(null);
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = usePrefersReducedMotion();
 
   // Local "committed" trace points decouple render from context. While the
   // growth fade is running, live poll appends are held in pendingTraceRef
@@ -277,7 +274,9 @@ function SingleAircraftTrace({
   // -------------------------------------------------------------------
   // Effect 1: line + glow + sample dots. Re-runs on every geometry change
   // (poll-driven head extensions are visible here as the curve extends).
-  // Handles the opacity-fade reveal animation when the aircraft is fresh.
+  // Trace paths now mount settled. The Endfield-style loading and row
+  // replacement effects carry motion elsewhere, so the map trace avoids the
+  // old long opacity animation on production hot paths.
   // -------------------------------------------------------------------
   useEffect(() => {
     if (rafIdRef.current) {
@@ -299,9 +298,6 @@ function SingleAircraftTrace({
       return undefined;
     }
 
-    const shouldAnimateReveal =
-      traceRevealKey && completedRevealKeyRef.current !== traceRevealKey;
-
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const traceStyle = getTraceStyle(theme);
     const lineColor = accentColor || traceStyle.lineColor;
@@ -310,7 +306,6 @@ function SingleAircraftTrace({
     const layers = [];
     const gradientEls = [];
     const gradientBase = `${gradientIdPart(aircraftHex)}-${Date.now().toString(36)}`;
-    const revealPolylines = [];
 
     geometry.connectors.forEach((connector) => {
       const connectorPolyline = L.polyline(connector.curve.slice().reverse(), {
@@ -325,7 +320,6 @@ function SingleAircraftTrace({
         className: "aircraft-trace aircraft-trace--connector",
       }).addTo(map);
       layers.push(connectorPolyline);
-      revealPolylines.push(connectorPolyline);
     });
 
     geometry.segments.forEach((segment) => {
@@ -341,7 +335,6 @@ function SingleAircraftTrace({
         className: "aircraft-trace aircraft-trace--core",
       }).addTo(map);
       layers.push(corePolyline);
-      revealPolylines.push(corePolyline);
       gradientEls.push(
         applyTraceGradient({
           map,
@@ -366,7 +359,6 @@ function SingleAircraftTrace({
         className: "aircraft-trace aircraft-trace--glow",
       }).addTo(map);
       layers.push(glowPolyline);
-      revealPolylines.push(glowPolyline);
       gradientEls.push(
         applyTraceGradient({
           map,
@@ -399,74 +391,9 @@ function SingleAircraftTrace({
 
     lineLayersRef.current = layers;
     gradientElsRef.current = gradientEls.filter(Boolean);
-
-    const flushPendingTrace = () => {
-      if (pendingTraceRef.current?.aircraftHex !== aircraftHex) return;
-      const pending = pendingTraceRef.current;
-      pendingTraceRef.current = null;
-      setCommittedTrace(pending);
-    };
-    const finishReveal = (paths = []) => {
-      rafIdRef.current = null;
-      revealTimeoutRef.current = null;
-      isAnimatingRef.current = false;
-      paths.forEach((path) => {
-        path.style.transition = "";
-        path.style.opacity = "";
-      });
-      completedRevealKeyRef.current = traceRevealKey;
-      flushPendingTrace();
-    };
-
-    if (!shouldAnimateReveal || reducedMotion) {
-      if (traceRevealKey) completedRevealKeyRef.current = traceRevealKey;
-      return () => {
-        if (rafIdRef.current) {
-          cancelAnimationFrame(rafIdRef.current);
-          rafIdRef.current = null;
-        }
-        removeLayers(lineLayersRef.current, map);
-        lineLayersRef.current = [];
-        removeElements(gradientElsRef.current);
-        gradientElsRef.current = [];
-      };
-    }
-
-    const revealPaths = revealPolylines
-      .map((polyline) => polyline.getElement?.())
-      .filter(Boolean);
-
-    if (revealPaths.length === 0) {
-      completedRevealKeyRef.current = traceRevealKey;
-      flushPendingTrace();
-      return () => {
-        if (rafIdRef.current) {
-          cancelAnimationFrame(rafIdRef.current);
-          rafIdRef.current = null;
-        }
-        removeLayers(lineLayersRef.current, map);
-        lineLayersRef.current = [];
-        removeElements(gradientElsRef.current);
-        gradientElsRef.current = [];
-      };
-    }
-
-    isAnimatingRef.current = true;
-    revealPaths.forEach((path) => {
-      path.style.transition = "none";
-      path.style.opacity = "0";
-    });
-
-    rafIdRef.current = requestAnimationFrame(() => {
-      revealPaths.forEach((path) => {
-        path.style.transition = `opacity ${TRACE_GROWTH_DURATION_MS}ms ${TRACE_REVEAL_EASING}`;
-        path.style.opacity = "1";
-      });
-      revealTimeoutRef.current = setTimeout(
-        () => finishReveal(revealPaths),
-        TRACE_GROWTH_DURATION_MS + TRACE_REVEAL_SETTLE_MS,
-      );
-    });
+    if (traceRevealKey) completedRevealKeyRef.current = traceRevealKey;
+    pendingTraceRef.current = null;
+    isAnimatingRef.current = false;
 
     return () => {
       if (rafIdRef.current) {
@@ -477,10 +404,6 @@ function SingleAircraftTrace({
         clearTimeout(revealTimeoutRef.current);
         revealTimeoutRef.current = null;
       }
-      revealPaths.forEach((path) => {
-        path.style.transition = "";
-        path.style.opacity = "";
-      });
       isAnimatingRef.current = false;
       removeLayers(lineLayersRef.current, map);
       lineLayersRef.current = [];
@@ -493,7 +416,6 @@ function SingleAircraftTrace({
     geometry,
     aircraftHex,
     accentColor,
-    reducedMotion,
     traceRevealKey,
     opacity,
   ]);
@@ -553,7 +475,7 @@ function SingleAircraftTrace({
         // Stagger only meaningful for the fresh reveal; recomputed below.
         el.style.transitionDelay = `${getTraceLabelRevealDelay({
           index,
-          growthDurationMs: TRACE_GROWTH_DURATION_MS,
+          growthDurationMs: 0,
           staggerMs: TRACE_LABEL_FADE_STAGGER_MS,
           reducedMotion,
         })}ms`;

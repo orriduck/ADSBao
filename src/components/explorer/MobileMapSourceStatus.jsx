@@ -1,5 +1,6 @@
 "use client";
 
+import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
 import RequestPulseDots from "@/components/ui/RequestPulseDots";
 import {
   ROUTE_PROVIDER,
@@ -24,13 +25,25 @@ export default function MobileMapSourceStatus({
       {status.feedSource || updatedLabel ? (
         <span className="airport-map-source-status__line">
           {status.feedSource ? (
-            <span className="airport-map-source-status__source notranslate" translate="no">
-              {status.feedSource}
-            </span>
+            <EndfieldValueSwap
+              identityKey={`source:${status.feedSource}`}
+              value={(
+                <span className="notranslate" translate="no">
+                  {status.feedSource}
+                </span>
+              )}
+              className="airport-map-source-status__source"
+              direction="reverse"
+            />
           ) : null}
           {status.feedSource ? <RequestPulseDots ariaLabel="ADS-B feed live" /> : null}
           {updatedLabel ? (
-            <span className="airport-map-source-status__time">{updatedLabel}</span>
+            <EndfieldValueSwap
+              identityKey={`updated:${updatedLabel}`}
+              value={<span>{updatedLabel}</span>}
+              className="airport-map-source-status__time"
+              direction="reverse"
+            />
           ) : null}
         </span>
       ) : null}
@@ -40,9 +53,15 @@ export default function MobileMapSourceStatus({
             aria-hidden="true"
             className="airport-map-source-status__diamond"
           />
-          <span className="notranslate" translate="no">
-            {status.routeProvider}
-          </span>
+          <EndfieldValueSwap
+            identityKey={`route-provider:${status.routeProvider}`}
+            value={(
+              <span className="notranslate" translate="no">
+                {status.routeProvider}
+              </span>
+            )}
+            direction="reverse"
+          />
         </span>
       ) : null}
     </div>

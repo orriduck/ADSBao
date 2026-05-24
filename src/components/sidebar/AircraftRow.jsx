@@ -6,6 +6,7 @@ import {
   formatFlightRouteMunicipalityLabel,
   getFlightRouteAirlineIconUrl,
 } from "../../utils/flightRouteDisplay.js";
+import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
@@ -173,23 +174,27 @@ function AircraftIdentityCell({
 // great on a couple of metric cards, but rendering ~290 instances (145
 // aircraft × 2 columns) every poll tick costs framerate. Static text
 // via Intl.NumberFormat keeps locale-correct separators without the
-// per-row custom-element overhead. We get a "value refreshed" feedback
-// by keying the inner span on the formatted value — React remounts on
-// change and the .number-fade CSS animation fades the new value in.
+// per-row custom-element overhead. The compact value group uses the same
+// Endfield content-swap hook as row replacement, so the old numeric value
+// is erased before the refreshed value is injected.
 function NumberWithUnit({ value, unit, format }) {
   const formatted = new Intl.NumberFormat(undefined, format).format(value);
   return (
-    <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
-      <span key={formatted} className="number-fade">
-        {formatted}
-      </span>
-      <sub
-        className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
-        translate="no"
-      >
-        {unit}
-      </sub>
-    </span>
+    <EndfieldValueSwap
+      identityKey={`${formatted}:${unit}`}
+      value={(
+        <>
+          <span>{formatted}</span>
+          <sub
+            className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
+            translate="no"
+          >
+            {unit}
+          </sub>
+        </>
+      )}
+      className="inline-flex items-baseline justify-end gap-0.5 tabular-nums"
+    />
   );
 }
 

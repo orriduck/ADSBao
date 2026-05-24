@@ -3,6 +3,7 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { airportCityName, airportDisplayName } from "@/utils/airport.js";
 import { countryName } from "@/utils/flag.js";
+import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
 
 // Airport equivalent of AircraftRow — same column rhythm so an
 // "airports & aircraft" mixed list reads as one coherent table.
@@ -74,17 +75,21 @@ export default function AirportRow({
 function NumberWithUnit({ value, unit, format }) {
   const formatted = new Intl.NumberFormat(undefined, format).format(value);
   return (
-    <span className="inline-flex items-baseline justify-end gap-0.5 tabular-nums">
-      <span key={formatted} className="number-fade">
-        {formatted}
-      </span>
-      <sub
-        className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
-        translate="no"
-      >
-        {unit}
-      </sub>
-    </span>
+    <EndfieldValueSwap
+      identityKey={`${formatted}:${unit}`}
+      value={(
+        <>
+          <span>{formatted}</span>
+          <sub
+            className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
+            translate="no"
+          >
+            {unit}
+          </sub>
+        </>
+      )}
+      className="inline-flex items-baseline justify-end gap-0.5 tabular-nums"
+    />
   );
 }
 

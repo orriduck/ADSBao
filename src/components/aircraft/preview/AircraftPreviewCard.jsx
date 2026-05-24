@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard.jsx";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
@@ -12,22 +11,6 @@ import RouteFeedbackModal from "./RouteFeedbackModal.jsx";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
-
-const POCKET_EASE = [0.16, 1, 0.3, 1];
-
-const STACK_MOTION = {
-  initial: { y: 18 },
-  animate: { y: 0 },
-  exit: { clipPath: "inset(0 0 0 100%)", y: 24 },
-  transition: { duration: 0.2, ease: [1, 0, 0.7, 1] },
-};
-
-const MEDIA_MOTION = {
-  initial: { opacity: 0, y: 96 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 56 },
-  transition: { duration: 0.52, ease: POCKET_EASE },
-};
 
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
@@ -41,7 +24,6 @@ export default function AircraftPreviewCard({
   onApplyTemporaryRoute,
 }) {
   const { t } = useI18n();
-  const reducedMotion = useReducedMotion();
   const photoState = useAircraftPhoto(aircraft);
   const photo = photoState.photo;
   const hasPhoto = Boolean(photo?.src);
@@ -78,8 +60,7 @@ export default function AircraftPreviewCard({
   // The desktop inline form (in AircraftPreviewMetadataCard) is more
   // ergonomic at 280px, but on touch we don't have the space to expand
   // inline without crowding the existing telemetry. The modal is mounted
-  // outside the motion.aside so closing it doesn't ride the card's
-  // animation curve.
+  // outside the card so closing it doesn't reuse the preview reveal.
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const aircraftCallsign = (aircraft?.callsign || "").trim().toUpperCase();
   const showMobileFeedbackTrigger =
@@ -93,36 +74,23 @@ export default function AircraftPreviewCard({
 
   return (
     <>
-    <AnimatePresence>
       {entity && !isMobile && (
-        <motion.aside
+        <aside
           key={identityKey}
           className={`aircraft-preview-card aircraft-preview-card--desktop-reveal ${
             !isAirport && hasPhoto ? "aircraft-preview-card--has-photo" : ""
           } aircraft-preview-card--photo-${photoTone}`}
           aria-label={isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")}
-          {...(reducedMotion
-            ? {
-                initial: false,
-                animate: { opacity: 1 },
-                exit: { opacity: 0 },
-              }
-            : STACK_MOTION)}
         >
           {!isAirport && (
-            <AnimatePresence>
-              {hasPhoto && (
-                <motion.div
-                  className="aircraft-preview-card__media-slot"
-                  key={`photo-${photo.src}`}
-                  {...(reducedMotion
-                    ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 0 } }
-                    : MEDIA_MOTION)}
-                >
-                  <AircraftPreviewMediaCard photo={photo} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            hasPhoto && (
+              <div
+                className="aircraft-preview-card__media-slot"
+                key={`photo-${photo.src}`}
+              >
+                <AircraftPreviewMediaCard photo={photo} />
+              </div>
+            )
           )}
           {isAirport ? (
             <AirportPreviewMetadataCard airport={airport} />
@@ -134,21 +102,13 @@ export default function AircraftPreviewCard({
               onApplyTemporaryRoute={onApplyTemporaryRoute}
             />
           )}
-        </motion.aside>
+        </aside>
       )}
       {showMobile && (
-        <motion.aside
+        <aside
           key={`mobile-${identityKey}`}
           className="aircraft-preview-mobile-card aircraft-preview-mobile-card--stacked"
           aria-label={isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")}
-          style={{ x: "-50%" }}
-          {...(reducedMotion
-            ? {
-                initial: false,
-                animate: { y: 0 },
-                exit: { clipPath: "inset(0 0% 0 0)", y: 0 },
-              }
-            : STACK_MOTION)}
         >
           {isAirport ? (
             <AirportPreviewMobileCard airport={airport} />
@@ -174,9 +134,8 @@ export default function AircraftPreviewCard({
               {mobileFeedbackLabel}
             </button>
           )}
-        </motion.aside>
+        </aside>
       )}
-    </AnimatePresence>
     {showMobileFeedbackTrigger && (
       <RouteFeedbackModal
         aircraft={aircraft}
