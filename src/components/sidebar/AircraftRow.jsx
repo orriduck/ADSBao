@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Plane } from "lucide-react";
 import {
   formatFlightRouteMunicipalityLabel,
   getFlightRouteAirlineIconUrl,
@@ -61,7 +62,9 @@ export default function AircraftRow({
       aria-pressed={selected}
       onClick={() => aircraftId && onSelectAircraft?.(aircraftId)}
     >
-      <span aria-hidden="true" className="endf-row-glyph" />
+      <span aria-hidden="true" className="endf-row-glyph">
+        <Plane size={13} strokeWidth={2.4} />
+      </span>
       <AircraftIdentityCell
         callsign={callsign}
         route={route}

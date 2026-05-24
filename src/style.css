@@ -3528,13 +3528,9 @@ body {
     width: 18px;
 }
 
-.endf-row-glyph::before {
-    border-bottom: 2px solid currentColor;
-    border-right: 2px solid currentColor;
-    content: "";
-    height: 8px;
-    transform: translateX(-1px) rotate(-45deg);
-    width: 8px;
+.endf-row-glyph svg {
+    display: block;
+    flex: 0 0 auto;
 }
 
 .endf-row-active .endf-row-glyph {

@@ -1,5 +1,6 @@
 "use client";
 
+import { TowerControl } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { airportCityName, airportDisplayName } from "@/utils/airport.js";
 import { countryName } from "@/utils/flag.js";
@@ -36,7 +37,9 @@ export default function AirportRow({
       aria-pressed={selected}
       onClick={() => airportId && onSelectAirport?.(airportId)}
     >
-      <span aria-hidden="true" className="endf-row-glyph" />
+      <span aria-hidden="true" className="endf-row-glyph">
+        <TowerControl size={13} strokeWidth={2.4} />
+      </span>
       <div className="aircraft-table-identity aircraft-table-identity--solo min-w-0">
         <span
           className="aircraft-table-callsign airport-sidebar-display-mono notranslate truncate text-[12px] font-semibold text-atc-text"
