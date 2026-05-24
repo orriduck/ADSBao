@@ -23,10 +23,10 @@ export default function AirportRow({ airport, onOpen, featured = false }) {
           <span>{airport.iata || airport.icao || airport.code}</span>
         </span>
         <span className="min-w-0">
-          <strong className="block truncate text-[13px] font-semibold text-atc-text">
+          <strong className="endf-row-title block truncate text-atc-text">
             {airportDisplayName(airport, locale)}
           </strong>
-          <small className="mt-0.5 block truncate text-[11.5px] text-atc-dim">
+          <small className="endf-row-subtitle mt-0.5 block truncate text-atc-dim">
             {airportSubtitle(airport, locale)}
           </small>
         </span>

@@ -29,7 +29,7 @@ Clicked or selected controls use a near-black surface with yellow text. In dark 
 
 ## Typography
 
-Use the existing Google Sans Flex / Manrope-style sans stack for product text and JetBrains Mono for identifiers, telemetry, METAR fragments, aircraft IDs, runway labels, and control microcopy. Avoid display fonts in operational UI. Prefer compact uppercase labels only for short categories and keep letter spacing subtle.
+Use Saira for dense product text and Saira Condensed for short display moments: page titles, airport or aircraft identity codes, command inputs, tabs, and compact section labels. This borrows the source reference's heavy engineered typography without copying its assets or turning dense product UI into game UI. Keep body copy and long labels in the regular Saira role, reserve Condensed for short scannable strings, and use tabular numerals for telemetry, METAR fragments, aircraft IDs, runway labels, and control microcopy. Prefer compact uppercase labels only for short categories and keep letter spacing subtle outside those labels.
 
 ## Shape
 

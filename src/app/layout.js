@@ -121,7 +121,7 @@ export default async function RootLayout({ children }) {
           crossOrigin=""
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,300..900;1,300..900&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,300..900;1,300..900&family=Saira+Condensed:wght@500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap"
           rel="stylesheet"
         />
       </head>

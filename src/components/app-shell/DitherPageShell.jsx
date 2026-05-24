@@ -39,9 +39,9 @@ export default function DitherPageShell({
               className="h-px flex-1 bg-[var(--atc-line-strong)]"
             />
           </div>
+          <span className="endf-kicker mt-5">Field terminal</span>
           <h1
-            className="endf-page-title mt-4 flex items-center gap-2 text-[28px] leading-[1.05] uppercase text-atc-text"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "0" }}
+            className="endf-page-title mt-2 flex items-center gap-2 uppercase text-atc-text"
           >
             <span aria-hidden="true" className="endf-page-title__bracket">&lt;</span>
             <span className="truncate">{resolvedTitle}</span>
