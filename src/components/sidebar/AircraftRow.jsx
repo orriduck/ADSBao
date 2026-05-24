@@ -54,12 +54,13 @@ export default function AircraftRow({
   return (
     <button
       type="button"
-      className={`aircraft-table-card grid w-full grid-cols-[minmax(0,1fr)_54px_70px] items-center gap-3 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,opacity] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
+      className={`aircraft-table-card endf-industrial-row grid w-full grid-cols-[18px_minmax(0,1fr)_54px_70px] items-center gap-3 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
         selected ? "endf-row-active" : ""
       }`}
       aria-pressed={selected}
       onClick={() => aircraftId && onSelectAircraft?.(aircraftId)}
     >
+      <span aria-hidden="true" className="endf-row-glyph" />
       <AircraftIdentityCell
         callsign={callsign}
         route={route}

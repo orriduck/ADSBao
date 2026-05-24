@@ -45,8 +45,8 @@ import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCa
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-atc-bg font-mono text-[11px] uppercase tracking-[0.2em] text-atc-faint">
-      Loading map...
+    <div className="relative h-full w-full bg-atc-bg">
+      <AircraftDataLoadingOverlay active variant="flight" />
     </div>
   ),
 });
@@ -368,6 +368,8 @@ function FlightExplorerContent({ callsign }) {
             />
           </AirportMap>
           <AircraftDataLoadingOverlay
+            variant="flight"
+            callsign={callsign}
             active={
               !flightCriticalLoadingSettled ||
               trackedLoadingOverlayActive ||

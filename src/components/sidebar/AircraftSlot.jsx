@@ -9,11 +9,11 @@ import {
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
 import AircraftRow from "./AircraftRow.jsx";
 
-// Single row "slot" that flips (rotateX -90°) when its tenant aircraft
-// changes. Used both inside AircraftList (one per scrollable row, cascaded
-// by cascadeOrder × flipStaggerStep) and inside the sidebar header to drive
-// the pinned selected-aircraft card (single slot, cascadeOrder 0 so the
-// flip fires immediately).
+// Single row "slot" that performs an Endfield-style erase/reveal when its
+// tenant aircraft changes. Used both inside AircraftList (one per scrollable
+// row, cascaded by cascadeOrder × flipStaggerStep) and inside the sidebar
+// header to drive the pinned selected-aircraft card (single slot,
+// cascadeOrder 0 so the swap fires immediately).
 export default function AircraftSlot({
   aircraft,
   cascadeOrder = -1,
@@ -31,6 +31,8 @@ export default function AircraftSlot({
   const selectedAircraftIdRef = useRef(selectedAircraftId);
   selectedAircraftIdRef.current = selectedAircraftId;
   const [freezeAircraft, setFreezeAircraft] = useState(null);
+  const [replacing, setReplacing] = useState(false);
+  const [replaceDelay, setReplaceDelay] = useState(0);
   const controls = useAnimationControls();
   const reducedMotion = useReducedMotion();
 
@@ -57,7 +59,8 @@ export default function AircraftSlot({
     const selectedId = selectedAircraftIdRef.current;
     if (oldKey === selectedId || currentKey === selectedId) {
       setFreezeAircraft(null);
-      controls.set({ y: 0, opacity: 1 });
+      setReplacing(false);
+      controls.set({ clipPath: "inset(0 0% 0 0)" });
       return;
     }
 
@@ -65,26 +68,28 @@ export default function AircraftSlot({
       Math.max(cascadeOrderRef.current, 0) * flipStaggerStepRef.current;
 
     setFreezeAircraft(oldAircraft);
+    setReplaceDelay(flipDelay);
+    setReplacing(true);
     let cancelled = false;
     (async () => {
-      // Slide up + fade out, then slide down + fade in. Clean,
-      // industrial — no brightness flash, no rotate.
+      // Erase old tenant, swap data while hidden, then scan the new
+      // tenant in from the left. No opacity blending on light surfaces.
       await controls.start({
-        y: -6,
-        opacity: 0,
-        transition: { duration: 0.14, ease: "easeIn", delay: flipDelay },
+        clipPath: "inset(0 0 0 100%)",
+        transition: { duration: 0.14, ease: [1, 0, 0.7, 1], delay: flipDelay },
       });
       if (cancelled) return;
       setFreezeAircraft(null);
-      await controls.set({ y: 6, opacity: 0 });
+      await controls.set({ clipPath: "inset(0 100% 0 0)" });
       await controls.start({
-        y: 0,
-        opacity: 1,
-        transition: { duration: 0.2, ease: [0.2, 0.6, 0.2, 1] },
+        clipPath: "inset(0 0% 0 0)",
+        transition: { duration: 0.22, ease: [1, 0, 0.7, 1], delay: 0.1 },
       });
+      if (!cancelled) setReplacing(false);
     })();
     return () => {
       cancelled = true;
+      setReplacing(false);
     };
   }, [currentKey, controls, reducedMotion]);
 
@@ -99,13 +104,23 @@ export default function AircraftSlot({
   const selected = Boolean(aircraftId) && aircraftId === selectedAircraftId;
 
   return (
-    <motion.div animate={controls} className="aircraft-row-flip-surface">
-      <AircraftRow
-        aircraft={displayed}
-        aircraftId={aircraftId}
-        selected={selected}
-        onSelectAircraft={onSelectAircraft}
-      />
-    </motion.div>
+    <div
+      style={{ "--aircraft-row-replace-delay": `${replaceDelay}s` }}
+      className={`aircraft-row-flip-surface ${
+        replacing ? "aircraft-row-flip-surface--replacing" : ""
+      }`}
+    >
+      <motion.div
+        animate={controls}
+        className="aircraft-row-flip-surface__content"
+      >
+        <AircraftRow
+          aircraft={displayed}
+          aircraftId={aircraftId}
+          selected={selected}
+          onSelectAircraft={onSelectAircraft}
+        />
+      </motion.div>
+    </div>
   );
 }

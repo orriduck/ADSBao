@@ -3,7 +3,11 @@
 import { airportDisplayName, airportSubtitle } from "@/utils/airport.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
-export default function AirportRow({ airport, onOpen, featured = false }) {
+export default function AirportRow({
+  airport,
+  onOpen,
+  featured = false,
+}) {
   const { locale } = useI18n();
 
   return (

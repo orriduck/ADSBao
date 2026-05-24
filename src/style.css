@@ -3105,20 +3105,228 @@ body {
 }
 
 .aircraft-row-flip-surface {
-    will-change: transform, opacity;
+    isolation: isolate;
+    overflow: hidden;
+    position: relative;
 }
 
-/* Fade-in animation for refreshed numeric values in list rows. Triggered
-   automatically on mount via key={formattedValue} — when ADS-B delivers
-   a new distance/altitude the old span unmounts and the new one fades
-   in, providing a subtle "value refreshed" cue without the framerate
-   cost of NumberFlow per row. */
-@keyframes number-fade-in {
-    from {
-        opacity: 0.25;
+.aircraft-row-flip-surface__content {
+    will-change: clip-path;
+}
+
+.aircraft-row-flip-surface--replacing::before {
+    animation: aircraft-row-replace-placeholder 470ms steps(1, end)
+        var(--aircraft-row-replace-delay, 0s) both;
+    background:
+        radial-gradient(
+            circle,
+            color-mix(in oklab, var(--atc-text) 18%, transparent) 0 1px,
+            transparent 1.4px
+        )
+        0 0 / 9px 9px,
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--sidebar) 94%, transparent),
+            color-mix(in oklab, var(--endf-yellow) 7%, var(--sidebar)) 46%,
+            color-mix(in oklab, var(--sidebar) 94%, transparent)
+        );
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 5;
+}
+
+.aircraft-row-flip-surface--replacing::after {
+    animation: aircraft-row-replace-cursor 470ms steps(1, end)
+        var(--aircraft-row-replace-delay, 0s) both;
+    background: color-mix(in oklab, var(--endf-yellow) 70%, transparent);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--endf-yellow) 24%, transparent);
+    content: "";
+    height: 22px;
+    left: var(--airport-sidebar-inset);
+    pointer-events: none;
+    position: absolute;
+    top: calc(50% - 11px);
+    width: 3px;
+    z-index: 6;
+}
+
+@keyframes endf-cursor-wipe {
+    0%,
+    8% {
+        opacity: 0;
+        transform: translateX(0);
     }
-    to {
+    10%,
+    18% {
         opacity: 1;
+        transform: translateX(0);
+    }
+    20%,
+    27% {
+        opacity: 0.16;
+        transform: translateX(0);
+    }
+    29%,
+    37% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    39%,
+    43% {
+        opacity: 0.22;
+        transform: translateX(0);
+    }
+    45% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(100%);
+    }
+}
+
+@keyframes endf-text-decode {
+    0%,
+    40% {
+        text-shadow:
+            0.08em 0 color-mix(in oklab, var(--endf-yellow) 70%, transparent),
+            -0.08em 0 color-mix(in oklab, var(--atc-text) 28%, transparent);
+    }
+    48% {
+        text-shadow:
+            -0.05em 0 color-mix(in oklab, var(--endf-yellow) 60%, transparent),
+            0.05em 0 color-mix(in oklab, var(--atc-text) 22%, transparent);
+    }
+    56% {
+        text-shadow:
+            0.04em 0 color-mix(in oklab, var(--endf-yellow) 42%, transparent),
+            -0.04em 0 color-mix(in oklab, var(--atc-text) 18%, transparent);
+    }
+    70%,
+    100% {
+        text-shadow: none;
+    }
+}
+
+@keyframes endf-content-reveal {
+    0%,
+    43% {
+        opacity: 0;
+    }
+    44%,
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes endf-placeholder-hold {
+    0%,
+    43% {
+        opacity: 1;
+    }
+    44%,
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes endf-placeholder-cursor {
+    0%,
+    8% {
+        opacity: 0;
+    }
+    10%,
+    18% {
+        opacity: 0.72;
+    }
+    20%,
+    27% {
+        opacity: 0.18;
+    }
+    29%,
+    37% {
+        opacity: 0.64;
+    }
+    39%,
+    43% {
+        opacity: 0.24;
+    }
+    44%,
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes endf-data-flicker {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    16% {
+        opacity: 0.62;
+    }
+    22% {
+        opacity: 1;
+    }
+    34% {
+        opacity: 0.78;
+    }
+    40% {
+        opacity: 1;
+    }
+}
+
+@keyframes aircraft-row-replace-placeholder {
+    0%,
+    52% {
+        opacity: 1;
+    }
+    53%,
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes aircraft-row-replace-cursor {
+    0%,
+    8% {
+        opacity: 0;
+    }
+    10%,
+    18% {
+        opacity: 0.68;
+    }
+    20%,
+    27% {
+        opacity: 0.18;
+    }
+    29%,
+    38% {
+        opacity: 0.6;
+    }
+    40%,
+    52% {
+        opacity: 0.26;
+    }
+    53%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Refreshed numeric values now reveal by a compact scan instead of
+   fading through the row surface. Triggered by key={formattedValue}. */
+@keyframes number-wipe-in {
+    0% {
+        clip-path: inset(0 100% 0 0);
+        transform: translateX(-1px);
+    }
+    100% {
+        clip-path: inset(0 0% 0 0);
+        transform: translateX(0);
     }
 }
 
@@ -3147,16 +3355,29 @@ body {
 }
 
 .number-fade {
-    animation: number-fade-in 280ms ease-out;
+    animation:
+        number-wipe-in 180ms cubic-bezier(1, 0, 0.7, 1),
+        endf-data-flicker 160ms steps(1, end);
+    display: inline-block;
+    will-change: clip-path;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .number-fade {
+    .number-fade,
+    .aircraft-row-flip-surface,
+    .aircraft-row-flip-surface__content {
         animation: none;
+        clip-path: none;
+        filter: none;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .aircraft-row-flip-surface--replacing::before,
+    .aircraft-row-flip-surface--replacing::after {
+        display: none;
+    }
+
     .aircraft-row-flip-surface {
         animation: none;
         transition: none;
@@ -3167,6 +3388,37 @@ body {
     height: 64px;
     min-height: 64px;
     padding-block: 9px;
+}
+
+.endf-industrial-row {
+    isolation: isolate;
+    overflow: hidden;
+    position: relative;
+}
+
+.endf-row-glyph {
+    align-items: center;
+    background: color-mix(in oklab, var(--atc-elev) 72%, transparent);
+    color: var(--endf-accent-ink);
+    display: inline-flex;
+    height: 18px;
+    justify-content: center;
+    position: relative;
+    width: 18px;
+}
+
+.endf-row-glyph::before {
+    border-bottom: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    content: "";
+    height: 8px;
+    transform: translateX(-1px) rotate(-45deg);
+    width: 8px;
+}
+
+.endf-row-active .endf-row-glyph {
+    background: color-mix(in oklab, var(--endf-yellow) 18%, var(--endf-ink));
+    color: var(--endf-yellow);
 }
 
 .aircraft-table-route-slot {
@@ -3181,7 +3433,7 @@ body {
     min-width: 0;
     opacity: 1;
     position: absolute;
-    transition: opacity 0.36s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: none;
     width: 100%;
 }
 
@@ -3191,34 +3443,136 @@ body {
 }
 
 .aircraft-table-route-cycle--alternate .aircraft-table-route-face--flight {
-    animation: aircraft-table-flight-fade 7.2s infinite;
+    animation:
+        aircraft-table-flight-fade 12s infinite,
+        aircraft-table-route-text-decode 12s steps(3, end) infinite;
 }
 
 .aircraft-table-route-cycle--alternate .aircraft-table-route-face--route {
-    animation: aircraft-table-route-fade 7.2s infinite;
+    animation:
+        aircraft-table-route-fade 12s infinite,
+        aircraft-table-route-text-decode 12s steps(3, end) infinite;
+}
+
+.aircraft-table-route-cycle--alternate::before {
+    animation: aircraft-table-route-cursor-wipe 12s cubic-bezier(1, 0, 0.7, 1)
+        infinite;
+    background:
+        linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 1px,
+            var(--endf-yellow) 1px 5px,
+            color-mix(in oklab, var(--endf-yellow) 18%, var(--sidebar)) 5px 10px,
+            var(--sidebar) 10px 100%
+        );
+    content: "";
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transform: translateX(0);
+    z-index: 3;
 }
 
 @keyframes aircraft-table-flight-fade {
     0%,
-    42%,
+    58%,
+    91%,
     100% {
+        clip-path: inset(0 0% 0 0);
         opacity: 1;
+        visibility: visible;
     }
-    50%,
-    84% {
+    61%,
+    86% {
+        clip-path: inset(0 0 0 100%);
         opacity: 0;
+        visibility: hidden;
     }
 }
 
 @keyframes aircraft-table-route-fade {
     0%,
-    42%,
+    61%,
+    86%,
+    100% {
+        clip-path: inset(0 100% 0 0);
+        opacity: 0;
+        visibility: hidden;
+    }
+    65%,
+    83% {
+        clip-path: inset(0 0% 0 0);
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+@keyframes aircraft-table-route-cursor-wipe {
+    0%,
+    58%,
     100% {
         opacity: 0;
+        transform: translateX(0);
     }
-    50%,
-    84% {
+    60%,
+    61.5%,
+    63% {
         opacity: 1;
+        transform: translateX(0);
+    }
+    60.75%,
+    62.25% {
+        opacity: 0.2;
+        transform: translateX(0);
+    }
+    65%,
+    91% {
+        opacity: 1;
+        transform: translateX(100%);
+    }
+    68%,
+    83%,
+    94% {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    85%,
+    86.5%,
+    88% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    85.75%,
+    87.25% {
+        opacity: 0.2;
+        transform: translateX(0);
+    }
+}
+
+@keyframes aircraft-table-route-text-decode {
+    0%,
+    58%,
+    68%,
+    83%,
+    94%,
+    100% {
+        text-shadow: none;
+    }
+    60%,
+    63%,
+    85%,
+    88% {
+        text-shadow:
+            0.08em 0 color-mix(in oklab, var(--endf-yellow) 70%, transparent),
+            -0.08em 0 color-mix(in oklab, var(--atc-text) 28%, transparent);
+    }
+    64%,
+    89% {
+        text-shadow:
+            -0.05em 0 color-mix(in oklab, var(--endf-yellow) 58%, transparent),
+            0.05em 0 color-mix(in oklab, var(--atc-text) 20%, transparent);
     }
 }
 
@@ -4991,6 +5345,60 @@ body {
     box-shadow: none;
 }
 
+.aircraft-preview-card--desktop-reveal {
+    --endf-wipe-cover: var(--atc-card);
+    isolation: isolate;
+    position: fixed;
+}
+
+.aircraft-preview-card--desktop-reveal::before {
+    animation: endf-placeholder-hold 430ms steps(1, end) both;
+    background:
+        radial-gradient(
+            circle,
+            color-mix(in oklab, var(--atc-text) 22%, transparent) 0 1px,
+            transparent 1.4px
+        )
+        0 0 / 10px 10px,
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-card) 88%, transparent),
+            color-mix(in oklab, var(--atc-card) 80%, transparent)
+        );
+    border: 1px solid color-mix(in oklab, var(--endf-yellow) 18%, var(--tone-border-firm));
+    border-radius: var(--atc-radius-panel);
+    box-shadow:
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 8%, transparent),
+        inset 0 0 48px color-mix(in oklab, var(--endf-yellow) 8%, transparent);
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    z-index: 4;
+}
+
+.aircraft-preview-card--desktop-reveal::after {
+    animation: endf-placeholder-cursor 430ms steps(1, end) both;
+    background: color-mix(in oklab, var(--endf-yellow) 78%, transparent);
+    border-radius: 999px;
+    box-shadow: 0 0 16px color-mix(in oklab, var(--endf-yellow) 28%, transparent);
+    content: "";
+    height: 18px;
+    left: 18px;
+    pointer-events: none;
+    position: absolute;
+    top: 18px;
+    width: 4px;
+    z-index: 5;
+}
+
+.aircraft-preview-card--desktop-reveal > *,
+.aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card {
+    animation:
+        endf-content-reveal 430ms steps(1, end) both,
+        endf-text-decode 430ms steps(3, end) both;
+}
+
 .aircraft-preview-card--has-photo {
     overflow: visible;
 }
@@ -5297,13 +5705,46 @@ body {
     left: 50%;
     z-index: 1200;
     max-width: min(360px, calc(100vw - 32px));
-    background: var(--atc-card);
+    background:
+        linear-gradient(
+            90deg,
+            color-mix(in oklab, var(--endf-yellow) 16%, transparent) 0 56px,
+            transparent 56px
+        ),
+        var(--atc-card);
     border: 1px solid var(--tone-border-firm);
-    border-radius: 12px;
+    border-radius: 4px;
     box-shadow: var(--preview-card-shadow);
     color: var(--atc-text);
+    isolation: isolate;
+    overflow: hidden;
     pointer-events: none;
     user-select: none;
+}
+
+.aircraft-preview-mobile-card::before {
+    background: var(--endf-yellow);
+    clip-path: polygon(0 0, 100% 0, 76% 100%, 0 100%);
+    content: "";
+    height: 20px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 56px;
+    z-index: 0;
+}
+
+.aircraft-preview-mobile-card::after {
+    border-bottom: 2px solid var(--endf-ink);
+    border-right: 2px solid var(--endf-ink);
+    content: "";
+    height: 10px;
+    left: 24px;
+    position: absolute;
+    top: 5px;
+    transform: rotate(-45deg);
+    width: 10px;
+    z-index: 1;
 }
 
 /* Stacked variant: variant content + an explicit Track button below.
@@ -5320,7 +5761,7 @@ body {
     margin: 4px 14px 0;
     padding: 9px 14px;
     border: none;
-    border-radius: 6px;
+    border-radius: 2px;
     background: var(--atc-accent);
     color: var(--atc-bg);
     font-family: var(--font-sans);
@@ -5461,14 +5902,14 @@ body {
    wrap to a second line so long airport names don't blow out the
    card width. */
 .airport-preview-mobile-card__place {
-    padding: 0 20px;
+    padding: 0;
     font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 500;
     line-height: 1.3;
     letter-spacing: 0.01em;
     color: var(--atc-dim);
-    text-align: center;
+    text-align: left;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -5476,28 +5917,73 @@ body {
 }
 
 .aircraft-preview-mobile-card__inner {
+    --endf-wipe-cover: var(--atc-card);
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: 6px;
-    padding: 10px 20px 12px;
+    padding: 14px 20px 12px 68px;
+    position: relative;
+    width: min(320px, calc(100vw - 48px));
+    z-index: 2;
+}
+
+.aircraft-preview-mobile-card__inner::before {
+    animation: endf-cursor-wipe 430ms cubic-bezier(1, 0, 0.7, 1) both;
+    background:
+        radial-gradient(
+            circle,
+            color-mix(in oklab, var(--atc-text) 18%, transparent) 0 1px,
+            transparent 1.4px
+        )
+        0 0 / 9px 9px,
+        linear-gradient(
+            90deg,
+            var(--endf-wipe-cover) 0,
+            var(--endf-wipe-cover) 2px,
+            color-mix(in oklab, var(--endf-yellow) 70%, transparent) 2px 6px,
+            color-mix(in oklab, var(--endf-yellow) 10%, var(--endf-wipe-cover))
+                6px 14px,
+            color-mix(in oklab, var(--endf-wipe-cover) 86%, transparent) 14px 100%
+        );
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    transform: translateX(0);
+    z-index: 3;
+}
+
+.aircraft-preview-mobile-card__inner > * {
+    animation:
+        endf-content-reveal 430ms steps(1, end) both,
+        endf-text-decode 430ms steps(3, end) both;
+    position: relative;
+    z-index: 1;
+}
+
+.aircraft-preview-mobile-card__track {
+    animation:
+        endf-content-reveal 430ms steps(1, end) both,
+        endf-text-decode 430ms steps(3, end) both;
 }
 
 .aircraft-preview-mobile-card__row1 {
     display: flex;
     align-items: baseline;
     gap: 10px;
+    max-width: 100%;
     white-space: nowrap;
 }
 
 .aircraft-preview-mobile-card__callsign,
 .aircraft-preview-mobile-card__type {
-    font-family: var(--font-mono);
-    font-size: 18px;
+    font-family: var(--font-display);
+    font-size: 22px;
     font-weight: 800;
-    font-style: italic;
     letter-spacing: 0;
-    line-height: 1;
+    line-height: 0.9;
     color: var(--atc-text);
 }
 
@@ -5546,8 +6032,9 @@ body {
 .aircraft-preview-mobile-card__row2 {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 0;
+    max-width: 100%;
     white-space: nowrap;
 }
 
@@ -5931,7 +6418,6 @@ body {
         color-mix(in oklab, var(--endf-yellow) 8%, transparent) 40%,
         transparent 100%
     );
-    border-left: 2px solid var(--endf-yellow);
 }
 
 /* Yellow underline used on hover/focus rows. */
@@ -5962,7 +6448,21 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .aircraft-preview-card--desktop-reveal::before,
+    .aircraft-preview-card--desktop-reveal::after,
+    .aircraft-preview-mobile-card__inner::before {
+        display: none;
+    }
+
+    .aircraft-preview-card--desktop-reveal > *,
+    .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card,
+    .aircraft-preview-mobile-card__inner > *,
+    .aircraft-preview-mobile-card__track,
+    .aircraft-table-route-cycle--alternate::before,
     .endf-underline::after {
         transition: none;
+        animation: none;
+        clip-path: none;
+        filter: none;
     }
 }
