@@ -19,7 +19,9 @@ export default function AircraftList({
   const resetKeyRef = useRef(resetKey);
   const currentKeys = aircraft.map(getAircraftIdentity);
   const prevKeys = prevKeysRef.current;
-  const structureChanged = resetKeyRef.current !== resetKey;
+  const structureChanged =
+    resetKeyRef.current !== resetKey ||
+    didListStructureChange(prevKeys, currentKeys);
   let cascadeCursor = 0;
   const cascadeOrders = currentKeys.map((cur, i) => {
     const prev = prevKeys[i];
@@ -47,4 +49,17 @@ export default function AircraftList({
       ))}
     </ul>
   );
+}
+
+function didListStructureChange(prevKeys, currentKeys) {
+  if (prevKeys.length === 0) return false;
+  if (prevKeys.length !== currentKeys.length) return true;
+
+  const previousSet = new Set(prevKeys);
+  const currentSet = new Set(currentKeys);
+  return currentKeys.some((key, index) => {
+    const prev = prevKeys[index];
+    if (prev === key) return false;
+    return previousSet.has(key) || currentSet.has(prev);
+  });
 }
