@@ -124,7 +124,7 @@
      --primary-bright : solid fills for tabs, chips, CTAs, focused-row
                         text on ink, brand mark. Saturated, high
                         luminance so it sits on ink/grey backgrounds.
-     --primary-deep   : darker variant used as yellow-tinted text on the
+     --primary-deep   : darker variant used as selected-primary text on the
                         light-mode grey paper (where --primary-bright
                         would be unreadable).
    The default is yellow. Selecting "teal" in the nav menu sets
@@ -143,18 +143,19 @@
 }
 
 :root[data-primary="teal"] {
-    --theme-primary-bright: #5fb8b9;
-    --theme-primary-deep: #397e7f;
-    --aircraft-trace-line: #397e7f;
-    --aircraft-trace-glow: #397e7f;
-    --aircraft-trace-point: #397e7f;
-    --runway-annotation-line: #397e7f;
-    --runway-approach-line: rgba(57,126,127,0.62);
-    --runway-approach-beam: #397e7f;
-    --nearby-runway-line: #397e7f;
-    --procedure-segment-line: #397e7f;
-    --procedure-silk-body: #397e7f;
-    --procedure-silk-thread: #397e7f;
+    --theme-primary-bright: #83d5cf;
+    --theme-primary-deep: #2d746d;
+    --atc-mint: oklch(0.65 0.064 188);
+    --aircraft-trace-line: #2d746d;
+    --aircraft-trace-glow: #2d746d;
+    --aircraft-trace-point: #2d746d;
+    --runway-annotation-line: #2d746d;
+    --runway-approach-line: rgba(45,116,109,0.62);
+    --runway-approach-beam: #2d746d;
+    --nearby-runway-line: #2d746d;
+    --procedure-segment-line: #2d746d;
+    --procedure-silk-body: #2d746d;
+    --procedure-silk-thread: #2d746d;
 }
 
 :root {
@@ -449,11 +450,12 @@
 }
 
 :root[data-theme="dark"][data-primary="teal"] {
-    --runway-annotation-line: #5fb8b9;
-    --runway-approach-line: rgba(95,184,185,0.78);
-    --runway-approach-beam: #5fb8b9;
-    --procedure-segment-line: #5fb8b9;
-    --procedure-silk-body: #397e7f;
+    --atc-mint: oklch(0.8 0.072 188);
+    --runway-annotation-line: #83d5cf;
+    --runway-approach-line: rgba(131,213,207,0.78);
+    --runway-approach-beam: #83d5cf;
+    --procedure-segment-line: #83d5cf;
+    --procedure-silk-body: #2d746d;
 }
 
 body {

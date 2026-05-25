@@ -7,7 +7,7 @@ const PRIMARIES = [PRIMARY_YELLOW, PRIMARY_TEAL]
 
 const PRIMARY_COLOR_MAP = {
   [PRIMARY_YELLOW]: { bright: '#ffe600', deep: '#a86a1f' },
-  [PRIMARY_TEAL]: { bright: '#5fb8b9', deep: '#397e7f' },
+  [PRIMARY_TEAL]: { bright: '#83d5cf', deep: '#2d746d' },
 }
 
 const sanitizePrimary = (primary) =>
