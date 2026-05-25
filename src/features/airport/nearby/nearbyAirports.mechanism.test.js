@@ -29,10 +29,30 @@ const payload = await getNearbyAirports({
           lon: -79.6306,
           distanceNm: 8.7,
         },
+        {
+          ident: "CYTZ",
+          icao: "CYTZ",
+          iata: "YTZ",
+          name: "Billy Bishop Toronto City Centre Airport",
+          country: "CA",
+          lat: 43.6275,
+          lon: -79.3962,
+          distanceNm: 6.8,
+        },
       ];
     },
     async getRunwaysByAirport(ident) {
       calls.push({ type: "runways", ident });
+      if (ident === "CYTZ") {
+        return [
+          {
+            lengthFt: 3988,
+            closed: false,
+            le: { ident: "08", lat: 43.627, lon: -79.404 },
+            he: { ident: "26", lat: 43.628, lon: -79.386 },
+          },
+        ];
+      }
       return [
         {
           lengthFt: 11120,
@@ -50,8 +70,12 @@ assert.equal(payload.airports[0].icao, "CYYZ");
 assert.equal(payload.airports[0].country, "CA");
 assert.equal(payload.airports[0].runwayMap.airport, "CYYZ");
 assert.deepEqual(
+  payload.airports.map((airport) => airport.icao),
+  ["CYYZ", "CYTZ"],
+);
+assert.deepEqual(
   calls.map((call) => call.type),
-  ["nearby", "runways"],
+  ["nearby", "runways", "runways"],
 );
 assert.deepEqual(calls[0].options, {
   lat: 43.73,

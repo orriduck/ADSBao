@@ -67,11 +67,7 @@ const attachRunwayMaps = async (airports, fetchDetail = fetchAiracAirportDetail)
   }));
 };
 
-const attachOurAirportsRunwayMaps = async (
-  airports,
-  queries,
-  { minRunwayLength = 0 } = {},
-) => {
+const attachOurAirportsRunwayMaps = async (airports, queries) => {
   const runwayRows = await Promise.all(
     airports.map((airport) =>
       queries.getRunwaysByAirport(airport.ident || airport.icao).catch((error) => {
@@ -86,13 +82,8 @@ const attachOurAirportsRunwayMaps = async (
 
   return airports.map((airport, index) => {
     const runways = runwayRows[index] || [];
-    const hasQualifyingRunway =
-      !minRunwayLength ||
-      runways.some((runway) => Number(runway?.lengthFt) >= minRunwayLength);
-
     return {
       ...airport,
-      hasQualifyingRunway,
       runwayMap: buildRunwayMapFromOurAirports(
         airport.ident || airport.icao,
         runways,
@@ -111,12 +102,8 @@ const getNearbyAirportsFromOurAirports = async ({ query, queries }) => {
     limit: candidateLimit,
     excludeIdent: query.icao,
   });
-  const airports = (await attachOurAirportsRunwayMaps(nearbyAirports, queries, {
-    minRunwayLength: query.minRunwayLength,
-  }))
-    .filter((airport) => airport.hasQualifyingRunway)
-    .slice(0, query.limit)
-    .map(({ hasQualifyingRunway, ...airport }) => airport);
+  const airports = (await attachOurAirportsRunwayMaps(nearbyAirports, queries))
+    .slice(0, query.limit);
 
   return {
     airports,

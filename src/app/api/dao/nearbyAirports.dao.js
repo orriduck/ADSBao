@@ -22,7 +22,7 @@ export function buildNearbyAirportCacheKey({
   minRunwayLength,
 } = {}) {
   return [
-    "nearby-airports-v2",
+    "nearby-airports-v3",
     String(country || "").trim().toUpperCase(),
     roundedNumber(minRunwayLength, 0),
     String(icao || "").trim().toUpperCase(),

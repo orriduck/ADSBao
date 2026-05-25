@@ -37,9 +37,9 @@ export default function AircraftPreviewMetadataCard({
         <Link
           href={trackHref}
           className="aircraft-preview-card__track-btn"
-          aria-label={`${t("preview.track")} ${trackCallsign}`}
+          aria-label={`${t("preview.trackTrace")} ${trackCallsign}`}
         >
-          {t("preview.track")}
+          {t("preview.trackTrace")}
         </Link>
       ) : (
         <button
@@ -47,7 +47,7 @@ export default function AircraftPreviewMetadataCard({
           className="aircraft-preview-card__track-btn"
           disabled
         >
-          {alreadyTracking ? t("preview.tracking") : t("preview.track")}
+          {alreadyTracking ? t("preview.trackingTrace") : t("preview.trackTrace")}
         </button>
       )}
       <RouteFeedbackForm

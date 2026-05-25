@@ -148,8 +148,10 @@ const en = {
   preview: {
     aircraftPreview: "Aircraft preview",
     airportPreview: "Airport preview",
-    track: "Track",
-    tracking: "Tracking",
+    trackTrace: "Track trace",
+    trackingTrace: "Tracking trace",
+    openAirport: "Open airport context",
+    viewingAirport: "Viewing airport",
     creditPrefix: "credit@",
   },
   routeFeedback: {
