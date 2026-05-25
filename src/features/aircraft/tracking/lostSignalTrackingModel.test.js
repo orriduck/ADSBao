@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 
 import {
+  getActiveAdsbMatchesLength,
   getLostSignalTraceRefreshKey,
   getTrackedAircraftSignalState,
+  hasActiveFlightAwareFallback,
 } from "./lostSignalTrackingModel.js";
 
 assert.equal(
@@ -36,6 +38,60 @@ assert.deepEqual(
     },
   }),
   { misses: 0, lostSignal: false },
+);
+
+assert.equal(
+  hasActiveFlightAwareFallback({
+    ok: true,
+    hasPosition: true,
+    position: {
+      status: "arrived",
+    },
+  }),
+  false,
+);
+
+assert.equal(
+  hasActiveFlightAwareFallback({
+    ok: true,
+    hasPosition: true,
+    position: {
+      status: "arriving shortly",
+    },
+  }),
+  true,
+);
+
+assert.deepEqual(
+  getTrackedAircraftSignalState({
+    matchesLength: 0,
+    previousMisses: 0,
+    flightAwareFallback: {
+      ok: true,
+      hasPosition: true,
+      position: {
+        status: "arrived",
+        terminal: true,
+      },
+    },
+  }),
+  { misses: 20, lostSignal: true },
+);
+
+assert.equal(
+  getActiveAdsbMatchesLength({
+    matchesLength: 1,
+    source: "flightaware",
+  }),
+  0,
+);
+
+assert.equal(
+  getActiveAdsbMatchesLength({
+    matchesLength: 1,
+    source: "adsb.lol",
+  }),
+  1,
 );
 
 assert.deepEqual(

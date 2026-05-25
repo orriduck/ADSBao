@@ -2,6 +2,33 @@ export const LOST_SIGNAL_MISS_THRESHOLD = 20;
 
 const ACTIVE_FLIGHTAWARE_STATUS =
   /\b(enroute|airborne|in[-\s]?flight|departed|active)\b/i;
+const TERMINAL_FLIGHTAWARE_STATUS =
+  /\b(arrived|landed|cancelled|canceled|diverted|result unknown)\b/i;
+
+export function getActiveAdsbMatchesLength({ matchesLength = 0, source = "" } = {}) {
+  if (String(source || "").trim().toLowerCase() === "flightaware") return 0;
+  return Math.max(0, Number(matchesLength) || 0);
+}
+
+export function hasTerminalFlightAwareFallback(fallback) {
+  if (!fallback || typeof fallback !== "object") return false;
+  if (fallback.ok !== true) return false;
+  if (
+    fallback.position?.terminal === true ||
+    fallback.position?.quality?.terminal === true ||
+    fallback.metadata?.terminal === true
+  ) {
+    return true;
+  }
+
+  const status = String(
+    fallback.metadata?.status ||
+      fallback.position?.status ||
+      fallback.position?.quality?.status ||
+      "",
+  ).trim();
+  return TERMINAL_FLIGHTAWARE_STATUS.test(status);
+}
 
 export function getLostSignalTraceRefreshKey({
   lostSignal = false,
@@ -15,6 +42,7 @@ export function getLostSignalTraceRefreshKey({
 export function hasActiveFlightAwareFallback(fallback) {
   if (!fallback || typeof fallback !== "object") return false;
   if (fallback.ok !== true) return false;
+  if (hasTerminalFlightAwareFallback(fallback)) return false;
   if (fallback.hasPosition === true) return true;
 
   const status = String(
@@ -29,12 +57,18 @@ export function getTrackedAircraftSignalState({
   flightAwareFallback = null,
   threshold = LOST_SIGNAL_MISS_THRESHOLD,
 } = {}) {
-  if (Number(matchesLength) > 0 || hasActiveFlightAwareFallback(flightAwareFallback)) {
+  const normalizedThreshold = Math.max(1, Number(threshold) || 1);
+  if (Number(matchesLength) > 0) {
+    return { misses: 0, lostSignal: false };
+  }
+  if (hasTerminalFlightAwareFallback(flightAwareFallback)) {
+    return { misses: normalizedThreshold, lostSignal: true };
+  }
+  if (hasActiveFlightAwareFallback(flightAwareFallback)) {
     return { misses: 0, lostSignal: false };
   }
 
   const misses = Math.max(0, Number(previousMisses) || 0) + 1;
-  const normalizedThreshold = Math.max(1, Number(threshold) || 1);
   return {
     misses,
     lostSignal: misses >= normalizedThreshold,

@@ -60,6 +60,37 @@ const metadataOnlyHtml = `
       }
     }};
   </script>
+	`;
+
+const arrivedHtml = `
+  <title>BA242 (BAW242) British Airways Flight Tracking and History - FlightAware</title>
+  <meta name="origin" content="MMMX" />
+  <meta name="destination" content="EGLL" />
+  <script>
+    var trackpollBootstrap = {"version":"2.24","flights":{
+      "BAW242-1":{
+        "ident":"BAW242",
+        "displayIdent":"BAW242",
+        "flightStatus":"arrived",
+        "historical":false,
+        "coord":null,
+        "altitude":null,
+        "groundspeed":null,
+        "heading":null,
+        "timestamp":1779721705,
+        "landingTimes":{"actual":1779721260},
+        "gateArrivalTimes":{"actual":1779721680},
+        "origin":{"icao":"MMMX","iata":"MEX","friendlyName":"Mexico City Intl","coord":[-99.0721,19.4363]},
+        "destination":{"icao":"EGLL","iata":"LHR","friendlyName":"London Heathrow","coord":[-0.4614,51.4775]},
+        "flightPlan":{"speed":488,"altitude":410,"route":"NATV DOGAL"},
+        "track":[
+          {"timestamp":1779721196,"coord":[-0.5086,51.4774],"alt":0,"gs":147,"type":"","isolated":false},
+          {"timestamp":1779721212,"coord":[-0.4884,51.4775],"alt":0,"gs":153,"type":"","isolated":false}
+        ],
+        "updateType":""
+      }
+    }};
+  </script>
 `;
 
 assert.equal(
@@ -107,6 +138,23 @@ assert.equal(buildFlightAwareFallbackUrl("bad-call"), "");
   assert.equal(result.metadata.altitudeFt, 37000);
   assert.equal(result.metadata.groundSpeedKt, 464);
   assert.equal("raw" in result, false);
+}
+
+{
+  const result = parseFlightAwareFallbackPage({
+    callsign: "BAW242",
+    html: arrivedHtml,
+    fetchedAt,
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.hasPosition, true);
+  assert.equal(result.position.altitudeFt, 0);
+  assert.equal(result.position.status, "arrived");
+  assert.equal(result.position.terminal, true);
+  assert.equal(result.position.quality.status, "arrived");
+  assert.equal(result.position.quality.terminal, true);
+  assert.equal(result.position.quality.sourceUpdatedAt, "2026-05-25T15:00:12.000Z");
 }
 
 {
