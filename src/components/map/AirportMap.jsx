@@ -16,6 +16,7 @@ import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap.js";
 import MapAttribution from "./MapAttribution.jsx";
 import MapLoadingState from "./MapLoadingState.jsx";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
+import { useI18n } from "../../features/app-shell/i18n/useI18n.js";
 import { aircraftMatchesFilters } from "../../features/aircraft/filters/aircraftFilters.js";
 import {
   getMapOverlayTheme,
@@ -56,6 +57,7 @@ export default function AirportMap({
   nearbyRangeRings = null,
   children = null,
 }) {
+  const { locale } = useI18n();
   // Single source of truth for the ring bands so the inline labels
   // (AreaMarker), per-airport rings (NearbyAirportLayer), and the
   // bottom-left legend all agree on what to render. Pass `false` to
@@ -195,6 +197,7 @@ export default function AirportMap({
         <MapContext.Provider value={mapInstance}>
           <MapTileLayers
             theme={currentTheme}
+            locale={locale}
             showLabels={showMapLabels}
             selectionActive={selectionActive}
           />

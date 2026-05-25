@@ -2,85 +2,102 @@
 
 import { useEffect, useRef } from "react";
 import L from "leaflet";
+import "@maplibre/maplibre-gl-leaflet";
 import { useMapInstance } from "./MapContext.js";
-
-const TILE_VARIANTS = {
-  light: {
-    base: "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}@2x.png",
-    labels:
-      "https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}@2x.png",
-    labelOpacity: 0.66,
-  },
-  dark: {
-    base: "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png",
-    labels:
-      "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}@2x.png",
-    labelOpacity: 0.55,
-  },
-};
 
 export default function MapTileLayers({
   theme = "dark",
+  locale = "en",
   showLabels = true,
   selectionActive = false,
 }) {
   const map = useMapInstance();
-  const baseRef = useRef(null);
-  const labelRef = useRef(null);
+  const layerRef = useRef(null);
+  const selectionActiveRef = useRef(selectionActive);
+
+  useEffect(() => {
+    selectionActiveRef.current = selectionActive;
+  }, [selectionActive]);
 
   useEffect(() => {
     if (!hasTilePane(map)) return undefined;
-    const variant = TILE_VARIANTS[theme] || TILE_VARIANTS.dark;
+    const abort = new AbortController();
+    let cancelled = false;
 
-    removeLayer(baseRef.current, map);
-    baseRef.current = L.tileLayer(variant.base, {
-      subdomains: "abcd",
-      maxZoom: 20,
-    }).addTo(map);
-    // Tag the layer container so CSS can blend the base tiles into the
-    // canvas using the monochrome manual-map aesthetic.
-    baseRef.current.getContainer()?.classList.add("atc-tile-base");
-
-    removeLayer(labelRef.current, map);
-    if (showLabels) {
-      labelRef.current = L.tileLayer(variant.labels, {
-        subdomains: "abcd",
-        maxZoom: 20,
-        opacity: variant.labelOpacity,
-      }).addTo(map);
-      labelRef.current.getContainer()?.classList.add("atc-tile-labels");
-    }
+    loadLocalizedMapStyle({ theme, locale, showLabels, signal: abort.signal })
+      .then((style) => {
+        if (cancelled || !hasTilePane(map)) return;
+        removeLayer(layerRef.current, map);
+        layerRef.current = L.maplibreGL({
+          style,
+          interactive: false,
+          attributionControl: false,
+          className: "atc-maplibre-base",
+        }).addTo(map);
+        layerRef.current.getContainer()?.classList.add("atc-tile-base");
+        setSelectionOpacity(layerRef.current, theme, selectionActiveRef.current);
+      })
+      .catch((error) => {
+        if (error?.name === "AbortError") return;
+        console.error("[airport-map] failed to load localized map tiles", error);
+      });
 
     return () => {
-      removeLayer(baseRef.current, map);
-      removeLayer(labelRef.current, map);
-      baseRef.current = null;
-      labelRef.current = null;
+      cancelled = true;
+      abort.abort();
+      removeLayer(layerRef.current, map);
+      layerRef.current = null;
     };
-  }, [map, theme, showLabels]);
+  }, [map, theme, locale, showLabels]);
 
   useEffect(() => {
-    const baseLayer = baseRef.current;
-    const labelLayer = labelRef.current;
-    if (!baseLayer) return;
-
-    if (selectionActive) {
-      // Lighter selection-mode dim than before (0.72/0.78) — enough to
-      // signal focus mode but not so heavy that other aircraft / map
-      // context vanish under the mask.
-      baseLayer.setOpacity(theme === "light" ? 0.92 : 0.88);
-      if (labelLayer) {
-        labelLayer.setOpacity(theme === "light" ? 0.55 : 0.5);
-      }
-      return;
-    }
-
-    const variant = TILE_VARIANTS[theme] || TILE_VARIANTS.dark;
-    baseLayer.setOpacity(1);
-    if (labelLayer) labelLayer.setOpacity(variant.labelOpacity);
-  }, [selectionActive, theme, showLabels]);
+    setSelectionOpacity(layerRef.current, theme, selectionActive);
+  }, [selectionActive, theme]);
 
   return null;
+}
+
+async function loadLocalizedMapStyle({ theme, locale, showLabels, signal }) {
+  const params = new URLSearchParams({
+    locale,
+    labels: showLabels ? "1" : "0",
+  });
+  return requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
+}
+
+async function requestJson(url, { signal } = {}) {
+  if (typeof fetch === "function") {
+    const response = await fetch(url, { signal });
+    if (!response.ok) {
+      throw new Error(`OpenFreeMap style request failed: ${response.status}`);
+    }
+    return response.json();
+  }
+
+  return requestJsonWithXhr(url, { signal });
+}
+
+function requestJsonWithXhr(url, { signal } = {}) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.responseType = "json";
+    xhr.onload = () => {
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new Error(`OpenFreeMap style request failed: ${xhr.status}`));
+        return;
+      }
+      resolve(xhr.response || JSON.parse(xhr.responseText));
+    };
+    xhr.onerror = () => {
+      reject(new Error("OpenFreeMap style request failed"));
+    };
+    xhr.onabort = () => {
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    signal?.addEventListener("abort", () => xhr.abort(), { once: true });
+    xhr.send();
+  });
 }
 
 function hasTilePane(map) {
@@ -93,4 +110,14 @@ function removeLayer(layer, map) {
   if (!layer || !map || typeof layer.removeFrom !== "function") return;
   if (!map._panes) return;
   layer.removeFrom(map);
+}
+
+function setSelectionOpacity(layer, theme, selectionActive) {
+  const container = layer?.getContainer?.();
+  if (!container) return;
+  if (selectionActive) {
+    container.style.opacity = theme === "light" ? "0.92" : "0.88";
+    return;
+  }
+  container.style.opacity = "1";
 }
