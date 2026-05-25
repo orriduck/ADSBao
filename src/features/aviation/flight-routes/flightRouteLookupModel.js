@@ -52,6 +52,7 @@ export function getLookupCallsigns(aircraft) {
   return [
     ...new Set(
       (aircraft || [])
+        .filter((item) => !shouldSuppressRouteLookup(item))
         .map((item) => normalizeCallsign(item.callsign))
         .filter(isLookupCallsign),
     ),
@@ -95,6 +96,11 @@ export function buildRouteFromAircraftMetadata(aircraft = {}) {
 }
 
 const EARTH_RADIUS_NM = 3440.065;
+const ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES = new Set([
+  "flightaware_terminal",
+  "missing",
+  "stale",
+]);
 
 const haversineNm = (lat1, lon1, lat2, lon2) => {
   const toRad = (value) => (value * Math.PI) / 180;
@@ -120,6 +126,7 @@ export function rankCandidatesByDistance(aircraft, routeContext = {}) {
   const seen = new Map();
 
   (aircraft || []).forEach((item, index) => {
+    if (shouldSuppressRouteLookup(item)) return;
     const callsign = normalizeCallsign(item?.callsign);
     if (!isLookupCallsign(callsign)) return;
     const lat = Number(item?.lat);
@@ -146,6 +153,12 @@ export function rankCandidatesByDistance(aircraft, routeContext = {}) {
       return leftMeta.index - rightMeta.index;
     })
     .map(([callsign]) => callsign);
+}
+
+export function shouldSuppressRouteLookup(aircraft = {}) {
+  return ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES.has(
+    String(aircraft?.trackingState?.status || "").trim().toLowerCase(),
+  );
 }
 
 export function resolvePendingRouteLookups({

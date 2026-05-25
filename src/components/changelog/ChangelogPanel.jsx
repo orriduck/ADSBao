@@ -29,6 +29,17 @@ const KIND_STYLES = {
 };
 
 const CHINESE_RELEASE_COPY = {
+  "v1.5.0": {
+    title: "FlightAware 跟踪状态与虚线预测航路",
+    summary:
+      "飞行跟踪现在会区分实时 ADS-B、FlightAware 活跃兜底、FlightAware 已到达、陈旧位置和完全缺失状态,让航路获取与信号丢失处理保持一致。",
+    highlights: [
+      "跟踪航班使用明确的位置状态,不再把每个 callsign 匹配都当作实时 ADS-B",
+      "开启 FlightAware 的用户可继续使用活跃 FlightAware 位置,不会误触发信号丢失提示",
+      "已到达或终止的 FlightAware 航班会保留最后已知位置,并停止重复航路查询",
+      "FlightAware 预测航路以虚线显示,包括底层 glow 线",
+    ],
+  },
   "v1.4.0": {
     title: "账号登录与更安静的信号丢失处理",
     summary:

@@ -110,4 +110,31 @@ assert.deepEqual(
   { misses: 0, lostSignal: false },
 );
 
+assert.deepEqual(
+  getTrackedAircraftSignalState({
+    matchesLength: 1,
+    previousMisses: 19,
+    trackingState: { status: "stale" },
+  }),
+  { misses: 20, lostSignal: true },
+);
+
+assert.deepEqual(
+  getTrackedAircraftSignalState({
+    matchesLength: 1,
+    previousMisses: 19,
+    trackingState: { status: "flightaware_active" },
+  }),
+  { misses: 0, lostSignal: false },
+);
+
+assert.deepEqual(
+  getTrackedAircraftSignalState({
+    matchesLength: 1,
+    previousMisses: 0,
+    trackingState: { status: "flightaware_terminal" },
+  }),
+  { misses: 20, lostSignal: true },
+);
+
 console.log("lostSignalTrackingModel.test.js ok");

@@ -68,6 +68,7 @@ assert.equal(ADSB_FRESH_MAX_AGE_SECONDS, 60);
   assert.equal(resolved.source, "flightaware");
   assert.equal(resolved.position.lat, 47.4167);
   assert.equal(resolved.position.positionQuality.kind, "predicted");
+  assert.equal(resolved.trackingState.status, "flightaware_active");
 }
 
 {
@@ -94,6 +95,7 @@ assert.equal(ADSB_FRESH_MAX_AGE_SECONDS, 60);
   assert.equal(resolved.source, "last_known");
   assert.equal(resolved.position.lat, 40);
   assert.equal(resolved.position.positionQuality.kind, "stale");
+  assert.equal(resolved.trackingState.status, "missing");
   assert.equal(flightAwareCalls, 1);
 }
 
@@ -112,7 +114,41 @@ assert.equal(ADSB_FRESH_MAX_AGE_SECONDS, 60);
   });
 
   assert.equal(resolved.position, null);
+  assert.equal(resolved.trackingState.status, "missing");
   assert.equal(flightAwareCalls, 0);
+}
+
+{
+  const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition: primary("adsb.lol", 180, { lat: 40, lon: -70 }),
+    airplanesLivePosition: null,
+    getFlightAwareFallback: async () => ({
+      ok: true,
+      hasPosition: true,
+      position: {
+        lat: 47.4167,
+        lon: -46.5833,
+        callsign: "AAL100",
+        terminal: true,
+        status: "arrived",
+        quality: {
+          source: "flightaware",
+          kind: "observed",
+          terminal: true,
+          status: "arrived",
+          fetchedAt: new Date(now).toISOString(),
+        },
+      },
+    }),
+    callsign: "AAL100",
+    featureEnabled: true,
+    now,
+  });
+
+  assert.equal(resolved.source, "adsb.lol");
+  assert.equal(resolved.position.lat, 40);
+  assert.equal(resolved.position.positionQuality.kind, "stale");
+  assert.equal(resolved.trackingState.status, "flightaware_terminal");
 }
 
 console.log("trackedFlightPositionResolver.test.js ok");
