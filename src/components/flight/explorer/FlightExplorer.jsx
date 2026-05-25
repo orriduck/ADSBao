@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu.jsx";
 import AircraftDataLoadingOverlay from "@/components/airport/explorer/AircraftDataLoadingOverlay.jsx";
-import LostSignalOverlay from "@/components/aircraft/tracking/LostSignalOverlay.jsx";
+import LostSignalToast from "@/components/aircraft/tracking/LostSignalToast.jsx";
 import {
   getOrCreateTrackedFlight,
   getTraceCutoffMs,
@@ -16,6 +16,7 @@ import {
 } from "@/features/aircraft/tracking/lostSignalTrackingModel.js";
 import { buildGreatCirclePath } from "@/features/aviation/flight-routes/greatCircleRouteModel.js";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
+import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel.js";
 
 // These map helpers import Leaflet, which evaluates `window` at module
 // top — SSR-incompatible. Dynamic-import keeps those helpers
@@ -62,6 +63,7 @@ export default function FlightExplorer({ callsign = "" }) {
 function FlightExplorerContent({ callsign }) {
   const router = useRouter();
   const flightAwareEnabled = useFlightAwareEnabled();
+  const routeProvider = resolveRouteProvider({ flightAwareEnabled });
   const {
     desktopSidebarWidth,
     sidebarOpen,
@@ -134,7 +136,7 @@ function FlightExplorerContent({ callsign }) {
     [lostSignal, trackedPollVersion],
   );
 
-  // User can dismiss the lost-signal overlay to keep watching the last
+  // User can dismiss the lost-signal toast to keep watching the last
   // known trace. The dismissal resets whenever the feed comes back so a
   // later disappearance still prompts.
   const [lostSignalDismissed, setLostSignalDismissed] = useState(false);
@@ -201,10 +203,9 @@ function FlightExplorerContent({ callsign }) {
   // the callsign — and the same hook gives us the applyTemporaryRoute
   // callback so the preview-card feedback form can splice an override into
   // the in-memory cache without a refetch.
-  const { routesByCallsign, applyTemporaryRoute } = useFlightRoutes(
-    rawAircraft,
-    { routeProvider: flightAwareEnabled ? "flightaware" : "" },
-  );
+  const { routesByCallsign, applyTemporaryRoute } = useFlightRoutes(rawAircraft, {
+    routeProvider,
+  });
 
   const aircraft = useMemo(
     () =>
@@ -333,7 +334,13 @@ function FlightExplorerContent({ callsign }) {
 
         <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
           {!(isMobile && sidebarOpen) && (
-            <ExplorerMapMenu onFitToTrace={fitToTrace} />
+            <ExplorerMapMenu
+              feedSource={feedSource}
+              feedStatus="live"
+              lastUpdated={lastUpdated}
+              routeProvider={routeProvider}
+              onFitToTrace={fitToTrace}
+            />
           )}
           <AirportMap
             icao=""
@@ -383,13 +390,12 @@ function FlightExplorerContent({ callsign }) {
             </div>
           )}
 
-          {lostSignal && !lostSignalDismissed && (
-            <LostSignalOverlay
-              callsign={callsign}
-              onAcknowledge={() => setLostSignalDismissed(true)}
-              onBackHome={handleBack}
-            />
-          )}
+          <LostSignalToast
+            active={lostSignal && !lostSignalDismissed}
+            callsign={callsign}
+            onStay={() => setLostSignalDismissed(true)}
+            onBackHome={handleBack}
+          />
         </div>
       </div>
     </SelectedAircraftTraceProvider>

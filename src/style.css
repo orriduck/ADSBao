@@ -2271,6 +2271,8 @@ body {
     align-items: flex-end;
     display: none;
     flex-direction: column;
+    font-family: var(--font-display);
+    font-feature-settings: "tnum" 1;
     gap: 4px;
     justify-content: center;
     left: 110px;
@@ -4067,7 +4069,13 @@ body {
 }
 
 .airport-feed-status {
+    font-family: var(--font-display);
+    font-feature-settings: "tnum" 1;
     will-change: auto;
+}
+
+.airport-route-provider-status {
+    font-family: var(--font-display);
 }
 
 .airport-feed-status--infer {

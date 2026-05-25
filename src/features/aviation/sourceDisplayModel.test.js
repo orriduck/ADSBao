@@ -5,6 +5,7 @@ import {
   ROUTE_PROVIDER,
   buildMobileMapSourceStatus,
   getDataSourceDisplayName,
+  getAircraftPositionSourceBadge,
   getRouteProviderDisplayName,
 } from "./sourceDisplayModel.js";
 
@@ -22,6 +23,23 @@ assert.equal(
 );
 assert.equal(getRouteProviderDisplayName(ROUTE_PROVIDER.ADSBDB), "adsbdb");
 assert.equal(getRouteProviderDisplayName(""), "");
+
+assert.equal(
+  getAircraftPositionSourceBadge({ source: "adsb_lol", kind: "observed" }),
+  "ADS-B",
+);
+assert.equal(
+  getAircraftPositionSourceBadge({ source: "airplanes_live", kind: "observed" }),
+  "Airplanes.live",
+);
+assert.equal(
+  getAircraftPositionSourceBadge({ source: "flightaware", kind: "estimated" }),
+  "FlightAware · estimated",
+);
+assert.equal(
+  getAircraftPositionSourceBadge({ source: "unknown", kind: "stale" }),
+  "Stale",
+);
 
 assert.deepEqual(
   buildMobileMapSourceStatus({

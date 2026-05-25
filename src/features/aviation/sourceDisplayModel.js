@@ -19,6 +19,16 @@ const DATA_SOURCE_LABELS = Object.freeze({
   [DATA_SOURCE.COMMUNITY_FEEDBACK]: "Community",
 });
 
+const AIRCRAFT_POSITION_SOURCE_LABELS = Object.freeze({
+  adsb_lol: "ADS-B",
+  [DATA_SOURCE.ADSB_LOL]: "ADS-B",
+  airplanes_live: "Airplanes.live",
+  [DATA_SOURCE.AIRPLANES_LIVE]: "Airplanes.live",
+  flightaware: "FlightAware",
+  local_projection: "Local projection",
+  unknown: "",
+});
+
 const ROUTE_PROVIDER_LABELS = Object.freeze({
   [ROUTE_PROVIDER.ADSBDB]: DATA_SOURCE_LABELS[DATA_SOURCE.ADSBDB],
   [ROUTE_PROVIDER.FLIGHTAWARE]: DATA_SOURCE_LABELS[DATA_SOURCE.FLIGHTAWARE],
@@ -42,6 +52,21 @@ export function getRouteProviderDisplayName(provider) {
 
 export function resolveRouteProvider({ flightAwareEnabled = false } = {}) {
   return flightAwareEnabled ? ROUTE_PROVIDER.FLIGHTAWARE : ROUTE_PROVIDER.ADSBDB;
+}
+
+export function getAircraftPositionSourceBadge(quality) {
+  const source = normalizeKey(quality?.source);
+  const kind = normalizeKey(quality?.kind);
+  const sourceLabel = AIRCRAFT_POSITION_SOURCE_LABELS[source] || "";
+  if (!sourceLabel) return kind === "stale" ? "Stale" : "";
+  if (kind === "stale") return sourceLabel === "FlightAware" ? "FlightAware · stale" : "Stale";
+  if (
+    source === "flightaware" &&
+    (kind === "estimated" || kind === "predicted" || kind === "interpolated")
+  ) {
+    return `${sourceLabel} · ${kind}`;
+  }
+  return sourceLabel;
 }
 
 function badgeText(value) {

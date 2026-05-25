@@ -4,6 +4,14 @@ import {
   createAdaptiveProviderSelector,
   raceProviders,
 } from "../../aviation/providerHealth.js";
+import {
+  getFlightAwareFallbackByCallsign,
+  isFlightAwareFallbackEnabled,
+} from "../flightaware/flightAwareFallbackProvider.js";
+import {
+  annotateAdsbPosition,
+  resolveTrackedFlightPosition,
+} from "../tracking/trackedFlightPositionResolver.js";
 
 import {
   AIRCRAFT_CALLSIGN_MAX_BYTES,
@@ -122,4 +130,133 @@ export const fetchAircraftByCallsign = async ({ callsign } = {}) => {
     error.attempts = attempts;
     throw error;
   }
+};
+
+function pickFreshest(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) return null;
+  let best = entries[0];
+  for (const entry of entries) {
+    const a = Number(entry?.seen_pos ?? entry?.seen ?? Number.POSITIVE_INFINITY);
+    const b = Number(best?.seen_pos ?? best?.seen ?? Number.POSITIVE_INFINITY);
+    if (a < b) best = entry;
+  }
+  return best;
+}
+
+async function fetchAllCallsignProviders({ callsign }) {
+  const settled = await Promise.allSettled(
+    CALLSIGN_PROVIDER_CHAIN.map(async (provider) => ({
+      provider,
+      payload: await fetchProviderPayload(provider, { callsign }),
+    })),
+  );
+
+  return settled
+    .map((result, index) => {
+      const provider = CALLSIGN_PROVIDER_CHAIN[index];
+      if (result.status === "fulfilled") return result.value;
+      console.warn(
+        `[aircraft-callsign] ${provider.id} failed`,
+        result.reason?.status ? `status=${result.reason.status}` : result.reason?.message,
+      );
+      return null;
+    })
+    .filter(Boolean);
+}
+
+function annotatePayload(payload, { source, now }) {
+  return {
+    ...payload,
+    ac: (payload?.ac || []).map((aircraft) =>
+      annotateAdsbPosition(aircraft, { source, now }),
+    ),
+    source,
+  };
+}
+
+function payloadForResolvedPosition({ resolved, callsign, fallback, now }) {
+  const clientFallback = sanitizeFallbackForClient(fallback);
+  if (!resolved?.position) {
+    return {
+      ac: [],
+      source: "",
+      now: now / 1000,
+      flightAwareFallback: clientFallback,
+    };
+  }
+
+  if (resolved.source === "flightaware") {
+    return {
+      ac: [resolved.position],
+      source: "flightaware",
+      now: now / 1000,
+      flightAwareFallback: clientFallback,
+    };
+  }
+
+  return {
+    ac: [resolved.position],
+    source: resolved.source || "",
+    now: now / 1000,
+    flightAwareFallback: clientFallback,
+    callsign,
+  };
+}
+
+function sanitizeFallbackForClient(fallback) {
+  if (!fallback || typeof fallback !== "object") return null;
+  const { raw: _raw, ...safe } = fallback;
+  return safe;
+}
+
+export const fetchTrackedAircraftByCallsign = async ({
+  callsign,
+  featureEnabled = isFlightAwareFallbackEnabled(),
+  fetchPrimaryProviders = fetchAllCallsignProviders,
+  getFlightAwareFallback = getFlightAwareFallbackByCallsign,
+  now = Date.now(),
+} = {}) => {
+  if (!callsign) {
+    throw new AircraftCallsignProviderError("Callsign required", 400);
+  }
+
+  const primaryResults = await fetchPrimaryProviders({ callsign });
+  const attempts = primaryResults.map((result) => formatAttempt(result.provider.id));
+  const bySource = new Map(
+    primaryResults.map((result) => [result.provider.id, result.payload]),
+  );
+  const adsbLolPosition = pickFreshest(bySource.get("adsb.lol")?.ac);
+  const airplanesLivePosition = pickFreshest(bySource.get("airplanes.live")?.ac);
+
+  const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition,
+    airplanesLivePosition,
+    getFlightAwareFallback,
+    callsign,
+    featureEnabled,
+    now,
+  });
+
+  const sourcePayload = bySource.get(resolved.source);
+  if (sourcePayload && resolved.source !== "flightaware") {
+    return {
+      payload: annotatePayload(sourcePayload, {
+        source: resolved.source,
+        now,
+      }),
+      source: resolved.source,
+      attempts,
+    };
+  }
+
+  return {
+    payload: payloadForResolvedPosition({
+      resolved,
+      callsign,
+      fallback: resolved.fallback,
+      now,
+    }),
+    source: resolved.source || "none",
+    attempts,
+  };
 };

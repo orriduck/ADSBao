@@ -19,6 +19,7 @@ import {
   resolveAircraftIcon,
   resolveAircraftSizeScale,
 } from "../../utils/aircraftIcon.js";
+import { getAircraftPositionSourceBadge } from "../../features/aviation/sourceDisplayModel.js";
 
 // Match the arrow size (18×18) so the icon stays anchored on the marker's
 // geo coordinate without shifting the label layout. Silhouettes are still
@@ -135,6 +136,7 @@ export default function AircraftPosition({
   });
   const rot = Math.round(aircraft.track || 0);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
+  const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
 
   return createPortal(
     <div
@@ -157,6 +159,7 @@ export default function AircraftPosition({
         <Label
           color={color}
           label={label}
+          sourceBadge={sourceBadge}
           showArrow={showArrow}
           hasSilhouette={Boolean(silhouette)}
         />
@@ -249,13 +252,16 @@ function Pointer({
   );
 }
 
-function Label({ color, label, showArrow, hasSilhouette }) {
+function Label({ color, label, sourceBadge, showArrow, hasSilhouette }) {
   const baseLeft = hasSilhouette ? SILHOUETTE_SIZE_PX + 4 : 22;
   const left = showArrow ? baseLeft : SILHOUETTE_SIZE_PX;
 
   return (
     <div className="aircraft-label" style={{ left: `${left}px`, top: "2px", color }}>
       <div className="aircraft-label-title">{label}</div>
+      {sourceBadge ? (
+        <div className="aircraft-label-title opacity-75">{sourceBadge}</div>
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
 // Slower-changing identity + spatial metadata: hex, track, and distance
@@ -12,10 +13,12 @@ export default function AircraftPreviewMetadata({ aircraft }) {
   const hex = aircraft?.icao24 ? aircraft.icao24.toUpperCase() : "—";
   const track = toFiniteNumber(aircraft?.track);
   const distance = toFiniteNumber(aircraft?.distanceNm);
+  const sourceBadge = getAircraftPositionSourceBadge(aircraft?.positionQuality);
 
   return (
     <dl className="aircraft-preview-metadata">
       <TextMeta label={t("metrics.hex")} value={hex} />
+      {sourceBadge ? <TextMeta label="Source" value={sourceBadge} /> : null}
       <NumericMeta
         label={t("metrics.track")}
         value={track != null ? Math.round(track) : null}
