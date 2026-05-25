@@ -5005,6 +5005,20 @@ body {
     color: var(--atc-text);
 }
 
+@media (max-width: 600px) {
+    .atc-toaster[data-sonner-toaster][data-x-position="right"] {
+        left: auto;
+        right: var(--mobile-offset-right);
+        width: min(var(--width), calc(100vw - var(--mobile-offset-left) - var(--mobile-offset-right)));
+    }
+
+    .atc-toaster[data-sonner-toaster][data-x-position="right"] [data-sonner-toast] {
+        left: auto;
+        right: 0;
+        width: min(var(--width), calc(100vw - var(--mobile-offset-left) - var(--mobile-offset-right)));
+    }
+}
+
 /* Aircraft preview card — appears on sidebar-row hover. Rounded surface
    with a silhouette that visually pokes past the top-left corner ("slides
    out"), header type next to it, then identity / telemetry / metadata

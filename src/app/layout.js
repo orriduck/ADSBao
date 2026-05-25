@@ -132,9 +132,11 @@ export default async function RootLayout({ children }) {
           </I18nProvider>
           <ThemedToaster
             initialTheme={initialTheme}
+            className="atc-toaster"
             position="top-right"
             // Drop below the 44px airport-map toolbar at top:0.
             offset={{ top: 64 }}
+            mobileOffset={{ top: 64 }}
             toastOptions={{ className: "atc-toast" }}
           />
           <Analytics />
