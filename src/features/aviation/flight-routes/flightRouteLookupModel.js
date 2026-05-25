@@ -58,6 +58,42 @@ export function getLookupCallsigns(aircraft) {
   ];
 }
 
+function airportFromMetadataCode(value) {
+  const code = routeContextCode(value);
+  if (code.length === 3) return { iata: code };
+  if (code.length === 4) return { icao: code };
+  return null;
+}
+
+function routeCode(origin, destination, field) {
+  const from = origin?.[field];
+  const to = destination?.[field];
+  return from && to ? `${from}-${to}` : "";
+}
+
+export function buildRouteFromAircraftMetadata(aircraft = {}) {
+  const callsign = normalizeCallsign(aircraft?.callsign);
+  const origin = airportFromMetadataCode(aircraft?.origin);
+  const destination = airportFromMetadataCode(aircraft?.destination);
+  if (!callsign || !origin || !destination) return null;
+
+  const icao = routeCode(origin, destination, "icao");
+  const iata = routeCode(origin, destination, "iata");
+  if (!icao && !iata) return null;
+
+  return {
+    callsign,
+    origin,
+    destination,
+    route: {
+      ...(icao ? { icao } : {}),
+      ...(iata ? { iata } : {}),
+    },
+    source: "aircraft-metadata",
+    confidence: "position-metadata",
+  };
+}
+
 const EARTH_RADIUS_NM = 3440.065;
 
 const haversineNm = (lat1, lon1, lat2, lon2) => {
@@ -170,7 +206,8 @@ export function buildRoutesByCallsign({
   for (const item of aircraft || []) {
     const callsign = normalizeCallsign(item.callsign);
     const cached = getFreshRouteCacheEntry(cache, callsign, now, routeContext);
-    if (cached?.route) routes[callsign] = cached.route;
+    const route = cached?.route || buildRouteFromAircraftMetadata(item);
+    if (route) routes[callsign] = route;
   }
   return routes;
 }
