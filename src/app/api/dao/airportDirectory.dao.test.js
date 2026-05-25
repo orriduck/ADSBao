@@ -271,6 +271,56 @@ const airports = [
     iso_country: "CA",
     iso_region: "CA-ON",
   },
+  {
+    ...KBOS,
+    ident: "KLGA",
+    icao_code: "KLGA",
+    iata_code: "LGA",
+    name: "LaGuardia Airport",
+    latitude_deg: 40.77725,
+    longitude_deg: -73.872611,
+    municipality: "New York",
+    iso_region: "US-NY",
+  },
+  {
+    ...KBOS,
+    ident: "KEWR",
+    icao_code: "KEWR",
+    iata_code: "EWR",
+    name: "Newark Liberty International Airport",
+    latitude_deg: 40.6925,
+    longitude_deg: -74.168667,
+    municipality: "Newark",
+    iso_region: "US-NJ",
+  },
+  {
+    ...KBOS,
+    ident: "15NY",
+    icao_code: "",
+    iata_code: "",
+    gps_code: "15NY",
+    type: "heliport",
+    name: "Peninsula Hospital Center Heliport",
+    latitude_deg: 40.606,
+    longitude_deg: -73.816,
+    scheduled_service: false,
+    municipality: "New York",
+    iso_region: "US-NY",
+  },
+  {
+    ...KBOS,
+    ident: "US-3183",
+    icao_code: "",
+    iata_code: "",
+    gps_code: "",
+    type: "small_airport",
+    name: "Columbia Aircraft Factory Airfield",
+    latitude_deg: 40.61,
+    longitude_deg: -73.83,
+    scheduled_service: false,
+    municipality: "New York",
+    iso_region: "US-NY",
+  },
 ];
 
 const runways = [
@@ -342,9 +392,9 @@ const nearby = await queries.getNearbyAirports({
   radiusNm: 250,
   limit: 5,
 });
-assert.equal(nearby.length, 1);
-assert.equal(nearby[0].icao, "KJFK");
-assert.ok(nearby[0].distanceNm > 150 && nearby[0].distanceNm < 220);
+const nearbyJfkFromBos = nearby.find((airport) => airport.icao === "KJFK");
+assert.ok(nearbyJfkFromBos);
+assert.ok(nearbyJfkFromBos.distanceNm > 150 && nearbyJfkFromBos.distanceNm < 220);
 
 // Coordinate-based nearby lookup is used by the flight tracking page, where
 // there is no focal airport ident. It must not inherit a US-only country scope.
@@ -357,6 +407,18 @@ const nearbyToronto = await queries.getNearbyAirportsByPosition({
 assert.deepEqual(
   nearbyToronto.map((airport) => airport.icao),
   ["CYTZ", "CYYZ"],
+);
+
+// Nearby airport display should not let very close heliports or minor fields
+// consume the limited label slots ahead of major neighboring airports.
+const nearbyJfk = await queries.getNearbyAirports({
+  ident: "KJFK",
+  radiusNm: 40,
+  limit: 3,
+});
+assert.deepEqual(
+  nearbyJfk.map((airport) => airport.icao),
+  ["KLGA", "KEWR", "US-3183"],
 );
 
 // Get runways
