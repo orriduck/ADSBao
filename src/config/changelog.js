@@ -8,14 +8,15 @@ export const CHANGELOG = [
   {
     version: "v1.5.0",
     kind: "feat",
-    title: "FlightAware-aware tracking and dashed predicted routes",
+    title: "Tracking stability and map-label optimization",
     summary:
-      "Flight tracking now separates live ADS-B, FlightAware active fallback, terminal FlightAware arrivals, stale positions, and fully missing positions so route fetches and lost-signal handling stay coordinated.",
+      "Flight tracking now separates live, fallback, stale, and missing position states while route overlays and map labels stay clearer across themes and languages.",
     highlights: [
-      "Tracked flights use explicit position states instead of treating every callsign match as live ADS-B",
-      "FlightAware-enabled users keep active FlightAware positions without triggering lost-signal prompts",
-      "Arrived / terminal FlightAware flights keep the last known point visible and stop repeated route lookups",
-      "FlightAware predicted route arcs render as dashed lines, including their glow layer",
+      "Tracked flights use explicit position states instead of treating every callsign match as live",
+      "Fallback positions stay visible without triggering unnecessary lost-signal prompts",
+      "Terminal flights keep the last known point visible and stop repeated route lookups",
+      "Predicted route arcs render as dashed lines, including their glow layer",
+      "Map place labels follow the selected app language",
     ],
   },
   {

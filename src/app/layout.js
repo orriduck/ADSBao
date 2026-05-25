@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import ThemedToaster from "@/components/app-shell/ThemedToaster.jsx";
 import { I18nProvider } from "@/features/app-shell/i18n/i18nProvider.jsx";
 import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import {
   SITE_DESCRIPTION,
   SITE_KEYWORDS,

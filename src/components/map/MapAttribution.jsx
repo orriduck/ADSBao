@@ -9,7 +9,7 @@ export default function MapAttribution({ color, shadowColor }) {
         textShadow: `0 0 6px ${shadowColor}`,
       }}
     >
-      OpenStreetMap / CartoDB
+      OpenFreeMap / OpenMapTiles / OpenStreetMap
     </div>
   );
 }
