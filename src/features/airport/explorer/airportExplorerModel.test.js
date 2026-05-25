@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   enrichAircraftWithRoutes,
+  mergeTrackedAircraftIntoNearby,
   resolveAirportProfile,
   resolveAirportExplorerSelection,
 } from "./airportExplorerModel.js";
@@ -88,3 +89,40 @@ const missingSelection = resolveAirportExplorerSelection({
 assert.equal(missingSelection.selectedAircraft, null);
 assert.equal(missingSelection.selectedAircraftStillVisible, false);
 assert.equal(missingSelection.selectedAirport, null);
+
+const mergedTracked = mergeTrackedAircraftIntoNearby({
+  trackedAircraft: {
+    icao24: "406e10",
+    callsign: "VIR26Q",
+    origin: "JFK",
+    destination: "LHR",
+    route: "JFK LHR",
+    flightRoute: {
+      origin: { iata: "JFK" },
+      destination: { iata: "LHR" },
+    },
+    flightRouteLabel: "JFK -> LHR",
+    lat: 46.1,
+    lon: -64.1,
+    altitude: 41000,
+    positionTime: 1,
+  },
+  nearbyAircraft: [
+    {
+      icao24: "406e10",
+      callsign: "G-VDIA",
+      lat: 46.5,
+      lon: -63.5,
+      altitude: 40975,
+      positionTime: 2,
+    },
+  ],
+});
+
+assert.equal(mergedTracked.length, 1);
+assert.equal(mergedTracked[0].callsign, "VIR26Q");
+assert.equal(mergedTracked[0].origin, "JFK");
+assert.equal(mergedTracked[0].destination, "LHR");
+assert.equal(mergedTracked[0].flightRouteLabel, "JFK -> LHR");
+assert.equal(mergedTracked[0].lat, 46.5);
+assert.equal(mergedTracked[0].altitude, 40975);
