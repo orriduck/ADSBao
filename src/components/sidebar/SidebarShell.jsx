@@ -89,7 +89,7 @@ export default function SidebarShell({
                 />
               ) : null}
             </span>
-            <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-atc-orange">
+            <span className="airport-route-provider-status inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-atc-orange">
               <span
                 aria-hidden="true"
                 className="inline-block h-1.5 w-1.5 rotate-45 bg-atc-orange"

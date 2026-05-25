@@ -11,6 +11,7 @@ import {
   formatFlightRouteLabel,
   getFlightRouteAirlineIconUrl,
 } from "@/utils/flightRouteDisplay.js";
+import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
@@ -47,6 +48,9 @@ export default function FlightSidebar({
   const vs = toFiniteNumber(aircraft?.baroRate);
   const track = toFiniteNumber(aircraft?.track);
   const onGround = Boolean(aircraft?.onGround);
+  const positionSourceBadge = getAircraftPositionSourceBadge(
+    aircraft?.positionQuality,
+  );
 
   const header = (
     <>
@@ -56,6 +60,7 @@ export default function FlightSidebar({
         category={category}
         route={route}
         airlineIconUrl={airlineIconUrl}
+        positionSourceBadge={positionSourceBadge}
       />
       <FlightTelemetryGrid
         speed={speed}
@@ -92,7 +97,14 @@ export default function FlightSidebar({
   );
 }
 
-function FlightIdentity({ callsign, type, category, route, airlineIconUrl }) {
+function FlightIdentity({
+  callsign,
+  type,
+  category,
+  route,
+  airlineIconUrl,
+  positionSourceBadge,
+}) {
   const { t } = useI18n();
   return (
     <SidebarIdentityHero label={t("sidebar.tracking")} code={callsign}>
@@ -131,6 +143,11 @@ function FlightIdentity({ callsign, type, category, route, airlineIconUrl }) {
             />
           )}
           <span>{route}</span>
+        </div>
+      ) : null}
+      {positionSourceBadge ? (
+        <div className="notranslate mt-2 inline-flex items-center rounded-[3px] border border-atc-line px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-normal text-atc-dim" translate="no">
+          {positionSourceBadge}
         </div>
       ) : null}
     </SidebarIdentityHero>

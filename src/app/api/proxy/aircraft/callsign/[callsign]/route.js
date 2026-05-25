@@ -5,7 +5,7 @@ import {
   jsonProxyResponse,
 } from "@/app/api/_shared/apiProxySecurity.js";
 import {
-  fetchAircraftByCallsign,
+  fetchTrackedAircraftByCallsign,
 } from "@/features/aircraft/callsign/aircraftCallsign.mechanism.js";
 import {
   AircraftCallsignProviderError,
@@ -38,7 +38,7 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const result = await fetchAircraftByCallsign({ callsign });
+    const result = await fetchTrackedAircraftByCallsign({ callsign });
     return Response.json(result.payload, {
       headers: buildProxyHeaders(request, {
         "Cache-Control": "no-store",

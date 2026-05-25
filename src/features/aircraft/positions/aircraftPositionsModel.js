@@ -24,6 +24,11 @@ export function normalizeAdsbAircraft(
         : "",
     positionTime: parseAdsbPositionTime(aircraft, responseNow, receiveTime),
     receiveTime,
+    positionQuality: aircraft.positionQuality || null,
+    flightAwareUrl: aircraft.flightAwareUrl || "",
+    origin: aircraft.origin || "",
+    destination: aircraft.destination || "",
+    route: aircraft.route || "",
   };
 }
 
