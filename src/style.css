@@ -2894,6 +2894,11 @@ body {
     mix-blend-mode: screen;
 }
 
+.aircraft-trace--flightaware-route,
+.aircraft-trace--flightaware-route-glow {
+    stroke-dasharray: 10 12 !important;
+}
+
 .aircraft-trace-point {
     filter: drop-shadow(
         0 0 7px color-mix(in oklab, var(--atc-accent) 24%, transparent)
