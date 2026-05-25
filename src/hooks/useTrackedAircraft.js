@@ -14,8 +14,10 @@ import {
   AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
   scheduleAfterOverlayPaint,
   shouldShowAircraftLoadingOverlay,
-  shouldTriggerVisibilityRefreshOverlay,
 } from "../features/aircraft/positions/aircraftLoadingOverlayModel.js";
+import {
+  resolveAircraftVisibilityPolling,
+} from "../features/aircraft/positions/aircraftVisibilityPollingModel.js";
 
 const waitUntil = (timestamp) => {
   const delay = Math.max(0, timestamp - Date.now());
@@ -154,24 +156,28 @@ export function useTrackedAircraft(callsign) {
     };
 
     const handleVisibility = () => {
-      if (document.hidden) {
-        cancelPendingVisibilityRefresh();
-        hiddenSinceRef.current = Date.now();
-        stopPolling();
-        return;
-      }
-      cancelPendingVisibilityRefresh();
-      const showRefreshOverlay = shouldTriggerVisibilityRefreshOverlay({
-        wasActive: hasActiveQuery,
+      const visibilityAction = resolveAircraftVisibilityPolling({
+        documentHidden: document.hidden,
+        hasActiveQuery,
+        pollWhenHidden: true,
         hiddenSince: hiddenSinceRef.current,
         minHiddenMs: AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs,
       });
+
+      if (document.hidden) {
+        cancelPendingVisibilityRefresh();
+        hiddenSinceRef.current = Date.now();
+        if (visibilityAction.shouldStopPolling) stopPolling();
+        return;
+      }
+      cancelPendingVisibilityRefresh();
       hiddenSinceRef.current = 0;
-      if (showRefreshOverlay) {
+      if (!visibilityAction.shouldRefreshNow) return;
+      if (visibilityAction.shouldShowRefreshOverlay) {
         setVisibilityRefreshLoading(true);
       }
       const overlayShownAt = Date.now();
-      const commitAfter = showRefreshOverlay
+      const commitAfter = visibilityAction.shouldShowRefreshOverlay
         ? overlayShownAt + AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS
         : 0;
 
@@ -182,7 +188,7 @@ export function useTrackedAircraft(callsign) {
         timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
       };
 
-      if (showRefreshOverlay) {
+      if (visibilityAction.shouldShowRefreshOverlay) {
         visibilityRefreshCancelRef.current = scheduleAfterOverlayPaint(refresh);
       } else {
         refresh();

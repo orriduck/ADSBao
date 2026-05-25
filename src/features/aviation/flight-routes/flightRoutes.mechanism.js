@@ -157,6 +157,7 @@ async function readCommunityFeedbackOverride({
 //   3. All other users → adsbdb.
 export const resolveFlightRoute = async ({
   callsign,
+  requestedProvider = "",
   feedbackRepository = createRouteFeedbackReportsRepositoryFromEnv(),
   shouldUseFlightAwareRouteProvider = isFlightAwareRouteProviderEnabled,
   fetchFlightAwareRoute: fetchFlightAwareRouteImpl = fetchFlightAwareRoute,
@@ -171,9 +172,10 @@ export const resolveFlightRoute = async ({
   });
   if (override) return override;
 
-  let useFlightAware = false;
+  const provider = String(requestedProvider || "").trim().toLowerCase();
+  let flightAwareAllowed = false;
   try {
-    useFlightAware = Boolean(
+    flightAwareAllowed = Boolean(
       await shouldUseFlightAwareRouteProvider(normalizedCallsign),
     );
   } catch (err) {
@@ -182,6 +184,9 @@ export const resolveFlightRoute = async ({
       err.message,
     );
   }
+
+  const useFlightAware =
+    flightAwareAllowed && (provider === "flightaware" || provider === "");
 
   if (useFlightAware) {
     return fetchFlightAwareRouteImpl(normalizedCallsign);

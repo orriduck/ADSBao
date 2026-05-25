@@ -43,7 +43,10 @@ export async function GET(request, { params }) {
       .trim()
       .toLowerCase();
     const providerSpecificRequest = requestedProvider === "flightaware";
-    const body = await resolveFlightRoute({ callsign });
+    const body = await resolveFlightRoute({
+      callsign,
+      requestedProvider,
+    });
 
     return Response.json(body, {
       status: body ? 200 : ROUTE_MISS_STATUS,

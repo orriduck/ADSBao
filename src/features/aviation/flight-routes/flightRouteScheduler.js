@@ -6,6 +6,7 @@ import {
   buildRoutesByCallsign,
   getRouteLookupStats,
   resolvePendingRouteLookups,
+  writeRouteCacheEntry,
 } from "./flightRouteLookupModel.js";
 
 function callsignSetForRouteContext(keys, routeContext) {
@@ -100,7 +101,12 @@ export function createFlightRouteScheduler({
     auditRouteQueue();
     try {
       const route = await client.fetchFlightRoute(callsign, routeContext);
-      cache.set(cacheKey, { route, time: now() });
+      const timestamp = now();
+      if (route) {
+        writeRouteCacheEntry(cache, callsign, route, timestamp, routeContext);
+      } else {
+        cache.set(cacheKey, { route: null, time: timestamp });
+      }
       auditRouteQueue();
     } catch (error) {
       logger.warn?.(
