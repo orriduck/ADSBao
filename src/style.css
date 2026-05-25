@@ -129,9 +129,10 @@
                         would be unreadable).
      --primary-ink    : dark companion surface with the same color
                         temperature as the selected primary.
-     --theme-sidebar-bg/card : sidebar-only light surfaces; these follow
-                        the selected primary so teal mode no longer keeps
-                        the warm yellow paper cast.
+     --theme-sidebar-* : sidebar-only surfaces; these follow the selected
+                        primary so teal mode no longer keeps the warm yellow
+                        paper cast, and every page sidebar uses the same
+                        theme-controlled surface.
    The default is yellow. Selecting "teal" in the nav menu sets
    data-primary="teal" on <html>, which the override block below picks
    up — every token that aliases these vars follows automatically. */
@@ -146,6 +147,8 @@
     --theme-primary-ink: oklch(0.14 0.016 100);
     --theme-sidebar-bg: oklch(0.925 0.004 100);
     --theme-sidebar-card: oklch(0.965 0.003 100);
+    --theme-sidebar-dark-bg: color-mix(in oklab, var(--theme-primary-ink) 78%, oklch(0.18 0.005 100));
+    --theme-sidebar-dark-card: color-mix(in oklab, var(--theme-primary-ink) 62%, oklch(0.25 0.006 100));
     --primary-bright: var(--theme-primary-bright);
     --primary-deep: var(--theme-primary-deep);
     --primary-ink: var(--theme-primary-ink);
@@ -157,6 +160,8 @@
     --theme-primary-ink: oklch(0.14 0.016 188);
     --theme-sidebar-bg: oklch(0.925 0.005 188);
     --theme-sidebar-card: oklch(0.965 0.004 188);
+    --theme-sidebar-dark-bg: color-mix(in oklab, var(--theme-primary-ink) 78%, oklch(0.18 0.006 188));
+    --theme-sidebar-dark-card: color-mix(in oklab, var(--theme-primary-ink) 62%, oklch(0.25 0.008 188));
     --atc-mint: oklch(0.65 0.064 188);
     --aircraft-trace-line: #2d746d;
     --aircraft-trace-glow: #2d746d;
@@ -438,11 +443,11 @@
     --border: var(--atc-line);
     --input: var(--atc-line-strong);
     --ring: var(--atc-accent);
-    --sidebar: var(--atc-card);
+    --sidebar: var(--theme-sidebar-dark-bg);
     --sidebar-foreground: var(--atc-text);
     --sidebar-primary: var(--atc-text);
-    --sidebar-primary-foreground: var(--atc-card);
-    --sidebar-accent: var(--atc-elev);
+    --sidebar-primary-foreground: var(--theme-sidebar-dark-card);
+    --sidebar-accent: var(--theme-sidebar-dark-card);
     --sidebar-accent-foreground: var(--atc-text);
     --sidebar-border: var(--atc-line-strong);
     --sidebar-border-soft: var(--atc-line);
@@ -479,7 +484,8 @@ body {
     font-family: var(--font-sans);
 }
 
-.sidebar-shell {
+.sidebar-shell,
+.dither-page-panel {
     --atc-bg: var(--sidebar);
     --atc-card: var(--sidebar-accent);
     --atc-elev: var(--sidebar-accent);
@@ -4020,12 +4026,11 @@ body {
     width: var(--app-sidebar-width);
 }
 
-/* Dark sidebar steps up one graphite surface level from the near-black map. */
 :root[data-theme="dark"] .airport-sidebar {
     background:
         linear-gradient(
             180deg,
-            color-mix(in oklab, var(--atc-high) 20%, transparent),
+            color-mix(in oklab, var(--sidebar-accent) 26%, transparent),
             transparent 28%
         ),
         var(--sidebar);
@@ -4962,14 +4967,14 @@ body {
 }
 
 .dark {
-    --sidebar: hsl(240 5.9% 10%);
-    --sidebar-foreground: hsl(240 4.8% 95.9%);
-    --sidebar-primary: hsl(224.3 76.3% 48%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(240 3.7% 15.9%);
-    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-    --sidebar-border: hsl(240 3.7% 15.9%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+    --sidebar: var(--theme-sidebar-dark-bg);
+    --sidebar-foreground: var(--atc-text);
+    --sidebar-primary: var(--atc-text);
+    --sidebar-primary-foreground: var(--theme-sidebar-dark-card);
+    --sidebar-accent: var(--theme-sidebar-dark-card);
+    --sidebar-accent-foreground: var(--atc-text);
+    --sidebar-border: var(--atc-line-strong);
+    --sidebar-ring: var(--atc-accent);
 }
 
 /* Sonner toast — match the console-panel idiom used throughout the app:

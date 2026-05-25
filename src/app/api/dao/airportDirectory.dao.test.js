@@ -321,6 +321,62 @@ const airports = [
     municipality: "New York",
     iso_region: "US-NY",
   },
+  {
+    ...KBOS,
+    ident: "KFRG",
+    icao_code: "KFRG",
+    iata_code: "FRG",
+    gps_code: "KFRG",
+    type: "medium_airport",
+    name: "Republic Airport",
+    latitude_deg: 40.7288,
+    longitude_deg: -73.4134,
+    scheduled_service: false,
+    municipality: "Farmingdale",
+    iso_region: "US-NY",
+  },
+  {
+    ...KBOS,
+    ident: "KTEB",
+    icao_code: "KTEB",
+    iata_code: "TEB",
+    gps_code: "KTEB",
+    type: "medium_airport",
+    name: "Teterboro Airport",
+    latitude_deg: 40.8501,
+    longitude_deg: -74.0608,
+    scheduled_service: true,
+    municipality: "Teterboro",
+    iso_region: "US-NJ",
+  },
+  {
+    ...KBOS,
+    ident: "KHPN",
+    icao_code: "KHPN",
+    iata_code: "HPN",
+    gps_code: "KHPN",
+    type: "medium_airport",
+    name: "Westchester County Airport",
+    latitude_deg: 41.067,
+    longitude_deg: -73.7076,
+    scheduled_service: true,
+    municipality: "White Plains",
+    iso_region: "US-NY",
+  },
+  {
+    ...KBOS,
+    ident: "KISP",
+    icao_code: "KISP",
+    iata_code: "ISP",
+    gps_code: "KISP",
+    type: "medium_airport",
+    name: "Long Island MacArthur Airport",
+    latitude_deg: 40.7952,
+    longitude_deg: -73.1002,
+    scheduled_service: true,
+    municipality: "Islip",
+    iso_region: "US-NY",
+  },
 ];
 
 const runways = [
@@ -409,8 +465,9 @@ assert.deepEqual(
   ["CYTZ", "CYYZ"],
 );
 
-// Nearby airport display should not let very close heliports or minor fields
-// consume the limited label slots ahead of major neighboring airports.
+// Nearby airport display should approximate "Class C and above": large
+// airports plus known Class C medium airports. Nearby heliports, small fields,
+// GA medium airports, and scheduled Class D fields should not consume slots.
 const nearbyJfk = await queries.getNearbyAirports({
   ident: "KJFK",
   radiusNm: 40,
@@ -418,7 +475,17 @@ const nearbyJfk = await queries.getNearbyAirports({
 });
 assert.deepEqual(
   nearbyJfk.map((airport) => airport.icao),
-  ["KLGA", "KEWR", "US-3183"],
+  ["KLGA", "KEWR", "KISP"],
+);
+
+const nearbyJfkWide = await queries.getNearbyAirports({
+  ident: "KJFK",
+  radiusNm: 40,
+  limit: 6,
+});
+assert.deepEqual(
+  nearbyJfkWide.map((airport) => airport.icao),
+  ["KLGA", "KEWR", "KISP"],
 );
 
 // Get runways

@@ -25,6 +25,23 @@ const TYPE_RANK = {
 
 const EARTH_RADIUS_NM = 3440.065;
 
+const US_CLASS_C_AIRPORTS = new Set([
+  "KABE", "KABI", "KABQ", "KACY", "KALB", "KAMA", "KAUS", "KAVL", "KBAB",
+  "KBAD", "KBDL", "KBGR", "KBHM", "KBIL", "KBNA", "KBOI", "KBTR", "KBTV",
+  "KBUF", "KBUR", "KCAE", "KCAK", "KCBM", "KCHA", "KCHS", "KCID", "KCMH",
+  "KCMI", "KCOS", "KCRP", "KCRW", "KDAB", "KDAY", "KDLF", "KDMA", "KDSM",
+  "KDYS", "KELP", "KEVV", "KFAT", "KFAY", "KFLL", "KFNT", "KFWA", "KGEG",
+  "KGRB", "KGRR", "KGSO", "KGSP", "KHRL", "KHSV", "KICT", "KIND", "KISP",
+  "KJAN", "KJAX", "KLAN", "KLBB", "KLEX", "KLFT", "KLIT", "KLNK", "KMAF",
+  "KMDT", "KMDW", "KMHT", "KMKE", "KMLI", "KMOB", "KMRY", "KMSN", "KMYR",
+  "KNDZ", "KNPA", "KNSE", "KNUW", "KOAK", "KOFF", "KOKC", "KOMA", "KONT",
+  "KORF", "KPBI", "KPDX", "KPIA", "KPNS", "KPOB", "KPVD", "KPWM", "KRDU",
+  "KRIC", "KRIV", "KRNO", "KROA", "KROC", "KRSW", "KSAT", "KSAV", "KSBA",
+  "KSBN", "KSDF", "KSFB", "KSGF", "KSHV", "KSJC", "KSKA", "KSMF", "KSNA",
+  "KSPI", "KSRQ", "KSSC", "KSYR", "KTIK", "KTLH", "KTOL", "KTUL", "KTUS",
+  "KTYS", "KXNA",
+]);
+
 const normalizeIdent = (value) =>
   String(value ?? "").trim().toUpperCase();
 
@@ -60,6 +77,15 @@ const sortNearbyRows = (table, left, right) => {
     if (leftRank !== rightRank) return leftRank - rightRank;
   }
   return left.distanceNm - right.distanceNm;
+};
+
+const isNearbyAirportDisplayCandidate = (table, airport) => {
+  if (table !== "airports") return true;
+  const airportIcao = normalizeIdent(airport?.icao || airport?.ident);
+  return (
+    airport?.type === "large_airport" ||
+    (airport?.type === "medium_airport" && US_CLASS_C_AIRPORTS.has(airportIcao))
+  );
 };
 
 export const mapAirportRow = (row) => {
@@ -438,7 +464,7 @@ const queryNearby = async ({
     request = request.gte("longitude_deg", minLon).lte("longitude_deg", maxLon);
   }
 
-  request = request.limit(safeLimit * 4);
+  request = request.limit(table === "airports" ? safeLimit * 12 : safeLimit * 4);
 
   const { data, error } = await request;
   if (error) {
@@ -456,7 +482,12 @@ const queryNearby = async ({
       if (!mapped) return null;
       return { ...mapped, distanceNm };
     })
-    .filter((row) => row && row.distanceNm <= radius)
+    .filter(
+      (row) =>
+        row &&
+        row.distanceNm <= radius &&
+        isNearbyAirportDisplayCandidate(table, row),
+    )
     .sort((left, right) => sortNearbyRows(table, left, right))
     .slice(0, safeLimit);
 };
