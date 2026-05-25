@@ -14,6 +14,10 @@ import {
 import {
   getLostSignalTraceRefreshKey,
 } from "@/features/aircraft/tracking/lostSignalTrackingModel.js";
+import {
+  getFlightTrackingContextPosition,
+  shouldShowFlightTrackingLoadingOverlay,
+} from "@/features/aircraft/tracking/flightTrackingContextModel.js";
 import { buildGreatCirclePath } from "@/features/aviation/flight-routes/greatCircleRouteModel.js";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel.js";
@@ -161,21 +165,28 @@ function FlightExplorerContent({ callsign }) {
   }
   const focalLat = lastKnownRef.current.lat;
   const focalLon = lastKnownRef.current.lon;
+  const contextPosition = useMemo(
+    () =>
+      getFlightTrackingContextPosition({
+        lat: focalLat,
+        lon: focalLon,
+      }),
+    [focalLat, focalLon],
+  );
+  const contextLat = contextPosition?.lat ?? null;
+  const contextLon = contextPosition?.lon ?? null;
 
   const {
     aircraft: nearbyAircraft,
-    loadingOverlayActive: nearbyLoadingOverlayActive,
-    settled: nearbyAircraftSettled,
-  } = useAircraftPositions(callsign || "", focalLat, focalLon);
+  } = useAircraftPositions(callsign || "", contextLat, contextLon);
 
   // Pull airports around the focal so the sidebar list and the map's
   // airport layer both show context relative to the moving flight.
   const {
     airports: nearbyAirports,
-    settled: nearbyAirportsSettled,
   } = useNearbyAirports({
-    lat: focalLat || 0,
-    lon: focalLon || 0,
+    lat: contextLat,
+    lon: contextLon,
     radiusNm: 40,
     limit: 12,
   });
@@ -291,11 +302,11 @@ function FlightExplorerContent({ callsign }) {
     lastUpdated,
     onBack: handleBack,
   };
-  const hasFocalLocation = focalLat != null && focalLon != null;
-  const flightCriticalLoadingSettled =
-    trackedAircraftSettled &&
-    (!hasFocalLocation ||
-      (nearbyAircraftSettled && nearbyAirportsSettled));
+  const flightTrackingLoadingActive = shouldShowFlightTrackingLoadingOverlay({
+    hasActiveFlight: Boolean(callsign),
+    trackedAircraftSettled,
+    trackedLoadingOverlayActive,
+  });
 
   return (
     <SelectedAircraftTraceProvider
@@ -377,9 +388,7 @@ function FlightExplorerContent({ callsign }) {
             variant="flight"
             callsign={callsign}
             active={
-              !flightCriticalLoadingSettled ||
-              trackedLoadingOverlayActive ||
-              nearbyLoadingOverlayActive
+              flightTrackingLoadingActive
             }
           />
 

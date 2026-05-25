@@ -1,13 +1,12 @@
 "use client";
 
+import { getAircraftPreviewTypeDisplay } from "@/features/aircraft/preview/aircraftPreviewTypeModel.js";
+
 // Aircraft type designator + ADS-B emitter category. Sits next to the
 // silhouette in the card header. Falls back gracefully when one or both
 // fields are missing — the row stays the same height either way.
 export default function AircraftPreviewType({ aircraft }) {
-  const type = (aircraft?.type || "").trim().toUpperCase();
-  const category = (aircraft?.category || "").trim().toUpperCase();
-  const primary = type || category || "Unknown type";
-  const secondary = type && category ? category : null;
+  const { primary, secondary } = getAircraftPreviewTypeDisplay(aircraft);
 
   return (
     <div className="aircraft-preview-type">

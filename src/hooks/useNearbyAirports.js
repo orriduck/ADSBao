@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { nearbyAirportClient } from "../features/airport/nearby/nearbyAirportClient.js";
+import {
+  normalizeLatitude,
+  normalizeLongitude,
+} from "../features/aircraft/tracking/flightTrackingContextModel.js";
 
 export function useNearbyAirports({
   icao = "",
@@ -14,12 +18,14 @@ export function useNearbyAirports({
   const [loading, setLoading] = useState(false);
   const [settled, setSettled] = useState(false);
   const [error, setError] = useState(null);
+  const queryLat = normalizeLatitude(lat);
+  const queryLon = normalizeLongitude(lon);
 
   useEffect(() => {
     let disposed = false;
 
     const load = async () => {
-      if (!lat || !lon) {
+      if (queryLat == null || queryLon == null) {
         setAirports([]);
         setError(null);
         setLoading(false);
@@ -33,8 +39,8 @@ export function useNearbyAirports({
       try {
         const payload = await nearbyAirportClient.fetchNearbyAirports({
           icao,
-          lat,
-          lon,
+          lat: queryLat,
+          lon: queryLon,
           radiusNm,
           limit,
         });
@@ -58,7 +64,7 @@ export function useNearbyAirports({
     return () => {
       disposed = true;
     };
-  }, [icao, lat, lon, radiusNm, limit]);
+  }, [icao, queryLat, queryLon, radiusNm, limit]);
 
   return {
     airports,
