@@ -1,29 +1,38 @@
 import { ADSBAO_SITE_VERSION } from "./siteMeta.js";
 
-export const ABOUT_BUILD_META = [
-  {
+export const ABOUT_BUILD_META = {
+  version: {
     label: "Version",
     labelKey: "about.meta.version",
     value: ADSBAO_SITE_VERSION,
   },
-  {
-    label: "Release",
-    labelKey: "about.meta.release",
-    value: "Next.js Web",
-    valueKey: "about.meta.nextWeb",
-  },
-  {
-    label: "Stack",
-    labelKey: "about.meta.stack",
-    value: "React 19 · Next 16 · Leaflet",
-  },
-  {
-    label: "Scope",
-    labelKey: "about.meta.scope",
-    value: "Maps · Weather · Traffic",
-    valueKey: "about.meta.mapsWeatherTraffic",
-  },
-];
+  sections: [
+    {
+      label: "Stack",
+      labelKey: "about.meta.stack",
+      items: ["React 19", "Next 16", "Tailwind CSS v4", "Leaflet"],
+    },
+    {
+      label: "Architecture",
+      labelKey: "about.meta.architecture",
+      items: [
+        "Next.js App Router",
+        "Vercel route handlers",
+        "Supabase + OurAirports directory",
+        "Same-origin aviation proxy",
+      ],
+    },
+    {
+      label: "Scope",
+      labelKey: "about.meta.scope",
+      items: [
+        { value: "Maps", valueKey: "about.meta.maps" },
+        { value: "Weather", valueKey: "about.meta.weather" },
+        { value: "Traffic", valueKey: "about.meta.traffic" },
+      ],
+    },
+  ],
+};
 
 export const ABOUT_DATA_SOURCES = [
   {
