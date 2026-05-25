@@ -131,6 +131,22 @@ function normalizePositionKind({ point, flight }) {
   return "observed";
 }
 
+function isTerminalFlight(flight, status = "") {
+  if (!flight || typeof flight !== "object") return false;
+  if (
+    flight?.landingTimes?.actual != null ||
+    flight?.gateArrivalTimes?.actual != null ||
+    flight?.cancelled ||
+    flight?.resultUnknown
+  ) {
+    return true;
+  }
+
+  return /\b(arrived|landed|cancelled|canceled|diverted|result unknown)\b/i.test(
+    status,
+  );
+}
+
 function selectBestFlight(flights) {
   const list = Object.values(flights || {}).filter(
     (flight) => flight && typeof flight === "object",
@@ -192,6 +208,8 @@ function buildMetadata({ callsign, flight, fetchedAt, html }) {
   const planSpeed = toNumber(flight?.flightPlan?.speed);
   const planAltitude = altitudeFt(flight?.flightPlan?.altitude);
   const sourceUpdatedAt = timestampIso(flight?.timestamp);
+  const status = cleanString(flight?.flightStatus) || undefined;
+  const terminal = isTerminalFlight(flight, status);
 
   return {
     callsign,
@@ -203,7 +221,8 @@ function buildMetadata({ callsign, flight, fetchedAt, html }) {
     groundSpeedKt: toNumber(flight?.groundspeed) ?? planSpeed ?? undefined,
     groundSpeedMph: undefined,
     trackDeg: toNumber(flight?.heading) ?? undefined,
-    status: cleanString(flight?.flightStatus) || undefined,
+    status,
+    terminal,
     sourceUpdatedAt,
     fetchedAt,
     notes: ["flightaware-public-page"],
@@ -287,6 +306,8 @@ export function parseFlightAwareFallbackPage({ callsign, html, fetchedAt } = {})
       origin: metadata.origin,
       destination: metadata.destination,
       route: metadata.route,
+      status: metadata.status,
+      terminal: metadata.terminal,
       quality: {
         source: "flightaware",
         kind,
@@ -297,6 +318,8 @@ export function parseFlightAwareFallbackPage({ callsign, html, fetchedAt } = {})
         sourceUpdatedAt,
         fetchedAt: fetched,
         confidence: kind === "observed" ? "medium" : "low",
+        status: metadata.status,
+        terminal: metadata.terminal,
         notes: ["flightaware-public-page"],
       },
     },

@@ -7,6 +7,7 @@ import {
   normalizeAdsbAircraft,
 } from "../features/aircraft/positions/aircraftPositionsModel.js";
 import {
+  getActiveAdsbMatchesLength,
   getTrackedAircraftSignalState,
 } from "../features/aircraft/tracking/lostSignalTrackingModel.js";
 import {
@@ -96,6 +97,14 @@ export function useTrackedAircraft(callsign) {
         if (disposedRef.current) return;
         const matches = Array.isArray(payload?.ac) ? payload.ac : [];
         const receiveTime = Date.now();
+        const signalState = getTrackedAircraftSignalState({
+          matchesLength: getActiveAdsbMatchesLength({
+            matchesLength: matches.length,
+            source: payload?.source,
+          }),
+          previousMisses: missesRef.current,
+          flightAwareFallback: payload?.flightAwareFallback,
+        });
         await waitUntil(commitAfter);
         if (disposedRef.current) return;
         setSettled(true);
@@ -108,11 +117,6 @@ export function useTrackedAircraft(callsign) {
           // what to do. Cross-ocean flights can disappear from ADS-B
           // callsign lookup while FlightAware still knows they are enroute,
           // so the state model accounts for that benchmark before warning.
-          const signalState = getTrackedAircraftSignalState({
-            matchesLength: matches.length,
-            previousMisses: missesRef.current,
-            flightAwareFallback: payload?.flightAwareFallback,
-          });
           missesRef.current = signalState.misses;
           setLostSignal(signalState.lostSignal);
         } else {
@@ -125,8 +129,8 @@ export function useTrackedAircraft(callsign) {
             receiveTime,
           });
           setAircraft(normalized);
-          missesRef.current = 0;
-          setLostSignal(false);
+          missesRef.current = signalState.misses;
+          setLostSignal(signalState.lostSignal);
         }
         setFeedSource(
           typeof payload?.source === "string" ? payload.source : "",
