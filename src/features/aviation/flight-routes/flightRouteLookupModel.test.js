@@ -138,6 +138,32 @@ const route = {
   assert.deepEqual(routes, { DAL123: route });
 }
 
+{
+  const routes = buildRoutesByCallsign({
+    aircraft: [
+      {
+        callsign: "VIR26Q",
+        origin: "KJFK",
+        destination: "EGLL",
+        positionQuality: { source: "flightaware", kind: "predicted" },
+      },
+    ],
+    cache: new Map(),
+    now,
+  });
+
+  assert.deepEqual(routes, {
+    VIR26Q: {
+      callsign: "VIR26Q",
+      origin: { icao: "KJFK" },
+      destination: { icao: "EGLL" },
+      route: { icao: "KJFK-EGLL" },
+      source: "aircraft-metadata",
+      confidence: "position-metadata",
+    },
+  });
+}
+
 // rankCandidatesByDistance: aircraft farthest from focal airport rank first.
 // KBOS focal -> JBU123 over Lisbon (~3000nm) outranks DAL123 over NYC (~190nm)
 // outranks UAL456 directly over KBOS (~0nm).
