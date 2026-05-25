@@ -17,8 +17,10 @@ import {
   AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
   scheduleAfterOverlayPaint,
   shouldShowAircraftLoadingOverlay,
-  shouldTriggerVisibilityRefreshOverlay,
 } from "../features/aircraft/positions/aircraftLoadingOverlayModel.js";
+import {
+  resolveAircraftVisibilityPolling,
+} from "../features/aircraft/positions/aircraftVisibilityPollingModel.js";
 import {
   hasFiniteFlightPosition,
   normalizeLatitude,
@@ -35,7 +37,8 @@ const waitUntil = (timestamp) => {
   });
 };
 
-export function useAircraftPositions(icao, lat, lon) {
+export function useAircraftPositions(icao, lat, lon, options = {}) {
+  const pollWhenHidden = options?.pollWhenHidden === true;
   const queryLat = normalizeLatitude(lat);
   const queryLon = normalizeLongitude(lon);
   const hasActiveQuery = Boolean(
@@ -141,31 +144,39 @@ export function useAircraftPositions(icao, lat, lon) {
     };
 
     const handleVisibility = () => {
+      const visibilityAction = resolveAircraftVisibilityPolling({
+        documentHidden: document.hidden,
+        hasActiveQuery,
+        wasActive: wasActiveRef.current,
+        pollWhenHidden,
+        hiddenSince: hiddenSinceRef.current,
+        minHiddenMs: HIDDEN_POLL_GRACE_MS,
+      });
+
       if (document.hidden) {
         cancelPendingVisibilityRefresh();
         hiddenSinceRef.current = Date.now();
-        stop({ clearAircraft: false, clearTrace: false });
+        if (visibilityAction.shouldStopPolling) {
+          stop({ clearAircraft: false, clearTrace: false });
+        }
         return;
       }
       cancelPendingVisibilityRefresh();
       const hiddenDuration =
         hiddenSinceRef.current > 0 ? Date.now() - hiddenSinceRef.current : 0;
-      const showRefreshOverlay = shouldTriggerVisibilityRefreshOverlay({
-        wasActive: wasActiveRef.current,
-        hiddenSince: hiddenSinceRef.current,
-        minHiddenMs: HIDDEN_POLL_GRACE_MS,
-      });
       hiddenSinceRef.current = 0;
       const overlayShownAt = Date.now();
-      if (showRefreshOverlay) setVisibilityRefreshLoading(true);
-      if (!wasActiveRef.current) return;
-      const commitAfter = showRefreshOverlay
+      if (visibilityAction.shouldShowRefreshOverlay) {
+        setVisibilityRefreshLoading(true);
+      }
+      if (!visibilityAction.shouldRefreshNow) return;
+      const commitAfter = visibilityAction.shouldShowRefreshOverlay
         ? overlayShownAt + AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS
         : 0;
 
       const refresh = () => {
         visibilityRefreshCancelRef.current = null;
-        if (hiddenDuration > HIDDEN_POLL_GRACE_MS) {
+        if (!pollWhenHidden && hiddenDuration > HIDDEN_POLL_GRACE_MS) {
           traceTrackerRef.current.clear();
           start({ commitAfter });
           return;
@@ -175,7 +186,7 @@ export function useAircraftPositions(icao, lat, lon) {
         timerRef.current = setInterval(poll, DEFAULT_AIRCRAFT_POLL_MS);
       };
 
-      if (showRefreshOverlay) {
+      if (visibilityAction.shouldShowRefreshOverlay) {
         visibilityRefreshCancelRef.current = scheduleAfterOverlayPaint(refresh);
       } else {
         refresh();
@@ -203,7 +214,7 @@ export function useAircraftPositions(icao, lat, lon) {
       cancelPendingVisibilityRefresh();
       stop();
     };
-  }, [hasActiveQuery, icao, queryLat, queryLon]);
+  }, [hasActiveQuery, icao, pollWhenHidden, queryLat, queryLon]);
 
   return {
     aircraft,

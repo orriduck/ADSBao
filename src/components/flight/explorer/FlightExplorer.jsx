@@ -178,7 +178,9 @@ function FlightExplorerContent({ callsign }) {
 
   const {
     aircraft: nearbyAircraft,
-  } = useAircraftPositions(callsign || "", contextLat, contextLon);
+  } = useAircraftPositions(callsign || "", contextLat, contextLon, {
+    pollWhenHidden: true,
+  });
 
   // Pull airports around the focal so the sidebar list and the map's
   // airport layer both show context relative to the moving flight.

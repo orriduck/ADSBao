@@ -63,6 +63,48 @@ const OVERRIDE_ROUTE = Object.freeze({
   const calls = [];
   const route = await resolveFlightRoute({
     callsign: "AAL1234",
+    requestedProvider: "flightaware",
+    feedbackRepository: null,
+    shouldUseFlightAwareRouteProvider: async () => true,
+    fetchFlightAwareRoute: async () => {
+      calls.push("flightaware");
+      return FLIGHTAWARE_ROUTE;
+    },
+    fetchAdsbdbRoute: async () => {
+      calls.push("adsbdb");
+      return ADSBDB_ROUTE;
+    },
+  });
+
+  assert.equal(route, FLIGHTAWARE_ROUTE);
+  assert.deepEqual(calls, ["flightaware"]);
+}
+
+{
+  const calls = [];
+  const route = await resolveFlightRoute({
+    callsign: "AAL1234",
+    requestedProvider: "flightaware",
+    feedbackRepository: null,
+    shouldUseFlightAwareRouteProvider: async () => false,
+    fetchFlightAwareRoute: async () => {
+      calls.push("flightaware");
+      return FLIGHTAWARE_ROUTE;
+    },
+    fetchAdsbdbRoute: async () => {
+      calls.push("adsbdb");
+      return ADSBDB_ROUTE;
+    },
+  });
+
+  assert.equal(route, ADSBDB_ROUTE);
+  assert.deepEqual(calls, ["adsbdb"]);
+}
+
+{
+  const calls = [];
+  const route = await resolveFlightRoute({
+    callsign: "AAL1234",
     feedbackRepository: null,
     shouldUseFlightAwareRouteProvider: async () => true,
     fetchFlightAwareRoute: async () => {

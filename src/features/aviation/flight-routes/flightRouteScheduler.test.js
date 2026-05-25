@@ -138,3 +138,51 @@ function createManualTimer() {
   assert.equal(timer.callbacks.length, 0);
   scheduler.dispose();
 }
+
+{
+  const timer = createManualTimer();
+  const route = {
+    callsign: "VIR26Q",
+    callsignIcao: "VIR26Q",
+    callsignIata: "VS26Q",
+    origin: { icao: "KJFK", iata: "JFK" },
+    destination: { icao: "EGLL", iata: "LHR" },
+  };
+  const scheduler = createFlightRouteScheduler({
+    client: {
+      async fetchFlightRoute() {
+        return route;
+      },
+    },
+    config: {
+      maxConcurrentLookups: 1,
+      maxLookupsPerPass: 2,
+      maxQueueSize: 10,
+      queueIntervalMs: 0,
+      auditLogIntervalMs: 0,
+      hitCacheMs: 60_000,
+      missCacheMs: 10_000,
+    },
+    logger: { info() {}, warn() {} },
+    schedule: timer.schedule,
+    clearSchedule: timer.clear,
+    now: () => 1_700_000_000_000,
+  });
+
+  const routeContext = { routeProvider: "flightaware" };
+  scheduler.syncAircraft({
+    aircraft: [{ callsign: "VIR26Q" }],
+    routeContext,
+  });
+  timer.runNext();
+  await flushPromises();
+
+  assert.deepEqual(
+    scheduler.getRoutesByCallsign({
+      aircraft: [{ callsign: "VS26Q" }],
+      routeContext,
+    }),
+    { VS26Q: route },
+  );
+  scheduler.dispose();
+}

@@ -36,6 +36,18 @@ export function getFreshRouteCacheEntry(
   return null;
 }
 
+export function writeRouteCacheEntry(cache, callsign, route, time, routeContext = {}) {
+  const cacheKeys = new Set(
+    [callsign, route?.callsign, route?.callsignIcao, route?.callsignIata]
+      .map((value) => buildRouteCacheKey(value, routeContext))
+      .filter(Boolean),
+  );
+
+  for (const cacheKey of cacheKeys) {
+    cache.set(cacheKey, { route, time });
+  }
+}
+
 export function getLookupCallsigns(aircraft) {
   return [
     ...new Set(
