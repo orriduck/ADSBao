@@ -38,11 +38,9 @@
     --color-atc-line: var(--atc-line);
     --color-atc-line-strong: var(--atc-line-strong);
 
-    /* Endfield typography. Closest free analog to Novecento Sans Wide is
-       Saira — a wide geometric grotesque with full 300–900 weights.
-       Single family used everywhere; display moments lean on weight 800–
-       900 + wider letter-spacing to hit the "Novecento" poster feel.
-       Noto Sans SC carries CJK glyphs. */
+    /* Endfield typography. HarmonyOS Sans Medium softens readable UI
+       surfaces when installed locally; Saira keeps the wide geometric
+       cockpit/display layer, and Noto Sans SC carries CJK glyphs. */
     --font-sans: var(--theme-font-sans);
     --font-mono: var(--theme-font-mono);
     --font-nav: var(--theme-font-nav);
@@ -113,6 +111,14 @@
     }
 }
 
+@font-face {
+    font-family: "HarmonyOS Sans ADSBao";
+    src: url("/fonts/harmonyos/HarmonyOS_Sans_Medium.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+}
+
 /* User-selectable primary color. Two tones cover every accent usage in
    the app:
      --primary-bright : solid fills for tabs, chips, CTAs, focused-row
@@ -125,7 +131,8 @@
    data-primary="teal" on <html>, which the override block below picks
    up — every token that aliases these vars follows automatically. */
 :root {
-    --theme-font-sans: "Saira", "Noto Sans SC", system-ui, sans-serif;
+    --theme-font-harmony-medium: "HarmonyOS Sans ADSBao", "HarmonyOS Sans Medium", "HarmonyOS Sans SC Medium", "HarmonyOS Sans", "HarmonyOS Sans SC";
+    --theme-font-sans: var(--theme-font-harmony-medium), "Saira", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-mono: "Saira", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-nav: "Saira", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-display: "Saira", "Noto Sans SC", system-ui, sans-serif;
