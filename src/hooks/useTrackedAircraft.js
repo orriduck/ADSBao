@@ -47,6 +47,7 @@ export function useTrackedAircraft(callsign) {
   const timerRef = useRef(null);
   const disposedRef = useRef(false);
   const missesRef = useRef(0);
+  const hiddenSinceRef = useRef(0);
   // Caller can dispatch a manual retry from the overlay. We bounce the
   // poll cadence by incrementing this counter — the effect listens for
   // changes and triggers an immediate fetch.
@@ -151,13 +152,17 @@ export function useTrackedAircraft(callsign) {
     const handleVisibility = () => {
       if (document.hidden) {
         cancelPendingVisibilityRefresh();
+        hiddenSinceRef.current = Date.now();
         stopPolling();
         return;
       }
       cancelPendingVisibilityRefresh();
       const showRefreshOverlay = shouldTriggerVisibilityRefreshOverlay({
         wasActive: hasActiveQuery,
+        hiddenSince: hiddenSinceRef.current,
+        minHiddenMs: AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs,
       });
+      hiddenSinceRef.current = 0;
       if (showRefreshOverlay) {
         setVisibilityRefreshLoading(true);
       }

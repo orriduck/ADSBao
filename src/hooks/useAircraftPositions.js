@@ -19,6 +19,11 @@ import {
   shouldShowAircraftLoadingOverlay,
   shouldTriggerVisibilityRefreshOverlay,
 } from "../features/aircraft/positions/aircraftLoadingOverlayModel.js";
+import {
+  hasFiniteFlightPosition,
+  normalizeLatitude,
+  normalizeLongitude,
+} from "../features/aircraft/tracking/flightTrackingContextModel.js";
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
 
@@ -31,7 +36,11 @@ const waitUntil = (timestamp) => {
 };
 
 export function useAircraftPositions(icao, lat, lon) {
-  const hasActiveQuery = Boolean(icao && lat && lon);
+  const queryLat = normalizeLatitude(lat);
+  const queryLon = normalizeLongitude(lon);
+  const hasActiveQuery = Boolean(
+    icao && hasFiniteFlightPosition({ lat: queryLat, lon: queryLon }),
+  );
   const [aircraft, setAircraft] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
@@ -67,12 +76,12 @@ export function useAircraftPositions(icao, lat, lon) {
     };
 
     const poll = async ({ commitAfter = 0 } = {}) => {
-      if (!lat || !lon) return;
+      if (queryLat == null || queryLon == null) return;
       setLoading(true);
       try {
         const aircraftJson = await aircraftPositionClient.fetchNearbyAircraft({
-          lat,
-          lon,
+          lat: queryLat,
+          lon: queryLon,
           distNm: DEFAULT_AIRCRAFT_RANGE_NM,
         });
         if (disposed) return;
@@ -144,6 +153,7 @@ export function useAircraftPositions(icao, lat, lon) {
       const showRefreshOverlay = shouldTriggerVisibilityRefreshOverlay({
         wasActive: wasActiveRef.current,
         hiddenSince: hiddenSinceRef.current,
+        minHiddenMs: HIDDEN_POLL_GRACE_MS,
       });
       hiddenSinceRef.current = 0;
       const overlayShownAt = Date.now();
@@ -193,7 +203,7 @@ export function useAircraftPositions(icao, lat, lon) {
       cancelPendingVisibilityRefresh();
       stop();
     };
-  }, [hasActiveQuery, icao, lat, lon]);
+  }, [hasActiveQuery, icao, queryLat, queryLon]);
 
   return {
     aircraft,

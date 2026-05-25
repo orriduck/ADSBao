@@ -38,10 +38,31 @@ assert.equal(
 assert.equal(
   shouldTriggerVisibilityRefreshOverlay({
     wasActive: true,
-    hiddenSince: 0,
-    now: 1_050,
+    hiddenSince: 1_000,
+    now: 7_000,
+    minHiddenMs: 5_000,
   }),
   true,
+);
+
+assert.equal(
+  shouldTriggerVisibilityRefreshOverlay({
+    wasActive: true,
+    hiddenSince: 1_000,
+    now: 1_050,
+    minHiddenMs: 5_000,
+  }),
+  false,
+);
+
+assert.equal(
+  shouldTriggerVisibilityRefreshOverlay({
+    wasActive: true,
+    hiddenSince: 0,
+    now: 7_000,
+    minHiddenMs: 5_000,
+  }),
+  false,
 );
 
 assert.equal(
@@ -49,6 +70,7 @@ assert.equal(
     wasActive: false,
     hiddenSince: 1_000,
     now: 1_050,
+    minHiddenMs: 5_000,
   }),
   false,
 );

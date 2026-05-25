@@ -23,8 +23,12 @@ export function shouldShowAircraftLoadingOverlay({
 
 export function shouldTriggerVisibilityRefreshOverlay({
   wasActive = false,
+  hiddenSince = 0,
+  now = Date.now(),
+  minHiddenMs = 0,
 } = {}) {
-  return Boolean(wasActive);
+  const hiddenDuration = Math.max(0, Number(now) - Number(hiddenSince));
+  return Boolean(wasActive && hiddenSince > 0 && hiddenDuration >= minHiddenMs);
 }
 
 export function getLoadingOverlayExitDelay({
