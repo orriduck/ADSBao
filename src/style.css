@@ -127,6 +127,8 @@
      --primary-deep   : darker variant used as selected-primary text on the
                         light-mode grey paper (where --primary-bright
                         would be unreadable).
+     --primary-ink    : dark companion surface with the same color
+                        temperature as the selected primary.
    The default is yellow. Selecting "teal" in the nav menu sets
    data-primary="teal" on <html>, which the override block below picks
    up — every token that aliases these vars follows automatically. */
@@ -138,13 +140,16 @@
     --theme-font-display: "Saira", "Noto Sans SC", system-ui, sans-serif;
     --theme-primary-bright: #ffe600;
     --theme-primary-deep: #a86a1f;
+    --theme-primary-ink: oklch(0.14 0.016 100);
     --primary-bright: var(--theme-primary-bright);
     --primary-deep: var(--theme-primary-deep);
+    --primary-ink: var(--theme-primary-ink);
 }
 
 :root[data-primary="teal"] {
     --theme-primary-bright: #83d5cf;
     --theme-primary-deep: #2d746d;
+    --theme-primary-ink: oklch(0.14 0.016 188);
     --atc-mint: oklch(0.65 0.064 188);
     --aircraft-trace-line: #2d746d;
     --aircraft-trace-glow: #2d746d;
@@ -186,7 +191,7 @@
     --atc-faint: color-mix(in oklab, var(--atc-text) 42%, transparent);
     --atc-line: color-mix(in oklab, var(--atc-text) 10%, transparent);
     --atc-line-strong: color-mix(in oklab, var(--atc-text) 22%, transparent);
-    --atc-click-bg: oklch(0.17 0.006 100);
+    --atc-click-bg: var(--primary-ink);
     /* Click/active surfaces are ALWAYS ink regardless of theme, so text
        on top must be the bright primary color — not the light-theme
        deep variant that --atc-orange resolves to. Muted variants mix
@@ -351,7 +356,7 @@
     --atc-faint: color-mix(in oklab, var(--atc-text) 43%, transparent);
     --atc-line: color-mix(in oklab, var(--atc-text) 9%, transparent);
     --atc-line-strong: color-mix(in oklab, var(--atc-text) 18%, transparent);
-    --atc-click-bg: oklch(0.1 0.004 100);
+    --atc-click-bg: var(--primary-ink);
     --atc-click-fg: var(--primary-bright);
     /* Muted variants mix toward the click ink, not the canvas card —
        keeps secondary text on the active surface in the same hue family
@@ -5623,13 +5628,13 @@ body {
     margin-top: 14px;
     padding: 10px 14px;
     border: none;
-    border: 1px solid color-mix(in oklab, var(--atc-orange) 58%, transparent);
+    border: 1px solid color-mix(in oklab, var(--primary-bright) 46%, var(--primary-ink));
     border-radius: var(--atc-radius-control);
     background:
         linear-gradient(
             180deg,
-            color-mix(in oklab, var(--atc-orange) 26%, var(--atc-accent)),
-            color-mix(in oklab, var(--atc-orange) 18%, var(--atc-accent))
+            color-mix(in oklab, var(--primary-bright) 24%, var(--primary-ink)),
+            color-mix(in oklab, var(--primary-bright) 14%, var(--primary-ink))
         );
     color: var(--primary-foreground);
     font-family: var(--font-sans);
@@ -5946,8 +5951,13 @@ body {
     padding: 9px 14px;
     border: none;
     border-radius: 2px;
-    background: var(--atc-accent);
-    color: var(--atc-bg);
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--primary-bright) 24%, var(--primary-ink)),
+            color-mix(in oklab, var(--primary-bright) 14%, var(--primary-ink))
+        );
+    color: var(--primary-foreground);
     font-family: var(--font-sans);
     font-size: 12px;
     font-weight: 700;
@@ -6285,7 +6295,7 @@ body {
     /* Bright primary for solid surfaces — CTA bars, parallelogram tabs,
        chips. Aliases --primary-bright (user-switchable yellow/teal). */
     --endf-yellow: var(--primary-bright);
-    --endf-ink: oklch(0.14 0.005 100);
+    --endf-ink: var(--primary-ink);
     /* Micro-accent color — used for `//` prefixes, diamond bullets,
        ghost chip text, hairline ticks. Bright primary reads fine on
        dark; on light mode it's too faint against grey, so we fall back

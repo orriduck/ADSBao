@@ -92,9 +92,9 @@ export default function AirportPreviewMetadataCard({ airport }) {
         <Link
           href={trackHref}
           className="aircraft-preview-card__track-btn"
-          aria-label={`${t("preview.track")} ${codeLine}`}
+          aria-label={`${t("preview.openAirport")} ${codeLine}`}
         >
-          {t("preview.track")}
+          {t("preview.openAirport")}
         </Link>
       ) : (
         <button
@@ -102,7 +102,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
           className="aircraft-preview-card__track-btn"
           disabled
         >
-          {alreadyTracking ? t("preview.tracking") : t("preview.track")}
+          {alreadyTracking ? t("preview.viewingAirport") : t("preview.openAirport")}
         </button>
       )}
     </div>

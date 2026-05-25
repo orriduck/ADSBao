@@ -71,6 +71,13 @@ export default function AircraftPreviewCard({
   const mobileFeedbackLabel = aircraft?.flightRouteLabel
     ? t("routeFeedback.suggestCorrection")
     : t("routeFeedback.suggestRight");
+  const mobileTrackLabel = isAirport
+    ? alreadyTracking
+      ? t("preview.viewingAirport")
+      : t("preview.openAirport")
+    : alreadyTracking
+      ? t("preview.trackingTrace")
+      : t("preview.trackTrace");
 
   return (
     <>
@@ -122,7 +129,7 @@ export default function AircraftPreviewCard({
               onClick={handleMobileTap}
               disabled={alreadyTracking}
             >
-              {alreadyTracking ? t("preview.tracking") : t("preview.track")}
+              {mobileTrackLabel}
             </button>
           )}
           {showMobileFeedbackTrigger && (
