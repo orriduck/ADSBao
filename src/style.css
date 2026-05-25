@@ -129,6 +129,9 @@
                         would be unreadable).
      --primary-ink    : dark companion surface with the same color
                         temperature as the selected primary.
+     --theme-sidebar-bg/card : sidebar-only light surfaces; these follow
+                        the selected primary so teal mode no longer keeps
+                        the warm yellow paper cast.
    The default is yellow. Selecting "teal" in the nav menu sets
    data-primary="teal" on <html>, which the override block below picks
    up — every token that aliases these vars follows automatically. */
@@ -141,6 +144,8 @@
     --theme-primary-bright: #ffe600;
     --theme-primary-deep: #a86a1f;
     --theme-primary-ink: oklch(0.14 0.016 100);
+    --theme-sidebar-bg: oklch(0.925 0.004 100);
+    --theme-sidebar-card: oklch(0.965 0.003 100);
     --primary-bright: var(--theme-primary-bright);
     --primary-deep: var(--theme-primary-deep);
     --primary-ink: var(--theme-primary-ink);
@@ -150,6 +155,8 @@
     --theme-primary-bright: #83d5cf;
     --theme-primary-deep: #2d746d;
     --theme-primary-ink: oklch(0.14 0.016 188);
+    --theme-sidebar-bg: oklch(0.925 0.005 188);
+    --theme-sidebar-card: oklch(0.965 0.004 188);
     --atc-mint: oklch(0.65 0.064 188);
     --aircraft-trace-line: #2d746d;
     --aircraft-trace-glow: #2d746d;
@@ -325,11 +332,11 @@
     --border: var(--atc-line);
     --input: var(--atc-line-strong);
     --ring: var(--atc-accent);
-    --sidebar: var(--atc-bg);
+    --sidebar: var(--theme-sidebar-bg);
     --sidebar-foreground: var(--atc-text);
     --sidebar-primary: var(--atc-text);
     --sidebar-primary-foreground: oklch(0.965 0.003 100);
-    --sidebar-accent: var(--atc-card);
+    --sidebar-accent: var(--theme-sidebar-card);
     --sidebar-accent-foreground: var(--atc-text);
     --sidebar-border: var(--atc-line-strong);
     --sidebar-border-soft: var(--atc-line);
@@ -3995,10 +4002,10 @@ body {
     background:
         linear-gradient(
             180deg,
-            color-mix(in oklab, var(--atc-elev) 18%, transparent),
+            color-mix(in oklab, var(--sidebar-accent) 36%, transparent),
             transparent 24%
         ),
-        var(--atc-bg);
+        var(--sidebar);
     border-right: 1px solid var(--atc-line-strong);
     display: flex;
     flex-direction: column;
@@ -4021,7 +4028,7 @@ body {
             color-mix(in oklab, var(--atc-high) 20%, transparent),
             transparent 28%
         ),
-        var(--atc-card);
+        var(--sidebar);
 }
 
 .airport-map-region {

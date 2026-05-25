@@ -45,6 +45,23 @@ const haversineNm = (lat1, lon1, lat2, lon2) => {
 
 export const typeRank = (type) => TYPE_RANK[type] ?? 9;
 
+const nearbyAirportRank = (airport) => {
+  const rank = typeRank(airport?.type);
+  const hasCommercialCode = Boolean(airport?.iata);
+  const hasScheduledService = Boolean(airport?.scheduledService);
+  const codeRank = hasScheduledService && hasCommercialCode ? -0.2 : hasCommercialCode ? -0.1 : 0;
+  return rank + codeRank;
+};
+
+const sortNearbyRows = (table, left, right) => {
+  if (table === "airports") {
+    const leftRank = nearbyAirportRank(left);
+    const rightRank = nearbyAirportRank(right);
+    if (leftRank !== rightRank) return leftRank - rightRank;
+  }
+  return left.distanceNm - right.distanceNm;
+};
+
 export const mapAirportRow = (row) => {
   if (!row) return null;
   return {
@@ -440,7 +457,7 @@ const queryNearby = async ({
       return { ...mapped, distanceNm };
     })
     .filter((row) => row && row.distanceNm <= radius)
-    .sort((left, right) => left.distanceNm - right.distanceNm)
+    .sort((left, right) => sortNearbyRows(table, left, right))
     .slice(0, safeLimit);
 };
 
