@@ -52,6 +52,12 @@ assert.match(
   "Tailwind font utility should resolve through the theme font token",
 );
 
+assert.match(
+  styleCss,
+  /\.aircraft-trace--flightaware-route(?:-glow)?[\s\S]*stroke-dasharray:\s*10 12/,
+  "FlightAware route SVG classes should enforce dashed rendering in production",
+);
+
 for (const theme of ["light", "dark"]) {
   const trace = SELECTED_AIRCRAFT_TRACE_STYLE[theme];
   assertThemeVar(trace.lineColor, `${theme} selected trace line`);
