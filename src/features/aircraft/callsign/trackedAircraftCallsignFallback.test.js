@@ -108,4 +108,36 @@ const staleAircraft = {
   assert.equal(flightAwareCalls, 0);
 }
 
+{
+  let flightAwareCalls = 0;
+  const result = await fetchTrackedAircraftByCallsign({
+    callsign: "AAL100",
+    fetchPrimaryProviders: async () => [
+      providerPayload(ADSB_LOL.id, [staleAircraft]),
+      providerPayload(AIRPLANES_LIVE.id, []),
+    ],
+    getFlightAwareFallback: async () => {
+      flightAwareCalls += 1;
+      return {
+        ok: true,
+        hasPosition: true,
+        position: {
+          lat: 47.4167,
+          lon: -46.5833,
+          callsign: "AAL100",
+          quality: {
+            source: "flightaware",
+            kind: "predicted",
+            fetchedAt: "2026-05-25T03:00:00.000Z",
+          },
+        },
+      };
+    },
+  });
+
+  assert.equal(result.source, ADSB_LOL.id);
+  assert.equal(result.payload.ac[0].positionQuality.kind, "stale");
+  assert.equal(flightAwareCalls, 0);
+}
+
 console.log("trackedAircraftCallsignFallback.test.js ok");

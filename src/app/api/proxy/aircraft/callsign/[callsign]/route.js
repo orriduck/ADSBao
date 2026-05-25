@@ -4,6 +4,11 @@ import {
   enforceProxyRequest,
   jsonProxyResponse,
 } from "@/app/api/_shared/apiProxySecurity.js";
+import { currentUser } from "@clerk/nextjs/server";
+import {
+  buildClerkUserAccessEntity,
+  isFlightAwareOwnerEntity,
+} from "@/features/app-shell/auth/clerkRouteProviderAccess.js";
 import {
   fetchTrackedAircraftByCallsign,
 } from "@/features/aircraft/callsign/aircraftCallsign.mechanism.js";
@@ -38,7 +43,13 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const result = await fetchTrackedAircraftByCallsign({ callsign });
+    const user = await currentUser();
+    const result = await fetchTrackedAircraftByCallsign({
+      callsign,
+      featureEnabled: isFlightAwareOwnerEntity(
+        buildClerkUserAccessEntity(user),
+      ),
+    });
     return Response.json(result.payload, {
       headers: buildProxyHeaders(request, {
         "Cache-Control": "no-store",

@@ -6,7 +6,6 @@ import {
 } from "../../aviation/providerHealth.js";
 import {
   getFlightAwareFallbackByCallsign,
-  isFlightAwareFallbackEnabled,
 } from "../flightaware/flightAwareFallbackProvider.js";
 import {
   annotateAdsbPosition,
@@ -211,7 +210,7 @@ function sanitizeFallbackForClient(fallback) {
 
 export const fetchTrackedAircraftByCallsign = async ({
   callsign,
-  featureEnabled = isFlightAwareFallbackEnabled(),
+  featureEnabled = false,
   fetchPrimaryProviders = fetchAllCallsignProviders,
   getFlightAwareFallback = getFlightAwareFallbackByCallsign,
   now = Date.now(),
