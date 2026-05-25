@@ -247,6 +247,30 @@ const airports = [
     municipality: "London",
     iso_country: "GB",
   },
+  {
+    ...KBOS,
+    ident: "CYYZ",
+    icao_code: "CYYZ",
+    iata_code: "YYZ",
+    name: "Toronto Pearson International Airport",
+    latitude_deg: 43.6772,
+    longitude_deg: -79.6306,
+    municipality: "Toronto",
+    iso_country: "CA",
+    iso_region: "CA-ON",
+  },
+  {
+    ...KBOS,
+    ident: "CYTZ",
+    icao_code: "CYTZ",
+    iata_code: "YTZ",
+    name: "Billy Bishop Toronto City Centre Airport",
+    latitude_deg: 43.6275,
+    longitude_deg: -79.3962,
+    municipality: "Toronto",
+    iso_country: "CA",
+    iso_region: "CA-ON",
+  },
 ];
 
 const runways = [
@@ -321,6 +345,19 @@ const nearby = await queries.getNearbyAirports({
 assert.equal(nearby.length, 1);
 assert.equal(nearby[0].icao, "KJFK");
 assert.ok(nearby[0].distanceNm > 150 && nearby[0].distanceNm < 220);
+
+// Coordinate-based nearby lookup is used by the flight tracking page, where
+// there is no focal airport ident. It must not inherit a US-only country scope.
+const nearbyToronto = await queries.getNearbyAirportsByPosition({
+  lat: 43.73,
+  lon: -79.45,
+  radiusNm: 25,
+  limit: 5,
+});
+assert.deepEqual(
+  nearbyToronto.map((airport) => airport.icao),
+  ["CYTZ", "CYYZ"],
+);
 
 // Get runways
 const runwaysOut = await queries.getRunwaysByAirport("KBOS");

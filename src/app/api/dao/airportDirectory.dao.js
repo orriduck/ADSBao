@@ -339,6 +339,34 @@ export const createOurAirportsQueries = ({ client } = {}) => {
       });
     },
 
+    async getNearbyAirportsByPosition({
+      lat,
+      lon,
+      radiusNm = 60,
+      limit = 12,
+      excludeIdent = "",
+    } = {}) {
+      const originLat = toFiniteNumber(lat);
+      const originLon = toFiniteNumber(lon);
+      if (!Number.isFinite(originLat) || !Number.isFinite(originLon)) {
+        return [];
+      }
+      return queryNearby({
+        client,
+        table: "airports",
+        columns: AIRPORT_COLUMNS,
+        origin: {
+          ident: normalizeIdent(excludeIdent),
+          lat: originLat,
+          lon: originLon,
+        },
+        radiusNm,
+        limit,
+        excludeIdent: normalizeIdent(excludeIdent),
+        rowMapper: mapAirportRow,
+      });
+    },
+
     async getNearbyNavaids({ ident, radiusNm = 60, limit = 12 } = {}) {
       const origin = await this.getAirportByIdent(ident);
       if (!origin || !Number.isFinite(origin.lat) || !Number.isFinite(origin.lon)) {
