@@ -146,6 +146,23 @@ assert.equal(buildFlightAwareFallbackUrl("bad-call"), "");
 {
   clearFlightAwareFallbackCache();
   let fetchCalls = 0;
+  const enabledByDefault = await getFlightAwareFallbackByCallsign("AAL100", {
+    env: {},
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return new Response(activeHtml, { status: 200 });
+    },
+    now: () => Date.parse(fetchedAt),
+  });
+
+  assert.equal(enabledByDefault.ok, true);
+  assert.equal(enabledByDefault.hasPosition, true);
+  assert.equal(fetchCalls, 1);
+}
+
+{
+  clearFlightAwareFallbackCache();
+  let fetchCalls = 0;
   const disabled = await getFlightAwareFallbackByCallsign("AAL100", {
     env: { FLIGHTAWARE_FALLBACK_ENABLED: "false" },
     fetchImpl: async () => {

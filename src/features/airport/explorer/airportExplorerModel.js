@@ -57,6 +57,49 @@ export function enrichAircraftWithRoutes({
 
 const aircraftSelectionId = (aircraft) => aircraft?.icao24 || aircraft?.callsign || "";
 
+const LIVE_POSITION_FIELDS = [
+  "lat",
+  "lon",
+  "altitude",
+  "baroRate",
+  "geomRate",
+  "navAltitudeMcp",
+  "onGround",
+  "velocity",
+  "track",
+  "positionTime",
+  "receiveTime",
+  "positionQuality",
+];
+
+export function mergeTrackedAircraftIntoNearby({
+  trackedAircraft = null,
+  nearbyAircraft = [],
+} = {}) {
+  if (!trackedAircraft) return nearbyAircraft;
+
+  const trackedKey = aircraftSelectionId(trackedAircraft);
+  const matchIndex = nearbyAircraft.findIndex(
+    (item) => trackedKey && aircraftSelectionId(item) === trackedKey,
+  );
+
+  if (matchIndex < 0) return [trackedAircraft, ...nearbyAircraft];
+
+  const nearbyMatch = nearbyAircraft[matchIndex];
+  const merged = {
+    ...nearbyMatch,
+    ...trackedAircraft,
+  };
+
+  for (const field of LIVE_POSITION_FIELDS) {
+    if (nearbyMatch[field] != null) merged[field] = nearbyMatch[field];
+  }
+
+  return nearbyAircraft.map((item, index) =>
+    index === matchIndex ? merged : item,
+  );
+}
+
 export function resolveAirportExplorerSelection({
   aircraft = [],
   selectedAircraftId = "",

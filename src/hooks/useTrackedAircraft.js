@@ -7,18 +7,14 @@ import {
   normalizeAdsbAircraft,
 } from "../features/aircraft/positions/aircraftPositionsModel.js";
 import {
+  getTrackedAircraftSignalState,
+} from "../features/aircraft/tracking/lostSignalTrackingModel.js";
+import {
   AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
   scheduleAfterOverlayPaint,
   shouldShowAircraftLoadingOverlay,
   shouldTriggerVisibilityRefreshOverlay,
 } from "../features/aircraft/positions/aircraftLoadingOverlayModel.js";
-
-// Number of consecutive empty callsign responses (no aircraft reporting
-// for that callsign) before we surface lostSignal=true to callers. With
-// the standard 3s poll interval this is ~9s of silence — long enough to
-// ride out a single dropped sample but short enough to react when the
-// flight actually lands.
-const LOST_SIGNAL_THRESHOLD = 3;
 
 const waitUntil = (timestamp) => {
   const delay = Math.max(0, timestamp - Date.now());
@@ -107,13 +103,17 @@ export function useTrackedAircraft(callsign) {
         if (matches.length === 0) {
           // No matches: don't blank the aircraft snapshot — the user
           // is probably watching a flight that just landed and we want
-          // to keep the last position visible while the overlay asks
-          // them what to do. The threshold avoids flapping on a single
-          // dropped sample.
-          missesRef.current += 1;
-          if (missesRef.current >= LOST_SIGNAL_THRESHOLD) {
-            setLostSignal(true);
-          }
+          // to keep the last position visible while the overlay asks them
+          // what to do. Cross-ocean flights can disappear from ADS-B
+          // callsign lookup while FlightAware still knows they are enroute,
+          // so the state model accounts for that benchmark before warning.
+          const signalState = getTrackedAircraftSignalState({
+            matchesLength: matches.length,
+            previousMisses: missesRef.current,
+            flightAwareFallback: payload?.flightAwareFallback,
+          });
+          missesRef.current = signalState.misses;
+          setLostSignal(signalState.lostSignal);
         } else {
           // Pick the freshest entry — multiple aircraft can share a
           // callsign across operators; the one currently broadcasting is

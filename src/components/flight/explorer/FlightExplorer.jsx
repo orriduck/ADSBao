@@ -17,6 +17,7 @@ import {
 import { buildGreatCirclePath } from "@/features/aviation/flight-routes/greatCircleRouteModel.js";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel.js";
+import { mergeTrackedAircraftIntoNearby } from "@/features/airport/explorer/airportExplorerModel.js";
 
 // These map helpers import Leaflet, which evaluates `window` at module
 // top — SSR-incompatible. Dynamic-import keeps those helpers
@@ -190,12 +191,10 @@ function FlightExplorerContent({ callsign }) {
   // Merge tracked aircraft into the nearby list so the map always renders
   // it (the radius poll can lag a beat behind the callsign poll).
   const rawAircraft = useMemo(() => {
-    if (!trackedAircraft) return nearbyAircraft;
-    const trackedKey = getAircraftIdentity(trackedAircraft);
-    const alreadyIn = nearbyAircraft.some(
-      (entry) => getAircraftIdentity(entry) === trackedKey,
-    );
-    return alreadyIn ? nearbyAircraft : [trackedAircraft, ...nearbyAircraft];
+    return mergeTrackedAircraftIntoNearby({
+      trackedAircraft,
+      nearbyAircraft,
+    });
   }, [trackedAircraft, nearbyAircraft]);
 
   // Look up routes for the tracked aircraft and any nearby traffic the user

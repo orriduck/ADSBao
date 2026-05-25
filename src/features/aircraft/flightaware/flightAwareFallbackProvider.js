@@ -217,7 +217,7 @@ export function buildFlightAwareFallbackUrl(callsign) {
 }
 
 export function isFlightAwareFallbackEnabled(env = process.env) {
-  return String(env?.FLIGHTAWARE_FALLBACK_ENABLED || "").toLowerCase() === "true";
+  return String(env?.FLIGHTAWARE_FALLBACK_ENABLED || "true").toLowerCase() !== "false";
 }
 
 export function parseFlightAwareFallbackPage({ callsign, html, fetchedAt } = {}) {
