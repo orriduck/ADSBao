@@ -55,9 +55,24 @@ export function getTrackedAircraftSignalState({
   matchesLength = 0,
   previousMisses = 0,
   flightAwareFallback = null,
+  trackingState = null,
   threshold = LOST_SIGNAL_MISS_THRESHOLD,
 } = {}) {
   const normalizedThreshold = Math.max(1, Number(threshold) || 1);
+  const trackingStatus = String(trackingState?.status || "").trim();
+  if (trackingStatus === "adsb_live" || trackingStatus === "flightaware_active") {
+    return { misses: 0, lostSignal: false };
+  }
+  if (trackingStatus === "flightaware_terminal") {
+    return { misses: normalizedThreshold, lostSignal: true };
+  }
+  if (trackingStatus === "stale" || trackingStatus === "missing") {
+    const misses = Math.max(0, Number(previousMisses) || 0) + 1;
+    return {
+      misses,
+      lostSignal: misses >= normalizedThreshold,
+    };
+  }
   if (Number(matchesLength) > 0) {
     return { misses: 0, lostSignal: false };
   }

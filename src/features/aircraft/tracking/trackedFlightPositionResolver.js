@@ -1,5 +1,18 @@
+import {
+  hasActiveFlightAwareFallback,
+  hasTerminalFlightAwareFallback,
+} from "./lostSignalTrackingModel.js";
+
 export const ADSB_FRESH_MAX_AGE_SECONDS = 60;
 export const ADSB_STALE_MIN_AGE_SECONDS = 90;
+
+export const TRACKED_FLIGHT_STATUS = Object.freeze({
+  ADSB_LIVE: "adsb_live",
+  FLIGHTAWARE_ACTIVE: "flightaware_active",
+  FLIGHTAWARE_TERMINAL: "flightaware_terminal",
+  STALE: "stale",
+  MISSING: "missing",
+});
 
 const PROVIDER_SOURCE = Object.freeze({
   "adsb.lol": "adsb_lol",
@@ -14,6 +27,17 @@ const toNumber = (value) => {
 };
 
 const isoFromNow = (now) => new Date(now || Date.now()).toISOString();
+
+function buildTrackingState(status, overrides = {}) {
+  return {
+    status,
+    active:
+      status === TRACKED_FLIGHT_STATUS.ADSB_LIVE ||
+      status === TRACKED_FLIGHT_STATUS.FLIGHTAWARE_ACTIVE,
+    terminal: status === TRACKED_FLIGHT_STATUS.FLIGHTAWARE_TERMINAL,
+    ...overrides,
+  };
+}
 
 export function getAdsbPositionAgeSeconds(position, now = Date.now()) {
   const directAge = toNumber(position?.seen_pos ?? position?.seen);
@@ -147,6 +171,9 @@ export async function resolveTrackedFlightPosition({
         now,
       }),
       fallback: null,
+      trackingState: buildTrackingState(TRACKED_FLIGHT_STATUS.ADSB_LIVE, {
+        source: fresh.source,
+      }),
     };
   }
 
@@ -154,11 +181,30 @@ export async function resolveTrackedFlightPosition({
   if (!fallback && featureEnabled && typeof getFlightAwareFallback === "function") {
     fallback = await getFlightAwareFallback(callsign);
   }
+  const fallbackTerminal = hasTerminalFlightAwareFallback(fallback);
+  const fallbackActive = hasActiveFlightAwareFallback(fallback);
+  const fallbackTrackingState = fallbackTerminal
+    ? buildTrackingState(TRACKED_FLIGHT_STATUS.FLIGHTAWARE_TERMINAL, {
+        source: "flightaware",
+      })
+    : fallbackActive
+      ? buildTrackingState(TRACKED_FLIGHT_STATUS.FLIGHTAWARE_ACTIVE, {
+          source: "flightaware",
+        })
+      : null;
 
-  if (fallback?.ok && fallback.hasPosition) {
+  if (!fallbackTerminal && fallback?.ok && fallback.hasPosition) {
     const position = normalizeFlightAwarePosition(fallback.position);
     if (position) {
-      return { source: "flightaware", position, fallback };
+      return {
+        source: "flightaware",
+        position,
+        fallback,
+        trackingState: fallbackTrackingState ||
+          buildTrackingState(TRACKED_FLIGHT_STATUS.FLIGHTAWARE_ACTIVE, {
+            source: "flightaware",
+          }),
+      };
     }
   }
 
@@ -177,12 +223,19 @@ export async function resolveTrackedFlightPosition({
           }),
       },
       fallback,
+      trackingState: fallbackTrackingState ||
+        buildTrackingState(TRACKED_FLIGHT_STATUS.STALE, {
+          source: "local_projection",
+        }),
     };
   }
 
   const stale = pickStalePrimary(candidates, now);
   const fallbackPosition = stale?.position || lastKnown;
   if (fallbackPosition && hasUsableLatLon(fallbackPosition)) {
+    const staleStatus = stale
+      ? TRACKED_FLIGHT_STATUS.STALE
+      : TRACKED_FLIGHT_STATUS.MISSING;
     return {
       source: stale?.source || "last_known",
       position: {
@@ -196,8 +249,18 @@ export async function resolveTrackedFlightPosition({
         }),
       },
       fallback,
+      trackingState: fallbackTrackingState ||
+        buildTrackingState(staleStatus, {
+          source: stale?.source || fallbackPosition.source || "unknown",
+        }),
     };
   }
 
-  return { source: "", position: null, fallback };
+  return {
+    source: "",
+    position: null,
+    fallback,
+    trackingState: fallbackTrackingState ||
+      buildTrackingState(TRACKED_FLIGHT_STATUS.MISSING),
+  };
 }

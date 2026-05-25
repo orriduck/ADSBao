@@ -225,3 +225,45 @@ const route = {
   // Farthest two first, limited to 2.
   assert.deepEqual(pending, ["JBU123", "DAL123"]);
 }
+
+{
+  const aircraft = [
+    {
+      callsign: "AAL100",
+      origin: "KJFK",
+      destination: "KLAX",
+      trackingState: { status: "flightaware_terminal" },
+    },
+    {
+      callsign: "DAL123",
+      lat: 40.64,
+      lon: -73.78,
+      trackingState: { status: "adsb_live" },
+    },
+  ];
+  const pending = resolvePendingRouteLookups({
+    aircraft,
+    cache: new Map(),
+    inFlight: new Set(),
+    queued: new Set(),
+    routeContext: { routeProvider: "flightaware" },
+    now,
+    maxLookups: 3,
+  });
+  const routes = buildRoutesByCallsign({
+    aircraft,
+    cache: new Map(),
+    routeContext: { routeProvider: "flightaware" },
+    now,
+  });
+
+  assert.deepEqual(pending, ["DAL123"]);
+  assert.deepEqual(routes.AAL100, {
+    callsign: "AAL100",
+    origin: { icao: "KJFK" },
+    destination: { icao: "KLAX" },
+    route: { icao: "KJFK-KLAX" },
+    source: "aircraft-metadata",
+    confidence: "position-metadata",
+  });
+}

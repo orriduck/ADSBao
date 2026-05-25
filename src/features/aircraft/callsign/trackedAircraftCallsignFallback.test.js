@@ -84,6 +84,7 @@ const staleAircraft = {
   assert.equal(result.payload.ac[0].lat, 47.4167);
   assert.equal(result.payload.ac[0].positionQuality.source, "flightaware");
   assert.equal(result.payload.ac[0].positionQuality.kind, "predicted");
+  assert.equal(result.payload.trackingState.status, "flightaware_active");
   assert.equal("raw" in result.payload.flightAwareFallback, false);
   assert.equal(flightAwareCalls, 1);
 }
@@ -105,6 +106,7 @@ const staleAircraft = {
 
   assert.equal(result.source, ADSB_LOL.id);
   assert.equal(result.payload.ac[0].positionQuality.kind, "stale");
+  assert.equal(result.payload.trackingState.status, "stale");
   assert.equal(flightAwareCalls, 0);
 }
 
@@ -138,6 +140,40 @@ const staleAircraft = {
   assert.equal(result.source, ADSB_LOL.id);
   assert.equal(result.payload.ac[0].positionQuality.kind, "stale");
   assert.equal(flightAwareCalls, 0);
+}
+
+{
+  const result = await fetchTrackedAircraftByCallsign({
+    callsign: "AAL100",
+    featureEnabled: true,
+    fetchPrimaryProviders: async () => [
+      providerPayload(ADSB_LOL.id, [staleAircraft]),
+      providerPayload(AIRPLANES_LIVE.id, []),
+    ],
+    getFlightAwareFallback: async () => ({
+      ok: true,
+      hasPosition: true,
+      position: {
+        lat: 47.4167,
+        lon: -46.5833,
+        callsign: "AAL100",
+        terminal: true,
+        status: "arrived",
+        quality: {
+          source: "flightaware",
+          kind: "observed",
+          terminal: true,
+          status: "arrived",
+          fetchedAt: "2026-05-25T03:00:00.000Z",
+        },
+      },
+    }),
+  });
+
+  assert.equal(result.source, ADSB_LOL.id);
+  assert.equal(result.payload.ac[0].lat, 41);
+  assert.equal(result.payload.ac[0].positionQuality.kind, "stale");
+  assert.equal(result.payload.trackingState.status, "flightaware_terminal");
 }
 
 console.log("trackedAircraftCallsignFallback.test.js ok");

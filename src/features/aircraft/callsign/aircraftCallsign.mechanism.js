@@ -163,13 +163,15 @@ async function fetchAllCallsignProviders({ callsign }) {
     .filter(Boolean);
 }
 
-function annotatePayload(payload, { source, now }) {
+function annotatePayload(payload, { source, now, fallback, trackingState }) {
   return {
     ...payload,
     ac: (payload?.ac || []).map((aircraft) =>
       annotateAdsbPosition(aircraft, { source, now }),
     ),
     source,
+    flightAwareFallback: sanitizeFallbackForClient(fallback),
+    trackingState,
   };
 }
 
@@ -181,6 +183,7 @@ function payloadForResolvedPosition({ resolved, callsign, fallback, now }) {
       source: "",
       now: now / 1000,
       flightAwareFallback: clientFallback,
+      trackingState: resolved.trackingState,
     };
   }
 
@@ -190,6 +193,7 @@ function payloadForResolvedPosition({ resolved, callsign, fallback, now }) {
       source: "flightaware",
       now: now / 1000,
       flightAwareFallback: clientFallback,
+      trackingState: resolved.trackingState,
     };
   }
 
@@ -199,6 +203,7 @@ function payloadForResolvedPosition({ resolved, callsign, fallback, now }) {
     now: now / 1000,
     flightAwareFallback: clientFallback,
     callsign,
+    trackingState: resolved.trackingState,
   };
 }
 
@@ -242,6 +247,8 @@ export const fetchTrackedAircraftByCallsign = async ({
       payload: annotatePayload(sourcePayload, {
         source: resolved.source,
         now,
+        fallback: resolved.fallback,
+        trackingState: resolved.trackingState,
       }),
       source: resolved.source,
       attempts,

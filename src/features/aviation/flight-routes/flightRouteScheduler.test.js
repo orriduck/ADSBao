@@ -186,3 +186,67 @@ function createManualTimer() {
   );
   scheduler.dispose();
 }
+
+{
+  const timer = createManualTimer();
+  const scheduler = createFlightRouteScheduler({
+    client: {
+      async fetchFlightRoute() {
+        throw new Error("terminal aircraft should not fetch a route");
+      },
+    },
+    config: {
+      maxConcurrentLookups: 1,
+      maxLookupsPerPass: 2,
+      maxQueueSize: 10,
+      queueIntervalMs: 0,
+      auditLogIntervalMs: 0,
+      hitCacheMs: 60_000,
+      missCacheMs: 10_000,
+    },
+    logger: { info() {}, warn() {} },
+    schedule: timer.schedule,
+    clearSchedule: timer.clear,
+    now: () => 1_700_000_000_000,
+  });
+
+  const routeContext = { routeProvider: "flightaware" };
+  scheduler.syncAircraft({
+    aircraft: [
+      {
+        callsign: "AAL100",
+        origin: "KJFK",
+        destination: "KLAX",
+        trackingState: { status: "flightaware_terminal" },
+      },
+    ],
+    routeContext,
+  });
+
+  assert.equal(scheduler.getLoadingCount(), 0);
+  assert.equal(timer.callbacks.length, 0);
+  assert.deepEqual(
+    scheduler.getRoutesByCallsign({
+      aircraft: [
+        {
+          callsign: "AAL100",
+          origin: "KJFK",
+          destination: "KLAX",
+          trackingState: { status: "flightaware_terminal" },
+        },
+      ],
+      routeContext,
+    }),
+    {
+      AAL100: {
+        callsign: "AAL100",
+        origin: { icao: "KJFK" },
+        destination: { icao: "KLAX" },
+        route: { icao: "KJFK-KLAX" },
+        source: "aircraft-metadata",
+        confidence: "position-metadata",
+      },
+    },
+  );
+  scheduler.dispose();
+}

@@ -47,6 +47,8 @@ export function useTrackedAircraft(callsign) {
   const [settled, setSettled] = useState(false);
   const [lostSignal, setLostSignal] = useState(false);
   const [pollVersion, setPollVersion] = useState(0);
+  const [trackingState, setTrackingState] = useState(null);
+  const [flightAwareFallback, setFlightAwareFallback] = useState(null);
   const timerRef = useRef(null);
   const disposedRef = useRef(false);
   const missesRef = useRef(0);
@@ -72,6 +74,8 @@ export function useTrackedAircraft(callsign) {
       setError(null);
       setLostSignal(false);
       setPollVersion(0);
+      setTrackingState(null);
+      setFlightAwareFallback(null);
       missesRef.current = 0;
       return undefined;
     }
@@ -99,6 +103,7 @@ export function useTrackedAircraft(callsign) {
         if (disposedRef.current) return;
         const matches = Array.isArray(payload?.ac) ? payload.ac : [];
         const receiveTime = Date.now();
+        const nextTrackingState = payload?.trackingState || null;
         const signalState = getTrackedAircraftSignalState({
           matchesLength: getActiveAdsbMatchesLength({
             matchesLength: matches.length,
@@ -106,12 +111,15 @@ export function useTrackedAircraft(callsign) {
           }),
           previousMisses: missesRef.current,
           flightAwareFallback: payload?.flightAwareFallback,
+          trackingState: nextTrackingState,
         });
         await waitUntil(commitAfter);
         if (disposedRef.current) return;
         setSettled(true);
         setInitialLoading(false);
         setVisibilityRefreshLoading(false);
+        setTrackingState(nextTrackingState);
+        setFlightAwareFallback(payload?.flightAwareFallback || null);
         if (matches.length === 0) {
           // No matches: don't blank the aircraft snapshot — the user
           // is probably watching a flight that just landed and we want
@@ -130,7 +138,10 @@ export function useTrackedAircraft(callsign) {
             responseNow: payload?.now,
             receiveTime,
           });
-          setAircraft(normalized);
+          setAircraft({
+            ...normalized,
+            trackingState: nextTrackingState,
+          });
           missesRef.current = signalState.misses;
           setLostSignal(signalState.lostSignal);
         }
@@ -220,6 +231,8 @@ export function useTrackedAircraft(callsign) {
     error,
     lostSignal,
     pollVersion,
+    trackingState,
+    flightAwareFallback,
     retry,
   };
 }

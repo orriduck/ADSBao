@@ -5,9 +5,11 @@ import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import {
   AIRPORT_MAP_PANES,
-  SELECTED_AIRCRAFT_TRACE_STYLE,
 } from "@/config/airportMap.js";
 import { resolveDocumentTheme } from "@/features/airport/map/airportMapModel.js";
+import {
+  buildFlightAwareRouteLayerStyles,
+} from "@/features/airport/map/flightAwareRouteArcStyleModel.js";
 import { ensureAirportMapPane } from "@/features/airport/map/mapPane.js";
 
 const getCurrentTheme = () =>
@@ -52,17 +54,14 @@ export default function FlightAwareRouteArc({
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const effectiveTheme = theme || documentTheme;
-    const traceStyle =
-      effectiveTheme === "light"
-        ? SELECTED_AIRCRAFT_TRACE_STYLE.light
-        : SELECTED_AIRCRAFT_TRACE_STYLE.dark;
-    const color = traceStyle.lineColor;
+    const routeStyles = buildFlightAwareRouteLayerStyles({
+      theme: effectiveTheme,
+      opacity,
+    });
     const layers = [
       L.polyline(path, {
         pane,
-        color,
-        opacity: 0.18 * opacity,
-        weight: traceStyle.glowWeight,
+        ...routeStyles.glow,
         interactive: false,
         lineCap: "round",
         lineJoin: "round",
@@ -70,13 +69,10 @@ export default function FlightAwareRouteArc({
       }).addTo(map),
       L.polyline(path, {
         pane,
-        color,
-        opacity: 0.58 * opacity,
-        weight: Math.max(1, traceStyle.lineWeight - 0.4),
+        ...routeStyles.route,
         interactive: false,
         lineCap: "round",
         lineJoin: "round",
-        dashArray: "10 12",
         className: "aircraft-trace aircraft-trace--flightaware-route",
       }).addTo(map),
     ];
