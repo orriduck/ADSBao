@@ -66,6 +66,7 @@ function createFakeSupabaseClient({
   const { calls, createClientImpl } = createFakeSupabaseClient({
     writeData: {
       email: "owner@example.com",
+      environment: "preview",
       flags: { flightAwareEnabled: true, otherFlag: "true" },
       updated_at: "2026-05-26T12:00:00.000Z",
     },
@@ -73,6 +74,7 @@ function createFakeSupabaseClient({
   const repository = createUserFeatureFlagsRepository({
     supabaseUrl: "https://example.supabase.co",
     supabaseKey: "sb_secret_test",
+    environment: "preview",
     createClientImpl,
   });
 
@@ -84,13 +86,15 @@ function createFakeSupabaseClient({
   assert.equal(calls[1].type, "from");
   assert.equal(calls[2].type, "upsert");
   assert.equal(calls[2].row.email, "owner@example.com");
+  assert.equal(calls[2].row.environment, "preview");
   assert.deepEqual(calls[2].row.flags, {
     flightAwareEnabled: true,
     otherFlag: false,
   });
-  assert.deepEqual(calls[2].options, { onConflict: "email" });
+  assert.deepEqual(calls[2].options, { onConflict: "email,environment" });
   assert.deepEqual(row, {
     email: "owner@example.com",
+    environment: "preview",
     flags: { flightAwareEnabled: true, otherFlag: false },
     updatedAt: "2026-05-26T12:00:00.000Z",
   });
@@ -101,16 +105,18 @@ function createFakeSupabaseClient({
   const repository = createUserFeatureFlagsRepository({
     supabaseUrl: "https://example.supabase.co",
     supabaseKey: "sb_secret_test",
+    environment: "preview",
     createClientImpl,
   });
 
   const result = await repository.deleteFlagsByEmail(" Owner@Example.COM ");
 
-  assert.deepEqual(result, { email: "owner@example.com" });
+  assert.deepEqual(result, { email: "owner@example.com", environment: "preview" });
   assert.deepEqual(calls.slice(1), [
     { type: "from", table: USER_FEATURE_FLAGS_TABLE },
     { type: "delete" },
     { type: "eq", column: "email", value: "owner@example.com" },
+    { type: "eq", column: "environment", value: "preview" },
   ]);
 }
 
@@ -118,6 +124,7 @@ function createFakeSupabaseClient({
   const { calls, createClientImpl } = createFakeSupabaseClient({
     readData: {
       email: "owner@example.com",
+      environment: "preview",
       flags: { flightAwareEnabled: true, otherFlag: "true" },
       updated_at: "2026-05-26T12:00:00.000Z",
     },
@@ -125,6 +132,7 @@ function createFakeSupabaseClient({
   const repository = createUserFeatureFlagsRepository({
     supabaseUrl: "https://example.supabase.co",
     supabaseKey: "sb_secret_test",
+    environment: "preview",
     createClientImpl,
   });
 
@@ -133,12 +141,14 @@ function createFakeSupabaseClient({
   assert.equal(calls[0].supabaseKey, "sb_secret_test");
   assert.deepEqual(calls.slice(1), [
     { type: "from", table: USER_FEATURE_FLAGS_TABLE },
-    { type: "select", columns: "email,flags,updated_at" },
+    { type: "select", columns: "email,environment,flags,updated_at" },
     { type: "eq", column: "email", value: "owner@example.com" },
+    { type: "eq", column: "environment", value: "preview" },
     { type: "maybeSingle" },
   ]);
   assert.deepEqual(row, {
     email: "owner@example.com",
+    environment: "preview",
     flags: { flightAwareEnabled: true, otherFlag: false },
     updatedAt: "2026-05-26T12:00:00.000Z",
   });
@@ -179,12 +189,21 @@ function createFakeSupabaseClient({
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
       SUPABASE_SERVICE_ROLE_KEY: "sb_service_role_test",
+      VERCEL_ENV: "preview",
     },
     createClientImpl,
   });
 
   assert.ok(repository);
   assert.equal(calls[0].supabaseKey, "sb_service_role_test");
+  await repository.readFlagsByEmail("owner@example.com");
+  assert.deepEqual(calls.slice(1), [
+    { type: "from", table: USER_FEATURE_FLAGS_TABLE },
+    { type: "select", columns: "email,environment,flags,updated_at" },
+    { type: "eq", column: "email", value: "owner@example.com" },
+    { type: "eq", column: "environment", value: "preview" },
+    { type: "maybeSingle" },
+  ]);
 }
 
 assert.equal(

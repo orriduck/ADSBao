@@ -36,15 +36,16 @@ function buildScriptEnv() {
 
 function printUsage() {
   console.log(`Usage:
-  pnpm ff get <email>
-  pnpm ff set <email> <flag> <on|off>
-  pnpm ff merge <email> '<json-flags>'
-  pnpm ff clear <email> [flag]
+  pnpm ff [--env local|preview|production] get <email>
+  pnpm ff [--env local|preview|production] set <email> <flag> <on|off>
+  pnpm ff [--env local|preview|production] merge <email> '<json-flags>'
+  pnpm ff [--env local|preview|production] clear <email> [flag]
 
 Examples:
   pnpm ff set you@example.com flightAwareEnabled on
-  pnpm ff set you@example.com flightAwareEnabled off
-  pnpm ff merge you@example.com '{"flightAwareEnabled":true}'
+  pnpm ff --env preview set you@example.com flightAwareEnabled on
+  pnpm ff --env production set you@example.com flightAwareEnabled off
+  pnpm ff --env preview merge you@example.com '{"flightAwareEnabled":true}'
   pnpm ff clear you@example.com`);
 }
 

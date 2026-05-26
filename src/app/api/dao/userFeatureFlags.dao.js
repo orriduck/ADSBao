@@ -1,15 +1,18 @@
 import { createServerSupabaseClient } from "./supabaseClient.js";
 import {
   normalizeFeatureFlags,
+  normalizeFeatureFlagEnvironment,
   normalizeUserEmail,
+  resolveFeatureFlagEnvironment,
 } from "../../../features/app-shell/feature-flags/userFeatureFlagsModel.js";
 
 export const USER_FEATURE_FLAGS_TABLE = "user_feature_flags";
-const SELECT_COLUMNS = "email,flags,updated_at";
+const SELECT_COLUMNS = "email,environment,flags,updated_at";
 
 export function createUserFeatureFlagsRepository({
   supabaseUrl,
   supabaseKey,
+  environment,
   createClientImpl,
 } = {}) {
   const client = createServerSupabaseClient({
@@ -18,16 +21,21 @@ export function createUserFeatureFlagsRepository({
     createClientImpl,
   });
   if (!client) return null;
+  const defaultEnvironment = normalizeFeatureFlagEnvironment(environment);
 
   return {
-    async readFlagsByEmail(email) {
+    async readFlagsByEmail(email, options = {}) {
       const normalizedEmail = normalizeUserEmail(email);
       if (!normalizedEmail) return null;
+      const normalizedEnvironment = normalizeFeatureFlagEnvironment(
+        options.environment || defaultEnvironment,
+      );
 
       const { data, error } = await client
         .from(USER_FEATURE_FLAGS_TABLE)
         .select(SELECT_COLUMNS)
         .eq("email", normalizedEmail)
+        .eq("environment", normalizedEnvironment)
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
@@ -39,24 +47,29 @@ export function createUserFeatureFlagsRepository({
       if (!data) return null;
       return {
         email: normalizeUserEmail(data.email),
+        environment: normalizeFeatureFlagEnvironment(data.environment),
         flags: normalizeFeatureFlags(data.flags),
         updatedAt: data.updated_at || "",
       };
     },
 
-    async upsertFlagsByEmail({ email, flags } = {}) {
+    async upsertFlagsByEmail({ email, environment, flags } = {}) {
       const normalizedEmail = normalizeUserEmail(email);
       if (!normalizedEmail) return null;
+      const normalizedEnvironment = normalizeFeatureFlagEnvironment(
+        environment || defaultEnvironment,
+      );
 
       const { data, error } = await client
         .from(USER_FEATURE_FLAGS_TABLE)
         .upsert(
           {
             email: normalizedEmail,
+            environment: normalizedEnvironment,
             flags: normalizeFeatureFlags(flags),
             updated_at: new Date().toISOString(),
           },
-          { onConflict: "email" },
+          { onConflict: "email,environment" },
         )
         .select(SELECT_COLUMNS)
         .single();
@@ -69,19 +82,24 @@ export function createUserFeatureFlagsRepository({
 
       return {
         email: normalizeUserEmail(data.email),
+        environment: normalizeFeatureFlagEnvironment(data.environment),
         flags: normalizeFeatureFlags(data.flags),
         updatedAt: data.updated_at || "",
       };
     },
 
-    async deleteFlagsByEmail(email) {
+    async deleteFlagsByEmail(email, options = {}) {
       const normalizedEmail = normalizeUserEmail(email);
       if (!normalizedEmail) return null;
+      const normalizedEnvironment = normalizeFeatureFlagEnvironment(
+        options.environment || defaultEnvironment,
+      );
 
       const { error } = await client
         .from(USER_FEATURE_FLAGS_TABLE)
         .delete()
-        .eq("email", normalizedEmail);
+        .eq("email", normalizedEmail)
+        .eq("environment", normalizedEnvironment);
 
       if (error) {
         throw new Error(
@@ -89,7 +107,7 @@ export function createUserFeatureFlagsRepository({
         );
       }
 
-      return { email: normalizedEmail };
+      return { email: normalizedEmail, environment: normalizedEnvironment };
     },
   };
 }
@@ -101,6 +119,7 @@ export function createUserFeatureFlagsRepositoryFromEnv({
   return createUserFeatureFlagsRepository({
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,
     supabaseKey: env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY,
+    environment: resolveFeatureFlagEnvironment(env),
     createClientImpl,
   });
 }

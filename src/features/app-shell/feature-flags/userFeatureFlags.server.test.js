@@ -12,14 +12,15 @@ import {
       primaryEmailAddress: { emailAddress: "Owner@Example.COM" },
     },
     repository: {
-      async readFlagsByEmail(email) {
-        calls.push(email);
+      async readFlagsByEmail(email, options) {
+        calls.push({ email, environment: options.environment });
         return { flags: { flightAwareEnabled: true } };
       },
     },
+    env: { VERCEL_ENV: "preview" },
   });
 
-  assert.deepEqual(calls, ["owner@example.com"]);
+  assert.deepEqual(calls, [{ email: "owner@example.com", environment: "preview" }]);
   assert.deepEqual(flags, { flightAwareEnabled: true });
 }
 
