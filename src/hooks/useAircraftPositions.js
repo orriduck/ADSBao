@@ -11,6 +11,7 @@ import {
   describeAircraftFetchError,
   isHttp4xxOr5xx,
   normalizeAircraftSnapshot,
+  resolveLastSuccessfulPositionDate,
 } from "../features/aircraft/positions/aircraftPositionsModel.js";
 import { createAircraftTraceTracker } from "../features/aircraft/trace/aircraftTraceModel.js";
 import {
@@ -101,7 +102,6 @@ export function useAircraftPositions(icao, lat, lon, options = {}) {
           json: aircraftJson,
           receiveTime,
         });
-        const staleAgeMs = Number(aircraftJson?.staleAgeMs ?? 0);
         const isStale = aircraftJson?.stale === true;
         const nextAircraft = traceTrackerRef.current.update(
           snapshot,
@@ -115,7 +115,8 @@ export function useAircraftPositions(icao, lat, lon, options = {}) {
         setFeedSource(
           typeof aircraftJson?.source === "string" ? aircraftJson.source : "",
         );
-        setLastUpdated(new Date(receiveTime - Math.max(0, staleAgeMs)));
+        const positionDate = resolveLastSuccessfulPositionDate(nextAircraft);
+        if (positionDate) setLastUpdated(positionDate);
         setSettled(true);
         setInitialLoading(false);
         setVisibilityRefreshLoading(false);

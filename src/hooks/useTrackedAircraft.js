@@ -5,6 +5,7 @@ import { aircraftCallsignClient } from "../features/aviation/aviationData.js";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation.js";
 import {
   normalizeAdsbAircraft,
+  resolveLastSuccessfulPositionDate,
 } from "../features/aircraft/positions/aircraftPositionsModel.js";
 import {
   getActiveAdsbMatchesLength,
@@ -144,13 +145,14 @@ export function useTrackedAircraft(callsign) {
             ...normalized,
             trackingState: nextTrackingState,
           });
+          const positionDate = resolveLastSuccessfulPositionDate(normalized);
+          if (positionDate) setLastUpdated(positionDate);
           missesRef.current = signalState.misses;
           setLostSignal(signalState.lostSignal);
         }
         setFeedSource(
           typeof payload?.source === "string" ? payload.source : "",
         );
-        setLastUpdated(new Date(receiveTime));
         setError(null);
       } catch (err) {
         if (disposedRef.current) return;

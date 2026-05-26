@@ -1,5 +1,23 @@
 import { parseAdsbPositionTime } from "../../../utils/aircraftMotion.js";
 
+function parseTimestampMs(value) {
+  if (value == null || value === "") return null;
+  const number = Number(value);
+  if (Number.isFinite(number)) {
+    return number < 10_000_000_000 ? Math.round(number * 1000) : Math.round(number);
+  }
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function resolvePositionTimestampMs(aircraft) {
+  const sourceUpdatedAt = parseTimestampMs(
+    aircraft?.positionQuality?.sourceUpdatedAt,
+  );
+  if (sourceUpdatedAt != null) return sourceUpdatedAt;
+  return parseTimestampMs(aircraft?.positionTime);
+}
+
 export function normalizeAdsbAircraft(
   aircraft,
   { responseNow, receiveTime = Date.now() } = {},
@@ -42,6 +60,16 @@ export function normalizeAircraftSnapshot({ json, receiveTime = Date.now() }) {
         receiveTime,
       }),
     );
+}
+
+export function resolveLastSuccessfulPositionDate(aircraft) {
+  const entries = Array.isArray(aircraft) ? aircraft : [aircraft];
+  const latest = entries.reduce((max, item) => {
+    const timestamp = resolvePositionTimestampMs(item);
+    return timestamp != null && timestamp > max ? timestamp : max;
+  }, 0);
+
+  return latest > 0 ? new Date(latest) : null;
 }
 
 export function isHttp4xxOr5xx(error) {
