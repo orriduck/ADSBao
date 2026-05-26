@@ -15,6 +15,7 @@ import {
   getTrackedFlightTraceRefreshKey,
 } from "@/features/aircraft/tracking/lostSignalTrackingModel.js";
 import {
+  getFlightAwareFallbackAutoFitKey,
   getFlightAwareFallbackTraceStartAtMs,
   shouldLockMapViewportForTrackingState,
 } from "@/features/aircraft/tracking/flightAwareFallbackTrackingModel.js";
@@ -143,6 +144,15 @@ function FlightExplorerContent({ callsign }) {
     [trackingSession, trackingState],
   );
   const mapViewportLocked = shouldLockMapViewportForTrackingState(trackingState);
+  const flightAwareAutoFitKey = useMemo(
+    () =>
+      getFlightAwareFallbackAutoFitKey({
+        trackingState,
+        callsign,
+        aircraftHex: trackedAircraft?.icao24,
+      }),
+    [callsign, trackedAircraft?.icao24, trackingState],
+  );
   const focalTraceRefreshKey = useMemo(
     () =>
       getTrackedFlightTraceRefreshKey({
@@ -400,6 +410,7 @@ function FlightExplorerContent({ callsign }) {
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
               routePath={focalFlightAwareRoutePath}
+              autoFitKey={flightAwareAutoFitKey}
             />
           </AirportMap>
           <AircraftDataLoadingOverlay

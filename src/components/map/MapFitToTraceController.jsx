@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext.jsx";
@@ -9,7 +9,8 @@ import { buildTraceFitPoints } from "@/features/airport/map/mapFitTraceModel.js"
 
 // Listens for the `fitToTrace` signal from the UI reducer and pans/zooms
 // the map so the full trace of every currently-visible aircraft fits in
-// the viewport.
+// the viewport. When `autoFitKey` is provided, it waits until trace
+// points exist and then performs the same fit once for that key.
 //
 // When the optional `routePath` prop is supplied, it is folded into the
 // bounds. The flight page passes this only for FlightAware-sourced focal
@@ -20,24 +21,48 @@ import { buildTraceFitPoints } from "@/features/airport/map/mapFitTraceModel.js"
 // mapFollowsAircraft (the fitToTrace action already turns that off),
 // so even when the resolved Leaflet zoom lands on a preset value the
 // map stays anchored on the bounds we just computed.
-export default function MapFitToTraceController({ routePath = [] }) {
+export default function MapFitToTraceController({
+  routePath = [],
+  autoFitKey = "",
+}) {
   const map = useMapInstance();
   const { fitToTraceSignal } = useExplorerUi();
   const { traces } = useSelectedAircraftTrace();
   const lastSignalRef = useRef(0);
+  const lastAutoFitKeyRef = useRef("");
+  const fitPoints = useMemo(
+    () => buildTraceFitPoints({ traces, routePath }),
+    [traces, routePath],
+  );
+  const fitMapToPoints = useCallback(
+    (points) => {
+      if (!map || points.length === 0) return;
+      const bounds = L.latLngBounds(points);
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+    },
+    [map],
+  );
 
   useEffect(() => {
     if (!map || fitToTraceSignal === lastSignalRef.current) return;
     lastSignalRef.current = fitToTraceSignal;
     if (fitToTraceSignal === 0) return;
 
-    const points = buildTraceFitPoints({ traces, routePath });
+    fitMapToPoints(fitPoints);
+  }, [fitMapToPoints, fitToTraceSignal, fitPoints, map]);
 
-    if (points.length === 0) return;
-
-    const bounds = L.latLngBounds(points);
-    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
-  }, [fitToTraceSignal, map, traces, routePath]);
+  useEffect(() => {
+    const key = String(autoFitKey || "").trim();
+    if (!key) {
+      lastAutoFitKeyRef.current = "";
+      return;
+    }
+    if (!map || key === lastAutoFitKeyRef.current || fitPoints.length === 0) {
+      return;
+    }
+    lastAutoFitKeyRef.current = key;
+    fitMapToPoints(fitPoints);
+  }, [autoFitKey, fitMapToPoints, fitPoints, map]);
 
   return null;
 }
