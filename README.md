@@ -1,129 +1,152 @@
 # ADSBao
 
-A modern airport-monitoring HUD with dynamic airport search, METAR context, and nearby aircraft overlays.
+ADSBao is a Vercel-first airport and flight tracking console. It combines global
+airport search, METAR weather, nearby ADS-B traffic, route context, runway and
+procedure overlays, and selected-flight trace views in a map-first HUD.
 
-<img width="2976" height="2142" alt="image" src="https://github.com/user-attachments/assets/ca26b63a-2f88-4f04-90fe-a5c818166f3a" />
-<img width="2984" height="2146" alt="image" src="https://github.com/user-attachments/assets/d6385986-6fb8-4dc0-9736-fe13031e31ae" />
-<img width="2974" height="2140" alt="image" src="https://github.com/user-attachments/assets/fb8ab85d-7a0f-45c5-b4d3-72be3d8b1bb5" />
-<img width="2980" height="2140" alt="image" src="https://github.com/user-attachments/assets/47c8a27f-f5ac-4d9a-8d0b-e20b9897bc66" />
+Current web app version: **1.5.0**. Runtime version strings and ADSBao
+User-Agent values share `src/config/siteMeta.js`; product history is rendered
+from `src/config/changelog.js` at `/changelog`.
 
-## Overview
-ADSBao provides a search-first airport operations view with weather context and aircraft position overlays. Airport search is backed by public airport directory data.
+<p align="center">
+  <img src="docs/screenshots/adsbao-home.jpg" alt="ADSBao airport search screen" width="100%" />
+</p>
 
-Current web app version: **1.5.0**. Runtime version strings and ADSBao User-Agent values share `src/config/siteMeta.js`; see `src/config/changelog.js` (rendered at `/changelog`) for product version history.
+<p align="center">
+  <img src="docs/screenshots/adsbao-airport-kjfk.jpg" alt="ADSBao JFK airport traffic map" width="49%" />
+  <img src="docs/screenshots/adsbao-aircraft-tracking.jpg" alt="ADSBao selected aircraft tracking page" width="49%" />
+</p>
 
-## Tech Stack
-- **Frontend**: React on Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide Icons.
-- **Vercel UX integrations**: Vercel Web Analytics and Speed Insights use their Next.js packages.
-- **Component migration**: Former VueBits-style effects are implemented as React components.
-- **Data access**: OurAirports static data (airports, runways, frequencies, navaids) persisted in Supabase and served through `/api/search` and `/api/airport/[ident]`.
-- **Vercel routing**: Same-origin Vercel rewrites for AviationWeather METAR and adsb.lol aircraft positions, plus a Next.js route handler for VRS standing-data callsign route lookup.
-- **Typography**: Google Sans Flex & Google Sans Code.
+## What It Does
 
-## Getting Started
+- Search airports by ICAO, IATA, city, or airport name.
+- Open airport dashboards with METAR-derived weather context, nearby traffic,
+  nearby airports, distance rings, runway annotations, and map overlays.
+- Track a callsign on `/aircraft/[callsign]` with live position state,
+  telemetry, recent trace, route labels, nearby traffic, and last-known or
+  fallback behavior when a signal drops.
+- Resolve callsign routes through same-origin server routes, with adsbdb as the
+  public route source and account-gated FlightAware fallback for enabled users.
+- Accept temporary route correction feedback without turning every lookup into a
+  database dependency.
+
+## Stack
+
+- **Frontend**: React, Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide.
+- **Maps**: Leaflet plus MapLibre-backed tiles and custom aircraft/runway layers.
+- **Data layer**: OurAirports data persisted in Supabase and served through
+  Next.js API routes.
+- **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
+  Speed Insights, and optional Sentry monitoring.
+- **Auth and feature flags**: Clerk identity with Supabase-backed user feature
+  flags for gated provider behavior.
+
+## Data Paths
+
+| Path | Source | Purpose |
+|---|---|---|
+| `/api/search` | Supabase OurAirports tables | Airport search |
+| `/api/airport/[ident]` | Supabase OurAirports tables | Airport detail, runways, frequencies, navaids |
+| `/api/proxy/metar/:icao` | AviationWeather | METAR weather context |
+| `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft |
+| `/api/proxy/aircraft/callsign/:callsign` | ADS-B callsign providers | Tracked aircraft state |
+| `/api/proxy/aircraft/trace/:hex` | ADS-B trace providers | Recent and full aircraft trace |
+| `/api/proxy/flight-routes/callsign/:callsign` | adsbdb, route feedback, optional FlightAware fallback | Callsign route labels |
+| `/api/proxy/procedures/:country/:icao` | FAA CIFP | US runway procedure overlays |
+| `/api/proxy/airports/nearby` | AIRAC plus optional Supabase cache | Nearby airport overlays |
+
+See `docs/architecture.md` for the current feature/API boundary conventions and
+deployment topology.
+
+## Local Development
 
 ### Prerequisites
-- Node.js 24+ & [pnpm](https://pnpm.io/installation)
 
-### Frontend Setup
+- Node.js 24+
+- pnpm
+
+### Run The App
+
 ```bash
 pnpm install
 pnpm run dev
 ```
 
-The dev server starts on `http://localhost:3000` unless that port is already in use.
+The local app runs at `http://localhost:3000` by default.
 
-### Vercel Web Deployment
-The repo includes `vercel.json` for Git-triggered Vercel builds with same-origin data paths for browser-blocked upstream data.
+### Verify
 
-```bash
-vercel
-```
-
-The deployment path intentionally keeps upstream ownership visible: airport search and airport detail hit `/api/search` and `/api/airport/[ident]` backed by Supabase-hosted OurAirports data, `/api/proxy/metar/:icao` rewrites to AviationWeather, `/api/proxy/aircraft/positions/:lat/:lon/:dist` rewrites to adsb.lol, and `/api/proxy/flight-routes/callsign/:callsign` routes through the Next.js Route Handler. Static airport data is bulk-loaded from OurAirports into Supabase via `node --env-file=.env scripts/import-ourairports.js`.
-
-### Sentry Onboarding
-The app is wired for Sentry error monitoring, tracing, privacy-masked Session Replay, App Router render errors, server request errors, and production source-map upload.
-
-Create a Sentry Next.js project, then configure these variables locally and in Vercel:
-
-```bash
-NEXT_PUBLIC_SENTRY_DSN=...
-SENTRY_DSN=...
-SENTRY_ORG=...
-SENTRY_PROJECT=...
-SENTRY_AUTH_TOKEN=...
-```
-
-Use `NEXT_PUBLIC_SENTRY_DSN` for browser events. `SENTRY_DSN` is optional when the same DSN is acceptable for server and edge events. `SENTRY_AUTH_TOKEN` is required only for build-time source-map upload and must stay secret.
-
-For Vercel, add the same values with `vercel env add` or through the project dashboard. The Sentry tunnel is configured at `/monitoring`, so browser events stay same-origin and work with the existing content security policy.
-
-After the variables are set, trigger a temporary client or API-route error, then verify the event, trace, replay, and readable source frame in the Sentry dashboard. Remove the temporary test error before merging.
-
-### Verification
 ```bash
 pnpm test
 pnpm build
 ```
 
-`pnpm test` discovers every `*.test.js` file and runs the full remaining critical mechanism suite. Do not add package scripts for individual tests; if a test file exists, it is part of the full suite.
+`pnpm test` discovers every `*.test.js` file and runs the critical mechanism
+suite. UI and map behavior should be verified in the running app or in the
+Vercel preview created for a pull request.
 
-For UI/component behavior, verify the running app instead of adding copy or toggle-level tests. Use `pnpm run dev` for local checks at `http://localhost:3000`. For pushed branches, Vercel Git integration creates preview deployments; check the PR deployment URL or run `vercel list --environment preview`, then inspect or hit protected previews with `vercel inspect <preview-url>` and `vercel curl / --deployment <preview-url>`.
+## Runtime Configuration
 
----
+The app can boot with public same-origin providers, but production deployments
+normally configure these variables:
 
-## Contributing
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | Canonical site URL for metadata and absolute links |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public Supabase key for browser-safe reads and public caches |
+| `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY` | Server-side Supabase writes, imports, route feedback, and feature flags |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk browser identity |
+| `CLERK_SECRET_KEY` | Clerk server identity |
+| `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry events |
+| `SENTRY_DSN` | Optional server/edge Sentry events |
+| `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Optional production source-map upload |
 
-We welcome contributions! Here's how to set up the development environment:
+Import or refresh airport directory data with:
 
-### Prerequisites
-- Node.js 24+ with [pnpm](https://pnpm.io/installation)
-- Git
-
-### Running locally
-
-**1. Clone the repo**
 ```bash
-git clone https://github.com/orriduck/ADSBao.git
-cd ADSBao
+node --env-file=.env scripts/import-ourairports.js
 ```
 
-**2. Start the frontend**
+Manage Supabase-backed user feature flags with:
+
 ```bash
-pnpm install                     # install Node dependencies
-pnpm run dev                     # Next.js dev server with HMR
+pnpm ff
 ```
-Frontend available at `http://localhost:3000` by default.
 
-### Project structure
-```
+## Project Structure
+
+```text
 ADSBao/
-├── docs/                  # Current architecture notes
+├── docs/                  # Architecture notes and repository screenshots
 ├── scripts/               # Data import and maintenance scripts
 ├── src/
-│   ├── app/               # Next.js pages, API routes, API shared helpers, and DAOs
+│   ├── app/               # Next.js pages, API routes, API helpers, and DAOs
 │   ├── components/        # JSX components grouped by screen/domain
 │   ├── features/
-│   │   ├── aircraft/      # Aircraft filters, icons, photos, positions, preview, and trace logic
-│   │   ├── airport/       # Airport context, directory, explorer, map, nearby, procedures, search, and wiki logic
-│   │   ├── aviation/      # Shared aviation clients and flight-route mechanisms
-│   │   ├── weather/       # Weather models and METAR integration
+│   │   ├── aircraft/      # Aircraft callsign, photos, positions, trace, and preview logic
+│   │   ├── airport/       # Airport directory, explorer, map, nearby, procedures, and wiki logic
+│   │   ├── aviation/      # Shared aviation clients and route mechanisms
+│   │   ├── weather/       # Weather models and METAR/local-weather integration
 │   │   ├── about/         # About-page view models
-│   │   └── app-shell/     # Theme preference state and helpers
+│   │   └── app-shell/     # Theme, locale, auth, and feature-flag helpers
 │   ├── hooks/             # Shared React hooks
-│   ├── config/            # Runtime and provider configuration
+│   ├── config/            # Runtime, release, map, weather, and provider configuration
 │   ├── constants/         # Shared product constants
 │   ├── data/              # Static fallback and metadata files
 │   └── utils/             # Cross-feature pure helpers
 ├── package.json
-└── vercel.json       # Vercel deployment config
+└── vercel.json
 ```
 
-JSX belongs under `src/components/**`. Feature mechanisms, models, clients, hooks, and utilities live with their owning feature domain as plain `.js` modules. API persistence boundaries stay under `src/app/api/dao`, and route-handler-only helpers stay under `src/app/api/_shared`.
-
-## External Data Use
-ADSBao uses public aviation data sources and avoids intentionally high-volume polling. The aircraft overlay polls every 3 seconds by default, and airport directory results are cached in the browser for six hours. See `docs/architecture.md` for endpoint decisions, Vercel routing, and release-line context.
+JSX belongs under `src/components/**`. Feature mechanisms, models, provider
+clients, and utilities live with their owning feature domain as plain `.js`
+modules. API persistence boundaries stay under `src/app/api/dao`, and
+route-handler-only helpers stay under `src/app/api/_shared`.
 
 ## Release Policy
-Vercel deploys every push to `main`, but deployments are not product releases. Product versions are bumped only when user-visible product scope changes, production behavior changes, or fixes should be documented in `CHANGELOG.md`.
+
+Vercel deploys every push to `main`, but deployments are not product releases.
+Product versions are bumped only when user-visible product scope changes,
+production behavior changes, or fixes should be documented in
+`src/config/changelog.js`.
