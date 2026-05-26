@@ -34,6 +34,7 @@ export default function FlightSidebar({
   selectedAirportIcao = "",
   onSelectAircraft,
   onSelectAirport,
+  showNearbyList = true,
   feedSource = "",
   lastUpdated = null,
   onBack,
@@ -86,17 +87,19 @@ export default function FlightSidebar({
       onClose={onClose}
       header={header}
     >
-      <AircraftTable
-        aircraft={nearbyAircraft}
-        airports={nearbyAirports}
-        focusLat={focusLat}
-        focusLon={focusLon}
-        selectedAircraftId={selectedAircraftId}
-        selectedAirportIcao={selectedAirportIcao}
-        onSelectAircraft={onSelectAircraft}
-        onSelectAirport={onSelectAirport}
-        fill={!isMobileOverlay}
-      />
+      {showNearbyList ? (
+        <AircraftTable
+          aircraft={nearbyAircraft}
+          airports={nearbyAirports}
+          focusLat={focusLat}
+          focusLon={focusLon}
+          selectedAircraftId={selectedAircraftId}
+          selectedAirportIcao={selectedAirportIcao}
+          onSelectAircraft={onSelectAircraft}
+          onSelectAirport={onSelectAirport}
+          fill={!isMobileOverlay}
+        />
+      ) : null}
     </SidebarShell>
   );
 }

@@ -16,6 +16,7 @@ export const AIRCRAFT_TRAFFIC_CONFIG = {
   pollMs: 3_000,
   rangeNm: 40,
   hiddenPollGraceMs: 5_000,
+  flightAwareTraceRefreshMs: 60_000,
 };
 
 export const AVIATION_PROXY_BASES = {

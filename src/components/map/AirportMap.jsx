@@ -16,11 +16,11 @@ import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap.js";
 import MapAttribution from "./MapAttribution.jsx";
 import MapLoadingOverlay, {
   useMapLoadingOverlayText,
+  useResolvedMapLoadingOverlay,
 } from "./MapLoadingOverlay.jsx";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
 import { useI18n } from "../../features/app-shell/i18n/useI18n.js";
 import { aircraftMatchesFilters } from "../../features/aircraft/filters/aircraftFilters.js";
-import { resolveAircraftLoadingOverlayMode } from "../../features/aircraft/positions/aircraftLoadingOverlayModel.js";
 import {
   getMapOverlayTheme,
   resolveAirportMapInitialCenter,
@@ -65,6 +65,7 @@ export default function AirportMap({
   loadingOverlayActive = false,
   loadingOverlayVariant = "airport",
   loadingOverlayCallsign = "",
+  loadingOverlaySources = {},
   children = null,
 }) {
   const { locale } = useI18n();
@@ -219,12 +220,15 @@ export default function AirportMap({
   const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
 
   const overlayTheme = getMapOverlayTheme(currentTheme);
-  const loadingOverlayMode = resolveAircraftLoadingOverlayMode({
+  const loadingOverlayState = useResolvedMapLoadingOverlay({
     mapReady: Boolean(mapInstance),
-    feedLoading: loadingOverlayActive,
+    variant: loadingOverlayVariant,
+    active: loadingOverlayActive,
+    sources: loadingOverlaySources,
   });
   const loadingOverlayCopy = useMapLoadingOverlayText({
-    mode: loadingOverlayMode,
+    mode: loadingOverlayState.mode,
+    reason: loadingOverlayState.reason,
     variant: loadingOverlayVariant,
     callsign: loadingOverlayCallsign,
   });
@@ -324,7 +328,7 @@ export default function AirportMap({
       )}
 
       <MapLoadingOverlay
-        active={loadingOverlayMode !== "idle"}
+        active={loadingOverlayState.active}
         variant={loadingOverlayVariant}
         {...loadingOverlayCopy}
       />

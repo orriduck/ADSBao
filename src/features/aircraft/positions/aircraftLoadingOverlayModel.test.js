@@ -5,6 +5,7 @@ import {
   areCriticalLoadingRequestsSettled,
   getLoadingOverlayExitDelay,
   resolveAircraftLoadingOverlayMode,
+  resolveAircraftLoadingOverlayState,
   scheduleAfterOverlayPaint,
   shouldShowAircraftLoadingOverlay,
   shouldTriggerVisibilityRefreshOverlay,
@@ -138,6 +139,77 @@ assert.equal(
     feedLoading: false,
   }),
   "idle",
+);
+
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: false,
+    trafficLoading: true,
+    weatherLoading: true,
+  }),
+  { active: true, mode: "map", reason: "map" },
+);
+
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    variant: "airport",
+    trafficLoading: true,
+    weatherLoading: true,
+  }),
+  { active: true, mode: "feed", reason: "traffic" },
+);
+
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    variant: "flight",
+    trackedAircraftLoading: true,
+    nearbyAirportsLoading: true,
+  }),
+  { active: true, mode: "feed", reason: "trackedAircraft" },
+);
+
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    variant: "airport",
+    weatherLoading: true,
+    nearbyAirportsLoading: true,
+  }),
+  { active: true, mode: "feed", reason: "weather" },
+);
+
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    proceduresLoading: true,
+    routeLoadingCount: 4,
+  }),
+  { active: true, mode: "feed", reason: "procedures" },
+);
+
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    routeLoadingCount: 2,
+  }),
+  { active: true, mode: "feed", reason: "routes" },
+);
+
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    traceLoading: true,
+  }),
+  { active: true, mode: "feed", reason: "trace" },
+);
+
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: true,
+  }),
+  { active: false, mode: "idle", reason: "" },
 );
 
 {

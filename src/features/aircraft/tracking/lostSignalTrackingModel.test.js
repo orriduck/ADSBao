@@ -51,6 +51,57 @@ assert.equal(
     lostSignal: false,
     pollVersion: 21,
     visibilityRefreshVersion: 0,
+    trackingState: { status: "flightaware_active" },
+    pollMs: 3_000,
+    flightAwareTraceRefreshMs: 60_000,
+  }),
+  "flightaware:1",
+);
+
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: false,
+    pollVersion: 39,
+    visibilityRefreshVersion: 0,
+    trackingState: { status: "flightaware_active" },
+    pollMs: 3_000,
+    flightAwareTraceRefreshMs: 60_000,
+  }),
+  "flightaware:1",
+);
+
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: false,
+    pollVersion: 40,
+    visibilityRefreshVersion: 0,
+    trackingState: { status: "flightaware_active" },
+    pollMs: 3_000,
+    flightAwareTraceRefreshMs: 60_000,
+  }),
+  "flightaware:2",
+);
+
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: false,
+    pollVersion: 19,
+    visibilityRefreshVersion: 0,
+    trackingState: { status: "flightaware_active" },
+    pollMs: 3_000,
+    flightAwareTraceRefreshMs: 60_000,
+  }),
+  "",
+);
+
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: false,
+    pollVersion: 21,
+    visibilityRefreshVersion: 0,
+    trackingState: { status: "adsb_live" },
+    pollMs: 3_000,
+    flightAwareTraceRefreshMs: 60_000,
   }),
   "",
 );

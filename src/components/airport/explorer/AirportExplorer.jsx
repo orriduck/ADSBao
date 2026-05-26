@@ -205,6 +205,16 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             loadingOverlayActive={
               !criticalLoadingSettled || traffic.aircraftLoadingOverlayActive
             }
+            loadingOverlaySources={{
+              trafficLoading:
+                traffic.aircraftLoadingOverlayActive ||
+                !traffic.aircraftPositionsSettled,
+              weatherLoading: weather.metarLoading || !weather.metarSettled,
+              nearbyAirportsLoading:
+                nearbyAirports.loading || !nearbyAirports.settled,
+              proceduresLoading: procedures.loading || !procedures.settled,
+              routeLoadingCount: traffic.routeLoadingCount,
+            }}
           />
 
           {isMobile && sidebarOpen && (
