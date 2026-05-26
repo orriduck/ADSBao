@@ -22,6 +22,7 @@ export default function AircraftPreviewCard({
   sidebarOpen = false,
   airportProfile = null,
   onApplyTemporaryRoute,
+  suppressMobileWhenAlreadyTracking = false,
 }) {
   const { t } = useI18n();
   const photoState = useAircraftPhoto(aircraft);
@@ -34,13 +35,6 @@ export default function AircraftPreviewCard({
   const identityKey = isAirport
     ? `airport:${airport?.icao || "preview"}`
     : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
-  const showMobile = isMobile && !sidebarOpen && Boolean(entity);
-
-  // Mobile preview card is the only way to trigger "Track this entity"
-  // on touch — desktop uses the explicit Track button inside the larger
-  // metadata card. Tapping the mobile card navigates to the right
-  // detail page. If the user is already on that page, the tap is a
-  // no-op so they don't bounce.
   const router = useRouter();
   const pathname = usePathname();
   const trackHref = isAirport
@@ -51,6 +45,17 @@ export default function AircraftPreviewCard({
       ? `/aircraft/${aircraft.callsign.trim().toUpperCase()}`
       : null;
   const alreadyTracking = trackHref && pathname === trackHref;
+  const showMobile =
+    isMobile &&
+    !sidebarOpen &&
+    Boolean(entity) &&
+    !(suppressMobileWhenAlreadyTracking && alreadyTracking);
+
+  // Mobile preview card is the only way to trigger "Track this entity"
+  // on touch — desktop uses the explicit Track button inside the larger
+  // metadata card. Tapping the mobile card navigates to the right
+  // detail page. If the user is already on that page, the tap is a
+  // no-op so they don't bounce.
   const handleMobileTap = () => {
     if (!trackHref || alreadyTracking) return;
     router.push(trackHref);

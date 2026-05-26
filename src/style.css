@@ -5922,15 +5922,16 @@ body {
    Centered at the bottom, callsign + type row + compact telemetry row. */
 .aircraft-preview-mobile-card {
     position: fixed;
-    bottom: 32px;
+    bottom: calc(64px + env(safe-area-inset-bottom));
     left: 50%;
     z-index: 1200;
-    max-width: min(360px, calc(100vw - 32px));
+    width: min(340px, calc(100vw - 28px));
+    max-width: calc(100vw - 28px);
     background:
         linear-gradient(
             90deg,
-            color-mix(in oklab, var(--endf-yellow) 16%, transparent) 0 56px,
-            transparent 56px
+            color-mix(in oklab, var(--endf-yellow) 14%, transparent) 0 52px,
+            transparent 52px
         ),
         var(--atc-card);
     border: 1px solid var(--tone-border-firm);
@@ -5952,7 +5953,7 @@ body {
     left: 0;
     position: absolute;
     top: 0;
-    width: 56px;
+    width: 52px;
     z-index: 0;
 }
 
@@ -5961,7 +5962,7 @@ body {
     border-right: 2px solid var(--endf-ink);
     content: "";
     height: 10px;
-    left: 24px;
+    left: 22px;
     position: absolute;
     top: 5px;
     transform: rotate(-45deg);
@@ -5975,12 +5976,12 @@ body {
 .aircraft-preview-mobile-card--stacked {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding-bottom: 10px;
+    gap: 2px;
+    padding-bottom: 8px;
 }
 
 .aircraft-preview-mobile-card__track {
-    margin: 4px 14px 0;
+    margin: 2px 12px 0;
     min-height: 44px;
     padding: 0 16px;
     border: 1px solid color-mix(in oklab, var(--primary-bright) 88%, var(--primary-ink));
@@ -6031,7 +6032,7 @@ body {
    disabled by default; this re-enables them like the Track button does. */
 .aircraft-preview-mobile-card__feedback-link {
     align-self: center;
-    margin: 6px 14px 0;
+    margin: 4px 12px 0;
     padding: 6px 10px;
     border: none;
     background: transparent;
@@ -6162,9 +6163,9 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    padding: 14px 20px 12px 68px;
+    padding: 14px 16px 10px 64px;
     position: relative;
-    width: min(320px, calc(100vw - 48px));
+    width: 100%;
     z-index: 2;
 }
 
