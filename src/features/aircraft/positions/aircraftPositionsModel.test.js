@@ -4,6 +4,7 @@ import {
   isHttp4xxOr5xx,
   normalizeAdsbAircraft,
   normalizeAircraftSnapshot,
+  resolveLastSuccessfulPositionDate,
 } from "./aircraftPositionsModel.js";
 
 const receiveTime = 1_700_000_003_200;
@@ -78,3 +79,31 @@ assert.equal(isHttp4xxOr5xx({ status: 500 }), true);
 assert.equal(isHttp4xxOr5xx({ statusCode: 404 }), true);
 assert.equal(isHttp4xxOr5xx(new Error("HTTP 429")), true);
 assert.equal(isHttp4xxOr5xx(new Error("network timeout")), false);
+
+{
+  const result = resolveLastSuccessfulPositionDate([
+    { positionTime: 1_700_000_001_000, receiveTime: 1_700_000_010_000 },
+    { positionTime: 1_700_000_004_000, receiveTime: 1_700_000_011_000 },
+  ]);
+
+  assert.equal(result?.getTime(), 1_700_000_004_000);
+}
+
+{
+  const result = resolveLastSuccessfulPositionDate({
+    positionTime: 1_700_000_004_000,
+    receiveTime: 1_700_000_020_000,
+    positionQuality: {
+      source: "flightaware",
+      sourceUpdatedAt: "2026-05-25T15:00:12.000Z",
+      fetchedAt: "2026-05-25T15:01:40.000Z",
+    },
+  });
+
+  assert.equal(result?.toISOString(), "2026-05-25T15:00:12.000Z");
+}
+
+{
+  assert.equal(resolveLastSuccessfulPositionDate([]), null);
+  assert.equal(resolveLastSuccessfulPositionDate({ receiveTime }), null);
+}
