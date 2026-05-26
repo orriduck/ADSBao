@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
+import { Crosshair } from "lucide-react";
 import { MapContext } from "./MapContext.js";
 import MapTileLayers from "./MapTileLayers.jsx";
 import AreaMarker from "./AreaMarker.jsx";
@@ -19,15 +20,24 @@ import { getAircraftIdentity } from "../../features/airport/context/airportConte
 import { useI18n } from "../../features/app-shell/i18n/useI18n.js";
 import { aircraftMatchesFilters } from "../../features/aircraft/filters/aircraftFilters.js";
 import {
+  clampMapCenterToRadius,
   getMapOverlayTheme,
   getVisibleAircraft,
   resolveDocumentTheme,
 } from "../../features/airport/map/airportMapModel.js";
 
+const MOBILE_MAP_GESTURE_RADIUS_NM = 20;
+const MAP_CENTER_DEADZONE_NM = 0.05;
+
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
     ? resolveDocumentTheme(document.documentElement)
     : "dark";
+
+const resolveCoordinate = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+};
 
 export default function AirportMap({
   icao = "",
@@ -55,9 +65,12 @@ export default function AirportMap({
   showProcedureFixLabels = false,
   focalRangeRings = null,
   nearbyRangeRings = null,
+  mobileMapInteractionEnabled = false,
+  onMapMoveFromCenter = null,
+  onRecenterMap = null,
   children = null,
 }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   // Single source of truth for the ring bands so the inline labels
   // (AreaMarker), per-airport rings (NearbyAirportLayer), and the
   // bottom-left legend all agree on what to render. Pass `false` to
@@ -74,8 +87,24 @@ export default function AirportMap({
   const mapEl = useRef(null);
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
+  const programmaticMoveRef = useRef(false);
   const [mapInstance, setMapInstance] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(() => resolveCurrentTheme());
+  const focalCenter = useMemo(() => {
+    const focalLat = resolveCoordinate(lat);
+    const focalLon = resolveCoordinate(lon);
+    if (focalLat == null || focalLon == null) return null;
+    return { lat: focalLat, lon: focalLon };
+  }, [lat, lon]);
+  const boundedMobileInteraction =
+    mobileMapInteractionEnabled && Boolean(focalCenter);
+  const runProgrammaticMapMove = useCallback((move) => {
+    programmaticMoveRef.current = true;
+    move();
+    window.setTimeout(() => {
+      programmaticMoveRef.current = false;
+    }, 0);
+  }, []);
 
   useEffect(() => {
     setCurrentTheme(resolveCurrentTheme());
@@ -126,15 +155,87 @@ export default function AirportMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!mapInstance) return;
+
+    mapInstance.dragging.disable();
+    if (boundedMobileInteraction) {
+      mapInstance.touchZoom?.enable();
+      return;
+    }
+
+    mapInstance.touchZoom?.disable();
+  }, [boundedMobileInteraction, mapInstance]);
+
   // followsCenter controls whether the map re-centers on every poll.
   // After "fit to trace" the caller flips this to false so the map
   // stays anchored to the trace bounds even though the aircraft keeps
   // moving; clicking a preset zoom flips it back to true upstream.
   useEffect(() => {
-    if (mapRef.current && lat && lon && followsCenter) {
-      mapRef.current.setView([lat, lon], zoom);
+    if (mapRef.current && focalCenter && followsCenter) {
+      runProgrammaticMapMove(() => {
+        mapRef.current.setView([focalCenter.lat, focalCenter.lon], zoom, {
+          animate: false,
+        });
+      });
     }
-  }, [lat, lon, zoom, followsCenter]);
+  }, [focalCenter, followsCenter, runProgrammaticMapMove, zoom]);
+
+  useEffect(() => {
+    if (!mapInstance || !boundedMobileInteraction || !focalCenter) {
+      return undefined;
+    }
+
+    const getCenterDistanceNm = () =>
+      mapInstance.distance(
+        [focalCenter.lat, focalCenter.lon],
+        mapInstance.getCenter(),
+      ) / 1852;
+
+    const clampToMobileRadius = () => {
+      const center = mapInstance.getCenter();
+      const clamped = clampMapCenterToRadius({
+        center: { lat: center.lat, lon: center.lng },
+        focalCenter,
+        radiusNm: MOBILE_MAP_GESTURE_RADIUS_NM,
+      });
+      if (
+        !clamped ||
+        (Math.abs(clamped.lat - center.lat) < 0.000001 &&
+          Math.abs(clamped.lon - center.lng) < 0.000001)
+      ) {
+        return;
+      }
+
+      runProgrammaticMapMove(() => {
+        mapInstance.setView([clamped.lat, clamped.lon], mapInstance.getZoom(), {
+          animate: false,
+        });
+      });
+    };
+
+    const handleMoveEnd = () => {
+      const wasProgrammatic = programmaticMoveRef.current;
+      clampToMobileRadius();
+
+      if (!wasProgrammatic && getCenterDistanceNm() > MAP_CENTER_DEADZONE_NM) {
+        onMapMoveFromCenter?.();
+      }
+    };
+
+    mapInstance.on("moveend", handleMoveEnd);
+    clampToMobileRadius();
+
+    return () => {
+      mapInstance.off("moveend", handleMoveEnd);
+    };
+  }, [
+    boundedMobileInteraction,
+    focalCenter,
+    mapInstance,
+    onMapMoveFromCenter,
+    runProgrammaticMapMove,
+  ]);
 
   // Clicks on the map background (not on an aircraft marker) clear the
   // selection so the user can drop "trace mode" without targeting an
@@ -175,7 +276,15 @@ export default function AirportMap({
       zoom,
       groundAreaRadiusNm: effectiveFocalRings?.intervalNm,
     });
-  }, [aircraft, icao, lat, lon, nearbyAirports, zoom, effectiveFocalRings?.intervalNm]);
+  }, [
+    aircraft,
+    icao,
+    lat,
+    lon,
+    nearbyAirports,
+    zoom,
+    effectiveFocalRings?.intervalNm,
+  ]);
   const selectedAircraft = useMemo(
     () =>
       visibleAircraft.find(
@@ -188,6 +297,21 @@ export default function AirportMap({
   const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
 
   const overlayTheme = getMapOverlayTheme(currentTheme);
+
+  const handleRecenter = () => {
+    if (!mapRef.current || !focalCenter) return;
+
+    onRecenterMap?.();
+    runProgrammaticMapMove(() => {
+      mapRef.current.setView(
+        [focalCenter.lat, focalCenter.lon],
+        mapRef.current.getZoom(),
+        {
+          animate: false,
+        },
+      );
+    });
+  };
 
   return (
     <div className="relative h-full w-full bg-atc-bg">
@@ -281,6 +405,18 @@ export default function AirportMap({
           color={overlayTheme.attributionColor}
           shadowColor={overlayTheme.labelShadowColor}
         />
+      )}
+
+      {mapInstance && boundedMobileInteraction && (
+        <button
+          type="button"
+          className="ctrl-btn map-recenter-btn"
+          aria-label={t("map.recenter")}
+          title={t("map.recenter")}
+          onClick={handleRecenter}
+        >
+          <Crosshair aria-hidden="true" />
+        </button>
       )}
 
       {!mapInstance && <MapLoadingState />}

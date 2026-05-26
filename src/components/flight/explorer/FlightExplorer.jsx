@@ -84,6 +84,8 @@ function FlightExplorerContent({ callsign }) {
     selectAircraft,
     setSelectedAircraftId,
     selectAirport,
+    pauseMapFollow,
+    resumeMapFollow,
     toggleMapLabels,
     fitToTrace,
     mapFollowsAircraft,
@@ -382,6 +384,9 @@ function FlightExplorerContent({ callsign }) {
             showProcedureFixLabels={false}
             focalRangeRings={false}
             nearbyRangeRings={{ intervalNm: 5, maxNm: 5, prominent: true }}
+            mobileMapInteractionEnabled={isMobile}
+            onMapMoveFromCenter={pauseMapFollow}
+            onRecenterMap={resumeMapFollow}
           >
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
