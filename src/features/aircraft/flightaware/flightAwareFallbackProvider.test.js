@@ -253,4 +253,32 @@ assert.equal(buildFlightAwareFallbackUrl("bad-call"), "");
   assert.equal(failed.errorType, "network_failed");
 }
 
+{
+  clearFlightAwareFallbackCache();
+  let fetchCalls = 0;
+  const first = await getFlightAwareFallbackByCallsign("AAL100", {
+    env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return new Response("payment required", { status: 402 });
+    },
+    now: () => Date.parse(fetchedAt),
+  });
+  const second = await getFlightAwareFallbackByCallsign("AAL100", {
+    env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return new Response("payment required", { status: 402 });
+    },
+    now: () => Date.parse(fetchedAt) + 30_000,
+  });
+
+  assert.equal(first.ok, false);
+  assert.equal(first.errorType, "payment_required");
+  assert.equal(first.upstreamStatus, 402);
+  assert.equal(first.message, "HTTP 402");
+  assert.equal(second.errorType, "payment_required");
+  assert.equal(fetchCalls, 1);
+}
+
 console.log("flightAwareFallbackProvider.test.js ok");

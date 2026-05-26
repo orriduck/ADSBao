@@ -34,14 +34,22 @@ const htmlDecode = (value) =>
 const escapeRegExp = (value) =>
   String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-function errorResult(errorType, { message = "", fetchedAt } = {}) {
+function errorResult(errorType, { message = "", fetchedAt, upstreamStatus } = {}) {
   return {
     ok: false,
     hasPosition: false,
     errorType,
     message,
+    upstreamStatus,
     fetchedAt: fetchedAt || new Date().toISOString(),
   };
+}
+
+function cacheFallbackResult(cacheStore, callsign, result, nowMs) {
+  cacheStore.set(callsign, {
+    result,
+    expiresAt: nowMs + FLIGHTAWARE_FALLBACK_CACHE_TTL_MS,
+  });
 }
 
 function extractMetaContent(html, key) {
@@ -390,9 +398,19 @@ export async function getFlightAwareFallbackByCallsign(callsign, {
     if (response.status === 429) {
       return errorResult("rate_limited", { fetchedAt });
     }
+    if (response.status === 402) {
+      const result = errorResult("payment_required", {
+        message: "HTTP 402",
+        upstreamStatus: 402,
+        fetchedAt,
+      });
+      cacheFallbackResult(cacheStore, normalizedCallsign, result, nowMs);
+      return result;
+    }
     if (!response.ok) {
       return errorResult("network_failed", {
         message: `HTTP ${response.status}`,
+        upstreamStatus: response.status,
         fetchedAt,
       });
     }
@@ -406,10 +424,7 @@ export async function getFlightAwareFallbackByCallsign(callsign, {
       html,
       fetchedAt,
     });
-    cacheStore.set(normalizedCallsign, {
-      result,
-      expiresAt: nowMs + FLIGHTAWARE_FALLBACK_CACHE_TTL_MS,
-    });
+    cacheFallbackResult(cacheStore, normalizedCallsign, result, nowMs);
     return result;
   } catch (error) {
     const isTimeout =
