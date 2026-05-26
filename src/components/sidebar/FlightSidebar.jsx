@@ -12,6 +12,10 @@ import {
   getFlightRouteAirlineIconUrl,
 } from "@/utils/flightRouteDisplay.js";
 import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel.js";
+import {
+  formatFlightTelemetryMetric,
+  resolveTrackDirection,
+} from "@/features/aircraft/tracking/flightTelemetryDisplayModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { toFiniteNumber } from "@/utils/math.js";
 
@@ -163,14 +167,33 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
   const [activeMetric, setActiveMetric] = useState(null);
   const toggle = (id) =>
     setActiveMetric((current) => (current === id ? null : id));
+  const speedDisplay = formatFlightTelemetryMetric({
+    metric: "speed",
+    value: speed,
+    alternate: activeMetric === "speed",
+  });
+  const altitudeDisplay = formatFlightTelemetryMetric({
+    metric: "altitude",
+    value: altitude,
+    alternate: activeMetric === "altitude",
+  });
+  const verticalSpeedDisplay = formatFlightTelemetryMetric({
+    metric: "verticalSpeed",
+    value: vs,
+    alternate: activeMetric === "vs",
+  });
+  const trackDirection = resolveTrackDirection(track);
 
   return (
     <SidebarMetricGrid label={t("sidebar.flightTelemetry")}>
       <SidebarMetricCard
         label={t("metrics.speed")}
         value={
-          speed != null ? (
-            <MetricNumberFlow value={Math.round(speed)} suffix="kt" />
+          speedDisplay ? (
+            <MetricNumberFlow
+              value={speedDisplay.value}
+              suffix={speedDisplay.suffix}
+            />
           ) : (
             "—"
           )
@@ -183,8 +206,13 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         value={
           onGround
             ? t("aircraft.gnd")
-            : altitude != null
-              ? <MetricNumberFlow value={Math.round(altitude)} suffix="ft" />
+            : altitudeDisplay
+              ? (
+                  <MetricNumberFlow
+                    value={altitudeDisplay.value}
+                    suffix={altitudeDisplay.suffix}
+                  />
+                )
               : "—"
         }
         active={activeMetric === "altitude"}
@@ -193,11 +221,11 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
       <SidebarMetricCard
         label={t("metrics.verticalSpeed")}
         value={
-          vs != null ? (
+          verticalSpeedDisplay ? (
             <MetricNumberFlow
-              value={Math.round(vs)}
-              format={{ signDisplay: "exceptZero" }}
-              suffix="fpm"
+              value={verticalSpeedDisplay.value}
+              format={verticalSpeedDisplay.format}
+              suffix={verticalSpeedDisplay.suffix}
             />
           ) : (
             "—"
@@ -210,11 +238,15 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         label={t("metrics.track")}
         value={
           track != null ? (
-            <MetricNumberFlow
-              value={Math.round(track)}
-              suffix="°"
-              suffixPosition="sup"
-            />
+            activeMetric === "track" ? (
+              trackDirection || "—"
+            ) : (
+              <MetricNumberFlow
+                value={Math.round(track)}
+                suffix="°"
+                suffixPosition="sup"
+              />
+            )
           ) : (
             "—"
           )
