@@ -6,12 +6,30 @@ import {
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
   normalizeFeatureFlags,
+  normalizeFeatureFlagEnvironment,
   normalizeUserEmail,
+  resolveFeatureFlagEnvironment,
 } from "./userFeatureFlagsModel.js";
 
 assert.equal(normalizeUserEmail(" OWNER@Example.COM "), "owner@example.com");
 assert.equal(normalizeUserEmail(""), "");
 assert.equal(normalizeUserEmail(null), "");
+assert.equal(normalizeFeatureFlagEnvironment("preview"), "preview");
+assert.equal(normalizeFeatureFlagEnvironment("development"), "local");
+assert.equal(normalizeFeatureFlagEnvironment(""), "local");
+assert.throws(
+  () => normalizeFeatureFlagEnvironment("staging"),
+  /Expected feature flag environment/,
+);
+assert.equal(
+  resolveFeatureFlagEnvironment({ FEATURE_FLAGS_ENV: "preview" }),
+  "preview",
+);
+assert.equal(
+  resolveFeatureFlagEnvironment({ VERCEL_ENV: "production" }),
+  "production",
+);
+assert.equal(resolveFeatureFlagEnvironment({}), "local");
 
 assert.equal(
   getClerkUserPrimaryEmail({

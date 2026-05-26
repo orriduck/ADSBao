@@ -6,10 +6,11 @@ import {
 } from "./feature-flags.model.js";
 
 assert.deepEqual(
-  parseFeatureFlagCommand(["set", " Owner@Example.COM ", "flightAwareEnabled", "on"]),
+  parseFeatureFlagCommand(["--env", "preview", "set", " Owner@Example.COM ", "flightAwareEnabled", "on"]),
   {
     action: "set",
     email: "owner@example.com",
+    environment: "preview",
     flagKey: "flightAwareEnabled",
     flagValue: true,
   },
@@ -20,16 +21,18 @@ assert.deepEqual(
   {
     action: "set",
     email: "owner@example.com",
+    environment: "local",
     flagKey: "flightAwareEnabled",
     flagValue: false,
   },
 );
 
 assert.deepEqual(
-  parseFeatureFlagCommand(["merge", "owner@example.com", '{"flightAwareEnabled":true,"other":"true"}']),
+  parseFeatureFlagCommand(["merge", "--env=production", "owner@example.com", '{"flightAwareEnabled":true,"other":"true"}']),
   {
     action: "merge",
     email: "owner@example.com",
+    environment: "production",
     flags: {
       flightAwareEnabled: true,
       other: false,
@@ -42,6 +45,7 @@ assert.deepEqual(
   {
     action: "clear-flag",
     email: "owner@example.com",
+    environment: "local",
     flagKey: "flightAwareEnabled",
   },
 );
@@ -51,7 +55,13 @@ assert.deepEqual(
   {
     action: "clear-user",
     email: "owner@example.com",
+    environment: "local",
   },
+);
+
+assert.throws(
+  () => parseFeatureFlagCommand(["--env", "staging", "get", "owner@example.com"]),
+  /Expected feature flag environment/,
 );
 
 assert.throws(
@@ -64,13 +74,13 @@ assert.throws(
   const result = await applyFeatureFlagCommand({
     command: parseFeatureFlagCommand(["set", "owner@example.com", "flightAwareEnabled", "on"]),
     repository: {
-      async readFlagsByEmail(email) {
-        calls.push(["read", email]);
+      async readFlagsByEmail(email, options) {
+        calls.push(["read", email, options]);
         return { flags: { existingFlag: true } };
       },
-      async upsertFlagsByEmail({ email, flags }) {
-        calls.push(["upsert", email, flags]);
-        return { email, flags };
+      async upsertFlagsByEmail({ email, environment, flags }) {
+        calls.push(["upsert", email, environment, flags]);
+        return { email, environment, flags };
       },
     },
   });
@@ -80,8 +90,8 @@ assert.throws(
     flightAwareEnabled: true,
   });
   assert.deepEqual(calls, [
-    ["read", "owner@example.com"],
-    ["upsert", "owner@example.com", { existingFlag: true, flightAwareEnabled: true }],
+    ["read", "owner@example.com", { environment: "local" }],
+    ["upsert", "owner@example.com", "local", { existingFlag: true, flightAwareEnabled: true }],
   ]);
 }
 
@@ -90,21 +100,21 @@ assert.throws(
   const result = await applyFeatureFlagCommand({
     command: parseFeatureFlagCommand(["clear", "owner@example.com", "flightAwareEnabled"]),
     repository: {
-      async readFlagsByEmail(email) {
-        calls.push(["read", email]);
+      async readFlagsByEmail(email, options) {
+        calls.push(["read", email, options]);
         return { flags: { flightAwareEnabled: true, otherFlag: true } };
       },
-      async upsertFlagsByEmail({ email, flags }) {
-        calls.push(["upsert", email, flags]);
-        return { email, flags };
+      async upsertFlagsByEmail({ email, environment, flags }) {
+        calls.push(["upsert", email, environment, flags]);
+        return { email, environment, flags };
       },
     },
   });
 
   assert.deepEqual(result.flags, { otherFlag: true });
   assert.deepEqual(calls, [
-    ["read", "owner@example.com"],
-    ["upsert", "owner@example.com", { otherFlag: true }],
+    ["read", "owner@example.com", { environment: "local" }],
+    ["upsert", "owner@example.com", "local", { otherFlag: true }],
   ]);
 }
 
@@ -113,15 +123,15 @@ assert.throws(
   const result = await applyFeatureFlagCommand({
     command: parseFeatureFlagCommand(["clear", "owner@example.com"]),
     repository: {
-      async deleteFlagsByEmail(email) {
-        calls.push(["delete", email]);
-        return { email };
+      async deleteFlagsByEmail(email, options) {
+        calls.push(["delete", email, options]);
+        return { email, environment: options.environment };
       },
     },
   });
 
-  assert.deepEqual(result, { email: "owner@example.com", flags: {} });
-  assert.deepEqual(calls, [["delete", "owner@example.com"]]);
+  assert.deepEqual(result, { email: "owner@example.com", environment: "local", flags: {} });
+  assert.deepEqual(calls, [["delete", "owner@example.com", { environment: "local" }]]);
 }
 
 console.log("feature-flags.model.test.js ok");

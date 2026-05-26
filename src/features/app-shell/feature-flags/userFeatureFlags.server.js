@@ -3,6 +3,7 @@ import {
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
   normalizeFeatureFlags,
+  resolveFeatureFlagEnvironment,
 } from "./userFeatureFlagsModel.js";
 import {
   createUserFeatureFlagsRepositoryFromEnv,
@@ -10,13 +11,15 @@ import {
 
 export async function resolveFeatureFlagsForUser({
   user,
+  env = process.env,
   repository = createUserFeatureFlagsRepositoryFromEnv(),
 } = {}) {
   const email = getClerkUserPrimaryEmail(user);
   if (!email || !repository) return {};
+  const environment = resolveFeatureFlagEnvironment(env);
 
   try {
-    const row = await repository.readFlagsByEmail(email);
+    const row = await repository.readFlagsByEmail(email, { environment });
     return normalizeFeatureFlags(row?.flags);
   } catch (error) {
     console.warn(
