@@ -17,6 +17,7 @@ const LAYER_DRAWER_ID = "map-layer-drawer";
 export default function MapControlBar({
   activeZoom = ZOOM_AIRPORT,
   zoomActive = true,
+  zoomDisabled = false,
   showMapLabels = false,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
@@ -46,6 +47,7 @@ export default function MapControlBar({
   });
 
   const cycleZoom = () => {
+    if (zoomDisabled) return;
     // If the button is currently inactive (auto-follow is off because the
     // user clicked fit-to-trace), the first click should resume tracking
     // at the SAME preset zoom they were on — not skip to the next one.
@@ -77,6 +79,7 @@ export default function MapControlBar({
       <MapControlRail
         currentZoomOption={currentZoomOption}
         zoomActive={zoomActive}
+        zoomDisabled={zoomDisabled}
         currentTheme={themePreference}
         themeTitle={themeTitle}
         layerDrawerOpen={layerDrawerOpen}

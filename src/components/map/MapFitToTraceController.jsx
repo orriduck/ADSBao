@@ -20,7 +20,7 @@ import { buildTraceFitPoints } from "@/features/airport/map/mapFitTraceModel.js"
 // mapFollowsAircraft (the fitToTrace action already turns that off),
 // so even when the resolved Leaflet zoom lands on a preset value the
 // map stays anchored on the bounds we just computed.
-export default function MapFitToTraceController({ routePath = [], disabled = false }) {
+export default function MapFitToTraceController({ routePath = [] }) {
   const map = useMapInstance();
   const { fitToTraceSignal } = useExplorerUi();
   const { traces } = useSelectedAircraftTrace();
@@ -29,7 +29,7 @@ export default function MapFitToTraceController({ routePath = [], disabled = fal
   useEffect(() => {
     if (!map || fitToTraceSignal === lastSignalRef.current) return;
     lastSignalRef.current = fitToTraceSignal;
-    if (fitToTraceSignal === 0 || disabled) return;
+    if (fitToTraceSignal === 0) return;
 
     const points = buildTraceFitPoints({ traces, routePath });
 
@@ -37,7 +37,7 @@ export default function MapFitToTraceController({ routePath = [], disabled = fal
 
     const bounds = L.latLngBounds(points);
     map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
-  }, [disabled, fitToTraceSignal, map, traces, routePath]);
+  }, [fitToTraceSignal, map, traces, routePath]);
 
   return null;
 }

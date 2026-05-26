@@ -12,6 +12,7 @@ const LAYERS_ICON_KEY = "layers";
 export default function MapControlRail({
   currentZoomOption,
   zoomActive = true,
+  zoomDisabled = false,
   currentTheme,
   themeTitle,
   layerDrawerOpen,
@@ -24,6 +25,9 @@ export default function MapControlRail({
   const { t } = useI18n();
   const { isLoaded, isSignedIn } = useUser();
   const showSignedIn = isLoaded && isSignedIn;
+  const zoomTitle = zoomDisabled
+    ? t("map.zoomLockedFlightAware")
+    : `${currentZoomOption.title} (click to cycle)`;
   return (
     <div className="map-ctrl-bar">
       {onFitToTrace && (
@@ -42,9 +46,11 @@ export default function MapControlRail({
       <Button
         variant="atcIcon"
         size="icon"
-        className={`ctrl-btn ctrl-view ${zoomActive ? "active" : ""}`}
-        title={`${currentZoomOption.title} (click to cycle)`}
+        className={`ctrl-btn ctrl-view ${zoomActive && !zoomDisabled ? "active" : ""}`}
+        title={zoomTitle}
         onClick={onCycleZoom}
+        disabled={zoomDisabled}
+        aria-disabled={zoomDisabled}
         type="button"
       >
         <MapControlIcon iconKey={currentZoomOption.iconKey} />

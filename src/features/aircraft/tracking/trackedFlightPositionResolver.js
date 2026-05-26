@@ -125,10 +125,10 @@ function pickStalePrimary(candidates, now) {
     .sort((a, b) => a.ageSeconds - b.ageSeconds)[0] || null;
 }
 
-function normalizeFlightAwarePosition(position) {
+function normalizeFlightAwarePosition(position, { fallbackHex = "" } = {}) {
   if (!position || !hasUsableLatLon(position)) return null;
   return {
-    hex: position.hex || "",
+    hex: position.hex || fallbackHex || "",
     flight: position.callsign || "",
     callsign: position.callsign || "",
     lat: position.lat,
@@ -177,6 +177,7 @@ export async function resolveTrackedFlightPosition({
     };
   }
 
+  const stale = pickStalePrimary(candidates, now);
   let fallback = flightAwareFallback;
   if (!fallback && featureEnabled && typeof getFlightAwareFallback === "function") {
     fallback = await getFlightAwareFallback(callsign);
@@ -194,7 +195,9 @@ export async function resolveTrackedFlightPosition({
       : null;
 
   if (!fallbackTerminal && fallback?.ok && fallback.hasPosition) {
-    const position = normalizeFlightAwarePosition(fallback.position);
+    const position = normalizeFlightAwarePosition(fallback.position, {
+      fallbackHex: stale?.position?.hex || lastKnown?.hex || "",
+    });
     if (position) {
       return {
         source: "flightaware",
@@ -230,7 +233,6 @@ export async function resolveTrackedFlightPosition({
     };
   }
 
-  const stale = pickStalePrimary(candidates, now);
   const fallbackPosition = stale?.position || lastKnown;
   if (fallbackPosition && hasUsableLatLon(fallbackPosition)) {
     const staleStatus = stale
