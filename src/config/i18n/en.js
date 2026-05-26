@@ -212,6 +212,7 @@ const en = {
     layerOverlaysAria: "Map layer overlays",
     toggleSidebar: "Toggle sidebar",
     fitTrace: "Fit map to trace",
+    recenter: "Return to center",
     approachingView: "Approaching view (click to cycle)",
     themeButtonAria: "Theme: {label} (click to switch)",
     themeLight: "Light",
