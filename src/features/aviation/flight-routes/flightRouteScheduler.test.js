@@ -54,8 +54,12 @@ function createManualTimer() {
   });
 
   let notificationCount = 0;
+  const notifications = [];
   scheduler.subscribe(() => {
     notificationCount += 1;
+  });
+  scheduler.subscribe((state) => {
+    notifications.push(state);
   });
 
   const routeContext = {
@@ -77,6 +81,7 @@ function createManualTimer() {
 
   assert.deepEqual(fetched, [{ callsign: "DAL123", routeContext }]);
   assert.equal(scheduler.getLoadingCount(), 0);
+  assert.equal(notifications.at(-1).routeVersion, 1);
   assert.deepEqual(
     scheduler.getRoutesByCallsign({
       aircraft: [{ callsign: "dal123" }],
@@ -93,6 +98,48 @@ function createManualTimer() {
   assert.equal(timer.callbacks.length, 0);
   await flushPromises();
   assert.equal(fetched.length, 1);
+  scheduler.dispose();
+}
+
+{
+  const timer = createManualTimer();
+  const scheduler = createFlightRouteScheduler({
+    client: {
+      async fetchFlightRoute() {
+        throw new Error("network should not run");
+      },
+    },
+    config: {
+      maxConcurrentLookups: 1,
+      maxLookupsPerPass: 2,
+      maxQueueSize: 10,
+      queueIntervalMs: 0,
+      auditLogIntervalMs: 0,
+      hitCacheMs: 60_000,
+      missCacheMs: 10_000,
+    },
+    logger: { info() {}, warn() {} },
+    schedule: timer.schedule,
+    clearSchedule: timer.clear,
+    now: () => 1_700_000_000_000,
+  });
+
+  const notifications = [];
+  scheduler.subscribe((state) => notifications.push(state));
+  scheduler.applyTemporaryRoute(
+    " aal456 ",
+    {
+      callsign: "AAL456",
+      origin: { icao: "KLAX" },
+      destination: { icao: "KJFK" },
+    },
+    { icao: "KJFK", iata: "JFK" },
+  );
+
+  assert.deepEqual(
+    notifications.map((state) => state.routeVersion),
+    [0, 1],
+  );
   scheduler.dispose();
 }
 

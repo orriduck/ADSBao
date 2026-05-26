@@ -48,9 +48,13 @@ export function createFlightRouteScheduler({
   let lastAuditSnapshot = "";
   let latestAircraft = [];
   let latestRouteContext = {};
+  let routeVersion = 0;
 
   const notify = () => {
-    const state = { loadingCount: inFlightKeys.size + queuedKeys.size };
+    const state = {
+      loadingCount: inFlightKeys.size + queuedKeys.size,
+      routeVersion,
+    };
     for (const listener of listeners) listener(state);
   };
 
@@ -107,6 +111,7 @@ export function createFlightRouteScheduler({
       } else {
         cache.set(cacheKey, { route: null, time: timestamp });
       }
+      routeVersion += 1;
       auditRouteQueue();
     } catch (error) {
       logger.warn?.(
@@ -114,6 +119,7 @@ export function createFlightRouteScheduler({
         error?.message || error,
       );
       cache.set(cacheKey, { route: null, time: now() });
+      routeVersion += 1;
       auditRouteQueue();
     } finally {
       inFlightKeys.delete(cacheKey);
@@ -151,7 +157,10 @@ export function createFlightRouteScheduler({
   return {
     subscribe(listener) {
       listeners.add(listener);
-      listener({ loadingCount: inFlightKeys.size + queuedKeys.size });
+      listener({
+        loadingCount: inFlightKeys.size + queuedKeys.size,
+        routeVersion,
+      });
       return () => listeners.delete(listener);
     },
 
@@ -209,6 +218,7 @@ export function createFlightRouteScheduler({
         route,
         time: now(),
       });
+      routeVersion += 1;
       notify();
     },
 
