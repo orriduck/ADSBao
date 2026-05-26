@@ -5647,47 +5647,63 @@ body {
     box-sizing: border-box;
     width: 100%;
     margin-top: 14px;
-    padding: 10px 14px;
-    border: none;
-    border: 1px solid color-mix(in oklab, var(--primary-bright) 46%, var(--primary-ink));
+    padding: 11px 14px;
+    border: 1px solid color-mix(in oklab, var(--primary-bright) 88%, var(--primary-ink));
     border-radius: var(--atc-radius-control);
     background:
         linear-gradient(
             180deg,
-            color-mix(in oklab, var(--primary-bright) 24%, var(--primary-ink)),
-            color-mix(in oklab, var(--primary-bright) 14%, var(--primary-ink))
+            color-mix(in oklab, var(--primary-bright) 96%, white 4%),
+            var(--primary-bright)
         );
-    color: var(--primary-foreground);
+    box-shadow:
+        0 8px 18px color-mix(in oklab, var(--primary-bright) 22%, transparent),
+        inset 0 -2px 0 color-mix(in oklab, var(--primary-ink) 26%, transparent);
+    color: var(--primary-ink);
     font-family: var(--font-sans);
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 800;
     font-style: italic;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     line-height: 1;
     text-align: center;
     text-decoration: none;
     text-transform: uppercase;
     cursor: pointer;
     pointer-events: auto;
-    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    transition:
+        background 0.15s ease-out,
+        box-shadow 0.15s ease-out,
+        filter 0.15s ease-out,
+        transform 0.15s ease-out;
 }
 
 .aircraft-preview-card__track-btn:visited {
-    color: var(--primary-foreground);
+    color: var(--primary-ink);
 }
 
 :root[data-theme="dark"] .aircraft-preview-card__track-btn,
 :root[data-theme="dark"] .aircraft-preview-card__track-btn:visited,
 :root[data-theme="dark"] .aircraft-preview-mobile-card__track {
-    color: var(--atc-text);
+    color: var(--primary-ink);
 }
 
 .aircraft-preview-card__track-btn:hover {
-    opacity: 0.92;
+    filter: brightness(1.04);
+    box-shadow:
+        0 10px 22px color-mix(in oklab, var(--primary-bright) 28%, transparent),
+        inset 0 -2px 0 color-mix(in oklab, var(--primary-ink) 30%, transparent);
+}
+
+.aircraft-preview-card__track-btn:focus-visible,
+.aircraft-preview-mobile-card__track:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--primary-bright) 72%, white);
+    outline-offset: 3px;
 }
 
 .aircraft-preview-card__track-btn:active {
     transform: scale(0.98);
+    filter: brightness(0.96);
 }
 
 .aircraft-preview-card__track-btn:disabled {
@@ -5975,31 +5991,43 @@ body {
 
 .aircraft-preview-mobile-card__track {
     margin: 4px 14px 0;
-    padding: 9px 14px;
-    border: none;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid color-mix(in oklab, var(--primary-bright) 88%, var(--primary-ink));
     border-radius: 2px;
     background:
         linear-gradient(
             180deg,
-            color-mix(in oklab, var(--primary-bright) 24%, var(--primary-ink)),
-            color-mix(in oklab, var(--primary-bright) 14%, var(--primary-ink))
+            color-mix(in oklab, var(--primary-bright) 96%, white 4%),
+            var(--primary-bright)
         );
-    color: var(--primary-foreground);
+    box-shadow:
+        0 10px 22px color-mix(in oklab, var(--primary-bright) 22%, transparent),
+        inset 0 -2px 0 color-mix(in oklab, var(--primary-ink) 28%, transparent);
+    color: var(--primary-ink);
     font-family: var(--font-sans);
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 800;
     font-style: italic;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     line-height: 1;
     text-transform: uppercase;
     cursor: pointer;
     pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
-    transition: opacity 0.15s ease-out, transform 0.12s ease-out;
+    transition:
+        box-shadow 0.15s ease-out,
+        filter 0.15s ease-out,
+        transform 0.12s ease-out;
+}
+
+.aircraft-preview-mobile-card__track:hover {
+    filter: brightness(1.04);
 }
 
 .aircraft-preview-mobile-card__track:active {
     transform: scale(0.97);
+    filter: brightness(0.96);
 }
 
 .aircraft-preview-mobile-card__track:disabled {
