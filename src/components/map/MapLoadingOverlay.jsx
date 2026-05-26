@@ -2,17 +2,67 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
-import { getLoadingOverlayExitDelay } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
+import {
+  getLoadingOverlayExitDelay,
+  resolveAircraftLoadingOverlayState,
+} from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+
+const LOADING_COPY_BY_REASON = {
+  map: {
+    eyebrowKey: "map.mapRenderer",
+    statusKey: "map.loadingMap",
+  },
+  traffic: {
+    eyebrowKey: "map.adsbPositionFeed",
+    statusKey: "map.loadingTraffic",
+  },
+  trackedAircraft: {
+    eyebrowKey: "map.flightTrackingFeed",
+    statusKey: "map.loadingTrackedAircraft",
+  },
+  weather: {
+    eyebrowKey: "map.weatherFeed",
+    statusKey: "map.loadingWeather",
+  },
+  nearbyAirports: {
+    eyebrowKey: "map.airportContext",
+    statusKey: "map.loadingNearbyAirports",
+  },
+  procedures: {
+    eyebrowKey: "map.runwayProcedures",
+    statusKey: "map.loadingProcedures",
+  },
+  routes: {
+    eyebrowKey: "map.routeResolver",
+    statusKey: "map.loadingRoutes",
+  },
+  trace: {
+    eyebrowKey: "map.traceArchive",
+    statusKey: "map.loadingTrace",
+  },
+};
 
 export function useMapLoadingOverlayText({
   mode = "feed",
   variant = "airport",
   callsign = "",
+  reason = "",
 } = {}) {
   const { t } = useI18n();
   const normalizedCallsign = callsign.trim().toUpperCase();
   const isFlight = variant === "flight";
+  const copy = LOADING_COPY_BY_REASON[reason];
+
+  if (copy) {
+    return {
+      ariaLabel: t("map.loadingMapAria"),
+      eyebrow: t(copy.eyebrowKey),
+      status: t(copy.statusKey, {
+        callsign: normalizedCallsign || t("map.trackedAircraft"),
+      }),
+    };
+  }
 
   if (mode === "map") {
     return {
@@ -117,4 +167,18 @@ export default function MapLoadingOverlay({
       </div>
     </div>
   );
+}
+
+export function useResolvedMapLoadingOverlay({
+  mapReady = false,
+  variant = "airport",
+  active = false,
+  sources = {},
+} = {}) {
+  return resolveAircraftLoadingOverlayState({
+    mapReady,
+    variant,
+    feedLoading: active,
+    ...sources,
+  });
 }

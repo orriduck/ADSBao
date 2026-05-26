@@ -29,6 +29,17 @@ const KIND_STYLES = {
 };
 
 const CHINESE_RELEASE_COPY = {
+  "v1.5.1": {
+    title: "FlightAware 兜底焦点模式",
+    summary:
+      "FlightAware 兜底现在会把飞行地图锁定到焦点航班的完整航迹视图,并保留已缓存的机型与航路信息。",
+    highlights: [
+      "FlightAware 兜底会禁用缩放预设,并自动适配焦点航班完整航迹",
+      "完整航迹兜底视图会隐藏地图和侧栏里的附近飞机与附近机场",
+      "跟踪航班的机型与航路上下文会缓存 6 小时",
+      "FlightAware 航迹刷新节奏限制为 60 秒一次",
+    ],
+  },
   "v1.5.0": {
     title: "跟踪稳定性与地图标签优化",
     summary:

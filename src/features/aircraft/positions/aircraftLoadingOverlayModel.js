@@ -30,6 +30,37 @@ export function resolveAircraftLoadingOverlayMode({
   return "idle";
 }
 
+export function resolveAircraftLoadingOverlayState({
+  mapReady = false,
+  variant = "airport",
+  feedLoading = false,
+  trackedAircraftLoading = false,
+  trafficLoading = false,
+  weatherLoading = false,
+  nearbyAirportsLoading = false,
+  proceduresLoading = false,
+  routeLoadingCount = 0,
+  traceLoading = false,
+} = {}) {
+  if (!mapReady) return { active: true, mode: "map", reason: "map" };
+
+  const isFlight = variant === "flight";
+  const orderedSources = [
+    isFlight
+      ? ["trackedAircraft", trackedAircraftLoading || feedLoading]
+      : ["traffic", trafficLoading || feedLoading],
+    ["weather", weatherLoading],
+    ["nearbyAirports", nearbyAirportsLoading],
+    ["procedures", proceduresLoading],
+    ["routes", Number(routeLoadingCount) > 0],
+    ["trace", traceLoading],
+  ];
+
+  const activeSource = orderedSources.find(([, active]) => Boolean(active));
+  if (!activeSource) return { active: false, mode: "idle", reason: "" };
+  return { active: true, mode: "feed", reason: activeSource[0] };
+}
+
 export function shouldTriggerVisibilityRefreshOverlay({
   wasActive = false,
   hiddenSince = 0,

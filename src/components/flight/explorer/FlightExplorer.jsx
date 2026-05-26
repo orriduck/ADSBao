@@ -29,6 +29,12 @@ import { buildGreatCirclePath } from "@/features/aviation/flight-routes/greatCir
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel.js";
 import { mergeTrackedAircraftIntoNearby } from "@/features/airport/explorer/airportExplorerModel.js";
+import { AIRCRAFT_TRAFFIC_CONFIG } from "@/config/aviation.js";
+import {
+  mergeTrackedFlightMetadata,
+  readTrackedFlightMetadata,
+  writeTrackedFlightMetadata,
+} from "@/features/aircraft/tracking/trackedFlightMetadataStorage.js";
 
 // These map helpers import Leaflet, which evaluates `window` at module
 // top — SSR-incompatible. Dynamic-import keeps those helpers
@@ -117,6 +123,18 @@ function FlightExplorerContent({ callsign }) {
     visibilityRefreshVersion: trackedVisibilityRefreshVersion,
     trackingState,
   } = useTrackedAircraft(callsign);
+  const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
+  useEffect(() => {
+    setCachedTrackedMetadata(readTrackedFlightMetadata(callsign));
+  }, [callsign]);
+  const trackedAircraftForDisplay = useMemo(
+    () =>
+      mergeTrackedFlightMetadata({
+        aircraft: trackedAircraft,
+        metadata: cachedTrackedMetadata,
+      }),
+    [cachedTrackedMetadata, trackedAircraft],
+  );
 
   // Anchor the tracking session as soon as we have a callsign so the
   // 12h TTL starts ticking on first load — the hex is recorded once it
@@ -130,10 +148,10 @@ function FlightExplorerContent({ callsign }) {
       return;
     }
     const session = getOrCreateTrackedFlight(callsign, {
-      hex: trackedAircraft?.icao24 || null,
+      hex: trackedAircraftForDisplay?.icao24 || null,
     });
     if (session) setTrackingSession(session);
-  }, [callsign, trackedAircraft?.icao24]);
+  }, [callsign, trackedAircraftForDisplay?.icao24]);
   const focalTraceStartAtMs = useMemo(
     () =>
       getFlightAwareFallbackTraceStartAtMs({
@@ -147,9 +165,9 @@ function FlightExplorerContent({ callsign }) {
       getFlightAwareFallbackAutoFitKey({
         trackingState,
         callsign,
-        aircraftHex: trackedAircraft?.icao24,
+        aircraftHex: trackedAircraftForDisplay?.icao24,
       }),
-    [callsign, trackedAircraft?.icao24, trackingState],
+    [callsign, trackedAircraftForDisplay?.icao24, trackingState],
   );
   const focalTraceRefreshKey = useMemo(
     () =>
@@ -157,8 +175,17 @@ function FlightExplorerContent({ callsign }) {
         lostSignal,
         pollVersion: trackedPollVersion,
         visibilityRefreshVersion: trackedVisibilityRefreshVersion,
+        trackingState,
+        pollMs: AIRCRAFT_TRAFFIC_CONFIG.pollMs,
+        flightAwareTraceRefreshMs:
+          AIRCRAFT_TRAFFIC_CONFIG.flightAwareTraceRefreshMs,
       }),
-    [lostSignal, trackedPollVersion, trackedVisibilityRefreshVersion],
+    [
+      lostSignal,
+      trackedPollVersion,
+      trackedVisibilityRefreshVersion,
+      trackingState,
+    ],
   );
 
   // User can dismiss the lost-signal toast to keep watching the last
@@ -173,14 +200,14 @@ function FlightExplorerContent({ callsign }) {
   // the tracked aircraft is briefly absent from the feed.
   const lastKnownRef = useRef({ lat: null, lon: null });
   if (
-    trackedAircraft?.lat != null &&
-    Number.isFinite(Number(trackedAircraft.lat)) &&
-    trackedAircraft?.lon != null &&
-    Number.isFinite(Number(trackedAircraft.lon))
+    trackedAircraftForDisplay?.lat != null &&
+    Number.isFinite(Number(trackedAircraftForDisplay.lat)) &&
+    trackedAircraftForDisplay?.lon != null &&
+    Number.isFinite(Number(trackedAircraftForDisplay.lon))
   ) {
     lastKnownRef.current = {
-      lat: Number(trackedAircraft.lat),
-      lon: Number(trackedAircraft.lon),
+      lat: Number(trackedAircraftForDisplay.lat),
+      lon: Number(trackedAircraftForDisplay.lon),
     };
   }
   const focalLat = lastKnownRef.current.lat;
@@ -203,10 +230,15 @@ function FlightExplorerContent({ callsign }) {
       }),
     [isMobile, trackingState],
   );
+  const showNearbyContext = flightDisplayContext.showNearbyContext !== false;
+  const nearbyQueryLat = showNearbyContext ? contextLat : null;
+  const nearbyQueryLon = showNearbyContext ? contextLon : null;
 
   const {
-    aircraft: nearbyAircraft,
-  } = useAircraftPositions(callsign || "", contextLat, contextLon, {
+    aircraft: fetchedNearbyAircraft,
+    loading: fetchedNearbyAircraftLoading,
+    settled: fetchedNearbyAircraftSettled,
+  } = useAircraftPositions(callsign || "", nearbyQueryLat, nearbyQueryLon, {
     pollWhenHidden: true,
     distNm: flightDisplayContext.aircraftRangeNm,
   });
@@ -214,13 +246,23 @@ function FlightExplorerContent({ callsign }) {
   // Pull airports around the focal so the sidebar list and the map's
   // airport layer both show context relative to the moving flight.
   const {
-    airports: nearbyAirports,
+    airports: fetchedNearbyAirports,
+    loading: fetchedNearbyAirportsLoading,
+    settled: fetchedNearbyAirportsSettled,
   } = useNearbyAirports({
-    lat: contextLat,
-    lon: contextLon,
+    lat: nearbyQueryLat,
+    lon: nearbyQueryLon,
     radiusNm: flightDisplayContext.airportRadiusNm,
     limit: flightDisplayContext.airportLimit,
   });
+  const nearbyAircraft = useMemo(
+    () => (showNearbyContext ? fetchedNearbyAircraft : []),
+    [fetchedNearbyAircraft, showNearbyContext],
+  );
+  const nearbyAirports = useMemo(
+    () => (showNearbyContext ? fetchedNearbyAirports : []),
+    [fetchedNearbyAirports, showNearbyContext],
+  );
 
   const selectedAirport = useMemo(
     () =>
@@ -233,18 +275,25 @@ function FlightExplorerContent({ callsign }) {
   // Merge tracked aircraft into the nearby list so the map always renders
   // it (the radius poll can lag a beat behind the callsign poll).
   const rawAircraft = useMemo(() => {
+    if (!showNearbyContext) {
+      return trackedAircraftForDisplay ? [trackedAircraftForDisplay] : [];
+    }
     return mergeTrackedAircraftIntoNearby({
-      trackedAircraft,
+      trackedAircraft: trackedAircraftForDisplay,
       nearbyAircraft,
     });
-  }, [trackedAircraft, nearbyAircraft]);
+  }, [showNearbyContext, trackedAircraftForDisplay, nearbyAircraft]);
 
   // Look up routes for the tracked aircraft and any nearby traffic the user
   // might preview. No airport context on this page — the cache key is just
   // the callsign — and the same hook gives us the applyTemporaryRoute
   // callback so the preview-card feedback form can splice an override into
   // the in-memory cache without a refetch.
-  const { routesByCallsign, applyTemporaryRoute } = useFlightRoutes(rawAircraft, {
+  const {
+    routesByCallsign,
+    loadingCount: routeLoadingCount,
+    applyTemporaryRoute,
+  } = useFlightRoutes(rawAircraft, {
     routeProvider,
   });
 
@@ -264,8 +313,8 @@ function FlightExplorerContent({ callsign }) {
 
   // Default the selection to the focal aircraft so its trace appears on
   // load. Once the user clicks around it's their choice.
-  const focalKey = trackedAircraft
-    ? getAircraftIdentity(trackedAircraft)
+  const focalKey = trackedAircraftForDisplay
+    ? getAircraftIdentity(trackedAircraftForDisplay)
     : "";
   const seededRef = useRef(false);
   useEffect(() => {
@@ -288,13 +337,57 @@ function FlightExplorerContent({ callsign }) {
   // array we already fed routes into, so the sidebar shows the route
   // (community-feedback override or adsbdb) for the focal callsign.
   const enrichedTrackedAircraft = useMemo(() => {
-    if (!trackedAircraft) return null;
-    const trackedKey = getAircraftIdentity(trackedAircraft);
+    if (!trackedAircraftForDisplay) return null;
+    const trackedKey = getAircraftIdentity(trackedAircraftForDisplay);
     return (
       aircraft.find((item) => getAircraftIdentity(item) === trackedKey) ||
-      trackedAircraft
+      trackedAircraftForDisplay
     );
-  }, [aircraft, trackedAircraft]);
+  }, [aircraft, trackedAircraftForDisplay]);
+  const trackedMetadataSignature = useMemo(
+    () =>
+      JSON.stringify({
+        type: enrichedTrackedAircraft?.type || "",
+        category: enrichedTrackedAircraft?.category || "",
+        origin: enrichedTrackedAircraft?.origin || "",
+        destination: enrichedTrackedAircraft?.destination || "",
+        route: enrichedTrackedAircraft?.route || "",
+        flightRoute: enrichedTrackedAircraft?.flightRoute || null,
+      }),
+    [
+      enrichedTrackedAircraft?.type,
+      enrichedTrackedAircraft?.category,
+      enrichedTrackedAircraft?.origin,
+      enrichedTrackedAircraft?.destination,
+      enrichedTrackedAircraft?.route,
+      enrichedTrackedAircraft?.flightRoute,
+    ],
+  );
+  const lastWrittenMetadataSignatureRef = useRef("");
+  useEffect(() => {
+    if (!callsign || !enrichedTrackedAircraft) return;
+    if (
+      !trackedMetadataSignature ||
+      trackedMetadataSignature === lastWrittenMetadataSignatureRef.current
+    ) {
+      return;
+    }
+    const written = writeTrackedFlightMetadata(callsign, {
+      aircraft: enrichedTrackedAircraft,
+    });
+    if (written) {
+      lastWrittenMetadataSignatureRef.current = trackedMetadataSignature;
+      setCachedTrackedMetadata(written);
+    }
+  }, [callsign, enrichedTrackedAircraft, trackedMetadataSignature]);
+
+  useEffect(() => {
+    if (showNearbyContext || !focalKey || selectedAircraftId === focalKey) {
+      return;
+    }
+    setSelectedAircraftId(focalKey);
+  }, [focalKey, selectedAircraftId, setSelectedAircraftId, showNearbyContext]);
+
   const focalFlightAwareRoutePath = useMemo(() => {
     const route = enrichedTrackedAircraft?.flightRoute;
     if (route?.source !== "flightaware" || focalLat == null || focalLon == null) {
@@ -331,6 +424,7 @@ function FlightExplorerContent({ callsign }) {
     selectedAirportIcao,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
+    showNearbyList: showNearbyContext,
     feedSource,
     lastUpdated,
     onBack: handleBack,
@@ -344,8 +438,8 @@ function FlightExplorerContent({ callsign }) {
   return (
     <SelectedAircraftTraceProvider
       selectedAircraft={selectedAircraft}
-      focalAircraft={trackedAircraft}
-      fullTraceForFocal
+      focalAircraft={enrichedTrackedAircraft}
+      fullTraceForFocal={flightDisplayContext.fullTraceForFocal}
       focalTraceStartAtMs={focalTraceStartAtMs}
       focalPersistKey={callsign || null}
       focalTraceRefreshKey={focalTraceRefreshKey}
@@ -383,7 +477,7 @@ function FlightExplorerContent({ callsign }) {
               lastUpdated={lastUpdated}
               routeProvider={routeProvider}
               onFitToTrace={fitToTrace}
-              zoomDisabled={false}
+              zoomDisabled={flightDisplayContext.zoomDisabled}
             />
           )}
           <AirportMap
@@ -416,6 +510,16 @@ function FlightExplorerContent({ callsign }) {
             loadingOverlayActive={flightTrackingLoadingActive}
             loadingOverlayVariant="flight"
             loadingOverlayCallsign={callsign}
+            loadingOverlaySources={{
+              trackedAircraftLoading: flightTrackingLoadingActive,
+              trafficLoading:
+                showNearbyContext &&
+                (fetchedNearbyAircraftLoading || !fetchedNearbyAircraftSettled),
+              nearbyAirportsLoading:
+                showNearbyContext &&
+                (fetchedNearbyAirportsLoading || !fetchedNearbyAirportsSettled),
+              routeLoadingCount,
+            }}
           >
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController

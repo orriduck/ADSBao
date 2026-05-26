@@ -43,12 +43,38 @@ export function getTrackedFlightTraceRefreshKey({
   lostSignal = false,
   pollVersion = 0,
   visibilityRefreshVersion = 0,
+  trackingState = null,
+  pollMs = 3_000,
+  flightAwareTraceRefreshMs = 60_000,
 } = {}) {
   const visibilityVersion = Number(visibilityRefreshVersion);
   if (Number.isFinite(visibilityVersion) && visibilityVersion > 0) {
     return `visibility:${visibilityVersion}`;
   }
+  const flightAwareKey = getFlightAwareTraceRefreshKey({
+    trackingState,
+    pollVersion,
+    pollMs,
+    flightAwareTraceRefreshMs,
+  });
+  if (flightAwareKey) return flightAwareKey;
   return getLostSignalTraceRefreshKey({ lostSignal, pollVersion });
+}
+
+export function getFlightAwareTraceRefreshKey({
+  trackingState = null,
+  pollVersion = 0,
+  pollMs = 3_000,
+  flightAwareTraceRefreshMs = 60_000,
+} = {}) {
+  const trackingStatus = String(trackingState?.status || "").trim();
+  if (trackingStatus !== "flightaware_active") return "";
+  const version = Number(pollVersion);
+  const intervalMs = Math.max(1, Number(pollMs) || 1);
+  const refreshMs = Math.max(intervalMs, Number(flightAwareTraceRefreshMs) || intervalMs);
+  if (!Number.isFinite(version) || version <= 0) return "";
+  const bucket = Math.floor((version * intervalMs) / refreshMs);
+  return bucket > 0 ? `flightaware:${bucket}` : "";
 }
 
 export function hasActiveFlightAwareFallback(fallback) {

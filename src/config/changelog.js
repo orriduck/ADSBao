@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.5.1",
+    kind: "patch",
+    title: "FlightAware fallback focus mode",
+    summary:
+      "FlightAware fallback now locks the flight map into a focused full-trace view while preserving cached aircraft type and route metadata.",
+    highlights: [
+      "FlightAware fallback disables zoom presets and auto-fits the complete focal trace",
+      "Full-trace fallback hides nearby aircraft and airports from the map and sidebar",
+      "Tracked-flight metadata caches aircraft type and route context for 6 hours",
+      "FlightAware trace refreshes are throttled to a 60-second cadence",
+    ],
+  },
+  {
     version: "v1.5.0",
     kind: "feat",
     title: "Tracking stability and map-label optimization",
