@@ -339,6 +339,7 @@ function FlightExplorerContent({ callsign }) {
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         onApplyTemporaryRoute={applyTemporaryRoute}
+        suppressMobileWhenAlreadyTracking
       />
       <div
         className={`font-sans text-atc-text ${
