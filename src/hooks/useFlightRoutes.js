@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { normalizeCallsign } from "../utils/callsign.js";
 import { flightRouteScheduler } from "../features/aviation/flight-routes/flightRouteScheduler.js";
+import { createRouteDisplayBatcher } from "../features/aviation/flight-routes/flightRouteDisplayBatchModel.js";
 
 export { formatFlightRouteQueueAudit } from "../features/aviation/flight-routes/flightRouteScheduler.js";
 
@@ -10,6 +11,7 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
   const [version, setVersion] = useState(0);
   const [loadingCount, setLoadingCount] = useState(0);
   const mountedRef = useRef(true);
+  const routeDisplayBatcherRef = useRef(null);
   const routeContext = useMemo(
     () => ({
       icao: routeContextInput?.icao || "",
@@ -31,8 +33,18 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
   );
 
   useEffect(() => {
+    mountedRef.current = true;
+    routeDisplayBatcherRef.current = createRouteDisplayBatcher({
+      publish: (routeVersion) => {
+        if (!mountedRef.current) return;
+        setVersion(routeVersion);
+      },
+    });
+
     return () => {
       mountedRef.current = false;
+      routeDisplayBatcherRef.current?.dispose();
+      routeDisplayBatcherRef.current = null;
     };
   }, []);
 
@@ -45,12 +57,13 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
 
   useEffect(
     () =>
-      flightRouteScheduler.subscribe(({ loadingCount: nextLoadingCount }) => {
+      flightRouteScheduler.subscribe((state) => {
         if (!mountedRef.current) return;
-        setLoadingCount(nextLoadingCount);
-        // Always bump so the color updates the moment the route lands,
-        // even if the aircraft list has refreshed since this fetch started.
-        setVersion((value) => value + 1);
+        setLoadingCount(state.loadingCount);
+        // Route fetches complete independently. Publish route-cache changes
+        // to the list in a small batch so route labels and their reveal
+        // animations enter together instead of rippling row by row.
+        routeDisplayBatcherRef.current?.syncRouteVersion(state.routeVersion);
       }),
     [],
   );
