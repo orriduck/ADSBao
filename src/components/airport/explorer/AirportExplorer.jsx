@@ -4,7 +4,10 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar.jsx";
-import { MapLoadingFallback } from "@/components/map/MapLoadingOverlay.jsx";
+import {
+  MapLoadingFallback,
+  useMapLoadingOverlayText,
+} from "@/components/map/MapLoadingOverlay.jsx";
 import {
   ExplorerUiProvider,
   useExplorerUi,
@@ -19,7 +22,10 @@ import { useAirportProcedures } from "@/hooks/useAirportProcedures.js";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports.js";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext.jsx";
 import AircraftPreviewCard from "../../aircraft/preview/AircraftPreviewCard.jsx";
-import { areCriticalLoadingRequestsSettled } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
+import {
+  areCriticalLoadingRequestsSettled,
+  resolveAircraftLoadingOverlayState,
+} from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -112,6 +118,36 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     };
   }, [isMobile]);
 
+  const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
+    aircraftPositionsSettled: traffic.aircraftPositionsSettled,
+    metarSettled: weather.metarSettled,
+    nearbyAirportsSettled: nearbyAirports.settled,
+    proceduresSettled: procedures.settled,
+  });
+  const loadingOverlayActive =
+    !criticalLoadingSettled || traffic.aircraftLoadingOverlayActive;
+  const loadingOverlaySources = {
+    trafficLoading:
+      traffic.aircraftLoadingOverlayActive || !traffic.aircraftPositionsSettled,
+    weatherLoading: weather.metarLoading || !weather.metarSettled,
+    nearbyAirportsLoading: nearbyAirports.loading || !nearbyAirports.settled,
+    proceduresLoading: procedures.loading || !procedures.settled,
+    routeLoadingCount: traffic.routeLoadingCount,
+  };
+  const sourceLoadingState = resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    variant: "airport",
+    feedLoading: false,
+    ...loadingOverlaySources,
+  });
+  const sourceLoadingCopy = useMapLoadingOverlayText({
+    mode: sourceLoadingState.mode,
+    reason: sourceLoadingState.reason,
+    variant: "airport",
+  });
+  const sourceLoadingStatus = sourceLoadingState.active
+    ? sourceLoadingCopy.status
+    : "";
   const sidebarProps = {
     icao: airportProfile.icao,
     iata: airportProfile.iata,
@@ -133,16 +169,11 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
     feedSource: traffic.feedSource,
+    loadingStatus: sourceLoadingStatus,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
     onBack,
   };
-  const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
-    aircraftPositionsSettled: traffic.aircraftPositionsSettled,
-    metarSettled: weather.metarSettled,
-    nearbyAirportsSettled: nearbyAirports.settled,
-    proceduresSettled: procedures.settled,
-  });
 
   return (
     <SelectedAircraftTraceProvider selectedAircraft={selection.selectedAircraft}>
@@ -176,6 +207,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
               feedStatus={traffic.feedStatus}
               lastUpdated={traffic.lastUpdated}
               routeProvider={traffic.routeProvider}
+              loadingStatus={sourceLoadingStatus}
             />
           )}
 
@@ -202,19 +234,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             runwayProcedures={null}
             procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
             showProcedureFixLabels
-            loadingOverlayActive={
-              !criticalLoadingSettled || traffic.aircraftLoadingOverlayActive
-            }
-            loadingOverlaySources={{
-              trafficLoading:
-                traffic.aircraftLoadingOverlayActive ||
-                !traffic.aircraftPositionsSettled,
-              weatherLoading: weather.metarLoading || !weather.metarSettled,
-              nearbyAirportsLoading:
-                nearbyAirports.loading || !nearbyAirports.settled,
-              proceduresLoading: procedures.loading || !procedures.settled,
-              routeLoadingCount: traffic.routeLoadingCount,
-            }}
+            loadingOverlayActive={loadingOverlayActive}
+            loadingOverlaySources={loadingOverlaySources}
           />
 
           {isMobile && sidebarOpen && (

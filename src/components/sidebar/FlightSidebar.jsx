@@ -37,6 +37,7 @@ export default function FlightSidebar({
   showNearbyList = true,
   feedSource = "",
   lastUpdated = null,
+  loadingStatus = "",
   onBack,
   onClose = null,
 }) {
@@ -83,6 +84,7 @@ export default function FlightSidebar({
       variant="flight"
       feedSource={feedSource}
       lastUpdated={lastUpdated}
+      loadingStatus={loadingStatus}
       onBack={onBack}
       onClose={onClose}
       header={header}

@@ -6,6 +6,7 @@ import {
   getLoadingOverlayExitDelay,
   resolveAircraftLoadingOverlayMode,
   resolveAircraftLoadingOverlayState,
+  resolveMapLoadingPresentation,
   scheduleAfterOverlayPaint,
   shouldShowAircraftLoadingOverlay,
   shouldTriggerVisibilityRefreshOverlay,
@@ -210,6 +211,33 @@ assert.deepEqual(
     mapReady: true,
   }),
   { active: false, mode: "idle", reason: "" },
+);
+
+assert.deepEqual(
+  resolveMapLoadingPresentation({
+    active: true,
+    mode: "map",
+    reason: "map",
+  }),
+  { overlayActive: true, sourceStatusActive: false },
+);
+
+assert.deepEqual(
+  resolveMapLoadingPresentation({
+    active: true,
+    mode: "feed",
+    reason: "routes",
+  }),
+  { overlayActive: false, sourceStatusActive: true },
+);
+
+assert.deepEqual(
+  resolveMapLoadingPresentation({
+    active: false,
+    mode: "idle",
+    reason: "",
+  }),
+  { overlayActive: false, sourceStatusActive: false },
 );
 
 {

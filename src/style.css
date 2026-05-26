@@ -2308,7 +2308,8 @@ body {
 }
 
 .airport-map-source-status__line,
-.airport-map-source-status__route {
+.airport-map-source-status__route,
+.airport-map-source-status__loading {
     align-items: center;
     display: flex;
     justify-content: flex-end;
@@ -2328,6 +2329,20 @@ body {
     gap: 6px;
     letter-spacing: 0.24em;
     line-height: 1;
+}
+
+.airport-map-source-status__loading {
+    color: var(--atc-dim);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.1;
+    max-width: min(280px, calc(100vw - 132px));
+    overflow-wrap: anywhere;
+    text-align: right;
+    text-transform: uppercase;
+    white-space: normal;
 }
 
 .airport-map-source-status__source,
@@ -4101,6 +4116,19 @@ body {
     font-family: var(--font-display);
 }
 
+.airport-feed-loading-status {
+    color: var(--atc-dim);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+    max-width: 220px;
+    overflow-wrap: anywhere;
+    text-align: right;
+    text-transform: uppercase;
+}
+
 .airport-feed-status--infer {
     color: var(--atc-faint);
 }
@@ -5704,20 +5732,36 @@ body {
 }
 
 .aircraft-preview-card__trace-status {
-    margin-top: 12px;
     color: var(--atc-dim);
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.08em;
     line-height: 1.35;
+    margin-top: 0;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
     overflow-wrap: anywhere;
     text-align: center;
     text-transform: uppercase;
+    transform: translateY(-4px);
+    transition:
+        max-height 0.28s ease,
+        margin-top 0.28s ease,
+        opacity 0.18s ease,
+        transform 0.28s ease;
     white-space: normal;
 }
 
-.aircraft-preview-card__trace-status + .aircraft-preview-card__track-btn {
+.aircraft-preview-card__trace-status.is-active {
+    margin-top: 12px;
+    max-height: 44px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.aircraft-preview-card__trace-status.is-active + .aircraft-preview-card__track-btn {
     margin-top: 8px;
 }
 
@@ -6082,18 +6126,34 @@ body {
 
 .aircraft-preview-mobile-card__trace-status {
     align-self: stretch;
-    margin: 4px 14px 0;
     color: var(--atc-dim);
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.08em;
     line-height: 1.35;
+    margin: 0 14px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
     overflow-wrap: anywhere;
     pointer-events: none;
     text-align: center;
     text-transform: uppercase;
+    transform: translateY(-4px);
+    transition:
+        max-height 0.28s ease,
+        margin-top 0.28s ease,
+        opacity 0.18s ease,
+        transform 0.28s ease;
     white-space: normal;
+}
+
+.aircraft-preview-mobile-card__trace-status.is-active {
+    margin-top: 4px;
+    max-height: 44px;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Centered route-feedback modal. Mounted via Radix Dialog so focus trap,
@@ -6738,6 +6798,8 @@ body {
     .aircraft-preview-card__media-slot,
     .aircraft-preview-mobile-card__inner > *,
     .aircraft-preview-mobile-card__track,
+    .aircraft-preview-card__trace-status,
+    .aircraft-preview-mobile-card__trace-status,
     .aircraft-table-route-cycle--alternate::before,
     .endf-underline::after {
         transition: none;

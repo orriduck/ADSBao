@@ -26,6 +26,7 @@ export default function SidebarShell({
   header,
   children,
   variant = "airport",
+  loadingStatus = "",
 }) {
   const { t } = useI18n();
   const flightAwareEnabled = useFlightAwareEnabled();
@@ -104,6 +105,15 @@ export default function SidebarShell({
                 direction="reverse"
               />
             </span>
+            {loadingStatus ? (
+              <span className="airport-feed-loading-status">
+                <EndfieldValueSwap
+                  identityKey={`loading:${loadingStatus}`}
+                  value={<span>{loadingStatus}</span>}
+                  direction="reverse"
+                />
+              </span>
+            ) : null}
           </div>
         )}
       </div>

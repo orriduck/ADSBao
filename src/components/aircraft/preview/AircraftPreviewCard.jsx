@@ -150,8 +150,13 @@ export default function AircraftPreviewCard({
           )}
           {trackHref && (
             <>
-              {!isAirport && traceLoading && (
-                <div className="aircraft-preview-mobile-card__trace-status">
+              {!isAirport && (
+                <div
+                  className={`aircraft-preview-mobile-card__trace-status ${
+                    traceLoading ? "is-active" : ""
+                  }`}
+                  aria-hidden={!traceLoading}
+                >
                   {t("preview.loadingTrace")}
                 </div>
               )}

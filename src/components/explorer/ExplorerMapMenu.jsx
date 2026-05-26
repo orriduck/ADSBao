@@ -11,6 +11,7 @@ export default function ExplorerMapMenu({
   feedStatus = "live",
   lastUpdated = null,
   routeProvider = "",
+  loadingStatus = "",
   onFitToTrace = null,
   zoomDisabled = false,
 } = {}) {
@@ -64,6 +65,7 @@ export default function ExplorerMapMenu({
           feedStatus={feedStatus}
           lastUpdated={lastUpdated}
           routeProvider={routeProvider}
+          loadingStatus={loadingStatus}
         />
       ) : null}
     </div>

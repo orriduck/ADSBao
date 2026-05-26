@@ -5,7 +5,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu.jsx";
-import { MapLoadingFallback } from "@/components/map/MapLoadingOverlay.jsx";
+import {
+  MapLoadingFallback,
+  useMapLoadingOverlayText,
+} from "@/components/map/MapLoadingOverlay.jsx";
 import LostSignalToast from "@/components/aircraft/tracking/LostSignalToast.jsx";
 import {
   getOrCreateTrackedFlight,
@@ -60,6 +63,7 @@ import { normalizeCallsign } from "@/utils/callsign.js";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay.js";
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard.jsx";
+import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -413,6 +417,37 @@ function FlightExplorerContent({ callsign }) {
 
   const handleBack = () => router.push("/");
 
+  const flightTrackingLoadingActive = shouldShowFlightTrackingLoadingOverlay({
+    hasActiveFlight: Boolean(callsign),
+    trackedAircraftSettled,
+    trackedLoadingOverlayActive,
+  });
+  const loadingOverlaySources = {
+    trackedAircraftLoading: flightTrackingLoadingActive,
+    trafficLoading:
+      showNearbyContext &&
+      (fetchedNearbyAircraftLoading || !fetchedNearbyAircraftSettled),
+    nearbyAirportsLoading:
+      showNearbyContext &&
+      (fetchedNearbyAirportsLoading || !fetchedNearbyAirportsSettled),
+    routeLoadingCount,
+  };
+  const sourceLoadingState = resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    variant: "flight",
+    feedLoading: false,
+    ...loadingOverlaySources,
+  });
+  const sourceLoadingCopy = useMapLoadingOverlayText({
+    mode: sourceLoadingState.mode,
+    reason: sourceLoadingState.reason,
+    variant: "flight",
+    callsign,
+  });
+  const sourceLoadingStatus = sourceLoadingState.active
+    ? sourceLoadingCopy.status
+    : "";
+
   const sidebarProps = {
     callsign,
     aircraft: enrichedTrackedAircraft,
@@ -427,13 +462,9 @@ function FlightExplorerContent({ callsign }) {
     showNearbyList: showNearbyContext,
     feedSource,
     lastUpdated,
+    loadingStatus: sourceLoadingStatus,
     onBack: handleBack,
   };
-  const flightTrackingLoadingActive = shouldShowFlightTrackingLoadingOverlay({
-    hasActiveFlight: Boolean(callsign),
-    trackedAircraftSettled,
-    trackedLoadingOverlayActive,
-  });
 
   return (
     <SelectedAircraftTraceProvider
@@ -476,6 +507,7 @@ function FlightExplorerContent({ callsign }) {
               feedStatus="live"
               lastUpdated={lastUpdated}
               routeProvider={routeProvider}
+              loadingStatus={sourceLoadingStatus}
               onFitToTrace={fitToTrace}
               zoomDisabled={flightDisplayContext.zoomDisabled}
             />
@@ -510,16 +542,7 @@ function FlightExplorerContent({ callsign }) {
             loadingOverlayActive={flightTrackingLoadingActive}
             loadingOverlayVariant="flight"
             loadingOverlayCallsign={callsign}
-            loadingOverlaySources={{
-              trackedAircraftLoading: flightTrackingLoadingActive,
-              trafficLoading:
-                showNearbyContext &&
-                (fetchedNearbyAircraftLoading || !fetchedNearbyAircraftSettled),
-              nearbyAirportsLoading:
-                showNearbyContext &&
-                (fetchedNearbyAirportsLoading || !fetchedNearbyAirportsSettled),
-              routeLoadingCount,
-            }}
+            loadingOverlaySources={loadingOverlaySources}
           >
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
