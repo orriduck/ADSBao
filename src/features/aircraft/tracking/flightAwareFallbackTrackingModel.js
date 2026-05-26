@@ -10,10 +10,6 @@ export function getFlightAwareFallbackTraceStartAtMs({
   return defaultTraceStartAtMs;
 }
 
-export function shouldLockMapViewportForTrackingState(trackingState) {
-  return isFlightAwareFallbackTracking(trackingState);
-}
-
 export function getFlightAwareFallbackAutoFitKey({
   trackingState = null,
   callsign = "",

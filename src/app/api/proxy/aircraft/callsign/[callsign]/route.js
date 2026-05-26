@@ -6,9 +6,8 @@ import {
 } from "@/app/api/_shared/apiProxySecurity.js";
 import { currentUser } from "@clerk/nextjs/server";
 import {
-  buildClerkUserAccessEntity,
-  isFlightAwareOwnerEntity,
-} from "@/features/app-shell/auth/clerkRouteProviderAccess.js";
+  isFlightAwareEnabledForUser,
+} from "@/features/app-shell/feature-flags/userFeatureFlags.server.js";
 import {
   fetchTrackedAircraftByCallsign,
 } from "@/features/aircraft/callsign/aircraftCallsign.mechanism.js";
@@ -44,11 +43,10 @@ export async function GET(request, { params }) {
 
   try {
     const user = await currentUser();
+    const flightAwareEnabled = await isFlightAwareEnabledForUser({ user });
     const result = await fetchTrackedAircraftByCallsign({
       callsign,
-      featureEnabled: isFlightAwareOwnerEntity(
-        buildClerkUserAccessEntity(user),
-      ),
+      featureEnabled: flightAwareEnabled,
     });
     return Response.json(result.payload, {
       headers: buildProxyHeaders(request, {

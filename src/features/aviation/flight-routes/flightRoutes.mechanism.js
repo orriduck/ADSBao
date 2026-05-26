@@ -24,26 +24,27 @@ import { normalizeRouteCallsign } from "./flightRouteCallsign.js";
 let lastGateLog = "";
 
 async function isFlightAwareRouteProviderEnabled() {
-  const [{ currentUser }, routeProviderAccess] = await Promise.all([
+  const [{ currentUser }, featureFlagAccess, featureFlagModel] = await Promise.all([
     import("@clerk/nextjs/server"),
-    import("../../app-shell/auth/clerkRouteProviderAccess.js"),
+    import("../../app-shell/feature-flags/userFeatureFlags.server.js"),
+    import("../../app-shell/feature-flags/userFeatureFlagsModel.js"),
   ]);
   const user = await currentUser();
-  const entity = routeProviderAccess.buildClerkUserAccessEntity(user);
-  const enabled = routeProviderAccess.isFlightAwareOwnerEntity(entity);
+  const email = featureFlagModel.getClerkUserPrimaryEmail(user);
+  const enabled = await featureFlagAccess.isFlightAwareEnabledForUser({ user });
   if (process.env.NODE_ENV !== "production") {
-    const signature = `${user ? entity?.id || "no-id" : "no-user"}|${entity?.flightAwareEnabled ?? "?"}|${enabled}`;
+    const signature = `${user ? user.id || "no-id" : "no-user"}|${email || "no-email"}|${enabled}`;
     if (signature !== lastGateLog) {
       lastGateLog = signature;
       if (!user) {
         console.info("[flightaware-route] gate: no Clerk user → adsbdb");
-      } else if (!entity) {
+      } else if (!email) {
         console.info(
-          "[flightaware-route] gate: Clerk user lacks id → adsbdb",
+          "[flightaware-route] gate: Clerk user lacks primary email → adsbdb",
         );
       } else {
         console.info(
-          `[flightaware-route] gate: clerkUser=${entity.id} flightAwareEnabled=${entity.flightAwareEnabled} → ${enabled ? "flightaware" : "adsbdb"}`,
+          `[flightaware-route] gate: clerkUser=${user.id || "no-id"} email=${email} flightAwareEnabled=${enabled} → ${enabled ? "flightaware" : "adsbdb"}`,
         );
       }
     }
@@ -180,7 +181,7 @@ export const resolveFlightRoute = async ({
     );
   } catch (err) {
     console.warn(
-      `[flightaware-route] Clerk access check failed for ${normalizedCallsign}:`,
+      `[flightaware-route] feature flag check failed for ${normalizedCallsign}:`,
       err.message,
     );
   }

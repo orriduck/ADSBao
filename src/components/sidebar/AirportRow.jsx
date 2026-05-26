@@ -31,7 +31,7 @@ export default function AirportRow({
   return (
     <button
       type="button"
-      className={`aircraft-table-card endf-industrial-row grid w-full grid-cols-[18px_minmax(0,1fr)_54px_70px] items-center gap-3 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
+      className={`aircraft-table-card endf-industrial-row grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
         selected ? "endf-row-active" : ""
       }`}
       aria-pressed={selected}

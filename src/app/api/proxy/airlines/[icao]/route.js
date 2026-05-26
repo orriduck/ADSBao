@@ -42,18 +42,16 @@ export async function GET(request, { params }) {
 
   // Same gate as the route provider — the upstream airline-logos CDN
   // we proxy is the FlightAware CDN, so requesting it for users
-  // without the FlightAware-tier flag would be both unauthorized and
+  // without the Supabase-managed FlightAware-tier flag would be both unauthorized and
   // wasteful. Non-FA users get 404 here; the AirlineLogo wrapper on
   // the client already hides the <img> on error, so the UI degrades
   // cleanly to "no logo" without showing a broken image.
-  const [{ currentUser }, { buildClerkUserAccessEntity, isFlightAwareOwnerEntity }] = await Promise.all([
+  const [{ currentUser }, { isFlightAwareEnabledForUser }] = await Promise.all([
     import("@clerk/nextjs/server"),
-    import("@/features/app-shell/auth/clerkRouteProviderAccess.js"),
+    import("@/features/app-shell/feature-flags/userFeatureFlags.server.js"),
   ]);
   const user = await currentUser();
-  if (
-    !isFlightAwareOwnerEntity(buildClerkUserAccessEntity(user))
-  ) {
+  if (!(await isFlightAwareEnabledForUser({ user }))) {
     return jsonProxyResponse(
       request,
       { error: "Airline logo not available" },
