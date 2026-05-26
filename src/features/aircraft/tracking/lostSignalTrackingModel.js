@@ -39,6 +39,18 @@ export function getLostSignalTraceRefreshKey({
   return `lost-signal:${version}`;
 }
 
+export function getTrackedFlightTraceRefreshKey({
+  lostSignal = false,
+  pollVersion = 0,
+  visibilityRefreshVersion = 0,
+} = {}) {
+  const visibilityVersion = Number(visibilityRefreshVersion);
+  if (Number.isFinite(visibilityVersion) && visibilityVersion > 0) {
+    return `visibility:${visibilityVersion}`;
+  }
+  return getLostSignalTraceRefreshKey({ lostSignal, pollVersion });
+}
+
 export function hasActiveFlightAwareFallback(fallback) {
   if (!fallback || typeof fallback !== "object") return false;
   if (fallback.ok !== true) return false;
