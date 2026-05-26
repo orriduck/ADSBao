@@ -5667,6 +5667,12 @@ body {
     color: var(--primary-foreground);
 }
 
+:root[data-theme="dark"] .aircraft-preview-card__track-btn,
+:root[data-theme="dark"] .aircraft-preview-card__track-btn:visited,
+:root[data-theme="dark"] .aircraft-preview-mobile-card__track {
+    color: var(--atc-text);
+}
+
 .aircraft-preview-card__track-btn:hover {
     opacity: 0.92;
 }
