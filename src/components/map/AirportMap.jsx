@@ -23,6 +23,7 @@ import {
   clampMapCenterToRadius,
   getMapOverlayTheme,
   getVisibleAircraft,
+  resolveAirportMapFocalCenter,
   resolveDocumentTheme,
 } from "../../features/airport/map/airportMapModel.js";
 
@@ -34,15 +35,10 @@ const resolveCurrentTheme = () =>
     ? resolveDocumentTheme(document.documentElement)
     : "dark";
 
-const resolveCoordinate = (value) => {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : null;
-};
-
 export default function AirportMap({
   icao = "",
-  lat = 0,
-  lon = 0,
+  lat = null,
+  lon = null,
   zoom = 13,
   aircraft = [],
   nearbyAirports = [],
@@ -90,12 +86,10 @@ export default function AirportMap({
   const programmaticMoveRef = useRef(false);
   const [mapInstance, setMapInstance] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(() => resolveCurrentTheme());
-  const focalCenter = useMemo(() => {
-    const focalLat = resolveCoordinate(lat);
-    const focalLon = resolveCoordinate(lon);
-    if (focalLat == null || focalLon == null) return null;
-    return { lat: focalLat, lon: focalLon };
-  }, [lat, lon]);
+  const focalCenter = useMemo(
+    () => resolveAirportMapFocalCenter({ lat, lon }),
+    [lat, lon],
+  );
   const boundedMobileInteraction =
     mobileMapInteractionEnabled && Boolean(focalCenter);
   const runProgrammaticMapMove = useCallback((move) => {
@@ -123,8 +117,8 @@ export default function AirportMap({
     if (!mapEl.current || mapRef.current) return undefined;
     const map = L.map(mapEl.current, {
       center: [
-        lat || AIRPORT_MAP_FALLBACK_CENTER.lat,
-        lon || AIRPORT_MAP_FALLBACK_CENTER.lon,
+        focalCenter?.lat ?? AIRPORT_MAP_FALLBACK_CENTER.lat,
+        focalCenter?.lon ?? AIRPORT_MAP_FALLBACK_CENTER.lon,
       ],
       zoom,
       zoomControl: false,

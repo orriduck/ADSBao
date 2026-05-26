@@ -6,6 +6,7 @@ import {
   formatCoordinateLabel,
   getMapOverlayTheme,
   getVisibleAircraft,
+  resolveAirportMapFocalCenter,
   resolveDocumentTheme,
 } from "./airportMapModel.js";
 
@@ -23,6 +24,13 @@ assert.equal(resolveDocumentTheme({ getAttribute: () => null }), "dark");
 assert.equal(formatCoordinateLabel(42.3656, "lat"), "42.37N");
 assert.equal(formatCoordinateLabel(-71.0096, "lon"), "71.01W");
 assert.equal(formatCoordinateLabel(0, "lat"), "");
+
+assert.equal(resolveAirportMapFocalCenter({ lat: null, lon: null }), null);
+assert.equal(resolveAirportMapFocalCenter({ lat: 42.3656, lon: null }), null);
+assert.deepEqual(resolveAirportMapFocalCenter({ lat: "0", lon: "0" }), {
+  lat: 0,
+  lon: 0,
+});
 
 assert.deepEqual(
   getVisibleAircraft({ aircraft, airportLat: 42.3656, airportLon: -71.0096, zoom: ZOOM_AIRPORT })
