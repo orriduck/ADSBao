@@ -222,6 +222,7 @@ const en = {
     layerOverlaysAria: "Map layer overlays",
     toggleSidebar: "Toggle sidebar",
     fitTrace: "Fit map to trace",
+    zoomLockedFlightAware: "Zoom is locked while using FlightAware fallback",
     approachingView: "Approaching view (click to cycle)",
     themeButtonAria: "Theme: {label} (click to switch)",
     themeLight: "Light",

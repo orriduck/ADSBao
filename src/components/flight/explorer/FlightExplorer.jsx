@@ -367,6 +367,7 @@ function FlightExplorerContent({ callsign }) {
               lastUpdated={lastUpdated}
               routeProvider={routeProvider}
               onFitToTrace={fitToTrace}
+              zoomDisabled={mapViewportLocked}
             />
           )}
           <AirportMap
@@ -399,7 +400,6 @@ function FlightExplorerContent({ callsign }) {
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
               routePath={focalFlightAwareRoutePath}
-              disabled={mapViewportLocked}
             />
           </AirportMap>
           <AircraftDataLoadingOverlay

@@ -72,6 +72,21 @@ assert.equal(ADSB_FRESH_MAX_AGE_SECONDS, 60);
 }
 
 {
+  const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition: primary("adsb.lol", 120, { hex: "A1F1A0" }),
+    airplanesLivePosition: null,
+    getFlightAwareFallback: async () => flightAware,
+    callsign: "AAL100",
+    featureEnabled: true,
+    now,
+  });
+
+  assert.equal(resolved.source, "flightaware");
+  assert.equal(resolved.position.hex, "A1F1A0");
+  assert.equal(resolved.trackingState.status, "flightaware_active");
+}
+
+{
   let flightAwareCalls = 0;
   const lastKnown = primary("adsb.lol", 300, { lat: 40, lon: -70 });
   const resolved = await resolveTrackedFlightPosition({

@@ -12,6 +12,7 @@ export default function ExplorerMapMenu({
   lastUpdated = null,
   routeProvider = "",
   onFitToTrace = null,
+  zoomDisabled = false,
 } = {}) {
   const { t } = useI18n();
   const {
@@ -46,6 +47,7 @@ export default function ExplorerMapMenu({
       <MapControlBar
         activeZoom={mapZoom}
         zoomActive={mapFollowsAircraft}
+        zoomDisabled={zoomDisabled}
         showMapLabels={showMapLabels}
         showRunwayBeams={showRunwayBeams}
         showRoutingPointBadges={showRoutingPointBadges}
