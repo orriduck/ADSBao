@@ -3,7 +3,7 @@ import { buildAdsbaoUserAgent } from "../../../config/siteMeta.js";
 import { normalizeRouteCallsign } from "../../aviation/flight-routes/flightRouteCallsign.js";
 
 export const FLIGHTAWARE_FALLBACK_BASE = "https://www.flightaware.com/live/flight";
-export const FLIGHTAWARE_FALLBACK_CACHE_TTL_MS = 45_000;
+export const FLIGHTAWARE_FALLBACK_CACHE_TTL_MS = 60_000;
 export const FLIGHTAWARE_FALLBACK_TIMEOUT_MS = 7_000;
 export const FLIGHTAWARE_FALLBACK_USER_AGENT =
   buildAdsbaoUserAgent("flightaware/fallback-html");

@@ -15,6 +15,10 @@ import {
   getTrackedFlightTraceRefreshKey,
 } from "@/features/aircraft/tracking/lostSignalTrackingModel.js";
 import {
+  getFlightAwareFallbackTraceStartAtMs,
+  shouldLockMapViewportForTrackingState,
+} from "@/features/aircraft/tracking/flightAwareFallbackTrackingModel.js";
+import {
   getFlightTrackingContextPosition,
   shouldShowFlightTrackingLoadingOverlay,
 } from "@/features/aircraft/tracking/flightTrackingContextModel.js";
@@ -84,8 +88,6 @@ function FlightExplorerContent({ callsign }) {
     selectAircraft,
     setSelectedAircraftId,
     selectAirport,
-    pauseMapFollow,
-    resumeMapFollow,
     toggleMapLabels,
     fitToTrace,
     mapFollowsAircraft,
@@ -113,6 +115,7 @@ function FlightExplorerContent({ callsign }) {
     lostSignal,
     pollVersion: trackedPollVersion,
     visibilityRefreshVersion: trackedVisibilityRefreshVersion,
+    trackingState,
   } = useTrackedAircraft(callsign);
 
   // Anchor the tracking session as soon as we have a callsign so the
@@ -132,9 +135,14 @@ function FlightExplorerContent({ callsign }) {
     if (session) setTrackingSession(session);
   }, [callsign, trackedAircraft?.icao24]);
   const focalTraceStartAtMs = useMemo(
-    () => getTraceCutoffMs(trackingSession),
-    [trackingSession],
+    () =>
+      getFlightAwareFallbackTraceStartAtMs({
+        trackingState,
+        defaultTraceStartAtMs: getTraceCutoffMs(trackingSession),
+      }),
+    [trackingSession, trackingState],
   );
+  const mapViewportLocked = shouldLockMapViewportForTrackingState(trackingState);
   const focalTraceRefreshKey = useMemo(
     () =>
       getTrackedFlightTraceRefreshKey({
@@ -377,7 +385,7 @@ function FlightExplorerContent({ callsign }) {
             selectedAircraftId={selectedAircraftId}
             selectedAirportIcao={selectedAirportIcao}
             focalAircraftId={focalKey}
-            followsCenter={mapFollowsAircraft}
+            followsCenter={mapFollowsAircraft && !mapViewportLocked}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             runwayMap={null}
@@ -386,13 +394,11 @@ function FlightExplorerContent({ callsign }) {
             showProcedureFixLabels={false}
             focalRangeRings={false}
             nearbyRangeRings={{ intervalNm: 5, maxNm: 5, prominent: true }}
-            mobileMapInteractionEnabled={isMobile}
-            onMapMoveFromCenter={pauseMapFollow}
-            onRecenterMap={resumeMapFollow}
           >
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
               routePath={focalFlightAwareRoutePath}
+              disabled={mapViewportLocked}
             />
           </AirportMap>
           <AircraftDataLoadingOverlay

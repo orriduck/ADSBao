@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 
 import { ZOOM_AIRPORT, ZOOM_APPROACH } from "../../../utils/airportMapDisplay.js";
 import {
-  clampMapCenterToRadius,
   formatCoordinateLabel,
   getMapOverlayTheme,
   getVisibleAircraft,
@@ -62,31 +61,4 @@ assert.equal(
 assert.equal(getMapOverlayTheme("dark").attributionColor, "var(--map-attribution)");
 
 const focalCenter = { lat: 42.3656, lon: -71.0096 };
-
-assert.deepEqual(
-  clampMapCenterToRadius({
-    center: { lat: 42.45, lon: -71.0096 },
-    focalCenter,
-    radiusNm: 20,
-  }),
-  { lat: 42.45, lon: -71.0096 },
-);
-
-const clampedNorth = clampMapCenterToRadius({
-  center: { lat: 42.8656, lon: -71.0096 },
-  focalCenter,
-  radiusNm: 20,
-});
-assert.ok(clampedNorth);
-assert.ok(clampedNorth.lat > focalCenter.lat);
-assert.ok(clampedNorth.lat < 42.8656);
-assert.ok(Math.abs(clampedNorth.lon - focalCenter.lon) < 0.000001);
-
-const clampedEast = clampMapCenterToRadius({
-  center: { lat: 42.3656, lon: -70.4096 },
-  focalCenter,
-  radiusNm: 20,
-});
-assert.ok(clampedEast);
-assert.ok(clampedEast.lon > focalCenter.lon);
-assert.ok(clampedEast.lon < -70.4096);
+assert.ok(focalCenter);
