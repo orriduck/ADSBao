@@ -28,6 +28,7 @@ import {
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
 } from "../../features/airport/map/airportMapModel.js";
+import { resolveMapLoadingPresentation } from "../../features/aircraft/positions/aircraftLoadingOverlayModel.js";
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
@@ -226,6 +227,8 @@ export default function AirportMap({
     active: loadingOverlayActive,
     sources: loadingOverlaySources,
   });
+  const loadingPresentation =
+    resolveMapLoadingPresentation(loadingOverlayState);
   const loadingOverlayCopy = useMapLoadingOverlayText({
     mode: loadingOverlayState.mode,
     reason: loadingOverlayState.reason,
@@ -328,7 +331,7 @@ export default function AirportMap({
       )}
 
       <MapLoadingOverlay
-        active={loadingOverlayState.active}
+        active={loadingPresentation.overlayActive}
         variant={loadingOverlayVariant}
         {...loadingOverlayCopy}
       />

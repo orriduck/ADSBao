@@ -12,10 +12,13 @@ export default function MobileMapSourceStatus({
   feedStatus = "live",
   lastUpdated = null,
   routeProvider = ROUTE_PROVIDER.ADSBDB,
+  loadingStatus = "",
 }) {
   const status = buildMobileMapSourceStatus({ feedSource, routeProvider });
   const updatedLabel = formatUpdated(lastUpdated);
-  if (!status.feedSource && !updatedLabel && !status.routeProvider) return null;
+  if (!status.feedSource && !updatedLabel && !status.routeProvider && !loadingStatus) {
+    return null;
+  }
 
   return (
     <div
@@ -60,6 +63,15 @@ export default function MobileMapSourceStatus({
                 {status.routeProvider}
               </span>
             )}
+            direction="reverse"
+          />
+        </span>
+      ) : null}
+      {loadingStatus ? (
+        <span className="airport-map-source-status__loading">
+          <EndfieldValueSwap
+            identityKey={`loading:${loadingStatus}`}
+            value={<span>{loadingStatus}</span>}
             direction="reverse"
           />
         </span>

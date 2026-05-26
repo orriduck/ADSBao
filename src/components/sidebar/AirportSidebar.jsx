@@ -28,6 +28,7 @@ export default function AirportSidebar({
   lastUpdated = null,
   feedStatus = "live",
   feedSource = "",
+  loadingStatus = "",
   onSelectAircraft,
   onSelectAirport,
   onBack,
@@ -62,6 +63,7 @@ export default function AirportSidebar({
       feedStatus={feedStatus}
       feedSource={feedSource}
       lastUpdated={lastUpdated}
+      loadingStatus={loadingStatus}
       onBack={onBack}
       onClose={onClose}
       header={header}

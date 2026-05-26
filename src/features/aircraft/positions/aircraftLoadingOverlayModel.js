@@ -61,6 +61,18 @@ export function resolveAircraftLoadingOverlayState({
   return { active: true, mode: "feed", reason: activeSource[0] };
 }
 
+export function resolveMapLoadingPresentation({
+  active = false,
+  mode = "idle",
+  reason = "",
+} = {}) {
+  const overlayActive = Boolean(active && mode === "map");
+  return {
+    overlayActive,
+    sourceStatusActive: Boolean(active && reason && !overlayActive),
+  };
+}
+
 export function shouldTriggerVisibilityRefreshOverlay({
   wasActive = false,
   hiddenSince = 0,

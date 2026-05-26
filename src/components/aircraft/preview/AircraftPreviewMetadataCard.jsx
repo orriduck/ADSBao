@@ -34,8 +34,13 @@ export default function AircraftPreviewMetadataCard({
       <AircraftPreviewTelemetry aircraft={aircraft} />
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
       <AircraftPreviewMetadata aircraft={aircraft} />
-      {trackHref && traceLoading && (
-        <div className="aircraft-preview-card__trace-status">
+      {trackHref && (
+        <div
+          className={`aircraft-preview-card__trace-status ${
+            traceLoading ? "is-active" : ""
+          }`}
+          aria-hidden={!traceLoading}
+        >
           {t("preview.loadingTrace")}
         </div>
       )}
