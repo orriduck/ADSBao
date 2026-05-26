@@ -272,7 +272,9 @@ function FlightExplorerContent({ callsign }) {
   }, [aircraft, trackedAircraft]);
   const focalFlightAwareRoutePath = useMemo(() => {
     const route = enrichedTrackedAircraft?.flightRoute;
-    if (route?.source !== "flightaware") return [];
+    if (route?.source !== "flightaware" || focalLat == null || focalLon == null) {
+      return [];
+    }
     return buildGreatCirclePath({
       from: { lat: focalLat, lon: focalLon },
       to: route.destination,
@@ -360,8 +362,8 @@ function FlightExplorerContent({ callsign }) {
           )}
           <AirportMap
             icao=""
-            lat={focalLat || 0}
-            lon={focalLon || 0}
+            lat={focalLat}
+            lon={focalLon}
             zoom={mapZoom}
             aircraft={aircraft}
             nearbyAirports={nearbyAirports}

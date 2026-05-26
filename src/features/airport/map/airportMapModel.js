@@ -24,8 +24,16 @@ export const getMapOverlayTheme = (theme) =>
       };
 
 const toFiniteCoordinate = (value) => {
+  if (value == null || value === "") return null;
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : null;
+};
+
+export const resolveAirportMapFocalCenter = ({ lat, lon } = {}) => {
+  const focalLat = toFiniteCoordinate(lat);
+  const focalLon = toFiniteCoordinate(lon);
+  if (focalLat == null || focalLon == null) return null;
+  return { lat: focalLat, lon: focalLon };
 };
 
 const normalizeLongitude = (lon) => ((((lon + 180) % 360) + 360) % 360) - 180;
