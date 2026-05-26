@@ -33,6 +33,19 @@ export const resolveAirportMapFocalCenter = ({ lat, lon } = {}) => {
   return { lat: focalLat, lon: focalLon };
 };
 
+export const resolveAirportMapInitialCenter = ({
+  focalCenter = null,
+  fallbackCenter = null,
+  deferUntilFocal = false,
+} = {}) => {
+  if (focalCenter) return focalCenter;
+  if (deferUntilFocal) return null;
+  return resolveAirportMapFocalCenter({
+    lat: fallbackCenter?.lat,
+    lon: fallbackCenter?.lon,
+  });
+};
+
 export const formatCoordinateLabel = (value, axis) => {
   if (!value) return "";
   const positiveSuffix = axis === "lat" ? "N" : "E";

@@ -14,11 +14,13 @@ export function buildTraceFitPoints({ traces = [], routePath = [] } = {}) {
     }
   }
 
-  for (const point of routePath || []) {
-    if (Array.isArray(point)) {
-      pushFiniteLatLon(points, point[0], point[1]);
-    } else {
-      pushFiniteLatLon(points, point?.lat, point?.lon);
+  if (points.length > 0) {
+    for (const point of routePath || []) {
+      if (Array.isArray(point)) {
+        pushFiniteLatLon(points, point[0], point[1]);
+      } else {
+        pushFiniteLatLon(points, point?.lat, point?.lon);
+      }
     }
   }
 

@@ -114,6 +114,9 @@ const getNearbyAirportsFromOurAirports = async ({ query, queries }) => {
 };
 
 const logSupabaseCacheWarning = (action, error) => {
+  if (action === "write") {
+    return;
+  }
   console.warn(`[airports/nearby] Supabase cache ${action} failed`, error);
 };
 

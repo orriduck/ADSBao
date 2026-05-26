@@ -99,7 +99,6 @@ const EARTH_RADIUS_NM = 3440.065;
 const ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES = new Set([
   "flightaware_terminal",
   "missing",
-  "stale",
 ]);
 
 const haversineNm = (lat1, lon1, lat2, lon2) => {

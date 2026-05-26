@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "@maplibre/maplibre-gl-leaflet";
 import { useMapInstance } from "./MapContext.js";
+import {
+  shouldAttemptMapLibreTiles,
+  shouldLogMapTileLayerFailure,
+} from "@/features/airport/map/mapTileLayerModel.js";
 
 export default function MapTileLayers({
   theme = "dark",
@@ -21,6 +25,14 @@ export default function MapTileLayers({
 
   useEffect(() => {
     if (!hasTilePane(map)) return undefined;
+    if (
+      !shouldAttemptMapLibreTiles({
+        userAgent: navigator.userAgent,
+        webGlAvailable: hasWebGlContext(),
+      })
+    ) {
+      return undefined;
+    }
     const abort = new AbortController();
     let cancelled = false;
 
@@ -28,14 +40,25 @@ export default function MapTileLayers({
       .then((style) => {
         if (cancelled || !hasTilePane(map)) return;
         removeLayer(layerRef.current, map);
-        layerRef.current = L.maplibreGL({
-          style,
-          interactive: false,
-          attributionControl: false,
-          className: "atc-maplibre-base",
-        }).addTo(map);
-        layerRef.current.getContainer()?.classList.add("atc-tile-base");
-        setSelectionOpacity(layerRef.current, theme, selectionActiveRef.current);
+        let nextLayer = null;
+        try {
+          nextLayer = L.maplibreGL({
+            style,
+            interactive: false,
+            attributionControl: false,
+            className: "atc-maplibre-base",
+          });
+          nextLayer.addTo(map);
+          layerRef.current = nextLayer;
+          layerRef.current.getContainer()?.classList.add("atc-tile-base");
+          setSelectionOpacity(layerRef.current, theme, selectionActiveRef.current);
+        } catch (error) {
+          removeLayer(nextLayer, map);
+          layerRef.current = null;
+          if (shouldLogMapTileLayerFailure(error)) {
+            console.error("[airport-map] failed to initialize map tiles", error);
+          }
+        }
       })
       .catch((error) => {
         if (error?.name === "AbortError") return;
@@ -109,7 +132,13 @@ function hasTilePane(map) {
 function removeLayer(layer, map) {
   if (!layer || !map || typeof layer.removeFrom !== "function") return;
   if (!map._panes) return;
-  layer.removeFrom(map);
+  try {
+    layer.removeFrom(map);
+  } catch (error) {
+    if (shouldLogMapTileLayerFailure(error)) {
+      console.error("[airport-map] failed to remove map tiles", error);
+    }
+  }
 }
 
 function setSelectionOpacity(layer, theme, selectionActive) {
@@ -120,4 +149,13 @@ function setSelectionOpacity(layer, theme, selectionActive) {
     return;
   }
   container.style.opacity = "1";
+}
+
+function hasWebGlContext() {
+  const canvas = document.createElement("canvas");
+  const context =
+    canvas.getContext("webgl2") ||
+    canvas.getContext("webgl") ||
+    canvas.getContext("experimental-webgl");
+  return Boolean(context);
 }

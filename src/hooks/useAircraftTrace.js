@@ -14,6 +14,9 @@ import {
   readTrackedTrace,
   writeTrackedTrace,
 } from "../features/aircraft/tracking/trackedTraceStorage.js";
+import {
+  resolveAircraftTraceNotificationMode,
+} from "../features/aircraft/trace/aircraftTraceNotificationModel.js";
 
 // How long to wait after the last merged-trace change before writing to
 // localStorage. Live polls land every 3s, so a short debounce lets a
@@ -123,6 +126,9 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     typeof options?.traceRefreshKey === "string"
       ? options.traceRefreshKey
       : "";
+  const notifyInitialFetch = resolveAircraftTraceNotificationMode({
+    notifyInitialFetch: options?.notifyInitialFetch,
+  });
   const traceLabel = formatTraceFetchLabel(selectedAircraft, hex);
 
   const [fullPoints, setFullPoints] = useState([]);
@@ -155,7 +161,13 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     setRecentPoints([]);
     setRecentLoading(true);
 
-    fetchTraceSource({ hex, label, source: "recent", full: false })
+    fetchTraceSource({
+      hex,
+      label,
+      source: "recent",
+      full: false,
+      notify: notifyInitialFetch,
+    })
       .then(({ points }) => {
         if (disposed) return;
         setRecentPoints(points);
@@ -173,7 +185,13 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
       setFullPoints([]);
       setFullLoading(true);
 
-      fetchTraceSource({ hex, label, source: "full", full: true })
+      fetchTraceSource({
+        hex,
+        label,
+        source: "full",
+        full: true,
+        notify: notifyInitialFetch,
+      })
         .then(({ points }) => {
           if (disposed) return;
           setFullPoints(points);
@@ -194,7 +212,7 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     return () => {
       disposed = true;
     };
-  }, [hex, fullTrace, traceLabel]);
+  }, [hex, fullTrace, notifyInitialFetch, traceLabel]);
 
   // While the tracked-flight page is resuming from a background tab (or
   // keeping the lost-signal overlay alive), silently refresh the upstream
