@@ -49,10 +49,12 @@ assert.equal(normalizeLocaleSelection(null, "en"), "en");
 // English rather than leaking raw "sidebar.flights" into the layout.
 {
   const en = {
+    directions: { ne: "NE" },
     sidebar: { flights: "Flights", nearby: "Nearby" },
     lostSignal: { title: "{callsign} stopped reporting" },
   };
   const zh = {
+    directions: { ne: "东北" },
     sidebar: { flights: "航班" },
     lostSignal: { title: "{callsign} 已停止报告" },
   };
@@ -68,6 +70,15 @@ assert.equal(normalizeLocaleSelection(null, "en"), "en");
       fallbackDictionary: en,
     }),
     "Nearby",
+  );
+
+  assert.equal(
+    resolveTranslation({
+      key: "directions.ne",
+      dictionary: zh,
+      fallbackDictionary: en,
+    }),
+    "东北",
   );
   assert.equal(
     resolveTranslation({

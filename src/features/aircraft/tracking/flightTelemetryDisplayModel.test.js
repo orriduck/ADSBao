@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   formatFlightTelemetryMetric,
   resolveTrackDirection,
+  resolveTrackDirectionTranslationKey,
 } from "./flightTelemetryDisplayModel.js";
 
 assert.deepEqual(
@@ -33,5 +34,10 @@ assert.equal(resolveTrackDirection(181), "S");
 assert.equal(resolveTrackDirection(270), "W");
 assert.equal(resolveTrackDirection(359), "N");
 assert.equal(resolveTrackDirection(null), null);
+
+assert.equal(resolveTrackDirectionTranslationKey(0), "directions.n");
+assert.equal(resolveTrackDirectionTranslationKey(23), "directions.ne");
+assert.equal(resolveTrackDirectionTranslationKey(91), "directions.e");
+assert.equal(resolveTrackDirectionTranslationKey(null), null);
 
 console.log("flightTelemetryDisplayModel.test.js ok");
