@@ -12,7 +12,7 @@ import {
   getTraceCutoffMs,
 } from "@/features/aircraft/tracking/trackedFlightStorage.js";
 import {
-  getLostSignalTraceRefreshKey,
+  getTrackedFlightTraceRefreshKey,
 } from "@/features/aircraft/tracking/lostSignalTrackingModel.js";
 import {
   getFlightTrackingContextPosition,
@@ -110,6 +110,7 @@ function FlightExplorerContent({ callsign }) {
     settled: trackedAircraftSettled,
     lostSignal,
     pollVersion: trackedPollVersion,
+    visibilityRefreshVersion: trackedVisibilityRefreshVersion,
   } = useTrackedAircraft(callsign);
 
   // Anchor the tracking session as soon as we have a callsign so the
@@ -134,11 +135,12 @@ function FlightExplorerContent({ callsign }) {
   );
   const focalTraceRefreshKey = useMemo(
     () =>
-      getLostSignalTraceRefreshKey({
+      getTrackedFlightTraceRefreshKey({
         lostSignal,
         pollVersion: trackedPollVersion,
+        visibilityRefreshVersion: trackedVisibilityRefreshVersion,
       }),
-    [lostSignal, trackedPollVersion],
+    [lostSignal, trackedPollVersion, trackedVisibilityRefreshVersion],
   );
 
   // User can dismiss the lost-signal toast to keep watching the last

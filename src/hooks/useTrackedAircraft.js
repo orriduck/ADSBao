@@ -47,6 +47,7 @@ export function useTrackedAircraft(callsign) {
   const [settled, setSettled] = useState(false);
   const [lostSignal, setLostSignal] = useState(false);
   const [pollVersion, setPollVersion] = useState(0);
+  const [visibilityRefreshVersion, setVisibilityRefreshVersion] = useState(0);
   const [trackingState, setTrackingState] = useState(null);
   const [flightAwareFallback, setFlightAwareFallback] = useState(null);
   const timerRef = useRef(null);
@@ -74,6 +75,7 @@ export function useTrackedAircraft(callsign) {
       setError(null);
       setLostSignal(false);
       setPollVersion(0);
+      setVisibilityRefreshVersion(0);
       setTrackingState(null);
       setFlightAwareFallback(null);
       missesRef.current = 0;
@@ -194,6 +196,7 @@ export function useTrackedAircraft(callsign) {
 
       const refresh = () => {
         visibilityRefreshCancelRef.current = null;
+        setVisibilityRefreshVersion((value) => value + 1);
         stopPolling();
         poll({ commitAfter });
         timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
@@ -231,6 +234,7 @@ export function useTrackedAircraft(callsign) {
     error,
     lostSignal,
     pollVersion,
+    visibilityRefreshVersion,
     trackingState,
     flightAwareFallback,
     retry,
