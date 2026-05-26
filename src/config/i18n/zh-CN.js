@@ -134,6 +134,16 @@ const zhCN = {
     rule: "目视 / 仪表",
     elevation: "海拔",
   },
+  directions: {
+    n: "北",
+    ne: "东北",
+    e: "东",
+    se: "东南",
+    s: "南",
+    sw: "西南",
+    w: "西",
+    nw: "西北",
+  },
   aircraft: {
     noRoute: "无航路",
     airborne: "空中",

@@ -139,6 +139,16 @@ const en = {
     rule: "Rule",
     elevation: "Elevation",
   },
+  directions: {
+    n: "N",
+    ne: "NE",
+    e: "E",
+    se: "SE",
+    s: "S",
+    sw: "SW",
+    w: "W",
+    nw: "NW",
+  },
   aircraft: {
     noRoute: "No route",
     airborne: "Airborne",

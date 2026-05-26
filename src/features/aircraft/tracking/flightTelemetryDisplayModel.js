@@ -1,6 +1,7 @@
 const KNOT_TO_KMH = 1.852;
 const FOOT_TO_METER = 0.3048;
 const TRACK_DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+const TRACK_DIRECTION_KEYS = ["n", "ne", "e", "se", "s", "sw", "w", "nw"];
 
 function toFiniteTelemetryNumber(value) {
   if (value == null || value === "") return null;
@@ -9,11 +10,20 @@ function toFiniteTelemetryNumber(value) {
 }
 
 export function resolveTrackDirection(track) {
+  const index = resolveTrackDirectionIndex(track);
+  return index == null ? null : TRACK_DIRECTIONS[index];
+}
+
+export function resolveTrackDirectionTranslationKey(track) {
+  const index = resolveTrackDirectionIndex(track);
+  return index == null ? null : `directions.${TRACK_DIRECTION_KEYS[index]}`;
+}
+
+function resolveTrackDirectionIndex(track) {
   const degrees = toFiniteTelemetryNumber(track);
   if (degrees == null) return null;
   const normalized = ((degrees % 360) + 360) % 360;
-  const index = Math.round(normalized / 45) % TRACK_DIRECTIONS.length;
-  return TRACK_DIRECTIONS[index];
+  return Math.round(normalized / 45) % TRACK_DIRECTIONS.length;
 }
 
 export function formatFlightTelemetryMetric({

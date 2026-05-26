@@ -14,7 +14,7 @@ import {
 import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel.js";
 import {
   formatFlightTelemetryMetric,
-  resolveTrackDirection,
+  resolveTrackDirectionTranslationKey,
 } from "@/features/aircraft/tracking/flightTelemetryDisplayModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { toFiniteNumber } from "@/utils/math.js";
@@ -182,7 +182,7 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
     value: vs,
     alternate: activeMetric === "vs",
   });
-  const trackDirection = resolveTrackDirection(track);
+  const trackDirectionKey = resolveTrackDirectionTranslationKey(track);
 
   return (
     <SidebarMetricGrid label={t("sidebar.flightTelemetry")}>
@@ -239,7 +239,7 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         value={
           track != null ? (
             activeMetric === "track" ? (
-              trackDirection || "—"
+              trackDirectionKey ? t(trackDirectionKey) : "—"
             ) : (
               <MetricNumberFlow
                 value={Math.round(track)}
@@ -253,6 +253,7 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         }
         active={activeMetric === "track"}
         onClick={() => toggle("track")}
+        valueTranslate={activeMetric === "track"}
       />
       {hex && (
         <>
