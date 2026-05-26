@@ -17,12 +17,14 @@ import {
 import {
   getFlightAwareFallbackAutoFitKey,
   getFlightAwareFallbackTraceStartAtMs,
-  shouldLockMapViewportForTrackingState,
 } from "@/features/aircraft/tracking/flightAwareFallbackTrackingModel.js";
 import {
   getFlightTrackingContextPosition,
   shouldShowFlightTrackingLoadingOverlay,
 } from "@/features/aircraft/tracking/flightTrackingContextModel.js";
+import {
+  resolveFlightTrackingDisplayContext,
+} from "@/features/aircraft/tracking/flightTrackingDisplayModel.js";
 import { buildGreatCirclePath } from "@/features/aviation/flight-routes/greatCircleRouteModel.js";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel.js";
@@ -91,6 +93,7 @@ function FlightExplorerContent({ callsign }) {
     selectAirport,
     toggleMapLabels,
     fitToTrace,
+    suspendMapFollow,
     mapFollowsAircraft,
   } = useExplorerUi();
 
@@ -143,7 +146,6 @@ function FlightExplorerContent({ callsign }) {
       }),
     [trackingSession, trackingState],
   );
-  const mapViewportLocked = shouldLockMapViewportForTrackingState(trackingState);
   const flightAwareAutoFitKey = useMemo(
     () =>
       getFlightAwareFallbackAutoFitKey({
@@ -197,11 +199,20 @@ function FlightExplorerContent({ callsign }) {
   );
   const contextLat = contextPosition?.lat ?? null;
   const contextLon = contextPosition?.lon ?? null;
+  const flightDisplayContext = useMemo(
+    () =>
+      resolveFlightTrackingDisplayContext({
+        trackingState,
+        isMobile,
+      }),
+    [isMobile, trackingState],
+  );
 
   const {
     aircraft: nearbyAircraft,
   } = useAircraftPositions(callsign || "", contextLat, contextLon, {
     pollWhenHidden: true,
+    distNm: flightDisplayContext.aircraftRangeNm,
   });
 
   // Pull airports around the focal so the sidebar list and the map's
@@ -211,8 +222,8 @@ function FlightExplorerContent({ callsign }) {
   } = useNearbyAirports({
     lat: contextLat,
     lon: contextLon,
-    radiusNm: 40,
-    limit: 12,
+    radiusNm: flightDisplayContext.airportRadiusNm,
+    limit: flightDisplayContext.airportLimit,
   });
 
   const selectedAirport = useMemo(
@@ -377,7 +388,7 @@ function FlightExplorerContent({ callsign }) {
               lastUpdated={lastUpdated}
               routeProvider={routeProvider}
               onFitToTrace={fitToTrace}
-              zoomDisabled={mapViewportLocked}
+              zoomDisabled={false}
             />
           )}
           <AirportMap
@@ -397,7 +408,7 @@ function FlightExplorerContent({ callsign }) {
             selectedAircraftId={selectedAircraftId}
             selectedAirportIcao={selectedAirportIcao}
             focalAircraftId={focalKey}
-            followsCenter={mapFollowsAircraft && !mapViewportLocked}
+            followsCenter={mapFollowsAircraft}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             runwayMap={null}
@@ -405,12 +416,18 @@ function FlightExplorerContent({ callsign }) {
             procedureFixLabelRunwayProcedures={null}
             showProcedureFixLabels={false}
             focalRangeRings={false}
-            nearbyRangeRings={{ intervalNm: 5, maxNm: 5, prominent: true }}
+            nearbyRangeRings={flightDisplayContext.nearbyRangeRings}
           >
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
               routePath={focalFlightAwareRoutePath}
               autoFitKey={flightAwareAutoFitKey}
+              fitOptions={flightDisplayContext.mapFitOptions}
+              onAutoFit={
+                flightDisplayContext.autoFitSuspendsFollow
+                  ? suspendMapFollow
+                  : undefined
+              }
             />
           </AirportMap>
           <AircraftDataLoadingOverlay

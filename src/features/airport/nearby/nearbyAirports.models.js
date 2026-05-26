@@ -7,7 +7,7 @@ export const NEARBY_AIRPORT_DEFAULTS = Object.freeze({
 
 export const NEARBY_AIRPORT_LIMITS = Object.freeze({
   minRadiusNm: 1,
-  maxRadiusNm: 100,
+  maxRadiusNm: 250,
   minLimit: 1,
   maxLimit: 12,
   minRunwayLength: 0,

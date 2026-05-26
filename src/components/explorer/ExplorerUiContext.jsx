@@ -110,6 +110,12 @@ function airportExplorerUiReducer(state, action) {
         fitToTraceSignal: state.fitToTraceSignal + 1,
         mapFollowsAircraft: false,
       };
+    case "suspendMapFollow":
+      if (!state.mapFollowsAircraft) return state;
+      return {
+        ...state,
+        mapFollowsAircraft: false,
+      };
     default:
       return state;
   }
@@ -206,6 +212,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "fitToTrace" });
   }, []);
 
+  const suspendMapFollow = useCallback(() => {
+    dispatch({ type: "suspendMapFollow" });
+  }, []);
+
   const fitToTraceSignal = state.fitToTraceSignal;
   const mapFollowsAircraft = state.mapFollowsAircraft;
 
@@ -241,6 +251,7 @@ export function ExplorerUiProvider({ children }) {
       setSelectedAircraftId,
       selectAirport,
       fitToTrace,
+      suspendMapFollow,
     }),
     [
       sidebarMode,
@@ -272,6 +283,7 @@ export function ExplorerUiProvider({ children }) {
       setSelectedAircraftId,
       selectAirport,
       fitToTrace,
+      suspendMapFollow,
     ],
   );
 

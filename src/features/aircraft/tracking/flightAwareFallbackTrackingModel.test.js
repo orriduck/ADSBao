@@ -4,7 +4,6 @@ import {
   getFlightAwareFallbackAutoFitKey,
   getFlightAwareFallbackTraceStartAtMs,
   isFlightAwareFallbackTracking,
-  shouldLockMapViewportForTrackingState,
 } from "./flightAwareFallbackTrackingModel.js";
 
 const cutoff = Date.parse("2026-05-25T03:00:00.000Z");
@@ -35,15 +34,6 @@ assert.equal(
     defaultTraceStartAtMs: cutoff,
   }),
   cutoff,
-);
-
-assert.equal(
-  shouldLockMapViewportForTrackingState({ status: "flightaware_active" }),
-  true,
-);
-assert.equal(
-  shouldLockMapViewportForTrackingState({ status: "missing" }),
-  false,
 );
 
 assert.equal(

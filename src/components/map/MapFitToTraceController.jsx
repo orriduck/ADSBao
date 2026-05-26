@@ -7,6 +7,11 @@ import { useExplorerUi } from "@/components/explorer/ExplorerUiContext.jsx";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
 import { buildTraceFitPoints } from "@/features/airport/map/mapFitTraceModel.js";
 
+const DEFAULT_FIT_OPTIONS = Object.freeze({
+  padding: Object.freeze([60, 60]),
+  maxZoom: 14,
+});
+
 // Listens for the `fitToTrace` signal from the UI reducer and pans/zooms
 // the map so the full trace of every currently-visible aircraft fits in
 // the viewport. When `autoFitKey` is provided, it waits until trace
@@ -24,6 +29,8 @@ import { buildTraceFitPoints } from "@/features/airport/map/mapFitTraceModel.js"
 export default function MapFitToTraceController({
   routePath = [],
   autoFitKey = "",
+  fitOptions = DEFAULT_FIT_OPTIONS,
+  onAutoFit,
 }) {
   const map = useMapInstance();
   const { fitToTraceSignal } = useExplorerUi();
@@ -38,9 +45,9 @@ export default function MapFitToTraceController({
     (points) => {
       if (!map || points.length === 0) return;
       const bounds = L.latLngBounds(points);
-      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+      map.fitBounds(bounds, fitOptions || DEFAULT_FIT_OPTIONS);
     },
-    [map],
+    [fitOptions, map],
   );
 
   useEffect(() => {
@@ -62,7 +69,8 @@ export default function MapFitToTraceController({
     }
     lastAutoFitKeyRef.current = key;
     fitMapToPoints(fitPoints);
-  }, [autoFitKey, fitMapToPoints, fitPoints, map]);
+    onAutoFit?.();
+  }, [autoFitKey, fitMapToPoints, fitPoints, map, onAutoFit]);
 
   return null;
 }

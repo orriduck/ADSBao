@@ -7,9 +7,6 @@
 -- the accompanying code change — no live reader, so the table just
 -- accumulated dead rows.
 
-drop trigger if exists airport_metadata_cache_set_updated_at
-  on public.airport_metadata_cache;
+drop table if exists public.airport_metadata_cache;
 
 drop function if exists public.set_airport_metadata_cache_updated_at();
-
-drop table if exists public.airport_metadata_cache;

@@ -28,6 +28,13 @@ import {
 } from "../features/aircraft/tracking/flightTrackingContextModel.js";
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
+const MAX_AIRCRAFT_RANGE_NM = 250;
+
+const normalizeAircraftRangeNm = (value) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return DEFAULT_AIRCRAFT_RANGE_NM;
+  return Math.max(1, Math.min(MAX_AIRCRAFT_RANGE_NM, number));
+};
 
 const waitUntil = (timestamp) => {
   const delay = Math.max(0, timestamp - Date.now());
@@ -39,6 +46,7 @@ const waitUntil = (timestamp) => {
 
 export function useAircraftPositions(icao, lat, lon, options = {}) {
   const pollWhenHidden = options?.pollWhenHidden === true;
+  const distNm = normalizeAircraftRangeNm(options?.distNm);
   const queryLat = normalizeLatitude(lat);
   const queryLon = normalizeLongitude(lon);
   const hasActiveQuery = Boolean(
@@ -85,7 +93,7 @@ export function useAircraftPositions(icao, lat, lon, options = {}) {
         const aircraftJson = await aircraftPositionClient.fetchNearbyAircraft({
           lat: queryLat,
           lon: queryLon,
-          distNm: DEFAULT_AIRCRAFT_RANGE_NM,
+          distNm,
         });
         if (disposed) return;
         const receiveTime = Date.now();
@@ -214,7 +222,7 @@ export function useAircraftPositions(icao, lat, lon, options = {}) {
       cancelPendingVisibilityRefresh();
       stop();
     };
-  }, [hasActiveQuery, icao, pollWhenHidden, queryLat, queryLon]);
+  }, [distNm, hasActiveQuery, icao, pollWhenHidden, queryLat, queryLon]);
 
   return {
     aircraft,

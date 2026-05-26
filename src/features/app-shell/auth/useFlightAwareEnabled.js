@@ -1,46 +1,81 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { buildClerkUserAccessEntity, isFlightAwareOwnerEntity } from "./clerkRouteProviderAccess.js";
+import {
+  FEATURE_FLAGS,
+  getClerkUserPrimaryEmail,
+  isFeatureFlagEnabled,
+  normalizeFeatureFlags,
+} from "../feature-flags/userFeatureFlagsModel.js";
 
 // Module-scoped dedupe key for the dev log. Every consumer of the hook
 // would otherwise re-emit the same line on every render and the
 // console gets buried. Keyed on the full signature so a *change* in
 // the resolved value still surfaces.
 let lastLoggedSignature = "";
+const cachedFlagsByEmail = new Map();
+const inflightFlagsByEmail = new Map();
 
-// Client-side mirror of isFlightAwareOwnerEntity. Resolves to true only
-// when Clerk has finished loading, a user is signed in, and their
-// publicMetadata sets { flightAwareEnabled: true }. Anyone else (signed
-// out, loading, or without the flag) gets false.
-//
-// Used by client-only surfaces that need to react to the FlightAware
-// flag — the "FlightAware" badge under the feed source, the
-// great-circle predicted-route line, etc.
-//
-// Clerk caches publicMetadata inside the session JWT and the cached
-// value can be up to ~60s stale after a dashboard edit. To flip the
-// flag immediately we call user.reload() once per user identity change
-// — that pulls the latest user record (including publicMetadata) from
-// Clerk's API and re-renders the hook with the fresh value.
+async function fetchFlagsForEmail(email) {
+  if (cachedFlagsByEmail.has(email)) return cachedFlagsByEmail.get(email);
+  if (inflightFlagsByEmail.has(email)) return inflightFlagsByEmail.get(email);
+
+  const promise = fetch("/api/feature-flags", {
+    cache: "no-store",
+    credentials: "same-origin",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((payload) => normalizeFeatureFlags(payload?.flags))
+    .finally(() => {
+      inflightFlagsByEmail.delete(email);
+    });
+
+  inflightFlagsByEmail.set(email, promise);
+  const flags = await promise;
+  cachedFlagsByEmail.set(email, flags);
+  return flags;
+}
+
 export function useFlightAwareEnabled() {
   const { isLoaded, isSignedIn, user } = useUser();
-  const reloadedFor = useRef("");
   const hasUser = Boolean(isLoaded && isSignedIn && user);
-  const entity = hasUser ? buildClerkUserAccessEntity(user) : null;
-  const enabled = entity ? isFlightAwareOwnerEntity(entity) : false;
+  const email = hasUser ? getClerkUserPrimaryEmail(user) : "";
+  const [flags, setFlags] = useState({});
+  const enabled = isFeatureFlagEnabled(
+    flags,
+    FEATURE_FLAGS.FLIGHTAWARE_ENABLED,
+  );
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || !user?.id) return;
-    if (reloadedFor.current === user.id) return;
-    reloadedFor.current = user.id;
-    user.reload?.().catch((error) => {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("[flightaware-enabled] user.reload() failed", error);
-      }
-    });
-  }, [isLoaded, isSignedIn, user]);
+    let cancelled = false;
+    setFlags({});
+    if (!email) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    fetchFlagsForEmail(email)
+      .then((nextFlags) => {
+        if (!cancelled) setFlags(nextFlags);
+      })
+      .catch((error) => {
+        if (!cancelled) setFlags({});
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[flightaware-enabled] feature flag fetch failed", error);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [email]);
 
   // Dev-only trace, deduped across the whole app: each consumer of the
   // hook re-renders independently, and several of them re-run on every
@@ -50,15 +85,15 @@ export function useFlightAwareEnabled() {
   // up immediately.
   useEffect(() => {
     if (process.env.NODE_ENV === "production" || !hasUser) return;
-    const raw = user.publicMetadata?.flightAwareEnabled;
-    const signature = `${user.id}|${JSON.stringify(raw)}|${typeof raw}|${enabled}`;
+    const raw = flags[FEATURE_FLAGS.FLIGHTAWARE_ENABLED];
+    const signature = `${user.id}|${email}|${JSON.stringify(raw)}|${typeof raw}|${enabled}`;
     if (signature !== lastLoggedSignature) {
       lastLoggedSignature = signature;
       console.info(
-        `[flightaware-enabled] clerkUser=${user.id} primaryEmail=${user.primaryEmailAddress?.emailAddress || "(none)"} flightAwareEnabled.raw=${JSON.stringify(raw)} typeof=${typeof raw} → ${enabled}`,
+        `[flightaware-enabled] clerkUser=${user.id} primaryEmail=${email || "(none)"} flightAwareEnabled.raw=${JSON.stringify(raw)} typeof=${typeof raw} -> ${enabled}`,
       );
     }
-  }, [enabled, hasUser, user]);
+  }, [email, enabled, flags, hasUser, user]);
 
   return enabled;
 }
