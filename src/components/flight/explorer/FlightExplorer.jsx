@@ -360,7 +360,6 @@ function FlightExplorerContent({ callsign }) {
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         onApplyTemporaryRoute={applyTemporaryRoute}
-        suppressMobileWhenAlreadyTracking
       />
       <div
         className={`font-sans text-atc-text ${
@@ -417,6 +416,7 @@ function FlightExplorerContent({ callsign }) {
             showProcedureFixLabels={false}
             focalRangeRings={false}
             nearbyRangeRings={flightDisplayContext.nearbyRangeRings}
+            deferUntilFocal
           >
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController

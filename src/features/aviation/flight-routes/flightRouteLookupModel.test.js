@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import {
   buildRouteCacheKey,
   buildRoutesByCallsign,
+  getLookupCallsigns,
   getRouteLookupStats,
   getFreshRouteCacheEntry,
   rankCandidatesByDistance,
   resolvePendingRouteLookups,
+  shouldSuppressRouteLookup,
 } from "./flightRouteLookupModel.js";
 
 const now = 1_700_000_000_000;
@@ -266,4 +268,28 @@ const route = {
     source: "aircraft-metadata",
     confidence: "position-metadata",
   });
+}
+
+{
+  const aircraft = [
+    {
+      callsign: "SQ26",
+      lat: 45.1,
+      lon: -42.2,
+      trackingState: { status: "stale" },
+    },
+    {
+      callsign: "DAL123",
+      trackingState: { status: "missing" },
+    },
+    {
+      callsign: "AAL100",
+      trackingState: { status: "flightaware_terminal" },
+    },
+  ];
+
+  assert.equal(shouldSuppressRouteLookup(aircraft[0]), false);
+  assert.equal(shouldSuppressRouteLookup(aircraft[1]), true);
+  assert.equal(shouldSuppressRouteLookup(aircraft[2]), true);
+  assert.deepEqual(getLookupCallsigns(aircraft), ["SQ26"]);
 }

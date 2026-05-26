@@ -5,6 +5,7 @@ import {
   formatCoordinateLabel,
   getMapOverlayTheme,
   getVisibleAircraft,
+  resolveAirportMapInitialCenter,
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
 } from "./airportMapModel.js";
@@ -30,6 +31,30 @@ assert.deepEqual(resolveAirportMapFocalCenter({ lat: "0", lon: "0" }), {
   lat: 0,
   lon: 0,
 });
+assert.deepEqual(
+  resolveAirportMapInitialCenter({
+    focalCenter: null,
+    fallbackCenter: { lat: 33.9416, lon: -118.4085 },
+    deferUntilFocal: false,
+  }),
+  { lat: 33.9416, lon: -118.4085 },
+);
+assert.equal(
+  resolveAirportMapInitialCenter({
+    focalCenter: null,
+    fallbackCenter: { lat: 33.9416, lon: -118.4085 },
+    deferUntilFocal: true,
+  }),
+  null,
+);
+assert.deepEqual(
+  resolveAirportMapInitialCenter({
+    focalCenter: { lat: 42.36, lon: -71.01 },
+    fallbackCenter: { lat: 33.9416, lon: -118.4085 },
+    deferUntilFocal: true,
+  }),
+  { lat: 42.36, lon: -71.01 },
+);
 
 assert.deepEqual(
   getVisibleAircraft({ aircraft, airportLat: 42.3656, airportLon: -71.0096, zoom: ZOOM_AIRPORT })

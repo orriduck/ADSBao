@@ -20,6 +20,7 @@ import { useI18n } from "../../features/app-shell/i18n/useI18n.js";
 import { aircraftMatchesFilters } from "../../features/aircraft/filters/aircraftFilters.js";
 import {
   getMapOverlayTheme,
+  resolveAirportMapInitialCenter,
   getVisibleAircraft,
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
@@ -56,6 +57,8 @@ export default function AirportMap({
   showProcedureFixLabels = false,
   focalRangeRings = null,
   nearbyRangeRings = null,
+  fallbackCenter = AIRPORT_MAP_FALLBACK_CENTER,
+  deferUntilFocal = false,
   children = null,
 }) {
   const { locale } = useI18n();
@@ -81,6 +84,16 @@ export default function AirportMap({
     () => resolveAirportMapFocalCenter({ lat, lon }),
     [lat, lon],
   );
+  const initialCenter = useMemo(
+    () =>
+      resolveAirportMapInitialCenter({
+        focalCenter,
+        fallbackCenter,
+        deferUntilFocal,
+      }),
+    [deferUntilFocal, fallbackCenter, focalCenter],
+  );
+  const canInitializeMap = Boolean(initialCenter);
 
   useEffect(() => {
     setCurrentTheme(resolveCurrentTheme());
@@ -96,12 +109,9 @@ export default function AirportMap({
   }, []);
 
   useEffect(() => {
-    if (!mapEl.current || mapRef.current) return undefined;
+    if (!mapEl.current || mapRef.current || !initialCenter) return undefined;
     const map = L.map(mapEl.current, {
-      center: [
-        focalCenter?.lat ?? AIRPORT_MAP_FALLBACK_CENTER.lat,
-        focalCenter?.lon ?? AIRPORT_MAP_FALLBACK_CENTER.lon,
-      ],
+      center: [initialCenter.lat, initialCenter.lon],
       zoom,
       zoomControl: false,
       attributionControl: false,
@@ -129,7 +139,7 @@ export default function AirportMap({
       setMapInstance(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [canInitializeMap]);
 
   // followsCenter controls whether the map re-centers on every poll.
   // After "fit to trace" the caller flips this to false so the map

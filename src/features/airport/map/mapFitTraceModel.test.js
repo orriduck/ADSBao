@@ -54,4 +54,20 @@ import { buildTraceFitPoints } from "./mapFitTraceModel.js";
   );
 }
 
+{
+  const points = buildTraceFitPoints({
+    traces: [],
+    routePath: [
+      [49.19, -123.18],
+      [-33.94, 151.18],
+    ],
+  });
+
+  assert.deepEqual(
+    points,
+    [],
+    "route-only geometry should not trigger flight-page trace fitting",
+  );
+}
+
 console.log("mapFitTraceModel.test.js ok");

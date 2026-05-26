@@ -49,7 +49,13 @@ export function SelectedAircraftTraceProvider({
   focalTraceRefreshKey = "",
   children,
 }) {
-  const primaryHook = useAircraftTrace(selectedAircraft);
+  const primaryMatchesFocal =
+    selectedAircraft &&
+    focalAircraft &&
+    getAircraftIdentity(selectedAircraft) === getAircraftIdentity(focalAircraft);
+  const primaryHook = useAircraftTrace(selectedAircraft, {
+    notifyInitialFetch: !primaryMatchesFocal,
+  });
   // Focal trace uses adsb.lol's trace_full endpoint on the aircraft
   // detail page so the user sees the whole flight on load — not just
   // the rolling tail. The optional cutoff clips the historical points
@@ -62,6 +68,7 @@ export function SelectedAircraftTraceProvider({
     traceStartAtMs: focalTraceStartAtMs,
     persistKey: focalPersistKey,
     traceRefreshKey: focalTraceRefreshKey,
+    notifyInitialFetch: false,
   });
 
   const primary = useMemo(
