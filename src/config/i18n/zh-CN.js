@@ -155,6 +155,7 @@ const zhCN = {
     airportPreview: "机场预览",
     trackTrace: "追踪航迹",
     trackingTrace: "正在追踪航迹",
+    loadingTrace: "正在加载航迹…",
     openAirport: "查看机场上下文",
     viewingAirport: "正在查看机场",
     creditPrefix: "图源@",

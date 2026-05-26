@@ -8,12 +8,14 @@ import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
 import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard.jsx";
 import AirportPreviewMobileCard from "./AirportPreviewMobileCard.jsx";
 import RouteFeedbackModal from "./RouteFeedbackModal.jsx";
+import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
+const TRACE_STATUS_MIN_VISIBLE_MS = 4200;
 
 export default function AircraftPreviewCard({
   aircraft = null,
@@ -25,6 +27,7 @@ export default function AircraftPreviewCard({
   suppressMobileWhenAlreadyTracking = false,
 }) {
   const { t } = useI18n();
+  const selectedTrace = useSelectedAircraftTrace();
   const photoState = useAircraftPhoto(aircraft);
   const photo = photoState.photo;
   const hasPhoto = Boolean(photo?.src);
@@ -35,6 +38,12 @@ export default function AircraftPreviewCard({
   const identityKey = isAirport
     ? `airport:${airport?.icao || "preview"}`
     : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
+  const aircraftIdentity =
+    !isAirport && aircraft ? getAircraftIdentity(aircraft) : null;
+  const traceFetchLoading =
+    Boolean(aircraftIdentity) &&
+    selectedTrace.aircraftHex === aircraftIdentity &&
+    selectedTrace.traceFetchLoading;
   const router = useRouter();
   const pathname = usePathname();
   const trackHref = isAirport
@@ -50,6 +59,13 @@ export default function AircraftPreviewCard({
     !sidebarOpen &&
     Boolean(entity) &&
     !(suppressMobileWhenAlreadyTracking && alreadyTracking);
+  const traceStatusSurfaceActive =
+    !isAirport && Boolean(entity) && (isMobile ? showMobile : !isMobile);
+  const traceLoading = useMinimumVisibleTraceStatus({
+    aircraftIdentity,
+    active: traceFetchLoading,
+    surfaceActive: traceStatusSurfaceActive,
+  });
 
   // Mobile preview card is the only way to trigger "Track this entity"
   // on touch — desktop uses the explicit Track button inside the larger
@@ -92,7 +108,9 @@ export default function AircraftPreviewCard({
           className={`aircraft-preview-card aircraft-preview-card--desktop-reveal ${
             !isAirport && hasPhoto ? "aircraft-preview-card--has-photo" : ""
           } aircraft-preview-card--photo-${photoTone}`}
-          aria-label={isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")}
+          aria-label={
+            isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")
+          }
         >
           {!isAirport && (
             hasPhoto && (
@@ -112,6 +130,7 @@ export default function AircraftPreviewCard({
               photo={photo}
               airportProfile={airportProfile}
               onApplyTemporaryRoute={onApplyTemporaryRoute}
+              traceLoading={traceLoading}
             />
           )}
         </aside>
@@ -120,7 +139,9 @@ export default function AircraftPreviewCard({
         <aside
           key={`mobile-${identityKey}`}
           className="aircraft-preview-mobile-card aircraft-preview-mobile-card--stacked"
-          aria-label={isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")}
+          aria-label={
+            isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")
+          }
         >
           {isAirport ? (
             <AirportPreviewMobileCard airport={airport} />
@@ -128,14 +149,21 @@ export default function AircraftPreviewCard({
             <AircraftPreviewMobileCard aircraft={aircraft} />
           )}
           {trackHref && (
-            <button
-              type="button"
-              className="aircraft-preview-mobile-card__track"
-              onClick={handleMobileTap}
-              disabled={alreadyTracking}
-            >
-              {mobileTrackLabel}
-            </button>
+            <>
+              {!isAirport && traceLoading && (
+                <div className="aircraft-preview-mobile-card__trace-status">
+                  {t("preview.loadingTrace")}
+                </div>
+              )}
+              <button
+                type="button"
+                className="aircraft-preview-mobile-card__track"
+                onClick={handleMobileTap}
+                disabled={alreadyTracking}
+              >
+                {mobileTrackLabel}
+              </button>
+            </>
           )}
           {showMobileFeedbackTrigger && (
             <button
@@ -148,15 +176,15 @@ export default function AircraftPreviewCard({
           )}
         </aside>
       )}
-    {showMobileFeedbackTrigger && (
-      <RouteFeedbackModal
-        aircraft={aircraft}
-        airportProfile={airportProfile}
-        onApplyTemporaryRoute={onApplyTemporaryRoute}
-        open={feedbackModalOpen}
-        onOpenChange={setFeedbackModalOpen}
-      />
-    )}
+      {showMobileFeedbackTrigger && (
+        <RouteFeedbackModal
+          aircraft={aircraft}
+          airportProfile={airportProfile}
+          onApplyTemporaryRoute={onApplyTemporaryRoute}
+          open={feedbackModalOpen}
+          onOpenChange={setFeedbackModalOpen}
+        />
+      )}
     </>
   );
 }
@@ -208,4 +236,45 @@ function usePhotoTone(src) {
   }, [src]);
 
   return tone;
+}
+
+function useMinimumVisibleTraceStatus({
+  aircraftIdentity,
+  active,
+  surfaceActive,
+}) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!aircraftIdentity || !surfaceActive) {
+      setVisible(false);
+      return undefined;
+    }
+
+    setVisible(true);
+    const timer = window.setTimeout(() => {
+      if (!active) setVisible(false);
+    }, TRACE_STATUS_MIN_VISIBLE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [aircraftIdentity, active, surfaceActive]);
+
+  useEffect(() => {
+    if (!aircraftIdentity || !surfaceActive) {
+      setVisible(false);
+      return undefined;
+    }
+    if (active) {
+      setVisible(true);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(
+      () => setVisible(false),
+      TRACE_STATUS_MIN_VISIBLE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [aircraftIdentity, active, surfaceActive]);
+
+  return Boolean(aircraftIdentity && surfaceActive && visible);
 }

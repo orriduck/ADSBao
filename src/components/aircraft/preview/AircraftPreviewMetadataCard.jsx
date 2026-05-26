@@ -13,6 +13,7 @@ export default function AircraftPreviewMetadataCard({
   photo,
   airportProfile = null,
   onApplyTemporaryRoute,
+  traceLoading = false,
 }) {
   const { t } = useI18n();
   const pathname = usePathname();
@@ -33,6 +34,11 @@ export default function AircraftPreviewMetadataCard({
       <AircraftPreviewTelemetry aircraft={aircraft} />
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
       <AircraftPreviewMetadata aircraft={aircraft} />
+      {trackHref && traceLoading && (
+        <div className="aircraft-preview-card__trace-status">
+          {t("preview.loadingTrace")}
+        </div>
+      )}
       {trackHref && !alreadyTracking ? (
         <Link
           href={trackHref}

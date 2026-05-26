@@ -5655,10 +5655,12 @@ body {
     font-weight: 800;
     font-style: normal;
     letter-spacing: 0.08em;
-    line-height: 1;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
     text-align: center;
     text-decoration: none;
     text-transform: uppercase;
+    white-space: normal;
     cursor: pointer;
     pointer-events: auto;
     transition:
@@ -5699,6 +5701,24 @@ body {
 .aircraft-preview-card__track-btn:disabled {
     cursor: not-allowed;
     opacity: 0.4;
+}
+
+.aircraft-preview-card__trace-status {
+    margin-top: 12px;
+    color: var(--atc-dim);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: normal;
+}
+
+.aircraft-preview-card__trace-status + .aircraft-preview-card__track-btn {
+    margin-top: 8px;
 }
 
 .route-feedback-form {
@@ -6001,8 +6021,11 @@ body {
     font-weight: 800;
     font-style: normal;
     letter-spacing: 0.08em;
-    line-height: 1;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    text-align: center;
     text-transform: uppercase;
+    white-space: normal;
     cursor: pointer;
     pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
@@ -6055,6 +6078,22 @@ body {
 .aircraft-preview-mobile-card__feedback-link:active,
 .aircraft-preview-mobile-card__feedback-link:hover {
     color: var(--atc-text);
+}
+
+.aircraft-preview-mobile-card__trace-status {
+    align-self: stretch;
+    margin: 4px 14px 0;
+    color: var(--atc-dim);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: normal;
 }
 
 /* Centered route-feedback modal. Mounted via Radix Dialog so focus trap,

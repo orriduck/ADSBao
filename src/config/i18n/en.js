@@ -160,6 +160,7 @@ const en = {
     airportPreview: "Airport preview",
     trackTrace: "Track trace",
     trackingTrace: "Tracking trace",
+    loadingTrace: "Loading trace...",
     openAirport: "Open airport context",
     viewingAirport: "Viewing airport",
     creditPrefix: "credit@",
