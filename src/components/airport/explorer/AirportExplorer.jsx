@@ -4,11 +4,11 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar.jsx";
+import { MapLoadingFallback } from "@/components/map/MapLoadingOverlay.jsx";
 import {
   ExplorerUiProvider,
   useExplorerUi,
 } from "@/components/explorer/ExplorerUiContext.jsx";
-import AircraftDataLoadingOverlay from "./AircraftDataLoadingOverlay.jsx";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu.jsx";
 import {
   resolveAirportExplorerSelection,
@@ -23,11 +23,7 @@ import { areCriticalLoadingRequestsSettled } from "@/features/aircraft/positions
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
-  loading: () => (
-    <div className="flex h-full w-full items-center justify-center bg-atc-bg font-mono text-[11px] uppercase tracking-[0.2em] text-atc-faint">
-      Loading map...
-    </div>
-  ),
+  loading: () => <MapLoadingFallback />,
 });
 
 export default function AirportExplorer(props) {
@@ -206,9 +202,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             runwayProcedures={null}
             procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
             showProcedureFixLabels
-          />
-          <AircraftDataLoadingOverlay
-            active={
+            loadingOverlayActive={
               !criticalLoadingSettled || traffic.aircraftLoadingOverlayActive
             }
           />

@@ -232,6 +232,8 @@ const zhCN = {
     procedureMissed: "复飞",
     procedureFix: "航点",
     procedureAll: "全部",
+    loadingMapAria: "正在加载地图数据",
+    mapRenderer: "地图渲染器",
     loadingAircraftAria: "正在加载 ADS-B 飞机数据",
     loadingTrackedAircraftAria: "正在加载航迹追踪数据",
     flightTrackingFeed: "航迹追踪数据",

@@ -237,6 +237,8 @@ const en = {
     procedureMissed: "MISSED",
     procedureFix: "FIX",
     procedureAll: "ALL",
+    loadingMapAria: "Loading map data",
+    mapRenderer: "map renderer",
     loadingAircraftAria: "Loading ADS-B aircraft data",
     loadingTrackedAircraftAria: "Loading aircraft tracking data",
     flightTrackingFeed: "Aircraft tracking feed",

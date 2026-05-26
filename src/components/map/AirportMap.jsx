@@ -14,10 +14,13 @@ import RunwayAnnotationLayer from "./RunwayAnnotationLayer.jsx";
 import ProcedureSegmentLayer from "./ProcedureSegmentLayer.jsx";
 import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap.js";
 import MapAttribution from "./MapAttribution.jsx";
-import MapLoadingState from "./MapLoadingState.jsx";
+import MapLoadingOverlay, {
+  useMapLoadingOverlayText,
+} from "./MapLoadingOverlay.jsx";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
 import { useI18n } from "../../features/app-shell/i18n/useI18n.js";
 import { aircraftMatchesFilters } from "../../features/aircraft/filters/aircraftFilters.js";
+import { resolveAircraftLoadingOverlayMode } from "../../features/aircraft/positions/aircraftLoadingOverlayModel.js";
 import {
   getMapOverlayTheme,
   resolveAirportMapInitialCenter,
@@ -59,6 +62,9 @@ export default function AirportMap({
   nearbyRangeRings = null,
   fallbackCenter = AIRPORT_MAP_FALLBACK_CENTER,
   deferUntilFocal = false,
+  loadingOverlayActive = false,
+  loadingOverlayVariant = "airport",
+  loadingOverlayCallsign = "",
   children = null,
 }) {
   const { locale } = useI18n();
@@ -213,6 +219,15 @@ export default function AirportMap({
   const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
 
   const overlayTheme = getMapOverlayTheme(currentTheme);
+  const loadingOverlayMode = resolveAircraftLoadingOverlayMode({
+    mapReady: Boolean(mapInstance),
+    feedLoading: loadingOverlayActive,
+  });
+  const loadingOverlayCopy = useMapLoadingOverlayText({
+    mode: loadingOverlayMode,
+    variant: loadingOverlayVariant,
+    callsign: loadingOverlayCallsign,
+  });
 
   return (
     <div className="relative h-full w-full bg-atc-bg">
@@ -308,7 +323,11 @@ export default function AirportMap({
         />
       )}
 
-      {!mapInstance && <MapLoadingState />}
+      <MapLoadingOverlay
+        active={loadingOverlayMode !== "idle"}
+        variant={loadingOverlayVariant}
+        {...loadingOverlayCopy}
+      />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu.jsx";
-import AircraftDataLoadingOverlay from "@/components/airport/explorer/AircraftDataLoadingOverlay.jsx";
+import { MapLoadingFallback } from "@/components/map/MapLoadingOverlay.jsx";
 import LostSignalToast from "@/components/aircraft/tracking/LostSignalToast.jsx";
 import {
   getOrCreateTrackedFlight,
@@ -57,11 +57,7 @@ import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCa
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
-  loading: () => (
-    <div className="relative h-full w-full bg-atc-bg">
-      <AircraftDataLoadingOverlay active variant="flight" />
-    </div>
-  ),
+  loading: () => <MapLoadingFallback variant="flight" />,
 });
 
 export default function FlightExplorer({ callsign = "" }) {
@@ -417,6 +413,9 @@ function FlightExplorerContent({ callsign }) {
             focalRangeRings={false}
             nearbyRangeRings={flightDisplayContext.nearbyRangeRings}
             deferUntilFocal
+            loadingOverlayActive={flightTrackingLoadingActive}
+            loadingOverlayVariant="flight"
+            loadingOverlayCallsign={callsign}
           >
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
@@ -430,13 +429,6 @@ function FlightExplorerContent({ callsign }) {
               }
             />
           </AirportMap>
-          <AircraftDataLoadingOverlay
-            variant="flight"
-            callsign={callsign}
-            active={
-              flightTrackingLoadingActive
-            }
-          />
 
           {isMobile && sidebarOpen && (
             <div className="absolute inset-0 z-[1100]">
