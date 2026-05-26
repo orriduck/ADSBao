@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  FLIGHTAWARE_FALLBACK_CACHE_TTL_MS,
   buildFlightAwareFallbackUrl,
   clearFlightAwareFallbackCache,
   getFlightAwareFallbackByCallsign,
@@ -98,6 +99,7 @@ assert.equal(
   "https://www.flightaware.com/live/flight/AAL100",
 );
 assert.equal(buildFlightAwareFallbackUrl("bad-call"), "");
+assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 
 {
   const result = parseFlightAwareFallbackPage({
@@ -185,10 +187,22 @@ assert.equal(buildFlightAwareFallbackUrl("bad-call"), "");
     fetchImpl,
     now: () => Date.parse(fetchedAt) + 30_000,
   });
+  const third = await getFlightAwareFallbackByCallsign("AAL100", {
+    env,
+    fetchImpl,
+    now: () => Date.parse(fetchedAt) + 59_000,
+  });
+  const fourth = await getFlightAwareFallbackByCallsign("AAL100", {
+    env,
+    fetchImpl,
+    now: () => Date.parse(fetchedAt) + 61_000,
+  });
 
-  assert.equal(fetchCalls, 1);
+  assert.equal(fetchCalls, 2);
   assert.equal(first.hasPosition, true);
   assert.equal(second.hasPosition, true);
+  assert.equal(third.hasPosition, true);
+  assert.equal(fourth.hasPosition, true);
 }
 
 {
@@ -251,6 +265,34 @@ assert.equal(buildFlightAwareFallbackUrl("bad-call"), "");
 
   assert.equal(failed.ok, false);
   assert.equal(failed.errorType, "network_failed");
+}
+
+{
+  clearFlightAwareFallbackCache();
+  let fetchCalls = 0;
+  const first = await getFlightAwareFallbackByCallsign("AAL100", {
+    env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return new Response("payment required", { status: 402 });
+    },
+    now: () => Date.parse(fetchedAt),
+  });
+  const second = await getFlightAwareFallbackByCallsign("AAL100", {
+    env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return new Response("payment required", { status: 402 });
+    },
+    now: () => Date.parse(fetchedAt) + 30_000,
+  });
+
+  assert.equal(first.ok, false);
+  assert.equal(first.errorType, "payment_required");
+  assert.equal(first.upstreamStatus, 402);
+  assert.equal(first.message, "HTTP 402");
+  assert.equal(second.errorType, "payment_required");
+  assert.equal(fetchCalls, 1);
 }
 
 console.log("flightAwareFallbackProvider.test.js ok");

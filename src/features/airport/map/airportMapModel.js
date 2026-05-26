@@ -5,9 +5,6 @@ import { getDistanceNm } from "../../../utils/aircraftTrafficIntent.js";
 // Matches the focal-airport's default first-ring interval so the
 // ground filter aligns with the visual layer.
 const DEFAULT_GROUND_AREA_RADIUS_NM = 3;
-const EARTH_RADIUS_NM = 3440.065;
-const DEG_TO_RAD = Math.PI / 180;
-const RAD_TO_DEG = 180 / Math.PI;
 
 export const resolveDocumentTheme = (documentElement) =>
   documentElement?.getAttribute("data-theme") === "light" ? "light" : "dark";
@@ -34,71 +31,6 @@ export const resolveAirportMapFocalCenter = ({ lat, lon } = {}) => {
   const focalLon = toFiniteCoordinate(lon);
   if (focalLat == null || focalLon == null) return null;
   return { lat: focalLat, lon: focalLon };
-};
-
-const normalizeLongitude = (lon) => ((((lon + 180) % 360) + 360) % 360) - 180;
-
-const getBearingRad = (from, to) => {
-  const fromLat = from.lat * DEG_TO_RAD;
-  const toLat = to.lat * DEG_TO_RAD;
-  const deltaLon = (to.lon - from.lon) * DEG_TO_RAD;
-  const y = Math.sin(deltaLon) * Math.cos(toLat);
-  const x =
-    Math.cos(fromLat) * Math.sin(toLat) -
-    Math.sin(fromLat) * Math.cos(toLat) * Math.cos(deltaLon);
-  return Math.atan2(y, x);
-};
-
-const destinationPoint = (origin, bearingRad, distanceNm) => {
-  const angularDistance = distanceNm / EARTH_RADIUS_NM;
-  const originLat = origin.lat * DEG_TO_RAD;
-  const originLon = origin.lon * DEG_TO_RAD;
-  const destinationLat = Math.asin(
-    Math.sin(originLat) * Math.cos(angularDistance) +
-      Math.cos(originLat) * Math.sin(angularDistance) * Math.cos(bearingRad),
-  );
-  const destinationLon =
-    originLon +
-    Math.atan2(
-      Math.sin(bearingRad) * Math.sin(angularDistance) * Math.cos(originLat),
-      Math.cos(angularDistance) - Math.sin(originLat) * Math.sin(destinationLat),
-    );
-
-  return {
-    lat: destinationLat * RAD_TO_DEG,
-    lon: normalizeLongitude(destinationLon * RAD_TO_DEG),
-  };
-};
-
-export const clampMapCenterToRadius = ({ center, focalCenter, radiusNm }) => {
-  const centerLat = toFiniteCoordinate(center?.lat);
-  const centerLon = toFiniteCoordinate(center?.lon);
-  const focalLat = toFiniteCoordinate(focalCenter?.lat);
-  const focalLon = toFiniteCoordinate(focalCenter?.lon);
-  const limitNm = toFiniteCoordinate(radiusNm);
-
-  if (
-    centerLat == null ||
-    centerLon == null ||
-    focalLat == null ||
-    focalLon == null ||
-    limitNm == null ||
-    limitNm <= 0
-  ) {
-    return null;
-  }
-
-  const currentCenter = { lat: centerLat, lon: centerLon };
-  const focal = { lat: focalLat, lon: focalLon };
-  const distanceNm = getDistanceNm(
-    focal.lat,
-    focal.lon,
-    currentCenter.lat,
-    currentCenter.lon,
-  );
-  if (distanceNm == null || distanceNm <= limitNm) return currentCenter;
-
-  return destinationPoint(focal, getBearingRad(focal, currentCenter), limitNm);
 };
 
 export const formatCoordinateLabel = (value, axis) => {

@@ -30,9 +30,8 @@ const initialUiState = {
   fitToTraceSignal: 0,
   // When true (default), the map re-centers on every aircraft position
   // poll. The user opts out by clicking "fit to trace" — the map then
-  // stays anchored on the trace bounds. A bounded mobile map gesture
-  // also pauses auto-follow until the user taps recenter. Clicking any
-  // preset zoom re-enables auto-follow.
+  // stays anchored on the trace bounds. Clicking any preset zoom
+  // re-enables auto-follow.
   mapFollowsAircraft: true,
 };
 
@@ -111,10 +110,6 @@ function airportExplorerUiReducer(state, action) {
         fitToTraceSignal: state.fitToTraceSignal + 1,
         mapFollowsAircraft: false,
       };
-    case "pauseMapFollow":
-      return { ...state, mapFollowsAircraft: false };
-    case "resumeMapFollow":
-      return { ...state, mapFollowsAircraft: true };
     default:
       return state;
   }
@@ -211,14 +206,6 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "fitToTrace" });
   }, []);
 
-  const pauseMapFollow = useCallback(() => {
-    dispatch({ type: "pauseMapFollow" });
-  }, []);
-
-  const resumeMapFollow = useCallback(() => {
-    dispatch({ type: "resumeMapFollow" });
-  }, []);
-
   const fitToTraceSignal = state.fitToTraceSignal;
   const mapFollowsAircraft = state.mapFollowsAircraft;
 
@@ -254,8 +241,6 @@ export function ExplorerUiProvider({ children }) {
       setSelectedAircraftId,
       selectAirport,
       fitToTrace,
-      pauseMapFollow,
-      resumeMapFollow,
     }),
     [
       sidebarMode,
@@ -287,8 +272,6 @@ export function ExplorerUiProvider({ children }) {
       setSelectedAircraftId,
       selectAirport,
       fitToTrace,
-      pauseMapFollow,
-      resumeMapFollow,
     ],
   );
 

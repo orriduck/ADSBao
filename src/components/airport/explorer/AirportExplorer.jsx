@@ -56,8 +56,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectAircraft,
     setSelectedAircraftId,
     selectAirport,
-    pauseMapFollow,
-    resumeMapFollow,
     mapFollowsAircraft,
   } = useExplorerUi();
   const airportProfile = useMemo(
@@ -208,9 +206,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             runwayProcedures={null}
             procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
             showProcedureFixLabels
-            mobileMapInteractionEnabled={isMobile}
-            onMapMoveFromCenter={pauseMapFollow}
-            onRecenterMap={resumeMapFollow}
           />
           <AircraftDataLoadingOverlay
             active={
