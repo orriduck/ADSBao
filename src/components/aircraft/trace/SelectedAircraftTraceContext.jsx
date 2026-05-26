@@ -15,14 +15,14 @@ import { getAircraftIdentity } from "@/features/airport/context/airportContextUi
 //
 // Exposes a `traces[]` array (1 or 2 entries, deduplicated by hex) for
 // SelectedAircraftTrace to iterate over. Top-level fields mirror the
-// primary trace so existing consumers (TraceLoadingToast) keep working
-// without changes.
+// primary trace so preview cards can render local loading state.
 
 const EMPTY_TRACE = {
   aircraftHex: null,
   movement: null,
   tracePoints: [],
   loading: false,
+  traceFetchLoading: false,
 };
 
 const SelectedAircraftTraceContext = createContext({
@@ -37,6 +37,7 @@ function deriveTrace(aircraft, hookResult) {
       typeof aircraft?.movement === "string" ? aircraft.movement : null,
     tracePoints: hookResult.tracePoints,
     loading: hookResult.loading,
+    traceFetchLoading: hookResult.traceFetchLoading,
   };
 }
 
@@ -49,13 +50,7 @@ export function SelectedAircraftTraceProvider({
   focalTraceRefreshKey = "",
   children,
 }) {
-  const primaryMatchesFocal =
-    selectedAircraft &&
-    focalAircraft &&
-    getAircraftIdentity(selectedAircraft) === getAircraftIdentity(focalAircraft);
-  const primaryHook = useAircraftTrace(selectedAircraft, {
-    notifyInitialFetch: !primaryMatchesFocal,
-  });
+  const primaryHook = useAircraftTrace(selectedAircraft);
   // Focal trace uses adsb.lol's trace_full endpoint on the aircraft
   // detail page so the user sees the whole flight on load — not just
   // the rolling tail. The optional cutoff clips the historical points
@@ -68,7 +63,6 @@ export function SelectedAircraftTraceProvider({
     traceStartAtMs: focalTraceStartAtMs,
     persistKey: focalPersistKey,
     traceRefreshKey: focalTraceRefreshKey,
-    notifyInitialFetch: false,
   });
 
   const primary = useMemo(

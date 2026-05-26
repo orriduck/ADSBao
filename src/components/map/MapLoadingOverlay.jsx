@@ -5,28 +5,60 @@ import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation.js";
 import { getLoadingOverlayExitDelay } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
-export default function AircraftDataLoadingOverlay({
-  active,
+export function useMapLoadingOverlayText({
+  mode = "feed",
   variant = "airport",
   callsign = "",
-}) {
+} = {}) {
   const { t } = useI18n();
+  const normalizedCallsign = callsign.trim().toUpperCase();
+  const isFlight = variant === "flight";
+
+  if (mode === "map") {
+    return {
+      ariaLabel: t("map.loadingMapAria"),
+      eyebrow: t("map.mapRenderer"),
+      status: t("map.loadingMap"),
+    };
+  }
+
+  return {
+    ariaLabel: isFlight
+      ? t("map.loadingTrackedAircraftAria")
+      : t("map.loadingAircraftAria"),
+    eyebrow: isFlight ? t("map.flightTrackingFeed") : "adsb.lol position feed",
+    status: isFlight
+      ? t("map.syncingTrackedAircraft", {
+          callsign: normalizedCallsign || t("map.trackedAircraft"),
+        })
+      : t("map.syncingTraffic"),
+  };
+}
+
+export function MapLoadingFallback({ variant = "airport", callsign = "" }) {
+  const copy = useMapLoadingOverlayText({
+    mode: "map",
+    variant,
+    callsign,
+  });
+
+  return (
+    <div className="relative h-full w-full bg-atc-bg">
+      <MapLoadingOverlay active variant={variant} {...copy} />
+    </div>
+  );
+}
+
+export default function MapLoadingOverlay({
+  active,
+  variant = "airport",
+  ariaLabel,
+  eyebrow,
+  status,
+}) {
   const [visible, setVisible] = useState(active);
   const [exiting, setExiting] = useState(false);
   const shownAtRef = useRef(active ? Date.now() : 0);
-  const normalizedCallsign = callsign.trim().toUpperCase();
-  const isFlight = variant === "flight";
-  const ariaLabel = isFlight
-    ? t("map.loadingTrackedAircraftAria")
-    : t("map.loadingAircraftAria");
-  const eyebrow = isFlight
-    ? t("map.flightTrackingFeed")
-    : "adsb.lol position feed";
-  const status = isFlight
-    ? t("map.syncingTrackedAircraft", {
-        callsign: normalizedCallsign || t("map.trackedAircraft"),
-      })
-    : t("map.syncingTraffic");
 
   useEffect(() => {
     let delayTimer;

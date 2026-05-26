@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { aircraftTraceClient } from "../features/aviation/aviationData.js";
 import {
   composeAircraftTrace,
@@ -14,9 +13,6 @@ import {
   readTrackedTrace,
   writeTrackedTrace,
 } from "../features/aircraft/tracking/trackedTraceStorage.js";
-import {
-  resolveAircraftTraceNotificationMode,
-} from "../features/aircraft/trace/aircraftTraceNotificationModel.js";
 
 // How long to wait after the last merged-trace change before writing to
 // localStorage. Live polls land every 3s, so a short debounce lets a
@@ -33,8 +29,8 @@ function formatTracePointTime(point) {
   return Number.isFinite(timestampMs) ? new Date(timestampMs).toISOString() : null;
 }
 
-function fetchTraceSource({ hex, label, source, full, notify = true }) {
-  const promise = aircraftTraceClient
+function fetchTraceSource({ hex, label, source, full }) {
+  return aircraftTraceClient
     .fetchAircraftTrace({ hex, full })
     .then((payload) => {
       const points = normalizeAdsbTracePayload(payload?.recent);
@@ -49,17 +45,6 @@ function fetchTraceSource({ hex, label, source, full, notify = true }) {
       });
       return { payload, points };
     });
-
-  if (notify) {
-    toast.promise(promise, {
-      loading: `Fetching ${source} trace for ${label}...`,
-      success: ({ points }) => `${label} ${source} trace: ${points.length} pts`,
-      error: (error) =>
-        `${label} ${source} trace failed: ${error?.message || "unknown error"}`,
-    });
-  }
-
-  return promise;
 }
 
 function liveAircraftToTracePoint(aircraft) {
@@ -126,9 +111,6 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     typeof options?.traceRefreshKey === "string"
       ? options.traceRefreshKey
       : "";
-  const notifyInitialFetch = resolveAircraftTraceNotificationMode({
-    notifyInitialFetch: options?.notifyInitialFetch,
-  });
   const traceLabel = formatTraceFetchLabel(selectedAircraft, hex);
 
   const [fullPoints, setFullPoints] = useState([]);
@@ -166,7 +148,6 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
       label,
       source: "recent",
       full: false,
-      notify: notifyInitialFetch,
     })
       .then(({ points }) => {
         if (disposed) return;
@@ -190,7 +171,6 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
         label,
         source: "full",
         full: true,
-        notify: notifyInitialFetch,
       })
         .then(({ points }) => {
           if (disposed) return;
@@ -212,7 +192,7 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
     return () => {
       disposed = true;
     };
-  }, [hex, fullTrace, notifyInitialFetch, traceLabel]);
+  }, [hex, fullTrace, traceLabel]);
 
   // While the tracked-flight page is resuming from a background tab (or
   // keeping the lost-signal overlay alive), silently refresh the upstream
@@ -235,7 +215,6 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
         label,
         source,
         full,
-        notify: false,
       })
         .then(({ points }) => {
           if (disposed) return;
@@ -349,5 +328,6 @@ export function useAircraftTrace(selectedAircraft = null, options = {}) {
   return {
     tracePoints,
     loading: composedTrace.loading,
+    traceFetchLoading: Boolean(recentLoading || fullLoading),
   };
 }

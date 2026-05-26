@@ -4,6 +4,7 @@ import {
   AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
   areCriticalLoadingRequestsSettled,
   getLoadingOverlayExitDelay,
+  resolveAircraftLoadingOverlayMode,
   scheduleAfterOverlayPaint,
   shouldShowAircraftLoadingOverlay,
   shouldTriggerVisibilityRefreshOverlay,
@@ -113,6 +114,30 @@ assert.equal(
     proceduresSettled: true,
   }),
   false,
+);
+
+assert.equal(
+  resolveAircraftLoadingOverlayMode({
+    mapReady: false,
+    feedLoading: true,
+  }),
+  "map",
+);
+
+assert.equal(
+  resolveAircraftLoadingOverlayMode({
+    mapReady: true,
+    feedLoading: true,
+  }),
+  "feed",
+);
+
+assert.equal(
+  resolveAircraftLoadingOverlayMode({
+    mapReady: true,
+    feedLoading: false,
+  }),
+  "idle",
 );
 
 {

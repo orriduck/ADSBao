@@ -21,6 +21,15 @@ export function shouldShowAircraftLoadingOverlay({
   return Boolean(initialLoading || visibilityRefreshLoading);
 }
 
+export function resolveAircraftLoadingOverlayMode({
+  mapReady = false,
+  feedLoading = false,
+} = {}) {
+  if (!mapReady) return "map";
+  if (feedLoading) return "feed";
+  return "idle";
+}
+
 export function shouldTriggerVisibilityRefreshOverlay({
   wasActive = false,
   hiddenSince = 0,
