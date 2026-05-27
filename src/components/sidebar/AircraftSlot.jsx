@@ -5,11 +5,9 @@ import { useEndfieldContentSwap } from "@/components/effects/useEndfieldContentS
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
 import AircraftRow from "./AircraftRow.jsx";
 
-// Single row "slot" that performs an Endfield-style erase/reveal when its
-// tenant aircraft changes. Used both inside AircraftList (one per scrollable
-// row, cascaded by cascadeOrder × flipStaggerStep) and inside the sidebar
-// header to drive the pinned selected-aircraft card (single slot,
-// cascadeOrder 0 so the swap fires immediately).
+// Single row "slot" that performs an Endfield-style erase/reveal for the
+// pinned selected-aircraft card. The scroll list renders rows directly so it
+// never leaves empty animated slots behind during live re-sorts.
 export default function AircraftSlot({
   aircraft,
   cascadeOrder = -1,
