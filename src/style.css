@@ -2248,11 +2248,11 @@ body {
 }
 
 .airport-map-menu--desktop {
-    justify-content: flex-start;
+    justify-content: flex-end;
 }
 
 .airport-map-menu--mobile {
-    justify-content: flex-start;
+    justify-content: center;
 }
 
 .map-source-status {
@@ -2273,8 +2273,8 @@ body {
     max-width: calc(100vw - 132px);
     position: absolute;
     right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+    top: calc(100% + 6px);
+    transform: none;
 }
 
 .airport-map-menu .map-source-status--map-corner {
