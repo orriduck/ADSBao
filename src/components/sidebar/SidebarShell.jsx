@@ -1,13 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import MapSourceStatusDisplay from "@/components/map/MapSourceStatusDisplay.jsx";
-import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
-import {
-  buildMapSourceStatusDisplay,
-  resolveRouteProvider,
-} from "@/features/aviation/sourceDisplayModel.js";
 
 // Shared chrome for the airport + flight sidebars. Handles:
 //   - The outer panel container + responsive overlay variant.
@@ -17,24 +11,14 @@ import {
 // Pages provide their identity content via `header` and the scrollable
 // content (typically the AircraftTable) via `children`.
 export default function SidebarShell({
-  feedStatus = "live",
-  feedSource = "",
-  lastUpdated = null,
   onBack,
   onClose = null,
   header,
   children,
   variant = "airport",
-  loadingStatus = "",
 }) {
   const { t } = useI18n();
-  const flightAwareEnabled = useFlightAwareEnabled();
-  const sourceStatus = buildMapSourceStatusDisplay({
-    feedSource,
-    routeProvider: resolveRouteProvider({ flightAwareEnabled }),
-  });
   const isMobileOverlay = Boolean(onClose);
-  const updatedLabel = formatUpdated(lastUpdated);
 
   const panelClasses = [
     "sidebar-shell flex h-full flex-col border-r border-atc-line-strong bg-atc-bg",
@@ -68,18 +52,7 @@ export default function SidebarShell({
             <span>{t("nav.map")}</span>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
-        ) : (
-          <MapSourceStatusDisplay
-            feedSource={sourceStatus.feedSource}
-            feedStatus={feedStatus}
-            updatedLabel={updatedLabel}
-            routeProviderLabel={sourceStatus.routeProvider}
-            loadingStatus={loadingStatus}
-            feedLiveLabel={t("app.feedLive")}
-            placement="sidebar"
-            loadingMotion="shift"
-          />
-        )}
+        ) : null}
       </div>
 
       <div
@@ -102,14 +75,4 @@ export default function SidebarShell({
       </div>
     </div>
   );
-}
-
-function formatUpdated(date) {
-  if (!date) return "";
-  return date.toLocaleTimeString([], {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
 }

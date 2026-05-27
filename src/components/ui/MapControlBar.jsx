@@ -25,6 +25,7 @@ export default function MapControlBar({
   onToggleMapLabels,
   onToggleRunwayBeams,
   onToggleRoutingPointBadges,
+  onToggleSidebar,
   onFitToTrace = null,
 }) {
   const controlZone = useRef(null);
@@ -84,6 +85,7 @@ export default function MapControlBar({
         themeTitle={themeTitle}
         layerDrawerOpen={layerDrawerOpen}
         layerDrawerId={LAYER_DRAWER_ID}
+        onToggleSidebar={onToggleSidebar}
         onCycleZoom={cycleZoom}
         onFitToTrace={onFitToTrace}
         onCycleTheme={cycleTheme}

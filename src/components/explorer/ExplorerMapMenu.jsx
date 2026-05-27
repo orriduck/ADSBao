@@ -1,10 +1,8 @@
 "use client";
 
-import { PanelLeft } from "lucide-react";
 import MapControlBar from "@/components/ui/MapControlBar";
 import MobileMapSourceStatus from "./MobileMapSourceStatus.jsx";
 import { useExplorerUi } from "./ExplorerUiContext.jsx";
-import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function ExplorerMapMenu({
   feedSource = "",
@@ -15,7 +13,6 @@ export default function ExplorerMapMenu({
   onFitToTrace = null,
   zoomDisabled = false,
 } = {}) {
-  const { t } = useI18n();
   const {
     isMobile,
     mapZoom,
@@ -36,15 +33,6 @@ export default function ExplorerMapMenu({
         isMobile ? "airport-map-menu--mobile" : "airport-map-menu--desktop"
       }`}
     >
-      <button
-        type="button"
-        onClick={toggleSidebar}
-        className="airport-map-menu-toggle"
-        aria-label={t("map.toggleSidebar")}
-      >
-        <PanelLeft className="h-4 w-4" />
-      </button>
-
       <MapControlBar
         activeZoom={mapZoom}
         zoomActive={mapFollowsAircraft}
@@ -56,18 +44,17 @@ export default function ExplorerMapMenu({
         onToggleMapLabels={toggleMapLabels}
         onToggleRunwayBeams={toggleRunwayBeams}
         onToggleRoutingPointBadges={toggleRoutingPointBadges}
+        onToggleSidebar={toggleSidebar}
         onFitToTrace={onFitToTrace}
       />
 
-      {isMobile ? (
-        <MobileMapSourceStatus
-          feedSource={feedSource}
-          feedStatus={feedStatus}
-          lastUpdated={lastUpdated}
-          routeProvider={routeProvider}
-          loadingStatus={loadingStatus}
-        />
-      ) : null}
+      <MobileMapSourceStatus
+        feedSource={feedSource}
+        feedStatus={feedStatus}
+        lastUpdated={lastUpdated}
+        routeProvider={routeProvider}
+        loadingStatus={loadingStatus}
+      />
     </div>
   );
 }

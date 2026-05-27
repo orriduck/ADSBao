@@ -2219,6 +2219,8 @@ body {
 
 .airport-map-menu {
     align-items: center;
+    -webkit-backdrop-filter: blur(14px) saturate(1.12);
+    backdrop-filter: blur(14px) saturate(1.12);
     background:
         linear-gradient(
             90deg,
@@ -2246,45 +2248,11 @@ body {
 }
 
 .airport-map-menu--desktop {
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
 .airport-map-menu--mobile {
-    justify-content: center;
-    padding-inline: 54px;
-}
-
-.airport-map-menu-toggle {
-    align-items: center;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--atc-radius-control);
-    color: var(--atc-faint);
-    cursor: pointer;
-    display: flex;
-    height: 32px;
-    justify-content: center;
-    left: 12px;
-    padding: 0;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    transition:
-        background 0.15s ease,
-        border-color 0.15s ease,
-        color 0.15s ease;
-    width: 32px;
-}
-
-.airport-map-menu-toggle:hover {
-    background: color-mix(in oklab, var(--atc-line) 60%, transparent);
-    border-color: var(--atc-line-strong);
-    color: var(--atc-text);
-}
-
-.airport-map-menu-toggle:focus-visible {
-    outline: 2px solid color-mix(in oklab, var(--atc-accent) 55%, transparent);
-    outline-offset: 2px;
+    justify-content: flex-start;
 }
 
 .map-source-status {
@@ -2300,15 +2268,16 @@ body {
     white-space: nowrap;
 }
 
-.map-source-status--mobile-map {
+.map-source-status--map-corner {
     display: none;
     max-width: calc(100vw - 132px);
     position: absolute;
     right: 12px;
-    top: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-.airport-map-menu--mobile .map-source-status--mobile-map {
+.airport-map-menu .map-source-status--map-corner {
     display: flex;
 }
 
@@ -2331,7 +2300,7 @@ body {
 }
 
 .map-source-status--shift-loading.map-source-status--loading-active .map-source-status__primary {
-    --map-source-status-primary-y: -5px;
+    --map-source-status-primary-y: -3px;
 }
 
 .map-source-status__line,
@@ -2347,19 +2316,19 @@ body {
 .map-source-status__line {
     gap: 7px;
     color: var(--atc-dim);
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.035em;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
     line-height: 1;
     text-transform: uppercase;
 }
 
 .map-source-status__route {
     color: var(--atc-orange);
-    font-size: 10px;
-    font-weight: 400;
+    font-size: 9px;
+    font-weight: 600;
     gap: 5px;
-    letter-spacing: 0.2em;
+    letter-spacing: 0;
     line-height: 1;
 }
 
@@ -2381,9 +2350,9 @@ body {
 .map-source-status__loading {
     color: var(--atc-dim);
     font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: 400;
-    letter-spacing: 0.08em;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0;
     line-height: 1;
     max-width: min(280px, calc(100vw - 132px));
     min-height: 0;
@@ -2414,9 +2383,9 @@ body {
 .map-source-status__diamond {
     background: var(--atc-orange);
     display: inline-block;
-    height: 9px;
+    height: 7px;
     transform: rotate(45deg);
-    width: 9px;
+    width: 7px;
 }
 
 .map-source-status--infer .map-source-status__source,
