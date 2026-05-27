@@ -2256,7 +2256,6 @@ body {
 }
 
 .map-source-status {
-    --map-source-status-primary-y: 0px;
     align-items: flex-end;
     display: flex;
     flex-direction: column;
@@ -2294,13 +2293,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1px;
-    transform: translateY(var(--map-source-status-primary-y));
-    transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform;
-}
-
-.map-source-status--shift-loading.map-source-status--loading-active .map-source-status__primary {
-    --map-source-status-primary-y: -3px;
 }
 
 .map-source-status__line,
@@ -2337,14 +2329,7 @@ body {
 }
 
 .map-source-status--shift-loading .map-source-status__loading-slot {
-    display: grid;
-    grid-template-rows: 0fr;
     overflow: hidden;
-    transition: grid-template-rows 260ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.map-source-status--shift-loading .map-source-status__loading-slot.is-active {
-    grid-template-rows: 1fr;
 }
 
 .map-source-status__loading {
