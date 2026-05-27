@@ -1,12 +1,11 @@
 "use client";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
-import RequestPulseDots from "@/components/ui/RequestPulseDots";
+import MapSourceStatusDisplay from "@/components/map/MapSourceStatusDisplay.jsx";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import {
-  getRouteProviderDisplayName,
+  buildMapSourceStatusDisplay,
   resolveRouteProvider,
 } from "@/features/aviation/sourceDisplayModel.js";
 
@@ -30,9 +29,10 @@ export default function SidebarShell({
 }) {
   const { t } = useI18n();
   const flightAwareEnabled = useFlightAwareEnabled();
-  const routeProviderLabel = getRouteProviderDisplayName(
-    resolveRouteProvider({ flightAwareEnabled }),
-  );
+  const sourceStatus = buildMapSourceStatusDisplay({
+    feedSource,
+    routeProvider: resolveRouteProvider({ flightAwareEnabled }),
+  });
   const isMobileOverlay = Boolean(onClose);
   const updatedLabel = formatUpdated(lastUpdated);
 
@@ -69,52 +69,16 @@ export default function SidebarShell({
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         ) : (
-          <div className="flex flex-col items-end gap-0.5">
-            <span
-              className={`airport-feed-status airport-feed-status--${feedStatus} inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-normal text-atc-dim tabular-nums`}
-            >
-              {feedSource ? (
-                <EndfieldValueSwap
-                  identityKey={`source:${feedSource}`}
-                  value={<span>{feedSource}</span>}
-                  className="airport-feed-status__source"
-                  direction="reverse"
-                />
-              ) : null}
-              <RequestPulseDots ariaLabel={t("app.feedLive")} />
-              {updatedLabel ? (
-                <EndfieldValueSwap
-                  identityKey={`updated:${updatedLabel}`}
-                  value={<span>{updatedLabel}</span>}
-                  direction="reverse"
-                />
-              ) : null}
-            </span>
-            <span className="airport-route-provider-status inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.18em] text-atc-orange">
-              <span
-                aria-hidden="true"
-                className="inline-block h-1.5 w-1.5 rotate-45 bg-atc-orange"
-              />
-              <EndfieldValueSwap
-                identityKey={`route-provider:${routeProviderLabel}`}
-                value={(
-                  <span className="notranslate" translate="no">
-                    {routeProviderLabel}
-                  </span>
-                )}
-                direction="reverse"
-              />
-            </span>
-            {loadingStatus ? (
-              <span className="airport-feed-loading-status">
-                <EndfieldValueSwap
-                  identityKey={`loading:${loadingStatus}`}
-                  value={<span>{loadingStatus}</span>}
-                  direction="reverse"
-                />
-              </span>
-            ) : null}
-          </div>
+          <MapSourceStatusDisplay
+            feedSource={sourceStatus.feedSource}
+            feedStatus={feedStatus}
+            updatedLabel={updatedLabel}
+            routeProviderLabel={sourceStatus.routeProvider}
+            loadingStatus={loadingStatus}
+            feedLiveLabel={t("app.feedLive")}
+            placement="sidebar"
+            loadingMotion="shift"
+          />
         )}
       </div>
 

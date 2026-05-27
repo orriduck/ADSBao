@@ -34,19 +34,15 @@ export default function AircraftRow({
   selected,
   onSelectAircraft,
 }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft.flightRoute);
-  // Municipality labels come from OurAirports / adsbdb as English-only
-  // city names ("Los Angeles → Seattle"). Localizing every world city
-  // would need a separate dictionary; for now we drop the secondary line
-  // in non-English locales and let the ICAO route ("KLAX → KSEA") stand
-  // on its own — still unambiguous, just untranslated.
-  const routeMunicipalities =
-    locale === "en"
-      ? formatFlightRouteMunicipalityLabel(aircraft.flightRoute)
-      : "";
+  // Municipality labels come from route providers as source-data city names.
+  // Keep them in every locale so the code/name cycle remains available.
+  const routeMunicipalities = formatFlightRouteMunicipalityLabel(
+    aircraft.flightRoute,
+  );
   const hasRouteMunicipalities = Boolean(
     routeMunicipalities && routeMunicipalities !== route,
   );

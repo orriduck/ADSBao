@@ -73,7 +73,7 @@ function badgeText(value) {
   return String(value || "").trim().toUpperCase();
 }
 
-export function buildMobileMapSourceStatus({
+export function buildMapSourceStatusDisplay({
   feedSource = "",
   routeProvider = "",
 } = {}) {

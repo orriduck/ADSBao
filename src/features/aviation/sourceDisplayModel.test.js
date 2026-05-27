@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   DATA_SOURCE,
   ROUTE_PROVIDER,
-  buildMobileMapSourceStatus,
+  buildMapSourceStatusDisplay,
   getDataSourceDisplayName,
   getAircraftPositionSourceBadge,
   getRouteProviderDisplayName,
@@ -42,7 +42,7 @@ assert.equal(
 );
 
 assert.deepEqual(
-  buildMobileMapSourceStatus({
+  buildMapSourceStatusDisplay({
     feedSource: DATA_SOURCE.AIRPLANES_LIVE,
     routeProvider: ROUTE_PROVIDER.FLIGHTAWARE,
   }),
@@ -53,7 +53,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  buildMobileMapSourceStatus({
+  buildMapSourceStatusDisplay({
     feedSource: "",
     routeProvider: ROUTE_PROVIDER.ADSBDB,
   }),
