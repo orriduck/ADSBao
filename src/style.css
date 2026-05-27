@@ -2318,6 +2318,16 @@ body {
     width: 100%;
 }
 
+.airport-map-source-status__line,
+.airport-map-source-status__route {
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.airport-map-source-status--loading-active .airport-map-source-status__line,
+.airport-map-source-status--loading-active .airport-map-source-status__route {
+    transform: translateY(-3px);
+}
+
 .airport-map-source-status__line {
     gap: 8px;
 }
@@ -2339,10 +2349,22 @@ body {
     letter-spacing: 0.08em;
     line-height: 1.1;
     max-width: min(280px, calc(100vw - 132px));
+    min-height: 10px;
+    opacity: 0;
     overflow-wrap: anywhere;
     text-align: right;
     text-transform: uppercase;
+    transform: translateY(-5px);
+    transition:
+        opacity 180ms ease-out,
+        transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
     white-space: normal;
+    will-change: opacity, transform;
+}
+
+.airport-map-source-status__loading.is-active {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .airport-map-source-status__source,
@@ -3608,36 +3630,11 @@ body {
 }
 
 .aircraft-table-route-cycle--alternate .aircraft-table-route-face--flight {
-    animation:
-        aircraft-table-flight-fade 12s infinite,
-        aircraft-table-route-text-decode 12s steps(3, end) infinite;
+    animation: aircraft-table-flight-fade 12s infinite;
 }
 
 .aircraft-table-route-cycle--alternate .aircraft-table-route-face--route {
-    animation:
-        aircraft-table-route-fade 12s infinite,
-        aircraft-table-route-text-decode 12s steps(3, end) infinite;
-}
-
-.aircraft-table-route-cycle--alternate::before {
-    animation: aircraft-table-route-cursor-wipe 12s cubic-bezier(1, 0, 0.7, 1)
-        infinite;
-    background:
-        linear-gradient(
-            90deg,
-            transparent 0,
-            transparent 1px,
-            var(--endf-yellow) 1px 5px,
-            color-mix(in oklab, var(--endf-yellow) 18%, var(--sidebar)) 5px 10px,
-            var(--sidebar) 10px 100%
-        );
-    content: "";
-    inset: 0;
-    opacity: 0;
-    pointer-events: none;
-    position: absolute;
-    transform: translateX(0);
-    z-index: 3;
+    animation: aircraft-table-route-fade 12s infinite;
 }
 
 @keyframes aircraft-table-flight-fade {
@@ -3673,74 +3670,6 @@ body {
         visibility: visible;
     }
 }
-
-@keyframes aircraft-table-route-cursor-wipe {
-    0%,
-    58%,
-    100% {
-        opacity: 0;
-        transform: translateX(0);
-    }
-    60%,
-    61.5%,
-    63% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    60.75%,
-    62.25% {
-        opacity: 0.2;
-        transform: translateX(0);
-    }
-    65%,
-    91% {
-        opacity: 1;
-        transform: translateX(100%);
-    }
-    68%,
-    83%,
-    94% {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    85%,
-    86.5%,
-    88% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    85.75%,
-    87.25% {
-        opacity: 0.2;
-        transform: translateX(0);
-    }
-}
-
-@keyframes aircraft-table-route-text-decode {
-    0%,
-    58%,
-    68%,
-    83%,
-    94%,
-    100% {
-        text-shadow: none;
-    }
-    60%,
-    63%,
-    85%,
-    88% {
-        text-shadow:
-            0.08em 0 color-mix(in oklab, var(--endf-yellow) 70%, transparent),
-            -0.08em 0 color-mix(in oklab, var(--atc-text) 28%, transparent);
-    }
-    64%,
-    89% {
-        text-shadow:
-            -0.05em 0 color-mix(in oklab, var(--endf-yellow) 58%, transparent),
-            0.05em 0 color-mix(in oklab, var(--atc-text) 20%, transparent);
-    }
-}
-
 
 @keyframes aircraft-table-callsign-lift {
     0% {
@@ -5716,7 +5645,8 @@ body {
 }
 
 .aircraft-preview-card__track-btn:focus-visible,
-.aircraft-preview-mobile-card__track:focus-visible {
+.aircraft-preview-mobile-card__track:focus-visible,
+.aircraft-preview-mobile-card__feedback-link:focus-visible {
     outline: 2px solid color-mix(in oklab, var(--primary-bright) 72%, white);
     outline-offset: 3px;
 }
@@ -5989,13 +5919,26 @@ body {
     bottom: calc(64px + env(safe-area-inset-bottom));
     left: 50%;
     z-index: 1200;
-    width: min(340px, calc(100vw - 28px));
-    max-width: calc(100vw - 28px);
+    width: min(326px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
     background:
+        repeating-linear-gradient(
+                135deg,
+                color-mix(in oklab, var(--endf-yellow) 24%, transparent) 0 3px,
+                transparent 3px 9px
+            )
+            0 0 / 46px 100% no-repeat,
+        linear-gradient(
+                135deg,
+                transparent 0 16px,
+                color-mix(in oklab, var(--endf-yellow) 22%, var(--atc-card)) 16px 31px,
+                transparent 31px 100%
+            )
+            0 0 / 46px 100% no-repeat,
         linear-gradient(
             90deg,
-            color-mix(in oklab, var(--endf-yellow) 14%, transparent) 0 52px,
-            transparent 52px
+            color-mix(in oklab, var(--endf-yellow) 16%, var(--atc-card)) 0 46px,
+            transparent 46px
         ),
         var(--atc-card);
     border: 1px solid var(--tone-border-firm);
@@ -6010,14 +5953,19 @@ body {
 }
 
 .aircraft-preview-mobile-card::before {
-    background: var(--endf-yellow);
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--endf-yellow) 96%, oklch(0.96 0.006 190) 4%),
+            color-mix(in oklab, var(--endf-yellow) 58%, var(--atc-card))
+        );
     clip-path: polygon(0 0, 100% 0, 76% 100%, 0 100%);
     content: "";
-    height: 20px;
+    height: 18px;
     left: 0;
     position: absolute;
     top: 0;
-    width: 52px;
+    width: 46px;
     z-index: 0;
 }
 
@@ -6026,9 +5974,9 @@ body {
     border-right: 2px solid var(--endf-ink);
     content: "";
     height: 10px;
-    left: 22px;
+    left: 19px;
     position: absolute;
-    top: 5px;
+    top: 4px;
     transform: rotate(-45deg);
     width: 10px;
     z-index: 1;
@@ -6040,14 +5988,25 @@ body {
 .aircraft-preview-mobile-card--stacked {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding-bottom: 8px;
+    gap: 4px;
+    padding-bottom: 7px;
+}
+
+.aircraft-preview-mobile-card__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 6px;
+    margin: 0 12px 0 56px;
+    pointer-events: auto;
+}
+
+.aircraft-preview-mobile-card__actions--single {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .aircraft-preview-mobile-card__track {
-    margin: 2px 12px 0;
-    min-height: 44px;
-    padding: 0 16px;
+    min-height: 36px;
+    padding: 0 10px;
     border: 1px solid color-mix(in oklab, var(--primary-bright) 88%, var(--primary-ink));
     border-radius: 2px;
     background:
@@ -6061,17 +6020,16 @@ body {
         inset 0 -2px 0 color-mix(in oklab, var(--primary-ink) 28%, transparent);
     color: var(--primary-ink);
     font-family: var(--font-display);
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 800;
     font-style: normal;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.07em;
     line-height: 1.15;
     overflow-wrap: anywhere;
     text-align: center;
     text-transform: uppercase;
     white-space: normal;
     cursor: pointer;
-    pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
     transition:
         box-shadow 0.15s ease-out,
@@ -6098,30 +6056,43 @@ body {
    doesn't compete with Track for taps. The card surface has pointer-events
    disabled by default; this re-enables them like the Track button does. */
 .aircraft-preview-mobile-card__feedback-link {
-    align-self: center;
-    margin: 4px 12px 0;
-    padding: 6px 10px;
-    border: none;
-    background: transparent;
+    min-height: 36px;
+    padding: 0 9px;
+    border: 1px dashed color-mix(in oklab, var(--atc-dim) 54%, transparent);
+    border-radius: 2px;
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-elev) 58%, transparent),
+            color-mix(in oklab, var(--atc-card) 88%, transparent)
+        );
     color: var(--atc-dim);
-    font-family: var(--font-sans);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    text-decoration: underline;
-    text-decoration-color: color-mix(in oklab, var(--atc-dim) 50%, transparent);
-    text-underline-offset: 3px;
-    text-transform: none;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+    text-align: center;
+    text-transform: uppercase;
     cursor: pointer;
-    pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
-    transition: color 0.15s ease-out;
+    transition:
+        background 0.15s ease-out,
+        border-color 0.15s ease-out,
+        color 0.15s ease-out,
+        transform 0.12s ease-out;
 }
 
 .aircraft-preview-mobile-card__feedback-link:active,
 .aircraft-preview-mobile-card__feedback-link:hover {
+    border-color: color-mix(in oklab, var(--atc-text) 42%, transparent);
+    background: color-mix(in oklab, var(--atc-text) 9%, var(--atc-card));
     color: var(--atc-text);
+}
+
+.aircraft-preview-mobile-card__feedback-link:active {
+    transform: scale(0.97);
 }
 
 .aircraft-preview-mobile-card__trace-status {
@@ -6261,8 +6232,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
-    padding: 14px 16px 10px 64px;
+    gap: 5px;
+    padding: 11px 12px 7px 56px;
     position: relative;
     width: 100%;
     z-index: 2;
@@ -6302,53 +6273,65 @@ body {
     z-index: 1;
 }
 
-.aircraft-preview-mobile-card__track {
+.aircraft-preview-mobile-card__actions {
     animation:
         endf-content-reveal 430ms steps(1, end) both,
         endf-text-decode 430ms steps(3, end) both;
 }
 
 .aircraft-preview-mobile-card__row1 {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: baseline;
     gap: 10px;
     max-width: 100%;
+    width: 100%;
     white-space: nowrap;
 }
 
 .aircraft-preview-mobile-card__callsign,
 .aircraft-preview-mobile-card__type {
     font-family: var(--font-display);
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 800;
     letter-spacing: 0;
     line-height: 0.9;
     color: var(--atc-text);
 }
 
-.aircraft-preview-mobile-card__sep {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--atc-faint);
-    line-height: 1;
+.aircraft-preview-mobile-card__callsign {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Route line on the mobile preview card — sits between the identity
-   row (callsign · type) and the telemetry row. Airline logo + parsed
-   route ("KLAX → KSEA"). Hidden entirely when no flight route is
-   available so the card stays compact. */
+.aircraft-preview-mobile-card__type {
+    justify-self: end;
+    text-align: right;
+}
+
+.aircraft-preview-mobile-card__route-stats {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+}
+
 .aircraft-preview-mobile-card__route {
     align-items: center;
     color: var(--atc-dim);
     display: flex;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     gap: 8px;
     letter-spacing: 0.02em;
     line-height: 1;
-    max-width: 100%;
+    max-width: 56%;
+    min-width: 0;
     white-space: nowrap;
 }
 
@@ -6373,7 +6356,11 @@ body {
     align-items: center;
     justify-content: flex-start;
     gap: 0;
-    max-width: 100%;
+    flex: 0 1 auto;
+    max-width: 44%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
@@ -6385,7 +6372,7 @@ body {
 
 .aircraft-preview-mobile-card__num {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.04em;
     color: var(--atc-dim);
@@ -6394,7 +6381,7 @@ body {
 
 .aircraft-preview-mobile-card__unit {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 500;
     letter-spacing: 0.06em;
     color: var(--atc-faint);
@@ -6800,7 +6787,9 @@ body {
     .aircraft-preview-mobile-card__track,
     .aircraft-preview-card__trace-status,
     .aircraft-preview-mobile-card__trace-status,
-    .aircraft-table-route-cycle--alternate::before,
+    .airport-map-source-status__line,
+    .airport-map-source-status__route,
+    .airport-map-source-status__loading,
     .endf-underline::after {
         transition: none;
         animation: none;

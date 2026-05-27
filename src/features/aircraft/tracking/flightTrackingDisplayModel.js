@@ -8,6 +8,7 @@ const DEFAULT_CONTEXT = Object.freeze({
   airportLimit: 12,
   fullTraceForFocal: false,
   showNearbyContext: true,
+  showNearbyMapContext: true,
   zoomDisabled: false,
   nearbyRangeRings: Object.freeze({
     intervalNm: 5,
@@ -26,7 +27,8 @@ const FLIGHTAWARE_DESKTOP_CONTEXT = Object.freeze({
   airportRadiusNm: 250,
   airportLimit: 12,
   fullTraceForFocal: true,
-  showNearbyContext: false,
+  showNearbyContext: true,
+  showNearbyMapContext: false,
   zoomDisabled: true,
   nearbyRangeRings: null,
   mapFitOptions: Object.freeze({
