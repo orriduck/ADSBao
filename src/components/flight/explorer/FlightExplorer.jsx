@@ -235,6 +235,8 @@ function FlightExplorerContent({ callsign }) {
     [isMobile, trackingState],
   );
   const showNearbyContext = flightDisplayContext.showNearbyContext !== false;
+  const showNearbyMapContext =
+    flightDisplayContext.showNearbyMapContext !== false;
   const nearbyQueryLat = showNearbyContext ? contextLat : null;
   const nearbyQueryLon = showNearbyContext ? contextLon : null;
 
@@ -348,6 +350,19 @@ function FlightExplorerContent({ callsign }) {
       trackedAircraftForDisplay
     );
   }, [aircraft, trackedAircraftForDisplay]);
+  const mapAircraft = useMemo(
+    () =>
+      showNearbyMapContext
+        ? aircraft
+        : enrichedTrackedAircraft
+          ? [enrichedTrackedAircraft]
+          : [],
+    [aircraft, enrichedTrackedAircraft, showNearbyMapContext],
+  );
+  const mapNearbyAirports = useMemo(
+    () => (showNearbyMapContext ? nearbyAirports : []),
+    [nearbyAirports, showNearbyMapContext],
+  );
   const trackedMetadataSignature = useMemo(
     () =>
       JSON.stringify({
@@ -471,6 +486,7 @@ function FlightExplorerContent({ callsign }) {
       selectedAircraft={selectedAircraft}
       focalAircraft={enrichedTrackedAircraft}
       fullTraceForFocal={flightDisplayContext.fullTraceForFocal}
+      showSelectedTrace={showNearbyMapContext}
       focalTraceStartAtMs={focalTraceStartAtMs}
       focalPersistKey={callsign || null}
       focalTraceRefreshKey={focalTraceRefreshKey}
@@ -517,8 +533,8 @@ function FlightExplorerContent({ callsign }) {
             lat={focalLat}
             lon={focalLon}
             zoom={mapZoom}
-            aircraft={aircraft}
-            nearbyAirports={nearbyAirports}
+            aircraft={mapAircraft}
+            nearbyAirports={mapNearbyAirports}
             airport={null}
             showMapLabels={showMapLabels}
             showRunwayBeams={false}

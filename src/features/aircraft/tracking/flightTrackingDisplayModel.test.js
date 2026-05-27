@@ -15,6 +15,7 @@ import {
   assert.equal(context.airportLimit, 12);
   assert.equal(context.fullTraceForFocal, false);
   assert.equal(context.showNearbyContext, true);
+  assert.equal(context.showNearbyMapContext, true);
   assert.equal(context.zoomDisabled, false);
   assert.deepEqual(context.nearbyRangeRings, {
     intervalNm: 5,
@@ -38,7 +39,8 @@ import {
   assert.equal(context.airportRadiusNm, 250);
   assert.equal(context.airportLimit, 12);
   assert.equal(context.fullTraceForFocal, true);
-  assert.equal(context.showNearbyContext, false);
+  assert.equal(context.showNearbyContext, true);
+  assert.equal(context.showNearbyMapContext, false);
   assert.equal(context.zoomDisabled, true);
   assert.equal(context.nearbyRangeRings, null);
   assert.deepEqual(context.mapFitOptions, {

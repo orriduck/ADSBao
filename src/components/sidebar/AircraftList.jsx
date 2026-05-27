@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel.js";
+import { getAircraftListAnimationState } from "./aircraftListAnimationModel.js";
 import AircraftSlot from "./AircraftSlot.jsx";
 
 export default function AircraftList({
@@ -19,14 +20,10 @@ export default function AircraftList({
   const resetKeyRef = useRef(resetKey);
   const currentKeys = aircraft.map(getAircraftIdentity);
   const prevKeys = prevKeysRef.current;
-  const structureChanged =
-    resetKeyRef.current !== resetKey ||
-    didListStructureChange(prevKeys, currentKeys);
-  let cascadeCursor = 0;
-  const cascadeOrders = currentKeys.map((cur, i) => {
-    const prev = prevKeys[i];
-    if (structureChanged) return -1;
-    return prev !== undefined && prev !== cur ? cascadeCursor++ : -1;
+  const { cascadeOrders, disableSwap } = getAircraftListAnimationState({
+    prevKeys,
+    currentKeys,
+    resetKeyChanged: resetKeyRef.current !== resetKey,
   });
   useEffect(() => {
     prevKeysRef.current = currentKeys;
@@ -41,7 +38,7 @@ export default function AircraftList({
             aircraft={item}
             cascadeOrder={cascadeOrders[index]}
             flipStaggerStep={flipStaggerStep}
-            disableSwap={structureChanged}
+            disableSwap={disableSwap}
             selectedAircraftId={selectedAircraftId}
             onSelectAircraft={onSelectAircraft}
           />
@@ -49,17 +46,4 @@ export default function AircraftList({
       ))}
     </ul>
   );
-}
-
-function didListStructureChange(prevKeys, currentKeys) {
-  if (prevKeys.length === 0) return false;
-  if (prevKeys.length !== currentKeys.length) return true;
-
-  const previousSet = new Set(prevKeys);
-  const currentSet = new Set(currentKeys);
-  return currentKeys.some((key, index) => {
-    const prev = prevKeys[index];
-    if (prev === key) return false;
-    return previousSet.has(key) || currentSet.has(prev);
-  });
 }

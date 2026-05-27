@@ -148,36 +148,44 @@ export default function AircraftPreviewCard({
           ) : (
             <AircraftPreviewMobileCard aircraft={aircraft} />
           )}
-          {trackHref && (
-            <>
-              {!isAirport && (
-                <div
-                  className={`aircraft-preview-mobile-card__trace-status ${
-                    traceLoading ? "is-active" : ""
-                  }`}
-                  aria-hidden={!traceLoading}
-                >
-                  {t("preview.loadingTrace")}
-                </div>
-              )}
-              <button
-                type="button"
-                className="aircraft-preview-mobile-card__track"
-                onClick={handleMobileTap}
-                disabled={alreadyTracking}
-              >
-                {mobileTrackLabel}
-              </button>
-            </>
-          )}
-          {showMobileFeedbackTrigger && (
-            <button
-              type="button"
-              className="aircraft-preview-mobile-card__feedback-link"
-              onClick={() => setFeedbackModalOpen(true)}
+          {trackHref && !isAirport && (
+            <div
+              className={`aircraft-preview-mobile-card__trace-status ${
+                traceLoading ? "is-active" : ""
+              }`}
+              aria-hidden={!traceLoading}
             >
-              {mobileFeedbackLabel}
-            </button>
+              {t("preview.loadingTrace")}
+            </div>
+          )}
+          {(trackHref || showMobileFeedbackTrigger) && (
+            <div
+              className={`aircraft-preview-mobile-card__actions ${
+                !showMobileFeedbackTrigger
+                  ? "aircraft-preview-mobile-card__actions--single"
+                  : ""
+              }`}
+            >
+              {trackHref && (
+                <button
+                  type="button"
+                  className="aircraft-preview-mobile-card__track"
+                  onClick={handleMobileTap}
+                  disabled={alreadyTracking}
+                >
+                  {mobileTrackLabel}
+                </button>
+              )}
+              {showMobileFeedbackTrigger && (
+                <button
+                  type="button"
+                  className="aircraft-preview-mobile-card__feedback-link"
+                  onClick={() => setFeedbackModalOpen(true)}
+                >
+                  {mobileFeedbackLabel}
+                </button>
+              )}
+            </div>
           )}
         </aside>
       )}

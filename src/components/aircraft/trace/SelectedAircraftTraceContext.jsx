@@ -45,6 +45,7 @@ export function SelectedAircraftTraceProvider({
   selectedAircraft = null,
   focalAircraft = null,
   fullTraceForFocal = false,
+  showSelectedTrace = true,
   focalTraceStartAtMs = null,
   focalPersistKey = null,
   focalTraceRefreshKey = "",
@@ -86,6 +87,7 @@ export function SelectedAircraftTraceProvider({
       out.push({ ...focal, opacity: 1 });
     }
     if (
+      showSelectedTrace &&
       primary.aircraftHex &&
       primary.aircraftHex !== focal.aircraftHex
     ) {
@@ -96,7 +98,7 @@ export function SelectedAircraftTraceProvider({
       out.push({ ...primary, opacity: dim ? 0.4 : 1 });
     }
     return out;
-  }, [primary, focal]);
+  }, [primary, focal, showSelectedTrace]);
 
   const value = useMemo(
     () => ({

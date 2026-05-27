@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
 import RequestPulseDots from "@/components/ui/RequestPulseDots";
 import {
@@ -16,13 +17,38 @@ export default function MobileMapSourceStatus({
 }) {
   const status = buildMobileMapSourceStatus({ feedSource, routeProvider });
   const updatedLabel = formatUpdated(lastUpdated);
-  if (!status.feedSource && !updatedLabel && !status.routeProvider && !loadingStatus) {
+  const loadingActive = Boolean(loadingStatus);
+  const [displayedLoadingStatus, setDisplayedLoadingStatus] = useState(
+    loadingStatus,
+  );
+
+  useEffect(() => {
+    if (loadingStatus) {
+      setDisplayedLoadingStatus(loadingStatus);
+      return undefined;
+    }
+
+    const clearTimer = window.setTimeout(() => {
+      setDisplayedLoadingStatus("");
+    }, 220);
+    return () => window.clearTimeout(clearTimer);
+  }, [loadingStatus]);
+
+  if (
+    !status.feedSource &&
+    !updatedLabel &&
+    !status.routeProvider &&
+    !loadingStatus &&
+    !displayedLoadingStatus
+  ) {
     return null;
   }
 
   return (
     <div
-      className={`airport-map-source-status airport-map-source-status--${feedStatus}`}
+      className={`airport-map-source-status airport-map-source-status--${feedStatus} ${
+        loadingActive ? "airport-map-source-status--loading-active" : ""
+      }`}
       aria-label="Map data sources"
     >
       {status.feedSource || updatedLabel ? (
@@ -67,15 +93,18 @@ export default function MobileMapSourceStatus({
           />
         </span>
       ) : null}
-      {loadingStatus ? (
-        <span className="airport-map-source-status__loading">
-          <EndfieldValueSwap
-            identityKey={`loading:${loadingStatus}`}
-            value={<span>{loadingStatus}</span>}
-            direction="reverse"
-          />
-        </span>
-      ) : null}
+      <span
+        className={`airport-map-source-status__loading ${
+          loadingActive ? "is-active" : ""
+        }`}
+        aria-hidden={!loadingActive}
+      >
+        <EndfieldValueSwap
+          identityKey={`loading:${displayedLoadingStatus || "idle"}`}
+          value={<span>{displayedLoadingStatus}</span>}
+          direction="reverse"
+        />
+      </span>
     </div>
   );
 }
