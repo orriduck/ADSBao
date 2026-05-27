@@ -12,7 +12,6 @@ export default function MapSourceStatusDisplay({
   loadingStatus = "",
   feedLiveLabel = "ADS-B feed live",
   placement = "mobile-map",
-  loadingMotion = "static",
 }) {
   const loadingActive = Boolean(loadingStatus);
   const [displayedLoadingStatus, setDisplayedLoadingStatus] = useState(
@@ -45,8 +44,8 @@ export default function MapSourceStatusDisplay({
     "map-source-status",
     `map-source-status--${placement}`,
     `map-source-status--${feedStatus}`,
+    "map-source-status--shift-loading",
     loadingActive ? "map-source-status--loading-active" : "",
-    loadingMotion === "shift" ? "map-source-status--shift-loading" : "",
   ]
     .filter(Boolean)
     .join(" ");

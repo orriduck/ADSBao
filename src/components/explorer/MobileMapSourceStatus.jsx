@@ -21,8 +21,7 @@ export default function MobileMapSourceStatus({
       updatedLabel={updatedLabel}
       routeProviderLabel={status.routeProvider}
       loadingStatus={loadingStatus}
-      placement="mobile-map"
-      loadingMotion="static"
+      placement="map-corner"
     />
   );
 }

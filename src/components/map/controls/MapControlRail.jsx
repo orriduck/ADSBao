@@ -1,7 +1,7 @@
 "use client";
 
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
-import { LogIn } from "lucide-react";
+import { LogIn, PanelLeft } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { Button } from "@/components/ui/button.jsx";
@@ -17,6 +17,7 @@ export default function MapControlRail({
   themeTitle,
   layerDrawerOpen,
   layerDrawerId,
+  onToggleSidebar,
   onCycleZoom,
   onFitToTrace = null,
   onCycleTheme,
@@ -30,6 +31,20 @@ export default function MapControlRail({
     : `${currentZoomOption.title} (click to cycle)`;
   return (
     <div className="map-ctrl-bar">
+      <Button
+        variant="atcIcon"
+        size="icon"
+        className="ctrl-btn ctrl-sidebar-toggle"
+        title={t("map.toggleSidebar")}
+        aria-label={t("map.toggleSidebar")}
+        onClick={onToggleSidebar}
+        type="button"
+      >
+        <PanelLeft className="h-4 w-4" aria-hidden="true" />
+      </Button>
+
+      <div className="ctrl-sep" />
+
       {onFitToTrace && (
         <Button
           variant="atcIcon"
