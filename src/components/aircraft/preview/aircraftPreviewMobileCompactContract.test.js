@@ -31,16 +31,25 @@ const routeStatsBlock = style.slice(
     style.indexOf(".aircraft-preview-mobile-card__route-stats"),
   ),
 );
-assert.match(routeStatsBlock, /display:\s*flex/);
-assert.match(routeStatsBlock, /justify-content:\s*space-between/);
+assert.match(routeStatsBlock, /display:\s*grid/);
+assert.match(routeStatsBlock, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+max-content/);
 
 const actionsBlock = style.slice(
   style.indexOf(".aircraft-preview-mobile-card__actions"),
   style.indexOf(".aircraft-preview-mobile-card__track", style.indexOf(".aircraft-preview-mobile-card__actions")),
 );
-assert.match(actionsBlock, /display:\s*grid/);
-assert.match(actionsBlock, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\)/);
+assert.match(actionsBlock, /display:\s*flex/);
+assert.match(actionsBlock, /flex-direction:\s*column/);
+assert.match(actionsBlock, /align-items:\s*stretch/);
+assert.match(actionsBlock, /gap:\s*4px/);
 assert.match(actionsBlock, /margin:\s*0\s+12px\s+0\s+56px/);
+
+const traceStatusBlock = style.slice(
+  style.indexOf(".aircraft-preview-mobile-card__trace-status"),
+  style.indexOf(".aircraft-preview-mobile-card__trace-status.is-active"),
+);
+assert.match(traceStatusBlock, /margin:\s*0\s+12px\s+0\s+56px/);
+assert.match(traceStatusBlock, /line-height:\s*1\.15/);
 
 const row1Block = style.slice(
   style.indexOf(".aircraft-preview-mobile-card__row1"),
@@ -57,12 +66,22 @@ const trackBlock = style.slice(
   style.indexOf(".aircraft-preview-mobile-card__track"),
   style.indexOf(".aircraft-preview-mobile-card__track:hover"),
 );
+const feedbackStart = style.indexOf(
+  ".aircraft-preview-mobile-card__feedback-link {",
+);
 const feedbackBlock = style.slice(
-  style.indexOf(".aircraft-preview-mobile-card__feedback-link"),
-  style.indexOf(".aircraft-preview-mobile-card__feedback-link:active"),
+  feedbackStart,
+  style.indexOf(".aircraft-preview-mobile-card__feedback-link:active", feedbackStart),
 );
 assert.match(trackBlock, /background:/);
-assert.match(feedbackBlock, /background:/);
+assert.match(trackBlock, /min-height:\s*34px/);
+assert.match(trackBlock, /width:\s*100%/);
+assert.match(feedbackBlock, /background:\s*transparent/);
+assert.doesNotMatch(feedbackBlock, /border:\s*1px/);
+assert.match(feedbackBlock, /min-height:\s*20px/);
+assert.match(feedbackBlock, /width:\s*100%/);
+assert.match(feedbackBlock, /justify-content:\s*center/);
+assert.match(feedbackBlock, /text-align:\s*center/);
 assert.notEqual(trackBlock, feedbackBlock);
 
 console.log("aircraftPreviewMobileCompactContract.test.js ok");
