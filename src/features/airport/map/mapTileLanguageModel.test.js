@@ -117,11 +117,11 @@ assert.deepEqual(getMapLibreLabelTextField("zh-CN"), [
 
   assert.equal(
     proxied.sprite,
-    "https://adsbao.test/api/proxy/openfreemap/sprites/ofm_f384/ofm",
+    "https://tiles.openfreemap.org/sprites/ofm_f384/ofm",
   );
   assert.equal(
     proxied.glyphs,
-    "https://adsbao.test/api/proxy/openfreemap/fonts/{fontstack}/{range}.pbf",
+    "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
   );
   assert.deepEqual(proxied.sources.openmaptiles, {
     type: "vector",
@@ -129,11 +129,11 @@ assert.deepEqual(getMapLibreLabelTextField("zh-CN"), [
     maxzoom: 14,
     attribution: "OpenFreeMap",
     tiles: [
-      "https://adsbao.test/api/proxy/openfreemap/planet/20260520_001001_pt/{z}/{x}/{y}.pbf",
+      "https://tiles.openfreemap.org/planet/20260520_001001_pt/{z}/{x}/{y}.pbf",
     ],
   });
   assert.deepEqual(proxied.sources.ne2_shaded.tiles, [
-    "https://adsbao.test/api/proxy/openfreemap/natural_earth/ne2sr/{z}/{x}/{y}.png",
+    "https://tiles.openfreemap.org/natural_earth/ne2sr/{z}/{x}/{y}.png",
   ]);
 }
 

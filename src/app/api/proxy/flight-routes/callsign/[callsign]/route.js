@@ -3,6 +3,7 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
+  logProxyRouteResponse,
 } from "@/app/api/_shared/apiProxySecurity.js";
 import { normalizeRouteCallsign } from "@/features/aviation/flight-routes/flightRouteCallsign.js";
 import {
@@ -22,6 +23,7 @@ export function OPTIONS(request) {
 }
 
 export async function GET(request, { params }) {
+  const startedAt = performance.now();
   const securityResponse = enforceProxyRequest(request, { rateLimit });
   if (securityResponse) return securityResponse;
 
@@ -48,28 +50,38 @@ export async function GET(request, { params }) {
       requestedProvider,
     });
 
-    return Response.json(body, {
-      status: body ? 200 : ROUTE_MISS_STATUS,
-      headers: buildProxyHeaders(
-        request,
-        {
-          ...buildRouteCacheHeaders(body, {
-            bypassSharedCache: providerSpecificRequest,
-          }),
-          // Expose the resolved upstream so the Network tab makes it
-          // obvious which provider answered ("flightaware", "adsbdb",
-          // "community-feedback", or "none" on a miss).
-          "X-Route-Source": body?.source || "none",
-        },
-        { varyOrigin: false },
-      ),
+    return logProxyRouteResponse({
+      request,
+      route: "/api/proxy/flight-routes/callsign",
+      response: Response.json(body, {
+        status: body ? 200 : ROUTE_MISS_STATUS,
+        headers: buildProxyHeaders(
+          request,
+          {
+            ...buildRouteCacheHeaders(body, {
+              bypassSharedCache: providerSpecificRequest,
+            }),
+            // Expose the resolved upstream so the Network tab makes it
+            // obvious which provider answered ("flightaware", "adsbdb",
+            // "community-feedback", or "none" on a miss).
+            "X-Route-Source": body?.source || "none",
+          },
+          { varyOrigin: false },
+        ),
+      }),
+      startMs: startedAt,
     });
   } catch (err) {
     console.error(`[adsbdb-route] error for ${callsign}:`, err);
-    return jsonProxyResponse(
+    return logProxyRouteResponse({
       request,
-      { error: "Internal error" },
-      { status: 500 },
-    );
+      route: "/api/proxy/flight-routes/callsign",
+      response: jsonProxyResponse(
+        request,
+        { error: "Internal error" },
+        { status: 500 },
+      ),
+      startMs: startedAt,
+    });
   }
 }

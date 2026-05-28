@@ -10,12 +10,20 @@ export function resolveAircraftVisibilityPolling({
   hiddenSince = 0,
   now = Date.now(),
   minHiddenMs = 0,
+  maxHiddenPollMs = Number.POSITIVE_INFINITY,
 } = {}) {
   const active = Boolean(hasActiveQuery || wasActive);
 
   if (documentHidden) {
+    const hiddenDurationMs =
+      Number(hiddenSince) > 0 ? Number(now) - Number(hiddenSince) : 0;
+    const hiddenPollExpired =
+      Number.isFinite(Number(maxHiddenPollMs)) &&
+      hiddenDurationMs >= Number(maxHiddenPollMs);
     return {
-      shouldStopPolling: Boolean(active && !pollWhenHidden),
+      shouldStopPolling: Boolean(
+        active && (!pollWhenHidden || hiddenPollExpired),
+      ),
       shouldRefreshNow: false,
       shouldShowRefreshOverlay: false,
     };

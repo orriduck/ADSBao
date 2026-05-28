@@ -6,6 +6,7 @@ import {
   checkProxyRateLimit,
   createCorsPreflightResponse,
   enforceProxyRequest,
+  logProxyRouteResponse,
   normalizeAircraftHex,
   normalizeDistanceNm,
   normalizeLatitude,
@@ -109,3 +110,53 @@ assert.deepEqual(
   }),
   { ok: true },
 );
+
+{
+  const logs = [];
+  const response = new Response("{}", {
+    status: 200,
+    headers: {
+      "x-data-source": "adsb.lol",
+      "x-provider-attempts": "adsb.lol:200",
+    },
+  });
+  assert.equal(
+    logProxyRouteResponse({
+      request: new Request("https://adsbao.test/api/proxy/aircraft/positions/1/2/3", {
+        headers: { "x-vercel-id": "iad1::abc" },
+      }),
+      route: "/api/proxy/aircraft/positions",
+      response,
+      startMs: 10,
+      nowMs: 38,
+      logger: (line) => logs.push(line),
+    }),
+    response,
+  );
+  assert.deepEqual(JSON.parse(logs[0]), {
+    level: "info",
+    msg: "proxy_route_done",
+    route: "/api/proxy/aircraft/positions",
+    requestId: "iad1::abc",
+    status: 200,
+    ms: 28,
+    source: "adsb.lol",
+    attempts: "adsb.lol:200",
+  });
+}
+
+{
+  const logs = [];
+  logProxyRouteResponse({
+    request: new Request("https://adsbao.test/api/proxy/flight-routes/callsign/DAL977"),
+    route: "/api/proxy/flight-routes/callsign",
+    response: new Response("{}", {
+      status: 200,
+      headers: { "x-route-source": "adsbdb" },
+    }),
+    startMs: 1,
+    nowMs: 2,
+    logger: (line) => logs.push(line),
+  });
+  assert.equal(JSON.parse(logs[0]).source, "adsbdb");
+}

@@ -13,7 +13,7 @@ import {
   assert.equal(context.aircraftRangeNm, 40);
   assert.equal(context.airportRadiusNm, 40);
   assert.equal(context.airportLimit, 12);
-  assert.equal(context.fullTraceForFocal, false);
+  assert.equal(context.fullTraceForFocal, true);
   assert.equal(context.showNearbyContext, true);
   assert.equal(context.showNearbyMapContext, true);
   assert.equal(context.zoomDisabled, false);

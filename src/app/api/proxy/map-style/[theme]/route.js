@@ -3,6 +3,7 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
+  logProxyRouteResponse,
   readResponseJson,
 } from "@/app/api/_shared/apiProxySecurity.js";
 import {
@@ -11,7 +12,6 @@ import {
   getMapLibreBaseStyleUrl,
 } from "@/features/airport/map/mapTileLanguageModel.js";
 
-const OPENFREEMAP_TILEJSON_URL = "https://tiles.openfreemap.org/planet";
 const SOURCE = "openfreemap";
 const CACHE_HEADERS = {
   "Cache-Control": "public, max-age=86400, s-maxage=86400",
@@ -27,6 +27,7 @@ export function OPTIONS(request) {
 }
 
 export async function GET(request, { params }) {
+  const startedAt = performance.now();
   const securityResponse = enforceProxyRequest(request, { rateLimit });
   if (securityResponse) return securityResponse;
 
@@ -37,37 +38,43 @@ export async function GET(request, { params }) {
   const showLabels = requestUrl.searchParams.get("labels") !== "0";
 
   let upstreamStyle;
-  let tileJson;
   try {
-    [upstreamStyle, tileJson] = await Promise.all([
-      fetchJson(getMapLibreBaseStyleUrl(theme), "OpenFreeMap style"),
-      fetchJson(OPENFREEMAP_TILEJSON_URL, "OpenFreeMap TileJSON"),
-    ]);
+    upstreamStyle = await fetchJson(
+      getMapLibreBaseStyleUrl(theme),
+      "OpenFreeMap style",
+    );
   } catch (error) {
     console.warn("[map-style] upstream fetch failed", error?.message || error);
-    return jsonProxyResponse(
+    return logProxyRouteResponse({
       request,
-      { error: "Failed to load map style" },
-      {
-        status: 502,
-        headers: { "Cache-Control": "no-store", "X-Data-Source": "failed" },
-      },
-    );
+      route: "/api/proxy/map-style",
+      response: jsonProxyResponse(
+        request,
+        { error: "Failed to load map style" },
+        {
+          status: 502,
+          headers: { "Cache-Control": "no-store", "X-Data-Source": "failed" },
+        },
+      ),
+      startMs: startedAt,
+    });
   }
 
   const style = buildLocalizedMapLibreStyle(
-    buildProxiedMapLibreStyle(upstreamStyle, {
-      proxyOrigin: requestUrl.origin,
-      tileJson,
-    }),
+    buildProxiedMapLibreStyle(upstreamStyle),
     { locale, showLabels },
   );
 
-  return Response.json(style, {
-    headers: buildProxyHeaders(request, {
-      ...CACHE_HEADERS,
-      "X-Data-Source": SOURCE,
+  return logProxyRouteResponse({
+    request,
+    route: "/api/proxy/map-style",
+    response: Response.json(style, {
+      headers: buildProxyHeaders(request, {
+        ...CACHE_HEADERS,
+        "X-Data-Source": SOURCE,
+      }),
     }),
+    startMs: startedAt,
   });
 }
 

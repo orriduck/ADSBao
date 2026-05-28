@@ -22,9 +22,27 @@ assert.deepEqual(
     documentHidden: true,
     hasActiveQuery: true,
     pollWhenHidden: true,
+    hiddenSince: 1_000,
+    now: 4_000,
   }),
   {
     shouldStopPolling: false,
+    shouldRefreshNow: false,
+    shouldShowRefreshOverlay: false,
+  },
+);
+
+assert.deepEqual(
+  resolveAircraftVisibilityPolling({
+    documentHidden: true,
+    hasActiveQuery: true,
+    pollWhenHidden: true,
+    hiddenSince: 1_000,
+    now: 32_000,
+    maxHiddenPollMs: 30_000,
+  }),
+  {
+    shouldStopPolling: true,
     shouldRefreshNow: false,
     shouldShowRefreshOverlay: false,
   },

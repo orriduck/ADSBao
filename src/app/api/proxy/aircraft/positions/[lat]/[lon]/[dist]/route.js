@@ -3,6 +3,7 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
+  logProxyRouteResponse,
   normalizeDistanceNm,
   normalizeLatitude,
   normalizeLongitude,
@@ -25,6 +26,7 @@ export function OPTIONS(request) {
 }
 
 export async function GET(request, { params }) {
+  const startedAt = performance.now();
   const securityResponse = enforceProxyRequest(request, { rateLimit });
   if (securityResponse) return securityResponse;
 
@@ -47,20 +49,30 @@ export async function GET(request, { params }) {
       longitude,
       distanceNm,
     });
-    return successResponse(request, result);
+    return logProxyRouteResponse({
+      request,
+      route: "/api/proxy/aircraft/positions",
+      response: successResponse(request, result),
+      startMs: startedAt,
+    });
   } catch (error) {
     if (error instanceof AircraftPositionProviderError) {
-      return jsonProxyResponse(
+      return logProxyRouteResponse({
         request,
-        { error: error.message },
-        {
-          status: Number(error.status) || 502,
-          headers: {
-            "X-Data-Source": "failed",
-            "X-Provider-Attempts": error.attempts?.join(";") || "none",
+        route: "/api/proxy/aircraft/positions",
+        response: jsonProxyResponse(
+          request,
+          { error: error.message },
+          {
+            status: Number(error.status) || 502,
+            headers: {
+              "X-Data-Source": "failed",
+              "X-Provider-Attempts": error.attempts?.join(";") || "none",
+            },
           },
-        },
-      );
+        ),
+        startMs: startedAt,
+      });
     }
     throw error;
   }

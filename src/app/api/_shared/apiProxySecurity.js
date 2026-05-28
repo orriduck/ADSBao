@@ -211,6 +211,41 @@ export function jsonProxyResponse(request, body, init = {}, options = {}) {
   });
 }
 
+export function logProxyRouteResponse({
+  request,
+  route,
+  response,
+  startMs,
+  nowMs =
+    typeof performance !== "undefined" && typeof performance.now === "function"
+      ? performance.now()
+      : Date.now(),
+  logger = console.info,
+} = {}) {
+  if (typeof logger !== "function") return response;
+
+  const startedAt = Number(startMs);
+  const finishedAt = Number(nowMs);
+  const payload = {
+    level: "info",
+    msg: "proxy_route_done",
+    route: String(route || ""),
+    requestId: request?.headers?.get?.("x-vercel-id") || null,
+    status: Number(response?.status) || 0,
+    ms:
+      Number.isFinite(startedAt) && Number.isFinite(finishedAt)
+        ? Math.max(0, Math.round(finishedAt - startedAt))
+        : null,
+    source:
+      response?.headers?.get?.("x-data-source") ||
+      response?.headers?.get?.("x-route-source") ||
+      null,
+    attempts: response?.headers?.get?.("x-provider-attempts") || null,
+  };
+  logger(JSON.stringify(payload));
+  return response;
+}
+
 async function readResponseBytes(
   response,
   {

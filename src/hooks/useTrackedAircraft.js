@@ -174,9 +174,10 @@ export function useTrackedAircraft(callsign) {
       const visibilityAction = resolveAircraftVisibilityPolling({
         documentHidden: document.hidden,
         hasActiveQuery,
-        pollWhenHidden: true,
+        pollWhenHidden: false,
         hiddenSince: hiddenSinceRef.current,
         minHiddenMs: AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs,
+        maxHiddenPollMs: AIRCRAFT_TRAFFIC_CONFIG.hiddenPollMaxMs,
       });
 
       if (document.hidden) {
