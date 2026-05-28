@@ -160,6 +160,7 @@ export function useAircraftPositions(icao, lat, lon, options = {}) {
         pollWhenHidden,
         hiddenSince: hiddenSinceRef.current,
         minHiddenMs: HIDDEN_POLL_GRACE_MS,
+        maxHiddenPollMs: AIRCRAFT_TRAFFIC_CONFIG.hiddenPollMaxMs,
       });
 
       if (document.hidden) {

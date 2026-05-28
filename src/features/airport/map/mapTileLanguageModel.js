@@ -75,39 +75,25 @@ export function buildLocalizedMapLibreStyle(
 
 export function buildProxiedMapLibreStyle(
   style,
-  { proxyOrigin = "", tileJson } = {},
+  { tileJson } = {},
 ) {
   if (!style || typeof style !== "object") return style;
 
   const sources = { ...(style.sources || {}) };
-  if (sources.ne2_shaded?.tiles) {
-    sources.ne2_shaded = {
-      ...sources.ne2_shaded,
-      tiles: sources.ne2_shaded.tiles.map((tileUrl) =>
-        toOpenFreeMapProxyUrl(tileUrl, proxyOrigin),
-      ),
-    };
-  }
   if (sources.openmaptiles && tileJson?.tiles) {
     sources.openmaptiles = {
       type: "vector",
       minzoom: tileJson.minzoom,
       maxzoom: tileJson.maxzoom,
       attribution: tileJson.attribution,
-      tiles: tileJson.tiles.map((tileUrl) =>
-        toOpenFreeMapProxyUrl(tileUrl, proxyOrigin),
-      ),
+      tiles: tileJson.tiles,
     };
   }
 
   return {
     ...style,
-    sprite: style.sprite
-      ? toOpenFreeMapProxyUrl(style.sprite, proxyOrigin)
-      : style.sprite,
-    glyphs: style.glyphs
-      ? toOpenFreeMapProxyUrl(style.glyphs, proxyOrigin)
-      : style.glyphs,
+    sprite: style.sprite,
+    glyphs: style.glyphs,
     sources,
   };
 }
@@ -118,12 +104,4 @@ function isTextSymbolLayer(layer) {
     layer.layout &&
     Object.prototype.hasOwnProperty.call(layer.layout, "text-field")
   );
-}
-
-function toOpenFreeMapProxyUrl(value, proxyOrigin) {
-  const raw = String(value || "");
-  const prefix = "https://tiles.openfreemap.org/";
-  if (!raw.startsWith(prefix)) return raw;
-  const origin = String(proxyOrigin || "").replace(/\/$/, "");
-  return `${origin}/api/proxy/openfreemap/${raw.slice(prefix.length)}`;
 }

@@ -245,7 +245,7 @@ function FlightExplorerContent({ callsign }) {
     loading: fetchedNearbyAircraftLoading,
     settled: fetchedNearbyAircraftSettled,
   } = useAircraftPositions(callsign || "", nearbyQueryLat, nearbyQueryLon, {
-    pollWhenHidden: true,
+    pollWhenHidden: false,
     distNm: flightDisplayContext.aircraftRangeNm,
   });
 

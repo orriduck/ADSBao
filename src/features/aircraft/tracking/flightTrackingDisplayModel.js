@@ -6,7 +6,7 @@ const DEFAULT_CONTEXT = Object.freeze({
   aircraftRangeNm: 40,
   airportRadiusNm: 40,
   airportLimit: 12,
-  fullTraceForFocal: false,
+  fullTraceForFocal: true,
   showNearbyContext: true,
   showNearbyMapContext: true,
   zoomDisabled: false,

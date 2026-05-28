@@ -3,6 +3,7 @@ import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
+  logProxyRouteResponse,
   normalizeAircraftHex,
 } from "@/app/api/_shared/apiProxySecurity.js";
 import {
@@ -23,6 +24,7 @@ export function OPTIONS(request) {
 }
 
 export async function GET(request, { params }) {
+  const startedAt = performance.now();
   const securityResponse = enforceProxyRequest(request, { rateLimit });
   if (securityResponse) return securityResponse;
 
@@ -44,40 +46,52 @@ export async function GET(request, { params }) {
   try {
     const result = await getAircraftTrace({ hex, full });
     if (!result.found) {
-      return jsonProxyResponse(
+      return logProxyRouteResponse({
         request,
-        { error: "Aircraft trace not found" },
-        {
-          status: 404,
-          headers: {
-            "X-Data-Source": result.source,
-            "X-Provider-Attempts": result.attempts.join(";"),
+        route: "/api/proxy/aircraft/trace",
+        response: jsonProxyResponse(
+          request,
+          { error: "Aircraft trace not found" },
+          {
+            status: 404,
+            headers: {
+              "X-Data-Source": result.source,
+              "X-Provider-Attempts": result.attempts.join(";"),
+            },
           },
-        },
-      );
+        ),
+        startMs: startedAt,
+      });
     }
-    return Response.json(
-      result.payload,
-      {
+    return logProxyRouteResponse({
+      request,
+      route: "/api/proxy/aircraft/trace",
+      response: Response.json(result.payload, {
         headers: buildProxyHeaders(request, {
           "Cache-Control": "no-store",
           "X-Data-Source": result.source,
           "X-Provider-Attempts": result.attempts.join(";"),
         }),
-      },
-    );
+      }),
+      startMs: startedAt,
+    });
   } catch (error) {
     if (!(error instanceof AircraftTraceProviderError)) throw error;
-    return jsonProxyResponse(
+    return logProxyRouteResponse({
       request,
-      { error: "Failed to load aircraft trace" },
-      {
-        status: Number(error.status) || 502,
-        headers: {
-          "X-Data-Source": "failed",
-          "X-Provider-Attempts": error.attempts?.join(";") || "none",
+      route: "/api/proxy/aircraft/trace",
+      response: jsonProxyResponse(
+        request,
+        { error: "Failed to load aircraft trace" },
+        {
+          status: Number(error.status) || 502,
+          headers: {
+            "X-Data-Source": "failed",
+            "X-Provider-Attempts": error.attempts?.join(";") || "none",
+          },
         },
-      },
-    );
+      ),
+      startMs: startedAt,
+    });
   }
 }
