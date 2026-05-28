@@ -241,7 +241,7 @@ export default function AircraftTable({
           />
         </div>
 
-        <div className="grid grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3">
+        <div className="aircraft-table-header aircraft-table-row-grid grid grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3">
           <span aria-hidden="true" />
           <span>{t("sidebar.callsignOrRoute")}</span>
           <span className="text-right">{t("sidebar.distance")}</span>

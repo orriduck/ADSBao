@@ -102,6 +102,7 @@ export function MapLoadingFallback({ variant = "airport", callsign = "" }) {
 export default function MapLoadingOverlay({
   active,
   variant = "airport",
+  sidebarAware = false,
   ariaLabel,
   eyebrow,
   status,
@@ -146,7 +147,7 @@ export default function MapLoadingOverlay({
     <div
       className={`adsb-loading-overlay adsb-loading-overlay--${variant} ${
         exiting ? "is-exiting" : ""
-      }`}
+      } ${sidebarAware ? "adsb-loading-overlay--sidebar-aware" : ""}`}
       aria-label={ariaLabel}
       aria-hidden={!visible}
       onAnimationEnd={(event) => {

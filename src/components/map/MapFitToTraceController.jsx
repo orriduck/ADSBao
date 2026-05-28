@@ -6,6 +6,7 @@ import { useMapInstance } from "./MapContext.js";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext.jsx";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
 import { buildTraceFitPoints } from "@/features/airport/map/mapFitTraceModel.js";
+import { withFloatingSidebarFitPadding } from "./mapViewportOffset.js";
 
 const DEFAULT_FIT_OPTIONS = Object.freeze({
   padding: Object.freeze([60, 60]),
@@ -45,7 +46,10 @@ export default function MapFitToTraceController({
     (points) => {
       if (!map || points.length === 0) return;
       const bounds = L.latLngBounds(points);
-      map.fitBounds(bounds, fitOptions || DEFAULT_FIT_OPTIONS);
+      map.fitBounds(
+        bounds,
+        withFloatingSidebarFitPadding(map, fitOptions || DEFAULT_FIT_OPTIONS),
+      );
     },
     [fitOptions, map],
   );

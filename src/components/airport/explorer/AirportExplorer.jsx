@@ -189,7 +189,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         className={`font-sans text-atc-text ${
           isMobile
             ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
-            : "flex h-dvh overflow-hidden"
+            : "airport-map-kit flex h-dvh overflow-hidden"
         }`}
       >
         {!isMobile && (
@@ -200,7 +200,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           />
         )}
 
-        <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
+        <div className="airport-map-stage relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
           {!(isMobile && sidebarOpen) && (
             <ExplorerMapMenu
               feedSource={traffic.feedSource}
@@ -228,6 +228,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             selectedAircraftId={selectedAircraftId}
             selectedAirportIcao={selectedAirportIcao}
             followsCenter={mapFollowsAircraft}
+            floatingSidebarAware={!isMobile && sidebarOpen}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             runwayMap={procedures.runwayMap}

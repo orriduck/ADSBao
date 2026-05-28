@@ -52,7 +52,7 @@ export default function AircraftRow({
   return (
     <button
       type="button"
-      className={`aircraft-table-card endf-industrial-row grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
+      className={`aircraft-table-card aircraft-table-row-grid endf-industrial-row grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
         selected ? "endf-row-active" : ""
       }`}
       aria-pressed={selected}
@@ -68,7 +68,7 @@ export default function AircraftRow({
         routeMunicipalities={routeMunicipalities}
         hasRouteMunicipalities={hasRouteMunicipalities}
       />
-      <div className="text-right font-mono text-[12px] font-semibold text-atc-text">
+      <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
         {distValue == null ? (
           <span>-</span>
         ) : (
@@ -79,7 +79,7 @@ export default function AircraftRow({
           />
         )}
       </div>
-      <div className="text-right font-mono text-[12px] font-semibold text-atc-text">
+      <div className="aircraft-table-cell aircraft-table-cell--altitude text-right font-mono text-[12px] font-semibold text-atc-text">
         {aircraft.onGround ? (
           <span>{t("aircraft.gnd")}</span>
         ) : altValue == null ? (
@@ -183,16 +183,16 @@ function NumberWithUnit({ value, unit, format }) {
       identityKey={`${formatted}:${unit}`}
       value={(
         <>
-          <span>{formatted}</span>
+          <span className="aircraft-table-number-value">{formatted}</span>
           <sub
-            className="notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
+            className="aircraft-table-unit notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
             translate="no"
           >
             {unit}
           </sub>
         </>
       )}
-      className="inline-flex items-baseline justify-end gap-0.5 tabular-nums"
+      className="aircraft-table-number inline-flex items-baseline justify-end gap-0.5 tabular-nums"
     />
   );
 }
