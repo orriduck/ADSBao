@@ -36,6 +36,12 @@ const resolveCurrentTheme = () =>
     ? resolveDocumentTheme(document.documentElement)
     : "dark";
 
+const WEB_MERCATOR_MAX_LAT = 85.05112878;
+const WEB_MERCATOR_BOUNDS = [
+  [-WEB_MERCATOR_MAX_LAT, -180],
+  [WEB_MERCATOR_MAX_LAT, 180],
+];
+
 export default function AirportMap({
   icao = "",
   lat = null,
@@ -132,6 +138,8 @@ export default function AirportMap({
       boxZoom: false,
       keyboard: false,
       tap: false,
+      maxBounds: WEB_MERCATOR_BOUNDS,
+      maxBoundsViscosity: 1,
     });
     mapRef.current = map;
     setMapInstance(map);
