@@ -1,8 +1,8 @@
 "use client";
 
-import BrandLogo from "@/components/brand/BrandLogo.jsx";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground.jsx";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock.jsx";
+import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark.jsx";
 import { SITE_DESCRIPTION } from "@/config/site.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
@@ -26,7 +26,7 @@ export default function DitherPageShell({
       <div className="dither-page-panel relative isolate flex w-[var(--app-sidebar-width)] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
         <div className="dither-page-header flex-none px-6 pt-7 pb-6">
           <div className="flex items-center gap-3">
-            <BrandLogo height={40} className="dither-page-logo" />
+            <SidebarBrandMark className="dither-page-brand-mark" />
             <span
               aria-hidden="true"
               className="h-px flex-1 bg-[var(--atc-line-strong)]"
