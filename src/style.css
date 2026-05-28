@@ -3053,22 +3053,25 @@ body {
 
 .map-layer-drawer {
     align-items: stretch;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
     flex-direction: column;
-    gap: 7px;
+    gap: 0;
     min-width: 0;
-    padding: 8px;
+    padding: 0;
 }
 
 .map-layer-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0;
 }
 
 .map-layer-group__label {
     align-items: center;
     color: color-mix(in oklab, var(--atc-orange) 76%, var(--atc-faint));
-    display: flex;
+    display: none;
     font-family: var(--font-mono);
     font-size: 8px;
     font-weight: 800;
@@ -3091,13 +3094,17 @@ body {
 }
 
 .map-layer-drawer__toggles {
-    background: color-mix(in oklab, var(--atc-bg) 34%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-line) 72%, transparent);
+    background: var(--atc-card);
+    border: 0;
     border-radius: var(--atc-radius-control);
+    box-shadow:
+        var(--app-floating-shadow),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent);
     display: grid;
     gap: 3px;
     grid-template-columns: repeat(3, 32px);
-    padding: 3px;
+    opacity: 1;
+    padding: 5px;
     width: max-content;
 }
 
@@ -8402,8 +8409,8 @@ body {
     }
 
     .airport-map-kit .map-layer-drawer {
-        gap: 6px;
-        padding: 6px;
+        gap: 0;
+        padding: 0;
     }
 
     .airport-map-kit .map-layer-group__label {
@@ -8413,8 +8420,8 @@ body {
 
     .airport-map-kit .map-layer-drawer__toggles {
         gap: 2px;
-        grid-template-columns: repeat(3, 26px);
-        padding: 2px;
+        grid-template-columns: repeat(3, 32px);
+        padding: 5px;
     }
 
     .airport-map-kit .aircraft-label {
