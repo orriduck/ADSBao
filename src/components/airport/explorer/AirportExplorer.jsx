@@ -173,6 +173,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
     onBack,
+    onMap: closeSidebar,
   };
 
   return (
@@ -189,7 +190,9 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         className={`font-sans text-atc-text ${
           isMobile
             ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
-            : "airport-map-kit flex h-dvh overflow-hidden"
+            : `airport-map-kit ${
+                sidebarOpen ? "airport-map-kit--sidebar-open" : ""
+              } flex h-dvh overflow-hidden`
         }`}
       >
         {!isMobile && (

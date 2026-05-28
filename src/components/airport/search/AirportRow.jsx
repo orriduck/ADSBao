@@ -14,7 +14,7 @@ export default function AirportRow({
     <li>
       <button
         type="button"
-        className={`group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[72px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
+        className={`search-airport-row group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[72px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
           featured ? "endf-row-featured" : ""
         }`}
         onClick={() => onOpen(airport)}
