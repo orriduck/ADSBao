@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
-import NumberFlow from "@number-flow/react";
 import { useMapInstance } from "./MapContext.js";
 import {
   safeAddToMap,
@@ -85,7 +84,7 @@ export default function AirportMarker({
         <span className="airport-overlay-label__detail airport-overlay-label__detail--near">
           <span className="airport-overlay-label__detail-label">NEAR</span>
           <span className="airport-overlay-label__detail-value">
-            <NumberFlow value={areaCount} />
+            {areaCount}
           </span>
         </span>
       )}

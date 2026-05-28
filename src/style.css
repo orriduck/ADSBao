@@ -4386,7 +4386,10 @@ body {
     align-items: center;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    filter: drop-shadow(
+        0 2px 4px color-mix(in oklab, var(--atc-bg) 52%, transparent)
+    );
+    gap: 1px;
 }
 
 .airport-overlay-label__detail {
@@ -4402,31 +4405,33 @@ body {
 
 .airport-overlay-label__detail--near {
     align-items: center;
-    background: color-mix(in oklab, var(--atc-card) 88%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 72%, transparent);
+    background: var(--atc-click-bg);
+    border: 0;
     border-radius: 999px;
     box-shadow:
-        0 1px 4px color-mix(in oklab, var(--atc-bg) 38%, transparent),
-        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 7%, transparent);
+        0 1px 3px color-mix(in oklab, var(--atc-text) 22%, transparent),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-click-fg) 13%, transparent);
+    color: var(--atc-click-fg);
     display: inline-flex;
     font-family: var(--font-sans);
-    font-size: 8.5px;
-    gap: 4px;
+    font-size: 7.5px;
+    gap: 3px;
     letter-spacing: 0;
     line-height: 1;
-    min-height: 17px;
-    padding: 2px 7px 2px 6px;
+    min-height: 14px;
+    padding: 1px 7px 1px 6px;
+    transform: translateY(-1px);
 }
 
 .airport-overlay-label__detail-label {
-    color: var(--atc-dim);
+    color: var(--atc-click-muted);
     font-weight: 800;
 }
 
 .airport-overlay-label__detail-value {
-    color: var(--atc-text);
+    color: var(--atc-click-fg);
     font-weight: 900;
-    min-width: 1.1em;
+    min-width: 1ch;
     text-align: right;
 }
 
