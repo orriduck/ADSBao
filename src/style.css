@@ -4705,6 +4705,19 @@ body {
        identically on the airport and flight pages. */
     --airport-sidebar-inset: 28px;
     --airport-sidebar-sans: var(--font-sans);
+    --sidebar-tile-bottom-glow: linear-gradient(
+        to top,
+        color-mix(in oklab, var(--atc-click-fg) 54%, transparent) 0%,
+        color-mix(in oklab, var(--atc-click-fg) 30%, transparent) 7%,
+        color-mix(in oklab, var(--atc-click-fg) 15%, transparent) 30%,
+        color-mix(in oklab, var(--atc-click-fg) 5%, transparent) 58%,
+        transparent 82%
+    );
+    --sidebar-tile-edge-glow: color-mix(
+        in oklab,
+        var(--atc-click-fg) 70%,
+        transparent
+    );
     font-family: var(--airport-sidebar-sans);
     background: var(--sidebar);
     isolation: isolate;
@@ -4853,18 +4866,23 @@ body {
     cursor: pointer;
 }
 
-/* Active-state used to layer a fuzzy yellow ::after glow on top of the
-   ink card surface — combined with yellow text it read as a washed-out
-   halo. Endfield's active tabs are clean ink blocks with sharp yellow
-   type, so the overlay is now suppressed (kept as no-op for backward
-   compat with the cascade below). */
 .sidebar-metric-card::after {
+    background: var(--sidebar-tile-bottom-glow);
     content: "";
     inset: 0;
     opacity: 0;
     pointer-events: none;
     position: absolute;
+    transform: translateY(8px);
+    transition:
+        opacity 260ms ease,
+        transform 320ms cubic-bezier(0.2, 0.6, 0.2, 1);
     z-index: 0;
+}
+
+.sidebar-metric-card--active::after {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .sidebar-metric-card > * {
@@ -4953,15 +4971,14 @@ body {
     background: var(--atc-click-bg);
 }
 
-/* Active card — solid ink block, bright yellow type, sharp 2px yellow
-   underline. No glow, no inner ring — just the contrast block. Used
-   for the WEATHER/FLIGHTS statistic cards. */
 .sidebar-metric-card--active {
     background: var(--atc-click-bg);
     border-color: var(--atc-click-border);
     border-radius: 10px;
     color: var(--atc-click-fg);
-    box-shadow: inset 0 -2px 0 var(--endf-yellow);
+    box-shadow:
+        inset 0 -1px 0 var(--sidebar-tile-edge-glow),
+        inset 0 -14px 22px color-mix(in oklab, var(--atc-click-fg) 7%, transparent);
 }
 
 .sidebar-metric-card--active .sidebar-metric-card__label,
@@ -4986,8 +5003,9 @@ body {
 
 .sidebar-metric-card--interactive.sidebar-metric-card--active:focus-visible {
     box-shadow:
-        inset 0 0 0 2px var(--endf-yellow),
-        inset 0 -2px 0 var(--endf-yellow);
+        inset 0 0 0 2px var(--sidebar-tile-edge-glow),
+        inset 0 -1px 0 var(--sidebar-tile-edge-glow),
+        inset 0 -14px 22px color-mix(in oklab, var(--atc-click-fg) 7%, transparent);
 }
 
 .airport-sidebar-view-switch {
@@ -5367,15 +5385,24 @@ body {
     z-index: 1;
 }
 
-/* Glow overlay removed — active filter cards now read as clean ink
-   blocks with sharp yellow type, matching the sidebar metric cards. */
 .aircraft-filter-card::after {
+    background: var(--sidebar-tile-bottom-glow);
     content: "";
     inset: 0;
     opacity: 0;
     pointer-events: none;
     position: absolute;
+    transform: translateY(8px);
+    transition:
+        opacity 260ms ease,
+        transform 320ms cubic-bezier(0.2, 0.6, 0.2, 1);
     z-index: 0;
+}
+
+.aircraft-filter-card[data-active="true"]::after,
+.aircraft-filter-card[data-state="open"]::after {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .aircraft-filter-card + .aircraft-filter-card {
@@ -5444,7 +5471,9 @@ body {
 .aircraft-filter-card[data-state="open"] {
     background: var(--atc-click-bg);
     color: var(--atc-click-fg);
-    box-shadow: inset 0 -2px 0 var(--endf-yellow);
+    box-shadow:
+        inset 0 -1px 0 var(--sidebar-tile-edge-glow),
+        inset 0 -12px 20px color-mix(in oklab, var(--atc-click-fg) 7%, transparent);
 }
 
 .aircraft-filter-card[data-active="true"] .aircraft-filter-card__label,
@@ -5466,8 +5495,9 @@ body {
 .aircraft-filter-card[data-active="true"]:focus-visible,
 .aircraft-filter-card[data-state="open"]:focus-visible {
     box-shadow:
-        inset 0 0 0 2px var(--endf-yellow),
-        inset 0 -2px 0 var(--endf-yellow);
+        inset 0 0 0 2px var(--sidebar-tile-edge-glow),
+        inset 0 -1px 0 var(--sidebar-tile-edge-glow),
+        inset 0 -12px 20px color-mix(in oklab, var(--atc-click-fg) 7%, transparent);
 }
 
 .aircraft-filter-card:focus-visible .aircraft-filter-card__label,
