@@ -99,11 +99,10 @@ function LocationPromptRow({ status, onRequestLocation }) {
     <li>
       <button
         type="button"
-        className="group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[14px_64px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] disabled:cursor-wait"
+        className="group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[72px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] disabled:cursor-wait"
         disabled={requesting}
         onClick={onRequestLocation}
       >
-        <span aria-hidden="true" className="endf-diamond" />
         <span className="endf-tab endf-tab--code">
           <span>{requesting ? "..." : "LOC"}</span>
         </span>

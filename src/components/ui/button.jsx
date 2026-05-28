@@ -19,6 +19,8 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        atcIcon:
+          "rounded-full bg-[color-mix(in_oklab,var(--atc-card)_82%,transparent)] text-atc-dim shadow-[0_8px_24px_color-mix(in_oklab,var(--atc-bg)_62%,transparent)] hover:bg-[color-mix(in_oklab,var(--atc-elev)_72%,transparent)] hover:text-atc-text",
       },
       size: {
         default: "h-9 px-4 py-2",

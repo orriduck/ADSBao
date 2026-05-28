@@ -502,7 +502,7 @@ function FlightExplorerContent({ callsign }) {
         className={`font-sans text-atc-text ${
           isMobile
             ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
-            : "flex h-dvh overflow-hidden"
+            : "airport-map-kit flex h-dvh overflow-hidden"
         }`}
       >
         {!isMobile && (
@@ -516,7 +516,7 @@ function FlightExplorerContent({ callsign }) {
           </div>
         )}
 
-        <div className="relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
+        <div className="airport-map-stage relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
           {!(isMobile && sidebarOpen) && (
             <ExplorerMapMenu
               feedSource={feedSource}

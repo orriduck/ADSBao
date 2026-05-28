@@ -207,7 +207,7 @@ const en = {
       "Only show flights whose callsign resolved to a legitimate parsed route: both origin and destination airports identified.",
   },
   search: {
-    placeholder: "Search ICAO, IATA, city, or name",
+    placeholder: "Search airport or city",
     enter: "enter",
     searchResults: "Search results",
     searchingAirports: "Searching airports...",

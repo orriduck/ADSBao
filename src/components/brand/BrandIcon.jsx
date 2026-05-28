@@ -1,6 +1,4 @@
-// Compact ADSBao mark for tight spaces (mobile top nav etc.). Just the
-// yellow rhombus diamond — same shape used elsewhere as the section
-// accent — over a small ink square. SVG so it scales sharp.
+// Compact ADSBao mark for tight spaces.
 export default function BrandIcon({ height = 20, className = "" }) {
   return (
     <svg
@@ -13,17 +11,15 @@ export default function BrandIcon({ height = 20, className = "" }) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect
-        x="2"
-        y="2"
-        width="20"
-        height="20"
-        fill="currentColor"
-        opacity="0.18"
+      <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.16" />
+      <circle cx="12" cy="12" r="6" fill="var(--endf-yellow)" />
+      <path
+        d="M9 12h6m-2.5-2.5L15 12l-2.5 2.5"
+        stroke="var(--endf-ink)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <g transform="rotate(45 12 12)">
-        <rect x="6" y="6" width="12" height="12" fill="var(--endf-yellow)" />
-      </g>
     </svg>
   );
 }

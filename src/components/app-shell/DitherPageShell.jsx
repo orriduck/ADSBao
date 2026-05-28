@@ -40,12 +40,10 @@ export default function DitherPageShell({
             />
           </div>
           <h1
-            className="endf-page-title mt-4 flex items-center gap-2 text-[28px] leading-[1.05] uppercase text-atc-text"
+            className="endf-page-title mt-5 text-[30px] font-extrabold leading-[1.05] text-atc-text"
             style={{ fontFamily: "var(--font-display)", letterSpacing: "0" }}
           >
-            <span aria-hidden="true" className="endf-page-title__bracket">&lt;</span>
-            <span className="truncate">{resolvedTitle}</span>
-            <span aria-hidden="true" className="endf-page-title__bracket">&gt;</span>
+            <span className="block truncate">{resolvedTitle}</span>
           </h1>
           <p className="mt-3 text-[13px] leading-relaxed text-atc-dim">
             {resolvedDescription}
