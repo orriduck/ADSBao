@@ -8189,11 +8189,16 @@ body {
 
 .airport-map-kit .airport-desktop-sidebar {
     bottom: var(--map-kit-inset);
+    border-radius: calc(var(--atc-radius-shell) - 2px);
     left: var(--map-kit-inset);
     padding: 0;
     position: absolute;
     top: var(--map-kit-inset);
     z-index: 1050;
+}
+
+.airport-map-kit--sidebar-open .airport-desktop-sidebar {
+    box-shadow: var(--app-map-sidebar-shadow);
 }
 
 .airport-map-kit .airport-desktop-sidebar > .h-full,
