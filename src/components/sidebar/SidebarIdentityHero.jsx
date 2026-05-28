@@ -28,7 +28,7 @@ export default function SidebarIdentityHero({
         </span>
         <span
           aria-hidden="true"
-          className="h-px flex-1 bg-[var(--atc-line-strong)]"
+          className="airport-sidebar-identity__rule"
         />
       </div>
       {children}

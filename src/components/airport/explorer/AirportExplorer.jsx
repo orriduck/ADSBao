@@ -228,6 +228,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             selectedAircraftId={selectedAircraftId}
             selectedAirportIcao={selectedAirportIcao}
             followsCenter={mapFollowsAircraft}
+            floatingSidebarAware={!isMobile && sidebarOpen}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             runwayMap={procedures.runwayMap}

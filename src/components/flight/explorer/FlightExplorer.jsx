@@ -546,6 +546,7 @@ function FlightExplorerContent({ callsign }) {
             selectedAirportIcao={selectedAirportIcao}
             focalAircraftId={focalKey}
             followsCenter={mapFollowsAircraft}
+            floatingSidebarAware={!isMobile && sidebarOpen}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             runwayMap={null}

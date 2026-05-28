@@ -29,6 +29,7 @@ import {
   resolveDocumentTheme,
 } from "../../features/airport/map/airportMapModel.js";
 import { resolveMapLoadingPresentation } from "../../features/aircraft/positions/aircraftLoadingOverlayModel.js";
+import { getOffsetMapCenter } from "./mapViewportOffset.js";
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
@@ -53,6 +54,7 @@ export default function AirportMap({
   selectedAirportIcao = "",
   focalAircraftId = "",
   followsCenter = true,
+  floatingSidebarAware = false,
   onSelectAircraft,
   onSelectAirport,
   runwayMap = null,
@@ -154,12 +156,25 @@ export default function AirportMap({
   // stays anchored to the trace bounds even though the aircraft keeps
   // moving; clicking a preset zoom flips it back to true upstream.
   useEffect(() => {
-    if (mapRef.current && focalCenter && followsCenter) {
-      mapRef.current.setView([focalCenter.lat, focalCenter.lon], zoom, {
+    if (!mapRef.current || !focalCenter || !followsCenter) return undefined;
+
+    const map = mapRef.current;
+    const setOffsetAwareView = () => {
+      const targetCenter = floatingSidebarAware
+        ? getOffsetMapCenter(map, focalCenter, zoom)
+        : [focalCenter.lat, focalCenter.lon];
+      map.setView(targetCenter, zoom, {
         animate: false,
       });
-    }
-  }, [focalCenter, followsCenter, zoom]);
+    };
+
+    setOffsetAwareView();
+    const transitionSettleTimer = window.setTimeout(setOffsetAwareView, 320);
+
+    return () => {
+      window.clearTimeout(transitionSettleTimer);
+    };
+  }, [floatingSidebarAware, focalCenter, followsCenter, zoom]);
 
   // Clicks on the map background (not on an aircraft marker) clear the
   // selection so the user can drop "trace mode" without targeting an
@@ -332,6 +347,7 @@ export default function AirportMap({
 
       <MapLoadingOverlay
         active={loadingPresentation.overlayActive}
+        sidebarAware={floatingSidebarAware}
         variant={loadingOverlayVariant}
         {...loadingOverlayCopy}
       />
