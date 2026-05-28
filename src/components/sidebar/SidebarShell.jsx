@@ -68,6 +68,7 @@ export default function SidebarShell({
           ) : null}
           {isMobileOverlay ? (
             <>
+              <span className="sidebar-top-bar__sep" aria-hidden="true" />
               <LanguageSwitch
                 className="sidebar-top-bar__button sidebar-top-bar__button--language"
                 menuPlacement="bottom"
@@ -80,6 +81,7 @@ export default function SidebarShell({
                 title={themeTitle}
                 onClick={cycleTheme}
               />
+              <span className="sidebar-top-bar__sep" aria-hidden="true" />
               {!isLoaded ? (
                 <div className="sidebar-top-bar__account" aria-hidden="true" />
               ) : showSignedIn ? (

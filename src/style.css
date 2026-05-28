@@ -2250,6 +2250,13 @@ body {
     width: 15px;
 }
 
+.sidebar-top-bar__sep {
+    background: var(--atc-line-strong);
+    flex: 0 0 auto;
+    height: 20px;
+    width: 1px;
+}
+
 .sidebar-top-bar__account {
     align-items: center;
     display: inline-flex;
