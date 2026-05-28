@@ -39,6 +39,7 @@ export default function FlightSidebar({
   lastUpdated = null,
   loadingStatus = "",
   onBack,
+  onMap = null,
   onClose = null,
 }) {
   const isMobileOverlay = Boolean(onClose);
@@ -86,6 +87,7 @@ export default function FlightSidebar({
       lastUpdated={lastUpdated}
       loadingStatus={loadingStatus}
       onBack={onBack}
+      onMap={onMap}
       onClose={onClose}
       header={header}
     >

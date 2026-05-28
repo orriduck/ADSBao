@@ -1,32 +1,13 @@
 "use client";
 
 import DitherPageShell from "@/components/app-shell/DitherPageShell.jsx";
-import NavMenu from "@/components/navigation/NavMenu.jsx";
-import ThemeToggle from "@/components/app-shell/ThemeToggle.jsx";
-import { useThemePreference } from "@/features/app-shell/useThemePreference.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { CHANGELOG } from "@/config/changelog.js";
 
 // Sidebar-scoped changelog. Reuses DitherPageShell so the page reads as
 // a sibling of Home and About — same brand block, same footer, same
-// dither background. Each release is a compact card: version + kind
-// badge, one-line summary, short bullet highlights. The list scrolls
-// inside the sidebar's main slot.
-
-const KIND_STYLES = {
-  feat: {
-    labelKey: "changelog.kindFeat",
-    variant: "ghost",
-  },
-  patch: {
-    labelKey: "changelog.kindPatch",
-    variant: "outline",
-  },
-  breaking: {
-    labelKey: "changelog.kindBreaking",
-    variant: "solid",
-  },
-};
+// dither background. Each release is a compact text row: version,
+// optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
   "v1.5.1": {
@@ -231,19 +212,6 @@ const CHINESE_RELEASE_COPY = {
 
 export default function ChangelogPanel() {
   const { locale, t } = useI18n();
-  const { themePreference, themeTitle, themeIconKey, cycleTheme } =
-    useThemePreference();
-
-  const renderThemeToggle = (className) => (
-    <ThemeToggle
-      className={className}
-      iconKey={themeIconKey}
-      preference={themePreference}
-      title={themeTitle}
-      onClick={cycleTheme}
-    />
-  );
-
   const current = CHANGELOG[0]?.version || "";
 
   return (
@@ -255,11 +223,8 @@ export default function ChangelogPanel() {
           ? t("changelog.description", { version: current })
           : t("changelog.descriptionFallback")
       }
-      mobileLeft={<NavMenu variant="mobile" />}
-      footerLeft={<NavMenu />}
-      renderThemeToggle={renderThemeToggle}
     >
-      <div className="flex-none px-6 pt-6 pb-3">
+      <div className="dither-section-header flex-none px-6 pt-6 pb-3">
         <div className="endf-section-head">
           <span className="endf-label">{t("changelog.releases")}</span>
           <span className="endf-section-head__count">
@@ -268,7 +233,7 @@ export default function ChangelogPanel() {
         </div>
       </div>
 
-      <ol className="flex-1 overflow-y-auto px-6 pb-6">
+      <ol className="dither-list flex-1 overflow-y-auto px-6 pb-6">
         {CHANGELOG.map((release, index) => (
           <ChangelogEntry
             key={release.version}
@@ -284,15 +249,14 @@ export default function ChangelogPanel() {
 
 function ChangelogEntry({ release, isLatest, locale }) {
   const { t } = useI18n();
-  const kindStyle = KIND_STYLES[release.kind] || KIND_STYLES.feat;
   const localizedRelease =
     locale === "zh-CN" ? CHINESE_RELEASE_COPY[release.version] : null;
   const title = localizedRelease?.title || release.title;
   const summary = localizedRelease?.summary || release.summary;
   const highlights = localizedRelease?.highlights || release.highlights;
   return (
-    <li className="border-b border-[var(--atc-line)] py-4 last:border-b-0">
-      <div className="flex flex-wrap items-center gap-2">
+    <li className="changelog-entry last:border-b-0">
+      <div className="changelog-entry__header">
         {isLatest ? (
           <span className="endf-tab">
             <span>{release.version}</span>
@@ -302,7 +266,6 @@ function ChangelogEntry({ release, isLatest, locale }) {
             <span>{release.version}</span>
           </span>
         )}
-        <KindBadge variant={kindStyle.variant} labelKey={kindStyle.labelKey} />
         {isLatest && (
           <span className="endf-chip">
             <span>{t("changelog.current")}</span>
@@ -310,22 +273,19 @@ function ChangelogEntry({ release, isLatest, locale }) {
         )}
       </div>
       {title ? (
-        <p className="mt-2 text-[12.5px] font-semibold leading-snug text-atc-text">
+        <p className="changelog-entry__title">
           {title}
         </p>
       ) : null}
       {summary ? (
-        <p className="mt-1 text-[11.5px] leading-snug text-atc-dim">
+        <p className="changelog-entry__summary">
           {summary}
         </p>
       ) : null}
       {Array.isArray(highlights) && highlights.length > 0 ? (
-        <ul className="mt-2 flex flex-col gap-1.5">
+        <ul className="changelog-entry__highlights">
           {highlights.map((item, index) => (
-            <li
-              key={index}
-              className="grid grid-cols-[10px_minmax(0,1fr)] items-baseline gap-2 text-[11.5px] leading-snug text-atc-text"
-            >
+            <li key={index}>
               <span aria-hidden="true" className="endf-diamond endf-diamond--muted mt-0.5" />
               <span className="min-w-0">{item}</span>
             </li>
@@ -333,20 +293,5 @@ function ChangelogEntry({ release, isLatest, locale }) {
         </ul>
       ) : null}
     </li>
-  );
-}
-
-function KindBadge({ variant, labelKey }) {
-  const { t } = useI18n();
-  const className =
-    variant === "solid"
-      ? "endf-chip"
-      : variant === "outline"
-        ? "endf-chip endf-chip--ghost"
-        : "endf-chip endf-chip--ghost";
-  return (
-    <span className={className}>
-      <span>{t(labelKey)}</span>
-    </span>
   );
 }

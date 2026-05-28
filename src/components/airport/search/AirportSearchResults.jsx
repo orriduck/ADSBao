@@ -15,7 +15,7 @@ export function AirportSearchResults({
 
   return (
     <>
-      <div className="px-6 pt-5 pb-3">
+      <div className="dither-section-header px-6 pt-5 pb-3">
         <div className="endf-section-head">
           <span className="endf-label">{t("search.searchResults")}</span>
           <span className="endf-section-head__count">{countLabel}</span>
@@ -35,7 +35,7 @@ export function AirportSearchResults({
           {t("search.noAirportMatched", { query: query.trim() })}
         </div>
       ) : (
-        <ul className="px-6 divide-y divide-[var(--atc-line)]">
+        <ul className="dither-list px-6 divide-y divide-[var(--atc-line)]">
           {rows.map((airport) => (
             <AirportRow
               key={airport.icao || airport.code || airport.name}
@@ -61,14 +61,14 @@ export function FeaturedAirports({
 
   return (
     <>
-      <div className="px-6 pt-5 pb-3">
+      <div className="dither-section-header px-6 pt-5 pb-3">
         <div className="endf-section-head">
           <span className="endf-label">{t("search.featuredAirports")}</span>
           <span className="endf-section-head__count">{airports.length}</span>
         </div>
       </div>
 
-      <ul className="px-6 divide-y divide-[var(--atc-line)]">
+      <ul className="dither-list px-6 divide-y divide-[var(--atc-line)]">
         {displayItems.map((item, index) =>
           item.type === "location-prompt" ? (
             <LocationPromptRow
@@ -99,7 +99,7 @@ function LocationPromptRow({ status, onRequestLocation }) {
     <li>
       <button
         type="button"
-        className="group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[72px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] disabled:cursor-wait"
+        className="search-location-row group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[72px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] disabled:cursor-wait"
         disabled={requesting}
         onClick={onRequestLocation}
       >

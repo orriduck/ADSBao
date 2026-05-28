@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Home, Map } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Shared chrome for the airport + flight sidebars. Handles:
@@ -12,6 +12,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 // content (typically the AircraftTable) via `children`.
 export default function SidebarShell({
   onBack,
+  onMap = null,
   onClose = null,
   header,
   children,
@@ -19,6 +20,7 @@ export default function SidebarShell({
 }) {
   const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
+  const mapAction = onMap || onClose;
 
   const panelClasses = [
     "sidebar-shell flex h-full flex-col border-r border-atc-line-strong bg-atc-bg",
@@ -34,25 +36,29 @@ export default function SidebarShell({
 
   return (
     <div className={panelClasses}>
-      <div className="sticky top-0 z-20 flex h-11 flex-none items-center justify-between gap-4 border-b border-atc-line-strong bg-atc-bg px-6">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="notranslate" translate="no">ADSBao</span>
-        </button>
-        {onClose ? (
+      <div className="sidebar-top-bar sticky top-0 z-20 flex flex-none items-start justify-center">
+        <div className="sidebar-top-toolbar" role="toolbar" aria-label={t("nav.home")}>
           <button
             type="button"
-            onClick={onClose}
-            className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text"
+            onClick={onBack}
+            className="sidebar-top-bar__button"
+            aria-label={t("nav.homePage")}
+            title={t("nav.homePage")}
           >
-            <span>{t("nav.map")}</span>
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <Home aria-hidden="true" />
           </button>
-        ) : null}
+          {mapAction ? (
+            <button
+              type="button"
+              onClick={mapAction}
+              className="sidebar-top-bar__button"
+              aria-label={t("nav.map")}
+              title={t("nav.map")}
+            >
+              <Map aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div

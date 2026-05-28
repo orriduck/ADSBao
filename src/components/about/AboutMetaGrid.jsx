@@ -13,9 +13,9 @@ export default function AboutMetaGrid({ items }) {
   const sections = Array.isArray(items?.sections) ? items.sections : [];
 
   return (
-    <div className="mx-6 flex-none border-y border-[var(--atc-line)]">
+    <div className="about-meta-grid mx-6 flex-none border-y border-[var(--atc-line)]">
       {version ? (
-        <div className="relative flex items-end justify-between gap-4 py-4">
+        <div className="about-meta-version relative flex items-end justify-between gap-4 py-4">
           <div className="min-w-0">
             <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-atc-faint">
               <span style={{ color: "var(--endf-accent-ink)" }}>/&zwj;/</span>{" "}
@@ -36,7 +36,7 @@ export default function AboutMetaGrid({ items }) {
         {sections.map((section) => (
           <section
             key={section.label}
-            className="grid gap-3 py-3.5 sm:grid-cols-[86px_minmax(0,1fr)]"
+            className="about-meta-section grid gap-3 py-3.5 sm:grid-cols-[86px_minmax(0,1fr)]"
           >
             <h2 className="font-mono text-[9px] uppercase tracking-[0.18em] text-atc-faint">
               <span style={{ color: "var(--endf-accent-ink)" }}>/&zwj;/</span>{" "}

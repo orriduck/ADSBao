@@ -32,6 +32,7 @@ export default function AirportSidebar({
   onSelectAircraft,
   onSelectAirport,
   onBack,
+  onMap = null,
   onClose = null,
 }) {
   const isMobileOverlay = Boolean(onClose);
@@ -65,6 +66,7 @@ export default function AirportSidebar({
       lastUpdated={lastUpdated}
       loadingStatus={loadingStatus}
       onBack={onBack}
+      onMap={onMap}
       onClose={onClose}
       header={header}
     >

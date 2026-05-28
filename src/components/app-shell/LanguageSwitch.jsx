@@ -46,12 +46,12 @@ export default function LanguageSwitch({
   };
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative isolate z-[1300]">
       {open && (
         <div
           role="menu"
           aria-label={t("language.menuLabel")}
-          className={`absolute ${placementClass} ${alignClass} z-[1200] w-28 overflow-hidden rounded-md border border-[var(--atc-line-strong)] bg-atc-card shadow-xl`}
+          className={`absolute ${placementClass} ${alignClass} z-[1300] w-28 overflow-hidden rounded-md border border-[var(--atc-line-strong)] bg-atc-card shadow-xl`}
         >
           {languageItems.map((item) => {
             const active = item.locale === locale;

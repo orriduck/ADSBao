@@ -479,6 +479,7 @@ function FlightExplorerContent({ callsign }) {
     lastUpdated,
     loadingStatus: sourceLoadingStatus,
     onBack: handleBack,
+    onMap: closeSidebar,
   };
 
   return (
@@ -502,7 +503,9 @@ function FlightExplorerContent({ callsign }) {
         className={`font-sans text-atc-text ${
           isMobile
             ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
-            : "airport-map-kit flex h-dvh overflow-hidden"
+            : `airport-map-kit ${
+                sidebarOpen ? "airport-map-kit--sidebar-open" : ""
+              } flex h-dvh overflow-hidden`
         }`}
       >
         {!isMobile && (

@@ -2,9 +2,6 @@
 
 import { Search } from "lucide-react";
 import DitherPageShell from "../../app-shell/DitherPageShell.jsx";
-import NavMenu from "../../navigation/NavMenu.jsx";
-import ThemeToggle from "../../app-shell/ThemeToggle.jsx";
-import { useThemePreference } from "@/features/app-shell/useThemePreference.js";
 import { Input } from "@/components/ui/input.jsx";
 import {
   createAirportSelection,
@@ -19,8 +16,6 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function AirportSearchPanel({ onOpenAirport }) {
   const { t } = useI18n();
-  const { themePreference, themeTitle, themeIconKey, cycleTheme } =
-    useThemePreference();
   const {
     query,
     setQuery,
@@ -48,24 +43,8 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     if (airport) openAirport(airport);
   };
 
-  const renderThemeToggle = (className) => (
-    <ThemeToggle
-      className={className}
-      iconKey={themeIconKey}
-      preference={themePreference}
-      title={themeTitle}
-      onClick={cycleTheme}
-    />
-  );
-
   return (
-    <DitherPageShell
-      className="search-screen"
-
-      mobileLeft={<NavMenu variant="mobile" />}
-      footerLeft={<NavMenu />}
-      renderThemeToggle={renderThemeToggle}
-    >
+    <DitherPageShell className="search-screen">
       <form
         onSubmit={doSearch}
         className="search-input mx-6 mb-4 flex-none flex items-center gap-3 px-4 py-3"

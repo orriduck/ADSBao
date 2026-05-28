@@ -2,7 +2,7 @@
 
 import BrandLogo from "@/components/brand/BrandLogo.jsx";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground.jsx";
-import MobileTopNav from "@/components/navigation/MobileTopNav.jsx";
+import PageNavigationDock from "@/components/navigation/PageNavigationDock.jsx";
 import { SITE_DESCRIPTION } from "@/config/site.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
@@ -10,10 +10,6 @@ export default function DitherPageShell({
   className = "",
   title = "Airport explorer",
   description = SITE_DESCRIPTION,
-  mobileLeft,
-  footerLeft,
-  footerThemeToggleClassName = "font-nav text-[10px] font-semibold uppercase tracking-normal text-atc-faint transition-colors hover:text-atc-text flex items-center gap-1.5",
-  renderThemeToggle,
   children,
 }) {
   const { t } = useI18n();
@@ -25,15 +21,12 @@ export default function DitherPageShell({
     <div
       className={`dither-page-shell flex h-screen text-atc-text ${className}`.trim()}
     >
-      <div className="dither-page-panel relative isolate flex w-[var(--app-sidebar-width)] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
-        <MobileTopNav
-          left={mobileLeft}
-          right={renderThemeToggle?.("mobile-top-nav-link flex items-center gap-1.5")}
-        />
+      <PageNavigationDock />
 
-        <div className="flex-none px-6 pt-7 pb-6">
+      <div className="dither-page-panel relative isolate flex w-[var(--app-sidebar-width)] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
+        <div className="dither-page-header flex-none px-6 pt-7 pb-6">
           <div className="flex items-center gap-3">
-            <BrandLogo height={40} />
+            <BrandLogo height={40} className="dither-page-logo" />
             <span
               aria-hidden="true"
               className="h-px flex-1 bg-[var(--atc-line-strong)]"
@@ -51,11 +44,6 @@ export default function DitherPageShell({
         </div>
 
         {children}
-
-        <div className="flex-none items-center justify-between border-t border-[var(--atc-line)] px-6 py-3 max-[720px]:hidden sm:flex">
-          {footerLeft}
-          {renderThemeToggle?.(footerThemeToggleClassName)}
-        </div>
       </div>
 
       <div className="dither-page-background relative isolate flex-1 overflow-hidden">
