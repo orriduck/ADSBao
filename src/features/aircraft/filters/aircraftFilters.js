@@ -35,6 +35,14 @@ export const ENTITY_FILTER_OPTIONS = [
   { value: "airports", labelKey: "filters.entityAirports", label: "Airports" },
 ];
 
+const ENTITY_FILTER_CYCLE = ["all", "aircraft", "airports"];
+
+export function getNextEntityFilter(value) {
+  const index = ENTITY_FILTER_CYCLE.indexOf(value);
+  if (index < 0) return "all";
+  return ENTITY_FILTER_CYCLE[(index + 1) % ENTITY_FILTER_CYCLE.length];
+}
+
 // ADS-B emitter / wake-class categories. A1–A7 map to specific labels; anything
 // outside (B*, C*, A0, blank) collapses into a single "Other" bucket so the
 // grouped dropdown never gets cluttered with one-off codes. Labels carry the

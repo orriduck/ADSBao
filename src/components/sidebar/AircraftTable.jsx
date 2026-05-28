@@ -27,6 +27,7 @@ import {
   aircraftMatchesFilters,
   aircraftTypeLabel,
   getAircraftTypeGroups,
+  getNextEntityFilter,
 } from "@/features/aircraft/filters/aircraftFilters.js";
 import {
   getAircraftContextGroup,
@@ -186,13 +187,14 @@ export default function AircraftTable({
           role="group"
           aria-label={t("sidebar.filtersAria")}
         >
-          <AircraftFilterCardSelect
+          <EntityFilterCycleCard
             label={t("sidebar.targets")}
             value={entityFilter}
-            onValueChange={setEntityFilter}
+            onValueChange={() =>
+              setEntityFilter(getNextEntityFilter(entityFilter))
+            }
             options={ENTITY_FILTER_OPTIONS}
             ariaLabel={t("filters.showAria")}
-            contentClassName="min-w-[220px]"
           />
 
           <TooltipProvider delayDuration={250}>
@@ -480,6 +482,30 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
         document.body,
       )}
     </div>
+  );
+}
+
+function EntityFilterCycleCard({
+  label,
+  value,
+  onValueChange,
+  options,
+  ariaLabel,
+}) {
+  const { t } = useI18n();
+  const option = options.find((item) => item.value === value) || options[0];
+  const displayValue = option?.labelKey ? t(option.labelKey) : option?.label;
+  return (
+    <button
+      type="button"
+      className="aircraft-filter-card"
+      data-active={value !== "all" ? "true" : undefined}
+      aria-label={ariaLabel}
+      onClick={onValueChange}
+    >
+      <span className="aircraft-filter-card__label">{label}</span>
+      <strong className="aircraft-filter-card__value">{displayValue}</strong>
+    </button>
   );
 }
 
