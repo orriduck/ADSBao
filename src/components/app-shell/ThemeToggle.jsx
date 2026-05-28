@@ -13,6 +13,7 @@ export default function ThemeToggle({
   className,
   iconKey = "monitor",
   preference = "system",
+  showLabel = false,
   title,
   onClick,
 }) {
@@ -30,9 +31,15 @@ export default function ThemeToggle({
     : title;
 
   return (
-    <button type="button" className={className} title={resolvedTitle} onClick={onClick}>
+    <button
+      type="button"
+      className={className}
+      title={resolvedTitle}
+      aria-label={resolvedTitle || label}
+      onClick={onClick}
+    >
       <ThemeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-      <span>{label}</span>
+      {showLabel ? <span>{label}</span> : null}
     </button>
   );
 }

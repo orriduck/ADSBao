@@ -788,6 +788,10 @@ body {
     display: none;
 }
 
+.language-menu {
+    border-radius: 12px;
+}
+
 .page-nav-dock__button,
 .page-nav-dock__account {
     flex: 0 0 auto;
@@ -2244,6 +2248,10 @@ body {
 .sidebar-top-bar__button svg {
     height: 15px;
     width: 15px;
+}
+
+.sidebar-top-bar__button--theme span {
+    display: none;
 }
 
 .sidebar-shell button,

@@ -37,7 +37,12 @@ export default function LanguageSwitch({
 
   const placementClass =
     menuPlacement === "bottom" ? "top-full mt-2" : "bottom-full mb-2";
-  const alignClass = menuAlign === "left" ? "left-0" : "right-0";
+  const alignClass =
+    menuAlign === "left"
+      ? "left-0"
+      : menuAlign === "center"
+        ? "left-1/2 -translate-x-1/2"
+        : "right-0";
   const aria = t("language.selectAria");
 
   const handleSelect = (nextLocale) => {
@@ -51,7 +56,8 @@ export default function LanguageSwitch({
         <div
           role="menu"
           aria-label={t("language.menuLabel")}
-          className={`absolute ${placementClass} ${alignClass} z-[1300] w-28 overflow-hidden rounded-md border border-[var(--atc-line-strong)] bg-atc-card shadow-xl`}
+          className={`language-menu absolute ${placementClass} ${alignClass} z-[1300] w-28 overflow-hidden border border-[var(--atc-line-strong)] bg-atc-card shadow-xl`}
+          style={{ borderRadius: 12 }}
         >
           {languageItems.map((item) => {
             const active = item.locale === locale;

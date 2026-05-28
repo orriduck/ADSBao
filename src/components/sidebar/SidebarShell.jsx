@@ -1,7 +1,10 @@
 "use client";
 
 import { Home, Map } from "lucide-react";
+import LanguageSwitch from "@/components/app-shell/LanguageSwitch.jsx";
+import ThemeToggle from "@/components/app-shell/ThemeToggle.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import { useThemePreference } from "@/features/app-shell/useThemePreference.js";
 
 // Shared chrome for the airport + flight sidebars. Handles:
 //   - The outer panel container + responsive overlay variant.
@@ -19,6 +22,8 @@ export default function SidebarShell({
   variant = "airport",
 }) {
   const { t } = useI18n();
+  const { themePreference, themeTitle, themeIconKey, cycleTheme } =
+    useThemePreference();
   const isMobileOverlay = Boolean(onClose);
   const mapAction = onMap || onClose;
 
@@ -57,6 +62,22 @@ export default function SidebarShell({
             >
               <Map aria-hidden="true" />
             </button>
+          ) : null}
+          {isMobileOverlay ? (
+            <>
+              <LanguageSwitch
+                className="sidebar-top-bar__button sidebar-top-bar__button--language"
+                menuPlacement="bottom"
+                menuAlign="center"
+              />
+              <ThemeToggle
+                className="sidebar-top-bar__button sidebar-top-bar__button--theme"
+                iconKey={themeIconKey}
+                preference={themePreference}
+                title={themeTitle}
+                onClick={cycleTheme}
+              />
+            </>
           ) : null}
         </div>
       </div>

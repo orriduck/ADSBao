@@ -4,6 +4,7 @@ import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { LogIn, PanelLeft } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import LanguageSwitch from "@/components/app-shell/LanguageSwitch.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 
@@ -83,6 +84,12 @@ export default function MapControlRail({
       >
         <MapControlIcon iconKey={getThemeIconKey(currentTheme)} />
       </Button>
+
+      <LanguageSwitch
+        className="ctrl-language"
+        menuPlacement="bottom"
+        menuAlign="center"
+      />
 
       <Button
         variant="atcIcon"
