@@ -82,8 +82,11 @@ export default function AirportMarker({
         <span>{code}</span>
       </span>
       {showAreaCount && (
-        <span className="airport-overlay-label__detail">
-          NEAR <NumberFlow value={areaCount} />
+        <span className="airport-overlay-label__detail airport-overlay-label__detail--near">
+          <span className="airport-overlay-label__detail-label">NEAR</span>
+          <span className="airport-overlay-label__detail-value">
+            <NumberFlow value={areaCount} />
+          </span>
         </span>
       )}
       {details.map((detail) => (

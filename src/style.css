@@ -4383,7 +4383,7 @@ body {
    yellow parallelogram badge (.endf-tab--code) on top, then optional
    small detail lines (RWY 4, APP 12) below. */
 .airport-overlay-label {
-    align-items: flex-start;
+    align-items: center;
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -4398,6 +4398,36 @@ body {
     letter-spacing: 0.08em;
     padding: 1px 5px;
     text-transform: uppercase;
+}
+
+.airport-overlay-label__detail--near {
+    align-items: center;
+    background: color-mix(in oklab, var(--atc-card) 88%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 72%, transparent);
+    border-radius: 999px;
+    box-shadow:
+        0 1px 4px color-mix(in oklab, var(--atc-bg) 38%, transparent),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 7%, transparent);
+    display: inline-flex;
+    font-family: var(--font-sans);
+    font-size: 8.5px;
+    gap: 4px;
+    letter-spacing: 0;
+    line-height: 1;
+    min-height: 17px;
+    padding: 2px 7px 2px 6px;
+}
+
+.airport-overlay-label__detail-label {
+    color: var(--atc-dim);
+    font-weight: 800;
+}
+
+.airport-overlay-label__detail-value {
+    color: var(--atc-text);
+    font-weight: 900;
+    min-width: 1.1em;
+    text-align: right;
 }
 
 .airport-ground-count {
