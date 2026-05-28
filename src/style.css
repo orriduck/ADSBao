@@ -2250,6 +2250,21 @@ body {
     width: 15px;
 }
 
+.sidebar-top-bar__account {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+}
+
+.sidebar-top-bar__account .cl-avatarBox,
+.sidebar-top-bar__account img {
+    height: 26px !important;
+    width: 26px !important;
+}
+
 .sidebar-top-bar__button--theme span {
     display: none;
 }

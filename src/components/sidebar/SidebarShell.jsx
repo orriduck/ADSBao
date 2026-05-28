@@ -1,6 +1,7 @@
 "use client";
 
-import { Home, Map } from "lucide-react";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { Home, LogIn, Map } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch.jsx";
 import ThemeToggle from "@/components/app-shell/ThemeToggle.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
@@ -24,8 +25,10 @@ export default function SidebarShell({
   const { t } = useI18n();
   const { themePreference, themeTitle, themeIconKey, cycleTheme } =
     useThemePreference();
+  const { isLoaded, isSignedIn } = useUser();
   const isMobileOverlay = Boolean(onClose);
   const mapAction = onMap || onClose;
+  const showSignedIn = isLoaded && isSignedIn;
 
   const panelClasses = [
     "sidebar-shell flex h-full flex-col border-r border-atc-line-strong bg-atc-bg",
@@ -77,6 +80,33 @@ export default function SidebarShell({
                 title={themeTitle}
                 onClick={cycleTheme}
               />
+              {!isLoaded ? (
+                <div className="sidebar-top-bar__account" aria-hidden="true" />
+              ) : showSignedIn ? (
+                <div
+                  className="sidebar-top-bar__account"
+                  aria-label={t("auth.account")}
+                >
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        avatarBox: "h-7 w-7 rounded-[2px]",
+                      },
+                    }}
+                  />
+                </div>
+              ) : (
+                <SignInButton mode="modal">
+                  <button
+                    type="button"
+                    className="sidebar-top-bar__button sidebar-top-bar__button--sign-in"
+                    title={t("auth.signIn")}
+                    aria-label={t("auth.signIn")}
+                  >
+                    <LogIn aria-hidden="true" />
+                  </button>
+                </SignInButton>
+              )}
             </>
           ) : null}
         </div>
