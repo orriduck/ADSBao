@@ -40,6 +40,7 @@ export default function ExplorerMapMenu({
         showMapLabels={showMapLabels}
         showRunwayBeams={showRunwayBeams}
         showRoutingPointBadges={showRoutingPointBadges}
+        showSidebarToggle={isMobile}
         onZoom={setMapZoom}
         onToggleMapLabels={toggleMapLabels}
         onToggleRunwayBeams={toggleRunwayBeams}

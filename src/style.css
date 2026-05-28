@@ -1972,6 +1972,10 @@ body {
         0 22px 58px color-mix(in oklab, var(--atc-bg) 42%, transparent),
         0 8px 22px color-mix(in oklab, var(--atc-text) 7%, transparent),
         0 1px 3px color-mix(in oklab, var(--atc-text) 5%, transparent);
+    --app-map-sidebar-shadow:
+        18px 0 44px color-mix(in oklab, var(--atc-text) 13%, transparent),
+        3px 0 10px color-mix(in oklab, var(--atc-text) 8%, transparent),
+        var(--app-panel-shadow);
     --app-card-shadow:
         0 10px 24px color-mix(in oklab, var(--atc-text) 6%, transparent),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 8%, transparent);
@@ -1990,6 +1994,10 @@ body {
         0 24px 70px rgb(0 0 0 / 0.34),
         0 8px 24px rgb(0 0 0 / 0.24),
         0 1px 3px rgb(0 0 0 / 0.22);
+    --app-map-sidebar-shadow:
+        18px 0 52px rgb(0 0 0 / 0.32),
+        3px 0 12px rgb(0 0 0 / 0.22),
+        var(--app-panel-shadow);
     --app-card-shadow:
         0 12px 32px rgb(0 0 0 / 0.24),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 7%, transparent);
@@ -8202,13 +8210,20 @@ body {
     backdrop-filter: none;
     background: var(--atc-bg);
     border: 0;
-    box-shadow: var(--app-panel-shadow);
+    box-shadow: var(--app-map-sidebar-shadow);
 }
 
 :root[data-theme="dark"] .airport-map-kit .airport-sidebar-panel,
 :root[data-theme="dark"] .airport-map-kit .flight-sidebar-panel,
 :root[data-theme="dark"] .airport-map-kit .sidebar-shell {
-    box-shadow: var(--app-panel-shadow);
+    box-shadow: var(--app-map-sidebar-shadow);
+}
+
+.airport-map-kit .airport-sidebar-panel--mobile,
+.airport-map-kit .flight-sidebar-panel--mobile,
+.airport-map-kit .airport-sidebar-panel--mobile.sidebar-shell,
+.airport-map-kit .flight-sidebar-panel--mobile.sidebar-shell {
+    box-shadow: none;
 }
 
 .airport-map-kit .airport-map-menu {

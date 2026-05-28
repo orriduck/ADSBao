@@ -21,6 +21,7 @@ export default function MapControlBar({
   showMapLabels = false,
   showRunwayBeams = true,
   showRoutingPointBadges = true,
+  showSidebarToggle = true,
   onZoom,
   onToggleMapLabels,
   onToggleRunwayBeams,
@@ -85,6 +86,7 @@ export default function MapControlBar({
         themeTitle={themeTitle}
         layerDrawerOpen={layerDrawerOpen}
         layerDrawerId={LAYER_DRAWER_ID}
+        showSidebarToggle={showSidebarToggle}
         onToggleSidebar={onToggleSidebar}
         onCycleZoom={cycleZoom}
         onFitToTrace={onFitToTrace}

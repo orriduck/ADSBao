@@ -18,6 +18,7 @@ export default function MapControlRail({
   themeTitle,
   layerDrawerOpen,
   layerDrawerId,
+  showSidebarToggle = true,
   onToggleSidebar,
   onCycleZoom,
   onFitToTrace = null,
@@ -32,19 +33,23 @@ export default function MapControlRail({
     : `${currentZoomOption.title} (click to cycle)`;
   return (
     <div className="map-ctrl-bar">
-      <Button
-        variant="atcIcon"
-        size="icon"
-        className="ctrl-btn ctrl-sidebar-toggle"
-        title={t("map.toggleSidebar")}
-        aria-label={t("map.toggleSidebar")}
-        onClick={onToggleSidebar}
-        type="button"
-      >
-        <PanelLeft className="h-4 w-4" aria-hidden="true" />
-      </Button>
+      {showSidebarToggle ? (
+        <>
+          <Button
+            variant="atcIcon"
+            size="icon"
+            className="ctrl-btn ctrl-sidebar-toggle"
+            title={t("map.toggleSidebar")}
+            aria-label={t("map.toggleSidebar")}
+            onClick={onToggleSidebar}
+            type="button"
+          >
+            <PanelLeft className="h-4 w-4" aria-hidden="true" />
+          </Button>
 
-      <div className="ctrl-sep" />
+          <div className="ctrl-sep" />
+        </>
+      ) : null}
 
       {onFitToTrace && (
         <Button
