@@ -2183,8 +2183,12 @@ body {
     border-bottom: 0;
     box-sizing: border-box;
     height: 47px;
+    inset: 0 0 auto;
     justify-content: center;
     padding: 0 var(--airport-sidebar-inset, 24px);
+    pointer-events: none;
+    position: absolute;
+    z-index: 20;
 }
 
 .sidebar-top-toolbar {
@@ -2199,6 +2203,7 @@ body {
     gap: 5px;
     height: 42px;
     padding: 5px;
+    pointer-events: auto;
 }
 
 .sidebar-top-bar__button {
@@ -4751,7 +4756,7 @@ body {
             transparent 48%
         );
     border-bottom: 0;
-    padding: 28px var(--airport-sidebar-inset) 22px;
+    padding: 75px var(--airport-sidebar-inset) 22px;
 }
 
 .airport-sidebar-identity__rule {
@@ -4778,7 +4783,9 @@ body {
 }
 
 @media (max-width: 767px) {
+    .airport-sidebar-panel--mobile .airport-sidebar-identity,
     .flight-sidebar-panel .airport-sidebar-identity {
+        padding-top: calc(75px + env(safe-area-inset-top));
         padding-bottom: 20px;
     }
 
@@ -8171,7 +8178,7 @@ body {
     }
 
     .airport-map-kit .airport-sidebar-identity {
-        padding: 22px var(--airport-sidebar-inset) 18px;
+        padding: 69px var(--airport-sidebar-inset) 18px;
     }
 
     .airport-map-kit .airport-sidebar-display-mono--hero {
