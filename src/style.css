@@ -4389,7 +4389,7 @@ body {
     filter: drop-shadow(
         0 2px 4px color-mix(in oklab, var(--atc-bg) 52%, transparent)
     );
-    gap: 1px;
+    gap: 3px;
 }
 
 .airport-overlay-label__detail {
@@ -4420,7 +4420,6 @@ body {
     line-height: 1;
     min-height: 14px;
     padding: 1px 7px 1px 6px;
-    transform: translateY(-1px);
 }
 
 .airport-overlay-label__detail-label {
