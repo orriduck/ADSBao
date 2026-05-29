@@ -55,10 +55,11 @@ export default function MapControlRail({
         <Button
           variant="atcIcon"
           size="icon"
-          className="ctrl-btn ctrl-fit-trace"
+          className={`ctrl-btn ctrl-fit-trace ${!zoomActive && !zoomDisabled ? "active" : ""}`}
           title={t("map.fitTrace")}
           onClick={onFitToTrace}
           type="button"
+          aria-pressed={!zoomActive && !zoomDisabled}
         >
           <MapControlIcon iconKey="route" />
         </Button>

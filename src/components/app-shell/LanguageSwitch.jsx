@@ -56,8 +56,7 @@ export default function LanguageSwitch({
         <div
           role="menu"
           aria-label={t("language.menuLabel")}
-          className={`language-menu absolute ${placementClass} ${alignClass} z-[1300] w-28 overflow-hidden border border-[var(--atc-line-strong)] bg-atc-card shadow-xl`}
-          style={{ borderRadius: 12 }}
+          className={`language-menu absolute ${placementClass} ${alignClass}`}
         >
           {languageItems.map((item) => {
             const active = item.locale === locale;
@@ -67,12 +66,9 @@ export default function LanguageSwitch({
                 type="button"
                 role="menuitemradio"
                 aria-checked={active}
+                data-selected={active ? "true" : undefined}
                 onClick={() => handleSelect(item.locale)}
-                className={`font-nav flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors ${
-                  active
-                    ? "bg-[color-mix(in_oklab,var(--atc-accent)_14%,transparent)] text-atc-text"
-                    : "text-atc-faint hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text"
-                }`}
+                className="language-menu__item"
               >
                 <span>{item.label}</span>
                 {active && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
