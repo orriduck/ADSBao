@@ -19,7 +19,6 @@ export function buildNearbyAirportsPath({
   setOptionalParam(url, "icao", String(icao || "").trim().toUpperCase());
   setOptionalParam(url, "radiusNm", radiusNm);
   setOptionalParam(url, "limit", limit);
-  url.searchParams.set("runways", "1");
   return `${url.pathname}${url.search}`;
 }
 

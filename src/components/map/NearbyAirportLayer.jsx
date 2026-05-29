@@ -5,16 +5,10 @@ import L from "leaflet";
 import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap.js";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
-import { buildAirportRangeRings } from "../../features/airport/map/airportRangeRings.js";
 import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel.js";
-
-// Nearby-airport ring band — tighter than the focal's so overlapping
-// stacks stay subtle.
-const DEFAULT_NEARBY_RING_INTERVAL_NM = 3;
-const DEFAULT_NEARBY_RING_MAX_NM = 10;
 
 const escapeHtml = (value) =>
   String(value || "")
@@ -110,9 +104,6 @@ export default function NearbyAirportLayer({
   zoom,
   selectedIcao = "",
   onSelectAirport = null,
-  ringIntervalNm = DEFAULT_NEARBY_RING_INTERVAL_NM,
-  ringMaxNm = DEFAULT_NEARBY_RING_MAX_NM,
-  ringProminent = false,
   showRunwayBadges = true,
 }) {
   const map = useMapInstance();
@@ -134,18 +125,6 @@ export default function NearbyAirportLayer({
       runwayLayers({ airport, map, theme, zoom, showBadges: showRunwayBadges }).forEach((runwayLayer) =>
         runwayLayer.addTo(layer),
       );
-      // Stroke-only — overlapping nearby stacks would add up into a
-      // dark blob if we let them shade. `prominent` callers (single
-      // ring) override the every-third-major rhythm.
-      buildAirportRangeRings(L, {
-        lat: airport.lat,
-        lon: airport.lon,
-        intervalNm: ringIntervalNm,
-        maxNm: ringMaxNm,
-        theme,
-        shaded: false,
-        prominent: ringProminent,
-      }).forEach((ring) => ring.addTo(layer));
       const interactive = Boolean(onSelectRef.current);
       const isSelected = selectedIcao && airport.icao === selectedIcao;
       const marker = L.marker([airport.lat, airport.lon], {
@@ -182,9 +161,6 @@ export default function NearbyAirportLayer({
     theme,
     zoom,
     selectedIcao,
-    ringIntervalNm,
-    ringMaxNm,
-    ringProminent,
     showRunwayBadges,
   ]);
 

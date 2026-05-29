@@ -18,13 +18,9 @@ export function buildNearbyAirportCacheKey({
   icao = "",
   radiusNm,
   limit,
-  country = "US",
-  minRunwayLength,
 } = {}) {
   return [
-    "nearby-airports-v6",
-    String(country || "").trim().toUpperCase(),
-    roundedNumber(minRunwayLength, 0),
+    "nearby-airports-v7",
     String(icao || "").trim().toUpperCase(),
     roundedNumber(lat),
     roundedNumber(lon),

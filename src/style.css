@@ -1263,49 +1263,6 @@ body {
     animation: adsb-loading-grid-fade-out 1.1s ease forwards;
 }
 
-.adsb-loading-status {
-    align-items: center;
-    background: color-mix(in oklab, var(--atc-card) 94%, var(--atc-bg));
-    border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
-    border-radius: var(--atc-radius-card);
-    box-shadow:
-        var(--app-floating-shadow),
-        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 8%, transparent);
-    color: var(--atc-faint);
-    display: flex;
-    flex-direction: column;
-    font-family: var(--font-sans);
-    gap: 6px;
-    letter-spacing: 0;
-    position: relative;
-    min-width: min(420px, calc(100vw - 48px));
-    padding: 14px 22px 15px;
-    text-align: center;
-    text-transform: uppercase;
-    transition:
-        opacity 0.42s ease,
-        transform 0.42s ease;
-    text-shadow: none;
-    z-index: 1;
-}
-
-.adsb-loading-overlay.is-exiting .adsb-loading-status {
-    animation: adsb-loading-status-fade-out 0.72s ease forwards;
-}
-
-.adsb-loading-status span {
-    color: var(--atc-faint);
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.adsb-loading-status strong {
-    color: var(--atc-text);
-    font-size: 14px;
-    font-weight: 900;
-    line-height: 1.15;
-}
-
 @keyframes adsb-grid-scan {
     0%,
     10% {
@@ -1345,17 +1302,6 @@ body {
     }
     to {
         opacity: 0;
-    }
-}
-
-@keyframes adsb-loading-status-fade-out {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(6px);
     }
 }
 
@@ -4628,7 +4574,6 @@ body {
 
     .adsb-loading-overlay.is-exiting,
     .adsb-loading-overlay.is-exiting .adsb-loading-grid,
-    .adsb-loading-overlay.is-exiting .adsb-loading-status,
     .adsb-loading-grid::after,
     .adsb-loading-grid__matrix::after,
     .adsb-loading-grid__scan,
@@ -4638,13 +4583,12 @@ body {
 
     .adsb-loading-overlay.is-exiting,
     .adsb-loading-overlay.is-exiting .adsb-loading-grid,
-    .adsb-loading-overlay.is-exiting .adsb-loading-status {
+    .adsb-loading-overlay.is-exiting .adsb-loading-grid {
         opacity: 0;
     }
 
     .adsb-loading-overlay,
-    .adsb-loading-grid,
-    .adsb-loading-status {
+    .adsb-loading-grid {
         transition: none;
     }
 

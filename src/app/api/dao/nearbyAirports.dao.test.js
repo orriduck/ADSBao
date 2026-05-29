@@ -57,16 +57,14 @@ assert.equal(
     icao: "kjfk",
     radiusNm: 30,
     limit: 6,
-    country: "us",
-    minRunwayLength: 5000,
   }),
-  "nearby-airports-v6:US:5000:KJFK:40.639928:-73.778692:30:6",
+  "nearby-airports-v7:KJFK:40.639928:-73.778692:30:6",
 );
 
 {
   const { calls, createClientImpl } = createFakeSupabaseClient({
     readData: {
-      response: { airports: [{ icao: "KLGA" }], source: "airac.net" },
+      response: { airports: [{ icao: "KLGA" }], source: "ourairports" },
       expires_at: "2026-08-08T12:00:00.000Z",
     },
   });
@@ -77,11 +75,11 @@ assert.equal(
     now,
   });
 
-  const payload = await cache.read("nearby-airports-v6:US:5000:KJFK:40.639928:-73.778692:30:6");
+  const payload = await cache.read("nearby-airports-v7:KJFK:40.639928:-73.778692:30:6");
 
   assert.deepEqual(payload, {
     airports: [{ icao: "KLGA" }],
-    source: "airac.net",
+    source: "ourairports",
   });
   assert.deepEqual(calls[0], {
     type: "createClient",
@@ -103,7 +101,7 @@ assert.equal(
       {
         type: "eq",
         column: "cache_key",
-        value: "nearby-airports-v6:US:5000:KJFK:40.639928:-73.778692:30:6",
+        value: "nearby-airports-v7:KJFK:40.639928:-73.778692:30:6",
       },
       { type: "gt", column: "expires_at", value: "2026-05-10T12:00:00.000Z" },
       { type: "limit", count: 1 },
@@ -122,21 +120,19 @@ assert.equal(
   });
 
   await cache.write({
-    cacheKey: "nearby-airports-v6:US:5000:KJFK:40.639928:-73.778692:30:6",
+    cacheKey: "nearby-airports-v7:KJFK:40.639928:-73.778692:30:6",
     query: {
-      country: "US",
-      minRunwayLength: 5000,
       icao: "KJFK",
       lat: 40.639928,
       lon: -73.778692,
       radiusNm: 30,
       limit: 6,
     },
-    response: { airports: [{ icao: "KLGA" }], source: "airac.net" },
+    response: { airports: [{ icao: "KLGA" }], source: "ourairports" },
   });
 
   const upsertCall = calls.find((call) => call.type === "upsert");
-  assert.equal(upsertCall.row.cache_key, "nearby-airports-v6:US:5000:KJFK:40.639928:-73.778692:30:6");
+  assert.equal(upsertCall.row.cache_key, "nearby-airports-v7:KJFK:40.639928:-73.778692:30:6");
   assert.equal(upsertCall.row.expires_at, "2026-08-08T12:00:00.000Z");
   assert.deepEqual(upsertCall.row.response.airports, [{ icao: "KLGA" }]);
   assert.deepEqual(upsertCall.options, { onConflict: "cache_key" });

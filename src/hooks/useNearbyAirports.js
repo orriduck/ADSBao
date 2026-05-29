@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { nearbyAirportClient } from "../features/airport/nearby/nearbyAirportClient.js";
 import {
+  NEARBY_AIRPORT_DEFAULTS,
+  NEARBY_AIRPORT_LIMITS,
+} from "../features/airport/nearby/nearbyAirports.models.js";
+import {
   normalizeLatitude,
   normalizeLongitude,
 } from "../features/aircraft/tracking/flightTrackingContextModel.js";
@@ -11,8 +15,8 @@ export function useNearbyAirports({
   icao = "",
   lat = 0,
   lon = 0,
-  radiusNm = 40,
-  limit = 6,
+  radiusNm = NEARBY_AIRPORT_DEFAULTS.radiusNm,
+  limit = NEARBY_AIRPORT_LIMITS.maxLimit,
 } = {}) {
   const [airports, setAirports] = useState([]);
   const [loading, setLoading] = useState(false);

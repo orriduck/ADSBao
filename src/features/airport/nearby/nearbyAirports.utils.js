@@ -16,19 +16,12 @@ export const normalizeNearbyAirportQuery = ({
   icao,
   radiusNm,
   limit,
-  country,
-  minRunwayLength,
 } = {}) => ({
   lat,
   lon,
   icao: String(icao || "").trim().toUpperCase(),
   radiusNm: radiusNm || NEARBY_AIRPORT_DEFAULTS.radiusNm,
   limit: limit || NEARBY_AIRPORT_DEFAULTS.limit,
-  country: String(country || NEARBY_AIRPORT_DEFAULTS.country)
-    .trim()
-    .toUpperCase(),
-  minRunwayLength:
-    minRunwayLength || NEARBY_AIRPORT_DEFAULTS.minRunwayLength,
 });
 
 export const isValidNearbyAirportQuery = ({
@@ -37,8 +30,6 @@ export const isValidNearbyAirportQuery = ({
   icao,
   radiusNm,
   limit,
-  country,
-  minRunwayLength,
 } = {}) => {
   const limits = NEARBY_AIRPORT_LIMITS;
   return (
@@ -48,9 +39,6 @@ export const isValidNearbyAirportQuery = ({
     radiusNm <= limits.maxRadiusNm &&
     limit >= limits.minLimit &&
     limit <= limits.maxLimit &&
-    minRunwayLength >= limits.minRunwayLength &&
-    minRunwayLength <= limits.maxRunwayLength &&
-    /^[A-Z]{2}$/.test(country) &&
     (!icao || /^[A-Z0-9]{3,4}$/.test(icao))
   );
 };

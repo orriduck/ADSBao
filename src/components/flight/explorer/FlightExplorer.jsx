@@ -557,7 +557,6 @@ function FlightExplorerContent({ callsign }) {
             procedureFixLabelRunwayProcedures={null}
             showProcedureFixLabels={false}
             focalRangeRings={false}
-            nearbyRangeRings={flightDisplayContext.nearbyRangeRings}
             deferUntilFocal
             loadingOverlayActive={flightTrackingLoadingActive}
             loadingOverlayVariant="flight"

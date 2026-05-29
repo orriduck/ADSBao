@@ -8,67 +8,16 @@ import {
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
-const LOADING_COPY_BY_REASON = {
-  map: {
-    eyebrowKey: "map.mapRenderer",
-    statusKey: "map.loadingMap",
-  },
-  traffic: {
-    eyebrowKey: "map.adsbPositionFeed",
-    statusKey: "map.loadingTraffic",
-  },
-  trackedAircraft: {
-    eyebrowKey: "map.flightTrackingFeed",
-    statusKey: "map.loadingTrackedAircraft",
-  },
-  weather: {
-    eyebrowKey: "map.weatherFeed",
-    statusKey: "map.loadingWeather",
-  },
-  nearbyAirports: {
-    eyebrowKey: "map.airportContext",
-    statusKey: "map.loadingNearbyAirports",
-  },
-  procedures: {
-    eyebrowKey: "map.runwayProcedures",
-    statusKey: "map.loadingProcedures",
-  },
-  routes: {
-    eyebrowKey: "map.routeResolver",
-    statusKey: "map.loadingRoutes",
-  },
-  trace: {
-    eyebrowKey: "map.traceArchive",
-    statusKey: "map.loadingTrace",
-  },
-};
-
 export function useMapLoadingOverlayText({
   mode = "feed",
   variant = "airport",
-  callsign = "",
-  reason = "",
 } = {}) {
   const { t } = useI18n();
-  const normalizedCallsign = callsign.trim().toUpperCase();
   const isFlight = variant === "flight";
-  const copy = LOADING_COPY_BY_REASON[reason];
-
-  if (copy) {
-    return {
-      ariaLabel: t("map.loadingMapAria"),
-      eyebrow: t(copy.eyebrowKey),
-      status: t(copy.statusKey, {
-        callsign: normalizedCallsign || t("map.trackedAircraft"),
-      }),
-    };
-  }
 
   if (mode === "map") {
     return {
       ariaLabel: t("map.loadingMapAria"),
-      eyebrow: t("map.mapRenderer"),
-      status: t("map.loadingMap"),
     };
   }
 
@@ -76,12 +25,6 @@ export function useMapLoadingOverlayText({
     ariaLabel: isFlight
       ? t("map.loadingTrackedAircraftAria")
       : t("map.loadingAircraftAria"),
-    eyebrow: isFlight ? t("map.flightTrackingFeed") : "adsb.lol position feed",
-    status: isFlight
-      ? t("map.syncingTrackedAircraft", {
-          callsign: normalizedCallsign || t("map.trackedAircraft"),
-        })
-      : t("map.syncingTraffic"),
   };
 }
 
@@ -104,8 +47,6 @@ export default function MapLoadingOverlay({
   variant = "airport",
   sidebarAware = false,
   ariaLabel,
-  eyebrow,
-  status,
 }) {
   const [visible, setVisible] = useState(active);
   const [exiting, setExiting] = useState(false);
@@ -161,10 +102,6 @@ export default function MapLoadingOverlay({
       <div className="adsb-loading-grid" aria-hidden="true">
         <span className="adsb-loading-grid__matrix" />
         <span className="adsb-loading-grid__scan" />
-      </div>
-      <div className="adsb-loading-status">
-        <span>{eyebrow}</span>
-        <strong>{status}</strong>
       </div>
     </div>
   );

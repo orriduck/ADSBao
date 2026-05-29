@@ -465,9 +465,8 @@ assert.deepEqual(
   ["CYTZ", "CYYZ"],
 );
 
-// Nearby airport display should approximate "Class C and above": large
-// airports plus known Class C medium airports. Nearby heliports, small fields,
-// GA medium airports, and scheduled Class D fields should not consume slots.
+// Nearby airport display is distance first, then medium-airport-and-up.
+// It no longer uses a Class C whitelist, but still hides small fields and heliports.
 const nearbyJfk = await queries.getNearbyAirports({
   ident: "KJFK",
   radiusNm: 40,
@@ -475,7 +474,7 @@ const nearbyJfk = await queries.getNearbyAirports({
 });
 assert.deepEqual(
   nearbyJfk.map((airport) => airport.icao),
-  ["KLGA", "KEWR", "KISP"],
+  ["KLGA", "KFRG", "KTEB", "KEWR", "KHPN", "KISP"],
 );
 
 const nearbyJfkWide = await queries.getNearbyAirports({
@@ -485,7 +484,7 @@ const nearbyJfkWide = await queries.getNearbyAirports({
 });
 assert.deepEqual(
   nearbyJfkWide.map((airport) => airport.icao),
-  ["KLGA", "KEWR", "KISP"],
+  ["KLGA", "KFRG", "KTEB", "KEWR", "KHPN", "KISP"],
 );
 
 // Get runways

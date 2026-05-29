@@ -1,20 +1,20 @@
 import {
   isFlightAwareFallbackTracking,
 } from "./flightAwareFallbackTrackingModel.js";
+import { AIRCRAFT_TRAFFIC_CONFIG } from "../../../config/aviation.js";
+import {
+  NEARBY_AIRPORT_DEFAULTS,
+  NEARBY_AIRPORT_LIMITS,
+} from "../../airport/nearby/nearbyAirports.models.js";
 
 const DEFAULT_CONTEXT = Object.freeze({
-  aircraftRangeNm: 40,
-  airportRadiusNm: 40,
-  airportLimit: 12,
+  aircraftRangeNm: AIRCRAFT_TRAFFIC_CONFIG.rangeNm,
+  airportRadiusNm: NEARBY_AIRPORT_DEFAULTS.radiusNm,
+  airportLimit: NEARBY_AIRPORT_LIMITS.maxLimit,
   fullTraceForFocal: true,
   showNearbyContext: true,
   showNearbyMapContext: true,
   zoomDisabled: false,
-  nearbyRangeRings: Object.freeze({
-    intervalNm: 5,
-    maxNm: 5,
-    prominent: true,
-  }),
   mapFitOptions: Object.freeze({
     padding: Object.freeze([60, 60]),
     maxZoom: 14,
@@ -24,13 +24,12 @@ const DEFAULT_CONTEXT = Object.freeze({
 
 const FLIGHTAWARE_DESKTOP_CONTEXT = Object.freeze({
   aircraftRangeNm: 220,
-  airportRadiusNm: 250,
-  airportLimit: 12,
+  airportRadiusNm: NEARBY_AIRPORT_DEFAULTS.radiusNm,
+  airportLimit: NEARBY_AIRPORT_LIMITS.maxLimit,
   fullTraceForFocal: true,
   showNearbyContext: true,
   showNearbyMapContext: false,
   zoomDisabled: true,
-  nearbyRangeRings: null,
   mapFitOptions: Object.freeze({
     padding: Object.freeze([84, 84]),
     maxZoom: 8,

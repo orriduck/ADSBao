@@ -11,8 +11,6 @@ const payload = await getNearbyAirports({
     icao: "",
     radiusNm: 40,
     limit: 12,
-    country: "US",
-    minRunwayLength: 5000,
   },
   airportCache: null,
   ourAirportsQueries: {
@@ -81,7 +79,7 @@ assert.deepEqual(calls[0].options, {
   lat: 43.73,
   lon: -79.45,
   radiusNm: 40,
-  limit: 96,
+  limit: 12,
   excludeIdent: "",
 });
 
@@ -97,8 +95,6 @@ assert.deepEqual(calls[0].options, {
         icao: "",
         radiusNm: 40,
         limit: 12,
-        country: "US",
-        minRunwayLength: 5000,
       },
       airportCache: {
         async read() {
@@ -137,5 +133,20 @@ assert.deepEqual(calls[0].options, {
     console.warn = originalWarn;
   }
 }
+
+await assert.rejects(
+  getNearbyAirports({
+    query: {
+      lat: 43.73,
+      lon: -79.45,
+      icao: "",
+      radiusNm: 40,
+      limit: 12,
+    },
+    airportCache: null,
+    ourAirportsQueries: null,
+  }),
+  /OurAirports nearby query layer is not configured/,
+);
 
 console.log("nearbyAirports.mechanism.test.js ok");

@@ -68,7 +68,6 @@ export default function AirportMap({
   procedureFixLabelRunwayProcedures = runwayProcedures,
   showProcedureFixLabels = false,
   focalRangeRings = null,
-  nearbyRangeRings = null,
   fallbackCenter = AIRPORT_MAP_FALLBACK_CENTER,
   deferUntilFocal = false,
   loadingOverlayActive = false,
@@ -78,19 +77,13 @@ export default function AirportMap({
   children = null,
 }) {
   const { locale } = useI18n();
-  // Single source of truth for the ring bands so the inline labels
-  // (AreaMarker), per-airport rings (NearbyAirportLayer), and the
-  // bottom-left legend all agree on what to render. Pass `false` to
-  // disable the layer entirely (flight tracking page does this so the
-  // moving viewport stays uncluttered).
+  // Single source of truth for the focal ring bands so AreaMarker,
+  // AirportMarker, and the bottom-left legend agree on what to render.
+  // Nearby airports intentionally render without range rings.
   const effectiveFocalRings =
     focalRangeRings === false
       ? null
       : focalRangeRings || { intervalNm: 3, maxNm: 30 };
-  const effectiveNearbyRings =
-    nearbyRangeRings === false
-      ? null
-      : nearbyRangeRings || { intervalNm: 3, maxNm: 10 };
   const mapEl = useRef(null);
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
@@ -298,13 +291,6 @@ export default function AirportMap({
             zoom={zoom}
             selectedIcao={selectedAirportIcao}
             onSelectAirport={onSelectAirport}
-            ringIntervalNm={
-              effectiveNearbyRings ? effectiveNearbyRings.intervalNm : null
-            }
-            ringMaxNm={
-              effectiveNearbyRings ? effectiveNearbyRings.maxNm : null
-            }
-            ringProminent={Boolean(effectiveNearbyRings?.prominent)}
             showRunwayBadges={showRoutingPointBadges}
           />
           <ProcedureSegmentLayer

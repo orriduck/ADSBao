@@ -25,23 +25,6 @@ const TYPE_RANK = {
 
 const EARTH_RADIUS_NM = 3440.065;
 
-const US_CLASS_C_AIRPORTS = new Set([
-  "KABE", "KABI", "KABQ", "KACY", "KALB", "KAMA", "KAUS", "KAVL", "KBAB",
-  "KBAD", "KBDL", "KBGR", "KBHM", "KBIL", "KBNA", "KBOI", "KBTR", "KBTV",
-  "KBUF", "KBUR", "KCAE", "KCAK", "KCBM", "KCHA", "KCHS", "KCID", "KCMH",
-  "KCMI", "KCOS", "KCRP", "KCRW", "KDAB", "KDAY", "KDLF", "KDMA", "KDSM",
-  "KDYS", "KELP", "KEVV", "KFAT", "KFAY", "KFLL", "KFNT", "KFWA", "KGEG",
-  "KGRB", "KGRR", "KGSO", "KGSP", "KHRL", "KHSV", "KICT", "KIND", "KISP",
-  "KJAN", "KJAX", "KLAN", "KLBB", "KLEX", "KLFT", "KLIT", "KLNK", "KMAF",
-  "KMDT", "KMDW", "KMHT", "KMKE", "KMLI", "KMOB", "KMRY", "KMSN", "KMYR",
-  "KNDZ", "KNPA", "KNSE", "KNUW", "KOAK", "KOFF", "KOKC", "KOMA", "KONT",
-  "KORF", "KPBI", "KPDX", "KPIA", "KPNS", "KPOB", "KPVD", "KPWM", "KRDU",
-  "KRIC", "KRIV", "KRNO", "KROA", "KROC", "KRSW", "KSAT", "KSAV", "KSBA",
-  "KSBN", "KSDF", "KSFB", "KSGF", "KSHV", "KSJC", "KSKA", "KSMF", "KSNA",
-  "KSPI", "KSRQ", "KSSC", "KSYR", "KTIK", "KTLH", "KTOL", "KTUL", "KTUS",
-  "KTYS", "KXNA",
-]);
-
 const normalizeIdent = (value) =>
   String(value ?? "").trim().toUpperCase();
 
@@ -62,30 +45,13 @@ const haversineNm = (lat1, lon1, lat2, lon2) => {
 
 export const typeRank = (type) => TYPE_RANK[type] ?? 9;
 
-const nearbyAirportRank = (airport) => {
-  const rank = typeRank(airport?.type);
-  const hasCommercialCode = Boolean(airport?.iata);
-  const hasScheduledService = Boolean(airport?.scheduledService);
-  const codeRank = hasScheduledService && hasCommercialCode ? -0.2 : hasCommercialCode ? -0.1 : 0;
-  return rank + codeRank;
-};
-
-const sortNearbyRows = (table, left, right) => {
-  if (table === "airports") {
-    const leftRank = nearbyAirportRank(left);
-    const rightRank = nearbyAirportRank(right);
-    if (leftRank !== rightRank) return leftRank - rightRank;
-  }
+const sortNearbyRows = (left, right) => {
   return left.distanceNm - right.distanceNm;
 };
 
 const isNearbyAirportDisplayCandidate = (table, airport) => {
   if (table !== "airports") return true;
-  const airportIcao = normalizeIdent(airport?.icao || airport?.ident);
-  return (
-    airport?.type === "large_airport" ||
-    (airport?.type === "medium_airport" && US_CLASS_C_AIRPORTS.has(airportIcao))
-  );
+  return typeRank(airport?.type) <= TYPE_RANK.medium_airport;
 };
 
 export const mapAirportRow = (row) => {
@@ -488,8 +454,7 @@ const queryNearby = async ({
         row.distanceNm <= radius &&
         isNearbyAirportDisplayCandidate(table, row),
     )
-    .sort((left, right) => sortNearbyRows(table, left, right))
-    .slice(0, safeLimit);
+    .sort((left, right) => sortNearbyRows(left, right));
 };
 
 export const createOurAirportsQueriesFromEnv = ({
