@@ -4,12 +4,6 @@
 // of stat-card cells (label, value, unit). The airport sidebar uses it
 // as a tab strip (WEATHER / FLIGHTS, interactive); the flight sidebar
 // uses it to display the focal aircraft's telemetry as static cells.
-//
-// Divider lines are applied automatically:
-//   - Every "even" cell (the right column) gets a left border so the
-//     vertical seam between the two columns is consistent.
-//   - Cells past the first row get a top border so multi-row grids
-//     still read as a panel of cards.
 
 export function SidebarMetricGrid({ children, label = "Metrics" }) {
   return (

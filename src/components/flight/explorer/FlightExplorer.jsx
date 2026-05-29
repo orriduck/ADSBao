@@ -61,6 +61,7 @@ import { useTrackedAircraft } from "@/hooks/useTrackedAircraft.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel.js";
 import { normalizeCallsign } from "@/utils/callsign.js";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay.js";
+import { getDistanceNm } from "@/utils/aircraftTrafficIntent.js";
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard.jsx";
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel.js";
@@ -350,19 +351,58 @@ function FlightExplorerContent({ callsign }) {
       trackedAircraftForDisplay
     );
   }, [aircraft, trackedAircraftForDisplay]);
-  const mapAircraft = useMemo(
-    () =>
-      showNearbyMapContext
-        ? aircraft
-        : enrichedTrackedAircraft
-          ? [enrichedTrackedAircraft]
-          : [],
-    [aircraft, enrichedTrackedAircraft, showNearbyMapContext],
-  );
-  const mapNearbyAirports = useMemo(
-    () => (showNearbyMapContext ? nearbyAirports : []),
-    [nearbyAirports, showNearbyMapContext],
-  );
+  // Full-trace mode declutters the zoomed-out viewport: only the focal
+  // aircraft and the FlightAware route endpoints (if any) stay on the map.
+  const flightAwareRouteAirports = useMemo(() => {
+    const route = enrichedTrackedAircraft?.flightRoute;
+    if (route?.source !== "flightaware") return [];
+    const endpoints = [];
+    for (const point of [route.origin, route.destination]) {
+      if (!point) continue;
+      const pointLat = Number(point.lat);
+      const pointLon = Number(point.lon);
+      if (!Number.isFinite(pointLat) || !Number.isFinite(pointLon)) continue;
+      endpoints.push({
+        icao: point.icao || "",
+        iata: point.iata || "",
+        name: point.name || "",
+        municipality: point.municipality || "",
+        country: point.country || "",
+        lat: pointLat,
+        lon: pointLon,
+        distanceNm:
+          focalLat != null && focalLon != null
+            ? getDistanceNm(focalLat, focalLon, pointLat, pointLon)
+            : null,
+      });
+    }
+    return endpoints;
+  }, [enrichedTrackedAircraft?.flightRoute, focalLat, focalLon]);
+
+  const mapAircraft = useMemo(() => {
+    if (!mapFollowsAircraft) {
+      return enrichedTrackedAircraft ? [enrichedTrackedAircraft] : [];
+    }
+    return showNearbyMapContext
+      ? aircraft
+      : enrichedTrackedAircraft
+        ? [enrichedTrackedAircraft]
+        : [];
+  }, [
+    aircraft,
+    enrichedTrackedAircraft,
+    showNearbyMapContext,
+    mapFollowsAircraft,
+  ]);
+  const mapNearbyAirports = useMemo(() => {
+    if (!mapFollowsAircraft) return flightAwareRouteAirports;
+    return showNearbyMapContext ? nearbyAirports : [];
+  }, [
+    nearbyAirports,
+    showNearbyMapContext,
+    mapFollowsAircraft,
+    flightAwareRouteAirports,
+  ]);
   const trackedMetadataSignature = useMemo(
     () =>
       JSON.stringify({

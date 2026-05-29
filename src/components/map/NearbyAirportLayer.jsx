@@ -6,6 +6,10 @@ import { useMapInstance } from "./MapContext.js";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap.js";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane.js";
 import {
+  safeAddToMap,
+  safeRemoveFromMap,
+} from "../../features/airport/map/leafletLayerSafety.js";
+import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel.js";
@@ -23,18 +27,27 @@ const airportLabel = (airport) => airport.iata || airport.icao || "";
 const markerHtml = (airport) => {
   const code = escapeHtml(airportLabel(airport));
   const distance = Number.isFinite(airport.distanceNm)
-    ? `${airport.distanceNm.toFixed(0)}NM`
-    : "";
-  // Two parts: the dot sits exactly on the airport position; the badge
-  // is positioned absolutely down-left so the runway / centerline at
-  // the airport stays visible underneath.
+    ? Math.round(airport.distanceNm)
+    : null;
+  // Two parts: the dot sits exactly on the airport position; the label
+  // stack (code pill + distance pill) is offset down-left so the runway
+  // / centerline at the airport stays visible underneath.
   return `
     <div class="nearby-airport-marker notranslate" translate="no">
       <span class="nearby-airport-marker-dot"></span>
-      <span class="nearby-airport-marker-label">
-        <strong>${code}</strong>
-        ${distance ? `<small>${escapeHtml(distance)}</small>` : ""}
-      </span>
+      <div class="airport-overlay-label nearby-airport-marker-label">
+        <span class="airport-overlay-label__code endf-tab endf-tab--code">
+          <span>${code}</span>
+        </span>
+        ${
+          distance != null
+            ? `<span class="airport-overlay-label__detail airport-overlay-label__detail--near">
+                <span class="airport-overlay-label__detail-value">${distance}</span>
+                <span class="airport-overlay-label__detail-label">NM</span>
+              </span>`
+            : ""
+        }
+      </div>
     </div>
   `;
 };
@@ -115,9 +128,9 @@ export default function NearbyAirportLayer({
   onSelectRef.current = onSelectAirport;
 
   useEffect(() => {
-    if (!map || !map.getContainer) return undefined;
+    if (!map || !map.getContainer || !map.getPane) return undefined;
 
-    layerRef.current?.removeFrom(map);
+    safeRemoveFromMap(layerRef.current, map);
     const layer = L.layerGroup();
 
     for (const airport of airports) {
@@ -148,11 +161,12 @@ export default function NearbyAirportLayer({
       marker.addTo(layer);
     }
 
-    layer.addTo(map);
+    const added = safeAddToMap(layer, map, { label: "NearbyAirportLayer" });
+    if (!added) return undefined;
     layerRef.current = layer;
 
     return () => {
-      layer.removeFrom(map);
+      safeRemoveFromMap(layer, map);
       layerRef.current = null;
     };
   }, [
