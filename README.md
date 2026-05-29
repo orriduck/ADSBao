@@ -13,8 +13,8 @@ from `src/config/changelog.js` at `/changelog`.
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/adsbao-airport-kjfk.jpg" alt="ADSBao JFK airport traffic map" width="49%" />
-  <img src="docs/screenshots/adsbao-aircraft-tracking.jpg" alt="ADSBao selected aircraft tracking page" width="49%" />
+  <img src="docs/screenshots/adsbao-airport-kbos.jpg" alt="ADSBao KBOS airport traffic map" width="49%" />
+  <img src="docs/screenshots/adsbao-aircraft-afr331e.jpg" alt="ADSBao selected aircraft tracking page" width="49%" />
 </p>
 
 ## What It Does
