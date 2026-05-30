@@ -1723,9 +1723,9 @@ body {
        even when the toolbar sits inside an overflow:hidden container that
        clips part of the ambient blur (e.g. .airport-map-stage). */
     --app-toolbar-shadow:
-        0 24px 60px rgba(0, 0, 0, 0.28),
-        0 6px 16px rgba(0, 0, 0, 0.20),
-        0 2px 4px rgba(0, 0, 0, 0.18);
+        0 24px 60px rgba(0, 0, 0, 0.16),
+        0 6px 16px rgba(0, 0, 0, 0.12),
+        0 2px 4px rgba(0, 0, 0, 0.10);
 }
 
 :root[data-theme="dark"] {
