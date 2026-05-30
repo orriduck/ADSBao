@@ -3089,13 +3089,17 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
-/* Wrapper carries the heading rotation + 2.5D rotateX/rotateY (pitch/bank)
-   derived in JS from track delta and verticalRate. The transition smooths
-   between successive ADS-B samples so bank/pitch settle visually instead
-   of snapping. transform-style preserves the perspective stack against
-   the silhouette inside, and backface-visibility avoids a flicker when
-   roll passes near ±90 (clamped well below that, but cheap insurance).
-   Sits ABOVE the silhouette's drop-shadow halo via overflow: visible. */
+/* Marker stack (shadow only rendered for selected aircraft):
+   1. .aircraft-pointer-glyph (wrapper) — heading rotation + wake-class scale.
+      Doesn't move out of plane, so the inner shadow can sit "on the ground".
+   2. .aircraft-shadow — the projected ground silhouette. Same SVG mask as
+      the real one but black, scaled-down, blurred. Stays planted while the
+      aircraft above it tilts and lifts — that's where the "altitude" cue
+      comes from, not from a filter halo.
+   3. .aircraft-silhouette — the real aircraft, carrying perspective + pitch
+      + bank + a translateY "lift". Sits above the shadow in DOM order.
+   Each layer transitions transform/opacity/filter so successive ADS-B
+   samples settle visually instead of snapping. */
 .aircraft-pointer-glyph {
     position: relative;
     overflow: visible;
@@ -3105,30 +3109,23 @@ body {
     transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
+.aircraft-shadow,
+.aircraft-silhouette {
+    transition:
+        transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
+        opacity 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
+        filter 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    transform-origin: center center;
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .aircraft-pointer-glyph {
+    .aircraft-pointer-glyph,
+    .aircraft-shadow,
+    .aircraft-silhouette {
         transition: none;
     }
 }
 
-/* Subtle accent halo behind the selected aircraft glyph. Sits underneath
-   the silhouette via z-index so the drop-shadow tint stays the dominant
-   color cue; readable on both light and dark basemaps because the gradient
-   fades out to fully transparent at the edges. */
-.aircraft-pointer-glyph--selected::after {
-    content: "";
-    position: absolute;
-    inset: -65%;
-    border-radius: 50%;
-    background: radial-gradient(
-        circle,
-        color-mix(in oklab, var(--atc-accent) 38%, transparent) 0%,
-        color-mix(in oklab, var(--atc-accent) 12%, transparent) 38%,
-        transparent 72%
-    );
-    pointer-events: none;
-    z-index: -1;
-}
 
 .aircraft-nose-beam {
     position: absolute;

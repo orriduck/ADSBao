@@ -22,10 +22,11 @@ import {
 import { createAttitudeTracker } from "../../utils/aircraftAttitude.js";
 import { getAircraftPositionSourceBadge } from "../../features/aviation/sourceDisplayModel.js";
 
-// Match the arrow size (18×18) so the icon stays anchored on the marker's
-// geo coordinate without shifting the label layout. Silhouettes are still
-// readable at this size and stay subordinate to the typographic identity
-// (callsign) the design language privileges.
+// Marker glyph size. Stays at 18 to keep the existing density of the map
+// — the visual cue now carries through the offset ground shadow + tilt
+// stack rather than enlarging the silhouette. The Leaflet divIcon and the
+// label baseline follow this constant, so changing it keeps the anchor
+// centered on the geo coordinate and the callsign hugs the silhouette.
 const SILHOUETTE_SIZE_PX = 18;
 
 const getAircraftColor = (ac, showArrow) => {
@@ -84,8 +85,8 @@ export default function AircraftPosition({
       icon: L.divIcon({
         className: "",
         html: container,
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
+        iconSize: [SILHOUETTE_SIZE_PX, SILHOUETTE_SIZE_PX],
+        iconAnchor: [SILHOUETTE_SIZE_PX / 2, SILHOUETTE_SIZE_PX / 2],
       }),
     }).addTo(map);
     markerRef.current = marker;
@@ -164,6 +165,8 @@ export default function AircraftPosition({
         rot={rot}
         roll={attitude.roll}
         pitch={attitude.pitch}
+        altitude={aircraft.altitude}
+        onGround={aircraft.onGround}
         selected={selected}
         showArrow={showArrow}
         silhouette={silhouette}
@@ -186,46 +189,91 @@ export default function AircraftPosition({
   );
 }
 
+// Altitude reference points (ft) used to map ADS-B altitude to a 0..1
+// ratio. Anything at or above CRUISE_FT looks fully "high" — its shadow
+// is the longest cast and the faintest blur. Surface-level traffic
+// (onGround or near 0 ft) gets a tight, dark shadow practically touching
+// the silhouette.
+const SHADOW_GROUND_FT = 0;
+const SHADOW_CRUISE_FT = 38_000;
+
 function Pointer({
   color,
   rot,
   roll = 0,
   pitch = 0,
+  altitude = null,
+  onGround = false,
   selected = false,
   showArrow,
   silhouette,
   sizeScale = 1,
   theme = "dark",
 }) {
-  // 2.5D transform stack — heading rotates the wrapper, perspective gives
-  // the rotateX/rotateY enough depth to read as pitch/bank without warping
-  // the silhouette. Scale stays at the end so wake-class size still applies
-  // uniformly. CSS transitions on `.aircraft-pointer-glyph` smooth between
-  // data updates so the bank/pitch settles instead of snapping.
-  const scaledTransform =
-    `rotate(${rot}deg) perspective(540px) ` +
-    `rotateX(${pitch}deg) rotateY(${roll}deg) scale(${sizeScale})`;
+  // The wrapper carries heading + wake-class scale; the silhouette inside
+  // carries the 3D pitch/bank stack + a translateY lift, while a separate
+  // shadow element stays planted in the wrapper's plane. The visual story:
+  // the shadow is "the ground", the silhouette flies above it on climb and
+  // touches it on descent. perspective(280px) sits close enough that
+  // ±12°/±35° read as visibly tilted (vs. 540px which is near-orthographic).
+  const wrapperTransform = `rotate(${rot}deg) scale(${sizeScale})`;
+  // Pitch still drives a small lift on the silhouette so the climb/descent
+  // posture reads at a glance, but the *shadow* is now decoupled from
+  // verticalRate and tracks absolute altitude instead.
+  const pitchLiftPx = (-(pitch / 12) * 4).toFixed(2);
+  const silhouetteTransform =
+    `translateY(${pitchLiftPx}px) perspective(280px) ` +
+    `rotateX(${pitch}deg) rotateY(${roll}deg)`;
 
-  // Drop-shadow ground projection: a soft offset shadow that grows when
-  // pitched / banked, suggesting altitude separation from the basemap.
-  // Selected aircraft get a stronger accent glow on top of the silhouette
-  // tint so they pop on both light and dark tiles.
-  const tiltMagnitude = Math.min(
-    1,
-    (Math.abs(roll) / 35 + Math.abs(pitch) / 12) / 2,
-  );
-  const shadowBlur = 3 + tiltMagnitude * 4;
-  const shadowOffset = 0.5 + tiltMagnitude * 1.5;
-  const silhouetteFilter = selected
-    ? `drop-shadow(0 ${shadowOffset}px ${shadowBlur}px rgba(0,0,0,0.55)) ` +
-      `drop-shadow(0 0 5px ${color}) drop-shadow(0 0 9px ${color})`
-    : `drop-shadow(0 ${shadowOffset}px ${shadowBlur}px rgba(0,0,0,0.45)) ` +
-      `drop-shadow(0 0 4px ${color})`;
+  // Ground shadow keyed off absolute altitude (or onGround). Higher = the
+  // shadow trails farther from the aircraft (longer cast), gets fainter
+  // and more diffuse; lower = tight, dark, near-coincident with the
+  // silhouette. The offset is in the wrapper's pre-rotation frame so the
+  // shadow trails the same screen-direction regardless of heading — top-
+  // left light-source convention shared with the rest of the surface
+  // shadows in the design system. The shadow uses the same SVG mask as
+  // the silhouette so what hits the basemap is the actual aircraft
+  // outline, not a generic blob.
+  const altClamped = onGround
+    ? SHADOW_GROUND_FT
+    : Math.min(
+        Math.max(Number(altitude) || SHADOW_GROUND_FT, SHADOW_GROUND_FT),
+        SHADOW_CRUISE_FT,
+      );
+  const altRatio = (altClamped - SHADOW_GROUND_FT) /
+    (SHADOW_CRUISE_FT - SHADOW_GROUND_FT);
+  const shadowOffsetX = (1 + altRatio * 6).toFixed(2);
+  const shadowOffsetY = (1 + altRatio * 9).toFixed(2);
+  // Floor blur at 5px and ceiling opacity at 0.5 so even surface-level
+  // traffic reads as a soft cast, not a duplicated silhouette. The mask
+  // still gives the shadow the aircraft outline, but at this much blur it
+  // reads as a tinted halo of the right shape rather than a double image.
+  const shadowBlur = (5 + altRatio * 5).toFixed(2);
+  const shadowOpacity = (0.5 - altRatio * 0.25).toFixed(2);
+  // Shadow is meaningfully smaller than the aircraft (game-art convention
+  // for altitude). Surface-level traffic gets ~0.85× — close to the real
+  // outline; cruise gets ~0.70× — a small distant cast.
+  const shadowScale = (0.85 - altRatio * 0.15).toFixed(3);
+  const shadowTransform =
+    `translate(${shadowOffsetX}px, ${shadowOffsetY}px) scale(${shadowScale})`;
 
   if (showArrow && silhouette) {
-    // Wrapper carries the rotation so the dark-theme nose beam orbits
-    // with the heading instead of sitting fixed in screen space.
+    // Wrapper carries the heading rotation so the dark-theme nose beam
+    // orbits with it. Shadow + silhouette share the same SVG mask so the
+    // projection is the real aircraft outline, not a generic ellipse.
     const maskUrl = `url(${silhouette.src})`;
+    const maskStyle = {
+      position: "absolute",
+      inset: 0,
+      WebkitMaskImage: maskUrl,
+      maskImage: maskUrl,
+      WebkitMaskRepeat: "no-repeat",
+      maskRepeat: "no-repeat",
+      WebkitMaskPosition: "center",
+      maskPosition: "center",
+      WebkitMaskSize: "contain",
+      maskSize: "contain",
+    };
     return (
       <div
         className={`aircraft-pointer-glyph${selected ? " aircraft-pointer-glyph--selected" : ""}`}
@@ -236,24 +284,28 @@ function Pointer({
         style={{
           width: `${SILHOUETTE_SIZE_PX}px`,
           height: `${SILHOUETTE_SIZE_PX}px`,
-          transform: scaledTransform,
+          transform: wrapperTransform,
         }}
       >
+        {selected ? (
+          <div
+            className="aircraft-shadow"
+            aria-hidden="true"
+            style={{
+              ...maskStyle,
+              backgroundColor: "rgba(0,0,0,0.95)",
+              opacity: shadowOpacity,
+              filter: `blur(${shadowBlur}px)`,
+              transform: shadowTransform,
+            }}
+          />
+        ) : null}
         <div
           className="aircraft-silhouette"
           style={{
-            position: "absolute",
-            inset: 0,
+            ...maskStyle,
             backgroundColor: color,
-            WebkitMaskImage: maskUrl,
-            maskImage: maskUrl,
-            WebkitMaskRepeat: "no-repeat",
-            maskRepeat: "no-repeat",
-            WebkitMaskPosition: "center",
-            maskPosition: "center",
-            WebkitMaskSize: "contain",
-            maskSize: "contain",
-            filter: silhouetteFilter,
+            transform: silhouetteTransform,
           }}
         />
         {theme === "dark" && (
@@ -264,18 +316,46 @@ function Pointer({
   }
   if (showArrow) {
     return (
-      <svg
+      <div
         className={`aircraft-pointer-glyph${selected ? " aircraft-pointer-glyph--selected" : ""}`}
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
         style={{
-          transform: scaledTransform,
-          filter: silhouetteFilter,
+          width: `${SILHOUETTE_SIZE_PX}px`,
+          height: `${SILHOUETTE_SIZE_PX}px`,
+          transform: wrapperTransform,
+          position: "relative",
         }}
       >
-        <path d="M12 2L16 20L12 17L8 20Z" fill={color} />
-      </svg>
+        {selected ? (
+          <svg
+            className="aircraft-shadow"
+            aria-hidden="true"
+            width={SILHOUETTE_SIZE_PX}
+            height={SILHOUETTE_SIZE_PX}
+            viewBox="0 0 24 24"
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: shadowOpacity,
+              filter: `blur(${shadowBlur}px)`,
+              transform: shadowTransform,
+            }}
+          >
+            <path d="M12 2L16 20L12 17L8 20Z" fill="rgba(0,0,0,0.95)" />
+          </svg>
+        ) : null}
+        <svg
+          width={SILHOUETTE_SIZE_PX}
+          height={SILHOUETTE_SIZE_PX}
+          viewBox="0 0 24 24"
+          style={{
+            position: "absolute",
+            inset: 0,
+            transform: silhouetteTransform,
+          }}
+        >
+          <path d="M12 2L16 20L12 17L8 20Z" fill={color} />
+        </svg>
+      </div>
     );
   }
   return (
@@ -283,10 +363,7 @@ function Pointer({
       width="7"
       height="7"
       viewBox="0 0 7 7"
-      style={{
-        filter: `drop-shadow(0 0 3px ${color})`,
-        margin: "5.5px",
-      }}
+      style={{ margin: "5.5px" }}
     >
       <circle cx="3.5" cy="3.5" r="3.5" fill={color} />
     </svg>
