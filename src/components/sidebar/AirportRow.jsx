@@ -1,10 +1,10 @@
 "use client";
 
 import { TowerControl } from "lucide-react";
+import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { airportCityName, airportDisplayName } from "@/utils/airport.js";
 import { countryName } from "@/utils/flag.js";
-import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
 
 // Airport equivalent of AircraftRow — same column rhythm so an
 // "airports & aircraft" mixed list reads as one coherent table.
@@ -73,26 +73,23 @@ export default function AirportRow({
   );
 }
 
-// See AircraftRow.NumberWithUnit — same reasoning: static text to keep
-// the long nearby list from costing framerate on every poll.
+// Mirrors AircraftRow.NumberWithUnit — virtualization bounds the instance
+// count, so NumberFlow's digit-level animation is affordable here too.
 function NumberWithUnit({ value, unit, format }) {
-  const formatted = new Intl.NumberFormat(undefined, format).format(value);
   return (
-    <EndfieldValueSwap
-      identityKey={`${formatted}:${unit}`}
-      value={(
-        <>
-          <span className="aircraft-table-number-value">{formatted}</span>
-          <sub
-            className="aircraft-table-unit notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
-            translate="no"
-          >
-            {unit}
-          </sub>
-        </>
-      )}
-      className="aircraft-table-number inline-flex items-baseline justify-end gap-0.5 tabular-nums"
-    />
+    <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
+      <NumberFlow
+        value={value}
+        format={format}
+        className="block min-w-0 text-right"
+      />
+      <sub
+        className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
+        translate="no"
+      >
+        {unit}
+      </sub>
+    </span>
   );
 }
 
