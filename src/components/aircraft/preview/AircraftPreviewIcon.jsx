@@ -14,7 +14,7 @@ export default function AircraftPreviewIcon({ aircraft }) {
   if (!icon) {
     return (
       <div
-        className="aircraft-preview-icon aircraft-preview-icon--fallback"
+        className="shrink-0 rounded-[var(--atc-radius-panel)] bg-[var(--tone-orange-warm)] opacity-[0.36]"
         style={{ width: ICON_SIZE_PX, height: ICON_SIZE_PX, color }}
         aria-hidden="true"
       />
@@ -24,7 +24,7 @@ export default function AircraftPreviewIcon({ aircraft }) {
   const maskUrl = `url(${icon.src})`;
   return (
     <div
-      className="aircraft-preview-icon"
+      className="shrink-0"
       role="img"
       aria-label={
         icon.source === "type" ? "aircraft type silhouette" : "aircraft category silhouette"

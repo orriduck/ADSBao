@@ -9,13 +9,13 @@ export default function AircraftList({
   onSelectAircraft,
 }) {
   return (
-    <ul className="aircraft-table-list">
+    <ul className="divide-y divide-atc-line">
       {aircraft.map((item, index) => {
         const aircraftId = getAircraftIdentity(item);
         return (
           <li
             key={aircraftId || index}
-            className="aircraft-table-list__item"
+            className="relative list-none [perspective:800px]"
           >
             <AircraftRow
               aircraft={item}
