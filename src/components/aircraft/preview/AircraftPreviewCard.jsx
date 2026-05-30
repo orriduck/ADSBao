@@ -7,6 +7,12 @@ import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard.jsx";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard.jsx";
 import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard.jsx";
 import AirportPreviewMobileCard from "./AirportPreviewMobileCard.jsx";
+import MobilePreviewCard, {
+  MobilePreviewActions,
+  MobilePreviewFeedbackLink,
+  MobilePreviewTrackButton,
+  MobilePreviewTraceStatus,
+} from "./MobilePreviewCard.jsx";
 import RouteFeedbackModal from "./RouteFeedbackModal.jsx";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext.jsx";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto.js";
@@ -136,11 +142,38 @@ export default function AircraftPreviewCard({
         </aside>
       )}
       {showMobile && (
-        <aside
-          key={`mobile-${identityKey}`}
-          className="aircraft-preview-mobile-card aircraft-preview-mobile-card--stacked"
-          aria-label={
+        <MobilePreviewCard
+          identityKey={`mobile-${identityKey}`}
+          ariaLabel={
             isAirport ? t("preview.airportPreview") : t("preview.aircraftPreview")
+          }
+          traceStatus={
+            trackHref && !isAirport ? (
+              <MobilePreviewTraceStatus active={traceLoading}>
+                {t("preview.loadingTrace")}
+              </MobilePreviewTraceStatus>
+            ) : null
+          }
+          actions={
+            (trackHref || showMobileFeedbackTrigger) ? (
+              <MobilePreviewActions>
+                {trackHref && (
+                  <MobilePreviewTrackButton
+                    onClick={handleMobileTap}
+                    disabled={alreadyTracking}
+                  >
+                    {mobileTrackLabel}
+                  </MobilePreviewTrackButton>
+                )}
+                {showMobileFeedbackTrigger && (
+                  <MobilePreviewFeedbackLink
+                    onClick={() => setFeedbackModalOpen(true)}
+                  >
+                    {mobileFeedbackLabel}
+                  </MobilePreviewFeedbackLink>
+                )}
+              </MobilePreviewActions>
+            ) : null
           }
         >
           {isAirport ? (
@@ -148,46 +181,7 @@ export default function AircraftPreviewCard({
           ) : (
             <AircraftPreviewMobileCard aircraft={aircraft} />
           )}
-          {trackHref && !isAirport && (
-            <div
-              className={`aircraft-preview-mobile-card__trace-status ${
-                traceLoading ? "is-active" : ""
-              }`}
-              aria-hidden={!traceLoading}
-            >
-              {t("preview.loadingTrace")}
-            </div>
-          )}
-          {(trackHref || showMobileFeedbackTrigger) && (
-            <div
-              className={`aircraft-preview-mobile-card__actions ${
-                !showMobileFeedbackTrigger
-                  ? "aircraft-preview-mobile-card__actions--single"
-                  : ""
-              }`}
-            >
-              {trackHref && (
-                <button
-                  type="button"
-                  className="aircraft-preview-mobile-card__track"
-                  onClick={handleMobileTap}
-                  disabled={alreadyTracking}
-                >
-                  {mobileTrackLabel}
-                </button>
-              )}
-              {showMobileFeedbackTrigger && (
-                <button
-                  type="button"
-                  className="aircraft-preview-mobile-card__feedback-link"
-                  onClick={() => setFeedbackModalOpen(true)}
-                >
-                  {mobileFeedbackLabel}
-                </button>
-              )}
-            </div>
-          )}
-        </aside>
+        </MobilePreviewCard>
       )}
       {showMobileFeedbackTrigger && (
         <RouteFeedbackModal

@@ -18,6 +18,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  FilterCard,
+  FilterCardGrid,
+  FilterCardLabel,
+  FilterCardValue,
+  filterCardVariants,
+} from "@/components/ui/FilterCard.jsx";
+import {
+  MenuPanel,
+  MenuItem,
+  MenuItemCheck,
+  MenuItemLabel,
+  MenuItemCount,
+} from "@/components/ui/MenuPanel.jsx";
 import { cn } from "@/lib/utils";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
@@ -203,11 +217,7 @@ export default function AircraftTable({
           </label>
         </div>
 
-        <div
-          className="aircraft-filter-cards aircraft-filter-cards--grid"
-          role="group"
-          aria-label={t("sidebar.filtersAria")}
-        >
+        <FilterCardGrid columns={2} aria-label={t("sidebar.filtersAria")}>
           <EntityFilterCycleCard
             label={t("sidebar.targets")}
             value={entityFilter}
@@ -221,10 +231,8 @@ export default function AircraftTable({
           <TooltipProvider delayDuration={250}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="aircraft-filter-card"
-                  data-active={trafficFilter === "routed" ? "true" : undefined}
+                <FilterCard
+                  active={trafficFilter === "routed"}
                   aria-pressed={trafficFilter === "routed"}
                   onClick={() =>
                     setTrafficFilter(
@@ -232,11 +240,11 @@ export default function AircraftTable({
                     )
                   }
                 >
-                  <span className="aircraft-filter-card__label">{t("sidebar.route")}</span>
-                  <strong className="aircraft-filter-card__value">
+                  <FilterCardLabel>{t("sidebar.route")}</FilterCardLabel>
+                  <FilterCardValue>
                     {trafficFilter === "routed" ? t("sidebar.routed") : t("sidebar.all")}
-                  </strong>
-                </button>
+                  </FilterCardValue>
+                </FilterCard>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-[220px] text-left">
                 <strong className="block text-[11px] font-semibold uppercase tracking-wide">
@@ -262,7 +270,7 @@ export default function AircraftTable({
             ariaLabel={t("filters.altitudeFilterAria")}
             contentClassName="min-w-[220px]"
           />
-        </div>
+        </FilterCardGrid>
 
         <div className="aircraft-table-header aircraft-table-row-grid grid grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3">
           <span aria-hidden="true" />
@@ -424,39 +432,36 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
   const clearAll = () => onChange("all");
 
   return (
-    <div ref={wrapperRef} className="aircraft-filter-type">
-      <button
-        type="button"
-        className="aircraft-filter-card aircraft-filter-card--select"
+    <div ref={wrapperRef} className="relative">
+      <FilterCard
+        shape="select"
         data-state={open ? "open" : "closed"}
-        data-active={isMultiSelect ? "true" : undefined}
+        active={isMultiSelect}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={t("filters.aircraftFilterAria")}
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="aircraft-filter-card__label">{t("sidebar.aircraftType")}</span>
-        <strong className="aircraft-filter-card__value">{displayValue}</strong>
-      </button>
+        <FilterCardLabel>{t("sidebar.aircraftType")}</FilterCardLabel>
+        <FilterCardValue>{displayValue}</FilterCardValue>
+      </FilterCard>
       {open && panelStyle && typeof document !== "undefined" && createPortal(
-        <div
+        <MenuPanel
           ref={panelRef}
-          className="aircraft-filter-type-panel"
           style={panelStyle}
           role="listbox"
           aria-multiselectable="true"
+          className="absolute z-popover max-h-[320px] overflow-y-auto"
         >
-          <button
-            type="button"
-            className="aircraft-filter-type-row aircraft-filter-type-row--all"
-            data-selected={!isMultiSelect ? "true" : undefined}
+          <MenuItem
+            selected={!isMultiSelect}
             onClick={clearAll}
           >
-            <span className="aircraft-filter-type-row__check">
+            <MenuItemCheck>
               {!isMultiSelect ? <Check size={11} aria-hidden="true" /> : null}
-            </span>
-            <span className="aircraft-filter-type-row__label">{t("sidebar.all")}</span>
-          </button>
+            </MenuItemCheck>
+            <MenuItemLabel>{t("sidebar.all")}</MenuItemLabel>
+          </MenuItem>
           {groups.map((group) => {
             const groupSelectedCount = group.types.filter((t) =>
               selectedSet.has(t),
@@ -465,50 +470,48 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
             const partialSelected =
               groupSelectedCount > 0 && !allSelected;
             return (
-              <div key={group.category} className="aircraft-filter-type-group">
-                <button
-                  type="button"
-                  className="aircraft-filter-type-row aircraft-filter-type-row--header"
-                  data-selected={allSelected ? "true" : undefined}
-                  data-partial={partialSelected ? "true" : undefined}
+              // Spacing gap between groups — 4px top margin on every
+              // group after the first. Lives inline so adjusting
+              // dropdown rhythm only touches this one className.
+              <div key={group.category} className="[&:not(:first-of-type)]:mt-1">
+                <MenuItem
+                  variant="header"
+                  selected={allSelected}
+                  partial={partialSelected}
                   onClick={() => toggleGroup(group)}
                 >
-                  <span className="aircraft-filter-type-row__check">
+                  <MenuItemCheck>
                     {allSelected ? (
                       <Check size={11} aria-hidden="true" />
                     ) : partialSelected ? (
                       <Minus size={11} aria-hidden="true" />
                     ) : null}
-                  </span>
-                  <span className="aircraft-filter-type-row__label">
+                  </MenuItemCheck>
+                  <MenuItemLabel>
                     {group.labelKey ? t(group.labelKey) : group.label}
-                  </span>
-                  <span className="aircraft-filter-type-row__count">
-                    {group.types.length}
-                  </span>
-                </button>
+                  </MenuItemLabel>
+                  <MenuItemCount>{group.types.length}</MenuItemCount>
+                </MenuItem>
                 {group.types.map((type) => (
-                  <button
+                  <MenuItem
                     key={type}
-                    type="button"
-                    className="aircraft-filter-type-row aircraft-filter-type-row--item"
-                    data-selected={selectedSet.has(type) ? "true" : undefined}
+                    selected={selectedSet.has(type)}
                     onClick={() => toggleType(type)}
+                    // Indent type rows under their group header.
+                    className="[&_[data-ui=menu-label]]:pl-2"
                   >
-                    <span className="aircraft-filter-type-row__check">
+                    <MenuItemCheck>
                       {selectedSet.has(type) ? (
                         <Check size={11} aria-hidden="true" />
                       ) : null}
-                    </span>
-                    <span className="aircraft-filter-type-row__label">
-                      {type}
-                    </span>
-                  </button>
+                    </MenuItemCheck>
+                    <MenuItemLabel data-ui="menu-label">{type}</MenuItemLabel>
+                  </MenuItem>
                 ))}
               </div>
             );
           })}
-        </div>,
+        </MenuPanel>,
         document.body,
       )}
     </div>
@@ -526,16 +529,14 @@ function EntityFilterCycleCard({
   const option = options.find((item) => item.value === value) || options[0];
   const displayValue = option?.labelKey ? t(option.labelKey) : option?.label;
   return (
-    <button
-      type="button"
-      className="aircraft-filter-card"
-      data-active={value !== "all" ? "true" : undefined}
+    <FilterCard
+      active={value !== "all"}
       aria-label={ariaLabel}
       onClick={onValueChange}
     >
-      <span className="aircraft-filter-card__label">{label}</span>
-      <strong className="aircraft-filter-card__value">{displayValue}</strong>
-    </button>
+      <FilterCardLabel>{label}</FilterCardLabel>
+      <FilterCardValue>{displayValue}</FilterCardValue>
+    </FilterCard>
   );
 }
 
@@ -554,23 +555,17 @@ function AircraftFilterCardSelect({
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger
         aria-label={ariaLabel}
-        className="aircraft-filter-card aircraft-filter-card--select"
+        className={cn(filterCardVariants({ shape: "select" }), "h-auto")}
       >
-        <span className="aircraft-filter-card__label">{label}</span>
-        <strong className="aircraft-filter-card__value">
+        <FilterCardLabel>{label}</FilterCardLabel>
+        <FilterCardValue>
           <SelectValue />
-        </strong>
+        </FilterCardValue>
       </SelectTrigger>
-      <SelectContent
-        className={cn("aircraft-filter-card-content", contentClassName)}
-      >
+      <SelectContent className={contentClassName}>
         <SelectGroup>
           {options.map((option) => (
-            <SelectItem
-              key={option.value}
-              value={option.value}
-              className="aircraft-filter-card-item"
-            >
+            <SelectItem key={option.value} value={option.value}>
               {resolveLabel(option)}
             </SelectItem>
           ))}

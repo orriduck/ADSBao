@@ -13,6 +13,7 @@ import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel.js";
+import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge.jsx";
 
 const escapeHtml = (value) =>
   String(value || "")
@@ -25,29 +26,28 @@ const escapeHtml = (value) =>
 const airportLabel = (airport) => airport.iata || airport.icao || "";
 
 const markerHtml = (airport) => {
-  const code = escapeHtml(airportLabel(airport));
+  const code = airportLabel(airport);
   const distance = Number.isFinite(airport.distanceNm)
     ? Math.round(airport.distanceNm)
     : null;
   // Two parts: the dot sits exactly on the airport position; the label
   // stack (code pill + distance pill) is offset down-left so the runway
   // / centerline at the airport stays visible underneath.
+  const badge = airportLabelBadgeHtml({
+    code,
+    className: "nearby-airport-marker-label",
+    // Distance shown as "DIST 14NM" — label is the noun ("DIST"), value
+    // is the magnitude with unit suffix concatenated so the unit reads
+    // as part of the number, not as a separate caption.
+    details:
+      distance != null
+        ? [{ key: "dist", variant: "near", label: "DIST", value: `${distance}NM` }]
+        : [],
+  });
   return `
     <div class="nearby-airport-marker notranslate" translate="no">
       <span class="nearby-airport-marker-dot"></span>
-      <div class="airport-overlay-label nearby-airport-marker-label">
-        <span class="airport-overlay-label__code endf-tab endf-tab--code">
-          <span>${code}</span>
-        </span>
-        ${
-          distance != null
-            ? `<span class="airport-overlay-label__detail airport-overlay-label__detail--near">
-                <span class="airport-overlay-label__detail-value">${distance}</span>
-                <span class="airport-overlay-label__detail-label">NM</span>
-              </span>`
-            : ""
-        }
-      </div>
+      ${badge}
     </div>
   `;
 };

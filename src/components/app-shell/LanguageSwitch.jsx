@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, Languages } from "lucide-react";
-import { Button } from "@/components/ui/button.jsx";
 import {
   SUPPORTED_LOCALES,
   getLocaleMenuItems,
 } from "@/features/app-shell/i18n/i18nModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import {
+  MenuPanel,
+  MenuItem,
+  MenuItemLabel,
+} from "@/components/ui/MenuPanel.jsx";
 
 export default function LanguageSwitch({
   className = "",
@@ -53,45 +57,43 @@ export default function LanguageSwitch({
   return (
     <div ref={containerRef} className="relative isolate z-dropdown">
       {open && (
-        <div
+        <MenuPanel
           role="menu"
           aria-label={t("language.menuLabel")}
-          className={`absolute z-dropdown flex min-w-[160px] flex-col rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card p-1.5 font-sans text-atc-text shadow-[0_12px_32px_color-mix(in_oklab,var(--atc-bg)_60%,transparent),0_2px_6px_color-mix(in_oklab,var(--atc-bg)_40%,transparent)] ${placementClass} ${alignClass}`}
+          className={`absolute z-dropdown min-w-[140px] ${placementClass} ${alignClass}`}
         >
           {languageItems.map((item) => {
             const active = item.locale === locale;
             return (
-              <button
+              <MenuItem
                 key={item.locale}
-                type="button"
                 role="menuitemradio"
                 aria-checked={active}
-                data-selected={active ? "true" : undefined}
+                selected={active}
                 onClick={() => handleSelect(item.locale)}
-                className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-[10px] border-0 bg-transparent px-2.5 py-2 text-left text-[13px] font-medium leading-[1.2] text-atc-faint transition-[background,color] duration-[180ms] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] hover:text-atc-text data-[selected=true]:bg-[color-mix(in_oklab,var(--atc-accent)_12%,transparent)] data-[selected=true]:font-semibold data-[selected=true]:text-atc-text"
+                className="justify-between"
               >
-                <span>{item.label}</span>
-                {active && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
-              </button>
+                <MenuItemLabel>{item.label}</MenuItemLabel>
+                {active && <Check className="h-3 w-3" aria-hidden="true" />}
+              </MenuItem>
             );
           })}
-        </div>
+        </MenuPanel>
       )}
 
-      <Button
-        variant="atcIcon"
-        size="icon"
-        className={`ctrl-btn ctrl-language ${open ? "active" : ""} ${className}`.trim()}
+      <button
+        type="button"
+        className={className}
+        data-active={open ? "true" : undefined}
         title={aria}
         aria-label={aria}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
-        type="button"
         data-current-locale={locale}
       >
-        <Languages className="h-4 w-4" aria-hidden="true" />
-      </Button>
+        <Languages aria-hidden="true" />
+      </button>
     </div>
   );
 }

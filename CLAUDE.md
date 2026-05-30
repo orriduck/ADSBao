@@ -10,6 +10,32 @@ pnpm run dev
 
 Frontend runs on `http://localhost:3000` by default.
 
+### Dev server lifecycle (Claude operational rules)
+
+You are expected to keep one long-running `pnpm dev` process on port 3000 across the session. Pattern:
+
+1. **Before touching code**, check whether port 3000 is already serving by hitting `http://localhost:3000` (any 2xx/3xx counts). If it isn't, start the server in the background with the Bash tool's `run_in_background: true` and wait until it's ready (`curl -s -o /dev/null -w '%{http_code}' http://localhost:3000` returns `200`).
+2. **Adopt, don't fight, an existing dev server.** If port 3000 is already taken by a `pnpm dev` you started in a prior turn, just use it — don't kill it. Next.js + Turbopack HMR will pick up most edits.
+3. **Restart with cache clear when you spot stale-bundle symptoms**, even if you never see an error in the terminal. Symptoms that mean "Turbopack is serving old code":
+   - DevTools shows both old + new class names in the same stylesheet after you renamed something.
+   - A CSS change that's plainly in `src/style.css` (verify with `grep`) isn't reflected in `getComputedStyle()`.
+   - A JSX rename / removed component still appears in the rendered DOM.
+   - `curl http://localhost:3000/_next/static/chunks/...css` returns content that doesn't match the source file.
+
+   When you see any of those, run this restart sequence (no need to ask the user first — it's idempotent and recoverable):
+
+   ```bash
+   lsof -nP -iTCP:3000 -sTCP:LISTEN | awk 'NR>1 {print $2}' | xargs -r kill
+   sleep 2
+   rm -rf .next
+   pnpm dev   # use run_in_background: true
+   # then poll until ready:
+   until curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 | grep -q 200; do sleep 2; done
+   ```
+
+4. **After the restart**, reload the page in chrome-devtools-mcp with `ignoreCache: true` before re-checking the broken behavior. Verify the source CSS file with `grep` first, then verify the served bundle (`curl /_next/static/chunks/*.css | grep <class>`) before going deeper into a debugging rabbit hole.
+5. Never `--turbopack`-disable or `next build` mid-session as a workaround — restarting with `.next` removed is the supported escape hatch and is fast enough on this project (< 10s to ready). Don't add `package.json` scripts for this; it's an operational habit, not a permanent build flag.
+
 ## Stack
 
 - **Frontend**: React + Next.js App Router + Tailwind CSS v4 + DaisyUI, managed by `pnpm`.
@@ -54,24 +80,61 @@ There is no standalone `src/services` or `src/server` layer. JSX belongs under `
 
 ## Styling — Tailwind first
 
-This project uses **Tailwind CSS v4**. When adding or changing styles, reach for Tailwind utilities in JSX *before* writing custom CSS in `src/style.css`. Custom CSS is reserved for cases utilities can't express cleanly.
+This project uses **Tailwind CSS v4**. When adding or changing styles, reach for Tailwind utilities in JSX *before* writing custom CSS in `src/style.css`. Custom CSS is reserved for cases utilities genuinely can't express. The default answer is "put it on the component."
 
-Decision order when styling something:
+### Decision order
 
-1. **Tailwind utility classes** in JSX (`flex`, `gap-2`, `text-[12px]`, `bg-atc-card`, etc.) — preferred default.
-2. **Tailwind arbitrary values** (`bg-[var(--tone-card-soft)]`, `rounded-[var(--atc-radius-panel)]`) when a one-off needs an existing CSS variable.
-3. **Custom CSS in `src/style.css`** only for things utilities can't do, e.g.:
-   - Multi-layer gradient backgrounds and `color-mix()` blends.
-   - `::before` / `::after` decorative pseudo-elements.
-   - Theme-aware overrides under `[data-theme="..."]` selectors.
-   - Animations (`@keyframes`) and `prefers-reduced-motion` blocks.
-   - Leaflet/marker DOM that we don't own and can't pass classes to.
+1. **Tailwind utility classes** in JSX (`flex`, `gap-2`, `text-[12px]`, `bg-atc-card`, etc.).
+2. **Tailwind arbitrary values** for one-offs that need an existing CSS variable (`bg-[color-mix(in_oklab,var(--atc-card)_82%,transparent)]`, `rounded-[var(--atc-radius-panel)]`, `min-h-[76px]`, `grid-rows-[11px_minmax(27px,auto)_10px]`).
+3. **Tailwind variants** for state, child, pseudo, and ancestor styling (see "Variants you should reach for first" below).
+4. **`cva` + `cn` in a primitive component** (`src/components/ui/*.jsx`) for anything reused across pages — co-locate state variants and tokens with the JSX.
+5. **Custom CSS in `src/style.css`** only when utilities cannot express the result. Realistic exceptions:
+   - DOM we don't own and can't pass classes to (Leaflet `divIcon` HTML, Clerk's `.cl-*` shadow DOM, third-party widgets).
+   - `@keyframes` definitions and `prefers-reduced-motion` blocks.
+   - `[data-theme="..."]` overrides that have to live above the cascade (`:root[data-theme="dark"] .x { ... }`).
+   - Multi-rule structural CSS for legacy class-named subsystems (table rows, search inputs, popovers) that haven't been migrated to a primitive yet.
 
-When you do write custom CSS, follow the existing DRY patterns:
+A pseudo-element (`::before` / `::after`) is **not** an automatic reason to write CSS — Tailwind v4 supports `before:` / `after:` variants. Use those first.
 
-- **Use the existing tokens.** `:root` defines `--atc-*` (theme colors) and `--tone-*` (composed `color-mix` blends like `--tone-card-soft`, `--tone-border-firm`, `--tone-orange-warm`). Reuse them instead of re-typing `color-mix(in oklab, var(--atc-card) 62%, transparent)`. If you need a new tone variant, add a token in `:root` rather than inlining it at the use site.
-- **Merge selectors that share a declaration block** with comma-separated lists (e.g. `.search-row, .about-source { ... }`) — don't duplicate the rule.
-- **Tailwind v4 quirks**: `normal-case` no longer exists; use `capitalize` (or rewrite the source text) when you need to override an inherited `uppercase`. Theme tokens declared in `@theme inline` at the top of `style.css` become utility classes (e.g. `bg-atc-card`); add new theme colors there if you want utility access.
+### Variants you should reach for first
+
+Tailwind v4 expresses most "context overrides" without leaving JSX. The patterns this codebase already uses:
+
+- **Pseudo-elements** — `before:content-[''] before:absolute before:inset-0 before:[background:var(--sidebar-tile-bottom-glow)]`. Use the `background` shorthand (in `[...]`) when the token is a gradient; `bg-[...]` compiles to `background-color` which can't accept a gradient. See `MetricCard.jsx`.
+- **Ancestor selectors** — `[.airport-map-kit_&]:min-h-[76px]` compiles to `.airport-map-kit .target { min-height: 76px }`. Use this for context-specific compact / spacious variants instead of writing `.airport-map-kit .my-card { ... }` in `style.css`. The `_` stands in for a space.
+- **Group / data attributes** — `data-[active=true]:bg-[var(--atc-click-bg)]`, `data-[state=open]:shadow-[...]`, `group-data-[active=true]:text-[var(--atc-click-fg)]`. Use these instead of `.my-card[data-active="true"] { ... }`.
+- **Compound ancestor + state** — `[[data-active=true]_&]:text-[var(--atc-click-muted)]` flips a child when any ancestor is active. Use this when the parent isn't tagged with `class="group"` (e.g. Radix's `SelectTrigger`, which drops props through `asChild`).
+- **Direct-child / descendant** — `[&>svg]:absolute [&>svg]:right-3` pins a SelectTrigger's chevron. Same for `[&_strong]:text-[24px]` when targeting structural children.
+- **Combining variants** — `[.airport-map-kit_&]:[&>svg]:right-2` (ancestor + direct child), `data-[state=open]:[&>svg]:text-[var(--atc-click-muted)]` (state + descendant). All compose without quoting issues as long as each fragment is a single literal class string Tailwind can extract.
+
+### Variants gotchas
+
+- Tailwind extracts class names statically from your source. **Do not build classes with string concatenation or `replaceAll`** — those don't appear in the safelist and won't compile. Every Tailwind class must exist as a literal string somewhere in a `.jsx` / `.js` file.
+- `tailwind-merge` (via `cn()`) collapses conflicting utilities. When a `cva` base has `px-[14px]` and a variant adds `pr-7`, the result is `pl-[14px] pr-7` — predictable, but verify with devtools when in doubt.
+- `[class*="uppercase"]` global overrides exist in `style.css`; check before relying on `uppercase` rendering as literal CAPS.
+- `pointer-events: none` on a parent (`.airport-map-menu--mobile`, `.sidebar-top-dock`, `.page-nav-dock`) requires the floating pill to opt back in with `pointer-events-auto`. The `Toolbar` primitive already does this; new floating-pill components inside those containers must too.
+
+### When you would have written CSS — try this instead
+
+- "I need a 4px bottom-edge glow on the active state." → `data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-12px_20px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]` on the cva base.
+- "The card should be smaller inside the map kit." → `[.airport-map-kit_&]:min-h-[76px] [.airport-map-kit_&]:p-[14px]` on the card, not `.airport-map-kit .my-card { padding: 14px }` in `style.css`.
+- "I need a chevron pinned to the right." → `[&>svg]:absolute [&>svg]:right-3 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2` on the parent.
+- "The active filter should have no border." → `data-[active=true]:border-transparent`, not `.my-filter[data-active="true"] { border: 0 }`.
+
+### When `style.css` is the right answer
+
+- Global `@theme inline` token declarations and `:root` / `:root[data-theme]` variable definitions.
+- `@keyframes` (e.g. `.toolbar-reveal`) plus `prefers-reduced-motion`.
+- Selectors that have to win over a third-party stylesheet (Clerk, Leaflet, Radix popover layers) where we can't add classes to the rendered element.
+- Container-level positioning wrappers that pre-exist and just hold the layout — `.airport-map-kit`, `.airport-map-menu`, `.sidebar-top-dock`, `.page-nav-dock`, `.map-ctrl-zone`. These keep their CSS because they wrap structure, not visual state.
+
+If you find yourself adding more than ~5 lines of CSS for a component you control, stop and convert it to inline variants instead. The recent `Toolbar` / `MetricCard` / `FilterCard` primitives replaced ~1000 lines of `style.css` with inline Tailwind by following this rule.
+
+When custom CSS is genuinely warranted, follow the existing DRY patterns:
+
+- **Use the existing tokens.** `:root` defines `--atc-*` (theme colors) and `--tone-*` (composed `color-mix` blends). Reuse them instead of re-typing `color-mix(in oklab, var(--atc-card) 62%, transparent)`. If you need a new tone, add a token in `:root` rather than inlining it at the use site.
+- **Merge selectors that share a declaration block** with comma-separated lists.
+- **Tailwind v4 quirks**: `normal-case` no longer exists; use `capitalize`. Theme tokens declared in `@theme inline` at the top of `style.css` become utility classes (e.g. `bg-atc-card`); add new theme colors there for utility access.
 
 Watch the dev server (`pnpm run dev`) for layout regressions after touching `style.css` — many panels share the same surface tokens, so a token edit ripples broadly by design.
 
