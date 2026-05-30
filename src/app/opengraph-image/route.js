@@ -1,32 +1,154 @@
 import { ImageResponse } from "next/og";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_SOCIAL_IMAGE } from "@/config/site";
+import { SITE_NAME, SITE_SOCIAL_IMAGE } from "@/config/site";
 
-const SAIRA_FONT_URLS = {
-  400: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA71rCosg.ttf",
-  700: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA773Fosg.ttf",
-  900: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA7_PFosg.ttf",
-};
+const FONT_URLS = [
+  {
+    name: "Plus Jakarta Sans",
+    weight: 500,
+    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_m07NSg.ttf",
+  },
+  {
+    name: "Plus Jakarta Sans",
+    weight: 700,
+    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_TknNSg.ttf",
+  },
+  {
+    name: "Plus Jakarta Sans",
+    weight: 800,
+    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KUnNSg.ttf",
+  },
+  {
+    name: "Noto Sans SC",
+    weight: 700,
+    url: "https://fonts.gstatic.com/s/notosanssc/v40/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaGzjCnYw.ttf",
+  },
+];
 
 const imageSize = {
   width: SITE_SOCIAL_IMAGE.width,
   height: SITE_SOCIAL_IMAGE.height,
 };
 
-const sairaFonts = Promise.all(
-  Object.entries(SAIRA_FONT_URLS).map(async ([weight, url]) => {
+const fontFamily = '"Plus Jakarta Sans", "Noto Sans SC", sans-serif';
+
+const colors = {
+  paper: "#f1f1ef",
+  ink: "#181714",
+  markCutout: "#f1f1ef",
+};
+
+const backgroundRings = [
+  { x: -104, y: -112, size: 244, color: "#d6d6d2" },
+  { x: 120, y: -112, size: 244, color: "#b9b9b5" },
+  { x: 344, y: -112, size: 244, color: "#e4e4e1" },
+  { x: 568, y: -112, size: 244, color: "#c7c7c3" },
+  { x: 792, y: -112, size: 244, color: "#ececea" },
+  { x: 1016, y: -112, size: 244, color: "#b2b2ae" },
+  { x: -104, y: 112, size: 244, color: "#bfbfbb" },
+  { x: 120, y: 112, size: 244, color: "#e8e8e5" },
+  { x: 344, y: 112, size: 244, color: "#d0d0cc" },
+  { x: 568, y: 112, size: 244, color: "#adada9" },
+  { x: 792, y: 112, size: 244, color: "#ddddda" },
+  { x: 1016, y: 112, size: 244, color: "#c4c4c0" },
+  { x: -104, y: 336, size: 244, color: "#ebebe8" },
+  { x: 120, y: 336, size: 244, color: "#c8c8c4" },
+  { x: 344, y: 336, size: 244, color: "#aaaaa6" },
+  { x: 568, y: 336, size: 244, color: "#e1e1de" },
+  { x: 792, y: 336, size: 244, color: "#bebeba" },
+  { x: 1016, y: 336, size: 244, color: "#eeeeec" },
+  { x: -104, y: 560, size: 244, color: "#ccccc8" },
+  { x: 120, y: 560, size: 244, color: "#b5b5b1" },
+  { x: 344, y: 560, size: 244, color: "#e6e6e3" },
+  { x: 568, y: 560, size: 244, color: "#c1c1bd" },
+  { x: 792, y: 560, size: 244, color: "#d9d9d5" },
+  { x: 1016, y: 560, size: 244, color: "#a8a8a4" },
+];
+
+const fontData = Promise.all(
+  FONT_URLS.map(async ({ name, weight, url }) => {
     const response = await fetch(url, { cache: "force-cache" });
     if (!response.ok) {
-      throw new Error(`Failed to load Saira ${weight} font`);
+      throw new Error(`Failed to load ${name} ${weight} font`);
     }
 
     return {
-      name: "Saira",
+      name,
       data: await response.arrayBuffer(),
-      weight: Number(weight),
+      weight,
       style: "normal",
     };
   }),
 );
+
+function BrandMark({ size = 24 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 76 76"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="38" cy="38" r="34" fill={colors.ink} />
+      <path
+        d="M29 19L57 38L29 57V44H14V32H29V19Z"
+        fill={colors.markCutout}
+      />
+    </svg>
+  );
+}
+
+function BackgroundCircle({ x, y, size, color }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: x,
+        top: y,
+        width: size,
+        height: size,
+        borderRadius: 999,
+        background: color,
+      }}
+    />
+  );
+}
+
+function RingBackground() {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: imageSize.width,
+        height: imageSize.height,
+        display: "flex",
+        overflow: "hidden",
+        background: colors.paper,
+      }}
+    >
+      {backgroundRings.map((ring) => (
+        <BackgroundCircle
+          key={`${ring.x}-${ring.y}-${ring.size}`}
+          {...ring}
+        />
+      ))}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: imageSize.width,
+          height: imageSize.height,
+          display: "flex",
+          background:
+            "linear-gradient(135deg, rgba(241, 241, 239, 0) 0%, rgba(241, 241, 239, 0.42) 34%, rgba(241, 241, 239, 0.84) 66%, rgba(241, 241, 239, 0.96) 100%)",
+        }}
+      />
+    </div>
+  );
+}
 
 export async function GET() {
   return new ImageResponse(
@@ -35,121 +157,77 @@ export async function GET() {
         style={{
           width: "100%",
           height: "100%",
+          position: "relative",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#0e0f10",
-          color: "#f5f3ee",
-          padding: "60px 80px 48px",
-          fontFamily: "Saira, sans-serif",
+          overflow: "hidden",
+          background: colors.paper,
+          color: colors.ink,
+          fontFamily,
         }}
       >
-        {/* Brand row: diamond + // ADSBAO wordmark + section label */}
+        <RingBackground />
+
         <div
           style={{
+            position: "absolute",
+            left: 64,
+            top: 54,
+            width: 1072,
+            height: 522,
             display: "flex",
-            alignItems: "center",
-            gap: 24,
+            flexDirection: "column",
+            justifyContent: "center",
           }}
         >
           <div
             style={{
-              width: 22,
-              height: 22,
-              background: "#ffe600",
-              transform: "rotate(45deg)",
-            }}
-          />
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 14,
-              fontWeight: 900,
-              letterSpacing: 2,
-            }}
-          >
-            <span style={{ color: "#ffe600", fontSize: 52 }}>{"//"}</span>
-            <span style={{ fontSize: 72, color: "#f5f3ee" }}>
-              {SITE_NAME.toUpperCase()}
-            </span>
-          </div>
-          <div
-            style={{
-              marginLeft: "auto",
-              fontSize: 24,
-              letterSpacing: 6,
-              color: "#9a9a96",
-              textTransform: "uppercase",
-            }}
-          >
-            Aviation Console
-          </div>
-        </div>
-
-        {/* Headline */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-          <div
-            style={{
-              fontSize: 108,
-              fontWeight: 900,
-              letterSpacing: 0,
-              lineHeight: 0.92,
-              color: "#f5f3ee",
-              textTransform: "uppercase",
               display: "flex",
               alignItems: "center",
-              gap: 24,
+              gap: 28,
             }}
           >
-            <span style={{ color: "#ffe600" }}>&lt;</span>
-            <span>METAR · Traffic · Map</span>
-            <span style={{ color: "#ffe600" }}>&gt;</span>
-          </div>
-          <div
-            style={{
-              width: 880,
-              fontSize: 28,
-              lineHeight: 1.35,
-              color: "#b8b6ae",
-            }}
-          >
-            {SITE_DESCRIPTION}
-          </div>
-        </div>
-
-        {/* Yellow parallelogram chips for featured ICAOs */}
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            fontWeight: 900,
-            fontSize: 22,
-            letterSpacing: 2,
-          }}
-        >
-          {["KBOS", "KLAX", "KJFK", "KORD", "KSFO", "KSEA"].map((code) => (
+            <BrandMark size={76} />
             <div
-              key={code}
               style={{
                 display: "flex",
-                background: "#ffe600",
-                color: "#14140f",
-                padding: "10px 22px",
-                transform: "skewX(-18deg)",
+                color: colors.ink,
+                fontSize: 126,
+                fontWeight: 800,
+                letterSpacing: -3,
+                lineHeight: 0.92,
               }}
             >
-              <span style={{ display: "flex", transform: "skewX(18deg)" }}>
-                {code}
-              </span>
+              {SITE_NAME}
             </div>
-          ))}
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              marginTop: 34,
+              paddingLeft: 4,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                color: colors.ink,
+                fontSize: 50,
+                fontWeight: 800,
+                letterSpacing: -0.8,
+                lineHeight: 1,
+              }}
+            >
+              Airport context, at a glance.
+            </div>
+          </div>
         </div>
       </div>
     ),
     {
       ...imageSize,
-      fonts: await sairaFonts,
+      fonts: await fontData,
     },
   );
 }
