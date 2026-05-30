@@ -3306,7 +3306,7 @@ body {
 
 .aircraft-table-pin .endf-row-active {
     background: var(--atc-click-bg);
-    border-radius: 0;
+    border-radius: var(--atc-radius-card);
     color: var(--atc-click-fg);
     isolation: isolate;
     overflow: hidden;
@@ -3337,6 +3337,39 @@ body {
 .aircraft-table-pin .endf-row-active > * {
     position: relative;
     z-index: 1;
+}
+
+/* The default .endf-row-active uses --endf-ink as bg and --endf-yellow
+   for child text — in light theme that's a light surface with dark text.
+   The pinned row inverts to --atc-click-bg (dark) + --atc-click-fg
+   (light) so it reads as a metric-tile peer, but those existing child
+   overrides still force text-atc-text → --endf-yellow (dark on dark in
+   light theme, the bug the user spotted). Re-target every coloured child
+   to the click palette so the inverted surface stays legible in both
+   themes. */
+.aircraft-table-pin .endf-row-active .text-atc-text {
+    color: var(--atc-click-fg);
+}
+
+.aircraft-table-pin .endf-row-active .text-atc-dim,
+.aircraft-table-pin .endf-row-active .text-atc-faint,
+.aircraft-table-pin .endf-row-active .aircraft-table-route-cycle {
+    color: var(--atc-click-muted);
+}
+
+.aircraft-table-pin .endf-row-active .endf-row-glyph {
+    background: var(--atc-click-fg);
+    border-color: color-mix(in oklab, var(--atc-click-fg) 72%, transparent);
+    color: var(--atc-click-bg);
+}
+
+.aircraft-table-pin .endf-row-active .endf-diamond {
+    background: var(--atc-click-fg);
+}
+
+.aircraft-table-pin .endf-row-active .endf-diamond--hollow {
+    background: transparent;
+    border-color: var(--atc-click-fg);
 }
 
 .endf-content-swap {
