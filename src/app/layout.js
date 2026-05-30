@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ThemedToaster from "@/components/app-shell/ThemedToaster.jsx";
 import { I18nProvider } from "@/features/app-shell/i18n/i18nProvider.jsx";
+import QueryProvider from "@/features/app-shell/queryProvider.jsx";
 import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
@@ -128,9 +129,11 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         <ClerkProvider>
-          <I18nProvider>
-            <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
-          </I18nProvider>
+          <QueryProvider>
+            <I18nProvider>
+              <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
+            </I18nProvider>
+          </QueryProvider>
           <ThemedToaster
             initialTheme={initialTheme}
             className="atc-toaster"
