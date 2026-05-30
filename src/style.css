@@ -6900,17 +6900,19 @@ body {
 
 /* Leaflet ships `.leaflet-map-pane` at z-index: 400 — that single value
    pulls the entire map (every tile / overlay / marker pane underneath)
-   above any sibling page-level UI in the same stacking context. The map
-   stage already owns a stacking context (isolation: isolate), so the
-   relative ordering of Leaflet's child panes is contained; collapsing
-   just the map-pane itself to a local single-digit z keeps every
-   --z-index-* token (≥ 20) clearly above the map without touching the
-   internal pane order Leaflet relies on. */
-.airport-map-kit .leaflet-map-pane { z-index: 1; }
+   above any sibling page-level UI in the same stacking context. Every
+   .leaflet-container in this app (desktop airport-map-kit, mobile detail
+   pages, flight explorer) needs the same compression, otherwise the map
+   chrome hit-tests on top of the toolbar / sidebar overlay. The map
+   container already owns a stacking context, so the relative ordering of
+   Leaflet's child panes is contained; collapsing just the map-pane to a
+   local single-digit z keeps every --z-index-* token (≥ 20) above the
+   map without touching the internal pane order Leaflet relies on. */
+.leaflet-map-pane { z-index: 1; }
 
 .airport-map-kit .airport-desktop-sidebar {
     bottom: var(--map-kit-inset);
-    border-radius: calc(var(--atc-radius-shell) - 2px);
+    border-radius: var(--atc-radius-shell);
     left: var(--map-kit-inset);
     padding: 0;
     position: absolute;
@@ -7074,6 +7076,11 @@ body {
         --airport-sidebar-inset: 22px;
     }
 
+    /* Inner shell shares the outer wrapper's radius so the glass-panel
+       feels coherent with the home page's dither panel. Previously the
+       inner used the full shell value (2px larger than the outer's
+       clipped radius) which made the inner corners look inflated
+       against the home page's fully-aligned dither panel. */
     .airport-map-kit .airport-desktop-sidebar > .h-full,
     .airport-map-kit .airport-desktop-sidebar .sidebar-shell {
         border-radius: var(--atc-radius-shell);
