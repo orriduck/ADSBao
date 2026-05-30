@@ -1,58 +1,154 @@
 import { ImageResponse } from "next/og";
-import {
-  FEATURED_AIRPORT_CODES,
-  SITE_DESCRIPTION,
-  SITE_NAME,
-  SITE_SOCIAL_IMAGE,
-} from "@/config/site";
+import { SITE_NAME, SITE_SOCIAL_IMAGE } from "@/config/site";
 
-// Next.js ImageResponse renders through Satori, which doesn't support
-// Tailwind utility classes or CSS variables — every visual lives in
-// inline `style` objects. Tokens are hardcoded hex here to mirror the
-// dark-theme values from style.css (--atc-bg / --atc-text / --primary-
-// bright). If those tokens shift, update this file too.
-// Pre-cached Google-hosted Saira faces. Only weights actually used in
-// the layout below — keep them in sync if the visual changes.
-const SAIRA_FONT_URLS = {
-  400: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA71rCosg.ttf",
-  700: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA773Fosg.ttf",
-  900: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA7_PFosg.ttf",
-};
+const FONT_URLS = [
+  {
+    name: "Plus Jakarta Sans",
+    weight: 500,
+    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_m07NSg.ttf",
+  },
+  {
+    name: "Plus Jakarta Sans",
+    weight: 700,
+    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_TknNSg.ttf",
+  },
+  {
+    name: "Plus Jakarta Sans",
+    weight: 800,
+    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KUnNSg.ttf",
+  },
+  {
+    name: "Noto Sans SC",
+    weight: 700,
+    url: "https://fonts.gstatic.com/s/notosanssc/v40/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaGzjCnYw.ttf",
+  },
+];
 
 const imageSize = {
   width: SITE_SOCIAL_IMAGE.width,
   height: SITE_SOCIAL_IMAGE.height,
 };
 
-const COLOR = {
-  bg: "#0c0a08",
-  card: "#15120f",
-  border: "rgba(255, 230, 0, 0.08)",
-  text: "#f5f3ee",
-  dim: "#9a958a",
-  faint: "#6c685e",
-  accent: "#ffe600",
-  // Black pill matching the airport map markers (KBOS / DIST 14NM style).
-  pillBg: "#0a0907",
-  pillText: "#f5f3ee",
-  pillBorder: "rgba(255, 255, 255, 0.10)",
+const fontFamily = '"Plus Jakarta Sans", "Noto Sans SC", sans-serif';
+
+const colors = {
+  paper: "#f1f1ef",
+  ink: "#181714",
+  markCutout: "#f1f1ef",
 };
 
-const sairaFonts = Promise.all(
-  Object.entries(SAIRA_FONT_URLS).map(async ([weight, url]) => {
+const backgroundCircles = [
+  { x: -104, y: -112, size: 244, color: "#d6d6d2" },
+  { x: 120, y: -112, size: 244, color: "#b9b9b5" },
+  { x: 344, y: -112, size: 244, color: "#e4e4e1" },
+  { x: 568, y: -112, size: 244, color: "#c7c7c3" },
+  { x: 792, y: -112, size: 244, color: "#ececea" },
+  { x: 1016, y: -112, size: 244, color: "#b2b2ae" },
+  { x: -104, y: 112, size: 244, color: "#bfbfbb" },
+  { x: 120, y: 112, size: 244, color: "#e8e8e5" },
+  { x: 344, y: 112, size: 244, color: "#d0d0cc" },
+  { x: 568, y: 112, size: 244, color: "#adada9" },
+  { x: 792, y: 112, size: 244, color: "#ddddda" },
+  { x: 1016, y: 112, size: 244, color: "#c4c4c0" },
+  { x: -104, y: 336, size: 244, color: "#ebebe8" },
+  { x: 120, y: 336, size: 244, color: "#c8c8c4" },
+  { x: 344, y: 336, size: 244, color: "#aaaaa6" },
+  { x: 568, y: 336, size: 244, color: "#e1e1de" },
+  { x: 792, y: 336, size: 244, color: "#bebeba" },
+  { x: 1016, y: 336, size: 244, color: "#eeeeec" },
+  { x: -104, y: 560, size: 244, color: "#ccccc8" },
+  { x: 120, y: 560, size: 244, color: "#b5b5b1" },
+  { x: 344, y: 560, size: 244, color: "#e6e6e3" },
+  { x: 568, y: 560, size: 244, color: "#c1c1bd" },
+  { x: 792, y: 560, size: 244, color: "#d9d9d5" },
+  { x: 1016, y: 560, size: 244, color: "#a8a8a4" },
+];
+
+const fontData = Promise.all(
+  FONT_URLS.map(async ({ name, weight, url }) => {
     const response = await fetch(url, { cache: "force-cache" });
     if (!response.ok) {
-      throw new Error(`Failed to load Saira ${weight} font`);
+      throw new Error(`Failed to load ${name} ${weight} font`);
     }
 
     return {
-      name: "Saira",
+      name,
       data: await response.arrayBuffer(),
-      weight: Number(weight),
+      weight,
       style: "normal",
     };
   }),
 );
+
+function BrandMark({ size = 24 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 76 76"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="38" cy="38" r="34" fill={colors.ink} />
+      <path
+        d="M29 19L57 38L29 57V44H14V32H29V19Z"
+        fill={colors.markCutout}
+      />
+    </svg>
+  );
+}
+
+function BackgroundCircle({ x, y, size, color }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: x,
+        top: y,
+        width: size,
+        height: size,
+        borderRadius: 999,
+        background: color,
+      }}
+    />
+  );
+}
+
+function CircleBackground() {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: imageSize.width,
+        height: imageSize.height,
+        display: "flex",
+        overflow: "hidden",
+        background: colors.paper,
+      }}
+    >
+      {backgroundCircles.map((circle) => (
+        <BackgroundCircle
+          key={`${circle.x}-${circle.y}-${circle.size}`}
+          {...circle}
+        />
+      ))}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: imageSize.width,
+          height: imageSize.height,
+          display: "flex",
+          background:
+            "linear-gradient(135deg, rgba(241, 241, 239, 0) 0%, rgba(241, 241, 239, 0.42) 34%, rgba(241, 241, 239, 0.84) 66%, rgba(241, 241, 239, 0.96) 100%)",
+        }}
+      />
+    </div>
+  );
+}
 
 export async function GET() {
   return new ImageResponse(
@@ -61,146 +157,77 @@ export async function GET() {
         style={{
           width: "100%",
           height: "100%",
+          position: "relative",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: COLOR.bg,
-          // Top-left warm gradient — same 135deg language as the sidebar
-          // identity and mobile preview card. Soft and short so the
-          // hero typography still reads as the focal element.
-          backgroundImage: `linear-gradient(135deg, rgba(255, 230, 0, 0.10), transparent 46%), linear-gradient(180deg, ${COLOR.card}, ${COLOR.bg})`,
-          color: COLOR.text,
-          padding: "72px 88px",
-          fontFamily: "Saira, sans-serif",
+          overflow: "hidden",
+          background: colors.paper,
+          color: colors.ink,
+          fontFamily,
         }}
       >
-        {/* Top row: wordmark on the left, small eyebrow on the right.
-            No diamond, no // prefix — the wordmark + accent dot is
-            enough to read as ADSBao without the heavy decoration. */}
+        <CircleBackground />
+
         <div
           style={{
+            position: "absolute",
+            left: 64,
+            top: 54,
+            width: 1072,
+            height: 522,
             display: "flex",
-            alignItems: "center",
+            flexDirection: "column",
+            justifyContent: "center",
           }}
         >
           <div
             style={{
               display: "flex",
-              alignItems: "baseline",
-              gap: 14,
+              alignItems: "center",
+              gap: 28,
             }}
           >
+            <BrandMark size={76} />
             <div
               style={{
-                width: 12,
-                height: 12,
-                borderRadius: 999,
-                background: COLOR.accent,
-                marginRight: 6,
-              }}
-            />
-            <span
-              style={{
-                fontSize: 56,
-                fontWeight: 900,
-                letterSpacing: -1,
-                color: COLOR.text,
+                display: "flex",
+                color: colors.ink,
+                fontSize: 126,
+                fontWeight: 800,
+                letterSpacing: -3,
+                lineHeight: 0.92,
               }}
             >
               {SITE_NAME}
-            </span>
+            </div>
           </div>
-          <div
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              alignItems: "center",
-              fontSize: 18,
-              letterSpacing: 4,
-              color: COLOR.faint,
-              textTransform: "uppercase",
-              fontWeight: 700,
-            }}
-          >
-            Aviation Context
-          </div>
-        </div>
 
-        {/* Headline. Smaller and tighter than the old < METAR · TRAFFIC ·
-            MAP > slab. No yellow brackets — accent comes from the one
-            colored word, mirroring how the sidebar identity treats the
-            airport name vs. supporting metadata. */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 26,
-          }}
-        >
           <div
             style={{
               display: "flex",
-              flexWrap: "wrap",
-              gap: "0 24px",
-              fontSize: 92,
-              fontWeight: 900,
-              letterSpacing: -2,
-              lineHeight: 0.98,
-              color: COLOR.text,
+              flexDirection: "column",
+              marginTop: 34,
+              paddingLeft: 4,
             }}
           >
-            <span>Airport context,</span>
-            <span style={{ color: COLOR.accent }}>at a glance.</span>
-          </div>
-          <div
-            style={{
-              maxWidth: 880,
-              fontSize: 26,
-              lineHeight: 1.4,
-              color: COLOR.dim,
-              fontWeight: 400,
-            }}
-          >
-            {SITE_DESCRIPTION}
-          </div>
-        </div>
-
-        {/* Featured airport pills — black rounded-rect badges that match
-            the new map airport markers (e.g. KBOS / DIST 14NM). No skew,
-            no yellow fill — the pills sit quietly so the hero owns the
-            visual hierarchy. */}
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-          }}
-        >
-          {FEATURED_AIRPORT_CODES.map((code) => (
             <div
-              key={code}
               style={{
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "10px 18px",
-                background: COLOR.pillBg,
-                color: COLOR.pillText,
-                border: `1px solid ${COLOR.pillBorder}`,
-                borderRadius: 999,
-                fontSize: 22,
-                fontWeight: 900,
-                letterSpacing: 1.5,
+                color: colors.ink,
+                fontSize: 50,
+                fontWeight: 800,
+                letterSpacing: -0.8,
+                lineHeight: 1,
               }}
             >
-              {code}
+              Airport context, at a glance.
             </div>
-          ))}
+          </div>
         </div>
       </div>
     ),
     {
       ...imageSize,
-      fonts: await sairaFonts,
+      fonts: await fontData,
     },
   );
 }
