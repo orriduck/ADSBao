@@ -4294,13 +4294,29 @@ body {
 }
 
 .flight-sidebar-panel .airport-sidebar-identity {
+    /* Match the airport sidebar's identity gradient so the flight detail
+       page gets the same subtle warm-corner lift instead of a paler,
+       slightly-different-angle variant. */
     background:
         linear-gradient(
-            140deg,
-            color-mix(in oklab, var(--atc-orange) 7%, transparent),
-            transparent 42%
+            135deg,
+            color-mix(in oklab, var(--atc-orange) 10%, transparent),
+            transparent 48%
         );
     padding-bottom: 22px;
+}
+
+/* Dark theme: --atc-orange flips to a light highlight color, but at 10%
+   alpha on the inky sidebar background it nearly disappears. Bump the
+   stop to 18% so the same diagonal sweep stays visible. */
+:root[data-theme="dark"] .airport-sidebar-identity,
+:root[data-theme="dark"] .flight-sidebar-panel .airport-sidebar-identity {
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--atc-orange) 18%, transparent),
+            transparent 48%
+        );
 }
 
 .flight-sidebar-panel .airport-sidebar-identity__rule {
