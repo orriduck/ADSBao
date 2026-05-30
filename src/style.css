@@ -7224,7 +7224,7 @@ body {
     }
 
     .airport-map-kit .airport-sidebar-identity {
-        padding: 69px var(--airport-sidebar-inset) 18px;
+        padding: 20px var(--airport-sidebar-inset) 18px;
     }
 
     .airport-map-kit .airport-sidebar-display-mono--hero {
