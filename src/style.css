@@ -3114,12 +3114,45 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
-/* Wrapper carries the rotation so the dark-theme nose beam orbits
-   with the heading. Sits ABOVE the silhouette's drop-shadow halo via
-   overflow: visible. */
+/* Wrapper carries the heading rotation + 2.5D rotateX/rotateY (pitch/bank)
+   derived in JS from track delta and verticalRate. The transition smooths
+   between successive ADS-B samples so bank/pitch settle visually instead
+   of snapping. transform-style preserves the perspective stack against
+   the silhouette inside, and backface-visibility avoids a flicker when
+   roll passes near ±90 (clamped well below that, but cheap insurance).
+   Sits ABOVE the silhouette's drop-shadow halo via overflow: visible. */
 .aircraft-pointer-glyph {
     position: relative;
     overflow: visible;
+    transform-origin: center center;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aircraft-pointer-glyph {
+        transition: none;
+    }
+}
+
+/* Subtle accent halo behind the selected aircraft glyph. Sits underneath
+   the silhouette via z-index so the drop-shadow tint stays the dominant
+   color cue; readable on both light and dark basemaps because the gradient
+   fades out to fully transparent at the edges. */
+.aircraft-pointer-glyph--selected::after {
+    content: "";
+    position: absolute;
+    inset: -65%;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        color-mix(in oklab, var(--atc-accent) 38%, transparent) 0%,
+        color-mix(in oklab, var(--atc-accent) 12%, transparent) 38%,
+        transparent 72%
+    );
+    pointer-events: none;
+    z-index: -1;
 }
 
 .aircraft-nose-beam {

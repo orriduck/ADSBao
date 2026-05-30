@@ -19,6 +19,7 @@ import {
   resolveAircraftIcon,
   resolveAircraftSizeScale,
 } from "../../utils/aircraftIcon.js";
+import { createAttitudeTracker } from "../../utils/aircraftAttitude.js";
 import { getAircraftPositionSourceBadge } from "../../features/aviation/sourceDisplayModel.js";
 
 // Match the arrow size (18×18) so the icon stays anchored on the marker's
@@ -48,6 +49,10 @@ export default function AircraftPosition({
   const map = useMapInstance();
   const motionRef = useRef(null);
   const markerRef = useRef(null);
+  const attitudeTrackerRef = useRef(null);
+  if (attitudeTrackerRef.current === null) {
+    attitudeTrackerRef.current = createAttitudeTracker();
+  }
   const [container] = useState(() => {
     if (typeof document === "undefined") return null;
     const el = document.createElement("div");
@@ -113,6 +118,15 @@ export default function AircraftPosition({
     });
   }, [aircraft]);
 
+  // Compute attitude (roll/pitch) on each data update. The tracker holds
+  // the previous track sample + smoothed values so this is a pure render-
+  // time read once `update()` has been called.
+  const attitude = attitudeTrackerRef.current.update({
+    track: aircraft.track,
+    baroRate: aircraft.baroRate,
+    time: Date.now(),
+  });
+
   if (!container) return null;
 
   const speedKt = Number(aircraft.velocity ?? 0);
@@ -148,6 +162,9 @@ export default function AircraftPosition({
       <Pointer
         color={color}
         rot={rot}
+        roll={attitude.roll}
+        pitch={attitude.pitch}
+        selected={selected}
         showArrow={showArrow}
         silhouette={silhouette}
         sizeScale={sizeScale}
@@ -172,15 +189,38 @@ export default function AircraftPosition({
 function Pointer({
   color,
   rot,
+  roll = 0,
+  pitch = 0,
+  selected = false,
   showArrow,
   silhouette,
   sizeScale = 1,
   theme = "dark",
 }) {
-  // Scale via CSS transform with the default `transform-origin: center` so
-  // the marker stays anchored on the geo coordinate at any wake-class size.
-  // The underlying box stays 18×18, only the visual extent grows / shrinks.
-  const scaledTransform = `rotate(${rot}deg) scale(${sizeScale})`;
+  // 2.5D transform stack — heading rotates the wrapper, perspective gives
+  // the rotateX/rotateY enough depth to read as pitch/bank without warping
+  // the silhouette. Scale stays at the end so wake-class size still applies
+  // uniformly. CSS transitions on `.aircraft-pointer-glyph` smooth between
+  // data updates so the bank/pitch settles instead of snapping.
+  const scaledTransform =
+    `rotate(${rot}deg) perspective(540px) ` +
+    `rotateX(${pitch}deg) rotateY(${roll}deg) scale(${sizeScale})`;
+
+  // Drop-shadow ground projection: a soft offset shadow that grows when
+  // pitched / banked, suggesting altitude separation from the basemap.
+  // Selected aircraft get a stronger accent glow on top of the silhouette
+  // tint so they pop on both light and dark tiles.
+  const tiltMagnitude = Math.min(
+    1,
+    (Math.abs(roll) / 35 + Math.abs(pitch) / 12) / 2,
+  );
+  const shadowBlur = 3 + tiltMagnitude * 4;
+  const shadowOffset = 0.5 + tiltMagnitude * 1.5;
+  const silhouetteFilter = selected
+    ? `drop-shadow(0 ${shadowOffset}px ${shadowBlur}px rgba(0,0,0,0.55)) ` +
+      `drop-shadow(0 0 5px ${color}) drop-shadow(0 0 9px ${color})`
+    : `drop-shadow(0 ${shadowOffset}px ${shadowBlur}px rgba(0,0,0,0.45)) ` +
+      `drop-shadow(0 0 4px ${color})`;
 
   if (showArrow && silhouette) {
     // Wrapper carries the rotation so the dark-theme nose beam orbits
@@ -188,7 +228,7 @@ function Pointer({
     const maskUrl = `url(${silhouette.src})`;
     return (
       <div
-        className="aircraft-pointer-glyph"
+        className={`aircraft-pointer-glyph${selected ? " aircraft-pointer-glyph--selected" : ""}`}
         role="img"
         aria-label={
           silhouette.source === "type" ? "aircraft type" : "aircraft category"
@@ -213,7 +253,7 @@ function Pointer({
             maskPosition: "center",
             WebkitMaskSize: "contain",
             maskSize: "contain",
-            filter: `drop-shadow(0 0 4px ${color})`,
+            filter: silhouetteFilter,
           }}
         />
         {theme === "dark" && (
@@ -225,12 +265,13 @@ function Pointer({
   if (showArrow) {
     return (
       <svg
+        className={`aircraft-pointer-glyph${selected ? " aircraft-pointer-glyph--selected" : ""}`}
         width="18"
         height="18"
         viewBox="0 0 24 24"
         style={{
           transform: scaledTransform,
-          filter: `drop-shadow(0 0 4px ${color})`,
+          filter: silhouetteFilter,
         }}
       >
         <path d="M12 2L16 20L12 17L8 20Z" fill={color} />
