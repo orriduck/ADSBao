@@ -765,7 +765,16 @@ body {
 .page-nav-dock {
     display: flex;
     justify-content: center;
-    left: 50%;
+    /* Center over the right-hand content area, not the whole viewport.
+       The dither shell renders a sidebar on the left (`.dither-page-panel`
+       with `width: var(--app-sidebar-width)` and a 12px margin), so a true
+       viewport-center would visually skew the dock toward the sidebar
+       side. Shifting right by half the sidebar+inset reproduces the same
+       formula used by `.airport-map-kit--sidebar-open .airport-map-menu`,
+       so the toolbar lines up consistently across the home and detail
+       pages. On narrow screens (mobile, where the sidebar collapses) the
+       media query below resets this to a true viewport center. */
+    left: calc(50% + (var(--app-sidebar-width) + 12px) / 2);
     max-width: calc(100vw - 24px);
     pointer-events: none;
     position: fixed;
@@ -855,6 +864,10 @@ body {
     }
 
     .page-nav-dock {
+        /* On narrow screens the dither sidebar collapses to full-width,
+           so the desktop content-center offset would skew the dock off
+           screen. Reset to a true viewport center. */
+        left: 50%;
         top: max(12px, env(safe-area-inset-top));
     }
 
@@ -3276,10 +3289,31 @@ body {
  * paints the ink+yellow active state via .endf-row-active, so the pin
  * itself only contributes a bottom hairline divider — no extra
  * background or border-left rail to avoid double-framing the row. */
+/* Pinned aircraft slot — the selected row promoted above the scrolling
+   list. Visually mirrors the WEATHER / FLIGHTS metric tiles (see
+   .sidebar-metric-card--active): a rounded, theme-click-bg card with an
+   inset edge highlight, so a chosen aircraft feels like a peer of the
+   stat tiles up top rather than just "the first row that happens to be
+   highlighted". The yellow lead bar that the in-list active state uses
+   is intentionally hidden here — pinned rows do not need a list-marker
+   because their position above the scroll already signals selection. */
 .aircraft-table-pin {
-    border-bottom: 1px solid var(--atc-line-strong);
-    overflow: hidden;
+    margin: 6px var(--airport-sidebar-inset, 18px) 8px;
+    overflow: visible;
     position: relative;
+}
+
+.aircraft-table-pin .endf-row-active {
+    background: var(--atc-click-bg);
+    border-radius: var(--atc-radius-card);
+    color: var(--atc-click-fg);
+    box-shadow:
+        inset 0 -1px 0 var(--sidebar-tile-edge-glow),
+        inset 0 -14px 22px color-mix(in oklab, var(--atc-click-fg) 7%, transparent);
+}
+
+.aircraft-table-pin .endf-row-active::before {
+    display: none;
 }
 
 .endf-content-swap {
