@@ -10,15 +10,18 @@ import { CHANGELOG } from "@/config/changelog.js";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
-  "v1.5.1": {
-    title: "FlightAware 兜底焦点模式",
+  "v1.6.0": {
+    title: "附近列表虚拟化与数据层接入",
     summary:
-      "FlightAware 兜底现在会把飞行地图锁定到焦点航班的完整航迹视图,并保留已缓存的机型与航路信息。",
+      "侧栏附近列表改为窗口化滚动,距离与高度采用数字滚动呈现;页面层 z-index 统一为命名 token;TanStack Query 开始接管客户端数据获取。",
     highlights: [
-      "FlightAware 兜底会禁用缩放预设,并自动适配焦点航班完整航迹",
-      "完整航迹兜底视图会隐藏地图和侧栏里的附近飞机与附近机场",
-      "跟踪航班的机型与航路上下文会缓存 6 小时",
-      "FlightAware 航迹刷新节奏限制为 60 秒一次",
+      "附近列表(飞机 + 机场)用 TanStack Virtual 实现窗口化,距离与高度每次轮询通过 NumberFlow 数字滚动",
+      "新行有细微淡入动画,尊重 prefers-reduced-motion",
+      "置顶飞机槽位采用 metric tile 选中风格(深色底 + 由下至上的边缘辉光)",
+      "首页与详情页的工具栏 / sidebar 几何对齐,都以内容区域居中",
+      "页面层 z-index 改成命名 tier token,修复了桌面端与移动端的 Leaflet pane 冲突",
+      "TanStack Query + DevTools 接入应用骨架,useAirportWiki 作为样板迁移,后续数据 hook 按需替换",
+      "小型叶子组件迁移到 inline Tailwind,style.css 体积减少约 15%",
     ],
   },
   "v1.5.0": {
