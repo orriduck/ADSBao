@@ -1684,17 +1684,6 @@ body {
     min-width: 0;
 }
 
-@keyframes request-pulse-dot {
-    0%,
-    25% {
-        opacity: 1;
-    }
-    35%,
-    100% {
-        opacity: 0.25;
-    }
-}
-
 /* ============================================================
    2026 consumer-flight modernization layer.
    Spotify informs rounded app geometry; Uber informs geometric type.
@@ -2525,18 +2514,15 @@ body {
     gap: 1px;
 }
 
-.map-source-status__line,
-.map-source-status__route {
+.map-source-status__line {
     align-items: center;
     display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
     justify-content: flex-end;
     min-width: 0;
     text-shadow: 0 1px 8px var(--atc-bg);
     width: 100%;
-}
-
-.map-source-status__line {
-    gap: 7px;
     color: var(--atc-dim);
     font-size: 10px;
     font-weight: 600;
@@ -2546,12 +2532,17 @@ body {
 }
 
 .map-source-status__route {
-    color: var(--atc-orange);
-    font-size: 9px;
-    font-weight: 600;
-    gap: 5px;
-    letter-spacing: 0;
-    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.map-source-status__separator {
+    flex: 0 0 auto;
+}
+
+.map-source-status__time {
+    flex: 0 0 auto;
+    font-feature-settings: "tnum" 1;
+    font-variant-numeric: tabular-nums;
 }
 
 .map-source-status__loading-slot {
@@ -2585,13 +2576,8 @@ body {
     opacity: 1;
 }
 
-.map-source-status__source,
-.map-source-status__time {
-    color: var(--atc-faint);
-    flex: 0 0 auto;
-}
-
 .map-source-status__source {
+    flex: 0 0 auto;
     overflow: visible;
 }
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
-import RequestPulseDots from "@/components/ui/RequestPulseDots";
 
 export default function MapSourceStatusDisplay({
   feedSource = "",
@@ -10,7 +9,6 @@ export default function MapSourceStatusDisplay({
   updatedLabel = "",
   routeProviderLabel = "",
   loadingStatus = "",
-  feedLiveLabel = "ADS-B feed live",
   placement = "mobile-map",
 }) {
   const loadingActive = Boolean(loadingStatus);
@@ -56,7 +54,7 @@ export default function MapSourceStatusDisplay({
       aria-label="Map data sources"
     >
       <span className="map-source-status__primary">
-        {feedSource || updatedLabel ? (
+        {feedSource || routeProviderLabel || updatedLabel ? (
           <span className="map-source-status__line">
             {feedSource ? (
               <EndfieldValueSwap
@@ -70,32 +68,35 @@ export default function MapSourceStatusDisplay({
                 direction="reverse"
               />
             ) : null}
-            {feedSource ? <RequestPulseDots ariaLabel={feedLiveLabel} /> : null}
-            {updatedLabel ? (
+            {feedSource && routeProviderLabel ? (
+              <span
+                aria-hidden="true"
+                className="map-source-status__diamond map-source-status__separator"
+              />
+            ) : null}
+            {routeProviderLabel ? (
               <EndfieldValueSwap
-                identityKey={`updated:${updatedLabel}`}
-                value={<span>{updatedLabel}</span>}
-                className="map-source-status__time"
+                identityKey={`route-provider:${routeProviderLabel}`}
+                value={(
+                  <span className="notranslate" translate="no">
+                    {routeProviderLabel}
+                  </span>
+                )}
+                className="map-source-status__route"
                 direction="reverse"
               />
             ) : null}
-          </span>
-        ) : null}
-        {routeProviderLabel ? (
-          <span className="map-source-status__route">
-            <span
-              aria-hidden="true"
-              className="map-source-status__diamond"
-            />
-            <EndfieldValueSwap
-              identityKey={`route-provider:${routeProviderLabel}`}
-              value={(
-                <span className="notranslate" translate="no">
-                  {routeProviderLabel}
-                </span>
-              )}
-              direction="reverse"
-            />
+            {(feedSource || routeProviderLabel) && updatedLabel ? (
+              <span
+                aria-hidden="true"
+                className="map-source-status__diamond map-source-status__separator"
+              />
+            ) : null}
+            {updatedLabel ? (
+              <span className="map-source-status__time" aria-live="off">
+                {updatedLabel}
+              </span>
+            ) : null}
           </span>
         ) : null}
       </span>
