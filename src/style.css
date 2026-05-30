@@ -3110,8 +3110,7 @@ body {
 }
 
 .aircraft-shadow,
-.aircraft-silhouette,
-.aircraft-rotor-disc {
+.aircraft-silhouette {
     transition:
         transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
         opacity 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
@@ -3119,15 +3118,10 @@ body {
     transform-origin: center center;
 }
 
-/* Rotorcraft overlay: a small dashed disc centered on the main-rotor
-   hub. Inherits the silhouette's perspective/pitch/bank transform so it
-   tilts with the aircraft; no spin animation — the dashed outline is
-   enough to read as a rotor disc without distracting motion. */
 @media (prefers-reduced-motion: reduce) {
     .aircraft-pointer-glyph,
     .aircraft-shadow,
-    .aircraft-silhouette,
-    .aircraft-rotor-disc {
+    .aircraft-silhouette {
         transition: none;
     }
 }

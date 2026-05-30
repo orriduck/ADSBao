@@ -197,28 +197,6 @@ export default function AircraftPosition({
 const SHADOW_GROUND_FT = 0;
 const SHADOW_CRUISE_FT = 38_000;
 
-// Icon names whose silhouette is a rotorcraft (top-down view of a main
-// rotor + fuselage). For these we overlay a spinning dashed disc so the
-// rotor reads as "turning" — the static rotor blades in the source SVG
-// otherwise look like fixed cross-arms.
-const HELICOPTER_ICON_NAMES = new Set([
-  "h47",
-  "h60",
-  "h64",
-  "r44",
-  "s61",
-  "uh1",
-  "nh90",
-  "mi24",
-  "lynx",
-  "gazl",
-  "ec20",
-  "ec35",
-  "ec45",
-  "as65",
-  "gyro",
-]);
-
 function Pointer({
   color,
   rot,
@@ -330,39 +308,6 @@ function Pointer({
             transform: silhouetteTransform,
           }}
         />
-        {HELICOPTER_ICON_NAMES.has(silhouette.name) && (
-          <svg
-            className="aircraft-rotor-disc"
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            width={SILHOUETTE_SIZE_PX}
-            height={SILHOUETTE_SIZE_PX}
-            style={{
-              position: "absolute",
-              inset: 0,
-              transform: silhouetteTransform,
-              pointerEvents: "none",
-            }}
-          >
-            {/* Rotor disc — a solid circle outline enclosing the main
-                rotor blade tips. Centered on the rotor hub, which sits
-                near the SVG-top of these top-down silhouettes (the tail
-                boom stretches downward past the disc). Under
-                mask-size:contain centering the hub lands roughly at
-                cy=4, and the blade tips reach r≈6.5 in the 24-unit
-                viewBox. The wrapper carries the heading rotation so the
-                disc stays in front of the airframe. */}
-            <circle
-              cx="12"
-              cy="4"
-              r="6.5"
-              fill="none"
-              stroke={color}
-              strokeWidth="1"
-              opacity="0.9"
-            />
-          </svg>
-        )}
         {theme === "dark" && (
           <span aria-hidden="true" className="aircraft-nose-beam" />
         )}
