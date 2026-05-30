@@ -2,7 +2,7 @@
 <svg
    width="80mm"
    height="80mm"
-   viewBox="-0.93 -2.468 16.46 22.448"
+   viewBox="-2.841 -7.861 20.332 27.841"
    version="1.1"
    id="svg1542"
    inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
@@ -74,9 +74,9 @@
        id="path1428"
        sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" />
       <circle
-       cx="7.331"
-       cy="3.889"
-       r="5.742"
+       cx="7.325"
+       cy="2.305"
+       r="9.501"
        fill="none"
        stroke="#000000"
        stroke-width="0.73" />
