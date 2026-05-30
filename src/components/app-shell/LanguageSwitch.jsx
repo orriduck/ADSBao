@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, Languages } from "lucide-react";
-import { Button } from "@/components/ui/button.jsx";
 import {
   SUPPORTED_LOCALES,
   getLocaleMenuItems,
@@ -78,20 +77,19 @@ export default function LanguageSwitch({
         </div>
       )}
 
-      <Button
-        variant="atcIcon"
-        size="icon"
-        className={`ctrl-btn ctrl-language ${open ? "active" : ""} ${className}`.trim()}
+      <button
+        type="button"
+        className={className}
+        data-active={open ? "true" : undefined}
         title={aria}
         aria-label={aria}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
-        type="button"
         data-current-locale={locale}
       >
-        <Languages className="h-4 w-4" aria-hidden="true" />
-      </Button>
+        <Languages aria-hidden="true" />
+      </button>
     </div>
   );
 }

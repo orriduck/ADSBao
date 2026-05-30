@@ -8,6 +8,13 @@ import LanguageSwitch from "@/components/app-shell/LanguageSwitch.jsx";
 import ThemeToggle from "@/components/app-shell/ThemeToggle.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 import { useThemePreference } from "@/features/app-shell/useThemePreference.js";
+import {
+  Toolbar,
+  ToolbarAccountSlot,
+  ToolbarButton,
+  ToolbarSeparator,
+  toolbarButtonVariants,
+} from "@/components/ui/Toolbar.jsx";
 
 const PAGE_ITEMS = [
   { href: "/", labelKey: "nav.homePage", Icon: Home },
@@ -22,6 +29,8 @@ function resolveActiveHref(pathname) {
   return "/";
 }
 
+const buttonClass = toolbarButtonVariants({ tone: "soft", size: "sm" });
+
 export default function PageNavigationDock() {
   const { t } = useI18n();
   const pathname = usePathname();
@@ -33,47 +42,49 @@ export default function PageNavigationDock() {
 
   return (
     <nav className="page-nav-dock" aria-label={t("nav.homePage")}>
-      <div className="page-nav-dock__bar toolbar-reveal">
+      <Toolbar>
         {PAGE_ITEMS.map((item) => {
           const Icon = item.Icon;
           const active = item.href === activeHref;
           const label = t(item.labelKey);
           return (
-            <Link
+            <ToolbarButton
               key={item.href}
-              href={item.href}
-              className={`ctrl-btn page-nav-dock__button ${active ? "active" : ""}`}
+              asChild
+              active={active}
               aria-current={active ? "page" : undefined}
               aria-label={label}
               title={label}
             >
-              <Icon aria-hidden="true" />
-            </Link>
+              <Link href={item.href}>
+                <Icon aria-hidden="true" />
+              </Link>
+            </ToolbarButton>
           );
         })}
 
-        <span className="ctrl-sep page-nav-dock__sep" aria-hidden="true" />
+        <ToolbarSeparator />
 
         <LanguageSwitch
-          className="page-nav-dock__button"
+          className={buttonClass}
           menuPlacement="bottom"
           menuAlign="right"
         />
 
         <ThemeToggle
-          className="ctrl-btn page-nav-dock__button page-nav-dock__button--theme"
+          className={buttonClass}
           iconKey={themeIconKey}
           preference={themePreference}
           title={themeTitle}
           onClick={cycleTheme}
         />
 
-        <span className="ctrl-sep page-nav-dock__sep" aria-hidden="true" />
+        <ToolbarSeparator />
 
         {!isLoaded ? (
-          <div className="page-nav-dock__account" aria-hidden="true" />
+          <ToolbarAccountSlot aria-hidden="true" />
         ) : showSignedIn ? (
-          <div className="page-nav-dock__account" aria-label={t("auth.account")}>
+          <ToolbarAccountSlot aria-label={t("auth.account")}>
             <UserButton
               appearance={{
                 elements: {
@@ -81,20 +92,15 @@ export default function PageNavigationDock() {
                 },
               }}
             />
-          </div>
+          </ToolbarAccountSlot>
         ) : (
           <SignInButton mode="modal">
-            <button
-              type="button"
-              className="ctrl-btn page-nav-dock__button"
-              title={t("auth.signIn")}
-              aria-label={t("auth.signIn")}
-            >
+            <ToolbarButton title={t("auth.signIn")} aria-label={t("auth.signIn")}>
               <LogIn aria-hidden="true" />
-            </button>
+            </ToolbarButton>
           </SignInButton>
         )}
-      </div>
+      </Toolbar>
     </nav>
   );
 }
