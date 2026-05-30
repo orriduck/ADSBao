@@ -6,7 +6,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import AircraftRow from "./AircraftRow.jsx";
 import AirportRow from "./AirportRow.jsx";
 
-const ROW_HEIGHT_PX = 64;
+// Initial guess only — the actual row height is measured per element by
+// virtualizer.measureElement and may differ across breakpoints (the
+// .airport-map-kit responsive override compresses cards from 64px to 51px,
+// for example). Estimating in the middle of that range keeps the initial
+// scrollbar reasonable before measurement settles.
+const ROW_HEIGHT_ESTIMATE_PX = 56;
 const OVERSCAN_ROWS = 6;
 const ENTER_ANIMATION_MS = 260;
 
@@ -27,7 +32,7 @@ export default function VirtualNearbyList({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => ROW_HEIGHT_PX,
+    estimateSize: () => ROW_HEIGHT_ESTIMATE_PX,
     overscan: OVERSCAN_ROWS,
     getItemKey: (index) => items[index]?.id ?? index,
   });
@@ -77,10 +82,10 @@ export default function VirtualNearbyList({
           const isFirst = virtualRow.index === 0;
           return (
             <NearbyVirtualRow
+              ref={virtualizer.measureElement}
               key={virtualRow.key}
               index={virtualRow.index}
               start={virtualRow.start}
-              size={virtualRow.size}
               isFirst={isFirst}
               shouldAnimateEnter={enterFlags.get(item.id) === true}
               item={item}
@@ -97,9 +102,9 @@ export default function VirtualNearbyList({
 }
 
 function NearbyVirtualRow({
+  ref,
   index,
   start,
-  size,
   isFirst,
   shouldAnimateEnter,
   item,
@@ -126,14 +131,21 @@ function NearbyVirtualRow({
     return () => window.clearTimeout(timer);
   }, [entering]);
 
+  // No inline height — the row's actual height comes from the AircraftRow /
+  // AirportRow content, and virtualizer.measureElement (attached via the
+  // forwarded ref) observes it through a ResizeObserver so totalSize and
+  // every subsequent row's `start` offset stay in sync across responsive
+  // breakpoints. Forcing a fixed height here would re-introduce the gap
+  // bug at viewports where the .airport-map-kit override compresses the
+  // card from 64px down to 51px.
   return (
     <div
+      ref={ref}
       data-index={index}
       className={`absolute left-0 top-0 w-full ${
         isFirst ? "" : "border-t border-atc-line"
       } [perspective:800px]`}
       style={{
-        height: `${size}px`,
         transform: `translateY(${start}px)`,
       }}
     >

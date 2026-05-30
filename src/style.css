@@ -765,7 +765,16 @@ body {
 .page-nav-dock {
     display: flex;
     justify-content: center;
-    left: 50%;
+    /* Center over the right-hand content area, not the whole viewport.
+       The dither shell renders a sidebar on the left (`.dither-page-panel`
+       with `width: var(--app-sidebar-width)` and a 12px margin), so a true
+       viewport-center would visually skew the dock toward the sidebar
+       side. Shifting right by half the sidebar+inset reproduces the same
+       formula used by `.airport-map-kit--sidebar-open .airport-map-menu`,
+       so the toolbar lines up consistently across the home and detail
+       pages. On narrow screens (mobile, where the sidebar collapses) the
+       media query below resets this to a true viewport center. */
+    left: calc(50% + (var(--app-sidebar-width) + 12px) / 2);
     max-width: calc(100vw - 24px);
     pointer-events: none;
     position: fixed;
@@ -855,6 +864,10 @@ body {
     }
 
     .page-nav-dock {
+        /* On narrow screens the dither sidebar collapses to full-width,
+           so the desktop content-center offset would skew the dock off
+           screen. Reset to a true viewport center. */
+        left: 50%;
         top: max(12px, env(safe-area-inset-top));
     }
 
@@ -3276,10 +3289,87 @@ body {
  * paints the ink+yellow active state via .endf-row-active, so the pin
  * itself only contributes a bottom hairline divider — no extra
  * background or border-left rail to avoid double-framing the row. */
+/* Pinned aircraft slot — the selected row promoted above the scrolling
+   list. Visually mirrors the WEATHER / FLIGHTS metric tile's selected
+   state: theme-click-bg fill, a bottom-up edge glow that climbs the
+   card, and the same inset highlight on the bottom rail. The pinned row
+   keeps the list's full width (a chosen aircraft is still a list item,
+   not a detached tile), so border-radius stays 0 — the visual signal is
+   the glow + colour swap, not the geometry. The yellow lead bar that
+   the in-list active state uses is hidden here because the row's
+   position above the scroll already signals selection. */
 .aircraft-table-pin {
-    border-bottom: 1px solid var(--atc-line-strong);
+    margin: 6px 0 8px;
+    overflow: visible;
+    position: relative;
+}
+
+.aircraft-table-pin .endf-row-active {
+    background: var(--atc-click-bg);
+    border-radius: var(--atc-radius-card);
+    color: var(--atc-click-fg);
+    isolation: isolate;
     overflow: hidden;
     position: relative;
+    box-shadow:
+        inset 0 -1px 0 var(--sidebar-tile-edge-glow),
+        inset 0 -14px 22px color-mix(in oklab, var(--atc-click-fg) 7%, transparent);
+}
+
+.aircraft-table-pin .endf-row-active::before {
+    display: none;
+}
+
+/* Bottom-up glow that fades upward — same gradient the metric tile uses
+   on its own ::after. Sits behind the row's content (z-index: 0) while
+   text / glyphs render at z-index: 1 via the existing endf-industrial-row
+   stacking. */
+.aircraft-table-pin .endf-row-active::after {
+    background: var(--sidebar-tile-bottom-glow);
+    content: "";
+    inset: 0;
+    opacity: 1;
+    pointer-events: none;
+    position: absolute;
+    z-index: 0;
+}
+
+.aircraft-table-pin .endf-row-active > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* The default .endf-row-active uses --endf-ink as bg and --endf-yellow
+   for child text — in light theme that's a light surface with dark text.
+   The pinned row inverts to --atc-click-bg (dark) + --atc-click-fg
+   (light) so it reads as a metric-tile peer, but those existing child
+   overrides still force text-atc-text → --endf-yellow (dark on dark in
+   light theme, the bug the user spotted). Re-target every coloured child
+   to the click palette so the inverted surface stays legible in both
+   themes. */
+.aircraft-table-pin .endf-row-active .text-atc-text {
+    color: var(--atc-click-fg);
+}
+
+.aircraft-table-pin .endf-row-active .text-atc-dim,
+.aircraft-table-pin .endf-row-active .text-atc-faint,
+.aircraft-table-pin .endf-row-active .aircraft-table-route-cycle {
+    color: var(--atc-click-muted);
+}
+
+.aircraft-table-pin .endf-row-active .endf-row-glyph {
+    background: var(--atc-click-fg);
+    border-color: color-mix(in oklab, var(--atc-click-fg) 72%, transparent);
+    color: var(--atc-click-bg);
+}
+
+.aircraft-table-pin .endf-row-active .endf-diamond {
+    background: var(--atc-click-fg);
+}
+
+.aircraft-table-pin .endf-row-active .endf-diamond--hollow {
+    background: transparent;
+    border-color: var(--atc-click-fg);
 }
 
 .endf-content-swap {
@@ -6900,17 +6990,19 @@ body {
 
 /* Leaflet ships `.leaflet-map-pane` at z-index: 400 — that single value
    pulls the entire map (every tile / overlay / marker pane underneath)
-   above any sibling page-level UI in the same stacking context. The map
-   stage already owns a stacking context (isolation: isolate), so the
-   relative ordering of Leaflet's child panes is contained; collapsing
-   just the map-pane itself to a local single-digit z keeps every
-   --z-index-* token (≥ 20) clearly above the map without touching the
-   internal pane order Leaflet relies on. */
-.airport-map-kit .leaflet-map-pane { z-index: 1; }
+   above any sibling page-level UI in the same stacking context. Every
+   .leaflet-container in this app (desktop airport-map-kit, mobile detail
+   pages, flight explorer) needs the same compression, otherwise the map
+   chrome hit-tests on top of the toolbar / sidebar overlay. The map
+   container already owns a stacking context, so the relative ordering of
+   Leaflet's child panes is contained; collapsing just the map-pane to a
+   local single-digit z keeps every --z-index-* token (≥ 20) above the
+   map without touching the internal pane order Leaflet relies on. */
+.leaflet-map-pane { z-index: 1; }
 
 .airport-map-kit .airport-desktop-sidebar {
     bottom: var(--map-kit-inset);
-    border-radius: calc(var(--atc-radius-shell) - 2px);
+    border-radius: var(--atc-radius-shell);
     left: var(--map-kit-inset);
     padding: 0;
     position: absolute;
@@ -7074,6 +7166,11 @@ body {
         --airport-sidebar-inset: 22px;
     }
 
+    /* Inner shell shares the outer wrapper's radius so the glass-panel
+       feels coherent with the home page's dither panel. Previously the
+       inner used the full shell value (2px larger than the outer's
+       clipped radius) which made the inner corners look inflated
+       against the home page's fully-aligned dither panel. */
     .airport-map-kit .airport-desktop-sidebar > .h-full,
     .airport-map-kit .airport-desktop-sidebar .sidebar-shell {
         border-radius: var(--atc-radius-shell);
