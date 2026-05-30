@@ -328,13 +328,6 @@ function Pointer({
             ...maskStyle,
             backgroundColor: color,
             transform: silhouetteTransform,
-            // Helicopters get a circular clip so the static main-rotor
-            // blades stop at the rotor disc boundary instead of extending
-            // out to the original SVG's tip — the spinning overlay below
-            // provides the "in motion" cue.
-            ...(HELICOPTER_ICON_NAMES.has(silhouette.name)
-              ? { clipPath: "circle(45% at center)" }
-              : null),
           }}
         />
         {HELICOPTER_ICON_NAMES.has(silhouette.name) && (
@@ -351,26 +344,32 @@ function Pointer({
               pointerEvents: "none",
             }}
           >
-            <g className="aircraft-rotor-disc__spin">
+            {/* Rotor disc sits over the cabin (SVG-top region of the
+                silhouette, ahead of the geometric center) rather than
+                centered, because that's where the actual main rotor
+                lives on a top-down helicopter outline. The wrapper
+                rotates the whole thing with heading so "ahead" stays
+                ahead. */}
+            <g className="aircraft-rotor-disc__spin" style={{ transformOrigin: "12px 8px" }}>
               <circle
                 cx="12"
-                cy="12"
-                r="7.5"
+                cy="8"
+                r="5.5"
                 fill="none"
                 stroke={color}
-                strokeWidth="0.7"
-                strokeDasharray="1.6 1.6"
-                opacity="0.55"
+                strokeWidth="1.4"
+                strokeDasharray="1.8 1.4"
+                opacity="0.9"
               />
               <line
-                x1="4.5"
-                y1="12"
-                x2="19.5"
-                y2="12"
+                x1="6.5"
+                y1="8"
+                x2="17.5"
+                y2="8"
                 stroke={color}
-                strokeWidth="0.9"
+                strokeWidth="1.1"
                 strokeLinecap="round"
-                opacity="0.45"
+                opacity="0.75"
               />
             </g>
           </svg>

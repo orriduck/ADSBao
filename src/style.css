@@ -3126,10 +3126,10 @@ body {
     to { transform: rotate(360deg); }
 }
 
+/* transform-origin is set inline so it can match the rotor-disc center
+   (cx=12, cy=8) rather than the SVG bounding-box center. */
 .aircraft-rotor-disc__spin {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: aircraft-rotor-spin 480ms linear infinite;
+    animation: aircraft-rotor-spin 380ms linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
