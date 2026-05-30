@@ -1,6 +1,18 @@
 import { ImageResponse } from "next/og";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_SOCIAL_IMAGE } from "@/config/site";
+import {
+  FEATURED_AIRPORT_CODES,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_SOCIAL_IMAGE,
+} from "@/config/site";
 
+// Next.js ImageResponse renders through Satori, which doesn't support
+// Tailwind utility classes or CSS variables — every visual lives in
+// inline `style` objects. Tokens are hardcoded hex here to mirror the
+// dark-theme values from style.css (--atc-bg / --atc-text / --primary-
+// bright). If those tokens shift, update this file too.
+// Pre-cached Google-hosted Saira faces. Only weights actually used in
+// the layout below — keep them in sync if the visual changes.
 const SAIRA_FONT_URLS = {
   400: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA71rCosg.ttf",
   700: "https://fonts.gstatic.com/s/saira/v23/memWYa2wxmKQyPMrZX79wwYZQMhsyuShhKMjjbU9uXuA773Fosg.ttf",
@@ -10,6 +22,20 @@ const SAIRA_FONT_URLS = {
 const imageSize = {
   width: SITE_SOCIAL_IMAGE.width,
   height: SITE_SOCIAL_IMAGE.height,
+};
+
+const COLOR = {
+  bg: "#0c0a08",
+  card: "#15120f",
+  border: "rgba(255, 230, 0, 0.08)",
+  text: "#f5f3ee",
+  dim: "#9a958a",
+  faint: "#6c685e",
+  accent: "#ffe600",
+  // Black pill matching the airport map markers (KBOS / DIST 14NM style).
+  pillBg: "#0a0907",
+  pillText: "#f5f3ee",
+  pillBorder: "rgba(255, 255, 255, 0.10)",
 };
 
 const sairaFonts = Promise.all(
@@ -38,110 +64,135 @@ export async function GET() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#0e0f10",
-          color: "#f5f3ee",
-          padding: "60px 80px 48px",
+          background: COLOR.bg,
+          // Top-left warm gradient — same 135deg language as the sidebar
+          // identity and mobile preview card. Soft and short so the
+          // hero typography still reads as the focal element.
+          backgroundImage: `linear-gradient(135deg, rgba(255, 230, 0, 0.10), transparent 46%), linear-gradient(180deg, ${COLOR.card}, ${COLOR.bg})`,
+          color: COLOR.text,
+          padding: "72px 88px",
           fontFamily: "Saira, sans-serif",
         }}
       >
-        {/* Brand row: diamond + // ADSBAO wordmark + section label */}
+        {/* Top row: wordmark on the left, small eyebrow on the right.
+            No diamond, no // prefix — the wordmark + accent dot is
+            enough to read as ADSBao without the heavy decoration. */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 24,
           }}
         >
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              background: "#ffe600",
-              transform: "rotate(45deg)",
-            }}
-          />
           <div
             style={{
               display: "flex",
               alignItems: "baseline",
               gap: 14,
-              fontWeight: 900,
-              letterSpacing: 2,
             }}
           >
-            <span style={{ color: "#ffe600", fontSize: 52 }}>{"//"}</span>
-            <span style={{ fontSize: 72, color: "#f5f3ee" }}>
-              {SITE_NAME.toUpperCase()}
+            <div
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 999,
+                background: COLOR.accent,
+                marginRight: 6,
+              }}
+            />
+            <span
+              style={{
+                fontSize: 56,
+                fontWeight: 900,
+                letterSpacing: -1,
+                color: COLOR.text,
+              }}
+            >
+              {SITE_NAME}
             </span>
           </div>
           <div
             style={{
               marginLeft: "auto",
-              fontSize: 24,
-              letterSpacing: 6,
-              color: "#9a9a96",
+              display: "flex",
+              alignItems: "center",
+              fontSize: 18,
+              letterSpacing: 4,
+              color: COLOR.faint,
               textTransform: "uppercase",
+              fontWeight: 700,
             }}
           >
-            Aviation Console
+            Aviation Context
           </div>
         </div>
 
-        {/* Headline */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+        {/* Headline. Smaller and tighter than the old < METAR · TRAFFIC ·
+            MAP > slab. No yellow brackets — accent comes from the one
+            colored word, mirroring how the sidebar identity treats the
+            airport name vs. supporting metadata. */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 26,
+          }}
+        >
           <div
             style={{
-              fontSize: 108,
-              fontWeight: 900,
-              letterSpacing: 0,
-              lineHeight: 0.92,
-              color: "#f5f3ee",
-              textTransform: "uppercase",
               display: "flex",
-              alignItems: "center",
-              gap: 24,
+              flexWrap: "wrap",
+              gap: "0 24px",
+              fontSize: 92,
+              fontWeight: 900,
+              letterSpacing: -2,
+              lineHeight: 0.98,
+              color: COLOR.text,
             }}
           >
-            <span style={{ color: "#ffe600" }}>&lt;</span>
-            <span>METAR · Traffic · Map</span>
-            <span style={{ color: "#ffe600" }}>&gt;</span>
+            <span>Airport context,</span>
+            <span style={{ color: COLOR.accent }}>at a glance.</span>
           </div>
           <div
             style={{
-              width: 880,
-              fontSize: 28,
-              lineHeight: 1.35,
-              color: "#b8b6ae",
+              maxWidth: 880,
+              fontSize: 26,
+              lineHeight: 1.4,
+              color: COLOR.dim,
+              fontWeight: 400,
             }}
           >
             {SITE_DESCRIPTION}
           </div>
         </div>
 
-        {/* Yellow parallelogram chips for featured ICAOs */}
+        {/* Featured airport pills — black rounded-rect badges that match
+            the new map airport markers (e.g. KBOS / DIST 14NM). No skew,
+            no yellow fill — the pills sit quietly so the hero owns the
+            visual hierarchy. */}
         <div
           style={{
             display: "flex",
-            gap: 16,
-            fontWeight: 900,
-            fontSize: 22,
-            letterSpacing: 2,
+            gap: 12,
           }}
         >
-          {["KBOS", "KLAX", "KJFK", "KORD", "KSFO", "KSEA"].map((code) => (
+          {FEATURED_AIRPORT_CODES.map((code) => (
             <div
               key={code}
               style={{
                 display: "flex",
-                background: "#ffe600",
-                color: "#14140f",
-                padding: "10px 22px",
-                transform: "skewX(-18deg)",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "10px 18px",
+                background: COLOR.pillBg,
+                color: COLOR.pillText,
+                border: `1px solid ${COLOR.pillBorder}`,
+                borderRadius: 999,
+                fontSize: 22,
+                fontWeight: 900,
+                letterSpacing: 1.5,
               }}
             >
-              <span style={{ display: "flex", transform: "skewX(18deg)" }}>
-                {code}
-              </span>
+              {code}
             </div>
           ))}
         </div>
