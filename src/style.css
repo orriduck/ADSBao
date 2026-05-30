@@ -72,7 +72,11 @@
     /* Page-level stacking ladder. Local stacking contexts inside cards keep
        the small integers (1–6) they need for layering decorative pseudo-
        elements against their own children; the tokens below regulate the
-       cross-page floating layer order. */
+       cross-page floating layer order. Leaflet's panes share the
+       .airport-map-stage stacking context, so we override their default
+       z-indexes (200 / 400 / 500 / 600 / 650 / 700) down to single digits
+       further below — that keeps the map's internal layering intact while
+       guaranteeing every page-level token sits above the map's DOM. */
     --z-index-sticky: 20;
     --z-index-overlay: 30;
     --z-index-elevated: 50;
@@ -6893,6 +6897,16 @@ body {
 .airport-map-kit .leaflet-map-pane {
     border-radius: 0;
 }
+
+/* Leaflet ships `.leaflet-map-pane` at z-index: 400 — that single value
+   pulls the entire map (every tile / overlay / marker pane underneath)
+   above any sibling page-level UI in the same stacking context. The map
+   stage already owns a stacking context (isolation: isolate), so the
+   relative ordering of Leaflet's child panes is contained; collapsing
+   just the map-pane itself to a local single-digit z keeps every
+   --z-index-* token (≥ 20) clearly above the map without touching the
+   internal pane order Leaflet relies on. */
+.airport-map-kit .leaflet-map-pane { z-index: 1; }
 
 .airport-map-kit .airport-desktop-sidebar {
     bottom: var(--map-kit-inset);
