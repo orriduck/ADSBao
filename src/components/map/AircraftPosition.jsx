@@ -21,6 +21,7 @@ import {
 } from "../../utils/aircraftIcon.js";
 import { createAttitudeTracker } from "../../utils/aircraftAttitude.js";
 import { getAircraftPositionSourceBadge } from "../../features/aviation/sourceDisplayModel.js";
+import { AircraftLabel } from "@/components/ui/AircraftLabel.jsx";
 
 // Marker glyph size. Stays at 18 to keep the existing density of the map
 // — the visual cue now carries through the offset ground shadow + tilt
@@ -176,12 +177,17 @@ export default function AircraftPosition({
       {(selected ||
         forceSilhouette ||
         (!traceActive && emphasis.showLabel)) && (
-        <Label
+        <AircraftLabel
           color={color}
           label={label}
           sourceBadge={sourceBadge}
-          showArrow={showArrow}
-          hasSilhouette={Boolean(silhouette)}
+          left={
+            showArrow
+              ? Boolean(silhouette)
+                ? SILHOUETTE_SIZE_PX + 4
+                : 22
+              : SILHOUETTE_SIZE_PX
+          }
         />
       )}
     </div>,
@@ -370,16 +376,3 @@ function Pointer({
   );
 }
 
-function Label({ color, label, sourceBadge, showArrow, hasSilhouette }) {
-  const baseLeft = hasSilhouette ? SILHOUETTE_SIZE_PX + 4 : 22;
-  const left = showArrow ? baseLeft : SILHOUETTE_SIZE_PX;
-
-  return (
-    <div className="aircraft-label" style={{ left: `${left}px`, top: "2px", color }}>
-      <div className="aircraft-label-title">{label}</div>
-      {sourceBadge ? (
-        <div className="aircraft-label-title opacity-75">{sourceBadge}</div>
-      ) : null}
-    </div>
-  );
-}

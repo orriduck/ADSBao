@@ -22,9 +22,11 @@ const filterCardVariants = cva(
     "outline-none transition-[background,box-shadow,color] duration-150",
     // Bottom-glow halo — same animation as MetricCard, fires on
     // [data-active=true] (filter chips that are on) and
-    // [data-state=open] (open select menus). Keep ::after below the
-    // content with z-[1] override.
-    "after:absolute after:inset-0 after:bg-[var(--sidebar-tile-bottom-glow)]",
+    // [data-state=open] (open select menus). --sidebar-tile-bottom-glow
+    // is a gradient value, so set the `background` shorthand instead
+    // of background-color.
+    "after:content-[''] after:absolute after:inset-0",
+    "after:[background:var(--sidebar-tile-bottom-glow)]",
     "after:opacity-0 after:translate-y-2 after:pointer-events-none",
     "after:transition-[opacity,transform] after:duration-300 after:ease-out",
     "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",

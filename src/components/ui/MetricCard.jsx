@@ -49,7 +49,10 @@ const cardVariants = cva(
     "data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-14px_22px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]",
     // Bottom-glow halo painted underneath the value. Owned by ::after
     // so it can fade in + slide up without affecting the card's box.
-    "after:absolute after:inset-0 after:bg-[var(--sidebar-tile-bottom-glow)]",
+    // The token is a linear-gradient, so set the background shorthand
+    // (not background-color, which can't accept a gradient).
+    "after:content-[''] after:absolute after:inset-0",
+    "after:[background:var(--sidebar-tile-bottom-glow)]",
     "after:opacity-0 after:translate-y-2 after:pointer-events-none",
     "after:transition-[opacity,transform] after:duration-300 after:ease-out",
     "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",

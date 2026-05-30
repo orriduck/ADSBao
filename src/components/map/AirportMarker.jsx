@@ -10,6 +10,7 @@ import {
 } from "../../features/airport/map/leafletLayerSafety.js";
 import { ZOOM_APPROACH } from "../../utils/airportMapDisplay.js";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
+import { AirportLabelBadge } from "@/components/ui/AirportLabelBadge.jsx";
 
 export default function AirportMarker({
   lat,
@@ -66,6 +67,9 @@ export default function AirportMarker({
 
   const code = (airport?.iata || icao || "").trim();
   const details = [];
+  if (showAreaCount) {
+    details.push({ key: "near", variant: "near", label: "NEAR", value: areaCount });
+  }
   const runways = airport?.runways;
   if (Array.isArray(runways) && runways.length) {
     details.push({ key: "rwy", label: "RWY", value: runways.length });
@@ -76,24 +80,7 @@ export default function AirportMarker({
   }
 
   return createPortal(
-    <div className="airport-overlay-label notranslate" translate="no">
-      <span className="airport-overlay-label__code endf-tab endf-tab--code">
-        <span>{code}</span>
-      </span>
-      {showAreaCount && (
-        <span className="airport-overlay-label__detail airport-overlay-label__detail--near">
-          <span className="airport-overlay-label__detail-label">NEAR</span>
-          <span className="airport-overlay-label__detail-value">
-            {areaCount}
-          </span>
-        </span>
-      )}
-      {details.map((detail) => (
-        <span key={detail.key} className="airport-overlay-label__detail">
-          {detail.label} {detail.value}
-        </span>
-      ))}
-    </div>,
+    <AirportLabelBadge code={code} details={details} />,
     container,
   );
 }
