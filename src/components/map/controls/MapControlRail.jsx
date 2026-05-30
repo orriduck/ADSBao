@@ -16,7 +16,9 @@ import { MapControlIcon } from "./mapControlIcons.jsx";
 
 const LAYERS_ICON_KEY = "layers";
 
-const RAIL_BUTTON_CLASS = toolbarButtonVariants({ tone: "rail", size: "md" });
+const RAIL_BUTTON_CLASS = toolbarButtonVariants({ tone: "rail" });
+
+
 
 export default function MapControlRail({
   currentZoomOption,
@@ -40,17 +42,16 @@ export default function MapControlRail({
     ? t("map.zoomLockedFlightAware")
     : `${currentZoomOption.title} (click to cycle)`;
   return (
-    <Toolbar size="md" className="isolate">
+    <Toolbar className="isolate">
       {showSidebarToggle ? (
         <>
           <ToolbarButton
             tone="rail"
-            size="md"
             title={t("map.toggleSidebar")}
             aria-label={t("map.toggleSidebar")}
             onClick={onToggleSidebar}
           >
-            <PanelLeft className="h-4 w-4" aria-hidden="true" />
+            <PanelLeft aria-hidden="true" />
           </ToolbarButton>
           <ToolbarSeparator />
         </>
@@ -59,7 +60,6 @@ export default function MapControlRail({
       {onFitToTrace && (
         <ToolbarButton
           tone="rail"
-          size="md"
           active={!zoomActive && !zoomDisabled}
           title={t("map.fitTrace")}
           onClick={onFitToTrace}
@@ -71,7 +71,6 @@ export default function MapControlRail({
 
       <ToolbarButton
         tone="rail"
-        size="md"
         active={zoomActive && !zoomDisabled}
         title={zoomTitle}
         onClick={onCycleZoom}
@@ -91,7 +90,6 @@ export default function MapControlRail({
 
       <ToolbarButton
         tone="rail"
-        size="md"
         title={themeTitle}
         onClick={onCycleTheme}
       >
@@ -100,7 +98,6 @@ export default function MapControlRail({
 
       <ToolbarButton
         tone="rail"
-        size="md"
         active={layerDrawerOpen}
         aria-expanded={layerDrawerOpen}
         aria-controls={layerDrawerId}
@@ -120,9 +117,9 @@ export default function MapControlRail({
           we render a reserved slot so the toolbar doesn't reflow and a
           signed-in user doesn't see the sign-in icon flicker first. */}
       {!isLoaded ? (
-        <ToolbarAccountSlot size="md" aria-hidden="true" />
+        <ToolbarAccountSlot aria-hidden="true" />
       ) : showSignedIn ? (
-        <ToolbarAccountSlot size="md" aria-label={t("auth.account")}>
+        <ToolbarAccountSlot aria-label={t("auth.account")}>
           <UserButton
             appearance={{
               elements: {
@@ -135,11 +132,10 @@ export default function MapControlRail({
         <SignInButton mode="modal">
           <ToolbarButton
             tone="rail"
-            size="md"
             title={t("auth.signIn")}
             aria-label={t("auth.signIn")}
           >
-            <LogIn className="h-4 w-4" aria-hidden="true" />
+            <LogIn aria-hidden="true" />
           </ToolbarButton>
         </SignInButton>
       )}

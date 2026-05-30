@@ -20,6 +20,10 @@ export function MetricGrid({ className, children, label = "Metrics" }) {
         "px-[var(--airport-sidebar-inset)] pb-[18px] pt-[2px]",
         // Flight sidebar wants a slightly wider gap; opt-in via class.
         "data-[layout=flight]:gap-3",
+        // Desktop map kit context — tighter rhythm so the sidebar
+        // doesn't dominate vertically next to the dense map area.
+        "[.airport-map-kit_&]:gap-2",
+        "[.airport-map-kit_&]:pb-[14px]",
         className,
       )}
     >
@@ -40,11 +44,17 @@ const cardVariants = cva(
     "transition-[background,border-color,box-shadow,color] duration-150",
     // Three rows: label (14px) → value (auto, ≥34px) → unit (12px).
     "grid-rows-[14px_minmax(34px,auto)_12px]",
+    // Compact variant inside the desktop map kit sidebar.
+    "[.airport-map-kit_&]:rounded-[var(--atc-radius-card)]",
+    "[.airport-map-kit_&]:gap-[5px]",
+    "[.airport-map-kit_&]:grid-rows-[11px_minmax(27px,auto)_10px]",
+    "[.airport-map-kit_&]:min-h-[76px]",
+    "[.airport-map-kit_&]:p-[14px]",
     // Active state — solid ink block + click-foreground text, edge
     // glow on bottom, label / unit dim down. Replaces the
     // .sidebar-metric-card--active styles previously in style.css.
     "data-[active=true]:bg-[var(--atc-click-bg)]",
-    "data-[active=true]:border-[var(--atc-click-border)]",
+    "data-[active=true]:border-transparent",
     "data-[active=true]:text-[var(--atc-click-fg)]",
     "data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-14px_22px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]",
     // Bottom-glow halo painted underneath the value. Owned by ::after
@@ -81,6 +91,12 @@ const valueClass = cn(
   "max-w-full min-w-0 min-h-[34px] overflow-hidden",
   "font-[var(--font-display)] not-italic font-black text-atc-text",
   "text-[30px] leading-none tracking-normal",
+  // Active card — flip to the click foreground so the value reads
+  // on the ink background. The parent <button> already sets this
+  // color, but text-atc-text on <strong> shadows it.
+  "group-data-[active=true]:text-[var(--atc-click-fg)]",
+  // Compact in desktop map kit context.
+  "[.airport-map-kit_&]:text-[24px] [.airport-map-kit_&]:min-h-[27px]",
 );
 
 const labelClass = cn(
@@ -89,12 +105,14 @@ const labelClass = cn(
   // Active card dims label + unit to --atc-click-muted to stay
   // legible against the ink background.
   "group-data-[active=true]:text-[var(--atc-click-muted)]",
+  "[.airport-map-kit_&]:text-[8px]",
 );
 
 const unitClass = cn(
   "block text-atc-faint uppercase text-[10px] font-semibold",
   "tracking-normal leading-3 min-h-3",
   "group-data-[active=true]:text-[var(--atc-click-muted)]",
+  "[.airport-map-kit_&]:text-[8px] [.airport-map-kit_&]:leading-[10px] [.airport-map-kit_&]:min-h-[10px]",
 );
 
 export function MetricCard({
@@ -140,6 +158,7 @@ export function MetricCard({
         role="tab"
         aria-selected={active}
         data-active={active ? "true" : undefined}
+        data-ui="metric-card"
         onClick={onClick}
         className={cn("group", cardVariants({ interactive: true }), className)}
       >
@@ -151,6 +170,7 @@ export function MetricCard({
   return (
     <div
       data-active={active ? "true" : undefined}
+      data-ui="metric-card"
       className={cn("group", cardVariants({ interactive: false }), className)}
     >
       {body}

@@ -9,17 +9,17 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Same self-hiding-on-error pattern as the list row's logo. Keeps the
 // mobile card tidy when an airline isn't covered by the icon CDN.
-function AirlineLogo({ src, className }) {
+function AirlineLogo({ src }) {
   const [hidden, setHidden] = useState(false);
   if (!src || hidden) return null;
   return (
     <img
       src={src}
       alt=""
-      className={className}
       loading="lazy"
       decoding="async"
       onError={() => setHidden(true)}
+      className="h-3.5 w-[22px] flex-none rounded-[2px] bg-[oklch(96%_0.006_95)] object-contain px-[2px] py-[1px]"
     />
   );
 }
@@ -38,38 +38,63 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
   const onGround = Boolean(aircraft?.onGround);
 
   const hasStats = speed != null || altitude != null || vs != null || onGround;
-  const hasRouteStats = Boolean(route) || hasStats;
+
+  // Stat row separator dot. Kept as a tiny render-prop so the comma /
+  // dot rhythm is consistent across kt · ft · fpm without hand-placing
+  // every conditional.
+  const stats = [];
+  if (speed != null) {
+    stats.push(
+      <Stat key="speed" value={Math.round(speed)} unit="kt" />,
+    );
+  }
+  if (altitude != null || onGround) {
+    stats.push(
+      onGround ? (
+        <Stat key="alt" plain={t("aircraft.gnd")} />
+      ) : (
+        <Stat key="alt" value={Math.round(altitude)} unit="ft" />
+      ),
+    );
+  }
+  if (vs != null) {
+    stats.push(
+      <Stat
+        key="vs"
+        value={Math.round(vs)}
+        unit="fpm"
+        format={{ signDisplay: "exceptZero" }}
+      />,
+    );
+  }
 
   return (
-    <div className="aircraft-preview-mobile-card__inner">
-      <div className="aircraft-preview-mobile-card__row1">
+    <div className="relative z-[2] box-border flex w-full flex-col items-stretch gap-[6px] px-[14px] pt-[12px] pb-[8px]">
+      <div className="grid w-full max-w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-[10px] whitespace-nowrap">
         <span
-          className="aircraft-preview-mobile-card__callsign notranslate"
           translate="no"
+          className="notranslate min-w-0 overflow-hidden text-ellipsis font-[var(--font-display)] text-[19px] font-extrabold leading-[0.9] tracking-normal text-atc-text"
         >
           {callsign}
         </span>
         {type && (
           <span
-            className="aircraft-preview-mobile-card__type notranslate"
             translate="no"
+            className="notranslate justify-self-end text-right font-[var(--font-display)] text-[19px] font-extrabold leading-[0.9] tracking-normal text-atc-text"
           >
             {type}
           </span>
         )}
       </div>
-      {hasRouteStats && (
-        <div className="aircraft-preview-mobile-card__route-stats">
+      {(route || hasStats) && (
+        <div className="grid w-full max-w-full min-w-0 grid-cols-[minmax(0,1fr)_max-content] items-center gap-2">
           {route ? (
             <div
-              className="aircraft-preview-mobile-card__route notranslate"
               translate="no"
+              className="notranslate flex min-w-0 max-w-full items-center gap-2 whitespace-nowrap font-[var(--font-mono)] text-[10px] font-semibold leading-none tracking-[0.02em] text-atc-dim"
             >
-              <AirlineLogo
-                src={airlineIconUrl}
-                className="aircraft-preview-mobile-card__airline-logo"
-              />
-              <span className="aircraft-preview-mobile-card__route-text">
+              <AirlineLogo src={airlineIconUrl} />
+              <span className="overflow-hidden text-ellipsis text-atc-text">
                 {route}
               </span>
             </div>
@@ -77,72 +102,53 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
             <span aria-hidden="true" />
           )}
           {hasStats && (
-            <div className="aircraft-preview-mobile-card__row2">
-              {speed != null && (
-                <span className="aircraft-preview-mobile-card__stat">
-                  <NumberFlow
-                    value={Math.round(speed)}
-                    className="aircraft-preview-mobile-card__num"
-                  />
-                  <span
-                    className="aircraft-preview-mobile-card__unit notranslate"
-                    translate="no"
-                  >
-                    kt
-                  </span>
-                </span>
-              )}
-              {(altitude != null || onGround) && (
-                <>
-                  {speed != null && (
-                    <span className="aircraft-preview-mobile-card__dot">·</span>
-                  )}
-                  <span className="aircraft-preview-mobile-card__stat">
-                    {onGround ? (
-                      <span className="aircraft-preview-mobile-card__num">
-                        {t("aircraft.gnd")}
-                      </span>
-                    ) : (
-                      <NumberFlow
-                        value={Math.round(altitude)}
-                        className="aircraft-preview-mobile-card__num"
-                      />
-                    )}
-                    {!onGround && (
-                      <span
-                        className="aircraft-preview-mobile-card__unit notranslate"
-                        translate="no"
-                      >
-                        ft
-                      </span>
-                    )}
-                  </span>
-                </>
-              )}
-              {vs != null && (
-                <>
-                  {(speed != null || altitude != null || onGround) && (
-                    <span className="aircraft-preview-mobile-card__dot">·</span>
-                  )}
-                  <span className="aircraft-preview-mobile-card__stat">
-                    <NumberFlow
-                      value={Math.round(vs)}
-                      format={{ signDisplay: "exceptZero" }}
-                      className="aircraft-preview-mobile-card__num"
-                    />
+            <div className="flex min-w-0 max-w-full items-center justify-end overflow-visible whitespace-nowrap">
+              {stats.map((stat, i) => (
+                <span key={stat.key || i} className="flex items-baseline">
+                  {i > 0 && (
                     <span
-                      className="aircraft-preview-mobile-card__unit notranslate"
-                      translate="no"
+                      aria-hidden="true"
+                      className="mx-[5px] font-[var(--font-mono)] text-[10px] text-atc-faint"
                     >
-                      fpm
+                      ·
                     </span>
-                  </span>
-                </>
-              )}
+                  )}
+                  {stat}
+                </span>
+              ))}
             </div>
           )}
         </div>
       )}
     </div>
+  );
+}
+
+// Single stat token — either a numeric NumberFlow + unit pair, or a
+// plain text token like "GND". Used by the parent's stats[] list so the
+// kt / ft / fpm rhythm renders the same way every time.
+function Stat({ value, unit, plain, format }) {
+  return (
+    <span className="flex items-baseline gap-[2px]">
+      {plain != null ? (
+        <span className="font-[var(--font-mono)] text-[10px] font-medium tabular-nums text-atc-dim">
+          {plain}
+        </span>
+      ) : (
+        <NumberFlow
+          value={value}
+          format={format}
+          className="font-[var(--font-mono)] text-[10px] font-medium tabular-nums text-atc-dim"
+        />
+      )}
+      {unit && (
+        <span
+          translate="no"
+          className="notranslate font-[var(--font-mono)] text-[8px] font-medium lowercase text-atc-faint"
+        >
+          {unit}
+        </span>
+      )}
+    </span>
   );
 }

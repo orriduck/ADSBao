@@ -36,9 +36,12 @@ const markerHtml = (airport) => {
   const badge = airportLabelBadgeHtml({
     code,
     className: "nearby-airport-marker-label",
+    // Distance shown as "DIST 14NM" — label is the noun ("DIST"), value
+    // is the magnitude with unit suffix concatenated so the unit reads
+    // as part of the number, not as a separate caption.
     details:
       distance != null
-        ? [{ key: "dist", variant: "near", label: "NM", value: distance }]
+        ? [{ key: "dist", variant: "near", label: "DIST", value: `${distance}NM` }]
         : [],
   });
   return `

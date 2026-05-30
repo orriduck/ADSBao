@@ -29,7 +29,7 @@ function resolveActiveHref(pathname) {
   return "/";
 }
 
-const buttonClass = toolbarButtonVariants({ tone: "soft", size: "sm" });
+const buttonClass = toolbarButtonVariants({ tone: "soft" });
 
 export default function PageNavigationDock() {
   const { t } = useI18n();

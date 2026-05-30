@@ -14,7 +14,7 @@ import {
   toolbarButtonVariants,
 } from "@/components/ui/Toolbar.jsx";
 
-const TOOLBAR_BUTTON_CLASS = toolbarButtonVariants({ tone: "soft", size: "sm" });
+const TOOLBAR_BUTTON_CLASS = toolbarButtonVariants({ tone: "soft" });
 
 // Shared chrome for the airport + flight sidebars. Handles:
 //   - The outer panel container + responsive overlay variant.
