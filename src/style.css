@@ -1402,21 +1402,45 @@ body {
     min-height: 142px;
 }
 
-.metar-code {
-    color: var(--atc-text);
-    font-family: var(--font-mono);
-    font-size: clamp(14px, 1.1vw, 18px);
-    font-weight: 800;
-    line-height: 1.3;
-    margin-top: 10px;
-    max-height: 156px;
-    overflow: auto;
-    white-space: pre-wrap;
+/* Raw-METAR block sits underneath the STATION / ISSUED / WIND / VIS
+   token strip and adopts the same flat treatment: small uppercase mono
+   label on top, larger mono value below, no surface chrome. Keeping the
+   block borderless lets the whole METAR slide read as one cohesive
+   instrument instead of "summary tokens + a separate card", which the
+   user explicitly preferred. */
+.metar-raw {
+    display: grid;
+    gap: 6px;
+    margin-top: 18px;
 }
 
-.weather-metar-code {
-    margin-top: 2px;
-    max-height: 134px;
+.metar-raw__label {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.metar-raw__code {
+    color: var(--atc-text);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+    max-height: 144px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.metar-raw--placeholder .metar-raw__code {
+    color: var(--atc-faint);
+    font-style: italic;
+    font-weight: 500;
 }
 
 .metar-instrument {
@@ -1469,6 +1493,58 @@ body {
 }
 
 
+/* Shared weather-instrument token — small uppercase mono label on top,
+   larger mono value below. Used by every cell on the wind / temp /
+   flight-rules / local cards, plus the METAR token strip, so the briefing
+   stack reads as one coherent instrument family in both themes. */
+.weather-token-strip {
+    display: grid;
+    gap: 0;
+    min-width: 0;
+}
+
+.weather-token-strip--cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weather-token-strip--cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.weather-token {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: 6px 0;
+}
+
+.weather-token__label {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.weather-token__value {
+    color: var(--atc-text);
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.weather-token__value--secondary {
+    color: var(--atc-dim);
+    font-size: 13px;
+    font-weight: 700;
+}
+
 .weather-metric-line {
     display: grid;
     gap: 6px;
@@ -1486,9 +1562,7 @@ body {
     text-transform: uppercase;
 }
 
-.weather-metric-line strong,
-.wind-card__metrics strong,
-.temp-card__metrics strong {
+.weather-metric-line strong {
     color: var(--atc-text);
     font-size: 1.1875rem;
     font-weight: 800;
@@ -1518,6 +1592,7 @@ body {
 
 .flight-rule-banner span {
     border: 1.5px solid var(--atc-text);
+    border-radius: 6px;
     color: var(--atc-text);
     font-size: 12px;
     font-weight: 900;
@@ -1534,14 +1609,15 @@ body {
 
 .flight-rule-rail {
     display: grid;
-    gap: 2px;
+    gap: 3px;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     margin: 0 0 8px;
 }
 
 .flight-rule-rail i {
     background: color-mix(in oklab, var(--rule-color) 22%, transparent);
-    height: 8px;
+    border-radius: 999px;
+    height: 6px;
     opacity: 0.55;
 }
 
@@ -1554,6 +1630,7 @@ body {
     align-items: center;
     background: color-mix(in oklab, var(--atc-accent) 9%, transparent);
     border: 1px solid var(--atc-line);
+    border-radius: var(--atc-radius-card);
     color: var(--atc-text);
     display: flex;
     flex-direction: column;
@@ -2147,36 +2224,11 @@ body {
     z-index: 0;
 }
 
-.wind-card__metrics {
-    display: grid;
-    gap: 0;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+/* Wind card uses the shared weather-token-strip; the streaks layer sits at
+   z-index 0 so the tokens need to stay above it. */
+.wind-card .weather-token-strip {
     position: relative;
     z-index: 1;
-}
-
-.wind-card__metrics > div {
-    display: grid;
-    gap: 6px;
-    min-width: 0;
-    padding: 4px 4px;
-}
-
-.wind-card__metrics span {
-    color: var(--atc-faint);
-    font-family: var(--airport-sidebar-sans);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.6px;
-    line-height: 1;
-    text-transform: uppercase;
-}
-
-.wind-card__metrics strong {
-    font-family: var(--airport-sidebar-sans);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .local-weather-glyph {
@@ -2202,38 +2254,6 @@ body {
     position: relative;
 }
 
-.temp-card__metrics {
-    display: grid;
-    gap: 0;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.temp-card__metrics > div {
-    display: grid;
-    gap: 6px;
-    min-width: 0;
-    padding: 4px 4px;
-}
-
-.temp-card__metrics span {
-    align-items: center;
-    color: var(--atc-faint);
-    display: inline-flex;
-    font-family: var(--airport-sidebar-sans);
-    font-size: 10px;
-    font-weight: 700;
-    gap: 6px;
-    letter-spacing: 0.6px;
-    line-height: 1;
-    text-transform: uppercase;
-}
-
-.temp-card__metrics strong {
-    font-family: var(--airport-sidebar-sans);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
 
 .temp-card__band-row {
     align-items: center;
@@ -2258,17 +2278,20 @@ body {
         color-mix(in oklab, #c1a78a 60%, transparent) 60%,
         color-mix(in oklab, #d68160 70%, transparent) 100%
     );
+    border-radius: 999px;
     height: 6px;
     position: relative;
 }
 
 .temp-card__band-marker {
-    border: 1px solid color-mix(in oklab, var(--atc-bg) 80%, var(--atc-text));
-    height: 13px;
+    border: 1.5px solid color-mix(in oklab, var(--atc-bg) 80%, var(--atc-text));
+    border-radius: 999px;
+    box-shadow: 0 1px 3px color-mix(in oklab, var(--atc-text) 22%, transparent);
+    height: 12px;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 5px;
+    width: 12px;
 }
 
 .temp-card__band-marker--temp {
@@ -2297,17 +2320,9 @@ body {
     justify-content: start;
 }
 
+/* Margin only; grid layout comes from .weather-token-strip--cols-2. */
 .local-weather-meta {
-    display: flex;
-    gap: 16px;
     margin-top: 10px;
-}
-
-.local-weather-meta span {
-    color: var(--atc-dim);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    text-transform: uppercase;
 }
 
 
@@ -4577,8 +4592,7 @@ body {
     white-space: nowrap;
 }
 
-.airport-briefing-card .metar-token-strip small,
-.airport-briefing-card .weather-metar-code {
+.airport-briefing-card .metar-token-strip small {
     font-family: var(--font-mono);
 }
 
@@ -4588,8 +4602,24 @@ body {
     justify-content: start;
 }
 
-.airport-briefing-card .weather-metar-code {
+.airport-briefing-card .metar-raw__code {
     max-height: none;
+}
+
+/* Scale weather-token values down to feel right inside the wider briefing
+   card. The base 22px sits well in the carousel slide; inside the
+   stacked card the supporting text is bigger so the metric typography
+   drops a touch to keep hierarchy. */
+.airport-briefing-card .weather-token__value {
+    font-size: 18px;
+}
+
+.airport-briefing-card .weather-token__value--secondary {
+    font-size: 13px;
+}
+
+.airport-briefing-card .weather-token-strip {
+    column-gap: 12px;
 }
 
 .airport-briefing-card .flight-rule-banner {
@@ -4627,14 +4657,9 @@ body {
     font-size: 18px;
 }
 
-.airport-briefing-card .weather-metric-line span,
-.airport-briefing-card .local-weather-meta span {
+.airport-briefing-card .weather-metric-line span {
     font-family: var(--airport-sidebar-sans);
     font-weight: 600;
-}
-
-.airport-briefing-card .local-weather-meta .font-mono {
-    font-family: var(--airport-sidebar-sans);
 }
 
 .airport-briefing-card .wiki-copy {

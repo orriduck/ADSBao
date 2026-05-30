@@ -305,6 +305,29 @@ const en = {
     openMeteoError: "Open-Meteo unavailable: {error}",
     metarLoading: "Loading METAR...",
     metarMissing: "No METAR available.",
+    metarFullReport: "Full report",
+    flightRules: {
+      vfr: {
+        label: "Visual Flight Rules",
+        context:
+          "Skies and visibility support normal visual operations. Weather is unlikely to constrain airport capacity.",
+      },
+      mvfr: {
+        label: "Marginal Visual Flight Rules",
+        context:
+          "Visibility or ceiling is reduced. Arrivals and departures usually continue, but pilots watch weather margins closely.",
+      },
+      ifr: {
+        label: "Instrument Flight Rules",
+        context:
+          "Low clouds or limited visibility require instrument procedures. Arrival spacing can increase and delays become more likely.",
+      },
+      lifr: {
+        label: "Low IFR",
+        context:
+          "Very low ceiling or visibility limits airport flow. Only aircraft and runways equipped for low-visibility operations can land reliably.",
+      },
+    },
     observed: "Observed",
     windMissing: "Wind —",
     visMissing: "Vis —",

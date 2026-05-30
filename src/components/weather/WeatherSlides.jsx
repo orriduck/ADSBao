@@ -19,6 +19,9 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 export function MetarSlide({ metarRaw, metarLoading, metarError }) {
   const { t } = useI18n();
   const tokens = getMetarTokens(metarRaw);
+  const placeholder = metarLoading
+    ? t("weather.metarLoading")
+    : t("weather.metarMissing");
 
   return (
     <div className="weather-slide-stack">
@@ -33,9 +36,16 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
               ))
             : null}
         </div>
-        <div className="metar-code weather-metar-code">
-          {metarRaw || (metarLoading ? t("weather.metarLoading") : t("weather.metarMissing"))}
-        </div>
+        <section
+          className={`metar-raw ${metarRaw ? "" : "metar-raw--placeholder"}`}
+        >
+          <span className="metar-raw__label">
+            {t("weather.metarFullReport")}
+          </span>
+          <code className="metar-raw__code notranslate" translate="no">
+            {metarRaw || placeholder}
+          </code>
+        </section>
       </div>
       {metarError ? <div className="panel-error">{metarError}</div> : null}
     </div>
@@ -43,15 +53,18 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
 }
 
 export function FlightRulesSlide({ metar }) {
+  const { t } = useI18n();
   const code = metar?.flightCategory || "VFR";
   const rules = FLIGHT_RULES[code] || FLIGHT_RULES.VFR;
+  const label = rules.labelKey ? t(rules.labelKey) : rules.label;
+  const context = rules.contextKey ? t(rules.contextKey) : rules.context;
 
   return (
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
         <div className="flight-rule-banner">
           <span className="font-mono">{code}</span>
-          <strong>{rules.label}</strong>
+          <strong>{label}</strong>
         </div>
         <div className="flight-rule-rail" aria-hidden="true">
           {FLIGHT_RULE_ORDER.map((item) => (
@@ -63,7 +76,7 @@ export function FlightRulesSlide({ metar }) {
           ))}
         </div>
       </div>
-      <WeatherDescription>{rules.context}</WeatherDescription>
+      <WeatherDescription>{context}</WeatherDescription>
     </div>
   );
 }
@@ -106,23 +119,19 @@ export function WindSlide({ metar, localWeather }) {
   return (
     <div className="weather-slide-stack wind-card">
       <div className="weather-slide-readout">
-        <div className="wind-card__metrics">
-          <div>
-            <span>{t("weather.direction")}</span>
-            <strong>
-              {direction == null ? "VRB" : `${Math.round(direction)}°`}
-            </strong>
-          </div>
-          <div>
-            <span>{t("weather.wind")}</span>
-            <strong>{Math.round(speed)} kt</strong>
-          </div>
-          <div>
-            <span>{t("weather.gust")}</span>
-            <strong>
-              {gust == null ? t("weather.none") : `${Math.round(gust)} kt`}
-            </strong>
-          </div>
+        <div className="weather-token-strip weather-token-strip--cols-3">
+          <WeatherToken
+            label={t("weather.direction")}
+            value={direction == null ? "VRB" : `${Math.round(direction)}°`}
+          />
+          <WeatherToken
+            label={t("weather.wind")}
+            value={`${Math.round(speed)} kt`}
+          />
+          <WeatherToken
+            label={t("weather.gust")}
+            value={gust == null ? t("weather.none") : `${Math.round(gust)} kt`}
+          />
         </div>
       </div>
       <WeatherDescription>
@@ -151,19 +160,19 @@ export function TemperatureSlide({ metar, localWeather }) {
           "--dew-pct": dewPct == null ? "50%" : `${dewPct * 100}%`,
         }}
       >
-        <div className="temp-card__metrics">
-          <div>
-            <span>{t("weather.temp")}</span>
-            <strong>{temp == null ? "-" : `${round1(temp)}°C`}</strong>
-          </div>
-          <div>
-            <span>{t("weather.dew")}</span>
-            <strong>{dew == null ? "-" : `${round1(dew)}°C`}</strong>
-          </div>
-          <div>
-            <span>{t("weather.spread")}</span>
-            <strong>{spread == null ? "-" : `${round1(spread)}°C`}</strong>
-          </div>
+        <div className="weather-token-strip weather-token-strip--cols-3">
+          <WeatherToken
+            label={t("weather.temp")}
+            value={temp == null ? "-" : `${round1(temp)}°C`}
+          />
+          <WeatherToken
+            label={t("weather.dew")}
+            value={dew == null ? "-" : `${round1(dew)}°C`}
+          />
+          <WeatherToken
+            label={t("weather.spread")}
+            value={spread == null ? "-" : `${round1(spread)}°C`}
+          />
         </div>
         <div className="temp-card__band-row" aria-hidden="true">
           <span className="temp-card__band-label">{t("weather.cold")}</span>
@@ -224,6 +233,15 @@ export function LocalWeatherSlide({
     : t("weather.pending");
   const humidity = localWeather?.humidity;
   const feelsLike = localWeather?.apparentTemperatureC;
+  const airportLabel = t("weather.airportLocal", {
+    airport: airportCode || t("weather.airportFallback"),
+  });
+  const tempValue =
+    localWeather?.temperatureC == null
+      ? localWeatherLoading
+        ? t("weather.loading")
+        : "-"
+      : `${round1(localWeather.temperatureC)}°C`;
 
   return (
     <div className="weather-visual-layout">
@@ -231,29 +249,24 @@ export function LocalWeatherSlide({
         <div className="local-weather-glyph">
           {localWeather?.isDay ? <Sun size={42} /> : <Moon size={42} />}
         </div>
-        <div className="weather-slide-stack">
-          <MetricLine
-            label={t("weather.airportLocal", {
-              airport: airportCode || t("weather.airportFallback"),
-            })}
-            value={
-              localWeather?.temperatureC == null
-                ? localWeatherLoading
-                  ? t("weather.loading")
-                  : "-"
-                : `${round1(localWeather.temperatureC)}°C`
-            }
-          />
+        <div className="weather-slide-stack local-weather-content">
+          <WeatherToken label={airportLabel} value={tempValue} />
           <p className="weather-context-copy">
             {localWeatherError
               ? t("weather.openMeteoError", { error: localWeatherError })
               : condition}
           </p>
-          <div className="local-weather-meta">
-            <span>{t("weather.humidity")} <span className="font-mono">{humidity == null ? "-" : `${Math.round(humidity)}%`}</span></span>
-            <span>
-              {t("weather.feels")} <span className="font-mono">{feelsLike == null ? "-" : `${round1(feelsLike)}°C`}</span>
-            </span>
+          <div className="weather-token-strip weather-token-strip--cols-2 local-weather-meta">
+            <WeatherToken
+              label={t("weather.humidity")}
+              value={humidity == null ? "-" : `${Math.round(humidity)}%`}
+              valueClassName="weather-token__value--secondary"
+            />
+            <WeatherToken
+              label={t("weather.feels")}
+              value={feelsLike == null ? "-" : `${round1(feelsLike)}°C`}
+              valueClassName="weather-token__value--secondary"
+            />
           </div>
         </div>
       </div>
@@ -263,6 +276,23 @@ export function LocalWeatherSlide({
 
 function WeatherDescription({ children }) {
   return <p className="weather-context-copy weather-slide-description">{children}</p>;
+}
+
+// Shared weather-instrument token: small mono label on top, big mono value
+// below. Lives across every weather card so the briefing stack reads as one
+// coherent instrument family — the same pattern the METAR token strip uses.
+function WeatherToken({ label, value, valueClassName = "" }) {
+  return (
+    <div className="weather-token">
+      <span className="weather-token__label">{label}</span>
+      <strong
+        className={`weather-token__value notranslate ${valueClassName}`.trim()}
+        translate="no"
+      >
+        {value}
+      </strong>
+    </div>
+  );
 }
 
 function MetricLine({ label, value, icon = null }) {
