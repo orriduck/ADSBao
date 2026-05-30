@@ -153,17 +153,22 @@
 }
 
 /* Toolbar mount animation: center seed expands to full pill, children
-   pop in place. clip-path so neighbours don't reflow. */
+   pop in place. clip-path so neighbours don't reflow. The animation has
+   to *over-expand* at the final keyframe — clip-path clips box-shadow,
+   so an end-state of inset(0) would erase the toolbar's floating shadow.
+   inset(-100px round 999px) keeps the clip region well outside the
+   element on all sides, letting box-shadow render normally. */
 @keyframes toolbar-reveal-expand {
     0% {
         clip-path: inset(0 calc(50% - 14px) 0 calc(50% - 14px) round 999px);
         opacity: 0;
     }
     60% {
+        clip-path: inset(0 0 0 0 round 999px);
         opacity: 1;
     }
     100% {
-        clip-path: inset(0 0 0 0 round 999px);
+        clip-path: inset(-100px -100px -100px -100px round 999px);
         opacity: 1;
     }
 }
@@ -186,14 +191,6 @@
     .toolbar-reveal > * {
         animation: none;
     }
-}
-
-@font-face {
-    font-family: "HarmonyOS Sans ADSBao";
-    src: url("/fonts/harmonyos/HarmonyOS_Sans_Medium.ttf") format("truetype");
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
 }
 
 /* User-selectable primary color. Two tones cover every accent usage in
@@ -826,7 +823,7 @@ body {
     border: 0;
     border-radius: var(--atc-radius-pill);
     box-shadow:
-        var(--app-floating-shadow),
+        var(--app-toolbar-shadow),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent);
     display: flex;
     gap: 5px;
@@ -883,7 +880,7 @@ body {
 :root[data-theme="dark"] .page-nav-dock__bar {
     background: color-mix(in oklab, var(--atc-card) 76%, transparent);
     box-shadow:
-        var(--app-floating-shadow),
+        var(--app-toolbar-shadow),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 7%, transparent);
 }
 
@@ -1717,6 +1714,18 @@ body {
         color-mix(in oklab, var(--atc-text) 6%, transparent);
     --preview-card-shadow:
         var(--app-floating-shadow);
+    /* Stronger than --app-floating-shadow: toolbars sit on the map / dither
+       panel and need a more obvious lift than preview cards that rest on
+       solid surfaces. Hardcoded RGBA in the light theme — color-mix with
+       --atc-text reads too faint on the white map background. Three
+       layers: a tight base contact, a mid-range ambient, and a long-throw
+       diffuse halo. Opacities calibrated so the shadow remains visible
+       even when the toolbar sits inside an overflow:hidden container that
+       clips part of the ambient blur (e.g. .airport-map-stage). */
+    --app-toolbar-shadow:
+        0 8px 16px rgba(0, 0, 0, 0.10),
+        0 3px 6px rgba(0, 0, 0, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="dark"] {
@@ -1737,6 +1746,10 @@ body {
         0 1px 3px rgb(0 0 0 / 0.2);
     --app-floating-edge-shadow: rgb(0 0 0 / 0.18);
     --preview-card-shadow: var(--app-floating-shadow);
+    --app-toolbar-shadow:
+        0 16px 40px rgb(0 0 0 / 0.55),
+        0 6px 18px rgb(0 0 0 / 0.42),
+        0 1px 3px rgb(0 0 0 / 0.38);
 }
 
 body {
@@ -1923,7 +1936,7 @@ body {
     border: 0;
     border-radius: var(--atc-radius-pill);
     box-shadow:
-        var(--app-floating-shadow),
+        var(--app-toolbar-shadow),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent);
     display: inline-flex;
     gap: 5px;
@@ -2073,7 +2086,7 @@ body {
     background: color-mix(in oklab, var(--atc-card) 86%, transparent);
     border: 1px solid var(--atc-line);
     border-radius: var(--atc-radius-pill);
-    box-shadow: var(--app-card-shadow);
+    box-shadow: var(--app-toolbar-shadow);
     gap: 6px;
     padding: 6px;
 }
@@ -2478,6 +2491,7 @@ body {
     gap: 1px;
     justify-content: center;
     min-width: 0;
+    text-shadow: 0 1px 8px var(--atc-bg);
     white-space: nowrap;
 }
 
@@ -2499,58 +2513,40 @@ body {
     pointer-events: none;
 }
 
-.map-source-status__primary,
-.map-source-status__loading-slot {
-    align-items: center;
-    justify-content: flex-end;
-    min-width: 0;
-    text-shadow: 0 1px 8px var(--atc-bg);
-    width: 100%;
-}
-
-.map-source-status__primary {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
-
 .map-source-status__line {
     align-items: center;
+    color: var(--atc-dim);
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
-    justify-content: flex-end;
-    min-width: 0;
-    text-shadow: 0 1px 8px var(--atc-bg);
-    width: 100%;
-    color: var(--atc-dim);
     font-size: 10px;
     font-weight: 600;
+    gap: 7px;
+    justify-content: flex-end;
     letter-spacing: -0.025em;
     line-height: 1;
+    min-width: 0;
     text-transform: uppercase;
+    width: 100%;
 }
 
-.map-source-status__route {
-    flex: 0 0 auto;
-}
-
-.map-source-status__separator {
+.map-source-status__source,
+.map-source-status__route,
+.map-source-status__diamond,
+.map-source-status__time {
     flex: 0 0 auto;
 }
 
 .map-source-status__time {
-    flex: 0 0 auto;
-    font-feature-settings: "tnum" 1;
     font-variant-numeric: tabular-nums;
 }
 
 .map-source-status__loading-slot {
+    align-items: center;
     display: flex;
-}
-
-.map-source-status--shift-loading .map-source-status__loading-slot {
+    justify-content: flex-end;
+    min-width: 0;
     overflow: hidden;
+    width: 100%;
 }
 
 .map-source-status__loading {
@@ -3114,13 +3110,43 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
-/* Wrapper carries the rotation so the dark-theme nose beam orbits
-   with the heading. Sits ABOVE the silhouette's drop-shadow halo via
-   overflow: visible. */
+/* Marker stack (shadow only rendered for selected aircraft):
+   1. .aircraft-pointer-glyph (wrapper) — heading rotation + wake-class scale.
+      Doesn't move out of plane, so the inner shadow can sit "on the ground".
+   2. .aircraft-shadow — the projected ground silhouette. Same SVG mask as
+      the real one but black, scaled-down, blurred. Stays planted while the
+      aircraft above it tilts and lifts — that's where the "altitude" cue
+      comes from, not from a filter halo.
+   3. .aircraft-silhouette — the real aircraft, carrying perspective + pitch
+      + bank + a translateY "lift". Sits above the shadow in DOM order.
+   Each layer transitions transform/opacity/filter so successive ADS-B
+   samples settle visually instead of snapping. */
 .aircraft-pointer-glyph {
     position: relative;
     overflow: visible;
+    transform-origin: center center;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
+
+.aircraft-shadow,
+.aircraft-silhouette {
+    transition:
+        transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
+        opacity 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
+        filter 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aircraft-pointer-glyph,
+    .aircraft-shadow,
+    .aircraft-silhouette {
+        transition: none;
+    }
+}
+
 
 .aircraft-nose-beam {
     position: absolute;
@@ -6539,7 +6565,6 @@ body {
     .aircraft-preview-mobile-card__track,
     .aircraft-preview-card__trace-status,
     .aircraft-preview-mobile-card__trace-status,
-    .map-source-status__primary,
     .map-source-status__line,
     .map-source-status__route,
     .map-source-status__loading-slot,
@@ -7118,7 +7143,7 @@ body {
     border: 0;
     border-radius: var(--atc-radius-pill);
     box-shadow:
-        var(--app-floating-shadow),
+        var(--app-toolbar-shadow),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent);
     gap: 6px;
     isolation: isolate;
@@ -7448,18 +7473,9 @@ body {
         top: calc(100% + 8px);
     }
 
-    .airport-map-kit .map-source-status__primary {
-        gap: 1px;
-    }
-
     .airport-map-kit .map-source-status__line {
         font-size: 8px;
         gap: 5px;
-    }
-
-    .airport-map-kit .map-source-status__route {
-        font-size: 7px;
-        gap: 4px;
     }
 
     .airport-map-kit .map-source-status__diamond {
@@ -7538,11 +7554,8 @@ body {
         background: color-mix(in oklab, var(--atc-card) 96%, var(--atc-bg));
         border: 0;
         box-shadow:
-            0 10px 24px color-mix(in oklab, var(--atc-text) 10%, transparent),
+            var(--app-toolbar-shadow),
             inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent);
-        filter: drop-shadow(
-            0 11px 16px color-mix(in oklab, var(--atc-text) 14%, transparent)
-        );
         gap: 5px;
         isolation: isolate;
         min-height: 42px;
@@ -7553,7 +7566,7 @@ body {
     :root[data-theme="dark"] .airport-map-menu--mobile .map-ctrl-bar {
         background: color-mix(in oklab, var(--atc-card) 94%, var(--atc-bg));
         box-shadow:
-            0 11px 25px rgb(0 0 0 / 0.28),
+            var(--app-toolbar-shadow),
             inset 0 1px 0 color-mix(in oklab, var(--atc-text) 7%, transparent);
     }
 
@@ -7602,7 +7615,6 @@ body {
             drop-shadow(0 1px 1px color-mix(in oklab, var(--atc-text) 24%, transparent));
     }
 
-    .airport-map-menu--mobile .map-source-status__primary,
     .airport-map-menu--mobile .map-source-status__loading-slot,
     .airport-map-menu--mobile .map-source-status__line,
     .airport-map-menu--mobile .map-source-status__route {
