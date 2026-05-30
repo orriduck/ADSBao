@@ -344,21 +344,21 @@ function Pointer({
               pointerEvents: "none",
             }}
           >
-            {/* Rotor disc centered on the main-rotor hub, not the
-                silhouette's geometric center. Helicopter SVGs in this set
-                have the rotor near the SVG-top with the tail boom
-                stretching downward, so under mask-size:contain centering
-                the rotor lands roughly at cy≈4 in the 24-unit viewBox.
-                The wrapper carries the heading rotation so "ahead" stays
-                ahead of the disc. */}
+            {/* Rotor disc — a solid circle outline enclosing the main
+                rotor blade tips. Centered on the rotor hub, which sits
+                near the SVG-top of these top-down silhouettes (the tail
+                boom stretches downward past the disc). Under
+                mask-size:contain centering the hub lands roughly at
+                cy=4, and the blade tips reach r≈6.5 in the 24-unit
+                viewBox. The wrapper carries the heading rotation so the
+                disc stays in front of the airframe. */}
             <circle
               cx="12"
               cy="4"
-              r="3.6"
+              r="6.5"
               fill="none"
               stroke={color}
-              strokeWidth="1.2"
-              strokeDasharray="1.4 1.1"
+              strokeWidth="1"
               opacity="0.9"
             />
           </svg>
