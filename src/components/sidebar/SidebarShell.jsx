@@ -44,7 +44,7 @@ export default function SidebarShell({
 
   return (
     <div className={panelClasses}>
-      <div className="sidebar-top-bar sticky top-0 z-20 flex flex-none items-start justify-center">
+      <div className="sidebar-top-bar sticky top-0 z-sticky flex flex-none items-start justify-center">
         <div className="sidebar-top-toolbar" role="toolbar" aria-label={t("nav.home")}>
           <button
             type="button"

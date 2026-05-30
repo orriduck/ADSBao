@@ -68,6 +68,22 @@
     --color-sidebar-muted: var(--sidebar-muted);
     --color-sidebar-faint: var(--sidebar-faint);
     --color-sidebar-signal: var(--sidebar-signal);
+
+    /* Page-level stacking ladder. Local stacking contexts inside cards keep
+       the small integers (1–6) they need for layering decorative pseudo-
+       elements against their own children; the tokens below regulate the
+       cross-page floating layer order. */
+    --z-index-sticky: 20;
+    --z-index-overlay: 30;
+    --z-index-elevated: 50;
+    --z-index-map-legend: 100;
+    --z-index-map-ui: 200;
+    --z-index-map-panel: 300;
+    --z-index-popover: 400;
+    --z-index-dropdown: 500;
+    --z-index-modal: 600;
+    --z-index-modal-content: 610;
+    --z-index-toast: 700;
 }
 
 @keyframes pulseDot {
@@ -708,7 +724,7 @@ body {
 .dither-page-panel {
     isolation: isolate;
     position: relative;
-    z-index: 20;
+    z-index: var(--z-index-sticky);
 }
 
 /* Right-side decorative pane — hosts the aircraft branding video layer.
@@ -731,7 +747,7 @@ body {
     top: max(12px, env(safe-area-inset-top));
     transform: translateX(-50%);
     width: max-content;
-    z-index: 1500;
+    z-index: var(--z-index-toast);
 }
 
 .page-nav-dock__bar {
@@ -995,7 +1011,7 @@ body {
     transition:
         opacity 0.7s ease,
         backdrop-filter 0.7s ease;
-    z-index: 15;
+    z-index: var(--z-index-overlay);
 }
 
 .adsb-loading-overlay--sidebar-aware {
@@ -1758,7 +1774,7 @@ body {
     padding: 0 var(--airport-sidebar-inset, 24px);
     pointer-events: none;
     position: absolute;
-    z-index: 20;
+    z-index: var(--z-index-sticky);
 }
 
 .sidebar-top-toolbar {
@@ -2358,7 +2374,7 @@ body {
     inset: 0 0 auto;
     padding: 0 16px;
     position: absolute;
-    z-index: 1000;
+    z-index: var(--z-index-map-ui);
 }
 
 :root[data-theme="dark"] .airport-map-menu {
@@ -2720,7 +2736,7 @@ body {
     right: 12px;
     top: 56px;
     width: max-content;
-    z-index: 990;
+    z-index: var(--z-index-map-ui);
 }
 
 .procedure-inspector-header,
@@ -2945,7 +2961,7 @@ body {
     transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1);
     width: fit-content;
     max-width: min(92vw, 420px);
-    z-index: 45;
+    z-index: var(--z-index-elevated);
     overflow: hidden;
 }
 
@@ -4811,7 +4827,7 @@ body {
     max-height: 320px;
     overflow-y: auto;
     padding: 6px;
-    z-index: 1200;
+    z-index: var(--z-index-popover);
 }
 
 .aircraft-filter-type-row {
@@ -5041,7 +5057,7 @@ body {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 1200;
+    z-index: var(--z-index-popover);
     width: 280px;
     max-width: calc(100vw - 32px);
     padding: 18px 18px 14px;
@@ -5649,7 +5665,7 @@ body {
     position: fixed;
     bottom: calc(64px + env(safe-area-inset-bottom));
     left: 50%;
-    z-index: 1200;
+    z-index: var(--z-index-popover);
     width: min(342px, calc(100vw - 24px));
     max-width: calc(100vw - 24px);
     background: color-mix(in oklab, var(--atc-card) 96%, var(--atc-bg));
@@ -5837,7 +5853,7 @@ body {
 .route-feedback-modal__overlay {
     position: fixed;
     inset: 0;
-    z-index: 1400;
+    z-index: var(--z-index-modal);
     background: color-mix(in oklab, var(--atc-bg) 70%, transparent);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
@@ -5845,7 +5861,7 @@ body {
 
 .route-feedback-modal__content {
     position: fixed;
-    z-index: 1410;
+    z-index: var(--z-index-modal-content);
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
@@ -6892,7 +6908,7 @@ body {
     padding: 0;
     position: absolute;
     top: var(--map-kit-inset);
-    z-index: 1050;
+    z-index: var(--z-index-map-panel);
 }
 
 .airport-map-kit--sidebar-open .airport-desktop-sidebar {

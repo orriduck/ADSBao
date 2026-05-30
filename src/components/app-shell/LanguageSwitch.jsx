@@ -51,12 +51,12 @@ export default function LanguageSwitch({
   };
 
   return (
-    <div ref={containerRef} className="relative isolate z-[1300]">
+    <div ref={containerRef} className="relative isolate z-dropdown">
       {open && (
         <div
           role="menu"
           aria-label={t("language.menuLabel")}
-          className={`absolute z-[1300] flex min-w-[160px] flex-col rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card p-1.5 font-sans text-atc-text shadow-[0_12px_32px_color-mix(in_oklab,var(--atc-bg)_60%,transparent),0_2px_6px_color-mix(in_oklab,var(--atc-bg)_40%,transparent)] ${placementClass} ${alignClass}`}
+          className={`absolute z-dropdown flex min-w-[160px] flex-col rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card p-1.5 font-sans text-atc-text shadow-[0_12px_32px_color-mix(in_oklab,var(--atc-bg)_60%,transparent),0_2px_6px_color-mix(in_oklab,var(--atc-bg)_40%,transparent)] ${placementClass} ${alignClass}`}
         >
           {languageItems.map((item) => {
             const active = item.locale === locale;
