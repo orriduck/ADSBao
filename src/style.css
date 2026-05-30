@@ -3119,28 +3119,16 @@ body {
     transform-origin: center center;
 }
 
-/* Rotorcraft overlay: a small dashed disc + a single short blade line,
-   spun fast to read as the blurred main rotor. Lives inside the SVG so
-   the disc inherits the silhouette's perspective/pitch/bank transform. */
-@keyframes aircraft-rotor-spin {
-    to { transform: rotate(360deg); }
-}
-
-/* transform-origin is set inline so it can match the rotor-disc center
-   (cx=12, cy=8) rather than the SVG bounding-box center. */
-.aircraft-rotor-disc__spin {
-    animation: aircraft-rotor-spin 380ms linear infinite;
-}
-
+/* Rotorcraft overlay: a small dashed disc centered on the main-rotor
+   hub. Inherits the silhouette's perspective/pitch/bank transform so it
+   tilts with the aircraft; no spin animation — the dashed outline is
+   enough to read as a rotor disc without distracting motion. */
 @media (prefers-reduced-motion: reduce) {
     .aircraft-pointer-glyph,
     .aircraft-shadow,
     .aircraft-silhouette,
     .aircraft-rotor-disc {
         transition: none;
-    }
-    .aircraft-rotor-disc__spin {
-        animation: none;
     }
 }
 

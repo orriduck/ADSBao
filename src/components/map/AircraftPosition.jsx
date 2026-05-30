@@ -344,34 +344,23 @@ function Pointer({
               pointerEvents: "none",
             }}
           >
-            {/* Rotor disc sits over the cabin (SVG-top region of the
-                silhouette, ahead of the geometric center) rather than
-                centered, because that's where the actual main rotor
-                lives on a top-down helicopter outline. The wrapper
-                rotates the whole thing with heading so "ahead" stays
-                ahead. */}
-            <g className="aircraft-rotor-disc__spin" style={{ transformOrigin: "12px 8px" }}>
-              <circle
-                cx="12"
-                cy="8"
-                r="5.5"
-                fill="none"
-                stroke={color}
-                strokeWidth="1.4"
-                strokeDasharray="1.8 1.4"
-                opacity="0.9"
-              />
-              <line
-                x1="6.5"
-                y1="8"
-                x2="17.5"
-                y2="8"
-                stroke={color}
-                strokeWidth="1.1"
-                strokeLinecap="round"
-                opacity="0.75"
-              />
-            </g>
+            {/* Rotor disc centered on the main-rotor hub, not the
+                silhouette's geometric center. Helicopter SVGs in this set
+                have the rotor near the SVG-top with the tail boom
+                stretching downward, so under mask-size:contain centering
+                the rotor lands roughly at cy≈4 in the 24-unit viewBox.
+                The wrapper carries the heading rotation so "ahead" stays
+                ahead of the disc. */}
+            <circle
+              cx="12"
+              cy="4"
+              r="3.6"
+              fill="none"
+              stroke={color}
+              strokeWidth="1.2"
+              strokeDasharray="1.4 1.1"
+              opacity="0.9"
+            />
           </svg>
         )}
         {theme === "dark" && (
