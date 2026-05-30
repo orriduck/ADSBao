@@ -19,6 +19,9 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 export function MetarSlide({ metarRaw, metarLoading, metarError }) {
   const { t } = useI18n();
   const tokens = getMetarTokens(metarRaw);
+  const placeholder = metarLoading
+    ? t("weather.metarLoading")
+    : t("weather.metarMissing");
 
   return (
     <div className="weather-slide-stack">
@@ -33,9 +36,16 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
               ))
             : null}
         </div>
-        <div className="metar-code weather-metar-code">
-          {metarRaw || (metarLoading ? t("weather.metarLoading") : t("weather.metarMissing"))}
-        </div>
+        <section
+          className={`metar-raw ${metarRaw ? "" : "metar-raw--placeholder"}`}
+        >
+          <span className="metar-raw__label">
+            {t("weather.metarFullReport")}
+          </span>
+          <code className="metar-raw__code notranslate" translate="no">
+            {metarRaw || placeholder}
+          </code>
+        </section>
       </div>
       {metarError ? <div className="panel-error">{metarError}</div> : null}
     </div>
@@ -43,15 +53,18 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
 }
 
 export function FlightRulesSlide({ metar }) {
+  const { t } = useI18n();
   const code = metar?.flightCategory || "VFR";
   const rules = FLIGHT_RULES[code] || FLIGHT_RULES.VFR;
+  const label = rules.labelKey ? t(rules.labelKey) : rules.label;
+  const context = rules.contextKey ? t(rules.contextKey) : rules.context;
 
   return (
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
         <div className="flight-rule-banner">
           <span className="font-mono">{code}</span>
-          <strong>{rules.label}</strong>
+          <strong>{label}</strong>
         </div>
         <div className="flight-rule-rail" aria-hidden="true">
           {FLIGHT_RULE_ORDER.map((item) => (
@@ -63,7 +76,7 @@ export function FlightRulesSlide({ metar }) {
           ))}
         </div>
       </div>
-      <WeatherDescription>{rules.context}</WeatherDescription>
+      <WeatherDescription>{context}</WeatherDescription>
     </div>
   );
 }

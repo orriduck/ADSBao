@@ -1402,21 +1402,45 @@ body {
     min-height: 142px;
 }
 
-.metar-code {
-    color: var(--atc-text);
-    font-family: var(--font-mono);
-    font-size: clamp(14px, 1.1vw, 18px);
-    font-weight: 800;
-    line-height: 1.3;
-    margin-top: 10px;
-    max-height: 156px;
-    overflow: auto;
-    white-space: pre-wrap;
+/* Raw-METAR block sits underneath the STATION / ISSUED / WIND / VIS
+   token strip and adopts the same flat treatment: small uppercase mono
+   label on top, larger mono value below, no surface chrome. Keeping the
+   block borderless lets the whole METAR slide read as one cohesive
+   instrument instead of "summary tokens + a separate card", which the
+   user explicitly preferred. */
+.metar-raw {
+    display: grid;
+    gap: 6px;
+    margin-top: 18px;
 }
 
-.weather-metar-code {
-    margin-top: 2px;
-    max-height: 134px;
+.metar-raw__label {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.metar-raw__code {
+    color: var(--atc-text);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+    max-height: 144px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.metar-raw--placeholder .metar-raw__code {
+    color: var(--atc-faint);
+    font-style: italic;
+    font-weight: 500;
 }
 
 .metar-instrument {
