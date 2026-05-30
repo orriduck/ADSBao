@@ -80,6 +80,12 @@ export default function MapControlRail({
 
       <div className="ctrl-sep" />
 
+      <LanguageSwitch
+        className="ctrl-language"
+        menuPlacement="bottom"
+        menuAlign="center"
+      />
+
       <Button
         variant="atcIcon"
         size="icon"
@@ -90,12 +96,6 @@ export default function MapControlRail({
       >
         <MapControlIcon iconKey={getThemeIconKey(currentTheme)} />
       </Button>
-
-      <LanguageSwitch
-        className="ctrl-language"
-        menuPlacement="bottom"
-        menuAlign="center"
-      />
 
       <Button
         variant="atcIcon"

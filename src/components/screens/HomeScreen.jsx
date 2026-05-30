@@ -1,64 +1,60 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AirportCaptionScreen from "./AirportCaptionScreen";
 import SearchScreen from "./SearchScreen";
 import { airportDirectoryClient } from "../../features/airport/directory/airportDirectoryClient.js";
 
-export default function HomeScreen({ initialIcao = "" }) {
+// Single client component shared between "/" and "/airport/[icao]" —
+// pathname drives which sub-screen renders, so back/forward, the
+// sidebar logo Link, and any other Next router navigation all stay in
+// sync without manual history.pushState or popstate plumbing.
+export default function HomeScreen() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentIcao = normalizePathIcao(pathname);
   const [airport, setAirport] = useState(null);
-  const [currentIcao, setCurrentIcao] = useState(initialIcao);
 
-  const loadAirport = async (icao) => {
-    if (!icao || icao.length < 3) return;
-    try {
-      const resolvedAirport = await airportDirectoryClient.resolveAirport(icao);
-      setAirport(resolvedAirport);
-      setCurrentIcao(String(resolvedAirport?.icao || icao).toUpperCase());
-    } catch (err) {
-      console.error("Failed to load airport", err);
-      toast.error(err?.message || "Airport not found or unavailable", {
-        id: "airport-resolve",
-      });
+  useEffect(() => {
+    if (!currentIcao) {
       setAirport(null);
+      return;
     }
-  };
-
-  useEffect(() => {
-    if (initialIcao) loadAirport(initialIcao);
-  }, [initialIcao]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      const pathIcao = normalizePathIcao(window.location.pathname);
-      if (!pathIcao) {
+    let cancelled = false;
+    (async () => {
+      try {
+        const resolved = await airportDirectoryClient.resolveAirport(currentIcao);
+        if (!cancelled) setAirport(resolved);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Failed to load airport", err);
+        toast.error(err?.message || "Airport not found or unavailable", {
+          id: "airport-resolve",
+        });
         setAirport(null);
-        setCurrentIcao("");
-        return;
       }
-      setCurrentIcao(pathIcao);
-      loadAirport(pathIcao);
+    })();
+    return () => {
+      cancelled = true;
     };
+  }, [currentIcao]);
 
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
-
-  const handleOpenAirport = async (selectedAirport) => {
+  const handleOpenAirport = (selectedAirport) => {
     const nextIcao = String(
       selectedAirport.icao || selectedAirport.code || "",
     ).toUpperCase();
     if (!nextIcao) return;
+    // Optimistically seed the airport data so the detail view renders
+    // without a flash while the resolveAirport effect re-fires off the
+    // new pathname.
     setAirport(selectedAirport);
-    setCurrentIcao(nextIcao);
-    window.history.pushState({ icao: nextIcao }, "", `/airport/${nextIcao}`);
+    router.push(`/airport/${nextIcao}`);
   };
 
   const handleBack = () => {
-    setAirport(null);
-    setCurrentIcao("");
-    window.history.pushState({}, "", "/");
+    router.push("/");
   };
 
   if (!currentIcao) {

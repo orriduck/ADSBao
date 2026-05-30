@@ -50,7 +50,9 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function AirportPage({ params }) {
-  const { icao } = await params;
-  return <HomeScreen initialIcao={normalizeIcao(icao)} />;
+// HomeScreen reads the airport ICAO from the URL via usePathname, so the
+// route file just needs to render the screen — no props plumbing. SEO
+// metadata still derives from `params` (the airport name lookup above).
+export default function AirportPage() {
+  return <HomeScreen />;
 }
