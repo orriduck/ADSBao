@@ -153,17 +153,17 @@
 }
 
 /* Reusable two-phase entry animation for floating toolbars (sidebar top
-   pill, map control bar, page nav dock, anywhere else a pill of
-   icon buttons mounts). Phase 1 expands the pill from a 28px sliver
-   on its left edge to its full width via clip-path, keeping the
-   container's natural layout intact (no width-driven layout thrash on
-   neighbours). Phase 2 stagger-fades the buttons inward so the toolbar
-   feels assembled rather than poured. The keyframes preserve the pill's
-   999px corner radius through the reveal so the silhouette never goes
-   square. */
+   pill, map control bar, page nav dock, anywhere else a pill of icon
+   buttons mounts). Phase 1 expands the pill from a centered 28px seed
+   outward to its full width via symmetric clip-path insets, keeping
+   the container's natural layout intact (no width-driven thrash on
+   neighbours). Phase 2 stagger-fades the buttons via opacity + a soft
+   scale-in so the toolbar reads as assembled rather than poured. The
+   keyframes preserve the pill's 999px corner radius throughout so the
+   silhouette never goes square. */
 @keyframes toolbar-reveal-expand {
     0% {
-        clip-path: inset(0 calc(100% - 28px) 0 0 round 999px);
+        clip-path: inset(0 calc(50% - 14px) 0 calc(50% - 14px) round 999px);
         opacity: 0;
     }
     60% {
@@ -178,11 +178,11 @@
 @keyframes toolbar-reveal-fade {
     from {
         opacity: 0;
-        transform: translateX(-6px);
+        transform: scale(0.92);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: scale(1);
     }
 }
 
