@@ -1730,12 +1730,31 @@ body {
 }
 
 .dither-page-panel {
+    /* Same warm-corner sweep as the airport / flight sidebar identity
+       blocks (line 4277), so home and about share the design language
+       with the detail pages. Sits over the inherited --atc-bg fill of
+       .sidebar-shell so the panel still reads as the same surface. */
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--atc-orange) 10%, transparent),
+            transparent 48%
+        );
     border-right: 0;
     border-radius: 0 var(--atc-radius-shell) var(--atc-radius-shell) 0;
     box-shadow: var(--app-panel-shadow);
     margin: 12px 0 12px 12px;
     max-height: calc(100dvh - 24px);
     overflow: hidden;
+}
+
+:root[data-theme="dark"] .dither-page-panel {
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in oklab, var(--atc-orange) 18%, transparent),
+            transparent 48%
+        );
 }
 
 .dither-page-background {
