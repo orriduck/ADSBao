@@ -1712,11 +1712,13 @@ body {
     /* Stronger than --app-floating-shadow: toolbars sit on the map / dither
        panel and need a more obvious lift than preview cards that rest on
        solid surfaces. Hardcoded RGBA in the light theme — color-mix with
-       --atc-text reads too faint on the white map background. */
+       --atc-text reads too faint on the white map background. Pushed to
+       ~0.30 opacity at the ambient layer + a tight contact shadow at the
+       base so the lift is actually visible against pale tiles. */
     --app-toolbar-shadow:
-        0 14px 32px rgba(0, 0, 0, 0.22),
-        0 5px 14px rgba(0, 0, 0, 0.14),
-        0 1px 3px rgba(0, 0, 0, 0.18);
+        0 18px 44px rgba(0, 0, 0, 0.30),
+        0 8px 18px rgba(0, 0, 0, 0.22),
+        0 2px 4px rgba(0, 0, 0, 0.26);
 }
 
 :root[data-theme="dark"] {
