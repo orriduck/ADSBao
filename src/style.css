@@ -3290,23 +3290,27 @@ body {
  * itself only contributes a bottom hairline divider — no extra
  * background or border-left rail to avoid double-framing the row. */
 /* Pinned aircraft slot — the selected row promoted above the scrolling
-   list. Visually mirrors the WEATHER / FLIGHTS metric tiles (see
-   .sidebar-metric-card--active): a rounded, theme-click-bg card with an
-   inset edge highlight, so a chosen aircraft feels like a peer of the
-   stat tiles up top rather than just "the first row that happens to be
-   highlighted". The yellow lead bar that the in-list active state uses
-   is intentionally hidden here — pinned rows do not need a list-marker
-   because their position above the scroll already signals selection. */
+   list. Visually mirrors the WEATHER / FLIGHTS metric tile's selected
+   state: theme-click-bg fill, a bottom-up edge glow that climbs the
+   card, and the same inset highlight on the bottom rail. The pinned row
+   keeps the list's full width (a chosen aircraft is still a list item,
+   not a detached tile), so border-radius stays 0 — the visual signal is
+   the glow + colour swap, not the geometry. The yellow lead bar that
+   the in-list active state uses is hidden here because the row's
+   position above the scroll already signals selection. */
 .aircraft-table-pin {
-    margin: 6px var(--airport-sidebar-inset, 18px) 8px;
+    margin: 6px 0 8px;
     overflow: visible;
     position: relative;
 }
 
 .aircraft-table-pin .endf-row-active {
     background: var(--atc-click-bg);
-    border-radius: var(--atc-radius-card);
+    border-radius: 0;
     color: var(--atc-click-fg);
+    isolation: isolate;
+    overflow: hidden;
+    position: relative;
     box-shadow:
         inset 0 -1px 0 var(--sidebar-tile-edge-glow),
         inset 0 -14px 22px color-mix(in oklab, var(--atc-click-fg) 7%, transparent);
@@ -3314,6 +3318,25 @@ body {
 
 .aircraft-table-pin .endf-row-active::before {
     display: none;
+}
+
+/* Bottom-up glow that fades upward — same gradient the metric tile uses
+   on its own ::after. Sits behind the row's content (z-index: 0) while
+   text / glyphs render at z-index: 1 via the existing endf-industrial-row
+   stacking. */
+.aircraft-table-pin .endf-row-active::after {
+    background: var(--sidebar-tile-bottom-glow);
+    content: "";
+    inset: 0;
+    opacity: 1;
+    pointer-events: none;
+    position: absolute;
+    z-index: 0;
+}
+
+.aircraft-table-pin .endf-row-active > * {
+    position: relative;
+    z-index: 1;
 }
 
 .endf-content-swap {
