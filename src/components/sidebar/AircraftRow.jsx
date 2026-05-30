@@ -3,11 +3,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Plane } from "lucide-react";
+import NumberFlow from "@number-flow/react";
 import {
   formatFlightRouteMunicipalityLabel,
   getFlightRouteAirlineIconUrl,
 } from "../../utils/flightRouteDisplay.js";
-import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
@@ -169,31 +169,25 @@ function AircraftIdentityCell({
   );
 }
 
-// Plain-text formatter for list rows. NumberFlow's animated digits look
-// great on a couple of metric cards, but rendering ~290 instances (145
-// aircraft × 2 columns) every poll tick costs framerate. Static text
-// via Intl.NumberFormat keeps locale-correct separators without the
-// per-row custom-element overhead. The compact value group uses the same
-// Endfield content-swap hook as row replacement, so the old numeric value
-// is erased before the refreshed value is injected.
+// Animated numeric cell. NumberFlow handles digit-level animation natively,
+// replacing the older static-text + EndfieldValueSwap cross-fade. Cost is
+// bounded by virtualization: only the rows in the visible window mount, so
+// the previous ~290-instance worst case becomes ~24 (12 rows × 2 cells).
 function NumberWithUnit({ value, unit, format }) {
-  const formatted = new Intl.NumberFormat(undefined, format).format(value);
   return (
-    <EndfieldValueSwap
-      identityKey={`${formatted}:${unit}`}
-      value={(
-        <>
-          <span className="aircraft-table-number-value">{formatted}</span>
-          <sub
-            className="aircraft-table-unit notranslate relative top-[0.22em] text-[7px] font-semibold leading-none text-atc-dim"
-            translate="no"
-          >
-            {unit}
-          </sub>
-        </>
-      )}
-      className="aircraft-table-number inline-flex items-baseline justify-end gap-0.5 tabular-nums"
-    />
+    <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
+      <NumberFlow
+        value={value}
+        format={format}
+        className="block min-w-0 text-right"
+      />
+      <sub
+        className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
+        translate="no"
+      >
+        {unit}
+      </sub>
+    </span>
   );
 }
 

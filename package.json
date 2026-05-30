@@ -25,6 +25,7 @@
     "@react-three/postprocessing": "^3.0.4",
     "@sentry/nextjs": "^10.53.1",
     "@supabase/supabase-js": "^2.105.4",
+    "@tanstack/react-virtual": "^3.13.26",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",
@@ -55,8 +56,14 @@
       "@sentry/cli"
     ],
     "supportedArchitectures": {
-      "os": ["darwin", "linux"],
-      "cpu": ["x64", "arm64"]
+      "os": [
+        "darwin",
+        "linux"
+      ],
+      "cpu": [
+        "x64",
+        "arm64"
+      ]
     }
   },
   "license": "MIT"

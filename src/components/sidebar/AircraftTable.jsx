@@ -39,6 +39,7 @@ import { getDistanceNm } from "../../utils/aircraftTrafficIntent.js";
 import AircraftList from "./AircraftList.jsx";
 import AircraftSlot from "./AircraftSlot.jsx";
 import AirportSlot from "./AirportSlot.jsx";
+import VirtualNearbyList from "./VirtualNearbyList.jsx";
 
 export default function AircraftTable({
   aircraft = [],
@@ -132,6 +133,26 @@ export default function AircraftTable({
       (item) => getAircraftIdentity(item) !== selectedAircraftId,
     );
   }, [pinnedAircraft, filteredAircraft, selectedAircraftId]);
+  const combinedRows = useMemo(() => {
+    const out = [];
+    for (const aircraftItem of listRows) {
+      const id = getAircraftIdentity(aircraftItem);
+      out.push({
+        type: "aircraft",
+        id: id || `aircraft-idx:${out.length}`,
+        data: aircraftItem,
+      });
+    }
+    for (const airport of filteredAirports) {
+      out.push({
+        type: "airport",
+        id: `airport:${airport.icao}`,
+        data: airport,
+      });
+    }
+    return out;
+  }, [filteredAirports, listRows]);
+
   const aircraftListResetKey = useMemo(
     () =>
       [
@@ -263,7 +284,7 @@ export default function AircraftTable({
         )}
       </div>
 
-      <div className={fill ? "flex-1 overflow-y-auto" : "overflow-visible"}>
+      <div className={fill ? "flex-1 min-h-0" : "overflow-visible"}>
         {listRows.length === 0 &&
         filteredAirports.length === 0 &&
         !pinnedAircraft ? (
@@ -272,6 +293,15 @@ export default function AircraftTable({
               ? t("sidebar.noMatches")
               : t("sidebar.nothingInRange")}
           </div>
+        ) : fill ? (
+          <VirtualNearbyList
+            items={combinedRows}
+            selectedAircraftId={selectedAircraftId}
+            selectedAirportIcao={selectedAirportIcao}
+            onSelectAircraft={onSelectAircraft}
+            onSelectAirport={onSelectAirport}
+            resetSignal={aircraftListResetKey}
+          />
         ) : (
           <>
             {listRows.length > 0 && (
@@ -283,11 +313,11 @@ export default function AircraftTable({
               />
             )}
             {filteredAirports.length > 0 && (
-              <ul className="aircraft-table-list">
+              <ul className="divide-y divide-atc-line">
                 {filteredAirports.map((airport) => (
                   <li
                     key={`airport:${airport.icao}`}
-                    className="aircraft-table-list__item"
+                    className="relative list-none [perspective:800px]"
                   >
                     <AirportSlot
                       airport={airport}
