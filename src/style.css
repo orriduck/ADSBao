@@ -153,17 +153,22 @@
 }
 
 /* Toolbar mount animation: center seed expands to full pill, children
-   pop in place. clip-path so neighbours don't reflow. */
+   pop in place. clip-path so neighbours don't reflow. The animation has
+   to *over-expand* at the final keyframe — clip-path clips box-shadow,
+   so an end-state of inset(0) would erase the toolbar's floating shadow.
+   inset(-100px round 999px) keeps the clip region well outside the
+   element on all sides, letting box-shadow render normally. */
 @keyframes toolbar-reveal-expand {
     0% {
         clip-path: inset(0 calc(50% - 14px) 0 calc(50% - 14px) round 999px);
         opacity: 0;
     }
     60% {
+        clip-path: inset(0 0 0 0 round 999px);
         opacity: 1;
     }
     100% {
-        clip-path: inset(0 0 0 0 round 999px);
+        clip-path: inset(-100px -100px -100px -100px round 999px);
         opacity: 1;
     }
 }
@@ -1718,9 +1723,9 @@ body {
        even when the toolbar sits inside an overflow:hidden container that
        clips part of the ambient blur (e.g. .airport-map-stage). */
     --app-toolbar-shadow:
-        0 22px 50px rgba(0, 0, 0, 0.35),
-        0 10px 22px rgba(0, 0, 0, 0.28),
-        0 2px 6px rgba(0, 0, 0, 0.32);
+        0 24px 60px rgba(0, 0, 0, 0.28),
+        0 6px 16px rgba(0, 0, 0, 0.20),
+        0 2px 4px rgba(0, 0, 0, 0.18);
 }
 
 :root[data-theme="dark"] {
