@@ -44,74 +44,78 @@ export default function SidebarShell({
 
   return (
     <div className={panelClasses}>
-      <div className="sidebar-top-bar sticky top-0 z-sticky flex flex-none items-start justify-center">
-        <div className="sidebar-top-toolbar toolbar-reveal" role="toolbar" aria-label={t("nav.home")}>
+      <div className="sidebar-top-dock">
+      <div
+        className="sidebar-top-toolbar toolbar-reveal"
+        role="toolbar"
+        aria-label={t("nav.home")}
+      >
+        <button
+          type="button"
+          onClick={onBack}
+          className="sidebar-top-toolbar__button"
+          aria-label={t("nav.homePage")}
+          title={t("nav.homePage")}
+        >
+          <Home aria-hidden="true" />
+        </button>
+        {mapAction ? (
           <button
             type="button"
-            onClick={onBack}
-            className="sidebar-top-bar__button"
-            aria-label={t("nav.homePage")}
-            title={t("nav.homePage")}
+            onClick={mapAction}
+            className="sidebar-top-toolbar__button"
+            aria-label={t("nav.map")}
+            title={t("nav.map")}
           >
-            <Home aria-hidden="true" />
+            <Map aria-hidden="true" />
           </button>
-          {mapAction ? (
-            <button
-              type="button"
-              onClick={mapAction}
-              className="sidebar-top-bar__button"
-              aria-label={t("nav.map")}
-              title={t("nav.map")}
-            >
-              <Map aria-hidden="true" />
-            </button>
-          ) : null}
-          {isMobileOverlay ? (
-            <>
-              <span className="sidebar-top-bar__sep" aria-hidden="true" />
-              <LanguageSwitch
-                className="sidebar-top-bar__button sidebar-top-bar__button--language"
-                menuPlacement="bottom"
-                menuAlign="center"
-              />
-              <ThemeToggle
-                className="sidebar-top-bar__button sidebar-top-bar__button--theme"
-                iconKey={themeIconKey}
-                preference={themePreference}
-                title={themeTitle}
-                onClick={cycleTheme}
-              />
-              <span className="sidebar-top-bar__sep" aria-hidden="true" />
-              {!isLoaded ? (
-                <div className="sidebar-top-bar__account" aria-hidden="true" />
-              ) : showSignedIn ? (
-                <div
-                  className="sidebar-top-bar__account"
-                  aria-label={t("auth.account")}
+        ) : null}
+        {isMobileOverlay ? (
+          <>
+            <span className="sidebar-top-toolbar__sep" aria-hidden="true" />
+            <LanguageSwitch
+              className="sidebar-top-toolbar__button"
+              menuPlacement="bottom"
+              menuAlign="center"
+            />
+            <ThemeToggle
+              className="sidebar-top-toolbar__button"
+              iconKey={themeIconKey}
+              preference={themePreference}
+              title={themeTitle}
+              onClick={cycleTheme}
+            />
+            <span className="sidebar-top-toolbar__sep" aria-hidden="true" />
+            {!isLoaded ? (
+              <div className="sidebar-top-toolbar__account" aria-hidden="true" />
+            ) : showSignedIn ? (
+              <div
+                className="sidebar-top-toolbar__account"
+                aria-label={t("auth.account")}
+              >
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-7 w-7 rounded-[2px]",
+                    },
+                  }}
+                />
+              </div>
+            ) : (
+              <SignInButton mode="modal">
+                <button
+                  type="button"
+                  className="sidebar-top-toolbar__button"
+                  title={t("auth.signIn")}
+                  aria-label={t("auth.signIn")}
                 >
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        avatarBox: "h-7 w-7 rounded-[2px]",
-                      },
-                    }}
-                  />
-                </div>
-              ) : (
-                <SignInButton mode="modal">
-                  <button
-                    type="button"
-                    className="sidebar-top-bar__button sidebar-top-bar__button--sign-in"
-                    title={t("auth.signIn")}
-                    aria-label={t("auth.signIn")}
-                  >
-                    <LogIn aria-hidden="true" />
-                  </button>
-                </SignInButton>
-              )}
-            </>
-          ) : null}
-        </div>
+                  <LogIn aria-hidden="true" />
+                </button>
+              </SignInButton>
+            )}
+          </>
+        ) : null}
+      </div>
       </div>
 
       <div
