@@ -188,14 +188,6 @@
     }
 }
 
-@font-face {
-    font-family: "HarmonyOS Sans ADSBao";
-    src: url("/fonts/harmonyos/HarmonyOS_Sans_Medium.ttf") format("truetype");
-    font-style: normal;
-    font-weight: 500;
-    font-display: swap;
-}
-
 /* User-selectable primary color. Two tones cover every accent usage in
    the app:
      --primary-bright : solid fills for tabs, chips, CTAs, focused-row
@@ -2478,6 +2470,7 @@ body {
     gap: 1px;
     justify-content: center;
     min-width: 0;
+    text-shadow: 0 1px 8px var(--atc-bg);
     white-space: nowrap;
 }
 
@@ -2499,58 +2492,40 @@ body {
     pointer-events: none;
 }
 
-.map-source-status__primary,
-.map-source-status__loading-slot {
-    align-items: center;
-    justify-content: flex-end;
-    min-width: 0;
-    text-shadow: 0 1px 8px var(--atc-bg);
-    width: 100%;
-}
-
-.map-source-status__primary {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-}
-
 .map-source-status__line {
     align-items: center;
+    color: var(--atc-dim);
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
-    justify-content: flex-end;
-    min-width: 0;
-    text-shadow: 0 1px 8px var(--atc-bg);
-    width: 100%;
-    color: var(--atc-dim);
     font-size: 10px;
     font-weight: 600;
+    gap: 7px;
+    justify-content: flex-end;
     letter-spacing: -0.025em;
     line-height: 1;
+    min-width: 0;
     text-transform: uppercase;
+    width: 100%;
 }
 
-.map-source-status__route {
-    flex: 0 0 auto;
-}
-
-.map-source-status__separator {
+.map-source-status__source,
+.map-source-status__route,
+.map-source-status__diamond,
+.map-source-status__time {
     flex: 0 0 auto;
 }
 
 .map-source-status__time {
-    flex: 0 0 auto;
-    font-feature-settings: "tnum" 1;
     font-variant-numeric: tabular-nums;
 }
 
 .map-source-status__loading-slot {
+    align-items: center;
     display: flex;
-}
-
-.map-source-status--shift-loading .map-source-status__loading-slot {
+    justify-content: flex-end;
+    min-width: 0;
     overflow: hidden;
+    width: 100%;
 }
 
 .map-source-status__loading {
@@ -6572,7 +6547,6 @@ body {
     .aircraft-preview-mobile-card__track,
     .aircraft-preview-card__trace-status,
     .aircraft-preview-mobile-card__trace-status,
-    .map-source-status__primary,
     .map-source-status__line,
     .map-source-status__route,
     .map-source-status__loading-slot,
@@ -7481,10 +7455,6 @@ body {
         top: calc(100% + 8px);
     }
 
-    .airport-map-kit .map-source-status__primary {
-        gap: 1px;
-    }
-
     .airport-map-kit .map-source-status__line {
         font-size: 8px;
         gap: 5px;
@@ -7635,7 +7605,6 @@ body {
             drop-shadow(0 1px 1px color-mix(in oklab, var(--atc-text) 24%, transparent));
     }
 
-    .airport-map-menu--mobile .map-source-status__primary,
     .airport-map-menu--mobile .map-source-status__loading-slot,
     .airport-map-menu--mobile .map-source-status__line,
     .airport-map-menu--mobile .map-source-status__route {
