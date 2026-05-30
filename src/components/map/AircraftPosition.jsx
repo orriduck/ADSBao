@@ -197,6 +197,28 @@ export default function AircraftPosition({
 const SHADOW_GROUND_FT = 0;
 const SHADOW_CRUISE_FT = 38_000;
 
+// Icon names whose silhouette is a rotorcraft (top-down view of a main
+// rotor + fuselage). For these we overlay a spinning dashed disc so the
+// rotor reads as "turning" — the static rotor blades in the source SVG
+// otherwise look like fixed cross-arms.
+const HELICOPTER_ICON_NAMES = new Set([
+  "h47",
+  "h60",
+  "h64",
+  "r44",
+  "s61",
+  "uh1",
+  "nh90",
+  "mi24",
+  "lynx",
+  "gazl",
+  "ec20",
+  "ec35",
+  "ec45",
+  "as65",
+  "gyro",
+]);
+
 function Pointer({
   color,
   rot,
@@ -306,8 +328,53 @@ function Pointer({
             ...maskStyle,
             backgroundColor: color,
             transform: silhouetteTransform,
+            // Helicopters get a circular clip so the static main-rotor
+            // blades stop at the rotor disc boundary instead of extending
+            // out to the original SVG's tip — the spinning overlay below
+            // provides the "in motion" cue.
+            ...(HELICOPTER_ICON_NAMES.has(silhouette.name)
+              ? { clipPath: "circle(45% at center)" }
+              : null),
           }}
         />
+        {HELICOPTER_ICON_NAMES.has(silhouette.name) && (
+          <svg
+            className="aircraft-rotor-disc"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            width={SILHOUETTE_SIZE_PX}
+            height={SILHOUETTE_SIZE_PX}
+            style={{
+              position: "absolute",
+              inset: 0,
+              transform: silhouetteTransform,
+              pointerEvents: "none",
+            }}
+          >
+            <g className="aircraft-rotor-disc__spin">
+              <circle
+                cx="12"
+                cy="12"
+                r="7.5"
+                fill="none"
+                stroke={color}
+                strokeWidth="0.7"
+                strokeDasharray="1.6 1.6"
+                opacity="0.55"
+              />
+              <line
+                x1="4.5"
+                y1="12"
+                x2="19.5"
+                y2="12"
+                stroke={color}
+                strokeWidth="0.9"
+                strokeLinecap="round"
+                opacity="0.45"
+              />
+            </g>
+          </svg>
+        )}
         {theme === "dark" && (
           <span aria-hidden="true" className="aircraft-nose-beam" />
         )}

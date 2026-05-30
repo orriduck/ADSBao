@@ -3110,7 +3110,8 @@ body {
 }
 
 .aircraft-shadow,
-.aircraft-silhouette {
+.aircraft-silhouette,
+.aircraft-rotor-disc {
     transition:
         transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
         opacity 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
@@ -3118,11 +3119,28 @@ body {
     transform-origin: center center;
 }
 
+/* Rotorcraft overlay: a small dashed disc + a single short blade line,
+   spun fast to read as the blurred main rotor. Lives inside the SVG so
+   the disc inherits the silhouette's perspective/pitch/bank transform. */
+@keyframes aircraft-rotor-spin {
+    to { transform: rotate(360deg); }
+}
+
+.aircraft-rotor-disc__spin {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: aircraft-rotor-spin 480ms linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .aircraft-pointer-glyph,
     .aircraft-shadow,
-    .aircraft-silhouette {
+    .aircraft-silhouette,
+    .aircraft-rotor-disc {
         transition: none;
+    }
+    .aircraft-rotor-disc__spin {
+        animation: none;
     }
 }
 
