@@ -8,11 +8,11 @@ export default function AboutRepositoryLink({ repository, onOpenExternalLink }) 
   const { t } = useI18n();
 
   return (
-    <div className="about-repository-wrap px-6 pt-6 pb-6">
+    <div className="p-6 md:p-[19px]">
       <a
         {...getExternalLinkOpenTarget(repository.href)}
         onClick={(event) => onOpenExternalLink(event, repository.href)}
-        className="about-repository-link group endf-cornered flex items-center justify-between gap-3 border border-[var(--atc-line-strong)] px-4 py-3.5 transition-colors hover:border-atc-orange"
+        className="group endf-cornered flex items-center justify-between gap-3 border border-[var(--atc-line-strong)] px-4 py-3.5 transition-colors hover:border-atc-orange md:gap-2.5 md:px-[13px] md:py-[11px]"
       >
         <div className="flex items-center gap-3">
           <span className="grid h-8 w-8 place-items-center border border-atc-orange text-atc-orange">

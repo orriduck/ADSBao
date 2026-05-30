@@ -243,7 +243,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           />
 
           {isMobile && sidebarOpen && (
-            <div className="absolute inset-0 z-[1100]">
+            <div className="absolute inset-0 z-map-panel">
               <AirportSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}

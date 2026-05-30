@@ -14,11 +14,14 @@ export default function AircraftPreviewIdentity({ aircraft }) {
   const route = aircraft?.flightRouteLabel || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
 
+  const routeBase =
+    "inline-flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-atc-dim md:gap-[5px] md:text-[9px]";
+
   return (
-    <div className="aircraft-preview-identity">
-      <div className="aircraft-preview-identity__top">
+    <div className="mb-2.5 flex flex-col gap-1 md:mb-2 md:gap-[3px]">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_max-content] items-start gap-x-[14px] md:gap-x-[11px]">
         <span
-          className="aircraft-preview-identity__callsign notranslate"
+          className="notranslate min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[22px] font-extrabold italic leading-none text-atc-text md:text-[18px]"
           translate="no"
         >
           {callsign}
@@ -26,18 +29,15 @@ export default function AircraftPreviewIdentity({ aircraft }) {
         <AircraftPreviewType aircraft={aircraft} />
       </div>
       {route ? (
-        <span
-          className="aircraft-preview-identity__route notranslate"
-          translate="no"
-        >
+        <span className={`notranslate tracking-[0.04em] ${routeBase}`} translate="no">
           <AirlineLogo
             src={airlineIconUrl}
-            className="aircraft-preview-identity__airline-logo"
+            className="h-4 w-[26px] flex-none rounded-[2px] bg-[#f5f3ee] object-contain px-[2px] py-[1px] md:h-[13px] md:w-[21px]"
           />
           {route}
         </span>
       ) : (
-        <span className="aircraft-preview-identity__route aircraft-preview-identity__route--empty">
+        <span className={`italic tracking-[0.02em] text-atc-faint ${routeBase}`}>
           {t("aircraft.noRoute")}
         </span>
       )}

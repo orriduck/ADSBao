@@ -617,7 +617,7 @@ function FlightExplorerContent({ callsign }) {
           </AirportMap>
 
           {isMobile && sidebarOpen && (
-            <div className="absolute inset-0 z-[1100]">
+            <div className="absolute inset-0 z-map-panel">
               <FlightSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}
