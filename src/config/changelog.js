@@ -6,16 +6,19 @@
 
 export const CHANGELOG = [
   {
-    version: "v1.5.1",
-    kind: "patch",
-    title: "FlightAware fallback focus mode",
+    version: "v1.6.0",
+    kind: "feat",
+    title: "Nearby list virtualization and data-layer onboarding",
     summary:
-      "FlightAware fallback now locks the flight map into a focused full-trace view while preserving cached aircraft type and route metadata.",
+      "Sidebar nearby list windows through a virtualizer with animated digit metrics, page-level UI gets unified token-based stacking, and TanStack Query starts handling client-side data fetching.",
     highlights: [
-      "FlightAware fallback disables zoom presets and auto-fits the complete focal trace",
-      "Full-trace fallback hides nearby aircraft and airports from the map and sidebar",
-      "Tracked-flight metadata caches aircraft type and route context for 6 hours",
-      "FlightAware trace refreshes are throttled to a 60-second cadence",
+      "Nearby list (aircraft + airports) windows through TanStack Virtual; distance and altitude animate via NumberFlow on every poll tick",
+      "Subtle fade-up enter animation for genuinely-new rows; honours prefers-reduced-motion",
+      "Pinned aircraft slot styled as a peer of the metric tiles — ink surface with a bottom-up edge glow",
+      "Toolbar and sidebar geometry unified across home and detail pages; both center over the content area",
+      "Page-level z-index ladder replaced by named tier tokens; Leaflet pane collisions fixed in both desktop and mobile layouts",
+      "TanStack Query and DevTools mounted in the app shell; useAirportWiki migrated as the pilot for future data-hook adoption",
+      "~15% style.css reduction by migrating small leaf components to inline Tailwind utilities and dropping dead CSS",
     ],
   },
   {
