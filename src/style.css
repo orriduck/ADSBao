@@ -152,15 +152,8 @@
     }
 }
 
-/* Reusable two-phase entry animation for floating toolbars (sidebar top
-   pill, map control bar, page nav dock, anywhere else a pill of icon
-   buttons mounts). Phase 1 expands the pill from a centered 28px seed
-   outward to its full width via symmetric clip-path insets, keeping
-   the container's natural layout intact (no width-driven thrash on
-   neighbours). Phase 2 stagger-fades the buttons via opacity + a soft
-   scale-in so the toolbar reads as assembled rather than poured. The
-   keyframes preserve the pill's 999px corner radius throughout so the
-   silhouette never goes square. */
+/* Toolbar mount animation: center seed expands to full pill, children
+   pop in place. clip-path so neighbours don't reflow. */
 @keyframes toolbar-reveal-expand {
     0% {
         clip-path: inset(0 calc(50% - 14px) 0 calc(50% - 14px) round 999px);
@@ -194,9 +187,6 @@
     animation: toolbar-reveal-fade 240ms ease-out both;
 }
 
-/* Stagger up to ~8 children. Anything past nth-child(8) shares the last
-   delay so a very wide toolbar still finishes in roughly the same
-   total budget. */
 .toolbar-reveal > *:nth-child(1)  { animation-delay: 200ms; }
 .toolbar-reveal > *:nth-child(2)  { animation-delay: 240ms; }
 .toolbar-reveal > *:nth-child(3)  { animation-delay: 280ms; }
