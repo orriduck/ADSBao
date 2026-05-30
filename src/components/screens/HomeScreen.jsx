@@ -26,7 +26,17 @@ export default function HomeScreen({ initialIcao = "" }) {
   };
 
   useEffect(() => {
-    if (initialIcao) loadAirport(initialIcao);
+    if (initialIcao) {
+      loadAirport(initialIcao);
+    } else {
+      // initialIcao went from a value to empty — happens when the user
+      // navigates back to "/" via a Next Link (e.g. the sidebar logo).
+      // The HomeScreen instance is reused across both routes, so without
+      // this reset the screen would keep rendering the previous airport's
+      // detail view while the URL has already gone home.
+      setAirport(null);
+      setCurrentIcao("");
+    }
   }, [initialIcao]);
 
   useEffect(() => {
