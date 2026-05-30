@@ -32,7 +32,7 @@ export default function MapControlRail({
     ? t("map.zoomLockedFlightAware")
     : `${currentZoomOption.title} (click to cycle)`;
   return (
-    <div className="map-ctrl-bar">
+    <div className="map-ctrl-bar toolbar-reveal">
       {showSidebarToggle ? (
         <>
           <Button

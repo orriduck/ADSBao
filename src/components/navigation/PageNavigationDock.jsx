@@ -33,7 +33,7 @@ export default function PageNavigationDock() {
 
   return (
     <nav className="page-nav-dock" aria-label={t("nav.homePage")}>
-      <div className="page-nav-dock__bar">
+      <div className="page-nav-dock__bar toolbar-reveal">
         {PAGE_ITEMS.map((item) => {
           const Icon = item.Icon;
           const active = item.href === activeHref;
