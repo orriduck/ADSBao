@@ -44,34 +44,33 @@ export default function SidebarShell({
 
   return (
     <div className={panelClasses}>
-      <div className="sidebar-top-dock">
-      <div
-        className="sidebar-top-toolbar toolbar-reveal"
-        role="toolbar"
-        aria-label={t("nav.home")}
-      >
-        <button
-          type="button"
-          onClick={onBack}
-          className="sidebar-top-toolbar__button"
-          aria-label={t("nav.homePage")}
-          title={t("nav.homePage")}
-        >
-          <Home aria-hidden="true" />
-        </button>
-        {mapAction ? (
-          <button
-            type="button"
-            onClick={mapAction}
-            className="sidebar-top-toolbar__button"
-            aria-label={t("nav.map")}
-            title={t("nav.map")}
+      {isMobileOverlay ? (
+        <div className="sidebar-top-dock">
+          <div
+            className="sidebar-top-toolbar toolbar-reveal"
+            role="toolbar"
+            aria-label={t("nav.home")}
           >
-            <Map aria-hidden="true" />
-          </button>
-        ) : null}
-        {isMobileOverlay ? (
-          <>
+            <button
+              type="button"
+              onClick={onBack}
+              className="sidebar-top-toolbar__button"
+              aria-label={t("nav.homePage")}
+              title={t("nav.homePage")}
+            >
+              <Home aria-hidden="true" />
+            </button>
+            {mapAction ? (
+              <button
+                type="button"
+                onClick={mapAction}
+                className="sidebar-top-toolbar__button"
+                aria-label={t("nav.map")}
+                title={t("nav.map")}
+              >
+                <Map aria-hidden="true" />
+              </button>
+            ) : null}
             <span className="sidebar-top-toolbar__sep" aria-hidden="true" />
             <LanguageSwitch
               className="sidebar-top-toolbar__button"
@@ -113,10 +112,9 @@ export default function SidebarShell({
                 </button>
               </SignInButton>
             )}
-          </>
-        ) : null}
-      </div>
-      </div>
+          </div>
+        </div>
+      ) : null}
 
       <div
         className={
