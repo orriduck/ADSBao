@@ -3,6 +3,7 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { menuItemVariants } from "./MenuPanel.jsx"
 
 const Select = SelectPrimitive.Root
 
@@ -47,12 +48,21 @@ const SelectScrollDownButton = React.forwardRef(({ className, ...props }, ref) =
 SelectScrollDownButton.displayName =
   SelectPrimitive.ScrollDownButton.displayName
 
+// SelectContent chrome — same look as MenuPanel (bg, border, shadow,
+// padding) so every dropdown surface in the app shares one visual.
+// Keep adjusting size / colour / shadow on MenuPanel.jsx; this one
+// inherits the same tokens via the className below.
 const SelectContent = React.forwardRef(({ className, children, position = "popper", viewportClassName, ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
+      data-ui="menu-panel"
       className={cn(
-        "relative z-toast max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",
+        "relative z-toast max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden",
+        "flex flex-col font-[var(--airport-sidebar-sans)] tracking-normal",
+        "rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card text-atc-text",
+        "shadow-[0_12px_32px_color-mix(in_oklab,var(--atc-bg)_60%,transparent),0_2px_6px_color-mix(in_oklab,var(--atc-bg)_40%,transparent)]",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         className
@@ -61,7 +71,7 @@ const SelectContent = React.forwardRef(({ className, children, position = "poppe
       {...props}>
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
-        className={cn("p-1", position === "popper" &&
+        className={cn("p-[6px]", position === "popper" &&
           "w-full min-w-[var(--radix-select-trigger-width)]", viewportClassName)}>
         {children}
       </SelectPrimitive.Viewport>
@@ -79,17 +89,22 @@ const SelectLabel = React.forwardRef(({ className, ...props }, ref) => (
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
+// SelectItem inherits MenuItem's `row` variant (text + hover + selected
+// language) and adds pr-8 to reserve room for the absolute check on
+// the right. Adjust dropdown row type / spacing in MenuPanel.jsx.
 const SelectItem = React.forwardRef(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      menuItemVariants({ variant: "row" }),
+      "relative select-none pr-8",
+      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}>
-    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center text-atc-accent">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
+        <Check className="h-3.5 w-3.5" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

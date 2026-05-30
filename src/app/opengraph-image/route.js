@@ -37,7 +37,7 @@ const colors = {
   markCutout: "#f1f1ef",
 };
 
-const backgroundRings = [
+const backgroundCircles = [
   { x: -104, y: -112, size: 244, color: "#d6d6d2" },
   { x: 120, y: -112, size: 244, color: "#b9b9b5" },
   { x: 344, y: -112, size: 244, color: "#e4e4e1" },
@@ -114,7 +114,7 @@ function BackgroundCircle({ x, y, size, color }) {
   );
 }
 
-function RingBackground() {
+function CircleBackground() {
   return (
     <div
       style={{
@@ -128,10 +128,10 @@ function RingBackground() {
         background: colors.paper,
       }}
     >
-      {backgroundRings.map((ring) => (
+      {backgroundCircles.map((circle) => (
         <BackgroundCircle
-          key={`${ring.x}-${ring.y}-${ring.size}`}
-          {...ring}
+          key={`${circle.x}-${circle.y}-${circle.size}`}
+          {...circle}
         />
       ))}
       <div
@@ -165,7 +165,7 @@ export async function GET() {
           fontFamily,
         }}
       >
-        <RingBackground />
+        <CircleBackground />
 
         <div
           style={{

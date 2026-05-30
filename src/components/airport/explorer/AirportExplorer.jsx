@@ -169,6 +169,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
     feedSource: traffic.feedSource,
+    routeProvider: traffic.routeProvider,
     loadingStatus: sourceLoadingStatus,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,

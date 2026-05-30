@@ -42,64 +42,51 @@ export default function MapSourceStatusDisplay({
     "map-source-status",
     `map-source-status--${placement}`,
     `map-source-status--${feedStatus}`,
-    "map-source-status--shift-loading",
-    loadingActive ? "map-source-status--loading-active" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  ].join(" ");
+
+  const hasPrimary = feedSource || routeProviderLabel || updatedLabel;
 
   return (
-    <div
-      className={rootClassName}
-      aria-label="Map data sources"
-    >
-      <span className="map-source-status__primary">
-        {feedSource || routeProviderLabel || updatedLabel ? (
-          <span className="map-source-status__line">
-            {feedSource ? (
-              <EndfieldValueSwap
-                identityKey={`source:${feedSource}`}
-                value={(
-                  <span className="notranslate" translate="no">
-                    {feedSource}
-                  </span>
-                )}
-                className="map-source-status__source"
-                direction="reverse"
-              />
-            ) : null}
-            {feedSource && routeProviderLabel ? (
-              <span
-                aria-hidden="true"
-                className="map-source-status__diamond map-source-status__separator"
-              />
-            ) : null}
-            {routeProviderLabel ? (
-              <EndfieldValueSwap
-                identityKey={`route-provider:${routeProviderLabel}`}
-                value={(
-                  <span className="notranslate" translate="no">
-                    {routeProviderLabel}
-                  </span>
-                )}
-                className="map-source-status__route"
-                direction="reverse"
-              />
-            ) : null}
-            {(feedSource || routeProviderLabel) && updatedLabel ? (
-              <span
-                aria-hidden="true"
-                className="map-source-status__diamond map-source-status__separator"
-              />
-            ) : null}
-            {updatedLabel ? (
-              <span className="map-source-status__time" aria-live="off">
-                {updatedLabel}
-              </span>
-            ) : null}
-          </span>
-        ) : null}
-      </span>
+    <div className={rootClassName} aria-label="Map data sources">
+      {hasPrimary ? (
+        <span className="map-source-status__line">
+          {feedSource ? (
+            <EndfieldValueSwap
+              identityKey={`source:${feedSource}`}
+              value={(
+                <span className="notranslate" translate="no">
+                  {feedSource}
+                </span>
+              )}
+              className="map-source-status__source"
+              direction="reverse"
+            />
+          ) : null}
+          {feedSource && routeProviderLabel ? (
+            <span aria-hidden="true" className="map-source-status__diamond" />
+          ) : null}
+          {routeProviderLabel ? (
+            <EndfieldValueSwap
+              identityKey={`route-provider:${routeProviderLabel}`}
+              value={(
+                <span className="notranslate" translate="no">
+                  {routeProviderLabel}
+                </span>
+              )}
+              className="map-source-status__route"
+              direction="reverse"
+            />
+          ) : null}
+          {(feedSource || routeProviderLabel) && updatedLabel ? (
+            <span aria-hidden="true" className="map-source-status__diamond" />
+          ) : null}
+          {updatedLabel ? (
+            <span className="map-source-status__time" aria-live="off">
+              {updatedLabel}
+            </span>
+          ) : null}
+        </span>
+      ) : null}
       {loadingActive || displayedLoadingStatus ? (
         <span
           className={`map-source-status__loading-slot ${loadingActive ? "is-active" : ""}`}

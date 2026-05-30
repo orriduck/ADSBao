@@ -1,6 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button.jsx";
+import { cn } from "@/lib/utils";
+import { Toolbar, ToolbarButton } from "@/components/ui/Toolbar.jsx";
 import { MapControlIcon } from "./mapControlIcons.jsx";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
@@ -31,6 +32,10 @@ const LAYER_TOGGLES = [
   },
 ];
 
+// Sub-toolbar that opens from the Layers button on the map control rail.
+// Same Toolbar / ToolbarButton primitives the rail itself uses — pill
+// shell + 32px rail-tone buttons that flip to ink with the bottom-glow
+// gradient when their layer is on.
 export default function MapLayerDrawer({
   id,
   open,
@@ -54,41 +59,56 @@ export default function MapLayerDrawer({
   return (
     <div
       id={id}
-      className={`map-action-drawer map-layer-drawer ${open ? "open" : ""}`}
       aria-hidden={!open}
+      className={cn(
+        // Anchor relative to the layer button on the control rail —
+        // top:calc(100%+8px) sits just below the toolbar, right:0 aligns
+        // to the layer button. Mobile centers under the rail instead.
+        "absolute right-0 top-[calc(100%+8px)] origin-top-right",
+        "[.airport-map-menu--mobile_&]:right-auto",
+        "[.airport-map-menu--mobile_&]:left-1/2",
+        "[.airport-map-menu--mobile_&]:origin-top",
+        // Open / closed transitions — pure Tailwind, drives the same
+        // opacity + translate + scale animation .map-action-drawer
+        // used to do in style.css.
+        "transition-[opacity,transform] duration-[180ms] ease-out",
+        open
+          ? cn(
+              "opacity-100 pointer-events-auto",
+              "translate-y-0 scale-100",
+              "[.airport-map-menu--mobile_&]:-translate-x-1/2",
+            )
+          : cn(
+              "opacity-0 pointer-events-none",
+              "-translate-y-1 scale-[0.98]",
+              "[.airport-map-menu--mobile_&]:-translate-x-1/2",
+              "[.airport-map-menu--mobile_&]:-translate-y-1",
+            ),
+      )}
     >
-      <div className="map-layer-group">
-        <div className="map-layer-group__label">{t("map.layers")}</div>
-        <div
-          className="map-layer-drawer__toggles"
-          role="group"
-          aria-label={t("map.layerOverlaysAria")}
-        >
-          {LAYER_TOGGLES.map((toggle) => {
-            const active = Boolean(state[toggle.prop]);
-            const title = active ? t(toggle.activeKey) : t(toggle.inactiveKey);
-
-            return (
-              <Button
-                key={toggle.prop}
-                variant="atcIcon"
-                size="icon"
-                className={`ctrl-btn drawer-btn map-layer-control map-layer-toggle ${
-                  active ? "active" : ""
-                }`}
-                aria-label={title}
-                aria-pressed={active}
-                title={title}
-                data-tooltip={t(toggle.labelKey)}
-                onClick={state[toggle.handler]}
-                type="button"
-              >
-                <MapControlIcon iconKey={toggle.iconKey} />
-              </Button>
-            );
-          })}
-        </div>
-      </div>
+      <Toolbar
+        layout="inline"
+        reveal={false}
+        aria-label={t("map.layerOverlaysAria")}
+      >
+        {LAYER_TOGGLES.map((toggle) => {
+          const active = Boolean(state[toggle.prop]);
+          const title = active ? t(toggle.activeKey) : t(toggle.inactiveKey);
+          return (
+            <ToolbarButton
+              key={toggle.prop}
+              tone="rail"
+              active={active}
+              aria-label={title}
+              aria-pressed={active}
+              title={title}
+              onClick={state[toggle.handler]}
+            >
+              <MapControlIcon iconKey={toggle.iconKey} />
+            </ToolbarButton>
+          );
+        })}
+      </Toolbar>
     </div>
   );
 }

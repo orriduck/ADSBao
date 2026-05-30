@@ -123,6 +123,8 @@ const en = {
     airportViews: "Airport sidebar views",
     weatherViews: "Weather views",
     unknownAirport: "Unknown airport",
+    departures: "Departures",
+    arrivals: "Arrivals",
   },
   metrics: {
     speed: "Speed",
