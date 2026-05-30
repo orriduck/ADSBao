@@ -28,6 +28,7 @@ export default function AirportSidebar({
   lastUpdated = null,
   feedStatus = "live",
   feedSource = "",
+  routeProvider = "",
   loadingStatus = "",
   onSelectAircraft,
   onSelectAirport,
@@ -53,7 +54,8 @@ export default function AirportSidebar({
         activeView={activeView}
         onViewChange={setActiveView}
         metar={metar}
-        aircraftCount={aircraft.length}
+        aircraft={aircraft}
+        routeProvider={routeProvider}
       />
     </>
   );

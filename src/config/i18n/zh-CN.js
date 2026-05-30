@@ -118,6 +118,8 @@ const zhCN = {
     airportViews: "机场侧栏视图",
     weatherViews: "天气视图",
     unknownAirport: "未知机场",
+    departures: "起飞",
+    arrivals: "到达",
   },
   metrics: {
     speed: "速度",
