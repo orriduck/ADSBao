@@ -22,9 +22,9 @@ Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the p
 
 ## Runtime topology
 
-### Airport directory (OurAirports → Supabase → Next.js API)
+### Airport directory (OpenAIP → Next.js API)
 
-Global airport static data (airports, runways, frequencies, navaids) is sourced from [OurAirports](https://ourairports.com/data/), persisted in Supabase via `node --env-file=.env --import tsx scripts/import-ourairports.ts`, and exposed to the browser through `/api/search` and `/api/airport/[ident]`. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the database boundary.
+Global airport context is sourced from [OpenAIP](https://www.openaip.net/) through server-only route handlers. `/api/search` resolves ranked airport matches, and `/api/airport/[ident]` returns airport detail, runways, frequencies, nearby airports, navaids, airspaces, reporting points, obstacles, and the OpenAIP-derived runway map. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the provider boundary or the server-only OpenAIP API key.
 
 ### Vercel data paths
 
@@ -36,8 +36,7 @@ The app uses same-origin Vercel paths for upstream aviation sources that are not
 | `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft positions |
 | `/api/proxy/flight-routes/callsign/:callsign` | VRS standing-data route fetcher | Callsign route lookup |
 | `/api/proxy/local-weather/:lat/:lon` | Open-Meteo | Airport-local weather |
-| `/api/proxy/procedures/:country/:icao` | FAA CIFP | US procedure and runway overlays |
-| `/api/proxy/airports/nearby` | AIRAC | Nearby airport overlays |
+| `/api/proxy/airports/nearby` | OpenAIP Core API | Nearby airport overlays |
 
 These paths are implemented as Next.js Route Handlers under `src/app/api/proxy/**`. The handlers keep upstream access same-origin, validate route and query parameters, apply lightweight per-IP rate limits, reject disallowed browser origins, and cap upstream response body sizes before parsing.
 
@@ -58,9 +57,7 @@ Persistence boundaries live under `src/app/api/dao/*.dao.ts`. DAO files should c
 
 There is no separate `src/services` layer. Shared provider clients, normalizers, mechanisms, models, and utils live with their owning feature domain.
 
-The nearby-airport proxy can also use Supabase as a persistent response cache. When `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are configured in Vercel, `/api/proxy/airports/nearby` reads and writes `public.nearby_airport_cache` records with a 90-day `expires_at` TTL. The migration grants the `anon` role only the select/insert/update permissions needed for this public cache table, with RLS policies restricted to `nearby-airports:%` cache keys. Cache failures are non-fatal: the handler falls back to AIRAC and logs the Supabase read/write error server-side.
-
-Airport search and detail go directly to the OurAirports tables (`public.airports`, `public.runways`, `public.airport_frequencies`, `public.navaids`). The legacy `public.airport_metadata_cache` table from the old airportsapi.com client has been dropped — no live reader remained after the OurAirports cutover.
+The OpenAIP migration prepares `public.openaip_airports` and `public.openaip_cache` as OpenAIP-shaped persistence boundaries. Legacy airport directory tables and nearby airport caches are intentionally dropped by the migration; runtime code no longer reads OurAirports or FAA CIFP data.
 
 ### Vercel security posture
 
@@ -92,7 +89,7 @@ The current ADSBao web line starts at `v0.4.0`.
 | `v0.7.1` | Map and mobile polish |
 | `v0.8.0` | Next.js Vercel refactor |
 | `v0.9.0` | Navy tracking console redesign |
-| `v0.10.0` | Global airport data layer (OurAirports + Supabase) and richer aircraft silhouettes |
+| `v0.10.0` | Global airport data layer and richer aircraft silhouettes |
 | `v0.11.0` | Selected-aircraft trace + multi-provider failover + AeroDataBox revalidation |
 | `v0.12.0` | Aircraft tracking page + airport-prefixed routes + polymorphic sidebar/preview |
 

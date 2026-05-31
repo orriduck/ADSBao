@@ -67,9 +67,10 @@ const zhCN = {
         title: "Open-Meteo 实时天气",
         description: "机场区域的本地温度、风和天气状况。",
       },
-      ourAirports: {
-        title: "OurAirports",
-        description: "为搜索和机场解析提供全球机场目录。",
+      openAip: {
+        title: "OpenAIP",
+        description:
+          "为搜索和地图提供机场、跑道、频率、导航台、空域、报告点和障碍物上下文。许可协议为 CC BY-NC 4.0。",
       },
       wikipedia: {
         title: "Wikipedia 摘要",
@@ -277,15 +278,7 @@ const zhCN = {
     themeButtonAria: "主题:{label}(点击切换)",
     themeLight: "明亮",
     themeDark: "暗色",
-    procedureInspectorAria: "跑道程序查看器",
     runwayDirectionsAria: "跑道方向",
-    procedureOverlaysAria: "程序叠加",
-    procedureRunways: "跑道",
-    procedurePicker: "程序",
-    procedureTransitions: "过渡",
-    procedureMissed: "复飞",
-    procedureFix: "航点",
-    procedureAll: "全部",
     loadingMapAria: "正在加载地图数据",
     loadingAircraftAria: "正在加载 ADS-B 飞机数据",
     loadingTrackedAircraftAria: "正在加载航迹追踪数据",

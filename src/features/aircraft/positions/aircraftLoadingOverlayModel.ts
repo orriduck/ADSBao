@@ -4,7 +4,6 @@ type LoadingSettledOptions = {
   aircraftPositionsSettled?: boolean;
   metarSettled?: boolean;
   nearbyAirportsSettled?: boolean;
-  proceduresSettled?: boolean;
   routeSettled?: boolean;
   aircraftLogoSettled?: boolean;
 };
@@ -25,7 +24,6 @@ type AircraftLoadingOverlayStateOptions = AircraftLoadingOverlayModeOptions & {
   trafficLoading?: boolean;
   weatherLoading?: boolean;
   nearbyAirportsLoading?: boolean;
-  proceduresLoading?: boolean;
   routeLoadingCount?: number;
   traceLoading?: boolean;
 };
@@ -60,13 +58,11 @@ export function areCriticalLoadingRequestsSettled({
   aircraftPositionsSettled = false,
   metarSettled = false,
   nearbyAirportsSettled = false,
-  proceduresSettled = false,
 }: LoadingSettledOptions = {}) {
   return Boolean(
     aircraftPositionsSettled &&
       metarSettled &&
-      nearbyAirportsSettled &&
-      proceduresSettled,
+      nearbyAirportsSettled,
   );
 }
 
@@ -94,7 +90,6 @@ export function resolveAircraftLoadingOverlayState({
   trafficLoading = false,
   weatherLoading = false,
   nearbyAirportsLoading = false,
-  proceduresLoading = false,
   routeLoadingCount = 0,
   traceLoading = false,
 }: AircraftLoadingOverlayStateOptions = {}) {
@@ -107,7 +102,6 @@ export function resolveAircraftLoadingOverlayState({
       : ["traffic", trafficLoading || feedLoading],
     ["weather", weatherLoading],
     ["nearbyAirports", nearbyAirportsLoading],
-    ["procedures", proceduresLoading],
     ["routes", Number(routeLoadingCount) > 0],
     ["trace", traceLoading],
   ];

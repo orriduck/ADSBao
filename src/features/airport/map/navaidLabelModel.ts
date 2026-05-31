@@ -38,5 +38,3 @@ export const buildNavaidLabels = (navaids: NavaidLabelRecord[] = []) =>
       };
     })
     .filter(Boolean);
-
-export const shouldShowProcedureFixLabels = () => false;

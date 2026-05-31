@@ -71,9 +71,10 @@ const en = {
         description:
           "Local temperature, wind, and conditions for the airport area.",
       },
-      ourAirports: {
-        title: "OurAirports",
-        description: "Global airport directory powering search and resolution.",
+      openAip: {
+        title: "OpenAIP",
+        description:
+          "Airport, runway, frequency, navaid, airspace, reporting point, and obstacle context for search and maps. Licensed CC BY-NC 4.0.",
       },
       wikipedia: {
         title: "Wikipedia Summary",
@@ -281,15 +282,7 @@ const en = {
     themeButtonAria: "Theme: {label} (click to switch)",
     themeLight: "Light",
     themeDark: "Dark",
-    procedureInspectorAria: "Runway procedure inspector",
     runwayDirectionsAria: "Runway directions",
-    procedureOverlaysAria: "Procedure overlays",
-    procedureRunways: "RUNWAYS",
-    procedurePicker: "PROC",
-    procedureTransitions: "TRANS",
-    procedureMissed: "MISSED",
-    procedureFix: "FIX",
-    procedureAll: "ALL",
     loadingMapAria: "Loading map data",
     loadingAircraftAria: "Loading ADS-B aircraft data",
     loadingTrackedAircraftAria: "Loading aircraft tracking data",

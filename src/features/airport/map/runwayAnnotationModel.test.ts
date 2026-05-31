@@ -14,7 +14,7 @@ import {
 
 const runwayMap = {
   airport: "KBOS",
-  source: "FAA CIFP",
+  source: "OpenAIP",
   cycle: "260514",
   runways: [
     {
@@ -73,7 +73,7 @@ assert.deepEqual(buildRunwayCenterlineCollection(runwayMap), {
   type: "FeatureCollection",
   properties: {
     airport: "KBOS",
-    source: "FAA CIFP",
+    source: "OpenAIP",
     cycle: "260514",
   },
   features: [runwayMap.runways[0].centerline],

@@ -19,7 +19,7 @@ export const ABOUT_BUILD_META = {
       items: [
         "Next.js App Router",
         "Vercel route handlers",
-        "Supabase + OurAirports directory",
+        "OpenAIP + Supabase cache",
         "Same-origin aviation proxy",
       ],
     },
@@ -89,12 +89,13 @@ export const ABOUT_DATA_SOURCES = [
   },
   {
     glyph: "DIR",
-    titleKey: "about.sources.ourAirports.title",
-    title: "OurAirports",
-    descriptionKey: "about.sources.ourAirports.description",
-    description: "Global airport directory powering search and resolution.",
-    host: "ourairports.com",
-    href: "https://ourairports.com/data/",
+    titleKey: "about.sources.openAip.title",
+    title: "OpenAIP",
+    descriptionKey: "about.sources.openAip.description",
+    description:
+      "Airport, runway, frequency, navaid, airspace, reporting point, and obstacle context used by search and maps. Licensed CC BY-NC 4.0.",
+    host: "openaip.net",
+    href: "https://creativecommons.org/licenses/by-nc/4.0/",
   },
   {
     glyph: "WIKI",

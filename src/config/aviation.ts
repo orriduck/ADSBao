@@ -55,13 +55,3 @@ export const FLIGHT_ROUTE_LOOKUP_CONFIG = {
   backoffMaxMs: 60_000,
   userAgent: buildAdsbaoUserAgent(),
 };
-
-export const PROCEDURE_DATA_CONFIG = {
-  downloadPageUrl:
-    "https://www.faa.gov/air_traffic/flight_info/aeronav/digital_products/cifp/download/",
-  cacheMs: 6 * 60 * 60 * 1000,
-  maxProceduresPerAirport: 12,
-  maxZipBytes: 50 * 1024 * 1024,
-  maxCifpBytes: 120 * 1024 * 1024,
-  userAgent: buildAdsbaoUserAgent(),
-};

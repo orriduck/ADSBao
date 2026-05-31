@@ -275,10 +275,6 @@
     --runway-approach-line: rgba(26,26,24,0.62);
     --runway-approach-beam: #2f2f2b;
     --nearby-runway-line: #24231f;
-    --procedure-segment-line: #1a1a18;
-    --procedure-silk-blur: #2a2a26;
-    --procedure-silk-body: #1a1a18;
-    --procedure-silk-thread: #1a1a18;
 
     /* Single grey for every aircraft regardless of departure/arrival —
        the airport is the only thing painted yellow on the map. */
@@ -441,10 +437,6 @@
     --runway-approach-line: rgba(216,189,131,0.78);
     --runway-approach-beam: #d8bd83;
     --nearby-runway-line: var(--primary-bright);
-    --procedure-segment-line: #d8bd83;
-    --procedure-silk-blur: #3a3424;
-    --procedure-silk-body: #c79b1f;
-    --procedure-silk-thread: var(--primary-bright);
 
     /* Dark theme: same single grey for every aircraft. */
     --aircraft-departure: oklch(0.62 0.006 100);
@@ -511,8 +503,6 @@
     --runway-annotation-line: var(--primary-bright);
     --runway-approach-line: color-mix(in oklab, var(--primary-bright) 78%, transparent);
     --runway-approach-beam: var(--primary-bright);
-    --procedure-segment-line: var(--primary-bright);
-    --procedure-silk-body: var(--primary-deep);
 }
 
 body {
@@ -590,28 +580,6 @@ body {
     mix-blend-mode: multiply;
 }
 
-
-.procedure-silk {
-    mix-blend-mode: screen;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
-:root[data-theme="light"] .procedure-silk {
-    mix-blend-mode: multiply;
-}
-
-.procedure-silk--blur {
-    filter: blur(5px);
-}
-
-.procedure-silk--body {
-    filter: blur(1.8px);
-}
-
-.procedure-silk--thread {
-    filter: blur(0.45px);
-}
 
 .runway-end-label {
     align-items: center;
@@ -703,33 +671,6 @@ body {
    theme's glowing wedge — reads cleaner on the bright basemap. */
 .runway-approach-line {
     filter: drop-shadow(0 0 1px color-mix(in oklab, var(--atc-card) 60%, transparent));
-}
-
-.procedure-fix-label {
-    align-items: center;
-    background: color-mix(in oklab, var(--atc-card) 88%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-accent) 24%, transparent);
-    border-radius: 3px;
-    box-shadow: 0 3px 8px rgb(0 0 0 / 0.16);
-    box-sizing: border-box;
-    color: var(--atc-accent);
-    display: flex;
-    font-family: var(--font-mono);
-    font-size: 7px;
-    font-weight: 700;
-    height: 12px;
-    justify-content: center;
-    letter-spacing: 0;
-    line-height: 1;
-    padding: 0 3px;
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.26);
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-.procedure-fix-label--light {
-    box-shadow: 0 3px 8px rgb(15 23 42 / 0.1);
-    text-shadow: none;
 }
 
 .navaid-label-icon {
@@ -1834,9 +1775,7 @@ body {
 }
 
 .endf-label,
-.endf-section-head__count,
-.procedure-inspector-header,
-.procedure-inspector-select-wrap > span {
+.endf-section-head__count {
     font-family: var(--font-sans);
     letter-spacing: 0;
     text-transform: none;
@@ -1997,15 +1936,11 @@ body {
     padding: 10px;
 }
 
-/* Other pill controls still inherit the round shape. */
-.procedure-inspector-runway,
-.procedure-inspector-toggle,
 .route-feedback-modal__close {
     border-radius: 999px;
 }
 
 .map-action-drawer,
-.procedure-inspector,
 .route-feedback-modal__content {
     border-radius: var(--atc-radius-card);
     box-shadow: var(--app-panel-shadow);
@@ -2509,143 +2444,6 @@ body {
 
 .airport-map-menu--mobile .map-action-drawer.open {
     transform: translate(-50%, 0) scale(1);
-}
-
-.procedure-inspector {
-    background: color-mix(in oklab, var(--atc-card) 88%, transparent);
-    border: 1px solid var(--atc-line-strong);
-    border-radius: 6px;
-    box-shadow: 0 18px 34px rgb(0 0 0 / 0.26);
-    color: var(--atc-text);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: min(360px, calc(100vw - 24px));
-    padding: 10px;
-    position: absolute;
-    right: 12px;
-    top: 56px;
-    width: max-content;
-    z-index: var(--z-index-map-ui);
-}
-
-.procedure-inspector-header,
-.procedure-inspector-select-wrap > span {
-    align-items: center;
-    color: var(--atc-faint);
-    display: flex;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: 700;
-    gap: 5px;
-    letter-spacing: 0;
-    line-height: 1;
-}
-
-.procedure-inspector-runways,
-.procedure-inspector-toggles {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.procedure-inspector-runway,
-.procedure-inspector-toggle {
-    align-items: center;
-    background: transparent;
-    border: 1px solid var(--atc-line);
-    border-radius: var(--atc-radius-control);
-    color: var(--atc-dim);
-    cursor: pointer;
-    display: inline-flex;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 700;
-    gap: 5px;
-    height: 26px;
-    justify-content: center;
-    letter-spacing: 0;
-    line-height: 1;
-    padding: 0 8px;
-    transition:
-        background 0.15s ease,
-        border-color 0.15s ease,
-        box-shadow 0.15s ease,
-        color 0.15s ease;
-}
-
-.procedure-inspector-runway:hover,
-.procedure-inspector-toggle:hover {
-    background: color-mix(in oklab, var(--atc-accent) 10%, transparent);
-    border-color: color-mix(in oklab, var(--atc-accent) 42%, transparent);
-    color: var(--atc-text);
-}
-
-.procedure-inspector-runway:focus-visible,
-.procedure-inspector-toggle:focus-visible {
-    background: var(--atc-focus-bg);
-    border-color: var(--atc-focus-edge);
-    box-shadow:
-        inset 0 0 0 1px var(--atc-focus-edge),
-        0 0 0 2px color-mix(in oklab, var(--atc-focus-edge) 24%, transparent);
-    color: var(--atc-focus-fg);
-    outline: none;
-}
-
-.procedure-inspector-runway--active,
-.procedure-inspector-toggle--active {
-    background: var(--atc-click-bg);
-    border-color: var(--atc-click-border);
-    box-shadow:
-        inset 0 -2px 0 var(--atc-focus-edge),
-        inset 0 0 0 1px color-mix(in oklab, var(--atc-focus-edge) 26%, transparent);
-    color: var(--atc-click-fg);
-}
-
-.procedure-inspector-runway--active small {
-    color: var(--atc-click-muted);
-}
-
-.procedure-inspector-runway small {
-    color: var(--atc-faint);
-    font-size: 9px;
-    font-weight: 700;
-}
-
-.procedure-inspector-select-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    min-width: 260px;
-}
-
-.procedure-inspector-select {
-    appearance: auto;
-    background: color-mix(in oklab, var(--atc-bg) 78%, transparent);
-    border: 1px solid var(--atc-line-strong);
-    border-radius: var(--atc-radius-control);
-    color: var(--atc-text);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    height: 30px;
-    letter-spacing: 0;
-    max-width: 100%;
-    padding: 0 8px;
-}
-
-@media (max-width: 720px) {
-    .procedure-inspector {
-        left: 10px;
-        max-height: calc(100dvh - 72px);
-        overflow: auto;
-        right: 10px;
-        top: 52px;
-        width: auto;
-    }
-
-    .procedure-inspector-select-wrap {
-        min-width: 0;
-    }
 }
 
 /* Clerk avatar clamp inside the map control rail Toolbar AccountSlot.

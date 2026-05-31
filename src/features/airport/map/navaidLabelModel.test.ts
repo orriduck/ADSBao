@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 
-import {
-  buildNavaidLabels,
-  shouldShowProcedureFixLabels,
-} from "./navaidLabelModel";
+import { buildNavaidLabels } from "./navaidLabelModel";
 
 const navaids = [
   {
@@ -82,8 +79,5 @@ assert.deepEqual(buildNavaidLabels(navaids), [
     slavedVariationDeg: null,
   },
 ]);
-
-assert.equal(shouldShowProcedureFixLabels({ showNavigationLabels: true }), false);
-assert.equal(shouldShowProcedureFixLabels({ showNavigationLabels: false }), false);
 
 console.log("navaidLabelModel.test.ts ok");

@@ -13,7 +13,6 @@ import AircraftPosition from "./AircraftPosition";
 import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
-import ProcedureSegmentLayer from "./ProcedureSegmentLayer";
 import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap";
 import MapAttribution from "./MapAttribution";
 import MapLoadingOverlay, {
@@ -69,9 +68,6 @@ export default function AirportMap({
   onSelectAirport,
   onSelectNavaid,
   runwayMap = null,
-  runwayProcedures = null,
-  procedureFixLabelRunwayProcedures = runwayProcedures,
-  showProcedureFixLabels = false,
   focalRangeRings = null,
   fallbackCenter = AIRPORT_MAP_FALLBACK_CENTER,
   deferUntilFocal = false,
@@ -310,12 +306,6 @@ export default function AirportMap({
             visible={showNavaidMarkers}
             selectedNavaidKey={selectedNavaidKey}
             onSelectNavaid={onSelectNavaid}
-          />
-          <ProcedureSegmentLayer
-            runwayProcedures={runwayProcedures}
-            fixLabelRunwayProcedures={procedureFixLabelRunwayProcedures}
-            theme={currentTheme}
-            showFixLabels={false}
           />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}
