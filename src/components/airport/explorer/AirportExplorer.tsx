@@ -223,6 +223,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             zoom={mapZoom}
             aircraft={traffic.aircraft}
             nearbyAirports={nearbyAirports.airports}
+            nearbyNavaids={airport?.nearbyNavaids || []}
             airport={airport}
             showMapLabels={showMapLabels}
             showRunwayBeams={showRunwayBeams}

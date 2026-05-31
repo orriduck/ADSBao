@@ -8,6 +8,7 @@ import AreaMarker from "./AreaMarker";
 import AirportMarker from "./AirportMarker";
 import MapRangeLegend from "./MapRangeLegend";
 import NearbyAirportLayer from "./NearbyAirportLayer";
+import NavaidLabelLayer from "./NavaidLabelLayer";
 import AircraftPosition from "./AircraftPosition";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
@@ -49,6 +50,7 @@ export default function AirportMap({
   zoom = 13,
   aircraft = [],
   nearbyAirports = [],
+  nearbyNavaids = [],
   airport = null,
   showMapLabels = false,
   showRunwayBeams = true,
@@ -291,20 +293,25 @@ export default function AirportMap({
             zoom={zoom}
             selectedIcao={selectedAirportIcao}
             onSelectAirport={onSelectAirport}
-            showRunwayBadges={showRoutingPointBadges}
+            showRunwayBadges={false}
+          />
+          <NavaidLabelLayer
+            navaids={nearbyNavaids}
+            theme={currentTheme}
+            visible={showRoutingPointBadges}
           />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}
             fixLabelRunwayProcedures={procedureFixLabelRunwayProcedures}
             theme={currentTheme}
-            showFixLabels={showProcedureFixLabels && showRoutingPointBadges}
+            showFixLabels={false}
           />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}
             theme={currentTheme}
             zoom={zoom}
             showBeams={showRunwayBeams}
-            showBadges={showRoutingPointBadges}
+            showBadges
           />
           <SelectedAircraftTrace theme={currentTheme} />
           <MapRangeLegend />

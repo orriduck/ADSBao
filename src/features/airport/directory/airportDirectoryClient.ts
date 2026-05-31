@@ -89,7 +89,19 @@ export const createAirportDirectoryClient = ({
       fetchImpl,
       buildAirportUrl({ baseUrl, ident: trimmed, locale }),
     );
-    if (detail?.airport) return detail.airport;
+    if (detail?.airport) {
+      return {
+        ...detail.airport,
+        runways: Array.isArray(detail.runways) ? detail.runways : [],
+        frequencies: Array.isArray(detail.frequencies) ? detail.frequencies : [],
+        nearbyAirports: Array.isArray(detail.nearbyAirports)
+          ? detail.nearbyAirports
+          : [],
+        nearbyNavaids: Array.isArray(detail.nearbyNavaids)
+          ? detail.nearbyNavaids
+          : [],
+      };
+    }
 
     const searchPayload = await requestJson(
       fetchImpl,

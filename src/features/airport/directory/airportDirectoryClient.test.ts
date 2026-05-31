@@ -82,7 +82,7 @@ const KBOS = {
           runways: [],
           frequencies: [],
           nearbyAirports: [],
-          nearbyNavaids: [],
+          nearbyNavaids: [{ ident: "BOS", type: "VORTAC" }],
           source: "ourairports",
         });
       }
@@ -94,6 +94,7 @@ const KBOS = {
   assert.deepEqual(calls, ["/api/airport/KBOS"]);
   assert.equal(airport.icao, "KBOS");
   assert.equal(airport.iata, "BOS");
+  assert.deepEqual(airport.nearbyNavaids, [{ ident: "BOS", type: "VORTAC" }]);
 }
 
 // resolveAirport forwards the active locale so the detail route can enrich

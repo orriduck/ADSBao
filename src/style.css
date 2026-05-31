@@ -715,6 +715,107 @@ body {
     text-shadow: none;
 }
 
+.navaid-label-icon {
+    pointer-events: none;
+}
+
+.navaid-label {
+    align-items: center;
+    display: flex;
+    gap: 4px;
+    height: 24px;
+    white-space: nowrap;
+}
+
+.navaid-label__signal {
+    align-items: flex-end;
+    background: color-mix(in oklab, var(--atc-card) 90%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-accent) 38%, transparent);
+    border-radius: 4px;
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.18);
+    box-sizing: border-box;
+    display: block;
+    height: 18px;
+    position: relative;
+    width: 18px;
+}
+
+.navaid-label__signal-dot,
+.navaid-label__signal-arc {
+    border-color: var(--atc-accent);
+    display: block;
+    position: absolute;
+}
+
+.navaid-label__signal-dot {
+    background: var(--atc-accent);
+    border-radius: 999px;
+    bottom: 4px;
+    height: 3px;
+    left: 4px;
+    width: 3px;
+}
+
+.navaid-label__signal-arc {
+    border-radius: 0 999px 0 0;
+    border-style: solid;
+    border-width: 2px 2px 0 0;
+    bottom: 4px;
+    left: 4px;
+}
+
+.navaid-label__signal-arc--inner {
+    height: 7px;
+    width: 7px;
+}
+
+.navaid-label__signal-arc--outer {
+    height: 11px;
+    opacity: 0.72;
+    width: 11px;
+}
+
+.navaid-label__body {
+    align-items: center;
+    background: color-mix(in oklab, var(--atc-card) 90%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-accent) 34%, transparent);
+    border-radius: 4px;
+    box-shadow: 0 5px 14px rgb(0 0 0 / 0.18);
+    color: var(--atc-accent);
+    display: inline-flex;
+    font-family: var(--font-mono);
+    gap: 4px;
+    height: 18px;
+    line-height: 1;
+    padding: 0 6px;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.28);
+}
+
+.navaid-label__body strong {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.navaid-label__body small {
+    color: color-mix(in oklab, var(--atc-accent) 72%, var(--atc-muted));
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.navaid-label-icon--light .navaid-label__signal {
+    background: color-mix(in oklab, var(--atc-card) 94%, transparent);
+    border-color: color-mix(in oklab, var(--atc-accent) 28%, white 72%);
+    box-shadow: 0 3px 8px rgb(15 23 42 / 0.12);
+}
+
+.navaid-label-icon--light .navaid-label__body {
+    background: color-mix(in oklab, var(--atc-card) 94%, transparent);
+    box-shadow: 0 4px 12px rgb(15 23 42 / 0.12);
+    text-shadow: none;
+}
+
 /* Transitions */
 
 /* Shared screen background — search + about. Plain canvas with a

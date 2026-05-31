@@ -5,6 +5,6 @@ export const DEFAULT_AIRPORT_EXPLORER_UI_STATE = {
   mapZoom: ZOOM_APPROACH,
   showMapLabels: false,
   showRunwayBeams: true,
-  showRoutingPointBadges: false,
+  showRoutingPointBadges: true,
   ...DEFAULT_AIRCRAFT_FILTERS,
 };
