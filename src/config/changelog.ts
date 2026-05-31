@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.7.0",
+    kind: "feat",
+    title: "OpenAIP airport directory migration",
+    summary:
+      "Airport search and detail context now use OpenAIP as the primary aviation directory, with Supabase-backed runway threshold geometry retained for accurate map overlays.",
+    highlights: [
+      "Airport search, airport details, frequencies, nearby airports, navaids, reporting points, airspaces, and obstacles moved to OpenAIP",
+      "Runway map centerlines use imported OurAirports threshold coordinates instead of synthetic OpenAIP centroid geometry",
+      "OpenAIP search results without normal ICAO-style airport codes are filtered out before display",
+      "About and architecture docs now list OpenAIP plus the narrow OurAirports runway geometry attribution",
+    ],
+  },
+  {
     version: "v1.6.0",
     kind: "feat",
     title: "Nearby list virtualization and data-layer onboarding",

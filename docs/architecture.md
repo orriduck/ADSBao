@@ -24,7 +24,7 @@ Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the p
 
 ### Airport directory (OpenAIP → Next.js API)
 
-Global airport context is sourced from [OpenAIP](https://www.openaip.net/) through server-only route handlers. `/api/search` resolves ranked airport matches, and `/api/airport/[ident]` returns airport detail, runways, frequencies, nearby airports, navaids, airspaces, reporting points, obstacles, and the OpenAIP-derived runway map. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the provider boundary or the server-only OpenAIP API key.
+Global airport context is sourced from [OpenAIP](https://www.openaip.net/) through server-only route handlers. `/api/search` resolves ranked airport matches, and `/api/airport/[ident]` returns airport detail, runways, frequencies, nearby airports, navaids, airspaces, reporting points, and obstacles. OpenAIP Core runway records do not include threshold coordinates, so runway map overlays are backed by a narrow `public.runway_geometries` table imported from OurAirports runway data. The browser-side `airportDirectoryClient` is a thin wrapper over these routes — feature code does not see the provider boundary or the server-only OpenAIP API key.
 
 ### Vercel data paths
 
@@ -57,7 +57,7 @@ Persistence boundaries live under `src/app/api/dao/*.dao.ts`. DAO files should c
 
 There is no separate `src/services` layer. Shared provider clients, normalizers, mechanisms, models, and utils live with their owning feature domain.
 
-The OpenAIP migration prepares `public.openaip_airports` and `public.openaip_cache` as OpenAIP-shaped persistence boundaries. Legacy airport directory tables and nearby airport caches are intentionally dropped by the migration; runtime code no longer reads OurAirports or FAA CIFP data.
+The OpenAIP migration prepares `public.openaip_airports` and `public.openaip_cache` as OpenAIP-shaped persistence boundaries. Legacy airport directory tables and nearby airport caches are intentionally dropped by the migration; runtime code no longer reads OurAirports as an airport directory or FAA CIFP data. OurAirports is retained only as runway threshold geometry via `public.runway_geometries`.
 
 ### Vercel security posture
 

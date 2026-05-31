@@ -86,7 +86,7 @@ const KBOS = {
           airspaces: [{ id: "asp-1", name: "BOSTON CLASS B" }],
           reportingPoints: [{ id: "pt-1", name: "HYLND" }],
           obstacles: [{ id: "obs-1", name: "Tower" }],
-          runwayMap: { airport: "KBOS", source: "OpenAIP", runways: [] },
+          runwayMap: { airport: "KBOS", source: "OurAirports", runways: [] },
           source: "openaip",
         });
       }
@@ -102,7 +102,7 @@ const KBOS = {
   assert.deepEqual(airport.airspaces, [{ id: "asp-1", name: "BOSTON CLASS B" }]);
   assert.deepEqual(airport.reportingPoints, [{ id: "pt-1", name: "HYLND" }]);
   assert.deepEqual(airport.obstacles, [{ id: "obs-1", name: "Tower" }]);
-  assert.deepEqual(airport.runwayMap, { airport: "KBOS", source: "OpenAIP", runways: [] });
+  assert.deepEqual(airport.runwayMap, { airport: "KBOS", source: "OurAirports", runways: [] });
 }
 
 // resolveAirport forwards the active locale so the detail route can enrich

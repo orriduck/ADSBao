@@ -98,6 +98,16 @@ export const ABOUT_DATA_SOURCES = [
     href: "https://creativecommons.org/licenses/by-nc/4.0/",
   },
   {
+    glyph: "RWY",
+    titleKey: "about.sources.ourAirportsRunways.title",
+    title: "OurAirports Runway Geometry",
+    descriptionKey: "about.sources.ourAirportsRunways.description",
+    description:
+      "Runway threshold coordinates used only for accurate runway map overlays.",
+    host: "ourairports.com",
+    href: "https://ourairports.com/data/",
+  },
+  {
     glyph: "WIKI",
     titleKey: "about.sources.wikipedia.title",
     title: "Wikipedia Summary",

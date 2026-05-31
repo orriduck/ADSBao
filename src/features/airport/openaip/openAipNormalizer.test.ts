@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 
 import {
-  buildOpenAipRunwayMap,
   mapOpenAipAirport,
   mapOpenAipAirspace,
   mapOpenAipFrequency,
@@ -80,11 +79,6 @@ const misleadingBos = {
   assert.equal(frequency.description, "BOSTON APP");
   assert.equal(frequency.frequencyMhz, 118.25);
   assert.equal(frequency.source, "openaip");
-}
-
-{
-  const runwayMap = buildOpenAipRunwayMap(kbos);
-  assert.equal(runwayMap, null);
 }
 
 {

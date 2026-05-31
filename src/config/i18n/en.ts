@@ -76,6 +76,11 @@ const en = {
         description:
           "Airport, runway, frequency, navaid, airspace, reporting point, and obstacle context for search and maps. Licensed CC BY-NC 4.0.",
       },
+      ourAirportsRunways: {
+        title: "OurAirports Runway Geometry",
+        description:
+          "Runway threshold coordinates used only for accurate runway map overlays.",
+      },
       wikipedia: {
         title: "Wikipedia Summary",
         description: "First-paragraph summaries for airport context cards.",

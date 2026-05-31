@@ -4,7 +4,7 @@ ADSBao is a Vercel-first airport and flight tracking console. It combines global
 airport search, METAR weather, nearby ADS-B traffic, route context, runway and
 OpenAIP context overlays, and selected-flight trace views in a map-first HUD.
 
-Current web app version: **1.5.1**. Runtime version strings and ADSBao
+Current web app version: **1.7.0**. Runtime version strings and ADSBao
 User-Agent values share `src/config/siteMeta.ts`; product history is rendered
 from `src/config/changelog.ts` at `/changelog`.
 
@@ -35,7 +35,8 @@ from `src/config/changelog.ts` at `/changelog`.
 - **Frontend**: React, Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide.
 - **Maps**: Leaflet plus MapLibre-backed tiles and custom aircraft/runway layers.
 - **Data layer**: OpenAIP served through same-origin Next.js API routes with
-  Supabase migration support for OpenAIP-shaped static/cache tables.
+  Supabase migration support for OpenAIP-shaped static/cache tables. Runway
+  threshold geometry is imported from OurAirports for accurate map overlays.
 - **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
   Speed Insights, and optional Sentry monitoring.
 - **Auth and feature flags**: Clerk identity with Supabase-backed user feature
@@ -46,7 +47,7 @@ from `src/config/changelog.ts` at `/changelog`.
 | Path | Source | Purpose |
 |---|---|---|
 | `/api/search` | OpenAIP Core API | Airport search |
-| `/api/airport/[ident]` | OpenAIP Core API | Airport detail, runways, frequencies, navaids, airspaces, reporting points, obstacles |
+| `/api/airport/[ident]` | OpenAIP Core API + OurAirports runway geometry | Airport detail, runways, frequencies, navaids, airspaces, reporting points, obstacles, runway map |
 | `/api/proxy/metar/:icao` | AviationWeather | METAR weather context |
 | `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft |
 | `/api/proxy/aircraft/callsign/:callsign` | ADS-B callsign providers | Tracked aircraft state |
@@ -105,6 +106,12 @@ Manage Supabase-backed user feature flags with:
 
 ```bash
 pnpm ff
+```
+
+Import runway threshold geometry with:
+
+```bash
+pnpm import:runways
 ```
 
 ## Project Structure

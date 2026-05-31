@@ -1,6 +1,6 @@
 import { toFiniteNumber } from "../../../utils/math";
 import {
-  buildOpenAipRunwayMap,
+  isNormalOpenAipAirportCode,
   mapOpenAipAirport,
   mapOpenAipAirspace,
   mapOpenAipFrequency,
@@ -8,10 +8,13 @@ import {
   mapOpenAipObstacle,
   mapOpenAipReportingPoint,
   mapOpenAipRunway,
+  openAipAirportCode,
   rankOpenAipAirports,
 } from "./openAipNormalizer";
 import { createOpenAipClientFromEnv } from "./openAipClient";
 import { AirportDirectoryConfigurationError } from "../directory/airportDirectory.models";
+import { createRunwayGeometryRepositoryFromEnv } from "../../../app/api/dao/runwayGeometries.dao";
+import { buildRunwayMapFromGeometries } from "../runways/runwayGeometryMap";
 
 type OpenAipDirectoryRecord = Record<string, any>;
 
@@ -159,6 +162,50 @@ const uniqueByAirportCode = (airports: OpenAipDirectoryRecord[]) => {
   return unique;
 };
 
+const hasNormalOpenAipAirportCode = (airport: OpenAipDirectoryRecord) =>
+  isNormalOpenAipAirportCode(openAipAirportCode(airport));
+
+const getRunwayGeometryRepository = (
+  repository: OpenAipDirectoryRecord | null | undefined,
+) => {
+  if (repository !== undefined) return repository;
+  return createRunwayGeometryRepositoryFromEnv();
+};
+
+const readRunwayGeometryMaps = async ({
+  repository,
+  airports = [],
+}: OpenAipDirectoryRecord = {}) => {
+  if (!repository?.readByAirportIdents) return new Map();
+  const idents = [...new Set(
+    airports
+      .map((airport: OpenAipDirectoryRecord) => normalizeCode(airport?.icao || airport?.ident))
+      .filter(Boolean),
+  )];
+  if (idents.length === 0) return new Map();
+
+  let byAirport;
+  try {
+    byAirport = await repository.readByAirportIdents(idents);
+  } catch (error: any) {
+    console.warn("[openaip] runway geometry read failed:", error?.message || error);
+    return new Map();
+  }
+
+  const maps = new Map();
+  for (const ident of idents) {
+    maps.set(
+      ident,
+      buildRunwayMapFromGeometries({
+        airport: ident,
+        runways: byAirport.get(ident) || [],
+        source: "OurAirports",
+      }),
+    );
+  }
+  return maps;
+};
+
 export async function searchOpenAipAirportDocuments({
   query = "",
   country = "",
@@ -180,7 +227,10 @@ export async function searchOpenAipAirportDocuments({
     }),
   );
 
-  return rankOpenAipAirports(uniqueByAirportCode(items), search).slice(0, safeLimit);
+  return rankOpenAipAirports(
+    uniqueByAirportCode(items).filter(hasNormalOpenAipAirportCode),
+    search,
+  ).slice(0, safeLimit);
 }
 
 export async function searchOpenAipAirports(options: OpenAipDirectoryRecord = {}) {
@@ -214,8 +264,10 @@ export async function getOpenAipAirportPage({
   radiusNm = 60,
   nearbyLimit = 12,
   client,
+  runwayGeometryRepository,
 }: OpenAipDirectoryRecord = {}) {
   const openAip = getClient(client);
+  const runwayRepository = getRunwayGeometryRepository(runwayGeometryRepository);
   const airportMatch = await findOpenAipAirportByIdent({ ident, client: openAip });
   if (!airportMatch?._id) {
     return {
@@ -297,22 +349,21 @@ export async function getOpenAipAirportPage({
     : [[], [], [], [], []];
 
   const origin = { lat: airport.lat, lon: airport.lon };
-  const nearbyAirports = nearbyAirportDocuments
+  const nearbyAirportsBase = nearbyAirportDocuments
     .map(mapOpenAipAirport)
     .filter((item: OpenAipDirectoryRecord | null) => item?.icao && item.icao !== airport.icao)
     .map((item: OpenAipDirectoryRecord | null) => withDistance(item, origin))
     .filter(Boolean)
     .sort((left: OpenAipDirectoryRecord, right: OpenAipDirectoryRecord) => left.distanceNm - right.distanceNm)
-    .slice(0, limit)
-    .map((item: OpenAipDirectoryRecord) => {
-      const document = nearbyAirportDocuments.find(
-        (candidate) => candidate._id === item.openAipId,
-      );
-      return {
-        ...item,
-        runwayMap: buildOpenAipRunwayMap(document),
-      };
-    });
+    .slice(0, limit);
+  const runwayMaps = await readRunwayGeometryMaps({
+    repository: runwayRepository,
+    airports: [airport, ...nearbyAirportsBase],
+  });
+  const nearbyAirports = nearbyAirportsBase.map((item: OpenAipDirectoryRecord) => ({
+    ...item,
+    runwayMap: runwayMaps.get(item.icao) || null,
+  }));
 
   return {
     airport,
@@ -329,15 +380,17 @@ export async function getOpenAipAirportPage({
       .map(mapOpenAipReportingPoint)
       .filter(Boolean),
     obstacles: obstacleDocuments.map(mapOpenAipObstacle).filter(Boolean),
-    runwayMap: buildOpenAipRunwayMap(airportDocument),
+    runwayMap: runwayMaps.get(airport.icao) || null,
   };
 }
 
 export async function getOpenAipNearbyAirports({
   query,
   client,
+  runwayGeometryRepository,
 }: OpenAipDirectoryRecord = {}) {
   const openAip = getClient(client);
+  const runwayRepository = getRunwayGeometryRepository(runwayGeometryRepository);
   const lat = toFiniteNumber(query?.lat);
   const lon = toFiniteNumber(query?.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
@@ -362,20 +415,21 @@ export async function getOpenAipNearbyAirports({
   );
   const origin = { lat, lon };
   const normalizedIcao = normalizeCode(query?.icao);
-  const airports = documents
+  const airportsBase = documents
     .map(mapOpenAipAirport)
     .filter((airport: OpenAipDirectoryRecord | null) => airport?.icao && airport.icao !== normalizedIcao)
     .map((airport: OpenAipDirectoryRecord | null) => withDistance(airport, origin))
     .filter(Boolean)
     .sort((left: OpenAipDirectoryRecord, right: OpenAipDirectoryRecord) => left.distanceNm - right.distanceNm)
-    .slice(0, limit)
-    .map((airport: OpenAipDirectoryRecord) => {
-      const document = documents.find((item) => item._id === airport.openAipId);
-      return {
-        ...airport,
-        runwayMap: buildOpenAipRunwayMap(document),
-      };
-    });
+    .slice(0, limit);
+  const runwayMaps = await readRunwayGeometryMaps({
+    repository: runwayRepository,
+    airports: airportsBase,
+  });
+  const airports = airportsBase.map((airport: OpenAipDirectoryRecord) => ({
+    ...airport,
+    runwayMap: runwayMaps.get(airport.icao) || null,
+  }));
 
   return {
     airports,

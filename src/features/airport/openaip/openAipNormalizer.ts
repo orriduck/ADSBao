@@ -70,6 +70,9 @@ const pointCoordinates = (geometry: OpenAipRecord | null | undefined) => {
 export const openAipAirportCode = (airport: OpenAipRecord | null | undefined) =>
   upperString(airport?.icaoCode || airport?.iataCode || airport?.altIdentifier || airport?._id);
 
+export const isNormalOpenAipAirportCode = (value: unknown) =>
+  /^[A-Z0-9]{2,4}$/.test(upperString(value));
+
 const typeRank = (airport: OpenAipRecord | null | undefined) => {
   if (airport?.type === 3) return 0;
   if (airport?.type === 0 || airport?.type === 9) return 1;
@@ -112,6 +115,7 @@ export const mapOpenAipAirport = (airport: OpenAipRecord | null | undefined) => 
   const iata = upperString(airport.iataCode);
   const alt = upperString(airport.altIdentifier);
   const code = icao || iata || alt || upperString(airport._id);
+  if (!isNormalOpenAipAirportCode(code)) return null;
   const typeLabel = AIRPORT_TYPE_LABELS[Number(airport.type)] || "Airport";
 
   return {
@@ -165,18 +169,6 @@ const reciprocalDesignator = (designator: unknown) => {
   const reciprocal = ((number + 17) % 36) + 1;
   const side = { L: "R", R: "L", C: "C", "": "" }[match[2]] ?? "";
   return `${String(reciprocal).padStart(2, "0")}${side}`;
-};
-
-export const buildOpenAipRunwayMap = (airport: OpenAipRecord | null | undefined) => {
-  const mappedAirport = mapOpenAipAirport(airport);
-  const runways = (airport?.runways || []).filter(Boolean);
-  if (!mappedAirport || runways.length === 0) return null;
-
-  // OpenAIP Core airport runway records currently expose designator, heading,
-  // length, and width, but not threshold coordinates or runway geometry. Do
-  // not synthesize map centerlines from the airport centroid: large airports
-  // such as KBOS would render every runway through one false intersection.
-  return null;
 };
 
 export const mapOpenAipRunway = (

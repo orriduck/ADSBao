@@ -202,7 +202,7 @@ export function buildRunwayApproachBeamCollection(
     type: "FeatureCollection",
     properties: {
       airport: runwayMap?.airport || "",
-      source: runwayMap?.source || "OpenAIP",
+      source: runwayMap?.source || "Runway geometry",
       cycle: runwayMap?.cycle || "",
     },
     features: (runwayMap?.runways || []).flatMap((runway) => {
@@ -262,7 +262,7 @@ export function buildRunwayApproachLineCollection(
     type: "FeatureCollection",
     properties: {
       airport: runwayMap?.airport || "",
-      source: runwayMap?.source || "OpenAIP",
+      source: runwayMap?.source || "Runway geometry",
       cycle: runwayMap?.cycle || "",
     },
     features: (runwayMap?.runways || []).flatMap((runway) => {
@@ -309,7 +309,7 @@ export function buildRunwayCenterlineCollection(runwayMap: RunwayAnnotationRecor
     type: "FeatureCollection",
     properties: {
       airport: runwayMap?.airport || "",
-      source: runwayMap?.source || "OpenAIP",
+      source: runwayMap?.source || "Runway geometry",
       cycle: runwayMap?.cycle || "",
     },
     features: (runwayMap?.runways || [])

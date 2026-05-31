@@ -72,6 +72,10 @@ const zhCN = {
         description:
           "为搜索和地图提供机场、跑道、频率、导航台、空域、报告点和障碍物上下文。许可协议为 CC BY-NC 4.0。",
       },
+      ourAirportsRunways: {
+        title: "OurAirports 跑道几何",
+        description: "仅用于精确跑道地图叠加的跑道端点坐标。",
+      },
       wikipedia: {
         title: "Wikipedia 摘要",
         description: "为机场上下文卡片提供首段摘要。",
