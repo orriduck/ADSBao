@@ -44,6 +44,21 @@ assert.match(
   /iconAnchor: \[4, 4\]/,
   "navaid marker anchor should target the signal icon center",
 );
+assert.match(
+  source,
+  /onSelectNavaid/,
+  "navaid map markers should support preview-card selection",
+);
+assert.match(
+  source,
+  /interactive,\s+keyboard: interactive/,
+  "navaid map markers should become interactive when selectable",
+);
+assert.match(
+  source,
+  /onSelectRef\.current\?\.\(label\.key\)/,
+  "navaid map marker clicks should select the normalized navaid key",
+);
 assert.doesNotMatch(
   source,
   /navaid-label__dot/,

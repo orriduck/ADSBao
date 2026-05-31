@@ -3,6 +3,7 @@ import { enrichAircraftWithAirportContext } from "../context/airportContextModel
 import { resolveMovement, UNKNOWN } from "../../../utils/aircraftMovement";
 import { normalizeCallsign } from "../../../utils/callsign";
 import { formatFlightRouteLabel } from "../../../utils/flightRouteDisplay";
+import { buildNavaidLabels } from "../map/navaidLabelModel";
 
 type AirportExplorerRecord = Record<string, any>;
 
@@ -108,16 +109,23 @@ export function resolveAirportExplorerSelection({
   selectedAircraftId = "",
   airports = [],
   selectedAirportIcao = "",
+  navaids = [],
+  selectedNavaidKey = "",
 }: AirportExplorerRecord = {}) {
   const selectedAircraft =
     aircraft.find((item) => aircraftSelectionId(item) === selectedAircraftId) ||
     null;
   const selectedAirport =
     airports.find((airport) => airport?.icao === selectedAirportIcao) || null;
+  const navaidLabels = buildNavaidLabels(navaids);
+  const selectedNavaid =
+    navaidLabels.find((navaid) => navaid?.key === selectedNavaidKey) || null;
 
   return {
     selectedAircraft,
     selectedAircraftStillVisible: !selectedAircraftId || Boolean(selectedAircraft),
     selectedAirport,
+    selectedNavaid,
+    selectedNavaidStillVisible: !selectedNavaidKey || Boolean(selectedNavaid),
   };
 }

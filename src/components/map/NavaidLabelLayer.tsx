@@ -75,9 +75,13 @@ export default function NavaidLabelLayer({
   navaids = [],
   theme = "dark",
   visible = false,
+  selectedNavaidKey = "",
+  onSelectNavaid = null,
 }: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
+  const onSelectRef = useRef(onSelectNavaid);
+  onSelectRef.current = onSelectNavaid;
 
   useEffect(() => {
     if (!map || !visible) return undefined;
@@ -88,15 +92,23 @@ export default function NavaidLabelLayer({
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge);
     const layer = L.layerGroup(
-      labels.map((label) =>
-        L.marker([label.lat, label.lon], {
-          interactive: false,
-          keyboard: false,
+      labels.map((label) => {
+        const interactive = Boolean(onSelectRef.current);
+        const marker = L.marker([label.lat, label.lon], {
+          interactive,
+          keyboard: interactive,
           title: [label.ident, label.name, label.type].filter(Boolean).join(" "),
           icon: navaidLabelIcon(label, theme),
           pane,
-        }),
-      ),
+        });
+        if (interactive) {
+          marker.on("click", (event) => {
+            event?.originalEvent?.stopPropagation?.();
+            onSelectRef.current?.(label.key);
+          });
+        }
+        return marker;
+      }),
     );
 
     const added = safeAddToMap(layer, map, { label: "NavaidLabelLayer" });
@@ -107,7 +119,7 @@ export default function NavaidLabelLayer({
       safeRemoveFromMap(layer, map);
       layerRef.current = null;
     };
-  }, [map, navaids, theme, visible]);
+  }, [map, navaids, theme, visible, selectedNavaidKey]);
 
   return null;
 }
