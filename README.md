@@ -2,11 +2,11 @@
 
 ADSBao is a Vercel-first airport and flight tracking console. It combines global
 airport search, METAR weather, nearby ADS-B traffic, route context, runway and
-procedure overlays, and selected-flight trace views in a map-first HUD.
+OpenAIP context overlays, and selected-flight trace views in a map-first HUD.
 
-Current web app version: **1.5.1**. Runtime version strings and ADSBao
-User-Agent values share `src/config/siteMeta.ts`; product history is rendered
-from `src/config/changelog.ts` at `/changelog`.
+Runtime version strings and ADSBao User-Agent values share
+`src/config/siteMeta.ts`; product history is rendered from
+`src/config/changelog.ts` at `/changelog`.
 
 <p align="center">
   <img src="docs/screenshots/adsbao-home.jpg" alt="ADSBao airport search screen" width="100%" />
@@ -34,8 +34,9 @@ from `src/config/changelog.ts` at `/changelog`.
 
 - **Frontend**: React, Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide.
 - **Maps**: Leaflet plus MapLibre-backed tiles and custom aircraft/runway layers.
-- **Data layer**: OurAirports data persisted in Supabase and served through
-  Next.js API routes.
+- **Data layer**: OpenAIP served through same-origin Next.js API routes with
+  Supabase migration support for OpenAIP-shaped static/cache tables. Runway
+  threshold geometry is imported from OurAirports for accurate map overlays.
 - **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
   Speed Insights, and optional Sentry monitoring.
 - **Auth and feature flags**: Clerk identity with Supabase-backed user feature
@@ -45,15 +46,14 @@ from `src/config/changelog.ts` at `/changelog`.
 
 | Path | Source | Purpose |
 |---|---|---|
-| `/api/search` | Supabase OurAirports tables | Airport search |
-| `/api/airport/[ident]` | Supabase OurAirports tables | Airport detail, runways, frequencies, navaids |
+| `/api/search` | OpenAIP Core API | Airport search |
+| `/api/airport/[ident]` | OpenAIP Core API + OurAirports runway geometry | Airport detail, runways, frequencies, navaids, airspaces, reporting points, obstacles, runway map |
 | `/api/proxy/metar/:icao` | AviationWeather | METAR weather context |
 | `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft |
 | `/api/proxy/aircraft/callsign/:callsign` | ADS-B callsign providers | Tracked aircraft state |
 | `/api/proxy/aircraft/trace/:hex` | ADS-B trace providers | Recent and full aircraft trace |
 | `/api/proxy/flight-routes/callsign/:callsign` | adsbdb, route feedback, optional FlightAware fallback | Callsign route labels |
-| `/api/proxy/procedures/:country/:icao` | FAA CIFP | US runway procedure overlays |
-| `/api/proxy/airports/nearby` | AIRAC plus optional Supabase cache | Nearby airport overlays |
+| `/api/proxy/airports/nearby` | OpenAIP Core API | Nearby airport overlays |
 
 See `docs/architecture.md` for the current feature/API boundary conventions and
 deployment topology.
@@ -102,16 +102,16 @@ normally configure these variables:
 | `SENTRY_DSN` | Optional server/edge Sentry events |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Optional production source-map upload |
 
-Import or refresh airport directory data with:
-
-```bash
-node --env-file=.env --import tsx scripts/import-ourairports.ts
-```
-
 Manage Supabase-backed user feature flags with:
 
 ```bash
 pnpm ff
+```
+
+Import runway threshold geometry with:
+
+```bash
+pnpm import:runways
 ```
 
 ## Project Structure
@@ -125,7 +125,7 @@ ADSBao/
 │   ├── components/        # JSX components grouped by screen/domain
 │   ├── features/
 │   │   ├── aircraft/      # Aircraft callsign, photos, positions, trace, and preview logic
-│   │   ├── airport/       # Airport directory, explorer, map, nearby, procedures, and wiki logic
+│   │   ├── airport/       # Airport directory, explorer, map, nearby, OpenAIP, and wiki logic
 │   │   ├── aviation/      # Shared aviation clients and route mechanisms
 │   │   ├── weather/       # Weather models and METAR/local-weather integration
 │   │   ├── about/         # About-page view models

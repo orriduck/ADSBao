@@ -32,10 +32,10 @@ export default function AboutDataSources({ sources, onOpenExternalLink }) {
                 <span>{source.glyph}</span>
               </span>
               <span className="min-w-0">
-                <strong className="block truncate text-[13px] font-semibold text-atc-text">
+                <strong className="block whitespace-normal break-words text-[13px] font-semibold leading-snug text-atc-text">
                   {source.titleKey ? t(source.titleKey) : source.title}
                 </strong>
-                <small className="mt-0.5 block truncate text-[11.5px] text-atc-dim">
+                <small className="mt-0.5 block whitespace-normal break-words text-[11.5px] leading-snug text-atc-dim">
                   {source.descriptionKey ? t(source.descriptionKey) : source.description}
                 </small>
               </span>

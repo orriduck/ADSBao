@@ -2,8 +2,8 @@ import {
   readResponseJson,
   readResponseText,
 } from "../../../app/api/_shared/apiProxySecurity";
-import { createOurAirportsQueriesFromEnv } from "../../../app/api/dao/airportDirectory.dao";
 import { createRouteFeedbackReportsRepositoryFromEnv } from "../../../app/api/dao/routeFeedbackReports.dao";
+import { createOpenAipAirportQueriesFromEnv } from "../../airport/openaip/openAipDirectory";
 import {
   ADSBDB_USER_AGENT,
   buildAdsbdbCallsignRouteUrl,
@@ -87,7 +87,7 @@ export async function fetchAdsbdbRoute(callsign: unknown) {
 
 export async function fetchFlightAwareRoute(
   callsign: unknown,
-  { airportQueries = createOurAirportsQueriesFromEnv() }: FlightRouteMechanismRecord = {},
+  { airportQueries = createOpenAipAirportQueriesFromEnv() }: FlightRouteMechanismRecord = {},
 ) {
   const url = buildFlightAwareCallsignRouteUrl(callsign);
   if (!url) return null;

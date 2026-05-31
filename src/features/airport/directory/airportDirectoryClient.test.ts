@@ -22,7 +22,7 @@ const KBOS = {
   type_label: "Large Airport",
   lat: 42.3656,
   lon: -71.0096,
-  source: "ourairports",
+  source: "openaip",
 };
 
 // loadAirports translates kind=all -> no type filter, kind=large_airport -> type=large_airport
@@ -33,7 +33,7 @@ const KBOS = {
       calls.push(url);
       return createJsonResponse({
         airports: [KBOS],
-        source: "ourairports",
+        source: "openaip",
       });
     },
   });
@@ -51,7 +51,7 @@ const KBOS = {
   assert.match(calls[0], /country=US/);
   assert.match(calls[0], /type=large_airport/);
   assert.match(calls[0], /limit=10/);
-  assert.equal(result.source, "ourairports");
+  assert.equal(result.source, "openaip");
   assert.equal(result.airports[0].icao, "KBOS");
 }
 
@@ -61,7 +61,7 @@ const KBOS = {
   const client = createAirportDirectoryClient({
     fetchImpl: async (url) => {
       calls.push(url);
-      return createJsonResponse({ airports: [], source: "ourairports" });
+      return createJsonResponse({ airports: [], source: "openaip" });
     },
   });
 
@@ -83,7 +83,11 @@ const KBOS = {
           frequencies: [],
           nearbyAirports: [],
           nearbyNavaids: [{ ident: "BOS", type: "VORTAC" }],
-          source: "ourairports",
+          airspaces: [{ id: "asp-1", name: "BOSTON CLASS B" }],
+          reportingPoints: [{ id: "pt-1", name: "HYLND" }],
+          obstacles: [{ id: "obs-1", name: "Tower" }],
+          runwayMap: { airport: "KBOS", source: "OurAirports", runways: [] },
+          source: "openaip",
         });
       }
       throw new Error(`unexpected url: ${url}`);
@@ -95,6 +99,10 @@ const KBOS = {
   assert.equal(airport.icao, "KBOS");
   assert.equal(airport.iata, "BOS");
   assert.deepEqual(airport.nearbyNavaids, [{ ident: "BOS", type: "VORTAC" }]);
+  assert.deepEqual(airport.airspaces, [{ id: "asp-1", name: "BOSTON CLASS B" }]);
+  assert.deepEqual(airport.reportingPoints, [{ id: "pt-1", name: "HYLND" }]);
+  assert.deepEqual(airport.obstacles, [{ id: "obs-1", name: "Tower" }]);
+  assert.deepEqual(airport.runwayMap, { airport: "KBOS", source: "OurAirports", runways: [] });
 }
 
 // resolveAirport forwards the active locale so the detail route can enrich
@@ -133,7 +141,7 @@ const KBOS = {
         return createJsonResponse({ error: "Airport not found" }, 404);
       }
       if (url.startsWith("/api/search?")) {
-        return createJsonResponse({ airports: [KBOS], source: "ourairports" });
+        return createJsonResponse({ airports: [KBOS], source: "openaip" });
       }
       throw new Error(`unexpected url: ${url}`);
     },

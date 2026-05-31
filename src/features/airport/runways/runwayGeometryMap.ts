@@ -1,21 +1,23 @@
-// Adapter that converts the OurAirports runway rows returned by
-// `/api/airport/[ident]` into the runwayMap shape consumed by the airport-map
-// annotation layer (see runwayAnnotationModel.js). The CIFP path is US-only,
-// so this fallback is what makes non-US airports (LFPG, EGLL, RJAA, …) get
-// runway thresholds, centerlines, and end labels on the map.
+type RunwayGeometryRecord = Record<string, any>;
 
-const sortKey = (ident) => {
+const sortKey = (ident: unknown) => {
   const match = String(ident || "").match(/^(\d{2})([LRC]?)$/);
   if (!match) return String(ident || "");
   return `${match[1]}${match[2]}`;
 };
 
-const hasFiniteCoord = (end) =>
+const hasFiniteCoord = (end: RunwayGeometryRecord | null | undefined) =>
   Number.isFinite(end?.lat) && Number.isFinite(end?.lon);
 
-export const buildRunwayMapFromOurAirports = (airport, runways = []) => {
+export const buildRunwayMapFromGeometries = ({
+  airport,
+  runways = [],
+  source = "Runway geometry",
+}: RunwayGeometryRecord = {}) => {
   const normalizedAirport = String(airport || "").trim().toUpperCase();
-  if (!Array.isArray(runways) || runways.length === 0) return null;
+  if (!normalizedAirport || !Array.isArray(runways) || runways.length === 0) {
+    return null;
+  }
 
   const mapped = runways
     .filter((row) => !row?.closed)
@@ -29,6 +31,8 @@ export const buildRunwayMapFromOurAirports = (airport, runways = []) => {
       const id = ends.map((end) => end.ident).join("/");
       return {
         id,
+        lengthFt: row.lengthFt ?? null,
+        widthFt: row.widthFt ?? null,
         ends,
         centerline: {
           type: "Feature",
@@ -39,7 +43,7 @@ export const buildRunwayMapFromOurAirports = (airport, runways = []) => {
           properties: {
             id,
             airport: normalizedAirport,
-            source: "OurAirports",
+            source,
             ends: ends.map((end) => end.ident),
           },
         },
@@ -51,7 +55,7 @@ export const buildRunwayMapFromOurAirports = (airport, runways = []) => {
 
   return {
     airport: normalizedAirport,
-    source: "OurAirports",
+    source,
     cycle: "",
     runways: mapped,
   };

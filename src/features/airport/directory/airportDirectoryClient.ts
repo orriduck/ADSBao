@@ -1,7 +1,6 @@
-// Browser-side wrapper over the new `/api/search` and `/api/airport/[ident]`
-// routes. Same public surface as the old airportsapi.com client — feature
-// code (`useAirportSearch`, `HomeScreen`) doesn't need to know that the data
-// source has been swapped to OurAirports + Supabase.
+// Browser-side wrapper over the `/api/search` and `/api/airport/[ident]`
+// routes. Server routes own OpenAIP access so the API key never reaches the
+// browser bundle.
 
 const SEARCH_PATH = "/api/search";
 const AIRPORT_PATH = "/api/airport";
@@ -75,7 +74,7 @@ export const createAirportDirectoryClient = ({
     const payload = (await requestJson(fetchImpl, url)) || {};
     return {
       airports: Array.isArray(payload.airports) ? payload.airports : [],
-      source: payload.source || "ourairports",
+      source: payload.source || "openaip",
     };
   };
 
@@ -100,6 +99,12 @@ export const createAirportDirectoryClient = ({
         nearbyNavaids: Array.isArray(detail.nearbyNavaids)
           ? detail.nearbyNavaids
           : [],
+        airspaces: Array.isArray(detail.airspaces) ? detail.airspaces : [],
+        reportingPoints: Array.isArray(detail.reportingPoints)
+          ? detail.reportingPoints
+          : [],
+        obstacles: Array.isArray(detail.obstacles) ? detail.obstacles : [],
+        runwayMap: detail.runwayMap || null,
       };
     }
 

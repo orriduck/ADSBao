@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.7.0",
+    kind: "feat",
+    title: "OpenAIP airport directory migration",
+    summary:
+      "Airport search and detail context now use OpenAIP as the primary aviation directory, with Supabase-backed runway threshold geometry retained for accurate map overlays.",
+    highlights: [
+      "Airport search, airport details, frequencies, nearby airports, navaids, reporting points, airspaces, and obstacles moved to OpenAIP",
+      "Runway map centerlines use imported OurAirports threshold coordinates instead of synthetic OpenAIP centroid geometry",
+      "OpenAIP search results without normal ICAO-style airport codes are filtered out before display",
+      "About and architecture docs now list OpenAIP plus the narrow OurAirports runway geometry attribution",
+    ],
+  },
+  {
     version: "v1.6.0",
     kind: "feat",
     title: "Nearby list virtualization and data-layer onboarding",
@@ -52,13 +65,13 @@ export const CHANGELOG = [
     kind: "feat",
     title: "adsbdb routes + community feedback + complete runway map",
     summary:
-      "Route lookups move to api.adsbdb.com, users can submit temporary route corrections, and the airport runway map now renders every runway from OurAirports instead of only the CIFP-procedure subset.",
+      "Route lookups move to api.adsbdb.com, users can submit temporary route corrections, and the airport runway map now renders every runway from OpenAIP.",
     highlights: [
       "Public route provider switched from VRS standing-data to api.adsbdb.com",
       "Community-feedback overrides: `*`-marked user-supplied routes win for 12h",
       "Preview card: inline form on desktop, modal on mobile, with copy that distinguishes 'Suggest the right one' vs 'Suggest correction'",
       "Flight tracking page now fetches and shows the route, and exposes the same feedback affordance",
-      "KBOS-class fix: VFR-only runways (09/27, 14/32, 15L/33R) render again — runway map sourced from OurAirports globally",
+      "KBOS-class fix: VFR-only runways (09/27, 14/32, 15L/33R) render again — runway map sourced from OpenAIP globally",
       "Mobile flight sidebar is vertically scrollable",
     ],
   },
@@ -156,10 +169,10 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Global airport data + richer silhouettes",
     summary:
-      "OurAirports via Supabase, global search, 178 ICAO-type silhouettes, country flags.",
+      "OpenAIP-backed global search, 178 ICAO-type silhouettes, country flags.",
     highlights: [
-      "OurAirports backing /api/search + /api/airport/[ident]",
-      "Global runway annotations (FAA CIFP + OurAirports fallback)",
+      "OpenAIP backing /api/search + /api/airport/[ident]",
+      "Global OpenAIP runway annotations",
       "178 aircraft silhouettes shipping in-repo",
       "Diversified featured airports (JFK, LHR, HND, …)",
       "Country flag + name on home rows and airport header",

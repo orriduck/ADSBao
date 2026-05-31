@@ -593,9 +593,6 @@ function FlightExplorerContent({ callsign }) {
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             runwayMap={null}
-            runwayProcedures={null}
-            procedureFixLabelRunwayProcedures={null}
-            showProcedureFixLabels={false}
             focalRangeRings={false}
             deferUntilFocal
             loadingOverlayActive={flightTrackingLoadingActive}

@@ -12,76 +12,62 @@ const payload = await getNearbyAirports({
     radiusNm: 40,
     limit: 12,
   },
-  airportCache: null,
-  ourAirportsQueries: {
-    async getNearbyAirportsByPosition(options) {
-      calls.push({ type: "nearby", options });
-      return [
+  client: {
+    async listAirports(options) {
+      calls.push(options);
+      return {
+        items: [
         {
-          ident: "CYYZ",
-          icao: "CYYZ",
-          iata: "YYZ",
+          _id: "cyyz",
+          icaoCode: "CYYZ",
+          iataCode: "YYZ",
           name: "Toronto Pearson International Airport",
           country: "CA",
-          lat: 43.6772,
-          lon: -79.6306,
-          distanceNm: 8.7,
+          geometry: { type: "Point", coordinates: [-79.6306, 43.6772] },
+          runways: [
+            {
+              _id: "cyyz-rw",
+              designator: "05",
+              trueHeading: 50,
+              dimension: { length: { value: 3389 }, width: { value: 60 } },
+            },
+          ],
         },
         {
-          ident: "CYTZ",
-          icao: "CYTZ",
-          iata: "YTZ",
+          _id: "cytz",
+          icaoCode: "CYTZ",
+          iataCode: "YTZ",
           name: "Billy Bishop Toronto City Centre Airport",
           country: "CA",
-          lat: 43.6275,
-          lon: -79.3962,
-          distanceNm: 6.8,
+          geometry: { type: "Point", coordinates: [-79.3962, 43.6275] },
+          runways: [
+            {
+              _id: "cytz-rw",
+              designator: "08",
+              trueHeading: 80,
+              dimension: { length: { value: 1216 }, width: { value: 45 } },
+            },
+          ],
         },
-      ];
-    },
-    async getRunwaysByAirport(ident) {
-      calls.push({ type: "runways", ident });
-      if (ident === "CYTZ") {
-        return [
-          {
-            lengthFt: 3988,
-            closed: false,
-            le: { ident: "08", lat: 43.627, lon: -79.404 },
-            he: { ident: "26", lat: 43.628, lon: -79.386 },
-          },
-        ];
-      }
-      return [
-        {
-          lengthFt: 11120,
-          closed: false,
-          le: { ident: "05", lat: 43.674, lon: -79.642 },
-          he: { ident: "23", lat: 43.681, lon: -79.62 },
-        },
-      ];
+        ],
+      };
     },
   },
 });
 
-assert.equal(payload.source, "ourairports");
-assert.equal(payload.airports[0].icao, "CYYZ");
+assert.equal(payload.source, "openaip");
+assert.equal(payload.airports[0].icao, "CYTZ");
 assert.equal(payload.airports[0].country, "CA");
-assert.equal(payload.airports[0].runwayMap.airport, "CYYZ");
+assert.equal(payload.airports[0].runwayMap, null);
 assert.deepEqual(
   payload.airports.map((airport) => airport.icao),
-  ["CYYZ", "CYTZ"],
+  ["CYTZ", "CYYZ"],
 );
-assert.deepEqual(
-  calls.map((call) => call.type),
-  ["nearby", "runways", "runways"],
-);
-assert.deepEqual(calls[0].options, {
-  lat: 43.73,
-  lon: -79.45,
-  radiusNm: 40,
-  limit: 12,
-  excludeIdent: "",
-});
+assert.equal(calls.length, 1);
+assert.equal(calls[0].pos, "43.73,-79.45");
+assert.equal(calls[0].dist, 74080);
+assert.equal(calls[0].type, "0,2,3,9,10,11,13");
+assert.equal(calls[0].limit, 61);
 
 {
   const warnings = [];
@@ -96,38 +82,25 @@ assert.deepEqual(calls[0].options, {
         radiusNm: 40,
         limit: 12,
       },
-      airportCache: {
-        async read() {
-          return null;
-        },
-        async write() {
-          throw new Error(
-            'Supabase nearby airport cache write failed (new row violates row-level security policy for table "nearby_airport_cache")',
-          );
-        },
-      },
-      ourAirportsQueries: {
-        async getNearbyAirportsByPosition() {
-          return [
+      client: {
+        async listAirports() {
+          return {
+            items: [
             {
-              ident: "CYYZ",
-              icao: "CYYZ",
-              iata: "YYZ",
+              _id: "cyyz",
+              icaoCode: "CYYZ",
+              iataCode: "YYZ",
               name: "Toronto Pearson International Airport",
               country: "CA",
-              lat: 43.6772,
-              lon: -79.6306,
-              distanceNm: 8.7,
+              geometry: { type: "Point", coordinates: [-79.6306, 43.6772] },
             },
-          ];
-        },
-        async getRunwaysByAirport() {
-          return [];
+            ],
+          };
         },
       },
     });
 
-    assert.equal(quietPayload.source, "ourairports");
+    assert.equal(quietPayload.source, "openaip");
     assert.deepEqual(warnings, []);
   } finally {
     console.warn = originalWarn;
@@ -143,10 +116,8 @@ await assert.rejects(
       radiusNm: 40,
       limit: 12,
     },
-    airportCache: null,
-    ourAirportsQueries: null,
   }),
-  /OurAirports nearby query layer is not configured/,
+  /OpenAIP API key is not configured/,
 );
 
 console.log("nearbyAirports.mechanism.test.ts ok");

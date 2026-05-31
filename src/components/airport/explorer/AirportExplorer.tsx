@@ -18,7 +18,6 @@ import {
   resolveAirportProfile,
 } from "@/features/airport/explorer/airportExplorerModel";
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData";
-import { useAirportProcedures } from "@/hooks/useAirportProcedures";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext";
 import AircraftPreviewCard from "../../aircraft/preview/AircraftPreviewCard";
@@ -74,7 +73,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     [icao, airport],
   );
   const { weather, traffic } = useAirportExplorerData(airportProfile);
-  const procedures = useAirportProcedures(airportProfile.icao);
   const nearbyAirports = useNearbyAirports({
     icao: airportProfile.icao,
     lat: airportProfile.lat,
@@ -203,7 +201,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,
     metarSettled: weather.metarSettled,
     nearbyAirportsSettled: nearbyAirports.settled,
-    proceduresSettled: procedures.settled,
   });
   const loadingOverlayActive =
     !criticalLoadingSettled || traffic.aircraftLoadingOverlayActive;
@@ -212,7 +209,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       traffic.aircraftLoadingOverlayActive || !traffic.aircraftPositionsSettled,
     weatherLoading: weather.metarLoading || !weather.metarSettled,
     nearbyAirportsLoading: nearbyAirports.loading || !nearbyAirports.settled,
-    proceduresLoading: procedures.loading || !procedures.settled,
     routeLoadingCount: traffic.routeLoadingCount,
   };
   const sourceLoadingState = resolveAircraftLoadingOverlayState({
@@ -325,10 +321,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             onSelectNavaid={selectNavaid}
-            runwayMap={procedures.runwayMap}
-            runwayProcedures={null}
-            procedureFixLabelRunwayProcedures={procedures.runwayProcedures}
-            showProcedureFixLabels
+            runwayMap={airport?.runwayMap}
             loadingOverlayActive={loadingOverlayActive}
             loadingOverlaySources={loadingOverlaySources}
             userLocation={userLocation}

@@ -49,13 +49,13 @@ const CHINESE_RELEASE_COPY = {
   "v1.3.0": {
     title: "adsbdb 航路、社区反馈与完整跑道地图",
     summary:
-      "航路查询迁移到 api.adsbdb.com,用户可提交临时航路修正,机场跑道地图现在从 OurAirports 渲染所有跑道。",
+      "航路查询迁移到 api.adsbdb.com,用户可提交临时航路修正,机场跑道地图现在从 OpenAIP 渲染所有跑道。",
     highlights: [
       "公开航路数据源从 VRS standing-data 切换到 api.adsbdb.com",
       "社区反馈覆盖: 带 `*` 标记的用户航路在 12 小时内优先",
       "预览卡: 桌面端内联表单,移动端弹窗,区分建议正确航路与建议修正",
       "飞行跟踪页现在会拉取并显示航路,也提供同样的反馈入口",
-      "KBOS 类修复: VFR-only 跑道重新显示,全球跑道图来自 OurAirports",
+      "KBOS 类修复: VFR-only 跑道重新显示,全球跑道图来自 OpenAIP",
       "移动端飞行侧栏支持纵向滚动",
     ],
   },
@@ -132,10 +132,10 @@ const CHINESE_RELEASE_COPY = {
   },
   "v0.10.0": {
     title: "全球机场数据与更丰富的飞机轮廓",
-    summary: "OurAirports 通过 Supabase 提供全球搜索、178 种 ICAO 类型轮廓和国家旗帜。",
+    summary: "OpenAIP 提供全球搜索、178 种 ICAO 类型轮廓和国家旗帜。",
     highlights: [
-      "OurAirports 支撑 /api/search 和 /api/airport/[ident]",
-      "全球跑道标注: FAA CIFP 加 OurAirports fallback",
+      "OpenAIP 支撑 /api/search 和 /api/airport/[ident]",
+      "全球 OpenAIP 跑道标注",
       "178 个飞机轮廓随仓库发布",
       "推荐机场更多样: JFK、LHR、HND 等",
       "首页行和机场头部显示国家旗帜与名称",

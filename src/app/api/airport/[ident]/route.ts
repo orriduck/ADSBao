@@ -1,14 +1,9 @@
-import { after } from "next/server";
-
 import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
 } from "@/app/api/_shared/apiProxySecurity";
-import {
-  getAirportDirectoryPage,
-  refreshAirportDirectoryIfDue,
-} from "@/features/airport/directory/airportDirectory.mechanism";
+import { getAirportDirectoryPage } from "@/features/airport/directory/airportDirectory.mechanism";
 import { fetchAirportWikiSummary } from "@/features/airport/wiki/airportWiki";
 import { resolveLocaleFromSearchParams } from "@/features/app-shell/i18n/i18nModel";
 import {
@@ -55,7 +50,6 @@ export async function GET(request, { params }) {
 
   try {
     const data = await getAirportDirectoryPage({ ident, radiusNm, nearbyLimit });
-    after(() => refreshAirportDirectoryIfDue());
     if (!data) {
       return jsonProxyResponse(
         request,

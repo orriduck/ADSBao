@@ -1,30 +1,23 @@
-import { createAirportPageDataServiceFromEnv } from "./airportPageDataService";
-import { createOurAirportsQueriesFromEnv } from "../../../app/api/dao/airportDirectory.dao";
-import { scheduleRefreshIfDue } from "./ourairports/ourAirportsRefresh";
-
+import { AIRPORT_DIRECTORY_SOURCE } from "./airportDirectory.models";
 import {
-  AIRPORT_DIRECTORY_SOURCE,
-  AirportDirectoryConfigurationError,
-} from "./airportDirectory.models";
+  getOpenAipAirportPage,
+  searchOpenAipAirports,
+} from "../openaip/openAipDirectory";
 
 type AirportDirectoryMechanismRecord = Record<string, any>;
 
 export const searchAirportDirectory = async ({
   query,
   country,
-  type,
   limit,
-  queries = createOurAirportsQueriesFromEnv(),
+  client,
 }: AirportDirectoryMechanismRecord = {}) => {
-  if (!queries) throw new AirportDirectoryConfigurationError();
-
-  const airports = await queries.searchAirports({ query, country, type, limit });
+  const airports = await searchOpenAipAirports({ query, country, limit, client });
   return {
     airports,
     source: AIRPORT_DIRECTORY_SOURCE,
     query,
     country,
-    type,
     limit,
   };
 };
@@ -33,18 +26,15 @@ export const getAirportDirectoryPage = async ({
   ident,
   radiusNm,
   nearbyLimit,
-  service = createAirportPageDataServiceFromEnv(),
+  client,
 }: AirportDirectoryMechanismRecord = {}) => {
-  if (!service) throw new AirportDirectoryConfigurationError();
-
-  const data = await service.getAirportPageData(ident, {
+  const data = await getOpenAipAirportPage({
+    ident,
     radiusNm,
     nearbyLimit,
+    client,
   });
 
-  if (!data.airport) return null;
+  if (!data?.airport) return null;
   return { ...data, source: AIRPORT_DIRECTORY_SOURCE };
 };
-
-export const refreshAirportDirectoryIfDue = (options: AirportDirectoryMechanismRecord = {}) =>
-  scheduleRefreshIfDue(options);

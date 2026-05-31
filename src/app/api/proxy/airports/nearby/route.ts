@@ -64,7 +64,7 @@ export async function GET(request) {
       headers: NEARBY_AIRPORT_CACHE_HEADERS,
     });
   } catch (error) {
-    console.error("[airports/nearby] OurAirports nearby query failed", error);
+    console.error("[airports/nearby] OpenAIP nearby query failed", error);
     return jsonProxyResponse(
       request,
       { error: "Failed to load nearby airports" },

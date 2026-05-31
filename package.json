@@ -1,13 +1,14 @@
 {
   "name": "adsbao",
   "private": true,
-  "version": "1.6.0",
+  "version": "1.7.0",
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --webpack",
     "lint": "eslint .",
     "ff": "tsx scripts/feature-flags.ts",
+    "import:runways": "tsx scripts/import-runway-geometries.ts",
     "test": "tsx scripts/run-tests.ts",
     "test:all": "tsx scripts/run-tests.ts",
     "start": "next start"

@@ -101,7 +101,6 @@ assert.equal(
     aircraftPositionsSettled: true,
     metarSettled: true,
     nearbyAirportsSettled: true,
-    proceduresSettled: true,
     routeSettled: false,
     aircraftLogoSettled: false,
   }),
@@ -113,7 +112,6 @@ assert.equal(
     aircraftPositionsSettled: true,
     metarSettled: false,
     nearbyAirportsSettled: true,
-    proceduresSettled: true,
   }),
   false,
 );
@@ -184,10 +182,9 @@ assert.deepEqual(
 assert.deepEqual(
   resolveAircraftLoadingOverlayState({
     mapReady: true,
-    proceduresLoading: true,
     routeLoadingCount: 4,
   }),
-  { active: true, mode: "feed", reason: "procedures" },
+  { active: true, mode: "feed", reason: "routes" },
 );
 
 assert.deepEqual(

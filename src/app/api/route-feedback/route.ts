@@ -4,8 +4,8 @@ import {
   enforceProxyRequest,
   jsonProxyResponse,
 } from "@/app/api/_shared/apiProxySecurity";
-import { createOurAirportsQueriesFromEnv } from "@/app/api/dao/airportDirectory.dao";
 import { createRouteFeedbackReportsRepositoryFromEnv } from "@/app/api/dao/routeFeedbackReports.dao";
+import { createOpenAipAirportQueriesFromEnv } from "@/features/airport/openaip/openAipDirectory";
 import {
   buildRouteFeedbackInsertSpec,
   normalizeRouteFeedbackInput,
@@ -40,7 +40,7 @@ export async function POST(request) {
   }
   const input = normalized.value;
 
-  const airportDirectory = createOurAirportsQueriesFromEnv();
+  const airportDirectory = createOpenAipAirportQueriesFromEnv();
   if (!airportDirectory) {
     return jsonProxyResponse(
       request,

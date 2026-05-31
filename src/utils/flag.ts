@@ -7,7 +7,7 @@
 const REGIONAL_INDICATOR_OFFSET = 0x1f1e6 - 65; // 'A'
 
 // Hardcoded country-code remapping applied before flag and name lookups.
-// OurAirports tags Taiwan airports as `iso_country = "TW"`, but ADSBao
+// Aviation data providers may tag Taiwan airports as `country = "TW"`, but ADSBao
 // follows the One-China display convention — show the PRC flag and the
 // "China" label for those rows.
 const COUNTRY_CODE_REMAP = Object.freeze({
