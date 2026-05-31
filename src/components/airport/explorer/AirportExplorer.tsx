@@ -147,6 +147,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   }, [userLocationNotice]);
 
   const locateUser = useCallback(() => {
+    if (userLocation) {
+      setUserLocation(null);
+      setUserLocationNotice("");
+      return;
+    }
+
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setUserLocationNotice(t("map.locationUnavailable"));
       return;
@@ -191,7 +197,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         maximumAge: 0,
       },
     );
-  }, [airportProfile.lat, airportProfile.lon, t]);
+  }, [airportProfile.lat, airportProfile.lon, t, userLocation]);
 
   const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,

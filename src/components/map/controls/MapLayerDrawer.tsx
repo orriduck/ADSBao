@@ -120,7 +120,7 @@ export default function MapLayerDrawer({
               userLocationPending
                 ? t("mapLayers.locatingUser")
                 : userLocationActive
-                  ? t("mapLayers.updateUserLocation")
+                  ? t("mapLayers.hideUserLocation")
                   : t("mapLayers.showUserLocation")
             }
             aria-pressed={userLocationActive}
@@ -128,7 +128,7 @@ export default function MapLayerDrawer({
               userLocationPending
                 ? t("mapLayers.locatingUser")
                 : userLocationActive
-                  ? t("mapLayers.updateUserLocation")
+                  ? t("mapLayers.hideUserLocation")
                   : t("mapLayers.showUserLocation")
             }
             disabled={userLocationPending}

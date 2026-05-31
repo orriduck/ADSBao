@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import NumberFlow from "@number-flow/react";
+import { TowerControl } from "lucide-react";
 import { countryName, flagEmoji } from "@/utils/flag";
 import { airportCityName, airportDisplayName } from "@/utils/airport";
 import { toFiniteNumber } from "@/utils/math";
@@ -25,26 +26,55 @@ export default function AirportPreviewMetadataCard({ airport }) {
   const placeLine = flag && placeText ? `${flag} ${placeText}` : placeText;
   const distance = toFiniteNumber(airport?.distanceNm);
   const elevation = toFiniteNumber(airport?.elevationFt);
+  const detailRows = [
+    { label: t("metrics.iata"), value: iata },
+    { label: t("metrics.icao"), value: icao },
+    { label: t("metrics.city"), value: city },
+    { label: t("metrics.country"), value: country },
+  ].filter((row) => row.value);
 
   const alreadyTracking = icao && pathname === `/airport/${icao}`;
   const trackHref = icao ? `/airport/${icao}` : null;
 
   return (
     <div className="aircraft-preview-metadata-card">
-      <div className="flex flex-col gap-1">
-        <span className="endf-label">{t("sidebar.airport")}</span>
-        <span
-          className="airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[24px] font-extrabold text-atc-text"
-          translate="no"
-        >
-          {codeLine}
-        </span>
-        <h2 className="text-[15px] font-semibold leading-tight text-atc-text">
-          {name}
-        </h2>
-        {placeLine ? (
-          <span className="text-[12px] text-atc-dim">{placeLine}</span>
-        ) : null}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <span className="endf-label">{t("sidebar.airport")}</span>
+          <div className="mt-1 flex min-w-0 items-baseline gap-2">
+            <span
+              className="airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[28px] font-extrabold leading-none text-atc-text"
+              translate="no"
+            >
+              {codeLine}
+            </span>
+          </div>
+          <dl className="mt-2 grid min-w-0 gap-2">
+            <div className="min-w-0">
+              <dt className="font-[var(--font-mono)] text-[7px] font-semibold uppercase leading-none tracking-normal text-atc-faint">
+                {t("preview.airportName")}
+              </dt>
+              <dd className="mt-1 truncate text-[15px] font-semibold leading-tight text-atc-text">
+                {name}
+              </dd>
+            </div>
+            {placeLine ? (
+              <div className="min-w-0">
+                <dt className="font-[var(--font-mono)] text-[7px] font-semibold uppercase leading-none tracking-normal text-atc-faint">
+                  {t("preview.airportPlace")}
+                </dt>
+                <dd className="mt-1 truncate text-[12px] leading-tight text-atc-dim">
+                  {placeLine}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </div>
+        <TowerControl
+          aria-hidden="true"
+          className="mt-1 size-5 flex-none text-atc-dim"
+          strokeWidth={1.8}
+        />
       </div>
 
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
@@ -87,6 +117,27 @@ export default function AirportPreviewMetadataCard({ airport }) {
           )}
         </dd>
       </dl>
+
+      {detailRows.length ? (
+        <>
+          <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 font-mono text-[10px]">
+            {detailRows.map((row) => (
+              <div className="contents" key={row.label}>
+                <dt className="text-atc-faint uppercase tracking-[0.1em]">
+                  {row.label}
+                </dt>
+                <dd
+                  className="notranslate min-w-0 truncate text-right font-semibold text-atc-text"
+                  translate="no"
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </>
+      ) : null}
 
       {trackHref && !alreadyTracking ? (
         <Link

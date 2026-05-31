@@ -9,7 +9,11 @@ const source = readFileSync(previewCardPath, "utf8");
 const mobileCardPath = fileURLToPath(
   new URL("./NavaidPreviewMobileCard.tsx", import.meta.url),
 );
+const desktopCardPath = fileURLToPath(
+  new URL("./NavaidPreviewMetadataCard.tsx", import.meta.url),
+);
 const mobileSource = readFileSync(mobileCardPath, "utf8");
+const desktopSource = readFileSync(desktopCardPath, "utf8");
 
 assert.match(
   source,
@@ -45,6 +49,16 @@ assert.doesNotMatch(
   mobileSource,
   /grid-cols-\[minmax\(0,1fr\)_auto\]/,
   "mobile navaid preview should not split ident and type to opposite sides",
+);
+assert.match(
+  desktopSource,
+  /preview\.navaidType/,
+  "desktop navaid preview should label the type value in the header",
+);
+assert.match(
+  desktopSource,
+  /preview\.navaidName/,
+  "desktop navaid preview should label the name value in the header",
 );
 
 console.log("AircraftPreviewCard.navaid.test.ts ok");
