@@ -7,9 +7,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --webpack",
     "lint": "eslint .",
-    "ff": "node scripts/feature-flags.js",
-    "test": "node scripts/run-tests.js",
-    "test:all": "pnpm test",
+    "ff": "tsx scripts/feature-flags.ts",
+    "test": "tsx scripts/run-tests.ts",
+    "test:all": "tsx scripts/run-tests.ts",
     "start": "next start"
   },
   "dependencies": {
@@ -50,9 +50,17 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",
     "@tanstack/react-query-devtools": "^5.100.14",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.184.1",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.0.10",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

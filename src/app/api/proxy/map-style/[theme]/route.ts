@@ -1,0 +1,87 @@
+import {
+  buildProxyHeaders,
+  createCorsPreflightResponse,
+  enforceProxyRequest,
+  jsonProxyResponse,
+  logProxyRouteResponse,
+  readResponseJson,
+} from "@/app/api/_shared/apiProxySecurity";
+import {
+  buildLocalizedMapLibreStyle,
+  buildProxiedMapLibreStyle,
+  getMapLibreBaseStyleUrl,
+} from "@/features/airport/map/mapTileLanguageModel";
+
+const SOURCE = "openfreemap";
+const CACHE_HEADERS = {
+  "Cache-Control": "public, max-age=86400, s-maxage=86400",
+};
+const rateLimit = {
+  key: "proxy:map-style",
+  maxRequests: 240,
+  windowMs: 60_000,
+};
+
+export function OPTIONS(request) {
+  return createCorsPreflightResponse(request);
+}
+
+export async function GET(request, { params }) {
+  const startedAt = performance.now();
+  const securityResponse = enforceProxyRequest(request, { rateLimit });
+  if (securityResponse) return securityResponse;
+
+  const { theme: rawTheme } = await params;
+  const theme = rawTheme === "light" ? "light" : "dark";
+  const requestUrl = new URL(request.url);
+  const locale = requestUrl.searchParams.get("locale") || "en";
+  const showLabels = requestUrl.searchParams.get("labels") !== "0";
+
+  let upstreamStyle;
+  try {
+    upstreamStyle = await fetchJson(
+      getMapLibreBaseStyleUrl(theme),
+      "OpenFreeMap style",
+    );
+  } catch (error) {
+    console.warn("[map-style] upstream fetch failed", error?.message || error);
+    return logProxyRouteResponse({
+      request,
+      route: "/api/proxy/map-style",
+      response: jsonProxyResponse(
+        request,
+        { error: "Failed to load map style" },
+        {
+          status: 502,
+          headers: { "Cache-Control": "no-store", "X-Data-Source": "failed" },
+        },
+      ),
+      startMs: startedAt,
+    });
+  }
+
+  const style = buildLocalizedMapLibreStyle(
+    buildProxiedMapLibreStyle(upstreamStyle),
+    { locale, showLabels },
+  );
+
+  return logProxyRouteResponse({
+    request,
+    route: "/api/proxy/map-style",
+    response: Response.json(style, {
+      headers: buildProxyHeaders(request, {
+        ...CACHE_HEADERS,
+        "X-Data-Source": SOURCE,
+      }),
+    }),
+    startMs: startedAt,
+  });
+}
+
+async function fetchJson(url, label) {
+  const response = await fetch(url, { next: { revalidate: 86400 } });
+  if (!response.ok) {
+    throw new Error(`${label} failed with ${response.status}`);
+  }
+  return readResponseJson(response, { label, maxBytes: 4 * 1024 * 1024 });
+}

@@ -47,36 +47,36 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
 
 | Path | What |
 |---|---|
-| `src/config/changelog.js` | Product release history (source of truth; renders the `/changelog` page) |
+| `src/config/changelog.ts` | Product release history (source of truth; renders the `/changelog` page) |
 | `docs/architecture.md` | Current Vercel web architecture and data-path notes |
 | `package.json` | App metadata, scripts, dependencies, and current product version |
-| `next.config.mjs` | Next.js config and local proxy rewrites |
+| `next.config.ts` | Next.js config and local proxy rewrites |
 | `vercel.json` | Vercel build command and production rewrites |
-| `src/app/page.js` | Search route entry |
-| `src/app/[icao]/page.js` | Airport route entry |
-| `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js` | Next.js Route Handler for callsign route lookup |
-| `src/components/screens/SearchScreen.jsx` | Thin route entry for airport search UI |
-| `src/components/screens/AirportCaptionScreen.jsx` | Thin route entry for airport explorer map + METAR screen |
+| `src/app/page.tsx` | Search route entry |
+| `src/app/[icao]/page.tsx` | Airport route entry |
+| `src/app/api/proxy/flight-routes/callsign/[callsign]/route.ts` | Next.js Route Handler for callsign route lookup |
+| `src/components/screens/SearchScreen.tsx` | Thin route entry for airport search UI |
+| `src/components/screens/AirportCaptionScreen.tsx` | Thin route entry for airport explorer map + METAR screen |
 | `src/components/about/*` | About-page JSX components |
 | `src/components/aircraft/*` | Aircraft preview and trace JSX components |
 | `src/components/airport/*` | Airport explorer and search JSX components |
 | `src/components/map/*` | Leaflet map JSX components and map controls |
 | `src/components/weather/*` | Weather slide JSX components and view hooks |
 | `src/app/api/_shared/*` | Route-handler-only helpers for validation, rate limits, upstream fetches, and API responses |
-| `src/app/api/dao/*.dao.js` | Persistence boundary for Supabase/SQL reads and writes |
+| `src/app/api/dao/*.dao.ts` | Persistence boundary for Supabase/SQL reads and writes |
 | `src/features/aircraft/*` | Aircraft filters, icons, photos, positions, preview, and trace logic |
 | `src/features/airport/*` | Airport context, directory, explorer, map, nearby, procedures, search, and wiki logic |
 | `src/features/aviation/*` | Aviation provider clients and flight-route mechanisms |
 | `src/features/weather/*` | Weather models and METAR mechanisms |
 | `src/features/about/*` | About-page view models |
 | `src/features/app-shell/*` | Theme preference state and helpers |
-| `src/hooks/*.js` | React hooks for METAR, ADS-B positions, route lookups, wiki summaries, and scroll parallax |
-| `src/constants/aircraft.js` | Shared aircraft color and threshold constants |
-| `src/utils/math.js` | Shared numeric helpers (`toFiniteNumber`) |
-| `src/utils/airport.js` | Shared airport display helpers (`airportSubtitle`) |
-| `src/data/airportFallbacks.js` | Fallback airport metadata and coordinates |
+| `src/hooks/*.ts` | React hooks for METAR, ADS-B positions, route lookups, wiki summaries, and scroll parallax |
+| `src/constants/aircraft.ts` | Shared aircraft color and threshold constants |
+| `src/utils/math.ts` | Shared numeric helpers (`toFiniteNumber`) |
+| `src/utils/airport.ts` | Shared airport display helpers (`airportSubtitle`) |
+| `src/data/airportFallbacks.ts` | Fallback airport metadata and coordinates |
 
-There is no standalone `src/services` or `src/server` layer. JSX belongs under `src/components/**`; mechanisms, models, clients, hooks, and feature-specific utils live inside the owning feature domain as plain `.js` modules, except for API DAOs and route-handler helpers under `src/app/api`.
+There is no standalone `src/services` or `src/server` layer. TSX belongs under `src/components/**`; mechanisms, models, clients, hooks, and feature-specific utils live inside the owning feature domain as plain `.ts` modules, except for API DAOs and route-handler helpers under `src/app/api`.
 
 ## Styling — Tailwind first
 
@@ -87,7 +87,7 @@ This project uses **Tailwind CSS v4**. When adding or changing styles, reach for
 1. **Tailwind utility classes** in JSX (`flex`, `gap-2`, `text-[12px]`, `bg-atc-card`, etc.).
 2. **Tailwind arbitrary values** for one-offs that need an existing CSS variable (`bg-[color-mix(in_oklab,var(--atc-card)_82%,transparent)]`, `rounded-[var(--atc-radius-panel)]`, `min-h-[76px]`, `grid-rows-[11px_minmax(27px,auto)_10px]`).
 3. **Tailwind variants** for state, child, pseudo, and ancestor styling (see "Variants you should reach for first" below).
-4. **`cva` + `cn` in a primitive component** (`src/components/ui/*.jsx`) for anything reused across pages — co-locate state variants and tokens with the JSX.
+4. **`cva` + `cn` in a primitive component** (`src/components/ui/*.tsx`) for anything reused across pages — co-locate state variants and tokens with the TSX.
 5. **Custom CSS in `src/style.css`** only when utilities cannot express the result. Realistic exceptions:
    - DOM we don't own and can't pass classes to (Leaflet `divIcon` HTML, Clerk's `.cl-*` shadow DOM, third-party widgets).
    - `@keyframes` definitions and `prefers-reduced-motion` blocks.
@@ -100,7 +100,7 @@ A pseudo-element (`::before` / `::after`) is **not** an automatic reason to writ
 
 Tailwind v4 expresses most "context overrides" without leaving JSX. The patterns this codebase already uses:
 
-- **Pseudo-elements** — `before:content-[''] before:absolute before:inset-0 before:[background:var(--sidebar-tile-bottom-glow)]`. Use the `background` shorthand (in `[...]`) when the token is a gradient; `bg-[...]` compiles to `background-color` which can't accept a gradient. See `MetricCard.jsx`.
+- **Pseudo-elements** — `before:content-[''] before:absolute before:inset-0 before:[background:var(--sidebar-tile-bottom-glow)]`. Use the `background` shorthand (in `[...]`) when the token is a gradient; `bg-[...]` compiles to `background-color` which can't accept a gradient. See `MetricCard.tsx`.
 - **Ancestor selectors** — `[.airport-map-kit_&]:min-h-[76px]` compiles to `.airport-map-kit .target { min-height: 76px }`. Use this for context-specific compact / spacious variants instead of writing `.airport-map-kit .my-card { ... }` in `style.css`. The `_` stands in for a space.
 - **Group / data attributes** — `data-[active=true]:bg-[var(--atc-click-bg)]`, `data-[state=open]:shadow-[...]`, `group-data-[active=true]:text-[var(--atc-click-fg)]`. Use these instead of `.my-card[data-active="true"] { ... }`.
 - **Compound ancestor + state** — `[[data-active=true]_&]:text-[var(--atc-click-muted)]` flips a child when any ancestor is active. Use this when the parent isn't tagged with `class="group"` (e.g. Radix's `SelectTrigger`, which drops props through `asChild`).
@@ -109,7 +109,7 @@ Tailwind v4 expresses most "context overrides" without leaving JSX. The patterns
 
 ### Variants gotchas
 
-- Tailwind extracts class names statically from your source. **Do not build classes with string concatenation or `replaceAll`** — those don't appear in the safelist and won't compile. Every Tailwind class must exist as a literal string somewhere in a `.jsx` / `.js` file.
+- Tailwind extracts class names statically from your source. **Do not build classes with string concatenation or `replaceAll`** — those don't appear in the safelist and won't compile. Every Tailwind class must exist as a literal string somewhere in a `.tsx` / `.ts` file.
 - `tailwind-merge` (via `cn()`) collapses conflicting utilities. When a `cva` base has `px-[14px]` and a variant adds `pr-7`, the result is `pl-[14px] pr-7` — predictable, but verify with devtools when in doubt.
 - `[class*="uppercase"]` global overrides exist in `style.css`; check before relying on `uppercase` rendering as literal CAPS.
 - `pointer-events: none` on a parent (`.airport-map-menu--mobile`, `.sidebar-top-dock`, `.page-nav-dock`) requires the floating pill to opt back in with `pointer-events-auto`. The `Toolbar` primitive already does this; new floating-pill components inside those containers must too.
@@ -150,7 +150,7 @@ pnpm build
 pnpm test
 ```
 
-`pnpm test` auto-discovers every `*.test.js` file and runs the full critical mechanism suite. Keep tests focused on data normalization, proxy/routing/security, geometry, aircraft movement/context, and other logic that is hard to validate visually. Verify component behavior in the running app instead of adding one-off package scripts or copy/toggle-level tests.
+`pnpm test` auto-discovers every `*.test.ts` and `*.test.tsx` file and runs the full critical mechanism suite. Keep tests focused on data normalization, proxy/routing/security, geometry, aircraft movement/context, and other logic that is hard to validate visually. Verify component behavior in the running app instead of adding one-off package scripts or copy/toggle-level tests.
 
 Local UI verification:
 
@@ -193,9 +193,9 @@ When preparing a new product release:
    - No version bump: docs-only, screenshot-only, refactor-only, or routine dependency cleanup with no product-visible impact.
 2. Update all visible version strings together:
    - `package.json`
-   - `src/app/about/page.js`
-   - `src/app/api/proxy/flight-routes/callsign/[callsign]/route.js` User-Agent, if still present
-   - `src/config/changelog.js` (prepend a new entry; this is the source of truth — there is no `CHANGELOG.md` anymore)
+   - `src/app/about/page.tsx`
+   - `src/app/api/proxy/flight-routes/callsign/[callsign]/route.ts` User-Agent, if still present
+   - `src/config/changelog.ts` (prepend a new entry; this is the source of truth — there is no `CHANGELOG.md` anymore)
    - `README.md`, only if it states the current version
 3. Run `pnpm build` and the test command above before tagging.
 4. Tag only after the release commit is on `main` and the Vercel production deployment is healthy.
@@ -206,4 +206,4 @@ git tag -a vX.Y.Z -m "vX.Y.Z - Short release title"
 git push origin vX.Y.Z
 ```
 
-6. GitHub Release notes should summarize product changes from `src/config/changelog.js`. Do not recreate the old Homebrew cask auto-release flow.
+6. GitHub Release notes should summarize product changes from `src/config/changelog.ts`. Do not recreate the old Homebrew cask auto-release flow.
