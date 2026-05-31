@@ -4,9 +4,9 @@ ADSBao is a Vercel-first airport and flight tracking console. It combines global
 airport search, METAR weather, nearby ADS-B traffic, route context, runway and
 OpenAIP context overlays, and selected-flight trace views in a map-first HUD.
 
-Current web app version: **1.7.0**. Runtime version strings and ADSBao
-User-Agent values share `src/config/siteMeta.ts`; product history is rendered
-from `src/config/changelog.ts` at `/changelog`.
+Runtime version strings and ADSBao User-Agent values share
+`src/config/siteMeta.ts`; product history is rendered from
+`src/config/changelog.ts` at `/changelog`.
 
 <p align="center">
   <img src="docs/screenshots/adsbao-home.jpg" alt="ADSBao airport search screen" width="100%" />
