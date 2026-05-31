@@ -1,0 +1,41 @@
+import { AIRPORT_MAP_ZOOM } from "../config/aviation"
+
+export const ZOOM_APPROACH = AIRPORT_MAP_ZOOM.approach
+export const ZOOM_AIRPORT = AIRPORT_MAP_ZOOM.airport
+export const ZOOM_DETAIL = AIRPORT_MAP_ZOOM.detail
+
+type AirportMapAircraft = {
+  onGround?: boolean;
+  distanceNm?: unknown;
+  velocity?: unknown;
+  altitude?: unknown;
+  [key: string]: unknown;
+};
+
+type GroundLikeAircraftOptions = {
+  airportAreaRadiusNm?: number;
+  slowAircraftThresholdKt?: number;
+};
+
+export const isGroundLikeAircraft = (
+  aircraft: AirportMapAircraft,
+  {
+    airportAreaRadiusNm,
+    slowAircraftThresholdKt,
+  }: GroundLikeAircraftOptions = {},
+) => {
+  if (aircraft?.onGround) return true
+
+  const distanceNm = Number(aircraft?.distanceNm)
+  const speedKt = Number(aircraft?.velocity ?? 0)
+
+  return (
+    Number.isFinite(distanceNm)
+    && distanceNm <= airportAreaRadiusNm
+    && Number.isFinite(speedKt)
+    && speedKt < slowAircraftThresholdKt
+  )
+}
+
+export const countGroundAircraft = (aircraft: AirportMapAircraft[] = []) =>
+  aircraft.filter((item) => item?.onGround).length

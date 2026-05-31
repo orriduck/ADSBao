@@ -29,7 +29,11 @@ skills-lock.json
 # Logs & local
 *.log
 *.local
+*.tsbuildinfo
 dist-ssr
+
+# Local Codex handoff notes
+.codex-tmp/
 
 # Playwright operations
 .playwright-mcp

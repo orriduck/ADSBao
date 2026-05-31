@@ -24,7 +24,7 @@ Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the p
 
 ### Airport directory (OurAirports → Supabase → Next.js API)
 
-Global airport static data (airports, runways, frequencies, navaids) is sourced from [OurAirports](https://ourairports.com/data/), persisted in Supabase via `node --env-file=.env scripts/import-ourairports.js`, and exposed to the browser through `/api/search` and `/api/airport/[ident]`. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the database boundary.
+Global airport static data (airports, runways, frequencies, navaids) is sourced from [OurAirports](https://ourairports.com/data/), persisted in Supabase via `node --env-file=.env --import tsx scripts/import-ourairports.ts`, and exposed to the browser through `/api/search` and `/api/airport/[ident]`. The browser-side `airportDirectoryClient` is a thin wrapper over these two routes — feature code does not see the database boundary.
 
 ### Vercel data paths
 
@@ -43,18 +43,18 @@ These paths are implemented as Next.js Route Handlers under `src/app/api/proxy/*
 
 ### Feature/API boundary convention
 
-API routes under `src/app/api/**/route.js` are HTTP adapters. They parse request parameters, enforce proxy/security policy, call a domain mechanism, and translate the mechanism result into `Response` or `NextResponse`.
+API routes under `src/app/api/**/route.ts` are HTTP adapters. They parse request parameters, enforce proxy/security policy, call a domain mechanism, and translate the mechanism result into `Response` or `NextResponse`.
 
-Functionality-level domain code lives under `src/features/<domain>/` as plain `.js` modules:
+Functionality-level domain code lives under `src/features/<domain>/` as plain `.ts` modules:
 
-- `<domain>.mechanism.js` owns source selection, fallback order, cache policy, request parameterization, and provider orchestration.
-- `<domain>.models.js` owns domain constants, result metadata, and mechanism-specific error types.
-- `<domain>.utils.js` owns pure normalization and predicate helpers.
+- `<domain>.mechanism.ts` owns source selection, fallback order, cache policy, request parameterization, and provider orchestration.
+- `<domain>.models.ts` owns domain constants, result metadata, and mechanism-specific error types.
+- `<domain>.utils.ts` owns pure normalization and predicate helpers.
 - Prefix families are grouped by product concept, e.g. `src/features/aircraft/*`, `src/features/airport/*`, `src/features/aviation/flight-routes`, and `src/features/weather/metar`.
 
 JSX components live under `src/components/**`, grouped by screen or product domain. Components may import feature modules, but feature modules should not import JSX components.
 
-Persistence boundaries live under `src/app/api/dao/*.dao.js`. DAO files should contain Supabase/SQL reads and writes only; they should not choose providers, cache policy, fallback behavior, or import mechanism files.
+Persistence boundaries live under `src/app/api/dao/*.dao.ts`. DAO files should contain Supabase/SQL reads and writes only; they should not choose providers, cache policy, fallback behavior, or import mechanism files.
 
 There is no separate `src/services` layer. Shared provider clients, normalizers, mechanisms, models, and utils live with their owning feature domain.
 
@@ -66,7 +66,7 @@ Airport search and detail go directly to the OurAirports tables (`public.airport
 
 Vercel's platform DDoS mitigation remains enabled automatically for the deployment. The repository does not depend on paid Vercel WAF rate limiting for normal operation; proxy throttling lives in application code so the default deployment path does not require a new paid feature.
 
-Security headers are configured in `next.config.mjs` for all routes. Production branch protection and required review settings are still repository or Vercel dashboard controls rather than application code.
+Security headers are configured in `next.config.ts` for all routes. Production branch protection and required review settings are still repository or Vercel dashboard controls rather than application code.
 
 Sentry browser transport uses the same-origin `/monitoring` tunnel from `withSentryConfig`, which avoids adding Sentry ingest domains to `connect-src`. Source-map upload is build-time only and requires `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` in Vercel or local build env. Runtime capture stays disabled when no DSN is configured.
 

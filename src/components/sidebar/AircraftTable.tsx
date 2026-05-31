@@ -1,0 +1,676 @@
+"use client";
+
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import NumberFlow from "@number-flow/react";
+import { Check, Minus, Search } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  FilterCard,
+  FilterCardGrid,
+  FilterCardLabel,
+  FilterCardValue,
+  filterCardVariants,
+} from "@/components/ui/FilterCard";
+import {
+  MenuPanel,
+  MenuItem,
+  MenuItemCheck,
+  MenuItemLabel,
+  MenuItemCount,
+} from "@/components/ui/MenuPanel";
+import { cn } from "@/lib/utils";
+import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
+import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import {
+  ALTITUDE_LEVEL_OPTIONS,
+  ENTITY_FILTER_OPTIONS,
+  aircraftMatchesFilters,
+  aircraftTypeLabel,
+  getAircraftTypeGroups,
+  getNextEntityFilter,
+} from "@/features/aircraft/filters/aircraftFilters";
+import {
+  getAircraftContextGroup,
+  getAircraftIdentity,
+  getContextTagLabel,
+} from "../../features/airport/context/airportContextUiModel";
+import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay";
+import { getDistanceNm } from "../../utils/aircraftTrafficIntent";
+import AircraftList from "./AircraftList";
+import AircraftSlot from "./AircraftSlot";
+import AirportSlot from "./AirportSlot";
+import VirtualNearbyList from "./VirtualNearbyList";
+
+type AircraftLike = Record<string, any>;
+type AirportLike = Record<string, any>;
+
+export default function AircraftTable({
+  aircraft = [],
+  airports = [],
+  focusLat = null,
+  focusLon = null,
+  selectedAircraftId = "",
+  selectedAirportIcao = "",
+  movementFilter = "all",
+  onSelectAircraft,
+  onSelectAirport,
+  fill = true,
+}) {
+  const { t } = useI18n();
+  const {
+    trafficFilter,
+    typeFilter,
+    altitudeLevel,
+    entityFilter,
+    setTrafficFilter,
+    setTypeFilter,
+    setAltitudeLevel,
+    setEntityFilter,
+  } = useExplorerUi();
+  const [query, setQuery] = useState("");
+  const selectedTypes = useMemo(
+    () => (Array.isArray(typeFilter) ? typeFilter : []),
+    [typeFilter],
+  );
+  const typeGroups = useMemo(
+    () => getAircraftTypeGroups(aircraft, selectedTypes),
+    [aircraft, selectedTypes],
+  );
+  // Aircraft entries enriched with a distanceNm relative to the focus
+  // point (focal aircraft or airport). The airport-explorer enrichment
+  // already provides distanceNm in airport-page context; for the flight
+  // page we compute it on the fly here.
+  const aircraftWithDist = useMemo(() => {
+    if (focusLat == null || focusLon == null) return aircraft;
+    return aircraft.map((item) => {
+      const computed = getDistanceNm(focusLat, focusLon, item?.lat, item?.lon);
+      if (computed == null) return item;
+      return { ...item, distanceNm: computed };
+    });
+  }, [aircraft, focusLat, focusLon]);
+
+  const rows = useMemo(
+    () =>
+      filterAndSortAircraft({
+        aircraft: aircraftWithDist,
+        altitudeLevel,
+        query,
+        trafficFilter,
+        typeFilter,
+        movementFilter,
+      }),
+    [
+      aircraftWithDist,
+      altitudeLevel,
+      movementFilter,
+      query,
+      trafficFilter,
+      typeFilter,
+    ],
+  );
+
+  const filteredAirports = useMemo(() => {
+    if (entityFilter === "aircraft") return [];
+    if (movementFilter !== "all") return [];
+    const normalizedQuery = query.trim().toLowerCase();
+    return airports
+      .filter((airport) =>
+        normalizedQuery
+          ? airportSearchText(airport).includes(normalizedQuery)
+          : true,
+      )
+      .toSorted(
+        (left, right) => (left.distanceNm || 0) - (right.distanceNm || 0),
+      );
+  }, [airports, entityFilter, movementFilter, query]);
+
+  const filteredAircraft = useMemo(() => {
+    if (entityFilter === "airports") return [];
+    return rows;
+  }, [rows, entityFilter]);
+  // Pinned aircraft sits above the scrolling list and stays visible even
+  // when filters would otherwise exclude it. Look in the full nearby set,
+  // not the filtered rows, so a user can keep watching a selection without
+  // losing it to a stray filter toggle.
+  const pinnedAircraft = useMemo(() => {
+    if (!selectedAircraftId) return null;
+    return (
+      aircraft.find((item) => getAircraftIdentity(item) === selectedAircraftId) ||
+      null
+    );
+  }, [aircraft, selectedAircraftId]);
+  // Don't duplicate the pinned aircraft inside the scroll list.
+  const listRows = useMemo(() => {
+    if (!pinnedAircraft) return filteredAircraft;
+    return filteredAircraft.filter(
+      (item) => getAircraftIdentity(item) !== selectedAircraftId,
+    );
+  }, [pinnedAircraft, filteredAircraft, selectedAircraftId]);
+  const combinedRows = useMemo(() => {
+    const out = [];
+    for (const aircraftItem of listRows) {
+      const id = getAircraftIdentity(aircraftItem);
+      out.push({
+        type: "aircraft",
+        id: id || `aircraft-idx:${out.length}`,
+        data: aircraftItem,
+      });
+    }
+    for (const airport of filteredAirports) {
+      out.push({
+        type: "airport",
+        id: `airport:${airport.icao}`,
+        data: airport,
+      });
+    }
+    return out;
+  }, [filteredAirports, listRows]);
+
+  const aircraftListResetKey = useMemo(
+    () =>
+      [
+        query.trim().toLowerCase(),
+        trafficFilter,
+        Array.isArray(typeFilter) ? typeFilter.join("|") : typeFilter,
+        altitudeLevel,
+        entityFilter,
+        movementFilter,
+        selectedAircraftId,
+      ].join("::"),
+    [
+      altitudeLevel,
+      entityFilter,
+      movementFilter,
+      query,
+      selectedAircraftId,
+      trafficFilter,
+      typeFilter,
+    ],
+  );
+
+  return (
+    <div className={`flex flex-col ${fill ? "h-full" : ""}`}>
+      <div className="flex-none">
+        <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
+          <span className="endf-label endf-label--lead">
+            {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
+          </span>
+          <div className="whitespace-nowrap font-mono text-[10px] tracking-[0.18em] text-atc-dim tabular-nums">
+            <NumberFlow value={filteredAircraft.length + filteredAirports.length} />
+            <span> / </span>
+            <NumberFlow
+              value={aircraft.length + airports.length}
+              suffix={` ${t("sidebar.nearby")}`}
+            />
+          </div>
+        </div>
+
+        <div className="px-[var(--airport-sidebar-inset)] pb-3">
+          <label className="aircraft-search">
+            <Search size={13} aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t("sidebar.searchPlaceholder")}
+              aria-label={t("sidebar.searchAria")}
+            />
+          </label>
+        </div>
+
+        <FilterCardGrid columns={2} aria-label={t("sidebar.filtersAria")}>
+          <EntityFilterCycleCard
+            label={t("sidebar.targets")}
+            value={entityFilter}
+            onValueChange={() =>
+              setEntityFilter(getNextEntityFilter(entityFilter))
+            }
+            options={ENTITY_FILTER_OPTIONS}
+            ariaLabel={t("filters.showAria")}
+          />
+
+          <TooltipProvider delayDuration={250}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <FilterCard
+                  active={trafficFilter === "routed"}
+                  aria-pressed={trafficFilter === "routed"}
+                  onClick={() =>
+                    setTrafficFilter(
+                      trafficFilter === "routed" ? "all" : "routed",
+                    )
+                  }
+                >
+                  <FilterCardLabel>{t("sidebar.route")}</FilterCardLabel>
+                  <FilterCardValue>
+                    {trafficFilter === "routed" ? t("sidebar.routed") : t("sidebar.all")}
+                  </FilterCardValue>
+                </FilterCard>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px] text-left">
+                <strong className="block text-[11px] font-semibold uppercase tracking-wide">
+                  {t("sidebar.routed")}
+                </strong>
+                <span className="mt-1 block text-[11px] font-normal leading-snug">
+                  {t("filters.routedTooltip")}
+                </span>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <AircraftTypeFilterCard
+            groups={typeGroups}
+            selectedTypes={selectedTypes}
+            onChange={setTypeFilter}
+          />
+          <AircraftFilterCardSelect
+            label={t("sidebar.altitudeFilter")}
+            value={altitudeLevel}
+            onValueChange={setAltitudeLevel}
+            options={ALTITUDE_LEVEL_OPTIONS}
+            ariaLabel={t("filters.altitudeFilterAria")}
+            contentClassName="min-w-[220px]"
+          />
+        </FilterCardGrid>
+
+        <div className="aircraft-table-header aircraft-table-row-grid grid grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3">
+          <span aria-hidden="true" />
+          <span>{t("sidebar.callsignOrRoute")}</span>
+          <span className="text-right">{t("sidebar.distance")}</span>
+          <span className="text-right">{t("sidebar.altitude")}</span>
+        </div>
+
+        {pinnedAircraft && (
+          <div className="aircraft-table-pin">
+            <AircraftSlot
+              aircraft={pinnedAircraft}
+              cascadeOrder={0}
+              flipStaggerStep={0}
+              selectedAircraftId={selectedAircraftId}
+              onSelectAircraft={onSelectAircraft}
+            />
+          </div>
+        )}
+      </div>
+
+      <div className={fill ? "flex-1 min-h-0" : "overflow-visible"}>
+        {listRows.length === 0 &&
+        filteredAirports.length === 0 &&
+        !pinnedAircraft ? (
+          <div className="px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
+            {aircraft.length + airports.length
+              ? t("sidebar.noMatches")
+              : t("sidebar.nothingInRange")}
+          </div>
+        ) : fill ? (
+          <VirtualNearbyList
+            items={combinedRows}
+            selectedAircraftId={selectedAircraftId}
+            selectedAirportIcao={selectedAirportIcao}
+            onSelectAircraft={onSelectAircraft}
+            onSelectAirport={onSelectAirport}
+            resetSignal={aircraftListResetKey}
+          />
+        ) : (
+          <>
+            {listRows.length > 0 && (
+              <AircraftList
+                aircraft={listRows}
+                resetKey={aircraftListResetKey}
+                selectedAircraftId={selectedAircraftId}
+                onSelectAircraft={onSelectAircraft}
+              />
+            )}
+            {filteredAirports.length > 0 && (
+              <ul className="divide-y divide-atc-line">
+                {filteredAirports.map((airport) => (
+                  <li
+                    key={`airport:${airport.icao}`}
+                    className="relative list-none [perspective:800px]"
+                  >
+                    <AirportSlot
+                      airport={airport}
+                      cascadeOrder={-1}
+                      airportId={airport.icao}
+                      selected={airport.icao === selectedAirportIcao}
+                      onSelectAirport={onSelectAirport}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [panelStyle, setPanelStyle] = useState(null);
+  const wrapperRef = useRef(null);
+  const panelRef = useRef(null);
+  const isMultiSelect = selectedTypes.length > 0;
+
+  // Portal the panel to body so the sidebar's overflow-hidden doesn't clip it.
+  // Position it relative to the trigger using fixed coordinates; re-anchor on
+  // scroll and resize so the panel tracks the trigger.
+  useLayoutEffect(() => {
+    if (!open || !wrapperRef.current) return undefined;
+    const update = () => {
+      if (!wrapperRef.current) return;
+      const rect = wrapperRef.current.getBoundingClientRect();
+      setPanelStyle({
+        position: "fixed",
+        top: rect.bottom,
+        left: rect.left,
+        minWidth: Math.max(rect.width, 220),
+      });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handlePointerDown = (event) => {
+      if (
+        wrapperRef.current?.contains(event.target) ||
+        panelRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+    const handleKeydown = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeydown);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeydown);
+    };
+  }, [open]);
+
+  const selectedSet = useMemo(() => new Set(selectedTypes), [selectedTypes]);
+  const displayValue = useMemo(() => {
+    if (!isMultiSelect) return t("sidebar.all");
+    if (selectedTypes.length === 1) return selectedTypes[0];
+    return t("sidebar.typesCount", { count: selectedTypes.length });
+  }, [isMultiSelect, selectedTypes, t]);
+
+  const commit = (next) => {
+    if (!next || next.length === 0) {
+      onChange("all");
+    } else {
+      onChange(next);
+    }
+  };
+
+  const toggleType = (type) => {
+    const next = selectedSet.has(type)
+      ? selectedTypes.filter((t) => t !== type)
+      : [...selectedTypes, type];
+    commit(next);
+  };
+
+  const toggleGroup = (group) => {
+    const allSelected = group.types.every((t) => selectedSet.has(t));
+    const next = allSelected
+      ? selectedTypes.filter((t) => !group.types.includes(t))
+      : [...new Set([...selectedTypes, ...group.types])];
+    commit(next);
+  };
+
+  const clearAll = () => onChange("all");
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <FilterCard
+        shape="select"
+        data-state={open ? "open" : "closed"}
+        active={isMultiSelect}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={t("filters.aircraftFilterAria")}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <FilterCardLabel>{t("sidebar.aircraftType")}</FilterCardLabel>
+        <FilterCardValue>{displayValue}</FilterCardValue>
+      </FilterCard>
+      {open && panelStyle && typeof document !== "undefined" && createPortal(
+        <MenuPanel
+          ref={panelRef}
+          style={panelStyle}
+          role="listbox"
+          aria-multiselectable="true"
+          className="absolute z-popover max-h-[320px] overflow-y-auto"
+        >
+          <MenuItem
+            selected={!isMultiSelect}
+            onClick={clearAll}
+          >
+            <MenuItemCheck>
+              {!isMultiSelect ? <Check size={11} aria-hidden="true" /> : null}
+            </MenuItemCheck>
+            <MenuItemLabel>{t("sidebar.all")}</MenuItemLabel>
+          </MenuItem>
+          {groups.map((group) => {
+            const groupSelectedCount = group.types.filter((t) =>
+              selectedSet.has(t),
+            ).length;
+            const allSelected = groupSelectedCount === group.types.length;
+            const partialSelected =
+              groupSelectedCount > 0 && !allSelected;
+            return (
+              // Spacing gap between groups — 4px top margin on every
+              // group after the first. Lives inline so adjusting
+              // dropdown rhythm only touches this one className.
+              <div key={group.category} className="[&:not(:first-of-type)]:mt-1">
+                <MenuItem
+                  variant="header"
+                  selected={allSelected}
+                  partial={partialSelected}
+                  onClick={() => toggleGroup(group)}
+                >
+                  <MenuItemCheck>
+                    {allSelected ? (
+                      <Check size={11} aria-hidden="true" />
+                    ) : partialSelected ? (
+                      <Minus size={11} aria-hidden="true" />
+                    ) : null}
+                  </MenuItemCheck>
+                  <MenuItemLabel>
+                    {group.labelKey ? t(group.labelKey) : group.label}
+                  </MenuItemLabel>
+                  <MenuItemCount>{group.types.length}</MenuItemCount>
+                </MenuItem>
+                {group.types.map((type) => (
+                  <MenuItem
+                    key={type}
+                    selected={selectedSet.has(type)}
+                    onClick={() => toggleType(type)}
+                    // Indent type rows under their group header.
+                    className="[&_[data-ui=menu-label]]:pl-2"
+                  >
+                    <MenuItemCheck>
+                      {selectedSet.has(type) ? (
+                        <Check size={11} aria-hidden="true" />
+                      ) : null}
+                    </MenuItemCheck>
+                    <MenuItemLabel data-ui="menu-label">{type}</MenuItemLabel>
+                  </MenuItem>
+                ))}
+              </div>
+            );
+          })}
+        </MenuPanel>,
+        document.body,
+      )}
+    </div>
+  );
+}
+
+function EntityFilterCycleCard({
+  label,
+  value,
+  onValueChange,
+  options,
+  ariaLabel,
+}) {
+  const { t } = useI18n();
+  const option = options.find((item) => item.value === value) || options[0];
+  const displayValue = option?.labelKey ? t(option.labelKey) : option?.label;
+  return (
+    <FilterCard
+      active={value !== "all"}
+      aria-label={ariaLabel}
+      onClick={onValueChange}
+    >
+      <FilterCardLabel>{label}</FilterCardLabel>
+      <FilterCardValue>{displayValue}</FilterCardValue>
+    </FilterCard>
+  );
+}
+
+function AircraftFilterCardSelect({
+  label,
+  value,
+  onValueChange,
+  options,
+  ariaLabel,
+  contentClassName = "",
+}) {
+  const { t } = useI18n();
+  const resolveLabel = (option) =>
+    option.labelKey ? t(option.labelKey) : option.label;
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger
+        aria-label={ariaLabel}
+        className={cn(filterCardVariants({ shape: "select" }), "h-auto")}
+      >
+        <FilterCardLabel>{label}</FilterCardLabel>
+        <FilterCardValue>
+          <SelectValue />
+        </FilterCardValue>
+      </SelectTrigger>
+      <SelectContent className={contentClassName}>
+        <SelectGroup>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {resolveLabel(option)}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+}
+
+function toNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function filterAndSortAircraft({
+  aircraft = [],
+  altitudeLevel = "all",
+  query = "",
+  trafficFilter = "all",
+  typeFilter = "all",
+  movementFilter = "all",
+}: {
+  aircraft?: AircraftLike[];
+  altitudeLevel?: string;
+  query?: string;
+  trafficFilter?: string;
+  typeFilter?: any;
+  movementFilter?: string;
+}) {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  return [...aircraft]
+    .filter((item) =>
+      aircraftMatchesFilters(item, {
+        trafficFilter,
+        typeFilter,
+        altitudeLevel,
+        movementFilter,
+      }),
+    )
+    .filter((item) =>
+      normalizedQuery ? aircraftSearchText(item).includes(normalizedQuery) : true,
+    )
+    .sort(sortAircraftByAltitude);
+}
+
+function airportSearchText(airport: AirportLike = {}) {
+  return [
+    airport.icao,
+    airport.iata,
+    airport.name,
+    airport.city,
+    airport.country,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function aircraftSearchText(aircraft: AircraftLike = {}) {
+  const routeMunicipalities = formatFlightRouteMunicipalityLabel(
+    aircraft.flightRoute,
+  );
+
+  return [
+    aircraft.callsign,
+    aircraft.icao24,
+    aircraft.registration,
+    aircraftTypeLabel(aircraft),
+    aircraft.flightRouteLabel,
+    routeMunicipalities,
+    getAircraftContextGroup(aircraft),
+    getContextTagLabel(aircraft),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function sortAircraftByAltitude(a: AircraftLike, b: AircraftLike) {
+  const altitudeDelta = altitudeSortValue(b) - altitudeSortValue(a);
+  if (altitudeDelta !== 0) return altitudeDelta;
+
+  const speedDelta = (toNumber(b.velocity) ?? -1) - (toNumber(a.velocity) ?? -1);
+  if (speedDelta !== 0) return speedDelta;
+
+  return getAircraftIdentity(a).localeCompare(getAircraftIdentity(b));
+}
+
+function altitudeSortValue(aircraft: AircraftLike = {}) {
+  if (aircraft.onGround) return -1;
+  return toNumber(aircraft.altitude) ?? -2;
+}

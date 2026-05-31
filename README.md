@@ -5,8 +5,8 @@ airport search, METAR weather, nearby ADS-B traffic, route context, runway and
 procedure overlays, and selected-flight trace views in a map-first HUD.
 
 Current web app version: **1.5.1**. Runtime version strings and ADSBao
-User-Agent values share `src/config/siteMeta.js`; product history is rendered
-from `src/config/changelog.js` at `/changelog`.
+User-Agent values share `src/config/siteMeta.ts`; product history is rendered
+from `src/config/changelog.ts` at `/changelog`.
 
 <p align="center">
   <img src="docs/screenshots/adsbao-home.jpg" alt="ADSBao airport search screen" width="100%" />
@@ -81,7 +81,7 @@ pnpm test
 pnpm build
 ```
 
-`pnpm test` discovers every `*.test.js` file and runs the critical mechanism
+`pnpm test` discovers every `*.test.ts` and `*.test.tsx` file and runs the critical mechanism
 suite. UI and map behavior should be verified in the running app or in the
 Vercel preview created for a pull request.
 
@@ -105,7 +105,7 @@ normally configure these variables:
 Import or refresh airport directory data with:
 
 ```bash
-node --env-file=.env scripts/import-ourairports.js
+node --env-file=.env --import tsx scripts/import-ourairports.ts
 ```
 
 Manage Supabase-backed user feature flags with:
@@ -140,7 +140,7 @@ ADSBao/
 ```
 
 JSX belongs under `src/components/**`. Feature mechanisms, models, provider
-clients, and utilities live with their owning feature domain as plain `.js`
+clients, and utilities live with their owning feature domain as plain `.ts`
 modules. API persistence boundaries stay under `src/app/api/dao`, and
 route-handler-only helpers stay under `src/app/api/_shared`.
 
@@ -149,4 +149,4 @@ route-handler-only helpers stay under `src/app/api/_shared`.
 Vercel deploys every push to `main`, but deployments are not product releases.
 Product versions are bumped only when user-visible product scope changes,
 production behavior changes, or fixes should be documented in
-`src/config/changelog.js`.
+`src/config/changelog.ts`.
