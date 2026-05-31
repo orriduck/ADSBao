@@ -67,7 +67,12 @@ assert.match(
 );
 assert.match(
   desktopSource,
-  /grid-cols-\[auto_minmax\(0,1fr\)\]/,
+  /className="min-w-0 flex-1"/,
+  "desktop navaid preview identity column should fill the header space before the icon",
+);
+assert.match(
+  desktopSource,
+  /w-full grid-cols-\[auto_minmax\(0,1fr\)\]/,
   "desktop navaid identity rows should use the same left-label/right-value alignment as metadata fields",
 );
 assert.doesNotMatch(

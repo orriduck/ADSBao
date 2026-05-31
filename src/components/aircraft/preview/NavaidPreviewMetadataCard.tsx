@@ -51,7 +51,7 @@ export default function NavaidPreviewMetadataCard({
   return (
     <div className="aircraft-preview-metadata-card">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <span className="endf-label">{t("preview.navaidPreview")}</span>
           <div className="mt-1 flex min-w-0 items-baseline gap-2">
             <span
@@ -62,7 +62,7 @@ export default function NavaidPreviewMetadataCard({
             </span>
           </div>
           {identityRows.length ? (
-            <dl className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 font-mono text-[10px]">
+            <dl className="mt-2 grid w-full grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 font-mono text-[10px]">
               {identityRows.map((row) => (
                 <div className="contents" key={row.label}>
                   <dt className="text-atc-faint uppercase tracking-[0.1em]">
