@@ -294,9 +294,9 @@ const en = {
     approachBeams: "Approach beams",
     showApproachBeams: "Show approach beams",
     hideApproachBeams: "Hide approach beams",
-    routingPointBadges: "Navaid labels",
-    showRoutingPointBadges: "Show navaid labels",
-    hideRoutingPointBadges: "Hide navaid labels",
+    navaidMarkers: "Navaid markers",
+    showNavaidMarkers: "Show navaid markers",
+    hideNavaidMarkers: "Hide navaid markers",
   },
   lostSignal: {
     subtitle: "Signal lost",

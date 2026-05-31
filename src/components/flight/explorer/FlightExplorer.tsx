@@ -581,7 +581,7 @@ function FlightExplorerContent({ callsign }) {
             airport={null}
             showMapLabels={showMapLabels}
             showRunwayBeams={false}
-            showRoutingPointBadges={false}
+            showNavaidMarkers={false}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}

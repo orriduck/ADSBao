@@ -48,7 +48,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     mapZoom,
     showMapLabels,
     showRunwayBeams,
-    showRoutingPointBadges,
+    showNavaidMarkers,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -244,7 +244,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             airport={airport}
             showMapLabels={showMapLabels}
             showRunwayBeams={showRunwayBeams}
-            showRoutingPointBadges={showRoutingPointBadges}
+            showNavaidMarkers={showNavaidMarkers}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}

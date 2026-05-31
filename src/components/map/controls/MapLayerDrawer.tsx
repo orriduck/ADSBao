@@ -24,11 +24,11 @@ const LAYER_TOGGLES = [
   },
   {
     iconKey: "mapPinned",
-    labelKey: "mapLayers.routingPointBadges",
-    activeKey: "mapLayers.hideRoutingPointBadges",
-    inactiveKey: "mapLayers.showRoutingPointBadges",
-    prop: "showBadges",
-    handler: "onToggleBadges",
+    labelKey: "mapLayers.navaidMarkers",
+    activeKey: "mapLayers.hideNavaidMarkers",
+    inactiveKey: "mapLayers.showNavaidMarkers",
+    prop: "showNavaidMarkers",
+    handler: "onToggleNavaidMarkers",
   },
 ];
 
@@ -41,19 +41,19 @@ export default function MapLayerDrawer({
   open,
   showMapLabels,
   showBeams,
-  showBadges,
+  showNavaidMarkers,
   onToggleMapLabels,
   onToggleBeams,
-  onToggleBadges,
+  onToggleNavaidMarkers,
 }) {
   const { t } = useI18n();
   const state = {
     showMapLabels,
     showBeams,
-    showBadges,
+    showNavaidMarkers,
     onToggleMapLabels,
     onToggleBeams,
-    onToggleBadges,
+    onToggleNavaidMarkers,
   };
 
   return (
