@@ -1,6 +1,9 @@
 import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity.js"
+import { buildAdsbaoUserAgent } from "../../../config/siteMeta.js"
 
 import { withAuditLogging } from "../../../utils/apiLogger.js"
+
+const WIKIPEDIA_USER_AGENT = buildAdsbaoUserAgent("wikipedia/summary")
 
 // Map our app locales onto Wikipedia language subdomains. Wikipedia's zh
 // edition does its own simplified/traditional variant conversion via
@@ -21,6 +24,32 @@ const acceptLanguageFor = (locale) => {
 }
 
 const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim()
+
+const HTML_ENTITY_MAP = Object.freeze({
+  amp: "&",
+  gt: ">",
+  lt: "<",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+})
+
+const decodeHtmlEntity = (match, entity) => {
+  if (entity.startsWith("#x") || entity.startsWith("#X")) {
+    const codePoint = Number.parseInt(entity.slice(2), 16)
+    return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match
+  }
+  if (entity.startsWith("#")) {
+    const codePoint = Number.parseInt(entity.slice(1), 10)
+    return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match
+  }
+  return HTML_ENTITY_MAP[entity] || match
+}
+
+const plainTextFromHtml = (value) =>
+  cleanText(String(value || "")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&(#x?[0-9a-fA-F]+|\w+);/g, decodeHtmlEntity))
 
 const expandAirportName = (name) => {
   const cleaned = cleanText(name)
@@ -62,7 +91,7 @@ export const getWikipediaSummaryUrl = (title, locale = "en") => {
 }
 
 export const normalizeWikipediaSummary = (payload) => {
-  const title = cleanText(payload?.title)
+  const title = plainTextFromHtml(payload?.displaytitle) || cleanText(payload?.title)
   const extract = cleanText(payload?.extract)
   const url = payload?.content_urls?.desktop?.page || payload?.content_urls?.mobile?.page || ''
 
@@ -99,7 +128,10 @@ export const extractCrossLangTitle = (payload) => {
 const fetchCrossLangTitle = async ({ enTitle, targetLang, fetchImpl }) => {
   try {
     const response = await fetchImpl(getCrossLangTitleUrl(enTitle, targetLang), {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "User-Agent": WIKIPEDIA_USER_AGENT,
+      },
     })
     if (!response.ok) return ""
     const payload = await readResponseJson(response, {
@@ -117,6 +149,7 @@ const fetchSummary = async ({ title, locale, fetchImpl }) => {
     headers: {
       Accept: "application/json",
       "Accept-Language": acceptLanguageFor(locale),
+      "User-Agent": WIKIPEDIA_USER_AGENT,
     },
   })
   if (!response.ok) return null

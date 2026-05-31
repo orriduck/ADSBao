@@ -4,19 +4,23 @@ import {
   DEFAULT_LOCALE,
   LOCALE_LABELS,
   LOCALE_STORAGE_KEY,
+  LOCALE_QUERY_PARAM,
   SUPPORTED_LOCALES,
   getLocaleMenuItems,
   normalizeLocaleSelection,
   nextLocale,
   readPersistedLocale,
+  resolveLocaleFromSearchParams,
   resolveInitialLocale,
   resolveTranslation,
+  setLocaleSearchParam,
   writePersistedLocale,
 } from "./i18nModel.js";
 
 assert.equal(DEFAULT_LOCALE, "en");
 assert.deepEqual([...SUPPORTED_LOCALES], ["en", "zh-CN"]);
 assert.equal(LOCALE_STORAGE_KEY, "adsbao:i18n:locale");
+assert.equal(LOCALE_QUERY_PARAM, "locale");
 assert.equal(LOCALE_LABELS.en, "EN");
 assert.equal(LOCALE_LABELS["zh-CN"], "中文");
 
@@ -154,3 +158,20 @@ assert.equal(readPersistedLocale(null), null);
 assert.equal(nextLocale("en"), "zh-CN");
 assert.equal(nextLocale("zh-CN"), "en");
 assert.equal(nextLocale("fr"), "en"); // unknown -> start of list
+
+// Query-param routing: the selected language is visible and shareable without
+// changing ADSBao's current path structure.
+assert.equal(resolveLocaleFromSearchParams("locale=zh-CN"), "zh-CN");
+assert.equal(resolveLocaleFromSearchParams("?locale=en"), "en");
+assert.equal(resolveLocaleFromSearchParams("locale=fr"), null);
+assert.equal(resolveLocaleFromSearchParams(""), null);
+assert.equal(setLocaleSearchParam("/", "", "zh-CN"), "/?locale=zh-CN");
+assert.equal(
+  setLocaleSearchParam("/airport/kbos", "panel=weather", "zh-CN"),
+  "/airport/kbos?panel=weather&locale=zh-CN",
+);
+assert.equal(
+  setLocaleSearchParam("/aircraft/DAL977", "?locale=en&trace=1", "zh-CN"),
+  "/aircraft/DAL977?locale=zh-CN&trace=1",
+);
+assert.equal(setLocaleSearchParam("/about", "", "fr"), "/about?locale=en");

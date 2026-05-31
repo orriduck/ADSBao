@@ -11,6 +11,7 @@ export default function AirportSidebar({
   icao = "",
   iata = "",
   name = "",
+  localizedName = "",
   city = "",
   country = "",
   lat = 0,
@@ -45,6 +46,7 @@ export default function AirportSidebar({
         icao={icao}
         iata={iata}
         name={name}
+        localizedName={localizedName}
         city={city}
         country={country}
         lat={lat}

@@ -12,6 +12,7 @@ export default function AirportIdentity({
   icao = "",
   iata = "",
   name = "",
+  localizedName = "",
   city = "",
   country = "",
   lat = 0,
@@ -23,7 +24,10 @@ export default function AirportIdentity({
   const flag = flagEmoji(country);
   const countryLabel = countryName(country, locale) || country;
   const cityLabel = airportCityName(city, locale);
-  const displayName = airportDisplayName({ icao, iata, name }, locale);
+  const displayName = airportDisplayName(
+    { icao, iata, name, localizedName },
+    locale,
+  );
   const placeText = [cityLabel, countryLabel].filter(Boolean).join(", ");
   const placeLine = flag && placeText ? `${flag} ${placeText}` : placeText || flag;
   const coordLine = formatCoord(lat, lon);

@@ -152,6 +152,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     icao: airportProfile.icao,
     iata: airportProfile.iata,
     name: airportProfile.name,
+    localizedName: airportProfile.localizedName,
     city: airportProfile.city,
     country: airportProfile.country,
     lat: airportProfile.lat,

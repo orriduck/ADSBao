@@ -33,6 +33,8 @@ const CITY_NAME_ZH = Object.freeze({
 export const airportDisplayName = (airport, locale = "en") => {
   const fallback = airport?.name || airport?.icao || airport?.iata || "";
   if (locale !== "zh-CN") return fallback;
+  const localizedName = String(airport?.localizedName || "").trim();
+  if (localizedName) return localizedName;
   const icao = String(airport?.icao || airport?.code || "").toUpperCase();
   return AIRPORT_NAME_ZH[icao] || fallback;
 };
