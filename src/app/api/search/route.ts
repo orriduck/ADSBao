@@ -1,14 +1,9 @@
-import { after } from "next/server";
-
 import {
   createCorsPreflightResponse,
   enforceProxyRequest,
   jsonProxyResponse,
 } from "@/app/api/_shared/apiProxySecurity";
-import {
-  refreshAirportDirectoryIfDue,
-  searchAirportDirectory,
-} from "@/features/airport/directory/airportDirectory.mechanism";
+import { searchAirportDirectory } from "@/features/airport/directory/airportDirectory.mechanism";
 import {
   AIRPORT_DIRECTORY_CACHE_HEADERS,
   AirportDirectoryConfigurationError,
@@ -53,7 +48,6 @@ export async function GET(request) {
 
   try {
     const payload = await searchAirportDirectory({ query, country, type, limit });
-    after(() => refreshAirportDirectoryIfDue());
     return jsonProxyResponse(request, payload, {
       headers: AIRPORT_DIRECTORY_CACHE_HEADERS,
     });

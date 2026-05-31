@@ -1,6 +1,4 @@
-import {
-  AIRPORT_DIRECTORY_SOURCE,
-} from "./airportDirectory.models";
+import { AIRPORT_DIRECTORY_SOURCE } from "./airportDirectory.models";
 import {
   getOpenAipAirportPage,
   searchOpenAipAirports,
@@ -40,5 +38,3 @@ export const getAirportDirectoryPage = async ({
   if (!data?.airport) return null;
   return { ...data, source: AIRPORT_DIRECTORY_SOURCE };
 };
-
-export const refreshAirportDirectoryIfDue = (_options: AirportDirectoryMechanismRecord = {}) => {};

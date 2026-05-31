@@ -1,10 +1,8 @@
 import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
 import { toFiniteNumber } from "../../../utils/math";
 
-const AIRSPACE_SOURCE_FAA = "faa-class-airspace";
+const AIRSPACE_SOURCE_OFFICIAL = "official-airspace";
 const AIRSPACE_SOURCE_HEURISTIC = "heuristic";
-
-const AIRSPACE_CLASSES = new Set(["B", "C", "D", "E"]);
 
 const ARRIVAL_VALUES = new Set(["ARRIVAL", "arrival"]);
 const DEPARTURE_VALUES = new Set(["DEPARTURE", "departure"]);
@@ -94,54 +92,6 @@ export function resolveAirportContextGroup({
   }
 
   return "Unknown";
-}
-
-export function createAirspaceVolumeFromFaaRecord(
-  record: AirportContextRecord = {},
-  options: AirportContextRecord = {},
-) {
-  const classType = String(record.CLASS || record.classType || "").toUpperCase();
-  if (!AIRSPACE_CLASSES.has(classType)) return null;
-
-  const airportIcao = String(
-    options.airportIcao || record.airportIcao || record.IDENT || "",
-  )
-    .toUpperCase()
-    .replace(/^(?!K[A-Z0-9]{3}$)([A-Z]{3})$/, "K$1");
-  const name = String(record.NAME || record.name || "").trim();
-  const sector = String(record.SECTOR || record.sector || "").trim();
-  const floorFtMsl = parseFaaAltitudeFt(record.LOWER_VAL, record.LOWER_CODE);
-  const ceilingFtMsl = parseFaaAltitudeFt(record.UPPER_VAL, record.UPPER_CODE);
-
-  if (!airportIcao || floorFtMsl == null || ceilingFtMsl == null) return null;
-
-  const label = `${formatChartAltitude(ceilingFtMsl)}/${formatChartAltitude(
-    floorFtMsl,
-    record.LOWER_CODE,
-  )}`;
-  const id = [
-    "faa-class-airspace",
-    airportIcao,
-    classType,
-    slugify(sector || name || "volume"),
-    label.replace("/", "-"),
-    options.sourceRecordId ? slugify(options.sourceRecordId) : "",
-  ]
-    .filter(Boolean)
-    .join(":");
-
-  return {
-    id,
-    airportIcao,
-    classType,
-    name,
-    label,
-    sector,
-    floorFtMsl,
-    ceilingFtMsl,
-    geometry: options.geometry || record.geometry || null,
-    source: AIRSPACE_SOURCE_FAA,
-  };
 }
 
 export function matchesAirspaceVolume(
@@ -247,34 +197,15 @@ function isRouteTerminalMovement(movement: unknown) {
   return movement === "arrival" || movement === "departure";
 }
 
-function parseFaaAltitudeFt(value: unknown, code: unknown) {
-  const normalizedCode = String(code || "").toUpperCase();
-  if (normalizedCode === "SFC") return 0;
-  const altitude = toNullableFiniteNumber(value);
-  if (altitude == null || altitude <= -9998) return null;
-  return altitude;
-}
-
 function toNullableFiniteNumber(value: unknown) {
   if (value == null || value === "") return null;
   return toFiniteNumber(value);
 }
 
-function formatChartAltitude(valueFt: unknown, code = "") {
-  const number = Number(valueFt);
-  if (String(code || "").toUpperCase() === "SFC" || number === 0) {
-    return "SFC";
-  }
-  if (Number.isFinite(number) && number % 100 === 0) {
-    return String(number / 100);
-  }
-  return String(valueFt);
-}
-
 function airspaceMatchFromVolume(volume: AirportContextRecord) {
   return {
     matched: true,
-    source: volume.source || AIRSPACE_SOURCE_FAA,
+    source: volume.source || AIRSPACE_SOURCE_OFFICIAL,
     classType: volume.classType,
     name: volume.name,
     label: volume.label,
@@ -335,12 +266,4 @@ function pointInRing([x, y]: number[], ring: number[][] = []) {
     if (intersects) inside = !inside;
   }
   return inside;
-}
-
-function slugify(value: unknown) {
-  return String(value || "")
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 }

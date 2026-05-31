@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 
 import {
-  createAirspaceVolumeFromFaaRecord,
   enrichAircraftWithAirportContext,
   matchesAirspaceVolume,
   resolveAltitudeBand,
@@ -55,55 +54,28 @@ assert.equal(
   "primary",
 );
 
-const volume = createAirspaceVolumeFromFaaRecord(
-  {
-    IDENT: "BOS",
-    NAME: "BOSTON CLASS B",
-    SECTOR: "AREA A",
-    CLASS: "B",
-    UPPER_VAL: "7000",
-    UPPER_CODE: "MSL",
-    LOWER_VAL: "0",
-    LOWER_CODE: "SFC",
-  },
-  {
-    airportIcao: "KBOS",
-    geometry: {
-      type: "Polygon",
-      coordinates: [
-        [
-          [-71.08, 42.34],
-          [-70.95, 42.34],
-          [-70.95, 42.45],
-          [-71.08, 42.45],
-          [-71.08, 42.34],
-        ],
+const volume = {
+  id: "openaip-airspace:KBOS:B:AREA-A:70-SFC",
+  airportIcao: "KBOS",
+  classType: "B",
+  name: "BOSTON CLASS B",
+  label: "70/SFC",
+  floorFtMsl: 0,
+  ceilingFtMsl: 7000,
+  geometry: {
+    type: "Polygon",
+    coordinates: [
+      [
+        [-71.08, 42.34],
+        [-70.95, 42.34],
+        [-70.95, 42.45],
+        [-71.08, 42.45],
+        [-71.08, 42.34],
       ],
-    },
+    ],
   },
-);
-
-const repeatedSectorVolume = createAirspaceVolumeFromFaaRecord(
-  {
-    IDENT: "ATL",
-    NAME: "ATLANTA CLASS B",
-    SECTOR: "AREA B",
-    CLASS: "B",
-    UPPER_VAL: "12500",
-    UPPER_CODE: "MSL",
-    LOWER_VAL: "2500",
-    LOWER_CODE: "MSL",
-  },
-  {
-    airportIcao: "KATL",
-    sourceRecordId: "record-42",
-  },
-);
-
-assert.equal(
-  repeatedSectorVolume.id,
-  "faa-class-airspace:KATL:B:AREA-B:125-25:RECORD-42",
-);
+  source: "openaip-airspace",
+};
 
 assert.deepEqual(
   {
@@ -116,13 +88,13 @@ assert.deepEqual(
     source: volume.source,
   },
   {
-    id: "faa-class-airspace:KBOS:B:AREA-A:70-SFC",
+    id: "openaip-airspace:KBOS:B:AREA-A:70-SFC",
     airportIcao: "KBOS",
     classType: "B",
     label: "70/SFC",
     floorFtMsl: 0,
     ceilingFtMsl: 7000,
-    source: "faa-class-airspace",
+    source: "openaip-airspace",
   },
 );
 
