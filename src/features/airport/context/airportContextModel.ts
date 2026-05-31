@@ -9,7 +9,9 @@ const AIRSPACE_CLASSES = new Set(["B", "C", "D", "E"]);
 const ARRIVAL_VALUES = new Set(["ARRIVAL", "arrival"]);
 const DEPARTURE_VALUES = new Set(["DEPARTURE", "departure"]);
 
-export function resolveRangeBand(distanceNm) {
+type AirportContextRecord = Record<string, any>;
+
+export function resolveRangeBand(distanceNm: unknown) {
   const distance = toNullableFiniteNumber(distanceNm);
   if (distance == null) return "outside-airport-context";
   if (distance <= 2.2) return "airport-core";
@@ -18,7 +20,13 @@ export function resolveRangeBand(distanceNm) {
   return "outside-airport-context";
 }
 
-export function resolveAltitudeBand({ altitudeFtMsl, onGround = false } = {}) {
+export function resolveAltitudeBand({
+  altitudeFtMsl,
+  onGround = false,
+}: {
+  altitudeFtMsl?: unknown;
+  onGround?: boolean;
+} = {}) {
   if (onGround) return "surface-tower";
   const altitude = toNullableFiniteNumber(altitudeFtMsl);
   if (altitude == null) return "unknown";
@@ -34,6 +42,11 @@ export function resolveVisibilityRole({
   altitudeBand,
   movement = "unknown",
   airspace = null,
+}: {
+  rangeBand?: string;
+  altitudeBand?: string;
+  movement?: string;
+  airspace?: AirportContextRecord | null;
 } = {}) {
   if (isRouteTerminalMovement(movement)) {
     return rangeBand === "outside-airport-context" ? "secondary" : "primary";
@@ -62,6 +75,11 @@ export function resolveAirportContextGroup({
   rangeBand,
   altitudeBand,
   movement = "unknown",
+}: {
+  rangeBand?: string;
+  altitudeBand?: string;
+  movement?: string;
+  airspace?: AirportContextRecord | null;
 } = {}) {
   if (isRouteTerminalMovement(movement)) {
     return "Terminal Flow";
@@ -78,7 +96,10 @@ export function resolveAirportContextGroup({
   return "Unknown";
 }
 
-export function createAirspaceVolumeFromFaaRecord(record = {}, options = {}) {
+export function createAirspaceVolumeFromFaaRecord(
+  record: AirportContextRecord = {},
+  options: AirportContextRecord = {},
+) {
   const classType = String(record.CLASS || record.classType || "").toUpperCase();
   if (!AIRSPACE_CLASSES.has(classType)) return null;
 
@@ -123,7 +144,10 @@ export function createAirspaceVolumeFromFaaRecord(record = {}, options = {}) {
   };
 }
 
-export function matchesAirspaceVolume(aircraft = {}, volume = null) {
+export function matchesAirspaceVolume(
+  aircraft: AirportContextRecord = {},
+  volume: AirportContextRecord | null = null,
+) {
   if (!volume?.geometry) return false;
   const lat = toFiniteNumber(aircraft.lat);
   const lon = toFiniteNumber(aircraft.lon);
@@ -141,6 +165,10 @@ export function enrichAircraftWithAirportContext({
   aircraft = [],
   airportProfile = {},
   airspaceVolumes = [],
+}: {
+  aircraft?: AirportContextRecord[];
+  airportProfile?: AirportContextRecord;
+  airspaceVolumes?: AirportContextRecord[];
 } = {}) {
   const airportIcao = String(airportProfile?.icao || "").toUpperCase();
   const airportLat = toFiniteNumber(airportProfile?.lat);
@@ -166,7 +194,7 @@ export function enrichAircraftWithAirportContext({
     const matchedVolume = volumes.find((volume) =>
       matchesAirspaceVolume(item, volume),
     );
-    const airspace = matchedVolume
+    const airspace: AirportContextRecord = matchedVolume
       ? airspaceMatchFromVolume(matchedVolume)
       : {
           matched: false,
@@ -208,17 +236,18 @@ export function enrichAircraftWithAirportContext({
   });
 }
 
-function normalizeMovement(value) {
-  if (ARRIVAL_VALUES.has(value)) return "arrival";
-  if (DEPARTURE_VALUES.has(value)) return "departure";
+function normalizeMovement(value: unknown) {
+  const normalized = String(value || "");
+  if (ARRIVAL_VALUES.has(normalized)) return "arrival";
+  if (DEPARTURE_VALUES.has(normalized)) return "departure";
   return "unknown";
 }
 
-function isRouteTerminalMovement(movement) {
+function isRouteTerminalMovement(movement: unknown) {
   return movement === "arrival" || movement === "departure";
 }
 
-function parseFaaAltitudeFt(value, code) {
+function parseFaaAltitudeFt(value: unknown, code: unknown) {
   const normalizedCode = String(code || "").toUpperCase();
   if (normalizedCode === "SFC") return 0;
   const altitude = toNullableFiniteNumber(value);
@@ -226,22 +255,23 @@ function parseFaaAltitudeFt(value, code) {
   return altitude;
 }
 
-function toNullableFiniteNumber(value) {
+function toNullableFiniteNumber(value: unknown) {
   if (value == null || value === "") return null;
   return toFiniteNumber(value);
 }
 
-function formatChartAltitude(valueFt, code = "") {
-  if (String(code || "").toUpperCase() === "SFC" || valueFt === 0) {
+function formatChartAltitude(valueFt: unknown, code = "") {
+  const number = Number(valueFt);
+  if (String(code || "").toUpperCase() === "SFC" || number === 0) {
     return "SFC";
   }
-  if (Number.isFinite(valueFt) && valueFt % 100 === 0) {
-    return String(valueFt / 100);
+  if (Number.isFinite(number) && number % 100 === 0) {
+    return String(number / 100);
   }
   return String(valueFt);
 }
 
-function airspaceMatchFromVolume(volume) {
+function airspaceMatchFromVolume(volume: AirportContextRecord) {
   return {
     matched: true,
     source: volume.source || AIRSPACE_SOURCE_FAA,
@@ -253,14 +283,24 @@ function airspaceMatchFromVolume(volume) {
   };
 }
 
-function isTerminalAirspace(airspace) {
+function isTerminalAirspace(airspace: AirportContextRecord | null | undefined) {
   return (
     airspace?.matched &&
     ["B", "C", "D"].includes(String(airspace.classType || "").toUpperCase())
   );
 }
 
-function resolveContextLabel({ group, rangeBand, altitudeBand, airspace }) {
+function resolveContextLabel({
+  group,
+  rangeBand,
+  altitudeBand,
+  airspace,
+}: {
+  group?: string;
+  rangeBand?: string;
+  altitudeBand?: string;
+  airspace?: AirportContextRecord | null;
+}) {
   if (airspace?.matched && airspace.label) {
     return `${airspace.classType || "Airspace"} ${airspace.label}`;
   }
@@ -270,7 +310,7 @@ function resolveContextLabel({ group, rangeBand, altitudeBand, airspace }) {
   return "Context unknown";
 }
 
-function pointInGeoJsonGeometry(point, geometry) {
+function pointInGeoJsonGeometry(point: number[], geometry: AirportContextRecord) {
   if (geometry.type === "Polygon") {
     return pointInPolygon(point, geometry.coordinates);
   }
@@ -280,12 +320,12 @@ function pointInGeoJsonGeometry(point, geometry) {
   return false;
 }
 
-function pointInPolygon(point, rings = []) {
+function pointInPolygon(point: number[], rings: number[][][] = []) {
   if (!rings.length || !pointInRing(point, rings[0])) return false;
   return !rings.slice(1).some((ring) => pointInRing(point, ring));
 }
 
-function pointInRing([x, y], ring = []) {
+function pointInRing([x, y]: number[], ring: number[][] = []) {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const [xi, yi] = ring[i];
@@ -297,7 +337,7 @@ function pointInRing([x, y], ring = []) {
   return inside;
 }
 
-function slugify(value) {
+function slugify(value: unknown) {
   return String(value || "")
     .trim()
     .toUpperCase()

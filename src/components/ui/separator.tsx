@@ -3,7 +3,17 @@ import * as SeparatorPrimitive from "@radix-ui/react-separator"
 
 import { cn } from "@/lib/utils"
 
-const Separator = React.forwardRef((
+const forwardRef = React.forwardRef as <
+  Element = any,
+  Props = Record<string, any>,
+>(
+  render: (
+    props: Props,
+    ref: React.ForwardedRef<Element>,
+  ) => React.ReactNode,
+) => React.ForwardRefExoticComponent<Props & React.RefAttributes<Element>>;
+
+const Separator = forwardRef((
   { className, orientation = "horizontal", decorative = true, ...props },
   ref
 ) => (

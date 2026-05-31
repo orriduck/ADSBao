@@ -37,9 +37,9 @@ export function useI18n() {
   }, [locale, setLocale]);
 
   const t = useCallback(
-    (key, params) => {
+    (key: string, params?: Record<string, unknown>) => {
       try {
-        return translate(key, params);
+        return translate(key, params as any);
       } catch {
         return String(key || "");
       }

@@ -4,19 +4,66 @@ import {
   normalizeUserEmail,
 } from "../src/features/app-shell/feature-flags/userFeatureFlagsModel";
 
+type FeatureFlagEnvironment = "local" | "preview" | "production";
+type FeatureFlags = Record<string, boolean>;
+
+type FeatureFlagCommand =
+  | { action: "get"; email: string; environment: FeatureFlagEnvironment }
+  | {
+      action: "set";
+      email: string;
+      environment: FeatureFlagEnvironment;
+      flagKey: string;
+      flagValue: boolean;
+    }
+  | {
+      action: "merge";
+      email: string;
+      environment: FeatureFlagEnvironment;
+      flags: FeatureFlags;
+    }
+  | {
+      action: "clear-flag";
+      email: string;
+      environment: FeatureFlagEnvironment;
+      flagKey: string;
+    }
+  | { action: "clear-user"; email: string; environment: FeatureFlagEnvironment };
+
+type FeatureFlagRepository = {
+  readFlagsByEmail?: (
+    email: string,
+    options: { environment: FeatureFlagEnvironment },
+  ) => Promise<{ flags?: unknown } | null | undefined>;
+  upsertFlagsByEmail?: (entity: {
+    email: string;
+    environment: FeatureFlagEnvironment;
+    flags: FeatureFlags;
+  }) => Promise<unknown>;
+  deleteFlagsByEmail?: (
+    email: string,
+    options: { environment: FeatureFlagEnvironment },
+  ) => Promise<unknown>;
+};
+
+type ApplyFeatureFlagCommandOptions = {
+  command?: FeatureFlagCommand;
+  repository?: FeatureFlagRepository;
+};
+
 const TRUTHY_VALUES = new Set(["1", "true", "on", "yes", "enable", "enabled"]);
 const FALSY_VALUES = new Set(["0", "false", "off", "no", "disable", "disabled"]);
 
-export function parseBooleanFlagValue(value) {
+export function parseBooleanFlagValue(value: unknown): boolean {
   const normalized = String(value || "").trim().toLowerCase();
   if (TRUTHY_VALUES.has(normalized)) return true;
   if (FALSY_VALUES.has(normalized)) return false;
   throw new Error(`Expected boolean value, got "${value}"`);
 }
 
-function extractEnvironmentOption(args = []) {
-  const nextArgs = [];
-  let environment = "local";
+function extractEnvironmentOption(args: unknown[] = []) {
+  const nextArgs: unknown[] = [];
+  let environment: unknown = "local";
 
   for (let index = 0; index < args.length; index++) {
     const value = String(args[index] || "");
@@ -34,11 +81,11 @@ function extractEnvironmentOption(args = []) {
 
   return {
     args: nextArgs,
-    environment: normalizeFeatureFlagEnvironment(environment),
+    environment: normalizeFeatureFlagEnvironment(environment) as FeatureFlagEnvironment,
   };
 }
 
-export function parseFeatureFlagCommand(args = []) {
+export function parseFeatureFlagCommand(args: unknown[] = []): FeatureFlagCommand {
   const {
     args: positionalArgs,
     environment,
@@ -76,7 +123,7 @@ export function parseFeatureFlagCommand(args = []) {
       action: "merge",
       email,
       environment,
-      flags: normalizeFeatureFlags(JSON.parse(rawFlagKey)),
+      flags: normalizeFeatureFlags(JSON.parse(String(rawFlagKey))) as FeatureFlags,
     };
   }
 
@@ -89,13 +136,16 @@ export function parseFeatureFlagCommand(args = []) {
   throw new Error(`Unknown feature flag command "${rawAction}"`);
 }
 
-export async function applyFeatureFlagCommand({ command, repository } = {}) {
+export async function applyFeatureFlagCommand({
+  command,
+  repository,
+}: ApplyFeatureFlagCommandOptions = {}): Promise<any> {
   if (!command || !repository) {
     throw new Error("Feature flag command and repository are required");
   }
 
   if (command.action === "get") {
-    const row = await repository.readFlagsByEmail(command.email, {
+    const row = await repository.readFlagsByEmail!(command.email, {
       environment: command.environment,
     });
     return {
@@ -106,14 +156,14 @@ export async function applyFeatureFlagCommand({ command, repository } = {}) {
   }
 
   if (command.action === "set") {
-    const row = await repository.readFlagsByEmail(command.email, {
+    const row = await repository.readFlagsByEmail!(command.email, {
       environment: command.environment,
     });
     const flags = {
       ...normalizeFeatureFlags(row?.flags),
       [command.flagKey]: command.flagValue,
     };
-    return repository.upsertFlagsByEmail({
+    return repository.upsertFlagsByEmail!({
       email: command.email,
       environment: command.environment,
       flags,
@@ -121,14 +171,14 @@ export async function applyFeatureFlagCommand({ command, repository } = {}) {
   }
 
   if (command.action === "merge") {
-    const row = await repository.readFlagsByEmail(command.email, {
+    const row = await repository.readFlagsByEmail!(command.email, {
       environment: command.environment,
     });
     const flags = {
       ...normalizeFeatureFlags(row?.flags),
       ...normalizeFeatureFlags(command.flags),
     };
-    return repository.upsertFlagsByEmail({
+    return repository.upsertFlagsByEmail!({
       email: command.email,
       environment: command.environment,
       flags,
@@ -136,18 +186,18 @@ export async function applyFeatureFlagCommand({ command, repository } = {}) {
   }
 
   if (command.action === "clear-flag") {
-    const row = await repository.readFlagsByEmail(command.email, {
+    const row = await repository.readFlagsByEmail!(command.email, {
       environment: command.environment,
     });
     const flags = { ...normalizeFeatureFlags(row?.flags) };
     delete flags[command.flagKey];
     if (Object.keys(flags).length === 0) {
-      await repository.deleteFlagsByEmail(command.email, {
+      await repository.deleteFlagsByEmail!(command.email, {
         environment: command.environment,
       });
       return { email: command.email, environment: command.environment, flags: {} };
     }
-    return repository.upsertFlagsByEmail({
+    return repository.upsertFlagsByEmail!({
       email: command.email,
       environment: command.environment,
       flags,
@@ -155,11 +205,13 @@ export async function applyFeatureFlagCommand({ command, repository } = {}) {
   }
 
   if (command.action === "clear-user") {
-    await repository.deleteFlagsByEmail(command.email, {
+    await repository.deleteFlagsByEmail!(command.email, {
       environment: command.environment,
     });
     return { email: command.email, environment: command.environment, flags: {} };
   }
 
-  throw new Error(`Unsupported feature flag action "${command.action}"`);
+  throw new Error(
+    `Unsupported feature flag action "${(command as { action?: string }).action}"`,
+  );
 }

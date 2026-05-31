@@ -5,6 +5,7 @@ import AircraftRow from "./AircraftRow";
 
 export default function AircraftList({
   aircraft = [],
+  resetKey,
   selectedAircraftId = "",
   onSelectAircraft,
 }) {

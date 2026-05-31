@@ -6,19 +6,58 @@ const DEFAULT_RATE_LIMIT = {
 const DEFAULT_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_RATE_LIMIT_ENTRIES = 2_000;
 
-const rateLimitBuckets = new Map();
+type EnvLike = Record<string, string | undefined>;
+type CoordinateRange = { min: number; max: number };
+type DistanceRange = { min?: number; max?: number };
+type ProxyHeaderOptions = {
+  allowedOrigins?: Set<string>;
+  allowedMethods?: string[];
+  env?: EnvLike;
+  varyOrigin?: boolean;
+};
+type RateLimitOptions = {
+  request: Request;
+  key?: string;
+  now?: number;
+  windowMs?: number;
+  maxRequests?: number;
+};
+type RateLimitBucket = {
+  count: number;
+  resetAt: number;
+};
+type EnforceProxyOptions = ProxyHeaderOptions & {
+  rateLimit?: Omit<RateLimitOptions, "request">;
+};
+type JsonProxyInit = ResponseInit & {
+  headers?: HeadersInit;
+};
+type LogProxyRouteResponseOptions = {
+  request?: Request;
+  route?: string;
+  response?: Response;
+  startMs?: number;
+  nowMs?: number;
+  logger?: (...data: unknown[]) => void;
+};
+type ResponseReadOptions = {
+  label?: string;
+  maxBytes?: number;
+};
+
+const rateLimitBuckets = new Map<string, RateLimitBucket>();
 
 const textDecoder = new TextDecoder();
 
-const splitAllowedOrigins = (value) =>
+const splitAllowedOrigins = (value: unknown) =>
   String(value || "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-const normalizeOrigin = (value) => {
+const normalizeOrigin = (value: unknown) => {
   try {
-    return new URL(value).origin;
+    return new URL(String(value)).origin;
   } catch {
     return "";
   }
@@ -26,7 +65,7 @@ const normalizeOrigin = (value) => {
 
 export function getConfiguredAllowedOrigins({
   env = typeof process !== "undefined" ? process.env : {},
-} = {}) {
+}: { env?: EnvLike } = {}) {
   return new Set(
     [
       ...splitAllowedOrigins(env.ADSBAO_ALLOWED_ORIGINS),
@@ -39,48 +78,48 @@ export function getConfiguredAllowedOrigins({
   );
 }
 
-export function isCoordinateInRange(value, { min, max }) {
+export function isCoordinateInRange(value: unknown, { min, max }: CoordinateRange) {
   const number = Number(value);
   return Number.isFinite(number) && number >= min && number <= max;
 }
 
-export function normalizeLatitude(value) {
+export function normalizeLatitude(value: unknown) {
   const number = Number(value);
   return isCoordinateInRange(number, { min: -90, max: 90 }) ? number : null;
 }
 
-export function normalizeLongitude(value) {
+export function normalizeLongitude(value: unknown) {
   const number = Number(value);
   return isCoordinateInRange(number, { min: -180, max: 180 }) ? number : null;
 }
 
-export function normalizeDistanceNm(value, { min = 1, max = 250 } = {}) {
+export function normalizeDistanceNm(value: unknown, { min = 1, max = 250 }: DistanceRange = {}) {
   const number = Number(value);
   return Number.isFinite(number) && number >= min && number <= max ? number : null;
 }
 
-export function normalizeIcao(value) {
+export function normalizeIcao(value: unknown) {
   const icao = String(value || "").trim().toUpperCase();
   return /^[A-Z0-9]{3,4}$/.test(icao) ? icao : "";
 }
 
-export function normalizeAircraftHex(value) {
+export function normalizeAircraftHex(value: unknown) {
   const hex = String(value || "").trim().toUpperCase();
   return /^(~?[0-9A-F]{6})$/.test(hex) ? hex : "";
 }
 
-export function getClientIp(request) {
+export function getClientIp(request: Request) {
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) return forwardedFor.split(",")[0].trim();
   return request.headers.get("x-real-ip") || "unknown";
 }
 
-export function getRequestOrigin(request) {
+export function getRequestOrigin(request: Request) {
   const origin = request.headers.get("origin");
   return origin ? normalizeOrigin(origin) : "";
 }
 
-export function getSameOrigin(request) {
+export function getSameOrigin(request: Request) {
   try {
     return new URL(request.url).origin;
   } catch {
@@ -88,7 +127,7 @@ export function getSameOrigin(request) {
   }
 }
 
-export function getAllowedRequestOrigin(request, options = {}) {
+export function getAllowedRequestOrigin(request: Request, options: ProxyHeaderOptions = {}) {
   const origin = getRequestOrigin(request);
   if (!origin) return "";
 
@@ -100,11 +139,15 @@ export function getAllowedRequestOrigin(request, options = {}) {
   return allowedOrigins.has(origin) ? origin : "";
 }
 
-export function isCrossOriginBlocked(request, options = {}) {
+export function isCrossOriginBlocked(request: Request, options: ProxyHeaderOptions = {}) {
   return Boolean(getRequestOrigin(request) && !getAllowedRequestOrigin(request, options));
 }
 
-export function buildProxyHeaders(request, headers = {}, options = {}) {
+export function buildProxyHeaders(
+  request: Request,
+  headers: HeadersInit = {},
+  options: ProxyHeaderOptions = {},
+) {
   const output = new Headers(headers);
   const allowedOrigin = getAllowedRequestOrigin(request, options);
   if (allowedOrigin) output.set("Access-Control-Allow-Origin", allowedOrigin);
@@ -121,7 +164,7 @@ export function buildProxyHeaders(request, headers = {}, options = {}) {
   return output;
 }
 
-export function createCorsPreflightResponse(request, options = {}) {
+export function createCorsPreflightResponse(request: Request, options: ProxyHeaderOptions = {}) {
   if (isCrossOriginBlocked(request, options)) {
     return new Response(null, {
       status: 403,
@@ -135,7 +178,7 @@ export function createCorsPreflightResponse(request, options = {}) {
   });
 }
 
-const pruneRateLimitBuckets = (now) => {
+const pruneRateLimitBuckets = (now: number) => {
   if (rateLimitBuckets.size <= MAX_RATE_LIMIT_ENTRIES) return;
   for (const [key, bucket] of rateLimitBuckets) {
     if (bucket.resetAt <= now) rateLimitBuckets.delete(key);
@@ -149,7 +192,7 @@ export function checkProxyRateLimit({
   now = Date.now(),
   windowMs = DEFAULT_RATE_LIMIT.windowMs,
   maxRequests = DEFAULT_RATE_LIMIT.maxRequests,
-} = {}) {
+}: RateLimitOptions) {
   const bucketKey = `${key || "proxy"}:${getClientIp(request)}`;
   const bucket = rateLimitBuckets.get(bucketKey);
   pruneRateLimitBuckets(now);
@@ -178,7 +221,7 @@ export function checkProxyRateLimit({
   };
 }
 
-export function enforceProxyRequest(request, options = {}) {
+export function enforceProxyRequest(request: Request, options: EnforceProxyOptions = {}) {
   if (isCrossOriginBlocked(request, options)) {
     return Response.json(
       { error: "Origin is not allowed" },
@@ -204,7 +247,12 @@ export function enforceProxyRequest(request, options = {}) {
   return null;
 }
 
-export function jsonProxyResponse(request, body, init = {}, options = {}) {
+export function jsonProxyResponse(
+  request: Request,
+  body: unknown,
+  init: JsonProxyInit = {},
+  options: ProxyHeaderOptions = {},
+) {
   return Response.json(body, {
     ...init,
     headers: buildProxyHeaders(request, init.headers || {}, options),
@@ -221,7 +269,7 @@ export function logProxyRouteResponse({
       ? performance.now()
       : Date.now(),
   logger = console.info,
-} = {}) {
+}: LogProxyRouteResponseOptions = {}) {
   if (typeof logger !== "function") return response;
 
   const startedAt = Number(startMs);
@@ -247,11 +295,11 @@ export function logProxyRouteResponse({
 }
 
 async function readResponseBytes(
-  response,
+  response: Response,
   {
     label = "upstream response",
     maxBytes = DEFAULT_MAX_RESPONSE_BYTES,
-  } = {},
+  }: ResponseReadOptions = {},
 ) {
   const contentLength = Number(response.headers?.get?.("content-length"));
   if (Number.isFinite(contentLength) && contentLength > maxBytes) {
@@ -259,7 +307,7 @@ async function readResponseBytes(
   }
 
   if (!response.body?.getReader) {
-    let bytes;
+    let bytes: Uint8Array;
     if (typeof response.arrayBuffer === "function") {
       bytes = new Uint8Array(await response.arrayBuffer());
     } else if (typeof response.text === "function") {
@@ -276,7 +324,7 @@ async function readResponseBytes(
   }
 
   const reader = response.body.getReader();
-  const chunks = [];
+  const chunks: Uint8Array[] = [];
   let totalBytes = 0;
 
   while (true) {
@@ -299,11 +347,11 @@ async function readResponseBytes(
   return bytes;
 }
 
-export async function readResponseText(response, options = {}) {
+export async function readResponseText(response: Response, options: ResponseReadOptions = {}) {
   return textDecoder.decode(await readResponseBytes(response, options));
 }
 
-export async function readResponseJson(response, options = {}) {
+export async function readResponseJson(response: Response, options: ResponseReadOptions = {}) {
   const text = await readResponseText(response, options);
   try {
     return JSON.parse(text);
@@ -312,7 +360,10 @@ export async function readResponseJson(response, options = {}) {
   }
 }
 
-export async function readResponseArrayBuffer(response, options = {}) {
+export async function readResponseArrayBuffer(
+  response: Response,
+  options: ResponseReadOptions = {},
+) {
   const bytes = await readResponseBytes(response, options);
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);

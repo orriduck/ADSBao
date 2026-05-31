@@ -12,7 +12,14 @@ export const LOCALE_LABELS = Object.freeze({
   "zh-CN": "中文",
 });
 
-const isSupportedLocale = (value) =>
+type TranslationDictionary = Record<string, unknown>;
+type TranslationParams = Record<string, unknown>;
+type LocaleStorage = {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+};
+
+const isSupportedLocale = (value: unknown): value is string =>
   typeof value === "string" && SUPPORTED_LOCALES.includes(value);
 
 export function getLocaleMenuItems() {
@@ -22,7 +29,10 @@ export function getLocaleMenuItems() {
   }));
 }
 
-export function normalizeLocaleSelection(next, current = DEFAULT_LOCALE) {
+export function normalizeLocaleSelection(
+  next: unknown,
+  current: string = DEFAULT_LOCALE,
+) {
   if (isSupportedLocale(next)) return next;
   return isSupportedLocale(current) ? current : DEFAULT_LOCALE;
 }
@@ -34,16 +44,16 @@ export function normalizeLocaleSelection(next, current = DEFAULT_LOCALE) {
 export function resolveInitialLocale({
   persisted,
   fallback = DEFAULT_LOCALE,
-} = {}) {
+}: { persisted?: unknown; fallback?: string } = {}) {
   return isSupportedLocale(persisted) ? persisted : fallback;
 }
 
-const splitKey = (key) =>
+const splitKey = (key: unknown) =>
   String(key || "")
     .split(".")
     .filter(Boolean);
 
-const lookupByPath = (dictionary, segments) => {
+const lookupByPath = (dictionary: unknown, segments: string[]) => {
   let cursor = dictionary;
   for (const segment of segments) {
     if (cursor == null || typeof cursor !== "object") return undefined;
@@ -52,7 +62,7 @@ const lookupByPath = (dictionary, segments) => {
   return typeof cursor === "string" ? cursor : undefined;
 };
 
-const applyParams = (template, params) => {
+const applyParams = (template: string, params?: TranslationParams) => {
   if (!params || typeof params !== "object") return template;
   return template.replace(/\{(\w+)\}/g, (_, name) =>
     Object.prototype.hasOwnProperty.call(params, name)
@@ -70,6 +80,11 @@ export function resolveTranslation({
   dictionary,
   fallbackDictionary,
   params,
+}: {
+  key?: string;
+  dictionary?: TranslationDictionary;
+  fallbackDictionary?: TranslationDictionary;
+  params?: TranslationParams;
 } = {}) {
   const segments = splitKey(key);
   if (segments.length === 0) return "";
@@ -80,7 +95,7 @@ export function resolveTranslation({
   return key;
 }
 
-export function readPersistedLocale(storage) {
+export function readPersistedLocale(storage?: LocaleStorage | null) {
   if (!storage) return null;
   try {
     return storage.getItem(LOCALE_STORAGE_KEY);
@@ -89,7 +104,10 @@ export function readPersistedLocale(storage) {
   }
 }
 
-export function writePersistedLocale(storage, locale) {
+export function writePersistedLocale(
+  storage: LocaleStorage | undefined | null,
+  locale: unknown,
+) {
   if (!storage) return;
   try {
     if (isSupportedLocale(locale)) {
@@ -100,7 +118,7 @@ export function writePersistedLocale(storage, locale) {
   }
 }
 
-export function nextLocale(current) {
+export function nextLocale(current: string) {
   const index = SUPPORTED_LOCALES.indexOf(current);
   // Unknown current locale points to "before the start" so the cycle
   // lands on SUPPORTED_LOCALES[0] (English) — a predictable recovery
@@ -109,7 +127,7 @@ export function nextLocale(current) {
   return SUPPORTED_LOCALES[(safeIndex + 1) % SUPPORTED_LOCALES.length];
 }
 
-export function resolveLocaleFromSearchParams(searchParams) {
+export function resolveLocaleFromSearchParams(searchParams: string | URLSearchParams) {
   const params =
     searchParams instanceof URLSearchParams
       ? searchParams
@@ -118,7 +136,11 @@ export function resolveLocaleFromSearchParams(searchParams) {
   return isSupportedLocale(raw) ? raw : null;
 }
 
-export function setLocaleSearchParam(pathname = "/", search = "", locale = DEFAULT_LOCALE) {
+export function setLocaleSearchParam(
+  pathname = "/",
+  search: string | URLSearchParams = "",
+  locale = DEFAULT_LOCALE,
+) {
   const selectedLocale = normalizeLocaleSelection(locale, DEFAULT_LOCALE);
   const params =
     search instanceof URLSearchParams

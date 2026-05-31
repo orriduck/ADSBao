@@ -55,6 +55,9 @@ import AircraftSlot from "./AircraftSlot";
 import AirportSlot from "./AirportSlot";
 import VirtualNearbyList from "./VirtualNearbyList";
 
+type AircraftLike = Record<string, any>;
+type AirportLike = Record<string, any>;
+
 export default function AircraftTable({
   aircraft = [],
   airports = [],
@@ -599,6 +602,13 @@ function filterAndSortAircraft({
   trafficFilter = "all",
   typeFilter = "all",
   movementFilter = "all",
+}: {
+  aircraft?: AircraftLike[];
+  altitudeLevel?: string;
+  query?: string;
+  trafficFilter?: string;
+  typeFilter?: any;
+  movementFilter?: string;
 }) {
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -617,7 +627,7 @@ function filterAndSortAircraft({
     .sort(sortAircraftByAltitude);
 }
 
-function airportSearchText(airport = {}) {
+function airportSearchText(airport: AirportLike = {}) {
   return [
     airport.icao,
     airport.iata,
@@ -630,7 +640,7 @@ function airportSearchText(airport = {}) {
     .toLowerCase();
 }
 
-function aircraftSearchText(aircraft = {}) {
+function aircraftSearchText(aircraft: AircraftLike = {}) {
   const routeMunicipalities = formatFlightRouteMunicipalityLabel(
     aircraft.flightRoute,
   );
@@ -650,7 +660,7 @@ function aircraftSearchText(aircraft = {}) {
     .toLowerCase();
 }
 
-function sortAircraftByAltitude(a, b) {
+function sortAircraftByAltitude(a: AircraftLike, b: AircraftLike) {
   const altitudeDelta = altitudeSortValue(b) - altitudeSortValue(a);
   if (altitudeDelta !== 0) return altitudeDelta;
 
@@ -660,7 +670,7 @@ function sortAircraftByAltitude(a, b) {
   return getAircraftIdentity(a).localeCompare(getAircraftIdentity(b));
 }
 
-function altitudeSortValue(aircraft = {}) {
+function altitudeSortValue(aircraft: AircraftLike = {}) {
   if (aircraft.onGround) return -1;
   return toNumber(aircraft.altitude) ?? -2;
 }

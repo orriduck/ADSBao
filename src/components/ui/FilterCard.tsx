@@ -5,6 +5,16 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+const forwardRef = React.forwardRef as <
+  Element = any,
+  Props = Record<string, any>,
+>(
+  render: (
+    props: Props,
+    ref: React.ForwardedRef<Element>,
+  ) => React.ReactNode,
+) => React.ForwardRefExoticComponent<Props & React.RefAttributes<Element>>;
+
 // Compact filter "tile" shared by the AircraftTable filter strip and
 // the AircraftTypeFilterCard / AircraftFilterCardSelect dropdowns.
 // Same visual language as MetricCard (border + inset highlight +
@@ -80,7 +90,7 @@ const filterCardVariants = cva(
   },
 );
 
-export const FilterCard = React.forwardRef(function FilterCard(
+export const FilterCard = forwardRef(function FilterCard(
   { className, shape, asChild = false, active, ...props },
   ref,
 ) {
@@ -98,7 +108,10 @@ export const FilterCard = React.forwardRef(function FilterCard(
   );
 });
 
-export function FilterCardLabel({ className, ...props }) {
+export function FilterCardLabel({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
   return (
     <span
       className={cn(
@@ -118,7 +131,10 @@ export function FilterCardLabel({ className, ...props }) {
   );
 }
 
-export function FilterCardValue({ className, ...props }) {
+export function FilterCardValue({
+  className,
+  ...props
+}: React.ComponentProps<"strong">) {
   return (
     <strong
       className={cn(
@@ -141,7 +157,11 @@ export { filterCardVariants };
 // Container row of filter cards. `columns` toggles the layout
 // between the 3-up "Show / Traffic / Route" arrangement and the
 // 2×2 four-filter grid used on the detail pages.
-export function FilterCardGrid({ className, columns = 3, ...props }) {
+export function FilterCardGrid({
+  className,
+  columns = 3,
+  ...props
+}: React.ComponentProps<"div"> & { columns?: number }) {
   return (
     <div
       role="group"

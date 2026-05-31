@@ -5,6 +5,16 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+const forwardRef = React.forwardRef as <
+  Element = any,
+  Props = Record<string, any>,
+>(
+  render: (
+    props: Props,
+    ref: React.ForwardedRef<Element>,
+  ) => React.ReactNode,
+) => React.ForwardRefExoticComponent<Props & React.RefAttributes<Element>>;
+
 // Shared dropdown / popover / select panel chrome. Replaces the
 // .aircraft-filter-card-content, .aircraft-filter-type-panel, and
 // language-switch ad-hoc Tailwind blob with a single primitive so
@@ -22,7 +32,7 @@ import { cn } from "@/lib/utils";
 // caller's responsibility. The variant controls type ramps and the
 // selected/hover/partial visual language.
 
-export const MenuPanel = React.forwardRef(function MenuPanel(
+export const MenuPanel = forwardRef(function MenuPanel(
   { className, ...props },
   ref,
 ) {
@@ -86,7 +96,7 @@ const menuItemVariants = cva(
   },
 );
 
-export const MenuItem = React.forwardRef(function MenuItem(
+export const MenuItem = forwardRef(function MenuItem(
   {
     className,
     variant,
@@ -115,7 +125,10 @@ export const MenuItem = React.forwardRef(function MenuItem(
 // Pre-laid-out row for the common "check / label / count" pattern
 // shared between the type filter and language switch. Use plain
 // children inside MenuItem when you need a custom layout.
-export function MenuItemCheck({ className, ...props }) {
+export function MenuItemCheck({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
   return (
     <span
       aria-hidden="true"
@@ -132,11 +145,17 @@ export function MenuItemCheck({ className, ...props }) {
   );
 }
 
-export function MenuItemLabel({ className, ...props }) {
+export function MenuItemLabel({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
   return <span className={cn("min-w-0 flex-1", className)} {...props} />;
 }
 
-export function MenuItemCount({ className, ...props }) {
+export function MenuItemCount({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
   return (
     <span
       className={cn(

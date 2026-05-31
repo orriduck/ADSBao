@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import type { ReactNode } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { DICTIONARIES } from "@/config/i18n/index";
@@ -15,7 +16,17 @@ import {
   normalizeLocaleSelection,
 } from "./i18nModel";
 
-export const I18nRuntimeContext = createContext({
+type I18nRuntimeContextValue = {
+  locale: string;
+  setLocale: (locale: string) => void;
+};
+
+type I18nProviderProps = {
+  children: ReactNode;
+  initialLocale?: string;
+};
+
+export const I18nRuntimeContext = createContext<I18nRuntimeContextValue>({
   locale: DEFAULT_LOCALE,
   setLocale: () => {},
 });
@@ -36,7 +47,10 @@ const mergeMessages = (fallback, messages) => {
   );
 };
 
-export function I18nProvider({ children, initialLocale = DEFAULT_LOCALE }) {
+export function I18nProvider({
+  children,
+  initialLocale = DEFAULT_LOCALE,
+}: I18nProviderProps) {
   const searchParams = useSearchParams();
   const [locale, setLocale] = useState(() =>
     normalizeLocaleSelection(initialLocale, DEFAULT_LOCALE),

@@ -11,12 +11,66 @@ import { OUR_AIRPORTS_DATASETS } from "./ourAirportsCsvSources";
 
 const DEFAULT_BATCH_SIZE = 5000;
 
+type OurAirportsTableKey = "airports" | "runways" | "frequencies" | "navaids";
+type OurAirportsImportCounts = Record<OurAirportsTableKey, number>;
+type CsvFetchResponse = {
+  ok: boolean;
+  status: number;
+  text: () => Promise<string>;
+};
+type CsvFetch = (
+  input: string | URL | Request,
+  init?: RequestInit,
+) => Promise<CsvFetchResponse>;
+type SupabaseUpsertClient = {
+  from: (table: string) => {
+    upsert: (
+      rows: unknown[],
+      options: { onConflict: string },
+    ) => Promise<{ error?: { message?: string } | null }>;
+  };
+};
+type CreateClientImpl = (
+  supabaseUrl: string,
+  supabaseKey: string,
+  options: {
+    auth: {
+      autoRefreshToken: boolean;
+      detectSessionInUrl: boolean;
+      persistSession: boolean;
+    };
+  },
+) => any;
+type ImporterLog = (message: string) => void;
+type CreateOurAirportsImporterOptions = {
+  supabaseUrl?: string;
+  supabaseKey?: string;
+  createClientImpl?: CreateClientImpl;
+  fetchImpl?: CsvFetch;
+  log?: ImporterLog;
+};
+type ImportTableOptions = {
+  batchSize?: number;
+};
+type CreateOurAirportsImporterFromEnvOptions = Omit<
+  CreateOurAirportsImporterOptions,
+  "supabaseUrl" | "supabaseKey"
+> & {
+  env?: NodeJS.ProcessEnv;
+};
+
 const upsertInBatches = async ({
   client,
   table,
   rows,
   onConflict,
   batchSize = DEFAULT_BATCH_SIZE,
+}: {
+  client: SupabaseUpsertClient;
+  table: string;
+  rows: unknown[];
+  onConflict: string;
+  batchSize?: number;
 }) => {
   for (let start = 0; start < rows.length; start += batchSize) {
     const slice = rows.slice(start, start + batchSize);
@@ -65,15 +119,15 @@ export const OUR_AIRPORTS_TABLE_ORDER = Object.freeze([
   "runways",
   "frequencies",
   "navaids",
-]);
+] as const);
 
 export const createOurAirportsImporter = ({
   supabaseUrl,
   supabaseKey,
-  createClientImpl = createClient,
+  createClientImpl = createClient as unknown as CreateClientImpl,
   fetchImpl = globalThis.fetch?.bind(globalThis),
   log = () => {},
-} = {}) => {
+}: CreateOurAirportsImporterOptions = {}) => {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
       "OurAirports importer requires supabaseUrl and supabaseKey (service role)",
@@ -91,7 +145,10 @@ export const createOurAirportsImporter = ({
     },
   });
 
-  const importTable = async (key, { batchSize = DEFAULT_BATCH_SIZE } = {}) => {
+  const importTable = async (
+    key: OurAirportsTableKey,
+    { batchSize = DEFAULT_BATCH_SIZE }: ImportTableOptions = {},
+  ) => {
     const spec = OUR_AIRPORTS_TABLES[key];
     if (!spec) throw new Error(`Unknown OurAirports table key: ${key}`);
 
@@ -112,8 +169,8 @@ export const createOurAirportsImporter = ({
 
   return {
     importTable,
-    async import({ batchSize = DEFAULT_BATCH_SIZE } = {}) {
-      const counts = {};
+    async import({ batchSize = DEFAULT_BATCH_SIZE }: ImportTableOptions = {}) {
+      const counts = {} as OurAirportsImportCounts;
       for (const key of OUR_AIRPORTS_TABLE_ORDER) {
         counts[key] = await importTable(key, { batchSize });
       }
@@ -125,7 +182,7 @@ export const createOurAirportsImporter = ({
 export const createOurAirportsImporterFromEnv = ({
   env = process.env,
   ...rest
-} = {}) =>
+}: CreateOurAirportsImporterFromEnvOptions = {}) =>
   createOurAirportsImporter({
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,
     supabaseKey:

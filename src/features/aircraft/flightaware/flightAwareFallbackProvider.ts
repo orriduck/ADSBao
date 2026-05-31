@@ -9,21 +9,52 @@ export const FLIGHTAWARE_FALLBACK_USER_AGENT =
   buildAdsbaoUserAgent("flightaware/fallback-html");
 
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
-const cache = new Map();
-const requestTimes = [];
+type EnvLike = Record<string, string | undefined>;
+type FlightAwareRecord = Record<string, any>;
+type FlightAwareFallbackResult = {
+  ok: boolean;
+  hasPosition: boolean;
+  errorType?: string;
+  message?: string;
+  upstreamStatus?: number;
+  fetchedAt?: string;
+  metadata?: FlightAwareRecord;
+  position?: FlightAwareRecord;
+};
+type FlightAwareFallbackCacheEntry = {
+  result: FlightAwareFallbackResult;
+  expiresAt: number;
+};
+type FlightAwareFallbackCacheStore = Map<string, FlightAwareFallbackCacheEntry>;
+type FlightAwareFetch = (
+  input: string | URL | Request,
+  init?: RequestInit,
+) => Promise<Response>;
+type FlightAwareFallbackOptions = {
+  env?: EnvLike;
+  fetchImpl?: FlightAwareFetch;
+  now?: () => number;
+  timeoutMs?: number;
+  cacheStore?: FlightAwareFallbackCacheStore;
+};
 
-const toNumber = (value) => {
+const cache = new Map<string, FlightAwareFallbackCacheEntry>();
+const requestTimes: number[] = [];
+
+const toNumber = (value: unknown) => {
   if (value == null || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 };
 
-const inRange = (value, min, max) =>
-  Number.isFinite(value) && value >= min && value <= max;
+const inRange = (value: unknown, min: number, max: number) => {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= min && number <= max;
+};
 
-const cleanString = (value) => String(value || "").trim();
+const cleanString = (value: unknown) => String(value || "").trim();
 
-const htmlDecode = (value) =>
+const htmlDecode = (value: unknown) =>
   cleanString(value)
     .replaceAll("&amp;", "&")
     .replaceAll("&quot;", '"')
@@ -31,10 +62,17 @@ const htmlDecode = (value) =>
     .replaceAll("&lt;", "<")
     .replaceAll("&gt;", ">");
 
-const escapeRegExp = (value) =>
+const escapeRegExp = (value: unknown) =>
   String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-function errorResult(errorType, { message = "", fetchedAt, upstreamStatus } = {}) {
+function errorResult(
+  errorType: string,
+  { message = "", fetchedAt, upstreamStatus }: {
+    message?: string;
+    fetchedAt?: string;
+    upstreamStatus?: number;
+  } = {},
+): FlightAwareFallbackResult {
   return {
     ok: false,
     hasPosition: false,
@@ -45,14 +83,19 @@ function errorResult(errorType, { message = "", fetchedAt, upstreamStatus } = {}
   };
 }
 
-function cacheFallbackResult(cacheStore, callsign, result, nowMs) {
+function cacheFallbackResult(
+  cacheStore: FlightAwareFallbackCacheStore,
+  callsign: string,
+  result: FlightAwareFallbackResult,
+  nowMs: number,
+) {
   cacheStore.set(callsign, {
     result,
     expiresAt: nowMs + FLIGHTAWARE_FALLBACK_CACHE_TTL_MS,
   });
 }
 
-function extractMetaContent(html, key) {
+function extractMetaContent(html: unknown, key: string) {
   const escaped = escapeRegExp(key);
   const patterns = [
     new RegExp(
@@ -72,7 +115,7 @@ function extractMetaContent(html, key) {
   return "";
 }
 
-function extractAssignedJson(html, name) {
+function extractAssignedJson(html: unknown, name: string) {
   const marker = `var ${name} =`;
   const start = String(html || "").indexOf(marker);
   if (start < 0) return null;
@@ -110,7 +153,7 @@ function extractAssignedJson(html, name) {
   return null;
 }
 
-function readCoord(value) {
+function readCoord(value: unknown) {
   if (!Array.isArray(value) || value.length < 2) return null;
   const lon = toNumber(value[0]);
   const lat = toNumber(value[1]);
@@ -118,20 +161,26 @@ function readCoord(value) {
   return { lat, lon };
 }
 
-function altitudeFt(value) {
+function altitudeFt(value: unknown) {
   const number = toNumber(value);
   if (number == null) return undefined;
   return Math.abs(number) < 1000 ? Math.round(number * 100) : Math.round(number);
 }
 
-function timestampIso(value) {
+function timestampIso(value: unknown) {
   const number = toNumber(value);
   if (number == null) return undefined;
   const ms = number < 10_000_000_000 ? number * 1000 : number;
   return new Date(ms).toISOString();
 }
 
-function normalizePositionKind({ point, flight }) {
+function normalizePositionKind({
+  point,
+  flight,
+}: {
+  point?: FlightAwareRecord | null;
+  flight?: FlightAwareRecord | null;
+}) {
   const label = cleanString(flight?.updateType || point?.type);
   if (/pred|tp/i.test(label)) return "predicted";
   if (/interp/i.test(label)) return "interpolated";
@@ -139,7 +188,7 @@ function normalizePositionKind({ point, flight }) {
   return "observed";
 }
 
-function isTerminalFlight(flight, status = "") {
+function isTerminalFlight(flight: FlightAwareRecord | null | undefined, status = "") {
   if (!flight || typeof flight !== "object") return false;
   if (
     flight?.landingTimes?.actual != null ||
@@ -155,10 +204,10 @@ function isTerminalFlight(flight, status = "") {
   );
 }
 
-function selectBestFlight(flights) {
+function selectBestFlight(flights: unknown) {
   const list = Object.values(flights || {}).filter(
     (flight) => flight && typeof flight === "object",
-  );
+  ) as FlightAwareRecord[];
   if (list.length === 0) return null;
 
   return list
@@ -186,7 +235,7 @@ function selectBestFlight(flights) {
     .sort((a, b) => b.score - a.score || a.index - b.index)[0]?.flight || null;
 }
 
-function selectPositionPoint(flight) {
+function selectPositionPoint(flight: FlightAwareRecord | null | undefined) {
   const topLevel = readCoord(flight?.coord);
   if (topLevel) {
     return {
@@ -206,7 +255,17 @@ function selectPositionPoint(flight) {
     .sort((a, b) => (toNumber(b.timestamp) || 0) - (toNumber(a.timestamp) || 0))[0] || null;
 }
 
-function buildMetadata({ callsign, flight, fetchedAt, html }) {
+function buildMetadata({
+  callsign,
+  flight,
+  fetchedAt,
+  html,
+}: {
+  callsign: string;
+  flight: FlightAwareRecord;
+  fetchedAt: string;
+  html: unknown;
+}) {
   const origin =
     cleanString(flight?.origin?.icao) || cleanString(extractMetaContent(html, "origin"));
   const destination =
@@ -237,17 +296,25 @@ function buildMetadata({ callsign, flight, fetchedAt, html }) {
   };
 }
 
-export function buildFlightAwareFallbackUrl(callsign) {
+export function buildFlightAwareFallbackUrl(callsign: unknown) {
   const normalized = normalizeRouteCallsign(callsign);
   if (!normalized) return "";
   return `${FLIGHTAWARE_FALLBACK_BASE}/${encodeURIComponent(normalized)}`;
 }
 
-export function isFlightAwareFallbackEnabled(env = process.env) {
+export function isFlightAwareFallbackEnabled(env: EnvLike = process.env) {
   return String(env?.FLIGHTAWARE_FALLBACK_ENABLED || "true").toLowerCase() !== "false";
 }
 
-export function parseFlightAwareFallbackPage({ callsign, html, fetchedAt } = {}) {
+export function parseFlightAwareFallbackPage({
+  callsign,
+  html,
+  fetchedAt,
+}: {
+  callsign?: unknown;
+  html?: unknown;
+  fetchedAt?: string;
+} = {}): FlightAwareFallbackResult {
   const normalizedCallsign = normalizeRouteCallsign(callsign);
   const fetched = fetchedAt || new Date().toISOString();
   if (!normalizedCallsign) {
@@ -339,7 +406,13 @@ export function clearFlightAwareFallbackCache() {
   requestTimes.length = 0;
 }
 
-function checkRateLimit(nowMs, { maxRequests = 20, windowMs = 60_000 } = {}) {
+function checkRateLimit(
+  nowMs: number,
+  { maxRequests = 20, windowMs = 60_000 }: {
+    maxRequests?: number;
+    windowMs?: number;
+  } = {},
+) {
   while (requestTimes.length && nowMs - requestTimes[0] > windowMs) {
     requestTimes.shift();
   }
@@ -348,13 +421,13 @@ function checkRateLimit(nowMs, { maxRequests = 20, windowMs = 60_000 } = {}) {
   return true;
 }
 
-export async function getFlightAwareFallbackByCallsign(callsign, {
+export async function getFlightAwareFallbackByCallsign(callsign: unknown, {
   env = process.env,
   fetchImpl = globalThis.fetch?.bind(globalThis),
   now = Date.now,
   timeoutMs = FLIGHTAWARE_FALLBACK_TIMEOUT_MS,
   cacheStore = cache,
-} = {}) {
+}: FlightAwareFallbackOptions = {}): Promise<FlightAwareFallbackResult> {
   const nowMs = now();
   const fetchedAt = new Date(nowMs).toISOString();
   if (!isFlightAwareFallbackEnabled(env)) {
