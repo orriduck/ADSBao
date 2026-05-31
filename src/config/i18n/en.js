@@ -11,6 +11,9 @@ const en = {
     siteDescription:
       "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
   },
+  brand: {
+    wordmarkZh: "拍机宝",
+  },
   nav: {
     home: "ADSBao",
     homePage: "Home",
@@ -30,12 +33,8 @@ const en = {
       release: "Release",
       stack: "Stack",
       architecture: "Architecture",
-      scope: "Scope",
       nextWeb: "Next.js Web",
       mapsWeatherTraffic: "Maps · Weather · Traffic",
-      maps: "Maps",
-      weather: "Weather",
-      traffic: "Traffic",
     },
     dataSources: "Data sources",
     feedCount: "{count} feed",
@@ -88,11 +87,6 @@ const en = {
         title: "Bilibili Aircraft Footage",
         description:
           "Aircraft branding footage credit: 【视频分享】素材分享——飞机起飞降落 by 霸波奔bo奔波霸.",
-      },
-      colorReference: {
-        title: "Arknights: Endfield Color Reference",
-        description:
-          "Color direction references Arknights: Endfield, credited to Perlica and Zhuang Fangyi.",
       },
     },
   },
@@ -214,11 +208,52 @@ const en = {
     searchResults: "Search results",
     searchingAirports: "Searching airports...",
     noAirportMatched: "No airport matched \"{query}\".",
-    featuredAirports: "Featured airports",
-    locationPrompt: "Use current location",
-    locationPromptHint: "Click to sort this list by nearest airport.",
-    locationRequesting: "Requesting location...",
-    locationUnavailable: "Location unavailable. Click to try again.",
+    discovery: {
+      pageTitle: "Airports",
+      pageDescription: "Airport Situation Explorer",
+      nearby: {
+        title: "Nearby",
+        cta: "Find airports near me",
+        ctaHint: "Requests browser location, then loads a short nearby list.",
+        requesting: "Requesting location...",
+        loading: "Finding nearby airports...",
+        retry: "Try nearby again",
+        unavailable: "Location was unavailable. Search still works.",
+        empty: "No nearby airports were found for this position.",
+      },
+      spotterFavorites: {
+        title: "Spotter favorites",
+        description: "Airports with distinctive approaches, scenery, or viewing culture.",
+      },
+      majorInternationalHubs: {
+        title: "Major international hubs",
+        description: "Large global gateways for comparing long-haul traffic patterns.",
+      },
+      worldOfAirports: {
+        title: "World of Airports picks",
+        description: "Airports selected for players who enjoy varied terminal and route networks.",
+      },
+      cargoHubs: {
+        title: "Cargo hubs",
+        description: "Airports where logistics traffic gives the map a different rhythm.",
+      },
+      airportLabels: {
+        harborApproaches: "Harbor approaches",
+        parallelArrivals: "Bay parallel arrivals",
+        terraceTraffic: "Viewing terrace traffic",
+        transatlanticGate: "Transatlantic gateway",
+        globalBanks: "Global arrival banks",
+        asiaPacificHub: "Asia-Pacific hub",
+        southeastMegahub: "Southeast megahub",
+        midcontinentHub: "Midcontinent hub",
+        capitalLongHaul: "Capital long-haul",
+        andesGateway: "Andes gateway",
+        southeastAsiaHub: "Southeast Asia hub",
+        integratorHub: "Integrator superhub",
+        polarCargo: "Polar cargo stop",
+        nightSort: "Night-sort traffic",
+      },
+    },
   },
   map: {
     layers: "Map layers",
@@ -421,8 +456,8 @@ const en = {
   },
   changelog: {
     title: "Changelog",
-    description: "Product release history. Currently shipping {version}.",
-    descriptionFallback: "Product release history.",
+    description: "Currently shipping {version}.",
+    descriptionFallback: "",
     releases: "Releases",
     total: "{count} total",
     current: "Current",

@@ -62,6 +62,7 @@ export default function AircraftTable({
   focusLon = null,
   selectedAircraftId = "",
   selectedAirportIcao = "",
+  movementFilter = "all",
   onSelectAircraft,
   onSelectAirport,
   fill = true,
@@ -107,12 +108,21 @@ export default function AircraftTable({
         query,
         trafficFilter,
         typeFilter,
+        movementFilter,
       }),
-    [aircraftWithDist, altitudeLevel, query, trafficFilter, typeFilter],
+    [
+      aircraftWithDist,
+      altitudeLevel,
+      movementFilter,
+      query,
+      trafficFilter,
+      typeFilter,
+    ],
   );
 
   const filteredAirports = useMemo(() => {
     if (entityFilter === "aircraft") return [];
+    if (movementFilter !== "all") return [];
     const normalizedQuery = query.trim().toLowerCase();
     return airports
       .filter((airport) =>
@@ -123,7 +133,7 @@ export default function AircraftTable({
       .toSorted(
         (left, right) => (left.distanceNm || 0) - (right.distanceNm || 0),
       );
-  }, [airports, entityFilter, query]);
+  }, [airports, entityFilter, movementFilter, query]);
 
   const filteredAircraft = useMemo(() => {
     if (entityFilter === "airports") return [];
@@ -175,11 +185,13 @@ export default function AircraftTable({
         Array.isArray(typeFilter) ? typeFilter.join("|") : typeFilter,
         altitudeLevel,
         entityFilter,
+        movementFilter,
         selectedAircraftId,
       ].join("::"),
     [
       altitudeLevel,
       entityFilter,
+      movementFilter,
       query,
       selectedAircraftId,
       trafficFilter,
@@ -586,12 +598,18 @@ function filterAndSortAircraft({
   query = "",
   trafficFilter = "all",
   typeFilter = "all",
+  movementFilter = "all",
 }) {
   const normalizedQuery = query.trim().toLowerCase();
 
   return [...aircraft]
     .filter((item) =>
-      aircraftMatchesFilters(item, { trafficFilter, typeFilter, altitudeLevel }),
+      aircraftMatchesFilters(item, {
+        trafficFilter,
+        typeFilter,
+        altitudeLevel,
+        movementFilter,
+      }),
     )
     .filter((item) =>
       normalizedQuery ? aircraftSearchText(item).includes(normalizedQuery) : true,

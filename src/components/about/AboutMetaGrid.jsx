@@ -18,7 +18,7 @@ export default function AboutMetaGrid({ items }) {
         <div className="about-meta-version relative flex items-end justify-between gap-4 py-4">
           <div className="min-w-0">
             <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-atc-faint">
-              <span style={{ color: "var(--endf-accent-ink)" }}>/&zwj;/</span>{" "}
+              <span>/&zwj;/</span>{" "}
               {version.labelKey ? t(version.labelKey) : version.label}
             </span>
             <p className="mt-1 truncate font-display text-[30px] font-black leading-none text-atc-text">
@@ -36,22 +36,26 @@ export default function AboutMetaGrid({ items }) {
         {sections.map((section) => (
           <section
             key={section.label}
-            className="about-meta-section grid gap-3 py-3.5 sm:grid-cols-[86px_minmax(0,1fr)]"
+            className="about-meta-section grid gap-2.5 py-3.5"
           >
             <h2 className="font-mono text-[9px] uppercase tracking-[0.18em] text-atc-faint">
-              <span style={{ color: "var(--endf-accent-ink)" }}>/&zwj;/</span>{" "}
+              <span>/&zwj;/</span>{" "}
               {section.labelKey ? t(section.labelKey) : section.label}
             </h2>
-            <ul className="grid min-w-0 gap-2">
+            <ul
+              className={
+                section.layout === "compact-grid"
+                  ? "grid min-w-0 grid-cols-2 gap-x-4 gap-y-2"
+                  : "grid min-w-0 gap-2"
+              }
+            >
               {section.items.map((item) => (
                 <li
                   key={typeof item === "string" ? item : item.value}
-                  className="grid grid-cols-[10px_minmax(0,1fr)] items-baseline gap-2 text-[12px] font-semibold leading-snug text-atc-text"
+                  className={`min-w-0 text-[12px] font-semibold leading-snug text-atc-text ${
+                    section.layout === "compact-grid" ? "even:text-right" : ""
+                  }`}
                 >
-                  <span
-                    aria-hidden="true"
-                    className="endf-diamond endf-diamond--muted mt-0.5"
-                  />
                   <span className="min-w-0">{resolveCopy(item, t)}</span>
                 </li>
               ))}

@@ -129,6 +129,12 @@ export function matchesTrafficFilter(aircraft, trafficFilter) {
   return true;
 }
 
+export function matchesMovementFilter(aircraft, movementFilter) {
+  if (movementFilter === "departures") return aircraft?.movement === "DEPARTURE";
+  if (movementFilter === "arrivals") return aircraft?.movement === "ARRIVAL";
+  return true;
+}
+
 export function matchesTypeFilter(aircraft, typeFilter) {
   if (typeFilter === "all" || !typeFilter) return true;
   if (Array.isArray(typeFilter)) {
@@ -152,10 +158,16 @@ export function matchesAltitudeLevel(aircraft, altitudeLevel) {
 
 export function aircraftMatchesFilters(
   aircraft,
-  { trafficFilter = "all", typeFilter = "all", altitudeLevel = "all" } = {},
+  {
+    trafficFilter = "all",
+    typeFilter = "all",
+    altitudeLevel = "all",
+    movementFilter = "all",
+  } = {},
 ) {
   return (
     matchesTrafficFilter(aircraft, trafficFilter) &&
+    matchesMovementFilter(aircraft, movementFilter) &&
     matchesTypeFilter(aircraft, typeFilter) &&
     matchesAltitudeLevel(aircraft, altitudeLevel)
   );

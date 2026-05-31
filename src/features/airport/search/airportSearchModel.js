@@ -1,5 +1,3 @@
-import { getDistanceNm } from "../../../utils/aircraftTrafficIntent.js";
-
 const normalizeAirportQuery = (value) =>
   String(value || "")
     .trim()
@@ -13,71 +11,71 @@ const airportSearchText = (airport) =>
 const airportKey = (airport) =>
   normalizeAirportQuery(airport?.icao || airport?.code || airport?.name);
 
-export const LOCATION_PROMPT_ITEM_ID = "current-location-airport";
+export const NEARBY_DISCOVERY_ITEM_ID = "nearby-airports-prompt";
 
 const airportDisplayItem = (airport) => ({
   type: "airport",
   airport,
 });
 
-export function getFeaturedAirportDisplayItems({
-  featuredAirports = [],
-  locationStatus = "idle",
+const hasAirportIdentity = (airport) =>
+  Boolean(
+    normalizeAirportQuery(
+      airport?.icao || airport?.code || airport?.iata || airport?.name,
+    ),
+  );
+
+export function getNearbyAirportDisplayItems({
+  airports = [],
+  status = "idle",
+  errorMessage = "",
 } = {}) {
-  const airportItems = featuredAirports.map(airportDisplayItem);
-  if (locationStatus === "resolved") return airportItems;
+  if (status !== "resolved") {
+    return [
+      {
+        type: "nearby-prompt",
+        id: NEARBY_DISCOVERY_ITEM_ID,
+        status,
+        errorMessage: String(errorMessage || ""),
+      },
+    ];
+  }
+
+  const airportItems = airports.filter(hasAirportIdentity).map(airportDisplayItem);
+  if (airportItems.length) return airportItems;
 
   return [
     {
-      type: "location-prompt",
-      id: LOCATION_PROMPT_ITEM_ID,
-      status: locationStatus,
+      type: "nearby-empty",
+      id: "nearby-airports-empty",
+      status,
     },
-    ...airportItems,
   ];
 }
 
-export function orderFeaturedAirportsByNearest({
-  featuredAirports = [],
-  location = null,
-} = {}) {
-  if (!featuredAirports.length || !location) return featuredAirports;
-
-  const distances = featuredAirports
-    .map((airport, index) => ({
-      index,
-      distanceNm: getDistanceNm(location.lat, location.lon, airport?.lat, airport?.lon),
+export function getAirportDiscoveryTopics({ topics = [] } = {}) {
+  return topics
+    .map((topic) => ({
+      ...topic,
+      airports: (topic?.airports || []).filter(hasAirportIdentity),
     }))
-    .filter(({ distanceNm }) => Number.isFinite(distanceNm))
-    .toSorted((left, right) => left.distanceNm - right.distanceNm);
-
-  const nearestIndex = distances[0]?.index;
-  if (!Number.isInteger(nearestIndex) || nearestIndex <= 0) {
-    return featuredAirports;
-  }
-
-  const nearestAirport = featuredAirports[nearestIndex];
-  return [
-    nearestAirport,
-    ...featuredAirports.slice(0, nearestIndex),
-    ...featuredAirports.slice(nearestIndex + 1),
-  ];
+    .filter((topic) => topic.id && topic.airports.length);
 }
 
 export function mergeAirportSearchRows({
   query = "",
-  featuredAirports = [],
+  staticAirports = [],
   results = [],
 } = {}) {
   const normalizedQuery = normalizeAirportQuery(query);
   if (!normalizedQuery) return [];
 
-  const matchesFeatured = featuredAirports.filter((airport) =>
+  const staticMatches = staticAirports.filter((airport) =>
     airportSearchText(airport).includes(normalizedQuery),
   );
   const seen = new Set();
 
-  return [...matchesFeatured, ...results].filter((airport) => {
+  return [...staticMatches, ...results].filter((airport) => {
     const key = airportKey(airport);
     if (!key || seen.has(key)) return false;
     seen.add(key);
@@ -103,13 +101,13 @@ export function createAirportSelection(airport = {}) {
 export function resolveSubmittedAirport({
   query = "",
   rows = [],
-  featuredAirports = [],
+  staticAirports = [],
 } = {}) {
   const normalizedQuery = normalizeAirportQuery(query);
   if (!normalizedQuery) return null;
 
   return (
-    [...rows, ...featuredAirports].find((airport) => {
+    [...rows, ...staticAirports].find((airport) => {
       const icao = normalizeAirportQuery(airport.icao);
       const iata = normalizeAirportQuery(airport.iata);
       const code = normalizeAirportQuery(airport.code);

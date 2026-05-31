@@ -55,11 +55,15 @@ export default function SidebarViewSwitch({
             label={t("sidebar.departures")}
             value={<NumberFlow value={departureCount} />}
             unit="OUT"
+            active={activeView === "departures"}
+            onClick={() => onViewChange?.("departures")}
           />
           <SidebarMetricCard
             label={t("sidebar.arrivals")}
             value={<NumberFlow value={arrivalCount} />}
             unit="IN"
+            active={activeView === "arrivals"}
+            onClick={() => onViewChange?.("arrivals")}
           />
         </>
       )}

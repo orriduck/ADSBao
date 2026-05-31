@@ -16,5 +16,27 @@ assert.equal(
   airportDisplayName({ icao: "XXXX", name: "Example Airport" }, "zh-CN"),
   "Example Airport",
 );
+assert.equal(
+  airportDisplayName(
+    {
+      icao: "ZSPD",
+      name: "Shanghai Pudong International Airport",
+      localizedName: "上海浦东国际机场",
+    },
+    "zh-CN",
+  ),
+  "上海浦东国际机场",
+);
+assert.equal(
+  airportDisplayName(
+    {
+      icao: "KDEN",
+      name: "Denver International Airport",
+      localizedName: "   ",
+    },
+    "zh-CN",
+  ),
+  "Denver International Airport",
+);
 
 console.log("airport.test.js: ok");

@@ -1,6 +1,9 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from "next-intl/plugin";
 
 import { resolveSentryPluginOptions } from "./src/config/sentryConfig.js";
+
+const withNextIntl = createNextIntlPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -42,6 +45,6 @@ const nextConfig = {
 };
 
 export default withSentryConfig(
-  nextConfig,
+  withNextIntl(nextConfig),
   resolveSentryPluginOptions(process.env),
 );

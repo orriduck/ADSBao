@@ -37,6 +37,7 @@
     "lucide-react": "^0.562.0",
     "maplibre-gl": "^5.24.0",
     "next": "^16.0.10",
+    "next-intl": "^4.13.0",
     "ogl": "^1.0.11",
     "postprocessing": "^6.39.1",
     "radix-ui": "^1.4.3",

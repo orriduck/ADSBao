@@ -10,6 +10,7 @@ export const ABOUT_BUILD_META = {
     {
       label: "Stack",
       labelKey: "about.meta.stack",
+      layout: "compact-grid",
       items: ["React 19", "Next 16", "Tailwind CSS v4", "Leaflet"],
     },
     {
@@ -20,15 +21,6 @@ export const ABOUT_BUILD_META = {
         "Vercel route handlers",
         "Supabase + OurAirports directory",
         "Same-origin aviation proxy",
-      ],
-    },
-    {
-      label: "Scope",
-      labelKey: "about.meta.scope",
-      items: [
-        { value: "Maps", valueKey: "about.meta.maps" },
-        { value: "Weather", valueKey: "about.meta.weather" },
-        { value: "Traffic", valueKey: "about.meta.traffic" },
       ],
     },
   ],
@@ -131,16 +123,6 @@ export const ABOUT_DATA_SOURCES = [
       "Aircraft branding footage credit: 【视频分享】素材分享——飞机起飞降落 by 霸波奔bo奔波霸.",
     host: "bilibili.com",
     href: "https://www.bilibili.com/video/BV1Aw4m1d7HJ/",
-  },
-  {
-    glyph: "COLOR",
-    titleKey: "about.sources.colorReference.title",
-    title: "Arknights: Endfield Color Reference",
-    descriptionKey: "about.sources.colorReference.description",
-    description:
-      "Color direction references Arknights: Endfield, credited to Perlica and Zhuang Fangyi.",
-    host: "endfield.hypergryph.com",
-    href: "https://endfield.hypergryph.com/",
   },
 ];
 

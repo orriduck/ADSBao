@@ -49,6 +49,22 @@ import {
 }
 
 {
+  const summary = normalizeWikipediaSummary({
+    title: '丹佛國際機場',
+    displaytitle: '<span class="mw-page-title-main">丹佛国际机场</span>',
+    extract: '丹佛国际机场，是一座位于美国科罗拉多州丹佛市的民用机场。',
+    content_urls: {
+      desktop: {
+        page: 'https://zh.wikipedia.org/wiki/丹佛國際機場',
+      },
+    },
+  })
+
+  assert.equal(summary.title, '丹佛国际机场')
+  assert.match(summary.extract, /科罗拉多州/)
+}
+
+{
   assert.equal(normalizeWikipediaSummary({ title: 'Missing page' }), null)
 }
 
@@ -157,6 +173,8 @@ import {
   assert.match(requests[0].url, /en\.wikipedia\.org\/w\/api\.php/)
   assert.match(requests[1].url, /zh\.wikipedia\.org\/api\/rest_v1\/page\/summary\//)
   assert.equal(requests[1].headers['Accept-Language'], 'zh-CN,zh;q=0.9')
+  assert.match(requests[0].headers['User-Agent'], /^ADSBao\//)
+  assert.match(requests[1].headers['User-Agent'], /^ADSBao\//)
 }
 
 // When no langlink exists, fall back to English so the card never shows
@@ -206,4 +224,3 @@ import {
   assert.ok(requests.some((url) => url.includes('en.wikipedia.org/w/api.php')))
   assert.ok(requests.some((url) => url.includes('en.wikipedia.org/api/rest_v1/page/summary/')))
 }
-

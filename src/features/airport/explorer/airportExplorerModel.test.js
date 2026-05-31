@@ -31,6 +31,17 @@ assert.equal(providedProfile.icao, "KSEA");
 assert.equal(providedProfile.iata, "SEA");
 assert.equal(providedProfile.city, "Seattle");
 
+const localizedProfile = resolveAirportProfile({
+  icao: "zspd",
+  airport: {
+    icao: "ZSPD",
+    iata: "PVG",
+    name: "Shanghai Pudong International Airport",
+    localizedName: "上海浦东国际机场",
+  },
+});
+assert.equal(localizedProfile.localizedName, "上海浦东国际机场");
+
 const enriched = enrichAircraftWithRoutes({
   airportProfile: fallbackProfile,
   aircraft: [

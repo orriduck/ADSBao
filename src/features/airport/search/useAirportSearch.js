@@ -1,63 +1,50 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  AIRPORT_SEARCH_CONFIG,
-  FEATURED_AIRPORTS,
-} from "../../../config/airportSearch.js";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AIRPORT_SEARCH_CONFIG } from "../../../config/airportSearch.js";
+import { AIRPORT_DISCOVERY_TOPICS } from "../../../config/airportDiscovery.js";
 import { airportDirectoryClient } from "../directory/airportDirectoryClient.js";
 import {
-  getFeaturedAirportDisplayItems,
+  getAirportDiscoveryTopics,
   getAirportResultCountLabel,
   mergeAirportSearchRows,
-  orderFeaturedAirportsByNearest,
 } from "./airportSearchModel.js";
 
 export function useAirportSearch({
   directoryClient = airportDirectoryClient,
-  featuredAirports = FEATURED_AIRPORTS,
+  discoveryTopics = AIRPORT_DISCOVERY_TOPICS,
   config = AIRPORT_SEARCH_CONFIG,
 } = {}) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
-  const [locationStatus, setLocationStatus] = useState("idle");
   const activeRequestId = useRef(0);
 
-  const orderedFeaturedAirports = useMemo(
-    () =>
-      orderFeaturedAirportsByNearest({
-        featuredAirports,
-        location: userLocation,
-      }),
-    [featuredAirports, userLocation],
+  const airportDiscoveryTopics = useMemo(
+    () => getAirportDiscoveryTopics({ topics: discoveryTopics }),
+    [discoveryTopics],
+  );
+
+  const staticDiscoveryAirports = useMemo(
+    () => airportDiscoveryTopics.flatMap((topic) => topic.airports),
+    [airportDiscoveryTopics],
   );
 
   const rows = useMemo(
     () =>
       mergeAirportSearchRows({
         query,
-        featuredAirports: orderedFeaturedAirports,
+        staticAirports: staticDiscoveryAirports,
         results,
       }),
-    [orderedFeaturedAirports, query, results],
+    [query, results, staticDiscoveryAirports],
   );
 
   const countLabel = getAirportResultCountLabel({
     loading,
     rowCount: rows.length,
   });
-
-  const featuredAirportItems = useMemo(
-    () =>
-      getFeaturedAirportDisplayItems({
-        featuredAirports: orderedFeaturedAirports,
-        locationStatus,
-      }),
-    [locationStatus, orderedFeaturedAirports],
-  );
 
   useEffect(() => {
     const timer = setTimeout(
@@ -97,40 +84,12 @@ export function useAirportSearch({
     return () => clearTimeout(timer);
   }, [config, directoryClient, query]);
 
-  const requestNearestAirport = useCallback(() => {
-    if (!globalThis.navigator?.geolocation) {
-      setLocationStatus("unavailable");
-      return;
-    }
-
-    setLocationStatus("requesting");
-    globalThis.navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        });
-        setLocationStatus("resolved");
-      },
-      () => {
-        setLocationStatus("unavailable");
-      },
-      {
-        enableHighAccuracy: false,
-        maximumAge: 10 * 60 * 1000,
-        timeout: 2500,
-      },
-    );
-  }, []);
-
   return {
     query,
     setQuery,
     rows,
-    featuredAirports: orderedFeaturedAirports,
-    featuredAirportItems,
-    locationStatus,
-    requestNearestAirport,
+    discoveryTopics: airportDiscoveryTopics,
+    staticDiscoveryAirports,
     loading,
     error,
     countLabel,

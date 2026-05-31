@@ -26,9 +26,8 @@ export default function AboutDataSources({ sources, onOpenExternalLink }) {
             <a
               {...getExternalLinkOpenTarget(source.href)}
               onClick={(event) => onOpenExternalLink(event, source.href)}
-              className="about-data-source-row group endf-underline -mx-6 grid grid-cols-[14px_64px_minmax(0,1fr)] items-center gap-3 px-6 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
+              className="about-data-source-row group endf-underline -mx-6 grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3 px-6 py-3 transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
             >
-              <span aria-hidden="true" className="endf-diamond endf-diamond--hollow" />
               <span className="endf-tab endf-tab--code">
                 <span>{source.glyph}</span>
               </span>

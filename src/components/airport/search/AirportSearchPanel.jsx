@@ -7,10 +7,8 @@ import {
   createAirportSelection,
   resolveSubmittedAirport,
 } from "@/features/airport/search/airportSearchModel.js";
-import {
-  AirportSearchResults,
-  FeaturedAirports,
-} from "./AirportSearchResults.jsx";
+import { AirportSearchResults } from "./AirportSearchResults.jsx";
+import AirportDiscoveryPanel from "./AirportDiscoveryPanel.jsx";
 import { useAirportSearch } from "@/features/airport/search/useAirportSearch.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
@@ -20,10 +18,8 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     query,
     setQuery,
     rows,
-    featuredAirports,
-    featuredAirportItems,
-    locationStatus,
-    requestNearestAirport,
+    discoveryTopics,
+    staticDiscoveryAirports,
     loading,
     error,
     countLabel,
@@ -38,13 +34,17 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     const airport = resolveSubmittedAirport({
       query,
       rows,
-      featuredAirports,
+      staticAirports: staticDiscoveryAirports,
     });
     if (airport) openAirport(airport);
   };
 
   return (
-    <DitherPageShell className="search-screen">
+    <DitherPageShell
+      className="search-screen"
+      title={t("search.discovery.pageTitle")}
+      description={t("search.discovery.pageDescription")}
+    >
       <form
         onSubmit={doSearch}
         className="search-input mx-6 mb-4 flex-none flex items-center gap-3 px-4 py-3"
@@ -72,11 +72,8 @@ export default function AirportSearchPanel({ onOpenAirport }) {
             onOpen={openAirport}
           />
         ) : (
-          <FeaturedAirports
-            airports={featuredAirports}
-            items={featuredAirportItems}
-            locationStatus={locationStatus}
-            onRequestLocation={requestNearestAirport}
+          <AirportDiscoveryPanel
+            topics={discoveryTopics}
             onOpen={openAirport}
           />
         )}
