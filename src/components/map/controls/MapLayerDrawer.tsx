@@ -42,9 +42,13 @@ export default function MapLayerDrawer({
   showMapLabels,
   showBeams,
   showNavaidMarkers,
+  userLocationActive = false,
+  userLocationPending = false,
+  userLocationNotice = "",
   onToggleMapLabels,
   onToggleBeams,
   onToggleNavaidMarkers,
+  onLocateUser = null,
 }) {
   const { t } = useI18n();
   const state = {
@@ -108,7 +112,51 @@ export default function MapLayerDrawer({
             </ToolbarButton>
           );
         })}
+        {onLocateUser && (
+          <ToolbarButton
+            tone="rail"
+            active={userLocationActive}
+            aria-label={
+              userLocationPending
+                ? t("mapLayers.locatingUser")
+                : userLocationActive
+                  ? t("mapLayers.updateUserLocation")
+                  : t("mapLayers.showUserLocation")
+            }
+            aria-pressed={userLocationActive}
+            title={
+              userLocationPending
+                ? t("mapLayers.locatingUser")
+                : userLocationActive
+                  ? t("mapLayers.updateUserLocation")
+                  : t("mapLayers.showUserLocation")
+            }
+            disabled={userLocationPending}
+            onClick={onLocateUser}
+          >
+            <MapControlIcon iconKey="locateFixed" />
+          </ToolbarButton>
+        )}
       </Toolbar>
+      {userLocationNotice ? (
+        <div
+          className={cn(
+            "absolute right-0 top-[calc(100%+8px)] z-[2] w-max max-w-[220px]",
+            "rounded-[10px] border border-[var(--atc-line-strong)]",
+            "bg-[color-mix(in_oklab,var(--atc-card)_94%,transparent)]",
+            "px-3 py-2 text-right font-mono text-[10px] font-semibold leading-tight text-atc-text",
+            "shadow-[var(--app-panel-shadow)]",
+            "[.airport-map-menu--mobile_&]:left-1/2",
+            "[.airport-map-menu--mobile_&]:right-auto",
+            "[.airport-map-menu--mobile_&]:-translate-x-1/2",
+            "[.airport-map-menu--mobile_&]:text-center",
+          )}
+          role="status"
+          aria-live="polite"
+        >
+          {userLocationNotice}
+        </div>
+      ) : null}
     </div>
   );
 }

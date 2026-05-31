@@ -7,6 +7,7 @@ import {
   Gauge,
   Layers,
   ListFilter,
+  LocateFixed,
   MapPinned,
   Monitor,
   Moon,
@@ -28,6 +29,7 @@ export const MAP_CONTROL_ICONS = {
   gauge: Gauge,
   layers: Layers,
   listFilter: ListFilter,
+  locateFixed: LocateFixed,
   mapPinned: MapPinned,
   monitor: Monitor,
   moon: Moon,
@@ -59,6 +61,8 @@ export function MapControlIcon({ iconKey }) {
       return <Layers />;
     case "listFilter":
       return <ListFilter />;
+    case "locateFixed":
+      return <LocateFixed />;
     case "mapPinned":
       return <MapPinned />;
     case "monitor":

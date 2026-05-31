@@ -10,6 +10,10 @@ export default function ExplorerMapMenu({
   lastUpdated = null,
   routeProvider = "",
   loadingStatus = "",
+  userLocationActive = false,
+  userLocationPending = false,
+  userLocationNotice = "",
+  onLocateUser = null,
   onFitToTrace = null,
   zoomDisabled = false,
 }: Record<string, any> = {}) {
@@ -40,11 +44,15 @@ export default function ExplorerMapMenu({
         showMapLabels={showMapLabels}
         showRunwayBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
+        userLocationActive={userLocationActive}
+        userLocationPending={userLocationPending}
+        userLocationNotice={userLocationNotice}
         showSidebarToggle={isMobile}
         onZoom={setMapZoom}
         onToggleMapLabels={toggleMapLabels}
         onToggleRunwayBeams={toggleRunwayBeams}
         onToggleNavaidMarkers={toggleNavaidMarkers}
+        onLocateUser={onLocateUser}
         onToggleSidebar={toggleSidebar}
         onFitToTrace={onFitToTrace}
       />

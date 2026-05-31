@@ -21,11 +21,15 @@ export default function MapControlBar({
   showMapLabels = false,
   showRunwayBeams = true,
   showNavaidMarkers = false,
+  userLocationActive = false,
+  userLocationPending = false,
+  userLocationNotice = "",
   showSidebarToggle = true,
   onZoom,
   onToggleMapLabels,
   onToggleRunwayBeams,
   onToggleNavaidMarkers,
+  onLocateUser = null,
   onToggleSidebar,
   onFitToTrace = null,
 }) {
@@ -73,9 +77,13 @@ export default function MapControlBar({
         showMapLabels={showMapLabels}
         showBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
+        userLocationActive={userLocationActive}
+        userLocationPending={userLocationPending}
+        userLocationNotice={userLocationNotice}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}
+        onLocateUser={onLocateUser}
       />
 
       <MapControlRail
