@@ -51,25 +51,37 @@ export default function NavaidPreviewMetadataCard({
           <span className="endf-label">{t("preview.navaidPreview")}</span>
           <div className="mt-1 flex min-w-0 items-baseline gap-2">
             <span
-              className="notranslate airport-sidebar-display-mono airport-sidebar-display-mono--hero text-[24px] font-extrabold text-atc-text"
+              className="notranslate airport-sidebar-display-mono airport-sidebar-display-mono--hero text-[28px] font-extrabold leading-none text-atc-text"
               translate="no"
             >
               {ident}
             </span>
-            {type ? (
-              <span
-                className="notranslate font-[var(--font-mono)] text-[10px] font-bold uppercase tracking-normal text-atc-dim"
-                translate="no"
-              >
-                {type}
-              </span>
-            ) : null}
           </div>
-          {name ? (
-            <h2 className="mt-1 text-[14px] font-semibold leading-tight text-atc-text">
-              {name}
-            </h2>
-          ) : null}
+          <dl className="mt-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3">
+            {name ? (
+              <div className="min-w-0">
+                <dt className="font-[var(--font-mono)] text-[7px] font-semibold uppercase leading-none tracking-normal text-atc-faint">
+                  {t("preview.navaidName")}
+                </dt>
+                <dd className="mt-1 truncate text-[15px] font-semibold leading-tight text-atc-text">
+                  {name}
+                </dd>
+              </div>
+            ) : null}
+            {type ? (
+              <div className="min-w-[42px] text-right">
+                <dt className="font-[var(--font-mono)] text-[7px] font-semibold uppercase leading-none tracking-normal text-atc-faint">
+                  {t("preview.navaidType")}
+                </dt>
+                <dd
+                  className="notranslate mt-1 font-[var(--font-mono)] text-[12px] font-bold uppercase leading-tight tracking-normal text-atc-dim"
+                  translate="no"
+                >
+                  {type}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
         </div>
         <RadioTower
           aria-hidden="true"

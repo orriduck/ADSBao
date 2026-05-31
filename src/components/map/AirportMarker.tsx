@@ -70,10 +70,6 @@ export default function AirportMarker({
   if (showAreaCount) {
     details.push({ key: "near", variant: "near", label: "NEAR", value: areaCount });
   }
-  const runways = airport?.runways;
-  if (Array.isArray(runways) && runways.length) {
-    details.push({ key: "rwy", label: "RWY", value: runways.length });
-  }
   const approachCount = Number(airport?.approachCount);
   if (Number.isFinite(approachCount) && approachCount > 0) {
     details.push({ key: "app", label: "APP", value: approachCount });
