@@ -2743,6 +2743,71 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
+.user-location-leaflet-icon {
+    background: transparent;
+    border: 0;
+    pointer-events: none;
+}
+
+.user-location-marker {
+    display: grid;
+    height: 18px;
+    isolation: isolate;
+    place-items: center;
+    pointer-events: none;
+    position: relative;
+    width: 18px;
+}
+
+.user-location-marker__pulse {
+    border: 1.5px solid color-mix(in oklab, var(--atc-accent) 72%, transparent);
+    border-radius: 999px;
+    box-shadow: 0 0 16px color-mix(in oklab, var(--atc-accent) 24%, transparent);
+    height: var(--user-location-pulse-diameter, 18px);
+    position: absolute;
+    width: var(--user-location-pulse-diameter, 18px);
+    z-index: 0;
+    animation: user-location-pulse 1s ease-out infinite;
+}
+
+.user-location-marker__diamond {
+    background: var(--atc-click-fg);
+    border: 2px solid color-mix(in oklab, var(--atc-bg) 88%, var(--atc-text));
+    border-radius: 2px;
+    box-shadow:
+        0 0 0 2px color-mix(in oklab, var(--atc-click-bg) 72%, transparent),
+        0 3px 12px color-mix(in oklab, var(--atc-bg) 62%, transparent);
+    height: 13px;
+    position: relative;
+    transform: rotate(45deg);
+    width: 13px;
+    z-index: 1;
+}
+
+@keyframes user-location-pulse {
+    0% {
+        opacity: 0.78;
+        transform: scale(0.08);
+    }
+
+    72% {
+        opacity: 0.18;
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .user-location-marker__pulse {
+        animation: none;
+        opacity: 0.38;
+        transform: scale(1);
+    }
+}
+
 /* Marker stack (shadow only rendered for selected aircraft):
    1. .aircraft-pointer-glyph (wrapper) — heading rotation + wake-class scale.
       Doesn't move out of plane, so the inner shadow can sit "on the ground".

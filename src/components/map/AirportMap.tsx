@@ -10,6 +10,7 @@ import MapRangeLegend from "./MapRangeLegend";
 import NearbyAirportLayer from "./NearbyAirportLayer";
 import NavaidLabelLayer from "./NavaidLabelLayer";
 import AircraftPosition from "./AircraftPosition";
+import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
 import ProcedureSegmentLayer from "./ProcedureSegmentLayer";
@@ -78,6 +79,7 @@ export default function AirportMap({
   loadingOverlayVariant = "airport",
   loadingOverlayCallsign = "",
   loadingOverlaySources = {},
+  userLocation = null,
   children = null,
 }: Record<string, any>) {
   const { locale } = useI18n();
@@ -324,6 +326,7 @@ export default function AirportMap({
           />
           <SelectedAircraftTrace theme={currentTheme} />
           <MapRangeLegend />
+          <UserLocationMarker location={userLocation} />
           {children}
           {visibleAircraft.map((ac) => (
             <AircraftPosition

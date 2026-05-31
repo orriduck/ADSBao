@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar";
 import {
@@ -26,6 +26,8 @@ import {
   areCriticalLoadingRequestsSettled,
   resolveAircraftLoadingOverlayState,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
+import { resolveUserLocationRequest } from "@/features/airport/map/userLocationModel";
+import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -41,6 +43,7 @@ export default function AirportExplorer(props) {
 }
 
 function AirportExplorerContent({ icao = "", airport = null, onBack }) {
+  const { t } = useI18n();
   const {
     desktopSidebarWidth,
     sidebarOpen,
@@ -63,6 +66,9 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     setSelectedNavaidKey,
     mapFollowsAircraft,
   } = useExplorerUi();
+  const [userLocation, setUserLocation] = useState(null);
+  const [userLocationPending, setUserLocationPending] = useState(false);
+  const [userLocationNotice, setUserLocationNotice] = useState("");
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
@@ -133,6 +139,59 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
     };
   }, [isMobile]);
+
+  useEffect(() => {
+    if (!userLocationNotice) return undefined;
+    const timer = window.setTimeout(() => setUserLocationNotice(""), 3400);
+    return () => window.clearTimeout(timer);
+  }, [userLocationNotice]);
+
+  const locateUser = useCallback(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setUserLocationNotice(t("map.locationUnavailable"));
+      return;
+    }
+
+    setUserLocationPending(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocationPending(false);
+        const result = resolveUserLocationRequest({
+          coords: position.coords,
+          focalLat: airportProfile.lat,
+          focalLon: airportProfile.lon,
+        });
+
+        if (!result.location) {
+          setUserLocation(null);
+          setUserLocationNotice(t("map.locationUnavailable"));
+          return;
+        }
+
+        if (result.tooFar) {
+          setUserLocation(null);
+          setUserLocationNotice(t("map.locationTooFar"));
+          return;
+        }
+
+        setUserLocation(result.location);
+        setUserLocationNotice("");
+      },
+      (error) => {
+        setUserLocationPending(false);
+        setUserLocationNotice(
+          error?.code === error?.PERMISSION_DENIED
+            ? t("map.locationDenied")
+            : t("map.locationUnavailable"),
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10_000,
+        maximumAge: 0,
+      },
+    );
+  }, [airportProfile.lat, airportProfile.lon, t]);
 
   const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,
@@ -230,6 +289,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
               lastUpdated={traffic.lastUpdated}
               routeProvider={traffic.routeProvider}
               loadingStatus={sourceLoadingStatus}
+              userLocationActive={Boolean(userLocation)}
+              userLocationPending={userLocationPending}
+              userLocationNotice={userLocationNotice}
+              onLocateUser={locateUser}
             />
           )}
 
@@ -262,6 +325,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             showProcedureFixLabels
             loadingOverlayActive={loadingOverlayActive}
             loadingOverlaySources={loadingOverlaySources}
+            userLocation={userLocation}
           />
 
           {isMobile && sidebarOpen && (
