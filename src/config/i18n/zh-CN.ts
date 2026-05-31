@@ -290,9 +290,9 @@ const zhCN = {
     approachBeams: "进近光束",
     showApproachBeams: "显示进近光束",
     hideApproachBeams: "隐藏进近光束",
-    routingPointBadges: "导航台标签",
-    showRoutingPointBadges: "显示导航台标签",
-    hideRoutingPointBadges: "隐藏导航台标签",
+    navaidMarkers: "导航台标记",
+    showNavaidMarkers: "显示导航台标记",
+    hideNavaidMarkers: "隐藏导航台标记",
   },
   lostSignal: {
     subtitle: "信号丢失",

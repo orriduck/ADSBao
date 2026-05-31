@@ -68,10 +68,10 @@ function airportExplorerUiReducer(state, action) {
       return { ...state, showMapLabels: toggleValue(state.showMapLabels) };
     case "toggleRunwayBeams":
       return { ...state, showRunwayBeams: toggleValue(state.showRunwayBeams) };
-    case "toggleRoutingPointBadges":
+    case "toggleNavaidMarkers":
       return {
         ...state,
-        showRoutingPointBadges: toggleValue(state.showRoutingPointBadges),
+        showNavaidMarkers: toggleValue(state.showNavaidMarkers),
       };
     case "setTrafficFilter":
       return { ...state, trafficFilter: action.trafficFilter };
@@ -151,7 +151,7 @@ export function ExplorerUiProvider({ children }) {
     mapZoom,
     showMapLabels,
     showRunwayBeams,
-    showRoutingPointBadges,
+    showNavaidMarkers,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -196,8 +196,8 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "toggleRunwayBeams" });
   }, []);
 
-  const toggleRoutingPointBadges = useCallback(() => {
-    dispatch({ type: "toggleRoutingPointBadges" });
+  const toggleNavaidMarkers = useCallback(() => {
+    dispatch({ type: "toggleNavaidMarkers" });
   }, []);
 
   const setTrafficFilter = useCallback((trafficFilter) => {
@@ -257,7 +257,7 @@ export function ExplorerUiProvider({ children }) {
       mapFollowsAircraft,
       showMapLabels,
       showRunwayBeams,
-      showRoutingPointBadges,
+      showNavaidMarkers,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -275,7 +275,7 @@ export function ExplorerUiProvider({ children }) {
       closeSidebar,
       toggleMapLabels,
       toggleRunwayBeams,
-      toggleRoutingPointBadges,
+      toggleNavaidMarkers,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
@@ -292,7 +292,7 @@ export function ExplorerUiProvider({ children }) {
       mapFollowsAircraft,
       showMapLabels,
       showRunwayBeams,
-      showRoutingPointBadges,
+      showNavaidMarkers,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -310,7 +310,7 @@ export function ExplorerUiProvider({ children }) {
       closeSidebar,
       toggleMapLabels,
       toggleRunwayBeams,
-      toggleRoutingPointBadges,
+      toggleNavaidMarkers,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,

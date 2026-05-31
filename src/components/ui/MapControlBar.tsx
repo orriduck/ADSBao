@@ -20,12 +20,12 @@ export default function MapControlBar({
   zoomDisabled = false,
   showMapLabels = false,
   showRunwayBeams = true,
-  showRoutingPointBadges = true,
+  showNavaidMarkers = false,
   showSidebarToggle = true,
   onZoom,
   onToggleMapLabels,
   onToggleRunwayBeams,
-  onToggleRoutingPointBadges,
+  onToggleNavaidMarkers,
   onToggleSidebar,
   onFitToTrace = null,
 }) {
@@ -72,10 +72,10 @@ export default function MapControlBar({
         open={layerDrawerOpen}
         showMapLabels={showMapLabels}
         showBeams={showRunwayBeams}
-        showBadges={showRoutingPointBadges}
+        showNavaidMarkers={showNavaidMarkers}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
-        onToggleBadges={onToggleRoutingPointBadges}
+        onToggleNavaidMarkers={onToggleNavaidMarkers}
       />
 
       <MapControlRail

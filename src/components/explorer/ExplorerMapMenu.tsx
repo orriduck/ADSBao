@@ -19,12 +19,12 @@ export default function ExplorerMapMenu({
     mapFollowsAircraft,
     showMapLabels,
     showRunwayBeams,
-    showRoutingPointBadges,
+    showNavaidMarkers,
     setMapZoom,
     toggleSidebar,
     toggleMapLabels,
     toggleRunwayBeams,
-    toggleRoutingPointBadges,
+    toggleNavaidMarkers,
   } = useExplorerUi();
 
   return (
@@ -39,12 +39,12 @@ export default function ExplorerMapMenu({
         zoomDisabled={zoomDisabled}
         showMapLabels={showMapLabels}
         showRunwayBeams={showRunwayBeams}
-        showRoutingPointBadges={showRoutingPointBadges}
+        showNavaidMarkers={showNavaidMarkers}
         showSidebarToggle={isMobile}
         onZoom={setMapZoom}
         onToggleMapLabels={toggleMapLabels}
         onToggleRunwayBeams={toggleRunwayBeams}
-        onToggleRoutingPointBadges={toggleRoutingPointBadges}
+        onToggleNavaidMarkers={toggleNavaidMarkers}
         onToggleSidebar={toggleSidebar}
         onFitToTrace={onFitToTrace}
       />

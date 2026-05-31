@@ -54,7 +54,7 @@ export default function AirportMap({
   airport = null,
   showMapLabels = false,
   showRunwayBeams = true,
-  showRoutingPointBadges = true,
+  showNavaidMarkers = false,
   trafficFilter = "all",
   typeFilter = "all",
   altitudeLevel = "all",
@@ -305,7 +305,7 @@ export default function AirportMap({
           <NavaidLabelLayer
             navaids={nearbyNavaids}
             theme={currentTheme}
-            visible={showRoutingPointBadges}
+            visible={showNavaidMarkers}
             selectedNavaidKey={selectedNavaidKey}
             onSelectNavaid={onSelectNavaid}
           />
