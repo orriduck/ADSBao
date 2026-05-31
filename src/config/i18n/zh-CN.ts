@@ -161,6 +161,7 @@ const zhCN = {
     aircraftPreview: "飞机",
     airportPreview: "机场",
     navaidPreview: "导航台",
+    aircraftRoute: "航路",
     navaidType: "类型",
     navaidName: "名称",
     airportName: "名称",

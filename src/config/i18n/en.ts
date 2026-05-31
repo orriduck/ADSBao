@@ -165,6 +165,7 @@ const en = {
     aircraftPreview: "Aircraft",
     airportPreview: "Airport",
     navaidPreview: "Navaid",
+    aircraftRoute: "Route",
     navaidType: "Type",
     navaidName: "Name",
     airportName: "Name",

@@ -32,13 +32,38 @@ assert.match(
 );
 assert.match(
   mobileSource,
-  /navaid-preview-mobile-card__summary/,
-  "mobile navaid preview should use a compact single-line summary instead of a staggered two-row identity",
+  /MobilePreviewIdentity[\s\S]*?icon=\{RadioTower\}[\s\S]*?label=\{t\("preview\.navaidPreview"\)\}/,
+  "mobile navaid preview should place the navaid icon with the primary identity",
 );
 assert.match(
   mobileSource,
-  /\{type \? <Stat plain=\{type\} \/> : null\}/,
-  "mobile navaid preview should put the navaid type in the right-side metadata row",
+  /secondary=\{type\}/,
+  "mobile navaid preview should put the navaid type on the right side of the identity row",
+);
+assert.doesNotMatch(
+  mobileSource,
+  /MobilePreviewDetailRow wrap/,
+  "mobile navaid preview should not spend a separate row on the navaid name",
+);
+assert.doesNotMatch(
+  mobileSource,
+  /MobilePreviewDetailRow label=/,
+  "mobile navaid preview should not show field labels on mobile",
+);
+assert.match(
+  mobileSource,
+  /MobilePreviewRuleRow/,
+  "mobile navaid preview should keep navaid name and regular data in one compact rule row",
+);
+assert.match(
+  mobileSource,
+  /left=\{name \? <span className="block min-w-0 truncate whitespace-nowrap">/,
+  "mobile navaid preview should truncate long navaid names inside the compact rule row",
+);
+assert.match(
+  mobileSource,
+  /frequency \? \([\s\S]*?<MobilePreviewMetaChip>/,
+  "mobile navaid preview should put frequency with the right-side stats group",
 );
 assert.doesNotMatch(
   mobileSource,
