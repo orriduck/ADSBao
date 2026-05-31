@@ -27,6 +27,26 @@ assert.match(
   "desktop airport preview detail rows should align labels and right-side values",
 );
 assert.match(
+  desktopSource,
+  /text-\[14px\][^"]*whitespace-normal[^"]*break-words/,
+  "desktop airport preview name should be one size smaller and wrap when long",
+);
+assert.match(
+  desktopSource,
+  /text-\[11px\][^"]*whitespace-normal[^"]*break-words/,
+  "desktop airport preview place should be one size smaller and wrap when long",
+);
+assert.doesNotMatch(
+  desktopSource,
+  /<dd className="mt-1 truncate text-\[15px\]/,
+  "desktop airport preview name should not truncate long airport names",
+);
+assert.doesNotMatch(
+  desktopSource,
+  /<dd className="mt-1 truncate text-\[12px\]/,
+  "desktop airport preview place should not truncate long location text",
+);
+assert.match(
   mobileSource,
   /airport-preview-mobile-card__summary/,
   "mobile airport preview should use a compact single-line summary",

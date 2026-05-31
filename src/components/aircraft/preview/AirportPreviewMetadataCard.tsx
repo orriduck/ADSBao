@@ -54,7 +54,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
               <dt className="font-[var(--font-mono)] text-[7px] font-semibold uppercase leading-none tracking-normal text-atc-faint">
                 {t("preview.airportName")}
               </dt>
-              <dd className="mt-1 truncate text-[15px] font-semibold leading-tight text-atc-text">
+              <dd className="mt-1 text-[14px] font-semibold leading-snug whitespace-normal break-words text-atc-text">
                 {name}
               </dd>
             </div>
@@ -63,7 +63,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
                 <dt className="font-[var(--font-mono)] text-[7px] font-semibold uppercase leading-none tracking-normal text-atc-faint">
                   {t("preview.airportPlace")}
                 </dt>
-                <dd className="mt-1 truncate text-[12px] leading-tight text-atc-dim">
+                <dd className="mt-1 text-[11px] leading-snug whitespace-normal break-words text-atc-dim">
                   {placeLine}
                 </dd>
               </div>
