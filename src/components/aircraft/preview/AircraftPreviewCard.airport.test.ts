@@ -11,11 +11,15 @@ const previewCardPath = fileURLToPath(
 const mobileCardPath = fileURLToPath(
   new URL("./AirportPreviewMobileCard.tsx", import.meta.url),
 );
+const mobileBaseCardPath = fileURLToPath(
+  new URL("./MobilePreviewCard.tsx", import.meta.url),
+);
 const stylePath = fileURLToPath(new URL("../../../style.css", import.meta.url));
 const zhPath = fileURLToPath(new URL("../../../config/i18n/zh-CN.ts", import.meta.url));
 const desktopSource = readFileSync(desktopCardPath, "utf8");
 const previewSource = readFileSync(previewCardPath, "utf8");
 const mobileSource = readFileSync(mobileCardPath, "utf8");
+const mobileBaseSource = readFileSync(mobileBaseCardPath, "utf8");
 const styleSource = readFileSync(stylePath, "utf8");
 const zhSource = readFileSync(zhPath, "utf8");
 
@@ -66,13 +70,38 @@ assert.doesNotMatch(
 );
 assert.match(
   mobileSource,
-  /airport-preview-mobile-card__summary/,
-  "mobile airport preview should use a compact single-line summary",
+  /MobilePreviewIdentity[\s\S]*?icon=\{TowerControl\}[\s\S]*?label=\{t\("preview\.airportPreview"\)\}/,
+  "mobile airport preview should place the airport icon with the primary identity",
+);
+assert.match(
+  mobileSource,
+  /MobilePreviewIdentity[\s\S]*?secondary=\{/,
+  "mobile airport preview should place short airport stats on the primary identity row",
 );
 assert.doesNotMatch(
   mobileSource,
-  /flex-col/,
-  "mobile airport preview should not keep the old stacked two-line layout",
+  /MobilePreviewDetailRow label=/,
+  "mobile airport preview should not show field labels on mobile",
+);
+assert.doesNotMatch(
+  mobileSource,
+  /MobilePreviewRuleRow/,
+  "mobile airport preview should not spend a separate row on regular stats",
+);
+assert.match(
+  mobileBaseSource,
+  /mobile-preview-card-enter/,
+  "base mobile preview card should own the enter animation class",
+);
+assert.match(
+  styleSource,
+  /@keyframes mobile-preview-card-enter/,
+  "base mobile preview card should define a fade-up enter animation",
+);
+assert.match(
+  styleSource,
+  /prefers-reduced-motion[\s\S]*?\.mobile-preview-card-enter/,
+  "base mobile preview card enter animation should respect reduced motion",
 );
 assert.match(
   zhSource,

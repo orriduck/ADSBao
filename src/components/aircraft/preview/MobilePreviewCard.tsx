@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Shared shell for the bottom-of-screen mobile preview card. Both the
@@ -29,10 +30,11 @@ export default function MobilePreviewCard({
       aria-label={ariaLabel}
       data-ui="mobile-preview-card"
       className={cn(
-        "fixed left-1/2 -translate-x-1/2 z-popover",
+        "fixed left-1/2 z-popover",
         "bottom-[calc(64px+env(safe-area-inset-bottom))]",
         "w-[min(342px,calc(100vw-24px))] max-w-[calc(100vw-24px)]",
         "isolate overflow-hidden select-none pointer-events-none",
+        "mobile-preview-card-enter",
         "rounded-[var(--atc-radius-card)] border border-atc-line-strong/85 text-atc-text",
         // Solid card under a warm top-left gradient layer (same 135deg
         // language as the sidebar identity surface). Use background +
@@ -82,6 +84,154 @@ export function MobilePreviewActions({ children }: Record<string, any>) {
     <div className="pointer-events-auto mx-[14px] flex flex-col items-stretch gap-1">
       {children}
     </div>
+  );
+}
+
+export function MobilePreviewContent({ children }: React.PropsWithChildren) {
+  return (
+    <div className="relative z-[2] box-border flex w-full flex-col items-stretch gap-[6px] px-[14px] pb-[7px] pt-[10px]">
+      {children}
+    </div>
+  );
+}
+
+export function MobilePreviewEntityHeader({
+  icon: Icon,
+  label,
+  children,
+}: React.PropsWithChildren<{ icon: LucideIcon; label: string }>) {
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-3">
+      <span
+        aria-label={label}
+        title={label}
+        className="grid size-[18px] flex-none place-items-center text-atc-dim"
+      >
+        <Icon aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+      </span>
+      {children ? (
+        <div className="flex min-w-0 max-w-[62%] items-center justify-end">
+          {children}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function MobilePreviewIdentity({
+  icon: Icon,
+  label,
+  primary,
+  secondary = null,
+  secondaryClassName,
+}: {
+  icon: LucideIcon;
+  label: string;
+  primary: React.ReactNode;
+  secondary?: React.ReactNode;
+  secondaryClassName?: string;
+}) {
+  return (
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+      <div className="flex min-w-0 items-end gap-[6px]">
+        <span
+          aria-label={label}
+          title={label}
+          className="mb-[1px] grid size-[18px] flex-none place-items-center text-atc-dim"
+        >
+          <Icon aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+        </span>
+        <span
+          translate="no"
+          className="notranslate min-w-0 truncate whitespace-nowrap font-[var(--font-mono)] text-[20px] font-extrabold leading-none tracking-normal text-atc-text"
+        >
+          {primary}
+        </span>
+      </div>
+      {secondary ? (
+        <span
+          translate="no"
+          className={cn(
+            "notranslate max-w-[122px] truncate whitespace-nowrap text-right font-[var(--font-mono)] text-[10px] font-semibold leading-none tracking-normal text-atc-dim",
+            secondaryClassName,
+          )}
+        >
+          {secondary}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+export function MobilePreviewDetailRow({
+  wrap = false,
+  children,
+}: React.PropsWithChildren<{ wrap?: boolean }>) {
+  return (
+    <div className="flex min-w-0 items-baseline justify-end font-[var(--font-mono)]">
+      <span
+        translate="no"
+        className={cn(
+          "notranslate min-w-0 text-right text-[10px] font-medium leading-tight tracking-normal text-atc-dim",
+          wrap ? "whitespace-normal break-words" : "truncate whitespace-nowrap",
+        )}
+      >
+        {children}
+      </span>
+    </div>
+  );
+}
+
+export function MobilePreviewRuleRow({
+  left = null,
+  right = null,
+}: {
+  left?: React.ReactNode;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 items-baseline justify-between gap-3 border-t border-atc-line pt-[5px] font-[var(--font-mono)]">
+      <div className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-left text-[11px] font-semibold leading-none tracking-normal text-atc-text">
+        {left}
+      </div>
+      <div className="flex min-w-0 shrink-0 items-baseline justify-end gap-[10px] overflow-hidden whitespace-nowrap text-right text-[11px] font-semibold leading-none tracking-normal text-atc-text">
+        {right}
+      </div>
+    </div>
+  );
+}
+
+export function MobilePreviewMetaChips({ children }: React.PropsWithChildren) {
+  return (
+    <dl className="flex min-w-0 items-baseline gap-[10px]">
+      {children}
+    </dl>
+  );
+}
+
+export function MobilePreviewMetaChip({
+  children,
+}: React.PropsWithChildren) {
+  return (
+    <div className="flex min-w-0">
+      <dd
+        translate="no"
+        className="notranslate flex min-w-0 items-baseline gap-[2px] overflow-hidden whitespace-nowrap"
+      >
+        {children}
+      </dd>
+    </div>
+  );
+}
+
+export function MobilePreviewHeaderValue({ children }: React.PropsWithChildren) {
+  return (
+    <span
+      translate="no"
+      className="notranslate min-w-0 truncate whitespace-nowrap text-right font-[var(--font-mono)] text-[10px] font-semibold leading-none tracking-normal text-atc-dim"
+    >
+      {children}
+    </span>
   );
 }
 

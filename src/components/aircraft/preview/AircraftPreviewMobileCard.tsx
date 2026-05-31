@@ -4,9 +4,18 @@
 import { useState } from "react";
 import type { ComponentProps, ReactElement } from "react";
 import NumberFlow from "@number-flow/react";
+import { Plane } from "lucide-react";
 import { toFiniteNumber } from "@/utils/math";
 import { getFlightRouteAirlineIconUrl } from "@/utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import {
+  MobilePreviewContent,
+  MobilePreviewDetailRow,
+  MobilePreviewIdentity,
+  MobilePreviewMetaChip,
+  MobilePreviewMetaChips,
+  MobilePreviewRuleRow,
+} from "./MobilePreviewCard";
 
 type NumberFlowFormat = ComponentProps<typeof NumberFlow>["format"];
 
@@ -69,9 +78,6 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
 
   const hasStats = speed != null || altitude != null || vs != null || onGround;
 
-  // Stat row separator dot. Kept as a tiny render-prop so the comma /
-  // dot rhythm is consistent across kt · ft · fpm without hand-placing
-  // every conditional.
   const stats: ReactElement[] = [];
   if (speed != null) {
     stats.push(
@@ -99,86 +105,61 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
   }
 
   return (
-    <div className="relative z-[2] box-border flex w-full flex-col items-stretch gap-[6px] px-[14px] pt-[12px] pb-[8px]">
-      <div className="grid w-full max-w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-[10px] whitespace-nowrap">
-        <span
-          translate="no"
-          className="notranslate min-w-0 overflow-hidden text-ellipsis font-[var(--font-display)] text-[19px] font-extrabold leading-[0.9] tracking-normal text-atc-text"
-        >
-          {callsign}
-        </span>
-        {type && (
-          <span
-            translate="no"
-            className="notranslate justify-self-end text-right font-[var(--font-display)] text-[19px] font-extrabold leading-[0.9] tracking-normal text-atc-text"
-          >
-            {type}
-          </span>
-        )}
-      </div>
-      {(route || hasStats) && (
-        <div className="grid w-full max-w-full min-w-0 grid-cols-[minmax(0,1fr)_max-content] items-center gap-2">
-          {route ? (
-            <div
-              translate="no"
-              className="notranslate flex min-w-0 max-w-full items-center gap-2 whitespace-nowrap font-[var(--font-mono)] text-[10px] font-semibold leading-none tracking-[0.02em] text-atc-dim"
-            >
-              <AirlineLogo src={airlineIconUrl} />
-              <span className="overflow-hidden text-ellipsis text-atc-text">
-                {route}
+    <MobilePreviewContent>
+      <MobilePreviewIdentity
+        icon={Plane}
+        label={t("preview.aircraftPreview")}
+        primary={callsign}
+        secondary={type}
+        secondaryClassName="text-[20px] font-extrabold text-atc-text"
+      />
+      {(route || hasStats) ? (
+        <MobilePreviewRuleRow
+          left={
+            route ? (
+              <span className="inline-flex min-w-0 max-w-full items-center gap-[6px] align-baseline">
+                <AirlineLogo src={airlineIconUrl} />
+                <span className="min-w-0 truncate whitespace-nowrap">{route}</span>
               </span>
-            </div>
-          ) : (
-            <span aria-hidden="true" />
-          )}
-          {hasStats && (
-            <div className="flex min-w-0 max-w-full items-center justify-end overflow-visible whitespace-nowrap">
-              {stats.map((stat, i) => (
-                <span key={stat.key || i} className="flex items-baseline">
-                  {i > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className="mx-[5px] font-[var(--font-mono)] text-[10px] text-atc-faint"
-                    >
-                      ·
-                    </span>
-                  )}
-                  {stat}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+            ) : null
+          }
+          right={
+            hasStats ? (
+              <MobilePreviewMetaChips>
+                {stats.map((stat, i) => (
+                  <MobilePreviewMetaChip key={stat.key || i}>
+                    {stat}
+                  </MobilePreviewMetaChip>
+                ))}
+              </MobilePreviewMetaChips>
+            ) : null
+          }
+        />
+      ) : null}
+    </MobilePreviewContent>
   );
 }
 
-// Single stat token — either a numeric NumberFlow + unit pair, or a
-// plain text token like "GND". Used by the parent's stats[] list so the
-// kt / ft / fpm rhythm renders the same way every time.
 function Stat({ value = 0, unit, plain, format }: StatProps) {
   return (
-    <span className="flex items-baseline gap-[2px]">
+    <>
       {plain != null ? (
-        <span className="font-[var(--font-mono)] text-[10px] font-medium tabular-nums text-atc-dim">
-          {plain}
-        </span>
+        <span className="tabular-nums">{plain}</span>
       ) : (
         <NumberFlow
           value={value}
           format={format}
-          className="font-[var(--font-mono)] text-[10px] font-medium tabular-nums text-atc-dim"
+          className="tabular-nums"
         />
       )}
       {unit && (
         <span
           translate="no"
-          className="notranslate font-[var(--font-mono)] text-[8px] font-medium lowercase text-atc-faint"
+          className="notranslate text-[8px] font-medium lowercase text-atc-faint"
         >
           {unit}
         </span>
       )}
-    </span>
+    </>
   );
 }
