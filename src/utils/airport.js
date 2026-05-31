@@ -13,6 +13,13 @@ const AIRPORT_NAME_ZH = Object.freeze({
   VHHH: "香港国际机场",
   KSFO: "旧金山国际机场",
   KSEA: "西雅图-塔科马国际机场",
+  EHAM: "阿姆斯特丹史基浦机场",
+  KIAD: "华盛顿杜勒斯国际机场",
+  SCEL: "阿图罗·梅里诺·贝尼特斯国际机场",
+  VTBS: "素万那普机场",
+  KMEM: "孟菲斯国际机场",
+  PANC: "泰德·史蒂文斯安克雷奇国际机场",
+  KSDF: "路易维尔穆罕默德·阿里国际机场",
 });
 
 const CITY_NAME_ZH = Object.freeze({
@@ -28,6 +35,13 @@ const CITY_NAME_ZH = Object.freeze({
   "Hong Kong": "香港",
   "San Francisco": "旧金山",
   Seattle: "西雅图",
+  Amsterdam: "阿姆斯特丹",
+  Washington: "华盛顿",
+  Santiago: "圣地亚哥",
+  Bangkok: "曼谷",
+  Memphis: "孟菲斯",
+  Anchorage: "安克雷奇",
+  Louisville: "路易维尔",
 });
 
 export const airportDisplayName = (airport, locale = "en") => {

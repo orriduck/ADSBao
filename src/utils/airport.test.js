@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 
+import { AIRPORT_DISCOVERY_TOPICS } from "../config/airportDiscovery.js";
 import { airportDisplayName, airportSubtitle } from "./airport.js";
 
 const jfk = {
@@ -38,5 +39,19 @@ assert.equal(
   ),
   "Denver International Airport",
 );
+
+const homepageAirports = AIRPORT_DISCOVERY_TOPICS.flatMap((topic) => topic.airports);
+for (const airport of homepageAirports) {
+  assert.notEqual(
+    airportDisplayName(airport, "zh-CN"),
+    airport.name,
+    `${airport.icao} homepage airport needs a zh-CN name`,
+  );
+  assert.notEqual(
+    airportSubtitle(airport, "zh-CN"),
+    airportSubtitle(airport, "en"),
+    `${airport.icao} homepage airport needs a zh-CN city/country subtitle`,
+  );
+}
 
 console.log("airport.test.js: ok");
