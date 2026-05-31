@@ -18,9 +18,14 @@ const buildSearchUrl = ({ baseUrl = "", query, country, type, limit }) => {
   return baseUrl ? url.toString() : `${url.pathname}${url.search}`;
 };
 
-const buildAirportUrl = ({ baseUrl = "", ident }) => {
+const buildAirportUrl = ({ baseUrl = "", ident, locale = "" }) => {
   const safeIdent = encodeURIComponent(String(ident || "").trim().toUpperCase());
-  return `${baseUrl}${AIRPORT_PATH}/${safeIdent}`;
+  const path = `${baseUrl}${AIRPORT_PATH}/${safeIdent}`;
+  const normalizedLocale = String(locale || "").trim();
+  if (!normalizedLocale) return path;
+  const url = new URL(path, baseUrl ? undefined : "http://placeholder");
+  url.searchParams.set("locale", normalizedLocale);
+  return baseUrl ? url.toString() : `${url.pathname}${url.search}`;
 };
 
 const requestJson = async (fetchImpl, url) => {
@@ -68,7 +73,7 @@ export const createAirportDirectoryClient = ({
     };
   };
 
-  const resolveAirport = async (code) => {
+  const resolveAirport = async (code, { locale = "" } = {}) => {
     const trimmed = String(code || "").trim().toUpperCase();
     if (!trimmed) {
       throw new Error("Airport code is required");
@@ -76,7 +81,7 @@ export const createAirportDirectoryClient = ({
 
     const detail = await requestJson(
       fetchImpl,
-      buildAirportUrl({ baseUrl, ident: trimmed }),
+      buildAirportUrl({ baseUrl, ident: trimmed, locale }),
     );
     if (detail?.airport) return detail.airport;
 

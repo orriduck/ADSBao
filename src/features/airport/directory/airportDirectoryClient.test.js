@@ -96,6 +96,32 @@ const KBOS = {
   assert.equal(airport.iata, "BOS");
 }
 
+// resolveAirport forwards the active locale so the detail route can enrich
+// runtime-only names from localized upstream content.
+{
+  const calls = [];
+  const client = createAirportDirectoryClient({
+    fetchImpl: async (url) => {
+      calls.push(url);
+      if (url === "/api/airport/ZSPD?locale=zh-CN") {
+        return createJsonResponse({
+          airport: {
+            icao: "ZSPD",
+            iata: "PVG",
+            name: "Shanghai Pudong International Airport",
+            localizedName: "上海浦东国际机场",
+          },
+        });
+      }
+      throw new Error(`unexpected url: ${url}`);
+    },
+  });
+
+  const airport = await client.resolveAirport("zspd", { locale: "zh-CN" });
+  assert.deepEqual(calls, ["/api/airport/ZSPD?locale=zh-CN"]);
+  assert.equal(airport.localizedName, "上海浦东国际机场");
+}
+
 // resolveAirport falls back to /api/search when the detail route 404s
 {
   const calls = [];

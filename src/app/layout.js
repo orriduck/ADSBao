@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-page-custom-font */
 import { cookies } from "next/headers";
 import { ClerkProvider } from "@clerk/nextjs";
+import { getLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ThemedToaster from "@/components/app-shell/ThemedToaster.jsx";
@@ -106,11 +107,12 @@ async function resolveInitialPrimary() {
 }
 
 export default async function RootLayout({ children }) {
+  const locale = await getLocale();
   const initialTheme = await resolveInitialTheme();
   const initialPrimary = await resolveInitialPrimary();
   return (
     <html
-      lang="en"
+      lang={locale}
       data-theme={initialTheme}
       data-primary={initialPrimary}
       suppressHydrationWarning
@@ -129,11 +131,11 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         <ClerkProvider>
-          <QueryProvider>
-            <I18nProvider>
+          <I18nProvider initialLocale={locale}>
+            <QueryProvider>
               <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
-            </I18nProvider>
-          </QueryProvider>
+            </QueryProvider>
+          </I18nProvider>
           <ThemedToaster
             initialTheme={initialTheme}
             className="atc-toaster"

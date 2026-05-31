@@ -9,6 +9,8 @@ import {
   getAirportDirectoryPage,
   refreshAirportDirectoryIfDue,
 } from "@/features/airport/directory/airportDirectory.mechanism.js";
+import { fetchAirportWikiSummary } from "@/features/airport/wiki/airportWiki.js";
+import { resolveLocaleFromSearchParams } from "@/features/app-shell/i18n/i18nModel.js";
 import {
   AIRPORT_DIRECTORY_CACHE_HEADERS,
   AirportDirectoryConfigurationError,
@@ -61,7 +63,12 @@ export async function GET(request, { params }) {
         { status: 404 },
       );
     }
-    return jsonProxyResponse(request, data, {
+    const locale = resolveLocaleFromSearchParams(url.searchParams) || "en";
+    const localizedData =
+      locale === "zh-CN"
+        ? await withLocalizedAirportName(data, locale)
+        : data;
+    return jsonProxyResponse(request, localizedData, {
       headers: AIRPORT_DIRECTORY_CACHE_HEADERS,
     });
   } catch (error) {
@@ -78,5 +85,21 @@ export async function GET(request, { params }) {
       { error: "Airport detail load failed" },
       { status: 502 },
     );
+  }
+}
+
+async function withLocalizedAirportName(data, locale) {
+  try {
+    const summary = await fetchAirportWikiSummary(data.airport, fetch, { locale });
+    if (!summary?.title) return data;
+    return {
+      ...data,
+      airport: {
+        ...data.airport,
+        localizedName: summary.title,
+      },
+    };
+  } catch {
+    return data;
   }
 }

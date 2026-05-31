@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import AirportCaptionScreen from "./AirportCaptionScreen";
 import SearchScreen from "./SearchScreen";
 import { airportDirectoryClient } from "../../features/airport/directory/airportDirectoryClient.js";
+import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
+import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel.js";
 
 // Single client component shared between "/" and "/airport/[icao]" —
 // pathname drives which sub-screen renders, so back/forward, the
@@ -14,6 +16,7 @@ import { airportDirectoryClient } from "../../features/airport/directory/airport
 export default function HomeScreen() {
   const router = useRouter();
   const pathname = usePathname();
+  const { locale } = useI18n();
   const currentIcao = normalizePathIcao(pathname);
   const [airport, setAirport] = useState(null);
 
@@ -25,7 +28,9 @@ export default function HomeScreen() {
     let cancelled = false;
     (async () => {
       try {
-        const resolved = await airportDirectoryClient.resolveAirport(currentIcao);
+        const resolved = await airportDirectoryClient.resolveAirport(currentIcao, {
+          locale,
+        });
         if (!cancelled) setAirport(resolved);
       } catch (err) {
         if (cancelled) return;
@@ -39,7 +44,7 @@ export default function HomeScreen() {
     return () => {
       cancelled = true;
     };
-  }, [currentIcao]);
+  }, [currentIcao, locale]);
 
   const handleOpenAirport = (selectedAirport) => {
     const nextIcao = String(
@@ -50,11 +55,11 @@ export default function HomeScreen() {
     // without a flash while the resolveAirport effect re-fires off the
     // new pathname.
     setAirport(selectedAirport);
-    router.push(`/airport/${nextIcao}`);
+    router.push(setLocaleSearchParam(`/airport/${nextIcao}`, "", locale));
   };
 
   const handleBack = () => {
-    router.push("/");
+    router.push(setLocaleSearchParam("/", "", locale));
   };
 
   if (!currentIcao) {
