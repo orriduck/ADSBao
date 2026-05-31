@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import BrandLogo from "@/components/brand/BrandLogo.jsx";
+import { setHomeSearchParamCarryover } from "@/features/app-shell/navigationModel.js";
 import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function SidebarBrandMark({ className = "" }) {
   const { locale, t } = useI18n();
+  const searchParams = useSearchParams();
+  const homeHref = setHomeSearchParamCarryover(searchParams);
   const wordmark = String(locale || "").toLowerCase().startsWith("zh")
     ? t("brand.wordmarkZh")
     : "ADSBao";
@@ -14,7 +18,7 @@ export default function SidebarBrandMark({ className = "" }) {
       className={`mb-[18px] flex min-h-[28px] items-center text-atc-text ${className}`.trim()}
     >
       <Link
-        href="/"
+        href={homeHref}
         aria-label={t("nav.homePage")}
         title={t("nav.homePage")}
         className="inline-flex items-center rounded-[2px] text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-atc-accent"

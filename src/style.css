@@ -5573,7 +5573,7 @@ body {
 
     .about-data-source-row {
         gap: 10px;
-        grid-template-columns: 11px 51px minmax(0, 1fr);
+        grid-template-columns: max-content minmax(0, 1fr);
         margin-inline: -19px;
         padding: 10px 19px;
     }
