@@ -2771,11 +2771,11 @@ body {
 }
 
 .user-location-marker__diamond {
-    background: var(--atc-click-fg);
-    border: 2px solid color-mix(in oklab, var(--atc-bg) 88%, var(--atc-text));
+    background: var(--atc-text);
+    border: 2px solid var(--atc-bg);
     border-radius: 2px;
     box-shadow:
-        0 0 0 2px color-mix(in oklab, var(--atc-click-bg) 72%, transparent),
+        0 0 0 2px color-mix(in oklab, var(--atc-text) 22%, transparent),
         0 3px 12px color-mix(in oklab, var(--atc-bg) 62%, transparent);
     height: 13px;
     position: relative;
