@@ -5,25 +5,27 @@ import { withAuditLogging } from "../../../utils/apiLogger"
 
 const WIKIPEDIA_USER_AGENT = buildAdsbaoUserAgent("wikipedia/summary")
 
+type AirportWikiRecord = Record<string, any>
+
 // Map our app locales onto Wikipedia language subdomains. Wikipedia's zh
 // edition does its own simplified/traditional variant conversion via
 // Accept-Language, so we only need the language code here.
-const wikiHost = (locale) => {
+const wikiHost = (locale: string) => {
   if (locale === "zh-CN") return "zh.wikipedia.org"
   return "en.wikipedia.org"
 }
 
-const wikiLangCode = (locale) => {
+const wikiLangCode = (locale: string) => {
   if (locale === "zh-CN") return "zh"
   return "en"
 }
 
-const acceptLanguageFor = (locale) => {
+const acceptLanguageFor = (locale: string) => {
   if (locale === "zh-CN") return "zh-CN,zh;q=0.9"
   return "en-US,en;q=0.9"
 }
 
-const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim()
+const cleanText = (value: unknown) => String(value || '').replace(/\s+/g, ' ').trim()
 
 const HTML_ENTITY_MAP = Object.freeze({
   amp: "&",
@@ -34,7 +36,7 @@ const HTML_ENTITY_MAP = Object.freeze({
   nbsp: " ",
 })
 
-const decodeHtmlEntity = (match, entity) => {
+const decodeHtmlEntity = (match: string, entity: string) => {
   if (entity.startsWith("#x") || entity.startsWith("#X")) {
     const codePoint = Number.parseInt(entity.slice(2), 16)
     return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match
@@ -46,12 +48,12 @@ const decodeHtmlEntity = (match, entity) => {
   return HTML_ENTITY_MAP[entity] || match
 }
 
-const plainTextFromHtml = (value) =>
+const plainTextFromHtml = (value: unknown) =>
   cleanText(String(value || "")
     .replace(/<[^>]*>/g, "")
     .replace(/&(#x?[0-9a-fA-F]+|\w+);/g, decodeHtmlEntity))
 
-const expandAirportName = (name) => {
+const expandAirportName = (name: unknown) => {
   const cleaned = cleanText(name)
   if (!cleaned) return ''
   return cleaned
@@ -59,7 +61,7 @@ const expandAirportName = (name) => {
     .replace(/\bInt'l\b/i, 'International')
 }
 
-const unique = (values) => {
+const unique = (values: string[]) => {
   const seen = new Set()
   return values.filter((value) => {
     const key = value.toUpperCase()
@@ -69,7 +71,7 @@ const unique = (values) => {
   })
 }
 
-export const getAirportWikiTitleCandidates = (airport) => {
+export const getAirportWikiTitleCandidates = (airport: AirportWikiRecord) => {
   const name = cleanText(airport?.name)
   const expandedName = expandAirportName(name)
   const expandedAirportName = expandedName && !/\bAirport\b/i.test(expandedName)
@@ -86,11 +88,11 @@ export const getAirportWikiTitleCandidates = (airport) => {
   ])
 }
 
-export const getWikipediaSummaryUrl = (title, locale = "en") => {
+export const getWikipediaSummaryUrl = (title: string, locale = "en") => {
   return `https://${wikiHost(locale)}/api/rest_v1/page/summary/${encodeURIComponent(cleanText(title))}`
 }
 
-export const normalizeWikipediaSummary = (payload) => {
+export const normalizeWikipediaSummary = (payload: AirportWikiRecord) => {
   const title = plainTextFromHtml(payload?.displaytitle) || cleanText(payload?.title)
   const extract = cleanText(payload?.extract)
   const url = payload?.content_urls?.desktop?.page || payload?.content_urls?.mobile?.page || ''
@@ -104,7 +106,7 @@ export const normalizeWikipediaSummary = (payload) => {
 // it to translate an English title (e.g. "Chicago O'Hare International
 // Airport") into the matching article title on the requested wiki (e.g.
 // "芝加哥奥黑尔国际机场" on zh.wikipedia.org).
-export const getCrossLangTitleUrl = (enTitle, targetLang) => {
+export const getCrossLangTitleUrl = (enTitle: string, targetLang: string) => {
   const params = new URLSearchParams({
     action: "query",
     prop: "langlinks",
@@ -117,15 +119,15 @@ export const getCrossLangTitleUrl = (enTitle, targetLang) => {
   return `https://en.wikipedia.org/w/api.php?${params.toString()}`
 }
 
-export const extractCrossLangTitle = (payload) => {
+export const extractCrossLangTitle = (payload: AirportWikiRecord) => {
   const pages = payload?.query?.pages
   if (!pages || typeof pages !== "object") return ""
-  const page = Object.values(pages)[0]
+  const page = Object.values(pages)[0] as AirportWikiRecord
   const link = Array.isArray(page?.langlinks) ? page.langlinks[0] : null
   return cleanText(link?.["*"])
 }
 
-const fetchCrossLangTitle = async ({ enTitle, targetLang, fetchImpl }) => {
+const fetchCrossLangTitle = async ({ enTitle, targetLang, fetchImpl }: AirportWikiRecord) => {
   try {
     const response = await fetchImpl(getCrossLangTitleUrl(enTitle, targetLang), {
       headers: {
@@ -144,7 +146,7 @@ const fetchCrossLangTitle = async ({ enTitle, targetLang, fetchImpl }) => {
   }
 }
 
-const fetchSummary = async ({ title, locale, fetchImpl }) => {
+const fetchSummary = async ({ title, locale, fetchImpl }: AirportWikiRecord) => {
   const response = await fetchImpl(getWikipediaSummaryUrl(title, locale), {
     headers: {
       Accept: "application/json",
@@ -167,9 +169,9 @@ const fetchSummary = async ({ title, locale, fetchImpl }) => {
 // a machine translation — and it gracefully falls back to English when no
 // langlink exists.
 export const fetchAirportWikiSummary = async (
-  airport,
-  fetchImpl = fetch,
-  { locale = "en" } = {},
+  airport: AirportWikiRecord,
+  fetchImpl: any = fetch,
+  { locale = "en" }: AirportWikiRecord = {},
 ) => {
   const candidates = getAirportWikiTitleCandidates(airport)
   const auditedFetch = withAuditLogging(fetchImpl, {

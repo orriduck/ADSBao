@@ -20,16 +20,18 @@ import {
 // more than a tick behind on the persisted set.
 const PERSIST_DEBOUNCE_MS = 750;
 
-function formatTraceFetchLabel(selectedAircraft, hex) {
+type AircraftTraceHookRecord = Record<string, any>;
+
+function formatTraceFetchLabel(selectedAircraft: AircraftTraceHookRecord | null, hex: string) {
   return selectedAircraft?.callsign || selectedAircraft?.registration || hex;
 }
 
-function formatTracePointTime(point) {
+function formatTracePointTime(point: AircraftTraceHookRecord | null | undefined) {
   const timestampMs = Number(point?.timestampMs);
   return Number.isFinite(timestampMs) ? new Date(timestampMs).toISOString() : null;
 }
 
-function fetchTraceSource({ hex, label, source, full }) {
+function fetchTraceSource({ hex, label, source, full }: AircraftTraceHookRecord) {
   return aircraftTraceClient
     .fetchAircraftTrace({ hex, full })
     .then((payload) => {
@@ -47,7 +49,7 @@ function fetchTraceSource({ hex, label, source, full }) {
     });
 }
 
-function liveAircraftToTracePoint(aircraft) {
+function liveAircraftToTracePoint(aircraft: AircraftTraceHookRecord | null) {
   if (!aircraft) return null;
   const lat = Number(aircraft.lat);
   const lon = Number(aircraft.lon);
@@ -91,7 +93,10 @@ function liveAircraftToTracePoint(aircraft) {
 //     refresh of /aircraft/[callsign] doesn't blank the trace while the
 //     fresh fetches resolve. It sits at the lowest priority because the
 //     in-flight sources are by definition more authoritative.
-export function useAircraftTrace(selectedAircraft = null, options = {}) {
+export function useAircraftTrace(
+  selectedAircraft: AircraftTraceHookRecord | null = null,
+  options: AircraftTraceHookRecord = {},
+) {
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
   // Optional lower bound on trace timestamps. The aircraft detail page

@@ -136,9 +136,7 @@ assert.deepEqual(
 );
 
 assert.equal(
-  buildProcedureChoiceLabel(runwayProcedures.runwayDirections[1].approaches[0], {
-    siblingApproaches: runwayProcedures.runwayDirections[1].approaches,
-  }),
+  buildProcedureChoiceLabel(runwayProcedures.runwayDirections[1].approaches[0]),
   "R22LX · RNAV (GPS) RWY 22L",
 );
 

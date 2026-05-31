@@ -22,7 +22,7 @@ export default function MobilePreviewCard({
   children,
   actions = null,
   traceStatus = null,
-}) {
+}: Record<string, any>) {
   return (
     <aside
       key={identityKey}
@@ -56,7 +56,7 @@ export default function MobilePreviewCard({
 
 // Slide-down loading strip — collapses out of the layout when inactive
 // so the card height stays stable.
-export function MobilePreviewTraceStatus({ active, children }) {
+export function MobilePreviewTraceStatus({ active, children }: Record<string, any>) {
   return (
     <div
       aria-hidden={!active}
@@ -77,7 +77,7 @@ export function MobilePreviewTraceStatus({ active, children }) {
 
 // Actions row container. Sets `pointer-events-auto` so the buttons
 // inside become tappable inside the otherwise pass-through card.
-export function MobilePreviewActions({ children }) {
+export function MobilePreviewActions({ children }: Record<string, any>) {
   return (
     <div className="pointer-events-auto mx-[14px] flex flex-col items-stretch gap-1">
       {children}
@@ -89,7 +89,10 @@ export function MobilePreviewActions({ children }) {
 // metric / filter card ink language (data-active flips to the same
 // primary tokens elsewhere).
 export const MobilePreviewTrackButton = React.forwardRef(
-  function MobilePreviewTrackButton({ className, ...props }, ref) {
+  function MobilePreviewTrackButton(
+    { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
+    ref: React.ForwardedRef<HTMLButtonElement>,
+  ) {
     return (
       <button
         ref={ref}
@@ -117,7 +120,10 @@ export const MobilePreviewTrackButton = React.forwardRef(
 // Secondary text affordance — quiet so it doesn't compete with the
 // Track button for taps.
 export const MobilePreviewFeedbackLink = React.forwardRef(
-  function MobilePreviewFeedbackLink({ className, ...props }, ref) {
+  function MobilePreviewFeedbackLink(
+    { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
+    ref: React.ForwardedRef<HTMLButtonElement>,
+  ) {
     return (
       <button
         ref={ref}

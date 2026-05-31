@@ -303,7 +303,7 @@ function Pointer({
               opacity: shadowOpacity,
               filter: `blur(${shadowBlur}px)`,
               transform: shadowTransform,
-            }}
+            } as any}
           />
         ) : null}
         <div
@@ -312,7 +312,7 @@ function Pointer({
             ...maskStyle,
             backgroundColor: color,
             transform: silhouetteTransform,
-          }}
+          } as any}
         />
         {theme === "dark" && (
           <span aria-hidden="true" className="aircraft-nose-beam" />
@@ -375,4 +375,3 @@ function Pointer({
     </svg>
   );
 }
-

@@ -32,7 +32,7 @@ export default function MapFitToTraceController({
   autoFitKey = "",
   fitOptions = DEFAULT_FIT_OPTIONS,
   onAutoFit,
-}) {
+}: Record<string, any>) {
   const map = useMapInstance();
   const { fitToTraceSignal } = useExplorerUi();
   const { traces } = useSelectedAircraftTrace();

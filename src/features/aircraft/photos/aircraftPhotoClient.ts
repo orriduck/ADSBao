@@ -5,9 +5,9 @@ import {
 import { withAuditLogging } from "../../../utils/apiLogger";
 import { normalizeAircraftHex } from "../../../app/api/_shared/apiProxySecurity";
 
-const env = typeof process !== "undefined" ? process.env : {};
+const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
 
-const appendOptionalParam = (url, key, value) => {
+const appendOptionalParam = (url: URL, key: string, value: unknown) => {
   const normalized = String(value || "").trim();
   if (normalized) url.searchParams.set(key, normalized);
 };
@@ -16,7 +16,7 @@ export const createAircraftPhotoClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
     env.NEXT_PUBLIC_AIRCRAFT_PHOTOS_BASE || AVIATION_PROXY_BASES.aircraftPhotos,
-} = {}) => {
+}: Record<string, any> = {}) => {
   if (!fetchImpl) throw new Error("Aircraft photo client requires fetch support");
 
   const auditedFetch = withAuditLogging(fetchImpl, {
@@ -24,7 +24,7 @@ export const createAircraftPhotoClient = ({
   });
 
   return {
-    async fetchAircraftPhoto({ hex, registration = "", type = "" }) {
+    async fetchAircraftPhoto({ hex, registration = "", type = "" }: Record<string, any>) {
       const normalizedHex = normalizeAircraftHex(hex);
       if (!normalizedHex) throw new Error("Invalid aircraft photo query");
 

@@ -5,14 +5,14 @@ import {
 import { withAuditLogging } from "../../../utils/apiLogger";
 import { fetchJson } from "../../aviation/httpClient";
 
-const env = typeof process !== "undefined" ? process.env : {};
+const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
 
 export const createAircraftCallsignClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
     env.NEXT_PUBLIC_AIRCRAFT_CALLSIGN_BASE ||
     AVIATION_PROXY_BASES.aircraftCallsign,
-} = {}) => {
+}: Record<string, any> = {}) => {
   if (!fetchImpl)
     throw new Error("Aircraft callsign client requires fetch support");
 
@@ -21,7 +21,7 @@ export const createAircraftCallsignClient = ({
   });
 
   return {
-    fetchByCallsign({ callsign }) {
+    fetchByCallsign({ callsign }: Record<string, any>) {
       const normalized = String(callsign || "").trim().toUpperCase();
       if (!normalized) {
         throw new Error("Aircraft callsign required");

@@ -21,7 +21,7 @@ function installLocalStorage() {
         store.delete(key);
       },
     },
-  };
+  } as any;
   return store;
 }
 

@@ -10,20 +10,20 @@ import {
 } from "./aircraftIcons.models";
 import { AIRCRAFT_ICON_DIR } from "./aircraftIcons.utils";
 
-const readIconFile = async (name) => {
+const readIconFile = async (name: string) => {
   try {
     const buffer = await fs.readFile(join(AIRCRAFT_ICON_DIR, `${name}.svg`));
     if (buffer.byteLength > AIRCRAFT_ICON_MAX_BYTES) return null;
     return buffer;
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === "ENOENT") return null;
     throw error;
   }
 };
 
-export const getAircraftIcon = async ({ name } = {}) => {
+export const getAircraftIcon = async ({ name }: Record<string, any> = {}) => {
   const requested = isKnownAircraftIconName(name) ? name : null;
-  let body = requested ? await readIconFile(requested) : null;
+  let body: any = requested ? await readIconFile(requested) : null;
   let servedName = requested;
 
   if (!body) {

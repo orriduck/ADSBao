@@ -20,15 +20,17 @@ const PROVIDER_SOURCE = Object.freeze({
   flightaware: "flightaware",
 });
 
-const toNumber = (value) => {
+type TrackingRecord = Record<string, any>;
+
+const toNumber = (value: unknown) => {
   if (value == null || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 };
 
-const isoFromNow = (now) => new Date(now || Date.now()).toISOString();
+const isoFromNow = (now = Date.now()) => new Date(now || Date.now()).toISOString();
 
-function buildTrackingState(status, overrides = {}) {
+function buildTrackingState(status: string, overrides: TrackingRecord = {}) {
   return {
     status,
     active:
@@ -39,7 +41,7 @@ function buildTrackingState(status, overrides = {}) {
   };
 }
 
-export function getAdsbPositionAgeSeconds(position, now = Date.now()) {
+export function getAdsbPositionAgeSeconds(position: TrackingRecord, now = Date.now()) {
   const directAge = toNumber(position?.seen_pos ?? position?.seen);
   if (directAge != null) return Math.max(0, directAge);
 
@@ -49,13 +51,13 @@ export function getAdsbPositionAgeSeconds(position, now = Date.now()) {
   return Number.POSITIVE_INFINITY;
 }
 
-export function hasUsableLatLon(position) {
+export function hasUsableLatLon(position: TrackingRecord | null | undefined) {
   const lat = toNumber(position?.lat);
   const lon = toNumber(position?.lon);
   return lat != null && lon != null && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
 }
 
-function sourceKey(source) {
+function sourceKey(source: unknown) {
   return PROVIDER_SOURCE[String(source || "").trim().toLowerCase()] || "unknown";
 }
 
@@ -68,7 +70,7 @@ export function buildPositionQuality({
   sourceLabel,
   notes,
   confidence,
-} = {}) {
+}: TrackingRecord = {}) {
   const normalizedKind = String(kind || "observed").toLowerCase();
   return {
     source: sourceKey(source),
@@ -86,7 +88,10 @@ export function buildPositionQuality({
   };
 }
 
-export function annotateAdsbPosition(position, { source, now = Date.now() } = {}) {
+export function annotateAdsbPosition(
+  position: TrackingRecord | null | undefined,
+  { source, now = Date.now() }: TrackingRecord = {},
+) {
   if (!position || typeof position !== "object") return null;
   const ageSeconds = getAdsbPositionAgeSeconds(position, now);
   const isStale = ageSeconds > ADSB_STALE_MIN_AGE_SECONDS;
@@ -104,7 +109,7 @@ export function annotateAdsbPosition(position, { source, now = Date.now() } = {}
   };
 }
 
-function pickFreshPrimary(candidates, now) {
+function pickFreshPrimary(candidates: TrackingRecord[], now: number): TrackingRecord | null {
   return candidates
     .filter((candidate) => candidate?.position && hasUsableLatLon(candidate.position))
     .map((candidate) => ({
@@ -115,7 +120,7 @@ function pickFreshPrimary(candidates, now) {
     .sort((a, b) => a.ageSeconds - b.ageSeconds)[0] || null;
 }
 
-function pickStalePrimary(candidates, now) {
+function pickStalePrimary(candidates: TrackingRecord[], now: number): TrackingRecord | null {
   return candidates
     .filter((candidate) => candidate?.position && hasUsableLatLon(candidate.position))
     .map((candidate) => ({
@@ -125,7 +130,10 @@ function pickStalePrimary(candidates, now) {
     .sort((a, b) => a.ageSeconds - b.ageSeconds)[0] || null;
 }
 
-function normalizeFlightAwarePosition(position, { fallbackHex = "" } = {}) {
+function normalizeFlightAwarePosition(
+  position: TrackingRecord | null | undefined,
+  { fallbackHex = "" }: TrackingRecord = {},
+) {
   if (!position || !hasUsableLatLon(position)) return null;
   return {
     hex: position.hex || fallbackHex || "",
@@ -156,7 +164,7 @@ export async function resolveTrackedFlightPosition({
   callsign = "",
   featureEnabled = false,
   now = Date.now(),
-} = {}) {
+}: TrackingRecord = {}) {
   const candidates = [
     { source: "adsb.lol", position: adsbLolPosition },
     { source: "airplanes.live", position: airplanesLivePosition },

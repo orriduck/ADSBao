@@ -3,23 +3,23 @@ const FOOT_TO_METER = 0.3048;
 const TRACK_DIRECTIONS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 const TRACK_DIRECTION_KEYS = ["n", "ne", "e", "se", "s", "sw", "w", "nw"];
 
-function toFiniteTelemetryNumber(value) {
+function toFiniteTelemetryNumber(value: unknown) {
   if (value == null || value === "") return null;
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : null;
 }
 
-export function resolveTrackDirection(track) {
+export function resolveTrackDirection(track: unknown) {
   const index = resolveTrackDirectionIndex(track);
   return index == null ? null : TRACK_DIRECTIONS[index];
 }
 
-export function resolveTrackDirectionTranslationKey(track) {
+export function resolveTrackDirectionTranslationKey(track: unknown) {
   const index = resolveTrackDirectionIndex(track);
   return index == null ? null : `directions.${TRACK_DIRECTION_KEYS[index]}`;
 }
 
-function resolveTrackDirectionIndex(track) {
+function resolveTrackDirectionIndex(track: unknown) {
   const degrees = toFiniteTelemetryNumber(track);
   if (degrees == null) return null;
   const normalized = ((degrees % 360) + 360) % 360;
@@ -30,6 +30,10 @@ export function formatFlightTelemetryMetric({
   metric,
   value,
   alternate = false,
+}: {
+  metric?: string;
+  value?: unknown;
+  alternate?: boolean;
 } = {}) {
   const numeric = toFiniteTelemetryNumber(value);
   if (numeric == null) return null;

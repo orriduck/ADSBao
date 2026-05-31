@@ -8,7 +8,9 @@ import {
   AircraftPhotoProviderError,
 } from "./aircraftPhotos.models";
 
-function buildPhotoUrl({ hex, registration, type }) {
+type AircraftPhotoRecord = Record<string, any>;
+
+function buildPhotoUrl({ hex, registration, type }: AircraftPhotoRecord) {
   const url = new URL(
     `https://api.planespotters.net/pub/photos/hex/${encodeURIComponent(hex)}`,
   );
@@ -17,7 +19,7 @@ function buildPhotoUrl({ hex, registration, type }) {
   return url;
 }
 
-function buildImageProxyUrl({ hex, origin, registration, type }) {
+function buildImageProxyUrl({ hex, origin, registration, type }: AircraftPhotoRecord) {
   const url = new URL(
     `/api/proxy/aircraft/photos/${encodeURIComponent(hex)}/image`,
     origin,
@@ -27,7 +29,7 @@ function buildImageProxyUrl({ hex, origin, registration, type }) {
   return `${url.pathname}${url.search}`;
 }
 
-function selectPhoto({ payload, hex, origin, registration, type }) {
+function selectPhoto({ payload, hex, origin, registration, type }: AircraftPhotoRecord) {
   const [photo] = Array.isArray(payload?.photos) ? payload.photos : [];
   const image = photo?.thumbnail_large || photo?.thumbnail;
   const src = typeof image?.src === "string" ? image.src : "";
@@ -45,7 +47,7 @@ function selectPhoto({ payload, hex, origin, registration, type }) {
   };
 }
 
-function selectImageUrl(payload) {
+function selectImageUrl(payload: AircraftPhotoRecord) {
   const [photo] = Array.isArray(payload?.photos) ? payload.photos : [];
   return (
     (typeof photo?.thumbnail_large?.src === "string" &&
@@ -55,7 +57,7 @@ function selectImageUrl(payload) {
   );
 }
 
-async function fetchPhotoPayload({ hex, registration, type }) {
+async function fetchPhotoPayload({ hex, registration, type }: AircraftPhotoRecord) {
   let response;
   try {
     response = await fetch(buildPhotoUrl({ hex, registration, type }), {
@@ -65,7 +67,7 @@ async function fetchPhotoPayload({ hex, registration, type }) {
       },
       next: { revalidate: 3600 },
     });
-  } catch (networkError) {
+  } catch (networkError: any) {
     throw new AircraftPhotoProviderError(`network: ${networkError.message}`);
   }
 
@@ -79,12 +81,12 @@ async function fetchPhotoPayload({ hex, registration, type }) {
   });
 }
 
-export async function getAircraftPhoto({ hex, origin, registration, type } = {}) {
+export async function getAircraftPhoto({ hex, origin, registration, type }: AircraftPhotoRecord = {}) {
   const payload = await fetchPhotoPayload({ hex, registration, type });
   return selectPhoto({ payload, hex, origin, registration, type });
 }
 
-export async function getAircraftPhotoImage({ hex, registration, type } = {}) {
+export async function getAircraftPhotoImage({ hex, registration, type }: AircraftPhotoRecord = {}) {
   const payload = await fetchPhotoPayload({ hex, registration, type });
   const imageUrl = selectImageUrl(payload);
   if (!imageUrl) return null;

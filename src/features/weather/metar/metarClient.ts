@@ -5,12 +5,12 @@ import {
 import { withAuditLogging } from "../../../utils/apiLogger";
 import { fetchJson } from "../../aviation/httpClient";
 
-const env = typeof process !== "undefined" ? process.env : {};
+const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
 
 export const createMetarClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl = env.NEXT_PUBLIC_METAR_PROXY_BASE || AVIATION_PROXY_BASES.metar,
-} = {}) => {
+}: Record<string, any> = {}) => {
   if (!fetchImpl) throw new Error("METAR client requires fetch support");
 
   const auditedFetch = withAuditLogging(fetchImpl, {

@@ -10,7 +10,10 @@ import {
   LocalWeatherProviderError,
 } from "./localWeather.models";
 
-export async function fetchLocalWeather({ latitude, longitude } = {}) {
+export async function fetchLocalWeather({
+  latitude,
+  longitude,
+}: Record<string, any> = {}) {
   const response = await fetch(
     buildOpenMeteoCurrentWeatherUrl({ latitude, longitude }),
     {

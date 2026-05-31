@@ -20,7 +20,7 @@ export default function RouteFeedbackFields({
   cancelLabel,
   hint,
   ariaLabel,
-}) {
+}: Record<string, any>) {
   const formId = useId();
   const { t } = useI18n();
 

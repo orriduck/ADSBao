@@ -15,7 +15,9 @@ export const COMMUNITY_FEEDBACK_REASONS = Object.freeze({
   correction: "correction",
 });
 
-function airportFields(airport) {
+type CommunityFeedbackRecord = Record<string, any>;
+
+function airportFields(airport: CommunityFeedbackRecord | null | undefined) {
   if (!airport || typeof airport !== "object") return null;
   const icao = sanitizeAirportCode(airport.icao);
   if (!icao) return null;
@@ -37,7 +39,7 @@ export function buildCommunityFeedbackRoute({
   createdAt,
   expiresAt,
   feedbackReason = COMMUNITY_FEEDBACK_REASONS.missingRoute,
-} = {}) {
+}: CommunityFeedbackRecord = {}) {
   const normalizedCallsign = normalizeRouteCallsign(callsign);
   if (!normalizedCallsign) return null;
 

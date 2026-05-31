@@ -7,12 +7,12 @@ export const createTimeoutSignal = (timeoutMs) =>
     : undefined;
 
 export const fetchJson = async (
-  fetchImpl,
-  url,
+  fetchImpl: any,
+  url: string,
   {
     timeoutMs = AVIATION_REQUEST_TIMEOUT_MS.json,
     maxBytes,
-  } = {},
+  }: Record<string, any> = {},
 ) => {
   const response = await fetchImpl(url, {
     signal: createTimeoutSignal(timeoutMs),

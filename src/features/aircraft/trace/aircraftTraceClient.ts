@@ -6,13 +6,13 @@ import { withAuditLogging } from "../../../utils/apiLogger";
 import { normalizeAircraftHex } from "../../../app/api/_shared/apiProxySecurity";
 import { fetchJson } from "../../aviation/httpClient";
 
-const env = typeof process !== "undefined" ? process.env : {};
+const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
 
 export const createAircraftTraceClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
     env.NEXT_PUBLIC_AIRCRAFT_TRACE_BASE || AVIATION_PROXY_BASES.aircraftTrace,
-} = {}) => {
+}: Record<string, any> = {}) => {
   if (!fetchImpl) throw new Error("Aircraft trace client requires fetch support");
 
   const auditedFetch = withAuditLogging(fetchImpl, {
@@ -20,7 +20,7 @@ export const createAircraftTraceClient = ({
   });
 
   return {
-    fetchAircraftTrace({ hex, full = false }) {
+    fetchAircraftTrace({ hex, full = false }: Record<string, any>) {
       const normalizedHex = normalizeAircraftHex(hex);
       if (!normalizedHex) throw new Error("Invalid aircraft trace query");
 

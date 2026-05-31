@@ -113,7 +113,7 @@ export async function buildLiveAirportProcedurePayload({
   fetchImpl = fetch,
   now = new Date(),
   maxProcedures = PROCEDURE_DATA_CONFIG.maxProceduresPerAirport,
-} = {}) {
+}: Record<string, any> = {}) {
   const { release, text } = await getCachedActiveProcedureSource({
     fetchImpl,
     now,
@@ -131,7 +131,7 @@ export async function buildLiveAirportRunwayProcedurePayload({
   fetchImpl = fetch,
   now = new Date(),
   maxProcedures = PROCEDURE_DATA_CONFIG.maxProceduresPerAirport,
-} = {}) {
+}: Record<string, any> = {}) {
   const { release, text } = await getCachedActiveProcedureSource({
     fetchImpl,
     now,

@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 let mediaQuery = null;
-const subscribers = new Set();
+const subscribers = new Set<() => void>();
 
 function getMediaQuery() {
   if (typeof window === "undefined" || !window.matchMedia) return null;
@@ -29,7 +29,7 @@ export function usePrefersReducedMotion() {
   );
 }
 
-function subscribeReducedMotion(callback) {
+function subscribeReducedMotion(callback: () => void) {
   const query = getMediaQuery();
   if (!query) return () => {};
 

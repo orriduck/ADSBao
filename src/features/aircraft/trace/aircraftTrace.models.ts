@@ -7,7 +7,10 @@ export const AIRCRAFT_TRACE_USER_AGENT = buildAdsbaoUserAgent();
 export const AIRCRAFT_TRACE_MAX_BYTES = 24 * 1024 * 1024;
 
 export class AircraftTraceProviderError extends Error {
-  constructor(message, status = null) {
+  status: number | null;
+  attempts?: string[];
+
+  constructor(message: string, status: number | null = null) {
     super(message);
     this.name = "AircraftTraceProviderError";
     this.status = status;

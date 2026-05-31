@@ -9,7 +9,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 export default function SidebarBrandMark({ className = "" }) {
   const { locale, t } = useI18n();
   const searchParams = useSearchParams();
-  const homeHref = setHomeSearchParamCarryover(searchParams);
+  const homeHref = setHomeSearchParamCarryover(searchParams as any);
   const wordmark = String(locale || "").toLowerCase().startsWith("zh")
     ? t("brand.wordmarkZh")
     : "ADSBao";

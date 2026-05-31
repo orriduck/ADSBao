@@ -14,7 +14,7 @@ export default function MapTileLayers({
   locale = "en",
   showLabels = true,
   selectionActive = false,
-}) {
+}: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
   const selectionActiveRef = useRef(selectionActive);
@@ -47,7 +47,7 @@ export default function MapTileLayers({
             interactive: false,
             attributionControl: false,
             className: "atc-maplibre-base",
-          });
+          } as any);
           nextLayer.addTo(map);
           layerRef.current = nextLayer;
           layerRef.current.getContainer()?.classList.add("atc-tile-base");
@@ -80,7 +80,7 @@ export default function MapTileLayers({
   return null;
 }
 
-async function loadLocalizedMapStyle({ theme, locale, showLabels, signal }) {
+async function loadLocalizedMapStyle({ theme, locale, showLabels, signal }: Record<string, any>) {
   const params = new URLSearchParams({
     locale,
     labels: showLabels ? "1" : "0",
@@ -88,7 +88,7 @@ async function loadLocalizedMapStyle({ theme, locale, showLabels, signal }) {
   return requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
 }
 
-async function requestJson(url, { signal } = {}) {
+async function requestJson(url: string, { signal }: Record<string, any> = {}) {
   if (typeof fetch === "function") {
     const response = await fetch(url, { signal });
     if (!response.ok) {
@@ -100,7 +100,7 @@ async function requestJson(url, { signal } = {}) {
   return requestJsonWithXhr(url, { signal });
 }
 
-function requestJsonWithXhr(url, { signal } = {}) {
+function requestJsonWithXhr(url: string, { signal }: Record<string, any> = {}) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
@@ -123,13 +123,13 @@ function requestJsonWithXhr(url, { signal } = {}) {
   });
 }
 
-function hasTilePane(map) {
+function hasTilePane(map: any) {
   if (!map || typeof map.getContainer !== "function") return false;
   const container = map.getContainer();
   return Boolean(container?.isConnected && map._panes?.tilePane);
 }
 
-function removeLayer(layer, map) {
+function removeLayer(layer: any, map: any) {
   if (!layer || !map || typeof layer.removeFrom !== "function") return;
   if (!map._panes) return;
   try {

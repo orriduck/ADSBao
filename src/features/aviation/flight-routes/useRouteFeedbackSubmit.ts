@@ -20,10 +20,10 @@ function buildFeedbackBody({
   originIcao,
   destinationIcao,
   airportProfile,
-}) {
+}: Record<string, any>) {
   const callsign = (aircraft?.callsign || "").trim().toUpperCase();
   const feedbackReason = detectFeedbackReason(aircraft);
-  const body = {
+  const body: Record<string, any> = {
     callsign,
     originIcao,
     destinationIcao,
@@ -51,7 +51,7 @@ export function useRouteFeedbackSubmit({
   aircraft,
   airportProfile,
   onApplyTemporaryRoute,
-}) {
+}: Record<string, any>) {
   const { t } = useI18n();
   const [originIcao, setOriginIcaoState] = useState("");
   const [destinationIcao, setDestinationIcaoState] = useState("");

@@ -12,7 +12,9 @@ export const AIRCRAFT_PHOTO_CACHE_HEADERS = Object.freeze({
 });
 
 export class AircraftPhotoProviderError extends Error {
-  constructor(message, status = null) {
+  status: number | null;
+
+  constructor(message: string, status: number | null = null) {
     super(message);
     this.name = "AircraftPhotoProviderError";
     this.status = status;

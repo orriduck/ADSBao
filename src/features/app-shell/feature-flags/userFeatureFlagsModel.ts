@@ -15,11 +15,13 @@ const ENVIRONMENT_ALIASES = Object.freeze({
   production: FEATURE_FLAG_ENVIRONMENTS.PRODUCTION,
 });
 
-export function normalizeUserEmail(email) {
+type FeatureFlagRecord = Record<string, any>;
+
+export function normalizeUserEmail(email: unknown) {
   return String(email || "").trim().toLowerCase();
 }
 
-export function normalizeFeatureFlagEnvironment(environment) {
+export function normalizeFeatureFlagEnvironment(environment: unknown) {
   const normalized = String(environment || "").trim().toLowerCase();
   if (!normalized) return FEATURE_FLAG_ENVIRONMENTS.LOCAL;
   const mapped = ENVIRONMENT_ALIASES[normalized];
@@ -29,17 +31,17 @@ export function normalizeFeatureFlagEnvironment(environment) {
   );
 }
 
-export function resolveFeatureFlagEnvironment(env = process.env) {
+export function resolveFeatureFlagEnvironment(env: Record<string, string | undefined> = process.env) {
   return normalizeFeatureFlagEnvironment(
     env.FEATURE_FLAGS_ENV || env.VERCEL_ENV || FEATURE_FLAG_ENVIRONMENTS.LOCAL,
   );
 }
 
-export function getClerkUserPrimaryEmail(user) {
+export function getClerkUserPrimaryEmail(user: FeatureFlagRecord | null | undefined) {
   return normalizeUserEmail(user?.primaryEmailAddress?.emailAddress);
 }
 
-export function normalizeFeatureFlags(flags) {
+export function normalizeFeatureFlags(flags: unknown) {
   if (!flags || typeof flags !== "object" || Array.isArray(flags)) return {};
 
   return Object.fromEntries(
@@ -47,11 +49,14 @@ export function normalizeFeatureFlags(flags) {
   );
 }
 
-export function isFeatureFlagEnabled(flags, flagKey) {
+export function isFeatureFlagEnabled(flags: unknown, flagKey: string) {
   return normalizeFeatureFlags(flags)[flagKey] === true;
 }
 
-export function buildUserFeatureFlagAccessEntity({ user, flags = {} } = {}) {
+export function buildUserFeatureFlagAccessEntity({
+  user,
+  flags = {},
+}: FeatureFlagRecord = {}) {
   const email = getClerkUserPrimaryEmail(user);
   if (!user || !email) return undefined;
 

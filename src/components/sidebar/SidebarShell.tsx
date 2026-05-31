@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { Home, LogIn, Map } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
@@ -13,6 +14,19 @@ import {
   ToolbarSeparator,
   toolbarButtonVariants,
 } from "@/components/ui/Toolbar";
+
+type SidebarShellProps = {
+  onBack: () => void;
+  onMap?: (() => void) | null;
+  onClose?: (() => void) | null;
+  header?: React.ReactNode;
+  children?: React.ReactNode;
+  variant?: "airport" | "flight" | string;
+  feedSource?: string;
+  feedStatus?: string;
+  lastUpdated?: unknown;
+  loadingStatus?: string;
+};
 
 const TOOLBAR_BUTTON_CLASS = toolbarButtonVariants({ tone: "soft" });
 
@@ -30,7 +44,7 @@ export default function SidebarShell({
   header,
   children,
   variant = "airport",
-}) {
+}: SidebarShellProps) {
   const { t } = useI18n();
   const { themePreference, themeTitle, themeIconKey, cycleTheme } =
     useThemePreference();

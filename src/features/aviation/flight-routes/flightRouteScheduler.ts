@@ -9,6 +9,16 @@ import {
   writeRouteCacheEntry,
 } from "./flightRouteLookupModel";
 
+type FlightRouteSchedulerOptions = {
+  client?: any;
+  config?: Record<string, any>;
+  cache?: Map<string, any>;
+  logger?: Pick<Console, "info" | "warn">;
+  now?: () => number;
+  schedule?: (callback: () => void, delayMs?: number) => any;
+  clearSchedule?: (handle: any) => void;
+};
+
 function callsignSetForRouteContext(keys, routeContext) {
   const callsigns = new Set();
   for (const key of keys) {
@@ -36,11 +46,11 @@ export function createFlightRouteScheduler({
   now = Date.now,
   schedule = setTimeout,
   clearSchedule = clearTimeout,
-} = {}) {
-  const listeners = new Set();
-  const inFlightKeys = new Set();
-  const queuedKeys = new Set();
-  const routeQueue = [];
+}: FlightRouteSchedulerOptions = {}) {
+  const listeners = new Set<(state: Record<string, any>) => void>();
+  const inFlightKeys = new Set<string>();
+  const queuedKeys = new Set<string>();
+  const routeQueue: Record<string, any>[] = [];
 
   let routeQueueTimer = null;
   let lastLookupStartedAt = 0;
@@ -150,7 +160,7 @@ export function createFlightRouteScheduler({
       const entry = routeQueue.shift();
       queuedKeys.delete(entry.cacheKey);
       lastLookupStartedAt = now();
-      lookup(entry);
+      lookup(entry as any);
     }
   }
 

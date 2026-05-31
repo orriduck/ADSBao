@@ -55,11 +55,13 @@ export const AIRCRAFT_ICON_NAMES = Object.freeze([
 
 const ICON_NAME_SET = new Set(AIRCRAFT_ICON_NAMES);
 
-export function isKnownAircraftIconName(name) {
+type AircraftIconRecord = Record<string, any>;
+
+export function isKnownAircraftIconName(name: unknown) {
   return typeof name === "string" && ICON_NAME_SET.has(name);
 }
 
-const iconUrl = (name) => `${AIRCRAFT_ICON_BASE_PATH}/${name}`;
+const iconUrl = (name: string) => `${AIRCRAFT_ICON_BASE_PATH}/${name}`;
 
 // Family fallbacks for ICAO type designators that aren't shipped as direct
 // SVGs. Each target name must exist in AIRCRAFT_ICON_NAMES — the closest
@@ -146,7 +148,7 @@ const CATEGORY_ICONS = {
   A7: "h60",   // rotorcraft
 };
 
-const normalizeKey = (value) =>
+const normalizeKey = (value: unknown) =>
   typeof value === "string" ? value.trim().toUpperCase() : "";
 
 // Wake-class scale factors keyed off the ADS-B emitter category (A-level).
@@ -174,7 +176,7 @@ const CATEGORY_SIZE_SCALE = {
  * @param {{ category?: string }} aircraft
  * @returns {number}
  */
-export function resolveAircraftSizeScale(aircraft = {}) {
+export function resolveAircraftSizeScale(aircraft: AircraftIconRecord = {}) {
   const category = normalizeKey(aircraft.category);
   return CATEGORY_SIZE_SCALE[category] ?? AIRCRAFT_BASELINE_SCALE;
 }
@@ -190,14 +192,14 @@ export function resolveAircraftSizeScale(aircraft = {}) {
  * @param {{ type?: string, category?: string }} aircraft
  * @returns {{ src: string, name: string, source: 'type' | 'category' } | null}
  */
-export function resolveAircraftIcon(aircraft = {}) {
+export function resolveAircraftIcon(aircraft: AircraftIconRecord = {}) {
   const type = normalizeKey(aircraft.type);
   if (type) {
     const directName = type.toLowerCase();
     if (ICON_NAME_SET.has(directName)) {
       return { src: iconUrl(directName), name: directName, source: "type" };
     }
-    for (const [pattern, name] of TYPE_PATTERNS) {
+    for (const [pattern, name] of TYPE_PATTERNS as [RegExp, string][]) {
       if (pattern.test(type)) {
         return { src: iconUrl(name), name, source: "type" };
       }

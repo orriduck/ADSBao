@@ -23,6 +23,8 @@ import { normalizeRouteCallsign } from "./flightRouteCallsign";
 // repeats stay quiet.
 let lastGateLog = "";
 
+type FlightRouteMechanismRecord = Record<string, any>;
+
 async function isFlightAwareRouteProviderEnabled() {
   const [{ currentUser }, featureFlagAccess, featureFlagModel] = await Promise.all([
     import("@clerk/nextjs/server"),
@@ -52,7 +54,7 @@ async function isFlightAwareRouteProviderEnabled() {
   return enabled;
 }
 
-export async function fetchAdsbdbRoute(callsign) {
+export async function fetchAdsbdbRoute(callsign: unknown) {
   const url = buildAdsbdbCallsignRouteUrl(callsign);
   if (!url) return null;
 
@@ -65,7 +67,7 @@ export async function fetchAdsbdbRoute(callsign) {
       },
       signal: AbortSignal.timeout(9_000),
     });
-  } catch (err) {
+  } catch (err: any) {
     console.warn(`[adsbdb-route] fetch failed for ${callsign}:`, err.message);
     return null;
   }
@@ -84,8 +86,8 @@ export async function fetchAdsbdbRoute(callsign) {
 }
 
 export async function fetchFlightAwareRoute(
-  callsign,
-  { airportQueries = createOurAirportsQueriesFromEnv() } = {},
+  callsign: unknown,
+  { airportQueries = createOurAirportsQueriesFromEnv() }: FlightRouteMechanismRecord = {},
 ) {
   const url = buildFlightAwareCallsignRouteUrl(callsign);
   if (!url) return null;
@@ -99,7 +101,7 @@ export async function fetchFlightAwareRoute(
       },
       signal: AbortSignal.timeout(9_000),
     });
-  } catch (err) {
+  } catch (err: any) {
     console.warn(`[flightaware-route] fetch failed for ${callsign}:`, err.message);
     return null;
   }
@@ -119,7 +121,7 @@ export async function fetchFlightAwareRoute(
     callsign,
     html,
     resolveAirportByIdent: airportQueries?.getAirportByIdent
-      ? (ident) => airportQueries.getAirportByIdent(ident)
+      ? (ident: unknown) => airportQueries.getAirportByIdent(ident)
       : null,
   });
 }
@@ -127,14 +129,14 @@ export async function fetchFlightAwareRoute(
 async function readCommunityFeedbackOverride({
   feedbackRepository,
   normalizedCallsign,
-}) {
+}: FlightRouteMechanismRecord) {
   if (!feedbackRepository) return null;
   try {
     const row = await feedbackRepository.readActiveOverride({
       normalizedCallsign,
     });
     return row?.route_payload || null;
-  } catch (err) {
+  } catch (err: any) {
     console.warn(
       `[route-feedback] override read failed for ${normalizedCallsign}:`,
       err.message,
@@ -163,7 +165,7 @@ export const resolveFlightRoute = async ({
   shouldUseFlightAwareRouteProvider = isFlightAwareRouteProviderEnabled,
   fetchFlightAwareRoute: fetchFlightAwareRouteImpl = fetchFlightAwareRoute,
   fetchAdsbdbRoute: fetchAdsbdbRouteImpl = fetchAdsbdbRoute,
-} = {}) => {
+}: FlightRouteMechanismRecord = {}) => {
   const normalizedCallsign = normalizeRouteCallsign(callsign);
   if (!normalizedCallsign) return null;
 
@@ -179,7 +181,7 @@ export const resolveFlightRoute = async ({
     flightAwareAllowed = Boolean(
       await shouldUseFlightAwareRouteProvider(normalizedCallsign),
     );
-  } catch (err) {
+  } catch (err: any) {
     console.warn(
       `[flightaware-route] feature flag check failed for ${normalizedCallsign}:`,
       err.message,

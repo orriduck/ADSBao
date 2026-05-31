@@ -9,7 +9,9 @@ export const METAR_CACHE_HEADERS = Object.freeze({
 });
 
 export class MetarProviderError extends Error {
-  constructor(message, status = null) {
+  status: number | null;
+
+  constructor(message: string, status: number | null = null) {
     super(message);
     this.name = "MetarProviderError";
     this.status = status;

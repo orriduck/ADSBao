@@ -27,11 +27,13 @@ const MAX_POINTS_PER_FLIGHT = 2000;
 const isBrowser = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 
-function normalizeCallsign(callsign) {
+type TrackedTraceRecord = Record<string, any>;
+
+function normalizeCallsign(callsign: unknown) {
   return String(callsign || "").trim().toUpperCase();
 }
 
-function readStore() {
+function readStore(): TrackedTraceRecord {
   if (!isBrowser()) return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -41,7 +43,7 @@ function readStore() {
   }
 }
 
-function writeStore(store) {
+function writeStore(store: TrackedTraceRecord) {
   if (!isBrowser()) return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
@@ -50,8 +52,8 @@ function writeStore(store) {
   }
 }
 
-function pruneStore(store, { now = Date.now() } = {}) {
-  const out = {};
+function pruneStore(store: TrackedTraceRecord, { now = Date.now() }: TrackedTraceRecord = {}) {
+  const out: TrackedTraceRecord = {};
   for (const [key, entry] of Object.entries(store || {})) {
     if (
       entry &&
@@ -64,7 +66,7 @@ function pruneStore(store, { now = Date.now() } = {}) {
   return out;
 }
 
-function sanitizePoints(points) {
+function sanitizePoints(points: unknown) {
   if (!Array.isArray(points)) return [];
   const out = [];
   for (const point of points) {
@@ -97,7 +99,7 @@ function sanitizePoints(points) {
   return out;
 }
 
-export function readTrackedTrace(callsign, { now = Date.now() } = {}) {
+export function readTrackedTrace(callsign: unknown, { now = Date.now() }: TrackedTraceRecord = {}) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return [];
   const store = pruneStore(readStore(), { now });
@@ -105,7 +107,7 @@ export function readTrackedTrace(callsign, { now = Date.now() } = {}) {
   return Array.isArray(entry?.points) ? sanitizePoints(entry.points) : [];
 }
 
-export function writeTrackedTrace(callsign, points, { now = Date.now() } = {}) {
+export function writeTrackedTrace(callsign: unknown, points: unknown, { now = Date.now() }: TrackedTraceRecord = {}) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return;
   const sanitized = sanitizePoints(points);

@@ -1,6 +1,6 @@
 const SIDEBAR_SELECTOR = ".airport-desktop-sidebar";
 
-function pair(value, fallback) {
+function pair(value: any, fallback: number[]) {
   if (Array.isArray(value)) return value;
   if (value && typeof value.x === "number" && typeof value.y === "number") {
     return [value.x, value.y];
@@ -8,7 +8,7 @@ function pair(value, fallback) {
   return fallback;
 }
 
-export function getFloatingSidebarOcclusionWidth(map) {
+export function getFloatingSidebarOcclusionWidth(map: any) {
   const container = map?.getContainer?.();
   const kit = container?.closest?.(".airport-map-kit");
   const sidebar = kit?.querySelector?.(SIDEBAR_SELECTOR);
@@ -22,7 +22,7 @@ export function getFloatingSidebarOcclusionWidth(map) {
   return Math.max(0, Math.round(occludedRight - containerRect.left));
 }
 
-export function getOffsetMapCenter(map, center, zoom) {
+export function getOffsetMapCenter(map: any, center: any, zoom: any) {
   const occlusionWidth = getFloatingSidebarOcclusionWidth(map);
   if (!occlusionWidth || !center) return center;
 
@@ -31,7 +31,7 @@ export function getOffsetMapCenter(map, center, zoom) {
   return map.unproject(projected, zoom);
 }
 
-export function withFloatingSidebarFitPadding(map, fitOptions = {}) {
+export function withFloatingSidebarFitPadding(map: any, fitOptions: Record<string, any> = {}) {
   const occlusionWidth = getFloatingSidebarOcclusionWidth(map);
   if (!occlusionWidth) return fitOptions;
 

@@ -5,11 +5,11 @@ export const ZOOM_AIRPORT = AIRPORT_MAP_ZOOM.airport
 export const ZOOM_DETAIL = AIRPORT_MAP_ZOOM.detail
 
 export const isGroundLikeAircraft = (
-  aircraft,
+  aircraft: Record<string, any>,
   {
     airportAreaRadiusNm,
     slowAircraftThresholdKt,
-  } = {},
+  }: Record<string, any> = {},
 ) => {
   if (aircraft?.onGround) return true
 
@@ -24,5 +24,5 @@ export const isGroundLikeAircraft = (
   )
 }
 
-export const countGroundAircraft = (aircraft = []) =>
+export const countGroundAircraft = (aircraft: Record<string, any>[] = []) =>
   aircraft.filter((item) => item?.onGround).length

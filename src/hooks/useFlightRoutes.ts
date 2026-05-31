@@ -7,11 +7,16 @@ import { createRouteDisplayBatcher } from "../features/aviation/flight-routes/fl
 
 export { formatFlightRouteQueueAudit } from "../features/aviation/flight-routes/flightRouteScheduler";
 
-export function useFlightRoutes(aircraft, routeContextInput = {}) {
+type FlightRouteHookRecord = Record<string, any>;
+
+export function useFlightRoutes(
+  aircraft: FlightRouteHookRecord[],
+  routeContextInput: FlightRouteHookRecord = {},
+) {
   const [version, setVersion] = useState(0);
   const [loadingCount, setLoadingCount] = useState(0);
   const mountedRef = useRef(true);
-  const routeDisplayBatcherRef = useRef(null);
+  const routeDisplayBatcherRef = useRef<any>(null);
   const routeContext = useMemo(
     () => ({
       icao: routeContextInput?.icao || "",
@@ -56,15 +61,19 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
   }, [aircraft, routeContext]);
 
   useEffect(
-    () =>
-      flightRouteScheduler.subscribe((state) => {
+    () => {
+      const unsubscribe = flightRouteScheduler.subscribe((state) => {
         if (!mountedRef.current) return;
         setLoadingCount(state.loadingCount);
         // Route fetches complete independently. Publish route-cache changes
         // to the list in a small batch so route labels and their reveal
         // animations enter together instead of rippling row by row.
         routeDisplayBatcherRef.current?.syncRouteVersion(state.routeVersion);
-      }),
+      });
+      return () => {
+        unsubscribe();
+      };
+    },
     [],
   );
 
@@ -82,7 +91,7 @@ export function useFlightRoutes(aircraft, routeContextInput = {}) {
   // hit-cache TTL; the upstream Supabase override row independently bounds
   // visibility to 12h.
   const applyTemporaryRoute = useCallback(
-    (callsign, route) => {
+    (callsign: unknown, route: FlightRouteHookRecord) => {
       const normalized = normalizeCallsign(callsign);
       if (!normalized || !route) return;
       flightRouteScheduler.applyTemporaryRoute(normalized, route, routeContext);

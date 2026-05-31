@@ -4,7 +4,9 @@
 
 const NM_TO_METERS = 1852;
 
-function ringColors(theme) {
+type RangeRingOptions = Record<string, any>;
+
+function ringColors(theme: unknown) {
   if (theme === "light") {
     return {
       minorStroke: "var(--airport-range-ring-minor)",
@@ -20,7 +22,7 @@ function ringColors(theme) {
 }
 
 export function buildAirportRangeRings(
-  L,
+  L: any,
   {
     lat,
     lon,
@@ -29,7 +31,7 @@ export function buildAirportRangeRings(
     theme = "dark",
     shaded = true,
     prominent = false,
-  } = {},
+  }: RangeRingOptions = {},
 ) {
   if (
     !L ||
@@ -81,8 +83,8 @@ export function buildAirportRangeRings(
 const EARTH_LAT_METERS_PER_DEG = 111139;
 
 export function buildAirportRangeRingLabels(
-  L,
-  { lat, lon, intervalNm, maxNm, theme = "dark" } = {},
+  L: any,
+  { lat, lon, intervalNm, maxNm, theme = "dark" }: RangeRingOptions = {},
 ) {
   if (
     !L ||

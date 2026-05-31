@@ -19,6 +19,8 @@ import {
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { toFiniteNumber } from "@/utils/math";
 
+type FlightSidebarRecord = Record<string, any>;
+
 // Sidebar for /aircraft/[callsign]. Shares chrome (SidebarShell), identity
 // hero (SidebarIdentityHero), and the stat-card layout (SidebarMetricGrid)
 // with the airport sidebar. The only flight-specific piece is the
@@ -171,8 +173,8 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
   // active state so the user can pin a metric the same way the airport
   // page pins WEATHER vs FLIGHTS. Click an already-active card to
   // deselect.
-  const [activeMetric, setActiveMetric] = useState(null);
-  const toggle = (id) =>
+  const [activeMetric, setActiveMetric] = useState<string | null>(null);
+  const toggle = (id: string) =>
     setActiveMetric((current) => (current === id ? null : id));
   const speedDisplay = formatFlightTelemetryMetric({
     metric: "speed",
@@ -291,7 +293,12 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
   );
 }
 
-function MetricNumberFlow({ value, suffix, format, suffixPosition = "sub" }) {
+function MetricNumberFlow({
+  value,
+  suffix,
+  format,
+  suffixPosition = "sub",
+}: FlightSidebarRecord) {
   return (
     <NumberFlow
       value={value}

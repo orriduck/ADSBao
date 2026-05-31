@@ -8,15 +8,17 @@ const MAP_LABEL_LOCALES = Object.freeze({
   "zh-CN": "zh-Hans",
 });
 
-export function normalizeMapLabelLocale(locale) {
+type MapTileLanguageRecord = Record<string, any>;
+
+export function normalizeMapLabelLocale(locale: string) {
   return MAP_LABEL_LOCALES[locale] || MAP_LABEL_LOCALES.en;
 }
 
-export function getMapLibreBaseStyleUrl(theme) {
+export function getMapLibreBaseStyleUrl(theme: string) {
   return OPENFREEMAP_STYLES[theme] || OPENFREEMAP_STYLES.dark;
 }
 
-export function getMapLibreLabelTextField(locale) {
+export function getMapLibreLabelTextField(locale: string) {
   const normalized = normalizeMapLabelLocale(locale);
   if (normalized === "zh-Hans") {
     return [
@@ -41,7 +43,7 @@ export function getMapLibreLabelTextField(locale) {
 }
 
 export function buildLocalizedMapLibreStyle(
-  style,
+  style: MapTileLanguageRecord,
   { locale = "en", showLabels = true } = {},
 ) {
   if (!style || !Array.isArray(style.layers)) return style;
@@ -74,8 +76,8 @@ export function buildLocalizedMapLibreStyle(
 }
 
 export function buildProxiedMapLibreStyle(
-  style,
-  { tileJson } = {},
+  style: MapTileLanguageRecord,
+  { tileJson }: MapTileLanguageRecord = {},
 ) {
   if (!style || typeof style !== "object") return style;
 

@@ -5,6 +5,16 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+const forwardRef = React.forwardRef as <
+  Element = any,
+  Props = Record<string, any>,
+>(
+  render: (
+    props: Props,
+    ref: React.ForwardedRef<Element>,
+  ) => React.ReactNode,
+) => React.ForwardRefExoticComponent<Props & React.RefAttributes<Element>>;
+
 // Shared chrome for every floating toolbar in the app — the home page
 // PageNavigationDock, the sidebar mobile-overlay toolbar, and the map
 // control rail. They share a pill shell + reveal animation + button
@@ -89,7 +99,7 @@ const toolbarVariants = cva(
   },
 );
 
-export const Toolbar = React.forwardRef(function Toolbar(
+export const Toolbar = forwardRef(function Toolbar(
   { className, layout, reveal = true, role = "toolbar", ...props },
   ref,
 ) {
@@ -111,7 +121,10 @@ export const Toolbar = React.forwardRef(function Toolbar(
 // 1px vertical divider between groups of toolbar buttons. All three
 // callers used a ~20px-tall hairline against --atc-line-strong, with
 // trivial spacing differences. One primitive replaces three.
-export function ToolbarSeparator({ className, ...props }) {
+export function ToolbarSeparator({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
   return (
     <span
       aria-hidden="true"
@@ -185,7 +198,7 @@ const toolbarButtonVariants = cva(
   },
 );
 
-export const ToolbarButton = React.forwardRef(function ToolbarButton(
+export const ToolbarButton = forwardRef(function ToolbarButton(
   { className, tone, active = false, asChild = false, ...props },
   ref,
 ) {
@@ -205,7 +218,10 @@ export const ToolbarButton = React.forwardRef(function ToolbarButton(
 // Account cell — same 32px footprint as ToolbarButton but renders
 // arbitrary children (Clerk's <UserButton /> or a placeholder div
 // before Clerk boots).
-export function ToolbarAccountSlot({ className, ...props }) {
+export function ToolbarAccountSlot({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(

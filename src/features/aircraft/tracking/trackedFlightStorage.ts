@@ -13,7 +13,9 @@ export const TRACE_LOOKBACK_MS = 30 * 60 * 1000;
 const isBrowser = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 
-function readStore() {
+type TrackedFlightRecord = Record<string, any>;
+
+function readStore(): TrackedFlightRecord {
   if (!isBrowser()) return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -23,7 +25,7 @@ function readStore() {
   }
 }
 
-function writeStore(store) {
+function writeStore(store: TrackedFlightRecord) {
   if (!isBrowser()) return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
@@ -32,8 +34,8 @@ function writeStore(store) {
   }
 }
 
-function pruneStore(store, { now = Date.now() } = {}) {
-  const out = {};
+function pruneStore(store: TrackedFlightRecord, { now = Date.now() }: TrackedFlightRecord = {}) {
+  const out: TrackedFlightRecord = {};
   for (const [key, entry] of Object.entries(store || {})) {
     if (
       entry &&
@@ -46,7 +48,7 @@ function pruneStore(store, { now = Date.now() } = {}) {
   return out;
 }
 
-function normalizeCallsign(callsign) {
+function normalizeCallsign(callsign: unknown) {
   return String(callsign || "").trim().toUpperCase();
 }
 
@@ -55,7 +57,7 @@ function normalizeCallsign(callsign) {
 // `hex` is recorded the first time it becomes available so the cache
 // captures the icao24 of the aircraft we anchored on (helpful for
 // debugging / future cache invalidation).
-export function getOrCreateTrackedFlight(callsign, options = {}) {
+export function getOrCreateTrackedFlight(callsign: unknown, options: TrackedFlightRecord = {}) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return null;
 
@@ -78,14 +80,14 @@ export function getOrCreateTrackedFlight(callsign, options = {}) {
   return entry;
 }
 
-export function getTrackedFlight(callsign, { now = Date.now() } = {}) {
+export function getTrackedFlight(callsign: unknown, { now = Date.now() }: TrackedFlightRecord = {}) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return null;
   const store = pruneStore(readStore(), { now });
   return store[normalized] || null;
 }
 
-export function clearTrackedFlight(callsign) {
+export function clearTrackedFlight(callsign: unknown) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return;
   const store = readStore();
@@ -96,7 +98,7 @@ export function clearTrackedFlight(callsign) {
 
 // Convenience: given a session, return the trace cutoff timestamp
 // (firstTrackedAt - 30 minutes) the trace pipeline should clip against.
-export function getTraceCutoffMs(session) {
+export function getTraceCutoffMs(session: TrackedFlightRecord | null | undefined) {
   if (!session || typeof session.firstTrackedAt !== "number") return null;
   return session.firstTrackedAt - TRACE_LOOKBACK_MS;
 }

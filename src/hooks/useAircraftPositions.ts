@@ -45,7 +45,7 @@ const waitUntil = (timestamp) => {
   });
 };
 
-export function useAircraftPositions(icao, lat, lon, options = {}) {
+export function useAircraftPositions(icao, lat, lon, options: Record<string, any> = {}) {
   const pollWhenHidden = options?.pollWhenHidden === true;
   const distNm = normalizeAircraftRangeNm(options?.distNm);
   const queryLat = normalizeLatitude(lat);

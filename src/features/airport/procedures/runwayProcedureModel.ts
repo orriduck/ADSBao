@@ -130,7 +130,7 @@ export function buildRunwayProcedurePayload({
   airport,
   cycle = "",
   maxProcedures,
-} = {}) {
+}: Record<string, any> = {}) {
   const normalizedAirport = String(airport || "").trim().toUpperCase();
   const { procedures, warnings } = parseProcedureRecords({
     lines,

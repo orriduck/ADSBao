@@ -43,7 +43,7 @@ globalThis.document = {
   set cookie(next) {
     cookieJar.value = next
   },
-}
+} as Document
 
 assert.equal(sanitizeTheme('light'), THEME_LIGHT)
 assert.equal(sanitizeTheme('wat'), THEME_SYSTEM)

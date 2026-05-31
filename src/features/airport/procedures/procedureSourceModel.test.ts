@@ -71,7 +71,7 @@ const payload = buildLiveProcedurePayload({
 
 assert.equal(payload.index.airport, "KBOS");
 assert.equal(payload.index.approaches.length, 2);
-assert.equal(payload.runwayMap, undefined);
+assert.equal((payload as any).runwayMap, undefined);
 assert.equal(payload.geojson.type, "FeatureCollection");
 assert.equal(payload.geojson.properties.procedureCount, 2);
 assert.equal(

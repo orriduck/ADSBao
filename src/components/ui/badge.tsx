@@ -25,14 +25,14 @@ function Badge({
   variant = "default",
   asChild = false,
   ...props
-}) {
+}: Record<string, any>) {
   const Comp = asChild ? Slot.Root : "span";
 
   return (
     <Comp
       data-slot="badge"
       data-variant={variant}
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(badgeVariants({ variant: variant as any }), className)}
       {...props}
     />
   );

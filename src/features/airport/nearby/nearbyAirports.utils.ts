@@ -5,7 +5,9 @@ import {
   NEARBY_AIRPORT_LIMITS,
 } from "./nearbyAirports.models";
 
-export const readNearbyAirportNumber = (searchParams, key) => {
+type NearbyAirportQueryRecord = Record<string, any>;
+
+export const readNearbyAirportNumber = (searchParams: URLSearchParams, key: string) => {
   const raw = searchParams.get(key);
   return raw == null || raw === "" ? null : toFiniteNumber(raw);
 };
@@ -16,7 +18,7 @@ export const normalizeNearbyAirportQuery = ({
   icao,
   radiusNm,
   limit,
-} = {}) => ({
+}: NearbyAirportQueryRecord = {}) => ({
   lat,
   lon,
   icao: String(icao || "").trim().toUpperCase(),
@@ -30,7 +32,7 @@ export const isValidNearbyAirportQuery = ({
   icao,
   radiusNm,
   limit,
-} = {}) => {
+}: NearbyAirportQueryRecord = {}) => {
   const limits = NEARBY_AIRPORT_LIMITS;
   return (
     Number.isFinite(lat) &&

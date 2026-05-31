@@ -1,6 +1,8 @@
 const DEFAULT_BASE_PATH = "/api/proxy/airports/nearby";
 
-const setOptionalParam = (url, key, value) => {
+type NearbyAirportClientRecord = Record<string, any>;
+
+const setOptionalParam = (url: URL, key: string, value: unknown) => {
   if (value == null || value === "") return;
   url.searchParams.set(key, String(value));
 };
@@ -12,7 +14,7 @@ export function buildNearbyAirportsPath({
   radiusNm,
   limit,
   basePath = DEFAULT_BASE_PATH,
-} = {}) {
+}: NearbyAirportClientRecord = {}) {
   const url = new URL(basePath, "http://localhost");
   setOptionalParam(url, "lat", lat);
   setOptionalParam(url, "lon", lon);
@@ -25,11 +27,11 @@ export function buildNearbyAirportsPath({
 export function createNearbyAirportClient({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   basePath = DEFAULT_BASE_PATH,
-} = {}) {
+}: NearbyAirportClientRecord = {}) {
   if (!fetchImpl) throw new Error("Nearby airport client requires fetch support");
 
   return {
-    async fetchNearbyAirports(options = {}) {
+    async fetchNearbyAirports(options: NearbyAirportClientRecord = {}) {
       const url = buildNearbyAirportsPath({ ...options, basePath });
       const response = await fetchImpl(url, {
         headers: { Accept: "application/json" },

@@ -5,7 +5,7 @@ export function buildLostSignalToastOptions({
   t,
   onStay,
   onBackHome,
-} = {}) {
+}: Record<string, any> = {}) {
   const translate = typeof t === "function" ? t : (key) => key;
   const label = String(callsign || "this flight").trim().toUpperCase();
 

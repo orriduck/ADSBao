@@ -1,4 +1,4 @@
-function pushFiniteLatLon(points, lat, lon) {
+function pushFiniteLatLon(points: any[], lat: unknown, lon: unknown) {
   const latNum = Number(lat);
   const lonNum = Number(lon);
   if (Number.isFinite(latNum) && Number.isFinite(lonNum)) {
@@ -6,8 +6,14 @@ function pushFiniteLatLon(points, lat, lon) {
   }
 }
 
-export function buildTraceFitPoints({ traces = [], routePath = [] } = {}) {
+export function buildTraceFitPoints({
+  traces = [],
+  routePath = [],
+  routeEndpoints = [],
+}: Record<string, any> = {}) {
   const points = [];
+  const endpointPoints = Array.isArray(routeEndpoints) ? routeEndpoints : [];
+
   for (const trace of traces || []) {
     for (const point of trace?.tracePoints || []) {
       pushFiniteLatLon(points, point?.lat, point?.lon);
@@ -15,7 +21,7 @@ export function buildTraceFitPoints({ traces = [], routePath = [] } = {}) {
   }
 
   if (points.length > 0) {
-    for (const point of routePath || []) {
+    for (const point of [...(routePath || []), ...endpointPoints]) {
       if (Array.isArray(point)) {
         pushFiniteLatLon(points, point[0], point[1]);
       } else {

@@ -11,19 +11,19 @@ import {
 const DEFAULT_NEARBY_RADIUS_NM = 60;
 const DEFAULT_NEARBY_LIMIT = 12;
 
-const settledValue = (result, fallback) => {
+const settledValue = (result: PromiseSettledResult<any>, fallback: any) => {
   if (result.status === "fulfilled") return result.value;
   console.warn("[airportPageDataService] sub-query failed:", result.reason);
   return fallback;
 };
 
-export const createAirportPageDataService = ({ queries }) => {
+export const createAirportPageDataService = ({ queries }: Record<string, any>) => {
   if (!queries) {
     throw new Error("airportPageDataService requires a queries instance");
   }
 
   return {
-    async getAirportPageData(ident, options = {}) {
+    async getAirportPageData(ident: unknown, options: Record<string, any> = {}) {
       const trimmed = String(ident ?? "").trim();
       if (!trimmed) {
         return {
@@ -67,11 +67,11 @@ export const createAirportPageDataService = ({ queries }) => {
   };
 };
 
-export const createAirportPageDataServiceFromEnv = ({ env = process.env } = {}) => {
+export const createAirportPageDataServiceFromEnv = ({ env = process.env }: Record<string, any> = {}) => {
   const queries = createOurAirportsQueriesFromEnv({ env });
   if (!queries) return null;
   return createAirportPageDataService({ queries });
 };
 
-export const createAirportPageDataServiceFromQueries = (queries) =>
+export const createAirportPageDataServiceFromQueries = (queries: any) =>
   createAirportPageDataService({ queries: createOurAirportsQueries({ client: queries }) });

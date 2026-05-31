@@ -14,7 +14,7 @@ function createFakeSupabaseClient({
   deleteError = null,
 } = {}) {
   const calls = [];
-  const query = {
+  const query: Record<string, any> = {
     select(columns) {
       calls.push({ type: "select", columns });
       return query;

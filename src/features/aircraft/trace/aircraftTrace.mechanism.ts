@@ -10,7 +10,9 @@ import { formatAircraftTraceAttempt } from "./aircraftTrace.utils";
 
 const [TRACE_PROVIDER] = TRACE_PROVIDER_CHAIN;
 
-function buildFreshTraceUrl({ hex, full }) {
+type AircraftTraceMechanismRecord = Record<string, any>;
+
+function buildFreshTraceUrl({ hex, full }: AircraftTraceMechanismRecord) {
   const rawUrl = full
     ? TRACE_PROVIDER.buildFullTraceUrl({ hex })
     : TRACE_PROVIDER.buildTraceUrl({ hex });
@@ -19,7 +21,7 @@ function buildFreshTraceUrl({ hex, full }) {
   return url.toString();
 }
 
-async function fetchTrace({ hex, full = false }) {
+async function fetchTrace({ hex, full = false }: AircraftTraceMechanismRecord) {
   const url = buildFreshTraceUrl({ hex, full });
 
   let response;
@@ -33,7 +35,7 @@ async function fetchTrace({ hex, full = false }) {
         "User-Agent": AIRCRAFT_TRACE_USER_AGENT,
       },
     });
-  } catch (networkError) {
+  } catch (networkError: any) {
     throw new AircraftTraceProviderError(`network: ${networkError.message}`);
   }
 
@@ -47,12 +49,12 @@ async function fetchTrace({ hex, full = false }) {
       label: `${TRACE_PROVIDER.id} aircraft trace response`,
       maxBytes: AIRCRAFT_TRACE_MAX_BYTES,
     });
-  } catch (parseError) {
+  } catch (parseError: any) {
     throw new AircraftTraceProviderError(`parse: ${parseError.message}`);
   }
 }
 
-export const getAircraftTrace = async ({ hex, full = false } = {}) => {
+export const getAircraftTrace = async ({ hex, full = false }: AircraftTraceMechanismRecord = {}) => {
   try {
     const recent = await fetchTrace({ hex, full });
     if (!recent) {
@@ -68,7 +70,7 @@ export const getAircraftTrace = async ({ hex, full = false } = {}) => {
       source: TRACE_PROVIDER.id,
       attempts: [formatAircraftTraceAttempt(TRACE_PROVIDER.id, 200)],
     };
-  } catch (error) {
+  } catch (error: any) {
     const attempt = formatAircraftTraceAttempt(
       TRACE_PROVIDER.id,
       error.status || "ERR",

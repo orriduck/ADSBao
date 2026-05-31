@@ -5,7 +5,7 @@ import {
 
 import { ProcedureNotFoundError } from "./procedures.models";
 
-export async function getAirportProcedures({ icao } = {}) {
+export async function getAirportProcedures({ icao }: Record<string, any> = {}) {
   const payload = await buildLiveAirportProcedurePayload({ airport: icao });
 
   if (!payload.index.approaches.length) {
@@ -15,7 +15,7 @@ export async function getAirportProcedures({ icao } = {}) {
   return payload;
 }
 
-export async function getAirportRunwayProcedures({ icao } = {}) {
+export async function getAirportRunwayProcedures({ icao }: Record<string, any> = {}) {
   const payload = await buildLiveAirportRunwayProcedurePayload({ airport: icao });
 
   if (!payload.runwayDirections.length) {

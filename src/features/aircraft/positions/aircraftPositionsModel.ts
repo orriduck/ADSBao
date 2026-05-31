@@ -1,16 +1,18 @@
 import { parseAdsbPositionTime } from "../../../utils/aircraftMotion";
 
-function parseTimestampMs(value) {
+type AircraftPositionsModelRecord = Record<string, any>;
+
+function parseTimestampMs(value: unknown) {
   if (value == null || value === "") return null;
   const number = Number(value);
   if (Number.isFinite(number)) {
     return number < 10_000_000_000 ? Math.round(number * 1000) : Math.round(number);
   }
-  const parsed = Date.parse(value);
+  const parsed = Date.parse(String(value));
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function resolvePositionTimestampMs(aircraft) {
+function resolvePositionTimestampMs(aircraft: AircraftPositionsModelRecord | null | undefined) {
   const sourceUpdatedAt = parseTimestampMs(
     aircraft?.positionQuality?.sourceUpdatedAt,
   );
@@ -19,8 +21,8 @@ function resolvePositionTimestampMs(aircraft) {
 }
 
 export function normalizeAdsbAircraft(
-  aircraft,
-  { responseNow, receiveTime = Date.now() } = {},
+  aircraft: AircraftPositionsModelRecord,
+  { responseNow, receiveTime = Date.now() }: AircraftPositionsModelRecord = {},
 ) {
   return {
     icao24: aircraft.hex || "",
@@ -50,7 +52,10 @@ export function normalizeAdsbAircraft(
   };
 }
 
-export function normalizeAircraftSnapshot({ json, receiveTime = Date.now() }) {
+export function normalizeAircraftSnapshot({
+  json,
+  receiveTime = Date.now(),
+}: AircraftPositionsModelRecord) {
   return (json?.ac || [])
     .filter((aircraft) => aircraft.lat != null && aircraft.lon != null)
     .filter((aircraft) => aircraft.hex)
@@ -62,7 +67,7 @@ export function normalizeAircraftSnapshot({ json, receiveTime = Date.now() }) {
     );
 }
 
-export function resolveLastSuccessfulPositionDate(aircraft) {
+export function resolveLastSuccessfulPositionDate(aircraft: AircraftPositionsModelRecord | AircraftPositionsModelRecord[]) {
   const entries = Array.isArray(aircraft) ? aircraft : [aircraft];
   const latest = entries.reduce((max, item) => {
     const timestamp = resolvePositionTimestampMs(item);
@@ -72,7 +77,7 @@ export function resolveLastSuccessfulPositionDate(aircraft) {
   return latest > 0 ? new Date(latest) : null;
 }
 
-export function isHttp4xxOr5xx(error) {
+export function isHttp4xxOr5xx(error: any) {
   const status = Number(error?.status ?? error?.statusCode);
   if (status >= 400 && status < 600) return true;
   const match = String(error?.message || "").match(/\bHTTP\s+(\d{3})\b/i);
@@ -81,7 +86,7 @@ export function isHttp4xxOr5xx(error) {
   return parsed >= 400 && parsed < 600;
 }
 
-export function describeAircraftFetchError(error) {
+export function describeAircraftFetchError(error: any) {
   const isTimeout =
     error.name === "TimeoutError" ||
     /timed out|signal timed out/i.test(error.message);

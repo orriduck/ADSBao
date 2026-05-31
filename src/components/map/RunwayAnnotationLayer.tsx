@@ -15,7 +15,7 @@ import {
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel";
 
-const escapeHtml = (value) =>
+const escapeHtml = (value: unknown) =>
   String(value).replace(/[&<>"']/g, (character) => {
     const entities = {
       "&": "&amp;",
@@ -27,15 +27,15 @@ const escapeHtml = (value) =>
     return entities[character];
   });
 
-const runwayLineStyle = (theme) =>
+const runwayLineStyle = (theme: string) =>
   RUNWAY_ANNOTATION_STYLE_CONFIG.lineStyles[theme] ||
   RUNWAY_ANNOTATION_STYLE_CONFIG.lineStyles.dark;
 
-const runwayBeamColor = (theme) =>
+const runwayBeamColor = (theme: string) =>
   RUNWAY_ANNOTATION_STYLE_CONFIG.beamColors[theme] ||
   RUNWAY_ANNOTATION_STYLE_CONFIG.beamColors.dark;
 
-const runwayLabelIcon = (ident, theme) =>
+const runwayLabelIcon = (ident: string, theme: string) =>
   L.divIcon({
     className: `runway-end-label runway-end-label--${theme}`,
     html: `<span class="notranslate" translate="no">${escapeHtml(ident)}</span>`,
@@ -48,9 +48,9 @@ const runwayLabelIcon = (ident, theme) =>
 // glowing wedge + gradient controller. The pipelines are different
 // enough (polyline vs. polygon + per-frame gradient) that a single
 // style block would be artificial.
-const buildApproachLayer = ({ kind, data, theme }) => {
+const buildApproachLayer = ({ kind, data, theme }: Record<string, any>) => {
   if (kind === "approach-lines") {
-    const layer = L.geoJSON(data, {
+    const layer = L.geoJSON(data as any, {
       interactive: false,
       style(feature) {
         return {
@@ -72,7 +72,7 @@ const buildApproachLayer = ({ kind, data, theme }) => {
   // Extra renderer padding so beams that extend past the viewport edge
   // aren't clipped — default 0.1 is ~80px but beams can reach ~408px.
   const beamRenderer = L.svg({ padding: 1 });
-  const layer = L.geoJSON(data, {
+  const layer = L.geoJSON(data as any, {
     renderer: beamRenderer,
     interactive: false,
     style() {
@@ -85,7 +85,7 @@ const buildApproachLayer = ({ kind, data, theme }) => {
         stroke: false,
       };
     },
-  });
+  } as any);
   return { layer, beamLayer: layer, beamRenderer };
 };
 
@@ -95,7 +95,7 @@ export default function RunwayAnnotationLayer({
   zoom,
   showBeams = true,
   showBadges = true,
-}) {
+}: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
 
@@ -103,7 +103,7 @@ export default function RunwayAnnotationLayer({
     if (!map || !runwayMap?.runways?.length) return undefined;
 
     const centerlines = buildRunwayCenterlineCollection(runwayMap);
-    const lineLayer = L.geoJSON(centerlines, {
+    const lineLayer = L.geoJSON(centerlines as any, {
       interactive: false,
       style() {
         return {
@@ -128,7 +128,7 @@ export default function RunwayAnnotationLayer({
         data: visualization.data,
         theme,
       });
-      sublayers.unshift(built.layer);
+      sublayers.unshift(built.layer as any);
       beamLayer = built.beamLayer;
       beamRenderer = built.beamRenderer;
     }
@@ -145,14 +145,14 @@ export default function RunwayAnnotationLayer({
           }),
         ),
       );
-      sublayers.push(labelLayer);
+      sublayers.push(labelLayer as any);
     }
 
     const layer = L.layerGroup(sublayers).addTo(map);
     layerRef.current = layer;
 
     const removeGradients = beamLayer
-      ? createRunwayBeamGradientController({ map, beamLayer, theme })
+      ? createRunwayBeamGradientController({ map, beamLayer: beamLayer as any, theme })
       : () => {};
 
     return () => {

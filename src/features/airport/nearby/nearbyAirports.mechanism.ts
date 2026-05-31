@@ -9,7 +9,9 @@ import {
   buildRunwayMapFromOurAirports,
 } from "../map/ourAirportsRunwayMap";
 
-const attachOurAirportsRunwayMaps = async (airports, queries) => {
+type NearbyAirportsMechanismRecord = Record<string, any>;
+
+const attachOurAirportsRunwayMaps = async (airports: NearbyAirportsMechanismRecord[], queries: NearbyAirportsMechanismRecord) => {
   const runwayRows = await Promise.all(
     airports.map((airport) =>
       queries.getRunwaysByAirport(airport.ident || airport.icao).catch((error) => {
@@ -34,7 +36,7 @@ const attachOurAirportsRunwayMaps = async (airports, queries) => {
   });
 };
 
-const getNearbyAirportsFromOurAirports = async ({ query, queries }) => {
+const getNearbyAirportsFromOurAirports = async ({ query, queries }: NearbyAirportsMechanismRecord) => {
   if (!queries) {
     throw new Error("OurAirports nearby query layer is not configured");
   }
@@ -55,7 +57,7 @@ const getNearbyAirportsFromOurAirports = async ({ query, queries }) => {
   };
 };
 
-const logSupabaseCacheWarning = (action, error) => {
+const logSupabaseCacheWarning = (action: string, error: unknown) => {
   if (action === "write") {
     return;
   }
@@ -66,7 +68,7 @@ export const getNearbyAirports = async ({
   query,
   airportCache = createNearbyAirportSupabaseCacheFromEnv(),
   ourAirportsQueries = createOurAirportsQueriesFromEnv(),
-} = {}) => {
+}: NearbyAirportsMechanismRecord = {}) => {
   const airportCacheKey = buildNearbyAirportCacheKey(query);
 
   if (airportCache) {

@@ -11,7 +11,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 // swapping selections keeps the card's silhouette stable); the place
 // line drops to a smaller secondary style and wraps inside the card's
 // max-width so long airport names stay tidy.
-export default function AirportPreviewMobileCard({ airport }) {
+export default function AirportPreviewMobileCard({ airport }: Record<string, any>) {
   const { locale } = useI18n();
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
@@ -68,7 +68,7 @@ export default function AirportPreviewMobileCard({ airport }) {
   );
 }
 
-function Stat({ value, unit, format }) {
+function Stat({ value, unit, format }: Record<string, any>) {
   return (
     <span className="flex items-baseline gap-[2px]">
       <NumberFlow

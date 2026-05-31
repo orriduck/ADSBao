@@ -6,13 +6,13 @@ import { withAuditLogging } from "../../utils/apiLogger";
 import { normalizeLatitude, normalizeLongitude } from "../../app/api/_shared/apiProxySecurity";
 import { fetchJson } from "../aviation/httpClient";
 
-const env = typeof process !== "undefined" ? process.env : {};
+const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
 
 export const createLocalWeatherClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
     env.NEXT_PUBLIC_LOCAL_WEATHER_BASE || AVIATION_PROXY_BASES.localWeather,
-} = {}) => {
+}: Record<string, any> = {}) => {
   if (!fetchImpl) throw new Error("Local weather client requires fetch support");
 
   const auditedFetch = withAuditLogging(fetchImpl, {
@@ -20,7 +20,7 @@ export const createLocalWeatherClient = ({
   });
 
   return {
-    fetchCurrentWeather({ lat, lon }) {
+    fetchCurrentWeather({ lat, lon }: Record<string, any>) {
       const numericLat = normalizeLatitude(lat);
       const numericLon = normalizeLongitude(lon);
       if (numericLat == null || numericLon == null) {

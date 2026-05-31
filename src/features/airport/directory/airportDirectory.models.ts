@@ -15,6 +15,8 @@ export const AIRPORT_DIRECTORY_CACHE_HEADERS = Object.freeze({
 });
 
 export class AirportDirectoryConfigurationError extends Error {
+  status: number;
+
   constructor(message = "Airport database is not configured") {
     super(message);
     this.name = "AirportDirectoryConfigurationError";

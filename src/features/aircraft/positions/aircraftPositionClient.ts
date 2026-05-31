@@ -11,14 +11,14 @@ import {
 } from "../../../app/api/_shared/apiProxySecurity";
 import { fetchJson } from "../../aviation/httpClient";
 
-const env = typeof process !== "undefined" ? process.env : {};
+const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
 
 export const createAircraftPositionClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
     env.NEXT_PUBLIC_AIRCRAFT_POSITIONS_BASE ||
     AVIATION_PROXY_BASES.aircraftPositions,
-} = {}) => {
+}: Record<string, any> = {}) => {
   if (!fetchImpl)
     throw new Error("Aircraft position client requires fetch support");
 
@@ -31,7 +31,7 @@ export const createAircraftPositionClient = ({
       lat,
       lon,
       distNm = AIRCRAFT_TRAFFIC_CONFIG.rangeNm,
-    }) {
+    }: Record<string, any>) {
       const normalizedLat = normalizeLatitude(lat);
       const normalizedLon = normalizeLongitude(lon);
       const normalizedDist = normalizeDistanceNm(distNm, { min: 1, max: 250 });

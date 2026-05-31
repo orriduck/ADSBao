@@ -7,13 +7,15 @@ import {
   AirportDirectoryConfigurationError,
 } from "./airportDirectory.models";
 
+type AirportDirectoryMechanismRecord = Record<string, any>;
+
 export const searchAirportDirectory = async ({
   query,
   country,
   type,
   limit,
   queries = createOurAirportsQueriesFromEnv(),
-} = {}) => {
+}: AirportDirectoryMechanismRecord = {}) => {
   if (!queries) throw new AirportDirectoryConfigurationError();
 
   const airports = await queries.searchAirports({ query, country, type, limit });
@@ -32,7 +34,7 @@ export const getAirportDirectoryPage = async ({
   radiusNm,
   nearbyLimit,
   service = createAirportPageDataServiceFromEnv(),
-} = {}) => {
+}: AirportDirectoryMechanismRecord = {}) => {
   if (!service) throw new AirportDirectoryConfigurationError();
 
   const data = await service.getAirportPageData(ident, {
@@ -44,5 +46,5 @@ export const getAirportDirectoryPage = async ({
   return { ...data, source: AIRPORT_DIRECTORY_SOURCE };
 };
 
-export const refreshAirportDirectoryIfDue = (options) =>
+export const refreshAirportDirectoryIfDue = (options: AirportDirectoryMechanismRecord = {}) =>
   scheduleRefreshIfDue(options);

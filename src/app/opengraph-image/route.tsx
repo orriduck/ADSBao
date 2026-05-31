@@ -227,7 +227,7 @@ export async function GET() {
     ),
     {
       ...imageSize,
-      fonts: await fontData,
+      fonts: (await fontData) as any,
     },
   );
 }

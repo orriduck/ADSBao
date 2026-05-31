@@ -7,7 +7,7 @@ import {
 } from "./metar.models";
 import { buildMetarUrl } from "./metar.utils";
 
-export async function fetchMetar({ icao } = {}) {
+export async function fetchMetar({ icao }: Record<string, any> = {}) {
   const response = await fetch(buildMetarUrl(icao), {
     headers: {
       Accept: "application/json",

@@ -9,13 +9,13 @@ import { createTimeoutSignal } from "../httpClient";
 import { normalizeFlightRoute } from "./flightRouteNormalizer";
 import { createRateLimiter } from "../rateLimiter";
 
-const env = typeof process !== "undefined" ? process.env : {};
+const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
 
 export const createFlightRouteClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
     env.NEXT_PUBLIC_FLIGHT_ROUTE_BASE || AVIATION_PROXY_BASES.flightRoute,
-} = {}) => {
+}: Record<string, any> = {}) => {
   if (!fetchImpl) throw new Error("Flight route client requires fetch support");
 
   const auditedFetch = withAuditLogging(fetchImpl, {
@@ -32,7 +32,7 @@ export const createFlightRouteClient = ({
   // targetAirport stays in the URL so the server can scope its Supabase
   // community-feedback override lookup to the same (callsign, airport)
   // namespace the client uses for its in-memory cache key.
-  const routeUrl = (callsign, targetAirport = {}) => {
+  const routeUrl = (callsign: string, targetAirport: Record<string, any> = {}) => {
     const params = new URLSearchParams();
     const airportIcao = normalizeCallsign(targetAirport.icao || "");
     const airportIata = normalizeCallsign(targetAirport.iata || "");
@@ -47,7 +47,7 @@ export const createFlightRouteClient = ({
   };
 
   return {
-    async fetchFlightRoute(callsign, targetAirport = {}) {
+    async fetchFlightRoute(callsign: unknown, targetAirport: Record<string, any> = {}) {
       const normalized = normalizeCallsign(callsign);
       if (!normalized) return null;
 

@@ -4,8 +4,13 @@ import { useEffect, useState } from "react";
 import { aircraftPhotoClient } from "../../aviation/aviationData";
 
 const EMPTY_STATE = Object.freeze({ key: "", photo: null, status: "idle" });
+type AircraftPhotoState = {
+  key: string;
+  photo: any;
+  status: "idle" | "loading" | "found" | "missing";
+};
 
-function buildPhotoKey(aircraft) {
+function buildPhotoKey(aircraft: Record<string, any> | null | undefined) {
   const hex = String(aircraft?.icao24 || "").trim().toUpperCase();
   if (!hex) return "";
   return [
@@ -15,9 +20,9 @@ function buildPhotoKey(aircraft) {
   ].join(":");
 }
 
-export function useAircraftPhoto(aircraft) {
+export function useAircraftPhoto(aircraft: Record<string, any> | null | undefined) {
   const key = buildPhotoKey(aircraft);
-  const [state, setState] = useState(EMPTY_STATE);
+  const [state, setState] = useState<AircraftPhotoState>(EMPTY_STATE as AircraftPhotoState);
 
   useEffect(() => {
     if (!key) {

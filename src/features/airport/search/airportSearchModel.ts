@@ -1,24 +1,26 @@
-const normalizeAirportQuery = (value) =>
+type AirportSearchRecord = Record<string, any>;
+
+const normalizeAirportQuery = (value: unknown) =>
   String(value || "")
     .trim()
     .toUpperCase();
 
-const airportSearchText = (airport) =>
+const airportSearchText = (airport: AirportSearchRecord) =>
   [airport?.icao, airport?.iata, airport?.name, airport?.city, airport?.country]
     .join(" ")
     .toUpperCase();
 
-const airportKey = (airport) =>
+const airportKey = (airport: AirportSearchRecord) =>
   normalizeAirportQuery(airport?.icao || airport?.code || airport?.name);
 
 export const NEARBY_DISCOVERY_ITEM_ID = "nearby-airports-prompt";
 
-const airportDisplayItem = (airport) => ({
+const airportDisplayItem = (airport: AirportSearchRecord) => ({
   type: "airport",
   airport,
 });
 
-const hasAirportIdentity = (airport) =>
+const hasAirportIdentity = (airport: AirportSearchRecord) =>
   Boolean(
     normalizeAirportQuery(
       airport?.icao || airport?.code || airport?.iata || airport?.name,
@@ -29,7 +31,7 @@ export function getNearbyAirportDisplayItems({
   airports = [],
   status = "idle",
   errorMessage = "",
-} = {}) {
+}: AirportSearchRecord = {}): AirportSearchRecord[] {
   if (status !== "resolved") {
     return [
       {
@@ -53,7 +55,7 @@ export function getNearbyAirportDisplayItems({
   ];
 }
 
-export function getAirportDiscoveryTopics({ topics = [] } = {}) {
+export function getAirportDiscoveryTopics({ topics = [] }: AirportSearchRecord = {}) {
   return topics
     .map((topic) => ({
       ...topic,
@@ -66,7 +68,7 @@ export function mergeAirportSearchRows({
   query = "",
   staticAirports = [],
   results = [],
-} = {}) {
+}: AirportSearchRecord = {}): AirportSearchRecord[] {
   const normalizedQuery = normalizeAirportQuery(query);
   if (!normalizedQuery) return [];
 
@@ -83,7 +85,7 @@ export function mergeAirportSearchRows({
   });
 }
 
-export function createAirportSelection(airport = {}) {
+export function createAirportSelection(airport: AirportSearchRecord = {}) {
   return {
     code: airport.icao || airport.code,
     icao: airport.icao || airport.code,

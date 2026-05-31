@@ -4,7 +4,9 @@ import { resolveMovement, UNKNOWN } from "../../../utils/aircraftMovement";
 import { normalizeCallsign } from "../../../utils/callsign";
 import { formatFlightRouteLabel } from "../../../utils/flightRouteDisplay";
 
-export function resolveAirportProfile({ icao = "", airport = null } = {}) {
+type AirportExplorerRecord = Record<string, any>;
+
+export function resolveAirportProfile({ icao = "", airport = null }: AirportExplorerRecord = {}) {
   const normalizedIcao = String(airport?.icao || icao || "").toUpperCase();
   const airportFallback = AIRPORT_FALLBACKS[normalizedIcao] || null;
   const airportCodeLabel =
@@ -27,8 +29,8 @@ export function enrichAircraftWithRoutes({
   routesByCallsign = {},
   airportProfile,
   airspaceVolumes = [],
-} = {}) {
-  const aircraftWithRoutes = aircraft.map((item) => {
+}: AirportExplorerRecord = {}): AirportExplorerRecord[] {
+  const aircraftWithRoutes = aircraft.map((item: AirportExplorerRecord) => {
     const key = normalizeCallsign(item.callsign);
     const route = routesByCallsign[key] || null;
     const flightRouteLabel = formatFlightRouteLabel(route);
@@ -56,7 +58,7 @@ export function enrichAircraftWithRoutes({
   });
 }
 
-const aircraftSelectionId = (aircraft) => aircraft?.icao24 || aircraft?.callsign || "";
+const aircraftSelectionId = (aircraft: AirportExplorerRecord | null | undefined) => aircraft?.icao24 || aircraft?.callsign || "";
 
 const LIVE_POSITION_FIELDS = [
   "lat",
@@ -76,7 +78,7 @@ const LIVE_POSITION_FIELDS = [
 export function mergeTrackedAircraftIntoNearby({
   trackedAircraft = null,
   nearbyAircraft = [],
-} = {}) {
+}: AirportExplorerRecord = {}) {
   if (!trackedAircraft) return nearbyAircraft;
 
   const trackedKey = aircraftSelectionId(trackedAircraft);
@@ -106,7 +108,7 @@ export function resolveAirportExplorerSelection({
   selectedAircraftId = "",
   airports = [],
   selectedAirportIcao = "",
-} = {}) {
+}: AirportExplorerRecord = {}) {
   const selectedAircraft =
     aircraft.find((item) => aircraftSelectionId(item) === selectedAircraftId) ||
     null;

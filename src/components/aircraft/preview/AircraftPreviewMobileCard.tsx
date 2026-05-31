@@ -9,7 +9,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 // Same self-hiding-on-error pattern as the list row's logo. Keeps the
 // mobile card tidy when an airline isn't covered by the icon CDN.
-function AirlineLogo({ src }) {
+function AirlineLogo({ src }: Record<string, any>) {
   const [hidden, setHidden] = useState(false);
   if (!src || hidden) return null;
   return (
@@ -24,7 +24,7 @@ function AirlineLogo({ src }) {
   );
 }
 
-export default function AircraftPreviewMobileCard({ aircraft }) {
+export default function AircraftPreviewMobileCard({ aircraft }: Record<string, any>) {
   const { t } = useI18n();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
@@ -127,7 +127,7 @@ export default function AircraftPreviewMobileCard({ aircraft }) {
 // Single stat token — either a numeric NumberFlow + unit pair, or a
 // plain text token like "GND". Used by the parent's stats[] list so the
 // kt / ft / fpm rhythm renders the same way every time.
-function Stat({ value, unit, plain, format }) {
+function Stat({ value, unit, plain, format }: Record<string, any>) {
   return (
     <span className="flex items-baseline gap-[2px]">
       {plain != null ? (

@@ -6,14 +6,16 @@ const STATUTE_MILE_METERS = 1_609.344;
 
 export const shouldShowRunwayEndLabels = (zoom) => Number(zoom) > ZOOM_APPROACH;
 
-const metersPerDegreeLongitude = (latitude) =>
+type RunwayAnnotationRecord = Record<string, any>;
+
+const metersPerDegreeLongitude = (latitude: number) =>
   METERS_PER_DEGREE_LATITUDE * Math.cos((latitude * Math.PI) / 180);
 
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-const interpolate = (from, to, progress) => from + (to - from) * progress;
+const interpolate = (from: number, to: number, progress: number) => from + (to - from) * progress;
 
-const runwayBeamProfileForZoom = (zoom) => {
+const runwayBeamProfileForZoom = (zoom: unknown) => {
   const numericZoom = Number.isFinite(Number(zoom)) ? Number(zoom) : ZOOM_APPROACH;
   const profiles = RUNWAY_APPROACH_BEAM_CONFIG.profiles.map((profile) => ({
     ...profile,
@@ -43,14 +45,14 @@ const runwayBeamProfileForZoom = (zoom) => {
   };
 };
 
-const scaleRunwayBeamProfile = (profile, distanceScale = 1) => ({
+const scaleRunwayBeamProfile = (profile: RunwayAnnotationRecord, distanceScale = 1) => ({
   ...profile,
   distance: profile.distance * distanceScale,
   nearDistance: profile.nearDistance * distanceScale,
   nearWidth: profile.nearWidth * distanceScale,
 });
 
-const runwayEndVector = (end, oppositeEnd) => {
+const runwayEndVector = (end: RunwayAnnotationRecord, oppositeEnd: RunwayAnnotationRecord) => {
   const lonMeters = metersPerDegreeLongitude(end.lat);
   const dx = (end.lon - oppositeEnd.lon) * lonMeters;
   const dy = (end.lat - oppositeEnd.lat) * METERS_PER_DEGREE_LATITUDE;
@@ -64,7 +66,7 @@ const runwayEndVector = (end, oppositeEnd) => {
   };
 };
 
-const offsetPoint = ({ end, vector, distance, halfWidth, side }) => {
+const offsetPoint = ({ end, vector, distance, halfWidth, side }: RunwayAnnotationRecord) => {
   const perpendicularX = -vector.y;
   const perpendicularY = vector.x;
   const x = vector.x * distance + perpendicularX * halfWidth * side;
@@ -76,12 +78,12 @@ const offsetPoint = ({ end, vector, distance, halfWidth, side }) => {
   ];
 };
 
-const coordinateFromVectorMeters = ({ end, vector, distance }) => [
+const coordinateFromVectorMeters = ({ end, vector, distance }: RunwayAnnotationRecord) => [
   end.lon + (vector.x * distance) / vector.lonMeters,
   end.lat + (vector.y * distance) / METERS_PER_DEGREE_LATITUDE,
 ];
 
-const rotateVector = (vector, degrees) => {
+const rotateVector = (vector: RunwayAnnotationRecord, degrees: number) => {
   const radians = (degrees * Math.PI) / 180;
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
@@ -93,7 +95,7 @@ const rotateVector = (vector, degrees) => {
   };
 };
 
-const arcCoordinates = ({ end, vector, distance, halfAngle, reverse = false }) => {
+const arcCoordinates = ({ end, vector, distance, halfAngle, reverse = false }: RunwayAnnotationRecord) => {
   const points = [];
 
   for (
@@ -112,7 +114,7 @@ const arcCoordinates = ({ end, vector, distance, halfAngle, reverse = false }) =
   return points;
 };
 
-const buildRunwayEndBeamFeature = (runway, end, oppositeEnd, profile) => {
+const buildRunwayEndBeamFeature = (runway: RunwayAnnotationRecord, end: RunwayAnnotationRecord, oppositeEnd: RunwayAnnotationRecord, profile: RunwayAnnotationRecord) => {
   const vector = runwayEndVector(end, oppositeEnd);
   if (!vector) return null;
 
@@ -171,7 +173,7 @@ const buildRunwayEndBeamFeature = (runway, end, oppositeEnd, profile) => {
   };
 };
 
-export function buildRunwayEndLabels(runwayMap, { zoom } = {}) {
+export function buildRunwayEndLabels(runwayMap: RunwayAnnotationRecord, { zoom }: RunwayAnnotationRecord = {}) {
   if (zoom != null && !shouldShowRunwayEndLabels(zoom)) return [];
 
   return (runwayMap?.runways || []).flatMap((runway) =>
@@ -188,8 +190,8 @@ export function buildRunwayEndLabels(runwayMap, { zoom } = {}) {
 }
 
 export function buildRunwayApproachBeamCollection(
-  runwayMap,
-  { zoom, distanceScale = 1 } = {},
+  runwayMap: RunwayAnnotationRecord,
+  { zoom, distanceScale = 1 }: RunwayAnnotationRecord = {},
 ) {
   const profile = scaleRunwayBeamProfile(
     runwayBeamProfileForZoom(zoom),
@@ -221,7 +223,7 @@ export function buildRunwayApproachBeamCollection(
 // Centerline-extension variant used on the light theme — a soft
 // glowing wedge washed out on the bright basemap, so we draw a dashed
 // extended centerline (chart convention) instead.
-const buildRunwayEndApproachLineFeature = (runway, end, oppositeEnd, profile) => {
+const buildRunwayEndApproachLineFeature = (runway: RunwayAnnotationRecord, end: RunwayAnnotationRecord, oppositeEnd: RunwayAnnotationRecord, profile: RunwayAnnotationRecord) => {
   const vector = runwayEndVector(end, oppositeEnd);
   if (!vector) return null;
 
@@ -248,8 +250,8 @@ const buildRunwayEndApproachLineFeature = (runway, end, oppositeEnd, profile) =>
 };
 
 export function buildRunwayApproachLineCollection(
-  runwayMap,
-  { zoom, distanceScale = 1 } = {},
+  runwayMap: RunwayAnnotationRecord,
+  { zoom, distanceScale = 1 }: RunwayAnnotationRecord = {},
 ) {
   const profile = scaleRunwayBeamProfile(
     runwayBeamProfileForZoom(zoom),
@@ -287,8 +289,8 @@ export function buildRunwayApproachLineCollection(
 // alongside a `kind` discriminator so the layer can pick its render
 // pipeline. Dark = wedge + gradient; light = dashed extended centerline.
 export function buildRunwayApproachVisualization(
-  runwayMap,
-  { zoom, theme = "dark", distanceScale = 1 } = {},
+  runwayMap: RunwayAnnotationRecord,
+  { zoom, theme = "dark", distanceScale = 1 }: RunwayAnnotationRecord = {},
 ) {
   if (theme === "light") {
     return {
@@ -302,7 +304,7 @@ export function buildRunwayApproachVisualization(
   };
 }
 
-export function buildRunwayCenterlineCollection(runwayMap) {
+export function buildRunwayCenterlineCollection(runwayMap: RunwayAnnotationRecord) {
   return {
     type: "FeatureCollection",
     properties: {

@@ -4,14 +4,16 @@ const PRIMARY_OPACITY = 1;
 // needs to read clearly enough to scan the scene.
 const DIMMED_OPACITY = 0.55;
 
-export function getAircraftIdentity(aircraft = {}) {
+type AirportContextUiRecord = Record<string, any>;
+
+export function getAircraftIdentity(aircraft: AirportContextUiRecord = {}) {
   return aircraft.icao24 || aircraft.callsign || "";
 }
 
 export function resolveAircraftContextEmphasis({
   matchesFilters = true,
   selected = false,
-} = {}) {
+}: AirportContextUiRecord = {}) {
   if (selected || matchesFilters) {
     return {
       opacity: PRIMARY_OPACITY,
@@ -24,11 +26,11 @@ export function resolveAircraftContextEmphasis({
   };
 }
 
-export function getAircraftContextGroup(aircraft = {}) {
+export function getAircraftContextGroup(aircraft: AirportContextUiRecord = {}) {
   return aircraft.airportContext?.display?.group || "Unknown";
 }
 
-export function getContextTagLabel(aircraft = {}) {
+export function getContextTagLabel(aircraft: AirportContextUiRecord = {}) {
   const context = aircraft.airportContext || {};
   const airspaceLabel = context.airspace?.matched
     ? context.airspace.label

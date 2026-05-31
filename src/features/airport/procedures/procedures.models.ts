@@ -3,7 +3,9 @@ export const PROCEDURE_CACHE_HEADERS = Object.freeze({
 });
 
 export class ProcedureNotFoundError extends Error {
-  constructor(message) {
+  status: number;
+
+  constructor(message = "No procedure data found") {
     super(message);
     this.name = "ProcedureNotFoundError";
     this.status = 404;

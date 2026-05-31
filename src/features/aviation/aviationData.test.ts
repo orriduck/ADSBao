@@ -371,7 +371,7 @@ try {
   });
 
   await assert.rejects(
-    () => metarClient.fetchMetar("klax"),
+    async () => metarClient.fetchMetar("klax"),
     /Expected JSON from \/api\/proxy\/metar\/KLAX/,
   );
 

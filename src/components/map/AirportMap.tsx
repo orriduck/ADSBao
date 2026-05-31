@@ -40,7 +40,7 @@ const WEB_MERCATOR_MAX_LAT = 85.05112878;
 const WEB_MERCATOR_BOUNDS = [
   [-WEB_MERCATOR_MAX_LAT, -180],
   [WEB_MERCATOR_MAX_LAT, 180],
-];
+] as any;
 
 export default function AirportMap({
   icao = "",
@@ -75,7 +75,7 @@ export default function AirportMap({
   loadingOverlayCallsign = "",
   loadingOverlaySources = {},
   children = null,
-}) {
+}: Record<string, any>) {
   const { locale } = useI18n();
   // Single source of truth for the focal ring bands so AreaMarker,
   // AirportMarker, and the bottom-left legend agree on what to render.
@@ -133,7 +133,7 @@ export default function AirportMap({
       tap: false,
       maxBounds: WEB_MERCATOR_BOUNDS,
       maxBoundsViscosity: 1,
-    });
+    } as any);
     mapRef.current = map;
     setMapInstance(map);
 
@@ -163,7 +163,7 @@ export default function AirportMap({
     const setOffsetAwareView = () => {
       const targetCenter = floatingSidebarAware
         ? getOffsetMapCenter(map, focalCenter, zoom)
-        : [focalCenter.lat, focalCenter.lon];
+        : ([focalCenter.lat, focalCenter.lon] as any);
       map.setView(targetCenter, zoom, {
         animate: false,
       });
@@ -244,7 +244,7 @@ export default function AirportMap({
     sources: loadingOverlaySources,
   });
   const loadingPresentation =
-    resolveMapLoadingPresentation(loadingOverlayState);
+    resolveMapLoadingPresentation(loadingOverlayState as any);
   const loadingOverlayCopy = useMapLoadingOverlayText({
     mode: loadingOverlayState.mode,
     reason: loadingOverlayState.reason,
@@ -307,7 +307,7 @@ export default function AirportMap({
             showBadges={showRoutingPointBadges}
           />
           <SelectedAircraftTrace theme={currentTheme} />
-          <MapRangeLegend theme={currentTheme} />
+          <MapRangeLegend />
           {children}
           {visibleAircraft.map((ac) => (
             <AircraftPosition

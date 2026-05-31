@@ -9,12 +9,14 @@ import {
 export const USER_FEATURE_FLAGS_TABLE = "user_feature_flags";
 const SELECT_COLUMNS = "email,environment,flags,updated_at";
 
+type UserFeatureFlagsRecord = Record<string, any>;
+
 export function createUserFeatureFlagsRepository({
   supabaseUrl,
   supabaseKey,
   environment,
   createClientImpl,
-} = {}) {
+}: UserFeatureFlagsRecord = {}) {
   const client = createServerSupabaseClient({
     supabaseUrl,
     supabaseKey,
@@ -24,7 +26,7 @@ export function createUserFeatureFlagsRepository({
   const defaultEnvironment = normalizeFeatureFlagEnvironment(environment);
 
   return {
-    async readFlagsByEmail(email, options = {}) {
+    async readFlagsByEmail(email: unknown, options: UserFeatureFlagsRecord = {}) {
       const normalizedEmail = normalizeUserEmail(email);
       if (!normalizedEmail) return null;
       const normalizedEnvironment = normalizeFeatureFlagEnvironment(
@@ -53,7 +55,7 @@ export function createUserFeatureFlagsRepository({
       };
     },
 
-    async upsertFlagsByEmail({ email, environment, flags } = {}) {
+    async upsertFlagsByEmail({ email, environment, flags }: UserFeatureFlagsRecord = {}) {
       const normalizedEmail = normalizeUserEmail(email);
       if (!normalizedEmail) return null;
       const normalizedEnvironment = normalizeFeatureFlagEnvironment(
@@ -88,7 +90,7 @@ export function createUserFeatureFlagsRepository({
       };
     },
 
-    async deleteFlagsByEmail(email, options = {}) {
+    async deleteFlagsByEmail(email: unknown, options: UserFeatureFlagsRecord = {}) {
       const normalizedEmail = normalizeUserEmail(email);
       if (!normalizedEmail) return null;
       const normalizedEnvironment = normalizeFeatureFlagEnvironment(
@@ -115,6 +117,9 @@ export function createUserFeatureFlagsRepository({
 export function createUserFeatureFlagsRepositoryFromEnv({
   env = process.env,
   createClientImpl,
+}: {
+  env?: Record<string, string | undefined>;
+  createClientImpl?: any;
 } = {}) {
   return createUserFeatureFlagsRepository({
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,

@@ -1,13 +1,15 @@
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../../../config/aviation";
 import { isLookupCallsign, normalizeCallsign } from "../../../utils/callsign";
 
-const routeContextCode = (value) =>
+type RouteRecord = Record<string, any>;
+
+const routeContextCode = (value: unknown) =>
   String(value || "")
     .trim()
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
 
-export function buildRouteCacheKey(callsign, routeContext = {}) {
+export function buildRouteCacheKey(callsign: unknown, routeContext: RouteRecord = {}) {
   const normalizedCallsign = normalizeCallsign(callsign);
   if (!normalizedCallsign) return "";
   const airportIcao = routeContextCode(routeContext.icao);
@@ -20,10 +22,10 @@ export function buildRouteCacheKey(callsign, routeContext = {}) {
 }
 
 export function getFreshRouteCacheEntry(
-  cache,
-  callsign,
+  cache: Map<string, any>,
+  callsign: unknown,
   now = Date.now(),
-  routeContext = {},
+  routeContext: RouteRecord = {},
 ) {
   const cacheKey = buildRouteCacheKey(callsign, routeContext);
   const cached = cache.get(cacheKey);
@@ -36,7 +38,13 @@ export function getFreshRouteCacheEntry(
   return null;
 }
 
-export function writeRouteCacheEntry(cache, callsign, route, time, routeContext = {}) {
+export function writeRouteCacheEntry(
+  cache: Map<string, any>,
+  callsign: unknown,
+  route: RouteRecord,
+  time: number,
+  routeContext: RouteRecord = {},
+) {
   const cacheKeys = new Set(
     [callsign, route?.callsign, route?.callsignIcao, route?.callsignIata]
       .map((value) => buildRouteCacheKey(value, routeContext))
@@ -48,7 +56,7 @@ export function writeRouteCacheEntry(cache, callsign, route, time, routeContext 
   }
 }
 
-export function getLookupCallsigns(aircraft) {
+export function getLookupCallsigns(aircraft: RouteRecord[]) {
   return [
     ...new Set(
       (aircraft || [])
@@ -59,20 +67,20 @@ export function getLookupCallsigns(aircraft) {
   ];
 }
 
-function airportFromMetadataCode(value) {
+function airportFromMetadataCode(value: unknown) {
   const code = routeContextCode(value);
   if (code.length === 3) return { iata: code };
   if (code.length === 4) return { icao: code };
   return null;
 }
 
-function routeCode(origin, destination, field) {
+function routeCode(origin: RouteRecord | null, destination: RouteRecord | null, field: string) {
   const from = origin?.[field];
   const to = destination?.[field];
   return from && to ? `${from}-${to}` : "";
 }
 
-export function buildRouteFromAircraftMetadata(aircraft = {}) {
+export function buildRouteFromAircraftMetadata(aircraft: RouteRecord = {}) {
   const callsign = normalizeCallsign(aircraft?.callsign);
   const origin = airportFromMetadataCode(aircraft?.origin);
   const destination = airportFromMetadataCode(aircraft?.destination);
@@ -101,8 +109,8 @@ const ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES = new Set([
   "missing",
 ]);
 
-const haversineNm = (lat1, lon1, lat2, lon2) => {
-  const toRad = (value) => (value * Math.PI) / 180;
+const haversineNm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const toRad = (value: number) => (value * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const sinLat = Math.sin(dLat / 2);
@@ -118,7 +126,7 @@ const haversineNm = (lat1, lon1, lat2, lon2) => {
 // fetching the far-side traffic first makes more route labels appear quickly
 // where the user's eye is actually looking. Falls back to source order when
 // the focal coords or aircraft coords are missing.
-export function rankCandidatesByDistance(aircraft, routeContext = {}) {
+export function rankCandidatesByDistance(aircraft: RouteRecord[], routeContext: RouteRecord = {}) {
   const focusLat = Number(routeContext.lat);
   const focusLon = Number(routeContext.lon);
   const haveFocus = Number.isFinite(focusLat) && Number.isFinite(focusLon);
@@ -154,7 +162,7 @@ export function rankCandidatesByDistance(aircraft, routeContext = {}) {
     .map(([callsign]) => callsign);
 }
 
-export function shouldSuppressRouteLookup(aircraft = {}) {
+export function shouldSuppressRouteLookup(aircraft: RouteRecord = {}) {
   return ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES.has(
     String(aircraft?.trackingState?.status || "").trim().toLowerCase(),
   );
@@ -168,7 +176,7 @@ export function resolvePendingRouteLookups({
   routeContext = {},
   now = Date.now(),
   maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxLookupsPerPass,
-}) {
+}: RouteRecord) {
   return rankCandidatesByDistance(aircraft, routeContext)
     .filter(
       (callsign) =>
@@ -186,7 +194,7 @@ export function getRouteLookupStats({
   inFlight = new Set(),
   routeContext = {},
   now = Date.now(),
-}) {
+}: RouteRecord) {
   const callsigns = getLookupCallsigns(aircraft);
   let done = 0;
   let notDone = 0;
@@ -213,8 +221,8 @@ export function buildRoutesByCallsign({
   cache,
   routeContext = {},
   now = Date.now(),
-}) {
-  const routes = {};
+}: RouteRecord) {
+  const routes: RouteRecord = {};
   for (const item of aircraft || []) {
     const callsign = normalizeCallsign(item.callsign);
     const cached = getFreshRouteCacheEntry(cache, callsign, now, routeContext);

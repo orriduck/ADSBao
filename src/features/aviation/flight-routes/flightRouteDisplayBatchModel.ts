@@ -5,6 +5,11 @@ export function createRouteDisplayBatcher({
   delayMs = ROUTE_DISPLAY_BATCH_MS,
   schedule = setTimeout,
   clearSchedule = clearTimeout,
+}: {
+  publish?: (routeVersion: number) => void;
+  delayMs?: number;
+  schedule?: (callback: () => void, delayMs?: number) => any;
+  clearSchedule?: (handle: any) => void;
 } = {}) {
   let publishedVersion = 0;
   let pendingVersion = 0;

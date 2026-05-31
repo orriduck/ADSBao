@@ -16,7 +16,9 @@ import {
 
 const selector = createAdaptiveProviderSelector();
 
-async function fetchProviderPayload(provider, { latitude, longitude, distanceNm }) {
+type AircraftPositionsRecord = Record<string, any>;
+
+async function fetchProviderPayload(provider: AircraftPositionsRecord, { latitude, longitude, distanceNm }: AircraftPositionsRecord) {
   const url = provider.buildPositionUrl({
     lat: latitude,
     lon: longitude,
@@ -32,7 +34,7 @@ async function fetchProviderPayload(provider, { latitude, longitude, distanceNm 
       },
       next: { revalidate: 0 },
     });
-  } catch (networkError) {
+  } catch (networkError: any) {
     throw new AircraftPositionProviderError(`network: ${networkError.message}`);
   }
 
@@ -49,7 +51,7 @@ async function fetchProviderPayload(provider, { latitude, longitude, distanceNm 
       label: `${provider.id} aircraft response`,
       maxBytes: AIRCRAFT_POSITIONS_MAX_BYTES,
     });
-  } catch (parseError) {
+  } catch (parseError: any) {
     throw new AircraftPositionProviderError(`parse: ${parseError.message}`);
   }
 
@@ -60,7 +62,7 @@ async function fetchProviderPayload(provider, { latitude, longitude, distanceNm 
   return payload;
 }
 
-const successResult = (provider, payload, attempts) => ({
+const successResult = (provider: AircraftPositionsRecord, payload: AircraftPositionsRecord, attempts: string[]) => ({
   payload: { ...payload, source: provider.id },
   source: provider.id,
   attempts,
@@ -70,7 +72,7 @@ export const fetchAircraftPositions = async ({
   latitude,
   longitude,
   distanceNm,
-} = {}) => {
+}: AircraftPositionsRecord = {}) => {
   const fetcher = (provider) =>
     fetchProviderPayload(provider, { latitude, longitude, distanceNm });
   const attempts = [];
@@ -85,7 +87,7 @@ export const fetchAircraftPositions = async ({
       const payload = await fetcher(preferred);
       attempts.push(formatAircraftPositionAttempt(preferred.id));
       return successResult(preferred, payload, attempts);
-    } catch (error) {
+    } catch (error: any) {
       attempts.push(formatAircraftPositionAttempt(preferred.id, error));
       console.warn(
         `[aircraft-positions] preferred ${preferred.id} failed, racing`,
@@ -103,7 +105,7 @@ export const fetchAircraftPositions = async ({
     selector.setPreferredId(provider.id);
     attempts.push(formatAircraftPositionAttempt(provider.id));
     return successResult(provider, payload, attempts);
-  } catch (aggregate) {
+  } catch (aggregate: any) {
     const errors = aggregate?.errors || [aggregate];
     for (let index = 0; index < POSITION_PROVIDER_CHAIN.length; index += 1) {
       const provider = POSITION_PROVIDER_CHAIN[index];

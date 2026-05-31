@@ -11,7 +11,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 export function useMapLoadingOverlayText({
   mode = "feed",
   variant = "airport",
-} = {}) {
+}: Record<string, any> = {}): Record<string, any> {
   const { t } = useI18n();
   const isFlight = variant === "flight";
 
@@ -47,7 +47,7 @@ export default function MapLoadingOverlay({
   variant = "airport",
   sidebarAware = false,
   ariaLabel,
-}) {
+}: Record<string, any>) {
   const [visible, setVisible] = useState(active);
   const [exiting, setExiting] = useState(false);
   const shownAtRef = useRef(active ? Date.now() : 0);
@@ -112,7 +112,7 @@ export function useResolvedMapLoadingOverlay({
   variant = "airport",
   active = false,
   sources = {},
-} = {}) {
+}: Record<string, any> = {}) {
   return resolveAircraftLoadingOverlayState({
     mapReady,
     variant,

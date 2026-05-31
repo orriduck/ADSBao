@@ -220,7 +220,7 @@ export async function buildFlightAwareRouteResponse({
   callsign,
   html,
   resolveAirportByIdent,
-} = {}) {
+}: Record<string, any> = {}) {
   const parsed = parseFlightAwareRoutePage(callsign, html);
   if (!parsed) return null;
 

@@ -227,7 +227,7 @@ function FlightExplorerContent({ callsign }) {
   );
   const contextLat = contextPosition?.lat ?? null;
   const contextLon = contextPosition?.lon ?? null;
-  const flightDisplayContext = useMemo(
+  const flightDisplayContext: Record<string, any> = useMemo(
     () =>
       resolveFlightTrackingDisplayContext({
         trackingState,
@@ -235,7 +235,7 @@ function FlightExplorerContent({ callsign }) {
       }),
     [isMobile, trackingState],
   );
-  const showNearbyContext = flightDisplayContext.showNearbyContext !== false;
+  const showNearbyContext = Boolean(flightDisplayContext.showNearbyContext !== false);
   const showNearbyMapContext =
     flightDisplayContext.showNearbyMapContext !== false;
   const nearbyQueryLat = showNearbyContext ? contextLat : null;

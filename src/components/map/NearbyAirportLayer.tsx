@@ -15,7 +15,7 @@ import {
 } from "../../features/airport/map/runwayAnnotationModel";
 import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
 
-const escapeHtml = (value) =>
+const escapeHtml = (value: unknown) =>
   String(value || "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -23,9 +23,9 @@ const escapeHtml = (value) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const airportLabel = (airport) => airport.iata || airport.icao || "";
+const airportLabel = (airport: Record<string, any>) => airport.iata || airport.icao || "";
 
-const markerHtml = (airport) => {
+const markerHtml = (airport: Record<string, any>) => {
   const code = airportLabel(airport);
   const distance = Number.isFinite(airport.distanceNm)
     ? Math.round(airport.distanceNm)
@@ -52,7 +52,7 @@ const markerHtml = (airport) => {
   `;
 };
 
-const runwayLineStyle = (theme) =>
+const runwayLineStyle = (theme: string) =>
   theme === "light"
     ? {
         color: "var(--nearby-runway-line)",
@@ -65,7 +65,7 @@ const runwayLineStyle = (theme) =>
         opacity: 0.5,
       };
 
-const runwayLabelIcon = (ident, theme) =>
+const runwayLabelIcon = (ident: string, theme: string) =>
   L.divIcon({
     className: `runway-end-label runway-end-label--nearby runway-end-label--${theme}`,
     html: `<span class="notranslate" translate="no">${escapeHtml(ident)}</span>`,
@@ -73,14 +73,14 @@ const runwayLabelIcon = (ident, theme) =>
     iconAnchor: [17, 22],
   });
 
-const runwayLayers = ({ airport, map, theme, zoom, showBadges }) => {
+const runwayLayers = ({ airport, map, theme, zoom, showBadges }: Record<string, any>) => {
   if (!airport?.runwayMap?.runways?.length) return [];
   const centerlines = buildRunwayCenterlineCollection(airport.runwayMap);
   const showRunways = Number(zoom) >= 10;
   if (!showRunways) return [];
 
   const layers = [
-    L.geoJSON(centerlines, {
+    L.geoJSON(centerlines as any, {
       interactive: false,
       style() {
         return {
@@ -104,7 +104,7 @@ const runwayLayers = ({ airport, map, theme, zoom, showBadges }) => {
             pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),
           }),
         ),
-      ),
+      ) as any,
     );
   }
 
@@ -118,7 +118,7 @@ export default function NearbyAirportLayer({
   selectedIcao = "",
   onSelectAirport = null,
   showRunwayBadges = true,
-}) {
+}: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
   // Keep the click handler in a ref so re-rendering the layer doesn't

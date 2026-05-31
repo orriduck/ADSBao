@@ -11,17 +11,19 @@ import { buildRouteCacheKey } from "../../../features/aviation/flight-routes/fli
 
 const FEEDBACK_REASON_VALUES = new Set(Object.values(COMMUNITY_FEEDBACK_REASONS));
 
-const sanitizeAircraftHex = (value) => {
+type RouteFeedbackHandlerRecord = Record<string, any>;
+
+const sanitizeAircraftHex = (value: unknown) => {
   const hex = String(value || "").trim().toLowerCase();
   return /^~?[0-9a-f]{6}$/.test(hex) ? hex : "";
 };
 
-const sanitizeAircraftType = (value) => {
+const sanitizeAircraftType = (value: unknown) => {
   const type = String(value || "").trim().toUpperCase();
   return /^[A-Z0-9]{2,8}$/.test(type) ? type : "";
 };
 
-const sanitizePriorRoute = (raw) => {
+const sanitizePriorRoute = (raw: RouteFeedbackHandlerRecord | null | undefined) => {
   if (!raw || typeof raw !== "object") return null;
   const originIcao = sanitizeAirportCode(
     raw.origin?.icao ?? raw.originIcao,
@@ -41,7 +43,7 @@ const sanitizePriorRoute = (raw) => {
 // Pure validation of a `/api/route-feedback` POST body. Returns a normalized
 // shape on success or a structured error on failure so the handler can map
 // it to a 400 response without doing the validation itself.
-export function normalizeRouteFeedbackInput(rawBody) {
+export function normalizeRouteFeedbackInput(rawBody: RouteFeedbackHandlerRecord | null | undefined) {
   if (!rawBody || typeof rawBody !== "object") {
     return { ok: false, error: "Invalid request body" };
   }
@@ -69,7 +71,7 @@ export function normalizeRouteFeedbackInput(rawBody) {
     max: 3,
   });
 
-  const requestedReason = String(rawBody.feedbackReason || "").trim();
+  const requestedReason = String(rawBody.feedbackReason || "").trim() as "correction" | "missing_route";
   const feedbackReason = FEEDBACK_REASON_VALUES.has(requestedReason)
     ? requestedReason
     : COMMUNITY_FEEDBACK_REASONS.missingRoute;
@@ -99,7 +101,7 @@ export function buildRouteFeedbackInsertSpec({
   originAirport,
   destinationAirport,
   now = Date.now(),
-} = {}) {
+}: RouteFeedbackHandlerRecord = {}) {
   if (!input || !originAirport || !destinationAirport) return null;
   const { createdAt, expiresAt } = computeFeedbackExpiry(now);
   const route = buildCommunityFeedbackRoute({

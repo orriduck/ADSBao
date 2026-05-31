@@ -20,12 +20,14 @@ import {
 
 const selector = createAdaptiveProviderSelector();
 
-const formatAttempt = (providerId, error) => {
+type AircraftCallsignRecord = Record<string, any>;
+
+const formatAttempt = (providerId: string, error?: any) => {
   if (!error) return `${providerId}:200`;
   return `${providerId}:${error.status || "ERR"}`;
 };
 
-async function fetchProviderPayload(provider, { callsign }) {
+async function fetchProviderPayload(provider: AircraftCallsignRecord, { callsign }: AircraftCallsignRecord) {
   const url = provider.buildCallsignUrl({ callsign });
 
   let response;
@@ -37,7 +39,7 @@ async function fetchProviderPayload(provider, { callsign }) {
       },
       next: { revalidate: 0 },
     });
-  } catch (networkError) {
+  } catch (networkError: any) {
     throw new AircraftCallsignProviderError(
       `network: ${networkError.message}`,
     );
@@ -56,7 +58,7 @@ async function fetchProviderPayload(provider, { callsign }) {
       label: `${provider.id} callsign response`,
       maxBytes: AIRCRAFT_CALLSIGN_MAX_BYTES,
     });
-  } catch (parseError) {
+  } catch (parseError: any) {
     throw new AircraftCallsignProviderError(`parse: ${parseError.message}`);
   }
 
@@ -67,13 +69,13 @@ async function fetchProviderPayload(provider, { callsign }) {
   return payload;
 }
 
-const successResult = (provider, payload, attempts) => ({
+const successResult = (provider: AircraftCallsignRecord, payload: AircraftCallsignRecord, attempts: string[]) => ({
   payload: { ...payload, source: provider.id },
   source: provider.id,
   attempts,
 });
 
-export const fetchAircraftByCallsign = async ({ callsign } = {}) => {
+export const fetchAircraftByCallsign = async ({ callsign }: AircraftCallsignRecord = {}) => {
   if (!callsign) {
     throw new AircraftCallsignProviderError("Callsign required", 400);
   }
@@ -91,7 +93,7 @@ export const fetchAircraftByCallsign = async ({ callsign } = {}) => {
       const payload = await fetcher(preferred);
       attempts.push(formatAttempt(preferred.id));
       return successResult(preferred, payload, attempts);
-    } catch (error) {
+    } catch (error: any) {
       attempts.push(formatAttempt(preferred.id, error));
       console.warn(
         `[aircraft-callsign] preferred ${preferred.id} failed, racing`,
@@ -109,7 +111,7 @@ export const fetchAircraftByCallsign = async ({ callsign } = {}) => {
     selector.setPreferredId(provider.id);
     attempts.push(formatAttempt(provider.id));
     return successResult(provider, payload, attempts);
-  } catch (aggregate) {
+  } catch (aggregate: any) {
     const errors = aggregate?.errors || [aggregate];
     for (let index = 0; index < CALLSIGN_PROVIDER_CHAIN.length; index += 1) {
       const provider = CALLSIGN_PROVIDER_CHAIN[index];
@@ -131,7 +133,7 @@ export const fetchAircraftByCallsign = async ({ callsign } = {}) => {
   }
 };
 
-function pickFreshest(entries) {
+function pickFreshest(entries: AircraftCallsignRecord[] | null | undefined) {
   if (!Array.isArray(entries) || entries.length === 0) return null;
   let best = entries[0];
   for (const entry of entries) {
@@ -142,7 +144,7 @@ function pickFreshest(entries) {
   return best;
 }
 
-async function fetchAllCallsignProviders({ callsign }) {
+async function fetchAllCallsignProviders({ callsign }: AircraftCallsignRecord) {
   const settled = await Promise.allSettled(
     CALLSIGN_PROVIDER_CHAIN.map(async (provider) => ({
       provider,
@@ -163,7 +165,7 @@ async function fetchAllCallsignProviders({ callsign }) {
     .filter(Boolean);
 }
 
-function annotatePayload(payload, { source, now, fallback, trackingState }) {
+function annotatePayload(payload: AircraftCallsignRecord, { source, now, fallback, trackingState }: AircraftCallsignRecord) {
   return {
     ...payload,
     ac: (payload?.ac || []).map((aircraft) =>
@@ -175,7 +177,7 @@ function annotatePayload(payload, { source, now, fallback, trackingState }) {
   };
 }
 
-function payloadForResolvedPosition({ resolved, callsign, fallback, now }) {
+function payloadForResolvedPosition({ resolved, callsign, fallback, now }: AircraftCallsignRecord) {
   const clientFallback = sanitizeFallbackForClient(fallback);
   if (!resolved?.position) {
     return {
@@ -207,7 +209,7 @@ function payloadForResolvedPosition({ resolved, callsign, fallback, now }) {
   };
 }
 
-function sanitizeFallbackForClient(fallback) {
+function sanitizeFallbackForClient(fallback: AircraftCallsignRecord | null | undefined) {
   if (!fallback || typeof fallback !== "object") return null;
   const { raw: _raw, ...safe } = fallback;
   return safe;
@@ -219,14 +221,14 @@ export const fetchTrackedAircraftByCallsign = async ({
   fetchPrimaryProviders = fetchAllCallsignProviders,
   getFlightAwareFallback = getFlightAwareFallbackByCallsign,
   now = Date.now(),
-} = {}) => {
+}: AircraftCallsignRecord = {}) => {
   if (!callsign) {
     throw new AircraftCallsignProviderError("Callsign required", 400);
   }
 
   const primaryResults = await fetchPrimaryProviders({ callsign });
   const attempts = primaryResults.map((result) => formatAttempt(result.provider.id));
-  const bySource = new Map(
+  const bySource = new Map<string, AircraftCallsignRecord>(
     primaryResults.map((result) => [result.provider.id, result.payload]),
   );
   const adsbLolPosition = pickFreshest(bySource.get("adsb.lol")?.ac);
@@ -241,7 +243,7 @@ export const fetchTrackedAircraftByCallsign = async ({
     now,
   });
 
-  const sourcePayload = bySource.get(resolved.source);
+  const sourcePayload = bySource.get(resolved.source) as AircraftCallsignRecord | undefined;
   if (sourcePayload && resolved.source !== "flightaware") {
     return {
       payload: annotatePayload(sourcePayload, {

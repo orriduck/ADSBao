@@ -13,7 +13,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
 // stamped broken-image icons in dense list rows when the logo isn't
 // served by the airline-icon CDN.
-function AirlineLogo({ src, className }) {
+function AirlineLogo({ src, className }: Record<string, any>) {
   const [hidden, setHidden] = useState(false);
   if (!src || hidden) return null;
   return (
@@ -33,7 +33,7 @@ export default function AircraftRow({
   aircraftId,
   selected,
   onSelectAircraft,
-}) {
+}: Record<string, any>) {
   const { t } = useI18n();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
@@ -98,7 +98,7 @@ function AircraftIdentityCell({
   airlineIconUrl,
   routeMunicipalities,
   hasRouteMunicipalities,
-}) {
+}: Record<string, any>) {
   const hasRoute = Boolean(route);
   const hadRoute = useRef(hasRoute);
   const [routeEntering, setRouteEntering] = useState(false);
@@ -173,7 +173,7 @@ function AircraftIdentityCell({
 // replacing the older static-text + EndfieldValueSwap cross-fade. Cost is
 // bounded by virtualization: only the rows in the visible window mount, so
 // the previous ~290-instance worst case becomes ~24 (12 rows × 2 cells).
-function NumberWithUnit({ value, unit, format }) {
+function NumberWithUnit({ value, unit, format }: Record<string, any>) {
   return (
     <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
       <NumberFlow

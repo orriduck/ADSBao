@@ -12,7 +12,7 @@ export default function ExplorerMapMenu({
   loadingStatus = "",
   onFitToTrace = null,
   zoomDisabled = false,
-} = {}) {
+}: Record<string, any> = {}) {
   const {
     isMobile,
     mapZoom,

@@ -9,7 +9,13 @@ const AIRPORT_PATH = "/api/airport";
 const defaultFetch = () =>
   typeof globalThis.fetch === "function" ? globalThis.fetch.bind(globalThis) : null;
 
-const buildSearchUrl = ({ baseUrl = "", query, country, type, limit }) => {
+const buildSearchUrl = ({
+  baseUrl = "",
+  query,
+  country = "",
+  type = "",
+  limit,
+}: Record<string, any>) => {
   const url = new URL(`${baseUrl}${SEARCH_PATH}`, baseUrl ? undefined : "http://placeholder");
   if (query) url.searchParams.set("q", query);
   if (country) url.searchParams.set("country", country);
@@ -18,7 +24,7 @@ const buildSearchUrl = ({ baseUrl = "", query, country, type, limit }) => {
   return baseUrl ? url.toString() : `${url.pathname}${url.search}`;
 };
 
-const buildAirportUrl = ({ baseUrl = "", ident, locale = "" }) => {
+const buildAirportUrl = ({ baseUrl = "", ident, locale = "" }: Record<string, any>) => {
   const safeIdent = encodeURIComponent(String(ident || "").trim().toUpperCase());
   const path = `${baseUrl}${AIRPORT_PATH}/${safeIdent}`;
   const normalizedLocale = String(locale || "").trim();
@@ -28,7 +34,7 @@ const buildAirportUrl = ({ baseUrl = "", ident, locale = "" }) => {
   return baseUrl ? url.toString() : `${url.pathname}${url.search}`;
 };
 
-const requestJson = async (fetchImpl, url) => {
+const requestJson = async (fetchImpl: any, url: string) => {
   const response = await fetchImpl(url, {
     headers: { Accept: "application/json" },
   });
@@ -42,7 +48,7 @@ const requestJson = async (fetchImpl, url) => {
 export const createAirportDirectoryClient = ({
   fetchImpl = defaultFetch(),
   baseUrl = "",
-} = {}) => {
+}: Record<string, any> = {}) => {
   if (!fetchImpl) {
     throw new Error("Airport directory client requires fetch support");
   }
@@ -52,7 +58,7 @@ export const createAirportDirectoryClient = ({
     country = "",
     kind = "all",
     limit = 60,
-  } = {}) => {
+  }: Record<string, any> = {}) => {
     const trimmedQuery = String(query || "").trim();
     const normalizedCountry = String(country || "").trim().toUpperCase();
     const normalizedType =
@@ -73,7 +79,7 @@ export const createAirportDirectoryClient = ({
     };
   };
 
-  const resolveAirport = async (code, { locale = "" } = {}) => {
+  const resolveAirport = async (code: unknown, { locale = "" }: Record<string, any> = {}) => {
     const trimmed = String(code || "").trim().toUpperCase();
     if (!trimmed) {
       throw new Error("Airport code is required");

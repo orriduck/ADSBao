@@ -38,9 +38,20 @@ const TABLE_COUNT_COLUMNS = Object.freeze({
   navaids: "navaids_count",
 });
 
+type EnvLike = Record<string, string | undefined>;
+type RefreshRecord = Record<string, any>;
+type RefreshClient = any;
+type RefreshImporter = {
+  importTable: (key: any, options?: any) => Promise<number>;
+  import?: (options?: any) => Promise<any>;
+};
+
 const nowIso = () => new Date().toISOString();
 
-const adminClientFromEnv = (env = process.env, createClientImpl = createClient) => {
+const adminClientFromEnv = (
+  env: EnvLike = process.env,
+  createClientImpl: any = createClient,
+) => {
   const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
   const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
   if (!supabaseUrl || !supabaseKey) return null;
@@ -53,7 +64,7 @@ const adminClientFromEnv = (env = process.env, createClientImpl = createClient) 
   });
 };
 
-export const readRefreshMeta = async (client) => {
+export const readRefreshMeta = async (client: RefreshClient) => {
   if (!client) return null;
   const { data, error } = await client
     .from(META_TABLE)
@@ -69,7 +80,11 @@ export const readRefreshMeta = async (client) => {
 // Returns the next table key that's past TTL, in priority order (airports
 // first because runways/frequencies/navaids reference it). Null when every
 // table is fresh.
-export const pickNextStaleTable = (meta, ttlMs = REFRESH_TTL_MS, now = Date.now()) => {
+export const pickNextStaleTable = (
+  meta: RefreshRecord | null | undefined,
+  ttlMs = REFRESH_TTL_MS,
+  now = Date.now(),
+) => {
   for (const key of OUR_AIRPORTS_TABLE_ORDER) {
     const column = TABLE_TIMESTAMP_COLUMNS[key];
     const raw = meta?.[column];
@@ -81,7 +96,11 @@ export const pickNextStaleTable = (meta, ttlMs = REFRESH_TTL_MS, now = Date.now(
   return null;
 };
 
-const isLockHeld = (meta, now = Date.now(), timeoutMs = LOCK_TIMEOUT_MS) => {
+const isLockHeld = (
+  meta: RefreshRecord | null | undefined,
+  now = Date.now(),
+  timeoutMs = LOCK_TIMEOUT_MS,
+) => {
   if (!meta?.last_attempted_at) return false;
   const startedAt = Date.parse(meta.last_attempted_at);
   if (!Number.isFinite(startedAt)) return false;
@@ -89,7 +108,14 @@ const isLockHeld = (meta, now = Date.now(), timeoutMs = LOCK_TIMEOUT_MS) => {
   return now - startedAt < timeoutMs;
 };
 
-const tryAcquireLock = async (client, tableKey, { now = Date.now(), timeoutMs = LOCK_TIMEOUT_MS } = {}) => {
+const tryAcquireLock = async (
+  client: RefreshClient,
+  tableKey: string,
+  { now = Date.now(), timeoutMs = LOCK_TIMEOUT_MS }: {
+    now?: number;
+    timeoutMs?: number;
+  } = {},
+) => {
   const horizon = new Date(now - timeoutMs).toISOString();
   const { data, error } = await client
     .from(META_TABLE)
@@ -110,7 +136,7 @@ const tryAcquireLock = async (client, tableKey, { now = Date.now(), timeoutMs = 
   return (data || []).length > 0;
 };
 
-const recordSuccess = async (client, tableKey, count) => {
+const recordSuccess = async (client: RefreshClient, tableKey: string, count: number) => {
   const timestampColumn = TABLE_TIMESTAMP_COLUMNS[tableKey];
   const countColumn = TABLE_COUNT_COLUMNS[tableKey];
   const stamp = nowIso();
@@ -127,7 +153,7 @@ const recordSuccess = async (client, tableKey, count) => {
     .eq("id", META_ID);
 };
 
-const recordFailure = async (client, tableKey, error) => {
+const recordFailure = async (client: RefreshClient, tableKey: string, error: any) => {
   try {
     await client
       .from(META_TABLE)
@@ -150,6 +176,12 @@ export const runRefreshStepWithLock = async ({
   createClientImpl = createClient,
   log = () => {},
   importerFactory = createOurAirportsImporter,
+}: {
+  env?: EnvLike;
+  fetchImpl?: typeof fetch;
+  createClientImpl?: any;
+  log?: (message: string) => void;
+  importerFactory?: (options: any) => RefreshImporter;
 } = {}) => {
   const client = adminClientFromEnv(env, createClientImpl);
   if (!client) return { ran: false, reason: "no_service_role" };
@@ -192,7 +224,7 @@ export const runRefreshStepWithLock = async ({
 
 // Fire-and-forget helper for the route layer. Swallows errors (logged at
 // service level) so the user-facing route never sees a refresh failure.
-export const scheduleRefreshIfDue = async (options = {}) => {
+export const scheduleRefreshIfDue = async (options: Parameters<typeof runRefreshStepWithLock>[0] = {}) => {
   try {
     const result = await runRefreshStepWithLock(options);
     if (result.ran) {

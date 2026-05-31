@@ -11,11 +11,19 @@ const DEFAULT_TRACE_CONNECTOR_MAX_GAP_MS = 10 * 60 * 1000;
 const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
 const TRACE_MAX_GAP_MS = 60 * 60 * 1000;
 
-function isFiniteNumber(value) {
+type TraceRecord = Record<string, any>;
+type TracePoint = TraceRecord & {
+  timestampMs?: number;
+  time?: number;
+  lat: number;
+  lon: number;
+};
+
+function isFiniteNumber(value: unknown) {
   return value !== null && value !== "" && Number.isFinite(Number(value));
 }
 
-function normalizeTracePoint(point, time = Date.now()) {
+function normalizeTracePoint(point: TraceRecord | null | undefined, time = Date.now()) {
   if (!isFiniteNumber(point?.lat) || !isFiniteNumber(point?.lon)) return null;
   return {
     lat: Number(point.lat),
@@ -24,7 +32,11 @@ function normalizeTracePoint(point, time = Date.now()) {
   };
 }
 
-function shouldAppendTracePoint(previousPoint, nextPoint, config) {
+function shouldAppendTracePoint(
+  previousPoint: TraceRecord | null,
+  nextPoint: TraceRecord,
+  config: TraceRecord,
+) {
   if (!previousPoint) return true;
 
   const timeGapMs = Math.abs((nextPoint?.time ?? 0) - (previousPoint?.time ?? 0));
@@ -42,21 +54,21 @@ function shouldAppendTracePoint(previousPoint, nextPoint, config) {
   );
 }
 
-function trimTraceHistory(history, nowMs, config) {
+function trimTraceHistory(history: TraceRecord[], nowMs: number, config: TraceRecord) {
   const freshHistory = history.filter((point) => nowMs - point.time <= config.maxAgeMs);
   return freshHistory.slice(-config.maxSamples);
 }
 
-function getAircraftTraceId(aircraft = {}) {
+function getAircraftTraceId(aircraft: TraceRecord = {}) {
   return aircraft.icao24 || aircraft.callsign || "";
 }
 
-function normalizeTraceTimestampMs(value) {
+function normalizeTraceTimestampMs(value: unknown) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.round(number * 1000) : null;
 }
 
-function normalizeTraceAltitude(value) {
+function normalizeTraceAltitude(value: unknown) {
   if (value === "ground") return 0;
   return isFiniteNumber(value) ? Number(value) : null;
 }
@@ -69,7 +81,7 @@ export function createAircraftTraceTracker(options = {}) {
     minSampleGapMs: DEFAULT_TRACE_MIN_SAMPLE_GAP_MS,
     ...options,
   };
-  const histories = new Map();
+  const histories = new Map<string, TraceRecord[]>();
 
   return {
     update(aircraft = [], nowMs = Date.now()) {
@@ -107,11 +119,11 @@ export function createAircraftTraceTracker(options = {}) {
   };
 }
 
-function toLatLng(point) {
+function toLatLng(point: TraceRecord) {
   return [point.lat, point.lon];
 }
 
-export function normalizeAdsbTracePayload(payload = {}) {
+export function normalizeAdsbTracePayload(payload: TraceRecord = {}) {
   const baseTimestampMs = normalizeTraceTimestampMs(payload?.timestamp);
   if (baseTimestampMs == null || !Array.isArray(payload?.trace)) return [];
 
@@ -140,7 +152,7 @@ export function normalizeAdsbTracePayload(payload = {}) {
     .sort((a, b) => a.timestampMs - b.timestampMs);
 }
 
-function dedupeTracePointKey(point = {}) {
+function dedupeTracePointKey(point: TraceRecord = {}) {
   return [
     point.timestampMs,
     point.lat?.toFixed?.(5) ?? point.lat,
@@ -193,7 +205,11 @@ export function mergeTracesByPriority({ sources = [] } = {}) {
     .sort((a, b) => a.timestampMs - b.timestampMs);
 }
 
-function getTraceGroundSpeedKnots(previousPoint, nextPoint, gapMs) {
+function getTraceGroundSpeedKnots(
+  previousPoint: TraceRecord,
+  nextPoint: TraceRecord,
+  gapMs: number,
+) {
   const distanceNm = getDistanceNm(
     previousPoint.lat,
     previousPoint.lon,
@@ -271,6 +287,12 @@ export function composeAircraftTrace({
   recentLoading = false,
   fullLoading = false,
   fullCutoffMs = null,
+}: {
+  mode?: string;
+  sources?: TraceRecord;
+  recentLoading?: boolean;
+  fullLoading?: boolean;
+  fullCutoffMs?: number | null;
 } = {}) {
   const isFocusMode = mode === "focus";
   const fullPoints = isFocusMode

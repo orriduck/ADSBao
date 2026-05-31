@@ -1,5 +1,7 @@
 import { createServerSupabaseClient } from "./supabaseClient";
 
+type RouteFeedbackRecord = Record<string, any>;
+
 export const ROUTE_FEEDBACK_TABLE = "flight_route_feedback_reports";
 
 const ACTIVE_STATUS = "active";
@@ -28,6 +30,11 @@ export function createRouteFeedbackReportsRepository({
   supabaseKey,
   createClientImpl,
   now = Date.now,
+}: {
+  supabaseUrl?: string;
+  supabaseKey?: string;
+  createClientImpl?: any;
+  now?: () => number;
 } = {}) {
   const client = createServerSupabaseClient({
     supabaseUrl,
@@ -44,7 +51,7 @@ export function createRouteFeedbackReportsRepository({
     // on /aircraft/DAL977 where there is no airport context to namespace
     // against. The handler treats a hit as "use this route instead of
     // asking adsbdb" — see the lookup order in flightRoutes.mechanism.js.
-    async readActiveOverride({ normalizedCallsign }) {
+    async readActiveOverride({ normalizedCallsign }: RouteFeedbackRecord) {
       if (!normalizedCallsign) return null;
 
       const { data, error } = await client
@@ -82,7 +89,7 @@ export function createRouteFeedbackReportsRepository({
       routePayload,
       createdAt,
       expiresAt,
-    } = {}) {
+    }: RouteFeedbackRecord = {}) {
       const row = {
         cache_key: cacheKey,
         normalized_callsign: normalizedCallsign,
@@ -122,6 +129,10 @@ export function createRouteFeedbackReportsRepositoryFromEnv({
   env = process.env,
   createClientImpl,
   now = Date.now,
+}: {
+  env?: Record<string, string | undefined>;
+  createClientImpl?: any;
+  now?: () => number;
 } = {}) {
   return createRouteFeedbackReportsRepository({
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,

@@ -6,7 +6,7 @@ import {
 
 let stayed = false;
 let wentHome = false;
-const t = (key, params = {}) => {
+const t = (key: string, params: Record<string, any> = {}) => {
   const values = {
     "lostSignal.title": `${params.callsign} stopped reporting`,
     "lostSignal.description": "Keep watching or return home.",

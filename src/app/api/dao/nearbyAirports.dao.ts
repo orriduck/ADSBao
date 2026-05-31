@@ -5,7 +5,9 @@ const TABLE_NAME = "nearby_airport_cache";
 
 export const NEARBY_AIRPORT_SUPABASE_CACHE_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 
-const roundedNumber = (value, precision = 6) => {
+type NearbyAirportRecord = Record<string, any>;
+
+const roundedNumber = (value: unknown, precision = 6) => {
   const number = toFiniteNumber(value);
   if (!Number.isFinite(number)) return "";
   const rounded = number.toFixed(precision);
@@ -18,7 +20,7 @@ export function buildNearbyAirportCacheKey({
   icao = "",
   radiusNm,
   limit,
-} = {}) {
+}: NearbyAirportRecord = {}) {
   return [
     "nearby-airports-v7",
     String(icao || "").trim().toUpperCase(),
@@ -34,7 +36,7 @@ export function createNearbyAirportSupabaseCache({
   supabaseKey,
   createClientImpl,
   now = Date.now,
-} = {}) {
+}: NearbyAirportRecord = {}) {
   const client = createServerSupabaseClient({
     supabaseUrl,
     supabaseKey,
@@ -43,7 +45,7 @@ export function createNearbyAirportSupabaseCache({
   if (!client) return null;
 
   return {
-    async read(cacheKey) {
+    async read(cacheKey: string) {
       const { data, error } = await client
         .from(TABLE_NAME)
         .select("response,expires_at")
@@ -61,7 +63,7 @@ export function createNearbyAirportSupabaseCache({
       return data?.response || null;
     },
 
-    async write({ cacheKey, query, response }) {
+    async write({ cacheKey, query, response }: NearbyAirportRecord) {
       const expiresAt = new Date(
         now() + NEARBY_AIRPORT_SUPABASE_CACHE_TTL_MS,
       ).toISOString();
@@ -89,6 +91,10 @@ export function createNearbyAirportSupabaseCacheFromEnv({
   env = process.env,
   createClientImpl,
   now = Date.now,
+}: {
+  env?: Record<string, string | undefined>;
+  createClientImpl?: any;
+  now?: () => number;
 } = {}) {
   return createNearbyAirportSupabaseCache({
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,

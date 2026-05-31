@@ -15,7 +15,7 @@ export default function AirportRow({
   airportId,
   selected,
   onSelectAirport,
-}) {
+}: Record<string, any>) {
   const { locale } = useI18n();
   const icao = airport?.icao || "";
   const iata = airport?.iata || "";
@@ -75,7 +75,7 @@ export default function AirportRow({
 
 // Mirrors AircraftRow.NumberWithUnit — virtualization bounds the instance
 // count, so NumberFlow's digit-level animation is affordable here too.
-function NumberWithUnit({ value, unit, format }) {
+function NumberWithUnit({ value, unit, format }: Record<string, any>) {
   return (
     <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
       <NumberFlow
@@ -93,7 +93,7 @@ function NumberWithUnit({ value, unit, format }) {
   );
 }
 
-function toFiniteNumber(value) {
+function toFiniteNumber(value: unknown) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }

@@ -60,26 +60,28 @@ const CATEGORY_LABELS = Object.freeze({
 const CATEGORY_ORDER = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "OTHER"];
 const OTHER_LABEL = { key: "filters.categoryOther", default: "Other" };
 
-export function aircraftTypeLabel(aircraft = {}) {
+type AircraftFilterRecord = Record<string, any>;
+
+export function aircraftTypeLabel(aircraft: AircraftFilterRecord = {}) {
   return String(aircraft.type || aircraft.category || "").trim();
 }
 
-export function getAircraftCategoryCode(aircraft = {}) {
+export function getAircraftCategoryCode(aircraft: AircraftFilterRecord = {}) {
   const raw = String(aircraft.category || "").trim().toUpperCase();
   return CATEGORY_LABELS[raw] ? raw : "OTHER";
 }
 
-export function getCategoryLabel(categoryCode) {
+export function getCategoryLabel(categoryCode: string) {
   return (CATEGORY_LABELS[categoryCode] || OTHER_LABEL).default;
 }
 
-export function getCategoryLabelKey(categoryCode) {
+export function getCategoryLabelKey(categoryCode: string) {
   return (CATEGORY_LABELS[categoryCode] || OTHER_LABEL).key;
 }
 
-export function getAircraftTypes(aircraft = []) {
+export function getAircraftTypes(aircraft: AircraftFilterRecord[] = []) {
   return [...new Set(aircraft.map(aircraftTypeLabel).filter(Boolean))].sort(
-    (a, b) => a.localeCompare(b),
+    (a, b) => String(a).localeCompare(String(b)),
   );
 }
 
@@ -88,7 +90,10 @@ export function getAircraftTypes(aircraft = []) {
 // categories that have at least one type are included. `extraTypes` is merged
 // in (assigned to "Other") so currently-selected types whose category isn't
 // representable from live data still appear in the dropdown.
-export function getAircraftTypeGroups(aircraft = [], extraTypes = []) {
+export function getAircraftTypeGroups(
+  aircraft: AircraftFilterRecord[] = [],
+  extraTypes: string[] = [],
+) {
   const typeToCategory = new Map();
   for (const item of aircraft) {
     const type = aircraftTypeLabel(item);
@@ -111,16 +116,16 @@ export function getAircraftTypeGroups(aircraft = [], extraTypes = []) {
     category,
     label: getCategoryLabel(category),
     labelKey: getCategoryLabelKey(category),
-    types: [...buckets.get(category)].sort((a, b) => a.localeCompare(b)),
+    types: [...buckets.get(category)].sort((a, b) => String(a).localeCompare(String(b))),
   })).filter((group) => group.types.length > 0);
 }
 
-const toNumber = (value) => {
+const toNumber = (value: unknown) => {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 };
 
-export function matchesTrafficFilter(aircraft, trafficFilter) {
+export function matchesTrafficFilter(aircraft: AircraftFilterRecord, trafficFilter: string) {
   if (trafficFilter === "routed") {
     // flightRouteLabel is non-empty only when the route lookup resolved a
     // distinct origin AND destination — i.e., a legitimately parsed route.
@@ -129,13 +134,13 @@ export function matchesTrafficFilter(aircraft, trafficFilter) {
   return true;
 }
 
-export function matchesMovementFilter(aircraft, movementFilter) {
+export function matchesMovementFilter(aircraft: AircraftFilterRecord, movementFilter: string) {
   if (movementFilter === "departures") return aircraft?.movement === "DEPARTURE";
   if (movementFilter === "arrivals") return aircraft?.movement === "ARRIVAL";
   return true;
 }
 
-export function matchesTypeFilter(aircraft, typeFilter) {
+export function matchesTypeFilter(aircraft: AircraftFilterRecord, typeFilter: string | string[]) {
   if (typeFilter === "all" || !typeFilter) return true;
   if (Array.isArray(typeFilter)) {
     if (typeFilter.length === 0) return true;
@@ -144,7 +149,7 @@ export function matchesTypeFilter(aircraft, typeFilter) {
   return aircraftTypeLabel(aircraft) === typeFilter;
 }
 
-export function matchesAltitudeLevel(aircraft, altitudeLevel) {
+export function matchesAltitudeLevel(aircraft: AircraftFilterRecord, altitudeLevel: string) {
   if (altitudeLevel === "all") return true;
   const altitude = aircraft.onGround ? 0 : toNumber(aircraft.altitude);
   if (altitudeLevel === "ground") return altitude == null || altitude < 100;

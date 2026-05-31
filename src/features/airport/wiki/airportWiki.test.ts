@@ -117,8 +117,8 @@ import {
 // uses the zh title to hit zh.wikipedia, and includes the Accept-Language
 // header so Wikipedia variant-converts to simplified.
 {
-  const requests = []
-  const fetchImpl = async (url, options = {}) => {
+  const requests: any[] = []
+  const fetchImpl = async (url: string, options: Record<string, any> = {}) => {
     requests.push({ url, headers: options.headers || {} })
     if (url.startsWith('https://en.wikipedia.org/w/api.php')) {
       return {

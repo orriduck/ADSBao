@@ -8,7 +8,7 @@ import { toFiniteNumber } from "@/utils/math";
 // Slower-changing identity + spatial metadata: hex, track, and distance
 // from the focal airport. Track and distance tween via NumberFlow so the
 // readout reads as live as the aircraft moves through the airspace.
-export default function AircraftPreviewMetadata({ aircraft }) {
+export default function AircraftPreviewMetadata({ aircraft }: Record<string, any>) {
   const { t } = useI18n();
   const hex = aircraft?.icao24 ? aircraft.icao24.toUpperCase() : "—";
   const track = toFiniteNumber(aircraft?.track);
@@ -36,7 +36,7 @@ export default function AircraftPreviewMetadata({ aircraft }) {
   );
 }
 
-function TextMeta({ label, value }) {
+function TextMeta({ label, value }: Record<string, any>) {
   return (
     <div className="aircraft-preview-meta-row">
       <dt className="aircraft-preview-meta-row__label">{label}</dt>
@@ -47,7 +47,7 @@ function TextMeta({ label, value }) {
   );
 }
 
-function NumericMeta({ label, value, suffix = "", format }) {
+function NumericMeta({ label, value, suffix = "", format }: Record<string, any>) {
   return (
     <div className="aircraft-preview-meta-row">
       <dt className="aircraft-preview-meta-row__label">{label}</dt>

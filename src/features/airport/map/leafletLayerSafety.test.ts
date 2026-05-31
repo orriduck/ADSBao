@@ -17,7 +17,7 @@ import { safeAddToMap, safeRemoveFromMap } from "./leafletLayerSafety";
 }
 
 {
-  const warnings = [];
+  const warnings: any[] = [];
   const layer = {
     addTo() {
       throw new Error("Cannot read properties of undefined (reading 'appendChild')");
@@ -27,7 +27,7 @@ import { safeAddToMap, safeRemoveFromMap } from "./leafletLayerSafety";
   assert.equal(
     safeAddToMap(layer, {}, {
       label: "test-layer",
-      logger: { warn: (...args) => warnings.push(args) },
+      logger: { warn: (...args: any[]) => warnings.push(args) } as any,
     }),
     null,
   );

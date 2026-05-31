@@ -25,14 +25,16 @@ const TYPE_RANK = {
 
 const EARTH_RADIUS_NM = 3440.065;
 
-const normalizeIdent = (value) =>
+type AirportDirectoryRecord = Record<string, any>;
+
+const normalizeIdent = (value: unknown) =>
   String(value ?? "").trim().toUpperCase();
 
-const escapeIlike = (value) =>
+const escapeIlike = (value: unknown) =>
   String(value ?? "").replace(/[%_,]/g, (match) => `\\${match}`);
 
-const haversineNm = (lat1, lon1, lat2, lon2) => {
-  const toRad = (value) => (value * Math.PI) / 180;
+const haversineNm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const toRad = (value: number) => (value * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const sinLat = Math.sin(dLat / 2);
@@ -43,18 +45,18 @@ const haversineNm = (lat1, lon1, lat2, lon2) => {
   return 2 * EARTH_RADIUS_NM * Math.asin(Math.min(1, Math.sqrt(a)));
 };
 
-export const typeRank = (type) => TYPE_RANK[type] ?? 9;
+export const typeRank = (type: unknown) => TYPE_RANK[String(type)] ?? 9;
 
-const sortNearbyRows = (left, right) => {
+const sortNearbyRows = (left: AirportDirectoryRecord, right: AirportDirectoryRecord) => {
   return left.distanceNm - right.distanceNm;
 };
 
-const isNearbyAirportDisplayCandidate = (table, airport) => {
+const isNearbyAirportDisplayCandidate = (table: string, airport: AirportDirectoryRecord) => {
   if (table !== "airports") return true;
   return typeRank(airport?.type) <= TYPE_RANK.medium_airport;
 };
 
-export const mapAirportRow = (row) => {
+export const mapAirportRow = (row: AirportDirectoryRecord | null | undefined) => {
   if (!row) return null;
   return {
     ident: row.ident,
@@ -83,7 +85,7 @@ export const mapAirportRow = (row) => {
   };
 };
 
-export const mapRunwayRow = (row) => {
+export const mapRunwayRow = (row: AirportDirectoryRecord | null | undefined) => {
   if (!row) return null;
   return {
     id: row.id,
@@ -112,7 +114,7 @@ export const mapRunwayRow = (row) => {
   };
 };
 
-export const mapFrequencyRow = (row) => {
+export const mapFrequencyRow = (row: AirportDirectoryRecord | null | undefined) => {
   if (!row) return null;
   return {
     id: row.id,
@@ -123,7 +125,7 @@ export const mapFrequencyRow = (row) => {
   };
 };
 
-export const mapNavaidRow = (row) => {
+export const mapNavaidRow = (row: AirportDirectoryRecord | null | undefined) => {
   if (!row) return null;
   return {
     id: row.id,
@@ -147,7 +149,7 @@ export const mapNavaidRow = (row) => {
   };
 };
 
-const sortBySearchRelevance = (rows, query) => {
+const sortBySearchRelevance = (rows: AirportDirectoryRecord[], query: unknown) => {
   const upper = normalizeIdent(query);
   return [...rows].sort((left, right) => {
     const leftCode = (left.icao_code || left.ident || "").toUpperCase();
@@ -173,7 +175,7 @@ const sortBySearchRelevance = (rows, query) => {
   });
 };
 
-const requireClient = (client) => {
+const requireClient = (client: any) => {
   if (!client) {
     throw new Error("OurAirports query layer is not configured (no Supabase client)");
   }
@@ -184,7 +186,7 @@ export const createOurAirportsQueryClient = ({
   supabaseUrl,
   supabaseKey,
   createClientImpl,
-} = {}) => {
+}: AirportDirectoryRecord = {}) => {
   return createServerSupabaseClient({
     supabaseUrl,
     supabaseKey,
@@ -192,17 +194,17 @@ export const createOurAirportsQueryClient = ({
   });
 };
 
-export const createOurAirportsQueries = ({ client } = {}) => {
-  const select = (table, columns) => requireClient(client).from(table).select(columns);
+export const createOurAirportsQueries = ({ client }: AirportDirectoryRecord = {}) => {
+  const select = (table: string, columns: string) => requireClient(client).from(table).select(columns);
 
   return {
-    async searchAirports({ query = "", country = "", type = "", limit = 25 } = {}) {
+    async searchAirports({ query = "", country = "", type = "", limit = 25 }: AirportDirectoryRecord = {}) {
       const trimmed = String(query || "").trim();
       const normalizedCountry = String(country || "").trim().toUpperCase();
       const normalizedType = String(type || "").trim();
       const safeLimit = Math.max(1, Math.min(Number(limit) || 25, 200));
 
-      const applyCommonFilters = (request) => {
+      const applyCommonFilters = (request: any) => {
         let next = request;
         if (normalizedCountry) next = next.eq("iso_country", normalizedCountry);
         if (normalizedType && normalizedType !== "all") {
@@ -284,7 +286,7 @@ export const createOurAirportsQueries = ({ client } = {}) => {
       return ranked.map(mapAirportRow).filter(Boolean);
     },
 
-    async getAirportByIdent(ident) {
+    async getAirportByIdent(ident: unknown) {
       const normalized = normalizeIdent(ident);
       if (!normalized) return null;
 
@@ -302,7 +304,7 @@ export const createOurAirportsQueries = ({ client } = {}) => {
       return mapAirportRow(data);
     },
 
-    async getRunwaysByAirport(ident) {
+    async getRunwaysByAirport(ident: unknown) {
       const normalized = normalizeIdent(ident);
       if (!normalized) return [];
 
@@ -316,7 +318,7 @@ export const createOurAirportsQueries = ({ client } = {}) => {
       return (data || []).map(mapRunwayRow).filter(Boolean);
     },
 
-    async getFrequenciesByAirport(ident) {
+    async getFrequenciesByAirport(ident: unknown) {
       const normalized = normalizeIdent(ident);
       if (!normalized) return [];
 
@@ -331,7 +333,7 @@ export const createOurAirportsQueries = ({ client } = {}) => {
       return (data || []).map(mapFrequencyRow).filter(Boolean);
     },
 
-    async getNearbyAirports({ ident, radiusNm = 60, limit = 12 } = {}) {
+    async getNearbyAirports({ ident, radiusNm = 60, limit = 12 }: AirportDirectoryRecord = {}) {
       const origin = await this.getAirportByIdent(ident);
       if (!origin || !Number.isFinite(origin.lat) || !Number.isFinite(origin.lon)) {
         return [];
@@ -354,7 +356,7 @@ export const createOurAirportsQueries = ({ client } = {}) => {
       radiusNm = 60,
       limit = 12,
       excludeIdent = "",
-    } = {}) {
+    }: AirportDirectoryRecord = {}) {
       const originLat = toFiniteNumber(lat);
       const originLon = toFiniteNumber(lon);
       if (!Number.isFinite(originLat) || !Number.isFinite(originLon)) {
@@ -376,7 +378,7 @@ export const createOurAirportsQueries = ({ client } = {}) => {
       });
     },
 
-    async getNearbyNavaids({ ident, radiusNm = 60, limit = 12 } = {}) {
+    async getNearbyNavaids({ ident, radiusNm = 60, limit = 12 }: AirportDirectoryRecord = {}) {
       const origin = await this.getAirportByIdent(ident);
       if (!origin || !Number.isFinite(origin.lat) || !Number.isFinite(origin.lon)) {
         return [];
@@ -403,7 +405,7 @@ const queryNearby = async ({
   limit,
   excludeIdent,
   rowMapper,
-}) => {
+}: AirportDirectoryRecord) => {
   const radius = Math.max(1, Math.min(Number(radiusNm) || 60, 500));
   const safeLimit = Math.max(1, Math.min(Number(limit) || 12, 100));
 
@@ -460,6 +462,9 @@ const queryNearby = async ({
 export const createOurAirportsQueriesFromEnv = ({
   env = process.env,
   createClientImpl,
+}: {
+  env?: Record<string, string | undefined>;
+  createClientImpl?: any;
 } = {}) => {
   const client = createOurAirportsQueryClient({
     supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,

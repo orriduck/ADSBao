@@ -6,10 +6,12 @@ import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
 // ground filter aligns with the visual layer.
 const DEFAULT_GROUND_AREA_RADIUS_NM = 3;
 
-export const resolveDocumentTheme = (documentElement) =>
+type AirportMapModelRecord = Record<string, any>;
+
+export const resolveDocumentTheme = (documentElement: AirportMapModelRecord | null | undefined) =>
   documentElement?.getAttribute("data-theme") === "light" ? "light" : "dark";
 
-export const getMapOverlayTheme = (theme) =>
+export const getMapOverlayTheme = (theme: unknown) =>
   theme === "light"
     ? {
         labelShadowColor: "var(--map-label-shadow)",
@@ -20,13 +22,13 @@ export const getMapOverlayTheme = (theme) =>
         attributionColor: "var(--map-attribution)",
       };
 
-const toFiniteCoordinate = (value) => {
+const toFiniteCoordinate = (value: unknown) => {
   if (value == null || value === "") return null;
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : null;
 };
 
-export const resolveAirportMapFocalCenter = ({ lat, lon } = {}) => {
+export const resolveAirportMapFocalCenter = ({ lat, lon }: AirportMapModelRecord = {}) => {
   const focalLat = toFiniteCoordinate(lat);
   const focalLon = toFiniteCoordinate(lon);
   if (focalLat == null || focalLon == null) return null;
@@ -37,7 +39,7 @@ export const resolveAirportMapInitialCenter = ({
   focalCenter = null,
   fallbackCenter = null,
   deferUntilFocal = false,
-} = {}) => {
+}: AirportMapModelRecord = {}) => {
   if (focalCenter) return focalCenter;
   if (deferUntilFocal) return null;
   return resolveAirportMapFocalCenter({
@@ -46,14 +48,14 @@ export const resolveAirportMapInitialCenter = ({
   });
 };
 
-export const formatCoordinateLabel = (value, axis) => {
+export const formatCoordinateLabel = (value: number, axis: string) => {
   if (!value) return "";
   const positiveSuffix = axis === "lat" ? "N" : "E";
   const negativeSuffix = axis === "lat" ? "S" : "W";
   return `${Math.abs(value).toFixed(2)}${value >= 0 ? positiveSuffix : negativeSuffix}`;
 };
 
-const airportGroundFilters = ({ airportLat, airportLon, nearbyAirports = [] }) =>
+const airportGroundFilters = ({ airportLat, airportLon, nearbyAirports = [] }: AirportMapModelRecord) =>
   [
     { lat: airportLat, lon: airportLon },
     ...nearbyAirports.map((airport) => ({
@@ -62,7 +64,7 @@ const airportGroundFilters = ({ airportLat, airportLon, nearbyAirports = [] }) =
     })),
   ].filter((airport) => airport.lat != null && airport.lon != null);
 
-const isInsideAirportGroundArea = (aircraft, airport, radiusNm) => {
+const isInsideAirportGroundArea = (aircraft: AirportMapModelRecord, airport: AirportMapModelRecord, radiusNm: number) => {
   const distNm = getDistanceNm(airport.lat, airport.lon, aircraft.lat, aircraft.lon);
   return distNm != null && distNm <= radiusNm;
 };
@@ -74,7 +76,7 @@ export const getVisibleAircraft = ({
   nearbyAirports = [],
   zoom,
   groundAreaRadiusNm = DEFAULT_GROUND_AREA_RADIUS_NM,
-}) => {
+}: AirportMapModelRecord) => {
   const atApproachZoom = Number(zoom) === ZOOM_APPROACH;
   const groundFilters = airportGroundFilters({
     airportLat,

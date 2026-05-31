@@ -5,35 +5,45 @@ export const TRACKED_FLIGHT_METADATA_TTL_MS = 6 * 60 * 60 * 1000;
 const isBrowser = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 
-function normalizeCallsign(callsign) {
+type TrackedFlightMetadataRecord = Record<string, any>;
+type TrackedFlightMetadataStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+function normalizeCallsign(callsign: unknown) {
   return String(callsign || "").trim().toUpperCase();
 }
 
-function clean(value) {
+function clean(value: unknown) {
   return String(value || "").trim().toUpperCase();
 }
 
-function readStore() {
+function getLocalStorage(): TrackedFlightMetadataStorage | null {
+  return isBrowser() ? window.localStorage : null;
+}
+
+function readStore(): TrackedFlightMetadataRecord {
   if (!isBrowser()) return {};
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = getLocalStorage()?.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
   }
 }
 
-function writeStore(store) {
+function writeStore(store: TrackedFlightMetadataRecord) {
   if (!isBrowser()) return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    getLocalStorage()?.setItem(STORAGE_KEY, JSON.stringify(store));
   } catch {
     // Metadata is an opportunistic UI cache; quota failures can be ignored.
   }
 }
 
-function pruneStore(store, { now = Date.now(), ttlMs = TRACKED_FLIGHT_METADATA_TTL_MS } = {}) {
-  const out = {};
+function pruneStore(
+  store: TrackedFlightMetadataRecord,
+  { now = Date.now(), ttlMs = TRACKED_FLIGHT_METADATA_TTL_MS }: TrackedFlightMetadataRecord = {},
+) {
+  const out: TrackedFlightMetadataRecord = {};
   const ttl = Math.max(1, Number(ttlMs) || TRACKED_FLIGHT_METADATA_TTL_MS);
   for (const [key, entry] of Object.entries(store || {})) {
     if (
@@ -47,12 +57,12 @@ function pruneStore(store, { now = Date.now(), ttlMs = TRACKED_FLIGHT_METADATA_T
   return out;
 }
 
-function sanitizeFlightRoute(route) {
+function sanitizeFlightRoute(route: unknown) {
   if (!route || typeof route !== "object" || Array.isArray(route)) return null;
   return route;
 }
 
-function extractMetadata(aircraft = {}) {
+function extractMetadata(aircraft: TrackedFlightMetadataRecord = {}) {
   const metadata = {
     type: clean(aircraft.type),
     category: clean(aircraft.category),
@@ -66,12 +76,12 @@ function extractMetadata(aircraft = {}) {
 }
 
 export function writeTrackedFlightMetadata(
-  callsign,
+  callsign: unknown,
   {
     aircraft = null,
     now = Date.now(),
     ttlMs = TRACKED_FLIGHT_METADATA_TTL_MS,
-  } = {},
+  }: TrackedFlightMetadataRecord = {},
 ) {
   const normalized = normalizeCallsign(callsign || aircraft?.callsign);
   const metadata = extractMetadata(aircraft);
@@ -92,11 +102,11 @@ export function writeTrackedFlightMetadata(
 }
 
 export function readTrackedFlightMetadata(
-  callsign,
+  callsign: unknown,
   {
     now = Date.now(),
     ttlMs = TRACKED_FLIGHT_METADATA_TTL_MS,
-  } = {},
+  }: TrackedFlightMetadataRecord = {},
 ) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return null;
@@ -106,7 +116,10 @@ export function readTrackedFlightMetadata(
   return entry;
 }
 
-export function mergeTrackedFlightMetadata({ aircraft = null, metadata = null } = {}) {
+export function mergeTrackedFlightMetadata({
+  aircraft = null,
+  metadata = null,
+}: TrackedFlightMetadataRecord = {}) {
   if (!aircraft || !metadata) return aircraft;
   return {
     ...aircraft,

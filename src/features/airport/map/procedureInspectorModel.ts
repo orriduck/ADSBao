@@ -1,19 +1,21 @@
 export const DEFAULT_PROCEDURE_PHASES = ["final", "runway"];
 
-const normalizePhases = (visiblePhases) => {
+type ProcedureInspectorRecord = Record<string, any>;
+
+const normalizePhases = (visiblePhases: unknown) => {
   const phases = Array.isArray(visiblePhases)
     ? visiblePhases.filter(Boolean)
     : DEFAULT_PROCEDURE_PHASES;
   return new Set(phases.length ? phases : DEFAULT_PROCEDURE_PHASES);
 };
 
-const cloneTransition = (transition, phases) => {
+const cloneTransition = (transition: ProcedureInspectorRecord, phases: Set<any>) => {
   if (!phases.has("transition")) return null;
   const legs = transition.legs || [];
   return legs.length ? { ...transition, legs } : null;
 };
 
-const cloneApproachForPhases = (approach, phases) => ({
+const cloneApproachForPhases = (approach: ProcedureInspectorRecord, phases: Set<any>) => ({
   ...approach,
   transitions: (approach.transitions || [])
     .map((transition) => cloneTransition(transition, phases))
@@ -24,7 +26,7 @@ const cloneApproachForPhases = (approach, phases) => ({
   missed: phases.has("missed") ? approach.missed || [] : [],
 });
 
-export function buildRunwayProcedureChoices(runwayProcedures) {
+export function buildRunwayProcedureChoices(runwayProcedures: ProcedureInspectorRecord) {
   return (runwayProcedures?.runwayDirections || []).map((runwayDirection) => ({
     runway: runwayDirection.runway,
     runwayPair: runwayDirection.runwayPair,
@@ -32,14 +34,14 @@ export function buildRunwayProcedureChoices(runwayProcedures) {
   }));
 }
 
-export function buildProcedureChoiceLabel(procedure) {
+export function buildProcedureChoiceLabel(procedure: ProcedureInspectorRecord | null | undefined) {
   if (!procedure) return "";
   return procedure.procedureCode
     ? `${procedure.procedureCode} · ${procedure.name}`
     : procedure.name;
 }
 
-export function buildProcedureChoices(runwayProcedures, selectedRunway) {
+export function buildProcedureChoices(runwayProcedures: ProcedureInspectorRecord, selectedRunway: unknown) {
   const runwayDirection = (runwayProcedures?.runwayDirections || []).find(
     (item) => item.runway === selectedRunway,
   );
@@ -51,7 +53,7 @@ export function buildProcedureChoices(runwayProcedures, selectedRunway) {
   }));
 }
 
-export function buildProcedureInspectorViewModel(runwayProcedures, state = {}) {
+export function buildProcedureInspectorViewModel(runwayProcedures: ProcedureInspectorRecord, state: ProcedureInspectorRecord = {}) {
   const resolvedState = resolveProcedureInspectorState(runwayProcedures, state);
   return {
     ...resolvedState,
@@ -63,7 +65,7 @@ export function buildProcedureInspectorViewModel(runwayProcedures, state = {}) {
   };
 }
 
-export function resolveProcedureInspectorState(runwayProcedures, state = {}) {
+export function resolveProcedureInspectorState(runwayProcedures: ProcedureInspectorRecord, state: ProcedureInspectorRecord = {}) {
   const runwayDirection = (runwayProcedures?.runwayDirections || []).find(
     (item) => item.runway === state.selectedRunway,
   );
@@ -85,7 +87,7 @@ export function resolveProcedureInspectorState(runwayProcedures, state = {}) {
   };
 }
 
-export function buildVisibleProcedurePayload(runwayProcedures, state = {}) {
+export function buildVisibleProcedurePayload(runwayProcedures: ProcedureInspectorRecord, state: ProcedureInspectorRecord = {}) {
   const phases = normalizePhases(state.visiblePhases);
   const basePayload = {
     airport: runwayProcedures?.airport || "",

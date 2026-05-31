@@ -11,7 +11,7 @@ import {
   getProcedureSegmentStyle,
 } from "../../features/airport/map/procedureSegmentModel";
 
-const escapeHtml = (value) =>
+const escapeHtml = (value: unknown) =>
   String(value).replace(/[&<>"']/g, (character) => {
     const entities = {
       "&": "&amp;",
@@ -23,7 +23,7 @@ const escapeHtml = (value) =>
     return entities[character];
   });
 
-const fixLabelIcon = (label, theme) =>
+const fixLabelIcon = (label: Record<string, any>, theme: string) =>
   L.divIcon({
     className: `procedure-fix-label procedure-fix-label--${theme}`,
     html: `<span class="notranslate" translate="no">${escapeHtml(label.fixIdent)}</span>`,
@@ -36,7 +36,7 @@ export default function ProcedureSegmentLayer({
   fixLabelRunwayProcedures = runwayProcedures,
   theme = "dark",
   showFixLabels = false,
-}) {
+}: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
 
@@ -51,7 +51,7 @@ export default function ProcedureSegmentLayer({
 
     const baseStyle = getProcedureSegmentStyle(theme);
     const fixLabelPane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge);
-    const lineLayer = L.geoJSON(segments, {
+    const lineLayer = L.geoJSON(segments as any, {
       interactive: false,
       style(feature) {
         return {

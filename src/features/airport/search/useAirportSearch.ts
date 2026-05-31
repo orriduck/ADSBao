@@ -22,7 +22,7 @@ export function useAirportSearch({
   const activeRequestId = useRef(0);
 
   const airportDiscoveryTopics = useMemo(
-    () => getAirportDiscoveryTopics({ topics: discoveryTopics }),
+    () => getAirportDiscoveryTopics({ topics: discoveryTopics as any }),
     [discoveryTopics],
   );
 

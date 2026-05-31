@@ -4,13 +4,28 @@ import * as React from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+type MetricGridProps = React.ComponentProps<"div"> & {
+  label?: string;
+};
+
+type MetricCardProps = {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  unit?: React.ReactNode;
+  active?: boolean;
+  onClick?: () => void;
+  valueSize?: "default" | "compact" | string;
+  valueTranslate?: boolean;
+  className?: string;
+};
+
 // Two-column metric grid + uniform stat-card cell shared between the
 // airport sidebar (interactive WEATHER / FLIGHTS tabs) and the flight
 // sidebar (static focal-aircraft telemetry). Layout, type ramps and
 // the active-state bottom-glow are colocated here instead of in
 // style.css so the cell stops accumulating bespoke modifier classes.
 
-export function MetricGrid({ className, children, label = "Metrics" }) {
+export function MetricGrid({ className, children, label = "Metrics" }: MetricGridProps) {
   return (
     <div
       role="group"
@@ -124,7 +139,7 @@ export function MetricCard({
   valueSize = "default",
   valueTranslate = false,
   className,
-}) {
+}: MetricCardProps) {
   const isInteractive = Boolean(onClick);
   const body = (
     <>
