@@ -4638,6 +4638,10 @@ body {
     box-shadow: none;
 }
 
+.aircraft-preview-card--airport {
+    width: 320px;
+}
+
 .aircraft-preview-card--desktop-reveal {
     --endf-wipe-cover: var(--atc-card);
     isolation: isolate;

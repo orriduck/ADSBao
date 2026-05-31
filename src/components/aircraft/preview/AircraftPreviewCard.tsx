@@ -127,7 +127,7 @@ export default function AircraftPreviewCard({
           key={identityKey}
           className={`aircraft-preview-card aircraft-preview-card--desktop-reveal ${
             !isAirport && !isNavaid && hasPhoto ? "aircraft-preview-card--has-photo" : ""
-          } aircraft-preview-card--photo-${photoTone}`}
+          } ${isAirport ? "aircraft-preview-card--airport" : ""} aircraft-preview-card--photo-${photoTone}`}
           aria-label={previewAriaLabel}
         >
           {!isAirport && !isNavaid && (

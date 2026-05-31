@@ -50,8 +50,8 @@ export default function NavaidPreviewMetadataCard({
 
   return (
     <div className="aircraft-preview-metadata-card">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
+      <div className="relative">
+        <div className="min-w-0 pr-8">
           <span className="endf-label">{t("preview.navaidPreview")}</span>
           <div className="mt-1 flex min-w-0 items-baseline gap-2">
             <span
@@ -61,29 +61,29 @@ export default function NavaidPreviewMetadataCard({
               {ident}
             </span>
           </div>
-          {identityRows.length ? (
-            <dl className="mt-2 grid w-full grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 font-mono text-[10px]">
-              {identityRows.map((row) => (
-                <div className="contents" key={row.label}>
-                  <dt className="text-atc-faint uppercase tracking-[0.1em]">
-                    {row.label}
-                  </dt>
-                  <dd
-                    className="notranslate min-w-0 truncate text-right font-semibold text-atc-text"
-                    translate="no"
-                  >
-                    {row.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          ) : null}
         </div>
         <RadioTower
           aria-hidden="true"
-          className="mt-1 size-5 flex-none text-atc-dim"
+          className="absolute right-0 top-0 size-5 text-atc-dim"
           strokeWidth={1.8}
         />
+        {identityRows.length ? (
+          <dl className="mt-2 grid w-full grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 font-mono text-[10px]">
+            {identityRows.map((row) => (
+              <div className="contents" key={row.label}>
+                <dt className="text-atc-faint uppercase tracking-[0.1em]">
+                  {row.label}
+                </dt>
+                <dd
+                  className="notranslate min-w-0 truncate text-right font-semibold text-atc-text"
+                  translate="no"
+                >
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
       </div>
 
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />

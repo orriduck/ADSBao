@@ -5,11 +5,19 @@ import { fileURLToPath } from "node:url";
 const desktopCardPath = fileURLToPath(
   new URL("./AirportPreviewMetadataCard.tsx", import.meta.url),
 );
+const previewCardPath = fileURLToPath(
+  new URL("./AircraftPreviewCard.tsx", import.meta.url),
+);
 const mobileCardPath = fileURLToPath(
   new URL("./AirportPreviewMobileCard.tsx", import.meta.url),
 );
+const stylePath = fileURLToPath(new URL("../../../style.css", import.meta.url));
+const zhPath = fileURLToPath(new URL("../../../config/i18n/zh-CN.ts", import.meta.url));
 const desktopSource = readFileSync(desktopCardPath, "utf8");
+const previewSource = readFileSync(previewCardPath, "utf8");
 const mobileSource = readFileSync(mobileCardPath, "utf8");
+const styleSource = readFileSync(stylePath, "utf8");
+const zhSource = readFileSync(zhPath, "utf8");
 
 assert.match(
   desktopSource,
@@ -25,6 +33,16 @@ assert.match(
   desktopSource,
   /grid-cols-\[auto_minmax\(0,1fr\)\]/,
   "desktop airport preview detail rows should align labels and right-side values",
+);
+assert.match(
+  previewSource,
+  /isAirport \? "aircraft-preview-card--airport" : ""/,
+  "desktop airport preview should opt into an airport-specific card width",
+);
+assert.match(
+  styleSource,
+  /\.aircraft-preview-card--airport \{[\s\S]*?width: 320px;/,
+  "desktop airport preview card should be wider than the default preview card",
 );
 assert.match(
   desktopSource,
@@ -55,6 +73,11 @@ assert.doesNotMatch(
   mobileSource,
   /flex-col/,
   "mobile airport preview should not keep the old stacked two-line layout",
+);
+assert.match(
+  zhSource,
+  /openAirport: "追踪机场"/,
+  "Chinese airport preview CTA should use the shorter track-airport label",
 );
 
 console.log("AircraftPreviewCard.airport.test.ts ok");
