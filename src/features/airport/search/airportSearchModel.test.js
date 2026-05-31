@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 
+import { AIRPORT_DISCOVERY_TOPICS } from "../../../config/airportDiscovery.js";
 import {
   createAirportSelection,
-  getFeaturedAirportDisplayItems,
+  getAirportDiscoveryTopics,
+  getNearbyAirportDisplayItems,
   getAirportResultCountLabel,
   mergeAirportSearchRows,
-  orderFeaturedAirportsByNearest,
   resolveSubmittedAirport,
 } from "./airportSearchModel.js";
 
-const featured = [
+const staticAirports = [
   { icao: "KBOS", iata: "BOS", name: "Boston Logan", city: "Boston" },
   { icao: "KLAX", iata: "LAX", name: "Los Angeles International" },
 ];
@@ -21,7 +22,7 @@ const remote = [
 
 const rows = mergeAirportSearchRows({
   query: "bo",
-  featuredAirports: featured,
+  staticAirports,
   results: remote,
 });
 
@@ -30,44 +31,64 @@ assert.equal(rows[0].icao, "KBOS");
 assert.equal(rows[0].name, "Boston Logan");
 assert.equal(rows[1].icao, "KSEA");
 
-const orderedFeatured = orderFeaturedAirportsByNearest({
-  featuredAirports: [
-    { icao: "KJFK", lat: 40.639447, lon: -73.779317 },
-    { icao: "KLAX", lat: 33.942501, lon: -118.407997 },
-    { icao: "KBOS", lat: 42.36197, lon: -71.0079 },
-  ],
-  location: { lat: 34.05, lon: -118.25 },
+const nearbyPromptItems = getNearbyAirportDisplayItems({
+  airports: [{ icao: "KBOS", iata: "BOS", name: "Boston Logan" }],
+  status: "idle",
 });
 
+assert.deepEqual(nearbyPromptItems, [
+  {
+    type: "nearby-prompt",
+    id: "nearby-airports-prompt",
+    status: "idle",
+    errorMessage: "",
+  },
+]);
+
+const nearbyResolvedItems = getNearbyAirportDisplayItems({
+  airports: [{ icao: "KBOS", iata: "BOS", name: "Boston Logan" }],
+  status: "resolved",
+});
+
+assert.equal(nearbyResolvedItems[0].type, "airport");
+assert.equal(nearbyResolvedItems[0].airport.icao, "KBOS");
+
+const discoveryTopics = getAirportDiscoveryTopics({
+  topics: [
+    {
+      id: "spotter",
+      titleKey: "search.discovery.spotterFavorites.title",
+      airports: [{ icao: "KBOS" }, null, { name: "" }],
+    },
+    {
+      id: "empty",
+      titleKey: "search.discovery.empty.title",
+      airports: [],
+    },
+  ],
+});
+
+assert.equal(discoveryTopics.length, 1);
+assert.equal(discoveryTopics[0].id, "spotter");
+assert.equal(discoveryTopics[0].airports.length, 1);
+
+const configuredDiscoveryTopics = getAirportDiscoveryTopics({
+  topics: AIRPORT_DISCOVERY_TOPICS,
+});
+const majorHubsTopic = configuredDiscoveryTopics.find(
+  (topic) => topic.id === "major-international-hubs",
+);
 assert.deepEqual(
-  orderedFeatured.map((airport) => airport.icao),
-  ["KLAX", "KJFK", "KBOS"],
+  majorHubsTopic.airports.map((airport) => airport.icao),
+  ["KJFK", "EGLL", "VHHH", "KATL", "KORD"],
 );
 
-const unchangedFeatured = orderFeaturedAirportsByNearest({
-  featuredAirports: featured,
-  location: null,
-});
-
-assert.deepEqual(unchangedFeatured, featured);
-
-const idleDisplayItems = getFeaturedAirportDisplayItems({
-  featuredAirports: featured,
-  locationStatus: "idle",
-});
-
-assert.equal(idleDisplayItems[0].type, "location-prompt");
-assert.equal(idleDisplayItems[0].status, "idle");
-assert.equal(idleDisplayItems[1].airport.icao, "KBOS");
-
-const resolvedDisplayItems = getFeaturedAirportDisplayItems({
-  featuredAirports: orderedFeatured,
-  locationStatus: "resolved",
-});
-
+const worldOfAirportsTopic = configuredDiscoveryTopics.find(
+  (topic) => topic.id === "world-of-airports",
+);
 assert.deepEqual(
-  resolvedDisplayItems.map((item) => item.airport.icao),
-  ["KLAX", "KJFK", "KBOS"],
+  worldOfAirportsTopic.airports.map((airport) => airport.icao),
+  ["KIAD", "SCEL", "VTBS"],
 );
 
 assert.deepEqual(
@@ -96,9 +117,15 @@ assert.deepEqual(
   },
 );
 
-assert.equal(resolveSubmittedAirport({ query: "sea", rows, featuredAirports: featured }).icao, "KSEA");
-assert.equal(resolveSubmittedAirport({ query: "lax", rows: [], featuredAirports: featured }).icao, "KLAX");
-assert.equal(resolveSubmittedAirport({ query: "", rows, featuredAirports: featured }), null);
+assert.equal(
+  resolveSubmittedAirport({ query: "sea", rows, staticAirports }).icao,
+  "KSEA",
+);
+assert.equal(
+  resolveSubmittedAirport({ query: "lax", rows: [], staticAirports }).icao,
+  "KLAX",
+);
+assert.equal(resolveSubmittedAirport({ query: "", rows, staticAirports }), null);
 
 assert.equal(getAirportResultCountLabel({ loading: true, rowCount: 0 }), "loading");
 assert.equal(getAirportResultCountLabel({ loading: false, rowCount: 1 }), "1 result");

@@ -6,6 +6,7 @@ import AirportIdentity from "./AirportIdentity";
 import SidebarShell from "./SidebarShell";
 import SidebarViewSwitch from "./SidebarViewSwitch";
 import WeatherBriefingStack from "./WeatherBriefingStack";
+import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel.js";
 
 export default function AirportSidebar({
   icao = "",
@@ -39,6 +40,11 @@ export default function AirportSidebar({
 }) {
   const isMobileOverlay = Boolean(onClose);
   const [activeView, setActiveView] = useState("traffic");
+  const movementFilter =
+    routeProvider === ROUTE_PROVIDER.FLIGHTAWARE &&
+    (activeView === "departures" || activeView === "arrivals")
+      ? activeView
+      : "all";
 
   const header = (
     <>
@@ -97,6 +103,7 @@ export default function AirportSidebar({
           focusLon={focusLon}
           selectedAircraftId={selectedAircraftId}
           selectedAirportIcao={selectedAirportIcao}
+          movementFilter={movementFilter}
           onSelectAircraft={onSelectAircraft}
           onSelectAirport={onSelectAirport}
           fill={!isMobileOverlay}

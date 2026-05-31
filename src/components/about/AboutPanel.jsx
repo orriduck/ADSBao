@@ -22,7 +22,7 @@ export default function AboutPanel() {
   };
 
   return (
-    <DitherPageShell title={t("app.aboutTitle")}>
+    <DitherPageShell title={t("app.aboutTitle")} description="">
       <div className="flex-1 overflow-y-auto">
         <AboutMetaGrid items={ABOUT_BUILD_META} />
         <AboutDataSources

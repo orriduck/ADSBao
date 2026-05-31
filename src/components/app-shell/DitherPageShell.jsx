@@ -8,14 +8,18 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n.js";
 
 export default function DitherPageShell({
   className = "",
-  title = "Airport explorer",
+  title = null,
   description = SITE_DESCRIPTION,
   children,
 }) {
   const { t } = useI18n();
-  const resolvedTitle = title === "Airport explorer" ? t("app.airportExplorer") : title;
+  const resolvedTitle = title ?? t("app.airportExplorer");
   const resolvedDescription =
     description === SITE_DESCRIPTION ? t("app.siteDescription") : description;
+  const hasDescription =
+    typeof resolvedDescription === "string"
+      ? resolvedDescription.trim().length > 0
+      : Boolean(resolvedDescription);
 
   return (
     <div
@@ -38,9 +42,11 @@ export default function DitherPageShell({
           >
             <span className="block truncate">{resolvedTitle}</span>
           </h1>
-          <p className="mt-3 text-[13px] leading-relaxed text-atc-dim">
-            {resolvedDescription}
-          </p>
+          {hasDescription ? (
+            <p className="dither-page-description mt-3 text-[13px] leading-relaxed text-atc-dim">
+              {resolvedDescription}
+            </p>
+          ) : null}
         </div>
 
         {children}

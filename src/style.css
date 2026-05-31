@@ -5459,9 +5459,9 @@ body {
         margin-top: 16px;
     }
 
-    .dither-page-header p {
+    .dither-page-header .dither-page-description {
         font-size: 10px;
-        line-height: 1.45;
+        line-height: 1.65;
         margin-top: 10px;
     }
 
