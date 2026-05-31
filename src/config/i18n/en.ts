@@ -172,7 +172,7 @@ const en = {
     trackTrace: "Track trace",
     trackingTrace: "Tracking trace",
     loadingTrace: "Loading trace...",
-    openAirport: "Open airport context",
+    openAirport: "Track airport",
     viewingAirport: "Viewing airport",
     creditPrefix: "credit@",
   },

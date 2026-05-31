@@ -60,5 +60,40 @@ assert.match(
   /preview\.navaidName/,
   "desktop navaid preview should label the name value in the header",
 );
+assert.match(
+  desktopSource,
+  /identityRows/,
+  "desktop navaid preview should render name and type as identity rows",
+);
+assert.match(
+  desktopSource,
+  /className="relative"/,
+  "desktop navaid preview header should let the identity rows use the full card width",
+);
+assert.match(
+  desktopSource,
+  /absolute right-0 top-0/,
+  "desktop navaid preview icon should not consume identity-row width",
+);
+assert.match(
+  desktopSource,
+  /w-full grid-cols-\[auto_minmax\(0,1fr\)\]/,
+  "desktop navaid identity rows should use the same left-label/right-value alignment as metadata fields",
+);
+assert.doesNotMatch(
+  desktopSource,
+  /flex items-start justify-between gap-3/,
+  "desktop navaid identity rows should not be inside a header flex layout that shortens the value column",
+);
+assert.doesNotMatch(
+  desktopSource,
+  /grid-cols-\[minmax\(0,1fr\)_auto\]/,
+  "desktop navaid identity rows should not split name and type into side-by-side blocks",
+);
+assert.doesNotMatch(
+  desktopSource,
+  /text-\[15px\] font-semibold/,
+  "desktop navaid identity values should not use a different title-style font from metadata values",
+);
 
 console.log("AircraftPreviewCard.navaid.test.ts ok");
