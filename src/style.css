@@ -720,59 +720,31 @@ body {
 }
 
 .navaid-label {
-    align-items: center;
-    display: flex;
-    gap: 4px;
-    height: 24px;
+    height: 8px;
+    position: relative;
     white-space: nowrap;
+    width: 8px;
 }
 
 .navaid-label__signal {
-    align-items: flex-end;
-    background: color-mix(in oklab, var(--atc-card) 90%, transparent);
-    border: 1px solid color-mix(in oklab, var(--atc-accent) 38%, transparent);
-    border-radius: 4px;
-    box-shadow: 0 3px 8px rgb(0 0 0 / 0.18);
+    background: transparent;
+    border: 0;
+    box-shadow: none;
     box-sizing: border-box;
+    color: var(--atc-accent);
     display: block;
-    height: 18px;
-    position: relative;
-    width: 18px;
-}
-
-.navaid-label__signal-dot,
-.navaid-label__signal-arc {
-    border-color: var(--atc-accent);
-    display: block;
+    height: 8px;
+    left: 0;
     position: absolute;
+    top: 0;
+    width: 8px;
 }
 
-.navaid-label__signal-dot {
-    background: var(--atc-accent);
-    border-radius: 999px;
-    bottom: 4px;
-    height: 3px;
-    left: 4px;
-    width: 3px;
-}
-
-.navaid-label__signal-arc {
-    border-radius: 0 999px 0 0;
-    border-style: solid;
-    border-width: 2px 2px 0 0;
-    bottom: 4px;
-    left: 4px;
-}
-
-.navaid-label__signal-arc--inner {
-    height: 7px;
-    width: 7px;
-}
-
-.navaid-label__signal-arc--outer {
-    height: 11px;
-    opacity: 0.72;
-    width: 11px;
+.navaid-label__signal-svg {
+    display: block;
+    height: 8px;
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.24));
+    width: 8px;
 }
 
 .navaid-label__body {
@@ -784,36 +756,49 @@ body {
     color: var(--atc-accent);
     display: inline-flex;
     font-family: var(--font-mono);
-    gap: 4px;
-    height: 18px;
+    gap: 3px;
+    height: 16px;
+    left: 12px;
     line-height: 1;
-    padding: 0 6px;
+    padding: 0 5px;
+    position: absolute;
     text-shadow: 0 1px 2px rgb(0 0 0 / 0.28);
+    top: -4px;
 }
 
 .navaid-label__body strong {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 800;
     letter-spacing: 0;
 }
 
 .navaid-label__body small {
     color: color-mix(in oklab, var(--atc-accent) 72%, var(--atc-muted));
-    font-size: 7px;
+    font-size: 6px;
     font-weight: 700;
     letter-spacing: 0;
 }
 
-.navaid-label-icon--light .navaid-label__signal {
-    background: color-mix(in oklab, var(--atc-card) 94%, transparent);
-    border-color: color-mix(in oklab, var(--atc-accent) 28%, white 72%);
-    box-shadow: 0 3px 8px rgb(15 23 42 / 0.12);
+.navaid-label-icon--light .navaid-label__signal-svg {
+    filter: drop-shadow(0 1px 2px rgb(15 23 42 / 0.14));
 }
 
 .navaid-label-icon--light .navaid-label__body {
     background: color-mix(in oklab, var(--atc-card) 94%, transparent);
     box-shadow: 0 4px 12px rgb(15 23 42 / 0.12);
     text-shadow: none;
+}
+
+.navaid-label-icon .navaid-label,
+.navaid-label-icon .navaid-label__signal {
+    height: 8px;
+    width: 8px;
+}
+
+.navaid-label-icon .navaid-label__signal {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
 }
 
 /* Transitions */
