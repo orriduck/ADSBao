@@ -84,16 +84,7 @@ const misleadingBos = {
 
 {
   const runwayMap = buildOpenAipRunwayMap(kbos);
-  assert.equal(runwayMap.source, "OpenAIP");
-  assert.equal(runwayMap.airport, "KBOS");
-  assert.equal(runwayMap.runways.length, 1);
-  assert.equal(runwayMap.runways[0].id, "04L/22R");
-  assert.equal(runwayMap.runways[0].ends[0].ident, "04L");
-  assert.equal(runwayMap.runways[0].ends[1].ident, "22R");
-  assert.equal(
-    runwayMap.runways[0].centerline.properties.source,
-    "OpenAIP",
-  );
+  assert.equal(runwayMap, null);
 }
 
 {

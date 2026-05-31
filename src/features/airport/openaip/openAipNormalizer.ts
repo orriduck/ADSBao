@@ -1,8 +1,6 @@
 import { toFiniteNumber } from "../../../utils/math";
 
 const METERS_TO_FEET = 3.280839895;
-const METERS_TO_NM = 0.000539956803;
-const EARTH_RADIUS_NM = 3440.065;
 
 const AIRPORT_TYPE_LABELS: Record<number, string> = {
   0: "Airport",
@@ -169,85 +167,16 @@ const reciprocalDesignator = (designator: unknown) => {
   return `${String(reciprocal).padStart(2, "0")}${side}`;
 };
 
-const destinationPoint = (lat: number, lon: number, headingDeg: number, distanceNm: number) => {
-  const angularDistance = distanceNm / EARTH_RADIUS_NM;
-  const heading = (headingDeg * Math.PI) / 180;
-  const startLat = (lat * Math.PI) / 180;
-  const startLon = (lon * Math.PI) / 180;
-  const endLat = Math.asin(
-    Math.sin(startLat) * Math.cos(angularDistance) +
-      Math.cos(startLat) * Math.sin(angularDistance) * Math.cos(heading),
-  );
-  const endLon =
-    startLon +
-    Math.atan2(
-      Math.sin(heading) * Math.sin(angularDistance) * Math.cos(startLat),
-      Math.cos(angularDistance) - Math.sin(startLat) * Math.sin(endLat),
-    );
-  return {
-    lat: (endLat * 180) / Math.PI,
-    lon: ((((endLon * 180) / Math.PI + 540) % 360) - 180),
-  };
-};
-
 export const buildOpenAipRunwayMap = (airport: OpenAipRecord | null | undefined) => {
   const mappedAirport = mapOpenAipAirport(airport);
-  if (!mappedAirport || !Number.isFinite(mappedAirport.lat) || !Number.isFinite(mappedAirport.lon)) {
-    return null;
-  }
+  const runways = (airport?.runways || []).filter(Boolean);
+  if (!mappedAirport || runways.length === 0) return null;
 
-  const runways = (airport?.runways || [])
-    .map((runway: OpenAipRecord) => {
-      const designator = upperString(runway.designator);
-      const reciprocal = reciprocalDesignator(designator);
-      const heading = firstFinite(runway.trueHeading);
-      const lengthMeters = firstFinite(runway.dimension?.length?.value);
-      if (!designator || !reciprocal || !Number.isFinite(heading) || !Number.isFinite(lengthMeters)) {
-        return null;
-      }
-      const halfLengthNm = (lengthMeters * METERS_TO_NM) / 2;
-      const le = destinationPoint(
-        mappedAirport.lat,
-        mappedAirport.lon,
-        (heading + 180) % 360,
-        halfLengthNm,
-      );
-      const he = destinationPoint(mappedAirport.lat, mappedAirport.lon, heading, halfLengthNm);
-      const id = `${designator}/${reciprocal}`;
-      const ends = [
-        { ident: designator, lat: le.lat, lon: le.lon },
-        { ident: reciprocal, lat: he.lat, lon: he.lon },
-      ];
-      return {
-        id,
-        ends,
-        lengthFt: metersToFeet(lengthMeters),
-        widthFt: metersToFeet(runway.dimension?.width?.value),
-        centerline: {
-          type: "Feature",
-          geometry: {
-            type: "LineString",
-            coordinates: ends.map((end) => [end.lon, end.lat]),
-          },
-          properties: {
-            id,
-            airport: mappedAirport.icao || mappedAirport.ident,
-            source: "OpenAIP",
-            ends: ends.map((end) => end.ident),
-          },
-        },
-      };
-    })
-    .filter(Boolean)
-    .sort((left: OpenAipRecord, right: OpenAipRecord) => left.id.localeCompare(right.id));
-
-  if (runways.length === 0) return null;
-  return {
-    airport: mappedAirport.icao || mappedAirport.ident,
-    source: "OpenAIP",
-    cycle: airport?.updatedAt || "",
-    runways,
-  };
+  // OpenAIP Core airport runway records currently expose designator, heading,
+  // length, and width, but not threshold coordinates or runway geometry. Do
+  // not synthesize map centerlines from the airport centroid: large airports
+  // such as KBOS would render every runway through one false intersection.
+  return null;
 };
 
 export const mapOpenAipRunway = (

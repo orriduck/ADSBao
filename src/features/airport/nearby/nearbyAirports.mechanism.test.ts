@@ -58,7 +58,7 @@ const payload = await getNearbyAirports({
 assert.equal(payload.source, "openaip");
 assert.equal(payload.airports[0].icao, "CYTZ");
 assert.equal(payload.airports[0].country, "CA");
-assert.equal(payload.airports[0].runwayMap.airport, "CYTZ");
+assert.equal(payload.airports[0].runwayMap, null);
 assert.deepEqual(
   payload.airports.map((airport) => airport.icao),
   ["CYTZ", "CYYZ"],
