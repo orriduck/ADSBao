@@ -4,16 +4,36 @@ const PRIMARY_OPACITY = 1;
 // needs to read clearly enough to scan the scene.
 const DIMMED_OPACITY = 0.55;
 
-type AirportContextUiRecord = Record<string, any>;
+type AirportContextUiRecord = {
+  icao24?: unknown;
+  callsign?: unknown;
+  airportContext?: {
+    altitudeBand?: string;
+    display?: {
+      group?: string;
+      label?: string;
+    };
+    airspace?: {
+      matched?: boolean;
+      label?: string;
+    };
+  } | null;
+  [key: string]: unknown;
+};
+
+type AircraftContextEmphasisOptions = {
+  matchesFilters?: boolean;
+  selected?: boolean;
+};
 
 export function getAircraftIdentity(aircraft: AirportContextUiRecord = {}) {
-  return aircraft.icao24 || aircraft.callsign || "";
+  return String(aircraft.icao24 || aircraft.callsign || "");
 }
 
 export function resolveAircraftContextEmphasis({
   matchesFilters = true,
   selected = false,
-}: AirportContextUiRecord = {}) {
+}: AircraftContextEmphasisOptions = {}) {
   if (selected || matchesFilters) {
     return {
       opacity: PRIMARY_OPACITY,

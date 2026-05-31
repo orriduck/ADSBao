@@ -1,14 +1,40 @@
 "use client";
 
+import type { ComponentProps, ReactNode } from "react";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel";
 import { toFiniteNumber } from "@/utils/math";
 
+type NumberFlowFormat = ComponentProps<typeof NumberFlow>["format"];
+
+type AircraftPreviewMetadataAircraft = {
+  icao24?: string | null;
+  track?: unknown;
+  distanceNm?: unknown;
+  positionQuality?: unknown;
+};
+
+type AircraftPreviewMetadataProps = {
+  aircraft?: AircraftPreviewMetadataAircraft | null;
+};
+
+type TextMetaProps = {
+  label: ReactNode;
+  value: ReactNode;
+};
+
+type NumericMetaProps = {
+  label: ReactNode;
+  value: number | null;
+  suffix?: string;
+  format?: NumberFlowFormat;
+};
+
 // Slower-changing identity + spatial metadata: hex, track, and distance
 // from the focal airport. Track and distance tween via NumberFlow so the
 // readout reads as live as the aircraft moves through the airspace.
-export default function AircraftPreviewMetadata({ aircraft }: Record<string, any>) {
+export default function AircraftPreviewMetadata({ aircraft }: AircraftPreviewMetadataProps) {
   const { t } = useI18n();
   const hex = aircraft?.icao24 ? aircraft.icao24.toUpperCase() : "—";
   const track = toFiniteNumber(aircraft?.track);
@@ -36,7 +62,7 @@ export default function AircraftPreviewMetadata({ aircraft }: Record<string, any
   );
 }
 
-function TextMeta({ label, value }: Record<string, any>) {
+function TextMeta({ label, value }: TextMetaProps) {
   return (
     <div className="aircraft-preview-meta-row">
       <dt className="aircraft-preview-meta-row__label">{label}</dt>
@@ -47,7 +73,7 @@ function TextMeta({ label, value }: Record<string, any>) {
   );
 }
 
-function NumericMeta({ label, value, suffix = "", format }: Record<string, any>) {
+function NumericMeta({ label, value, suffix = "", format }: NumericMetaProps) {
   return (
     <div className="aircraft-preview-meta-row">
       <dt className="aircraft-preview-meta-row__label">{label}</dt>

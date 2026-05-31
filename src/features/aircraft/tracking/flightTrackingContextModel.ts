@@ -2,7 +2,23 @@ import { toFiniteNumber } from "../../../utils/math";
 
 export const DEFAULT_TRACKING_CONTEXT_COORDINATE_PRECISION = 1;
 
-type FlightTrackingContextRecord = Record<string, any>;
+type FlightPositionInput = {
+  lat?: unknown;
+  lon?: unknown;
+};
+
+type FlightTrackingContextPositionOptions = FlightPositionInput & {
+  precision?: unknown;
+};
+
+type FlightTrackingLoadingOverlayOptions = {
+  hasActiveFlight?: boolean;
+  trackedAircraftSettled?: boolean;
+  nearbyAircraftSettled?: boolean;
+  nearbyAirportsSettled?: boolean;
+  trackedLoadingOverlayActive?: boolean;
+  nearbyLoadingOverlayActive?: boolean;
+};
 
 export function normalizeLatitude(value: unknown) {
   if (value == null || value === "") return null;
@@ -20,7 +36,7 @@ export function normalizeLongitude(value: unknown) {
     : null;
 }
 
-export function hasFiniteFlightPosition({ lat, lon }: FlightTrackingContextRecord = {}) {
+export function hasFiniteFlightPosition({ lat, lon }: FlightPositionInput = {}) {
   return normalizeLatitude(lat) != null && normalizeLongitude(lon) != null;
 }
 
@@ -28,7 +44,7 @@ export function getFlightTrackingContextPosition({
   lat,
   lon,
   precision = DEFAULT_TRACKING_CONTEXT_COORDINATE_PRECISION,
-}: FlightTrackingContextRecord = {}) {
+}: FlightTrackingContextPositionOptions = {}) {
   const normalizedLat = normalizeLatitude(lat);
   const normalizedLon = normalizeLongitude(lon);
   if (normalizedLat == null || normalizedLon == null) return null;
@@ -43,7 +59,7 @@ export function shouldShowFlightTrackingLoadingOverlay({
   hasActiveFlight = false,
   trackedAircraftSettled = false,
   trackedLoadingOverlayActive = false,
-}: FlightTrackingContextRecord = {}) {
+}: FlightTrackingLoadingOverlayOptions = {}) {
   return Boolean(
     hasActiveFlight && (!trackedAircraftSettled || trackedLoadingOverlayActive),
   );

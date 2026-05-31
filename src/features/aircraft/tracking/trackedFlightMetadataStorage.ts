@@ -5,7 +5,41 @@ export const TRACKED_FLIGHT_METADATA_TTL_MS = 6 * 60 * 60 * 1000;
 const isBrowser = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 
-type TrackedFlightMetadataRecord = Record<string, any>;
+type FlightRouteMetadata = Record<string, unknown>;
+
+type TrackedFlightMetadata = {
+  type?: string;
+  category?: string;
+  origin?: string;
+  destination?: string;
+  route?: string;
+  flightRoute?: FlightRouteMetadata | null;
+  updatedAt?: number;
+};
+
+type TrackedFlightMetadataStore = Record<string, TrackedFlightMetadata>;
+
+type TrackedFlightMetadataAircraft = TrackedFlightMetadata & {
+  callsign?: string;
+  [key: string]: unknown;
+};
+
+type TrackedFlightMetadataOptions = {
+  aircraft?: TrackedFlightMetadataAircraft | null;
+  now?: number;
+  ttlMs?: number;
+};
+
+type TrackedFlightMetadataReadOptions = {
+  now?: number;
+  ttlMs?: number;
+};
+
+type TrackedFlightMetadataMergeOptions<T extends TrackedFlightMetadataAircraft | null> = {
+  aircraft?: T;
+  metadata?: TrackedFlightMetadata | null;
+};
+
 type TrackedFlightMetadataStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 function normalizeCallsign(callsign: unknown) {
@@ -20,17 +54,17 @@ function getLocalStorage(): TrackedFlightMetadataStorage | null {
   return isBrowser() ? window.localStorage : null;
 }
 
-function readStore(): TrackedFlightMetadataRecord {
+function readStore(): TrackedFlightMetadataStore {
   if (!isBrowser()) return {};
   try {
     const raw = getLocalStorage()?.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    return raw ? JSON.parse(raw) as TrackedFlightMetadataStore : {};
   } catch {
     return {};
   }
 }
 
-function writeStore(store: TrackedFlightMetadataRecord) {
+function writeStore(store: TrackedFlightMetadataStore) {
   if (!isBrowser()) return;
   try {
     getLocalStorage()?.setItem(STORAGE_KEY, JSON.stringify(store));
@@ -40,10 +74,10 @@ function writeStore(store: TrackedFlightMetadataRecord) {
 }
 
 function pruneStore(
-  store: TrackedFlightMetadataRecord,
-  { now = Date.now(), ttlMs = TRACKED_FLIGHT_METADATA_TTL_MS }: TrackedFlightMetadataRecord = {},
+  store: TrackedFlightMetadataStore,
+  { now = Date.now(), ttlMs = TRACKED_FLIGHT_METADATA_TTL_MS }: TrackedFlightMetadataReadOptions = {},
 ) {
-  const out: TrackedFlightMetadataRecord = {};
+  const out: TrackedFlightMetadataStore = {};
   const ttl = Math.max(1, Number(ttlMs) || TRACKED_FLIGHT_METADATA_TTL_MS);
   for (const [key, entry] of Object.entries(store || {})) {
     if (
@@ -59,10 +93,10 @@ function pruneStore(
 
 function sanitizeFlightRoute(route: unknown) {
   if (!route || typeof route !== "object" || Array.isArray(route)) return null;
-  return route;
+  return route as FlightRouteMetadata;
 }
 
-function extractMetadata(aircraft: TrackedFlightMetadataRecord = {}) {
+function extractMetadata(aircraft: TrackedFlightMetadataAircraft = {}) {
   const metadata = {
     type: clean(aircraft.type),
     category: clean(aircraft.category),
@@ -81,7 +115,7 @@ export function writeTrackedFlightMetadata(
     aircraft = null,
     now = Date.now(),
     ttlMs = TRACKED_FLIGHT_METADATA_TTL_MS,
-  }: TrackedFlightMetadataRecord = {},
+  }: TrackedFlightMetadataOptions = {},
 ) {
   const normalized = normalizeCallsign(callsign || aircraft?.callsign);
   const metadata = extractMetadata(aircraft);
@@ -106,7 +140,7 @@ export function readTrackedFlightMetadata(
   {
     now = Date.now(),
     ttlMs = TRACKED_FLIGHT_METADATA_TTL_MS,
-  }: TrackedFlightMetadataRecord = {},
+  }: TrackedFlightMetadataReadOptions = {},
 ) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return null;
@@ -116,10 +150,10 @@ export function readTrackedFlightMetadata(
   return entry;
 }
 
-export function mergeTrackedFlightMetadata({
+export function mergeTrackedFlightMetadata<T extends TrackedFlightMetadataAircraft | null>({
   aircraft = null,
   metadata = null,
-}: TrackedFlightMetadataRecord = {}) {
+}: TrackedFlightMetadataMergeOptions<T> = {}): T {
   if (!aircraft || !metadata) return aircraft;
   return {
     ...aircraft,
@@ -129,5 +163,5 @@ export function mergeTrackedFlightMetadata({
     destination: clean(aircraft.destination) || metadata.destination || "",
     route: clean(aircraft.route) || metadata.route || "",
     flightRoute: aircraft.flightRoute || metadata.flightRoute || null,
-  };
+  } as T;
 }

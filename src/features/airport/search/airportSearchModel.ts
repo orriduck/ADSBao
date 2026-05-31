@@ -1,26 +1,89 @@
-type AirportSearchRecord = Record<string, any>;
+type AirportSearchAirport = {
+  icao?: string;
+  iata?: string;
+  code?: string;
+  name?: string;
+  city?: string;
+  country?: string;
+  lat?: unknown;
+  lon?: unknown;
+  type?: string;
+  type_label?: string;
+  [key: string]: unknown;
+};
+
+type NearbyAirportPromptItem = {
+  type: "nearby-prompt";
+  id: typeof NEARBY_DISCOVERY_ITEM_ID;
+  status: string;
+  errorMessage: string;
+};
+
+type NearbyAirportEmptyItem = {
+  type: "nearby-empty";
+  id: "nearby-airports-empty";
+  status: string;
+};
+
+type NearbyAirportDisplayItem =
+  | { type: "airport"; airport: AirportSearchAirport }
+  | NearbyAirportPromptItem
+  | NearbyAirportEmptyItem;
+
+type AirportDiscoveryTopic = {
+  id?: string;
+  airports?: readonly AirportSearchAirport[];
+  [key: string]: unknown;
+};
+
+type NearbyAirportDisplayOptions = {
+  airports?: AirportSearchAirport[];
+  status?: string;
+  errorMessage?: string;
+};
+
+type AirportDiscoveryOptions = {
+  topics?: readonly AirportDiscoveryTopic[];
+};
+
+type AirportSearchMergeOptions = {
+  query?: string;
+  staticAirports?: AirportSearchAirport[];
+  results?: AirportSearchAirport[];
+};
+
+type AirportSubmitOptions = {
+  query?: string;
+  rows?: AirportSearchAirport[];
+  staticAirports?: AirportSearchAirport[];
+};
+
+type AirportResultCountOptions = {
+  loading?: boolean;
+  rowCount: number;
+};
 
 const normalizeAirportQuery = (value: unknown) =>
   String(value || "")
     .trim()
     .toUpperCase();
 
-const airportSearchText = (airport: AirportSearchRecord) =>
+const airportSearchText = (airport: AirportSearchAirport) =>
   [airport?.icao, airport?.iata, airport?.name, airport?.city, airport?.country]
     .join(" ")
     .toUpperCase();
 
-const airportKey = (airport: AirportSearchRecord) =>
+const airportKey = (airport: AirportSearchAirport) =>
   normalizeAirportQuery(airport?.icao || airport?.code || airport?.name);
 
 export const NEARBY_DISCOVERY_ITEM_ID = "nearby-airports-prompt";
 
-const airportDisplayItem = (airport: AirportSearchRecord) => ({
+const airportDisplayItem = (airport: AirportSearchAirport) => ({
   type: "airport",
   airport,
-});
+}) satisfies NearbyAirportDisplayItem;
 
-const hasAirportIdentity = (airport: AirportSearchRecord) =>
+const hasAirportIdentity = (airport: AirportSearchAirport) =>
   Boolean(
     normalizeAirportQuery(
       airport?.icao || airport?.code || airport?.iata || airport?.name,
@@ -31,7 +94,7 @@ export function getNearbyAirportDisplayItems({
   airports = [],
   status = "idle",
   errorMessage = "",
-}: AirportSearchRecord = {}): AirportSearchRecord[] {
+}: NearbyAirportDisplayOptions = {}): NearbyAirportDisplayItem[] {
   if (status !== "resolved") {
     return [
       {
@@ -55,7 +118,7 @@ export function getNearbyAirportDisplayItems({
   ];
 }
 
-export function getAirportDiscoveryTopics({ topics = [] }: AirportSearchRecord = {}) {
+export function getAirportDiscoveryTopics({ topics = [] }: AirportDiscoveryOptions = {}) {
   return topics
     .map((topic) => ({
       ...topic,
@@ -68,7 +131,7 @@ export function mergeAirportSearchRows({
   query = "",
   staticAirports = [],
   results = [],
-}: AirportSearchRecord = {}): AirportSearchRecord[] {
+}: AirportSearchMergeOptions = {}): AirportSearchAirport[] {
   const normalizedQuery = normalizeAirportQuery(query);
   if (!normalizedQuery) return [];
 
@@ -85,7 +148,7 @@ export function mergeAirportSearchRows({
   });
 }
 
-export function createAirportSelection(airport: AirportSearchRecord = {}) {
+export function createAirportSelection(airport: AirportSearchAirport = {}) {
   return {
     code: airport.icao || airport.code,
     icao: airport.icao || airport.code,
@@ -104,7 +167,7 @@ export function resolveSubmittedAirport({
   query = "",
   rows = [],
   staticAirports = [],
-} = {}) {
+}: AirportSubmitOptions = {}) {
   const normalizedQuery = normalizeAirportQuery(query);
   if (!normalizedQuery) return null;
 
@@ -124,5 +187,5 @@ export function resolveSubmittedAirport({
   );
 }
 
-export const getAirportResultCountLabel = ({ loading, rowCount }) =>
+export const getAirportResultCountLabel = ({ loading, rowCount }: AirportResultCountOptions) =>
   loading ? "loading" : `${rowCount} result${rowCount === 1 ? "" : "s"}`;

@@ -15,9 +15,31 @@ export const COMMUNITY_FEEDBACK_REASONS = Object.freeze({
   correction: "correction",
 });
 
-type CommunityFeedbackRecord = Record<string, any>;
+type FeedbackAirportInput = {
+  icao?: unknown;
+  iata?: unknown;
+  name?: unknown;
+  municipality?: unknown;
+  city?: unknown;
+  country?: unknown;
+  lat?: unknown;
+  lon?: unknown;
+};
 
-function airportFields(airport: CommunityFeedbackRecord | null | undefined) {
+type CommunityFeedbackRouteOptions = {
+  callsign?: unknown;
+  origin?: FeedbackAirportInput | null;
+  destination?: FeedbackAirportInput | null;
+  createdAt?: string | null;
+  expiresAt?: string | null;
+  feedbackReason?: string;
+};
+
+type CommunityFeedbackRouteCandidate = {
+  source?: unknown;
+};
+
+function airportFields(airport: FeedbackAirportInput | null | undefined) {
   if (!airport || typeof airport !== "object") return null;
   const icao = sanitizeAirportCode(airport.icao);
   if (!icao) return null;
@@ -39,7 +61,7 @@ export function buildCommunityFeedbackRoute({
   createdAt,
   expiresAt,
   feedbackReason = COMMUNITY_FEEDBACK_REASONS.missingRoute,
-}: CommunityFeedbackRecord = {}) {
+}: CommunityFeedbackRouteOptions = {}) {
   const normalizedCallsign = normalizeRouteCallsign(callsign);
   if (!normalizedCallsign) return null;
 
@@ -80,7 +102,7 @@ export function buildCommunityFeedbackRoute({
   };
 }
 
-export function isCommunityFeedbackRoute(route) {
+export function isCommunityFeedbackRoute(route: CommunityFeedbackRouteCandidate | null | undefined) {
   return Boolean(route && route.source === COMMUNITY_FEEDBACK_SOURCE);
 }
 

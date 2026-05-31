@@ -27,23 +27,43 @@ const MAX_POINTS_PER_FLIGHT = 2000;
 const isBrowser = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 
-type TrackedTraceRecord = Record<string, any>;
+type TrackedTracePoint = {
+  timestampMs: number;
+  lat: number;
+  lon: number;
+  altitude: number | null;
+  onGround: boolean;
+  velocity: number | null;
+  track: number | null;
+  baroRate: number | null;
+};
+
+type TrackedTraceEntry = {
+  points?: TrackedTracePoint[];
+  updatedAt?: number;
+};
+
+type TrackedTraceStore = Record<string, TrackedTraceEntry>;
+
+type TrackedTraceClockOptions = {
+  now?: number;
+};
 
 function normalizeCallsign(callsign: unknown) {
   return String(callsign || "").trim().toUpperCase();
 }
 
-function readStore(): TrackedTraceRecord {
+function readStore(): TrackedTraceStore {
   if (!isBrowser()) return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    return raw ? JSON.parse(raw) as TrackedTraceStore : {};
   } catch {
     return {};
   }
 }
 
-function writeStore(store: TrackedTraceRecord) {
+function writeStore(store: TrackedTraceStore) {
   if (!isBrowser()) return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
@@ -52,8 +72,8 @@ function writeStore(store: TrackedTraceRecord) {
   }
 }
 
-function pruneStore(store: TrackedTraceRecord, { now = Date.now() }: TrackedTraceRecord = {}) {
-  const out: TrackedTraceRecord = {};
+function pruneStore(store: TrackedTraceStore, { now = Date.now() }: TrackedTraceClockOptions = {}) {
+  const out: TrackedTraceStore = {};
   for (const [key, entry] of Object.entries(store || {})) {
     if (
       entry &&
@@ -68,7 +88,7 @@ function pruneStore(store: TrackedTraceRecord, { now = Date.now() }: TrackedTrac
 
 function sanitizePoints(points: unknown) {
   if (!Array.isArray(points)) return [];
-  const out = [];
+  const out: TrackedTracePoint[] = [];
   for (const point of points) {
     const lat = Number(point?.lat);
     const lon = Number(point?.lon);
@@ -99,7 +119,7 @@ function sanitizePoints(points: unknown) {
   return out;
 }
 
-export function readTrackedTrace(callsign: unknown, { now = Date.now() }: TrackedTraceRecord = {}) {
+export function readTrackedTrace(callsign: unknown, { now = Date.now() }: TrackedTraceClockOptions = {}) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return [];
   const store = pruneStore(readStore(), { now });
@@ -107,7 +127,7 @@ export function readTrackedTrace(callsign: unknown, { now = Date.now() }: Tracke
   return Array.isArray(entry?.points) ? sanitizePoints(entry.points) : [];
 }
 
-export function writeTrackedTrace(callsign: unknown, points: unknown, { now = Date.now() }: TrackedTraceRecord = {}) {
+export function writeTrackedTrace(callsign: unknown, points: unknown, { now = Date.now() }: TrackedTraceClockOptions = {}) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return;
   const sanitized = sanitizePoints(points);
@@ -121,7 +141,7 @@ export function writeTrackedTrace(callsign: unknown, points: unknown, { now = Da
   writeStore(store);
 }
 
-export function clearTrackedTrace(callsign) {
+export function clearTrackedTrace(callsign: unknown) {
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !isBrowser()) return;
   const store = readStore();

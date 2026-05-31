@@ -1,9 +1,24 @@
-type GreatCircleRecord = Record<string, any>;
+type GeoPointInput = {
+  lat?: unknown;
+  lon?: unknown;
+};
+
+type CartesianPoint = {
+  x: number;
+  y: number;
+  z: number;
+};
+
+type GreatCirclePathOptions = {
+  from?: GeoPointInput | null;
+  to?: GeoPointInput | null;
+  segments?: unknown;
+};
 
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
 const toDegrees = (radians: number) => (radians * 180) / Math.PI;
 
-function toPoint(value: GreatCircleRecord | null | undefined) {
+function toPoint(value: GeoPointInput | null | undefined) {
   if (value?.lat == null || value?.lon == null) return null;
   const lat = Number(value?.lat);
   const lon = Number(value?.lon);
@@ -11,7 +26,7 @@ function toPoint(value: GreatCircleRecord | null | undefined) {
   return { lat, lon };
 }
 
-function toCartesian({ lat, lon }: GreatCircleRecord) {
+function toCartesian({ lat, lon }: { lat: number; lon: number }) {
   const phi = toRadians(lat);
   const lambda = toRadians(lon);
   const cosPhi = Math.cos(phi);
@@ -22,12 +37,12 @@ function toCartesian({ lat, lon }: GreatCircleRecord) {
   };
 }
 
-function fromCartesian({ x, y, z }: GreatCircleRecord) {
+function fromCartesian({ x, y, z }: CartesianPoint) {
   const hyp = Math.hypot(x, y);
   return [toDegrees(Math.atan2(z, hyp)), toDegrees(Math.atan2(y, x))];
 }
 
-export function buildGreatCirclePath({ from, to, segments = 32 }: GreatCircleRecord = {}) {
+export function buildGreatCirclePath({ from, to, segments = 32 }: GreatCirclePathOptions = {}) {
   const start = toPoint(from);
   const end = toPoint(to);
   if (!start || !end) return [];

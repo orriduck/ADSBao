@@ -1,6 +1,87 @@
 import { parseAdsbPositionTime } from "../../../utils/aircraftMotion";
 
-type AircraftPositionsModelRecord = Record<string, any>;
+type AircraftPositionQuality = {
+  sourceUpdatedAt?: unknown;
+  [key: string]: unknown;
+};
+
+type RawAdsbAircraft = {
+  hex?: string;
+  r?: string;
+  flight?: string;
+  lat?: unknown;
+  lon?: unknown;
+  alt_baro?: unknown;
+  alt_geom?: unknown;
+  baro_rate?: unknown;
+  geom_rate?: unknown;
+  nav_altitude_mcp?: unknown;
+  gnd?: boolean;
+  gs?: unknown;
+  track?: unknown;
+  t?: string;
+  category?: string;
+  positionTime?: unknown;
+  positionQuality?: AircraftPositionQuality | null;
+  flightAwareUrl?: string;
+  origin?: string;
+  destination?: string;
+  route?: string;
+  [key: string]: unknown;
+};
+
+type NormalizedAircraftPosition = {
+  icao24: string;
+  registration: string;
+  callsign: string;
+  lat: unknown;
+  lon: unknown;
+  altitude: unknown;
+  baroRate: unknown;
+  geomRate: unknown;
+  navAltitudeMcp: unknown;
+  onGround: boolean;
+  velocity: unknown;
+  track: unknown;
+  type: string;
+  category: string;
+  positionTime: unknown;
+  receiveTime: number;
+  positionQuality: AircraftPositionQuality | null;
+  flightAwareUrl: string;
+  origin: string;
+  destination: string;
+  route: string;
+};
+
+type AircraftSnapshotPayload = {
+  ac?: RawAdsbAircraft[];
+  now?: unknown;
+};
+
+type NormalizeAircraftOptions = {
+  responseNow?: unknown;
+  receiveTime?: number;
+};
+
+type NormalizeSnapshotOptions = {
+  json?: AircraftSnapshotPayload | null;
+  receiveTime?: number;
+};
+
+type AircraftFetchError = {
+  status?: unknown;
+  statusCode?: unknown;
+  name?: unknown;
+  message?: unknown;
+};
+
+type PositionTimestampCandidate = {
+  positionTime?: unknown;
+  receiveTime?: unknown;
+  positionQuality?: AircraftPositionQuality | null;
+  [key: string]: unknown;
+};
 
 function parseTimestampMs(value: unknown) {
   if (value == null || value === "") return null;
@@ -12,7 +93,7 @@ function parseTimestampMs(value: unknown) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function resolvePositionTimestampMs(aircraft: AircraftPositionsModelRecord | null | undefined) {
+function resolvePositionTimestampMs(aircraft: PositionTimestampCandidate | null | undefined) {
   const sourceUpdatedAt = parseTimestampMs(
     aircraft?.positionQuality?.sourceUpdatedAt,
   );
@@ -21,9 +102,9 @@ function resolvePositionTimestampMs(aircraft: AircraftPositionsModelRecord | nul
 }
 
 export function normalizeAdsbAircraft(
-  aircraft: AircraftPositionsModelRecord,
-  { responseNow, receiveTime = Date.now() }: AircraftPositionsModelRecord = {},
-) {
+  aircraft: RawAdsbAircraft,
+  { responseNow, receiveTime = Date.now() }: NormalizeAircraftOptions = {},
+): NormalizedAircraftPosition {
   return {
     icao24: aircraft.hex || "",
     registration: typeof aircraft.r === "string" ? aircraft.r.trim().toUpperCase() : "",
@@ -55,7 +136,7 @@ export function normalizeAdsbAircraft(
 export function normalizeAircraftSnapshot({
   json,
   receiveTime = Date.now(),
-}: AircraftPositionsModelRecord) {
+}: NormalizeSnapshotOptions) {
   return (json?.ac || [])
     .filter((aircraft) => aircraft.lat != null && aircraft.lon != null)
     .filter((aircraft) => aircraft.hex)
@@ -67,7 +148,9 @@ export function normalizeAircraftSnapshot({
     );
 }
 
-export function resolveLastSuccessfulPositionDate(aircraft: AircraftPositionsModelRecord | AircraftPositionsModelRecord[]) {
+export function resolveLastSuccessfulPositionDate(
+  aircraft: PositionTimestampCandidate | PositionTimestampCandidate[],
+) {
   const entries = Array.isArray(aircraft) ? aircraft : [aircraft];
   const latest = entries.reduce((max, item) => {
     const timestamp = resolvePositionTimestampMs(item);
@@ -77,7 +160,7 @@ export function resolveLastSuccessfulPositionDate(aircraft: AircraftPositionsMod
   return latest > 0 ? new Date(latest) : null;
 }
 
-export function isHttp4xxOr5xx(error: any) {
+export function isHttp4xxOr5xx(error: AircraftFetchError) {
   const status = Number(error?.status ?? error?.statusCode);
   if (status >= 400 && status < 600) return true;
   const match = String(error?.message || "").match(/\bHTTP\s+(\d{3})\b/i);
@@ -86,9 +169,9 @@ export function isHttp4xxOr5xx(error: any) {
   return parsed >= 400 && parsed < 600;
 }
 
-export function describeAircraftFetchError(error: any) {
+export function describeAircraftFetchError(error: AircraftFetchError) {
   const isTimeout =
-    error.name === "TimeoutError" ||
-    /timed out|signal timed out/i.test(error.message);
-  return isTimeout ? "timeout" : error.message || "unknown";
+    error?.name === "TimeoutError" ||
+    /timed out|signal timed out/i.test(String(error?.message || ""));
+  return isTimeout ? "timeout" : String(error?.message || "unknown");
 }

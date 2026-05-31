@@ -8,7 +8,44 @@ const MAP_LABEL_LOCALES = Object.freeze({
   "zh-CN": "zh-Hans",
 });
 
-type MapTileLanguageRecord = Record<string, any>;
+type MapLibreLayer = {
+  type?: string;
+  layout?: {
+    visibility?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+};
+
+type MapLibreSource = {
+  tiles?: string[];
+  [key: string]: unknown;
+};
+
+type MapLibreStyle = {
+  layers?: MapLibreLayer[];
+  sources?: Record<string, MapLibreSource>;
+  sprite?: unknown;
+  glyphs?: unknown;
+  [key: string]: unknown;
+};
+
+type TileJson = {
+  tiles?: string[];
+  minzoom?: number;
+  maxzoom?: number;
+  attribution?: string;
+};
+
+type LocalizedMapStyleOptions = {
+  locale?: string;
+  showLabels?: boolean;
+};
+
+type ProxiedMapStyleOptions = {
+  tileJson?: TileJson;
+  proxyOrigin?: string;
+};
 
 export function normalizeMapLabelLocale(locale: string) {
   return MAP_LABEL_LOCALES[locale] || MAP_LABEL_LOCALES.en;
@@ -43,8 +80,8 @@ export function getMapLibreLabelTextField(locale: string) {
 }
 
 export function buildLocalizedMapLibreStyle(
-  style: MapTileLanguageRecord,
-  { locale = "en", showLabels = true } = {},
+  style: MapLibreStyle,
+  { locale = "en", showLabels = true }: LocalizedMapStyleOptions = {},
 ) {
   if (!style || !Array.isArray(style.layers)) return style;
 
@@ -54,7 +91,7 @@ export function buildLocalizedMapLibreStyle(
     layers: style.layers.map((layer) => {
       if (!isTextSymbolLayer(layer)) return layer;
 
-      const layout = {
+      const layout: NonNullable<MapLibreLayer["layout"]> = {
         ...(layer.layout || {}),
         "text-field": textField,
       };
@@ -76,8 +113,8 @@ export function buildLocalizedMapLibreStyle(
 }
 
 export function buildProxiedMapLibreStyle(
-  style: MapTileLanguageRecord,
-  { tileJson }: MapTileLanguageRecord = {},
+  style: MapLibreStyle,
+  { tileJson }: ProxiedMapStyleOptions = {},
 ) {
   if (!style || typeof style !== "object") return style;
 
@@ -100,7 +137,7 @@ export function buildProxiedMapLibreStyle(
   };
 }
 
-function isTextSymbolLayer(layer) {
+function isTextSymbolLayer(layer: MapLibreLayer) {
   return (
     layer?.type === "symbol" &&
     layer.layout &&

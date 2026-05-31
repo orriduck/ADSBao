@@ -1,4 +1,21 @@
-function pushFiniteLatLon(points: any[], lat: unknown, lon: unknown) {
+type LatLonTuple = [number, number];
+
+type TraceFitPoint = {
+  lat?: unknown;
+  lon?: unknown;
+};
+
+type TraceFitTrace = {
+  tracePoints?: TraceFitPoint[];
+};
+
+type TraceFitOptions = {
+  traces?: TraceFitTrace[];
+  routePath?: Array<TraceFitPoint | [unknown, unknown]>;
+  routeEndpoints?: unknown;
+};
+
+function pushFiniteLatLon(points: LatLonTuple[], lat: unknown, lon: unknown) {
   const latNum = Number(lat);
   const lonNum = Number(lon);
   if (Number.isFinite(latNum) && Number.isFinite(lonNum)) {
@@ -10,8 +27,8 @@ export function buildTraceFitPoints({
   traces = [],
   routePath = [],
   routeEndpoints = [],
-}: Record<string, any> = {}) {
-  const points = [];
+}: TraceFitOptions = {}) {
+  const points: LatLonTuple[] = [];
   const endpointPoints = Array.isArray(routeEndpoints) ? routeEndpoints : [];
 
   for (const trace of traces || []) {

@@ -55,7 +55,10 @@ export const AIRCRAFT_ICON_NAMES = Object.freeze([
 
 const ICON_NAME_SET = new Set(AIRCRAFT_ICON_NAMES);
 
-type AircraftIconRecord = Record<string, any>;
+type AircraftIconAircraft = {
+  type?: unknown;
+  category?: unknown;
+};
 
 export function isKnownAircraftIconName(name: unknown) {
   return typeof name === "string" && ICON_NAME_SET.has(name);
@@ -176,7 +179,7 @@ const CATEGORY_SIZE_SCALE = {
  * @param {{ category?: string }} aircraft
  * @returns {number}
  */
-export function resolveAircraftSizeScale(aircraft: AircraftIconRecord = {}) {
+export function resolveAircraftSizeScale(aircraft: AircraftIconAircraft = {}) {
   const category = normalizeKey(aircraft.category);
   return CATEGORY_SIZE_SCALE[category] ?? AIRCRAFT_BASELINE_SCALE;
 }
@@ -192,7 +195,7 @@ export function resolveAircraftSizeScale(aircraft: AircraftIconRecord = {}) {
  * @param {{ type?: string, category?: string }} aircraft
  * @returns {{ src: string, name: string, source: 'type' | 'category' } | null}
  */
-export function resolveAircraftIcon(aircraft: AircraftIconRecord = {}) {
+export function resolveAircraftIcon(aircraft: AircraftIconAircraft = {}) {
   const type = normalizeKey(aircraft.type);
   if (type) {
     const directName = type.toLowerCase();

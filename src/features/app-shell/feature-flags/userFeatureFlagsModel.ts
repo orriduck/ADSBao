@@ -15,7 +15,20 @@ const ENVIRONMENT_ALIASES = Object.freeze({
   production: FEATURE_FLAG_ENVIRONMENTS.PRODUCTION,
 });
 
-type FeatureFlagRecord = Record<string, any>;
+type ClerkEmailAddress = {
+  emailAddress?: unknown;
+};
+
+type ClerkFeatureFlagUser = {
+  id?: unknown;
+  primaryEmailAddress?: ClerkEmailAddress | null;
+  publicMetadata?: unknown;
+};
+
+type UserFeatureFlagAccessOptions = {
+  user?: ClerkFeatureFlagUser | null;
+  flags?: unknown;
+};
 
 export function normalizeUserEmail(email: unknown) {
   return String(email || "").trim().toLowerCase();
@@ -37,7 +50,7 @@ export function resolveFeatureFlagEnvironment(env: Record<string, string | undef
   );
 }
 
-export function getClerkUserPrimaryEmail(user: FeatureFlagRecord | null | undefined) {
+export function getClerkUserPrimaryEmail(user: ClerkFeatureFlagUser | null | undefined) {
   return normalizeUserEmail(user?.primaryEmailAddress?.emailAddress);
 }
 
@@ -56,7 +69,7 @@ export function isFeatureFlagEnabled(flags: unknown, flagKey: string) {
 export function buildUserFeatureFlagAccessEntity({
   user,
   flags = {},
-}: FeatureFlagRecord = {}) {
+}: UserFeatureFlagAccessOptions = {}) {
   const email = getClerkUserPrimaryEmail(user);
   if (!user || !email) return undefined;
 

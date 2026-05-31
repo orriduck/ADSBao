@@ -60,7 +60,23 @@ const CATEGORY_LABELS = Object.freeze({
 const CATEGORY_ORDER = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "OTHER"];
 const OTHER_LABEL = { key: "filters.categoryOther", default: "Other" };
 
-type AircraftFilterRecord = Record<string, any>;
+type AircraftFilterRecord = {
+  type?: unknown;
+  category?: unknown;
+  flightRouteLabel?: unknown;
+  movement?: unknown;
+  trafficIntent?: unknown;
+  onGround?: boolean;
+  altitude?: unknown;
+  [key: string]: unknown;
+};
+
+type AircraftFilterOptions = {
+  trafficFilter?: string;
+  typeFilter?: string | string[];
+  altitudeLevel?: string;
+  movementFilter?: string;
+};
 
 export function aircraftTypeLabel(aircraft: AircraftFilterRecord = {}) {
   return String(aircraft.type || aircraft.category || "").trim();
@@ -162,13 +178,13 @@ export function matchesAltitudeLevel(aircraft: AircraftFilterRecord, altitudeLev
 }
 
 export function aircraftMatchesFilters(
-  aircraft,
+  aircraft: AircraftFilterRecord,
   {
     trafficFilter = "all",
     typeFilter = "all",
     altitudeLevel = "all",
     movementFilter = "all",
-  } = {},
+  }: AircraftFilterOptions = {},
 ) {
   return (
     matchesTrafficFilter(aircraft, trafficFilter) &&

@@ -1,13 +1,67 @@
 export const AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS = 500;
 
-type LoadingOverlayRecord = Record<string, any>;
+type LoadingSettledOptions = {
+  aircraftPositionsSettled?: boolean;
+  metarSettled?: boolean;
+  nearbyAirportsSettled?: boolean;
+  proceduresSettled?: boolean;
+  routeSettled?: boolean;
+  aircraftLogoSettled?: boolean;
+};
+
+type AircraftLoadingOverlayVisibilityOptions = {
+  initialLoading?: boolean;
+  visibilityRefreshLoading?: boolean;
+};
+
+type AircraftLoadingOverlayModeOptions = {
+  mapReady?: boolean;
+  feedLoading?: boolean;
+};
+
+type AircraftLoadingOverlayStateOptions = AircraftLoadingOverlayModeOptions & {
+  variant?: "airport" | "flight";
+  trackedAircraftLoading?: boolean;
+  trafficLoading?: boolean;
+  weatherLoading?: boolean;
+  nearbyAirportsLoading?: boolean;
+  proceduresLoading?: boolean;
+  routeLoadingCount?: number;
+  traceLoading?: boolean;
+};
+
+type MapLoadingPresentationOptions = {
+  active?: boolean;
+  mode?: string;
+  reason?: string;
+};
+
+type VisibilityRefreshOverlayOptions = {
+  wasActive?: boolean;
+  hiddenSince?: number;
+  now?: number;
+  minHiddenMs?: number;
+};
+
+type LoadingOverlayExitDelayOptions = {
+  shownAt?: number;
+  now?: number;
+  minVisibleMs?: number;
+};
+
+type OverlayPaintSchedulerOptions = {
+  requestAnimationFrame?: typeof globalThis.requestAnimationFrame;
+  cancelAnimationFrame?: typeof globalThis.cancelAnimationFrame;
+  setTimeout?: typeof globalThis.setTimeout;
+  clearTimeout?: typeof globalThis.clearTimeout;
+};
 
 export function areCriticalLoadingRequestsSettled({
   aircraftPositionsSettled = false,
   metarSettled = false,
   nearbyAirportsSettled = false,
   proceduresSettled = false,
-}: LoadingOverlayRecord = {}) {
+}: LoadingSettledOptions = {}) {
   return Boolean(
     aircraftPositionsSettled &&
       metarSettled &&
@@ -19,14 +73,14 @@ export function areCriticalLoadingRequestsSettled({
 export function shouldShowAircraftLoadingOverlay({
   initialLoading = false,
   visibilityRefreshLoading = false,
-}: LoadingOverlayRecord = {}) {
+}: AircraftLoadingOverlayVisibilityOptions = {}) {
   return Boolean(initialLoading || visibilityRefreshLoading);
 }
 
 export function resolveAircraftLoadingOverlayMode({
   mapReady = false,
   feedLoading = false,
-}: LoadingOverlayRecord = {}) {
+}: AircraftLoadingOverlayModeOptions = {}) {
   if (!mapReady) return "map";
   if (feedLoading) return "feed";
   return "idle";
@@ -43,7 +97,7 @@ export function resolveAircraftLoadingOverlayState({
   proceduresLoading = false,
   routeLoadingCount = 0,
   traceLoading = false,
-}: LoadingOverlayRecord = {}) {
+}: AircraftLoadingOverlayStateOptions = {}) {
   if (!mapReady) return { active: true, mode: "map", reason: "map" };
 
   const isFlight = variant === "flight";
@@ -67,7 +121,7 @@ export function resolveMapLoadingPresentation({
   active = false,
   mode = "idle",
   reason = "",
-}: LoadingOverlayRecord = {}) {
+}: MapLoadingPresentationOptions = {}) {
   const overlayActive = Boolean(active && mode === "map");
   return {
     overlayActive,
@@ -80,7 +134,7 @@ export function shouldTriggerVisibilityRefreshOverlay({
   hiddenSince = 0,
   now = Date.now(),
   minHiddenMs = 0,
-}: LoadingOverlayRecord = {}) {
+}: VisibilityRefreshOverlayOptions = {}) {
   const hiddenDuration = Math.max(0, Number(now) - Number(hiddenSince));
   return Boolean(wasActive && hiddenSince > 0 && hiddenDuration >= minHiddenMs);
 }
@@ -89,7 +143,7 @@ export function getLoadingOverlayExitDelay({
   shownAt = 0,
   now = Date.now(),
   minVisibleMs = AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
-}: LoadingOverlayRecord = {}) {
+}: LoadingOverlayExitDelayOptions = {}) {
   return Math.max(0, minVisibleMs - Math.max(0, now - shownAt));
 }
 
@@ -100,7 +154,7 @@ export function scheduleAfterOverlayPaint(
     cancelAnimationFrame = globalThis.cancelAnimationFrame?.bind(globalThis),
     setTimeout = globalThis.setTimeout?.bind(globalThis),
     clearTimeout = globalThis.clearTimeout?.bind(globalThis),
-  }: LoadingOverlayRecord = {},
+  }: OverlayPaintSchedulerOptions = {},
 ) {
   if (
     typeof requestAnimationFrame === "function" &&

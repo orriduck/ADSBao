@@ -19,8 +19,11 @@ type FlightRouteSchedulerOptions = {
   clearSchedule?: (handle: any) => void;
 };
 
-function callsignSetForRouteContext(keys, routeContext) {
-  const callsigns = new Set();
+function callsignSetForRouteContext(
+  keys: Set<string>,
+  routeContext: Record<string, unknown>,
+) {
+  const callsigns = new Set<string>();
   for (const key of keys) {
     const callsign = String(key).split("|")[0] || "";
     if (buildRouteCacheKey(callsign, routeContext) === key) {

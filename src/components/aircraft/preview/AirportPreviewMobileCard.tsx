@@ -1,17 +1,41 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import NumberFlow from "@number-flow/react";
 import { countryName, flagEmoji } from "@/utils/flag";
 import { airportCityName } from "@/utils/airport";
 import { toFiniteNumber } from "@/utils/math";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
+type NumberFlowFormat = ComponentProps<typeof NumberFlow>["format"];
+
+type AirportPreviewMobileCardAirport = {
+  icao?: string | null;
+  iata?: string | null;
+  country?: string | null;
+  city?: unknown;
+  distanceNm?: unknown;
+  elevationFt?: unknown;
+  name?: unknown;
+  localizedName?: unknown;
+};
+
+type AirportPreviewMobileCardProps = {
+  airport?: AirportPreviewMobileCardAirport | null;
+};
+
+type StatProps = {
+  value: number;
+  unit: string;
+  format?: NumberFlowFormat;
+};
+
 // Airport variant of the bottom-of-screen mobile preview card. Code line
 // is the prominent identifier (same font size as the aircraft callsign so
 // swapping selections keeps the card's silhouette stable); the place
 // line drops to a smaller secondary style and wraps inside the card's
 // max-width so long airport names stay tidy.
-export default function AirportPreviewMobileCard({ airport }: Record<string, any>) {
+export default function AirportPreviewMobileCard({ airport }: AirportPreviewMobileCardProps) {
   const { locale } = useI18n();
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
@@ -68,7 +92,7 @@ export default function AirportPreviewMobileCard({ airport }: Record<string, any
   );
 }
 
-function Stat({ value, unit, format }: Record<string, any>) {
+function Stat({ value, unit, format }: StatProps) {
   return (
     <span className="flex items-baseline gap-[2px]">
       <NumberFlow

@@ -4,12 +4,25 @@ export const ZOOM_APPROACH = AIRPORT_MAP_ZOOM.approach
 export const ZOOM_AIRPORT = AIRPORT_MAP_ZOOM.airport
 export const ZOOM_DETAIL = AIRPORT_MAP_ZOOM.detail
 
+type AirportMapAircraft = {
+  onGround?: boolean;
+  distanceNm?: unknown;
+  velocity?: unknown;
+  altitude?: unknown;
+  [key: string]: unknown;
+};
+
+type GroundLikeAircraftOptions = {
+  airportAreaRadiusNm?: number;
+  slowAircraftThresholdKt?: number;
+};
+
 export const isGroundLikeAircraft = (
-  aircraft: Record<string, any>,
+  aircraft: AirportMapAircraft,
   {
     airportAreaRadiusNm,
     slowAircraftThresholdKt,
-  }: Record<string, any> = {},
+  }: GroundLikeAircraftOptions = {},
 ) => {
   if (aircraft?.onGround) return true
 
@@ -24,5 +37,5 @@ export const isGroundLikeAircraft = (
   )
 }
 
-export const countGroundAircraft = (aircraft: Record<string, any>[] = []) =>
+export const countGroundAircraft = (aircraft: AirportMapAircraft[] = []) =>
   aircraft.filter((item) => item?.onGround).length

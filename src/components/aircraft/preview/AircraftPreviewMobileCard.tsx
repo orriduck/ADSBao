@@ -2,14 +2,44 @@
 "use client";
 
 import { useState } from "react";
+import type { ComponentProps, ReactElement } from "react";
 import NumberFlow from "@number-flow/react";
 import { toFiniteNumber } from "@/utils/math";
 import { getFlightRouteAirlineIconUrl } from "@/utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
+type NumberFlowFormat = ComponentProps<typeof NumberFlow>["format"];
+
+type AircraftPreviewMobileCardAircraft = {
+  callsign?: string | null;
+  icao24?: string | null;
+  type?: string | null;
+  flightRouteLabel?: string | null;
+  flightRoute?: unknown;
+  velocity?: unknown;
+  altitude?: unknown;
+  baroRate?: unknown;
+  onGround?: boolean | null;
+};
+
+type AircraftPreviewMobileCardProps = {
+  aircraft?: AircraftPreviewMobileCardAircraft | null;
+};
+
+type AirlineLogoProps = {
+  src?: string | null;
+};
+
+type StatProps = {
+  value?: number;
+  unit?: string;
+  plain?: string;
+  format?: NumberFlowFormat;
+};
+
 // Same self-hiding-on-error pattern as the list row's logo. Keeps the
 // mobile card tidy when an airline isn't covered by the icon CDN.
-function AirlineLogo({ src }: Record<string, any>) {
+function AirlineLogo({ src }: AirlineLogoProps) {
   const [hidden, setHidden] = useState(false);
   if (!src || hidden) return null;
   return (
@@ -24,7 +54,7 @@ function AirlineLogo({ src }: Record<string, any>) {
   );
 }
 
-export default function AircraftPreviewMobileCard({ aircraft }: Record<string, any>) {
+export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewMobileCardProps) {
   const { t } = useI18n();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
@@ -42,7 +72,7 @@ export default function AircraftPreviewMobileCard({ aircraft }: Record<string, a
   // Stat row separator dot. Kept as a tiny render-prop so the comma /
   // dot rhythm is consistent across kt · ft · fpm without hand-placing
   // every conditional.
-  const stats = [];
+  const stats: ReactElement[] = [];
   if (speed != null) {
     stats.push(
       <Stat key="speed" value={Math.round(speed)} unit="kt" />,
@@ -127,7 +157,7 @@ export default function AircraftPreviewMobileCard({ aircraft }: Record<string, a
 // Single stat token — either a numeric NumberFlow + unit pair, or a
 // plain text token like "GND". Used by the parent's stats[] list so the
 // kt / ft / fpm rhythm renders the same way every time.
-function Stat({ value, unit, plain, format }: Record<string, any>) {
+function Stat({ value = 0, unit, plain, format }: StatProps) {
   return (
     <span className="flex items-baseline gap-[2px]">
       {plain != null ? (

@@ -4,13 +4,22 @@ import { useEffect, useState } from "react";
 import { aircraftPhotoClient } from "../../aviation/aviationData";
 
 const EMPTY_STATE = Object.freeze({ key: "", photo: null, status: "idle" });
+
+type AircraftPhoto = Record<string, unknown>;
+
 type AircraftPhotoState = {
   key: string;
-  photo: any;
+  photo: AircraftPhoto | null;
   status: "idle" | "loading" | "found" | "missing";
 };
 
-function buildPhotoKey(aircraft: Record<string, any> | null | undefined) {
+type AircraftPhotoSubject = {
+  icao24?: unknown;
+  registration?: unknown;
+  type?: unknown;
+};
+
+function buildPhotoKey(aircraft: AircraftPhotoSubject | null | undefined) {
   const hex = String(aircraft?.icao24 || "").trim().toUpperCase();
   if (!hex) return "";
   return [
@@ -20,7 +29,7 @@ function buildPhotoKey(aircraft: Record<string, any> | null | undefined) {
   ].join(":");
 }
 
-export function useAircraftPhoto(aircraft: Record<string, any> | null | undefined) {
+export function useAircraftPhoto(aircraft: AircraftPhotoSubject | null | undefined) {
   const key = buildPhotoKey(aircraft);
   const [state, setState] = useState<AircraftPhotoState>(EMPTY_STATE as AircraftPhotoState);
 
@@ -38,7 +47,7 @@ export function useAircraftPhoto(aircraft: Record<string, any> | null | undefine
       .fetchAircraftPhoto({ hex, registration, type })
       .then((payload) => {
         if (!cancelled) {
-          const photo = payload?.photo || null;
+          const photo = payload?.photo as AircraftPhoto | null || null;
           setState({ key, photo, status: photo ? "found" : "missing" });
         }
       })
