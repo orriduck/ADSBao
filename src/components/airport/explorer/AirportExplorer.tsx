@@ -54,10 +54,13 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     altitudeLevel,
     selectedAircraftId,
     selectedAirportIcao,
+    selectedNavaidKey,
     closeSidebar,
     selectAircraft,
     setSelectedAircraftId,
     selectAirport,
+    selectNavaid,
+    setSelectedNavaidKey,
     mapFollowsAircraft,
   } = useExplorerUi();
   const airportProfile = useMemo(
@@ -78,11 +81,15 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         selectedAircraftId,
         airports: nearbyAirports.airports,
         selectedAirportIcao,
+        navaids: airport?.nearbyNavaids || [],
+        selectedNavaidKey,
       }),
     [
+      airport?.nearbyNavaids,
       nearbyAirports.airports,
       selectedAircraftId,
       selectedAirportIcao,
+      selectedNavaidKey,
       traffic.aircraft,
     ],
   );
@@ -94,6 +101,15 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectedAircraftId,
     selection.selectedAircraftStillVisible,
     setSelectedAircraftId,
+  ]);
+
+  useEffect(() => {
+    if (!selectedNavaidKey) return;
+    if (!selection.selectedNavaidStillVisible) setSelectedNavaidKey("");
+  }, [
+    selectedNavaidKey,
+    selection.selectedNavaidStillVisible,
+    setSelectedNavaidKey,
   ]);
 
   useEffect(() => {
@@ -183,6 +199,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       <AircraftPreviewCard
         aircraft={selection.selectedAircraft}
         airport={selection.selectedAirport}
+        navaid={selection.selectedNavaid}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         airportProfile={airportProfile}
@@ -233,10 +250,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             altitudeLevel={altitudeLevel}
             selectedAircraftId={selectedAircraftId}
             selectedAirportIcao={selectedAirportIcao}
+            selectedNavaidKey={selectedNavaidKey}
             followsCenter={mapFollowsAircraft}
             floatingSidebarAware={!isMobile && sidebarOpen}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
+            onSelectNavaid={selectNavaid}
             runwayMap={procedures.runwayMap}
             runwayProcedures={null}
             procedureFixLabelRunwayProcedures={procedures.runwayProcedures}

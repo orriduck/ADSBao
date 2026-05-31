@@ -84,22 +84,41 @@ const selection = resolveAirportExplorerSelection({
   selectedAircraftId: "JBU456",
   airports: [{ icao: "KBOS" }, { icao: "KJFK" }],
   selectedAirportIcao: "KJFK",
+  navaids: [
+    {
+      id: 86260,
+      ident: "BOS",
+      name: "Boston",
+      type: "VORTAC",
+      lat: 42.357,
+      lon: -70.989,
+      frequencyKhz: 112700,
+      distanceNm: 0.9,
+    },
+  ],
+  selectedNavaidKey: "86260-BOS",
 });
 
 assert.equal(selection.selectedAircraft.callsign, "JBU456");
 assert.equal(selection.selectedAircraftStillVisible, true);
 assert.equal(selection.selectedAirport.icao, "KJFK");
+assert.equal(selection.selectedNavaid.ident, "BOS");
+assert.equal(selection.selectedNavaidStillVisible, true);
 
 const missingSelection = resolveAirportExplorerSelection({
   aircraft: [{ icao24: "a1", callsign: "DAL123" }],
   selectedAircraftId: "gone",
   airports: [{ icao: "KBOS" }],
   selectedAirportIcao: "KJFK",
+  navaids: [],
+  selectedNavaidKey: "86260-BOS",
 });
 
 assert.equal(missingSelection.selectedAircraft, null);
 assert.equal(missingSelection.selectedAircraftStillVisible, false);
 assert.equal(missingSelection.selectedAirport, null);
+assert.equal(missingSelection.selectedNavaid, null);
+assert.equal(missingSelection.selectedNavaidStillVisible, false);
 
 const mergedTracked = mergeTrackedAircraftIntoNearby({
   trackedAircraft: {

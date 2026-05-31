@@ -60,11 +60,13 @@ export default function AirportMap({
   altitudeLevel = "all",
   selectedAircraftId = "",
   selectedAirportIcao = "",
+  selectedNavaidKey = "",
   focalAircraftId = "",
   followsCenter = true,
   floatingSidebarAware = false,
   onSelectAircraft,
   onSelectAirport,
+  onSelectNavaid,
   runwayMap = null,
   runwayProcedures = null,
   procedureFixLabelRunwayProcedures = runwayProcedures,
@@ -192,6 +194,9 @@ export default function AirportMap({
       if (selectedAirportIcao && typeof onSelectAirport === "function") {
         onSelectAirport("");
       }
+      if (selectedNavaidKey && typeof onSelectNavaid === "function") {
+        onSelectNavaid("");
+      }
     };
     mapInstance.on("click", handleMapClick);
     return () => {
@@ -201,8 +206,10 @@ export default function AirportMap({
     mapInstance,
     onSelectAircraft,
     onSelectAirport,
+    onSelectNavaid,
     selectedAircraftId,
     selectedAirportIcao,
+    selectedNavaidKey,
   ]);
 
   const visibleAircraft = useMemo(() => {
@@ -299,6 +306,8 @@ export default function AirportMap({
             navaids={nearbyNavaids}
             theme={currentTheme}
             visible={showRoutingPointBadges}
+            selectedNavaidKey={selectedNavaidKey}
+            onSelectNavaid={onSelectNavaid}
           />
           <ProcedureSegmentLayer
             runwayProcedures={runwayProcedures}

@@ -22,6 +22,19 @@ export const buildNavaidLabels = (navaids: NavaidLabelRecord[] = []) =>
         lon,
         frequencyKhz: numberOrNull(navaid.frequencyKhz),
         distanceNm: numberOrNull(navaid.distanceNm),
+        elevationFt: numberOrNull(navaid.elevationFt),
+        country: String(navaid.country || ""),
+        dme: navaid.dme
+          ? {
+              frequencyKhz: numberOrNull(navaid.dme.frequencyKhz),
+              channel: String(navaid.dme.channel || ""),
+            }
+          : null,
+        usageType: String(navaid.usageType || ""),
+        power: String(navaid.power || ""),
+        associatedAirport: String(navaid.associatedAirport || ""),
+        magneticVariationDeg: numberOrNull(navaid.magneticVariationDeg),
+        slavedVariationDeg: numberOrNull(navaid.slavedVariationDeg),
       };
     })
     .filter(Boolean);

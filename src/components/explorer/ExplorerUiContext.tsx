@@ -23,6 +23,7 @@ const initialUiState = {
   sidebarOpen: true,
   selectedAircraftId: "",
   selectedAirportIcao: "",
+  selectedNavaidKey: "",
   // Monotonic counter. Incremented by the UI when the user wants the map
   // to fit its viewport to the currently-rendered aircraft trace; a
   // child of AirportMap listens for changes and runs fitBounds against
@@ -90,12 +91,14 @@ function airportExplorerUiReducer(state, action) {
         // Selecting an aircraft clears any airport selection so only one
         // preview card is up at a time.
         selectedAirportIcao: "",
+        selectedNavaidKey: "",
       };
     case "setSelectedAircraftId":
       return {
         ...state,
         selectedAircraftId: action.aircraftId,
         selectedAirportIcao: "",
+        selectedNavaidKey: "",
       };
     case "selectAirport":
       return {
@@ -103,6 +106,22 @@ function airportExplorerUiReducer(state, action) {
         selectedAirportIcao:
           state.selectedAirportIcao === action.icao ? "" : action.icao,
         selectedAircraftId: "",
+        selectedNavaidKey: "",
+      };
+    case "selectNavaid":
+      return {
+        ...state,
+        selectedNavaidKey:
+          state.selectedNavaidKey === action.navaidKey ? "" : action.navaidKey,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
+      };
+    case "setSelectedNavaidKey":
+      return {
+        ...state,
+        selectedNavaidKey: action.navaidKey,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
       };
     case "fitToTrace":
       return {
@@ -139,6 +158,7 @@ export function ExplorerUiProvider({ children }) {
     entityFilter,
     selectedAircraftId,
     selectedAirportIcao,
+    selectedNavaidKey,
   } = state;
   const isMobile = sidebarMode === "mobile";
 
@@ -208,6 +228,14 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "selectAirport", icao });
   }, []);
 
+  const selectNavaid = useCallback((navaidKey) => {
+    dispatch({ type: "selectNavaid", navaidKey });
+  }, []);
+
+  const setSelectedNavaidKey = useCallback((navaidKey) => {
+    dispatch({ type: "setSelectedNavaidKey", navaidKey });
+  }, []);
+
   const fitToTrace = useCallback(() => {
     dispatch({ type: "fitToTrace" });
   }, []);
@@ -236,6 +264,7 @@ export function ExplorerUiProvider({ children }) {
       entityFilter,
       selectedAircraftId,
       selectedAirportIcao,
+      selectedNavaidKey,
       fitToTraceSignal,
       setMapZoom,
       setTrafficFilter,
@@ -250,6 +279,8 @@ export function ExplorerUiProvider({ children }) {
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
+      selectNavaid,
+      setSelectedNavaidKey,
       fitToTrace,
       suspendMapFollow,
     }),
@@ -268,6 +299,7 @@ export function ExplorerUiProvider({ children }) {
       entityFilter,
       selectedAircraftId,
       selectedAirportIcao,
+      selectedNavaidKey,
       fitToTraceSignal,
       setMapZoom,
       setTrafficFilter,
@@ -282,6 +314,8 @@ export function ExplorerUiProvider({ children }) {
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
+      selectNavaid,
+      setSelectedNavaidKey,
       fitToTrace,
       suspendMapFollow,
     ],
