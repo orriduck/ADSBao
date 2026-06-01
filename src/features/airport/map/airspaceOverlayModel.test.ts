@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  buildAirspaceOverlayAnimationPlan,
   buildAirspaceOverlayFeatures,
   resolveAirspaceOverlayFocusStyle,
   resolveAirspaceOverlayStyle,
@@ -82,6 +83,40 @@ const polygon = {
 
   assert.equal(orderedFeatures[0].properties.id, "large");
   assert.equal(orderedFeatures[1].properties.id, "small");
+}
+
+{
+  const enterPlan = buildAirspaceOverlayAnimationPlan([{}, {}, {}], "enter");
+  assert.deepEqual(
+    enterPlan.steps.map((step) => [step.index, step.delayMs]),
+    [
+      [0, 0],
+      [1, 32],
+      [2, 64],
+    ],
+  );
+  assert.equal(enterPlan.itemDurationMs, 220);
+
+  const exitPlan = buildAirspaceOverlayAnimationPlan([{}, {}, {}], "exit");
+  assert.deepEqual(
+    exitPlan.steps.map((step) => [step.index, step.delayMs]),
+    [
+      [2, 0],
+      [1, 32],
+      [0, 64],
+    ],
+  );
+
+  const densePlan = buildAirspaceOverlayAnimationPlan(Array.from({ length: 80 }), "enter");
+  assert.equal(Math.max(...densePlan.steps.map((step) => step.delayMs)), 420);
+  assert.equal(densePlan.totalDurationMs, 640);
+
+  const reducedPlan = buildAirspaceOverlayAnimationPlan([{}, {}], "enter", {
+    reducedMotion: true,
+  });
+  assert.equal(reducedPlan.itemDurationMs, 0);
+  assert.equal(reducedPlan.totalDurationMs, 0);
+  assert.deepEqual(reducedPlan.steps.map((step) => step.delayMs), [0, 0]);
 }
 
 {

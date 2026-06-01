@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import L from "leaflet";
 import { AIRPORT_MAP_PANES } from "@/config/airportMap";
 import {
+  buildAirspaceOverlayAnimationPlan,
   buildAirspaceOverlayFeatures,
   resolveAirspaceOverlayFocusStyle,
   resolveAirspaceOverlayStyle,
@@ -38,32 +39,42 @@ export default function AirspaceLayer({
   onSelectAirspace?: ((airspaceId: string) => void) | null;
 }) {
   const map = useMapInstance();
-  const layerRef = useRef(null);
+  const layerRef = useRef<L.GeoJSON | null>(null);
+  const boundaryLabelsRef = useRef<SVGTextElement[]>([]);
+  const labelFrameRef = useRef(0);
+  const animationFrameRef = useRef(0);
+  const selectedAirspaceIdRef = useRef(selectedAirspaceId);
+  const visibleRef = useRef(visible);
   const onSelectRef = useRef(onSelectAirspace);
   onSelectRef.current = onSelectAirspace;
+  selectedAirspaceIdRef.current = selectedAirspaceId;
+  visibleRef.current = visible;
   const features = useMemo(
     () => buildAirspaceOverlayFeatures(airspaces),
     [airspaces],
   );
 
   useEffect(() => {
-    if (!map || !visible || features.length === 0) return undefined;
+    if (!map || features.length === 0) return undefined;
 
+    cancelAirspaceAnimation(animationFrameRef);
+    window.cancelAnimationFrame(labelFrameRef.current);
+    boundaryLabelsRef.current.forEach((label) => label.remove());
+    boundaryLabelsRef.current = [];
     safeRemoveFromMap(layerRef.current, map);
     const boundaryLabels: SVGTextElement[] = [];
-    let labelFrame = 0;
     const airspacePane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.airspace);
     const paneElement = map.getPane(airspacePane);
-    if (paneElement) paneElement.style.pointerEvents = "auto";
+    if (paneElement) paneElement.style.pointerEvents = visibleRef.current ? "auto" : "none";
     const polygonLayer = L.geoJSON(features as any, {
       interactive: Boolean(onSelectRef.current),
       pane: airspacePane,
       style(feature) {
-        const style = resolveAirspaceOverlayStyle(feature as any);
-        if (selectedAirspaceId && feature?.properties?.id === selectedAirspaceId) {
-          return resolveAirspaceOverlayFocusStyle(feature as any);
-        }
-        return style;
+        return resolveVisibleAirspaceStyle(
+          feature as any,
+          selectedAirspaceIdRef.current,
+          visibleRef.current ? 1 : 0,
+        );
       },
       onEachFeature(feature, featureLayer) {
         featureLayer.on("click", (event) => {
@@ -77,28 +88,222 @@ export default function AirspaceLayer({
     const added = safeAddToMap(polygonLayer, map, { label: "AirspaceLayer" });
     if (!added) return undefined;
     layerRef.current = polygonLayer;
-    labelFrame = window.requestAnimationFrame(() => {
-      boundaryLabels.push(...attachBoundaryLabels(polygonLayer, selectedAirspaceId));
+    applyAirspaceGroupOpacity(
+      polygonLayer,
+      boundaryLabels,
+      selectedAirspaceIdRef.current,
+      visibleRef.current ? 1 : 0,
+    );
+    labelFrameRef.current = window.requestAnimationFrame(() => {
+      boundaryLabels.push(
+        ...attachBoundaryLabels(
+          polygonLayer,
+          selectedAirspaceIdRef.current,
+          visibleRef.current ? 1 : 0,
+        ),
+      );
+      boundaryLabelsRef.current = boundaryLabels;
     });
 
     return () => {
-      window.cancelAnimationFrame(labelFrame);
+      cancelAirspaceAnimation(animationFrameRef);
+      window.cancelAnimationFrame(labelFrameRef.current);
       boundaryLabels.forEach((label) => label.remove());
+      boundaryLabelsRef.current = [];
       safeRemoveFromMap(polygonLayer, map);
       layerRef.current = null;
     };
-  }, [map, features, selectedAirspaceId, visible]);
+  }, [map, features]);
+
+  useEffect(() => {
+    const polygonLayer = layerRef.current;
+    if (!map || !polygonLayer) return;
+
+    const airspacePane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.airspace);
+    const paneElement = map.getPane(airspacePane);
+    if (paneElement) paneElement.style.pointerEvents = visible ? "auto" : "none";
+
+    animateAirspaceGroupOpacity({
+      layerGroup: polygonLayer,
+      labels: boundaryLabelsRef.current,
+      selectedAirspaceId,
+      visible,
+      animationFrameRef,
+    });
+  }, [map, selectedAirspaceId, visible]);
 
   return null;
+}
+
+function resolveVisibleAirspaceStyle(
+  feature: Record<string, any>,
+  selectedAirspaceId: string,
+  opacityScale: number,
+) {
+  const style =
+    selectedAirspaceId && feature?.properties?.id === selectedAirspaceId
+      ? resolveAirspaceOverlayFocusStyle(feature)
+      : resolveAirspaceOverlayStyle(feature);
+  return {
+    ...style,
+    fillOpacity: Number(style.fillOpacity || 0) * opacityScale,
+    opacity: Number(style.opacity || 0) * opacityScale,
+  };
+}
+
+function animateAirspaceGroupOpacity({
+  layerGroup,
+  labels,
+  selectedAirspaceId,
+  visible,
+  animationFrameRef,
+}: {
+  layerGroup: L.GeoJSON;
+  labels: SVGTextElement[];
+  selectedAirspaceId: string;
+  visible: boolean;
+  animationFrameRef: MutableRefObject<number>;
+}) {
+  cancelAirspaceAnimation(animationFrameRef);
+
+  const layers = getAirspaceFeatureLayers(layerGroup);
+  const reducedMotion = prefersReducedMotion();
+  const plan = buildAirspaceOverlayAnimationPlan(
+    layers,
+    visible ? "enter" : "exit",
+    { reducedMotion },
+  );
+
+  if (reducedMotion || plan.itemDurationMs === 0) {
+    applyAirspaceGroupOpacity(layerGroup, labels, selectedAirspaceId, visible ? 1 : 0);
+    return;
+  }
+
+  const labelGroups = groupLabelsByLayerIndex(labels);
+  const startedAt = window.performance.now();
+  const targetOpacity = visible ? 1 : 0;
+  const animations = plan.steps.map((step) => {
+    const layer = layers[step.index];
+    return {
+      layer,
+      labels: labelGroups.get(step.index) || [],
+      delayMs: step.delayMs,
+      fromOpacity: readAirspaceLayerOpacityScale(layer, visible ? 0 : 1),
+    };
+  });
+
+  const tick = (now: number) => {
+    let complete = true;
+    for (const animation of animations) {
+      const elapsed = now - startedAt - animation.delayMs;
+      if (elapsed < 0) {
+        complete = false;
+        continue;
+      }
+
+      const progress = Math.min(1, elapsed / plan.itemDurationMs);
+      const opacityScale =
+        animation.fromOpacity +
+        (targetOpacity - animation.fromOpacity) * easeOutQuart(progress);
+      applyAirspaceFeatureOpacity(
+        animation.layer,
+        animation.labels,
+        selectedAirspaceId,
+        opacityScale,
+      );
+      if (progress < 1) complete = false;
+    }
+
+    if (complete) {
+      applyAirspaceGroupOpacity(layerGroup, labels, selectedAirspaceId, targetOpacity);
+      animationFrameRef.current = 0;
+      return;
+    }
+
+    animationFrameRef.current = window.requestAnimationFrame(tick);
+  };
+
+  animationFrameRef.current = window.requestAnimationFrame(tick);
+}
+
+function applyAirspaceGroupOpacity(
+  layerGroup: L.GeoJSON,
+  labels: SVGTextElement[],
+  selectedAirspaceId: string,
+  opacityScale: number,
+) {
+  const labelGroups = groupLabelsByLayerIndex(labels);
+  getAirspaceFeatureLayers(layerGroup).forEach((layer, index) => {
+    applyAirspaceFeatureOpacity(
+      layer,
+      labelGroups.get(index) || [],
+      selectedAirspaceId,
+      opacityScale,
+    );
+  });
+}
+
+function applyAirspaceFeatureOpacity(
+  layer: any,
+  labels: SVGTextElement[],
+  selectedAirspaceId: string,
+  opacityScale: number,
+) {
+  if (typeof layer?.setStyle === "function") {
+    layer.setStyle(resolveVisibleAirspaceStyle(layer.feature, selectedAirspaceId, opacityScale));
+  }
+  layer.__airspaceOpacityScale = opacityScale;
+  labels.forEach((label) => setBoundaryLabelState(label, selectedAirspaceId, opacityScale));
+}
+
+function getAirspaceFeatureLayers(layerGroup: L.GeoJSON) {
+  const layers: any[] = [];
+  layerGroup.eachLayer((layer: any) => layers.push(layer));
+  return layers;
+}
+
+function groupLabelsByLayerIndex(labels: SVGTextElement[]) {
+  const groups = new Map<number, SVGTextElement[]>();
+  labels.forEach((label) => {
+    const index = Number(label.dataset.airspaceLayerIndex);
+    if (!Number.isInteger(index)) return;
+    const group = groups.get(index) || [];
+    group.push(label);
+    groups.set(index, group);
+  });
+  return groups;
+}
+
+function readAirspaceLayerOpacityScale(layer: any, fallback: number) {
+  const value = Number(layer?.__airspaceOpacityScale);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function cancelAirspaceAnimation(animationFrameRef: MutableRefObject<number>) {
+  if (!animationFrameRef.current) return;
+  window.cancelAnimationFrame(animationFrameRef.current);
+  animationFrameRef.current = 0;
+}
+
+function easeOutQuart(value: number) {
+  return 1 - Math.pow(1 - value, 4);
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
 }
 
 function attachBoundaryLabels(
   layerGroup: L.GeoJSON,
   selectedAirspaceId = "",
+  opacityScale = 1,
 ): SVGTextElement[] {
   const labels: SVGTextElement[] = [];
 
+  let layerIndex = 0;
   layerGroup.eachLayer((layer: any) => {
+    const currentLayerIndex = layerIndex;
+    layerIndex += 1;
     const path = typeof layer.getElement === "function"
       ? layer.getElement()
       : null;
@@ -112,10 +317,6 @@ function attachBoundaryLabels(
 
     const lines = boundaryLabelLines(layer.feature?.properties || {}, path, pathLength);
     if (lines.length === 0) return;
-    const isFocused =
-      Boolean(selectedAirspaceId) &&
-      String(layer.feature?.properties?.id || "") === selectedAirspaceId;
-
     const pathId = path.id || `airspace-boundary-${boundaryLabelSequence += 1}`;
     path.id = pathId;
 
@@ -124,9 +325,10 @@ function attachBoundaryLabels(
       BOUNDARY_LABEL_OFFSETS_BY_COUNT[4];
     lines.forEach((line, index) => {
       const label = document.createElementNS(SVG_NS, "text");
+      label.dataset.airspaceLayerIndex = String(currentLayerIndex);
+      label.dataset.airspaceFeatureId = String(layer.feature?.properties?.id || "");
       label.classList.add("airspace-boundary-label");
-      if (isFocused) label.classList.add("airspace-boundary-label--focused");
-      label.setAttribute("opacity", isFocused ? "1" : "0.5");
+      setBoundaryLabelState(label, selectedAirspaceId, opacityScale);
       label.setAttribute("dy", String(lineOffsets[index] || 0));
       const textPath = document.createElementNS(SVG_NS, "textPath");
       textPath.setAttribute("href", `#${pathId}`);
@@ -141,6 +343,18 @@ function attachBoundaryLabels(
   });
 
   return labels;
+}
+
+function setBoundaryLabelState(
+  label: SVGTextElement,
+  selectedAirspaceId: string,
+  opacityScale: number,
+) {
+  const isFocused =
+    Boolean(selectedAirspaceId) &&
+    label.dataset.airspaceFeatureId === selectedAirspaceId;
+  label.classList.toggle("airspace-boundary-label--focused", isFocused);
+  label.style.opacity = String((isFocused ? 1 : 0.5) * opacityScale);
 }
 
 function boundaryLabelLines(
