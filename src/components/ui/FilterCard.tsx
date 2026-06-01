@@ -24,7 +24,7 @@ const filterCardVariants = cva(
   cn(
     "group relative isolate w-full overflow-hidden",
     "grid items-center justify-items-center gap-[6px]",
-    "rounded-lg border border-[var(--sidebar-tile-rest-border)] bg-clip-padding",
+    "rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-clip-padding",
     "bg-[color-mix(in_oklab,var(--atc-card)_74%,transparent)]",
     "shadow-[inset_0_1px_0_color-mix(in_oklab,var(--atc-text)_5%,transparent)]",
     "text-atc-text text-center cursor-pointer",
@@ -51,8 +51,7 @@ const filterCardVariants = cva(
     "[.airport-map-kit_&]:[&>svg]:right-2 [.airport-map-kit_&]:[&>svg]:h-[9px] [.airport-map-kit_&]:[&>svg]:w-[9px]",
     // Chevron color follows the dimmed label when the select is open.
     "data-[state=open]:[&>svg]:text-[var(--atc-click-muted)]",
-    // Compact variant inside the desktop map kit sidebar.
-    "[.airport-map-kit_&]:rounded-[7px]",
+    // Compact spacing inside the desktop map kit sidebar.
     "[.airport-map-kit_&]:gap-[5px]",
     "[.airport-map-kit_&]:px-[11px] [.airport-map-kit_&]:py-[10px]",
     // Bottom-glow halo — same animation as MetricCard, fires on
