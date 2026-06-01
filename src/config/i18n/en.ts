@@ -329,6 +329,7 @@ const en = {
     hideAirspaces: "Hide airspace",
     userLocation: "My location",
     showUserLocation: "Show my location",
+    enableUserLocationAudio: "Enable aircraft proximity sound",
     hideUserLocation: "Hide my location",
     locatingUser: "Locating...",
   },

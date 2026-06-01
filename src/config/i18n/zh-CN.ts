@@ -324,6 +324,7 @@ const zhCN = {
     hideAirspaces: "隐藏空域",
     userLocation: "我的位置",
     showUserLocation: "显示我的位置",
+    enableUserLocationAudio: "开启飞机接近提示音",
     hideUserLocation: "隐藏我的位置",
     locatingUser: "正在定位...",
   },

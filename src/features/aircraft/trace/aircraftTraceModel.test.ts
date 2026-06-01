@@ -139,19 +139,38 @@ import {
 {
   const merged = mergeTraceHistory({
     fallbackHistory: [
-      { lat: 42.0, lon: -71.0, timestampMs: 1_000 },
-      { lat: 42.01, lon: -70.99, timestampMs: 2_000 },
+      { lat: 42.0, lon: -71.0, timestampMs: 60_000 },
+      { lat: 42.01, lon: -70.99, timestampMs: 120_000 },
     ],
     recentTrace: [
-      { lat: 41.95, lon: -71.05, timestampMs: 500 },
-      { lat: 42.01, lon: -70.99, timestampMs: 2_000 },
-      { lat: 42.02, lon: -70.98, timestampMs: 3_000 },
+      { lat: 41.95, lon: -71.05, timestampMs: 30_000 },
+      { lat: 42.01, lon: -70.99, timestampMs: 120_000 },
+      { lat: 42.02, lon: -70.98, timestampMs: 180_000 },
     ],
   });
 
   assert.deepEqual(
     merged.map((point) => point.timestampMs),
-    [500, 1_000, 2_000, 3_000],
+    [30_000, 60_000, 120_000, 180_000],
+  );
+}
+
+{
+  const merged = mergeTraceHistory({
+    fallbackHistory: [
+      { lat: 42.0, lon: -71.0, timestampMs: 60_000 },
+      { lat: 42.01, lon: -70.99, timestampMs: 95_000 },
+    ],
+    recentTrace: [
+      { lat: 42.02, lon: -70.98, timestampMs: 119_000 },
+      { lat: 42.03, lon: -70.97, timestampMs: 120_000 },
+    ],
+  });
+
+  assert.deepEqual(
+    merged.map((point) => point.timestampMs),
+    [119_000, 120_000],
+    "recent and fallback history should keep only the latest point in each minute",
   );
 }
 
@@ -171,19 +190,18 @@ import {
 }
 
 {
-  // Recent wins over full on overlap; live wins over both.
+  // Recent wins over full on exact overlap; live wins over both.
   const fullSource = [
-    { lat: 42.0, lon: -71.0, timestampMs: 1_000, altitude: 5_000 },
-    { lat: 42.01, lon: -70.99, timestampMs: 2_000, altitude: 6_000 },
-    { lat: 42.02, lon: -70.98, timestampMs: 3_000, altitude: 7_000 },
+    { lat: 42.0, lon: -71.0, timestampMs: 60_000, altitude: 5_000 },
+    { lat: 42.01, lon: -70.99, timestampMs: 120_000, altitude: 6_000 },
+    { lat: 42.02, lon: -70.98, timestampMs: 180_000, altitude: 7_000 },
   ];
   const recentSource = [
-    { lat: 42.015, lon: -70.985, timestampMs: 2_500, altitude: 6_500 },
-    { lat: 42.025, lon: -70.975, timestampMs: 3_000, altitude: 7_100 },
-    { lat: 42.03, lon: -70.97, timestampMs: 4_000, altitude: 7_500 },
+    { lat: 42.025, lon: -70.975, timestampMs: 120_000, altitude: 7_100 },
+    { lat: 42.03, lon: -70.97, timestampMs: 240_000, altitude: 7_500 },
   ];
   const liveSource = [
-    { lat: 42.035, lon: -70.965, timestampMs: 4_200, altitude: 7_600 },
+    { lat: 42.035, lon: -70.965, timestampMs: 240_000, altitude: 7_600 },
   ];
 
   const merged = mergeTracesByPriority({
@@ -194,25 +212,50 @@ import {
     ],
   });
 
-  // Recent should win at the 3_000 ms bucket (altitude 7_100, not 7_000).
-  const at3 = merged.find((p) => p.timestampMs === 3_000);
-  assert.equal(at3.altitude, 7_100, "recent should override full at overlap");
+  // Recent should win at the 120_000 ms point (altitude 7_100, not 6_000).
+  const at120 = merged.find((p) => p.timestampMs === 120_000);
+  assert.equal(at120.altitude, 7_100, "recent should override full at overlap");
 
-  // Live (priority 2) drops in its own bucket (4_200 → bucket 4) and
-  // overrides the recent point at 4_000 (also bucket 4).
-  const bucket4 = merged.filter((p) => Math.floor(p.timestampMs / 1000) === 4);
-  assert.equal(bucket4.length, 1, "1-second bucket should collapse to one point");
-  assert.equal(bucket4[0].timestampMs, 4_200, "live should win the 4s bucket");
-  assert.equal(bucket4[0].altitude, 7_600);
+  // Live (priority 2) wins the exact 240_000 ms overlap with recent.
+  const at240 = merged.find((p) => p.timestampMs === 240_000);
+  assert.equal(at240.altitude, 7_600);
 
-  // Full-only points (1_000) survive when no higher-priority source has them.
-  const at1 = merged.find((p) => p.timestampMs === 1_000);
-  assert.equal(at1.altitude, 5_000);
+  // Full-only points survive when no higher-priority source has that minute.
+  const at60 = merged.find((p) => p.timestampMs === 60_000);
+  assert.equal(at60.altitude, 5_000);
 
   // Output is sorted ascending by timestamp.
   for (let i = 1; i < merged.length; i++) {
     assert.ok(merged[i].timestampMs >= merged[i - 1].timestampMs);
   }
+}
+
+{
+  const merged = mergeTracesByPriority({
+    sources: [
+      {
+        points: [
+          { lat: 42.0, lon: -71.0, timestampMs: 60_000, altitude: 5_000 },
+          { lat: 42.01, lon: -70.99, timestampMs: 119_000, altitude: 5_500 },
+          { lat: 42.02, lon: -70.98, timestampMs: 120_000, altitude: 6_000 },
+        ],
+        priority: 0,
+      },
+      {
+        points: [
+          { lat: 42.03, lon: -70.97, timestampMs: 118_000, altitude: 6_500 },
+        ],
+        priority: 1,
+      },
+    ],
+  });
+
+  assert.deepEqual(
+    merged.map((point) => point.timestampMs),
+    [119_000, 120_000],
+    "same-minute trace points should collapse to the latest point in each minute",
+  );
+  assert.equal(merged[0].altitude, 5_500);
 }
 
 {

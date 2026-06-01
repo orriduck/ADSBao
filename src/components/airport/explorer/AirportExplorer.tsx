@@ -25,8 +25,14 @@ import {
   areCriticalLoadingRequestsSettled,
   resolveAircraftLoadingOverlayState,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
-import { resolveUserLocationRequest } from "@/features/airport/map/userLocationModel";
+import {
+  resolveNextUserLocationAudioMode,
+  resolveUserLocationRequest,
+  USER_LOCATION_AUDIO_MODES,
+  type UserLocationAudioMode,
+} from "@/features/airport/map/userLocationModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -70,6 +76,9 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     mapFollowsAircraft,
   } = useExplorerUi();
   const [userLocation, setUserLocation] = useState(null);
+  const [userLocationMode, setUserLocationMode] = useState<UserLocationAudioMode>(
+    USER_LOCATION_AUDIO_MODES.OFF,
+  );
   const [userLocationPending, setUserLocationPending] = useState(false);
   const [userLocationNotice, setUserLocationNotice] = useState("");
   const airportProfile = useMemo(
@@ -77,6 +86,19 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     [icao, airport],
   );
   const { weather, traffic } = useAirportExplorerData(airportProfile);
+  const userLocationActive = Boolean(userLocation);
+  const userLocationAudioActive =
+    userLocationActive &&
+    userLocationMode === USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO;
+  const {
+    cue: userLocationAudioCue,
+    pulseBeat: userLocationPulseBeat,
+    unlockAudio,
+  } = useUserLocationAircraftAudio({
+    enabled: userLocationAudioActive,
+    userLocation,
+    aircraft: traffic.aircraft,
+  });
   const nearbyAirports = useNearbyAirports({
     icao: airportProfile.icao,
     lat: airportProfile.lat,
@@ -162,13 +184,27 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   }, [userLocationNotice]);
 
   const locateUser = useCallback(() => {
-    if (userLocation) {
+    const nextMode = resolveNextUserLocationAudioMode({
+      mode: userLocationMode,
+      hasLocation: Boolean(userLocation),
+    });
+
+    if (nextMode === USER_LOCATION_AUDIO_MODES.OFF) {
       setUserLocation(null);
+      setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
+      setUserLocationNotice("");
+      return;
+    }
+
+    if (nextMode === USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO && userLocation) {
+      unlockAudio();
+      setUserLocationMode(USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO);
       setUserLocationNotice("");
       return;
     }
 
     if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
       setUserLocationNotice(t("map.locationUnavailable"));
       return;
     }
@@ -185,21 +221,25 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
 
         if (!result.location) {
           setUserLocation(null);
+          setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
           setUserLocationNotice(t("map.locationUnavailable"));
           return;
         }
 
         if (result.tooFar) {
           setUserLocation(null);
+          setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
           setUserLocationNotice(t("map.locationTooFar"));
           return;
         }
 
         setUserLocation(result.location);
+        setUserLocationMode(USER_LOCATION_AUDIO_MODES.LOCATION);
         setUserLocationNotice("");
       },
       (error) => {
         setUserLocationPending(false);
+        setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
         setUserLocationNotice(
           error?.code === error?.PERMISSION_DENIED
             ? t("map.locationDenied")
@@ -212,7 +252,14 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         maximumAge: 0,
       },
     );
-  }, [airportProfile.lat, airportProfile.lon, t, userLocation]);
+  }, [
+    airportProfile.lat,
+    airportProfile.lon,
+    unlockAudio,
+    t,
+    userLocation,
+    userLocationMode,
+  ]);
 
   const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,
@@ -309,7 +356,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
               lastUpdated={traffic.lastUpdated}
               routeProvider={traffic.routeProvider}
               loadingStatus={sourceLoadingStatus}
-              userLocationActive={Boolean(userLocation)}
+              userLocationActive={userLocationActive}
+              userLocationAudioActive={userLocationAudioActive}
               userLocationPending={userLocationPending}
               userLocationNotice={userLocationNotice}
               onLocateUser={locateUser}
@@ -347,6 +395,14 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             loadingOverlayActive={loadingOverlayActive}
             loadingOverlaySources={loadingOverlaySources}
             userLocation={userLocation}
+            userLocationPulseIntervalMs={
+              userLocationAudioActive
+                ? userLocationAudioCue?.intervalMs
+                : undefined
+            }
+            userLocationPulseBeat={
+              userLocationAudioActive ? userLocationPulseBeat : undefined
+            }
           />
 
           {isMobile && sidebarOpen && (

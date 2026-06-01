@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  resolveNextUserLocationAudioMode,
   resolveUserLocationPulseDiameterPx,
   resolveUserLocationRequest,
   USER_LOCATION_PULSE_RADIUS_METERS,
@@ -7,6 +8,31 @@ import {
 } from "./userLocationModel";
 
 const KBOS = { lat: 42.3656, lon: -71.0096 };
+
+{
+  assert.equal(
+    resolveNextUserLocationAudioMode({ mode: "off", hasLocation: false }),
+    "location",
+  );
+  assert.equal(
+    resolveNextUserLocationAudioMode({ mode: "location", hasLocation: true }),
+    "location-audio",
+  );
+  assert.equal(
+    resolveNextUserLocationAudioMode({
+      mode: "location-audio",
+      hasLocation: true,
+    }),
+    "off",
+  );
+  assert.equal(
+    resolveNextUserLocationAudioMode({
+      mode: "location-audio",
+      hasLocation: false,
+    }),
+    "location",
+  );
+}
 
 {
   const result = resolveUserLocationRequest({
@@ -47,7 +73,7 @@ const KBOS = { lat: 42.3656, lon: -71.0096 };
 }
 
 {
-  assert.equal(USER_LOCATION_PULSE_RADIUS_METERS, 1000);
+  assert.equal(USER_LOCATION_PULSE_RADIUS_METERS, 11_112);
   assert.equal(
     resolveUserLocationPulseDiameterPx({
       centerPoint: { x: 100, y: 100 },

@@ -23,6 +23,7 @@ export default function MapControlBar({
   showNavaidMarkers = false,
   showAirspaces = true,
   userLocationActive = false,
+  userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
   showSidebarToggle = true,
@@ -81,6 +82,7 @@ export default function MapControlBar({
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
         userLocationActive={userLocationActive}
+        userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
         onToggleMapLabels={onToggleMapLabels}

@@ -87,8 +87,8 @@ function liveAircraftToTracePoint(aircraft: AircraftTraceHookRecord | null) {
 //     overlap.
 //   - The live point grows the trail forward in real time and is the
 //     freshest source, so it wins over both. We append it as a new entry
-//     on every selectedAircraft tick — the priority merge dedupes the
-//     repeats by 1-second timestamp bucket.
+//     on every selectedAircraft tick — the priority merge keeps only the
+//     latest point for each minute.
 //   - The persisted source seeds the trail instantly on reload so a
 //     refresh of /aircraft/[callsign] doesn't blank the trace while the
 //     fresh fetches resolve. It sits at the lowest priority because the
