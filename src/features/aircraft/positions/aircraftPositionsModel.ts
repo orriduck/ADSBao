@@ -20,6 +20,7 @@ type RawAdsbAircraft = {
   gs?: unknown;
   track?: unknown;
   t?: string;
+  desc?: string;
   category?: string;
   positionTime?: unknown;
   positionQuality?: AircraftPositionQuality | null;
@@ -44,6 +45,7 @@ type NormalizedAircraftPosition = {
   velocity: unknown;
   track: unknown;
   type: string;
+  desc: string;
   category: string;
   positionTime: unknown;
   receiveTime: number;
@@ -119,6 +121,7 @@ export function normalizeAdsbAircraft(
     velocity: aircraft.gs ?? null,
     track: aircraft.track ?? 0,
     type: typeof aircraft.t === "string" ? aircraft.t.trim().toUpperCase() : "",
+    desc: typeof aircraft.desc === "string" ? aircraft.desc.trim() : "",
     category:
       typeof aircraft.category === "string"
         ? aircraft.category.trim().toUpperCase()

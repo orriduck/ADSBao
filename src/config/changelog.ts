@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.8.1",
+    kind: "patch",
+    title: "Aircraft type labels and airspace entry polish",
+    summary:
+      "Aircraft previews and filters now prefer friendly type names while the default airspace layer animates in on first load.",
+    highlights: [
+      "Aircraft preview cards show friendly aircraft names with ICAO codes demoted to secondary metadata",
+      "Aircraft type filters use the shared aircraft type resolver and match friendly names plus ICAO codes",
+      "Category-only aircraft display as Unknown while the filter groups them as All Unclassified",
+      "Airspace overlays now stagger-fade in during the initial default load",
+    ],
+  },
+  {
     version: "v1.8.0",
     kind: "feat",
     title: "Airport airspace overlays",

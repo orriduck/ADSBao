@@ -3,22 +3,32 @@ import assert from "node:assert/strict";
 import { getAircraftPreviewTypeDisplay } from "./aircraftPreviewTypeModel";
 
 assert.deepEqual(
-  getAircraftPreviewTypeDisplay({ type: " b789 ", category: " a5 " }),
+  getAircraftPreviewTypeDisplay({ type: " e75l ", category: " a3 " }),
   {
-    primary: "B789",
-    secondary: "A5",
+    primary: "E75L",
+    secondary: "Embraer 175",
+    icaoType: "E75L",
+    category: "A3",
   },
 );
 
 assert.deepEqual(
-  getAircraftPreviewTypeDisplay({ category: " a3 " }),
+  getAircraftPreviewTypeDisplay({
+    type: " a21n ",
+    category: " a3 ",
+    desc: "AIRBUS A-321neo",
+  }),
   {
-    primary: "A3",
-    secondary: null,
+    primary: "A21N",
+    secondary: "Airbus A321neo",
+    icaoType: "A21N",
+    category: "A3",
   },
 );
 
 assert.deepEqual(getAircraftPreviewTypeDisplay({}), {
   primary: "N/A",
   secondary: null,
+  icaoType: "",
+  category: "",
 });

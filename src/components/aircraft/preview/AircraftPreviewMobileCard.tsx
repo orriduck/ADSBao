@@ -8,6 +8,7 @@ import { Plane } from "lucide-react";
 import { toFiniteNumber } from "@/utils/math";
 import { getFlightRouteAirlineIconUrl } from "@/utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
 import {
   MobilePreviewContent,
   MobilePreviewDetailRow,
@@ -23,6 +24,8 @@ type AircraftPreviewMobileCardAircraft = {
   callsign?: string | null;
   icao24?: string | null;
   type?: string | null;
+  desc?: string | null;
+  category?: string | null;
   flightRouteLabel?: string | null;
   flightRoute?: unknown;
   velocity?: unknown;
@@ -67,7 +70,20 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
   const { t } = useI18n();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
-  const type = (aircraft?.type || "").trim().toUpperCase();
+  const typeDisplay = resolveAircraftDisplayModel(aircraft || {});
+  const secondary =
+    typeDisplay.displayName === "N/A"
+      ? null
+      : (
+          <span className="inline-flex min-w-0 max-w-full items-center justify-end gap-1.5">
+            <span className="min-w-0 truncate">{typeDisplay.displayName}</span>
+            {typeDisplay.category ? (
+              <span className="flex-none rounded-[3px] border border-atc-line px-1 py-[1px] text-[9px] font-semibold leading-none text-atc-dim">
+                {typeDisplay.category}
+              </span>
+            ) : null}
+          </span>
+        );
   const route = aircraft?.flightRouteLabel || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
 
@@ -110,8 +126,8 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
         icon={Plane}
         label={t("preview.aircraftPreview")}
         primary={callsign}
-        secondary={type}
-        secondaryClassName="text-[20px] font-extrabold text-atc-text"
+        secondary={secondary}
+        secondaryClassName="max-w-[min(50vw,220px)] text-[15px] font-extrabold text-atc-text"
       />
       {(route || hasStats) ? (
         <MobilePreviewRuleRow

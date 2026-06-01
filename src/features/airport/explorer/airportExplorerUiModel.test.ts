@@ -16,7 +16,7 @@ assert.equal(
 );
 assert.equal(
   DEFAULT_AIRPORT_EXPLORER_UI_STATE.showAirspaces,
-  false,
+  true,
 );
 
 console.log("airportExplorerUiModel.test.ts ok");

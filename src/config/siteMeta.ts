@@ -1,5 +1,5 @@
 export const ADSBAO_PRODUCT_NAME = "ADSBao";
-export const ADSBAO_SITE_VERSION = "1.8.0";
+export const ADSBAO_SITE_VERSION = "1.8.1";
 export const ADSBAO_REPOSITORY_URL = "https://github.com/orriduck/ADSBao";
 
 export function buildAdsbaoUserAgent(suffix = "") {

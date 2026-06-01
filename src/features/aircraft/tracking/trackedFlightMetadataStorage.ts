@@ -9,6 +9,7 @@ type FlightRouteMetadata = Record<string, unknown>;
 
 type TrackedFlightMetadata = {
   type?: string;
+  desc?: string;
   category?: string;
   origin?: string;
   destination?: string;
@@ -48,6 +49,10 @@ function normalizeCallsign(callsign: unknown) {
 
 function clean(value: unknown) {
   return String(value || "").trim().toUpperCase();
+}
+
+function cleanText(value: unknown) {
+  return String(value || "").trim();
 }
 
 function getLocalStorage(): TrackedFlightMetadataStorage | null {
@@ -99,6 +104,7 @@ function sanitizeFlightRoute(route: unknown) {
 function extractMetadata(aircraft: TrackedFlightMetadataAircraft = {}) {
   const metadata = {
     type: clean(aircraft.type),
+    desc: cleanText(aircraft.desc),
     category: clean(aircraft.category),
     origin: clean(aircraft.origin),
     destination: clean(aircraft.destination),
@@ -158,6 +164,7 @@ export function mergeTrackedFlightMetadata<T extends TrackedFlightMetadataAircra
   return {
     ...aircraft,
     type: clean(aircraft.type) || metadata.type || "",
+    desc: cleanText(aircraft.desc) || metadata.desc || "",
     category: clean(aircraft.category) || metadata.category || "",
     origin: clean(aircraft.origin) || metadata.origin || "",
     destination: clean(aircraft.destination) || metadata.destination || "",

@@ -2,6 +2,8 @@
 // option.labelKey through t(...) so the dropdown switches with the locale.
 // `label` is kept as a default English fallback for any consumer that
 // reads it directly.
+import { resolveAircraftDisplayModel } from "../aircraftTypeDisplayModel";
+
 export const TRAFFIC_FILTER_OPTIONS = [
   { value: "all", labelKey: "sidebar.all", label: "All" },
   { value: "routed", labelKey: "filters.routesOnly", label: "Routes only" },
@@ -59,6 +61,7 @@ const CATEGORY_LABELS = Object.freeze({
 
 const CATEGORY_ORDER = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "OTHER"];
 const OTHER_LABEL = { key: "filters.categoryOther", default: "Other" };
+const UNCLASSIFIED_TYPE_LABEL = "All Unclassified";
 
 type AircraftFilterRecord = {
   type?: unknown;
@@ -79,7 +82,8 @@ type AircraftFilterOptions = {
 };
 
 export function aircraftTypeLabel(aircraft: AircraftFilterRecord = {}) {
-  return String(aircraft.type || aircraft.category || "").trim();
+  const display = resolveAircraftDisplayModel(aircraft);
+  return display.icaoType || display.category;
 }
 
 export function getAircraftCategoryCode(aircraft: AircraftFilterRecord = {}) {
@@ -93,6 +97,10 @@ export function getCategoryLabel(categoryCode: string) {
 
 export function getCategoryLabelKey(categoryCode: string) {
   return (CATEGORY_LABELS[categoryCode] || OTHER_LABEL).key;
+}
+
+function getAircraftTypeFilterLabel(display: ReturnType<typeof resolveAircraftDisplayModel>) {
+  return display.icaoType ? display.displayName : UNCLASSIFIED_TYPE_LABEL;
 }
 
 export function getAircraftTypes(aircraft: AircraftFilterRecord[] = []) {
@@ -110,29 +118,51 @@ export function getAircraftTypeGroups(
   aircraft: AircraftFilterRecord[] = [],
   extraTypes: string[] = [],
 ) {
-  const typeToCategory = new Map();
+  const typeToEntry = new Map();
   for (const item of aircraft) {
     const type = aircraftTypeLabel(item);
     if (!type) continue;
-    if (typeToCategory.has(type)) continue;
-    typeToCategory.set(type, getAircraftCategoryCode(item));
+    if (typeToEntry.has(type)) continue;
+    const display = resolveAircraftDisplayModel(item);
+    const label = getAircraftTypeFilterLabel(display);
+    typeToEntry.set(type, {
+      category: getAircraftCategoryCode(item),
+      item: {
+        value: type,
+        label,
+        shortLabel: display.icaoType ? display.shortName : label,
+        icaoType: display.icaoType,
+      },
+    });
   }
   for (const type of extraTypes) {
-    if (type && !typeToCategory.has(type)) {
-      typeToCategory.set(type, "OTHER");
+    const value = String(type || "").trim().toUpperCase();
+    if (value && !typeToEntry.has(value)) {
+      const display = resolveAircraftDisplayModel({ type: value });
+      typeToEntry.set(value, {
+        category: "OTHER",
+        item: {
+          value,
+          label: display.displayName,
+          shortLabel: display.shortName,
+          icaoType: display.icaoType,
+        },
+      });
     }
   }
 
   const buckets = new Map(CATEGORY_ORDER.map((code) => [code, new Set()]));
-  for (const [type, category] of typeToCategory) {
-    buckets.get(category).add(type);
+  for (const entry of typeToEntry.values()) {
+    buckets.get(entry.category).add(entry.item);
   }
 
   return CATEGORY_ORDER.map((category) => ({
     category,
     label: getCategoryLabel(category),
     labelKey: getCategoryLabelKey(category),
-    types: [...buckets.get(category)].sort((a, b) => String(a).localeCompare(String(b))),
+    types: [...buckets.get(category)].sort((a: any, b: any) =>
+      String(a.label).localeCompare(String(b.label)),
+    ),
   })).filter((group) => group.types.length > 0);
 }
 
