@@ -55,11 +55,20 @@ async function fetchProviderPayload(provider: AircraftPositionsRecord, { latitud
     throw new AircraftPositionProviderError(`parse: ${parseError.message}`);
   }
 
-  if (!payload || typeof payload !== "object" || !Array.isArray(payload.ac)) {
+  const normalizedPayload =
+    typeof provider.normalizePositionPayload === "function"
+      ? provider.normalizePositionPayload(payload)
+      : payload;
+
+  if (
+    !normalizedPayload ||
+    typeof normalizedPayload !== "object" ||
+    !Array.isArray(normalizedPayload.ac)
+  ) {
     throw new AircraftPositionProviderError("Invalid aircraft payload");
   }
 
-  return payload;
+  return normalizedPayload;
 }
 
 const successResult = (provider: AircraftPositionsRecord, payload: AircraftPositionsRecord, attempts: string[]) => ({

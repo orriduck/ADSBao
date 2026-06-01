@@ -48,12 +48,37 @@ export const AIRPLANES_LIVE = Object.freeze({
   buildTraceUrl: null,
 });
 
+export const ADSB_FI = Object.freeze({
+  id: "adsb.fi",
+  label: "adsb.fi",
+  buildPositionUrl: ({ lat, lon, distanceNm }) =>
+    `https://opendata.adsb.fi/api/v2/lat/${encodeURIComponent(
+      String(lat),
+    )}/lon/${encodeURIComponent(String(lon))}/dist/${encodeURIComponent(
+      String(distanceNm),
+    )}`,
+  buildCallsignUrl: ({ callsign }) =>
+    `https://opendata.adsb.fi/api/v2/callsign/${encodeURIComponent(
+      String(callsign || "").toUpperCase(),
+    )}`,
+  buildTraceUrl: null,
+  normalizePositionPayload: (payload) =>
+    Array.isArray(payload?.aircraft)
+      ? { ...payload, ac: payload.aircraft }
+      : payload,
+});
+
+// ADSBHub exposes aggregated ADS-B through a whitelisted TCP SBS feed
+// (data.adsbhub.org:5002), not a public point-query JSON endpoint that can
+// participate in this serverless HTTP provider race.
 export const POSITION_PROVIDER_CHAIN = Object.freeze([
   ADSB_LOL,
   AIRPLANES_LIVE,
+  ADSB_FI,
 ]);
 export const CALLSIGN_PROVIDER_CHAIN = Object.freeze([
   ADSB_LOL,
   AIRPLANES_LIVE,
+  ADSB_FI,
 ]);
 export const TRACE_PROVIDER_CHAIN = Object.freeze([ADSB_LOL]);

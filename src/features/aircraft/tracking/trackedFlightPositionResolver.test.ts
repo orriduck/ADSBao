@@ -57,6 +57,22 @@ assert.equal(ADSB_FRESH_MAX_AGE_SECONDS, 60);
 
 {
   const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition: primary("adsb.lol", 120, { lat: 41 }),
+    airplanesLivePosition: primary("airplanes.live", 90, { lat: 42 }),
+    adsbFiPosition: primary("adsb.fi", 8, { lat: 43 }),
+    getFlightAwareFallback: async () => flightAware,
+    callsign: "AAL100",
+    featureEnabled: true,
+    now,
+  });
+
+  assert.equal(resolved.source, "adsb.fi");
+  assert.equal(resolved.position.lat, 43);
+  assert.equal(resolved.position.positionQuality.source, "adsb_fi");
+}
+
+{
+  const resolved = await resolveTrackedFlightPosition({
     adsbLolPosition: primary("adsb.lol", 120),
     airplanesLivePosition: null,
     getFlightAwareFallback: async () => flightAware,

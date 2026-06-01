@@ -1,6 +1,7 @@
 export const DATA_SOURCE = Object.freeze({
   ADSB_LOL: "adsb.lol",
   AIRPLANES_LIVE: "airplanes.live",
+  ADSB_FI: "adsb.fi",
   ADSBDB: "adsbdb",
   FLIGHTAWARE: "flightaware",
   COMMUNITY_FEEDBACK: "community-feedback",
@@ -14,6 +15,7 @@ export const ROUTE_PROVIDER = Object.freeze({
 const DATA_SOURCE_LABELS = Object.freeze({
   [DATA_SOURCE.ADSB_LOL]: "adsb.lol",
   [DATA_SOURCE.AIRPLANES_LIVE]: "airplanes.live",
+  [DATA_SOURCE.ADSB_FI]: "adsb.fi",
   [DATA_SOURCE.ADSBDB]: "adsbdb",
   [DATA_SOURCE.FLIGHTAWARE]: "FlightAware",
   [DATA_SOURCE.COMMUNITY_FEEDBACK]: "Community",
@@ -24,6 +26,8 @@ const AIRCRAFT_POSITION_SOURCE_LABELS = Object.freeze({
   [DATA_SOURCE.ADSB_LOL]: "ADS-B",
   airplanes_live: "Airplanes.live",
   [DATA_SOURCE.AIRPLANES_LIVE]: "Airplanes.live",
+  adsb_fi: "adsb.fi",
+  [DATA_SOURCE.ADSB_FI]: "adsb.fi",
   flightaware: "FlightAware",
   local_projection: "Local projection",
   unknown: "",

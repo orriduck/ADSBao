@@ -80,7 +80,7 @@ const majorHubsTopic = configuredDiscoveryTopics.find(
 );
 assert.deepEqual(
   majorHubsTopic.airports.map((airport) => airport.icao),
-  ["KJFK", "EGLL", "VHHH", "KATL", "KORD"],
+  ["KJFK", "KLAX", "EGLL", "RKSI", "EDDF", "LFPG"],
 );
 
 const worldOfAirportsTopic = configuredDiscoveryTopics.find(

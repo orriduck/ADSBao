@@ -51,7 +51,12 @@ const zhCN = {
       airplanesLive: {
         title: "airplanes.live 飞机数据",
         description:
-          "并行 ADS-B 位置源。冷启动时代理会竞速两个数据源,使用先响应者;出错后重新竞速选择新的数据源。",
+          "并行 ADS-B 位置源。冷启动时代理会竞速飞机位置数据源,使用先响应者;出错后重新竞速选择新的数据源。",
+      },
+      adsbFi: {
+        title: "adsb.fi 飞机数据",
+        description:
+          "并行 ADS-B 位置源。它和其他飞机位置数据源使用同一套冷启动竞速与失败后重选机制。",
       },
       aircraftShapes: {
         title: "AircraftShapesSVG",
@@ -267,8 +272,12 @@ const zhCN = {
         parallelArrivals: "海湾平行进场",
         terraceTraffic: "观景台交通",
         transatlanticGate: "跨大西洋门户",
+        pacificGateway: "太平洋门户",
         globalBanks: "全球到港波次",
         asiaPacificHub: "亚太枢纽",
+        northeastAsiaHub: "东北亚枢纽",
+        europeanBanks: "欧洲到港波次",
+        europeanGateway: "欧洲门户",
         southeastMegahub: "东南部超级枢纽",
         midcontinentHub: "大陆中部枢纽",
         capitalLongHaul: "首都远程航线",
