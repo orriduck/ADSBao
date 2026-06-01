@@ -45,8 +45,18 @@ assert.match(
 );
 assert.match(
   styleSource,
-  /\.aircraft-preview-card--airport \{[\s\S]*?width: 320px;/,
+  /\.aircraft-preview-card \{[\s\S]*?width: 320px;[\s\S]*?padding: 0;/,
+  "desktop aircraft preview card should be 40px wider than the prior 280px default",
+);
+assert.match(
+  styleSource,
+  /\.aircraft-preview-card--airport \{[\s\S]*?width: 360px;/,
   "desktop airport preview card should be wider than the default preview card",
+);
+assert.match(
+  styleSource,
+  /@media \(min-width: 768px\) \{[\s\S]*?\.aircraft-preview-card \{[\s\S]*?width: 264px;/,
+  "desktop map-shell aircraft preview card should also be 40px wider",
 );
 assert.match(
   desktopSource,

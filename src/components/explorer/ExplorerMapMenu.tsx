@@ -11,6 +11,7 @@ export default function ExplorerMapMenu({
   routeProvider = "",
   loadingStatus = "",
   userLocationActive = false,
+  userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
   onLocateUser = null,
@@ -48,6 +49,7 @@ export default function ExplorerMapMenu({
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
         userLocationActive={userLocationActive}
+        userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
         showSidebarToggle={isMobile}

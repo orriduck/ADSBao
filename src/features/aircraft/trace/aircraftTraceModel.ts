@@ -10,6 +10,7 @@ const DEFAULT_SOLID_TRACE_MAX_GAP_MS = 90 * 1000;
 const DEFAULT_TRACE_CONNECTOR_MAX_GAP_MS = 10 * 60 * 1000;
 const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
 const TRACE_MAX_GAP_MS = 60 * 60 * 1000;
+const TRACE_MINUTE_BUCKET_MS = 60 * 1000;
 
 type TraceRecord = Record<string, any>;
 type TracePoint = TraceRecord & {
@@ -160,13 +161,44 @@ function dedupeTracePointKey(point: TraceRecord = {}) {
   ].join(":");
 }
 
+function traceMinuteBucket(timestampMs: number) {
+  return Math.floor(timestampMs / TRACE_MINUTE_BUCKET_MS);
+}
+
+export function dedupeTracePointsByMinuteLatest(points = []) {
+  const buckets = new Map();
+  const normalized = Array.isArray(points)
+    ? points
+        .filter(
+          (point) =>
+            isFiniteNumber(point?.lat) &&
+            isFiniteNumber(point?.lon) &&
+            Number.isFinite(Number(point?.timestampMs ?? point?.time)),
+        )
+        .map((point) => ({
+          ...point,
+          timestampMs: Number(point?.timestampMs ?? point?.time),
+          lat: Number(point.lat),
+          lon: Number(point.lon),
+        }))
+        .sort((a, b) => a.timestampMs - b.timestampMs)
+    : [];
+
+  for (const point of normalized) {
+    buckets.set(traceMinuteBucket(point.timestampMs), point);
+  }
+
+  return Array.from(buckets.values()).sort(
+    (a, b) => a.timestampMs - b.timestampMs,
+  );
+}
+
 // Resolve overlapping trace points across multiple sources, preferring
-// the higher-priority source on collision. Sources are bucketed by 1-second
-// timestamp because adsb.lol publishes second-aligned offsets and our live
-// poll rounds to the broadcast second too — so "same physical broadcast"
-// reliably collapses to the same bucket regardless of which endpoint
-// supplied it. Callers pass sources in any order; the explicit `priority`
-// field is what determines the winner (higher wins).
+// the latest point within each minute. If two sources publish the same
+// timestamp in that minute, the explicit `priority` field breaks the tie
+// (higher wins). The map renders the resulting point set directly, so this
+// keeps recent/full/live traces from drawing multiple dots or labels for
+// the same minute.
 //
 // Used by the aircraft detail page where three sources overlap:
 //   priority 2 — live polled position (freshest, includes telemetry)
@@ -182,11 +214,18 @@ export function mergeTracesByPriority({ sources = [] } = {}) {
       if (!isFiniteNumber(point?.lat) || !isFiniteNumber(point?.lon)) continue;
       const timestampMs = Number(point?.timestampMs ?? point?.time);
       if (!Number.isFinite(timestampMs)) continue;
-      const bucket = Math.floor(timestampMs / 1000);
+      const bucket = traceMinuteBucket(timestampMs);
       const existing = buckets.get(bucket);
-      if (existing && existing.priority >= priority) continue;
+      if (
+        existing &&
+        (existing.timestampMs > timestampMs ||
+          (existing.timestampMs === timestampMs && existing.priority >= priority))
+      ) {
+        continue;
+      }
       buckets.set(bucket, {
         priority,
+        timestampMs,
         point: {
           timestampMs,
           lat: Number(point.lat),
@@ -411,15 +450,7 @@ export function mergeTraceHistory({
   const merged = [...recentTrace, ...normalizedFallback].sort(
     (a, b) => a.timestampMs - b.timestampMs,
   );
-  const seen = new Set();
-  const deduped = [];
-  for (const point of merged) {
-    const key = dedupeTracePointKey(point);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    deduped.push(point);
-  }
-  return deduped;
+  return dedupeTracePointsByMinuteLatest(merged);
 }
 
 export function downsampleTracePoints(

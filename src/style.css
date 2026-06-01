@@ -2656,7 +2656,7 @@ body {
     position: absolute;
     width: var(--user-location-pulse-diameter, 18px);
     z-index: 0;
-    animation: user-location-pulse 1s ease-out infinite;
+    animation: user-location-pulse var(--user-location-pulse-duration, 1s) ease-out infinite;
 }
 
 .user-location-marker__diamond {
@@ -4350,7 +4350,7 @@ body {
     bottom: 20px;
     right: 20px;
     z-index: var(--z-index-popover);
-    width: 280px;
+    width: 320px;
     max-width: calc(100vw - 32px);
     padding: 18px 18px 14px;
     /* Solid theme-color surface — no transparency, no frosted-glass.
@@ -4436,6 +4436,15 @@ body {
     min-width: 0;
 }
 
+.aircraft-preview-telemetry .aircraft-preview-stat:nth-child(2) {
+    align-items: center;
+    text-align: center;
+}
+
+.aircraft-preview-telemetry .aircraft-preview-stat:nth-child(2) .aircraft-preview-stat__value {
+    justify-content: center;
+}
+
 /* The right-most stat (V/S) hugs the card's right edge so it stays in
    visual rhythm with the right-aligned type tag and the metadata
    rows. */
@@ -4518,7 +4527,7 @@ body {
    the media card is mounted only after the photo lookup resolves and
    slides upward from behind the metadata card. */
 .aircraft-preview-card {
-    width: 280px;
+    width: 320px;
     padding: 0;
     overflow: visible;
     border: 0;
@@ -4528,7 +4537,7 @@ body {
 }
 
 .aircraft-preview-card--airport {
-    width: 320px;
+    width: 360px;
 }
 
 .aircraft-preview-card--desktop-reveal {
@@ -5677,7 +5686,7 @@ body {
         bottom: 16px;
         max-width: calc(100vw - 26px);
         right: 16px;
-        width: 224px;
+        width: 264px;
     }
 
     .aircraft-preview-card__media-slot {

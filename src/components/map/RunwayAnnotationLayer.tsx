@@ -43,12 +43,19 @@ const runwayLabelIcon = (ident: string, theme: string) =>
     iconAnchor: [17, 22],
   });
 
+const isLeafletLayer = (layer: unknown): layer is L.Layer =>
+  Boolean(
+    layer &&
+      typeof (layer as L.Layer).addTo === "function" &&
+      typeof (layer as L.Layer).remove === "function",
+  );
+
 // Dispatches on the `kind` returned by buildRunwayApproachVisualization:
 // light theme draws a dashed extended centerline; dark theme keeps the
 // glowing wedge + gradient controller. The pipelines are different
 // enough (polyline vs. polygon + per-frame gradient) that a single
 // style block would be artificial.
-const buildApproachLayer = ({ kind, data, theme }: Record<string, any>) => {
+const buildApproachLayer = ({ kind, data, map, theme }: Record<string, any>) => {
   if (kind === "approach-lines") {
     const layer = L.geoJSON(data as any, {
       interactive: false,
@@ -72,6 +79,7 @@ const buildApproachLayer = ({ kind, data, theme }: Record<string, any>) => {
   // Extra renderer padding so beams that extend past the viewport edge
   // aren't clipped — default 0.1 is ~80px but beams can reach ~408px.
   const beamRenderer = L.svg({ padding: 1 });
+  beamRenderer.addTo(map);
   const layer = L.geoJSON(data as any, {
     renderer: beamRenderer,
     interactive: false,
@@ -114,7 +122,7 @@ export default function RunwayAnnotationLayer({
       },
     });
 
-    const sublayers = [lineLayer];
+    const sublayers: L.Layer[] = [lineLayer].filter(isLeafletLayer);
     let beamLayer = null;
     let beamRenderer = null;
 
@@ -126,10 +134,11 @@ export default function RunwayAnnotationLayer({
       const built = buildApproachLayer({
         kind: visualization.kind,
         data: visualization.data,
+        map,
         theme,
       });
-      sublayers.unshift(built.layer as any);
-      beamLayer = built.beamLayer;
+      if (isLeafletLayer(built.layer)) sublayers.unshift(built.layer);
+      beamLayer = isLeafletLayer(built.beamLayer) ? built.beamLayer : null;
       beamRenderer = built.beamRenderer;
     }
 
@@ -145,13 +154,29 @@ export default function RunwayAnnotationLayer({
           }),
         ),
       );
-      sublayers.push(labelLayer as any);
+      if (isLeafletLayer(labelLayer)) sublayers.push(labelLayer);
     }
 
-    const layer = L.layerGroup(sublayers).addTo(map);
+    if (!sublayers.length) return undefined;
+
+    const layer = L.layerGroup().addTo(map);
     layerRef.current = layer;
 
-    const removeGradients = beamLayer
+    let beamLayerAdded = false;
+    const addSublayer = (sublayer: L.Layer, label: string) => {
+      try {
+        layer.addLayer(sublayer);
+        if (sublayer === beamLayer) beamLayerAdded = true;
+      } catch (error) {
+        console.warn(`[RunwayAnnotationLayer] skipped ${label}`, error);
+      }
+    };
+
+    sublayers.forEach((sublayer, index) => {
+      addSublayer(sublayer, `sublayer-${index}`);
+    });
+
+    const removeGradients = beamLayer && beamLayerAdded
       ? createRunwayBeamGradientController({ map, beamLayer: beamLayer as any, theme })
       : () => {};
 

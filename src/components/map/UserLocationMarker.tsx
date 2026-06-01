@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
@@ -14,6 +15,8 @@ const USER_LOCATION_ICON_SIZE_PX = 18;
 
 export default function UserLocationMarker({
   location = null,
+  pulseIntervalMs = null,
+  pulseBeat = null,
 }: Record<string, any>) {
   const map = useMapInstance();
   const markerRef = useRef(null);
@@ -80,9 +83,18 @@ export default function UserLocationMarker({
   return createPortal(
     <div className="user-location-marker" aria-label="Current location">
       <span
+        key={pulseBeat || "idle"}
         className="user-location-marker__pulse"
         aria-hidden="true"
-        style={{ "--user-location-pulse-diameter": `${pulseDiameterPx}px` }}
+        style={
+          {
+            "--user-location-pulse-diameter": `${pulseDiameterPx}px`,
+            "--user-location-pulse-duration":
+              pulseIntervalMs && Number.isFinite(Number(pulseIntervalMs))
+                ? `${Math.max(180, Number(pulseIntervalMs))}ms`
+                : undefined,
+          } as CSSProperties
+        }
       />
       <span className="user-location-marker__diamond" aria-hidden="true" />
     </div>,

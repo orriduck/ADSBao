@@ -52,6 +52,7 @@ export default function MapLayerDrawer({
   showNavaidMarkers,
   showAirspaces = true,
   userLocationActive = false,
+  userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
   onToggleMapLabels,
@@ -71,6 +72,13 @@ export default function MapLayerDrawer({
     onToggleNavaidMarkers,
     onToggleAirspaces,
   };
+  const userLocationTitle = userLocationPending
+    ? t("mapLayers.locatingUser")
+    : userLocationAudioActive
+      ? t("mapLayers.hideUserLocation")
+      : userLocationActive
+        ? t("mapLayers.enableUserLocationAudio")
+        : t("mapLayers.showUserLocation");
 
   return (
     <div
@@ -128,25 +136,19 @@ export default function MapLayerDrawer({
           <ToolbarButton
             tone="rail"
             active={userLocationActive}
-            aria-label={
-              userLocationPending
-                ? t("mapLayers.locatingUser")
-                : userLocationActive
-                  ? t("mapLayers.hideUserLocation")
-                  : t("mapLayers.showUserLocation")
-            }
+            aria-label={userLocationTitle}
             aria-pressed={userLocationActive}
-            title={
-              userLocationPending
-                ? t("mapLayers.locatingUser")
-                : userLocationActive
-                  ? t("mapLayers.hideUserLocation")
-                  : t("mapLayers.showUserLocation")
-            }
+            title={userLocationTitle}
+            className={cn(
+              userLocationAudioActive &&
+                "before:content-[''] before:absolute before:right-[6px] before:top-[6px] before:z-[2] before:h-1.5 before:w-1.5 before:rounded-full before:bg-atc-accent before:shadow-[0_0_8px_var(--atc-accent)]",
+            )}
             disabled={userLocationPending}
             onClick={onLocateUser}
           >
-            <MapControlIcon iconKey="locateFixed" />
+            <MapControlIcon
+              iconKey={userLocationAudioActive ? "radar" : "locateFixed"}
+            />
           </ToolbarButton>
         )}
       </Toolbar>
