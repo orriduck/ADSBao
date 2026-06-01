@@ -1,4 +1,5 @@
 type AirspaceOverlayRecord = Record<string, any>;
+type AirspaceOverlayAnimationPhase = "enter" | "exit";
 
 type AirspaceOverlayFeature = {
   type: "Feature";
@@ -15,6 +16,12 @@ type AirspaceOverlayFeature = {
     verticalLimit: string;
     source: string;
   };
+};
+
+const AIRSPACE_OVERLAY_ANIMATION = {
+  itemDurationMs: 220,
+  staggerMs: 32,
+  maxDelayMs: 420,
 };
 
 const TOKEN_BY_LEVEL: Record<string, string> = {
@@ -71,6 +78,39 @@ export function buildAirspaceOverlayFeatures(
   }).sort(
     (a, b) => approximateGeometryBoundsArea(b.geometry) - approximateGeometryBoundsArea(a.geometry),
   );
+}
+
+export function buildAirspaceOverlayAnimationPlan(
+  items: readonly unknown[] = [],
+  phase: AirspaceOverlayAnimationPhase,
+  options: { reducedMotion?: boolean } = {},
+) {
+  const count = items.length;
+  const indexes = Array.from({ length: count }, (_, index) => index);
+  const orderedIndexes = phase === "exit" ? indexes.reverse() : indexes;
+
+  if (options.reducedMotion || count === 0) {
+    return {
+      itemDurationMs: 0,
+      totalDurationMs: 0,
+      steps: orderedIndexes.map((index) => ({ index, delayMs: 0 })),
+    };
+  }
+
+  const maxDelayMs = Math.min(
+    AIRSPACE_OVERLAY_ANIMATION.maxDelayMs,
+    Math.max(0, (count - 1) * AIRSPACE_OVERLAY_ANIMATION.staggerMs),
+  );
+  const staggerMs = count <= 1 ? 0 : maxDelayMs / (count - 1);
+
+  return {
+    itemDurationMs: AIRSPACE_OVERLAY_ANIMATION.itemDurationMs,
+    totalDurationMs: Math.round(maxDelayMs + AIRSPACE_OVERLAY_ANIMATION.itemDurationMs),
+    steps: orderedIndexes.map((index, order) => ({
+      index,
+      delayMs: Math.round(order * staggerMs),
+    })),
+  };
 }
 
 function approximateGeometryBoundsArea(geometry: AirspaceOverlayRecord = {}) {
