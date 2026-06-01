@@ -27,6 +27,7 @@ const responseNow = 1_700_000_003_000;
       track: 87,
       seen_pos: 1.25,
       t: "b738",
+      desc: "BOEING 737-800",
       category: "a3",
     },
     { responseNow, receiveTime },
@@ -37,6 +38,7 @@ const responseNow = 1_700_000_003_000;
   assert.equal(aircraft.altitude, 12000);
   assert.equal(aircraft.velocity, 250);
   assert.equal(aircraft.type, "B738");
+  assert.equal(aircraft.desc, "BOEING 737-800");
   assert.equal(aircraft.category, "A3");
   assert.equal(aircraft.positionTime, 1_700_000_001_750);
   assert.equal(aircraft.receiveTime, receiveTime);

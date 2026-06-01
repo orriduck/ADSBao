@@ -1,9 +1,17 @@
+import { resolveAircraftDisplayModel } from "../aircraftTypeDisplayModel";
+
 export function getAircraftPreviewTypeDisplay(aircraft) {
-  const type = (aircraft?.type || "").trim().toUpperCase();
-  const category = (aircraft?.category || "").trim().toUpperCase();
+  const display = resolveAircraftDisplayModel(aircraft);
+  const primary = display.icaoType || display.displayName;
+  const secondary =
+    display.icaoType && display.displayName !== display.icaoType
+      ? display.displayName
+      : null;
 
   return {
-    primary: type || category || "N/A",
-    secondary: type && category ? category : null,
+    primary,
+    secondary,
+    icaoType: display.icaoType,
+    category: display.category,
   };
 }

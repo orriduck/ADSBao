@@ -113,6 +113,17 @@ export function buildAirspaceOverlayAnimationPlan(
   };
 }
 
+export function resolveAirspaceInitialOpacity({
+  visible,
+  animateInitialEnter,
+}: {
+  visible: boolean;
+  animateInitialEnter: boolean;
+}) {
+  if (!visible) return 0;
+  return animateInitialEnter ? 0 : 1;
+}
+
 function approximateGeometryBoundsArea(geometry: AirspaceOverlayRecord = {}) {
   const pairs: number[][] = [];
   collectCoordinatePairs(geometry.coordinates, pairs);

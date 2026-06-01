@@ -36,6 +36,10 @@ import { cn } from "@/lib/utils";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {
+  aircraftTypeSearchText,
+  resolveAircraftDisplayModel,
+} from "@/features/aircraft/aircraftTypeDisplayModel";
+import {
   ALTITUDE_LEVEL_OPTIONS,
   ENTITY_FILTER_OPTIONS,
   aircraftMatchesFilters,
@@ -417,7 +421,9 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
   const selectedSet = useMemo(() => new Set(selectedTypes), [selectedTypes]);
   const displayValue = useMemo(() => {
     if (!isMultiSelect) return t("sidebar.all");
-    if (selectedTypes.length === 1) return selectedTypes[0];
+    if (selectedTypes.length === 1) {
+      return resolveAircraftDisplayModel({ type: selectedTypes[0] }).displayName;
+    }
     return t("sidebar.typesCount", { count: selectedTypes.length });
   }, [isMultiSelect, selectedTypes, t]);
 
@@ -437,10 +443,11 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
   };
 
   const toggleGroup = (group) => {
-    const allSelected = group.types.every((t) => selectedSet.has(t));
+    const groupValues = group.types.map((type) => type.value);
+    const allSelected = groupValues.every((value) => selectedSet.has(value));
     const next = allSelected
-      ? selectedTypes.filter((t) => !group.types.includes(t))
-      : [...new Set([...selectedTypes, ...group.types])];
+      ? selectedTypes.filter((type) => !groupValues.includes(type))
+      : [...new Set([...selectedTypes, ...groupValues])];
     commit(next);
   };
 
@@ -478,8 +485,8 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
             <MenuItemLabel>{t("sidebar.all")}</MenuItemLabel>
           </MenuItem>
           {groups.map((group) => {
-            const groupSelectedCount = group.types.filter((t) =>
-              selectedSet.has(t),
+            const groupSelectedCount = group.types.filter((type) =>
+              selectedSet.has(type.value),
             ).length;
             const allSelected = groupSelectedCount === group.types.length;
             const partialSelected =
@@ -509,18 +516,31 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
                 </MenuItem>
                 {group.types.map((type) => (
                   <MenuItem
-                    key={type}
-                    selected={selectedSet.has(type)}
-                    onClick={() => toggleType(type)}
+                    key={type.value}
+                    selected={selectedSet.has(type.value)}
+                    onClick={() => toggleType(type.value)}
                     // Indent type rows under their group header.
                     className="[&_[data-ui=menu-label]]:pl-2"
                   >
                     <MenuItemCheck>
-                      {selectedSet.has(type) ? (
+                      {selectedSet.has(type.value) ? (
                         <Check size={11} aria-hidden="true" />
                       ) : null}
                     </MenuItemCheck>
-                    <MenuItemLabel data-ui="menu-label">{type}</MenuItemLabel>
+                    <MenuItemLabel
+                      data-ui="menu-label"
+                      className="flex min-w-0 flex-col gap-0.5"
+                    >
+                      <span className="min-w-0 truncate">{type.label}</span>
+                      {type.icaoType && type.icaoType !== type.label ? (
+                        <span
+                          className="notranslate min-w-0 truncate font-mono text-[9px] font-medium uppercase tracking-normal text-atc-faint"
+                          translate="no"
+                        >
+                          {type.icaoType}
+                        </span>
+                      ) : null}
+                    </MenuItemLabel>
                   </MenuItem>
                 ))}
               </div>
@@ -649,7 +669,7 @@ function aircraftSearchText(aircraft: AircraftLike = {}) {
     aircraft.callsign,
     aircraft.icao24,
     aircraft.registration,
-    aircraftTypeLabel(aircraft),
+    aircraftTypeSearchText(aircraft),
     aircraft.flightRouteLabel,
     routeMunicipalities,
     getAircraftContextGroup(aircraft),

@@ -12,6 +12,7 @@ import {
   getFlightRouteAirlineIconUrl,
 } from "@/utils/flightRouteDisplay";
 import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel";
+import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
 import {
   formatFlightTelemetryMetric,
   resolveTrackDirectionTranslationKey,
@@ -48,8 +49,7 @@ export default function FlightSidebar({
   const displayCallsign =
     (aircraft?.callsign || callsign || "").trim() || "—";
   const hex = aircraft?.icao24 ? aircraft.icao24.toUpperCase() : "";
-  const type = (aircraft?.type || "").trim().toUpperCase();
-  const category = (aircraft?.category || "").trim().toUpperCase();
+  const typeDisplay = resolveAircraftDisplayModel(aircraft || {});
   const route = formatFlightRouteLabel(aircraft?.flightRoute) || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
   const speed = toFiniteNumber(aircraft?.velocity);
@@ -65,8 +65,7 @@ export default function FlightSidebar({
     <>
       <FlightIdentity
         callsign={displayCallsign}
-        type={type}
-        category={category}
+        typeDisplay={typeDisplay}
         route={route}
         airlineIconUrl={airlineIconUrl}
         positionSourceBadge={positionSourceBadge}
@@ -112,31 +111,35 @@ export default function FlightSidebar({
 
 function FlightIdentity({
   callsign,
-  type,
-  category,
+  typeDisplay,
   route,
   airlineIconUrl,
   positionSourceBadge,
 }) {
   const { t } = useI18n();
+  const hasTypeDisplay =
+    typeDisplay?.displayName && typeDisplay.displayName !== "N/A";
+  const secondary = [typeDisplay?.icaoType, typeDisplay?.category]
+    .filter(Boolean)
+    .join(" / ");
   return (
     <SidebarIdentityHero label={t("sidebar.tracking")} code={callsign}>
-      {(type || category) && (
-        <div className="mt-2 flex items-baseline gap-2">
-          {type && (
+      {hasTypeDisplay && (
+        <div className="mt-2 flex min-w-0 items-baseline gap-2">
+          <span
+            className="notranslate min-w-0 truncate font-mono text-[13px] font-semibold italic text-atc-text"
+            translate="no"
+            title={typeDisplay.displayName}
+          >
+            {typeDisplay.displayName}
+          </span>
+          {secondary && (
             <span
-              className="notranslate font-mono text-[13px] font-semibold italic text-atc-text"
+              className="notranslate endf-chip flex-none"
               translate="no"
+              title={secondary}
             >
-              {type}
-            </span>
-          )}
-          {category && (
-            <span
-              className="notranslate endf-chip"
-              translate="no"
-            >
-              <span>{category}</span>
+              <span>{secondary}</span>
             </span>
           )}
         </div>

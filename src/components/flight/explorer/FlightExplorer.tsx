@@ -407,6 +407,7 @@ function FlightExplorerContent({ callsign }) {
     () =>
       JSON.stringify({
         type: enrichedTrackedAircraft?.type || "",
+        desc: enrichedTrackedAircraft?.desc || "",
         category: enrichedTrackedAircraft?.category || "",
         origin: enrichedTrackedAircraft?.origin || "",
         destination: enrichedTrackedAircraft?.destination || "",
@@ -415,6 +416,7 @@ function FlightExplorerContent({ callsign }) {
       }),
     [
       enrichedTrackedAircraft?.type,
+      enrichedTrackedAircraft?.desc,
       enrichedTrackedAircraft?.category,
       enrichedTrackedAircraft?.origin,
       enrichedTrackedAircraft?.destination,

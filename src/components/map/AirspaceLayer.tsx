@@ -6,6 +6,7 @@ import { AIRPORT_MAP_PANES } from "@/config/airportMap";
 import {
   buildAirspaceOverlayAnimationPlan,
   buildAirspaceOverlayFeatures,
+  resolveAirspaceInitialOpacity,
   resolveAirspaceOverlayFocusStyle,
   resolveAirspaceOverlayStyle,
 } from "@/features/airport/map/airspaceOverlayModel";
@@ -43,6 +44,8 @@ export default function AirspaceLayer({
   const boundaryLabelsRef = useRef<SVGTextElement[]>([]);
   const labelFrameRef = useRef(0);
   const animationFrameRef = useRef(0);
+  const hasAnimatedInitialEnterRef = useRef(false);
+  const skipNextVisibilityAnimationRef = useRef(false);
   const selectedAirspaceIdRef = useRef(selectedAirspaceId);
   const visibleRef = useRef(visible);
   const onSelectRef = useRef(onSelectAirspace);
@@ -63,6 +66,16 @@ export default function AirspaceLayer({
     boundaryLabelsRef.current = [];
     safeRemoveFromMap(layerRef.current, map);
     const boundaryLabels: SVGTextElement[] = [];
+    const animateInitialEnter =
+      visibleRef.current && !hasAnimatedInitialEnterRef.current;
+    const initialOpacity = resolveAirspaceInitialOpacity({
+      visible: visibleRef.current,
+      animateInitialEnter,
+    });
+    if (animateInitialEnter) {
+      hasAnimatedInitialEnterRef.current = true;
+      skipNextVisibilityAnimationRef.current = true;
+    }
     const airspacePane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.airspace);
     const paneElement = map.getPane(airspacePane);
     if (paneElement) paneElement.style.pointerEvents = visibleRef.current ? "auto" : "none";
@@ -73,7 +86,7 @@ export default function AirspaceLayer({
         return resolveVisibleAirspaceStyle(
           feature as any,
           selectedAirspaceIdRef.current,
-          visibleRef.current ? 1 : 0,
+          initialOpacity,
         );
       },
       onEachFeature(feature, featureLayer) {
@@ -92,17 +105,26 @@ export default function AirspaceLayer({
       polygonLayer,
       boundaryLabels,
       selectedAirspaceIdRef.current,
-      visibleRef.current ? 1 : 0,
+      initialOpacity,
     );
     labelFrameRef.current = window.requestAnimationFrame(() => {
       boundaryLabels.push(
         ...attachBoundaryLabels(
           polygonLayer,
           selectedAirspaceIdRef.current,
-          visibleRef.current ? 1 : 0,
+          initialOpacity,
         ),
       );
       boundaryLabelsRef.current = boundaryLabels;
+      if (animateInitialEnter) {
+        animateAirspaceGroupOpacity({
+          layerGroup: polygonLayer,
+          labels: boundaryLabels,
+          selectedAirspaceId: selectedAirspaceIdRef.current,
+          visible: true,
+          animationFrameRef,
+        });
+      }
     });
 
     return () => {
@@ -122,6 +144,11 @@ export default function AirspaceLayer({
     const airspacePane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.airspace);
     const paneElement = map.getPane(airspacePane);
     if (paneElement) paneElement.style.pointerEvents = visible ? "auto" : "none";
+
+    if (skipNextVisibilityAnimationRef.current) {
+      skipNextVisibilityAnimationRef.current = false;
+      return;
+    }
 
     animateAirspaceGroupOpacity({
       layerGroup: polygonLayer,

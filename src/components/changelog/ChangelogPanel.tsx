@@ -10,6 +10,17 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v1.8.1": {
+    title: "机型名称与空域初始动画",
+    summary:
+      "飞机预览和筛选现在优先显示更容易识别的机型名称,默认开启的空域图层也会在首次加载时依次淡入。",
+    highlights: [
+      "飞机预览卡显示友好的机型名称,ICAO 机型码降为辅助信息",
+      "机型筛选共用同一套机型解析逻辑,搜索同时匹配友好名称和 ICAO 码",
+      "只有 A1/A2/A3 分类、没有具体机型的数据会显示为 Unknown,筛选中归为 All Unclassified",
+      "默认开启空域图层时,首次加载完成也会播放分层淡入动画",
+    ],
+  },
   "v1.8.0": {
     title: "机场空域图层",
     summary:

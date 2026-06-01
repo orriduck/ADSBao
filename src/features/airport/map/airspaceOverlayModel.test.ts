@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildAirspaceOverlayAnimationPlan,
   buildAirspaceOverlayFeatures,
+  resolveAirspaceInitialOpacity,
   resolveAirspaceOverlayFocusStyle,
   resolveAirspaceOverlayStyle,
 } from "./airspaceOverlayModel";
@@ -117,6 +118,21 @@ const polygon = {
   assert.equal(reducedPlan.itemDurationMs, 0);
   assert.equal(reducedPlan.totalDurationMs, 0);
   assert.deepEqual(reducedPlan.steps.map((step) => step.delayMs), [0, 0]);
+}
+
+{
+  assert.equal(
+    resolveAirspaceInitialOpacity({ visible: true, animateInitialEnter: true }),
+    0,
+  );
+  assert.equal(
+    resolveAirspaceInitialOpacity({ visible: true, animateInitialEnter: false }),
+    1,
+  );
+  assert.equal(
+    resolveAirspaceInitialOpacity({ visible: false, animateInitialEnter: true }),
+    0,
+  );
 }
 
 {
