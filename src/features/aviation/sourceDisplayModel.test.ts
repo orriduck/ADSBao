@@ -14,6 +14,7 @@ assert.equal(
   getDataSourceDisplayName(DATA_SOURCE.AIRPLANES_LIVE),
   "airplanes.live",
 );
+assert.equal(getDataSourceDisplayName(DATA_SOURCE.ADSB_FI), "adsb.fi");
 assert.equal(getDataSourceDisplayName("custom-feed"), "custom-feed");
 assert.equal(getDataSourceDisplayName(""), "");
 
@@ -31,6 +32,10 @@ assert.equal(
 assert.equal(
   getAircraftPositionSourceBadge({ source: "airplanes_live", kind: "observed" }),
   "Airplanes.live",
+);
+assert.equal(
+  getAircraftPositionSourceBadge({ source: "adsb_fi", kind: "observed" }),
+  "adsb.fi",
 );
 assert.equal(
   getAircraftPositionSourceBadge({ source: "flightaware", kind: "estimated" }),

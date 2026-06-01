@@ -53,9 +53,19 @@ export const ABOUT_DATA_SOURCES = [
     title: "airplanes.live Aircraft Feed",
     descriptionKey: "about.sources.airplanesLive.description",
     description:
-      "Peer ADS-B positions feed. On cold start the proxy races both feeds and sticks with whichever responds first; on error it re-races to pick a fresh winner.",
+      "Peer ADS-B positions feed. On cold start the proxy races position feeds and sticks with whichever responds first; on error it re-races to pick a fresh winner.",
     host: "api.airplanes.live",
     href: "https://airplanes.live/api-guide/",
+  },
+  {
+    glyph: "ADS-B",
+    titleKey: "about.sources.adsbFi.title",
+    title: "adsb.fi Aircraft Feed",
+    descriptionKey: "about.sources.adsbFi.description",
+    description:
+      "Peer ADS-B positions feed. It participates in the same cold-start race and sticky failover path as the other aircraft position providers.",
+    host: "opendata.adsb.fi",
+    href: "https://www.adsb.fi/",
   },
   {
     glyph: "ICONS",

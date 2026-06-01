@@ -54,7 +54,12 @@ const en = {
       airplanesLive: {
         title: "airplanes.live Aircraft Feed",
         description:
-          "Peer ADS-B positions feed. On cold start the proxy races both feeds and sticks with whichever responds first; on error it re-races to pick a fresh winner.",
+          "Peer ADS-B positions feed. On cold start the proxy races position feeds and sticks with whichever responds first; on error it re-races to pick a fresh winner.",
+      },
+      adsbFi: {
+        title: "adsb.fi Aircraft Feed",
+        description:
+          "Peer ADS-B positions feed. It participates in the same cold-start race and sticky failover path as the other aircraft position providers.",
       },
       aircraftShapes: {
         title: "AircraftShapesSVG",

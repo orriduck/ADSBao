@@ -17,6 +17,7 @@ export const TRACKED_FLIGHT_STATUS = Object.freeze({
 const PROVIDER_SOURCE = Object.freeze({
   "adsb.lol": "adsb_lol",
   "airplanes.live": "airplanes_live",
+  "adsb.fi": "adsb_fi",
   flightaware: "flightaware",
 });
 
@@ -157,6 +158,7 @@ function normalizeFlightAwarePosition(
 export async function resolveTrackedFlightPosition({
   adsbLolPosition = null,
   airplanesLivePosition = null,
+  adsbFiPosition = null,
   flightAwareFallback = null,
   getFlightAwareFallback = null,
   localProjection = null,
@@ -168,6 +170,7 @@ export async function resolveTrackedFlightPosition({
   const candidates = [
     { source: "adsb.lol", position: adsbLolPosition },
     { source: "airplanes.live", position: airplanesLivePosition },
+    { source: "adsb.fi", position: adsbFiPosition },
   ];
 
   const fresh = pickFreshPrimary(candidates, now);

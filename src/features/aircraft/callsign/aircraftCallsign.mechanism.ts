@@ -233,10 +233,12 @@ export const fetchTrackedAircraftByCallsign = async ({
   );
   const adsbLolPosition = pickFreshest(bySource.get("adsb.lol")?.ac);
   const airplanesLivePosition = pickFreshest(bySource.get("airplanes.live")?.ac);
+  const adsbFiPosition = pickFreshest(bySource.get("adsb.fi")?.ac);
 
   const resolved = await resolveTrackedFlightPosition({
     adsbLolPosition,
     airplanesLivePosition,
+    adsbFiPosition,
     getFlightAwareFallback,
     callsign,
     featureEnabled,
