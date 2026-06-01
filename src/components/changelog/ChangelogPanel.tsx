@@ -10,6 +10,18 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v1.8.0": {
+    title: "机场空域图层",
+    summary:
+      "机场地图现在直接渲染 OpenAIP 空域,包含透明填充、边界文字、点击预览卡和可持久化的图层开关。",
+    highlights: [
+      "机场地图加入接近 OpenAIP 风格的空域覆盖层,支持 focus 样式和小空域优先点选",
+      "危险区、限制区、管制空域、信息类空域和未知空域使用随主题变化的 design token",
+      "桌面和移动端空域预览卡显示本地化的类型、进入规则、等级和上下限高度",
+      "地名、跑道灯、导航台和空域图层开关会缓存到浏览器",
+      "侧栏 metric 和筛选 tile 在亮暗主题下保持可见的未选中边框",
+    ],
+  },
   "v1.6.0": {
     title: "附近列表虚拟化与数据层接入",
     summary:

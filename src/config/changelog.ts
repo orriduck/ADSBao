@@ -6,6 +6,20 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.8.0",
+    kind: "feat",
+    title: "Airport airspace overlays",
+    summary:
+      "Airport maps now render OpenAIP airspaces directly on the map with translucent fills, labeled boundaries, clickable preview cards, and persisted layer toggles.",
+    highlights: [
+      "OpenAIP-style airspace overlays render on airport maps with focus styling and small-airspace hit priority",
+      "Danger, restricted, controlled, informational, and unknown airspaces use theme-aware design tokens",
+      "Desktop and mobile airspace preview cards show localized type, access rule, class, and vertical limits",
+      "Map layer settings for labels, runway beams, navaids, and airspaces persist in the browser",
+      "Active sidebar metric and filter tiles keep visible resting borders across light and dark themes",
+    ],
+  },
+  {
     version: "v1.7.0",
     kind: "feat",
     title: "OpenAIP airport directory migration",
