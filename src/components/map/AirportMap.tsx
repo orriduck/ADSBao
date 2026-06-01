@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContext } from "./MapContext";
 import MapTileLayers from "./MapTileLayers";
-import AreaMarker from "./AreaMarker";
 import AirportMarker from "./AirportMarker";
 import MapRangeLegend from "./MapRangeLegend";
+import AirspaceLayer from "./AirspaceLayer";
 import NearbyAirportLayer from "./NearbyAirportLayer";
 import NavaidLabelLayer from "./NavaidLabelLayer";
 import AircraftPosition from "./AircraftPosition";
@@ -51,22 +51,26 @@ export default function AirportMap({
   aircraft = [],
   nearbyAirports = [],
   nearbyNavaids = [],
+  airspaces = [],
   airport = null,
   showMapLabels = false,
   showRunwayBeams = true,
   showNavaidMarkers = false,
+  showAirspaces = true,
   trafficFilter = "all",
   typeFilter = "all",
   altitudeLevel = "all",
   selectedAircraftId = "",
   selectedAirportIcao = "",
   selectedNavaidKey = "",
+  selectedAirspaceId = "",
   focalAircraftId = "",
   followsCenter = true,
   floatingSidebarAware = false,
   onSelectAircraft,
   onSelectAirport,
   onSelectNavaid,
+  onSelectAirspace,
   runwayMap = null,
   focalRangeRings = null,
   fallbackCenter = AIRPORT_MAP_FALLBACK_CENTER,
@@ -79,13 +83,8 @@ export default function AirportMap({
   children = null,
 }: Record<string, any>) {
   const { locale } = useI18n();
-  // Single source of truth for the focal ring bands so AreaMarker,
-  // AirportMarker, and the bottom-left legend agree on what to render.
-  // Nearby airports intentionally render without range rings.
-  const effectiveFocalRings =
-    focalRangeRings === false
-      ? null
-      : focalRangeRings || { intervalNm: 3, maxNm: 30 };
+  const groundRadiusNm =
+    focalRangeRings === false ? null : (focalRangeRings?.intervalNm || 3);
   const mapEl = useRef(null);
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
@@ -195,6 +194,9 @@ export default function AirportMap({
       if (selectedNavaidKey && typeof onSelectNavaid === "function") {
         onSelectNavaid("");
       }
+      if (selectedAirspaceId && typeof onSelectAirspace === "function") {
+        onSelectAirspace("");
+      }
     };
     mapInstance.on("click", handleMapClick);
     return () => {
@@ -205,9 +207,11 @@ export default function AirportMap({
     onSelectAircraft,
     onSelectAirport,
     onSelectNavaid,
+    onSelectAirspace,
     selectedAircraftId,
     selectedAirportIcao,
     selectedNavaidKey,
+    selectedAirspaceId,
   ]);
 
   const visibleAircraft = useMemo(() => {
@@ -221,7 +225,7 @@ export default function AirportMap({
       airportLon: icao ? lon : null,
       nearbyAirports,
       zoom,
-      groundAreaRadiusNm: effectiveFocalRings?.intervalNm,
+      groundAreaRadiusNm: groundRadiusNm,
     });
   }, [
     aircraft,
@@ -230,7 +234,7 @@ export default function AirportMap({
     lon,
     nearbyAirports,
     zoom,
-    effectiveFocalRings?.intervalNm,
+    groundRadiusNm,
   ]);
   const selectedAircraft = useMemo(
     () =>
@@ -271,16 +275,12 @@ export default function AirportMap({
             showLabels={showMapLabels}
             selectionActive={selectionActive}
           />
-          {effectiveFocalRings && (
-            <AreaMarker
-              lat={lat}
-              lon={lon}
-              zoom={zoom}
-              theme={currentTheme}
-              ringIntervalNm={effectiveFocalRings.intervalNm}
-              ringMaxNm={effectiveFocalRings.maxNm}
-            />
-          )}
+          <AirspaceLayer
+            airspaces={airspaces}
+            visible={showAirspaces}
+            selectedAirspaceId={selectedAirspaceId}
+            onSelectAirspace={onSelectAirspace}
+          />
           {icao && (
             <AirportMarker
               lat={lat}
@@ -289,7 +289,7 @@ export default function AirportMap({
               airport={airport}
               aircraft={aircraft}
               zoom={zoom}
-              groundRadiusNm={effectiveFocalRings?.intervalNm}
+              groundRadiusNm={groundRadiusNm}
             />
           )}
           <NearbyAirportLayer

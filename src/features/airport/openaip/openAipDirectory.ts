@@ -73,6 +73,13 @@ const AIRSPACE_FIELDS = [
   "upperLimit",
   "activeFrom",
   "activeUntil",
+  "onDemand",
+  "onRequest",
+  "byNotam",
+  "specialAgreement",
+  "requestCompliance",
+  "hoursOfOperation",
+  "remarks",
 ];
 
 const REPORTING_POINT_FIELDS = [

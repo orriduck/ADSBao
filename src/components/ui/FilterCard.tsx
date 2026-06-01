@@ -24,7 +24,7 @@ const filterCardVariants = cva(
   cn(
     "group relative isolate w-full overflow-hidden",
     "grid items-center justify-items-center gap-[6px]",
-    "rounded-lg border border-atc-line",
+    "rounded-lg border border-[var(--sidebar-tile-rest-border)] bg-clip-padding",
     "bg-[color-mix(in_oklab,var(--atc-card)_74%,transparent)]",
     "shadow-[inset_0_1px_0_color-mix(in_oklab,var(--atc-text)_5%,transparent)]",
     "text-atc-text text-center cursor-pointer",
@@ -37,11 +37,9 @@ const filterCardVariants = cva(
     // chip in the "on" state reads the same as the selected tab.
     "data-[active=true]:bg-[var(--atc-click-bg)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
-    "data-[active=true]:border-transparent",
     "data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-12px_20px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]",
     "data-[state=open]:bg-[var(--atc-click-bg)]",
     "data-[state=open]:text-[var(--atc-click-fg)]",
-    "data-[state=open]:border-transparent",
     "data-[state=open]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-12px_20px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]",
     // Focus-visible — yellow ring.
     "focus-visible:shadow-[inset_0_0_0_2px_var(--endf-yellow)]",

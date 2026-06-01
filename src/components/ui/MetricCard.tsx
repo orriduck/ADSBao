@@ -51,7 +51,7 @@ const cardVariants = cva(
   cn(
     "relative isolate overflow-hidden",
     "grid content-center justify-items-center gap-[7px]",
-    "rounded-[10px] border border-atc-line",
+    "rounded-[10px] border border-[var(--sidebar-tile-rest-border)] bg-clip-padding",
     "bg-[color-mix(in_oklab,var(--atc-card)_82%,transparent)]",
     "shadow-[inset_0_1px_0_color-mix(in_oklab,var(--atc-text)_6%,transparent)]",
     "text-atc-text text-center min-h-[104px] p-[18px] min-w-0",
@@ -69,7 +69,6 @@ const cardVariants = cva(
     // glow on bottom, label / unit dim down. Replaces the
     // .sidebar-metric-card--active styles previously in style.css.
     "data-[active=true]:bg-[var(--atc-click-bg)]",
-    "data-[active=true]:border-transparent",
     "data-[active=true]:text-[var(--atc-click-fg)]",
     "data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-14px_22px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]",
     // Bottom-glow halo painted underneath the value. Owned by ::after

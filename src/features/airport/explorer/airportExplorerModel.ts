@@ -111,6 +111,8 @@ export function resolveAirportExplorerSelection({
   selectedAirportIcao = "",
   navaids = [],
   selectedNavaidKey = "",
+  airspaces = [],
+  selectedAirspaceId = "",
 }: AirportExplorerRecord = {}) {
   const selectedAircraft =
     aircraft.find((item) => aircraftSelectionId(item) === selectedAircraftId) ||
@@ -120,6 +122,8 @@ export function resolveAirportExplorerSelection({
   const navaidLabels = buildNavaidLabels(navaids);
   const selectedNavaid =
     navaidLabels.find((navaid) => navaid?.key === selectedNavaidKey) || null;
+  const selectedAirspace =
+    airspaces.find((airspace) => airspace?.id === selectedAirspaceId) || null;
 
   return {
     selectedAircraft,
@@ -127,5 +131,7 @@ export function resolveAirportExplorerSelection({
     selectedAirport,
     selectedNavaid,
     selectedNavaidStillVisible: !selectedNavaidKey || Boolean(selectedNavaid),
+    selectedAirspace,
+    selectedAirspaceStillVisible: !selectedAirspaceId || Boolean(selectedAirspace),
   };
 }

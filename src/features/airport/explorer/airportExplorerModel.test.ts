@@ -97,6 +97,8 @@ const selection = resolveAirportExplorerSelection({
     },
   ],
   selectedNavaidKey: "86260-BOS",
+  airspaces: [{ id: "airspace-1", name: "Boston Class B" }],
+  selectedAirspaceId: "airspace-1",
 });
 
 assert.equal(selection.selectedAircraft.callsign, "JBU456");
@@ -104,6 +106,8 @@ assert.equal(selection.selectedAircraftStillVisible, true);
 assert.equal(selection.selectedAirport.icao, "KJFK");
 assert.equal(selection.selectedNavaid.ident, "BOS");
 assert.equal(selection.selectedNavaidStillVisible, true);
+assert.equal(selection.selectedAirspace.name, "Boston Class B");
+assert.equal(selection.selectedAirspaceStillVisible, true);
 
 const missingSelection = resolveAirportExplorerSelection({
   aircraft: [{ icao24: "a1", callsign: "DAL123" }],
@@ -112,6 +116,8 @@ const missingSelection = resolveAirportExplorerSelection({
   selectedAirportIcao: "KJFK",
   navaids: [],
   selectedNavaidKey: "86260-BOS",
+  airspaces: [],
+  selectedAirspaceId: "airspace-1",
 });
 
 assert.equal(missingSelection.selectedAircraft, null);
@@ -119,6 +125,8 @@ assert.equal(missingSelection.selectedAircraftStillVisible, false);
 assert.equal(missingSelection.selectedAirport, null);
 assert.equal(missingSelection.selectedNavaid, null);
 assert.equal(missingSelection.selectedNavaidStillVisible, false);
+assert.equal(missingSelection.selectedAirspace, null);
+assert.equal(missingSelection.selectedAirspaceStillVisible, false);
 
 const mergedTracked = mergeTrackedAircraftIntoNearby({
   trackedAircraft: {

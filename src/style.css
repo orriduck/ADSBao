@@ -268,6 +268,31 @@
     --airport-range-ring-minor: rgba(18,21,26,0.11);
     --airport-range-ring-major: rgba(18,21,26,0.20);
     --airport-range-ring-band: rgba(18,21,26,0.05);
+    --airspace-blocked-stroke: oklch(0.39 0.16 27);
+    --airspace-blocked-fill: color-mix(in oklab, var(--airspace-blocked-stroke) 8%, transparent);
+    --airspace-blocked-focus-fill: color-mix(in oklab, var(--airspace-blocked-stroke) 24%, transparent);
+    --airspace-restricted-stroke: oklch(0.48 0.13 38);
+    --airspace-restricted-fill: color-mix(in oklab, var(--airspace-restricted-stroke) 7%, transparent);
+    --airspace-restricted-focus-fill: color-mix(in oklab, var(--airspace-restricted-stroke) 22%, transparent);
+    --airspace-permission-stroke: oklch(0.43 0.1 74);
+    --airspace-permission-fill: color-mix(in oklab, var(--airspace-permission-stroke) 7%, transparent);
+    --airspace-permission-focus-fill: color-mix(in oklab, var(--airspace-permission-stroke) 20%, transparent);
+    --airspace-caution-stroke: oklch(0.45 0.11 92);
+    --airspace-caution-fill: color-mix(in oklab, var(--airspace-caution-stroke) 6.5%, transparent);
+    --airspace-caution-focus-fill: color-mix(in oklab, var(--airspace-caution-stroke) 20%, transparent);
+    --airspace-destructive-stroke: oklch(0.58 0.11 24);
+    --airspace-destructive-fill: color-mix(in oklab, var(--airspace-destructive-stroke) 7%, transparent);
+    --airspace-destructive-focus-fill: color-mix(in oklab, var(--airspace-destructive-stroke) 18%, transparent);
+    --airspace-controlled-stroke: color-mix(in oklab, var(--atc-text) 34%, transparent);
+    --airspace-controlled-fill: color-mix(in oklab, var(--atc-text) 4%, transparent);
+    --airspace-controlled-focus-fill: color-mix(in oklab, var(--atc-text) 16%, transparent);
+    --airspace-info-stroke: color-mix(in oklab, var(--atc-text) 28%, transparent);
+    --airspace-info-fill: color-mix(in oklab, var(--atc-text) 3.5%, transparent);
+    --airspace-info-focus-fill: color-mix(in oklab, var(--atc-text) 14%, transparent);
+    --airspace-unknown-stroke: color-mix(in oklab, var(--atc-text) 45%, transparent);
+    --airspace-unknown-fill: color-mix(in oklab, var(--atc-text) 3.5%, transparent);
+    --airspace-unknown-focus-fill: color-mix(in oklab, var(--atc-text) 14%, transparent);
+    --airspace-boundary-label: color-mix(in oklab, var(--atc-text) 52%, transparent);
     --aircraft-trace-line: #1a1a18;
     --aircraft-trace-glow: #55534e;
     --aircraft-trace-point: #1a1a18;
@@ -430,6 +455,31 @@
     --airport-range-ring-minor: rgba(255,255,255,0.11);
     --airport-range-ring-major: rgba(255,255,255,0.20);
     --airport-range-ring-band: rgba(255,255,255,0.05);
+    --airspace-blocked-stroke: oklch(0.74 0.18 27);
+    --airspace-blocked-fill: color-mix(in oklab, var(--airspace-blocked-stroke) 10%, transparent);
+    --airspace-blocked-focus-fill: color-mix(in oklab, var(--airspace-blocked-stroke) 30%, transparent);
+    --airspace-restricted-stroke: oklch(0.77 0.14 45);
+    --airspace-restricted-fill: color-mix(in oklab, var(--airspace-restricted-stroke) 9%, transparent);
+    --airspace-restricted-focus-fill: color-mix(in oklab, var(--airspace-restricted-stroke) 26%, transparent);
+    --airspace-permission-stroke: oklch(0.81 0.12 86);
+    --airspace-permission-fill: color-mix(in oklab, var(--airspace-permission-stroke) 8.5%, transparent);
+    --airspace-permission-focus-fill: color-mix(in oklab, var(--airspace-permission-stroke) 24%, transparent);
+    --airspace-caution-stroke: oklch(0.84 0.11 105);
+    --airspace-caution-fill: color-mix(in oklab, var(--airspace-caution-stroke) 8%, transparent);
+    --airspace-caution-focus-fill: color-mix(in oklab, var(--airspace-caution-stroke) 24%, transparent);
+    --airspace-destructive-stroke: oklch(0.76 0.12 24);
+    --airspace-destructive-fill: color-mix(in oklab, var(--airspace-destructive-stroke) 8%, transparent);
+    --airspace-destructive-focus-fill: color-mix(in oklab, var(--airspace-destructive-stroke) 20%, transparent);
+    --airspace-controlled-stroke: color-mix(in oklab, var(--atc-text) 42%, transparent);
+    --airspace-controlled-fill: color-mix(in oklab, var(--atc-text) 6%, transparent);
+    --airspace-controlled-focus-fill: color-mix(in oklab, var(--atc-text) 20%, transparent);
+    --airspace-info-stroke: color-mix(in oklab, var(--atc-text) 36%, transparent);
+    --airspace-info-fill: color-mix(in oklab, var(--atc-text) 5%, transparent);
+    --airspace-info-focus-fill: color-mix(in oklab, var(--atc-text) 18%, transparent);
+    --airspace-unknown-stroke: color-mix(in oklab, var(--atc-text) 52%, transparent);
+    --airspace-unknown-fill: color-mix(in oklab, var(--atc-text) 5%, transparent);
+    --airspace-unknown-focus-fill: color-mix(in oklab, var(--atc-text) 18%, transparent);
+    --airspace-boundary-label: color-mix(in oklab, var(--atc-text) 64%, transparent);
     --aircraft-trace-line: var(--primary-bright);
     --aircraft-trace-glow: var(--primary-bright);
     --aircraft-trace-point: var(--primary-bright);
@@ -653,6 +703,25 @@ body {
 
 .airport-range-ring-label--major.airport-range-ring-label--light {
     color: rgb(18 21 26 / 0.86);
+}
+
+.airspace-boundary-label {
+    fill: var(--airspace-boundary-label);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0;
+    paint-order: stroke;
+    opacity: 0.5;
+    pointer-events: none;
+    stroke: var(--atc-bg);
+    stroke-linejoin: round;
+    stroke-width: 2.5px;
+    text-transform: uppercase;
+}
+
+.airspace-boundary-label--focused {
+    opacity: 1;
 }
 
 .runway-approach-beam {
@@ -1652,6 +1721,11 @@ body {
         in oklab,
         var(--atc-click-fg) 70%,
         transparent
+    );
+    --sidebar-tile-rest-border: color-mix(
+        in oklab,
+        var(--atc-text) 10%,
+        var(--atc-card)
     );
     --preview-card-shadow:
         var(--app-floating-shadow);

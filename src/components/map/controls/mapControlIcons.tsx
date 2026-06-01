@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Antenna,
   ArrowDownToLine,
   ArrowUpToLine,
   Crosshair,
@@ -15,6 +16,7 @@ import {
   PlaneLanding,
   Radar,
   Route,
+  ShieldAlert,
   SlidersHorizontal,
   Spotlight,
   Sun,
@@ -23,6 +25,7 @@ import {
 } from "lucide-react";
 
 export const MAP_CONTROL_ICONS = {
+  antenna: Antenna,
   arrowDownToLine: ArrowDownToLine,
   arrowUpToLine: ArrowUpToLine,
   crosshair: Crosshair,
@@ -37,6 +40,7 @@ export const MAP_CONTROL_ICONS = {
   planeLanding: PlaneLanding,
   radar: Radar,
   route: Route,
+  shieldAlert: ShieldAlert,
   slidersHorizontal: SlidersHorizontal,
   spotlight: Spotlight,
   sun: Sun,
@@ -49,6 +53,8 @@ export const getMapControlIcon = (iconKey) =>
 
 export function MapControlIcon({ iconKey }) {
   switch (iconKey) {
+    case "antenna":
+      return <Antenna />;
     case "arrowDownToLine":
       return <ArrowDownToLine />;
     case "arrowUpToLine":
@@ -77,6 +83,8 @@ export function MapControlIcon({ iconKey }) {
       return <Radar />;
     case "route":
       return <Route />;
+    case "shieldAlert":
+      return <ShieldAlert />;
     case "spotlight":
       return <Spotlight />;
     case "sun":

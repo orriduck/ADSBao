@@ -21,6 +21,7 @@ export default function MapControlBar({
   showMapLabels = false,
   showRunwayBeams = true,
   showNavaidMarkers = false,
+  showAirspaces = true,
   userLocationActive = false,
   userLocationPending = false,
   userLocationNotice = "",
@@ -29,6 +30,7 @@ export default function MapControlBar({
   onToggleMapLabels,
   onToggleRunwayBeams,
   onToggleNavaidMarkers,
+  onToggleAirspaces,
   onLocateUser = null,
   onToggleSidebar,
   onFitToTrace = null,
@@ -77,12 +79,14 @@ export default function MapControlBar({
         showMapLabels={showMapLabels}
         showBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
+        showAirspaces={showAirspaces}
         userLocationActive={userLocationActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}
+        onToggleAirspaces={onToggleAirspaces}
         onLocateUser={onLocateUser}
       />
 

@@ -16,6 +16,13 @@ import {
 } from "@/utils/sidebarDisplay";
 
 const ExplorerUiContext = createContext(null);
+const LAYER_STORAGE_KEY = "adsbao:airport-map-layers:v1";
+const LAYER_STORAGE_FIELDS = [
+  "showMapLabels",
+  "showRunwayBeams",
+  "showNavaidMarkers",
+  "showAirspaces",
+];
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
@@ -24,6 +31,7 @@ const initialUiState = {
   selectedAircraftId: "",
   selectedAirportIcao: "",
   selectedNavaidKey: "",
+  selectedAirspaceId: "",
   // Monotonic counter. Incremented by the UI when the user wants the map
   // to fit its viewport to the currently-rendered aircraft trace; a
   // child of AirportMap listens for changes and runs fitBounds against
@@ -73,6 +81,20 @@ function airportExplorerUiReducer(state, action) {
         ...state,
         showNavaidMarkers: toggleValue(state.showNavaidMarkers),
       };
+    case "toggleAirspaces": {
+      const showAirspaces = toggleValue(state.showAirspaces);
+      return {
+        ...state,
+        showAirspaces,
+        selectedAirspaceId: showAirspaces ? state.selectedAirspaceId : "",
+      };
+    }
+    case "hydrateLayerPreferences":
+      return {
+        ...state,
+        ...action.layers,
+        selectedAirspaceId: action.layers.showAirspaces === false ? "" : state.selectedAirspaceId,
+      };
     case "setTrafficFilter":
       return { ...state, trafficFilter: action.trafficFilter };
     case "setTypeFilter":
@@ -92,6 +114,7 @@ function airportExplorerUiReducer(state, action) {
         // preview card is up at a time.
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedAirspaceId: "",
       };
     case "setSelectedAircraftId":
       return {
@@ -99,6 +122,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: action.aircraftId,
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedAirspaceId: "",
       };
     case "selectAirport":
       return {
@@ -107,6 +131,7 @@ function airportExplorerUiReducer(state, action) {
           state.selectedAirportIcao === action.icao ? "" : action.icao,
         selectedAircraftId: "",
         selectedNavaidKey: "",
+        selectedAirspaceId: "",
       };
     case "selectNavaid":
       return {
@@ -115,6 +140,7 @@ function airportExplorerUiReducer(state, action) {
           state.selectedNavaidKey === action.navaidKey ? "" : action.navaidKey,
         selectedAircraftId: "",
         selectedAirportIcao: "",
+        selectedAirspaceId: "",
       };
     case "setSelectedNavaidKey":
       return {
@@ -122,6 +148,24 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: action.navaidKey,
         selectedAircraftId: "",
         selectedAirportIcao: "",
+        selectedAirspaceId: "",
+      };
+    case "selectAirspace":
+      return {
+        ...state,
+        selectedAirspaceId:
+          state.selectedAirspaceId === action.airspaceId ? "" : action.airspaceId,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
+        selectedNavaidKey: "",
+      };
+    case "setSelectedAirspaceId":
+      return {
+        ...state,
+        selectedAirspaceId: action.airspaceId,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
+        selectedNavaidKey: "",
       };
     case "fitToTrace":
       return {
@@ -152,6 +196,7 @@ export function ExplorerUiProvider({ children }) {
     showMapLabels,
     showRunwayBeams,
     showNavaidMarkers,
+    showAirspaces,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -159,6 +204,7 @@ export function ExplorerUiProvider({ children }) {
     selectedAircraftId,
     selectedAirportIcao,
     selectedNavaidKey,
+    selectedAirspaceId,
   } = state;
   const isMobile = sidebarMode === "mobile";
 
@@ -175,6 +221,27 @@ export function ExplorerUiProvider({ children }) {
 
     return () => window.removeEventListener("resize", syncSidebarMode);
   }, []);
+
+  useEffect(() => {
+    const storedLayers = readStoredLayerPreferences();
+    if (storedLayers) {
+      dispatch({ type: "hydrateLayerPreferences", layers: storedLayers });
+    }
+  }, []);
+
+  useEffect(() => {
+    writeStoredLayerPreferences({
+      showMapLabels,
+      showRunwayBeams,
+      showNavaidMarkers,
+      showAirspaces,
+    });
+  }, [
+    showMapLabels,
+    showRunwayBeams,
+    showNavaidMarkers,
+    showAirspaces,
+  ]);
 
   const toggleSidebar = useCallback(() => {
     dispatch({ type: "toggleSidebar" });
@@ -198,6 +265,10 @@ export function ExplorerUiProvider({ children }) {
 
   const toggleNavaidMarkers = useCallback(() => {
     dispatch({ type: "toggleNavaidMarkers" });
+  }, []);
+
+  const toggleAirspaces = useCallback(() => {
+    dispatch({ type: "toggleAirspaces" });
   }, []);
 
   const setTrafficFilter = useCallback((trafficFilter) => {
@@ -236,6 +307,14 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "setSelectedNavaidKey", navaidKey });
   }, []);
 
+  const selectAirspace = useCallback((airspaceId) => {
+    dispatch({ type: "selectAirspace", airspaceId });
+  }, []);
+
+  const setSelectedAirspaceId = useCallback((airspaceId) => {
+    dispatch({ type: "setSelectedAirspaceId", airspaceId });
+  }, []);
+
   const fitToTrace = useCallback(() => {
     dispatch({ type: "fitToTrace" });
   }, []);
@@ -258,6 +337,7 @@ export function ExplorerUiProvider({ children }) {
       showMapLabels,
       showRunwayBeams,
       showNavaidMarkers,
+      showAirspaces,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -265,6 +345,7 @@ export function ExplorerUiProvider({ children }) {
       selectedAircraftId,
       selectedAirportIcao,
       selectedNavaidKey,
+      selectedAirspaceId,
       fitToTraceSignal,
       setMapZoom,
       setTrafficFilter,
@@ -276,11 +357,14 @@ export function ExplorerUiProvider({ children }) {
       toggleMapLabels,
       toggleRunwayBeams,
       toggleNavaidMarkers,
+      toggleAirspaces,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
       selectNavaid,
       setSelectedNavaidKey,
+      selectAirspace,
+      setSelectedAirspaceId,
       fitToTrace,
       suspendMapFollow,
     }),
@@ -293,6 +377,7 @@ export function ExplorerUiProvider({ children }) {
       showMapLabels,
       showRunwayBeams,
       showNavaidMarkers,
+      showAirspaces,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -300,6 +385,7 @@ export function ExplorerUiProvider({ children }) {
       selectedAircraftId,
       selectedAirportIcao,
       selectedNavaidKey,
+      selectedAirspaceId,
       fitToTraceSignal,
       setMapZoom,
       setTrafficFilter,
@@ -311,11 +397,14 @@ export function ExplorerUiProvider({ children }) {
       toggleMapLabels,
       toggleRunwayBeams,
       toggleNavaidMarkers,
+      toggleAirspaces,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
       selectNavaid,
       setSelectedNavaidKey,
+      selectAirspace,
+      setSelectedAirspaceId,
       fitToTrace,
       suspendMapFollow,
     ],
@@ -336,4 +425,28 @@ export function useExplorerUi() {
     );
   }
   return context;
+}
+
+function readStoredLayerPreferences() {
+  if (typeof window === "undefined") return null;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(LAYER_STORAGE_KEY) || "null");
+    if (!parsed || typeof parsed !== "object") return null;
+    return LAYER_STORAGE_FIELDS.reduce((layers, field) => {
+      if (typeof parsed[field] === "boolean") layers[field] = parsed[field];
+      return layers;
+    }, {});
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredLayerPreferences(layers) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAYER_STORAGE_KEY, JSON.stringify(layers));
+  } catch {
+    // Local storage can be unavailable in private contexts; layer toggles
+    // still work for the current session.
+  }
 }
