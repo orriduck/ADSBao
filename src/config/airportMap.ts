@@ -13,6 +13,10 @@ export const AIRPORT_MAP_TRAFFIC_LEGEND = [
 ];
 
 export const AIRPORT_MAP_PANES = {
+  airspace: {
+    name: "airport-map-airspace",
+    zIndex: 395,
+  },
   trace: {
     name: "airport-map-trace",
     zIndex: 405,

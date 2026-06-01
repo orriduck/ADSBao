@@ -51,18 +51,22 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showMapLabels,
     showRunwayBeams,
     showNavaidMarkers,
+    showAirspaces,
     trafficFilter,
     typeFilter,
     altitudeLevel,
     selectedAircraftId,
     selectedAirportIcao,
     selectedNavaidKey,
+    selectedAirspaceId,
     closeSidebar,
     selectAircraft,
     setSelectedAircraftId,
     selectAirport,
     selectNavaid,
     setSelectedNavaidKey,
+    selectAirspace,
+    setSelectedAirspaceId,
     mapFollowsAircraft,
   } = useExplorerUi();
   const [userLocation, setUserLocation] = useState(null);
@@ -87,13 +91,17 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         selectedAirportIcao,
         navaids: airport?.nearbyNavaids || [],
         selectedNavaidKey,
+        airspaces: airport?.airspaces || [],
+        selectedAirspaceId,
       }),
     [
+      airport?.airspaces,
       airport?.nearbyNavaids,
       nearbyAirports.airports,
       selectedAircraftId,
       selectedAirportIcao,
       selectedNavaidKey,
+      selectedAirspaceId,
       traffic.aircraft,
     ],
   );
@@ -114,6 +122,15 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectedNavaidKey,
     selection.selectedNavaidStillVisible,
     setSelectedNavaidKey,
+  ]);
+
+  useEffect(() => {
+    if (!selectedAirspaceId) return;
+    if (!selection.selectedAirspaceStillVisible) setSelectedAirspaceId("");
+  }, [
+    selectedAirspaceId,
+    selection.selectedAirspaceStillVisible,
+    setSelectedAirspaceId,
   ]);
 
   useEffect(() => {
@@ -261,6 +278,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         aircraft={selection.selectedAircraft}
         airport={selection.selectedAirport}
         navaid={selection.selectedNavaid}
+        airspace={selection.selectedAirspace}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         airportProfile={airportProfile}
@@ -306,21 +324,25 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             aircraft={traffic.aircraft}
             nearbyAirports={nearbyAirports.airports}
             nearbyNavaids={airport?.nearbyNavaids || []}
+            airspaces={airport?.airspaces || []}
             airport={airport}
             showMapLabels={showMapLabels}
             showRunwayBeams={showRunwayBeams}
             showNavaidMarkers={showNavaidMarkers}
+            showAirspaces={showAirspaces}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}
             selectedAircraftId={selectedAircraftId}
             selectedAirportIcao={selectedAirportIcao}
             selectedNavaidKey={selectedNavaidKey}
+            selectedAirspaceId={selectedAirspaceId}
             followsCenter={mapFollowsAircraft}
             floatingSidebarAware={!isMobile && sidebarOpen}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             onSelectNavaid={selectNavaid}
+            onSelectAirspace={selectAirspace}
             runwayMap={airport?.runwayMap}
             loadingOverlayActive={loadingOverlayActive}
             loadingOverlaySources={loadingOverlaySources}

@@ -7,6 +7,8 @@ import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard";
 import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard";
 import AirportPreviewMobileCard from "./AirportPreviewMobileCard";
+import AirspacePreviewMetadataCard from "./AirspacePreviewMetadataCard";
+import AirspacePreviewMobileCard from "./AirspacePreviewMobileCard";
 import NavaidPreviewMetadataCard from "./NavaidPreviewMetadataCard";
 import NavaidPreviewMobileCard from "./NavaidPreviewMobileCard";
 import MobilePreviewCard, {
@@ -29,6 +31,7 @@ export default function AircraftPreviewCard({
   aircraft = null,
   airport = null,
   navaid = null,
+  airspace = null,
   isMobile = false,
   sidebarOpen = false,
   airportProfile = null,
@@ -42,14 +45,17 @@ export default function AircraftPreviewCard({
   const hasPhoto = Boolean(photo?.src);
   const photoTone = usePhotoTone(photo?.src);
 
-  const entity = aircraft || airport || navaid;
+  const entity = aircraft || airport || navaid || airspace;
   const isAirport = !aircraft && Boolean(airport);
   const isNavaid = !aircraft && !airport && Boolean(navaid);
+  const isAirspace = !aircraft && !airport && !navaid && Boolean(airspace);
   const identityKey = isAirport
     ? `airport:${airport?.icao || "preview"}`
     : isNavaid
       ? `navaid:${navaid?.key || navaid?.ident || "preview"}`
-      : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
+      : isAirspace
+        ? `airspace:${airspace?.id || "preview"}`
+        : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
   const aircraftIdentity =
     !isAirport && !isNavaid && aircraft ? getAircraftIdentity(aircraft) : null;
   const traceFetchLoading =
@@ -72,7 +78,7 @@ export default function AircraftPreviewCard({
     Boolean(entity) &&
     !(suppressMobileWhenAlreadyTracking && alreadyTracking);
   const traceStatusSurfaceActive =
-    !isAirport && !isNavaid && Boolean(entity) && (isMobile ? showMobile : !isMobile);
+    !isAirport && !isNavaid && !isAirspace && Boolean(entity) && (isMobile ? showMobile : !isMobile);
   const traceLoading = useMinimumVisibleTraceStatus({
     aircraftIdentity,
     active: traceFetchLoading,
@@ -111,6 +117,8 @@ export default function AircraftPreviewCard({
       : t("preview.openAirport")
     : isNavaid
       ? t("preview.navaidPreview")
+    : isAirspace
+      ? t("preview.airspacePreview")
     : alreadyTracking
       ? t("preview.trackingTrace")
       : t("preview.trackTrace");
@@ -118,6 +126,8 @@ export default function AircraftPreviewCard({
     ? t("preview.airportPreview")
     : isNavaid
       ? t("preview.navaidPreview")
+      : isAirspace
+        ? t("preview.airspacePreview")
       : t("preview.aircraftPreview");
 
   return (
@@ -144,6 +154,8 @@ export default function AircraftPreviewCard({
             <AirportPreviewMetadataCard airport={airport} />
           ) : isNavaid ? (
             <NavaidPreviewMetadataCard navaid={navaid} />
+          ) : isAirspace ? (
+            <AirspacePreviewMetadataCard airspace={airspace} />
           ) : (
             <AircraftPreviewMetadataCard
               aircraft={aircraft}
@@ -192,6 +204,8 @@ export default function AircraftPreviewCard({
             <AirportPreviewMobileCard airport={airport} />
           ) : isNavaid ? (
             <NavaidPreviewMobileCard navaid={navaid} />
+          ) : isAirspace ? (
+            <AirspacePreviewMobileCard airspace={airspace} />
           ) : (
             <AircraftPreviewMobileCard aircraft={aircraft} />
           )}

@@ -108,16 +108,25 @@ const misleadingBos = {
   const airspace = mapOpenAipAirspace({
     _id: "asp-1",
     name: "BEDFORD CLASS D",
-    type: 0,
+    type: 4,
     icaoClass: 3,
     country: "US",
     lowerLimit: { value: 0, unit: 1, referenceDatum: 0 },
     upperLimit: { value: 2500, unit: 1, referenceDatum: 0 },
+    byNotam: true,
+    remarks: "Tower hours apply.",
     geometry: { type: "Polygon", coordinates: [[[-71, 42], [-70, 42], [-71, 42]]] },
   });
   assert.equal(airspace.id, "asp-1");
   assert.equal(airspace.name, "BEDFORD CLASS D");
+  assert.equal(airspace.typeLabel, "CTR");
   assert.equal(airspace.classLabel, "D");
+  assert.equal(airspace.lowerLimitLabel, "SFC");
+  assert.equal(airspace.upperLimitLabel, "2500 ft AGL");
+  assert.equal(airspace.byNotam, true);
+  assert.equal(airspace.remarks, "Tower hours apply.");
+  assert.equal(airspace.accessTag.level, "controlled");
+  assert.equal(airspace.accessTag.requiresStatusCheck, false);
   assert.equal(airspace.source, "openaip");
   assert.deepEqual(airspace.geometry.type, "Polygon");
 }

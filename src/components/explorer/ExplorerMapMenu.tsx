@@ -24,11 +24,13 @@ export default function ExplorerMapMenu({
     showMapLabels,
     showRunwayBeams,
     showNavaidMarkers,
+    showAirspaces,
     setMapZoom,
     toggleSidebar,
     toggleMapLabels,
     toggleRunwayBeams,
     toggleNavaidMarkers,
+    toggleAirspaces,
   } = useExplorerUi();
 
   return (
@@ -44,6 +46,7 @@ export default function ExplorerMapMenu({
         showMapLabels={showMapLabels}
         showRunwayBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
+        showAirspaces={showAirspaces}
         userLocationActive={userLocationActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
@@ -52,6 +55,7 @@ export default function ExplorerMapMenu({
         onToggleMapLabels={toggleMapLabels}
         onToggleRunwayBeams={toggleRunwayBeams}
         onToggleNavaidMarkers={toggleNavaidMarkers}
+        onToggleAirspaces={toggleAirspaces}
         onLocateUser={onLocateUser}
         onToggleSidebar={toggleSidebar}
         onFitToTrace={onFitToTrace}

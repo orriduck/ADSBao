@@ -23,12 +23,20 @@ const LAYER_TOGGLES = [
     handler: "onToggleBeams",
   },
   {
-    iconKey: "mapPinned",
+    iconKey: "antenna",
     labelKey: "mapLayers.navaidMarkers",
     activeKey: "mapLayers.hideNavaidMarkers",
     inactiveKey: "mapLayers.showNavaidMarkers",
     prop: "showNavaidMarkers",
     handler: "onToggleNavaidMarkers",
+  },
+  {
+    iconKey: "shieldAlert",
+    labelKey: "mapLayers.airspaces",
+    activeKey: "mapLayers.hideAirspaces",
+    inactiveKey: "mapLayers.showAirspaces",
+    prop: "showAirspaces",
+    handler: "onToggleAirspaces",
   },
 ];
 
@@ -42,12 +50,14 @@ export default function MapLayerDrawer({
   showMapLabels,
   showBeams,
   showNavaidMarkers,
+  showAirspaces = true,
   userLocationActive = false,
   userLocationPending = false,
   userLocationNotice = "",
   onToggleMapLabels,
   onToggleBeams,
   onToggleNavaidMarkers,
+  onToggleAirspaces,
   onLocateUser = null,
 }) {
   const { t } = useI18n();
@@ -55,9 +65,11 @@ export default function MapLayerDrawer({
     showMapLabels,
     showBeams,
     showNavaidMarkers,
+    showAirspaces,
     onToggleMapLabels,
     onToggleBeams,
     onToggleNavaidMarkers,
+    onToggleAirspaces,
   };
 
   return (

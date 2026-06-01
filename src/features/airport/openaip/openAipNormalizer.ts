@@ -1,4 +1,10 @@
 import { toFiniteNumber } from "../../../utils/math";
+import {
+  classifyOpenAipAirspaceAccess,
+  formatOpenAipAirspaceLimit,
+  openAipAirspaceTypeLabel,
+  openAipIcaoClassLabel,
+} from "./airspaceAccessModel";
 
 const METERS_TO_FEET = 3.280839895;
 
@@ -17,16 +23,6 @@ const AIRPORT_TYPE_LABELS: Record<number, string> = {
   11: "Landing Strip",
   12: "Agricultural Landing Strip",
   13: "Altiport",
-};
-
-const AIRSPACE_CLASS_LABELS: Record<number, string> = {
-  0: "A",
-  1: "B",
-  2: "C",
-  3: "D",
-  4: "E",
-  5: "F",
-  6: "G",
 };
 
 type OpenAipRecord = Record<string, any>;
@@ -237,15 +233,29 @@ export const mapOpenAipNavaid = (navaid: OpenAipRecord | null | undefined) => {
 export const mapOpenAipAirspace = (airspace: OpenAipRecord | null | undefined) => {
   if (!airspace) return null;
   const icaoClass = Number(airspace.icaoClass);
+  const typeLabel = openAipAirspaceTypeLabel(airspace.type);
   return {
     id: airspace._id || "",
     name: cleanString(airspace.name),
     type: String(airspace.type ?? ""),
+    typeLabel,
     icaoClass,
-    classLabel: AIRSPACE_CLASS_LABELS[icaoClass] || "",
+    classLabel: openAipIcaoClassLabel(icaoClass),
     country: upperString(airspace.country),
     lowerLimit: airspace.lowerLimit || null,
     upperLimit: airspace.upperLimit || null,
+    lowerLimitLabel: formatOpenAipAirspaceLimit(airspace.lowerLimit),
+    upperLimitLabel: formatOpenAipAirspaceLimit(airspace.upperLimit),
+    activeFrom: airspace.activeFrom || "",
+    activeUntil: airspace.activeUntil || "",
+    onDemand: Boolean(airspace.onDemand),
+    onRequest: Boolean(airspace.onRequest),
+    byNotam: Boolean(airspace.byNotam),
+    specialAgreement: Boolean(airspace.specialAgreement),
+    requestCompliance: Boolean(airspace.requestCompliance),
+    hoursOfOperation: airspace.hoursOfOperation || null,
+    remarks: cleanString(airspace.remarks),
+    accessTag: classifyOpenAipAirspaceAccess(airspace),
     geometry: airspace.geometry || null,
     source: "openaip",
   };
