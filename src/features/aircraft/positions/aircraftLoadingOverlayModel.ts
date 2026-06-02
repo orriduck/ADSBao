@@ -34,6 +34,11 @@ type MapLoadingPresentationOptions = {
   reason?: string;
 };
 
+type MapSurfaceVisibilityOptions = {
+  loadingOverlayVisible?: boolean;
+  loadingOverlayExiting?: boolean;
+};
+
 type VisibilityRefreshOverlayOptions = {
   wasActive?: boolean;
   hiddenSince?: number;
@@ -124,6 +129,15 @@ export function resolveMapLoadingPresentation({
   return {
     overlayActive,
     sourceStatusActive: Boolean(active && reason && !overlayActive),
+  };
+}
+
+export function resolveMapSurfaceVisibility({
+  loadingOverlayVisible = false,
+  loadingOverlayExiting = false,
+}: MapSurfaceVisibilityOptions = {}) {
+  return {
+    mapVisible: !loadingOverlayVisible || loadingOverlayExiting,
   };
 }
 

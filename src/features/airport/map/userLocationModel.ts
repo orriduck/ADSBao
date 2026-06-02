@@ -27,6 +27,11 @@ type ResolveUserLocationRequestOptions = {
   maxDistanceNm?: number;
 };
 
+type ResolveUserLocationWatchUpdateOptions =
+  ResolveUserLocationRequestOptions & {
+    currentMode?: UserLocationAudioMode;
+  };
+
 type ResolveNextUserLocationAudioModeOptions = {
   mode?: unknown;
   hasLocation?: boolean;
@@ -109,5 +114,45 @@ export function resolveUserLocationRequest({
       distanceNm != null &&
       Number.isFinite(distanceNm) &&
       distanceNm > maxDistanceNm,
+  };
+}
+
+export function resolveUserLocationWatchUpdate({
+  coords,
+  focalLat,
+  focalLon,
+  maxDistanceNm,
+  currentMode = USER_LOCATION_AUDIO_MODES.LOCATION,
+}: ResolveUserLocationWatchUpdateOptions) {
+  const result = resolveUserLocationRequest({
+    coords,
+    focalLat,
+    focalLon,
+    maxDistanceNm,
+  });
+
+  if (!result.location) {
+    return {
+      location: null,
+      mode: USER_LOCATION_AUDIO_MODES.OFF,
+      noticeKey: "unavailable",
+    };
+  }
+
+  if (result.tooFar) {
+    return {
+      location: null,
+      mode: USER_LOCATION_AUDIO_MODES.OFF,
+      noticeKey: "tooFar",
+    };
+  }
+
+  return {
+    location: result.location,
+    mode:
+      currentMode === USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO
+        ? USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO
+        : USER_LOCATION_AUDIO_MODES.LOCATION,
+    noticeKey: "",
   };
 }

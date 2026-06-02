@@ -48,6 +48,7 @@ export default function MapLoadingOverlay({
   variant = "airport",
   sidebarAware = false,
   ariaLabel,
+  onVisibleChange,
 }: Record<string, any>) {
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
@@ -83,6 +84,12 @@ export default function MapLoadingOverlay({
       window.removeEventListener("pageshow", handlePageVisible);
     };
   }, [replay]);
+
+  useEffect(() => {
+    if (typeof onVisibleChange === "function") {
+      onVisibleChange(visible, { exiting });
+    }
+  }, [exiting, onVisibleChange, visible]);
 
   useEffect(() => {
     let delayTimer;
