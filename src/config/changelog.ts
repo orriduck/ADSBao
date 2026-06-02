@@ -6,6 +6,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.8.4",
+    kind: "patch",
+    title: "Airport zoom declutter tuning",
+    summary:
+      "Airport map zoom levels now share one feature configuration for runway labels, range labels, nearby runways, and surface-traffic suppression.",
+    highlights: [
+      "Airport-level runway end labels stay hidden until detail zoom",
+      "Nearby airport-surface traffic hides within 3nm at approach zoom and 0.5nm at airport zoom",
+      "Zoom-specific map feature toggles now live in one configuration table",
+    ],
+  },
+  {
     version: "v1.8.3",
     kind: "patch",
     title: "Mechanism page and navigation polish",

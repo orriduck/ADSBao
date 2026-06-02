@@ -13,6 +13,7 @@ import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel";
+import { shouldShowNearbyAirportRunwaysForZoom } from "../../features/airport/map/airportMapZoomFeatures";
 import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
 
 const escapeHtml = (value: unknown) =>
@@ -76,7 +77,7 @@ const runwayLabelIcon = (ident: string, theme: string) =>
 const runwayLayers = ({ airport, map, theme, zoom, showBadges }: Record<string, any>) => {
   if (!airport?.runwayMap?.runways?.length) return [];
   const centerlines = buildRunwayCenterlineCollection(airport.runwayMap);
-  const showRunways = Number(zoom) >= 10;
+  const showRunways = shouldShowNearbyAirportRunwaysForZoom(zoom);
   if (!showRunways) return [];
 
   const layers = [

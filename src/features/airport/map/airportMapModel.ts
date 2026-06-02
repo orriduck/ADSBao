@@ -1,10 +1,5 @@
-import { ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
 import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
-
-// Fallback used when the caller doesn't supply a ground-area radius.
-// Matches the focal-airport's default first-ring interval so the
-// ground filter aligns with the visual layer.
-const DEFAULT_GROUND_AREA_RADIUS_NM = 3;
+import { airportGroundTrafficHideRadiusNmForZoom } from "./airportMapZoomFeatures";
 
 type AirportMapCoordinate = {
   icao?: unknown;
@@ -33,7 +28,6 @@ type AirportGroundFilterOptions = {
 type VisibleAircraftOptions = AirportGroundFilterOptions & {
   aircraft: AirportMapAircraft[];
   zoom?: unknown;
-  groundAreaRadiusNm?: number;
 };
 
 export const resolveDocumentTheme = (documentElement: Pick<Element, "getAttribute"> | null | undefined) =>
@@ -103,9 +97,9 @@ export const getVisibleAircraft = ({
   airportLon,
   nearbyAirports = [],
   zoom,
-  groundAreaRadiusNm = DEFAULT_GROUND_AREA_RADIUS_NM,
 }: VisibleAircraftOptions) => {
-  const atApproachZoom = Number(zoom) === ZOOM_APPROACH;
+  const airportGroundTrafficHideRadiusNm =
+    airportGroundTrafficHideRadiusNmForZoom(zoom);
   const groundFilters = airportGroundFilters({
     airportLat,
     airportLon,
@@ -114,9 +108,9 @@ export const getVisibleAircraft = ({
 
   return aircraft.filter((ac) => {
     if (ac.lat == null || ac.lon == null) return false;
-    if (!atApproachZoom) return true;
+    if (airportGroundTrafficHideRadiusNm == null) return true;
     return !groundFilters.some((airport) =>
-      isInsideAirportGroundArea(ac, airport, groundAreaRadiusNm),
+      isInsideAirportGroundArea(ac, airport, airportGroundTrafficHideRadiusNm),
     );
   });
 };

@@ -10,6 +10,16 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v1.8.4": {
+    title: "机场缩放层级减噪",
+    summary:
+      "机场地图的缩放层级现在共用一张 feature 配置表,统一控制跑道标签、距离圈文字、附近机场跑道和机场地面附近飞机隐藏。",
+    highlights: [
+      "机场级继续隐藏跑道端点标签,只在细节级显示",
+      "进近级隐藏机场 3 海里内飞机,机场级缩小到 0.5 海里",
+      "缩放相关地图功能集中到同一配置表维护",
+    ],
+  },
   "v1.8.3": {
     title: "机制页与导航细节",
     summary:

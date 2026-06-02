@@ -234,7 +234,6 @@ export default function AirportMap({
       airportLon: icao ? lon : null,
       nearbyAirports,
       zoom,
-      groundAreaRadiusNm: groundRadiusNm,
     });
   }, [
     aircraft,
@@ -243,7 +242,6 @@ export default function AirportMap({
     lon,
     nearbyAirports,
     zoom,
-    groundRadiusNm,
   ]);
   const selectedAircraft = useMemo(
     () =>
