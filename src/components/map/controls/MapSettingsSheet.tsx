@@ -109,9 +109,10 @@ export default function MapSettingsSheet({
       <SheetContent
         id={id}
         side="right"
-        overlayClassName="map-settings-sheet-overlay"
+        overlayClassName="map-settings-sheet-overlay z-[var(--z-index-modal)]"
         className={cn(
           "map-settings-sheet",
+          "z-[var(--z-index-modal-content)]",
           "right-2 top-2 bottom-2 h-[calc(100dvh-16px)] w-[min(448px,calc(100vw-16px))]",
           "rounded-[18px] border border-[var(--atc-line-strong)]",
           "overflow-hidden bg-[color-mix(in_oklab,var(--atc-card)_96%,var(--atc-bg))] p-0 text-atc-text",
