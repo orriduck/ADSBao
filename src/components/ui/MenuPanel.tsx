@@ -15,11 +15,9 @@ const forwardRef = React.forwardRef as <
   ) => React.ReactNode,
 ) => React.ForwardRefExoticComponent<Props & React.RefAttributes<Element>>;
 
-// Shared dropdown / popover / select panel chrome. Replaces the
-// .aircraft-filter-card-content, .aircraft-filter-type-panel, and
-// language-switch ad-hoc Tailwind blob with a single primitive so
-// changing the panel surface (background, border, shadow) only
-// touches one file.
+// Shared dropdown / popover / select panel chrome. Replaces the old ad-hoc
+// filter and language-switch panels with a single primitive so changing the
+// panel surface (background, border, shadow) only touches one file.
 //
 // Usage:
 //   <MenuPanel>
@@ -44,8 +42,8 @@ export const MenuPanel = forwardRef(function MenuPanel(
         "flex flex-col font-[var(--airport-sidebar-sans)]",
         "rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card",
         "text-atc-text",
-        "shadow-[0_12px_32px_color-mix(in_oklab,var(--atc-bg)_60%,transparent),0_2px_6px_color-mix(in_oklab,var(--atc-bg)_40%,transparent)]",
-        "p-[6px] tracking-normal",
+        "shadow-[var(--atc-menu-panel-shadow)]",
+        "p-1.5 tracking-normal",
         className,
       )}
       {...props}
@@ -59,17 +57,16 @@ const menuItemVariants = cva(
     "border-0 bg-transparent",
     // Row radius — kept small so the selected / hover background reads
     // as a flat strip inside the panel, not a separate floating pill.
-    // Change here to update every dropdown row shape in the app.
-    "rounded-[6px] px-[10px] py-[8px] gap-1",
+    "rounded-[6px] px-2.5 py-2 gap-1",
     "transition-[background,color] duration-150",
     "outline-none",
     "tracking-normal leading-[1.2]",
     // Hover + focus-visible — light elev tint.
-    "hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]",
-    "focus-visible:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]",
+    "hover:bg-[var(--atc-control-hover-bg)]",
+    "focus-visible:bg-[var(--atc-control-hover-bg)]",
     "hover:text-atc-text",
     // Selected — accent-tinted background, promoted weight.
-    "data-[selected=true]:bg-[color-mix(in_oklab,var(--atc-accent)_12%,transparent)]",
+    "data-[selected=true]:bg-[var(--atc-control-selected-bg)]",
     "data-[selected=true]:text-atc-text",
     // Radix Select uses data-state=checked instead of data-selected.
     "data-[state=checked]:font-semibold",
@@ -79,7 +76,7 @@ const menuItemVariants = cva(
       variant: {
         // Default flat row — single line of text. Tuned 2 steps down
         // from the previous 13px so dropdown menus read as a denser,
-        // secondary UI surface. Change here to reflect every menu.
+        // secondary UI surface.
         row: cn(
           "text-[11px] font-medium text-atc-faint",
           "data-[selected=true]:font-semibold",

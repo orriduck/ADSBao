@@ -61,8 +61,8 @@ SelectScrollDownButton.displayName =
 
 // SelectContent chrome — same look as MenuPanel (bg, border, shadow,
 // padding) so every dropdown surface in the app shares one visual.
-// Keep adjusting size / colour / shadow on MenuPanel.jsx; this one
-// inherits the same tokens via the className below.
+// Keep adjusting size / colour / shadow through the shared menu tokens;
+// this one inherits those tokens via the className below.
 const SelectContent = forwardRef(({ className, children, position = "popper", viewportClassName, ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
@@ -72,7 +72,7 @@ const SelectContent = forwardRef(({ className, children, position = "popper", vi
         "relative z-toast max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden",
         "flex flex-col font-[var(--airport-sidebar-sans)] tracking-normal",
         "rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card text-atc-text",
-        "shadow-[0_12px_32px_color-mix(in_oklab,var(--atc-bg)_60%,transparent),0_2px_6px_color-mix(in_oklab,var(--atc-bg)_40%,transparent)]",
+        "shadow-[var(--atc-menu-panel-shadow)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
@@ -82,7 +82,7 @@ const SelectContent = forwardRef(({ className, children, position = "popper", vi
       {...props}>
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
-        className={cn("p-[6px]", position === "popper" &&
+        className={cn("p-1.5", position === "popper" &&
           "w-full min-w-[var(--radix-select-trigger-width)]", viewportClassName)}>
         {children}
       </SelectPrimitive.Viewport>
@@ -102,7 +102,7 @@ SelectLabel.displayName = SelectPrimitive.Label.displayName
 
 // SelectItem inherits MenuItem's `row` variant (text + hover + selected
 // language) and adds pr-8 to reserve room for the absolute check on
-// the right. Adjust dropdown row type / spacing in MenuPanel.jsx.
+// the right. Adjust dropdown row type / spacing through MenuPanel tokens.
 const SelectItem = forwardRef(({ className, children, ...props }, ref) => (
   <SelectPrimitiveItem
     ref={ref}

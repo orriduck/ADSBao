@@ -23,24 +23,24 @@ const forwardRef = React.forwardRef as <
 const filterCardVariants = cva(
   cn(
     "group relative isolate w-full overflow-hidden",
-    "grid items-center justify-items-center gap-[6px]",
+    "grid items-center justify-items-center gap-1.5",
     "rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-clip-padding",
-    "bg-[color-mix(in_oklab,var(--atc-card)_74%,transparent)]",
-    "shadow-[inset_0_1px_0_color-mix(in_oklab,var(--atc-text)_5%,transparent)]",
+    "bg-[var(--atc-control-surface-muted)]",
+    "shadow-[var(--atc-control-inset-shadow-subtle)]",
     "text-atc-text text-center cursor-pointer",
-    "px-[14px] py-[12px] min-w-0",
+    "px-3.5 py-3 min-w-0",
     "outline-none transition-[background,box-shadow,color] duration-150",
     // Hover — light dim of the card surface.
-    "hover:bg-[color-mix(in_oklab,var(--atc-card)_58%,transparent)]",
+    "hover:bg-[var(--atc-control-surface-hover)]",
     // Active / open — invert to the ink background with edge-glow
     // box-shadow. Matches MetricCard's active treatment so a filter
     // chip in the "on" state reads the same as the selected tab.
     "data-[active=true]:bg-[var(--atc-click-bg)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
-    "data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-12px_20px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]",
+    "data-[active=true]:shadow-[var(--atc-control-active-shadow)]",
     "data-[state=open]:bg-[var(--atc-click-bg)]",
     "data-[state=open]:text-[var(--atc-click-fg)]",
-    "data-[state=open]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-12px_20px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]",
+    "data-[state=open]:shadow-[var(--atc-control-active-shadow)]",
     // Focus-visible — yellow ring.
     "focus-visible:shadow-[inset_0_0_0_2px_var(--endf-yellow)]",
     // SelectTrigger ships a ChevronDown as a direct svg child. Pin
@@ -52,8 +52,8 @@ const filterCardVariants = cva(
     // Chevron color follows the dimmed label when the select is open.
     "data-[state=open]:[&>svg]:text-[var(--atc-click-muted)]",
     // Compact spacing inside the desktop map kit sidebar.
-    "[.airport-map-kit_&]:gap-[5px]",
-    "[.airport-map-kit_&]:px-[11px] [.airport-map-kit_&]:py-[10px]",
+    "[.airport-map-kit_&]:gap-1",
+    "[.airport-map-kit_&]:px-3 [.airport-map-kit_&]:py-2.5",
     // Bottom-glow halo — same animation as MetricCard, fires on
     // [data-active=true] (filter chips that are on) and
     // [data-state=open] (open select menus). --sidebar-tile-bottom-glow
@@ -135,7 +135,7 @@ export function FilterCardValue({
   return (
     <strong
       className={cn(
-        "uppercase text-[12px] font-extrabold leading-[1.2] tracking-normal",
+        "uppercase text-xs font-extrabold leading-[1.2] tracking-normal",
         "text-atc-text max-w-full break-words [overflow-wrap:anywhere]",
         // Promote to click-fg when the card flips to ink — same
         // ancestor-selector approach as FilterCardLabel above.
@@ -164,14 +164,14 @@ export function FilterCardGrid({
       role="group"
       data-ui="filter-grid"
       className={cn(
-        "grid gap-2 px-[var(--airport-sidebar-inset)] py-[10px]",
+        "grid gap-2 px-[var(--airport-sidebar-inset)] py-2.5",
         "border-t border-b",
         "border-t-[color-mix(in_oklab,var(--atc-line)_72%,transparent)]",
         "border-b-[color-mix(in_oklab,var(--atc-line)_72%,transparent)]",
         columns === 2
           ? "grid-cols-[repeat(2,minmax(0,1fr))]"
           : "grid-cols-[repeat(3,minmax(0,1fr))]",
-        "[.airport-map-kit_&]:gap-[6px] [.airport-map-kit_&]:py-[8px]",
+        "[.airport-map-kit_&]:gap-1.5 [.airport-map-kit_&]:py-2",
         className,
       )}
       {...props}

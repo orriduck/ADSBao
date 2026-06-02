@@ -7,8 +7,8 @@ const source = readFileSync(metricCardPath, "utf8");
 
 assert.match(
   source,
-  /rounded-\[10px\] border border-\[var\(--sidebar-tile-rest-border\)\] bg-clip-padding/,
-  "metric cards should use the neutral resting border without blending it into the active background",
+  /rounded-\[var\(--atc-radius-card\)\] border border-\[var\(--sidebar-tile-rest-border\)\] bg-clip-padding/,
+  "metric cards should use the shared card radius token and the neutral resting border without blending it into the active background",
 );
 assert.doesNotMatch(
   source,

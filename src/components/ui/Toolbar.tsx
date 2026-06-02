@@ -22,16 +22,15 @@ const forwardRef = React.forwardRef as <
 // each owning its own bespoke CSS.
 //
 // Tailwind utilities live inline on the component so the styling is
-// co-located with the JSX (no .page-nav-dock__bar / .map-ctrl-bar to
-// chase). The .toolbar-reveal class still lives in style.css because
+// co-located with the JSX. The .toolbar-reveal class still lives in style.css because
 // it owns the entrance @keyframes (clip-path expand + over-clip end
 // state so box-shadow stays visible).
 //
-// One size — 32px cells in a 42px pill — is baked into the primitive
+// One fixed size — 32px cells in a 42px pill — is baked into the primitive
 // so callers can't drift. Tone (soft vs rail) stays a variant because
 // the two surfaces (cards vs map) need different hover tints. If you
-// need a chunkier pill on a new surface, change it here, not at the
-// caller.
+// need a chunkier pill on a new surface, change the toolbar tokens,
+// not each caller.
 
 // Edge-glow halo — radial fades just outside the pill's left + right
 // edges so the toolbar reads as glowing against the dark map. Only
@@ -71,23 +70,23 @@ const toolbarVariants = cva(
   cn(
     "relative items-center isolate",
     "rounded-full",
-    "bg-[color-mix(in_oklab,var(--atc-card)_88%,transparent)]",
-    "shadow-[var(--app-toolbar-shadow),inset_0_1px_0_color-mix(in_oklab,var(--atc-text)_10%,transparent)]",
+    "bg-[var(--atc-toolbar-surface)]",
+    "shadow-[var(--app-toolbar-shadow),var(--atc-toolbar-inset-shadow)]",
     // Re-enable interaction inside containers that turn it off so the
     // bare map area can still receive taps around the floating pill.
     // .airport-map-menu--mobile (and other map overlays) set
     // pointer-events: none on the strip; the pill itself must opt back
     // in or every toolbar button becomes inert.
     "pointer-events-auto",
-    // 32px button cells + 5px padding/gap = 42px overall pill height.
-    // Hardcoded so the toolbar footprint stays identical across pages.
-    "min-h-[42px] gap-[5px] p-[5px]",
+    // 32px button cells in a 42px shell. Gap/padding stay on the
+    // Tailwind spacing scale; only the fixed shell/cell dimensions are tokens.
+    "min-h-[var(--atc-toolbar-shell-min-height)] gap-1 p-1",
     mapKitGlow,
   ),
   {
     variants: {
       layout: {
-        // page-nav-dock + map-ctrl-bar — full-width flex, can stretch.
+        // Full-width toolbar, can stretch.
         flex: "flex",
         // sidebar-top-toolbar — shrink-to-content pill.
         inline: "inline-flex",
@@ -141,10 +140,10 @@ export function ToolbarSeparator({
 const toolbarButtonVariants = cva(
   cn(
     "relative isolate inline-flex items-center justify-center flex-none",
-    // 32px cell — hardcoded so the button footprint stays identical
+    // 32px tokenized cell — keeps the button footprint identical
     // across every toolbar surface in the app. If a surface needs a
-    // chunkier pill, change this value here, not at the caller.
-    "h-8 w-8 text-[10px]",
+    // chunkier pill, change the token instead of each caller.
+    "size-[var(--atc-toolbar-cell-size)] text-xs",
     "overflow-hidden rounded-full",
     "font-[var(--font-nav)] font-semibold leading-none",
     "transition-[background,color,box-shadow] duration-150",
@@ -153,7 +152,7 @@ const toolbarButtonVariants = cva(
     // svg child sizing — Lucide ships 24px by default; clamp to 15px
     // so the icon stays subordinate to the pill's chromed background.
     // Keep the icon above the active-state ::after glow layer.
-    "[&_svg]:h-[15px] [&_svg]:w-[15px] [&_svg]:relative [&_svg]:z-[1]",
+    "[&_svg]:size-4 [&_svg]:relative [&_svg]:z-[1]",
     // Active-state bottom-glow gradient — same language as MetricCard /
     // FilterCard. Lives on ::after so it can fade in + slide up
     // independently of the box's background. --sidebar-tile-bottom-glow
@@ -177,7 +176,7 @@ const toolbarButtonVariants = cva(
           "hover:bg-[var(--atc-click-bg)] hover:text-[var(--atc-click-fg)]",
           "focus-visible:bg-[var(--atc-click-bg)] focus-visible:text-[var(--atc-click-fg)]",
           "data-[active=true]:bg-[var(--atc-click-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
-          "data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-8px_14px_color-mix(in_oklab,var(--atc-click-fg)_9%,transparent)]",
+          "data-[active=true]:shadow-[var(--atc-toolbar-button-active-shadow)]",
         ),
         // Map control rail button — dim base + light elev tint on
         // hover (subtler than soft because the map background already
@@ -185,10 +184,10 @@ const toolbarButtonVariants = cva(
         // control matches the shared treatment.
         rail: cn(
           "bg-transparent text-atc-dim",
-          "hover:bg-[color-mix(in_oklab,var(--atc-elev)_72%,transparent)]",
-          "focus-visible:bg-[color-mix(in_oklab,var(--atc-elev)_72%,transparent)]",
+          "hover:bg-[var(--atc-control-hover-bg-strong)]",
+          "focus-visible:bg-[var(--atc-control-hover-bg-strong)]",
           "data-[active=true]:bg-[var(--atc-click-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
-          "data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-8px_14px_color-mix(in_oklab,var(--atc-click-fg)_9%,transparent)]",
+          "data-[active=true]:shadow-[var(--atc-toolbar-button-active-shadow)]",
         ),
       },
     },
@@ -225,7 +224,7 @@ export function ToolbarAccountSlot({
   return (
     <div
       className={cn(
-        "flex-none inline-flex items-center justify-center h-8 w-8",
+        "flex-none inline-flex items-center justify-center size-[var(--atc-toolbar-cell-size)]",
         className,
       )}
       {...props}
