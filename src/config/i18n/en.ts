@@ -391,6 +391,7 @@ const en = {
   },
   map: {
     layers: "Map layers",
+    settings: "Map settings",
     layerOverlaysAria: "Map layer overlays",
     toggleSidebar: "Toggle sidebar",
     fitTrace: "Fit map to trace",
@@ -427,6 +428,27 @@ const en = {
     enableUserLocationAudio: "Enable aircraft proximity sound",
     hideUserLocation: "Hide my location",
     locatingUser: "Locating...",
+  },
+  mapSettings: {
+    title: "Map settings",
+    description: "Choose a map mode, then fine-tune the layers shown on this airport map.",
+    modeSection: "Modes",
+    layersSection: "Display",
+    guestPrompt: "Sign in to save your map mode and layer settings across devices.",
+    modes: {
+      spotting: "Spotting",
+      radio: "Radio",
+      controller: "Controller",
+      immersive: "Immersive",
+      custom: "Custom",
+    },
+    modeDescriptions: {
+      spotting: "Labels and approach geometry for airport watching.",
+      radio: "Navigation aids and labels for listening context.",
+      controller: "Airspace-aware traffic control context.",
+      immersive: "A quieter map with most overlays hidden.",
+      custom: "Your manual overrides on top of a preset.",
+    },
   },
   lostSignal: {
     subtitle: "Signal lost",

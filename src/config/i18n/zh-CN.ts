@@ -386,6 +386,7 @@ const zhCN = {
   },
   map: {
     layers: "地图图层",
+    settings: "地图设置",
     layerOverlaysAria: "地图图层叠加",
     toggleSidebar: "切换侧栏",
     fitTrace: "适配航迹",
@@ -422,6 +423,27 @@ const zhCN = {
     enableUserLocationAudio: "开启飞机接近提示音",
     hideUserLocation: "隐藏我的位置",
     locatingUser: "正在定位...",
+  },
+  mapSettings: {
+    title: "地图设置",
+    description: "选择地图模式,再微调这个机场地图显示的图层。",
+    modeSection: "模式",
+    layersSection: "显示",
+    guestPrompt: "登录后可跨设备保存你的地图模式和图层设置。",
+    modes: {
+      spotting: "拍摄",
+      radio: "无线电",
+      controller: "管制员",
+      immersive: "沉浸",
+      custom: "自定义",
+    },
+    modeDescriptions: {
+      spotting: "显示标签和进近几何,适合观察机场动态。",
+      radio: "显示导航台和标签,适合配合无线电收听。",
+      controller: "突出空域和管制相关交通上下文。",
+      immersive: "隐藏多数叠加层,保留更安静的地图。",
+      custom: "基于某个预设叠加你的手动调整。",
+    },
   },
   lostSignal: {
     subtitle: "信号丢失",

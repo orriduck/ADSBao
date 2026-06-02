@@ -1,18 +1,17 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { MAP_ZOOM_OPTIONS } from "../../config/mapControls";
 import { useThemePreference } from "../../features/app-shell/useThemePreference";
 import MapControlRail from "@/components/map/controls/MapControlRail";
-import MapLayerDrawer from "@/components/map/controls/MapLayerDrawer";
+import MapSettingsSheet from "@/components/map/controls/MapSettingsSheet";
 import {
   getNextZoomValue,
   resolveZoomOption,
 } from "../../features/airport/map-controls/mapControlModel";
-import { useDismissibleDrawer } from "../../features/airport/map-controls/useDismissibleDrawer";
 import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay";
 
-const LAYER_DRAWER_ID = "map-layer-drawer";
+const MAP_SETTINGS_SHEET_ID = "map-settings-sheet";
 
 export default function MapControlBar({
   activeZoom = ZOOM_AIRPORT,
@@ -22,6 +21,7 @@ export default function MapControlBar({
   showRunwayBeams = true,
   showNavaidMarkers = false,
   showAirspaces = true,
+  mapSettings = null,
   userLocationActive = false,
   userLocationAudioActive = false,
   userLocationPending = false,
@@ -32,28 +32,19 @@ export default function MapControlBar({
   onToggleRunwayBeams,
   onToggleNavaidMarkers,
   onToggleAirspaces,
+  onSelectMapMode,
   onLocateUser = null,
   onToggleSidebar,
   onFitToTrace = null,
 }) {
   const controlZone = useRef(null);
-  const [layerDrawerOpen, setLayerDrawerOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { themePreference, themeTitle, cycleTheme } = useThemePreference();
 
   const currentZoomOption = useMemo(
     () => resolveZoomOption(activeZoom, MAP_ZOOM_OPTIONS),
     [activeZoom],
   );
-
-  const closeLayerDrawer = useCallback(() => {
-    setLayerDrawerOpen(false);
-  }, []);
-
-  useDismissibleDrawer({
-    open: layerDrawerOpen,
-    containerRef: controlZone,
-    onClose: closeLayerDrawer,
-  });
 
   const cycleZoom = () => {
     if (zoomDisabled) return;
@@ -68,15 +59,17 @@ export default function MapControlBar({
     onZoom?.(getNextZoomValue(activeZoom, MAP_ZOOM_OPTIONS));
   };
 
-  const toggleLayerDrawer = () => {
-    setLayerDrawerOpen((value) => !value);
+  const toggleSettings = () => {
+    setSettingsOpen((value) => !value);
   };
 
   return (
     <div ref={controlZone} className="map-ctrl-zone">
-      <MapLayerDrawer
-        id={LAYER_DRAWER_ID}
-        open={layerDrawerOpen}
+      <MapSettingsSheet
+        id={MAP_SETTINGS_SHEET_ID}
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        mapSettings={mapSettings}
         showMapLabels={showMapLabels}
         showBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
@@ -85,6 +78,7 @@ export default function MapControlBar({
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
+        onSelectMapMode={onSelectMapMode}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}
@@ -98,14 +92,14 @@ export default function MapControlBar({
         zoomDisabled={zoomDisabled}
         currentTheme={themePreference}
         themeTitle={themeTitle}
-        layerDrawerOpen={layerDrawerOpen}
-        layerDrawerId={LAYER_DRAWER_ID}
+        settingsOpen={settingsOpen}
+        settingsSheetId={MAP_SETTINGS_SHEET_ID}
         showSidebarToggle={showSidebarToggle}
         onToggleSidebar={onToggleSidebar}
         onCycleZoom={cycleZoom}
         onFitToTrace={onFitToTrace}
         onCycleTheme={cycleTheme}
-        onToggleLayerDrawer={toggleLayerDrawer}
+        onToggleSettings={toggleSettings}
       />
     </div>
   );

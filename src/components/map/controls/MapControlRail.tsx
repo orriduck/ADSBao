@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/Toolbar";
 import { MapControlIcon } from "./mapControlIcons";
 
-const LAYERS_ICON_KEY = "layers";
+const SETTINGS_ICON_KEY = "slidersHorizontal";
 
 const RAIL_BUTTON_CLASS = toolbarButtonVariants({ tone: "rail" });
 
@@ -26,14 +26,14 @@ export default function MapControlRail({
   zoomDisabled = false,
   currentTheme,
   themeTitle,
-  layerDrawerOpen,
-  layerDrawerId,
+  settingsOpen,
+  settingsSheetId,
   showSidebarToggle = true,
   onToggleSidebar,
   onCycleZoom,
   onFitToTrace = null,
   onCycleTheme,
-  onToggleLayerDrawer,
+  onToggleSettings,
 }) {
   const { t } = useI18n();
   const { isLoaded, isSignedIn } = useUser();
@@ -98,13 +98,14 @@ export default function MapControlRail({
 
       <ToolbarButton
         tone="rail"
-        active={layerDrawerOpen}
-        aria-expanded={layerDrawerOpen}
-        aria-controls={layerDrawerId}
-        title={t("map.layers")}
-        onClick={onToggleLayerDrawer}
+        active={settingsOpen}
+        aria-expanded={settingsOpen}
+        aria-controls={settingsSheetId}
+        title={t("map.settings")}
+        aria-label={t("map.settings")}
+        onClick={onToggleSettings}
       >
-        <MapControlIcon iconKey={LAYERS_ICON_KEY} />
+        <MapControlIcon iconKey={SETTINGS_ICON_KEY} />
       </ToolbarButton>
 
       <ToolbarSeparator />
