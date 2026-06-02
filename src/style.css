@@ -5254,7 +5254,7 @@ body {
 
     .dither-page-header .endf-page-title {
         font-size: 24px;
-        line-height: 1.04;
+        line-height: 1.16;
         margin-top: 16px;
     }
 
@@ -5613,15 +5613,6 @@ body {
     box-shadow: var(--app-map-sidebar-shadow);
 }
 
-.mechanism-map-kit {
-    --mechanism-sidebar-width: var(--app-sidebar-width, 18.8rem);
-}
-
-.airport-map-kit .mechanism-sidebar,
-.airport-map-kit .mechanism-sidebar-inner {
-    width: var(--mechanism-sidebar-width);
-}
-
 .airport-map-kit .airport-desktop-sidebar > .h-full,
 .airport-map-kit .airport-desktop-sidebar .sidebar-shell {
     border-radius: calc(var(--atc-radius-shell) - 2px);
@@ -5850,23 +5841,6 @@ body {
 @media (max-width: 767px) {
     .airport-map-kit {
         padding: 0;
-    }
-
-    .mechanism-map-kit {
-        --mechanism-sidebar-width: 100vw;
-    }
-
-    .airport-map-kit .mechanism-sidebar {
-        bottom: 0;
-        display: block;
-        left: 0;
-        top: 0;
-        z-index: var(--z-index-map-panel);
-    }
-
-    .airport-map-kit .mechanism-sidebar-scroll {
-        padding-bottom: calc(28px + env(safe-area-inset-bottom));
-        scroll-padding-bottom: calc(28px + env(safe-area-inset-bottom));
     }
 
     .airport-map-menu--mobile {

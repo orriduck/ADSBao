@@ -104,81 +104,89 @@ const zhCN = {
       "ADSBao 如何把数据源、机场上下文、持久化边界和本地地图状态整理成可读的运行画面。",
     sidebarLabel: "系统流",
     count: "{count} 个机制",
-    stageLabel: "合成演示",
-    stageAria: "用合成飞机航迹展示 ADSBao 机制步骤",
-    traceLabel: "叙事航迹",
-    sequenceLabel: "序列",
     items: {
       providerFallback: {
         title: "ADS-B 数据源 fallback",
         signal: "位置源选择",
-        stage: "数据源已选择",
         body:
           "位置数据源按并行候选处理。面向客户端的代理会在冷启动时竞速,当前胜出源健康时保持使用,失败后重新选择。",
-        steps: {
-          candidates: "候选数据源",
-          race: "竞速健康响应",
-          winner: "锁定当前胜出源",
+        details: {
+          candidates:
+            "浏览器不会直接请求每一个上游。它向 ADSBao 请求附近飞机位置,由代理判断当前哪个数据源能稳定返回可用结果。",
+          race:
+            "当活跃数据源未知或变旧时,代理会评估候选源,而不是假设固定主源永远可用。第一个健康响应会成为这一路请求的来源。",
+          winner:
+            "胜出的数据源会在健康时继续复用,避免地图上出现明显的数据源抖动。失败后,下一次请求可以 fallback,但公开 UI 契约不变。",
         },
       },
       openAipContext: {
         title: "OpenAIP 机场上下文",
         signal: "机场与图层上下文",
-        stage: "上下文已归一化",
         body:
           "OpenAIP 提供机场侧运行上下文:跑道、导航台、报告点、空域、频率和其他地图标注。",
-        steps: {
-          airport: "查询机场",
-          normalize: "归一化航空上下文",
-          overlay: "渲染机场图层",
+        details: {
+          airport:
+            "机场详情页从明确的 ICAO/IATA 身份出发,只把 OpenAIP 用在能帮助理解周边空域、程序和设施的部分。",
+          normalize:
+            "不同数据源的原始形状会先归一化,再进入 React 组件。跑道、导航台、频率和空域渲染不需要依赖上游原始格式。",
+          overlay:
+            "地图随后从同一份航空上下文决定展示哪些图层,不用让每个叠加组件重复实现数据源解析规则。",
         },
       },
       supabaseBoundary: {
         title: "Supabase 缓存边界",
         signal: "持久化但不耦合实时流",
-        stage: "缓存已检查",
         body:
           "Supabase 在清晰边界内保存目录和持久化记录。Route Handler 决定何时读取、刷新或返回缓存上下文。",
-        steps: {
-          check: "检查存储记录",
-          persist: "持久化归一化结果",
-          return: "返回稳定上下文",
+        details: {
+          check:
+            "读取会经过 Route Handler 和 DAO helper,所以 UI 组件不需要知道一个值来自 Supabase、数据源刷新,还是静态 fallback。",
+          persist:
+            "当抓取到的记录值得保留时,服务端会存储归一化后的版本,而不是把数据源专有 payload 泄漏到应用展示层。",
+          return:
+            "这个边界让 ADSBao 在外部数据源改形或短暂不可用时,仍能返回稳定的机场和航路上下文。",
         },
       },
       aircraftTrace: {
         title: "飞机追踪与航迹",
         signal: "选中飞机历史",
-        stage: "状态已更新",
         body:
           "选中飞机的航迹和实时列表分开维护。近期点位、航路提示和会话状态会合并成一条可读航迹。",
-        steps: {
-          select: "选择飞机",
-          append: "追加航迹点",
-          persist: "持久化追踪会话",
+        details: {
+          select:
+            "选择飞机会把它从附近列表提升为聚焦追踪状态。侧边栏、预览卡片和地图都读取同一个选中对象。",
+          append:
+            "新的 ADS-B 点位会更新实时 marker,并在足够连贯时追加到可见航迹。航迹和列表刷新抖动分开维护。",
+          persist:
+            "航路提示、近期点位和面向用户的追踪上下文会合并,让飞机页在跳转或刷新之后仍然容易理解。",
         },
       },
       mapOverlays: {
         title: "地图图层",
         signal: "跑道、导航台、空域",
-        stage: "图层已渲染",
         body:
           "图层开关决定哪些机场叠加物进入地图。几何会投影到当前视图,标签随对应图形一起淡入淡出。",
-        steps: {
-          layers: "解析图层开关",
-          project: "投影几何",
-          label: "放置标签",
+        details: {
+          layers:
+            "地图图层抽屉会先解析用户启用的叠加项,再让地图绘制额外几何。关闭的图层不会进入绘制或标注路径。",
+          project:
+            "跑道、导航台、空域和其他形状会在归一化后按当前地图视图投影,保证平移和缩放时行为稳定。",
+          label:
+            "标签绑定在自己的几何来源上,并跟随对应图形一起动效切换,不会在关闭图层后留下孤立名称。",
         },
       },
       featureFlags: {
         title: "Owner-only 实验",
         signal: "内部功能开关",
-        stage: "实验已隔离",
         body:
           "内部开关让 owner-only 实验和公开产品并存。默认路径保持稳定,只有具备权限的用户能看到实验功能。",
-        steps: {
-          read: "读取功能开关",
-          gate: "隔离 owner 界面",
-          release: "保持公开路径稳定",
+        details: {
+          read:
+            "功能开关作为产品状态读取,而不是散落在代码里的临时判断。这样实验界面在公开前更容易审计。",
+          gate:
+            "Owner-only UI 可以在接近生产的条件下运行,同时对普通用户不可见,这对 FlightAware 等依赖集成的流程很有用。",
+          release:
+            "公开路径会保持稳定行为,除非某个开关明确打开新分支。之后移除开关路径会是小清理,不是重新设计。",
         },
       },
     },

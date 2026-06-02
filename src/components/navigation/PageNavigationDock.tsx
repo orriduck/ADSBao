@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { GitBranch, History, Home, Info, LogIn } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
+import { buildPageNavigationHref } from "@/features/app-shell/navigationModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useThemePreference } from "@/features/app-shell/useThemePreference";
 import {
@@ -34,7 +35,7 @@ function resolveActiveHref(pathname) {
 const buttonClass = toolbarButtonVariants({ tone: "soft" });
 
 export default function PageNavigationDock() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const pathname = usePathname();
   const activeHref = resolveActiveHref(pathname);
   const { themePreference, themeTitle, themeIconKey, cycleTheme } =
@@ -58,7 +59,7 @@ export default function PageNavigationDock() {
               aria-label={label}
               title={label}
             >
-              <Link href={item.href}>
+              <Link href={buildPageNavigationHref(item.href, locale)}>
                 <Icon aria-hidden="true" />
               </Link>
             </ToolbarButton>
