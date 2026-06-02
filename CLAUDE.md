@@ -150,7 +150,29 @@ pnpm build
 pnpm test
 ```
 
-`pnpm test` auto-discovers every `*.test.ts` and `*.test.tsx` file and runs the full critical mechanism suite. Keep tests focused on data normalization, proxy/routing/security, geometry, aircraft movement/context, and other logic that is hard to validate visually. Verify component behavior in the running app instead of adding one-off package scripts or copy/toggle-level tests.
+`pnpm test` auto-discovers every `*.test.ts` and `*.test.tsx` file and runs the full critical mechanism suite. Keep the suite intentionally small and high-signal.
+
+### What belongs in unit tests
+
+Add or update tests when they protect durable behavior that is hard to validate by looking at the app:
+
+- data normalization and display-model helpers
+- provider selection, failover, caching, rate-limit, and proxy/security behavior
+- route lookup, trace geometry, map math, aircraft movement/context, and distance calculations
+- state-machine behavior such as selected entities, layer defaults, feature flags, user-location modes, and loading models
+- reusable formatters or utilities with edge cases
+
+### What does not belong in unit tests
+
+Do not create or preserve tests whose main job is to lock down visual implementation details. Prefer local browser verification for these:
+
+- exact Tailwind class strings, CSS declarations, spacing, widths, icons, or DOM layout structure
+- source-inspection tests that read `.tsx` or `style.css` and assert regex matches for component markup
+- snapshot-style coverage of UI cards, map controls, drawers, copy placement, hover states, or responsive layout
+- one-off tests for routine UI copy, toggles, labels, or presentation-only component wiring
+- duplicate tests that cover behavior already protected by a model, utility, provider, or API test
+
+If a UI change needs durable logic coverage, extract the decision into a plain model/helper under the owning `src/features/**` domain and test that helper. Otherwise, validate the rendered behavior in the running app. Do not add tests just because a file changed.
 
 Local UI verification:
 
