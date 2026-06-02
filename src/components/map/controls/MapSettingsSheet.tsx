@@ -109,15 +109,16 @@ export default function MapSettingsSheet({
       <SheetContent
         id={id}
         side="right"
+        overlayClassName="map-settings-sheet-overlay"
         className={cn(
+          "map-settings-sheet",
           "right-2 top-2 bottom-2 h-[calc(100dvh-16px)] w-[min(448px,calc(100vw-16px))]",
           "rounded-[18px] border border-[var(--atc-line-strong)]",
           "overflow-hidden bg-[color-mix(in_oklab,var(--atc-card)_96%,var(--atc-bg))] p-0 text-atc-text",
           "shadow-[var(--app-panel-shadow)]",
-          "transition-[transform,opacity] duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
           "data-[state=open]:translate-x-0 data-[state=open]:opacity-100",
           "data-[state=closed]:translate-x-[calc(100%+16px)] data-[state=closed]:opacity-0",
-          "motion-reduce:transition-none",
+          "motion-reduce:transition-none motion-reduce:animate-none",
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
