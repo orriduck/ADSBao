@@ -11,14 +11,10 @@ import {
   safeAddToMap,
   safeRemoveFromMap,
 } from "../../features/airport/map/leafletLayerSafety";
-import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay";
+import { shouldShowRangeRingLabelsForZoom } from "../../features/airport/map/airportMapZoomFeatures";
 
 const DEFAULT_RING_INTERVAL_NM = 3;
 const DEFAULT_RING_MAX_NM = 30;
-
-// Per-ring labels show at the airport preset and closer; below that
-// the MapRangeLegend scale bar carries distance context.
-const RING_LABEL_MIN_ZOOM = ZOOM_AIRPORT;
 
 export default function AreaMarker({
   lat,
@@ -52,7 +48,7 @@ export default function AreaMarker({
 
     safeRemoveFromMap(ringLabelsRef.current, map);
     ringLabelsRef.current = null;
-    if (Number(zoom) >= RING_LABEL_MIN_ZOOM) {
+    if (shouldShowRangeRingLabelsForZoom(zoom)) {
       const labels = buildAirportRangeRingLabels(L, {
         lat,
         lon,

@@ -8,7 +8,7 @@ import {
   safeAddToMap,
   safeRemoveFromMap,
 } from "../../features/airport/map/leafletLayerSafety";
-import { ZOOM_APPROACH } from "../../utils/airportMapDisplay";
+import { shouldShowAirportAreaCountForZoom } from "../../features/airport/map/airportMapZoomFeatures";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent";
 import { AirportLabelBadge } from "@/components/ui/AirportLabelBadge";
 
@@ -27,10 +27,9 @@ export default function AirportMarker({
     typeof document !== "undefined" ? document.createElement("div") : null,
   );
 
-  // Count aircraft within `groundRadiusNm` of the focal airport, shown
-  // as a "NEAR n" line under the badge. Only computed at approach zoom
-  // so the badge stays minimal at wider views.
-  const showAreaCount = Number(zoom) === ZOOM_APPROACH;
+  // Count aircraft within `groundRadiusNm` of the focal airport when
+  // zoom-feature config enables the "NEAR n" badge detail.
+  const showAreaCount = shouldShowAirportAreaCountForZoom(zoom);
   const areaCount = useMemo(() => {
     if (!showAreaCount || !lat || !lon) return 0;
     return aircraft.filter((item) => {

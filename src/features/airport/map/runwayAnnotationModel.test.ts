@@ -65,9 +65,10 @@ assert.deepEqual(buildRunwayEndLabels(runwayMap), [
 ]);
 
 assert.equal(shouldShowRunwayEndLabels(ZOOM_APPROACH), false);
-assert.equal(shouldShowRunwayEndLabels(ZOOM_AIRPORT), true);
+assert.equal(shouldShowRunwayEndLabels(ZOOM_AIRPORT), false);
 assert.equal(shouldShowRunwayEndLabels(ZOOM_DETAIL), true);
 assert.deepEqual(buildRunwayEndLabels(runwayMap, { zoom: ZOOM_APPROACH }), []);
+assert.deepEqual(buildRunwayEndLabels(runwayMap, { zoom: ZOOM_AIRPORT }), []);
 
 assert.deepEqual(buildRunwayCenterlineCollection(runwayMap), {
   type: "FeatureCollection",

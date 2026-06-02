@@ -1,0 +1,66 @@
+import {
+  ZOOM_AIRPORT,
+  ZOOM_APPROACH,
+  ZOOM_DETAIL,
+} from "../../../utils/airportMapDisplay";
+
+type AirportMapZoomFeatures = {
+  airportGroundTrafficHideRadiusNm: number | null;
+  showAirportAreaCount: boolean;
+  showNearbyAirportRunways: boolean;
+  showRangeRingLabels: boolean;
+  showRunwayEndLabels: boolean;
+};
+
+const DEFAULT_GROUND_AREA_RADIUS_NM = 3;
+
+const AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS: AirportMapZoomFeatures = Object.freeze({
+  airportGroundTrafficHideRadiusNm: null,
+  showAirportAreaCount: false,
+  showNearbyAirportRunways: false,
+  showRangeRingLabels: false,
+  showRunwayEndLabels: false,
+});
+
+export const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures> = Object.freeze({
+  [ZOOM_APPROACH]: Object.freeze({
+    airportGroundTrafficHideRadiusNm: DEFAULT_GROUND_AREA_RADIUS_NM,
+    showAirportAreaCount: true,
+    showNearbyAirportRunways: true,
+    showRangeRingLabels: false,
+    showRunwayEndLabels: false,
+  }),
+  [ZOOM_AIRPORT]: Object.freeze({
+    airportGroundTrafficHideRadiusNm: 0.5,
+    showAirportAreaCount: false,
+    showNearbyAirportRunways: true,
+    showRangeRingLabels: true,
+    showRunwayEndLabels: false,
+  }),
+  [ZOOM_DETAIL]: Object.freeze({
+    airportGroundTrafficHideRadiusNm: null,
+    showAirportAreaCount: false,
+    showNearbyAirportRunways: true,
+    showRangeRingLabels: true,
+    showRunwayEndLabels: true,
+  }),
+});
+
+export const airportMapZoomFeaturesFor = (zoom: unknown): AirportMapZoomFeatures =>
+  AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL[Number(zoom)] ??
+  AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS;
+
+export const airportGroundTrafficHideRadiusNmForZoom = (zoom: unknown) =>
+  airportMapZoomFeaturesFor(zoom).airportGroundTrafficHideRadiusNm;
+
+export const shouldShowAirportAreaCountForZoom = (zoom: unknown) =>
+  airportMapZoomFeaturesFor(zoom).showAirportAreaCount;
+
+export const shouldShowNearbyAirportRunwaysForZoom = (zoom: unknown) =>
+  airportMapZoomFeaturesFor(zoom).showNearbyAirportRunways;
+
+export const shouldShowRangeRingLabelsForZoom = (zoom: unknown) =>
+  airportMapZoomFeaturesFor(zoom).showRangeRingLabels;
+
+export const shouldShowRunwayEndLabelsForZoom = (zoom: unknown) =>
+  airportMapZoomFeaturesFor(zoom).showRunwayEndLabels;

@@ -1,10 +1,11 @@
 import { RUNWAY_APPROACH_BEAM_CONFIG } from "../../../config/airportMap";
 import { ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
+import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const STATUTE_MILE_METERS = 1_609.344;
 
-export const shouldShowRunwayEndLabels = (zoom) => Number(zoom) > ZOOM_APPROACH;
+export const shouldShowRunwayEndLabels = shouldShowRunwayEndLabelsForZoom;
 
 type RunwayAnnotationRecord = Record<string, any>;
 
