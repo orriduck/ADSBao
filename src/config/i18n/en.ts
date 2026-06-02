@@ -8,6 +8,7 @@ const en = {
     live: "Live",
     airportExplorer: "Airports",
     aboutTitle: "About",
+    mechanismTitle: "Mechanism",
     siteDescription:
       "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
   },
@@ -19,6 +20,7 @@ const en = {
     homePage: "Home",
     map: "Map",
     about: "About",
+    mechanism: "Mechanism",
     changelog: "Changelog",
   },
   auth: {
@@ -98,6 +100,99 @@ const en = {
         title: "Bilibili Aircraft Footage",
         description:
           "Aircraft branding footage credit: 【视频分享】素材分享——飞机起飞降落 by 霸波奔bo奔波霸.",
+      },
+    },
+  },
+  mechanism: {
+    title: "Mechanism",
+    description:
+      "How ADSBao turns provider data, airport context, persistence boundaries, and local map state into a readable operating picture.",
+    sidebarLabel: "System flow",
+    count: "{count} mechanisms",
+    items: {
+      providerFallback: {
+        title: "ADS-B provider fallback",
+        signal: "Position source selection",
+        body:
+          "Position providers are treated as peers. The client-facing proxy races cold starts, keeps the current winner while it is healthy, then reselects when a feed fails.",
+        details: {
+          candidates:
+            "The browser does not talk to every upstream directly. It asks ADSBao for nearby positions, and the proxy decides which provider can currently answer with stable data.",
+          race:
+            "When the active provider is unknown or stale, the proxy evaluates candidates instead of assuming a fixed primary source. The first healthy response becomes the source for that request path.",
+          winner:
+            "The selected provider is reused while it remains healthy, so the map avoids visible source churn. If it fails, the next request can fall back without changing the public UI contract.",
+        },
+      },
+      openAipContext: {
+        title: "Airport context via OpenAIP",
+        signal: "Airport and overlay context",
+        body:
+          "OpenAIP supplies the airport-side operating context: runways, navaids, reporting points, airspace, frequencies, and other map annotations.",
+        details: {
+          airport:
+            "Airport detail pages start from a known ICAO/IATA identity, then use OpenAIP only for the parts that make the surrounding airspace and procedures easier to understand.",
+          normalize:
+            "Provider-specific shapes are normalized before they reach React components. That keeps runway, navaid, frequency, and airspace rendering from depending on raw upstream formats.",
+          overlay:
+            "The map can then decide which layers to show from one consistent aviation context, instead of making every overlay component repeat provider parsing rules.",
+        },
+      },
+      supabaseBoundary: {
+        title: "Supabase cache boundaries",
+        signal: "Persistence without live coupling",
+        body:
+          "Supabase holds directory and persisted records at clear boundaries. Route handlers decide when to read, refresh, or return cached context.",
+        details: {
+          check:
+            "Reads go through route handlers and DAO helpers, so UI components do not need to know whether a value came from Supabase, a provider refresh, or static fallback data.",
+          persist:
+            "When a fetched record is worth keeping, the server stores the normalized version rather than leaking provider-specific payloads into the app surface.",
+          return:
+            "That boundary lets ADSBao return stable airport and route context even when an external provider changes shape or temporarily becomes unavailable.",
+        },
+      },
+      aircraftTrace: {
+        title: "Aircraft tracking and trace",
+        signal: "Selected aircraft history",
+        body:
+          "A selected aircraft keeps a trace separate from the live list. Recent points, route hints, and session state are merged into one readable track.",
+        details: {
+          select:
+            "Selecting an aircraft promotes it from the nearby list into a focused tracking state. The sidebar, preview card, and map all read from that same selection.",
+          append:
+            "New ADS-B positions update the live marker and append to the visible trace when they are coherent enough to draw. The trace is kept separate from list refresh churn.",
+          persist:
+            "Route hints, recent points, and user-facing tracking context are merged so the aircraft page can remain understandable after navigation or refresh.",
+        },
+      },
+      mapOverlays: {
+        title: "Map overlays",
+        signal: "Runways, navaids, airspace",
+        body:
+          "Layer toggles choose which airport overlays enter the map. Geometry is projected into the current view, then labels fade with their features.",
+        details: {
+          layers:
+            "The map layer drawer resolves the user's active overlay choices before the map renders extra geometry. Disabled layers stay out of both the drawing and labeling paths.",
+          project:
+            "Runways, navaids, airspaces, and other shapes are projected against the current map view after normalization, which keeps pan and zoom behavior predictable.",
+          label:
+            "Labels are attached to their source geometry and animate with it, so turning a layer on or off does not leave orphaned names floating over the map.",
+        },
+      },
+      featureFlags: {
+        title: "Owner-only experiments",
+        signal: "Internal feature flags",
+        body:
+          "Internal flags let owner-only experiments exist beside the public product. The default path stays stable unless the active user can see the flag.",
+        details: {
+          read:
+            "Feature flags are read as product state, not as scattered one-off checks. That makes experimental surfaces easier to audit before they become public.",
+          gate:
+            "Owner-only UI can run in production-like conditions while staying invisible to normal users, which is useful for FlightAware and other integration-heavy flows.",
+          release:
+            "The public route keeps the stable behavior unless a flag explicitly opens a new branch. Removing the flag path later becomes a small cleanup instead of a redesign.",
+        },
       },
     },
   },

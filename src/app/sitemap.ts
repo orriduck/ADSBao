@@ -11,6 +11,11 @@ const STATIC_ROUTES = [
     changeFrequency: "monthly",
     priority: 0.6,
   },
+  {
+    path: "/mechanism",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
 ];
 
 export default function sitemap() {

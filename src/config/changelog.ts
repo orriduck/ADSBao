@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.8.3",
+    kind: "patch",
+    title: "Mechanism page and navigation polish",
+    summary:
+      "Mechanism now uses the same dithered page shell as Home and About, with clearer expandable explanations and locale-safe toolbar navigation.",
+    highlights: [
+      "Mechanism page returns to the Home/About dither background instead of a synthetic airport map",
+      "Mechanism rows match the About list pattern while expanded content explains each system in paragraphs",
+      "Top navigation preserves the active locale when moving between Home, About, Mechanism, and Changelog",
+      "Dither page titles use safer line-height so Changelog text no longer clips",
+    ],
+  },
+  {
     version: "v1.8.1",
     kind: "patch",
     title: "Aircraft type labels and airspace entry polish",

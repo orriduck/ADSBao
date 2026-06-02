@@ -10,6 +10,17 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v1.8.3": {
+    title: "机制页与导航细节",
+    summary:
+      "机制页现在回到和首页、关于页一致的点阵页面壳,展开内容改为更清楚的段落说明,顶部导航也会保留当前语言。",
+    highlights: [
+      "机制页不再使用合成机场地图,改回 Home / About 同款点阵背景",
+      "机制列表沿用 About 的 row 结构,展开后用多段正文解释系统机制",
+      "顶部导航在 Home、About、Mechanism、Changelog 之间跳转时保留当前 locale",
+      "点阵页面标题使用更安全的行高,Changelog 标题不再被裁切",
+    ],
+  },
   "v1.8.1": {
     title: "机型名称与空域初始动画",
     summary:

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
-import { History, Home, Info, LogIn } from "lucide-react";
+import { GitBranch, History, Home, Info, LogIn } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
+import { buildPageNavigationHref } from "@/features/app-shell/navigationModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useThemePreference } from "@/features/app-shell/useThemePreference";
 import {
@@ -19,12 +20,14 @@ import {
 const PAGE_ITEMS = [
   { href: "/", labelKey: "nav.homePage", Icon: Home },
   { href: "/about", labelKey: "nav.about", Icon: Info },
+  { href: "/mechanism", labelKey: "nav.mechanism", Icon: GitBranch },
   { href: "/changelog", labelKey: "nav.changelog", Icon: History },
 ];
 
 function resolveActiveHref(pathname) {
   const segment = String(pathname || "").split("/").filter(Boolean)[0] || "";
   if (segment === "about") return "/about";
+  if (segment === "mechanism") return "/mechanism";
   if (segment === "changelog") return "/changelog";
   return "/";
 }
@@ -32,7 +35,7 @@ function resolveActiveHref(pathname) {
 const buttonClass = toolbarButtonVariants({ tone: "soft" });
 
 export default function PageNavigationDock() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const pathname = usePathname();
   const activeHref = resolveActiveHref(pathname);
   const { themePreference, themeTitle, themeIconKey, cycleTheme } =
@@ -56,7 +59,7 @@ export default function PageNavigationDock() {
               aria-label={label}
               title={label}
             >
-              <Link href={item.href}>
+              <Link href={buildPageNavigationHref(item.href, locale)}>
                 <Icon aria-hidden="true" />
               </Link>
             </ToolbarButton>

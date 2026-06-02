@@ -37,10 +37,10 @@ export default function DitherPageShell({
             />
           </div>
           <h1
-            className="endf-page-title mt-5 text-[30px] font-extrabold leading-[1.05] text-atc-text"
+            className="endf-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
             style={{ fontFamily: "var(--font-display)", letterSpacing: "0" }}
           >
-            <span className="block truncate">{resolvedTitle}</span>
+            <span className="block break-words">{resolvedTitle}</span>
           </h1>
           {hasDescription ? (
             <p className="dither-page-description mt-3 text-[13px] leading-relaxed text-atc-dim">
