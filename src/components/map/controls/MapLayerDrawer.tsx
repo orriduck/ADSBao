@@ -92,9 +92,7 @@ export default function MapLayerDrawer({
         "[.airport-map-menu--mobile_&]:right-auto",
         "[.airport-map-menu--mobile_&]:left-1/2",
         "[.airport-map-menu--mobile_&]:origin-top",
-        // Open / closed transitions — pure Tailwind, drives the same
-        // opacity + translate + scale animation .map-action-drawer
-        // used to do in style.css.
+        // Open / closed transitions stay co-located with the drawer state.
         "transition-[opacity,transform] duration-[180ms] ease-out",
         open
           ? cn(
