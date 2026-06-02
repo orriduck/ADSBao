@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import {
   getLoadingOverlayExitDelay,
   resolveAircraftLoadingOverlayState,
+  shouldReplayLoadingOverlayOnPageVisible,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
@@ -48,9 +49,40 @@ export default function MapLoadingOverlay({
   sidebarAware = false,
   ariaLabel,
 }: Record<string, any>) {
-  const [visible, setVisible] = useState(active);
+  const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
-  const shownAtRef = useRef(active ? Date.now() : 0);
+  const [playbackCycle, setPlaybackCycle] = useState(0);
+  const shownAtRef = useRef(Date.now());
+
+  const replay = useCallback(() => {
+    shownAtRef.current = Date.now();
+    setVisible(true);
+    setExiting(false);
+    setPlaybackCycle((value) => value + 1);
+  }, []);
+
+  useEffect(() => {
+    const handlePageVisible = () => {
+      if (
+        typeof document !== "undefined" &&
+        !shouldReplayLoadingOverlayOnPageVisible({
+          documentHidden: document.hidden,
+        })
+      ) {
+        return;
+      }
+
+      replay();
+    };
+
+    document.addEventListener("visibilitychange", handlePageVisible);
+    window.addEventListener("pageshow", handlePageVisible);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handlePageVisible);
+      window.removeEventListener("pageshow", handlePageVisible);
+    };
+  }, [replay]);
 
   useEffect(() => {
     let delayTimer;
@@ -82,7 +114,7 @@ export default function MapLoadingOverlay({
       if (delayTimer) window.clearTimeout(delayTimer);
       if (fadeTimer) window.clearTimeout(fadeTimer);
     };
-  }, [active, visible]);
+  }, [active, playbackCycle, visible]);
 
   return (
     <div
@@ -99,7 +131,7 @@ export default function MapLoadingOverlay({
       role="status"
       style={{ display: visible ? undefined : "none" }}
     >
-      <div className="adsb-loading-grid" aria-hidden="true">
+      <div key={playbackCycle} className="adsb-loading-grid" aria-hidden="true">
         <span className="adsb-loading-grid__matrix" />
         <span className="adsb-loading-grid__scan" />
       </div>
