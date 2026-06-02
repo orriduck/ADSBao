@@ -1,8 +1,11 @@
 # ADSBao — Codex Guide
 
-Use `CLAUDE.md` as the canonical local agent guide for this repository.
+Use `CLAUDE.md` as the canonical local agent guide for this repository. Keep
+the full validation decision tree there; do not duplicate it in this file.
 
-- For end-to-end verification, push the work to a PR first, then use the Vercel
+- Before changing code or docs, read `CLAUDE.md` and choose the validation mode
+  from its `Validation modes` section.
+- For Vercel preview validation, push the work to a PR first, then use the
   preview URL generated for that PR as the verification target.
 - For FlightAware-related features, merge the work and verify with Chrome,
   because the flow depends on Clerk login state.

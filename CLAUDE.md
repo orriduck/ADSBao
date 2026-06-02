@@ -160,6 +160,109 @@ pnpm run dev
 
 Open `http://localhost:3000`. For pushed branches, use the Vercel preview deployment created by Git integration. Vercel's documented preview checks are `vercel list --environment preview`, `vercel inspect <preview-url>`, and `vercel curl / --deployment <preview-url>` when deployment protection applies.
 
+## Validation modes
+
+Use this decision tree for Claude Code, Codex, ChatGPT, and any other agent working in this repository. Pick the lightest validation mode that actually covers the change. Do not run broad checks just because a file changed, but do escalate when the change affects production behavior, shared mechanisms, or multiple visible surfaces.
+
+### Mode 1: Docs/copy only
+
+Use for wording-only changes where runtime behavior is not affected.
+
+Examples:
+
+- README, `CLAUDE.md`, `AGENTS.md`, issue templates, or architecture prose.
+- Copy-only changes to labels, help text, or comments when no logic, route, style, or component structure changes.
+- Config text that documents behavior without changing the effective runtime value.
+
+Validation:
+
+- Read the changed text in context.
+- Confirm links, commands, and file references are still accurate.
+- No browser, Vercel preview, or full test run is required unless the docs describe a command or flow that was also changed.
+
+PR wording:
+
+```text
+Validation: docs/copy only — read the updated agent guide in context.
+```
+
+### Mode 2: Local browser validation
+
+Use for small frontend changes that are best judged visually or interactively.
+
+Examples:
+
+- Layout, spacing, icon, toggle, animation, hover, or visible interaction polish.
+- Small map controls, preview-card alignment, loading indicators, and responsive adjustments limited to one surface.
+- PR #319-style UI/card polish when it is contained to a small set of screens.
+
+Validation:
+
+- Use the local dev server on `http://localhost:3000`, following the dev-server lifecycle above.
+- Open the affected route in a browser and verify the actual interaction or visual state.
+- Check both desktop and mobile widths when the changed surface is responsive.
+- Use Vercel preview only when production comparison, auth state, or a wider screen matrix is needed.
+
+PR wording:
+
+```text
+Validation: local browser — checked <route or screen> at <viewport/state>.
+```
+
+### Mode 3: Local test validation
+
+Use for deterministic mechanism, model, data, or API behavior where tests give stronger coverage than visual inspection.
+
+Examples:
+
+- Normalization, provider selection, route lookup, trace geometry, user-location audio state, map-layer models, loading-state models, and cache/security helpers.
+- UI plus state/model changes where visible behavior depends on nontrivial logic.
+- PR #325-style mixed UI/model changes: run relevant tests first, then add browser validation for the visible behavior.
+
+Validation:
+
+- Add or update focused tests for the changed mechanism when useful.
+- Run the narrow relevant test file first, then `pnpm test` when the change touches shared behavior or multiple mechanisms.
+- Add local browser validation when the tested behavior also has a visible user workflow.
+
+PR wording:
+
+```text
+Validation: local test — ran <test command>; local browser checked <visible workflow if applicable>.
+```
+
+### Mode 4: Vercel preview validation
+
+Use for broad frontend changes or production-facing behavior that needs the deployed environment.
+
+Examples:
+
+- Major map UI changes, responsive rewrites, theme/design-token changes, cross-page shell/navigation changes, or changes that span many screens.
+- Data/provider/API/backend changes that depend on Vercel routing, environment variables, deployment headers, or production proxy behavior.
+- Env, dependency, migration, or internal feature-flag changes where the default user-facing behavior must be stated.
+- PR #320-style OpenAIP/provider migrations and broad production data-path work.
+
+Validation:
+
+- Run the relevant local tests and project checks before final review.
+- Push the branch and use the Vercel preview URL generated for the PR as the verification target.
+- Inspect the preview route or API behavior that matches the changed surface.
+- For FlightAware-related features, merge the work and verify with Chrome after merge because the flow depends on Clerk login state.
+
+PR wording:
+
+```text
+Validation: Vercel preview — checked <preview URL or route>; ran <local commands>.
+```
+
+### Risk mapping
+
+- Tiny docs/copy/config-text changes: Mode 1.
+- Visual-only UI polish: Mode 2; escalate to Mode 4 only when many screens or production comparison are involved.
+- UI plus state/model behavior: Mode 3 plus Mode 2 when the behavior is visible.
+- Data/provider/API/backend changes: Mode 3 plus project checks; escalate to Mode 4 when Vercel routing or deployed configuration matters.
+- Env/dependency/migration/internal feature flag changes: Mode 3 plus project checks, with a PR note about default user-facing behavior; use Mode 4 when the deployed environment is part of the change.
+
 ## Runtime config
 
 There is no Python backend runtime config, frontend settings page, or `/api/config` flow.
