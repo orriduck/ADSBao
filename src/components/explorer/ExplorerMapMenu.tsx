@@ -28,8 +28,13 @@ export default function ExplorerMapMenu({
     showNavaidMarkers,
     showAirspaces,
     mapSettings,
+    savedMapSettings,
+    mapSettingsSaveStatus,
+    mapSettingsRestoreStatus,
     setMapZoom,
     applyMapMode,
+    saveMapSettings,
+    restoreMapSettings,
     toggleSidebar,
     toggleMapLabels,
     toggleRunwayBeams,
@@ -52,6 +57,9 @@ export default function ExplorerMapMenu({
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
         mapSettings={mapSettings}
+        savedMapSettings={savedMapSettings}
+        mapSettingsSaveStatus={mapSettingsSaveStatus}
+        mapSettingsRestoreStatus={mapSettingsRestoreStatus}
         userLocationActive={userLocationActive}
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
@@ -63,6 +71,8 @@ export default function ExplorerMapMenu({
         onToggleNavaidMarkers={toggleNavaidMarkers}
         onToggleAirspaces={toggleAirspaces}
         onSelectMapMode={applyMapMode}
+        onSaveMapSettings={saveMapSettings}
+        onRestoreMapSettings={restoreMapSettings}
         onToggleUserLocation={onToggleUserLocation}
         onToggleUserLocationAudio={onToggleUserLocationAudio}
         onToggleSidebar={toggleSidebar}

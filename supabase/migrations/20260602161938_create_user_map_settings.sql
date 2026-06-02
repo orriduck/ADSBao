@@ -5,6 +5,7 @@ create table if not exists public.user_map_settings (
   email text not null,
   environment text not null default 'production',
   settings jsonb not null default '{}'::jsonb,
+  has_selected_mode boolean not null default false,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
 
@@ -25,6 +26,9 @@ comment on table public.user_map_settings is
 
 comment on column public.user_map_settings.settings is
   'Normalized map settings JSON: selectedMode, baseMode, layerOverrides, audioEnabled, updatedAt.';
+
+comment on column public.user_map_settings.has_selected_mode is
+  'True after the user explicitly chooses a map mode; false when defaults or manual layer changes produced the current settings.';
 
 alter table public.user_map_settings enable row level security;
 

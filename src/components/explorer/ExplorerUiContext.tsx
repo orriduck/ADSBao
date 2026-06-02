@@ -8,6 +8,7 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
 } from "react";
 import { useUser } from "@clerk/nextjs";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
@@ -233,6 +234,9 @@ export function ExplorerUiProvider({ children }) {
   const { isLoaded, isSignedIn } = useUser();
   const hasHydratedMapSettingsRef = useRef(false);
   const persistedMapSettingsRef = useRef("");
+  const [savedMapSettings, setSavedMapSettings] = useState<Record<string, any> | null>(null);
+  const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
+  const [mapSettingsRestoreStatus, setMapSettingsRestoreStatus] = useState("idle");
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
     initialUiState,
@@ -298,7 +302,12 @@ export function ExplorerUiProvider({ children }) {
       }
 
       if (cancelled) return;
-      if (nextSettings) {
+      if (isSignedIn) {
+        setSavedMapSettings(nextSettings);
+        persistedMapSettingsRef.current = nextSettings
+          ? JSON.stringify(nextSettings)
+          : "";
+      } else if (nextSettings) {
         dispatch({ type: "hydrateMapSettings", settings: nextSettings });
         persistedMapSettingsRef.current = JSON.stringify(nextSettings);
       } else {
@@ -316,39 +325,69 @@ export function ExplorerUiProvider({ children }) {
 
   useEffect(() => {
     if (!isLoaded || !hasHydratedMapSettingsRef.current) return undefined;
+    if (isSignedIn) return undefined;
     const nextSettings = normalizeMapSettings(mapSettings);
     const serialized = JSON.stringify(nextSettings);
     if (serialized === persistedMapSettingsRef.current) return undefined;
 
-    if (!isSignedIn) {
-      writeStoredMapSettings(nextSettings);
-      persistedMapSettingsRef.current = serialized;
-      return undefined;
-    }
+    writeStoredMapSettings(nextSettings);
+    persistedMapSettingsRef.current = serialized;
+    return undefined;
+  }, [isLoaded, isSignedIn, mapSettings]);
 
-    const timer = window.setTimeout(() => {
-      fetch("/api/map-settings", {
+  const saveMapSettings = useCallback(async () => {
+    if (!isLoaded || !isSignedIn) return null;
+    const nextSettings = normalizeMapSettings(mapSettings);
+    setMapSettingsSaveStatus("saving");
+    try {
+      const response = await fetch("/api/map-settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ settings: nextSettings }),
-      })
-        .then((response) => (response.ok ? response.json() : null))
-        .then((payload) => {
-          if (payload?.settings) {
-            persistedMapSettingsRef.current = JSON.stringify(
-              normalizeMapSettings(payload.settings),
-            );
-          }
-        })
-        .catch(() => {
-          // Settings remain active in memory; the next edit can retry persistence.
-        });
-    }, 400);
-
-    return () => window.clearTimeout(timer);
+      });
+      if (!response.ok) throw new Error("save failed");
+      const payload = await response.json();
+      const savedSettings = payload?.settings
+        ? normalizeMapSettings(payload.settings)
+        : nextSettings;
+      setSavedMapSettings(savedSettings);
+      persistedMapSettingsRef.current = JSON.stringify(savedSettings);
+      setMapSettingsSaveStatus("saved");
+      return savedSettings;
+    } catch {
+      setMapSettingsSaveStatus("error");
+      return null;
+    }
   }, [isLoaded, isSignedIn, mapSettings]);
+
+  const restoreMapSettings = useCallback(async () => {
+    if (!isLoaded || !isSignedIn) return null;
+    setMapSettingsRestoreStatus("restoring");
+    try {
+      const response = await fetch("/api/map-settings", {
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("restore failed");
+      const payload = await response.json();
+      const restoredSettings = payload?.settings
+        ? normalizeMapSettings(payload.settings)
+        : savedMapSettings;
+      if (!restoredSettings) {
+        setMapSettingsRestoreStatus("empty");
+        return null;
+      }
+      setSavedMapSettings(restoredSettings);
+      persistedMapSettingsRef.current = JSON.stringify(restoredSettings);
+      dispatch({ type: "hydrateMapSettings", settings: restoredSettings });
+      setMapSettingsRestoreStatus("restored");
+      return restoredSettings;
+    } catch {
+      setMapSettingsRestoreStatus("error");
+      return null;
+    }
+  }, [isLoaded, isSignedIn, savedMapSettings]);
 
   const toggleSidebar = useCallback(() => {
     dispatch({ type: "toggleSidebar" });
@@ -450,6 +489,9 @@ export function ExplorerUiProvider({ children }) {
       showNavaidMarkers,
       showAirspaces,
       mapSettings,
+      savedMapSettings,
+      mapSettingsSaveStatus,
+      mapSettingsRestoreStatus,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -471,6 +513,8 @@ export function ExplorerUiProvider({ children }) {
       toggleNavaidMarkers,
       toggleAirspaces,
       applyMapMode,
+      saveMapSettings,
+      restoreMapSettings,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
@@ -492,6 +536,9 @@ export function ExplorerUiProvider({ children }) {
       showNavaidMarkers,
       showAirspaces,
       mapSettings,
+      savedMapSettings,
+      mapSettingsSaveStatus,
+      mapSettingsRestoreStatus,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -513,6 +560,8 @@ export function ExplorerUiProvider({ children }) {
       toggleNavaidMarkers,
       toggleAirspaces,
       applyMapMode,
+      saveMapSettings,
+      restoreMapSettings,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,

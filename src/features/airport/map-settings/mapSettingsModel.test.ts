@@ -4,6 +4,7 @@ import {
   MAP_LAYER_KEYS,
   MAP_MODE_IDS,
   buildCustomMapSettings,
+  buildPresetMapSettings,
   getMapModePreset,
   normalizeMapSettings,
   resolveMapSettingsLayers,
@@ -61,6 +62,47 @@ import {
   assert.equal(custom.updatedAt, "2026-06-02T15:01:00.000Z");
   assert.notEqual(before, custom.layerOverrides);
   assert.equal(getMapModePreset(MAP_MODE_IDS.RADIO).layers[MAP_LAYER_KEYS.AIRSPACES], false);
+}
+
+{
+  const defaults = normalizeMapSettings({});
+  assert.equal(
+    defaults.hasSelectedMode,
+    false,
+    "default settings should record that the user has not actively selected a mode",
+  );
+
+  const preset = buildPresetMapSettings({
+    modeId: MAP_MODE_IDS.SPOTTING,
+    now: "2026-06-02T15:02:00.000Z",
+  });
+  assert.equal(
+    preset.hasSelectedMode,
+    true,
+    "selecting a preset should record that the user actively chose a mode",
+  );
+
+  const custom = buildCustomMapSettings({
+    settings: defaults,
+    layerKey: MAP_LAYER_KEYS.AIRSPACES,
+    value: true,
+    now: "2026-06-02T15:03:00.000Z",
+  });
+  assert.equal(
+    custom.hasSelectedMode,
+    false,
+    "manual layer changes should preserve whether a mode was explicitly selected",
+  );
+
+  const restored = normalizeMapSettings({
+    selectedMode: MAP_MODE_IDS.RADIO,
+    has_selected_mode: true,
+  });
+  assert.equal(
+    restored.hasSelectedMode,
+    true,
+    "database rows should hydrate has_selected_mode into the settings model",
+  );
 }
 
 console.log("mapSettingsModel.test.ts ok");

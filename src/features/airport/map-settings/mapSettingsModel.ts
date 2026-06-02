@@ -117,6 +117,7 @@ export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
   baseMode: MAP_MODE_IDS.CONTROLLER,
   layerOverrides: Object.freeze({}),
   audioEnabled: false,
+  hasSelectedMode: false,
   updatedAt: "",
 });
 
@@ -180,6 +181,8 @@ export function normalizeMapSettings(settings: MapSettingsRecord = {}) {
     baseMode,
     layerOverrides: normalizeMapLayerOverrides(settings?.layerOverrides),
     audioEnabled: settings?.audioEnabled === true,
+    hasSelectedMode:
+      settings?.hasSelectedMode === true || settings?.has_selected_mode === true,
     updatedAt: String(settings?.updatedAt || settings?.updated_at || ""),
   };
 }
@@ -207,6 +210,7 @@ export function buildPresetMapSettings({
     baseMode: preset.id,
     layerOverrides: {},
     audioEnabled: audioEnabled === true,
+    hasSelectedMode: true,
     updatedAt: now,
   };
 }

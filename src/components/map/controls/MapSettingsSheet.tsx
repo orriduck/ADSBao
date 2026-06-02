@@ -16,6 +16,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { SelectableCard } from "@/components/ui/SelectableCard";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { MapControlIcon } from "./mapControlIcons";
@@ -79,6 +80,11 @@ export default function MapSettingsSheet({
   onToggleAirspaces,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
+  savedMapSettings = null,
+  mapSettingsSaveStatus = "idle",
+  mapSettingsRestoreStatus = "idle",
+  onSaveMapSettings = null,
+  onRestoreMapSettings = null,
 }) {
   const { t } = useI18n();
   const { isLoaded, isSignedIn } = useUser();
@@ -103,6 +109,10 @@ export default function MapSettingsSheet({
     ? t("mapLayers.enableUserLocationAudio")
     : t("mapLayers.disableUserLocationAudio");
   const showGuestPrompt = isLoaded && !isSignedIn;
+  const showSignedInPersistence = isLoaded && isSignedIn;
+  const hasSavedMapSettings = Boolean(savedMapSettings);
+  const saving = mapSettingsSaveStatus === "saving";
+  const restoring = mapSettingsRestoreStatus === "restoring";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -148,31 +158,15 @@ export default function MapSettingsSheet({
                     mode.id === MAP_MODE_IDS.IMMERSIVE ||
                     (DISABLED_MAP_MODE_IDS as readonly string[]).includes(mode.id);
                   return (
-                    <button
+                    <SelectableCard
                       key={mode.id}
-                      type="button"
-                      className={cn(
-                        "flex min-h-[118px] flex-col items-start rounded-[8px] border p-3 text-left transition",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-                        active
-                          ? "border-[var(--atc-accent)] bg-[color-mix(in_oklab,var(--atc-accent)_14%,var(--atc-card))] text-atc-text"
-                          : "border-[var(--atc-line)] bg-[color-mix(in_oklab,var(--atc-bg)_46%,transparent)] text-atc-muted hover:border-[var(--atc-line-strong)] hover:text-atc-text",
-                        disabled && "cursor-default opacity-55 hover:border-[var(--atc-line)] hover:text-atc-muted",
-                      )}
-                      aria-pressed={active}
+                      active={active}
                       disabled={disabled}
+                      icon={<MapControlIcon iconKey={mode.iconKey} />}
+                      title={t(mode.labelKey)}
+                      description={t(mode.descriptionKey)}
                       onClick={() => onSelectMapMode?.(mode.id)}
-                    >
-                      <span className="mb-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] bg-[color-mix(in_oklab,var(--atc-text)_8%,transparent)] [&>svg]:h-4 [&>svg]:w-4">
-                        <MapControlIcon iconKey={mode.iconKey} />
-                      </span>
-                      <span className="block text-[14px] font-semibold leading-tight text-atc-text">
-                        {t(mode.labelKey)}
-                      </span>
-                      <span className="mt-1 block text-[11px] leading-snug text-atc-muted">
-                        {t(mode.descriptionKey)}
-                      </span>
-                    </button>
+                    />
                   );
                 })}
               </div>
@@ -348,6 +342,46 @@ export default function MapSettingsSheet({
           {showGuestPrompt ? (
             <div className="border-t border-[var(--atc-line)] px-5 py-4 text-[12px] leading-relaxed text-atc-muted">
               {t("mapSettings.guestPrompt")}
+            </div>
+          ) : null}
+
+          {showSignedInPersistence ? (
+            <div className="border-t border-[var(--atc-line)] px-5 py-4">
+              <div className="mb-3 text-[12px] leading-relaxed text-atc-muted">
+                {hasSavedMapSettings
+                  ? t("mapSettings.savedSettingsAvailable")
+                  : t("mapSettings.noSavedSettings")}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  className={cn(
+                    "min-h-10 rounded-[8px] border border-[var(--atc-line)] px-3 text-[12px] font-semibold",
+                    "text-atc-text transition hover:border-[var(--atc-line-strong)] hover:bg-[var(--atc-control-hover-bg)]",
+                    "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[var(--atc-line)] disabled:hover:bg-transparent",
+                  )}
+                  disabled={!hasSavedMapSettings || restoring || !onRestoreMapSettings}
+                  onClick={onRestoreMapSettings}
+                >
+                  {restoring
+                    ? t("mapSettings.restoringSettings")
+                    : t("mapSettings.restoreSettings")}
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    "min-h-10 rounded-[8px] border border-[var(--atc-click-bg)] px-3 text-[12px] font-semibold",
+                    "bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)] transition",
+                    "hover:shadow-[var(--atc-control-active-shadow-strong)] disabled:cursor-not-allowed disabled:opacity-55",
+                  )}
+                  disabled={saving || !onSaveMapSettings}
+                  onClick={onSaveMapSettings}
+                >
+                  {saving
+                    ? t("mapSettings.savingSettings")
+                    : t("mapSettings.saveSettings")}
+                </button>
+              </div>
             </div>
           ) : null}
         </div>

@@ -61,9 +61,11 @@ function createFakeSupabaseClient({
       settings: {
         selectedMode: MAP_MODE_IDS.CUSTOM,
         baseMode: MAP_MODE_IDS.SPOTTING,
+        hasSelectedMode: true,
         layerOverrides: { [MAP_LAYER_KEYS.AIRSPACES]: true },
         updatedAt: "2026-06-02T15:00:00.000Z",
       },
+      has_selected_mode: true,
       updated_at: "2026-06-02T15:00:00.000Z",
     },
   });
@@ -79,6 +81,7 @@ function createFakeSupabaseClient({
     settings: {
       selectedMode: MAP_MODE_IDS.CUSTOM,
       baseMode: MAP_MODE_IDS.SPOTTING,
+      hasSelectedMode: true,
       layerOverrides: { [MAP_LAYER_KEYS.AIRSPACES]: true, bad: true },
       updatedAt: "2026-06-02T15:00:00.000Z",
     },
@@ -90,6 +93,7 @@ function createFakeSupabaseClient({
   assert.equal(calls[2].row.email, "owner@example.com");
   assert.equal(calls[2].row.environment, "preview");
   assert.deepEqual(calls[2].options, { onConflict: "email,environment" });
+  assert.equal(calls[2].row.has_selected_mode, true);
   assert.deepEqual(calls[2].row.settings.layerOverrides, {
     [MAP_LAYER_KEYS.AIRSPACES]: true,
   });
@@ -108,6 +112,7 @@ function createFakeSupabaseClient({
         layerOverrides: { [MAP_LAYER_KEYS.MAP_LABELS]: false },
         updatedAt: "2026-06-02T15:02:00.000Z",
       },
+      has_selected_mode: false,
       updated_at: "2026-06-02T15:02:00.000Z",
     },
   });
@@ -122,12 +127,13 @@ function createFakeSupabaseClient({
 
   assert.deepEqual(calls.slice(1), [
     { type: "from", table: USER_MAP_SETTINGS_TABLE },
-    { type: "select", columns: "email,environment,settings,updated_at" },
+    { type: "select", columns: "email,environment,settings,has_selected_mode,updated_at" },
     { type: "eq", column: "email", value: "owner@example.com" },
     { type: "eq", column: "environment", value: "production" },
     { type: "maybeSingle" },
   ]);
   assert.equal(row.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(row.settings.hasSelectedMode, false);
 }
 
 {

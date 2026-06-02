@@ -437,6 +437,12 @@ const en = {
     modeSection: "Modes",
     layersSection: "Display",
     guestPrompt: "Sign in to save your map mode and layer settings across devices.",
+    noSavedSettings: "No saved map setup yet. Save this setup when it feels right.",
+    savedSettingsAvailable: "A saved map setup is available for this account.",
+    saveSettings: "Save setup",
+    savingSettings: "Saving...",
+    restoreSettings: "Restore",
+    restoringSettings: "Restoring...",
     modes: {
       spotting: "Spotting",
       radio: "Radio",

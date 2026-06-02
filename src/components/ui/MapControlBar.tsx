@@ -22,6 +22,9 @@ export default function MapControlBar({
   showNavaidMarkers = false,
   showAirspaces = true,
   mapSettings = null,
+  savedMapSettings = null,
+  mapSettingsSaveStatus = "idle",
+  mapSettingsRestoreStatus = "idle",
   userLocationActive = false,
   userLocationAudioActive = false,
   userLocationPending = false,
@@ -33,6 +36,8 @@ export default function MapControlBar({
   onToggleNavaidMarkers,
   onToggleAirspaces,
   onSelectMapMode,
+  onSaveMapSettings = null,
+  onRestoreMapSettings = null,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   onToggleSidebar,
@@ -75,6 +80,9 @@ export default function MapControlBar({
         showBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
+        savedMapSettings={savedMapSettings}
+        mapSettingsSaveStatus={mapSettingsSaveStatus}
+        mapSettingsRestoreStatus={mapSettingsRestoreStatus}
         userLocationActive={userLocationActive}
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
@@ -84,6 +92,8 @@ export default function MapControlBar({
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}
         onToggleAirspaces={onToggleAirspaces}
+        onSaveMapSettings={onSaveMapSettings}
+        onRestoreMapSettings={onRestoreMapSettings}
         onToggleUserLocation={onToggleUserLocation}
         onToggleUserLocationAudio={onToggleUserLocationAudio}
       />
