@@ -117,9 +117,63 @@
     animation: mobile-preview-card-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+@keyframes map-settings-sheet-enter {
+    from {
+        opacity: 0;
+        transform: translateX(calc(100% + 16px));
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes map-settings-sheet-exit {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(calc(100% + 16px));
+    }
+}
+
+@keyframes map-settings-sheet-overlay-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes map-settings-sheet-overlay-exit {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.map-settings-sheet {
+    will-change: transform, opacity;
+}
+
+.map-settings-sheet[data-state="open"] {
+    animation: map-settings-sheet-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.map-settings-sheet[data-state="closed"] {
+    animation: map-settings-sheet-exit 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.map-settings-sheet-overlay[data-state="open"] {
+    animation: map-settings-sheet-overlay-enter 180ms ease-out both;
+}
+
+.map-settings-sheet-overlay[data-state="closed"] {
+    animation: map-settings-sheet-overlay-exit 160ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .nearby-row-enter,
-    .mobile-preview-card-enter {
+    .mobile-preview-card-enter,
+    .map-settings-sheet,
+    .map-settings-sheet-overlay {
         animation: none;
     }
 }

@@ -7,25 +7,37 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
+  useState,
 } from "react";
+import { useUser } from "@clerk/nextjs";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "@/features/airport/explorer/airportExplorerUiModel";
+import {
+  DEFAULT_MAP_SETTINGS,
+  MAP_LAYER_KEYS,
+  buildCustomMapSettings,
+  buildPresetMapSettings,
+  isSelectableMapModeId,
+  mapSettingsToExplorerLayers,
+  normalizeMapSettings,
+} from "@/features/airport/map-settings/mapSettingsModel";
+import {
+  readStoredMapSettings,
+  writeStoredMapSettings,
+} from "@/features/airport/map-settings/mapSettingsStorage";
 import {
   getAirportSidebarMode,
   getAirportSidebarOpenForMode,
 } from "@/utils/sidebarDisplay";
 
 const ExplorerUiContext = createContext(null);
-const LAYER_STORAGE_KEY = "adsbao:airport-map-layers:v1";
-const LAYER_STORAGE_FIELDS = [
-  "showMapLabels",
-  "showRunwayBeams",
-  "showNavaidMarkers",
-  "showAirspaces",
-];
+const DEFAULT_MAP_LAYERS = mapSettingsToExplorerLayers(DEFAULT_MAP_SETTINGS);
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
+  ...DEFAULT_MAP_LAYERS,
+  mapSettings: DEFAULT_MAP_SETTINGS,
   sidebarMode: "desktop",
   sidebarOpen: true,
   selectedAircraftId: "",
@@ -46,6 +58,28 @@ const initialUiState = {
 
 function toggleValue(value) {
   return !value;
+}
+
+function applyMapSettingsToUiState(state, settings) {
+  const normalizedSettings = normalizeMapSettings(settings);
+  const layers = mapSettingsToExplorerLayers(normalizedSettings);
+  return {
+    ...state,
+    ...layers,
+    mapSettings: normalizedSettings,
+    selectedAirspaceId: layers.showAirspaces ? state.selectedAirspaceId : "",
+  };
+}
+
+function applyManualLayerToggle(state, layerKey, value) {
+  return applyMapSettingsToUiState(
+    state,
+    buildCustomMapSettings({
+      settings: state.mapSettings,
+      layerKey,
+      value,
+    }),
+  );
 }
 
 function airportExplorerUiReducer(state, action) {
@@ -73,28 +107,40 @@ function airportExplorerUiReducer(state, action) {
         mapFollowsAircraft: true,
       };
     case "toggleMapLabels":
-      return { ...state, showMapLabels: toggleValue(state.showMapLabels) };
+      return applyManualLayerToggle(
+        state,
+        MAP_LAYER_KEYS.MAP_LABELS,
+        toggleValue(state.showMapLabels),
+      );
     case "toggleRunwayBeams":
-      return { ...state, showRunwayBeams: toggleValue(state.showRunwayBeams) };
+      return applyManualLayerToggle(
+        state,
+        MAP_LAYER_KEYS.APPROACH_BEAMS,
+        toggleValue(state.showRunwayBeams),
+      );
     case "toggleNavaidMarkers":
-      return {
-        ...state,
-        showNavaidMarkers: toggleValue(state.showNavaidMarkers),
-      };
-    case "toggleAirspaces": {
-      const showAirspaces = toggleValue(state.showAirspaces);
-      return {
-        ...state,
-        showAirspaces,
-        selectedAirspaceId: showAirspaces ? state.selectedAirspaceId : "",
-      };
-    }
-    case "hydrateLayerPreferences":
-      return {
-        ...state,
-        ...action.layers,
-        selectedAirspaceId: action.layers.showAirspaces === false ? "" : state.selectedAirspaceId,
-      };
+      return applyManualLayerToggle(
+        state,
+        MAP_LAYER_KEYS.NAVAID_MARKERS,
+        toggleValue(state.showNavaidMarkers),
+      );
+    case "toggleAirspaces":
+      return applyManualLayerToggle(
+        state,
+        MAP_LAYER_KEYS.AIRSPACES,
+        toggleValue(state.showAirspaces),
+      );
+    case "applyMapMode":
+      if (!isSelectableMapModeId(action.modeId)) return state;
+      return applyMapSettingsToUiState(
+        state,
+        buildPresetMapSettings({
+          modeId: action.modeId,
+          audioEnabled: state.mapSettings?.audioEnabled,
+        }),
+      );
+    case "hydrateMapSettings":
+      return applyMapSettingsToUiState(state, action.settings);
     case "setTrafficFilter":
       return { ...state, trafficFilter: action.trafficFilter };
     case "setTypeFilter":
@@ -185,6 +231,12 @@ function airportExplorerUiReducer(state, action) {
 }
 
 export function ExplorerUiProvider({ children }) {
+  const { isLoaded, isSignedIn } = useUser();
+  const hasHydratedMapSettingsRef = useRef(false);
+  const persistedMapSettingsRef = useRef("");
+  const [savedMapSettings, setSavedMapSettings] = useState<Record<string, any> | null>(null);
+  const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
+  const [mapSettingsRestoreStatus, setMapSettingsRestoreStatus] = useState("idle");
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
     initialUiState,
@@ -197,6 +249,7 @@ export function ExplorerUiProvider({ children }) {
     showRunwayBeams,
     showNavaidMarkers,
     showAirspaces,
+    mapSettings,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -223,25 +276,118 @@ export function ExplorerUiProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const storedLayers = readStoredLayerPreferences();
-    if (storedLayers) {
-      dispatch({ type: "hydrateLayerPreferences", layers: storedLayers });
-    }
-  }, []);
+    if (!isLoaded) return undefined;
+    let cancelled = false;
+
+    const hydrateMapSettings = async () => {
+      hasHydratedMapSettingsRef.current = false;
+      let nextSettings = null;
+
+      if (isSignedIn) {
+        try {
+          const response = await fetch("/api/map-settings", {
+            cache: "no-store",
+          });
+          if (response.ok) {
+            const payload = await response.json();
+            nextSettings = payload?.settings
+              ? normalizeMapSettings(payload.settings)
+              : null;
+          }
+        } catch {
+          nextSettings = null;
+        }
+      } else {
+        nextSettings = readStoredMapSettings();
+      }
+
+      if (cancelled) return;
+      if (isSignedIn) {
+        setSavedMapSettings(nextSettings);
+        persistedMapSettingsRef.current = nextSettings
+          ? JSON.stringify(nextSettings)
+          : "";
+      } else if (nextSettings) {
+        dispatch({ type: "hydrateMapSettings", settings: nextSettings });
+        persistedMapSettingsRef.current = JSON.stringify(nextSettings);
+      } else {
+        persistedMapSettingsRef.current = "";
+      }
+      hasHydratedMapSettingsRef.current = true;
+    };
+
+    hydrateMapSettings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
-    writeStoredLayerPreferences({
-      showMapLabels,
-      showRunwayBeams,
-      showNavaidMarkers,
-      showAirspaces,
-    });
-  }, [
-    showMapLabels,
-    showRunwayBeams,
-    showNavaidMarkers,
-    showAirspaces,
-  ]);
+    if (!isLoaded || !hasHydratedMapSettingsRef.current) return undefined;
+    if (isSignedIn) return undefined;
+    const nextSettings = normalizeMapSettings(mapSettings);
+    const serialized = JSON.stringify(nextSettings);
+    if (serialized === persistedMapSettingsRef.current) return undefined;
+
+    writeStoredMapSettings(nextSettings);
+    persistedMapSettingsRef.current = serialized;
+    return undefined;
+  }, [isLoaded, isSignedIn, mapSettings]);
+
+  const saveMapSettings = useCallback(async () => {
+    if (!isLoaded || !isSignedIn) return null;
+    const nextSettings = normalizeMapSettings(mapSettings);
+    setMapSettingsSaveStatus("saving");
+    try {
+      const response = await fetch("/api/map-settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ settings: nextSettings }),
+      });
+      if (!response.ok) throw new Error("save failed");
+      const payload = await response.json();
+      const savedSettings = payload?.settings
+        ? normalizeMapSettings(payload.settings)
+        : nextSettings;
+      setSavedMapSettings(savedSettings);
+      persistedMapSettingsRef.current = JSON.stringify(savedSettings);
+      setMapSettingsSaveStatus("saved");
+      return savedSettings;
+    } catch {
+      setMapSettingsSaveStatus("error");
+      return null;
+    }
+  }, [isLoaded, isSignedIn, mapSettings]);
+
+  const restoreMapSettings = useCallback(async () => {
+    if (!isLoaded || !isSignedIn) return null;
+    setMapSettingsRestoreStatus("restoring");
+    try {
+      const response = await fetch("/api/map-settings", {
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("restore failed");
+      const payload = await response.json();
+      const restoredSettings = payload?.settings
+        ? normalizeMapSettings(payload.settings)
+        : savedMapSettings;
+      if (!restoredSettings) {
+        setMapSettingsRestoreStatus("empty");
+        return null;
+      }
+      setSavedMapSettings(restoredSettings);
+      persistedMapSettingsRef.current = JSON.stringify(restoredSettings);
+      dispatch({ type: "hydrateMapSettings", settings: restoredSettings });
+      setMapSettingsRestoreStatus("restored");
+      return restoredSettings;
+    } catch {
+      setMapSettingsRestoreStatus("error");
+      return null;
+    }
+  }, [isLoaded, isSignedIn, savedMapSettings]);
 
   const toggleSidebar = useCallback(() => {
     dispatch({ type: "toggleSidebar" });
@@ -269,6 +415,10 @@ export function ExplorerUiProvider({ children }) {
 
   const toggleAirspaces = useCallback(() => {
     dispatch({ type: "toggleAirspaces" });
+  }, []);
+
+  const applyMapMode = useCallback((modeId) => {
+    dispatch({ type: "applyMapMode", modeId });
   }, []);
 
   const setTrafficFilter = useCallback((trafficFilter) => {
@@ -338,6 +488,10 @@ export function ExplorerUiProvider({ children }) {
       showRunwayBeams,
       showNavaidMarkers,
       showAirspaces,
+      mapSettings,
+      savedMapSettings,
+      mapSettingsSaveStatus,
+      mapSettingsRestoreStatus,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -358,6 +512,9 @@ export function ExplorerUiProvider({ children }) {
       toggleRunwayBeams,
       toggleNavaidMarkers,
       toggleAirspaces,
+      applyMapMode,
+      saveMapSettings,
+      restoreMapSettings,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
@@ -378,6 +535,10 @@ export function ExplorerUiProvider({ children }) {
       showRunwayBeams,
       showNavaidMarkers,
       showAirspaces,
+      mapSettings,
+      savedMapSettings,
+      mapSettingsSaveStatus,
+      mapSettingsRestoreStatus,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -398,6 +559,9 @@ export function ExplorerUiProvider({ children }) {
       toggleRunwayBeams,
       toggleNavaidMarkers,
       toggleAirspaces,
+      applyMapMode,
+      saveMapSettings,
+      restoreMapSettings,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
@@ -425,28 +589,4 @@ export function useExplorerUi() {
     );
   }
   return context;
-}
-
-function readStoredLayerPreferences() {
-  if (typeof window === "undefined") return null;
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(LAYER_STORAGE_KEY) || "null");
-    if (!parsed || typeof parsed !== "object") return null;
-    return LAYER_STORAGE_FIELDS.reduce((layers, field) => {
-      if (typeof parsed[field] === "boolean") layers[field] = parsed[field];
-      return layers;
-    }, {});
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredLayerPreferences(layers) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(LAYER_STORAGE_KEY, JSON.stringify(layers));
-  } catch {
-    // Local storage can be unavailable in private contexts; layer toggles
-    // still work for the current session.
-  }
 }
