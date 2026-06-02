@@ -73,7 +73,7 @@ export default function MechanismPanel() {
               <AirportIdentity {...MECHANISM_AIRPORT} />
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="mechanism-sidebar-scroll flex-1 overflow-y-auto">
               <div className="dither-section-header flex-none px-6 pt-5 pb-3">
                 <div className="endf-section-head">
                   <span className="endf-label">{t("mechanism.sidebarLabel")}</span>

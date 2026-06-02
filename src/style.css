@@ -5864,6 +5864,11 @@ body {
         z-index: var(--z-index-map-panel);
     }
 
+    .airport-map-kit .mechanism-sidebar-scroll {
+        padding-bottom: calc(28px + env(safe-area-inset-bottom));
+        scroll-padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    }
+
     .airport-map-menu--mobile {
         align-items: center;
         -webkit-backdrop-filter: none;
