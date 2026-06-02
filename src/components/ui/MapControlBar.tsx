@@ -33,7 +33,8 @@ export default function MapControlBar({
   onToggleNavaidMarkers,
   onToggleAirspaces,
   onSelectMapMode,
-  onLocateUser = null,
+  onToggleUserLocation = null,
+  onToggleUserLocationAudio = null,
   onToggleSidebar,
   onFitToTrace = null,
 }) {
@@ -83,7 +84,8 @@ export default function MapControlBar({
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}
         onToggleAirspaces={onToggleAirspaces}
-        onLocateUser={onLocateUser}
+        onToggleUserLocation={onToggleUserLocation}
+        onToggleUserLocationAudio={onToggleUserLocationAudio}
       />
 
       <MapControlRail

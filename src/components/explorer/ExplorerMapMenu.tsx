@@ -14,7 +14,8 @@ export default function ExplorerMapMenu({
   userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
-  onLocateUser = null,
+  onToggleUserLocation = null,
+  onToggleUserLocationAudio = null,
   onFitToTrace = null,
   zoomDisabled = false,
 }: Record<string, any> = {}) {
@@ -62,7 +63,8 @@ export default function ExplorerMapMenu({
         onToggleNavaidMarkers={toggleNavaidMarkers}
         onToggleAirspaces={toggleAirspaces}
         onSelectMapMode={applyMapMode}
-        onLocateUser={onLocateUser}
+        onToggleUserLocation={onToggleUserLocation}
+        onToggleUserLocationAudio={onToggleUserLocationAudio}
         onToggleSidebar={toggleSidebar}
         onFitToTrace={onFitToTrace}
       />

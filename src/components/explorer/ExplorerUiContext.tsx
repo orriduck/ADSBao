@@ -17,6 +17,7 @@ import {
   MAP_LAYER_KEYS,
   buildCustomMapSettings,
   buildPresetMapSettings,
+  isSelectableMapModeId,
   mapSettingsToExplorerLayers,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
@@ -129,6 +130,7 @@ function airportExplorerUiReducer(state, action) {
         toggleValue(state.showAirspaces),
       );
     case "applyMapMode":
+      if (!isSelectableMapModeId(action.modeId)) return state;
       return applyMapSettingsToUiState(
         state,
         buildPresetMapSettings({

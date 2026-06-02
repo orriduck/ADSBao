@@ -108,6 +108,10 @@ export const CUSTOM_MAP_MODE_OPTION = Object.freeze({
   layers: Object.freeze({}),
 });
 
+export const DISABLED_MAP_MODE_IDS = Object.freeze([
+  MAP_MODE_IDS.IMMERSIVE,
+]);
+
 export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
   selectedMode: MAP_MODE_IDS.CONTROLLER,
   baseMode: MAP_MODE_IDS.CONTROLLER,
@@ -119,6 +123,7 @@ export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
 const MAP_MODE_ID_SET: Set<string> = new Set(Object.values(MAP_MODE_IDS));
 const PRESET_MODE_ID_SET: Set<string> = new Set(MAP_MODE_OPTIONS.map((mode) => mode.id));
 const LAYER_KEY_SET: Set<string> = new Set(PERSISTED_MAP_LAYER_KEYS);
+const DISABLED_MAP_MODE_ID_SET: Set<string> = new Set(DISABLED_MAP_MODE_IDS);
 
 export function getMapModePreset(modeId) {
   return MAP_MODE_PRESETS[modeId] || MAP_MODE_PRESETS[DEFAULT_MAP_SETTINGS.baseMode];
@@ -130,6 +135,10 @@ export function isMapModeId(value) {
 
 export function isPresetMapModeId(value) {
   return PRESET_MODE_ID_SET.has(value);
+}
+
+export function isSelectableMapModeId(value) {
+  return isPresetMapModeId(value) && !DISABLED_MAP_MODE_ID_SET.has(value);
 }
 
 export function getMapSettingsBaseMode(settings: MapSettingsRecord = {}) {
@@ -189,6 +198,9 @@ export function buildPresetMapSettings({
   audioEnabled = false,
   now = new Date().toISOString(),
 }: MapSettingsOptions = {}) {
+  if (!isSelectableMapModeId(modeId)) {
+    return normalizeMapSettings(DEFAULT_MAP_SETTINGS);
+  }
   const preset = getMapModePreset(modeId);
   return {
     selectedMode: preset.id,

@@ -8,7 +8,7 @@ const zhCN = {
     airportExplorer: "机场",
     aboutTitle: "关于",
     mechanismTitle: "机制",
-    siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场上下文。",
+    siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场运行信息。",
   },
   brand: {
     wordmarkZh: "拍机宝",
@@ -77,7 +77,7 @@ const zhCN = {
       openAip: {
         title: "OpenAIP",
         description:
-          "为搜索和地图提供机场、跑道、频率、导航台、空域、报告点和障碍物上下文。许可协议为 CC BY-NC 4.0。",
+          "为搜索和地图提供机场、跑道、频率、导航台、空域、报告点和障碍物资料。许可协议为 CC BY-NC 4.0。",
       },
       ourAirportsRunways: {
         title: "OurAirports 跑道几何",
@@ -85,7 +85,7 @@ const zhCN = {
       },
       wikipedia: {
         title: "Wikipedia 摘要",
-        description: "为机场上下文卡片提供首段摘要。",
+        description: "为机场信息卡片提供首段摘要。",
       },
       mapTiles: {
         title: "OpenStreetMap · CartoDB",
@@ -101,7 +101,7 @@ const zhCN = {
   mechanism: {
     title: "机制",
     description:
-      "ADSBao 如何把数据源、机场上下文、持久化边界和本地地图状态整理成可读的运行画面。",
+      "ADSBao 如何把数据源、机场资料、持久化边界和本地地图状态整理成可读的运行画面。",
     sidebarLabel: "系统流",
     count: "{count} 个机制",
     items: {
@@ -120,31 +120,31 @@ const zhCN = {
         },
       },
       openAipContext: {
-        title: "OpenAIP 机场上下文",
-        signal: "机场与图层上下文",
+        title: "OpenAIP 机场资料",
+        signal: "机场与图层资料",
         body:
-          "OpenAIP 提供机场侧运行上下文:跑道、导航台、报告点、空域、频率和其他地图标注。",
+          "OpenAIP 提供机场侧运行资料:跑道、导航台、报告点、空域、频率和其他地图标注。",
         details: {
           airport:
             "机场详情页从明确的 ICAO/IATA 身份出发,只把 OpenAIP 用在能帮助理解周边空域、程序和设施的部分。",
           normalize:
             "不同数据源的原始形状会先归一化,再进入 React 组件。跑道、导航台、频率和空域渲染不需要依赖上游原始格式。",
           overlay:
-            "地图随后从同一份航空上下文决定展示哪些图层,不用让每个叠加组件重复实现数据源解析规则。",
+            "地图随后从同一份航空资料决定展示哪些图层,不用让每个叠加组件重复实现数据源解析规则。",
         },
       },
       supabaseBoundary: {
         title: "Supabase 缓存边界",
         signal: "持久化但不耦合实时流",
         body:
-          "Supabase 在清晰边界内保存目录和持久化记录。Route Handler 决定何时读取、刷新或返回缓存上下文。",
+          "Supabase 在清晰边界内保存目录和持久化记录。Route Handler 决定何时读取、刷新或返回缓存资料。",
         details: {
           check:
             "读取会经过 Route Handler 和 DAO helper,所以 UI 组件不需要知道一个值来自 Supabase、数据源刷新,还是静态 fallback。",
           persist:
             "当抓取到的记录值得保留时,服务端会存储归一化后的版本,而不是把数据源专有 payload 泄漏到应用展示层。",
           return:
-            "这个边界让 ADSBao 在外部数据源改形或短暂不可用时,仍能返回稳定的机场和航路上下文。",
+            "这个边界让 ADSBao 在外部数据源改形或短暂不可用时,仍能返回稳定的机场和航路资料。",
         },
       },
       aircraftTrace: {
@@ -158,7 +158,7 @@ const zhCN = {
           append:
             "新的 ADS-B 点位会更新实时 marker,并在足够连贯时追加到可见航迹。航迹和列表刷新抖动分开维护。",
           persist:
-            "航路提示、近期点位和面向用户的追踪上下文会合并,让飞机页在跳转或刷新之后仍然容易理解。",
+            "航路提示、近期点位和面向用户的追踪信息会合并,让飞机页在跳转或刷新之后仍然容易理解。",
         },
       },
       mapOverlays: {
@@ -419,8 +419,10 @@ const zhCN = {
     showAirspaces: "显示空域",
     hideAirspaces: "隐藏空域",
     userLocation: "我的位置",
+    userLocationAudio: "接近提示音",
     showUserLocation: "显示我的位置",
     enableUserLocationAudio: "开启飞机接近提示音",
+    disableUserLocationAudio: "关闭飞机接近提示音",
     hideUserLocation: "隐藏我的位置",
     locatingUser: "正在定位...",
   },
@@ -440,8 +442,8 @@ const zhCN = {
     modeDescriptions: {
       spotting: "显示标签和进近几何,适合观察机场动态。",
       radio: "显示导航台和标签,适合配合无线电收听。",
-      controller: "突出空域和管制相关交通上下文。",
-      immersive: "隐藏多数叠加层,保留更安静的地图。",
+      controller: "突出空域和管制相关交通信息。",
+      immersive: "后续用于视觉增强,暂不启用。",
       custom: "基于某个预设叠加你的手动调整。",
     },
   },

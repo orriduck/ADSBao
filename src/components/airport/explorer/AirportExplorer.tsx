@@ -26,7 +26,6 @@ import {
   resolveAircraftLoadingOverlayState,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import {
-  resolveNextUserLocationAudioMode,
   resolveUserLocationWatchUpdate,
   USER_LOCATION_AUDIO_MODES,
   type UserLocationAudioMode,
@@ -81,9 +80,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   );
   const [userLocationPending, setUserLocationPending] = useState(false);
   const [userLocationNotice, setUserLocationNotice] = useState("");
-  const userLocationModeRef = useRef<UserLocationAudioMode>(
-    USER_LOCATION_AUDIO_MODES.OFF,
-  );
   const userLocationWatchIdRef = useRef<number | null>(null);
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
@@ -187,10 +183,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     return () => window.clearTimeout(timer);
   }, [userLocationNotice]);
 
-  useEffect(() => {
-    userLocationModeRef.current = userLocationMode;
-  }, [userLocationMode]);
-
   const stopUserLocationWatch = useCallback(() => {
     if (
       userLocationWatchIdRef.current == null ||
@@ -208,27 +200,14 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
 
   useEffect(() => stopUserLocationWatch, [stopUserLocationWatch]);
 
-  const locateUser = useCallback(() => {
-    const nextMode = resolveNextUserLocationAudioMode({
-      mode: userLocationMode,
-      hasLocation: Boolean(userLocation),
-    });
+  const clearUserLocation = useCallback(() => {
+    stopUserLocationWatch();
+    setUserLocation(null);
+    setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
+    setUserLocationNotice("");
+  }, [stopUserLocationWatch]);
 
-    if (nextMode === USER_LOCATION_AUDIO_MODES.OFF) {
-      stopUserLocationWatch();
-      setUserLocation(null);
-      setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
-      setUserLocationNotice("");
-      return;
-    }
-
-    if (nextMode === USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO && userLocation) {
-      unlockAudio();
-      setUserLocationMode(USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO);
-      setUserLocationNotice("");
-      return;
-    }
-
+  const requestUserLocation = useCallback((requestedMode: UserLocationAudioMode) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
       setUserLocationNotice(t("map.locationUnavailable"));
@@ -241,7 +220,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         coords: position.coords,
         focalLat: airportProfile.lat,
         focalLon: airportProfile.lon,
-        currentMode: userLocationModeRef.current,
+        currentMode: requestedMode,
       });
 
       if (!result.location) {
@@ -296,11 +275,30 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     airportProfile.lat,
     airportProfile.lon,
     stopUserLocationWatch,
-    unlockAudio,
     t,
-    userLocation,
-    userLocationMode,
   ]);
+
+  const toggleUserLocation = useCallback(() => {
+    if (userLocation) {
+      clearUserLocation();
+      return;
+    }
+
+    requestUserLocation(USER_LOCATION_AUDIO_MODES.LOCATION);
+  }, [clearUserLocation, requestUserLocation, userLocation]);
+
+  const toggleUserLocationAudio = useCallback(() => {
+    if (!userLocation) return;
+    if (userLocationAudioActive) {
+      setUserLocationMode(USER_LOCATION_AUDIO_MODES.LOCATION);
+      setUserLocationNotice("");
+      return;
+    }
+
+    unlockAudio();
+    setUserLocationMode(USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO);
+    setUserLocationNotice("");
+  }, [unlockAudio, userLocation, userLocationAudioActive]);
 
   const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,
@@ -401,7 +399,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
               userLocationAudioActive={userLocationAudioActive}
               userLocationPending={userLocationPending}
               userLocationNotice={userLocationNotice}
-              onLocateUser={locateUser}
+              onToggleUserLocation={toggleUserLocation}
+              onToggleUserLocationAudio={toggleUserLocationAudio}
             />
           )}
 
