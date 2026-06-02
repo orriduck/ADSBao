@@ -1026,6 +1026,12 @@ body {
     width: var(--app-sidebar-width);
 }
 
+.airport-map-surface,
+.map-attribution {
+    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity;
+}
+
 @media (max-width: 767px) {
     .airport-desktop-sidebar {
         display: none;
@@ -1059,8 +1065,8 @@ body {
     pointer-events: none;
     position: absolute;
     transition:
-        opacity 0.7s ease,
-        backdrop-filter 0.7s ease;
+        opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+        backdrop-filter 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     z-index: var(--z-index-overlay);
 }
 
@@ -1081,7 +1087,7 @@ body {
 }
 
 .adsb-loading-overlay.is-exiting {
-    animation: adsb-loading-fade-out 1.1s ease forwards;
+    animation: adsb-loading-fade-out 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     -webkit-backdrop-filter: brightness(1) saturate(1);
     backdrop-filter: brightness(1) saturate(1);
 }
@@ -3498,7 +3504,9 @@ body {
     }
 
     .adsb-loading-overlay,
-    .adsb-loading-grid {
+    .adsb-loading-grid,
+    .airport-map-surface,
+    .map-attribution {
         transition: none;
     }
 }

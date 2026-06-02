@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContext } from "./MapContext";
 import MapTileLayers from "./MapTileLayers";
@@ -29,7 +29,10 @@ import {
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
 } from "../../features/airport/map/airportMapModel";
-import { resolveMapLoadingPresentation } from "../../features/aircraft/positions/aircraftLoadingOverlayModel";
+import {
+  resolveMapLoadingPresentation,
+  resolveMapSurfaceVisibility,
+} from "../../features/aircraft/positions/aircraftLoadingOverlayModel";
 import { getOffsetMapCenter } from "./mapViewportOffset";
 
 const resolveCurrentTheme = () =>
@@ -91,6 +94,10 @@ export default function AirportMap({
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
+  const [loadingOverlayPlayback, setLoadingOverlayPlayback] = useState({
+    visible: true,
+    exiting: false,
+  });
   const [currentTheme, setCurrentTheme] = useState(() => resolveCurrentTheme());
   const focalCenter = useMemo(
     () => resolveAirportMapFocalCenter({ lat, lon }),
@@ -258,16 +265,34 @@ export default function AirportMap({
   });
   const loadingPresentation =
     resolveMapLoadingPresentation(loadingOverlayState as any);
+  const { mapVisible } = resolveMapSurfaceVisibility({
+    loadingOverlayVisible: loadingOverlayPlayback.visible,
+    loadingOverlayExiting: loadingOverlayPlayback.exiting,
+  });
   const loadingOverlayCopy = useMapLoadingOverlayText({
     mode: loadingOverlayState.mode,
     reason: loadingOverlayState.reason,
     variant: loadingOverlayVariant,
     callsign: loadingOverlayCallsign,
   });
+  const handleLoadingOverlayVisibleChange = useCallback((nextVisible, state) => {
+    setLoadingOverlayPlayback({
+      visible: Boolean(nextVisible),
+      exiting: Boolean(state?.exiting),
+    });
+  }, []);
 
   return (
     <div className="relative h-full w-full bg-atc-bg">
-      <div ref={mapEl} className="h-full w-full" />
+      <div
+        ref={mapEl}
+        className="airport-map-surface h-full w-full"
+        aria-hidden={!mapVisible}
+        style={{
+          opacity: mapVisible ? 1 : 0,
+          pointerEvents: mapVisible ? undefined : "none",
+        }}
+      />
 
       {mapInstance && (
         <MapContext.Provider value={mapInstance}>
@@ -351,6 +376,7 @@ export default function AirportMap({
         <MapAttribution
           color={overlayTheme.attributionColor}
           shadowColor={overlayTheme.labelShadowColor}
+          hidden={!mapVisible}
         />
       )}
 
@@ -358,6 +384,7 @@ export default function AirportMap({
         active={loadingPresentation.overlayActive}
         sidebarAware={floatingSidebarAware}
         variant={loadingOverlayVariant}
+        onVisibleChange={handleLoadingOverlayVisibleChange}
         {...loadingOverlayCopy}
       />
     </div>

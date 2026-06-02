@@ -9,7 +9,7 @@ export const AIRPORT_MAP_ZOOM = {
 export const AIRPORT_EXPLORER_UI_CONFIG = {
   desktopSidebarWidth: "var(--app-sidebar-width)",
   mobileBreakpointPx: 768,
-  adsbLoadingFadeMs: 1100,
+  adsbLoadingFadeMs: 500,
 };
 
 export const AIRCRAFT_TRAFFIC_CONFIG = {

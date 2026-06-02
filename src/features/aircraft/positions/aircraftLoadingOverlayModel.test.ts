@@ -7,6 +7,7 @@ import {
   resolveAircraftLoadingOverlayMode,
   resolveAircraftLoadingOverlayState,
   resolveMapLoadingPresentation,
+  resolveMapSurfaceVisibility,
   scheduleAfterOverlayPaint,
   shouldReplayLoadingOverlayOnPageVisible,
   shouldShowAircraftLoadingOverlay,
@@ -250,6 +251,28 @@ assert.deepEqual(
     reason: "",
   }),
   { overlayActive: false, sourceStatusActive: false },
+);
+
+assert.deepEqual(
+  resolveMapSurfaceVisibility({
+    loadingOverlayVisible: true,
+  }),
+  { mapVisible: false },
+);
+
+assert.deepEqual(
+  resolveMapSurfaceVisibility({
+    loadingOverlayVisible: true,
+    loadingOverlayExiting: true,
+  }),
+  { mapVisible: true },
+);
+
+assert.deepEqual(
+  resolveMapSurfaceVisibility({
+    loadingOverlayVisible: false,
+  }),
+  { mapVisible: true },
 );
 
 {

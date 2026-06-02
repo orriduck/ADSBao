@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar";
 import {
@@ -27,7 +27,7 @@ import {
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import {
   resolveNextUserLocationAudioMode,
-  resolveUserLocationRequest,
+  resolveUserLocationWatchUpdate,
   USER_LOCATION_AUDIO_MODES,
   type UserLocationAudioMode,
 } from "@/features/airport/map/userLocationModel";
@@ -81,6 +81,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   );
   const [userLocationPending, setUserLocationPending] = useState(false);
   const [userLocationNotice, setUserLocationNotice] = useState("");
+  const userLocationModeRef = useRef<UserLocationAudioMode>(
+    USER_LOCATION_AUDIO_MODES.OFF,
+  );
+  const userLocationWatchIdRef = useRef<number | null>(null);
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
@@ -183,6 +187,27 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     return () => window.clearTimeout(timer);
   }, [userLocationNotice]);
 
+  useEffect(() => {
+    userLocationModeRef.current = userLocationMode;
+  }, [userLocationMode]);
+
+  const stopUserLocationWatch = useCallback(() => {
+    if (
+      userLocationWatchIdRef.current == null ||
+      typeof navigator === "undefined" ||
+      !navigator.geolocation ||
+      typeof navigator.geolocation.clearWatch !== "function"
+    ) {
+      userLocationWatchIdRef.current = null;
+      return;
+    }
+
+    navigator.geolocation.clearWatch(userLocationWatchIdRef.current);
+    userLocationWatchIdRef.current = null;
+  }, []);
+
+  useEffect(() => stopUserLocationWatch, [stopUserLocationWatch]);
+
   const locateUser = useCallback(() => {
     const nextMode = resolveNextUserLocationAudioMode({
       mode: userLocationMode,
@@ -190,6 +215,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     });
 
     if (nextMode === USER_LOCATION_AUDIO_MODES.OFF) {
+      stopUserLocationWatch();
       setUserLocation(null);
       setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
       setUserLocationNotice("");
@@ -209,52 +235,67 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       return;
     }
 
-    setUserLocationPending(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocationPending(false);
-        const result = resolveUserLocationRequest({
-          coords: position.coords,
-          focalLat: airportProfile.lat,
-          focalLon: airportProfile.lon,
-        });
+    const handlePosition = (position) => {
+      setUserLocationPending(false);
+      const result = resolveUserLocationWatchUpdate({
+        coords: position.coords,
+        focalLat: airportProfile.lat,
+        focalLon: airportProfile.lon,
+        currentMode: userLocationModeRef.current,
+      });
 
-        if (!result.location) {
-          setUserLocation(null);
-          setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
-          setUserLocationNotice(t("map.locationUnavailable"));
-          return;
-        }
-
-        if (result.tooFar) {
-          setUserLocation(null);
-          setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
-          setUserLocationNotice(t("map.locationTooFar"));
-          return;
-        }
-
-        setUserLocation(result.location);
-        setUserLocationMode(USER_LOCATION_AUDIO_MODES.LOCATION);
-        setUserLocationNotice("");
-      },
-      (error) => {
-        setUserLocationPending(false);
+      if (!result.location) {
+        stopUserLocationWatch();
+        setUserLocation(null);
         setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
         setUserLocationNotice(
-          error?.code === error?.PERMISSION_DENIED
-            ? t("map.locationDenied")
+          result.noticeKey === "tooFar"
+            ? t("map.locationTooFar")
             : t("map.locationUnavailable"),
         );
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10_000,
-        maximumAge: 0,
-      },
+        return;
+      }
+
+      setUserLocation(result.location);
+      setUserLocationMode(result.mode);
+      setUserLocationNotice("");
+    };
+    const handleError = (error) => {
+      stopUserLocationWatch();
+      setUserLocationPending(false);
+      setUserLocationMode(USER_LOCATION_AUDIO_MODES.OFF);
+      setUserLocationNotice(
+        error?.code === error?.PERMISSION_DENIED
+          ? t("map.locationDenied")
+          : t("map.locationUnavailable"),
+      );
+    };
+    const locationOptions = {
+      enableHighAccuracy: true,
+      timeout: 10_000,
+      maximumAge: 0,
+    };
+
+    setUserLocationPending(true);
+    stopUserLocationWatch();
+    if (typeof navigator.geolocation.watchPosition === "function") {
+      userLocationWatchIdRef.current = navigator.geolocation.watchPosition(
+        handlePosition,
+        handleError,
+        locationOptions,
+      );
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      handlePosition,
+      handleError,
+      locationOptions,
     );
   }, [
     airportProfile.lat,
     airportProfile.lon,
+    stopUserLocationWatch,
     unlockAudio,
     t,
     userLocation,
