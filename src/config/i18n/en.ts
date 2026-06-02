@@ -8,6 +8,7 @@ const en = {
     live: "Live",
     airportExplorer: "Airports",
     aboutTitle: "About",
+    mechanismTitle: "Mechanism",
     siteDescription:
       "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
   },
@@ -19,6 +20,7 @@ const en = {
     homePage: "Home",
     map: "Map",
     about: "About",
+    mechanism: "Mechanism",
     changelog: "Changelog",
   },
   auth: {
@@ -98,6 +100,91 @@ const en = {
         title: "Bilibili Aircraft Footage",
         description:
           "Aircraft branding footage credit: 【视频分享】素材分享——飞机起飞降落 by 霸波奔bo奔波霸.",
+      },
+    },
+  },
+  mechanism: {
+    title: "Mechanism",
+    description:
+      "How ADSBao turns provider data, airport context, persistence boundaries, and local map state into a readable operating picture.",
+    sidebarLabel: "System flow",
+    count: "{count} mechanisms",
+    stageLabel: "Synthetic demo",
+    stageAria: "Synthetic aircraft trace showing ADSBao mechanism steps",
+    traceLabel: "Narrative trace",
+    sequenceLabel: "Sequence",
+    items: {
+      providerFallback: {
+        title: "ADS-B provider fallback",
+        signal: "Position source selection",
+        stage: "Provider selected",
+        body:
+          "Position providers are treated as peers. The client-facing proxy races cold starts, keeps the current winner while it is healthy, then reselects when a feed fails.",
+        steps: {
+          candidates: "Provider candidates",
+          race: "Race first healthy feed",
+          winner: "Lock current winner",
+        },
+      },
+      openAipContext: {
+        title: "Airport context via OpenAIP",
+        signal: "Airport and overlay context",
+        stage: "Context normalized",
+        body:
+          "OpenAIP supplies the airport-side operating context: runways, navaids, reporting points, airspace, frequencies, and other map annotations.",
+        steps: {
+          airport: "Airport lookup",
+          normalize: "Normalize aviation context",
+          overlay: "Render airport overlays",
+        },
+      },
+      supabaseBoundary: {
+        title: "Supabase cache boundaries",
+        signal: "Persistence without live coupling",
+        stage: "Cache checked",
+        body:
+          "Supabase holds directory and persisted records at clear boundaries. Route handlers decide when to read, refresh, or return cached context.",
+        steps: {
+          check: "Check stored record",
+          persist: "Persist normalized result",
+          return: "Return stable context",
+        },
+      },
+      aircraftTrace: {
+        title: "Aircraft tracking and trace",
+        signal: "Selected aircraft history",
+        stage: "State updated",
+        body:
+          "A selected aircraft keeps a trace separate from the live list. Recent points, route hints, and session state are merged into one readable track.",
+        steps: {
+          select: "Select aircraft",
+          append: "Append trace point",
+          persist: "Persist tracking session",
+        },
+      },
+      mapOverlays: {
+        title: "Map overlays",
+        signal: "Runways, navaids, airspace",
+        stage: "Overlay rendered",
+        body:
+          "Layer toggles choose which airport overlays enter the map. Geometry is projected into the current view, then labels fade with their features.",
+        steps: {
+          layers: "Resolve layer toggles",
+          project: "Project geometry",
+          label: "Place labels",
+        },
+      },
+      featureFlags: {
+        title: "Owner-only experiments",
+        signal: "Internal feature flags",
+        stage: "Experiment gated",
+        body:
+          "Internal flags let owner-only experiments exist beside the public product. The default path stays stable unless the active user can see the flag.",
+        steps: {
+          read: "Read feature flag",
+          gate: "Gate owner surface",
+          release: "Keep public path stable",
+        },
       },
     },
   },

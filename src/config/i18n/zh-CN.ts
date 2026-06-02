@@ -7,6 +7,7 @@ const zhCN = {
     live: "实时",
     airportExplorer: "机场",
     aboutTitle: "关于",
+    mechanismTitle: "机制",
     siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场上下文。",
   },
   brand: {
@@ -17,6 +18,7 @@ const zhCN = {
     homePage: "首页",
     map: "地图",
     about: "关于",
+    mechanism: "机制",
     changelog: "更新日志",
   },
   auth: {
@@ -93,6 +95,91 @@ const zhCN = {
         title: "B站飞机视频素材",
         description:
           "品牌视频飞机素材署名：【视频分享】素材分享——飞机起飞降落，UP 主：霸波奔bo奔波霸。",
+      },
+    },
+  },
+  mechanism: {
+    title: "机制",
+    description:
+      "ADSBao 如何把数据源、机场上下文、持久化边界和本地地图状态整理成可读的运行画面。",
+    sidebarLabel: "系统流",
+    count: "{count} 个机制",
+    stageLabel: "合成演示",
+    stageAria: "用合成飞机航迹展示 ADSBao 机制步骤",
+    traceLabel: "叙事航迹",
+    sequenceLabel: "序列",
+    items: {
+      providerFallback: {
+        title: "ADS-B 数据源 fallback",
+        signal: "位置源选择",
+        stage: "数据源已选择",
+        body:
+          "位置数据源按并行候选处理。面向客户端的代理会在冷启动时竞速,当前胜出源健康时保持使用,失败后重新选择。",
+        steps: {
+          candidates: "候选数据源",
+          race: "竞速健康响应",
+          winner: "锁定当前胜出源",
+        },
+      },
+      openAipContext: {
+        title: "OpenAIP 机场上下文",
+        signal: "机场与图层上下文",
+        stage: "上下文已归一化",
+        body:
+          "OpenAIP 提供机场侧运行上下文:跑道、导航台、报告点、空域、频率和其他地图标注。",
+        steps: {
+          airport: "查询机场",
+          normalize: "归一化航空上下文",
+          overlay: "渲染机场图层",
+        },
+      },
+      supabaseBoundary: {
+        title: "Supabase 缓存边界",
+        signal: "持久化但不耦合实时流",
+        stage: "缓存已检查",
+        body:
+          "Supabase 在清晰边界内保存目录和持久化记录。Route Handler 决定何时读取、刷新或返回缓存上下文。",
+        steps: {
+          check: "检查存储记录",
+          persist: "持久化归一化结果",
+          return: "返回稳定上下文",
+        },
+      },
+      aircraftTrace: {
+        title: "飞机追踪与航迹",
+        signal: "选中飞机历史",
+        stage: "状态已更新",
+        body:
+          "选中飞机的航迹和实时列表分开维护。近期点位、航路提示和会话状态会合并成一条可读航迹。",
+        steps: {
+          select: "选择飞机",
+          append: "追加航迹点",
+          persist: "持久化追踪会话",
+        },
+      },
+      mapOverlays: {
+        title: "地图图层",
+        signal: "跑道、导航台、空域",
+        stage: "图层已渲染",
+        body:
+          "图层开关决定哪些机场叠加物进入地图。几何会投影到当前视图,标签随对应图形一起淡入淡出。",
+        steps: {
+          layers: "解析图层开关",
+          project: "投影几何",
+          label: "放置标签",
+        },
+      },
+      featureFlags: {
+        title: "Owner-only 实验",
+        signal: "内部功能开关",
+        stage: "实验已隔离",
+        body:
+          "内部开关让 owner-only 实验和公开产品并存。默认路径保持稳定,只有具备权限的用户能看到实验功能。",
+        steps: {
+          read: "读取功能开关",
+          gate: "隔离 owner 界面",
+          release: "保持公开路径稳定",
+        },
       },
     },
   },

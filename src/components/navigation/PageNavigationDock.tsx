@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
-import { History, Home, Info, LogIn } from "lucide-react";
+import { GitBranch, History, Home, Info, LogIn } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -19,12 +19,14 @@ import {
 const PAGE_ITEMS = [
   { href: "/", labelKey: "nav.homePage", Icon: Home },
   { href: "/about", labelKey: "nav.about", Icon: Info },
+  { href: "/mechanism", labelKey: "nav.mechanism", Icon: GitBranch },
   { href: "/changelog", labelKey: "nav.changelog", Icon: History },
 ];
 
 function resolveActiveHref(pathname) {
   const segment = String(pathname || "").split("/").filter(Boolean)[0] || "";
   if (segment === "about") return "/about";
+  if (segment === "mechanism") return "/mechanism";
   if (segment === "changelog") return "/changelog";
   return "/";
 }
