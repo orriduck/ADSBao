@@ -1,4 +1,4 @@
-export const AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS = 500;
+export const AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS = 1_000;
 
 type LoadingSettledOptions = {
   aircraftPositionsSettled?: boolean;
@@ -52,6 +52,10 @@ type OverlayPaintSchedulerOptions = {
   cancelAnimationFrame?: typeof globalThis.cancelAnimationFrame;
   setTimeout?: typeof globalThis.setTimeout;
   clearTimeout?: typeof globalThis.clearTimeout;
+};
+
+type PageVisibleReplayOptions = {
+  documentHidden?: boolean;
 };
 
 export function areCriticalLoadingRequestsSettled({
@@ -139,6 +143,12 @@ export function getLoadingOverlayExitDelay({
   minVisibleMs = AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
 }: LoadingOverlayExitDelayOptions = {}) {
   return Math.max(0, minVisibleMs - Math.max(0, now - shownAt));
+}
+
+export function shouldReplayLoadingOverlayOnPageVisible({
+  documentHidden = false,
+}: PageVisibleReplayOptions = {}) {
+  return !documentHidden;
 }
 
 export function scheduleAfterOverlayPaint(

@@ -8,11 +8,26 @@ import {
   resolveAircraftLoadingOverlayState,
   resolveMapLoadingPresentation,
   scheduleAfterOverlayPaint,
+  shouldReplayLoadingOverlayOnPageVisible,
   shouldShowAircraftLoadingOverlay,
   shouldTriggerVisibilityRefreshOverlay,
 } from "./aircraftLoadingOverlayModel";
 
-assert.equal(AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS, 500);
+assert.equal(AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS, 1_000);
+
+assert.equal(
+  shouldReplayLoadingOverlayOnPageVisible({
+    documentHidden: false,
+  }),
+  true,
+);
+
+assert.equal(
+  shouldReplayLoadingOverlayOnPageVisible({
+    documentHidden: true,
+  }),
+  false,
+);
 
 assert.equal(
   shouldShowAircraftLoadingOverlay({
@@ -84,13 +99,13 @@ assert.equal(
     now: 1_120,
     minVisibleMs: AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
   }),
-  380,
+  880,
 );
 
 assert.equal(
   getLoadingOverlayExitDelay({
     shownAt: 1_000,
-    now: 1_650,
+    now: 2_050,
     minVisibleMs: AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
   }),
   0,
