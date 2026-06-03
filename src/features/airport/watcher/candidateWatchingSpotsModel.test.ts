@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   buildCandidateWatchingSpotFile,
+  buildCandidateWatchingSpotSearchBBox,
   buildOverpassQuery,
   buildRunwayExtensionCorridors,
   filterAndScoreCandidateElements,
@@ -42,6 +43,16 @@ const query = buildOverpassQuery({
 assert.ok(query.includes("[out:json][timeout:25];"));
 assert.ok(query.includes('nwr["tourism"="viewpoint"](41.900000,-71.100000,42.100000,-70.900000);'));
 assert.ok(query.includes("out center tags;"));
+
+const searchBBox = buildCandidateWatchingSpotSearchBBox({
+  airportCenter: { lat: 42, lon: -71.01 },
+  radiusMeters: 2000,
+});
+
+assert.ok(searchBBox.south < 42);
+assert.ok(searchBBox.north > 42);
+assert.ok(searchBBox.west < -71.01);
+assert.ok(searchBBox.east > -71.01);
 
 const scored = filterAndScoreCandidateElements({
   airportIcao: "KAAA",
@@ -100,6 +111,16 @@ const scored = filterAndScoreCandidateElements({
     },
     {
       type: "node",
+      id: 107,
+      lat: 42.017,
+      lon: -71.01,
+      tags: {
+        tourism: "viewpoint",
+        name: "Nearby Off Axis View",
+      },
+    },
+    {
+      type: "node",
       id: 103,
       lat: 42.08,
       lon: -71.08,
@@ -112,9 +133,12 @@ const scored = filterAndScoreCandidateElements({
   limit: 5,
 });
 
-assert.equal(scored.length, 2);
+assert.equal(scored.length, 3);
 assert.equal(scored[0].id, "osm-node-101");
-assert.equal(scored[1].id, "osm-node-106");
+const footwaySpot = scored.find((spot) => spot.id === "osm-node-106");
+const offAxisSpot = scored.find((spot) => spot.id === "osm-node-107");
+assert.ok(footwaySpot);
+assert.ok(offAxisSpot);
 assert.ok(scored[0].score > scored[1].score);
 assert.equal(scored[0].sourceObjectId, "101");
 assert.equal(scored[0].source, "osm");
@@ -124,6 +148,8 @@ assert.equal(scored[0].runwayAlignment?.end, "09");
 assert.ok(scored[0].score > 0);
 assert.ok(scored[0].reason.includes("runway"));
 assert.ok(scored[0].disclaimer.includes("map-derived candidate"));
+assert.equal(offAxisSpot.runwayAlignment, null);
+assert.ok(offAxisSpot.reason.includes("near KAAA"));
 
 const file = buildCandidateWatchingSpotFile({
   airportIcao: "kaaa",
@@ -134,6 +160,6 @@ const file = buildCandidateWatchingSpotFile({
 assert.equal(file.airportIcao, "KAAA");
 assert.equal(file.generatedAt, "2026-06-02T12:00:00.000Z");
 assert.equal(file.sourceAttribution, "© OpenStreetMap contributors");
-assert.equal(file.spots.length, 2);
+assert.equal(file.spots.length, 3);
 
 console.log("candidateWatchingSpotsModel.test.ts ok");

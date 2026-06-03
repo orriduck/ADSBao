@@ -63,15 +63,13 @@ export default function SidebarViewSwitch({
           onClick={() => onViewChange?.("atc")}
         />
       )}
-      {spottingCount > 0 && (
-        <SidebarMetricCard
-          label={t("sidebar.spotting")}
-          value={<NumberFlow value={spottingCount} />}
-          unit="PHOTO"
-          active={activeView === "spotting"}
-          onClick={onOpenSpotting}
-        />
-      )}
+      <SidebarMetricCard
+        label={t("sidebar.spotting")}
+        value={<NumberFlow value={spottingCount} />}
+        unit="PHOTO"
+        active={activeView === "spotting"}
+        onClick={onOpenSpotting}
+      />
       {showMovementCards && (
         <>
           <SidebarMetricCard

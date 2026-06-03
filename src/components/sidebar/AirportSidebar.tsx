@@ -61,10 +61,7 @@ export default function AirportSidebar({
     if (activeView === "atc" && atcFrequencies.length === 0) {
       setActiveView("traffic");
     }
-    if (activeView === "spotting" && spottingSpots.length === 0) {
-      setActiveView("traffic");
-    }
-  }, [activeView, atcFrequencies.length, spottingSpots.length]);
+  }, [activeView, atcFrequencies.length]);
 
   const handleSpottingView = () => {
     setActiveView("spotting");

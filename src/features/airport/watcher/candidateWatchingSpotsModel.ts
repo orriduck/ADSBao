@@ -15,6 +15,7 @@ type BBox = {
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const DEFAULT_EXTENSION_METERS = 3_800;
 const DEFAULT_LATERAL_BUFFER_METERS = 320;
+const DEFAULT_SEARCH_RADIUS_METERS = DEFAULT_EXTENSION_METERS;
 const DEFAULT_LIMIT = 5;
 
 export const CANDIDATE_WATCHING_SPOT_ATTRIBUTION =
@@ -248,6 +249,25 @@ export function buildOverpassQuery(bbox: BBox) {
 out center tags;`;
 }
 
+export function buildCandidateWatchingSpotSearchBBox({
+  airportCenter,
+  radiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
+}: CandidateRecord = {}): BBox | null {
+  const lat = toFiniteNumber(airportCenter?.lat);
+  const lon = toFiniteNumber(airportCenter?.lon);
+  const radius = Math.max(1, Number(radiusMeters) || DEFAULT_SEARCH_RADIUS_METERS);
+  if (lat == null || lon == null) return null;
+
+  const latDelta = radius / METERS_PER_DEGREE_LATITUDE;
+  const lonDelta = radius / metersPerDegreeLongitude(lat);
+  return {
+    south: lat - latDelta,
+    west: lon - lonDelta,
+    north: lat + latDelta,
+    east: lon + lonDelta,
+  };
+}
+
 const scoreAgainstCorridor = (point: LatLon, corridor: CandidateRecord) => {
   const local = pointToLocalMeters(point, corridor.origin);
   const along = local.x * corridor.vector.x + local.y * corridor.vector.y;
@@ -271,10 +291,19 @@ export function filterAndScoreCandidateElements({
   runwayMap,
   elements = [],
   limit = DEFAULT_LIMIT,
+  searchRadiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
 }: CandidateRecord = {}) {
   const corridors = buildRunwayExtensionCorridors(runwayMap);
   const normalizedAirport = normalizeAirportIcao(airportIcao);
   const spots = [];
+  const center =
+    toFiniteNumber(airportCenter?.lat) != null && toFiniteNumber(airportCenter?.lon) != null
+      ? { lat: Number(airportCenter.lat), lon: Number(airportCenter.lon) }
+      : null;
+  const maxDistanceMeters = Math.max(
+    1,
+    Number(searchRadiusMeters) || DEFAULT_SEARCH_RADIUS_METERS,
+  );
 
   for (const element of elements || []) {
     const tags = element?.tags || {};
@@ -287,14 +316,19 @@ export function filterAndScoreCandidateElements({
       .map((corridor: CandidateRecord) => scoreAgainstCorridor(point, corridor))
       .filter(Boolean)
       .sort((left: CandidateRecord, right: CandidateRecord) => right.score - left.score)[0];
-    if (!alignment) continue;
+    if (!alignment && !center) continue;
 
     const centerDistance =
-      airportCenter?.lat != null && airportCenter?.lon != null
-        ? distanceMeters(point, airportCenter)
+      center
+        ? distanceMeters(point, center)
         : alignment.distanceMeters;
-    const distanceComponent = Math.max(0, 28 - Math.min(centerDistance / 180, 28));
-    const alignmentComponent = alignment.score * 38;
+    if (center && centerDistance > maxDistanceMeters) continue;
+
+    const distanceComponent = Math.max(
+      0,
+      34 - Math.min((centerDistance / maxDistanceMeters) * 34, 34),
+    );
+    const alignmentComponent = alignment ? alignment.score * 24 : 0;
     const qualityComponent = qualityScoreForTags(tags);
     const score = Math.max(
       0,
@@ -317,12 +351,16 @@ export function filterAndScoreCandidateElements({
       category,
       score,
       distanceMeters: Math.round(centerDistance),
-      runwayAlignment: {
-        runwayId: alignment.runwayId,
-        end: alignment.end,
-        score: alignment.score,
-      },
-      reason: `${category} near the extended ${alignment.end || ""} runway alignment at ${normalizedAirport}.`,
+      runwayAlignment: alignment
+        ? {
+            runwayId: alignment.runwayId,
+            end: alignment.end,
+            score: alignment.score,
+          }
+        : null,
+      reason: alignment
+        ? `${category} near the extended ${alignment.end || ""} runway alignment at ${normalizedAirport}.`
+        : `${category} near ${normalizedAirport}.`,
       disclaimer: CANDIDATE_WATCHING_SPOT_DISCLAIMER,
     });
   }
