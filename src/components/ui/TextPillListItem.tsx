@@ -29,18 +29,18 @@ export function TextPillListItem({
       <span
         className={cn(
           "inline-flex min-w-18 items-center justify-center rounded-full px-3 py-1.5",
-          "bg-atc-text text-center text-[11px] font-black uppercase leading-none text-atc-bg",
+          "bg-atc-text text-center text-[10px] font-black uppercase leading-none text-atc-bg",
           "group-data-[active=true]:bg-[var(--atc-click-fg)] group-data-[active=true]:text-[var(--atc-click-bg)]",
         )}
       >
         {pill}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[14px] font-extrabold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+        <span className="block truncate text-[13px] font-extrabold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
           {title}
         </span>
         {subtitle ? (
-          <span className="mt-0.5 block text-[12px] font-medium leading-snug text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
+          <span className="mt-0.5 block text-[11px] font-medium leading-snug text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
             {subtitle}
           </span>
         ) : null}

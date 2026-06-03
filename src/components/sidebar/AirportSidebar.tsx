@@ -193,7 +193,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
               .map((source) => (
                 <span
                   key={source}
-                  className="rounded-full border border-atc-line px-2 py-1 font-mono text-[8px] font-semibold uppercase leading-none text-atc-faint"
+                  className="rounded-full border border-atc-line px-2 py-1 font-mono text-[7px] font-semibold uppercase leading-none text-atc-faint"
                 >
                   {source}
                 </span>
