@@ -407,6 +407,7 @@ export default function AirportMap({
           <AirspaceLayer
             airspaces={renderedAirspaces}
             visible={showAirspaces}
+            showBoundaryLabels={!fullTraceContext}
             selectedAirspaceId={selectedAirspaceId}
             onSelectAirspace={onSelectAirspace}
           />

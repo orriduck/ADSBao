@@ -10,6 +10,18 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v1.11.1": {
+    title: "地图 UI 细节打磨",
+    summary:
+      "地图模式和侧栏 UI 细节现在优化了空域可读性、全航迹视野、移动端页面滚动和紧凑 metric card。",
+    highlights: [
+      "空域图层增加沿边缘向内的标记,同时保留现有 access 颜色语义",
+      "全航迹模式保留空域上下文,但隐藏容易拥挤的边界文字",
+      "全航迹适配会围绕推断的焦点飞机位置重新居中,地图移动更平滑",
+      "移动端 Home、About、Mechanism 页面只在面板内部滚动,不再触发整页双滚动条",
+      "桌面地图侧栏 metric card 对 Airborne / 空中等紧凑状态值不再裁切",
+    ],
+  },
   "v1.11.0": {
     title: "全航迹地图上下文计数",
     summary:

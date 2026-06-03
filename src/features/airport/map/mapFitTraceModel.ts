@@ -15,12 +15,16 @@ type TraceFitOptions = {
   routeEndpoints?: unknown;
 };
 
-function pushFiniteLatLon(points: LatLonTuple[], lat: unknown, lon: unknown) {
+function finiteLatLon(lat: unknown, lon: unknown): LatLonTuple | null {
   const latNum = Number(lat);
   const lonNum = Number(lon);
-  if (Number.isFinite(latNum) && Number.isFinite(lonNum)) {
-    points.push([latNum, lonNum]);
-  }
+  if (!Number.isFinite(latNum) || !Number.isFinite(lonNum)) return null;
+  return [latNum, lonNum];
+}
+
+function pushFiniteLatLon(points: LatLonTuple[], lat: unknown, lon: unknown) {
+  const point = finiteLatLon(lat, lon);
+  if (point) points.push(point);
 }
 
 export function buildTraceFitPoints({
@@ -48,4 +52,8 @@ export function buildTraceFitPoints({
   }
 
   return points;
+}
+
+export function resolveTraceFitCenterAnchor(anchor: TraceFitPoint | null | undefined) {
+  return finiteLatLon(anchor?.lat, anchor?.lon);
 }

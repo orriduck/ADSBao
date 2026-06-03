@@ -31,17 +31,20 @@ let boundaryLabelSequence = 0;
 export default function AirspaceLayer({
   airspaces = [],
   visible = true,
+  showBoundaryLabels = true,
   selectedAirspaceId = "",
   onSelectAirspace = null,
 }: {
   airspaces?: Record<string, any>[];
   visible?: boolean;
+  showBoundaryLabels?: boolean;
   selectedAirspaceId?: string;
   onSelectAirspace?: ((airspaceId: string) => void) | null;
 }) {
   const map = useMapInstance();
   const layerRef = useRef<L.GeoJSON | null>(null);
   const boundaryLabelsRef = useRef<SVGTextElement[]>([]);
+  const boundaryEdgesRef = useRef<SVGElement[]>([]);
   const labelFrameRef = useRef(0);
   const animationFrameRef = useRef(0);
   const hasAnimatedInitialEnterRef = useRef(false);
@@ -64,8 +67,11 @@ export default function AirspaceLayer({
     window.cancelAnimationFrame(labelFrameRef.current);
     boundaryLabelsRef.current.forEach((label) => label.remove());
     boundaryLabelsRef.current = [];
+    boundaryEdgesRef.current.forEach((edge) => edge.remove());
+    boundaryEdgesRef.current = [];
     safeRemoveFromMap(layerRef.current, map);
     const boundaryLabels: SVGTextElement[] = [];
+    const boundaryEdges: SVGElement[] = [];
     const animateInitialEnter =
       visibleRef.current && !hasAnimatedInitialEnterRef.current;
     const initialOpacity = resolveAirspaceInitialOpacity({
@@ -104,15 +110,25 @@ export default function AirspaceLayer({
     applyAirspaceGroupOpacity(
       polygonLayer,
       boundaryLabels,
+      boundaryEdges,
       selectedAirspaceIdRef.current,
       initialOpacity,
     );
     labelFrameRef.current = window.requestAnimationFrame(() => {
+      boundaryEdges.push(
+        ...attachBoundaryEdges(
+          polygonLayer,
+          selectedAirspaceIdRef.current,
+          initialOpacity,
+        ),
+      );
+      boundaryEdgesRef.current = boundaryEdges;
       boundaryLabels.push(
         ...attachBoundaryLabels(
           polygonLayer,
           selectedAirspaceIdRef.current,
           initialOpacity,
+          showBoundaryLabels,
         ),
       );
       boundaryLabelsRef.current = boundaryLabels;
@@ -120,6 +136,7 @@ export default function AirspaceLayer({
         animateAirspaceGroupOpacity({
           layerGroup: polygonLayer,
           labels: boundaryLabels,
+          edges: boundaryEdges,
           selectedAirspaceId: selectedAirspaceIdRef.current,
           visible: true,
           animationFrameRef,
@@ -132,10 +149,12 @@ export default function AirspaceLayer({
       window.cancelAnimationFrame(labelFrameRef.current);
       boundaryLabels.forEach((label) => label.remove());
       boundaryLabelsRef.current = [];
+      boundaryEdges.forEach((edge) => edge.remove());
+      boundaryEdgesRef.current = [];
       safeRemoveFromMap(polygonLayer, map);
       layerRef.current = null;
     };
-  }, [map, features]);
+  }, [map, features, showBoundaryLabels]);
 
   useEffect(() => {
     const polygonLayer = layerRef.current;
@@ -153,6 +172,7 @@ export default function AirspaceLayer({
     animateAirspaceGroupOpacity({
       layerGroup: polygonLayer,
       labels: boundaryLabelsRef.current,
+      edges: boundaryEdgesRef.current,
       selectedAirspaceId,
       visible,
       animationFrameRef,
@@ -181,12 +201,14 @@ function resolveVisibleAirspaceStyle(
 function animateAirspaceGroupOpacity({
   layerGroup,
   labels,
+  edges,
   selectedAirspaceId,
   visible,
   animationFrameRef,
 }: {
   layerGroup: L.GeoJSON;
   labels: SVGTextElement[];
+  edges: SVGElement[];
   selectedAirspaceId: string;
   visible: boolean;
   animationFrameRef: MutableRefObject<number>;
@@ -202,11 +224,18 @@ function animateAirspaceGroupOpacity({
   );
 
   if (reducedMotion || plan.itemDurationMs === 0) {
-    applyAirspaceGroupOpacity(layerGroup, labels, selectedAirspaceId, visible ? 1 : 0);
+    applyAirspaceGroupOpacity(
+      layerGroup,
+      labels,
+      edges,
+      selectedAirspaceId,
+      visible ? 1 : 0,
+    );
     return;
   }
 
   const labelGroups = groupLabelsByLayerIndex(labels);
+  const edgeGroups = groupLabelsByLayerIndex(edges);
   const startedAt = window.performance.now();
   const targetOpacity = visible ? 1 : 0;
   const animations = plan.steps.map((step) => {
@@ -214,6 +243,7 @@ function animateAirspaceGroupOpacity({
     return {
       layer,
       labels: labelGroups.get(step.index) || [],
+      edges: edgeGroups.get(step.index) || [],
       delayMs: step.delayMs,
       fromOpacity: readAirspaceLayerOpacityScale(layer, visible ? 0 : 1),
     };
@@ -235,6 +265,7 @@ function animateAirspaceGroupOpacity({
       applyAirspaceFeatureOpacity(
         animation.layer,
         animation.labels,
+        animation.edges,
         selectedAirspaceId,
         opacityScale,
       );
@@ -242,7 +273,13 @@ function animateAirspaceGroupOpacity({
     }
 
     if (complete) {
-      applyAirspaceGroupOpacity(layerGroup, labels, selectedAirspaceId, targetOpacity);
+      applyAirspaceGroupOpacity(
+        layerGroup,
+        labels,
+        edges,
+        selectedAirspaceId,
+        targetOpacity,
+      );
       animationFrameRef.current = 0;
       return;
     }
@@ -256,14 +293,17 @@ function animateAirspaceGroupOpacity({
 function applyAirspaceGroupOpacity(
   layerGroup: L.GeoJSON,
   labels: SVGTextElement[],
+  edges: SVGElement[],
   selectedAirspaceId: string,
   opacityScale: number,
 ) {
   const labelGroups = groupLabelsByLayerIndex(labels);
+  const edgeGroups = groupLabelsByLayerIndex(edges);
   getAirspaceFeatureLayers(layerGroup).forEach((layer, index) => {
     applyAirspaceFeatureOpacity(
       layer,
       labelGroups.get(index) || [],
+      edgeGroups.get(index) || [],
       selectedAirspaceId,
       opacityScale,
     );
@@ -273,6 +313,7 @@ function applyAirspaceGroupOpacity(
 function applyAirspaceFeatureOpacity(
   layer: any,
   labels: SVGTextElement[],
+  edges: SVGElement[],
   selectedAirspaceId: string,
   opacityScale: number,
 ) {
@@ -281,6 +322,7 @@ function applyAirspaceFeatureOpacity(
   }
   layer.__airspaceOpacityScale = opacityScale;
   labels.forEach((label) => setBoundaryLabelState(label, selectedAirspaceId, opacityScale));
+  edges.forEach((edge) => setBoundaryEdgeState(edge, selectedAirspaceId, opacityScale));
 }
 
 function getAirspaceFeatureLayers(layerGroup: L.GeoJSON) {
@@ -289,13 +331,13 @@ function getAirspaceFeatureLayers(layerGroup: L.GeoJSON) {
   return layers;
 }
 
-function groupLabelsByLayerIndex(labels: SVGTextElement[]) {
-  const groups = new Map<number, SVGTextElement[]>();
-  labels.forEach((label) => {
-    const index = Number(label.dataset.airspaceLayerIndex);
+function groupLabelsByLayerIndex<T extends SVGElement>(elements: T[]) {
+  const groups = new Map<number, T[]>();
+  elements.forEach((element) => {
+    const index = Number(element.dataset.airspaceLayerIndex);
     if (!Number.isInteger(index)) return;
     const group = groups.get(index) || [];
-    group.push(label);
+    group.push(element);
     groups.set(index, group);
   });
   return groups;
@@ -320,12 +362,23 @@ function prefersReducedMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
 }
 
+function ensureSvgDefs(svg: SVGSVGElement) {
+  let defs = svg.querySelector("defs");
+  if (!defs) {
+    defs = document.createElementNS(SVG_NS, "defs");
+    svg.prepend(defs);
+  }
+  return defs;
+}
+
 function attachBoundaryLabels(
   layerGroup: L.GeoJSON,
   selectedAirspaceId = "",
   opacityScale = 1,
+  showBoundaryLabels = true,
 ): SVGTextElement[] {
   const labels: SVGTextElement[] = [];
+  if (!showBoundaryLabels) return labels;
 
   let layerIndex = 0;
   layerGroup.eachLayer((layer: any) => {
@@ -372,6 +425,57 @@ function attachBoundaryLabels(
   return labels;
 }
 
+function attachBoundaryEdges(
+  layerGroup: L.GeoJSON,
+  selectedAirspaceId = "",
+  opacityScale = 1,
+): SVGElement[] {
+  const edges: SVGElement[] = [];
+
+  let layerIndex = 0;
+  layerGroup.eachLayer((layer: any) => {
+    const currentLayerIndex = layerIndex;
+    layerIndex += 1;
+    const path = typeof layer.getElement === "function"
+      ? layer.getElement()
+      : null;
+    const svg = path?.ownerSVGElement;
+    if (!path || !svg) return;
+
+    const pathId = path.id || `airspace-boundary-${boundaryLabelSequence += 1}`;
+    path.id = pathId;
+    const clipId = `airspace-boundary-clip-${boundaryLabelSequence += 1}`;
+    const defs = ensureSvgDefs(svg);
+    const clipPath = document.createElementNS(SVG_NS, "clipPath");
+    clipPath.id = clipId;
+    const clipUse = document.createElementNS(SVG_NS, "use");
+    clipUse.setAttribute("href", `#${pathId}`);
+    clipUse.setAttributeNS(XLINK_NS, "xlink:href", `#${pathId}`);
+    clipPath.appendChild(clipUse);
+    defs.appendChild(clipPath);
+
+    const edge = document.createElementNS(SVG_NS, "use");
+    edge.dataset.airspaceLayerIndex = String(currentLayerIndex);
+    edge.dataset.airspaceFeatureId = String(layer.feature?.properties?.id || "");
+    edge.classList.add("airspace-boundary-edge");
+    edge.setAttribute("href", `#${pathId}`);
+    edge.setAttributeNS(XLINK_NS, "xlink:href", `#${pathId}`);
+    edge.setAttribute("clip-path", `url(#${clipId})`);
+    edge.setAttribute("fill", "none");
+    edge.setAttribute("stroke", "var(--airspace-boundary-label)");
+    edge.setAttribute("stroke-dasharray", "0.5 9");
+    edge.setAttribute("stroke-linecap", "round");
+    edge.setAttribute("stroke-linejoin", "round");
+    edge.setAttribute("stroke-width", "8");
+    edge.setAttribute("pointer-events", "none");
+    setBoundaryEdgeState(edge, selectedAirspaceId, opacityScale);
+    svg.appendChild(edge);
+    edges.push(edge, clipPath);
+  });
+
+  return edges;
+}
+
 function setBoundaryLabelState(
   label: SVGTextElement,
   selectedAirspaceId: string,
@@ -382,6 +486,18 @@ function setBoundaryLabelState(
     label.dataset.airspaceFeatureId === selectedAirspaceId;
   label.classList.toggle("airspace-boundary-label--focused", isFocused);
   label.style.opacity = String((isFocused ? 1 : 0.5) * opacityScale);
+}
+
+function setBoundaryEdgeState(
+  edge: SVGElement,
+  selectedAirspaceId: string,
+  opacityScale: number,
+) {
+  const isFocused =
+    Boolean(selectedAirspaceId) &&
+    edge.dataset.airspaceFeatureId === selectedAirspaceId;
+  edge.classList.toggle("airspace-boundary-edge--focused", isFocused);
+  edge.style.opacity = String((isFocused ? 0.78 : 0.46) * opacityScale);
 }
 
 function boundaryLabelLines(
