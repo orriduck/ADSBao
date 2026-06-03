@@ -61,12 +61,14 @@ export function useAviationContextTiles({
   enabled = false,
   airspacesEnabled = false,
   navaidsEnabled = false,
+  navaidCountsEnabled = false,
   waypointsEnabled = false,
   refreshKey = "",
 }: ContextTileRecord = {}) {
   const [tiles, setTiles] = useState([]);
   const [airspaces, setAirspaces] = useState([]);
   const [navaids, setNavaids] = useState([]);
+  const [navaidCounts, setNavaidCounts] = useState([]);
   const [waypoints, setWaypoints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -105,16 +107,25 @@ export function useAviationContextTiles({
       const urls = [];
       if (airspacesEnabled) urls.push(tilePath("airspace", tile));
       if (navaidsEnabled) urls.push(tilePath("navaids", tile));
+      if (navaidCountsEnabled) urls.push(tilePath("navaid-counts", tile));
       if (waypointsEnabled) urls.push(tilePath("waypoints", tile));
       return urls;
     });
-  }, [airspacesEnabled, enabled, navaidsEnabled, tiles, waypointsEnabled]);
+  }, [
+    airspacesEnabled,
+    enabled,
+    navaidCountsEnabled,
+    navaidsEnabled,
+    tiles,
+    waypointsEnabled,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
     if (requestUrls.length === 0) {
       setAirspaces([]);
       setNavaids([]);
+      setNavaidCounts([]);
       setWaypoints([]);
       setLoading(false);
       setError(null);
@@ -140,6 +151,12 @@ export function useAviationContextTiles({
           (item) => item?.id || `${item?.ident}:${item?.lat}:${item?.lon}`,
         ),
       );
+      setNavaidCounts(
+        uniqueBy(
+          payloads.flatMap((payload) => payload.navaidCounts || []),
+          (item) => item?.key || `${item?.z}:${item?.x}:${item?.y}`,
+        ),
+      );
       setWaypoints(
         uniqueBy(
           payloads.flatMap((payload) => payload.waypoints || []),
@@ -159,6 +176,7 @@ export function useAviationContextTiles({
   return {
     airspaces,
     navaids,
+    navaidCounts,
     waypoints,
     loading,
     error,

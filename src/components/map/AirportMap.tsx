@@ -9,6 +9,7 @@ import MapRangeLegend from "./MapRangeLegend";
 import AirspaceLayer from "./AirspaceLayer";
 import NearbyAirportLayer from "./NearbyAirportLayer";
 import NavaidLabelLayer from "./NavaidLabelLayer";
+import NavaidCountLayer from "./NavaidCountLayer";
 import CandidateWatchingSpotsLayer from "./CandidateWatchingSpotsLayer";
 import AircraftPosition from "./AircraftPosition";
 import UserLocationMarker from "./UserLocationMarker";
@@ -35,6 +36,7 @@ import {
   resolveMapSurfaceVisibility,
 } from "../../features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useAviationContextTiles } from "../../features/airport/context/useAviationContextTiles";
+import { shouldUseNavaidCountTiles } from "../../features/airport/context/aviationContextDisplayModel";
 import { getOffsetMapCenter } from "./mapViewportOffset";
 
 const resolveCurrentTheme = () =>
@@ -59,6 +61,7 @@ export default function AirportMap({
   airspaces = [],
   contextTileOverlays = false,
   contextTileRefreshKey = "",
+  fullTraceContext = false,
   onContextTilesChange = null,
   airport = null,
   showMapLabels = false,
@@ -104,6 +107,7 @@ export default function AirportMap({
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
+  const [leafletZoom, setLeafletZoom] = useState(zoom);
   const [loadingOverlayPlayback, setLoadingOverlayPlayback] = useState({
     visible: true,
     exiting: false,
@@ -271,11 +275,31 @@ export default function AirportMap({
     [aircraft, selectedAircraftId, visibleAircraft],
   );
   const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
+  useEffect(() => {
+    if (!mapInstance) {
+      setLeafletZoom(zoom);
+      return undefined;
+    }
+    const updateZoom = () => {
+      const nextZoom = Number(mapInstance.getZoom?.());
+      if (Number.isFinite(nextZoom)) setLeafletZoom(nextZoom);
+    };
+    updateZoom();
+    mapInstance.on?.("zoomend", updateZoom);
+    return () => {
+      mapInstance.off?.("zoomend", updateZoom);
+    };
+  }, [mapInstance, zoom]);
+  const useNavaidCountTiles = shouldUseNavaidCountTiles({
+    fullTraceMode: fullTraceContext,
+    zoom: leafletZoom,
+  });
   const contextTiles = useAviationContextTiles({
     map: mapInstance,
     enabled: contextTileOverlays,
     airspacesEnabled: showAirspaces,
-    navaidsEnabled: showNavaidMarkers,
+    navaidsEnabled: showNavaidMarkers && !useNavaidCountTiles,
+    navaidCountsEnabled: showNavaidMarkers && useNavaidCountTiles,
     refreshKey: contextTileRefreshKey,
   });
   const renderedAirspaces = useMemo(() => {
@@ -305,8 +329,11 @@ export default function AirportMap({
         navaids: contextTiles.navaids.map(
           (item) => item?.id || `${item?.ident}:${item?.lat}:${item?.lon}`,
         ),
+        navaidCounts: contextTiles.navaidCounts.map(
+          (item) => item?.key || `${item?.z}:${item?.x}:${item?.y}`,
+        ),
       }),
-    [contextTiles.airspaces, contextTiles.navaids],
+    [contextTiles.airspaces, contextTiles.navaidCounts, contextTiles.navaids],
   );
 
   useEffect(() => {
@@ -316,6 +343,7 @@ export default function AirportMap({
     onContextTilesChange({
       airspaces: contextTiles.airspaces,
       navaids: contextTiles.navaids,
+      navaidCounts: contextTiles.navaidCounts,
       loading: contextTiles.loading,
       error: contextTiles.error,
     });
@@ -326,6 +354,7 @@ export default function AirportMap({
     contextTiles.loading,
     onContextTilesChange,
     contextTiles.airspaces,
+    contextTiles.navaidCounts,
     contextTiles.navaids,
   ]);
 
@@ -406,9 +435,14 @@ export default function AirportMap({
           <NavaidLabelLayer
             navaids={renderedNavaids}
             theme={currentTheme}
-            visible={showNavaidMarkers}
+            visible={showNavaidMarkers && !useNavaidCountTiles}
             selectedNavaidKey={selectedNavaidKey}
             onSelectNavaid={onSelectNavaid}
+          />
+          <NavaidCountLayer
+            counts={contextTiles.navaidCounts}
+            theme={currentTheme}
+            visible={showNavaidMarkers && useNavaidCountTiles}
           />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}

@@ -9,6 +9,9 @@ import {
   mapOpenAipReportingPoint,
 } from "../openaip/openAipNormalizer";
 import {
+  buildNavaidCountMarker,
+} from "./aviationContextDisplayModel";
+import {
   bboxToOpenAipParam,
   buildContextTileCacheKey,
   tileToBbox,
@@ -150,6 +153,51 @@ export async function getNavaidTile({
     cacheKey,
     source: "openaip",
     navaids: documents.map(mapOpenAipNavaid).filter(Boolean),
+  });
+}
+
+export async function getNavaidCountTile({
+  tile,
+  client,
+  facilityRepository,
+}: ContextTileRecord = {}) {
+  const cacheKey = buildContextTileCacheKey("navaid-counts", tile);
+  const cached = readCached(cacheKey);
+  if (cached) return cached;
+  const bbox = tileToBbox(tile);
+  const repository =
+    facilityRepository === undefined
+      ? createAirportFacilityRepositoryFromEnv()
+      : facilityRepository;
+  if (repository?.readNavaidCountInBounds) {
+    const count = await repository.readNavaidCountInBounds({ bbox });
+    const marker = buildNavaidCountMarker({ tile, bbox, count });
+    return writeCached(cacheKey, {
+      tile,
+      bbox,
+      cacheKey,
+      source: "ourairports",
+      count,
+      navaidCounts: marker ? [marker] : [],
+    });
+  }
+
+  const openAip = getOpenAipClient(client);
+  const documents = await listItems(
+    openAip.listNavaids({
+      bbox: bboxToOpenAipParam(bbox),
+      limit: 100,
+      fields: "_id",
+    }),
+  );
+  const marker = buildNavaidCountMarker({ tile, bbox, count: documents.length });
+  return writeCached(cacheKey, {
+    tile,
+    bbox,
+    cacheKey,
+    source: "openaip",
+    count: documents.length,
+    navaidCounts: marker ? [marker] : [],
   });
 }
 

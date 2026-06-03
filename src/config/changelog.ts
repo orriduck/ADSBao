@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.11.0",
+    kind: "feat",
+    title: "Full-trace map context counts",
+    summary:
+      "Full-trace aircraft maps now keep long routes readable by replacing dense low-zoom navaid labels with cached NAV count badges.",
+    highlights: [
+      "Low-zoom full-trace maps request aggregate navaid count tiles instead of thousands of individual labels",
+      "NAV count badges show one centered total per map tile with a short reduced-motion-safe entry animation",
+      "Detailed navaid labels still return at the existing zoom threshold",
+      "The count API reuses the long-lived aviation context tile cache headers",
+    ],
+  },
+  {
     version: "v1.10.0",
     kind: "feat",
     title: "Airport facilities and sidebar polish",
@@ -282,7 +295,7 @@ export const CHANGELOG = [
       "Tailwind CSS v4 + DaisyUI retained",
       "Vercel Analytics + Speed Insights via Next integrations",
       "Vue composables → React hooks",
-      "FlightAware route lookup moved to a Route Handler",
+      "Flight route lookup moved to a Route Handler",
     ],
   },
   {
@@ -301,10 +314,10 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Flight route + traffic context",
     summary:
-      "Airport-aware route labels, FlightAware lookup, dual-range ADS-B polling.",
+      "Airport-aware route labels, route lookup, dual-range ADS-B polling.",
     highlights: [
       "Airport-aware flight route labels",
-      "FlightAware route lookup via Vercel function",
+      "Flight route lookup via Vercel function",
       "Dual-range polling (wide 20 NM + close 3 NM)",
       "Airport context overlays + ground filtering",
     ],

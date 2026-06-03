@@ -10,6 +10,17 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v1.11.0": {
+    title: "全航迹地图上下文计数",
+    summary:
+      "全航迹飞机地图现在会在低缩放层级把密集导航台标签替换为缓存的 NAV 计数 badge,长距离航线更容易阅读。",
+    highlights: [
+      "低缩放全航迹地图改为请求聚合导航台计数 tile,不再一次渲染大量单个标签",
+      "NAV 计数 badge 在每个地图 tile 中心显示总数,并带有简短的入场动画",
+      "放大到当前细节阈值后仍显示完整导航台标签",
+      "计数 API 复用航空上下文 tile 的长期缓存策略",
+    ],
+  },
   "v1.10.0": {
     title: "机场设施数据与侧栏打磨",
     summary:
@@ -216,7 +227,7 @@ const CHINESE_RELEASE_COPY = {
       "保留 Tailwind CSS v4 和 DaisyUI",
       "通过 Next 集成接入 Vercel Analytics 和 Speed Insights",
       "Vue composables 迁移为 React hooks",
-      "FlightAware 航路查询迁移到 Route Handler",
+      "飞行航路查询迁移到 Route Handler",
     ],
   },
   "v0.7.1": {
@@ -230,10 +241,10 @@ const CHINESE_RELEASE_COPY = {
   },
   "v0.7.0": {
     title: "飞行航路与交通上下文",
-    summary: "机场感知航路标签、FlightAware 查询和双范围 ADS-B 轮询。",
+    summary: "机场感知航路标签、航路查询和双范围 ADS-B 轮询。",
     highlights: [
       "机场感知飞行航路标签",
-      "通过 Vercel function 查询 FlightAware 航路",
+      "通过 Vercel function 查询飞行航路",
       "双范围轮询: 广域 20 海里加近距 3 海里",
       "机场上下文叠加和地面过滤",
     ],

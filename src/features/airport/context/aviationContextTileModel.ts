@@ -21,6 +21,8 @@ export const NAVAID_TILE_CACHE_HEADERS = Object.freeze({
   "Vercel-CDN-Cache-Control": "public, s-maxage=2592000, stale-while-revalidate=604800",
 });
 
+export const NAVAID_COUNT_TILE_CACHE_HEADERS = NAVAID_TILE_CACHE_HEADERS;
+
 export const WAYPOINT_TILE_CACHE_HEADERS = Object.freeze({
   "Cache-Control": "public, max-age=0, s-maxage=604800, stale-while-revalidate=86400",
   "CDN-Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
