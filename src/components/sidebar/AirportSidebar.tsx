@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ExternalLink } from "lucide-react";
 import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
 import SidebarShell from "./SidebarShell";
@@ -164,6 +165,17 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           {frequencies.length} channels
         </span>
       </div>
+      {normalizedIcao ? (
+        <a
+          href={liveAtcHref}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="mt-1 mb-0.5 inline-flex items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card/50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-normal text-atc-text transition-colors hover:bg-[var(--atc-control-hover-bg)]"
+        >
+          <span>Search {normalizedIcao} on LiveATC</span>
+          <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2.3} />
+        </a>
+      ) : null}
       <div className="grid gap-3">
         {frequencies.map((frequency) => (
           <TextPillListItem
@@ -189,16 +201,6 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           />
         ))}
       </div>
-      {normalizedIcao ? (
-        <a
-          href={liveAtcHref}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          className="mt-1 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card/50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-normal text-atc-text transition-colors hover:bg-[var(--atc-control-hover-bg)]"
-        >
-          Search {normalizedIcao} on LiveATC
-        </a>
-      ) : null}
     </div>
   );
 }
