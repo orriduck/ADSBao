@@ -1,48 +1,75 @@
 # ADSBao
 
-ADSBao is a Vercel-first airport and flight tracking console. It combines global
-airport search, METAR weather, nearby ADS-B traffic, route context, runway and
-OpenAIP context overlays, and selected-flight trace views in a map-first HUD.
-
-Runtime version strings and ADSBao User-Agent values share
-`src/config/siteMeta.ts`; product history is rendered from
-`src/config/changelog.ts` at `/changelog`.
-
 <p align="center">
-  <img src="docs/screenshots/adsbao-home.jpg" alt="ADSBao airport search screen" width="100%" />
+  <strong>Airport weather, live ADS-B traffic, and flight route context in a map-first aviation dashboard.</strong><br />
+  Search airports by ICAO, IATA, city, or name, then explore METAR weather,
+  nearby aircraft, runways, airspace overlays, route hints, and selected-flight
+  traces from one web console.
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/adsbao-airport-kbos.jpg" alt="ADSBao KBOS airport traffic map" width="49%" />
-  <img src="docs/screenshots/adsbao-aircraft-afr331e.jpg" alt="ADSBao selected aircraft tracking page" width="49%" />
+  <a href="https://adsbao.dev"><strong>Open ADSBao</strong></a>
+  ·
+  <a href="https://adsbao.dev/airport/KBOS">KBOS airport map</a>
+  ·
+  <a href="https://adsbao.dev/about">Data sources</a>
+  ·
+  <a href="https://github.com/orriduck/ADSBao">GitHub</a>
 </p>
 
-## What It Does
+<p align="center">
+  <img src="docs/screenshots/adsbao-home.jpg" alt="ADSBao airport search for airport weather, METAR, and ADS-B traffic dashboards" width="100%" />
+</p>
 
-- Search airports by ICAO, IATA, city, or airport name.
-- Open airport dashboards with METAR-derived weather context, nearby traffic,
-  nearby airports, distance rings, runway annotations, and map overlays.
-- Track a callsign on `/aircraft/[callsign]` with live position state,
-  telemetry, recent trace, route labels, nearby traffic, and last-known or
-  fallback behavior when a signal drops.
-- Resolve callsign routes through same-origin server routes, with adsbdb as the
-  public route source and account-gated FlightAware fallback for enabled users.
-- Accept temporary route correction feedback without turning every lookup into a
-  database dependency.
+<p align="center">
+  <img src="docs/screenshots/adsbao-airport-kbos.jpg" alt="ADSBao KBOS airport traffic map with nearby aircraft, runways, weather, and airspace overlays" width="49%" />
+  <img src="docs/screenshots/adsbao-aircraft-afr331e.jpg" alt="ADSBao flight tracker page with aircraft telemetry, route context, and ADS-B trace" width="49%" />
+</p>
 
-## Stack
+## Why ADSBao
 
-- **Frontend**: React, Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide.
-- **Maps**: Leaflet plus MapLibre-backed tiles and custom aircraft/runway layers.
-- **Data layer**: OpenAIP served through same-origin Next.js API routes with
-  Supabase migration support for OpenAIP-shaped static/cache tables. OurAirports
-  augments runway threshold geometry, ATC frequencies, and navaid coverage.
-- **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
-  Speed Insights, and optional Sentry monitoring.
-- **Auth and feature flags**: Clerk identity with Supabase-backed user feature
-  flags for gated provider behavior.
+ADSBao is an open-source aviation web app for people who want airport context
+and live flight-tracking context without jumping between separate tools. It is
+useful for plane spotting, airport discovery, weather checks, route context,
+and exploring public aviation data in a visual map interface.
 
-## Data Paths
+ADSBao is not a certified navigation product. Treat all weather, traffic,
+airspace, runway, route, and map data as reference context only.
+
+## Airport And Flight Tracking Features
+
+- **Airport search**: Find airports by ICAO, IATA, city, or airport name.
+- **Airport weather dashboard**: Read METAR-derived flight rules, wind,
+  visibility, ceiling, pressure, local weather, and raw METAR text.
+- **Live ADS-B traffic map**: See nearby aircraft around the airport with
+  altitude, speed, heading, route hints, and aircraft-type display.
+- **Runway and aviation overlays**: Explore runway geometry, range rings,
+  nearby airports, airspaces, reporting points, obstacles, frequencies, and
+  navaids where data is available.
+- **Flight tracker pages**: Open `/aircraft/[callsign]` to follow a selected
+  aircraft with live position state, telemetry, recent trace, nearby traffic,
+  route labels, and last-known behavior when a signal drops.
+- **Route lookup and correction feedback**: Resolve callsign routes through
+  same-origin server routes, with adsbdb as the public route source and
+  account-gated FlightAware fallback for enabled users.
+
+## Live Examples
+
+- Production site: [adsbao.dev](https://adsbao.dev)
+- Airport traffic dashboard: [KBOS on ADSBao](https://adsbao.dev/airport/KBOS)
+- Featured indexed airport pages: [KLAX](https://adsbao.dev/airport/KLAX),
+  [KJFK](https://adsbao.dev/airport/KJFK),
+  [KORD](https://adsbao.dev/airport/KORD),
+  [KSFO](https://adsbao.dev/airport/KSFO), and
+  [KSEA](https://adsbao.dev/airport/KSEA)
+- Flight tracker route pattern: `https://adsbao.dev/aircraft/[callsign]`
+
+## Data Sources And API Paths
+
+ADSBao combines public aviation weather, ADS-B aircraft positions, airport
+directory data, map tiles, and route context behind same-origin Next.js API
+routes. See [docs/architecture.md](docs/architecture.md) for the current
+feature/API boundary conventions and deployment topology.
 
 | Path | Source | Purpose |
 |---|---|---|
@@ -55,8 +82,17 @@ Runtime version strings and ADSBao User-Agent values share
 | `/api/proxy/flight-routes/callsign/:callsign` | adsbdb, route feedback, optional FlightAware fallback | Callsign route labels |
 | `/api/proxy/airports/nearby` | OpenAIP Core API | Nearby airport overlays |
 
-See `docs/architecture.md` for the current feature/API boundary conventions and
-deployment topology.
+## Stack
+
+- **Frontend**: React, Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide.
+- **Maps**: Leaflet plus MapLibre-backed tiles and custom aircraft/runway layers.
+- **Data layer**: OpenAIP served through same-origin Next.js API routes with
+  Supabase migration support for OpenAIP-shaped static/cache tables. OurAirports
+  augments runway threshold geometry, ATC frequencies, and navaid coverage.
+- **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
+  Speed Insights, and optional Sentry monitoring.
+- **Auth and feature flags**: Clerk identity with Supabase-backed user feature
+  flags for gated provider behavior.
 
 ## Local Development
 
@@ -151,6 +187,10 @@ modules. API persistence boundaries stay under `src/app/api/dao`, and
 route-handler-only helpers stay under `src/app/api/_shared`.
 
 ## Release Policy
+
+Runtime version strings and ADSBao User-Agent values share
+`src/config/siteMeta.ts`; product history is rendered from
+`src/config/changelog.ts` at `/changelog`.
 
 Vercel deploys every push to `main`, but deployments are not product releases.
 Product versions are bumped only when user-visible product scope changes,
