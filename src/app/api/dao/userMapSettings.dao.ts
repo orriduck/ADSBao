@@ -5,6 +5,8 @@ import {
   resolveFeatureFlagEnvironment,
 } from "../../../features/app-shell/feature-flags/userFeatureFlagsModel";
 import {
+  DEFAULT_MAP_SETTINGS,
+  mergeMapSettings,
   normalizeMapSettings,
 } from "../../../features/airport/map-settings/mapSettingsModel";
 
@@ -68,7 +70,13 @@ export function createUserMapSettingsRepository({
       const normalizedEnvironment = normalizeFeatureFlagEnvironment(
         environment || defaultEnvironment,
       );
-      const normalizedSettings = normalizeMapSettings(settings);
+      const existingRow = await this.readSettingsByEmail(normalizedEmail, {
+        environment: normalizedEnvironment,
+      });
+      const normalizedSettings = mergeMapSettings({
+        settings: existingRow?.settings || DEFAULT_MAP_SETTINGS,
+        updates: settings,
+      });
       const updatedAt = normalizedSettings.updatedAt || new Date().toISOString();
 
       const { data, error } = await client

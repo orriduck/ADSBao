@@ -127,8 +127,9 @@ export default function MapSettingsSheet({
   const hasSavedMapSettings = Boolean(savedMapSettings);
   const saving = mapSettingsSaveStatus === "saving";
   const restoring = mapSettingsRestoreStatus === "restoring";
-  const handleSaveMapSettings = () => {
-    onSaveMapSettings?.({
+  const handleSaveMapSettings = async () => {
+    if (saving || !onSaveMapSettings) return;
+    const savedSettings = await onSaveMapSettings({
       layers: explorerLayerStateToMapSettingsLayers({
         showMapLabels,
         showRunwayBeams: showBeams,
@@ -139,6 +140,9 @@ export default function MapSettingsSheet({
         userLocationAudioActive,
       }),
     });
+    if (savedSettings) {
+      onOpenChange?.(false);
+    }
   };
 
   return (

@@ -21,6 +21,7 @@ import {
   buildPresetMapSettings,
   isSelectableMapModeId,
   mapSettingsToExplorerLayers,
+  mapSettingsToUserLocationPreferences,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
@@ -34,10 +35,13 @@ import {
 
 const ExplorerUiContext = createContext(null);
 const DEFAULT_MAP_LAYERS = mapSettingsToExplorerLayers(DEFAULT_MAP_SETTINGS);
+const DEFAULT_USER_LOCATION_PREFERENCES =
+  mapSettingsToUserLocationPreferences(DEFAULT_MAP_SETTINGS);
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
   ...DEFAULT_MAP_LAYERS,
+  ...DEFAULT_USER_LOCATION_PREFERENCES,
   mapSettings: DEFAULT_MAP_SETTINGS,
   sidebarMode: "desktop",
   sidebarOpen: true,
@@ -65,9 +69,12 @@ function toggleValue(value) {
 function applyMapSettingsToUiState(state, settings) {
   const normalizedSettings = normalizeMapSettings(settings);
   const layers = mapSettingsToExplorerLayers(normalizedSettings);
+  const userLocationPreferences =
+    mapSettingsToUserLocationPreferences(normalizedSettings);
   return {
     ...state,
     ...layers,
+    ...userLocationPreferences,
     mapSettings: normalizedSettings,
     selectedAirspaceId: layers.showAirspaces ? state.selectedAirspaceId : "",
     selectedCandidateWatchingSpotId: layers.showCandidateWatchingSpots
@@ -152,6 +159,24 @@ function airportExplorerUiReducer(state, action) {
       );
     case "hydrateMapSettings":
       return applyMapSettingsToUiState(state, action.settings);
+    case "setUserLocationPreferences": {
+      const userLocationEnabled = action.userLocationEnabled === true;
+      const userLocationAudioEnabled =
+        userLocationEnabled && action.userLocationAudioEnabled === true;
+      const locationSettings = buildCustomMapSettings({
+        settings: state.mapSettings,
+        layerKey: MAP_LAYER_KEYS.USER_LOCATION,
+        value: userLocationEnabled,
+      });
+      return applyMapSettingsToUiState(
+        state,
+        buildCustomMapSettings({
+          settings: locationSettings,
+          layerKey: MAP_LAYER_KEYS.USER_LOCATION_AUDIO,
+          value: userLocationAudioEnabled,
+        }),
+      );
+    }
     case "setTrafficFilter":
       return { ...state, trafficFilter: action.trafficFilter };
     case "setTypeFilter":
@@ -289,6 +314,8 @@ export function ExplorerUiProvider({ children }) {
     showNavaidMarkers,
     showAirspaces,
     showCandidateWatchingSpots,
+    userLocationEnabled,
+    userLocationAudioEnabled,
     mapSettings,
     trafficFilter,
     typeFilter,
@@ -477,6 +504,17 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "applyMapMode", modeId });
   }, []);
 
+  const setUserLocationPreferences = useCallback(
+    ({ userLocationEnabled, userLocationAudioEnabled = false }) => {
+      dispatch({
+        type: "setUserLocationPreferences",
+        userLocationEnabled,
+        userLocationAudioEnabled,
+      });
+    },
+    [],
+  );
+
   const setTrafficFilter = useCallback((trafficFilter) => {
     dispatch({ type: "setTrafficFilter", trafficFilter });
   }, []);
@@ -553,6 +591,8 @@ export function ExplorerUiProvider({ children }) {
       showNavaidMarkers,
       showAirspaces,
       showCandidateWatchingSpots,
+      userLocationEnabled,
+      userLocationAudioEnabled,
       mapSettings,
       savedMapSettings,
       mapSettingsSaveStatus,
@@ -580,6 +620,7 @@ export function ExplorerUiProvider({ children }) {
       toggleAirspaces,
       toggleCandidateWatchingSpots,
       applyMapMode,
+      setUserLocationPreferences,
       saveMapSettings,
       restoreMapSettings,
       selectAircraft,
@@ -605,6 +646,8 @@ export function ExplorerUiProvider({ children }) {
       showNavaidMarkers,
       showAirspaces,
       showCandidateWatchingSpots,
+      userLocationEnabled,
+      userLocationAudioEnabled,
       mapSettings,
       savedMapSettings,
       mapSettingsSaveStatus,
@@ -632,6 +675,7 @@ export function ExplorerUiProvider({ children }) {
       toggleAirspaces,
       toggleCandidateWatchingSpots,
       applyMapMode,
+      setUserLocationPreferences,
       saveMapSettings,
       restoreMapSettings,
       selectAircraft,

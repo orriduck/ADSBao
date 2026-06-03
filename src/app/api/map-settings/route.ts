@@ -4,10 +4,6 @@ import {
   persistMapSettingsForUser,
   resolveMapSettingsForUser,
 } from "@/features/airport/map-settings/userMapSettings.server";
-import {
-  normalizeMapSettings,
-} from "@/features/airport/map-settings/mapSettingsModel";
-
 export const dynamic = "force-dynamic";
 
 export async function GET() {
@@ -39,7 +35,7 @@ export async function PUT(request: Request) {
   const body = await request.json().catch(() => ({}));
   const settings = await persistMapSettingsForUser({
     user,
-    settings: normalizeMapSettings(body?.settings),
+    settings: body?.settings,
   });
 
   return Response.json(
