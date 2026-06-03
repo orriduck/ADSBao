@@ -39,14 +39,38 @@ import {
   );
   assert.equal(
     AIRSPACE_TILE_CACHE_HEADERS["Cache-Control"],
+    "public, max-age=0, s-maxage=1800, stale-while-revalidate=3600",
+  );
+  assert.equal(
+    AIRSPACE_TILE_CACHE_HEADERS["CDN-Cache-Control"],
+    "public, s-maxage=1800, stale-while-revalidate=3600",
+  );
+  assert.equal(
+    AIRSPACE_TILE_CACHE_HEADERS["Vercel-CDN-Cache-Control"],
     "public, s-maxage=1800, stale-while-revalidate=3600",
   );
   assert.equal(
     NAVAID_TILE_CACHE_HEADERS["Cache-Control"],
+    "public, max-age=0, s-maxage=2592000, stale-while-revalidate=604800",
+  );
+  assert.equal(
+    NAVAID_TILE_CACHE_HEADERS["CDN-Cache-Control"],
+    "public, s-maxage=2592000, stale-while-revalidate=604800",
+  );
+  assert.equal(
+    NAVAID_TILE_CACHE_HEADERS["Vercel-CDN-Cache-Control"],
     "public, s-maxage=2592000, stale-while-revalidate=604800",
   );
   assert.equal(
     WAYPOINT_TILE_CACHE_HEADERS["Cache-Control"],
+    "public, max-age=0, s-maxage=604800, stale-while-revalidate=86400",
+  );
+  assert.equal(
+    WAYPOINT_TILE_CACHE_HEADERS["CDN-Cache-Control"],
+    "public, s-maxage=604800, stale-while-revalidate=86400",
+  );
+  assert.equal(
+    WAYPOINT_TILE_CACHE_HEADERS["Vercel-CDN-Cache-Control"],
     "public, s-maxage=604800, stale-while-revalidate=86400",
   );
 }

@@ -10,15 +10,21 @@ const MAX_CONTEXT_TILE_Z = 18;
 const WEB_MERCATOR_MAX_LAT = 85.05112878;
 
 export const AIRSPACE_TILE_CACHE_HEADERS = Object.freeze({
-  "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600",
+  "Cache-Control": "public, max-age=0, s-maxage=1800, stale-while-revalidate=3600",
+  "CDN-Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600",
+  "Vercel-CDN-Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600",
 });
 
 export const NAVAID_TILE_CACHE_HEADERS = Object.freeze({
-  "Cache-Control": "public, s-maxage=2592000, stale-while-revalidate=604800",
+  "Cache-Control": "public, max-age=0, s-maxage=2592000, stale-while-revalidate=604800",
+  "CDN-Cache-Control": "public, s-maxage=2592000, stale-while-revalidate=604800",
+  "Vercel-CDN-Cache-Control": "public, s-maxage=2592000, stale-while-revalidate=604800",
 });
 
 export const WAYPOINT_TILE_CACHE_HEADERS = Object.freeze({
-  "Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+  "Cache-Control": "public, max-age=0, s-maxage=604800, stale-while-revalidate=86400",
+  "CDN-Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
+  "Vercel-CDN-Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
 });
 
 const numberOrNull = (value: unknown) => {
