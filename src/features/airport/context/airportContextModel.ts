@@ -9,7 +9,7 @@ const DEPARTURE_VALUES = new Set(["DEPARTURE", "departure"]);
 
 type AirportContextRecord = Record<string, any>;
 
-export function resolveRangeBand(distanceNm: unknown) {
+function resolveRangeBand(distanceNm: unknown) {
   const distance = toNullableFiniteNumber(distanceNm);
   if (distance == null) return "outside-airport-context";
   if (distance <= 2.2) return "airport-core";
@@ -18,7 +18,7 @@ export function resolveRangeBand(distanceNm: unknown) {
   return "outside-airport-context";
 }
 
-export function resolveAltitudeBand({
+function resolveAltitudeBand({
   altitudeFtMsl,
   onGround = false,
 }: {
@@ -35,7 +35,7 @@ export function resolveAltitudeBand({
   return "class-a";
 }
 
-export function resolveVisibilityRole({
+function resolveVisibilityRole({
   rangeBand,
   altitudeBand,
   movement = "unknown",
@@ -69,7 +69,7 @@ export function resolveVisibilityRole({
   return "dimmed";
 }
 
-export function resolveAirportContextGroup({
+function resolveAirportContextGroup({
   rangeBand,
   altitudeBand,
   movement = "unknown",
@@ -94,7 +94,7 @@ export function resolveAirportContextGroup({
   return "Unknown";
 }
 
-export function matchesAirspaceVolume(
+function matchesAirspaceVolume(
   aircraft: AirportContextRecord = {},
   volume: AirportContextRecord | null = null,
 ) {

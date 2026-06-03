@@ -4,7 +4,6 @@ import {
   beginAircraftMotionState,
   calculateAircraftVisualPosition,
   parseAdsbPositionTime,
-  projectAircraftPosition,
 } from './aircraftMotion'
 
 const nearlyEqual = (actual, expected, tolerance = 1e-8) => {
@@ -32,7 +31,10 @@ const nearlyEqual = (actual, expected, tolerance = 1e-8) => {
 
   const earlyPosition = calculateAircraftVisualPosition(ac, 1_500)
   const laterPosition = calculateAircraftVisualPosition(ac, 3_000)
-  const fullSpeedPosition = projectAircraftPosition(ac, 2_250)
+  const fullSpeedPosition = calculateAircraftVisualPosition({
+    ...ac,
+    velocity: 100,
+  }, 3_000)
 
   assert.ok(laterPosition.lat > earlyPosition.lat, 'slow aircraft should keep moving while waiting for the next poll')
   assert.ok(laterPosition.lat < fullSpeedPosition.lat, 'slow aircraft should use reduced extrapolation after the short confidence window')
@@ -40,11 +42,12 @@ const nearlyEqual = (actual, expected, tolerance = 1e-8) => {
 }
 
 {
-  const staleVisualPosition = projectAircraftPosition({
+  const staleVisualPosition = calculateAircraftVisualPosition({
     lat: 33,
     lon: -118,
     velocity: 80,
     track: 0,
+    positionTime: 0,
   }, 3_000)
 
   const newSnapshot = {

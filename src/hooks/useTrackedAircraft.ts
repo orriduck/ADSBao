@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { aircraftCallsignClient } from "../features/aviation/aviationData";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation";
+import { createAircraftCallsignClient } from "../features/aircraft/callsign/aircraftCallsignClient";
 import {
   normalizeAdsbAircraft,
   resolveLastSuccessfulPositionDate,
@@ -27,6 +27,8 @@ const waitUntil = (timestamp) => {
     globalThis.setTimeout(resolve, delay);
   });
 };
+
+const aircraftCallsignClient = createAircraftCallsignClient();
 
 // Polls the upstream ADS-B feed for the focal callsign so the flight
 // tracking page knows where the aircraft is right now and where to center

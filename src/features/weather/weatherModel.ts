@@ -14,19 +14,6 @@ export function shouldShowCeilingSlide(metar) {
   return ceilingFt != null || hasVisibility;
 }
 
-export function formatObsTime(value) {
-  if (!value) return "latest";
-  const date = new Date(
-    Number(value) < 10_000_000_000 ? Number(value) * 1000 : value,
-  );
-  if (Number.isNaN(date.getTime())) return "latest";
-  return date.toLocaleTimeString([], {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 // Token row above the raw METAR string: pulls station / issued / wind /
 // visibility tokens out so the row reads at-a-glance. Labels are i18n
 // keys; the renderer maps them through t().

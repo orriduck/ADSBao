@@ -76,7 +76,7 @@ const airportSearchText = (airport: AirportSearchAirport) =>
 const airportKey = (airport: AirportSearchAirport) =>
   normalizeAirportQuery(airport?.icao || airport?.code || airport?.name);
 
-export const NEARBY_DISCOVERY_ITEM_ID = "nearby-airports-prompt";
+const NEARBY_DISCOVERY_ITEM_ID = "nearby-airports-prompt";
 
 const airportDisplayItem = (airport: AirportSearchAirport) => ({
   type: "airport",

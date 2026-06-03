@@ -1,10 +1,10 @@
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
 import { USER_LOCATION_AIRCRAFT_ALERT_RANGE_METERS } from "./userLocationAudioModel";
 
-export const USER_LOCATION_MAX_DISTANCE_NM = 80;
+const USER_LOCATION_MAX_DISTANCE_NM = 80;
 export const USER_LOCATION_PULSE_RADIUS_METERS =
   USER_LOCATION_AIRCRAFT_ALERT_RANGE_METERS;
-export const USER_LOCATION_MIN_PULSE_DIAMETER_PX = 18;
+const USER_LOCATION_MIN_PULSE_DIAMETER_PX = 18;
 export const USER_LOCATION_AUDIO_MODES = {
   OFF: "off",
   LOCATION: "location",
@@ -32,29 +32,10 @@ type ResolveUserLocationWatchUpdateOptions =
     currentMode?: UserLocationAudioMode;
   };
 
-type ResolveNextUserLocationAudioModeOptions = {
-  mode?: unknown;
-  hasLocation?: boolean;
-};
-
 const toFiniteNumber = (value: unknown) => {
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 };
-
-export function resolveNextUserLocationAudioMode({
-  mode,
-  hasLocation = false,
-}: ResolveNextUserLocationAudioModeOptions = {}): UserLocationAudioMode {
-  if (!hasLocation) return USER_LOCATION_AUDIO_MODES.LOCATION;
-  if (mode === USER_LOCATION_AUDIO_MODES.LOCATION) {
-    return USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO;
-  }
-  if (mode === USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO) {
-    return USER_LOCATION_AUDIO_MODES.OFF;
-  }
-  return USER_LOCATION_AUDIO_MODES.LOCATION;
-}
 
 export function resolveUserLocationPulseDiameterPx({
   centerPoint,
@@ -83,7 +64,7 @@ export function resolveUserLocationPulseDiameterPx({
   );
 }
 
-export function resolveUserLocationRequest({
+function resolveUserLocationRequest({
   coords,
   focalLat,
   focalLon,

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { aircraftPhotoClient } from "../../aviation/aviationData";
+import { createAircraftPhotoClient } from "../photos/aircraftPhotoClient";
 
 const EMPTY_STATE = Object.freeze({ key: "", photo: null, status: "idle" });
+const aircraftPhotoClient = createAircraftPhotoClient();
 
 type AircraftPhoto = Record<string, unknown>;
 

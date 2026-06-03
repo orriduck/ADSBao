@@ -9,7 +9,6 @@ const DEFAULT_REMOTE_TRACE_MAX_POINTS = 240;
 const DEFAULT_SOLID_TRACE_MAX_GAP_MS = 90 * 1000;
 const DEFAULT_TRACE_CONNECTOR_MAX_GAP_MS = 10 * 60 * 1000;
 const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
-const TRACE_MAX_GAP_MS = 60 * 60 * 1000;
 const TRACE_MINUTE_BUCKET_MS = 60 * 1000;
 
 type TraceRecord = Record<string, any>;
@@ -204,7 +203,7 @@ export function dedupeTracePointsByMinuteLatest(points = []) {
 //   priority 2 — live polled position (freshest, includes telemetry)
 //   priority 1 — trace_recent (rolling tail, can include corrections)
 //   priority 0 — trace_full (historical baseline)
-export function mergeTracesByPriority({ sources = [] } = {}) {
+function mergeTracesByPriority({ sources = [] } = {}) {
   const buckets = new Map();
   for (const source of sources) {
     if (!source) continue;
@@ -371,86 +370,6 @@ function clipTracePointsBefore(points, cutoffMs) {
   const cutoff = Number(cutoffMs);
   if (!Number.isFinite(cutoff) || !Array.isArray(points)) return points || [];
   return points.filter((point) => Number(point?.timestampMs) >= cutoff);
-}
-
-// Drop the leading portion of a sorted-by-timestamp trace at the last
-// adjacent-pair discontinuity. Two kinds of discontinuity count:
-//
-//   1. A temporal gap larger than `maxGapMs` (default 60 minutes). On
-//      a real continuous flight, ADS-B coverage drops rarely exceed
-//      30 min, while a ground-turnaround between flights on the same
-//      ICAO24 hex always exceeds an hour. adsb.lol's trace_full
-//      endpoint returns ~24h of data for a hex — for a multi-leg
-//      aircraft that includes yesterday's flights with a long
-//      stationary stretch between legs. Catmull-Rom can't see the
-//      gap; without this trim it interpolates a single smooth segment
-//      across hours of dead time, producing the long-straight-line
-//      artifact across the map.
-//
-//   2. An implied ground speed beyond `maxGroundSpeedKnots` (default
-//      1500 kt). Faster than Mach-2; treated as data error
-//      (cross-flight contamination with similar timestamps but a
-//      different location, sensor glitch).
-//
-// Walks from the tail backwards because the trailing live segment is
-// what we want to preserve. Returns the slice from the first kept
-// index onward.
-export function trimImplausibleTraceSegments(
-  points = [],
-  {
-    maxGroundSpeedKnots = TRACE_MAX_GROUND_SPEED_KNOTS,
-    maxGapMs = TRACE_MAX_GAP_MS,
-  } = {},
-) {
-  if (!Array.isArray(points) || points.length < 2) return points;
-  let firstKeptIndex = 0;
-  for (let i = points.length - 1; i > 0; i--) {
-    const prev = points[i - 1];
-    const curr = points[i];
-    const gapMs = Number(curr?.timestampMs) - Number(prev?.timestampMs);
-    if (!Number.isFinite(gapMs) || gapMs <= 0) continue;
-    if (gapMs > maxGapMs) {
-      firstKeptIndex = i;
-      break;
-    }
-    const distanceNm = getDistanceNm(prev.lat, prev.lon, curr.lat, curr.lon);
-    if (!Number.isFinite(distanceNm)) continue;
-    // distance / time → knots. distanceNm is nautical miles, gapMs is ms.
-    const groundSpeedKnots = getTraceGroundSpeedKnots(prev, curr, gapMs);
-    if (groundSpeedKnots > maxGroundSpeedKnots) {
-      firstKeptIndex = i;
-      break;
-    }
-  }
-  return firstKeptIndex === 0 ? points : points.slice(firstKeptIndex);
-}
-
-export function mergeTraceHistory({
-  recentTrace = [],
-  fallbackHistory = [],
-} = {}) {
-  const normalizedFallback = fallbackHistory
-    .map((point) => {
-      if (!isFiniteNumber(point?.lat) || !isFiniteNumber(point?.lon)) return null;
-      const timestampMs = Number(point?.timestampMs ?? point?.time ?? 0);
-      if (!Number.isFinite(timestampMs)) return null;
-      return {
-        timestampMs,
-        lat: Number(point.lat),
-        lon: Number(point.lon),
-        altitude: isFiniteNumber(point?.altitude) ? Number(point.altitude) : null,
-        onGround: Boolean(point?.onGround),
-        velocity: isFiniteNumber(point?.velocity) ? Number(point.velocity) : null,
-        track: isFiniteNumber(point?.track) ? Number(point.track) : null,
-        baroRate: isFiniteNumber(point?.baroRate) ? Number(point.baroRate) : null,
-      };
-    })
-    .filter(Boolean);
-
-  const merged = [...recentTrace, ...normalizedFallback].sort(
-    (a, b) => a.timestampMs - b.timestampMs,
-  );
-  return dedupeTracePointsByMinuteLatest(merged);
 }
 
 export function downsampleTracePoints(

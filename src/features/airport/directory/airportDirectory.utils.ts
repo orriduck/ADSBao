@@ -27,7 +27,7 @@ export const normalizeAirportIdent = (value: unknown) =>
 
 export const isValidAirportIdent = (ident: string) => /^[A-Z0-9]{2,7}$/.test(ident);
 
-export const normalizeOptionalAirportInt = (value: unknown, { max }: Record<string, any>) => {
+const normalizeOptionalAirportInt = (value: unknown, { max }: Record<string, any>) => {
   if (value == null || value === "") return undefined;
   const number = Number(value);
   if (!Number.isFinite(number)) return undefined;

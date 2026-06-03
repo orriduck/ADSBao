@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 
 import {
-  TRACKED_FLIGHT_METADATA_TTL_MS,
   mergeTrackedFlightMetadata,
   readTrackedFlightMetadata,
   writeTrackedFlightMetadata,
 } from "./trackedFlightMetadataStorage";
+
+const TRACKED_FLIGHT_METADATA_TTL_MS = 6 * 60 * 60 * 1000;
 
 function installLocalStorage() {
   const store = new Map();

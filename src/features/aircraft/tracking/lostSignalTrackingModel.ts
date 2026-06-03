@@ -1,4 +1,4 @@
-export const LOST_SIGNAL_MISS_THRESHOLD = 20;
+const LOST_SIGNAL_MISS_THRESHOLD = 20;
 
 const ACTIVE_FLIGHTAWARE_STATUS =
   /\b(enroute|airborne|in[-\s]?flight|departed|active)\b/i;
@@ -30,7 +30,7 @@ export function hasTerminalFlightAwareFallback(fallback) {
   return TERMINAL_FLIGHTAWARE_STATUS.test(status);
 }
 
-export function getLostSignalTraceRefreshKey({
+function getLostSignalTraceRefreshKey({
   lostSignal = false,
   pollVersion = 0,
 } = {}) {
@@ -61,7 +61,7 @@ export function getTrackedFlightTraceRefreshKey({
   return getLostSignalTraceRefreshKey({ lostSignal, pollVersion });
 }
 
-export function getFlightAwareTraceRefreshKey({
+function getFlightAwareTraceRefreshKey({
   trackingState = null,
   pollVersion = 0,
   pollMs = 3_000,

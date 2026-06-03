@@ -1,13 +1,10 @@
 import assert from "node:assert/strict";
 
 import {
-  clearAirlineLogoCacheForTest,
   getFlightRouteAirlineIconUrl,
   isAirlineLogoUnavailable,
   markAirlineLogoUnavailable,
 } from "./airlineLogoModel";
-
-clearAirlineLogoCacheForTest();
 
 assert.equal(
   getFlightRouteAirlineIconUrl({
@@ -35,11 +32,10 @@ assert.equal(
   "",
 );
 
-clearAirlineLogoCacheForTest();
-assert.equal(isAirlineLogoUnavailable("/api/proxy/airlines/DAL"), false);
+assert.equal(isAirlineLogoUnavailable("/api/proxy/airlines/BAW"), false);
 assert.equal(
   getFlightRouteAirlineIconUrl({
-    airlineIcao: "DAL",
+    airlineIcao: "BAW",
   }),
-  "/api/proxy/airlines/DAL",
+  "/api/proxy/airlines/BAW",
 );

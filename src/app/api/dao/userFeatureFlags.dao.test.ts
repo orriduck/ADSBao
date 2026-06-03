@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 
-import {
-  USER_FEATURE_FLAGS_TABLE,
-  createUserFeatureFlagsRepository,
-  createUserFeatureFlagsRepositoryFromEnv,
-} from "./userFeatureFlags.dao";
+import { createUserFeatureFlagsRepositoryFromEnv } from "./userFeatureFlags.dao";
+
+const USER_FEATURE_FLAGS_TABLE = "user_feature_flags";
 
 function createFakeSupabaseClient({
   readData = null,
@@ -71,10 +69,12 @@ function createFakeSupabaseClient({
       updated_at: "2026-05-26T12:00:00.000Z",
     },
   });
-  const repository = createUserFeatureFlagsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
-    environment: "preview",
+  const repository = createUserFeatureFlagsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+      VERCEL_ENV: "preview",
+    },
     createClientImpl,
   });
 
@@ -102,10 +102,12 @@ function createFakeSupabaseClient({
 
 {
   const { calls, createClientImpl } = createFakeSupabaseClient();
-  const repository = createUserFeatureFlagsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
-    environment: "preview",
+  const repository = createUserFeatureFlagsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+      VERCEL_ENV: "preview",
+    },
     createClientImpl,
   });
 
@@ -129,10 +131,12 @@ function createFakeSupabaseClient({
       updated_at: "2026-05-26T12:00:00.000Z",
     },
   });
-  const repository = createUserFeatureFlagsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
-    environment: "preview",
+  const repository = createUserFeatureFlagsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+      VERCEL_ENV: "preview",
+    },
     createClientImpl,
   });
 
@@ -156,9 +160,11 @@ function createFakeSupabaseClient({
 
 {
   const { calls, createClientImpl } = createFakeSupabaseClient();
-  const repository = createUserFeatureFlagsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repository = createUserFeatureFlagsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+    },
     createClientImpl,
   });
 
@@ -170,9 +176,11 @@ function createFakeSupabaseClient({
   const { createClientImpl } = createFakeSupabaseClient({
     readError: { message: "permission denied" },
   });
-  const repository = createUserFeatureFlagsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repository = createUserFeatureFlagsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+    },
     createClientImpl,
   });
 

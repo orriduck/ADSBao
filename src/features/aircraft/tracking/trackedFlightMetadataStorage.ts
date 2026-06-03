@@ -1,6 +1,6 @@
 const STORAGE_KEY = "adsbao:tracked-flight-metadata";
 
-export const TRACKED_FLIGHT_METADATA_TTL_MS = 6 * 60 * 60 * 1000;
+const TRACKED_FLIGHT_METADATA_TTL_MS = 6 * 60 * 60 * 1000;
 
 const isBrowser = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";

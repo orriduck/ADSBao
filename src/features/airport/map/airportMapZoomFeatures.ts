@@ -26,7 +26,7 @@ const AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS: AirportMapZoomFeatures = Object.freeze(
   showCandidateWatchingSpotDetails: false,
 });
 
-export const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures> = Object.freeze({
+const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures> = Object.freeze({
   [ZOOM_APPROACH]: Object.freeze({
     airportGroundTrafficHideRadiusNm: DEFAULT_GROUND_AREA_RADIUS_NM,
     showAirportAreaCount: true,
@@ -56,7 +56,7 @@ export const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFe
   }),
 });
 
-export const airportMapZoomFeaturesFor = (zoom: unknown): AirportMapZoomFeatures =>
+const airportMapZoomFeaturesFor = (zoom: unknown): AirportMapZoomFeatures =>
   AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL[Number(zoom)] ??
   AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS;
 
@@ -68,9 +68,6 @@ export const shouldShowAirportAreaCountForZoom = (zoom: unknown) =>
 
 export const shouldShowNearbyAirportRunwaysForZoom = (zoom: unknown) =>
   airportMapZoomFeaturesFor(zoom).showNearbyAirportRunways;
-
-export const shouldShowRangeRingLabelsForZoom = (zoom: unknown) =>
-  airportMapZoomFeaturesFor(zoom).showRangeRingLabels;
 
 export const shouldShowRunwayEndLabelsForZoom = (zoom: unknown) =>
   airportMapZoomFeaturesFor(zoom).showRunwayEndLabels;

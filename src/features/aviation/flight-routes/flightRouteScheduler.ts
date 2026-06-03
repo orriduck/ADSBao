@@ -1,6 +1,6 @@
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../../../config/aviation";
 import { normalizeCallsign } from "../../../utils/callsign";
-import { flightRouteClient } from "../aviationData";
+import { createFlightRouteClient } from "./flightRouteClient";
 import {
   buildRouteCacheKey,
   buildRoutesByCallsign,
@@ -18,6 +18,8 @@ type FlightRouteSchedulerOptions = {
   schedule?: (callback: () => void, delayMs?: number) => any;
   clearSchedule?: (handle: any) => void;
 };
+
+const flightRouteClient = createFlightRouteClient();
 
 function callsignSetForRouteContext(
   keys: Set<string>,
@@ -37,7 +39,7 @@ function defaultLogger() {
   return console;
 }
 
-export function formatFlightRouteQueueAudit(stats) {
+function formatFlightRouteQueueAudit(stats) {
   return `[audit:flight-route-queue]: done=${stats.done},in_queue=${stats.in_queue},inflight=${stats.inflight},not_do=${stats.not_do}`;
 }
 

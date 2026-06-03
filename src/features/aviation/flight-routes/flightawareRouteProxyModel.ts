@@ -4,7 +4,7 @@ import {
 } from "./flightRouteCallsign";
 import { buildAdsbaoUserAgent } from "../../../config/siteMeta";
 
-export const FLIGHTAWARE_BASE = "https://www.flightaware.com/live/flight";
+const FLIGHTAWARE_BASE = "https://www.flightaware.com/live/flight";
 
 export const FLIGHTAWARE_USER_AGENT =
   buildAdsbaoUserAgent("flightaware/html");
@@ -166,14 +166,14 @@ export function buildFlightAwareCallsignRouteUrl(callsign) {
   return `${FLIGHTAWARE_BASE}/${encodeURIComponent(normalized)}`;
 }
 
-export function buildFlightAwareAirlineLogoUrl(airlineIcao) {
+function buildFlightAwareAirlineLogoUrl(airlineIcao) {
   const normalized = sanitizeAirportCode(airlineIcao, { min: 2, max: 3 });
   return normalized
     ? `https://www.flightaware.com/images/airline_logos/90p/${normalized}.png`
     : "";
 }
 
-export function parseFlightAwareRoutePage(callsign, html) {
+function parseFlightAwareRoutePage(callsign, html) {
   const normalizedCallsign = normalizeRouteCallsign(callsign);
   if (!normalizedCallsign) return null;
 

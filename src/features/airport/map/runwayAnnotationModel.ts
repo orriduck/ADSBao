@@ -5,7 +5,7 @@ import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const STATUTE_MILE_METERS = 1_609.344;
 
-export const shouldShowRunwayEndLabels = shouldShowRunwayEndLabelsForZoom;
+const shouldShowRunwayEndLabels = shouldShowRunwayEndLabelsForZoom;
 
 type RunwayAnnotationRecord = Record<string, any>;
 
@@ -190,7 +190,7 @@ export function buildRunwayEndLabels(runwayMap: RunwayAnnotationRecord, { zoom }
   );
 }
 
-export function buildRunwayApproachBeamCollection(
+function buildRunwayApproachBeamCollection(
   runwayMap: RunwayAnnotationRecord,
   { zoom, distanceScale = 1 }: RunwayAnnotationRecord = {},
 ) {
@@ -250,7 +250,7 @@ const buildRunwayEndApproachLineFeature = (runway: RunwayAnnotationRecord, end: 
   };
 };
 
-export function buildRunwayApproachLineCollection(
+function buildRunwayApproachLineCollection(
   runwayMap: RunwayAnnotationRecord,
   { zoom, distanceScale = 1 }: RunwayAnnotationRecord = {},
 ) {

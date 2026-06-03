@@ -95,26 +95,13 @@ async function resolveInitialTheme() {
   return "dark";
 }
 
-// Same cookie pattern as theme — usePrimaryColor writes the resolved
-// primary on every change, and SSR reads it here so the html tag is
-// rendered with the right data-primary on cold load (no flash of the
-// default yellow palette before the client hook runs).
-async function resolveInitialPrimary() {
-  const store = await cookies();
-  const raw = store.get("primary")?.value;
-  if (raw === "yellow" || raw === "teal") return raw;
-  return "yellow";
-}
-
 export default async function RootLayout({ children }) {
   const locale = await getLocale();
   const initialTheme = await resolveInitialTheme();
-  const initialPrimary = await resolveInitialPrimary();
   return (
     <html
       lang={locale}
       data-theme={initialTheme}
-      data-primary={initialPrimary}
       suppressHydrationWarning
     >
       <head>

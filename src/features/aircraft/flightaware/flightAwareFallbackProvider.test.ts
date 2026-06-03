@@ -1,12 +1,6 @@
 import assert from "node:assert/strict";
 
-import {
-  FLIGHTAWARE_FALLBACK_CACHE_TTL_MS,
-  buildFlightAwareFallbackUrl,
-  clearFlightAwareFallbackCache,
-  getFlightAwareFallbackByCallsign,
-  parseFlightAwareFallbackPage,
-} from "./flightAwareFallbackProvider";
+import { getFlightAwareFallbackByCallsign } from "./flightAwareFallbackProvider";
 
 const fetchedAt = "2026-05-25T03:00:00.000Z";
 
@@ -94,20 +88,27 @@ const arrivedHtml = `
   </script>
 `;
 
-assert.equal(
-  buildFlightAwareFallbackUrl(" aal 100 "),
-  "https://www.flightaware.com/live/flight/AAL100",
-);
-assert.equal(buildFlightAwareFallbackUrl("bad-call"), "");
-assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
-
-{
-  const result = parseFlightAwareFallbackPage({
-    callsign: "AAL100",
-    html: activeHtml,
-    fetchedAt,
+const getFallbackFromHtml = async (callsign, html) =>
+  getFlightAwareFallbackByCallsign(callsign, {
+    env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
+    fetchImpl: async () => new Response(html, { status: 200 }),
+    now: () => Date.parse(fetchedAt),
+    cacheStore: new Map(),
   });
 
+{
+  let requestedUrl = "";
+  const result = await getFlightAwareFallbackByCallsign(" aal 100 ", {
+    env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
+    fetchImpl: async (url) => {
+      requestedUrl = String(url);
+      return new Response(activeHtml, { status: 200 });
+    },
+    now: () => Date.parse(fetchedAt),
+    cacheStore: new Map(),
+  });
+
+  assert.equal(requestedUrl, "https://www.flightaware.com/live/flight/AAL100");
   assert.equal(result.ok, true);
   assert.equal(result.hasPosition, true);
   assert.equal(result.position.lat, 47.3667);
@@ -128,11 +129,7 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 }
 
 {
-  const result = parseFlightAwareFallbackPage({
-    callsign: "BAW212",
-    html: metadataOnlyHtml,
-    fetchedAt,
-  });
+  const result = await getFallbackFromHtml("BAW212", metadataOnlyHtml);
 
   assert.equal(result.ok, true);
   assert.equal(result.hasPosition, false);
@@ -145,11 +142,7 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 }
 
 {
-  const result = parseFlightAwareFallbackPage({
-    callsign: "BAW242",
-    html: arrivedHtml,
-    fetchedAt,
-  });
+  const result = await getFallbackFromHtml("BAW242", arrivedHtml);
 
   assert.equal(result.ok, true);
   assert.equal(result.hasPosition, true);
@@ -162,18 +155,20 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 }
 
 {
-  const result = parseFlightAwareFallbackPage({
-    callsign: "AAL100",
-    html: "<html>not-json</html>",
-    fetchedAt,
-  });
+  const result = await getFallbackFromHtml("AAL100", "<html>not-json</html>");
   assert.equal(result.ok, false);
   assert.equal(result.errorType, "parse_failed");
 }
 
 {
-  clearFlightAwareFallbackCache();
+  const result = await getFallbackFromHtml("bad-call", activeHtml);
+  assert.equal(result.ok, false);
+  assert.equal(result.errorType, "invalid_callsign");
+}
+
+{
   let fetchCalls = 0;
+  const cacheStore = new Map();
   const fetchImpl = async () => {
     fetchCalls += 1;
     return new Response(activeHtml, { status: 200 });
@@ -183,21 +178,25 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
     env,
     fetchImpl,
     now: () => Date.parse(fetchedAt),
+    cacheStore,
   });
   const second = await getFlightAwareFallbackByCallsign("AAL100", {
     env,
     fetchImpl,
     now: () => Date.parse(fetchedAt) + 30_000,
+    cacheStore,
   });
   const third = await getFlightAwareFallbackByCallsign("AAL100", {
     env,
     fetchImpl,
     now: () => Date.parse(fetchedAt) + 59_000,
+    cacheStore,
   });
   const fourth = await getFlightAwareFallbackByCallsign("AAL100", {
     env,
     fetchImpl,
     now: () => Date.parse(fetchedAt) + 61_000,
+    cacheStore,
   });
 
   assert.equal(fetchCalls, 2);
@@ -208,7 +207,6 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 }
 
 {
-  clearFlightAwareFallbackCache();
   let fetchCalls = 0;
   const enabledByDefault = await getFlightAwareFallbackByCallsign("AAL100", {
     env: {},
@@ -217,6 +215,7 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
       return new Response(activeHtml, { status: 200 });
     },
     now: () => Date.parse(fetchedAt),
+    cacheStore: new Map(),
   });
 
   assert.equal(enabledByDefault.ok, true);
@@ -225,7 +224,6 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 }
 
 {
-  clearFlightAwareFallbackCache();
   let fetchCalls = 0;
   const disabled = await getFlightAwareFallbackByCallsign("AAL100", {
     env: { FLIGHTAWARE_FALLBACK_ENABLED: "false" },
@@ -234,6 +232,7 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
       return new Response(activeHtml, { status: 200 });
     },
     now: () => Date.parse(fetchedAt),
+    cacheStore: new Map(),
   });
 
   assert.equal(disabled.ok, false);
@@ -242,13 +241,13 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 }
 
 {
-  clearFlightAwareFallbackCache();
   const failed = await getFlightAwareFallbackByCallsign("AAL100", {
     env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
     fetchImpl: async () => {
       throw new DOMException("signal timed out", "TimeoutError");
     },
     now: () => Date.parse(fetchedAt),
+    cacheStore: new Map(),
   });
 
   assert.equal(failed.ok, false);
@@ -256,13 +255,13 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 }
 
 {
-  clearFlightAwareFallbackCache();
   const failed = await getFlightAwareFallbackByCallsign("AAL100", {
     env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
     fetchImpl: async () => {
       throw new Error("socket closed");
     },
     now: () => Date.parse(fetchedAt),
+    cacheStore: new Map(),
   });
 
   assert.equal(failed.ok, false);
@@ -270,8 +269,8 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
 }
 
 {
-  clearFlightAwareFallbackCache();
   let fetchCalls = 0;
+  const cacheStore = new Map();
   const first = await getFlightAwareFallbackByCallsign("AAL100", {
     env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
     fetchImpl: async () => {
@@ -279,6 +278,7 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
       return new Response("payment required", { status: 402 });
     },
     now: () => Date.parse(fetchedAt),
+    cacheStore,
   });
   const second = await getFlightAwareFallbackByCallsign("AAL100", {
     env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
@@ -287,6 +287,7 @@ assert.equal(FLIGHTAWARE_FALLBACK_CACHE_TTL_MS, 60_000);
       return new Response("payment required", { status: 402 });
     },
     now: () => Date.parse(fetchedAt) + 30_000,
+    cacheStore,
   });
 
   assert.equal(first.ok, false);

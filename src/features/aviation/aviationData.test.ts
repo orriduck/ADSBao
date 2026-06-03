@@ -1,16 +1,13 @@
 import assert from "node:assert/strict";
 
-import {
-  createAircraftPositionClient,
-  createAircraftTraceClient,
-  createFlightRouteClient,
-  createLocalWeatherClient,
-  createMetarClient,
-  createRateLimiter,
-  DEFAULT_AIRCRAFT_POLL_MS,
-  DEFAULT_AIRCRAFT_RANGE_NM,
-  normalizeFlightRoute,
-} from "./aviationData";
+import { AIRCRAFT_TRAFFIC_CONFIG } from "../../config/aviation";
+import { createAircraftPositionClient } from "../aircraft/positions/aircraftPositionClient";
+import { createAircraftTraceClient } from "../aircraft/trace/aircraftTraceClient";
+import { createLocalWeatherClient } from "../weather/localWeatherClient";
+import { createMetarClient } from "../weather/metar/metarClient";
+import { createFlightRouteClient } from "./flight-routes/flightRouteClient";
+import { normalizeFlightRoute } from "./flight-routes/flightRouteNormalizer";
+import { createRateLimiter } from "./rateLimiter";
 
 const createJsonResponse = (payload, status = 200) => ({
   ok: status >= 200 && status < 300,
@@ -170,7 +167,7 @@ try {
     lon: -71.0096,
   });
 
-  assert.equal(DEFAULT_AIRCRAFT_RANGE_NM, 40);
+  assert.equal(AIRCRAFT_TRAFFIC_CONFIG.rangeNm, 40);
   assert.equal(calls[0], "/api/proxy/aircraft/positions/42.3656/-71.0096/40");
 }
 
@@ -216,7 +213,7 @@ try {
 }
 
 {
-  assert.equal(DEFAULT_AIRCRAFT_POLL_MS, 3_000);
+  assert.equal(AIRCRAFT_TRAFFIC_CONFIG.pollMs, 3_000);
 }
 
 {

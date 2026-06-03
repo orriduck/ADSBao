@@ -82,7 +82,7 @@ export function buildRouteCacheKey(callsign: unknown, routeContext: RouteContext
   return suffix ? `${normalizedCallsign}|${suffix}` : normalizedCallsign;
 }
 
-export function getFreshRouteCacheEntry(
+function getFreshRouteCacheEntry(
   cache: Map<string, RouteCacheEntry>,
   callsign: unknown,
   now = Date.now(),
@@ -117,7 +117,7 @@ export function writeRouteCacheEntry(
   }
 }
 
-export function getLookupCallsigns(aircraft: AircraftRouteCandidate[]) {
+function getLookupCallsigns(aircraft: AircraftRouteCandidate[]) {
   return [
     ...new Set(
       (aircraft || [])
@@ -145,7 +145,7 @@ function routeCode(
   return from && to ? `${from}-${to}` : "";
 }
 
-export function buildRouteFromAircraftMetadata(aircraft: AircraftRouteCandidate = {}) {
+function buildRouteFromAircraftMetadata(aircraft: AircraftRouteCandidate = {}) {
   const callsign = normalizeCallsign(aircraft?.callsign);
   const origin = airportFromMetadataCode(aircraft?.origin);
   const destination = airportFromMetadataCode(aircraft?.destination);
@@ -191,7 +191,7 @@ const haversineNm = (lat1: number, lon1: number, lat2: number, lon2: number) => 
 // fetching the far-side traffic first makes more route labels appear quickly
 // where the user's eye is actually looking. Falls back to source order when
 // the focal coords or aircraft coords are missing.
-export function rankCandidatesByDistance(
+function rankCandidatesByDistance(
   aircraft: AircraftRouteCandidate[],
   routeContext: RouteContext = {},
 ) {
@@ -230,7 +230,7 @@ export function rankCandidatesByDistance(
     .map(([callsign]) => callsign);
 }
 
-export function shouldSuppressRouteLookup(aircraft: AircraftRouteCandidate = {}) {
+function shouldSuppressRouteLookup(aircraft: AircraftRouteCandidate = {}) {
   return ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES.has(
     String(aircraft?.trackingState?.status || "").trim().toLowerCase(),
   );

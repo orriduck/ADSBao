@@ -18,7 +18,3 @@ export function markAirlineLogoUnavailable(src) {
 export function isAirlineLogoUnavailable(src) {
   return unavailableAirlineLogoUrls.has(String(src || "").trim());
 }
-
-export function clearAirlineLogoCacheForTest() {
-  unavailableAirlineLogoUrls.clear();
-}

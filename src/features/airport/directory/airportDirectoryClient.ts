@@ -44,7 +44,7 @@ const requestJson = async (fetchImpl: any, url: string) => {
   return response.json();
 };
 
-export const createAirportDirectoryClient = ({
+const createAirportDirectoryClient = ({
   fetchImpl = defaultFetch(),
   baseUrl = "",
 }: Record<string, any> = {}) => {

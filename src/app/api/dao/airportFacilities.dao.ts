@@ -2,8 +2,8 @@ import { createServerSupabaseClient } from "./supabaseClient";
 
 type AirportFacilityRecord = Record<string, any>;
 
-export const AIRPORT_FREQUENCIES_TABLE = "airport_frequencies";
-export const NAVAIDS_TABLE = "navaids";
+const AIRPORT_FREQUENCIES_TABLE = "airport_frequencies";
+const NAVAIDS_TABLE = "navaids";
 
 const AIRPORT_FREQUENCY_COLUMNS = [
   "id",
@@ -118,7 +118,7 @@ const boundingBoxForAirport = ({
   };
 };
 
-export function createAirportFacilityRepository({
+function createAirportFacilityRepository({
   supabaseUrl,
   supabaseKey,
   createClientImpl,

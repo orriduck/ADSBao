@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 
 import { ZOOM_AIRPORT, ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
 import {
-  formatCoordinateLabel,
   getMapOverlayTheme,
   getVisibleAircraft,
   resolveAirportMapInitialCenter,
@@ -21,10 +20,6 @@ const aircraft = [
 assert.equal(resolveDocumentTheme({ getAttribute: () => "light" }), "light");
 assert.equal(resolveDocumentTheme({ getAttribute: () => "dark" }), "dark");
 assert.equal(resolveDocumentTheme({ getAttribute: () => null }), "dark");
-
-assert.equal(formatCoordinateLabel(42.3656, "lat"), "42.37N");
-assert.equal(formatCoordinateLabel(-71.0096, "lon"), "71.01W");
-assert.equal(formatCoordinateLabel(0, "lat"), "");
 
 assert.equal(resolveAirportMapFocalCenter({ lat: null, lon: null }), null);
 assert.equal(resolveAirportMapFocalCenter({ lat: 42.3656, lon: null }), null);

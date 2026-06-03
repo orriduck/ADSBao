@@ -3,14 +3,23 @@ import assert from "node:assert/strict";
 import {
   classifyOpenAipAirspaceAccess,
   formatOpenAipAirspaceLimit,
-  OPENAIP_AIRSPACE_TYPE,
 } from "./airspaceAccessModel";
 
 const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
+const AIRSPACE_TYPE = {
+  OTHER: 0,
+  RESTRICTED: 1,
+  DANGER: 2,
+  PROHIBITED: 3,
+  CTR: 4,
+  TRA: 8,
+  TSA: 9,
+  ADIZ: 12,
+};
 
 {
   const tag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.PROHIBITED,
+    type: AIRSPACE_TYPE.PROHIBITED,
     name: "P-56",
   }, { now: ACTIVE_NOW });
 
@@ -23,7 +32,7 @@ const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
 
 {
   const tag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.RESTRICTED,
+    type: AIRSPACE_TYPE.RESTRICTED,
     name: "R-2508",
     byNotam: true,
   }, { now: ACTIVE_NOW });
@@ -35,7 +44,7 @@ const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
 
 {
   const tag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.DANGER,
+    type: AIRSPACE_TYPE.DANGER,
     name: "VTD20 HUA HIN DANGER AREA",
     activeFrom: "2026-05-31T12:00:00.000Z",
     activeUntil: "2026-05-31T18:00:00.000Z",
@@ -48,7 +57,7 @@ const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
 
 {
   const tag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.TRA,
+    type: AIRSPACE_TYPE.TRA,
     name: "TEMPORARY RESERVED AREA",
     activeUntil: "2026-05-31T12:00:00.000Z",
   }, { now: ACTIVE_NOW });
@@ -60,7 +69,7 @@ const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
 
 {
   const tag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.ADIZ,
+    type: AIRSPACE_TYPE.ADIZ,
     name: "COASTAL ADIZ",
   }, { now: ACTIVE_NOW });
 
@@ -71,7 +80,7 @@ const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
 
 {
   const tsaTag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.TSA,
+    type: AIRSPACE_TYPE.TSA,
     name: "MIL TSA",
     onRequest: true,
   }, { now: ACTIVE_NOW });
@@ -81,7 +90,7 @@ const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
 
 {
   const ctrTag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.CTR,
+    type: AIRSPACE_TYPE.CTR,
     icaoClass: 3,
     name: "BANGKOK CTR",
   }, { now: ACTIVE_NOW });
@@ -89,7 +98,7 @@ const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
   assert.equal(ctrTag.requiresStatusCheck, false);
 
   const classBTag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.OTHER,
+    type: AIRSPACE_TYPE.OTHER,
     icaoClass: 1,
     name: "BOSTON CLASS B",
   }, { now: ACTIVE_NOW });
@@ -99,7 +108,7 @@ const ACTIVE_NOW = new Date("2026-05-31T16:00:00.000Z");
 
 {
   const tag = classifyOpenAipAirspaceAccess({
-    type: OPENAIP_AIRSPACE_TYPE.OTHER,
+    type: AIRSPACE_TYPE.OTHER,
     icaoClass: 8,
     name: "UNCLASSIFIED SUA",
   }, { now: ACTIVE_NOW });

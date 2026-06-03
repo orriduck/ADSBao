@@ -76,16 +76,12 @@ const nextTheme = (theme: unknown) => {
 }
 
 export {
-  THEME_KEY,
   THEME_LIGHT,
   THEME_DARK,
   THEME_SYSTEM,
-  THEMES,
   applyThemePreference,
-  getSystemTheme,
   initThemePreference,
   nextTheme,
-  readStoredTheme,
   sanitizeTheme,
   writeStoredTheme,
 }

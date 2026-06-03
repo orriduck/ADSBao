@@ -1,9 +1,9 @@
 // Lookup hits cache aggressively at the edge; misses use a shorter TTL so
 // a freshly-submitted community-feedback record can supplant the empty
 // result without waiting for the long hit-cache to expire.
-export const ROUTE_CACHE_TTL_SECONDS = 60 * 60;
-export const ROUTE_MISS_CACHE_TTL_SECONDS = 5 * 60;
-export const ROUTE_STALE_WHILE_REVALIDATE_SECONDS = 10 * 60;
+const ROUTE_CACHE_TTL_SECONDS = 60 * 60;
+const ROUTE_MISS_CACHE_TTL_SECONDS = 5 * 60;
+const ROUTE_STALE_WHILE_REVALIDATE_SECONDS = 10 * 60;
 
 // We always reply 200 — even on a miss — so the Vercel edge caches the
 // empty body. A 404 would short-circuit the CDN and make every miss hit

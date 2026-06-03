@@ -6,19 +6,21 @@ import {
   buildCustomMapSettings,
   buildMapSettingsFromLayerState,
   buildPresetMapSettings,
-  getMapModePreset,
+  mapSettingsToExplorerLayers,
   mergeMapSettings,
   normalizeMapSettings,
-  resolveMapSettingsLayers,
 } from "./mapSettingsModel";
 
 {
-  const spotting = getMapModePreset(MAP_MODE_IDS.SPOTTING);
-  assert.equal(spotting.id, MAP_MODE_IDS.SPOTTING);
-  assert.equal(spotting.layers[MAP_LAYER_KEYS.MAP_LABELS], true);
-  assert.equal(spotting.layers[MAP_LAYER_KEYS.APPROACH_BEAMS], true);
-  assert.equal(spotting.layers[MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS], true);
-  assert.equal(spotting.layers[MAP_LAYER_KEYS.NAVAID_MARKERS], false);
+  const spotting = buildPresetMapSettings({ modeId: MAP_MODE_IDS.SPOTTING });
+  assert.equal(spotting.selectedMode, MAP_MODE_IDS.SPOTTING);
+  assert.deepEqual(mapSettingsToExplorerLayers(spotting), {
+    showMapLabels: true,
+    showRunwayBeams: true,
+    showNavaidMarkers: false,
+    showAirspaces: false,
+    showCandidateWatchingSpots: true,
+  });
 }
 
 {
@@ -32,14 +34,12 @@ import {
   });
 
   assert.equal(settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
-  assert.deepEqual(resolveMapSettingsLayers(settings), {
-    [MAP_LAYER_KEYS.MAP_LABELS]: true,
-    [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
-    [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
-    [MAP_LAYER_KEYS.AIRSPACES]: true,
-    [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
-    [MAP_LAYER_KEYS.USER_LOCATION]: false,
-    [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
+  assert.deepEqual(mapSettingsToExplorerLayers(settings), {
+    showMapLabels: true,
+    showRunwayBeams: true,
+    showNavaidMarkers: false,
+    showAirspaces: true,
+    showCandidateWatchingSpots: false,
   });
   assert.deepEqual(settings.layerOverrides, {
     [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
@@ -52,7 +52,7 @@ import {
     layerOverrides: {},
     updatedAt: "2026-06-02T15:00:00.000Z",
   });
-  const before = getMapModePreset(MAP_MODE_IDS.RADIO).layers;
+  const before = mapSettingsToExplorerLayers(base);
   const custom = buildCustomMapSettings({
     settings: base,
     layerKey: MAP_LAYER_KEYS.AIRSPACES,
@@ -64,8 +64,7 @@ import {
   assert.equal(custom.baseMode, MAP_MODE_IDS.RADIO);
   assert.equal(custom.layerOverrides[MAP_LAYER_KEYS.AIRSPACES], true);
   assert.equal(custom.updatedAt, "2026-06-02T15:01:00.000Z");
-  assert.notEqual(before, custom.layerOverrides);
-  assert.equal(getMapModePreset(MAP_MODE_IDS.RADIO).layers[MAP_LAYER_KEYS.AIRSPACES], false);
+  assert.equal(before.showAirspaces, false);
 }
 
 {

@@ -1,12 +1,9 @@
 import assert from "node:assert/strict";
 
 import {
-  NAVAID_COUNT_MAX_DETAIL_ZOOM,
   buildNavaidCountMarker,
   shouldUseNavaidCountTiles,
 } from "./aviationContextDisplayModel";
-
-assert.equal(NAVAID_COUNT_MAX_DETAIL_ZOOM, 8);
 
 assert.equal(
   shouldUseNavaidCountTiles({ fullTraceMode: true, zoom: 6 }),

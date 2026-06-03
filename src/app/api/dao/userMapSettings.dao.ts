@@ -10,12 +10,12 @@ import {
   normalizeMapSettings,
 } from "../../../features/airport/map-settings/mapSettingsModel";
 
-export const USER_MAP_SETTINGS_TABLE = "user_map_settings";
+const USER_MAP_SETTINGS_TABLE = "user_map_settings";
 const SELECT_COLUMNS = "email,environment,settings,has_selected_mode,updated_at";
 
 type UserMapSettingsRecord = Record<string, any>;
 
-export function createUserMapSettingsRepository({
+function createUserMapSettingsRepository({
   supabaseUrl,
   supabaseKey,
   environment,

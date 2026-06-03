@@ -5,7 +5,6 @@ import {
   NAVAID_TILE_CACHE_HEADERS,
   WAYPOINT_TILE_CACHE_HEADERS,
   buildContextTileCacheKey,
-  getContextTileNeighbors,
   normalizeContextTileParams,
   tileToBbox,
 } from "./aviationContextTileModel";
@@ -72,14 +71,6 @@ import {
   assert.equal(
     WAYPOINT_TILE_CACHE_HEADERS["Vercel-CDN-Cache-Control"],
     "public, s-maxage=604800, stale-while-revalidate=86400",
-  );
-}
-
-{
-  const neighbors = getContextTileNeighbors({ z: 3, x: 0, y: 4 }, 1);
-  assert.deepEqual(
-    neighbors.map((tile) => `${tile.z}/${tile.x}/${tile.y}`),
-    ["3/0/3", "3/0/4", "3/0/5", "3/1/3", "3/1/4", "3/1/5"],
   );
 }
 

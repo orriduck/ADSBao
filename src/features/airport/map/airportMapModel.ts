@@ -70,13 +70,6 @@ export const resolveAirportMapInitialCenter = ({
   });
 };
 
-export const formatCoordinateLabel = (value: number, axis: string) => {
-  if (!value) return "";
-  const positiveSuffix = axis === "lat" ? "N" : "E";
-  const negativeSuffix = axis === "lat" ? "S" : "W";
-  return `${Math.abs(value).toFixed(2)}${value >= 0 ? positiveSuffix : negativeSuffix}`;
-};
-
 const airportGroundFilters = ({ airportLat, airportLon, nearbyAirports = [] }: AirportGroundFilterOptions) =>
   [
     { lat: airportLat, lon: airportLon },

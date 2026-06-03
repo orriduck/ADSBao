@@ -256,8 +256,7 @@
     }
 }
 
-/* User-selectable primary color. Two tones cover every accent usage in
-   the app:
+/* Primary color tokens. Two tones cover every accent usage in the app:
      --primary-bright : solid fills for tabs, chips, CTAs, focused-row
                         text on ink, brand mark. Saturated, high
                         luminance so it sits on ink/grey backgrounds.
@@ -265,11 +264,9 @@
                         light-mode grey paper (where --primary-bright
                         would be unreadable).
      --primary-ink    : dark companion surface with the same color
-                        temperature as the selected primary.
-     --theme-sidebar-* : sidebar-only surfaces; these follow the selected
-                        primary so teal mode no longer keeps the warm yellow
-                        paper cast, and every page sidebar uses the same
-                        theme-controlled surface.
+                        temperature as the primary.
+     --theme-sidebar-* : sidebar-only surfaces; every page sidebar uses the
+                        same theme-controlled surface.
    The redesigned shell intentionally keeps one neutral accent family:
    near-black in light mode and near-white in dark mode. */
 :root {
@@ -290,16 +287,6 @@
     --primary-ink: var(--theme-primary-ink);
 }
 
-:root[data-primary="teal"] {
-    --theme-primary-bright: oklch(0.18 0.006 100);
-    --theme-primary-deep: oklch(0.18 0.006 100);
-    --theme-primary-ink: oklch(0.985 0.003 100);
-    --theme-sidebar-bg: oklch(0.965 0.004 100);
-    --theme-sidebar-card: oklch(0.99 0.003 100);
-    --theme-sidebar-dark-bg: oklch(0.17 0.004 100);
-    --theme-sidebar-dark-card: oklch(0.215 0.004 100);
-}
-
 :root {
     font-family: var(--theme-font-sans);
     line-height: 1.5;
@@ -316,9 +303,9 @@
     --atc-high: oklch(0.84 0.009 98);
     --atc-accent: oklch(0.18 0.008 98);
     --atc-accent-soft: color-mix(in oklab, var(--atc-accent) 14%, transparent);
-    /* Deep variant of the user-selected primary — tinted text on the
-       light grey paper. Solid primary surfaces use --endf-yellow
-       (aliased to --primary-bright). */
+    /* Deep variant of the primary — tinted text on the light grey paper.
+       Solid primary surfaces use --endf-yellow (aliased to
+       --primary-bright). */
     --atc-orange: var(--primary-bright);
     --atc-orange-soft: color-mix(in oklab, var(--atc-orange) 18%, transparent);
     --atc-mint: oklch(0.6 0.05 150);
@@ -634,16 +621,6 @@
         color-mix(in oklab, var(--atc-accent) 4%, transparent) 58%,
         transparent 85%
     );
-}
-
-:root[data-theme="dark"][data-primary="teal"] {
-    --primary-bright: oklch(0.94 0.004 100);
-    --primary-deep: oklch(0.84 0.004 100);
-    --primary-ink: oklch(0.13 0.004 100);
-    --atc-mint: oklch(0.78 0.01 100);
-    --runway-annotation-line: var(--primary-bright);
-    --runway-approach-line: color-mix(in oklab, var(--primary-bright) 78%, transparent);
-    --runway-approach-beam: var(--primary-bright);
 }
 
 body {
@@ -5045,7 +5022,7 @@ body {
 :root {
     --endf-skew: -18deg;
     /* Bright primary for solid surfaces — CTA bars, parallelogram tabs,
-       chips. Aliases --primary-bright (user-switchable yellow/teal). */
+       chips. Aliases --primary-bright. */
     --endf-yellow: var(--primary-bright);
     --endf-ink: var(--primary-ink);
     /* Micro-accent color — used for `//` prefixes, diamond bullets,

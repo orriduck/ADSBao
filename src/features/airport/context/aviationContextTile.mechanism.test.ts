@@ -1,11 +1,8 @@
 import assert from "node:assert/strict";
 
 import {
-  clearAviationContextTileCache,
   getNavaidCountTile,
 } from "./aviationContextTile.mechanism";
-
-clearAviationContextTileCache();
 
 {
   let requestedBbox = null;

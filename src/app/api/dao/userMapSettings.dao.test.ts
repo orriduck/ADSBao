@@ -1,14 +1,12 @@
 import assert from "node:assert/strict";
 
-import {
-  USER_MAP_SETTINGS_TABLE,
-  createUserMapSettingsRepository,
-  createUserMapSettingsRepositoryFromEnv,
-} from "./userMapSettings.dao";
+import { createUserMapSettingsRepositoryFromEnv } from "./userMapSettings.dao";
 import {
   MAP_LAYER_KEYS,
   MAP_MODE_IDS,
 } from "../../../features/airport/map-settings/mapSettingsModel";
+
+const USER_MAP_SETTINGS_TABLE = "user_map_settings";
 
 function createFakeSupabaseClient({
   readData = null,
@@ -69,10 +67,12 @@ function createFakeSupabaseClient({
       updated_at: "2026-06-02T15:00:00.000Z",
     },
   });
-  const repository = createUserMapSettingsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
-    environment: "preview",
+  const repository = createUserMapSettingsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+      VERCEL_ENV: "preview",
+    },
     createClientImpl,
   });
 
@@ -117,10 +117,12 @@ function createFakeSupabaseClient({
       updated_at: "2026-06-02T15:02:00.000Z",
     },
   });
-  const repository = createUserMapSettingsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
-    environment: "production",
+  const repository = createUserMapSettingsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+      VERCEL_ENV: "production",
+    },
     createClientImpl,
   });
 
@@ -156,9 +158,11 @@ function createFakeSupabaseClient({
   const { createClientImpl } = createFakeSupabaseClient({
     readError: { message: "permission denied" },
   });
-  const repository = createUserMapSettingsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repository = createUserMapSettingsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+    },
     createClientImpl,
   });
 
@@ -206,10 +210,12 @@ function createFakeSupabaseClient({
       updated_at: "2026-06-02T15:07:00.000Z",
     },
   });
-  const repository = createUserMapSettingsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
-    environment: "preview",
+  const repository = createUserMapSettingsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+      VERCEL_ENV: "preview",
+    },
     createClientImpl,
   });
 

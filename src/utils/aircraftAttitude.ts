@@ -8,35 +8,34 @@
 // pitch, both with conservative caps so the marker reads as "tilted into
 // the turn / pitched up while climbing" instead of capsizing.
 //
-// Pure functions are exported for testing. `createAttitudeTracker()`
-// wraps the per-marker state (previous track, previous time, smoothed
-// values) so the call-site stays a one-liner.
+// `createAttitudeTracker()` wraps the per-marker state (previous track,
+// previous time, smoothed values) so the call-site stays a one-liner.
 
 import { toFiniteNumber } from "./math";
 
-export const ROLL_LIMIT_DEG = 35;
-export const PITCH_LIMIT_DEG = 12;
+const ROLL_LIMIT_DEG = 35;
+const PITCH_LIMIT_DEG = 12;
 
 // Turn rate (deg/s) → roll (deg). 4.4 deg of bank per deg/s of turn lands a
 // standard-rate turn (3 deg/s) at ~13 deg bank and saturates at the limit
 // around 8 deg/s. Empirically this reads as "leaning into the turn" without
 // flipping on noisy data.
-export const TURN_RATE_TO_ROLL = 4.4;
+const TURN_RATE_TO_ROLL = 4.4;
 
 // Vertical rate (ft/min) → pitch (deg). 600 fpm → 4 deg up; 1800 fpm → 12
 // deg (capped). Climb/descent envelopes for jet traffic fit comfortably.
-export const VERTICAL_RATE_TO_PITCH = 1 / 150;
+const VERTICAL_RATE_TO_PITCH = 1 / 150;
 
 // Above this gap we treat the previous sample as stale and reset turn-rate
 // estimation. Avoids divide-by-tiny-dt and avoids resurrecting an old turn
 // when a marker re-enters the viewport.
-export const STALE_SAMPLE_GAP_MS = 8_000;
+const STALE_SAMPLE_GAP_MS = 8_000;
 
 // Exponential-smoothing factor applied to roll/pitch between data updates.
 // 0.35 keeps the marker responsive (a fresh sample moves ~35% toward the
 // new target) while filtering single-frame jitter. CSS transitions on the
 // element pick up the rest of the smoothing for the eye.
-export const ATTITUDE_SMOOTHING = 0.35;
+const ATTITUDE_SMOOTHING = 0.35;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -55,7 +54,7 @@ const finiteOrNull = (value) => {
  * @param {number} deg
  * @returns {number}
  */
-export function normalizeAngle(deg) {
+function normalizeAngle(deg) {
   if (!Number.isFinite(deg)) return 0;
   let result = deg % 360;
   if (result > 180) result -= 360;
@@ -71,7 +70,7 @@ export function normalizeAngle(deg) {
  * @param {number} toDeg
  * @returns {number}
  */
-export function shortestHeadingDelta(fromDeg, toDeg) {
+function shortestHeadingDelta(fromDeg, toDeg) {
   const from = finiteOrNull(fromDeg);
   const to = finiteOrNull(toDeg);
   if (from == null || to == null) return 0;
@@ -85,7 +84,7 @@ export function shortestHeadingDelta(fromDeg, toDeg) {
  * @param {{ prevTrack?: number, currTrack?: number, prevTime?: number, currTime?: number }} sample
  * @returns {number}
  */
-export function computeTurnRate({ prevTrack, currTrack, prevTime, currTime }) {
+function computeTurnRate({ prevTrack, currTrack, prevTime, currTime }) {
   const prev = finiteOrNull(prevTrack);
   const curr = finiteOrNull(currTrack);
   const pt = finiteOrNull(prevTime);
@@ -103,7 +102,7 @@ export function computeTurnRate({ prevTrack, currTrack, prevTime, currTime }) {
  * @param {number} turnRateDegPerSec
  * @returns {number}
  */
-export function computeRoll(turnRateDegPerSec) {
+function computeRoll(turnRateDegPerSec) {
   const value = finiteOrNull(turnRateDegPerSec);
   if (value == null) return 0;
   return clamp(value * TURN_RATE_TO_ROLL, -ROLL_LIMIT_DEG, ROLL_LIMIT_DEG);
@@ -116,7 +115,7 @@ export function computeRoll(turnRateDegPerSec) {
  * @param {number | null | undefined} verticalRateFpm
  * @returns {number}
  */
-export function computePitch(verticalRateFpm) {
+function computePitch(verticalRateFpm) {
   const value = finiteOrNull(verticalRateFpm);
   if (value == null) return 0;
   return clamp(
@@ -135,7 +134,7 @@ export function computePitch(verticalRateFpm) {
  * @param {number} alpha 0..1; higher = more responsive
  * @returns {number}
  */
-export function smoothToward(current, target, alpha = ATTITUDE_SMOOTHING) {
+function smoothToward(current, target, alpha = ATTITUDE_SMOOTHING) {
   const c = finiteOrNull(current) ?? 0;
   const t = finiteOrNull(target) ?? 0;
   const a = clamp(finiteOrNull(alpha) ?? ATTITUDE_SMOOTHING, 0, 1);

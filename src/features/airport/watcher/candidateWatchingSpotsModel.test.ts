@@ -4,7 +4,6 @@ import {
   buildCandidateWatchingSpotFile,
   buildCandidateWatchingSpotSearchBBox,
   buildOverpassQuery,
-  buildRunwayExtensionCorridors,
   filterAndScoreCandidateElements,
 } from "./candidateWatchingSpotsModel";
 
@@ -21,17 +20,6 @@ const runwayMap = {
     },
   ],
 };
-
-const corridors = buildRunwayExtensionCorridors(runwayMap, {
-  extensionMeters: 2000,
-  lateralBufferMeters: 220,
-});
-
-assert.equal(corridors.length, 2);
-assert.equal(corridors[0].runwayId, "09/27");
-assert.equal(corridors[0].end, "09");
-assert.ok(corridors[0].bbox.south < 42);
-assert.ok(corridors[0].bbox.west < -71.02);
 
 const query = buildOverpassQuery({
   south: 41.9,

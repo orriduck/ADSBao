@@ -18,9 +18,9 @@ const DEFAULT_LATERAL_BUFFER_METERS = 320;
 const DEFAULT_SEARCH_RADIUS_METERS = DEFAULT_EXTENSION_METERS;
 const DEFAULT_LIMIT = 5;
 
-export const CANDIDATE_WATCHING_SPOT_ATTRIBUTION =
+const CANDIDATE_WATCHING_SPOT_ATTRIBUTION =
   "© OpenStreetMap contributors";
-export const CANDIDATE_WATCHING_SPOT_DISCLAIMER =
+const CANDIDATE_WATCHING_SPOT_DISCLAIMER =
   "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting.";
 
 const QUALITY_BY_TAG: Record<string, number> = {
@@ -68,7 +68,7 @@ const bboxFromPoints = (points: LatLon[]): BBox => ({
   east: Math.max(...points.map((point) => point.lon)),
 });
 
-export const unionBBoxes = (bboxes: BBox[]): BBox | null => {
+const unionBBoxes = (bboxes: BBox[]): BBox | null => {
   if (!bboxes.length) return null;
   return {
     south: Math.min(...bboxes.map((bbox) => bbox.south)),
@@ -199,7 +199,7 @@ const runwayEndCorridor = ({
   };
 };
 
-export function buildRunwayExtensionCorridors(
+function buildRunwayExtensionCorridors(
   runwayMap: CandidateRecord,
   {
     extensionMeters = DEFAULT_EXTENSION_METERS,

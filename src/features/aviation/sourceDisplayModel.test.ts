@@ -1,30 +1,11 @@
 import assert from "node:assert/strict";
 
 import {
-  DATA_SOURCE,
   ROUTE_PROVIDER,
   buildMapSourceStatusDisplay,
-  getDataSourceDisplayName,
   getAircraftPositionSourceBadge,
-  getRouteProviderDisplayName,
   resolveFlightPositionSource,
 } from "./sourceDisplayModel";
-
-assert.equal(getDataSourceDisplayName(DATA_SOURCE.ADSB_LOL), "adsb.lol");
-assert.equal(
-  getDataSourceDisplayName(DATA_SOURCE.AIRPLANES_LIVE),
-  "airplanes.live",
-);
-assert.equal(getDataSourceDisplayName(DATA_SOURCE.ADSB_FI), "adsb.fi");
-assert.equal(getDataSourceDisplayName("custom-feed"), "custom-feed");
-assert.equal(getDataSourceDisplayName(""), "");
-
-assert.equal(
-  getRouteProviderDisplayName(ROUTE_PROVIDER.FLIGHTAWARE),
-  "FlightAware",
-);
-assert.equal(getRouteProviderDisplayName(ROUTE_PROVIDER.ADSBDB), "adsbdb");
-assert.equal(getRouteProviderDisplayName(""), "");
 
 assert.equal(
   getAircraftPositionSourceBadge({ source: "adsb_lol", kind: "observed" }),
@@ -72,7 +53,7 @@ assert.equal(resolveFlightPositionSource({ source: "adsb.lol" }), "adsb");
 
 assert.deepEqual(
   buildMapSourceStatusDisplay({
-    feedSource: DATA_SOURCE.AIRPLANES_LIVE,
+    feedSource: "airplanes.live",
     routeProvider: ROUTE_PROVIDER.FLIGHTAWARE,
   }),
   {
@@ -83,12 +64,23 @@ assert.deepEqual(
 
 assert.deepEqual(
   buildMapSourceStatusDisplay({
-    feedSource: "",
+    feedSource: "custom-feed",
     routeProvider: ROUTE_PROVIDER.ADSBDB,
   }),
   {
-    feedSource: "",
+    feedSource: "CUSTOM-FEED",
     routeProvider: "ADSBDB",
+  },
+);
+
+assert.deepEqual(
+  buildMapSourceStatusDisplay({
+    feedSource: "",
+    routeProvider: "",
+  }),
+  {
+    feedSource: "",
+    routeProvider: "",
   },
 );
 

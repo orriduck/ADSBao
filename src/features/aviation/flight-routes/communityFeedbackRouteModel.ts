@@ -7,9 +7,9 @@ import {
 // a `*` suffix and an "expires in 12h" tooltip. Keeping the constants here
 // — alongside the builder — keeps the route shape and its UI contract in
 // one place so the handler, normalizer, and renderer can't drift.
-export const COMMUNITY_FEEDBACK_TTL_MS = 12 * 60 * 60 * 1000;
-export const COMMUNITY_FEEDBACK_SOURCE = "community-feedback";
-export const COMMUNITY_FEEDBACK_DISPLAY_SUFFIX = "*";
+const COMMUNITY_FEEDBACK_TTL_MS = 12 * 60 * 60 * 1000;
+const COMMUNITY_FEEDBACK_SOURCE = "community-feedback";
+const COMMUNITY_FEEDBACK_DISPLAY_SUFFIX = "*";
 export const COMMUNITY_FEEDBACK_REASONS = Object.freeze({
   missingRoute: "missing_route",
   correction: "correction",
@@ -33,10 +33,6 @@ type CommunityFeedbackRouteOptions = {
   createdAt?: string | null;
   expiresAt?: string | null;
   feedbackReason?: string;
-};
-
-type CommunityFeedbackRouteCandidate = {
-  source?: unknown;
 };
 
 function airportFields(airport: FeedbackAirportInput | null | undefined) {
@@ -100,10 +96,6 @@ export function buildCommunityFeedbackRoute({
     createdAt: createdAt || null,
     expiresAt: expiresAt || null,
   };
-}
-
-export function isCommunityFeedbackRoute(route: CommunityFeedbackRouteCandidate | null | undefined) {
-  return Boolean(route && route.source === COMMUNITY_FEEDBACK_SOURCE);
 }
 
 export function computeFeedbackExpiry(now = Date.now()) {

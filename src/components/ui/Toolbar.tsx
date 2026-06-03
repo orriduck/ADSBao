@@ -232,4 +232,4 @@ export function ToolbarAccountSlot({
   );
 }
 
-export { toolbarVariants, toolbarButtonVariants };
+export { toolbarButtonVariants };

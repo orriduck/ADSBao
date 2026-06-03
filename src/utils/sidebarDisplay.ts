@@ -1,6 +1,6 @@
 import { AIRPORT_EXPLORER_UI_CONFIG } from "../config/aviation";
 
-export const AIRPORT_SIDEBAR_MOBILE_BREAKPOINT =
+const AIRPORT_SIDEBAR_MOBILE_BREAKPOINT =
   AIRPORT_EXPLORER_UI_CONFIG.mobileBreakpointPx;
 
 export const getAirportSidebarMode = (width) =>

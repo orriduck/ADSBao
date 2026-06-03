@@ -25,34 +25,6 @@ import {
   Waypoints,
 } from "lucide-react";
 
-export const MAP_CONTROL_ICONS = {
-  antenna: Antenna,
-  arrowDownToLine: ArrowDownToLine,
-  arrowUpToLine: ArrowUpToLine,
-  crosshair: Crosshair,
-  gauge: Gauge,
-  layers: Layers,
-  listFilter: ListFilter,
-  locateFixed: LocateFixed,
-  mapPinned: MapPinned,
-  monitor: Monitor,
-  moon: Moon,
-  plane: Plane,
-  planeLanding: PlaneLanding,
-  radar: Radar,
-  route: Route,
-  shieldAlert: ShieldAlert,
-  slidersHorizontal: SlidersHorizontal,
-  spotlight: Spotlight,
-  sun: Sun,
-  telescope: Telescope,
-  type: Type,
-  waypoints: Waypoints,
-};
-
-export const getMapControlIcon = (iconKey) =>
-  MAP_CONTROL_ICONS[iconKey] || SlidersHorizontal;
-
 export function MapControlIcon({ iconKey }) {
   switch (iconKey) {
     case "antenna":

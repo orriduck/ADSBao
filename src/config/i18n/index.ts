@@ -5,5 +5,3 @@ export const DICTIONARIES = Object.freeze({
   en,
   "zh-CN": zhCN,
 });
-
-export { en, zhCN };

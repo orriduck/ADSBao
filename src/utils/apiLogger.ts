@@ -34,7 +34,7 @@ const formatProviderChain = (attempts: string) => {
     .join(" → ");
 };
 
-export const formatAuditLogLine = ({
+const formatAuditLogLine = ({
   endpointPath,
   status,
   durationMs,

@@ -3,10 +3,7 @@ import assert from 'node:assert/strict'
 import {
   formatFlightRouteLabel,
   formatFlightRouteMunicipalityLabel,
-  formatFlightNumberLabel,
-  formatLocalFlightRouteLabel,
 } from './flightRouteDisplay'
-import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement'
 
 {
   const label = formatFlightRouteLabel({
@@ -63,19 +60,6 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement'
 
 {
   assert.equal(
-    formatFlightNumberLabel({ callsignIata: 'AA873', callsignIcao: 'AAL873' }),
-    '873',
-  )
-  assert.equal(
-    formatFlightNumberLabel({ callsignIcao: 'DAL1234' }),
-    '1234',
-  )
-  assert.equal(formatFlightNumberLabel(null, 'JBU456'), '456')
-  assert.equal(formatFlightNumberLabel(null, 'N156QX'), '')
-}
-
-{
-  assert.equal(
     formatFlightRouteLabel({
       origin: { iata: 'BOS', icao: 'KBOS' },
       destination: { iata: 'BOS', icao: 'KBOS' },
@@ -87,62 +71,6 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement'
       origin: { iata: 'BOS', icao: 'KBOS', municipality: 'Boston' },
       destination: { iata: 'BOS', icao: 'KBOS', municipality: 'Boston' },
     }),
-    '',
-  )
-}
-
-{
-  const route = {
-    origin: { iata: 'LAX', icao: 'KLAX' },
-    destination: { iata: 'BOS', icao: 'KBOS' },
-  }
-
-  assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, ARRIVAL),
-    'LAX -> BOS',
-  )
-  assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, DEPARTURE),
-    '',
-  )
-}
-
-{
-  const route = {
-    origin: { iata: 'BOS', icao: 'KBOS' },
-    destination: { iata: 'ATL', icao: 'KATL' },
-  }
-
-  assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, DEPARTURE),
-    'BOS -> ATL',
-  )
-  assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, ARRIVAL),
-    '',
-  )
-}
-
-{
-  const route = {
-    origin: { iata: 'PHX', icao: 'KPHX' },
-    destination: { iata: 'MIA', icao: 'KMIA' },
-  }
-
-  assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, UNKNOWN),
-    '',
-  )
-}
-
-{
-  const route = {
-    origin: { iata: 'BOS', icao: 'KBOS' },
-    destination: { iata: 'BOS', icao: 'KBOS' },
-  }
-
-  assert.equal(
-    formatLocalFlightRouteLabel(route, { iata: 'BOS', icao: 'KBOS' }, UNKNOWN),
     '',
   )
 }
@@ -162,13 +90,5 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from './aircraftMovement'
   assert.equal(
     formatFlightRouteMunicipalityLabel(communityRoute),
     'New York -> Boston*',
-  )
-  assert.equal(
-    formatLocalFlightRouteLabel(
-      communityRoute,
-      { iata: 'BOS', icao: 'KBOS' },
-      ARRIVAL,
-    ),
-    'JFK -> BOS*',
   )
 }

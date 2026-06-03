@@ -1,4 +1,4 @@
-export function resolveTraceSampleRate(env: Record<string, string | undefined> = process.env) {
+function resolveTraceSampleRate(env: Record<string, string | undefined> = process.env) {
   return env.NODE_ENV === "development" ? 1 : 0.1;
 }
 

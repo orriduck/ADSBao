@@ -1,5 +1,5 @@
 export const SITE_NAME = "ADSBao";
-export const SITE_URL = "https://adsbao.dev";
+const SITE_URL = "https://adsbao.dev";
 export const SITE_TITLE = "ADSBao - Airport weather and traffic context";
 export const SITE_DESCRIPTION = "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.";
 export const SITE_SOCIAL_IMAGE = {

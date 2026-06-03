@@ -1,4 +1,4 @@
-export const ROUTE_DISPLAY_BATCH_MS = 180;
+const ROUTE_DISPLAY_BATCH_MS = 180;
 
 export function createRouteDisplayBatcher({
   publish,

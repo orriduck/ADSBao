@@ -1,4 +1,4 @@
-export function sanitizeAircraftPhotoCode(value, { max = 16 } = {}) {
+function sanitizeAircraftPhotoCode(value, { max = 16 } = {}) {
   const normalized = String(value || "").trim().toUpperCase();
   return /^[A-Z0-9-]+$/.test(normalized) && normalized.length <= max
     ? normalized

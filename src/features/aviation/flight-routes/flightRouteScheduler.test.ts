@@ -26,6 +26,7 @@ function createManualTimer() {
 {
   const timer = createManualTimer();
   const fetched = [];
+  const auditLogs = [];
   const route = {
     callsign: "DAL123",
     origin: { icao: "KATL" },
@@ -47,7 +48,7 @@ function createManualTimer() {
       hitCacheMs: 60_000,
       missCacheMs: 10_000,
     },
-    logger: { info() {}, warn() {} },
+    logger: { info(message) { auditLogs.push(message); }, warn() {} },
     schedule: timer.schedule,
     clearSchedule: timer.clear,
     now: () => 1_700_000_000_000,
@@ -90,6 +91,11 @@ function createManualTimer() {
     { DAL123: route },
   );
   assert.ok(notificationCount >= 2);
+  assert.ok(
+    auditLogs.includes(
+      "[audit:flight-route-queue]: done=1,in_queue=0,inflight=1,not_do=0",
+    ),
+  );
 
   scheduler.syncAircraft({
     aircraft: [{ callsign: "DAL123", lat: 40.64, lon: -73.78 }],

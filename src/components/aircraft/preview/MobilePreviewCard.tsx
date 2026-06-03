@@ -95,29 +95,6 @@ export function MobilePreviewContent({ children }: React.PropsWithChildren) {
   );
 }
 
-export function MobilePreviewEntityHeader({
-  icon: Icon,
-  label,
-  children,
-}: React.PropsWithChildren<{ icon: LucideIcon; label: string }>) {
-  return (
-    <div className="flex min-w-0 items-center justify-between gap-3">
-      <span
-        aria-label={label}
-        title={label}
-        className="grid size-[18px] flex-none place-items-center text-atc-dim"
-      >
-        <Icon aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-      </span>
-      {children ? (
-        <div className="flex min-w-0 max-w-[62%] items-center justify-end">
-          {children}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 export function MobilePreviewIdentity({
   icon: Icon,
   label,
@@ -226,17 +203,6 @@ export function MobilePreviewMetaChip({
         {children}
       </dd>
     </div>
-  );
-}
-
-export function MobilePreviewHeaderValue({ children }: React.PropsWithChildren) {
-  return (
-    <span
-      translate="no"
-      className="notranslate min-w-0 truncate whitespace-nowrap text-right font-[var(--font-mono)] text-[10px] font-semibold leading-none tracking-normal text-atc-dim"
-    >
-      {children}
-    </span>
   );
 }
 

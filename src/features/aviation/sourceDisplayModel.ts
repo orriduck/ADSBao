@@ -1,4 +1,4 @@
-export const DATA_SOURCE = Object.freeze({
+const DATA_SOURCE = Object.freeze({
   ADSB_LOL: "adsb.lol",
   AIRPLANES_LIVE: "airplanes.live",
   ADSB_FI: "adsb.fi",
@@ -45,13 +45,13 @@ function normalizeKey(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-export function getDataSourceDisplayName(source) {
+function getDataSourceDisplayName(source) {
   const raw = String(source || "").trim();
   if (!raw) return "";
   return DATA_SOURCE_LABELS[normalizeKey(raw)] || raw;
 }
 
-export function getRouteProviderDisplayName(provider) {
+function getRouteProviderDisplayName(provider) {
   const raw = String(provider || "").trim();
   if (!raw) return "";
   return ROUTE_PROVIDER_LABELS[normalizeKey(raw)] || raw;

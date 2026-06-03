@@ -258,7 +258,7 @@ const readOurAirportsNavaids = async ({
   }
 };
 
-export async function searchOpenAipAirportDocuments({
+async function searchOpenAipAirportDocuments({
   query = "",
   country = "",
   limit = 12,
@@ -290,7 +290,7 @@ export async function searchOpenAipAirports(options: OpenAipDirectoryRecord = {}
   return documents.map(mapOpenAipAirport).filter(Boolean);
 }
 
-export async function findOpenAipAirportByIdent({
+async function findOpenAipAirportByIdent({
   ident,
   client,
 }: OpenAipDirectoryRecord = {}) {

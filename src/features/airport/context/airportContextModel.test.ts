@@ -1,13 +1,6 @@
 import assert from "node:assert/strict";
 
-import {
-  enrichAircraftWithAirportContext,
-  matchesAirspaceVolume,
-  resolveAltitudeBand,
-  resolveAirportContextGroup,
-  resolveRangeBand,
-  resolveVisibilityRole,
-} from "./airportContextModel";
+import { enrichAircraftWithAirportContext } from "./airportContextModel";
 
 const airportProfile = {
   icao: "KBOS",
@@ -15,44 +8,6 @@ const airportProfile = {
   lat: 42.3656,
   lon: -71.0096,
 };
-
-assert.equal(resolveRangeBand(1.5), "airport-core");
-assert.equal(resolveRangeBand(8), "terminal-inner");
-assert.equal(resolveRangeBand(18), "terminal-outer");
-assert.equal(resolveRangeBand(31), "outside-airport-context");
-assert.equal(resolveRangeBand(null), "outside-airport-context");
-
-assert.equal(resolveAltitudeBand({ onGround: true, altitudeFtMsl: null }), "surface-tower");
-assert.equal(resolveAltitudeBand({ altitudeFtMsl: 6200 }), "terminal-low");
-assert.equal(resolveAltitudeBand({ altitudeFtMsl: 10_500 }), "terminal-high");
-assert.equal(resolveAltitudeBand({ altitudeFtMsl: 14_000 }), "enroute");
-assert.equal(resolveAltitudeBand({ altitudeFtMsl: 18_000 }), "class-a");
-assert.equal(resolveAltitudeBand({ altitudeFtMsl: null }), "unknown");
-
-assert.equal(
-  resolveVisibilityRole({
-    rangeBand: "terminal-outer",
-    altitudeBand: "terminal-high",
-    movement: "arrival",
-  }),
-  "primary",
-);
-assert.equal(
-  resolveVisibilityRole({
-    rangeBand: "terminal-inner",
-    altitudeBand: "terminal-low",
-    movement: "unknown",
-  }),
-  "secondary",
-);
-assert.equal(
-  resolveVisibilityRole({
-    rangeBand: "terminal-outer",
-    altitudeBand: "class-a",
-    movement: "departure",
-  }),
-  "primary",
-);
 
 const volume = {
   id: "openaip-airspace:KBOS:B:AREA-A:70-SFC",
@@ -98,38 +53,6 @@ assert.deepEqual(
   },
 );
 
-assert.equal(
-  matchesAirspaceVolume(
-    { lat: 42.38, lon: -71.02, altitude: 3000 },
-    volume,
-  ),
-  true,
-);
-assert.equal(
-  matchesAirspaceVolume(
-    { lat: 42.38, lon: -71.02, altitude: 8000 },
-    volume,
-  ),
-  false,
-);
-
-assert.equal(
-  resolveAirportContextGroup({
-    rangeBand: "terminal-inner",
-    altitudeBand: "terminal-low",
-    movement: "unknown",
-  }),
-  "Unknown",
-);
-assert.equal(
-  resolveAirportContextGroup({
-    rangeBand: "outside-airport-context",
-    altitudeBand: "class-a",
-    movement: "arrival",
-  }),
-  "Terminal Flow",
-);
-
 const enriched = enrichAircraftWithAirportContext({
   airportProfile,
   airspaceVolumes: [volume],
@@ -159,6 +82,20 @@ const enriched = enrichAircraftWithAirportContext({
       onGround: true,
       movement: "UNKNOWN",
     },
+    {
+      icao24: "terminal-outer",
+      callsign: "JBU456",
+      distanceNm: 18,
+      altitude: 10_500,
+      movement: "departure",
+    },
+    {
+      icao24: "unknown-altitude",
+      callsign: "NOCONTEXT",
+      distanceNm: null,
+      altitude: null,
+      movement: "UNKNOWN",
+    },
   ],
 });
 
@@ -179,3 +116,13 @@ assert.equal(enriched[1].airportContext.display.group, "High / Passing Over");
 assert.equal(enriched[2].airportContext.rangeBand, "airport-core");
 assert.equal(enriched[2].airportContext.altitudeBand, "surface-tower");
 assert.equal(enriched[2].airportContext.display.group, "Airport Area");
+
+assert.equal(enriched[3].airportContext.rangeBand, "terminal-outer");
+assert.equal(enriched[3].airportContext.altitudeBand, "terminal-high");
+assert.equal(enriched[3].airportContext.visibilityRole, "primary");
+assert.equal(enriched[3].airportContext.display.group, "Terminal Flow");
+
+assert.equal(enriched[4].airportContext.rangeBand, "outside-airport-context");
+assert.equal(enriched[4].airportContext.altitudeBand, "unknown");
+assert.equal(enriched[4].airportContext.visibilityRole, "dimmed");
+assert.equal(enriched[4].airportContext.display.group, "Unknown");

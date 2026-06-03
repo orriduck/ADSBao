@@ -5,8 +5,8 @@ import {
   THEME_LIGHT,
   THEME_SYSTEM,
   applyThemePreference,
+  initThemePreference,
   nextTheme,
-  readStoredTheme,
   sanitizeTheme,
   writeStoredTheme,
 } from './theme'
@@ -53,9 +53,23 @@ assert.equal(nextTheme(THEME_DARK), THEME_SYSTEM)
 assert.equal(nextTheme(THEME_SYSTEM), THEME_LIGHT)
 
 const storage = createStorage({ theme: 'wat' })
-assert.equal(readStoredTheme(storage), THEME_SYSTEM)
+assert.equal(
+  initThemePreference({
+    storage,
+    root: createRoot(),
+    mediaQueryList: { matches: false },
+  }).preference,
+  THEME_SYSTEM,
+)
 writeStoredTheme(THEME_DARK, storage)
-assert.equal(readStoredTheme(storage), THEME_DARK)
+assert.equal(
+  initThemePreference({
+    storage,
+    root: createRoot(),
+    mediaQueryList: { matches: false },
+  }).preference,
+  THEME_DARK,
+)
 
 const darkRoot = createRoot()
 const darkResult = applyThemePreference({

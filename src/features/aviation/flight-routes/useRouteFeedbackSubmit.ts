@@ -5,7 +5,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 const ICAO_PATTERN = /^[A-Z0-9]{3,4}$/;
 
-export const sanitizeIcaoInput = (value) =>
+const sanitizeIcaoInput = (value) =>
   String(value || "")
     .trim()
     .toUpperCase()

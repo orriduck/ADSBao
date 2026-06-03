@@ -1,10 +1,6 @@
 import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity";
 import { CALLSIGN_PROVIDER_CHAIN } from "../../aviation/aircraftDataProviders";
 import {
-  createAdaptiveProviderSelector,
-  raceProviders,
-} from "../../aviation/providerHealth";
-import {
   getFlightAwareFallbackByCallsign,
 } from "../flightaware/flightAwareFallbackProvider";
 import {
@@ -17,8 +13,6 @@ import {
   AIRCRAFT_CALLSIGN_USER_AGENT,
   AircraftCallsignProviderError,
 } from "./aircraftCallsign.models";
-
-const selector = createAdaptiveProviderSelector();
 
 type AircraftCallsignRecord = Record<string, any>;
 
@@ -68,70 +62,6 @@ async function fetchProviderPayload(provider: AircraftCallsignRecord, { callsign
 
   return payload;
 }
-
-const successResult = (provider: AircraftCallsignRecord, payload: AircraftCallsignRecord, attempts: string[]) => ({
-  payload: { ...payload, source: provider.id },
-  source: provider.id,
-  attempts,
-});
-
-export const fetchAircraftByCallsign = async ({ callsign }: AircraftCallsignRecord = {}) => {
-  if (!callsign) {
-    throw new AircraftCallsignProviderError("Callsign required", 400);
-  }
-
-  const fetcher = (provider) => fetchProviderPayload(provider, { callsign });
-  const attempts = [];
-
-  const preferredId = selector.getPreferredId();
-  const preferred = preferredId
-    ? CALLSIGN_PROVIDER_CHAIN.find((provider) => provider.id === preferredId)
-    : null;
-
-  if (preferred) {
-    try {
-      const payload = await fetcher(preferred);
-      attempts.push(formatAttempt(preferred.id));
-      return successResult(preferred, payload, attempts);
-    } catch (error: any) {
-      attempts.push(formatAttempt(preferred.id, error));
-      console.warn(
-        `[aircraft-callsign] preferred ${preferred.id} failed, racing`,
-        error.status ? `status=${error.status}` : error.message,
-      );
-      selector.clear();
-    }
-  }
-
-  try {
-    const { provider, payload } = await raceProviders(
-      CALLSIGN_PROVIDER_CHAIN,
-      fetcher,
-    );
-    selector.setPreferredId(provider.id);
-    attempts.push(formatAttempt(provider.id));
-    return successResult(provider, payload, attempts);
-  } catch (aggregate: any) {
-    const errors = aggregate?.errors || [aggregate];
-    for (let index = 0; index < CALLSIGN_PROVIDER_CHAIN.length; index += 1) {
-      const provider = CALLSIGN_PROVIDER_CHAIN[index];
-      const error = errors[index];
-      attempts.push(formatAttempt(provider.id, error));
-      console.warn(
-        `[aircraft-callsign] race: ${provider.id} failed`,
-        error?.status ? `status=${error.status}` : error?.message,
-      );
-    }
-
-    const lastError = errors[errors.length - 1];
-    const error = new AircraftCallsignProviderError(
-      "Failed to load aircraft by callsign",
-      Number(lastError?.status) || 502,
-    );
-    error.attempts = attempts;
-    throw error;
-  }
-};
 
 function pickFreshest(entries: AircraftCallsignRecord[] | null | undefined) {
   if (!Array.isArray(entries) || entries.length === 0) return null;

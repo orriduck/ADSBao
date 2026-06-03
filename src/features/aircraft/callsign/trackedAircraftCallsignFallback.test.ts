@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
 
 import { fetchTrackedAircraftByCallsign } from "./aircraftCallsign.mechanism";
-import { ADSB_LOL, AIRPLANES_LIVE } from "../../aviation/aircraftDataProviders";
+import { CALLSIGN_PROVIDER_CHAIN } from "../../aviation/aircraftDataProviders";
+
+const ADSB_LOL_ID = "adsb.lol";
+const AIRPLANES_LIVE_ID = "airplanes.live";
+const ADSB_LOL_PROVIDER = CALLSIGN_PROVIDER_CHAIN.find(
+  (provider) => provider.id === ADSB_LOL_ID,
+);
+const AIRPLANES_LIVE_PROVIDER = CALLSIGN_PROVIDER_CHAIN.find(
+  (provider) => provider.id === AIRPLANES_LIVE_ID,
+);
 
 const providerPayload = (source, ac) => ({
-  provider: source === ADSB_LOL.id ? ADSB_LOL : AIRPLANES_LIVE,
+  provider: source === ADSB_LOL_ID ? ADSB_LOL_PROVIDER : AIRPLANES_LIVE_PROVIDER,
   payload: { now: 1779678000, ac, source },
 });
 
@@ -31,8 +40,8 @@ const staleAircraft = {
     callsign: "AAL100",
     featureEnabled: true,
     fetchPrimaryProviders: async () => [
-      providerPayload(ADSB_LOL.id, [freshAircraft]),
-      providerPayload(AIRPLANES_LIVE.id, []),
+      providerPayload(ADSB_LOL_ID, [freshAircraft]),
+      providerPayload(AIRPLANES_LIVE_ID, []),
     ],
     getFlightAwareFallback: async () => {
       flightAwareCalls += 1;
@@ -40,7 +49,7 @@ const staleAircraft = {
     },
   });
 
-  assert.equal(result.source, ADSB_LOL.id);
+  assert.equal(result.source, ADSB_LOL_ID);
   assert.equal(result.payload.ac[0].lat, 42.1);
   assert.equal(result.payload.ac[0].positionQuality.source, "adsb_lol");
   assert.equal(flightAwareCalls, 0);
@@ -52,8 +61,8 @@ const staleAircraft = {
     callsign: "AAL100",
     featureEnabled: true,
     fetchPrimaryProviders: async () => [
-      providerPayload(ADSB_LOL.id, [staleAircraft]),
-      providerPayload(AIRPLANES_LIVE.id, []),
+      providerPayload(ADSB_LOL_ID, [staleAircraft]),
+      providerPayload(AIRPLANES_LIVE_ID, []),
     ],
     getFlightAwareFallback: async () => {
       flightAwareCalls += 1;
@@ -95,8 +104,8 @@ const staleAircraft = {
     callsign: "AAL100",
     featureEnabled: false,
     fetchPrimaryProviders: async () => [
-      providerPayload(ADSB_LOL.id, [staleAircraft]),
-      providerPayload(AIRPLANES_LIVE.id, []),
+      providerPayload(ADSB_LOL_ID, [staleAircraft]),
+      providerPayload(AIRPLANES_LIVE_ID, []),
     ],
     getFlightAwareFallback: async () => {
       flightAwareCalls += 1;
@@ -104,7 +113,7 @@ const staleAircraft = {
     },
   });
 
-  assert.equal(result.source, ADSB_LOL.id);
+  assert.equal(result.source, ADSB_LOL_ID);
   assert.equal(result.payload.ac[0].positionQuality.kind, "stale");
   assert.equal(result.payload.trackingState.status, "stale");
   assert.equal(flightAwareCalls, 0);
@@ -115,8 +124,8 @@ const staleAircraft = {
   const result = await fetchTrackedAircraftByCallsign({
     callsign: "AAL100",
     fetchPrimaryProviders: async () => [
-      providerPayload(ADSB_LOL.id, [staleAircraft]),
-      providerPayload(AIRPLANES_LIVE.id, []),
+      providerPayload(ADSB_LOL_ID, [staleAircraft]),
+      providerPayload(AIRPLANES_LIVE_ID, []),
     ],
     getFlightAwareFallback: async () => {
       flightAwareCalls += 1;
@@ -137,7 +146,7 @@ const staleAircraft = {
     },
   });
 
-  assert.equal(result.source, ADSB_LOL.id);
+  assert.equal(result.source, ADSB_LOL_ID);
   assert.equal(result.payload.ac[0].positionQuality.kind, "stale");
   assert.equal(flightAwareCalls, 0);
 }
@@ -147,8 +156,8 @@ const staleAircraft = {
     callsign: "AAL100",
     featureEnabled: true,
     fetchPrimaryProviders: async () => [
-      providerPayload(ADSB_LOL.id, [staleAircraft]),
-      providerPayload(AIRPLANES_LIVE.id, []),
+      providerPayload(ADSB_LOL_ID, [staleAircraft]),
+      providerPayload(AIRPLANES_LIVE_ID, []),
     ],
     getFlightAwareFallback: async () => ({
       ok: true,
@@ -170,7 +179,7 @@ const staleAircraft = {
     }),
   });
 
-  assert.equal(result.source, ADSB_LOL.id);
+  assert.equal(result.source, ADSB_LOL_ID);
   assert.equal(result.payload.ac[0].lat, 41);
   assert.equal(result.payload.ac[0].positionQuality.kind, "stale");
   assert.equal(result.payload.trackingState.status, "flightaware_terminal");
