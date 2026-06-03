@@ -244,9 +244,22 @@ export function buildMapSettingsFromLayerState({
   now = new Date().toISOString(),
 }: MapSettingsOptions = {}) {
   const normalized = normalizeMapSettings(settings);
+  const baseMode = getMapSettingsBaseMode(normalized);
+  const baseLayers = getMapModePreset(baseMode).layers;
+  const layerOverrides = normalizeMapLayerOverrides(layers);
+  const nextLayers = {
+    ...resolveMapSettingsLayers(normalized),
+    ...layerOverrides,
+  };
+  const custom = PERSISTED_MAP_LAYER_KEYS.some(
+    (layerKey) => nextLayers[layerKey] !== baseLayers[layerKey],
+  );
+
   return {
     ...normalized,
-    layerOverrides: normalizeMapLayerOverrides(layers),
+    selectedMode: custom ? MAP_MODE_IDS.CUSTOM : baseMode,
+    baseMode,
+    layerOverrides: custom ? normalizeMapLayerOverrides(nextLayers) : {},
     updatedAt: now,
   };
 }
