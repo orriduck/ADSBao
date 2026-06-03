@@ -84,9 +84,9 @@ const en = {
           "Airport, runway, frequency, navaid, airspace, reporting point, and obstacle context for search and maps. Licensed CC BY-NC 4.0.",
       },
       ourAirportsRunways: {
-        title: "OurAirports Runway Geometry",
+        title: "OurAirports Static Facilities",
         description:
-          "Runway threshold coordinates used only for accurate runway map overlays.",
+          "Runway threshold coordinates plus ATC frequency and navaid augmentation data.",
       },
       wikipedia: {
         title: "Wikipedia Summary",
@@ -225,6 +225,8 @@ const en = {
     unknownAirport: "Unknown airport",
     departures: "Departures",
     arrivals: "Arrivals",
+    atc: "ATC",
+    spotting: "Spotting",
   },
   metrics: {
     speed: "Speed",

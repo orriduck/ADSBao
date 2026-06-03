@@ -13,7 +13,12 @@ import {
 } from "./openAipNormalizer";
 import { createOpenAipClientFromEnv } from "./openAipClient";
 import { AirportDirectoryConfigurationError } from "../directory/airportDirectory.models";
+import { createAirportFacilityRepositoryFromEnv } from "../../../app/api/dao/airportFacilities.dao";
 import { createRunwayGeometryRepositoryFromEnv } from "../../../app/api/dao/runwayGeometries.dao";
+import {
+  mergeAirportFrequencies,
+  mergeNearbyNavaids,
+} from "../directory/airportFacilityModel";
 import { buildRunwayMapFromGeometries } from "../runways/runwayGeometryMap";
 
 type OpenAipDirectoryRecord = Record<string, any>;
@@ -179,6 +184,13 @@ const getRunwayGeometryRepository = (
   return createRunwayGeometryRepositoryFromEnv();
 };
 
+const getAirportFacilityRepository = (
+  repository: OpenAipDirectoryRecord | null | undefined,
+) => {
+  if (repository !== undefined) return repository;
+  return createAirportFacilityRepositoryFromEnv();
+};
+
 const readRunwayGeometryMaps = async ({
   repository,
   airports = [],
@@ -211,6 +223,39 @@ const readRunwayGeometryMaps = async ({
     );
   }
   return maps;
+};
+
+const readOurAirportsFrequencies = async ({
+  repository,
+  airportIdent,
+}: OpenAipDirectoryRecord = {}) => {
+  if (!repository?.readFrequenciesByAirportIdent || !airportIdent) return [];
+  try {
+    return await repository.readFrequenciesByAirportIdent(airportIdent);
+  } catch (error: any) {
+    console.warn("[openaip] OurAirports frequencies read failed:", error?.message || error);
+    return [];
+  }
+};
+
+const readOurAirportsNavaids = async ({
+  repository,
+  airport,
+  radiusNm,
+  limit,
+}: OpenAipDirectoryRecord = {}) => {
+  if (!repository?.readNavaidsNearAirport || !airport) return [];
+  try {
+    return await repository.readNavaidsNearAirport({
+      lat: airport.lat,
+      lon: airport.lon,
+      radiusNm,
+      limit,
+    });
+  } catch (error: any) {
+    console.warn("[openaip] OurAirports navaids read failed:", error?.message || error);
+    return [];
+  }
 };
 
 export async function searchOpenAipAirportDocuments({
@@ -272,9 +317,11 @@ export async function getOpenAipAirportPage({
   nearbyLimit = 12,
   client,
   runwayGeometryRepository,
+  facilityRepository,
 }: OpenAipDirectoryRecord = {}) {
   const openAip = getClient(client);
   const runwayRepository = getRunwayGeometryRepository(runwayGeometryRepository);
+  const airportFacilityRepository = getAirportFacilityRepository(facilityRepository);
   const airportMatch = await findOpenAipAirportByIdent({ ident, client: openAip });
   if (!airportMatch?._id) {
     return {
@@ -371,17 +418,38 @@ export async function getOpenAipAirportPage({
     ...item,
     runwayMap: runwayMaps.get(item.icao) || null,
   }));
+  const openAipFrequencies = (airportDocument.frequencies || [])
+    .map((frequency: OpenAipDirectoryRecord) => mapOpenAipFrequency(frequency, airportDocument))
+    .filter(Boolean);
+  const openAipNavaids = nearbyNavaidDocuments.map(mapOpenAipNavaid).filter(Boolean);
+  const [ourAirportsFrequencies, ourAirportsNavaids] = await Promise.all([
+    readOurAirportsFrequencies({
+      repository: airportFacilityRepository,
+      airportIdent: airport.icao || airport.ident,
+    }),
+    readOurAirportsNavaids({
+      repository: airportFacilityRepository,
+      airport,
+      radiusNm,
+      limit: Math.min(100, limit * 3),
+    }),
+  ]);
 
   return {
     airport,
     runways: (airportDocument.runways || [])
       .map((runway: OpenAipDirectoryRecord) => mapOpenAipRunway(runway, airportDocument))
       .filter(Boolean),
-    frequencies: (airportDocument.frequencies || [])
-      .map((frequency: OpenAipDirectoryRecord) => mapOpenAipFrequency(frequency, airportDocument))
-      .filter(Boolean),
+    frequencies: mergeAirportFrequencies({
+      openAipFrequencies,
+      ourAirportsFrequencies,
+    }),
     nearbyAirports,
-    nearbyNavaids: nearbyNavaidDocuments.map(mapOpenAipNavaid).filter(Boolean),
+    nearbyNavaids: mergeNearbyNavaids({
+      airport,
+      openAipNavaids,
+      ourAirportsNavaids,
+    }).slice(0, limit),
     airspaces: airspaceDocuments.map(mapOpenAipAirspace).filter(Boolean),
     reportingPoints: reportingPointDocuments
       .map(mapOpenAipReportingPoint)

@@ -35,8 +35,8 @@ Runtime version strings and ADSBao User-Agent values share
 - **Frontend**: React, Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide.
 - **Maps**: Leaflet plus MapLibre-backed tiles and custom aircraft/runway layers.
 - **Data layer**: OpenAIP served through same-origin Next.js API routes with
-  Supabase migration support for OpenAIP-shaped static/cache tables. Runway
-  threshold geometry is imported from OurAirports for accurate map overlays.
+  Supabase migration support for OpenAIP-shaped static/cache tables. OurAirports
+  augments runway threshold geometry, ATC frequencies, and navaid coverage.
 - **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
   Speed Insights, and optional Sentry monitoring.
 - **Auth and feature flags**: Clerk identity with Supabase-backed user feature
@@ -47,7 +47,7 @@ Runtime version strings and ADSBao User-Agent values share
 | Path | Source | Purpose |
 |---|---|---|
 | `/api/search` | OpenAIP Core API | Airport search |
-| `/api/airport/[ident]` | OpenAIP Core API + OurAirports runway geometry | Airport detail, runways, frequencies, navaids, airspaces, reporting points, obstacles, runway map |
+| `/api/airport/[ident]` | OpenAIP Core API + OurAirports static facilities | Airport detail, runways, frequencies, navaids, airspaces, reporting points, obstacles, runway map |
 | `/api/proxy/metar/:icao` | AviationWeather | METAR weather context |
 | `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft |
 | `/api/proxy/aircraft/callsign/:callsign` | ADS-B callsign providers | Tracked aircraft state |
@@ -112,6 +112,12 @@ Import runway threshold geometry with:
 
 ```bash
 pnpm import:runways
+```
+
+Import OurAirports ATC frequency and navaid augmentation data with:
+
+```bash
+pnpm import:facilities
 ```
 
 ## Project Structure

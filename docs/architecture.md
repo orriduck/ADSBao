@@ -24,7 +24,7 @@ Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the p
 
 ### Airport directory (OpenAIP → Next.js API)
 
-Global airport context is sourced from [OpenAIP](https://www.openaip.net/) through server-only route handlers. `/api/search` resolves ranked airport matches, and `/api/airport/[ident]` returns airport detail, runways, frequencies, nearby airports, navaids, airspaces, reporting points, and obstacles. OpenAIP Core runway records do not include threshold coordinates, so runway map overlays are backed by a narrow `public.runway_geometries` table imported from OurAirports runway data. The browser-side `airportDirectoryClient` is a thin wrapper over these routes — feature code does not see the provider boundary or the server-only OpenAIP API key.
+Global airport context is sourced from [OpenAIP](https://www.openaip.net/) through server-only route handlers. `/api/search` resolves ranked airport matches, and `/api/airport/[ident]` returns airport detail, runways, frequencies, nearby airports, navaids, airspaces, reporting points, and obstacles. OpenAIP Core runway records do not include threshold coordinates, so runway map overlays are backed by a narrow `public.runway_geometries` table imported from OurAirports runway data. OurAirports `airport_frequencies` and `navaids` static tables also augment OpenAIP frequency/navaid coverage after normalization and conservative deduplication. The browser-side `airportDirectoryClient` is a thin wrapper over these routes — feature code does not see the provider boundary or the server-only OpenAIP API key.
 
 ### Vercel data paths
 
