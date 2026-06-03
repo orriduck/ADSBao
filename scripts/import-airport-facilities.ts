@@ -66,6 +66,11 @@ const numberOrNull = (value: unknown) => {
   return Number.isFinite(numeric) ? numeric : null;
 };
 
+const positiveNumberOrNull = (value: unknown) => {
+  const numeric = numberOrNull(value);
+  return numeric != null && numeric > 0 ? numeric : null;
+};
+
 const normalizeIdent = (value: unknown) =>
   String(value ?? "")
     .trim()
@@ -82,7 +87,7 @@ const mapFrequencyRow = (row: Record<string, string>) => {
     airport_ident: airportIdent,
     type: String(row.type || "").trim().toUpperCase(),
     description: String(row.description || "").trim(),
-    frequency_mhz: numberOrNull(row.frequency_mhz),
+    frequency_mhz: positiveNumberOrNull(row.frequency_mhz),
   };
 };
 
