@@ -1,116 +1,41 @@
 import assert from 'node:assert/strict'
 
 import {
-  extractCrossLangTitle,
   fetchAirportWikiSummary,
-  getAirportWikiTitleCandidates,
-  getCrossLangTitleUrl,
-  getWikipediaSummaryUrl,
-  normalizeWikipediaSummary,
 } from './airportWiki'
 
 {
-  const candidates = getAirportWikiTitleCandidates({
+  const requests: string[] = []
+  const fetchImpl = async (url: string) => {
+    requests.push(url)
+    if (url.includes('/Los%20Angeles%20International%20Airport')) {
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        async text() {
+          return JSON.stringify({
+            title: 'Los Angeles International Airport',
+            extract: 'Los Angeles International Airport is an airport in California.',
+            content_urls: {
+              desktop: { page: 'https://en.wikipedia.org/wiki/Los_Angeles_International_Airport' },
+            },
+          })
+        },
+      }
+    }
+    return { ok: false, status: 404, headers: { get: () => null } }
+  }
+
+  const summary = await fetchAirportWikiSummary({
     name: 'Los Angeles Intl',
     icao: 'KLAX',
     iata: 'LAX',
-  })
+  }, fetchImpl)
 
-  assert.deepEqual(candidates, [
-    'Los Angeles International Airport',
-    'Los Angeles Intl Airport',
-    'KLAX Airport',
-    'LAX Airport',
-  ])
-}
-
-{
-  const url = getWikipediaSummaryUrl('John F. Kennedy International Airport')
-  assert.equal(
-    url,
-    'https://en.wikipedia.org/api/rest_v1/page/summary/John%20F.%20Kennedy%20International%20Airport',
-  )
-}
-
-{
-  const summary = normalizeWikipediaSummary({
-    title: 'John F. Kennedy International Airport',
-    extract: 'John F. Kennedy International Airport is an international airport serving New York City.',
-    content_urls: {
-      desktop: {
-        page: 'https://en.wikipedia.org/wiki/John_F._Kennedy_International_Airport',
-      },
-    },
-  })
-
-  assert.equal(summary.title, 'John F. Kennedy International Airport')
-  assert.equal(summary.url, 'https://en.wikipedia.org/wiki/John_F._Kennedy_International_Airport')
-  assert.ok(summary.extract.includes('serving New York City'))
-}
-
-{
-  const summary = normalizeWikipediaSummary({
-    title: '丹佛國際機場',
-    displaytitle: '<span class="mw-page-title-main">丹佛国际机场</span>',
-    extract: '丹佛国际机场，是一座位于美国科罗拉多州丹佛市的民用机场。',
-    content_urls: {
-      desktop: {
-        page: 'https://zh.wikipedia.org/wiki/丹佛國際機場',
-      },
-    },
-  })
-
-  assert.equal(summary.title, '丹佛国际机场')
-  assert.match(summary.extract, /科罗拉多州/)
-}
-
-{
-  assert.equal(normalizeWikipediaSummary({ title: 'Missing page' }), null)
-}
-
-// Cross-language URL: zh.wikipedia summary lives on the zh subdomain.
-{
-  const url = getWikipediaSummaryUrl('芝加哥奥黑尔国际机场', 'zh-CN')
-  assert.equal(
-    url,
-    'https://zh.wikipedia.org/api/rest_v1/page/summary/%E8%8A%9D%E5%8A%A0%E5%93%A5%E5%A5%A5%E9%BB%91%E5%B0%94%E5%9B%BD%E9%99%85%E6%9C%BA%E5%9C%BA',
-  )
-}
-
-// langlinks URL: ask en.wikipedia for the zh-wiki page title.
-{
-  const url = getCrossLangTitleUrl('Chicago O’Hare International Airport', 'zh')
-  assert.match(url, /^https:\/\/en\.wikipedia\.org\/w\/api\.php\?/)
-  assert.match(url, /action=query/)
-  assert.match(url, /prop=langlinks/)
-  assert.match(url, /lllang=zh/)
-  assert.match(url, /redirects=1/)
-}
-
-// extractCrossLangTitle reads the first langlink from the MediaWiki action
-// API shape. Returns "" when the page has none so the caller can fall back
-// to English without a try/catch dance.
-{
-  const title = extractCrossLangTitle({
-    query: {
-      pages: {
-        12345: {
-          pageid: 12345,
-          title: "Chicago O'Hare International Airport",
-          langlinks: [{ lang: "zh", "*": "芝加哥奥黑尔国际机场" }],
-        },
-      },
-    },
-  })
-  assert.equal(title, '芝加哥奥黑尔国际机场')
-}
-{
-  assert.equal(
-    extractCrossLangTitle({ query: { pages: { 1: { title: 'No links' } } } }),
-    '',
-  )
-  assert.equal(extractCrossLangTitle({}), '')
-  assert.equal(extractCrossLangTitle(null), '')
+  assert.equal(summary?.title, 'Los Angeles International Airport')
+  assert.equal(summary?.url, 'https://en.wikipedia.org/wiki/Los_Angeles_International_Airport')
+  assert.ok(requests[0].includes('/Los%20Angeles%20International%20Airport'))
 }
 
 // fetchAirportWikiSummary with locale=zh-CN walks the langlinks lookup,

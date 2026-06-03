@@ -8,12 +8,10 @@ import { buildAdsbaoUserAgent } from "../../../config/siteMeta";
 // See https://www.adsbdb.com — the v0 API returns
 // `{ response: { flightroute: { callsign, callsign_icao, callsign_iata,
 //   airline: {...}, origin: { ... }, destination: { ... } } } }`.
-export const ADSBDB_BASE = "https://api.adsbdb.com/v0";
+const ADSBDB_BASE = "https://api.adsbdb.com/v0";
 
 export const ADSBDB_USER_AGENT =
   buildAdsbaoUserAgent("adsbdb/v0");
-
-export const ADSBDB_ROUTE_MISS_STATUS = 200;
 
 const cleanString = (value) => String(value || "").trim();
 const cleanUpper = (value) => cleanString(value).toUpperCase();

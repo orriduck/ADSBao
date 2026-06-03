@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 
 import {
-  AIRCRAFT_BASELINE_SCALE,
-  AIRCRAFT_ICON_BASE_PATH,
-  AIRCRAFT_ICON_NAMES,
   isKnownAircraftIconName,
   resolveAircraftIcon,
   resolveAircraftSizeScale,
 } from "./aircraftIcon";
+
+const AIRCRAFT_ICON_BASE_PATH = "/api/icons/aircraft";
+const AIRCRAFT_BASELINE_SCALE = 1;
 
 const expectIcon = (aircraft, expectedName, expectedSource) => {
   const result = resolveAircraftIcon(aircraft);
@@ -130,11 +130,11 @@ assert.equal(isKnownAircraftIconName(null), false);
 assert.equal(AIRCRAFT_ICON_BASE_PATH.startsWith("/"), true);
 
 // Sanity: the canonical list covers the major commercial ICAO types.
-assert.ok(AIRCRAFT_ICON_NAMES.includes("a320"));
-assert.ok(AIRCRAFT_ICON_NAMES.includes("b738"));
-assert.ok(AIRCRAFT_ICON_NAMES.includes("b77w"));
-assert.ok(AIRCRAFT_ICON_NAMES.includes("crj9"));
-assert.ok(AIRCRAFT_ICON_NAMES.includes("md11"));
+assert.equal(isKnownAircraftIconName("a320"), true);
+assert.equal(isKnownAircraftIconName("b738"), true);
+assert.equal(isKnownAircraftIconName("b77w"), true);
+assert.equal(isKnownAircraftIconName("crj9"), true);
+assert.equal(isKnownAircraftIconName("md11"), true);
 
 // Wake-class scale resolver: A1–0.90 → A5–1.10, baseline elsewhere.
 assert.equal(resolveAircraftSizeScale({ category: "A1" }), 0.9);

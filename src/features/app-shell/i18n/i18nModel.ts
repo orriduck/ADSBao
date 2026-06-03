@@ -7,17 +7,10 @@ export const LOCALE_STORAGE_KEY = "adsbao:i18n:locale";
 export const LOCALE_QUERY_PARAM = "locale";
 export const ADSBAO_LOCALE_HEADER = "x-adsbao-locale";
 
-export const LOCALE_LABELS = Object.freeze({
+const LOCALE_LABELS = Object.freeze({
   en: "EN",
   "zh-CN": "中文",
 });
-
-type TranslationDictionary = Record<string, unknown>;
-type TranslationParams = Record<string, unknown>;
-type LocaleStorage = {
-  getItem: (key: string) => string | null;
-  setItem: (key: string, value: string) => void;
-};
 
 const isSupportedLocale = (value: unknown): value is string =>
   typeof value === "string" && SUPPORTED_LOCALES.includes(value);
@@ -35,87 +28,6 @@ export function normalizeLocaleSelection(
 ) {
   if (isSupportedLocale(next)) return next;
   return isSupportedLocale(current) ? current : DEFAULT_LOCALE;
-}
-
-// Pick a locale to start with. We deliberately do not auto-detect from
-// navigator.language — the issue scopes us to: persisted preference, else
-// English. Auto-detection causes server/client hydration mismatches and
-// surprises returning users.
-export function resolveInitialLocale({
-  persisted,
-  fallback = DEFAULT_LOCALE,
-}: { persisted?: unknown; fallback?: string } = {}) {
-  return isSupportedLocale(persisted) ? persisted : fallback;
-}
-
-const splitKey = (key: unknown) =>
-  String(key || "")
-    .split(".")
-    .filter(Boolean);
-
-const lookupByPath = (dictionary: unknown, segments: string[]) => {
-  let cursor = dictionary;
-  for (const segment of segments) {
-    if (cursor == null || typeof cursor !== "object") return undefined;
-    cursor = cursor[segment];
-  }
-  return typeof cursor === "string" ? cursor : undefined;
-};
-
-const applyParams = (template: string, params?: TranslationParams) => {
-  if (!params || typeof params !== "object") return template;
-  return template.replace(/\{(\w+)\}/g, (_, name) =>
-    Object.prototype.hasOwnProperty.call(params, name)
-      ? String(params[name])
-      : `{${name}}`,
-  );
-};
-
-// Look up `key` in `dictionary`, with `fallbackDictionary` as a backstop so
-// a missing zh-CN key still renders English instead of the raw key. If
-// neither dictionary has it, the key itself is returned — that surface in
-// the UI is the signal a translator should plug it in.
-export function resolveTranslation({
-  key,
-  dictionary,
-  fallbackDictionary,
-  params,
-}: {
-  key?: string;
-  dictionary?: TranslationDictionary;
-  fallbackDictionary?: TranslationDictionary;
-  params?: TranslationParams;
-} = {}) {
-  const segments = splitKey(key);
-  if (segments.length === 0) return "";
-  const primary = lookupByPath(dictionary, segments);
-  if (primary !== undefined) return applyParams(primary, params);
-  const fallback = lookupByPath(fallbackDictionary, segments);
-  if (fallback !== undefined) return applyParams(fallback, params);
-  return key;
-}
-
-export function readPersistedLocale(storage?: LocaleStorage | null) {
-  if (!storage) return null;
-  try {
-    return storage.getItem(LOCALE_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-export function writePersistedLocale(
-  storage: LocaleStorage | undefined | null,
-  locale: unknown,
-) {
-  if (!storage) return;
-  try {
-    if (isSupportedLocale(locale)) {
-      storage.setItem(LOCALE_STORAGE_KEY, locale);
-    }
-  } catch {
-    /* Quota exceeded or storage disabled — preference just won't persist. */
-  }
 }
 
 export function nextLocale(current: string) {

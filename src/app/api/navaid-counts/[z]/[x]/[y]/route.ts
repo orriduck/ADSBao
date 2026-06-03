@@ -7,7 +7,7 @@ import {
   getNavaidCountTile,
 } from "@/features/airport/context/aviationContextTile.mechanism";
 import {
-  NAVAID_COUNT_TILE_CACHE_HEADERS,
+  NAVAID_TILE_CACHE_HEADERS as NAVAID_COUNT_TILE_CACHE_HEADERS,
   normalizeContextTileParams,
 } from "@/features/airport/context/aviationContextTileModel";
 import { AirportDirectoryConfigurationError } from "@/features/airport/directory/airportDirectory.models";

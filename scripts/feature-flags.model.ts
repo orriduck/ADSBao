@@ -54,7 +54,7 @@ type ApplyFeatureFlagCommandOptions = {
 const TRUTHY_VALUES = new Set(["1", "true", "on", "yes", "enable", "enabled"]);
 const FALSY_VALUES = new Set(["0", "false", "off", "no", "disable", "disabled"]);
 
-export function parseBooleanFlagValue(value: unknown): boolean {
+function parseBooleanFlagValue(value: unknown): boolean {
   const normalized = String(value || "").trim().toLowerCase();
   if (TRUTHY_VALUES.has(normalized)) return true;
   if (FALSY_VALUES.has(normalized)) return false;

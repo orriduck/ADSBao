@@ -3,7 +3,7 @@
 // position payloads through untouched. Traces use adsb.lol only — none of
 // the alternates expose an equivalent public trace_recent endpoint.
 
-export const ADSB_LOL = Object.freeze({
+const ADSB_LOL = Object.freeze({
   id: "adsb.lol",
   label: "adsb.lol",
   buildPositionUrl: ({ lat, lon, distanceNm }) =>
@@ -32,7 +32,7 @@ export const ADSB_LOL = Object.freeze({
   },
 });
 
-export const AIRPLANES_LIVE = Object.freeze({
+const AIRPLANES_LIVE = Object.freeze({
   id: "airplanes.live",
   label: "airplanes.live",
   buildPositionUrl: ({ lat, lon, distanceNm }) =>
@@ -48,7 +48,7 @@ export const AIRPLANES_LIVE = Object.freeze({
   buildTraceUrl: null,
 });
 
-export const ADSB_FI = Object.freeze({
+const ADSB_FI = Object.freeze({
   id: "adsb.fi",
   label: "adsb.fi",
   buildPositionUrl: ({ lat, lon, distanceNm }) =>

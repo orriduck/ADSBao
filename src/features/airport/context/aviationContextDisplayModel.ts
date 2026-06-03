@@ -1,6 +1,6 @@
 type ContextRecord = Record<string, any>;
 
-export const NAVAID_COUNT_MAX_DETAIL_ZOOM = 8;
+const NAVAID_COUNT_MAX_DETAIL_ZOOM = 8;
 
 const numberOrNull = (value: unknown) => {
   const number = Number(value);

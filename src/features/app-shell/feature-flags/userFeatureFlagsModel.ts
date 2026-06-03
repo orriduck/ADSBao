@@ -2,7 +2,7 @@ export const FEATURE_FLAGS = Object.freeze({
   FLIGHTAWARE_ENABLED: "flightAwareEnabled",
 });
 
-export const FEATURE_FLAG_ENVIRONMENTS = Object.freeze({
+const FEATURE_FLAG_ENVIRONMENTS = Object.freeze({
   LOCAL: "local",
   PREVIEW: "preview",
   PRODUCTION: "production",
@@ -23,11 +23,6 @@ type ClerkFeatureFlagUser = {
   id?: unknown;
   primaryEmailAddress?: ClerkEmailAddress | null;
   publicMetadata?: unknown;
-};
-
-type UserFeatureFlagAccessOptions = {
-  user?: ClerkFeatureFlagUser | null;
-  flags?: unknown;
 };
 
 export function normalizeUserEmail(email: unknown) {
@@ -64,23 +59,4 @@ export function normalizeFeatureFlags(flags: unknown) {
 
 export function isFeatureFlagEnabled(flags: unknown, flagKey: string) {
   return normalizeFeatureFlags(flags)[flagKey] === true;
-}
-
-export function buildUserFeatureFlagAccessEntity({
-  user,
-  flags = {},
-}: UserFeatureFlagAccessOptions = {}) {
-  const email = getClerkUserPrimaryEmail(user);
-  if (!user || !email) return undefined;
-
-  const normalizedFlags = normalizeFeatureFlags(flags);
-  return {
-    id: user.id ? String(user.id) : "",
-    email,
-    flags: normalizedFlags,
-    flightAwareEnabled: isFeatureFlagEnabled(
-      normalizedFlags,
-      FEATURE_FLAGS.FLIGHTAWARE_ENABLED,
-    ),
-  };
 }

@@ -17,7 +17,7 @@ function notifySubscribers() {
   subscribers.forEach((callback) => callback());
 }
 
-export function prefersReducedMotion() {
+function prefersReducedMotion() {
   return getMediaQuery()?.matches || false;
 }
 

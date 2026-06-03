@@ -3,13 +3,12 @@ import assert from "node:assert/strict";
 import {
   buildOpenMeteoCurrentWeatherUrl,
   isValidOpenMeteoCurrentPayload,
-  normalizeCoordinateParam,
   normalizeLatitudeParam,
   normalizeLongitudeParam,
 } from "./localWeatherProxyModel";
 
-assert.equal(normalizeCoordinateParam("42.3656"), 42.3656);
-assert.equal(normalizeCoordinateParam("nope"), null);
+assert.equal(normalizeLatitudeParam("42.3656"), 42.3656);
+assert.equal(normalizeLatitudeParam("nope"), null);
 assert.equal(normalizeLatitudeParam("90"), 90);
 assert.equal(normalizeLatitudeParam("90.1"), null);
 assert.equal(normalizeLongitudeParam("-180"), -180);

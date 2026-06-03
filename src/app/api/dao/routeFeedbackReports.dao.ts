@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from "./supabaseClient";
 
 type RouteFeedbackRecord = Record<string, any>;
 
-export const ROUTE_FEEDBACK_TABLE = "flight_route_feedback_reports";
+const ROUTE_FEEDBACK_TABLE = "flight_route_feedback_reports";
 
 const ACTIVE_STATUS = "active";
 
@@ -25,7 +25,7 @@ const SELECT_COLUMNS = [
   "deleted_at",
 ].join(",");
 
-export function createRouteFeedbackReportsRepository({
+function createRouteFeedbackReportsRepository({
   supabaseUrl,
   supabaseKey,
   createClientImpl,

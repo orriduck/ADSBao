@@ -32,7 +32,7 @@ export function normalizeMetarPayload(payload) {
   };
 }
 
-export function formatWind(metar) {
+function formatWind(metar) {
   if (!metar.wdir && !metar.wspd) return "-";
   const direction =
     metar.wdir === "VRB"
@@ -42,7 +42,7 @@ export function formatWind(metar) {
   return metar.wgst ? `${direction} / ${speed} G${metar.wgst}kt` : `${direction} / ${speed}`;
 }
 
-export function formatCeiling(metar) {
+function formatCeiling(metar) {
   const layers = metar.clouds || [];
   const ceiling = layers.find((layer) =>
     ["BKN", "OVC", "VV"].includes(layer.cover),

@@ -5,8 +5,6 @@ import { normalizeCallsign } from "../utils/callsign";
 import { flightRouteScheduler } from "../features/aviation/flight-routes/flightRouteScheduler";
 import { createRouteDisplayBatcher } from "../features/aviation/flight-routes/flightRouteDisplayBatchModel";
 
-export { formatFlightRouteQueueAudit } from "../features/aviation/flight-routes/flightRouteScheduler";
-
 type FlightRouteHookRecord = Record<string, any>;
 
 export function useFlightRoutes(

@@ -4,14 +4,7 @@ import {
   buildProxiedMapLibreStyle,
   buildLocalizedMapLibreStyle,
   getMapLibreBaseStyleUrl,
-  getMapLibreLabelTextField,
-  normalizeMapLabelLocale,
 } from "./mapTileLanguageModel";
-
-assert.equal(normalizeMapLabelLocale("en"), "en");
-assert.equal(normalizeMapLabelLocale("zh-CN"), "zh-Hans");
-assert.equal(normalizeMapLabelLocale("fr"), "en");
-assert.equal(normalizeMapLabelLocale(null), "en");
 
 assert.equal(
   getMapLibreBaseStyleUrl("dark"),
@@ -25,25 +18,6 @@ assert.equal(
   getMapLibreBaseStyleUrl("unknown"),
   "https://tiles.openfreemap.org/styles/dark",
 );
-
-assert.deepEqual(getMapLibreLabelTextField("en"), [
-  "coalesce",
-  ["get", "name:en"],
-  ["get", "name_en"],
-  ["get", "name:latin"],
-  ["get", "name"],
-]);
-
-assert.deepEqual(getMapLibreLabelTextField("zh-CN"), [
-  "coalesce",
-  ["get", "name:zh-Hans"],
-  ["get", "name:zh"],
-  ["get", "name_zh"],
-  ["get", "name:nonlatin"],
-  ["get", "name"],
-  ["get", "name:en"],
-  ["get", "name_en"],
-]);
 
 {
   const style = {
@@ -81,6 +55,32 @@ assert.deepEqual(getMapLibreLabelTextField("zh-CN"), [
   ]);
   assert.equal(localized.layers[1].layout.visibility, undefined);
   assert.equal(localized.layers[2].layout.visibility, undefined);
+}
+
+{
+  const style = {
+    version: 8,
+    layers: [
+      {
+        id: "place_city",
+        type: "symbol",
+        layout: { "text-field": ["get", "name"] },
+      },
+    ],
+  };
+
+  const localized = buildLocalizedMapLibreStyle(style, {
+    locale: "fr",
+    showLabels: true,
+  });
+
+  assert.deepEqual(localized.layers[0].layout["text-field"], [
+    "coalesce",
+    ["get", "name:en"],
+    ["get", "name_en"],
+    ["get", "name:latin"],
+    ["get", "name"],
+  ]);
 }
 
 {

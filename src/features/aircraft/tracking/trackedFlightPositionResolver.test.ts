@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 
-import {
-  ADSB_FRESH_MAX_AGE_SECONDS,
-  resolveTrackedFlightPosition,
-} from "./trackedFlightPositionResolver";
+import { resolveTrackedFlightPosition } from "./trackedFlightPositionResolver";
 
 const now = Date.parse("2026-05-25T03:00:00.000Z");
 
@@ -32,8 +29,6 @@ const flightAware = {
     },
   },
 };
-
-assert.equal(ADSB_FRESH_MAX_AGE_SECONDS, 60);
 
 {
   let flightAwareCalls = 0;

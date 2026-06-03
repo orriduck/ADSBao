@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
 
-import {
-  AIRPORT_FREQUENCIES_TABLE,
-  NAVAIDS_TABLE,
-  createAirportFacilityRepository,
-  createAirportFacilityRepositoryFromEnv,
-} from "./airportFacilities.dao";
+import { createAirportFacilityRepositoryFromEnv } from "./airportFacilities.dao";
+
+const AIRPORT_FREQUENCIES_TABLE = "airport_frequencies";
+const NAVAIDS_TABLE = "navaids";
 
 function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
   const calls: Array<Record<string, any>> = [];
@@ -77,9 +75,11 @@ function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
       },
     ],
   });
-  const repository = createAirportFacilityRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repository = createAirportFacilityRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+    },
     createClientImpl,
   });
 
@@ -130,9 +130,11 @@ function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
       },
     ],
   });
-  const repository = createAirportFacilityRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repository = createAirportFacilityRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+    },
     createClientImpl,
   });
 
@@ -169,9 +171,11 @@ function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
   const { calls, createClientImpl } = createFakeSupabaseClient({
     [NAVAIDS_TABLE]: { data: [], count: 37 },
   });
-  const repository = createAirportFacilityRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repository = createAirportFacilityRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+    },
     createClientImpl,
   });
 

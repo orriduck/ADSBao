@@ -2,13 +2,11 @@ import assert from "node:assert/strict";
 
 import {
   buildAircraftTraceCurve,
+  composeAircraftTrace,
   downsampleTracePoints,
-  mergeTraceHistory,
-  mergeTracesByPriority,
   normalizeAdsbTracePayload,
   createAircraftTraceTracker,
   segmentTracePoints,
-  trimImplausibleTraceSegments,
 } from "./aircraftTraceModel";
 
 {
@@ -137,44 +135,6 @@ import {
 }
 
 {
-  const merged = mergeTraceHistory({
-    fallbackHistory: [
-      { lat: 42.0, lon: -71.0, timestampMs: 60_000 },
-      { lat: 42.01, lon: -70.99, timestampMs: 120_000 },
-    ],
-    recentTrace: [
-      { lat: 41.95, lon: -71.05, timestampMs: 30_000 },
-      { lat: 42.01, lon: -70.99, timestampMs: 120_000 },
-      { lat: 42.02, lon: -70.98, timestampMs: 180_000 },
-    ],
-  });
-
-  assert.deepEqual(
-    merged.map((point) => point.timestampMs),
-    [30_000, 60_000, 120_000, 180_000],
-  );
-}
-
-{
-  const merged = mergeTraceHistory({
-    fallbackHistory: [
-      { lat: 42.0, lon: -71.0, timestampMs: 60_000 },
-      { lat: 42.01, lon: -70.99, timestampMs: 95_000 },
-    ],
-    recentTrace: [
-      { lat: 42.02, lon: -70.98, timestampMs: 119_000 },
-      { lat: 42.03, lon: -70.97, timestampMs: 120_000 },
-    ],
-  });
-
-  assert.deepEqual(
-    merged.map((point) => point.timestampMs),
-    [119_000, 120_000],
-    "recent and fallback history should keep only the latest point in each minute",
-  );
-}
-
-{
   const downsampled = downsampleTracePoints(
     Array.from({ length: 12 }, (_, index) => ({
       lat: 40 + index,
@@ -204,13 +164,14 @@ import {
     { lat: 42.035, lon: -70.965, timestampMs: 240_000, altitude: 7_600 },
   ];
 
-  const merged = mergeTracesByPriority({
-    sources: [
-      { points: liveSource, priority: 2 },
-      { points: recentSource, priority: 1 },
-      { points: fullSource, priority: 0 },
-    ],
-  });
+  const merged = composeAircraftTrace({
+    mode: "focus",
+    sources: {
+      live: liveSource,
+      recent: recentSource,
+      full: fullSource,
+    },
+  }).points;
 
   // Recent should win at the 120_000 ms point (altitude 7_100, not 6_000).
   const at120 = merged.find((p) => p.timestampMs === 120_000);
@@ -231,24 +192,19 @@ import {
 }
 
 {
-  const merged = mergeTracesByPriority({
-    sources: [
-      {
-        points: [
-          { lat: 42.0, lon: -71.0, timestampMs: 60_000, altitude: 5_000 },
-          { lat: 42.01, lon: -70.99, timestampMs: 119_000, altitude: 5_500 },
-          { lat: 42.02, lon: -70.98, timestampMs: 120_000, altitude: 6_000 },
-        ],
-        priority: 0,
-      },
-      {
-        points: [
-          { lat: 42.03, lon: -70.97, timestampMs: 118_000, altitude: 6_500 },
-        ],
-        priority: 1,
-      },
-    ],
-  });
+  const merged = composeAircraftTrace({
+    mode: "focus",
+    sources: {
+      full: [
+        { lat: 42.0, lon: -71.0, timestampMs: 60_000, altitude: 5_000 },
+        { lat: 42.01, lon: -70.99, timestampMs: 119_000, altitude: 5_500 },
+        { lat: 42.02, lon: -70.98, timestampMs: 120_000, altitude: 6_000 },
+      ],
+      recent: [
+        { lat: 42.03, lon: -70.97, timestampMs: 118_000, altitude: 6_500 },
+      ],
+    },
+  }).points;
 
   assert.deepEqual(
     merged.map((point) => point.timestampMs),
@@ -259,23 +215,15 @@ import {
 }
 
 {
-  // Source order in the array doesn't matter — priority is explicit.
-  const a = [{ lat: 1, lon: 1, timestampMs: 1_000, altitude: 100 }];
-  const b = [{ lat: 1.5, lon: 1.5, timestampMs: 1_000, altitude: 200 }];
-  const orderOne = mergeTracesByPriority({
-    sources: [
-      { points: a, priority: 0 },
-      { points: b, priority: 5 },
-    ],
+  const composed = composeAircraftTrace({
+    mode: "selected",
+    sources: {
+      recent: [{ lat: 1, lon: 1, timestampMs: 1_000, altitude: 100 }],
+      live: [{ lat: 1.5, lon: 1.5, timestampMs: 1_000, altitude: 200 }],
+    },
   });
-  const orderTwo = mergeTracesByPriority({
-    sources: [
-      { points: b, priority: 5 },
-      { points: a, priority: 0 },
-    ],
-  });
-  assert.equal(orderOne[0].altitude, 200);
-  assert.equal(orderTwo[0].altitude, 200);
+
+  assert.equal(composed.points[0].altitude, 200);
 }
 
 {
@@ -331,115 +279,6 @@ import {
     [points.slice(0, 2), points.slice(2)],
   );
   assert.deepEqual(segmented.connectors, []);
-}
-
-// --- trimImplausibleTraceSegments -----------------------------------
-
-// Empty / too-short input passes through untouched.
-assert.deepEqual(trimImplausibleTraceSegments([]), []);
-assert.deepEqual(
-  trimImplausibleTraceSegments([{ lat: 42, lon: -71, timestampMs: 1_000 }]),
-  [{ lat: 42, lon: -71, timestampMs: 1_000 }],
-);
-
-// A normal cruise trace — 4 points over BOS area, ~5 min apart,
-// reasonable ground speed — survives unchanged.
-{
-  const points = [
-    { lat: 42.36, lon: -71.0, timestampMs: 1_700_000_000_000 },
-    { lat: 42.40, lon: -71.2, timestampMs: 1_700_000_300_000 },
-    { lat: 42.44, lon: -71.4, timestampMs: 1_700_000_600_000 },
-    { lat: 42.48, lon: -71.6, timestampMs: 1_700_000_900_000 },
-  ];
-  assert.deepEqual(trimImplausibleTraceSegments(points), points);
-}
-
-// Stale persisted point that "jumps" several thousand miles in a few
-// seconds — must be dropped. Only the contiguous tail (the legitimate
-// fresh segment) is kept.
-{
-  const stale = { lat: 33.6, lon: -84.4, timestampMs: 1_700_000_000_000 }; // ATL
-  const fresh = [
-    { lat: 42.36, lon: -71.0, timestampMs: 1_700_000_010_000 }, // 10s later, BOS — implies ~Mach 80
-    { lat: 42.40, lon: -71.2, timestampMs: 1_700_000_310_000 },
-    { lat: 42.44, lon: -71.4, timestampMs: 1_700_000_610_000 },
-  ];
-  const trimmed = trimImplausibleTraceSegments([stale, ...fresh]);
-  assert.deepEqual(trimmed, fresh);
-}
-
-// Multiple implausible jumps — only the segment after the LAST jump is
-// kept, since everything before is suspect by association.
-{
-  const points = [
-    { lat: 33.6, lon: -84.4, timestampMs: 1_700_000_000_000 },
-    { lat: 51.5, lon: 0.0, timestampMs: 1_700_000_005_000 }, // ATL → LHR in 5s (jump 1)
-    { lat: 51.6, lon: 0.1, timestampMs: 1_700_000_300_000 }, // normal cruise after
-    { lat: 42.36, lon: -71.0, timestampMs: 1_700_000_310_000 }, // jump back to BOS (jump 2)
-    { lat: 42.40, lon: -71.2, timestampMs: 1_700_000_610_000 }, // current segment
-  ];
-  const trimmed = trimImplausibleTraceSegments(points);
-  assert.equal(trimmed.length, 2);
-  assert.deepEqual(trimmed[0], points[3]);
-  assert.deepEqual(trimmed[1], points[4]);
-}
-
-// Continuous long-haul cruise — steps under 60 min and each spatial
-// delta implies a plausible ground speed (≤ 600 kt). Nothing gets
-// trimmed. JFK→LHR at ~460 kt average; each 30-min step is ~230 nm
-// (~5 deg lon at this latitude).
-{
-  const points = [
-    { lat: 40.64, lon: -73.78, timestampMs: 1_700_000_000_000 }, // JFK
-    { lat: 43.0, lon: -68.0, timestampMs: 1_700_000_000_000 + 30 * 60 * 1000 },
-    { lat: 45.0, lon: -62.0, timestampMs: 1_700_000_000_000 + 60 * 60 * 1000 },
-    { lat: 47.0, lon: -56.0, timestampMs: 1_700_000_000_000 + 90 * 60 * 1000 },
-    { lat: 49.0, lon: -50.0, timestampMs: 1_700_000_000_000 + 120 * 60 * 1000 },
-  ];
-  assert.deepEqual(trimImplausibleTraceSegments(points), points);
-}
-
-// Multi-leg aircraft with a 4h turnaround gap (yesterday's flight ended
-// at Detroit on the ground, today's flight is in cruise) — everything
-// before the gap is dropped. This is the exact shape adsb.lol's
-// trace_full returns for a same-hex aircraft that flew multiple flights
-// in the trailing 24h window. Today's samples are dense (≤ 30 min
-// apart, plausible cruise) so the only discontinuity is the
-// turnaround gap.
-{
-  const yesterday = [
-    { lat: 42.21, lon: -83.36, timestampMs: 1_700_000_000_000 }, // DTW (yesterday)
-    { lat: 42.30, lon: -83.40, timestampMs: 1_700_000_000_000 + 10 * 60 * 1000 },
-  ];
-  const todayBase = 1_700_000_000_000 + 4 * 60 * 60 * 1000;
-  // Today's flight in 30-min hops, each one a plausible cruise step
-  // (~5 deg lon eastbound at ~42°N).
-  const today = [
-    { lat: 41.97, lon: -87.91, timestampMs: todayBase }, // ORD (today)
-    { lat: 42.05, lon: -85.0, timestampMs: todayBase + 30 * 60 * 1000 },
-    { lat: 42.12, lon: -82.0, timestampMs: todayBase + 60 * 60 * 1000 },
-    { lat: 42.20, lon: -79.0, timestampMs: todayBase + 90 * 60 * 1000 },
-    { lat: 42.28, lon: -75.0, timestampMs: todayBase + 120 * 60 * 1000 },
-    { lat: 42.36, lon: -71.0, timestampMs: todayBase + 150 * 60 * 1000 }, // BOS
-  ];
-  const trimmed = trimImplausibleTraceSegments([...yesterday, ...today]);
-  assert.deepEqual(trimmed, today);
-}
-
-// Custom thresholds are honored — tighter gap setting trims sooner.
-{
-  const points = [
-    { lat: 42.0, lon: -71.0, timestampMs: 1_700_000_000_000 },
-    { lat: 42.1, lon: -71.1, timestampMs: 1_700_000_000_000 + 20 * 60 * 1000 }, // 20-min gap
-    { lat: 42.2, lon: -71.2, timestampMs: 1_700_000_000_000 + 22 * 60 * 1000 },
-  ];
-  // Default 60-min threshold leaves it intact.
-  assert.deepEqual(trimImplausibleTraceSegments(points), points);
-  // Tighter 15-min threshold trims the leading point.
-  assert.deepEqual(
-    trimImplausibleTraceSegments(points, { maxGapMs: 15 * 60 * 1000 }),
-    points.slice(1),
-  );
 }
 
 console.log("aircraftTraceModel.test.ts ok");

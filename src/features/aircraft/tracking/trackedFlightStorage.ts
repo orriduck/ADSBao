@@ -7,8 +7,8 @@
 
 const STORAGE_KEY = "adsbao:tracked-flights";
 
-export const TRACKING_TTL_MS = 24 * 60 * 60 * 1000;
-export const TRACE_LOOKBACK_MS = 30 * 60 * 1000;
+const TRACKING_TTL_MS = 24 * 60 * 60 * 1000;
+const TRACE_LOOKBACK_MS = 30 * 60 * 1000;
 
 const isBrowser = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -91,22 +91,6 @@ export function getOrCreateTrackedFlight(callsign: unknown, options: TrackedFlig
   store[normalized] = entry;
   writeStore(store);
   return entry;
-}
-
-export function getTrackedFlight(callsign: unknown, { now = Date.now() }: TrackedFlightClockOptions = {}) {
-  const normalized = normalizeCallsign(callsign);
-  if (!normalized || !isBrowser()) return null;
-  const store = pruneStore(readStore(), { now });
-  return store[normalized] || null;
-}
-
-export function clearTrackedFlight(callsign: unknown) {
-  const normalized = normalizeCallsign(callsign);
-  if (!normalized || !isBrowser()) return;
-  const store = readStore();
-  if (!store[normalized]) return;
-  delete store[normalized];
-  writeStore(store);
 }
 
 // Convenience: given a session, return the trace cutoff timestamp

@@ -4,11 +4,6 @@
 // reads it directly.
 import { resolveAircraftDisplayModel } from "../aircraftTypeDisplayModel";
 
-export const TRAFFIC_FILTER_OPTIONS = [
-  { value: "all", labelKey: "sidebar.all", label: "All" },
-  { value: "routed", labelKey: "filters.routesOnly", label: "Routes only" },
-];
-
 export const ALTITUDE_LEVEL_OPTIONS = [
   { value: "all", labelKey: "filters.altAny", label: "Any" },
   { value: "ground", labelKey: "filters.altGround", label: "Ground" },
@@ -86,27 +81,21 @@ export function aircraftTypeLabel(aircraft: AircraftFilterRecord = {}) {
   return display.icaoType || display.category;
 }
 
-export function getAircraftCategoryCode(aircraft: AircraftFilterRecord = {}) {
+function getAircraftCategoryCode(aircraft: AircraftFilterRecord = {}) {
   const raw = String(aircraft.category || "").trim().toUpperCase();
   return CATEGORY_LABELS[raw] ? raw : "OTHER";
 }
 
-export function getCategoryLabel(categoryCode: string) {
+function getCategoryLabel(categoryCode: string) {
   return (CATEGORY_LABELS[categoryCode] || OTHER_LABEL).default;
 }
 
-export function getCategoryLabelKey(categoryCode: string) {
+function getCategoryLabelKey(categoryCode: string) {
   return (CATEGORY_LABELS[categoryCode] || OTHER_LABEL).key;
 }
 
 function getAircraftTypeFilterLabel(display: ReturnType<typeof resolveAircraftDisplayModel>) {
   return display.icaoType ? display.displayName : UNCLASSIFIED_TYPE_LABEL;
-}
-
-export function getAircraftTypes(aircraft: AircraftFilterRecord[] = []) {
-  return [...new Set(aircraft.map(aircraftTypeLabel).filter(Boolean))].sort(
-    (a, b) => String(a).localeCompare(String(b)),
-  );
 }
 
 // Build [{ category, label, types: [...] }] from the current aircraft set,
@@ -171,7 +160,7 @@ const toNumber = (value: unknown) => {
   return Number.isFinite(n) ? n : null;
 };
 
-export function matchesTrafficFilter(aircraft: AircraftFilterRecord, trafficFilter: string) {
+function matchesTrafficFilter(aircraft: AircraftFilterRecord, trafficFilter: string) {
   if (trafficFilter === "routed") {
     // flightRouteLabel is non-empty only when the route lookup resolved a
     // distinct origin AND destination — i.e., a legitimately parsed route.
@@ -180,13 +169,13 @@ export function matchesTrafficFilter(aircraft: AircraftFilterRecord, trafficFilt
   return true;
 }
 
-export function matchesMovementFilter(aircraft: AircraftFilterRecord, movementFilter: string) {
+function matchesMovementFilter(aircraft: AircraftFilterRecord, movementFilter: string) {
   if (movementFilter === "departures") return aircraft?.movement === "DEPARTURE";
   if (movementFilter === "arrivals") return aircraft?.movement === "ARRIVAL";
   return true;
 }
 
-export function matchesTypeFilter(aircraft: AircraftFilterRecord, typeFilter: string | string[]) {
+function matchesTypeFilter(aircraft: AircraftFilterRecord, typeFilter: string | string[]) {
   if (typeFilter === "all" || !typeFilter) return true;
   if (Array.isArray(typeFilter)) {
     if (typeFilter.length === 0) return true;
@@ -195,7 +184,7 @@ export function matchesTypeFilter(aircraft: AircraftFilterRecord, typeFilter: st
   return aircraftTypeLabel(aircraft) === typeFilter;
 }
 
-export function matchesAltitudeLevel(aircraft: AircraftFilterRecord, altitudeLevel: string) {
+function matchesAltitudeLevel(aircraft: AircraftFilterRecord, altitudeLevel: string) {
   if (altitudeLevel === "all") return true;
   const altitude = aircraft.onGround ? 0 : toNumber(aircraft.altitude);
   if (altitudeLevel === "ground") return altitude == null || altitude < 100;

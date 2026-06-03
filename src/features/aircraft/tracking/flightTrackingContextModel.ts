@@ -1,6 +1,6 @@
 import { toFiniteNumber } from "../../../utils/math";
 
-export const DEFAULT_TRACKING_CONTEXT_COORDINATE_PRECISION = 1;
+const DEFAULT_TRACKING_CONTEXT_COORDINATE_PRECISION = 1;
 
 type FlightPositionInput = {
   lat?: unknown;

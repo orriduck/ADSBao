@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 
 import {
-  ADSBDB_ROUTE_MISS_STATUS,
   buildAdsbdbCallsignRouteUrl,
   buildAdsbdbRouteResponse,
 } from "./adsbdbRouteProxyModel";
@@ -11,7 +10,6 @@ assert.equal(
   "https://api.adsbdb.com/v0/callsign/AAL1234",
 );
 assert.equal(buildAdsbdbCallsignRouteUrl("bad-call"), "");
-assert.equal(ADSBDB_ROUTE_MISS_STATUS, 200);
 
 const adsbdbPayload = {
   response: {

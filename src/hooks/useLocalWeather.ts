@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  localWeatherClient,
-  normalizeLocalWeather,
-} from "../features/aviation/aviationData";
+import { createLocalWeatherClient } from "../features/weather/localWeatherClient";
+import { normalizeLocalWeather } from "../features/weather/localWeatherNormalizer";
+
+const localWeatherClient = createLocalWeatherClient();
 
 export function useLocalWeather(lat, lon) {
   const [weather, setWeather] = useState(null);

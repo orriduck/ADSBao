@@ -494,11 +494,6 @@ const en = {
     menuLabel: "Language",
     selectAria: "Select language",
   },
-  primary: {
-    menuLabel: "Accent",
-    yellow: "Valley IV",
-    teal: "Wuling",
-  },
   ui: {
     close: "Close",
     sidebar: "Sidebar",

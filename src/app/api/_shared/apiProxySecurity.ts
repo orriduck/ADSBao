@@ -63,7 +63,7 @@ const normalizeOrigin = (value: unknown) => {
   }
 };
 
-export function getConfiguredAllowedOrigins({
+function getConfiguredAllowedOrigins({
   env = typeof process !== "undefined" ? process.env : {},
 }: { env?: EnvLike } = {}) {
   return new Set(
@@ -78,7 +78,7 @@ export function getConfiguredAllowedOrigins({
   );
 }
 
-export function isCoordinateInRange(value: unknown, { min, max }: CoordinateRange) {
+function isCoordinateInRange(value: unknown, { min, max }: CoordinateRange) {
   const number = Number(value);
   return Number.isFinite(number) && number >= min && number <= max;
 }
@@ -108,18 +108,18 @@ export function normalizeAircraftHex(value: unknown) {
   return /^(~?[0-9A-F]{6})$/.test(hex) ? hex : "";
 }
 
-export function getClientIp(request: Request) {
+function getClientIp(request: Request) {
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) return forwardedFor.split(",")[0].trim();
   return request.headers.get("x-real-ip") || "unknown";
 }
 
-export function getRequestOrigin(request: Request) {
+function getRequestOrigin(request: Request) {
   const origin = request.headers.get("origin");
   return origin ? normalizeOrigin(origin) : "";
 }
 
-export function getSameOrigin(request: Request) {
+function getSameOrigin(request: Request) {
   try {
     return new URL(request.url).origin;
   } catch {
@@ -127,7 +127,7 @@ export function getSameOrigin(request: Request) {
   }
 }
 
-export function getAllowedRequestOrigin(request: Request, options: ProxyHeaderOptions = {}) {
+function getAllowedRequestOrigin(request: Request, options: ProxyHeaderOptions = {}) {
   const origin = getRequestOrigin(request);
   if (!origin) return "";
 
@@ -139,7 +139,7 @@ export function getAllowedRequestOrigin(request: Request, options: ProxyHeaderOp
   return allowedOrigins.has(origin) ? origin : "";
 }
 
-export function isCrossOriginBlocked(request: Request, options: ProxyHeaderOptions = {}) {
+function isCrossOriginBlocked(request: Request, options: ProxyHeaderOptions = {}) {
   return Boolean(getRequestOrigin(request) && !getAllowedRequestOrigin(request, options));
 }
 
@@ -186,7 +186,7 @@ const pruneRateLimitBuckets = (now: number) => {
   }
 };
 
-export function checkProxyRateLimit({
+function checkProxyRateLimit({
   request,
   key,
   now = Date.now(),
@@ -368,8 +368,4 @@ export async function readResponseArrayBuffer(
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
   return copy.buffer;
-}
-
-export function __resetProxySecurityForTests() {
-  rateLimitBuckets.clear();
 }

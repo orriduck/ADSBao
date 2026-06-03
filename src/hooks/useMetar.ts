@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createMetarClient } from "../features/weather/metar/metarClient";
 import { normalizeMetarPayload } from "../features/weather/metar/metarModel";
-import { metarClient } from "../features/aviation/aviationData";
+
+const metarClient = createMetarClient();
 
 export function useMetar(icao) {
   const [raw, setRaw] = useState("");

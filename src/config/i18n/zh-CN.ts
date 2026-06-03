@@ -488,11 +488,6 @@ const zhCN = {
     menuLabel: "语言",
     selectAria: "选择语言",
   },
-  primary: {
-    menuLabel: "主色调",
-    yellow: "四号谷地",
-    teal: "武陵",
-  },
   ui: {
     close: "关闭",
     sidebar: "侧栏",

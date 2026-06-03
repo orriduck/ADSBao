@@ -1,9 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
-  __resetProxySecurityForTests,
   buildProxyHeaders,
-  checkProxyRateLimit,
   createCorsPreflightResponse,
   enforceProxyRequest,
   logProxyRouteResponse,
@@ -14,8 +12,6 @@ import {
   readResponseJson,
   readResponseText,
 } from "./apiProxySecurity";
-
-__resetProxySecurityForTests();
 
 assert.equal(normalizeLatitude("42.1"), 42.1);
 assert.equal(normalizeLatitude("91"), null);
@@ -75,25 +71,16 @@ const limitedRequest = new Request("https://adsbao.test/api/proxy/metar/KBOS", {
 });
 
 assert.equal(
-  checkProxyRateLimit({
-    request: limitedRequest,
-    key: "test",
-    now: 1_000,
-    windowMs: 60_000,
-    maxRequests: 1,
-  }).allowed,
-  true,
+  enforceProxyRequest(limitedRequest, {
+    rateLimit: { key: "test", now: 1_000, windowMs: 60_000, maxRequests: 1 },
+  }),
+  null,
 );
-assert.equal(
-  checkProxyRateLimit({
-    request: limitedRequest,
-    key: "test",
-    now: 2_000,
-    windowMs: 60_000,
-    maxRequests: 1,
-  }).allowed,
-  false,
-);
+const limitedResponse = enforceProxyRequest(limitedRequest, {
+  rateLimit: { key: "test", now: 2_000, windowMs: 60_000, maxRequests: 1 },
+});
+assert.equal(limitedResponse?.status, 429);
+assert.equal(limitedResponse?.headers.get("Retry-After"), "59");
 
 await assert.rejects(
   readResponseText(new Response("abcdef"), {

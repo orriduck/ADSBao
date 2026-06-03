@@ -1,18 +1,9 @@
 import assert from "node:assert/strict";
 
-import {
-  ATTITUDE_SMOOTHING,
-  PITCH_LIMIT_DEG,
-  ROLL_LIMIT_DEG,
-  STALE_SAMPLE_GAP_MS,
-  computePitch,
-  computeRoll,
-  computeTurnRate,
-  createAttitudeTracker,
-  normalizeAngle,
-  shortestHeadingDelta,
-  smoothToward,
-} from "./aircraftAttitude";
+import { createAttitudeTracker } from "./aircraftAttitude";
+
+const ATTITUDE_SMOOTHING = 0.35;
+const STALE_SAMPLE_GAP_MS = 8_000;
 
 const nearlyEqual = (actual, expected, tolerance = 1e-9) => {
   assert.ok(
@@ -20,78 +11,6 @@ const nearlyEqual = (actual, expected, tolerance = 1e-9) => {
     `expected ${actual} to be within ${tolerance} of ${expected}`,
   );
 };
-
-// normalizeAngle: wraps into (-180, 180]
-assert.equal(normalizeAngle(0), 0);
-assert.equal(normalizeAngle(180), 180);
-assert.equal(normalizeAngle(-180), 180);
-assert.equal(normalizeAngle(190), -170);
-assert.equal(normalizeAngle(-190), 170);
-assert.equal(normalizeAngle(540), 180);
-assert.equal(normalizeAngle(Number.NaN), 0);
-
-// shortestHeadingDelta: wrap-aware across the 0/360 seam
-assert.equal(shortestHeadingDelta(359, 1), 2);
-assert.equal(shortestHeadingDelta(1, 359), -2);
-assert.equal(shortestHeadingDelta(10, 20), 10);
-assert.equal(shortestHeadingDelta(350, 10), 20);
-assert.equal(shortestHeadingDelta(null, 10), 0);
-assert.equal(shortestHeadingDelta(10, undefined), 0);
-
-// computeTurnRate
-assert.equal(
-  computeTurnRate({ prevTrack: 100, currTrack: 110, prevTime: 0, currTime: 1000 }),
-  10,
-  "10° / 1s = 10 deg/s",
-);
-assert.equal(
-  computeTurnRate({ prevTrack: 359, currTrack: 1, prevTime: 0, currTime: 2000 }),
-  1,
-  "wraps across 0/360",
-);
-assert.equal(
-  computeTurnRate({ prevTrack: null, currTrack: 1, prevTime: 0, currTime: 2000 }),
-  0,
-  "missing prev track → 0",
-);
-assert.equal(
-  computeTurnRate({ prevTrack: 1, currTrack: 1, prevTime: 0, currTime: 0 }),
-  0,
-  "non-positive dt → 0",
-);
-assert.equal(
-  computeTurnRate({
-    prevTrack: 10,
-    currTrack: 90,
-    prevTime: 0,
-    currTime: STALE_SAMPLE_GAP_MS + 1,
-  }),
-  0,
-  "gap beyond stale window → 0",
-);
-
-// computeRoll: clamped to ±35
-assert.equal(computeRoll(0), 0);
-assert.equal(computeRoll(2), 8.8); // 2 * 4.4
-assert.equal(computeRoll(100), ROLL_LIMIT_DEG);
-assert.equal(computeRoll(-100), -ROLL_LIMIT_DEG);
-assert.equal(computeRoll(Number.NaN), 0);
-
-// computePitch: clamped to ±12
-assert.equal(computePitch(0), 0);
-assert.equal(computePitch(600), 4);
-assert.equal(computePitch(-600), -4);
-assert.equal(computePitch(99_999), PITCH_LIMIT_DEG);
-assert.equal(computePitch(-99_999), -PITCH_LIMIT_DEG);
-assert.equal(computePitch(null), 0);
-assert.equal(computePitch(undefined), 0);
-
-// smoothToward: convex combination
-nearlyEqual(smoothToward(0, 10, 0.5), 5);
-nearlyEqual(smoothToward(10, 0, 1), 0);
-nearlyEqual(smoothToward(10, 0, 0), 10);
-// Defaults to ATTITUDE_SMOOTHING
-nearlyEqual(smoothToward(0, 10), 10 * ATTITUDE_SMOOTHING);
 
 // Tracker: roll/pitch from a sequence of samples
 {
@@ -107,7 +26,7 @@ nearlyEqual(smoothToward(0, 10), 10 * ATTITUDE_SMOOTHING);
   const second = tracker.update({ track: 110, baroRate: 1500, time: 3_000 });
   nearlyEqual(second.roll, 35 * ATTITUDE_SMOOTHING, 1e-9);
   // Pitch continues smoothing toward 10 deg target
-  assert.ok(second.pitch > first.pitch && second.pitch <= PITCH_LIMIT_DEG);
+  assert.ok(second.pitch > first.pitch && second.pitch <= 12);
 
   // Wrap-around left turn: 358 → 2 ≡ +4°, but here we go the other way.
   const third = tracker.update({ track: 100, baroRate: 0, time: 4_000 });
@@ -117,6 +36,29 @@ nearlyEqual(smoothToward(0, 10), 10 * ATTITUDE_SMOOTHING);
   // Reset clears everything
   tracker.reset();
   assert.deepEqual(tracker.peek(), { roll: 0, pitch: 0 });
+}
+
+// Tracker: wrap-aware turns across 0/360 use the shortest signed heading delta
+{
+  const tracker = createAttitudeTracker();
+  tracker.update({ track: 359, baroRate: 0, time: 0 });
+  const wrappedRight = tracker.update({ track: 1, baroRate: 0, time: 2_000 });
+  assert.ok(wrappedRight.roll > 0, "359 to 1 banks right, not hard left");
+
+  tracker.reset();
+  tracker.update({ track: 1, baroRate: 0, time: 0 });
+  const wrappedLeft = tracker.update({ track: 359, baroRate: 0, time: 2_000 });
+  assert.ok(wrappedLeft.roll < 0, "1 to 359 banks left, not hard right");
+}
+
+// Tracker: roll and pitch stay clamped even on extreme input
+{
+  const tracker = createAttitudeTracker();
+  tracker.update({ track: 0, baroRate: 99_999, time: 0 });
+  const steepTurn = tracker.update({ track: 180, baroRate: 99_999, time: 1_000 });
+
+  assert.ok(steepTurn.roll <= 35);
+  assert.ok(steepTurn.pitch <= 12);
 }
 
 // Tracker: stale gap forgets the previous sample

@@ -4,7 +4,6 @@ import { AIRCRAFT_TRAFFIC_CONFIG } from "../../../config/aviation";
 import {
   NEARBY_AIRPORT_DEFAULTS,
   NEARBY_AIRPORT_LIMITS,
-  NEARBY_AIRPORT_RADIUS_MULTIPLIER,
 } from "./nearbyAirports.models";
 import {
   isValidNearbyAirportQuery,
@@ -20,7 +19,7 @@ import {
   assert.equal(query.radiusNm, NEARBY_AIRPORT_DEFAULTS.radiusNm);
   assert.equal(
     query.radiusNm,
-    AIRCRAFT_TRAFFIC_CONFIG.rangeNm * NEARBY_AIRPORT_RADIUS_MULTIPLIER,
+    AIRCRAFT_TRAFFIC_CONFIG.rangeNm * 1.5,
   );
   assert.equal(query.limit, NEARBY_AIRPORT_LIMITS.maxLimit);
   assert.equal("country" in query, false);

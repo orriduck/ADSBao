@@ -5,7 +5,7 @@ import {
   normalizeMapSettings,
 } from "./mapSettingsModel";
 
-export const MAP_SETTINGS_STORAGE_KEY = "adsbao:airport-map-settings:v1";
+const MAP_SETTINGS_STORAGE_KEY = "adsbao:airport-map-settings:v1";
 
 export function readStoredMapSettings() {
   if (typeof window === "undefined") return null;

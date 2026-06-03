@@ -14,12 +14,12 @@
 // Returning `null` means "no silhouette match" — the caller renders the
 // arrow/dot baseline.
 
-export const AIRCRAFT_ICON_BASE_PATH = "/api/icons/aircraft";
+const AIRCRAFT_ICON_BASE_PATH = "/api/icons/aircraft";
 
 // Canonical list of icon names available on disk. Used by the API route to
 // allowlist incoming names (preventing path traversal) and by the resolver
 // for direct lookup. Names are lowercase, no extension.
-export const AIRCRAFT_ICON_NAMES = Object.freeze([
+const AIRCRAFT_ICON_NAMES = Object.freeze([
   "a10", "a124", "a19n", "a20n", "a21n", "a225", "a306", "a310", "a318",
   "a320", "a321", "a332", "a333", "a337", "a338", "a339", "a342", "a343",
   "a345", "a346", "a359", "a35k", "a388", "a3st", "a4", "a400", "ajet",
@@ -161,7 +161,7 @@ const normalizeKey = (value: unknown) =>
 // shape, not size, carries their signal. Applied to both the silhouette and
 // the vector-arrow fallback so the wake class is visible regardless of
 // whether we resolved a type-specific icon.
-export const AIRCRAFT_BASELINE_SCALE = 1;
+const AIRCRAFT_BASELINE_SCALE = 1;
 
 const CATEGORY_SIZE_SCALE = {
   A1: 0.9,

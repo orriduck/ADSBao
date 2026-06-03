@@ -13,12 +13,9 @@ type AircraftLoadingOverlayVisibilityOptions = {
   visibilityRefreshLoading?: boolean;
 };
 
-type AircraftLoadingOverlayModeOptions = {
+type AircraftLoadingOverlayStateOptions = {
   mapReady?: boolean;
   feedLoading?: boolean;
-};
-
-type AircraftLoadingOverlayStateOptions = AircraftLoadingOverlayModeOptions & {
   variant?: "airport" | "flight";
   trackedAircraftLoading?: boolean;
   trafficLoading?: boolean;
@@ -80,15 +77,6 @@ export function shouldShowAircraftLoadingOverlay({
   visibilityRefreshLoading = false,
 }: AircraftLoadingOverlayVisibilityOptions = {}) {
   return Boolean(initialLoading || visibilityRefreshLoading);
-}
-
-export function resolveAircraftLoadingOverlayMode({
-  mapReady = false,
-  feedLoading = false,
-}: AircraftLoadingOverlayModeOptions = {}) {
-  if (!mapReady) return "map";
-  if (feedLoading) return "feed";
-  return "idle";
 }
 
 export function resolveAircraftLoadingOverlayState({

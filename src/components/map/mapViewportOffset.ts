@@ -8,7 +8,7 @@ function pair(value: any, fallback: number[]) {
   return fallback;
 }
 
-export function getFloatingSidebarOcclusionWidth(map: any) {
+function getFloatingSidebarOcclusionWidth(map: any) {
   const container = map?.getContainer?.();
   const kit = container?.closest?.(".airport-map-kit");
   const sidebar = kit?.querySelector?.(SIDEBAR_SELECTOR);

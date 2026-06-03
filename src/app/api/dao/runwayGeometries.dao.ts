@@ -69,7 +69,7 @@ const mapRunwayGeometryRow = (row: RunwayGeometryRecord | null | undefined) => {
   };
 };
 
-export function createRunwayGeometryRepository({
+function createRunwayGeometryRepository({
   supabaseUrl,
   supabaseKey,
   createClientImpl,

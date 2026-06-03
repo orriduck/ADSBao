@@ -14,7 +14,7 @@ const STORAGE_KEY = "adsbao:tracked-trace";
 
 // Keep aligned with TRACKING_TTL_MS — once the tracking session expires
 // the trace cache for that callsign is meaningless.
-export const TRACE_STORAGE_TTL_MS = 24 * 60 * 60 * 1000;
+const TRACE_STORAGE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Soft cap to keep the localStorage payload reasonable. At the standard
 // 3s poll cadence this is ~50 minutes of live ticks; the cutoff window
@@ -138,14 +138,5 @@ export function writeTrackedTrace(callsign: unknown, points: unknown, { now = Da
       : sanitized;
   const store = pruneStore(readStore(), { now });
   store[normalized] = { points: trimmed, updatedAt: now };
-  writeStore(store);
-}
-
-export function clearTrackedTrace(callsign: unknown) {
-  const normalized = normalizeCallsign(callsign);
-  if (!normalized || !isBrowser()) return;
-  const store = readStore();
-  if (!store[normalized]) return;
-  delete store[normalized];
   writeStore(store);
 }

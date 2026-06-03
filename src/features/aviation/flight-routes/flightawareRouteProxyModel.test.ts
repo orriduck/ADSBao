@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import {
   buildFlightAwareCallsignRouteUrl,
   buildFlightAwareRouteResponse,
-  parseFlightAwareRoutePage,
 } from "./flightawareRouteProxyModel";
 
 const sampleFlightAwareHtml = `
@@ -19,21 +18,6 @@ assert.equal(
   "https://www.flightaware.com/live/flight/AAL1234",
 );
 assert.equal(buildFlightAwareCallsignRouteUrl("bad-call"), "");
-
-const parsed = parseFlightAwareRoutePage("aal1234", sampleFlightAwareHtml);
-assert.equal(parsed.callsign, "AAL1234");
-assert.equal(parsed.callsignIcao, "AAL1234");
-assert.equal(parsed.callsignIata, "AA1234");
-assert.equal(parsed.number, "1234");
-assert.equal(parsed.airline.icao, "AAL");
-assert.equal(parsed.airline.iata, "AA");
-assert.equal(parsed.airline.name, "American Airlines");
-assert.equal(
-  parsed.airline.iconUrl,
-  "https://www.flightaware.com/images/airline_logos/90p/AAL.png",
-);
-assert.equal(parsed.originIcao, "KDFW");
-assert.equal(parsed.destinationIcao, "KMKE");
 
 const airports = {
   KDFW: {
@@ -63,9 +47,15 @@ const route = await buildFlightAwareRouteResponse({
 });
 
 assert.equal(route.callsign, "AAL1234");
+assert.equal(route.callsignIcao, "AAL1234");
 assert.equal(route.callsignIata, "AA1234");
 assert.equal(route.airline.icao, "AAL");
-assert.equal(route.airline.iconUrl, parsed.airline.iconUrl);
+assert.equal(route.airline.iata, "AA");
+assert.equal(route.airline.name, "American Airlines");
+assert.equal(
+  route.airline.iconUrl,
+  "https://www.flightaware.com/images/airline_logos/90p/AAL.png",
+);
 assert.equal(route.origin.icao, "KDFW");
 assert.equal(route.origin.iata, "DFW");
 assert.equal(route.destination.icao, "KMKE");

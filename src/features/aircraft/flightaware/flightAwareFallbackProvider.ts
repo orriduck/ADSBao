@@ -2,10 +2,10 @@ import { readResponseText } from "../../../app/api/_shared/apiProxySecurity";
 import { buildAdsbaoUserAgent } from "../../../config/siteMeta";
 import { normalizeRouteCallsign } from "../../aviation/flight-routes/flightRouteCallsign";
 
-export const FLIGHTAWARE_FALLBACK_BASE = "https://www.flightaware.com/live/flight";
-export const FLIGHTAWARE_FALLBACK_CACHE_TTL_MS = 60_000;
-export const FLIGHTAWARE_FALLBACK_TIMEOUT_MS = 7_000;
-export const FLIGHTAWARE_FALLBACK_USER_AGENT =
+const FLIGHTAWARE_FALLBACK_BASE = "https://www.flightaware.com/live/flight";
+const FLIGHTAWARE_FALLBACK_CACHE_TTL_MS = 60_000;
+const FLIGHTAWARE_FALLBACK_TIMEOUT_MS = 7_000;
+const FLIGHTAWARE_FALLBACK_USER_AGENT =
   buildAdsbaoUserAgent("flightaware/fallback-html");
 
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
@@ -296,17 +296,17 @@ function buildMetadata({
   };
 }
 
-export function buildFlightAwareFallbackUrl(callsign: unknown) {
+function buildFlightAwareFallbackUrl(callsign: unknown) {
   const normalized = normalizeRouteCallsign(callsign);
   if (!normalized) return "";
   return `${FLIGHTAWARE_FALLBACK_BASE}/${encodeURIComponent(normalized)}`;
 }
 
-export function isFlightAwareFallbackEnabled(env: EnvLike = process.env) {
+function isFlightAwareFallbackEnabled(env: EnvLike = process.env) {
   return String(env?.FLIGHTAWARE_FALLBACK_ENABLED || "true").toLowerCase() !== "false";
 }
 
-export function parseFlightAwareFallbackPage({
+function parseFlightAwareFallbackPage({
   callsign,
   html,
   fetchedAt,
@@ -401,11 +401,6 @@ export function parseFlightAwareFallbackPage({
       },
     },
   };
-}
-
-export function clearFlightAwareFallbackCache() {
-  cache.clear();
-  requestTimes.length = 0;
 }
 
 function checkRateLimit(

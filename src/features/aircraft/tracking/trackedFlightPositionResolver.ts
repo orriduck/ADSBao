@@ -3,10 +3,10 @@ import {
   hasTerminalFlightAwareFallback,
 } from "./lostSignalTrackingModel";
 
-export const ADSB_FRESH_MAX_AGE_SECONDS = 60;
-export const ADSB_STALE_MIN_AGE_SECONDS = 90;
+const ADSB_FRESH_MAX_AGE_SECONDS = 60;
+const ADSB_STALE_MIN_AGE_SECONDS = 90;
 
-export const TRACKED_FLIGHT_STATUS = Object.freeze({
+const TRACKED_FLIGHT_STATUS = Object.freeze({
   ADSB_LIVE: "adsb_live",
   FLIGHTAWARE_ACTIVE: "flightaware_active",
   FLIGHTAWARE_TERMINAL: "flightaware_terminal",
@@ -42,7 +42,7 @@ function buildTrackingState(status: string, overrides: TrackingRecord = {}) {
   };
 }
 
-export function getAdsbPositionAgeSeconds(position: TrackingRecord, now = Date.now()) {
+function getAdsbPositionAgeSeconds(position: TrackingRecord, now = Date.now()) {
   const directAge = toNumber(position?.seen_pos ?? position?.seen);
   if (directAge != null) return Math.max(0, directAge);
 
@@ -52,7 +52,7 @@ export function getAdsbPositionAgeSeconds(position: TrackingRecord, now = Date.n
   return Number.POSITIVE_INFINITY;
 }
 
-export function hasUsableLatLon(position: TrackingRecord | null | undefined) {
+function hasUsableLatLon(position: TrackingRecord | null | undefined) {
   const lat = toNumber(position?.lat);
   const lon = toNumber(position?.lon);
   return lat != null && lon != null && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
@@ -62,7 +62,7 @@ function sourceKey(source: unknown) {
   return PROVIDER_SOURCE[String(source || "").trim().toLowerCase()] || "unknown";
 }
 
-export function buildPositionQuality({
+function buildPositionQuality({
   source,
   kind = "observed",
   fetchedAt,

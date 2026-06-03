@@ -21,8 +21,6 @@ export const NAVAID_TILE_CACHE_HEADERS = Object.freeze({
   "Vercel-CDN-Cache-Control": "public, s-maxage=2592000, stale-while-revalidate=604800",
 });
 
-export const NAVAID_COUNT_TILE_CACHE_HEADERS = NAVAID_TILE_CACHE_HEADERS;
-
 export const WAYPOINT_TILE_CACHE_HEADERS = Object.freeze({
   "Cache-Control": "public, max-age=0, s-maxage=604800, stale-while-revalidate=86400",
   "CDN-Cache-Control": "public, s-maxage=604800, stale-while-revalidate=86400",
@@ -94,20 +92,6 @@ export function bboxToOpenAipParam(bbox: ContextTileRecord = {}) {
 
 export function buildContextTileCacheKey(resource: string, tile: ContextTile) {
   return `${resource}:${tile.z}:${tile.x}:${tile.y}`;
-}
-
-export function getContextTileNeighbors(tile: ContextTile, radius = 0) {
-  const safeRadius = Math.max(0, Math.min(Math.trunc(Number(radius)) || 0, 1));
-  const maxCoord = 2 ** tile.z - 1;
-  const tiles: ContextTile[] = [];
-  for (let x = tile.x - safeRadius; x <= tile.x + safeRadius; x += 1) {
-    if (x < 0 || x > maxCoord) continue;
-    for (let y = tile.y - safeRadius; y <= tile.y + safeRadius; y += 1) {
-      if (y < 0 || y > maxCoord) continue;
-      tiles.push({ z: tile.z, x, y });
-    }
-  }
-  return tiles.sort((left, right) => left.x - right.x || left.y - right.y);
 }
 
 export function getContextTilesForBounds({

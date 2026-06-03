@@ -1,4 +1,4 @@
-export const OPEN_METEO_CURRENT_VARIABLES = [
+const OPEN_METEO_CURRENT_VARIABLES = [
   "temperature_2m",
   "relative_humidity_2m",
   "apparent_temperature",
@@ -16,7 +16,7 @@ export const OPEN_METEO_CURRENT_VARIABLES = [
   "wind_gusts_10m",
 ].join(",");
 
-export function normalizeCoordinateParam(value) {
+function normalizeCoordinateParam(value) {
   const coordinate = Number(value);
   return Number.isFinite(coordinate) ? coordinate : null;
 }

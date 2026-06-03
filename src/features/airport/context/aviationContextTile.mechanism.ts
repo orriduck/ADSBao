@@ -86,10 +86,6 @@ function writeCached(key: string, payload: ContextTileRecord) {
   return payload;
 }
 
-export function clearAviationContextTileCache() {
-  tileMemoryCache.clear();
-}
-
 export async function getAirspaceTile({
   tile,
   client,

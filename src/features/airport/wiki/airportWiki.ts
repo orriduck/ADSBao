@@ -71,7 +71,7 @@ const unique = (values: string[]) => {
   })
 }
 
-export const getAirportWikiTitleCandidates = (airport: AirportWikiRecord) => {
+const getAirportWikiTitleCandidates = (airport: AirportWikiRecord) => {
   const name = cleanText(airport?.name)
   const expandedName = expandAirportName(name)
   const expandedAirportName = expandedName && !/\bAirport\b/i.test(expandedName)
@@ -88,11 +88,11 @@ export const getAirportWikiTitleCandidates = (airport: AirportWikiRecord) => {
   ])
 }
 
-export const getWikipediaSummaryUrl = (title: string, locale = "en") => {
+const getWikipediaSummaryUrl = (title: string, locale = "en") => {
   return `https://${wikiHost(locale)}/api/rest_v1/page/summary/${encodeURIComponent(cleanText(title))}`
 }
 
-export const normalizeWikipediaSummary = (payload: AirportWikiRecord) => {
+const normalizeWikipediaSummary = (payload: AirportWikiRecord) => {
   const title = plainTextFromHtml(payload?.displaytitle) || cleanText(payload?.title)
   const extract = cleanText(payload?.extract)
   const url = payload?.content_urls?.desktop?.page || payload?.content_urls?.mobile?.page || ''
@@ -106,7 +106,7 @@ export const normalizeWikipediaSummary = (payload: AirportWikiRecord) => {
 // it to translate an English title (e.g. "Chicago O'Hare International
 // Airport") into the matching article title on the requested wiki (e.g.
 // "芝加哥奥黑尔国际机场" on zh.wikipedia.org).
-export const getCrossLangTitleUrl = (enTitle: string, targetLang: string) => {
+const getCrossLangTitleUrl = (enTitle: string, targetLang: string) => {
   const params = new URLSearchParams({
     action: "query",
     prop: "langlinks",
@@ -119,7 +119,7 @@ export const getCrossLangTitleUrl = (enTitle: string, targetLang: string) => {
   return `https://en.wikipedia.org/w/api.php?${params.toString()}`
 }
 
-export const extractCrossLangTitle = (payload: AirportWikiRecord) => {
+const extractCrossLangTitle = (payload: AirportWikiRecord) => {
   const pages = payload?.query?.pages
   if (!pages || typeof pages !== "object") return ""
   const page = Object.values(pages)[0] as AirportWikiRecord

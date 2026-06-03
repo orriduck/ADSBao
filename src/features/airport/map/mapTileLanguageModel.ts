@@ -47,7 +47,7 @@ type ProxiedMapStyleOptions = {
   proxyOrigin?: string;
 };
 
-export function normalizeMapLabelLocale(locale: string) {
+function normalizeMapLabelLocale(locale: string) {
   return MAP_LABEL_LOCALES[locale] || MAP_LABEL_LOCALES.en;
 }
 
@@ -55,7 +55,7 @@ export function getMapLibreBaseStyleUrl(theme: string) {
   return OPENFREEMAP_STYLES[theme] || OPENFREEMAP_STYLES.dark;
 }
 
-export function getMapLibreLabelTextField(locale: string) {
+function getMapLibreLabelTextField(locale: string) {
   const normalized = normalizeMapLabelLocale(locale);
   if (normalized === "zh-Hans") {
     return [

@@ -7,7 +7,7 @@ const setOptionalParam = (url: URL, key: string, value: unknown) => {
   url.searchParams.set(key, String(value));
 };
 
-export function buildNearbyAirportsPath({
+function buildNearbyAirportsPath({
   lat,
   lon,
   icao = "",
@@ -24,7 +24,7 @@ export function buildNearbyAirportsPath({
   return `${url.pathname}${url.search}`;
 }
 
-export function createNearbyAirportClient({
+function createNearbyAirportClient({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   basePath = DEFAULT_BASE_PATH,
 }: NearbyAirportClientRecord = {}) {

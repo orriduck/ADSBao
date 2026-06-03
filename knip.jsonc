@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "project": [
+    "scripts/**/*.ts",
+    "src/**/*.{ts,tsx}"
+  ],
+  "ignoreExportsUsedInFile": {
+    "function": true
+  },
+  "ignoreDependencies": [
+    "tailwindcss"
+  ],
+  "ignore": [
+    "scripts/**/*.test.ts",
+    "src/**/*.test.{ts,tsx}"
+  ]
+}

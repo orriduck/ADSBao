@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 
 import {
-  buildOpenAipCacheKey,
-  createOpenAipClient,
   createOpenAipClientFromEnv,
 } from "./openAipClient";
 
@@ -16,8 +14,8 @@ const jsonResponse = (payload, status = 200) => ({
 
 {
   const calls = [];
-  const client = createOpenAipClient({
-    apiKey: "secret-key",
+  const client = createOpenAipClientFromEnv({
+    env: { OPENAIP_API_KEY: "secret-key" },
     fetchImpl: async (url, init) => {
       calls.push({ url, init });
       return jsonResponse({ items: [{ icaoCode: "KBOS", iataCode: "BOS" }] });
@@ -47,19 +45,8 @@ const jsonResponse = (payload, status = 200) => ({
 }
 
 {
-  assert.equal(
-    buildOpenAipCacheKey("airports", {
-      search: " KBOS ",
-      country: "us",
-      limit: 5,
-    }),
-    "openaip:airports:country=us:limit=5:search=KBOS",
-  );
-}
-
-{
-  const client = createOpenAipClient({
-    apiKey: "secret-key",
+  const client = createOpenAipClientFromEnv({
+    env: { OPENAIP_API_KEY: "secret-key" },
     fetchImpl: async () => jsonResponse({ message: "no" }, 401),
   });
 

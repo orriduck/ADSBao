@@ -6,12 +6,12 @@ import {
   resolveFeatureFlagEnvironment,
 } from "../../../features/app-shell/feature-flags/userFeatureFlagsModel";
 
-export const USER_FEATURE_FLAGS_TABLE = "user_feature_flags";
+const USER_FEATURE_FLAGS_TABLE = "user_feature_flags";
 const SELECT_COLUMNS = "email,environment,flags,updated_at";
 
 type UserFeatureFlagsRecord = Record<string, any>;
 
-export function createUserFeatureFlagsRepository({
+function createUserFeatureFlagsRepository({
   supabaseUrl,
   supabaseKey,
   environment,

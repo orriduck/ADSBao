@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 
 import {
-  formatCeiling,
-  formatWind,
   normalizeMetarPayload,
 } from "./metarModel";
 
@@ -22,12 +20,6 @@ const metar = {
   flightCategory: "VFR",
   obsTime: 1_714_934_400,
 };
-
-assert.equal(formatWind(metar), "080° / 12 kt G18kt");
-assert.equal(formatWind({ wdir: "VRB", wspd: 5 }), "VRB / 5 kt");
-assert.equal(formatWind({}), "-");
-assert.equal(formatCeiling(metar), "BKN 1,700 ft");
-assert.equal(formatCeiling({ clouds: [] }), "CLR");
 
 assert.deepEqual(normalizeMetarPayload([metar]), {
   raw: metar.rawOb,
@@ -53,4 +45,26 @@ assert.deepEqual(normalizeMetarPayload([metar]), {
   },
 });
 
+assert.deepEqual(normalizeMetarPayload({ wdir: "VRB", wspd: 5, clouds: [] }).parsed, {
+  wind: "VRB / 5 kt",
+  vis: "-",
+  temp: "-",
+  dew: "-",
+  altim: "-",
+  ceiling: "CLR",
+  wxString: "",
+  flightCategory: "",
+  obsTime: "",
+  rawTemp: null,
+  rawDewp: null,
+  rawVisib: null,
+  rawAltim: null,
+  rawWspd: 5,
+  rawWgst: null,
+  rawClouds: [],
+  rawWdir: null,
+  rawWvrb: true,
+});
+
+assert.equal(normalizeMetarPayload({}).parsed.wind, "-");
 assert.deepEqual(normalizeMetarPayload(null), { raw: "", parsed: null });

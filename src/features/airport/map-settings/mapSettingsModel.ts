@@ -19,7 +19,7 @@ export const MAP_LAYER_KEYS = Object.freeze({
   USER_LOCATION_AUDIO: "userLocationAudio",
 });
 
-export const PERSISTED_MAP_LAYER_KEYS = Object.freeze([
+const PERSISTED_MAP_LAYER_KEYS = Object.freeze([
   MAP_LAYER_KEYS.MAP_LABELS,
   MAP_LAYER_KEYS.APPROACH_BEAMS,
   MAP_LAYER_KEYS.NAVAID_MARKERS,
@@ -27,14 +27,6 @@ export const PERSISTED_MAP_LAYER_KEYS = Object.freeze([
   MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS,
   MAP_LAYER_KEYS.USER_LOCATION,
   MAP_LAYER_KEYS.USER_LOCATION_AUDIO,
-]);
-
-export const DISPLAY_MAP_LAYER_KEYS = Object.freeze([
-  MAP_LAYER_KEYS.MAP_LABELS,
-  MAP_LAYER_KEYS.APPROACH_BEAMS,
-  MAP_LAYER_KEYS.NAVAID_MARKERS,
-  MAP_LAYER_KEYS.AIRSPACES,
-  MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS,
 ]);
 
 const MAP_MODE_PRESETS = Object.freeze({
@@ -133,15 +125,15 @@ const PRESET_MODE_ID_SET: Set<string> = new Set(MAP_MODE_OPTIONS.map((mode) => m
 const LAYER_KEY_SET: Set<string> = new Set(PERSISTED_MAP_LAYER_KEYS);
 const DISABLED_MAP_MODE_ID_SET: Set<string> = new Set(DISABLED_MAP_MODE_IDS);
 
-export function getMapModePreset(modeId) {
+function getMapModePreset(modeId) {
   return MAP_MODE_PRESETS[modeId] || MAP_MODE_PRESETS[DEFAULT_MAP_SETTINGS.baseMode];
 }
 
-export function isMapModeId(value) {
+function isMapModeId(value) {
   return MAP_MODE_ID_SET.has(value);
 }
 
-export function isPresetMapModeId(value) {
+function isPresetMapModeId(value) {
   return PRESET_MODE_ID_SET.has(value);
 }
 
@@ -149,7 +141,7 @@ export function isSelectableMapModeId(value) {
   return isPresetMapModeId(value) && !DISABLED_MAP_MODE_ID_SET.has(value);
 }
 
-export function getMapSettingsBaseMode(settings: MapSettingsRecord = {}) {
+function getMapSettingsBaseMode(settings: MapSettingsRecord = {}) {
   const selectedMode = settings?.selectedMode;
   const baseMode = settings?.baseMode;
   if (isPresetMapModeId(selectedMode)) return selectedMode;
@@ -157,7 +149,7 @@ export function getMapSettingsBaseMode(settings: MapSettingsRecord = {}) {
   return DEFAULT_MAP_SETTINGS.baseMode;
 }
 
-export function normalizeMapLayerOverrides(layerOverrides: unknown) {
+function normalizeMapLayerOverrides(layerOverrides: unknown) {
   if (
     !layerOverrides ||
     typeof layerOverrides !== "object" ||
@@ -250,7 +242,7 @@ export function mergeMapSettings({
   });
 }
 
-export function resolveMapSettingsLayers(settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS) {
+function resolveMapSettingsLayers(settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS) {
   const normalized = normalizeMapSettings(settings);
   const preset = getMapModePreset(getMapSettingsBaseMode(normalized));
   return {

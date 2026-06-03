@@ -1,6 +1,6 @@
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../../../config/aviation";
 
-export const NEARBY_AIRPORT_RADIUS_MULTIPLIER = 1.5;
+const NEARBY_AIRPORT_RADIUS_MULTIPLIER = 1.5;
 
 export const NEARBY_AIRPORT_LIMITS = Object.freeze({
   minRadiusNm: 1,

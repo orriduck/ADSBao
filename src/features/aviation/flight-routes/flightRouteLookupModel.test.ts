@@ -3,12 +3,8 @@ import assert from "node:assert/strict";
 import {
   buildRouteCacheKey,
   buildRoutesByCallsign,
-  getLookupCallsigns,
   getRouteLookupStats,
-  getFreshRouteCacheEntry,
-  rankCandidatesByDistance,
   resolvePendingRouteLookups,
-  shouldSuppressRouteLookup,
 } from "./flightRouteLookupModel";
 
 const now = 1_700_000_000_000;
@@ -48,30 +44,42 @@ const route = {
     ["OLD", { route, time: now - 10 * 60 * 60 * 1000 }],
   ]);
 
-  assert.equal(
-    getFreshRouteCacheEntry(cache, "DAL123", now, {
-      icao: "KBOS",
-      iata: "BOS",
-    })?.route,
-    route,
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "DAL123" }],
+      cache,
+      now,
+      routeContext: { icao: "KBOS", iata: "BOS" },
+    }),
+    { DAL123: route },
   );
-  assert.equal(
-    getFreshRouteCacheEntry(cache, "DAL123", now, {
-      icao: "KBOS",
-      iata: "BOS",
-      routeProvider: "flightaware",
-    })?.route,
-    null,
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "DAL123" }],
+      cache,
+      now,
+      routeContext: { icao: "KBOS", iata: "BOS", routeProvider: "flightaware" },
+    }),
+    {},
   );
-  assert.equal(
-    getFreshRouteCacheEntry(cache, "DAL123", now, {
-      icao: "KJFK",
-      iata: "JFK",
-    })?.route,
-    null,
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "DAL123" }],
+      cache,
+      now,
+      routeContext: { icao: "KJFK", iata: "JFK" },
+    }),
+    {},
   );
-  assert.equal(getFreshRouteCacheEntry(cache, "MISS1", now)?.route, null);
-  assert.equal(getFreshRouteCacheEntry(cache, "OLD", now), null);
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "MISS1" }],
+      cache,
+      now,
+    }),
+    {},
+  );
+  buildRoutesByCallsign({ aircraft: [{ callsign: "OLD" }], cache, now });
   assert.equal(cache.has("OLD"), false);
 }
 
@@ -170,40 +178,52 @@ const route = {
 // KBOS focal -> JBU123 over Lisbon (~3000nm) outranks DAL123 over NYC (~190nm)
 // outranks UAL456 directly over KBOS (~0nm).
 {
-  const ranked = rankCandidatesByDistance(
-    [
+  const ranked = resolvePendingRouteLookups({
+    aircraft: [
       { callsign: "UAL456", lat: 42.36, lon: -71.01 },
       { callsign: "DAL123", lat: 40.64, lon: -73.78 },
       { callsign: "JBU123", lat: 38.78, lon: -9.13 },
     ],
-    { icao: "KBOS", lat: 42.3656, lon: -71.0096 },
-  );
+    cache: new Map(),
+    inFlight: new Set(),
+    routeContext: { icao: "KBOS", lat: 42.3656, lon: -71.0096 },
+    now,
+    maxLookups: 3,
+  });
   assert.deepEqual(ranked, ["JBU123", "DAL123", "UAL456"]);
 }
 
 // Without focal coords, source order is preserved.
 {
-  const ranked = rankCandidatesByDistance(
-    [
+  const ranked = resolvePendingRouteLookups({
+    aircraft: [
       { callsign: "UAL456", lat: 42, lon: -71 },
       { callsign: "DAL123", lat: 40, lon: -73 },
       { callsign: "JBU123", lat: 38, lon: -9 },
     ],
-    {},
-  );
+    cache: new Map(),
+    inFlight: new Set(),
+    routeContext: {},
+    now,
+    maxLookups: 3,
+  });
   assert.deepEqual(ranked, ["UAL456", "DAL123", "JBU123"]);
 }
 
 // Aircraft missing lat/lon land last (treated as distance -1).
 {
-  const ranked = rankCandidatesByDistance(
-    [
+  const ranked = resolvePendingRouteLookups({
+    aircraft: [
       { callsign: "UAL456" },
       { callsign: "DAL123", lat: 40.64, lon: -73.78 },
       { callsign: "JBU123", lat: 38.78, lon: -9.13 },
     ],
-    { icao: "KBOS", lat: 42.3656, lon: -71.0096 },
-  );
+    cache: new Map(),
+    inFlight: new Set(),
+    routeContext: { icao: "KBOS", lat: 42.3656, lon: -71.0096 },
+    now,
+    maxLookups: 3,
+  });
   assert.deepEqual(ranked, ["JBU123", "DAL123", "UAL456"]);
 }
 
@@ -287,9 +307,14 @@ const route = {
       trackingState: { status: "flightaware_terminal" },
     },
   ];
-
-  assert.equal(shouldSuppressRouteLookup(aircraft[0]), false);
-  assert.equal(shouldSuppressRouteLookup(aircraft[1]), true);
-  assert.equal(shouldSuppressRouteLookup(aircraft[2]), true);
-  assert.deepEqual(getLookupCallsigns(aircraft), ["SQ26"]);
+  assert.deepEqual(
+    resolvePendingRouteLookups({
+      aircraft,
+      cache: new Map(),
+      inFlight: new Set(),
+      now,
+      maxLookups: 3,
+    }),
+    ["SQ26"],
+  );
 }

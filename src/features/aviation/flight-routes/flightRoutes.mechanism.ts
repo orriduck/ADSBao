@@ -54,7 +54,7 @@ async function isFlightAwareRouteProviderEnabled() {
   return enabled;
 }
 
-export async function fetchAdsbdbRoute(callsign: unknown) {
+async function fetchAdsbdbRoute(callsign: unknown) {
   const url = buildAdsbdbCallsignRouteUrl(callsign);
   if (!url) return null;
 
@@ -85,7 +85,7 @@ export async function fetchAdsbdbRoute(callsign: unknown) {
   return buildAdsbdbRouteResponse(callsign, payload);
 }
 
-export async function fetchFlightAwareRoute(
+async function fetchFlightAwareRoute(
   callsign: unknown,
   { airportQueries = createOpenAipAirportQueriesFromEnv() }: FlightRouteMechanismRecord = {},
 ) {

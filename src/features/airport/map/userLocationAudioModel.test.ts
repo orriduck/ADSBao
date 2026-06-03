@@ -1,14 +1,12 @@
 import assert from "node:assert/strict";
 import {
   buildAircraftProximityAudioCue,
-  USER_LOCATION_AIRCRAFT_ALERT_RANGE_NM,
   USER_LOCATION_AIRCRAFT_ALERT_RANGE_METERS,
 } from "./userLocationAudioModel";
 
 const userLocation = { lat: 42.3656, lon: -71.0096 };
 
 {
-  assert.equal(USER_LOCATION_AIRCRAFT_ALERT_RANGE_NM, 6);
   assert.equal(USER_LOCATION_AIRCRAFT_ALERT_RANGE_METERS, 11_112);
 }
 
@@ -54,7 +52,7 @@ const userLocation = { lat: 42.3656, lon: -71.0096 };
   });
 
   assert.equal(farCue?.aircraftId, "far");
-  assert.ok((farCue?.distanceNm ?? 0) < USER_LOCATION_AIRCRAFT_ALERT_RANGE_NM);
+  assert.ok((farCue?.distanceNm ?? 0) < 6);
   assert.ok((farCue?.intervalMs ?? 0) > 1800);
 }
 

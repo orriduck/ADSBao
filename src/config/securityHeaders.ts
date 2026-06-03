@@ -1,4 +1,4 @@
-export const securityHeaders = [
+const securityHeaders = [
   {
     key: "Content-Security-Policy",
     value:

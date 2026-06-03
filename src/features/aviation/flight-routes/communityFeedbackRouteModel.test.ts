@@ -1,18 +1,11 @@
 import assert from "node:assert/strict";
 
 import {
-  COMMUNITY_FEEDBACK_DISPLAY_SUFFIX,
   COMMUNITY_FEEDBACK_REASONS,
-  COMMUNITY_FEEDBACK_SOURCE,
-  COMMUNITY_FEEDBACK_TTL_MS,
   buildCommunityFeedbackRoute,
   computeFeedbackExpiry,
-  isCommunityFeedbackRoute,
 } from "./communityFeedbackRouteModel";
 
-assert.equal(COMMUNITY_FEEDBACK_TTL_MS, 12 * 60 * 60 * 1000);
-assert.equal(COMMUNITY_FEEDBACK_DISPLAY_SUFFIX, "*");
-assert.equal(COMMUNITY_FEEDBACK_SOURCE, "community-feedback");
 assert.deepEqual(COMMUNITY_FEEDBACK_REASONS, {
   missingRoute: "missing_route",
   correction: "correction",
@@ -57,7 +50,6 @@ assert.deepEqual(COMMUNITY_FEEDBACK_REASONS, {
   assert.equal(route.displaySuffix, "*");
   assert.equal(route.feedbackReason, "correction");
   assert.equal(route.expiresAt, "2026-05-17T12:00:00.000Z");
-  assert.equal(isCommunityFeedbackRoute(route), true);
 }
 
 // Invalid inputs short-circuit so a half-formed community route doesn't
@@ -87,9 +79,6 @@ assert.equal(
   }),
   null,
 );
-
-assert.equal(isCommunityFeedbackRoute({ source: "adsbdb" }), false);
-assert.equal(isCommunityFeedbackRoute(null), false);
 
 {
   const { createdAt, expiresAt } = computeFeedbackExpiry(

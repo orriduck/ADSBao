@@ -5,23 +5,6 @@ const DEFAULT_TIMEOUT_MS = 12_000;
 
 const normalizeParamValue = (value: unknown) => String(value ?? "").trim();
 
-export const buildOpenAipCacheKey = (
-  resourceType: string,
-  query: OpenAipClientRecord = {},
-) => {
-  const parts = Object.entries(query)
-    .filter(([, value]) => value != null && value !== "")
-    .map(([key, value]) => {
-      const normalizedValue = Array.isArray(value)
-        ? value.map(normalizeParamValue).join(",")
-        : normalizeParamValue(value);
-      return [key, normalizedValue] as const;
-    })
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => `${key}=${value}`);
-  return ["openaip", resourceType, ...parts].join(":");
-};
-
 const appendParams = (url: URL, params: OpenAipClientRecord = {}) => {
   for (const [key, value] of Object.entries(params)) {
     if (value == null || value === "") continue;
@@ -56,7 +39,7 @@ const withTimeout = (timeoutMs: number) => {
   };
 };
 
-export function createOpenAipClient({
+function createOpenAipClient({
   apiKey,
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl = DEFAULT_BASE_URL,

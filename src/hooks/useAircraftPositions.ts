@@ -1,12 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  aircraftPositionClient,
-  DEFAULT_AIRCRAFT_RANGE_NM,
-  DEFAULT_AIRCRAFT_POLL_MS,
-} from "../features/aviation/aviationData";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation";
+import { createAircraftPositionClient } from "../features/aircraft/positions/aircraftPositionClient";
 import {
   describeAircraftFetchError,
   isHttp4xxOr5xx,
@@ -30,10 +26,11 @@ import {
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
 const MAX_AIRCRAFT_RANGE_NM = 250;
+const aircraftPositionClient = createAircraftPositionClient();
 
 const normalizeAircraftRangeNm = (value) => {
   const number = Number(value);
-  if (!Number.isFinite(number)) return DEFAULT_AIRCRAFT_RANGE_NM;
+  if (!Number.isFinite(number)) return AIRCRAFT_TRAFFIC_CONFIG.rangeNm;
   return Math.max(1, Math.min(MAX_AIRCRAFT_RANGE_NM, number));
 };
 
@@ -149,7 +146,7 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
       setInitialLoading(true);
       setLastUpdated(null);
       poll({ commitAfter });
-      timerRef.current = setInterval(poll, DEFAULT_AIRCRAFT_POLL_MS);
+      timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
     };
 
     const handleVisibility = () => {
@@ -193,7 +190,7 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
         }
         stop({ clearAircraft: false, clearTrace: false });
         poll({ commitAfter });
-        timerRef.current = setInterval(poll, DEFAULT_AIRCRAFT_POLL_MS);
+          timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
       };
 
       if (visibilityAction.shouldShowRefreshOverlay) {

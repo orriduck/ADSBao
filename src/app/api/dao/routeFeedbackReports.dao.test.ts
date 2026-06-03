@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 
-import {
-  ROUTE_FEEDBACK_TABLE,
-  createRouteFeedbackReportsRepository,
-  createRouteFeedbackReportsRepositoryFromEnv,
-} from "./routeFeedbackReports.dao";
+import { createRouteFeedbackReportsRepositoryFromEnv } from "./routeFeedbackReports.dao";
+
+const ROUTE_FEEDBACK_TABLE = "flight_route_feedback_reports";
 
 const now = () => Date.parse("2026-05-17T00:00:00.000Z");
 
@@ -85,9 +83,11 @@ assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
   const { calls, createClientImpl } = createFakeSupabaseClient({
     readData: overrideRow,
   });
-  const repo = createRouteFeedbackReportsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repo = createRouteFeedbackReportsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SECRET_KEY: "sb_secret_test",
+    },
     createClientImpl,
     now,
   });
@@ -120,9 +120,11 @@ assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
 // Missing callsign returns null without hitting the network.
 {
   const { calls, createClientImpl } = createFakeSupabaseClient();
-  const repo = createRouteFeedbackReportsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repo = createRouteFeedbackReportsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SECRET_KEY: "sb_secret_test",
+    },
     createClientImpl,
     now,
   });
@@ -157,9 +159,11 @@ assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
   const { calls, createClientImpl } = createFakeSupabaseClient({
     writeData: insertedRow,
   });
-  const repo = createRouteFeedbackReportsRepository({
-    supabaseUrl: "https://example.supabase.co",
-    supabaseKey: "sb_secret_test",
+  const repo = createRouteFeedbackReportsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SECRET_KEY: "sb_secret_test",
+    },
     createClientImpl,
     now,
   });
@@ -221,9 +225,11 @@ assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
 // Missing supabase config returns null instead of throwing — the handler
 // degrades to "adsbdb only" rather than 500ing.
 assert.equal(
-  createRouteFeedbackReportsRepository({
-    supabaseUrl: "",
-    supabaseKey: "sb_secret",
+  createRouteFeedbackReportsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "",
+      SUPABASE_SECRET_KEY: "sb_secret",
+    },
     createClientImpl: () => ({}),
   }),
   null,

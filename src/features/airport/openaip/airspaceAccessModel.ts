@@ -1,6 +1,6 @@
 import { toFiniteNumber } from "@/utils/math";
 
-export type AirspaceAccessLevel =
+type AirspaceAccessLevel =
   | "blocked"
   | "restricted"
   | "permission-required"
@@ -19,7 +19,7 @@ export type AirspaceAccessTag = {
 
 type OpenAipAirspaceRecord = Record<string, any>;
 
-export const OPENAIP_AIRSPACE_TYPE = {
+const OPENAIP_AIRSPACE_TYPE = {
   OTHER: 0,
   RESTRICTED: 1,
   DANGER: 2,
@@ -59,7 +59,7 @@ export const OPENAIP_AIRSPACE_TYPE = {
   MCTR: 36,
 } as const;
 
-export const OPENAIP_AIRSPACE_TYPE_LABELS: Record<number, string> = {
+const OPENAIP_AIRSPACE_TYPE_LABELS: Record<number, string> = {
   0: "Other",
   1: "Restricted Area",
   2: "Danger Area",

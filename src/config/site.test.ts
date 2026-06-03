@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 
 import {
   SITE_SOCIAL_IMAGE,
-  SITE_URL,
   getAbsoluteUrl,
   getSiteUrl,
   getSocialImageUrl,
@@ -13,7 +12,6 @@ const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 try {
   delete process.env.NEXT_PUBLIC_SITE_URL;
 
-  assert.equal(SITE_URL, "https://adsbao.dev");
   assert.equal(getSiteUrl().toString(), "https://adsbao.dev/");
   assert.equal(getAbsoluteUrl("/airport/KBOS"), "https://adsbao.dev/airport/KBOS");
   assert.equal(getAbsoluteUrl("opengraph-image"), "https://adsbao.dev/opengraph-image");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { aircraftTraceClient } from "../features/aviation/aviationData";
+import { createAircraftTraceClient } from "../features/aircraft/trace/aircraftTraceClient";
 import {
   composeAircraftTrace,
   normalizeAdsbTracePayload,
@@ -19,6 +19,7 @@ import {
 // burst of updates collapse into one write without putting the user
 // more than a tick behind on the persisted set.
 const PERSIST_DEBOUNCE_MS = 750;
+const aircraftTraceClient = createAircraftTraceClient();
 
 type AircraftTraceHookRecord = Record<string, any>;
 

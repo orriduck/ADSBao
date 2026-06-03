@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 
 import {
   FEATURE_FLAGS,
-  buildUserFeatureFlagAccessEntity,
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
   normalizeFeatureFlags,
@@ -54,35 +53,5 @@ assert.equal(
   isFeatureFlagEnabled({ [FEATURE_FLAGS.FLIGHTAWARE_ENABLED]: "true" }, FEATURE_FLAGS.FLIGHTAWARE_ENABLED),
   false,
 );
-
-assert.deepEqual(
-  buildUserFeatureFlagAccessEntity({
-    user: {
-      id: "user_owner",
-      primaryEmailAddress: { emailAddress: "Owner@Example.COM" },
-      publicMetadata: { flightAwareEnabled: true },
-    },
-    flags: {},
-  }),
-  {
-    id: "user_owner",
-    email: "owner@example.com",
-    flags: {},
-    flightAwareEnabled: false,
-  },
-);
-
-assert.equal(
-  buildUserFeatureFlagAccessEntity({
-    user: {
-      id: "user_owner",
-      primaryEmailAddress: { emailAddress: "owner@example.com" },
-    },
-    flags: { flightAwareEnabled: true },
-  }).flightAwareEnabled,
-  true,
-);
-
-assert.equal(buildUserFeatureFlagAccessEntity({ user: null }), undefined);
 
 console.log("userFeatureFlagsModel.test.ts ok");

@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 
 import {
-  buildRunwayApproachBeamCollection,
+  buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
-  shouldShowRunwayEndLabels,
 } from "./runwayAnnotationModel";
 import {
   ZOOM_AIRPORT,
   ZOOM_APPROACH,
   ZOOM_DETAIL,
 } from "../../../utils/airportMapDisplay";
+import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 
 const runwayMap = {
   airport: "KBOS",
@@ -64,9 +64,9 @@ assert.deepEqual(buildRunwayEndLabels(runwayMap), [
   },
 ]);
 
-assert.equal(shouldShowRunwayEndLabels(ZOOM_APPROACH), false);
-assert.equal(shouldShowRunwayEndLabels(ZOOM_AIRPORT), false);
-assert.equal(shouldShowRunwayEndLabels(ZOOM_DETAIL), true);
+assert.equal(shouldShowRunwayEndLabelsForZoom(ZOOM_APPROACH), false);
+assert.equal(shouldShowRunwayEndLabelsForZoom(ZOOM_AIRPORT), false);
+assert.equal(shouldShowRunwayEndLabelsForZoom(ZOOM_DETAIL), true);
 assert.deepEqual(buildRunwayEndLabels(runwayMap, { zoom: ZOOM_APPROACH }), []);
 assert.deepEqual(buildRunwayEndLabels(runwayMap, { zoom: ZOOM_AIRPORT }), []);
 
@@ -80,9 +80,11 @@ assert.deepEqual(buildRunwayCenterlineCollection(runwayMap), {
   features: [runwayMap.runways[0].centerline],
 });
 
-const approachBeams = buildRunwayApproachBeamCollection(runwayMap, {
+const approachVisualization = buildRunwayApproachVisualization(runwayMap, {
   zoom: ZOOM_APPROACH,
 });
+assert.equal(approachVisualization.kind, "approach-beams");
+const approachBeams = approachVisualization.data;
 assert.equal(approachBeams.features.length, 2);
 assert.deepEqual(
   approachBeams.features.map((feature) => feature.properties.runwayEnd),
@@ -104,21 +106,31 @@ assert.ok(
   ) >= 519,
 );
 
-const airportBeam = buildRunwayApproachBeamCollection(runwayMap, {
+const airportBeam = buildRunwayApproachVisualization(runwayMap, {
   zoom: ZOOM_AIRPORT,
-}).features[0];
+}).data.features[0];
 assert.equal(airportBeam.properties.beamAngleDegrees, 12);
 assert.equal(Math.round(airportBeam.properties.beamDistanceMeters), 5794);
 
-const nearbyAirportBeam = buildRunwayApproachBeamCollection(runwayMap, {
+const nearbyAirportBeam = buildRunwayApproachVisualization(runwayMap, {
   zoom: ZOOM_AIRPORT,
   distanceScale: 0.3,
-}).features[0];
+}).data.features[0];
 assert.equal(nearbyAirportBeam.properties.beamAngleDegrees, 12);
 assert.equal(Math.round(nearbyAirportBeam.properties.beamDistanceMeters), 1738);
 
-const detailBeam = buildRunwayApproachBeamCollection(runwayMap, {
+const detailBeam = buildRunwayApproachVisualization(runwayMap, {
   zoom: ZOOM_DETAIL,
-}).features[0];
+}).data.features[0];
 assert.equal(detailBeam.properties.beamAngleDegrees, 16);
 assert.equal(Math.round(detailBeam.properties.beamDistanceMeters), 2334);
+
+const lightVisualization = buildRunwayApproachVisualization(runwayMap, {
+  theme: "light",
+  zoom: ZOOM_AIRPORT,
+});
+assert.equal(lightVisualization.kind, "approach-lines");
+assert.deepEqual(
+  lightVisualization.data.features.map((feature) => feature.geometry.type),
+  ["LineString", "LineString"],
+);

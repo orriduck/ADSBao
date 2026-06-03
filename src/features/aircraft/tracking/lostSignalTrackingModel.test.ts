@@ -2,29 +2,28 @@ import assert from "node:assert/strict";
 
 import {
   getActiveAdsbMatchesLength,
-  getLostSignalTraceRefreshKey,
   getTrackedFlightTraceRefreshKey,
   getTrackedAircraftSignalState,
   hasActiveFlightAwareFallback,
 } from "./lostSignalTrackingModel";
 
 assert.equal(
-  getLostSignalTraceRefreshKey({ lostSignal: false, pollVersion: 12 }),
+  getTrackedFlightTraceRefreshKey({ lostSignal: false, pollVersion: 12 }),
   "",
 );
 
 assert.equal(
-  getLostSignalTraceRefreshKey({ lostSignal: true, pollVersion: 12 }),
+  getTrackedFlightTraceRefreshKey({ lostSignal: true, pollVersion: 12 }),
   "lost-signal:12",
 );
 
 assert.equal(
-  getLostSignalTraceRefreshKey({ lostSignal: true, pollVersion: 13 }),
+  getTrackedFlightTraceRefreshKey({ lostSignal: true, pollVersion: 13 }),
   "lost-signal:13",
 );
 
 assert.equal(
-  getLostSignalTraceRefreshKey({ lostSignal: true, pollVersion: 0 }),
+  getTrackedFlightTraceRefreshKey({ lostSignal: true, pollVersion: 0 }),
   "",
 );
 

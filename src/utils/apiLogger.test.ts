@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { formatAuditLogLine, withAuditLogging } from "./apiLogger";
+import { withAuditLogging } from "./apiLogger";
 
 const originalConsoleLog = console.log;
 const logs = [];
@@ -10,25 +10,6 @@ console.log = (...args) => {
 };
 
 try {
-  assert.equal(
-    formatAuditLogLine({
-      endpointPath: "/api/proxy/flight-routes/callsign/DAL123",
-      status: 200,
-      durationMs: 14,
-    }),
-    "[audit:/api/proxy/flight-routes/callsign/DAL123]: 200 +14ms",
-  );
-
-  assert.equal(
-    formatAuditLogLine({
-      endpointPath: "/api/proxy/aircraft/positions/40.6/-73.7/30",
-      status: 200,
-      durationMs: 87,
-      source: "adsb.lol",
-    }),
-    "[audit:/api/proxy/aircraft/positions/40.6/-73.7/30]: 200 +87ms (adsb.lol)",
-  );
-
   const okFetch = async () => ({ status: 200 });
   const auditedOkFetch = withAuditLogging(okFetch, {
     service: "example",

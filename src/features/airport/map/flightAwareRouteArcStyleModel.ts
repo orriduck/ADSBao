@@ -1,6 +1,6 @@
 import { SELECTED_AIRCRAFT_TRACE_STYLE } from "../../../config/airportMap";
 
-export const FLIGHTAWARE_ROUTE_DASH_ARRAY = "10 12";
+const FLIGHTAWARE_ROUTE_DASH_ARRAY = "10 12";
 
 export function buildFlightAwareRouteLayerStyles({
   theme = "dark",
