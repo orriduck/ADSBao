@@ -122,12 +122,14 @@ export function MobilePreviewIdentity({
   icon: Icon,
   label,
   primary,
+  primaryClassName,
   secondary = null,
   secondaryClassName,
 }: {
   icon: LucideIcon;
   label: string;
   primary: React.ReactNode;
+  primaryClassName?: string;
   secondary?: React.ReactNode;
   secondaryClassName?: string;
 }) {
@@ -143,7 +145,10 @@ export function MobilePreviewIdentity({
         </span>
         <span
           translate="no"
-          className="notranslate min-w-0 truncate whitespace-nowrap font-[var(--font-mono)] text-[20px] font-extrabold leading-none tracking-normal text-atc-text"
+          className={cn(
+            "notranslate min-w-0 truncate whitespace-nowrap font-[var(--font-mono)] text-[20px] font-extrabold leading-none tracking-normal text-atc-text",
+            primaryClassName,
+          )}
         >
           {primary}
         </span>
