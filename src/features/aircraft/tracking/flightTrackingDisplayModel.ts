@@ -13,6 +13,9 @@ const DEFAULT_CONTEXT = Object.freeze({
   airportLimit: NEARBY_AIRPORT_LIMITS.maxLimit,
   fullTraceForFocal: true,
   showNearbyContext: true,
+  showNearbyTrafficContext: true,
+  showNearbyAirportContext: true,
+  routeEndpointAirportsOnly: false,
   showNearbyMapContext: true,
   zoomDisabled: false,
   mapFitOptions: Object.freeze({
@@ -23,11 +26,14 @@ const DEFAULT_CONTEXT = Object.freeze({
 });
 
 const FLIGHTAWARE_DESKTOP_CONTEXT = Object.freeze({
-  aircraftRangeNm: 220,
+  aircraftRangeNm: 100,
   airportRadiusNm: NEARBY_AIRPORT_DEFAULTS.radiusNm,
   airportLimit: NEARBY_AIRPORT_LIMITS.maxLimit,
   fullTraceForFocal: true,
   showNearbyContext: true,
+  showNearbyTrafficContext: false,
+  showNearbyAirportContext: false,
+  routeEndpointAirportsOnly: true,
   showNearbyMapContext: false,
   zoomDisabled: true,
   mapFitOptions: Object.freeze({
