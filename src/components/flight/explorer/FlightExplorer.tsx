@@ -62,6 +62,10 @@ import { getAircraftIdentity } from "@/features/airport/context/airportContextUi
 import { normalizeCallsign } from "@/utils/callsign";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay";
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
+import {
+  beginAircraftMotionState,
+  calculateAircraftVisualPosition,
+} from "@/utils/aircraftMotion";
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard";
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
@@ -70,6 +74,8 @@ const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
   loading: () => <MapLoadingFallback variant="flight" />,
 });
+
+const FOCAL_VISUAL_POSITION_TICK_MS = 500;
 
 export default function FlightExplorer({ callsign = "" }) {
   return (
@@ -217,19 +223,68 @@ function FlightExplorerContent({ callsign }) {
   // Keep the last known position around so the map doesn't snap back when
   // the tracked aircraft is briefly absent from the feed.
   const lastKnownRef = useRef({ lat: null, lon: null });
-  if (
-    trackedAircraftForDisplay?.lat != null &&
-    Number.isFinite(Number(trackedAircraftForDisplay.lat)) &&
-    trackedAircraftForDisplay?.lon != null &&
-    Number.isFinite(Number(trackedAircraftForDisplay.lon))
-  ) {
+  const focalMotionRef = useRef(null);
+  const visualFocalPositionRef = useRef({ lat: null, lon: null });
+  const [visualFocalPosition, setVisualFocalPosition] = useState({
+    lat: null,
+    lon: null,
+  });
+  const trackedLat = toFiniteCoordinate(trackedAircraftForDisplay?.lat);
+  const trackedLon = toFiniteCoordinate(trackedAircraftForDisplay?.lon);
+  if (trackedLat != null && trackedLon != null) {
     lastKnownRef.current = {
-      lat: Number(trackedAircraftForDisplay.lat),
-      lon: Number(trackedAircraftForDisplay.lon),
+      lat: trackedLat,
+      lon: trackedLon,
     };
   }
-  const focalLat = lastKnownRef.current.lat;
-  const focalLon = lastKnownRef.current.lon;
+  useEffect(() => {
+    visualFocalPositionRef.current = { lat: null, lon: null };
+    focalMotionRef.current = null;
+    setVisualFocalPosition({ lat: null, lon: null });
+  }, [callsign]);
+  useEffect(() => {
+    if (!trackedAircraftForDisplay || trackedLat == null || trackedLon == null) {
+      return;
+    }
+    const now = Date.now();
+    const currentVisual =
+      visualFocalPositionRef.current.lat != null &&
+      visualFocalPositionRef.current.lon != null
+        ? visualFocalPositionRef.current
+        : null;
+    focalMotionRef.current = beginAircraftMotionState(
+      trackedAircraftForDisplay,
+      now,
+      currentVisual,
+    );
+    const nextPosition = calculateAircraftVisualPosition(
+      focalMotionRef.current,
+      now,
+    );
+    updateVisualFocalPosition({
+      nextPosition,
+      positionRef: visualFocalPositionRef,
+      setPosition: setVisualFocalPosition,
+    });
+  }, [trackedAircraftForDisplay, trackedLat, trackedLon]);
+  useEffect(() => {
+    const tick = () => {
+      const motion = focalMotionRef.current;
+      if (!motion) return;
+      updateVisualFocalPosition({
+        nextPosition: calculateAircraftVisualPosition(motion),
+        positionRef: visualFocalPositionRef,
+        setPosition: setVisualFocalPosition,
+      });
+    };
+    tick();
+    const timer = window.setInterval(tick, FOCAL_VISUAL_POSITION_TICK_MS);
+    return () => window.clearInterval(timer);
+  }, []);
+  const visualFocalLat = toFiniteCoordinate(visualFocalPosition.lat);
+  const visualFocalLon = toFiniteCoordinate(visualFocalPosition.lon);
+  const focalLat = visualFocalLat ?? lastKnownRef.current.lat;
+  const focalLon = visualFocalLon ?? lastKnownRef.current.lon;
   const contextPosition = useMemo(
     () =>
       getFlightTrackingContextPosition({
@@ -249,19 +304,35 @@ function FlightExplorerContent({ callsign }) {
     [isMobile, trackingState],
   );
   const showNearbyContext = Boolean(flightDisplayContext.showNearbyContext !== false);
+  const showNearbyTrafficContext =
+    showNearbyContext &&
+    flightDisplayContext.showNearbyTrafficContext !== false;
+  const showNearbyAirportContext =
+    showNearbyContext &&
+    flightDisplayContext.showNearbyAirportContext !== false;
+  const routeEndpointAirportsOnly = Boolean(
+    flightDisplayContext.routeEndpointAirportsOnly,
+  );
   const showNearbyMapContext =
     flightDisplayContext.showNearbyMapContext !== false;
-  const nearbyQueryLat = showNearbyContext ? contextLat : null;
-  const nearbyQueryLon = showNearbyContext ? contextLon : null;
+  const nearbyAircraftQueryLat = showNearbyTrafficContext ? contextLat : null;
+  const nearbyAircraftQueryLon = showNearbyTrafficContext ? contextLon : null;
+  const nearbyAirportQueryLat = showNearbyAirportContext ? contextLat : null;
+  const nearbyAirportQueryLon = showNearbyAirportContext ? contextLon : null;
 
   const {
     aircraft: fetchedNearbyAircraft,
     loading: fetchedNearbyAircraftLoading,
     settled: fetchedNearbyAircraftSettled,
-  } = useAircraftPositions(callsign || "", nearbyQueryLat, nearbyQueryLon, {
-    pollWhenHidden: false,
-    distNm: flightDisplayContext.aircraftRangeNm,
-  });
+  } = useAircraftPositions(
+    callsign || "",
+    nearbyAircraftQueryLat,
+    nearbyAircraftQueryLon,
+    {
+      pollWhenHidden: false,
+      distNm: flightDisplayContext.aircraftRangeNm,
+    },
+  );
 
   // Pull airports around the focal so the sidebar list and the map's
   // airport layer both show context relative to the moving flight.
@@ -270,26 +341,18 @@ function FlightExplorerContent({ callsign }) {
     loading: fetchedNearbyAirportsLoading,
     settled: fetchedNearbyAirportsSettled,
   } = useNearbyAirports({
-    lat: nearbyQueryLat,
-    lon: nearbyQueryLon,
+    lat: nearbyAirportQueryLat,
+    lon: nearbyAirportQueryLon,
     radiusNm: flightDisplayContext.airportRadiusNm,
     limit: flightDisplayContext.airportLimit,
   });
   const nearbyAircraft = useMemo(
-    () => (showNearbyContext ? fetchedNearbyAircraft : []),
-    [fetchedNearbyAircraft, showNearbyContext],
+    () => (showNearbyTrafficContext ? fetchedNearbyAircraft : []),
+    [fetchedNearbyAircraft, showNearbyTrafficContext],
   );
   const nearbyAirports = useMemo(
-    () => (showNearbyContext ? fetchedNearbyAirports : []),
-    [fetchedNearbyAirports, showNearbyContext],
-  );
-
-  const selectedAirport = useMemo(
-    () =>
-      nearbyAirports.find(
-        (airport) => airport?.icao === selectedAirportIcao,
-      ) || null,
-    [nearbyAirports, selectedAirportIcao],
+    () => (showNearbyAirportContext ? fetchedNearbyAirports : []),
+    [fetchedNearbyAirports, showNearbyAirportContext],
   );
   const selectedNavaid = useMemo(
     () =>
@@ -312,14 +375,14 @@ function FlightExplorerContent({ callsign }) {
   // Merge tracked aircraft into the nearby list so the map always renders
   // it (the radius poll can lag a beat behind the callsign poll).
   const rawAircraft = useMemo(() => {
-    if (!showNearbyContext) {
+    if (!showNearbyTrafficContext) {
       return trackedAircraftForDisplay ? [trackedAircraftForDisplay] : [];
     }
     return mergeTrackedAircraftIntoNearby({
       trackedAircraft: trackedAircraftForDisplay,
       nearbyAircraft,
     });
-  }, [showNearbyContext, trackedAircraftForDisplay, nearbyAircraft]);
+  }, [showNearbyTrafficContext, trackedAircraftForDisplay, nearbyAircraft]);
 
   // Look up routes for the tracked aircraft and any nearby traffic the user
   // might preview. No airport context on this page — the cache key is just
@@ -381,13 +444,71 @@ function FlightExplorerContent({ callsign }) {
       trackedAircraftForDisplay
     );
   }, [aircraft, trackedAircraftForDisplay]);
+  const routeEndpointCandidates = useMemo(
+    () =>
+      buildRouteEndpointCandidates({
+        route: enrichedTrackedAircraft?.flightRoute,
+        aircraft: enrichedTrackedAircraft,
+      }),
+    [enrichedTrackedAircraft],
+  );
+  const [routeAirportDetailsByCode, setRouteAirportDetailsByCode] = useState({});
+  useEffect(() => {
+    if (!routeEndpointAirportsOnly || routeEndpointCandidates.length === 0) {
+      return undefined;
+    }
+    const missingCodes = [
+      ...new Set(
+        routeEndpointCandidates
+          .filter(
+            (candidate) =>
+              candidate.code &&
+              !hasAirportCoordinates(candidate.point) &&
+              routeAirportDetailsByCode[candidate.code] === undefined,
+          )
+          .map((candidate) => candidate.code),
+      ),
+    ];
+    if (missingCodes.length === 0) return undefined;
+
+    const controller = new AbortController();
+    Promise.all(
+      missingCodes.map(async (code) => {
+        try {
+          const response = await fetch(`/api/airport/${encodeURIComponent(code)}`, {
+            signal: controller.signal,
+          });
+          if (!response.ok) return [code, null];
+          const payload = await response.json();
+          return [code, payload?.airport || null];
+        } catch {
+          return [code, null];
+        }
+      }),
+    ).then((entries) => {
+      if (controller.signal.aborted) return;
+      setRouteAirportDetailsByCode((current) => {
+        const next = { ...current };
+        for (const [code, airport] of entries) next[code] = airport;
+        return next;
+      });
+    });
+
+    return () => controller.abort();
+  }, [
+    routeAirportDetailsByCode,
+    routeEndpointAirportsOnly,
+    routeEndpointCandidates,
+  ]);
   // Full-trace mode declutters the zoomed-out viewport: only the focal
-  // aircraft and the FlightAware route endpoints (if any) stay on the map.
-  const flightAwareRouteAirports = useMemo(() => {
-    const route = enrichedTrackedAircraft?.flightRoute;
-    if (route?.source !== "flightaware") return [];
+  // aircraft and parsed route endpoints (if any) stay on the map/list.
+  const routeEndpointAirports = useMemo(() => {
+    if (routeEndpointCandidates.length === 0) return [];
     const endpoints = [];
-    for (const point of [route.origin, route.destination]) {
+    for (const candidate of routeEndpointCandidates) {
+      const point = hasAirportCoordinates(candidate.point)
+        ? candidate.point
+        : routeAirportDetailsByCode[candidate.code];
       if (!point) continue;
       const pointLat = Number(point.lat);
       const pointLon = Number(point.lon);
@@ -396,7 +517,7 @@ function FlightExplorerContent({ callsign }) {
         icao: point.icao || "",
         iata: point.iata || "",
         name: point.name || "",
-        municipality: point.municipality || "",
+        municipality: point.municipality || point.city || "",
         country: point.country || "",
         lat: pointLat,
         lon: pointLon,
@@ -407,7 +528,24 @@ function FlightExplorerContent({ callsign }) {
       });
     }
     return endpoints;
-  }, [enrichedTrackedAircraft?.flightRoute, focalLat, focalLon]);
+  }, [
+    focalLat,
+    focalLon,
+    routeAirportDetailsByCode,
+    routeEndpointCandidates,
+  ]);
+  const sidebarNearbyAirports = useMemo(
+    () => (routeEndpointAirportsOnly ? routeEndpointAirports : nearbyAirports),
+    [nearbyAirports, routeEndpointAirports, routeEndpointAirportsOnly],
+  );
+
+  const selectedAirport = useMemo(
+    () =>
+      sidebarNearbyAirports.find(
+        (airport) => airport?.icao === selectedAirportIcao,
+      ) || null,
+    [sidebarNearbyAirports, selectedAirportIcao],
+  );
 
   const mapAircraft = useMemo(() => {
     if (!mapFollowsAircraft) {
@@ -425,13 +563,13 @@ function FlightExplorerContent({ callsign }) {
     mapFollowsAircraft,
   ]);
   const mapNearbyAirports = useMemo(() => {
-    if (!mapFollowsAircraft) return flightAwareRouteAirports;
+    if (!mapFollowsAircraft) return routeEndpointAirports;
     return showNearbyMapContext ? nearbyAirports : [];
   }, [
-    nearbyAirports,
-    showNearbyMapContext,
     mapFollowsAircraft,
-    flightAwareRouteAirports,
+    nearbyAirports,
+    routeEndpointAirports,
+    showNearbyMapContext,
   ]);
   const trackedMetadataSignature = useMemo(
     () =>
@@ -512,10 +650,10 @@ function FlightExplorerContent({ callsign }) {
   const loadingOverlaySources = {
     trackedAircraftLoading: flightTrackingLoadingActive,
     trafficLoading:
-      showNearbyContext &&
+      showNearbyTrafficContext &&
       (fetchedNearbyAircraftLoading || !fetchedNearbyAircraftSettled),
     nearbyAirportsLoading:
-      showNearbyContext &&
+      showNearbyAirportContext &&
       (fetchedNearbyAirportsLoading || !fetchedNearbyAirportsSettled),
     routeLoadingCount,
   };
@@ -539,7 +677,7 @@ function FlightExplorerContent({ callsign }) {
     callsign,
     aircraft: enrichedTrackedAircraft,
     nearbyAircraft: aircraft,
-    nearbyAirports,
+    nearbyAirports: sidebarNearbyAirports,
     focusLat: focalLat,
     focusLon: focalLon,
     selectedAircraftId,
@@ -681,4 +819,78 @@ function FlightExplorerContent({ callsign }) {
       </div>
     </SelectedAircraftTraceProvider>
   );
+}
+
+function toFiniteCoordinate(value) {
+  if (value == null || value === "") return null;
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) ? coordinate : null;
+}
+
+function normalizeAirportCode(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+function splitRouteCodePair(value) {
+  const code = String(value || "").trim().toUpperCase();
+  if (!code) return [];
+  return code
+    .split(/\s*(?:->|→|-)\s*/)
+    .map(normalizeAirportCode)
+    .filter(Boolean)
+    .slice(0, 2);
+}
+
+function airportCodeFromRoutePoint(point) {
+  if (!point) return "";
+  return normalizeAirportCode(point.icao) || normalizeAirportCode(point.iata);
+}
+
+function hasAirportCoordinates(point) {
+  return (
+    point &&
+    toFiniteCoordinate(point.lat) != null &&
+    toFiniteCoordinate(point.lon) != null
+  );
+}
+
+function buildRouteEndpointCandidates({ route, aircraft }) {
+  const icaoCodes = splitRouteCodePair(route?.route?.icao);
+  const iataCodes = splitRouteCodePair(route?.route?.iata || aircraft?.route);
+  const originCode =
+    airportCodeFromRoutePoint(route?.origin) ||
+    icaoCodes[0] ||
+    iataCodes[0] ||
+    normalizeAirportCode(aircraft?.origin);
+  const destinationCode =
+    airportCodeFromRoutePoint(route?.destination) ||
+    icaoCodes[1] ||
+    iataCodes[1] ||
+    normalizeAirportCode(aircraft?.destination);
+
+  return [
+    { code: originCode, point: route?.origin || null },
+    { code: destinationCode, point: route?.destination || null },
+  ].filter((candidate) => candidate.code || candidate.point);
+}
+
+function positionsNear(a, b) {
+  if (!a || !b) return false;
+  return (
+    Math.abs(Number(a.lat) - Number(b.lat)) < 0.000001 &&
+    Math.abs(Number(a.lon) - Number(b.lon)) < 0.000001
+  );
+}
+
+function updateVisualFocalPosition({ nextPosition, positionRef, setPosition }) {
+  const nextLat = toFiniteCoordinate(nextPosition?.lat);
+  const nextLon = toFiniteCoordinate(nextPosition?.lon);
+  if (nextLat == null || nextLon == null) return;
+  const next = { lat: nextLat, lon: nextLon };
+  if (positionsNear(positionRef.current, next)) return;
+  positionRef.current = next;
+  setPosition(next);
 }
