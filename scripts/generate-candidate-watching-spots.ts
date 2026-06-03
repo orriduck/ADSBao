@@ -5,10 +5,9 @@ import { createRunwayGeometryRepositoryFromEnv } from "../src/app/api/dao/runway
 import { buildRunwayMapFromGeometries } from "../src/features/airport/runways/runwayGeometryMap";
 import {
   buildCandidateWatchingSpotFile,
+  buildCandidateWatchingSpotSearchBBox,
   buildOverpassQuery,
-  buildRunwayExtensionCorridors,
   filterAndScoreCandidateElements,
-  unionBBoxes,
 } from "../src/features/airport/watcher/candidateWatchingSpotsModel";
 
 type ScriptRecord = Record<string, any>;
@@ -184,17 +183,22 @@ async function generateForAirport(inputCode: string) {
   const airportIdent = resolveAirportIdent(outputCode);
   const airportCenter = airportCenterFor(airportIdent);
   const runwayMap = await readRunwayMap(airportIdent);
-  if (!runwayMap?.runways?.length || !airportCenter) {
+  if (!airportCenter) {
     console.warn(
-      `[watching-spots] Skipping ${outputCode}: runway endpoint geometry or airport center is unavailable.`,
+      `[watching-spots] Skipping ${outputCode}: airport center is unavailable.`,
     );
     return null;
   }
 
-  const corridors = buildRunwayExtensionCorridors(runwayMap);
-  const bbox = unionBBoxes(corridors.map((corridor: ScriptRecord) => corridor.bbox));
+  if (!runwayMap?.runways?.length) {
+    console.warn(
+      `[watching-spots] ${outputCode}: runway endpoint geometry unavailable; scoring nearby candidates without runway alignment.`,
+    );
+  }
+
+  const bbox = buildCandidateWatchingSpotSearchBBox({ airportCenter });
   if (!bbox) {
-    console.warn(`[watching-spots] Skipping ${outputCode}: no runway corridors.`);
+    console.warn(`[watching-spots] Skipping ${outputCode}: no nearby search area.`);
     return null;
   }
 
