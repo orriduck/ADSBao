@@ -179,6 +179,37 @@ export function createAirportFacilityRepository({
 
       return (data || []).map(mapNavaidRow).filter(Boolean);
     },
+
+    async readNavaidsInBounds({
+      bbox,
+      limit = 250,
+    }: AirportFacilityRecord = {}) {
+      if (!bbox) return [];
+      const south = numberOrNull(bbox.south);
+      const north = numberOrNull(bbox.north);
+      const west = numberOrNull(bbox.west);
+      const east = numberOrNull(bbox.east);
+      if (south == null || north == null || west == null || east == null) {
+        return [];
+      }
+      const safeLimit = Math.max(1, Math.min(Number(limit) || 250, 500));
+
+      const { data, error } = await client
+        .from(NAVAIDS_TABLE)
+        .select(NAVAID_COLUMNS)
+        .gte("latitude_deg", Math.min(south, north))
+        .lte("latitude_deg", Math.max(south, north))
+        .gte("longitude_deg", Math.min(west, east))
+        .lte("longitude_deg", Math.max(west, east))
+        .order("ident", { ascending: true })
+        .limit(safeLimit);
+
+      if (error) {
+        throw new Error(`Navaid tile read failed (${error.message})`);
+      }
+
+      return (data || []).map(mapNavaidRow).filter(Boolean);
+    },
   };
 }
 

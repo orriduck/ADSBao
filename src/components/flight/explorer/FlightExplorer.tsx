@@ -89,15 +89,21 @@ function FlightExplorerContent({ callsign }) {
     isMobile,
     mapZoom,
     showMapLabels,
+    showNavaidMarkers,
+    showAirspaces,
     trafficFilter,
     typeFilter,
     altitudeLevel,
     selectedAircraftId,
     selectedAirportIcao,
+    selectedNavaidKey,
+    selectedAirspaceId,
     closeSidebar,
     selectAircraft,
     setSelectedAircraftId,
     selectAirport,
+    selectNavaid,
+    selectAirspace,
     toggleMapLabels,
     fitToTrace,
     suspendMapFollow,
@@ -129,6 +135,12 @@ function FlightExplorerContent({ callsign }) {
     trackingState,
   } = useTrackedAircraft(callsign);
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
+  const [contextTiles, setContextTiles] = useState({
+    airspaces: [],
+    navaids: [],
+    loading: false,
+    error: null,
+  });
   useEffect(() => {
     setCachedTrackedMetadata(readTrackedFlightMetadata(callsign));
   }, [callsign]);
@@ -277,6 +289,23 @@ function FlightExplorerContent({ callsign }) {
         (airport) => airport?.icao === selectedAirportIcao,
       ) || null,
     [nearbyAirports, selectedAirportIcao],
+  );
+  const selectedNavaid = useMemo(
+    () =>
+      contextTiles.navaids.find((navaid) => {
+        const key = navaid?.key || (
+          navaid?.ident ? `${navaid?.id ?? navaid.ident}-${navaid.ident}` : ""
+        );
+        return key === selectedNavaidKey;
+      }) || null,
+    [contextTiles.navaids, selectedNavaidKey],
+  );
+  const selectedAirspace = useMemo(
+    () =>
+      contextTiles.airspaces.find(
+        (airspace) => airspace?.id === selectedAirspaceId,
+      ) || null,
+    [contextTiles.airspaces, selectedAirspaceId],
   );
 
   // Merge tracked aircraft into the nearby list so the map always renders
@@ -537,6 +566,8 @@ function FlightExplorerContent({ callsign }) {
       <AircraftPreviewCard
         aircraft={selectedAircraft}
         airport={selectedAirport}
+        navaid={selectedNavaid}
+        airspace={selectedAirspace}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         onApplyTemporaryRoute={applyTemporaryRoute}
@@ -580,22 +611,32 @@ function FlightExplorerContent({ callsign }) {
             zoom={mapZoom}
             aircraft={mapAircraft}
             nearbyAirports={mapNearbyAirports}
+            nearbyNavaids={contextTiles.navaids}
+            airspaces={contextTiles.airspaces}
             airport={null}
             showMapLabels={showMapLabels}
             showRunwayBeams={false}
-            showNavaidMarkers={false}
+            showNavaidMarkers={showNavaidMarkers}
+            showAirspaces={showAirspaces}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}
             selectedAircraftId={selectedAircraftId}
             selectedAirportIcao={selectedAirportIcao}
+            selectedNavaidKey={selectedNavaidKey}
+            selectedAirspaceId={selectedAirspaceId}
             focalAircraftId={focalKey}
             followsCenter={mapFollowsAircraft}
             floatingSidebarAware={!isMobile && sidebarOpen}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
+            onSelectNavaid={selectNavaid}
+            onSelectAirspace={selectAirspace}
             runwayMap={null}
             focalRangeRings={false}
+            contextTileOverlays
+            contextTileRefreshKey={`${callsign}:${mapFollowsAircraft}:${mapZoom}`}
+            onContextTilesChange={setContextTiles}
             deferUntilFocal
             loadingOverlayActive={flightTrackingLoadingActive}
             loadingOverlayVariant="flight"

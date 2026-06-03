@@ -73,8 +73,18 @@ export function buildPositionQuality({
   confidence,
 }: TrackingRecord = {}) {
   const normalizedKind = String(kind || "observed").toLowerCase();
+  const normalizedSource = sourceKey(source);
+  const flightPositionSource =
+    normalizedSource === "flightaware"
+      ? "flightaware"
+      : normalizedKind === "stale"
+        ? "estimated"
+        : normalizedKind === "observed"
+          ? "adsb"
+          : "estimated";
   return {
-    source: sourceKey(source),
+    source: normalizedSource,
+    flight_position_source: flightPositionSource,
     kind: normalizedKind,
     isEstimated: normalizedKind !== "observed",
     isPredicted: normalizedKind === "predicted",
@@ -148,6 +158,10 @@ function normalizeFlightAwarePosition(
     seen: position.quality?.ageSeconds ?? 0,
     seen_pos: position.quality?.ageSeconds ?? 0,
     flightAwareUrl: position.flightAwareUrl || "",
+    flight_position_source:
+      position.flight_position_source ||
+      position.quality?.flight_position_source ||
+      "flightaware",
     origin: position.origin || "",
     destination: position.destination || "",
     route: position.route || "",

@@ -7,6 +7,7 @@ import {
   getDataSourceDisplayName,
   getAircraftPositionSourceBadge,
   getRouteProviderDisplayName,
+  resolveFlightPositionSource,
 } from "./sourceDisplayModel";
 
 assert.equal(getDataSourceDisplayName(DATA_SOURCE.ADSB_LOL), "adsb.lol");
@@ -42,9 +43,32 @@ assert.equal(
   "FlightAware · estimated",
 );
 assert.equal(
+  getAircraftPositionSourceBadge({
+    flight_position_source: "flightaware",
+    isEstimated: true,
+  }),
+  "FlightAware · estimated",
+);
+assert.equal(
+  getAircraftPositionSourceBadge({ flight_position_source: "mlat" }),
+  "MLAT",
+);
+assert.equal(
+  getAircraftPositionSourceBadge({ flight_position_source: "estimated" }),
+  "Estimated",
+);
+assert.equal(
   getAircraftPositionSourceBadge({ source: "unknown", kind: "stale" }),
   "Stale",
 );
+
+assert.equal(resolveFlightPositionSource({ flight_position_source: "MLAT" }), "mlat");
+assert.equal(
+  resolveFlightPositionSource({ source: "flightaware", kind: "predicted" }),
+  "flightaware",
+);
+assert.equal(resolveFlightPositionSource({ isEstimated: true }), "estimated");
+assert.equal(resolveFlightPositionSource({ source: "adsb.lol" }), "adsb");
 
 assert.deepEqual(
   buildMapSourceStatusDisplay({
