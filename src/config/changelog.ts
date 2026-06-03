@@ -6,6 +6,20 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.10.0",
+    kind: "feat",
+    title: "Airport facilities and sidebar polish",
+    summary:
+      "Airport detail pages now restore Supabase-backed OurAirports facility data alongside OpenAIP, improving ATC frequency and nearby navaid coverage with a tighter sidebar experience.",
+    highlights: [
+      "OurAirports airport frequencies and navaids return through dedicated Supabase tables and import tooling",
+      "OpenAIP airport details merge restored facility data while keeping OpenAIP as the primary directory",
+      "ATC frequencies use fixed-width frequency pills with compact source chips and a LiveATC search link above the list",
+      "The airport sidebar adds focused ATC and spotting panels that align with the existing metric grid",
+      "Mobile spotting previews now prioritize the actual spot name and keep distance plus OSM attribution on one line",
+    ],
+  },
+  {
     version: "v1.9.0",
     kind: "feat",
     title: "Watcher Mode candidate photo spots",
