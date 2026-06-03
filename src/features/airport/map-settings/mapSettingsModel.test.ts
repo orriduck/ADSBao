@@ -7,6 +7,7 @@ import {
   buildMapSettingsFromLayerState,
   buildPresetMapSettings,
   getMapModePreset,
+  mergeMapSettings,
   normalizeMapSettings,
   resolveMapSettingsLayers,
 } from "./mapSettingsModel";
@@ -140,6 +141,39 @@ import {
     [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
+  });
+}
+
+{
+  const merged = mergeMapSettings({
+    settings: normalizeMapSettings({
+      selectedMode: MAP_MODE_IDS.CUSTOM,
+      baseMode: MAP_MODE_IDS.CONTROLLER,
+      layerOverrides: {
+        [MAP_LAYER_KEYS.AIRSPACES]: true,
+        [MAP_LAYER_KEYS.USER_LOCATION]: true,
+        [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
+      },
+      hasSelectedMode: true,
+      updatedAt: "2026-06-02T15:06:00.000Z",
+    }),
+    updates: {
+      layerOverrides: {
+        [MAP_LAYER_KEYS.MAP_LABELS]: false,
+      },
+      updatedAt: "2026-06-02T15:07:00.000Z",
+    },
+  });
+
+  assert.equal(merged.selectedMode, MAP_MODE_IDS.CUSTOM);
+  assert.equal(merged.baseMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(merged.hasSelectedMode, true);
+  assert.equal(merged.updatedAt, "2026-06-02T15:07:00.000Z");
+  assert.deepEqual(merged.layerOverrides, {
+    [MAP_LAYER_KEYS.AIRSPACES]: true,
+    [MAP_LAYER_KEYS.USER_LOCATION]: true,
+    [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
+    [MAP_LAYER_KEYS.MAP_LABELS]: false,
   });
 }
 

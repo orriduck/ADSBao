@@ -194,6 +194,62 @@ export function normalizeMapSettings(settings: MapSettingsRecord = {}) {
   };
 }
 
+function hasOwnSetting(settings: MapSettingsRecord, key: string) {
+  return Object.prototype.hasOwnProperty.call(settings || {}, key);
+}
+
+export function mergeMapSettings({
+  settings = DEFAULT_MAP_SETTINGS,
+  updates = {},
+}: MapSettingsOptions = {}) {
+  const normalized = normalizeMapSettings(settings);
+  const updateRecord =
+    updates && typeof updates === "object" && !Array.isArray(updates)
+      ? updates
+      : {};
+  const replacingMode =
+    hasOwnSetting(updateRecord, "selectedMode") ||
+    hasOwnSetting(updateRecord, "baseMode");
+  const nextLayerOverrides = hasOwnSetting(updateRecord, "layerOverrides")
+    ? replacingMode
+      ? normalizeMapLayerOverrides(updateRecord.layerOverrides)
+      : {
+          ...normalized.layerOverrides,
+          ...normalizeMapLayerOverrides(updateRecord.layerOverrides),
+        }
+    : normalized.layerOverrides;
+  const selectedMode =
+    hasOwnSetting(updateRecord, "selectedMode") &&
+    isMapModeId(updateRecord.selectedMode)
+      ? updateRecord.selectedMode
+      : normalized.selectedMode;
+  const baseMode =
+    hasOwnSetting(updateRecord, "baseMode") &&
+    isPresetMapModeId(updateRecord.baseMode)
+      ? updateRecord.baseMode
+      : normalized.baseMode;
+
+  return normalizeMapSettings({
+    selectedMode,
+    baseMode,
+    layerOverrides: nextLayerOverrides,
+    audioEnabled: hasOwnSetting(updateRecord, "audioEnabled")
+      ? updateRecord.audioEnabled === true
+      : normalized.audioEnabled,
+    hasSelectedMode:
+      hasOwnSetting(updateRecord, "hasSelectedMode") ||
+      hasOwnSetting(updateRecord, "has_selected_mode")
+        ? updateRecord.hasSelectedMode === true ||
+          updateRecord.has_selected_mode === true
+        : normalized.hasSelectedMode,
+    updatedAt:
+      hasOwnSetting(updateRecord, "updatedAt") ||
+      hasOwnSetting(updateRecord, "updated_at")
+        ? updateRecord.updatedAt || updateRecord.updated_at || ""
+        : normalized.updatedAt,
+  });
+}
+
 export function resolveMapSettingsLayers(settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS) {
   const normalized = normalizeMapSettings(settings);
   const preset = getMapModePreset(getMapSettingsBaseMode(normalized));
@@ -279,6 +335,18 @@ export function mapSettingsToExplorerLayers(settings: MapSettingsRecord = DEFAUL
     showNavaidMarkers: layers[MAP_LAYER_KEYS.NAVAID_MARKERS],
     showAirspaces: layers[MAP_LAYER_KEYS.AIRSPACES],
     showCandidateWatchingSpots: layers[MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS],
+  };
+}
+
+export function mapSettingsToUserLocationPreferences(
+  settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS,
+) {
+  const layers = resolveMapSettingsLayers(settings);
+  const enabled = layers[MAP_LAYER_KEYS.USER_LOCATION] === true;
+  return {
+    userLocationEnabled: enabled,
+    userLocationAudioEnabled:
+      enabled && layers[MAP_LAYER_KEYS.USER_LOCATION_AUDIO] === true,
   };
 }
 

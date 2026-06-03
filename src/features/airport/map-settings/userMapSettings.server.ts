@@ -4,10 +4,6 @@ import {
 import {
   getClerkUserPrimaryEmail,
 } from "../../app-shell/feature-flags/userFeatureFlagsModel";
-import {
-  normalizeMapSettings,
-} from "./mapSettingsModel";
-
 type UserMapSettingsServerRecord = Record<string, any>;
 
 export async function resolveMapSettingsForUser({
@@ -36,7 +32,7 @@ export async function persistMapSettingsForUser({
 
   const row = await repository.upsertSettingsByEmail({
     email,
-    settings: normalizeMapSettings(settings),
+    settings,
   });
   return row?.settings || null;
 }

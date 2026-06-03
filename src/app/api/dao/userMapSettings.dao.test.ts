@@ -89,12 +89,13 @@ function createFakeSupabaseClient({
 
   assert.equal(calls[1].type, "from");
   assert.equal(calls[1].table, USER_MAP_SETTINGS_TABLE);
-  assert.equal(calls[2].type, "upsert");
-  assert.equal(calls[2].row.email, "owner@example.com");
-  assert.equal(calls[2].row.environment, "preview");
-  assert.deepEqual(calls[2].options, { onConflict: "email,environment" });
-  assert.equal(calls[2].row.has_selected_mode, true);
-  assert.deepEqual(calls[2].row.settings.layerOverrides, {
+  const upsertCall = calls.find((call) => call.type === "upsert");
+  assert.ok(upsertCall, "repository should write a settings row");
+  assert.equal(upsertCall.row.email, "owner@example.com");
+  assert.equal(upsertCall.row.environment, "preview");
+  assert.deepEqual(upsertCall.options, { onConflict: "email,environment" });
+  assert.equal(upsertCall.row.has_selected_mode, true);
+  assert.deepEqual(upsertCall.row.settings.layerOverrides, {
     [MAP_LAYER_KEYS.AIRSPACES]: true,
   });
   assert.deepEqual(row.settings.layerOverrides, {
@@ -165,6 +166,69 @@ function createFakeSupabaseClient({
     () => repository.readSettingsByEmail("owner@example.com"),
     /User map settings read failed \(permission denied\)/,
   );
+}
+
+{
+  const { calls, createClientImpl } = createFakeSupabaseClient({
+    readData: {
+      email: "owner@example.com",
+      environment: "preview",
+      settings: {
+        selectedMode: MAP_MODE_IDS.CUSTOM,
+        baseMode: MAP_MODE_IDS.CONTROLLER,
+        hasSelectedMode: true,
+        layerOverrides: {
+          [MAP_LAYER_KEYS.AIRSPACES]: true,
+          [MAP_LAYER_KEYS.USER_LOCATION]: true,
+          [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
+        },
+        updatedAt: "2026-06-02T15:06:00.000Z",
+      },
+      has_selected_mode: true,
+      updated_at: "2026-06-02T15:06:00.000Z",
+    },
+    writeData: {
+      email: "owner@example.com",
+      environment: "preview",
+      settings: {
+        selectedMode: MAP_MODE_IDS.CUSTOM,
+        baseMode: MAP_MODE_IDS.CONTROLLER,
+        hasSelectedMode: true,
+        layerOverrides: {
+          [MAP_LAYER_KEYS.AIRSPACES]: true,
+          [MAP_LAYER_KEYS.USER_LOCATION]: true,
+          [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
+          [MAP_LAYER_KEYS.MAP_LABELS]: false,
+        },
+        updatedAt: "2026-06-02T15:07:00.000Z",
+      },
+      has_selected_mode: true,
+      updated_at: "2026-06-02T15:07:00.000Z",
+    },
+  });
+  const repository = createUserMapSettingsRepository({
+    supabaseUrl: "https://example.supabase.co",
+    supabaseKey: "sb_secret_test",
+    environment: "preview",
+    createClientImpl,
+  });
+
+  await repository.upsertSettingsByEmail({
+    email: "owner@example.com",
+    settings: {
+      layerOverrides: { [MAP_LAYER_KEYS.MAP_LABELS]: false },
+      updatedAt: "2026-06-02T15:07:00.000Z",
+    },
+  });
+
+  const upsertCall = calls.find((call) => call.type === "upsert");
+  assert.ok(upsertCall, "repository should write the merged settings row");
+  assert.deepEqual(upsertCall.row.settings.layerOverrides, {
+    [MAP_LAYER_KEYS.AIRSPACES]: true,
+    [MAP_LAYER_KEYS.USER_LOCATION]: true,
+    [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
+    [MAP_LAYER_KEYS.MAP_LABELS]: false,
+  });
 }
 
 console.log("userMapSettings.dao.test.ts ok");

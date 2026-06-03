@@ -41,7 +41,7 @@ try {
     true,
   );
   if (result.source === "adsb.fi") {
-    assert.deepEqual(result.payload.ac, [
+    assert.deepEqual((result.payload as unknown as { ac: unknown[] }).ac, [
       { hex: "a360b7", flight: "JBU396  " },
     ]);
   }

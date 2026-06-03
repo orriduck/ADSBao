@@ -59,6 +59,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showNavaidMarkers,
     showAirspaces,
     showCandidateWatchingSpots,
+    userLocationEnabled,
+    userLocationAudioEnabled,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -78,6 +80,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectCandidateWatchingSpot,
     setSelectedCandidateWatchingSpotId,
     mapFollowsAircraft,
+    setUserLocationPreferences,
   } = useExplorerUi();
   const [userLocation, setUserLocation] = useState(null);
   const [userLocationMode, setUserLocationMode] = useState<UserLocationAudioMode>(
@@ -86,6 +89,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   const [userLocationPending, setUserLocationPending] = useState(false);
   const [userLocationNotice, setUserLocationNotice] = useState("");
   const userLocationWatchIdRef = useRef<number | null>(null);
+  const autoUserLocationAttemptKeyRef = useRef("");
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
@@ -261,6 +265,11 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
 
       setUserLocation(result.location);
       setUserLocationMode(result.mode);
+      setUserLocationPreferences({
+        userLocationEnabled: true,
+        userLocationAudioEnabled:
+          result.mode === USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO,
+      });
       setUserLocationNotice("");
     };
     const handleError = (error) => {
@@ -298,31 +307,81 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   }, [
     airportProfile.lat,
     airportProfile.lon,
+    setUserLocationPreferences,
     stopUserLocationWatch,
     t,
   ]);
 
+  useEffect(() => {
+    if (!userLocationEnabled) {
+      autoUserLocationAttemptKeyRef.current = "";
+      if (userLocation) clearUserLocation();
+      return;
+    }
+
+    if (userLocation || userLocationPending) return;
+    const attemptKey = `${airportProfile.icao}:${userLocationAudioEnabled}`;
+    if (autoUserLocationAttemptKeyRef.current === attemptKey) return;
+    autoUserLocationAttemptKeyRef.current = attemptKey;
+    requestUserLocation(
+      userLocationAudioEnabled
+        ? USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO
+        : USER_LOCATION_AUDIO_MODES.LOCATION,
+    );
+  }, [
+    airportProfile.icao,
+    clearUserLocation,
+    requestUserLocation,
+    userLocation,
+    userLocationAudioEnabled,
+    userLocationEnabled,
+    userLocationPending,
+  ]);
+
   const toggleUserLocation = useCallback(() => {
-    if (userLocation) {
+    if (userLocation || userLocationEnabled) {
+      setUserLocationPreferences({
+        userLocationEnabled: false,
+        userLocationAudioEnabled: false,
+      });
       clearUserLocation();
       return;
     }
 
     requestUserLocation(USER_LOCATION_AUDIO_MODES.LOCATION);
-  }, [clearUserLocation, requestUserLocation, userLocation]);
+  }, [
+    clearUserLocation,
+    requestUserLocation,
+    setUserLocationPreferences,
+    userLocation,
+    userLocationEnabled,
+  ]);
 
   const toggleUserLocationAudio = useCallback(() => {
     if (!userLocation) return;
     if (userLocationAudioActive) {
       setUserLocationMode(USER_LOCATION_AUDIO_MODES.LOCATION);
+      setUserLocationPreferences({
+        userLocationEnabled: true,
+        userLocationAudioEnabled: false,
+      });
       setUserLocationNotice("");
       return;
     }
 
     unlockAudio();
     setUserLocationMode(USER_LOCATION_AUDIO_MODES.LOCATION_AUDIO);
+    setUserLocationPreferences({
+      userLocationEnabled: true,
+      userLocationAudioEnabled: true,
+    });
     setUserLocationNotice("");
-  }, [unlockAudio, userLocation, userLocationAudioActive]);
+  }, [
+    setUserLocationPreferences,
+    unlockAudio,
+    userLocation,
+    userLocationAudioActive,
+  ]);
 
   const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,
@@ -421,8 +480,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
               lastUpdated={traffic.lastUpdated}
               routeProvider={traffic.routeProvider}
               loadingStatus={sourceLoadingStatus}
-              userLocationActive={userLocationActive}
-              userLocationAudioActive={userLocationAudioActive}
+              userLocationActive={userLocationEnabled || userLocationActive}
+              userLocationAudioActive={
+                userLocationAudioEnabled || userLocationAudioActive
+              }
               userLocationPending={userLocationPending}
               userLocationNotice={userLocationNotice}
               onToggleUserLocation={toggleUserLocation}
