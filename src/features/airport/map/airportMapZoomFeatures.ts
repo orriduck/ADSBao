@@ -38,7 +38,7 @@ export const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFe
   }),
   [ZOOM_AIRPORT]: Object.freeze({
     airportGroundTrafficHideRadiusNm: 0.5,
-    showAirportAreaCount: false,
+    showAirportAreaCount: true,
     showNearbyAirportRunways: true,
     showRangeRingLabels: true,
     showRunwayEndLabels: false,

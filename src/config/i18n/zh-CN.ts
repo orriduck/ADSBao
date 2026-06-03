@@ -267,9 +267,11 @@ const zhCN = {
     airportPreview: "机场",
     navaidPreview: "导航台",
     airspacePreview: "空域",
+    candidateWatchingSpotPreview: "看机点",
     aircraftRoute: "航路",
     navaidType: "类型",
     navaidName: "名称",
+    candidateWatchingSpotType: "类型",
     airspaceType: "类型",
     airspaceAccess: "进入规则",
     airspaceClass: "空域等级",
@@ -467,6 +469,8 @@ const zhCN = {
     fallbackName: "候选点",
     distanceMeters: "{distance} 米",
     attribution: "© OpenStreetMap contributors",
+    disclaimer:
+      "这是基于地图数据推测的候选点，可能没有清晰视野、合法停车、公共通行、安全通行或良好光线。",
   },
   lostSignal: {
     subtitle: "信号丢失",

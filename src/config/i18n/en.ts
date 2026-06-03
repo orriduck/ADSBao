@@ -272,9 +272,11 @@ const en = {
     airportPreview: "Airport",
     navaidPreview: "Navaid",
     airspacePreview: "Airspace",
+    candidateWatchingSpotPreview: "Photo spot",
     aircraftRoute: "Route",
     navaidType: "Type",
     navaidName: "Name",
+    candidateWatchingSpotType: "Type",
     airportName: "Name",
     airportPlace: "Place",
     airspaceType: "Type",
@@ -473,6 +475,8 @@ const en = {
     fallbackName: "Candidate spot",
     distanceMeters: "{distance} m",
     attribution: "© OpenStreetMap contributors",
+    disclaimer:
+      "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting.",
   },
   lostSignal: {
     subtitle: "Signal lost",

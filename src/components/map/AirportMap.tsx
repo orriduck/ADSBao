@@ -69,6 +69,9 @@ export default function AirportMap({
   selectedAirportIcao = "",
   selectedNavaidKey = "",
   selectedAirspaceId = "",
+  selectedCandidateWatchingSpotId = "",
+  candidateWatchingSpots = [],
+  candidateWatchingSpotCount = 0,
   focalAircraftId = "",
   followsCenter = true,
   floatingSidebarAware = false,
@@ -76,6 +79,7 @@ export default function AirportMap({
   onSelectAirport,
   onSelectNavaid,
   onSelectAirspace,
+  onSelectCandidateWatchingSpot,
   runwayMap = null,
   focalRangeRings = null,
   fallbackCenter = AIRPORT_MAP_FALLBACK_CENTER,
@@ -208,6 +212,12 @@ export default function AirportMap({
       if (selectedAirspaceId && typeof onSelectAirspace === "function") {
         onSelectAirspace("");
       }
+      if (
+        selectedCandidateWatchingSpotId &&
+        typeof onSelectCandidateWatchingSpot === "function"
+      ) {
+        onSelectCandidateWatchingSpot("");
+      }
     };
     mapInstance.on("click", handleMapClick);
     return () => {
@@ -219,10 +229,12 @@ export default function AirportMap({
     onSelectAirport,
     onSelectNavaid,
     onSelectAirspace,
+    onSelectCandidateWatchingSpot,
     selectedAircraftId,
     selectedAirportIcao,
     selectedNavaidKey,
     selectedAirspaceId,
+    selectedCandidateWatchingSpotId,
   ]);
 
   const visibleAircraft = useMemo(() => {
@@ -317,6 +329,9 @@ export default function AirportMap({
               aircraft={aircraft}
               zoom={zoom}
               groundRadiusNm={groundRadiusNm}
+              candidateWatchingSpotCount={
+                showCandidateWatchingSpots ? candidateWatchingSpotCount : 0
+              }
             />
           )}
           <NearbyAirportLayer
@@ -342,10 +357,11 @@ export default function AirportMap({
             showBadges
           />
           <CandidateWatchingSpotsLayer
-            airportIcao={icao}
             enabled={showCandidateWatchingSpots}
-            sidebarAware={floatingSidebarAware}
+            spots={candidateWatchingSpots}
             zoom={zoom}
+            selectedSpotId={selectedCandidateWatchingSpotId}
+            onSelectSpot={onSelectCandidateWatchingSpot}
           />
           <SelectedAircraftTrace theme={currentTheme} />
           <MapRangeLegend />

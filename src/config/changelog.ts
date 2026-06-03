@@ -6,6 +6,20 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.9.0",
+    kind: "feat",
+    title: "Watcher Mode candidate photo spots",
+    summary:
+      "Watcher Mode now generates and displays OSM-derived candidate photo spots for the focused airport, with runway-aligned static data and conservative preview copy.",
+    highlights: [
+      "Watcher Mode / 看客模式 defaults candidate watching spots on while other map modes keep them off",
+      "KBOS and JFK candidate photo spots load from static JSON generated from runway alignment plus public OpenStreetMap data",
+      "Approach and airport zooms add PHOTO SPOT counts to the focal airport badge; detail zoom renders clickable camera markers",
+      "Selected candidate spots use the shared preview card surface with OSM attribution and conservative map-derived disclaimers",
+      "Candidate marker, badge, and preview transitions run for at least 300ms and respect reduced-motion preferences",
+    ],
+  },
+  {
     version: "v1.8.4",
     kind: "patch",
     title: "Airport zoom declutter tuning",

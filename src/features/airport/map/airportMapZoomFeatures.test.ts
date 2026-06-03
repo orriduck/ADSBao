@@ -28,7 +28,7 @@ assert.deepEqual(airportMapZoomFeaturesFor(ZOOM_APPROACH), {
 
 assert.deepEqual(airportMapZoomFeaturesFor(ZOOM_AIRPORT), {
   airportGroundTrafficHideRadiusNm: 0.5,
-  showAirportAreaCount: false,
+  showAirportAreaCount: true,
   showNearbyAirportRunways: true,
   showRangeRingLabels: true,
   showRunwayEndLabels: false,
@@ -60,7 +60,7 @@ assert.equal(airportGroundTrafficHideRadiusNmForZoom(ZOOM_APPROACH), 3);
 assert.equal(airportGroundTrafficHideRadiusNmForZoom(ZOOM_AIRPORT), 0.5);
 assert.equal(airportGroundTrafficHideRadiusNmForZoom(ZOOM_DETAIL), null);
 assert.equal(shouldShowAirportAreaCountForZoom(ZOOM_APPROACH), true);
-assert.equal(shouldShowAirportAreaCountForZoom(ZOOM_AIRPORT), false);
+assert.equal(shouldShowAirportAreaCountForZoom(ZOOM_AIRPORT), true);
 assert.equal(shouldShowNearbyAirportRunwaysForZoom(ZOOM_AIRPORT), true);
 assert.equal(shouldShowRangeRingLabelsForZoom(ZOOM_AIRPORT), true);
 assert.equal(shouldShowRunwayEndLabelsForZoom(ZOOM_DETAIL), true);

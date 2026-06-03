@@ -113,6 +113,8 @@ export function resolveAirportExplorerSelection({
   selectedNavaidKey = "",
   airspaces = [],
   selectedAirspaceId = "",
+  candidateWatchingSpots = [],
+  selectedCandidateWatchingSpotId = "",
 }: AirportExplorerRecord = {}) {
   const selectedAircraft =
     aircraft.find((item) => aircraftSelectionId(item) === selectedAircraftId) ||
@@ -124,6 +126,10 @@ export function resolveAirportExplorerSelection({
     navaidLabels.find((navaid) => navaid?.key === selectedNavaidKey) || null;
   const selectedAirspace =
     airspaces.find((airspace) => airspace?.id === selectedAirspaceId) || null;
+  const selectedCandidateWatchingSpot =
+    candidateWatchingSpots.find(
+      (spot) => spot?.id === selectedCandidateWatchingSpotId,
+    ) || null;
 
   return {
     selectedAircraft,
@@ -133,5 +139,8 @@ export function resolveAirportExplorerSelection({
     selectedNavaidStillVisible: !selectedNavaidKey || Boolean(selectedNavaid),
     selectedAirspace,
     selectedAirspaceStillVisible: !selectedAirspaceId || Boolean(selectedAirspace),
+    selectedCandidateWatchingSpot,
+    selectedCandidateWatchingSpotStillVisible:
+      !selectedCandidateWatchingSpotId || Boolean(selectedCandidateWatchingSpot),
   };
 }

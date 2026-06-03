@@ -45,6 +45,7 @@ const initialUiState = {
   selectedAirportIcao: "",
   selectedNavaidKey: "",
   selectedAirspaceId: "",
+  selectedCandidateWatchingSpotId: "",
   // Monotonic counter. Incremented by the UI when the user wants the map
   // to fit its viewport to the currently-rendered aircraft trace; a
   // child of AirportMap listens for changes and runs fitBounds against
@@ -69,6 +70,9 @@ function applyMapSettingsToUiState(state, settings) {
     ...layers,
     mapSettings: normalizedSettings,
     selectedAirspaceId: layers.showAirspaces ? state.selectedAirspaceId : "",
+    selectedCandidateWatchingSpotId: layers.showCandidateWatchingSpots
+      ? state.selectedCandidateWatchingSpotId
+      : "",
   };
 }
 
@@ -168,6 +172,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAirportIcao: "",
         selectedNavaidKey: "",
         selectedAirspaceId: "",
+        selectedCandidateWatchingSpotId: "",
       };
     case "setSelectedAircraftId":
       return {
@@ -176,6 +181,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAirportIcao: "",
         selectedNavaidKey: "",
         selectedAirspaceId: "",
+        selectedCandidateWatchingSpotId: "",
       };
     case "selectAirport":
       return {
@@ -185,6 +191,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedNavaidKey: "",
         selectedAirspaceId: "",
+        selectedCandidateWatchingSpotId: "",
       };
     case "selectNavaid":
       return {
@@ -194,6 +201,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedAirspaceId: "",
+        selectedCandidateWatchingSpotId: "",
       };
     case "setSelectedNavaidKey":
       return {
@@ -202,6 +210,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedAirspaceId: "",
+        selectedCandidateWatchingSpotId: "",
       };
     case "selectAirspace":
       return {
@@ -211,6 +220,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedCandidateWatchingSpotId: "",
       };
     case "setSelectedAirspaceId":
       return {
@@ -219,6 +229,28 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedCandidateWatchingSpotId: "",
+      };
+    case "selectCandidateWatchingSpot":
+      return {
+        ...state,
+        selectedCandidateWatchingSpotId:
+          state.selectedCandidateWatchingSpotId === action.spotId
+            ? ""
+            : action.spotId,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
+        selectedNavaidKey: "",
+        selectedAirspaceId: "",
+      };
+    case "setSelectedCandidateWatchingSpotId":
+      return {
+        ...state,
+        selectedCandidateWatchingSpotId: action.spotId,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
+        selectedNavaidKey: "",
+        selectedAirspaceId: "",
       };
     case "fitToTrace":
       return {
@@ -266,6 +298,7 @@ export function ExplorerUiProvider({ children }) {
     selectedAirportIcao,
     selectedNavaidKey,
     selectedAirspaceId,
+    selectedCandidateWatchingSpotId,
   } = state;
   const isMobile = sidebarMode === "mobile";
 
@@ -488,6 +521,14 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "setSelectedAirspaceId", airspaceId });
   }, []);
 
+  const selectCandidateWatchingSpot = useCallback((spotId) => {
+    dispatch({ type: "selectCandidateWatchingSpot", spotId });
+  }, []);
+
+  const setSelectedCandidateWatchingSpotId = useCallback((spotId) => {
+    dispatch({ type: "setSelectedCandidateWatchingSpotId", spotId });
+  }, []);
+
   const fitToTrace = useCallback(() => {
     dispatch({ type: "fitToTrace" });
   }, []);
@@ -524,6 +565,7 @@ export function ExplorerUiProvider({ children }) {
       selectedAirportIcao,
       selectedNavaidKey,
       selectedAirspaceId,
+      selectedCandidateWatchingSpotId,
       fitToTraceSignal,
       setMapZoom,
       setTrafficFilter,
@@ -547,6 +589,8 @@ export function ExplorerUiProvider({ children }) {
       setSelectedNavaidKey,
       selectAirspace,
       setSelectedAirspaceId,
+      selectCandidateWatchingSpot,
+      setSelectedCandidateWatchingSpotId,
       fitToTrace,
       suspendMapFollow,
     }),
@@ -573,6 +617,7 @@ export function ExplorerUiProvider({ children }) {
       selectedAirportIcao,
       selectedNavaidKey,
       selectedAirspaceId,
+      selectedCandidateWatchingSpotId,
       fitToTraceSignal,
       setMapZoom,
       setTrafficFilter,
@@ -596,6 +641,8 @@ export function ExplorerUiProvider({ children }) {
       setSelectedNavaidKey,
       selectAirspace,
       setSelectedAirspaceId,
+      selectCandidateWatchingSpot,
+      setSelectedCandidateWatchingSpotId,
       fitToTrace,
       suspendMapFollow,
     ],

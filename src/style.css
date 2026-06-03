@@ -112,6 +112,40 @@
     }
 }
 
+.candidate-watching-spot-preview-motion {
+    animation: candidate-watching-spot-preview-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity, transform, filter;
+}
+
+@keyframes candidate-watching-spot-preview-enter {
+    from {
+        opacity: 0;
+        filter: saturate(0.85);
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        filter: saturate(1);
+        transform: translateY(0);
+    }
+}
+
+.candidate-watching-spot-marker__shell {
+    animation: candidate-watching-spot-marker-enter 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity, transform;
+}
+
+@keyframes candidate-watching-spot-marker-enter {
+    from {
+        opacity: 0;
+        transform: translateY(4px) scale(0.82);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 .mobile-preview-card-enter {
     transform: translate(-50%, 0);
     animation: mobile-preview-card-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -172,9 +206,12 @@
 @media (prefers-reduced-motion: reduce) {
     .nearby-row-enter,
     .mobile-preview-card-enter,
+    .candidate-watching-spot-preview-motion,
+    .candidate-watching-spot-marker__shell,
     .map-settings-sheet,
     .map-settings-sheet-overlay {
         animation: none;
+        transform: none;
     }
 }
 
@@ -3518,6 +3555,37 @@ body {
     font-weight: 900;
     min-width: 1ch;
     text-align: right;
+}
+
+.airport-overlay-label__detail-separator {
+    color: color-mix(in oklab, var(--endf-ink) 42%, transparent);
+    font-weight: 800;
+}
+
+.airport-overlay-label__detail-part--motion {
+    animation: airport-label-detail-part-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 260ms;
+    display: inline-flex;
+    transform-origin: center bottom;
+    will-change: opacity, transform;
+}
+
+@keyframes airport-label-detail-part-enter {
+    from {
+        opacity: 0;
+        transform: translateY(5px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .airport-overlay-label__detail-part--motion {
+        animation: none;
+        transform: none;
+    }
 }
 
 @media (max-width: 1080px) {
