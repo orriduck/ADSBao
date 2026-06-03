@@ -6,6 +6,20 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.11.1",
+    kind: "patch",
+    title: "Map UI polish pass",
+    summary:
+      "Map mode and sidebar UI polish tightens airspace readability, full-trace framing, mobile page scrolling, and compact metric cards.",
+    highlights: [
+      "Airspace overlays add inward edge markings while preserving the existing access color language",
+      "Full-trace mode keeps airspace context visible but hides boundary labels that crowd long routes",
+      "Full-trace fitting recenters around the inferred focal aircraft position for smoother map movement",
+      "Mobile Home, About, and Mechanism pages keep scrolling inside the panel instead of the whole document",
+      "Desktop map-kit metric cards keep compact status values such as Airborne from clipping",
+    ],
+  },
+  {
     version: "v1.11.0",
     kind: "feat",
     title: "Full-trace map context counts",
