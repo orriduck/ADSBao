@@ -1,0 +1,122 @@
+{
+  "airportIcao": "KJFK",
+  "generatedAt": "2026-06-03T00:19:13.094Z",
+  "sourceAttribution": "© OpenStreetMap contributors",
+  "spots": [
+    {
+      "id": "osm-way-632238093",
+      "name": null,
+      "lat": 40.6467337,
+      "lon": -73.7537635,
+      "source": "osm",
+      "sourceObjectId": "632238093",
+      "osmType": "way",
+      "osmTags": {
+        "man_made": "pier",
+        "mooring": "no"
+      },
+      "category": "pier",
+      "score": 72.3,
+      "distanceMeters": 2143,
+      "runwayAlignment": {
+        "runwayId": "04R/22L",
+        "end": "22L",
+        "score": 0.98
+      },
+      "reason": "pier near the extended 22L runway alignment at KJFK.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    },
+    {
+      "id": "osm-way-632238092",
+      "name": null,
+      "lat": 40.6472679,
+      "lon": -73.753341,
+      "source": "osm",
+      "sourceObjectId": "632238092",
+      "osmType": "way",
+      "osmTags": {
+        "man_made": "pier",
+        "mooring": "no"
+      },
+      "category": "pier",
+      "score": 71.7,
+      "distanceMeters": 2194,
+      "runwayAlignment": {
+        "runwayId": "04R/22L",
+        "end": "22L",
+        "score": 0.97
+      },
+      "reason": "pier near the extended 22L runway alignment at KJFK.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    },
+    {
+      "id": "osm-way-626561301",
+      "name": null,
+      "lat": 40.6217281,
+      "lon": -73.7732233,
+      "source": "osm",
+      "sourceObjectId": "626561301",
+      "osmType": "way",
+      "osmTags": {
+        "man_made": "pier",
+        "mooring": "no"
+      },
+      "category": "pier",
+      "score": 70.8,
+      "distanceMeters": 2217,
+      "runwayAlignment": {
+        "runwayId": "04R/22L",
+        "end": "04R",
+        "score": 0.95
+      },
+      "reason": "pier near the extended 04R runway alignment at KJFK.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    },
+    {
+      "id": "osm-way-445521635",
+      "name": "Idlewild Park",
+      "lat": 40.6494101,
+      "lon": -73.7520418,
+      "source": "osm",
+      "sourceObjectId": "445521635",
+      "osmType": "way",
+      "osmTags": {
+        "leisure": "park",
+        "name": "Idlewild Park",
+        "website": "https://www.nycgovparks.org/parks/idlewild-park/"
+      },
+      "category": "park",
+      "score": 69.6,
+      "distanceMeters": 2379,
+      "runwayAlignment": {
+        "runwayId": "04R/22L",
+        "end": "22L",
+        "score": 0.89
+      },
+      "reason": "park near the extended 22L runway alignment at KJFK.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    },
+    {
+      "id": "osm-way-457488581",
+      "name": null,
+      "lat": 40.6372602,
+      "lon": -73.7447284,
+      "source": "osm",
+      "sourceObjectId": "457488581",
+      "osmType": "way",
+      "osmTags": {
+        "man_made": "pier"
+      },
+      "category": "pier",
+      "score": 63.1,
+      "distanceMeters": 2855,
+      "runwayAlignment": {
+        "runwayId": "13L/31R",
+        "end": "31R",
+        "score": 0.84
+      },
+      "reason": "pier near the extended 31R runway alignment at KJFK.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    }
+  ]
+}

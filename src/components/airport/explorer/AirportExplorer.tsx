@@ -30,6 +30,7 @@ import {
   USER_LOCATION_AUDIO_MODES,
   type UserLocationAudioMode,
 } from "@/features/airport/map/userLocationModel";
+import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandidateWatchingSpots";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
 
@@ -57,6 +58,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showRunwayBeams,
     showNavaidMarkers,
     showAirspaces,
+    showCandidateWatchingSpots,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -64,6 +66,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectedAirportIcao,
     selectedNavaidKey,
     selectedAirspaceId,
+    selectedCandidateWatchingSpotId,
     closeSidebar,
     selectAircraft,
     setSelectedAircraftId,
@@ -72,6 +75,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     setSelectedNavaidKey,
     selectAirspace,
     setSelectedAirspaceId,
+    selectCandidateWatchingSpot,
+    setSelectedCandidateWatchingSpotId,
     mapFollowsAircraft,
   } = useExplorerUi();
   const [userLocation, setUserLocation] = useState(null);
@@ -104,6 +109,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     lat: airportProfile.lat,
     lon: airportProfile.lon,
   });
+  const candidateWatchingSpots = useCandidateWatchingSpots({
+    airportIcao: airportProfile.icao,
+    enabled: showCandidateWatchingSpots,
+  });
   const selection = useMemo(
     () =>
       resolveAirportExplorerSelection({
@@ -115,15 +124,19 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         selectedNavaidKey,
         airspaces: airport?.airspaces || [],
         selectedAirspaceId,
+        candidateWatchingSpots: candidateWatchingSpots.spots,
+        selectedCandidateWatchingSpotId,
       }),
     [
       airport?.airspaces,
       airport?.nearbyNavaids,
+      candidateWatchingSpots.spots,
       nearbyAirports.airports,
       selectedAircraftId,
       selectedAirportIcao,
       selectedNavaidKey,
       selectedAirspaceId,
+      selectedCandidateWatchingSpotId,
       traffic.aircraft,
     ],
   );
@@ -153,6 +166,17 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectedAirspaceId,
     selection.selectedAirspaceStillVisible,
     setSelectedAirspaceId,
+  ]);
+
+  useEffect(() => {
+    if (!selectedCandidateWatchingSpotId) return;
+    if (!selection.selectedCandidateWatchingSpotStillVisible) {
+      setSelectedCandidateWatchingSpotId("");
+    }
+  }, [
+    selectedCandidateWatchingSpotId,
+    selection.selectedCandidateWatchingSpotStillVisible,
+    setSelectedCandidateWatchingSpotId,
   ]);
 
   useEffect(() => {
@@ -365,6 +389,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         airport={selection.selectedAirport}
         navaid={selection.selectedNavaid}
         airspace={selection.selectedAirspace}
+        candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
+        candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         airportProfile={airportProfile}
@@ -418,6 +444,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             showRunwayBeams={showRunwayBeams}
             showNavaidMarkers={showNavaidMarkers}
             showAirspaces={showAirspaces}
+            showCandidateWatchingSpots={showCandidateWatchingSpots}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}
@@ -425,12 +452,16 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             selectedAirportIcao={selectedAirportIcao}
             selectedNavaidKey={selectedNavaidKey}
             selectedAirspaceId={selectedAirspaceId}
+            selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
+            candidateWatchingSpots={candidateWatchingSpots.spots}
+            candidateWatchingSpotCount={candidateWatchingSpots.spots.length}
             followsCenter={mapFollowsAircraft}
             floatingSidebarAware={!isMobile && sidebarOpen}
             onSelectAircraft={selectAircraft}
             onSelectAirport={selectAirport}
             onSelectNavaid={selectNavaid}
             onSelectAirspace={selectAirspace}
+            onSelectCandidateWatchingSpot={selectCandidateWatchingSpot}
             runwayMap={airport?.runwayMap}
             loadingOverlayActive={loadingOverlayActive}
             loadingOverlaySources={loadingOverlaySources}

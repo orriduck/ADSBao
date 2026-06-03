@@ -9,6 +9,7 @@ import MapRangeLegend from "./MapRangeLegend";
 import AirspaceLayer from "./AirspaceLayer";
 import NearbyAirportLayer from "./NearbyAirportLayer";
 import NavaidLabelLayer from "./NavaidLabelLayer";
+import CandidateWatchingSpotsLayer from "./CandidateWatchingSpotsLayer";
 import AircraftPosition from "./AircraftPosition";
 import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
@@ -60,6 +61,7 @@ export default function AirportMap({
   showRunwayBeams = true,
   showNavaidMarkers = false,
   showAirspaces = true,
+  showCandidateWatchingSpots = false,
   trafficFilter = "all",
   typeFilter = "all",
   altitudeLevel = "all",
@@ -67,6 +69,9 @@ export default function AirportMap({
   selectedAirportIcao = "",
   selectedNavaidKey = "",
   selectedAirspaceId = "",
+  selectedCandidateWatchingSpotId = "",
+  candidateWatchingSpots = [],
+  candidateWatchingSpotCount = 0,
   focalAircraftId = "",
   followsCenter = true,
   floatingSidebarAware = false,
@@ -74,6 +79,7 @@ export default function AirportMap({
   onSelectAirport,
   onSelectNavaid,
   onSelectAirspace,
+  onSelectCandidateWatchingSpot,
   runwayMap = null,
   focalRangeRings = null,
   fallbackCenter = AIRPORT_MAP_FALLBACK_CENTER,
@@ -206,6 +212,12 @@ export default function AirportMap({
       if (selectedAirspaceId && typeof onSelectAirspace === "function") {
         onSelectAirspace("");
       }
+      if (
+        selectedCandidateWatchingSpotId &&
+        typeof onSelectCandidateWatchingSpot === "function"
+      ) {
+        onSelectCandidateWatchingSpot("");
+      }
     };
     mapInstance.on("click", handleMapClick);
     return () => {
@@ -217,10 +229,12 @@ export default function AirportMap({
     onSelectAirport,
     onSelectNavaid,
     onSelectAirspace,
+    onSelectCandidateWatchingSpot,
     selectedAircraftId,
     selectedAirportIcao,
     selectedNavaidKey,
     selectedAirspaceId,
+    selectedCandidateWatchingSpotId,
   ]);
 
   const visibleAircraft = useMemo(() => {
@@ -315,6 +329,9 @@ export default function AirportMap({
               aircraft={aircraft}
               zoom={zoom}
               groundRadiusNm={groundRadiusNm}
+              candidateWatchingSpotCount={
+                showCandidateWatchingSpots ? candidateWatchingSpotCount : 0
+              }
             />
           )}
           <NearbyAirportLayer
@@ -338,6 +355,13 @@ export default function AirportMap({
             zoom={zoom}
             showBeams={showRunwayBeams}
             showBadges
+          />
+          <CandidateWatchingSpotsLayer
+            enabled={showCandidateWatchingSpots}
+            spots={candidateWatchingSpots}
+            zoom={zoom}
+            selectedSpotId={selectedCandidateWatchingSpotId}
+            onSelectSpot={onSelectCandidateWatchingSpot}
           />
           <SelectedAircraftTrace theme={currentTheme} />
           <MapRangeLegend />

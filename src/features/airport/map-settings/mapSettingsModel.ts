@@ -14,6 +14,7 @@ export const MAP_LAYER_KEYS = Object.freeze({
   APPROACH_BEAMS: "approachBeams",
   NAVAID_MARKERS: "navaidMarkers",
   AIRSPACES: "airspaces",
+  CANDIDATE_WATCHING_SPOTS: "candidateWatchingSpots",
   USER_LOCATION: "userLocation",
   USER_LOCATION_AUDIO: "userLocationAudio",
 });
@@ -23,6 +24,7 @@ export const PERSISTED_MAP_LAYER_KEYS = Object.freeze([
   MAP_LAYER_KEYS.APPROACH_BEAMS,
   MAP_LAYER_KEYS.NAVAID_MARKERS,
   MAP_LAYER_KEYS.AIRSPACES,
+  MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS,
   MAP_LAYER_KEYS.USER_LOCATION,
   MAP_LAYER_KEYS.USER_LOCATION_AUDIO,
 ]);
@@ -32,6 +34,7 @@ export const DISPLAY_MAP_LAYER_KEYS = Object.freeze([
   MAP_LAYER_KEYS.APPROACH_BEAMS,
   MAP_LAYER_KEYS.NAVAID_MARKERS,
   MAP_LAYER_KEYS.AIRSPACES,
+  MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS,
 ]);
 
 const MAP_MODE_PRESETS = Object.freeze({
@@ -39,12 +42,13 @@ const MAP_MODE_PRESETS = Object.freeze({
     id: MAP_MODE_IDS.SPOTTING,
     labelKey: "mapSettings.modes.spotting",
     descriptionKey: "mapSettings.modeDescriptions.spotting",
-    iconKey: "planeLanding",
+    iconKey: "telescope",
     layers: Object.freeze({
       [MAP_LAYER_KEYS.MAP_LABELS]: true,
       [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
       [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
       [MAP_LAYER_KEYS.AIRSPACES]: false,
+      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
       [MAP_LAYER_KEYS.USER_LOCATION]: false,
       [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
     }),
@@ -59,6 +63,7 @@ const MAP_MODE_PRESETS = Object.freeze({
       [MAP_LAYER_KEYS.APPROACH_BEAMS]: false,
       [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
       [MAP_LAYER_KEYS.AIRSPACES]: false,
+      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
       [MAP_LAYER_KEYS.USER_LOCATION]: false,
       [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
     }),
@@ -73,6 +78,7 @@ const MAP_MODE_PRESETS = Object.freeze({
       [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
       [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
       [MAP_LAYER_KEYS.AIRSPACES]: true,
+      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
       [MAP_LAYER_KEYS.USER_LOCATION]: false,
       [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
     }),
@@ -87,6 +93,7 @@ const MAP_MODE_PRESETS = Object.freeze({
       [MAP_LAYER_KEYS.APPROACH_BEAMS]: false,
       [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
       [MAP_LAYER_KEYS.AIRSPACES]: false,
+      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
       [MAP_LAYER_KEYS.USER_LOCATION]: false,
       [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
     }),
@@ -271,6 +278,7 @@ export function mapSettingsToExplorerLayers(settings: MapSettingsRecord = DEFAUL
     showRunwayBeams: layers[MAP_LAYER_KEYS.APPROACH_BEAMS],
     showNavaidMarkers: layers[MAP_LAYER_KEYS.NAVAID_MARKERS],
     showAirspaces: layers[MAP_LAYER_KEYS.AIRSPACES],
+    showCandidateWatchingSpots: layers[MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS],
   };
 }
 
@@ -279,6 +287,7 @@ export function explorerLayerStateToMapSettingsLayers({
   showRunwayBeams,
   showNavaidMarkers,
   showAirspaces,
+  showCandidateWatchingSpots,
   userLocationActive,
   userLocationAudioActive,
 }: MapSettingsOptions = {}) {
@@ -287,6 +296,7 @@ export function explorerLayerStateToMapSettingsLayers({
     [MAP_LAYER_KEYS.APPROACH_BEAMS]: showRunwayBeams,
     [MAP_LAYER_KEYS.NAVAID_MARKERS]: showNavaidMarkers,
     [MAP_LAYER_KEYS.AIRSPACES]: showAirspaces,
+    [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: showCandidateWatchingSpots,
     [MAP_LAYER_KEYS.USER_LOCATION]: userLocationActive,
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: userLocationAudioActive,
   });

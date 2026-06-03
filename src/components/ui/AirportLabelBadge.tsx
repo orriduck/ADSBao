@@ -30,6 +30,22 @@ const detailClass = (variant) =>
 
 function renderDetailHtml(detail) {
   const cls = detailClass(detail.variant);
+  if (Array.isArray(detail.parts) && detail.parts.length > 0) {
+    const partsHtml = detail.parts
+      .map((part) => {
+        if (part.type === "separator") {
+          return `<span class="airport-overlay-label__detail-separator">${escapeHtml(part.value || "|")}</span>`;
+        }
+        const partClass =
+          part.type === "label"
+            ? "airport-overlay-label__detail-label"
+            : "airport-overlay-label__detail-value";
+        const motionClass = part.motion ? " airport-overlay-label__detail-part--motion" : "";
+        return `<span class="${partClass}${motionClass}">${escapeHtml(part.value)}</span>`;
+      })
+      .join("");
+    return `<span class="${cls}">${partsHtml}</span>`;
+  }
   // Detail chips can either show a label + value pair (e.g. NEAR 12,
   // 24 NM) or a single flat value (RWY 4).
   if (detail.label != null && detail.value != null) {
@@ -56,6 +72,40 @@ export function airportLabelBadgeHtml({
 
 function DetailChip({ detail }) {
   const cls = detailClass(detail.variant);
+  if (Array.isArray(detail.parts) && detail.parts.length > 0) {
+    return (
+      <span className={cls}>
+        {detail.parts.map((part, idx) => {
+          if (part.type === "separator") {
+            return (
+              <span
+                key={`${part.type}-${idx}`}
+                className="airport-overlay-label__detail-separator"
+              >
+                {part.value || "|"}
+              </span>
+            );
+          }
+          return (
+            <span
+              key={`${part.type}-${part.value}-${idx}`}
+              className={
+                part.type === "label"
+                  ? `airport-overlay-label__detail-label ${
+                      part.motion ? "airport-overlay-label__detail-part--motion" : ""
+                    }`
+                  : `airport-overlay-label__detail-value ${
+                      part.motion ? "airport-overlay-label__detail-part--motion" : ""
+                    }`
+              }
+            >
+              {part.value}
+            </span>
+          );
+        })}
+      </span>
+    );
+  }
   if (detail.label != null && detail.value != null) {
     if (detail.variant === "near") {
       return (

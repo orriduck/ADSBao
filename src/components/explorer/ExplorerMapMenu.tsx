@@ -27,6 +27,7 @@ export default function ExplorerMapMenu({
     showRunwayBeams,
     showNavaidMarkers,
     showAirspaces,
+    showCandidateWatchingSpots,
     mapSettings,
     savedMapSettings,
     mapSettingsSaveStatus,
@@ -40,6 +41,7 @@ export default function ExplorerMapMenu({
     toggleRunwayBeams,
     toggleNavaidMarkers,
     toggleAirspaces,
+    toggleCandidateWatchingSpots,
   } = useExplorerUi();
 
   return (
@@ -56,6 +58,7 @@ export default function ExplorerMapMenu({
         showRunwayBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
+        showCandidateWatchingSpots={showCandidateWatchingSpots}
         mapSettings={mapSettings}
         savedMapSettings={savedMapSettings}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
@@ -70,6 +73,7 @@ export default function ExplorerMapMenu({
         onToggleRunwayBeams={toggleRunwayBeams}
         onToggleNavaidMarkers={toggleNavaidMarkers}
         onToggleAirspaces={toggleAirspaces}
+        onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
         onSelectMapMode={applyMapMode}
         onSaveMapSettings={saveMapSettings}
         onRestoreMapSettings={restoreMapSettings}

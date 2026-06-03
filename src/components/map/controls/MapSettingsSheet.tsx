@@ -59,6 +59,15 @@ const LAYER_CONTROLS = [
     prop: "showAirspaces",
     handler: "onToggleAirspaces",
   },
+  {
+    layerKey: MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS,
+    iconKey: "telescope",
+    labelKey: "mapLayers.candidateWatchingSpots",
+    activeKey: "mapLayers.showCandidateWatchingSpots",
+    inactiveKey: "mapLayers.hideCandidateWatchingSpots",
+    prop: "showCandidateWatchingSpots",
+    handler: "onToggleCandidateWatchingSpots",
+  },
 ];
 
 export default function MapSettingsSheet({
@@ -70,6 +79,7 @@ export default function MapSettingsSheet({
   showBeams,
   showNavaidMarkers,
   showAirspaces = true,
+  showCandidateWatchingSpots = false,
   userLocationActive = false,
   userLocationAudioActive = false,
   userLocationPending = false,
@@ -79,6 +89,7 @@ export default function MapSettingsSheet({
   onToggleBeams,
   onToggleNavaidMarkers,
   onToggleAirspaces,
+  onToggleCandidateWatchingSpots,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   savedMapSettings = null,
@@ -96,10 +107,12 @@ export default function MapSettingsSheet({
     showBeams,
     showNavaidMarkers,
     showAirspaces,
+    showCandidateWatchingSpots,
     onToggleMapLabels,
     onToggleBeams,
     onToggleNavaidMarkers,
     onToggleAirspaces,
+    onToggleCandidateWatchingSpots,
   };
   const userLocationTitle = userLocationPending
     ? t("mapLayers.locatingUser")
@@ -121,6 +134,7 @@ export default function MapSettingsSheet({
         showRunwayBeams: showBeams,
         showNavaidMarkers,
         showAirspaces,
+        showCandidateWatchingSpots,
         userLocationActive,
         userLocationAudioActive,
       }),

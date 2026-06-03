@@ -1,0 +1,154 @@
+{
+  "airportIcao": "KBOS",
+  "generatedAt": "2026-06-03T00:19:02.032Z",
+  "sourceAttribution": "© OpenStreetMap contributors",
+  "spots": [
+    {
+      "id": "osm-node-4932359359",
+      "name": null,
+      "lat": 42.3802698,
+      "lon": -71.0166268,
+      "source": "osm",
+      "sourceObjectId": "4932359359",
+      "osmType": "node",
+      "osmTags": {
+        "tourism": "viewpoint"
+      },
+      "category": "viewpoint",
+      "score": 74.3,
+      "distanceMeters": 1732,
+      "runwayAlignment": {
+        "runwayId": "15L/33R",
+        "end": "15L",
+        "score": 0.76
+      },
+      "reason": "viewpoint near the extended 15L runway alignment at KBOS.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    },
+    {
+      "id": "osm-way-29745239",
+      "name": "Piers Park",
+      "lat": 42.3645913,
+      "lon": -71.0371967,
+      "source": "osm",
+      "sourceObjectId": "29745239",
+      "osmType": "way",
+      "osmTags": {
+        "access": "yes",
+        "area": "yes",
+        "leisure": "park",
+        "massgis:ARTICLE97": "9",
+        "massgis:ASSESS_ACR": "6.00000000",
+        "massgis:ATT_DATE": "1996/04/23",
+        "massgis:COMMENTS": "FROM CZM COASTAL ACCESS GUIDE",
+        "massgis:DCAM_ID": "0",
+        "massgis:DEED_ACRES": "0.00000000",
+        "massgis:EOEAINVOLV": "0",
+        "massgis:FEESYM": "COM",
+        "massgis:FEE_OWNER": "MASSPORT",
+        "massgis:FY_FUNDING": "0",
+        "massgis:LEV_PROT": "X",
+        "massgis:OS_DEED_BO": "0",
+        "massgis:OS_DEED_PA": "0",
+        "massgis:OS_ID": "35-346",
+        "massgis:OWNER_TYPE": "S",
+        "massgis:POLY_ID": "346",
+        "massgis:PRIM_PURP": "R",
+        "massgis:PUB_ACCESS": "Y",
+        "massgis:SITE_NAME": "PIERS PARK",
+        "massgis:TOWN_ID": "35",
+        "name": "Piers Park",
+        "opening_hours": "sunrise-sunset",
+        "operator": "Massport",
+        "operator:type": "government",
+        "owner": "Massport",
+        "ownership": "state",
+        "source": "MassGIS OpenSpace (http://www.mass.gov/mgis/osp.htm)"
+      },
+      "category": "park",
+      "score": 72.3,
+      "distanceMeters": 2273,
+      "runwayAlignment": {
+        "runwayId": "14/32",
+        "end": "14",
+        "score": 0.76
+      },
+      "reason": "park near the extended 14 runway alignment at KBOS.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    },
+    {
+      "id": "osm-way-29692302",
+      "name": "Coughlin Playground",
+      "lat": 42.3628118,
+      "lon": -70.9737389,
+      "source": "osm",
+      "sourceObjectId": "29692302",
+      "osmType": "way",
+      "osmTags": {
+        "access": "yes",
+        "leisure": "park",
+        "name": "Coughlin Playground",
+        "owner": "Town Of Winthrop",
+        "ownership": "municipal",
+        "protected": "perpetuity",
+        "source": "MassGIS OpenSpace (http://www.mass.gov/mgis/osp.htm)"
+      },
+      "category": "park",
+      "score": 72.2,
+      "distanceMeters": 2966,
+      "runwayAlignment": {
+        "runwayId": "09/27",
+        "end": "27",
+        "score": 0.86
+      },
+      "reason": "park near the extended 27 runway alignment at KBOS.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    },
+    {
+      "id": "osm-node-11810350604",
+      "name": "Bayswater Street Park",
+      "lat": 42.383528,
+      "lon": -71.0022329,
+      "source": "osm",
+      "sourceObjectId": "11810350604",
+      "osmType": "node",
+      "osmTags": {
+        "leisure": "park",
+        "name": "Bayswater Street Park"
+      },
+      "category": "park",
+      "score": 72,
+      "distanceMeters": 2086,
+      "runwayAlignment": {
+        "runwayId": "04L/22R",
+        "end": "22R",
+        "score": 0.91
+      },
+      "reason": "park near the extended 22R runway alignment at KBOS.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    },
+    {
+      "id": "osm-way-637252928",
+      "name": "Neptune Green",
+      "lat": 42.3790784,
+      "lon": -71.0237235,
+      "source": "osm",
+      "sourceObjectId": "637252928",
+      "osmType": "way",
+      "osmTags": {
+        "leisure": "park",
+        "name": "Neptune Green"
+      },
+      "category": "park",
+      "score": 71.5,
+      "distanceMeters": 1897,
+      "runwayAlignment": {
+        "runwayId": "15R/33L",
+        "end": "15R",
+        "score": 0.87
+      },
+      "reason": "park near the extended 15R runway alignment at KBOS.",
+      "disclaimer": "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting."
+    }
+  ]
+}

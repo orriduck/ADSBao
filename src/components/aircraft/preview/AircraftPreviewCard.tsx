@@ -9,6 +9,8 @@ import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard";
 import AirportPreviewMobileCard from "./AirportPreviewMobileCard";
 import AirspacePreviewMetadataCard from "./AirspacePreviewMetadataCard";
 import AirspacePreviewMobileCard from "./AirspacePreviewMobileCard";
+import CandidateWatchingSpotPreviewMetadataCard from "./CandidateWatchingSpotPreviewMetadataCard";
+import CandidateWatchingSpotPreviewMobileCard from "./CandidateWatchingSpotPreviewMobileCard";
 import NavaidPreviewMetadataCard from "./NavaidPreviewMetadataCard";
 import NavaidPreviewMobileCard from "./NavaidPreviewMobileCard";
 import MobilePreviewCard, {
@@ -32,6 +34,8 @@ export default function AircraftPreviewCard({
   airport = null,
   navaid = null,
   airspace = null,
+  candidateWatchingSpot = null,
+  candidateWatchingSpotAttribution = "",
   isMobile = false,
   sidebarOpen = false,
   airportProfile = null,
@@ -45,26 +49,34 @@ export default function AircraftPreviewCard({
   const hasPhoto = Boolean(photo?.src);
   const photoTone = usePhotoTone(photo?.src);
 
-  const entity = aircraft || airport || navaid || airspace;
+  const entity = aircraft || airport || navaid || airspace || candidateWatchingSpot;
   const isAirport = !aircraft && Boolean(airport);
   const isNavaid = !aircraft && !airport && Boolean(navaid);
   const isAirspace = !aircraft && !airport && !navaid && Boolean(airspace);
+  const isCandidateWatchingSpot =
+    !aircraft && !airport && !navaid && !airspace && Boolean(candidateWatchingSpot);
   const identityKey = isAirport
     ? `airport:${airport?.icao || "preview"}`
     : isNavaid
       ? `navaid:${navaid?.key || navaid?.ident || "preview"}`
       : isAirspace
         ? `airspace:${airspace?.id || "preview"}`
-        : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
+        : isCandidateWatchingSpot
+          ? `candidate-spot:${candidateWatchingSpot?.id || "preview"}`
+          : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
   const aircraftIdentity =
-    !isAirport && !isNavaid && aircraft ? getAircraftIdentity(aircraft) : null;
+    !isAirport && !isNavaid && !isAirspace && !isCandidateWatchingSpot && aircraft
+      ? getAircraftIdentity(aircraft)
+      : null;
   const traceFetchLoading =
     Boolean(aircraftIdentity) &&
     selectedTrace.aircraftHex === aircraftIdentity &&
     selectedTrace.traceFetchLoading;
   const router = useRouter();
   const pathname = usePathname();
-  const trackHref = isAirport
+  const trackHref = isCandidateWatchingSpot
+    ? null
+    : isAirport
     ? airport?.icao
       ? `/airport/${airport.icao.toUpperCase()}`
       : null
@@ -78,7 +90,12 @@ export default function AircraftPreviewCard({
     Boolean(entity) &&
     !(suppressMobileWhenAlreadyTracking && alreadyTracking);
   const traceStatusSurfaceActive =
-    !isAirport && !isNavaid && !isAirspace && Boolean(entity) && (isMobile ? showMobile : !isMobile);
+    !isAirport &&
+    !isNavaid &&
+    !isAirspace &&
+    !isCandidateWatchingSpot &&
+    Boolean(entity) &&
+    (isMobile ? showMobile : !isMobile);
   const traceLoading = useMinimumVisibleTraceStatus({
     aircraftIdentity,
     active: traceFetchLoading,
@@ -119,6 +136,8 @@ export default function AircraftPreviewCard({
       ? t("preview.navaidPreview")
     : isAirspace
       ? t("preview.airspacePreview")
+    : isCandidateWatchingSpot
+      ? t("preview.candidateWatchingSpotPreview")
     : alreadyTracking
       ? t("preview.trackingTrace")
       : t("preview.trackTrace");
@@ -128,6 +147,8 @@ export default function AircraftPreviewCard({
       ? t("preview.navaidPreview")
       : isAirspace
         ? t("preview.airspacePreview")
+      : isCandidateWatchingSpot
+        ? t("preview.candidateWatchingSpotPreview")
       : t("preview.aircraftPreview");
 
   return (
@@ -156,6 +177,11 @@ export default function AircraftPreviewCard({
             <NavaidPreviewMetadataCard navaid={navaid} />
           ) : isAirspace ? (
             <AirspacePreviewMetadataCard airspace={airspace} />
+          ) : isCandidateWatchingSpot ? (
+            <CandidateWatchingSpotPreviewMetadataCard
+              spot={candidateWatchingSpot}
+              sourceAttribution={candidateWatchingSpotAttribution}
+            />
           ) : (
             <AircraftPreviewMetadataCard
               aircraft={aircraft}
@@ -206,6 +232,11 @@ export default function AircraftPreviewCard({
             <NavaidPreviewMobileCard navaid={navaid} />
           ) : isAirspace ? (
             <AirspacePreviewMobileCard airspace={airspace} />
+          ) : isCandidateWatchingSpot ? (
+            <CandidateWatchingSpotPreviewMobileCard
+              spot={candidateWatchingSpot}
+              sourceAttribution={candidateWatchingSpotAttribution}
+            />
           ) : (
             <AircraftPreviewMobileCard aircraft={aircraft} />
           )}

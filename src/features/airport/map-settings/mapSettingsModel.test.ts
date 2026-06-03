@@ -16,6 +16,7 @@ import {
   assert.equal(spotting.id, MAP_MODE_IDS.SPOTTING);
   assert.equal(spotting.layers[MAP_LAYER_KEYS.MAP_LABELS], true);
   assert.equal(spotting.layers[MAP_LAYER_KEYS.APPROACH_BEAMS], true);
+  assert.equal(spotting.layers[MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS], true);
   assert.equal(spotting.layers[MAP_LAYER_KEYS.NAVAID_MARKERS], false);
 }
 
@@ -35,6 +36,7 @@ import {
     [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
     [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
     [MAP_LAYER_KEYS.AIRSPACES]: true,
+    [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
     [MAP_LAYER_KEYS.USER_LOCATION]: false,
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
   });
@@ -117,6 +119,7 @@ import {
       [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
       [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
       [MAP_LAYER_KEYS.AIRSPACES]: true,
+      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
       [MAP_LAYER_KEYS.USER_LOCATION]: true,
       [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
     },
@@ -134,6 +137,7 @@ import {
     [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
     [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
     [MAP_LAYER_KEYS.AIRSPACES]: true,
+    [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
   });

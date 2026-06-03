@@ -99,6 +99,15 @@ const selection = resolveAirportExplorerSelection({
   selectedNavaidKey: "86260-BOS",
   airspaces: [{ id: "airspace-1", name: "Boston Class B" }],
   selectedAirspaceId: "airspace-1",
+  candidateWatchingSpots: [
+    {
+      id: "osm-node-1",
+      name: "Piers Park",
+      lat: 42.364,
+      lon: -71.037,
+    },
+  ],
+  selectedCandidateWatchingSpotId: "osm-node-1",
 });
 
 assert.equal(selection.selectedAircraft.callsign, "JBU456");
@@ -108,6 +117,8 @@ assert.equal(selection.selectedNavaid.ident, "BOS");
 assert.equal(selection.selectedNavaidStillVisible, true);
 assert.equal(selection.selectedAirspace.name, "Boston Class B");
 assert.equal(selection.selectedAirspaceStillVisible, true);
+assert.equal(selection.selectedCandidateWatchingSpot.name, "Piers Park");
+assert.equal(selection.selectedCandidateWatchingSpotStillVisible, true);
 
 const missingSelection = resolveAirportExplorerSelection({
   aircraft: [{ icao24: "a1", callsign: "DAL123" }],
@@ -118,6 +129,8 @@ const missingSelection = resolveAirportExplorerSelection({
   selectedNavaidKey: "86260-BOS",
   airspaces: [],
   selectedAirspaceId: "airspace-1",
+  candidateWatchingSpots: [],
+  selectedCandidateWatchingSpotId: "osm-node-1",
 });
 
 assert.equal(missingSelection.selectedAircraft, null);
@@ -127,6 +140,8 @@ assert.equal(missingSelection.selectedNavaid, null);
 assert.equal(missingSelection.selectedNavaidStillVisible, false);
 assert.equal(missingSelection.selectedAirspace, null);
 assert.equal(missingSelection.selectedAirspaceStillVisible, false);
+assert.equal(missingSelection.selectedCandidateWatchingSpot, null);
+assert.equal(missingSelection.selectedCandidateWatchingSpotStillVisible, false);
 
 const mergedTracked = mergeTrackedAircraftIntoNearby({
   trackedAircraft: {

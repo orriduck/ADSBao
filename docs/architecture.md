@@ -59,6 +59,23 @@ There is no separate `src/services` layer. Shared provider clients, normalizers,
 
 The OpenAIP migration prepares `public.openaip_airports` and `public.openaip_cache` as OpenAIP-shaped persistence boundaries. Legacy airport directory tables and nearby airport caches are intentionally dropped by the migration; runtime code no longer reads OurAirports as an airport directory or FAA CIFP data. OurAirports is retained only as runway threshold geometry via `public.runway_geometries`.
 
+### Watcher Mode candidate watching spots
+
+Watcher Mode uses static candidate data, not live browser-side Overpass calls.
+Regenerate the first airport set with:
+
+```bash
+pnpm generate:watching-spots
+```
+
+The generator reads runway endpoint geometry from the existing runway geometry
+source when available, falls back to OurAirports runway CSV geometry, builds
+runway-extension corridors, queries Overpass via POST for a coarse bbox, and
+then filters and scores candidate objects locally. Output is served from
+`public/data/spotting-spots/` as JSON, currently `KBOS.json` and `JFK.json`.
+Each candidate is map-derived only and must retain the conservative disclaimer
+and `© OpenStreetMap contributors` attribution.
+
 ### Vercel security posture
 
 Vercel's platform DDoS mitigation remains enabled automatically for the deployment. The repository does not depend on paid Vercel WAF rate limiting for normal operation; proxy throttling lives in application code so the default deployment path does not require a new paid feature.

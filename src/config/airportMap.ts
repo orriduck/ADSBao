@@ -25,6 +25,10 @@ export const AIRPORT_MAP_PANES = {
     name: "airport-map-badge",
     zIndex: 420,
   },
+  candidateSpot: {
+    name: "airport-map-candidate-spot",
+    zIndex: 430,
+  },
 };
 
 // Color values intentionally resolve through CSS variables so each
