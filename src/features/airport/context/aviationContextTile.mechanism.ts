@@ -66,6 +66,12 @@ function writeCached(key: string, payload: ContextTileRecord) {
   return payload;
 }
 
+function altitudeCacheSuffix(altitudeFtMsl: unknown) {
+  const altitude = Number(altitudeFtMsl);
+  if (!Number.isFinite(altitude)) return "";
+  return `:altitude-ft:${Math.round(altitude)}`;
+}
+
 export function clearAviationContextTileCache() {
   tileMemoryCache.clear();
 }
@@ -73,8 +79,9 @@ export function clearAviationContextTileCache() {
 export async function getAirspaceTile({
   tile,
   airspaceRepository,
+  altitudeFtMsl = null,
 }: ContextTileRecord = {}) {
-  const cacheKey = buildContextTileCacheKey("airspace", tile);
+  const cacheKey = `${buildContextTileCacheKey("airspace", tile)}${altitudeCacheSuffix(altitudeFtMsl)}`;
   const cached = readCached(cacheKey);
   if (cached) return cached;
   const bbox = tileToBbox(tile);
@@ -85,7 +92,11 @@ export async function getAirspaceTile({
   if (!repository?.readAirspacesInBounds) {
     throw new AirportDirectoryConfigurationError("Supabase airspace data is not configured");
   }
-  const airspaces = await repository.readAirspacesInBounds({ bbox, limit: 100 });
+  const airspaces = await repository.readAirspacesInBounds({
+    bbox,
+    limit: 100,
+    altitudeFtMsl,
+  });
   return writeCached(cacheKey, {
     tile,
     bbox,

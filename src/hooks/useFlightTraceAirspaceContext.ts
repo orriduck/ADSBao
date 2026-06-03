@@ -30,10 +30,12 @@ const normalizePoint = (point: TraceContextRecord | null | undefined) => {
     return null;
   }
   const timestampMs = Number(point?.timestampMs);
+  const altitude = Number(point?.altitude);
   return {
     lat,
     lon,
     timestampMs: Number.isFinite(timestampMs) ? timestampMs : null,
+    altitude: Number.isFinite(altitude) ? altitude : null,
   };
 };
 

@@ -40,6 +40,7 @@ function normalizeTracePoint(point: Record<string, any> | null | undefined) {
     lat,
     lon,
     timestampMs: numberOrNull(point?.timestampMs),
+    altitude: numberOrNull(point?.altitude),
   };
 }
 

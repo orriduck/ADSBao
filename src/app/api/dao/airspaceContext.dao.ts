@@ -24,10 +24,14 @@ const normalizeTracePoint = (point: AirspaceContextRecord | null | undefined) =>
     return null;
   }
   const timestampMs = numberOrNull(point?.timestampMs ?? point?.timestamp_ms);
+  const altitudeFtMsl = numberOrNull(
+    point?.altitude ?? point?.altitudeFtMsl ?? point?.altitude_ft_msl,
+  );
   return {
     latitude,
     longitude,
     timestamp_ms: timestampMs,
+    altitude_ft_msl: altitudeFtMsl,
   };
 };
 
@@ -66,6 +70,7 @@ export function createAirspaceContextRepository({
     async readAirspacesInBounds({
       bbox,
       limit = 100,
+      altitudeFtMsl = null,
     }: AirspaceContextRecord = {}) {
       const south = numberOrNull(bbox?.south);
       const north = numberOrNull(bbox?.north);
@@ -75,6 +80,7 @@ export function createAirspaceContextRepository({
         return [];
       }
       const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 500));
+      const altitude = numberOrNull(altitudeFtMsl);
 
       const { data, error } = await client.rpc("get_openaip_airspaces_in_bbox", {
         p_west: west,
@@ -82,6 +88,7 @@ export function createAirspaceContextRepository({
         p_east: east,
         p_north: north,
         p_limit: safeLimit,
+        p_altitude_ft_msl: altitude,
       });
 
       if (error) {

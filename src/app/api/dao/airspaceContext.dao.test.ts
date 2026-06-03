@@ -98,6 +98,7 @@ function createFakeSupabaseClient({
   const airspaces = await repository.readAirspacesInBounds({
     bbox: { west: -72, south: 42, east: -70, north: 43 },
     limit: 200,
+    altitudeFtMsl: 6500,
   });
 
   assert.equal(airspaces.length, 1);
@@ -112,6 +113,7 @@ function createFakeSupabaseClient({
       p_east: -70,
       p_north: 43,
       p_limit: 200,
+      p_altitude_ft_msl: 6500,
     },
   });
 }
@@ -151,7 +153,7 @@ function createFakeSupabaseClient({
   const context = await repository.readFullTraceAirspaceContext({
     tracePoints: [
       { lat: 42.36, lon: -71, timestampMs: 1 },
-      { lat: 42.42, lon: -71.2, timestampMs: 2 },
+      { lat: 42.42, lon: -71.2, timestampMs: 2, altitude: 6500 },
       { lat: 999, lon: -71.2 },
     ],
   });
@@ -167,8 +169,8 @@ function createFakeSupabaseClient({
       name: "get_full_trace_airspace_stats",
       args: {
         p_trace_points: [
-          { latitude: 42.36, longitude: -71, timestamp_ms: 1 },
-          { latitude: 42.42, longitude: -71.2, timestamp_ms: 2 },
+          { latitude: 42.36, longitude: -71, timestamp_ms: 1, altitude_ft_msl: null },
+          { latitude: 42.42, longitude: -71.2, timestamp_ms: 2, altitude_ft_msl: 6500 },
         ],
         p_limit: 250,
       },

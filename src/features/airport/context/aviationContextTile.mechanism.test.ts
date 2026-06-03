@@ -12,18 +12,48 @@ clearAviationContextTileCache();
   let requestedBbox = null;
   const payload = await getAirspaceTile({
     tile: { z: 6, x: 18, y: 24 },
+    altitudeFtMsl: 6500,
     airspaceRepository: {
-      async readAirspacesInBounds({ bbox }) {
+      async readAirspacesInBounds({ bbox, altitudeFtMsl }) {
         requestedBbox = bbox;
+        assert.equal(altitudeFtMsl, 6500);
         return [{ id: "asp-1", name: "BEDFORD CLASS D" }];
       },
     },
   });
 
-  assert.equal(payload.cacheKey, "airspace:6:18:24");
+  assert.equal(payload.cacheKey, "airspace:6:18:24:altitude-ft:6500");
   assert.equal(payload.source, "supabase");
   assert.deepEqual(payload.airspaces, [{ id: "asp-1", name: "BEDFORD CLASS D" }]);
   assert.ok(requestedBbox);
+}
+
+{
+  clearAviationContextTileCache();
+  const requestedAltitudes = [];
+  const repository = {
+    async readAirspacesInBounds({ altitudeFtMsl }) {
+      requestedAltitudes.push(altitudeFtMsl);
+      return [{ id: `asp-${altitudeFtMsl}`, name: `Altitude ${altitudeFtMsl}` }];
+    },
+  };
+
+  const lowPayload = await getAirspaceTile({
+    tile: { z: 6, x: 18, y: 24 },
+    altitudeFtMsl: 1500,
+    airspaceRepository: repository,
+  });
+  const highPayload = await getAirspaceTile({
+    tile: { z: 6, x: 18, y: 24 },
+    altitudeFtMsl: 8500,
+    airspaceRepository: repository,
+  });
+
+  assert.deepEqual(requestedAltitudes, [1500, 8500]);
+  assert.equal(lowPayload.cacheKey, "airspace:6:18:24:altitude-ft:1500");
+  assert.equal(highPayload.cacheKey, "airspace:6:18:24:altitude-ft:8500");
+  assert.equal(lowPayload.airspaces[0].id, "asp-1500");
+  assert.equal(highPayload.airspaces[0].id, "asp-8500");
 }
 
 {

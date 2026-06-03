@@ -20,6 +20,11 @@ const rateLimit = {
 
 export const runtime = "nodejs";
 
+const numberOrNull = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+};
+
 export function OPTIONS(request) {
   return createCorsPreflightResponse(request);
 }
@@ -38,7 +43,9 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const payload = await getAirspaceTile({ tile });
+    const url = new URL(request.url);
+    const altitudeFtMsl = numberOrNull(url.searchParams.get("altitudeFt"));
+    const payload = await getAirspaceTile({ tile, altitudeFtMsl });
     return jsonProxyResponse(request, payload, {
       headers: AIRSPACE_TILE_CACHE_HEADERS,
     });

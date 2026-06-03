@@ -323,6 +323,10 @@ function FlightExplorerContent({ callsign }) {
         : fullTraceAirspaceContext.airspaces,
     [contextTiles.airspaces, fullTraceAirspaceContext.airspaces, mapFollowsAircraft],
   );
+  const trackedAltitudeFtMsl = useMemo(() => {
+    const altitude = Number(trackedAircraftForDisplay?.altitude);
+    return Number.isFinite(altitude) ? altitude : null;
+  }, [trackedAircraftForDisplay?.altitude]);
   const selectedAirspace = useMemo(
     () =>
       displayedAirspaces.find(
@@ -664,6 +668,7 @@ function FlightExplorerContent({ callsign }) {
             contextTileOverlays
             contextTileRefreshKey={`${callsign}:${mapFollowsAircraft}:${mapZoom}`}
             fullTraceContext={!mapFollowsAircraft}
+            airspaceAltitudeFtMsl={trackedAltitudeFtMsl}
             onContextTilesChange={setContextTiles}
             deferUntilFocal
             loadingOverlayActive={flightTrackingLoadingActive}

@@ -15,6 +15,17 @@ function tilePath(resource: string, tile: ContextTileRecord) {
   return `/api/${resource}/${tile.z}/${tile.x}/${tile.y}`;
 }
 
+function tilePathWithQuery(resource: string, tile: ContextTileRecord, query: ContextTileRecord = {}) {
+  const path = tilePath(resource, tile);
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value == null || value === "") return;
+    params.set(key, String(value));
+  });
+  const suffix = params.toString();
+  return suffix ? `${path}?${suffix}` : path;
+}
+
 function tileSignature(tile: ContextTileRecord) {
   return `${tile.z}/${tile.x}/${tile.y}`;
 }
@@ -63,6 +74,7 @@ export function useAviationContextTiles({
   navaidsEnabled = false,
   navaidCountsEnabled = false,
   waypointsEnabled = false,
+  airspaceAltitudeFtMsl = null,
   refreshKey = "",
 }: ContextTileRecord = {}) {
   const [tiles, setTiles] = useState([]);
@@ -105,7 +117,13 @@ export function useAviationContextTiles({
     if (!enabled || tiles.length === 0) return [];
     return tiles.flatMap((tile) => {
       const urls = [];
-      if (airspacesEnabled) urls.push(tilePath("airspace", tile));
+      if (airspacesEnabled) {
+        urls.push(
+          tilePathWithQuery("airspace", tile, {
+            altitudeFt: airspaceAltitudeFtMsl,
+          }),
+        );
+      }
       if (navaidsEnabled) urls.push(tilePath("navaids", tile));
       if (navaidCountsEnabled) urls.push(tilePath("navaid-counts", tile));
       if (waypointsEnabled) urls.push(tilePath("waypoints", tile));
@@ -113,6 +131,7 @@ export function useAviationContextTiles({
     });
   }, [
     airspacesEnabled,
+    airspaceAltitudeFtMsl,
     enabled,
     navaidCountsEnabled,
     navaidsEnabled,
