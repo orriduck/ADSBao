@@ -809,6 +809,23 @@ body {
     text-transform: uppercase;
 }
 
+.airspace-boundary-edge {
+    fill: none;
+    opacity: 0.46;
+    pointer-events: none;
+    stroke: var(--airspace-boundary-label);
+    stroke-dasharray: 0.5 9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 8px;
+}
+
+.airspace-boundary-edge--focused {
+    opacity: 0.78;
+    stroke-dasharray: 0.5 7;
+    stroke-width: 10px;
+}
+
 .airspace-boundary-label--focused {
     opacity: 1;
 }

@@ -5,8 +5,14 @@ import L from "leaflet";
 import { useMapInstance } from "./MapContext";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
-import { buildTraceFitPoints } from "@/features/airport/map/mapFitTraceModel";
-import { withFloatingSidebarFitPadding } from "./mapViewportOffset";
+import {
+  buildTraceFitPoints,
+  resolveTraceFitCenterAnchor,
+} from "@/features/airport/map/mapFitTraceModel";
+import {
+  getOffsetMapCenter,
+  withFloatingSidebarFitPadding,
+} from "./mapViewportOffset";
 
 const DEFAULT_FIT_OPTIONS = Object.freeze({
   padding: Object.freeze([60, 60]),
@@ -29,6 +35,8 @@ const DEFAULT_FIT_OPTIONS = Object.freeze({
 // map stays anchored on the bounds we just computed.
 export default function MapFitToTraceController({
   routePath = [],
+  centerAnchor = null,
+  centerAnchorFollowKey = "",
   autoFitKey = "",
   fitOptions = DEFAULT_FIT_OPTIONS,
   onAutoFit,
@@ -42,6 +50,27 @@ export default function MapFitToTraceController({
     () => buildTraceFitPoints({ traces, routePath }),
     [traces, routePath],
   );
+  const fitCenterAnchor = useMemo(
+    () => resolveTraceFitCenterAnchor(centerAnchor),
+    [centerAnchor],
+  );
+  const panMapToAnchor = useCallback(
+    (anchor, { animate = true } = {}) => {
+      if (!map || !anchor) return;
+      const zoom = map.getZoom?.();
+      const targetCenter = getOffsetMapCenter(
+        map,
+        { lat: anchor[0], lon: anchor[1] },
+        zoom,
+      );
+      map.panTo(targetCenter, {
+        animate,
+        duration: animate ? 0.35 : 0,
+        easeLinearity: 0.22,
+      });
+    },
+    [map],
+  );
   const fitMapToPoints = useCallback(
     (points) => {
       if (!map || points.length === 0) return;
@@ -50,8 +79,11 @@ export default function MapFitToTraceController({
         bounds,
         withFloatingSidebarFitPadding(map, fitOptions || DEFAULT_FIT_OPTIONS),
       );
+      if (fitCenterAnchor) {
+        window.requestAnimationFrame(() => panMapToAnchor(fitCenterAnchor));
+      }
     },
-    [fitOptions, map],
+    [fitCenterAnchor, fitOptions, map, panMapToAnchor],
   );
 
   useEffect(() => {
@@ -75,6 +107,12 @@ export default function MapFitToTraceController({
     fitMapToPoints(fitPoints);
     onAutoFit?.();
   }, [autoFitKey, fitMapToPoints, fitPoints, map, onAutoFit]);
+
+  useEffect(() => {
+    const key = String(centerAnchorFollowKey || "").trim();
+    if (!key || !map || !fitCenterAnchor) return;
+    panMapToAnchor(fitCenterAnchor);
+  }, [centerAnchorFollowKey, fitCenterAnchor, map, panMapToAnchor]);
 
   return null;
 }

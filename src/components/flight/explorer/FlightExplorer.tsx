@@ -648,6 +648,12 @@ function FlightExplorerContent({ callsign }) {
             <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
             <MapFitToTraceController
               routePath={focalFlightAwareRoutePath}
+              centerAnchor={{ lat: focalLat, lon: focalLon }}
+              centerAnchorFollowKey={
+                !mapFollowsAircraft && focalLat != null && focalLon != null
+                  ? `${focalLat}:${focalLon}`
+                  : ""
+              }
               autoFitKey={flightAwareAutoFitKey}
               fitOptions={flightDisplayContext.mapFitOptions}
               onAutoFit={

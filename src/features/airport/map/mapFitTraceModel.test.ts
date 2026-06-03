@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 
-import { buildTraceFitPoints } from "./mapFitTraceModel";
+import {
+  buildTraceFitPoints,
+  resolveTraceFitCenterAnchor,
+} from "./mapFitTraceModel";
 
 {
   const points = buildTraceFitPoints({
@@ -67,6 +70,19 @@ import { buildTraceFitPoints } from "./mapFitTraceModel";
     points,
     [],
     "route-only geometry should not trigger flight-page trace fitting",
+  );
+}
+
+{
+  assert.deepEqual(
+    resolveTraceFitCenterAnchor({ lat: "42.36", lon: "-71.01" }),
+    [42.36, -71.01],
+    "finite inferred aircraft positions can anchor trace fitting",
+  );
+  assert.equal(
+    resolveTraceFitCenterAnchor({ lat: "bad", lon: "-71.01" }),
+    null,
+    "invalid inferred positions should not recenter the map",
   );
 }
 

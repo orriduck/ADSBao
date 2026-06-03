@@ -102,7 +102,7 @@ const cardVariants = cva(
 
 const valueClass = cn(
   "flex items-center justify-center",
-  "max-w-full min-w-0 h-8.5 overflow-hidden",
+  "w-full max-w-full min-w-0 h-8.5 overflow-hidden whitespace-nowrap text-center",
   "font-[var(--font-display)] not-italic font-black text-atc-text",
   "text-3xl leading-none tracking-normal",
   // Active card — flip to the click foreground so the value reads
@@ -110,7 +110,7 @@ const valueClass = cn(
   // color, but text-atc-text on <strong> shadows it.
   "group-data-[active=true]:text-[var(--atc-click-fg)]",
   // Compact in desktop map kit context.
-  "[.airport-map-kit_&]:text-2xl [.airport-map-kit_&]:h-7",
+  "[.airport-map-kit_&]:text-[22px] [.airport-map-kit_&]:h-7",
 );
 
 const labelClass = cn(
@@ -147,7 +147,7 @@ export function MetricCard({
         translate={valueTranslate ? undefined : "no"}
         className={cn(
           valueClass,
-          valueSize === "compact" && "text-2xl",
+          valueSize === "compact" && "text-[22px] [.airport-map-kit_&]:text-[18px]",
           !valueTranslate && "notranslate",
         )}
       >

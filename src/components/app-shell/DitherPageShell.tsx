@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
 import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
@@ -20,6 +21,42 @@ export default function DitherPageShell({
     typeof resolvedDescription === "string"
       ? resolvedDescription.trim().length > 0
       : Boolean(resolvedDescription);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 720px)");
+    let restore: (() => void) | null = null;
+
+    const applyDocumentScrollLock = () => {
+      restore?.();
+      restore = null;
+      if (!media.matches) return;
+
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      const originalBodyOverscroll = document.body.style.overscrollBehavior;
+      const originalHtmlOverscroll =
+        document.documentElement.style.overscrollBehavior;
+
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overscrollBehavior = "none";
+      document.documentElement.style.overscrollBehavior = "none";
+
+      restore = () => {
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+        document.body.style.overscrollBehavior = originalBodyOverscroll;
+        document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
+      };
+    };
+
+    applyDocumentScrollLock();
+    media.addEventListener("change", applyDocumentScrollLock);
+    return () => {
+      media.removeEventListener("change", applyDocumentScrollLock);
+      restore?.();
+    };
+  }, []);
 
   return (
     <div
