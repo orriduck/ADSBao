@@ -2,10 +2,29 @@ import assert from "node:assert/strict";
 
 import {
   clearAviationContextTileCache,
+  getAirspaceTile,
   getNavaidCountTile,
 } from "./aviationContextTile.mechanism";
 
 clearAviationContextTileCache();
+
+{
+  let requestedBbox = null;
+  const payload = await getAirspaceTile({
+    tile: { z: 6, x: 18, y: 24 },
+    airspaceRepository: {
+      async readAirspacesInBounds({ bbox }) {
+        requestedBbox = bbox;
+        return [{ id: "asp-1", name: "BEDFORD CLASS D" }];
+      },
+    },
+  });
+
+  assert.equal(payload.cacheKey, "airspace:6:18:24");
+  assert.equal(payload.source, "supabase");
+  assert.deepEqual(payload.airspaces, [{ id: "asp-1", name: "BEDFORD CLASS D" }]);
+  assert.ok(requestedBbox);
+}
 
 {
   let requestedBbox = null;

@@ -62,9 +62,13 @@ import { getAircraftIdentity } from "@/features/airport/context/airportContextUi
 import { normalizeCallsign } from "@/utils/callsign";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay";
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
-import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
+import {
+  SelectedAircraftTraceProvider,
+  useSelectedAircraftTrace,
+} from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard";
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
+import { useFlightTraceAirspaceContext } from "@/hooks/useFlightTraceAirspaceContext";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -139,6 +143,17 @@ function FlightExplorerContent({ callsign }) {
     airspaces: [],
     navaids: [],
     navaidCounts: [],
+    loading: false,
+    error: null,
+  });
+  const [fullTraceAirspaceContext, setFullTraceAirspaceContext] = useState({
+    source: "supabase",
+    tracePointCount: 0,
+    firstTimestampMs: null,
+    lastTimestampMs: null,
+    airspaceIds: [],
+    regions: [],
+    airspaces: [],
     loading: false,
     error: null,
   });
@@ -301,12 +316,19 @@ function FlightExplorerContent({ callsign }) {
       }) || null,
     [contextTiles.navaids, selectedNavaidKey],
   );
+  const displayedAirspaces = useMemo(
+    () =>
+      mapFollowsAircraft
+        ? contextTiles.airspaces
+        : fullTraceAirspaceContext.airspaces,
+    [contextTiles.airspaces, fullTraceAirspaceContext.airspaces, mapFollowsAircraft],
+  );
   const selectedAirspace = useMemo(
     () =>
-      contextTiles.airspaces.find(
+      displayedAirspaces.find(
         (airspace) => airspace?.id === selectedAirspaceId,
       ) || null,
-    [contextTiles.airspaces, selectedAirspaceId],
+    [displayedAirspaces, selectedAirspaceId],
   );
 
   // Merge tracked aircraft into the nearby list so the map always renders
@@ -564,6 +586,10 @@ function FlightExplorerContent({ callsign }) {
       focalPersistKey={callsign || null}
       focalTraceRefreshKey={focalTraceRefreshKey}
     >
+      <FlightTraceAirspaceContextSync
+        enabled={!mapFollowsAircraft && showAirspaces}
+        onChange={setFullTraceAirspaceContext}
+      />
       <AircraftPreviewCard
         aircraft={selectedAircraft}
         airport={selectedAirport}
@@ -613,7 +639,7 @@ function FlightExplorerContent({ callsign }) {
             aircraft={mapAircraft}
             nearbyAirports={mapNearbyAirports}
             nearbyNavaids={contextTiles.navaids}
-            airspaces={contextTiles.airspaces}
+            airspaces={displayedAirspaces}
             airport={null}
             showMapLabels={showMapLabels}
             showRunwayBeams={false}
@@ -674,4 +700,19 @@ function FlightExplorerContent({ callsign }) {
       </div>
     </SelectedAircraftTraceProvider>
   );
+}
+
+function FlightTraceAirspaceContextSync({ enabled, onChange }) {
+  const { traces } = useSelectedAircraftTrace();
+  const focalTrace = traces?.[0] || null;
+  const context = useFlightTraceAirspaceContext({
+    enabled,
+    tracePoints: focalTrace?.tracePoints || [],
+  });
+
+  useEffect(() => {
+    if (typeof onChange === "function") onChange(context);
+  }, [context, onChange]);
+
+  return null;
 }

@@ -1,10 +1,10 @@
+import { createAirspaceContextRepositoryFromEnv } from "@/app/api/dao/airspaceContext.dao";
 import { createAirportFacilityRepositoryFromEnv } from "@/app/api/dao/airportFacilities.dao";
 import { AirportDirectoryConfigurationError } from "../directory/airportDirectory.models";
 import {
   createOpenAipClientFromEnv,
 } from "../openaip/openAipClient";
 import {
-  mapOpenAipAirspace,
   mapOpenAipNavaid,
   mapOpenAipReportingPoint,
 } from "../openaip/openAipNormalizer";
@@ -18,26 +18,6 @@ import {
 } from "./aviationContextTileModel";
 
 type ContextTileRecord = Record<string, any>;
-
-const AIRSPACE_FIELDS = [
-  "_id",
-  "name",
-  "type",
-  "icaoClass",
-  "country",
-  "geometry",
-  "lowerLimit",
-  "upperLimit",
-  "activeFrom",
-  "activeUntil",
-  "onDemand",
-  "onRequest",
-  "byNotam",
-  "specialAgreement",
-  "requestCompliance",
-  "hoursOfOperation",
-  "remarks",
-].join(",");
 
 const NAVAID_FIELDS = [
   "_id",
@@ -92,26 +72,26 @@ export function clearAviationContextTileCache() {
 
 export async function getAirspaceTile({
   tile,
-  client,
+  airspaceRepository,
 }: ContextTileRecord = {}) {
   const cacheKey = buildContextTileCacheKey("airspace", tile);
   const cached = readCached(cacheKey);
   if (cached) return cached;
   const bbox = tileToBbox(tile);
-  const openAip = getOpenAipClient(client);
-  const documents = await listItems(
-    openAip.listAirspaces({
-      bbox: bboxToOpenAipParam(bbox),
-      limit: 100,
-      fields: AIRSPACE_FIELDS,
-    }),
-  );
+  const repository =
+    airspaceRepository === undefined
+      ? createAirspaceContextRepositoryFromEnv()
+      : airspaceRepository;
+  if (!repository?.readAirspacesInBounds) {
+    throw new AirportDirectoryConfigurationError("Supabase airspace data is not configured");
+  }
+  const airspaces = await repository.readAirspacesInBounds({ bbox, limit: 100 });
   return writeCached(cacheKey, {
     tile,
     bbox,
     cacheKey,
-    source: "openaip",
-    airspaces: documents.map(mapOpenAipAirspace).filter(Boolean),
+    source: "supabase",
+    airspaces,
   });
 }
 

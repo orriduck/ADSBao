@@ -10,6 +10,17 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v1.12.0": {
+    title: "数据库驱动的全航迹空域上下文",
+    summary:
+      "全航迹飞机地图现在直接从 Supabase PostGIS view 读取 level 4 区划统计和命中的空域 ID。",
+    highlights: [
+      "Level 4 OSM 区划聚合 view 已接入真实 Massachusetts OpenAIP 空域和导航台数据",
+      "全航迹空域图层改为使用数据库统计和空域 ID,不再实时请求 OpenAIP 空域 tile",
+      "空域与区划的 membership 允许一个空域跨多个 level 4 区划",
+      "远程 schema 移除了不再使用的 OpenAIP cache 和 airport 旧表",
+    ],
+  },
   "v1.11.0": {
     title: "全航迹地图上下文计数",
     summary:

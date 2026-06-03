@@ -297,7 +297,7 @@ export default function AirportMap({
   const contextTiles = useAviationContextTiles({
     map: mapInstance,
     enabled: contextTileOverlays,
-    airspacesEnabled: showAirspaces,
+    airspacesEnabled: showAirspaces && !fullTraceContext,
     navaidsEnabled: showNavaidMarkers && !useNavaidCountTiles,
     navaidCountsEnabled: showNavaidMarkers && useNavaidCountTiles,
     refreshKey: contextTileRefreshKey,

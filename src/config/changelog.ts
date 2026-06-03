@@ -6,6 +6,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.12.0",
+    kind: "feat",
+    title: "DB-backed full-trace airspace context",
+    summary:
+      "Full-trace aircraft maps now read level 4 region statistics and matching airspace IDs from Supabase-backed PostGIS views.",
+    highlights: [
+      "Level 4 OSM region aggregation views now include real Massachusetts OpenAIP airspace and navaid data",
+      "Full-trace airspace overlays use DB-backed stats and airspace IDs instead of live OpenAIP tile fetches",
+      "Airspace-region memberships allow one airspace to intersect multiple level 4 regions",
+      "Unused OpenAIP cache and airport tables were removed from the remote schema",
+    ],
+  },
+  {
     version: "v1.11.0",
     kind: "feat",
     title: "Full-trace map context counts",
