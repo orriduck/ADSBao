@@ -138,6 +138,7 @@ function FlightExplorerContent({ callsign }) {
   const [contextTiles, setContextTiles] = useState({
     airspaces: [],
     navaids: [],
+    navaidCounts: [],
     loading: false,
     error: null,
   });
@@ -636,6 +637,7 @@ function FlightExplorerContent({ callsign }) {
             focalRangeRings={false}
             contextTileOverlays
             contextTileRefreshKey={`${callsign}:${mapFollowsAircraft}:${mapZoom}`}
+            fullTraceContext={!mapFollowsAircraft}
             onContextTilesChange={setContextTiles}
             deferUntilFocal
             loadingOverlayActive={flightTrackingLoadingActive}

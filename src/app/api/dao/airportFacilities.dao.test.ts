@@ -12,8 +12,13 @@ function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
 
   const createQuery = (table: string) => {
     const query: Record<string, any> = {
-      select(columns: string) {
-        calls.push({ type: "select", table, columns });
+      select(columns: string, options?: Record<string, any>) {
+        calls.push({
+          type: "select",
+          table,
+          columns,
+          ...(options ? { options } : {}),
+        });
         return query;
       },
       eq(column: string, value: unknown) {
@@ -37,7 +42,11 @@ function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
         return query;
       },
       then(resolve: (value: any) => void) {
-        return Promise.resolve({ data: tableData[table] || [], error: null }).then(resolve);
+        const tableValue = tableData[table] || [];
+        const payload = Array.isArray(tableValue)
+          ? { data: tableValue, error: null }
+          : { data: tableValue.data || [], count: tableValue.count, error: null };
+        return Promise.resolve(payload).then(resolve);
       },
     };
     return query;
@@ -154,6 +163,37 @@ function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
 
   assert.ok(repository);
   assert.equal(calls[0].supabaseKey, "sb_service_role_test");
+}
+
+{
+  const { calls, createClientImpl } = createFakeSupabaseClient({
+    [NAVAIDS_TABLE]: { data: [], count: 37 },
+  });
+  const repository = createAirportFacilityRepository({
+    supabaseUrl: "https://example.supabase.co",
+    supabaseKey: "sb_secret_test",
+    createClientImpl,
+  });
+
+  const count = await repository.readNavaidCountInBounds({
+    bbox: {
+      south: 36.597889,
+      north: 40.979898,
+      west: -78.75,
+      east: -73.125,
+    },
+  });
+
+  assert.equal(count, 37);
+  assert.ok(
+    calls.some(
+      (call) =>
+        call.type === "select" &&
+        call.columns === "id" &&
+        call.options?.count === "exact" &&
+        call.options?.head === true,
+    ),
+  );
 }
 
 console.log("airportFacilities.dao.test.ts ok");

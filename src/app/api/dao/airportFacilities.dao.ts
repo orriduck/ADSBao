@@ -210,6 +210,33 @@ export function createAirportFacilityRepository({
 
       return (data || []).map(mapNavaidRow).filter(Boolean);
     },
+
+    async readNavaidCountInBounds({
+      bbox,
+    }: AirportFacilityRecord = {}) {
+      if (!bbox) return 0;
+      const south = numberOrNull(bbox.south);
+      const north = numberOrNull(bbox.north);
+      const west = numberOrNull(bbox.west);
+      const east = numberOrNull(bbox.east);
+      if (south == null || north == null || west == null || east == null) {
+        return 0;
+      }
+
+      const { count, error } = await client
+        .from(NAVAIDS_TABLE)
+        .select("id", { count: "exact", head: true })
+        .gte("latitude_deg", Math.min(south, north))
+        .lte("latitude_deg", Math.max(south, north))
+        .gte("longitude_deg", Math.min(west, east))
+        .lte("longitude_deg", Math.max(west, east));
+
+      if (error) {
+        throw new Error(`Navaid count tile read failed (${error.message})`);
+      }
+
+      return Math.max(0, Number(count) || 0);
+    },
   };
 }
 
