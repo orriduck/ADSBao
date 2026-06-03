@@ -35,23 +35,25 @@ export function TextPillListItem({
       >
         {pill}
       </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13px] font-extrabold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+      <span className="min-w-0 flex flex-col items-start">
+        <span className="block min-w-0 whitespace-normal break-words text-[13px] font-extrabold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
           {title}
         </span>
         {subtitle ? (
-          <span className="mt-0.5 block text-[11px] font-medium leading-snug text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
+          <span className="mt-0.5 block min-w-0 whitespace-normal break-words text-[11px] font-medium leading-snug text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
             {subtitle}
           </span>
         ) : null}
+        {meta ? (
+          <span className="mt-1 flex min-w-0 flex-wrap justify-start gap-1">
+            {meta}
+          </span>
+        ) : null}
       </span>
-      {meta ? (
-        <span className="flex shrink-0 flex-wrap justify-end gap-1">{meta}</span>
-      ) : null}
     </>
   );
   const classes = cn(
-    "group grid w-full grid-cols-[max-content_minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--atc-radius-card)] px-0 py-2.5 text-left",
+    "group grid w-full grid-cols-[max-content_minmax(0,1fr)] items-start gap-x-4 rounded-[var(--atc-radius-card)] px-0 py-2.5 text-left",
     "transition-colors duration-150",
     "data-[active=true]:text-[var(--atc-click-fg)]",
     as === "button" && "cursor-pointer focus:outline-none",
