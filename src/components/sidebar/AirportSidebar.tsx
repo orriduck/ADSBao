@@ -92,6 +92,44 @@ export default function AirportSidebar({
       />
     </>
   );
+  const activeViewContent =
+    activeView === "briefing" ? (
+      <WeatherBriefingStack
+        icao={icao}
+        iata={iata}
+        name={name}
+        city={city}
+        country={country}
+        metar={metar}
+        metarRaw={metarRaw}
+        metarLoading={metarLoading}
+        metarError={metarError}
+        airportCode={iata || icao}
+        airportLat={lat}
+        airportLon={lon}
+      />
+    ) : activeView === "atc" ? (
+      <AtcFrequencyPanel icao={icao} frequencies={atcFrequencies} />
+    ) : activeView === "spotting" ? (
+      <SpottingPanel
+        spots={spottingSpots}
+        selectedSpotId={selectedCandidateWatchingSpotId}
+        onSelectSpot={onSelectCandidateWatchingSpot}
+      />
+    ) : (
+      <AircraftTable
+        aircraft={aircraft}
+        airports={airports}
+        focusLat={focusLat}
+        focusLon={focusLon}
+        selectedAircraftId={selectedAircraftId}
+        selectedAirportIcao={selectedAirportIcao}
+        movementFilter={movementFilter}
+        onSelectAircraft={onSelectAircraft}
+        onSelectAirport={onSelectAirport}
+        fill={!isMobileOverlay}
+      />
+    );
 
   return (
     <SidebarShell
@@ -105,43 +143,16 @@ export default function AirportSidebar({
       onClose={onClose}
       header={header}
     >
-      {activeView === "briefing" ? (
-        <WeatherBriefingStack
-          icao={icao}
-          iata={iata}
-          name={name}
-          city={city}
-          country={country}
-          metar={metar}
-          metarRaw={metarRaw}
-          metarLoading={metarLoading}
-          metarError={metarError}
-          airportCode={iata || icao}
-          airportLat={lat}
-          airportLon={lon}
-        />
-      ) : activeView === "atc" ? (
-        <AtcFrequencyPanel icao={icao} frequencies={atcFrequencies} />
-      ) : activeView === "spotting" ? (
-        <SpottingPanel
-          spots={spottingSpots}
-          selectedSpotId={selectedCandidateWatchingSpotId}
-          onSelectSpot={onSelectCandidateWatchingSpot}
-        />
-      ) : (
-        <AircraftTable
-          aircraft={aircraft}
-          airports={airports}
-          focusLat={focusLat}
-          focusLon={focusLon}
-          selectedAircraftId={selectedAircraftId}
-          selectedAirportIcao={selectedAirportIcao}
-          movementFilter={movementFilter}
-          onSelectAircraft={onSelectAircraft}
-          onSelectAirport={onSelectAirport}
-          fill={!isMobileOverlay}
-        />
-      )}
+      <div
+        key={`${activeView}:${movementFilter}`}
+        className={
+          isMobileOverlay
+            ? "app-panel-transition"
+            : "app-panel-transition flex h-full min-h-0 flex-col"
+        }
+      >
+        {activeViewContent}
+      </div>
     </SidebarShell>
   );
 }
@@ -173,7 +184,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2.3} />
         </a>
       ) : null}
-      <div className="grid gap-3">
+      <div className="app-list-motion grid gap-3">
         {frequencies.map((frequency) => (
           <TextPillListItem
             key={`${frequency.type}-${frequency.frequencyMHz}-${frequency.source}`}
@@ -217,7 +228,7 @@ function SpottingPanel({
           {spots.length} spots
         </span>
       </div>
-      <div className="grid gap-2">
+      <div className="app-list-motion grid gap-2">
         {spots.map((spot) => {
           const active = Boolean(selectedSpotId && selectedSpotId === spot.id);
           return (

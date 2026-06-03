@@ -18,6 +18,7 @@ export default function HomeScreen() {
   const pathname = usePathname();
   const { locale } = useI18n();
   const currentIcao = normalizePathIcao(pathname);
+  const screenTransitionKey = currentIcao ? `airport:${currentIcao}` : "search";
   const [airport, setAirport] = useState(null);
 
   useEffect(() => {
@@ -63,15 +64,21 @@ export default function HomeScreen() {
   };
 
   if (!currentIcao) {
-    return <SearchScreen onOpenAirport={handleOpenAirport} />;
+    return (
+      <div key={screenTransitionKey} className="app-route-transition min-h-dvh">
+        <SearchScreen onOpenAirport={handleOpenAirport} />
+      </div>
+    );
   }
 
   return (
-    <AirportCaptionScreen
-      icao={currentIcao}
-      airport={airport}
-      onBack={handleBack}
-    />
+    <div key={screenTransitionKey} className="app-route-transition min-h-dvh">
+      <AirportCaptionScreen
+        icao={currentIcao}
+        airport={airport}
+        onBack={handleBack}
+      />
+    </div>
   );
 }
 

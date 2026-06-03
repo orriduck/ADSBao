@@ -156,7 +156,7 @@ export default function AircraftPreviewCard({
       {entity && !isMobile && (
         <aside
           key={identityKey}
-          className={`aircraft-preview-card aircraft-preview-card--desktop-reveal ${
+          className={`aircraft-preview-card app-preview-transition aircraft-preview-card--desktop-reveal ${
             !isAirport && !isNavaid && hasPhoto ? "aircraft-preview-card--has-photo" : ""
           } ${isAirport ? "aircraft-preview-card--airport" : ""} aircraft-preview-card--photo-${photoTone}`}
           aria-label={previewAriaLabel}

@@ -86,6 +86,14 @@
     --z-index-toast: 700;
 }
 
+:root {
+    --motion-ui-fast: 200ms;
+    --motion-ui-med: 240ms;
+    --motion-ui-slow: 300ms;
+    --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --motion-ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 @keyframes nearby-row-enter {
     from {
         opacity: 0;
@@ -98,7 +106,105 @@
 }
 
 .nearby-row-enter {
-    animation: nearby-row-enter 240ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
+    animation: nearby-row-enter var(--motion-ui-med) var(--motion-ease-out) both;
+}
+
+@keyframes app-route-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes app-panel-enter {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes app-row-enter {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-route-transition {
+    animation: app-route-enter var(--motion-ui-slow) var(--motion-ease-snap) both;
+    will-change: opacity, transform;
+}
+
+.app-panel-transition {
+    animation: app-panel-enter var(--motion-ui-med) var(--motion-ease-out) both;
+    will-change: opacity, transform;
+}
+
+.airport-desktop-sidebar .app-panel-transition {
+    transition:
+        opacity var(--motion-ui-med) var(--motion-ease-out),
+        transform var(--motion-ui-med) var(--motion-ease-out);
+}
+
+.airport-desktop-sidebar[data-open="false"] .app-panel-transition {
+    opacity: 0;
+    transform: translateX(-8px);
+}
+
+.app-list-motion > * {
+    animation: app-row-enter var(--motion-ui-med) var(--motion-ease-out) both;
+}
+
+.app-list-motion > :nth-child(2) {
+    animation-delay: 18ms;
+}
+
+.app-list-motion > :nth-child(3) {
+    animation-delay: 36ms;
+}
+
+.app-list-motion > :nth-child(4) {
+    animation-delay: 54ms;
+}
+
+.app-list-motion > :nth-child(5) {
+    animation-delay: 72ms;
+}
+
+.app-list-motion > :nth-child(n + 6) {
+    animation-delay: 90ms;
+}
+
+.toolbar-interactive-feedback {
+    transition-timing-function: var(--motion-ease-out);
+}
+
+@keyframes app-preview-enter {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.app-preview-transition {
+    animation: app-preview-enter var(--motion-ui-slow) var(--motion-ease-snap) both;
+    will-change: opacity, transform;
 }
 
 @keyframes mobile-preview-card-enter {
@@ -148,7 +254,7 @@
 
 .mobile-preview-card-enter {
     transform: translate(-50%, 0);
-    animation: mobile-preview-card-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: mobile-preview-card-enter var(--motion-ui-slow) var(--motion-ease-snap) both;
 }
 
 @keyframes map-settings-sheet-enter {
@@ -205,6 +311,10 @@
 
 @media (prefers-reduced-motion: reduce) {
     .nearby-row-enter,
+    .app-route-transition,
+    .app-panel-transition,
+    .app-preview-transition,
+    .app-list-motion > *,
     .mobile-preview-card-enter,
     .candidate-watching-spot-preview-motion,
     .candidate-watching-spot-marker__shell,
@@ -212,6 +322,7 @@
     .map-settings-sheet-overlay {
         animation: none;
         transform: none;
+        transition: none;
     }
 }
 
@@ -242,17 +353,20 @@
 }
 
 .toolbar-reveal {
-    animation: toolbar-reveal-expand 360ms cubic-bezier(0.2, 0.65, 0.2, 1) both;
+    animation: toolbar-reveal-expand var(--motion-ui-slow) var(--motion-ease-snap) both;
 }
 
 .toolbar-reveal > * {
-    animation: toolbar-reveal-fade 200ms ease-out 360ms both;
+    animation: toolbar-reveal-fade var(--motion-ui-fast) var(--motion-ease-out) 180ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .toolbar-reveal,
-    .toolbar-reveal > * {
+    .toolbar-reveal > *,
+    .toolbar-interactive-feedback {
         animation: none;
+        transform: none;
+        transition: none;
     }
 }
 
@@ -4497,7 +4611,7 @@ body {
 }
 
 .aircraft-preview-card--desktop-reveal::before {
-    animation: endf-placeholder-hold 430ms steps(1, end) both;
+    animation: endf-placeholder-hold var(--motion-ui-slow) steps(1, end) both;
     background:
         radial-gradient(
             circle,
@@ -4523,7 +4637,7 @@ body {
 }
 
 .aircraft-preview-card--desktop-reveal::after {
-    animation: endf-placeholder-cursor 430ms steps(1, end) both;
+    animation: endf-placeholder-cursor var(--motion-ui-slow) steps(1, end) both;
     background: color-mix(in oklab, var(--endf-yellow) 78%, transparent);
     border-radius: 999px;
     box-shadow: 0 0 16px color-mix(in oklab, var(--endf-yellow) 28%, transparent);
@@ -4540,8 +4654,8 @@ body {
 .aircraft-preview-card--desktop-reveal > *,
 .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card {
     animation:
-        endf-content-reveal 430ms steps(1, end) both,
-        endf-text-decode 430ms steps(3, end) both;
+        endf-content-reveal var(--motion-ui-slow) steps(1, end) both,
+        endf-text-decode var(--motion-ui-slow) steps(3, end) both;
 }
 
 .aircraft-preview-card--has-photo {
@@ -4553,8 +4667,7 @@ body {
     right: 0;
     bottom: calc(100% - 22px);
     left: 0;
-    animation: aircraft-preview-media-reveal 520ms cubic-bezier(0.16, 1, 0.3, 1)
-        both;
+    animation: aircraft-preview-media-reveal var(--motion-ui-slow) var(--motion-ease-snap) both;
     z-index: 1;
 }
 
@@ -4676,10 +4789,10 @@ body {
     text-transform: uppercase;
     transform: translateY(-4px);
     transition:
-        max-height 0.28s ease,
-        margin-top 0.28s ease,
-        opacity 0.18s ease,
-        transform 0.28s ease;
+        max-height var(--motion-ui-slow) var(--motion-ease-out),
+        margin-top var(--motion-ui-slow) var(--motion-ease-out),
+        opacity var(--motion-ui-fast) var(--motion-ease-out),
+        transform var(--motion-ui-slow) var(--motion-ease-out);
     white-space: normal;
 }
 

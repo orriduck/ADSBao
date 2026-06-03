@@ -585,9 +585,10 @@ function FlightExplorerContent({ callsign }) {
         {!isMobile && (
           <div
             className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
+            data-open={sidebarOpen ? "true" : "false"}
             style={{ width: sidebarOpen ? desktopSidebarWidth : "0" }}
           >
-            <div className="h-full" style={{ width: desktopSidebarWidth }}>
+            <div className="app-panel-transition h-full" style={{ width: desktopSidebarWidth }}>
               <FlightSidebar {...sidebarProps} />
             </div>
           </div>

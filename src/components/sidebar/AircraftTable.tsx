@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import NumberFlow from "@number-flow/react";
@@ -315,7 +316,7 @@ export default function AircraftTable({
         {listRows.length === 0 &&
         filteredAirports.length === 0 &&
         !pinnedAircraft ? (
-          <div className="px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
+          <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
             {aircraft.length + airports.length
               ? t("sidebar.noMatches")
               : t("sidebar.nothingInRange")}
@@ -340,21 +341,27 @@ export default function AircraftTable({
               />
             )}
             {filteredAirports.length > 0 && (
-              <ul className="divide-y divide-atc-line">
-                {filteredAirports.map((airport) => (
-                  <li
-                    key={`airport:${airport.icao}`}
-                    className="relative list-none [perspective:800px]"
-                  >
-                    <AirportSlot
-                      airport={airport}
-                      cascadeOrder={-1}
-                      airportId={airport.icao}
-                      selected={airport.icao === selectedAirportIcao}
-                      onSelectAirport={onSelectAirport}
-                    />
-                  </li>
-                ))}
+              <ul className="app-list-motion divide-y divide-atc-line">
+                {filteredAirports.map((airport, index) => {
+                  const motionStyle = {
+                    "--motion-order": Math.min(index, 5),
+                  } as CSSProperties;
+                  return (
+                    <li
+                      key={`airport:${airport.icao}`}
+                      className="relative list-none [perspective:800px]"
+                      style={motionStyle}
+                    >
+                      <AirportSlot
+                        airport={airport}
+                        cascadeOrder={-1}
+                        airportId={airport.icao}
+                        selected={airport.icao === selectedAirportIcao}
+                        onSelectAirport={onSelectAirport}
+                      />
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </>
