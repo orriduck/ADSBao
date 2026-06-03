@@ -370,6 +370,7 @@ export function parseFlightAwareFallbackPage({
     position: {
       lat: point.lat,
       lon: point.lon,
+      flight_position_source: "flightaware",
       altitudeFt: altitudeFt(point.alt),
       groundSpeedKt: toNumber(point.gs) ?? metadata.groundSpeedKt,
       groundSpeedMph: metadata.groundSpeedMph,
@@ -385,6 +386,7 @@ export function parseFlightAwareFallbackPage({
       terminal: metadata.terminal,
       quality: {
         source: "flightaware",
+        flight_position_source: "flightaware",
         kind,
         isEstimated: kind !== "observed",
         isPredicted: kind === "predicted",

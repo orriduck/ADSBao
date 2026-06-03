@@ -34,6 +34,7 @@ import {
   resolveMapLoadingPresentation,
   resolveMapSurfaceVisibility,
 } from "../../features/aircraft/positions/aircraftLoadingOverlayModel";
+import { useAviationContextTiles } from "../../features/airport/context/useAviationContextTiles";
 import { getOffsetMapCenter } from "./mapViewportOffset";
 
 const resolveCurrentTheme = () =>
@@ -56,6 +57,9 @@ export default function AirportMap({
   nearbyAirports = [],
   nearbyNavaids = [],
   airspaces = [],
+  contextTileOverlays = false,
+  contextTileRefreshKey = "",
+  onContextTilesChange = null,
   airport = null,
   showMapLabels = false,
   showRunwayBeams = true,
@@ -267,6 +271,63 @@ export default function AirportMap({
     [aircraft, selectedAircraftId, visibleAircraft],
   );
   const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
+  const contextTiles = useAviationContextTiles({
+    map: mapInstance,
+    enabled: contextTileOverlays,
+    airspacesEnabled: showAirspaces,
+    navaidsEnabled: showNavaidMarkers,
+    refreshKey: contextTileRefreshKey,
+  });
+  const renderedAirspaces = useMemo(() => {
+    if (!contextTileOverlays) return airspaces;
+    const seen = new Set();
+    return [...airspaces, ...contextTiles.airspaces].filter((item) => {
+      const key = item?.id || item?.name;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [airspaces, contextTileOverlays, contextTiles.airspaces]);
+  const renderedNavaids = useMemo(() => {
+    if (!contextTileOverlays) return nearbyNavaids;
+    const seen = new Set();
+    return [...nearbyNavaids, ...contextTiles.navaids].filter((item) => {
+      const key = item?.id || `${item?.ident}:${item?.lat}:${item?.lon}`;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [contextTileOverlays, contextTiles.navaids, nearbyNavaids]);
+  const contextSignature = useMemo(
+    () =>
+      JSON.stringify({
+        airspaces: contextTiles.airspaces.map((item) => item?.id || item?.name),
+        navaids: contextTiles.navaids.map(
+          (item) => item?.id || `${item?.ident}:${item?.lat}:${item?.lon}`,
+        ),
+      }),
+    [contextTiles.airspaces, contextTiles.navaids],
+  );
+
+  useEffect(() => {
+    if (!contextTileOverlays || typeof onContextTilesChange !== "function") {
+      return;
+    }
+    onContextTilesChange({
+      airspaces: contextTiles.airspaces,
+      navaids: contextTiles.navaids,
+      loading: contextTiles.loading,
+      error: contextTiles.error,
+    });
+  }, [
+    contextSignature,
+    contextTileOverlays,
+    contextTiles.error,
+    contextTiles.loading,
+    onContextTilesChange,
+    contextTiles.airspaces,
+    contextTiles.navaids,
+  ]);
 
   const overlayTheme = getMapOverlayTheme(currentTheme);
   const loadingOverlayState = useResolvedMapLoadingOverlay({
@@ -315,7 +376,7 @@ export default function AirportMap({
             selectionActive={selectionActive}
           />
           <AirspaceLayer
-            airspaces={airspaces}
+            airspaces={renderedAirspaces}
             visible={showAirspaces}
             selectedAirspaceId={selectedAirspaceId}
             onSelectAirspace={onSelectAirspace}
@@ -343,7 +404,7 @@ export default function AirportMap({
             showRunwayBadges={false}
           />
           <NavaidLabelLayer
-            navaids={nearbyNavaids}
+            navaids={renderedNavaids}
             theme={currentTheme}
             visible={showNavaidMarkers}
             selectedNavaidKey={selectedNavaidKey}

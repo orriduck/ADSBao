@@ -22,6 +22,9 @@ const DATA_SOURCE_LABELS = Object.freeze({
 });
 
 const AIRCRAFT_POSITION_SOURCE_LABELS = Object.freeze({
+  adsb: "ADS-B",
+  mlat: "MLAT",
+  estimated: "Estimated",
   adsb_lol: "ADS-B",
   [DATA_SOURCE.ADSB_LOL]: "ADS-B",
   airplanes_live: "Airplanes.live",
@@ -58,17 +61,52 @@ export function resolveRouteProvider({ flightAwareEnabled = false } = {}) {
   return flightAwareEnabled ? ROUTE_PROVIDER.FLIGHTAWARE : ROUTE_PROVIDER.ADSBDB;
 }
 
-export function getAircraftPositionSourceBadge(quality) {
+export function resolveFlightPositionSource(quality: Record<string, any> = {}) {
+  const explicit = normalizeKey(quality?.flight_position_source);
+  if (["adsb", "mlat", "estimated", "flightaware"].includes(explicit)) {
+    return explicit;
+  }
   const source = normalizeKey(quality?.source);
+  const kind = normalizeKey(quality?.kind);
+  if (source === "flightaware") return "flightaware";
+  if (source === "mlat" || kind === "mlat") return "mlat";
+  if (
+    quality?.isEstimated === true ||
+    source === "local_projection" ||
+    ["estimated", "predicted", "interpolated"].includes(kind)
+  ) {
+    return "estimated";
+  }
+  if (
+    source === "adsb_lol" ||
+    source === DATA_SOURCE.ADSB_LOL ||
+    source === "airplanes_live" ||
+    source === DATA_SOURCE.AIRPLANES_LIVE ||
+    source === "adsb_fi" ||
+    source === DATA_SOURCE.ADSB_FI
+  ) {
+    return "adsb";
+  }
+  return source ? source : "";
+}
+
+export function getAircraftPositionSourceBadge(quality: Record<string, any> = {}) {
+  const explicitSource = normalizeKey(quality?.flight_position_source);
+  const source = explicitSource
+    ? resolveFlightPositionSource(quality)
+    : normalizeKey(quality?.source) || resolveFlightPositionSource(quality);
   const kind = normalizeKey(quality?.kind);
   const sourceLabel = AIRCRAFT_POSITION_SOURCE_LABELS[source] || "";
   if (!sourceLabel) return kind === "stale" ? "Stale" : "";
   if (kind === "stale") return sourceLabel === "FlightAware" ? "FlightAware · stale" : "Stale";
   if (
     source === "flightaware" &&
-    (kind === "estimated" || kind === "predicted" || kind === "interpolated")
+    (quality?.isEstimated === true ||
+      kind === "estimated" ||
+      kind === "predicted" ||
+      kind === "interpolated")
   ) {
-    return `${sourceLabel} · ${kind}`;
+    return `${sourceLabel} · ${kind || "estimated"}`;
   }
   return sourceLabel;
 }

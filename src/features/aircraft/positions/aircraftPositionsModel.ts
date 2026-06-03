@@ -1,4 +1,5 @@
 import { parseAdsbPositionTime } from "../../../utils/aircraftMotion";
+import { resolveFlightPositionSource } from "../../aviation/sourceDisplayModel";
 
 type AircraftPositionQuality = {
   sourceUpdatedAt?: unknown;
@@ -50,6 +51,7 @@ type NormalizedAircraftPosition = {
   positionTime: unknown;
   receiveTime: number;
   positionQuality: AircraftPositionQuality | null;
+  flight_position_source: string;
   flightAwareUrl: string;
   origin: string;
   destination: string;
@@ -107,6 +109,7 @@ export function normalizeAdsbAircraft(
   aircraft: RawAdsbAircraft,
   { responseNow, receiveTime = Date.now() }: NormalizeAircraftOptions = {},
 ): NormalizedAircraftPosition {
+  const positionQuality = aircraft.positionQuality || null;
   return {
     icao24: aircraft.hex || "",
     registration: typeof aircraft.r === "string" ? aircraft.r.trim().toUpperCase() : "",
@@ -128,7 +131,14 @@ export function normalizeAdsbAircraft(
         : "",
     positionTime: parseAdsbPositionTime(aircraft, responseNow, receiveTime),
     receiveTime,
-    positionQuality: aircraft.positionQuality || null,
+    positionQuality,
+    flight_position_source: resolveFlightPositionSource({
+      source: aircraft.source || positionQuality?.source || "adsb.lol",
+      kind: positionQuality?.kind,
+      isEstimated: positionQuality?.isEstimated,
+      flight_position_source:
+        aircraft.flight_position_source || positionQuality?.flight_position_source,
+    }),
     flightAwareUrl: aircraft.flightAwareUrl || "",
     origin: aircraft.origin || "",
     destination: aircraft.destination || "",
