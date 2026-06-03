@@ -17,6 +17,7 @@ import {
   DEFAULT_MAP_SETTINGS,
   MAP_LAYER_KEYS,
   buildCustomMapSettings,
+  buildMapSettingsFromLayerState,
   buildPresetMapSettings,
   isSelectableMapModeId,
   mapSettingsToExplorerLayers,
@@ -307,6 +308,9 @@ export function ExplorerUiProvider({ children }) {
         persistedMapSettingsRef.current = nextSettings
           ? JSON.stringify(nextSettings)
           : "";
+        if (nextSettings) {
+          dispatch({ type: "hydrateMapSettings", settings: nextSettings });
+        }
       } else if (nextSettings) {
         dispatch({ type: "hydrateMapSettings", settings: nextSettings });
         persistedMapSettingsRef.current = JSON.stringify(nextSettings);
@@ -335,9 +339,16 @@ export function ExplorerUiProvider({ children }) {
     return undefined;
   }, [isLoaded, isSignedIn, mapSettings]);
 
-  const saveMapSettings = useCallback(async () => {
+  const saveMapSettings = useCallback(async (options: Record<string, any> = {}) => {
     if (!isLoaded || !isSignedIn) return null;
-    const nextSettings = normalizeMapSettings(mapSettings);
+    const nextSettings = normalizeMapSettings(
+      options?.layers
+        ? buildMapSettingsFromLayerState({
+            settings: mapSettings,
+            layers: options.layers,
+          })
+        : mapSettings,
+    );
     setMapSettingsSaveStatus("saving");
     try {
       const response = await fetch("/api/map-settings", {
@@ -354,6 +365,7 @@ export function ExplorerUiProvider({ children }) {
         : nextSettings;
       setSavedMapSettings(savedSettings);
       persistedMapSettingsRef.current = JSON.stringify(savedSettings);
+      dispatch({ type: "hydrateMapSettings", settings: savedSettings });
       setMapSettingsSaveStatus("saved");
       return savedSettings;
     } catch {

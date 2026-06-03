@@ -7,6 +7,7 @@ import {
   MAP_MODE_OPTIONS,
   CUSTOM_MAP_MODE_OPTION,
   DISABLED_MAP_MODE_IDS,
+  explorerLayerStateToMapSettingsLayers,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
@@ -113,6 +114,18 @@ export default function MapSettingsSheet({
   const hasSavedMapSettings = Boolean(savedMapSettings);
   const saving = mapSettingsSaveStatus === "saving";
   const restoring = mapSettingsRestoreStatus === "restoring";
+  const handleSaveMapSettings = () => {
+    onSaveMapSettings?.({
+      layers: explorerLayerStateToMapSettingsLayers({
+        showMapLabels,
+        showRunwayBeams: showBeams,
+        showNavaidMarkers,
+        showAirspaces,
+        userLocationActive,
+        userLocationAudioActive,
+      }),
+    });
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -375,7 +388,7 @@ export default function MapSettingsSheet({
                     "hover:shadow-[var(--atc-control-active-shadow-strong)] disabled:cursor-not-allowed disabled:opacity-55",
                   )}
                   disabled={saving || !onSaveMapSettings}
-                  onClick={onSaveMapSettings}
+                  onClick={handleSaveMapSettings}
                 >
                   {saving
                     ? t("mapSettings.savingSettings")

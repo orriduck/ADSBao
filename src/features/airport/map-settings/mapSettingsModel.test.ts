@@ -4,6 +4,7 @@ import {
   MAP_LAYER_KEYS,
   MAP_MODE_IDS,
   buildCustomMapSettings,
+  buildMapSettingsFromLayerState,
   buildPresetMapSettings,
   getMapModePreset,
   normalizeMapSettings,
@@ -103,6 +104,39 @@ import {
     true,
     "database rows should hydrate has_selected_mode into the settings model",
   );
+}
+
+{
+  const saved = buildMapSettingsFromLayerState({
+    settings: buildPresetMapSettings({
+      modeId: MAP_MODE_IDS.CONTROLLER,
+      now: "2026-06-02T15:04:00.000Z",
+    }),
+    layers: {
+      [MAP_LAYER_KEYS.MAP_LABELS]: false,
+      [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
+      [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
+      [MAP_LAYER_KEYS.AIRSPACES]: true,
+      [MAP_LAYER_KEYS.USER_LOCATION]: true,
+      [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
+    },
+    now: "2026-06-02T15:05:00.000Z",
+  });
+
+  assert.equal(
+    saved.selectedMode,
+    MAP_MODE_IDS.CUSTOM,
+    "saving visible layer overrides should persist the setup as Custom",
+  );
+  assert.equal(saved.baseMode, MAP_MODE_IDS.CONTROLLER);
+  assert.deepEqual(saved.layerOverrides, {
+    [MAP_LAYER_KEYS.MAP_LABELS]: false,
+    [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
+    [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
+    [MAP_LAYER_KEYS.AIRSPACES]: true,
+    [MAP_LAYER_KEYS.USER_LOCATION]: true,
+    [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
+  });
 }
 
 console.log("mapSettingsModel.test.ts ok");
