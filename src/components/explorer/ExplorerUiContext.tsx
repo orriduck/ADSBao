@@ -131,6 +131,12 @@ function airportExplorerUiReducer(state, action) {
         MAP_LAYER_KEYS.AIRSPACES,
         toggleValue(state.showAirspaces),
       );
+    case "toggleCandidateWatchingSpots":
+      return applyManualLayerToggle(
+        state,
+        MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS,
+        toggleValue(state.showCandidateWatchingSpots),
+      );
     case "applyMapMode":
       if (!isSelectableMapModeId(action.modeId)) return state;
       return applyMapSettingsToUiState(
@@ -250,6 +256,7 @@ export function ExplorerUiProvider({ children }) {
     showRunwayBeams,
     showNavaidMarkers,
     showAirspaces,
+    showCandidateWatchingSpots,
     mapSettings,
     trafficFilter,
     typeFilter,
@@ -429,6 +436,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "toggleAirspaces" });
   }, []);
 
+  const toggleCandidateWatchingSpots = useCallback(() => {
+    dispatch({ type: "toggleCandidateWatchingSpots" });
+  }, []);
+
   const applyMapMode = useCallback((modeId) => {
     dispatch({ type: "applyMapMode", modeId });
   }, []);
@@ -500,6 +511,7 @@ export function ExplorerUiProvider({ children }) {
       showRunwayBeams,
       showNavaidMarkers,
       showAirspaces,
+      showCandidateWatchingSpots,
       mapSettings,
       savedMapSettings,
       mapSettingsSaveStatus,
@@ -524,6 +536,7 @@ export function ExplorerUiProvider({ children }) {
       toggleRunwayBeams,
       toggleNavaidMarkers,
       toggleAirspaces,
+      toggleCandidateWatchingSpots,
       applyMapMode,
       saveMapSettings,
       restoreMapSettings,
@@ -547,6 +560,7 @@ export function ExplorerUiProvider({ children }) {
       showRunwayBeams,
       showNavaidMarkers,
       showAirspaces,
+      showCandidateWatchingSpots,
       mapSettings,
       savedMapSettings,
       mapSettingsSaveStatus,
@@ -571,6 +585,7 @@ export function ExplorerUiProvider({ children }) {
       toggleRunwayBeams,
       toggleNavaidMarkers,
       toggleAirspaces,
+      toggleCandidateWatchingSpots,
       applyMapMode,
       saveMapSettings,
       restoreMapSettings,

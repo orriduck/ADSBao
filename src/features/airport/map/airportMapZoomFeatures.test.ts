@@ -12,6 +12,8 @@ import {
   shouldShowNearbyAirportRunwaysForZoom,
   shouldShowRangeRingLabelsForZoom,
   shouldShowRunwayEndLabelsForZoom,
+  shouldShowCandidateWatchingSpotCountForZoom,
+  shouldShowCandidateWatchingSpotDetailsForZoom,
 } from "./airportMapZoomFeatures";
 
 assert.deepEqual(airportMapZoomFeaturesFor(ZOOM_APPROACH), {
@@ -20,6 +22,8 @@ assert.deepEqual(airportMapZoomFeaturesFor(ZOOM_APPROACH), {
   showNearbyAirportRunways: true,
   showRangeRingLabels: false,
   showRunwayEndLabels: false,
+  showCandidateWatchingSpotCount: true,
+  showCandidateWatchingSpotDetails: false,
 });
 
 assert.deepEqual(airportMapZoomFeaturesFor(ZOOM_AIRPORT), {
@@ -28,6 +32,8 @@ assert.deepEqual(airportMapZoomFeaturesFor(ZOOM_AIRPORT), {
   showNearbyAirportRunways: true,
   showRangeRingLabels: true,
   showRunwayEndLabels: false,
+  showCandidateWatchingSpotCount: true,
+  showCandidateWatchingSpotDetails: false,
 });
 
 assert.deepEqual(airportMapZoomFeaturesFor(ZOOM_DETAIL), {
@@ -36,6 +42,8 @@ assert.deepEqual(airportMapZoomFeaturesFor(ZOOM_DETAIL), {
   showNearbyAirportRunways: true,
   showRangeRingLabels: true,
   showRunwayEndLabels: true,
+  showCandidateWatchingSpotCount: false,
+  showCandidateWatchingSpotDetails: true,
 });
 
 assert.deepEqual(airportMapZoomFeaturesFor(12), {
@@ -44,6 +52,8 @@ assert.deepEqual(airportMapZoomFeaturesFor(12), {
   showNearbyAirportRunways: false,
   showRangeRingLabels: false,
   showRunwayEndLabels: false,
+  showCandidateWatchingSpotCount: false,
+  showCandidateWatchingSpotDetails: false,
 });
 
 assert.equal(airportGroundTrafficHideRadiusNmForZoom(ZOOM_APPROACH), 3);
@@ -54,3 +64,11 @@ assert.equal(shouldShowAirportAreaCountForZoom(ZOOM_AIRPORT), false);
 assert.equal(shouldShowNearbyAirportRunwaysForZoom(ZOOM_AIRPORT), true);
 assert.equal(shouldShowRangeRingLabelsForZoom(ZOOM_AIRPORT), true);
 assert.equal(shouldShowRunwayEndLabelsForZoom(ZOOM_DETAIL), true);
+assert.equal(shouldShowCandidateWatchingSpotCountForZoom(ZOOM_APPROACH), true);
+assert.equal(shouldShowCandidateWatchingSpotCountForZoom(ZOOM_AIRPORT), true);
+assert.equal(shouldShowCandidateWatchingSpotCountForZoom(ZOOM_DETAIL), false);
+assert.equal(shouldShowCandidateWatchingSpotDetailsForZoom(ZOOM_APPROACH), false);
+assert.equal(shouldShowCandidateWatchingSpotDetailsForZoom(ZOOM_AIRPORT), false);
+assert.equal(shouldShowCandidateWatchingSpotDetailsForZoom(ZOOM_DETAIL), true);
+
+console.log("airportMapZoomFeatures.test.ts ok");

@@ -21,6 +21,7 @@ export default function MapControlBar({
   showRunwayBeams = true,
   showNavaidMarkers = false,
   showAirspaces = true,
+  showCandidateWatchingSpots = false,
   mapSettings = null,
   savedMapSettings = null,
   mapSettingsSaveStatus = "idle",
@@ -35,6 +36,7 @@ export default function MapControlBar({
   onToggleRunwayBeams,
   onToggleNavaidMarkers,
   onToggleAirspaces,
+  onToggleCandidateWatchingSpots,
   onSelectMapMode,
   onSaveMapSettings = null,
   onRestoreMapSettings = null,
@@ -80,6 +82,7 @@ export default function MapControlBar({
         showBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
+        showCandidateWatchingSpots={showCandidateWatchingSpots}
         savedMapSettings={savedMapSettings}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
         mapSettingsRestoreStatus={mapSettingsRestoreStatus}
@@ -92,6 +95,7 @@ export default function MapControlBar({
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}
         onToggleAirspaces={onToggleAirspaces}
+        onToggleCandidateWatchingSpots={onToggleCandidateWatchingSpots}
         onSaveMapSettings={onSaveMapSettings}
         onRestoreMapSettings={onRestoreMapSettings}
         onToggleUserLocation={onToggleUserLocation}

@@ -20,6 +20,7 @@ import {
   SlidersHorizontal,
   Spotlight,
   Sun,
+  Telescope,
   Type,
   Waypoints,
 } from "lucide-react";
@@ -44,6 +45,7 @@ export const MAP_CONTROL_ICONS = {
   slidersHorizontal: SlidersHorizontal,
   spotlight: Spotlight,
   sun: Sun,
+  telescope: Telescope,
   type: Type,
   waypoints: Waypoints,
 };
@@ -89,6 +91,8 @@ export function MapControlIcon({ iconKey }) {
       return <Spotlight />;
     case "sun":
       return <Sun />;
+    case "telescope":
+      return <Telescope />;
     case "type":
       return <Type />;
     case "waypoints":
