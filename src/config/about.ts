@@ -110,10 +110,10 @@ export const ABOUT_DATA_SOURCES = [
   {
     glyph: "RWY",
     titleKey: "about.sources.ourAirportsRunways.title",
-    title: "OurAirports Runway Geometry",
+    title: "OurAirports Static Facilities",
     descriptionKey: "about.sources.ourAirportsRunways.description",
     description:
-      "Runway threshold coordinates used only for accurate runway map overlays.",
+      "Runway threshold coordinates plus ATC frequency and navaid augmentation data.",
     host: "ourairports.com",
     href: "https://ourairports.com/data/",
   },

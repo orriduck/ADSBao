@@ -33,6 +33,8 @@ import {
 import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandidateWatchingSpots";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
+import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
+import { ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -80,6 +82,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     selectCandidateWatchingSpot,
     setSelectedCandidateWatchingSpotId,
     mapFollowsAircraft,
+    setMapZoom,
+    applyMapMode,
     setUserLocationPreferences,
   } = useExplorerUi();
   const [userLocation, setUserLocation] = useState(null);
@@ -115,7 +119,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   });
   const candidateWatchingSpots = useCandidateWatchingSpots({
     airportIcao: airportProfile.icao,
-    enabled: showCandidateWatchingSpots,
+    enabled: Boolean(airportProfile.icao),
   });
   const selection = useMemo(
     () =>
@@ -383,6 +387,11 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     userLocationAudioActive,
   ]);
 
+  const openSpottingDetail = useCallback(() => {
+    applyMapMode(MAP_MODE_IDS.SPOTTING);
+    setMapZoom(ZOOM_DETAIL);
+  }, [applyMapMode, setMapZoom]);
+
   const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,
     metarSettled: weather.metarSettled,
@@ -426,10 +435,13 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     metarError: weather.metarError,
     aircraft: traffic.aircraft,
     airports: nearbyAirports.airports,
+    frequencies: airport?.frequencies || [],
+    candidateWatchingSpots: candidateWatchingSpots.spots,
     focusLat: airportProfile.lat,
     focusLon: airportProfile.lon,
     selectedAircraftId,
     selectedAirportIcao,
+    selectedCandidateWatchingSpotId,
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
     feedSource: traffic.feedSource,
@@ -437,6 +449,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     loadingStatus: sourceLoadingStatus,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
+    onSelectCandidateWatchingSpot: selectCandidateWatchingSpot,
+    onOpenSpotting: openSpottingDetail,
     onBack,
     onMap: closeSidebar,
   };
@@ -515,7 +529,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             selectedAirspaceId={selectedAirspaceId}
             selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
             candidateWatchingSpots={candidateWatchingSpots.spots}
-            candidateWatchingSpotCount={candidateWatchingSpots.spots.length}
+            candidateWatchingSpotCount={0}
             followsCenter={mapFollowsAircraft}
             floatingSidebarAware={!isMobile && sidebarOpen}
             onSelectAircraft={selectAircraft}

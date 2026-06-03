@@ -13,11 +13,16 @@ export default function SidebarViewSwitch({
   metar = null,
   aircraft = [],
   routeProvider = "",
+  frequencies = [],
+  candidateSpotCount = 0,
+  onOpenSpotting,
 }) {
   const { t } = useI18n();
   const temperature = formatTemperature(metar);
   const rule = metar?.flightCategory?.toUpperCase() || "WX";
   const showMovementCards = routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
+  const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
+  const spottingCount = Number(candidateSpotCount) || 0;
 
   // Pre-compute departure / arrival counts only when FlightAware is on.
   // The aircraft.movement field is already resolved upstream by
@@ -49,6 +54,24 @@ export default function SidebarViewSwitch({
         active={activeView === "traffic"}
         onClick={() => onViewChange?.("traffic")}
       />
+      {atcCount > 0 && (
+        <SidebarMetricCard
+          label={t("sidebar.atc")}
+          value={<NumberFlow value={atcCount} />}
+          unit="FREQ"
+          active={activeView === "atc"}
+          onClick={() => onViewChange?.("atc")}
+        />
+      )}
+      {spottingCount > 0 && (
+        <SidebarMetricCard
+          label={t("sidebar.spotting")}
+          value={<NumberFlow value={spottingCount} />}
+          unit="PHOTO"
+          active={activeView === "spotting"}
+          onClick={onOpenSpotting}
+        />
+      )}
       {showMovementCards && (
         <>
           <SidebarMetricCard

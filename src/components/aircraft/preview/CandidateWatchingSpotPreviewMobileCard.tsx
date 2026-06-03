@@ -4,7 +4,6 @@ import { Camera } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {
   MobilePreviewContent,
-  MobilePreviewDetailRow,
   MobilePreviewIdentity,
 } from "./MobilePreviewCard";
 import {
@@ -29,8 +28,8 @@ export default function CandidateWatchingSpotPreviewMobileCard({
   );
   const category = formatCandidateWatchingSpotCategory(spot);
   const distance = formatCandidateWatchingSpotDistance(spot, t);
-  const disclaimer = String(spot?.disclaimer || t("watcherMode.disclaimer")).trim();
   const attribution = sourceAttribution || t("watcherMode.attribution");
+  const summaryLabel = distance || category || null;
 
   return (
     <MobilePreviewContent>
@@ -38,23 +37,21 @@ export default function CandidateWatchingSpotPreviewMobileCard({
         <MobilePreviewIdentity
           icon={Camera}
           label={t("preview.candidateWatchingSpotPreview")}
-          primary={t("preview.candidateWatchingSpotPreview").toUpperCase()}
-          secondary={distance || category || null}
+          primary={name}
+          primaryClassName="whitespace-normal break-words text-[18px] leading-[1.05]"
+          secondary={null}
         />
-        <MobilePreviewDetailRow wrap>
-          {name}
-        </MobilePreviewDetailRow>
-        {category && distance ? (
-          <MobilePreviewDetailRow>
-            {category}
-          </MobilePreviewDetailRow>
-        ) : null}
-        <MobilePreviewDetailRow wrap>
-          {disclaimer}
-        </MobilePreviewDetailRow>
-        <MobilePreviewDetailRow>
-          {attribution}
-        </MobilePreviewDetailRow>
+        <div className="flex min-w-0 items-baseline justify-between gap-3 font-[var(--font-mono)]">
+          <span
+            translate="no"
+            className="notranslate min-w-0 shrink-0 truncate whitespace-nowrap text-left text-[10px] font-semibold leading-tight tracking-normal text-atc-dim"
+          >
+            {summaryLabel}
+          </span>
+          <span className="min-w-0 truncate whitespace-nowrap text-right text-[10px] font-medium leading-tight tracking-normal text-atc-dim">
+            {attribution}
+          </span>
+        </div>
       </div>
     </MobilePreviewContent>
   );

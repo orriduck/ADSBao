@@ -58,11 +58,11 @@ const cardVariants = cva(
     "select-none [appearance:none]",
     "transition-[background,border-color,box-shadow,color] duration-150",
     // Fixed-format rows: label → value → unit.
-    "grid-rows-[14px_minmax(34px,auto)_12px]",
+    "grid-rows-[14px_34px_12px]",
     // Compact variant inside the desktop map kit sidebar.
     "[.airport-map-kit_&]:rounded-[var(--atc-radius-card)]",
     "[.airport-map-kit_&]:gap-1",
-    "[.airport-map-kit_&]:grid-rows-[11px_minmax(27px,auto)_10px]",
+    "[.airport-map-kit_&]:grid-rows-[11px_27px_10px]",
     "[.airport-map-kit_&]:min-h-19",
     "[.airport-map-kit_&]:p-3.5",
     // Active state — solid ink block + click-foreground text, edge
@@ -102,7 +102,7 @@ const cardVariants = cva(
 
 const valueClass = cn(
   "flex items-center justify-center",
-  "max-w-full min-w-0 min-h-8.5 overflow-hidden",
+  "max-w-full min-w-0 h-8.5 overflow-hidden",
   "font-[var(--font-display)] not-italic font-black text-atc-text",
   "text-3xl leading-none tracking-normal",
   // Active card — flip to the click foreground so the value reads
@@ -110,7 +110,7 @@ const valueClass = cn(
   // color, but text-atc-text on <strong> shadows it.
   "group-data-[active=true]:text-[var(--atc-click-fg)]",
   // Compact in desktop map kit context.
-  "[.airport-map-kit_&]:text-2xl [.airport-map-kit_&]:min-h-7",
+  "[.airport-map-kit_&]:text-2xl [.airport-map-kit_&]:h-7",
 );
 
 const labelClass = cn(
@@ -123,10 +123,10 @@ const labelClass = cn(
 );
 
 const unitClass = cn(
-  "block text-atc-faint uppercase text-[10px] font-semibold",
-  "tracking-normal leading-3 min-h-3",
+  "flex h-3 items-center justify-center text-atc-faint uppercase text-[10px] font-semibold",
+  "tracking-normal leading-3",
   "group-data-[active=true]:text-[var(--atc-click-muted)]",
-  "[.airport-map-kit_&]:text-[8px] [.airport-map-kit_&]:leading-2.5 [.airport-map-kit_&]:min-h-2.5",
+  "[.airport-map-kit_&]:h-2.5 [.airport-map-kit_&]:text-[8px] [.airport-map-kit_&]:leading-2.5",
 );
 
 export function MetricCard({

@@ -80,8 +80,8 @@ const zhCN = {
           "为搜索和地图提供机场、跑道、频率、导航台、空域、报告点和障碍物资料。许可协议为 CC BY-NC 4.0。",
       },
       ourAirportsRunways: {
-        title: "OurAirports 跑道几何",
-        description: "仅用于精确跑道地图叠加的跑道端点坐标。",
+        title: "OurAirports 静态设施",
+        description: "用于跑道端点坐标、ATC 频率和导航台资料补充。",
       },
       wikipedia: {
         title: "Wikipedia 摘要",
@@ -220,6 +220,8 @@ const zhCN = {
     unknownAirport: "未知机场",
     departures: "起飞",
     arrivals: "到达",
+    atc: "ATC",
+    spotting: "拍机点",
   },
   metrics: {
     speed: "速度",

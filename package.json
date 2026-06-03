@@ -1,13 +1,14 @@
 {
   "name": "adsbao",
   "private": true,
-  "version": "1.9.0",
+  "version": "1.10.0",
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --webpack",
     "lint": "eslint .",
     "ff": "tsx scripts/feature-flags.ts",
+    "import:facilities": "tsx scripts/import-airport-facilities.ts",
     "generate:watching-spots": "tsx scripts/generate-candidate-watching-spots.ts",
     "import:runways": "tsx scripts/import-runway-geometries.ts",
     "test": "tsx scripts/run-tests.ts",

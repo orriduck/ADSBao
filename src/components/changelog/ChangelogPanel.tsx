@@ -10,6 +10,18 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v1.10.0": {
+    title: "机场设施数据与侧栏打磨",
+    summary:
+      "机场详情页现在在 OpenAIP 基础上恢复 Supabase 托管的 OurAirports 设施数据,补齐 ATC 频率和附近导航台覆盖,侧栏呈现也更紧凑。",
+    highlights: [
+      "OurAirports 机场频率和导航台通过独立 Supabase 表与导入脚本恢复",
+      "OpenAIP 仍作为主机场目录,详情页会合并恢复后的设施数据",
+      "ATC 频率改为固定宽度频率 badge,source chip 更紧凑,LiveATC 搜索入口放到列表上方",
+      "机场侧栏加入独立 ATC 与拍机点面板,和 metric grid 保持对齐",
+      "移动端拍机点预览优先显示真实点位名,距离与 OSM attribution 合并为一行",
+    ],
+  },
   "v1.8.4": {
     title: "机场缩放层级减噪",
     summary:
