@@ -146,7 +146,8 @@ const toolbarButtonVariants = cva(
     "size-[var(--atc-toolbar-cell-size)] text-xs",
     "overflow-hidden rounded-full",
     "font-[var(--font-nav)] font-semibold leading-none",
-    "transition-[background,color,box-shadow] duration-150",
+    "toolbar-interactive-feedback transition-[background,color,box-shadow,transform] duration-150",
+    "hover:-translate-y-px active:translate-y-0 motion-reduce:transform-none",
     "outline-none focus-visible:ring-2 focus-visible:ring-atc-accent/60",
     "disabled:cursor-not-allowed disabled:opacity-50",
     // svg child sizing — Lucide ships 24px by default; clamp to 15px

@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { airportDisplayName, airportSubtitle } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
@@ -7,11 +8,13 @@ export default function AirportRow({
   airport,
   onOpen,
   featured = false,
+  motionOrder = 0,
 }) {
   const { locale } = useI18n();
+  const motionStyle = { "--motion-order": motionOrder } as CSSProperties;
 
   return (
-    <li>
+    <li style={motionStyle}>
       <button
         type="button"
         className={`search-airport-row group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[72px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${

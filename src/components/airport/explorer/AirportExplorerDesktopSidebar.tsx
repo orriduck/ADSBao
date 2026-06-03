@@ -10,9 +10,10 @@ export default function AirportExplorerDesktopSidebar({
   return (
     <div
       className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
+      data-open={open ? "true" : "false"}
       style={{ width: open ? width : "0" }}
     >
-      <div className="h-full" style={{ width }}>
+      <div className="app-panel-transition h-full" style={{ width }}>
         <AirportSidebar {...sidebarProps} />
       </div>
     </div>

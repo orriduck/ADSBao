@@ -34,7 +34,7 @@ export default function MobilePreviewCard({
         "bottom-[calc(64px+env(safe-area-inset-bottom))]",
         "w-[min(342px,calc(100vw-24px))] max-w-[calc(100vw-24px)]",
         "isolate overflow-hidden select-none pointer-events-none",
-        "mobile-preview-card-enter",
+        "app-preview-transition mobile-preview-card-enter",
         "rounded-[var(--atc-radius-card)] border border-atc-line-strong/85 text-atc-text",
         // Solid card under a warm top-left gradient layer (same 135deg
         // language as the sidebar identity surface). Use background +
@@ -66,7 +66,7 @@ export function MobilePreviewTraceStatus({ active, children }: Record<string, an
         "self-stretch mx-[14px] text-center text-atc-dim",
         "font-[var(--font-mono)] text-[10px] font-semibold tracking-[0.08em] leading-[1.15] uppercase",
         "pointer-events-none whitespace-normal overflow-hidden",
-        "transition-[max-height,margin-top,opacity,transform] duration-[280ms] ease",
+        "transition-[max-height,margin-top,opacity,transform] duration-[var(--motion-ui-slow)] ease-[var(--motion-ease-out)]",
         active
           ? "max-h-[44px] mt-1 opacity-100 translate-y-0"
           : "max-h-0 mt-0 opacity-0 -translate-y-1",
@@ -226,7 +226,7 @@ export const MobilePreviewTrackButton = React.forwardRef(
           "shadow-[0_8px_16px_color-mix(in_oklab,var(--primary-bright)_16%,transparent),inset_0_-2px_0_color-mix(in_oklab,var(--primary-ink)_28%,transparent)]",
           "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center",
           "[-webkit-tap-highlight-color:transparent]",
-          "transition-[box-shadow,filter,transform] duration-150 ease-out",
+          "transition-[box-shadow,filter,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:brightness-[1.04] active:scale-[0.97] active:brightness-[0.96]",
           "focus-visible:outline-2 focus-visible:outline-[color-mix(in_oklab,var(--primary-bright)_72%,white)] focus-visible:outline-offset-[3px]",
           "disabled:cursor-not-allowed disabled:opacity-45",
@@ -254,7 +254,7 @@ export const MobilePreviewFeedbackLink = React.forwardRef(
           "border-0 bg-transparent text-atc-dim cursor-pointer",
           "font-sans text-[10px] font-bold tracking-normal leading-[1.15] text-center",
           "[-webkit-tap-highlight-color:transparent]",
-          "transition-[color,opacity,transform] duration-150 ease-out",
+          "transition-[color,opacity,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:text-atc-text hover:opacity-90 active:text-atc-text active:scale-[0.97]",
           "focus-visible:outline-2 focus-visible:outline-[color-mix(in_oklab,var(--primary-bright)_72%,white)] focus-visible:outline-offset-[3px]",
           className,

@@ -13,7 +13,7 @@ import AirportRow from "./AirportRow";
 // scrollbar reasonable before measurement settles.
 const ROW_HEIGHT_ESTIMATE_PX = 56;
 const OVERSCAN_ROWS = 6;
-const ENTER_ANIMATION_MS = 260;
+const ENTER_ANIMATION_MS = 300;
 
 // Windowed render for the nearby list. Both aircraft and airport rows live in
 // a single scroll container so the virtualizer can manage them as one stream.
@@ -72,7 +72,7 @@ export default function VirtualNearbyList({
   const totalSize = virtualizer.getTotalSize();
 
   return (
-    <div ref={parentRef} className="h-full overflow-y-auto">
+    <div ref={parentRef} className="app-virtual-list-motion h-full overflow-y-auto">
       <div
         style={{ height: `${totalSize}px`, position: "relative", width: "100%" }}
       >

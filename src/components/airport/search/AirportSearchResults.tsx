@@ -35,11 +35,12 @@ export function AirportSearchResults({
           {t("search.noAirportMatched", { query: query.trim() })}
         </div>
       ) : (
-        <ul className="dither-list px-6 divide-y divide-[var(--atc-line)]">
-          {rows.map((airport) => (
+        <ul className="app-list-motion dither-list px-6 divide-y divide-[var(--atc-line)]">
+          {rows.map((airport, index) => (
             <AirportRow
               key={airport.icao || airport.code || airport.name}
               airport={airport}
+              motionOrder={Math.min(index, 5)}
               onOpen={onOpen}
             />
           ))}
