@@ -37,7 +37,7 @@ export default function AircraftPreviewIdentity({ aircraft }) {
           >
             <AirlineLogo
               src={airlineIconUrl}
-              className="h-4 w-[26px] flex-none rounded-[2px] bg-[#f5f3ee] object-contain px-[2px] py-[1px] md:h-[13px] md:w-[21px]"
+              className="h-4 w-[26px] flex-none rounded-[2px] bg-[var(--aviation-logo-plate)] object-contain px-[2px] py-[1px] md:h-[13px] md:w-[21px]"
             />
             <span className="min-w-0 truncate">{route}</span>
           </span>

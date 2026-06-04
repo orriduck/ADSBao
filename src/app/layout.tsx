@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import ThemedToaster from "@/components/app-shell/ThemedToaster";
 import { I18nProvider } from "@/features/app-shell/i18n/i18nProvider";
 import QueryProvider from "@/features/app-shell/queryProvider";
+import { isConcreteTheme } from "@/utils/theme";
 import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
@@ -83,7 +84,7 @@ export const viewport = {
 // Resolve the theme from the request cookie so the server can render
 // <html data-theme="..."> directly — no client-side boot script, no
 // React 19 "script inside component" warning. The cookie carries the
-// RESOLVED theme (light/dark), never "system": useThemePreference
+// RESOLVED theme, never "system": useThemePreference
 // rewrites it on every applyThemePreference call, so even users on
 // system preference get the correct color on subsequent loads. First-
 // ever visitors without a cookie still fall back to dark, since the
@@ -91,7 +92,7 @@ export const viewport = {
 async function resolveInitialTheme() {
   const store = await cookies();
   const raw = store.get("theme")?.value;
-  if (raw === "light" || raw === "dark") return raw;
+  if (isConcreteTheme(raw)) return raw;
   return "dark";
 }
 

@@ -23,9 +23,9 @@ function CandidateMarkerIcon({ selected = false }: { selected?: boolean }) {
         className={cn(
           "candidate-watching-spot-marker__button",
           "relative isolate flex h-8 w-8 items-center justify-center overflow-hidden rounded-full",
-          "border border-[color-mix(in_oklab,var(--primary-bright)_54%,var(--atc-line))]",
-          "bg-[color-mix(in_oklab,var(--atc-card)_92%,transparent)] text-[var(--primary-bright)]",
-          "shadow-[0_8px_24px_rgba(0,0,0,0.28),var(--atc-control-inset-shadow)]",
+          "border border-[var(--watcher-candidate-marker-border)]",
+          "bg-[var(--watcher-candidate-marker-surface)] text-[var(--watcher-candidate-marker-fg)]",
+          "shadow-[var(--watcher-candidate-marker-shadow),var(--atc-control-inset-shadow)]",
           "transition-[background,border-color,box-shadow,color,transform,filter] duration-300",
           "hover:scale-105 hover:brightness-[1.04] active:scale-95",
           "data-[active=true]:scale-110 data-[active=true]:border-transparent",

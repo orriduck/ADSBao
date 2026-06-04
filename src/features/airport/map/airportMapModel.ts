@@ -30,8 +30,16 @@ type VisibleAircraftOptions = AirportGroundFilterOptions & {
   zoom?: unknown;
 };
 
-export const resolveDocumentTheme = (documentElement: Pick<Element, "getAttribute"> | null | undefined) =>
-  documentElement?.getAttribute("data-theme") === "light" ? "light" : "dark";
+export const isLightMapTheme = (theme: unknown) =>
+  theme === "light" || theme === "sunset";
+
+export const isKnownMapTheme = (theme: unknown) =>
+  theme === "light" || theme === "dark" || theme === "sunrise" || theme === "sunset";
+
+export const resolveDocumentTheme = (documentElement: Pick<Element, "getAttribute"> | null | undefined) => {
+  const theme = documentElement?.getAttribute("data-theme");
+  return isKnownMapTheme(theme) ? theme : "dark";
+};
 
 export const getMapOverlayTheme = (theme: unknown) =>
   theme === "light"

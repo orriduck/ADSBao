@@ -299,7 +299,7 @@ function Pointer({
             aria-hidden="true"
             style={{
               ...maskStyle,
-              backgroundColor: "rgba(0,0,0,0.95)",
+              backgroundColor: "var(--aviation-aircraft-shadow)",
               opacity: shadowOpacity,
               filter: `blur(${shadowBlur}px)`,
               transform: shadowTransform,
@@ -314,7 +314,7 @@ function Pointer({
             transform: silhouetteTransform,
           } as any}
         />
-        {theme === "dark" && (
+        {(theme === "dark" || theme === "sunrise") && (
           <span aria-hidden="true" className="aircraft-nose-beam" />
         )}
       </div>
@@ -346,7 +346,7 @@ function Pointer({
               transform: shadowTransform,
             }}
           >
-            <path d="M12 2L16 20L12 17L8 20Z" fill="rgba(0,0,0,0.95)" />
+            <path d="M12 2L16 20L12 17L8 20Z" fill="var(--aviation-aircraft-shadow)" />
           </svg>
         ) : null}
         <svg

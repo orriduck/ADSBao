@@ -38,8 +38,14 @@ export default function PageNavigationDock() {
   const { locale, t } = useI18n();
   const pathname = usePathname();
   const activeHref = resolveActiveHref(pathname);
-  const { themePreference, themeTitle, themeIconKey, cycleTheme } =
-    useThemePreference();
+  const {
+    themePreference,
+    themeTitle,
+    themeIconKey,
+    cycleTheme,
+    immersiveThemesEnabled,
+    selectTheme,
+  } = useThemePreference();
   const { isLoaded, isSignedIn } = useUser();
   const showSignedIn = isLoaded && isSignedIn;
 
@@ -78,8 +84,12 @@ export default function PageNavigationDock() {
           className={buttonClass}
           iconKey={themeIconKey}
           preference={themePreference}
+          immersiveThemesEnabled={immersiveThemesEnabled}
           title={themeTitle}
           onClick={cycleTheme}
+          onSelectTheme={selectTheme}
+          menuPlacement="bottom"
+          menuAlign="right"
         />
 
         <ToolbarSeparator />

@@ -9,18 +9,19 @@ type SonnerTheme = "light" | "dark" | "system";
 // "system" theme reads prefers-color-scheme, but the app's theme is
 // controlled explicitly via the data-theme cookie/attribute, so
 // "system" can disagree with the rest of the UI.
+const resolveToasterTheme = (theme: unknown): SonnerTheme =>
+  theme === "dark" || theme === "sunrise" ? "dark" : "light";
+
 const resolveAttrTheme = (): SonnerTheme => {
   if (typeof document === "undefined") return "dark";
-  return document.documentElement.getAttribute("data-theme") === "light"
-    ? "light"
-    : "dark";
+  return resolveToasterTheme(document.documentElement.getAttribute("data-theme"));
 };
 
 export default function ThemedToaster({
   initialTheme = "dark",
   ...rest
 }: Record<string, any>) {
-  const [theme, setTheme] = useState(initialTheme);
+  const [theme, setTheme] = useState(resolveToasterTheme(initialTheme));
 
   useEffect(() => {
     const sync = () => setTheme(resolveAttrTheme());

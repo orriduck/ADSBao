@@ -8,6 +8,9 @@ import {
   shouldAttemptMapLibreTiles,
   shouldLogMapTileLayerFailure,
 } from "@/features/airport/map/mapTileLayerModel";
+import { isLightMapTheme } from "@/features/airport/map/airportMapModel";
+
+const MAP_STYLE_THEME_REVISION = "immersive-themes-v2";
 
 export default function MapTileLayers({
   theme = "dark",
@@ -84,6 +87,7 @@ async function loadLocalizedMapStyle({ theme, locale, showLabels, signal }: Reco
   const params = new URLSearchParams({
     locale,
     labels: showLabels ? "1" : "0",
+    v: MAP_STYLE_THEME_REVISION,
   });
   return requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
 }
@@ -145,7 +149,7 @@ function setSelectionOpacity(layer, theme, selectionActive) {
   const container = layer?.getContainer?.();
   if (!container) return;
   if (selectionActive) {
-    container.style.opacity = theme === "light" ? "0.92" : "0.88";
+    container.style.opacity = isLightMapTheme(theme) ? "0.92" : "0.88";
     return;
   }
   container.style.opacity = "1";

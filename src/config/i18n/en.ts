@@ -407,6 +407,8 @@ const en = {
     themeButtonAria: "Theme: {label} (click to switch)",
     themeLight: "Light",
     themeDark: "Dark",
+    themeSunrise: "Dawn",
+    themeSunset: "Sunset",
     runwayDirectionsAria: "Runway directions",
     loadingMapAria: "Loading map data",
     loadingAircraftAria: "Loading ADS-B aircraft data",
@@ -505,6 +507,9 @@ const en = {
     themeLight: "Light",
     themeDark: "Dark",
     themeSystem: "System",
+    themeSunrise: "Dawn",
+    themeSunset: "Sunset",
+    themeMenuLabel: "Choose theme",
     themeTitle: "Theme: {label} (click to switch)",
   },
   weather: {

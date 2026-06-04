@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  buildImmersiveMapLibreStyle,
   buildProxiedMapLibreStyle,
   buildLocalizedMapLibreStyle,
   getMapLibreBaseStyleUrl,
@@ -161,4 +162,87 @@ assert.equal(
 
   assert.equal(localized.layers[0].layout.visibility, "none");
   assert.equal(localized.layers[1].layout.visibility, undefined);
+}
+
+{
+  const style = {
+    version: 8,
+    layers: [
+      {
+        id: "background",
+        type: "background",
+        paint: { "background-color": "#ffffff" },
+      },
+      {
+        id: "water",
+        type: "fill",
+        paint: { "fill-color": "#eeeeee" },
+      },
+      {
+        id: "aeroway-runway",
+        type: "line",
+        paint: { "line-color": "#dddddd", "line-width": 2 },
+      },
+      {
+        id: "highway_major_inner",
+        type: "line",
+        paint: { "line-color": "#cccccc" },
+      },
+      {
+        id: "place_city",
+        type: "symbol",
+        paint: { "text-color": "#111111", "text-halo-color": "#ffffff" },
+      },
+      {
+        id: "water_name_point_label",
+        type: "symbol",
+        paint: { "text-color": "#111111", "text-halo-color": "#ffffff" },
+      },
+    ],
+  };
+
+  const themed = buildImmersiveMapLibreStyle(style, "sunrise");
+
+  assert.notEqual(themed, style);
+  assert.equal(themed.layers[0].paint["background-color"], "#1e2758");
+  assert.equal(themed.layers[1].paint["fill-color"], "#29406f");
+  assert.equal(themed.layers[2].paint["line-color"], "#bfc7ff");
+  assert.equal(themed.layers[3].paint["line-color"], "#5f6a96");
+  assert.equal(themed.layers[4].paint["text-color"], "#eef3ff");
+  assert.equal(themed.layers[4].paint["text-halo-color"], "#18234d");
+  assert.equal(themed.layers[5].paint["text-color"], "#b9ddff");
+}
+
+{
+  const style = {
+    version: 8,
+    layers: [
+      {
+        id: "background",
+        type: "background",
+        paint: { "background-color": "#ffffff" },
+      },
+      {
+        id: "water",
+        type: "fill",
+        paint: { "fill-color": "#eeeeee" },
+      },
+      {
+        id: "highway_motorway_inner",
+        type: "line",
+        paint: { "line-color": "#cccccc" },
+      },
+    ],
+  };
+
+  const themed = buildImmersiveMapLibreStyle(style, "sunset");
+
+  assert.equal(themed.layers[0].paint["background-color"], "#f2dfc4");
+  assert.equal(themed.layers[1].paint["fill-color"], "#d8b9a1");
+  assert.equal(themed.layers[2].paint["line-color"], "#ca8750");
+}
+
+{
+  const style = { version: 8, layers: [] };
+  assert.equal(buildImmersiveMapLibreStyle(style, "light"), style);
 }

@@ -5,12 +5,16 @@ import {
   THEME_SYSTEM,
   applyThemePreference,
   initThemePreference,
+  isImmersiveTheme,
   nextTheme,
+  sanitizeTheme,
   writeStoredTheme,
 } from "../../utils/theme";
+import { useImmersiveThemesFeature } from "./auth/useFlightAwareEnabled";
 import { getThemeIconKey, getThemeTitle } from "./themePreference";
 
 export function useThemePreference() {
+  const immersiveThemesFeature = useImmersiveThemesFeature();
   const [themePreference, setThemePreference] = useState(THEME_SYSTEM);
   const mediaQueryList = useRef(null);
   const themePreferenceRef = useRef(THEME_SYSTEM);
@@ -44,10 +48,10 @@ export function useThemePreference() {
     return () => mediaQueryList.current?.removeEventListener("change", listener);
   }, []);
 
-  const cycleTheme = useCallback(() => {
-    const next = nextTheme(themePreferenceRef.current);
-    themePreferenceRef.current = next;
+  const applySelectedTheme = useCallback((theme) => {
+    const next = sanitizeTheme(theme);
     setThemePreference(next);
+    themePreferenceRef.current = next;
     writeStoredTheme(next);
     applyThemePreference({
       theme: next,
@@ -55,13 +59,37 @@ export function useThemePreference() {
     });
   }, []);
 
+  const selectTheme = useCallback((theme) => {
+    const next = sanitizeTheme(theme);
+    if (isImmersiveTheme(next) && !immersiveThemesFeature.enabled) return false;
+    applySelectedTheme(next);
+    return true;
+  }, [applySelectedTheme, immersiveThemesFeature.enabled]);
+
+  useEffect(() => {
+    if (!immersiveThemesFeature.resolved) return;
+    if (!isImmersiveTheme(themePreferenceRef.current)) return;
+    if (immersiveThemesFeature.enabled) return;
+    applySelectedTheme(THEME_SYSTEM);
+  }, [
+    applySelectedTheme,
+    immersiveThemesFeature.enabled,
+    immersiveThemesFeature.resolved,
+  ]);
+
+  const cycleTheme = useCallback(() => {
+    selectTheme(nextTheme(themePreferenceRef.current));
+  }, [selectTheme]);
+
   return useMemo(
     () => ({
       themePreference,
       themeTitle: getThemeTitle(themePreference),
       themeIconKey: getThemeIconKey(themePreference),
       cycleTheme,
+      immersiveThemesEnabled: immersiveThemesFeature.enabled,
+      selectTheme,
     }),
-    [cycleTheme, themePreference],
+    [cycleTheme, immersiveThemesFeature.enabled, selectTheme, themePreference],
   );
 }

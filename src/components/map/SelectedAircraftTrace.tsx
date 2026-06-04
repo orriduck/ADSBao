@@ -12,6 +12,7 @@ import {
   safeAddToMap,
   safeRemoveFromMap,
 } from "@/features/airport/map/leafletLayerSafety";
+import { isLightMapTheme } from "@/features/airport/map/airportMapModel";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
 import { computeTraceGeometry } from "../../features/aircraft/trace/traceGeometry";
 import {
@@ -58,7 +59,7 @@ function formatTraceLabelAltitude(point) {
 }
 
 const getTraceStyle = (theme) =>
-  theme === "light"
+  isLightMapTheme(theme)
     ? SELECTED_AIRCRAFT_TRACE_STYLE.light
     : SELECTED_AIRCRAFT_TRACE_STYLE.dark;
 

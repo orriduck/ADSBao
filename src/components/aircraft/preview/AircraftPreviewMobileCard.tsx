@@ -61,7 +61,7 @@ function AirlineLogo({ src }: AirlineLogoProps) {
       loading="lazy"
       decoding="async"
       onError={() => setHidden(true)}
-      className="h-3.5 w-[22px] flex-none rounded-[2px] bg-[oklch(96%_0.006_95)] object-contain px-[2px] py-[1px]"
+      className="h-3.5 w-[22px] flex-none rounded-[2px] bg-[var(--aviation-logo-plate)] object-contain px-[2px] py-[1px]"
     />
   );
 }

@@ -4,6 +4,7 @@ import {
   FEATURE_FLAGS,
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
+  isImmersiveThemesEnabled,
   normalizeFeatureFlags,
   normalizeFeatureFlagEnvironment,
   normalizeUserEmail,
@@ -51,6 +52,18 @@ assert.equal(
 );
 assert.equal(
   isFeatureFlagEnabled({ [FEATURE_FLAGS.FLIGHTAWARE_ENABLED]: "true" }, FEATURE_FLAGS.FLIGHTAWARE_ENABLED),
+  false,
+);
+assert.equal(
+  isImmersiveThemesEnabled({ [FEATURE_FLAGS.IMMERSIVE_THEMES_ENABLED]: true }),
+  true,
+);
+assert.equal(
+  isImmersiveThemesEnabled({ [FEATURE_FLAGS.FLIGHTAWARE_ENABLED]: true }),
+  true,
+);
+assert.equal(
+  isImmersiveThemesEnabled({ [FEATURE_FLAGS.FLIGHTAWARE_ENABLED]: false }),
   false,
 );
 
