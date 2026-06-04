@@ -3082,6 +3082,16 @@ body {
 
 :root {
     --map-label-glow: rgba(250, 249, 245, 0.95);
+    --aircraft-label-immersive-color: #263244;
+    --aircraft-label-immersive-shadow:
+        0 1px 1px rgb(255 255 255 / 0.58),
+        0 0 7px rgb(255 255 255 / 0.48),
+        0 1px 8px rgb(34 45 54 / 0.16);
+    --map-source-immersive-color: #29323d;
+    --map-source-immersive-muted: #46505c;
+    --map-source-immersive-shadow:
+        0 1px 1px rgb(255 255 255 / 0.6),
+        0 0 8px rgb(255 255 255 / 0.42);
 }
 
 :root[data-theme="dark"] {
@@ -3090,6 +3100,34 @@ body {
 
 :root[data-theme="sunrise"] {
     --map-label-glow: rgba(13, 18, 53, 0.72);
+}
+
+.airport-map-stage[data-map-mode="immersive"][data-immersive-phase="dawn"],
+.airport-map-stage[data-map-mode="immersive"][data-immersive-phase="dusk"],
+.airport-map-stage[data-map-mode="immersive"][data-immersive-phase="night"] {
+    --aircraft-label-immersive-color: #f7fbff;
+    --aircraft-label-immersive-shadow:
+        0 1px 2px rgb(0 0 0 / 0.74),
+        0 0 9px rgb(0 0 0 / 0.86),
+        0 0 15px rgb(23 37 67 / 0.6);
+    --map-source-immersive-color: #f4f8ff;
+    --map-source-immersive-muted: #d4deec;
+    --map-source-immersive-shadow:
+        0 1px 2px rgb(0 0 0 / 0.78),
+        0 0 12px rgb(0 0 0 / 0.72);
+}
+
+.airport-map-stage[data-map-mode="immersive"][data-immersive-phase="sunset"] {
+    --aircraft-label-immersive-color: #342315;
+    --aircraft-label-immersive-shadow:
+        0 1px 1px rgb(255 239 210 / 0.68),
+        0 0 7px rgb(255 230 190 / 0.5),
+        0 1px 8px rgb(95 45 20 / 0.2);
+    --map-source-immersive-color: #35251b;
+    --map-source-immersive-muted: #5d4b3c;
+    --map-source-immersive-shadow:
+        0 1px 1px rgb(255 238 209 / 0.62),
+        0 0 9px rgb(255 221 178 / 0.38);
 }
 
 .leaflet-marker-icon {
@@ -3279,19 +3317,6 @@ body {
     text-shadow:
         0 1px 2px rgba(13, 18, 53, 0.7),
         0 0 1px rgba(13, 18, 53, 0.85);
-}
-
-.airport-map-stage[data-map-mode="immersive"][data-immersive-phase="night"] .aircraft-label {
-    text-shadow:
-        0 1px 2px rgb(0 0 0 / 0.72),
-        0 0 8px rgb(0 0 0 / 0.82),
-        0 0 14px rgb(23 37 67 / 0.58);
-}
-
-:root[data-theme="sunrise"] .airport-map-stage[data-map-mode="immersive"] .aircraft-label,
-.airport-map-stage[data-map-mode="immersive"][data-immersive-phase] .aircraft-label,
-.airport-map-stage[data-map-mode="immersive"] .aircraft-label {
-    text-shadow: none;
 }
 
 :root[data-theme="sunrise"] .aircraft-nose-beam {
@@ -6790,4 +6815,57 @@ body {
         pointer-events: none;
     }
 
+}
+
+.airport-map-stage[data-map-mode="immersive"] .aircraft-label {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+    text-shadow: var(--aircraft-label-immersive-shadow);
+}
+
+.airport-map-kit .airport-map-stage[data-map-mode="immersive"] .aircraft-label {
+    font-size: 9px;
+}
+
+.airport-map-stage[data-map-mode="immersive"] [aria-label="Map data sources"] {
+    color: var(--map-source-immersive-color);
+    filter: drop-shadow(0 5px 10px color-mix(in oklab, var(--atc-bg) 38%, transparent));
+    font-family: var(--font-display);
+    text-shadow: var(--map-source-immersive-shadow);
+}
+
+.airport-map-stage[data-map-mode="immersive"] [aria-label="Map data sources"] :where(span) {
+    color: var(--map-source-immersive-color);
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1.02;
+    text-shadow: inherit;
+}
+
+.airport-map-stage[data-map-mode="immersive"] [aria-label="Map data sources"] > span:first-child {
+    font-size: 9px;
+}
+
+.airport-map-stage[data-map-mode="immersive"] [aria-label="Map data sources"] > span:last-child :where(span) {
+    color: var(--map-source-immersive-muted);
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.airport-map-stage[data-map-mode="immersive"] [aria-label="Map data sources"] [aria-hidden="true"] {
+    background: var(--map-source-immersive-muted);
+    box-shadow: 0 0 7px color-mix(in oklab, var(--map-source-immersive-muted) 24%, transparent);
+}
+
+@media (max-width: 767px) {
+    .airport-map-stage[data-map-mode="immersive"] .aircraft-label {
+        font-size: 10px;
+    }
+
+    .airport-map-stage[data-map-mode="immersive"] [aria-label="Map data sources"] > span:first-child {
+        font-size: 10px;
+    }
 }

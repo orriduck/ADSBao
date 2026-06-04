@@ -13,6 +13,12 @@ type Aircraft3DLightingOptions = {
   phase?: unknown;
 };
 
+type Aircraft3DShadowOptions = Aircraft3DLightingOptions & {
+  altitude?: unknown;
+  onGround?: boolean;
+  selected?: boolean;
+};
+
 type Aircraft3DModelScaleOptions = {
   altitude?: unknown;
   family?: unknown;
@@ -154,7 +160,7 @@ export const resolveAircraft3DLightingProfile = ({
         navLightIntensity: 0.36,
         rimLightColor: "#d5e3ff",
         rimLightIntensity: 0.54,
-        shadowOpacity: 0.075,
+        shadowOpacity: 0.13,
       };
     default:
       return {
@@ -168,9 +174,57 @@ export const resolveAircraft3DLightingProfile = ({
         navLightIntensity: 0.32,
         rimLightColor: "#d6e5ff",
         rimLightIntensity: 0.46,
-        shadowOpacity: 0.07,
+        shadowOpacity: 0.14,
       };
   }
+};
+
+export const resolveAircraft3DShadowPresentation = ({
+  altitude = null,
+  onGround = false,
+  phase = "day",
+  selected = false,
+}: Aircraft3DShadowOptions = {}) => {
+  const phaseKey = String(phase || "day");
+  const daylightPhase =
+    phaseKey === "morning" || phaseKey === "day" || phaseKey === "afternoon";
+  const altitudeFt = onGround
+    ? 0
+    : clamp(toFiniteNumber(altitude) ?? 0, 0, 42_000);
+  const altitudeRatio = altitudeFt / 42_000;
+  const profile = resolveAircraft3DLightingProfile({ phase: phaseKey });
+
+  const selectedBoost = selected
+    ? daylightPhase
+      ? 1.24
+      : 1.14
+    : daylightPhase
+      ? 1.02
+      : 0.92;
+  const altitudeFade = altitudeRatio * (daylightPhase ? 0.045 : 0.08);
+  const opacityFloor =
+    phaseKey === "night" ? 0.05 : daylightPhase ? 0.082 : 0.055;
+  const opacity = round2(
+    Math.max(opacityFloor, profile.shadowOpacity * selectedBoost - altitudeFade),
+  );
+
+  if (daylightPhase) {
+    return {
+      opacity,
+      positionX: round2(2.2 + altitudeRatio * 5.1),
+      positionY: round2(3 + altitudeRatio * 7.8),
+      scaleX: round2(0.98 - altitudeRatio * 0.16),
+      scaleY: round2(0.74 - altitudeRatio * 0.08),
+    };
+  }
+
+  return {
+    opacity,
+    positionX: round2(2.5 + altitudeRatio * 7),
+    positionY: round2(3.5 + altitudeRatio * 10),
+    scaleX: round2(0.9 + altitudeRatio * 0.32),
+    scaleY: round2(0.72 + altitudeRatio * 0.18),
+  };
 };
 
 export const resolveAircraft3DLandingLightIntensity = ({
