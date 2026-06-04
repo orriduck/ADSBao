@@ -2,16 +2,12 @@ const THEME_KEY = 'theme'
 const THEME_LIGHT = 'light'
 const THEME_DARK = 'dark'
 const THEME_SYSTEM = 'system'
-const THEME_SUNRISE = 'sunrise'
-const THEME_SUNSET = 'sunset'
 const FALLBACK_THEME = THEME_SYSTEM
 
 type ThemePreference =
   | typeof THEME_LIGHT
   | typeof THEME_DARK
   | typeof THEME_SYSTEM
-  | typeof THEME_SUNRISE
-  | typeof THEME_SUNSET
 type ThemeStorage = {
   getItem(key: string): unknown
   setItem(key: string, value: string): void
@@ -23,8 +19,6 @@ const THEMES: ThemePreference[] = [
   THEME_LIGHT,
   THEME_DARK,
   THEME_SYSTEM,
-  THEME_SUNRISE,
-  THEME_SUNSET,
 ]
 const SWITCHABLE_THEMES: ThemePreference[] = [
   THEME_LIGHT,
@@ -34,12 +28,6 @@ const SWITCHABLE_THEMES: ThemePreference[] = [
 const CONCRETE_THEMES: ThemePreference[] = [
   THEME_LIGHT,
   THEME_DARK,
-  THEME_SUNRISE,
-  THEME_SUNSET,
-]
-const IMMERSIVE_THEMES: ThemePreference[] = [
-  THEME_SUNRISE,
-  THEME_SUNSET,
 ]
 
 const getSystemTheme = (mediaQueryList: ThemeMediaQueryList = window.matchMedia('(prefers-color-scheme: dark)')) =>
@@ -50,9 +38,6 @@ const sanitizeTheme = (theme: unknown): ThemePreference =>
 
 const isConcreteTheme = (theme: unknown): theme is Exclude<ThemePreference, typeof THEME_SYSTEM> =>
   CONCRETE_THEMES.includes(theme as ThemePreference)
-
-const isImmersiveTheme = (theme: unknown): theme is typeof THEME_SUNRISE | typeof THEME_SUNSET =>
-  IMMERSIVE_THEMES.includes(theme as ThemePreference)
 
 const readStoredTheme = (storage: ThemeStorage = window.localStorage) => sanitizeTheme(storage.getItem(THEME_KEY))
 
@@ -113,13 +98,10 @@ const nextTheme = (theme: unknown) => {
 export {
   THEME_LIGHT,
   THEME_DARK,
-  THEME_SUNRISE,
-  THEME_SUNSET,
   THEME_SYSTEM,
   applyThemePreference,
   initThemePreference,
   isConcreteTheme,
-  isImmersiveTheme,
   nextTheme,
   sanitizeTheme,
   writeStoredTheme,

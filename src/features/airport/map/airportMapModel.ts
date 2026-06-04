@@ -25,16 +25,27 @@ type AirportGroundFilterOptions = {
   nearbyAirports?: AirportMapCoordinate[];
 };
 
+type NearbyAirportLayerDisplayOptions = {
+  nearbyAirports?: AirportMapCoordinate[];
+  immersiveModeActive?: boolean;
+};
+
 type VisibleAircraftOptions = AirportGroundFilterOptions & {
   aircraft: AirportMapAircraft[];
   zoom?: unknown;
 };
 
+type SelectedAircraftTraceOptions = {
+  selectedAircraftId?: unknown;
+  selectedAircraft?: unknown;
+  immersiveModeActive?: boolean;
+};
+
 export const isLightMapTheme = (theme: unknown) =>
-  theme === "light" || theme === "sunset";
+  theme === "light";
 
 export const isKnownMapTheme = (theme: unknown) =>
-  theme === "light" || theme === "dark" || theme === "sunrise" || theme === "sunset";
+  theme === "light" || theme === "dark";
 
 export const resolveDocumentTheme = (documentElement: Pick<Element, "getAttribute"> | null | undefined) => {
   const theme = documentElement?.getAttribute("data-theme");
@@ -51,6 +62,22 @@ export const getMapOverlayTheme = (theme: unknown) =>
         labelShadowColor: "var(--map-label-shadow)",
         attributionColor: "var(--map-attribution)",
       };
+
+export const resolveNearbyAirportLayerDisplay = ({
+  nearbyAirports = [],
+  immersiveModeActive = false,
+}: NearbyAirportLayerDisplayOptions = {}) => ({
+  airports: Array.isArray(nearbyAirports) ? nearbyAirports : [],
+  showAirportBadges: !immersiveModeActive,
+  showRunwayBadges: false,
+});
+
+export const shouldRenderSelectedAircraftTrace = ({
+  selectedAircraftId = "",
+  selectedAircraft = null,
+  immersiveModeActive = false,
+}: SelectedAircraftTraceOptions = {}) =>
+  Boolean(selectedAircraftId && selectedAircraft && !immersiveModeActive);
 
 const toFiniteCoordinate = (value: unknown) => {
   if (value == null || value === "") return null;

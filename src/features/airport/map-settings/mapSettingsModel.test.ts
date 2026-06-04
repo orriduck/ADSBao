@@ -6,9 +6,11 @@ import {
   buildCustomMapSettings,
   buildMapSettingsFromLayerState,
   buildPresetMapSettings,
+  getSelectableMapModeOptions,
   mapSettingsToExplorerLayers,
   mergeMapSettings,
   normalizeMapSettings,
+  resolveMapSettingsHydration,
 } from "./mapSettingsModel";
 
 {
@@ -141,6 +143,121 @@ import {
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
   });
+}
+
+{
+  assert.equal(
+    getSelectableMapModeOptions({ immersiveModeEnabled: false }).some(
+      (mode) => mode.id === MAP_MODE_IDS.IMMERSIVE,
+    ),
+    false,
+  );
+  assert.equal(
+    getSelectableMapModeOptions({ immersiveModeEnabled: true }).some(
+      (mode) => mode.id === MAP_MODE_IDS.IMMERSIVE,
+    ),
+    true,
+  );
+}
+
+{
+  const locked = buildPresetMapSettings({ modeId: MAP_MODE_IDS.IMMERSIVE });
+  assert.equal(locked.selectedMode, MAP_MODE_IDS.CONTROLLER);
+
+  const immersive = buildPresetMapSettings({
+    modeId: MAP_MODE_IDS.IMMERSIVE,
+    immersiveModeEnabled: true,
+    now: "2026-06-02T15:08:00.000Z",
+  });
+
+  assert.equal(immersive.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+  assert.deepEqual(
+    mapSettingsToExplorerLayers(immersive, { immersiveModeEnabled: true }),
+    {
+      showMapLabels: false,
+      showRunwayBeams: false,
+      showNavaidMarkers: false,
+      showAirspaces: false,
+      showCandidateWatchingSpots: false,
+    },
+  );
+  assert.equal(
+    normalizeMapSettings(
+      { selectedMode: MAP_MODE_IDS.IMMERSIVE, baseMode: MAP_MODE_IDS.IMMERSIVE },
+      { immersiveModeEnabled: false },
+    ).selectedMode,
+    MAP_MODE_IDS.CONTROLLER,
+  );
+  assert.equal(
+    normalizeMapSettings(
+      { selectedMode: MAP_MODE_IDS.IMMERSIVE, baseMode: MAP_MODE_IDS.IMMERSIVE },
+      { immersiveModeEnabled: true },
+    ).selectedMode,
+    MAP_MODE_IDS.IMMERSIVE,
+  );
+}
+
+{
+  const hydrated = resolveMapSettingsHydration({
+    signedIn: true,
+    userSettings: {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+    cachedSettings: {
+      selectedMode: MAP_MODE_IDS.IMMERSIVE,
+      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      hasSelectedMode: true,
+    },
+    immersiveModeEnabled: true,
+  });
+
+  assert.equal(
+    hydrated.source,
+    "user",
+    "signed-in hydration should prefer the account-backed settings",
+  );
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.RADIO);
+}
+
+{
+  const hydrated = resolveMapSettingsHydration({
+    signedIn: true,
+    userSettings: null,
+    cachedSettings: {
+      selectedMode: MAP_MODE_IDS.IMMERSIVE,
+      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      hasSelectedMode: true,
+    },
+    immersiveModeEnabled: true,
+  });
+
+  assert.equal(
+    hydrated.source,
+    "cache",
+    "signed-in hydration should only fall back to cache when no user settings exist",
+  );
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+}
+
+{
+  const hydrated = resolveMapSettingsHydration({
+    signedIn: false,
+    userSettings: {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+    cachedSettings: {
+      selectedMode: MAP_MODE_IDS.SPOTTING,
+      baseMode: MAP_MODE_IDS.SPOTTING,
+      hasSelectedMode: true,
+    },
+  });
+
+  assert.equal(hydrated.source, "cache");
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.SPOTTING);
 }
 
 {

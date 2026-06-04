@@ -5,16 +5,13 @@ import {
   THEME_SYSTEM,
   applyThemePreference,
   initThemePreference,
-  isImmersiveTheme,
   nextTheme,
   sanitizeTheme,
   writeStoredTheme,
 } from "../../utils/theme";
-import { useImmersiveThemesFeature } from "./auth/useFlightAwareEnabled";
 import { getThemeIconKey, getThemeTitle } from "./themePreference";
 
 export function useThemePreference() {
-  const immersiveThemesFeature = useImmersiveThemesFeature();
   const [themePreference, setThemePreference] = useState(THEME_SYSTEM);
   const mediaQueryList = useRef(null);
   const themePreferenceRef = useRef(THEME_SYSTEM);
@@ -61,21 +58,9 @@ export function useThemePreference() {
 
   const selectTheme = useCallback((theme) => {
     const next = sanitizeTheme(theme);
-    if (isImmersiveTheme(next) && !immersiveThemesFeature.enabled) return false;
     applySelectedTheme(next);
     return true;
-  }, [applySelectedTheme, immersiveThemesFeature.enabled]);
-
-  useEffect(() => {
-    if (!immersiveThemesFeature.resolved) return;
-    if (!isImmersiveTheme(themePreferenceRef.current)) return;
-    if (immersiveThemesFeature.enabled) return;
-    applySelectedTheme(THEME_SYSTEM);
-  }, [
-    applySelectedTheme,
-    immersiveThemesFeature.enabled,
-    immersiveThemesFeature.resolved,
-  ]);
+  }, [applySelectedTheme]);
 
   const cycleTheme = useCallback(() => {
     selectTheme(nextTheme(themePreferenceRef.current));
@@ -87,9 +72,8 @@ export function useThemePreference() {
       themeTitle: getThemeTitle(themePreference),
       themeIconKey: getThemeIconKey(themePreference),
       cycleTheme,
-      immersiveThemesEnabled: immersiveThemesFeature.enabled,
       selectTheme,
     }),
-    [cycleTheme, immersiveThemesFeature.enabled, selectTheme, themePreference],
+    [cycleTheme, selectTheme, themePreference],
   );
 }

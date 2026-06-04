@@ -1,3 +1,8 @@
+import {
+  resolveImmersiveColorSchemeFromLocalMinutes,
+  type ImmersiveMapPalette,
+} from "../immersive/immersiveColorModel";
+
 const OPENFREEMAP_STYLES = Object.freeze({
   dark: "https://tiles.openfreemap.org/styles/dark",
   light: "https://tiles.openfreemap.org/styles/positron",
@@ -46,57 +51,6 @@ type ProxiedMapStyleOptions = {
   tileJson?: TileJson;
   proxyOrigin?: string;
 };
-
-const IMMERSIVE_MAP_PALETTES = Object.freeze({
-  sunrise: {
-    background: "#1e2758",
-    park: "#283f64",
-    water: "#29406f",
-    ice: "#38537f",
-    landuse: "#263360",
-    wood: "#2c4963",
-    building: "#32426a",
-    buildingOutline: "#4c5e86",
-    aeroway: "#2e3d66",
-    aerowayLine: "#bfc7ff",
-    pier: "#3b4f78",
-    path: "#4b5780",
-    minorRoad: "#3d4b74",
-    majorRoad: "#5f6a96",
-    motorway: "#7e78ad",
-    motorwayInner: "#9a94c7",
-    rail: "#68749a",
-    boundary: "#8c80aa",
-    label: "#eef3ff",
-    labelMuted: "#c8d2f3",
-    labelHalo: "#18234d",
-    waterLabel: "#b9ddff",
-  },
-  sunset: {
-    background: "#f2dfc4",
-    park: "#e1d0a4",
-    water: "#d8b9a1",
-    ice: "#f2dabb",
-    landuse: "#ead5b9",
-    wood: "#d2bf93",
-    building: "#dcc2a4",
-    buildingOutline: "#c3a17e",
-    aeroway: "#e5cfb2",
-    aerowayLine: "#7e4324",
-    pier: "#e5cfb2",
-    path: "#d9bea0",
-    minorRoad: "#e0c7a8",
-    majorRoad: "#c19166",
-    motorway: "#b96b36",
-    motorwayInner: "#ca8750",
-    rail: "#9b6742",
-    boundary: "#a66d45",
-    label: "#3d1f0e",
-    labelMuted: "#6a3b1f",
-    labelHalo: "#f9e7cf",
-    waterLabel: "#6f3c20",
-  },
-});
 
 function normalizeMapLabelLocale(locale: string) {
   return MAP_LABEL_LOCALES[locale] || MAP_LABEL_LOCALES.en;
@@ -165,9 +119,13 @@ export function buildLocalizedMapLibreStyle(
 
 export function buildImmersiveMapLibreStyle(
   style: MapLibreStyle,
-  theme: string,
+  options: { localMinutes?: unknown } | null = null,
 ) {
-  const palette = IMMERSIVE_MAP_PALETTES[theme];
+  const palette =
+    options && typeof options === "object"
+      ? resolveImmersiveColorSchemeFromLocalMinutes(options.localMinutes)
+          .mapPalette
+      : null;
   if (!palette || !style || !Array.isArray(style.layers)) return style;
 
   return {
@@ -211,42 +169,65 @@ function isTextSymbolLayer(layer: MapLibreLayer) {
   );
 }
 
-function themeMapLibreLayer(layer: MapLibreLayer, palette: Record<string, string>) {
-  if (!layer.paint || typeof layer.paint !== "object") return layer;
-
+function themeMapLibreLayer(layer: MapLibreLayer, palette: ImmersiveMapPalette) {
   const id = String(layer.id || "").toLowerCase();
-  const paint = { ...(layer.paint as Record<string, unknown>) };
+  const hadPaint = Boolean(layer.paint && typeof layer.paint === "object");
+  const paint =
+    hadPaint
+      ? { ...(layer.paint as Record<string, unknown>) }
+      : {};
+  let changed = false;
 
   if (layer.type === "background") {
     paint["background-color"] = palette.background;
+    changed = true;
   }
 
   if (layer.type === "fill") {
     const fillColor = getFillColor(id, palette);
-    if (fillColor) paint["fill-color"] = fillColor;
+    if (fillColor) {
+      paint["fill-color"] = fillColor;
+      changed = true;
+    }
     if (id.includes("building")) {
       paint["fill-outline-color"] = palette.buildingOutline;
+      changed = true;
     }
   }
 
   if (layer.type === "line") {
     const lineColor = getLineColor(id, palette);
-    if (lineColor) paint["line-color"] = lineColor;
+    if (lineColor) {
+      paint["line-color"] = lineColor;
+      changed = true;
+    }
+    if (isMutedLineLayer(id)) {
+      paint["line-opacity"] = palette.roadOpacity;
+      changed = true;
+    }
   }
 
   if (layer.type === "symbol") {
     if (Object.prototype.hasOwnProperty.call(paint, "text-color")) {
       paint["text-color"] = getTextColor(id, palette);
+      changed = true;
     }
     if (Object.prototype.hasOwnProperty.call(paint, "text-halo-color")) {
       paint["text-halo-color"] = palette.labelHalo;
+      changed = true;
+    }
+    if (isRoadLayer(id)) {
+      paint["text-opacity"] = palette.roadLabelOpacity;
+      paint["icon-opacity"] = palette.roadShieldOpacity;
+      changed = true;
     }
   }
 
+  if (!changed && !hadPaint) return layer;
   return { ...layer, paint };
 }
 
-function getFillColor(id: string, palette: Record<string, string>) {
+function getFillColor(id: string, palette: ImmersiveMapPalette) {
   if (id.includes("water")) return palette.water;
   if (id.includes("ice") || id.includes("glacier")) return palette.ice;
   if (id.includes("park")) return palette.park;
@@ -258,7 +239,7 @@ function getFillColor(id: string, palette: Record<string, string>) {
   return null;
 }
 
-function getLineColor(id: string, palette: Record<string, string>) {
+function getLineColor(id: string, palette: ImmersiveMapPalette) {
   if (id.includes("water")) return palette.waterLabel;
   if (id.includes("aeroway")) return palette.aerowayLine;
   if (id.includes("motorway")) return id.includes("inner") ? palette.motorwayInner : palette.motorway;
@@ -266,13 +247,36 @@ function getLineColor(id: string, palette: Record<string, string>) {
   if (id.includes("minor")) return palette.minorRoad;
   if (id.includes("path")) return palette.path;
   if (id.includes("rail")) return palette.rail;
-  if (id.includes("boundary")) return palette.boundary;
+  if (id.includes("boundary") || id.includes("admin") || id.includes("border")) {
+    return palette.boundary;
+  }
   if (id.includes("pier")) return palette.pier;
   return null;
 }
 
-function getTextColor(id: string, palette: Record<string, string>) {
+function getTextColor(id: string, palette: ImmersiveMapPalette) {
   if (id.includes("water")) return palette.waterLabel;
-  if (id.includes("highway") || id.includes("road")) return palette.labelMuted;
+  if (isRoadLayer(id)) return palette.roadLabel;
   return palette.label;
+}
+
+function isRoadLayer(id: string) {
+  return (
+    id.includes("highway") ||
+    id.includes("motorway") ||
+    id.includes("transportation") ||
+    id.includes("road") ||
+    id.includes("street")
+  );
+}
+
+function isMutedLineLayer(id: string) {
+  return (
+    isRoadLayer(id) ||
+    id.includes("admin") ||
+    id.includes("border") ||
+    id.includes("boundary") ||
+    id.includes("path") ||
+    id.includes("rail")
+  );
 }

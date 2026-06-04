@@ -293,7 +293,7 @@ export function buildRunwayApproachVisualization(
   runwayMap: RunwayAnnotationRecord,
   { zoom, theme = "dark", distanceScale = 1 }: RunwayAnnotationRecord = {},
 ) {
-  if (theme === "light" || theme === "sunset") {
+  if (theme === "light") {
     return {
       kind: "approach-lines",
       data: buildRunwayApproachLineCollection(runwayMap, { zoom, distanceScale }),

@@ -23,13 +23,12 @@ export default function MapControlBar({
   showAirspaces = true,
   showCandidateWatchingSpots = false,
   mapSettings = null,
-  savedMapSettings = null,
   mapSettingsSaveStatus = "idle",
-  mapSettingsRestoreStatus = "idle",
   userLocationActive = false,
   userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
+  immersiveModeEnabled = false,
   showSidebarToggle = true,
   onZoom,
   onToggleMapLabels,
@@ -38,8 +37,6 @@ export default function MapControlBar({
   onToggleAirspaces,
   onToggleCandidateWatchingSpots,
   onSelectMapMode,
-  onSaveMapSettings = null,
-  onRestoreMapSettings = null,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   onToggleSidebar,
@@ -51,7 +48,6 @@ export default function MapControlBar({
     themePreference,
     themeTitle,
     cycleTheme,
-    immersiveThemesEnabled,
     selectTheme,
   } = useThemePreference();
 
@@ -89,21 +85,18 @@ export default function MapControlBar({
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
         showCandidateWatchingSpots={showCandidateWatchingSpots}
-        savedMapSettings={savedMapSettings}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
-        mapSettingsRestoreStatus={mapSettingsRestoreStatus}
         userLocationActive={userLocationActive}
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
+        immersiveModeEnabled={immersiveModeEnabled}
         onSelectMapMode={onSelectMapMode}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}
         onToggleAirspaces={onToggleAirspaces}
         onToggleCandidateWatchingSpots={onToggleCandidateWatchingSpots}
-        onSaveMapSettings={onSaveMapSettings}
-        onRestoreMapSettings={onRestoreMapSettings}
         onToggleUserLocation={onToggleUserLocation}
         onToggleUserLocationAudio={onToggleUserLocationAudio}
       />
@@ -114,7 +107,6 @@ export default function MapControlBar({
         zoomDisabled={zoomDisabled}
         currentTheme={themePreference}
         themeTitle={themeTitle}
-        immersiveThemesEnabled={immersiveThemesEnabled}
         onSelectTheme={selectTheme}
         settingsOpen={settingsOpen}
         settingsSheetId={MAP_SETTINGS_SHEET_ID}

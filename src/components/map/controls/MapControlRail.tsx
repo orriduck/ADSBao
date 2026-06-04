@@ -27,7 +27,6 @@ export default function MapControlRail({
   zoomDisabled = false,
   currentTheme,
   themeTitle,
-  immersiveThemesEnabled = false,
   onSelectTheme,
   settingsOpen,
   settingsSheetId,
@@ -95,7 +94,6 @@ export default function MapControlRail({
         className={RAIL_BUTTON_CLASS}
         iconKey={getThemeIconKey(currentTheme)}
         preference={currentTheme}
-        immersiveThemesEnabled={immersiveThemesEnabled}
         title={themeTitle}
         onClick={onCycleTheme}
         onSelectTheme={onSelectTheme}

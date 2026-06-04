@@ -6,7 +6,7 @@ import {
   FEATURE_FLAGS,
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
-  isImmersiveThemesEnabled,
+  isImmersiveModeEnabled,
   normalizeFeatureFlags,
 } from "../feature-flags/userFeatureFlagsModel";
 
@@ -111,10 +111,10 @@ export function useFlightAwareEnabled() {
   return enabled;
 }
 
-export function useImmersiveThemesFeature() {
+export function useImmersiveModeFeature() {
   const { flags, resolved } = useUserFeatureFlags();
   return {
-    enabled: isImmersiveThemesEnabled(flags),
+    enabled: isImmersiveModeEnabled(flags),
     resolved,
   };
 }

@@ -6,9 +6,11 @@ import {
   getVisibleAircraft,
   isKnownMapTheme,
   isLightMapTheme,
+  resolveNearbyAirportLayerDisplay,
   resolveAirportMapInitialCenter,
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
+  shouldRenderSelectedAircraftTrace,
 } from "./airportMapModel";
 
 const aircraft = [
@@ -21,14 +23,14 @@ const aircraft = [
 
 assert.equal(resolveDocumentTheme({ getAttribute: () => "light" }), "light");
 assert.equal(resolveDocumentTheme({ getAttribute: () => "dark" }), "dark");
-assert.equal(resolveDocumentTheme({ getAttribute: () => "sunrise" }), "sunrise");
-assert.equal(resolveDocumentTheme({ getAttribute: () => "sunset" }), "sunset");
+assert.equal(resolveDocumentTheme({ getAttribute: () => "sunrise" }), "dark");
+assert.equal(resolveDocumentTheme({ getAttribute: () => "sunset" }), "dark");
 assert.equal(resolveDocumentTheme({ getAttribute: () => null }), "dark");
 assert.equal(isLightMapTheme("light"), true);
 assert.equal(isLightMapTheme("sunrise"), false);
-assert.equal(isLightMapTheme("sunset"), true);
+assert.equal(isLightMapTheme("sunset"), false);
 assert.equal(isLightMapTheme("dark"), false);
-assert.equal(isKnownMapTheme("sunrise"), true);
+assert.equal(isKnownMapTheme("sunrise"), false);
 assert.equal(isKnownMapTheme("unknown"), false);
 
 assert.equal(resolveAirportMapFocalCenter({ lat: null, lon: null }), null);
@@ -93,3 +95,63 @@ assert.equal(getMapOverlayTheme("dark").attributionColor, "var(--map-attribution
 
 const focalCenter = { lat: 42.3656, lon: -71.0096 };
 assert.ok(focalCenter);
+
+const nearbyLayerAirports = [
+  {
+    icao: "KJFK",
+    lat: 40.6413,
+    lon: -73.7781,
+    runwayMap: { airport: "KJFK", runways: [{ id: "04L/22R" }] },
+  },
+];
+
+assert.deepEqual(
+  resolveNearbyAirportLayerDisplay({
+    nearbyAirports: nearbyLayerAirports,
+    immersiveModeActive: true,
+  }),
+  {
+    airports: nearbyLayerAirports,
+    showAirportBadges: false,
+    showRunwayBadges: false,
+  },
+);
+
+assert.equal(
+  shouldRenderSelectedAircraftTrace({
+    selectedAircraftId: "abc123",
+    selectedAircraft: { icao24: "abc123" },
+    immersiveModeActive: false,
+  }),
+  true,
+);
+
+assert.equal(
+  shouldRenderSelectedAircraftTrace({
+    selectedAircraftId: "abc123",
+    selectedAircraft: { icao24: "abc123" },
+    immersiveModeActive: true,
+  }),
+  false,
+);
+
+assert.equal(
+  shouldRenderSelectedAircraftTrace({
+    selectedAircraftId: "",
+    selectedAircraft: null,
+    immersiveModeActive: false,
+  }),
+  false,
+);
+
+assert.deepEqual(
+  resolveNearbyAirportLayerDisplay({
+    nearbyAirports: nearbyLayerAirports,
+    immersiveModeActive: false,
+  }),
+  {
+    airports: nearbyLayerAirports,
+    showAirportBadges: true,
+    showRunwayBadges: false,
+  },
+);

@@ -237,4 +237,64 @@ function createFakeSupabaseClient({
   });
 }
 
+{
+  const { calls, createClientImpl } = createFakeSupabaseClient({
+    readData: {
+      email: "owner@example.com",
+      environment: "preview",
+      settings: {
+        selectedMode: MAP_MODE_IDS.IMMERSIVE,
+        baseMode: MAP_MODE_IDS.IMMERSIVE,
+        hasSelectedMode: true,
+        layerOverrides: {},
+        updatedAt: "2026-06-02T15:08:00.000Z",
+      },
+      has_selected_mode: true,
+      updated_at: "2026-06-02T15:08:00.000Z",
+    },
+    writeData: {
+      email: "owner@example.com",
+      environment: "preview",
+      settings: {
+        selectedMode: MAP_MODE_IDS.IMMERSIVE,
+        baseMode: MAP_MODE_IDS.IMMERSIVE,
+        hasSelectedMode: true,
+        layerOverrides: {},
+        updatedAt: "2026-06-02T15:09:00.000Z",
+      },
+      has_selected_mode: true,
+      updated_at: "2026-06-02T15:09:00.000Z",
+    },
+  });
+  const repository = createUserMapSettingsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+      VERCEL_ENV: "preview",
+    },
+    createClientImpl,
+  });
+
+  const readRow = await repository.readSettingsByEmail("owner@example.com", {
+    immersiveModeEnabled: true,
+  });
+  assert.equal(readRow.settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+
+  await repository.upsertSettingsByEmail({
+    email: "owner@example.com",
+    immersiveModeEnabled: true,
+    settings: {
+      selectedMode: MAP_MODE_IDS.IMMERSIVE,
+      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      hasSelectedMode: true,
+      updatedAt: "2026-06-02T15:09:00.000Z",
+    },
+  });
+
+  const upsertCall = calls.find((call) => call.type === "upsert");
+  assert.ok(upsertCall, "repository should preserve immersive account settings");
+  assert.equal(upsertCall.row.settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+  assert.equal(upsertCall.row.settings.baseMode, MAP_MODE_IDS.IMMERSIVE);
+}
+
 console.log("userMapSettings.dao.test.ts ok");

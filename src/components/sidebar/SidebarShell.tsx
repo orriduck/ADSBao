@@ -51,7 +51,6 @@ export default function SidebarShell({
     themeTitle,
     themeIconKey,
     cycleTheme,
-    immersiveThemesEnabled,
     selectTheme,
   } = useThemePreference();
   const { isLoaded, isSignedIn } = useUser();
@@ -102,7 +101,6 @@ export default function SidebarShell({
               className={TOOLBAR_BUTTON_CLASS}
               iconKey={themeIconKey}
               preference={themePreference}
-              immersiveThemesEnabled={immersiveThemesEnabled}
               title={themeTitle}
               onClick={cycleTheme}
               onSelectTheme={selectTheme}

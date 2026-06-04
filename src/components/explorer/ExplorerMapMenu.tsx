@@ -29,13 +29,10 @@ export default function ExplorerMapMenu({
     showAirspaces,
     showCandidateWatchingSpots,
     mapSettings,
-    savedMapSettings,
     mapSettingsSaveStatus,
-    mapSettingsRestoreStatus,
+    immersiveModeEnabled,
     setMapZoom,
     applyMapMode,
-    saveMapSettings,
-    restoreMapSettings,
     toggleSidebar,
     toggleMapLabels,
     toggleRunwayBeams,
@@ -60,9 +57,8 @@ export default function ExplorerMapMenu({
         showAirspaces={showAirspaces}
         showCandidateWatchingSpots={showCandidateWatchingSpots}
         mapSettings={mapSettings}
-        savedMapSettings={savedMapSettings}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
-        mapSettingsRestoreStatus={mapSettingsRestoreStatus}
+        immersiveModeEnabled={immersiveModeEnabled}
         userLocationActive={userLocationActive}
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
@@ -75,8 +71,6 @@ export default function ExplorerMapMenu({
         onToggleAirspaces={toggleAirspaces}
         onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
         onSelectMapMode={applyMapMode}
-        onSaveMapSettings={saveMapSettings}
-        onRestoreMapSettings={restoreMapSettings}
         onToggleUserLocation={onToggleUserLocation}
         onToggleUserLocationAudio={onToggleUserLocationAudio}
         onToggleSidebar={toggleSidebar}

@@ -3,13 +3,10 @@ import assert from 'node:assert/strict'
 import {
   THEME_DARK,
   THEME_LIGHT,
-  THEME_SUNRISE,
-  THEME_SUNSET,
   THEME_SYSTEM,
   applyThemePreference,
   initThemePreference,
   nextTheme,
-  isImmersiveTheme,
   sanitizeTheme,
   writeStoredTheme,
 } from './theme'
@@ -49,18 +46,15 @@ globalThis.document = {
 } as Document
 
 assert.equal(sanitizeTheme('light'), THEME_LIGHT)
-assert.equal(sanitizeTheme('sunrise'), THEME_SUNRISE)
-assert.equal(sanitizeTheme('sunset'), THEME_SUNSET)
+assert.equal(sanitizeTheme('sunrise'), THEME_SYSTEM)
+assert.equal(sanitizeTheme('sunset'), THEME_SYSTEM)
 assert.equal(sanitizeTheme('wat'), THEME_SYSTEM)
 
 assert.equal(nextTheme(THEME_LIGHT), THEME_DARK)
 assert.equal(nextTheme(THEME_DARK), THEME_SYSTEM)
 assert.equal(nextTheme(THEME_SYSTEM), THEME_LIGHT)
-assert.equal(nextTheme(THEME_SUNRISE), THEME_LIGHT)
-assert.equal(nextTheme(THEME_SUNSET), THEME_LIGHT)
-assert.equal(isImmersiveTheme(THEME_SUNRISE), true)
-assert.equal(isImmersiveTheme(THEME_SUNSET), true)
-assert.equal(isImmersiveTheme(THEME_LIGHT), false)
+assert.equal(nextTheme('sunrise'), THEME_LIGHT)
+assert.equal(nextTheme('sunset'), THEME_LIGHT)
 
 const storage = createStorage({ theme: 'wat' })
 assert.equal(
@@ -101,15 +95,15 @@ assert.equal(lightResult.preference, THEME_LIGHT)
 assert.equal(lightResult.resolvedTheme, THEME_LIGHT)
 assert.equal(lightRoot.attrs.get('data-theme'), THEME_LIGHT)
 
-const sunriseRoot = createRoot()
-const sunriseResult = applyThemePreference({
-  theme: THEME_SUNRISE,
-  root: sunriseRoot,
+const legacyThemeRoot = createRoot()
+const legacyThemeResult = applyThemePreference({
+  theme: 'sunrise',
+  root: legacyThemeRoot,
   mediaQueryList: { matches: true },
 })
-assert.equal(sunriseResult.preference, THEME_SUNRISE)
-assert.equal(sunriseResult.resolvedTheme, THEME_SUNRISE)
-assert.equal(sunriseRoot.attrs.get('data-theme'), THEME_SUNRISE)
+assert.equal(legacyThemeResult.preference, THEME_SYSTEM)
+assert.equal(legacyThemeResult.resolvedTheme, THEME_DARK)
+assert.equal(legacyThemeRoot.attrs.get('data-theme'), THEME_DARK)
 
 // applyThemePreference writes the RESOLVED theme to the cookie even
 // when the preference is "system" — that's what kills the SSR dark
@@ -125,11 +119,11 @@ assert.ok(cookieJar.value.startsWith('theme=light;'), `expected resolved light c
 
 cookieJar.value = ''
 applyThemePreference({
-  theme: THEME_SUNSET,
+  theme: 'sunset',
   root: createRoot(),
   mediaQueryList: { matches: false },
 })
-assert.ok(cookieJar.value.startsWith('theme=sunset;'), `expected resolved sunset cookie, got "${cookieJar.value}"`)
+assert.ok(cookieJar.value.startsWith('theme=light;'), `expected resolved light cookie, got "${cookieJar.value}"`)
 
 cookieJar.value = ''
 writeStoredTheme(THEME_SYSTEM, storage)

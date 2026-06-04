@@ -41,6 +41,7 @@ export default function AircraftPreviewCard({
   airportProfile = null,
   onApplyTemporaryRoute,
   suppressMobileWhenAlreadyTracking = false,
+  immersiveModeActive = false,
 }) {
   const { t } = useI18n();
   const selectedTrace = useSelectedAircraftTrace();
@@ -55,6 +56,8 @@ export default function AircraftPreviewCard({
   const isAirspace = !aircraft && !airport && !navaid && Boolean(airspace);
   const isCandidateWatchingSpot =
     !aircraft && !airport && !navaid && !airspace && Boolean(candidateWatchingSpot);
+  const isAircraftPreview =
+    !isAirport && !isNavaid && !isAirspace && !isCandidateWatchingSpot && Boolean(aircraft);
   const identityKey = isAirport
     ? `airport:${airport?.icao || "preview"}`
     : isNavaid
@@ -64,12 +67,13 @@ export default function AircraftPreviewCard({
         : isCandidateWatchingSpot
           ? `candidate-spot:${candidateWatchingSpot?.id || "preview"}`
           : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
-  const aircraftIdentity =
-    !isAirport && !isNavaid && !isAirspace && !isCandidateWatchingSpot && aircraft
-      ? getAircraftIdentity(aircraft)
-      : null;
+  const aircraftIdentity = isAircraftPreview
+    ? getAircraftIdentity(aircraft)
+    : null;
+  const aircraftTraceControlsEnabled =
+    Boolean(aircraftIdentity) && !immersiveModeActive;
   const traceFetchLoading =
-    Boolean(aircraftIdentity) &&
+    aircraftTraceControlsEnabled &&
     selectedTrace.aircraftHex === aircraftIdentity &&
     selectedTrace.traceFetchLoading;
   const router = useRouter();
@@ -83,7 +87,9 @@ export default function AircraftPreviewCard({
     : aircraft?.callsign
       ? `/aircraft/${aircraft.callsign.trim().toUpperCase()}`
       : null;
-  const alreadyTracking = trackHref && pathname === trackHref;
+  const cardTrackHref =
+    immersiveModeActive && isAircraftPreview ? null : trackHref;
+  const alreadyTracking = cardTrackHref && pathname === cardTrackHref;
   const showMobile =
     isMobile &&
     !sidebarOpen &&
@@ -94,6 +100,7 @@ export default function AircraftPreviewCard({
     !isNavaid &&
     !isAirspace &&
     !isCandidateWatchingSpot &&
+    aircraftTraceControlsEnabled &&
     Boolean(entity) &&
     (isMobile ? showMobile : !isMobile);
   const traceLoading = useMinimumVisibleTraceStatus({
@@ -108,8 +115,8 @@ export default function AircraftPreviewCard({
   // detail page. If the user is already on that page, the tap is a
   // no-op so they don't bounce.
   const handleMobileTap = () => {
-    if (!trackHref || alreadyTracking) return;
-    router.push(trackHref);
+    if (!cardTrackHref || alreadyTracking) return;
+    router.push(cardTrackHref);
   };
 
   // Mobile route-feedback affordance: small text link → centered modal.
@@ -158,7 +165,9 @@ export default function AircraftPreviewCard({
           key={identityKey}
           className={`aircraft-preview-card app-preview-transition aircraft-preview-card--desktop-reveal ${
             !isAirport && !isNavaid && hasPhoto ? "aircraft-preview-card--has-photo" : ""
-          } ${isAirport ? "aircraft-preview-card--airport" : ""} aircraft-preview-card--photo-${photoTone}`}
+          } ${isAirport ? "aircraft-preview-card--airport" : ""} ${
+            immersiveModeActive ? "aircraft-preview-card--immersive" : ""
+          } aircraft-preview-card--photo-${photoTone}`}
           aria-label={previewAriaLabel}
         >
           {!isAirport && !isNavaid && (
@@ -189,6 +198,7 @@ export default function AircraftPreviewCard({
               airportProfile={airportProfile}
               onApplyTemporaryRoute={onApplyTemporaryRoute}
               traceLoading={traceLoading}
+              hideTraceControls={immersiveModeActive}
             />
           )}
         </aside>
@@ -198,16 +208,16 @@ export default function AircraftPreviewCard({
           identityKey={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
           traceStatus={
-            trackHref && !isAirport ? (
+            cardTrackHref && !isAirport ? (
               <MobilePreviewTraceStatus active={traceLoading}>
                 {t("preview.loadingTrace")}
               </MobilePreviewTraceStatus>
             ) : null
           }
           actions={
-            (trackHref || showMobileFeedbackTrigger) ? (
+            (cardTrackHref || showMobileFeedbackTrigger) ? (
               <MobilePreviewActions>
-                {trackHref && (
+                {cardTrackHref && (
                   <MobilePreviewTrackButton
                     onClick={handleMobileTap}
                     disabled={alreadyTracking}

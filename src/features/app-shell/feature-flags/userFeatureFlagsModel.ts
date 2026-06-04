@@ -1,6 +1,6 @@
 export const FEATURE_FLAGS = Object.freeze({
   FLIGHTAWARE_ENABLED: "flightAwareEnabled",
-  IMMERSIVE_THEMES_ENABLED: "immersiveThemesEnabled",
+  IMMERSIVE_MODE_ENABLED: "immersiveModeEnabled",
 });
 
 const FEATURE_FLAG_ENVIRONMENTS = Object.freeze({
@@ -62,10 +62,6 @@ export function isFeatureFlagEnabled(flags: unknown, flagKey: string) {
   return normalizeFeatureFlags(flags)[flagKey] === true;
 }
 
-export function isImmersiveThemesEnabled(flags: unknown) {
-  const normalizedFlags = normalizeFeatureFlags(flags);
-  return (
-    normalizedFlags[FEATURE_FLAGS.IMMERSIVE_THEMES_ENABLED] === true ||
-    normalizedFlags[FEATURE_FLAGS.FLIGHTAWARE_ENABLED] === true
-  );
+export function isImmersiveModeEnabled(flags: unknown) {
+  return isFeatureFlagEnabled(flags, FEATURE_FLAGS.IMMERSIVE_MODE_ENABLED);
 }

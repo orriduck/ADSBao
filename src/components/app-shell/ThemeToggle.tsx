@@ -1,32 +1,26 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Monitor, Moon, Sun, Sunrise, Sunset } from "lucide-react";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { MenuPanel } from "@/components/ui/MenuPanel";
 
 const THEME_ITEMS = [
-  { value: "light", iconKey: "sun", immersive: false },
-  { value: "dark", iconKey: "moon", immersive: false },
-  { value: "system", iconKey: "monitor", immersive: false },
-  { value: "sunrise", iconKey: "sunrise", immersive: true },
-  { value: "sunset", iconKey: "sunset", immersive: true },
+  { value: "light", iconKey: "sun" },
+  { value: "dark", iconKey: "moon" },
+  { value: "system", iconKey: "monitor" },
 ];
 
 const THEME_ICONS = {
   monitor: Monitor,
   moon: Moon,
   sun: Sun,
-  sunrise: Sunrise,
-  sunset: Sunset,
 };
 
 const THEME_LABEL_KEYS = {
   light: "ui.themeLight",
   dark: "ui.themeDark",
   system: "ui.themeSystem",
-  sunrise: "ui.themeSunrise",
-  sunset: "ui.themeSunset",
 };
 
 export default function ThemeToggle({
@@ -36,7 +30,6 @@ export default function ThemeToggle({
   menuPlacement = "top",
   preference = "system",
   showLabel = false,
-  immersiveThemesEnabled = false,
   title,
   onClick,
   onSelectTheme,
@@ -53,9 +46,6 @@ export default function ThemeToggle({
     ? t("ui.themeTitle", { label })
     : title;
   const hasMenu = typeof onSelectTheme === "function";
-  const themeItems = immersiveThemesEnabled
-    ? THEME_ITEMS
-    : THEME_ITEMS.filter((item) => !item.immersive);
   const placementClass =
     menuPlacement === "bottom" ? "top-full mt-2" : "bottom-full mb-2";
   const alignClass =
@@ -139,7 +129,7 @@ export default function ThemeToggle({
           aria-label={t("ui.themeMenuLabel")}
           className={`absolute z-dropdown flex-row gap-1 min-w-0 ${placementClass} ${alignClass}`}
         >
-          {themeItems.map((item) => {
+          {THEME_ITEMS.map((item) => {
             const active = item.value === preference;
             const ItemIcon = THEME_ICONS[item.iconKey] || Monitor;
             const itemLabel = t(THEME_LABEL_KEYS[item.value]);
