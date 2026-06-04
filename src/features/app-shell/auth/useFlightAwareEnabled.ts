@@ -6,6 +6,7 @@ import {
   FEATURE_FLAGS,
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
+  isImmersiveThemesEnabled,
   normalizeFeatureFlags,
 } from "../feature-flags/userFeatureFlagsModel";
 
@@ -42,19 +43,15 @@ async function fetchFlagsForEmail(email) {
   return flags;
 }
 
-export function useFlightAwareEnabled() {
+export function useUserFeatureFlags() {
   const { isLoaded, isSignedIn, user } = useUser();
   const hasUser = Boolean(isLoaded && isSignedIn && user);
   const email = hasUser ? getClerkUserPrimaryEmail(user) : "";
-  const [flags, setFlags] = useState({});
-  const enabled = isFeatureFlagEnabled(
-    flags,
-    FEATURE_FLAGS.FLIGHTAWARE_ENABLED,
-  );
+  const [state, setState] = useState({ flags: {}, resolved: false });
 
   useEffect(() => {
     let cancelled = false;
-    setFlags({});
+    setState({ flags: {}, resolved: Boolean(isLoaded && !email) });
     if (!email) {
       return () => {
         cancelled = true;
@@ -63,10 +60,10 @@ export function useFlightAwareEnabled() {
 
     fetchFlagsForEmail(email)
       .then((nextFlags) => {
-        if (!cancelled) setFlags(nextFlags);
+        if (!cancelled) setState({ flags: nextFlags, resolved: true });
       })
       .catch((error) => {
-        if (!cancelled) setFlags({});
+        if (!cancelled) setState({ flags: {}, resolved: true });
         if (process.env.NODE_ENV !== "production") {
           console.warn("[flightaware-enabled] feature flag fetch failed", error);
         }
@@ -75,7 +72,23 @@ export function useFlightAwareEnabled() {
     return () => {
       cancelled = true;
     };
-  }, [email]);
+  }, [email, isLoaded]);
+
+  return {
+    email,
+    flags: state.flags,
+    hasUser,
+    resolved: state.resolved,
+    user,
+  };
+}
+
+export function useFlightAwareEnabled() {
+  const { email, flags, hasUser, user } = useUserFeatureFlags();
+  const enabled = isFeatureFlagEnabled(
+    flags,
+    FEATURE_FLAGS.FLIGHTAWARE_ENABLED,
+  );
 
   // Dev-only trace, deduped across the whole app: each consumer of the
   // hook re-renders independently, and several of them re-run on every
@@ -96,4 +109,12 @@ export function useFlightAwareEnabled() {
   }, [email, enabled, flags, hasUser, user]);
 
   return enabled;
+}
+
+export function useImmersiveThemesFeature() {
+  const { flags, resolved } = useUserFeatureFlags();
+  return {
+    enabled: isImmersiveThemesEnabled(flags),
+    resolved,
+  };
 }

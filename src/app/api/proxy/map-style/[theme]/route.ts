@@ -7,6 +7,7 @@ import {
   readResponseJson,
 } from "@/app/api/_shared/apiProxySecurity";
 import {
+  buildImmersiveMapLibreStyle,
   buildLocalizedMapLibreStyle,
   buildProxiedMapLibreStyle,
   getMapLibreBaseStyleUrl,
@@ -32,7 +33,10 @@ export async function GET(request, { params }) {
   if (securityResponse) return securityResponse;
 
   const { theme: rawTheme } = await params;
-  const theme = rawTheme === "light" ? "light" : "dark";
+  const baseTheme =
+    rawTheme === "light" || rawTheme === "sunrise" || rawTheme === "sunset"
+      ? "light"
+      : "dark";
   const requestUrl = new URL(request.url);
   const locale = requestUrl.searchParams.get("locale") || "en";
   const showLabels = requestUrl.searchParams.get("labels") !== "0";
@@ -40,7 +44,7 @@ export async function GET(request, { params }) {
   let upstreamStyle;
   try {
     upstreamStyle = await fetchJson(
-      getMapLibreBaseStyleUrl(theme),
+      getMapLibreBaseStyleUrl(baseTheme),
       "OpenFreeMap style",
     );
   } catch (error) {
@@ -61,7 +65,7 @@ export async function GET(request, { params }) {
   }
 
   const style = buildLocalizedMapLibreStyle(
-    buildProxiedMapLibreStyle(upstreamStyle),
+    buildImmersiveMapLibreStyle(buildProxiedMapLibreStyle(upstreamStyle), rawTheme),
     { locale, showLabels },
   );
 

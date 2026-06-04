@@ -402,6 +402,8 @@ const zhCN = {
     themeButtonAria: "主题:{label}(点击切换)",
     themeLight: "明亮",
     themeDark: "暗色",
+    themeSunrise: "黎明",
+    themeSunset: "日落",
     runwayDirectionsAria: "跑道方向",
     loadingMapAria: "正在加载地图数据",
     loadingAircraftAria: "正在加载 ADS-B 飞机数据",
@@ -499,6 +501,9 @@ const zhCN = {
     themeLight: "明亮",
     themeDark: "暗色",
     themeSystem: "系统",
+    themeSunrise: "黎明",
+    themeSunset: "日落",
+    themeMenuLabel: "选择主题",
     themeTitle: "主题:{label}(点击切换)",
   },
   weather: {

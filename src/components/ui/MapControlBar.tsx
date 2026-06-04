@@ -47,7 +47,13 @@ export default function MapControlBar({
 }) {
   const controlZone = useRef(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { themePreference, themeTitle, cycleTheme } = useThemePreference();
+  const {
+    themePreference,
+    themeTitle,
+    cycleTheme,
+    immersiveThemesEnabled,
+    selectTheme,
+  } = useThemePreference();
 
   const currentZoomOption = useMemo(
     () => resolveZoomOption(activeZoom, MAP_ZOOM_OPTIONS),
@@ -108,6 +114,8 @@ export default function MapControlBar({
         zoomDisabled={zoomDisabled}
         currentTheme={themePreference}
         themeTitle={themeTitle}
+        immersiveThemesEnabled={immersiveThemesEnabled}
+        onSelectTheme={selectTheme}
         settingsOpen={settingsOpen}
         settingsSheetId={MAP_SETTINGS_SHEET_ID}
         showSidebarToggle={showSidebarToggle}

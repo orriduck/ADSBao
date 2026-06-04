@@ -5,6 +5,7 @@ import { LogIn, PanelLeft } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
+import ThemeToggle from "@/components/app-shell/ThemeToggle";
 import {
   Toolbar,
   ToolbarAccountSlot,
@@ -26,6 +27,8 @@ export default function MapControlRail({
   zoomDisabled = false,
   currentTheme,
   themeTitle,
+  immersiveThemesEnabled = false,
+  onSelectTheme,
   settingsOpen,
   settingsSheetId,
   showSidebarToggle = true,
@@ -88,13 +91,17 @@ export default function MapControlRail({
         menuAlign="center"
       />
 
-      <ToolbarButton
-        tone="rail"
+      <ThemeToggle
+        className={RAIL_BUTTON_CLASS}
+        iconKey={getThemeIconKey(currentTheme)}
+        preference={currentTheme}
+        immersiveThemesEnabled={immersiveThemesEnabled}
         title={themeTitle}
         onClick={onCycleTheme}
-      >
-        <MapControlIcon iconKey={getThemeIconKey(currentTheme)} />
-      </ToolbarButton>
+        onSelectTheme={onSelectTheme}
+        menuPlacement="bottom"
+        menuAlign="center"
+      />
 
       <ToolbarButton
         tone="rail"

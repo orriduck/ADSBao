@@ -314,7 +314,7 @@ function Pointer({
             transform: silhouetteTransform,
           } as any}
         />
-        {theme === "dark" && (
+        {(theme === "dark" || theme === "sunrise") && (
           <span aria-hidden="true" className="aircraft-nose-beam" />
         )}
       </div>

@@ -4,6 +4,8 @@ import { ZOOM_AIRPORT, ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
 import {
   getMapOverlayTheme,
   getVisibleAircraft,
+  isKnownMapTheme,
+  isLightMapTheme,
   resolveAirportMapInitialCenter,
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
@@ -19,7 +21,15 @@ const aircraft = [
 
 assert.equal(resolveDocumentTheme({ getAttribute: () => "light" }), "light");
 assert.equal(resolveDocumentTheme({ getAttribute: () => "dark" }), "dark");
+assert.equal(resolveDocumentTheme({ getAttribute: () => "sunrise" }), "sunrise");
+assert.equal(resolveDocumentTheme({ getAttribute: () => "sunset" }), "sunset");
 assert.equal(resolveDocumentTheme({ getAttribute: () => null }), "dark");
+assert.equal(isLightMapTheme("light"), true);
+assert.equal(isLightMapTheme("sunrise"), false);
+assert.equal(isLightMapTheme("sunset"), true);
+assert.equal(isLightMapTheme("dark"), false);
+assert.equal(isKnownMapTheme("sunrise"), true);
+assert.equal(isKnownMapTheme("unknown"), false);
 
 assert.equal(resolveAirportMapFocalCenter({ lat: null, lon: null }), null);
 assert.equal(resolveAirportMapFocalCenter({ lat: 42.3656, lon: null }), null);

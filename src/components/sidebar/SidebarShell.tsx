@@ -46,8 +46,14 @@ export default function SidebarShell({
   variant = "airport",
 }: SidebarShellProps) {
   const { t } = useI18n();
-  const { themePreference, themeTitle, themeIconKey, cycleTheme } =
-    useThemePreference();
+  const {
+    themePreference,
+    themeTitle,
+    themeIconKey,
+    cycleTheme,
+    immersiveThemesEnabled,
+    selectTheme,
+  } = useThemePreference();
   const { isLoaded, isSignedIn } = useUser();
   const isMobileOverlay = Boolean(onClose);
   const mapAction = onMap || onClose;
@@ -96,8 +102,12 @@ export default function SidebarShell({
               className={TOOLBAR_BUTTON_CLASS}
               iconKey={themeIconKey}
               preference={themePreference}
+              immersiveThemesEnabled={immersiveThemesEnabled}
               title={themeTitle}
               onClick={cycleTheme}
+              onSelectTheme={selectTheme}
+              menuPlacement="bottom"
+              menuAlign="center"
             />
             <ToolbarSeparator />
             {!isLoaded ? (

@@ -1,4 +1,5 @@
 import { SELECTED_AIRCRAFT_TRACE_STYLE } from "../../../config/airportMap";
+import { isLightMapTheme } from "./airportMapModel";
 
 const FLIGHTAWARE_ROUTE_DASH_ARRAY = "10 12";
 
@@ -10,7 +11,7 @@ export function buildFlightAwareRouteLayerStyles({
     ? Number(opacity)
     : 1;
   const traceStyle =
-    theme === "light"
+    isLightMapTheme(theme)
       ? SELECTED_AIRCRAFT_TRACE_STYLE.light
       : SELECTED_AIRCRAFT_TRACE_STYLE.dark;
   const color = traceStyle.lineColor;
