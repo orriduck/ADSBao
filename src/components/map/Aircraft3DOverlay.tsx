@@ -13,6 +13,7 @@ import {
 import {
   resolveAircraft3DAttitudeRotation,
   resolveAircraft3DEdgeTone,
+  resolveAircraft3DLandingLightIntensity,
   resolveAircraft3DLightingProfile,
   resolveAircraft3DMaterialProfile,
   resolveAircraft3DModelScalePx,
@@ -498,16 +499,22 @@ function getAnchorPosition(
 }
 
 function addLightPoint({
+  flare = false,
   glowScale,
+  glowStrength = 1,
   group,
+  haloStrength = 1,
   position,
   color,
   opacity,
   radius,
   pulse = false,
 }: {
+  flare?: boolean;
   glowScale: number;
+  glowStrength?: number;
   group: AircraftRenderGroup;
+  haloStrength?: number;
   position: THREE.Vector3;
   color: string;
   opacity: number;
@@ -515,8 +522,10 @@ function addLightPoint({
   pulse?: boolean;
 }) {
   const coreMaterial = new THREE.MeshBasicMaterial({
+    blending: THREE.AdditiveBlending,
     color,
     opacity,
+    toneMapped: false,
     transparent: true,
     depthWrite: false,
     depthTest: false,
@@ -529,10 +538,32 @@ function addLightPoint({
 
   const glowTexture = getLightGlowTexture();
   if (glowTexture) {
+    const haloSize = Math.max(radius * glowScale, radius * 3.2);
+    const haloMaterial = new THREE.MeshBasicMaterial({
+      blending: THREE.AdditiveBlending,
+      color,
+      map: glowTexture,
+      opacity: opacity * 0.72 * haloStrength,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+    });
+    const halo = new THREE.Mesh(
+      new THREE.PlaneGeometry(haloSize, haloSize),
+      haloMaterial,
+    );
+    halo.position.copy(position);
+    halo.renderOrder = 32;
+    halo.userData.disposeGeometry = true;
+    group.add(halo);
+    group.userData.lightMaterials?.push(haloMaterial);
+
     const glowMaterial = new THREE.SpriteMaterial({
       color,
       map: glowTexture,
-      opacity: opacity * 0.58,
+      opacity: opacity * 0.58 * glowStrength,
       transparent: true,
       depthWrite: false,
       depthTest: false,
@@ -544,6 +575,35 @@ function addLightPoint({
     glow.renderOrder = 33;
     group.add(glow);
     group.userData.lightMaterials?.push(glowMaterial);
+
+    const flareBase = radius * glowScale;
+    if (flare && opacity > 0.42 && flareBase >= 9) {
+      for (const flare of [
+        { x: 1.7, y: 0.34, opacity: 0.24 },
+        { x: 0.42, y: 1.18, opacity: 0.16 },
+      ]) {
+        const flareMaterial = new THREE.MeshBasicMaterial({
+          blending: THREE.AdditiveBlending,
+          color,
+          map: glowTexture,
+          opacity: opacity * flare.opacity,
+          side: THREE.DoubleSide,
+          toneMapped: false,
+          transparent: true,
+          depthWrite: false,
+          depthTest: false,
+        });
+        const flareSprite = new THREE.Mesh(
+          new THREE.PlaneGeometry(flareBase * flare.x, flareBase * flare.y),
+          flareMaterial,
+        );
+        flareSprite.position.copy(position);
+        flareSprite.renderOrder = 35;
+        flareSprite.userData.disposeGeometry = true;
+        group.add(flareSprite);
+        group.userData.lightMaterials?.push(flareMaterial);
+      }
+    }
   }
 
   if (pulse) group.userData.beaconMaterials?.push(coreMaterial);
@@ -573,25 +633,36 @@ function addShadow(group: AircraftRenderGroup, template: AircraftModelTemplate, 
 }
 
 function addLandingLights({
+  aircraft,
   group,
   materialProfile,
   opacity,
+  phase,
   profile,
   selected,
   template,
 }: {
+  aircraft: any;
   group: AircraftRenderGroup;
   materialProfile: ReturnType<typeof resolveAircraft3DMaterialProfile>;
   opacity: number;
+  phase: string;
   profile: ReturnType<typeof resolveAircraft3DLightingProfile>;
   selected: boolean;
   template: AircraftModelTemplate;
 }) {
   if (!profile.landingLightsVisible && !selected) return;
+  const operationalIntensity = resolveAircraft3DLandingLightIntensity({
+    altitude: aircraft?.altitude,
+    onGround: aircraft?.onGround,
+    phase,
+    selected,
+  });
   const lightOpacity = Math.min(
     1,
     materialProfile.landingLightOpacity *
       profile.landingLightIntensity *
+      operationalIntensity *
       opacity *
       (selected ? 1.08 : 1),
   );
@@ -599,41 +670,53 @@ function addLandingLights({
 
   const nose = getAnchorPosition(template, "noseLight", { x: 0.5, y: 0.05 }, 4.2);
   const lateralOffset = Math.max(template.width * 0.07, 0.42);
-  const nightLandingLights = profile.landingLightIntensity > 0.7;
+  const nightLandingLights =
+    profile.landingLightIntensity * operationalIntensity > 0.72;
   addLightPoint({
-    glowScale: materialProfile.lightGlowScale * (nightLandingLights ? 2.35 : 1.42),
+    flare: false,
+    glowScale: materialProfile.lightGlowScale * (nightLandingLights ? 0.9 : 1.42),
+    glowStrength: nightLandingLights ? 0.42 : 1,
     group,
+    haloStrength: nightLandingLights ? 0.32 : 1,
     position: new THREE.Vector3(nose.x, nose.y, nose.z + 0.18),
     color: materialProfile.landingLightColor,
-    opacity: Math.min(1, lightOpacity * (nightLandingLights ? 1.2 : 0.94)),
-    radius: materialProfile.lightRadius * (nightLandingLights ? 1.18 : 0.88),
+    opacity: Math.min(1, lightOpacity * (nightLandingLights ? 0.96 : 0.94)),
+    radius: materialProfile.lightRadius * (nightLandingLights ? 0.34 : 0.88),
   });
   for (const offsetX of [-lateralOffset, lateralOffset]) {
     addLightPoint({
-      glowScale: materialProfile.lightGlowScale * (nightLandingLights ? 1.62 : 1.34),
+      flare: false,
+      glowScale: materialProfile.lightGlowScale * (nightLandingLights ? 0.7 : 1.34),
+      glowStrength: nightLandingLights ? 0.34 : 1,
       group,
+      haloStrength: nightLandingLights ? 0.26 : 1,
       position: new THREE.Vector3(nose.x + offsetX, nose.y, nose.z),
       color: materialProfile.landingLightColor,
-      opacity: Math.min(1, lightOpacity * (nightLandingLights ? 1.05 : 1)),
-      radius: materialProfile.lightRadius * (nightLandingLights ? 0.9 : 0.82),
+      opacity: Math.min(1, lightOpacity * (nightLandingLights ? 0.82 : 1)),
+      radius: materialProfile.lightRadius * (nightLandingLights ? 0.28 : 0.82),
     });
   }
 
   const beamTexture = getLandingBeamTexture();
   if (!beamTexture) return;
   const beamMaterial = new THREE.MeshBasicMaterial({
+    blending: THREE.AdditiveBlending,
     color: materialProfile.landingLightColor,
     map: beamTexture,
-    opacity: lightOpacity * (nightLandingLights ? 0.96 : 0.48),
+    opacity: Math.min(1, lightOpacity * (nightLandingLights ? 0.68 : 0.48)),
+    side: THREE.DoubleSide,
+    toneMapped: false,
     transparent: true,
     depthWrite: false,
     depthTest: false,
-    blending: THREE.AdditiveBlending,
   });
-  const beamLength = Math.max(template.height * materialProfile.landingLightScale, 28);
+  const beamLength = Math.max(
+    template.height * materialProfile.landingLightScale,
+    nightLandingLights ? 42 : 28,
+  );
   const beamWidth = Math.max(
-    template.width * (nightLandingLights ? 0.76 : 0.42),
-    nightLandingLights ? 9.6 : 5.2,
+    template.width * (nightLandingLights ? 0.52 : 0.42),
+    nightLandingLights ? 7.4 : 5.2,
   );
   const beam = new THREE.Mesh(new THREE.PlaneGeometry(beamWidth, beamLength), beamMaterial);
   beam.position.set(nose.x, nose.y - beamLength * 0.48, 1.1);
@@ -736,9 +819,11 @@ function buildModelGroup({
     template,
   });
   addLandingLights({
+    aircraft,
     group,
     materialProfile,
     opacity,
+    phase,
     profile,
     selected,
     template,
@@ -798,35 +883,48 @@ function buildModelGroup({
 
   if (profile.navLightsVisible || selected) {
     const lightOpacity = Math.min(1, profile.navLightIntensity * (selected ? 1.12 : 1));
-    const lightRadius = materialProfile.lightRadius;
-    const lightGlowScale = materialProfile.lightGlowScale;
+    const nightNavLights = phase === "night";
+    const lightRadius = materialProfile.lightRadius * (nightNavLights ? 0.46 : 1);
+    const lightGlowScale = materialProfile.lightGlowScale * (nightNavLights ? 0.72 : 1);
     addLightPoint({
+      flare: nightNavLights,
       glowScale: lightGlowScale,
+      glowStrength: nightNavLights ? 0.9 : 1,
       group,
+      haloStrength: nightNavLights ? 0.68 : 1,
       position: getAnchorPosition(template, "leftWingTip", { x: 0.05, y: 0.52 }),
       color: "#ff4e4e",
       opacity: lightOpacity,
       radius: lightRadius,
     });
     addLightPoint({
+      flare: nightNavLights,
       glowScale: lightGlowScale,
+      glowStrength: nightNavLights ? 0.9 : 1,
       group,
+      haloStrength: nightNavLights ? 0.68 : 1,
       position: getAnchorPosition(template, "rightWingTip", { x: 0.95, y: 0.52 }),
       color: "#50ff9b",
       opacity: lightOpacity,
       radius: lightRadius,
     });
     addLightPoint({
+      flare: false,
       glowScale: lightGlowScale,
+      glowStrength: nightNavLights ? 0.82 : 1,
       group,
+      haloStrength: nightNavLights ? 0.58 : 1,
       position: getAnchorPosition(template, "tailLight", { x: 0.5, y: 0.96 }),
       color: "#f6fbff",
       opacity: Math.min(1, lightOpacity * 0.9),
       radius: lightRadius * 0.82,
     });
     addLightPoint({
+      flare: nightNavLights,
       glowScale: lightGlowScale,
+      glowStrength: nightNavLights ? 0.84 : 1,
       group,
+      haloStrength: nightNavLights ? 0.58 : 1,
       position: getAnchorPosition(template, "antiCollisionBeacon", { x: 0.5, y: 0.5 }, 3.8),
       color: "#ff6d4d",
       opacity: Math.min(1, lightOpacity * 0.92),

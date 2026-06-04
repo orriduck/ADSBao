@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   resolveAircraft3DAttitudeRotation,
+  resolveAircraft3DLandingLightIntensity,
   resolveAircraft3DLightingProfile,
   resolveAircraft3DMaterialProfile,
   resolveAircraft3DModelScalePx,
@@ -95,6 +96,33 @@ assert.ok(nightMaterial.lightGlowScale > duskMaterial.lightGlowScale);
 assert.ok(nightMaterial.lightGlowScale >= 8);
 assert.ok(nightMaterial.lightRadius >= duskMaterial.lightRadius * 1.5);
 assert.ok(nightMaterial.landingLightScale >= duskMaterial.landingLightScale * 2);
+assert.ok(
+  nightLighting.navLightIntensity >= duskLighting.navLightIntensity * 1.8,
+);
+assert.ok(nightMaterial.bodyGlowOpacity >= duskMaterial.bodyGlowOpacity * 1.8);
+assert.ok(nightMaterial.lightGlowScale >= duskMaterial.lightGlowScale * 2.6);
+assert.ok(nightMaterial.lightRadius >= duskMaterial.lightRadius * 2.4);
+assert.ok(nightMaterial.landingLightScale >= duskMaterial.landingLightScale * 2.8);
+assert.ok(
+  resolveAircraft3DLandingLightIntensity({
+    altitude: 2_900,
+    phase: "night",
+  }) > 0.85,
+);
+assert.ok(
+  resolveAircraft3DLandingLightIntensity({
+    altitude: 41_000,
+    phase: "night",
+  }) < 0.08,
+);
+assert.ok(
+  resolveAircraft3DLandingLightIntensity({
+    altitude: 41_000,
+    phase: "night",
+    selected: true,
+  }) < 0.12,
+);
+assert.ok(nightLighting.navLightIntensity > 1.2);
 assert.ok(relativeLuminance(dayMaterial.color) > 0.8);
 assert.ok(relativeLuminance(sunsetMaterial.color) > 0.74);
 assert.ok(relativeLuminance(duskMaterial.color) > 0.7);

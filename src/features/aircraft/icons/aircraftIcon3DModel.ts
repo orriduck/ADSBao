@@ -23,6 +23,11 @@ type Aircraft3DMaterialOptions = {
   selected?: boolean;
 };
 
+type Aircraft3DLandingLightOptions = Aircraft3DMaterialOptions & {
+  altitude?: unknown;
+  onGround?: boolean;
+};
+
 type Aircraft3DEdgeToneOptions = Aircraft3DMaterialOptions & {
   lightDot?: unknown;
 };
@@ -107,15 +112,15 @@ export const resolveAircraft3DLightingProfile = ({
     case "night":
       return {
         ambientColor: "#b8d5ff",
-        ambientIntensity: 0.38,
+        ambientIntensity: 0.3,
         keyLightColor: "#c9ddff",
-        keyLightIntensity: 0.46,
-        landingLightIntensity: 1,
+        keyLightIntensity: 0.42,
+        landingLightIntensity: 1.15,
         landingLightsVisible: true,
         navLightsVisible: true,
-        navLightIntensity: 1.22,
+        navLightIntensity: 1.48,
         rimLightColor: "#76b8ff",
-        rimLightIntensity: 0.62,
+        rimLightIntensity: 0.78,
         shadowOpacity: 0.1,
       };
     case "dusk":
@@ -165,6 +170,24 @@ export const resolveAircraft3DLightingProfile = ({
   }
 };
 
+export const resolveAircraft3DLandingLightIntensity = ({
+  altitude = null,
+  onGround = false,
+  phase = "day",
+  selected = false,
+}: Aircraft3DLandingLightOptions = {}) => {
+  const phaseKey = String(phase || "day");
+  const altitudeFt = toFiniteNumber(altitude);
+  if (phaseKey !== "night") return selected ? 0.36 : 1;
+  if (onGround) return 1;
+  if (altitudeFt == null) return selected ? 0.18 : 0.42;
+
+  const approachRatio = clamp((18_000 - altitudeFt) / 15_000, 0, 1);
+  const approachIntensity = Math.pow(approachRatio, 1.34);
+  const selectedFloor = selected ? 0.08 : 0.03;
+  return round2(Math.max(selectedFloor, approachIntensity));
+};
+
 export const resolveAircraft3DModelScalePx = ({
   family = "jet",
   sizeScale = 1,
@@ -190,21 +213,21 @@ export const resolveAircraft3DMaterialProfile = ({
     case "night":
       return {
         bodyGlowColor: "#9bcfff",
-        bodyGlowOpacity: selected ? 0.072 : 0.04,
-        color: selected ? "#eef7ff" : "#d9e6f2",
+        bodyGlowOpacity: selected ? 0.096 : 0.06,
+        color: selected ? "#eff9ff" : "#cbd7e2",
         edgeColor: "#cbe4ff",
-        edgeContrast: 0.74,
-        edgeHighlightColor: "#f5fbff",
+        edgeContrast: 0.86,
+        edgeHighlightColor: "#f8fdff",
         edgeLightVector: { x: -0.34, y: -0.72, z: 0.6 },
-        edgeOpacity: selected ? 0.12 : 0.07,
-        edgeShadowColor: "#4a6078",
-        emissive: "#142034",
-        emissiveIntensity: selected ? 0.26 : 0.22,
+        edgeOpacity: selected ? 0.1 : 0.055,
+        edgeShadowColor: "#26364a",
+        emissive: "#0b1422",
+        emissiveIntensity: selected ? 0.23 : 0.18,
         landingLightColor: "#fff1cc",
         landingLightOpacity: 1,
-        landingLightScale: 4.1,
-        lightGlowScale: 8.4,
-        lightRadius: 1.02,
+        landingLightScale: 5.5,
+        lightGlowScale: 12.8,
+        lightRadius: 1.32,
         metalness: 0.22,
         roughness: 0.54,
       };
