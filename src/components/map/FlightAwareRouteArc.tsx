@@ -23,6 +23,33 @@ function removeLayers(layers = [], map) {
   });
 }
 
+function isLeafletMapReady(map) {
+  return Boolean(map?._container && map?._mapPane && map?.getPane?.("overlayPane"));
+}
+
+function toUsablePath(path = []) {
+  return Array.isArray(path)
+    ? path.filter(
+        (point) =>
+          Array.isArray(point) &&
+          Number.isFinite(Number(point[0])) &&
+          Number.isFinite(Number(point[1])),
+      )
+    : [];
+}
+
+function addLayerToReadyMap(layer, map, layers) {
+  if (!layer || !isLeafletMapReady(map)) return null;
+  try {
+    layer.addTo(map);
+    layers.push(layer);
+    return layer;
+  } catch {
+    layer.remove?.();
+    return null;
+  }
+}
+
 export default function FlightAwareRouteArc({
   path = [],
   theme = null,
@@ -50,7 +77,10 @@ export default function FlightAwareRouteArc({
     removeLayers(layersRef.current, map);
     layersRef.current = [];
 
-    if (!map || !Array.isArray(path) || path.length < 2) return undefined;
+    const usablePath = toUsablePath(path);
+    if (!map || !isLeafletMapReady(map) || usablePath.length < 2) {
+      return undefined;
+    }
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const effectiveTheme = theme || documentTheme;
@@ -58,24 +88,31 @@ export default function FlightAwareRouteArc({
       theme: effectiveTheme,
       opacity,
     });
-    const layers = [
-      L.polyline(path, {
+    const layers = [];
+    addLayerToReadyMap(
+      L.polyline(usablePath, {
         pane,
         ...routeStyles.glow,
         interactive: false,
         lineCap: "round",
         lineJoin: "round",
         className: "aircraft-trace aircraft-trace--flightaware-route-glow",
-      }).addTo(map),
-      L.polyline(path, {
+      }),
+      map,
+      layers,
+    );
+    addLayerToReadyMap(
+      L.polyline(usablePath, {
         pane,
         ...routeStyles.route,
         interactive: false,
         lineCap: "round",
         lineJoin: "round",
         className: "aircraft-trace aircraft-trace--flightaware-route",
-      }).addTo(map),
-    ];
+      }),
+      map,
+      layers,
+    );
     layersRef.current = layers;
 
     return () => {

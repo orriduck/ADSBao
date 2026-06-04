@@ -20,6 +20,8 @@ const flightAware = {
     lat: 47.4167,
     lon: -46.5833,
     callsign: "AAL100",
+    altitudeFt: 0,
+    groundSpeedKt: 510,
     quality: {
       source: "flightaware",
       kind: "predicted",
@@ -79,7 +81,91 @@ const flightAware = {
   assert.equal(resolved.source, "flightaware");
   assert.equal(resolved.position.lat, 47.4167);
   assert.equal(resolved.position.positionQuality.kind, "predicted");
+  assert.equal(resolved.position.alt_baro, null);
   assert.equal(resolved.trackingState.status, "flightaware_active");
+}
+
+{
+  let flightAwareCalls = 0;
+  const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition: null,
+    airplanesLivePosition: primary("airplanes.live", 600, {
+      type: "adsc",
+      alt_baro: 35000,
+      gs: 510,
+    }),
+    getFlightAwareFallback: async () => {
+      flightAwareCalls += 1;
+      return null;
+    },
+    callsign: "UAL964",
+    featureEnabled: false,
+    now,
+  });
+
+  assert.equal(resolved.source, "airplanes.live");
+  assert.equal(resolved.position.positionQuality.kind, "oceanic");
+  assert.equal(resolved.position.positionQuality.flight_position_source, "adsc");
+  assert.equal(resolved.trackingState.status, "oceanic_adsc");
+  assert.equal(resolved.trackingState.active, true);
+  assert.equal(flightAwareCalls, 0);
+}
+
+{
+  const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition: null,
+    airplanesLivePosition: primary("airplanes.live", 12, {
+      type: "adsc",
+      alt_baro: 35000,
+      gs: 510,
+    }),
+    callsign: "UAL964",
+    featureEnabled: false,
+    now,
+  });
+
+  assert.equal(resolved.source, "airplanes.live");
+  assert.equal(resolved.position.positionQuality.kind, "oceanic");
+  assert.equal(resolved.position.positionQuality.flight_position_source, "adsc");
+  assert.equal(resolved.trackingState.status, "oceanic_adsc");
+}
+
+{
+  const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition: null,
+    airplanesLivePosition: primary("airplanes.live", 600, {
+      type: "adsc",
+      alt_baro: 35000,
+      gs: 510,
+    }),
+    getFlightAwareFallback: async () => flightAware,
+    callsign: "UAL964",
+    featureEnabled: true,
+    now,
+  });
+
+  assert.equal(resolved.source, "flightaware");
+  assert.equal(resolved.position.lat, 47.4167);
+  assert.equal(resolved.position.positionQuality.kind, "predicted");
+  assert.equal(resolved.trackingState.status, "flightaware_active");
+}
+
+{
+  const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition: null,
+    airplanesLivePosition: primary("airplanes.live", 1_200, {
+      type: "adsc",
+      alt_baro: 35000,
+      gs: 510,
+    }),
+    callsign: "UAL964",
+    featureEnabled: false,
+    now,
+  });
+
+  assert.equal(resolved.source, "airplanes.live");
+  assert.equal(resolved.position.positionQuality.kind, "stale");
+  assert.equal(resolved.trackingState.status, "stale");
 }
 
 {

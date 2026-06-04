@@ -1,5 +1,6 @@
 import {
   isFlightAwareFallbackTracking,
+  isOceanicAdscTracking,
 } from "./flightAwareFallbackTrackingModel";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../../../config/aviation";
 import {
@@ -52,12 +53,25 @@ const FLIGHTAWARE_MOBILE_CONTEXT = Object.freeze({
   }),
 });
 
+const OCEANIC_ADSC_DESKTOP_CONTEXT = Object.freeze({
+  ...FLIGHTAWARE_DESKTOP_CONTEXT,
+  zoomDisabled: false,
+  autoFitSuspendsFollow: false,
+});
+
+const OCEANIC_ADSC_MOBILE_CONTEXT = Object.freeze({
+  ...FLIGHTAWARE_MOBILE_CONTEXT,
+  zoomDisabled: false,
+  autoFitSuspendsFollow: false,
+});
+
 export function resolveFlightTrackingDisplayContext({
   trackingState = null,
   isMobile = false,
 } = {}) {
   if (!isFlightAwareFallbackTracking(trackingState)) {
-    return DEFAULT_CONTEXT;
+    if (!isOceanicAdscTracking(trackingState)) return DEFAULT_CONTEXT;
+    return isMobile ? OCEANIC_ADSC_MOBILE_CONTEXT : OCEANIC_ADSC_DESKTOP_CONTEXT;
   }
 
   return isMobile ? FLIGHTAWARE_MOBILE_CONTEXT : FLIGHTAWARE_DESKTOP_CONTEXT;

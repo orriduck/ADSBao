@@ -58,6 +58,39 @@ const staleAircraft = {
 {
   let flightAwareCalls = 0;
   const result = await fetchTrackedAircraftByCallsign({
+    callsign: "UAL964",
+    featureEnabled: false,
+    fetchPrimaryProviders: async () => [
+      providerPayload(ADSB_LOL_ID, []),
+      providerPayload(AIRPLANES_LIVE_ID, [
+        {
+          ...freshAircraft,
+          flight: "UAL964",
+          type: "adsc",
+          lat: 51.55,
+          lon: -45.6667,
+          alt_baro: 35000,
+          seen_pos: 600,
+        },
+      ]),
+    ],
+    getFlightAwareFallback: async () => {
+      flightAwareCalls += 1;
+      return null;
+    },
+  });
+
+  assert.equal(result.source, AIRPLANES_LIVE_ID);
+  assert.equal(result.payload.ac[0].positionQuality.kind, "oceanic");
+  assert.equal(result.payload.ac[0].positionQuality.flight_position_source, "adsc");
+  assert.equal(result.payload.trackingState.status, "oceanic_adsc");
+  assert.equal(result.payload.trackingState.active, true);
+  assert.equal(flightAwareCalls, 0);
+}
+
+{
+  let flightAwareCalls = 0;
+  const result = await fetchTrackedAircraftByCallsign({
     callsign: "AAL100",
     featureEnabled: true,
     fetchPrimaryProviders: async () => [

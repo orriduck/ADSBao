@@ -68,4 +68,24 @@ import {
   });
 }
 
+{
+  const context = resolveFlightTrackingDisplayContext({
+    trackingState: { status: "oceanic_adsc" },
+    isMobile: false,
+  });
+
+  assert.equal(context.fullTraceForFocal, true);
+  assert.equal(context.showNearbyContext, true);
+  assert.equal(context.showNearbyTrafficContext, false);
+  assert.equal(context.showNearbyAirportContext, false);
+  assert.equal(context.routeEndpointAirportsOnly, true);
+  assert.equal(context.showNearbyMapContext, false);
+  assert.equal(context.zoomDisabled, false);
+  assert.deepEqual(context.mapFitOptions, {
+    padding: [84, 84],
+    maxZoom: 8,
+  });
+  assert.equal(context.autoFitSuspendsFollow, false);
+}
+
 console.log("flightTrackingDisplayModel.test.ts ok");

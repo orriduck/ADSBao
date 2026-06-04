@@ -23,6 +23,7 @@ const DATA_SOURCE_LABELS = Object.freeze({
 
 const AIRCRAFT_POSITION_SOURCE_LABELS = Object.freeze({
   adsb: "ADS-B",
+  adsc: "ADS-C",
   mlat: "MLAT",
   estimated: "Estimated",
   adsb_lol: "ADS-B",
@@ -63,7 +64,7 @@ export function resolveRouteProvider({ flightAwareEnabled = false } = {}) {
 
 export function resolveFlightPositionSource(quality: Record<string, any> = {}) {
   const explicit = normalizeKey(quality?.flight_position_source);
-  if (["adsb", "mlat", "estimated", "flightaware"].includes(explicit)) {
+  if (["adsb", "adsc", "mlat", "estimated", "flightaware"].includes(explicit)) {
     return explicit;
   }
   const source = normalizeKey(quality?.source);
@@ -97,6 +98,7 @@ export function getAircraftPositionSourceBadge(quality: Record<string, any> = {}
     : normalizeKey(quality?.source) || resolveFlightPositionSource(quality);
   const kind = normalizeKey(quality?.kind);
   const sourceLabel = AIRCRAFT_POSITION_SOURCE_LABELS[source] || "";
+  if (source === "adsc" && kind === "oceanic") return "ADS-C · oceanic";
   if (!sourceLabel) return kind === "stale" ? "Stale" : "";
   if (kind === "stale") return sourceLabel === "FlightAware" ? "FlightAware · stale" : "Stale";
   if (

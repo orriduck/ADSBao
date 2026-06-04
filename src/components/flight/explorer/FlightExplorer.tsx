@@ -193,6 +193,23 @@ function FlightExplorerContent({ callsign }) {
       }),
     [callsign, trackedAircraftForDisplay?.icao24, trackingState],
   );
+  const routeAutoFitKey = useMemo(() => {
+    if (flightAwareAutoFitKey) return flightAwareAutoFitKey;
+    if (trackingState?.status !== "oceanic_adsc") return "";
+    const normalizedCallsign = String(callsign || "").trim().toUpperCase();
+    const normalizedHex = String(trackedAircraftForDisplay?.icao24 || "")
+      .trim()
+      .toUpperCase();
+    if (!normalizedCallsign) return "";
+    return ["oceanic-adsc", normalizedCallsign, normalizedHex]
+      .filter(Boolean)
+      .join(":");
+  }, [
+    callsign,
+    flightAwareAutoFitKey,
+    trackedAircraftForDisplay?.icao24,
+    trackingState,
+  ]);
   const focalTraceRefreshKey = useMemo(
     () =>
       getTrackedFlightTraceRefreshKey({
@@ -416,12 +433,36 @@ function FlightExplorerContent({ callsign }) {
   const focalKey = trackedAircraftForDisplay
     ? getAircraftIdentity(trackedAircraftForDisplay)
     : "";
+  const focalCallsignKey = String(
+    trackedAircraftForDisplay?.callsign || callsign || "",
+  ).trim();
   const seededRef = useRef(false);
   useEffect(() => {
     if (seededRef.current || !focalKey) return;
     seededRef.current = true;
     setSelectedAircraftId(focalKey);
   }, [focalKey, setSelectedAircraftId]);
+  const previousFocalKeyRef = useRef("");
+  useEffect(() => {
+    if (!focalKey) return;
+    const previousFocalKey = previousFocalKeyRef.current;
+    previousFocalKeyRef.current = focalKey;
+    if (
+      selectedAircraftId &&
+      selectedAircraftId !== previousFocalKey &&
+      selectedAircraftId !== focalCallsignKey
+    ) {
+      return;
+    }
+    if (selectedAircraftId !== focalKey) {
+      setSelectedAircraftId(focalKey);
+    }
+  }, [
+    focalCallsignKey,
+    focalKey,
+    selectedAircraftId,
+    setSelectedAircraftId,
+  ]);
 
   const selectedAircraft = useMemo(
     () =>
@@ -521,6 +562,7 @@ function FlightExplorerContent({ callsign }) {
         country: point.country || "",
         lat: pointLat,
         lon: pointLon,
+        routeEndpointRole: candidate.role,
         distanceNm:
           focalLat != null && focalLon != null
             ? getDistanceNm(focalLat, focalLon, pointLat, pointLon)
@@ -617,16 +659,26 @@ function FlightExplorerContent({ callsign }) {
     setSelectedAircraftId(focalKey);
   }, [focalKey, selectedAircraftId, setSelectedAircraftId, showNearbyContext]);
 
-  const focalFlightAwareRoutePath = useMemo(() => {
+  const focalRoutePath = useMemo(() => {
     const route = enrichedTrackedAircraft?.flightRoute;
-    if (route?.source !== "flightaware" || focalLat == null || focalLon == null) {
+    if (
+      !routeEndpointAirportsOnly ||
+      !route ||
+      focalLat == null ||
+      focalLon == null
+    ) {
       return [];
     }
     return buildGreatCirclePath({
       from: { lat: focalLat, lon: focalLon },
       to: route.destination,
     });
-  }, [enrichedTrackedAircraft?.flightRoute, focalLat, focalLon]);
+  }, [
+    enrichedTrackedAircraft?.flightRoute,
+    focalLat,
+    focalLon,
+    routeEndpointAirportsOnly,
+  ]);
 
   useEffect(() => {
     if (!isMobile) return undefined;
@@ -681,6 +733,7 @@ function FlightExplorerContent({ callsign }) {
     focusLat: focalLat,
     focusLon: focalLon,
     selectedAircraftId,
+    suppressedAircraftDistanceId: focalKey,
     selectedAirportIcao,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
@@ -740,7 +793,7 @@ function FlightExplorerContent({ callsign }) {
               lastUpdated={lastUpdated}
               routeProvider={routeProvider}
               loadingStatus={sourceLoadingStatus}
-              onFitToTrace={fitToTrace}
+              onFitToTrace={routeEndpointAirportsOnly ? null : fitToTrace}
               zoomDisabled={flightDisplayContext.zoomDisabled}
             />
           )}
@@ -784,16 +837,16 @@ function FlightExplorerContent({ callsign }) {
             loadingOverlayCallsign={callsign}
             loadingOverlaySources={loadingOverlaySources}
           >
-            <FlightAwareRouteArc path={focalFlightAwareRoutePath} />
+            <FlightAwareRouteArc path={focalRoutePath} />
             <MapFitToTraceController
-              routePath={focalFlightAwareRoutePath}
+              routePath={focalRoutePath}
               centerAnchor={{ lat: focalLat, lon: focalLon }}
               centerAnchorFollowKey={
                 !mapFollowsAircraft && focalLat != null && focalLon != null
-                  ? `${focalLat}:${focalLon}`
+                  ? routeAutoFitKey
                   : ""
               }
-              autoFitKey={flightAwareAutoFitKey}
+              autoFitKey={routeAutoFitKey}
               fitOptions={flightDisplayContext.mapFitOptions}
               onAutoFit={
                 flightDisplayContext.autoFitSuspendsFollow
@@ -872,8 +925,8 @@ function buildRouteEndpointCandidates({ route, aircraft }) {
     normalizeAirportCode(aircraft?.destination);
 
   return [
-    { code: originCode, point: route?.origin || null },
-    { code: destinationCode, point: route?.destination || null },
+    { code: originCode, point: route?.origin || null, role: "origin" },
+    { code: destinationCode, point: route?.destination || null, role: "destination" },
   ].filter((candidate) => candidate.code || candidate.point);
 }
 

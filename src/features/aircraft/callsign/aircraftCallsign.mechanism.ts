@@ -176,7 +176,11 @@ export const fetchTrackedAircraftByCallsign = async ({
   });
 
   const sourcePayload = bySource.get(resolved.source) as AircraftCallsignRecord | undefined;
-  if (sourcePayload && resolved.source !== "flightaware") {
+  if (
+    sourcePayload &&
+    resolved.source !== "flightaware" &&
+    resolved.trackingState?.status === "adsb_live"
+  ) {
     return {
       payload: annotatePayload(sourcePayload, {
         source: resolved.source,

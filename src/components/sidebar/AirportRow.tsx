@@ -16,7 +16,7 @@ export default function AirportRow({
   selected,
   onSelectAirport,
 }: Record<string, any>) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const icao = airport?.icao || "";
   const iata = airport?.iata || "";
   const code = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
@@ -27,6 +27,14 @@ export default function AirportRow({
     airportDisplayName(airport, locale);
   const dist = toFiniteNumber(airport?.distanceNm);
   const elevation = toFiniteNumber(airport?.elevationFt);
+  const endpointRole = normalizeEndpointRole(airport?.routeEndpointRole);
+  const endpointLabel = endpointRole
+    ? t(
+        endpointRole === "origin"
+          ? "sidebar.endpointOrigin"
+          : "sidebar.endpointDestination",
+      )
+    : "";
 
   return (
     <button
@@ -54,6 +62,8 @@ export default function AirportRow({
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
         {dist == null ? (
           <span>—</span>
+        ) : endpointRole ? (
+          <StaticNumberWithUnit value={Math.round(dist)} unit="NM" />
         ) : (
           <NumberWithUnit
             value={dist}
@@ -63,7 +73,11 @@ export default function AirportRow({
         )}
       </div>
       <div className="aircraft-table-cell aircraft-table-cell--altitude text-right font-mono text-[12px] font-semibold text-atc-text">
-        {elevation == null ? (
+        {endpointLabel ? (
+          <span className="text-[9px] uppercase tracking-normal text-atc-dim">
+            {endpointLabel}
+          </span>
+        ) : elevation == null ? (
           <span>—</span>
         ) : (
           <NumberWithUnit value={Math.round(elevation)} unit="FT" />
@@ -93,7 +107,28 @@ function NumberWithUnit({ value, unit, format }: Record<string, any>) {
   );
 }
 
+function StaticNumberWithUnit({ value, unit }: Record<string, any>) {
+  return (
+    <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
+      <span className="block min-w-0 text-right">
+        {value}
+      </span>
+      <sub
+        className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
+        translate="no"
+      >
+        {unit}
+      </sub>
+    </span>
+  );
+}
+
 function toFiniteNumber(value: unknown) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+function normalizeEndpointRole(value: unknown) {
+  const role = String(value || "").trim().toLowerCase();
+  return role === "origin" || role === "destination" ? role : "";
 }

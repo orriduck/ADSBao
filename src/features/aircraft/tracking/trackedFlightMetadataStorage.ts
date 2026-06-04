@@ -8,6 +8,7 @@ const isBrowser = () =>
 type FlightRouteMetadata = Record<string, unknown>;
 
 type TrackedFlightMetadata = {
+  icao24?: string;
   type?: string;
   desc?: string;
   category?: string;
@@ -103,6 +104,7 @@ function sanitizeFlightRoute(route: unknown) {
 
 function extractMetadata(aircraft: TrackedFlightMetadataAircraft = {}) {
   const metadata = {
+    icao24: clean(aircraft.icao24 || aircraft.hex),
     type: clean(aircraft.type),
     desc: cleanText(aircraft.desc),
     category: clean(aircraft.category),
@@ -163,6 +165,7 @@ export function mergeTrackedFlightMetadata<T extends TrackedFlightMetadataAircra
   if (!aircraft || !metadata) return aircraft;
   return {
     ...aircraft,
+    icao24: clean(aircraft.icao24 || aircraft.hex) || metadata.icao24 || "",
     type: clean(aircraft.type) || metadata.type || "",
     desc: cleanText(aircraft.desc) || metadata.desc || "",
     category: clean(aircraft.category) || metadata.category || "",

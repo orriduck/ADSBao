@@ -41,6 +41,7 @@ assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);
   installLocalStorage();
   writeTrackedFlightMetadata(" ual23 ", {
     aircraft: {
+      icao24: " a9178d ",
       type: " b789 ",
       category: " a5 ",
       origin: "KEWR",
@@ -52,6 +53,7 @@ assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);
   });
 
   assert.deepEqual(readTrackedFlightMetadata("UAL23", { now }), {
+    icao24: "A9178D",
     type: "B789",
     category: "A5",
     origin: "KEWR",
@@ -81,6 +83,7 @@ assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);
   const merged = mergeTrackedFlightMetadata({
     aircraft: {
       callsign: "UAL23",
+      icao24: "",
       type: "",
       category: "",
       origin: "",
@@ -89,6 +92,7 @@ assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);
       flightRoute: null,
     },
     metadata: {
+      icao24: "A9178D",
       type: "B789",
       category: "A5",
       origin: "KEWR",
@@ -98,6 +102,7 @@ assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);
     },
   });
 
+  assert.equal(merged.icao24, "A9178D");
   assert.equal(merged.type, "B789");
   assert.equal(merged.category, "A5");
   assert.equal(merged.origin, "KEWR");
@@ -110,6 +115,7 @@ assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);
   const merged = mergeTrackedFlightMetadata({
     aircraft: {
       callsign: "UAL23",
+      icao24: "A11111",
       type: "B78X",
       category: "A5",
       origin: "KJFK",
@@ -118,6 +124,7 @@ assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);
       flightRoute: { source: "live" },
     },
     metadata: {
+      icao24: "A9178D",
       type: "B789",
       category: "A4",
       origin: "KEWR",
@@ -127,6 +134,7 @@ assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);
     },
   });
 
+  assert.equal(merged.icao24, "A11111");
   assert.equal(merged.type, "B78X");
   assert.equal(merged.category, "A5");
   assert.equal(merged.origin, "KJFK");

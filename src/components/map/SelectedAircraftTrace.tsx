@@ -68,6 +68,22 @@ function removeElements(elements = []) {
   elements.forEach((element) => element?.remove?.());
 }
 
+function isLeafletMapReady(map) {
+  return Boolean(map?._container && map?._mapPane && map?.getPane?.("overlayPane"));
+}
+
+function addLayerToReadyMap(layer, map, layers) {
+  if (!layer || !isLeafletMapReady(map)) return null;
+  try {
+    layer.addTo(map);
+    layers.push(layer);
+    return layer;
+  } catch {
+    layer.remove?.();
+    return null;
+  }
+}
+
 function gradientIdPart(value) {
   return String(value || "trace").replace(/[^a-zA-Z0-9_-]/g, "-");
 }
@@ -292,7 +308,7 @@ function SingleAircraftTrace({
     removeElements(gradientElsRef.current);
     gradientElsRef.current = [];
 
-    if (!map || !geometry) {
+    if (!map || !geometry || !isLeafletMapReady(map)) {
       if (!aircraftHex) completedRevealKeyRef.current = "";
       isAnimatingRef.current = false;
       return undefined;
@@ -308,74 +324,87 @@ function SingleAircraftTrace({
     const gradientBase = `${gradientIdPart(aircraftHex)}-${Date.now().toString(36)}`;
 
     geometry.connectors.forEach((connector) => {
-      const connectorPolyline = L.polyline(connector.curve.slice().reverse(), {
-        pane,
-        color: lineColor,
-        opacity: TRACE_CONNECTOR_OPACITY * opacity,
-        weight: Math.max(1, traceStyle.lineWeight - 1),
-        interactive: false,
-        lineCap: "round",
-        lineJoin: "round",
-        dashArray: "5 9",
-        className: "aircraft-trace aircraft-trace--connector",
-      }).addTo(map);
-      layers.push(connectorPolyline);
+      addLayerToReadyMap(
+        L.polyline(connector.curve.slice().reverse(), {
+          pane,
+          color: lineColor,
+          opacity: TRACE_CONNECTOR_OPACITY * opacity,
+          weight: Math.max(1, traceStyle.lineWeight - 1),
+          interactive: false,
+          lineCap: "round",
+          lineJoin: "round",
+          dashArray: "5 9",
+          className: "aircraft-trace aircraft-trace--connector",
+        }),
+        map,
+        layers,
+      );
     });
 
     geometry.segments.forEach((segment) => {
       const segmentId = gradientIdPart(segment.id);
-      const corePolyline = L.polyline(segment.curve.slice().reverse(), {
-        pane,
-        color: lineColor,
-        opacity: 1,
-        weight: traceStyle.lineWeight,
-        interactive: false,
-        lineCap: "round",
-        lineJoin: "round",
-        className: "aircraft-trace aircraft-trace--core",
-      }).addTo(map);
-      layers.push(corePolyline);
-      gradientEls.push(
-        applyTraceGradient({
-          map,
-          polyline: corePolyline,
-          curve: segment.curve,
-          gradientId: `aircraft-trace-core-${gradientBase}-${segmentId}`,
+      const corePolyline = addLayerToReadyMap(
+        L.polyline(segment.curve.slice().reverse(), {
+          pane,
           color: lineColor,
-          tailOpacity: TRACE_CORE_TAIL_OPACITY * opacity,
-          midOpacity: TRACE_CORE_MID_OPACITY * opacity,
-          headOpacity: TRACE_CORE_HEAD_OPACITY * opacity,
+          opacity: 1,
+          weight: traceStyle.lineWeight,
+          interactive: false,
+          lineCap: "round",
+          lineJoin: "round",
+          className: "aircraft-trace aircraft-trace--core",
         }),
+        map,
+        layers,
       );
+      if (corePolyline) {
+        gradientEls.push(
+          applyTraceGradient({
+            map,
+            polyline: corePolyline,
+            curve: segment.curve,
+            gradientId: `aircraft-trace-core-${gradientBase}-${segmentId}`,
+            color: lineColor,
+            tailOpacity: TRACE_CORE_TAIL_OPACITY * opacity,
+            midOpacity: TRACE_CORE_MID_OPACITY * opacity,
+            headOpacity: TRACE_CORE_HEAD_OPACITY * opacity,
+          }),
+        );
+      }
 
-      const glowPolyline = L.polyline(segment.curve.slice().reverse(), {
-        pane,
-        color: glowColor,
-        opacity: 1,
-        weight: traceStyle.glowWeight,
-        interactive: false,
-        lineCap: "round",
-        lineJoin: "round",
-        className: "aircraft-trace aircraft-trace--glow",
-      }).addTo(map);
-      layers.push(glowPolyline);
-      gradientEls.push(
-        applyTraceGradient({
-          map,
-          polyline: glowPolyline,
-          curve: segment.curve,
-          gradientId: `aircraft-trace-glow-${gradientBase}-${segmentId}`,
+      const glowPolyline = addLayerToReadyMap(
+        L.polyline(segment.curve.slice().reverse(), {
+          pane,
           color: glowColor,
-          tailOpacity: 0,
-          midOpacity: traceStyle.glowOpacity * 0.38 * opacity,
-          headOpacity: traceStyle.glowOpacity * opacity,
+          opacity: 1,
+          weight: traceStyle.glowWeight,
+          interactive: false,
+          lineCap: "round",
+          lineJoin: "round",
+          className: "aircraft-trace aircraft-trace--glow",
         }),
+        map,
+        layers,
       );
+      if (glowPolyline) {
+        gradientEls.push(
+          applyTraceGradient({
+            map,
+            polyline: glowPolyline,
+            curve: segment.curve,
+            gradientId: `aircraft-trace-glow-${gradientBase}-${segmentId}`,
+            color: glowColor,
+            tailOpacity: 0,
+            midOpacity: traceStyle.glowOpacity * 0.38 * opacity,
+            headOpacity: traceStyle.glowOpacity * opacity,
+          }),
+        );
+      }
     });
 
     geometry.samplePoints.forEach((point, index) => {
       const emphasis = (index + 1) / geometry.samplePoints.length;
-      layers.push(
+      addLayerToReadyMap(
         L.circleMarker([point.lat, point.lon], {
           pane,
           radius: traceStyle.pointRadius,
@@ -385,7 +414,9 @@ function SingleAircraftTrace({
             traceStyle.pointFillOpacity * (0.3 + emphasis * 0.7) * opacity,
           interactive: false,
           className: "aircraft-trace-point",
-        }).addTo(map),
+        }),
+        map,
+        layers,
       );
     });
 
@@ -434,7 +465,7 @@ function SingleAircraftTrace({
     removeLayers(labelMarkersRef.current, map);
     labelMarkersRef.current = [];
 
-    if (!map || !labelKey) return undefined;
+    if (!map || !labelKey || !isLeafletMapReady(map)) return undefined;
     const labelPoints = labelPointsRef.current;
     if (!Array.isArray(labelPoints) || labelPoints.length === 0) {
       return undefined;
@@ -452,21 +483,26 @@ function SingleAircraftTrace({
         : altitude
           ? `<span class="aircraft-trace-label__alt">${altitude}<span class="aircraft-trace-label__alt-unit">FT</span></span>`
           : "";
-      const marker = L.marker([point.lat, point.lon], {
-        pane,
-        icon: L.divIcon({
-          className: "aircraft-trace-label",
-          html: `
-            <span class="aircraft-trace-label__time">${time}</span>
-            ${altRow}
-          `,
-          iconSize: [56, 24],
-          iconAnchor: [-4, 28],
+      const marker = addLayerToReadyMap(
+        L.marker([point.lat, point.lon], {
+          pane,
+          icon: L.divIcon({
+            className: "aircraft-trace-label",
+            html: `
+              <span class="aircraft-trace-label__time">${time}</span>
+              ${altRow}
+            `,
+            iconSize: [56, 24],
+            iconAnchor: [-4, 28],
+          }),
+          interactive: false,
+          keyboard: false,
+          zIndexOffset: (labelPoints.length - index) * 10,
         }),
-        interactive: false,
-        keyboard: false,
-        zIndexOffset: (labelPoints.length - index) * 10,
-      }).addTo(map);
+        map,
+        labelMarkers,
+      );
+      if (!marker) return;
       const el = marker.getElement?.();
       if (el) {
         el.style.transitionDuration = reducedMotion
@@ -480,7 +516,6 @@ function SingleAircraftTrace({
           reducedMotion,
         })}ms`;
       }
-      labelMarkers.push(marker);
     });
     labelMarkersRef.current = labelMarkers;
 

@@ -34,6 +34,7 @@ export default function FlightSidebar({
   focusLat = null,
   focusLon = null,
   selectedAircraftId = "",
+  suppressedAircraftDistanceId = "",
   selectedAirportIcao = "",
   onSelectAircraft,
   onSelectAirport,
@@ -57,6 +58,7 @@ export default function FlightSidebar({
   const vs = toFiniteNumber(aircraft?.baroRate);
   const track = toFiniteNumber(aircraft?.track);
   const onGround = Boolean(aircraft?.onGround);
+  const trackingActive = Boolean(aircraft?.trackingState?.active);
   const positionSourceBadge = getAircraftPositionSourceBadge(
     aircraft?.positionQuality,
   );
@@ -76,6 +78,7 @@ export default function FlightSidebar({
         vs={vs}
         track={track}
         onGround={onGround}
+        trackingActive={trackingActive}
         hex={hex}
       />
     </>
@@ -99,7 +102,9 @@ export default function FlightSidebar({
           focusLat={focusLat}
           focusLon={focusLon}
           selectedAircraftId={selectedAircraftId}
+          suppressedAircraftDistanceId={suppressedAircraftDistanceId}
           selectedAirportIcao={selectedAirportIcao}
+          suppressSelectedAircraftDistance
           onSelectAircraft={onSelectAircraft}
           onSelectAirport={onSelectAirport}
           fill={!isMobileOverlay}
@@ -170,7 +175,15 @@ function FlightIdentity({
   );
 }
 
-function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
+function FlightTelemetryGrid({
+  speed,
+  altitude,
+  vs,
+  track,
+  onGround,
+  trackingActive,
+  hex,
+}) {
   const { t } = useI18n();
   // Local "highlighted metric" state — clicking any card toggles its
   // active state so the user can pin a metric the same way the airport
@@ -267,31 +280,27 @@ function FlightTelemetryGrid({ speed, altitude, vs, track, onGround, hex }) {
         onClick={() => toggle("track")}
         valueTranslate={activeMetric === "track"}
       />
-      {hex && (
-        <>
-          <SidebarMetricCard
-            label={t("metrics.icao24")}
-            value={hex}
-            active={activeMetric === "hex"}
-            onClick={() => toggle("hex")}
-            valueSize="compact"
-          />
-          <SidebarMetricCard
-            label={t("metrics.flightPhase")}
-            value={
-              onGround
-                ? t("aircraft.ground")
-                : altitude != null
-                  ? t("aircraft.airborne")
-                  : "—"
-            }
-            active={activeMetric === "status"}
-            onClick={() => toggle("status")}
-            valueSize="compact"
-            valueTranslate
-          />
-        </>
-      )}
+      <SidebarMetricCard
+        label={t("metrics.icao24")}
+        value={hex || "—"}
+        active={activeMetric === "hex"}
+        onClick={() => toggle("hex")}
+        valueSize="compact"
+      />
+      <SidebarMetricCard
+        label={t("metrics.flightPhase")}
+        value={
+          onGround
+            ? t("aircraft.ground")
+            : altitude != null || trackingActive
+              ? t("aircraft.airborne")
+              : "—"
+        }
+        active={activeMetric === "status"}
+        onClick={() => toggle("status")}
+        valueSize="compact"
+        valueTranslate
+      />
     </SidebarMetricGrid>
   );
 }

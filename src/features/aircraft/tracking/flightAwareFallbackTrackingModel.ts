@@ -2,6 +2,10 @@ export function isFlightAwareFallbackTracking(trackingState) {
   return String(trackingState?.status || "").trim() === "flightaware_active";
 }
 
+export function isOceanicAdscTracking(trackingState) {
+  return String(trackingState?.status || "").trim() === "oceanic_adsc";
+}
+
 export function getFlightAwareFallbackTraceStartAtMs({
   trackingState = null,
   defaultTraceStartAtMs = null,

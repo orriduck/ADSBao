@@ -4,6 +4,12 @@ const ACTIVE_FLIGHTAWARE_STATUS =
   /\b(enroute|airborne|in[-\s]?flight|departed|active)\b/i;
 const TERMINAL_FLIGHTAWARE_STATUS =
   /\b(arrived|landed|cancelled|canceled|diverted|result unknown)\b/i;
+const ACTIVE_TRACKING_STATUSES = new Set([
+  "adsb_live",
+  "oceanic_adsc",
+  "flightaware_active",
+]);
+const TRANSIENT_MISSING_TRACKING_STATUSES = new Set(["missing", "stale"]);
 
 export function getActiveAdsbMatchesLength({ matchesLength = 0, source = "" } = {}) {
   if (String(source || "").trim().toLowerCase() === "flightaware") return 0;
@@ -98,7 +104,11 @@ export function getTrackedAircraftSignalState({
 } = {}) {
   const normalizedThreshold = Math.max(1, Number(threshold) || 1);
   const trackingStatus = String(trackingState?.status || "").trim();
-  if (trackingStatus === "adsb_live" || trackingStatus === "flightaware_active") {
+  if (
+    trackingStatus === "adsb_live" ||
+    trackingStatus === "oceanic_adsc" ||
+    trackingStatus === "flightaware_active"
+  ) {
     return { misses: 0, lostSignal: false };
   }
   if (trackingStatus === "flightaware_terminal") {
@@ -126,4 +136,20 @@ export function getTrackedAircraftSignalState({
     misses,
     lostSignal: misses >= normalizedThreshold,
   };
+}
+
+export function shouldRetainActiveTrackingState({
+  previousTrackingState = null,
+  nextTrackingState = null,
+  matchesLength = 0,
+  lostSignal = false,
+} = {}) {
+  if (lostSignal) return false;
+  if (Number(matchesLength) > 0) return false;
+  const previousStatus = String(previousTrackingState?.status || "").trim();
+  const nextStatus = String(nextTrackingState?.status || "").trim();
+  return (
+    ACTIVE_TRACKING_STATUSES.has(previousStatus) &&
+    TRANSIENT_MISSING_TRACKING_STATUSES.has(nextStatus)
+  );
 }

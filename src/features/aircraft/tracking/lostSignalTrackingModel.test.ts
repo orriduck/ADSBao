@@ -5,6 +5,7 @@ import {
   getTrackedFlightTraceRefreshKey,
   getTrackedAircraftSignalState,
   hasActiveFlightAwareFallback,
+  shouldRetainActiveTrackingState,
 } from "./lostSignalTrackingModel";
 
 assert.equal(
@@ -209,10 +210,59 @@ assert.deepEqual(
 assert.deepEqual(
   getTrackedAircraftSignalState({
     matchesLength: 1,
+    previousMisses: 19,
+    trackingState: { status: "oceanic_adsc" },
+  }),
+  { misses: 0, lostSignal: false },
+);
+
+assert.deepEqual(
+  getTrackedAircraftSignalState({
+    matchesLength: 1,
     previousMisses: 0,
     trackingState: { status: "flightaware_terminal" },
   }),
   { misses: 20, lostSignal: true },
+);
+
+assert.equal(
+  shouldRetainActiveTrackingState({
+    previousTrackingState: { status: "oceanic_adsc" },
+    nextTrackingState: { status: "missing" },
+    matchesLength: 0,
+    lostSignal: false,
+  }),
+  true,
+);
+
+assert.equal(
+  shouldRetainActiveTrackingState({
+    previousTrackingState: { status: "flightaware_active" },
+    nextTrackingState: { status: "stale" },
+    matchesLength: 0,
+    lostSignal: false,
+  }),
+  true,
+);
+
+assert.equal(
+  shouldRetainActiveTrackingState({
+    previousTrackingState: { status: "oceanic_adsc" },
+    nextTrackingState: { status: "missing" },
+    matchesLength: 0,
+    lostSignal: true,
+  }),
+  false,
+);
+
+assert.equal(
+  shouldRetainActiveTrackingState({
+    previousTrackingState: { status: "oceanic_adsc" },
+    nextTrackingState: { status: "missing" },
+    matchesLength: 1,
+    lostSignal: false,
+  }),
+  false,
 );
 
 console.log("lostSignalTrackingModel.test.ts ok");

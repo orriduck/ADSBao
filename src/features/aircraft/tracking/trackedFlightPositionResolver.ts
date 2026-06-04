@@ -5,9 +5,12 @@ import {
 
 const ADSB_FRESH_MAX_AGE_SECONDS = 60;
 const ADSB_STALE_MIN_AGE_SECONDS = 90;
+const ADSC_OCEANIC_MAX_AGE_SECONDS = 15 * 60;
+const AIRBORNE_ALTITUDE_MIN_FT = 10_000;
 
 const TRACKED_FLIGHT_STATUS = Object.freeze({
   ADSB_LIVE: "adsb_live",
+  OCEANIC_ADSC: "oceanic_adsc",
   FLIGHTAWARE_ACTIVE: "flightaware_active",
   FLIGHTAWARE_TERMINAL: "flightaware_terminal",
   STALE: "stale",
@@ -36,6 +39,7 @@ function buildTrackingState(status: string, overrides: TrackingRecord = {}) {
     status,
     active:
       status === TRACKED_FLIGHT_STATUS.ADSB_LIVE ||
+      status === TRACKED_FLIGHT_STATUS.OCEANIC_ADSC ||
       status === TRACKED_FLIGHT_STATUS.FLIGHTAWARE_ACTIVE,
     terminal: status === TRACKED_FLIGHT_STATUS.FLIGHTAWARE_TERMINAL,
     ...overrides,
@@ -71,20 +75,24 @@ function buildPositionQuality({
   sourceLabel,
   notes,
   confidence,
+  flightPositionSource,
 }: TrackingRecord = {}) {
   const normalizedKind = String(kind || "observed").toLowerCase();
   const normalizedSource = sourceKey(source);
-  const flightPositionSource =
-    normalizedSource === "flightaware"
+  const normalizedFlightPositionSource =
+    String(flightPositionSource || "").trim().toLowerCase() ||
+    (normalizedKind === "oceanic"
+      ? "adsc"
+      : normalizedSource === "flightaware"
       ? "flightaware"
       : normalizedKind === "stale"
         ? "estimated"
         : normalizedKind === "observed"
           ? "adsb"
-          : "estimated";
+          : "estimated");
   return {
     source: normalizedSource,
-    flight_position_source: flightPositionSource,
+    flight_position_source: normalizedFlightPositionSource,
     kind: normalizedKind,
     isEstimated: normalizedKind !== "observed",
     isPredicted: normalizedKind === "predicted",
@@ -123,6 +131,7 @@ export function annotateAdsbPosition(
 function pickFreshPrimary(candidates: TrackingRecord[], now: number): TrackingRecord | null {
   return candidates
     .filter((candidate) => candidate?.position && hasUsableLatLon(candidate.position))
+    .filter((candidate) => !isAdscPosition(candidate.position))
     .map((candidate) => ({
       ...candidate,
       ageSeconds: getAdsbPositionAgeSeconds(candidate.position, now),
@@ -141,31 +150,75 @@ function pickStalePrimary(candidates: TrackingRecord[], now: number): TrackingRe
     .sort((a, b) => a.ageSeconds - b.ageSeconds)[0] || null;
 }
 
+function isAdscPosition(position: TrackingRecord | null | undefined) {
+  return String(position?.type || "").trim().toLowerCase() === "adsc";
+}
+
+function isOceanicAdscPosition(candidate: TrackingRecord | null | undefined) {
+  const position = candidate?.position;
+  if (!position || !hasUsableLatLon(position)) return false;
+  const ageSeconds = toNumber(candidate?.ageSeconds);
+  if (ageSeconds == null || ageSeconds > ADSC_OCEANIC_MAX_AGE_SECONDS) {
+    return false;
+  }
+  if (!isAdscPosition(position)) return false;
+  if (position?.gnd === true) return false;
+  const altitude = toNumber(position?.alt_baro ?? position?.alt_geom);
+  return altitude == null || altitude >= AIRBORNE_ALTITUDE_MIN_FT;
+}
+
+function annotateOceanicAdscPosition(
+  candidate: TrackingRecord,
+  now = Date.now(),
+) {
+  const ageSeconds = toNumber(candidate?.ageSeconds);
+  return {
+    ...candidate.position,
+    source: candidate.source,
+    positionQuality: buildPositionQuality({
+      source: candidate.source,
+      kind: "oceanic",
+      flightPositionSource: "adsc",
+      fetchedAt: isoFromNow(now),
+      ageSeconds: ageSeconds == null ? undefined : Math.round(ageSeconds),
+      sourceLabel: candidate.source,
+      confidence: "medium",
+      notes: ["oceanic-adsc-low-frequency"],
+    }),
+  };
+}
+
 function normalizeFlightAwarePosition(
   position: TrackingRecord | null | undefined,
   { fallbackHex = "" }: TrackingRecord = {},
 ) {
   if (!position || !hasUsableLatLon(position)) return null;
+  const positionQuality = position.quality || null;
+  const altitudeFt = toNumber(position.altitudeFt);
+  const predictedAltitudeFt =
+    positionQuality?.isPredicted === true || positionQuality?.kind === "predicted";
+  const normalizedAltitudeFt =
+    predictedAltitudeFt && altitudeFt === 0 ? null : altitudeFt;
   return {
     hex: position.hex || fallbackHex || "",
     flight: position.callsign || "",
     callsign: position.callsign || "",
     lat: position.lat,
     lon: position.lon,
-    alt_baro: position.altitudeFt ?? null,
+    alt_baro: normalizedAltitudeFt,
     gs: position.groundSpeedKt ?? null,
     track: position.trackDeg ?? position.headingDeg ?? 0,
-    seen: position.quality?.ageSeconds ?? 0,
-    seen_pos: position.quality?.ageSeconds ?? 0,
+    seen: positionQuality?.ageSeconds ?? 0,
+    seen_pos: positionQuality?.ageSeconds ?? 0,
     flightAwareUrl: position.flightAwareUrl || "",
     flight_position_source:
       position.flight_position_source ||
-      position.quality?.flight_position_source ||
+      positionQuality?.flight_position_source ||
       "flightaware",
     origin: position.origin || "",
     destination: position.destination || "",
     route: position.route || "",
-    positionQuality: position.quality,
+    positionQuality,
   };
 }
 
@@ -234,6 +287,17 @@ export async function resolveTrackedFlightPosition({
           }),
       };
     }
+  }
+
+  if (!fallbackTerminal && isOceanicAdscPosition(stale)) {
+    return {
+      source: stale.source,
+      position: annotateOceanicAdscPosition(stale, now),
+      fallback,
+      trackingState: buildTrackingState(TRACKED_FLIGHT_STATUS.OCEANIC_ADSC, {
+        source: stale.source,
+      }),
+    };
   }
 
   if (localProjection && hasUsableLatLon(localProjection)) {
