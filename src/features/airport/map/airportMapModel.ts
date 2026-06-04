@@ -25,6 +25,11 @@ type AirportGroundFilterOptions = {
   nearbyAirports?: AirportMapCoordinate[];
 };
 
+type NearbyAirportLayerDisplayOptions = {
+  nearbyAirports?: AirportMapCoordinate[];
+  immersiveModeActive?: boolean;
+};
+
 type VisibleAircraftOptions = AirportGroundFilterOptions & {
   aircraft: AirportMapAircraft[];
   zoom?: unknown;
@@ -51,6 +56,15 @@ export const getMapOverlayTheme = (theme: unknown) =>
         labelShadowColor: "var(--map-label-shadow)",
         attributionColor: "var(--map-attribution)",
       };
+
+export const resolveNearbyAirportLayerDisplay = ({
+  nearbyAirports = [],
+  immersiveModeActive = false,
+}: NearbyAirportLayerDisplayOptions = {}) => ({
+  airports: Array.isArray(nearbyAirports) ? nearbyAirports : [],
+  showAirportBadges: !immersiveModeActive,
+  showRunwayBadges: false,
+});
 
 const toFiniteCoordinate = (value: unknown) => {
   if (value == null || value === "") return null;

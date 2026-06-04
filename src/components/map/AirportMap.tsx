@@ -28,6 +28,7 @@ import {
   getMapOverlayTheme,
   resolveAirportMapInitialCenter,
   getVisibleAircraft,
+  resolveNearbyAirportLayerDisplay,
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
 } from "../../features/airport/map/airportMapModel";
@@ -367,6 +368,10 @@ export default function AirportMap({
   const overlayTheme = getMapOverlayTheme(currentTheme);
   const mapStyleTheme = immersiveModeActive ? "immersive" : currentTheme;
   const showBaseMapLabels = immersiveModeActive ? false : showMapLabels;
+  const nearbyAirportLayerDisplay = resolveNearbyAirportLayerDisplay({
+    nearbyAirports,
+    immersiveModeActive,
+  });
   const loadingOverlayState = useResolvedMapLoadingOverlay({
     mapReady: Boolean(mapInstance),
     variant: loadingOverlayVariant,
@@ -435,12 +440,13 @@ export default function AirportMap({
             />
           )}
           <NearbyAirportLayer
-            airports={immersiveModeActive ? [] : nearbyAirports}
+            airports={nearbyAirportLayerDisplay.airports}
             theme={currentTheme}
             zoom={zoom}
             selectedIcao={selectedAirportIcao}
             onSelectAirport={onSelectAirport}
-            showRunwayBadges={false}
+            showAirportBadges={nearbyAirportLayerDisplay.showAirportBadges}
+            showRunwayBadges={nearbyAirportLayerDisplay.showRunwayBadges}
           />
           <NavaidLabelLayer
             navaids={renderedNavaids}

@@ -118,6 +118,7 @@ export default function NearbyAirportLayer({
   zoom,
   selectedIcao = "",
   onSelectAirport = null,
+  showAirportBadges = true,
   showRunwayBadges = true,
 }: Record<string, any>) {
   const map = useMapInstance();
@@ -139,6 +140,7 @@ export default function NearbyAirportLayer({
       runwayLayers({ airport, map, theme, zoom, showBadges: showRunwayBadges }).forEach((runwayLayer) =>
         runwayLayer.addTo(layer),
       );
+      if (!showAirportBadges) continue;
       const interactive = Boolean(onSelectRef.current);
       const isSelected = selectedIcao && airport.icao === selectedIcao;
       const marker = L.marker([airport.lat, airport.lon], {
@@ -176,6 +178,7 @@ export default function NearbyAirportLayer({
     theme,
     zoom,
     selectedIcao,
+    showAirportBadges,
     showRunwayBadges,
   ]);
 

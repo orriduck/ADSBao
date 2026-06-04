@@ -6,6 +6,7 @@ import {
   getVisibleAircraft,
   isKnownMapTheme,
   isLightMapTheme,
+  resolveNearbyAirportLayerDisplay,
   resolveAirportMapInitialCenter,
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
@@ -93,3 +94,36 @@ assert.equal(getMapOverlayTheme("dark").attributionColor, "var(--map-attribution
 
 const focalCenter = { lat: 42.3656, lon: -71.0096 };
 assert.ok(focalCenter);
+
+const nearbyLayerAirports = [
+  {
+    icao: "KJFK",
+    lat: 40.6413,
+    lon: -73.7781,
+    runwayMap: { airport: "KJFK", runways: [{ id: "04L/22R" }] },
+  },
+];
+
+assert.deepEqual(
+  resolveNearbyAirportLayerDisplay({
+    nearbyAirports: nearbyLayerAirports,
+    immersiveModeActive: true,
+  }),
+  {
+    airports: nearbyLayerAirports,
+    showAirportBadges: false,
+    showRunwayBadges: false,
+  },
+);
+
+assert.deepEqual(
+  resolveNearbyAirportLayerDisplay({
+    nearbyAirports: nearbyLayerAirports,
+    immersiveModeActive: false,
+  }),
+  {
+    airports: nearbyLayerAirports,
+    showAirportBadges: true,
+    showRunwayBadges: false,
+  },
+);
