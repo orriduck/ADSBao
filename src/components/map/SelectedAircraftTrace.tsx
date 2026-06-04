@@ -8,6 +8,10 @@ import {
   AIRPORT_MAP_PANES,
   SELECTED_AIRCRAFT_TRACE_STYLE,
 } from "../../config/airportMap";
+import {
+  safeAddToMap,
+  safeRemoveFromMap,
+} from "@/features/airport/map/leafletLayerSafety";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
 import { computeTraceGeometry } from "../../features/aircraft/trace/traceGeometry";
 import {
@@ -59,29 +63,17 @@ const getTraceStyle = (theme) =>
     : SELECTED_AIRCRAFT_TRACE_STYLE.dark;
 
 function removeLayers(layers = [], map) {
-  layers.forEach((layer) => {
-    if (layer && map?.hasLayer(layer)) layer.removeFrom(map);
-  });
+  layers.forEach((layer) => safeRemoveFromMap(layer, map));
 }
 
 function removeElements(elements = []) {
   elements.forEach((element) => element?.remove?.());
 }
 
-function isLeafletMapReady(map) {
-  return Boolean(map?._container && map?._mapPane && map?.getPane?.("overlayPane"));
-}
-
-function addLayerToReadyMap(layer, map, layers) {
-  if (!layer || !isLeafletMapReady(map)) return null;
-  try {
-    layer.addTo(map);
-    layers.push(layer);
-    return layer;
-  } catch {
-    layer.remove?.();
-    return null;
-  }
+function addTraceLayer(layer, map, layers) {
+  const added = safeAddToMap(layer, map, { label: "SelectedAircraftTrace" });
+  if (added) layers.push(added);
+  return added;
 }
 
 function gradientIdPart(value) {
@@ -308,7 +300,7 @@ function SingleAircraftTrace({
     removeElements(gradientElsRef.current);
     gradientElsRef.current = [];
 
-    if (!map || !geometry || !isLeafletMapReady(map)) {
+    if (!map || !geometry) {
       if (!aircraftHex) completedRevealKeyRef.current = "";
       isAnimatingRef.current = false;
       return undefined;
@@ -324,7 +316,7 @@ function SingleAircraftTrace({
     const gradientBase = `${gradientIdPart(aircraftHex)}-${Date.now().toString(36)}`;
 
     geometry.connectors.forEach((connector) => {
-      addLayerToReadyMap(
+      addTraceLayer(
         L.polyline(connector.curve.slice().reverse(), {
           pane,
           color: lineColor,
@@ -343,7 +335,7 @@ function SingleAircraftTrace({
 
     geometry.segments.forEach((segment) => {
       const segmentId = gradientIdPart(segment.id);
-      const corePolyline = addLayerToReadyMap(
+      const corePolyline = addTraceLayer(
         L.polyline(segment.curve.slice().reverse(), {
           pane,
           color: lineColor,
@@ -372,7 +364,7 @@ function SingleAircraftTrace({
         );
       }
 
-      const glowPolyline = addLayerToReadyMap(
+      const glowPolyline = addTraceLayer(
         L.polyline(segment.curve.slice().reverse(), {
           pane,
           color: glowColor,
@@ -404,7 +396,7 @@ function SingleAircraftTrace({
 
     geometry.samplePoints.forEach((point, index) => {
       const emphasis = (index + 1) / geometry.samplePoints.length;
-      addLayerToReadyMap(
+      addTraceLayer(
         L.circleMarker([point.lat, point.lon], {
           pane,
           radius: traceStyle.pointRadius,
@@ -465,7 +457,7 @@ function SingleAircraftTrace({
     removeLayers(labelMarkersRef.current, map);
     labelMarkersRef.current = [];
 
-    if (!map || !labelKey || !isLeafletMapReady(map)) return undefined;
+    if (!map || !labelKey) return undefined;
     const labelPoints = labelPointsRef.current;
     if (!Array.isArray(labelPoints) || labelPoints.length === 0) {
       return undefined;
@@ -483,7 +475,7 @@ function SingleAircraftTrace({
         : altitude
           ? `<span class="aircraft-trace-label__alt">${altitude}<span class="aircraft-trace-label__alt-unit">FT</span></span>`
           : "";
-      const marker = addLayerToReadyMap(
+      const marker = addTraceLayer(
         L.marker([point.lat, point.lon], {
           pane,
           icon: L.divIcon({

@@ -7,6 +7,11 @@ export function safeAddToMap(
   try {
     return layer.addTo(map);
   } catch (error) {
+    try {
+      layer.remove?.();
+    } catch {
+      /* layer may not have completed enough setup to remove cleanly */
+    }
     logger.warn?.(`[${label}] addTo skipped (map not ready)`, error.message);
     return null;
   }

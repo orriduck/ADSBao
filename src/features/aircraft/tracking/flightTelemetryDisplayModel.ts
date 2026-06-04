@@ -8,6 +8,26 @@ function toFiniteTelemetryNumber(value: unknown) {
   return Number.isFinite(numeric) ? numeric : null;
 }
 
+function isPredictedFlightAwarePosition({
+  flightPositionSource,
+  positionQuality,
+}: {
+  flightPositionSource?: unknown;
+  positionQuality?: Record<string, unknown> | null;
+} = {}) {
+  const source = String(
+    flightPositionSource ||
+      positionQuality?.flight_position_source ||
+      positionQuality?.source ||
+      "",
+  ).toLowerCase();
+  const kind = String(positionQuality?.kind || "").toLowerCase();
+  return (
+    source === "flightaware" &&
+    (positionQuality?.isPredicted === true || kind === "predicted")
+  );
+}
+
 export function resolveTrackDirectionTranslationKey(track: unknown) {
   const index = resolveTrackDirectionIndex(track);
   return index == null ? null : `directions.${TRACK_DIRECTION_KEYS[index]}`;
@@ -24,10 +44,16 @@ export function formatFlightTelemetryMetric({
   metric,
   value,
   alternate = false,
+  onGround = false,
+  flightPositionSource,
+  positionQuality,
 }: {
   metric?: string;
   value?: unknown;
   alternate?: boolean;
+  onGround?: boolean;
+  flightPositionSource?: unknown;
+  positionQuality?: Record<string, unknown> | null;
 } = {}) {
   const numeric = toFiniteTelemetryNumber(value);
   if (numeric == null) return null;
@@ -39,6 +65,13 @@ export function formatFlightTelemetryMetric({
   }
 
   if (metric === "altitude") {
+    if (
+      !onGround &&
+      numeric === 0 &&
+      isPredictedFlightAwarePosition({ flightPositionSource, positionQuality })
+    ) {
+      return null;
+    }
     return alternate
       ? { value: Math.round(numeric * FOOT_TO_METER), suffix: "m" }
       : { value: Math.round(numeric), suffix: "ft" };

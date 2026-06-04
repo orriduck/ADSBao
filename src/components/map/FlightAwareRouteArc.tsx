@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
-import {
-  AIRPORT_MAP_PANES,
-} from "@/config/airportMap";
+import { AIRPORT_MAP_PANES } from "@/config/airportMap";
 import { resolveDocumentTheme } from "@/features/airport/map/airportMapModel";
+import { buildFlightAwareRouteLayerStyles } from "@/features/airport/map/flightAwareRouteArcStyleModel";
 import {
-  buildFlightAwareRouteLayerStyles,
-} from "@/features/airport/map/flightAwareRouteArcStyleModel";
+  safeAddToMap,
+  safeRemoveFromMap,
+} from "@/features/airport/map/leafletLayerSafety";
 import { ensureAirportMapPane } from "@/features/airport/map/mapPane";
 
 const getCurrentTheme = () =>
@@ -18,13 +18,7 @@ const getCurrentTheme = () =>
     : "dark";
 
 function removeLayers(layers = [], map) {
-  layers.forEach((layer) => {
-    if (layer && map?.hasLayer(layer)) layer.removeFrom(map);
-  });
-}
-
-function isLeafletMapReady(map) {
-  return Boolean(map?._container && map?._mapPane && map?.getPane?.("overlayPane"));
+  layers.forEach((layer) => safeRemoveFromMap(layer, map));
 }
 
 function toUsablePath(path = []) {
@@ -38,16 +32,10 @@ function toUsablePath(path = []) {
     : [];
 }
 
-function addLayerToReadyMap(layer, map, layers) {
-  if (!layer || !isLeafletMapReady(map)) return null;
-  try {
-    layer.addTo(map);
-    layers.push(layer);
-    return layer;
-  } catch {
-    layer.remove?.();
-    return null;
-  }
+function addRouteLayer(layer, map, layers) {
+  const added = safeAddToMap(layer, map, { label: "FlightAwareRouteArc" });
+  if (added) layers.push(added);
+  return added;
 }
 
 export default function FlightAwareRouteArc({
@@ -78,7 +66,7 @@ export default function FlightAwareRouteArc({
     layersRef.current = [];
 
     const usablePath = toUsablePath(path);
-    if (!map || !isLeafletMapReady(map) || usablePath.length < 2) {
+    if (!map || usablePath.length < 2) {
       return undefined;
     }
 
@@ -89,7 +77,7 @@ export default function FlightAwareRouteArc({
       opacity,
     });
     const layers = [];
-    addLayerToReadyMap(
+    addRouteLayer(
       L.polyline(usablePath, {
         pane,
         ...routeStyles.glow,
@@ -101,7 +89,7 @@ export default function FlightAwareRouteArc({
       map,
       layers,
     );
-    addLayerToReadyMap(
+    addRouteLayer(
       L.polyline(usablePath, {
         pane,
         ...routeStyles.route,

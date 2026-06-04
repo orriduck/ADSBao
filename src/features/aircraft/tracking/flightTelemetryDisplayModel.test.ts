@@ -20,6 +20,27 @@ assert.deepEqual(
   { value: 3763, suffix: "m" },
 );
 
+assert.equal(
+  formatFlightTelemetryMetric({
+    metric: "altitude",
+    value: 0,
+    flightPositionSource: "flightaware",
+    positionQuality: { kind: "predicted", source: "flightaware" },
+  }),
+  null,
+);
+
+assert.deepEqual(
+  formatFlightTelemetryMetric({
+    metric: "altitude",
+    value: 0,
+    onGround: true,
+    flightPositionSource: "flightaware",
+    positionQuality: { kind: "predicted", source: "flightaware" },
+  }),
+  { value: 0, suffix: "ft" },
+);
+
 assert.deepEqual(
   formatFlightTelemetryMetric({ metric: "verticalSpeed", value: -1200, alternate: true }),
   { value: -366, suffix: "m/min", format: { signDisplay: "exceptZero" } },
