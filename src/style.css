@@ -3110,8 +3110,8 @@ body {
 
 .aircraft-marker-proxy {
     display: block;
-    height: 22px;
-    opacity: 0.32;
+    height: 18px;
+    opacity: 0.045;
     pointer-events: auto;
     position: relative;
     transform:
@@ -3119,7 +3119,7 @@ body {
         scale(var(--aircraft-proxy-scale, 1));
     transform-origin: center;
     transform-style: preserve-3d;
-    width: 22px;
+    width: 18px;
 }
 
 .aircraft-marker-proxy::before,
@@ -3140,46 +3140,46 @@ body {
             rgb(65 71 76 / 0.44) 100%
         );
     box-shadow:
-        0 0 0 0.5px rgb(255 255 255 / 0.28),
-        2px 3px 9px rgb(0 0 0 / 0.28);
+        0 0 0 0.5px rgb(255 255 255 / 0.18),
+        1px 2px 5px rgb(0 0 0 / 0.2);
     clip-path: polygon(50% 0%, 62% 58%, 98% 94%, 56% 82%, 50% 100%, 44% 82%, 2% 94%, 38% 58%);
-    height: 21px;
+    height: 15px;
     transform:
         translate(-50%, -50%)
         perspective(120px)
         rotateX(34deg)
         rotateY(-16deg);
     transform-origin: center;
-    width: 19px;
+    width: 13px;
 }
 
 .aircraft-marker-proxy::after {
     background: rgb(255 246 210 / 0.96);
     border-radius: 999px;
     box-shadow:
-        -9px 1px 9px 2px rgb(255 63 69 / 0.72),
-        9px 1px 9px 2px rgb(57 255 141 / 0.72),
-        0 8px 9px 2px rgb(238 250 255 / 0.62),
-        0 -4px 12px 3px rgb(255 125 78 / 0.58);
-    height: 3px;
+        -5px 1px 4px 0.5px rgb(255 63 69 / 0.48),
+        5px 1px 4px 0.5px rgb(57 255 141 / 0.48),
+        0 5px 5px 0.5px rgb(238 250 255 / 0.36),
+        0 -3px 6px 0.5px rgb(255 125 78 / 0.28);
+    height: 2px;
     transform: translate(-50%, -50%);
-    width: 3px;
+    width: 2px;
 }
 
 .aircraft-marker-proxy[data-selected="true"] {
-    opacity: 0.7;
+    opacity: 0.12;
 }
 
 .airport-map-stage[data-map-mode="immersive"][data-immersive-phase="sunset"] .aircraft-marker-proxy,
 .airport-map-stage[data-map-mode="immersive"][data-immersive-phase="dusk"] .aircraft-marker-proxy {
-    opacity: 0.38;
+    opacity: 0.055;
 }
 
 .airport-map-stage[data-map-mode="immersive"][data-immersive-phase="night"] .aircraft-marker-proxy {
     filter:
         drop-shadow(0 0 7px rgb(155 205 255 / 0.48))
         drop-shadow(0 3px 10px rgb(0 0 0 / 0.38));
-    opacity: 0.9;
+    opacity: 0.1;
 }
 
 .airport-map-stage[data-map-mode="immersive"][data-immersive-phase="night"] .aircraft-marker-proxy::before {
@@ -3192,18 +3192,18 @@ body {
         );
     box-shadow:
         0 0 0 0.75px rgb(232 246 255 / 0.45),
-        0 0 14px rgb(117 183 255 / 0.24),
-        2px 4px 12px rgb(0 0 0 / 0.36);
+        0 0 8px rgb(117 183 255 / 0.18),
+        1px 3px 7px rgb(0 0 0 / 0.32);
 }
 
 .airport-map-stage[data-map-mode="immersive"][data-immersive-phase="night"] .aircraft-marker-proxy::after {
-    height: 4px;
-    width: 4px;
+    height: 3px;
+    width: 3px;
     box-shadow:
-        -12px 1px 15px 4px rgb(255 44 60 / 0.98),
-        12px 1px 15px 4px rgb(43 255 135 / 0.98),
-        0 9px 14px 4px rgb(244 252 255 / 0.92),
-        0 -6px 18px 5px rgb(255 98 62 / 0.9);
+        -7px 1px 7px 1.5px rgb(255 44 60 / 0.86),
+        7px 1px 7px 1.5px rgb(43 255 135 / 0.86),
+        0 6px 7px 1.25px rgb(244 252 255 / 0.62),
+        0 -4px 8px 1.5px rgb(255 98 62 / 0.56);
 }
 
 .user-location-leaflet-icon {

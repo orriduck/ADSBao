@@ -159,7 +159,7 @@ export default function AircraftPosition({
     immersiveModeActive && immersivePhase === "night" ? "#fff" : color;
   const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
   const labelLeft = threeDimensionalProxyActive
-    ? SILHOUETTE_SIZE_PX + 8
+    ? SILHOUETTE_SIZE_PX + 4
     : showArrow
       ? Boolean(silhouette)
         ? SILHOUETTE_SIZE_PX + 4

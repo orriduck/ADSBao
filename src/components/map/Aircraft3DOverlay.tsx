@@ -11,7 +11,10 @@ import {
   type AircraftIconAnchorPoint,
 } from "@/features/aircraft/icons/aircraftIconAnchors.generated";
 import {
+  resolveAircraft3DAttitudeRotation,
   resolveAircraft3DLightingProfile,
+  resolveAircraft3DMaterialProfile,
+  resolveAircraft3DModelScalePx,
   shouldRenderAircraftContrail,
 } from "@/features/aircraft/icons/aircraftIcon3DModel";
 import {
@@ -22,13 +25,12 @@ import {
   beginAircraftMotionState,
   calculateAircraftVisualPosition,
 } from "@/utils/aircraftMotion";
-import { ARRIVAL, DEPARTURE } from "@/utils/aircraftMovement";
+import { createAttitudeTracker } from "@/utils/aircraftAttitude";
 import {
   resolveAircraftIcon,
   resolveAircraftSizeScale,
 } from "@/utils/aircraftIcon";
 
-const MODEL_BASE_SIZE_PX = 29;
 const MODEL_DEPTH = 2.4;
 const MODEL_BEVEL = 0.34;
 const DEFAULT_ICON_NAME = "unidentified";
@@ -56,9 +58,12 @@ type AircraftModelTemplate = {
 type AircraftRenderGroup = THREE.Group & {
   userData: {
     aircraft?: any;
+    attitude?: { pitch: number; roll: number };
+    attitudeTracker?: ReturnType<typeof createAttitudeTracker>;
     beaconMaterials?: THREE.MeshBasicMaterial[];
     emphasisOpacity?: number;
     lightMaterials?: THREE.Material[];
+    modelRoot?: THREE.Group;
     modelSignature?: string;
     pendingModelSignature?: string;
     phase?: string;
@@ -86,14 +91,6 @@ let fallbackTemplate: AircraftModelTemplate | null = null;
 let shadowTexture: THREE.CanvasTexture | null = null;
 let lightGlowTexture: THREE.CanvasTexture | null = null;
 let contrailTexture: THREE.CanvasTexture | null = null;
-
-const familySizeBoost = {
-  balloon: 1.15,
-  jet: 1,
-  propeller: 0.96,
-  rotorcraft: 0.95,
-  unknown: 0.92,
-};
 
 function createRadialTexture({
   color,
@@ -276,32 +273,6 @@ function getAircraftModelSource(aircraft: any) {
   );
 }
 
-function resolveAircraftMaterialColor({
-  aircraft,
-  phase,
-  selected,
-}: {
-  aircraft: any;
-  phase: string;
-  selected: boolean;
-}) {
-  if (selected) return phase === "night" ? "#fff5cf" : "#fff0ba";
-  if (aircraft?.onGround) return phase === "night" ? "#7c8797" : "#7d7768";
-  if (phase === "night") {
-    if (aircraft?.movement === DEPARTURE) return "#f3fbff";
-    if (aircraft?.movement === ARRIVAL) return "#e6f2ff";
-    return "#dcecff";
-  }
-  if (phase === "dusk" || phase === "sunset") {
-    if (aircraft?.movement === DEPARTURE) return "#cf9d6b";
-    if (aircraft?.movement === ARRIVAL) return "#9ab4bd";
-    return "#b79f7d";
-  }
-  if (aircraft?.movement === DEPARTURE) return "#9d8a68";
-  if (aircraft?.movement === ARRIVAL) return "#78929a";
-  return "#8d8372";
-}
-
 function resolveAircraftHeading(aircraft: any) {
   const track = Number(aircraft?.track);
   return Number.isFinite(track) ? track : 0;
@@ -326,30 +297,27 @@ function clearGroup(group: AircraftRenderGroup) {
   group.clear();
   group.userData.beaconMaterials = [];
   group.userData.lightMaterials = [];
+  group.userData.modelRoot = undefined;
   group.userData.shadow = undefined;
 }
 
 function createMeshMaterial({
-  aircraft,
   opacity,
   phase,
   selected,
 }: {
-  aircraft: any;
   opacity: number;
   phase: string;
   selected: boolean;
 }) {
-  const color = resolveAircraftMaterialColor({ aircraft, phase, selected });
-  const emissive =
-    phase === "night" ? (selected ? "#8c7344" : "#182235") : "#080604";
+  const profile = resolveAircraft3DMaterialProfile({ phase, selected });
   return new THREE.MeshStandardMaterial({
-    color,
-    emissive,
-    emissiveIntensity: phase === "night" ? (selected ? 0.42 : 0.2) : 0.05,
-    metalness: phase === "night" ? 0.22 : 0.34,
-    roughness: phase === "night" ? 0.48 : 0.42,
+    color: profile.color,
+    emissive: profile.emissive,
+    emissiveIntensity: profile.emissiveIntensity,
+    metalness: profile.metalness,
     opacity,
+    roughness: profile.roughness,
     transparent: opacity < 0.99,
   });
 }
@@ -383,6 +351,7 @@ function getAnchorPosition(
 }
 
 function addLightPoint({
+  glowScale,
   group,
   position,
   color,
@@ -390,6 +359,7 @@ function addLightPoint({
   radius,
   pulse = false,
 }: {
+  glowScale: number;
   group: AircraftRenderGroup;
   position: THREE.Vector3;
   color: string;
@@ -422,7 +392,7 @@ function addLightPoint({
     });
     const glow = new THREE.Sprite(glowMaterial);
     glow.position.copy(position);
-    glow.scale.set(radius * 12, radius * 12, 1);
+    glow.scale.set(radius * glowScale, radius * glowScale, 1);
     glow.renderOrder = 33;
     group.add(glow);
     group.userData.lightMaterials?.push(glowMaterial);
@@ -456,24 +426,21 @@ function addShadow(group: AircraftRenderGroup, template: AircraftModelTemplate, 
 function addBodyGlow({
   group,
   opacity,
-  phase,
-  selected,
+  profile,
   template,
 }: {
   group: AircraftRenderGroup;
   opacity: number;
-  phase: string;
-  selected: boolean;
+  profile?: ReturnType<typeof resolveAircraft3DMaterialProfile>;
   template: AircraftModelTemplate;
 }) {
   const texture = getLightGlowTexture();
   if (!texture) return;
-  const glowOpacity =
-    phase === "night" ? (selected ? 0.46 : 0.34) : selected ? 0.22 : 0.1;
+  if (!profile || profile.bodyGlowOpacity <= 0) return;
   const material = new THREE.SpriteMaterial({
-    color: phase === "night" ? "#b9ddff" : "#fff0cb",
+    color: profile.bodyGlowColor,
     map: texture,
-    opacity: glowOpacity * opacity,
+    opacity: profile.bodyGlowOpacity * opacity,
     transparent: true,
     depthWrite: false,
     depthTest: false,
@@ -482,7 +449,7 @@ function addBodyGlow({
   const glow = new THREE.Sprite(material);
   glow.position.set(0, 0, 0.6);
   glow.renderOrder = 15;
-  glow.scale.set(template.width * 1.42, template.height * 1.08, 1);
+  glow.scale.set(template.width * 0.62, template.height * 0.5, 1);
   group.add(glow);
 }
 
@@ -537,8 +504,16 @@ function buildModelGroup({
   const shadowOpacity = selected
     ? profile.shadowOpacity * 1.3
     : profile.shadowOpacity * 0.86;
+  const materialProfile =
+    resolveAircraft3DMaterialProfile({ phase, selected }) ||
+    resolveAircraft3DMaterialProfile({ phase: "day", selected });
   addShadow(group, template, shadowOpacity * opacity);
-  addBodyGlow({ group, opacity, phase, selected, template });
+  addBodyGlow({
+    group,
+    opacity,
+    profile: materialProfile,
+    template,
+  });
 
   if (
     shouldRenderAircraftContrail({
@@ -550,16 +525,23 @@ function buildModelGroup({
     addContrail(group, template, phase === "night" ? 0.48 : 0.38);
   }
 
-  const material = createMeshMaterial({ aircraft, opacity, phase, selected });
+  const material = createMeshMaterial({ opacity, phase, selected });
   const modelRoot = new THREE.Group();
-  modelRoot.rotation.x = THREE.MathUtils.degToRad(phase === "night" ? 24 : 30);
-  modelRoot.rotation.y = THREE.MathUtils.degToRad(selected ? -14 : -10);
+  const attitudeRotation = resolveAircraft3DAttitudeRotation({
+    phase,
+    pitch: group.userData.attitude?.pitch,
+    roll: group.userData.attitude?.roll,
+    selected,
+  });
+  modelRoot.rotation.x = THREE.MathUtils.degToRad(attitudeRotation.rotationXDeg);
+  modelRoot.rotation.y = THREE.MathUtils.degToRad(attitudeRotation.rotationYDeg);
   modelRoot.renderOrder = 20;
+  group.userData.modelRoot = modelRoot;
   const edgeMaterial = new THREE.LineBasicMaterial({
-    color: phase === "night" ? "#f5fbff" : "#554a3c",
+    color: materialProfile.edgeColor,
     depthTest: false,
     depthWrite: false,
-    opacity: selected ? 0.72 : phase === "night" ? 0.68 : 0.28,
+    opacity: materialProfile.edgeOpacity,
     transparent: true,
   });
   for (const geometry of template.geometries) {
@@ -580,9 +562,11 @@ function buildModelGroup({
   group.add(modelRoot);
 
   if (profile.navLightsVisible || selected) {
-    const lightOpacity = Math.min(1, profile.navLightIntensity * (selected ? 1.22 : 1));
-    const lightRadius = phase === "night" ? 1.45 : 1.08;
+    const lightOpacity = Math.min(1, profile.navLightIntensity * (selected ? 1.12 : 1));
+    const lightRadius = materialProfile.lightRadius;
+    const lightGlowScale = materialProfile.lightGlowScale;
     addLightPoint({
+      glowScale: lightGlowScale,
       group,
       position: getAnchorPosition(template, "leftWingTip", { x: 0.05, y: 0.52 }),
       color: "#ff4e4e",
@@ -590,6 +574,7 @@ function buildModelGroup({
       radius: lightRadius,
     });
     addLightPoint({
+      glowScale: lightGlowScale,
       group,
       position: getAnchorPosition(template, "rightWingTip", { x: 0.95, y: 0.52 }),
       color: "#50ff9b",
@@ -597,6 +582,7 @@ function buildModelGroup({
       radius: lightRadius,
     });
     addLightPoint({
+      glowScale: lightGlowScale,
       group,
       position: getAnchorPosition(template, "tailLight", { x: 0.5, y: 0.96 }),
       color: "#f6fbff",
@@ -604,6 +590,7 @@ function buildModelGroup({
       radius: lightRadius * 0.82,
     });
     addLightPoint({
+      glowScale: lightGlowScale,
       group,
       position: getAnchorPosition(template, "antiCollisionBeacon", { x: 0.5, y: 0.5 }, 3.8),
       color: "#ff6d4d",
@@ -666,16 +653,14 @@ async function refreshModelForGroup({
 
 function updateGroupScale(group: AircraftRenderGroup, aircraft: any, selected: boolean) {
   const template = group.userData.template || createFallbackTemplate();
-  const family = template.anchorRecord?.family || "unknown";
   const sizeScale = resolveAircraftSizeScale(aircraft);
-  const selectedBoost = selected ? 1.16 : 1;
-  const familyBoost = familySizeBoost[family] ?? 1;
-  const altitude = Number(aircraft?.altitude);
-  const altitudeBoost =
-    Number.isFinite(altitude) && altitude >= 30_000 ? 1.06 : 1;
-  const scalar =
-    (MODEL_BASE_SIZE_PX * sizeScale * selectedBoost * familyBoost * altitudeBoost) /
-    template.maxDimension;
+  const modelSizePx = resolveAircraft3DModelScalePx({
+    altitude: aircraft?.altitude,
+    family: template.anchorRecord?.family,
+    selected,
+    sizeScale,
+  });
+  const scalar = modelSizePx / template.maxDimension;
   group.scale.setScalar(scalar);
 }
 
@@ -697,6 +682,30 @@ function syncLighting(state: AircraftOverlayState, phase: string) {
   state.ambientLight.intensity = profile.ambientIntensity;
   state.keyLight.intensity = profile.keyLightIntensity;
   state.rimLight.intensity = profile.rimLightIntensity;
+}
+
+function updateGroupAttitude(group: AircraftRenderGroup, aircraft: any) {
+  if (!group.userData.attitudeTracker) {
+    group.userData.attitudeTracker = createAttitudeTracker();
+  }
+  group.userData.attitude = group.userData.attitudeTracker.update({
+    baroRate: aircraft?.baroRate,
+    time: Date.now(),
+    track: aircraft?.track,
+  });
+}
+
+function updateModelAttitude(group: AircraftRenderGroup) {
+  const modelRoot = group.userData.modelRoot;
+  if (!modelRoot) return;
+  const rotation = resolveAircraft3DAttitudeRotation({
+    phase: group.userData.phase || "day",
+    pitch: group.userData.attitude?.pitch,
+    roll: group.userData.attitude?.roll,
+    selected: Boolean(group.userData.selected),
+  });
+  modelRoot.rotation.x = THREE.MathUtils.degToRad(rotation.rotationXDeg);
+  modelRoot.rotation.y = THREE.MathUtils.degToRad(rotation.rotationYDeg);
 }
 
 function syncAircraftGroups({
@@ -742,6 +751,7 @@ function syncAircraftGroups({
     group.userData.phase = immersivePhase || "day";
     group.userData.selected = selected;
     group.visible = emphasis.opacity > 0.03;
+    updateGroupAttitude(group, item);
 
     const motion = state.motions.get(id);
     const visualPosition = motion
@@ -771,6 +781,7 @@ function syncAircraftGroups({
   for (const [id, group] of state.groups.entries()) {
     if (ids.has(id)) continue;
     clearGroup(group);
+    group.userData.attitudeTracker?.reset();
     state.scene.remove(group);
     state.groups.delete(id);
     state.motions.delete(id);
@@ -803,6 +814,7 @@ function renderFrame(state: AircraftOverlayState) {
     group.position.set(point.x, point.y, 0);
     group.rotation.z = THREE.MathUtils.degToRad(resolveAircraftHeading(aircraft));
     updateGroupScale(group, aircraft, Boolean(group.userData.selected));
+    updateModelAttitude(group);
     updateShadow(group, aircraft, group.userData.phase || "day");
 
     const pulse = 0.62 + Math.sin(now / 180) * 0.38;
