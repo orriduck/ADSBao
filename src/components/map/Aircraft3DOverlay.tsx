@@ -43,6 +43,7 @@ type Aircraft3DOverlayProps = {
   selectedAircraftId?: string;
   immersiveModeActive?: boolean;
   immersivePhase?: string;
+  immersiveLocalMinutes?: unknown;
   mapInstance?: any;
   trafficFilter?: string;
   typeFilter?: string;
@@ -351,17 +352,9 @@ function createMeshMaterial({
   selected: boolean;
 }) {
   const profile = resolveAircraft3DMaterialProfile({ phase, selected });
-  if (phase !== "night") {
-    return new THREE.MeshBasicMaterial({
-      color: profile.color,
-      depthWrite: false,
-      opacity,
-      toneMapped: false,
-      transparent: opacity < 0.99,
-    });
-  }
   return new THREE.MeshStandardMaterial({
     color: profile.color,
+    depthWrite: false,
     emissive: profile.emissive,
     emissiveIntensity: profile.emissiveIntensity,
     metalness: profile.metalness,
@@ -635,6 +628,7 @@ function addShadow(group: AircraftRenderGroup, template: AircraftModelTemplate, 
 function addLandingLights({
   aircraft,
   group,
+  localMinutes,
   materialProfile,
   opacity,
   phase,
@@ -644,6 +638,7 @@ function addLandingLights({
 }: {
   aircraft: any;
   group: AircraftRenderGroup;
+  localMinutes?: unknown;
   materialProfile: ReturnType<typeof resolveAircraft3DMaterialProfile>;
   opacity: number;
   phase: string;
@@ -654,6 +649,7 @@ function addLandingLights({
   if (!profile.landingLightsVisible && !selected) return;
   const operationalIntensity = resolveAircraft3DLandingLightIntensity({
     altitude: aircraft?.altitude,
+    localMinutes,
     onGround: aircraft?.onGround,
     phase,
     selected,
@@ -786,6 +782,7 @@ function addContrail(group: AircraftRenderGroup, template: AircraftModelTemplate
 function buildModelGroup({
   aircraft,
   group,
+  localMinutes,
   opacity,
   phase,
   profile,
@@ -794,6 +791,7 @@ function buildModelGroup({
 }: {
   aircraft: any;
   group: AircraftRenderGroup;
+  localMinutes?: unknown;
   opacity: number;
   phase: string;
   profile: ReturnType<typeof resolveAircraft3DLightingProfile>;
@@ -821,6 +819,7 @@ function buildModelGroup({
   addLandingLights({
     aircraft,
     group,
+    localMinutes,
     materialProfile,
     opacity,
     phase,
@@ -937,6 +936,7 @@ function buildModelGroup({
 async function refreshModelForGroup({
   aircraft,
   group,
+  localMinutes,
   opacity,
   phase,
   profile,
@@ -944,6 +944,7 @@ async function refreshModelForGroup({
 }: {
   aircraft: any;
   group: AircraftRenderGroup;
+  localMinutes?: unknown;
   opacity: number;
   phase: string;
   profile: ReturnType<typeof resolveAircraft3DLightingProfile>;
@@ -959,6 +960,7 @@ async function refreshModelForGroup({
     source.name,
     phase,
     selected ? "selected" : "normal",
+    localMinutes == null ? "" : String(Math.round(Number(localMinutes) || 0)),
     aircraft?.onGround ? "ground" : "air",
     aircraft?.movement || "",
     contrail ? "contrail" : "clean",
@@ -971,6 +973,7 @@ async function refreshModelForGroup({
     buildModelGroup({
       aircraft,
       group,
+      localMinutes,
       opacity,
       phase,
       profile,
@@ -980,7 +983,16 @@ async function refreshModelForGroup({
   }
   const template = await loadAircraftModelTemplate(source.name, source.src);
   if (group.userData.pendingModelSignature !== signature) return;
-  buildModelGroup({ aircraft, group, opacity, phase, profile, selected, template });
+  buildModelGroup({
+    aircraft,
+    group,
+    localMinutes,
+    opacity,
+    phase,
+    profile,
+    selected,
+    template,
+  });
   group.userData.modelSignature = signature;
 }
 
@@ -1051,6 +1063,7 @@ function updateModelAttitude(group: AircraftRenderGroup) {
 function syncAircraftGroups({
   aircraft,
   altitudeLevel,
+  immersiveLocalMinutes,
   immersivePhase,
   selectedAircraftId,
   state,
@@ -1111,6 +1124,7 @@ function syncAircraftGroups({
     refreshModelForGroup({
       aircraft: item,
       group,
+      localMinutes: immersiveLocalMinutes,
       opacity: emphasis.opacity,
       phase: immersivePhase || "day",
       profile: state.profile,
@@ -1170,6 +1184,7 @@ export default function Aircraft3DOverlay({
   selectedAircraftId = "",
   immersiveModeActive = false,
   immersivePhase = "day",
+  immersiveLocalMinutes = null,
   mapInstance = null,
   trafficFilter = "all",
   typeFilter = "all",
@@ -1254,6 +1269,7 @@ export default function Aircraft3DOverlay({
       aircraft,
       altitudeLevel,
       immersiveModeActive,
+      immersiveLocalMinutes,
       immersivePhase,
       selectedAircraftId,
       state,
@@ -1264,6 +1280,7 @@ export default function Aircraft3DOverlay({
     aircraft,
     altitudeLevel,
     immersiveModeActive,
+    immersiveLocalMinutes,
     immersivePhase,
     selectedAircraftId,
     trafficFilter,

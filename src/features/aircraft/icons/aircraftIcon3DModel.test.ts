@@ -111,6 +111,20 @@ assert.ok(
 );
 assert.ok(
   resolveAircraft3DLandingLightIntensity({
+    altitude: 2_900,
+    localMinutes: 20 * 60 + 59,
+    phase: "dusk",
+  }) < 0.35,
+);
+assert.ok(
+  resolveAircraft3DLandingLightIntensity({
+    altitude: 2_900,
+    localMinutes: 21 * 60,
+    phase: "dusk",
+  }) > 0.85,
+);
+assert.ok(
+  resolveAircraft3DLandingLightIntensity({
     altitude: 41_000,
     phase: "night",
   }) < 0.08,
@@ -126,6 +140,8 @@ assert.ok(nightLighting.navLightIntensity > 1.2);
 assert.ok(relativeLuminance(dayMaterial.color) > 0.8);
 assert.ok(relativeLuminance(sunsetMaterial.color) > 0.74);
 assert.ok(relativeLuminance(duskMaterial.color) > 0.7);
+assert.ok(relativeLuminance(duskMaterial.color) < relativeLuminance(dayMaterial.color));
+assert.ok(colorDistance(dayMaterial.color, duskMaterial.color) > 25);
 assert.ok(dayMaterial.edgeOpacity <= 0.16);
 assert.ok(sunsetMaterial.edgeOpacity <= 0.2);
 assert.ok(nightMaterial.edgeOpacity <= 0.22);
@@ -191,4 +207,21 @@ function relativeLuminance(hex: string) {
     Number.parseInt(normalized.slice(start, start + 2), 16) / 255,
   );
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function colorDistance(left: string, right: string) {
+  const leftRgb = rgb(left);
+  const rightRgb = rgb(right);
+  return Math.hypot(
+    leftRgb[0] - rightRgb[0],
+    leftRgb[1] - rightRgb[1],
+    leftRgb[2] - rightRgb[2],
+  );
+}
+
+function rgb(hex: string) {
+  const normalized = hex.replace("#", "");
+  return [0, 2, 4].map((start) =>
+    Number.parseInt(normalized.slice(start, start + 2), 16),
+  );
 }

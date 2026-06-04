@@ -540,6 +540,11 @@
     --aviation-runway-annotation-line: #1a1a18;
     --aviation-runway-approach-line: rgba(26,26,24,0.62);
     --aviation-runway-approach-beam: #2f2f2b;
+    --aviation-runway-light-core: #fff0a8;
+    --aviation-runway-light: #ffd36a;
+    --aviation-runway-light-glow: rgba(255, 207, 93, 0.36);
+    --aviation-runway-night-line: rgba(255, 211, 106, 0.48);
+    --aviation-runway-night-beam: #ffd36a;
     --aviation-nearby-runway-line: #24231f;
     --aircraft-trace-line: var(--aviation-trace-line);
     --aircraft-trace-glow: var(--aviation-trace-glow);
@@ -547,6 +552,11 @@
     --runway-annotation-line: var(--aviation-runway-annotation-line);
     --runway-approach-line: var(--aviation-runway-approach-line);
     --runway-approach-beam: var(--aviation-runway-approach-beam);
+    --runway-light-core: var(--aviation-runway-light-core);
+    --runway-light: var(--aviation-runway-light);
+    --runway-light-glow: var(--aviation-runway-light-glow);
+    --runway-night-line: var(--aviation-runway-night-line);
+    --runway-night-beam: var(--aviation-runway-night-beam);
     --nearby-runway-line: var(--aviation-nearby-runway-line);
 
     /* Single grey for every aircraft regardless of departure/arrival —
@@ -1286,11 +1296,23 @@ body {
     mix-blend-mode: screen;
 }
 
+.runway-light-dot {
+    filter:
+        drop-shadow(0 0 1.5px var(--runway-light-glow))
+        drop-shadow(0 0 4px var(--runway-light-glow));
+    mix-blend-mode: screen;
+}
+
 :root[data-theme="light"] .runway-approach-beam,
 :root[data-theme="sunrise"] .runway-approach-beam,
 :root[data-theme="sunset"] .runway-approach-beam {
     filter: blur(2.4px);
     mix-blend-mode: multiply;
+}
+
+.airport-map-stage[data-map-mode="immersive"] .runway-approach-beam {
+    filter: blur(3.2px);
+    mix-blend-mode: screen;
 }
 
 /* Light-theme approach: dashed extended centerline replaces the dark
@@ -3264,6 +3286,12 @@ body {
         0 1px 2px rgb(0 0 0 / 0.72),
         0 0 8px rgb(0 0 0 / 0.82),
         0 0 14px rgb(23 37 67 / 0.58);
+}
+
+:root[data-theme="sunrise"] .airport-map-stage[data-map-mode="immersive"] .aircraft-label,
+.airport-map-stage[data-map-mode="immersive"][data-immersive-phase] .aircraft-label,
+.airport-map-stage[data-map-mode="immersive"] .aircraft-label {
+    text-shadow: none;
 }
 
 :root[data-theme="sunrise"] .aircraft-nose-beam {
