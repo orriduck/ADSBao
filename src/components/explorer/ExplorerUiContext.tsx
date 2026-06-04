@@ -18,12 +18,12 @@ import {
   MAP_LAYER_KEYS,
   MAP_MODE_IDS,
   buildCustomMapSettings,
-  buildMapSettingsFromLayerState,
   buildPresetMapSettings,
   isSelectableMapModeId,
   mapSettingsToExplorerLayers,
   mapSettingsToUserLocationPreferences,
   normalizeMapSettings,
+  resolveMapSettingsHydration,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
   readStoredMapSettings,
@@ -322,9 +322,7 @@ export function ExplorerUiProvider({ children }) {
   const immersiveModeEnabled = immersiveModeFeature.enabled;
   const hasHydratedMapSettingsRef = useRef(false);
   const persistedMapSettingsRef = useRef("");
-  const [savedMapSettings, setSavedMapSettings] = useState<Record<string, any> | null>(null);
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
-  const [mapSettingsRestoreStatus, setMapSettingsRestoreStatus] = useState("idle");
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
     initialUiState,
@@ -374,7 +372,9 @@ export function ExplorerUiProvider({ children }) {
 
     const hydrateMapSettings = async () => {
       hasHydratedMapSettingsRef.current = false;
-      let nextSettings = null;
+      setMapSettingsSaveStatus("idle");
+      const cachedSettings = readStoredMapSettings(options);
+      let userSettings = null;
 
       if (isSignedIn) {
         try {
@@ -383,42 +383,37 @@ export function ExplorerUiProvider({ children }) {
           });
           if (response.ok) {
             const payload = await response.json();
-            nextSettings = payload?.settings
+            userSettings = payload?.settings
               ? normalizeMapSettings(payload.settings, options)
               : null;
           }
         } catch {
-          nextSettings = null;
+          userSettings = null;
         }
-      } else {
-        const storedSettings = readStoredMapSettings();
-        nextSettings = storedSettings
-          ? normalizeMapSettings(storedSettings, options)
-          : null;
       }
 
       if (cancelled) return;
-      if (isSignedIn) {
-        setSavedMapSettings(nextSettings);
-        persistedMapSettingsRef.current = nextSettings
-          ? JSON.stringify(nextSettings)
-          : "";
-        if (nextSettings) {
-          dispatch({
-            type: "hydrateMapSettings",
-            settings: nextSettings,
-            immersiveModeEnabled,
-          });
-        }
-      } else if (nextSettings) {
+      const hydratedSettings = resolveMapSettingsHydration({
+        signedIn: isSignedIn,
+        userSettings,
+        cachedSettings,
+        immersiveModeEnabled,
+      });
+      if (hydratedSettings.settings) {
         dispatch({
           type: "hydrateMapSettings",
-          settings: nextSettings,
+          settings: hydratedSettings.settings,
           immersiveModeEnabled,
         });
-        persistedMapSettingsRef.current = JSON.stringify(nextSettings);
-      } else {
+      }
+
+      const effectiveSettings = hydratedSettings.settings
+        ? hydratedSettings.settings
+        : normalizeMapSettings(DEFAULT_MAP_SETTINGS, options);
+      if (isSignedIn && hydratedSettings.source === "cache") {
         persistedMapSettingsRef.current = "";
+      } else {
+        persistedMapSettingsRef.current = JSON.stringify(effectiveSettings);
       }
       hasHydratedMapSettingsRef.current = true;
     };
@@ -436,90 +431,72 @@ export function ExplorerUiProvider({ children }) {
   ]);
 
   useEffect(() => {
-    if (!isLoaded || !hasHydratedMapSettingsRef.current) return undefined;
-    if (isSignedIn) return undefined;
+    if (
+      !isLoaded ||
+      !immersiveModeFeature.resolved ||
+      !hasHydratedMapSettingsRef.current
+    ) {
+      return undefined;
+    }
     const nextSettings = normalizeMapSettings(mapSettings, {
       immersiveModeEnabled,
     });
     const serialized = JSON.stringify(nextSettings);
     if (serialized === persistedMapSettingsRef.current) return undefined;
 
-    writeStoredMapSettings(nextSettings);
-    persistedMapSettingsRef.current = serialized;
-    return undefined;
-  }, [immersiveModeEnabled, isLoaded, isSignedIn, mapSettings]);
+    if (!isSignedIn) {
+      writeStoredMapSettings(nextSettings, { immersiveModeEnabled });
+      persistedMapSettingsRef.current = serialized;
+      return undefined;
+    }
 
-  const saveMapSettings = useCallback(async (options: Record<string, any> = {}) => {
-    if (!isLoaded || !isSignedIn) return null;
-    const nextSettings = normalizeMapSettings(
-      options?.layers
-        ? buildMapSettingsFromLayerState({
-            settings: mapSettings,
-            layers: options.layers,
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(async () => {
+      setMapSettingsSaveStatus("saving");
+      try {
+        const response = await fetch("/api/map-settings", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ settings: nextSettings }),
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("save failed");
+        const payload = await response.json();
+        const savedSettings = payload?.settings
+          ? normalizeMapSettings(payload.settings, { immersiveModeEnabled })
+          : nextSettings;
+        const savedSerialized = JSON.stringify(savedSettings);
+        if (cancelled) return;
+        persistedMapSettingsRef.current = savedSerialized;
+        if (savedSerialized !== serialized) {
+          dispatch({
+            type: "hydrateMapSettings",
+            settings: savedSettings,
             immersiveModeEnabled,
-          })
-        : mapSettings,
-      { immersiveModeEnabled },
-    );
-    setMapSettingsSaveStatus("saving");
-    try {
-      const response = await fetch("/api/map-settings", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ settings: nextSettings }),
-      });
-      if (!response.ok) throw new Error("save failed");
-      const payload = await response.json();
-      const savedSettings = payload?.settings
-        ? normalizeMapSettings(payload.settings, { immersiveModeEnabled })
-        : nextSettings;
-      setSavedMapSettings(savedSettings);
-      persistedMapSettingsRef.current = JSON.stringify(savedSettings);
-      dispatch({
-        type: "hydrateMapSettings",
-        settings: savedSettings,
-        immersiveModeEnabled,
-      });
-      setMapSettingsSaveStatus("saved");
-      return savedSettings;
-    } catch {
-      setMapSettingsSaveStatus("error");
-      return null;
-    }
-  }, [immersiveModeEnabled, isLoaded, isSignedIn, mapSettings]);
-
-  const restoreMapSettings = useCallback(async () => {
-    if (!isLoaded || !isSignedIn) return null;
-    setMapSettingsRestoreStatus("restoring");
-    try {
-      const response = await fetch("/api/map-settings", {
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("restore failed");
-      const payload = await response.json();
-      const restoredSettings = payload?.settings
-        ? normalizeMapSettings(payload.settings, { immersiveModeEnabled })
-        : savedMapSettings;
-      if (!restoredSettings) {
-        setMapSettingsRestoreStatus("empty");
-        return null;
+          });
+        }
+        setMapSettingsSaveStatus("saved");
+      } catch (error: any) {
+        if (cancelled || error?.name === "AbortError") return;
+        setMapSettingsSaveStatus("error");
       }
-      setSavedMapSettings(restoredSettings);
-      persistedMapSettingsRef.current = JSON.stringify(restoredSettings);
-      dispatch({
-        type: "hydrateMapSettings",
-        settings: restoredSettings,
-        immersiveModeEnabled,
-      });
-      setMapSettingsRestoreStatus("restored");
-      return restoredSettings;
-    } catch {
-      setMapSettingsRestoreStatus("error");
-      return null;
-    }
-  }, [immersiveModeEnabled, isLoaded, isSignedIn, savedMapSettings]);
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [
+    immersiveModeEnabled,
+    immersiveModeFeature.resolved,
+    isLoaded,
+    isSignedIn,
+    mapSettings,
+  ]);
 
   const toggleSidebar = useCallback(() => {
     dispatch({ type: "toggleSidebar" });
@@ -654,9 +631,7 @@ export function ExplorerUiProvider({ children }) {
       userLocationEnabled,
       userLocationAudioEnabled,
       mapSettings,
-      savedMapSettings,
       mapSettingsSaveStatus,
-      mapSettingsRestoreStatus,
       immersiveModeActive,
       immersiveModeEnabled,
       trafficFilter,
@@ -683,8 +658,6 @@ export function ExplorerUiProvider({ children }) {
       toggleCandidateWatchingSpots,
       applyMapMode,
       setUserLocationPreferences,
-      saveMapSettings,
-      restoreMapSettings,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,
@@ -711,9 +684,7 @@ export function ExplorerUiProvider({ children }) {
       userLocationEnabled,
       userLocationAudioEnabled,
       mapSettings,
-      savedMapSettings,
       mapSettingsSaveStatus,
-      mapSettingsRestoreStatus,
       immersiveModeActive,
       immersiveModeEnabled,
       trafficFilter,
@@ -740,8 +711,6 @@ export function ExplorerUiProvider({ children }) {
       toggleCandidateWatchingSpots,
       applyMapMode,
       setUserLocationPreferences,
-      saveMapSettings,
-      restoreMapSettings,
       selectAircraft,
       setSelectedAircraftId,
       selectAirport,

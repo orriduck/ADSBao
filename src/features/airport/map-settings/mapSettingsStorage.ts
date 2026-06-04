@@ -7,23 +7,23 @@ import {
 
 const MAP_SETTINGS_STORAGE_KEY = "adsbao:airport-map-settings:v1";
 
-export function readStoredMapSettings() {
+export function readStoredMapSettings(options = {}) {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(MAP_SETTINGS_STORAGE_KEY);
     if (!raw) return null;
-    return normalizeMapSettings(JSON.parse(raw));
+    return normalizeMapSettings(JSON.parse(raw), options);
   } catch {
     return null;
   }
 }
 
-export function writeStoredMapSettings(settings = DEFAULT_MAP_SETTINGS) {
+export function writeStoredMapSettings(settings = DEFAULT_MAP_SETTINGS, options = {}) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(
       MAP_SETTINGS_STORAGE_KEY,
-      JSON.stringify(normalizeMapSettings(settings)),
+      JSON.stringify(normalizeMapSettings(settings, options)),
     );
   } catch {
     // Browser storage can be unavailable; the current in-memory settings still apply.

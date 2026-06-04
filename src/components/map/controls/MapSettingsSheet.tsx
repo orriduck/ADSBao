@@ -6,7 +6,6 @@ import {
   MAP_MODE_IDS,
   CUSTOM_MAP_MODE_OPTION,
   DISABLED_MAP_MODE_IDS,
-  explorerLayerStateToMapSettingsLayers,
   getSelectableMapModeOptions,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
@@ -92,12 +91,8 @@ export default function MapSettingsSheet({
   onToggleCandidateWatchingSpots,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
-  savedMapSettings = null,
   mapSettingsSaveStatus = "idle",
-  mapSettingsRestoreStatus = "idle",
   immersiveModeEnabled = false,
-  onSaveMapSettings = null,
-  onRestoreMapSettings = null,
 }) {
   const { t } = useI18n();
   const { isLoaded, isSignedIn } = useUser();
@@ -128,26 +123,12 @@ export default function MapSettingsSheet({
     : t("mapLayers.disableUserLocationAudio");
   const showGuestPrompt = isLoaded && !isSignedIn;
   const showSignedInPersistence = isLoaded && isSignedIn;
-  const hasSavedMapSettings = Boolean(savedMapSettings);
-  const saving = mapSettingsSaveStatus === "saving";
-  const restoring = mapSettingsRestoreStatus === "restoring";
-  const handleSaveMapSettings = async () => {
-    if (saving || !onSaveMapSettings) return;
-    const savedSettings = await onSaveMapSettings({
-      layers: explorerLayerStateToMapSettingsLayers({
-        showMapLabels,
-        showRunwayBeams: showBeams,
-        showNavaidMarkers,
-        showAirspaces,
-        showCandidateWatchingSpots,
-        userLocationActive,
-        userLocationAudioActive,
-      }),
-    });
-    if (savedSettings) {
-      onOpenChange?.(false);
-    }
-  };
+  const signedInPersistenceKey =
+    mapSettingsSaveStatus === "saving"
+      ? "mapSettings.savingSettings"
+      : mapSettingsSaveStatus === "error"
+        ? "mapSettings.saveError"
+        : "mapSettings.savedSettingsAvailable";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -380,42 +361,17 @@ export default function MapSettingsSheet({
           ) : null}
 
           {showSignedInPersistence ? (
-            <div className="border-t border-[var(--atc-line)] px-5 py-4">
-              <div className="mb-3 text-[12px] leading-relaxed text-atc-muted">
-                {hasSavedMapSettings
-                  ? t("mapSettings.savedSettingsAvailable")
-                  : t("mapSettings.noSavedSettings")}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  className={cn(
-                    "min-h-10 rounded-[8px] border border-[var(--atc-line)] px-3 text-[12px] font-semibold",
-                    "text-atc-text transition hover:border-[var(--atc-line-strong)] hover:bg-[var(--atc-control-hover-bg)]",
-                    "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[var(--atc-line)] disabled:hover:bg-transparent",
-                  )}
-                  disabled={!hasSavedMapSettings || restoring || !onRestoreMapSettings}
-                  onClick={onRestoreMapSettings}
-                >
-                  {restoring
-                    ? t("mapSettings.restoringSettings")
-                    : t("mapSettings.restoreSettings")}
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    "min-h-10 rounded-[8px] border border-[var(--atc-click-bg)] px-3 text-[12px] font-semibold",
-                    "bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)] transition",
-                    "hover:shadow-[var(--atc-control-active-shadow-strong)] disabled:cursor-not-allowed disabled:opacity-55",
-                  )}
-                  disabled={saving || !onSaveMapSettings}
-                  onClick={handleSaveMapSettings}
-                >
-                  {saving
-                    ? t("mapSettings.savingSettings")
-                    : t("mapSettings.saveSettings")}
-                </button>
-              </div>
+            <div
+              className={cn(
+                "border-t border-[var(--atc-line)] px-5 py-4 text-[12px] leading-relaxed",
+                mapSettingsSaveStatus === "error"
+                  ? "text-[var(--atc-interaction-danger)]"
+                  : "text-atc-muted",
+              )}
+              role="status"
+              aria-live="polite"
+            >
+              {t(signedInPersistenceKey)}
             </div>
           ) : null}
         </div>

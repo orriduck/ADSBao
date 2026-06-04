@@ -10,6 +10,7 @@ import {
   mapSettingsToExplorerLayers,
   mergeMapSettings,
   normalizeMapSettings,
+  resolveMapSettingsHydration,
 } from "./mapSettingsModel";
 
 {
@@ -194,6 +195,69 @@ import {
     ).selectedMode,
     MAP_MODE_IDS.IMMERSIVE,
   );
+}
+
+{
+  const hydrated = resolveMapSettingsHydration({
+    signedIn: true,
+    userSettings: {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+    cachedSettings: {
+      selectedMode: MAP_MODE_IDS.IMMERSIVE,
+      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      hasSelectedMode: true,
+    },
+    immersiveModeEnabled: true,
+  });
+
+  assert.equal(
+    hydrated.source,
+    "user",
+    "signed-in hydration should prefer the account-backed settings",
+  );
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.RADIO);
+}
+
+{
+  const hydrated = resolveMapSettingsHydration({
+    signedIn: true,
+    userSettings: null,
+    cachedSettings: {
+      selectedMode: MAP_MODE_IDS.IMMERSIVE,
+      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      hasSelectedMode: true,
+    },
+    immersiveModeEnabled: true,
+  });
+
+  assert.equal(
+    hydrated.source,
+    "cache",
+    "signed-in hydration should only fall back to cache when no user settings exist",
+  );
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+}
+
+{
+  const hydrated = resolveMapSettingsHydration({
+    signedIn: false,
+    userSettings: {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+    cachedSettings: {
+      selectedMode: MAP_MODE_IDS.SPOTTING,
+      baseMode: MAP_MODE_IDS.SPOTTING,
+      hasSelectedMode: true,
+    },
+  });
+
+  assert.equal(hydrated.source, "cache");
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.SPOTTING);
 }
 
 {

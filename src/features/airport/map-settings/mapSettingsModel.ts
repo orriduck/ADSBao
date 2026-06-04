@@ -212,6 +212,29 @@ export function normalizeMapSettings(
   };
 }
 
+export function resolveMapSettingsHydration({
+  signedIn = false,
+  userSettings = null,
+  cachedSettings = null,
+  immersiveModeEnabled = false,
+}: MapSettingsOptions = {}) {
+  const options = { immersiveModeEnabled };
+  const normalizedUserSettings = userSettings
+    ? normalizeMapSettings(userSettings, options)
+    : null;
+  const normalizedCachedSettings = cachedSettings
+    ? normalizeMapSettings(cachedSettings, options)
+    : null;
+
+  if (signedIn && normalizedUserSettings) {
+    return { source: "user", settings: normalizedUserSettings };
+  }
+  if (normalizedCachedSettings) {
+    return { source: "cache", settings: normalizedCachedSettings };
+  }
+  return { source: "empty", settings: null };
+}
+
 function hasOwnSetting(settings: MapSettingsRecord, key: string) {
   return Object.prototype.hasOwnProperty.call(settings || {}, key);
 }
