@@ -20,7 +20,7 @@ const user = {
     featureFlagsRepository: {
       async readFlagsByEmail(email, options) {
         calls.push({ type: "flags", email, options });
-        return { flags: { immersiveModeEnabled: true } };
+        throw new Error("immersive mode should not read feature flags");
       },
     },
     repository: {
@@ -40,14 +40,9 @@ const user = {
   assert.equal(settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
   assert.deepEqual(calls, [
     {
-      type: "flags",
-      email: "owner@example.com",
-      options: { environment: "preview" },
-    },
-    {
       type: "settings",
       email: "owner@example.com",
-      options: { immersiveModeEnabled: true },
+      options: undefined,
     },
   ]);
 }
@@ -59,7 +54,7 @@ const user = {
     env: { VERCEL_ENV: "preview" },
     featureFlagsRepository: {
       async readFlagsByEmail() {
-        return { flags: { immersiveModeEnabled: true } };
+        throw new Error("immersive mode should not read feature flags");
       },
     },
     repository: {
@@ -76,7 +71,7 @@ const user = {
   });
 
   assert.equal(calls[0].email, "owner@example.com");
-  assert.equal(calls[0].immersiveModeEnabled, true);
+  assert.equal("immersiveModeEnabled" in calls[0], false);
   assert.equal(calls[0].settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
 }
 

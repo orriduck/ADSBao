@@ -28,7 +28,6 @@ export default function MapControlBar({
   userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
-  immersiveModeEnabled = false,
   showSidebarToggle = true,
   onZoom,
   onToggleMapLabels,
@@ -90,7 +89,6 @@ export default function MapControlBar({
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
-        immersiveModeEnabled={immersiveModeEnabled}
         onSelectMapMode={onSelectMapMode}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}

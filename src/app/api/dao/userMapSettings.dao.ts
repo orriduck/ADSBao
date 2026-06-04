@@ -36,9 +36,6 @@ function createUserMapSettingsRepository({
       const normalizedEnvironment = normalizeFeatureFlagEnvironment(
         options.environment || defaultEnvironment,
       );
-      const settingsOptions = {
-        immersiveModeEnabled: options.immersiveModeEnabled === true,
-      };
 
       const { data, error } = await client
         .from(USER_MAP_SETTINGS_TABLE)
@@ -58,7 +55,7 @@ function createUserMapSettingsRepository({
         settings: normalizeMapSettings({
           ...data.settings,
           hasSelectedMode: data.has_selected_mode,
-        }, settingsOptions),
+        }),
         updatedAt: data.updated_at || "",
       };
     },
@@ -66,7 +63,6 @@ function createUserMapSettingsRepository({
     async upsertSettingsByEmail({
       email,
       environment,
-      immersiveModeEnabled,
       settings,
     }: UserMapSettingsRecord = {}) {
       const normalizedEmail = normalizeUserEmail(email);
@@ -76,12 +72,10 @@ function createUserMapSettingsRepository({
       );
       const existingRow = await this.readSettingsByEmail(normalizedEmail, {
         environment: normalizedEnvironment,
-        immersiveModeEnabled,
       });
       const normalizedSettings = mergeMapSettings({
         settings: existingRow?.settings || DEFAULT_MAP_SETTINGS,
         updates: settings,
-        immersiveModeEnabled: immersiveModeEnabled === true,
       });
       const updatedAt = normalizedSettings.updatedAt || new Date().toISOString();
 
@@ -113,7 +107,7 @@ function createUserMapSettingsRepository({
         settings: normalizeMapSettings({
           ...data.settings,
           hasSelectedMode: data.has_selected_mode,
-        }, { immersiveModeEnabled: immersiveModeEnabled === true }),
+        }),
         updatedAt: data.updated_at || "",
       };
     },

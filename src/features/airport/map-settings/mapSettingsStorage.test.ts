@@ -29,18 +29,12 @@ try {
       baseMode: MAP_MODE_IDS.IMMERSIVE,
       hasSelectedMode: true,
     },
-    { immersiveModeEnabled: true },
   );
 
   assert.equal(
-    readStoredMapSettings({ immersiveModeEnabled: true })?.selectedMode,
+    readStoredMapSettings()?.selectedMode,
     MAP_MODE_IDS.IMMERSIVE,
-    "cache should preserve immersive settings when the feature is enabled",
-  );
-  assert.equal(
-    readStoredMapSettings({ immersiveModeEnabled: false })?.selectedMode,
-    MAP_MODE_IDS.CONTROLLER,
-    "cache should still normalize unsupported immersive settings away",
+    "cache should preserve immersive settings without a feature flag",
   );
 } finally {
   if (typeof originalWindow === "undefined") {

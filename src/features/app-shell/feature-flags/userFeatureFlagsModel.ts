@@ -1,6 +1,5 @@
 export const FEATURE_FLAGS = Object.freeze({
   FLIGHTAWARE_ENABLED: "flightAwareEnabled",
-  IMMERSIVE_MODE_ENABLED: "immersiveModeEnabled",
 });
 
 const FEATURE_FLAG_ENVIRONMENTS = Object.freeze({
@@ -60,22 +59,4 @@ export function normalizeFeatureFlags(flags: unknown) {
 
 export function isFeatureFlagEnabled(flags: unknown, flagKey: string) {
   return normalizeFeatureFlags(flags)[flagKey] === true;
-}
-
-export function isImmersiveModeEnabled(flags: unknown) {
-  return isFeatureFlagEnabled(flags, FEATURE_FLAGS.IMMERSIVE_MODE_ENABLED);
-}
-
-const VERCEL_GIT_PREVIEW_HOST_PATTERN =
-  /^adsbao-git-[a-z0-9-]+-orriduck\.vercel\.app$/i;
-
-export function isPreviewImmersiveModeOverrideEnabled(locationLike: {
-  hostname?: unknown;
-  search?: unknown;
-} = {}) {
-  const hostname = String(locationLike.hostname || "").trim().toLowerCase();
-  if (!VERCEL_GIT_PREVIEW_HOST_PATTERN.test(hostname)) return false;
-
-  const search = String(locationLike.search || "").replace(/^\?/, "");
-  return new URLSearchParams(search).get("qaImmersive") === "1";
 }
