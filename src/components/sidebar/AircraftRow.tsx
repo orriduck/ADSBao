@@ -9,6 +9,7 @@ import {
   getFlightRouteAirlineIconUrl,
 } from "../../utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { formatFlightTelemetryMetric } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
 
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
 // stamped broken-image icons in dense list rows when the logo isn't
@@ -47,7 +48,13 @@ export default function AircraftRow({
     routeMunicipalities && routeMunicipalities !== route,
   );
   const distValue = toNumber(aircraft.distanceNm);
-  const altValue = toNumber(aircraft.altitude);
+  const altitudeDisplay = formatFlightTelemetryMetric({
+    metric: "altitude",
+    value: aircraft.altitude,
+    onGround: aircraft.onGround,
+    flightPositionSource: aircraft.flight_position_source,
+    positionQuality: aircraft.positionQuality,
+  });
 
   return (
     <button
@@ -82,10 +89,13 @@ export default function AircraftRow({
       <div className="aircraft-table-cell aircraft-table-cell--altitude text-right font-mono text-[12px] font-semibold text-atc-text">
         {aircraft.onGround ? (
           <span>{t("aircraft.gnd")}</span>
-        ) : altValue == null ? (
+        ) : !altitudeDisplay ? (
           <span>-</span>
         ) : (
-          <NumberWithUnit value={Math.round(altValue)} unit="FT" />
+          <NumberWithUnit
+            value={altitudeDisplay.value}
+            unit={altitudeDisplay.suffix.toUpperCase()}
+          />
         )}
       </div>
     </button>
