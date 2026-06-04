@@ -35,6 +35,12 @@ type VisibleAircraftOptions = AirportGroundFilterOptions & {
   zoom?: unknown;
 };
 
+type SelectedAircraftTraceOptions = {
+  selectedAircraftId?: unknown;
+  selectedAircraft?: unknown;
+  immersiveModeActive?: boolean;
+};
+
 export const isLightMapTheme = (theme: unknown) =>
   theme === "light";
 
@@ -65,6 +71,13 @@ export const resolveNearbyAirportLayerDisplay = ({
   showAirportBadges: !immersiveModeActive,
   showRunwayBadges: false,
 });
+
+export const shouldRenderSelectedAircraftTrace = ({
+  selectedAircraftId = "",
+  selectedAircraft = null,
+  immersiveModeActive = false,
+}: SelectedAircraftTraceOptions = {}) =>
+  Boolean(selectedAircraftId && selectedAircraft && !immersiveModeActive);
 
 const toFiniteCoordinate = (value: unknown) => {
   if (value == null || value === "") return null;

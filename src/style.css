@@ -3240,6 +3240,13 @@ body {
         0 0 1px rgba(13, 18, 53, 0.85);
 }
 
+.airport-map-stage[data-map-mode="immersive"][data-immersive-phase="night"] .aircraft-label {
+    text-shadow:
+        0 1px 2px rgb(0 0 0 / 0.72),
+        0 0 8px rgb(0 0 0 / 0.82),
+        0 0 14px rgb(23 37 67 / 0.58);
+}
+
 :root[data-theme="sunrise"] .aircraft-nose-beam {
     display: none;
 }
@@ -5045,11 +5052,21 @@ body {
     z-index: 5;
 }
 
+.aircraft-preview-card--immersive.aircraft-preview-card--desktop-reveal::before,
+.aircraft-preview-card--immersive.aircraft-preview-card--desktop-reveal::after {
+    display: none;
+}
+
 .aircraft-preview-card--desktop-reveal > *,
 .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card {
     animation:
         endf-content-reveal var(--motion-ui-slow) steps(1, end) both,
         endf-text-decode var(--motion-ui-slow) steps(3, end) both;
+}
+
+.aircraft-preview-card--immersive.aircraft-preview-card--desktop-reveal > *,
+.aircraft-preview-card--immersive.aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card {
+    animation: none;
 }
 
 .aircraft-preview-card--has-photo {

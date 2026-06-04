@@ -10,6 +10,7 @@ import {
   resolveAirportMapInitialCenter,
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
+  shouldRenderSelectedAircraftTrace,
 } from "./airportMapModel";
 
 const aircraft = [
@@ -114,6 +115,33 @@ assert.deepEqual(
     showAirportBadges: false,
     showRunwayBadges: false,
   },
+);
+
+assert.equal(
+  shouldRenderSelectedAircraftTrace({
+    selectedAircraftId: "abc123",
+    selectedAircraft: { icao24: "abc123" },
+    immersiveModeActive: false,
+  }),
+  true,
+);
+
+assert.equal(
+  shouldRenderSelectedAircraftTrace({
+    selectedAircraftId: "abc123",
+    selectedAircraft: { icao24: "abc123" },
+    immersiveModeActive: true,
+  }),
+  false,
+);
+
+assert.equal(
+  shouldRenderSelectedAircraftTrace({
+    selectedAircraftId: "",
+    selectedAircraft: null,
+    immersiveModeActive: false,
+  }),
+  false,
 );
 
 assert.deepEqual(

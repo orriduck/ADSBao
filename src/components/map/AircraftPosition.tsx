@@ -46,6 +46,8 @@ export default function AircraftPosition({
   selectionActive = false,
   traceActive = false,
   forceSilhouette = false,
+  immersiveModeActive = false,
+  immersivePhase = "",
   onSelectAircraft,
 }) {
   const map = useMapInstance();
@@ -152,6 +154,8 @@ export default function AircraftPosition({
   });
   const rot = Math.round(aircraft.track || 0);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
+  const labelColor =
+    immersiveModeActive && immersivePhase === "night" ? "#fff" : color;
   const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
 
   return createPortal(
@@ -159,6 +163,7 @@ export default function AircraftPosition({
       className={`aircraft-marker ${
         selected ? "aircraft-marker--selected" : ""
       }`}
+      data-immersive={immersiveModeActive ? "true" : undefined}
       style={{ opacity: emphasis.opacity }}
     >
       <Pointer
@@ -178,7 +183,7 @@ export default function AircraftPosition({
         forceSilhouette ||
         (!traceActive && emphasis.showLabel)) && (
         <AircraftLabel
-          color={color}
+          color={labelColor}
           label={label}
           sourceBadge={sourceBadge}
           left={

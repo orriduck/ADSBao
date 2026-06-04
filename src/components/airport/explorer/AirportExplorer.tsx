@@ -463,7 +463,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   };
 
   return (
-    <SelectedAircraftTraceProvider selectedAircraft={selection.selectedAircraft}>
+    <SelectedAircraftTraceProvider
+      selectedAircraft={selection.selectedAircraft}
+      showSelectedTrace={!immersiveModeActive}
+    >
       <AircraftPreviewCard
         aircraft={selection.selectedAircraft}
         airport={selection.selectedAirport}
@@ -475,6 +478,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         sidebarOpen={sidebarOpen}
         airportProfile={airportProfile}
         onApplyTemporaryRoute={traffic.applyTemporaryRoute}
+        immersiveModeActive={immersiveModeActive}
       />
       <div
         className={`font-sans text-atc-text ${
@@ -557,6 +561,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             loadingOverlayActive={loadingOverlayActive}
             loadingOverlaySources={loadingOverlaySources}
             immersiveModeActive={immersiveModeActive}
+            immersivePhase={immersiveColorScheme?.phase || ""}
             immersiveLocalMinutes={
               immersiveColorScheme?.localTime?.bucketMinutes ?? null
             }

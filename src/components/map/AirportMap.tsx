@@ -31,6 +31,7 @@ import {
   resolveNearbyAirportLayerDisplay,
   resolveAirportMapFocalCenter,
   resolveDocumentTheme,
+  shouldRenderSelectedAircraftTrace,
 } from "../../features/airport/map/airportMapModel";
 import {
   resolveMapLoadingPresentation,
@@ -97,6 +98,7 @@ export default function AirportMap({
   loadingOverlayCallsign = "",
   loadingOverlaySources = {},
   immersiveModeActive = false,
+  immersivePhase = "",
   immersiveLocalMinutes = null,
   userLocation = null,
   userLocationPulseIntervalMs = null,
@@ -278,6 +280,11 @@ export default function AirportMap({
     [aircraft, selectedAircraftId, visibleAircraft],
   );
   const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
+  const renderSelectedAircraftTrace = shouldRenderSelectedAircraftTrace({
+    selectedAircraftId,
+    selectedAircraft,
+    immersiveModeActive,
+  });
   useEffect(() => {
     if (!mapInstance) {
       setLeafletZoom(zoom);
@@ -478,7 +485,9 @@ export default function AirportMap({
             selectedSpotId={selectedCandidateWatchingSpotId}
             onSelectSpot={onSelectCandidateWatchingSpot}
           />
-          <SelectedAircraftTrace theme={currentTheme} />
+          {renderSelectedAircraftTrace && (
+            <SelectedAircraftTrace theme={currentTheme} />
+          )}
           {!immersiveModeActive && <MapRangeLegend />}
           <UserLocationMarker
             location={userLocation}
@@ -498,7 +507,9 @@ export default function AirportMap({
               })}
               selected={getAircraftIdentity(ac) === selectedAircraftId}
               selectionActive={selectionActive}
-              traceActive={selectionActive}
+              traceActive={renderSelectedAircraftTrace}
+              immersiveModeActive={immersiveModeActive}
+              immersivePhase={immersivePhase}
               forceSilhouette={
                 Boolean(focalAircraftId) &&
                 getAircraftIdentity(ac) === focalAircraftId
