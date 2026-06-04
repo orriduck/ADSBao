@@ -48,7 +48,7 @@ export default function AircraftPosition({
   forceSilhouette = false,
   immersiveModeActive = false,
   immersivePhase = "",
-  threeDimensionalProxyActive = false,
+  threeDimensionalOverlayActive = false,
   onSelectAircraft,
 }) {
   const map = useMapInstance();
@@ -158,7 +158,7 @@ export default function AircraftPosition({
   const labelColor =
     immersiveModeActive && immersivePhase === "night" ? "#fff" : color;
   const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
-  const labelLeft = threeDimensionalProxyActive
+  const labelLeft = threeDimensionalOverlayActive
     ? SILHOUETTE_SIZE_PX + 4
     : showArrow
       ? Boolean(silhouette)
@@ -186,7 +186,7 @@ export default function AircraftPosition({
         silhouette={silhouette}
         sizeScale={sizeScale}
         theme={theme}
-        threeDimensionalProxyActive={threeDimensionalProxyActive}
+        threeDimensionalOverlayActive={threeDimensionalOverlayActive}
       />
       {(selected ||
         forceSilhouette ||
@@ -223,7 +223,7 @@ function Pointer({
   silhouette,
   sizeScale = 1,
   theme = "dark",
-  threeDimensionalProxyActive = false,
+  threeDimensionalOverlayActive = false,
 }) {
   // The wrapper carries heading + wake-class scale; the silhouette inside
   // carries the 3D pitch/bank stack + a translateY lift, while a separate
@@ -272,18 +272,13 @@ function Pointer({
   const shadowTransform =
     `translate(${shadowOffsetX}px, ${shadowOffsetY}px) scale(${shadowScale})`;
 
-  if (threeDimensionalProxyActive) {
+  if (threeDimensionalOverlayActive) {
     return (
       <span
-        className="aircraft-marker-proxy"
+        className="aircraft-marker-hit-target"
         aria-hidden="true"
         data-selected={selected ? "true" : undefined}
-        style={
-          {
-            "--aircraft-proxy-rotation": `${rot}deg`,
-            "--aircraft-proxy-scale": String(sizeScale),
-          } as any
-        }
+        style={{ transform: `rotate(${rot}deg) scale(${sizeScale})` }}
       />
     );
   }

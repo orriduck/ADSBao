@@ -510,6 +510,7 @@ export default function AirportMap({
               selectedAircraftId={selectedAircraftId}
               immersiveModeActive={immersiveModeActive}
               immersivePhase={immersivePhase}
+              mapInstance={mapInstance}
               trafficFilter={trafficFilter}
               typeFilter={typeFilter}
               altitudeLevel={altitudeLevel}
@@ -530,7 +531,7 @@ export default function AirportMap({
               traceActive={renderSelectedAircraftTrace}
               immersiveModeActive={immersiveModeActive}
               immersivePhase={immersivePhase}
-              threeDimensionalProxyActive={renderAircraft3DOverlay}
+              threeDimensionalOverlayActive={renderAircraft3DOverlay}
               forceSilhouette={
                 Boolean(focalAircraftId) &&
                 getAircraftIdentity(ac) === focalAircraftId
