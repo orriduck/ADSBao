@@ -4,6 +4,8 @@ import {
   buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
+  buildRunwayLightCollection,
+  resolveRunwayAnnotationVisibility,
 } from "./runwayAnnotationModel";
 import {
   ZOOM_AIRPORT,
@@ -19,6 +21,7 @@ const runwayMap = {
   runways: [
     {
       id: "04R/22L",
+      widthFt: 150,
       ends: [
         { ident: "04R", lat: 42.35404, lon: -71.010352 },
         { ident: "22L", lat: 42.377344, lon: -70.999076 },
@@ -133,4 +136,59 @@ assert.equal(lightVisualization.kind, "approach-lines");
 assert.deepEqual(
   lightVisualization.data.features.map((feature) => feature.geometry.type),
   ["LineString", "LineString"],
+);
+
+const nightVisualization = buildRunwayApproachVisualization(runwayMap, {
+  theme: "night",
+  zoom: ZOOM_AIRPORT,
+});
+assert.equal(nightVisualization.kind, "approach-beams");
+
+const runwayLights = buildRunwayLightCollection(runwayMap);
+assert.equal(runwayLights.features.length, 32);
+assert.deepEqual(
+  [...new Set(runwayLights.features.map((feature) => feature.properties.side))],
+  ["left", "right"],
+);
+assert.equal(runwayLights.features[0].properties.progress, 0);
+assert.equal(runwayLights.features.at(-1).properties.progress, 1);
+assert.ok(
+  metersBetween(
+    runwayLights.features[0].geometry.coordinates,
+    runwayMap.runways[0].centerline.geometry.coordinates[0],
+  ) >= 20,
+);
+assert.ok(
+  metersBetween(
+    runwayLights.features[0].geometry.coordinates,
+    runwayMap.runways[0].centerline.geometry.coordinates[0],
+  ) <= 26,
+);
+
+assert.deepEqual(
+  resolveRunwayAnnotationVisibility({
+    immersiveModeActive: true,
+    immersiveLocalMinutes: 20 * 60 + 59,
+    immersivePhase: "dusk",
+    showRunwayBeams: true,
+  }),
+  { showBeams: false, showBadges: false },
+);
+assert.deepEqual(
+  resolveRunwayAnnotationVisibility({
+    immersiveModeActive: true,
+    immersiveLocalMinutes: 21 * 60,
+    immersivePhase: "night",
+    showRunwayBeams: false,
+  }),
+  { showBeams: true, showBadges: false },
+);
+assert.deepEqual(
+  resolveRunwayAnnotationVisibility({
+    immersiveModeActive: false,
+    immersiveLocalMinutes: 21 * 60,
+    immersivePhase: "night",
+    showRunwayBeams: false,
+  }),
+  { showBeams: false, showBadges: true },
 );

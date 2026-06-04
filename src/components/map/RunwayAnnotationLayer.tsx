@@ -13,6 +13,7 @@ import {
   buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
+  buildRunwayLightCollection,
 } from "../../features/airport/map/runwayAnnotationModel";
 
 const escapeHtml = (value: unknown) =>
@@ -42,6 +43,12 @@ const runwayLabelIcon = (ident: string, theme: string) =>
     iconSize: [34, 18],
     iconAnchor: [17, 22],
   });
+
+const runwayLightRadius = (feature: Record<string, any>) => {
+  const progress = Number(feature?.properties?.progress);
+  if (progress === 0 || progress === 1) return 1.55;
+  return 1.12;
+};
 
 const isLeafletLayer = (layer: unknown): layer is L.Layer =>
   Boolean(
@@ -97,6 +104,25 @@ const buildApproachLayer = ({ kind, data, map, theme }: Record<string, any>) => 
   return { layer, beamLayer: layer, beamRenderer };
 };
 
+const buildRunwayLightLayer = ({ data }: Record<string, any>) =>
+  L.geoJSON(data as any, {
+    interactive: false,
+    pointToLayer(feature, latlng) {
+      return L.circleMarker(latlng, {
+        bubblingMouseEvents: false,
+        className: "runway-light-dot",
+        color: "var(--runway-light-core)",
+        fill: true,
+        fillColor: "var(--runway-light)",
+        fillOpacity: 0.84,
+        opacity: 0.88,
+        radius: runwayLightRadius(feature as Record<string, any>),
+        stroke: true,
+        weight: 0.45,
+      });
+    },
+  } as any);
+
 export default function RunwayAnnotationLayer({
   runwayMap,
   theme = "dark",
@@ -140,6 +166,14 @@ export default function RunwayAnnotationLayer({
       if (isLeafletLayer(built.layer)) sublayers.unshift(built.layer);
       beamLayer = isLeafletLayer(built.beamLayer) ? built.beamLayer : null;
       beamRenderer = built.beamRenderer;
+
+      if (theme === "night") {
+        const runwayLights = buildRunwayLightCollection(runwayMap);
+        if (runwayLights.features.length) {
+          const lightLayer = buildRunwayLightLayer({ data: runwayLights });
+          if (isLeafletLayer(lightLayer)) sublayers.push(lightLayer);
+        }
+      }
     }
 
     if (showBadges) {

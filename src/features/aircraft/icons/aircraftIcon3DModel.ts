@@ -1,3 +1,5 @@
+import { isImmersiveNightLightingActive } from "../../airport/immersive/immersiveLightingModel";
+
 type Aircraft3DOverlayOptions = {
   immersiveModeActive?: boolean;
 };
@@ -25,6 +27,7 @@ type Aircraft3DMaterialOptions = {
 
 type Aircraft3DLandingLightOptions = Aircraft3DMaterialOptions & {
   altitude?: unknown;
+  localMinutes?: unknown;
   onGround?: boolean;
 };
 
@@ -172,13 +175,26 @@ export const resolveAircraft3DLightingProfile = ({
 
 export const resolveAircraft3DLandingLightIntensity = ({
   altitude = null,
+  localMinutes = null,
   onGround = false,
   phase = "day",
   selected = false,
 }: Aircraft3DLandingLightOptions = {}) => {
   const phaseKey = String(phase || "day");
   const altitudeFt = toFiniteNumber(altitude);
-  if (phaseKey !== "night") return selected ? 0.36 : 1;
+  const nightLightingActive = isImmersiveNightLightingActive({
+    localMinutes,
+    phase: phaseKey,
+  });
+  if (!nightLightingActive) {
+    if (phaseKey === "dusk" || phaseKey === "sunset") {
+      const approachRatio =
+        altitudeFt == null ? 0.24 : clamp((7_000 - altitudeFt) / 5_000, 0, 1);
+      const duskIntensity = approachRatio * (selected ? 0.34 : 0.28);
+      return round2(Math.max(selected ? 0.12 : 0.04, duskIntensity));
+    }
+    return selected ? 0.22 : 0.08;
+  }
   if (onGround) return 1;
   if (altitudeFt == null) return selected ? 0.18 : 0.42;
 
@@ -233,17 +249,17 @@ export const resolveAircraft3DMaterialProfile = ({
       };
     case "dusk":
       return {
-        bodyGlowColor: "#d7d3ff",
-        bodyGlowOpacity: selected ? 0.06 : 0.03,
-        color: selected ? "#fffdf8" : "#fbf8f4",
-        edgeColor: "#bcb7ad",
-        edgeContrast: 0.62,
-        edgeHighlightColor: "#fffaf0",
+        bodyGlowColor: "#b7c2ff",
+        bodyGlowOpacity: selected ? 0.058 : 0.032,
+        color: selected ? "#eef2fb" : "#d9d8e6",
+        edgeColor: "#9ea5bf",
+        edgeContrast: 0.66,
+        edgeHighlightColor: "#f5f7ff",
         edgeLightVector: { x: -0.58, y: -0.44, z: 0.68 },
         edgeOpacity: selected ? 0.11 : 0.075,
-        edgeShadowColor: "#8b8278",
-        emissive: "#fff3df",
-        emissiveIntensity: 0.16 + selectedLift,
+        edgeShadowColor: "#68708a",
+        emissive: "#d8ddff",
+        emissiveIntensity: 0.12 + selectedLift,
         landingLightColor: "#fff0d1",
         landingLightOpacity: selected ? 0.54 : 0.38,
         landingLightScale: 1.9,
@@ -256,15 +272,15 @@ export const resolveAircraft3DMaterialProfile = ({
       return {
         bodyGlowColor: "#ffd1a7",
         bodyGlowOpacity: selected ? 0.062 : 0.032,
-        color: selected ? "#fffaf0" : "#fbf1e2",
-        edgeColor: "#b79b7c",
+        color: selected ? "#fff1df" : "#efd8bf",
+        edgeColor: "#b68f70",
         edgeContrast: 0.68,
         edgeHighlightColor: "#fff1cf",
         edgeLightVector: { x: -0.72, y: -0.28, z: 0.58 },
         edgeOpacity: selected ? 0.12 : 0.08,
-        edgeShadowColor: "#8e7059",
+        edgeShadowColor: "#805d49",
         emissive: "#ffe0b3",
-        emissiveIntensity: 0.15 + selectedLift,
+        emissiveIntensity: 0.11 + selectedLift,
         landingLightColor: "#fff0c6",
         landingLightOpacity: selected ? 0.52 : 0.36,
         landingLightScale: 1.8,
@@ -277,7 +293,7 @@ export const resolveAircraft3DMaterialProfile = ({
       return {
         bodyGlowColor: "#ffe4b6",
         bodyGlowOpacity: selected ? 0.042 : 0.018,
-        color: selected ? "#fffdf6" : "#fbf7ed",
+        color: selected ? "#fffaf0" : "#f8f1de",
         edgeColor: "#a99d88",
         edgeContrast: 0.54,
         edgeHighlightColor: "#fffdf3",
@@ -285,7 +301,7 @@ export const resolveAircraft3DMaterialProfile = ({
         edgeOpacity: selected ? 0.105 : 0.065,
         edgeShadowColor: "#9a8d78",
         emissive: "#fff0d0",
-        emissiveIntensity: 0.14 + selectedLift,
+        emissiveIntensity: 0.09 + selectedLift,
         landingLightColor: "#fff1cd",
         landingLightOpacity: selected ? 0.2 : 0.14,
         landingLightScale: 1.25,
@@ -298,7 +314,7 @@ export const resolveAircraft3DMaterialProfile = ({
       return {
         bodyGlowColor: "#fff1c7",
         bodyGlowOpacity: selected ? 0.038 : 0.014,
-        color: selected ? "#fffdf8" : "#fbf8f1",
+        color: selected ? "#fffaf2" : "#f7f0df",
         edgeColor: "#9a9283",
         edgeContrast: 0.48,
         edgeHighlightColor: "#fffdf5",
@@ -306,7 +322,7 @@ export const resolveAircraft3DMaterialProfile = ({
         edgeOpacity: selected ? 0.1 : 0.06,
         edgeShadowColor: "#918978",
         emissive: "#fff2d8",
-        emissiveIntensity: 0.135 + selectedLift,
+        emissiveIntensity: 0.085 + selectedLift,
         landingLightColor: "#fff2d0",
         landingLightOpacity: selected ? 0.18 : 0.12,
         landingLightScale: 1.15,
@@ -319,7 +335,7 @@ export const resolveAircraft3DMaterialProfile = ({
       return {
         bodyGlowColor: "#fff3cc",
         bodyGlowOpacity: selected ? 0.036 : 0.012,
-        color: selected ? "#fffdfa" : "#fcf8f1",
+        color: selected ? "#fffdf8" : "#f8f6ef",
         edgeColor: "#9a9182",
         edgeContrast: 0.48,
         edgeHighlightColor: "#fffdf6",
@@ -327,7 +343,7 @@ export const resolveAircraft3DMaterialProfile = ({
         edgeOpacity: selected ? 0.095 : 0.058,
         edgeShadowColor: "#8d8576",
         emissive: "#fff4df",
-        emissiveIntensity: 0.13 + selectedLift,
+        emissiveIntensity: 0.08 + selectedLift,
         landingLightColor: "#fff3d6",
         landingLightOpacity: selected ? 0.16 : 0.1,
         landingLightScale: 1.1,

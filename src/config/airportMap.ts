@@ -92,6 +92,11 @@ export const RUNWAY_ANNOTATION_STYLE_CONFIG = {
       weight: 3,
       opacity: 0.55,
     },
+    night: {
+      color: "var(--runway-night-line)",
+      weight: 1.6,
+      opacity: 0.52,
+    },
     light: {
       color: "var(--aviation-runway-annotation-line)",
       weight: 3,
@@ -100,6 +105,7 @@ export const RUNWAY_ANNOTATION_STYLE_CONFIG = {
   },
   beamColors: {
     dark: "var(--aviation-runway-approach-beam)",
+    night: "var(--runway-night-beam)",
     light: "var(--aviation-runway-approach-beam)",
   },
   beamGradientStops: [

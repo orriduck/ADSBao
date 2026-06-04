@@ -155,8 +155,16 @@ export default function AircraftPosition({
   });
   const rot = Math.round(aircraft.track || 0);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
-  const labelColor =
-    immersiveModeActive && immersivePhase === "night" ? "#fff" : color;
+  const immersiveLightLabel =
+    immersivePhase === "night" ||
+    immersivePhase === "dusk" ||
+    immersivePhase === "sunset" ||
+    immersivePhase === "dawn";
+  const labelColor = immersiveModeActive
+    ? immersiveLightLabel
+      ? "#f7fbff"
+      : "#253047"
+    : color;
   const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
   const labelLeft = threeDimensionalOverlayActive
     ? SILHOUETTE_SIZE_PX + 4

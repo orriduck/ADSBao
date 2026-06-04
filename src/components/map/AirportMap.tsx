@@ -16,6 +16,7 @@ import AircraftPosition from "./AircraftPosition";
 import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
+import { resolveRunwayAnnotationVisibility } from "../../features/airport/map/runwayAnnotationModel";
 import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap";
 import MapAttribution from "./MapAttribution";
 import MapLoadingOverlay, {
@@ -384,6 +385,12 @@ export default function AirportMap({
   const overlayTheme = getMapOverlayTheme(currentTheme);
   const mapStyleTheme = immersiveModeActive ? "immersive" : currentTheme;
   const showBaseMapLabels = immersiveModeActive ? false : showMapLabels;
+  const runwayAnnotationVisibility = resolveRunwayAnnotationVisibility({
+    immersiveModeActive,
+    immersiveLocalMinutes,
+    immersivePhase,
+    showRunwayBeams,
+  });
   const nearbyAirportLayerDisplay = resolveNearbyAirportLayerDisplay({
     nearbyAirports,
     immersiveModeActive,
@@ -482,10 +489,10 @@ export default function AirportMap({
           />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}
-            theme={currentTheme}
+            theme={immersiveModeActive ? "night" : currentTheme}
             zoom={zoom}
-            showBeams={!immersiveModeActive && showRunwayBeams}
-            showBadges={!immersiveModeActive}
+            showBeams={runwayAnnotationVisibility.showBeams}
+            showBadges={runwayAnnotationVisibility.showBadges}
           />
           <CandidateWatchingSpotsLayer
             enabled={!immersiveModeActive && showCandidateWatchingSpots}
@@ -510,6 +517,7 @@ export default function AirportMap({
               selectedAircraftId={selectedAircraftId}
               immersiveModeActive={immersiveModeActive}
               immersivePhase={immersivePhase}
+              immersiveLocalMinutes={immersiveLocalMinutes}
               mapInstance={mapInstance}
               trafficFilter={trafficFilter}
               typeFilter={typeFilter}

@@ -1,13 +1,20 @@
 import { RUNWAY_APPROACH_BEAM_CONFIG } from "../../../config/airportMap";
 import { ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
+import { isImmersiveNightLightingActive } from "../immersive/immersiveLightingModel";
 import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const STATUTE_MILE_METERS = 1_609.344;
+const FEET_TO_METERS = 0.3048;
+const RUNWAY_LIGHT_SPACING_METERS = 180;
+const DEFAULT_RUNWAY_WIDTH_METERS = 45;
+const MIN_RUNWAY_LIGHT_WIDTH_METERS = 18;
+const MAX_RUNWAY_LIGHT_WIDTH_METERS = 80;
 
 const shouldShowRunwayEndLabels = shouldShowRunwayEndLabelsForZoom;
 
 type RunwayAnnotationRecord = Record<string, any>;
+type Coordinate2D = [number, number];
 
 const metersPerDegreeLongitude = (latitude: number) =>
   METERS_PER_DEGREE_LATITUDE * Math.cos((latitude * Math.PI) / 180);
@@ -15,6 +22,11 @@ const metersPerDegreeLongitude = (latitude: number) =>
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const interpolate = (from: number, to: number, progress: number) => from + (to - from) * progress;
+
+const isCoordinate2D = (value: unknown): value is Coordinate2D =>
+  Array.isArray(value) &&
+  Number.isFinite(value[0]) &&
+  Number.isFinite(value[1]);
 
 const runwayBeamProfileForZoom = (zoom: unknown) => {
   const numericZoom = Number.isFinite(Number(zoom)) ? Number(zoom) : ZOOM_APPROACH;
@@ -83,6 +95,103 @@ const coordinateFromVectorMeters = ({ end, vector, distance }: RunwayAnnotationR
   end.lon + (vector.x * distance) / vector.lonMeters,
   end.lat + (vector.y * distance) / METERS_PER_DEGREE_LATITUDE,
 ];
+
+const metersBetweenCoordinates = (
+  [startLon, startLat]: Coordinate2D,
+  [endLon, endLat]: Coordinate2D,
+) => {
+  const lonMeters = metersPerDegreeLongitude((startLat + endLat) / 2);
+  const dx = (endLon - startLon) * lonMeters;
+  const dy = (endLat - startLat) * METERS_PER_DEGREE_LATITUDE;
+  return Math.hypot(dx, dy);
+};
+
+const lineCoordinateAtProgress = (
+  start: Coordinate2D,
+  end: Coordinate2D,
+  progress: number,
+) => [
+  start[0] + (end[0] - start[0]) * progress,
+  start[1] + (end[1] - start[1]) * progress,
+] as Coordinate2D;
+
+const runwayVectorFromCoordinates = (start: Coordinate2D, end: Coordinate2D) => {
+  const lonMeters = metersPerDegreeLongitude((start[1] + end[1]) / 2);
+  const dx = (end[0] - start[0]) * lonMeters;
+  const dy = (end[1] - start[1]) * METERS_PER_DEGREE_LATITUDE;
+  const length = Math.hypot(dx, dy);
+  if (!Number.isFinite(length) || length <= 0) return null;
+
+  return {
+    x: dx / length,
+    y: dy / length,
+    lonMeters,
+    length,
+  };
+};
+
+const offsetCoordinate = (
+  coordinate: Coordinate2D,
+  vector: RunwayAnnotationRecord,
+  lateralDistanceMeters: number,
+) => {
+  const perpendicularX = -vector.y;
+  const perpendicularY = vector.x;
+  return [
+    coordinate[0] + (perpendicularX * lateralDistanceMeters) / vector.lonMeters,
+    coordinate[1] + (perpendicularY * lateralDistanceMeters) / METERS_PER_DEGREE_LATITUDE,
+  ] as Coordinate2D;
+};
+
+const runwayWidthMeters = (runway: RunwayAnnotationRecord) => {
+  const widthMeters = Number(runway?.widthFt) * FEET_TO_METERS;
+  if (!Number.isFinite(widthMeters) || widthMeters <= 0) {
+    return DEFAULT_RUNWAY_WIDTH_METERS;
+  }
+  return clamp(
+    widthMeters,
+    MIN_RUNWAY_LIGHT_WIDTH_METERS,
+    MAX_RUNWAY_LIGHT_WIDTH_METERS,
+  );
+};
+
+const runwayLightFeaturesForRunway = (runway: RunwayAnnotationRecord) => {
+  const coordinates = runway?.centerline?.geometry?.coordinates || [];
+  const start = coordinates[0];
+  const end = coordinates.at(-1);
+  if (!isCoordinate2D(start) || !isCoordinate2D(end)) {
+    return [];
+  }
+
+  const vector = runwayVectorFromCoordinates(start, end);
+  if (!vector) return [];
+  const lightCount = Math.max(
+    2,
+    Math.min(36, Math.floor(vector.length / RUNWAY_LIGHT_SPACING_METERS)),
+  );
+  const halfWidthMeters = runwayWidthMeters(runway) / 2;
+
+  return [-1, 1].flatMap((side) =>
+    Array.from({ length: lightCount + 1 }, (_, index) => {
+      const progress = index / lightCount;
+      const center = lineCoordinateAtProgress(start, end, progress);
+      const coordinate = offsetCoordinate(center, vector, halfWidthMeters * side);
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: coordinate,
+        },
+        properties: {
+          runwayId: runway.id,
+          lightIndex: index,
+          progress,
+          side: side < 0 ? "left" : "right",
+        },
+      };
+    }),
+  );
+};
 
 const rotateVector = (vector: RunwayAnnotationRecord, degrees: number) => {
   const radians = (degrees * Math.PI) / 180;
@@ -302,6 +411,40 @@ export function buildRunwayApproachVisualization(
   return {
     kind: "approach-beams",
     data: buildRunwayApproachBeamCollection(runwayMap, { zoom, distanceScale }),
+  };
+}
+
+export function resolveRunwayAnnotationVisibility({
+  immersiveModeActive = false,
+  immersiveLocalMinutes = null,
+  immersivePhase = "",
+  showRunwayBeams = true,
+}: RunwayAnnotationRecord = {}) {
+  if (!immersiveModeActive) {
+    return {
+      showBeams: Boolean(showRunwayBeams),
+      showBadges: true,
+    };
+  }
+
+  return {
+    showBeams: isImmersiveNightLightingActive({
+      localMinutes: immersiveLocalMinutes,
+      phase: immersivePhase,
+    }),
+    showBadges: false,
+  };
+}
+
+export function buildRunwayLightCollection(runwayMap: RunwayAnnotationRecord) {
+  return {
+    type: "FeatureCollection",
+    properties: {
+      airport: runwayMap?.airport || "",
+      source: runwayMap?.source || "Runway geometry",
+      cycle: runwayMap?.cycle || "",
+    },
+    features: (runwayMap?.runways || []).flatMap(runwayLightFeaturesForRunway),
   };
 }
 
