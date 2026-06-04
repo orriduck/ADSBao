@@ -48,6 +48,7 @@ export default function AircraftPosition({
   forceSilhouette = false,
   immersiveModeActive = false,
   immersivePhase = "",
+  threeDimensionalProxyActive = false,
   onSelectAircraft,
 }) {
   const map = useMapInstance();
@@ -157,6 +158,13 @@ export default function AircraftPosition({
   const labelColor =
     immersiveModeActive && immersivePhase === "night" ? "#fff" : color;
   const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
+  const labelLeft = threeDimensionalProxyActive
+    ? SILHOUETTE_SIZE_PX + 8
+    : showArrow
+      ? Boolean(silhouette)
+        ? SILHOUETTE_SIZE_PX + 4
+        : 22
+      : SILHOUETTE_SIZE_PX;
 
   return createPortal(
     <div
@@ -178,6 +186,7 @@ export default function AircraftPosition({
         silhouette={silhouette}
         sizeScale={sizeScale}
         theme={theme}
+        threeDimensionalProxyActive={threeDimensionalProxyActive}
       />
       {(selected ||
         forceSilhouette ||
@@ -186,13 +195,7 @@ export default function AircraftPosition({
           color={labelColor}
           label={label}
           sourceBadge={sourceBadge}
-          left={
-            showArrow
-              ? Boolean(silhouette)
-                ? SILHOUETTE_SIZE_PX + 4
-                : 22
-              : SILHOUETTE_SIZE_PX
-          }
+          left={labelLeft}
         />
       )}
     </div>,
@@ -220,6 +223,7 @@ function Pointer({
   silhouette,
   sizeScale = 1,
   theme = "dark",
+  threeDimensionalProxyActive = false,
 }) {
   // The wrapper carries heading + wake-class scale; the silhouette inside
   // carries the 3D pitch/bank stack + a translateY lift, while a separate
@@ -267,6 +271,22 @@ function Pointer({
   const shadowScale = (0.85 - altRatio * 0.15).toFixed(3);
   const shadowTransform =
     `translate(${shadowOffsetX}px, ${shadowOffsetY}px) scale(${shadowScale})`;
+
+  if (threeDimensionalProxyActive) {
+    return (
+      <span
+        className="aircraft-marker-proxy"
+        aria-hidden="true"
+        data-selected={selected ? "true" : undefined}
+        style={
+          {
+            "--aircraft-proxy-rotation": `${rot}deg`,
+            "--aircraft-proxy-scale": String(sizeScale),
+          } as any
+        }
+      />
+    );
+  }
 
   if (showArrow && silhouette) {
     // Wrapper carries the heading rotation so the dark-theme nose beam

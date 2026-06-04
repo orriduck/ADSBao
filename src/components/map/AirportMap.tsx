@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
+import dynamic from "next/dynamic";
 import { MapContext } from "./MapContext";
 import MapTileLayers from "./MapTileLayers";
 import AirportMarker from "./AirportMarker";
@@ -40,11 +41,16 @@ import {
 import { useAviationContextTiles } from "../../features/airport/context/useAviationContextTiles";
 import { shouldUseNavaidCountTiles } from "../../features/airport/context/aviationContextDisplayModel";
 import { getOffsetMapCenter } from "./mapViewportOffset";
+import { shouldRenderAircraft3DOverlay } from "@/features/aircraft/icons/aircraftIcon3DModel";
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
     ? resolveDocumentTheme(document.documentElement)
     : "dark";
+
+const Aircraft3DOverlay = dynamic(() => import("./Aircraft3DOverlay"), {
+  ssr: false,
+});
 
 const WEB_MERCATOR_MAX_LAT = 85.05112878;
 const WEB_MERCATOR_BOUNDS = [
@@ -285,6 +291,9 @@ export default function AirportMap({
     selectedAircraft,
     immersiveModeActive,
   });
+  const renderAircraft3DOverlay = shouldRenderAircraft3DOverlay({
+    immersiveModeActive,
+  });
   useEffect(() => {
     if (!mapInstance) {
       setLeafletZoom(zoom);
@@ -495,6 +504,17 @@ export default function AirportMap({
             pulseBeat={userLocationPulseBeat}
           />
           {children}
+          {renderAircraft3DOverlay && (
+            <Aircraft3DOverlay
+              aircraft={visibleAircraft}
+              selectedAircraftId={selectedAircraftId}
+              immersiveModeActive={immersiveModeActive}
+              immersivePhase={immersivePhase}
+              trafficFilter={trafficFilter}
+              typeFilter={typeFilter}
+              altitudeLevel={altitudeLevel}
+            />
+          )}
           {visibleAircraft.map((ac) => (
             <AircraftPosition
               key={getAircraftIdentity(ac)}
@@ -510,6 +530,7 @@ export default function AirportMap({
               traceActive={renderSelectedAircraftTrace}
               immersiveModeActive={immersiveModeActive}
               immersivePhase={immersivePhase}
+              threeDimensionalProxyActive={renderAircraft3DOverlay}
               forceSilhouette={
                 Boolean(focalAircraftId) &&
                 getAircraftIdentity(ac) === focalAircraftId
