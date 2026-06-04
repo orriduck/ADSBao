@@ -156,7 +156,7 @@ export default function MapSettingsSheet({
           "z-[var(--z-index-modal-content)]",
           "right-2 top-2 bottom-2 h-[calc(100dvh-16px)] w-[min(448px,calc(100vw-16px))]",
           "rounded-[18px] border border-[var(--atc-line-strong)]",
-          "overflow-hidden bg-[color-mix(in_oklab,var(--atc-card)_96%,var(--atc-bg))] p-0 text-atc-text",
+          "overflow-hidden bg-[var(--atc-surface-preview-card)] p-0 text-atc-text",
           "shadow-[var(--app-panel-shadow)]",
           "data-[state=open]:translate-x-0 data-[state=open]:opacity-100",
           "data-[state=closed]:translate-x-[calc(100%+16px)] data-[state=closed]:opacity-0",
@@ -222,15 +222,15 @@ export default function MapSettingsSheet({
                       type="button"
                       className={cn(
                         "grid min-h-[58px] w-full grid-cols-[36px_minmax(0,1fr)_42px] items-center gap-3 rounded-[8px]",
-                        "border border-[var(--atc-line)] bg-[color-mix(in_oklab,var(--atc-bg)_38%,transparent)] px-3 text-left",
-                        "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
+                        "border border-[var(--atc-border-default)] bg-[var(--atc-surface-row-rest)] px-3 text-left",
+                        "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-focus-ring)]",
                       )}
                       role="switch"
                       aria-checked={active}
                       aria-label={title}
                       onClick={state[control.handler]}
                     >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[color-mix(in_oklab,var(--atc-text)_8%,transparent)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[var(--atc-surface-icon-wash)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
                         <MapControlIcon iconKey={control.iconKey} />
                       </span>
                       <span className="min-w-0">
@@ -245,7 +245,7 @@ export default function MapSettingsSheet({
                         className={cn(
                           "relative h-6 w-10 rounded-full border transition",
                           active
-                            ? "border-[var(--atc-accent)] bg-[var(--atc-accent)]"
+                            ? "border-[var(--atc-interaction-primary-accent)] bg-[var(--atc-interaction-primary-accent)]"
                             : "border-[var(--atc-line-strong)] bg-transparent",
                         )}
                         aria-hidden="true"
@@ -266,8 +266,8 @@ export default function MapSettingsSheet({
                     type="button"
                     className={cn(
                       "grid min-h-[58px] w-full grid-cols-[36px_minmax(0,1fr)_42px] items-center gap-3 rounded-[8px]",
-                      "border border-[var(--atc-line)] bg-[color-mix(in_oklab,var(--atc-bg)_38%,transparent)] px-3 text-left",
-                      "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
+                      "border border-[var(--atc-border-default)] bg-[var(--atc-surface-row-rest)] px-3 text-left",
+                      "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-focus-ring)]",
                     )}
                     role="switch"
                     aria-checked={userLocationActive}
@@ -275,7 +275,7 @@ export default function MapSettingsSheet({
                     disabled={userLocationPending}
                     onClick={onToggleUserLocation}
                   >
-                    <span className="relative flex h-8 w-8 items-center justify-center rounded-[7px] bg-[color-mix(in_oklab,var(--atc-text)_8%,transparent)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
+                    <span className="relative flex h-8 w-8 items-center justify-center rounded-[7px] bg-[var(--atc-surface-icon-wash)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
                       <MapControlIcon iconKey="locateFixed" />
                     </span>
                     <span className="min-w-0">
@@ -290,7 +290,7 @@ export default function MapSettingsSheet({
                       className={cn(
                         "relative h-6 w-10 rounded-full border transition",
                         userLocationActive
-                          ? "border-[var(--atc-accent)] bg-[var(--atc-accent)]"
+                          ? "border-[var(--atc-interaction-primary-accent)] bg-[var(--atc-interaction-primary-accent)]"
                           : "border-[var(--atc-line-strong)] bg-transparent",
                       )}
                       aria-hidden="true"
@@ -312,8 +312,8 @@ export default function MapSettingsSheet({
                     type="button"
                     className={cn(
                       "grid min-h-[58px] w-full grid-cols-[36px_minmax(0,1fr)_42px] items-center gap-3 rounded-[8px]",
-                      "border border-[var(--atc-line)] bg-[color-mix(in_oklab,var(--atc-bg)_38%,transparent)] px-3 text-left",
-                      "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
+                      "border border-[var(--atc-border-default)] bg-[var(--atc-surface-row-rest)] px-3 text-left",
+                      "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-focus-ring)]",
                       (!userLocationActive || userLocationPending) &&
                         "cursor-not-allowed opacity-55 hover:border-[var(--atc-line)]",
                     )}
@@ -323,7 +323,7 @@ export default function MapSettingsSheet({
                     disabled={!userLocationActive || userLocationPending}
                     onClick={onToggleUserLocationAudio}
                   >
-                    <span className="relative flex h-8 w-8 items-center justify-center rounded-[7px] bg-[color-mix(in_oklab,var(--atc-text)_8%,transparent)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
+                    <span className="relative flex h-8 w-8 items-center justify-center rounded-[7px] bg-[var(--atc-surface-icon-wash)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
                       {userLocationAudioActive ? (
                         <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-atc-accent shadow-[0_0_8px_var(--atc-accent)]" />
                       ) : null}
@@ -341,7 +341,7 @@ export default function MapSettingsSheet({
                       className={cn(
                         "relative h-6 w-10 rounded-full border transition",
                         userLocationAudioActive
-                          ? "border-[var(--atc-accent)] bg-[var(--atc-accent)]"
+                          ? "border-[var(--atc-interaction-primary-accent)] bg-[var(--atc-interaction-primary-accent)]"
                           : "border-[var(--atc-line-strong)] bg-transparent",
                       )}
                       aria-hidden="true"
@@ -360,7 +360,7 @@ export default function MapSettingsSheet({
               </div>
               {userLocationNotice ? (
                 <div
-                  className="mt-3 rounded-[8px] border border-[var(--atc-line)] bg-[color-mix(in_oklab,var(--atc-bg)_44%,transparent)] px-3 py-2 text-[11px] leading-snug text-atc-muted"
+                  className="mt-3 rounded-[8px] border border-[var(--atc-border-default)] bg-[var(--atc-surface-scrim)] px-3 py-2 text-[11px] leading-snug text-atc-muted"
                   role="status"
                   aria-live="polite"
                 >

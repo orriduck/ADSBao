@@ -29,24 +29,24 @@ export const AIRPORT_MAP_PANES = {
 export const SELECTED_AIRCRAFT_TRACE_STYLE = {
   maxRenderPoints: 140,
   dark: {
-    glowColor: "var(--aircraft-trace-glow)",
+    glowColor: "var(--aviation-trace-glow)",
     glowOpacity: 0.22,
     glowWeight: 12,
-    lineColor: "var(--aircraft-trace-line)",
+    lineColor: "var(--aviation-trace-line)",
     lineOpacity: 0.94,
     lineWeight: 3.2,
-    pointColor: "var(--aircraft-trace-point)",
+    pointColor: "var(--aviation-trace-point)",
     pointFillOpacity: 0.5,
     pointRadius: 2,
   },
   light: {
-    glowColor: "var(--aircraft-trace-glow)",
+    glowColor: "var(--aviation-trace-glow)",
     glowOpacity: 0.18,
     glowWeight: 9,
-    lineColor: "var(--aircraft-trace-line)",
+    lineColor: "var(--aviation-trace-line)",
     lineOpacity: 0.82,
     lineWeight: 3,
-    pointColor: "var(--aircraft-trace-point)",
+    pointColor: "var(--aviation-trace-point)",
     pointFillOpacity: 0.34,
     pointRadius: 1.8,
   },
@@ -88,19 +88,19 @@ export const RUNWAY_APPROACH_BEAM_CONFIG = {
 export const RUNWAY_ANNOTATION_STYLE_CONFIG = {
   lineStyles: {
     dark: {
-      color: "var(--runway-annotation-line)",
+      color: "var(--aviation-runway-annotation-line)",
       weight: 3,
       opacity: 0.55,
     },
     light: {
-      color: "var(--runway-annotation-line)",
+      color: "var(--aviation-runway-annotation-line)",
       weight: 3,
       opacity: 0.42,
     },
   },
   beamColors: {
-    dark: "var(--runway-approach-beam)",
-    light: "var(--runway-approach-beam)",
+    dark: "var(--aviation-runway-approach-beam)",
+    light: "var(--aviation-runway-approach-beam)",
   },
   beamGradientStops: [
     { offset: "0%", opacityScale: 1, maxOpacity: 0.42 },
