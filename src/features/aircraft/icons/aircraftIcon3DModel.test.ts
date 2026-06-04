@@ -6,6 +6,7 @@ import {
   resolveAircraft3DLightingProfile,
   resolveAircraft3DMaterialProfile,
   resolveAircraft3DModelScalePx,
+  resolveAircraft3DShadowPresentation,
   resolveAircraft3DEdgeTone,
   shouldRenderAircraft3DOverlay,
   shouldRenderAircraftContrail,
@@ -148,6 +149,30 @@ assert.ok(nightMaterial.edgeOpacity <= 0.22);
 assert.ok(nightMaterial.landingLightOpacity >= 0.72);
 assert.ok(sunsetMaterial.landingLightOpacity >= 0.3);
 assert.ok(dayMaterial.landingLightOpacity <= 0.18);
+
+const dayCruiseShadow = resolveAircraft3DShadowPresentation({
+  altitude: 39_000,
+  phase: "day",
+});
+const selectedDayCruiseShadow = resolveAircraft3DShadowPresentation({
+  altitude: 39_000,
+  phase: "day",
+  selected: true,
+});
+const nightCruiseShadow = resolveAircraft3DShadowPresentation({
+  altitude: 39_000,
+  phase: "night",
+});
+const morningSurfaceShadow = resolveAircraft3DShadowPresentation({
+  altitude: 0,
+  phase: "morning",
+  onGround: true,
+});
+assert.ok(dayCruiseShadow.opacity >= 0.08);
+assert.ok(selectedDayCruiseShadow.opacity > dayCruiseShadow.opacity);
+assert.ok(dayCruiseShadow.opacity > nightCruiseShadow.opacity);
+assert.ok(morningSurfaceShadow.scaleX > dayCruiseShadow.scaleX);
+assert.ok(dayCruiseShadow.positionY < 12.8);
 
 const dayShadowEdge = resolveAircraft3DEdgeTone({
   phase: "day",

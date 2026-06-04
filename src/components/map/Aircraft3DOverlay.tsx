@@ -17,6 +17,7 @@ import {
   resolveAircraft3DLightingProfile,
   resolveAircraft3DMaterialProfile,
   resolveAircraft3DModelScalePx,
+  resolveAircraft3DShadowPresentation,
   shouldRenderAircraftContrail,
 } from "@/features/aircraft/icons/aircraftIcon3DModel";
 import {
@@ -803,13 +804,16 @@ function buildModelGroup({
   group.userData.lightMaterials = [];
   group.userData.beaconMaterials = [];
 
-  const shadowOpacity = selected
-    ? profile.shadowOpacity * 1.3
-    : profile.shadowOpacity * 0.86;
   const materialProfile =
     resolveAircraft3DMaterialProfile({ phase, selected }) ||
     resolveAircraft3DMaterialProfile({ phase: "day", selected });
-  addShadow(group, template, shadowOpacity * opacity);
+  const shadowPresentation = resolveAircraft3DShadowPresentation({
+    altitude: aircraft?.altitude,
+    onGround: aircraft?.onGround,
+    phase,
+    selected,
+  });
+  addShadow(group, template, shadowPresentation.opacity * opacity);
   addBodyGlow({
     group,
     opacity,
@@ -1012,17 +1016,16 @@ function updateGroupScale(group: AircraftRenderGroup, aircraft: any, selected: b
 function updateShadow(group: AircraftRenderGroup, aircraft: any, phase: string) {
   const shadow = group.userData.shadow;
   if (!shadow) return;
-  const altitude = Math.max(0, Math.min(Number(aircraft?.altitude) || 0, 42_000));
-  const ratio = aircraft?.onGround ? 0 : altitude / 42_000;
-  const profile = resolveAircraft3DLightingProfile({ phase });
-  const selectedBoost = group.userData.selected ? 1.12 : 0.9;
-  shadow.position.set(2.5 + ratio * 7, 3.5 + ratio * 10, -5);
-  shadow.scale.set(0.9 + ratio * 0.32, 0.72 + ratio * 0.18, 1);
+  const presentation = resolveAircraft3DShadowPresentation({
+    altitude: aircraft?.altitude,
+    onGround: aircraft?.onGround,
+    phase,
+    selected: Boolean(group.userData.selected),
+  });
+  shadow.position.set(presentation.positionX, presentation.positionY, -5);
+  shadow.scale.set(presentation.scaleX, presentation.scaleY, 1);
   const material = shadow.material as THREE.MeshBasicMaterial;
-  material.opacity = Math.max(
-    phase === "night" ? 0.05 : 0.035,
-    profile.shadowOpacity * selectedBoost - ratio * 0.08,
-  );
+  material.opacity = presentation.opacity * (group.userData.emphasisOpacity ?? 1);
 }
 
 function syncLighting(state: AircraftOverlayState, phase: string) {
