@@ -16,6 +16,7 @@ import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "@/features/airport/explorer/a
 import {
   DEFAULT_MAP_SETTINGS,
   MAP_LAYER_KEYS,
+  MAP_MODE_IDS,
   buildCustomMapSettings,
   buildMapSettingsFromLayerState,
   buildPresetMapSettings,
@@ -28,6 +29,7 @@ import {
   readStoredMapSettings,
   writeStoredMapSettings,
 } from "@/features/airport/map-settings/mapSettingsStorage";
+import { useImmersiveModeFeature } from "@/features/app-shell/auth/useFlightAwareEnabled";
 import {
   getAirportSidebarMode,
   getAirportSidebarOpenForMode,
@@ -66,11 +68,11 @@ function toggleValue(value) {
   return !value;
 }
 
-function applyMapSettingsToUiState(state, settings) {
-  const normalizedSettings = normalizeMapSettings(settings);
-  const layers = mapSettingsToExplorerLayers(normalizedSettings);
+function applyMapSettingsToUiState(state, settings, options = {}) {
+  const normalizedSettings = normalizeMapSettings(settings, options);
+  const layers = mapSettingsToExplorerLayers(normalizedSettings, options);
   const userLocationPreferences =
-    mapSettingsToUserLocationPreferences(normalizedSettings);
+    mapSettingsToUserLocationPreferences(normalizedSettings, options);
   return {
     ...state,
     ...layers,
@@ -83,14 +85,16 @@ function applyMapSettingsToUiState(state, settings) {
   };
 }
 
-function applyManualLayerToggle(state, layerKey, value) {
+function applyManualLayerToggle(state, layerKey, value, options = {}) {
   return applyMapSettingsToUiState(
     state,
     buildCustomMapSettings({
       settings: state.mapSettings,
       layerKey,
       value,
+      ...options,
     }),
+    options,
   );
 }
 
@@ -123,42 +127,57 @@ function airportExplorerUiReducer(state, action) {
         state,
         MAP_LAYER_KEYS.MAP_LABELS,
         toggleValue(state.showMapLabels),
+        { immersiveModeEnabled: action.immersiveModeEnabled },
       );
     case "toggleRunwayBeams":
       return applyManualLayerToggle(
         state,
         MAP_LAYER_KEYS.APPROACH_BEAMS,
         toggleValue(state.showRunwayBeams),
+        { immersiveModeEnabled: action.immersiveModeEnabled },
       );
     case "toggleNavaidMarkers":
       return applyManualLayerToggle(
         state,
         MAP_LAYER_KEYS.NAVAID_MARKERS,
         toggleValue(state.showNavaidMarkers),
+        { immersiveModeEnabled: action.immersiveModeEnabled },
       );
     case "toggleAirspaces":
       return applyManualLayerToggle(
         state,
         MAP_LAYER_KEYS.AIRSPACES,
         toggleValue(state.showAirspaces),
+        { immersiveModeEnabled: action.immersiveModeEnabled },
       );
     case "toggleCandidateWatchingSpots":
       return applyManualLayerToggle(
         state,
         MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS,
         toggleValue(state.showCandidateWatchingSpots),
+        { immersiveModeEnabled: action.immersiveModeEnabled },
       );
     case "applyMapMode":
-      if (!isSelectableMapModeId(action.modeId)) return state;
+      if (
+        !isSelectableMapModeId(action.modeId, {
+          immersiveModeEnabled: action.immersiveModeEnabled,
+        })
+      ) {
+        return state;
+      }
       return applyMapSettingsToUiState(
         state,
         buildPresetMapSettings({
           modeId: action.modeId,
           audioEnabled: state.mapSettings?.audioEnabled,
+          immersiveModeEnabled: action.immersiveModeEnabled,
         }),
+        { immersiveModeEnabled: action.immersiveModeEnabled },
       );
     case "hydrateMapSettings":
-      return applyMapSettingsToUiState(state, action.settings);
+      return applyMapSettingsToUiState(state, action.settings, {
+        immersiveModeEnabled: action.immersiveModeEnabled,
+      });
     case "setUserLocationPreferences": {
       const userLocationEnabled = action.userLocationEnabled === true;
       const userLocationAudioEnabled =
@@ -167,6 +186,7 @@ function airportExplorerUiReducer(state, action) {
         settings: state.mapSettings,
         layerKey: MAP_LAYER_KEYS.USER_LOCATION,
         value: userLocationEnabled,
+        immersiveModeEnabled: action.immersiveModeEnabled,
       });
       return applyMapSettingsToUiState(
         state,
@@ -174,7 +194,9 @@ function airportExplorerUiReducer(state, action) {
           settings: locationSettings,
           layerKey: MAP_LAYER_KEYS.USER_LOCATION_AUDIO,
           value: userLocationAudioEnabled,
+          immersiveModeEnabled: action.immersiveModeEnabled,
         }),
+        { immersiveModeEnabled: action.immersiveModeEnabled },
       );
     }
     case "setTrafficFilter":
@@ -296,6 +318,8 @@ function airportExplorerUiReducer(state, action) {
 
 export function ExplorerUiProvider({ children }) {
   const { isLoaded, isSignedIn } = useUser();
+  const immersiveModeFeature = useImmersiveModeFeature();
+  const immersiveModeEnabled = immersiveModeFeature.enabled;
   const hasHydratedMapSettingsRef = useRef(false);
   const persistedMapSettingsRef = useRef("");
   const [savedMapSettings, setSavedMapSettings] = useState<Record<string, any> | null>(null);
@@ -344,8 +368,9 @@ export function ExplorerUiProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!isLoaded) return undefined;
+    if (!isLoaded || !immersiveModeFeature.resolved) return undefined;
     let cancelled = false;
+    const options = { immersiveModeEnabled };
 
     const hydrateMapSettings = async () => {
       hasHydratedMapSettingsRef.current = false;
@@ -359,14 +384,17 @@ export function ExplorerUiProvider({ children }) {
           if (response.ok) {
             const payload = await response.json();
             nextSettings = payload?.settings
-              ? normalizeMapSettings(payload.settings)
+              ? normalizeMapSettings(payload.settings, options)
               : null;
           }
         } catch {
           nextSettings = null;
         }
       } else {
-        nextSettings = readStoredMapSettings();
+        const storedSettings = readStoredMapSettings();
+        nextSettings = storedSettings
+          ? normalizeMapSettings(storedSettings, options)
+          : null;
       }
 
       if (cancelled) return;
@@ -376,10 +404,18 @@ export function ExplorerUiProvider({ children }) {
           ? JSON.stringify(nextSettings)
           : "";
         if (nextSettings) {
-          dispatch({ type: "hydrateMapSettings", settings: nextSettings });
+          dispatch({
+            type: "hydrateMapSettings",
+            settings: nextSettings,
+            immersiveModeEnabled,
+          });
         }
       } else if (nextSettings) {
-        dispatch({ type: "hydrateMapSettings", settings: nextSettings });
+        dispatch({
+          type: "hydrateMapSettings",
+          settings: nextSettings,
+          immersiveModeEnabled,
+        });
         persistedMapSettingsRef.current = JSON.stringify(nextSettings);
       } else {
         persistedMapSettingsRef.current = "";
@@ -392,19 +428,26 @@ export function ExplorerUiProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn]);
+  }, [
+    immersiveModeEnabled,
+    immersiveModeFeature.resolved,
+    isLoaded,
+    isSignedIn,
+  ]);
 
   useEffect(() => {
     if (!isLoaded || !hasHydratedMapSettingsRef.current) return undefined;
     if (isSignedIn) return undefined;
-    const nextSettings = normalizeMapSettings(mapSettings);
+    const nextSettings = normalizeMapSettings(mapSettings, {
+      immersiveModeEnabled,
+    });
     const serialized = JSON.stringify(nextSettings);
     if (serialized === persistedMapSettingsRef.current) return undefined;
 
     writeStoredMapSettings(nextSettings);
     persistedMapSettingsRef.current = serialized;
     return undefined;
-  }, [isLoaded, isSignedIn, mapSettings]);
+  }, [immersiveModeEnabled, isLoaded, isSignedIn, mapSettings]);
 
   const saveMapSettings = useCallback(async (options: Record<string, any> = {}) => {
     if (!isLoaded || !isSignedIn) return null;
@@ -413,8 +456,10 @@ export function ExplorerUiProvider({ children }) {
         ? buildMapSettingsFromLayerState({
             settings: mapSettings,
             layers: options.layers,
+            immersiveModeEnabled,
           })
         : mapSettings,
+      { immersiveModeEnabled },
     );
     setMapSettingsSaveStatus("saving");
     try {
@@ -428,18 +473,22 @@ export function ExplorerUiProvider({ children }) {
       if (!response.ok) throw new Error("save failed");
       const payload = await response.json();
       const savedSettings = payload?.settings
-        ? normalizeMapSettings(payload.settings)
+        ? normalizeMapSettings(payload.settings, { immersiveModeEnabled })
         : nextSettings;
       setSavedMapSettings(savedSettings);
       persistedMapSettingsRef.current = JSON.stringify(savedSettings);
-      dispatch({ type: "hydrateMapSettings", settings: savedSettings });
+      dispatch({
+        type: "hydrateMapSettings",
+        settings: savedSettings,
+        immersiveModeEnabled,
+      });
       setMapSettingsSaveStatus("saved");
       return savedSettings;
     } catch {
       setMapSettingsSaveStatus("error");
       return null;
     }
-  }, [isLoaded, isSignedIn, mapSettings]);
+  }, [immersiveModeEnabled, isLoaded, isSignedIn, mapSettings]);
 
   const restoreMapSettings = useCallback(async () => {
     if (!isLoaded || !isSignedIn) return null;
@@ -451,7 +500,7 @@ export function ExplorerUiProvider({ children }) {
       if (!response.ok) throw new Error("restore failed");
       const payload = await response.json();
       const restoredSettings = payload?.settings
-        ? normalizeMapSettings(payload.settings)
+        ? normalizeMapSettings(payload.settings, { immersiveModeEnabled })
         : savedMapSettings;
       if (!restoredSettings) {
         setMapSettingsRestoreStatus("empty");
@@ -459,14 +508,18 @@ export function ExplorerUiProvider({ children }) {
       }
       setSavedMapSettings(restoredSettings);
       persistedMapSettingsRef.current = JSON.stringify(restoredSettings);
-      dispatch({ type: "hydrateMapSettings", settings: restoredSettings });
+      dispatch({
+        type: "hydrateMapSettings",
+        settings: restoredSettings,
+        immersiveModeEnabled,
+      });
       setMapSettingsRestoreStatus("restored");
       return restoredSettings;
     } catch {
       setMapSettingsRestoreStatus("error");
       return null;
     }
-  }, [isLoaded, isSignedIn, savedMapSettings]);
+  }, [immersiveModeEnabled, isLoaded, isSignedIn, savedMapSettings]);
 
   const toggleSidebar = useCallback(() => {
     dispatch({ type: "toggleSidebar" });
@@ -481,28 +534,31 @@ export function ExplorerUiProvider({ children }) {
   }, []);
 
   const toggleMapLabels = useCallback(() => {
-    dispatch({ type: "toggleMapLabels" });
-  }, []);
+    dispatch({ type: "toggleMapLabels", immersiveModeEnabled });
+  }, [immersiveModeEnabled]);
 
   const toggleRunwayBeams = useCallback(() => {
-    dispatch({ type: "toggleRunwayBeams" });
-  }, []);
+    dispatch({ type: "toggleRunwayBeams", immersiveModeEnabled });
+  }, [immersiveModeEnabled]);
 
   const toggleNavaidMarkers = useCallback(() => {
-    dispatch({ type: "toggleNavaidMarkers" });
-  }, []);
+    dispatch({ type: "toggleNavaidMarkers", immersiveModeEnabled });
+  }, [immersiveModeEnabled]);
 
   const toggleAirspaces = useCallback(() => {
-    dispatch({ type: "toggleAirspaces" });
-  }, []);
+    dispatch({ type: "toggleAirspaces", immersiveModeEnabled });
+  }, [immersiveModeEnabled]);
 
   const toggleCandidateWatchingSpots = useCallback(() => {
-    dispatch({ type: "toggleCandidateWatchingSpots" });
-  }, []);
+    dispatch({
+      type: "toggleCandidateWatchingSpots",
+      immersiveModeEnabled,
+    });
+  }, [immersiveModeEnabled]);
 
   const applyMapMode = useCallback((modeId) => {
-    dispatch({ type: "applyMapMode", modeId });
-  }, []);
+    dispatch({ type: "applyMapMode", modeId, immersiveModeEnabled });
+  }, [immersiveModeEnabled]);
 
   const setUserLocationPreferences = useCallback(
     ({ userLocationEnabled, userLocationAudioEnabled = false }) => {
@@ -510,9 +566,10 @@ export function ExplorerUiProvider({ children }) {
         type: "setUserLocationPreferences",
         userLocationEnabled,
         userLocationAudioEnabled,
+        immersiveModeEnabled,
       });
     },
-    [],
+    [immersiveModeEnabled],
   );
 
   const setTrafficFilter = useCallback((trafficFilter) => {
@@ -577,6 +634,9 @@ export function ExplorerUiProvider({ children }) {
 
   const fitToTraceSignal = state.fitToTraceSignal;
   const mapFollowsAircraft = state.mapFollowsAircraft;
+  const immersiveModeActive =
+    mapSettings?.selectedMode === MAP_MODE_IDS.IMMERSIVE &&
+    immersiveModeEnabled;
 
   const value = useMemo(
     () => ({
@@ -597,6 +657,8 @@ export function ExplorerUiProvider({ children }) {
       savedMapSettings,
       mapSettingsSaveStatus,
       mapSettingsRestoreStatus,
+      immersiveModeActive,
+      immersiveModeEnabled,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -652,6 +714,8 @@ export function ExplorerUiProvider({ children }) {
       savedMapSettings,
       mapSettingsSaveStatus,
       mapSettingsRestoreStatus,
+      immersiveModeActive,
+      immersiveModeEnabled,
       trafficFilter,
       typeFilter,
       altitudeLevel,

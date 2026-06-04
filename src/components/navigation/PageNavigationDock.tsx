@@ -43,7 +43,6 @@ export default function PageNavigationDock() {
     themeTitle,
     themeIconKey,
     cycleTheme,
-    immersiveThemesEnabled,
     selectTheme,
   } = useThemePreference();
   const { isLoaded, isSignedIn } = useUser();
@@ -84,7 +83,6 @@ export default function PageNavigationDock() {
           className={buttonClass}
           iconKey={themeIconKey}
           preference={themePreference}
-          immersiveThemesEnabled={immersiveThemesEnabled}
           title={themeTitle}
           onClick={cycleTheme}
           onSelectTheme={selectTheme}

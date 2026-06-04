@@ -33,13 +33,12 @@ export async function GET(request, { params }) {
   if (securityResponse) return securityResponse;
 
   const { theme: rawTheme } = await params;
-  const baseTheme =
-    rawTheme === "light" || rawTheme === "sunrise" || rawTheme === "sunset"
-      ? "light"
-      : "dark";
   const requestUrl = new URL(request.url);
+  const immersiveMode = rawTheme === "immersive";
+  const baseTheme = rawTheme === "light" || immersiveMode ? "light" : "dark";
   const locale = requestUrl.searchParams.get("locale") || "en";
   const showLabels = requestUrl.searchParams.get("labels") !== "0";
+  const localMinutes = requestUrl.searchParams.get("localMinutes");
 
   let upstreamStyle;
   try {
@@ -65,7 +64,11 @@ export async function GET(request, { params }) {
   }
 
   const style = buildLocalizedMapLibreStyle(
-    buildImmersiveMapLibreStyle(buildProxiedMapLibreStyle(upstreamStyle), rawTheme),
+    immersiveMode
+      ? buildImmersiveMapLibreStyle(buildProxiedMapLibreStyle(upstreamStyle), {
+          localMinutes,
+        })
+      : buildProxiedMapLibreStyle(upstreamStyle),
     { locale, showLabels },
   );
 

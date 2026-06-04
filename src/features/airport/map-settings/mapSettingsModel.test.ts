@@ -6,6 +6,7 @@ import {
   buildCustomMapSettings,
   buildMapSettingsFromLayerState,
   buildPresetMapSettings,
+  getSelectableMapModeOptions,
   mapSettingsToExplorerLayers,
   mergeMapSettings,
   normalizeMapSettings,
@@ -141,6 +142,58 @@ import {
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
   });
+}
+
+{
+  assert.equal(
+    getSelectableMapModeOptions({ immersiveModeEnabled: false }).some(
+      (mode) => mode.id === MAP_MODE_IDS.IMMERSIVE,
+    ),
+    false,
+  );
+  assert.equal(
+    getSelectableMapModeOptions({ immersiveModeEnabled: true }).some(
+      (mode) => mode.id === MAP_MODE_IDS.IMMERSIVE,
+    ),
+    true,
+  );
+}
+
+{
+  const locked = buildPresetMapSettings({ modeId: MAP_MODE_IDS.IMMERSIVE });
+  assert.equal(locked.selectedMode, MAP_MODE_IDS.CONTROLLER);
+
+  const immersive = buildPresetMapSettings({
+    modeId: MAP_MODE_IDS.IMMERSIVE,
+    immersiveModeEnabled: true,
+    now: "2026-06-02T15:08:00.000Z",
+  });
+
+  assert.equal(immersive.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+  assert.deepEqual(
+    mapSettingsToExplorerLayers(immersive, { immersiveModeEnabled: true }),
+    {
+      showMapLabels: false,
+      showRunwayBeams: false,
+      showNavaidMarkers: false,
+      showAirspaces: false,
+      showCandidateWatchingSpots: false,
+    },
+  );
+  assert.equal(
+    normalizeMapSettings(
+      { selectedMode: MAP_MODE_IDS.IMMERSIVE, baseMode: MAP_MODE_IDS.IMMERSIVE },
+      { immersiveModeEnabled: false },
+    ).selectedMode,
+    MAP_MODE_IDS.CONTROLLER,
+  );
+  assert.equal(
+    normalizeMapSettings(
+      { selectedMode: MAP_MODE_IDS.IMMERSIVE, baseMode: MAP_MODE_IDS.IMMERSIVE },
+      { immersiveModeEnabled: true },
+    ).selectedMode,
+    MAP_MODE_IDS.IMMERSIVE,
+  );
 }
 
 {

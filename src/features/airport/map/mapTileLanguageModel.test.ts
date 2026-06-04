@@ -189,6 +189,20 @@ assert.equal(
         paint: { "line-color": "#cccccc" },
       },
       {
+        id: "admin_sub",
+        type: "line",
+        paint: { "line-color": "#ffffff" },
+      },
+      {
+        id: "highway-name-major",
+        type: "symbol",
+        paint: { "text-color": "#111111", "text-halo-color": "#ffffff" },
+      },
+      {
+        id: "road_shield_us",
+        type: "symbol",
+      },
+      {
         id: "place_city",
         type: "symbol",
         paint: { "text-color": "#111111", "text-halo-color": "#ffffff" },
@@ -201,16 +215,23 @@ assert.equal(
     ],
   };
 
-  const themed = buildImmersiveMapLibreStyle(style, "sunrise");
+  const themed = buildImmersiveMapLibreStyle(style, { localMinutes: 435 });
 
   assert.notEqual(themed, style);
-  assert.equal(themed.layers[0].paint["background-color"], "#1e2758");
-  assert.equal(themed.layers[1].paint["fill-color"], "#29406f");
-  assert.equal(themed.layers[2].paint["line-color"], "#bfc7ff");
-  assert.equal(themed.layers[3].paint["line-color"], "#5f6a96");
-  assert.equal(themed.layers[4].paint["text-color"], "#eef3ff");
-  assert.equal(themed.layers[4].paint["text-halo-color"], "#18234d");
-  assert.equal(themed.layers[5].paint["text-color"], "#b9ddff");
+  assert.equal(themed.layers[0].paint["background-color"], "#1b244d");
+  assert.equal(themed.layers[1].paint["fill-color"], "#253c62");
+  assert.equal(themed.layers[2].paint["line-color"], "#c6ccff");
+  assert.equal(themed.layers[3].paint["line-color"], "#404b70");
+  assert.equal(themed.layers[3].paint["line-opacity"], 0.22);
+  assert.equal(themed.layers[4].paint["line-color"], "#71698b");
+  assert.equal(themed.layers[4].paint["line-opacity"], 0.22);
+  assert.equal(themed.layers[5].paint["text-color"], "#8f9abb");
+  assert.equal(themed.layers[5].paint["text-opacity"], 0.38);
+  assert.equal(themed.layers[6].paint["icon-opacity"], 0.24);
+  assert.equal(themed.layers[7].paint["text-color"], "#edf3ff");
+  assert.equal(themed.layers[7].paint["text-halo-color"], "#151f45");
+  assert.equal(themed.layers[7].paint["text-opacity"], undefined);
+  assert.equal(themed.layers[8].paint["text-color"], "#a9d7ff");
 }
 
 {
@@ -232,17 +253,54 @@ assert.equal(
         type: "line",
         paint: { "line-color": "#cccccc" },
       },
+      {
+        id: "highway-name-major",
+        type: "symbol",
+        paint: { "text-color": "#111111", "text-halo-color": "#ffffff" },
+      },
+      {
+        id: "road_shield_us",
+        type: "symbol",
+      },
     ],
   };
 
-  const themed = buildImmersiveMapLibreStyle(style, "sunset");
+  const themed = buildImmersiveMapLibreStyle(style, { localMinutes: 1080 });
 
-  assert.equal(themed.layers[0].paint["background-color"], "#f2dfc4");
-  assert.equal(themed.layers[1].paint["fill-color"], "#d8b9a1");
-  assert.equal(themed.layers[2].paint["line-color"], "#ca8750");
+  assert.equal(themed.layers[0].paint["background-color"], "#f4e7d2");
+  assert.equal(themed.layers[1].paint["fill-color"], "#d4bdad");
+  assert.equal(themed.layers[2].paint["line-color"], "#c9b8a2");
+  assert.equal(themed.layers[2].paint["line-opacity"], 0.22);
+  assert.equal(themed.layers[3].paint["text-color"], "#94826f");
+  assert.equal(themed.layers[3].paint["text-opacity"], 0.38);
+  assert.equal(themed.layers[4].paint["icon-opacity"], 0.24);
+}
+
+{
+  const style = {
+    version: 8,
+    layers: [
+      {
+        id: "transportation",
+        type: "line",
+        paint: { "line-color": "#cccccc" },
+      },
+      {
+        id: "transportation_name",
+        type: "symbol",
+        paint: { "text-color": "#111111", "text-halo-color": "#ffffff" },
+      },
+    ],
+  };
+
+  const themed = buildImmersiveMapLibreStyle(style, { localMinutes: 720 });
+
+  assert.equal(themed.layers[0].paint["line-opacity"], 0.12);
+  assert.equal(themed.layers[1].paint["text-color"], "#7a8582");
+  assert.equal(themed.layers[1].paint["text-opacity"], 0.28);
 }
 
 {
   const style = { version: 8, layers: [] };
-  assert.equal(buildImmersiveMapLibreStyle(style, "light"), style);
+  assert.equal(buildImmersiveMapLibreStyle(style, null), style);
 }

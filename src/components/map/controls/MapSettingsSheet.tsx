@@ -4,10 +4,10 @@ import { useUser } from "@clerk/nextjs";
 import {
   MAP_LAYER_KEYS,
   MAP_MODE_IDS,
-  MAP_MODE_OPTIONS,
   CUSTOM_MAP_MODE_OPTION,
   DISABLED_MAP_MODE_IDS,
   explorerLayerStateToMapSettingsLayers,
+  getSelectableMapModeOptions,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
@@ -95,13 +95,17 @@ export default function MapSettingsSheet({
   savedMapSettings = null,
   mapSettingsSaveStatus = "idle",
   mapSettingsRestoreStatus = "idle",
+  immersiveModeEnabled = false,
   onSaveMapSettings = null,
   onRestoreMapSettings = null,
 }) {
   const { t } = useI18n();
   const { isLoaded, isSignedIn } = useUser();
-  const settings = normalizeMapSettings(mapSettings);
-  const modeOptions = [...MAP_MODE_OPTIONS, CUSTOM_MAP_MODE_OPTION];
+  const settings = normalizeMapSettings(mapSettings, { immersiveModeEnabled });
+  const modeOptions = [
+    ...getSelectableMapModeOptions({ immersiveModeEnabled }),
+    CUSTOM_MAP_MODE_OPTION,
+  ];
   const state = {
     showMapLabels,
     showBeams,
@@ -186,7 +190,6 @@ export default function MapSettingsSheet({
                   const active = settings.selectedMode === mode.id;
                   const disabled =
                     mode.id === MAP_MODE_IDS.CUSTOM ||
-                    mode.id === MAP_MODE_IDS.IMMERSIVE ||
                     (DISABLED_MAP_MODE_IDS as readonly string[]).includes(mode.id);
                   return (
                     <SelectableCard

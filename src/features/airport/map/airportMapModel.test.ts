@@ -21,14 +21,14 @@ const aircraft = [
 
 assert.equal(resolveDocumentTheme({ getAttribute: () => "light" }), "light");
 assert.equal(resolveDocumentTheme({ getAttribute: () => "dark" }), "dark");
-assert.equal(resolveDocumentTheme({ getAttribute: () => "sunrise" }), "sunrise");
-assert.equal(resolveDocumentTheme({ getAttribute: () => "sunset" }), "sunset");
+assert.equal(resolveDocumentTheme({ getAttribute: () => "sunrise" }), "dark");
+assert.equal(resolveDocumentTheme({ getAttribute: () => "sunset" }), "dark");
 assert.equal(resolveDocumentTheme({ getAttribute: () => null }), "dark");
 assert.equal(isLightMapTheme("light"), true);
 assert.equal(isLightMapTheme("sunrise"), false);
-assert.equal(isLightMapTheme("sunset"), true);
+assert.equal(isLightMapTheme("sunset"), false);
 assert.equal(isLightMapTheme("dark"), false);
-assert.equal(isKnownMapTheme("sunrise"), true);
+assert.equal(isKnownMapTheme("sunrise"), false);
 assert.equal(isKnownMapTheme("unknown"), false);
 
 assert.equal(resolveAirportMapFocalCenter({ lat: null, lon: null }), null);

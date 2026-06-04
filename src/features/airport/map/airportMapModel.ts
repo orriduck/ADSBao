@@ -31,10 +31,10 @@ type VisibleAircraftOptions = AirportGroundFilterOptions & {
 };
 
 export const isLightMapTheme = (theme: unknown) =>
-  theme === "light" || theme === "sunset";
+  theme === "light";
 
 export const isKnownMapTheme = (theme: unknown) =>
-  theme === "light" || theme === "dark" || theme === "sunrise" || theme === "sunset";
+  theme === "light" || theme === "dark";
 
 export const resolveDocumentTheme = (documentElement: Pick<Element, "getAttribute"> | null | undefined) => {
   const theme = documentElement?.getAttribute("data-theme");

@@ -30,6 +30,7 @@ export default function MapControlBar({
   userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
+  immersiveModeEnabled = false,
   showSidebarToggle = true,
   onZoom,
   onToggleMapLabels,
@@ -51,7 +52,6 @@ export default function MapControlBar({
     themePreference,
     themeTitle,
     cycleTheme,
-    immersiveThemesEnabled,
     selectTheme,
   } = useThemePreference();
 
@@ -96,6 +96,7 @@ export default function MapControlBar({
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
+        immersiveModeEnabled={immersiveModeEnabled}
         onSelectMapMode={onSelectMapMode}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
@@ -114,7 +115,6 @@ export default function MapControlBar({
         zoomDisabled={zoomDisabled}
         currentTheme={themePreference}
         themeTitle={themeTitle}
-        immersiveThemesEnabled={immersiveThemesEnabled}
         onSelectTheme={selectTheme}
         settingsOpen={settingsOpen}
         settingsSheetId={MAP_SETTINGS_SHEET_ID}

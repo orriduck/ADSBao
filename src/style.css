@@ -1151,7 +1151,7 @@ body {
 
 :root[data-theme="dark"] .atc-tile-base {
     filter: saturate(0) brightness(0.58) contrast(1.08) sepia(0.32);
-    mix-blend-mode: screen;
+    mix-blend-mode: normal;
 }
 
 /* Light — saturate(0) removes tile color; multiply on light gray canvas
@@ -6285,6 +6285,78 @@ body {
 
 .airport-map-kit .airport-map-stage::after {
     z-index: 13;
+}
+
+.airport-map-stage[data-map-mode="immersive"] {
+    background: var(--atc-bg);
+    box-shadow: var(--immersive-map-stage-shadow, var(--app-panel-shadow));
+}
+
+.airport-map-stage[data-map-mode="immersive"]::before,
+.airport-map-stage[data-map-mode="immersive"]::after {
+    content: "";
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.airport-map-stage[data-map-mode="immersive"]::before {
+    background:
+        radial-gradient(
+            ellipse 120% 68% at var(--immersive-light-x, 50%) var(--immersive-light-y, 42%),
+            var(--immersive-light-core, rgb(255 232 180 / 0.3)) 0%,
+            var(--immersive-light-wash, rgb(255 190 102 / 0.18)) 34%,
+            transparent 68%
+        ),
+        linear-gradient(
+            180deg,
+            var(--immersive-atmosphere-top, rgb(9 13 48 / 0.34)) 0%,
+            transparent 38%,
+            var(--immersive-atmosphere-horizon, rgb(255 190 102 / 0.18)) 86%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 110% 38% at 50% 108%,
+            var(--immersive-atmosphere-horizon, rgb(255 190 102 / 0.24)) 0%,
+            transparent 70%
+        );
+    mix-blend-mode: screen;
+    opacity: var(--immersive-light-opacity, var(--immersive-atmosphere-opacity, 0.72));
+    z-index: 12;
+}
+
+.airport-map-stage[data-map-mode="immersive"]::after {
+    -webkit-backdrop-filter: var(--immersive-atmosphere-filter, saturate(1.05) contrast(0.96));
+    backdrop-filter: var(--immersive-atmosphere-filter, saturate(1.05) contrast(0.96));
+    background:
+        linear-gradient(
+            var(--immersive-light-angle, 132deg),
+            var(--immersive-shadow-wash, rgb(0 0 0 / 0.22)) 0%,
+            transparent 38%,
+            var(--immersive-light-haze, rgb(255 210 140 / 0.12)) 72%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 82% 54% at var(--immersive-light-x, 50%) var(--immersive-light-y, 42%),
+            var(--immersive-atmosphere-side, rgb(172 185 255 / 0.18)),
+            transparent 62%
+        ),
+        radial-gradient(
+            ellipse 90% 72% at 50% 52%,
+            transparent 48%,
+            var(--immersive-atmosphere-vignette, rgb(0 0 0 / 0.22)) 100%
+        );
+    mix-blend-mode: normal;
+    opacity: var(--immersive-shadow-opacity, calc(var(--immersive-atmosphere-opacity, 0.72) * 0.82));
+    z-index: 13;
+}
+
+.airport-map-stage[data-map-mode="immersive"] .atc-tile-base {
+    filter: var(--immersive-atmosphere-filter, saturate(1.05) contrast(0.96));
+    opacity: var(--immersive-map-detail-opacity, 0.88);
+    transition:
+        filter 900ms ease,
+        opacity 900ms ease;
 }
 
 :root[data-theme="sunrise"] .airport-map-kit .airport-map-stage::before {

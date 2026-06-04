@@ -10,7 +10,7 @@ type SonnerTheme = "light" | "dark" | "system";
 // controlled explicitly via the data-theme cookie/attribute, so
 // "system" can disagree with the rest of the UI.
 const resolveToasterTheme = (theme: unknown): SonnerTheme =>
-  theme === "dark" || theme === "sunrise" ? "dark" : "light";
+  theme === "dark" ? "dark" : "light";
 
 const resolveAttrTheme = (): SonnerTheme => {
   if (typeof document === "undefined") return "dark";

@@ -95,6 +95,8 @@ export default function AirportMap({
   loadingOverlayVariant = "airport",
   loadingOverlayCallsign = "",
   loadingOverlaySources = {},
+  immersiveModeActive = false,
+  immersiveLocalMinutes = null,
   userLocation = null,
   userLocationPulseIntervalMs = null,
   userLocationPulseBeat = null,
@@ -297,12 +299,15 @@ export default function AirportMap({
   const contextTiles = useAviationContextTiles({
     map: mapInstance,
     enabled: contextTileOverlays,
-    airspacesEnabled: showAirspaces,
-    navaidsEnabled: showNavaidMarkers && !useNavaidCountTiles,
-    navaidCountsEnabled: showNavaidMarkers && useNavaidCountTiles,
+    airspacesEnabled: !immersiveModeActive && showAirspaces,
+    navaidsEnabled:
+      !immersiveModeActive && showNavaidMarkers && !useNavaidCountTiles,
+    navaidCountsEnabled:
+      !immersiveModeActive && showNavaidMarkers && useNavaidCountTiles,
     refreshKey: contextTileRefreshKey,
   });
   const renderedAirspaces = useMemo(() => {
+    if (immersiveModeActive) return [];
     if (!contextTileOverlays) return airspaces;
     const seen = new Set();
     return [...airspaces, ...contextTiles.airspaces].filter((item) => {
@@ -311,8 +316,9 @@ export default function AirportMap({
       seen.add(key);
       return true;
     });
-  }, [airspaces, contextTileOverlays, contextTiles.airspaces]);
+  }, [airspaces, contextTileOverlays, contextTiles.airspaces, immersiveModeActive]);
   const renderedNavaids = useMemo(() => {
+    if (immersiveModeActive) return [];
     if (!contextTileOverlays) return nearbyNavaids;
     const seen = new Set();
     return [...nearbyNavaids, ...contextTiles.navaids].filter((item) => {
@@ -321,7 +327,7 @@ export default function AirportMap({
       seen.add(key);
       return true;
     });
-  }, [contextTileOverlays, contextTiles.navaids, nearbyNavaids]);
+  }, [contextTileOverlays, contextTiles.navaids, immersiveModeActive, nearbyNavaids]);
   const contextSignature = useMemo(
     () =>
       JSON.stringify({
@@ -359,6 +365,8 @@ export default function AirportMap({
   ]);
 
   const overlayTheme = getMapOverlayTheme(currentTheme);
+  const mapStyleTheme = immersiveModeActive ? "immersive" : currentTheme;
+  const showBaseMapLabels = immersiveModeActive ? false : showMapLabels;
   const loadingOverlayState = useResolvedMapLoadingOverlay({
     mapReady: Boolean(mapInstance),
     variant: loadingOverlayVariant,
@@ -399,19 +407,20 @@ export default function AirportMap({
       {mapInstance && (
         <MapContext.Provider value={mapInstance}>
           <MapTileLayers
-            theme={currentTheme}
+            theme={mapStyleTheme}
             locale={locale}
-            showLabels={showMapLabels}
+            showLabels={showBaseMapLabels}
             selectionActive={selectionActive}
+            immersiveLocalMinutes={immersiveLocalMinutes}
           />
           <AirspaceLayer
             airspaces={renderedAirspaces}
-            visible={showAirspaces}
+            visible={!immersiveModeActive && showAirspaces}
             showBoundaryLabels={!fullTraceContext}
             selectedAirspaceId={selectedAirspaceId}
             onSelectAirspace={onSelectAirspace}
           />
-          {icao && (
+          {icao && !immersiveModeActive && (
             <AirportMarker
               lat={lat}
               lon={lon}
@@ -426,7 +435,7 @@ export default function AirportMap({
             />
           )}
           <NearbyAirportLayer
-            airports={nearbyAirports}
+            airports={immersiveModeActive ? [] : nearbyAirports}
             theme={currentTheme}
             zoom={zoom}
             selectedIcao={selectedAirportIcao}
@@ -436,31 +445,35 @@ export default function AirportMap({
           <NavaidLabelLayer
             navaids={renderedNavaids}
             theme={currentTheme}
-            visible={showNavaidMarkers && !useNavaidCountTiles}
+            visible={
+              !immersiveModeActive && showNavaidMarkers && !useNavaidCountTiles
+            }
             selectedNavaidKey={selectedNavaidKey}
             onSelectNavaid={onSelectNavaid}
           />
           <NavaidCountLayer
             counts={contextTiles.navaidCounts}
             theme={currentTheme}
-            visible={showNavaidMarkers && useNavaidCountTiles}
+            visible={
+              !immersiveModeActive && showNavaidMarkers && useNavaidCountTiles
+            }
           />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}
             theme={currentTheme}
             zoom={zoom}
-            showBeams={showRunwayBeams}
-            showBadges
+            showBeams={!immersiveModeActive && showRunwayBeams}
+            showBadges={!immersiveModeActive}
           />
           <CandidateWatchingSpotsLayer
-            enabled={showCandidateWatchingSpots}
+            enabled={!immersiveModeActive && showCandidateWatchingSpots}
             spots={candidateWatchingSpots}
             zoom={zoom}
             selectedSpotId={selectedCandidateWatchingSpotId}
             onSelectSpot={onSelectCandidateWatchingSpot}
           />
           <SelectedAircraftTrace theme={currentTheme} />
-          <MapRangeLegend />
+          {!immersiveModeActive && <MapRangeLegend />}
           <UserLocationMarker
             location={userLocation}
             pulseIntervalMs={userLocationPulseIntervalMs}

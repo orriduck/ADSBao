@@ -32,6 +32,7 @@ export default function ExplorerMapMenu({
     savedMapSettings,
     mapSettingsSaveStatus,
     mapSettingsRestoreStatus,
+    immersiveModeEnabled,
     setMapZoom,
     applyMapMode,
     saveMapSettings,
@@ -63,6 +64,7 @@ export default function ExplorerMapMenu({
         savedMapSettings={savedMapSettings}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
         mapSettingsRestoreStatus={mapSettingsRestoreStatus}
+        immersiveModeEnabled={immersiveModeEnabled}
         userLocationActive={userLocationActive}
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}

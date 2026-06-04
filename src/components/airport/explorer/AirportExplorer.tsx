@@ -32,6 +32,7 @@ import {
 } from "@/features/airport/map/userLocationModel";
 import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandidateWatchingSpots";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useImmersiveColorScheme } from "@/features/airport/immersive/useImmersiveColorScheme";
 import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
 import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
 import { ZOOM_DETAIL } from "@/utils/airportMapDisplay";
@@ -63,6 +64,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showCandidateWatchingSpots,
     userLocationEnabled,
     userLocationAudioEnabled,
+    immersiveModeActive,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -98,6 +100,11 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
   );
+  const immersiveColorScheme = useImmersiveColorScheme({
+    enabled: immersiveModeActive,
+    lat: airportProfile.lat,
+    lon: airportProfile.lon,
+  });
   const { weather, traffic } = useAirportExplorerData(airportProfile);
   const userLocationActive = Boolean(userLocation);
   const userLocationAudioActive =
@@ -486,7 +493,16 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           />
         )}
 
-        <div className="airport-map-stage relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
+        <div
+          className="airport-map-stage relative min-w-0 flex-1 overflow-hidden bg-atc-bg"
+          data-map-mode={immersiveModeActive ? "immersive" : undefined}
+          data-immersive-phase={immersiveColorScheme?.phase || undefined}
+          style={
+            immersiveModeActive
+              ? immersiveColorScheme?.cssProperties
+              : undefined
+          }
+        >
           {!(isMobile && sidebarOpen) && (
             <ExplorerMapMenu
               feedSource={traffic.feedSource}
@@ -540,6 +556,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             runwayMap={airport?.runwayMap}
             loadingOverlayActive={loadingOverlayActive}
             loadingOverlaySources={loadingOverlaySources}
+            immersiveModeActive={immersiveModeActive}
+            immersiveLocalMinutes={
+              immersiveColorScheme?.localTime?.bucketMinutes ?? null
+            }
             userLocation={userLocation}
             userLocationPulseIntervalMs={
               userLocationAudioActive
