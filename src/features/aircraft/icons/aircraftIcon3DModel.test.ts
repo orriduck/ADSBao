@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   resolveAircraft3DAttitudeRotation,
+  resolveAircraft3DLightVector,
   resolveAircraft3DLandingLightIntensity,
   resolveAircraft3DLightingProfile,
   resolveAircraft3DMaterialProfile,
@@ -172,7 +173,70 @@ assert.ok(dayCruiseShadow.opacity >= 0.08);
 assert.ok(selectedDayCruiseShadow.opacity > dayCruiseShadow.opacity);
 assert.ok(dayCruiseShadow.opacity > nightCruiseShadow.opacity);
 assert.ok(morningSurfaceShadow.scaleX > dayCruiseShadow.scaleX);
-assert.ok(dayCruiseShadow.positionY < 12.8);
+assert.ok(Math.abs(dayCruiseShadow.positionX) < 2);
+
+const sunriseLight = resolveAircraft3DLightVector({
+  localMinutes: 360,
+  phase: "morning",
+});
+const noonLight = resolveAircraft3DLightVector({
+  localMinutes: 720,
+  phase: "day",
+});
+const sunsetLight = resolveAircraft3DLightVector({
+  localMinutes: 1080,
+  phase: "sunset",
+});
+const runwayLight = resolveAircraft3DLightVector({
+  localMinutes: 22 * 60,
+  phase: "night",
+});
+assert.equal(sunriseLight.source, "sun");
+assert.ok(sunriseLight.x > 0.75);
+assert.ok(noonLight.z > sunriseLight.z);
+assert.ok(Math.abs(noonLight.x) < 0.08);
+assert.ok(sunsetLight.x < -0.75);
+assert.equal(runwayLight.source, "runway");
+assert.ok(runwayLight.z < sunriseLight.z);
+
+const morningHighShadow = resolveAircraft3DShadowPresentation({
+  altitude: 32_000,
+  localMinutes: 360,
+  phase: "morning",
+});
+const morningLowShadow = resolveAircraft3DShadowPresentation({
+  altitude: 2_000,
+  localMinutes: 360,
+  phase: "morning",
+});
+const sunsetHighShadow = resolveAircraft3DShadowPresentation({
+  altitude: 32_000,
+  localMinutes: 1080,
+  phase: "sunset",
+});
+const noonHighShadow = resolveAircraft3DShadowPresentation({
+  altitude: 32_000,
+  localMinutes: 720,
+  phase: "day",
+});
+const eastboundMorningShadow = resolveAircraft3DShadowPresentation({
+  altitude: 32_000,
+  heading: 90,
+  localMinutes: 360,
+  phase: "morning",
+});
+const runwayShadow = resolveAircraft3DShadowPresentation({
+  altitude: 32_000,
+  localMinutes: 22 * 60,
+  phase: "night",
+});
+assert.ok(morningHighShadow.positionX < -4);
+assert.ok(sunsetHighShadow.positionX > 4);
+assert.ok(Math.abs(morningHighShadow.positionX) > Math.abs(morningLowShadow.positionX));
+assert.ok(Math.abs(noonHighShadow.positionX) < Math.abs(morningHighShadow.positionX));
+assert.ok(Math.abs(eastboundMorningShadow.positionY) > Math.abs(eastboundMorningShadow.positionX));
+assert.ok(runwayShadow.opacity < morningHighShadow.opacity);
+assert.ok(Math.hypot(runwayShadow.positionX, runwayShadow.positionY) < 6);
 
 const dayShadowEdge = resolveAircraft3DEdgeTone({
   phase: "day",
