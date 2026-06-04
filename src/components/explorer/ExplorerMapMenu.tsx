@@ -30,7 +30,6 @@ export default function ExplorerMapMenu({
     showCandidateWatchingSpots,
     mapSettings,
     mapSettingsSaveStatus,
-    immersiveModeEnabled,
     setMapZoom,
     applyMapMode,
     toggleSidebar,
@@ -58,7 +57,6 @@ export default function ExplorerMapMenu({
         showCandidateWatchingSpots={showCandidateWatchingSpots}
         mapSettings={mapSettings}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
-        immersiveModeEnabled={immersiveModeEnabled}
         userLocationActive={userLocationActive}
         userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}

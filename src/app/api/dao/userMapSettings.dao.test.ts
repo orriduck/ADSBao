@@ -275,14 +275,11 @@ function createFakeSupabaseClient({
     createClientImpl,
   });
 
-  const readRow = await repository.readSettingsByEmail("owner@example.com", {
-    immersiveModeEnabled: true,
-  });
+  const readRow = await repository.readSettingsByEmail("owner@example.com");
   assert.equal(readRow.settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
 
   await repository.upsertSettingsByEmail({
     email: "owner@example.com",
-    immersiveModeEnabled: true,
     settings: {
       selectedMode: MAP_MODE_IDS.IMMERSIVE,
       baseMode: MAP_MODE_IDS.IMMERSIVE,

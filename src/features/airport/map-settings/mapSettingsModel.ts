@@ -135,32 +135,24 @@ function isPresetMapModeId(value) {
   return PRESET_MODE_ID_SET.has(value);
 }
 
-function isImmersiveModeEnabled(options: MapSettingsOptions = {}) {
-  return options?.immersiveModeEnabled === true;
-}
-
-export function isSelectableMapModeId(value, options: MapSettingsOptions = {}) {
+export function isSelectableMapModeId(value) {
   if (!isPresetMapModeId(value) || DISABLED_MAP_MODE_ID_SET.has(value)) {
     return false;
   }
-  if (value === MAP_MODE_IDS.IMMERSIVE) return isImmersiveModeEnabled(options);
   return true;
 }
 
-export function getSelectableMapModeOptions(options: MapSettingsOptions = {}) {
-  return MAP_MODE_OPTIONS.filter((mode) =>
-    isSelectableMapModeId(mode.id, options),
-  );
+export function getSelectableMapModeOptions() {
+  return MAP_MODE_OPTIONS.filter((mode) => isSelectableMapModeId(mode.id));
 }
 
 function getMapSettingsBaseMode(
   settings: MapSettingsRecord = {},
-  options: MapSettingsOptions = {},
 ) {
   const selectedMode = settings?.selectedMode;
   const baseMode = settings?.baseMode;
-  if (isSelectableMapModeId(selectedMode, options)) return selectedMode;
-  if (isSelectableMapModeId(baseMode, options)) return baseMode;
+  if (isSelectableMapModeId(selectedMode)) return selectedMode;
+  if (isSelectableMapModeId(baseMode)) return baseMode;
   return DEFAULT_MAP_SETTINGS.baseMode;
 }
 
@@ -182,22 +174,13 @@ function normalizeMapLayerOverrides(layerOverrides: unknown) {
 
 export function normalizeMapSettings(
   settings: MapSettingsRecord = {},
-  options: MapSettingsOptions = {},
 ) {
-  if (
-    !isImmersiveModeEnabled(options) &&
-    (settings?.selectedMode === MAP_MODE_IDS.IMMERSIVE ||
-      settings?.baseMode === MAP_MODE_IDS.IMMERSIVE)
-  ) {
-    return DEFAULT_MAP_SETTINGS;
-  }
-
   const selectedMode = isMapModeId(settings?.selectedMode)
     ? settings.selectedMode
     : DEFAULT_MAP_SETTINGS.selectedMode;
-  const baseMode = isSelectableMapModeId(settings?.baseMode, options)
+  const baseMode = isSelectableMapModeId(settings?.baseMode)
     ? settings.baseMode
-    : isSelectableMapModeId(selectedMode, options)
+    : isSelectableMapModeId(selectedMode)
       ? selectedMode
       : DEFAULT_MAP_SETTINGS.baseMode;
 
@@ -216,14 +199,12 @@ export function resolveMapSettingsHydration({
   signedIn = false,
   userSettings = null,
   cachedSettings = null,
-  immersiveModeEnabled = false,
 }: MapSettingsOptions = {}) {
-  const options = { immersiveModeEnabled };
   const normalizedUserSettings = userSettings
-    ? normalizeMapSettings(userSettings, options)
+    ? normalizeMapSettings(userSettings)
     : null;
   const normalizedCachedSettings = cachedSettings
-    ? normalizeMapSettings(cachedSettings, options)
+    ? normalizeMapSettings(cachedSettings)
     : null;
 
   if (signedIn && normalizedUserSettings) {
@@ -242,10 +223,8 @@ function hasOwnSetting(settings: MapSettingsRecord, key: string) {
 export function mergeMapSettings({
   settings = DEFAULT_MAP_SETTINGS,
   updates = {},
-  immersiveModeEnabled = false,
 }: MapSettingsOptions = {}) {
-  const options = { immersiveModeEnabled };
-  const normalized = normalizeMapSettings(settings, options);
+  const normalized = normalizeMapSettings(settings);
   const updateRecord =
     updates && typeof updates === "object" && !Array.isArray(updates)
       ? updates
@@ -268,7 +247,7 @@ export function mergeMapSettings({
       : normalized.selectedMode;
   const baseMode =
     hasOwnSetting(updateRecord, "baseMode") &&
-    isSelectableMapModeId(updateRecord.baseMode, options)
+    isSelectableMapModeId(updateRecord.baseMode)
       ? updateRecord.baseMode
       : normalized.baseMode;
 
@@ -290,15 +269,14 @@ export function mergeMapSettings({
       hasOwnSetting(updateRecord, "updated_at")
         ? updateRecord.updatedAt || updateRecord.updated_at || ""
         : normalized.updatedAt,
-  }, options);
+  });
 }
 
 function resolveMapSettingsLayers(
   settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS,
-  options: MapSettingsOptions = {},
 ) {
-  const normalized = normalizeMapSettings(settings, options);
-  const preset = getMapModePreset(getMapSettingsBaseMode(normalized, options));
+  const normalized = normalizeMapSettings(settings);
+  const preset = getMapModePreset(getMapSettingsBaseMode(normalized));
   return {
     ...preset.layers,
     ...normalized.layerOverrides,
@@ -309,10 +287,8 @@ export function buildPresetMapSettings({
   modeId,
   audioEnabled = false,
   now = new Date().toISOString(),
-  immersiveModeEnabled = false,
 }: MapSettingsOptions = {}) {
-  const options = { immersiveModeEnabled };
-  if (!isSelectableMapModeId(modeId, options)) {
+  if (!isSelectableMapModeId(modeId)) {
     return normalizeMapSettings(DEFAULT_MAP_SETTINGS);
   }
   const preset = getMapModePreset(modeId);
@@ -331,10 +307,8 @@ export function buildCustomMapSettings({
   layerKey,
   value,
   now = new Date().toISOString(),
-  immersiveModeEnabled = false,
 }: MapSettingsOptions = {}) {
-  const options = { immersiveModeEnabled };
-  const normalized = normalizeMapSettings(settings, options);
+  const normalized = normalizeMapSettings(settings);
   if (!LAYER_KEY_SET.has(layerKey) || typeof value !== "boolean") {
     return normalized;
   }
@@ -342,7 +316,7 @@ export function buildCustomMapSettings({
   return {
     ...normalized,
     selectedMode: MAP_MODE_IDS.CUSTOM,
-    baseMode: getMapSettingsBaseMode(normalized, options),
+    baseMode: getMapSettingsBaseMode(normalized),
     layerOverrides: {
       ...normalized.layerOverrides,
       [layerKey]: value,
@@ -355,15 +329,13 @@ export function buildMapSettingsFromLayerState({
   settings = DEFAULT_MAP_SETTINGS,
   layers = {},
   now = new Date().toISOString(),
-  immersiveModeEnabled = false,
 }: MapSettingsOptions = {}) {
-  const options = { immersiveModeEnabled };
-  const normalized = normalizeMapSettings(settings, options);
-  const baseMode = getMapSettingsBaseMode(normalized, options);
+  const normalized = normalizeMapSettings(settings);
+  const baseMode = getMapSettingsBaseMode(normalized);
   const baseLayers = getMapModePreset(baseMode).layers;
   const layerOverrides = normalizeMapLayerOverrides(layers);
   const nextLayers = {
-    ...resolveMapSettingsLayers(normalized, options),
+    ...resolveMapSettingsLayers(normalized),
     ...layerOverrides,
   };
   const custom = PERSISTED_MAP_LAYER_KEYS.some(
@@ -381,9 +353,8 @@ export function buildMapSettingsFromLayerState({
 
 export function mapSettingsToExplorerLayers(
   settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS,
-  options: MapSettingsOptions = {},
 ) {
-  const layers = resolveMapSettingsLayers(settings, options);
+  const layers = resolveMapSettingsLayers(settings);
   return {
     showMapLabels: layers[MAP_LAYER_KEYS.MAP_LABELS],
     showRunwayBeams: layers[MAP_LAYER_KEYS.APPROACH_BEAMS],
@@ -395,9 +366,8 @@ export function mapSettingsToExplorerLayers(
 
 export function mapSettingsToUserLocationPreferences(
   settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS,
-  options: MapSettingsOptions = {},
 ) {
-  const layers = resolveMapSettingsLayers(settings, options);
+  const layers = resolveMapSettingsLayers(settings);
   const enabled = layers[MAP_LAYER_KEYS.USER_LOCATION] === true;
   return {
     userLocationEnabled: enabled,

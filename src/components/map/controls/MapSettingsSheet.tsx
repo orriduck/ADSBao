@@ -92,13 +92,12 @@ export default function MapSettingsSheet({
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   mapSettingsSaveStatus = "idle",
-  immersiveModeEnabled = false,
 }) {
   const { t } = useI18n();
   const { isLoaded, isSignedIn } = useUser();
-  const settings = normalizeMapSettings(mapSettings, { immersiveModeEnabled });
+  const settings = normalizeMapSettings(mapSettings);
   const modeOptions = [
-    ...getSelectableMapModeOptions({ immersiveModeEnabled }),
+    ...getSelectableMapModeOptions(),
     CUSTOM_MAP_MODE_OPTION,
   ];
   const state = {

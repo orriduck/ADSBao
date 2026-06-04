@@ -4,8 +4,6 @@ import {
   FEATURE_FLAGS,
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
-  isImmersiveModeEnabled,
-  isPreviewImmersiveModeOverrideEnabled,
   normalizeFeatureFlags,
   normalizeFeatureFlagEnvironment,
   normalizeUserEmail,
@@ -56,37 +54,7 @@ assert.equal(
   false,
 );
 assert.equal(
-  isImmersiveModeEnabled({ [FEATURE_FLAGS.IMMERSIVE_MODE_ENABLED]: true }),
-  true,
-);
-assert.equal(
-  isImmersiveModeEnabled({ [FEATURE_FLAGS.FLIGHTAWARE_ENABLED]: true }),
-  false,
-);
-assert.equal(
-  isImmersiveModeEnabled({ [FEATURE_FLAGS.IMMERSIVE_MODE_ENABLED]: false }),
-  false,
-);
-
-assert.equal(
-  isPreviewImmersiveModeOverrideEnabled({
-    hostname: "adsbao-git-codex-immersive-aircraft-lighting-orriduck.vercel.app",
-    search: "?qaImmersive=1",
-  }),
-  true,
-);
-assert.equal(
-  isPreviewImmersiveModeOverrideEnabled({
-    hostname: ["adsbao", "vercel", "app"].join("."),
-    search: "?qaImmersive=1",
-  }),
-  false,
-);
-assert.equal(
-  isPreviewImmersiveModeOverrideEnabled({
-    hostname: "adsbao-git-codex-immersive-aircraft-lighting-orriduck.vercel.app",
-    search: "",
-  }),
+  Object.prototype.hasOwnProperty.call(FEATURE_FLAGS, "IMMERSIVE_MODE_ENABLED"),
   false,
 );
 

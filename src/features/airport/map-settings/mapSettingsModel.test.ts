@@ -147,13 +147,7 @@ import {
 
 {
   assert.equal(
-    getSelectableMapModeOptions({ immersiveModeEnabled: false }).some(
-      (mode) => mode.id === MAP_MODE_IDS.IMMERSIVE,
-    ),
-    false,
-  );
-  assert.equal(
-    getSelectableMapModeOptions({ immersiveModeEnabled: true }).some(
+    getSelectableMapModeOptions().some(
       (mode) => mode.id === MAP_MODE_IDS.IMMERSIVE,
     ),
     true,
@@ -161,18 +155,14 @@ import {
 }
 
 {
-  const locked = buildPresetMapSettings({ modeId: MAP_MODE_IDS.IMMERSIVE });
-  assert.equal(locked.selectedMode, MAP_MODE_IDS.CONTROLLER);
-
   const immersive = buildPresetMapSettings({
     modeId: MAP_MODE_IDS.IMMERSIVE,
-    immersiveModeEnabled: true,
     now: "2026-06-02T15:08:00.000Z",
   });
 
   assert.equal(immersive.selectedMode, MAP_MODE_IDS.IMMERSIVE);
   assert.deepEqual(
-    mapSettingsToExplorerLayers(immersive, { immersiveModeEnabled: true }),
+    mapSettingsToExplorerLayers(immersive),
     {
       showMapLabels: false,
       showRunwayBeams: false,
@@ -184,14 +174,6 @@ import {
   assert.equal(
     normalizeMapSettings(
       { selectedMode: MAP_MODE_IDS.IMMERSIVE, baseMode: MAP_MODE_IDS.IMMERSIVE },
-      { immersiveModeEnabled: false },
-    ).selectedMode,
-    MAP_MODE_IDS.CONTROLLER,
-  );
-  assert.equal(
-    normalizeMapSettings(
-      { selectedMode: MAP_MODE_IDS.IMMERSIVE, baseMode: MAP_MODE_IDS.IMMERSIVE },
-      { immersiveModeEnabled: true },
     ).selectedMode,
     MAP_MODE_IDS.IMMERSIVE,
   );
@@ -210,7 +192,6 @@ import {
       baseMode: MAP_MODE_IDS.IMMERSIVE,
       hasSelectedMode: true,
     },
-    immersiveModeEnabled: true,
   });
 
   assert.equal(
@@ -230,7 +211,6 @@ import {
       baseMode: MAP_MODE_IDS.IMMERSIVE,
       hasSelectedMode: true,
     },
-    immersiveModeEnabled: true,
   });
 
   assert.equal(
