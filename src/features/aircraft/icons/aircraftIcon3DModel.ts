@@ -23,6 +23,10 @@ type Aircraft3DMaterialOptions = {
   selected?: boolean;
 };
 
+type Aircraft3DEdgeToneOptions = Aircraft3DMaterialOptions & {
+  lightDot?: unknown;
+};
+
 type Aircraft3DAttitudeOptions = {
   phase?: unknown;
   pitch?: unknown;
@@ -51,6 +55,31 @@ const clamp = (value: number, min: number, max: number) =>
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
+const hexToRgb = (hex: string) => {
+  const normalized = hex.replace("#", "");
+  return [0, 2, 4].map((start) =>
+    Number.parseInt(normalized.slice(start, start + 2), 16),
+  ) as [number, number, number];
+};
+
+const rgbToHex = ([r, g, b]: [number, number, number]) =>
+  `#${[r, g, b]
+    .map((channel) =>
+      clamp(Math.round(channel), 0, 255).toString(16).padStart(2, "0"),
+    )
+    .join("")}`;
+
+const mixHex = (from: string, to: string, amount: number) => {
+  const ratio = clamp(amount, 0, 1);
+  const fromRgb = hexToRgb(from);
+  const toRgb = hexToRgb(to);
+  return rgbToHex(
+    fromRgb.map((channel, index) =>
+      channel + (toRgb[index] - channel) * ratio,
+    ) as [number, number, number],
+  );
+};
+
 export const shouldRenderAircraft3DOverlay = ({
   immersiveModeActive = false,
 }: Aircraft3DOverlayOptions = {}) => Boolean(immersiveModeActive);
@@ -77,41 +106,61 @@ export const resolveAircraft3DLightingProfile = ({
   switch (phase) {
     case "night":
       return {
-        ambientIntensity: 0.42,
-        keyLightIntensity: 0.62,
-        rimLightIntensity: 1.35,
+        ambientColor: "#b8d5ff",
+        ambientIntensity: 0.38,
+        keyLightColor: "#c9ddff",
+        keyLightIntensity: 0.46,
+        landingLightIntensity: 1,
+        landingLightsVisible: true,
         navLightsVisible: true,
-        navLightIntensity: 1.18,
-        shadowOpacity: 0.42,
+        navLightIntensity: 1.22,
+        rimLightColor: "#76b8ff",
+        rimLightIntensity: 0.62,
+        shadowOpacity: 0.1,
       };
     case "dusk":
     case "sunset":
       return {
-        ambientIntensity: 0.56,
-        keyLightIntensity: 0.92,
-        rimLightIntensity: 1.08,
+        ambientColor: "#ffe0c2",
+        ambientIntensity: 0.68,
+        keyLightColor: "#ffd8a8",
+        keyLightIntensity: 1.04,
+        landingLightIntensity: 0.48,
+        landingLightsVisible: true,
         navLightsVisible: true,
-        navLightIntensity: 0.72,
-        shadowOpacity: 0.34,
+        navLightIntensity: 0.78,
+        rimLightColor: "#c9d0ff",
+        rimLightIntensity: 0.92,
+        shadowOpacity: 0.12,
       };
     case "morning":
     case "afternoon":
       return {
-        ambientIntensity: 0.64,
-        keyLightIntensity: 1.18,
-        rimLightIntensity: 0.72,
+        ambientColor: "#f4f0df",
+        ambientIntensity: 0.82,
+        keyLightColor: "#fff0c8",
+        keyLightIntensity: 1.28,
+        landingLightIntensity: 0.16,
+        landingLightsVisible: false,
         navLightsVisible: true,
         navLightIntensity: 0.36,
-        shadowOpacity: 0.26,
+        rimLightColor: "#d5e3ff",
+        rimLightIntensity: 0.54,
+        shadowOpacity: 0.075,
       };
     default:
       return {
-        ambientIntensity: 0.7,
-        keyLightIntensity: 1.26,
-        rimLightIntensity: 0.58,
+        ambientColor: "#f3efe4",
+        ambientIntensity: 0.86,
+        keyLightColor: "#fff2cc",
+        keyLightIntensity: 1.34,
+        landingLightIntensity: 0.12,
+        landingLightsVisible: false,
         navLightsVisible: true,
         navLightIntensity: 0.32,
-        shadowOpacity: 0.22,
+        rimLightColor: "#d6e5ff",
+        rimLightIntensity: 0.46,
+        shadowOpacity: 0.07,
       };
   }
 };
@@ -140,89 +189,157 @@ export const resolveAircraft3DMaterialProfile = ({
   switch (phase) {
     case "night":
       return {
-        bodyGlowColor: "#9ccfff",
-        bodyGlowOpacity: selected ? 0.08 : 0.045,
-        color: selected ? "#c7d9ea" : "#9fb3c8",
-        edgeColor: "#d9ecff",
-        edgeOpacity: selected ? 0.54 : 0.34,
+        bodyGlowColor: "#9bcfff",
+        bodyGlowOpacity: selected ? 0.072 : 0.04,
+        color: selected ? "#eef7ff" : "#d9e6f2",
+        edgeColor: "#cbe4ff",
+        edgeContrast: 0.74,
+        edgeHighlightColor: "#f5fbff",
+        edgeLightVector: { x: -0.34, y: -0.72, z: 0.6 },
+        edgeOpacity: selected ? 0.12 : 0.07,
+        edgeShadowColor: "#4a6078",
         emissive: "#142034",
-        emissiveIntensity: selected ? 0.18 : 0.14,
-        lightGlowScale: 5.2,
-        lightRadius: 0.58,
+        emissiveIntensity: selected ? 0.26 : 0.22,
+        landingLightColor: "#fff1cc",
+        landingLightOpacity: 1,
+        landingLightScale: 4.1,
+        lightGlowScale: 8.4,
+        lightRadius: 1.02,
         metalness: 0.22,
         roughness: 0.54,
       };
     case "dusk":
       return {
-        bodyGlowColor: "#b9b1ff",
-        bodyGlowOpacity: selected ? 0.07 : 0.035,
-        color: selected ? "#a996aa" : "#837590",
-        edgeColor: "#cbc2df",
-        edgeOpacity: selected ? 0.48 : 0.26,
-        emissive: "#1a1422",
-        emissiveIntensity: 0.08 + selectedLift,
-        lightGlowScale: 4.8,
+        bodyGlowColor: "#d7d3ff",
+        bodyGlowOpacity: selected ? 0.06 : 0.03,
+        color: selected ? "#fffdf8" : "#fbf8f4",
+        edgeColor: "#bcb7ad",
+        edgeContrast: 0.62,
+        edgeHighlightColor: "#fffaf0",
+        edgeLightVector: { x: -0.58, y: -0.44, z: 0.68 },
+        edgeOpacity: selected ? 0.11 : 0.075,
+        edgeShadowColor: "#8b8278",
+        emissive: "#fff3df",
+        emissiveIntensity: 0.16 + selectedLift,
+        landingLightColor: "#fff0d1",
+        landingLightOpacity: selected ? 0.54 : 0.38,
+        landingLightScale: 1.9,
+        lightGlowScale: 4.7,
         lightRadius: 0.52,
-        metalness: 0.28,
-        roughness: 0.5,
+        metalness: 0.02,
+        roughness: 0.36,
       };
     case "sunset":
       return {
-        bodyGlowColor: "#ffc18f",
-        bodyGlowOpacity: selected ? 0.07 : 0.04,
-        color: selected ? "#d09872" : "#a87755",
-        edgeColor: "#d9aa82",
-        edgeOpacity: selected ? 0.5 : 0.3,
-        emissive: "#21120a",
-        emissiveIntensity: 0.07 + selectedLift,
-        lightGlowScale: 4.4,
+        bodyGlowColor: "#ffd1a7",
+        bodyGlowOpacity: selected ? 0.062 : 0.032,
+        color: selected ? "#fffaf0" : "#fbf1e2",
+        edgeColor: "#b79b7c",
+        edgeContrast: 0.68,
+        edgeHighlightColor: "#fff1cf",
+        edgeLightVector: { x: -0.72, y: -0.28, z: 0.58 },
+        edgeOpacity: selected ? 0.12 : 0.08,
+        edgeShadowColor: "#8e7059",
+        emissive: "#ffe0b3",
+        emissiveIntensity: 0.15 + selectedLift,
+        landingLightColor: "#fff0c6",
+        landingLightOpacity: selected ? 0.52 : 0.36,
+        landingLightScale: 1.8,
+        lightGlowScale: 4.2,
         lightRadius: 0.5,
-        metalness: 0.3,
-        roughness: 0.48,
+        metalness: 0.02,
+        roughness: 0.34,
       };
     case "morning":
       return {
-        bodyGlowColor: "#ffe0a8",
-        bodyGlowOpacity: selected ? 0.055 : 0.024,
-        color: selected ? "#c0ad87" : "#9d8f72",
-        edgeColor: "#73664f",
-        edgeOpacity: selected ? 0.42 : 0.22,
-        emissive: "#100b05",
-        emissiveIntensity: 0.045 + selectedLift,
-        lightGlowScale: 3.8,
+        bodyGlowColor: "#ffe4b6",
+        bodyGlowOpacity: selected ? 0.042 : 0.018,
+        color: selected ? "#fffdf6" : "#fbf7ed",
+        edgeColor: "#a99d88",
+        edgeContrast: 0.54,
+        edgeHighlightColor: "#fffdf3",
+        edgeLightVector: { x: -0.52, y: -0.62, z: 0.58 },
+        edgeOpacity: selected ? 0.105 : 0.065,
+        edgeShadowColor: "#9a8d78",
+        emissive: "#fff0d0",
+        emissiveIntensity: 0.14 + selectedLift,
+        landingLightColor: "#fff1cd",
+        landingLightOpacity: selected ? 0.2 : 0.14,
+        landingLightScale: 1.25,
+        lightGlowScale: 3.6,
         lightRadius: 0.42,
-        metalness: 0.34,
-        roughness: 0.44,
+        metalness: 0.015,
+        roughness: 0.32,
       };
     case "afternoon":
       return {
         bodyGlowColor: "#fff1c7",
-        bodyGlowOpacity: selected ? 0.05 : 0.02,
-        color: selected ? "#ada180" : "#8c846f",
-        edgeColor: "#5c5240",
-        edgeOpacity: selected ? 0.42 : 0.2,
-        emissive: "#0c0905",
-        emissiveIntensity: 0.04 + selectedLift,
-        lightGlowScale: 3.6,
+        bodyGlowOpacity: selected ? 0.038 : 0.014,
+        color: selected ? "#fffdf8" : "#fbf8f1",
+        edgeColor: "#9a9283",
+        edgeContrast: 0.48,
+        edgeHighlightColor: "#fffdf5",
+        edgeLightVector: { x: -0.36, y: -0.74, z: 0.56 },
+        edgeOpacity: selected ? 0.1 : 0.06,
+        edgeShadowColor: "#918978",
+        emissive: "#fff2d8",
+        emissiveIntensity: 0.135 + selectedLift,
+        landingLightColor: "#fff2d0",
+        landingLightOpacity: selected ? 0.18 : 0.12,
+        landingLightScale: 1.15,
+        lightGlowScale: 3.4,
         lightRadius: 0.4,
-        metalness: 0.34,
-        roughness: 0.42,
+        metalness: 0.015,
+        roughness: 0.32,
       };
     default:
       return {
         bodyGlowColor: "#fff3cc",
-        bodyGlowOpacity: selected ? 0.048 : 0.018,
-        color: selected ? "#a99f83" : "#817a6c",
-        edgeColor: "#554a3c",
-        edgeOpacity: selected ? 0.4 : 0.18,
-        emissive: "#080604",
-        emissiveIntensity: 0.035 + selectedLift,
-        lightGlowScale: 3.4,
+        bodyGlowOpacity: selected ? 0.036 : 0.012,
+        color: selected ? "#fffdfa" : "#fcf8f1",
+        edgeColor: "#9a9182",
+        edgeContrast: 0.48,
+        edgeHighlightColor: "#fffdf6",
+        edgeLightVector: { x: -0.42, y: -0.7, z: 0.58 },
+        edgeOpacity: selected ? 0.095 : 0.058,
+        edgeShadowColor: "#8d8576",
+        emissive: "#fff4df",
+        emissiveIntensity: 0.13 + selectedLift,
+        landingLightColor: "#fff3d6",
+        landingLightOpacity: selected ? 0.16 : 0.1,
+        landingLightScale: 1.1,
+        lightGlowScale: 3.2,
         lightRadius: 0.38,
-        metalness: 0.34,
-        roughness: 0.42,
+        metalness: 0.01,
+        roughness: 0.32,
       };
   }
+};
+
+export const resolveAircraft3DEdgeTone = ({
+  phase = "day",
+  selected = false,
+  lightDot = 0,
+}: Aircraft3DEdgeToneOptions = {}) => {
+  const profile = resolveAircraft3DMaterialProfile({ phase, selected });
+  const dot = clamp(toFiniteNumber(lightDot) ?? 0, -1, 1);
+  const litRatio = clamp((dot + 1) / 2, 0, 1);
+  const opacity = round2(
+    clamp(
+      profile.edgeOpacity * (0.52 + litRatio * (0.82 + profile.edgeContrast * 0.42)),
+      phase === "night" ? 0.018 : 0.02,
+      phase === "night" ? 0.16 : selected ? 0.2 : 0.14,
+    ),
+  );
+
+  return {
+    color: mixHex(
+      profile.edgeShadowColor,
+      profile.edgeHighlightColor,
+      litRatio,
+    ),
+    opacity,
+  };
 };
 
 export const resolveAircraft3DAttitudeRotation = ({

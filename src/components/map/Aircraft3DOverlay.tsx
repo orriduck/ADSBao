@@ -12,6 +12,7 @@ import {
 } from "@/features/aircraft/icons/aircraftIconAnchors.generated";
 import {
   resolveAircraft3DAttitudeRotation,
+  resolveAircraft3DEdgeTone,
   resolveAircraft3DLightingProfile,
   resolveAircraft3DMaterialProfile,
   resolveAircraft3DModelScalePx,
@@ -41,6 +42,7 @@ type Aircraft3DOverlayProps = {
   selectedAircraftId?: string;
   immersiveModeActive?: boolean;
   immersivePhase?: string;
+  mapInstance?: any;
   trafficFilter?: string;
   typeFilter?: string;
   altitudeLevel?: string;
@@ -90,6 +92,7 @@ const modelTemplateCache = new Map<string, Promise<AircraftModelTemplate>>();
 let fallbackTemplate: AircraftModelTemplate | null = null;
 let shadowTexture: THREE.CanvasTexture | null = null;
 let lightGlowTexture: THREE.CanvasTexture | null = null;
+let landingBeamTexture: THREE.CanvasTexture | null = null;
 let contrailTexture: THREE.CanvasTexture | null = null;
 
 function createRadialTexture({
@@ -146,6 +149,42 @@ function getLightGlowTexture() {
     size: 96,
   });
   return lightGlowTexture;
+}
+
+function getLandingBeamTexture() {
+  if (landingBeamTexture) return landingBeamTexture;
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 192;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  const vertical = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  vertical.addColorStop(0, "rgba(255, 242, 205, 0.7)");
+  vertical.addColorStop(0.28, "rgba(255, 232, 184, 0.32)");
+  vertical.addColorStop(1, "rgba(255, 232, 184, 0)");
+  ctx.fillStyle = vertical;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const sideFade = ctx.createRadialGradient(
+    canvas.width / 2,
+    0,
+    2,
+    canvas.width / 2,
+    canvas.height * 0.44,
+    canvas.width * 0.58,
+  );
+  sideFade.addColorStop(0, "rgba(255, 255, 255, 0.76)");
+  sideFade.addColorStop(0.5, "rgba(255, 247, 218, 0.22)");
+  sideFade.addColorStop(1, "rgba(255, 247, 218, 0)");
+  ctx.globalCompositeOperation = "destination-in";
+  ctx.fillStyle = sideFade;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.globalCompositeOperation = "source-over";
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  landingBeamTexture = texture;
+  return landingBeamTexture;
 }
 
 function getContrailTexture() {
@@ -311,6 +350,15 @@ function createMeshMaterial({
   selected: boolean;
 }) {
   const profile = resolveAircraft3DMaterialProfile({ phase, selected });
+  if (phase !== "night") {
+    return new THREE.MeshBasicMaterial({
+      color: profile.color,
+      depthWrite: false,
+      opacity,
+      toneMapped: false,
+      transparent: opacity < 0.99,
+    });
+  }
   return new THREE.MeshStandardMaterial({
     color: profile.color,
     emissive: profile.emissive,
@@ -320,6 +368,105 @@ function createMeshMaterial({
     roughness: profile.roughness,
     transparent: opacity < 0.99,
   });
+}
+
+function getEdgeLightVector(
+  materialProfile: ReturnType<typeof resolveAircraft3DMaterialProfile>,
+) {
+  const vector = materialProfile.edgeLightVector;
+  return new THREE.Vector3(
+    Number(vector.x) || -0.42,
+    Number(vector.y) || -0.7,
+    Number(vector.z) || 0.58,
+  ).normalize();
+}
+
+function resolveSegmentLightDot({
+  edgeGeometry,
+  index,
+  lightVector,
+}: {
+  edgeGeometry: THREE.BufferGeometry;
+  index: number;
+  lightVector: THREE.Vector3;
+}) {
+  const position = edgeGeometry.getAttribute("position") as THREE.BufferAttribute;
+  const ax = position.getX(index);
+  const ay = position.getY(index);
+  const az = position.getZ(index);
+  const bx = position.getX(index + 1);
+  const by = position.getY(index + 1);
+  const bz = position.getZ(index + 1);
+
+  const midpoint = new THREE.Vector3(
+    (ax + bx) / 2,
+    (ay + by) / 2,
+    (az + bz) / 2,
+  );
+  const tangent = new THREE.Vector3(bx - ax, by - ay, bz - az);
+  if (tangent.lengthSq() > 0.0001) tangent.normalize();
+  const radial = new THREE.Vector3(midpoint.x, midpoint.y, 0);
+  if (radial.lengthSq() > 0.0001) radial.normalize();
+
+  const sideNormal = new THREE.Vector3(-tangent.y, tangent.x, 0);
+  if (sideNormal.lengthSq() <= 0.0001) {
+    sideNormal.copy(radial);
+  } else {
+    sideNormal.normalize();
+    if (radial.lengthSq() > 0.0001 && sideNormal.dot(radial) < 0) {
+      sideNormal.multiplyScalar(-1);
+    }
+  }
+  sideNormal.z = THREE.MathUtils.clamp(
+    midpoint.z / Math.max(MODEL_DEPTH / 2, 0.1),
+    -1,
+    1,
+  ) * 0.42;
+  sideNormal.normalize();
+
+  const positionBias = midpoint.clone();
+  positionBias.z *= 0.35;
+  if (positionBias.lengthSq() > 0.0001) positionBias.normalize();
+
+  return THREE.MathUtils.clamp(
+    sideNormal.dot(lightVector) * 0.74 + positionBias.dot(lightVector) * 0.26,
+    -1,
+    1,
+  );
+}
+
+function createDirectionalEdgeGeometry({
+  geometry,
+  materialProfile,
+  phase,
+  selected,
+}: {
+  geometry: THREE.BufferGeometry;
+  materialProfile: ReturnType<typeof resolveAircraft3DMaterialProfile>;
+  phase: string;
+  selected: boolean;
+}) {
+  const edgeGeometry = new THREE.EdgesGeometry(geometry, 16);
+  const position = edgeGeometry.getAttribute("position") as THREE.BufferAttribute;
+  const lightVector = getEdgeLightVector(materialProfile);
+  const colors: number[] = [];
+  const baseOpacity = Math.max(materialProfile.edgeOpacity, 0.001);
+
+  for (let index = 0; index < position.count; index += 2) {
+    const lightDot = resolveSegmentLightDot({
+      edgeGeometry,
+      index,
+      lightVector,
+    });
+    const tone = resolveAircraft3DEdgeTone({ phase, selected, lightDot });
+    const color = new THREE.Color(tone.color).multiplyScalar(
+      THREE.MathUtils.clamp(tone.opacity / baseOpacity, 0.42, 1.62),
+    );
+    colors.push(color.r, color.g, color.b, color.r, color.g, color.b);
+  }
+
+  edgeGeometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  return edgeGeometry;
 }
 
 function getAnchor(
@@ -377,6 +524,7 @@ function addLightPoint({
   const core = new THREE.Mesh(new THREE.SphereGeometry(radius, 10, 8), coreMaterial);
   core.position.copy(position);
   core.renderOrder = 34;
+  core.userData.disposeGeometry = true;
   group.add(core);
 
   const glowTexture = getLightGlowTexture();
@@ -419,8 +567,80 @@ function addShadow(group: AircraftRenderGroup, template: AircraftModelTemplate, 
   );
   shadow.position.set(3.8, 5.2, -5);
   shadow.renderOrder = 4;
+  shadow.userData.disposeGeometry = true;
   group.userData.shadow = shadow;
   group.add(shadow);
+}
+
+function addLandingLights({
+  group,
+  materialProfile,
+  opacity,
+  profile,
+  selected,
+  template,
+}: {
+  group: AircraftRenderGroup;
+  materialProfile: ReturnType<typeof resolveAircraft3DMaterialProfile>;
+  opacity: number;
+  profile: ReturnType<typeof resolveAircraft3DLightingProfile>;
+  selected: boolean;
+  template: AircraftModelTemplate;
+}) {
+  if (!profile.landingLightsVisible && !selected) return;
+  const lightOpacity = Math.min(
+    1,
+    materialProfile.landingLightOpacity *
+      profile.landingLightIntensity *
+      opacity *
+      (selected ? 1.08 : 1),
+  );
+  if (lightOpacity <= 0.04) return;
+
+  const nose = getAnchorPosition(template, "noseLight", { x: 0.5, y: 0.05 }, 4.2);
+  const lateralOffset = Math.max(template.width * 0.07, 0.42);
+  const nightLandingLights = profile.landingLightIntensity > 0.7;
+  addLightPoint({
+    glowScale: materialProfile.lightGlowScale * (nightLandingLights ? 2.35 : 1.42),
+    group,
+    position: new THREE.Vector3(nose.x, nose.y, nose.z + 0.18),
+    color: materialProfile.landingLightColor,
+    opacity: Math.min(1, lightOpacity * (nightLandingLights ? 1.2 : 0.94)),
+    radius: materialProfile.lightRadius * (nightLandingLights ? 1.18 : 0.88),
+  });
+  for (const offsetX of [-lateralOffset, lateralOffset]) {
+    addLightPoint({
+      glowScale: materialProfile.lightGlowScale * (nightLandingLights ? 1.62 : 1.34),
+      group,
+      position: new THREE.Vector3(nose.x + offsetX, nose.y, nose.z),
+      color: materialProfile.landingLightColor,
+      opacity: Math.min(1, lightOpacity * (nightLandingLights ? 1.05 : 1)),
+      radius: materialProfile.lightRadius * (nightLandingLights ? 0.9 : 0.82),
+    });
+  }
+
+  const beamTexture = getLandingBeamTexture();
+  if (!beamTexture) return;
+  const beamMaterial = new THREE.MeshBasicMaterial({
+    color: materialProfile.landingLightColor,
+    map: beamTexture,
+    opacity: lightOpacity * (nightLandingLights ? 0.96 : 0.48),
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+    blending: THREE.AdditiveBlending,
+  });
+  const beamLength = Math.max(template.height * materialProfile.landingLightScale, 28);
+  const beamWidth = Math.max(
+    template.width * (nightLandingLights ? 0.76 : 0.42),
+    nightLandingLights ? 9.6 : 5.2,
+  );
+  const beam = new THREE.Mesh(new THREE.PlaneGeometry(beamWidth, beamLength), beamMaterial);
+  beam.position.set(nose.x, nose.y - beamLength * 0.48, 1.1);
+  beam.renderOrder = 28;
+  beam.userData.disposeGeometry = true;
+  group.add(beam);
+  group.userData.lightMaterials?.push(beamMaterial);
 }
 
 function addBodyGlow({
@@ -475,6 +695,7 @@ function addContrail(group: AircraftRenderGroup, template: AircraftModelTemplate
     );
     trail.position.set(tail.x, tail.y + trailLength / 2, -3);
     trail.renderOrder = 3;
+    trail.userData.disposeGeometry = true;
     group.add(trail);
   }
 }
@@ -514,6 +735,14 @@ function buildModelGroup({
     profile: materialProfile,
     template,
   });
+  addLandingLights({
+    group,
+    materialProfile,
+    opacity,
+    profile,
+    selected,
+    template,
+  });
 
   if (
     shouldRenderAircraftContrail({
@@ -538,11 +767,12 @@ function buildModelGroup({
   modelRoot.renderOrder = 20;
   group.userData.modelRoot = modelRoot;
   const edgeMaterial = new THREE.LineBasicMaterial({
-    color: materialProfile.edgeColor,
     depthTest: false,
     depthWrite: false,
     opacity: materialProfile.edgeOpacity,
+    toneMapped: false,
     transparent: true,
+    vertexColors: true,
   });
   for (const geometry of template.geometries) {
     const mesh = new THREE.Mesh(geometry, material);
@@ -552,7 +782,12 @@ function buildModelGroup({
     modelRoot.add(mesh);
 
     const edges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(geometry, 16),
+      createDirectionalEdgeGeometry({
+        geometry,
+        materialProfile,
+        phase,
+        selected,
+      }),
       edgeMaterial,
     );
     edges.renderOrder = 24;
@@ -669,18 +904,25 @@ function updateShadow(group: AircraftRenderGroup, aircraft: any, phase: string) 
   if (!shadow) return;
   const altitude = Math.max(0, Math.min(Number(aircraft?.altitude) || 0, 42_000));
   const ratio = aircraft?.onGround ? 0 : altitude / 42_000;
-  const nightBoost = phase === "night" ? 0.8 : 1;
+  const profile = resolveAircraft3DLightingProfile({ phase });
+  const selectedBoost = group.userData.selected ? 1.12 : 0.9;
   shadow.position.set(2.5 + ratio * 7, 3.5 + ratio * 10, -5);
   shadow.scale.set(0.9 + ratio * 0.32, 0.72 + ratio * 0.18, 1);
   const material = shadow.material as THREE.MeshBasicMaterial;
-  material.opacity = Math.max(0.08, (0.34 - ratio * 0.14) * nightBoost);
+  material.opacity = Math.max(
+    phase === "night" ? 0.05 : 0.035,
+    profile.shadowOpacity * selectedBoost - ratio * 0.08,
+  );
 }
 
 function syncLighting(state: AircraftOverlayState, phase: string) {
   const profile = resolveAircraft3DLightingProfile({ phase });
   state.profile = profile;
+  state.ambientLight.color.set(profile.ambientColor);
   state.ambientLight.intensity = profile.ambientIntensity;
+  state.keyLight.color.set(profile.keyLightColor);
   state.keyLight.intensity = profile.keyLightIntensity;
+  state.rimLight.color.set(profile.rimLightColor);
   state.rimLight.intensity = profile.rimLightIntensity;
 }
 
@@ -830,11 +1072,13 @@ export default function Aircraft3DOverlay({
   selectedAircraftId = "",
   immersiveModeActive = false,
   immersivePhase = "day",
+  mapInstance = null,
   trafficFilter = "all",
   typeFilter = "all",
   altitudeLevel = "all",
 }: Aircraft3DOverlayProps) {
-  const map = useMapInstance();
+  const contextMap = useMapInstance();
+  const map = mapInstance || contextMap;
   const stateRef = useRef<AircraftOverlayState | null>(null);
 
   useEffect(() => {
@@ -846,6 +1090,7 @@ export default function Aircraft3DOverlay({
       powerPreference: "high-performance",
     });
     renderer.setClearColor(0x000000, 0);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.domElement.className = "aircraft-3d-overlay";
     renderer.domElement.style.zIndex = String(OVERLAY_Z_INDEX);
     container.appendChild(renderer.domElement);
@@ -856,10 +1101,10 @@ export default function Aircraft3DOverlay({
     camera.lookAt(0, 0, 0);
 
     const profile = resolveAircraft3DLightingProfile({ phase: immersivePhase });
-    const ambientLight = new THREE.AmbientLight("#e7eef8", profile.ambientIntensity);
-    const keyLight = new THREE.DirectionalLight("#fff0cc", profile.keyLightIntensity);
+    const ambientLight = new THREE.AmbientLight(profile.ambientColor, profile.ambientIntensity);
+    const keyLight = new THREE.DirectionalLight(profile.keyLightColor, profile.keyLightIntensity);
     keyLight.position.set(-24, -42, 70);
-    const rimLight = new THREE.DirectionalLight("#88c5ff", profile.rimLightIntensity);
+    const rimLight = new THREE.DirectionalLight(profile.rimLightColor, profile.rimLightIntensity);
     rimLight.position.set(38, 30, 52);
     scene.add(ambientLight, keyLight, rimLight);
 

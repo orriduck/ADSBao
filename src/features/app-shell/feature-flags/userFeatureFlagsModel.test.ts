@@ -5,6 +5,7 @@ import {
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
   isImmersiveModeEnabled,
+  isPreviewImmersiveModeOverrideEnabled,
   normalizeFeatureFlags,
   normalizeFeatureFlagEnvironment,
   normalizeUserEmail,
@@ -64,6 +65,28 @@ assert.equal(
 );
 assert.equal(
   isImmersiveModeEnabled({ [FEATURE_FLAGS.IMMERSIVE_MODE_ENABLED]: false }),
+  false,
+);
+
+assert.equal(
+  isPreviewImmersiveModeOverrideEnabled({
+    hostname: "adsbao-git-codex-immersive-aircraft-lighting-orriduck.vercel.app",
+    search: "?qaImmersive=1",
+  }),
+  true,
+);
+assert.equal(
+  isPreviewImmersiveModeOverrideEnabled({
+    hostname: ["adsbao", "vercel", "app"].join("."),
+    search: "?qaImmersive=1",
+  }),
+  false,
+);
+assert.equal(
+  isPreviewImmersiveModeOverrideEnabled({
+    hostname: "adsbao-git-codex-immersive-aircraft-lighting-orriduck.vercel.app",
+    search: "",
+  }),
   false,
 );
 

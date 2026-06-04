@@ -7,6 +7,7 @@ import {
   getClerkUserPrimaryEmail,
   isFeatureFlagEnabled,
   isImmersiveModeEnabled,
+  isPreviewImmersiveModeOverrideEnabled,
   normalizeFeatureFlags,
 } from "../feature-flags/userFeatureFlagsModel";
 
@@ -113,8 +114,12 @@ export function useFlightAwareEnabled() {
 
 export function useImmersiveModeFeature() {
   const { flags, resolved } = useUserFeatureFlags();
+  const previewOverrideEnabled =
+    typeof window !== "undefined" &&
+    isPreviewImmersiveModeOverrideEnabled(window.location);
+
   return {
-    enabled: isImmersiveModeEnabled(flags),
-    resolved,
+    enabled: isImmersiveModeEnabled(flags) || previewOverrideEnabled,
+    resolved: resolved || previewOverrideEnabled,
   };
 }
