@@ -20,6 +20,14 @@ assert.equal(
   "adsb.fi",
 );
 assert.equal(
+  getAircraftPositionSourceBadge({
+    source: "airplanes_live",
+    flight_position_source: "adsc",
+    kind: "oceanic",
+  }),
+  "ADS-C · oceanic",
+);
+assert.equal(
   getAircraftPositionSourceBadge({ source: "flightaware", kind: "estimated" }),
   "FlightAware · estimated",
 );
@@ -44,6 +52,7 @@ assert.equal(
 );
 
 assert.equal(resolveFlightPositionSource({ flight_position_source: "MLAT" }), "mlat");
+assert.equal(resolveFlightPositionSource({ flight_position_source: "ADSC" }), "adsc");
 assert.equal(
   resolveFlightPositionSource({ source: "flightaware", kind: "predicted" }),
   "flightaware",

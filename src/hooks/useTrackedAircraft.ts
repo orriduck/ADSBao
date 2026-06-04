@@ -10,6 +10,7 @@ import {
 import {
   getActiveAdsbMatchesLength,
   getTrackedAircraftSignalState,
+  shouldRetainActiveTrackingState,
 } from "../features/aircraft/tracking/lostSignalTrackingModel";
 import {
   AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
@@ -62,6 +63,9 @@ export function useTrackedAircraft(callsign) {
   // changes and triggers an immediate fetch.
   const [retrySignal, setRetrySignal] = useState(0);
   const visibilityRefreshCancelRef = useRef(null);
+  const trackingStateRef = useRef(null);
+  const feedSourceRef = useRef("");
+  const activeCallsignRef = useRef("");
   const retry = useCallback(() => {
     setRetrySignal((value) => value + 1);
   }, []);
@@ -81,8 +85,21 @@ export function useTrackedAircraft(callsign) {
       setVisibilityRefreshVersion(0);
       setTrackingState(null);
       setFlightAwareFallback(null);
+      trackingStateRef.current = null;
+      feedSourceRef.current = "";
+      activeCallsignRef.current = "";
       missesRef.current = 0;
       return undefined;
+    }
+
+    const normalizedCallsign = String(callsign || "").trim().toUpperCase();
+    if (activeCallsignRef.current !== normalizedCallsign) {
+      activeCallsignRef.current = normalizedCallsign;
+      trackingStateRef.current = null;
+      feedSourceRef.current = "";
+      missesRef.current = 0;
+      setTrackingState(null);
+      setFeedSource("");
     }
 
     setInitialLoading(true);
@@ -118,12 +135,28 @@ export function useTrackedAircraft(callsign) {
           flightAwareFallback: payload?.flightAwareFallback,
           trackingState: nextTrackingState,
         });
+        const retainActiveTrackingState = shouldRetainActiveTrackingState({
+          previousTrackingState: trackingStateRef.current,
+          nextTrackingState,
+          matchesLength: matches.length,
+          lostSignal: signalState.lostSignal,
+        });
+        const committedTrackingState = retainActiveTrackingState
+          ? trackingStateRef.current
+          : nextTrackingState;
+        const nextFeedSource =
+          typeof payload?.source === "string" ? payload.source : "";
+        const committedFeedSource =
+          retainActiveTrackingState && !nextFeedSource
+            ? feedSourceRef.current
+            : nextFeedSource;
         await waitUntil(commitAfter);
         if (disposedRef.current) return;
         setSettled(true);
         setInitialLoading(false);
         setVisibilityRefreshLoading(false);
-        setTrackingState(nextTrackingState);
+        trackingStateRef.current = committedTrackingState;
+        setTrackingState(committedTrackingState);
         setFlightAwareFallback(payload?.flightAwareFallback || null);
         if (matches.length === 0) {
           // No matches: don't blank the aircraft snapshot — the user
@@ -145,16 +178,15 @@ export function useTrackedAircraft(callsign) {
           });
           setAircraft({
             ...normalized,
-            trackingState: nextTrackingState,
+            trackingState: committedTrackingState,
           });
           const positionDate = resolveLastSuccessfulPositionDate(normalized);
           if (positionDate) setLastUpdated(positionDate);
           missesRef.current = signalState.misses;
           setLostSignal(signalState.lostSignal);
         }
-        setFeedSource(
-          typeof payload?.source === "string" ? payload.source : "",
-        );
+        feedSourceRef.current = committedFeedSource;
+        setFeedSource(committedFeedSource);
         setError(null);
       } catch (err) {
         if (disposedRef.current) return;

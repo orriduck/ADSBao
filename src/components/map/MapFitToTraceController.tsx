@@ -46,6 +46,7 @@ export default function MapFitToTraceController({
   const { traces } = useSelectedAircraftTrace();
   const lastSignalRef = useRef(0);
   const lastAutoFitKeyRef = useRef("");
+  const lastCenterAnchorFollowKeyRef = useRef("");
   const fitPoints = useMemo(
     () => buildTraceFitPoints({ traces, routePath }),
     [traces, routePath],
@@ -110,7 +111,13 @@ export default function MapFitToTraceController({
 
   useEffect(() => {
     const key = String(centerAnchorFollowKey || "").trim();
-    if (!key || !map || !fitCenterAnchor) return;
+    if (!key) {
+      lastCenterAnchorFollowKeyRef.current = "";
+      return;
+    }
+    if (key === lastCenterAnchorFollowKeyRef.current) return;
+    if (!map || !fitCenterAnchor) return;
+    lastCenterAnchorFollowKeyRef.current = key;
     panMapToAnchor(fitCenterAnchor);
   }, [centerAnchorFollowKey, fitCenterAnchor, map, panMapToAnchor]);
 

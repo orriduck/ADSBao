@@ -69,10 +69,12 @@ export default function AircraftTable({
   focusLat = null,
   focusLon = null,
   selectedAircraftId = "",
+  suppressedAircraftDistanceId = "",
   selectedAirportIcao = "",
   movementFilter = "all",
   onSelectAircraft,
   onSelectAirport,
+  suppressSelectedAircraftDistance = false,
   fill = true,
 }) {
   const { t } = useI18n();
@@ -100,13 +102,29 @@ export default function AircraftTable({
   // already provides distanceNm in airport-page context; for the flight
   // page we compute it on the fly here.
   const aircraftWithDist = useMemo(() => {
-    if (focusLat == null || focusLon == null) return aircraft;
+    const shouldSuppressSelectedDistance = (item) =>
+      suppressSelectedAircraftDistance &&
+      [selectedAircraftId, suppressedAircraftDistanceId]
+        .filter(Boolean)
+        .includes(getAircraftIdentity(item));
+
     return aircraft.map((item) => {
+      if (shouldSuppressSelectedDistance(item)) {
+        return { ...item, distanceNm: undefined };
+      }
+      if (focusLat == null || focusLon == null) return item;
       const computed = getDistanceNm(focusLat, focusLon, item?.lat, item?.lon);
       if (computed == null) return item;
       return { ...item, distanceNm: computed };
     });
-  }, [aircraft, focusLat, focusLon]);
+  }, [
+    aircraft,
+    focusLat,
+    focusLon,
+    selectedAircraftId,
+    suppressedAircraftDistanceId,
+    suppressSelectedAircraftDistance,
+  ]);
 
   const rows = useMemo(
     () =>
@@ -147,6 +165,11 @@ export default function AircraftTable({
     if (entityFilter === "airports") return [];
     return rows;
   }, [rows, entityFilter]);
+  const hasRouteEndpointAirports = useMemo(
+    () => filteredAirports.some((airport) => airport?.routeEndpointRole),
+    [filteredAirports],
+  );
+  const endpointAirportRows = hasRouteEndpointAirports ? filteredAirports : [];
   // Pinned aircraft sits above the scrolling list and stays visible even
   // when filters would otherwise exclude it. Look in the full nearby set,
   // not the filtered rows, so a user can keep watching a selection without
@@ -154,10 +177,12 @@ export default function AircraftTable({
   const pinnedAircraft = useMemo(() => {
     if (!selectedAircraftId) return null;
     return (
-      aircraft.find((item) => getAircraftIdentity(item) === selectedAircraftId) ||
+      aircraftWithDist.find(
+        (item) => getAircraftIdentity(item) === selectedAircraftId,
+      ) ||
       null
     );
-  }, [aircraft, selectedAircraftId]);
+  }, [aircraftWithDist, selectedAircraftId]);
   // Don't duplicate the pinned aircraft inside the scroll list.
   const listRows = useMemo(() => {
     if (!pinnedAircraft) return filteredAircraft;
@@ -175,6 +200,7 @@ export default function AircraftTable({
         data: aircraftItem,
       });
     }
+    if (hasRouteEndpointAirports) return out;
     for (const airport of filteredAirports) {
       out.push({
         type: "airport",
@@ -183,7 +209,7 @@ export default function AircraftTable({
       });
     }
     return out;
-  }, [filteredAirports, listRows]);
+  }, [filteredAirports, hasRouteEndpointAirports, listRows]);
 
   const aircraftListResetKey = useMemo(
     () =>
@@ -296,7 +322,9 @@ export default function AircraftTable({
           <span aria-hidden="true" />
           <span>{t("sidebar.callsignOrRoute")}</span>
           <span className="text-right">{t("sidebar.distance")}</span>
-          <span className="text-right">{t("sidebar.altitude")}</span>
+          <span className="text-right">
+            {hasRouteEndpointAirports ? t("sidebar.endpoint") : t("sidebar.altitude")}
+          </span>
         </div>
 
         {pinnedAircraft && (
@@ -310,6 +338,24 @@ export default function AircraftTable({
             />
           </div>
         )}
+        {endpointAirportRows.length > 0 ? (
+          <ul className="divide-y divide-atc-line border-t border-atc-line">
+            {endpointAirportRows.map((airport, index) => (
+              <li
+                key={`endpoint-airport:${airport.icao || index}`}
+                className="relative list-none [perspective:800px]"
+              >
+                <AirportSlot
+                  airport={airport}
+                  cascadeOrder={index}
+                  airportId={airport.icao}
+                  selected={airport.icao === selectedAirportIcao}
+                  onSelectAirport={onSelectAirport}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       <div className={fill ? "flex-1 min-h-0" : "overflow-visible"}>
