@@ -13,6 +13,7 @@ import {
 import {
   resolveAircraft3DAttitudeRotation,
   resolveAircraft3DEdgeTone,
+  resolveAircraft3DLightVector,
   resolveAircraft3DLandingLightIntensity,
   resolveAircraft3DLightingProfile,
   resolveAircraft3DMaterialProfile,
@@ -68,6 +69,7 @@ type AircraftRenderGroup = THREE.Group & {
     beaconMaterials?: THREE.MeshBasicMaterial[];
     emphasisOpacity?: number;
     lightMaterials?: THREE.Material[];
+    localMinutes?: unknown;
     modelRoot?: THREE.Group;
     modelSignature?: string;
     pendingModelSignature?: string;
@@ -367,12 +369,23 @@ function createMeshMaterial({
 
 function getEdgeLightVector(
   materialProfile: ReturnType<typeof resolveAircraft3DMaterialProfile>,
+  lightVector?: ReturnType<typeof resolveAircraft3DLightVector>,
 ) {
-  const vector = materialProfile.edgeLightVector;
+  const vector = lightVector
+    ? {
+        x: lightVector.localX,
+        y: lightVector.localY,
+        z: lightVector.localZ,
+      }
+    : materialProfile.edgeLightVector;
+  const resolveComponent = (value: unknown, fallback: number) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : fallback;
+  };
   return new THREE.Vector3(
-    Number(vector.x) || -0.42,
-    Number(vector.y) || -0.7,
-    Number(vector.z) || 0.58,
+    resolveComponent(vector.x, -0.42),
+    resolveComponent(vector.y, -0.7),
+    resolveComponent(vector.z, 0.58),
   ).normalize();
 }
 
@@ -433,17 +446,19 @@ function resolveSegmentLightDot({
 function createDirectionalEdgeGeometry({
   geometry,
   materialProfile,
+  lightVector,
   phase,
   selected,
 }: {
   geometry: THREE.BufferGeometry;
+  lightVector?: ReturnType<typeof resolveAircraft3DLightVector>;
   materialProfile: ReturnType<typeof resolveAircraft3DMaterialProfile>;
   phase: string;
   selected: boolean;
 }) {
   const edgeGeometry = new THREE.EdgesGeometry(geometry, 16);
   const position = edgeGeometry.getAttribute("position") as THREE.BufferAttribute;
-  const lightVector = getEdgeLightVector(materialProfile);
+  const edgeLightVector = getEdgeLightVector(materialProfile, lightVector);
   const colors: number[] = [];
   const baseOpacity = Math.max(materialProfile.edgeOpacity, 0.001);
 
@@ -451,7 +466,7 @@ function createDirectionalEdgeGeometry({
     const lightDot = resolveSegmentLightDot({
       edgeGeometry,
       index,
-      lightVector,
+      lightVector: edgeLightVector,
     });
     const tone = resolveAircraft3DEdgeTone({ phase, selected, lightDot });
     const color = new THREE.Color(tone.color).multiplyScalar(
@@ -807,8 +822,16 @@ function buildModelGroup({
   const materialProfile =
     resolveAircraft3DMaterialProfile({ phase, selected }) ||
     resolveAircraft3DMaterialProfile({ phase: "day", selected });
+  const heading = resolveAircraftHeading(aircraft);
+  const lightVector = resolveAircraft3DLightVector({
+    heading,
+    localMinutes,
+    phase,
+  });
   const shadowPresentation = resolveAircraft3DShadowPresentation({
     altitude: aircraft?.altitude,
+    heading,
+    localMinutes,
     onGround: aircraft?.onGround,
     phase,
     selected,
@@ -872,6 +895,7 @@ function buildModelGroup({
     const edges = new THREE.LineSegments(
       createDirectionalEdgeGeometry({
         geometry,
+        lightVector,
         materialProfile,
         phase,
         selected,
@@ -960,11 +984,14 @@ async function refreshModelForGroup({
     immersiveModeActive: true,
     velocity: aircraft?.velocity,
   });
+  const headingBucket =
+    Math.round(resolveAircraftHeading(aircraft) / 15) * 15;
   const signature = [
     source.name,
     phase,
     selected ? "selected" : "normal",
     localMinutes == null ? "" : String(Math.round(Number(localMinutes) || 0)),
+    String(((headingBucket % 360) + 360) % 360),
     aircraft?.onGround ? "ground" : "air",
     aircraft?.movement || "",
     contrail ? "contrail" : "clean",
@@ -1013,11 +1040,18 @@ function updateGroupScale(group: AircraftRenderGroup, aircraft: any, selected: b
   group.scale.setScalar(scalar);
 }
 
-function updateShadow(group: AircraftRenderGroup, aircraft: any, phase: string) {
+function updateShadow(
+  group: AircraftRenderGroup,
+  aircraft: any,
+  phase: string,
+  localMinutes?: unknown,
+) {
   const shadow = group.userData.shadow;
   if (!shadow) return;
   const presentation = resolveAircraft3DShadowPresentation({
     altitude: aircraft?.altitude,
+    heading: resolveAircraftHeading(aircraft),
+    localMinutes,
     onGround: aircraft?.onGround,
     phase,
     selected: Boolean(group.userData.selected),
@@ -1028,15 +1062,30 @@ function updateShadow(group: AircraftRenderGroup, aircraft: any, phase: string) 
   material.opacity = presentation.opacity * (group.userData.emphasisOpacity ?? 1);
 }
 
-function syncLighting(state: AircraftOverlayState, phase: string) {
+function syncLighting(
+  state: AircraftOverlayState,
+  phase: string,
+  localMinutes?: unknown,
+) {
   const profile = resolveAircraft3DLightingProfile({ phase });
+  const lightVector = resolveAircraft3DLightVector({ localMinutes, phase });
   state.profile = profile;
   state.ambientLight.color.set(profile.ambientColor);
   state.ambientLight.intensity = profile.ambientIntensity;
   state.keyLight.color.set(profile.keyLightColor);
   state.keyLight.intensity = profile.keyLightIntensity;
+  state.keyLight.position.set(
+    lightVector.x * 70,
+    lightVector.y * 70,
+    Math.max(18, lightVector.z * 82),
+  );
   state.rimLight.color.set(profile.rimLightColor);
   state.rimLight.intensity = profile.rimLightIntensity;
+  state.rimLight.position.set(
+    -lightVector.x * 42,
+    -lightVector.y * 42,
+    Math.max(38, 68 - lightVector.z * 18),
+  );
 }
 
 function updateGroupAttitude(group: AircraftRenderGroup, aircraft: any) {
@@ -1073,7 +1122,7 @@ function syncAircraftGroups({
   trafficFilter,
   typeFilter,
 }: Aircraft3DOverlayProps & { state: AircraftOverlayState }) {
-  syncLighting(state, immersivePhase || "day");
+  syncLighting(state, immersivePhase || "day", immersiveLocalMinutes);
   const ids = new Set<string>();
   const selectionActive = Boolean(
     selectedAircraftId &&
@@ -1104,6 +1153,7 @@ function syncAircraftGroups({
     });
     group.userData.aircraft = item;
     group.userData.emphasisOpacity = emphasis.opacity;
+    group.userData.localMinutes = immersiveLocalMinutes;
     group.userData.phase = immersivePhase || "day";
     group.userData.selected = selected;
     group.visible = emphasis.opacity > 0.03;
@@ -1172,7 +1222,12 @@ function renderFrame(state: AircraftOverlayState) {
     group.rotation.z = THREE.MathUtils.degToRad(resolveAircraftHeading(aircraft));
     updateGroupScale(group, aircraft, Boolean(group.userData.selected));
     updateModelAttitude(group);
-    updateShadow(group, aircraft, group.userData.phase || "day");
+    updateShadow(
+      group,
+      aircraft,
+      group.userData.phase || "day",
+      group.userData.localMinutes,
+    );
 
     const pulse = 0.62 + Math.sin(now / 180) * 0.38;
     for (const material of group.userData.beaconMaterials || []) {
@@ -1217,11 +1272,22 @@ export default function Aircraft3DOverlay({
     camera.lookAt(0, 0, 0);
 
     const profile = resolveAircraft3DLightingProfile({ phase: immersivePhase });
+    const initialLightVector = resolveAircraft3DLightVector({
+      phase: immersivePhase,
+    });
     const ambientLight = new THREE.AmbientLight(profile.ambientColor, profile.ambientIntensity);
     const keyLight = new THREE.DirectionalLight(profile.keyLightColor, profile.keyLightIntensity);
-    keyLight.position.set(-24, -42, 70);
+    keyLight.position.set(
+      initialLightVector.x * 70,
+      initialLightVector.y * 70,
+      Math.max(18, initialLightVector.z * 82),
+    );
     const rimLight = new THREE.DirectionalLight(profile.rimLightColor, profile.rimLightIntensity);
-    rimLight.position.set(38, 30, 52);
+    rimLight.position.set(
+      -initialLightVector.x * 42,
+      -initialLightVector.y * 42,
+      Math.max(38, 68 - initialLightVector.z * 18),
+    );
     scene.add(ambientLight, keyLight, rimLight);
 
     const state: AircraftOverlayState = {

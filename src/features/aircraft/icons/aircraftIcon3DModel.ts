@@ -10,11 +10,17 @@ type AircraftContrailOptions = Aircraft3DOverlayOptions & {
 };
 
 type Aircraft3DLightingOptions = {
+  localMinutes?: unknown;
   phase?: unknown;
+};
+
+type Aircraft3DLightVectorOptions = Aircraft3DLightingOptions & {
+  heading?: unknown;
 };
 
 type Aircraft3DShadowOptions = Aircraft3DLightingOptions & {
   altitude?: unknown;
+  heading?: unknown;
   onGround?: boolean;
   selected?: boolean;
 };
@@ -51,6 +57,7 @@ type Aircraft3DAttitudeOptions = {
 const CONTRAIL_MIN_ALTITUDE_FT = 32_000;
 const CONTRAIL_MIN_SPEED_KT = 240;
 const AIRCRAFT_ORIGINAL_ICON_SIZE_PX = 18;
+const MINUTES_PER_DAY = 24 * 60;
 const FAMILY_VISUAL_SCALE: Record<string, number> = {
   balloon: 0.92,
   jet: 1,
@@ -68,6 +75,55 @@ const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
+const round3 = (value: number) => Math.round(value * 1000) / 1000;
+
+const normalizeMinutes = (value: unknown) => {
+  if (value == null || value === "") return null;
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return null;
+  return (
+    ((Math.round(numeric) % MINUTES_PER_DAY) + MINUTES_PER_DAY) %
+    MINUTES_PER_DAY
+  );
+};
+
+const normalizeVector3 = ({
+  x,
+  y,
+  z,
+}: {
+  x: number;
+  y: number;
+  z: number;
+}) => {
+  const length = Math.hypot(x, y, z);
+  if (length <= 0.0001) {
+    return { x: 0, y: 0, z: 1 };
+  }
+  return {
+    x: x / length,
+    y: y / length,
+    z: z / length,
+  };
+};
+
+const rotateScreenVectorToLocal = ({
+  heading,
+  x,
+  y,
+}: {
+  heading: unknown;
+  x: number;
+  y: number;
+}) => {
+  const headingRad = ((toFiniteNumber(heading) ?? 0) * Math.PI) / 180;
+  const cos = Math.cos(-headingRad);
+  const sin = Math.sin(-headingRad);
+  return {
+    x: x * cos - y * sin,
+    y: x * sin + y * cos,
+  };
+};
 
 const hexToRgb = (hex: string) => {
   const normalized = hex.replace("#", "");
@@ -112,6 +168,91 @@ export const shouldRenderAircraftContrail = ({
       altitudeFt >= CONTRAIL_MIN_ALTITUDE_FT &&
       velocityKt >= CONTRAIL_MIN_SPEED_KT,
   );
+};
+
+const resolveDaylightProgress = (phase: string, localMinutes: unknown) => {
+  const minutes = normalizeMinutes(localMinutes);
+  if (minutes != null && minutes >= 300 && minutes <= 1140) {
+    return clamp((minutes - 300) / 840, 0, 1);
+  }
+
+  switch (phase) {
+    case "dawn":
+      return 0.08;
+    case "morning":
+      return 0.22;
+    case "afternoon":
+      return 0.62;
+    case "sunset":
+      return 0.86;
+    case "dusk":
+      return 0.96;
+    case "day":
+    default:
+      return 0.5;
+  }
+};
+
+const isDaylightAircraftPhase = (phase: string) =>
+  phase === "dawn" ||
+  phase === "morning" ||
+  phase === "day" ||
+  phase === "afternoon" ||
+  phase === "sunset" ||
+  phase === "dusk";
+
+export const resolveAircraft3DLightVector = ({
+  heading = 0,
+  localMinutes = null,
+  phase = "day",
+}: Aircraft3DLightVectorOptions = {}) => {
+  const phaseKey = String(phase || "day");
+  const nightLightingActive = isImmersiveNightLightingActive({
+    localMinutes,
+    phase: phaseKey,
+  });
+
+  if (nightLightingActive) {
+    const global = normalizeVector3({ x: 0.44, y: 0.62, z: 0.28 });
+    const local = rotateScreenVectorToLocal({
+      heading,
+      x: global.x,
+      y: global.y,
+    });
+    return {
+      localX: round3(local.x),
+      localY: round3(local.y),
+      localZ: round3(global.z),
+      source: "runway" as const,
+      x: round3(global.x),
+      y: round3(global.y),
+      z: round3(global.z),
+    };
+  }
+
+  const progress = resolveDaylightProgress(phaseKey, localMinutes);
+  const sunArc = Math.sin(progress * Math.PI);
+  const horizontal = Math.cos(progress * Math.PI);
+  const global = normalizeVector3({
+    x: horizontal,
+    y: 0,
+    z: 0.22 + sunArc * 0.9,
+  });
+  const local = rotateScreenVectorToLocal({
+    heading,
+    x: global.x,
+    y: global.y,
+  });
+
+  return {
+    localX: round3(local.x),
+    localY: round3(local.y),
+    localZ: round3(global.z),
+    source: "sun" as const,
+    x: round3(global.x),
+    y: round3(global.y),
+    z: round3(global.z),
+  };
 };
 
 export const resolveAircraft3DLightingProfile = ({
@@ -181,18 +322,40 @@ export const resolveAircraft3DLightingProfile = ({
 
 export const resolveAircraft3DShadowPresentation = ({
   altitude = null,
+  heading = 0,
+  localMinutes = null,
   onGround = false,
   phase = "day",
   selected = false,
 }: Aircraft3DShadowOptions = {}) => {
   const phaseKey = String(phase || "day");
-  const daylightPhase =
-    phaseKey === "morning" || phaseKey === "day" || phaseKey === "afternoon";
+  const daylightPhase = isDaylightAircraftPhase(phaseKey);
   const altitudeFt = onGround
     ? 0
     : clamp(toFiniteNumber(altitude) ?? 0, 0, 42_000);
   const altitudeRatio = altitudeFt / 42_000;
   const profile = resolveAircraft3DLightingProfile({ phase: phaseKey });
+  const light = resolveAircraft3DLightVector({
+    heading,
+    localMinutes,
+    phase: phaseKey,
+  });
+  const lightHorizontal = Math.hypot(light.localX, light.localY);
+
+  if (light.source === "runway") {
+    const selectedBoost = selected ? 1.18 : 1;
+    const opacity = round2(
+      clamp((0.028 + (1 - altitudeRatio) * 0.012) * selectedBoost, 0.022, 0.052),
+    );
+    const offsetDistance = 1.4 + Math.pow(altitudeRatio, 0.72) * 3.4;
+    return {
+      opacity,
+      positionX: round2(-light.localX * offsetDistance),
+      positionY: round2(-light.localY * offsetDistance),
+      scaleX: round2(0.82 + altitudeRatio * 0.08),
+      scaleY: round2(0.58 + altitudeRatio * 0.06),
+    };
+  }
 
   const selectedBoost = selected
     ? daylightPhase
@@ -201,29 +364,39 @@ export const resolveAircraft3DShadowPresentation = ({
     : daylightPhase
       ? 1.02
       : 0.92;
-  const altitudeFade = altitudeRatio * (daylightPhase ? 0.045 : 0.08);
+  const altitudeFade = altitudeRatio * (daylightPhase ? 0.04 : 0.06);
   const opacityFloor =
-    phaseKey === "night" ? 0.05 : daylightPhase ? 0.082 : 0.055;
+    phaseKey === "night" ? 0.032 : daylightPhase ? 0.078 : 0.052;
   const opacity = round2(
-    Math.max(opacityFloor, profile.shadowOpacity * selectedBoost - altitudeFade),
+    Math.max(
+      opacityFloor,
+      profile.shadowOpacity *
+        selectedBoost *
+        (0.78 + lightHorizontal * 0.26) -
+        altitudeFade,
+    ),
   );
 
   if (daylightPhase) {
+    const offsetDistance =
+      lightHorizontal * (1.2 + Math.pow(altitudeRatio, 0.78) * 13.6);
+    const lowSunStretch = clamp(lightHorizontal, 0, 1);
     return {
       opacity,
-      positionX: round2(2.2 + altitudeRatio * 5.1),
-      positionY: round2(3 + altitudeRatio * 7.8),
-      scaleX: round2(0.98 - altitudeRatio * 0.16),
-      scaleY: round2(0.74 - altitudeRatio * 0.08),
+      positionX: round2(-light.localX * offsetDistance),
+      positionY: round2(-light.localY * offsetDistance),
+      scaleX: round2(0.78 + lowSunStretch * 0.42 - altitudeRatio * 0.12),
+      scaleY: round2(0.52 + lowSunStretch * 0.24 - altitudeRatio * 0.06),
     };
   }
 
+  const offsetDistance = 2 + Math.pow(altitudeRatio, 0.78) * 7.4;
   return {
     opacity,
-    positionX: round2(2.5 + altitudeRatio * 7),
-    positionY: round2(3.5 + altitudeRatio * 10),
-    scaleX: round2(0.9 + altitudeRatio * 0.32),
-    scaleY: round2(0.72 + altitudeRatio * 0.18),
+    positionX: round2(-light.localX * offsetDistance),
+    positionY: round2(-light.localY * offsetDistance),
+    scaleX: round2(0.84 + altitudeRatio * 0.18),
+    scaleY: round2(0.62 + altitudeRatio * 0.1),
   };
 };
 
