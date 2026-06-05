@@ -111,6 +111,7 @@ function FlightExplorerContent({ callsign }) {
     selectAirport,
     selectNavaid,
     selectAirspace,
+    clearAllPreviewSelections,
     toggleMapLabels,
     fitToTrace,
     suspendMapFollow,
@@ -759,11 +760,12 @@ function FlightExplorerContent({ callsign }) {
         isMobile={isMobile}
         sidebarOpen={sidebarOpen}
         onApplyTemporaryRoute={applyTemporaryRoute}
+        onDismiss={clearAllPreviewSelections}
       />
       <div
         className={`font-sans text-atc-text ${
           isMobile
-            ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
+            ? "fixed inset-0 z-0 flex overflow-hidden"
             : `airport-map-kit ${
                 sidebarOpen ? "airport-map-kit--sidebar-open" : ""
               } flex h-dvh overflow-hidden`
@@ -853,7 +855,7 @@ function FlightExplorerContent({ callsign }) {
           </AirportMap>
 
           {isMobile && sidebarOpen && (
-            <div className="absolute inset-0 z-map-panel">
+            <div className="absolute inset-0 z-map-panel overscroll-contain">
               <FlightSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}

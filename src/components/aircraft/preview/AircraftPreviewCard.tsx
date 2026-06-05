@@ -24,6 +24,7 @@ import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAi
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
 
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
@@ -40,6 +41,7 @@ export default function AircraftPreviewCard({
   sidebarOpen = false,
   airportProfile = null,
   onApplyTemporaryRoute,
+  onDismiss,
   suppressMobileWhenAlreadyTracking = false,
 }) {
   const { t } = useI18n();
@@ -116,6 +118,15 @@ export default function AircraftPreviewCard({
     if (!cardTrackHref || alreadyTracking) return;
     router.push(cardTrackHref);
   };
+
+  // Swipe up anywhere on screen while the mobile preview is showing →
+  // clear the selection so the card hides. Threshold is conservative
+  // enough that a normal Leaflet pan doesn't trigger; the user has to
+  // flick up >100px in <600ms. Only registered when `onDismiss` is
+  // wired AND the mobile card is currently visible.
+  useSwipeUpToDismiss(showMobile && typeof onDismiss === "function", () => {
+    onDismiss?.();
+  });
 
   // Mobile route-feedback affordance: small text link → centered modal.
   // The desktop inline form (in AircraftPreviewMetadataCard) is more

@@ -82,6 +82,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     setSelectedAirspaceId,
     selectCandidateWatchingSpot,
     setSelectedCandidateWatchingSpotId,
+    clearAllPreviewSelections,
     mapFollowsAircraft,
     setMapZoom,
     applyMapMode,
@@ -484,11 +485,12 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
         sidebarOpen={sidebarOpen}
         airportProfile={airportProfile}
         onApplyTemporaryRoute={traffic.applyTemporaryRoute}
+        onDismiss={clearAllPreviewSelections}
       />
       <div
         className={`font-sans text-atc-text ${
           isMobile
-            ? "fixed inset-0 z-0 flex overflow-hidden overscroll-none"
+            ? "fixed inset-0 z-0 flex overflow-hidden"
             : `airport-map-kit ${
                 sidebarOpen ? "airport-map-kit--sidebar-open" : ""
               } flex h-dvh overflow-hidden`
@@ -571,7 +573,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
           />
 
           {isMobile && sidebarOpen && (
-            <div className="absolute inset-0 z-map-panel">
+            <div className="absolute inset-0 z-map-panel overscroll-contain">
               <AirportSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}
