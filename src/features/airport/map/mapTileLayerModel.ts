@@ -11,6 +11,22 @@ const RECOVERABLE_TILE_ERROR_PATTERNS = [
   /elevation-tiles-prod/i,
 ];
 
+type ErrorMessageLike = {
+  message?: unknown;
+};
+
+type MapLibreTileErrorEvent = {
+  error?: unknown;
+};
+
+function readErrorMessage(error: unknown) {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as ErrorMessageLike).message;
+    return typeof message === "string" ? message : String(message || "");
+  }
+  return String(error || "");
+}
+
 export function shouldAttemptMapLibreTiles({
   userAgent = "",
   webGlAvailable = true,
@@ -20,13 +36,16 @@ export function shouldAttemptMapLibreTiles({
   return true;
 }
 
-export function shouldLogMapTileLayerFailure(error) {
-  const message = error?.message || String(error || "");
+export function shouldLogMapTileLayerFailure(error: unknown) {
+  const message = readErrorMessage(error);
   return !RECOVERABLE_FAILURE_PATTERNS.some((pattern) => pattern.test(message));
 }
 
-export function shouldSuppressMapLibreTileError(event = {}) {
-  const error = event?.error || event;
-  const message = error?.message || String(error || "");
+export function shouldSuppressMapLibreTileError(event: unknown = {}) {
+  const eventError =
+    event && typeof event === "object" && "error" in event
+      ? (event as MapLibreTileErrorEvent).error
+      : undefined;
+  const message = readErrorMessage(eventError || event);
   return RECOVERABLE_TILE_ERROR_PATTERNS.some((pattern) => pattern.test(message));
 }
