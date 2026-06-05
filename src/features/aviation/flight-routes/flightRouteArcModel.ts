@@ -53,3 +53,28 @@ export function buildFlightAwareRouteArcPath({
     segments,
   });
 }
+
+export function resolveFocusedFlightAwareRouteArcPath({
+  selectedAircraft = null,
+  focalAircraft = null,
+  routeProvider = "",
+  routeEndpointAirportsOnly = false,
+  from = null,
+  segments = 32,
+}: {
+  selectedAircraft?: Record<string, any> | null;
+  focalAircraft?: Record<string, any> | null;
+  routeProvider?: unknown;
+  routeEndpointAirportsOnly?: unknown;
+  from?: Record<string, any> | null;
+  segments?: unknown;
+} = {}) {
+  const route = selectedAircraft?.flightRoute || focalAircraft?.flightRoute || null;
+  return buildFlightAwareRouteArcPath({
+    route,
+    routeProvider,
+    routeEndpointAirportsOnly,
+    from,
+    segments,
+  });
+}

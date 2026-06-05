@@ -3,6 +3,7 @@
 import { TowerControl } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplayModel";
 import { airportCityName, airportDisplayName } from "@/utils/airport";
 import { countryName } from "@/utils/flag";
 
@@ -26,6 +27,7 @@ export default function AirportRow({
     [city, country].filter(Boolean).join(", ") ||
     airportDisplayName(airport, locale);
   const dist = toFiniteNumber(airport?.distanceNm);
+  const distanceDisplay = formatNearbyDistanceDisplay(dist);
   const elevation = toFiniteNumber(airport?.elevationFt);
   const endpointRole = normalizeEndpointRole(airport?.routeEndpointRole);
   const endpointLabel = endpointRole
@@ -60,16 +62,10 @@ export default function AirportRow({
         ) : null}
       </div>
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
-        {dist == null ? (
+        {!distanceDisplay ? (
           <span>—</span>
-        ) : endpointRole ? (
-          <StaticNumberWithUnit value={Math.round(dist)} unit="NM" />
         ) : (
-          <NumberWithUnit
-            value={dist}
-            unit="NM"
-            format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
-          />
+          <NumberWithUnit value={distanceDisplay.value} unit={distanceDisplay.unit} />
         )}
       </div>
       <div className="aircraft-table-cell aircraft-table-cell--altitude text-right font-mono text-[12px] font-semibold text-atc-text">
@@ -97,22 +93,6 @@ function NumberWithUnit({ value, unit, format }: Record<string, any>) {
         format={format}
         className="block min-w-0 text-right"
       />
-      <sub
-        className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
-        translate="no"
-      >
-        {unit}
-      </sub>
-    </span>
-  );
-}
-
-function StaticNumberWithUnit({ value, unit }: Record<string, any>) {
-  return (
-    <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
-      <span className="block min-w-0 text-right">
-        {value}
-      </span>
       <sub
         className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
         translate="no"

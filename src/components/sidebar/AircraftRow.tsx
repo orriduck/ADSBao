@@ -10,6 +10,7 @@ import {
 } from "../../utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { formatFlightTelemetryMetric } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
+import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplayModel";
 
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
 // stamped broken-image icons in dense list rows when the logo isn't
@@ -48,6 +49,7 @@ export default function AircraftRow({
     routeMunicipalities && routeMunicipalities !== route,
   );
   const distValue = toNumber(aircraft.distanceNm);
+  const distanceDisplay = formatNearbyDistanceDisplay(distValue);
   const altitudeDisplay = formatFlightTelemetryMetric({
     metric: "altitude",
     value: aircraft.altitude,
@@ -76,13 +78,12 @@ export default function AircraftRow({
         hasRouteMunicipalities={hasRouteMunicipalities}
       />
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
-        {distValue == null ? (
+        {!distanceDisplay ? (
           <span>-</span>
         ) : (
           <NumberWithUnit
-            value={distValue}
-            unit="NM"
-            format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
+            value={distanceDisplay.value}
+            unit={distanceDisplay.unit}
           />
         )}
       </div>
