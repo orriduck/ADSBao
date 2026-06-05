@@ -4219,8 +4219,11 @@ body {
 
 .airport-overlay-label__code-suffix {
     align-self: flex-end;
-    font-size: 0.82em;
-    margin-left: 2px;
+    font-size: 0.72em;
+    letter-spacing: 0.02em;
+    margin-left: 4px;
+    opacity: 0.78;
+    transform: translateY(-0.04em);
 }
 
 .airport-overlay-label--map-badge .airport-overlay-label__detail {
