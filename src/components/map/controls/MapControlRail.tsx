@@ -35,6 +35,8 @@ export default function MapControlRail({
   onToggleSidebar,
   onCycleZoom,
   onFitToTrace = null,
+  onRecenter = null,
+  recenterDisabled = true,
   onCycleTheme,
   onToggleSettings,
 }) {
@@ -69,6 +71,19 @@ export default function MapControlRail({
           aria-pressed={!zoomActive && !zoomDisabled}
         >
           <MapControlIcon iconKey="route" />
+        </ToolbarButton>
+      )}
+
+      {onRecenter && (
+        <ToolbarButton
+          tone="rail"
+          title={t("map.recenter")}
+          aria-label={t("map.recenter")}
+          onClick={onRecenter}
+          disabled={recenterDisabled}
+          aria-disabled={recenterDisabled}
+        >
+          <MapControlIcon iconKey="crosshair" />
         </ToolbarButton>
       )}
 

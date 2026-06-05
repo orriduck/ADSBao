@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContext } from "./MapContext";
 import MapTileLayers from "./MapTileLayers";
+import { computeApproachPanBounds } from "@/utils/airportPanBounds";
 import AirportMarker from "./AirportMarker";
 import MapRangeLegend from "./MapRangeLegend";
 import AirspaceLayer from "./AirspaceLayer";
@@ -75,6 +76,12 @@ export default function AirportMap({
   showAirspaces = true,
   showCandidateWatchingSpots = false,
   baseLayer = "terrain",
+  // Free-pan zone. When `freePanRadiusNm` is a positive number AND
+  // followsCenter is true the map snaps a `maxBounds` around the focal
+  // centre so the user can drag freely inside that box. Pass null /
+  // undefined to leave the map unbounded (default).
+  freePanRadiusNm = null,
+  onUserPan = null,
   trafficFilter = "all",
   typeFilter = "all",
   altitudeLevel = "all",
@@ -206,6 +213,47 @@ export default function AirportMap({
       window.clearTimeout(transitionSettleTimer);
     };
   }, [floatingSidebarAware, focalCenter, followsCenter, zoom]);
+
+  // Free-pan box around the airport. When a `freePanRadiusNm` value is
+  // provided the map gets `maxBounds` set so the user can drag freely
+  // inside that envelope but can't lose the focal airport off-screen.
+  // Passing `null` (default) clears the bounds and restores full-globe
+  // panning. Tied to `focalCenter` so the bounds re-anchor if the
+  // airport changes.
+  useEffect(() => {
+    if (!mapInstance || !focalCenter) return undefined;
+    const map: any = mapInstance;
+    if (!freePanRadiusNm || typeof map.setMaxBounds !== "function") {
+      try { map.setMaxBounds?.(null); } catch { /* noop */ }
+      return undefined;
+    }
+    const bounds = computeApproachPanBounds(
+      focalCenter.lat,
+      focalCenter.lon,
+      freePanRadiusNm,
+    );
+    if (!bounds) {
+      try { map.setMaxBounds(null); } catch { /* noop */ }
+      return undefined;
+    }
+    try { map.setMaxBounds(bounds); } catch { /* noop */ }
+    return () => {
+      try { map.setMaxBounds?.(null); } catch { /* noop */ }
+    };
+  }, [mapInstance, focalCenter, freePanRadiusNm]);
+
+  // User-initiated drag → suspend the polling auto-recenter so the
+  // map stays where they dragged it. The toolbar's "Recenter" button
+  // is what brings them back. Only wires up when the parent actually
+  // hands us an `onUserPan` callback.
+  useEffect(() => {
+    if (!mapInstance || !onUserPan) return undefined;
+    const handleDragStart = () => onUserPan();
+    mapInstance.on?.("dragstart", handleDragStart);
+    return () => {
+      mapInstance.off?.("dragstart", handleDragStart);
+    };
+  }, [mapInstance, onUserPan]);
 
   // Clicks on the map background (not on an aircraft marker) clear the
   // selection so the user can drop "trace mode" without targeting an

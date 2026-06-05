@@ -35,7 +35,12 @@ import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandida
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
 import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
-import { ZOOM_APPROACH, ZOOM_DETAIL } from "@/utils/airportMapDisplay";
+import {
+  ZOOM_AIRPORT,
+  ZOOM_APPROACH,
+  ZOOM_DETAIL,
+} from "@/utils/airportMapDisplay";
+import { APPROACH_PAN_RADIUS_NM } from "@/utils/airportPanBounds";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -87,6 +92,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     mapFollowsAircraft,
     setMapZoom,
     applyMapMode,
+    suspendMapFollow,
+    recenterToFocus,
     setUserLocationPreferences,
   } = useExplorerUi();
   const [userLocation, setUserLocation] = useState(null);
@@ -523,6 +530,8 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
               userLocationNotice={userLocationNotice}
               onToggleUserLocation={toggleUserLocation}
               onToggleUserLocationAudio={toggleUserLocationAudio}
+              onRecenter={recenterToFocus}
+              recenterDisabled={mapFollowsAircraft}
             />
           )}
 
@@ -543,6 +552,20 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             showAirspaces={showAirspaces}
             showCandidateWatchingSpots={showCandidateWatchingSpots}
             baseLayer={mapSettings?.baseLayer}
+            // Airport-view-only soft cage: while the user is at airport
+            // zoom we cap pan to a ~30nm box around the airport so they
+            // can wander out past the runway without losing context.
+            // Approach view is already wide enough that maxBounds adds
+            // nothing, so it's lifted there.
+            freePanRadiusNm={
+              mapZoom === ZOOM_AIRPORT ? APPROACH_PAN_RADIUS_NM : null
+            }
+            // ALL zoom levels suspend auto-follow on user drag — without
+            // this every poll's setView would yank the map back and the
+            // user would feel "stuck in place" trying to look around.
+            // The Recenter button in the map control rail brings them
+            // back when they want it.
+            onUserPan={suspendMapFollow}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}

@@ -43,6 +43,8 @@ export default function MapControlBar({
   onToggleUserLocationAudio = null,
   onToggleSidebar,
   onFitToTrace = null,
+  onRecenter = null,
+  recenterDisabled = true,
 }) {
   const controlZone = useRef(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -118,6 +120,8 @@ export default function MapControlBar({
         onToggleSidebar={onToggleSidebar}
         onCycleZoom={cycleZoom}
         onFitToTrace={onFitToTrace}
+        onRecenter={onRecenter}
+        recenterDisabled={recenterDisabled}
         onCycleTheme={cycleTheme}
         onToggleSettings={toggleSettings}
       />

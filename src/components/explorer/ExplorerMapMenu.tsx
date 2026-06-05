@@ -17,6 +17,8 @@ export default function ExplorerMapMenu({
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   onFitToTrace = null,
+  onRecenter = null,
+  recenterDisabled = true,
   zoomDisabled = false,
 }: Record<string, any> = {}) {
   const {
@@ -78,6 +80,8 @@ export default function ExplorerMapMenu({
         onToggleUserLocationAudio={onToggleUserLocationAudio}
         onToggleSidebar={toggleSidebar}
         onFitToTrace={onFitToTrace}
+        onRecenter={onRecenter}
+        recenterDisabled={recenterDisabled}
       />
 
       <MobileMapSourceStatus

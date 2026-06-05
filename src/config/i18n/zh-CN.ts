@@ -402,6 +402,7 @@ const zhCN = {
     layerOverlaysAria: "地图图层叠加",
     toggleSidebar: "切换侧栏",
     fitTrace: "适配航迹",
+    recenter: "回到机场中心",
     zoomLockedFlightAware: "FlightAware 兜底时锁定缩放",
     approachingView: "进近视图(点击循环)",
     themeButtonAria: "主题:{label}(点击切换)",

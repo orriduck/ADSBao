@@ -126,6 +126,13 @@ function airportExplorerUiReducer(state, action) {
         mapZoom: action.mapZoom,
         mapFollowsAircraft: true,
       };
+    case "recenterToFocus":
+      // Recenter button on the map toolbar: re-engage auto-follow so
+      // the followsCenter effect on AirportMap immediately setView's
+      // back to the focal centre. Independent action from setMapZoom
+      // so the user can recentre without changing zoom level.
+      if (state.mapFollowsAircraft) return state;
+      return { ...state, mapFollowsAircraft: true };
     case "toggleMapLabels":
       return applyManualLayerToggle(
         state,
@@ -520,6 +527,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "closeSidebar" });
   }, []);
 
+  const recenterToFocus = useCallback(() => {
+    dispatch({ type: "recenterToFocus" });
+  }, []);
+
   const setMapZoom = useCallback((mapZoom) => {
     dispatch({ type: "setMapZoom", mapZoom });
   }, []);
@@ -684,6 +695,7 @@ export function ExplorerUiProvider({ children }) {
       clearAllPreviewSelections,
       fitToTrace,
       suspendMapFollow,
+      recenterToFocus,
     }),
     [
       sidebarMode,
@@ -738,6 +750,7 @@ export function ExplorerUiProvider({ children }) {
       clearAllPreviewSelections,
       fitToTrace,
       suspendMapFollow,
+      recenterToFocus,
     ],
   );
 
