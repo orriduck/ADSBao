@@ -6,6 +6,7 @@ type AirportMapCoordinate = {
   icao24?: string;
   lat?: unknown;
   lon?: unknown;
+  elevationFt?: unknown;
   [key: string]: unknown;
 };
 
@@ -22,6 +23,7 @@ type AirportMapInitialCenterOptions = {
 type AirportGroundFilterOptions = {
   airportLat?: unknown;
   airportLon?: unknown;
+  airportElevationFt?: unknown;
   nearbyAirports?: AirportMapCoordinate[];
 };
 
@@ -81,6 +83,12 @@ const toFiniteCoordinate = (value: unknown) => {
   return Number.isFinite(numeric) ? numeric : null;
 };
 
+const toFiniteNumber = (value: unknown) => {
+  if (value == null || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+};
+
 export const resolveAirportMapFocalCenter = ({ lat, lon }: AirportMapFocalCenterOptions = {}) => {
   const focalLat = toFiniteCoordinate(lat);
   const focalLon = toFiniteCoordinate(lon);
@@ -101,24 +109,60 @@ export const resolveAirportMapInitialCenter = ({
   });
 };
 
-const airportGroundFilters = ({ airportLat, airportLon, nearbyAirports = [] }: AirportGroundFilterOptions) =>
+const airportGroundFilters = ({
+  airportLat,
+  airportLon,
+  airportElevationFt,
+  nearbyAirports = [],
+}: AirportGroundFilterOptions) =>
   [
-    { lat: airportLat, lon: airportLon },
+    { lat: airportLat, lon: airportLon, elevationFt: airportElevationFt },
     ...nearbyAirports.map((airport) => ({
       lat: airport?.lat,
       lon: airport?.lon,
+      elevationFt: airport?.elevationFt,
     })),
   ].filter((airport) => airport.lat != null && airport.lon != null);
 
-const isInsideAirportGroundArea = (aircraft: AirportMapAircraft, airport: AirportMapCoordinate, radiusNm: number) => {
+export const airportGroundTrafficAltitudeThresholdFtForRadiusNm = (radiusNm: unknown) => {
+  const radius = toFiniteNumber(radiusNm);
+  if (radius == null || radius <= 0) return null;
+  return Math.max(300, Math.round(radius * 350));
+};
+
+const isNearAirportElevation = (
+  aircraft: AirportMapAircraft,
+  airport: AirportMapCoordinate,
+  radiusNm: number,
+) => {
+  if (aircraft.onGround === true) return true;
+  const aircraftAltitudeFt = toFiniteNumber(aircraft.altitude);
+  const airportElevationFt = toFiniteNumber(airport.elevationFt);
+  const thresholdFt = airportGroundTrafficAltitudeThresholdFtForRadiusNm(radiusNm);
+  if (aircraftAltitudeFt == null) return true;
+  if (thresholdFt == null) return false;
+  if (airportElevationFt == null) return aircraftAltitudeFt <= thresholdFt;
+  return Math.abs(aircraftAltitudeFt - airportElevationFt) <= thresholdFt;
+};
+
+const isInsideAirportGroundArea = (
+  aircraft: AirportMapAircraft,
+  airport: AirportMapCoordinate,
+  radiusNm: number,
+) => {
   const distNm = getDistanceNm(airport.lat, airport.lon, aircraft.lat, aircraft.lon);
-  return distNm != null && distNm <= radiusNm;
+  return (
+    distNm != null &&
+    distNm <= radiusNm &&
+    isNearAirportElevation(aircraft, airport, radiusNm)
+  );
 };
 
 export const getVisibleAircraft = ({
   aircraft,
   airportLat,
   airportLon,
+  airportElevationFt,
   nearbyAirports = [],
   zoom,
 }: VisibleAircraftOptions) => {
@@ -127,6 +171,7 @@ export const getVisibleAircraft = ({
   const groundFilters = airportGroundFilters({
     airportLat,
     airportLon,
+    airportElevationFt,
     nearbyAirports,
   });
 

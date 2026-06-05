@@ -59,7 +59,7 @@ export default function MapRangeLegend() {
     <div
       role="note"
       aria-label={t("map.distanceAria", { distance: scale.nm })}
-      className="pointer-events-none absolute bottom-3 left-3 z-map-legend flex items-center gap-2 bg-[var(--map-range-background)] px-2 py-1 font-mono text-[var(--map-range-text)] backdrop-blur-sm"
+      className="pointer-events-none absolute right-3 top-[calc(12px+env(safe-area-inset-top))] z-map-legend flex items-center gap-2 rounded-[8px] border border-[var(--atc-border-default)] bg-[var(--atc-surface-preview-card)] px-2.5 py-1.5 font-mono text-[var(--map-range-text)] shadow-[var(--app-panel-shadow)] backdrop-blur-md md:bottom-3 md:left-3 md:right-auto md:top-auto"
     >
       <span
         className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--map-range-label)]"

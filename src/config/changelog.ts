@@ -6,6 +6,21 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.13.0",
+    kind: "feat",
+    title: "Bottom-floating mobile toolbar and device-aware settings",
+    summary:
+      "Mobile now exposes a single bottom-pinned toolbar pill across every page, static pages scroll as one document, and signed-in users get separate desktop and mobile map preferences. The approach-altitude masking rule also stops hiding high-altitude overflights.",
+    highlights: [
+      "Mobile toolbar floats at the bottom center across home, about, mechanism, changelog, and the airport/flight sidebar overlays",
+      "Desktop static pages move the navigation dock to the top-right corner so it lines up with the detail-page map toolbar",
+      "Static pages (home, about, mechanism, changelog) scroll as a single document on mobile, with bottom clearance for the floating toolbar",
+      "Approach-level traffic hiding now also gates on the altitude delta against the airport, so high-altitude overflights remain visible",
+      "Signed-in users save independent desktop and mobile map settings, picked up automatically by the device they're on",
+      "About page version now reads from the changelog so future releases only need a single changelog edit",
+    ],
+  },
+  {
     version: "v1.12.0",
     kind: "feat",
     title: "Map readability and badge polish",

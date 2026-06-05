@@ -29,6 +29,7 @@ export default function ExplorerMapMenu({
     showAirspaces,
     showCandidateWatchingSpots,
     mapSettings,
+    mapSettingsDevice,
     mapSettingsSaveStatus,
     setMapZoom,
     applyMapMode,
@@ -57,6 +58,7 @@ export default function ExplorerMapMenu({
         showAirspaces={showAirspaces}
         showCandidateWatchingSpots={showCandidateWatchingSpots}
         mapSettings={mapSettings}
+        mapSettingsDevice={mapSettingsDevice}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
         userLocationActive={userLocationActive}
         userLocationAudioActive={userLocationAudioActive}

@@ -101,10 +101,20 @@ export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
   updatedAt: "",
 });
 
+export const MAP_SETTINGS_DEVICE_TYPES = Object.freeze({
+  DESKTOP: "desktop",
+  MOBILE: "mobile",
+});
+
+export const DEFAULT_MAP_SETTINGS_DEVICE = MAP_SETTINGS_DEVICE_TYPES.DESKTOP;
+
 const MAP_MODE_ID_SET: Set<string> = new Set(Object.values(MAP_MODE_IDS));
 const PRESET_MODE_ID_SET: Set<string> = new Set(MAP_MODE_OPTIONS.map((mode) => mode.id));
 const LAYER_KEY_SET: Set<string> = new Set(PERSISTED_MAP_LAYER_KEYS);
 const DISABLED_MAP_MODE_ID_SET: Set<string> = new Set(DISABLED_MAP_MODE_IDS);
+const MAP_SETTINGS_DEVICE_SET: Set<string> = new Set(
+  Object.values(MAP_SETTINGS_DEVICE_TYPES),
+);
 
 function getMapModePreset(modeId) {
   return MAP_MODE_PRESETS[modeId] || MAP_MODE_PRESETS[DEFAULT_MAP_SETTINGS.baseMode];
@@ -127,6 +137,19 @@ export function isSelectableMapModeId(value) {
 
 export function getSelectableMapModeOptions() {
   return MAP_MODE_OPTIONS.filter((mode) => isSelectableMapModeId(mode.id));
+}
+
+export function normalizeMapSettingsDevice(value: unknown) {
+  const device = String(value || "").trim().toLowerCase();
+  return MAP_SETTINGS_DEVICE_SET.has(device)
+    ? device
+    : DEFAULT_MAP_SETTINGS_DEVICE;
+}
+
+export function getAlternateMapSettingsDevice(value: unknown) {
+  return normalizeMapSettingsDevice(value) === MAP_SETTINGS_DEVICE_TYPES.MOBILE
+    ? MAP_SETTINGS_DEVICE_TYPES.DESKTOP
+    : MAP_SETTINGS_DEVICE_TYPES.MOBILE;
 }
 
 function getMapSettingsBaseMode(

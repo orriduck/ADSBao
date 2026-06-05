@@ -93,7 +93,8 @@ function createFakeSupabaseClient({
   assert.ok(upsertCall, "repository should write a settings row");
   assert.equal(upsertCall.row.email, "owner@example.com");
   assert.equal(upsertCall.row.environment, "preview");
-  assert.deepEqual(upsertCall.options, { onConflict: "email,environment" });
+  assert.equal(upsertCall.row.device, "desktop");
+  assert.deepEqual(upsertCall.options, { onConflict: "email,environment,device" });
   assert.equal(upsertCall.row.has_selected_mode, true);
   assert.deepEqual(upsertCall.row.settings.layerOverrides, {
     [MAP_LAYER_KEYS.AIRSPACES]: true,
@@ -130,9 +131,10 @@ function createFakeSupabaseClient({
 
   assert.deepEqual(calls.slice(1), [
     { type: "from", table: USER_MAP_SETTINGS_TABLE },
-    { type: "select", columns: "email,environment,settings,has_selected_mode,updated_at" },
+    { type: "select", columns: "email,environment,device,settings,has_selected_mode,updated_at" },
     { type: "eq", column: "email", value: "owner@example.com" },
     { type: "eq", column: "environment", value: "production" },
+    { type: "eq", column: "device", value: "desktop" },
     { type: "maybeSingle" },
   ]);
   assert.equal(row.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
@@ -292,6 +294,48 @@ function createFakeSupabaseClient({
   assert.ok(upsertCall, "repository should migrate legacy immersive account settings");
   assert.equal(upsertCall.row.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
   assert.equal(upsertCall.row.settings.baseMode, MAP_MODE_IDS.CONTROLLER);
+}
+
+{
+  const { calls, createClientImpl } = createFakeSupabaseClient({
+    writeData: {
+      email: "owner@example.com",
+      environment: "preview",
+      device: "mobile",
+      settings: {
+        selectedMode: MAP_MODE_IDS.RADIO,
+        baseMode: MAP_MODE_IDS.RADIO,
+        hasSelectedMode: true,
+      },
+      has_selected_mode: true,
+    },
+  });
+  const repository = createUserMapSettingsRepositoryFromEnv({
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+      VERCEL_ENV: "preview",
+    },
+    createClientImpl,
+  });
+
+  const row = await repository.upsertSettingsByEmail({
+    email: "owner@example.com",
+    device: "mobile",
+    settings: {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+  });
+
+  const deviceFilters = calls.filter(
+    (call) => call.type === "eq" && call.column === "device",
+  );
+  assert.deepEqual(deviceFilters.map((call) => call.value), ["mobile"]);
+  const upsertCall = calls.find((call) => call.type === "upsert");
+  assert.equal(upsertCall.row.device, "mobile");
+  assert.equal(row.device, "mobile");
 }
 
 console.log("userMapSettings.dao.test.ts ok");

@@ -454,9 +454,14 @@ const en = {
     modeSection: "Modes",
     layersSection: "Display",
     guestPrompt: "Map settings are kept on this device.",
+    deviceScope: "{device} settings",
     savedSettingsAvailable: "Saved to your account.",
     savingSettings: "Saving...",
     saveError: "Could not save changes.",
+    devices: {
+      desktop: "Desktop",
+      mobile: "Mobile",
+    },
     modes: {
       spotting: "Watcher Mode",
       radio: "Radio Mode",

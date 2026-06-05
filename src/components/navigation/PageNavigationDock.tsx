@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
@@ -47,8 +49,31 @@ export default function PageNavigationDock() {
   } = useThemePreference();
   const { isLoaded, isSignedIn } = useUser();
   const showSignedIn = isLoaded && isSignedIn;
+  // Mobile pins the dock to the bottom of the viewport, so the language
+  // and theme menus need to flip upward to stay on-screen. Desktop keeps
+  // the dock at the top and opens menus downward as before.
+  const [isMobileDock, setIsMobileDock] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+    const media = window.matchMedia("(max-width: 720px)");
+    const apply = () => setIsMobileDock(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+  const menuPlacement = isMobileDock ? "top" : "bottom";
+  // Mount to <body> so the dock's position:fixed is anchored to the
+  // viewport. Some route wrappers (e.g. HomeScreen's app-route-transition)
+  // set `will-change: transform`, which would otherwise become the
+  // containing block and pin the dock to the bottom of the document
+  // instead of the visible viewport on long mobile pages.
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    setPortalTarget(document.body);
+  }, []);
 
-  return (
+  const dock = (
     <nav className="page-nav-dock" aria-label={t("nav.homePage")}>
       <Toolbar>
         {PAGE_ITEMS.map((item) => {
@@ -75,7 +100,7 @@ export default function PageNavigationDock() {
 
         <LanguageSwitch
           className={buttonClass}
-          menuPlacement="bottom"
+          menuPlacement={menuPlacement}
           menuAlign="right"
         />
 
@@ -86,7 +111,7 @@ export default function PageNavigationDock() {
           title={themeTitle}
           onClick={cycleTheme}
           onSelectTheme={selectTheme}
-          menuPlacement="bottom"
+          menuPlacement={menuPlacement}
           menuAlign="right"
         />
 
@@ -114,4 +139,6 @@ export default function PageNavigationDock() {
       </Toolbar>
     </nav>
   );
+
+  return portalTarget ? createPortal(dock, portalTarget) : dock;
 }
