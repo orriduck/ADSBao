@@ -1,5 +1,15 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
+  // Treat anything that is the "real" entrypoint of execution as a
+  // consumer so its imports don't show up as "unused exports". Without
+  // this, helpers that exist only to be verified by tests, or scripts
+  // run by hand from the CLI, get reported as dead code and would be
+  // deleted by mistake.
+  "entry": [
+    "src/app/**/{page,layout,route,not-found,error,global-error,loading,opengraph-image,sitemap,robots,icon}.{ts,tsx}",
+    "scripts/**/*.ts",
+    "src/**/*.test.{ts,tsx}"
+  ],
   "project": [
     "scripts/**/*.ts",
     "src/**/*.{ts,tsx}"
@@ -11,7 +21,9 @@
     "tailwindcss"
   ],
   "ignore": [
-    "scripts/**/*.test.ts",
-    "src/**/*.test.{ts,tsx}"
+    // Generator output — the type is part of the contract even if the
+    // app only consumes the value export. Keeping the type avoids
+    // round-tripping through the generator just to drop one line.
+    "src/features/aircraft/icons/aircraftIconAnchors.generated.ts"
   ]
 }
