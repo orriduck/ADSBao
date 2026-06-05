@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
+import { AIRPORT_MAP_PANES } from "../../config/airportMap";
+import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
 import {
   safeAddToMap,
   safeRemoveFromMap,
@@ -58,6 +60,7 @@ export default function AirportMarker({
           iconSize: [120, 34],
           iconAnchor: [0, -8],
         }),
+        pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),
       }),
       map,
       { label: "AirportMarker" },

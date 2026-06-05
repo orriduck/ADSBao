@@ -81,19 +81,16 @@ type TerrainPalette = {
   hillshadeShadow: string;
   hillshadeHighlight: string;
   hillshadeAccent: string;
-  topoOpacity: number;
-  topoSaturation: number;
-  topoBrightnessMin: number;
-  topoBrightnessMax: number;
-  topoContrast: number;
+  hillshadeDetailShadow: string;
+  hillshadeDetailHighlight: string;
+  hillshadeDetailAccent: string;
 };
 
 const TERRAIN_DEM_SOURCE_ID = "adsbao_terrain_dem";
-const TERRAIN_TOPO_SOURCE_ID = "adsbao_terrain_topo";
 
 const TERRAIN_LAYER_IDS = Object.freeze([
   "adsbao_terrain_hillshade",
-  "adsbao_terrain_topo",
+  "adsbao_terrain_hillshade_detail",
   "adsbao_terrain_landuse",
   "adsbao_terrain_landcover",
 ]);
@@ -101,74 +98,70 @@ const TERRAIN_LAYER_IDS = Object.freeze([
 const READABLE_TERRAIN_PALETTES: Record<"dark" | "light", TerrainPalette> =
   Object.freeze({
     dark: Object.freeze({
-      background: "#30382f",
-      water: "#50676b",
-      waterLabel: "#8fa5aa",
-      waterLabelHalo: "#272d28",
-      terrain: "#43523d",
-      terrainOpacity: 0.58,
-      terrainSecondary: "#384137",
-      terrainSecondaryOpacity: 0.48,
-      residential: "#31362f",
-      building: "#373a34",
-      buildingOutline: "#4c5148",
-      road: "#6f766a",
-      roadCasing: "#3a4139",
+      background: "#252a26",
+      water: "#465b5f",
+      waterLabel: "#879b9e",
+      waterLabelHalo: "#202620",
+      terrain: "#3b453d",
+      terrainOpacity: 0.5,
+      terrainSecondary: "#333a35",
+      terrainSecondaryOpacity: 0.42,
+      residential: "#2e332f",
+      building: "#333631",
+      buildingOutline: "#464b44",
+      road: "#686d64",
+      roadCasing: "#363b36",
       roadOpacity: 0.34,
       roadCasingOpacity: 0.2,
-      roadLabel: "#85887f",
-      roadLabelHalo: "#181d18",
+      roadLabel: "#80847c",
+      roadLabelHalo: "#171b18",
       roadLabelOpacity: 0.62,
-      aeroway: "#4b4f48",
+      aeroway: "#454a43",
       aerowayOpacity: 0.58,
-      boundary: "#777b72",
+      boundary: "#6f746d",
       boundaryOpacity: 0.24,
-      label: "#b1b6ad",
-      labelHalo: "#242a24",
+      label: "#adb3aa",
+      labelHalo: "#202620",
       hillshadeExaggeration: 1,
-      hillshadeShadow: "rgba(0, 7, 2, 0.18)",
-      hillshadeHighlight: "rgba(242, 245, 210, 0.1)",
-      hillshadeAccent: "rgba(95, 121, 74, 0.12)",
-      topoOpacity: 0.88,
-      topoSaturation: -0.22,
-      topoBrightnessMin: 0.06,
-      topoBrightnessMax: 0.92,
-      topoContrast: 0.2,
+      hillshadeShadow: "rgba(0, 0, 0, 0.62)",
+      hillshadeHighlight: "rgba(221, 226, 213, 0.22)",
+      hillshadeAccent: "rgba(82, 101, 86, 0.2)",
+      hillshadeDetailShadow: "rgba(0, 0, 0, 0.32)",
+      hillshadeDetailHighlight: "rgba(236, 240, 226, 0.12)",
+      hillshadeDetailAccent: "rgba(89, 111, 95, 0.12)",
     }),
     light: Object.freeze({
-      background: "#e7efe0",
-      water: "#b9d7df",
-      waterLabel: "#5b7479",
-      waterLabelHalo: "#f4f3ec",
-      terrain: "#d2e2ca",
-      terrainOpacity: 0.72,
-      terrainSecondary: "#dfe7d8",
-      terrainSecondaryOpacity: 0.6,
-      residential: "#e8e8df",
-      building: "#e2e0d7",
-      buildingOutline: "#d3d1c8",
-      road: "#8f947f",
-      roadCasing: "#cfd2bd",
-      roadOpacity: 0.54,
-      roadCasingOpacity: 0.32,
-      roadLabel: "#5d604f",
-      roadLabelHalo: "#f3f0e4",
-      roadLabelOpacity: 0.72,
-      aeroway: "#e6e1d7",
-      aerowayOpacity: 0.72,
-      boundary: "#9da28f",
-      boundaryOpacity: 0.38,
-      label: "#30332d",
-      labelHalo: "#f5f4ed",
+      background: "#eef0ec",
+      water: "#c0d9dc",
+      waterLabel: "#6e8587",
+      waterLabelHalo: "#f7f6f0",
+      terrain: "#dfe8de",
+      terrainOpacity: 0.58,
+      terrainSecondary: "#e8ece5",
+      terrainSecondaryOpacity: 0.48,
+      residential: "#eeeee9",
+      building: "#e8e7e0",
+      buildingOutline: "#dadbd4",
+      road: "#9ea298",
+      roadCasing: "#daddd3",
+      roadOpacity: 0.42,
+      roadCasingOpacity: 0.22,
+      roadLabel: "#6d7168",
+      roadLabelHalo: "#f7f5ef",
+      roadLabelOpacity: 0.58,
+      aeroway: "#e8e4db",
+      aerowayOpacity: 0.6,
+      boundary: "#a9aea4",
+      boundaryOpacity: 0.24,
+      label: "#44473f",
+      labelHalo: "#f8f7f1",
       hillshadeExaggeration: 1,
-      hillshadeShadow: "rgba(91, 83, 54, 0.42)",
-      hillshadeHighlight: "rgba(255, 255, 239, 0.34)",
-      hillshadeAccent: "rgba(114, 132, 84, 0.28)",
-      topoOpacity: 0.92,
-      topoSaturation: -0.16,
-      topoBrightnessMin: 0,
-      topoBrightnessMax: 1,
-      topoContrast: 0.18,
+      hillshadeShadow: "rgba(70, 70, 66, 0.46)",
+      hillshadeHighlight: "rgba(255, 255, 250, 0.44)",
+      hillshadeAccent: "rgba(102, 128, 108, 0.22)",
+      hillshadeDetailShadow: "rgba(72, 72, 68, 0.22)",
+      hillshadeDetailHighlight: "rgba(255, 255, 250, 0.18)",
+      hillshadeDetailAccent: "rgba(108, 134, 114, 0.1)",
     }),
   });
 
@@ -299,18 +292,6 @@ function injectReadableTerrainSources(
       attribution:
         '<a href="https://github.com/tilezen/joerd/tree/master/docs/attribution.md">Terrain Tiles</a>',
     },
-    [TERRAIN_TOPO_SOURCE_ID]: {
-      type: "raster",
-      tiles: [
-        "https://a.tile.opentopomap.org/{z}/{x}/{y}.png",
-        "https://b.tile.opentopomap.org/{z}/{x}/{y}.png",
-        "https://c.tile.opentopomap.org/{z}/{x}/{y}.png",
-      ],
-      tileSize: 256,
-      maxzoom: 17,
-      attribution:
-        '<a href="https://opentopomap.org">OpenTopoMap</a>',
-    },
   };
 }
 
@@ -420,19 +401,6 @@ function buildReadableTerrainLayers(
   }
 
   layers.push({
-    id: "adsbao_terrain_topo",
-    type: "raster",
-    source: TERRAIN_TOPO_SOURCE_ID,
-    paint: {
-      "raster-opacity": palette.topoOpacity,
-      "raster-saturation": palette.topoSaturation,
-      "raster-contrast": palette.topoContrast,
-      "raster-brightness-min": palette.topoBrightnessMin,
-      "raster-brightness-max": palette.topoBrightnessMax,
-      "raster-fade-duration": 0,
-    },
-  });
-  layers.push({
     id: "adsbao_terrain_hillshade",
     type: "hillshade",
     source: TERRAIN_DEM_SOURCE_ID,
@@ -442,6 +410,18 @@ function buildReadableTerrainLayers(
       "hillshade-highlight-color": palette.hillshadeHighlight,
       "hillshade-accent-color": palette.hillshadeAccent,
       "hillshade-illumination-direction": 315,
+    },
+  });
+  layers.push({
+    id: "adsbao_terrain_hillshade_detail",
+    type: "hillshade",
+    source: TERRAIN_DEM_SOURCE_ID,
+    paint: {
+      "hillshade-exaggeration": palette.hillshadeExaggeration,
+      "hillshade-shadow-color": palette.hillshadeDetailShadow,
+      "hillshade-highlight-color": palette.hillshadeDetailHighlight,
+      "hillshade-accent-color": palette.hillshadeDetailAccent,
+      "hillshade-illumination-direction": 300,
     },
   });
 

@@ -14,6 +14,7 @@ import {
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel";
 import { shouldShowNearbyAirportRunwaysForZoom } from "../../features/airport/map/airportMapZoomFeatures";
+import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
 
 const escapeHtml = (value: unknown) =>
   String(value || "")
@@ -31,25 +32,12 @@ const markerHtml = (airport: Record<string, any>) => {
   const distance = Number.isFinite(airport.distanceNm)
     ? Math.round(airport.distanceNm)
     : null;
-  // Two parts: the dot sits exactly on the airport position; the label
-  // stack (code pill + distance pill) is offset down-left so the runway
-  // / centerline at the airport stays visible underneath.
-  const distanceHtml =
-    distance != null
-      ? `<span class="nearby-airport-marker-badge__meta">${escapeHtml(distance)}NM</span>`
-      : "";
-  const badge = `
-    <span class="nearby-airport-marker-label nearby-airport-marker-badge">
-      <span class="nearby-airport-marker-badge__code">${escapeHtml(code)}</span>
-      ${distanceHtml}
-    </span>
-  `;
-  return `
-    <div class="nearby-airport-marker notranslate" translate="no">
-      <span class="nearby-airport-marker-dot"></span>
-      ${badge}
-    </div>
-  `;
+  return airportLabelBadgeHtml({
+    code,
+    codeSuffix: distance != null ? `${distance}NM` : "",
+    badgeType: "nearby-airport",
+    className: "airport-overlay-label--map-badge airport-overlay-label--nearby-airport",
+  });
 };
 
 const runwayLineStyle = (theme: string) =>
@@ -145,13 +133,15 @@ export default function NearbyAirportLayer({
       const marker = L.marker([airport.lat, airport.lon], {
         interactive,
         keyboard: interactive,
+        pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),
         icon: L.divIcon({
-          className: isSelected ? "nearby-airport-marker--selected" : "",
+          className: [
+            "nearby-airport-marker-icon",
+            isSelected ? "nearby-airport-marker--selected" : "",
+          ].filter(Boolean).join(" "),
           html: markerHtml(airport),
-          // iconSize/anchor are sized to the dot only — the badge is
-          // absolutely positioned and overflows; CSS handles its offset.
-          iconSize: [6, 6],
-          iconAnchor: [3, 3],
+          iconSize: [128, 78],
+          iconAnchor: [0, -8],
         }),
       });
       if (interactive) {

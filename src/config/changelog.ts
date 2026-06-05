@@ -6,6 +6,20 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.12.0",
+    kind: "feat",
+    title: "Map readability and badge polish",
+    summary:
+      "Airport, navaid, and airspace surfaces share a quieter terrain palette, a unified badge system with collision-aware stacking, and friendlier click handling for overlapping layers.",
+    highlights: [
+      "Readable terrain swaps the topo raster for layered hillshades and a calmer grayscale palette in both themes",
+      "Map badges share a collision-aware layout that nudges stacked airport, nearby-airport, and navaid labels apart with leader lines",
+      "Navaid labels adopt the airport badge design for consistent typography, selection, and zoom behavior",
+      "Nearby airport pills render the distance suffix in a smaller bottom-aligned font for clearer hierarchy",
+      "Airspace clicks resolve to the visible overlapping polygon and cycle through stacked airspaces on repeat clicks",
+    ],
+  },
+  {
     version: "v1.11.1",
     kind: "patch",
     title: "Map UI polish pass",
