@@ -17,6 +17,7 @@ export default function MapTileLayers({
   theme = "dark",
   locale = "en",
   showLabels = true,
+  baseLayer = "terrain",
   selectionActive = false,
 }: Record<string, any>) {
   const map = useMapInstance();
@@ -44,6 +45,7 @@ export default function MapTileLayers({
       theme,
       locale,
       showLabels,
+      baseLayer,
       signal: abort.signal,
     })
       .then((style) => {
@@ -81,7 +83,7 @@ export default function MapTileLayers({
       removeLayer(layerRef.current, map);
       layerRef.current = null;
     };
-  }, [map, theme, locale, showLabels]);
+  }, [map, theme, locale, showLabels, baseLayer]);
 
   useEffect(() => {
     setSelectionOpacity(layerRef.current, theme, selectionActive);
@@ -94,6 +96,7 @@ async function loadLocalizedMapStyle({
   theme,
   locale,
   showLabels,
+  baseLayer,
   signal,
 }: Record<string, any>) {
   const params = new URLSearchParams({
@@ -101,6 +104,7 @@ async function loadLocalizedMapStyle({
     labels: showLabels ? "1" : "0",
     v: MAP_STYLE_THEME_REVISION,
   });
+  if (baseLayer) params.set("baseLayer", baseLayer);
   return requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
 }
 

@@ -62,6 +62,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     showNavaidMarkers,
     showAirspaces,
     showCandidateWatchingSpots,
+    mapSettings,
     userLocationEnabled,
     userLocationAudioEnabled,
     trafficFilter,
@@ -541,6 +542,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             showNavaidMarkers={showNavaidMarkers}
             showAirspaces={showAirspaces}
             showCandidateWatchingSpots={showCandidateWatchingSpots}
+            baseLayer={mapSettings?.baseLayer}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}

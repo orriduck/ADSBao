@@ -33,6 +33,7 @@ export default function ExplorerMapMenu({
     mapSettingsSaveStatus,
     setMapZoom,
     applyMapMode,
+    setMapBaseLayer,
     toggleSidebar,
     toggleMapLabels,
     toggleRunwayBeams,
@@ -72,6 +73,7 @@ export default function ExplorerMapMenu({
         onToggleAirspaces={toggleAirspaces}
         onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
         onSelectMapMode={applyMapMode}
+        onSelectBaseLayer={setMapBaseLayer}
         onToggleUserLocation={onToggleUserLocation}
         onToggleUserLocationAudio={onToggleUserLocationAudio}
         onToggleSidebar={toggleSidebar}

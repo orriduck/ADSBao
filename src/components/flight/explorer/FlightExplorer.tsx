@@ -98,6 +98,7 @@ function FlightExplorerContent({ callsign }) {
     showMapLabels,
     showNavaidMarkers,
     showAirspaces,
+    mapSettings,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -809,6 +810,7 @@ function FlightExplorerContent({ callsign }) {
             showRunwayBeams={false}
             showNavaidMarkers={showNavaidMarkers}
             showAirspaces={showAirspaces}
+            baseLayer={mapSettings?.baseLayer}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}
             altitudeLevel={altitudeLevel}

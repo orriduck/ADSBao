@@ -447,6 +447,7 @@ const zhCN = {
     title: "地图设置",
     description: "选择地图模式,再微调这个机场地图显示的图层。",
     modeSection: "模式",
+    baseMapSection: "底图",
     layersSection: "显示",
     guestPrompt: "未登录时,地图设置会保存在这台设备。",
     deviceScope: "{device}设置",
@@ -468,6 +469,14 @@ const zhCN = {
       radio: "显示导航台和标签,适合配合无线电收听。",
       controller: "显示空域、导航台和航路语境。",
       custom: "基于某个预设叠加你的手动调整。",
+    },
+    baseLayers: {
+      standard: "标准地图",
+      terrain: "地形地貌",
+    },
+    baseLayerDescriptions: {
+      standard: "干净的街道底图,无地形渲染。",
+      terrain: "在底图下方叠加山体阴影和地势起伏。",
     },
   },
   watcherMode: {
