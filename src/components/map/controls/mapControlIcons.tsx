@@ -9,9 +9,11 @@ import {
   Layers,
   ListFilter,
   LocateFixed,
+  Map as MapIcon,
   MapPinned,
   Monitor,
   Moon,
+  Mountain,
   Plane,
   PlaneLanding,
   Radar,
@@ -43,12 +45,16 @@ export function MapControlIcon({ iconKey }) {
       return <ListFilter />;
     case "locateFixed":
       return <LocateFixed />;
+    case "map":
+      return <MapIcon />;
     case "mapPinned":
       return <MapPinned />;
     case "monitor":
       return <Monitor />;
     case "moon":
       return <Moon />;
+    case "mountain":
+      return <Mountain />;
     case "plane":
       return <Plane />;
     case "planeLanding":

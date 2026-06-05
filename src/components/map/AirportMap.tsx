@@ -74,6 +74,7 @@ export default function AirportMap({
   showNavaidMarkers = false,
   showAirspaces = true,
   showCandidateWatchingSpots = false,
+  baseLayer = "terrain",
   trafficFilter = "all",
   typeFilter = "all",
   altitudeLevel = "all",
@@ -424,6 +425,7 @@ export default function AirportMap({
             theme={currentTheme}
             locale={locale}
             showLabels={showMapLabels}
+            baseLayer={baseLayer}
             selectionActive={selectionActive}
           />
           <AirspaceLayer

@@ -452,6 +452,7 @@ const en = {
     title: "Map settings",
     description: "Choose a map mode, then fine-tune the layers shown on this airport map.",
     modeSection: "Modes",
+    baseMapSection: "Base map",
     layersSection: "Display",
     guestPrompt: "Map settings are kept on this device.",
     deviceScope: "{device} settings",
@@ -473,6 +474,14 @@ const en = {
       radio: "Navigation aids and labels for listening context.",
       controller: "Airspace, navaids, and route context.",
       custom: "Your manual overrides on top of a preset.",
+    },
+    baseLayers: {
+      standard: "Standard",
+      terrain: "Terrain",
+    },
+    baseLayerDescriptions: {
+      standard: "Clean street map with no terrain shading.",
+      terrain: "Hillshade and topographic relief under the base map.",
     },
   },
   watcherMode: {

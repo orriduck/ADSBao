@@ -86,10 +86,59 @@ export const CUSTOM_MAP_MODE_OPTION = Object.freeze({
 
 export const DISABLED_MAP_MODE_IDS = Object.freeze([]);
 
+// Base map vector style the map renders underneath every other layer.
+// `terrain` keeps the current readable-topo treatment (hillshade +
+// muted palette) so existing users see no change unless they switch.
+// A `transport`-themed style was considered but every free option
+// either drops multilingual label support (raster tiles like
+// ÖPNVKarte bake local-language labels) or requires an API key
+// (Thunderforest, MapTiler) — left for a follow-up once we decide
+// which provider to take on.
+const MAP_BASE_LAYER_IDS = Object.freeze({
+  STANDARD: "standard",
+  TERRAIN: "terrain",
+});
+
+export const DEFAULT_MAP_BASE_LAYER = MAP_BASE_LAYER_IDS.TERRAIN;
+
+const MAP_BASE_LAYER_OPTIONS = [
+  {
+    id: MAP_BASE_LAYER_IDS.STANDARD,
+    labelKey: "mapSettings.baseLayers.standard",
+    descriptionKey: "mapSettings.baseLayerDescriptions.standard",
+    iconKey: "map",
+  },
+  {
+    id: MAP_BASE_LAYER_IDS.TERRAIN,
+    labelKey: "mapSettings.baseLayers.terrain",
+    descriptionKey: "mapSettings.baseLayerDescriptions.terrain",
+    iconKey: "mountain",
+  },
+] as const;
+
+const MAP_BASE_LAYER_ID_SET: Set<string> = new Set(
+  Object.values(MAP_BASE_LAYER_IDS),
+);
+
+export function isKnownMapBaseLayer(value: unknown) {
+  return typeof value === "string" && MAP_BASE_LAYER_ID_SET.has(value);
+}
+
+export function normalizeMapBaseLayer(value: unknown) {
+  return isKnownMapBaseLayer(value)
+    ? (value as string)
+    : DEFAULT_MAP_BASE_LAYER;
+}
+
+export function getMapBaseLayerOptions() {
+  return MAP_BASE_LAYER_OPTIONS;
+}
+
 export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
   selectedMode: MAP_MODE_IDS.CONTROLLER,
   baseMode: MAP_MODE_IDS.CONTROLLER,
   layerOverrides: Object.freeze({}),
+  baseLayer: DEFAULT_MAP_BASE_LAYER,
   audioEnabled: false,
   hasSelectedMode: false,
   updatedAt: "",
@@ -196,6 +245,7 @@ export function normalizeMapSettings(
     selectedMode,
     baseMode,
     layerOverrides: normalizeMapLayerOverrides(settings?.layerOverrides),
+    baseLayer: normalizeMapBaseLayer(settings?.baseLayer ?? settings?.base_layer),
     audioEnabled: settings?.audioEnabled === true,
     hasSelectedMode:
       settings?.hasSelectedMode === true || settings?.has_selected_mode === true,
@@ -263,6 +313,13 @@ export function mergeMapSettings({
     selectedMode,
     baseMode,
     layerOverrides: nextLayerOverrides,
+    baseLayer:
+      hasOwnSetting(updateRecord, "baseLayer") ||
+      hasOwnSetting(updateRecord, "base_layer")
+        ? normalizeMapBaseLayer(
+            updateRecord.baseLayer ?? updateRecord.base_layer,
+          )
+        : normalized.baseLayer,
     audioEnabled: hasOwnSetting(updateRecord, "audioEnabled")
       ? updateRecord.audioEnabled === true
       : normalized.audioEnabled,
@@ -280,6 +337,20 @@ export function mergeMapSettings({
   });
 }
 
+// Build a settings record with a swapped base layer, preserving the
+// rest of the user's selections. Used by the Base map switcher in the
+// settings sheet.
+export function buildMapSettingsWithBaseLayer({
+  settings = DEFAULT_MAP_SETTINGS,
+  baseLayer = DEFAULT_MAP_BASE_LAYER,
+  now = new Date().toISOString(),
+}: MapSettingsOptions = {}) {
+  return mergeMapSettings({
+    settings,
+    updates: { baseLayer: normalizeMapBaseLayer(baseLayer), updatedAt: now },
+  });
+}
+
 function resolveMapSettingsLayers(
   settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS,
 ) {
@@ -294,6 +365,7 @@ function resolveMapSettingsLayers(
 export function buildPresetMapSettings({
   modeId,
   audioEnabled = false,
+  baseLayer = DEFAULT_MAP_BASE_LAYER,
   now = new Date().toISOString(),
 }: MapSettingsOptions = {}) {
   if (!isSelectableMapModeId(modeId)) {
@@ -304,6 +376,7 @@ export function buildPresetMapSettings({
     selectedMode: preset.id,
     baseMode: preset.id,
     layerOverrides: {},
+    baseLayer: normalizeMapBaseLayer(baseLayer),
     audioEnabled: audioEnabled === true,
     hasSelectedMode: true,
     updatedAt: now,

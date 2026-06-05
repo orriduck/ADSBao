@@ -2,10 +2,12 @@
 
 import { useUser } from "@clerk/nextjs";
 import {
+  DEFAULT_MAP_BASE_LAYER,
   MAP_LAYER_KEYS,
   MAP_MODE_IDS,
   CUSTOM_MAP_MODE_OPTION,
   DISABLED_MAP_MODE_IDS,
+  getMapBaseLayerOptions,
   getSelectableMapModeOptions,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
@@ -85,6 +87,7 @@ export default function MapSettingsSheet({
   userLocationPending = false,
   userLocationNotice = "",
   onSelectMapMode,
+  onSelectBaseLayer,
   onToggleMapLabels,
   onToggleBeams,
   onToggleNavaidMarkers,
@@ -101,6 +104,8 @@ export default function MapSettingsSheet({
     ...getSelectableMapModeOptions(),
     CUSTOM_MAP_MODE_OPTION,
   ];
+  const baseLayerOptions = getMapBaseLayerOptions();
+  const activeBaseLayerId = settings.baseLayer || DEFAULT_MAP_BASE_LAYER;
   const state = {
     showMapLabels,
     showBeams,
@@ -185,6 +190,30 @@ export default function MapSettingsSheet({
                       title={t(mode.labelKey)}
                       description={t(mode.descriptionKey)}
                       onClick={() => onSelectMapMode?.(mode.id)}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="mt-6" aria-labelledby={`${id}-base-map`}>
+              <h3
+                id={`${id}-base-map`}
+                className="mb-3 text-xs font-semibold uppercase text-atc-muted"
+              >
+                {t("mapSettings.baseMapSection")}
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {baseLayerOptions.map((option) => {
+                  const active = activeBaseLayerId === option.id;
+                  return (
+                    <SelectableCard
+                      key={option.id}
+                      active={active}
+                      icon={<MapControlIcon iconKey={option.iconKey} />}
+                      title={t(option.labelKey)}
+                      description={t(option.descriptionKey)}
+                      onClick={() => onSelectBaseLayer?.(option.id)}
                     />
                   );
                 })}

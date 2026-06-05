@@ -18,7 +18,9 @@ import {
   MAP_SETTINGS_DEVICE_TYPES,
   MAP_LAYER_KEYS,
   buildCustomMapSettings,
+  buildMapSettingsWithBaseLayer,
   buildPresetMapSettings,
+  isKnownMapBaseLayer,
   isSelectableMapModeId,
   mapSettingsToExplorerLayers,
   mapSettingsToUserLocationPreferences,
@@ -163,6 +165,20 @@ function airportExplorerUiReducer(state, action) {
         buildPresetMapSettings({
           modeId: action.modeId,
           audioEnabled: state.mapSettings?.audioEnabled,
+          // Carry the user's current base map choice across mode
+          // switches — they picked it deliberately, no need to reset
+          // it just because they cycled the mode preset.
+          baseLayer: state.mapSettings?.baseLayer,
+        }),
+      );
+    case "setMapBaseLayer":
+      if (!isKnownMapBaseLayer(action.baseLayer)) return state;
+      if (state.mapSettings?.baseLayer === action.baseLayer) return state;
+      return applyMapSettingsToUiState(
+        state,
+        buildMapSettingsWithBaseLayer({
+          settings: state.mapSettings,
+          baseLayer: action.baseLayer,
         }),
       );
     case "hydrateMapSettings":
@@ -532,6 +548,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "applyMapMode", modeId });
   }, []);
 
+  const setMapBaseLayer = useCallback((baseLayer) => {
+    dispatch({ type: "setMapBaseLayer", baseLayer });
+  }, []);
+
   const setUserLocationPreferences = useCallback(
     ({ userLocationEnabled, userLocationAudioEnabled = false }) => {
       dispatch({
@@ -650,6 +670,7 @@ export function ExplorerUiProvider({ children }) {
       toggleAirspaces,
       toggleCandidateWatchingSpots,
       applyMapMode,
+      setMapBaseLayer,
       setUserLocationPreferences,
       selectAircraft,
       setSelectedAircraftId,
@@ -703,6 +724,7 @@ export function ExplorerUiProvider({ children }) {
       toggleAirspaces,
       toggleCandidateWatchingSpots,
       applyMapMode,
+      setMapBaseLayer,
       setUserLocationPreferences,
       selectAircraft,
       setSelectedAircraftId,

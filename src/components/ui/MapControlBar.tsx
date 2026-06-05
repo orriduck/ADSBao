@@ -38,6 +38,7 @@ export default function MapControlBar({
   onToggleAirspaces,
   onToggleCandidateWatchingSpots,
   onSelectMapMode,
+  onSelectBaseLayer,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   onToggleSidebar,
@@ -93,6 +94,7 @@ export default function MapControlBar({
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
         onSelectMapMode={onSelectMapMode}
+        onSelectBaseLayer={onSelectBaseLayer}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}

@@ -11,6 +11,7 @@ import {
   buildProxiedMapLibreStyle,
   buildReadableTerrainMapLibreStyle,
   getMapLibreBaseStyleUrl,
+  shouldApplyReadableTerrain,
 } from "@/features/airport/map/mapTileLanguageModel";
 import { isKnownMapTheme } from "@/features/airport/map/airportMapModel";
 
@@ -38,11 +39,15 @@ export async function GET(request, { params }) {
   const baseTheme = isKnownMapTheme(rawTheme) ? rawTheme : "dark";
   const locale = requestUrl.searchParams.get("locale") || "en";
   const showLabels = requestUrl.searchParams.get("labels") !== "0";
+  // Optional `baseLayer` query (standard | terrain | transport) picks
+  // which OFM style to fetch. Unknown / missing → server defaults to
+  // terrain so existing clients keep the previous look.
+  const baseLayer = requestUrl.searchParams.get("baseLayer") || undefined;
 
   let upstreamStyle;
   try {
     upstreamStyle = await fetchJson(
-      getMapLibreBaseStyleUrl(baseTheme),
+      getMapLibreBaseStyleUrl(baseTheme, baseLayer),
       "OpenFreeMap style",
     );
   } catch (error) {
@@ -62,13 +67,17 @@ export async function GET(request, { params }) {
     });
   }
 
-  const style = buildLocalizedMapLibreStyle(
-    buildReadableTerrainMapLibreStyle(
-      buildProxiedMapLibreStyle(upstreamStyle),
-      { theme: baseTheme },
-    ),
-    { locale, showLabels },
-  );
+  // Only the terrain base layer gets the readable-hillshade pass.
+  // Standard / transport pass through clean so the user can actually
+  // see the difference when they switch.
+  const proxiedStyle = buildProxiedMapLibreStyle(upstreamStyle);
+  const styleWithTerrain = shouldApplyReadableTerrain(baseLayer)
+    ? buildReadableTerrainMapLibreStyle(proxiedStyle, { theme: baseTheme })
+    : proxiedStyle;
+  const style = buildLocalizedMapLibreStyle(styleWithTerrain, {
+    locale,
+    showLabels,
+  });
 
   return logProxyRouteResponse({
     request,

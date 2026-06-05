@@ -1,7 +1,24 @@
-const OPENFREEMAP_STYLES = Object.freeze({
-  dark: "https://tiles.openfreemap.org/styles/dark",
-  light: "https://tiles.openfreemap.org/styles/positron",
+// OpenFreeMap publishes positron / bright / liberty for light and a
+// dedicated dark style. We map the user's `baseLayer` setting onto the
+// closest OFM upstream:
+//   standard  → positron (clean light) / dark — no terrain shading
+//   terrain   → positron / dark + readable-hillshade processing
+const OPENFREEMAP_STYLE_TABLE: Record<
+  string,
+  Partial<Record<"light" | "dark", string>>
+> = Object.freeze({
+  standard: {
+    light: "https://tiles.openfreemap.org/styles/positron",
+    dark: "https://tiles.openfreemap.org/styles/dark",
+  },
+  terrain: {
+    light: "https://tiles.openfreemap.org/styles/positron",
+    dark: "https://tiles.openfreemap.org/styles/dark",
+  },
 });
+
+const DEFAULT_BASE_LAYER = "terrain";
+const OPENFREEMAP_FALLBACK_DARK = "https://tiles.openfreemap.org/styles/dark";
 
 const MAP_LABEL_LOCALES = Object.freeze({
   en: "en",
@@ -169,8 +186,21 @@ function normalizeMapLabelLocale(locale: string) {
   return MAP_LABEL_LOCALES[locale] || MAP_LABEL_LOCALES.en;
 }
 
-export function getMapLibreBaseStyleUrl(theme: string) {
-  return OPENFREEMAP_STYLES[theme] || OPENFREEMAP_STYLES.dark;
+export function getMapLibreBaseStyleUrl(theme: string, baseLayer?: string) {
+  const themeKey = theme === "light" ? "light" : "dark";
+  const layerKey = baseLayer && OPENFREEMAP_STYLE_TABLE[baseLayer]
+    ? baseLayer
+    : DEFAULT_BASE_LAYER;
+  return (
+    OPENFREEMAP_STYLE_TABLE[layerKey]?.[themeKey] || OPENFREEMAP_FALLBACK_DARK
+  );
+}
+
+// Whether the proxy should apply the readable-hillshade processing on
+// top of the upstream OFM style. The "terrain" base layer is the only
+// option that wants this; standard/transport stay clean.
+export function shouldApplyReadableTerrain(baseLayer?: string) {
+  return (baseLayer || DEFAULT_BASE_LAYER) === "terrain";
 }
 
 function getMapLibreLabelTextField(locale: string) {
