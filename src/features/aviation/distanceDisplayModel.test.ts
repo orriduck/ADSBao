@@ -8,6 +8,17 @@ import { formatNearbyDistanceDisplay } from "./distanceDisplayModel";
   assert.deepEqual(display, {
     value: 9,
     unit: "NM",
+    text: null,
+  });
+}
+
+{
+  const display = formatNearbyDistanceDisplay(0.4);
+
+  assert.deepEqual(display, {
+    value: null,
+    unit: "NM",
+    text: "<1",
   });
 }
 

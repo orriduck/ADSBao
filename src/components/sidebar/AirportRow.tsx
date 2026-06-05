@@ -64,6 +64,8 @@ export default function AirportRow({
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
         {!distanceDisplay ? (
           <span>—</span>
+        ) : distanceDisplay.text ? (
+          <NumberWithUnit text={distanceDisplay.text} unit={distanceDisplay.unit} />
         ) : (
           <NumberWithUnit value={distanceDisplay.value} unit={distanceDisplay.unit} />
         )}
@@ -85,14 +87,18 @@ export default function AirportRow({
 
 // Mirrors AircraftRow.NumberWithUnit — virtualization bounds the instance
 // count, so NumberFlow's digit-level animation is affordable here too.
-function NumberWithUnit({ value, unit, format }: Record<string, any>) {
+function NumberWithUnit({ value, unit, format, text }: Record<string, any>) {
   return (
     <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
-      <NumberFlow
-        value={value}
-        format={format}
-        className="block min-w-0 text-right"
-      />
+      {text != null ? (
+        <span className="block min-w-0 text-right">{text}</span>
+      ) : (
+        <NumberFlow
+          value={value}
+          format={format}
+          className="block min-w-0 text-right"
+        />
+      )}
       <sub
         className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
         translate="no"

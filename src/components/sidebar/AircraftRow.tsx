@@ -80,6 +80,11 @@ export default function AircraftRow({
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
         {!distanceDisplay ? (
           <span>-</span>
+        ) : distanceDisplay.text ? (
+          <NumberWithUnit
+            text={distanceDisplay.text}
+            unit={distanceDisplay.unit}
+          />
         ) : (
           <NumberWithUnit
             value={distanceDisplay.value}
@@ -184,14 +189,18 @@ function AircraftIdentityCell({
 // replacing the older static-text + EndfieldValueSwap cross-fade. Cost is
 // bounded by virtualization: only the rows in the visible window mount, so
 // the previous ~290-instance worst case becomes ~24 (12 rows × 2 cells).
-function NumberWithUnit({ value, unit, format }: Record<string, any>) {
+function NumberWithUnit({ value, unit, format, text }: Record<string, any>) {
   return (
     <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
-      <NumberFlow
-        value={value}
-        format={format}
-        className="block min-w-0 text-right"
-      />
+      {text != null ? (
+        <span className="block min-w-0 text-right">{text}</span>
+      ) : (
+        <NumberFlow
+          value={value}
+          format={format}
+          className="block min-w-0 text-right"
+        />
+      )}
       <sub
         className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
         translate="no"
