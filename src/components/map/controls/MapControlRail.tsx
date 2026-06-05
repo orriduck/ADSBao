@@ -22,6 +22,7 @@ const RAIL_BUTTON_CLASS = toolbarButtonVariants({ tone: "rail" });
 
 
 export default function MapControlRail({
+  menuPlacement = "bottom",
   currentZoomOption,
   zoomActive = true,
   zoomDisabled = false,
@@ -86,7 +87,7 @@ export default function MapControlRail({
 
       <LanguageSwitch
         className={RAIL_BUTTON_CLASS}
-        menuPlacement="bottom"
+        menuPlacement={menuPlacement}
         menuAlign="center"
       />
 
@@ -97,7 +98,7 @@ export default function MapControlRail({
         title={themeTitle}
         onClick={onCycleTheme}
         onSelectTheme={onSelectTheme}
-        menuPlacement="bottom"
+        menuPlacement={menuPlacement}
         menuAlign="center"
       />
 

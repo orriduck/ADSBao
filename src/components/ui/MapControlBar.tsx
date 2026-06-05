@@ -14,6 +14,7 @@ import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay";
 const MAP_SETTINGS_SHEET_ID = "map-settings-sheet";
 
 export default function MapControlBar({
+  menuPlacement = "bottom",
   activeZoom = ZOOM_AIRPORT,
   zoomActive = true,
   zoomDisabled = false,
@@ -100,6 +101,7 @@ export default function MapControlBar({
       />
 
       <MapControlRail
+        menuPlacement={menuPlacement}
         currentZoomOption={currentZoomOption}
         zoomActive={zoomActive}
         zoomDisabled={zoomDisabled}

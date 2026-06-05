@@ -230,6 +230,11 @@ const en = {
     arrivals: "Arrivals",
     atc: "ATC",
     spotting: "Spotting",
+    metricUnits: {
+      flights: "flights",
+      frequency: "freq",
+      spots: "spots",
+    },
   },
   metrics: {
     speed: "Speed",

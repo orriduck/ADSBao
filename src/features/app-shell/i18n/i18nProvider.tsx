@@ -87,7 +87,7 @@ export function I18nProvider({
   );
 
   return (
-    <NextIntlClientProvider key={locale} locale={locale} messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages}>
       <I18nRuntimeContext.Provider value={runtime}>
         {children}
       </I18nRuntimeContext.Provider>

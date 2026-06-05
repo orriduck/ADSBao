@@ -225,6 +225,11 @@ const zhCN = {
     arrivals: "到达",
     atc: "ATC",
     spotting: "拍机点",
+    metricUnits: {
+      flights: "架次",
+      frequency: "频率",
+      spots: "位置",
+    },
   },
   metrics: {
     speed: "速度",
