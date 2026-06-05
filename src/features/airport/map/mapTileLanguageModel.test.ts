@@ -206,7 +206,7 @@ assert.equal(
   assert.equal(wood.paint["fill-color"], "#43523d");
   assert.equal(wood.paint["fill-opacity"], 0.58);
   assert.equal(wood.paint["fill-pattern"], undefined);
-  assert.equal(road.paint["line-color"], "#565a55");
+  assert.equal(road.paint["line-color"], "#646a61");
 }
 
 {

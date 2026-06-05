@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  resolveTrackedAircraftSelectionSync,
   resolveFlightTrackingDisplayContext,
 } from "./flightTrackingDisplayModel";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../../../config/aviation";
@@ -86,6 +87,39 @@ import {
     maxZoom: 8,
   });
   assert.equal(context.autoFitSuspendsFollow, false);
+}
+
+{
+  const nextSelection = resolveTrackedAircraftSelectionSync({
+    focalKey: "abc123",
+    previousFocalKey: "old123",
+    focalCallsignKey: "UAL123",
+    selectedAircraftId: "",
+  });
+
+  assert.equal(nextSelection, null);
+}
+
+{
+  const nextSelection = resolveTrackedAircraftSelectionSync({
+    focalKey: "abc123",
+    previousFocalKey: "old123",
+    focalCallsignKey: "UAL123",
+    selectedAircraftId: "old123",
+  });
+
+  assert.equal(nextSelection, "abc123");
+}
+
+{
+  const nextSelection = resolveTrackedAircraftSelectionSync({
+    focalKey: "abc123",
+    previousFocalKey: "old123",
+    focalCallsignKey: "UAL123",
+    selectedAircraftId: "nearby456",
+  });
+
+  assert.equal(nextSelection, null);
 }
 
 console.log("flightTrackingDisplayModel.test.ts ok");
