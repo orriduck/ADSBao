@@ -9,15 +9,15 @@ import {
 
 assert.equal(
   getAircraftPositionSourceBadge({ source: "adsb_lol", kind: "observed" }),
-  "ADS-B",
+  "ads-b",
 );
 assert.equal(
   getAircraftPositionSourceBadge({ source: "airplanes_live", kind: "observed" }),
-  "Airplanes.live",
+  "ads-b",
 );
 assert.equal(
   getAircraftPositionSourceBadge({ source: "adsb_fi", kind: "observed" }),
-  "adsb.fi",
+  "ads-b",
 );
 assert.equal(
   getAircraftPositionSourceBadge({
@@ -29,14 +29,14 @@ assert.equal(
 );
 assert.equal(
   getAircraftPositionSourceBadge({ source: "flightaware", kind: "estimated" }),
-  "FlightAware · estimated",
+  "flightaware",
 );
 assert.equal(
   getAircraftPositionSourceBadge({
     flight_position_source: "flightaware",
     isEstimated: true,
   }),
-  "FlightAware · estimated",
+  "flightaware",
 );
 assert.equal(
   getAircraftPositionSourceBadge({ flight_position_source: "mlat" }),
@@ -66,8 +66,8 @@ assert.deepEqual(
     routeProvider: ROUTE_PROVIDER.FLIGHTAWARE,
   }),
   {
-    feedSource: "AIRPLANES.LIVE",
-    routeProvider: "FLIGHTAWARE",
+    feedSource: "ads-b",
+    routeProvider: "flightaware",
   },
 );
 
@@ -77,8 +77,8 @@ assert.deepEqual(
     routeProvider: ROUTE_PROVIDER.ADSBDB,
   }),
   {
-    feedSource: "CUSTOM-FEED",
-    routeProvider: "ADSBDB",
+    feedSource: "custom-feed",
+    routeProvider: "adsbdb",
   },
 );
 

@@ -129,10 +129,11 @@ export default function AirspaceLayer({
       onSelectRef.current?.(id);
     };
     const usePointerEvents = typeof window.PointerEvent !== "undefined";
+    const nativeAirspacePointerOptions = { passive: false, capture: true };
     paneElement?.addEventListener(
       usePointerEvents ? "pointerup" : "touchend",
       handleNativeAirspacePointer as EventListener,
-      { passive: false },
+      nativeAirspacePointerOptions,
     );
     const polygonLayer = L.geoJSON(features as any, {
       interactive: Boolean(onSelectRef.current),
@@ -174,6 +175,7 @@ export default function AirspaceLayer({
       paneElement?.removeEventListener(
         usePointerEvents ? "pointerup" : "touchend",
         handleNativeAirspacePointer as EventListener,
+        nativeAirspacePointerOptions,
       );
       return undefined;
     }
@@ -239,6 +241,7 @@ export default function AirspaceLayer({
       paneElement?.removeEventListener(
         usePointerEvents ? "pointerup" : "touchend",
         handleNativeAirspacePointer as EventListener,
+        nativeAirspacePointerOptions,
       );
     };
   }, [map, features, selectableAirspaceIdSet, showBoundaryLabels]);

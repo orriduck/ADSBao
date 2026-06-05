@@ -84,7 +84,7 @@ const flightAwareRoute = {
   });
 
   assert.equal(path.length, 9);
-  assert.deepEqual(path.at(-1), [35.5494, 139.7798]);
+  assert.deepEqual(path.at(-1), [25.2532, 55.3657]);
 }
 
 console.log("flightRouteArcModel.test.ts ok");

@@ -322,8 +322,8 @@ export default function AirportMap({
     });
   }, [airspaces, contextTileOverlays, contextTiles.airspaces]);
   const selectableAirspaceIds = useMemo(
-    () => airspaces.map((item) => String(item?.id || "")).filter(Boolean),
-    [airspaces],
+    () => renderedAirspaces.map((item) => String(item?.id || "")).filter(Boolean),
+    [renderedAirspaces],
   );
   const renderedNavaids = useMemo(() => {
     if (!contextTileOverlays) return nearbyNavaids;
