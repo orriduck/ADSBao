@@ -1,5 +1,8 @@
 "use client";
 
+import { RadioTower, TowerControl } from "lucide-react";
+import { renderToStaticMarkup } from "react-dom/server";
+
 // Shared airport-pin badge — a code pill (IATA / ICAO) plus an
 // optional list of detail chips (NEAR n, RWY n, APP n, distance NM…).
 //
@@ -27,6 +30,25 @@ const detailClass = (variant) =>
   variant === "near"
     ? "airport-overlay-label__detail airport-overlay-label__detail--near"
     : "airport-overlay-label__detail";
+
+function BadgeIcon({ type = "airport" }) {
+  const Icon = type === "navaid" ? RadioTower : TowerControl;
+  return (
+    <span className="airport-overlay-label__code-icon" aria-hidden="true">
+      <Icon
+        aria-hidden="true"
+        className="airport-overlay-label__code-icon-svg"
+        focusable="false"
+        size={9}
+        strokeWidth={1.8}
+      />
+    </span>
+  );
+}
+
+function renderBadgeIconHtml(type = "airport") {
+  return renderToStaticMarkup(<BadgeIcon type={type} />);
+}
 
 function renderDetailHtml(detail) {
   const cls = detailClass(detail.variant);
@@ -59,15 +81,26 @@ function renderDetailHtml(detail) {
 
 export function airportLabelBadgeHtml({
   code = "",
+  codeSuffix = "",
   details = [],
   className = "",
+  icon = "airport",
+  badgeType = "airport",
+  collision = true,
 }) {
   const wrap = ["airport-overlay-label", "notranslate", className]
     .filter(Boolean)
     .join(" ");
-  const codePill = `<span class="airport-overlay-label__code endf-tab endf-tab--code"><span>${escapeHtml(code)}</span></span>`;
+  const iconHtml = icon ? renderBadgeIconHtml(icon) : "";
+  const suffixHtml = codeSuffix
+    ? `<span class="airport-overlay-label__code-suffix">${escapeHtml(codeSuffix)}</span>`
+    : "";
+  const codePill = `<span class="airport-overlay-label__code endf-tab endf-tab--code">${iconHtml}<span>${escapeHtml(code)}</span>${suffixHtml}</span>`;
   const detailsHtml = details.map(renderDetailHtml).join("");
-  return `<div class="${wrap}" translate="no">${codePill}${detailsHtml}</div>`;
+  const collisionAttrs = collision
+    ? ` data-map-badge="true" data-map-badge-type="${escapeHtml(badgeType)}"`
+    : "";
+  return `<div class="${wrap}" translate="no"${collisionAttrs}>${codePill}${detailsHtml}</div>`;
 }
 
 function DetailChip({ detail }) {
@@ -124,13 +157,26 @@ function DetailChip({ detail }) {
   return <span className={cls}>{detail.value ?? detail.label ?? ""}</span>;
 }
 
-export function AirportLabelBadge({ code = "", details = [], className = "" }) {
+export function AirportLabelBadge({
+  code = "",
+  details = [],
+  className = "",
+  icon = "airport",
+  badgeType = "airport",
+  collision = true,
+}) {
   const wrap = ["airport-overlay-label", "notranslate", className]
     .filter(Boolean)
     .join(" ");
   return (
-    <div className={wrap} translate="no">
+    <div
+      className={wrap}
+      data-map-badge={collision ? "true" : undefined}
+      data-map-badge-type={collision ? badgeType : undefined}
+      translate="no"
+    >
       <span className="airport-overlay-label__code endf-tab endf-tab--code">
+        {icon ? <BadgeIcon type={icon} /> : null}
         <span>{code}</span>
       </span>
       {details.map((detail, idx) => (

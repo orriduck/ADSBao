@@ -10,6 +10,7 @@ import AirspaceLayer from "./AirspaceLayer";
 import NearbyAirportLayer from "./NearbyAirportLayer";
 import NavaidLabelLayer from "./NavaidLabelLayer";
 import NavaidCountLayer from "./NavaidCountLayer";
+import MapBadgeCollisionLayer from "./MapBadgeCollisionLayer";
 import CandidateWatchingSpotsLayer from "./CandidateWatchingSpotsLayer";
 import AircraftPosition from "./AircraftPosition";
 import UserLocationMarker from "./UserLocationMarker";
@@ -210,7 +211,8 @@ export default function AirportMap({
   // container click handler, so this listener only fires on bare tiles.
   useEffect(() => {
     if (!mapInstance) return undefined;
-    const handleMapClick = () => {
+    const handleMapClick = (event: any) => {
+      if (mapClickTargetsAirspace(event)) return;
       if (selectedAircraftId && typeof onSelectAircraft === "function") {
         onSelectAircraft("");
       }
@@ -319,6 +321,10 @@ export default function AirportMap({
       return true;
     });
   }, [airspaces, contextTileOverlays, contextTiles.airspaces]);
+  const selectableAirspaceIds = useMemo(
+    () => airspaces.map((item) => String(item?.id || "")).filter(Boolean),
+    [airspaces],
+  );
   const renderedNavaids = useMemo(() => {
     if (!contextTileOverlays) return nearbyNavaids;
     const seen = new Set();
@@ -419,6 +425,7 @@ export default function AirportMap({
           />
           <AirspaceLayer
             airspaces={renderedAirspaces}
+            selectableAirspaceIds={selectableAirspaceIds}
             visible={showAirspaces}
             showBoundaryLabels={false}
             selectedAirspaceId={selectedAirspaceId}
@@ -453,6 +460,18 @@ export default function AirportMap({
             visible={showNavaidMarkers && !useNavaidCountTiles}
             selectedNavaidKey={selectedNavaidKey}
             onSelectNavaid={onSelectNavaid}
+          />
+          <MapBadgeCollisionLayer
+            refreshKey={[
+              selectedAirportIcao,
+              selectedNavaidKey,
+              selectedAirspaceId,
+              showNavaidMarkers ? "navaid-on" : "navaid-off",
+              nearbyAirportLayerDisplay.showAirportBadges ? "airport-on" : "airport-off",
+              renderedNavaids.length,
+              nearbyAirportLayerDisplay.airports.length,
+              leafletZoom,
+            ].join("|")}
           />
           <NavaidCountLayer
             counts={contextTiles.navaidCounts}
@@ -523,4 +542,18 @@ export default function AirportMap({
       />
     </div>
   );
+}
+
+function mapClickTargetsAirspace(event: any) {
+  const originalEvent = event?.originalEvent as MouseEvent | undefined;
+  const target = originalEvent?.target;
+  if (target instanceof Element && target.closest("[data-airspace-feature-id]")) {
+    return true;
+  }
+  const x = Number(originalEvent?.clientX);
+  const y = Number(originalEvent?.clientY);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+  return document
+    .elementsFromPoint(x, y)
+    .some((element) => element.getAttribute?.("data-airspace-feature-id"));
 }
