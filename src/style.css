@@ -2419,7 +2419,7 @@ body {
     );
     --atc-toolbar-surface: color-mix(
         in oklab,
-        var(--atc-card) 88%,
+        var(--atc-card) 96%,
         transparent
     );
     --atc-control-hover-bg: color-mix(

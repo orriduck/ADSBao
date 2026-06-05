@@ -19,7 +19,13 @@ export async function resolveMapSettingsForUser({
     const row = await repository.readSettingsByEmail(email, { device });
     return row?.settings ? normalizeMapSettings(row.settings) : null;
   } catch (error: any) {
-    console.warn(`[map-settings] Supabase read failed for ${email}:`, error.message);
+    // Promoted from warn → error. A `null` here makes the UI fall back
+    // to defaults, which looks identical to "user has never saved
+    // anything" — schema drift would stay invisible until the user
+    // tries to PUT and sees a 500. Surface it loudly here so the
+    // mismatch is caught immediately, while still letting the UI render
+    // with the default settings.
+    console.error(`[map-settings] Supabase read failed for ${email}:`, error.message);
     return null;
   }
 }
