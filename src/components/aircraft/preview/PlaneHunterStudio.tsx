@@ -170,6 +170,7 @@ export default function PlaneHunterStudio({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState("");
+  const [previewImage, setPreviewImage] = useState("");
   const [template, setTemplate] = useState<PlaneHunterTemplate>("hunter");
   const [cameraError, setCameraError] = useState("");
   const [status, setStatus] = useState("");
@@ -260,6 +261,28 @@ export default function PlaneHunterStudio({
     drawTemplate(context, template, labels, canvas.width, canvas.height);
     return canvas;
   }, [capturedImage, labels, template]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!capturedImage) {
+      setPreviewImage("");
+      return undefined;
+    }
+
+    renderFinalCanvas()
+      .then((canvas) => {
+        if (cancelled) return;
+        setPreviewImage(canvas?.toDataURL("image/png") || capturedImage);
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewImage(capturedImage);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [capturedImage, renderFinalCanvas]);
 
   const saveImage = useCallback(async () => {
     try {
@@ -355,7 +378,7 @@ export default function PlaneHunterStudio({
               </>
             ) : (
               <img
-                src={capturedImage}
+                src={previewImage || capturedImage}
                 alt=""
                 className="h-full w-full object-contain"
                 draggable="false"
