@@ -9,6 +9,7 @@ import {
 import {
   buildLocalizedMapLibreStyle,
   buildProxiedMapLibreStyle,
+  buildReadableTerrainMapLibreStyle,
   getMapLibreBaseStyleUrl,
 } from "@/features/airport/map/mapTileLanguageModel";
 import { isKnownMapTheme } from "@/features/airport/map/airportMapModel";
@@ -62,7 +63,10 @@ export async function GET(request, { params }) {
   }
 
   const style = buildLocalizedMapLibreStyle(
-    buildProxiedMapLibreStyle(upstreamStyle),
+    buildReadableTerrainMapLibreStyle(
+      buildProxiedMapLibreStyle(upstreamStyle),
+      { theme: baseTheme },
+    ),
     { locale, showLabels },
   );
 

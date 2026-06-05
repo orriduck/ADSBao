@@ -4,7 +4,11 @@ import {
   ChevronRight,
   LocateFixed,
 } from "lucide-react";
-import { airportDisplayName, airportSubtitle } from "@/utils/airport";
+import {
+  airportDisplayCode,
+  airportDisplayName,
+  airportSubtitle,
+} from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useAirportDiscoveryNearby } from "@/features/airport/search/useAirportDiscoveryNearby";
 import {
@@ -174,7 +178,7 @@ function NearbyPromptRow({ status, errorMessage, onRequest }) {
 
 function AirportDiscoveryAirportRow({ airport, onOpen }) {
   const { locale, t } = useI18n();
-  const code = airport.iata || airport.icao || airport.code;
+  const code = airportDisplayCode(airport);
   const label = airport.discoveryLabelKey ? t(airport.discoveryLabelKey) : "";
 
   return (

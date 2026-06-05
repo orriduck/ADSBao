@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { airportDisplayName, airportSubtitle } from "@/utils/airport";
+import { airportDisplayCode, airportDisplayName, airportSubtitle } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 export default function AirportRow({
@@ -23,7 +23,7 @@ export default function AirportRow({
         onClick={() => onOpen(airport)}
       >
         <span className="endf-tab endf-tab--code">
-          <span>{airport.iata || airport.icao || airport.code}</span>
+          <span>{airportDisplayCode(airport)}</span>
         </span>
         <span className="min-w-0">
           <strong className="block truncate text-[13px] font-semibold text-atc-text">

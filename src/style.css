@@ -536,7 +536,6 @@
     --aviation-trace-point: #1a1a18;
     --aviation-trace-stale-line: color-mix(in oklab, var(--aviation-trace-line) 54%, transparent);
     --aviation-route-hint-line: var(--aviation-trace-line);
-    --aviation-aircraft-shadow: rgba(0,0,0,0.95);
     --aviation-runway-annotation-line: #1a1a18;
     --aviation-runway-approach-line: rgba(26,26,24,0.62);
     --aviation-runway-approach-beam: #2f2f2b;
@@ -803,7 +802,6 @@
     --aviation-trace-point: var(--primary-bright);
     --aviation-trace-stale-line: color-mix(in oklab, var(--aviation-trace-line) 54%, transparent);
     --aviation-route-hint-line: var(--aviation-trace-line);
-    --aviation-aircraft-shadow: rgba(0,0,0,0.95);
     --aviation-runway-annotation-line: #d8bd83;
     --aviation-runway-approach-line: rgba(216,189,131,0.78);
     --aviation-runway-approach-beam: #d8bd83;
@@ -1066,6 +1064,21 @@ body {
     opacity: 0.78;
     stroke-dasharray: 0.5 7;
     stroke-width: 10px;
+}
+
+.airspace-interior-hatch {
+    opacity: 0.64;
+    pointer-events: none;
+}
+
+.airspace-interior-hatch__line {
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    stroke-width: 2.2px;
+}
+
+.airspace-interior-hatch--focused .airspace-interior-hatch__line {
+    stroke-width: 2.6px;
 }
 
 .airspace-boundary-label--focused {
@@ -1540,9 +1553,7 @@ body {
 
 .adsb-loading-grid::before,
 .adsb-loading-grid::after,
-.adsb-loading-grid__matrix,
-.adsb-loading-grid__matrix::after,
-.adsb-loading-grid__scan {
+.adsb-loading-grid__matrix {
     position: absolute;
 }
 
@@ -1582,90 +1593,8 @@ body {
     opacity: 0.86;
 }
 
-.adsb-loading-grid__matrix::after {
-    background-image:
-        radial-gradient(
-            circle,
-            color-mix(in oklab, var(--endf-yellow) 78%, transparent) 0 1.6px,
-            transparent 1.95px
-        ),
-        radial-gradient(
-            circle,
-            color-mix(in oklab, var(--atc-accent) 48%, transparent) 0 1.35px,
-            transparent 1.85px
-        );
-    background-position:
-        0 0,
-        9px 9px;
-    background-size:
-        18px 18px,
-        18px 18px;
-    content: "";
-    inset: 0;
-    opacity: 0.54;
-    -webkit-mask-image: linear-gradient(
-        90deg,
-        transparent,
-        oklch(1% 0.01 100) 42%,
-        transparent 76%
-    );
-    mask-image: linear-gradient(
-        90deg,
-        transparent,
-        oklch(1% 0.01 100) 42%,
-        transparent 76%
-    );
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: min(18vw, 220px) 100%;
-    mask-size: min(18vw, 220px) 100%;
-    animation: adsb-grid-highlight 2.45s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-}
-
-.adsb-loading-grid__scan {
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            color-mix(in oklab, var(--endf-yellow) 18%, transparent) 38%,
-            color-mix(in oklab, var(--endf-yellow) 70%, transparent) 48%,
-            color-mix(in oklab, var(--atc-accent) 24%, transparent) 58%,
-            transparent 100%
-        );
-    box-shadow: 0 0 24px color-mix(in oklab, var(--endf-yellow) 12%, transparent);
-    inset: 0 auto 0 0;
-    opacity: 0.42;
-    transform: translateX(-120%);
-    width: min(16vw, 180px);
-    animation: adsb-grid-scan 2.45s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-}
-
 .adsb-loading-overlay.is-exiting .adsb-loading-grid {
     animation: adsb-loading-grid-fade-out 1.1s ease forwards;
-}
-
-@keyframes adsb-grid-scan {
-    0%,
-    10% {
-        transform: translateX(-120%);
-    }
-    74%,
-    100% {
-        transform: translateX(calc(100vw + 120%));
-    }
-}
-
-@keyframes adsb-grid-highlight {
-    0%,
-    10% {
-        -webkit-mask-position: calc(-1 * min(18vw, 220px)) 0;
-        mask-position: calc(-1 * min(18vw, 220px)) 0;
-    }
-    74%,
-    100% {
-        -webkit-mask-position: calc(100% + min(18vw, 220px)) 0;
-        mask-position: calc(100% + min(18vw, 220px)) 0;
-    }
 }
 
 @keyframes adsb-loading-fade-out {
@@ -2968,17 +2897,11 @@ body {
     }
 }
 
-/* Marker stack (shadow only rendered for selected aircraft):
+/* Marker stack:
    1. .aircraft-pointer-glyph (wrapper) — heading rotation + wake-class scale.
-      Doesn't move out of plane, so the inner shadow can sit "on the ground".
-   2. .aircraft-shadow — the projected ground silhouette. Same SVG mask as
-      the real one but black, scaled-down, blurred. Stays planted while the
-      aircraft above it tilts and lifts — that's where the "altitude" cue
-      comes from, not from a filter halo.
-   3. .aircraft-silhouette — the real aircraft, carrying perspective + pitch
-      + bank + a translateY "lift". Sits above the shadow in DOM order.
-   Each layer transitions transform/opacity/filter so successive ADS-B
-   samples settle visually instead of snapping. */
+   2. .aircraft-silhouette — the aircraft shape, carrying perspective + pitch
+      + bank + a translateY lift. Transitions keep successive ADS-B samples
+      visually settled without drawing a ground projection. */
 .aircraft-pointer-glyph {
     position: relative;
     overflow: visible;
@@ -2988,7 +2911,6 @@ body {
     transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-.aircraft-shadow,
 .aircraft-silhouette {
     transition:
         transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1),
@@ -2999,7 +2921,6 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
     .aircraft-pointer-glyph,
-    .aircraft-shadow,
     .aircraft-silhouette {
         transition: none;
     }
@@ -3141,6 +3062,35 @@ body {
     left: 8px;
     position: absolute;
     top: 6px;
+}
+
+.nearby-airport-marker-badge {
+    align-items: center;
+    background: color-mix(in oklab, var(--atc-bg) 88%, transparent);
+    border-radius: 999px;
+    box-shadow:
+        0 1px 3px color-mix(in oklab, var(--atc-bg) 42%, transparent),
+        inset 0 1px 0 color-mix(in oklab, var(--atc-card) 58%, transparent);
+    color: var(--atc-text);
+    display: inline-flex;
+    font-family: var(--font-display);
+    gap: 4px;
+    line-height: 1;
+    padding: 2px 5px;
+}
+
+.nearby-airport-marker-badge__code {
+    font-size: 7px;
+    font-weight: 850;
+    letter-spacing: 0.02em;
+}
+
+.nearby-airport-marker-badge__meta {
+    color: var(--atc-muted);
+    font-family: var(--font-sans);
+    font-size: 6px;
+    font-weight: 800;
+    letter-spacing: 0;
 }
 
 .aircraft-table-route-cycle {
@@ -3859,14 +3809,22 @@ body {
     gap: 3px;
 }
 
+.airport-overlay-label__code.endf-tab--code {
+    font-size: 7px;
+    letter-spacing: 0.03em;
+    min-width: 32px;
+    padding: 3px 5px;
+}
+
 .airport-overlay-label__detail {
     background: color-mix(in oklab, var(--atc-bg) 72%, transparent);
     color: var(--atc-text);
     font-family: var(--font-display);
-    font-size: 8.5px;
+    font-size: 7px;
     font-weight: 700;
-    letter-spacing: 0.08em;
-    padding: 1px 5px;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    padding: 1px 4px;
     text-transform: uppercase;
 }
 
@@ -3881,12 +3839,12 @@ body {
     color: var(--endf-ink);
     display: inline-flex;
     font-family: var(--font-sans);
-    font-size: 7.5px;
-    gap: 3px;
+    font-size: 6.5px;
+    gap: 2px;
     letter-spacing: 0;
     line-height: 1;
-    min-height: 14px;
-    padding: 1px 7px 1px 6px;
+    min-height: 10px;
+    padding: 1px 5px 1px 4px;
 }
 
 .airport-overlay-label__detail-label {
@@ -3957,8 +3915,6 @@ body {
     .adsb-loading-overlay.is-exiting,
     .adsb-loading-overlay.is-exiting .adsb-loading-grid,
     .adsb-loading-grid::after,
-    .adsb-loading-grid__matrix::after,
-    .adsb-loading-grid__scan,
     .orb-container canvas {
         animation: none;
     }

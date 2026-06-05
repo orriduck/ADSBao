@@ -155,8 +155,8 @@ const normalizeKey = (value: unknown) =>
   typeof value === "string" ? value.trim().toUpperCase() : "";
 
 // Wake-class scale factors keyed off the ADS-B emitter category (A-level).
-// A1 light → 0.90, A2 small → 0.95, A3 large → 1.00 (baseline), A4 high-vortex
-// large → 1.05, A5 heavy → 1.10. Categories outside A1–A5 (A0 unknown,
+// A1 light → 0.70, A2 small → 0.80, A3 large → 1.00 (A320-class baseline),
+// A4 high-vortex large → 1.25, A5 heavy → 1.45. Categories outside A1–A5 (A0 unknown,
 // A6 high-performance, A7 rotorcraft, B*, C*, missing) keep the baseline so
 // shape, not size, carries their signal. Applied to both the silhouette and
 // the vector-arrow fallback so the wake class is visible regardless of
@@ -164,11 +164,11 @@ const normalizeKey = (value: unknown) =>
 const AIRCRAFT_BASELINE_SCALE = 1;
 
 const CATEGORY_SIZE_SCALE = {
-  A1: 0.9,
-  A2: 0.95,
+  A1: 0.7,
+  A2: 0.8,
   A3: 1,
-  A4: 1.05,
-  A5: 1.1,
+  A4: 1.25,
+  A5: 1.45,
 };
 
 /**

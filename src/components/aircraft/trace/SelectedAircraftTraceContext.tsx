@@ -23,6 +23,7 @@ const EMPTY_TRACE = {
   tracePoints: [],
   loading: false,
   traceFetchLoading: false,
+  fullTrace: false,
 };
 
 const SelectedAircraftTraceContext = createContext({
@@ -30,7 +31,7 @@ const SelectedAircraftTraceContext = createContext({
   traces: [],
 });
 
-function deriveTrace(aircraft, hookResult) {
+function deriveTrace(aircraft, hookResult, { fullTrace = false } = {}) {
   return {
     aircraftHex: aircraft ? getAircraftIdentity(aircraft) || null : null,
     movement:
@@ -38,6 +39,7 @@ function deriveTrace(aircraft, hookResult) {
     tracePoints: hookResult.tracePoints,
     loading: hookResult.loading,
     traceFetchLoading: hookResult.traceFetchLoading,
+    fullTrace: Boolean(fullTrace),
   };
 }
 
@@ -72,8 +74,8 @@ export function SelectedAircraftTraceProvider({
     [primaryAircraft, primaryHook],
   );
   const focal = useMemo(
-    () => deriveTrace(focalAircraft, focalHook),
-    [focalAircraft, focalHook],
+    () => deriveTrace(focalAircraft, focalHook, { fullTrace: fullTraceForFocal }),
+    [focalAircraft, focalHook, fullTraceForFocal],
   );
 
   const traces = useMemo(() => {

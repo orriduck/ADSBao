@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 import { AIRPORT_DISCOVERY_TOPICS } from "../config/airportDiscovery";
-import { airportDisplayName, airportSubtitle } from "./airport";
+import { airportDisplayCode, airportDisplayName, airportSubtitle } from "./airport";
 
 const jfk = {
   icao: "KJFK",
@@ -11,6 +11,9 @@ const jfk = {
 };
 
 assert.equal(airportDisplayName(jfk, "en"), "John F. Kennedy International Airport");
+assert.equal(airportDisplayCode({ icao: "KJFK", iata: "JFK" }), "KJFK");
+assert.equal(airportDisplayCode({ code: "EGLL", iata: "LHR" }), "EGLL");
+assert.equal(airportDisplayCode({ iata: "BOS" }), "BOS");
 assert.equal(airportDisplayName(jfk, "zh-CN"), "约翰·F·肯尼迪国际机场");
 assert.equal(airportSubtitle(jfk, "zh-CN"), "🇺🇸 纽约 · 美国");
 assert.equal(

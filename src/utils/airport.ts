@@ -55,6 +55,11 @@ export const airportDisplayName = (airport, locale = "en") => {
   return AIRPORT_NAME_ZH[icao] || fallback;
 };
 
+export const airportDisplayCode = (airport: Record<string, any> = {}) =>
+  String(airport?.icao || airport?.code || airport?.iata || "")
+    .trim()
+    .toUpperCase();
+
 export const airportCityName = (city, locale = "en") => {
   const fallback = String(city || "");
   if (locale !== "zh-CN") return fallback;

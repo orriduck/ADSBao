@@ -14,6 +14,7 @@ import {
 } from "../../features/airport/map/airportMapZoomFeatures";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent";
 import { AirportLabelBadge } from "@/components/ui/AirportLabelBadge";
+import { airportDisplayCode } from "@/utils/airport";
 
 export default function AirportMarker({
   lat,
@@ -71,7 +72,7 @@ export default function AirportMarker({
 
   if (!container) return null;
 
-  const code = (airport?.iata || icao || "").trim();
+  const code = airportDisplayCode({ ...airport, icao });
   const details = [];
   if (showAreaCount) {
     details.push({

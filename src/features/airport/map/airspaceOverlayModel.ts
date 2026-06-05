@@ -180,3 +180,27 @@ export function resolveAirspaceOverlayFocusStyle(feature: AirspaceOverlayRecord 
     weight: Number(style.weight || 1.5) + 0.8,
   };
 }
+
+export function resolveAirspaceInteriorPattern(feature: AirspaceOverlayRecord = {}) {
+  const level = String(feature.properties?.accessLevel || "unknown");
+  const token = tokenForLevel(level);
+  if (level === "blocked") {
+    return {
+      enabled: true,
+      color: `var(--airspace-${token}-stroke)`,
+      opacity: 0.7,
+    };
+  }
+  if (level === "restricted") {
+    return {
+      enabled: true,
+      color: `var(--airspace-${token}-stroke)`,
+      opacity: 0.64,
+    };
+  }
+  return {
+    enabled: false,
+    color: `var(--airspace-${token}-stroke)`,
+    opacity: 0,
+  };
+}

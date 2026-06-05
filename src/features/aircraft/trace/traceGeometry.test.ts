@@ -70,4 +70,27 @@ import { computeTraceGeometry } from "./traceGeometry";
   );
 }
 
+{
+  const base = 1_700_000_000_000 - (1_700_000_000_000 % 600_000);
+  const tracePoints = Array.from({ length: 32 }, (_, minute) => ({
+    lat: 42 + minute * 0.03,
+    lon: -71 + minute * 0.02,
+    timestampMs: base + minute * 60_000,
+    altitude: 2_000 + minute * 100,
+  }));
+
+  const geometry = computeTraceGeometry({
+    tracePoints,
+    maxRenderPoints: 80,
+    fullTrace: true,
+  });
+
+  assert.ok(geometry, "full trace should still produce geometry");
+  assert.deepEqual(
+    geometry.labelPoints.map((point) => (point.timestampMs - base) / 60_000),
+    [0, 10, 20, 30],
+    "full trace labels should land at ten-minute intervals",
+  );
+}
+
 console.log("traceGeometry.test.ts ok");

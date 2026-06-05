@@ -175,6 +175,7 @@ export default function SelectedAircraftTrace({ theme = "dark" }) {
             movement={trace.movement}
             tracePoints={trace.tracePoints}
             opacity={typeof trace.opacity === "number" ? trace.opacity : 1}
+            fullTrace={Boolean(trace.fullTrace)}
           />
         ) : null,
       )}
@@ -188,6 +189,7 @@ function SingleAircraftTrace({
   movement,
   tracePoints,
   opacity = 1,
+  fullTrace = false,
 }) {
   const { t } = useI18n();
   const map = useMapInstance();
@@ -243,8 +245,14 @@ function SingleAircraftTrace({
     return computeTraceGeometry({
       tracePoints: committedTrace.tracePoints,
       maxRenderPoints: SELECTED_AIRCRAFT_TRACE_STYLE.maxRenderPoints,
+      fullTrace,
     });
-  }, [aircraftHex, committedTrace.aircraftHex, committedTrace.tracePoints]);
+  }, [
+    aircraftHex,
+    committedTrace.aircraftHex,
+    committedTrace.tracePoints,
+    fullTrace,
+  ]);
 
   const traceRevealKey = useMemo(
     () =>
