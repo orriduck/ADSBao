@@ -6,6 +6,17 @@
 
 export const CHANGELOG = [
   {
+    version: "v1.13.1",
+    kind: "patch",
+    title: "Toolbar opacity polish and louder map-settings error logging",
+    summary:
+      "Every floating toolbar pill (home dock, sidebar overlay, map control rail) now sits on a more opaque surface so it stays legible against busy map and dither backdrops on both light and dark themes. Server-side map-settings reads also escalate failures from warn to error, so schema drift surfaces immediately instead of silently looking like \"never saved\".",
+    highlights: [
+      "Toolbar surface token bumped from 88% to 96% card opacity — affects every Toolbar caller (home page dock, sidebar mobile overlay, map control rail) on light and dark themes",
+      "Map-settings DAO read errors are now logged as `console.error` instead of `console.warn`, so a missing `device` column (or any future schema drift) is visible immediately in server logs",
+    ],
+  },
+  {
     version: "v1.13.0",
     kind: "feat",
     title: "Bottom-floating mobile toolbar and device-aware settings",
