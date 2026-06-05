@@ -167,27 +167,12 @@ assert.ok(
 
 assert.deepEqual(
   resolveRunwayAnnotationVisibility({
-    immersiveModeActive: true,
-    immersiveLocalMinutes: 20 * 60 + 59,
-    immersivePhase: "dusk",
     showRunwayBeams: true,
   }),
-  { showBeams: false, showBadges: false },
+  { showBeams: true, showBadges: true },
 );
 assert.deepEqual(
   resolveRunwayAnnotationVisibility({
-    immersiveModeActive: true,
-    immersiveLocalMinutes: 21 * 60,
-    immersivePhase: "night",
-    showRunwayBeams: false,
-  }),
-  { showBeams: true, showBadges: false },
-);
-assert.deepEqual(
-  resolveRunwayAnnotationVisibility({
-    immersiveModeActive: false,
-    immersiveLocalMinutes: 21 * 60,
-    immersivePhase: "night",
     showRunwayBeams: false,
   }),
   { showBeams: false, showBadges: true },

@@ -4,6 +4,7 @@ import {
 import {
   getClerkUserPrimaryEmail,
 } from "../../app-shell/feature-flags/userFeatureFlagsModel";
+import { normalizeMapSettings } from "./mapSettingsModel";
 type UserMapSettingsServerRecord = Record<string, any>;
 
 export async function resolveMapSettingsForUser({
@@ -15,7 +16,7 @@ export async function resolveMapSettingsForUser({
 
   try {
     const row = await repository.readSettingsByEmail(email);
-    return row?.settings || null;
+    return row?.settings ? normalizeMapSettings(row.settings) : null;
   } catch (error: any) {
     console.warn(`[map-settings] Supabase read failed for ${email}:`, error.message);
     return null;
@@ -32,7 +33,7 @@ export async function persistMapSettingsForUser({
 
   const row = await repository.upsertSettingsByEmail({
     email,
-    settings,
+    settings: normalizeMapSettings(settings),
   });
-  return row?.settings || null;
+  return row?.settings ? normalizeMapSettings(row.settings) : null;
 }

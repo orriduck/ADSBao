@@ -100,16 +100,6 @@ export const COLOR_TOKEN_GROUPS: ColorTokenGroup[] = [
   },
 ];
 
-export const IMMERSIVE_READY_COLOR_TOKENS = [
-  { name: "skyDayBase", cssVar: "--immersive-sky-day-base" },
-  { name: "skySunsetBase", cssVar: "--immersive-sky-sunset-base" },
-  { name: "skyNightBase", cssVar: "--immersive-sky-night-base" },
-  { name: "weatherClearAccent", cssVar: "--immersive-weather-clear-accent" },
-  { name: "weatherCloudyAccent", cssVar: "--immersive-weather-cloudy-accent" },
-  { name: "weatherStormAccent", cssVar: "--immersive-weather-storm-accent" },
-  { name: "atmosphereGlow", cssVar: "--immersive-atmosphere-glow" },
-] as const;
-
 export function resolveColorTokenVar(groupId: ColorTokenGroupId, tokenName: string) {
   const group = COLOR_TOKEN_GROUPS.find((item) => item.id === groupId);
   const token = group?.tokens.find((item) => item.name === tokenName);

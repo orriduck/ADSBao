@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   MAP_MODE_IDS,
+  normalizeMapSettings,
 } from "./mapSettingsModel";
 import {
   readStoredMapSettings,
@@ -25,16 +26,16 @@ const store = new Map<string, string>();
 try {
   writeStoredMapSettings(
     {
-      selectedMode: MAP_MODE_IDS.IMMERSIVE,
-      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      selectedMode: "immersive",
+      baseMode: "immersive",
       hasSelectedMode: true,
     },
   );
 
   assert.equal(
-    readStoredMapSettings()?.selectedMode,
-    MAP_MODE_IDS.IMMERSIVE,
-    "cache should preserve immersive settings without a feature flag",
+    normalizeMapSettings(readStoredMapSettings() || {}).selectedMode,
+    MAP_MODE_IDS.CONTROLLER,
+    "cache should migrate legacy immersive settings to the default mode",
   );
 } finally {
   if (typeof originalWindow === "undefined") {

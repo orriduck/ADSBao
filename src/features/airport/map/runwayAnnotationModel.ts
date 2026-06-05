@@ -1,6 +1,5 @@
 import { RUNWAY_APPROACH_BEAM_CONFIG } from "../../../config/airportMap";
 import { ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
-import { isImmersiveNightLightingActive } from "../immersive/immersiveLightingModel";
 import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 
 const METERS_PER_DEGREE_LATITUDE = 111_320;
@@ -415,24 +414,11 @@ export function buildRunwayApproachVisualization(
 }
 
 export function resolveRunwayAnnotationVisibility({
-  immersiveModeActive = false,
-  immersiveLocalMinutes = null,
-  immersivePhase = "",
   showRunwayBeams = true,
 }: RunwayAnnotationRecord = {}) {
-  if (!immersiveModeActive) {
-    return {
-      showBeams: Boolean(showRunwayBeams),
-      showBadges: true,
-    };
-  }
-
   return {
-    showBeams: isImmersiveNightLightingActive({
-      localMinutes: immersiveLocalMinutes,
-      phase: immersivePhase,
-    }),
-    showBadges: false,
+    showBeams: Boolean(showRunwayBeams),
+    showBadges: true,
   };
 }
 

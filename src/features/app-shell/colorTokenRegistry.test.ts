@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 
 import {
   COLOR_TOKEN_GROUPS,
-  IMMERSIVE_READY_COLOR_TOKENS,
   resolveColorTokenVar,
 } from "./colorTokenRegistry";
 
@@ -17,19 +16,6 @@ assert.equal(resolveColorTokenVar("navaidRadio", "frequencyBadge"), "var(--navai
 assert.ok(groupById.get("surface")?.tokens.some((token) => token.name === "mapGlassSurface"));
 assert.ok(groupById.get("aviation")?.tokens.some((token) => token.name === "aircraftFallbackPosition"));
 assert.ok(groupById.get("airspace")?.tokens.some((token) => token.name === "restrictedWarningFill"));
-
-assert.deepEqual(
-  IMMERSIVE_READY_COLOR_TOKENS.map((token) => token.cssVar),
-  [
-    "--immersive-sky-day-base",
-    "--immersive-sky-sunset-base",
-    "--immersive-sky-night-base",
-    "--immersive-weather-clear-accent",
-    "--immersive-weather-cloudy-accent",
-    "--immersive-weather-storm-accent",
-    "--immersive-atmosphere-glow",
-  ],
-);
 
 const allTokenVars = COLOR_TOKEN_GROUPS.flatMap((group) =>
   group.tokens.map((token) => token.cssVar),

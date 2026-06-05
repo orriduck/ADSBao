@@ -23,14 +23,12 @@ const aircraft = [
 
 assert.equal(resolveDocumentTheme({ getAttribute: () => "light" }), "light");
 assert.equal(resolveDocumentTheme({ getAttribute: () => "dark" }), "dark");
-assert.equal(resolveDocumentTheme({ getAttribute: () => "sunrise" }), "dark");
-assert.equal(resolveDocumentTheme({ getAttribute: () => "sunset" }), "dark");
+assert.equal(resolveDocumentTheme({ getAttribute: () => "removed-theme" }), "dark");
 assert.equal(resolveDocumentTheme({ getAttribute: () => null }), "dark");
 assert.equal(isLightMapTheme("light"), true);
-assert.equal(isLightMapTheme("sunrise"), false);
-assert.equal(isLightMapTheme("sunset"), false);
+assert.equal(isLightMapTheme("removed-theme"), false);
 assert.equal(isLightMapTheme("dark"), false);
-assert.equal(isKnownMapTheme("sunrise"), false);
+assert.equal(isKnownMapTheme("removed-theme"), false);
 assert.equal(isKnownMapTheme("unknown"), false);
 
 assert.equal(resolveAirportMapFocalCenter({ lat: null, lon: null }), null);
@@ -108,11 +106,10 @@ const nearbyLayerAirports = [
 assert.deepEqual(
   resolveNearbyAirportLayerDisplay({
     nearbyAirports: nearbyLayerAirports,
-    immersiveModeActive: true,
   }),
   {
     airports: nearbyLayerAirports,
-    showAirportBadges: false,
+    showAirportBadges: true,
     showRunwayBadges: false,
   },
 );
@@ -121,25 +118,14 @@ assert.equal(
   shouldRenderSelectedAircraftTrace({
     selectedAircraftId: "abc123",
     selectedAircraft: { icao24: "abc123" },
-    immersiveModeActive: false,
   }),
   true,
 );
 
 assert.equal(
   shouldRenderSelectedAircraftTrace({
-    selectedAircraftId: "abc123",
-    selectedAircraft: { icao24: "abc123" },
-    immersiveModeActive: true,
-  }),
-  false,
-);
-
-assert.equal(
-  shouldRenderSelectedAircraftTrace({
     selectedAircraftId: "",
     selectedAircraft: null,
-    immersiveModeActive: false,
   }),
   false,
 );
@@ -147,7 +133,6 @@ assert.equal(
 assert.deepEqual(
   resolveNearbyAirportLayerDisplay({
     nearbyAirports: nearbyLayerAirports,
-    immersiveModeActive: false,
   }),
   {
     airports: nearbyLayerAirports,

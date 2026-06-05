@@ -41,7 +41,6 @@ export default function AircraftPreviewCard({
   airportProfile = null,
   onApplyTemporaryRoute,
   suppressMobileWhenAlreadyTracking = false,
-  immersiveModeActive = false,
 }) {
   const { t } = useI18n();
   const selectedTrace = useSelectedAircraftTrace();
@@ -71,7 +70,7 @@ export default function AircraftPreviewCard({
     ? getAircraftIdentity(aircraft)
     : null;
   const aircraftTraceControlsEnabled =
-    Boolean(aircraftIdentity) && !immersiveModeActive;
+    Boolean(aircraftIdentity);
   const traceFetchLoading =
     aircraftTraceControlsEnabled &&
     selectedTrace.aircraftHex === aircraftIdentity &&
@@ -87,8 +86,7 @@ export default function AircraftPreviewCard({
     : aircraft?.callsign
       ? `/aircraft/${aircraft.callsign.trim().toUpperCase()}`
       : null;
-  const cardTrackHref =
-    immersiveModeActive && isAircraftPreview ? null : trackHref;
+  const cardTrackHref = trackHref;
   const alreadyTracking = cardTrackHref && pathname === cardTrackHref;
   const showMobile =
     isMobile &&
@@ -165,9 +163,7 @@ export default function AircraftPreviewCard({
           key={identityKey}
           className={`aircraft-preview-card app-preview-transition aircraft-preview-card--desktop-reveal ${
             !isAirport && !isNavaid && hasPhoto ? "aircraft-preview-card--has-photo" : ""
-          } ${isAirport ? "aircraft-preview-card--airport" : ""} ${
-            immersiveModeActive ? "aircraft-preview-card--immersive" : ""
-          } aircraft-preview-card--photo-${photoTone}`}
+          } ${isAirport ? "aircraft-preview-card--airport" : ""} aircraft-preview-card--photo-${photoTone}`}
           aria-label={previewAriaLabel}
         >
           {!isAirport && !isNavaid && (
@@ -198,7 +194,6 @@ export default function AircraftPreviewCard({
               airportProfile={airportProfile}
               onApplyTemporaryRoute={onApplyTemporaryRoute}
               traceLoading={traceLoading}
-              hideTraceControls={immersiveModeActive}
             />
           )}
         </aside>
