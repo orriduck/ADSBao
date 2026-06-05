@@ -140,7 +140,6 @@ export default function MapLoadingOverlay({
     >
       <div key={playbackCycle} className="adsb-loading-grid" aria-hidden="true">
         <span className="adsb-loading-grid__matrix" />
-        <span className="adsb-loading-grid__scan" />
       </div>
     </div>
   );

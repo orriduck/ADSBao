@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   shouldAttemptMapLibreTiles,
   shouldLogMapTileLayerFailure,
+  shouldSuppressMapLibreTileError,
 } from "./mapTileLayerModel";
 
 assert.equal(
@@ -37,6 +38,21 @@ assert.equal(
 assert.equal(
   shouldLogMapTileLayerFailure(new Error("OpenFreeMap style request failed: 503")),
   true,
+);
+
+assert.equal(
+  shouldSuppressMapLibreTileError({
+    error: new Error(
+      "AJAXError: Failed to fetch (0): https://tiles.openfreemap.org/planet/20260531_080002_pt/9/153/194.pbf",
+    ),
+  }),
+  true,
+);
+assert.equal(
+  shouldSuppressMapLibreTileError({
+    error: new Error("Style image missing: aircraft-icon"),
+  }),
+  false,
 );
 
 console.log("mapTileLayerModel.test.ts ok");

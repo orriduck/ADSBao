@@ -17,6 +17,7 @@ import {
   resolveAirportExplorerSelection,
   resolveAirportProfile,
 } from "@/features/airport/explorer/airportExplorerModel";
+import { resolveSpottingMetricZoomState } from "@/features/airport/explorer/airportExplorerUiModel";
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext";
@@ -34,7 +35,7 @@ import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandida
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
 import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
-import { ZOOM_DETAIL } from "@/utils/airportMapDisplay";
+import { ZOOM_APPROACH, ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 
 const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
@@ -94,6 +95,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   const [userLocationNotice, setUserLocationNotice] = useState("");
   const userLocationWatchIdRef = useRef<number | null>(null);
   const autoUserLocationAttemptKeyRef = useRef("");
+  const spottingPreviousZoomRef = useRef<number | null>(null);
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
@@ -387,10 +389,20 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     userLocationAudioActive,
   ]);
 
-  const openSpottingDetail = useCallback(() => {
-    applyMapMode(MAP_MODE_IDS.SPOTTING);
-    setMapZoom(ZOOM_DETAIL);
-  }, [applyMapMode, setMapZoom]);
+  const openSpottingDetail = useCallback((activeView = "") => {
+    const zoomUpdate = resolveSpottingMetricZoomState({
+      activeView,
+      currentZoom: mapZoom,
+      previousZoom: spottingPreviousZoomRef.current,
+      detailZoom: ZOOM_DETAIL,
+      fallbackZoom: ZOOM_APPROACH,
+    });
+    spottingPreviousZoomRef.current = zoomUpdate.nextPreviousZoom;
+    if (activeView !== "spotting") {
+      applyMapMode(MAP_MODE_IDS.SPOTTING);
+    }
+    setMapZoom(zoomUpdate.nextZoom);
+  }, [applyMapMode, mapZoom, setMapZoom]);
 
   const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,

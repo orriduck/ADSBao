@@ -136,13 +136,14 @@ assert.equal(isKnownAircraftIconName("b77w"), true);
 assert.equal(isKnownAircraftIconName("crj9"), true);
 assert.equal(isKnownAircraftIconName("md11"), true);
 
-// Wake-class scale resolver: A1–0.90 → A5–1.10, baseline elsewhere.
-assert.equal(resolveAircraftSizeScale({ category: "A1" }), 0.9);
-assert.equal(resolveAircraftSizeScale({ category: "A2" }), 0.95);
+// Wake-class scale resolver: A1 small aircraft stay clearly smaller than
+// A320-class A3 traffic, while A4/A5 heavies read larger on the map.
+assert.equal(resolveAircraftSizeScale({ category: "A1" }), 0.7);
+assert.equal(resolveAircraftSizeScale({ category: "A2" }), 0.8);
 assert.equal(resolveAircraftSizeScale({ category: "A3" }), 1);
-assert.equal(resolveAircraftSizeScale({ category: "A4" }), 1.05);
-assert.equal(resolveAircraftSizeScale({ category: "A5" }), 1.1);
-assert.equal(resolveAircraftSizeScale({ category: " a5 " }), 1.1);
+assert.equal(resolveAircraftSizeScale({ category: "A4" }), 1.25);
+assert.equal(resolveAircraftSizeScale({ category: "A5" }), 1.45);
+assert.equal(resolveAircraftSizeScale({ category: " a5 " }), 1.45);
 assert.equal(
   resolveAircraftSizeScale({ category: "A0" }),
   AIRCRAFT_BASELINE_SCALE,

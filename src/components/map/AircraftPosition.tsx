@@ -141,7 +141,7 @@ export default function AircraftPosition({
     forceSilhouette || (showArrow && !aircraft.onGround)
       ? resolveAircraftIcon(aircraft)
       : null;
-  // Wake-class scale (A1–0.90 → A5–1.10). Applied to the moving marker
+  // Wake-class scale (A1–0.70 → A5–1.45). Applied to the moving marker
   // glyphs so heavies read larger than light traffic; falls back to 1× for
   // unknown / out-of-range categories. The slow-traffic dot stays unscaled
   // because at that point we're encoding "minimal indicator", not class.
@@ -172,8 +172,6 @@ export default function AircraftPosition({
         rot={rot}
         roll={attitude.roll}
         pitch={attitude.pitch}
-        altitude={aircraft.altitude}
-        onGround={aircraft.onGround}
         selected={selected}
         showArrow={showArrow}
         silhouette={silhouette}
@@ -195,21 +193,11 @@ export default function AircraftPosition({
   );
 }
 
-// Altitude reference points (ft) used to map ADS-B altitude to a 0..1
-// ratio. Anything at or above CRUISE_FT looks fully "high" — its shadow
-// is the longest cast and the faintest blur. Surface-level traffic
-// (onGround or near 0 ft) gets a tight, dark shadow practically touching
-// the silhouette.
-const SHADOW_GROUND_FT = 0;
-const SHADOW_CRUISE_FT = 38_000;
-
 function Pointer({
   color,
   rot,
   roll = 0,
   pitch = 0,
-  altitude = null,
-  onGround = false,
   selected = false,
   showArrow,
   silhouette,
@@ -217,56 +205,19 @@ function Pointer({
   theme = "dark",
 }) {
   // The wrapper carries heading + wake-class scale; the silhouette inside
-  // carries the 3D pitch/bank stack + a translateY lift, while a separate
-  // shadow element stays planted in the wrapper's plane. The visual story:
-  // the shadow is "the ground", the silhouette flies above it on climb and
-  // touches it on descent. perspective(280px) sits close enough that
-  // ±12°/±35° read as visibly tilted (vs. 540px which is near-orthographic).
+  // carries the 3D pitch/bank stack + a translateY lift. perspective(280px)
+  // sits close enough that ±12°/±35° read as visibly tilted.
   const wrapperTransform = `rotate(${rot}deg) scale(${sizeScale})`;
   // Pitch still drives a small lift on the silhouette so the climb/descent
-  // posture reads at a glance, but the *shadow* is now decoupled from
-  // verticalRate and tracks absolute altitude instead.
+  // posture reads at a glance without drawing a ground projection.
   const pitchLiftPx = (-(pitch / 12) * 4).toFixed(2);
   const silhouetteTransform =
     `translateY(${pitchLiftPx}px) perspective(280px) ` +
     `rotateX(${pitch}deg) rotateY(${roll}deg)`;
 
-  // Ground shadow keyed off absolute altitude (or onGround). Higher = the
-  // shadow trails farther from the aircraft (longer cast), gets fainter
-  // and more diffuse; lower = tight, dark, near-coincident with the
-  // silhouette. The offset is in the wrapper's pre-rotation frame so the
-  // shadow trails the same screen-direction regardless of heading — top-
-  // left light-source convention shared with the rest of the surface
-  // shadows in the design system. The shadow uses the same SVG mask as
-  // the silhouette so what hits the basemap is the actual aircraft
-  // outline, not a generic blob.
-  const altClamped = onGround
-    ? SHADOW_GROUND_FT
-    : Math.min(
-        Math.max(Number(altitude) || SHADOW_GROUND_FT, SHADOW_GROUND_FT),
-        SHADOW_CRUISE_FT,
-      );
-  const altRatio = (altClamped - SHADOW_GROUND_FT) /
-    (SHADOW_CRUISE_FT - SHADOW_GROUND_FT);
-  const shadowOffsetX = (1 + altRatio * 6).toFixed(2);
-  const shadowOffsetY = (1 + altRatio * 9).toFixed(2);
-  // Floor blur at 5px and ceiling opacity at 0.5 so even surface-level
-  // traffic reads as a soft cast, not a duplicated silhouette. The mask
-  // still gives the shadow the aircraft outline, but at this much blur it
-  // reads as a tinted halo of the right shape rather than a double image.
-  const shadowBlur = (5 + altRatio * 5).toFixed(2);
-  const shadowOpacity = (0.5 - altRatio * 0.25).toFixed(2);
-  // Shadow is meaningfully smaller than the aircraft (game-art convention
-  // for altitude). Surface-level traffic gets ~0.85× — close to the real
-  // outline; cruise gets ~0.70× — a small distant cast.
-  const shadowScale = (0.85 - altRatio * 0.15).toFixed(3);
-  const shadowTransform =
-    `translate(${shadowOffsetX}px, ${shadowOffsetY}px) scale(${shadowScale})`;
-
   if (showArrow && silhouette) {
     // Wrapper carries the heading rotation so the dark-theme nose beam
-    // orbits with it. Shadow + silhouette share the same SVG mask so the
-    // projection is the real aircraft outline, not a generic ellipse.
+    // orbits with it.
     const maskUrl = `url(${silhouette.src})`;
     const maskStyle = {
       position: "absolute",
@@ -293,19 +244,6 @@ function Pointer({
           transform: wrapperTransform,
         }}
       >
-        {selected ? (
-          <div
-            className="aircraft-shadow"
-            aria-hidden="true"
-            style={{
-              ...maskStyle,
-              backgroundColor: "var(--aviation-aircraft-shadow)",
-              opacity: shadowOpacity,
-              filter: `blur(${shadowBlur}px)`,
-              transform: shadowTransform,
-            } as any}
-          />
-        ) : null}
         <div
           className="aircraft-silhouette"
           style={{
@@ -331,24 +269,6 @@ function Pointer({
           position: "relative",
         }}
       >
-        {selected ? (
-          <svg
-            className="aircraft-shadow"
-            aria-hidden="true"
-            width={SILHOUETTE_SIZE_PX}
-            height={SILHOUETTE_SIZE_PX}
-            viewBox="0 0 24 24"
-            style={{
-              position: "absolute",
-              inset: 0,
-              opacity: shadowOpacity,
-              filter: `blur(${shadowBlur}px)`,
-              transform: shadowTransform,
-            }}
-          >
-            <path d="M12 2L16 20L12 17L8 20Z" fill="var(--aviation-aircraft-shadow)" />
-          </svg>
-        ) : null}
         <svg
           width={SILHOUETTE_SIZE_PX}
           height={SILHOUETTE_SIZE_PX}

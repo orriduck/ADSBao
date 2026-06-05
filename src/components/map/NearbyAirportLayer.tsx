@@ -14,7 +14,6 @@ import {
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel";
 import { shouldShowNearbyAirportRunwaysForZoom } from "../../features/airport/map/airportMapZoomFeatures";
-import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
 
 const escapeHtml = (value: unknown) =>
   String(value || "")
@@ -24,7 +23,8 @@ const escapeHtml = (value: unknown) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const airportLabel = (airport: Record<string, any>) => airport.iata || airport.icao || "";
+const airportLabel = (airport: Record<string, any>) =>
+  airport.iata || airport.icao || airport.code || "";
 
 const markerHtml = (airport: Record<string, any>) => {
   const code = airportLabel(airport);
@@ -34,17 +34,16 @@ const markerHtml = (airport: Record<string, any>) => {
   // Two parts: the dot sits exactly on the airport position; the label
   // stack (code pill + distance pill) is offset down-left so the runway
   // / centerline at the airport stays visible underneath.
-  const badge = airportLabelBadgeHtml({
-    code,
-    className: "nearby-airport-marker-label",
-    // Distance shown as "DIST 14NM" — label is the noun ("DIST"), value
-    // is the magnitude with unit suffix concatenated so the unit reads
-    // as part of the number, not as a separate caption.
-    details:
-      distance != null
-        ? [{ key: "dist", variant: "near", label: "DIST", value: `${distance}NM` }]
-        : [],
-  });
+  const distanceHtml =
+    distance != null
+      ? `<span class="nearby-airport-marker-badge__meta">${escapeHtml(distance)}NM</span>`
+      : "";
+  const badge = `
+    <span class="nearby-airport-marker-label nearby-airport-marker-badge">
+      <span class="nearby-airport-marker-badge__code">${escapeHtml(code)}</span>
+      ${distanceHtml}
+    </span>
+  `;
   return `
     <div class="nearby-airport-marker notranslate" translate="no">
       <span class="nearby-airport-marker-dot"></span>

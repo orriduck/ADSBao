@@ -64,8 +64,9 @@ export default function AirportSidebar({
   }, [activeView, atcFrequencies.length]);
 
   const handleSpottingView = () => {
+    const previousView = activeView;
     setActiveView("spotting");
-    onOpenSpotting?.();
+    onOpenSpotting?.(previousView);
   };
 
   const header = (

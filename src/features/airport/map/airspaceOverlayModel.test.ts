@@ -4,6 +4,7 @@ import {
   buildAirspaceOverlayAnimationPlan,
   buildAirspaceOverlayFeatures,
   resolveAirspaceInitialOpacity,
+  resolveAirspaceInteriorPattern,
   resolveAirspaceOverlayFocusStyle,
   resolveAirspaceOverlayStyle,
 } from "./airspaceOverlayModel";
@@ -162,6 +163,33 @@ const polygon = {
   assert.equal(focusedControlledStyle.fillOpacity, 1);
   assert.equal(focusedControlledStyle.opacity, 1);
   assert.equal(focusedControlledStyle.weight, Number(controlledStyle.weight) + 0.8);
+}
+
+{
+  const blockedPattern = resolveAirspaceInteriorPattern({
+    properties: { accessLevel: "blocked" },
+  });
+  assert.deepEqual(blockedPattern, {
+    enabled: true,
+    color: "var(--airspace-blocked-stroke)",
+    opacity: 0.7,
+  });
+
+  const restrictedPattern = resolveAirspaceInteriorPattern({
+    properties: { accessLevel: "restricted" },
+  });
+  assert.deepEqual(restrictedPattern, {
+    enabled: true,
+    color: "var(--airspace-restricted-stroke)",
+    opacity: 0.64,
+  });
+
+  assert.equal(
+    resolveAirspaceInteriorPattern({
+      properties: { accessLevel: "controlled" },
+    }).enabled,
+    false,
+  );
 }
 
 console.log("airspaceOverlayModel.test.ts ok");

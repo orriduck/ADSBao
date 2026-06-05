@@ -12,6 +12,7 @@ import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
 
 const DEFAULT_TRACE_MAX_LABELS = 5;
 const DEFAULT_TRACE_LABEL_MIN_DISTANCE_NM = 2;
+const FULL_TRACE_LABEL_INTERVAL_MS = 10 * 60 * 1000;
 
 function buildTraceSamplePoints(points) {
   const usable = points.slice(0, -1);
@@ -53,10 +54,35 @@ function buildTraceLabelPoints(
   return selected.reverse();
 }
 
+function buildFullTraceLabelPoints(
+  points,
+  { intervalMs = FULL_TRACE_LABEL_INTERVAL_MS } = {},
+) {
+  const usable = points.slice(0, -1);
+  if (usable.length === 0) return [];
+
+  const selected = [];
+  let lastLabelTimestampMs = null;
+  for (const point of usable) {
+    const timestampMs = Number(point?.timestampMs);
+    if (!Number.isFinite(timestampMs)) continue;
+    if (
+      lastLabelTimestampMs != null &&
+      timestampMs - lastLabelTimestampMs < intervalMs
+    ) {
+      continue;
+    }
+    selected.push(point);
+    lastLabelTimestampMs = timestampMs;
+  }
+  return selected;
+}
+
 export function computeTraceGeometry({
   tracePoints = [],
   maxRenderPoints,
   curveSteps = 5,
+  fullTrace = false,
 }) {
   if (!Array.isArray(tracePoints) || tracePoints.length < 2) return null;
 
@@ -76,7 +102,9 @@ export function computeTraceGeometry({
         id: `segment-${index}`,
         curve,
         samplePoints: buildTraceSamplePoints(sampled),
-        labelPoints: buildTraceLabelPoints(sampled),
+        labelPoints: fullTrace
+          ? buildFullTraceLabelPoints(segment.points)
+          : buildTraceLabelPoints(sampled),
       };
     })
     .filter(Boolean);

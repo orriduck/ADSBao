@@ -7,10 +7,11 @@ import { useMapInstance } from "./MapContext";
 import {
   shouldAttemptMapLibreTiles,
   shouldLogMapTileLayerFailure,
+  shouldSuppressMapLibreTileError,
 } from "@/features/airport/map/mapTileLayerModel";
 import { isLightMapTheme } from "@/features/airport/map/airportMapModel";
 
-const MAP_STYLE_THEME_REVISION = "light-dark-v1";
+const MAP_STYLE_THEME_REVISION = "terrain-readable-v9";
 
 export default function MapTileLayers({
   theme = "dark",
@@ -57,6 +58,7 @@ export default function MapTileLayers({
             className: "atc-maplibre-base",
           } as any);
           nextLayer.addTo(map);
+          attachMapLibreErrorHandler(nextLayer);
           layerRef.current = nextLayer;
           layerRef.current.getContainer()?.classList.add("atc-tile-base");
           setSelectionOpacity(layerRef.current, theme, selectionActiveRef.current);
@@ -163,6 +165,16 @@ function setSelectionOpacity(layer, theme, selectionActive) {
     return;
   }
   container.style.opacity = "1";
+}
+
+function attachMapLibreErrorHandler(layer: any) {
+  const maplibreMap = layer?.getMaplibreMap?.();
+  if (!maplibreMap || typeof maplibreMap.on !== "function") return;
+
+  maplibreMap.on("error", (event) => {
+    if (shouldSuppressMapLibreTileError(event)) return;
+    console.error("[airport-map] map tile error", event?.error || event);
+  });
 }
 
 function hasWebGlContext() {
