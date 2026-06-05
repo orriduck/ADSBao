@@ -15,6 +15,7 @@ import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "@/features/airport/explorer/airportExplorerUiModel";
 import {
   DEFAULT_MAP_SETTINGS,
+  MAP_SETTINGS_DEVICE_TYPES,
   MAP_LAYER_KEYS,
   buildCustomMapSettings,
   buildPresetMapSettings,
@@ -37,6 +38,11 @@ const ExplorerUiContext = createContext(null);
 const DEFAULT_MAP_LAYERS = mapSettingsToExplorerLayers(DEFAULT_MAP_SETTINGS);
 const DEFAULT_USER_LOCATION_PREFERENCES =
   mapSettingsToUserLocationPreferences(DEFAULT_MAP_SETTINGS);
+
+const mapSettingsDeviceForSidebarMode = (sidebarMode) =>
+  sidebarMode === "mobile"
+    ? MAP_SETTINGS_DEVICE_TYPES.MOBILE
+    : MAP_SETTINGS_DEVICE_TYPES.DESKTOP;
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
@@ -328,6 +334,7 @@ export function ExplorerUiProvider({ children }) {
     selectedCandidateWatchingSpotId,
   } = state;
   const isMobile = sidebarMode === "mobile";
+  const mapSettingsDevice = mapSettingsDeviceForSidebarMode(sidebarMode);
 
   useEffect(() => {
     const syncSidebarMode = () => {
@@ -350,12 +357,12 @@ export function ExplorerUiProvider({ children }) {
     const hydrateMapSettings = async () => {
       hasHydratedMapSettingsRef.current = false;
       setMapSettingsSaveStatus("idle");
-      const cachedSettings = readStoredMapSettings();
+      const cachedSettings = readStoredMapSettings(mapSettingsDevice);
       let userSettings = null;
 
       if (isSignedIn) {
         try {
-          const response = await fetch("/api/map-settings", {
+          const response = await fetch(`/api/map-settings?device=${mapSettingsDevice}`, {
             cache: "no-store",
           });
           if (response.ok) {
@@ -401,6 +408,7 @@ export function ExplorerUiProvider({ children }) {
   }, [
     isLoaded,
     isSignedIn,
+    mapSettingsDevice,
   ]);
 
   useEffect(() => {
@@ -415,7 +423,7 @@ export function ExplorerUiProvider({ children }) {
     if (serialized === persistedMapSettingsRef.current) return undefined;
 
     if (!isSignedIn) {
-      writeStoredMapSettings(nextSettings);
+      writeStoredMapSettings(nextSettings, mapSettingsDevice);
       persistedMapSettingsRef.current = serialized;
       return undefined;
     }
@@ -430,7 +438,7 @@ export function ExplorerUiProvider({ children }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ settings: nextSettings }),
+          body: JSON.stringify({ settings: nextSettings, device: mapSettingsDevice }),
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("save failed");
@@ -463,6 +471,7 @@ export function ExplorerUiProvider({ children }) {
     isLoaded,
     isSignedIn,
     mapSettings,
+    mapSettingsDevice,
   ]);
 
   const toggleSidebar = useCallback(() => {
@@ -590,6 +599,7 @@ export function ExplorerUiProvider({ children }) {
       userLocationEnabled,
       userLocationAudioEnabled,
       mapSettings,
+      mapSettingsDevice,
       mapSettingsSaveStatus,
       trafficFilter,
       typeFilter,
@@ -641,6 +651,7 @@ export function ExplorerUiProvider({ children }) {
       userLocationEnabled,
       userLocationAudioEnabled,
       mapSettings,
+      mapSettingsDevice,
       mapSettingsSaveStatus,
       trafficFilter,
       typeFilter,

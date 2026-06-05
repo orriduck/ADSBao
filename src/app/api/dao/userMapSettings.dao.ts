@@ -8,10 +8,11 @@ import {
   DEFAULT_MAP_SETTINGS,
   mergeMapSettings,
   normalizeMapSettings,
+  normalizeMapSettingsDevice,
 } from "../../../features/airport/map-settings/mapSettingsModel";
 
 const USER_MAP_SETTINGS_TABLE = "user_map_settings";
-const SELECT_COLUMNS = "email,environment,settings,has_selected_mode,updated_at";
+const SELECT_COLUMNS = "email,environment,device,settings,has_selected_mode,updated_at";
 
 type UserMapSettingsRecord = Record<string, any>;
 
@@ -36,12 +37,14 @@ function createUserMapSettingsRepository({
       const normalizedEnvironment = normalizeFeatureFlagEnvironment(
         options.environment || defaultEnvironment,
       );
+      const normalizedDevice = normalizeMapSettingsDevice(options.device);
 
       const { data, error } = await client
         .from(USER_MAP_SETTINGS_TABLE)
         .select(SELECT_COLUMNS)
         .eq("email", normalizedEmail)
         .eq("environment", normalizedEnvironment)
+        .eq("device", normalizedDevice)
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
@@ -52,6 +55,7 @@ function createUserMapSettingsRepository({
       return {
         email: normalizeUserEmail(data.email),
         environment: normalizeFeatureFlagEnvironment(data.environment),
+        device: normalizeMapSettingsDevice(data.device),
         settings: normalizeMapSettings({
           ...data.settings,
           hasSelectedMode: data.has_selected_mode,
@@ -63,6 +67,7 @@ function createUserMapSettingsRepository({
     async upsertSettingsByEmail({
       email,
       environment,
+      device,
       settings,
     }: UserMapSettingsRecord = {}) {
       const normalizedEmail = normalizeUserEmail(email);
@@ -70,8 +75,10 @@ function createUserMapSettingsRepository({
       const normalizedEnvironment = normalizeFeatureFlagEnvironment(
         environment || defaultEnvironment,
       );
+      const normalizedDevice = normalizeMapSettingsDevice(device);
       const existingRow = await this.readSettingsByEmail(normalizedEmail, {
         environment: normalizedEnvironment,
+        device: normalizedDevice,
       });
       const normalizedSettings = mergeMapSettings({
         settings: existingRow?.settings || DEFAULT_MAP_SETTINGS,
@@ -85,6 +92,7 @@ function createUserMapSettingsRepository({
           {
             email: normalizedEmail,
             environment: normalizedEnvironment,
+            device: normalizedDevice,
             settings: {
               ...normalizedSettings,
               updatedAt,
@@ -92,7 +100,7 @@ function createUserMapSettingsRepository({
             has_selected_mode: normalizedSettings.hasSelectedMode === true,
             updated_at: updatedAt,
           },
-          { onConflict: "email,environment" },
+          { onConflict: "email,environment,device" },
         )
         .select(SELECT_COLUMNS)
         .single();
@@ -104,6 +112,7 @@ function createUserMapSettingsRepository({
       return {
         email: normalizeUserEmail(data.email),
         environment: normalizeFeatureFlagEnvironment(data.environment),
+        device: normalizeMapSettingsDevice(data.device),
         settings: normalizeMapSettings({
           ...data.settings,
           hasSelectedMode: data.has_selected_mode,

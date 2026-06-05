@@ -449,9 +449,14 @@ const zhCN = {
     modeSection: "模式",
     layersSection: "显示",
     guestPrompt: "未登录时,地图设置会保存在这台设备。",
+    deviceScope: "{device}设置",
     savedSettingsAvailable: "已保存到你的账户。",
     savingSettings: "保存中...",
     saveError: "保存失败,请重试。",
+    devices: {
+      desktop: "桌面端",
+      mobile: "移动端",
+    },
     modes: {
       spotting: "看客模式",
       radio: "无线电模式",

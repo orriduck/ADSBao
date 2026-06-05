@@ -58,6 +58,7 @@ export default function AirportMap({
   icao = "",
   lat = null,
   lon = null,
+  airportElevationFt = null,
   zoom = 13,
   aircraft = [],
   nearbyAirports = [],
@@ -259,6 +260,7 @@ export default function AirportMap({
       // would silently hide the focal because it's "at the airport".
       airportLat: icao ? lat : null,
       airportLon: icao ? lon : null,
+      airportElevationFt: icao ? airportElevationFt : null,
       nearbyAirports,
       zoom,
     });
@@ -267,6 +269,7 @@ export default function AirportMap({
     icao,
     lat,
     lon,
+    airportElevationFt,
     nearbyAirports,
     zoom,
   ]);

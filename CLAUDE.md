@@ -14,7 +14,11 @@ Frontend runs on `http://localhost:3000` by default.
 
 You are expected to keep one long-running `pnpm dev` process on port 3000 across the session. Pattern:
 
-1. **Before touching code**, check whether port 3000 is already serving by hitting `http://localhost:3000` (any 2xx/3xx counts). If it isn't, start the server in the background with the Bash tool's `run_in_background: true` and wait until it's ready (`curl -s -o /dev/null -w '%{http_code}' http://localhost:3000` returns `200`).
+1. **Before touching code**, check whether port 3000 is already serving by hitting `http://localhost:3000` (any 2xx/3xx counts). If it isn't, start and maintain the server yourself. In Codex, prefer a detached tmux session so subagents can keep the process alive without asking the user:
+   ```bash
+   tmux new-session -d -s adsbao-dev -c /Users/ruyyi/Devs/ADSBao '/opt/homebrew/bin/pnpm run dev'
+   ```
+   Then wait until ready (`curl -s -o /dev/null -w '%{http_code}' http://localhost:3000` returns `200`).
 2. **Adopt, don't fight, an existing dev server.** If port 3000 is already taken by a `pnpm dev` you started in a prior turn, just use it — don't kill it. Next.js + Turbopack HMR will pick up most edits.
 3. **Restart with cache clear when you spot stale-bundle symptoms**, even if you never see an error in the terminal. Symptoms that mean "Turbopack is serving old code":
    - DevTools shows both old + new class names in the same stylesheet after you renamed something.
@@ -28,13 +32,15 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
    lsof -nP -iTCP:3000 -sTCP:LISTEN | awk 'NR>1 {print $2}' | xargs -r kill
    sleep 2
    rm -rf .next
-   pnpm dev   # use run_in_background: true
+   tmux kill-session -t adsbao-dev 2>/dev/null || true
+   tmux new-session -d -s adsbao-dev -c /Users/ruyyi/Devs/ADSBao '/opt/homebrew/bin/pnpm run dev'
    # then poll until ready:
    until curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 | grep -q 200; do sleep 2; done
    ```
 
 4. **After the restart**, reload the page in chrome-devtools-mcp with `ignoreCache: true` before re-checking the broken behavior. Verify the source CSS file with `grep` first, then verify the served bundle (`curl /_next/static/chunks/*.css | grep <class>`) before going deeper into a debugging rabbit hole.
-5. Never `--turbopack`-disable or `next build` mid-session as a workaround — restarting with `.next` removed is the supported escape hatch and is fast enough on this project (< 10s to ready). Don't add `package.json` scripts for this; it's an operational habit, not a permanent build flag.
+5. Subagents working on ADSBao local development should own this lifecycle: start the tmux process when it is missing, restart it when it breaks, and do the `.next` reset themselves when CSS or JSX is stale. Do not wait for the user to explicitly ask for a dev-server restart.
+6. Never `--turbopack`-disable or `next build` mid-session as a workaround — restarting with `.next` removed is the supported escape hatch and is fast enough on this project (< 10s to ready). Don't add `package.json` scripts for this; it's an operational habit, not a permanent build flag.
 
 ## Stack
 

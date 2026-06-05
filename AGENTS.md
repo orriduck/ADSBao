@@ -5,6 +5,9 @@ the full validation decision tree there; do not duplicate it in this file.
 
 - Before changing code or docs, read `CLAUDE.md` and choose the validation mode
   from its `Validation modes` section.
+- For ADSBao local development, follow `CLAUDE.md`'s dev-server lifecycle:
+  subagents should start and maintain the tmux-backed port 3000 process, and
+  should restart it with `.next` cleared when it breaks or serves stale CSS/JS.
 - For Vercel preview validation, push the work to a PR first, then use the
   preview URL generated for that PR as the verification target.
 - For FlightAware-related features, merge the work and verify with Chrome,

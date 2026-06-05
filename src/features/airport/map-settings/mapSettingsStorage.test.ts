@@ -37,6 +37,26 @@ try {
     MAP_MODE_IDS.CONTROLLER,
     "cache should migrate legacy immersive settings to the default mode",
   );
+
+  writeStoredMapSettings(
+    {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+    "mobile",
+  );
+
+  assert.equal(
+    normalizeMapSettings(readStoredMapSettings("mobile") || {}).selectedMode,
+    MAP_MODE_IDS.RADIO,
+    "mobile settings should be stored separately from desktop settings",
+  );
+  assert.equal(
+    normalizeMapSettings(readStoredMapSettings("desktop") || {}).selectedMode,
+    MAP_MODE_IDS.CONTROLLER,
+    "desktop settings should keep the legacy storage key",
+  );
 } finally {
   if (typeof originalWindow === "undefined") {
     delete (globalThis as any).window;

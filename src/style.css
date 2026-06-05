@@ -79,11 +79,18 @@
     --z-index-map-legend: 100;
     --z-index-map-ui: 200;
     --z-index-map-panel: 300;
+    --z-index-map-ui-floating: 350;
     --z-index-popover: 400;
     --z-index-dropdown: 500;
     --z-index-modal: 600;
     --z-index-modal-content: 610;
     --z-index-toast: 700;
+
+    /* Vertical breathing room the always-on bottom mobile toolbar pill
+       needs at the foot of the viewport so it does not cover the last
+       row of a page's content. Toolbar shell min-height + bottom inset
+       + small gap. */
+    --map-toolbar-mobile-clearance: calc(42px + max(24px, env(safe-area-inset-bottom) + 12px));
 }
 
 :root {
@@ -1664,22 +1671,17 @@ body {
 
 .page-nav-dock {
     display: flex;
-    justify-content: center;
-    /* Center over the right-hand content area, not the whole viewport.
-       The dither shell renders a sidebar on the left (`.dither-page-panel`
-       with `width: var(--app-sidebar-width)` and a 12px margin), so a true
-       viewport-center would visually skew the dock toward the sidebar
-       side. Shifting right by half the sidebar+inset reproduces the same
-       formula used by `.airport-map-kit--sidebar-open .airport-map-menu`,
-       so the toolbar lines up consistently across the home and detail
-       pages. On narrow screens (mobile, where the sidebar collapses) the
-       media query below resets this to a true viewport center. */
-    left: calc(50% + (var(--app-sidebar-width) + 12px) / 2);
+    justify-content: flex-end;
+    /* Desktop: pin the dock to the top-right corner so the static pages
+       share the same toolbar placement as the airport/flight detail
+       desktop map kit (`.airport-map-kit .airport-map-menu` uses an
+       inset-top/right of `--map-kit-inset`). The media query below
+       repins this to bottom-center on mobile. */
     max-width: calc(100vw - 24px);
     pointer-events: none;
     position: fixed;
+    right: max(12px, env(safe-area-inset-right));
     top: max(12px, env(safe-area-inset-top));
-    transform: translateX(-50%);
     width: max-content;
     z-index: var(--z-index-toast);
 }
@@ -1697,19 +1699,44 @@ body {
         display: none;
     }
 
+    /* Mobile static pages scroll as a single document — release the
+       desktop `h-screen` flex layout so the shell grows with content
+       and the browser's own scroller handles overflow. */
+    .dither-page-shell {
+        height: auto !important;
+        min-height: 100dvh;
+    }
+
     .dither-page-panel {
         background: var(--atc-bg);
         box-shadow: none;
-        padding-top: 58px;
         width: 100vw !important;
+        /* Leaves room for the floating bottom toolbar so the last row
+           of content remains visible when scrolled to the end. */
+        padding-bottom: var(--map-toolbar-mobile-clearance);
+    }
+
+    /* Inner panels normally use `flex-1 overflow-y-auto` so the desktop
+       sidebar panel scrolls internally. On mobile we want the whole
+       page to scroll instead, so reset those containers to natural
+       flow. */
+    .dither-page-panel > .flex-1.overflow-y-auto,
+    .dither-page-panel main.flex-1.overflow-y-auto,
+    .dither-page-panel .dither-list.flex-1.overflow-y-auto {
+        flex: 0 0 auto;
+        overflow: visible;
     }
 
     .page-nav-dock {
-        /* On narrow screens the dither sidebar collapses to full-width,
-           so the desktop content-center offset would skew the dock off
-           screen. Reset to a true viewport center. */
+        /* Mobile: pin the toolbar pill to the bottom center, matching
+           the explorer map toolbar so navigation stays in one place
+           across the app. */
+        justify-content: center;
         left: 50%;
-        top: max(12px, env(safe-area-inset-top));
+        right: auto;
+        top: auto;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
     }
 }
 
@@ -2684,9 +2711,17 @@ body {
 
 .airport-sidebar-panel--mobile .sidebar-top-dock,
 .flight-sidebar-panel--mobile .sidebar-top-dock {
-    height: calc(52px + env(safe-area-inset-top));
-    padding-top: max(12px, env(safe-area-inset-top));
+    /* The sidebar dock floats at the bottom of the viewport on mobile
+       so the app always exposes a single bottom-pinned toolbar. The
+       dock's pill stays clickable via the Toolbar primitive's own
+       pointer-events: auto. */
+    align-items: flex-end;
+    height: auto;
+    inset: auto 0 max(12px, env(safe-area-inset-bottom));
+    padding: 0 16px;
+    z-index: var(--z-index-map-ui-floating);
 }
+
 
 /* Sidebar's top toolbar dock — transparent slot that absolutely
    positions the floating Toolbar pill (sidebar mobile overlay) at the
@@ -4607,7 +4642,11 @@ body {
 @media (max-width: 767px) {
     .airport-sidebar-panel--mobile .airport-sidebar-identity,
     .flight-sidebar-panel .airport-sidebar-identity {
-        padding-top: calc(75px + env(safe-area-inset-top));
+        /* Match the home page's dither-page-header top padding so the
+           "拍机宝" brand mark lands at the same vertical position
+           across the app on mobile. The dock no longer pins at the top
+           on mobile, so we no longer need to reserve 75px for it. */
+        padding-top: calc(28px + env(safe-area-inset-top));
         padding-bottom: 20px;
     }
 
@@ -6741,5 +6780,9 @@ body {
         inset: auto 0 max(12px, env(safe-area-inset-bottom));
         padding: 0 16px;
         pointer-events: none;
+        /* Stays above the mobile sidebar overlay so the toolbar pill (with
+           the sidebar-close button) is always reachable from the list. */
+        z-index: var(--z-index-map-ui-floating);
     }
+
 }

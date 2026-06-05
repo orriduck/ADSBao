@@ -24,6 +24,7 @@ export default function MapControlBar({
   showAirspaces = true,
   showCandidateWatchingSpots = false,
   mapSettings = null,
+  mapSettingsDevice = "desktop",
   mapSettingsSaveStatus = "idle",
   userLocationActive = false,
   userLocationAudioActive = false,
@@ -85,6 +86,7 @@ export default function MapControlBar({
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
         showCandidateWatchingSpots={showCandidateWatchingSpots}
+        mapSettingsDevice={mapSettingsDevice}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
         userLocationActive={userLocationActive}
         userLocationAudioActive={userLocationAudioActive}

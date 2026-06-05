@@ -79,6 +79,7 @@ export default function MapSettingsSheet({
   showNavaidMarkers,
   showAirspaces = true,
   showCandidateWatchingSpots = false,
+  mapSettingsDevice = "desktop",
   userLocationActive = false,
   userLocationAudioActive = false,
   userLocationPending = false,
@@ -122,6 +123,10 @@ export default function MapSettingsSheet({
     : t("mapLayers.disableUserLocationAudio");
   const showGuestPrompt = isLoaded && !isSignedIn;
   const showSignedInPersistence = isLoaded && isSignedIn;
+  const deviceLabelKey =
+    mapSettingsDevice === "mobile"
+      ? "mapSettings.devices.mobile"
+      : "mapSettings.devices.desktop";
   const signedInPersistenceKey =
     mapSettingsSaveStatus === "saving"
       ? "mapSettings.savingSettings"
@@ -370,7 +375,12 @@ export default function MapSettingsSheet({
               role="status"
               aria-live="polite"
             >
-              {t(signedInPersistenceKey)}
+              <span className="block text-[11px] font-semibold leading-tight text-atc-text">
+                {t("mapSettings.deviceScope", { device: t(deviceLabelKey) })}
+              </span>
+              <span className="mt-1 block">
+                {t(signedInPersistenceKey)}
+              </span>
             </div>
           ) : null}
         </div>

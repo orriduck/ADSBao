@@ -7,11 +7,21 @@ import {
   buildMapSettingsFromLayerState,
   buildPresetMapSettings,
   getSelectableMapModeOptions,
+  getAlternateMapSettingsDevice,
   mapSettingsToExplorerLayers,
   mergeMapSettings,
   normalizeMapSettings,
+  normalizeMapSettingsDevice,
   resolveMapSettingsHydration,
 } from "./mapSettingsModel";
+
+{
+  assert.equal(normalizeMapSettingsDevice("mobile"), "mobile");
+  assert.equal(normalizeMapSettingsDevice("desktop"), "desktop");
+  assert.equal(normalizeMapSettingsDevice("tablet"), "desktop");
+  assert.equal(getAlternateMapSettingsDevice("mobile"), "desktop");
+  assert.equal(getAlternateMapSettingsDevice("desktop"), "mobile");
+}
 
 {
   const spotting = buildPresetMapSettings({ modeId: MAP_MODE_IDS.SPOTTING });

@@ -441,6 +441,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     country: airportProfile.country,
     lat: airportProfile.lat,
     lon: airportProfile.lon,
+    elevationFt: airportProfile.elevationFt,
     metar: weather.metar,
     metarRaw: weather.metarRaw,
     metarLoading: weather.metarLoading,
@@ -526,6 +527,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
             icao={airportProfile.icao}
             lat={airportProfile.lat}
             lon={airportProfile.lon}
+            airportElevationFt={airportProfile.elevationFt}
             zoom={mapZoom}
             aircraft={traffic.aircraft}
             nearbyAirports={nearbyAirports.airports}

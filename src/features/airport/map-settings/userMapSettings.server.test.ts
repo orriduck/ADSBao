@@ -42,7 +42,7 @@ const user = {
     {
       type: "settings",
       email: "owner@example.com",
-      options: undefined,
+      options: { device: undefined },
     },
   ]);
 }
@@ -68,9 +68,11 @@ const user = {
       baseMode: "immersive",
       hasSelectedMode: true,
     },
+    device: "mobile",
   });
 
   assert.equal(calls[0].email, "owner@example.com");
+  assert.equal(calls[0].device, "mobile");
   assert.equal(calls[0].settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
 }
 

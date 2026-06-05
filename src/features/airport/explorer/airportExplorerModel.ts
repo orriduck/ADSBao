@@ -22,6 +22,7 @@ export function resolveAirportProfile({ icao = "", airport = null }: AirportExpl
     country: airport?.country || airportFallback?.country || "",
     lat: COORDS[normalizedIcao]?.[0] || airport?.lat || 0,
     lon: COORDS[normalizedIcao]?.[1] || airport?.lon || 0,
+    elevationFt: airport?.elevationFt ?? null,
   };
 }
 
