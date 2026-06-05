@@ -13,6 +13,7 @@ const mapCornerClassName = cn(
   "[.airport-map-kit_&]:right-0.5 [.airport-map-kit_&]:top-[calc(100%+10px)]",
   "md:[.airport-map-kit_&]:top-[calc(100%+8px)]",
   "[.airport-map-menu--mobile_&]:left-1/2 [.airport-map-menu--mobile_&]:right-auto [.airport-map-menu--mobile_&]:top-[calc(100%+7px)]",
+  "[.airport-map-menu--mobile_&]:bottom-[calc(100%+7px)] [.airport-map-menu--mobile_&]:top-auto",
   "[.airport-map-menu--mobile_&]:max-w-[min(288px,calc(100vw-32px))] [.airport-map-menu--mobile_&]:-translate-x-1/2",
   "[.airport-map-menu--mobile_&]:items-center [.airport-map-menu--mobile_&]:text-center",
   "[.airport-map-menu--mobile_&]:[filter:drop-shadow(0_7px_11px_color-mix(in_oklab,var(--atc-bg)_72%,transparent))_drop-shadow(0_1px_1px_color-mix(in_oklab,var(--atc-text)_24%,transparent))]",

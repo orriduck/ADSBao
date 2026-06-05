@@ -31,7 +31,7 @@ export default function MobilePreviewCard({
       data-ui="mobile-preview-card"
       className={cn(
         "fixed left-1/2 z-popover",
-        "bottom-[calc(64px+env(safe-area-inset-bottom))]",
+        "top-[calc(12px+env(safe-area-inset-top))]",
         "w-[min(342px,calc(100vw-24px))] max-w-[calc(100vw-24px)]",
         "isolate overflow-hidden select-none pointer-events-none",
         "app-preview-transition mobile-preview-card-enter",

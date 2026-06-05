@@ -47,6 +47,7 @@ export default function ExplorerMapMenu({
       }`}
     >
       <MapControlBar
+        menuPlacement={isMobile ? "top" : "bottom"}
         activeZoom={mapZoom}
         zoomActive={mapFollowsAircraft}
         zoomDisabled={zoomDisabled}

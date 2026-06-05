@@ -58,7 +58,7 @@ export default function SidebarViewSwitch({
         <SidebarMetricCard
           label={t("sidebar.atc")}
           value={<NumberFlow value={atcCount} />}
-          unit="FREQ"
+          unit={t("sidebar.metricUnits.frequency")}
           active={activeView === "atc"}
           onClick={() => onViewChange?.("atc")}
         />
@@ -66,7 +66,7 @@ export default function SidebarViewSwitch({
       <SidebarMetricCard
         label={t("sidebar.spotting")}
         value={<NumberFlow value={spottingCount} />}
-        unit="PHOTO"
+        unit={t("sidebar.metricUnits.spots")}
         active={activeView === "spotting"}
         onClick={onOpenSpotting}
       />
@@ -75,14 +75,14 @@ export default function SidebarViewSwitch({
           <SidebarMetricCard
             label={t("sidebar.departures")}
             value={<NumberFlow value={departureCount} />}
-            unit="OUT"
+            unit={t("sidebar.metricUnits.flights")}
             active={activeView === "departures"}
             onClick={() => onViewChange?.("departures")}
           />
           <SidebarMetricCard
             label={t("sidebar.arrivals")}
             value={<NumberFlow value={arrivalCount} />}
-            unit="IN"
+            unit={t("sidebar.metricUnits.flights")}
             active={activeView === "arrivals"}
             onClick={() => onViewChange?.("arrivals")}
           />

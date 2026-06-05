@@ -212,7 +212,7 @@
 @keyframes mobile-preview-card-enter {
     from {
         opacity: 0;
-        transform: translate(-50%, 10px);
+        transform: translate(-50%, -10px);
     }
     to {
         opacity: 1;
@@ -335,8 +335,23 @@
     .map-settings-sheet,
     .map-settings-sheet-overlay {
         animation: none;
-        transform: none;
         transition: none;
+    }
+
+    .mobile-preview-card-enter {
+        transform: translateX(-50%);
+    }
+
+    .app-preview-transition:not(.mobile-preview-card-enter),
+    .nearby-row-enter,
+    .app-route-transition,
+    .app-panel-transition,
+    .app-list-motion > *,
+    .candidate-watching-spot-preview-motion,
+    .candidate-watching-spot-marker__shell,
+    .map-settings-sheet,
+    .map-settings-sheet-overlay {
+        transform: none;
     }
 }
 
@@ -6524,13 +6539,9 @@ body {
     background: transparent;
     border: 0;
     height: auto;
-    inset: var(--map-kit-inset) auto auto 50%;
+    inset: var(--map-kit-inset) var(--map-kit-inset) auto auto;
     padding: 0;
-    transform: translateX(-50%);
-}
-
-.airport-map-kit--sidebar-open .airport-map-menu {
-    left: calc(50% + ((var(--app-sidebar-width) + var(--map-kit-inset)) / 2));
+    transform: none;
 }
 
 .airport-map-kit .map-ctrl-zone {
@@ -6727,7 +6738,7 @@ body {
         display: flex;
         justify-content: center;
         height: auto;
-        inset: max(12px, env(safe-area-inset-top)) 0 auto;
+        inset: auto 0 max(12px, env(safe-area-inset-bottom));
         padding: 0 16px;
         pointer-events: none;
     }
