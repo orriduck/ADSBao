@@ -29,7 +29,7 @@ import {
   resolveTrackedAircraftSelectionSync,
   resolveFlightTrackingDisplayContext,
 } from "@/features/aircraft/tracking/flightTrackingDisplayModel";
-import { buildFlightAwareRouteArcPath } from "@/features/aviation/flight-routes/flightRouteArcModel";
+import { resolveFocusedFlightAwareRouteArcPath } from "@/features/aviation/flight-routes/flightRouteArcModel";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
 import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel";
 import { mergeTrackedAircraftIntoNearby } from "@/features/airport/explorer/airportExplorerModel";
@@ -660,18 +660,20 @@ function FlightExplorerContent({ callsign }) {
   }, [focalKey, selectedAircraftId, setSelectedAircraftId, showNearbyContext]);
 
   const focalRoutePath = useMemo(() => {
-    return buildFlightAwareRouteArcPath({
-      route: enrichedTrackedAircraft?.flightRoute,
+    return resolveFocusedFlightAwareRouteArcPath({
+      selectedAircraft,
+      focalAircraft: enrichedTrackedAircraft,
       routeProvider,
       routeEndpointAirportsOnly,
       from: { lat: focalLat, lon: focalLon },
     });
   }, [
-    enrichedTrackedAircraft?.flightRoute,
+    enrichedTrackedAircraft,
     focalLat,
     focalLon,
     routeProvider,
     routeEndpointAirportsOnly,
+    selectedAircraft,
   ]);
 
   useEffect(() => {

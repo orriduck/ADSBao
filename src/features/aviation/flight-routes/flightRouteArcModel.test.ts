@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { ROUTE_PROVIDER } from "../sourceDisplayModel";
 import {
   buildFlightAwareRouteArcPath,
+  resolveFocusedFlightAwareRouteArcPath,
   shouldShowFlightAwareRouteArc,
 } from "./flightRouteArcModel";
 
@@ -65,6 +66,25 @@ const flightAwareRoute = {
     }),
     true,
   );
+}
+
+{
+  const selectedRoute = {
+    source: "flightaware",
+    origin: { icao: "KJFK", lat: 40.6413, lon: -73.7781 },
+    destination: { icao: "RJTT", lat: 35.5494, lon: 139.7798 },
+  };
+  const path = resolveFocusedFlightAwareRouteArcPath({
+    selectedAircraft: { callsign: "JAL5", flightRoute: selectedRoute },
+    focalAircraft: { callsign: "AAL100", flightRoute: flightAwareRoute },
+    routeProvider: ROUTE_PROVIDER.FLIGHTAWARE,
+    routeEndpointAirportsOnly: true,
+    from: { lat: 40.71, lon: -73.9 },
+    segments: 8,
+  });
+
+  assert.equal(path.length, 9);
+  assert.deepEqual(path.at(-1), [35.5494, 139.7798]);
 }
 
 console.log("flightRouteArcModel.test.ts ok");
