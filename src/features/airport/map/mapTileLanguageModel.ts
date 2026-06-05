@@ -1,8 +1,3 @@
-import {
-  resolveImmersiveColorSchemeFromLocalMinutes,
-  type ImmersiveMapPalette,
-} from "../immersive/immersiveColorModel";
-
 const OPENFREEMAP_STYLES = Object.freeze({
   dark: "https://tiles.openfreemap.org/styles/dark",
   light: "https://tiles.openfreemap.org/styles/positron",
@@ -117,25 +112,6 @@ export function buildLocalizedMapLibreStyle(
   };
 }
 
-export function buildImmersiveMapLibreStyle(
-  style: MapLibreStyle,
-  options: { localMinutes?: unknown } | null = null,
-) {
-  const palette =
-    options && typeof options === "object"
-      ? resolveImmersiveColorSchemeFromLocalMinutes(options.localMinutes)
-          .mapPalette
-      : null;
-  if (!palette || !style || !Array.isArray(style.layers)) return style;
-
-  return {
-    ...style,
-    layers: style.layers.map((layer) =>
-      themeMapLibreLayer(layer, palette),
-    ),
-  };
-}
-
 export function buildProxiedMapLibreStyle(
   style: MapLibreStyle,
   { tileJson }: ProxiedMapStyleOptions = {},
@@ -166,117 +142,5 @@ function isTextSymbolLayer(layer: MapLibreLayer) {
     layer?.type === "symbol" &&
     layer.layout &&
     Object.prototype.hasOwnProperty.call(layer.layout, "text-field")
-  );
-}
-
-function themeMapLibreLayer(layer: MapLibreLayer, palette: ImmersiveMapPalette) {
-  const id = String(layer.id || "").toLowerCase();
-  const hadPaint = Boolean(layer.paint && typeof layer.paint === "object");
-  const paint =
-    hadPaint
-      ? { ...(layer.paint as Record<string, unknown>) }
-      : {};
-  let changed = false;
-
-  if (layer.type === "background") {
-    paint["background-color"] = palette.background;
-    changed = true;
-  }
-
-  if (layer.type === "fill") {
-    const fillColor = getFillColor(id, palette);
-    if (fillColor) {
-      paint["fill-color"] = fillColor;
-      changed = true;
-    }
-    if (id.includes("building")) {
-      paint["fill-outline-color"] = palette.buildingOutline;
-      changed = true;
-    }
-  }
-
-  if (layer.type === "line") {
-    const lineColor = getLineColor(id, palette);
-    if (lineColor) {
-      paint["line-color"] = lineColor;
-      changed = true;
-    }
-    if (isMutedLineLayer(id)) {
-      paint["line-opacity"] = palette.roadOpacity;
-      changed = true;
-    }
-  }
-
-  if (layer.type === "symbol") {
-    if (Object.prototype.hasOwnProperty.call(paint, "text-color")) {
-      paint["text-color"] = getTextColor(id, palette);
-      changed = true;
-    }
-    if (Object.prototype.hasOwnProperty.call(paint, "text-halo-color")) {
-      paint["text-halo-color"] = palette.labelHalo;
-      changed = true;
-    }
-    if (isRoadLayer(id)) {
-      paint["text-opacity"] = palette.roadLabelOpacity;
-      paint["icon-opacity"] = palette.roadShieldOpacity;
-      changed = true;
-    }
-  }
-
-  if (!changed && !hadPaint) return layer;
-  return { ...layer, paint };
-}
-
-function getFillColor(id: string, palette: ImmersiveMapPalette) {
-  if (id.includes("water")) return palette.water;
-  if (id.includes("ice") || id.includes("glacier")) return palette.ice;
-  if (id.includes("park")) return palette.park;
-  if (id.includes("wood")) return palette.wood;
-  if (id.includes("residential") || id.includes("landuse")) return palette.landuse;
-  if (id.includes("building")) return palette.building;
-  if (id.includes("aeroway")) return palette.aeroway;
-  if (id.includes("pier")) return palette.pier;
-  return null;
-}
-
-function getLineColor(id: string, palette: ImmersiveMapPalette) {
-  if (id.includes("water")) return palette.waterLabel;
-  if (id.includes("aeroway")) return palette.aerowayLine;
-  if (id.includes("motorway")) return id.includes("inner") ? palette.motorwayInner : palette.motorway;
-  if (id.includes("major")) return palette.majorRoad;
-  if (id.includes("minor")) return palette.minorRoad;
-  if (id.includes("path")) return palette.path;
-  if (id.includes("rail")) return palette.rail;
-  if (id.includes("boundary") || id.includes("admin") || id.includes("border")) {
-    return palette.boundary;
-  }
-  if (id.includes("pier")) return palette.pier;
-  return null;
-}
-
-function getTextColor(id: string, palette: ImmersiveMapPalette) {
-  if (id.includes("water")) return palette.waterLabel;
-  if (isRoadLayer(id)) return palette.roadLabel;
-  return palette.label;
-}
-
-function isRoadLayer(id: string) {
-  return (
-    id.includes("highway") ||
-    id.includes("motorway") ||
-    id.includes("transportation") ||
-    id.includes("road") ||
-    id.includes("street")
-  );
-}
-
-function isMutedLineLayer(id: string) {
-  return (
-    isRoadLayer(id) ||
-    id.includes("admin") ||
-    id.includes("border") ||
-    id.includes("boundary") ||
-    id.includes("path") ||
-    id.includes("rail")
   );
 }

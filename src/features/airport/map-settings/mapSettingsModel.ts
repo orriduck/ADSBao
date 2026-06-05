@@ -5,7 +5,6 @@ export const MAP_MODE_IDS = Object.freeze({
   SPOTTING: "spotting",
   RADIO: "radio",
   CONTROLLER: "controller",
-  IMMERSIVE: "immersive",
   CUSTOM: "custom",
 });
 
@@ -75,28 +74,12 @@ const MAP_MODE_PRESETS = Object.freeze({
       [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
     }),
   }),
-  [MAP_MODE_IDS.IMMERSIVE]: Object.freeze({
-    id: MAP_MODE_IDS.IMMERSIVE,
-    labelKey: "mapSettings.modes.immersive",
-    descriptionKey: "mapSettings.modeDescriptions.immersive",
-    iconKey: "crosshair",
-    layers: Object.freeze({
-      [MAP_LAYER_KEYS.MAP_LABELS]: false,
-      [MAP_LAYER_KEYS.APPROACH_BEAMS]: false,
-      [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
-      [MAP_LAYER_KEYS.AIRSPACES]: false,
-      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
-      [MAP_LAYER_KEYS.USER_LOCATION]: false,
-      [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
-    }),
-  }),
 });
 
 export const MAP_MODE_OPTIONS = Object.freeze([
   MAP_MODE_PRESETS[MAP_MODE_IDS.SPOTTING],
   MAP_MODE_PRESETS[MAP_MODE_IDS.RADIO],
   MAP_MODE_PRESETS[MAP_MODE_IDS.CONTROLLER],
-  MAP_MODE_PRESETS[MAP_MODE_IDS.IMMERSIVE],
 ]);
 
 export const CUSTOM_MAP_MODE_OPTION = Object.freeze({

@@ -46,15 +46,12 @@ globalThis.document = {
 } as Document
 
 assert.equal(sanitizeTheme('light'), THEME_LIGHT)
-assert.equal(sanitizeTheme('sunrise'), THEME_SYSTEM)
-assert.equal(sanitizeTheme('sunset'), THEME_SYSTEM)
 assert.equal(sanitizeTheme('wat'), THEME_SYSTEM)
 
 assert.equal(nextTheme(THEME_LIGHT), THEME_DARK)
 assert.equal(nextTheme(THEME_DARK), THEME_SYSTEM)
 assert.equal(nextTheme(THEME_SYSTEM), THEME_LIGHT)
-assert.equal(nextTheme('sunrise'), THEME_LIGHT)
-assert.equal(nextTheme('sunset'), THEME_LIGHT)
+assert.equal(nextTheme('removed-theme'), THEME_LIGHT)
 
 const storage = createStorage({ theme: 'wat' })
 assert.equal(
@@ -97,7 +94,7 @@ assert.equal(lightRoot.attrs.get('data-theme'), THEME_LIGHT)
 
 const legacyThemeRoot = createRoot()
 const legacyThemeResult = applyThemePreference({
-  theme: 'sunrise',
+  theme: 'removed-theme',
   root: legacyThemeRoot,
   mediaQueryList: { matches: true },
 })
@@ -119,7 +116,7 @@ assert.ok(cookieJar.value.startsWith('theme=light;'), `expected resolved light c
 
 cookieJar.value = ''
 applyThemePreference({
-  theme: 'sunset',
+  theme: 'removed-theme',
   root: createRoot(),
   mediaQueryList: { matches: false },
 })

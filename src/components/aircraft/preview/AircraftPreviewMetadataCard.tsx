@@ -14,7 +14,6 @@ export default function AircraftPreviewMetadataCard({
   airportProfile = null,
   onApplyTemporaryRoute,
   traceLoading = false,
-  hideTraceControls = false,
 }) {
   const { t } = useI18n();
   const pathname = usePathname();
@@ -22,8 +21,7 @@ export default function AircraftPreviewMetadataCard({
   const trackCallsign = (aircraft?.callsign || "").trim().toUpperCase();
   const alreadyTracking =
     Boolean(trackCallsign) && pathname === `/aircraft/${trackCallsign}`;
-  const trackHref =
-    !hideTraceControls && trackCallsign ? `/aircraft/${trackCallsign}` : null;
+  const trackHref = trackCallsign ? `/aircraft/${trackCallsign}` : null;
 
   return (
     <div className="aircraft-preview-metadata-card">

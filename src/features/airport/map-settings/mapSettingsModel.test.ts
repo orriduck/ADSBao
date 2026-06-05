@@ -148,35 +148,34 @@ import {
 {
   assert.equal(
     getSelectableMapModeOptions().some(
-      (mode) => mode.id === MAP_MODE_IDS.IMMERSIVE,
+      (mode) => mode.id === "immersive",
     ),
-    true,
+    false,
   );
 }
 
 {
-  const immersive = buildPresetMapSettings({
-    modeId: MAP_MODE_IDS.IMMERSIVE,
+  const legacyImmersive = buildPresetMapSettings({
+    modeId: "immersive",
     now: "2026-06-02T15:08:00.000Z",
   });
 
-  assert.equal(immersive.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+  assert.equal(legacyImmersive.selectedMode, MAP_MODE_IDS.CONTROLLER);
   assert.deepEqual(
-    mapSettingsToExplorerLayers(immersive),
+    mapSettingsToExplorerLayers(legacyImmersive),
     {
-      showMapLabels: false,
-      showRunwayBeams: false,
+      showMapLabels: true,
+      showRunwayBeams: true,
       showNavaidMarkers: false,
-      showAirspaces: false,
+      showAirspaces: true,
       showCandidateWatchingSpots: false,
     },
   );
-  assert.equal(
-    normalizeMapSettings(
-      { selectedMode: MAP_MODE_IDS.IMMERSIVE, baseMode: MAP_MODE_IDS.IMMERSIVE },
-    ).selectedMode,
-    MAP_MODE_IDS.IMMERSIVE,
+  const normalized = normalizeMapSettings(
+    { selectedMode: "immersive", baseMode: "immersive" },
   );
+  assert.equal(normalized.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(normalized.baseMode, MAP_MODE_IDS.CONTROLLER);
 }
 
 {
@@ -188,8 +187,8 @@ import {
       hasSelectedMode: true,
     },
     cachedSettings: {
-      selectedMode: MAP_MODE_IDS.IMMERSIVE,
-      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      selectedMode: "immersive",
+      baseMode: "immersive",
       hasSelectedMode: true,
     },
   });
@@ -207,8 +206,8 @@ import {
     signedIn: true,
     userSettings: null,
     cachedSettings: {
-      selectedMode: MAP_MODE_IDS.IMMERSIVE,
-      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      selectedMode: "immersive",
+      baseMode: "immersive",
       hasSelectedMode: true,
     },
   });
@@ -218,7 +217,7 @@ import {
     "cache",
     "signed-in hydration should only fall back to cache when no user settings exist",
   );
-  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
 }
 
 {

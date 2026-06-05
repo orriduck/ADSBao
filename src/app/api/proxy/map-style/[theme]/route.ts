@@ -7,11 +7,11 @@ import {
   readResponseJson,
 } from "@/app/api/_shared/apiProxySecurity";
 import {
-  buildImmersiveMapLibreStyle,
   buildLocalizedMapLibreStyle,
   buildProxiedMapLibreStyle,
   getMapLibreBaseStyleUrl,
 } from "@/features/airport/map/mapTileLanguageModel";
+import { isKnownMapTheme } from "@/features/airport/map/airportMapModel";
 
 const SOURCE = "openfreemap";
 const CACHE_HEADERS = {
@@ -34,11 +34,9 @@ export async function GET(request, { params }) {
 
   const { theme: rawTheme } = await params;
   const requestUrl = new URL(request.url);
-  const immersiveMode = rawTheme === "immersive";
-  const baseTheme = rawTheme === "light" || immersiveMode ? "light" : "dark";
+  const baseTheme = isKnownMapTheme(rawTheme) ? rawTheme : "dark";
   const locale = requestUrl.searchParams.get("locale") || "en";
   const showLabels = requestUrl.searchParams.get("labels") !== "0";
-  const localMinutes = requestUrl.searchParams.get("localMinutes");
 
   let upstreamStyle;
   try {
@@ -64,11 +62,7 @@ export async function GET(request, { params }) {
   }
 
   const style = buildLocalizedMapLibreStyle(
-    immersiveMode
-      ? buildImmersiveMapLibreStyle(buildProxiedMapLibreStyle(upstreamStyle), {
-          localMinutes,
-        })
-      : buildProxiedMapLibreStyle(upstreamStyle),
+    buildProxiedMapLibreStyle(upstreamStyle),
     { locale, showLabels },
   );
 

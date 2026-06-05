@@ -16,7 +16,6 @@ import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "@/features/airport/explorer/a
 import {
   DEFAULT_MAP_SETTINGS,
   MAP_LAYER_KEYS,
-  MAP_MODE_IDS,
   buildCustomMapSettings,
   buildPresetMapSettings,
   isSelectableMapModeId,
@@ -575,9 +574,6 @@ export function ExplorerUiProvider({ children }) {
 
   const fitToTraceSignal = state.fitToTraceSignal;
   const mapFollowsAircraft = state.mapFollowsAircraft;
-  const immersiveModeActive =
-    mapSettings?.selectedMode === MAP_MODE_IDS.IMMERSIVE;
-
   const value = useMemo(
     () => ({
       desktopSidebarWidth: AIRPORT_EXPLORER_UI_CONFIG.desktopSidebarWidth,
@@ -595,7 +591,6 @@ export function ExplorerUiProvider({ children }) {
       userLocationAudioEnabled,
       mapSettings,
       mapSettingsSaveStatus,
-      immersiveModeActive,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -647,7 +642,6 @@ export function ExplorerUiProvider({ children }) {
       userLocationAudioEnabled,
       mapSettings,
       mapSettingsSaveStatus,
-      immersiveModeActive,
       trafficFilter,
       typeFilter,
       altitudeLevel,

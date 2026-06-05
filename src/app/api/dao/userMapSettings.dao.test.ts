@@ -243,8 +243,8 @@ function createFakeSupabaseClient({
       email: "owner@example.com",
       environment: "preview",
       settings: {
-        selectedMode: MAP_MODE_IDS.IMMERSIVE,
-        baseMode: MAP_MODE_IDS.IMMERSIVE,
+        selectedMode: "immersive",
+        baseMode: "immersive",
         hasSelectedMode: true,
         layerOverrides: {},
         updatedAt: "2026-06-02T15:08:00.000Z",
@@ -256,8 +256,8 @@ function createFakeSupabaseClient({
       email: "owner@example.com",
       environment: "preview",
       settings: {
-        selectedMode: MAP_MODE_IDS.IMMERSIVE,
-        baseMode: MAP_MODE_IDS.IMMERSIVE,
+        selectedMode: "immersive",
+        baseMode: "immersive",
         hasSelectedMode: true,
         layerOverrides: {},
         updatedAt: "2026-06-02T15:09:00.000Z",
@@ -276,22 +276,22 @@ function createFakeSupabaseClient({
   });
 
   const readRow = await repository.readSettingsByEmail("owner@example.com");
-  assert.equal(readRow.settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
+  assert.equal(readRow.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
 
   await repository.upsertSettingsByEmail({
     email: "owner@example.com",
     settings: {
-      selectedMode: MAP_MODE_IDS.IMMERSIVE,
-      baseMode: MAP_MODE_IDS.IMMERSIVE,
+      selectedMode: "immersive",
+      baseMode: "immersive",
       hasSelectedMode: true,
       updatedAt: "2026-06-02T15:09:00.000Z",
     },
   });
 
   const upsertCall = calls.find((call) => call.type === "upsert");
-  assert.ok(upsertCall, "repository should preserve immersive account settings");
-  assert.equal(upsertCall.row.settings.selectedMode, MAP_MODE_IDS.IMMERSIVE);
-  assert.equal(upsertCall.row.settings.baseMode, MAP_MODE_IDS.IMMERSIVE);
+  assert.ok(upsertCall, "repository should migrate legacy immersive account settings");
+  assert.equal(upsertCall.row.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(upsertCall.row.settings.baseMode, MAP_MODE_IDS.CONTROLLER);
 }
 
 console.log("userMapSettings.dao.test.ts ok");

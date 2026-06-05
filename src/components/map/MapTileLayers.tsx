@@ -10,14 +10,13 @@ import {
 } from "@/features/airport/map/mapTileLayerModel";
 import { isLightMapTheme } from "@/features/airport/map/airportMapModel";
 
-const MAP_STYLE_THEME_REVISION = "immersive-mode-v4";
+const MAP_STYLE_THEME_REVISION = "light-dark-v1";
 
 export default function MapTileLayers({
   theme = "dark",
   locale = "en",
   showLabels = true,
   selectionActive = false,
-  immersiveLocalMinutes = null,
 }: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
@@ -44,7 +43,6 @@ export default function MapTileLayers({
       theme,
       locale,
       showLabels,
-      immersiveLocalMinutes,
       signal: abort.signal,
     })
       .then((style) => {
@@ -81,7 +79,7 @@ export default function MapTileLayers({
       removeLayer(layerRef.current, map);
       layerRef.current = null;
     };
-  }, [map, theme, locale, showLabels, immersiveLocalMinutes]);
+  }, [map, theme, locale, showLabels]);
 
   useEffect(() => {
     setSelectionOpacity(layerRef.current, theme, selectionActive);
@@ -94,7 +92,6 @@ async function loadLocalizedMapStyle({
   theme,
   locale,
   showLabels,
-  immersiveLocalMinutes,
   signal,
 }: Record<string, any>) {
   const params = new URLSearchParams({
@@ -102,9 +99,6 @@ async function loadLocalizedMapStyle({
     labels: showLabels ? "1" : "0",
     v: MAP_STYLE_THEME_REVISION,
   });
-  if (theme === "immersive" && immersiveLocalMinutes != null) {
-    params.set("localMinutes", String(immersiveLocalMinutes));
-  }
   return requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
 }
 
@@ -164,12 +158,6 @@ function removeLayer(layer: any, map: any) {
 function setSelectionOpacity(layer, theme, selectionActive) {
   const container = layer?.getContainer?.();
   if (!container) return;
-  if (theme === "immersive") {
-    container.style.opacity = selectionActive
-      ? "0.74"
-      : "var(--immersive-map-detail-opacity, 0.88)";
-    return;
-  }
   if (selectionActive) {
     container.style.opacity = isLightMapTheme(theme) ? "0.92" : "0.88";
     return;

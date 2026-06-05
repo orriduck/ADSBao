@@ -27,7 +27,6 @@ type AirportGroundFilterOptions = {
 
 type NearbyAirportLayerDisplayOptions = {
   nearbyAirports?: AirportMapCoordinate[];
-  immersiveModeActive?: boolean;
 };
 
 type VisibleAircraftOptions = AirportGroundFilterOptions & {
@@ -38,7 +37,6 @@ type VisibleAircraftOptions = AirportGroundFilterOptions & {
 type SelectedAircraftTraceOptions = {
   selectedAircraftId?: unknown;
   selectedAircraft?: unknown;
-  immersiveModeActive?: boolean;
 };
 
 export const isLightMapTheme = (theme: unknown) =>
@@ -65,19 +63,17 @@ export const getMapOverlayTheme = (theme: unknown) =>
 
 export const resolveNearbyAirportLayerDisplay = ({
   nearbyAirports = [],
-  immersiveModeActive = false,
 }: NearbyAirportLayerDisplayOptions = {}) => ({
   airports: Array.isArray(nearbyAirports) ? nearbyAirports : [],
-  showAirportBadges: !immersiveModeActive,
+  showAirportBadges: true,
   showRunwayBadges: false,
 });
 
 export const shouldRenderSelectedAircraftTrace = ({
   selectedAircraftId = "",
   selectedAircraft = null,
-  immersiveModeActive = false,
 }: SelectedAircraftTraceOptions = {}) =>
-  Boolean(selectedAircraftId && selectedAircraft && !immersiveModeActive);
+  Boolean(selectedAircraftId && selectedAircraft);
 
 const toFiniteCoordinate = (value: unknown) => {
   if (value == null || value === "") return null;

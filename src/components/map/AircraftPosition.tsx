@@ -46,9 +46,6 @@ export default function AircraftPosition({
   selectionActive = false,
   traceActive = false,
   forceSilhouette = false,
-  immersiveModeActive = false,
-  immersivePhase = "",
-  threeDimensionalOverlayActive = false,
   onSelectAircraft,
 }) {
   const map = useMapInstance();
@@ -155,24 +152,19 @@ export default function AircraftPosition({
   });
   const rot = Math.round(aircraft.track || 0);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
-  const labelColor = immersiveModeActive
-    ? "var(--aircraft-label-immersive-color)"
-    : color;
+  const labelColor = color;
   const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
-  const labelLeft = threeDimensionalOverlayActive
-    ? SILHOUETTE_SIZE_PX + 4
-    : showArrow
-      ? Boolean(silhouette)
-        ? SILHOUETTE_SIZE_PX + 4
-        : 22
-      : SILHOUETTE_SIZE_PX;
+  const labelLeft = showArrow
+    ? Boolean(silhouette)
+      ? SILHOUETTE_SIZE_PX + 4
+      : 22
+    : SILHOUETTE_SIZE_PX;
 
   return createPortal(
     <div
       className={`aircraft-marker ${
         selected ? "aircraft-marker--selected" : ""
       }`}
-      data-immersive={immersiveModeActive ? "true" : undefined}
       style={{ opacity: emphasis.opacity }}
     >
       <Pointer
@@ -187,7 +179,6 @@ export default function AircraftPosition({
         silhouette={silhouette}
         sizeScale={sizeScale}
         theme={theme}
-        threeDimensionalOverlayActive={threeDimensionalOverlayActive}
       />
       {(selected ||
         forceSilhouette ||
@@ -224,7 +215,6 @@ function Pointer({
   silhouette,
   sizeScale = 1,
   theme = "dark",
-  threeDimensionalOverlayActive = false,
 }) {
   // The wrapper carries heading + wake-class scale; the silhouette inside
   // carries the 3D pitch/bank stack + a translateY lift, while a separate
@@ -272,17 +262,6 @@ function Pointer({
   const shadowScale = (0.85 - altRatio * 0.15).toFixed(3);
   const shadowTransform =
     `translate(${shadowOffsetX}px, ${shadowOffsetY}px) scale(${shadowScale})`;
-
-  if (threeDimensionalOverlayActive) {
-    return (
-      <span
-        className="aircraft-marker-hit-target"
-        aria-hidden="true"
-        data-selected={selected ? "true" : undefined}
-        style={{ transform: `rotate(${rot}deg) scale(${sizeScale})` }}
-      />
-    );
-  }
 
   if (showArrow && silhouette) {
     // Wrapper carries the heading rotation so the dark-theme nose beam
