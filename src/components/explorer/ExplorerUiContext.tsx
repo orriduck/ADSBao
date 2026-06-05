@@ -285,6 +285,28 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: "",
         selectedAirspaceId: "",
       };
+    case "clearAllPreviewSelections":
+      // Used by the swipe-up-to-dismiss gesture: clears whatever entity
+      // is currently selected (aircraft / airport / navaid / airspace /
+      // watching spot) so the mobile preview card hides. No-op when
+      // nothing is selected so React can bail on the dispatch.
+      if (
+        !state.selectedAircraftId &&
+        !state.selectedAirportIcao &&
+        !state.selectedNavaidKey &&
+        !state.selectedAirspaceId &&
+        !state.selectedCandidateWatchingSpotId
+      ) {
+        return state;
+      }
+      return {
+        ...state,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
+        selectedNavaidKey: "",
+        selectedAirspaceId: "",
+        selectedCandidateWatchingSpotId: "",
+      };
     case "fitToTrace":
       return {
         ...state,
@@ -573,6 +595,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "setSelectedCandidateWatchingSpotId", spotId });
   }, []);
 
+  const clearAllPreviewSelections = useCallback(() => {
+    dispatch({ type: "clearAllPreviewSelections" });
+  }, []);
+
   const fitToTrace = useCallback(() => {
     dispatch({ type: "fitToTrace" });
   }, []);
@@ -634,6 +660,7 @@ export function ExplorerUiProvider({ children }) {
       setSelectedAirspaceId,
       selectCandidateWatchingSpot,
       setSelectedCandidateWatchingSpotId,
+      clearAllPreviewSelections,
       fitToTrace,
       suspendMapFollow,
     }),
@@ -686,6 +713,7 @@ export function ExplorerUiProvider({ children }) {
       setSelectedAirspaceId,
       selectCandidateWatchingSpot,
       setSelectedCandidateWatchingSpotId,
+      clearAllPreviewSelections,
       fitToTrace,
       suspendMapFollow,
     ],
