@@ -61,8 +61,6 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
 | `src/app/page.tsx` | Search route entry |
 | `src/app/[icao]/page.tsx` | Airport route entry |
 | `src/app/api/proxy/flight-routes/callsign/[callsign]/route.ts` | Next.js Route Handler for callsign route lookup |
-| `src/components/screens/SearchScreen.tsx` | Thin route entry for airport search UI |
-| `src/components/screens/AirportCaptionScreen.tsx` | Thin route entry for airport explorer map + METAR screen |
 | `src/components/about/*` | About-page JSX components |
 | `src/components/aircraft/*` | Aircraft preview and trace JSX components |
 | `src/components/airport/*` | Airport explorer and search JSX components |

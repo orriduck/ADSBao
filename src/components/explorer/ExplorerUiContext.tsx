@@ -430,11 +430,7 @@ export function ExplorerUiProvider({ children }) {
       const effectiveSettings = hydratedSettings.settings
         ? hydratedSettings.settings
         : normalizeMapSettings(DEFAULT_MAP_SETTINGS);
-      if (isSignedIn && hydratedSettings.source === "cache") {
-        persistedMapSettingsRef.current = "";
-      } else {
-        persistedMapSettingsRef.current = JSON.stringify(effectiveSettings);
-      }
+      persistedMapSettingsRef.current = JSON.stringify(effectiveSettings);
       hasHydratedMapSettingsRef.current = true;
     };
 

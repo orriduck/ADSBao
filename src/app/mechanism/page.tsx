@@ -1,9 +1,9 @@
-import MechanismScreen from "@/components/screens/MechanismScreen";
+import MechanismPanel from "@/components/mechanism/MechanismPanel";
 
 export const metadata = {
   title: "Mechanism · ADSBao",
 };
 
 export default function Page() {
-  return <MechanismScreen />;
+  return <MechanismPanel />;
 }

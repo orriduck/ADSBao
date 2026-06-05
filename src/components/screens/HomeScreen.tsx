@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import AirportCaptionScreen from "./AirportCaptionScreen";
-import SearchScreen from "./SearchScreen";
+import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
+import AirportSearchPanel from "@/components/airport/search/AirportSearchPanel";
 import { airportDirectoryClient } from "../../features/airport/directory/airportDirectoryClient";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
@@ -66,14 +66,14 @@ export default function HomeScreen() {
   if (!currentIcao) {
     return (
       <div key={screenTransitionKey} className="app-route-transition min-h-dvh">
-        <SearchScreen onOpenAirport={handleOpenAirport} />
+        <AirportSearchPanel onOpenAirport={handleOpenAirport} />
       </div>
     );
   }
 
   return (
     <div key={screenTransitionKey} className="app-route-transition min-h-dvh">
-      <AirportCaptionScreen
+      <AirportExplorer
         icao={currentIcao}
         airport={airport}
         onBack={handleBack}
