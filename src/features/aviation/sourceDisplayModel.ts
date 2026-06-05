@@ -17,22 +17,26 @@ const DATA_SOURCE_LABELS = Object.freeze({
   [DATA_SOURCE.AIRPLANES_LIVE]: "airplanes.live",
   [DATA_SOURCE.ADSB_FI]: "adsb.fi",
   [DATA_SOURCE.ADSBDB]: "adsbdb",
-  [DATA_SOURCE.FLIGHTAWARE]: "FlightAware",
+  [DATA_SOURCE.FLIGHTAWARE]: "flightaware",
   [DATA_SOURCE.COMMUNITY_FEEDBACK]: "Community",
 });
 
+const AIRCRAFT_LOCATION_PROVIDER_LABELS = Object.freeze({
+  adsb: "ads-b",
+  adsb_lol: "ads-b",
+  [DATA_SOURCE.ADSB_LOL]: "ads-b",
+  airplanes_live: "ads-b",
+  [DATA_SOURCE.AIRPLANES_LIVE]: "ads-b",
+  adsb_fi: "ads-b",
+  [DATA_SOURCE.ADSB_FI]: "ads-b",
+  flightaware: "flightaware",
+});
+
 const AIRCRAFT_POSITION_SOURCE_LABELS = Object.freeze({
-  adsb: "ADS-B",
+  ...AIRCRAFT_LOCATION_PROVIDER_LABELS,
   adsc: "ADS-C",
   mlat: "MLAT",
   estimated: "Estimated",
-  adsb_lol: "ADS-B",
-  [DATA_SOURCE.ADSB_LOL]: "ADS-B",
-  airplanes_live: "Airplanes.live",
-  [DATA_SOURCE.AIRPLANES_LIVE]: "Airplanes.live",
-  adsb_fi: "adsb.fi",
-  [DATA_SOURCE.ADSB_FI]: "adsb.fi",
-  flightaware: "FlightAware",
   local_projection: "Local projection",
   unknown: "",
 });
@@ -56,6 +60,12 @@ function getRouteProviderDisplayName(provider) {
   const raw = String(provider || "").trim();
   if (!raw) return "";
   return ROUTE_PROVIDER_LABELS[normalizeKey(raw)] || raw;
+}
+
+function getAircraftLocationProviderDisplayName(source) {
+  const raw = String(source || "").trim();
+  if (!raw) return "";
+  return AIRCRAFT_LOCATION_PROVIDER_LABELS[normalizeKey(raw)] || raw;
 }
 
 export function resolveRouteProvider({ flightAwareEnabled = false } = {}) {
@@ -100,21 +110,9 @@ export function getAircraftPositionSourceBadge(quality: Record<string, any> = {}
   const sourceLabel = AIRCRAFT_POSITION_SOURCE_LABELS[source] || "";
   if (source === "adsc" && kind === "oceanic") return "ADS-C · oceanic";
   if (!sourceLabel) return kind === "stale" ? "Stale" : "";
-  if (kind === "stale") return sourceLabel === "FlightAware" ? "FlightAware · stale" : "Stale";
-  if (
-    source === "flightaware" &&
-    (quality?.isEstimated === true ||
-      kind === "estimated" ||
-      kind === "predicted" ||
-      kind === "interpolated")
-  ) {
-    return `${sourceLabel} · ${kind || "estimated"}`;
-  }
+  if (source === "flightaware") return sourceLabel;
+  if (kind === "stale") return "Stale";
   return sourceLabel;
-}
-
-function badgeText(value) {
-  return String(value || "").trim().toUpperCase();
 }
 
 export function buildMapSourceStatusDisplay({
@@ -122,7 +120,7 @@ export function buildMapSourceStatusDisplay({
   routeProvider = "",
 } = {}) {
   return {
-    feedSource: badgeText(getDataSourceDisplayName(feedSource)),
-    routeProvider: badgeText(getRouteProviderDisplayName(routeProvider)),
+    feedSource: getAircraftLocationProviderDisplayName(feedSource),
+    routeProvider: getRouteProviderDisplayName(routeProvider),
   };
 }

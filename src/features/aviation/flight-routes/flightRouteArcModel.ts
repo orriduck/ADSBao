@@ -69,7 +69,7 @@ export function resolveFocusedFlightAwareRouteArcPath({
   from?: Record<string, any> | null;
   segments?: unknown;
 } = {}) {
-  const route = selectedAircraft?.flightRoute || focalAircraft?.flightRoute || null;
+  const route = focalAircraft?.flightRoute || selectedAircraft?.flightRoute || null;
   return buildFlightAwareRouteArcPath({
     route,
     routeProvider,
