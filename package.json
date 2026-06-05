@@ -7,6 +7,7 @@
     "dev": "next dev --turbopack",
     "build": "next build --webpack",
     "lint": "eslint .",
+    "knip": "knip",
     "ff": "tsx scripts/feature-flags.ts",
     "import:facilities": "tsx scripts/import-airport-facilities.ts",
     "generate:watching-spots": "tsx scripts/generate-candidate-watching-spots.ts",
@@ -51,6 +52,7 @@
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.0.10",
+    "knip": "^6.15.0",
     "tailwindcss": "^4.2.4",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"

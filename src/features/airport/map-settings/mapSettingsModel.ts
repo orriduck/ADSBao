@@ -76,12 +76,6 @@ const MAP_MODE_PRESETS = Object.freeze({
   }),
 });
 
-export const MAP_MODE_OPTIONS = Object.freeze([
-  MAP_MODE_PRESETS[MAP_MODE_IDS.SPOTTING],
-  MAP_MODE_PRESETS[MAP_MODE_IDS.RADIO],
-  MAP_MODE_PRESETS[MAP_MODE_IDS.CONTROLLER],
-]);
-
 export const CUSTOM_MAP_MODE_OPTION = Object.freeze({
   id: MAP_MODE_IDS.CUSTOM,
   labelKey: "mapSettings.modes.custom",
@@ -109,6 +103,14 @@ export const MAP_SETTINGS_DEVICE_TYPES = Object.freeze({
 export const DEFAULT_MAP_SETTINGS_DEVICE = MAP_SETTINGS_DEVICE_TYPES.DESKTOP;
 
 const MAP_MODE_ID_SET: Set<string> = new Set(Object.values(MAP_MODE_IDS));
+// Ordered list of built-in mode presets — used internally to compute
+// the selectable mode list and the preset-id set. Not exported because
+// no caller outside this module needs the array shape.
+const MAP_MODE_OPTIONS = [
+  MAP_MODE_PRESETS[MAP_MODE_IDS.SPOTTING],
+  MAP_MODE_PRESETS[MAP_MODE_IDS.RADIO],
+  MAP_MODE_PRESETS[MAP_MODE_IDS.CONTROLLER],
+] as const;
 const PRESET_MODE_ID_SET: Set<string> = new Set(MAP_MODE_OPTIONS.map((mode) => mode.id));
 const LAYER_KEY_SET: Set<string> = new Set(PERSISTED_MAP_LAYER_KEYS);
 const DISABLED_MAP_MODE_ID_SET: Set<string> = new Set(DISABLED_MAP_MODE_IDS);
@@ -382,22 +384,3 @@ export function mapSettingsToUserLocationPreferences(
   };
 }
 
-export function explorerLayerStateToMapSettingsLayers({
-  showMapLabels,
-  showRunwayBeams,
-  showNavaidMarkers,
-  showAirspaces,
-  showCandidateWatchingSpots,
-  userLocationActive,
-  userLocationAudioActive,
-}: MapSettingsOptions = {}) {
-  return normalizeMapLayerOverrides({
-    [MAP_LAYER_KEYS.MAP_LABELS]: showMapLabels,
-    [MAP_LAYER_KEYS.APPROACH_BEAMS]: showRunwayBeams,
-    [MAP_LAYER_KEYS.NAVAID_MARKERS]: showNavaidMarkers,
-    [MAP_LAYER_KEYS.AIRSPACES]: showAirspaces,
-    [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: showCandidateWatchingSpots,
-    [MAP_LAYER_KEYS.USER_LOCATION]: userLocationActive,
-    [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: userLocationAudioActive,
-  });
-}
