@@ -26,6 +26,7 @@ import {
   shouldShowFlightTrackingLoadingOverlay,
 } from "@/features/aircraft/tracking/flightTrackingContextModel";
 import {
+  resolveTrackedAircraftSelectionSync,
   resolveFlightTrackingDisplayContext,
 } from "@/features/aircraft/tracking/flightTrackingDisplayModel";
 import { buildFlightAwareRouteArcPath } from "@/features/aviation/flight-routes/flightRouteArcModel";
@@ -447,15 +448,14 @@ function FlightExplorerContent({ callsign }) {
     if (!focalKey) return;
     const previousFocalKey = previousFocalKeyRef.current;
     previousFocalKeyRef.current = focalKey;
-    if (
-      selectedAircraftId &&
-      selectedAircraftId !== previousFocalKey &&
-      selectedAircraftId !== focalCallsignKey
-    ) {
-      return;
-    }
-    if (selectedAircraftId !== focalKey) {
-      setSelectedAircraftId(focalKey);
+    const nextSelectedAircraftId = resolveTrackedAircraftSelectionSync({
+      focalKey,
+      previousFocalKey,
+      focalCallsignKey,
+      selectedAircraftId,
+    });
+    if (nextSelectedAircraftId) {
+      setSelectedAircraftId(nextSelectedAircraftId);
     }
   }, [
     focalCallsignKey,

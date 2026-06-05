@@ -76,3 +76,27 @@ export function resolveFlightTrackingDisplayContext({
 
   return isMobile ? FLIGHTAWARE_MOBILE_CONTEXT : FLIGHTAWARE_DESKTOP_CONTEXT;
 }
+
+export function resolveTrackedAircraftSelectionSync({
+  focalKey = "",
+  previousFocalKey = "",
+  focalCallsignKey = "",
+  selectedAircraftId = "",
+} = {}) {
+  const nextFocalKey = String(focalKey || "").trim();
+  const currentSelection = String(selectedAircraftId || "").trim();
+  if (!nextFocalKey || !currentSelection || currentSelection === nextFocalKey) {
+    return null;
+  }
+
+  const previousKey = String(previousFocalKey || "").trim();
+  const callsignKey = String(focalCallsignKey || "").trim();
+  if (
+    (previousKey && currentSelection === previousKey) ||
+    (callsignKey && currentSelection === callsignKey)
+  ) {
+    return nextFocalKey;
+  }
+
+  return null;
+}
