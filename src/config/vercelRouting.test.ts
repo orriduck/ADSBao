@@ -22,6 +22,8 @@ const globalHeaders = Object.fromEntries(
 
 assert.match(globalHeaders['Content-Security-Policy'], /frame-ancestors 'none'/)
 assert.match(globalHeaders['Content-Security-Policy'], /connect-src[^;]*https:\/\/tiles\.openfreemap\.org/)
+assert.match(globalHeaders['Content-Security-Policy'], /connect-src[^;]*https:\/\/\*\.tile\.opentopomap\.org/)
+assert.match(globalHeaders['Content-Security-Policy'], /connect-src[^;]*https:\/\/s3\.amazonaws\.com/)
 assert.equal(
   globalHeaders['Strict-Transport-Security'],
   'max-age=63072000; includeSubDomains; preload',

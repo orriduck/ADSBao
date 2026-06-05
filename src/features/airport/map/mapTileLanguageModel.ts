@@ -66,8 +66,15 @@ type TerrainPalette = {
   buildingOutline: string;
   road: string;
   roadCasing: string;
+  roadOpacity: number;
+  roadCasingOpacity: number;
+  roadLabel: string;
+  roadLabelHalo: string;
+  roadLabelOpacity: number;
   aeroway: string;
+  aerowayOpacity: number;
   boundary: string;
+  boundaryOpacity: number;
   label: string;
   labelHalo: string;
   hillshadeExaggeration: number;
@@ -105,21 +112,28 @@ const READABLE_TERRAIN_PALETTES: Record<"dark" | "light", TerrainPalette> =
       residential: "#31362f",
       building: "#373a34",
       buildingOutline: "#4c5148",
-      road: "#646a61",
-      roadCasing: "#484f47",
-      aeroway: "#42443f",
-      boundary: "#5d625c",
+      road: "#6f766a",
+      roadCasing: "#3a4139",
+      roadOpacity: 0.34,
+      roadCasingOpacity: 0.2,
+      roadLabel: "#85887f",
+      roadLabelHalo: "#181d18",
+      roadLabelOpacity: 0.62,
+      aeroway: "#4b4f48",
+      aerowayOpacity: 0.58,
+      boundary: "#777b72",
+      boundaryOpacity: 0.24,
       label: "#b1b6ad",
       labelHalo: "#242a24",
       hillshadeExaggeration: 1,
-      hillshadeShadow: "rgba(1, 3, 1, 0.92)",
-      hillshadeHighlight: "rgba(180, 194, 166, 0.82)",
-      hillshadeAccent: "rgba(82, 99, 74, 0.68)",
-      topoOpacity: 0.78,
-      topoSaturation: -0.35,
-      topoBrightnessMin: 0.04,
-      topoBrightnessMax: 0.88,
-      topoContrast: 0.18,
+      hillshadeShadow: "rgba(0, 7, 2, 0.18)",
+      hillshadeHighlight: "rgba(242, 245, 210, 0.1)",
+      hillshadeAccent: "rgba(95, 121, 74, 0.12)",
+      topoOpacity: 0.88,
+      topoSaturation: -0.22,
+      topoBrightnessMin: 0.06,
+      topoBrightnessMax: 0.92,
+      topoContrast: 0.2,
     }),
     light: Object.freeze({
       background: "#e7efe0",
@@ -133,18 +147,25 @@ const READABLE_TERRAIN_PALETTES: Record<"dark" | "light", TerrainPalette> =
       residential: "#e8e8df",
       building: "#e2e0d7",
       buildingOutline: "#d3d1c8",
-      road: "#bfc2b8",
-      roadCasing: "#d9d9cf",
+      road: "#8f947f",
+      roadCasing: "#cfd2bd",
+      roadOpacity: 0.54,
+      roadCasingOpacity: 0.32,
+      roadLabel: "#5d604f",
+      roadLabelHalo: "#f3f0e4",
+      roadLabelOpacity: 0.72,
       aeroway: "#e6e1d7",
-      boundary: "#b9b9ad",
+      aerowayOpacity: 0.72,
+      boundary: "#9da28f",
+      boundaryOpacity: 0.38,
       label: "#30332d",
       labelHalo: "#f5f4ed",
       hillshadeExaggeration: 1,
-      hillshadeShadow: "rgba(96, 101, 91, 0.76)",
-      hillshadeHighlight: "rgba(255, 255, 250, 0.86)",
-      hillshadeAccent: "rgba(118, 130, 108, 0.56)",
-      topoOpacity: 0.94,
-      topoSaturation: -0.18,
+      hillshadeShadow: "rgba(91, 83, 54, 0.42)",
+      hillshadeHighlight: "rgba(255, 255, 239, 0.34)",
+      hillshadeAccent: "rgba(114, 132, 84, 0.28)",
+      topoOpacity: 0.92,
+      topoSaturation: -0.16,
       topoBrightnessMin: 0,
       topoBrightnessMax: 1,
       topoContrast: 0.18,
@@ -286,7 +307,7 @@ function injectReadableTerrainSources(
         "https://c.tile.opentopomap.org/{z}/{x}/{y}.png",
       ],
       tileSize: 256,
-      maxzoom: 15,
+      maxzoom: 17,
       attribution:
         '<a href="https://opentopomap.org">OpenTopoMap</a>',
     },
@@ -399,18 +420,6 @@ function buildReadableTerrainLayers(
   }
 
   layers.push({
-    id: "adsbao_terrain_hillshade",
-    type: "hillshade",
-    source: TERRAIN_DEM_SOURCE_ID,
-    paint: {
-      "hillshade-exaggeration": palette.hillshadeExaggeration,
-      "hillshade-shadow-color": palette.hillshadeShadow,
-      "hillshade-highlight-color": palette.hillshadeHighlight,
-      "hillshade-accent-color": palette.hillshadeAccent,
-      "hillshade-illumination-direction": 315,
-    },
-  });
-  layers.push({
     id: "adsbao_terrain_topo",
     type: "raster",
     source: TERRAIN_TOPO_SOURCE_ID,
@@ -421,6 +430,18 @@ function buildReadableTerrainLayers(
       "raster-brightness-min": palette.topoBrightnessMin,
       "raster-brightness-max": palette.topoBrightnessMax,
       "raster-fade-duration": 0,
+    },
+  });
+  layers.push({
+    id: "adsbao_terrain_hillshade",
+    type: "hillshade",
+    source: TERRAIN_DEM_SOURCE_ID,
+    paint: {
+      "hillshade-exaggeration": palette.hillshadeExaggeration,
+      "hillshade-shadow-color": palette.hillshadeShadow,
+      "hillshade-highlight-color": palette.hillshadeHighlight,
+      "hillshade-accent-color": palette.hillshadeAccent,
+      "hillshade-illumination-direction": 315,
     },
   });
 
@@ -513,7 +534,19 @@ function resolveTerrainLayerPaint(
     setPaintForType(layer, setPaint, {
       fill: ["fill-color", palette.roadCasing],
       line: ["line-color", isLayerId(id, "casing") ? palette.roadCasing : palette.road],
+      symbol: ["text-color", palette.roadLabel],
     });
+    if (layer.type === "fill") setPaint("fill-opacity", palette.roadCasingOpacity);
+    if (layer.type === "line") {
+      setPaint(
+        "line-opacity",
+        isLayerId(id, "casing") ? palette.roadCasingOpacity : palette.roadOpacity,
+      );
+    }
+    if (layer.type === "symbol") {
+      setPaint("text-opacity", palette.roadLabelOpacity);
+      setPaint("text-halo-color", palette.roadLabelHalo);
+    }
   }
 
   if (isLayerId(id, "aeroway") || isLayerId(id, "airport")) {
@@ -522,6 +555,8 @@ function resolveTerrainLayerPaint(
       line: ["line-color", palette.aeroway],
       symbol: ["text-color", palette.label],
     });
+    if (layer.type === "fill") setPaint("fill-opacity", palette.aerowayOpacity);
+    if (layer.type === "line") setPaint("line-opacity", palette.aerowayOpacity);
     if (layer.type === "symbol") setPaint("text-halo-color", palette.labelHalo);
   }
 
@@ -529,6 +564,7 @@ function resolveTerrainLayerPaint(
     setPaintForType(layer, setPaint, {
       line: ["line-color", palette.boundary],
     });
+    if (layer.type === "line") setPaint("line-opacity", palette.boundaryOpacity);
   }
 
   if (

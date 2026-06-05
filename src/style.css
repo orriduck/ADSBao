@@ -949,15 +949,15 @@ body {
 }
 
 :root[data-theme="dark"] .atc-tile-base {
-    filter: saturate(0) brightness(0.58) contrast(1.08) sepia(0.32);
+    filter: saturate(0.62) brightness(0.78) contrast(1.04);
     mix-blend-mode: normal;
 }
 
-/* Light — saturate(0) removes tile color; multiply on light gray canvas
-   renders the map as neutral ink. */
+/* Light terrain keeps low-saturation topo color so relief stays readable
+   without pushing the operational overlays into a high-contrast base map. */
 :root[data-theme="light"] .atc-tile-base {
-    filter: saturate(0) contrast(0.85) brightness(1.02);
-    mix-blend-mode: multiply;
+    filter: saturate(0.72) brightness(1.02) contrast(0.94);
+    mix-blend-mode: normal;
 }
 
 .runway-end-label {
