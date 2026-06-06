@@ -306,11 +306,11 @@ const zhCN = {
     cameraHint:
       "用实时摄像头拍一张看机照片。ADSBao 只会在当前浏览器会话里处理这张图。",
     capture: "拍照",
-    editorTitle: "选择成片样式",
+    editorTitle: "成片预览",
     templates: {
       none: "不加模板",
-      hunter: "侦探卡片",
-      spotter: "看机标记",
+      previewCard: "预览卡片",
+      lowerThird: "新闻横条",
     },
     retake: "重拍",
     copy: "复制",

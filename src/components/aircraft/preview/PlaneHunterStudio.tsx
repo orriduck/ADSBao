@@ -5,12 +5,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
-const TEMPLATES = ["none", "hunter", "spotter"] as const;
+const TEMPLATES = ["none", "previewCard", "lowerThird"] as const;
 type PlaneHunterTemplate = (typeof TEMPLATES)[number];
 
 function normalizeLabel(value: unknown, fallback = "") {
   const label = String(value || "").trim();
   return label || fallback;
+}
+
+function normalizeNumber(value: unknown) {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
 }
 
 function getAircraftLabels(aircraft: Record<string, any> | null | undefined) {
@@ -30,12 +35,23 @@ function getAircraftLabels(aircraft: Record<string, any> | null | undefined) {
     normalizeLabel(aircraft?.type) ||
     normalizeLabel(aircraft?.category, "AIRCRAFT");
   const registration = normalizeLabel(aircraft?.registration).toUpperCase();
+  const speed = normalizeNumber(aircraft?.gs ?? aircraft?.speed);
+  const altitude = normalizeNumber(aircraft?.alt_baro ?? aircraft?.altitude);
+  const verticalRate = normalizeNumber(aircraft?.baro_rate ?? aircraft?.verticalRate);
+  const metadata = [
+    type.toUpperCase(),
+    registration,
+    speed === null ? "" : `${Math.round(speed)} KT`,
+    altitude === null ? "" : `${Math.round(altitude).toLocaleString()} FT`,
+    verticalRate === null ? "" : `${Math.round(verticalRate)} FPM`,
+  ].filter(Boolean);
 
   return {
     callsign,
     route: route || "ROUTE PENDING",
     type: type.toUpperCase(),
     registration,
+    metadata,
     capturedAt: new Date().toLocaleString(),
   };
 }
@@ -84,76 +100,140 @@ function drawTemplate(
   height: number,
 ) {
   const scale = Math.max(1, Math.min(width, height) / 900);
-  const pad = Math.round(34 * scale);
-  const titleSize = Math.round(40 * scale);
-  const bodySize = Math.round(22 * scale);
-  const smallSize = Math.round(16 * scale);
+  const pad = Math.round(30 * scale);
+  const titleSize = Math.round(36 * scale);
+  const bodySize = Math.round(20 * scale);
+  const smallSize = Math.round(15 * scale);
+  const routeLabel = labels.route;
+  const metaLabel = labels.metadata.slice(0, 3).join(" · ");
 
   context.save();
   context.textBaseline = "alphabetic";
 
-  if (template === "hunter") {
-    const panelHeight = Math.round(168 * scale);
+  if (template === "previewCard") {
+    const panelWidth = Math.min(width - pad * 2, Math.round(560 * scale));
+    const panelHeight = Math.round(150 * scale);
     const panelY = height - panelHeight - pad;
 
-    context.fillStyle = "rgba(8, 14, 22, 0.78)";
-    roundedRect(context, pad, panelY, width - pad * 2, panelHeight, 30 * scale);
+    context.fillStyle = "rgba(242, 243, 238, 0.92)";
+    roundedRect(context, pad, panelY, panelWidth, panelHeight, 24 * scale);
     context.fill();
 
-    context.fillStyle = "rgba(255, 255, 255, 0.18)";
-    context.fillRect(pad + 26 * scale, panelY + 38 * scale, width - pad * 2 - 52 * scale, 1.4 * scale);
-
-    context.fillStyle = "#f8fbff";
-    context.font = `800 ${titleSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.callsign, pad + 26 * scale, panelY + 78 * scale);
-
-    context.textAlign = "right";
-    context.font = `700 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.route, width - pad - 26 * scale, panelY + 78 * scale);
-
-    context.textAlign = "left";
-    context.fillStyle = "rgba(248, 251, 255, 0.76)";
-    context.font = `650 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.type, pad + 26 * scale, panelY + 122 * scale);
-
-    context.textAlign = "right";
-    context.fillStyle = "#ffcf66";
-    context.font = `800 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText("ADSBao Plane Hunter", width - pad - 26 * scale, panelY + 122 * scale);
-  }
-
-  if (template === "spotter") {
-    context.strokeStyle = "rgba(255, 207, 102, 0.9)";
-    context.lineWidth = Math.max(2, 3 * scale);
-    const centerX = width - pad - 82 * scale;
-    const centerY = pad + 82 * scale;
-    context.beginPath();
-    context.arc(centerX, centerY, 46 * scale, 0, Math.PI * 2);
-    context.moveTo(centerX - 72 * scale, centerY);
-    context.lineTo(centerX - 22 * scale, centerY);
-    context.moveTo(centerX + 22 * scale, centerY);
-    context.lineTo(centerX + 72 * scale, centerY);
-    context.moveTo(centerX, centerY - 72 * scale);
-    context.lineTo(centerX, centerY - 22 * scale);
-    context.moveTo(centerX, centerY + 22 * scale);
-    context.lineTo(centerX, centerY + 72 * scale);
+    context.strokeStyle = "rgba(14, 15, 16, 0.16)";
+    context.lineWidth = Math.max(1, 1.2 * scale);
+    roundedRect(context, pad, panelY, panelWidth, panelHeight, 24 * scale);
     context.stroke();
 
-    context.fillStyle = "rgba(8, 14, 22, 0.64)";
-    roundedRect(context, pad, pad, Math.min(width - pad * 2, 470 * scale), 132 * scale, 24 * scale);
+    context.fillStyle = "rgba(14, 15, 16, 0.92)";
+    context.font = `800 ${titleSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+    context.fillText(labels.callsign, pad + 24 * scale, panelY + 56 * scale);
+
+    context.textAlign = "right";
+    context.font = `760 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+    context.fillText(labels.type, pad + panelWidth - 24 * scale, panelY + 56 * scale);
+
+    context.textAlign = "left";
+    context.fillStyle = "rgba(14, 15, 16, 0.56)";
+    context.fillRect(pad + 24 * scale, panelY + 76 * scale, panelWidth - 48 * scale, Math.max(1, 1.2 * scale));
+
+    context.fillStyle = "rgba(14, 15, 16, 0.78)";
+    context.font = `720 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+    context.fillText(routeLabel, pad + 24 * scale, panelY + 106 * scale);
+
+    context.fillStyle = "rgba(14, 15, 16, 0.54)";
+    context.font = `800 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+    context.fillText(metaLabel || labels.capturedAt, pad + 24 * scale, panelY + 130 * scale);
+  }
+
+  if (template === "lowerThird") {
+    const barHeight = Math.round(96 * scale);
+    const barY = height - barHeight - pad;
+    const callsignWidth = Math.min(Math.round(250 * scale), Math.max(Math.round(180 * scale), width * 0.36));
+    const detailWidth = Math.min(width - pad * 2 - callsignWidth, Math.round(620 * scale));
+
+    context.fillStyle = "rgba(242, 243, 238, 0.95)";
+    roundedRect(context, pad, barY, callsignWidth, barHeight, 16 * scale);
     context.fill();
 
-    context.fillStyle = "#f8fbff";
-    context.font = `800 ${titleSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.callsign, pad + 22 * scale, pad + 58 * scale);
+    context.fillStyle = "rgba(14, 15, 16, 0.94)";
+    roundedRect(context, pad + callsignWidth - 2 * scale, barY, detailWidth + 2 * scale, barHeight, 16 * scale);
+    context.fill();
 
-    context.fillStyle = "rgba(248, 251, 255, 0.72)";
-    context.font = `650 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.registration || labels.route, pad + 22 * scale, pad + 94 * scale);
-    context.fillText(labels.capturedAt, pad + 22 * scale, pad + 118 * scale);
+    context.fillStyle = "rgba(14, 15, 16, 0.95)";
+    context.font = `850 ${Math.round(34 * scale)}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+    context.fillText(labels.callsign, pad + 22 * scale, barY + 58 * scale);
+
+    context.fillStyle = "rgba(242, 243, 238, 0.96)";
+    context.font = `780 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+    context.fillText(routeLabel, pad + callsignWidth + 22 * scale, barY + 39 * scale);
+
+    context.fillStyle = "rgba(242, 243, 238, 0.66)";
+    context.font = `760 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+    context.fillText(metaLabel || labels.capturedAt, pad + callsignWidth + 22 * scale, barY + 68 * scale);
   }
 
   context.restore();
+}
+
+function PlaneHunterTemplateOverlay({
+  labels,
+  template,
+}: {
+  labels: ReturnType<typeof getAircraftLabels>;
+  template: PlaneHunterTemplate;
+}) {
+  if (template === "none") return null;
+
+  const metadata = labels.metadata.slice(0, 3).join(" · ");
+
+  if (template === "previewCard") {
+    return (
+      <div className="pointer-events-none absolute inset-x-4 bottom-4 flex justify-start md:inset-x-8 md:bottom-8">
+        <div className="w-[min(78vw,520px)] rounded-[22px] border border-[rgba(14,15,16,0.16)] bg-[rgba(242,243,238,0.92)] px-5 py-4 text-[rgb(14,15,16)] shadow-[0_18px_42px_rgba(0,0,0,0.22)]">
+          <div className="flex items-baseline justify-between gap-4 border-b border-[rgba(14,15,16,0.18)] pb-2">
+            <strong
+              translate="no"
+              className="notranslate truncate text-[24px] font-black leading-none tracking-normal"
+            >
+              {labels.callsign}
+            </strong>
+            <span className="truncate text-right text-[14px] font-extrabold leading-none">
+              {labels.type}
+            </span>
+          </div>
+          <div className="mt-3 truncate text-[15px] font-extrabold leading-none">
+            {labels.route}
+          </div>
+          <div className="mt-2 truncate text-[11px] font-black leading-none text-[rgba(14,15,16,0.56)]">
+            {metadata || labels.capturedAt}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pointer-events-none absolute inset-x-4 bottom-4 flex justify-start md:inset-x-8 md:bottom-8">
+      <div className="flex max-w-[min(86vw,720px)] items-stretch overflow-hidden rounded-[16px] shadow-[0_18px_42px_rgba(0,0,0,0.24)]">
+        <div className="flex min-w-[132px] items-center bg-[rgb(242,243,238)] px-4 text-[rgb(14,15,16)] md:min-w-[190px] md:px-5">
+          <strong
+            translate="no"
+            className="notranslate truncate text-[22px] font-black leading-none tracking-normal md:text-[30px]"
+          >
+            {labels.callsign}
+          </strong>
+        </div>
+        <div className="min-w-0 bg-[rgba(14,15,16,0.94)] px-4 py-3 text-[rgb(242,243,238)] md:px-5">
+          <div className="truncate text-[13px] font-extrabold leading-tight md:text-[16px]">
+            {labels.route}
+          </div>
+          <div className="mt-2 truncate text-[10px] font-black leading-none text-[rgba(242,243,238,0.66)] md:text-[12px]">
+            {metadata || labels.capturedAt}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function PlaneHunterStudio({
@@ -171,7 +251,7 @@ export default function PlaneHunterStudio({
   const streamRef = useRef<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState("");
   const [previewImage, setPreviewImage] = useState("");
-  const [template, setTemplate] = useState<PlaneHunterTemplate>("hunter");
+  const [template, setTemplate] = useState<PlaneHunterTemplate>("previewCard");
   const [cameraError, setCameraError] = useState("");
   const [status, setStatus] = useState("");
   const labels = useMemo(() => getAircraftLabels(aircraft), [aircraft]);
@@ -363,6 +443,7 @@ export default function PlaneHunterStudio({
                   autoPlay
                 />
                 <div className="pointer-events-none absolute inset-0 border-[10px] border-[rgba(255,255,255,0.08)]" />
+                <PlaneHunterTemplateOverlay labels={labels} template={template} />
                 {cameraError && (
                   <div className="absolute inset-x-5 top-1/2 -translate-y-1/2 rounded-[var(--atc-radius-panel)] border border-atc-line-strong bg-atc-card p-4 text-center shadow-[var(--app-floating-shadow)]">
                     <p className="text-[14px] font-bold">{cameraError}</p>
@@ -389,7 +470,7 @@ export default function PlaneHunterStudio({
 
           <aside className="flex min-h-[232px] flex-col border-t border-atc-line bg-atc-card px-4 py-4 md:min-h-0 md:border-l md:border-t-0">
             {!capturedImage ? (
-              <div className="flex h-full flex-col justify-between gap-4">
+              <div className="flex h-full flex-col gap-4">
                 <div>
                   <p className="font-[var(--font-display)] text-[18px] font-extrabold leading-tight">
                     {t("planeHunter.cameraTitle")}
@@ -398,11 +479,27 @@ export default function PlaneHunterStudio({
                     {t("planeHunter.cameraHint")}
                   </p>
                 </div>
+                <div className="grid grid-cols-3 gap-2 md:grid-cols-1">
+                  {TEMPLATES.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setTemplate(item)}
+                      data-active={template === item}
+                      className={cn(
+                        "min-h-[46px] rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 text-left text-[12px] font-bold leading-tight text-atc-text",
+                        "transition hover:bg-atc-card-strong data-[active=true]:border-[var(--primary-bright)] data-[active=true]:bg-[color-mix(in_oklab,var(--primary-bright)_17%,var(--atc-bg))]",
+                      )}
+                    >
+                      {t(`planeHunter.templates.${item}`)}
+                    </button>
+                  ))}
+                </div>
                 <button
                   type="button"
                   onClick={capture}
                   disabled={Boolean(cameraError)}
-                  className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <Camera aria-hidden="true" className="size-5" />
                   {t("planeHunter.capture")}

@@ -311,11 +311,11 @@ const en = {
     cameraHint:
       "Use the live camera to capture a spotting photo. ADSBao will keep the image local in this browser session.",
     capture: "Take photo",
-    editorTitle: "Choose a finish",
+    editorTitle: "Final image",
     templates: {
       none: "No template",
-      hunter: "Hunter card",
-      spotter: "Spotter mark",
+      previewCard: "Preview card",
+      lowerThird: "News bar",
     },
     retake: "Retake",
     copy: "Copy",
