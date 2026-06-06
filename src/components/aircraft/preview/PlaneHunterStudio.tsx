@@ -1,12 +1,11 @@
 "use client";
 
-import { Camera, CameraOff, Copy, Download, RotateCcw, X } from "lucide-react";
+import { Camera, CameraOff, Copy, Download, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
 import {
   Toolbar,
   ToolbarButton,
-  ToolbarSeparator,
 } from "@/components/ui/Toolbar";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
@@ -243,9 +242,13 @@ function PlaneHunterTemplateOverlay({
 }
 
 function PlaneHunterCameraFallback({
+  actionLabel,
+  onAction,
   title,
   message,
 }: {
+  actionLabel: string;
+  onAction: () => void;
   title: string;
   message: string;
 }) {
@@ -259,6 +262,13 @@ function PlaneHunterCameraFallback({
         <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[rgba(242,243,238,0.68)]">
           {message}
         </p>
+        <button
+          type="button"
+          onClick={onAction}
+          className="mt-2 inline-flex text-[11px] font-extrabold leading-none text-[var(--primary-bright)] underline decoration-[color-mix(in_oklab,var(--primary-bright)_62%,transparent)] decoration-1 underline-offset-4 transition hover:text-[rgb(242,243,238)]"
+        >
+          {actionLabel}
+        </button>
       </div>
     </div>
   );
@@ -334,6 +344,17 @@ export default function PlaneHunterStudio({
     setCameraError("");
     onOpenChange(false);
   }, [onOpenChange, stopCamera]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") close();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [close, open]);
 
   const capture = useCallback(() => {
     const video = videoRef.current;
@@ -436,8 +457,8 @@ export default function PlaneHunterStudio({
       aria-modal="true"
       aria-label={t("planeHunter.title")}
     >
-      <div className="flex h-dvh w-full flex-col bg-atc-bg md:flex-row">
-        <aside className="sidebar-shell order-2 flex max-h-[48dvh] w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg md:order-1 md:m-3 md:mr-0 md:max-h-[calc(100dvh-24px)] md:w-[var(--app-sidebar-width)] md:overflow-hidden md:rounded-r-[var(--atc-radius-shell)] md:border-r md:border-t-0 md:shadow-[var(--app-panel-shadow)]">
+      <div className="dither-page-shell flex h-dvh w-full flex-col text-atc-text md:flex-row">
+        <aside className="dither-page-panel plane-hunter-panel sidebar-shell order-2 flex max-h-[48dvh] w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg md:order-1 md:w-[var(--app-sidebar-width)] md:border-r md:border-t-0">
           <div className="flex-none px-5 pb-4 pt-5 md:px-6 md:pb-5 md:pt-7">
             <div className="flex items-center gap-3">
               <SidebarBrandMark className="dither-page-brand-mark" />
@@ -464,43 +485,33 @@ export default function PlaneHunterStudio({
                 : t("planeHunter.cameraHint")}
             </p>
 
-            <div className="mt-4">
-              <Toolbar layout="inline" aria-label={t("planeHunter.title")}>
-                <ToolbarButton
-                  onClick={close}
-                  aria-label={t("planeHunter.cancel")}
-                  title={t("planeHunter.cancel")}
-                >
-                  <X aria-hidden="true" />
-                </ToolbarButton>
-                {capturedImage && (
-                  <>
-                    <ToolbarSeparator />
-                    <ToolbarButton
-                      onClick={retake}
-                      aria-label={t("planeHunter.retake")}
-                      title={t("planeHunter.retake")}
-                    >
-                      <RotateCcw aria-hidden="true" />
-                    </ToolbarButton>
-                    <ToolbarButton
-                      onClick={copyImage}
-                      aria-label={t("planeHunter.copy")}
-                      title={t("planeHunter.copy")}
-                    >
-                      <Copy aria-hidden="true" />
-                    </ToolbarButton>
-                    <ToolbarButton
-                      onClick={saveImage}
-                      aria-label={t("planeHunter.save")}
-                      title={t("planeHunter.save")}
-                    >
-                      <Download aria-hidden="true" />
-                    </ToolbarButton>
-                  </>
-                )}
-              </Toolbar>
-            </div>
+            {capturedImage && (
+              <div className="mt-4">
+                <Toolbar layout="inline" aria-label={t("planeHunter.title")}>
+                  <ToolbarButton
+                    onClick={retake}
+                    aria-label={t("planeHunter.retake")}
+                    title={t("planeHunter.retake")}
+                  >
+                    <RotateCcw aria-hidden="true" />
+                  </ToolbarButton>
+                  <ToolbarButton
+                    onClick={copyImage}
+                    aria-label={t("planeHunter.copy")}
+                    title={t("planeHunter.copy")}
+                  >
+                    <Copy aria-hidden="true" />
+                  </ToolbarButton>
+                  <ToolbarButton
+                    onClick={saveImage}
+                    aria-label={t("planeHunter.save")}
+                    title={t("planeHunter.save")}
+                  >
+                    <Download aria-hidden="true" />
+                  </ToolbarButton>
+                </Toolbar>
+              </div>
+            )}
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5 md:px-6 md:pb-6">
@@ -510,11 +521,6 @@ export default function PlaneHunterStudio({
                   ? t("planeHunter.editorTitle")
                   : t("planeHunter.cameraTitle")}
               </p>
-              {cameraError && !capturedImage && (
-                <p className="mt-3 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 py-2 text-[11px] font-semibold leading-relaxed text-atc-dim">
-                  {t("planeHunter.cameraRequestHint")}
-                </p>
-              )}
             </div>
 
             <div className="grid grid-cols-3 gap-2 md:grid-cols-1">
@@ -543,11 +549,12 @@ export default function PlaneHunterStudio({
             {!capturedImage ? (
               <button
                 type="button"
-                onClick={cameraError ? startCamera : capture}
-                className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98]"
+                onClick={capture}
+                disabled={Boolean(cameraError)}
+                className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <Camera aria-hidden="true" className="size-5" />
-                {t(cameraError ? "planeHunter.tryAgain" : "planeHunter.capture")}
+                {t("planeHunter.capture")}
               </button>
             ) : (
               <button
@@ -562,7 +569,7 @@ export default function PlaneHunterStudio({
           </div>
         </aside>
 
-        <main className="relative order-1 min-h-0 flex-1 overflow-hidden bg-black md:order-2 md:m-3 md:ml-0 md:rounded-[var(--atc-radius-shell)]">
+        <main className="dither-page-background plane-hunter-stage relative order-1 min-h-0 flex-1 overflow-hidden bg-black md:order-2">
           {!capturedImage ? (
             <>
               <video
@@ -577,6 +584,8 @@ export default function PlaneHunterStudio({
               />
               {cameraError && (
                 <PlaneHunterCameraFallback
+                  actionLabel={t("planeHunter.cameraRequestAction")}
+                  onAction={startCamera}
                   title={t("planeHunter.cameraFallbackTitle")}
                   message={cameraError}
                 />

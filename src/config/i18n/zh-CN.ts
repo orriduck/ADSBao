@@ -304,10 +304,11 @@ const zhCN = {
     kicker: "飞机探长",
     cameraTitle: "对准飞机",
     cameraHint:
-      "用实时摄像头拍一张看机照片。ADSBao 只会在当前浏览器会话里处理这张图。",
+      "对准天空里的那架飞机，拍摄时随时切换模板，成片再保存或复制。",
     cameraFallbackTitle: "需要摄像头权限",
     cameraRequestHint:
-      "点重试会重新向浏览器申请摄像头权限。如果浏览器已经记住拒绝,请先在地址栏相机设置里改为允许。",
+      "浏览器还没放行摄像头。如果已经记住拒绝,请先在地址栏相机设置里改为允许。",
+    cameraRequestAction: "重新请求摄像头权限",
     capture: "拍照",
     editorTitle: "成片预览",
     templates: {
@@ -325,7 +326,7 @@ const zhCN = {
     copyUnsupported: "这个浏览器暂不支持复制图片。",
     saved: "已保存为本地下载。",
     saveFailed: "保存图片失败。",
-    cameraDenied: "摄像头权限被拒绝或不可用。",
+    cameraDenied: "浏览器还没有把摄像头交给飞机探长。",
     cameraUnsupported: "这个浏览器不支持摄像头拍摄。",
   },
   routeFeedback: {

@@ -1707,6 +1707,15 @@ body {
         display: none;
     }
 
+    .dither-page-background.plane-hunter-stage {
+        border-radius: 0;
+        display: block;
+        flex: 1 1 auto;
+        margin: 0;
+        min-height: 0;
+        width: 100vw;
+    }
+
     /* Mobile static pages scroll as a single document — release the
        desktop `h-screen` flex layout so the shell grows with content
        and the browser's own scroller handles overflow. */
@@ -2599,6 +2608,30 @@ body {
 .dither-page-background {
     margin: 12px 12px 12px 0;
     border-radius: var(--atc-radius-shell);
+}
+
+.dither-page-background.plane-hunter-stage {
+    background: rgb(5 5 5);
+    border-radius: var(--atc-radius-shell);
+    display: block;
+    margin-left: 12px;
+}
+
+.dither-page-panel.plane-hunter-panel {
+    background: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--atc-orange) 10%, transparent),
+        transparent 48%
+    );
+    box-shadow: var(--app-panel-shadow);
+}
+
+:root[data-theme="dark"] .dither-page-panel.plane-hunter-panel {
+    background: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--atc-orange) 18%, transparent),
+        transparent 48%
+    );
 }
 
 .dither-page-panel .endf-page-title {
@@ -4049,6 +4082,15 @@ body {
     height: 64px;
     min-height: 64px;
     padding-block: 9px;
+}
+
+.app-virtual-list-motion {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.app-virtual-list-motion::-webkit-scrollbar {
+    display: none;
 }
 
 .aircraft-table-row-grid {

@@ -309,10 +309,11 @@ const en = {
     kicker: "Plane Hunter",
     cameraTitle: "Frame the aircraft",
     cameraHint:
-      "Use the live camera to capture a spotting photo. ADSBao will keep the image local in this browser session.",
+      "Frame the aircraft in the sky, switch templates while shooting, then save or copy the final image.",
     cameraFallbackTitle: "Camera permission needed",
     cameraRequestHint:
-      "Tap Try again to ask the browser for camera access. If the browser remembered a block, allow the camera from the address bar first.",
+      "The browser has not released the camera yet. If it remembered a block, allow camera access from the address bar first.",
+    cameraRequestAction: "Request camera access again",
     capture: "Take photo",
     editorTitle: "Final image",
     templates: {
@@ -330,7 +331,7 @@ const en = {
     copyUnsupported: "This browser cannot copy images yet.",
     saved: "Saved as a local download.",
     saveFailed: "Could not save this image.",
-    cameraDenied: "Camera access was blocked or unavailable.",
+    cameraDenied: "The browser has not handed the camera to Plane Hunter yet.",
     cameraUnsupported: "This browser does not support camera capture.",
   },
   routeFeedback: {
