@@ -1735,6 +1735,10 @@ body {
         overflow: hidden;
         padding: 0;
         position: relative;
+        /* Drives the photo-box stage's bottom padding so the floating
+           control card never overlaps the bottom of the photo. Card
+           clearance + a small breathing gap. */
+        --plane-hunter-stage-bottom-inset: calc(var(--plane-hunter-card-clearance) + 8px);
     }
 
     /* Camera viewfinder fills the entire dialog edge-to-edge; the
