@@ -333,22 +333,34 @@ function PlaneHunterViewfinderChip({
   );
 }
 
-// Rule-of-thirds + center reticle. Lives inside the camera frame so a
+// Rule-of-thirds + crosshair reticle. Lives inside the camera frame so a
 // blank or permission-pending viewfinder still reads like a camera
 // surface, and gives the photographer aim cues when shooting an
-// aircraft against a featureless sky.
+// aircraft against a featureless sky. Lines are barely visible at rest
+// but bright enough on a featureless sky to anchor a moving subject.
 function PlaneHunterViewfinderGrid() {
-  const lineClass = "absolute bg-[rgba(255,255,255,0.08)]";
+  const gridLine = "absolute bg-[rgba(255,255,255,0.18)]";
+  const crosshair = "absolute bg-[rgba(255,255,255,0.65)]";
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none absolute inset-[10px]"
     >
-      <div className={cn(lineClass, "left-0 right-0 top-1/3 h-px")} />
-      <div className={cn(lineClass, "left-0 right-0 top-2/3 h-px")} />
-      <div className={cn(lineClass, "top-0 bottom-0 left-1/3 w-px")} />
-      <div className={cn(lineClass, "top-0 bottom-0 left-2/3 w-px")} />
-      <div className="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-[2px] border border-[rgba(255,255,255,0.18)]" />
+      <div className={cn(gridLine, "left-0 right-0 top-1/3 h-px")} />
+      <div className={cn(gridLine, "left-0 right-0 top-2/3 h-px")} />
+      <div className={cn(gridLine, "top-0 bottom-0 left-1/3 w-px")} />
+      <div className={cn(gridLine, "top-0 bottom-0 left-2/3 w-px")} />
+      {/* Center reticle: 4 short ticks + a hollow centerpoint. Reads
+          as a camera crosshair instead of an empty square. */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <div className="relative size-[88px]">
+          <span className={cn(crosshair, "left-1/2 top-0 h-3 w-px -translate-x-1/2")} />
+          <span className={cn(crosshair, "left-1/2 bottom-0 h-3 w-px -translate-x-1/2")} />
+          <span className={cn(crosshair, "top-1/2 left-0 h-px w-3 -translate-y-1/2")} />
+          <span className={cn(crosshair, "top-1/2 right-0 h-px w-3 -translate-y-1/2")} />
+          <span className="absolute left-1/2 top-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[rgba(255,255,255,0.78)]" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -370,23 +382,31 @@ function PlaneHunterCameraFallback({
   // and renders the link invisibly dark-on-dark).
   const accent = "rgb(255,196,80)";
   return (
-    <div className="absolute inset-0 flex items-start justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_28%,rgba(242,243,238,0.16),transparent_32%),linear-gradient(135deg,rgba(242,243,238,0.08)_0_1px,transparent_1px_22px),rgb(10,11,12)] px-5 pt-8 text-[rgb(242,243,238)]">
-      <div className="max-w-[360px] rounded-[var(--atc-radius-panel)] border border-[rgba(242,243,238,0.18)] bg-[rgba(10,11,12,0.72)] px-4 py-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
-        <div className="flex items-center gap-2">
-          <CameraOff aria-hidden="true" className="size-4" style={{ color: accent }} />
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_36%,rgba(242,243,238,0.18),transparent_42%),linear-gradient(135deg,rgba(242,243,238,0.06)_0_1px,transparent_1px_22px),rgb(10,11,12)] p-5 text-[rgb(242,243,238)]">
+      <div
+        className="w-full max-w-[380px] rounded-[var(--atc-radius-panel)] border border-[rgba(242,243,238,0.18)] bg-[rgba(10,11,12,0.78)] px-4 py-3.5 text-center shadow-[0_24px_56px_rgba(0,0,0,0.42)] backdrop-blur md:px-5 md:py-4 md:text-left"
+      >
+        <div className="flex items-center justify-center gap-2 md:justify-start">
+          <span
+            aria-hidden="true"
+            className="inline-flex size-6 items-center justify-center rounded-full"
+            style={{ background: "rgba(255,196,80,0.16)", color: accent }}
+          >
+            <CameraOff className="size-3.5" />
+          </span>
           <p className="text-[13px] font-extrabold leading-none">{title}</p>
         </div>
-        <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[rgba(242,243,238,0.68)]">
+        <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[rgba(242,243,238,0.7)]">
           {message}
         </p>
         <button
           type="button"
           onClick={onAction}
           style={{
-            color: accent,
-            textDecorationColor: "rgba(255,196,80,0.62)",
+            color: "rgb(14,15,16)",
+            background: accent,
           }}
-          className="mt-2 inline-flex text-[11px] font-extrabold leading-none underline decoration-1 underline-offset-4 transition hover:text-[rgb(242,243,238)]"
+          className="mt-3 inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-[11px] font-extrabold leading-none transition active:scale-[0.97] hover:brightness-105"
         >
           {actionLabel}
         </button>
@@ -444,29 +464,32 @@ function PlaneHunterMetaToggles({
   t: PlaneHunterTranslator;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      <span className="text-[9px] font-extrabold uppercase tracking-[0.08em] text-atc-faint">
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-atc-faint">
         {t("planeHunter.metaToggle")}
       </span>
-      {META_FIELDS.map((field) => {
-        const active = enabledFields.has(field);
-        return (
-          <button
-            key={field}
-            type="button"
-            onClick={() => onToggle(field)}
-            data-active={active ? "true" : undefined}
-            className={cn(
-              "rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.04em] leading-none transition",
-              "border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] text-atc-dim",
-              "hover:bg-[var(--atc-control-hover-bg)]",
-              "data-[active=true]:border-transparent data-[active=true]:bg-[var(--atc-click-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
-            )}
-          >
-            {t(`planeHunter.metaFields.${field}`)}
-          </button>
-        );
-      })}
+      <div className="flex flex-wrap gap-1">
+        {META_FIELDS.map((field) => {
+          const active = enabledFields.has(field);
+          return (
+            <button
+              key={field}
+              type="button"
+              onClick={() => onToggle(field)}
+              data-active={active ? "true" : undefined}
+              aria-pressed={active}
+              className={cn(
+                "min-h-6 rounded-full border px-2 text-[10px] font-bold uppercase tracking-[0.04em] leading-none transition",
+                "border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] text-atc-dim",
+                "hover:bg-[var(--atc-control-hover-bg)] hover:text-atc-text",
+                "data-[active=true]:border-transparent data-[active=true]:bg-[var(--atc-click-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
+              )}
+            >
+              {t(`planeHunter.metaFields.${field}`)}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -950,14 +973,18 @@ export default function PlaneHunterStudio({
                 />
               )}
               <div className="pointer-events-none absolute inset-0 border-[10px] border-[rgba(255,255,255,0.14)]" />
-              <PlaneHunterViewfinderGrid />
-              <PlaneHunterViewfinderChip
-                captured={false}
-                templateLabel={t(`planeHunter.templates.${template}`)}
-                liveLabel={t("planeHunter.live")}
-                capturedLabel={t("planeHunter.editorTitle")}
-              />
-              <PlaneHunterTemplateOverlay labels={labels} template={template} />
+              {!cameraError && (
+                <>
+                  <PlaneHunterViewfinderGrid />
+                  <PlaneHunterViewfinderChip
+                    captured={false}
+                    templateLabel={t(`planeHunter.templates.${template}`)}
+                    liveLabel={t("planeHunter.live")}
+                    capturedLabel={t("planeHunter.editorTitle")}
+                  />
+                  <PlaneHunterTemplateOverlay labels={labels} template={template} />
+                </>
+              )}
             </>
           ) : (
             <img
