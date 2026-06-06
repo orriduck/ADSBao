@@ -1716,6 +1716,48 @@ body {
         width: 100vw;
     }
 
+    .plane-hunter-shell {
+        background: rgb(5 5 5);
+        gap: 10px;
+        height: 100dvh !important;
+        min-height: 0;
+        overflow: hidden;
+        padding: 10px;
+    }
+
+    .plane-hunter-shell .dither-page-background.plane-hunter-stage {
+        border-radius: var(--atc-radius-shell);
+        flex: 1 1 auto;
+        min-height: 0;
+        width: auto;
+    }
+
+    .plane-hunter-shell .dither-page-panel.plane-hunter-panel {
+        background:
+            linear-gradient(
+                135deg,
+                color-mix(in oklab, var(--atc-orange) 14%, transparent),
+                transparent 52%
+            ),
+            var(--atc-surface-preview-card);
+        border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
+        border-radius: var(--atc-radius-card);
+        box-shadow: var(--app-floating-shadow), var(--atc-preview-card-inset);
+        align-self: center;
+        flex: 0 0 auto;
+        margin: 0;
+        max-height: min(38dvh, 338px);
+        overflow: hidden;
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
+        width: min(390px, calc(100vw - 20px)) !important;
+    }
+
+    .plane-hunter-shell .dither-page-panel.plane-hunter-panel > .flex-1.overflow-y-auto {
+        flex: 0 0 auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
     /* Mobile static pages scroll as a single document — release the
        desktop `h-screen` flex layout so the shell grows with content
        and the browser's own scroller handles overflow. */

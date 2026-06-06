@@ -7,6 +7,7 @@ import {
   Toolbar,
   ToolbarButton,
 } from "@/components/ui/Toolbar";
+import { MetricCard } from "@/components/ui/MetricCard";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
@@ -151,30 +152,45 @@ function drawTemplate(
   }
 
   if (template === "lowerThird") {
+    const frameInset = Math.max(1, Math.round(10 * scale));
     const barHeight = Math.round(96 * scale);
-    const barY = height - barHeight - pad;
-    const callsignWidth = Math.min(Math.round(250 * scale), Math.max(Math.round(180 * scale), width * 0.36));
-    const detailWidth = Math.min(width - pad * 2 - callsignWidth, Math.round(620 * scale));
+    const barY = height - barHeight - frameInset;
+    const barWidth = width - frameInset * 2;
+    const callsignWidth = Math.min(
+      Math.round(380 * scale),
+      Math.max(Math.round(190 * scale), barWidth * 0.24),
+    );
 
     context.fillStyle = "rgba(242, 243, 238, 0.95)";
-    roundedRect(context, pad, barY, callsignWidth, barHeight, 16 * scale);
-    context.fill();
+    context.fillRect(frameInset, barY, callsignWidth, barHeight);
 
     context.fillStyle = "rgba(14, 15, 16, 0.94)";
-    roundedRect(context, pad + callsignWidth - 2 * scale, barY, detailWidth + 2 * scale, barHeight, 16 * scale);
-    context.fill();
+    context.fillRect(
+      frameInset + callsignWidth,
+      barY,
+      barWidth - callsignWidth,
+      barHeight,
+    );
 
     context.fillStyle = "rgba(14, 15, 16, 0.95)";
     context.font = `850 ${Math.round(34 * scale)}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.callsign, pad + 22 * scale, barY + 58 * scale);
+    context.fillText(labels.callsign, frameInset + 28 * scale, barY + 58 * scale);
 
     context.fillStyle = "rgba(242, 243, 238, 0.96)";
     context.font = `780 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(routeLabel, pad + callsignWidth + 22 * scale, barY + 39 * scale);
+    context.fillText(
+      routeLabel,
+      frameInset + callsignWidth + 28 * scale,
+      barY + 39 * scale,
+    );
 
     context.fillStyle = "rgba(242, 243, 238, 0.66)";
     context.font = `760 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(metaLabel || labels.capturedAt, pad + callsignWidth + 22 * scale, barY + 68 * scale);
+    context.fillText(
+      metaLabel || labels.capturedAt,
+      frameInset + callsignWidth + 28 * scale,
+      barY + 68 * scale,
+    );
   }
 
   context.restore();
@@ -218,21 +234,21 @@ function PlaneHunterTemplateOverlay({
   }
 
   return (
-    <div className="pointer-events-none absolute inset-x-4 bottom-4 flex justify-start md:inset-x-8 md:bottom-8">
-      <div className="flex max-w-[min(86vw,720px)] items-stretch overflow-hidden rounded-[16px] shadow-[0_18px_42px_rgba(0,0,0,0.24)]">
-        <div className="flex min-w-[132px] items-center bg-[rgb(242,243,238)] px-4 text-[rgb(14,15,16)] md:min-w-[190px] md:px-5">
+    <div className="pointer-events-none absolute inset-x-[10px] bottom-[10px] flex h-[82px] items-stretch shadow-[0_-18px_42px_rgba(0,0,0,0.22)] md:h-[96px]">
+      <div className="grid w-full grid-cols-[clamp(150px,24vw,380px)_minmax(0,1fr)] items-stretch overflow-hidden">
+        <div className="flex min-w-0 items-center bg-[rgb(242,243,238)] px-4 text-[rgb(14,15,16)] md:px-7">
           <strong
             translate="no"
-            className="notranslate truncate text-[22px] font-black leading-none tracking-normal md:text-[30px]"
+            className="notranslate truncate text-[24px] font-black leading-none tracking-normal md:text-[34px]"
           >
             {labels.callsign}
           </strong>
         </div>
-        <div className="min-w-0 bg-[rgba(14,15,16,0.94)] px-4 py-3 text-[rgb(242,243,238)] md:px-5">
-          <div className="truncate text-[13px] font-extrabold leading-tight md:text-[16px]">
+        <div className="flex min-w-0 flex-col justify-center bg-[rgba(14,15,16,0.94)] px-4 text-[rgb(242,243,238)] md:px-7">
+          <div className="truncate text-[15px] font-extrabold leading-tight md:text-[20px]">
             {labels.route}
           </div>
-          <div className="mt-2 truncate text-[10px] font-black leading-none text-[rgba(242,243,238,0.66)] md:text-[12px]">
+          <div className="mt-2 truncate text-[11px] font-black leading-none text-[rgba(242,243,238,0.66)] md:text-[14px]">
             {metadata || labels.capturedAt}
           </div>
         </div>
@@ -457,10 +473,10 @@ export default function PlaneHunterStudio({
       aria-modal="true"
       aria-label={t("planeHunter.title")}
     >
-      <div className="dither-page-shell flex h-dvh w-full flex-col text-atc-text md:flex-row">
+      <div className="dither-page-shell plane-hunter-shell flex h-dvh w-full flex-col text-atc-text md:flex-row">
         <aside className="dither-page-panel plane-hunter-panel sidebar-shell order-2 flex max-h-[48dvh] w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg md:order-1 md:w-[var(--app-sidebar-width)] md:border-r md:border-t-0">
-          <div className="flex-none px-5 pb-4 pt-5 md:px-6 md:pb-5 md:pt-7">
-            <div className="flex items-center gap-3">
+          <div className="flex-none px-4 pb-2 pt-4 md:px-6 md:pb-5 md:pt-7">
+            <div className="hidden items-center gap-3 md:flex">
               <SidebarBrandMark className="dither-page-brand-mark" />
               <span
                 aria-hidden="true"
@@ -468,7 +484,7 @@ export default function PlaneHunterStudio({
               />
             </div>
             <h2
-              className="mt-5 text-[28px] font-extrabold leading-[1.08] text-atc-text"
+              className="text-[18px] font-extrabold leading-[1.08] text-atc-text md:mt-5 md:text-[28px]"
               style={{ fontFamily: "var(--font-display)", letterSpacing: "0" }}
             >
               {t("planeHunter.title")}
@@ -479,7 +495,7 @@ export default function PlaneHunterStudio({
             >
               {labels.callsign}
             </p>
-            <p className="mt-2 text-[12px] font-semibold leading-relaxed text-atc-dim">
+            <p className="hidden mt-1.5 text-[11px] font-semibold leading-relaxed text-atc-dim md:mt-2 md:block md:text-[12px]">
               {capturedImage
                 ? `${labels.route} · ${labels.type}`
                 : t("planeHunter.cameraHint")}
@@ -514,9 +530,9 @@ export default function PlaneHunterStudio({
             )}
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5 md:px-6 md:pb-6">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-4 md:gap-4 md:px-6 md:pb-6">
             <div>
-              <p className="font-[var(--font-display)] text-[17px] font-extrabold leading-tight">
+              <p className="hidden font-[var(--font-display)] text-[15px] font-extrabold leading-tight md:block md:text-[17px]">
                 {capturedImage
                   ? t("planeHunter.editorTitle")
                   : t("planeHunter.cameraTitle")}
@@ -525,18 +541,17 @@ export default function PlaneHunterStudio({
 
             <div className="grid grid-cols-3 gap-2 md:grid-cols-1">
               {TEMPLATES.map((item) => (
-                <button
+                <MetricCard
                   key={item}
-                  type="button"
                   onClick={() => setTemplate(item)}
-                  data-active={template === item}
-                  className={cn(
-                    "min-h-[46px] rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 text-left text-[12px] font-bold leading-tight text-atc-text",
-                    "transition hover:bg-atc-card-strong data-[active=true]:border-[var(--primary-bright)] data-[active=true]:bg-[color-mix(in_oklab,var(--primary-bright)_17%,var(--atc-bg))]",
-                  )}
-                >
-                  {t(`planeHunter.templates.${item}`)}
-                </button>
+                  active={template === item}
+                  label={t("planeHunter.templateLabel")}
+                  value={t(`planeHunter.templates.${item}`)}
+                  unit={t(`planeHunter.templateUnits.${item}`)}
+                  valueSize="compact"
+                  valueTranslate
+                  className="min-h-[54px] gap-1 p-2 grid-rows-[9px_20px_9px] [&>span]:text-[8px] [&>strong]:h-5 [&>strong]:text-[17px] [&>small]:h-2.5 [&>small]:text-[8px] md:min-h-[72px] md:gap-1.5 md:p-3 md:grid-rows-[11px_26px_10px] md:[&>span]:text-[10px] md:[&>strong]:h-8.5 md:[&>strong]:text-[22px] md:[&>small]:h-3 md:[&>small]:text-[10px] [.airport-map-kit_&]:min-h-[72px] [.airport-map-kit_&]:p-3"
+                />
               ))}
             </div>
 
@@ -547,15 +562,24 @@ export default function PlaneHunterStudio({
             )}
 
             {!capturedImage ? (
-              <button
-                type="button"
-                onClick={capture}
-                disabled={Boolean(cameraError)}
-                className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                <Camera aria-hidden="true" className="size-5" />
-                {t("planeHunter.capture")}
-              </button>
+              <div className="mt-auto grid gap-2">
+                <button
+                  type="button"
+                  onClick={capture}
+                  disabled={Boolean(cameraError)}
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <Camera aria-hidden="true" className="size-5" />
+                  {t("planeHunter.capture")}
+                </button>
+                <button
+                  type="button"
+                  onClick={close}
+                  className="flex min-h-11 items-center justify-center rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] px-4 text-[13px] font-extrabold text-atc-text shadow-[var(--atc-control-inset-shadow)] transition hover:bg-[var(--atc-control-hover-bg)] active:scale-[0.98]"
+                >
+                  {t("planeHunter.back")}
+                </button>
+              </div>
             ) : (
               <button
                 type="button"

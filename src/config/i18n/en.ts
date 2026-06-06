@@ -315,11 +315,18 @@ const en = {
       "The browser has not released the camera yet. If it remembered a block, allow camera access from the address bar first.",
     cameraRequestAction: "Request camera access again",
     capture: "Take photo",
+    back: "Back",
     editorTitle: "Final image",
+    templateLabel: "Template",
     templates: {
       none: "No template",
       previewCard: "Preview card",
       lowerThird: "News bar",
+    },
+    templateUnits: {
+      none: "Clean",
+      previewCard: "Card",
+      lowerThird: "Brief",
     },
     retake: "Retake",
     copy: "Copy",

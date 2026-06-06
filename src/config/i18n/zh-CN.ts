@@ -310,11 +310,18 @@ const zhCN = {
       "浏览器还没放行摄像头。如果已经记住拒绝,请先在地址栏相机设置里改为允许。",
     cameraRequestAction: "重新请求摄像头权限",
     capture: "拍照",
+    back: "返回",
     editorTitle: "成片预览",
+    templateLabel: "模板",
     templates: {
       none: "不加模板",
       previewCard: "预览卡片",
       lowerThird: "新闻横条",
+    },
+    templateUnits: {
+      none: "原片",
+      previewCard: "信息卡",
+      lowerThird: "快讯",
     },
     retake: "重拍",
     copy: "复制",
