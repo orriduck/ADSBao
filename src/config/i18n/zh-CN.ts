@@ -296,7 +296,7 @@ const zhCN = {
     loadingTrace: "正在加载航迹…",
     openAirport: "追踪机场",
     viewingAirport: "正在查看机场",
-    planeHunter: "飞机探长",
+    planeHunter: "开始拍机",
     creditPrefix: "图源@",
   },
   planeHunter: {
