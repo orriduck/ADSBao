@@ -316,6 +316,7 @@ const en = {
     cameraRequestAction: "Request camera access again",
     capture: "Take photo",
     back: "Back",
+    live: "Live",
     editorTitle: "Final image",
     templateLabel: "Template",
     templates: {
@@ -327,6 +328,14 @@ const en = {
       none: "Clean",
       previewCard: "Card",
       lowerThird: "Brief",
+    },
+    metaToggle: "Show",
+    metaFields: {
+      type: "Type",
+      registration: "Reg",
+      speed: "Speed",
+      altitude: "Alt",
+      verticalRate: "VS",
     },
     retake: "Retake",
     copy: "Copy",

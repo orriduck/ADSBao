@@ -16,16 +16,32 @@ import { cn } from "@/lib/utils";
 
 const TEMPLATES = ["none", "previewCard", "lowerThird"] as const;
 type PlaneHunterTemplate = (typeof TEMPLATES)[number];
+
+// Metadata fields the photographer can toggle on/off. Order in the
+// array drives display order in the templates and the card subtitle.
+const META_FIELDS = [
+  "type",
+  "registration",
+  "speed",
+  "altitude",
+  "verticalRate",
+] as const;
+type MetaField = (typeof META_FIELDS)[number];
+const DEFAULT_META_FIELDS = new Set<MetaField>(META_FIELDS);
+
 type PlaneHunterTranslator = ReturnType<typeof useI18n>["t"];
 type AircraftLabels = ReturnType<typeof getAircraftLabels>;
 
 // Picker cell sizing — keep one source of truth so the picker stays
 // compact on the mobile card but breathes on the desktop sidebar.
+// Subtle outer shadow keeps inactive cards readable as cards on the
+// light-mode panel; the active state already paints its own glow.
 const PICKER_CARD_CLASS = cn(
-  "min-h-[54px] gap-1 p-2 grid-rows-[9px_20px_9px]",
-  "[&>span]:text-[8px] [&>strong]:h-5 [&>strong]:text-[17px] [&>small]:h-2.5 [&>small]:text-[8px]",
-  "md:min-h-[68px] md:gap-1.5 md:p-2.5 md:grid-rows-[11px_24px_10px]",
-  "md:[&>span]:text-[10px] md:[&>strong]:h-7 md:[&>strong]:text-[20px] md:[&>small]:h-3 md:[&>small]:text-[10px]",
+  "min-h-[46px] gap-0.5 p-1.5 grid-rows-[8px_18px_8px]",
+  "[&>span]:text-[8px] [&>strong]:h-4.5 [&>strong]:text-[15px] [&>small]:h-2 [&>small]:text-[8px]",
+  "md:min-h-[64px] md:gap-1.5 md:p-2.5 md:grid-rows-[11px_22px_10px]",
+  "md:[&>span]:text-[10px] md:[&>strong]:h-6 md:[&>strong]:text-[19px] md:[&>small]:h-3 md:[&>small]:text-[10px]",
+  "shadow-[0_1px_2px_rgba(14,15,16,0.05),0_4px_12px_rgba(14,15,16,0.04)]",
 );
 
 function normalizeLabel(value: unknown, fallback = "") {
@@ -38,7 +54,10 @@ function normalizeNumber(value: unknown) {
   return Number.isFinite(numberValue) ? numberValue : null;
 }
 
-function getAircraftLabels(aircraft: Record<string, any> | null | undefined) {
+function getAircraftLabels(
+  aircraft: Record<string, any> | null | undefined,
+  enabledFields: Set<MetaField> = DEFAULT_META_FIELDS,
+) {
   const callsign = normalizeLabel(
     aircraft?.callsign,
     normalizeLabel(aircraft?.icao24, "UNKNOWN"),
@@ -58,12 +77,17 @@ function getAircraftLabels(aircraft: Record<string, any> | null | undefined) {
   const speed = normalizeNumber(aircraft?.gs ?? aircraft?.speed);
   const altitude = normalizeNumber(aircraft?.alt_baro ?? aircraft?.altitude);
   const verticalRate = normalizeNumber(aircraft?.baro_rate ?? aircraft?.verticalRate);
+  const allow = (field: MetaField) => enabledFields.has(field);
   const metadata = [
-    type.toUpperCase(),
-    registration,
-    speed === null ? "" : `${Math.round(speed)} KT`,
-    altitude === null ? "" : `${Math.round(altitude).toLocaleString()} FT`,
-    verticalRate === null ? "" : `${Math.round(verticalRate)} FPM`,
+    allow("type") ? type.toUpperCase() : "",
+    allow("registration") ? registration : "",
+    allow("speed") && speed !== null ? `${Math.round(speed)} KT` : "",
+    allow("altitude") && altitude !== null
+      ? `${Math.round(altitude).toLocaleString()} FT`
+      : "",
+    allow("verticalRate") && verticalRate !== null
+      ? `${Math.round(verticalRate)} FPM`
+      : "",
   ].filter(Boolean);
 
   return {
@@ -223,52 +247,108 @@ function PlaneHunterTemplateOverlay({
 
   if (template === "previewCard") {
     return (
-      <div className="pointer-events-none absolute inset-x-[10px] bottom-[10px] flex justify-start md:inset-x-8 md:bottom-8">
-        <div className="w-[min(78vw,520px)] rounded-[22px] border border-[rgba(14,15,16,0.16)] bg-[rgba(242,243,238,0.92)] px-5 py-4 text-[rgb(14,15,16)] shadow-[0_18px_42px_rgba(0,0,0,0.22)]">
-          <div className="flex items-baseline justify-between gap-4 border-b border-[rgba(14,15,16,0.18)] pb-2">
+      <div className="pointer-events-none absolute inset-x-[10px] bottom-[var(--plane-hunter-card-clearance)] flex justify-start md:inset-x-8 md:bottom-8">
+        <div className="w-[min(72vw,460px)] rounded-[16px] border border-[rgba(14,15,16,0.16)] bg-[rgba(242,243,238,0.92)] px-3.5 py-2.5 text-[rgb(14,15,16)] shadow-[0_18px_42px_rgba(0,0,0,0.22)] md:px-5 md:py-3.5">
+          <div className="flex items-baseline justify-between gap-3 border-b border-[rgba(14,15,16,0.18)] pb-1.5">
             <strong
               translate="no"
-              className="notranslate truncate text-[24px] font-black leading-none tracking-normal"
+              className="notranslate truncate text-[18px] font-black leading-none tracking-normal md:text-[22px]"
             >
               {labels.callsign}
             </strong>
-            <span className="truncate text-right text-[14px] font-extrabold leading-none">
+            <span className="truncate text-right text-[11px] font-extrabold leading-none md:text-[13px]">
               {labels.type}
             </span>
           </div>
-          <div className="mt-3 truncate text-[15px] font-extrabold leading-none">
+          <div className="mt-2 truncate text-[12px] font-extrabold leading-none md:text-[14px]">
             {labels.route}
           </div>
-          <div className="mt-2 truncate text-[11px] font-black leading-none text-[rgba(14,15,16,0.56)]">
-            {metadata || labels.capturedAt}
-          </div>
+          {(metadata || labels.capturedAt) && (
+            <div className="mt-1.5 truncate text-[9px] font-black leading-none text-[rgba(14,15,16,0.56)] md:text-[10px]">
+              {metadata || labels.capturedAt}
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  // News bar: pinned 10px inside the camera frame on all sides, no
-  // rounding, callsign block on the left, route + metadata on the right.
+  // News bar: pinned just above the floating mobile card (or 10px
+  // above the desktop camera bottom), no rounding, callsign block on
+  // the left, route + metadata on the right.
   return (
-    <div className="pointer-events-none absolute inset-x-[10px] bottom-[10px] flex h-[68px] items-stretch shadow-[0_-18px_42px_rgba(0,0,0,0.22)] md:h-[96px]">
-      <div className="grid w-full grid-cols-[clamp(120px,32vw,340px)_minmax(0,1fr)] items-stretch overflow-hidden">
-        <div className="flex min-w-0 items-center bg-[rgb(242,243,238)] px-3 text-[rgb(14,15,16)] md:px-7">
+    <div className="pointer-events-none absolute inset-x-[10px] bottom-[var(--plane-hunter-card-clearance)] flex h-[52px] items-stretch shadow-[0_-18px_42px_rgba(0,0,0,0.22)] md:bottom-[10px] md:h-[84px]">
+      <div className="grid w-full grid-cols-[clamp(96px,28vw,300px)_minmax(0,1fr)] items-stretch overflow-hidden">
+        <div className="flex min-w-0 items-center bg-[rgb(242,243,238)] px-2.5 text-[rgb(14,15,16)] md:px-6">
           <strong
             translate="no"
-            className="notranslate truncate text-[20px] font-black leading-none tracking-normal md:text-[34px]"
+            className="notranslate truncate text-[16px] font-black leading-none tracking-normal md:text-[28px]"
           >
             {labels.callsign}
           </strong>
         </div>
-        <div className="flex min-w-0 flex-col justify-center bg-[rgba(14,15,16,0.94)] px-3 text-[rgb(242,243,238)] md:px-7">
-          <div className="truncate text-[13px] font-extrabold leading-tight md:text-[20px]">
+        <div className="flex min-w-0 flex-col justify-center bg-[rgba(14,15,16,0.94)] px-2.5 text-[rgb(242,243,238)] md:px-6">
+          <div className="truncate text-[11px] font-extrabold leading-tight md:text-[17px]">
             {labels.route}
           </div>
-          <div className="mt-1 truncate text-[10px] font-black leading-none text-[rgba(242,243,238,0.66)] md:mt-2 md:text-[14px]">
-            {metadata || labels.capturedAt}
-          </div>
+          {(metadata || labels.capturedAt) && (
+            <div className="mt-0.5 truncate text-[9px] font-black leading-none text-[rgba(242,243,238,0.66)] md:mt-1.5 md:text-[12px]">
+              {metadata || labels.capturedAt}
+            </div>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Small chip pinned inside the viewfinder top-left so the camera area
+// always reads as "live" rather than blank waiting space. Mirrors a
+// real camera's HUD: a pulsing dot, the live / captured state label,
+// and the active template name.
+function PlaneHunterViewfinderChip({
+  captured,
+  templateLabel,
+  liveLabel,
+  capturedLabel,
+}: {
+  captured: boolean;
+  templateLabel: string;
+  liveLabel: string;
+  capturedLabel: string;
+}) {
+  return (
+    <div className="pointer-events-none absolute left-[14px] top-[14px] flex items-center gap-1.5 rounded-full bg-[rgba(10,11,12,0.55)] px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[rgba(242,243,238,0.92)] shadow-[0_4px_12px_rgba(0,0,0,0.32)] backdrop-blur md:left-5 md:top-5 md:text-[10px]">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "inline-block size-1 rounded-full",
+          captured ? "bg-[rgba(242,243,238,0.7)]" : "bg-[rgb(255,196,80)] animate-pulse",
+        )}
+      />
+      <span>{captured ? capturedLabel : liveLabel}</span>
+      <span aria-hidden="true" className="opacity-50">·</span>
+      <span className="truncate max-w-[110px] md:max-w-[200px]">{templateLabel}</span>
+    </div>
+  );
+}
+
+// Rule-of-thirds + center reticle. Lives inside the camera frame so a
+// blank or permission-pending viewfinder still reads like a camera
+// surface, and gives the photographer aim cues when shooting an
+// aircraft against a featureless sky.
+function PlaneHunterViewfinderGrid() {
+  const lineClass = "absolute bg-[rgba(255,255,255,0.08)]";
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-[10px]"
+    >
+      <div className={cn(lineClass, "left-0 right-0 top-1/3 h-px")} />
+      <div className={cn(lineClass, "left-0 right-0 top-2/3 h-px")} />
+      <div className={cn(lineClass, "top-0 bottom-0 left-1/3 w-px")} />
+      <div className={cn(lineClass, "top-0 bottom-0 left-2/3 w-px")} />
+      <div className="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-[2px] border border-[rgba(255,255,255,0.18)]" />
     </div>
   );
 }
@@ -284,11 +364,16 @@ function PlaneHunterCameraFallback({
   title: string;
   message: string;
 }) {
+  // Fallback panel always sits on a dark camera surface, so anchor the
+  // accent color to a fixed bright value instead of the theme token
+  // `--primary-bright` (which flips to a dark ink color in light mode
+  // and renders the link invisibly dark-on-dark).
+  const accent = "rgb(255,196,80)";
   return (
     <div className="absolute inset-0 flex items-start justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_28%,rgba(242,243,238,0.16),transparent_32%),linear-gradient(135deg,rgba(242,243,238,0.08)_0_1px,transparent_1px_22px),rgb(10,11,12)] px-5 pt-8 text-[rgb(242,243,238)]">
       <div className="max-w-[360px] rounded-[var(--atc-radius-panel)] border border-[rgba(242,243,238,0.18)] bg-[rgba(10,11,12,0.72)] px-4 py-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
         <div className="flex items-center gap-2">
-          <CameraOff aria-hidden="true" className="size-4 text-[var(--primary-bright)]" />
+          <CameraOff aria-hidden="true" className="size-4" style={{ color: accent }} />
           <p className="text-[13px] font-extrabold leading-none">{title}</p>
         </div>
         <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[rgba(242,243,238,0.68)]">
@@ -297,7 +382,11 @@ function PlaneHunterCameraFallback({
         <button
           type="button"
           onClick={onAction}
-          className="mt-2 inline-flex text-[11px] font-extrabold leading-none text-[var(--primary-bright)] underline decoration-[color-mix(in_oklab,var(--primary-bright)_62%,transparent)] decoration-1 underline-offset-4 transition hover:text-[rgb(242,243,238)]"
+          style={{
+            color: accent,
+            textDecorationColor: "rgba(255,196,80,0.62)",
+          }}
+          className="mt-2 inline-flex text-[11px] font-extrabold leading-none underline decoration-1 underline-offset-4 transition hover:text-[rgb(242,243,238)]"
         >
           {actionLabel}
         </button>
@@ -306,27 +395,78 @@ function PlaneHunterCameraFallback({
   );
 }
 
-// Compact header: callsign on the left, "Plane Hunter" on the right.
-// Mobile renders this inside the bottom card; desktop replaces it with
-// the larger brand + title block.
+// Compact 2-line header for the mobile bottom card. Top line pairs
+// the callsign with the "飞机探长" feature tag; second line packs the
+// remaining aircraft metadata (type · registration · altitude) so the
+// card never reads as empty even before the photographer captures.
 function PlaneHunterMobileHeader({
   callsign,
+  metaParts,
   title,
 }: {
   callsign: string;
+  metaParts: string[];
   title: string;
 }) {
+  const metaText = metaParts.filter(Boolean).join(" · ");
   return (
-    <div className="flex items-baseline justify-between gap-3 md:hidden">
-      <span
-        translate="no"
-        className="notranslate truncate text-[15px] font-black leading-none tracking-normal text-atc-text"
-      >
-        {callsign}
+    <div className="flex flex-col gap-0.5 md:hidden">
+      <div className="flex items-baseline justify-between gap-3">
+        <span
+          translate="no"
+          className="notranslate truncate text-[13px] font-black leading-none tracking-normal text-atc-text"
+        >
+          {callsign}
+        </span>
+        <span className="truncate text-[10px] font-extrabold uppercase tracking-[0.08em] text-atc-dim">
+          {title}
+        </span>
+      </div>
+      {metaText && (
+        <span className="truncate text-[9px] font-extrabold uppercase tracking-[0.06em] text-atc-faint">
+          {metaText}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// Metadata field toggles — sits between the template picker and the
+// capture actions so the photographer can quickly hide or show stats
+// in the previewCard / news-bar templates without leaving the studio.
+function PlaneHunterMetaToggles({
+  enabledFields,
+  onToggle,
+  t,
+}: {
+  enabledFields: Set<MetaField>;
+  onToggle: (field: MetaField) => void;
+  t: PlaneHunterTranslator;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <span className="text-[9px] font-extrabold uppercase tracking-[0.08em] text-atc-faint">
+        {t("planeHunter.metaToggle")}
       </span>
-      <span className="truncate text-[11px] font-extrabold uppercase tracking-[0.08em] text-atc-dim">
-        {title}
-      </span>
+      {META_FIELDS.map((field) => {
+        const active = enabledFields.has(field);
+        return (
+          <button
+            key={field}
+            type="button"
+            onClick={() => onToggle(field)}
+            data-active={active ? "true" : undefined}
+            className={cn(
+              "rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.04em] leading-none transition",
+              "border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] text-atc-dim",
+              "hover:bg-[var(--atc-control-hover-bg)]",
+              "data-[active=true]:border-transparent data-[active=true]:bg-[var(--atc-click-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
+            )}
+          >
+            {t(`planeHunter.metaFields.${field}`)}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -379,16 +519,20 @@ function PlaneHunterActionStack({
   t: PlaneHunterTranslator;
 }) {
   const primaryClass = cn(
-    "flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] px-3 text-[12px] font-extrabold leading-none",
-    "bg-[var(--primary-bright)] text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)]",
+    "flex min-h-9 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] px-3 text-[12px] font-extrabold leading-none",
+    "bg-[var(--primary-bright)] text-[var(--primary-ink)]",
+    // Layered shadow: a tight inner drop for definition and a wider
+    // ambient halo so the primary action lifts off a light panel.
+    "shadow-[var(--atc-action-primary-shadow),0_8px_22px_rgba(14,15,16,0.18)]",
     "transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45",
-    "md:min-h-12 md:text-[13px]",
+    "md:min-h-11 md:text-[13px]",
   );
   const secondaryClass = cn(
-    "flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] px-3 text-[12px] font-extrabold leading-none",
+    "flex min-h-9 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] px-3 text-[12px] font-extrabold leading-none",
     "border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] text-atc-text",
-    "shadow-[var(--atc-control-inset-shadow)] transition hover:bg-[var(--atc-control-hover-bg)] active:scale-[0.98]",
-    "md:min-h-12 md:text-[13px]",
+    "shadow-[var(--atc-control-inset-shadow),0_2px_6px_rgba(14,15,16,0.06)]",
+    "transition hover:bg-[var(--atc-control-hover-bg)] active:scale-[0.98]",
+    "md:min-h-11 md:text-[13px]",
   );
 
   if (captured) {
@@ -455,6 +599,8 @@ function PlaneHunterControlPanel({
   labels,
   template,
   onSelectTemplate,
+  enabledFields,
+  onToggleField,
   captured,
   cameraDisabled,
   status,
@@ -468,6 +614,8 @@ function PlaneHunterControlPanel({
   labels: AircraftLabels;
   template: PlaneHunterTemplate;
   onSelectTemplate: (next: PlaneHunterTemplate) => void;
+  enabledFields: Set<MetaField>;
+  onToggleField: (field: MetaField) => void;
   captured: boolean;
   cameraDisabled: boolean;
   status: string;
@@ -479,9 +627,10 @@ function PlaneHunterControlPanel({
   t: PlaneHunterTranslator;
 }) {
   return (
-    <div className="flex flex-col gap-2.5 md:gap-3">
+    <div className="flex flex-col gap-2 md:gap-2.5">
       <PlaneHunterMobileHeader
         callsign={labels.callsign}
+        metaParts={labels.metadata}
         title={t("planeHunter.title")}
       />
       <PlaneHunterTemplatePicker
@@ -489,8 +638,17 @@ function PlaneHunterControlPanel({
         onSelect={onSelectTemplate}
         t={t}
       />
+      <PlaneHunterMetaToggles
+        enabledFields={enabledFields}
+        onToggle={onToggleField}
+        t={t}
+      />
       {status && (
-        <p className="rounded-[var(--atc-radius-card)] bg-atc-bg/60 px-3 py-2 text-[11px] font-semibold text-atc-dim">
+        <p
+          role="status"
+          aria-live="polite"
+          className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-atc-bg/70 px-3 py-2 text-[11px] font-semibold leading-snug text-atc-dim"
+        >
           {status}
         </p>
       )}
@@ -526,7 +684,21 @@ export default function PlaneHunterStudio({
   const [template, setTemplate] = useState<PlaneHunterTemplate>("previewCard");
   const [cameraError, setCameraError] = useState("");
   const [status, setStatus] = useState("");
-  const labels = useMemo(() => getAircraftLabels(aircraft), [aircraft]);
+  const [enabledFields, setEnabledFields] = useState<Set<MetaField>>(
+    () => new Set<MetaField>(DEFAULT_META_FIELDS),
+  );
+  const toggleField = useCallback((field: MetaField) => {
+    setEnabledFields((current) => {
+      const next = new Set(current);
+      if (next.has(field)) next.delete(field);
+      else next.add(field);
+      return next;
+    });
+  }, []);
+  const labels = useMemo(
+    () => getAircraftLabels(aircraft, enabledFields),
+    [aircraft, enabledFields],
+  );
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -589,6 +761,14 @@ export default function PlaneHunterStudio({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [close, open]);
+
+  // Auto-dismiss the inline status note so save/copy feedback doesn't
+  // stay forever and shift the action stack down on repeat actions.
+  useEffect(() => {
+    if (!status) return undefined;
+    const timeout = window.setTimeout(() => setStatus(""), 2800);
+    return () => window.clearTimeout(timeout);
+  }, [status]);
 
   const capture = useCallback(() => {
     const video = videoRef.current;
@@ -696,9 +876,9 @@ export default function PlaneHunterStudio({
     >
       <div className="dither-page-shell plane-hunter-shell flex h-dvh w-full flex-col text-atc-text md:flex-row">
         <aside className="dither-page-panel plane-hunter-panel sidebar-shell order-2 flex w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg md:order-1 md:w-[var(--app-sidebar-width)] md:border-r md:border-t-0">
-          {/* Desktop brand + title block — hidden on mobile (the mobile
-              card surfaces callsign + title inline via the picker
-              header to keep the surface compact). */}
+          {/* Desktop header — brand + title + callsign/type. Mobile
+              swaps this for the compact header inline with the
+              control panel to keep the bottom card tight. */}
           <div className="hidden flex-none px-6 pt-7 pb-5 md:block">
             <div className="flex items-center gap-3">
               <SidebarBrandMark className="dither-page-brand-mark" />
@@ -713,24 +893,28 @@ export default function PlaneHunterStudio({
             >
               {t("planeHunter.title")}
             </h2>
-            <p
-              translate="no"
-              className="notranslate mt-2 truncate text-[15px] font-black leading-none text-atc-text"
-            >
-              {labels.callsign}
-            </p>
-            <p className="mt-2 text-[12px] font-semibold leading-relaxed text-atc-dim">
-              {captured
-                ? `${labels.route} · ${labels.type}`
-                : t("planeHunter.cameraHint")}
-            </p>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span
+                translate="no"
+                className="notranslate truncate text-[15px] font-black leading-none text-atc-text"
+              >
+                {labels.callsign}
+              </span>
+              {labels.type && (
+                <span className="truncate text-[11px] font-extrabold uppercase tracking-[0.06em] text-atc-faint">
+                  {labels.type}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-3 md:gap-4 md:px-6 md:pb-6 md:pt-0">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-3 pt-2.5 md:gap-4 md:px-6 md:pb-6 md:pt-0">
             <PlaneHunterControlPanel
               labels={labels}
               template={template}
               onSelectTemplate={setTemplate}
+              enabledFields={enabledFields}
+              onToggleField={toggleField}
               captured={captured}
               cameraDisabled={cameraDisabled}
               status={status}
@@ -765,7 +949,14 @@ export default function PlaneHunterStudio({
                   message={cameraError}
                 />
               )}
-              <div className="pointer-events-none absolute inset-0 border-[10px] border-[rgba(255,255,255,0.08)]" />
+              <div className="pointer-events-none absolute inset-0 border-[10px] border-[rgba(255,255,255,0.14)]" />
+              <PlaneHunterViewfinderGrid />
+              <PlaneHunterViewfinderChip
+                captured={false}
+                templateLabel={t(`planeHunter.templates.${template}`)}
+                liveLabel={t("planeHunter.live")}
+                capturedLabel={t("planeHunter.editorTitle")}
+              />
               <PlaneHunterTemplateOverlay labels={labels} template={template} />
             </>
           ) : (

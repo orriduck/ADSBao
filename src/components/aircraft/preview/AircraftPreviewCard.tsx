@@ -25,6 +25,7 @@ import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { usePlaneHunterEnabled } from "@/features/app-shell/auth/usePlaneHunterEnabled";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
 
@@ -143,7 +144,9 @@ export default function AircraftPreviewCard({
     !isNavaid &&
     Boolean(aircraftCallsign) &&
     typeof onApplyTemporaryRoute === "function";
-  const showPlaneHunterTrigger = isAircraftPreview && Boolean(entity);
+  const planeHunterEnabled = usePlaneHunterEnabled();
+  const showPlaneHunterTrigger =
+    planeHunterEnabled && isAircraftPreview && Boolean(entity);
   const showMobilePlaneHunterTrigger = showMobile && showPlaneHunterTrigger;
   const mobileFeedbackLabel = aircraft?.flightRouteLabel
     ? t("routeFeedback.suggestCorrection")
@@ -209,7 +212,9 @@ export default function AircraftPreviewCard({
               photo={photo}
               airportProfile={airportProfile}
               onApplyTemporaryRoute={onApplyTemporaryRoute}
-              onOpenPlaneHunter={() => setPlaneHunterOpen(true)}
+              onOpenPlaneHunter={
+                showPlaneHunterTrigger ? () => setPlaneHunterOpen(true) : undefined
+              }
               traceLoading={traceLoading}
             />
           )}

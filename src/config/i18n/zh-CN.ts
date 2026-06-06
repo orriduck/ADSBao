@@ -311,6 +311,7 @@ const zhCN = {
     cameraRequestAction: "重新请求摄像头权限",
     capture: "拍照",
     back: "返回",
+    live: "实时",
     editorTitle: "成片预览",
     templateLabel: "模板",
     templates: {
@@ -322,6 +323,14 @@ const zhCN = {
       none: "原片",
       previewCard: "信息卡",
       lowerThird: "快讯",
+    },
+    metaToggle: "显示",
+    metaFields: {
+      type: "机型",
+      registration: "注册号",
+      speed: "速度",
+      altitude: "高度",
+      verticalRate: "升降率",
     },
     retake: "重拍",
     copy: "复制",
