@@ -1723,11 +1723,15 @@ body {
         width: 100vw;
     }
 
-    .plane-hunter-shell {
+    /* Compound `.dither-page-shell.plane-hunter-shell` so this rule wins
+       the specificity race against the later `.dither-page-shell { height: auto }`
+       reset (same single-class specificity loses to source order). Without
+       this, the camera stage collapses to 0×0 on mobile. */
+    .dither-page-shell.plane-hunter-shell {
         background: rgb(5 5 5);
         gap: 0;
         height: 100dvh !important;
-        min-height: 0;
+        min-height: 100dvh;
         overflow: hidden;
         padding: 0;
         position: relative;
@@ -1761,6 +1765,10 @@ body {
         left: 50%;
         max-height: min(38dvh, 338px);
         overflow: hidden;
+        /* Studio is a modal dialog — the global mobile rule reserves
+           room for the floating toolbar that isn't shown here, so
+           reset the padding to keep the card compact. */
+        padding-bottom: 0;
         position: absolute;
         transform: translateX(-50%);
         width: min(390px, calc(100vw - 20px)) !important;
