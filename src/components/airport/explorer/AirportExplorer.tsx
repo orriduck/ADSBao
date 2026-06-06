@@ -469,7 +469,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       <div
         className={`font-sans text-atc-text ${
           isMobile
-            ? "fixed inset-0 z-0 flex overflow-hidden overscroll-y-auto"
+            ? "app-detail-shell fixed inset-0 z-0 flex overflow-hidden overscroll-y-none"
             : `airport-map-kit ${
                 sidebarOpen ? "airport-map-kit--sidebar-open" : ""
               } flex h-dvh overflow-hidden`
