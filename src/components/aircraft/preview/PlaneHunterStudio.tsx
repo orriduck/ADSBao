@@ -1,18 +1,32 @@
 "use client";
 
-import { Camera, CameraOff, Copy, Download, RotateCcw } from "lucide-react";
+import {
+  Camera,
+  CameraOff,
+  Copy,
+  Download,
+  RotateCcw,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
-import {
-  Toolbar,
-  ToolbarButton,
-} from "@/components/ui/Toolbar";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
 const TEMPLATES = ["none", "previewCard", "lowerThird"] as const;
 type PlaneHunterTemplate = (typeof TEMPLATES)[number];
+type PlaneHunterTranslator = ReturnType<typeof useI18n>["t"];
+type AircraftLabels = ReturnType<typeof getAircraftLabels>;
+
+// Picker cell sizing — keep one source of truth so the picker stays
+// compact on the mobile card but breathes on the desktop sidebar.
+const PICKER_CARD_CLASS = cn(
+  "min-h-[54px] gap-1 p-2 grid-rows-[9px_20px_9px]",
+  "[&>span]:text-[8px] [&>strong]:h-5 [&>strong]:text-[17px] [&>small]:h-2.5 [&>small]:text-[8px]",
+  "md:min-h-[68px] md:gap-1.5 md:p-2.5 md:grid-rows-[11px_24px_10px]",
+  "md:[&>span]:text-[10px] md:[&>strong]:h-7 md:[&>strong]:text-[20px] md:[&>small]:h-3 md:[&>small]:text-[10px]",
+);
 
 function normalizeLabel(value: unknown, fallback = "") {
   const label = String(value || "").trim();
@@ -101,7 +115,7 @@ function roundedRect(
 function drawTemplate(
   context: CanvasRenderingContext2D,
   template: PlaneHunterTemplate,
-  labels: ReturnType<typeof getAircraftLabels>,
+  labels: AircraftLabels,
   width: number,
   height: number,
 ) {
@@ -200,7 +214,7 @@ function PlaneHunterTemplateOverlay({
   labels,
   template,
 }: {
-  labels: ReturnType<typeof getAircraftLabels>;
+  labels: AircraftLabels;
   template: PlaneHunterTemplate;
 }) {
   if (template === "none") return null;
@@ -209,7 +223,7 @@ function PlaneHunterTemplateOverlay({
 
   if (template === "previewCard") {
     return (
-      <div className="pointer-events-none absolute inset-x-4 bottom-4 flex justify-start md:inset-x-8 md:bottom-8">
+      <div className="pointer-events-none absolute inset-x-[10px] bottom-[10px] flex justify-start md:inset-x-8 md:bottom-8">
         <div className="w-[min(78vw,520px)] rounded-[22px] border border-[rgba(14,15,16,0.16)] bg-[rgba(242,243,238,0.92)] px-5 py-4 text-[rgb(14,15,16)] shadow-[0_18px_42px_rgba(0,0,0,0.22)]">
           <div className="flex items-baseline justify-between gap-4 border-b border-[rgba(14,15,16,0.18)] pb-2">
             <strong
@@ -233,22 +247,24 @@ function PlaneHunterTemplateOverlay({
     );
   }
 
+  // News bar: pinned 10px inside the camera frame on all sides, no
+  // rounding, callsign block on the left, route + metadata on the right.
   return (
-    <div className="pointer-events-none absolute inset-x-[10px] bottom-[10px] flex h-[82px] items-stretch shadow-[0_-18px_42px_rgba(0,0,0,0.22)] md:h-[96px]">
-      <div className="grid w-full grid-cols-[clamp(150px,24vw,380px)_minmax(0,1fr)] items-stretch overflow-hidden">
-        <div className="flex min-w-0 items-center bg-[rgb(242,243,238)] px-4 text-[rgb(14,15,16)] md:px-7">
+    <div className="pointer-events-none absolute inset-x-[10px] bottom-[10px] flex h-[68px] items-stretch shadow-[0_-18px_42px_rgba(0,0,0,0.22)] md:h-[96px]">
+      <div className="grid w-full grid-cols-[clamp(120px,32vw,340px)_minmax(0,1fr)] items-stretch overflow-hidden">
+        <div className="flex min-w-0 items-center bg-[rgb(242,243,238)] px-3 text-[rgb(14,15,16)] md:px-7">
           <strong
             translate="no"
-            className="notranslate truncate text-[24px] font-black leading-none tracking-normal md:text-[34px]"
+            className="notranslate truncate text-[20px] font-black leading-none tracking-normal md:text-[34px]"
           >
             {labels.callsign}
           </strong>
         </div>
-        <div className="flex min-w-0 flex-col justify-center bg-[rgba(14,15,16,0.94)] px-4 text-[rgb(242,243,238)] md:px-7">
-          <div className="truncate text-[15px] font-extrabold leading-tight md:text-[20px]">
+        <div className="flex min-w-0 flex-col justify-center bg-[rgba(14,15,16,0.94)] px-3 text-[rgb(242,243,238)] md:px-7">
+          <div className="truncate text-[13px] font-extrabold leading-tight md:text-[20px]">
             {labels.route}
           </div>
-          <div className="mt-2 truncate text-[11px] font-black leading-none text-[rgba(242,243,238,0.66)] md:text-[14px]">
+          <div className="mt-1 truncate text-[10px] font-black leading-none text-[rgba(242,243,238,0.66)] md:mt-2 md:text-[14px]">
             {metadata || labels.capturedAt}
           </div>
         </div>
@@ -286,6 +302,208 @@ function PlaneHunterCameraFallback({
           {actionLabel}
         </button>
       </div>
+    </div>
+  );
+}
+
+// Compact header: callsign on the left, "Plane Hunter" on the right.
+// Mobile renders this inside the bottom card; desktop replaces it with
+// the larger brand + title block.
+function PlaneHunterMobileHeader({
+  callsign,
+  title,
+}: {
+  callsign: string;
+  title: string;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 md:hidden">
+      <span
+        translate="no"
+        className="notranslate truncate text-[15px] font-black leading-none tracking-normal text-atc-text"
+      >
+        {callsign}
+      </span>
+      <span className="truncate text-[11px] font-extrabold uppercase tracking-[0.08em] text-atc-dim">
+        {title}
+      </span>
+    </div>
+  );
+}
+
+function PlaneHunterTemplatePicker({
+  template,
+  onSelect,
+  t,
+}: {
+  template: PlaneHunterTemplate;
+  onSelect: (next: PlaneHunterTemplate) => void;
+  t: PlaneHunterTranslator;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-2.5">
+      {TEMPLATES.map((item) => (
+        <MetricCard
+          key={item}
+          onClick={() => onSelect(item)}
+          active={template === item}
+          label={t("planeHunter.templateLabel")}
+          value={t(`planeHunter.templates.${item}`)}
+          unit={t(`planeHunter.templateUnits.${item}`)}
+          valueSize="compact"
+          valueTranslate
+          className={PICKER_CARD_CLASS}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PlaneHunterActionStack({
+  captured,
+  cameraDisabled,
+  onCapture,
+  onClose,
+  onRetake,
+  onCopy,
+  onSave,
+  t,
+}: {
+  captured: boolean;
+  cameraDisabled: boolean;
+  onCapture: () => void;
+  onClose: () => void;
+  onRetake: () => void;
+  onCopy: () => void;
+  onSave: () => void;
+  t: PlaneHunterTranslator;
+}) {
+  const primaryClass = cn(
+    "flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] px-3 text-[12px] font-extrabold leading-none",
+    "bg-[var(--primary-bright)] text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)]",
+    "transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45",
+    "md:min-h-12 md:text-[13px]",
+  );
+  const secondaryClass = cn(
+    "flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] px-3 text-[12px] font-extrabold leading-none",
+    "border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] text-atc-text",
+    "shadow-[var(--atc-control-inset-shadow)] transition hover:bg-[var(--atc-control-hover-bg)] active:scale-[0.98]",
+    "md:min-h-12 md:text-[13px]",
+  );
+
+  if (captured) {
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          onClick={onRetake}
+          className={secondaryClass}
+          aria-label={t("planeHunter.retake")}
+        >
+          <RotateCcw aria-hidden="true" className="size-4" />
+          {t("planeHunter.retake")}
+        </button>
+        <button
+          type="button"
+          onClick={onCopy}
+          className={secondaryClass}
+          aria-label={t("planeHunter.copy")}
+        >
+          <Copy aria-hidden="true" className="size-4" />
+          {t("planeHunter.copy")}
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          className={primaryClass}
+          aria-label={t("planeHunter.save")}
+        >
+          <Download aria-hidden="true" className="size-4" />
+          {t("planeHunter.save")}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-2">
+      <button
+        type="button"
+        onClick={onCapture}
+        disabled={cameraDisabled}
+        className={primaryClass}
+      >
+        <Camera aria-hidden="true" className="size-4 md:size-5" />
+        {t("planeHunter.capture")}
+      </button>
+      <button
+        type="button"
+        onClick={onClose}
+        className={secondaryClass}
+      >
+        <X aria-hidden="true" className="size-4" />
+        {t("planeHunter.back")}
+      </button>
+    </div>
+  );
+}
+
+// Shared control surface used by both layouts. Mobile gets a compact
+// header inline; desktop renders the larger brand+title block above
+// this panel so the picker + actions stay identical across viewports.
+function PlaneHunterControlPanel({
+  labels,
+  template,
+  onSelectTemplate,
+  captured,
+  cameraDisabled,
+  status,
+  onCapture,
+  onClose,
+  onRetake,
+  onCopy,
+  onSave,
+  t,
+}: {
+  labels: AircraftLabels;
+  template: PlaneHunterTemplate;
+  onSelectTemplate: (next: PlaneHunterTemplate) => void;
+  captured: boolean;
+  cameraDisabled: boolean;
+  status: string;
+  onCapture: () => void;
+  onClose: () => void;
+  onRetake: () => void;
+  onCopy: () => void;
+  onSave: () => void;
+  t: PlaneHunterTranslator;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5 md:gap-3">
+      <PlaneHunterMobileHeader
+        callsign={labels.callsign}
+        title={t("planeHunter.title")}
+      />
+      <PlaneHunterTemplatePicker
+        template={template}
+        onSelect={onSelectTemplate}
+        t={t}
+      />
+      {status && (
+        <p className="rounded-[var(--atc-radius-card)] bg-atc-bg/60 px-3 py-2 text-[11px] font-semibold text-atc-dim">
+          {status}
+        </p>
+      )}
+      <PlaneHunterActionStack
+        captured={captured}
+        cameraDisabled={cameraDisabled}
+        onCapture={onCapture}
+        onClose={onClose}
+        onRetake={onRetake}
+        onCopy={onCopy}
+        onSave={onSave}
+        t={t}
+      />
     </div>
   );
 }
@@ -466,6 +684,9 @@ export default function PlaneHunterStudio({
 
   if (!open) return null;
 
+  const captured = Boolean(capturedImage);
+  const cameraDisabled = Boolean(cameraError);
+
   return (
     <div
       className="fixed inset-0 z-[10000] bg-[color-mix(in_oklab,var(--atc-bg)_82%,black_18%)] text-atc-text"
@@ -474,9 +695,12 @@ export default function PlaneHunterStudio({
       aria-label={t("planeHunter.title")}
     >
       <div className="dither-page-shell plane-hunter-shell flex h-dvh w-full flex-col text-atc-text md:flex-row">
-        <aside className="dither-page-panel plane-hunter-panel sidebar-shell order-2 flex max-h-[48dvh] w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg md:order-1 md:w-[var(--app-sidebar-width)] md:border-r md:border-t-0">
-          <div className="flex-none px-4 pb-2 pt-4 md:px-6 md:pb-5 md:pt-7">
-            <div className="hidden items-center gap-3 md:flex">
+        <aside className="dither-page-panel plane-hunter-panel sidebar-shell order-2 flex w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg md:order-1 md:w-[var(--app-sidebar-width)] md:border-r md:border-t-0">
+          {/* Desktop brand + title block — hidden on mobile (the mobile
+              card surfaces callsign + title inline via the picker
+              header to keep the surface compact). */}
+          <div className="hidden flex-none px-6 pt-7 pb-5 md:block">
+            <div className="flex items-center gap-3">
               <SidebarBrandMark className="dither-page-brand-mark" />
               <span
                 aria-hidden="true"
@@ -484,7 +708,7 @@ export default function PlaneHunterStudio({
               />
             </div>
             <h2
-              className="text-[18px] font-extrabold leading-[1.08] text-atc-text md:mt-5 md:text-[28px]"
+              className="mt-5 text-[26px] font-extrabold leading-[1.08] text-atc-text"
               style={{ fontFamily: "var(--font-display)", letterSpacing: "0" }}
             >
               {t("planeHunter.title")}
@@ -495,106 +719,33 @@ export default function PlaneHunterStudio({
             >
               {labels.callsign}
             </p>
-            <p className="hidden mt-1.5 text-[11px] font-semibold leading-relaxed text-atc-dim md:mt-2 md:block md:text-[12px]">
-              {capturedImage
+            <p className="mt-2 text-[12px] font-semibold leading-relaxed text-atc-dim">
+              {captured
                 ? `${labels.route} · ${labels.type}`
                 : t("planeHunter.cameraHint")}
             </p>
-
-            {capturedImage && (
-              <div className="mt-4">
-                <Toolbar layout="inline" aria-label={t("planeHunter.title")}>
-                  <ToolbarButton
-                    onClick={retake}
-                    aria-label={t("planeHunter.retake")}
-                    title={t("planeHunter.retake")}
-                  >
-                    <RotateCcw aria-hidden="true" />
-                  </ToolbarButton>
-                  <ToolbarButton
-                    onClick={copyImage}
-                    aria-label={t("planeHunter.copy")}
-                    title={t("planeHunter.copy")}
-                  >
-                    <Copy aria-hidden="true" />
-                  </ToolbarButton>
-                  <ToolbarButton
-                    onClick={saveImage}
-                    aria-label={t("planeHunter.save")}
-                    title={t("planeHunter.save")}
-                  >
-                    <Download aria-hidden="true" />
-                  </ToolbarButton>
-                </Toolbar>
-              </div>
-            )}
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-4 md:gap-4 md:px-6 md:pb-6">
-            <div>
-              <p className="hidden font-[var(--font-display)] text-[15px] font-extrabold leading-tight md:block md:text-[17px]">
-                {capturedImage
-                  ? t("planeHunter.editorTitle")
-                  : t("planeHunter.cameraTitle")}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 md:grid-cols-1">
-              {TEMPLATES.map((item) => (
-                <MetricCard
-                  key={item}
-                  onClick={() => setTemplate(item)}
-                  active={template === item}
-                  label={t("planeHunter.templateLabel")}
-                  value={t(`planeHunter.templates.${item}`)}
-                  unit={t(`planeHunter.templateUnits.${item}`)}
-                  valueSize="compact"
-                  valueTranslate
-                  className="min-h-[54px] gap-1 p-2 grid-rows-[9px_20px_9px] [&>span]:text-[8px] [&>strong]:h-5 [&>strong]:text-[17px] [&>small]:h-2.5 [&>small]:text-[8px] md:min-h-[72px] md:gap-1.5 md:p-3 md:grid-rows-[11px_26px_10px] md:[&>span]:text-[10px] md:[&>strong]:h-8.5 md:[&>strong]:text-[22px] md:[&>small]:h-3 md:[&>small]:text-[10px] [.airport-map-kit_&]:min-h-[72px] [.airport-map-kit_&]:p-3"
-                />
-              ))}
-            </div>
-
-            {status && (
-              <p className="rounded-[var(--atc-radius-card)] bg-atc-bg px-3 py-2 text-[11px] font-semibold text-atc-dim">
-                {status}
-              </p>
-            )}
-
-            {!capturedImage ? (
-              <div className="mt-auto grid gap-2">
-                <button
-                  type="button"
-                  onClick={capture}
-                  disabled={Boolean(cameraError)}
-                  className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  <Camera aria-hidden="true" className="size-5" />
-                  {t("planeHunter.capture")}
-                </button>
-                <button
-                  type="button"
-                  onClick={close}
-                  className="flex min-h-11 items-center justify-center rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] px-4 text-[13px] font-extrabold text-atc-text shadow-[var(--atc-control-inset-shadow)] transition hover:bg-[var(--atc-control-hover-bg)] active:scale-[0.98]"
-                >
-                  {t("planeHunter.back")}
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={saveImage}
-                className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98]"
-              >
-                <Download aria-hidden="true" className="size-5" />
-                {t("planeHunter.save")}
-              </button>
-            )}
+          <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-3 md:gap-4 md:px-6 md:pb-6 md:pt-0">
+            <PlaneHunterControlPanel
+              labels={labels}
+              template={template}
+              onSelectTemplate={setTemplate}
+              captured={captured}
+              cameraDisabled={cameraDisabled}
+              status={status}
+              onCapture={capture}
+              onClose={close}
+              onRetake={retake}
+              onCopy={copyImage}
+              onSave={saveImage}
+              t={t}
+            />
           </div>
         </aside>
 
         <main className="dither-page-background plane-hunter-stage relative order-1 min-h-0 flex-1 overflow-hidden bg-black md:order-2">
-          {!capturedImage ? (
+          {!captured ? (
             <>
               <video
                 ref={videoRef}
