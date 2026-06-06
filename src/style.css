@@ -1319,6 +1319,14 @@ body {
     background: var(--atc-bg) !important;
 }
 
+.airport-map-surface.leaflet-container {
+    /* AirportMap disables Leaflet dragging/zooming in JS. Keep the browser's
+       vertical gesture path open so mobile detail pages can use native
+       pull-to-refresh while the map remains non-pannable. */
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+}
+
 :root[data-theme="dark"] .atc-tile-base {
     filter: saturate(0.32) brightness(0.62) contrast(1.16);
     mix-blend-mode: normal;

@@ -678,18 +678,6 @@ function FlightExplorerContent({ callsign }) {
     selectedAircraft,
   ]);
 
-  useEffect(() => {
-    if (!isMobile) return undefined;
-    const originalBodyOverflow = document.body.style.overflow;
-    const originalHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalBodyOverflow;
-      document.documentElement.style.overflow = originalHtmlOverflow;
-    };
-  }, [isMobile]);
-
   const handleBack = () => router.push("/");
 
   const flightTrackingLoadingActive = shouldShowFlightTrackingLoadingOverlay({
@@ -766,7 +754,7 @@ function FlightExplorerContent({ callsign }) {
       <div
         className={`font-sans text-atc-text ${
           isMobile
-            ? "fixed inset-0 z-0 flex overflow-hidden"
+            ? "fixed inset-0 z-0 flex overflow-hidden overscroll-y-auto"
             : `airport-map-kit ${
                 sidebarOpen ? "airport-map-kit--sidebar-open" : ""
               } flex h-dvh overflow-hidden`

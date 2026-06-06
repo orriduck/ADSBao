@@ -192,28 +192,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
   ]);
 
   useEffect(() => {
-    if (!isMobile) return undefined;
-
-    const originalBodyOverflow = document.body.style.overflow;
-    const originalHtmlOverflow = document.documentElement.style.overflow;
-    const originalBodyOverscroll = document.body.style.overscrollBehavior;
-    const originalHtmlOverscroll =
-      document.documentElement.style.overscrollBehavior;
-
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overscrollBehavior = "none";
-    document.documentElement.style.overscrollBehavior = "none";
-
-    return () => {
-      document.body.style.overflow = originalBodyOverflow;
-      document.documentElement.style.overflow = originalHtmlOverflow;
-      document.body.style.overscrollBehavior = originalBodyOverscroll;
-      document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
-    };
-  }, [isMobile]);
-
-  useEffect(() => {
     if (!userLocationNotice) return undefined;
     const timer = window.setTimeout(() => setUserLocationNotice(""), 3400);
     return () => window.clearTimeout(timer);
@@ -491,7 +469,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
       <div
         className={`font-sans text-atc-text ${
           isMobile
-            ? "fixed inset-0 z-0 flex overflow-hidden"
+            ? "fixed inset-0 z-0 flex overflow-hidden overscroll-y-auto"
             : `airport-map-kit ${
                 sidebarOpen ? "airport-map-kit--sidebar-open" : ""
               } flex h-dvh overflow-hidden`
