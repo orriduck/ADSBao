@@ -1735,22 +1735,24 @@ body {
         overflow: hidden;
         padding: 0;
         position: relative;
-        /* Drives the photo-box stage's bottom padding so the floating
-           control card never overlaps the bottom of the photo. Card
-           clearance + a small breathing gap. */
-        --plane-hunter-stage-bottom-inset: calc(var(--plane-hunter-card-clearance) + 8px);
+        /* Photo stage and control card are flex siblings on mobile —
+           the card's own height pushes the stage up. A small inset
+           keeps the captured image from kissing the card's top edge. */
+        --plane-hunter-stage-bottom-inset: 6px;
     }
 
-    /* Camera viewfinder fills the entire dialog edge-to-edge; the
-       bottom control card floats over it absolutely. */
+    /* Camera viewfinder is a natural flex child — it claims whatever
+       vertical space the floating control card below doesn't need, so
+       photo + settings never overlap regardless of card content size. */
     .plane-hunter-shell .dither-page-background.plane-hunter-stage {
         border-radius: 0;
         box-shadow: none;
         flex: 1 1 auto;
         margin: 0;
-        min-height: 0;
-        position: absolute;
-        inset: 0;
+        /* Guard against the card growing tall enough to swallow the
+           whole photo — keep at least ~30dvh for the viewfinder. */
+        min-height: 32dvh;
+        position: relative;
         width: 100vw;
     }
 
@@ -1765,17 +1767,20 @@ body {
         border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
         border-radius: var(--atc-radius-card);
         box-shadow: var(--app-floating-shadow), var(--atc-preview-card-inset);
-        bottom: max(12px, env(safe-area-inset-bottom));
-        left: 50%;
-        max-height: min(38dvh, 338px);
-        overflow: hidden;
+        flex: 0 0 auto;
+        margin: 0 auto max(10px, env(safe-area-inset-bottom));
+        max-height: min(58dvh, 460px);
+        max-width: min(390px, calc(100vw - 20px));
+        /* Card grows to fit content up to max-height; scroll only if
+           the photographer ever exceeds it (e.g. very small device with
+           settings + maps + meta toggles all expanded). */
+        overflow-y: auto;
         /* Studio is a modal dialog — the global mobile rule reserves
            room for the floating toolbar that isn't shown here, so
            reset the padding to keep the card compact. */
         padding-bottom: 0;
-        position: absolute;
-        transform: translateX(-50%);
-        width: min(390px, calc(100vw - 20px)) !important;
+        position: relative;
+        width: 100%;
         z-index: 1;
     }
 
