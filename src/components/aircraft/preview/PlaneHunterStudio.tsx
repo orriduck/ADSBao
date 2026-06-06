@@ -1,7 +1,13 @@
 "use client";
 
-import { Camera, Copy, Download, RotateCcw, X } from "lucide-react";
+import { Camera, CameraOff, Copy, Download, RotateCcw, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
+import {
+  Toolbar,
+  ToolbarButton,
+  ToolbarSeparator,
+} from "@/components/ui/Toolbar";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
@@ -236,6 +242,28 @@ function PlaneHunterTemplateOverlay({
   );
 }
 
+function PlaneHunterCameraFallback({
+  title,
+  message,
+}: {
+  title: string;
+  message: string;
+}) {
+  return (
+    <div className="absolute inset-0 flex items-start justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_28%,rgba(242,243,238,0.16),transparent_32%),linear-gradient(135deg,rgba(242,243,238,0.08)_0_1px,transparent_1px_22px),rgb(10,11,12)] px-5 pt-8 text-[rgb(242,243,238)]">
+      <div className="max-w-[360px] rounded-[var(--atc-radius-panel)] border border-[rgba(242,243,238,0.18)] bg-[rgba(10,11,12,0.72)] px-4 py-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
+        <div className="flex items-center gap-2">
+          <CameraOff aria-hidden="true" className="size-4 text-[var(--primary-bright)]" />
+          <p className="text-[13px] font-extrabold leading-none">{title}</p>
+        </div>
+        <p className="mt-2 text-[11px] font-semibold leading-relaxed text-[rgba(242,243,238,0.68)]">
+          {message}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function PlaneHunterStudio({
   aircraft,
   open,
@@ -403,178 +431,168 @@ export default function PlaneHunterStudio({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] flex items-stretch justify-center bg-[color-mix(in_oklab,var(--atc-bg)_82%,black_18%)] text-atc-text"
+      className="fixed inset-0 z-[10000] bg-[color-mix(in_oklab,var(--atc-bg)_82%,black_18%)] text-atc-text"
       role="dialog"
       aria-modal="true"
       aria-label={t("planeHunter.title")}
     >
-      <div className="flex h-dvh w-full flex-col bg-atc-bg md:max-w-[960px] md:border-x md:border-atc-line-strong">
-        <header className="flex min-h-[58px] items-center justify-between gap-3 border-b border-atc-line px-4">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold leading-none text-atc-dim">
-              {t("planeHunter.kicker")}
-            </p>
+      <div className="flex h-dvh w-full flex-col bg-atc-bg md:flex-row">
+        <aside className="sidebar-shell order-2 flex max-h-[48dvh] w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg md:order-1 md:m-3 md:mr-0 md:max-h-[calc(100dvh-24px)] md:w-[var(--app-sidebar-width)] md:overflow-hidden md:rounded-r-[var(--atc-radius-shell)] md:border-r md:border-t-0 md:shadow-[var(--app-panel-shadow)]">
+          <div className="flex-none px-5 pb-4 pt-5 md:px-6 md:pb-5 md:pt-7">
+            <div className="flex items-center gap-3">
+              <SidebarBrandMark className="dither-page-brand-mark" />
+              <span
+                aria-hidden="true"
+                className="h-px flex-1 bg-[var(--atc-line-strong)]"
+              />
+            </div>
             <h2
+              className="mt-5 text-[28px] font-extrabold leading-[1.08] text-atc-text"
+              style={{ fontFamily: "var(--font-display)", letterSpacing: "0" }}
+            >
+              {t("planeHunter.title")}
+            </h2>
+            <p
               translate="no"
-              className="notranslate mt-1 truncate font-[var(--font-display)] text-[20px] font-extrabold leading-none tracking-normal"
+              className="notranslate mt-2 truncate text-[15px] font-black leading-none text-atc-text"
             >
               {labels.callsign}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={close}
-            className="grid size-10 flex-none place-items-center rounded-full border border-atc-line bg-atc-card text-atc-text transition hover:bg-atc-card-strong focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)]"
-            aria-label={t("planeHunter.cancel")}
-          >
-            <X aria-hidden="true" className="size-5" />
-          </button>
-        </header>
+            </p>
+            <p className="mt-2 text-[12px] font-semibold leading-relaxed text-atc-dim">
+              {capturedImage
+                ? `${labels.route} · ${labels.type}`
+                : t("planeHunter.cameraHint")}
+            </p>
 
-        <main className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_300px] md:grid-rows-1">
-          <section className="relative min-h-0 overflow-hidden bg-black">
-            {!capturedImage ? (
-              <>
-                <video
-                  ref={videoRef}
-                  className="h-full w-full object-cover"
-                  playsInline
-                  muted
-                  autoPlay
-                />
-                <div className="pointer-events-none absolute inset-0 border-[10px] border-[rgba(255,255,255,0.08)]" />
-                <PlaneHunterTemplateOverlay labels={labels} template={template} />
-                {cameraError && (
-                  <div className="absolute inset-x-5 top-1/2 -translate-y-1/2 rounded-[var(--atc-radius-panel)] border border-atc-line-strong bg-atc-card p-4 text-center shadow-[var(--app-floating-shadow)]">
-                    <p className="text-[14px] font-bold">{cameraError}</p>
-                    <button
-                      type="button"
-                      onClick={startCamera}
-                      className="mt-4 min-h-10 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[12px] font-extrabold text-[var(--primary-ink)]"
-                    >
-                      {t("planeHunter.tryAgain")}
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <img
-                src={previewImage || capturedImage}
-                alt=""
-                className="h-full w-full object-contain"
-                draggable="false"
-              />
-            )}
-            <canvas ref={canvasRef} className="hidden" />
-          </section>
-
-          <aside className="flex min-h-[232px] flex-col border-t border-atc-line bg-atc-card px-4 py-4 md:min-h-0 md:border-l md:border-t-0">
-            {!capturedImage ? (
-              <div className="flex h-full flex-col gap-4">
-                <div>
-                  <p className="font-[var(--font-display)] text-[18px] font-extrabold leading-tight">
-                    {t("planeHunter.cameraTitle")}
-                  </p>
-                  <p className="mt-2 text-[12px] font-medium leading-relaxed text-atc-dim">
-                    {t("planeHunter.cameraHint")}
-                  </p>
-                </div>
-                <div className="grid grid-cols-3 gap-2 md:grid-cols-1">
-                  {TEMPLATES.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setTemplate(item)}
-                      data-active={template === item}
-                      className={cn(
-                        "min-h-[46px] rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 text-left text-[12px] font-bold leading-tight text-atc-text",
-                        "transition hover:bg-atc-card-strong data-[active=true]:border-[var(--primary-bright)] data-[active=true]:bg-[color-mix(in_oklab,var(--primary-bright)_17%,var(--atc-bg))]",
-                      )}
-                    >
-                      {t(`planeHunter.templates.${item}`)}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={capture}
-                  disabled={Boolean(cameraError)}
-                  className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+            <div className="mt-4">
+              <Toolbar layout="inline" aria-label={t("planeHunter.title")}>
+                <ToolbarButton
+                  onClick={close}
+                  aria-label={t("planeHunter.cancel")}
+                  title={t("planeHunter.cancel")}
                 >
-                  <Camera aria-hidden="true" className="size-5" />
-                  {t("planeHunter.capture")}
-                </button>
-              </div>
-            ) : (
-              <div className="flex h-full min-h-0 flex-col gap-4">
-                <div>
-                  <p className="font-[var(--font-display)] text-[18px] font-extrabold leading-tight">
-                    {t("planeHunter.editorTitle")}
-                  </p>
-                  <p className="mt-1 text-[12px] font-medium text-atc-dim">
-                    {labels.route} · {labels.type}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 md:grid-cols-1">
-                  {TEMPLATES.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setTemplate(item)}
-                      data-active={template === item}
-                      className={cn(
-                        "min-h-[46px] rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 text-left text-[12px] font-bold leading-tight text-atc-text",
-                        "transition hover:bg-atc-card-strong data-[active=true]:border-[var(--primary-bright)] data-[active=true]:bg-[color-mix(in_oklab,var(--primary-bright)_17%,var(--atc-bg))]",
-                      )}
+                  <X aria-hidden="true" />
+                </ToolbarButton>
+                {capturedImage && (
+                  <>
+                    <ToolbarSeparator />
+                    <ToolbarButton
+                      onClick={retake}
+                      aria-label={t("planeHunter.retake")}
+                      title={t("planeHunter.retake")}
                     >
-                      {t(`planeHunter.templates.${item}`)}
-                    </button>
-                  ))}
-                </div>
-
-                {status && (
-                  <p className="rounded-[var(--atc-radius-card)] bg-atc-bg px-3 py-2 text-[11px] font-semibold text-atc-dim">
-                    {status}
-                  </p>
+                      <RotateCcw aria-hidden="true" />
+                    </ToolbarButton>
+                    <ToolbarButton
+                      onClick={copyImage}
+                      aria-label={t("planeHunter.copy")}
+                      title={t("planeHunter.copy")}
+                    >
+                      <Copy aria-hidden="true" />
+                    </ToolbarButton>
+                    <ToolbarButton
+                      onClick={saveImage}
+                      aria-label={t("planeHunter.save")}
+                      title={t("planeHunter.save")}
+                    >
+                      <Download aria-hidden="true" />
+                    </ToolbarButton>
+                  </>
                 )}
+              </Toolbar>
+            </div>
+          </div>
 
-                <div className="mt-auto grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={retake}
-                    className="flex min-h-10 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 text-[12px] font-bold"
-                  >
-                    <RotateCcw aria-hidden="true" className="size-4" />
-                    {t("planeHunter.retake")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={copyImage}
-                    className="flex min-h-10 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 text-[12px] font-bold"
-                  >
-                    <Copy aria-hidden="true" className="size-4" />
-                    {t("planeHunter.copy")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={close}
-                    className="min-h-10 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 text-[12px] font-bold"
-                  >
-                    {t("planeHunter.cancel")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={saveImage}
-                    className="flex min-h-10 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-3 text-[12px] font-extrabold text-[var(--primary-ink)]"
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    {t("planeHunter.save")}
-                  </button>
-                </div>
-              </div>
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5 md:px-6 md:pb-6">
+            <div>
+              <p className="font-[var(--font-display)] text-[17px] font-extrabold leading-tight">
+                {capturedImage
+                  ? t("planeHunter.editorTitle")
+                  : t("planeHunter.cameraTitle")}
+              </p>
+              {cameraError && !capturedImage && (
+                <p className="mt-3 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 py-2 text-[11px] font-semibold leading-relaxed text-atc-dim">
+                  {t("planeHunter.cameraRequestHint")}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 md:grid-cols-1">
+              {TEMPLATES.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setTemplate(item)}
+                  data-active={template === item}
+                  className={cn(
+                    "min-h-[46px] rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-bg px-3 text-left text-[12px] font-bold leading-tight text-atc-text",
+                    "transition hover:bg-atc-card-strong data-[active=true]:border-[var(--primary-bright)] data-[active=true]:bg-[color-mix(in_oklab,var(--primary-bright)_17%,var(--atc-bg))]",
+                  )}
+                >
+                  {t(`planeHunter.templates.${item}`)}
+                </button>
+              ))}
+            </div>
+
+            {status && (
+              <p className="rounded-[var(--atc-radius-card)] bg-atc-bg px-3 py-2 text-[11px] font-semibold text-atc-dim">
+                {status}
+              </p>
             )}
-          </aside>
+
+            {!capturedImage ? (
+              <button
+                type="button"
+                onClick={cameraError ? startCamera : capture}
+                className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98]"
+              >
+                <Camera aria-hidden="true" className="size-5" />
+                {t(cameraError ? "planeHunter.tryAgain" : "planeHunter.capture")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={saveImage}
+                className="mt-auto flex min-h-12 items-center justify-center gap-2 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow)] transition active:scale-[0.98]"
+              >
+                <Download aria-hidden="true" className="size-5" />
+                {t("planeHunter.save")}
+              </button>
+            )}
+          </div>
+        </aside>
+
+        <main className="relative order-1 min-h-0 flex-1 overflow-hidden bg-black md:order-2 md:m-3 md:ml-0 md:rounded-[var(--atc-radius-shell)]">
+          {!capturedImage ? (
+            <>
+              <video
+                ref={videoRef}
+                className={cn(
+                  "h-full w-full object-cover",
+                  cameraError ? "opacity-0" : "opacity-100",
+                )}
+                playsInline
+                muted
+                autoPlay
+              />
+              {cameraError && (
+                <PlaneHunterCameraFallback
+                  title={t("planeHunter.cameraFallbackTitle")}
+                  message={cameraError}
+                />
+              )}
+              <div className="pointer-events-none absolute inset-0 border-[10px] border-[rgba(255,255,255,0.08)]" />
+              <PlaneHunterTemplateOverlay labels={labels} template={template} />
+            </>
+          ) : (
+            <img
+              src={previewImage || capturedImage}
+              alt=""
+              className="h-full w-full object-contain"
+              draggable="false"
+            />
+          )}
+          <canvas ref={canvasRef} className="hidden" />
         </main>
       </div>
     </div>

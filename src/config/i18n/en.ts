@@ -310,6 +310,9 @@ const en = {
     cameraTitle: "Frame the aircraft",
     cameraHint:
       "Use the live camera to capture a spotting photo. ADSBao will keep the image local in this browser session.",
+    cameraFallbackTitle: "Camera permission needed",
+    cameraRequestHint:
+      "Tap Try again to ask the browser for camera access. If the browser remembered a block, allow the camera from the address bar first.",
     capture: "Take photo",
     editorTitle: "Final image",
     templates: {

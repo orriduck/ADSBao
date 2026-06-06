@@ -305,6 +305,9 @@ const zhCN = {
     cameraTitle: "对准飞机",
     cameraHint:
       "用实时摄像头拍一张看机照片。ADSBao 只会在当前浏览器会话里处理这张图。",
+    cameraFallbackTitle: "需要摄像头权限",
+    cameraRequestHint:
+      "点重试会重新向浏览器申请摄像头权限。如果浏览器已经记住拒绝,请先在地址栏相机设置里改为允许。",
     capture: "拍照",
     editorTitle: "成片预览",
     templates: {
