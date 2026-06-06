@@ -6,6 +6,21 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.0.0",
+    kind: "breaking",
+    title: "Plane Hunter mode goes GA",
+    summary:
+      "Plane Hunter ships to every signed-in user as a two-step capture studio: full-bleed shooting (native OS camera or library upload), then a compose pane that bakes the chosen template into a shareable PNG. A new Maps template centers an OpenStreetMap tile on the photographer's location and overlays the aircraft when it falls inside the visible tile.",
+    highlights: [
+      "Two-step flow — capture step is a full-bleed viewfinder with shutter, library upload, opt-in rule-of-thirds grid, and a back arrow; compose step holds tabbed Templates / Settings and share / retake / copy actions",
+      "Touch devices hand off to the OS camera via `<input capture>` instead of an in-page getUserMedia viewfinder, so iOS Safari and Android Chrome get the system camera UI",
+      "New Maps template centers an OSM tile on your location with a diamond \"I'm here\" marker; the aircraft renders as a heading-rotated plane glyph when it sits inside the tile, with picker-selectable corner placement",
+      "Compose pane matches Map Settings — control-surface chips with ink-fill + bottom-glow active state, arranged in grids so all four templates fit on one row",
+      "Plane Hunter is GA — feature flag removed, Chinese trigger label renamed to 开始拍机",
+      "Fixed: iOS Safari rubber-band scroll on airport / flight detail pages — the full-viewport map shell no longer drags up off the screen",
+    ],
+  },
+  {
     version: "v1.13.1",
     kind: "patch",
     title: "Toolbar opacity polish and louder map-settings error logging",
