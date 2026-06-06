@@ -13,6 +13,7 @@ export default function AircraftPreviewMetadataCard({
   photo,
   airportProfile = null,
   onApplyTemporaryRoute,
+  onOpenPlaneHunter,
   traceLoading = false,
 }) {
   const { t } = useI18n();
@@ -43,6 +44,15 @@ export default function AircraftPreviewMetadataCard({
         >
           {t("preview.loadingTrace")}
         </div>
+      )}
+      {typeof onOpenPlaneHunter === "function" && (
+        <button
+          type="button"
+          className="aircraft-preview-card__track-btn plane-hunter-rainbow-btn"
+          onClick={onOpenPlaneHunter}
+        >
+          {t("preview.planeHunter")}
+        </button>
       )}
       {trackHref && !alreadyTracking ? (
         <Link

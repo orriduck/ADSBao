@@ -91,6 +91,13 @@
        row of a page's content. Toolbar shell min-height + bottom inset
        + small gap. */
     --map-toolbar-mobile-clearance: calc(42px + max(24px, env(safe-area-inset-bottom) + 12px));
+
+    /* Vertical room the Plane Hunter mobile bottom card reserves at
+       the foot of the viewfinder. The template overlay anchors its
+       bottom to this value so it always sits above the floating card
+       with a comfortable gap. Always defined here so the value still
+       resolves between the 720px and the 768px Tailwind breakpoint. */
+    --plane-hunter-card-clearance: calc(290px + max(16px, env(safe-area-inset-bottom)));
 }
 
 :root {
@@ -1319,6 +1326,14 @@ body {
     background: var(--atc-bg) !important;
 }
 
+.airport-map-surface.leaflet-container {
+    /* AirportMap disables Leaflet dragging/zooming in JS. Keep the browser's
+       vertical gesture path open so mobile detail pages can use native
+       pull-to-refresh while the map remains non-pannable. */
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+}
+
 :root[data-theme="dark"] .atc-tile-base {
     filter: saturate(0.32) brightness(0.62) contrast(1.16);
     mix-blend-mode: normal;
@@ -1697,6 +1712,65 @@ body {
 @media (max-width: 720px) {
     .dither-page-background {
         display: none;
+    }
+
+    .dither-page-background.plane-hunter-stage {
+        border-radius: 0;
+        display: block;
+        flex: 1 1 auto;
+        margin: 0;
+        min-height: 0;
+        width: 100vw;
+    }
+
+    .plane-hunter-shell {
+        background: rgb(5 5 5);
+        gap: 0;
+        height: 100dvh !important;
+        min-height: 0;
+        overflow: hidden;
+        padding: 0;
+        position: relative;
+    }
+
+    /* Camera viewfinder fills the entire dialog edge-to-edge; the
+       bottom control card floats over it absolutely. */
+    .plane-hunter-shell .dither-page-background.plane-hunter-stage {
+        border-radius: 0;
+        box-shadow: none;
+        flex: 1 1 auto;
+        margin: 0;
+        min-height: 0;
+        position: absolute;
+        inset: 0;
+        width: 100vw;
+    }
+
+    .plane-hunter-shell .dither-page-panel.plane-hunter-panel {
+        background:
+            linear-gradient(
+                135deg,
+                color-mix(in oklab, var(--atc-orange) 14%, transparent),
+                transparent 52%
+            ),
+            var(--atc-surface-preview-card);
+        border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
+        border-radius: var(--atc-radius-card);
+        box-shadow: var(--app-floating-shadow), var(--atc-preview-card-inset);
+        bottom: max(12px, env(safe-area-inset-bottom));
+        left: 50%;
+        max-height: min(38dvh, 338px);
+        overflow: hidden;
+        position: absolute;
+        transform: translateX(-50%);
+        width: min(390px, calc(100vw - 20px)) !important;
+        z-index: 1;
+    }
+
+    .plane-hunter-shell .dither-page-panel.plane-hunter-panel > .flex-1.overflow-y-auto {
+        flex: 0 0 auto;
+        min-height: 0;
+        overflow: visible;
     }
 
     /* Mobile static pages scroll as a single document — release the
@@ -2591,6 +2665,33 @@ body {
 .dither-page-background {
     margin: 12px 12px 12px 0;
     border-radius: var(--atc-radius-shell);
+}
+
+.dither-page-background.plane-hunter-stage {
+    background: rgb(5 5 5);
+    border-radius: var(--atc-radius-shell);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.05) inset,
+        0 18px 42px rgba(14, 15, 16, 0.18);
+    display: block;
+    margin-left: 12px;
+}
+
+.dither-page-panel.plane-hunter-panel {
+    background: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--atc-orange) 10%, transparent),
+        transparent 48%
+    );
+    box-shadow: var(--app-panel-shadow);
+}
+
+:root[data-theme="dark"] .dither-page-panel.plane-hunter-panel {
+    background: linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--atc-orange) 18%, transparent),
+        transparent 48%
+    );
 }
 
 .dither-page-panel .endf-page-title {
@@ -4043,6 +4144,15 @@ body {
     padding-block: 9px;
 }
 
+.app-virtual-list-motion {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.app-virtual-list-motion::-webkit-scrollbar {
+    display: none;
+}
+
 .aircraft-table-row-grid {
     grid-template-columns: 18px minmax(0, 1fr) 68px 84px;
 }
@@ -5375,6 +5485,63 @@ body {
     opacity: 0.4;
 }
 
+.plane-hunter-rainbow-btn {
+    --plane-hunter-surface: oklch(17% 0.018 260);
+    --plane-hunter-surface-strong: oklch(10% 0.014 260);
+    --plane-hunter-ink: oklch(98% 0.006 95);
+    position: relative;
+    isolation: isolate;
+    border: 1px solid transparent !important;
+    background:
+        linear-gradient(
+                180deg,
+                color-mix(in oklab, var(--plane-hunter-surface) 84%, white 16%),
+                var(--plane-hunter-surface-strong)
+            )
+            padding-box,
+        linear-gradient(
+                95deg,
+                oklch(74% 0.19 28),
+                oklch(78% 0.18 78),
+                oklch(82% 0.18 142),
+                oklch(76% 0.18 214),
+                oklch(72% 0.2 286),
+                oklch(74% 0.19 28)
+            )
+            border-box !important;
+    background-size: 100% 100%, 220% 100% !important;
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--atc-text) 8%, transparent),
+        0 10px 24px color-mix(in oklab, oklch(76% 0.18 286) 20%, transparent),
+        inset 0 1px 0 color-mix(in oklab, white 22%, transparent),
+        inset 0 -10px 20px color-mix(in oklab, black 30%, transparent) !important;
+    color: var(--plane-hunter-ink) !important;
+    text-shadow: 0 1px 10px color-mix(in oklab, white 24%, transparent);
+    animation: plane-hunter-rainbow-pan 4.8s linear infinite;
+    filter: saturate(1.08);
+}
+
+.plane-hunter-rainbow-btn:hover {
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--atc-text) 12%, transparent),
+        0 12px 30px color-mix(in oklab, oklch(78% 0.18 214) 28%, transparent),
+        inset 0 1px 0 color-mix(in oklab, white 22%, transparent) !important;
+    filter: brightness(1.05) saturate(1.18);
+}
+
+.plane-hunter-rainbow-btn:focus-visible {
+    outline: 2px solid oklch(82% 0.18 142);
+}
+
+@keyframes plane-hunter-rainbow-pan {
+    0% {
+        background-position: 0 0, 0% 50%;
+    }
+    100% {
+        background-position: 0 0, 220% 50%;
+    }
+}
+
 .aircraft-preview-card__trace-status {
     color: var(--atc-dim);
     font-family: var(--font-mono);
@@ -5430,7 +5597,7 @@ body {
     align-self: stretch;
     padding: 6px 8px;
     border: 1px dashed var(--tone-border-firm, var(--atc-card));
-    border-radius: 6px;
+    border-radius: var(--atc-radius-control);
     background: transparent;
     color: var(--atc-dim);
     font-family: var(--font-sans);
@@ -5531,7 +5698,7 @@ body {
 .route-feedback-form__cancel,
 .route-feedback-form__submit {
     padding: 6px 12px;
-    border-radius: 4px;
+    border-radius: var(--atc-radius-control);
     font-family: var(--font-sans);
     font-size: 10px;
     font-weight: 700;
@@ -6017,6 +6184,7 @@ body {
     .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card,
     .aircraft-preview-card__media-slot,
     .aircraft-preview-card__trace-status,
+    .plane-hunter-rainbow-btn,
     .endf-underline::after {
         transition: none;
         animation: none;

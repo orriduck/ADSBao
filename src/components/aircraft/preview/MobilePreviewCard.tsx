@@ -264,3 +264,29 @@ export const MobilePreviewFeedbackLink = React.forwardRef(
     );
   },
 );
+
+export const MobilePreviewSecondaryButton = React.forwardRef(
+  function MobilePreviewSecondaryButton(
+    { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
+    ref: React.ForwardedRef<HTMLButtonElement>,
+  ) {
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className={cn(
+          "min-h-[32px] w-full px-[10px] cursor-pointer",
+          "rounded-[calc(var(--atc-radius-card)-3px)] border border-atc-line",
+          "bg-[color-mix(in_oklab,var(--atc-card)_72%,var(--primary-bright)_10%)] text-atc-text",
+          "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center",
+          "[-webkit-tap-highlight-color:transparent]",
+          "transition-[background-color,border-color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
+          "hover:border-atc-line-strong hover:bg-atc-card-strong active:scale-[0.97]",
+          "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
+);

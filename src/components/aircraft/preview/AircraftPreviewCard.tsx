@@ -16,13 +16,16 @@ import NavaidPreviewMobileCard from "./NavaidPreviewMobileCard";
 import MobilePreviewCard, {
   MobilePreviewActions,
   MobilePreviewFeedbackLink,
+  MobilePreviewSecondaryButton,
   MobilePreviewTrackButton,
   MobilePreviewTraceStatus,
 } from "./MobilePreviewCard";
+import PlaneHunterStudio from "./PlaneHunterStudio";
 import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { usePlaneHunterEnabled } from "@/features/app-shell/auth/usePlaneHunterEnabled";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
 
@@ -141,6 +144,10 @@ export default function AircraftPreviewCard({
     !isNavaid &&
     Boolean(aircraftCallsign) &&
     typeof onApplyTemporaryRoute === "function";
+  const planeHunterEnabled = usePlaneHunterEnabled();
+  const showPlaneHunterTrigger =
+    planeHunterEnabled && isAircraftPreview && Boolean(entity);
+  const showMobilePlaneHunterTrigger = showMobile && showPlaneHunterTrigger;
   const mobileFeedbackLabel = aircraft?.flightRouteLabel
     ? t("routeFeedback.suggestCorrection")
     : t("routeFeedback.suggestRight");
@@ -166,6 +173,7 @@ export default function AircraftPreviewCard({
       : isCandidateWatchingSpot
         ? t("preview.candidateWatchingSpotPreview")
       : t("preview.aircraftPreview");
+  const [planeHunterOpen, setPlaneHunterOpen] = useState(false);
 
   return (
     <>
@@ -204,6 +212,9 @@ export default function AircraftPreviewCard({
               photo={photo}
               airportProfile={airportProfile}
               onApplyTemporaryRoute={onApplyTemporaryRoute}
+              onOpenPlaneHunter={
+                showPlaneHunterTrigger ? () => setPlaneHunterOpen(true) : undefined
+              }
               traceLoading={traceLoading}
             />
           )}
@@ -221,15 +232,42 @@ export default function AircraftPreviewCard({
             ) : null
           }
           actions={
-            (cardTrackHref || showMobileFeedbackTrigger) ? (
+            (cardTrackHref || showMobilePlaneHunterTrigger || showMobileFeedbackTrigger) ? (
               <MobilePreviewActions>
-                {cardTrackHref && (
-                  <MobilePreviewTrackButton
-                    onClick={handleMobileTap}
-                    disabled={alreadyTracking}
-                  >
-                    {mobileTrackLabel}
-                  </MobilePreviewTrackButton>
+                {showMobilePlaneHunterTrigger && cardTrackHref ? (
+                  <div className="grid grid-cols-2 gap-1">
+                    <MobilePreviewSecondaryButton
+                      onClick={() => setPlaneHunterOpen(true)}
+                      className="plane-hunter-rainbow-btn"
+                    >
+                      {t("preview.planeHunter")}
+                    </MobilePreviewSecondaryButton>
+                    <MobilePreviewTrackButton
+                      onClick={handleMobileTap}
+                      disabled={alreadyTracking}
+                    >
+                      {mobileTrackLabel}
+                    </MobilePreviewTrackButton>
+                  </div>
+                ) : (
+                  <>
+                    {showMobilePlaneHunterTrigger && (
+                      <MobilePreviewSecondaryButton
+                        onClick={() => setPlaneHunterOpen(true)}
+                        className="plane-hunter-rainbow-btn"
+                      >
+                        {t("preview.planeHunter")}
+                      </MobilePreviewSecondaryButton>
+                    )}
+                    {cardTrackHref && (
+                      <MobilePreviewTrackButton
+                        onClick={handleMobileTap}
+                        disabled={alreadyTracking}
+                      >
+                        {mobileTrackLabel}
+                      </MobilePreviewTrackButton>
+                    )}
+                  </>
                 )}
                 {showMobileFeedbackTrigger && (
                   <MobilePreviewFeedbackLink
@@ -265,6 +303,13 @@ export default function AircraftPreviewCard({
           onApplyTemporaryRoute={onApplyTemporaryRoute}
           open={feedbackModalOpen}
           onOpenChange={setFeedbackModalOpen}
+        />
+      )}
+      {showPlaneHunterTrigger && (
+        <PlaneHunterStudio
+          aircraft={aircraft}
+          open={planeHunterOpen}
+          onOpenChange={setPlaneHunterOpen}
         />
       )}
     </>

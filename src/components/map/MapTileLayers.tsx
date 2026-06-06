@@ -59,6 +59,7 @@ export default function MapTileLayers({
             attributionControl: false,
             className: "atc-maplibre-base",
           } as any);
+          guardMapLibreLayerLifecycle(nextLayer);
           nextLayer.addTo(map);
           attachMapLibreErrorHandler(nextLayer);
           layerRef.current = nextLayer;
@@ -169,6 +170,32 @@ function setSelectionOpacity(layer, theme, selectionActive) {
     return;
   }
   container.style.opacity = "1";
+}
+
+function guardMapLibreLayerLifecycle(layer: any) {
+  if (!layer) return;
+  const guardMethod = (name: string) => {
+    const original = layer[name];
+    if (typeof original !== "function") return;
+    layer[name] = function guardedMapLibreHandler(...args) {
+      if (!this?._map || !this?._glMap) return undefined;
+      return original.apply(this, args);
+    };
+  };
+
+  guardMethod("_pinchZoom");
+  guardMethod("_animateZoom");
+  guardMethod("_zoomStart");
+  guardMethod("_zoomEnd");
+  guardMethod("_transitionEnd");
+  guardMethod("_update");
+  if (typeof layer._throttledUpdate === "function") {
+    const originalThrottledUpdate = layer._throttledUpdate;
+    layer._throttledUpdate = function guardedMapLibreThrottledUpdate(...args) {
+      if (!this?._map || !this?._glMap) return undefined;
+      return originalThrottledUpdate.apply(this, args);
+    };
+  }
 }
 
 function attachMapLibreErrorHandler(layer: any) {
