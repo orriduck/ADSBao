@@ -307,24 +307,16 @@ const en = {
   planeHunter: {
     title: "Plane Hunter",
     kicker: "Plane Hunter",
-    cameraTitle: "Frame the aircraft",
-    cameraHint:
-      "Frame the aircraft in the sky, switch templates while shooting, then save or copy the final image.",
-    cameraFallbackTitle: "Camera permission needed",
-    cameraRequestHint:
-      "The browser has not released the camera yet. If it remembered a block, allow camera access from the address bar first.",
-    cameraRequestAction: "Request camera access again",
-    capture: "Take photo",
+    pickSourceTitle: "Pick a photo",
+    pickSourceHint:
+      "Use the system camera or photo library — Plane Hunter just composes the result.",
+    takePhoto: "Take a photo",
+    takePhotoHint: "Opens your camera",
+    chooseLibrary: "Choose from library",
+    chooseLibraryHint: "Pick one from Photos",
     back: "Back",
-    live: "Live",
-    editorTitle: "Final image",
-    captureStepLabel: "Step 1 — capture",
-    composeStepLabel: "Step 2 — compose",
-    tapToCapture: "Tap to take photo",
-    tapToCaptureHint: "Opens your camera",
-    uploadPhoto: "Upload from library",
+    composeStepLabel: "Compose",
     closeStudio: "Close",
-    viewfinderGrid: "Grid",
     templateLabel: "Template",
     templates: {
       none: "No template",
@@ -373,8 +365,6 @@ const en = {
     saved: "Saved as a local download.",
     shared: "Sent to your share sheet.",
     saveFailed: "Could not save this image.",
-    cameraDenied: "The browser has not handed the camera to Plane Hunter yet.",
-    cameraUnsupported: "This browser does not support camera capture.",
   },
   routeFeedback: {
     suggestRight: "Suggest the right one",
