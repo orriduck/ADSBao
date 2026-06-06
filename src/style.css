@@ -207,9 +207,12 @@
 }
 
 @keyframes app-preview-enter {
+    /* Desktop aircraft preview card sits on the right edge of the
+       map; slide in from below the final resting position so the
+       motion reads as "rising into place" with an ease-out curve. */
     from {
         opacity: 0;
-        transform: translateY(10px) scale(0.985);
+        transform: translateY(18px) scale(0.985);
     }
     to {
         opacity: 1;
@@ -218,15 +221,19 @@
 }
 
 .app-preview-transition {
-    animation: app-preview-enter var(--motion-ui-slow) var(--motion-ease-snap)
+    animation: app-preview-enter var(--motion-ui-med) var(--motion-ease-out)
         both;
     will-change: opacity, transform;
 }
 
 @keyframes mobile-preview-card-enter {
+    /* Mobile aircraft preview card is anchored at the top of the
+       viewport; slide in from above the final position so the motion
+       reads as "dropping down into place" with the same ease-out
+       curve as the desktop slide. */
     from {
         opacity: 0;
-        transform: translate(-50%, -10px);
+        transform: translate(-50%, -18px);
     }
     to {
         opacity: 1;
@@ -272,8 +279,8 @@
 
 .mobile-preview-card-enter {
     transform: translate(-50%, 0);
-    animation: mobile-preview-card-enter var(--motion-ui-slow)
-        var(--motion-ease-snap) both;
+    animation: mobile-preview-card-enter var(--motion-ui-med)
+        var(--motion-ease-out) both;
 }
 
 @keyframes map-settings-sheet-enter {
