@@ -293,25 +293,42 @@ const PH_RATIOS = {
   mapMarkerR: 0.012,
 } as const;
 
+function drawDiamondPath(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+) {
+  context.beginPath();
+  context.moveTo(x, y - radius);
+  context.lineTo(x + radius, y);
+  context.lineTo(x, y + radius);
+  context.lineTo(x - radius, y);
+  context.closePath();
+}
+
+// "I'm here" marker on the maps template. Rendered as a diamond
+// (菱形) so it reads as a distinct shape from the plane glyph — sharp
+// corners signal a fixed reference point rather than a moving aircraft.
 function drawUserDot(
   context: CanvasRenderingContext2D,
   x: number,
   y: number,
   radius: number,
 ) {
-  // Halo
-  context.beginPath();
-  context.arc(x, y, radius * 2.4, 0, Math.PI * 2);
+  // Soft diamond halo
+  drawDiamondPath(context, x, y, radius * 2.3);
   context.fillStyle = "rgba(255, 196, 80, 0.26)";
   context.fill();
 
-  // Solid marker
-  context.beginPath();
-  context.arc(x, y, radius, 0, Math.PI * 2);
+  // Solid diamond marker with a dark stroke for contrast against any
+  // tile background.
+  drawDiamondPath(context, x, y, radius);
   context.fillStyle = "rgb(255, 196, 80)";
   context.fill();
   context.strokeStyle = "rgba(14, 15, 16, 0.85)";
   context.lineWidth = Math.max(1.5, radius * 0.32);
+  context.lineJoin = "miter";
   context.stroke();
 }
 
