@@ -17,6 +17,7 @@ import {
   useState,
 } from "react";
 import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
+import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
@@ -94,18 +95,24 @@ function normalizeNumber(value: unknown) {
 function getAircraftLabels(
   aircraft: Record<string, any> | null | undefined,
   enabledFields: Set<MetaField> = DEFAULT_META_FIELDS,
+  options: { flightAwareEnabled?: boolean } = {},
 ) {
   const callsign = normalizeLabel(
     aircraft?.callsign,
     normalizeLabel(aircraft?.icao24, "UNKNOWN"),
   ).toUpperCase();
-  const route =
-    normalizeLabel(aircraft?.flightRouteLabel) ||
-    normalizeLabel(aircraft?.route) ||
-    [aircraft?.origin, aircraft?.destination]
-      .map((item) => normalizeLabel(item).toUpperCase())
-      .filter(Boolean)
-      .join(" - ");
+  // Route only appears in the photo templates when FlightAware is on.
+  // Without FA the route data is too unreliable / sparse to bake into a
+  // shareable image, so we suppress the entire route line rather than
+  // surface a "ROUTE PENDING" placeholder that confuses viewers.
+  const resolvedRoute = options.flightAwareEnabled
+    ? normalizeLabel(aircraft?.flightRouteLabel) ||
+      normalizeLabel(aircraft?.route) ||
+      [aircraft?.origin, aircraft?.destination]
+        .map((item) => normalizeLabel(item).toUpperCase())
+        .filter(Boolean)
+        .join(" - ")
+    : "";
   const type =
     normalizeLabel(aircraft?.desc) ||
     normalizeLabel(aircraft?.type) ||
@@ -134,7 +141,9 @@ function getAircraftLabels(
 
   return {
     callsign,
-    route: route || "ROUTE PENDING",
+    // Empty string when FA is off — templates check `labels.route &&`
+    // and skip the route line entirely instead of rendering a hint.
+    route: resolvedRoute,
     type: type.toUpperCase(),
     registration,
     metadata,
@@ -542,6 +551,12 @@ function drawTemplate(
     const titleSize = width * r.titleSize;
     const bodySize = width * r.bodySize;
     const smallSize = width * r.smallSize;
+    // Reserve ~52% of the panel width for the callsign block; the
+    // type column lives in the remaining slot and gets clipped by
+    // fillText's maxWidth so long types ("BOEING 787-8 DREAMLINER")
+    // can no longer overlap the callsign.
+    const innerWidth = panelWidth - inner * 2;
+    const typeMaxWidth = Math.max(innerWidth * 0.45, innerWidth - innerWidth * 0.52);
 
     context.fillStyle = "rgba(242, 243, 238, 0.92)";
     roundedRect(context, pad, panelY, panelWidth, panelHeight, cornerR);
@@ -554,28 +569,50 @@ function drawTemplate(
 
     context.fillStyle = "rgba(14, 15, 16, 0.92)";
     context.font = `800 ${titleSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.callsign, pad + inner, panelY + width * r.titleY);
+    context.fillText(
+      labels.callsign,
+      pad + inner,
+      panelY + width * r.titleY,
+      // Cap the callsign so a long synthetic callsign can't push the
+      // type off the right edge either.
+      innerWidth * 0.52,
+    );
 
     context.textAlign = "right";
     context.font = `760 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.type, pad + panelWidth - inner, panelY + width * r.titleY);
+    context.fillText(
+      labels.type,
+      pad + panelWidth - inner,
+      panelY + width * r.titleY,
+      typeMaxWidth,
+    );
 
     context.textAlign = "left";
     context.fillStyle = "rgba(14, 15, 16, 0.56)";
     context.fillRect(
       pad + inner,
       panelY + width * 0.053,
-      panelWidth - inner * 2,
+      innerWidth,
       Math.max(1, width * 0.001),
     );
 
-    context.fillStyle = "rgba(14, 15, 16, 0.78)";
-    context.font = `720 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(routeLabel, pad + inner, panelY + width * r.routeY);
+    if (routeLabel) {
+      context.fillStyle = "rgba(14, 15, 16, 0.78)";
+      context.font = `720 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+      context.fillText(routeLabel, pad + inner, panelY + width * r.routeY, innerWidth);
+    }
 
     context.fillStyle = "rgba(14, 15, 16, 0.54)";
     context.font = `800 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(metaLabel || labels.capturedAt, pad + inner, panelY + width * r.metaY);
+    // Without a route line, slide the meta line up to keep the card's
+    // visual rhythm tight instead of leaving a gap.
+    const metaY = routeLabel ? width * r.metaY : width * r.routeY;
+    context.fillText(
+      metaLabel || labels.capturedAt,
+      pad + inner,
+      panelY + metaY,
+      innerWidth,
+    );
   }
 
   if (template === "lowerThird") {
@@ -600,24 +637,39 @@ function drawTemplate(
       barHeight,
     );
 
+    const callsignBlockWidth = callsignWidth - blockInner * 2;
+    const rightBlockWidth = barWidth - callsignWidth - blockInner * 2;
+
     context.fillStyle = "rgba(14, 15, 16, 0.95)";
     context.font = `850 ${callsignSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(labels.callsign, frameInset + blockInner, barY + barHeight * 0.62);
-
-    context.fillStyle = "rgba(242, 243, 238, 0.96)";
-    context.font = `780 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
     context.fillText(
-      routeLabel,
-      frameInset + callsignWidth + blockInner,
-      barY + barHeight * 0.42,
+      labels.callsign,
+      frameInset + blockInner,
+      barY + barHeight * 0.62,
+      callsignBlockWidth,
     );
+
+    if (routeLabel) {
+      context.fillStyle = "rgba(242, 243, 238, 0.96)";
+      context.font = `780 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+      context.fillText(
+        routeLabel,
+        frameInset + callsignWidth + blockInner,
+        barY + barHeight * 0.42,
+        rightBlockWidth,
+      );
+    }
 
     context.fillStyle = "rgba(242, 243, 238, 0.66)";
     context.font = `760 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+    // Without a route line, center the meta line vertically in the
+    // right block so the news bar doesn't look bottom-heavy.
+    const metaBaselineY = routeLabel ? barY + barHeight * 0.78 : barY + barHeight * 0.62;
     context.fillText(
       metaLabel || labels.capturedAt,
       frameInset + callsignWidth + blockInner,
-      barY + barHeight * 0.78,
+      metaBaselineY,
+      rightBlockWidth,
     );
   }
 
@@ -663,20 +715,26 @@ function PlaneHunterTemplateOverlay({
           className="w-[34cqi] min-w-[180px] rounded-[1.8cqi] border border-[rgba(14,15,16,0.16)] bg-[rgba(242,243,238,0.92)] text-[rgb(14,15,16)] shadow-[0_1.8cqi_4cqi_rgba(0,0,0,0.22)]"
           style={{ padding: "1.4cqi 1.4cqi" }}
         >
-          <div className="flex items-baseline justify-between gap-3 border-b border-[rgba(14,15,16,0.18)] pb-[0.6cqi]">
+          {/* Callsign + type row: callsign gets ~52% via flex-basis, the
+              type column is capped at 45% with `truncate` so a long type
+              ("BOEING 787-8 DREAMLINER") can no longer push past the
+              callsign. */}
+          <div className="flex items-baseline gap-2 border-b border-[rgba(14,15,16,0.18)] pb-[0.6cqi]">
             <strong
               translate="no"
-              className="notranslate truncate text-[2.5cqi] font-black leading-none tracking-normal"
+              className="notranslate min-w-0 flex-1 truncate text-[2.5cqi] font-black leading-none tracking-normal"
             >
               {labels.callsign}
             </strong>
-            <span className="truncate text-right text-[1.5cqi] font-extrabold leading-none">
+            <span className="min-w-0 max-w-[45%] shrink-0 truncate text-right text-[1.5cqi] font-extrabold leading-none">
               {labels.type}
             </span>
           </div>
-          <div className="mt-[0.8cqi] truncate text-[1.5cqi] font-extrabold leading-none">
-            {labels.route}
-          </div>
+          {labels.route && (
+            <div className="mt-[0.8cqi] truncate text-[1.5cqi] font-extrabold leading-none">
+              {labels.route}
+            </div>
+          )}
           {(metadata || labels.capturedAt) && (
             <div className="mt-[0.5cqi] truncate text-[1.1cqi] font-black leading-none text-[rgba(14,15,16,0.56)]">
               {metadata || labels.capturedAt}
@@ -701,11 +759,18 @@ function PlaneHunterTemplateOverlay({
           </strong>
         </div>
         <div className="flex min-w-0 flex-col justify-center bg-[rgba(14,15,16,0.94)] px-[2cqi] text-[rgb(242,243,238)]">
-          <div className="truncate text-[1.5cqi] font-extrabold leading-tight">
-            {labels.route}
-          </div>
+          {labels.route && (
+            <div className="truncate text-[1.5cqi] font-extrabold leading-tight">
+              {labels.route}
+            </div>
+          )}
           {(metadata || labels.capturedAt) && (
-            <div className="mt-[0.3cqi] truncate text-[1.1cqi] font-black leading-none text-[rgba(242,243,238,0.66)]">
+            <div
+              className={cn(
+                "truncate text-[1.1cqi] font-black leading-none text-[rgba(242,243,238,0.66)]",
+                labels.route && "mt-[0.3cqi]",
+              )}
+            >
               {metadata || labels.capturedAt}
             </div>
           )}
@@ -1274,6 +1339,7 @@ export default function PlaneHunterStudio({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useI18n();
+  const flightAwareEnabled = useFlightAwareEnabled();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   // Two-step flow: a source-picker modal hands off to the OS camera
@@ -1360,8 +1426,8 @@ export default function PlaneHunterStudio({
     });
   }, []);
   const labels = useMemo(
-    () => getAircraftLabels(aircraft, enabledFields),
-    [aircraft, enabledFields],
+    () => getAircraftLabels(aircraft, enabledFields, { flightAwareEnabled }),
+    [aircraft, enabledFields, flightAwareEnabled],
   );
 
   // Read a selected file (from the OS camera OR from the photo
