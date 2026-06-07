@@ -1,11 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
+import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
+
+// Minimum movement (in NM) before the explorer is re-centered on the
+// new lat/lon. ~0.15 NM ≈ 280 m is roughly a city block — small
+// enough that the page reacts to a walk across town within a minute
+// or two, large enough that GPS jitter (typically 5–30 m on phones)
+// doesn't trigger a re-fetch on every watchPosition tick.
+const POSITION_REFRESH_THRESHOLD_NM = 0.15;
 
 // `/here` — explorer view centered on the user's current position
 // instead of an airport. Mirrors the `/airport/[icao]` shell but
@@ -22,25 +30,67 @@ export default function NearMeScreen() {
     "idle" | "requesting" | "granted" | "denied" | "unavailable"
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  // Active geolocation watch id (numeric handle returned by
+  // navigator.geolocation.watchPosition). Stored in a ref so re-renders
+  // don't restart the watch — we only want to start once on mount and
+  // tear it down on unmount.
+  const watchIdRef = useRef<number | null>(null);
 
+  // Continuously track the user's position so a real-world move
+  // refreshes the explorer without the user touching anything.
+  // watchPosition fires every time the OS sees a position change;
+  // we apply a movement threshold downstream so we don't thrash
+  // re-fetches on GPS jitter (typically 5–30m on phones).
   const requestLocation = useCallback(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation?.getCurrentPosition) {
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.geolocation?.watchPosition
+    ) {
       setStatus("unavailable");
       setErrorMessage(t("nearMe.unsupported"));
       return;
     }
+    // Stop any in-flight watch before starting a new one (the user
+    // hit "Try again" after a previous denial, or the component
+    // re-ran the effect because of a hot reload).
+    if (
+      watchIdRef.current != null &&
+      typeof navigator.geolocation.clearWatch === "function"
+    ) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
     setStatus("requesting");
     setErrorMessage("");
-    navigator.geolocation.getCurrentPosition(
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
-          setCoords({ lat: latitude, lon: longitude });
-          setStatus("granted");
-        } else {
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
           setStatus("unavailable");
           setErrorMessage(t("nearMe.unsupported"));
+          return;
         }
+        // Always mark "granted" on a successful tick — the prompt
+        // closes as soon as we have any fix.
+        setStatus("granted");
+        // Only push a coord update when the user has materially
+        // moved. The downstream lat/lon-keyed fetches (aircraft
+        // polling, reverse geocode, METAR via closest airport,
+        // airspace tiles) all re-issue on coord changes, so we
+        // gate at this layer.
+        setCoords((previous) => {
+          if (!previous) return { lat: latitude, lon: longitude };
+          const distance = getDistanceNm(
+            previous.lat,
+            previous.lon,
+            latitude,
+            longitude,
+          );
+          if (distance != null && distance < POSITION_REFRESH_THRESHOLD_NM) {
+            return previous;
+          }
+          return { lat: latitude, lon: longitude };
+        });
       },
       (error) => {
         if (error?.code === error?.PERMISSION_DENIED) {
@@ -51,14 +101,26 @@ export default function NearMeScreen() {
           setErrorMessage(error?.message || t("nearMe.unsupported"));
         }
       },
-      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 30_000 },
     );
   }, [t]);
 
-  // Kick off the geolocation prompt on mount. The browser remembers a
-  // prior grant on this origin so the second visit doesn't re-prompt.
+  // Start the watch on mount. The browser remembers prior grants on
+  // this origin so the second visit doesn't re-prompt. Watch is torn
+  // down on unmount so we don't leak listeners or keep the GPS hot
+  // when the user navigates away.
   useEffect(() => {
     requestLocation();
+    return () => {
+      if (
+        watchIdRef.current != null &&
+        typeof navigator !== "undefined" &&
+        typeof navigator.geolocation?.clearWatch === "function"
+      ) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
   }, [requestLocation]);
 
   const airport = useMemo(
