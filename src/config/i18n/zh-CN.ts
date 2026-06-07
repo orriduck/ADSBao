@@ -438,8 +438,6 @@ const zhCN = {
         ctaHint: "以你的当前位置为中心,显示飞机、METAR 和地图。",
         requesting: "正在请求定位…",
         loading: "正在查找附近机场…",
-        loaded: "附近机场已加载",
-        loadError: "附近机场加载失败",
         retry: "重新尝试附近机场",
         unavailable: "定位不可用，仍可直接搜索机场。",
         empty: "当前位置附近没有找到机场。",

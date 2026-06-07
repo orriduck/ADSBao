@@ -446,8 +446,6 @@ const en = {
         ctaHint: "See live aircraft, METAR, and the map centered on your location.",
         requesting: "Requesting location...",
         loading: "Finding nearby airports...",
-        loaded: "Nearby airports loaded",
-        loadError: "Nearby search failed",
         retry: "Try nearby again",
         unavailable: "Location was unavailable. Search still works.",
         empty: "No nearby airports were found for this position.",

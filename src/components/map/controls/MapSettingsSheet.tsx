@@ -135,12 +135,6 @@ export default function MapSettingsSheet({
     mapSettingsDevice === "mobile"
       ? "mapSettings.devices.mobile"
       : "mapSettings.devices.desktop";
-  const signedInPersistenceKey =
-    mapSettingsSaveStatus === "saving"
-      ? "mapSettings.savingSettings"
-      : mapSettingsSaveStatus === "error"
-        ? "mapSettings.saveError"
-        : "mapSettings.savedSettingsAvailable";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -424,7 +418,7 @@ export default function MapSettingsSheet({
                 />
               </span>
               <span className="mt-1 block">
-                {t(signedInPersistenceKey)}
+                {t("mapSettings.savedSettingsAvailable")}
               </span>
             </div>
           ) : null}
