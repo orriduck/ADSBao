@@ -7,6 +7,7 @@ import { countryName, flagEmoji } from "../../utils/flag";
 import { airportCityName, airportDisplayName } from "../../utils/airport";
 import { resolveTimezone } from "../../utils/timezone";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 
 export default function AirportIdentity({
   icao = "",
@@ -24,8 +25,35 @@ export default function AirportIdentity({
   nearMe = false,
 }) {
   const { locale, t } = useI18n();
+  // Reverse-geocode the user's lat/lon when in near-me mode so the
+  // identity hero reads as the actual place (Boston / Massachusetts /
+  // 🇺🇸 United States) rather than the static "HERE / Your location"
+  // labels. While the geocode is in-flight the UI falls back to the
+  // static copy so the hero never appears empty.
+  const { data: place } = useReverseGeocode(
+    nearMe ? lat : null,
+    nearMe ? lon : null,
+    locale,
+  );
+  const nearMeBadge =
+    nearMe && (place?.city || place?.county)
+      ? place.city || place.county
+      : t("sidebar.nearMeBadge");
+  const nearMeTitle =
+    nearMe && place?.state ? place.state : t("sidebar.nearMeTitle");
+  const nearMeCountryCode = place?.countryCode || "";
+  const nearMeCountryLabel =
+    place?.countryName ||
+    (nearMeCountryCode ? countryName(nearMeCountryCode, locale) : "") ||
+    "";
+  const nearMeFlag = nearMeCountryCode ? flagEmoji(nearMeCountryCode) : "";
+  const nearMeSubtitle =
+    nearMe && (nearMeFlag || nearMeCountryLabel)
+      ? [nearMeFlag, nearMeCountryLabel].filter(Boolean).join(" ").trim()
+      : t("sidebar.nearMeSubtitle");
+
   const codeLine = nearMe
-    ? t("sidebar.nearMeBadge")
+    ? nearMeBadge
     : iata && iata !== icao
       ? `${iata} · ${icao}`
       : icao || "—";
@@ -33,10 +61,10 @@ export default function AirportIdentity({
   const countryLabel = nearMe ? "" : countryName(country, locale) || country;
   const cityLabel = nearMe ? "" : airportCityName(city, locale);
   const displayName = nearMe
-    ? t("sidebar.nearMeTitle")
+    ? nearMeTitle
     : airportDisplayName({ icao, iata, name, localizedName }, locale);
   const placeText = nearMe
-    ? t("sidebar.nearMeSubtitle")
+    ? nearMeSubtitle
     : [cityLabel, countryLabel].filter(Boolean).join(", ");
   const placeLine =
     !nearMe && flag && placeText
