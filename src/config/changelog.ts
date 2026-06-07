@@ -1,104 +1,102 @@
-// Product release history rendered by `/changelog`. This is the source
-// of truth — keep new releases here instead of editing a markdown file.
-// Each release has a `kind` ("feat" | "patch" | "breaking"), a one-line
-// `summary`, and an `highlights` array of short bullets. Keep bullets
-// terse (one clause); the long-form explanation belongs in the PR.
+// Product release history rendered by `/changelog`. This is the
+// source of truth — keep new releases here instead of editing a
+// markdown file. Each release has a `kind` ("feat" | "patch" |
+// "breaking"), a one-line `summary`, and a small set of high-level
+// `highlights` bullets. Keep entries terse — the long-form story
+// belongs in the PR.
 
 export const CHANGELOG = [
+  {
+    version: "v2.1.0",
+    kind: "feat",
+    title: "Near-me explorer + Plane Hunter polish",
+    summary:
+      "A new /here page mirrors the airport detail experience but centered on the user's location, with live position tracking. Plane Hunter gets a simpler native source picker and a tighter map template.",
+    highlights: [
+      "/here: live aircraft, nearby airports, and airspaces around your current position; auto-refreshes as you move",
+      "Sidebar hero shows your actual city / state / country via reverse geocoding",
+      "Plane Hunter capture simplified to a native camera / library picker; map template now ~1 NM radius",
+      "Misc UI fixes — preview card slides in directionally, long aircraft types no longer overlap the callsign, route line only appears with FlightAware",
+    ],
+  },
   {
     version: "v2.0.0",
     kind: "breaking",
     title: "Plane Hunter mode goes GA",
     summary:
-      "Plane Hunter ships to every signed-in user as a two-step capture studio: full-bleed shooting (native OS camera or library upload), then a compose pane that bakes the chosen template into a shareable PNG. A new Maps template centers an OpenStreetMap tile on the photographer's location and overlays the aircraft when it falls inside the visible tile.",
+      "Plane Hunter ships as a two-step capture studio that bakes the chosen template into a shareable PNG. A new Maps template overlays an OSM tile of your location.",
     highlights: [
-      "Two-step flow — capture step is a full-bleed viewfinder with shutter, library upload, opt-in rule-of-thirds grid, and a back arrow; compose step holds tabbed Templates / Settings and share / retake / copy actions",
-      "Touch devices hand off to the OS camera via `<input capture>` instead of an in-page getUserMedia viewfinder, so iOS Safari and Android Chrome get the system camera UI",
-      "New Maps template centers an OSM tile on your location with a diamond \"I'm here\" marker; the aircraft renders as a heading-rotated plane glyph when it sits inside the tile, with picker-selectable corner placement",
-      "Compose pane matches Map Settings — control-surface chips with ink-fill + bottom-glow active state, arranged in grids so all four templates fit on one row",
-      "Plane Hunter is GA — feature flag removed, Chinese trigger label renamed to 开始拍机",
-      "Fixed: iOS Safari rubber-band scroll on airport / flight detail pages — the full-viewport map shell no longer drags up off the screen",
+      "Two-step flow — shoot the photo, then compose with templates and share / save / copy",
+      "Touch devices hand off to the OS camera or photo library",
+      "New Maps template centers an OSM tile on your location with the aircraft when it's in view",
+      "Feature flag removed — Plane Hunter is on for every signed-in user",
     ],
   },
   {
     version: "v1.13.1",
     kind: "patch",
-    title: "Toolbar opacity polish and louder map-settings error logging",
+    title: "Toolbar opacity polish",
     summary:
-      "Every floating toolbar pill (home dock, sidebar overlay, map control rail) now sits on a more opaque surface so it stays legible against busy map and dither backdrops on both light and dark themes. Server-side map-settings reads also escalate failures from warn to error, so schema drift surfaces immediately instead of silently looking like \"never saved\".",
+      "Floating toolbar pills sit on a more opaque surface so they stay legible against busy map backdrops on both themes.",
     highlights: [
-      "Toolbar surface token bumped from 88% to 96% card opacity — affects every Toolbar caller (home page dock, sidebar mobile overlay, map control rail) on light and dark themes",
-      "Map-settings DAO read errors are now logged as `console.error` instead of `console.warn`, so a missing `device` column (or any future schema drift) is visible immediately in server logs",
+      "Toolbar surface tightened across home dock, sidebar overlay, and map control rail",
     ],
   },
   {
     version: "v1.13.0",
     kind: "feat",
-    title: "Bottom-floating mobile toolbar and device-aware settings",
+    title: "Bottom-floating mobile toolbar + device-aware settings",
     summary:
-      "Mobile now exposes a single bottom-pinned toolbar pill across every page, static pages scroll as one document, and signed-in users get separate desktop and mobile map preferences. The approach-altitude masking rule also stops hiding high-altitude overflights.",
+      "Mobile gets a single bottom-pinned toolbar across every page, and signed-in users keep separate desktop and mobile map preferences.",
     highlights: [
-      "Mobile toolbar floats at the bottom center across home, about, mechanism, changelog, and the airport/flight sidebar overlays",
-      "Desktop static pages move the navigation dock to the top-right corner so it lines up with the detail-page map toolbar",
-      "Static pages (home, about, mechanism, changelog) scroll as a single document on mobile, with bottom clearance for the floating toolbar",
-      "Approach-level traffic hiding now also gates on the altitude delta against the airport, so high-altitude overflights remain visible",
-      "Signed-in users save independent desktop and mobile map settings, picked up automatically by the device they're on",
-      "About page version now reads from the changelog so future releases only need a single changelog edit",
+      "Mobile toolbar floats at the bottom center on every page",
+      "Per-device map preferences for signed-in users",
+      "High-altitude overflights no longer hidden by the approach-mask rule",
     ],
   },
   {
     version: "v1.12.0",
     kind: "feat",
-    title: "Map readability and badge polish",
+    title: "Map readability + badge polish",
     summary:
-      "Airport, navaid, and airspace surfaces share a quieter terrain palette, a unified badge system with collision-aware stacking, and friendlier click handling for overlapping layers.",
+      "Quieter terrain palette and a unified badge system with collision-aware stacking.",
     highlights: [
-      "Readable terrain swaps the topo raster for layered hillshades and a calmer grayscale palette in both themes",
-      "Map badges share a collision-aware layout that nudges stacked airport, nearby-airport, and navaid labels apart with leader lines",
-      "Navaid labels adopt the airport badge design for consistent typography, selection, and zoom behavior",
-      "Nearby airport pills render the distance suffix in a smaller bottom-aligned font for clearer hierarchy",
-      "Airspace clicks resolve to the visible overlapping polygon and cycle through stacked airspaces on repeat clicks",
+      "Calmer hillshade terrain in both themes",
+      "Collision-aware airport / navaid badges with leader lines",
+      "Click cycles through overlapping airspaces",
     ],
   },
   {
     version: "v1.11.1",
     kind: "patch",
-    title: "Map UI polish pass",
+    title: "Map UI polish",
     summary:
-      "Map mode and sidebar UI polish tightens airspace readability, full-trace framing, mobile page scrolling, and compact metric cards.",
+      "Tightens airspace readability, full-trace framing, mobile scrolling, and compact metric cards.",
     highlights: [
-      "Airspace overlays add inward edge markings while preserving the existing access color language",
-      "Full-trace mode keeps airspace context visible but hides boundary labels that crowd long routes",
-      "Full-trace fitting recenters around the inferred focal aircraft position for smoother map movement",
-      "Mobile Home, About, and Mechanism pages keep scrolling inside the panel instead of the whole document",
-      "Desktop map-kit metric cards keep compact status values such as Airborne from clipping",
+      "Inward airspace edge markings + cleaner full-trace boundary labels",
+      "Mobile static pages keep panel-scoped scroll",
     ],
   },
   {
     version: "v1.11.0",
     kind: "feat",
-    title: "Full-trace map context counts",
+    title: "Full-trace nav count badges",
     summary:
-      "Full-trace aircraft maps now keep long routes readable by replacing dense low-zoom navaid labels with cached NAV count badges.",
+      "Long routes stay readable — dense low-zoom navaid labels collapse into cached count badges.",
     highlights: [
-      "Low-zoom full-trace maps request aggregate navaid count tiles instead of thousands of individual labels",
-      "NAV count badges show one centered total per map tile with a short reduced-motion-safe entry animation",
-      "Detailed navaid labels still return at the existing zoom threshold",
-      "The count API reuses the long-lived aviation context tile cache headers",
+      "Aggregate navaid count tiles at low zoom",
+      "Detailed labels return at the existing zoom threshold",
     ],
   },
   {
     version: "v1.10.0",
     kind: "feat",
-    title: "Airport facilities and sidebar polish",
+    title: "Airport facilities + sidebar polish",
     summary:
-      "Airport detail pages now restore Supabase-backed OurAirports facility data alongside OpenAIP, improving ATC frequency and nearby navaid coverage with a tighter sidebar experience.",
+      "OurAirports facility data joins OpenAIP for better ATC frequency and nearby navaid coverage.",
     highlights: [
-      "OurAirports airport frequencies and navaids return through dedicated Supabase tables and import tooling",
-      "OpenAIP airport details merge restored facility data while keeping OpenAIP as the primary directory",
-      "ATC frequencies use fixed-width frequency pills with compact source chips and a LiveATC search link above the list",
-      "The airport sidebar adds focused ATC and spotting panels that align with the existing metric grid",
-      "Mobile spotting previews now prioritize the actual spot name and keep distance plus OSM attribution on one line",
+      "Restored ATC frequency + navaid coverage via OurAirports",
+      "Dedicated ATC and spotting panels in the airport sidebar",
     ],
   },
   {
@@ -106,51 +104,40 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Watcher Mode candidate photo spots",
     summary:
-      "Watcher Mode now generates and displays OSM-derived candidate photo spots for the focused airport, with runway-aligned static data and conservative preview copy.",
+      "Watcher Mode generates and renders runway-aligned candidate plane-watching spots for the focused airport.",
     highlights: [
-      "Watcher Mode / 看客模式 defaults candidate watching spots on while other map modes keep them off",
-      "KBOS and JFK candidate photo spots load from static JSON generated from runway alignment plus public OpenStreetMap data",
-      "Approach and airport zooms add PHOTO SPOT counts to the focal airport badge; detail zoom renders clickable camera markers",
-      "Selected candidate spots use the shared preview card surface with OSM attribution and conservative map-derived disclaimers",
-      "Candidate marker, badge, and preview transitions run for at least 300ms and respect reduced-motion preferences",
+      "Candidate spots from runway alignment + OpenStreetMap data",
+      "Clickable camera markers + previews with OSM attribution",
     ],
   },
   {
     version: "v1.8.4",
     kind: "patch",
-    title: "Airport zoom declutter tuning",
+    title: "Airport zoom declutter",
     summary:
-      "Airport map zoom levels now share one feature configuration for runway labels, range labels, nearby runways, and surface-traffic suppression.",
-    highlights: [
-      "Airport-level runway end labels stay hidden until detail zoom",
-      "Nearby airport-surface traffic hides within 3nm at approach zoom and 0.5nm at airport zoom",
-      "Zoom-specific map feature toggles now live in one configuration table",
-    ],
+      "Airport map zoom levels share one feature configuration for labels, range rings, and surface-traffic suppression.",
+    highlights: ["Unified zoom-level feature config"],
   },
   {
     version: "v1.8.3",
     kind: "patch",
-    title: "Mechanism page and navigation polish",
+    title: "Mechanism + navigation polish",
     summary:
-      "Mechanism now uses the same dithered page shell as Home and About, with clearer expandable explanations and locale-safe toolbar navigation.",
+      "Mechanism returns to the same dithered shell as Home / About; top nav preserves the active locale.",
     highlights: [
-      "Mechanism page returns to the Home/About dither background instead of a synthetic airport map",
-      "Mechanism rows match the About list pattern while expanded content explains each system in paragraphs",
-      "Top navigation preserves the active locale when moving between Home, About, Mechanism, and Changelog",
-      "Dither page titles use safer line-height so Changelog text no longer clips",
+      "Mechanism page back on the Home/About background",
+      "Locale survives Home / About / Mechanism / Changelog navigation",
     ],
   },
   {
     version: "v1.8.1",
     kind: "patch",
-    title: "Aircraft type labels and airspace entry polish",
+    title: "Aircraft type labels + airspace entry polish",
     summary:
-      "Aircraft previews and filters now prefer friendly type names while the default airspace layer animates in on first load.",
+      "Previews and filters prefer friendly aircraft names; the default airspace layer fades in on first load.",
     highlights: [
-      "Aircraft preview cards show friendly aircraft names with ICAO codes demoted to secondary metadata",
-      "Aircraft type filters use the shared aircraft type resolver and match friendly names plus ICAO codes",
-      "Category-only aircraft display as Unknown while the filter groups them as All Unclassified",
-      "Airspace overlays now stagger-fade in during the initial default load",
+      "Friendly aircraft names; ICAO codes demoted to secondary",
+      "Airspace overlays stagger-fade in",
     ],
   },
   {
@@ -158,68 +145,56 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Airport airspace overlays",
     summary:
-      "Airport maps now render OpenAIP airspaces directly on the map with translucent fills, labeled boundaries, clickable preview cards, and persisted layer toggles.",
+      "Airport maps render OpenAIP airspaces directly with translucent fills, labeled boundaries, clickable previews, and persisted layer toggles.",
     highlights: [
-      "OpenAIP-style airspace overlays render on airport maps with focus styling and small-airspace hit priority",
-      "Danger, restricted, controlled, informational, and unknown airspaces use theme-aware design tokens",
-      "Desktop and mobile airspace preview cards show localized type, access rule, class, and vertical limits",
-      "Map layer settings for labels, runway beams, navaids, and airspaces persist in the browser",
-      "Active sidebar metric and filter tiles keep visible resting borders across light and dark themes",
+      "OpenAIP-style airspaces on airport maps with click-to-preview",
+      "Map layer toggles persist in the browser",
     ],
   },
   {
     version: "v1.7.0",
     kind: "feat",
-    title: "OpenAIP airport directory migration",
+    title: "OpenAIP directory migration",
     summary:
-      "Airport search and detail context now use OpenAIP as the primary aviation directory, with Supabase-backed runway threshold geometry retained for accurate map overlays.",
+      "Airport search and detail context now use OpenAIP as the primary aviation directory.",
     highlights: [
-      "Airport search, airport details, frequencies, nearby airports, navaids, reporting points, airspaces, and obstacles moved to OpenAIP",
-      "Runway map centerlines use imported OurAirports threshold coordinates instead of synthetic OpenAIP centroid geometry",
-      "OpenAIP search results without normal ICAO-style airport codes are filtered out before display",
-      "About and architecture docs now list OpenAIP plus the narrow OurAirports runway geometry attribution",
+      "Search, details, frequencies, navaids, airspaces moved to OpenAIP",
+      "Supabase-backed runway threshold geometry retained for accurate overlays",
     ],
   },
   {
     version: "v1.6.0",
     kind: "feat",
-    title: "Nearby list virtualization and data-layer onboarding",
+    title: "Virtualized nearby list + TanStack Query",
     summary:
-      "Sidebar nearby list windows through a virtualizer with animated digit metrics, page-level UI gets unified token-based stacking, and TanStack Query starts handling client-side data fetching.",
+      "Sidebar nearby list windows through a virtualizer with animated digit metrics; TanStack Query starts handling client-side data fetching.",
     highlights: [
-      "Nearby list (aircraft + airports) windows through TanStack Virtual; distance and altitude animate via NumberFlow on every poll tick",
-      "Subtle fade-up enter animation for genuinely-new rows; honours prefers-reduced-motion",
-      "Pinned aircraft slot styled as a peer of the metric tiles — ink surface with a bottom-up edge glow",
-      "Toolbar and sidebar geometry unified across home and detail pages; both center over the content area",
-      "Page-level z-index ladder replaced by named tier tokens; Leaflet pane collisions fixed in both desktop and mobile layouts",
-      "TanStack Query and DevTools mounted in the app shell; useAirportWiki migrated as the pilot for future data-hook adoption",
-      "~15% style.css reduction by migrating small leaf components to inline Tailwind utilities and dropping dead CSS",
+      "Windowed nearby list (aircraft + airports) with NumberFlow digits",
+      "Page-level z-index unified into named tier tokens",
+      "TanStack Query mounted in the app shell",
     ],
   },
   {
     version: "v1.5.0",
     kind: "feat",
-    title: "Tracking stability and map-label optimization",
+    title: "Tracking stability + map label optimization",
     summary:
-      "Flight tracking now separates live, fallback, stale, and missing position states while route overlays and map labels stay clearer across themes and languages.",
+      "Flight tracking separates live, fallback, stale, and missing position states. Route overlays and map labels stay clearer.",
     highlights: [
-      "Tracked flights use explicit position states instead of treating every callsign match as live",
-      "Fallback positions stay visible without triggering unnecessary lost-signal prompts",
-      "Terminal flights keep the last known point visible and stop repeated route lookups",
-      "Predicted route arcs render as dashed lines, including their glow layer",
+      "Explicit position states for tracked flights",
+      "Predicted route arcs render as dashed lines",
       "Map place labels follow the selected app language",
     ],
   },
   {
     version: "v1.4.0",
     kind: "feat",
-    title: "Account sign-in + cleaner lost-signal handling",
+    title: "Account sign-in + cleaner lost-signal",
     summary:
-      "Sign in to your ADSBao account from the map toolbar or nav menu, and the lost-signal modal on a tracked flight now retries silently in the background instead of asking you to retry by hand.",
+      "Sign in from the map toolbar or nav menu. The lost-signal modal now retries silently in the background.",
     highlights: [
-      "Account sign-in / sign-up via the avatar control on the flight + airport map toolbars (also reachable from the home / about / changelog nav menu)",
-      "Lost-signal modal trimmed to two actions: keep the current view (polling continues silently in the background) or back to home",
-      "Live position resumes automatically once the feed is back — no manual retry needed",
+      "Account sign-in via the toolbar avatar",
+      "Silent background retry once the feed is back",
     ],
   },
   {
@@ -227,14 +202,11 @@ export const CHANGELOG = [
     kind: "feat",
     title: "adsbdb routes + community feedback + complete runway map",
     summary:
-      "Route lookups move to api.adsbdb.com, users can submit temporary route corrections, and the airport runway map now renders every runway from OpenAIP.",
+      "Route lookups move to api.adsbdb.com, users can submit temporary route corrections, and the runway map now renders every runway from OpenAIP.",
     highlights: [
-      "Public route provider switched from VRS standing-data to api.adsbdb.com",
-      "Community-feedback overrides: `*`-marked user-supplied routes win for 12h",
-      "Preview card: inline form on desktop, modal on mobile, with copy that distinguishes 'Suggest the right one' vs 'Suggest correction'",
-      "Flight tracking page now fetches and shows the route, and exposes the same feedback affordance",
-      "KBOS-class fix: VFR-only runways (09/27, 14/32, 15L/33R) render again — runway map sourced from OpenAIP globally",
-      "Mobile flight sidebar is vertically scrollable",
+      "Route data source switched to api.adsbdb.com",
+      "12 h community route overrides marked with `*`",
+      "Complete OpenAIP-sourced runway map (incl. VFR-only runways)",
     ],
   },
   {
@@ -242,58 +214,41 @@ export const CHANGELOG = [
     kind: "patch",
     title: "Track button opens in a new tab",
     summary:
-      "Preview-card Track action switches to an anchor so right-click → Open in New Tab works.",
-    highlights: [
-      "AircraftPreviewMetadataCard Track → next/link <Link>",
-      "AirportPreviewMetadataCard Track → next/link <Link>",
-      "Shared .aircraft-preview-card__track-btn rule made anchor-friendly",
-      "Restored the missing vertical seam between Type and Alt filter cards",
-    ],
+      "Preview-card Track action is now a real link so right-click → Open in New Tab works.",
+    highlights: ["Track switched to <Link>"],
   },
   {
     version: "v1.2.0",
     kind: "feat",
-    title: "Themed runway approach + aircraft nose beam + scale-bar polish",
+    title: "Themed approach + nose beam + scale bar polish",
     summary:
-      "Theme-aware approach visualisation, dark-theme aircraft nose beam, always-on scale bar, and toast theming wired to the app.",
+      "Theme-aware runway approach visualization, dark-theme aircraft nose beam, always-on scale bar, and themed toasts.",
     highlights: [
-      "Runway approach abstracted: dark = glowing wedge, light = dashed extended centerline",
-      "Aircraft silhouettes get a soft forward nose beam on dark theme",
-      "Scale bar always visible with theme-aware backdrop blur",
-      "Map zoom presets retuned to 10 / 11 / 13",
-      "Toast layer drops below the map toolbar and matches the app theme",
+      "Approach: dark = glowing wedge, light = dashed extended centerline",
+      "Always-on scale bar with theme-aware backdrop",
     ],
   },
   {
     version: "v1.1.0",
     kind: "feat",
-    title: "Distance rings + map scale bar",
+    title: "Distance rings + scale bar",
     summary:
-      "Concentric distance rings on the airport page, an adaptive scale bar at approach zoom, and a uniform 40nm radius for all nearby searches.",
+      "Concentric distance rings on the airport page and an adaptive scale bar at approach zoom; nearby searches unified to a 40 NM radius.",
     highlights: [
-      "All nearby-traffic and nearby-airport searches normalized to 40nm",
-      "Airport page: focal airport rings every 3nm out to 30nm",
-      "Airport page: nearby airports show rings every 3nm out to 10nm",
-      "Flight page: single 5nm proximity ring around each nearby airport; focal aircraft rings suppressed",
-      "Per-ring distance labels at airport / detail zoom",
-      "Scale bar (比例尺) in the bottom-left at approach zoom",
-      "Every third ring rendered slightly bolder as a visual anchor",
+      "Airport page: rings every 3 NM out to 30 NM",
+      "Scale bar in the bottom-left at approach zoom",
     ],
   },
   {
     version: "v1.0.0",
     kind: "feat",
-    title: "Persistent tracking sessions + drop-up nav menu",
+    title: "Persistent tracking + nav menu",
     summary:
-      "Refresh-safe trace persistence, lost-signal overlay, /changelog page, and a unified sibling-page nav menu.",
+      "Trace persists across refresh, a lost-signal overlay handles drops, and there's a new /changelog page.",
     highlights: [
-      "12h tracking session anchor + 24h trace cache in localStorage",
-      "Full + recent + live trace merge with explicit priority",
-      "Lost-signal overlay (keep / retry / back home)",
-      "Fit-to-trace returns to the same zoom preset",
-      "Sidebar nearby list switches to static digits (framerate)",
-      "Drop-up nav menu shared by Home / About / Changelog",
-      "New /changelog page (data moved from CHANGELOG.md to JS)",
+      "12 h tracking session anchor + 24 h local trace cache",
+      "Lost-signal overlay with keep / retry / back-home",
+      "New /changelog page",
     ],
   },
   {
@@ -301,15 +256,11 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Aircraft tracking page + polymorphic explorer",
     summary:
-      "/aircraft/[callsign] route, polymorphic sidebar + preview, fit-to-trace, multi-provider failover.",
+      "/aircraft/[callsign] route with a polymorphic sidebar + preview, fit-to-trace, and multi-provider failover.",
     highlights: [
-      "/aircraft/[callsign] page mirrors the airport layout",
-      "Polymorphic preview card (aircraft + airport variants)",
-      "Polymorphic sidebar list with Show filter",
-      "Fit-to-trace map control",
-      "ADS-B callsign provider race + failover",
-      "Cookie-driven theme (no more React 19 warning)",
-      "Route rename: /[icao] → /airport/[icao]",
+      "/aircraft/[callsign] mirrors the airport layout",
+      "Polymorphic preview card (aircraft + airport)",
+      "Route renamed /[icao] → /airport/[icao]",
     ],
   },
   {
@@ -317,13 +268,10 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Selected-aircraft trace + revalidation",
     summary:
-      "Live trace polyline for the focused plane, route revalidation via AeroDataBox, classification fixes.",
+      "Focused-aircraft live trace polyline, route revalidation via AeroDataBox, and ADS-B provider failover.",
     highlights: [
-      "Trace polyline with gradient + fade-in label cards",
-      "Trail color tracks departure/arrival accent",
-      "Click focused marker to revalidate route",
-      "UNKNOWN classification when route has no label",
-      "ADS-B provider failover (5xx / 429 / timeout)",
+      "Gradient trace polyline with fade-in label cards",
+      "ADS-B failover on 5xx / 429 / timeout",
     ],
   },
   {
@@ -331,13 +279,10 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Global airport data + richer silhouettes",
     summary:
-      "OpenAIP-backed global search, 178 ICAO-type silhouettes, country flags.",
+      "OpenAIP-backed global airport search, 178 ICAO-type silhouettes, and country flags on the home rows and airport headers.",
     highlights: [
-      "OpenAIP backing /api/search + /api/airport/[ident]",
-      "Global OpenAIP runway annotations",
-      "178 aircraft silhouettes shipping in-repo",
-      "Diversified featured airports (JFK, LHR, HND, …)",
-      "Country flag + name on home rows and airport header",
+      "OpenAIP backs /api/search and /api/airport/[ident]",
+      "178 aircraft silhouettes ship in-repo",
     ],
   },
   {
@@ -345,50 +290,40 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Navy tracking console redesign",
     summary:
-      "Sidebar + map layout, callsign-first traffic table, deep navy palette, silhouette markers.",
+      "Sidebar + map layout, callsign-first traffic table, deep navy palette, and aircraft silhouette markers.",
     highlights: [
-      "Persistent top nav with ADSBao / Search / About",
-      "400px desktop sidebar alongside full-height map",
-      "Callsign-first traffic table with route status badges",
-      "Aircraft silhouette markers (ICAO type + emitter)",
-      "Wake-class size nudge (A1 → 0.90×, A5 → 1.10×)",
+      "400 px desktop sidebar alongside a full-height map",
+      "Aircraft silhouette markers driven by ICAO type",
     ],
   },
   {
     version: "v0.8.0",
     kind: "feat",
     title: "Next.js Vercel refactor",
-    summary: "Rebuilt the app from Vue 3/Vite to React on Next.js App Router.",
+    summary:
+      "Rebuilt the app from Vue 3 / Vite to React on the Next.js App Router.",
     highlights: [
-      "React on Next.js App Router",
-      "Tailwind CSS v4 + DaisyUI retained",
+      "React on the Next.js App Router",
       "Vercel Analytics + Speed Insights via Next integrations",
-      "Vue composables → React hooks",
-      "Flight route lookup moved to a Route Handler",
     ],
   },
   {
     version: "v0.7.1",
     kind: "patch",
     title: "Map and mobile polish",
-    summary: "Polling guards, mobile sheet refinements, ADS-B merge fixes.",
-    highlights: [
-      "Start aircraft polling only after coordinates load",
-      "Refine the mobile airport card sheet",
-      "Improve close-range + wide-range ADS-B merge",
-    ],
+    summary:
+      "Polling guards, mobile sheet refinements, and ADS-B merge fixes.",
+    highlights: ["Start aircraft polling only after coordinates load"],
   },
   {
     version: "v0.7.0",
     kind: "feat",
     title: "Flight route + traffic context",
     summary:
-      "Airport-aware route labels, route lookup, dual-range ADS-B polling.",
+      "Airport-aware route labels, route lookup, and dual-range ADS-B polling.",
     highlights: [
       "Airport-aware flight route labels",
-      "Flight route lookup via Vercel function",
       "Dual-range polling (wide 20 NM + close 3 NM)",
-      "Airport context overlays + ground filtering",
     ],
   },
   {
@@ -396,12 +331,10 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Vercel observability + production routing",
     summary:
-      "Web Analytics, Speed Insights, hardened proxy and upstream logging.",
+      "Web Analytics, Speed Insights, and hardened proxy + upstream logging.",
     highlights: [
-      "Vercel Web Analytics + Speed Insights",
-      "Runtime logging on upstream data requests",
-      "Restored production-safe proxy rewrites",
-      "Hardened proxy parsing against upstream HTML/error",
+      "Web Analytics + Speed Insights",
+      "Hardened proxy parsing against upstream HTML / errors",
     ],
   },
   {
@@ -409,11 +342,9 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Vercel-first web architecture",
     summary:
-      "Vercel deploy config, same-origin proxies, dropped Electron + Homebrew.",
+      "Vercel deploy config, same-origin proxies, Electron + Homebrew dropped.",
     highlights: [
-      "Vercel deployment configuration",
-      "Browser-first airport directory with client caching",
-      "Same-origin proxy paths for METAR + ADS-B upstreams",
+      "Same-origin proxies for METAR + ADS-B upstreams",
       "Removed Electron and Homebrew cask pipelines",
     ],
   },
@@ -422,11 +353,10 @@ export const CHANGELOG = [
     kind: "breaking",
     title: "ADSBao web pivot",
     summary:
-      "Renamed to ADSBao; dropped LiveATC UI, player, and transcription scope.",
+      "Renamed to ADSBao and repositioned as an airport explorer; dropped LiveATC UI, player, and transcription scope.",
     highlights: [
       "Project renamed to ADSBao",
       "Removed legacy LiveATC frontend + backend",
-      "Repositioned as an airport explorer",
     ],
   },
 ];
