@@ -64,7 +64,6 @@ export function MetarSlide({
           className="mt-1 self-end"
         />
       </div>
-      {metarError ? <div className="panel-error">{metarError}</div> : null}
     </div>
   );
 }

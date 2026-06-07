@@ -80,7 +80,6 @@ export default function WeatherBriefingStack({
               ? t("panels.wikiLoading")
               : t("panels.wikiMissing")}
         </p>
-        {wiki.error ? <div className="panel-error">{wiki.error}</div> : null}
         <AsyncStatusLine
           loading={Boolean(wiki.loading)}
           error={wiki.error || null}

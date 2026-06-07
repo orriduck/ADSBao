@@ -25,14 +25,13 @@ import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { AsyncStatusLineDisplay } from "@/components/ui/AsyncStatusLine";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
+import { useAircraftTraceAsyncStatus } from "@/features/aircraft/trace/useAircraftTraceAsyncStatus";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
-import { useAsyncStatus } from "@/hooks/useAsyncStatus";
 import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
 
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
-const TRACE_STATUS_MIN_VISIBLE_MS = 4200;
 
 export default function AircraftPreviewCard({
   aircraft = null,
@@ -75,18 +74,6 @@ export default function AircraftPreviewCard({
   const aircraftIdentity = isAircraftPreview
     ? getAircraftIdentity(aircraft)
     : null;
-  const aircraftTraceControlsEnabled =
-    Boolean(aircraftIdentity);
-  const traceMatchesAircraft =
-    aircraftTraceControlsEnabled &&
-    selectedTrace.aircraftHex === aircraftIdentity;
-  const traceFetchLoading =
-    traceMatchesAircraft && selectedTrace.traceFetchLoading;
-  const traceStatusCode = traceMatchesAircraft
-    ? selectedTrace.traceStatusCode ?? null
-    : null;
-  const traceError = traceMatchesAircraft ? selectedTrace.traceError : null;
-  const traceCycle = traceMatchesAircraft ? selectedTrace.traceCycle ?? 0 : 0;
   const router = useRouter();
   const pathname = usePathname();
   const trackHref = isCandidateWatchingSpot
@@ -106,28 +93,16 @@ export default function AircraftPreviewCard({
     Boolean(entity) &&
     !(suppressMobileWhenAlreadyTracking && alreadyTracking);
   const traceStatusSurfaceActive =
-    !isAirport &&
-    !isNavaid &&
-    !isAirspace &&
-    !isCandidateWatchingSpot &&
-    aircraftTraceControlsEnabled &&
+    isAircraftPreview &&
+    Boolean(aircraftIdentity) &&
     Boolean(entity) &&
     (isMobile ? showMobile : !isMobile);
-  const traceLoading = useMinimumVisibleTraceStatus({
-    aircraftIdentity,
-    active: traceFetchLoading,
-    surfaceActive: traceStatusSurfaceActive,
-  });
-  const traceAsyncState = useAsyncStatus(
-    {
-      loading: traceLoading,
-      error: traceError,
-      statusCode: traceStatusCode,
-      cycleKey: `${aircraftIdentity || ""}:${traceCycle}`,
-    },
-    { lingerMs: 1600, fadeMs: 360 },
-  );
-  const traceStatusVisible = traceAsyncState.phase !== "idle";
+  const { visible: traceStatusVisible, state: traceAsyncState } =
+    useAircraftTraceAsyncStatus({
+      aircraftIdentity,
+      selectedTrace,
+      surfaceActive: traceStatusSurfaceActive,
+    });
   const traceStatusLabels = {
     pendingLabel: t("preview.loadingTrace"),
     successLabel: t("preview.loadedTrace"),
@@ -393,43 +368,3 @@ function usePhotoTone(src) {
   return tone;
 }
 
-function useMinimumVisibleTraceStatus({
-  aircraftIdentity,
-  active,
-  surfaceActive,
-}) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (!aircraftIdentity || !surfaceActive) {
-      setVisible(false);
-      return undefined;
-    }
-
-    setVisible(true);
-    const timer = window.setTimeout(() => {
-      if (!active) setVisible(false);
-    }, TRACE_STATUS_MIN_VISIBLE_MS);
-
-    return () => window.clearTimeout(timer);
-  }, [aircraftIdentity, active, surfaceActive]);
-
-  useEffect(() => {
-    if (!aircraftIdentity || !surfaceActive) {
-      setVisible(false);
-      return undefined;
-    }
-    if (active) {
-      setVisible(true);
-      return undefined;
-    }
-
-    const timer = window.setTimeout(
-      () => setVisible(false),
-      TRACE_STATUS_MIN_VISIBLE_MS,
-    );
-    return () => window.clearTimeout(timer);
-  }, [aircraftIdentity, active, surfaceActive]);
-
-  return Boolean(aircraftIdentity && surfaceActive && visible);
-}
