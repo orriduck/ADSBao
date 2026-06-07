@@ -226,6 +226,10 @@ const en = {
     airportViews: "Airport sidebar views",
     weatherViews: "Weather views",
     unknownAirport: "Unknown airport",
+    nearMeLabel: "Position",
+    nearMeBadge: "HERE",
+    nearMeTitle: "Your location",
+    nearMeSubtitle: "Live aircraft around you",
     departures: "Departures",
     arrivals: "Arrivals",
     atc: "ATC",
@@ -407,6 +411,22 @@ const en = {
     routedTooltip:
       "Only show flights whose callsign resolved to a legitimate parsed route: both origin and destination airports identified.",
   },
+  nearMe: {
+    title: "Open near-me view",
+    hint: "See live aircraft, METAR, and the map centered on your location.",
+    cta: "Use my location",
+    tryAgain: "Try again",
+    back: "Back",
+    requesting: "Locating you",
+    requestingHint: "Waiting on the browser's geolocation prompt…",
+    requestingCta: "Locating…",
+    denied: "Location was denied",
+    deniedHint:
+      "Allow location for this site in the browser address bar, then try again.",
+    unsupported: "Location isn't available",
+    unsupportedHint:
+      "This browser can't share your position. Open an airport from the home page instead.",
+  },
   search: {
     placeholder: "Search airport or city",
     enter: "enter",
@@ -417,9 +437,9 @@ const en = {
       pageTitle: "Airports",
       pageDescription: "Airport Situation Explorer",
       nearby: {
-        title: "Nearby",
-        cta: "Find airports near me",
-        ctaHint: "Requests browser location, then loads a short nearby list.",
+        title: "Near me",
+        cta: "Open near-me view",
+        ctaHint: "See live aircraft, METAR, and the map centered on your location.",
         requesting: "Requesting location...",
         loading: "Finding nearby airports...",
         retry: "Try nearby again",

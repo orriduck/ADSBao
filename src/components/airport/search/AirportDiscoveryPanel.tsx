@@ -1,26 +1,19 @@
 "use client";
 
-import {
-  ChevronRight,
-  LocateFixed,
-} from "lucide-react";
+import { ChevronRight, LocateFixed } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   airportDisplayCode,
   airportDisplayName,
   airportSubtitle,
 } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { useAirportDiscoveryNearby } from "@/features/airport/search/useAirportDiscoveryNearby";
-import {
-  getNearbyAirportDisplayItems,
-} from "@/features/airport/search/airportSearchModel";
+import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 
 export default function AirportDiscoveryPanel({ topics = [], onOpen }) {
-  const nearby = useAirportDiscoveryNearby();
-
   return (
     <div className="flex flex-col gap-5 px-6 pb-7">
-      <NearbyAirportDiscoverySection nearby={nearby} onOpen={onOpen} />
+      <NearMeDiscoverySection />
 
       <div className="flex flex-col gap-5">
         {topics.map((topic) => (
@@ -35,13 +28,17 @@ export default function AirportDiscoveryPanel({ topics = [], onOpen }) {
   );
 }
 
-function NearbyAirportDiscoverySection({ nearby, onOpen }) {
-  const { t } = useI18n();
-  const items = getNearbyAirportDisplayItems({
-    airports: nearby.airports,
-    status: nearby.status,
-    errorMessage: nearby.errorMessage,
-  });
+// Single-row entry into the `/here` view. Replaces the older in-page
+// "request location → render nearby airport list" flow — the user can
+// still pick a specific airport from the topic sections below, but the
+// nearby button now sends them into the user-centered explorer page.
+function NearMeDiscoverySection() {
+  const { locale, t } = useI18n();
+  const router = useRouter();
+
+  const handleOpenNearMe = () => {
+    router.push(setLocaleSearchParam("/here", "", locale));
+  };
 
   return (
     <section className="min-w-0" aria-labelledby="airport-discovery-nearby">
@@ -49,37 +46,8 @@ function NearbyAirportDiscoverySection({ nearby, onOpen }) {
         id="airport-discovery-nearby"
         title={t("search.discovery.nearby.title")}
       />
-
       <ul className="mt-3 divide-y divide-[var(--atc-line)] border-y border-[var(--atc-line)]">
-        {items.map((item) => {
-          if (item.type === "airport") {
-            return (
-              <AirportDiscoveryAirportRow
-                key={item.airport.icao || item.airport.code || item.airport.name}
-                airport={item.airport}
-                onOpen={onOpen}
-              />
-            );
-          }
-          if (item.type === "nearby-empty") {
-            return (
-              <li
-                key={item.id}
-                className="px-1 py-4 text-[12px] leading-relaxed text-atc-dim"
-              >
-                {t("search.discovery.nearby.empty")}
-              </li>
-            );
-          }
-          return (
-            <NearbyPromptRow
-              key={item.id}
-              status={item.status}
-              errorMessage={item.errorMessage}
-              onRequest={nearby.requestNearbyAirports}
-            />
-          );
-        })}
+        <NearbyPromptRow onRequest={handleOpenNearMe} />
       </ul>
     </section>
   );
@@ -131,29 +99,16 @@ function DiscoverySectionHeader({
   );
 }
 
-function NearbyPromptRow({ status, errorMessage, onRequest }) {
+function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
   const { t } = useI18n();
-  const busy = status === "requesting" || status === "loading";
-  const unavailable = status === "unavailable";
-  const title = busy
-    ? t(
-        status === "loading"
-          ? "search.discovery.nearby.loading"
-          : "search.discovery.nearby.requesting",
-      )
-    : unavailable
-      ? t("search.discovery.nearby.retry")
-      : t("search.discovery.nearby.cta");
-  const hint = unavailable
-    ? errorMessage || t("search.discovery.nearby.unavailable")
-    : t("search.discovery.nearby.ctaHint");
+  const title = t("search.discovery.nearby.cta");
+  const hint = t("search.discovery.nearby.ctaHint");
 
   return (
     <li>
       <button
         type="button"
-        className="group -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[42px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] disabled:cursor-wait disabled:opacity-75"
-        disabled={busy}
+        className="group -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[42px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
         onClick={onRequest}
       >
         <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)] shadow-[inset_0_-8px_14px_color-mix(in_oklab,var(--atc-click-fg)_9%,transparent)]">

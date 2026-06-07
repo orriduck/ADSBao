@@ -50,7 +50,19 @@ export default function AirportExplorer(props) {
   );
 }
 
-function AirportExplorerContent({ icao = "", airport = null, onBack }) {
+function AirportExplorerContent({
+  icao = "",
+  airport = null,
+  onBack,
+  // "airport" (default) = standard airport detail view with full
+  // metric cards, candidate watching spots, ATC, etc.
+  // "nearMe" = user-location centered view: metric cards (weather,
+  // spotting, dep/arr) become non-interactive read-only displays,
+  // candidate-spots / ATC fetches are skipped, METAR temp comes from
+  // the closest nearby airport, sidebar identity reads "Your location".
+  mode = "airport",
+}) {
+  const nearMe = mode === "nearMe";
   const { t } = useI18n();
   const {
     desktopSidebarWidth,
@@ -102,7 +114,20 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
   );
-  const { weather, traffic } = useAirportExplorerData(airportProfile);
+  // Nearby-airports list runs first in near-me mode so we can borrow
+  // the closest airport's ICAO for the METAR temperature fetch — the
+  // current location otherwise has no METAR station of its own.
+  const nearbyAirports = useNearbyAirports({
+    icao: airportProfile.icao,
+    lat: airportProfile.lat,
+    lon: airportProfile.lon,
+  });
+  const metarIcao = nearMe
+    ? nearbyAirports.airports?.[0]?.icao || ""
+    : airportProfile.icao;
+  const { weather, traffic } = useAirportExplorerData(airportProfile, {
+    metarIcao,
+  });
   const userLocationActive = Boolean(userLocation);
   const userLocationAudioActive =
     userLocationActive &&
@@ -115,11 +140,6 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     enabled: userLocationAudioActive,
     userLocation,
     aircraft: traffic.aircraft,
-  });
-  const nearbyAirports = useNearbyAirports({
-    icao: airportProfile.icao,
-    lat: airportProfile.lat,
-    lon: airportProfile.lon,
   });
   const candidateWatchingSpots = useCandidateWatchingSpots({
     airportIcao: airportProfile.icao,
@@ -428,7 +448,10 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     metarError: weather.metarError,
     aircraft: traffic.aircraft,
     airports: nearbyAirports.airports,
-    frequencies: airport?.frequencies || [],
+    // In near-me mode there's no airport identity so frequencies /
+    // candidate watching spots are intentionally empty; the sidebar
+    // surfaces those metric cards as non-interactive "—" placeholders.
+    frequencies: nearMe ? [] : airport?.frequencies || [],
     candidateWatchingSpots: candidateWatchingSpots.spots,
     focusLat: airportProfile.lat,
     focusLon: airportProfile.lon,
@@ -440,6 +463,7 @@ function AirportExplorerContent({ icao = "", airport = null, onBack }) {
     feedSource: traffic.feedSource,
     routeProvider: traffic.routeProvider,
     loadingStatus: sourceLoadingStatus,
+    nearMe,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
     onSelectCandidateWatchingSpot: selectCandidateWatchingSpot,

@@ -37,6 +37,12 @@ export default function AirportSidebar({
   feedSource = "",
   routeProvider = "",
   loadingStatus = "",
+  // When true the explorer is centered on the user (not an airport).
+  // The identity hero swaps to a "Your location" header and the
+  // weather / spotting / ATC / dep+arr metric cards become
+  // read-only "—" placeholders (weather still shows the live temp,
+  // but doesn't switch to a briefing view on click).
+  nearMe = false,
   onSelectAircraft,
   onSelectAirport,
   onSelectCandidateWatchingSpot,
@@ -80,6 +86,7 @@ export default function AirportSidebar({
         country={country}
         lat={lat}
         lon={lon}
+        nearMe={nearMe}
       />
       <SidebarViewSwitch
         activeView={activeView}
@@ -90,6 +97,7 @@ export default function AirportSidebar({
         frequencies={atcFrequencies}
         candidateSpotCount={spottingSpots.length}
         onOpenSpotting={handleSpottingView}
+        nearMe={nearMe}
       />
     </>
   );

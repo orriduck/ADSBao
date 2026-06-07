@@ -17,24 +17,41 @@ export default function AirportIdentity({
   country = "",
   lat = 0,
   lon = 0,
+  // When true, render a "Your location" hero instead of an airport
+  // identity. There's no ICAO / IATA / country flag — the hero shows
+  // the localized "Your location" label, the lat/lon coordinates,
+  // and the device's local time.
+  nearMe = false,
 }) {
   const { locale, t } = useI18n();
-  const codeLine =
-    iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
-  const flag = flagEmoji(country);
-  const countryLabel = countryName(country, locale) || country;
-  const cityLabel = airportCityName(city, locale);
-  const displayName = airportDisplayName(
-    { icao, iata, name, localizedName },
-    locale,
-  );
-  const placeText = [cityLabel, countryLabel].filter(Boolean).join(", ");
-  const placeLine = flag && placeText ? `${flag} ${placeText}` : placeText || flag;
+  const codeLine = nearMe
+    ? t("sidebar.nearMeBadge")
+    : iata && iata !== icao
+      ? `${iata} · ${icao}`
+      : icao || "—";
+  const flag = nearMe ? "" : flagEmoji(country);
+  const countryLabel = nearMe ? "" : countryName(country, locale) || country;
+  const cityLabel = nearMe ? "" : airportCityName(city, locale);
+  const displayName = nearMe
+    ? t("sidebar.nearMeTitle")
+    : airportDisplayName({ icao, iata, name, localizedName }, locale);
+  const placeText = nearMe
+    ? t("sidebar.nearMeSubtitle")
+    : [cityLabel, countryLabel].filter(Boolean).join(", ");
+  const placeLine =
+    !nearMe && flag && placeText
+      ? `${flag} ${placeText}`
+      : placeText || flag;
   const coordLine = formatCoord(lat, lon);
-  const localTimeLine = useLocalTime(country);
+  const airportLocalTime = useLocalTime(country);
+  const deviceLocalTime = useDeviceLocalTime(nearMe);
+  const localTimeLine = nearMe ? deviceLocalTime : airportLocalTime;
 
   return (
-    <SidebarIdentityHero label={t("sidebar.airport")} code={codeLine}>
+    <SidebarIdentityHero
+      label={nearMe ? t("sidebar.nearMeLabel") : t("sidebar.airport")}
+      code={codeLine}
+    >
       <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
         {displayName || t("sidebar.unknownAirport")}
       </h1>
@@ -53,6 +70,37 @@ export default function AirportIdentity({
       ) : null}
     </SidebarIdentityHero>
   );
+}
+
+// Device-local clock for near-me mode. Skips the country→timezone
+// lookup the airport variant does and just formats in the browser's
+// resolved timezone. Ticks once per minute alongside the airport
+// variant.
+function useDeviceLocalTime(active) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (!active) return undefined;
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, [active]);
+
+  if (!active) return "";
+  try {
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZoneName: "short",
+    });
+    const parts = formatter.formatToParts(now);
+    const hour = parts.find((p) => p.type === "hour")?.value || "??";
+    const minute = parts.find((p) => p.type === "minute")?.value || "??";
+    const zone = parts.find((p) => p.type === "timeZoneName")?.value || "";
+    return `${hour}:${minute}  /  ${zone}`;
+  } catch {
+    return "";
+  }
 }
 
 function formatCoord(lat, lon) {
