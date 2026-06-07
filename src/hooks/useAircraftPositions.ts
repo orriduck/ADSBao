@@ -47,9 +47,14 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
   const distNm = normalizeAircraftRangeNm(options?.distNm);
   const queryLat = normalizeLatitude(lat);
   const queryLon = normalizeLongitude(lon);
-  const hasActiveQuery = Boolean(
-    icao && hasFiniteFlightPosition({ lat: queryLat, lon: queryLon }),
-  );
+  // ICAO is used only for log labelling — the actual fetch is by
+  // lat/lon. The near-me explorer (no airport ICAO) needs aircraft
+  // polling too, so the active-query gate only checks for valid
+  // coordinates.
+  const hasActiveQuery = hasFiniteFlightPosition({
+    lat: queryLat,
+    lon: queryLon,
+  });
   const [aircraft, setAircraft] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(false);
