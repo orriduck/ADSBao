@@ -33,6 +33,7 @@ export function useWeatherSlides({
   metarRaw,
   metarLoading,
   metarError,
+  metarStatusCode = null,
   airportCode,
   airportLat,
   airportLon,
@@ -41,6 +42,7 @@ export function useWeatherSlides({
     weather: localWeather,
     loading: localWeatherLoading,
     error: localWeatherError,
+    statusCode: localWeatherStatusCode,
   } = useLocalWeather(airportLat, airportLon);
 
   // Arrows rotate by the same bearing shown in the "Direction" readout so
@@ -72,6 +74,8 @@ export function useWeatherSlides({
           metarRaw={metarRaw}
           metarLoading={metarLoading}
           metarError={metarError}
+          metarStatusCode={metarStatusCode}
+          metarStation={airportCode}
         />,
       ),
       withContent("rules", <FlightRulesSlide metar={metar} />),
@@ -97,6 +101,7 @@ export function useWeatherSlides({
           localWeather={localWeather}
           localWeatherError={localWeatherError}
           localWeatherLoading={localWeatherLoading}
+          localWeatherStatusCode={localWeatherStatusCode}
         />,
       ),
     ].filter(Boolean);
@@ -105,10 +110,12 @@ export function useWeatherSlides({
     localWeather,
     localWeatherError,
     localWeatherLoading,
+    localWeatherStatusCode,
     metar,
     metarError,
     metarLoading,
     metarRaw,
+    metarStatusCode,
     t,
     variant,
   ]);

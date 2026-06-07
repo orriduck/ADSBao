@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createAircraftTraceClient } from "../features/aircraft/trace/aircraftTraceClient";
 import {
   composeAircraftTrace,
@@ -13,6 +13,10 @@ import {
   readTrackedTrace,
   writeTrackedTrace,
 } from "../features/aircraft/tracking/trackedTraceStorage";
+import {
+  readErrorStatus,
+  readResponseStatus,
+} from "../features/aviation/httpClient";
 
 // How long to wait after the last merged-trace change before writing to
 // localStorage. Live polls land every 3s, so a short debounce lets a
@@ -126,6 +130,10 @@ export function useAircraftTrace(
   const [activeHex, setActiveHex] = useState("");
   const [recentLoading, setRecentLoading] = useState(false);
   const [fullLoading, setFullLoading] = useState(false);
+  const [traceStatusCode, setTraceStatusCode] = useState<number | null>(null);
+  const [traceError, setTraceError] = useState<unknown>(null);
+  const cycleRef = useRef(0);
+  const [traceCycle, setTraceCycle] = useState(0);
 
   // Fetch sources whenever the selected aircraft changes. Trace sources
   // are deliberately not cached in this hook: every selection pays a
@@ -148,6 +156,10 @@ export function useAircraftTrace(
     setLivePoints([]);
     setRecentPoints([]);
     setRecentLoading(true);
+    setTraceError(null);
+    setTraceStatusCode(null);
+    cycleRef.current += 1;
+    setTraceCycle(cycleRef.current);
 
     fetchTraceSource({
       hex,
@@ -155,13 +167,16 @@ export function useAircraftTrace(
       source: "recent",
       full: false,
     })
-      .then(({ points }) => {
+      .then(({ payload, points }) => {
         if (disposed) return;
         setRecentPoints(points);
+        setTraceStatusCode(readResponseStatus(payload) ?? 200);
       })
       .catch((error) => {
         if (!disposed) {
           console.warn(`[aircraft-trace:${hex}] recent fetch failed`, error);
+          setTraceError(error);
+          setTraceStatusCode(readErrorStatus(error));
         }
       })
       .finally(() => {
@@ -178,13 +193,16 @@ export function useAircraftTrace(
         source: "full",
         full: true,
       })
-        .then(({ points }) => {
+        .then(({ payload, points }) => {
           if (disposed) return;
           setFullPoints(points);
+          setTraceStatusCode((prev) => prev ?? readResponseStatus(payload) ?? 200);
         })
         .catch((error) => {
           if (!disposed) {
             console.warn(`[aircraft-trace:${hex}] full fetch failed`, error);
+            setTraceError((prev) => prev ?? error);
+            setTraceStatusCode((prev) => prev ?? readErrorStatus(error));
           }
         })
         .finally(() => {
@@ -335,5 +353,8 @@ export function useAircraftTrace(
     tracePoints,
     loading: composedTrace.loading,
     traceFetchLoading: Boolean(recentLoading || fullLoading),
+    traceStatusCode,
+    traceError,
+    traceCycle,
   };
 }

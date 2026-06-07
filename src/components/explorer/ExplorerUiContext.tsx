@@ -345,6 +345,8 @@ export function ExplorerUiProvider({ children }) {
   const hasHydratedMapSettingsRef = useRef(false);
   const persistedMapSettingsRef = useRef("");
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
+  const [mapSettingsSaveStatusCode, setMapSettingsSaveStatusCode] = useState<number | null>(null);
+  const [mapSettingsSaveCycle, setMapSettingsSaveCycle] = useState(0);
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
     initialUiState,
@@ -466,6 +468,8 @@ export function ExplorerUiProvider({ children }) {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
       setMapSettingsSaveStatus("saving");
+      setMapSettingsSaveStatusCode(null);
+      setMapSettingsSaveCycle((c) => c + 1);
       try {
         const response = await fetch("/api/map-settings", {
           method: "PUT",
@@ -475,7 +479,10 @@ export function ExplorerUiProvider({ children }) {
           body: JSON.stringify({ settings: nextSettings, device: mapSettingsDevice }),
           signal: controller.signal,
         });
-        if (!response.ok) throw new Error("save failed");
+        if (!response.ok) {
+          if (!cancelled) setMapSettingsSaveStatusCode(response.status);
+          throw new Error("save failed");
+        }
         const payload = await response.json();
         const savedSettings = payload?.settings
           ? normalizeMapSettings(payload.settings)
@@ -489,6 +496,7 @@ export function ExplorerUiProvider({ children }) {
             settings: savedSettings,
           });
         }
+        setMapSettingsSaveStatusCode(response.status);
         setMapSettingsSaveStatus("saved");
       } catch (error: any) {
         if (cancelled || error?.name === "AbortError") return;
@@ -643,6 +651,8 @@ export function ExplorerUiProvider({ children }) {
       mapSettings,
       mapSettingsDevice,
       mapSettingsSaveStatus,
+      mapSettingsSaveStatusCode,
+      mapSettingsSaveCycle,
       trafficFilter,
       typeFilter,
       altitudeLevel,
@@ -697,6 +707,8 @@ export function ExplorerUiProvider({ children }) {
       mapSettings,
       mapSettingsDevice,
       mapSettingsSaveStatus,
+      mapSettingsSaveStatusCode,
+      mapSettingsSaveCycle,
       trafficFilter,
       typeFilter,
       altitudeLevel,

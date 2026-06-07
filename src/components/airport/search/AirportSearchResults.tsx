@@ -2,12 +2,15 @@
 
 import AirportRow from "./AirportRow";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 
 export function AirportSearchResults({
   query,
   rows,
   loading,
   error,
+  statusCode = null,
+  searchCycle = 0,
   countLabel,
   onOpen,
 }) {
@@ -18,7 +21,19 @@ export function AirportSearchResults({
       <div className="dither-section-header px-6 pt-5 pb-3">
         <div className="endf-section-head">
           <span className="endf-label">{t("search.searchResults")}</span>
-          <span className="endf-section-head__count">{countLabel}</span>
+          <span className="flex items-center gap-2">
+            <AsyncStatusLine
+              loading={Boolean(loading)}
+              error={error || null}
+              statusCode={statusCode}
+              cycleKey={`search:${searchCycle}`}
+              pendingLabel={t("search.searchingAirports")}
+              successLabel={t("search.searchedAirports")}
+              errorLabel={t("search.searchAirportsError")}
+              className="text-[9px]"
+            />
+            <span className="endf-section-head__count">{countLabel}</span>
+          </span>
         </div>
       </div>
 

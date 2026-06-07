@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { createMetarClient } from "../features/weather/metar/metarClient";
 import { normalizeMetarPayload } from "../features/weather/metar/metarModel";
+import {
+  readErrorStatus,
+  readResponseStatus,
+} from "../features/aviation/httpClient";
 
 const metarClient = createMetarClient();
 
@@ -12,6 +16,7 @@ export function useMetar(icao) {
   const [loading, setLoading] = useState(false);
   const [settled, setSettled] = useState(false);
   const [error, setError] = useState(null);
+  const [statusCode, setStatusCode] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,16 +28,19 @@ export function useMetar(icao) {
       setLoading(true);
       setSettled(false);
       setError(null);
+      setStatusCode(null);
       try {
         const json = await metarClient.fetchMetar(icao);
         if (cancelled) return;
         const normalized = normalizeMetarPayload(json);
         setRaw(normalized.raw);
         setParsed(normalized.parsed);
+        setStatusCode(readResponseStatus(json) ?? 200);
       } catch (e) {
         if (!cancelled) {
           console.warn("METAR fetch failed:", e.message);
           setError(e.message);
+          setStatusCode(readErrorStatus(e));
         }
       } finally {
         if (!cancelled) {
@@ -48,5 +56,5 @@ export function useMetar(icao) {
     };
   }, [icao]);
 
-  return { raw, parsed, loading, settled, error };
+  return { raw, parsed, loading, settled, error, statusCode };
 }

@@ -23,6 +23,9 @@ const EMPTY_TRACE = {
   tracePoints: [],
   loading: false,
   traceFetchLoading: false,
+  traceStatusCode: null,
+  traceError: null,
+  traceCycle: 0,
   fullTrace: false,
 };
 
@@ -39,6 +42,9 @@ function deriveTrace(aircraft, hookResult, { fullTrace = false } = {}) {
     tracePoints: hookResult.tracePoints,
     loading: hookResult.loading,
     traceFetchLoading: hookResult.traceFetchLoading,
+    traceStatusCode: hookResult.traceStatusCode ?? null,
+    traceError: hookResult.traceError ?? null,
+    traceCycle: hookResult.traceCycle ?? 0,
     fullTrace: Boolean(fullTrace),
   };
 }

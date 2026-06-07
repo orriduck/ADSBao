@@ -23,6 +23,7 @@ export default function AirportSidebar({
   metarRaw = "",
   metarLoading = false,
   metarError = null,
+  metarStatusCode = null,
   aircraft = [],
   airports = [],
   frequencies = [],
@@ -113,6 +114,7 @@ export default function AirportSidebar({
         metarRaw={metarRaw}
         metarLoading={metarLoading}
         metarError={metarError}
+        metarStatusCode={metarStatusCode}
         airportCode={iata || icao}
         airportLat={lat}
         airportLon={lon}

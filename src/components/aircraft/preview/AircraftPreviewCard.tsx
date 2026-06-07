@@ -23,9 +23,11 @@ import MobilePreviewCard, {
 import PlaneHunterStudio from "./PlaneHunterStudio";
 import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
+import { AsyncStatusLineDisplay } from "@/components/ui/AsyncStatusLine";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { useAsyncStatus } from "@/hooks/useAsyncStatus";
 import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
 
 const PHOTO_TONE_DARK = "dark";
@@ -75,10 +77,16 @@ export default function AircraftPreviewCard({
     : null;
   const aircraftTraceControlsEnabled =
     Boolean(aircraftIdentity);
-  const traceFetchLoading =
+  const traceMatchesAircraft =
     aircraftTraceControlsEnabled &&
-    selectedTrace.aircraftHex === aircraftIdentity &&
-    selectedTrace.traceFetchLoading;
+    selectedTrace.aircraftHex === aircraftIdentity;
+  const traceFetchLoading =
+    traceMatchesAircraft && selectedTrace.traceFetchLoading;
+  const traceStatusCode = traceMatchesAircraft
+    ? selectedTrace.traceStatusCode ?? null
+    : null;
+  const traceError = traceMatchesAircraft ? selectedTrace.traceError : null;
+  const traceCycle = traceMatchesAircraft ? selectedTrace.traceCycle ?? 0 : 0;
   const router = useRouter();
   const pathname = usePathname();
   const trackHref = isCandidateWatchingSpot
@@ -110,6 +118,21 @@ export default function AircraftPreviewCard({
     active: traceFetchLoading,
     surfaceActive: traceStatusSurfaceActive,
   });
+  const traceAsyncState = useAsyncStatus(
+    {
+      loading: traceLoading,
+      error: traceError,
+      statusCode: traceStatusCode,
+      cycleKey: `${aircraftIdentity || ""}:${traceCycle}`,
+    },
+    { lingerMs: 1600, fadeMs: 360 },
+  );
+  const traceStatusVisible = traceAsyncState.phase !== "idle";
+  const traceStatusLabels = {
+    pendingLabel: t("preview.loadingTrace"),
+    successLabel: t("preview.loadedTrace"),
+    errorLabel: t("preview.traceLoadError"),
+  };
 
   // Mobile preview card is the only way to trigger "Track this entity"
   // on touch — desktop uses the explicit Track button inside the larger
@@ -212,7 +235,9 @@ export default function AircraftPreviewCard({
               onOpenPlaneHunter={
                 showPlaneHunterTrigger ? () => setPlaneHunterOpen(true) : undefined
               }
-              traceLoading={traceLoading}
+              traceStatusVisible={traceStatusVisible}
+              traceStatusState={traceAsyncState}
+              traceStatusLabels={traceStatusLabels}
             />
           )}
         </aside>
@@ -223,8 +248,14 @@ export default function AircraftPreviewCard({
           ariaLabel={previewAriaLabel}
           traceStatus={
             cardTrackHref && !isAirport ? (
-              <MobilePreviewTraceStatus active={traceLoading}>
-                {t("preview.loadingTrace")}
+              <MobilePreviewTraceStatus active={traceStatusVisible}>
+                <AsyncStatusLineDisplay
+                  state={traceAsyncState}
+                  pendingLabel={traceStatusLabels.pendingLabel}
+                  successLabel={traceStatusLabels.successLabel}
+                  errorLabel={traceStatusLabels.errorLabel}
+                  className="justify-center w-full"
+                />
               </MobilePreviewTraceStatus>
             ) : null
           }
