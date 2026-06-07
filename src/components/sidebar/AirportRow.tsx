@@ -3,9 +3,11 @@
 import { TowerControl } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplayModel";
 import { airportCityName, airportDisplayName } from "@/utils/airport";
 import { countryName } from "@/utils/flag";
+import { formatAltitude } from "@/utils/units";
 
 // Airport equivalent of AircraftRow — same column rhythm so an
 // "airports & aircraft" mixed list reads as one coherent table.
@@ -18,6 +20,7 @@ export default function AirportRow({
   onSelectAirport,
 }: Record<string, any>) {
   const { locale, t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const icao = airport?.icao || "";
   const iata = airport?.iata || "";
   const code = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
@@ -27,8 +30,12 @@ export default function AirportRow({
     [city, country].filter(Boolean).join(", ") ||
     airportDisplayName(airport, locale);
   const dist = toFiniteNumber(airport?.distanceNm);
-  const distanceDisplay = formatNearbyDistanceDisplay(dist);
+  const distanceDisplay = formatNearbyDistanceDisplay(dist, units.distance);
   const elevation = toFiniteNumber(airport?.elevationFt);
+  const elevationDisplay =
+    elevation == null
+      ? null
+      : formatAltitude(elevation, units.altitude, { kind: "ground" });
   const endpointRole = normalizeEndpointRole(airport?.routeEndpointRole);
   const endpointLabel = endpointRole
     ? t(
@@ -75,10 +82,13 @@ export default function AirportRow({
           <span className="text-[9px] uppercase tracking-normal text-atc-dim">
             {endpointLabel}
           </span>
-        ) : elevation == null ? (
+        ) : !elevationDisplay ? (
           <span>—</span>
         ) : (
-          <NumberWithUnit value={Math.round(elevation)} unit="FT" />
+          <NumberWithUnit
+            value={elevationDisplay.value}
+            unit={elevationDisplay.unit.toUpperCase()}
+          />
         )}
       </div>
     </button>

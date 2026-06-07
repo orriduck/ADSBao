@@ -9,8 +9,10 @@ import {
   getFlightRouteAirlineIconUrl,
 } from "../../utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { formatFlightTelemetryMetric } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
 import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplayModel";
+import { formatAltitude } from "@/utils/units";
 
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
 // stamped broken-image icons in dense list rows when the logo isn't
@@ -37,6 +39,7 @@ export default function AircraftRow({
   onSelectAircraft,
 }: Record<string, any>) {
   const { t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft.flightRoute);
@@ -49,14 +52,17 @@ export default function AircraftRow({
     routeMunicipalities && routeMunicipalities !== route,
   );
   const distValue = toNumber(aircraft.distanceNm);
-  const distanceDisplay = formatNearbyDistanceDisplay(distValue);
-  const altitudeDisplay = formatFlightTelemetryMetric({
+  const distanceDisplay = formatNearbyDistanceDisplay(distValue, units.distance);
+  const rawAltitude = formatFlightTelemetryMetric({
     metric: "altitude",
     value: aircraft.altitude,
     onGround: aircraft.onGround,
     flightPositionSource: aircraft.flight_position_source,
     positionQuality: aircraft.positionQuality,
   });
+  const altitudeDisplay = rawAltitude
+    ? formatAltitude(aircraft.altitude, units.altitude, { kind: "cruise" })
+    : null;
 
   return (
     <button
@@ -97,10 +103,12 @@ export default function AircraftRow({
           <span>{t("aircraft.gnd")}</span>
         ) : !altitudeDisplay ? (
           <span>-</span>
+        ) : altitudeDisplay.text ? (
+          <NumberWithUnit text={altitudeDisplay.text} unit="" />
         ) : (
           <NumberWithUnit
             value={altitudeDisplay.value}
-            unit={altitudeDisplay.suffix.toUpperCase()}
+            unit={altitudeDisplay.unit.toUpperCase()}
           />
         )}
       </div>

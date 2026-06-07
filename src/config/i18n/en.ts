@@ -541,6 +541,21 @@ const en = {
     modeSection: "Modes",
     baseMapSection: "Base map",
     layersSection: "Display",
+    unitsSection: "Units",
+    units: {
+      distance: {
+        title: "Distance",
+        options: { nm: "NM", mi: "mi", km: "km" },
+      },
+      temperature: {
+        title: "Temperature",
+        options: { c: "°C", f: "°F" },
+      },
+      altitude: {
+        title: "Altitude",
+        options: { ft: "ft", m: "m", fl: "FL" },
+      },
+    },
     guestPrompt: "Map settings are kept on this device.",
     deviceScope: "{device} settings",
     savedSettingsAvailable: "Saved to your account.",

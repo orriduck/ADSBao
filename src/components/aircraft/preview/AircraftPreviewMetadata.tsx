@@ -3,8 +3,10 @@
 import type { ComponentProps, ReactNode } from "react";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel";
 import { toFiniteNumber } from "@/utils/math";
+import { convertDistanceFromNm, distanceUnitLabel } from "@/utils/units";
 
 type NumberFlowFormat = ComponentProps<typeof NumberFlow>["format"];
 
@@ -36,9 +38,12 @@ type NumericMetaProps = {
 // readout reads as live as the aircraft moves through the airspace.
 export default function AircraftPreviewMetadata({ aircraft }: AircraftPreviewMetadataProps) {
   const { t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const hex = aircraft?.icao24 ? aircraft.icao24.toUpperCase() : "—";
   const track = toFiniteNumber(aircraft?.track);
   const distance = toFiniteNumber(aircraft?.distanceNm);
+  const distanceConverted =
+    distance == null ? null : convertDistanceFromNm(distance, units.distance);
   const sourceBadge = getAircraftPositionSourceBadge(aircraft?.positionQuality);
 
   return (
@@ -50,12 +55,12 @@ export default function AircraftPreviewMetadata({ aircraft }: AircraftPreviewMet
         value={track != null ? Math.round(track) : null}
         suffix="°"
       />
-      {distance != null && (
+      {distanceConverted != null && (
         <NumericMeta
           label={t("metrics.distance")}
-          value={distance}
+          value={distanceConverted}
           format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
-          suffix=" NM"
+          suffix={` ${distanceUnitLabel(units.distance)}`}
         />
       )}
     </dl>

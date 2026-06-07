@@ -21,8 +21,35 @@ import {
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
+import {
+  ALTITUDE_UNITS,
+  DISTANCE_UNITS,
+  TEMPERATURE_UNITS,
+} from "@/features/app-shell/unitPreferences/unitPreferencesModel";
 import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 import { MapControlIcon } from "./mapControlIcons";
+
+const UNIT_GROUPS = [
+  {
+    key: "distance",
+    titleKey: "mapSettings.units.distance.title",
+    options: DISTANCE_UNITS,
+    labelKey: (unit: string) => `mapSettings.units.distance.options.${unit}`,
+  },
+  {
+    key: "temperature",
+    titleKey: "mapSettings.units.temperature.title",
+    options: TEMPERATURE_UNITS,
+    labelKey: (unit: string) => `mapSettings.units.temperature.options.${unit}`,
+  },
+  {
+    key: "altitude",
+    titleKey: "mapSettings.units.altitude.title",
+    options: ALTITUDE_UNITS,
+    labelKey: (unit: string) => `mapSettings.units.altitude.options.${unit}`,
+  },
+] as const;
 
 const LAYER_CONTROLS = [
   {
@@ -101,6 +128,8 @@ export default function MapSettingsSheet({
   mapSettingsSaveCycle = 0,
 }) {
   const { t } = useI18n();
+  const { preferences: unitPreferences, setPreferences: setUnitPreferences } =
+    useUnitPreferences();
   const { isLoaded, isSignedIn } = useUser();
   const settings = normalizeMapSettings(mapSettings);
   const modeOptions = [
@@ -381,6 +410,56 @@ export default function MapSettingsSheet({
                   {userLocationNotice}
                 </div>
               ) : null}
+            </section>
+
+            <section className="mt-6" aria-labelledby={`${id}-units`}>
+              <h3
+                id={`${id}-units`}
+                className="mb-3 text-[11px] font-semibold uppercase text-atc-muted"
+              >
+                {t("mapSettings.unitsSection")}
+              </h3>
+              <div className="space-y-3">
+                {UNIT_GROUPS.map((group) => {
+                  const activeUnit = unitPreferences[group.key];
+                  return (
+                    <div key={group.key} className="flex flex-col gap-1.5">
+                      <span className="text-[11px] font-semibold leading-tight text-atc-text">
+                        {t(group.titleKey)}
+                      </span>
+                      <div
+                        role="radiogroup"
+                        aria-label={t(group.titleKey)}
+                        className="grid auto-cols-fr grid-flow-col gap-1.5"
+                      >
+                        {group.options.map((option) => {
+                          const active = activeUnit === option;
+                          return (
+                            <button
+                              key={option}
+                              type="button"
+                              role="radio"
+                              aria-checked={active}
+                              onClick={() =>
+                                setUnitPreferences({ [group.key]: option } as any)
+                              }
+                              className={cn(
+                                "min-h-[36px] rounded-[8px] border px-2 text-[12px] font-semibold leading-none transition",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-focus-ring)]",
+                                active
+                                  ? "border-[var(--atc-interaction-primary-accent)] bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)]"
+                                  : "border-[var(--atc-border-default)] bg-[var(--atc-surface-row-rest)] text-atc-text hover:border-[var(--atc-line-strong)]",
+                              )}
+                            >
+                              {t(group.labelKey(option))}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </section>
           </div>
 
