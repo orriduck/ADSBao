@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import ThemedToaster from "@/components/app-shell/ThemedToaster";
 import { I18nProvider } from "@/features/app-shell/i18n/i18nProvider";
 import QueryProvider from "@/features/app-shell/queryProvider";
+import { UnitPreferencesProvider } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { isConcreteTheme } from "@/utils/theme";
 import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -121,7 +122,9 @@ export default async function RootLayout({ children }) {
         <ClerkProvider>
           <I18nProvider initialLocale={locale}>
             <QueryProvider>
-              <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
+              <UnitPreferencesProvider>
+                <div className="min-h-dvh bg-atc-bg text-atc-text">{children}</div>
+              </UnitPreferencesProvider>
             </QueryProvider>
           </I18nProvider>
           <ThemedToaster

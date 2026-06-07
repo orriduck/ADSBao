@@ -8,12 +8,19 @@ import { countryName, flagEmoji } from "@/utils/flag";
 import { airportCityName, airportDisplayName } from "@/utils/airport";
 import { toFiniteNumber } from "@/utils/math";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
+import {
+  convertDistanceFromNm,
+  distanceUnitLabel,
+  formatAltitude,
+} from "@/utils/units";
 
 // Airport variant of the bottom-right preview card. Mirrors the aircraft
 // card's chrome (same container class so the slide-in / blur / sizing
 // match) and exposes a Track link that lands on /airport/[icao].
 export default function AirportPreviewMetadataCard({ airport }) {
   const { locale, t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const pathname = usePathname();
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
@@ -25,7 +32,13 @@ export default function AirportPreviewMetadataCard({ airport }) {
   const placeText = [city, country].filter(Boolean).join(", ");
   const placeLine = flag && placeText ? `${flag} ${placeText}` : placeText;
   const distance = toFiniteNumber(airport?.distanceNm);
+  const distanceConverted =
+    distance == null ? null : convertDistanceFromNm(distance, units.distance);
   const elevation = toFiniteNumber(airport?.elevationFt);
+  const elevationDisplay =
+    elevation == null
+      ? null
+      : formatAltitude(elevation, units.altitude, { kind: "ground" });
   const detailRows = [
     { label: t("metrics.iata"), value: iata },
     { label: t("metrics.icao"), value: icao },
@@ -84,19 +97,19 @@ export default function AirportPreviewMetadataCard({ airport }) {
           {t("metrics.distance")}
         </dt>
         <dd className="text-right text-atc-text">
-          {distance == null ? (
+          {distanceConverted == null ? (
             "—"
           ) : (
             <>
               <NumberFlow
-                value={distance}
+                value={distanceConverted}
                 format={{
                   maximumFractionDigits: 1,
                   minimumFractionDigits: 1,
                 }}
               />
               <span className="notranslate ml-1 text-atc-dim" translate="no">
-                NM
+                {distanceUnitLabel(units.distance)}
               </span>
             </>
           )}
@@ -105,13 +118,13 @@ export default function AirportPreviewMetadataCard({ airport }) {
           {t("metrics.elevation")}
         </dt>
         <dd className="text-right text-atc-text">
-          {elevation == null ? (
+          {!elevationDisplay ? (
             "—"
           ) : (
             <>
-              <NumberFlow value={Math.round(elevation)} />
+              <NumberFlow value={elevationDisplay.value ?? 0} />
               <span className="notranslate ml-1 text-atc-dim" translate="no">
-                FT
+                {elevationDisplay.unit.toUpperCase()}
               </span>
             </>
           )}

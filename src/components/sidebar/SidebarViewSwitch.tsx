@@ -4,8 +4,13 @@ import { useMemo } from "react";
 import NumberFlow from "@number-flow/react";
 import { SidebarMetricCard, SidebarMetricGrid } from "./SidebarMetric";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
 import { ARRIVAL, DEPARTURE } from "@/utils/aircraftMovement";
+import {
+  convertTemperatureFromC,
+  temperatureUnitLabel,
+} from "@/utils/units";
 
 export default function SidebarViewSwitch({
   activeView = "briefing",
@@ -27,7 +32,8 @@ export default function SidebarViewSwitch({
   nearMe = false,
 }) {
   const { t } = useI18n();
-  const temperature = formatTemperature(metar);
+  const { preferences: units } = useUnitPreferences();
+  const temperature = formatTemperature(metar, units.temperature);
   const rule = metar?.flightCategory?.toUpperCase() || "WX";
   const showMovementCards =
     nearMe || routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
@@ -105,8 +111,9 @@ export default function SidebarViewSwitch({
   );
 }
 
-function formatTemperature(metar) {
+function formatTemperature(metar, unit) {
   const temp = Number(metar?.rawTemp);
-  if (!Number.isFinite(temp)) return { value: "—", unit: "°C" };
-  return { value: Math.round(temp), unit: "°C" };
+  const label = temperatureUnitLabel(unit);
+  if (!Number.isFinite(temp)) return { value: "—", unit: label };
+  return { value: Math.round(convertTemperatureFromC(temp, unit)), unit: label };
 }

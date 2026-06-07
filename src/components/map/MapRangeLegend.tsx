@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useMapInstance } from "./MapContext";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
+import { convertDistanceFromNm, distanceUnitLabel } from "@/utils/units";
 
 // Bottom-left adaptive scale bar (比例尺). Snaps to the largest "nice"
 // NM step under TARGET_PX so the label doesn't flicker through
@@ -16,6 +18,7 @@ const NICE_NM_STEPS = [
 
 export default function MapRangeLegend() {
   const { t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const map = useMapInstance();
   const [scale, setScale] = useState(null);
 
@@ -55,10 +58,13 @@ export default function MapRangeLegend() {
 
   if (!scale) return null;
 
+  const displayDistance =
+    Math.round(convertDistanceFromNm(scale.nm, units.distance) * 10) / 10;
+
   return (
     <div
       role="note"
-      aria-label={t("map.distanceAria", { distance: scale.nm })}
+      aria-label={t("map.distanceAria", { distance: displayDistance })}
       className="pointer-events-none absolute right-3 top-[calc(12px+env(safe-area-inset-top))] z-map-legend flex items-center gap-2 rounded-[8px] border border-[var(--atc-border-default)] bg-[var(--atc-surface-preview-card)] px-2.5 py-1.5 font-mono text-[var(--map-range-text)] shadow-[var(--app-panel-shadow)] backdrop-blur-md md:bottom-3 md:left-3 md:right-auto md:top-auto"
     >
       <span
@@ -84,7 +90,11 @@ export default function MapRangeLegend() {
         />
       </div>
       <span className="text-[10px] font-semibold tracking-[0.12em] tabular-nums">
-        {scale.nm} <span className="notranslate" translate="no">NM</span>
+        {displayDistance}
+        {" "}
+        <span className="notranslate" translate="no">
+          {distanceUnitLabel(units.distance)}
+        </span>
       </span>
     </div>
   );

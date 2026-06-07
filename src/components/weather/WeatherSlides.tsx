@@ -15,7 +15,28 @@ import {
   toNumber,
 } from "../../features/weather/weatherModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
+import {
+  altitudeUnitLabel,
+  convertAltitudeFromFt,
+  convertTemperatureFromC,
+  temperatureUnitLabel,
+} from "@/utils/units";
 import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
+
+function formatTemperatureValue(celsius, unit) {
+  if (celsius == null || !Number.isFinite(Number(celsius))) return "-";
+  const converted = convertTemperatureFromC(Number(celsius), unit);
+  return `${round1(converted)}${temperatureUnitLabel(unit)}`;
+}
+
+function formatGroundAltitudeFeet(ft, unit) {
+  if (ft == null || !Number.isFinite(Number(ft))) return null;
+  // Ceilings / elevations don't use FL — fall back to ft if user picked FL.
+  const targetUnit = unit === "fl" ? "ft" : unit;
+  const converted = convertAltitudeFromFt(Number(ft), targetUnit);
+  return `${Math.round(converted).toLocaleString()} ${altitudeUnitLabel(targetUnit)}`;
+}
 
 export function MetarSlide({
   metarRaw,
@@ -99,9 +120,14 @@ export function FlightRulesSlide({ metar }) {
 
 export function CeilingSlide({ metar }) {
   const { t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const visibility = toNumber(metar?.rawVisib);
   const ceilingFt = getCeilingFeet(metar);
-  const ceilingLabel = metar?.ceiling || (ceilingFt == null ? "CLR" : `${ceilingFt.toLocaleString()} ft`);
+  const ceilingLabel =
+    metar?.ceiling ||
+    (ceilingFt == null
+      ? "CLR"
+      : formatGroundAltitudeFeet(ceilingFt, units.altitude) ?? `${ceilingFt}`);
 
   return (
     <div className="weather-slide-stack">
@@ -161,6 +187,7 @@ export function WindSlide({ metar, localWeather }) {
 
 export function TemperatureSlide({ metar, localWeather }) {
   const { t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const temp = toNumber(metar?.rawTemp) ?? localWeather?.temperatureC;
   const dew = toNumber(metar?.rawDewp) ?? null;
   const spread = temp != null && dew != null ? Math.max(0, temp - dew) : null;
@@ -179,15 +206,19 @@ export function TemperatureSlide({ metar, localWeather }) {
         <div className="weather-token-strip weather-token-strip--cols-3">
           <WeatherToken
             label={t("weather.temp")}
-            value={temp == null ? "-" : `${round1(temp)}°C`}
+            value={formatTemperatureValue(temp, units.temperature)}
           />
           <WeatherToken
             label={t("weather.dew")}
-            value={dew == null ? "-" : `${round1(dew)}°C`}
+            value={formatTemperatureValue(dew, units.temperature)}
           />
           <WeatherToken
             label={t("weather.spread")}
-            value={spread == null ? "-" : `${round1(spread)}°C`}
+            value={
+              spread == null
+                ? "-"
+                : `${round1(units.temperature === "f" ? spread * 1.8 : spread)}${temperatureUnitLabel(units.temperature)}`
+            }
           />
         </div>
         <div className="temp-card__band-row" aria-hidden="true">
@@ -245,6 +276,7 @@ export function LocalWeatherSlide({
   localWeatherStatusCode = null,
 }) {
   const { t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const condition = localWeather
     ? t(getWeatherConditionKey(localWeather.weatherCode))
     : t("weather.pending");
@@ -258,7 +290,7 @@ export function LocalWeatherSlide({
       ? localWeatherLoading
         ? t("weather.loading")
         : "-"
-      : `${round1(localWeather.temperatureC)}°C`;
+      : formatTemperatureValue(localWeather.temperatureC, units.temperature);
 
   return (
     <div className="weather-visual-layout">
@@ -281,7 +313,7 @@ export function LocalWeatherSlide({
             />
             <WeatherToken
               label={t("weather.feels")}
-              value={feelsLike == null ? "-" : `${round1(feelsLike)}°C`}
+              value={formatTemperatureValue(feelsLike, units.temperature)}
               valueClassName="weather-token__value--secondary"
             />
           </div>

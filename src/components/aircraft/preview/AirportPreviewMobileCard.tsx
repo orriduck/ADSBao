@@ -7,6 +7,12 @@ import { airportCityName, airportDisplayName } from "@/utils/airport";
 import { countryName, flagEmoji } from "@/utils/flag";
 import { toFiniteNumber } from "@/utils/math";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
+import {
+  convertDistanceFromNm,
+  distanceUnitLabel,
+  formatAltitude,
+} from "@/utils/units";
 import {
   MobilePreviewContent,
   MobilePreviewDetailRow,
@@ -41,6 +47,7 @@ type StatProps = {
 // structure used by aircraft and navaids.
 export default function AirportPreviewMobileCard({ airport }: AirportPreviewMobileCardProps) {
   const { locale, t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const icao = (airport?.icao || "").trim().toUpperCase();
   const iata = (airport?.iata || "").trim().toUpperCase();
   const codeLine = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
@@ -51,7 +58,13 @@ export default function AirportPreviewMobileCard({ airport }: AirportPreviewMobi
   const placeText = [city, country].filter(Boolean).join(", ");
   const placeLine = flag && placeText ? `${flag} ${placeText}` : placeText;
   const distance = toFiniteNumber(airport?.distanceNm);
+  const distanceConverted =
+    distance == null ? null : convertDistanceFromNm(distance, units.distance);
   const elevation = toFiniteNumber(airport?.elevationFt);
+  const elevationDisplay =
+    elevation == null
+      ? null
+      : formatAltitude(elevation, units.altitude, { kind: "ground" });
   const hasStats = distance != null || elevation != null;
 
   return (
@@ -63,15 +76,18 @@ export default function AirportPreviewMobileCard({ airport }: AirportPreviewMobi
         secondary={
           hasStats ? (
             <span className="flex items-baseline justify-end gap-[10px]">
-              {distance != null ? (
+              {distanceConverted != null ? (
                 <Stat
-                  value={distance}
-                  unit="NM"
+                  value={distanceConverted}
+                  unit={distanceUnitLabel(units.distance)}
                   format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
                 />
               ) : null}
-              {elevation != null ? (
-                <Stat value={Math.round(elevation)} unit="ft" />
+              {elevationDisplay && elevationDisplay.value != null ? (
+                <Stat
+                  value={elevationDisplay.value}
+                  unit={elevationDisplay.unit}
+                />
               ) : null}
             </span>
           ) : null

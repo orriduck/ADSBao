@@ -533,6 +533,21 @@ const zhCN = {
     modeSection: "模式",
     baseMapSection: "底图",
     layersSection: "显示",
+    unitsSection: "单位",
+    units: {
+      distance: {
+        title: "距离",
+        options: { nm: "海里", mi: "英里", km: "公里" },
+      },
+      temperature: {
+        title: "温度",
+        options: { c: "°C", f: "°F" },
+      },
+      altitude: {
+        title: "高度",
+        options: { ft: "英尺", m: "米", fl: "FL" },
+      },
+    },
     guestPrompt: "未登录时,地图设置会保存在这台设备。",
     deviceScope: "{device}设置",
     savedSettingsAvailable: "已保存到你的账户。",

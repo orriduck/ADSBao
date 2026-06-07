@@ -8,7 +8,9 @@ import { Plane } from "lucide-react";
 import { toFiniteNumber } from "@/utils/math";
 import { getFlightRouteAirlineIconUrl } from "@/utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
+import { formatAltitude } from "@/utils/units";
 import {
   MobilePreviewContent,
   MobilePreviewDetailRow,
@@ -68,6 +70,7 @@ function AirlineLogo({ src }: AirlineLogoProps) {
 
 export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewMobileCardProps) {
   const { t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
   const typeDisplay = resolveAircraftDisplayModel(aircraft || {});
@@ -101,11 +104,21 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
     );
   }
   if (altitude != null || onGround) {
+    const altDisplay =
+      altitude == null
+        ? null
+        : formatAltitude(altitude, units.altitude, { kind: "cruise" });
     stats.push(
       onGround ? (
         <Stat key="alt" plain={t("aircraft.gnd")} />
+      ) : altDisplay?.text ? (
+        <Stat key="alt" plain={altDisplay.text} />
       ) : (
-        <Stat key="alt" value={Math.round(altitude)} unit="ft" />
+        <Stat
+          key="alt"
+          value={altDisplay?.value ?? 0}
+          unit={altDisplay?.unit ?? "ft"}
+        />
       ),
     );
   }
