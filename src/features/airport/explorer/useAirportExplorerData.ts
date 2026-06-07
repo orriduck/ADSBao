@@ -11,16 +11,25 @@ import {
 } from "@/features/aviation/sourceDisplayModel";
 import { enrichAircraftWithRoutes } from "./airportExplorerModel";
 
-export function useAirportExplorerData(airportProfile) {
+export function useAirportExplorerData(
+  airportProfile,
+  options: { metarIcao?: string } = {},
+) {
   const flightAwareEnabled = useFlightAwareEnabled();
   const routeProvider = resolveRouteProvider({ flightAwareEnabled });
+  // `metarIcao` overrides which station the weather card pulls from
+  // when the explorer isn't anchored to a real airport (e.g. the
+  // near-me view, which sources its temperature from the closest
+  // nearby airport's METAR rather than the page profile's empty
+  // ICAO). Defaults to the profile's ICAO.
+  const metarLookupIcao = options.metarIcao ?? airportProfile.icao;
   const {
     raw: metarRaw,
     parsed: metar,
     loading: metarLoading,
     settled: metarSettled,
     error: metarError,
-  } = useMetar(airportProfile.icao);
+  } = useMetar(metarLookupIcao);
   const {
     aircraft,
     initialLoading: aircraftInitialLoading,
