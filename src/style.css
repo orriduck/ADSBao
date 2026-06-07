@@ -2852,11 +2852,19 @@ body {
     /* The sidebar dock floats at the bottom of the viewport on mobile
        so the app always exposes a single bottom-pinned toolbar. The
        dock's pill stays clickable via the Toolbar primitive's own
-       pointer-events: auto. */
+       pointer-events: auto.
+
+       `position: fixed` (not absolute) because the panel itself owns
+       the vertical scroll on mobile — an absolute child would scroll
+       along with the panel's content and slide off-screen. Fixed pins
+       to the viewport regardless of inner scroll position. No
+       ancestor uses transform/filter/will-change, so the fixed
+       containing block resolves to the viewport. */
     align-items: flex-end;
     height: auto;
     inset: auto 0 max(12px, env(safe-area-inset-bottom));
     padding: 0 16px;
+    position: fixed;
     z-index: var(--z-index-map-ui-floating);
 }
 
@@ -4556,6 +4564,9 @@ body {
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
+    /* Reserves room for the bottom-pinned (position: fixed) sidebar dock
+       so the last list row clears the floating toolbar at scroll end. */
+    padding-bottom: var(--map-toolbar-mobile-clearance);
 }
 
 .airport-sidebar-panel--mobile .metar-token-strip {
