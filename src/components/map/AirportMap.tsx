@@ -194,6 +194,7 @@ export default function AirportMap({
       const targetCenter = floatingSidebarAware
         ? getOffsetMapCenter(map, focalCenter, zoom)
         : ([focalCenter.lat, focalCenter.lon] as any);
+      map.invalidateSize();
       map.setView(targetCenter, zoom, {
         animate: false,
       });
@@ -202,8 +203,29 @@ export default function AirportMap({
     setOffsetAwareView();
     const transitionSettleTimer = window.setTimeout(setOffsetAwareView, 320);
 
+    // Mobile browsers can suspend / freeze the page when the user
+    // switches apps or locks the screen. When the tab becomes visible
+    // again the map's internal size and center can drift (especially
+    // after a viewport resize triggered by the OS keyboard dismissing
+    // or a virtual keyboard appearing). Re-applying the offset-aware
+    // view on visibility resume + on bfcache restore keeps the focal
+    // point pinned to the user's coords without waiting for the next
+    // geolocation tick.
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        setOffsetAwareView();
+      }
+    };
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) setOffsetAwareView();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pageshow", handlePageShow);
+
     return () => {
       window.clearTimeout(transitionSettleTimer);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pageshow", handlePageShow);
     };
   }, [floatingSidebarAware, focalCenter, followsCenter, zoom]);
 

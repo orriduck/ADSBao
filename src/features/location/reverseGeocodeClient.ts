@@ -70,9 +70,26 @@ function cacheKey(lat: number, lon: number, language: string) {
 // the user's UI locale first so localizable fields (city / state /
 // country) come back in their language when Nominatim has translated
 // names, with English as the fallback.
+//
+// Chinese is special: OSM stores multiple Chinese variants (`name:zh-Hans`,
+// `name:zh-Hant`, plain `name:zh`, sometimes `name:zh-CN` / `name:zh-TW`).
+// Plain `zh-CN` in accept-language tends to fall through to whichever
+// `name:zh` happens to be tagged — which on the mainland is a mix of
+// simplified and traditional. Explicitly preferring `zh-Hans` (for
+// zh-CN) or `zh-Hant` (for zh-TW) before the regional tag keeps the
+// rendered place names consistent with the user's chosen locale.
 function buildAcceptLanguage(language: string) {
   const primary = normalizeString(language).toLowerCase();
   if (!primary || primary === "en") return "en";
+  if (primary === "zh-cn" || primary === "zh-hans") {
+    return "zh-Hans,zh-CN,zh,en";
+  }
+  if (primary === "zh-tw" || primary === "zh-hant") {
+    return "zh-Hant,zh-TW,zh,en";
+  }
+  if (primary === "zh-hk") {
+    return "zh-Hant,zh-HK,zh,en";
+  }
   return `${primary},en`;
 }
 
