@@ -8,6 +8,8 @@
 // usage policy caps clients at 1 req/sec; the cache plus the
 // geolocation jitter floor keep us well under that).
 
+import { toSimplifiedChinese } from "@/utils/chineseSimplified";
+
 type NominatimAddress = {
   city?: unknown;
   town?: unknown;
@@ -60,10 +62,14 @@ function firstNonEmpty(...values: Array<unknown>) {
   return "";
 }
 
+// Bump when the normalization rules change so prior in-memory results don't
+// linger past a hot reload / SPA navigation.
+const CACHE_VERSION = "v2";
+
 function cacheKey(lat: number, lon: number, language: string) {
   // ~1km resolution is plenty for "what city am I in" — and the GPS
   // jitter floor would otherwise re-issue this request constantly.
-  return `${lat.toFixed(2)}:${lon.toFixed(2)}:${language}`;
+  return `${CACHE_VERSION}:${lat.toFixed(2)}:${lon.toFixed(2)}:${language}`;
 }
 
 // `accept-language` can be a comma-delimited preference list; we pass
@@ -110,7 +116,7 @@ export async function fetchReverseGeocode(
   const json = (await response.json()) as NominatimResponse;
   const address = json?.address || {};
 
-  const result: ReverseGeocodeResult = {
+  const rawResult: ReverseGeocodeResult = {
     // City fallback chain — Nominatim populates the most specific
     // bucket the OSM relation provided. Urban points usually fill
     // `city`; rural points fill `town` / `village` / `hamlet`.
@@ -131,6 +137,22 @@ export async function fetchReverseGeocode(
     countryName: normalizeString(address.country),
     countryCode: normalizeString(address.country_code).toUpperCase(),
   };
+
+  // Even with accept-language: zh-Hans,zh-CN OSM data is inconsistent —
+  // many mainland features only carry the contributor-managed `name:zh`
+  // tag which mixes simplified and traditional. Run the localized fields
+  // through a focused t2s converter so simplified-Chinese users get a
+  // canonical simplified rendering.
+  const isSimplifiedChinese = /(^|,)\s*zh-?cn|zh-?hans/i.test(language);
+  const result: ReverseGeocodeResult = isSimplifiedChinese
+    ? {
+        city: toSimplifiedChinese(rawResult.city),
+        county: toSimplifiedChinese(rawResult.county),
+        state: toSimplifiedChinese(rawResult.state),
+        countryName: toSimplifiedChinese(rawResult.countryName),
+        countryCode: rawResult.countryCode,
+      }
+    : rawResult;
 
   CACHE.set(key, result);
   return result;
