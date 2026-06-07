@@ -446,6 +446,7 @@ function AirportExplorerContent({
     metarRaw: weather.metarRaw,
     metarLoading: weather.metarLoading,
     metarError: weather.metarError,
+    metarStatusCode: weather.metarStatusCode ?? null,
     aircraft: traffic.aircraft,
     airports: nearbyAirports.airports,
     // In near-me mode there's no airport identity so frequencies /

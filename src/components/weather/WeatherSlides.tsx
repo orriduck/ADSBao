@@ -15,8 +15,15 @@ import {
   toNumber,
 } from "../../features/weather/weatherModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 
-export function MetarSlide({ metarRaw, metarLoading, metarError }) {
+export function MetarSlide({
+  metarRaw,
+  metarLoading,
+  metarError,
+  metarStatusCode = null,
+  metarStation = "",
+}) {
   const { t } = useI18n();
   const tokens = getMetarTokens(metarRaw);
   const placeholder = metarLoading
@@ -46,6 +53,16 @@ export function MetarSlide({ metarRaw, metarLoading, metarError }) {
             {metarRaw || placeholder}
           </code>
         </section>
+        <AsyncStatusLine
+          loading={Boolean(metarLoading)}
+          error={metarError || null}
+          statusCode={metarStatusCode}
+          cycleKey={metarStation || metarRaw || "metar"}
+          pendingLabel={t("weather.metarLoading")}
+          successLabel={t("weather.metarLoaded")}
+          errorLabel={t("weather.metarLoadError")}
+          className="mt-1 self-end"
+        />
       </div>
       {metarError ? <div className="panel-error">{metarError}</div> : null}
     </div>
@@ -226,6 +243,7 @@ export function LocalWeatherSlide({
   localWeather,
   localWeatherError,
   localWeatherLoading,
+  localWeatherStatusCode = null,
 }) {
   const { t } = useI18n();
   const condition = localWeather
@@ -268,6 +286,16 @@ export function LocalWeatherSlide({
               valueClassName="weather-token__value--secondary"
             />
           </div>
+          <AsyncStatusLine
+            loading={Boolean(localWeatherLoading)}
+            error={localWeatherError || null}
+            statusCode={localWeatherStatusCode}
+            cycleKey={airportCode || "local-weather"}
+            pendingLabel={t("weather.loading")}
+            successLabel={t("weather.loaded")}
+            errorLabel={t("weather.loadError")}
+            className="self-end"
+          />
         </div>
       </div>
     </div>

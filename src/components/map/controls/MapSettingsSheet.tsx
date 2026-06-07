@@ -21,6 +21,7 @@ import {
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 import { MapControlIcon } from "./mapControlIcons";
 
 const LAYER_CONTROLS = [
@@ -96,6 +97,8 @@ export default function MapSettingsSheet({
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   mapSettingsSaveStatus = "idle",
+  mapSettingsSaveStatusCode = null,
+  mapSettingsSaveCycle = 0,
 }) {
   const { t } = useI18n();
   const { isLoaded, isSignedIn } = useUser();
@@ -404,8 +407,21 @@ export default function MapSettingsSheet({
               role="status"
               aria-live="polite"
             >
-              <span className="block text-[11px] font-semibold leading-tight text-atc-text">
-                {t("mapSettings.deviceScope", { device: t(deviceLabelKey) })}
+              <span className="flex items-center justify-between gap-3">
+                <span className="block text-[11px] font-semibold leading-tight text-atc-text">
+                  {t("mapSettings.deviceScope", { device: t(deviceLabelKey) })}
+                </span>
+                <AsyncStatusLine
+                  loading={mapSettingsSaveStatus === "saving"}
+                  error={
+                    mapSettingsSaveStatus === "error" ? "save failed" : null
+                  }
+                  statusCode={mapSettingsSaveStatusCode}
+                  cycleKey={`map-settings:${mapSettingsSaveCycle}`}
+                  pendingLabel={t("mapSettings.savingSettings")}
+                  successLabel={t("mapSettings.savedSettings")}
+                  errorLabel={t("mapSettings.saveError")}
+                />
               </span>
               <span className="mt-1 block">
                 {t(signedInPersistenceKey)}

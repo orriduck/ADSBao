@@ -10,6 +10,10 @@ import {
   normalizeLatitude,
   normalizeLongitude,
 } from "../features/aircraft/tracking/flightTrackingContextModel";
+import {
+  readErrorStatus,
+  readResponseStatus,
+} from "../features/aviation/httpClient";
 
 export function useNearbyAirports({
   icao = "",
@@ -22,6 +26,8 @@ export function useNearbyAirports({
   const [loading, setLoading] = useState(false);
   const [settled, setSettled] = useState(false);
   const [error, setError] = useState(null);
+  const [statusCode, setStatusCode] = useState<number | null>(null);
+  const [nearbyCycle, setNearbyCycle] = useState(0);
   const queryLat = normalizeLatitude(lat);
   const queryLon = normalizeLongitude(lon);
 
@@ -40,6 +46,8 @@ export function useNearbyAirports({
       setLoading(true);
       setSettled(false);
       setError(null);
+      setStatusCode(null);
+      setNearbyCycle((c) => c + 1);
       try {
         const payload = await nearbyAirportClient.fetchNearbyAirports({
           icao,
@@ -50,10 +58,12 @@ export function useNearbyAirports({
         });
         if (disposed) return;
         setAirports(payload.airports || []);
+        setStatusCode(readResponseStatus(payload) ?? 200);
       } catch (nextError) {
         if (disposed) return;
         setAirports([]);
         setError(nextError);
+        setStatusCode(readErrorStatus(nextError));
         console.warn("[nearby-airports] load failed", nextError);
       } finally {
         if (!disposed) {
@@ -75,5 +85,7 @@ export function useNearbyAirports({
     loading,
     settled,
     error,
+    statusCode,
+    nearbyCycle,
   };
 }

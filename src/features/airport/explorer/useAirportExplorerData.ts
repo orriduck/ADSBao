@@ -29,6 +29,7 @@ export function useAirportExplorerData(
     loading: metarLoading,
     settled: metarSettled,
     error: metarError,
+    statusCode: metarStatusCode,
   } = useMetar(metarLookupIcao);
   const {
     aircraft,
@@ -70,6 +71,7 @@ export function useAirportExplorerData(
       metarLoading,
       metarSettled,
       metarError,
+      metarStatusCode,
     },
     traffic: {
       aircraft: aircraftWithRoutes,

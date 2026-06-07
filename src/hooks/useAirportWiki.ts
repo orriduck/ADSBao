@@ -3,6 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchAirportWikiSummary } from "../features/airport/wiki/airportWiki";
 import { useI18n } from "../features/app-shell/i18n/useI18n";
+import {
+  readErrorStatus,
+  readResponseStatus,
+} from "../features/aviation/httpClient";
 
 // Wiki content barely changes during a session, so the 30-minute staleTime
 // avoids hammering Wikipedia when users hop between airports — the second
@@ -21,9 +25,16 @@ export function useAirportWiki(airport) {
     staleTime: WIKI_STALE_TIME_MS,
   });
 
+  const statusCode = query.isSuccess
+    ? readResponseStatus(query.data) ?? 200
+    : query.isError
+      ? readErrorStatus(query.error)
+      : null;
+
   return {
     summary: query.data ?? null,
     loading: query.isPending && query.fetchStatus !== "idle",
     error: query.error ? query.error.message || "Airport summary unavailable" : null,
+    statusCode,
   };
 }

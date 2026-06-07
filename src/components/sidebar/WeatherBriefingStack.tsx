@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useAirportWiki } from "../../hooks/useAirportWiki";
 import { useWeatherSlides } from "@/components/weather/useWeatherSlides";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 
 export default function WeatherBriefingStack({
   icao = "",
@@ -15,6 +16,7 @@ export default function WeatherBriefingStack({
   metarRaw = "",
   metarLoading = false,
   metarError = null,
+  metarStatusCode = null,
   airportCode = "",
   airportLat = 0,
   airportLon = 0,
@@ -30,6 +32,7 @@ export default function WeatherBriefingStack({
     metarRaw,
     metarLoading,
     metarError,
+    metarStatusCode,
     airportCode,
     airportLat,
     airportLon,
@@ -78,6 +81,16 @@ export default function WeatherBriefingStack({
               : t("panels.wikiMissing")}
         </p>
         {wiki.error ? <div className="panel-error">{wiki.error}</div> : null}
+        <AsyncStatusLine
+          loading={Boolean(wiki.loading)}
+          error={wiki.error || null}
+          statusCode={wiki.statusCode ?? null}
+          cycleKey={`${icao || iata || name || "wiki"}`}
+          pendingLabel={t("panels.wikiLoading")}
+          successLabel={t("panels.wikiLoaded")}
+          errorLabel={t("panels.wikiLoadError")}
+          className="mt-1"
+        />
         {wiki.summary?.url ? (
           <a
             className="airport-briefing-card__link"

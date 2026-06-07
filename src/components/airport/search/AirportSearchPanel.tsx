@@ -22,6 +22,8 @@ export default function AirportSearchPanel({ onOpenAirport }) {
     staticDiscoveryAirports,
     loading,
     error,
+    statusCode,
+    searchCycle,
     countLabel,
   } = useAirportSearch();
 
@@ -68,6 +70,8 @@ export default function AirportSearchPanel({ onOpenAirport }) {
             rows={rows}
             loading={loading}
             error={error}
+            statusCode={statusCode}
+            searchCycle={searchCycle}
             countLabel={countLabel}
             onOpen={openAirport}
           />

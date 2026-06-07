@@ -303,6 +303,8 @@ const en = {
     trackTrace: "Track trace",
     trackingTrace: "Tracking trace",
     loadingTrace: "Loading trace...",
+    loadedTrace: "Trace loaded",
+    traceLoadError: "Trace unavailable",
     openAirport: "Track airport",
     viewingAirport: "Viewing airport",
     planeHunter: "Plane Hunter",
@@ -432,6 +434,8 @@ const en = {
     enter: "enter",
     searchResults: "Search results",
     searchingAirports: "Searching airports...",
+    searchedAirports: "Airports loaded",
+    searchAirportsError: "Search failed",
     noAirportMatched: "No airport matched \"{query}\".",
     discovery: {
       pageTitle: "Airports",
@@ -442,6 +446,8 @@ const en = {
         ctaHint: "See live aircraft, METAR, and the map centered on your location.",
         requesting: "Requesting location...",
         loading: "Finding nearby airports...",
+        loaded: "Nearby airports loaded",
+        loadError: "Nearby search failed",
         retry: "Try nearby again",
         unavailable: "Location was unavailable. Search still works.",
         empty: "No nearby airports were found for this position.",
@@ -541,6 +547,7 @@ const en = {
     deviceScope: "{device} settings",
     savedSettingsAvailable: "Saved to your account.",
     savingSettings: "Saving...",
+    savedSettings: "Saved",
     saveError: "Could not save changes.",
     devices: {
       desktop: "Desktop",
@@ -627,9 +634,13 @@ const en = {
     humidity: "Humidity",
     feels: "Feels",
     loading: "Loading...",
+    loaded: "Weather loaded",
+    loadError: "Weather unavailable",
     pending: "Local weather pending",
     openMeteoError: "Open-Meteo unavailable: {error}",
     metarLoading: "Loading METAR...",
+    metarLoaded: "METAR loaded",
+    metarLoadError: "METAR unavailable",
     metarMissing: "No METAR available.",
     metarFullReport: "Full report",
     flightRules: {
@@ -730,6 +741,8 @@ const en = {
   panels: {
     wikiKicker: "Airport wiki",
     wikiLoading: "Loading airport introduction...",
+    wikiLoaded: "Introduction loaded",
+    wikiLoadError: "Introduction unavailable",
     wikiMissing:
       "No Wikipedia summary was found for this airport. The rest of the dashboard remains live.",
     wikiSource: "Source: Wikipedia summary API",

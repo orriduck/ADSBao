@@ -6,6 +6,7 @@ import AircraftPreviewIdentity from "./AircraftPreviewIdentity";
 import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry";
 import RouteFeedbackForm from "./RouteFeedbackForm";
+import { AsyncStatusLineDisplay } from "@/components/ui/AsyncStatusLine";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 export default function AircraftPreviewMetadataCard({
@@ -14,7 +15,9 @@ export default function AircraftPreviewMetadataCard({
   airportProfile = null,
   onApplyTemporaryRoute,
   onOpenPlaneHunter,
-  traceLoading = false,
+  traceStatusVisible = false,
+  traceStatusState = null,
+  traceStatusLabels = null,
 }) {
   const { t } = useI18n();
   const pathname = usePathname();
@@ -38,11 +41,19 @@ export default function AircraftPreviewMetadataCard({
       {trackHref && (
         <div
           className={`aircraft-preview-card__trace-status ${
-            traceLoading ? "is-active" : ""
+            traceStatusVisible ? "is-active" : ""
           }`}
-          aria-hidden={!traceLoading}
+          aria-hidden={!traceStatusVisible}
         >
-          {t("preview.loadingTrace")}
+          {traceStatusState && traceStatusLabels ? (
+            <AsyncStatusLineDisplay
+              state={traceStatusState}
+              pendingLabel={traceStatusLabels.pendingLabel}
+              successLabel={traceStatusLabels.successLabel}
+              errorLabel={traceStatusLabels.errorLabel}
+              className="justify-center w-full"
+            />
+          ) : null}
         </div>
       )}
       {typeof onOpenPlaneHunter === "function" && (
