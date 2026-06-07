@@ -63,6 +63,10 @@ interface FormattedValue {
   value: number | null;
   unit: string;
   text: string | null;
+  // Optional prefix string rendered before the animated number (e.g. "FL "
+  // for flight levels). Callers can keep the number on NumberFlow and the
+  // prefix static so unit-switch transitions tween cleanly.
+  prefix?: string;
 }
 
 interface FormatDistanceOptions {
@@ -143,9 +147,10 @@ export function formatAltitude(
     }
     const fl = Math.round(numeric / 100);
     return {
-      value: null,
-      unit: altitudeUnitLabel("fl"),
-      text: `FL${String(fl).padStart(3, "0")}`,
+      value: fl,
+      unit: "",
+      text: null,
+      prefix: "FL ",
     };
   }
 

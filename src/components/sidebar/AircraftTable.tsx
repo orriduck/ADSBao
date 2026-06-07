@@ -321,10 +321,10 @@ export default function AircraftTable({
         <div className="aircraft-table-header aircraft-table-row-grid grid grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3">
           <span aria-hidden="true" />
           <span>{t("sidebar.callsignOrRoute")}</span>
-          <span className="text-right">{t("sidebar.distance")}</span>
-          <span className="text-right">
+          <NumericHeader>{t("sidebar.distance")}</NumericHeader>
+          <NumericHeader>
             {hasRouteEndpointAirports ? t("sidebar.endpoint") : t("sidebar.altitude")}
-          </span>
+          </NumericHeader>
         </div>
 
         {pinnedAircraft && (
@@ -666,6 +666,19 @@ function AircraftFilterCardSelect({
 function toNumber(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+// Header cell that mirrors the row's NumberWithUnit 2-column sub-grid (number
+// column + small unit-suffix column). Without this, the header text right-
+// aligns to the cell's edge but row values right-align inside the inner grid,
+// so the header sits ~14px to the right of every value.
+function NumericHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5">
+      <span className="block min-w-0 text-right">{children}</span>
+      <span aria-hidden="true" />
+    </span>
+  );
 }
 
 function filterAndSortAircraft({

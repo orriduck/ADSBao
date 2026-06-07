@@ -99,7 +99,7 @@ const MAP_BASE_LAYER_IDS = Object.freeze({
   TERRAIN: "terrain",
 });
 
-export const DEFAULT_MAP_BASE_LAYER = MAP_BASE_LAYER_IDS.TERRAIN;
+export const DEFAULT_MAP_BASE_LAYER = MAP_BASE_LAYER_IDS.STANDARD;
 
 const MAP_BASE_LAYER_OPTIONS = [
   {
