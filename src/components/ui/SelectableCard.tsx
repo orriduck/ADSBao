@@ -12,14 +12,15 @@ type SelectableCardProps = {
   disabled?: boolean;
   onClick?: () => void;
   className?: string;
+  size?: "default" | "compact";
 };
 
 const selectableCardVariants = cva(
   cn(
     "group relative isolate overflow-hidden",
-    "flex min-h-[118px] flex-col items-start rounded-[var(--atc-radius-card)]",
+    "flex flex-col items-start rounded-[var(--atc-radius-card)]",
     "border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] bg-clip-padding",
-    "p-3 text-left text-atc-text shadow-[var(--atc-control-inset-shadow)]",
+    "text-left text-atc-text shadow-[var(--atc-control-inset-shadow)]",
     "transition-[background,border-color,box-shadow,color,opacity] duration-150",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
     "data-[active=true]:bg-[var(--atc-click-bg)]",
@@ -34,6 +35,10 @@ const selectableCardVariants = cva(
   ),
   {
     variants: {
+      size: {
+        default: "min-h-[118px] p-3",
+        compact: "min-h-[44px] items-center px-2 py-2 justify-center",
+      },
       interactive: {
         true: cn(
           "cursor-pointer hover:bg-[var(--atc-control-hover-bg)]",
@@ -47,6 +52,7 @@ const selectableCardVariants = cva(
       },
     },
     defaultVariants: {
+      size: "default",
       interactive: true,
       disabled: false,
     },
@@ -79,7 +85,9 @@ export function SelectableCard({
   disabled = false,
   onClick,
   className,
+  size = "default",
 }: SelectableCardProps) {
+  const isCompact = size === "compact";
   return (
     <button
       type="button"
@@ -90,6 +98,7 @@ export function SelectableCard({
       onClick={onClick}
       className={cn(
         selectableCardVariants({
+          size,
           interactive: Boolean(onClick) && !disabled,
           disabled,
         }),
@@ -97,7 +106,14 @@ export function SelectableCard({
       )}
     >
       {icon ? <span className={iconClass}>{icon}</span> : null}
-      <span className={titleClass}>{title}</span>
+      <span
+        className={cn(
+          titleClass,
+          isCompact && "text-[12px] font-semibold leading-none",
+        )}
+      >
+        {title}
+      </span>
       {description ? <span className={descriptionClass}>{description}</span> : null}
     </button>
   );

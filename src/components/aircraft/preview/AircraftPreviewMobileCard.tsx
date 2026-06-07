@@ -48,6 +48,7 @@ type StatProps = {
   value?: number;
   unit?: string;
   plain?: string;
+  prefix?: string;
   format?: NumberFlowFormat;
 };
 
@@ -111,13 +112,12 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
     stats.push(
       onGround ? (
         <Stat key="alt" plain={t("aircraft.gnd")} />
-      ) : altDisplay?.text ? (
-        <Stat key="alt" plain={altDisplay.text} />
       ) : (
         <Stat
           key="alt"
           value={altDisplay?.value ?? 0}
           unit={altDisplay?.unit ?? "ft"}
+          prefix={altDisplay?.prefix}
         />
       ),
     );
@@ -169,17 +169,24 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
   );
 }
 
-function Stat({ value = 0, unit, plain, format }: StatProps) {
+function Stat({ value = 0, unit, plain, prefix, format }: StatProps) {
   return (
     <>
       {plain != null ? (
         <span className="tabular-nums">{plain}</span>
       ) : (
-        <NumberFlow
-          value={value}
-          format={format}
-          className="tabular-nums"
-        />
+        <>
+          {prefix ? (
+            <span className="notranslate text-atc-dim" translate="no">
+              {prefix}
+            </span>
+          ) : null}
+          <NumberFlow
+            value={value}
+            format={format}
+            className="tabular-nums"
+          />
+        </>
       )}
       {unit && (
         <span

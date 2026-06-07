@@ -432,29 +432,17 @@ export default function MapSettingsSheet({
                         aria-label={t(group.titleKey)}
                         className="grid auto-cols-fr grid-flow-col gap-1.5"
                       >
-                        {group.options.map((option) => {
-                          const active = activeUnit === option;
-                          return (
-                            <button
-                              key={option}
-                              type="button"
-                              role="radio"
-                              aria-checked={active}
-                              onClick={() =>
-                                setUnitPreferences({ [group.key]: option } as any)
-                              }
-                              className={cn(
-                                "min-h-[36px] rounded-[8px] border px-2 text-[12px] font-semibold leading-none transition",
-                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-focus-ring)]",
-                                active
-                                  ? "border-[var(--atc-interaction-primary-accent)] bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)]"
-                                  : "border-[var(--atc-border-default)] bg-[var(--atc-surface-row-rest)] text-atc-text hover:border-[var(--atc-line-strong)]",
-                              )}
-                            >
-                              {t(group.labelKey(option))}
-                            </button>
-                          );
-                        })}
+                        {group.options.map((option) => (
+                          <SelectableCard
+                            key={option}
+                            size="compact"
+                            active={activeUnit === option}
+                            title={t(group.labelKey(option))}
+                            onClick={() =>
+                              setUnitPreferences({ [group.key]: option } as any)
+                            }
+                          />
+                        ))}
                       </div>
                     </div>
                   );

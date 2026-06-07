@@ -59,7 +59,12 @@ assert.equal(formatDistance("oops", "km"), null);
 
 {
   const cruise = formatAltitude(35000, "fl");
-  assert.deepEqual(cruise, { value: null, unit: "FL", text: "FL350" });
+  assert.deepEqual(cruise, {
+    value: 350,
+    unit: "",
+    text: null,
+    prefix: "FL ",
+  });
 }
 
 {

@@ -30,16 +30,12 @@ export default function AircraftPreviewTelemetry({ aircraft }) {
       />
       {onGround ? (
         <TextStat label={t("metrics.altitude")} value={t("aircraft.gnd")} />
-      ) : altitudeDisplay?.text ? (
-        <TextStat
-          label={t("metrics.altitude")}
-          value={altitudeDisplay.text}
-        />
       ) : (
         <NumericStat
           label={t("metrics.altitude")}
           value={altitudeDisplay?.value ?? null}
           unit={altitudeDisplay?.unit ?? "ft"}
+          prefix={altitudeDisplay?.prefix}
         />
       )}
       <NumericStat
@@ -52,7 +48,7 @@ export default function AircraftPreviewTelemetry({ aircraft }) {
   );
 }
 
-function NumericStat({ label, value, unit, signed = false }) {
+function NumericStat({ label, value, unit, prefix = "", signed = false }) {
   return (
     <div className="aircraft-preview-stat">
       <dt className="aircraft-preview-stat__label">{label}</dt>
@@ -62,11 +58,21 @@ function NumericStat({ label, value, unit, signed = false }) {
             —
           </span>
         ) : (
-          <NumberFlow
-            value={value}
-            format={signed ? { signDisplay: "exceptZero" } : undefined}
-            className="aircraft-preview-stat__number"
-          />
+          <>
+            {prefix ? (
+              <span
+                className="aircraft-preview-stat__prefix notranslate"
+                translate="no"
+              >
+                {prefix}
+              </span>
+            ) : null}
+            <NumberFlow
+              value={value}
+              format={signed ? { signDisplay: "exceptZero" } : undefined}
+              className="aircraft-preview-stat__number"
+            />
+          </>
         )}
         {value != null && unit && (
           <span

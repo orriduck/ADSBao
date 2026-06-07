@@ -103,12 +103,11 @@ export default function AircraftRow({
           <span>{t("aircraft.gnd")}</span>
         ) : !altitudeDisplay ? (
           <span>-</span>
-        ) : altitudeDisplay.text ? (
-          <NumberWithUnit text={altitudeDisplay.text} unit="" />
         ) : (
           <NumberWithUnit
             value={altitudeDisplay.value}
             unit={altitudeDisplay.unit.toUpperCase()}
+            prefix={altitudeDisplay.prefix}
           />
         )}
       </div>
@@ -197,18 +196,25 @@ function AircraftIdentityCell({
 // replacing the older static-text + EndfieldValueSwap cross-fade. Cost is
 // bounded by virtualization: only the rows in the visible window mount, so
 // the previous ~290-instance worst case becomes ~24 (12 rows × 2 cells).
-function NumberWithUnit({ value, unit, format, text }: Record<string, any>) {
+function NumberWithUnit({ value, unit, format, text, prefix }: Record<string, any>) {
   return (
     <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
-      {text != null ? (
-        <span className="block min-w-0 text-right">{text}</span>
-      ) : (
-        <NumberFlow
-          value={value}
-          format={format}
-          className="block min-w-0 text-right"
-        />
-      )}
+      <span className="flex min-w-0 items-baseline justify-end">
+        {prefix ? (
+          <span className="notranslate flex-none text-atc-dim" translate="no">
+            {prefix}
+          </span>
+        ) : null}
+        {text != null ? (
+          <span className="block min-w-0 text-right">{text}</span>
+        ) : (
+          <NumberFlow
+            value={value}
+            format={format}
+            className="block min-w-0 text-right"
+          />
+        )}
+      </span>
       <sub
         className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
         translate="no"
