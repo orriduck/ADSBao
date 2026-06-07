@@ -539,6 +539,12 @@ function AirportExplorerContent({
             nearbyNavaids={airport?.nearbyNavaids || []}
             airspaces={airport?.airspaces || []}
             airport={airport}
+            // In near-me mode the airport profile has no ICAO and so
+            // no server-side airspaces / navaids attached. Flip the
+            // lat/lon-keyed aviation context tile fetch on so the
+            // map still shows Class B/C/D etc. polygons around the
+            // user — same hook the flight explorer already uses.
+            contextTileOverlays={nearMe}
             showMapLabels={showMapLabels}
             showRunwayBeams={showRunwayBeams}
             showNavaidMarkers={showNavaidMarkers}
