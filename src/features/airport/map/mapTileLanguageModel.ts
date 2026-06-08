@@ -141,13 +141,13 @@ const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> 
       building: "#6b7564",
       buildingOutline: "#828a7a",
       buildingOpacity: 0.82,
-      // Water bodies — blue tinted, visible
-      water: "#4e727c",
-      // Landuse (parks, forests) visible as distinct fills
-      landuse: "#4a5446",
-      landuseOpacity: 0.48,
-      landcover: "#454e41",
-      landcoverOpacity: 0.4,
+      // Water bodies — clear blue-grey, visibly distinct from land
+      water: "#3d6b7a",
+      // Landuse (parks, forests) — low-contrast green tones
+      landuse: "#3d5440",
+      landuseOpacity: 0.5,
+      landcover: "#384d3b",
+      landcoverOpacity: 0.42,
       // Roads — clearly gray, not background-black
       road: "#6b7066",
       roadCasing: "#3b4038",
