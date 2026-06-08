@@ -6,96 +6,104 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { convertDistanceFromNm, distanceUnitLabel } from "@/utils/units";
 
-// Bottom-left adaptive scale bar (比例尺). Snaps to the largest "nice"
-// NM step under TARGET_PX so the label doesn't flicker through
-// arbitrary digits as the user zooms.
-
 const METERS_PER_NM = 1852;
-const TARGET_PX = 110;
-const NICE_NM_STEPS = [
-  1, 2, 3, 5, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500,
-];
+
+const DESKTOP_TARGET_PX = 110;
+const DESKTOP_NM_STEPS = [1, 2, 3, 5, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500];
+
+const MOBILE_BAR_TARGET = 70;
+const MOBILE_MAX_NM = 5;
+const MOBILE_NM_STEPS = [0.5, 1, 2, 3, 4, 5];
 
 export default function MapRangeLegend() {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
   const map = useMapInstance();
-  const [scale, setScale] = useState(null);
+  const [scale, setScale] = useState<{
+    desktopNm: number; desktopPx: number;
+    mobileNm: number; mobilePx: number;
+  } | null>(null);
 
   useEffect(() => {
-    if (!map || typeof map.getContainer !== "function" || !map.getContainer()) {
-      return undefined;
-    }
+    if (!map || !map.getContainer?.() || typeof map.getSize !== "function") return;
 
     const update = () => {
       const size = map.getSize();
       if (!size?.x || !size?.y) return;
-      const y = size.y / 2;
-      const left = map.containerPointToLatLng([0, y]);
-      const right = map.containerPointToLatLng([TARGET_PX, y]);
+      const midY = size.y / 2;
+      const left = map.containerPointToLatLng([0, midY]);
+      const right = map.containerPointToLatLng([DESKTOP_TARGET_PX, midY]);
       const meters = map.distance(left, right);
       if (!Number.isFinite(meters) || meters <= 0) return;
-      const nmPerPx = meters / METERS_PER_NM / TARGET_PX;
-      const targetNm = nmPerPx * TARGET_PX;
-      let chosen = NICE_NM_STEPS[0];
-      for (const candidate of NICE_NM_STEPS) {
-        if (candidate <= targetNm) chosen = candidate;
-        else break;
-      }
-      setScale({ nm: chosen, widthPx: chosen / nmPerPx });
+      const nmPerPx = meters / METERS_PER_NM / DESKTOP_TARGET_PX;
+
+      let dNm = DESKTOP_NM_STEPS[0];
+      for (const c of DESKTOP_NM_STEPS) { if (c <= nmPerPx * DESKTOP_TARGET_PX) dNm = c; else break; }
+
+      const mobileMax = Math.min(nmPerPx * MOBILE_BAR_TARGET, MOBILE_MAX_NM);
+      let mNm = MOBILE_NM_STEPS[0];
+      for (const c of MOBILE_NM_STEPS) { if (c <= mobileMax) mNm = c; else break; }
+
+      setScale({ desktopNm: dNm, desktopPx: dNm / nmPerPx, mobileNm: mNm, mobilePx: mNm / nmPerPx });
     };
 
     update();
     map.on("zoomend", update);
     map.on("moveend", update);
     map.on("resize", update);
-    return () => {
-      map.off("zoomend", update);
-      map.off("moveend", update);
-      map.off("resize", update);
-    };
+    return () => { map.off("zoomend", update); map.off("moveend", update); map.off("resize", update); };
   }, [map]);
 
   if (!scale) return null;
 
-  const displayDistance =
-    Math.round(convertDistanceFromNm(scale.nm, units.distance) * 10) / 10;
+  const unit = distanceUnitLabel(units.distance);
+  const desktopDist = Math.round(convertDistanceFromNm(scale.desktopNm, units.distance));
+  const mobileDist = Math.round(convertDistanceFromNm(scale.mobileNm, units.distance));
+  const barH = Math.max(scale.mobilePx, 16);
 
   return (
-    <div
-      role="note"
-      aria-label={t("map.distanceAria", { distance: displayDistance })}
-      className="pointer-events-none absolute right-3 top-[calc(12px+env(safe-area-inset-top))] z-map-legend flex items-center gap-2 rounded-[8px] border border-[var(--atc-border-default)] bg-[var(--atc-surface-preview-card)] px-2.5 py-1.5 font-mono text-[var(--map-range-text)] shadow-[var(--app-panel-shadow)] backdrop-blur-md md:bottom-3 md:left-3 md:right-auto md:top-auto"
-    >
-      <span
-        className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--map-range-label)]"
-      >
-        {t("map.distanceLabel")}
-      </span>
+    <>
+      {/* Desktop: horizontal bar */}
       <div
-        style={{ width: `${scale.widthPx}px` }}
-        className="relative h-[10px]"
+        role="note"
+        aria-label={t("map.distanceAria", { distance: desktopDist })}
+        className="pointer-events-none absolute bottom-3 left-3 z-map-legend hidden items-center gap-2 rounded-[8px] border border-[var(--atc-border-default)] bg-[var(--atc-surface-preview-card)] px-2.5 py-1.5 font-mono text-[var(--map-range-text)] shadow-[var(--app-panel-shadow)] backdrop-blur-md md:flex"
       >
-        <span
-          aria-hidden="true"
-          className="absolute left-0 right-0 top-1/2 h-px bg-current opacity-70"
-        />
-        <span
-          aria-hidden="true"
-          className="absolute left-0 top-0 h-full w-px bg-current"
-        />
-        <span
-          aria-hidden="true"
-          className="absolute right-0 top-0 h-full w-px bg-current"
-        />
-      </div>
-      <span className="text-[10px] font-semibold tracking-[0.12em] tabular-nums">
-        {displayDistance}
-        {" "}
-        <span className="notranslate" translate="no">
-          {distanceUnitLabel(units.distance)}
+        <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--map-range-label)]">
+          {t("map.distanceLabel")}
         </span>
-      </span>
-    </div>
+        <div style={{ width: `${scale.desktopPx}px` }} className="relative h-[10px]">
+          <span aria-hidden="true" className="absolute left-0 right-0 top-1/2 h-px bg-current opacity-70" />
+          <span aria-hidden="true" className="absolute left-0 top-0 h-full w-px bg-current" />
+          <span aria-hidden="true" className="absolute right-0 top-0 h-full w-px bg-current" />
+        </div>
+        <span className="text-[10px] font-semibold tracking-[0.12em] tabular-nums">
+          {desktopDist} <span className="notranslate" translate="no">{unit}</span>
+        </span>
+      </div>
+
+      {/* Mobile: vertical line + tick, no box */}
+      <div
+        role="note"
+        aria-label={t("map.distanceAria", { distance: mobileDist })}
+        style={{ height: `${barH + 20}px` }}
+        className="pointer-events-none absolute bottom-[calc(max(12px,env(safe-area-inset-bottom))+54px)] left-4 z-map-legend flex flex-col items-center gap-0.5 md:hidden"
+      >
+        <span className="text-[9px] font-semibold tabular-nums text-[var(--map-range-text)]">
+          {mobileDist}{" "}
+          <span className="notranslate text-[7px] font-medium" translate="no">{unit}</span>
+        </span>
+        <div className="relative flex-1">
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 w-px bg-[var(--map-range-text)] opacity-80"
+          />
+          <span
+            aria-hidden="true"
+            className="absolute bottom-0 -left-[3px] h-px w-[7px] bg-[var(--map-range-text)] opacity-80"
+          />
+        </div>
+      </div>
+    </>
   );
 }
