@@ -46,6 +46,7 @@ export default function AircraftPosition({
   selectionActive = false,
   traceActive = false,
   forceSilhouette = false,
+  showCallsigns = true,
   onSelectAircraft,
 }) {
   const map = useMapInstance();
@@ -180,7 +181,7 @@ export default function AircraftPosition({
       />
       {(selected ||
         forceSilhouette ||
-        (!traceActive && emphasis.showLabel)) && (
+        (showCallsigns && !traceActive && emphasis.showLabel)) && (
         <AircraftLabel
           color={labelColor}
           label={label}

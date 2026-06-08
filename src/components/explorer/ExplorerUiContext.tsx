@@ -156,6 +156,12 @@ function airportExplorerUiReducer(state, action) {
         MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS,
         toggleValue(state.showCandidateWatchingSpots),
       );
+    case "toggleShowCallsigns":
+      return applyManualLayerToggle(
+        state,
+        MAP_LAYER_KEYS.SHOW_CALLSIGNS,
+        toggleValue(state.showCallsigns),
+      );
     case "applyMapMode":
       if (!isSelectableMapModeId(action.modeId)) {
         return state;
@@ -360,6 +366,7 @@ export function ExplorerUiProvider({ children }) {
     showNavaidMarkers,
     showAirspaces,
     showCandidateWatchingSpots,
+    showCallsigns,
     userLocationEnabled,
     userLocationAudioEnabled,
     mapSettings,
@@ -548,6 +555,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "toggleCandidateWatchingSpots" });
   }, []);
 
+  const toggleShowCallsigns = useCallback(() => {
+    dispatch({ type: "toggleShowCallsigns" });
+  }, []);
+
   const applyMapMode = useCallback((modeId) => {
     dispatch({ type: "applyMapMode", modeId });
   }, []);
@@ -646,6 +657,7 @@ export function ExplorerUiProvider({ children }) {
       showNavaidMarkers,
       showAirspaces,
       showCandidateWatchingSpots,
+      showCallsigns,
       userLocationEnabled,
       userLocationAudioEnabled,
       mapSettings,
@@ -675,6 +687,7 @@ export function ExplorerUiProvider({ children }) {
       toggleNavaidMarkers,
       toggleAirspaces,
       toggleCandidateWatchingSpots,
+      toggleShowCallsigns,
       applyMapMode,
       setMapBaseLayer,
       setUserLocationPreferences,
@@ -702,6 +715,7 @@ export function ExplorerUiProvider({ children }) {
       showNavaidMarkers,
       showAirspaces,
       showCandidateWatchingSpots,
+      showCallsigns,
       userLocationEnabled,
       userLocationAudioEnabled,
       mapSettings,
@@ -731,6 +745,7 @@ export function ExplorerUiProvider({ children }) {
       toggleNavaidMarkers,
       toggleAirspaces,
       toggleCandidateWatchingSpots,
+      toggleShowCallsigns,
       applyMapMode,
       setMapBaseLayer,
       setUserLocationPreferences,

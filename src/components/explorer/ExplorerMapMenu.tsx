@@ -28,6 +28,7 @@ export default function ExplorerMapMenu({
     showNavaidMarkers,
     showAirspaces,
     showCandidateWatchingSpots,
+    showCallsigns,
     mapSettings,
     mapSettingsDevice,
     mapSettingsSaveStatus,
@@ -42,6 +43,7 @@ export default function ExplorerMapMenu({
     toggleNavaidMarkers,
     toggleAirspaces,
     toggleCandidateWatchingSpots,
+    toggleShowCallsigns,
   } = useExplorerUi();
 
   return (
@@ -60,6 +62,7 @@ export default function ExplorerMapMenu({
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
         showCandidateWatchingSpots={showCandidateWatchingSpots}
+        showCallsigns={showCallsigns}
         mapSettings={mapSettings}
         mapSettingsDevice={mapSettingsDevice}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
@@ -76,6 +79,7 @@ export default function ExplorerMapMenu({
         onToggleNavaidMarkers={toggleNavaidMarkers}
         onToggleAirspaces={toggleAirspaces}
         onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
+        onToggleShowCallsigns={toggleShowCallsigns}
         onSelectMapMode={applyMapMode}
         onSelectBaseLayer={setMapBaseLayer}
         onToggleUserLocation={onToggleUserLocation}

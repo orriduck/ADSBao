@@ -23,7 +23,8 @@ export default function MapControlBar({
   showNavaidMarkers = false,
   showAirspaces = true,
   showCandidateWatchingSpots = false,
-  mapSettings = null,
+  showCallsigns = true,
+  mapSettings,
   mapSettingsDevice = "desktop",
   mapSettingsSaveStatus = "idle",
   mapSettingsSaveStatusCode = null,
@@ -39,6 +40,7 @@ export default function MapControlBar({
   onToggleNavaidMarkers,
   onToggleAirspaces,
   onToggleCandidateWatchingSpots,
+  onToggleShowCallsigns,
   onSelectMapMode,
   onSelectBaseLayer,
   onToggleUserLocation = null,
@@ -89,6 +91,7 @@ export default function MapControlBar({
         showNavaidMarkers={showNavaidMarkers}
         showAirspaces={showAirspaces}
         showCandidateWatchingSpots={showCandidateWatchingSpots}
+        showCallsigns={showCallsigns}
         mapSettingsDevice={mapSettingsDevice}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
         mapSettingsSaveStatusCode={mapSettingsSaveStatusCode}
@@ -104,6 +107,7 @@ export default function MapControlBar({
         onToggleNavaidMarkers={onToggleNavaidMarkers}
         onToggleAirspaces={onToggleAirspaces}
         onToggleCandidateWatchingSpots={onToggleCandidateWatchingSpots}
+        onToggleShowCallsigns={onToggleShowCallsigns}
         onToggleUserLocation={onToggleUserLocation}
         onToggleUserLocationAudio={onToggleUserLocationAudio}
       />

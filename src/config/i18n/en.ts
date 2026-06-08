@@ -528,6 +528,8 @@ const en = {
     candidateWatchingSpots: "Candidate watching spots",
     showCandidateWatchingSpots: "Show candidate watching spots",
     hideCandidateWatchingSpots: "Hide candidate watching spots",
+    showCallsigns: "Show callsigns",
+    hideCallsigns: "Hide callsigns",
     userLocation: "My location",
     userLocationAudio: "Proximity sound",
     showUserLocation: "Show my location",

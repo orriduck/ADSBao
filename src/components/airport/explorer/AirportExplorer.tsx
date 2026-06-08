@@ -74,6 +74,7 @@ function AirportExplorerContent({
     showNavaidMarkers,
     showAirspaces,
     showCandidateWatchingSpots,
+    showCallsigns,
     mapSettings,
     userLocationEnabled,
     userLocationAudioEnabled,
@@ -551,6 +552,7 @@ function AirportExplorerContent({
             showNavaidMarkers={showNavaidMarkers}
             showAirspaces={showAirspaces}
             showCandidateWatchingSpots={showCandidateWatchingSpots}
+            showCallsigns={showCallsigns}
             baseLayer={mapSettings?.baseLayer}
             trafficFilter={trafficFilter}
             typeFilter={typeFilter}

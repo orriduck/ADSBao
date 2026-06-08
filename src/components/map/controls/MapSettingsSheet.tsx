@@ -109,6 +109,7 @@ export default function MapSettingsSheet({
   showNavaidMarkers,
   showAirspaces = true,
   showCandidateWatchingSpots = false,
+  showCallsigns = true,
   mapSettingsDevice = "desktop",
   userLocationActive = false,
   userLocationAudioActive = false,
@@ -121,6 +122,7 @@ export default function MapSettingsSheet({
   onToggleNavaidMarkers,
   onToggleAirspaces,
   onToggleCandidateWatchingSpots,
+  onToggleShowCallsigns,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   mapSettingsSaveStatus = "idle",
@@ -149,6 +151,7 @@ export default function MapSettingsSheet({
     onToggleNavaidMarkers,
     onToggleAirspaces,
     onToggleCandidateWatchingSpots,
+    onToggleShowCallsigns,
   };
   const userLocationTitle = userLocationPending
     ? t("mapLayers.locatingUser")

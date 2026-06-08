@@ -74,6 +74,7 @@ export default function AirportMap({
   showNavaidMarkers = false,
   showAirspaces = true,
   showCandidateWatchingSpots = false,
+  showCallsigns = true,
   baseLayer = "terrain",
   trafficFilter = "all",
   typeFilter = "all",
@@ -547,6 +548,7 @@ export default function AirportMap({
                 getAircraftIdentity(ac) === focalAircraftId
               }
               onSelectAircraft={onSelectAircraft}
+              showCallsigns={showCallsigns}
             />
           ))}
         </MapContext.Provider>

@@ -520,6 +520,8 @@ const zhCN = {
     candidateWatchingSpots: "候选看机点",
     showCandidateWatchingSpots: "显示候选看机点",
     hideCandidateWatchingSpots: "隐藏候选看机点",
+    showCallsigns: "显示呼号",
+    hideCallsigns: "隐藏呼号",
     userLocation: "我的位置",
     userLocationAudio: "接近提示音",
     showUserLocation: "显示我的位置",
