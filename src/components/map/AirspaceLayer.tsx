@@ -642,7 +642,7 @@ function attachInteriorHatches(
     group.setAttribute("clip-path", `url(#${clipId})`);
     group.setAttribute("pointer-events", "none");
 
-    const spacing = 21;
+    const spacing = 80;
     const padding = Math.max(bbox.width, bbox.height) + spacing;
     const startX = bbox.x - padding;
     const endX = bbox.x + bbox.width + padding;
@@ -656,6 +656,7 @@ function attachInteriorHatches(
       line.setAttribute("x2", String(x + bbox.height + spacing));
       line.setAttribute("y2", String(y2));
       line.setAttribute("stroke", pattern.color);
+      line.setAttribute("stroke-dasharray", "12 90");
       group.appendChild(line);
     }
 
