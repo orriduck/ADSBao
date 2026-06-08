@@ -54,7 +54,7 @@ export default function DitherPageShell({
           ) : null}
         </div>
 
-        <div className="dither-page-body flex-1 overflow-hidden">
+        <div className="dither-page-body min-h-0 flex-1">
           {children}
         </div>
       </div>
