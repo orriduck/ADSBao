@@ -616,11 +616,7 @@ function attachInteriorHatches(
       ? layer.getElement()
       : null;
     const svg = path?.ownerSVGElement;
-    if (!path || !svg || typeof path.getBBox !== "function") return;
-
-    const bbox = path.getBBox();
-    if (!Number.isFinite(bbox.width) || !Number.isFinite(bbox.height)) return;
-    if (bbox.width <= 0 || bbox.height <= 0) return;
+    if (!path || !svg) return;
 
     const pathId = path.id || `airspace-boundary-${boundaryLabelSequence += 1}`;
     path.id = pathId;
@@ -634,35 +630,24 @@ function attachInteriorHatches(
     clipPath.appendChild(clipUse);
     defs.appendChild(clipPath);
 
-    const group = document.createElementNS(SVG_NS, "g");
-    group.dataset.airspaceLayerIndex = String(currentLayerIndex);
-    group.dataset.airspaceFeatureId = String(layer.feature?.properties?.id || "");
-    group.dataset.airspacePatternOpacity = String(pattern.opacity);
-    group.classList.add("airspace-interior-hatch");
-    group.setAttribute("clip-path", `url(#${clipId})`);
-    group.setAttribute("pointer-events", "none");
-
-    const spacing = 80;
-    const padding = Math.max(bbox.width, bbox.height) + spacing;
-    const startX = bbox.x - padding;
-    const endX = bbox.x + bbox.width + padding;
-    const y1 = bbox.y + bbox.height + spacing;
-    const y2 = bbox.y - spacing;
-    for (let x = startX; x <= endX; x += spacing) {
-      const line = document.createElementNS(SVG_NS, "line");
-      line.classList.add("airspace-interior-hatch__line");
-      line.setAttribute("x1", String(x));
-      line.setAttribute("y1", String(y1));
-      line.setAttribute("x2", String(x + bbox.height + spacing));
-      line.setAttribute("y2", String(y2));
-      line.setAttribute("stroke", pattern.color);
-      line.setAttribute("stroke-dasharray", "12 90");
-      group.appendChild(line);
-    }
-
-    setInteriorHatchState(group, selectedAirspaceId, opacityScale);
-    svg.appendChild(group);
-    hatches.push(group, clipPath);
+    // Dashed inner stroke along the boundary edge — extends ~10px inward
+    const hatchEdge = document.createElementNS(SVG_NS, "use");
+    hatchEdge.dataset.airspaceLayerIndex = String(currentLayerIndex);
+    hatchEdge.dataset.airspaceFeatureId = String(layer.feature?.properties?.id || "");
+    hatchEdge.dataset.airspacePatternOpacity = String(pattern.opacity);
+    hatchEdge.classList.add("airspace-interior-hatch");
+    hatchEdge.setAttribute("href", `#${pathId}`);
+    hatchEdge.setAttributeNS(XLINK_NS, "xlink:href", `#${pathId}`);
+    hatchEdge.setAttribute("clip-path", `url(#${clipId})`);
+    hatchEdge.setAttribute("fill", "none");
+    hatchEdge.setAttribute("stroke", pattern.color);
+    hatchEdge.setAttribute("stroke-dasharray", "3 16");
+    hatchEdge.setAttribute("stroke-linecap", "round");
+    hatchEdge.setAttribute("stroke-width", "20");
+    hatchEdge.setAttribute("pointer-events", "none");
+    setInteriorHatchState(hatchEdge, selectedAirspaceId, opacityScale);
+    svg.appendChild(hatchEdge);
+    hatches.push(hatchEdge, clipPath);
   });
 
   return hatches;

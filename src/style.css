@@ -1496,18 +1496,12 @@ body:has(.app-detail-shell) {
 }
 
 .airspace-interior-hatch {
-    opacity: 0.64;
+    opacity: 0.58;
     pointer-events: none;
 }
 
-.airspace-interior-hatch__line {
-    stroke-linecap: butt;
-    stroke-linejoin: miter;
-    stroke-width: 2.2px;
-}
-
-.airspace-interior-hatch--focused .airspace-interior-hatch__line {
-    stroke-width: 2.6px;
+.airspace-interior-hatch--focused {
+    opacity: 0.82;
 }
 
 .airspace-boundary-label--focused {
