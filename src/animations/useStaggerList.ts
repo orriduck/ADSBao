@@ -16,7 +16,7 @@ interface StaggerListOptions {
   /** Stagger interval (seconds). Default: 0.035 */
   each?: number;
   /** Start from "start" | "end" | "center" | "edges" | "random". Default: "start" */
-  from?: gsap.StaggerFrom;
+  from?: "start" | "end" | "center" | "edges" | "random";
   /** Y offset for the entrance. Default: 8 */
   yOffset?: number;
 }
