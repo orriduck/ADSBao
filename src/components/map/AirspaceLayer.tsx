@@ -585,7 +585,7 @@ function attachBoundaryEdges(
     edge.setAttribute("clip-path", `url(#${clipId})`);
     edge.setAttribute("fill", "none");
     edge.setAttribute("stroke", "var(--airspace-boundary-label)");
-    edge.setAttribute("stroke-dasharray", "0.5 9");
+    edge.setAttribute("stroke-dasharray", "5 72");
     edge.setAttribute("stroke-linecap", "round");
     edge.setAttribute("stroke-linejoin", "round");
     edge.setAttribute("stroke-width", "8");
