@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.2.1",
+    kind: "patch",
+    title: "Standard map detail boost & GSAP animation layer",
+    summary:
+      "The standard base map now shows buildings, water bodies, parks, and roads with visible contrast — the dark theme no longer hides geography. GSAP powers entrance animations, card interactions, and staggered list reveals across the entire app.",
+    highlights: [
+      "Standard base layer renders buildings, water, landuse (parks/forests), and roads at visible grey tones on dark theme",
+      "GSAP-driven page shell entrance, card hover/press spring interactions, and staggered list animations",
+      "Bright OSM style replaces positron for light theme — 119 layers of geographic detail",
+    ],
+  },
+  {
     version: "v2.2.0",
     kind: "feat",
     title: "Hourly forecast, locale fixes & near-me weather",

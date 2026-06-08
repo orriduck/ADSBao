@@ -10,8 +10,10 @@ import {
   buildLocalizedMapLibreStyle,
   buildProxiedMapLibreStyle,
   buildReadableTerrainMapLibreStyle,
+  buildStandardDetailMapLibreStyle,
   getMapLibreBaseStyleUrl,
   shouldApplyReadableTerrain,
+  shouldApplyStandardDetail,
 } from "@/features/airport/map/mapTileLanguageModel";
 import { isKnownMapTheme } from "@/features/airport/map/airportMapModel";
 
@@ -68,13 +70,16 @@ export async function GET(request, { params }) {
   }
 
   // Only the terrain base layer gets the readable-hillshade pass.
-  // Standard / transport pass through clean so the user can actually
-  // see the difference when they switch.
+  // Standard gets a lighter detail enhancement (building/water/landuse
+  // visibility) so the user can see geographic context without hillshade.
+  // Terrain keeps the full hillshade + landcover treatment.
   const proxiedStyle = buildProxiedMapLibreStyle(upstreamStyle);
-  const styleWithTerrain = shouldApplyReadableTerrain(baseLayer)
+  const styleWithDetail = shouldApplyReadableTerrain(baseLayer)
     ? buildReadableTerrainMapLibreStyle(proxiedStyle, { theme: baseTheme })
-    : proxiedStyle;
-  const style = buildLocalizedMapLibreStyle(styleWithTerrain, {
+    : shouldApplyStandardDetail(baseLayer)
+      ? buildStandardDetailMapLibreStyle(proxiedStyle, { theme: baseTheme })
+      : proxiedStyle;
+  const style = buildLocalizedMapLibreStyle(styleWithDetail, {
     locale,
     showLabels,
   });

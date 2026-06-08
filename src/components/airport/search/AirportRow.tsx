@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { airportDisplayCode, airportDisplayName, airportSubtitle } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useCardInteraction } from "@/animations/useCardInteraction";
 
 export default function AirportRow({
   airport,
@@ -12,15 +13,27 @@ export default function AirportRow({
 }) {
   const { locale } = useI18n();
   const motionStyle = { "--motion-order": motionOrder } as CSSProperties;
+  const {
+    ref: rowRef,
+    onMouseEnter,
+    onMouseLeave,
+    onMouseDown,
+    onMouseUp,
+  } = useCardInteraction({ hoverScale: 1.01, hoverY: -1, pressScale: 0.99 });
 
   return (
     <li style={motionStyle}>
       <button
         type="button"
+        ref={rowRef}
         className={`search-airport-row group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[72px_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
           featured ? "endf-row-featured" : ""
         }`}
         onClick={() => onOpen(airport)}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
       >
         <span className="endf-tab endf-tab--code">
           <span>{airportDisplayCode(airport)}</span>

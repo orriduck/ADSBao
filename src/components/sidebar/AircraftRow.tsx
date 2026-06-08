@@ -13,6 +13,7 @@ import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPre
 import { formatFlightTelemetryMetric } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
 import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplayModel";
 import { formatAltitude } from "@/utils/units";
+import { useCardInteraction } from "@/animations/useCardInteraction";
 
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
 // stamped broken-image icons in dense list rows when the logo isn't
@@ -40,6 +41,13 @@ export default function AircraftRow({
 }: Record<string, any>) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
+  const {
+    ref: rowRef,
+    onMouseEnter,
+    onMouseLeave,
+    onMouseDown,
+    onMouseUp,
+  } = useCardInteraction({ hoverScale: 1.005, hoverY: -1, pressScale: 0.99 });
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft.flightRoute);
@@ -67,11 +75,16 @@ export default function AircraftRow({
   return (
     <button
       type="button"
+      ref={rowRef}
       className={`aircraft-table-card aircraft-table-row-grid endf-industrial-row grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
         selected ? "endf-row-active" : ""
       }`}
       aria-pressed={selected}
       onClick={() => aircraftId && onSelectAircraft?.(aircraftId)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
     >
       <span aria-hidden="true" className="endf-row-glyph">
         <Plane size={13} strokeWidth={2.4} />

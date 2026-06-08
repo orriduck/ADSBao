@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { ChevronRight, LocateFixed } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -9,10 +10,53 @@ import {
 } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
+import gsap from "gsap";
+import { MOTION, EASE } from "@/animations/gsap";
 
 export default function AirportDiscoveryPanel({ topics = [], onOpen }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const ctx = gsap.context(() => {
+      // 1. Sections stagger in
+      const sections = container.querySelectorAll("section");
+      gsap.fromTo(
+        sections,
+        { opacity: 0, y: 10 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: MOTION.med,
+          ease: EASE.out,
+          stagger: { each: 0.08, from: "start" },
+          overwrite: "auto",
+        },
+      );
+
+      // 2. List items stagger in after sections
+      const rows = container.querySelectorAll("li");
+      gsap.fromTo(
+        rows,
+        { opacity: 0, x: -6 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: MOTION.med,
+          ease: EASE.out,
+          stagger: { each: 0.04, from: "start" },
+          overwrite: "auto",
+        },
+      );
+    }, container);
+
+    return () => ctx.revert();
+  }, [topics.length]);
+
   return (
-    <div className="flex flex-col gap-5 px-6 pb-7">
+    <div ref={containerRef} className="flex flex-col gap-5 px-6 pb-7">
       <NearMeDiscoverySection />
 
       <div className="flex flex-col gap-5">

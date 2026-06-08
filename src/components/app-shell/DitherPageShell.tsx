@@ -1,10 +1,12 @@
 "use client";
 
+import { useRef } from "react";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
 import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
 import { SITE_DESCRIPTION } from "@/config/site";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { usePageEntrance } from "@/animations/usePageEntrance";
 
 export default function DitherPageShell({
   className = "",
@@ -13,6 +15,8 @@ export default function DitherPageShell({
   children,
 }) {
   const { t } = useI18n();
+  const shellRef = useRef<HTMLDivElement>(null);
+  usePageEntrance(shellRef);
   const resolvedTitle = title ?? t("app.airportExplorer");
   const resolvedDescription =
     description === SITE_DESCRIPTION ? t("app.siteDescription") : description;
@@ -23,6 +27,7 @@ export default function DitherPageShell({
 
   return (
     <div
+      ref={shellRef}
       className={`dither-page-shell flex h-screen text-atc-text ${className}`.trim()}
     >
       <PageNavigationDock />
@@ -49,7 +54,9 @@ export default function DitherPageShell({
           ) : null}
         </div>
 
-        {children}
+        <div className="dither-page-body flex-1 overflow-hidden">
+          {children}
+        </div>
       </div>
 
       <div className="dither-page-background relative isolate flex-1 overflow-hidden">

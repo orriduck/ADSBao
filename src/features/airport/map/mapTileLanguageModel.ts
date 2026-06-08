@@ -1,18 +1,18 @@
 // OpenFreeMap publishes positron / bright / liberty for light and a
 // dedicated dark style. We map the user's `baseLayer` setting onto the
 // closest OFM upstream:
-//   standard  → positron (clean light) / dark — no terrain shading
-//   terrain   → positron / dark + readable-hillshade processing
+//   standard  → bright (detailed OSM) / dark — clean base with labels
+//   terrain   → bright (detailed) / dark + readable-hillshade processing
 const OPENFREEMAP_STYLE_TABLE: Record<
   string,
   Partial<Record<"light" | "dark", string>>
 > = Object.freeze({
   standard: {
-    light: "https://tiles.openfreemap.org/styles/positron",
+    light: "https://tiles.openfreemap.org/styles/bright",
     dark: "https://tiles.openfreemap.org/styles/dark",
   },
   terrain: {
-    light: "https://tiles.openfreemap.org/styles/positron",
+    light: "https://tiles.openfreemap.org/styles/bright",
     dark: "https://tiles.openfreemap.org/styles/dark",
   },
 });
@@ -112,6 +112,65 @@ const TERRAIN_LAYER_IDS = Object.freeze([
   "adsbao_terrain_landcover",
 ]);
 
+// ── Standard detail palette ──────────────────────────────────────
+// Lighter than the full terrain recolor — only boosts visibility of
+// buildings, water bodies, and landuse so the standard map shows
+// geographic context without the hillshade/muted-terrain treatment.
+
+type StandardDetailPalette = {
+  building: string;
+  buildingOutline: string;
+  buildingOpacity: number;
+  water: string;
+  landuse: string;
+  landuseOpacity: number;
+  landcover: string;
+  landcoverOpacity: number;
+  road: string;
+  roadCasing: string;
+  roadOpacity: number;
+  roadCasingOpacity: number;
+  background: string;
+};
+
+const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> =
+  Object.freeze({
+    dark: Object.freeze({
+      background: "#1a1e1a",
+      // Buildings — much brighter so they're clearly visible
+      building: "#6b7564",
+      buildingOutline: "#828a7a",
+      buildingOpacity: 0.82,
+      // Water bodies — blue tinted, visible
+      water: "#4e727c",
+      // Landuse (parks, forests) visible as distinct fills
+      landuse: "#4a5446",
+      landuseOpacity: 0.48,
+      landcover: "#454e41",
+      landcoverOpacity: 0.4,
+      // Roads — clearly gray, not background-black
+      road: "#6b7066",
+      roadCasing: "#3b4038",
+      roadOpacity: 0.55,
+      roadCasingOpacity: 0.35,
+    }),
+    light: Object.freeze({
+      background: "#f2f0ea",
+      building: "#e2e0d8",
+      buildingOutline: "#c4c2b8",
+      buildingOpacity: 0.85,
+      water: "#b8d4d9",
+      landuse: "#e0e8dc",
+      landuseOpacity: 0.48,
+      landcover: "#e4e9e0",
+      landcoverOpacity: 0.42,
+      road: "#b8b5ae",
+      roadCasing: "#d8d5cd",
+      roadOpacity: 0.55,
+      roadCasingOpacity: 0.35,
+    }),
+  });
+
 const READABLE_TERRAIN_PALETTES: Record<"dark" | "light", TerrainPalette> =
   Object.freeze({
     dark: Object.freeze({
@@ -201,6 +260,13 @@ export function getMapLibreBaseStyleUrl(theme: string, baseLayer?: string) {
 // option that wants this; standard/transport stay clean.
 export function shouldApplyReadableTerrain(baseLayer?: string) {
   return (baseLayer || DEFAULT_BASE_LAYER) === "terrain";
+}
+
+// Whether the proxy should apply the standard-detail enhancement
+// (building/water/landuse visibility boost without hillshade).
+// Applies to the "standard" base layer so users see geographic context.
+export function shouldApplyStandardDetail(baseLayer?: string) {
+  return (baseLayer || DEFAULT_BASE_LAYER) === "standard";
 }
 
 function getMapLibreLabelTextField(locale: string) {
@@ -304,6 +370,88 @@ export function buildReadableTerrainMapLibreStyle(
       return paint ? { ...layer, paint } : layer;
     }), style, palette),
   };
+}
+
+// ── Standard detail processing ────────────────────────────────────
+// Lighter touch than terrain: only boosts building/water/landuse
+// visibility. No hillshade, no full recolor.
+
+export function buildStandardDetailMapLibreStyle(
+  style: MapLibreStyle,
+  { theme = "dark" }: ReadableTerrainStyleOptions = {},
+) {
+  if (!style || !Array.isArray(style.layers)) return style;
+
+  const palette =
+    theme === "light"
+      ? STANDARD_DETAIL_PALETTES.light
+      : STANDARD_DETAIL_PALETTES.dark;
+
+  return {
+    ...style,
+    layers: style.layers.map((layer) => {
+      const paint = resolveStandardDetailLayerPaint(layer, palette);
+      return paint ? { ...layer, paint } : layer;
+    }),
+  };
+}
+
+function resolveStandardDetailLayerPaint(
+  layer: MapLibreLayer,
+  palette: StandardDetailPalette,
+) {
+  const id = String(layer?.id || "");
+  const paint = { ...(layer.paint || {}) };
+  let changed = false;
+
+  const setPaint = (key: string, value: unknown) => {
+    paint[key] = value;
+    changed = true;
+  };
+
+  // Background — slightly lighter than pure black
+  if (layer.type === "background") {
+    setPaint("background-color", palette.background);
+  }
+
+  // Buildings — make them clearly visible
+  if (isLayerId(id, "building")) {
+    setPaint("fill-color", palette.building);
+    setPaint("fill-outline-color", palette.buildingOutline);
+    if (layer.type === "fill") setPaint("fill-opacity", palette.buildingOpacity);
+  }
+
+  // Water bodies — clearly visible
+  if (isLayerId(id, "water") && layer.type === "fill") {
+    setPaint("fill-color", palette.water);
+  }
+
+  // Roads — gray and visible (not background-black)
+  if (isLayerId(id, "road") || isLayerId(id, "highway") || isLayerId(id, "street")) {
+    if (layer.type === "line") {
+      setPaint("line-color", isLayerId(id, "casing") ? palette.roadCasing : palette.road);
+      setPaint("line-opacity", isLayerId(id, "casing") ? palette.roadCasingOpacity : palette.roadOpacity);
+    }
+    if (layer.type === "fill") {
+      setPaint("fill-color", palette.roadCasing);
+      setPaint("fill-opacity", palette.roadCasingOpacity);
+    }
+  }
+
+  // Landuse / parks / forests
+  if (isLayerId(id, "landuse") || isLayerId(id, "landcover")) {
+    if (isLayerId(id, "park") || isLayerId(id, "wood") || isLayerId(id, "forest") || isLayerId(id, "grass")) {
+      if (layer.type === "fill") {
+        setPaint("fill-color", palette.landuse);
+        setPaint("fill-opacity", palette.landuseOpacity);
+      }
+    } else if (layer.type === "fill") {
+      setPaint("fill-color", palette.landcover);
+      setPaint("fill-opacity", palette.landcoverOpacity);
+    }
+  }
+
+  return changed ? paint : null;
 }
 
 function injectReadableTerrainSources(

@@ -10,6 +10,16 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.2.1": {
+    title: "标准地图细节增强 + GSAP 动画层",
+    summary:
+      "标准底图现在能显示建筑、水体、公园和道路 — 暗色主题不再隐藏地理信息。GSAP 为全站注入入场动画、卡片交互动效和列表交错展现。",
+    highlights: [
+      "标准底图在暗色主题下渲染建筑、水体、绿地与灰色道路,不再一片黑",
+      "GSAP 驱动的页面入场、卡片 hover 弹性回弹、列表交错动画覆盖全站",
+      "亮色主题切换至 Bright OSM 风格,119 层地理细节完整呈现",
+    ],
+  },
   "v2.2.0": {
     title: "逐时预报 + 中文修正 + 我的位置天气",
     summary:

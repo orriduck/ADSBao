@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { useCardInteraction } from "@/animations/useCardInteraction";
 
 type SelectableCardProps = {
   icon?: React.ReactNode;
@@ -88,14 +89,28 @@ export function SelectableCard({
   size = "default",
 }: SelectableCardProps) {
   const isCompact = size === "compact";
+  const interactive = Boolean(onClick) && !disabled;
+  const {
+    ref: cardRef,
+    onMouseEnter,
+    onMouseLeave,
+    onMouseDown: gsapMouseDown,
+    onMouseUp: gsapMouseUp,
+  } = useCardInteraction({ enabled: interactive });
+
   return (
     <button
       type="button"
+      ref={cardRef}
       aria-pressed={active}
       data-active={active ? "true" : "false"}
       data-ui="selectable-card"
       disabled={disabled}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onMouseDown={gsapMouseDown}
+      onMouseUp={gsapMouseUp}
       className={cn(
         selectableCardVariants({
           size,
