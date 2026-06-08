@@ -148,11 +148,11 @@ const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> 
       landuseOpacity: 0.7,
       landcover: "#456b43",
       landcoverOpacity: 0.62,
-      // Roads — clearly gray, not background-black
-      road: "#6b7066",
-      roadCasing: "#3b4038",
-      roadOpacity: 0.55,
-      roadCasingOpacity: 0.35,
+      // Roads — subtle grey, less prominent
+      road: "#5b6057",
+      roadCasing: "#2e322c",
+      roadOpacity: 0.3,
+      roadCasingOpacity: 0.18,
     }),
     light: Object.freeze({
       background: "#f2f0ea",
@@ -161,9 +161,9 @@ const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> 
       buildingOpacity: 0.85,
       water: "#b8d4d9",
       landuse: "#e0e8dc",
-      landuseOpacity: 0.48,
+      landuseOpacity: 0.62,
       landcover: "#e4e9e0",
-      landcoverOpacity: 0.42,
+      landcoverOpacity: 0.55,
       road: "#b8b5ae",
       roadCasing: "#d8d5cd",
       roadOpacity: 0.55,
