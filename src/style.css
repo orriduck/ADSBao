@@ -1483,7 +1483,7 @@ body:has(.app-detail-shell) {
     opacity: 0.46;
     pointer-events: none;
     stroke: var(--airspace-label-text);
-    stroke-dasharray: 0.5 9;
+    stroke-dasharray: 5 72;
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 8px;
@@ -1491,7 +1491,7 @@ body:has(.app-detail-shell) {
 
 .airspace-boundary-edge--focused {
     opacity: 0.78;
-    stroke-dasharray: 0.5 7;
+    stroke-dasharray: 5 64;
     stroke-width: 10px;
 }
 
