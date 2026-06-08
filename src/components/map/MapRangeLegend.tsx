@@ -58,7 +58,8 @@ export default function MapRangeLegend() {
 
   const unit = distanceUnitLabel(units.distance);
   const desktopDist = Math.round(convertDistanceFromNm(scale.desktopNm, units.distance));
-  const mobileDist = Math.round(convertDistanceFromNm(scale.mobileNm, units.distance));
+  const mobileRaw = convertDistanceFromNm(scale.mobileNm, units.distance);
+  const mobileDist = Number.isInteger(mobileRaw) ? mobileRaw : +mobileRaw.toFixed(1);
   const barH = Math.max(scale.mobilePx, 16);
 
   return (
