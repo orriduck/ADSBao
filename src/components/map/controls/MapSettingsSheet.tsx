@@ -97,6 +97,15 @@ const LAYER_CONTROLS = [
     prop: "showCandidateWatchingSpots",
     handler: "onToggleCandidateWatchingSpots",
   },
+  {
+    layerKey: MAP_LAYER_KEYS.SHOW_CALLSIGNS,
+    iconKey: "text",
+    labelKey: "mapLayers.showCallsigns",
+    activeKey: "mapLayers.showCallsigns",
+    inactiveKey: "mapLayers.hideCallsigns",
+    prop: "showCallsigns",
+    handler: "onToggleShowCallsigns",
+  },
 ];
 
 export default function MapSettingsSheet({
