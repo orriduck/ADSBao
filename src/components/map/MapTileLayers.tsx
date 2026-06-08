@@ -11,7 +11,7 @@ import {
 } from "@/features/airport/map/mapTileLayerModel";
 import { isLightMapTheme } from "@/features/airport/map/airportMapModel";
 
-const MAP_STYLE_THEME_REVISION = "standard-detail-v6";
+const MAP_STYLE_THEME_REVISION = "standard-detail-v7";
 
 export default function MapTileLayers({
   theme = "dark",

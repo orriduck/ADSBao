@@ -389,11 +389,102 @@ export function buildStandardDetailMapLibreStyle(
 
   return {
     ...style,
-    layers: style.layers.map((layer) => {
-      const paint = resolveStandardDetailLayerPaint(layer, palette);
-      return paint ? { ...layer, paint } : layer;
-    }),
+    layers: injectStandardDetailLayers(
+      style.layers.map((layer) => {
+        const paint = resolveStandardDetailLayerPaint(layer, palette);
+        return paint ? { ...layer, paint } : layer;
+      }),
+      style,
+      palette,
+    ),
   };
+}
+
+const STANDARD_DETAIL_LAYER_IDS = Object.freeze([
+  "adsbao_std_landuse",
+  "adsbao_std_landcover",
+]);
+
+function injectStandardDetailLayers(
+  layers: MapLibreLayer[],
+  style: MapLibreStyle,
+  palette: StandardDetailPalette,
+) {
+  const cleanedLayers = layers.filter(
+    (layer) => !STANDARD_DETAIL_LAYER_IDS.includes(String(layer?.id || "")),
+  );
+  const stdLayers = buildStandardDetailFillLayers(style, palette);
+  if (stdLayers.length === 0) return cleanedLayers;
+
+  // Insert after background but before roads
+  const insertIndex = cleanedLayers.findIndex(
+    (l) => l.type === "line" || l.type === "symbol",
+  );
+  const idx = insertIndex >= 0 ? insertIndex : cleanedLayers.length;
+  return [
+    ...cleanedLayers.slice(0, idx),
+    ...stdLayers,
+    ...cleanedLayers.slice(idx),
+  ];
+}
+
+function buildStandardDetailFillLayers(
+  style: MapLibreStyle,
+  palette: StandardDetailPalette,
+) {
+  const sources = style?.sources || {};
+  const layers: MapLibreLayer[] = [];
+
+  if (sources.openmaptiles) {
+    // Parks, forests, grass — clear green fills
+    layers.push({
+      id: "adsbao_std_landuse",
+      type: "fill",
+      source: "openmaptiles",
+      "source-layer": "landuse",
+      filter: polygonClassFilter([
+        "park",
+        "forest",
+        "grass",
+        "meadow",
+        "recreation_ground",
+        "nature_reserve",
+        "orchard",
+        "vineyard",
+        "farmland",
+        "farm",
+        "allotments",
+        "cemetery",
+      ]),
+      paint: {
+        "fill-color": palette.landuse,
+        "fill-opacity": palette.landuseOpacity,
+      },
+    });
+    // Wood, scrub, heath from landcover
+    layers.push({
+      id: "adsbao_std_landcover",
+      type: "fill",
+      source: "openmaptiles",
+      "source-layer": "landcover",
+      filter: polygonClassFilter([
+        "wood",
+        "forest",
+        "grass",
+        "scrub",
+        "heath",
+        "meadow",
+        "farmland",
+        "wetland",
+      ]),
+      paint: {
+        "fill-color": palette.landcover,
+        "fill-opacity": palette.landcoverOpacity,
+      },
+    });
+  }
+
+  return layers;
 }
 
 function resolveStandardDetailLayerPaint(
