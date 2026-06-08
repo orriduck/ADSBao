@@ -421,6 +421,8 @@ const zhCN = {
     unsupported: "无法获取定位",
     unsupportedHint: "这个浏览器无法分享你的位置,你可以回首页选一个机场。",
     refresh: "刷新位置",
+    lastUpdated: "最后更新 {time}",
+    relocate: "重新定位",
   },
   search: {
     placeholder: "搜索 ICAO、IATA、城市或名称",

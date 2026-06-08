@@ -429,6 +429,8 @@ const en = {
     unsupportedHint:
       "This browser can't share your position. Open an airport from the home page instead.",
     refresh: "Refresh location",
+    lastUpdated: "Last updated {time}",
+    relocate: "Relocate",
   },
   search: {
     placeholder: "Search airport or city",

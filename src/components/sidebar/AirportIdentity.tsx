@@ -8,7 +8,6 @@ import { airportCityName, airportDisplayName } from "../../utils/airport";
 import { resolveTimezone } from "../../utils/timezone";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
-import { RefreshCw } from "lucide-react";
 
 export default function AirportIdentity({
   icao = "",
@@ -84,30 +83,26 @@ export default function AirportIdentity({
     >
       <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
         {displayName || t("sidebar.unknownAirport")}
-        {nearMeRefresh && (
+      </h1>
+      {placeLine ? (
+        <div className="mt-3 text-[13px] text-atc-dim">{placeLine}</div>
+      ) : null}
+      {nearMeRefresh && (
+        <div className="mt-1.5 text-[11px] text-atc-faint">
+          {nearMeRefresh.lastTime
+            ? t("nearMe.lastUpdated", { time: nearMeRefresh.lastTime })
+            : ""}
+          {" "}
           <button
             type="button"
             onClick={nearMeRefresh.onRefresh}
             disabled={nearMeRefresh.refreshing}
-            className="near-me-refresh__btn ml-2 align-middle"
-            aria-label={t("nearMe.refresh")}
+            className="near-me-refresh__link"
           >
-            <RefreshCw
-              size={14}
-              className={nearMeRefresh.refreshing ? "animate-spin" : ""}
-              aria-hidden="true"
-            />
+            {t("nearMe.relocate")}
           </button>
-        )}
-      </h1>
-      {nearMeRefresh?.lastTime && (
-        <div className="mt-1 font-mono text-[10px] text-atc-faint">
-          {nearMeRefresh.lastTime}
         </div>
       )}
-      {placeLine ? (
-        <div className="mt-3 text-[13px] text-atc-dim">{placeLine}</div>
-      ) : null}
       {coordLine ? (
         <div className="mt-1 font-mono text-[11px] text-atc-faint">
           {coordLine}

@@ -3260,52 +3260,26 @@ body {
 
 /* Near-me refresh bar — sits at top-right of the map stage,
    matching the airport-map-menu positioning but lightweight. */
-.near-me-refresh {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 30;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0 16px;
-    height: 44px;
-}
-
-.near-me-refresh__time {
-    color: var(--atc-faint);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.near-me-refresh__btn {
-    align-items: center;
-    background: var(--atc-control-surface);
-    border: 1px solid var(--sidebar-tile-rest-border);
-    border-radius: var(--atc-radius-card);
-    box-shadow: var(--atc-control-inset-shadow);
-    color: var(--atc-text);
+.near-me-refresh__link {
+    background: none;
+    border: 0;
+    border-bottom: 1px solid currentColor;
+    color: inherit;
     cursor: pointer;
-    display: inline-flex;
-    height: 28px;
-    justify-content: center;
+    font: inherit;
     padding: 0;
-    transition: background .15s;
-    vertical-align: middle;
-    width: 28px;
     -webkit-appearance: none;
     appearance: none;
 }
 
-.near-me-refresh__btn:hover {
-    background: var(--atc-control-hover-bg);
+.near-me-refresh__link:hover {
+    color: var(--atc-text);
+    border-bottom-color: var(--atc-text);
 }
 
-.near-me-refresh__btn:disabled {
+.near-me-refresh__link:disabled {
     cursor: not-allowed;
-    opacity: .45;
+    opacity: .35;
 }
 
 .forecast-tomorrow {
