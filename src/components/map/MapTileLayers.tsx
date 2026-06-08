@@ -64,6 +64,14 @@ export default function MapTileLayers({
           attachMapLibreErrorHandler(nextLayer);
           layerRef.current = nextLayer;
           layerRef.current.getContainer()?.classList.add("atc-tile-base");
+          // Preload tiles one ring outside the viewport so mobile panning
+          // never exposes blank white areas. The container is slightly
+          // oversized via CSS, triggering MapLibre to fetch tiles that
+          // extend beyond the visible bounds.
+          const maplibreMap = nextLayer.getMaplibreMap?.();
+          if (maplibreMap && typeof maplibreMap.setMaxTileCacheSize === "function") {
+            maplibreMap.setMaxTileCacheSize(512);
+          }
           setSelectionOpacity(layerRef.current, theme, selectionActiveRef.current);
         } catch (error) {
           removeLayer(nextLayer, map);

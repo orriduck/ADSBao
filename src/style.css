@@ -1268,6 +1268,10 @@
     );
 }
 
+html {
+    background: var(--atc-bg);
+}
+
 body {
     margin: 0;
     min-width: 320px;
@@ -7228,6 +7232,7 @@ body {
         inset: auto 0 max(12px, env(safe-area-inset-bottom));
         padding: 0 16px;
         pointer-events: none;
+        position: fixed;
         /* Stays above the mobile sidebar overlay so the toolbar pill (with
            the sidebar-close button) is always reachable from the list. */
         z-index: var(--z-index-map-ui-floating);

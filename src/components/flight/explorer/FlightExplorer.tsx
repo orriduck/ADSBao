@@ -845,7 +845,7 @@ function FlightExplorerContent({ callsign }) {
           </AirportMap>
 
           {isMobile && sidebarOpen && (
-            <div className="absolute inset-0 z-map-panel overscroll-contain">
+            <div className="absolute inset-0 z-map-panel overscroll-none overflow-y-auto">
               <FlightSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}

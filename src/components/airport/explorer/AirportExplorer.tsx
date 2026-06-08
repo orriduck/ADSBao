@@ -586,7 +586,7 @@ function AirportExplorerContent({
           />
 
           {isMobile && sidebarOpen && (
-            <div className="absolute inset-0 z-map-panel overscroll-contain">
+            <div className="absolute inset-0 z-map-panel overscroll-none overflow-y-auto">
               <AirportSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}
