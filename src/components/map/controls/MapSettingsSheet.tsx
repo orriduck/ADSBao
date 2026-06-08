@@ -146,6 +146,7 @@ export default function MapSettingsSheet({
     showNavaidMarkers,
     showAirspaces,
     showCandidateWatchingSpots,
+    showCallsigns,
     onToggleMapLabels,
     onToggleBeams,
     onToggleNavaidMarkers,
