@@ -143,11 +143,11 @@ const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> 
       buildingOpacity: 0.82,
       // Water bodies — clear blue-grey, visibly distinct from land
       water: "#3d6b7a",
-      // Landuse (parks, forests) — low-contrast green tones
-      landuse: "#3d5440",
-      landuseOpacity: 0.5,
-      landcover: "#384d3b",
-      landcoverOpacity: 0.42,
+      // Landuse (parks, forests) — visible low-contrast green tones
+      landuse: "#446348",
+      landuseOpacity: 0.62,
+      landcover: "#3f5c43",
+      landcoverOpacity: 0.55,
       // Roads — clearly gray, not background-black
       road: "#6b7066",
       roadCasing: "#3b4038",
@@ -408,6 +408,11 @@ function resolveStandardDetailLayerPaint(
     paint[key] = value;
     changed = true;
   };
+  const deletePaint = (key: string) => {
+    if (!Object.prototype.hasOwnProperty.call(paint, key)) return;
+    delete paint[key];
+    changed = true;
+  };
 
   // Background — slightly lighter than pure black
   if (layer.type === "background") {
@@ -444,10 +449,12 @@ function resolveStandardDetailLayerPaint(
       if (layer.type === "fill") {
         setPaint("fill-color", palette.landuse);
         setPaint("fill-opacity", palette.landuseOpacity);
+        deletePaint("fill-pattern");
       }
     } else if (layer.type === "fill") {
       setPaint("fill-color", palette.landcover);
       setPaint("fill-opacity", palette.landcoverOpacity);
+      deletePaint("fill-pattern");
     }
   }
 
