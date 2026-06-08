@@ -3912,7 +3912,7 @@ body {
     /* No top margin so the pinned row sits flush against the table
        header strip — combined with the square top corners on its
        active state, this lets it read as part of the header. */
-    margin: 0 0 8px;
+    margin: 0;
     overflow: visible;
     position: relative;
 }
