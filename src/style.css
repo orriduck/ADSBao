@@ -1351,11 +1351,10 @@ body:has(.app-detail-shell) {
 }
 
 .airport-map-surface.leaflet-container {
-    /* AirportMap disables Leaflet dragging/zooming in JS. Keep the browser's
-       vertical gesture path open so mobile detail pages can use native
-       pull-to-refresh while the map remains non-pannable. */
-    overscroll-behavior-y: auto;
-    touch-action: pan-y;
+    /* Lock map surface against all browser touch gestures so mobile Safari
+       can't rubber-band the document and expose white edges. The swipe-to-
+       dismiss preview-card gesture listens on the document separately. */
+    touch-action: none;
 }
 
 :root[data-theme="dark"] .atc-tile-base {
