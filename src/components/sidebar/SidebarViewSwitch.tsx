@@ -22,13 +22,9 @@ export default function SidebarViewSwitch({
   candidateSpotCount = 0,
   onOpenSpotting,
   // Near-me mode: the explorer is centered on the user's location
-  // (not an airport). The weather card still shows the live
-  // temperature (sourced from the closest airport's METAR) but is
-  // no longer clickable — there's no airport briefing to drill into.
-  // ATC / Spotting / Departures / Arrivals all surface as
-  // non-interactive "—" placeholders since none of those datasets
-  // apply to an arbitrary lat/lon. Only the Flights card stays
-  // interactive (and that's the default view anyway).
+  // (not an airport). ATC / Spotting / Departures / Arrivals
+  // surface as non-interactive "—" placeholders. Weather and
+  // Flights stay interactive — weather shows the hourly forecast.
   nearMe = false,
 }) {
   const { t } = useI18n();
@@ -63,8 +59,8 @@ export default function SidebarViewSwitch({
         label={t("sidebar.weather")}
         value={temperature.value}
         unit={temperature.unit}
-        active={!nearMe && activeView === "briefing"}
-        onClick={nearMe ? undefined : () => onViewChange?.("briefing")}
+        active={activeView === "briefing"}
+        onClick={() => onViewChange?.("briefing")}
       />
       <SidebarMetricCard
         label={t("sidebar.flights")}

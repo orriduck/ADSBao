@@ -118,6 +118,7 @@ export default function AirportSidebar({
         airportCode={iata || icao}
         airportLat={lat}
         airportLon={lon}
+        nearMe={nearMe}
       />
     ) : activeView === "atc" ? (
       <AtcFrequencyPanel icao={icao} frequencies={atcFrequencies} />

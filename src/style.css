@@ -3157,6 +3157,232 @@ body {
     margin-top: 10px;
 }
 
+/* ――――――――― Hourly forecast + tomorrow ――――――――― */
+
+/* 3-column grid: 6 cards fit without horizontal scrolling */
+.hourly-grid {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.hourly-card {
+    align-items: center;
+    background: var(--atc-control-surface);
+    border: 1px solid var(--sidebar-tile-rest-border);
+    border-radius: var(--atc-radius-card);
+    box-shadow: var(--atc-control-inset-shadow);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    font: inherit;
+    color: inherit;
+    gap: 2px;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 8px 4px 7px;
+    position: relative;
+    text-align: center;
+    transition: background .15s, border-color .15s, box-shadow .15s;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    /* MetricCard bottom-glow */
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--sidebar-tile-bottom-glow);
+        opacity: 0;
+        transform: translateY(4px);
+        pointer-events: none;
+        transition: opacity .3s ease-out, transform .3s ease-out;
+        border-radius: inherit;
+    }
+    & > * {
+        position: relative;
+        z-index: 1;
+    }
+    &:hover {
+        background: var(--atc-control-hover-bg);
+    }
+    &:active {
+        background: var(--atc-click-bg);
+    }
+    &[data-active="true"] {
+        background: var(--atc-click-bg);
+        border-color: color-mix(in oklab, var(--atc-click-fg) 50%, var(--atc-click-bg));
+        box-shadow: var(--atc-control-active-shadow-strong);
+        & .hourly-card__time { color: var(--atc-click-muted); }
+        & .hourly-card__condition { color: var(--atc-click-fg); }
+        & .hourly-card__temp { color: var(--atc-click-fg); }
+        & .hourly-card__precip { color: var(--atc-click-fg); }
+    }
+    &[data-active="true"]::after {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hourly-card__time {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    line-height: 1;
+}
+
+.hourly-card__temp {
+    color: var(--atc-text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.hourly-card__condition {
+    color: var(--atc-dim);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.hourly-card__precip {
+    align-items: center;
+    color: var(--primary-bright);
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    gap: 2px;
+    line-height: 1;
+}
+
+/* ――――――――― Tomorrow card ――――――――― */
+
+/* Near-me refresh bar — sits at top-right of the map stage,
+   matching the airport-map-menu positioning but lightweight. */
+.near-me-refresh {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 16px;
+    height: 44px;
+}
+
+.near-me-refresh__time {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.near-me-refresh__btn {
+    align-items: center;
+    background: var(--atc-control-surface);
+    border: 1px solid var(--sidebar-tile-rest-border);
+    border-radius: var(--atc-radius-card);
+    box-shadow: var(--atc-control-inset-shadow);
+    color: var(--atc-text);
+    cursor: pointer;
+    display: inline-flex;
+    height: 30px;
+    justify-content: center;
+    padding: 0;
+    transition: background .15s;
+    width: 30px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.near-me-refresh__btn:hover {
+    background: var(--atc-control-hover-bg);
+}
+
+.near-me-refresh__btn:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+}
+
+.forecast-tomorrow {
+    margin-top: 10px;
+}
+
+.forecast-tomorrow__label {
+    color: var(--atc-faint);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.forecast-tomorrow__card {
+    align-items: center;
+    background: var(--atc-control-surface);
+    border: 1px solid var(--sidebar-tile-rest-border);
+    border-radius: var(--atc-radius-card);
+    box-shadow: var(--atc-control-inset-shadow);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 11px 13px;
+}
+
+.forecast-tomorrow__date {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .01em;
+}
+
+.forecast-tomorrow__condition {
+    color: var(--atc-text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.forecast-tomorrow__temps {
+    align-items: baseline;
+    color: var(--atc-text);
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    gap: 3px;
+    line-height: 1;
+    margin-left: auto;
+}
+
+.forecast-tomorrow__sep {
+    color: var(--atc-faint);
+    font-weight: 400;
+    margin: 0 1px;
+}
+
+.forecast-tomorrow__lo {
+    color: var(--atc-dim);
+    font-weight: 500;
+}
+
+.forecast-tomorrow__precip {
+    align-items: center;
+    color: var(--primary-bright);
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    gap: 3px;
+    margin-left: 2px;
+}
+
 .traffic-counts span {
     color: var(--atc-faint);
     display: block;
@@ -5304,6 +5530,14 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
+.aircraft-preview-stat__prefix {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--atc-dim);
+}
+
 .aircraft-preview-stat__unit {
     font-size: 9px;
     font-weight: 500;
@@ -6578,6 +6812,10 @@ body {
 
     .aircraft-preview-stat__number {
         font-size: 11px;
+    }
+
+    .aircraft-preview-stat__prefix {
+        font-size: 7px;
     }
 
     .aircraft-preview-stat__unit {

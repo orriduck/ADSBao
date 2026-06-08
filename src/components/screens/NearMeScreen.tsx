@@ -2,26 +2,27 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, RefreshCw } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
 
-// Minimum movement (in NM) before the explorer is re-centered on the
-// new lat/lon. ~0.15 NM ≈ 280 m is roughly a city block — small
-// enough that the page reacts to a walk across town within a minute
-// or two, large enough that GPS jitter (typically 5–30 m on phones)
-// doesn't trigger a re-fetch on every watchPosition tick.
+// Minimum movement (in NM) before the explorer is re-centered. Only
+// used by the mobile watchPosition path — desktop uses a one-shot
+// getCurrentPosition and a manual refresh button.
 const POSITION_REFRESH_THRESHOLD_NM = 0.15;
 
-// `/here` — explorer view centered on the user's current position
-// instead of an airport. Mirrors the `/airport/[icao]` shell but
-// substitutes a synthetic "Your location" profile for the airport
-// identity and asks AirportExplorer to run in "nearMe" mode (which
-// flips the metric cards to read-only "—" placeholders, swaps the
-// weather card to the closest airport METAR, and skips the
-// airport-bound fetches).
+// Desktop device detection — fine pointer + no touch = laptop/desktop.
+function isDesktopDevice() {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(pointer: fine)").matches &&
+    !("ontouchstart" in window)
+  );
+}
+
+// `/here` — explorer view centered on the user's current position.
 export default function NearMeScreen() {
   const router = useRouter();
   const { locale, t } = useI18n();
@@ -30,93 +31,93 @@ export default function NearMeScreen() {
     "idle" | "requesting" | "granted" | "denied" | "unavailable"
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  // Active geolocation watch id (numeric handle returned by
-  // navigator.geolocation.watchPosition). Stored in a ref so re-renders
-  // don't restart the watch — we only want to start once on mount and
-  // tear it down on unmount.
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastTime, setLastTime] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const desktopRef = useRef(isDesktopDevice());
 
-  // Continuously track the user's position so a real-world move
-  // refreshes the explorer without the user touching anything.
-  // watchPosition fires every time the OS sees a position change;
-  // we apply a movement threshold downstream so we don't thrash
-  // re-fetches on GPS jitter (typically 5–30m on phones).
+  // Desktop: one-shot getCurrentPosition + manual refresh.
+  // Mobile: continuous watchPosition with movement threshold.
   const requestLocation = useCallback(() => {
-    if (
-      typeof navigator === "undefined" ||
-      !navigator.geolocation?.watchPosition
-    ) {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
       setStatus("unavailable");
       setErrorMessage(t("nearMe.unsupported"));
       return;
     }
-    // Stop any in-flight watch before starting a new one (the user
-    // hit "Try again" after a previous denial, or the component
-    // re-ran the effect because of a hot reload).
-    if (
-      watchIdRef.current != null &&
-      typeof navigator.geolocation.clearWatch === "function"
-    ) {
+
+    if (watchIdRef.current != null && typeof navigator.geolocation.clearWatch === "function") {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
+
     setStatus("requesting");
     setErrorMessage("");
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-          setStatus("unavailable");
-          setErrorMessage(t("nearMe.unsupported"));
-          return;
+
+    const handleSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        setStatus("unavailable");
+        setErrorMessage(t("nearMe.unsupported"));
+        return;
+      }
+      setStatus("granted");
+      setRefreshing(false);
+      if (desktopRef.current) {
+        setLastTime(
+          new Intl.DateTimeFormat("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }).format(new Date()),
+        );
+      }
+      setCoords((previous) => {
+        if (!previous) return { lat: latitude, lon: longitude };
+        const distance = getDistanceNm(previous.lat, previous.lon, latitude, longitude);
+        if (distance != null && distance < POSITION_REFRESH_THRESHOLD_NM) {
+          return previous;
         }
-        // Always mark "granted" on a successful tick — the prompt
-        // closes as soon as we have any fix.
-        setStatus("granted");
-        // Only push a coord update when the user has materially
-        // moved. The downstream lat/lon-keyed fetches (aircraft
-        // polling, reverse geocode, METAR via closest airport,
-        // airspace tiles) all re-issue on coord changes, so we
-        // gate at this layer.
-        setCoords((previous) => {
-          if (!previous) return { lat: latitude, lon: longitude };
-          const distance = getDistanceNm(
-            previous.lat,
-            previous.lon,
-            latitude,
-            longitude,
-          );
-          if (distance != null && distance < POSITION_REFRESH_THRESHOLD_NM) {
-            return previous;
-          }
-          return { lat: latitude, lon: longitude };
-        });
-      },
-      (error) => {
-        if (error?.code === error?.PERMISSION_DENIED) {
-          setStatus("denied");
-          setErrorMessage(t("nearMe.denied"));
-        } else {
-          setStatus("unavailable");
-          setErrorMessage(error?.message || t("nearMe.unsupported"));
-        }
-      },
-      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 30_000 },
-    );
+        return { lat: latitude, lon: longitude };
+      });
+    };
+
+    const handleError = (error: GeolocationPositionError) => {
+      if (error?.code === error?.PERMISSION_DENIED) {
+        setStatus("denied");
+        setErrorMessage(t("nearMe.denied"));
+      } else {
+        setStatus("unavailable");
+        setErrorMessage(error?.message || t("nearMe.unsupported"));
+      }
+      setRefreshing(false);
+    };
+
+    const options: PositionOptions = {
+      enableHighAccuracy: true,
+      timeout: 12_000,
+      maximumAge: desktopRef.current ? 0 : 30_000,
+    };
+
+    if (desktopRef.current) {
+      navigator.geolocation.getCurrentPosition(handleSuccess, handleError, options);
+    } else {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        handleSuccess,
+        handleError,
+        options,
+      );
+    }
   }, [t]);
 
-  // Start the watch on mount. The browser remembers prior grants on
-  // this origin so the second visit doesn't re-prompt. Watch is torn
-  // down on unmount so we don't leak listeners or keep the GPS hot
-  // when the user navigates away.
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    requestLocation();
+  }, [requestLocation]);
+
   useEffect(() => {
     requestLocation();
     return () => {
-      if (
-        watchIdRef.current != null &&
-        typeof navigator !== "undefined" &&
-        typeof navigator.geolocation?.clearWatch === "function"
-      ) {
+      if (watchIdRef.current != null && typeof navigator !== "undefined" && typeof navigator.geolocation?.clearWatch === "function") {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
@@ -127,9 +128,6 @@ export default function NearMeScreen() {
     () =>
       coords
         ? {
-            // Empty ICAO is the signal AirportExplorer / its hooks use
-            // to skip airport-only data fetches (METAR by icao,
-            // candidate watching spots, ATC frequencies).
             icao: "",
             name: t("sidebar.nearMeTitle"),
             lat: coords.lat,
@@ -163,6 +161,27 @@ export default function NearMeScreen() {
         mode="nearMe"
         onBack={handleBack}
       />
+      {/* Desktop refresh bar — top-right, matches the map menu position */}
+      {desktopRef.current && (
+        <div className="near-me-refresh">
+          {lastTime && (
+            <span className="near-me-refresh__time">{lastTime}</span>
+          )}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="near-me-refresh__btn"
+            aria-label={t("nearMe.refresh")}
+          >
+            <RefreshCw
+              size={14}
+              className={refreshing ? "animate-spin" : ""}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -420,6 +420,7 @@ const zhCN = {
     deniedHint: "请在浏览器地址栏允许本站获取位置后重试。",
     unsupported: "无法获取定位",
     unsupportedHint: "这个浏览器无法分享你的位置,你可以回首页选一个机场。",
+    refresh: "刷新位置",
   },
   search: {
     placeholder: "搜索 ICAO、IATA、城市或名称",
@@ -723,6 +724,22 @@ const zhCN = {
       82: "强阵雨",
       95: "雷暴",
     },
+    forecast: {
+      tomorrow: "明天",
+      clear: "晴",
+      mainlyClear: "少云",
+      partlyCloudy: "多云",
+      overcast: "阴",
+      fog: "雾",
+      drizzle: "小雨",
+      rain: "雨",
+      heavyRain: "大雨",
+      snow: "雪",
+      heavySnow: "大雪",
+      showers: "阵雨",
+      thunderstorm: "雷暴",
+      precipChance: "降水概率 {pct}%",
+    },
   },
   panels: {
     wikiKicker: "机场百科",
@@ -761,6 +778,7 @@ const zhCN = {
       temp: { label: "气温", title: "气温 / 露点", eyebrow: "气温露点" },
       pressure: { label: "气压", title: "高度表设定", eyebrow: "高度表" },
       local: { label: "本地实况", title: "本地天气", eyebrow: "Open-Meteo" },
+      hourly: { label: "预报", title: "逐时预报", eyebrow: "6小时 + 明天" },
     },
     carousel: {
       metar: { label: "METAR", navLabel: "METAR", title: "METAR 实况" },
@@ -770,6 +788,7 @@ const zhCN = {
       temp: { label: "气温", navLabel: "气温", title: "气温 / 露点" },
       pressure: { label: "气压", navLabel: "高度", title: "高度表设定" },
       local: { label: "本地", navLabel: "本地", title: "本地天气" },
+      hourly: { label: "预报", navLabel: "逐时", title: "逐时预报" },
     },
   },
 };

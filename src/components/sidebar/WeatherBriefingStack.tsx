@@ -20,6 +20,7 @@ export default function WeatherBriefingStack({
   airportCode = "",
   airportLat = 0,
   airportLon = 0,
+  nearMe = false,
 }) {
   const { t } = useI18n();
   const wikiAirport = useMemo(
@@ -36,6 +37,7 @@ export default function WeatherBriefingStack({
     airportCode,
     airportLat,
     airportLon,
+    nearMe,
   });
   const wiki = useAirportWiki(wikiAirport);
 
@@ -69,7 +71,8 @@ export default function WeatherBriefingStack({
         );
       })}
 
-      <section className="airport-briefing-card airport-briefing-card--wiki">
+      {!nearMe && (
+        <section className="airport-briefing-card airport-briefing-card--wiki">
         <div className="airport-briefing-card__heading">
           <span>{t("panels.wiki")}</span>
         </div>
@@ -101,6 +104,7 @@ export default function WeatherBriefingStack({
           </a>
         ) : null}
       </section>
+      )}
     </div>
   );
 }

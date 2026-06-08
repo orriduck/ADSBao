@@ -44,8 +44,11 @@ const T2S_PAIRS =
   "駛驶駿骏騎骑騙骗騰腾驅驱驕骄驗验驟骤骯肮鬆松鬱郁鬧闹" +
   "魅魅魚鱼鮮鲜鯨鲸鴻鸿鵝鹅鶴鹤麗丽麥麦麵面默默龐庞齋斋" +
   "齡龄龔龚龜龟麼么麽么齒齿髮发體体風风" +
-  // Common surnames / numerals seen in administrative names
-  "兩两個个種种億亿東东西西南南北北內内外外中中";
+  // Numerals / common characters that differ between scripts.
+  // Characters identical in both scripts (西·南·北·外·中) must
+  // NOT appear as keys — every key is a traditional-only form and
+  // every value its simplified equivalent.
+  "兩两個个種种億亿東东內内";
 
 const T2S_MAP = buildPairMap(T2S_PAIRS);
 

@@ -428,6 +428,7 @@ const en = {
     unsupported: "Location isn't available",
     unsupportedHint:
       "This browser can't share your position. Open an airport from the home page instead.",
+    refresh: "Refresh location",
   },
   search: {
     placeholder: "Search airport or city",
@@ -750,6 +751,22 @@ const en = {
       82: "Heavy showers",
       95: "Thunderstorm",
     },
+    forecast: {
+      tomorrow: "Tomorrow",
+      clear: "Clear",
+      mainlyClear: "MClear",
+      partlyCloudy: "PCloudy",
+      overcast: "Ovcst",
+      fog: "Fog",
+      drizzle: "Drizzle",
+      rain: "Rain",
+      heavyRain: "HvyRain",
+      snow: "Snow",
+      heavySnow: "HvySnow",
+      showers: "Showers",
+      thunderstorm: "Storm",
+      precipChance: "{pct}% chance of precipitation",
+    },
   },
   panels: {
     wikiKicker: "Airport wiki",
@@ -789,6 +806,7 @@ const en = {
       temp: { label: "Temp", title: "Temp / dew", eyebrow: "Thermal spread" },
       pressure: { label: "Pressure", title: "Pressure", eyebrow: "Altimeter" },
       local: { label: "Local", title: "Local weather", eyebrow: "Open-Meteo" },
+      hourly: { label: "Forecast", title: "Hourly forecast", eyebrow: "6 hr + tomorrow" },
     },
     carousel: {
       metar: { label: "METAR", navLabel: "METAR", title: "Raw METAR" },
@@ -798,6 +816,7 @@ const en = {
       temp: { label: "Temp", navLabel: "TEMP", title: "Temperature" },
       pressure: { label: "Pressure", navLabel: "ALT", title: "Altimeter" },
       local: { label: "Local", navLabel: "LOCAL", title: "Local conditions" },
+      hourly: { label: "Forecast", navLabel: "HRLY", title: "Hourly forecast" },
     },
   },
 };

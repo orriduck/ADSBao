@@ -10,6 +10,18 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.2.0": {
+    title: "逐时预报 + 中文修正 + 我的位置天气",
+    summary:
+      "本地天气新增 6 小时逐时预报网格和明天卡片。简中地名统一修正。桌面端我的位置改用单次定位 + 手动刷新。",
+    highlights: [
+      "本地天气: 3×2 逐时预报网格,点击卡片有 MetricCard 风格的 ink 背景和底部光晕,附带明天摘要卡片",
+      "简中修正: OSM 分号分隔的多地名变体只取第一个; 繁→简转换器不再污染已达简中的文字",
+      "我的位置模式: 天气面板只显示逐时预报 (不再有 METAR / 规则 / 气压 / 百科); 天气卡片可点击",
+      "桌面端我的位置: 改用单次定位,右上角显示刷新按钮和最后获取时间戳",
+      "高度前缀样式: FL 等前缀现在与单位同级字号,预览卡高度行三元素对齐",
+    ],
+  },
   "v2.1.0": {
     title: "我的位置探索页 + 拍机打磨",
     summary:

@@ -16,6 +16,19 @@ const OPEN_METEO_CURRENT_VARIABLES = [
   "wind_gusts_10m",
 ].join(",");
 
+const OPEN_METEO_HOURLY_VARIABLES = [
+  "temperature_2m",
+  "weather_code",
+  "precipitation_probability",
+].join(",");
+
+const OPEN_METEO_DAILY_VARIABLES = [
+  "temperature_2m_max",
+  "temperature_2m_min",
+  "weather_code",
+  "precipitation_probability_max",
+].join(",");
+
 function normalizeCoordinateParam(value) {
   const coordinate = Number(value);
   return Number.isFinite(coordinate) ? coordinate : null;
@@ -44,10 +57,12 @@ export function buildOpenMeteoCurrentWeatherUrl({ latitude, longitude }) {
   url.searchParams.set("latitude", String(latitude));
   url.searchParams.set("longitude", String(longitude));
   url.searchParams.set("current", OPEN_METEO_CURRENT_VARIABLES);
+  url.searchParams.set("hourly", OPEN_METEO_HOURLY_VARIABLES);
+  url.searchParams.set("daily", OPEN_METEO_DAILY_VARIABLES);
   url.searchParams.set("temperature_unit", "celsius");
   url.searchParams.set("wind_speed_unit", "kn");
   url.searchParams.set("precipitation_unit", "inch");
   url.searchParams.set("timezone", "auto");
-  url.searchParams.set("forecast_days", "1");
+  url.searchParams.set("forecast_days", "2");
   return url;
 }

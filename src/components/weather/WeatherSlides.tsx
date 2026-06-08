@@ -1,6 +1,7 @@
 "use client";
 
-import { Cloud, Eye, Gauge, Moon, Sun } from "lucide-react";
+import { useState } from "react";
+import { Cloud, Droplets, Eye, Gauge, Moon, Sun, Thermometer } from "lucide-react";
 import { FLIGHT_RULE_ORDER, FLIGHT_RULES } from "../../config/weather";
 import {
   clamp,
@@ -362,6 +363,133 @@ function MetricLine({ label, value, icon = null }) {
         {label}
       </span>
       <strong className="font-mono">{value}</strong>
+    </div>
+  );
+}
+
+// ―――――――――――――――――――――――――――――――――――――――――――――――――――
+// Hourly forecast + next-day local weather
+// ―――――――――――――――――――――――――――――――――――――――――――――――――――
+
+// Compact weather code → short i18n label so each hourly cell reads
+// as a terse icon-ish word (e.g. "晴" / "Clear") without a full sentence.
+function shortWeatherLabel(code, t) {
+  if (code == null) return "";
+  // Codes disambiguated for the narrow hourly column — keep it at
+  // most 3-4 characters wide in English, 1-2 in Chinese.
+  const compact = {
+    0: "weather.forecast.clear",
+    1: "weather.forecast.mainlyClear",
+    2: "weather.forecast.partlyCloudy",
+    3: "weather.forecast.overcast",
+    45: "weather.forecast.fog",
+    48: "weather.forecast.fog",
+    51: "weather.forecast.drizzle",
+    53: "weather.forecast.drizzle",
+    55: "weather.forecast.drizzle",
+    61: "weather.forecast.rain",
+    63: "weather.forecast.rain",
+    65: "weather.forecast.heavyRain",
+    71: "weather.forecast.snow",
+    73: "weather.forecast.snow",
+    75: "weather.forecast.heavySnow",
+    80: "weather.forecast.showers",
+    81: "weather.forecast.showers",
+    82: "weather.forecast.showers",
+    95: "weather.forecast.thunderstorm",
+  };
+  const key = compact[code];
+  return key ? t(key) : "";
+}
+
+function hourlyTemp(val, unit) {
+  if (val == null || !Number.isFinite(Number(val))) return "—";
+  return `${Math.round(convertTemperatureFromC(Number(val), unit))}°`;
+}
+
+export function HourlyForecastSlide({ localWeather }) {
+  const { t } = useI18n();
+  const { preferences: units } = useUnitPreferences();
+  const hours = localWeather?.hourly ?? [];
+  const tomorrow = localWeather?.tomorrow ?? null;
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
+
+  return (
+    <div className="weather-visual-layout">
+      {/* 6-hour grid — 3 columns × 2 rows, each cell is a card */}
+      {hours.length > 0 ? (
+        <div className="hourly-grid">
+          {hours.map((h, i) => {
+            const isActive = activeIdx === i;
+            return (
+              <button
+                key={i}
+                type="button"
+                data-active={isActive ? "true" : undefined}
+                className="hourly-card group"
+                onClick={() => setActiveIdx(isActive ? null : i)}
+              >
+                <span className="hourly-card__time">{h.time}</span>
+                <span className="hourly-card__temp notranslate" translate="no">
+                  {hourlyTemp(h.temperatureC, units.temperature)}
+                </span>
+                <span className="hourly-card__condition notranslate" translate="no">
+                  {shortWeatherLabel(h.weatherCode, t) || "—"}
+                </span>
+                {h.precipitationProbability != null &&
+                  h.precipitationProbability > 0 ? (
+                  <span className="hourly-card__precip">
+                    <Droplets size={10} aria-hidden="true" />
+                    {Math.round(h.precipitationProbability)}%
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {/* Tomorrow summary */}
+      {tomorrow ? (
+        <div className="forecast-tomorrow">
+          <div className="forecast-tomorrow__label">
+            {t("weather.forecast.tomorrow")}
+          </div>
+          <div className="forecast-tomorrow__card">
+            <div className="forecast-tomorrow__date notranslate" translate="no">
+              {(() => {
+                try {
+                  return new Intl.DateTimeFormat("en", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  }).format(new Date(tomorrow.time + "T12:00"));
+                } catch {
+                  return "";
+                }
+              })()}
+            </div>
+            <div className="forecast-tomorrow__condition">
+              {t(`weather.code.${tomorrow.weatherCode ?? "unknown"}`)}
+            </div>
+            <div className="forecast-tomorrow__temps notranslate" translate="no">
+              <Thermometer size={13} aria-hidden="true" />
+              {hourlyTemp(tomorrow.temperatureMaxC, units.temperature)}
+              <span className="forecast-tomorrow__sep">/</span>
+              <span className="forecast-tomorrow__lo">
+                {hourlyTemp(tomorrow.temperatureMinC, units.temperature)}
+              </span>
+            </div>
+            {tomorrow.precipitationProbability != null &&
+              tomorrow.precipitationProbability > 0 ? (
+              <div className="forecast-tomorrow__precip">
+                <Droplets size={11} aria-hidden="true" />
+                {Math.round(tomorrow.precipitationProbability)}%
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -54,6 +54,18 @@ function normalizeString(value: unknown) {
   return String(value || "").trim();
 }
 
+// OSM stores multiple name variants in a single tag separated by
+// semicolons (e.g. `马萨诸塞州;麻薩诸塞州;麻省`). Return the
+// first (canonical) variant only, and trim any trailing whitespace
+// that may pad the individual entries.
+function firstOsmVariant(value: unknown) {
+  const raw = normalizeString(value);
+  if (!raw) return "";
+  // Split on literal ';' — OSM convention for multi-valued tags.
+  const idx = raw.indexOf(";");
+  return idx === -1 ? raw : raw.slice(0, idx).trim();
+}
+
 function firstNonEmpty(...values: Array<unknown>) {
   for (const value of values) {
     const text = normalizeString(value);
@@ -64,7 +76,7 @@ function firstNonEmpty(...values: Array<unknown>) {
 
 // Bump when the normalization rules change so prior in-memory results don't
 // linger past a hot reload / SPA navigation.
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 
 function cacheKey(lat: number, lon: number, language: string) {
   // ~1km resolution is plenty for "what city am I in" — and the GPS
@@ -120,21 +132,25 @@ export async function fetchReverseGeocode(
     // City fallback chain — Nominatim populates the most specific
     // bucket the OSM relation provided. Urban points usually fill
     // `city`; rural points fill `town` / `village` / `hamlet`.
-    city: firstNonEmpty(
-      address.city,
-      address.town,
-      address.village,
-      address.borough,
-      address.hamlet,
-      address.municipality,
+    city: firstOsmVariant(
+      firstNonEmpty(
+        address.city,
+        address.town,
+        address.village,
+        address.borough,
+        address.hamlet,
+        address.municipality,
+      ),
     ),
-    county: firstNonEmpty(
-      address.county,
-      address.district,
-      address.state_district,
+    county: firstOsmVariant(
+      firstNonEmpty(
+        address.county,
+        address.district,
+        address.state_district,
+      ),
     ),
-    state: firstNonEmpty(address.state, address.region),
-    countryName: normalizeString(address.country),
+    state: firstOsmVariant(firstNonEmpty(address.state, address.region)),
+    countryName: firstOsmVariant(normalizeString(address.country)),
     countryCode: normalizeString(address.country_code).toUpperCase(),
   };
 

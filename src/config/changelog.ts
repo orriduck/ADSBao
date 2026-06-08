@@ -7,6 +7,20 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.2.0",
+    kind: "feat",
+    title: "Hourly forecast, locale fixes & near-me weather",
+    summary:
+      "Local weather gets a 6-hour forecast grid and next-day card. Simplified Chinese place names are consistently simplified. Near-me mode shows only weather. Desktop uses one-shot geolocation with a manual refresh.",
+    highlights: [
+      "Local weather: 3×2 hourly forecast grid with MetricCard-style tap interaction, plus a Tomorrow summary card",
+      "Simplified Chinese: OSM semicolon-delimited name variants are stripped; trad→simp converter no longer corrupts already-simplified text",
+      "Near-me mode: weather panel shows only the forecast (no METAR / rules / pressure / wiki); weather card is clickable",
+      "Desktop near-me: one-shot geolocation instead of continuous watch, with a refresh button and last-fix timestamp",
+      "Altitude prefix (FL) in preview cards now matches the unit typography so the row aligns cleanly",
+    ],
+  },
+  {
     version: "v2.1.0",
     kind: "feat",
     title: "Near-me explorer + Plane Hunter polish",

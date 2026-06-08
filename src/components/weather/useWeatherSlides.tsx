@@ -5,6 +5,7 @@ import { useLocalWeather } from "@/hooks/useLocalWeather";
 import {
   CeilingSlide,
   FlightRulesSlide,
+  HourlyForecastSlide,
   LocalWeatherSlide,
   MetarSlide,
   PressureSlide,
@@ -37,6 +38,7 @@ export function useWeatherSlides({
   airportCode,
   airportLat,
   airportLon,
+  nearMe = false,
 }) {
   const {
     weather: localWeather,
@@ -68,41 +70,53 @@ export function useWeatherSlides({
     });
 
     return [
+      // Near-me mode: only the hourly forecast grid (which already
+      // contains the tomorrow card below it). No METAR, no flight
+      // rules, no ceiling/wind/temp/pressure — those all depend on
+      // an airport METAR which doesn't exist for the user's location.
+      ...(nearMe
+        ? []
+        : [
+            withContent(
+              "metar",
+              <MetarSlide
+                metarRaw={metarRaw}
+                metarLoading={metarLoading}
+                metarError={metarError}
+                metarStatusCode={metarStatusCode}
+                metarStation={airportCode}
+              />,
+            ),
+            withContent("rules", <FlightRulesSlide metar={metar} />),
+            shouldShowCeilingSlide(metar)
+              ? withContent("ceiling", <CeilingSlide metar={metar} />)
+              : null,
+            withContent(
+              "wind",
+              <WindSlide metar={metar} localWeather={localWeather} />,
+            ),
+            withContent(
+              "temp",
+              <TemperatureSlide metar={metar} localWeather={localWeather} />,
+            ),
+            withContent(
+              "pressure",
+              <PressureSlide metar={metar} localWeather={localWeather} />,
+            ),
+            withContent(
+              "local",
+              <LocalWeatherSlide
+                airportCode={airportCode}
+                localWeather={localWeather}
+                localWeatherError={localWeatherError}
+                localWeatherLoading={localWeatherLoading}
+                localWeatherStatusCode={localWeatherStatusCode}
+              />,
+            ),
+          ]),
       withContent(
-        "metar",
-        <MetarSlide
-          metarRaw={metarRaw}
-          metarLoading={metarLoading}
-          metarError={metarError}
-          metarStatusCode={metarStatusCode}
-          metarStation={airportCode}
-        />,
-      ),
-      withContent("rules", <FlightRulesSlide metar={metar} />),
-      shouldShowCeilingSlide(metar)
-        ? withContent("ceiling", <CeilingSlide metar={metar} />)
-        : null,
-      withContent(
-        "wind",
-        <WindSlide metar={metar} localWeather={localWeather} />,
-      ),
-      withContent(
-        "temp",
-        <TemperatureSlide metar={metar} localWeather={localWeather} />,
-      ),
-      withContent(
-        "pressure",
-        <PressureSlide metar={metar} localWeather={localWeather} />,
-      ),
-      withContent(
-        "local",
-        <LocalWeatherSlide
-          airportCode={airportCode}
-          localWeather={localWeather}
-          localWeatherError={localWeatherError}
-          localWeatherLoading={localWeatherLoading}
-          localWeatherStatusCode={localWeatherStatusCode}
-        />,
+        "hourly",
+        <HourlyForecastSlide localWeather={localWeather} />,
       ),
     ].filter(Boolean);
   }, [
