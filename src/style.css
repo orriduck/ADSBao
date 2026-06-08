@@ -1483,16 +1483,16 @@ body:has(.app-detail-shell) {
     opacity: 0.46;
     pointer-events: none;
     stroke: var(--airspace-label-text);
-    stroke-dasharray: 5 72;
+    stroke-dasharray: 10 120;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 8px;
+    stroke-width: 10px;
 }
 
 .airspace-boundary-edge--focused {
     opacity: 0.78;
-    stroke-dasharray: 5 64;
-    stroke-width: 10px;
+    stroke-dasharray: 12 100;
+    stroke-width: 12px;
 }
 
 .airspace-interior-hatch {
