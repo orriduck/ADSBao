@@ -61,6 +61,7 @@ function AirportExplorerContent({
   // candidate-spots / ATC fetches are skipped, METAR temp comes from
   // the closest nearby airport, sidebar identity reads "Your location".
   mode = "airport",
+  nearMeRefresh,
 }) {
   const nearMe = mode === "nearMe";
   const { t } = useI18n();
@@ -466,6 +467,7 @@ function AirportExplorerContent({
     routeProvider: traffic.routeProvider,
     loadingStatus: sourceLoadingStatus,
     nearMe,
+    nearMeRefresh,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
     onSelectCandidateWatchingSpot: selectCandidateWatchingSpot,

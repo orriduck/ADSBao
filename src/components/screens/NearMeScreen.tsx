@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LocateFixed, RefreshCw } from "lucide-react";
+import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
@@ -160,28 +160,12 @@ export default function NearMeScreen() {
         airport={airport}
         mode="nearMe"
         onBack={handleBack}
+        nearMeRefresh={
+          desktopRef.current
+            ? { lastTime, refreshing, onRefresh: handleRefresh }
+            : undefined
+        }
       />
-      {/* Desktop refresh bar — top-right, matches the map menu position */}
-      {desktopRef.current && (
-        <div className="near-me-refresh">
-          {lastTime && (
-            <span className="near-me-refresh__time">{lastTime}</span>
-          )}
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="near-me-refresh__btn"
-            aria-label={t("nearMe.refresh")}
-          >
-            <RefreshCw
-              size={14}
-              className={refreshing ? "animate-spin" : ""}
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-      )}
     </div>
   );
 }

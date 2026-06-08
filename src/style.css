@@ -3289,11 +3289,12 @@ body {
     color: var(--atc-text);
     cursor: pointer;
     display: inline-flex;
-    height: 30px;
+    height: 28px;
     justify-content: center;
     padding: 0;
     transition: background .15s;
-    width: 30px;
+    vertical-align: middle;
+    width: 28px;
     -webkit-appearance: none;
     appearance: none;
 }

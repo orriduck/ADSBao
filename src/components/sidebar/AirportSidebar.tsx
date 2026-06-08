@@ -44,6 +44,7 @@ export default function AirportSidebar({
   // read-only "—" placeholders (weather still shows the live temp,
   // but doesn't switch to a briefing view on click).
   nearMe = false,
+  nearMeRefresh,
   onSelectAircraft,
   onSelectAirport,
   onSelectCandidateWatchingSpot,
@@ -88,6 +89,7 @@ export default function AirportSidebar({
         lat={lat}
         lon={lon}
         nearMe={nearMe}
+        nearMeRefresh={nearMeRefresh}
       />
       <SidebarViewSwitch
         activeView={activeView}
