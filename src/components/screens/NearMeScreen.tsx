@@ -35,6 +35,7 @@ export default function NearMeScreen() {
   const [lastTime, setLastTime] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const desktopRef = useRef(isDesktopDevice());
+  const initialRequestRef = useRef(true);
 
   // Desktop: one-shot getCurrentPosition + manual refresh.
   // Mobile: continuous watchPosition with movement threshold.
@@ -50,7 +51,12 @@ export default function NearMeScreen() {
       watchIdRef.current = null;
     }
 
-    setStatus("requesting");
+    // Only flip to "requesting" on the initial attempt — refreshes
+    // keep the current view in place while the new fix loads.
+    if (initialRequestRef.current) {
+      setStatus("requesting");
+      initialRequestRef.current = false;
+    }
     setErrorMessage("");
 
     const handleSuccess = (position: GeolocationPosition) => {
