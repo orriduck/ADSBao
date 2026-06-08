@@ -143,11 +143,11 @@ const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> 
       buildingOpacity: 0.82,
       // Water bodies — clear blue-grey, visibly distinct from land
       water: "#3d6b7a",
-      // Landuse (parks, forests) — visible low-contrast green tones
-      landuse: "#446348",
-      landuseOpacity: 0.62,
-      landcover: "#3f5c43",
-      landcoverOpacity: 0.55,
+      // Landuse (parks, forests) — clearly green, low-contrast
+      landuse: "#4a7048",
+      landuseOpacity: 0.7,
+      landcover: "#456b43",
+      landcoverOpacity: 0.62,
       // Roads — clearly gray, not background-black
       road: "#6b7066",
       roadCasing: "#3b4038",
