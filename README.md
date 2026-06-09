@@ -22,8 +22,8 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/adsbao-airport-egll.jpg" alt="ADSBao EGLL London Heathrow airport traffic map with nearby aircraft, runways, weather, and airspace overlays" width="49%" />
-  <img src="docs/screenshots/adsbao-aircraft-npt8bf.jpg" alt="ADSBao flight tracker page with aircraft telemetry, route context, and ADS-B trace" width="49%" />
+  <img src="docs/screenshots/adsbao-airport-kbos.jpg" alt="ADSBao KBOS Boston Logan airport traffic map with nearby aircraft, runways, weather, and airspace overlays" width="49%" />
+  <img src="docs/screenshots/adsbao-aircraft-dal176.jpg" alt="ADSBao flight tracker page with aircraft telemetry, route context, and ADS-B trace" width="49%" />
 </p>
 
 ## Why ADSBao
