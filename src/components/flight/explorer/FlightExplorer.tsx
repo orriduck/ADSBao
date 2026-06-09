@@ -431,6 +431,24 @@ function FlightExplorerContent({ callsign }) {
     [rawAircraft, routesByCallsign],
   );
 
+  // Backfill the focal position from the merged (nearby-favored) array so
+  // the map center uses the freshest position across all data sources,
+  // not just the dedicated callsign API result.
+  const focalFromMerged = useMemo(() => {
+    if (!trackedAircraftForDisplay) return null;
+    const key = getAircraftIdentity(trackedAircraftForDisplay);
+    return aircraft.find((item) => getAircraftIdentity(item) === key) || null;
+  }, [aircraft, trackedAircraftForDisplay]);
+
+  useEffect(() => {
+    if (!focalFromMerged) return;
+    const lat = toFiniteCoordinate(focalFromMerged.lat);
+    const lon = toFiniteCoordinate(focalFromMerged.lon);
+    if (lat != null && lon != null) {
+      lastKnownRef.current = { lat, lon };
+    }
+  }, [focalFromMerged]);
+
   // Default the selection to the focal aircraft so its trace appears on
   // load. Once the user clicks around it's their choice.
   const focalKey = trackedAircraftForDisplay
