@@ -12,7 +12,7 @@ assert.equal(
 );
 assert.equal(
   getMapLibreBaseStyleUrl("light"),
-  "https://tiles.openfreemap.org/styles/positron",
+  "https://tiles.openfreemap.org/styles/bright",
 );
 assert.equal(
   getMapLibreBaseStyleUrl("unknown"),
