@@ -124,7 +124,7 @@ export default function MapControlRail({
           aria-label={t("map.wakeLock")}
           onClick={onToggleWakeLock}
         >
-          <MapControlIcon iconKey="monitor" />
+          <MapControlIcon iconKey="coffee" />
         </ToolbarButton>
       )}
 
