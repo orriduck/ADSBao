@@ -69,14 +69,15 @@ export default function MapSourceStatusDisplay({
     !updatedLabel &&
     !routeProviderLabel &&
     !loadingStatus &&
-    !displayedLoadingStatus
+    !displayedLoadingStatus &&
+    !wakeLockActive
   ) {
     return null;
   }
 
   const isMapCorner = placement === "map-corner";
   const isInfer = feedStatus === "infer";
-  const hasPrimary = feedSource || routeProviderLabel || updatedLabel;
+  const hasPrimary = feedSource || routeProviderLabel || updatedLabel || wakeLockActive;
 
   return (
     <div
@@ -88,6 +89,19 @@ export default function MapSourceStatusDisplay({
     >
       {hasPrimary ? (
         <span className={lineClassName}>
+          {wakeLockActive ? (
+            <>
+              <span className={cn("flex-none", "text-atc-orange")}>
+                ☕ Keep awake
+              </span>
+              {(feedSource || routeProviderLabel || updatedLabel) ? (
+                <span
+                  aria-hidden="true"
+                  className={diamondClassName}
+                />
+              ) : null}
+            </>
+          ) : null}
           {feedSource ? (
             <EndfieldValueSwap
               identityKey={`source:${feedSource}`}
@@ -147,16 +161,6 @@ export default function MapSourceStatusDisplay({
           >
             {displayedLoadingStatus}
           </span>
-        </span>
-      ) : null}
-      {wakeLockActive ? (
-        <span
-          className={cn(
-            lineClassName,
-            "text-atc-orange",
-          )}
-        >
-          ☕ Keep awake
         </span>
       ) : null}
     </div>
