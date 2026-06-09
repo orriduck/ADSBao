@@ -20,7 +20,7 @@ assert.equal(url.origin, "https://api.open-meteo.com");
 assert.equal(url.searchParams.get("latitude"), "42.3656");
 assert.equal(url.searchParams.get("longitude"), "-71.0096");
 assert.equal(url.searchParams.get("wind_speed_unit"), "kn");
-assert.equal(url.searchParams.get("forecast_days"), "1");
+assert.equal(url.searchParams.get("forecast_days"), "2");
 assert.ok(url.searchParams.get("current").includes("temperature_2m"));
 
 assert.equal(isValidOpenMeteoCurrentPayload({ current: {} }), true);

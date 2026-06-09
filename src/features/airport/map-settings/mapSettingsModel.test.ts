@@ -32,6 +32,7 @@ import {
     showNavaidMarkers: false,
     showAirspaces: false,
     showCandidateWatchingSpots: true,
+    showCallsigns: true,
   });
 }
 
@@ -52,6 +53,7 @@ import {
     showNavaidMarkers: false,
     showAirspaces: true,
     showCandidateWatchingSpots: false,
+    showCallsigns: true,
   });
   assert.deepEqual(settings.layerOverrides, {
     [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
@@ -150,6 +152,7 @@ import {
     [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
     [MAP_LAYER_KEYS.AIRSPACES]: true,
     [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
+    [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: true,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
   });
@@ -179,6 +182,7 @@ import {
       showNavaidMarkers: false,
       showAirspaces: true,
       showCandidateWatchingSpots: false,
+      showCallsigns: true,
     },
   );
   const normalized = normalizeMapSettings(
