@@ -21,7 +21,7 @@ const mapCornerClassName = cn(
 );
 
 const lineClassName = cn(
-  "flex w-full min-w-0 flex-wrap items-center justify-end gap-[7px]",
+  "flex w-full min-w-0 items-center justify-end gap-[7px]",
   "text-[10px] font-semibold leading-none text-atc-dim",
   "[.airport-map-kit_&]:gap-[5px] [.airport-map-kit_&]:text-[8px]",
   "[.airport-map-menu--mobile_&]:justify-center [.airport-map-menu--mobile_&]:gap-1.5",
