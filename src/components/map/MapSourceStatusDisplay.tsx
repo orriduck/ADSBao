@@ -45,6 +45,7 @@ export default function MapSourceStatusDisplay({
   routeProviderLabel = "",
   loadingStatus = "",
   placement = "mobile-map",
+  wakeLockActive = false,
 }) {
   const loadingActive = Boolean(loadingStatus);
   const [displayedLoadingStatus, setDisplayedLoadingStatus] = useState(
@@ -146,6 +147,16 @@ export default function MapSourceStatusDisplay({
           >
             {displayedLoadingStatus}
           </span>
+        </span>
+      ) : null}
+      {wakeLockActive ? (
+        <span
+          className={cn(
+            lineClassName,
+            "text-atc-orange",
+          )}
+        >
+          ☕ Keep awake
         </span>
       ) : null}
     </div>

@@ -10,6 +10,7 @@ export default function MobileMapSourceStatus({
   lastUpdated = null,
   routeProvider = ROUTE_PROVIDER.ADSBDB,
   loadingStatus = "",
+  wakeLockActive = false,
 }) {
   const status = buildMapSourceStatusDisplay({ feedSource, routeProvider });
   const updatedLabel = formatUpdated(lastUpdated);
@@ -22,6 +23,7 @@ export default function MobileMapSourceStatus({
       routeProviderLabel={status.routeProvider}
       loadingStatus={loadingStatus}
       placement="map-corner"
+      wakeLockActive={wakeLockActive}
     />
   );
 }
