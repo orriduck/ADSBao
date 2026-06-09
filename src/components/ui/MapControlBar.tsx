@@ -34,6 +34,7 @@ export default function MapControlBar({
   userLocationPending = false,
   userLocationNotice = "",
   showSidebarToggle = true,
+  wakeLockActive = false,
   onZoom,
   onToggleMapLabels,
   onToggleRunwayBeams,
@@ -47,6 +48,7 @@ export default function MapControlBar({
   onToggleUserLocationAudio = null,
   onToggleSidebar,
   onFitToTrace = null,
+  onToggleWakeLock = null,
 }) {
   const controlZone = useRef(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -123,11 +125,13 @@ export default function MapControlBar({
         settingsOpen={settingsOpen}
         settingsSheetId={MAP_SETTINGS_SHEET_ID}
         showSidebarToggle={showSidebarToggle}
+        wakeLockActive={wakeLockActive}
         onToggleSidebar={onToggleSidebar}
         onCycleZoom={cycleZoom}
         onFitToTrace={onFitToTrace}
         onCycleTheme={cycleTheme}
         onToggleSettings={toggleSettings}
+        onToggleWakeLock={onToggleWakeLock}
       />
     </div>
   );

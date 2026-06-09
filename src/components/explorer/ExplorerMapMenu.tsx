@@ -3,6 +3,7 @@
 import MapControlBar from "@/components/ui/MapControlBar";
 import MobileMapSourceStatus from "./MobileMapSourceStatus";
 import { useExplorerUi } from "./ExplorerUiContext";
+import { useWakeLock } from "@/hooks/useWakeLock";
 
 export default function ExplorerMapMenu({
   feedSource = "",
@@ -46,6 +47,8 @@ export default function ExplorerMapMenu({
     toggleShowCallsigns,
   } = useExplorerUi();
 
+  const [wakeLockState, toggleWakeLock] = useWakeLock();
+
   return (
     <div
       className={`airport-map-menu ${
@@ -73,6 +76,7 @@ export default function ExplorerMapMenu({
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
         showSidebarToggle={isMobile}
+        wakeLockActive={wakeLockState.active}
         onZoom={setMapZoom}
         onToggleMapLabels={toggleMapLabels}
         onToggleRunwayBeams={toggleRunwayBeams}
@@ -86,6 +90,9 @@ export default function ExplorerMapMenu({
         onToggleUserLocationAudio={onToggleUserLocationAudio}
         onToggleSidebar={toggleSidebar}
         onFitToTrace={onFitToTrace}
+        onToggleWakeLock={
+          wakeLockState.supported ? toggleWakeLock : null
+        }
       />
 
       <MobileMapSourceStatus
@@ -94,6 +101,7 @@ export default function ExplorerMapMenu({
         lastUpdated={lastUpdated}
         routeProvider={routeProvider}
         loadingStatus={loadingStatus}
+        wakeLockActive={wakeLockState.active}
       />
     </div>
   );

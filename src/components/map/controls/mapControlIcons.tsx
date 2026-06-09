@@ -4,6 +4,7 @@ import {
   Antenna,
   ArrowDownToLine,
   ArrowUpToLine,
+  Coffee,
   Crosshair,
   Gauge,
   Layers,
@@ -49,8 +50,8 @@ export function MapControlIcon({ iconKey }) {
       return <MapIcon />;
     case "mapPinned":
       return <MapPinned />;
-    case "monitor":
-      return <Monitor />;
+    case "coffee":
+      return <Coffee />;
     case "moon":
       return <Moon />;
     case "mountain":
