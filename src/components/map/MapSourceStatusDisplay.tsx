@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import EndfieldValueSwap from "@/components/effects/EndfieldValueSwap";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { MOTION, EASE } from "@/animations/gsap";
 import { cn } from "@/lib/utils";
 
 const rootClassName =
@@ -37,6 +38,32 @@ const loadingClassName = cn(
   "[.airport-map-kit_&]:max-w-[min(224px,calc(100vw-106px))] [.airport-map-kit_&]:text-[7px]",
   "[.airport-map-menu--mobile_&]:max-w-[min(288px,calc(100vw-32px))] [.airport-map-menu--mobile_&]:text-center [.airport-map-menu--mobile_&]:text-[7px]",
 );
+
+/**
+ * Inline span with GSAP fade transition when content changes.
+ */
+function StatusSpan({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const prevRef = useRef(children);
+
+  useLayoutEffect(() => {
+    if (prevRef.current === children) return;
+    prevRef.current = children;
+    const el = ref.current;
+    if (!el) return;
+    gsap.fromTo(
+      el,
+      { opacity: 0, y: 2 },
+      { opacity: 1, y: 0, duration: MOTION.fast, ease: EASE.out, overwrite: "auto" },
+    );
+  }, [children]);
+
+  return (
+    <span ref={ref} className={className}>
+      {children}
+    </span>
+  );
+}
 
 export default function MapSourceStatusDisplay({
   feedSource = "",
@@ -91,9 +118,9 @@ export default function MapSourceStatusDisplay({
         <span className={lineClassName}>
           {wakeLockActive ? (
             <>
-              <span className="flex-none tabular-nums text-atc-orange">
+              <StatusSpan className="flex-none tabular-nums text-atc-orange">
                 ☕ Keep awake
-              </span>
+              </StatusSpan>
               {(feedSource || routeProviderLabel || updatedLabel) ? (
                 <span
                   aria-hidden="true"
@@ -103,16 +130,11 @@ export default function MapSourceStatusDisplay({
             </>
           ) : null}
           {feedSource ? (
-            <EndfieldValueSwap
-              identityKey={`source:${feedSource}`}
-              value={(
-                <span className="notranslate" translate="no">
-                  {feedSource}
-                </span>
-              )}
-              className={cn("flex-none overflow-visible", isInfer && "text-atc-faint")}
-              direction="reverse"
-            />
+            <StatusSpan
+              className={cn("flex-none notranslate", isInfer && "text-atc-faint")}
+            >
+              {feedSource}
+            </StatusSpan>
           ) : null}
           {feedSource && routeProviderLabel ? (
             <span
@@ -121,16 +143,9 @@ export default function MapSourceStatusDisplay({
             />
           ) : null}
           {routeProviderLabel ? (
-            <EndfieldValueSwap
-              identityKey={`route-provider:${routeProviderLabel}`}
-              value={(
-                <span className="notranslate" translate="no">
-                  {routeProviderLabel}
-                </span>
-              )}
-              className="flex-none [.airport-map-menu--mobile_&]:text-[8px]"
-              direction="reverse"
-            />
+            <StatusSpan className="flex-none notranslate [.airport-map-menu--mobile_&]:text-[8px]">
+              {routeProviderLabel}
+            </StatusSpan>
           ) : null}
           {(feedSource || routeProviderLabel) && updatedLabel ? (
             <span
@@ -139,12 +154,11 @@ export default function MapSourceStatusDisplay({
             />
           ) : null}
           {updatedLabel ? (
-            <span
+            <StatusSpan
               className={cn("flex-none tabular-nums", isInfer && "text-atc-faint")}
-              aria-live="off"
             >
               {updatedLabel}
-            </span>
+            </StatusSpan>
           ) : null}
         </span>
       ) : null}
