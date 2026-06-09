@@ -143,7 +143,7 @@ export default function MapSourceStatusDisplay({
             />
           ) : null}
           {routeProviderLabel ? (
-            <StatusSpan className="flex-none notranslate [.airport-map-menu--mobile_&]:text-[8px]">
+            <StatusSpan className="flex-none notranslate">
               {routeProviderLabel}
             </StatusSpan>
           ) : null}
