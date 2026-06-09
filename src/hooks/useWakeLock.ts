@@ -16,7 +16,13 @@ export interface WakeLockState {
  * when the page becomes visible again (browsers auto-release on tab switch).
  */
 export function useWakeLock(): [WakeLockState, () => void] {
-  const [supported] = useState(() => "wakeLock" in navigator);
+  const [supported] = useState(() => {
+    try {
+      return typeof navigator !== "undefined" && "wakeLock" in navigator;
+    } catch {
+      return false;
+    }
+  });
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<WakeLockSentinel | null>(null);
