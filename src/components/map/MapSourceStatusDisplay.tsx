@@ -91,7 +91,7 @@ export default function MapSourceStatusDisplay({
         <span className={lineClassName}>
           {wakeLockActive ? (
             <>
-              <span className={cn("flex-none", "text-atc-orange")}>
+              <span className="flex-none tabular-nums text-atc-orange">
                 ☕ Keep awake
               </span>
               {(feedSource || routeProviderLabel || updatedLabel) ? (
