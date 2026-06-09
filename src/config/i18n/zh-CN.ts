@@ -505,6 +505,8 @@ const zhCN = {
     locationUnavailable: "暂时无法获取位置。",
     distanceAria: "地图距离:{distance} 海里",
     distanceLabel: "距离",
+    wakeLock: "屏幕常亮",
+    wakeLockTitle: "防止屏幕休眠",
   },
   mapLayers: {
     mapLabels: "地图标签",

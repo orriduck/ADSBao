@@ -32,11 +32,13 @@ export default function MapControlRail({
   settingsOpen,
   settingsSheetId,
   showSidebarToggle = true,
+  wakeLockActive = false,
   onToggleSidebar,
   onCycleZoom,
   onFitToTrace = null,
   onCycleTheme,
   onToggleSettings,
+  onToggleWakeLock = null,
 }) {
   const { t } = useI18n();
   const { isLoaded, isSignedIn } = useUser();
@@ -113,6 +115,18 @@ export default function MapControlRail({
       >
         <MapControlIcon iconKey={SETTINGS_ICON_KEY} />
       </ToolbarButton>
+
+      {onToggleWakeLock && (
+        <ToolbarButton
+          tone="rail"
+          active={wakeLockActive}
+          title={t("map.wakeLockTitle")}
+          aria-label={t("map.wakeLock")}
+          onClick={onToggleWakeLock}
+        >
+          <MapControlIcon iconKey="monitor" />
+        </ToolbarButton>
+      )}
 
       <ToolbarSeparator />
 

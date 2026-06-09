@@ -513,6 +513,8 @@ const en = {
     locationUnavailable: "Location is unavailable.",
     distanceAria: "Map distance: {distance} nautical miles",
     distanceLabel: "Distance",
+    wakeLock: "Keep screen awake",
+    wakeLockTitle: "Prevent screen from sleeping",
   },
   mapLayers: {
     mapLabels: "Map labels",

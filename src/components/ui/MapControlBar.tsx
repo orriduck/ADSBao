@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { MAP_ZOOM_OPTIONS } from "../../config/mapControls";
 import { useThemePreference } from "../../features/app-shell/useThemePreference";
+import { useWakeLock } from "../../hooks/useWakeLock";
 import MapControlRail from "@/components/map/controls/MapControlRail";
 import MapSettingsSheet from "@/components/map/controls/MapSettingsSheet";
 import {
@@ -56,6 +57,8 @@ export default function MapControlBar({
     cycleTheme,
     selectTheme,
   } = useThemePreference();
+
+  const [wakeLockState, toggleWakeLock] = useWakeLock();
 
   const currentZoomOption = useMemo(
     () => resolveZoomOption(activeZoom, MAP_ZOOM_OPTIONS),
@@ -123,11 +126,15 @@ export default function MapControlBar({
         settingsOpen={settingsOpen}
         settingsSheetId={MAP_SETTINGS_SHEET_ID}
         showSidebarToggle={showSidebarToggle}
+        wakeLockActive={wakeLockState.active}
         onToggleSidebar={onToggleSidebar}
         onCycleZoom={cycleZoom}
         onFitToTrace={onFitToTrace}
         onCycleTheme={cycleTheme}
         onToggleSettings={toggleSettings}
+        onToggleWakeLock={
+          wakeLockState.supported ? toggleWakeLock : null
+        }
       />
     </div>
   );
