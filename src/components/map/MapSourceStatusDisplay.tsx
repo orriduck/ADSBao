@@ -9,13 +9,13 @@ const rootClassName =
   "flex min-w-0 flex-col items-end justify-center gap-px whitespace-nowrap font-display [font-feature-settings:'tnum'_1] [text-shadow:0_1px_8px_var(--atc-bg)]";
 
 const mapCornerClassName = cn(
-  "absolute right-3 top-[calc(100%+6px)] hidden max-w-[calc(100vw-132px)] transform-none",
+  "absolute right-3 top-[calc(100%+6px)] hidden max-w-[calc(100vw-72px)] transform-none",
   "[.airport-map-menu_&]:flex",
   "[.airport-map-kit_&]:right-0.5 [.airport-map-kit_&]:top-[calc(100%+10px)]",
   "md:[.airport-map-kit_&]:top-[calc(100%+8px)]",
   "[.airport-map-menu--mobile_&]:left-1/2 [.airport-map-menu--mobile_&]:right-auto [.airport-map-menu--mobile_&]:top-[calc(100%+7px)]",
   "[.airport-map-menu--mobile_&]:bottom-[calc(100%+7px)] [.airport-map-menu--mobile_&]:top-auto",
-  "[.airport-map-menu--mobile_&]:max-w-[min(288px,calc(100vw-32px))] [.airport-map-menu--mobile_&]:-translate-x-1/2",
+  "[.airport-map-menu--mobile_&]:max-w-[min(360px,calc(100vw-16px))] [.airport-map-menu--mobile_&]:-translate-x-1/2",
   "[.airport-map-menu--mobile_&]:items-center [.airport-map-menu--mobile_&]:text-center",
   "[.airport-map-menu--mobile_&]:[filter:drop-shadow(0_7px_11px_color-mix(in_oklab,var(--atc-bg)_72%,transparent))_drop-shadow(0_1px_1px_color-mix(in_oklab,var(--atc-text)_24%,transparent))]",
 );
@@ -32,11 +32,11 @@ const diamondClassName =
   "inline-block size-[7px] flex-none rotate-45 bg-atc-orange [.airport-map-kit_&]:size-[5px] [.airport-map-menu--mobile_&]:size-1.5";
 
 const loadingClassName = cn(
-  "min-h-0 max-w-[min(280px,calc(100vw-132px))] overflow-hidden whitespace-normal",
+  "min-h-0 max-w-[min(360px,calc(100vw-72px))] overflow-hidden whitespace-normal",
   "text-right font-mono text-[8px] font-semibold uppercase leading-none text-atc-dim",
   "opacity-0 transition-opacity duration-200 ease-out [overflow-wrap:anywhere] will-change-[opacity] motion-reduce:transition-none",
-  "[.airport-map-kit_&]:max-w-[min(224px,calc(100vw-106px))] [.airport-map-kit_&]:text-[7px]",
-  "[.airport-map-menu--mobile_&]:max-w-[min(288px,calc(100vw-32px))] [.airport-map-menu--mobile_&]:text-center [.airport-map-menu--mobile_&]:text-[7px]",
+  "[.airport-map-kit_&]:max-w-[min(320px,calc(100vw-72px))] [.airport-map-kit_&]:text-[7px]",
+  "[.airport-map-menu--mobile_&]:max-w-[min(360px,calc(100vw-16px))] [.airport-map-menu--mobile_&]:text-center [.airport-map-menu--mobile_&]:text-[7px]",
 );
 
 /**
