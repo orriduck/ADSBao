@@ -26,13 +26,18 @@ export default function SidebarViewSwitch({
   // surface as non-interactive "—" placeholders. Weather and
   // Flights stay interactive — weather shows the hourly forecast.
   nearMe = false,
+  // When feature flags haven't resolved yet, hold the layout stable
+  // at its pre-resolution state. Prevents dep/arr cards from
+  // appearing mid-flight when FlightAware flips from unresolved→true.
+  featureFlagsResolved = true,
 }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
   const temperature = formatTemperature(metar, units.temperature);
   const rule = metar?.flightCategory?.toUpperCase() || "WX";
   const showMovementCards =
-    nearMe || routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
+    nearMe ||
+    (featureFlagsResolved && routeProvider === ROUTE_PROVIDER.FLIGHTAWARE);
   const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
   const spottingCount = Number(candidateSpotCount) || 0;
   const showAtcCard = nearMe || atcCount > 0;

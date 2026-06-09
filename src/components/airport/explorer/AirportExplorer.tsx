@@ -465,6 +465,7 @@ function AirportExplorerContent({
     feedStatus: traffic.feedStatus,
     feedSource: traffic.feedSource,
     routeProvider: traffic.routeProvider,
+    flightAwareResolved: traffic.flightAwareResolved,
     loadingStatus: sourceLoadingStatus,
     nearMe,
     nearMeRefresh,

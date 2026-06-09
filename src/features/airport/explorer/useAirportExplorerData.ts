@@ -15,8 +15,12 @@ export function useAirportExplorerData(
   airportProfile,
   options: { metarIcao?: string } = {},
 ) {
-  const flightAwareEnabled = useFlightAwareEnabled();
+  const { enabled: flightAwareEnabled, resolved: flightAwareResolved } = useFlightAwareEnabled();
   const routeProvider = resolveRouteProvider({ flightAwareEnabled });
+  // While feature flags are still unresolved, hold the route provider
+  // at its pre-resolution state (adsbdb). This prevents the sidebar
+  // dep/arr cards from appearing/disappearing in a jarring layout jump
+  // when FlightAware flips from unresolved-false to resolved-true.
   // `metarIcao` overrides which station the weather card pulls from
   // when the explorer isn't anchored to a real airport (e.g. the
   // near-me view, which sources its temperature from the closest
@@ -84,6 +88,7 @@ export function useAirportExplorerData(
       routeLoadingCount,
       aircraftLoadingOverlayActive,
       applyTemporaryRoute,
+      flightAwareResolved,
     },
   };
 }

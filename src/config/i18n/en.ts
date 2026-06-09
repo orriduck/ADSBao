@@ -706,6 +706,8 @@ const en = {
         "Light wind usually gives the airport more runway flexibility and keeps arrival and departure flow stable.",
       variable:
         "Variable wind makes runway planning less predictable. Tower may switch flows or issue runway-specific guidance.",
+      unavailable:
+        "Wind data is not available yet. The METAR for this airport has not loaded or the station does not report wind.",
     },
     tempPara: {
       fogRisk:

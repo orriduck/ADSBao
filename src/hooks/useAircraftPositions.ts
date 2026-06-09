@@ -70,6 +70,10 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
   const hiddenSinceRef = useRef(0);
   const consecutiveFailuresRef = useRef(0);
   const traceTrackerRef = useRef(createAircraftTraceTracker());
+  // Tracks the previous active-query coords so we can clear stale
+  // aircraft when the center changes (airport switch / search jump)
+  // rather than showing old traffic under the new airport briefly.
+  const centerKeyRef = useRef("");
 
   useEffect(() => {
     let disposed = false;
@@ -144,7 +148,13 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
     };
 
     const start = ({ commitAfter = 0 } = {}) => {
-      stop({ clearAircraft: false });
+      const nextCenterKey = `${queryLat},${queryLon}`;
+      const centerChanged = centerKeyRef.current !== "" && centerKeyRef.current !== nextCenterKey;
+      centerKeyRef.current = nextCenterKey;
+      stop({
+        clearAircraft: centerChanged,
+        clearTrace: centerChanged,
+      });
       consecutiveFailuresRef.current = 0;
       setFeedStatus("live");
       setSettled(false);
@@ -210,6 +220,7 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
       start();
     } else {
       wasActiveRef.current = false;
+      centerKeyRef.current = "";
       stop();
       setSettled(false);
       setInitialLoading(false);

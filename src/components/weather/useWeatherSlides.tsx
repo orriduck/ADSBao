@@ -87,7 +87,7 @@ export function useWeatherSlides({
                 metarStation={airportCode}
               />,
             ),
-            withContent("rules", <FlightRulesSlide metar={metar} />),
+            withContent("rules", <FlightRulesSlide metar={metar} metarLoading={metarLoading} />),
             shouldShowCeilingSlide(metar)
               ? withContent("ceiling", <CeilingSlide metar={metar} />)
               : null,

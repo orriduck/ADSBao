@@ -17,6 +17,7 @@ import {
   DEFAULT_MAP_SETTINGS,
   MAP_SETTINGS_DEVICE_TYPES,
   MAP_LAYER_KEYS,
+  PRE_HYDRATION_VISUAL_LAYERS,
   buildCustomMapSettings,
   buildMapSettingsWithBaseLayer,
   buildPresetMapSettings,
@@ -48,7 +49,12 @@ const mapSettingsDeviceForSidebarMode = (sidebarMode) =>
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
-  ...DEFAULT_MAP_LAYERS,
+  // Pre-hydration visual defaults — map labels and overlays are OFF
+  // until saved/cached settings are applied. This prevents the
+  // ON→OFF flicker when the user's saved settings (or the mode
+  // preset) turn out to differ from the DEFAULT_MAP_SETTINGS
+  // Controller preset.
+  ...PRE_HYDRATION_VISUAL_LAYERS,
   ...DEFAULT_USER_LOCATION_PREFERENCES,
   mapSettings: DEFAULT_MAP_SETTINGS,
   sidebarMode: "desktop",
@@ -58,15 +64,7 @@ const initialUiState = {
   selectedNavaidKey: "",
   selectedAirspaceId: "",
   selectedCandidateWatchingSpotId: "",
-  // Monotonic counter. Incremented by the UI when the user wants the map
-  // to fit its viewport to the currently-rendered aircraft trace; a
-  // child of AirportMap listens for changes and runs fitBounds against
-  // the trace points.
   fitToTraceSignal: 0,
-  // When true (default), the map re-centers on every aircraft position
-  // poll. The user opts out by clicking "fit to trace" — the map then
-  // stays anchored on the trace bounds. Clicking any preset zoom
-  // re-enables auto-follow.
   mapFollowsAircraft: true,
 };
 
@@ -350,6 +348,7 @@ export function ExplorerUiProvider({ children }) {
   const { isLoaded, isSignedIn } = useUser();
   const hasHydratedMapSettingsRef = useRef(false);
   const persistedMapSettingsRef = useRef("");
+  const [mapSettingsHydrated, setMapSettingsHydrated] = useState(false);
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
   const [mapSettingsSaveStatusCode, setMapSettingsSaveStatusCode] = useState<number | null>(null);
   const [mapSettingsSaveCycle, setMapSettingsSaveCycle] = useState(0);
@@ -441,6 +440,7 @@ export function ExplorerUiProvider({ children }) {
         : normalizeMapSettings(DEFAULT_MAP_SETTINGS);
       persistedMapSettingsRef.current = JSON.stringify(effectiveSettings);
       hasHydratedMapSettingsRef.current = true;
+      if (!cancelled) setMapSettingsHydrated(true);
     };
 
     hydrateMapSettings();
@@ -662,6 +662,7 @@ export function ExplorerUiProvider({ children }) {
       userLocationAudioEnabled,
       mapSettings,
       mapSettingsDevice,
+      mapSettingsHydrated,
       mapSettingsSaveStatus,
       mapSettingsSaveStatusCode,
       mapSettingsSaveCycle,
@@ -720,6 +721,7 @@ export function ExplorerUiProvider({ children }) {
       userLocationAudioEnabled,
       mapSettings,
       mapSettingsDevice,
+      mapSettingsHydrated,
       mapSettingsSaveStatus,
       mapSettingsSaveStatusCode,
       mapSettingsSaveCycle,

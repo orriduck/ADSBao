@@ -1339,7 +1339,7 @@ export default function PlaneHunterStudio({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useI18n();
-  const flightAwareEnabled = useFlightAwareEnabled();
+  const { enabled: flightAwareEnabled } = useFlightAwareEnabled();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   // Two-step flow: a source-picker modal hands off to the OS camera

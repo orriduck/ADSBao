@@ -83,7 +83,7 @@ export function useUserFeatureFlags() {
 }
 
 export function useFlightAwareEnabled() {
-  const { email, flags, hasUser, user } = useUserFeatureFlags();
+  const { email, flags, hasUser, user, resolved } = useUserFeatureFlags();
   const enabled = isFeatureFlagEnabled(
     flags,
     FEATURE_FLAGS.FLIGHTAWARE_ENABLED,
@@ -107,5 +107,5 @@ export function useFlightAwareEnabled() {
     }
   }, [email, enabled, flags, hasUser, user]);
 
-  return enabled;
+  return { enabled, resolved };
 }

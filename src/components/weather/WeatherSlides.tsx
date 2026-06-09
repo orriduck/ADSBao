@@ -90,18 +90,22 @@ export function MetarSlide({
   );
 }
 
-export function FlightRulesSlide({ metar }) {
+export function FlightRulesSlide({ metar, metarLoading = false }) {
   const { t } = useI18n();
-  const code = metar?.flightCategory || "VFR";
-  const rules = FLIGHT_RULES[code] || FLIGHT_RULES.VFR;
-  const label = rules.labelKey ? t(rules.labelKey) : rules.label;
-  const context = rules.contextKey ? t(rules.contextKey) : rules.context;
+  // When METAR is still loading or unavailable, don't default to VFR —
+  // that looks like meaningful data when it isn't. Show a pending or
+  // unavailable state instead.
+  const isMissing = !metar;
+  const code = isMissing ? null : (metar?.flightCategory || null);
+  const rules = code ? (FLIGHT_RULES[code] || null) : null;
+  const label = rules?.labelKey ? t(rules.labelKey) : rules?.label || (metarLoading ? t("weather.metarLoading") : t("weather.metarMissing"));
+  const context = rules?.contextKey ? t(rules.contextKey) : rules?.context || "";
 
   return (
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
         <div className="flight-rule-banner">
-          <span className="font-mono">{code}</span>
+          <span className="font-mono">{code || (metarLoading ? "···" : "—")}</span>
           <strong>{label}</strong>
         </div>
         <div className="flight-rule-rail" aria-hidden="true">
@@ -155,9 +159,20 @@ export function CeilingSlide({ metar }) {
 
 export function WindSlide({ metar, localWeather }) {
   const { t } = useI18n();
-  const speed = toNumber(metar?.rawWspd) ?? localWeather?.windSpeedKt ?? 0;
-  const gust = toNumber(metar?.rawWgst) ?? localWeather?.windGustKt ?? null;
-  const direction = metar?.rawWvrb ? null : toNumber(metar?.rawWdir) ?? localWeather?.windDirection;
+  // Prefer METAR values; fall back to local weather only when
+  // METAR is present but sparse (unlikely). When metar itself
+  // is missing, keep everything null — 0 kt looks like real
+  // weather when it isn't.
+  const hasMetar = Boolean(metar);
+  const speed = hasMetar
+    ? (toNumber(metar?.rawWspd) ?? localWeather?.windSpeedKt ?? null)
+    : null;
+  const gust = hasMetar
+    ? (toNumber(metar?.rawWgst) ?? localWeather?.windGustKt ?? null)
+    : null;
+  const direction = hasMetar
+    ? (metar?.rawWvrb ? null : toNumber(metar?.rawWdir) ?? localWeather?.windDirection ?? null)
+    : null;
 
   return (
     <div className="weather-slide-stack wind-card">
@@ -169,7 +184,7 @@ export function WindSlide({ metar, localWeather }) {
           />
           <WeatherToken
             label={t("weather.wind")}
-            value={`${Math.round(speed)} kt`}
+            value={speed == null ? "—" : `${Math.round(speed)} kt`}
           />
           <WeatherToken
             label={t("weather.gust")}
@@ -178,7 +193,9 @@ export function WindSlide({ metar, localWeather }) {
         </div>
       </div>
       <WeatherDescription>
-        {direction == null
+        {speed == null
+          ? t("weather.windPara.unavailable")
+          : direction == null
           ? t("weather.windPara.variable")
           : t(describeWindKey(speed, gust))}
       </WeatherDescription>
