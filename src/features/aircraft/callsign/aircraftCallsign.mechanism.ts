@@ -10,6 +10,7 @@ import {
 
 import {
   AIRCRAFT_CALLSIGN_MAX_BYTES,
+  AIRCRAFT_CALLSIGN_PROVIDER_TIMEOUT_MS,
   AIRCRAFT_CALLSIGN_USER_AGENT,
   AircraftCallsignProviderError,
 } from "./aircraftCallsign.models";
@@ -31,6 +32,7 @@ async function fetchProviderPayload(provider: AircraftCallsignRecord, { callsign
         Accept: "application/json",
         "User-Agent": AIRCRAFT_CALLSIGN_USER_AGENT,
       },
+      signal: AbortSignal.timeout(AIRCRAFT_CALLSIGN_PROVIDER_TIMEOUT_MS),
       next: { revalidate: 0 },
     });
   } catch (networkError: any) {
