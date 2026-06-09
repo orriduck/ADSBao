@@ -10,6 +10,17 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.3.0": {
+    title: "屏幕常亮开关 + 状态栏打磨",
+    summary:
+      "地图工具栏新增屏幕常亮开关，长时间看飞机时防止设备休眠。状态栏加宽、单行显示，并用 GSAP 过渡替换了旧动画。",
+    highlights: [
+      "工具栏新增屏幕常亮切换 — Coffee 图标，点击防止屏幕休眠",
+      "状态栏激活时显示「☕ 屏幕常亮」指示，与数据源标识同行",
+      "用 GSAP StatusSpan 替换 EndfieldValueSwap，文字切换更流畅",
+      "状态栏宽度放宽并移除换行 — 始终单行显示",
+    ],
+  },
   "v2.2.1": {
     title: "标准地图细节增强 + GSAP 动画层",
     summary:

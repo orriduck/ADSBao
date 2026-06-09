@@ -7,6 +7,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.3.0",
+    kind: "feat",
+    title: "Screen wake lock & status bar polish",
+    summary:
+      "Map toolbar gets a screen wake lock toggle to keep the device awake during long spotting sessions. The map status bar gets wider, single-line rendering, and GSAP transitions.",
+    highlights: [
+      "Wake lock toggle in map toolbar — Coffee icon, click to prevent screen sleep",
+      "Status bar shows '☕ Keep awake' indicator when active, inline with source badges",
+      "Replaced EndfieldValueSwap with GSAP StatusSpan for smoother text transitions",
+      "Status bar width increased and flex-wrap removed — always single-line",
+    ],
+  },
+  {
     version: "v2.2.1",
     kind: "patch",
     title: "Standard map detail boost & GSAP animation layer",
