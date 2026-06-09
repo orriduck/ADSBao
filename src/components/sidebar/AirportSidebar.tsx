@@ -96,6 +96,7 @@ export default function AirportSidebar({
         activeView={activeView}
         onViewChange={setActiveView}
         metar={metar}
+        metarLoading={metarLoading}
         aircraft={aircraft}
         routeProvider={routeProvider}
         frequencies={atcFrequencies}

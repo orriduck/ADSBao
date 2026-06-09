@@ -89,7 +89,7 @@ export function useWeatherSlides({
             ),
             withContent("rules", <FlightRulesSlide metar={metar} metarLoading={metarLoading} />),
             shouldShowCeilingSlide(metar)
-              ? withContent("ceiling", <CeilingSlide metar={metar} />)
+              ? withContent("ceiling", <CeilingSlide metar={metar} metarLoading={metarLoading} />)
               : null,
             withContent(
               "wind",
@@ -97,11 +97,11 @@ export function useWeatherSlides({
             ),
             withContent(
               "temp",
-              <TemperatureSlide metar={metar} localWeather={localWeather} />,
+              <TemperatureSlide metar={metar} localWeather={localWeather} metarLoading={metarLoading} />,
             ),
             withContent(
               "pressure",
-              <PressureSlide metar={metar} localWeather={localWeather} />,
+              <PressureSlide metar={metar} localWeather={localWeather} metarLoading={metarLoading} />,
             ),
             withContent(
               "local",

@@ -123,16 +123,30 @@ export function FlightRulesSlide({ metar, metarLoading = false }) {
   );
 }
 
-export function CeilingSlide({ metar }) {
+export function CeilingSlide({ metar, metarLoading = false }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const visibility = toNumber(metar?.rawVisib);
-  const ceilingFt = getCeilingFeet(metar);
-  const ceilingLabel =
-    metar?.ceiling ||
-    (ceilingFt == null
-      ? "CLR"
-      : formatGroundAltitudeFeet(ceilingFt, units.altitude) ?? `${ceilingFt}`);
+  const hasMetar = Boolean(metar);
+  const isLoading = metarLoading && !hasMetar;
+  const visibility = hasMetar ? toNumber(metar?.rawVisib) : null;
+  const ceilingFt = hasMetar ? getCeilingFeet(metar) : null;
+  // Loading → instrument placeholder. Missing → CLR / SM values.
+  // Have ceiling data → formatted altitude. No data after load → CLR.
+  const ceilingLabel = isLoading
+    ? "—"
+    : metar?.ceiling ||
+      (ceilingFt == null
+        ? "CLR"
+        : formatGroundAltitudeFeet(ceilingFt, units.altitude) ?? `${ceilingFt}`);
+  const visLabel = isLoading
+    ? "—"
+    : visibility == null
+    ? "—"
+    : `${visibility >= 10 ? "10+" : visibility} SM`;
+  const contextKey = isLoading
+    ? "weather.pending"
+    : describeCeilingKey(ceilingFt, visibility);
+  const valueClassName = isLoading ? "weather-token__value--pending" : "";
 
   return (
     <div className="weather-slide-stack">
@@ -146,12 +160,12 @@ export function CeilingSlide({ metar }) {
           <MetricLine
             icon={<Eye size={15} />}
             label={t("weather.visibility")}
-            value={visibility == null ? "-" : `${visibility >= 10 ? "10+" : visibility} SM`}
+            value={visLabel}
           />
         </div>
       </div>
       <WeatherDescription>
-        {t(describeCeilingKey(ceilingFt, visibility))}
+        {t(contextKey)}
       </WeatherDescription>
     </div>
   );
@@ -203,14 +217,21 @@ export function WindSlide({ metar, localWeather }) {
   );
 }
 
-export function TemperatureSlide({ metar, localWeather }) {
+export function TemperatureSlide({ metar, localWeather, metarLoading = false }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const temp = toNumber(metar?.rawTemp) ?? localWeather?.temperatureC;
-  const dew = toNumber(metar?.rawDewp) ?? null;
+  const hasMetar = Boolean(metar);
+  const isLoading = metarLoading && !hasMetar;
+  const temp = hasMetar
+    ? (toNumber(metar?.rawTemp) ?? localWeather?.temperatureC)
+    : null;
+  const dew = hasMetar ? toNumber(metar?.rawDewp) : null;
   const spread = temp != null && dew != null ? Math.max(0, temp - dew) : null;
   const tempPct = temp == null ? null : clamp((temp + 20) / 60, 0.04, 0.96);
   const dewPct = dew == null ? null : clamp((dew + 20) / 60, 0.04, 0.96);
+  const contextKey = isLoading
+    ? "weather.pending"
+    : describeTemperatureKey(temp, spread);
 
   return (
     <div className="weather-slide-stack">
@@ -253,16 +274,21 @@ export function TemperatureSlide({ metar, localWeather }) {
         </div>
       </div>
       <WeatherDescription>
-        {t(describeTemperatureKey(temp, spread))}
+        {t(contextKey)}
       </WeatherDescription>
     </div>
   );
 }
 
-export function PressureSlide({ metar, localWeather }) {
+export function PressureSlide({ metar, localWeather, metarLoading = false }) {
   const { t } = useI18n();
-  const altim = metar?.rawAltim;
+  const hasMetar = Boolean(metar);
+  const isLoading = metarLoading && !hasMetar;
+  const altim = hasMetar ? metar?.rawAltim : null;
   const pressure = localWeather?.pressureMslHpa;
+  const contextKey = isLoading
+    ? "weather.pending"
+    : describePressureKey(altim, pressure);
 
   return (
     <div className="weather-slide-stack">
@@ -271,16 +297,16 @@ export function PressureSlide({ metar, localWeather }) {
           <MetricLine
             icon={<Gauge size={16} />}
             label={t("weather.altimeter")}
-            value={metar?.altim || "-"}
+            value={isLoading ? "—" : (metar?.altim || "—")}
           />
           <MetricLine
             label={t("weather.mslPressure")}
-            value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
+            value={isLoading ? "—" : (pressure == null ? "—" : `${Math.round(pressure)} hPa`)}
           />
         </div>
       </div>
       <WeatherDescription>
-        {t(describePressureKey(altim, pressure))}
+        {t(contextKey)}
       </WeatherDescription>
     </div>
   );

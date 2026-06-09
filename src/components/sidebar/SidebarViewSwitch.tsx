@@ -17,6 +17,7 @@ export default function SidebarViewSwitch({
   onViewChange,
   metar = null,
   aircraft = [],
+  metarLoading = false,
   routeProvider = "",
   frequencies = [],
   candidateSpotCount = 0,
@@ -34,7 +35,13 @@ export default function SidebarViewSwitch({
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
   const temperature = formatTemperature(metar, units.temperature);
-  const rule = metar?.flightCategory?.toUpperCase() || "WX";
+  // When METAR is loading, show a pending label instead of default
+  // "WX" — the user should see that data is inbound, not assume WX means
+  // the flight rule category.
+  const isMetarMissing = !metar;
+  const rule = metarLoading && isMetarMissing
+    ? "—"
+    : (metar?.flightCategory?.toUpperCase() || "WX");
   const showMovementCards =
     nearMe ||
     (featureFlagsResolved && routeProvider === ROUTE_PROVIDER.FLIGHTAWARE);
