@@ -6585,18 +6585,18 @@ body {
     border-radius: var(--atc-radius-pill) !important;
 }
 
+/* Frosted preview-card surface. This block previously forced an opaque
+   --atc-card with backdrop-filter:none (the old "solid card" design),
+   which overrode the frosted treatment. Now carries the frost so the
+   aircraft preview reads as the same frosted glass as every other panel. */
 .aircraft-preview-metadata-card {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--atc-card) !important;
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
+    background: var(--atc-surface-preview-card) !important;
 }
 
 :root[data-theme="dark"] .aircraft-preview-metadata-card {
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--atc-card) 96%, transparent),
-        color-mix(in oklab, var(--atc-card) 92%, transparent)
-    ) !important;
+    background: var(--atc-surface-preview-card) !important;
 }
 
 .changelog-entry {
