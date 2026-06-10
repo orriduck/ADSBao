@@ -14,17 +14,18 @@ import { isLightMapTheme } from "@/features/airport/map/airportMapModel";
 // sharp ("see-through but no blur"). Raster <img> tiles are rasterized into the
 // normal paint tree, so the panels' backdrop-filter blurs them correctly.
 //
-// The shared `.atc-tile-base` filter (defined in style.css) desaturates the
-// tiles into the muted chart-paper aesthetic, so the colourful CARTO tiles
-// still read as the same monochrome base as the old vector style.
+// Light theme uses CARTO's colored "voyager" style (green land, blue water)
+// so the basemap keeps natural color; dark theme uses CARTO dark-matter
+// (CARTO has no colored dark variant). The `.atc-tile-base` filter in
+// style.css only lightly tones these now so the green/blue reads through.
 //
 // Labels are intentionally OFF in every mode (CARTO `*_nolabels`): the map is
-// a clean base for the frosted panels + aircraft/airport overlays, and place
-// labels competed visually with them. Theme picks the light/dark variant.
+// a clean base for the frosted panels + aircraft/airport overlays.
 
 function rasterTileUrl(theme: string) {
-  const tone = isLightMapTheme(theme) ? "light" : "dark";
-  return `https://{s}.basemaps.cartocdn.com/${tone}_nolabels/{z}/{x}/{y}{r}.png`;
+  return isLightMapTheme(theme)
+    ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png`
+    : `https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png`;
 }
 
 export default function MapTileLayers({

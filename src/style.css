@@ -1380,7 +1380,7 @@ body:has(.app-detail-shell) {
 /* Light terrain is still mostly monochrome manual ink; a small amount of
    blue-green saturation survives so water and vegetation remain legible. */
 :root[data-theme="light"] .atc-tile-base {
-    filter: saturate(0.5) brightness(0.9) contrast(1.14);
+    filter: saturate(0.92) brightness(1.0) contrast(0.98);
     mix-blend-mode: normal;
 }
 
