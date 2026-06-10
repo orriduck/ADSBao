@@ -10,6 +10,19 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.4.0": {
+    title: "液态玻璃重设计",
+    summary:
+      "所有浮层在彩色底图之上重建为 Apple 风格的液态玻璃：静止态是奶白磨砂的卡片与工具栏，选中态是抛光玻璃胶囊 — 浅色主题为深色烟雾、深色主题为通透白光 — 并带有标志性的一角溶解。",
+    highlights: [
+      "选中卡片、筛选芯片、设置选项和工具栏按钮共用同一种玻璃胶囊材质：烟雾般的半透墨水、背景磨砂、顶部高光镶边，右下角溶解露出背后的表面",
+      "深色主题选中态反转为通透白玻璃胶囊，深色墨水文字落在近黑机身上",
+      "静止态卡片与工具栏胶囊变为明亮奶白磨砂玻璃，带发光镶边、柔和浮起阴影和清晰深色图标",
+      "彩色 CARTO voyager 底图替换原本被冲淡的矢量样式，让磨砂有真实地理细节可扩散",
+      "侧边栏与面板重建为 token 驱动的磨砂材质系统（--app-frost、--atc-glass-*、--atc-control-*），全站表面共享",
+      "DESIGN.md 重写为液态玻璃的设计基准，供后续 UI 工作参考",
+    ],
+  },
   "v2.3.1": {
     title: "水合稳定性、列表行打磨与飞行跟踪韧性",
     summary:
