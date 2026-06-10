@@ -7,6 +7,22 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.3.1",
+    kind: "patch",
+    title: "Hydration stability, list row polish & flight tracking resilience",
+    summary:
+      "Eliminated SSR hydration mismatches and intermediate-state flicker across the app. Unified list row hover with background + underline. Flight tracking now uses nearby-favored positions and per-provider timeouts.",
+    highlights: [
+      "New Skeleton component replaces text placeholders during weather/settings loading — no more flash of unstyled content",
+      "Map settings and feature flags gate rendering on hydration to prevent layout jumps",
+      "Unified list row hover (background tint + underline) on home, about, mechanism, and changelog pages",
+      "HERE badge replaces near-me icon with aligned ICAO code row width",
+      "Flight map center falls back to nearby-favored position when merged data is fresher than callsign result",
+      "Per-provider 4s timeout in callsign fetch — one slow source no longer blocks the entire poll",
+      "useWakeLock detects browser support in useEffect to fix SSR hydration error",
+    ],
+  },
+  {
     version: "v2.3.0",
     kind: "feat",
     title: "Screen wake lock & status bar polish",

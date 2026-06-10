@@ -10,6 +10,20 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.3.1": {
+    title: "水合稳定性、列表行打磨与飞行跟踪韧性",
+    summary:
+      "消除全站 SSR 水合不匹配和中间状态闪烁。统一列表行 hover 背景+下划线。飞行跟踪使用 nearby 优先位置和单源超时保护。",
+    highlights: [
+      "全新 Skeleton 组件替换天气/设置加载中的文字占位 — 消除闪白",
+      "地图设置和 feature flag 在水合完成前阻止渲染，防止布局跳动",
+      "首页、关于、机制、更新日志页统一列表行 hover 效果（背景底色 + 下划线）",
+      "HERE 徽章替换我的位置图标，宽度对齐 ICAO 代码行",
+      "飞行地图焦点在 nearby 数据比 callsign 新鲜时自动使用合并后的位置",
+      "callsign 请求单源 4s 超时 — 一个慢源不再拖死整次轮询",
+      "useWakeLock 在 useEffect 中检测浏览器支持，修复 SSR 水合报错",
+    ],
+  },
   "v2.3.0": {
     title: "屏幕常亮开关 + 状态栏打磨",
     summary:
