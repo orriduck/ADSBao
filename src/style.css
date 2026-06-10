@@ -536,7 +536,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--app-frost-tint) 45%,
+        var(--app-frost-tint) 58%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -966,7 +966,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--app-frost-tint) 45%,
+        var(--app-frost-tint) 58%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -2539,8 +2539,8 @@ body:has(.app-detail-shell) {
        diffusion, not transparency. Applied via the `backdrop-filter`
        arbitrary on primitives and surface classes so the blur amount is
        tuned in one place. */
-    --app-frost: saturate(1.04) blur(64px);
-    --app-frost-strong: saturate(1.05) blur(96px);
+    --app-frost: saturate(1.03) blur(100px);
+    --app-frost-strong: saturate(1.04) blur(140px);
     /* Frosted-material base color — a distinct cool gray (light) / navy
        (dark) so floating panels read as gray frosted MATERIAL, not the
        warm near-white card. This is the key to the look: against a light
@@ -2560,12 +2560,12 @@ body:has(.app-detail-shell) {
        as a distinct raised surface. */
     --atc-control-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 56%,
+        var(--app-frost-tint) 66%,
         transparent
     );
     --atc-control-surface-muted: color-mix(
         in oklab,
-        var(--app-frost-tint) 50%,
+        var(--app-frost-tint) 60%,
         transparent
     );
     --atc-control-surface-hover: color-mix(
@@ -2579,7 +2579,7 @@ body:has(.app-detail-shell) {
        into something legible. */
     --atc-toolbar-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 52%,
+        var(--app-frost-tint) 64%,
         transparent
     );
     --atc-control-hover-bg: color-mix(
@@ -2900,8 +2900,8 @@ body {
 .airport-desktop-sidebar .flight-sidebar-panel {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--app-frost-tint) 38%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 46%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 54%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 62%, transparent)
     );
     -webkit-backdrop-filter: var(--app-frost-strong);
     backdrop-filter: var(--app-frost-strong);
@@ -7088,8 +7088,8 @@ body {
     backdrop-filter: var(--app-frost-strong);
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--app-frost-tint) 38%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 46%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 54%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 62%, transparent)
     );
     border: 0;
     box-shadow: var(--app-map-sidebar-shadow);
