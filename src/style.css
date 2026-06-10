@@ -2539,8 +2539,8 @@ body:has(.app-detail-shell) {
        diffusion, not transparency. Applied via the `backdrop-filter`
        arbitrary on primitives and surface classes so the blur amount is
        tuned in one place. */
-    --app-frost: saturate(1.06) blur(36px);
-    --app-frost-strong: saturate(1.08) blur(56px);
+    --app-frost: saturate(1.05) blur(48px);
+    --app-frost-strong: saturate(1.06) blur(72px);
     /* Frosted-material base color — a distinct cool gray (light) / navy
        (dark) so floating panels read as gray frosted MATERIAL, not the
        warm near-white card. This is the key to the look: against a light
@@ -2560,17 +2560,17 @@ body:has(.app-detail-shell) {
        as a distinct raised surface. */
     --atc-control-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 90%,
+        var(--app-frost-tint) 56%,
         transparent
     );
     --atc-control-surface-muted: color-mix(
         in oklab,
-        var(--app-frost-tint) 82%,
+        var(--app-frost-tint) 50%,
         transparent
     );
     --atc-control-surface-hover: color-mix(
         in oklab,
-        var(--app-frost-tint) 66%,
+        var(--app-frost-tint) 42%,
         transparent
     );
     /* Frosted gray material — translucent enough that the strongly
