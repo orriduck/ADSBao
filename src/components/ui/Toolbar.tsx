@@ -71,6 +71,10 @@ const toolbarVariants = cva(
     "relative items-center isolate",
     "rounded-full",
     "bg-[var(--atc-toolbar-surface)]",
+    // Frosted material — the semi-opaque toolbar surface plus a strong
+    // backdrop blur diffuse the map behind the pill into soft gray.
+    // Shared --app-frost token so every floating surface blurs alike.
+    "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
     "shadow-[var(--app-toolbar-shadow),var(--atc-toolbar-inset-shadow)]",
     // Re-enable interaction inside containers that turn it off so the
     // bare map area can still receive taps around the floating pill.

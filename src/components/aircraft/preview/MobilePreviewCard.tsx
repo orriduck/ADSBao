@@ -35,13 +35,15 @@ export default function MobilePreviewCard({
         "w-[min(342px,calc(100vw-24px))] max-w-[calc(100vw-24px)]",
         "isolate overflow-hidden select-none pointer-events-none",
         "app-preview-transition mobile-preview-card-enter",
-        "rounded-[var(--atc-radius-card)] border border-atc-line-strong/85 text-atc-text",
-        // Solid card under a warm top-left gradient layer (same 135deg
-        // language as the sidebar identity surface). Use background +
-        // background-image separately so the gradient's transparent
-        // half reveals the solid bg, not the map.
+        "rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] text-atc-text",
+        // Frosted material card under a warm top-left gradient layer
+        // (same 135deg language as the sidebar identity surface). The
+        // semi-opaque preview surface plus a strong backdrop blur diffuse
+        // the map behind the card into soft gray; the gradient's
+        // transparent half lets that frosted wash read through.
         "bg-[var(--atc-surface-preview-card)]",
         "[background-image:var(--atc-preview-accent-wash)]",
+        "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
         "shadow-[var(--app-floating-shadow),var(--atc-preview-card-inset)]",
         // Bottom padding matches the 14px horizontal inset on the
         // actions row so the gap around the Track button reads as

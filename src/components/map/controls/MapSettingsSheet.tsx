@@ -188,8 +188,11 @@ export default function MapSettingsSheet({
           "map-settings-sheet",
           "z-[var(--z-index-modal-content)]",
           "right-2 top-2 bottom-2 h-[calc(100dvh-16px)] w-[min(448px,calc(100vw-16px))]",
-          "rounded-[18px] border border-[var(--atc-line-strong)]",
+          "rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)]",
           "overflow-hidden bg-[var(--atc-surface-preview-card)] p-0 text-atc-text",
+          // Frosted material — strong backdrop blur diffuses the map
+          // behind the slide-in settings panel into soft gray.
+          "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
           "shadow-[var(--app-panel-shadow)]",
           "data-[state=open]:translate-x-0 data-[state=open]:opacity-100",
           "data-[state=closed]:translate-x-[calc(100%+16px)] data-[state=closed]:opacity-0",
