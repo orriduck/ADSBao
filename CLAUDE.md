@@ -86,6 +86,16 @@ There is no standalone `src/services` or `src/server` layer. TSX belongs under `
 
 This project uses **Tailwind CSS v4**. When adding or changing styles, reach for Tailwind utilities in JSX *before* writing custom CSS in `src/style.css`. Custom CSS is reserved for cases utilities genuinely can't express. The default answer is "put it on the component."
 
+### Liquid glass material system
+
+`DESIGN.md` is the source of truth for the visual language: an Apple "Liquid Glass" system with exactly two materials — a **glass capsule** for selected/active states (dark smoke in light theme, bright white-glass in dark theme, with a signature bottom-right corner dissolve) and **milky frosted glass** for everything at rest. Read `DESIGN.md` before any UI work. The non-negotiables:
+
+- All selected-state visuals derive from `--atc-glass-active-bg` / `--atc-glass-sheen` / `--atc-glass-rim-shadow` / `--atc-glass-active-frost` in `src/style.css`; resting surfaces from `--atc-control-surface*` / `--atc-toolbar-surface` / `--atc-control-inset-shadow*`. Tune the tokens, never re-type recipes at call sites.
+- Theme polarity lives in the `--atc-click-bg` / `--atc-click-fg` pair (light theme: dark capsule; dark theme: bright capsule). Never fork the glass recipes per theme.
+- Gradient tokens are applied via the `background` shorthand (`[background:var(--atc-glass-active-bg)]`), not `bg-[...]`.
+- Active elements set `border-transparent` (the rim is light, not stroke) and need `data-[active=true]:hover:[background:var(--atc-glass-active-bg)]` so hover doesn't flatten the capsule back to a solid fill.
+- Reference implementations: `MetricCard.tsx`, `FilterCard.tsx`, `SelectableCard.tsx`, `Toolbar.tsx` under `src/components/ui/`.
+
 ### Decision order
 
 1. **Tailwind utility classes** in JSX (`flex`, `gap-2`, `text-[12px]`, `bg-atc-card`, etc.).
@@ -106,7 +116,7 @@ Tailwind v4 expresses most "context overrides" without leaving JSX. The patterns
 
 - **Pseudo-elements** — `before:content-[''] before:absolute before:inset-0 before:[background:var(--sidebar-tile-bottom-glow)]`. Use the `background` shorthand (in `[...]`) when the token is a gradient; `bg-[...]` compiles to `background-color` which can't accept a gradient. See `MetricCard.tsx`.
 - **Ancestor selectors** — `[.airport-map-kit_&]:min-h-[76px]` compiles to `.airport-map-kit .target { min-height: 76px }`. Use this for context-specific compact / spacious variants instead of writing `.airport-map-kit .my-card { ... }` in `style.css`. The `_` stands in for a space.
-- **Group / data attributes** — `data-[active=true]:bg-[var(--atc-click-bg)]`, `data-[state=open]:shadow-[...]`, `group-data-[active=true]:text-[var(--atc-click-fg)]`. Use these instead of `.my-card[data-active="true"] { ... }`.
+- **Group / data attributes** — `data-[active=true]:[background:var(--atc-glass-active-bg)]`, `data-[state=open]:shadow-[...]`, `group-data-[active=true]:text-[var(--atc-click-fg)]`. Use these instead of `.my-card[data-active="true"] { ... }`.
 - **Compound ancestor + state** — `[[data-active=true]_&]:text-[var(--atc-click-muted)]` flips a child when any ancestor is active. Use this when the parent isn't tagged with `class="group"` (e.g. Radix's `SelectTrigger`, which drops props through `asChild`).
 - **Direct-child / descendant** — `[&>svg]:absolute [&>svg]:right-3` pins a SelectTrigger's chevron. Same for `[&_strong]:text-[24px]` when targeting structural children.
 - **Combining variants** — `[.airport-map-kit_&]:[&>svg]:right-2` (ancestor + direct child), `data-[state=open]:[&>svg]:text-[var(--atc-click-muted)]` (state + descendant). All compose without quoting issues as long as each fragment is a single literal class string Tailwind can extract.
@@ -120,7 +130,7 @@ Tailwind v4 expresses most "context overrides" without leaving JSX. The patterns
 
 ### When you would have written CSS — try this instead
 
-- "I need a 4px bottom-edge glow on the active state." → `data-[active=true]:shadow-[inset_0_-1px_0_var(--sidebar-tile-edge-glow),inset_0_-12px_20px_color-mix(in_oklab,var(--atc-click-fg)_7%,transparent)]` on the cva base.
+- "The selected card needs the glass-capsule treatment." → `data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:shadow-[var(--atc-glass-rim-shadow)] data-[active=true]:border-transparent` on the cva base (see `MetricCard.tsx` for the full pattern incl. sheen + backdrop frost).
 - "The card should be smaller inside the map kit." → `[.airport-map-kit_&]:min-h-[76px] [.airport-map-kit_&]:p-[14px]` on the card, not `.airport-map-kit .my-card { padding: 14px }` in `style.css`.
 - "I need a chevron pinned to the right." → `[&>svg]:absolute [&>svg]:right-3 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2` on the parent.
 - "The active filter should have no border." → `data-[active=true]:border-transparent`, not `.my-filter[data-active="true"] { border: 0 }`.

@@ -5,6 +5,9 @@ the full validation decision tree there; do not duplicate it in this file.
 
 - Before changing code or docs, read `CLAUDE.md` and choose the validation mode
   from its `Validation modes` section.
+- Before any UI/styling work, read `DESIGN.md` — the liquid-glass material
+  system (two materials, token-driven) is the source of truth; extend it
+  instead of introducing flat fills, hard borders, or new surface treatments.
 - For ADSBao local development, follow `CLAUDE.md`'s dev-server lifecycle:
   subagents should start and maintain the tmux-backed port 3000 process, and
   should restart it with `.next` cleared when it breaks or serves stale CSS/JS.
