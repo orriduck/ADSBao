@@ -521,7 +521,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--app-frost-tint) 80%,
+        var(--app-frost-tint) 62%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -951,7 +951,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--app-frost-tint) 80%,
+        var(--app-frost-tint) 62%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -2553,12 +2553,13 @@ body:has(.app-detail-shell) {
         var(--atc-card) 58%,
         transparent
     );
-    /* Frosted gray material at ~84% — opaque enough that the blurred map
-       behind never resolves into something legible, gray enough to read
-       as frosted glass rather than a white card. */
+    /* Frosted gray material — translucent enough that the strongly
+       blurred map shows through as a faint soft wash (real frosted
+       glass), but the heavy blur keeps that wash from ever resolving
+       into something legible. */
     --atc-toolbar-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 84%,
+        var(--app-frost-tint) 70%,
         transparent
     );
     --atc-control-hover-bg: color-mix(
@@ -2878,8 +2879,8 @@ body {
 .airport-desktop-sidebar .flight-sidebar-panel {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--app-frost-tint) 76%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 84%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 58%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 66%, transparent)
     );
     -webkit-backdrop-filter: var(--app-frost-strong);
     backdrop-filter: var(--app-frost-strong);
