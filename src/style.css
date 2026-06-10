@@ -2539,33 +2539,38 @@ body:has(.app-detail-shell) {
        diffusion, not transparency. Applied via the `backdrop-filter`
        arbitrary on primitives and surface classes so the blur amount is
        tuned in one place. */
-    --app-frost: saturate(1.08) blur(28px);
-    --app-frost-strong: saturate(1.1) blur(40px);
+    --app-frost: saturate(1.06) blur(36px);
+    --app-frost-strong: saturate(1.08) blur(56px);
     /* Frosted-material base color — a distinct cool gray (light) / navy
        (dark) so floating panels read as gray frosted MATERIAL, not the
        warm near-white card. This is the key to the look: against a light
        map a near-white panel is invisible, but a cool slate gray reads
        clearly as frosted glass. Surfaces below mix this tint with
        transparent so the strong blur diffuses the map into a soft wash. */
-    --app-frost-tint: oklch(0.945 0.008 250);
+    --app-frost-tint: oklch(0.95 0.004 100);
     /* Soft, low-contrast hairline for frosted surfaces. Light theme uses
        a bright near-white edge (catches the diffuse light); dark theme
        (below) swaps to a faint cool-blue edge. Both stay barely visible
        so panels read as soft material with little hard edge. */
     --app-frost-border: color-mix(in oklab, white 50%, transparent);
+    /* Inner control tiles (metric cards, filter chips, settings option
+       cards) share the frosted gray tint so they read as part of the same
+       frosted system as the panels they sit on — not warm-white cards on a
+       gray surface. Higher opacity than the panels so each tile still reads
+       as a distinct raised surface. */
     --atc-control-surface: color-mix(
         in oklab,
-        var(--atc-card) 82%,
+        var(--app-frost-tint) 90%,
         transparent
     );
     --atc-control-surface-muted: color-mix(
         in oklab,
-        var(--atc-card) 74%,
+        var(--app-frost-tint) 82%,
         transparent
     );
     --atc-control-surface-hover: color-mix(
         in oklab,
-        var(--atc-card) 58%,
+        var(--app-frost-tint) 66%,
         transparent
     );
     /* Frosted gray material — translucent enough that the strongly
@@ -2618,9 +2623,9 @@ body:has(.app-detail-shell) {
     --atc-toolbar-cell-size: 2rem;
     --atc-toolbar-shell-min-height: 42px;
     --app-panel-shadow:
-        0 32px 72px color-mix(in oklab, var(--atc-text) 9%, transparent),
-        0 12px 28px color-mix(in oklab, var(--atc-text) 6%, transparent),
-        0 1px 3px color-mix(in oklab, var(--atc-text) 4%, transparent);
+        0 32px 72px color-mix(in oklab, var(--atc-text) 6%, transparent),
+        0 12px 28px color-mix(in oklab, var(--atc-text) 4%, transparent),
+        0 1px 3px color-mix(in oklab, var(--atc-text) 3%, transparent);
     --app-map-sidebar-shadow:
         18px 0 44px color-mix(in oklab, var(--atc-text) 13%, transparent),
         3px 0 10px color-mix(in oklab, var(--atc-text) 8%, transparent),
@@ -2629,9 +2634,9 @@ body:has(.app-detail-shell) {
         0 14px 32px color-mix(in oklab, var(--atc-text) 5%, transparent),
         inset 0 1px 0 color-mix(in oklab, white 40%, transparent);
     --app-floating-shadow:
-        0 28px 56px color-mix(in oklab, var(--atc-text) 8%, transparent),
-        0 10px 24px color-mix(in oklab, var(--atc-text) 5%, transparent),
-        0 1px 2px color-mix(in oklab, var(--atc-text) 4%, transparent);
+        0 28px 56px color-mix(in oklab, var(--atc-text) 5%, transparent),
+        0 10px 24px color-mix(in oklab, var(--atc-text) 3%, transparent),
+        0 1px 2px color-mix(in oklab, var(--atc-text) 2.5%, transparent);
     /* Bumped from the 6%-of-text mix to a fixed RGBA: on the light
        map background, color-mix with --atc-text read as nearly
        invisible. Matches the dark-theme strength so toolbar halos
@@ -2669,20 +2674,21 @@ body:has(.app-detail-shell) {
        even when the toolbar sits inside an overflow:hidden container that
        clips part of the ambient blur (e.g. .airport-map-stage). */
     --app-toolbar-shadow:
-        0 16px 32px rgba(0, 0, 0, 0.08), 0 6px 14px rgba(0, 0, 0, 0.06),
-        0 1px 2px rgba(0, 0, 0, 0.05);
+        0 16px 32px rgba(0, 0, 0, 0.05), 0 6px 14px rgba(0, 0, 0, 0.04),
+        0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 :root[data-theme="dark"] {
     /* Faint cool-blue edge so frosted panels read as soft atmospheric
        material on the navy canvas rather than hard-bordered cards. */
     --app-frost-border: color-mix(in oklab, #97b6d3 15%, transparent);
-    /* Navy frosted-material base (per the dark target #0f1e38) so
-       floating panels read as deep atmospheric glass over the map. */
-    --app-frost-tint: #0f1e38;
+    /* Neutral dark-gray frosted base, tied to the dark theme's own hue
+       (150) rather than navy blue — floating panels read as deep gray
+       atmospheric glass, not tinted blue. */
+    --app-frost-tint: oklch(0.235 0.005 150);
     --app-panel-shadow:
-        0 36px 88px rgb(0 0 0 / 0.4), 0 14px 32px rgb(0 0 0 / 0.26),
-        0 1px 3px rgb(0 0 0 / 0.22);
+        0 36px 88px rgb(0 0 0 / 0.28), 0 14px 32px rgb(0 0 0 / 0.18),
+        0 1px 3px rgb(0 0 0 / 0.16);
     --app-map-sidebar-shadow:
         18px 0 60px rgb(0 0 0 / 0.34), 3px 0 16px rgb(0 0 0 / 0.22),
         var(--app-panel-shadow);
@@ -2690,13 +2696,13 @@ body:has(.app-detail-shell) {
         0 16px 40px rgb(0 0 0 / 0.26),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 7%, transparent);
     --app-floating-shadow:
-        0 30px 68px rgb(0 0 0 / 0.4), 0 12px 28px rgb(0 0 0 / 0.24),
-        0 1px 3px rgb(0 0 0 / 0.2);
+        0 30px 68px rgb(0 0 0 / 0.28), 0 12px 28px rgb(0 0 0 / 0.16),
+        0 1px 3px rgb(0 0 0 / 0.14);
     --app-floating-edge-shadow: rgb(0 0 0 / 0.18);
     --preview-card-shadow: var(--app-floating-shadow);
     --app-toolbar-shadow:
-        0 22px 52px rgb(0 0 0 / 0.5), 0 8px 22px rgb(0 0 0 / 0.4),
-        0 1px 3px rgb(0 0 0 / 0.36);
+        0 22px 52px rgb(0 0 0 / 0.36), 0 8px 22px rgb(0 0 0 / 0.28),
+        0 1px 3px rgb(0 0 0 / 0.24);
 }
 
 body {
