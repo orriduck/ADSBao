@@ -2636,18 +2636,24 @@ body:has(.app-detail-shell) {
        MetricCard / FilterCard / SelectableCard / ToolbarButton render
        the same selected material. Works in both themes — --atc-click-bg
        is dark ink in each. */
+    /* Ink layer is a radial falloff anchored at the TOP-LEFT corner: the
+       capsule stays deep smoke almost everywhere and only the far
+       bottom-right corner dissolves toward transparency, so the
+       (backdrop-blurred) surface behind glows through that one corner —
+       matching the reference capsule's clear corner. */
     --atc-glass-active-bg:
         radial-gradient(
             120% 70% at 50% 130%,
             color-mix(in oklab, white 8%, transparent) 0%,
             transparent 65%
         ),
-        linear-gradient(
-            178deg,
+        radial-gradient(
+            142% 142% at 0% 0%,
             color-mix(in oklab, var(--atc-click-bg) 98%, transparent) 0%,
-            color-mix(in oklab, var(--atc-click-bg) 95%, transparent) 50%,
-            color-mix(in oklab, var(--atc-click-bg) 90%, transparent) 80%,
-            color-mix(in oklab, var(--atc-click-bg) 84%, transparent) 100%
+            color-mix(in oklab, var(--atc-click-bg) 96%, transparent) 52%,
+            color-mix(in oklab, var(--atc-click-bg) 88%, transparent) 74%,
+            color-mix(in oklab, var(--atc-click-bg) 52%, transparent) 92%,
+            color-mix(in oklab, var(--atc-click-bg) 30%, transparent) 100%
         );
     /* Clean top-light wash, not a diagonal band — at card sizes a diagonal
        sheen reads as a smudge across the content; the reference capsule is
