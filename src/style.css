@@ -536,7 +536,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--app-frost-tint) 45%,
+        var(--app-frost-tint) 84%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -966,7 +966,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--app-frost-tint) 45%,
+        var(--app-frost-tint) 84%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -1373,14 +1373,14 @@ body:has(.app-detail-shell) {
 }
 
 :root[data-theme="dark"] .atc-tile-base {
-    filter: saturate(0.4) brightness(0.82) contrast(1.06);
+    filter: saturate(0.32) brightness(0.62) contrast(1.16);
     mix-blend-mode: normal;
 }
 
 /* Light terrain is still mostly monochrome manual ink; a small amount of
    blue-green saturation survives so water and vegetation remain legible. */
 :root[data-theme="light"] .atc-tile-base {
-    filter: saturate(0.5) brightness(0.9) contrast(1.14);
+    filter: saturate(0.46) brightness(1.08) contrast(0.86);
     mix-blend-mode: normal;
 }
 
@@ -2560,17 +2560,17 @@ body:has(.app-detail-shell) {
        as a distinct raised surface. */
     --atc-control-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 56%,
+        var(--app-frost-tint) 90%,
         transparent
     );
     --atc-control-surface-muted: color-mix(
         in oklab,
-        var(--app-frost-tint) 50%,
+        var(--app-frost-tint) 84%,
         transparent
     );
     --atc-control-surface-hover: color-mix(
         in oklab,
-        var(--app-frost-tint) 42%,
+        var(--app-frost-tint) 72%,
         transparent
     );
     /* Frosted gray material — translucent enough that the strongly
@@ -2579,7 +2579,7 @@ body:has(.app-detail-shell) {
        into something legible. */
     --atc-toolbar-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 52%,
+        var(--app-frost-tint) 86%,
         transparent
     );
     --atc-control-hover-bg: color-mix(
@@ -2900,8 +2900,8 @@ body {
 .airport-desktop-sidebar .flight-sidebar-panel {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--app-frost-tint) 38%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 46%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 80%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 86%, transparent)
     );
     -webkit-backdrop-filter: var(--app-frost-strong);
     backdrop-filter: var(--app-frost-strong);
@@ -7088,8 +7088,8 @@ body {
     backdrop-filter: var(--app-frost-strong);
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--app-frost-tint) 38%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 46%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 80%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 86%, transparent)
     );
     border: 0;
     box-shadow: var(--app-map-sidebar-shadow);
