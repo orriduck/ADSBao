@@ -521,7 +521,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--atc-card) 85%,
+        var(--app-frost-tint) 80%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -951,7 +951,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--atc-card) 85%,
+        var(--app-frost-tint) 80%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -1783,6 +1783,11 @@ body:has(.app-detail-shell) {
             var(--atc-surface-preview-card);
         border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
         border-radius: var(--atc-radius-card);
+        /* The shared preview-card surface is semi-opaque, so frost the
+           studio modal too — otherwise the camera viewfinder behind it
+           bleeds through the panel. */
+        -webkit-backdrop-filter: var(--app-frost-strong);
+        backdrop-filter: var(--app-frost-strong);
         box-shadow: var(--app-floating-shadow), var(--atc-preview-card-inset);
         flex: 0 0 auto;
         margin: 0 auto max(10px, env(safe-area-inset-bottom));
@@ -2521,6 +2526,13 @@ body:has(.app-detail-shell) {
        tuned in one place. */
     --app-frost: saturate(1.08) blur(28px);
     --app-frost-strong: saturate(1.1) blur(40px);
+    /* Frosted-material base color — a distinct cool gray (light) / navy
+       (dark) so floating panels read as gray frosted MATERIAL, not the
+       warm near-white card. This is the key to the look: against a light
+       map a near-white panel is invisible, but a cool slate gray reads
+       clearly as frosted glass. Surfaces below mix this tint with
+       transparent so the strong blur diffuses the map into a soft wash. */
+    --app-frost-tint: oklch(0.945 0.008 250);
     /* Soft, low-contrast hairline for frosted surfaces. Light theme uses
        a bright near-white edge (catches the diffuse light); dark theme
        (below) swaps to a faint cool-blue edge. Both stay barely visible
@@ -2541,12 +2553,12 @@ body:has(.app-detail-shell) {
         var(--atc-card) 58%,
         transparent
     );
-    /* Semi-opaque so the backdrop blur reads as frosted diffusion. Kept
-       high enough (≈84%) that map content behind never resolves into
-       something legible. */
+    /* Frosted gray material at ~84% — opaque enough that the blurred map
+       behind never resolves into something legible, gray enough to read
+       as frosted glass rather than a white card. */
     --atc-toolbar-surface: color-mix(
         in oklab,
-        var(--atc-card) 84%,
+        var(--app-frost-tint) 84%,
         transparent
     );
     --atc-control-hover-bg: color-mix(
@@ -2649,6 +2661,9 @@ body:has(.app-detail-shell) {
     /* Faint cool-blue edge so frosted panels read as soft atmospheric
        material on the navy canvas rather than hard-bordered cards. */
     --app-frost-border: color-mix(in oklab, #97b6d3 15%, transparent);
+    /* Navy frosted-material base (per the dark target #0f1e38) so
+       floating panels read as deep atmospheric glass over the map. */
+    --app-frost-tint: #0f1e38;
     --app-panel-shadow:
         0 36px 88px rgb(0 0 0 / 0.4), 0 14px 32px rgb(0 0 0 / 0.26),
         0 1px 3px rgb(0 0 0 / 0.22);
@@ -2863,8 +2878,8 @@ body {
 .airport-desktop-sidebar .flight-sidebar-panel {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--sidebar-accent) 58%, transparent),
-        color-mix(in oklab, var(--sidebar) 84%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 76%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 84%, transparent)
     );
     -webkit-backdrop-filter: var(--app-frost-strong);
     backdrop-filter: var(--app-frost-strong);
@@ -5610,6 +5625,13 @@ body {
     border-radius: 0;
     background: transparent;
     box-shadow: none;
+    /* v2 desktop-reveal stack: this outer card is a transparent
+       pass-through wrapper — the frosted surface is the inner
+       .aircraft-preview-metadata-card. Clear the base card's
+       backdrop-filter here so the wrapper doesn't double-blur the map
+       across its transparent bounding box. */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 .aircraft-preview-card--airport {
