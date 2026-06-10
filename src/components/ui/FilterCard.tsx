@@ -35,10 +35,12 @@ const filterCardVariants = cva(
     // Active / open — invert to the ink background with edge-glow
     // box-shadow. Matches MetricCard's active treatment so a filter
     // chip in the "on" state reads the same as the selected tab.
-    "data-[active=true]:bg-[var(--atc-click-bg)]",
+    // Active / open = "black glass": ink fades to transparent toward the
+    // bottom (frosted surface shows through), not a white bottom-glow.
+    "data-[active=true]:[background:linear-gradient(180deg,var(--atc-click-bg)_0%,var(--atc-click-bg)_46%,color-mix(in_oklab,var(--atc-click-bg)_18%,transparent)_100%)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
     "data-[active=true]:shadow-[var(--atc-control-active-shadow)]",
-    "data-[state=open]:bg-[var(--atc-click-bg)]",
+    "data-[state=open]:[background:linear-gradient(180deg,var(--atc-click-bg)_0%,var(--atc-click-bg)_46%,color-mix(in_oklab,var(--atc-click-bg)_18%,transparent)_100%)]",
     "data-[state=open]:text-[var(--atc-click-fg)]",
     "data-[state=open]:shadow-[var(--atc-control-active-shadow)]",
     // Focus-visible — yellow ring.
@@ -60,7 +62,7 @@ const filterCardVariants = cva(
     // is a gradient value, so set the `background` shorthand instead
     // of background-color.
     "after:content-[''] after:absolute after:inset-0",
-    "after:[background:var(--sidebar-tile-bottom-glow)]",
+    "after:[background:transparent]",
     "after:opacity-0 after:translate-y-2 after:pointer-events-none",
     "after:transition-[opacity,transform] after:duration-300 after:ease-out",
     "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",

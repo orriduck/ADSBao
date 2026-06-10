@@ -68,15 +68,17 @@ const cardVariants = cva(
     // Active state — solid ink block + click-foreground text, edge
     // glow on bottom, label / unit dim down. The state lives here
     // instead of a sidebar-specific global selector.
-    "data-[active=true]:bg-[var(--atc-click-bg)]",
+    // Active = "black glass": the ink fill fades from solid at the top to
+    // (near-)transparent at the bottom so the frosted surface shows through,
+    // instead of the old solid-ink + white bottom-glow (which read as
+    // black-to-white). Gradient set via the background shorthand.
+    "data-[active=true]:[background:linear-gradient(180deg,var(--atc-click-bg)_0%,var(--atc-click-bg)_46%,color-mix(in_oklab,var(--atc-click-bg)_18%,transparent)_100%)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
     "data-[active=true]:shadow-[var(--atc-control-active-shadow-strong)]",
-    // Bottom-glow halo painted underneath the value. Owned by ::after
-    // so it can fade in + slide up without affecting the card's box.
-    // The token is a linear-gradient, so set the background shorthand
-    // (not background-color, which can't accept a gradient).
+    // ::after kept for the slide-in motion only; no white glow (transparent)
+    // so the active state stays a clean black-to-transparent glass.
     "after:content-[''] after:absolute after:inset-0",
-    "after:[background:var(--sidebar-tile-bottom-glow)]",
+    "after:[background:transparent]",
     "after:opacity-0 after:translate-y-2 after:pointer-events-none",
     "after:transition-[opacity,transform] after:duration-300 after:ease-out",
     "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",
