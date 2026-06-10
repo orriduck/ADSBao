@@ -355,7 +355,7 @@ function ChangelogEntry({ release, isLatest, locale }) {
   const summary = localizedRelease?.summary || release.summary;
   const highlights = localizedRelease?.highlights || release.highlights;
   return (
-    <li className="changelog-entry last:border-b-0">
+    <li className="changelog-entry endf-underline last:border-b-0">
       <div className="changelog-entry__header">
         {isLatest ? (
           <span className="endf-tab">

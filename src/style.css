@@ -6510,6 +6510,13 @@ body {
 .changelog-entry {
     border-bottom: 1px solid var(--atc-line);
     padding: 13px 0;
+    margin-inline: -24px;
+    padding-inline: 24px;
+    border-radius: 4px;
+    transition: background-color 150ms;
+}
+.changelog-entry:hover {
+    background: color-mix(in oklab, var(--atc-elev) 55%, transparent);
 }
 
 .changelog-entry__header {
@@ -6717,6 +6724,8 @@ body {
 
     .changelog-screen li.changelog-entry {
         padding: 10px 0;
+        margin-inline: -19px;
+        padding-inline: 19px;
     }
 
     .changelog-entry__header {

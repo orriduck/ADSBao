@@ -152,7 +152,7 @@ function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
     <li>
       <button
         type="button"
-        className="group -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[42px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
+        className="group endf-underline -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[42px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
         onClick={onRequest}
       >
         <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)] shadow-[inset_0_-8px_14px_color-mix(in_oklab,var(--atc-click-fg)_9%,transparent)]">
@@ -184,7 +184,7 @@ function AirportDiscoveryAirportRow({ airport, onOpen }) {
     <li>
       <button
         type="button"
-        className="group -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[62px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-atc-accent/60"
+        className="group endf-underline -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[62px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-atc-accent/60"
         onClick={() => onOpen(airport)}
       >
         <span className="endf-tab endf-tab--code">
