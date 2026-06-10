@@ -68,17 +68,15 @@ const cardVariants = cva(
     // Active state — solid ink block + click-foreground text, edge
     // glow on bottom, label / unit dim down. The state lives here
     // instead of a sidebar-specific global selector.
-    // Active = "black glass": the ink fill fades from solid at the top to
-    // (near-)transparent at the bottom so the frosted surface shows through,
-    // instead of the old solid-ink + white bottom-glow (which read as
-    // black-to-white). Gradient set via the background shorthand.
-    "data-[active=true]:[background:linear-gradient(180deg,var(--atc-click-bg)_0%,var(--atc-click-bg)_46%,color-mix(in_oklab,var(--atc-click-bg)_18%,transparent)_100%)]",
+    // Active = polished "black glass" (Apple-glass): top-lit ink fading to
+    // transparent at the bottom, a diagonal specular sheen (::after), and a
+    // bright beveled rim + soft glow.
+    "data-[active=true]:[background:var(--atc-glass-active-bg)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
-    "data-[active=true]:shadow-[var(--atc-control-active-shadow-strong)]",
-    // ::after kept for the slide-in motion only; no white glow (transparent)
-    // so the active state stays a clean black-to-transparent glass.
+    "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
+    // ::after carries the diagonal specular highlight; fades/slides in on active.
     "after:content-[''] after:absolute after:inset-0",
-    "after:[background:transparent]",
+    "after:[background:var(--atc-glass-sheen)]",
     "after:opacity-0 after:translate-y-2 after:pointer-events-none",
     "after:transition-[opacity,transform] after:duration-300 after:ease-out",
     "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",

@@ -35,14 +35,14 @@ const filterCardVariants = cva(
     // Active / open — invert to the ink background with edge-glow
     // box-shadow. Matches MetricCard's active treatment so a filter
     // chip in the "on" state reads the same as the selected tab.
-    // Active / open = "black glass": ink fades to transparent toward the
-    // bottom (frosted surface shows through), not a white bottom-glow.
-    "data-[active=true]:[background:linear-gradient(180deg,var(--atc-click-bg)_0%,var(--atc-click-bg)_46%,color-mix(in_oklab,var(--atc-click-bg)_18%,transparent)_100%)]",
+    // Active / open = polished "black glass" (Apple-glass): top-lit ink
+    // fading to transparent, diagonal specular sheen, bright beveled rim.
+    "data-[active=true]:[background:var(--atc-glass-active-bg)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
-    "data-[active=true]:shadow-[var(--atc-control-active-shadow)]",
-    "data-[state=open]:[background:linear-gradient(180deg,var(--atc-click-bg)_0%,var(--atc-click-bg)_46%,color-mix(in_oklab,var(--atc-click-bg)_18%,transparent)_100%)]",
+    "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
+    "data-[state=open]:[background:var(--atc-glass-active-bg)]",
     "data-[state=open]:text-[var(--atc-click-fg)]",
-    "data-[state=open]:shadow-[var(--atc-control-active-shadow)]",
+    "data-[state=open]:shadow-[var(--atc-glass-rim-shadow)]",
     // Focus-visible — yellow ring.
     "focus-visible:shadow-[inset_0_0_0_2px_var(--endf-yellow)]",
     // SelectTrigger ships a ChevronDown as a direct svg child. Pin
@@ -62,7 +62,7 @@ const filterCardVariants = cva(
     // is a gradient value, so set the `background` shorthand instead
     // of background-color.
     "after:content-[''] after:absolute after:inset-0",
-    "after:[background:transparent]",
+    "after:[background:var(--atc-glass-sheen)]",
     "after:opacity-0 after:translate-y-2 after:pointer-events-none",
     "after:transition-[opacity,transform] after:duration-300 after:ease-out",
     "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",
