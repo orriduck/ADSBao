@@ -156,15 +156,28 @@
     }
 }
 
+/* fill-mode `backwards` (not `both`): the entrance animation still plays
+   identically, but once it ends the element reverts to its base state
+   (no transform) instead of holding the final keyframe's identity
+   transform. A persistent transform on these wrappers establishes a
+   backdrop-root that BREAKS `backdrop-filter` on every floating panel
+   nested inside (toolbar, sidebar, preview) — the frosted glass can't
+   blur the map through a transformed ancestor. Reverting to no transform
+   after the entrance restores the frost. The final keyframe equals the
+   base state visually, so there is no jump. */
 .app-route-transition {
     animation: app-route-enter var(--motion-ui-slow) var(--motion-ease-snap)
-        both;
-    will-change: opacity, transform;
+        backwards;
+    /* opacity only — `will-change: transform` would promote a layer that
+       some Chrome versions treat as a backdrop-root, breaking the frost
+       on nested floating panels. */
+    will-change: opacity;
 }
 
 .app-panel-transition {
-    animation: app-panel-enter var(--motion-ui-med) var(--motion-ease-out) both;
-    will-change: opacity, transform;
+    animation: app-panel-enter var(--motion-ui-med) var(--motion-ease-out)
+        backwards;
+    will-change: opacity;
 }
 
 .airport-desktop-sidebar .app-panel-transition {
@@ -221,9 +234,11 @@
 }
 
 .app-preview-transition {
+    /* backwards, not both — see .app-route-transition above: a held
+       identity transform would break the preview card's backdrop-filter. */
     animation: app-preview-enter var(--motion-ui-med) var(--motion-ease-out)
-        both;
-    will-change: opacity, transform;
+        backwards;
+    will-change: opacity;
 }
 
 @keyframes mobile-preview-card-enter {
