@@ -536,7 +536,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--app-frost-tint) 90%,
+        var(--app-frost-tint) 70%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -966,7 +966,7 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--app-frost-tint) 90%,
+        var(--app-frost-tint) 70%,
         transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
@@ -2579,7 +2579,7 @@ body:has(.app-detail-shell) {
        into something legible. */
     --atc-toolbar-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 90%,
+        var(--app-frost-tint) 74%,
         transparent
     );
     --atc-control-hover-bg: color-mix(
@@ -2900,8 +2900,8 @@ body {
 .airport-desktop-sidebar .flight-sidebar-panel {
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--app-frost-tint) 88%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 92%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 62%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 70%, transparent)
     );
     -webkit-backdrop-filter: var(--app-frost-strong);
     backdrop-filter: var(--app-frost-strong);
@@ -7088,8 +7088,8 @@ body {
     backdrop-filter: var(--app-frost-strong);
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--app-frost-tint) 88%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 92%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 62%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 70%, transparent)
     );
     border: 0;
     box-shadow: var(--app-map-sidebar-shadow);

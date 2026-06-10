@@ -2,22 +2,33 @@
 
 import { useEffect, useRef } from "react";
 import L from "leaflet";
-import "@maplibre/maplibre-gl-leaflet";
 import { useMapInstance } from "./MapContext";
-import {
-  shouldAttemptMapLibreTiles,
-  shouldLogMapTileLayerFailure,
-  shouldSuppressMapLibreTileError,
-} from "@/features/airport/map/mapTileLayerModel";
+import { shouldLogMapTileLayerFailure } from "@/features/airport/map/mapTileLayerModel";
 import { isLightMapTheme } from "@/features/airport/map/airportMapModel";
 
-const MAP_STYLE_THEME_REVISION = "standard-detail-v9";
+// Raster base tiles (CARTO) instead of the MapLibre GL vector layer.
+//
+// Why: the frosted-glass panels rely on `backdrop-filter: blur()`, and Chrome
+// cannot blur a MapLibre/WebGL <canvas> backdrop — the GL canvas composites on
+// a separate layer that the filter can't sample, so panels showed the map
+// sharp ("see-through but no blur"). Raster <img> tiles are rasterized into the
+// normal paint tree, so the panels' backdrop-filter blurs them correctly.
+//
+// The shared `.atc-tile-base` filter (defined in style.css) desaturates the
+// tiles into the muted chart-paper aesthetic, so the colourful CARTO tiles
+// still read as the same monochrome base as the old vector style.
+//
+// Labels are intentionally OFF in every mode (CARTO `*_nolabels`): the map is
+// a clean base for the frosted panels + aircraft/airport overlays, and place
+// labels competed visually with them. Theme picks the light/dark variant.
+
+function rasterTileUrl(theme: string) {
+  const tone = isLightMapTheme(theme) ? "light" : "dark";
+  return `https://{s}.basemaps.cartocdn.com/${tone}_nolabels/{z}/{x}/{y}{r}.png`;
+}
 
 export default function MapTileLayers({
   theme = "dark",
-  locale = "en",
-  showLabels = true,
-  baseLayer = "terrain",
   selectionActive = false,
 }: Record<string, any>) {
   const map = useMapInstance();
@@ -30,126 +41,42 @@ export default function MapTileLayers({
 
   useEffect(() => {
     if (!hasTilePane(map)) return undefined;
-    if (
-      !shouldAttemptMapLibreTiles({
-        userAgent: navigator.userAgent,
-        webGlAvailable: hasWebGlContext(),
-      })
-    ) {
-      return undefined;
-    }
-    const abort = new AbortController();
-    let cancelled = false;
+    removeLayer(layerRef.current, map);
 
-    loadLocalizedMapStyle({
-      theme,
-      locale,
-      showLabels,
-      baseLayer,
-      signal: abort.signal,
-    })
-      .then((style) => {
-        if (cancelled || !hasTilePane(map)) return;
-        removeLayer(layerRef.current, map);
-        let nextLayer = null;
-        try {
-          nextLayer = L.maplibreGL({
-            style,
-            interactive: false,
-            attributionControl: false,
-            className: "atc-maplibre-base",
-          } as any);
-          guardMapLibreLayerLifecycle(nextLayer);
-          nextLayer.addTo(map);
-          attachMapLibreErrorHandler(nextLayer);
-          layerRef.current = nextLayer;
-          layerRef.current.getContainer()?.classList.add("atc-tile-base");
-          // Preload tiles one ring outside the viewport so mobile panning
-          // never exposes blank white areas. The container is slightly
-          // oversized via CSS, triggering MapLibre to fetch tiles that
-          // extend beyond the visible bounds.
-          const maplibreMap = nextLayer.getMaplibreMap?.();
-          if (maplibreMap && typeof maplibreMap.setMaxTileCacheSize === "function") {
-            maplibreMap.setMaxTileCacheSize(512);
-          }
-          setSelectionOpacity(layerRef.current, theme, selectionActiveRef.current);
-        } catch (error) {
-          removeLayer(nextLayer, map);
-          layerRef.current = null;
-          if (shouldLogMapTileLayerFailure(error)) {
-            console.error("[airport-map] failed to initialize map tiles", error);
-          }
-        }
-      })
-      .catch((error) => {
-        if (error?.name === "AbortError") return;
-        console.error("[airport-map] failed to load localized map tiles", error);
+    let nextLayer = null;
+    try {
+      nextLayer = L.tileLayer(rasterTileUrl(theme), {
+        subdomains: "abcd",
+        maxZoom: 20,
+        detectRetina: true,
+        updateWhenIdle: false,
+        keepBuffer: 4,
+        className: "atc-tile-base",
+        attribution:
+          '© OpenStreetMap contributors © CARTO',
       });
+      nextLayer.addTo(map);
+      layerRef.current = nextLayer;
+      setSelectionOpacity(layerRef.current, theme, selectionActiveRef.current);
+    } catch (error) {
+      removeLayer(nextLayer, map);
+      layerRef.current = null;
+      if (shouldLogMapTileLayerFailure(error)) {
+        console.error("[airport-map] failed to initialize map tiles", error);
+      }
+    }
 
     return () => {
-      cancelled = true;
-      abort.abort();
       removeLayer(layerRef.current, map);
       layerRef.current = null;
     };
-  }, [map, theme, locale, showLabels, baseLayer]);
+  }, [map, theme]);
 
   useEffect(() => {
     setSelectionOpacity(layerRef.current, theme, selectionActive);
   }, [selectionActive, theme]);
 
   return null;
-}
-
-async function loadLocalizedMapStyle({
-  theme,
-  locale,
-  showLabels,
-  baseLayer,
-  signal,
-}: Record<string, any>) {
-  const params = new URLSearchParams({
-    locale,
-    labels: showLabels ? "1" : "0",
-    v: MAP_STYLE_THEME_REVISION,
-  });
-  if (baseLayer) params.set("baseLayer", baseLayer);
-  return requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
-}
-
-async function requestJson(url: string, { signal }: Record<string, any> = {}) {
-  if (typeof fetch === "function") {
-    const response = await fetch(url, { signal });
-    if (!response.ok) {
-      throw new Error(`OpenFreeMap style request failed: ${response.status}`);
-    }
-    return response.json();
-  }
-
-  return requestJsonWithXhr(url, { signal });
-}
-
-function requestJsonWithXhr(url: string, { signal }: Record<string, any> = {}) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.responseType = "json";
-    xhr.onload = () => {
-      if (xhr.status < 200 || xhr.status >= 300) {
-        reject(new Error(`OpenFreeMap style request failed: ${xhr.status}`));
-        return;
-      }
-      resolve(xhr.response || JSON.parse(xhr.responseText));
-    };
-    xhr.onerror = () => {
-      reject(new Error("OpenFreeMap style request failed"));
-    };
-    xhr.onabort = () => {
-      reject(new DOMException("Aborted", "AbortError"));
-    };
-    signal?.addEventListener("abort", () => xhr.abort(), { once: true });
-    xhr.send();
-  });
 }
 
 function hasTilePane(map: any) {
@@ -178,49 +105,4 @@ function setSelectionOpacity(layer, theme, selectionActive) {
     return;
   }
   container.style.opacity = "1";
-}
-
-function guardMapLibreLayerLifecycle(layer: any) {
-  if (!layer) return;
-  const guardMethod = (name: string) => {
-    const original = layer[name];
-    if (typeof original !== "function") return;
-    layer[name] = function guardedMapLibreHandler(...args) {
-      if (!this?._map || !this?._glMap) return undefined;
-      return original.apply(this, args);
-    };
-  };
-
-  guardMethod("_pinchZoom");
-  guardMethod("_animateZoom");
-  guardMethod("_zoomStart");
-  guardMethod("_zoomEnd");
-  guardMethod("_transitionEnd");
-  guardMethod("_update");
-  if (typeof layer._throttledUpdate === "function") {
-    const originalThrottledUpdate = layer._throttledUpdate;
-    layer._throttledUpdate = function guardedMapLibreThrottledUpdate(...args) {
-      if (!this?._map || !this?._glMap) return undefined;
-      return originalThrottledUpdate.apply(this, args);
-    };
-  }
-}
-
-function attachMapLibreErrorHandler(layer: any) {
-  const maplibreMap = layer?.getMaplibreMap?.();
-  if (!maplibreMap || typeof maplibreMap.on !== "function") return;
-
-  maplibreMap.on("error", (event) => {
-    if (shouldSuppressMapLibreTileError(event)) return;
-    console.error("[airport-map] map tile error", event?.error || event);
-  });
-}
-
-function hasWebGlContext() {
-  const canvas = document.createElement("canvas");
-  const context =
-    canvas.getContext("webgl2") ||
-    canvas.getContext("webgl") ||
-    canvas.getContext("experimental-webgl");
-  return Boolean(context);
 }
