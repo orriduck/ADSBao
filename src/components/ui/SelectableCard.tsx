@@ -24,7 +24,11 @@ const selectableCardVariants = cva(
     "text-left text-atc-text shadow-[var(--atc-control-inset-shadow)]",
     "transition-[background,border-color,box-shadow,color,opacity] duration-150",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
+    // Active = dark liquid glass (Siri-capsule material) — see MetricCard.
     "data-[active=true]:[background:var(--atc-glass-active-bg)]",
+    "data-[active=true]:border-transparent",
+    "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)]",
+    "data-[active=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
     "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
     "after:content-[''] after:absolute after:inset-0",
@@ -43,7 +47,7 @@ const selectableCardVariants = cva(
       interactive: {
         true: cn(
           "cursor-pointer hover:bg-[var(--atc-control-hover-bg)]",
-          "data-[active=true]:hover:bg-[var(--atc-click-bg)]",
+          "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
         ),
         false: "cursor-default",
       },

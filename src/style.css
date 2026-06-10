@@ -2553,33 +2553,32 @@ body:has(.app-detail-shell) {
        (below) swaps to a faint cool-blue edge. Both stay barely visible
        so panels read as soft material with little hard edge. */
     --app-frost-border: color-mix(in oklab, white 50%, transparent);
-    /* Inner control tiles (metric cards, filter chips, settings option
-       cards) share the frosted gray tint so they read as part of the same
-       frosted system as the panels they sit on — not warm-white cards on a
-       gray surface. Higher opacity than the panels so each tile still reads
-       as a distinct raised surface. */
+    /* Liquid-glass resting tiles (metric cards, filter chips, settings
+       option cards) — bright milky glass per the Mail-toolbar reference:
+       near-opaque frost so each tile reads as a raised piece of white
+       glass with crisp dark content, definition coming from a luminous
+       rim + soft drop shadow (tokens below) rather than a hard border. */
     --atc-control-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 30%,
+        var(--app-frost-tint) 74%,
         transparent
     );
     --atc-control-surface-muted: color-mix(
         in oklab,
-        var(--app-frost-tint) 26%,
+        var(--app-frost-tint) 66%,
         transparent
     );
     --atc-control-surface-hover: color-mix(
         in oklab,
-        var(--app-frost-tint) 40%,
+        var(--app-frost-tint) 88%,
         transparent
     );
-    /* Frosted gray material — translucent enough that the strongly
-       blurred map shows through as a faint soft wash (real frosted
-       glass), but the heavy blur keeps that wash from ever resolving
-       into something legible. */
+    /* Milky toolbar glass — bright and nearly opaque (Mail-pill look);
+       the backdrop blur still diffuses the map through as a faint wash
+       but the pill itself reads as solid luminous material. */
     --atc-toolbar-surface: color-mix(
         in oklab,
-        var(--app-frost-tint) 84%,
+        var(--app-frost-tint) 92%,
         transparent
     );
     --atc-control-hover-bg: color-mix(
@@ -2597,12 +2596,24 @@ body:has(.app-detail-shell) {
         var(--atc-accent) 12%,
         transparent
     );
-    --atc-control-inset-shadow: inset 0 1px 0
-        color-mix(in oklab, var(--atc-text) 6%, transparent);
-    --atc-control-inset-shadow-subtle: inset 0 1px 0
-        color-mix(in oklab, var(--atc-text) 5%, transparent);
-    --atc-toolbar-inset-shadow: inset 0 1px 0
-        color-mix(in oklab, var(--atc-text) 10%, transparent);
+    /* Resting-tile glass chrome — a bright specular hairline along the
+       top edge, a faint luminous ring around the whole rim, and a soft
+       drop shadow lifting the tile off the panel. Dark theme overrides
+       these (below, with --atc-text-based rims) since literal white
+       reads as a wiry outline on near-black glass. */
+    --atc-control-inset-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 85%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, white 32%, transparent),
+        0 10px 22px rgb(0 0 0 / 0.07),
+        0 2px 5px rgb(0 0 0 / 0.05);
+    --atc-control-inset-shadow-subtle:
+        inset 0 1px 0 color-mix(in oklab, white 70%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, white 26%, transparent),
+        0 8px 18px rgb(0 0 0 / 0.06),
+        0 1px 3px rgb(0 0 0 / 0.04);
+    --atc-toolbar-inset-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 92%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, white 38%, transparent);
     --atc-control-active-shadow:
         inset 0 -1px 0 var(--sidebar-tile-edge-glow),
         inset 0 -12px 20px
@@ -2615,29 +2626,46 @@ body:has(.app-detail-shell) {
         inset 0 -1px 0 var(--sidebar-tile-edge-glow),
         inset 0 -8px 14px
             color-mix(in oklab, var(--atc-click-fg) 9%, transparent);
-    /* "Apple-glass" active tile — a polished dark-glass look for the
-       selected card: top-lit ink fading to transparent at the bottom, a
-       diagonal specular sheen sweeping across (the ::after), and a bright
-       beveled rim + soft glow (rim shadow). Shared so MetricCard /
-       FilterCard / SelectableCard render the same glossy selected state. */
-    --atc-glass-active-bg: linear-gradient(
-        157deg,
-        color-mix(in oklab, var(--atc-click-bg) 84%, white) 0%,
-        var(--atc-click-bg) 42%,
-        color-mix(in oklab, var(--atc-click-bg) 22%, transparent) 100%
-    );
+    /* "Liquid glass" active tile — the dark Siri-capsule material for the
+       selected card: smoky ink that is deepest at the top and dissolves
+       toward translucency at the bottom so the (backdrop-blurred) panel
+       behind glows through, plus a soft luminous bloom rising from the
+       bottom edge. The ::after sheen sweeps a wide diagonal light band
+       across, and the rim shadow draws a crisp specular hairline along
+       the top with a faint glass ring and a deep soft drop. Shared so
+       MetricCard / FilterCard / SelectableCard / ToolbarButton render
+       the same selected material. Works in both themes — --atc-click-bg
+       is dark ink in each. */
+    --atc-glass-active-bg:
+        radial-gradient(
+            130% 80% at 50% 125%,
+            color-mix(in oklab, white 9%, transparent) 0%,
+            transparent 70%
+        ),
+        linear-gradient(
+            177deg,
+            color-mix(in oklab, var(--atc-click-bg) 97%, transparent) 0%,
+            color-mix(in oklab, var(--atc-click-bg) 92%, transparent) 45%,
+            color-mix(in oklab, var(--atc-click-bg) 84%, transparent) 78%,
+            color-mix(in oklab, var(--atc-click-bg) 76%, transparent) 100%
+        );
     --atc-glass-sheen: linear-gradient(
-        116deg,
-        transparent 28%,
-        color-mix(in oklab, white 24%, transparent) 46%,
-        color-mix(in oklab, white 6%, transparent) 54%,
-        transparent 66%
+        112deg,
+        transparent 16%,
+        color-mix(in oklab, white 8%, transparent) 36%,
+        color-mix(in oklab, white 16%, transparent) 50%,
+        color-mix(in oklab, white 4%, transparent) 64%,
+        transparent 82%
     );
     --atc-glass-rim-shadow:
-        inset 0 1px 0 color-mix(in oklab, white 36%, transparent),
-        inset 0 0 1px color-mix(in oklab, white 24%, transparent),
-        inset 0 -10px 20px color-mix(in oklab, var(--atc-click-bg) 42%, transparent),
-        0 10px 26px color-mix(in oklab, var(--atc-click-bg) 30%, transparent);
+        inset 0 1px 0 color-mix(in oklab, white 48%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, white 10%, transparent),
+        inset 0 -1px 0 color-mix(in oklab, white 16%, transparent),
+        0 14px 30px color-mix(in oklab, var(--atc-click-bg) 32%, transparent),
+        0 3px 9px color-mix(in oklab, var(--atc-click-bg) 24%, transparent);
+    /* Backdrop frost applied to the tile itself when it flips to glass —
+       what sits behind the translucent ink diffuses into a soft wash. */
+    --atc-glass-active-frost: saturate(1.1) blur(10px);
     --atc-menu-panel-shadow:
         0 12px 32px color-mix(in oklab, var(--atc-bg) 60%, transparent),
         0 2px 6px color-mix(in oklab, var(--atc-bg) 40%, transparent);
@@ -2726,6 +2754,23 @@ body:has(.app-detail-shell) {
     --app-toolbar-shadow:
         0 22px 52px rgb(0 0 0 / 0.36), 0 8px 22px rgb(0 0 0 / 0.28),
         0 1px 3px rgb(0 0 0 / 0.24);
+    /* Resting-tile glass chrome on dark glass — the specular hairline and
+       rim ring derive from --atc-text instead of literal white so the
+       edge reads as a soft catch-light, and the drop shadows deepen to
+       stay visible on the near-black panels. */
+    --atc-control-inset-shadow:
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 16%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 7%, transparent),
+        0 10px 22px rgb(0 0 0 / 0.3),
+        0 2px 5px rgb(0 0 0 / 0.22);
+    --atc-control-inset-shadow-subtle:
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 13%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 6%, transparent),
+        0 8px 18px rgb(0 0 0 / 0.26),
+        0 1px 3px rgb(0 0 0 / 0.18);
+    --atc-toolbar-inset-shadow:
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 18%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 8%, transparent);
 }
 
 body {
