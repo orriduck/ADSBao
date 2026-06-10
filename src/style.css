@@ -937,8 +937,13 @@
     --atc-faint: color-mix(in oklab, var(--atc-text) 43%, transparent);
     --atc-line: color-mix(in oklab, var(--atc-text) 9%, transparent);
     --atc-line-strong: color-mix(in oklab, var(--atc-text) 18%, transparent);
-    --atc-click-bg: var(--primary-ink);
-    --atc-click-fg: var(--primary-bright);
+    /* Selected surfaces are BRIGHT in dark theme — a luminous white-glass
+       capsule on the near-black shell (per the dark-mode liquid-glass
+       reference), with dark ink text on top. The shared --atc-glass-*
+       recipes derive from these, so the selected capsule, its corner
+       dissolve, and its glow all flip to bright automatically. */
+    --atc-click-bg: var(--primary-bright);
+    --atc-click-fg: var(--primary-ink);
     /* Muted variants mix toward the click ink, not the canvas card —
        keeps secondary text on the active surface in the same hue family
        regardless of theme. */
