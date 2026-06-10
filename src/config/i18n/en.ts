@@ -446,7 +446,7 @@ const en = {
       nearby: {
         title: "Near me",
         cta: "Open near-me view",
-        ctaHint: "See live aircraft, METAR, and the map centered on your location.",
+        ctaHint: "Aircraft, weather, and map at your location.",
         requesting: "Requesting location...",
         loading: "Finding nearby airports...",
         retry: "Try nearby again",

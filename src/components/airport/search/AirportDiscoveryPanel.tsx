@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ChevronRight, LocateFixed } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   airportDisplayCode,
@@ -152,11 +152,11 @@ function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
     <li>
       <button
         type="button"
-        className="group endf-underline -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[42px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
+        className="group endf-underline -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[max-content_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
         onClick={onRequest}
       >
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)] shadow-[inset_0_-8px_14px_color-mix(in_oklab,var(--atc-click-fg)_9%,transparent)]">
-          <LocateFixed className="h-4 w-4" aria-hidden="true" />
+        <span className="endf-tab endf-tab--code whitespace-nowrap">
+          <span>HERE</span>
         </span>
         <span className="min-w-0">
           <strong className="block truncate text-[13px] font-semibold text-atc-text">

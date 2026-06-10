@@ -438,7 +438,7 @@ const zhCN = {
       nearby: {
         title: "我的附近",
         cta: "打开我的位置视图",
-        ctaHint: "以你的当前位置为中心,显示飞机、METAR 和地图。",
+        ctaHint: "显示附近的飞机、天气和地图。",
         requesting: "正在请求定位…",
         loading: "正在查找附近机场…",
         retry: "重新尝试附近机场",
