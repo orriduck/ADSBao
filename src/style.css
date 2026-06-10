@@ -2879,10 +2879,13 @@ body {
 }
 
 .search-input {
-    background: color-mix(in oklab, var(--atc-card) 86%, transparent);
-    border: 1px solid var(--app-frost-border);
+    /* Milky frosted-glass pill — same material as the toolbar pills and
+       resting tiles: near-opaque frost tint, luminous rim + soft lift
+       (--atc-control-inset-shadow), edge from light not a hard border. */
+    background: var(--atc-toolbar-surface);
+    border: 1px solid transparent;
     border-radius: var(--atc-radius-pill);
-    box-shadow: var(--app-card-shadow);
+    box-shadow: var(--atc-control-inset-shadow);
     -webkit-backdrop-filter: var(--app-frost);
     backdrop-filter: var(--app-frost);
 }
@@ -3349,14 +3352,15 @@ body {
     -webkit-appearance: none;
     appearance: none;
     outline: none;
-    /* MetricCard bottom-glow */
+    /* Liquid-glass top-light sheen — same material as MetricCard's
+       selected state; fades/slides in when the cell becomes active. */
     &::after {
         content: '';
         position: absolute;
         inset: 0;
-        background: var(--sidebar-tile-bottom-glow);
+        background: var(--atc-glass-sheen);
         opacity: 0;
-        transform: translateY(4px);
+        transform: translateY(8px);
         pointer-events: none;
         transition: opacity .3s ease-out, transform .3s ease-out;
         border-radius: inherit;
@@ -3368,13 +3372,17 @@ body {
     &:hover {
         background: var(--atc-control-hover-bg);
     }
+    /* Active = the shared dark/bright liquid-glass capsule (see
+       --atc-glass-active-bg): translucent ink with a corner dissolve,
+       backdrop frost, specular rim. Border goes transparent — the rim
+       comes from the inset shadows. */
+    &[data-active="true"],
     &:active {
-        background: var(--atc-click-bg);
-    }
-    &[data-active="true"] {
-        background: var(--atc-click-bg);
-        border-color: color-mix(in oklab, var(--atc-click-fg) 50%, var(--atc-click-bg));
-        box-shadow: var(--atc-control-active-shadow-strong);
+        background: var(--atc-glass-active-bg);
+        border-color: transparent;
+        box-shadow: var(--atc-glass-rim-shadow);
+        -webkit-backdrop-filter: var(--atc-glass-active-frost);
+        backdrop-filter: var(--atc-glass-active-frost);
         & .hourly-card__time { color: var(--atc-click-muted); }
         & .hourly-card__condition { color: var(--atc-click-fg); }
         & .hourly-card__temp { color: var(--atc-click-fg); }
