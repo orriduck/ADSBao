@@ -53,8 +53,10 @@ const filterCardVariants = cva(
     "data-[state=open]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[state=open]:text-[var(--atc-click-fg)]",
     "data-[state=open]:shadow-[var(--atc-glass-rim-shadow)]",
-    // Focus-visible — yellow ring.
-    "focus-visible:shadow-[inset_0_0_0_2px_var(--endf-yellow)]",
+    // Focus-visible — soft luminous frost ring. (--endf-yellow resolves
+    // to near-black ink in light theme, which read as an ugly black
+    // border; the open-state glass capsule is the primary feedback.)
+    "focus-visible:shadow-[inset_0_0_0_1.5px_var(--app-frost-border)]",
     // SelectTrigger ships a ChevronDown as a direct svg child. Pin
     // it to the right edge so the label/value column stays a clean
     // stack and the card's outer shape matches non-select tiles.

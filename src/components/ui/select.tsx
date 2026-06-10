@@ -26,7 +26,11 @@ const SelectTrigger = forwardRef(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      // No focus:ring-ring — in light theme --ring resolves to the
+      // near-black accent and read as an ugly black border on the
+      // altitude filter and other selects. The open-state glass capsule
+      // is the focus/active feedback instead.
+      "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className
     )}
     {...props}>
@@ -71,7 +75,8 @@ const SelectContent = forwardRef(({ className, children, position = "popper", vi
       className={cn(
         "relative z-toast max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden",
         "flex flex-col font-[var(--airport-sidebar-sans)] tracking-normal",
-        "rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card text-atc-text",
+        "rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-surface-preview-card)] text-atc-text",
+        "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
         "shadow-[var(--atc-menu-panel-shadow)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]",
         position === "popper" &&

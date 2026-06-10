@@ -1378,14 +1378,15 @@ body:has(.app-detail-shell) {
 }
 
 :root[data-theme="dark"] .atc-tile-base {
-    filter: saturate(0.4) brightness(0.82) contrast(1.06);
+    filter: saturate(0.28) brightness(0.82) contrast(1.06);
     mix-blend-mode: normal;
 }
 
-/* Light terrain is still mostly monochrome manual ink; a small amount of
-   blue-green saturation survives so water and vegetation remain legible. */
+/* Standard base map (CARTO voyager) runs hot out of the box — pull the
+   saturation well down so greens/blues read as a muted manual-paper
+   wash that the frosted glass sits over, not a candy basemap. */
 :root[data-theme="light"] .atc-tile-base {
-    filter: saturate(0.92) brightness(1.0) contrast(0.98);
+    filter: saturate(0.62) brightness(1.0) contrast(0.98);
     mix-blend-mode: normal;
 }
 
@@ -1896,8 +1897,13 @@ body:has(.app-detail-shell) {
 }
 
 .search-input:focus-within {
-    outline: 2px solid var(--atc-orange);
-    outline-offset: 2px;
+    /* No hard accent outline — in light theme --atc-orange resolves to
+       near-black ink and read as an ugly black border. Focus shows as a
+       soft luminous frost ring consistent with the glass material. */
+    outline: none;
+    box-shadow:
+        var(--atc-control-inset-shadow),
+        inset 0 0 0 1.5px color-mix(in oklab, var(--app-frost-border) 80%, transparent);
 }
 
 .background-rays {
@@ -2681,9 +2687,13 @@ body:has(.app-detail-shell) {
        greens through the ink and made the glass look murky brown-green
        instead of neutral smoke. */
     --atc-glass-active-frost: saturate(0.85) blur(14px);
+    /* Real soft drop shadow for floating menus. Previously colored with
+       --atc-bg, which in light theme is near-white — that rendered as a
+       glowing halo around dropdowns rather than a shadow. Neutral black
+       at low opacity reads as clean floating glass in both themes. */
     --atc-menu-panel-shadow:
-        0 12px 32px color-mix(in oklab, var(--atc-bg) 60%, transparent),
-        0 2px 6px color-mix(in oklab, var(--atc-bg) 40%, transparent);
+        0 16px 40px rgb(0 0 0 / 0.16),
+        0 4px 12px rgb(0 0 0 / 0.10);
     --atc-icon-button-shadow: 0 8px 24px
         color-mix(in oklab, var(--atc-bg) 62%, transparent);
     --atc-toolbar-cell-size: 2rem;
@@ -2769,6 +2779,11 @@ body:has(.app-detail-shell) {
     --app-toolbar-shadow:
         0 22px 52px rgb(0 0 0 / 0.36), 0 8px 22px rgb(0 0 0 / 0.28),
         0 1px 3px rgb(0 0 0 / 0.24);
+    /* Deeper menu drop on the near-black shell so frosted dropdowns still
+       lift off the dark canvas. */
+    --atc-menu-panel-shadow:
+        0 20px 48px rgb(0 0 0 / 0.44),
+        0 6px 16px rgb(0 0 0 / 0.32);
     /* Resting-tile glass chrome on dark glass — the specular hairline and
        rim ring derive from --atc-text instead of literal white so the
        edge reads as a soft catch-light, and the drop shadows deepen to
