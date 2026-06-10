@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { useCardInteraction } from "@/animations/useCardInteraction";
 
 type MetricGridProps = React.ComponentProps<"div"> & {
   label?: string;
@@ -133,6 +134,43 @@ const unitClass = cn(
   "[.airport-map-kit_&]:h-2.5 [.airport-map-kit_&]:text-[8px] [.airport-map-kit_&]:leading-2.5",
 );
 
+// Interactive tab card — same GSAP hover-lift + press-spring as
+// SelectableCard / AircraftRow, so every interactive glass card shares
+// one motion feel. CSS owns background/box-shadow/color transitions
+// (the glass capsule); GSAP owns transform only, so the two never fight.
+function InteractiveMetricCard({
+  active,
+  onClick,
+  className,
+  children,
+}: {
+  active: boolean;
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const { ref, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } =
+    useCardInteraction();
+  return (
+    <button
+      type="button"
+      role="tab"
+      ref={ref}
+      aria-selected={active}
+      data-active={active ? "true" : undefined}
+      data-ui="metric-card"
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      className={cn("group", cardVariants({ interactive: true }), className)}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function MetricCard({
   label,
   value,
@@ -171,17 +209,13 @@ export function MetricCard({
 
   if (isInteractive) {
     return (
-      <button
-        type="button"
-        role="tab"
-        aria-selected={active}
-        data-active={active ? "true" : undefined}
-        data-ui="metric-card"
+      <InteractiveMetricCard
+        active={active}
         onClick={onClick}
-        className={cn("group", cardVariants({ interactive: true }), className)}
+        className={className}
       >
         {body}
-      </button>
+      </InteractiveMetricCard>
     );
   }
 

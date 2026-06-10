@@ -25,6 +25,7 @@ import {
 } from "@/utils/units";
 import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 import Skeleton from "@/components/ui/Skeleton";
+import { useCardInteraction } from "@/animations/useCardInteraction";
 
 function formatTemperatureValue(celsius, unit) {
   if (celsius == null || !Number.isFinite(Number(celsius))) return "-";
@@ -535,6 +536,43 @@ function hourlyTemp(val, unit) {
   return `${Math.round(convertTemperatureFromC(Number(val), unit))}°`;
 }
 
+// One hourly cell. Pulled out of the map() so it can own a
+// useCardInteraction hook — same GSAP hover-lift + press-spring as the
+// MetricCard / SelectableCard glass cards. CSS owns the glass-capsule
+// background/box-shadow on [data-active]; GSAP owns transform only.
+function HourlyCell({ hour, active, onToggle, t, units }) {
+  const { ref, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } =
+    useCardInteraction();
+  return (
+    <button
+      type="button"
+      ref={ref}
+      data-active={active ? "true" : undefined}
+      className="hourly-card group"
+      onClick={onToggle}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+    >
+      <span className="hourly-card__time">{hour.time}</span>
+      <span className="hourly-card__temp notranslate" translate="no">
+        {hourlyTemp(hour.temperatureC, units.temperature)}
+      </span>
+      <span className="hourly-card__condition notranslate" translate="no">
+        {shortWeatherLabel(hour.weatherCode, t) || "—"}
+      </span>
+      {hour.precipitationProbability != null &&
+        hour.precipitationProbability > 0 ? (
+        <span className="hourly-card__precip">
+          <Droplets size={10} aria-hidden="true" />
+          {Math.round(hour.precipitationProbability)}%
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
 export function HourlyForecastSlide({ localWeather }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
@@ -547,33 +585,16 @@ export function HourlyForecastSlide({ localWeather }) {
       {/* 6-hour grid — 3 columns × 2 rows, each cell is a card */}
       {hours.length > 0 ? (
         <div className="hourly-grid">
-          {hours.map((h, i) => {
-            const isActive = activeIdx === i;
-            return (
-              <button
-                key={i}
-                type="button"
-                data-active={isActive ? "true" : undefined}
-                className="hourly-card group"
-                onClick={() => setActiveIdx(isActive ? null : i)}
-              >
-                <span className="hourly-card__time">{h.time}</span>
-                <span className="hourly-card__temp notranslate" translate="no">
-                  {hourlyTemp(h.temperatureC, units.temperature)}
-                </span>
-                <span className="hourly-card__condition notranslate" translate="no">
-                  {shortWeatherLabel(h.weatherCode, t) || "—"}
-                </span>
-                {h.precipitationProbability != null &&
-                  h.precipitationProbability > 0 ? (
-                  <span className="hourly-card__precip">
-                    <Droplets size={10} aria-hidden="true" />
-                    {Math.round(h.precipitationProbability)}%
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
+          {hours.map((h, i) => (
+            <HourlyCell
+              key={i}
+              hour={h}
+              active={activeIdx === i}
+              onToggle={() => setActiveIdx(activeIdx === i ? null : i)}
+              t={t}
+              units={units}
+            />
+          ))}
         </div>
       ) : null}
 

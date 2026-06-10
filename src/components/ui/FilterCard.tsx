@@ -4,6 +4,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { useCardInteraction } from "@/animations/useCardInteraction";
 
 const forwardRef = React.forwardRef as <
   Element = any,
@@ -104,12 +105,38 @@ export const FilterCard = forwardRef(function FilterCard(
 ) {
   const Comp = asChild ? Slot : "button";
   const extraProps = asChild ? {} : { type: props.type || "button" };
+
+  // GSAP hover-lift + press-spring, matching MetricCard / SelectableCard.
+  // CSS owns the glass-capsule background/box-shadow on active/open; GSAP
+  // owns transform only. The hook's callback ref is merged with the
+  // forwarded ref so Radix (SelectTrigger via asChild) still gets the
+  // node, and Radix Slot composes our mouse handlers with the child's.
+  const {
+    ref: gsapRef,
+    onMouseEnter,
+    onMouseLeave,
+    onMouseDown,
+    onMouseUp,
+  } = useCardInteraction();
+  const setRefs = React.useCallback(
+    (node: HTMLElement | null) => {
+      gsapRef(node);
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLElement | null>).current = node;
+    },
+    [gsapRef, ref],
+  );
+
   return (
     <Comp
-      ref={ref}
+      ref={setRefs}
       data-active={active ? "true" : undefined}
       data-ui="filter-card"
       className={cn(filterCardVariants({ shape }), className)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
       {...extraProps}
       {...props}
     />
