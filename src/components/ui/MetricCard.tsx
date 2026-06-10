@@ -65,18 +65,20 @@ const cardVariants = cva(
     "[.airport-map-kit_&]:grid-rows-[11px_27px_10px]",
     "[.airport-map-kit_&]:min-h-19",
     "[.airport-map-kit_&]:p-3.5",
-    // Active state — solid ink block + click-foreground text, edge
-    // glow on bottom, label / unit dim down. The state lives here
-    // instead of a sidebar-specific global selector.
-    "data-[active=true]:bg-[var(--atc-click-bg)]",
+    // Active = dark liquid glass (Siri-capsule material): smoky ink
+    // dissolving to translucent at the bottom, backdrop frost so the
+    // panel behind diffuses through, specular sheen (::after), crisp
+    // top rim + deep soft drop (rim shadow). Border goes transparent —
+    // the rim hairline comes from the inset shadows, not the border.
+    "data-[active=true]:[background:var(--atc-glass-active-bg)]",
+    "data-[active=true]:border-transparent",
+    "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)]",
+    "data-[active=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
-    "data-[active=true]:shadow-[var(--atc-control-active-shadow-strong)]",
-    // Bottom-glow halo painted underneath the value. Owned by ::after
-    // so it can fade in + slide up without affecting the card's box.
-    // The token is a linear-gradient, so set the background shorthand
-    // (not background-color, which can't accept a gradient).
+    "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
+    // ::after carries the diagonal specular highlight; fades/slides in on active.
     "after:content-[''] after:absolute after:inset-0",
-    "after:[background:var(--sidebar-tile-bottom-glow)]",
+    "after:[background:var(--atc-glass-sheen)]",
     "after:opacity-0 after:translate-y-2 after:pointer-events-none",
     "after:transition-[opacity,transform] after:duration-300 after:ease-out",
     "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",
@@ -88,9 +90,11 @@ const cardVariants = cva(
       interactive: {
         true: cn(
           "cursor-pointer",
-          // Hover only tints non-active cards; active cards keep ink.
+          // Hover only tints non-active cards; active cards keep the
+          // liquid-glass gradient (hover:bg sets background-color, which
+          // the active `background` shorthand must win over explicitly).
           "hover:bg-[var(--atc-control-hover-bg)]",
-          "data-[active=true]:hover:bg-[var(--atc-click-bg)]",
+          "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
           "focus:outline-none",
         ),
         false: "cursor-default",

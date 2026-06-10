@@ -7,6 +7,21 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.4.0",
+    kind: "feat",
+    title: "Liquid glass redesign",
+    summary:
+      "Every floating surface is rebuilt as Apple-style liquid glass over a colored basemap: milky frosted tiles and toolbars at rest, and a polished glass capsule for selected states — dark smoke in light theme, luminous white in dark theme — with a signature corner dissolve.",
+    highlights: [
+      "Selected cards, filter chips, settings options, and toolbar buttons share one glass-capsule material: smoky translucent ink, backdrop frost, specular top rim, and a bottom-right corner that dissolves to reveal the surface behind",
+      "Dark theme selected state inverts to a bright white-glass capsule with dark ink text on the near-black shell",
+      "Resting tiles and toolbar pills become bright milky frosted glass with luminous rims, soft lift shadows, and crisp dark icons",
+      "Colored CARTO voyager basemap replaces the washed vector style so the frost has real geography to diffuse",
+      "Sidebar and panels rebuilt as a token-driven frosted material system (--app-frost, --atc-glass-*, --atc-control-*) shared across every surface",
+      "DESIGN.md rewritten as the liquid-glass source of truth for future UI work",
+    ],
+  },
+  {
     version: "v2.3.1",
     kind: "patch",
     title: "Hydration stability, list row polish & flight tracking resilience",

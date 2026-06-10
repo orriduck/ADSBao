@@ -156,15 +156,28 @@
     }
 }
 
+/* fill-mode `backwards` (not `both`): the entrance animation still plays
+   identically, but once it ends the element reverts to its base state
+   (no transform) instead of holding the final keyframe's identity
+   transform. A persistent transform on these wrappers establishes a
+   backdrop-root that BREAKS `backdrop-filter` on every floating panel
+   nested inside (toolbar, sidebar, preview) — the frosted glass can't
+   blur the map through a transformed ancestor. Reverting to no transform
+   after the entrance restores the frost. The final keyframe equals the
+   base state visually, so there is no jump. */
 .app-route-transition {
     animation: app-route-enter var(--motion-ui-slow) var(--motion-ease-snap)
-        both;
-    will-change: opacity, transform;
+        backwards;
+    /* opacity only — `will-change: transform` would promote a layer that
+       some Chrome versions treat as a backdrop-root, breaking the frost
+       on nested floating panels. */
+    will-change: opacity;
 }
 
 .app-panel-transition {
-    animation: app-panel-enter var(--motion-ui-med) var(--motion-ease-out) both;
-    will-change: opacity, transform;
+    animation: app-panel-enter var(--motion-ui-med) var(--motion-ease-out)
+        backwards;
+    will-change: opacity;
 }
 
 .airport-desktop-sidebar .app-panel-transition {
@@ -221,9 +234,11 @@
 }
 
 .app-preview-transition {
+    /* backwards, not both — see .app-route-transition above: a held
+       identity transform would break the preview card's backdrop-filter. */
     animation: app-preview-enter var(--motion-ui-med) var(--motion-ease-out)
-        both;
-    will-change: opacity, transform;
+        backwards;
+    will-change: opacity;
 }
 
 @keyframes mobile-preview-card-enter {
@@ -521,8 +536,8 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--atc-card) 96%,
-        var(--atc-bg)
+        var(--app-frost-tint) 84%,
+        transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
     --atc-surface-icon-wash: color-mix(
@@ -922,8 +937,13 @@
     --atc-faint: color-mix(in oklab, var(--atc-text) 43%, transparent);
     --atc-line: color-mix(in oklab, var(--atc-text) 9%, transparent);
     --atc-line-strong: color-mix(in oklab, var(--atc-text) 18%, transparent);
-    --atc-click-bg: var(--primary-ink);
-    --atc-click-fg: var(--primary-bright);
+    /* Selected surfaces are BRIGHT in dark theme — a luminous white-glass
+       capsule on the near-black shell (per the dark-mode liquid-glass
+       reference), with dark ink text on top. The shared --atc-glass-*
+       recipes derive from these, so the selected capsule, its corner
+       dissolve, and its glow all flip to bright automatically. */
+    --atc-click-bg: var(--primary-bright);
+    --atc-click-fg: var(--primary-ink);
     /* Muted variants mix toward the click ink, not the canvas card —
        keeps secondary text on the active surface in the same hue family
        regardless of theme. */
@@ -951,8 +971,8 @@
     );
     --atc-surface-preview-card: color-mix(
         in oklab,
-        var(--atc-card) 96%,
-        var(--atc-bg)
+        var(--app-frost-tint) 84%,
+        transparent
     );
     --atc-surface-row-rest: color-mix(in oklab, var(--atc-bg) 38%, transparent);
     --atc-surface-icon-wash: color-mix(
@@ -1358,14 +1378,14 @@ body:has(.app-detail-shell) {
 }
 
 :root[data-theme="dark"] .atc-tile-base {
-    filter: saturate(0.32) brightness(0.62) contrast(1.16);
+    filter: saturate(0.4) brightness(0.82) contrast(1.06);
     mix-blend-mode: normal;
 }
 
 /* Light terrain is still mostly monochrome manual ink; a small amount of
    blue-green saturation survives so water and vegetation remain legible. */
 :root[data-theme="light"] .atc-tile-base {
-    filter: saturate(0.46) brightness(1.08) contrast(0.86);
+    filter: saturate(0.92) brightness(1.0) contrast(0.98);
     mix-blend-mode: normal;
 }
 
@@ -1783,6 +1803,11 @@ body:has(.app-detail-shell) {
             var(--atc-surface-preview-card);
         border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
         border-radius: var(--atc-radius-card);
+        /* The shared preview-card surface is semi-opaque, so frost the
+           studio modal too — otherwise the camera viewfinder behind it
+           bleeds through the panel. */
+        -webkit-backdrop-filter: var(--app-frost-strong);
+        backdrop-filter: var(--app-frost-strong);
         box-shadow: var(--app-floating-shadow), var(--atc-preview-card-inset);
         flex: 0 0 auto;
         margin: 0 auto max(10px, env(safe-area-inset-bottom));
@@ -2129,8 +2154,8 @@ body:has(.app-detail-shell) {
     overflow: hidden;
     padding: 16px;
     position: relative;
-    -webkit-backdrop-filter: blur(6px) saturate(120%);
-    backdrop-filter: blur(6px) saturate(120%);
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
 }
 
 .glass-panel::before {
@@ -2148,11 +2173,11 @@ body:has(.app-detail-shell) {
 
 @supports (backdrop-filter: blur(1px)) {
     .glass-panel {
-        backdrop-filter: blur(6px) saturate(120%);
+        backdrop-filter: var(--app-frost);
     }
 
     .mobile-status-bar {
-        backdrop-filter: blur(10px) saturate(125%);
+        backdrop-filter: var(--app-frost-strong);
     }
 }
 
@@ -2505,29 +2530,60 @@ body:has(.app-detail-shell) {
 
 :root {
     --app-sidebar-width: 23.5rem;
-    --atc-radius-shell: 28px;
-    --atc-radius-panel: 20px;
-    --atc-radius-card: 16px;
+    /* Larger, softer geometry for the frosted dashboard direction —
+       floating surfaces read as generous rounded material. */
+    --atc-radius-shell: 32px;
+    --atc-radius-panel: 24px;
+    --atc-radius-card: 18px;
     --atc-radius-control: 999px;
     --atc-radius-pill: 999px;
+    /* Frosted-material blur. The single source of truth for every
+       floating surface that sits over the map (toolbars, preview cards,
+       dropdowns, sheets, desktop sidebar). Strong blur diffuses the map
+       behind the panel into a soft wash WITHOUT making it readable —
+       diffusion, not transparency. Applied via the `backdrop-filter`
+       arbitrary on primitives and surface classes so the blur amount is
+       tuned in one place. */
+    --app-frost: saturate(1.04) blur(12px);
+    --app-frost-strong: saturate(1.04) blur(16px);
+    /* Frosted-material base color — a distinct cool gray (light) / navy
+       (dark) so floating panels read as gray frosted MATERIAL, not the
+       warm near-white card. This is the key to the look: against a light
+       map a near-white panel is invisible, but a cool slate gray reads
+       clearly as frosted glass. Surfaces below mix this tint with
+       transparent so the strong blur diffuses the map into a soft wash. */
+    --app-frost-tint: oklch(0.95 0.004 100);
+    /* Soft, low-contrast hairline for frosted surfaces. Light theme uses
+       a bright near-white edge (catches the diffuse light); dark theme
+       (below) swaps to a faint cool-blue edge. Both stay barely visible
+       so panels read as soft material with little hard edge. */
+    --app-frost-border: color-mix(in oklab, white 50%, transparent);
+    /* Liquid-glass resting tiles (metric cards, filter chips, settings
+       option cards) — bright milky glass per the Mail-toolbar reference:
+       near-opaque frost so each tile reads as a raised piece of white
+       glass with crisp dark content, definition coming from a luminous
+       rim + soft drop shadow (tokens below) rather than a hard border. */
     --atc-control-surface: color-mix(
         in oklab,
-        var(--atc-card) 82%,
+        var(--app-frost-tint) 74%,
         transparent
     );
     --atc-control-surface-muted: color-mix(
         in oklab,
-        var(--atc-card) 74%,
+        var(--app-frost-tint) 66%,
         transparent
     );
     --atc-control-surface-hover: color-mix(
         in oklab,
-        var(--atc-card) 58%,
+        var(--app-frost-tint) 88%,
         transparent
     );
+    /* Milky toolbar glass — bright and nearly opaque (Mail-pill look);
+       the backdrop blur still diffuses the map through as a faint wash
+       but the pill itself reads as solid luminous material. */
     --atc-toolbar-surface: color-mix(
         in oklab,
-        var(--atc-card) 96%,
+        var(--app-frost-tint) 92%,
         transparent
     );
     --atc-control-hover-bg: color-mix(
@@ -2545,12 +2601,24 @@ body:has(.app-detail-shell) {
         var(--atc-accent) 12%,
         transparent
     );
-    --atc-control-inset-shadow: inset 0 1px 0
-        color-mix(in oklab, var(--atc-text) 6%, transparent);
-    --atc-control-inset-shadow-subtle: inset 0 1px 0
-        color-mix(in oklab, var(--atc-text) 5%, transparent);
-    --atc-toolbar-inset-shadow: inset 0 1px 0
-        color-mix(in oklab, var(--atc-text) 10%, transparent);
+    /* Resting-tile glass chrome — a bright specular hairline along the
+       top edge, a faint luminous ring around the whole rim, and a soft
+       drop shadow lifting the tile off the panel. Dark theme overrides
+       these (below, with --atc-text-based rims) since literal white
+       reads as a wiry outline on near-black glass. */
+    --atc-control-inset-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 85%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, white 32%, transparent),
+        0 10px 22px rgb(0 0 0 / 0.07),
+        0 2px 5px rgb(0 0 0 / 0.05);
+    --atc-control-inset-shadow-subtle:
+        inset 0 1px 0 color-mix(in oklab, white 70%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, white 26%, transparent),
+        0 8px 18px rgb(0 0 0 / 0.06),
+        0 1px 3px rgb(0 0 0 / 0.04);
+    --atc-toolbar-inset-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 92%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, white 38%, transparent);
     --atc-control-active-shadow:
         inset 0 -1px 0 var(--sidebar-tile-edge-glow),
         inset 0 -12px 20px
@@ -2563,6 +2631,56 @@ body:has(.app-detail-shell) {
         inset 0 -1px 0 var(--sidebar-tile-edge-glow),
         inset 0 -8px 14px
             color-mix(in oklab, var(--atc-click-fg) 9%, transparent);
+    /* "Liquid glass" active tile — the dark Siri-capsule material for the
+       selected card: smoky ink that is deepest at the top and dissolves
+       toward translucency at the bottom so the (backdrop-blurred) panel
+       behind glows through, plus a soft luminous bloom rising from the
+       bottom edge. The ::after sheen sweeps a wide diagonal light band
+       across, and the rim shadow draws a crisp specular hairline along
+       the top with a faint glass ring and a deep soft drop. Shared so
+       MetricCard / FilterCard / SelectableCard / ToolbarButton render
+       the same selected material. Works in both themes — --atc-click-bg
+       is dark ink in each. */
+    /* Ink layer is a radial falloff anchored at the TOP-LEFT corner: the
+       capsule stays deep smoke almost everywhere and only the far
+       bottom-right corner dissolves toward transparency, so the
+       (backdrop-blurred) surface behind glows through that one corner —
+       matching the reference capsule's clear corner. */
+    --atc-glass-active-bg:
+        radial-gradient(
+            120% 70% at 50% 130%,
+            color-mix(in oklab, white 8%, transparent) 0%,
+            transparent 65%
+        ),
+        radial-gradient(
+            142% 142% at 0% 0%,
+            color-mix(in oklab, var(--atc-click-bg) 98%, transparent) 0%,
+            color-mix(in oklab, var(--atc-click-bg) 96%, transparent) 52%,
+            color-mix(in oklab, var(--atc-click-bg) 88%, transparent) 74%,
+            color-mix(in oklab, var(--atc-click-bg) 52%, transparent) 92%,
+            color-mix(in oklab, var(--atc-click-bg) 30%, transparent) 100%
+        );
+    /* Clean top-light wash, not a diagonal band — at card sizes a diagonal
+       sheen reads as a smudge across the content; the reference capsule is
+       simply lit from the top with a smooth vertical falloff. */
+    --atc-glass-sheen: linear-gradient(
+        180deg,
+        color-mix(in oklab, white 12%, transparent) 0%,
+        color-mix(in oklab, white 4%, transparent) 38%,
+        transparent 62%
+    );
+    --atc-glass-rim-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 48%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, white 10%, transparent),
+        inset 0 -1px 0 color-mix(in oklab, white 16%, transparent),
+        0 14px 30px color-mix(in oklab, var(--atc-click-bg) 32%, transparent),
+        0 3px 9px color-mix(in oklab, var(--atc-click-bg) 24%, transparent);
+    /* Backdrop frost applied to the tile itself when it flips to glass —
+       what sits behind the translucent ink diffuses into a soft wash.
+       Slightly desaturated: boosting saturation pulled the map's khaki
+       greens through the ink and made the glass look murky brown-green
+       instead of neutral smoke. */
+    --atc-glass-active-frost: saturate(0.85) blur(14px);
     --atc-menu-panel-shadow:
         0 12px 32px color-mix(in oklab, var(--atc-bg) 60%, transparent),
         0 2px 6px color-mix(in oklab, var(--atc-bg) 40%, transparent);
@@ -2571,20 +2689,20 @@ body:has(.app-detail-shell) {
     --atc-toolbar-cell-size: 2rem;
     --atc-toolbar-shell-min-height: 42px;
     --app-panel-shadow:
-        0 22px 58px color-mix(in oklab, var(--atc-bg) 42%, transparent),
-        0 8px 22px color-mix(in oklab, var(--atc-text) 7%, transparent),
-        0 1px 3px color-mix(in oklab, var(--atc-text) 5%, transparent);
+        0 32px 72px color-mix(in oklab, var(--atc-text) 6%, transparent),
+        0 12px 28px color-mix(in oklab, var(--atc-text) 4%, transparent),
+        0 1px 3px color-mix(in oklab, var(--atc-text) 3%, transparent);
     --app-map-sidebar-shadow:
         18px 0 44px color-mix(in oklab, var(--atc-text) 13%, transparent),
         3px 0 10px color-mix(in oklab, var(--atc-text) 8%, transparent),
         var(--app-panel-shadow);
     --app-card-shadow:
-        0 10px 24px color-mix(in oklab, var(--atc-text) 6%, transparent),
-        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 8%, transparent);
+        0 14px 32px color-mix(in oklab, var(--atc-text) 5%, transparent),
+        inset 0 1px 0 color-mix(in oklab, white 40%, transparent);
     --app-floating-shadow:
-        0 18px 42px color-mix(in oklab, var(--atc-text) 9%, transparent),
-        0 7px 18px color-mix(in oklab, var(--atc-text) 5%, transparent),
-        0 1px 2px color-mix(in oklab, var(--atc-text) 5%, transparent);
+        0 28px 56px color-mix(in oklab, var(--atc-text) 5%, transparent),
+        0 10px 24px color-mix(in oklab, var(--atc-text) 3%, transparent),
+        0 1px 2px color-mix(in oklab, var(--atc-text) 2.5%, transparent);
     /* Bumped from the 6%-of-text mix to a fixed RGBA: on the light
        map background, color-mix with --atc-text read as nearly
        invisible. Matches the dark-theme strength so toolbar halos
@@ -2622,28 +2740,52 @@ body:has(.app-detail-shell) {
        even when the toolbar sits inside an overflow:hidden container that
        clips part of the ambient blur (e.g. .airport-map-stage). */
     --app-toolbar-shadow:
-        0 8px 16px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08),
-        0 1px 2px rgba(0, 0, 0, 0.06);
+        0 16px 32px rgba(0, 0, 0, 0.05), 0 6px 14px rgba(0, 0, 0, 0.04),
+        0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 :root[data-theme="dark"] {
+    /* Faint cool-blue edge so frosted panels read as soft atmospheric
+       material on the navy canvas rather than hard-bordered cards. */
+    --app-frost-border: color-mix(in oklab, #97b6d3 15%, transparent);
+    /* Neutral dark-gray frosted base, tied to the dark theme's own hue
+       (150) rather than navy blue — floating panels read as deep gray
+       atmospheric glass, not tinted blue. */
+    --app-frost-tint: oklch(0.235 0.005 150);
     --app-panel-shadow:
-        0 24px 70px rgb(0 0 0 / 0.34), 0 8px 24px rgb(0 0 0 / 0.24),
-        0 1px 3px rgb(0 0 0 / 0.22);
+        0 36px 88px rgb(0 0 0 / 0.28), 0 14px 32px rgb(0 0 0 / 0.18),
+        0 1px 3px rgb(0 0 0 / 0.16);
     --app-map-sidebar-shadow:
-        18px 0 52px rgb(0 0 0 / 0.32), 3px 0 12px rgb(0 0 0 / 0.22),
+        18px 0 60px rgb(0 0 0 / 0.34), 3px 0 16px rgb(0 0 0 / 0.22),
         var(--app-panel-shadow);
     --app-card-shadow:
-        0 12px 32px rgb(0 0 0 / 0.24),
+        0 16px 40px rgb(0 0 0 / 0.26),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 7%, transparent);
     --app-floating-shadow:
-        0 20px 54px rgb(0 0 0 / 0.34), 0 8px 22px rgb(0 0 0 / 0.22),
-        0 1px 3px rgb(0 0 0 / 0.2);
+        0 30px 68px rgb(0 0 0 / 0.28), 0 12px 28px rgb(0 0 0 / 0.16),
+        0 1px 3px rgb(0 0 0 / 0.14);
     --app-floating-edge-shadow: rgb(0 0 0 / 0.18);
     --preview-card-shadow: var(--app-floating-shadow);
     --app-toolbar-shadow:
-        0 16px 40px rgb(0 0 0 / 0.55), 0 6px 18px rgb(0 0 0 / 0.42),
-        0 1px 3px rgb(0 0 0 / 0.38);
+        0 22px 52px rgb(0 0 0 / 0.36), 0 8px 22px rgb(0 0 0 / 0.28),
+        0 1px 3px rgb(0 0 0 / 0.24);
+    /* Resting-tile glass chrome on dark glass — the specular hairline and
+       rim ring derive from --atc-text instead of literal white so the
+       edge reads as a soft catch-light, and the drop shadows deepen to
+       stay visible on the near-black panels. */
+    --atc-control-inset-shadow:
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 16%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 7%, transparent),
+        0 10px 22px rgb(0 0 0 / 0.3),
+        0 2px 5px rgb(0 0 0 / 0.22);
+    --atc-control-inset-shadow-subtle:
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 13%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 6%, transparent),
+        0 8px 18px rgb(0 0 0 / 0.26),
+        0 1px 3px rgb(0 0 0 / 0.18);
+    --atc-toolbar-inset-shadow:
+        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 18%, transparent),
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 8%, transparent);
 }
 
 body {
@@ -2737,11 +2879,12 @@ body {
 }
 
 .search-input {
-    background: color-mix(in oklab, var(--atc-card) 94%, transparent);
-    border: 1px solid
-        color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
+    background: color-mix(in oklab, var(--atc-card) 86%, transparent);
+    border: 1px solid var(--app-frost-border);
     border-radius: var(--atc-radius-pill);
     box-shadow: var(--app-card-shadow);
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
 }
 
 .search-input input,
@@ -2826,6 +2969,25 @@ body {
     );
     border-right: 0;
     box-shadow: var(--app-panel-shadow);
+}
+
+/* Desktop sidebar reads as a floating frosted panel. Scoped to
+   .airport-desktop-sidebar (which is display:none on mobile) so the
+   backdrop-filter never establishes a containing block for the mobile
+   bottom-dock's position:fixed pill — adding filter to the shared shell
+   on mobile would re-anchor that fixed child and break its layout. The
+   surface drops to a semi-opaque wash so the strong blur diffuses
+   whatever sits behind the panel into soft frosted gray. */
+.airport-desktop-sidebar .sidebar-shell,
+.airport-desktop-sidebar .airport-sidebar-panel,
+.airport-desktop-sidebar .flight-sidebar-panel {
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--app-frost-tint) 84%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 87%, transparent)
+    );
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
 }
 
 .airport-desktop-sidebar {
@@ -2957,7 +3119,10 @@ body {
 }
 
 .aircraft-preview-metadata-card {
-    background: color-mix(in oklab, var(--atc-card) 94%, transparent);
+    background: var(--atc-surface-preview-card);
+    border: 1px solid var(--app-frost-border);
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
     box-shadow: var(--preview-card-shadow);
 }
 
@@ -3429,8 +3594,8 @@ body {
 
 .airport-map-menu {
     align-items: center;
-    -webkit-backdrop-filter: blur(14px) saturate(1.12);
-    backdrop-filter: blur(14px) saturate(1.12);
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
     background:
         linear-gradient(
             90deg,
@@ -3487,8 +3652,8 @@ body {
 
 .mobile-status-bar {
     align-items: center;
-    backdrop-filter: blur(10px) saturate(125%);
-    -webkit-backdrop-filter: blur(10px) saturate(125%);
+    backdrop-filter: var(--app-frost-strong);
+    -webkit-backdrop-filter: var(--app-frost-strong);
     background: linear-gradient(
         145deg,
         var(--glass-card-top),
@@ -5383,12 +5548,15 @@ body {
     width: 320px;
     max-width: calc(100vw - 32px);
     padding: 18px 18px 14px;
-    /* Solid theme-color surface — no transparency, no frosted-glass.
-       Top half and pocket panel share the same --atc-card token so
-       the card reads as one continuous opaque surface, with the
-       divider as the only visual seam. */
-    background: var(--atc-card);
-    border: 1px solid var(--tone-border-firm);
+    /* Frosted material surface. The semi-opaque preview-card token plus a
+       strong backdrop blur diffuse the map behind the card into a soft
+       wash without making it readable — the card still reads as one
+       continuous frosted gray surface, with the divider as the only
+       visual seam. */
+    background: var(--atc-surface-preview-card);
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
+    border: 1px solid var(--app-frost-border);
     border-radius: var(--atc-radius-panel);
     box-shadow: var(--preview-card-shadow);
     color: var(--atc-text);
@@ -5562,6 +5730,13 @@ body {
     border-radius: 0;
     background: transparent;
     box-shadow: none;
+    /* v2 desktop-reveal stack: this outer card is a transparent
+       pass-through wrapper — the frosted surface is the inner
+       .aircraft-preview-metadata-card. Clear the base card's
+       backdrop-filter here so the wrapper doesn't double-blur the map
+       across its transparent bounding box. */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 .aircraft-preview-card--airport {
@@ -6493,18 +6668,18 @@ body {
     border-radius: var(--atc-radius-pill) !important;
 }
 
+/* Frosted preview-card surface. This block previously forced an opaque
+   --atc-card with backdrop-filter:none (the old "solid card" design),
+   which overrode the frosted treatment. Now carries the frost so the
+   aircraft preview reads as the same frosted glass as every other panel. */
 .aircraft-preview-metadata-card {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--atc-card) !important;
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
+    background: var(--atc-surface-preview-card) !important;
 }
 
 :root[data-theme="dark"] .aircraft-preview-metadata-card {
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--atc-card) 96%, transparent),
-        color-mix(in oklab, var(--atc-card) 92%, transparent)
-    ) !important;
+    background: var(--atc-surface-preview-card) !important;
 }
 
 .changelog-entry {
@@ -6987,9 +7162,18 @@ body {
 .airport-map-kit .airport-sidebar-panel,
 .airport-map-kit .flight-sidebar-panel,
 .airport-map-kit .sidebar-shell {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--atc-bg);
+    /* Frosted glass over the full-bleed map. This rule used to force an
+       opaque --atc-bg with backdrop-filter:none, which overrode the
+       desktop-sidebar frost (it is more specific + later in the cascade).
+       Now it carries the same translucent tint + blur so the map reads
+       through the sidebar as a soft frosted wash. */
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--app-frost-tint) 84%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 87%, transparent)
+    );
     border: 0;
     box-shadow: var(--app-map-sidebar-shadow);
 }

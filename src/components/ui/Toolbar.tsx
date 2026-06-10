@@ -71,6 +71,10 @@ const toolbarVariants = cva(
     "relative items-center isolate",
     "rounded-full",
     "bg-[var(--atc-toolbar-surface)]",
+    // Frosted material — the semi-opaque toolbar surface plus a strong
+    // backdrop blur diffuse the map behind the pill into soft gray.
+    // Shared --app-frost token so every floating surface blurs alike.
+    "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
     "shadow-[var(--app-toolbar-shadow),var(--atc-toolbar-inset-shadow)]",
     // Re-enable interaction inside containers that turn it off so the
     // bare map area can still receive taps around the floating pill.
@@ -173,10 +177,16 @@ const toolbarButtonVariants = cva(
         // FilterCard: ink background + bottom inset edge-glow so the
         // pressed state reads as the same UI language across surfaces.
         soft: cn(
-          "bg-transparent text-atc-faint",
+          // Crisp dark icons on the milky pill (Mail-toolbar reference) —
+          // atc-dim instead of atc-faint so glyphs read sharp on glass.
+          "bg-transparent text-atc-dim",
           "hover:bg-[var(--atc-click-bg)] hover:text-[var(--atc-click-fg)]",
           "focus-visible:bg-[var(--atc-click-bg)] focus-visible:text-[var(--atc-click-fg)]",
-          "data-[active=true]:bg-[var(--atc-click-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
+          // Active = the shared dark liquid-glass material (gradient via
+          // the `background` shorthand — it's a layered gradient token).
+          "data-[active=true]:[background:var(--atc-glass-active-bg)]",
+          "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
+          "data-[active=true]:text-[var(--atc-click-fg)]",
           "data-[active=true]:shadow-[var(--atc-toolbar-button-active-shadow)]",
         ),
         // Map control rail button — dim base + light elev tint on
@@ -187,7 +197,9 @@ const toolbarButtonVariants = cva(
           "bg-transparent text-atc-dim",
           "hover:bg-[var(--atc-control-hover-bg-strong)]",
           "focus-visible:bg-[var(--atc-control-hover-bg-strong)]",
-          "data-[active=true]:bg-[var(--atc-click-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
+          "data-[active=true]:[background:var(--atc-glass-active-bg)]",
+          "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
+          "data-[active=true]:text-[var(--atc-click-fg)]",
           "data-[active=true]:shadow-[var(--atc-toolbar-button-active-shadow)]",
         ),
       },

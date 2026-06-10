@@ -40,7 +40,11 @@ export const MenuPanel = forwardRef(function MenuPanel(
       data-ui="menu-panel"
       className={cn(
         "flex flex-col font-[var(--airport-sidebar-sans)]",
-        "rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card",
+        // Frosted dropdown/popover surface — semi-opaque so the shared
+        // backdrop blur diffuses whatever sits behind the menu, with a
+        // soft low-contrast frost border instead of a hard hairline.
+        "rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-surface-preview-card)]",
+        "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
         "text-atc-text",
         "shadow-[var(--atc-menu-panel-shadow)]",
         "p-1.5 tracking-normal",
