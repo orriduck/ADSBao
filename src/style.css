@@ -2638,24 +2638,25 @@ body:has(.app-detail-shell) {
        is dark ink in each. */
     --atc-glass-active-bg:
         radial-gradient(
-            130% 80% at 50% 125%,
-            color-mix(in oklab, white 9%, transparent) 0%,
-            transparent 70%
+            120% 70% at 50% 130%,
+            color-mix(in oklab, white 8%, transparent) 0%,
+            transparent 65%
         ),
         linear-gradient(
-            177deg,
-            color-mix(in oklab, var(--atc-click-bg) 97%, transparent) 0%,
-            color-mix(in oklab, var(--atc-click-bg) 92%, transparent) 45%,
-            color-mix(in oklab, var(--atc-click-bg) 84%, transparent) 78%,
-            color-mix(in oklab, var(--atc-click-bg) 76%, transparent) 100%
+            178deg,
+            color-mix(in oklab, var(--atc-click-bg) 98%, transparent) 0%,
+            color-mix(in oklab, var(--atc-click-bg) 95%, transparent) 50%,
+            color-mix(in oklab, var(--atc-click-bg) 90%, transparent) 80%,
+            color-mix(in oklab, var(--atc-click-bg) 84%, transparent) 100%
         );
+    /* Clean top-light wash, not a diagonal band — at card sizes a diagonal
+       sheen reads as a smudge across the content; the reference capsule is
+       simply lit from the top with a smooth vertical falloff. */
     --atc-glass-sheen: linear-gradient(
-        112deg,
-        transparent 16%,
-        color-mix(in oklab, white 8%, transparent) 36%,
-        color-mix(in oklab, white 16%, transparent) 50%,
-        color-mix(in oklab, white 4%, transparent) 64%,
-        transparent 82%
+        180deg,
+        color-mix(in oklab, white 12%, transparent) 0%,
+        color-mix(in oklab, white 4%, transparent) 38%,
+        transparent 62%
     );
     --atc-glass-rim-shadow:
         inset 0 1px 0 color-mix(in oklab, white 48%, transparent),
@@ -2664,8 +2665,11 @@ body:has(.app-detail-shell) {
         0 14px 30px color-mix(in oklab, var(--atc-click-bg) 32%, transparent),
         0 3px 9px color-mix(in oklab, var(--atc-click-bg) 24%, transparent);
     /* Backdrop frost applied to the tile itself when it flips to glass —
-       what sits behind the translucent ink diffuses into a soft wash. */
-    --atc-glass-active-frost: saturate(1.1) blur(10px);
+       what sits behind the translucent ink diffuses into a soft wash.
+       Slightly desaturated: boosting saturation pulled the map's khaki
+       greens through the ink and made the glass look murky brown-green
+       instead of neutral smoke. */
+    --atc-glass-active-frost: saturate(0.85) blur(14px);
     --atc-menu-panel-shadow:
         0 12px 32px color-mix(in oklab, var(--atc-bg) 60%, transparent),
         0 2px 6px color-mix(in oklab, var(--atc-bg) 40%, transparent);
