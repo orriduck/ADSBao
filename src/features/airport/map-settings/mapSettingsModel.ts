@@ -149,6 +149,21 @@ export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
   updatedAt: "",
 });
 
+// Pre-hydration visual defaults — what the map renders before
+// Clerk / map-settings hydration completes. Labels are OFF and
+// other overlays are minimised to reduce visual noise and avoid
+// ON→OFF flicker when saved settings turn out to differ.
+// Once mapSettingsHydrated flips to true, the real saved/cached
+// settings replace these temporarily-safe visual fallbacks.
+export const PRE_HYDRATION_VISUAL_LAYERS = Object.freeze({
+  showMapLabels: false,
+  showRunwayBeams: false,
+  showNavaidMarkers: false,
+  showAirspaces: false,
+  showCandidateWatchingSpots: false,
+  showCallsigns: false,
+});
+
 export const MAP_SETTINGS_DEVICE_TYPES = Object.freeze({
   DESKTOP: "desktop",
   MOBILE: "mobile",

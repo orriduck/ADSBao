@@ -24,6 +24,7 @@ import {
   temperatureUnitLabel,
 } from "@/utils/units";
 import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
+import Skeleton from "@/components/ui/Skeleton";
 
 function formatTemperatureValue(celsius, unit) {
   if (celsius == null || !Number.isFinite(Number(celsius))) return "-";
@@ -90,19 +91,29 @@ export function MetarSlide({
   );
 }
 
-export function FlightRulesSlide({ metar }) {
+export function FlightRulesSlide({ metar, metarLoading = false }) {
   const { t } = useI18n();
-  const code = metar?.flightCategory || "VFR";
-  const rules = FLIGHT_RULES[code] || FLIGHT_RULES.VFR;
-  const label = rules.labelKey ? t(rules.labelKey) : rules.label;
-  const context = rules.contextKey ? t(rules.contextKey) : rules.context;
+  const isMissing = !metar;
+  const isLoading = metarLoading && isMissing;
+  const code = isMissing ? null : (metar?.flightCategory || null);
+  const rules = code ? (FLIGHT_RULES[code] || null) : null;
+  const label = rules?.labelKey ? t(rules.labelKey) : rules?.label || (isLoading ? t("weather.metarLoading") : t("weather.metarMissing"));
+  const context = rules?.contextKey ? t(rules.contextKey) : rules?.context || "";
 
   return (
     <div className="weather-slide-stack">
       <div className="weather-slide-readout">
         <div className="flight-rule-banner">
-          <span className="font-mono">{code}</span>
-          <strong>{label}</strong>
+          {isLoading ? (
+            <Skeleton className="h-7 w-14" inline />
+          ) : (
+            <span className="font-mono">{code || "—"}</span>
+          )}
+          {isLoading ? (
+            <Skeleton className="ml-2 h-5 w-32" inline />
+          ) : (
+            <strong>{label}</strong>
+          )}
         </div>
         <div className="flight-rule-rail" aria-hidden="true">
           {FLIGHT_RULE_ORDER.map((item) => (
@@ -114,21 +125,34 @@ export function FlightRulesSlide({ metar }) {
           ))}
         </div>
       </div>
-      <WeatherDescription>{context}</WeatherDescription>
+      <WeatherDescription>
+        {isLoading ? (
+          <Skeleton className="h-4 w-48" inline />
+        ) : (
+          context
+        )}
+      </WeatherDescription>
     </div>
   );
 }
 
-export function CeilingSlide({ metar }) {
+export function CeilingSlide({ metar, metarLoading = false }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const visibility = toNumber(metar?.rawVisib);
-  const ceilingFt = getCeilingFeet(metar);
-  const ceilingLabel =
-    metar?.ceiling ||
-    (ceilingFt == null
-      ? "CLR"
-      : formatGroundAltitudeFeet(ceilingFt, units.altitude) ?? `${ceilingFt}`);
+  const hasMetar = Boolean(metar);
+  const isLoading = metarLoading && !hasMetar;
+  const visibility = hasMetar ? toNumber(metar?.rawVisib) : null;
+  const ceilingFt = hasMetar ? getCeilingFeet(metar) : null;
+  const ceilingLabel = hasMetar
+    ? (metar?.ceiling ||
+      (ceilingFt == null
+        ? "CLR"
+        : formatGroundAltitudeFeet(ceilingFt, units.altitude) ?? `${ceilingFt}`))
+    : null;
+  const visLabel = hasMetar
+    ? (visibility == null ? "—" : `${visibility >= 10 ? "10+" : visibility} SM`)
+    : null;
+  const contextKey = describeCeilingKey(ceilingFt, visibility);
 
   return (
     <div className="weather-slide-stack">
@@ -137,27 +161,51 @@ export function CeilingSlide({ metar }) {
           <MetricLine
             icon={<Cloud size={15} />}
             label={t("weather.ceiling")}
-            value={ceilingLabel}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-24" inline />
+              ) : (
+                ceilingLabel
+              )
+            }
           />
           <MetricLine
             icon={<Eye size={15} />}
             label={t("weather.visibility")}
-            value={visibility == null ? "-" : `${visibility >= 10 ? "10+" : visibility} SM`}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-16" inline />
+              ) : (
+                visLabel
+              )
+            }
           />
         </div>
       </div>
       <WeatherDescription>
-        {t(describeCeilingKey(ceilingFt, visibility))}
+        {isLoading ? (
+          <Skeleton className="h-4 w-56" inline />
+        ) : (
+          t(contextKey)
+        )}
       </WeatherDescription>
     </div>
   );
 }
 
-export function WindSlide({ metar, localWeather }) {
+export function WindSlide({ metar, localWeather, metarLoading = false }) {
   const { t } = useI18n();
-  const speed = toNumber(metar?.rawWspd) ?? localWeather?.windSpeedKt ?? 0;
-  const gust = toNumber(metar?.rawWgst) ?? localWeather?.windGustKt ?? null;
-  const direction = metar?.rawWvrb ? null : toNumber(metar?.rawWdir) ?? localWeather?.windDirection;
+  const hasMetar = Boolean(metar);
+  const isLoading = metarLoading && !hasMetar;
+  const speed = hasMetar
+    ? (toNumber(metar?.rawWspd) ?? localWeather?.windSpeedKt ?? null)
+    : null;
+  const gust = hasMetar
+    ? (toNumber(metar?.rawWgst) ?? localWeather?.windGustKt ?? null)
+    : null;
+  const direction = hasMetar
+    ? (metar?.rawWvrb ? null : toNumber(metar?.rawWdir) ?? localWeather?.windDirection ?? null)
+    : null;
 
   return (
     <div className="weather-slide-stack wind-card">
@@ -165,20 +213,42 @@ export function WindSlide({ metar, localWeather }) {
         <div className="weather-token-strip weather-token-strip--cols-3">
           <WeatherToken
             label={t("weather.direction")}
-            value={direction == null ? "VRB" : `${Math.round(direction)}°`}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-12" inline />
+              ) : (
+                direction == null ? "VRB" : `${Math.round(direction)}°`
+              )
+            }
           />
           <WeatherToken
             label={t("weather.wind")}
-            value={`${Math.round(speed)} kt`}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-14" inline />
+              ) : (
+                speed == null ? "—" : `${Math.round(speed)} kt`
+              )
+            }
           />
           <WeatherToken
             label={t("weather.gust")}
-            value={gust == null ? t("weather.none") : `${Math.round(gust)} kt`}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-12" inline />
+              ) : (
+                gust == null ? t("weather.none") : `${Math.round(gust)} kt`
+              )
+            }
           />
         </div>
       </div>
       <WeatherDescription>
-        {direction == null
+        {isLoading ? (
+          <Skeleton className="h-4 w-64" inline />
+        ) : speed == null
+          ? t("weather.windPara.unavailable")
+          : direction == null
           ? t("weather.windPara.variable")
           : t(describeWindKey(speed, gust))}
       </WeatherDescription>
@@ -186,14 +256,21 @@ export function WindSlide({ metar, localWeather }) {
   );
 }
 
-export function TemperatureSlide({ metar, localWeather }) {
+export function TemperatureSlide({ metar, localWeather, metarLoading = false }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const temp = toNumber(metar?.rawTemp) ?? localWeather?.temperatureC;
-  const dew = toNumber(metar?.rawDewp) ?? null;
+  const hasMetar = Boolean(metar);
+  const isLoading = metarLoading && !hasMetar;
+  const temp = hasMetar
+    ? (toNumber(metar?.rawTemp) ?? localWeather?.temperatureC)
+    : null;
+  const dew = hasMetar ? toNumber(metar?.rawDewp) : null;
   const spread = temp != null && dew != null ? Math.max(0, temp - dew) : null;
   const tempPct = temp == null ? null : clamp((temp + 20) / 60, 0.04, 0.96);
   const dewPct = dew == null ? null : clamp((dew + 20) / 60, 0.04, 0.96);
+  const contextKey = isLoading
+    ? "weather.pending"
+    : describeTemperatureKey(temp, spread);
 
   return (
     <div className="weather-slide-stack">
@@ -207,18 +284,34 @@ export function TemperatureSlide({ metar, localWeather }) {
         <div className="weather-token-strip weather-token-strip--cols-3">
           <WeatherToken
             label={t("weather.temp")}
-            value={formatTemperatureValue(temp, units.temperature)}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-14" inline />
+              ) : (
+                formatTemperatureValue(temp, units.temperature)
+              )
+            }
           />
           <WeatherToken
             label={t("weather.dew")}
-            value={formatTemperatureValue(dew, units.temperature)}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-14" inline />
+              ) : (
+                formatTemperatureValue(dew, units.temperature)
+              )
+            }
           />
           <WeatherToken
             label={t("weather.spread")}
             value={
-              spread == null
-                ? "-"
-                : `${round1(units.temperature === "f" ? spread * 1.8 : spread)}${temperatureUnitLabel(units.temperature)}`
+              isLoading ? (
+                <Skeleton className="h-5 w-14" inline />
+              ) : (
+                spread == null
+                  ? "-"
+                  : `${round1(units.temperature === "f" ? spread * 1.8 : spread)}${temperatureUnitLabel(units.temperature)}`
+              )
             }
           />
         </div>
@@ -236,16 +329,25 @@ export function TemperatureSlide({ metar, localWeather }) {
         </div>
       </div>
       <WeatherDescription>
-        {t(describeTemperatureKey(temp, spread))}
+        {isLoading ? (
+          <Skeleton className="h-4 w-56" inline />
+        ) : (
+          t(contextKey)
+        )}
       </WeatherDescription>
     </div>
   );
 }
 
-export function PressureSlide({ metar, localWeather }) {
+export function PressureSlide({ metar, localWeather, metarLoading = false }) {
   const { t } = useI18n();
-  const altim = metar?.rawAltim;
+  const hasMetar = Boolean(metar);
+  const isLoading = metarLoading && !hasMetar;
+  const altim = hasMetar ? metar?.rawAltim : null;
   const pressure = localWeather?.pressureMslHpa;
+  const contextKey = isLoading
+    ? "weather.pending"
+    : describePressureKey(altim, pressure);
 
   return (
     <div className="weather-slide-stack">
@@ -254,16 +356,32 @@ export function PressureSlide({ metar, localWeather }) {
           <MetricLine
             icon={<Gauge size={16} />}
             label={t("weather.altimeter")}
-            value={metar?.altim || "-"}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-20" inline />
+              ) : (
+                metar?.altim || "—"
+              )
+            }
           />
           <MetricLine
             label={t("weather.mslPressure")}
-            value={pressure == null ? "-" : `${Math.round(pressure)} hPa`}
+            value={
+              isLoading ? (
+                <Skeleton className="h-5 w-20" inline />
+              ) : (
+                pressure == null ? "—" : `${Math.round(pressure)} hPa`
+              )
+            }
           />
         </div>
       </div>
       <WeatherDescription>
-        {t(describePressureKey(altim, pressure))}
+        {isLoading ? (
+          <Skeleton className="h-4 w-56" inline />
+        ) : (
+          t(contextKey)
+        )}
       </WeatherDescription>
     </div>
   );
@@ -289,8 +407,8 @@ export function LocalWeatherSlide({
   const tempValue =
     localWeather?.temperatureC == null
       ? localWeatherLoading
-        ? t("weather.loading")
-        : "-"
+        ? <Skeleton className="h-5 w-16" inline />
+        : "—"
       : formatTemperatureValue(localWeather.temperatureC, units.temperature);
 
   return (
@@ -309,12 +427,22 @@ export function LocalWeatherSlide({
           <div className="weather-token-strip weather-token-strip--cols-2 local-weather-meta">
             <WeatherToken
               label={t("weather.humidity")}
-              value={humidity == null ? "-" : `${Math.round(humidity)}%`}
+              value={
+                localWeatherLoading && humidity == null ? (
+                  <Skeleton className="h-4 w-10" inline />
+                ) : humidity == null ? "—" : `${Math.round(humidity)}%`
+              }
               valueClassName="weather-token__value--secondary"
             />
             <WeatherToken
               label={t("weather.feels")}
-              value={formatTemperatureValue(feelsLike, units.temperature)}
+              value={
+                localWeatherLoading && feelsLike == null ? (
+                  <Skeleton className="h-4 w-12" inline />
+                ) : (
+                  formatTemperatureValue(feelsLike, units.temperature)
+                )
+              }
               valueClassName="weather-token__value--secondary"
             />
           </div>

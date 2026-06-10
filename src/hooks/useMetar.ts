@@ -22,7 +22,12 @@ export function useMetar(icao) {
     let cancelled = false;
     const fetchMetar = async () => {
       if (!icao) {
+        setRaw("");
+        setParsed(null);
+        setLoading(false);
         setSettled(false);
+        setError(null);
+        setStatusCode(null);
         return;
       }
       setLoading(true);

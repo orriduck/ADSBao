@@ -12,7 +12,7 @@ import {
   TemperatureSlide,
   WindSlide,
 } from "./WeatherSlides";
-import { shouldShowCeilingSlide, toNumber } from "@/features/weather/weatherModel";
+import { toNumber } from "@/features/weather/weatherModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 const SLIDE_COPY_FIELDS = {
@@ -87,21 +87,19 @@ export function useWeatherSlides({
                 metarStation={airportCode}
               />,
             ),
-            withContent("rules", <FlightRulesSlide metar={metar} />),
-            shouldShowCeilingSlide(metar)
-              ? withContent("ceiling", <CeilingSlide metar={metar} />)
-              : null,
+            withContent("rules", <FlightRulesSlide metar={metar} metarLoading={metarLoading} />),
+            withContent("ceiling", <CeilingSlide metar={metar} metarLoading={metarLoading} />),
             withContent(
               "wind",
-              <WindSlide metar={metar} localWeather={localWeather} />,
+              <WindSlide metar={metar} localWeather={localWeather} metarLoading={metarLoading} />,
             ),
             withContent(
               "temp",
-              <TemperatureSlide metar={metar} localWeather={localWeather} />,
+              <TemperatureSlide metar={metar} localWeather={localWeather} metarLoading={metarLoading} />,
             ),
             withContent(
               "pressure",
-              <PressureSlide metar={metar} localWeather={localWeather} />,
+              <PressureSlide metar={metar} localWeather={localWeather} metarLoading={metarLoading} />,
             ),
             withContent(
               "local",

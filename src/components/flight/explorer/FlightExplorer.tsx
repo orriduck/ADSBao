@@ -88,7 +88,7 @@ export default function FlightExplorer({ callsign = "" }) {
 
 function FlightExplorerContent({ callsign }) {
   const router = useRouter();
-  const flightAwareEnabled = useFlightAwareEnabled();
+  const { enabled: flightAwareEnabled } = useFlightAwareEnabled();
   const routeProvider = resolveRouteProvider({ flightAwareEnabled });
   const {
     desktopSidebarWidth,

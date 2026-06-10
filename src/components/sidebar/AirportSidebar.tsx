@@ -37,6 +37,7 @@ export default function AirportSidebar({
   feedStatus = "live",
   feedSource = "",
   routeProvider = "",
+  flightAwareResolved = true,
   loadingStatus = "",
   // When true the explorer is centered on the user (not an airport).
   // The identity hero swaps to a "Your location" header and the
@@ -95,12 +96,14 @@ export default function AirportSidebar({
         activeView={activeView}
         onViewChange={setActiveView}
         metar={metar}
+        metarLoading={metarLoading}
         aircraft={aircraft}
         routeProvider={routeProvider}
         frequencies={atcFrequencies}
         candidateSpotCount={spottingSpots.length}
         onOpenSpotting={handleSpottingView}
         nearMe={nearMe}
+        featureFlagsResolved={flightAwareResolved}
       />
     </>
   );

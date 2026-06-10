@@ -16,11 +16,26 @@ export interface WakeLockState {
  * when the page becomes visible again (browsers auto-release on tab switch).
  */
 export function useWakeLock(): [WakeLockState, () => void] {
-  const [supported] = useState(() => "wakeLock" in navigator);
+  // Always start with supported=false so SSR and the first client render
+  // match exactly. Actual support is detected in useEffect on the client.
+  const [supported, setSupported] = useState(false);
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<WakeLockSentinel | null>(null);
   const wantedRef = useRef(false);
+
+  // Detect actual Wake Lock support on the client after hydration.
+  // Using useEffect keeps the first render (both SSR and client)
+  // identical, avoiding hydration mismatches.
+  useEffect(() => {
+    try {
+      if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
+        setSupported(true);
+      }
+    } catch {
+      // navigator not available — leave supported as false.
+    }
+  }, []);
 
   const releaseLock = useCallback(async () => {
     const sentinel = sentinelRef.current;

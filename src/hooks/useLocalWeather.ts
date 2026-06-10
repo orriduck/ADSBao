@@ -22,11 +22,17 @@ export function useLocalWeather(lat, lon) {
     const fetchWeather = async () => {
       if (!lat || !lon) {
         setWeather(null);
+        setLoading(false);
+        setError(null);
+        setStatusCode(null);
         return;
       }
 
       setLoading(true);
       setError(null);
+      // Clear stale weather from a previous context (airport switch)
+      // so the briefing stack never shows the last airport's temp.
+      setWeather(null);
       setStatusCode(null);
 
       try {
