@@ -7058,9 +7058,18 @@ body {
 .airport-map-kit .airport-sidebar-panel,
 .airport-map-kit .flight-sidebar-panel,
 .airport-map-kit .sidebar-shell {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: var(--atc-bg);
+    /* Frosted glass over the full-bleed map. This rule used to force an
+       opaque --atc-bg with backdrop-filter:none, which overrode the
+       desktop-sidebar frost (it is more specific + later in the cascade).
+       Now it carries the same translucent tint + blur so the map reads
+       through the sidebar as a soft frosted wash. */
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--app-frost-tint) 58%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 66%, transparent)
+    );
     border: 0;
     box-shadow: var(--app-map-sidebar-shadow);
 }
