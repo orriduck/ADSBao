@@ -2818,25 +2818,28 @@ body {
 }
 
 .dither-page-shell {
+    /* Warm glow moved to the bottom edge so the top of the page stays a
+       clean solid canvas under the Safari browser chrome. */
     background:
         radial-gradient(
-            circle at 78% 18%,
+            circle at 78% 96%,
             color-mix(in oklab, var(--atc-orange) 12%, transparent),
-            transparent 30%
+            transparent 32%
         ),
         var(--atc-bg);
 }
 
 .dither-page-panel {
-    /* Same warm-corner sweep as the airport / flight sidebar identity
-       blocks (line 4277), so home and about share the design language
-       with the detail pages. Sits over the inherited --atc-bg fill of
-       .sidebar-shell so the panel still reads as the same surface. */
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
-    );
+    /* Solid theme color at the TOP (seamless under the Safari clip) with
+       the warm accent moved to a soft wash rising from the BOTTOM —
+       matching the airport / flight detail sidebars. */
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--atc-orange) 8%, transparent),
+            transparent 38%
+        ),
+        var(--sidebar);
     border-right: 0;
     border-radius: 0 var(--atc-radius-shell) var(--atc-radius-shell) 0;
     box-shadow: var(--app-panel-shadow);
@@ -2846,11 +2849,13 @@ body {
 }
 
 :root[data-theme="dark"] .dither-page-panel {
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 18%, transparent),
-        transparent 48%
-    );
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--atc-orange) 14%, transparent),
+            transparent 40%
+        ),
+        var(--sidebar);
 }
 
 .dither-page-background {
@@ -2980,11 +2985,17 @@ body {
 .airport-sidebar-panel,
 .flight-sidebar-panel,
 .sidebar-shell {
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--sidebar-accent) 72%, transparent),
-        var(--sidebar)
-    );
+    /* Solid theme color at the TOP so the sidebar's top edge blends
+       seamlessly with iPhone Safari's browser-chrome clip (no gradient
+       seam under the status bar / address bar). The warm accent light is
+       moved to a soft wash rising from the BOTTOM. */
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--atc-orange) 8%, transparent),
+            transparent 38%
+        ),
+        var(--sidebar);
     border-right: 0;
     box-shadow: var(--app-panel-shadow);
 }
@@ -5137,11 +5148,10 @@ body {
 }
 
 .airport-sidebar-identity {
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
-    );
+    /* No top warm sweep — the top of the sidebar stays a solid theme
+       color so it aligns seamlessly with the Safari browser-chrome clip.
+       The warm accent now rises from the panel bottom instead. */
+    background: transparent;
     border-bottom: 0;
     padding: 75px var(--airport-sidebar-inset) 22px;
 }
@@ -5155,27 +5165,10 @@ body {
 }
 
 .flight-sidebar-panel .airport-sidebar-identity {
-    /* Match the airport sidebar's identity gradient so the flight detail
-       page gets the same subtle warm-corner lift instead of a paler,
-       slightly-different-angle variant. */
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
-    );
+    /* Solid top to match the airport sidebar — warm light lives at the
+       panel bottom now, not the identity hero. */
+    background: transparent;
     padding-bottom: 22px;
-}
-
-/* Dark theme: --atc-orange flips to a light highlight color, but at 10%
-   alpha on the inky sidebar background it nearly disappears. Bump the
-   stop to 18% so the same diagonal sweep stays visible. */
-:root[data-theme="dark"] .airport-sidebar-identity,
-:root[data-theme="dark"] .flight-sidebar-panel .airport-sidebar-identity {
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 18%, transparent),
-        transparent 48%
-    );
 }
 
 .flight-sidebar-panel .airport-sidebar-identity__rule {
