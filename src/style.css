@@ -1373,14 +1373,14 @@ body:has(.app-detail-shell) {
 }
 
 :root[data-theme="dark"] .atc-tile-base {
-    filter: saturate(0.32) brightness(0.62) contrast(1.16);
+    filter: saturate(0.4) brightness(0.82) contrast(1.06);
     mix-blend-mode: normal;
 }
 
 /* Light terrain is still mostly monochrome manual ink; a small amount of
    blue-green saturation survives so water and vegetation remain legible. */
 :root[data-theme="light"] .atc-tile-base {
-    filter: saturate(0.46) brightness(1.08) contrast(0.86);
+    filter: saturate(0.55) brightness(0.98) contrast(1.06);
     mix-blend-mode: normal;
 }
 
