@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { ComponentProps, ReactElement } from "react";
 import NumberFlow from "@number-flow/react";
 import { Plane } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toFiniteNumber } from "@/utils/math";
 import { getFlightRouteAirlineIconUrl } from "@/utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -19,6 +20,7 @@ import {
   MobilePreviewMetaChips,
   MobilePreviewRuleRow,
 } from "./MobilePreviewCard";
+import type { AsyncStatusState } from "@/hooks/useAsyncStatus";
 
 type NumberFlowFormat = ComponentProps<typeof NumberFlow>["format"];
 
@@ -38,6 +40,7 @@ type AircraftPreviewMobileCardAircraft = {
 
 type AircraftPreviewMobileCardProps = {
   aircraft?: AircraftPreviewMobileCardAircraft | null;
+  traceStatusState?: AsyncStatusState | null;
 };
 
 type AirlineLogoProps = {
@@ -69,7 +72,10 @@ function AirlineLogo({ src }: AirlineLogoProps) {
   );
 }
 
-export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewMobileCardProps) {
+export default function AircraftPreviewMobileCard({
+  aircraft,
+  traceStatusState = null,
+}: AircraftPreviewMobileCardProps) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
   const callsign =
@@ -138,7 +144,19 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
       <MobilePreviewIdentity
         icon={Plane}
         label={t("preview.aircraftPreview")}
-        primary={callsign}
+        primary={
+          <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
+            <span className="min-w-0 truncate">{callsign}</span>
+            <TraceStatusPulse
+              state={traceStatusState}
+              labels={{
+                pending: t("preview.loadingTrace"),
+                success: t("preview.loadedTrace"),
+                error: t("preview.traceLoadError"),
+              }}
+            />
+          </span>
+        }
         secondary={secondary}
         secondaryClassName="max-w-[min(47vw,176px)] text-[13px] font-extrabold text-atc-text"
       />
@@ -166,6 +184,47 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
         />
       ) : null}
     </MobilePreviewContent>
+  );
+}
+
+function TraceStatusPulse({
+  state,
+  labels,
+}: {
+  state: AsyncStatusState | null;
+  labels: { pending: string; success: string; error: string };
+}) {
+  if (!state || state.phase === "idle") return null;
+
+  const tone = state.hasError
+    ? "error"
+    : state.phase === "pending"
+      ? "pending"
+      : "success";
+  const label =
+    tone === "pending"
+      ? labels.pending
+      : tone === "error"
+        ? labels.error
+        : labels.success;
+
+  return (
+    <span
+      className={cn(
+        "relative inline-flex size-[9px] flex-none rounded-full",
+        "before:absolute before:inset-[-4px] before:rounded-full before:opacity-45",
+        "before:animate-ping motion-reduce:before:animate-none",
+        tone === "pending" &&
+          "bg-[var(--primary-bright)] before:bg-[var(--primary-bright)]",
+        tone === "success" &&
+          "bg-[var(--atc-mint)] before:bg-[var(--atc-mint)]",
+        tone === "error" &&
+          "bg-[var(--atc-red)] before:bg-[var(--atc-red)]",
+      )}
+      aria-label={label}
+      role="status"
+      title={label}
+    />
   );
 }
 

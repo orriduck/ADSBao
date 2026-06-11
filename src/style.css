@@ -4103,6 +4103,7 @@ body {
     margin: 0;
     overflow: visible;
     position: relative;
+    z-index: 3;
 }
 
 .aircraft-table-pin .endf-row-active {
@@ -6690,14 +6691,13 @@ body {
 
 @media (max-width: 767px) {
     .aircraft-table-shell[data-has-pinned-aircraft="true"] .aircraft-table-pin {
-        background: linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--atc-bg) 66%, transparent) 0%,
-            color-mix(in oklab, var(--atc-bg) 34%, transparent) 100%
-        );
-        border-bottom: 1px solid var(--atc-line);
+        background: transparent;
+        border-bottom: 0;
         display: flow-root;
-        padding: 8px 0 9px;
+        margin-bottom: -1px;
+        margin-top: -1px;
+        padding: 0;
+        z-index: 4;
     }
 
     .aircraft-table-shell[data-has-pinned-aircraft="true"]
@@ -6709,14 +6709,15 @@ body {
         overflow: visible;
     }
 
-    .aircraft-table-pin .aircraft-table-row--selected {
-        border-radius: var(--atc-radius-card);
-        height: 48px;
-        margin: 0 var(--airport-sidebar-inset);
-        min-height: 48px;
+    .aircraft-table-pin .aircraft-table-row--selected,
+    .aircraft-table-pin .aircraft-table-row--selected.endf-row-active {
+        border-radius: 0;
+        height: 56px;
+        margin: 0;
+        min-height: 56px;
         overflow: hidden;
-        padding: 7px 12px;
-        width: calc(100% - (var(--airport-sidebar-inset) * 2));
+        padding: 8px var(--airport-sidebar-inset);
+        width: 100%;
     }
 
     .aircraft-table-pin .aircraft-table-row--selected::before {
