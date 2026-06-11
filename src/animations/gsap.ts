@@ -28,5 +28,14 @@ gsap.defaults({
 
 /** Cleanup helper — kill GSAP animations on a target. */
 export function killTweensOf(target: gsap.TweenTarget): void {
+  if (!target) return;
+  if (Array.isArray(target) && target.length === 0) return;
+  if (
+    typeof NodeList !== "undefined" &&
+    target instanceof NodeList &&
+    target.length === 0
+  ) {
+    return;
+  }
   gsap.killTweensOf(target);
 }

@@ -98,8 +98,13 @@ export function SelectableCard({
     ref: cardRef,
     onMouseEnter,
     onMouseLeave,
-    onMouseDown: gsapMouseDown,
-    onMouseUp: gsapMouseUp,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
   } = useCardInteraction({ enabled: interactive });
 
   return (
@@ -113,8 +118,13 @@ export function SelectableCard({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onMouseDown={gsapMouseDown}
-      onMouseUp={gsapMouseUp}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onPointerLeave={onPointerLeave}
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
+      onBlur={onBlur}
       className={cn(
         selectableCardVariants({
           size,

@@ -49,8 +49,10 @@ export function useListReorderMotion<T extends HTMLElement>(
       prefersReducedMotion ||
       previousRectsRef.current.size === 0
     ) {
-      gsap.killTweensOf(elements);
-      gsap.set(elements, { clearProps: "transform" });
+      if (elements.length > 0) {
+        gsap.killTweensOf(elements);
+        gsap.set(elements, { clearProps: "transform" });
+      }
       previousRectsRef.current = nextRects;
       return undefined;
     }
@@ -83,8 +85,10 @@ export function useListReorderMotion<T extends HTMLElement>(
     previousRectsRef.current = nextRects;
 
     return () => {
-      gsap.killTweensOf(elements);
-      gsap.set(elements, { clearProps: "transform" });
+      if (elements.length > 0) {
+        gsap.killTweensOf(elements);
+        gsap.set(elements, { clearProps: "transform" });
+      }
     };
   }, [containerRef, disabled, itemSelector, resetKey, triggerKey]);
 }

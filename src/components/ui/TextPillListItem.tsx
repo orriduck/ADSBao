@@ -38,8 +38,23 @@ export function TextPillListItem({
   ...rest
 }: TextPillListItemProps) {
   const interactive = as === "button" || as === "a";
-  const { ref, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } =
-    useCardInteraction({ enabled: interactive });
+  const {
+    ref,
+    onMouseEnter,
+    onMouseLeave,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+  } = useCardInteraction({
+    enabled: interactive,
+    hoverScale: 1.006,
+    pressScale: 0.972,
+    releaseScale: 1.01,
+  });
 
   const body = (
     <>
@@ -111,7 +126,18 @@ export function TextPillListItem({
   );
 
   const interactionProps = interactive
-    ? { ref, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp }
+    ? {
+        ref,
+        onMouseEnter,
+        onMouseLeave,
+        onPointerDown,
+        onPointerUp,
+        onPointerCancel,
+        onPointerLeave,
+        onKeyDown,
+        onKeyUp,
+        onBlur,
+      }
     : {};
 
   if (as === "button") {
