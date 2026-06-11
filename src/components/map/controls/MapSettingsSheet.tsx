@@ -108,6 +108,92 @@ const LAYER_CONTROLS = [
   },
 ];
 
+const sectionTitleClassName =
+  "mb-3 text-[11px] font-semibold uppercase tracking-normal text-atc-muted";
+
+const optionGridClassName = "grid grid-cols-2 gap-2.5";
+
+const optionCardClassName = "min-h-[112px] p-3.5";
+
+const layerToggleRowClassName = cn(
+  "group grid min-h-[56px] w-full grid-cols-[34px_minmax(0,1fr)_40px] items-center gap-3",
+  "rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)]",
+  "bg-[var(--atc-control-surface-muted)] bg-clip-padding px-3 py-2 text-left text-atc-text",
+  "shadow-[var(--atc-control-inset-shadow-subtle)]",
+  "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
+  "transition-[background,border-color,box-shadow,opacity] duration-150",
+  "hover:bg-[var(--atc-control-surface-hover)]",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
+  "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-[var(--atc-control-surface-muted)]",
+);
+
+function SettingsSwitch({ active }) {
+  return (
+    <span
+      className={cn(
+        "relative h-6 w-10 overflow-hidden rounded-full border transition-[background,border-color,box-shadow]",
+        active
+          ? cn(
+              "border-transparent [background:var(--atc-glass-active-bg)]",
+              "[backdrop-filter:var(--atc-glass-active-frost)] [-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
+              "shadow-[var(--atc-toolbar-button-active-shadow)]",
+            )
+          : "border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] shadow-[var(--atc-control-inset-shadow-subtle)]",
+      )}
+      aria-hidden="true"
+    >
+      <span
+        className={cn(
+          "absolute top-1/2 size-4 -translate-y-1/2 rounded-full shadow-sm transition-transform",
+          active
+            ? "translate-x-[19px] bg-[var(--atc-click-fg)]"
+            : "translate-x-[3px] bg-atc-card",
+        )}
+      />
+    </span>
+  );
+}
+
+function LayerToggleRow({
+  active,
+  ariaLabel,
+  disabled = false,
+  iconKey,
+  label,
+  onClick,
+  statusDot = false,
+  subtitle,
+}) {
+  return (
+    <button
+      type="button"
+      className={layerToggleRowClassName}
+      role="switch"
+      aria-checked={active}
+      aria-label={ariaLabel}
+      data-active={active ? "true" : "false"}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <span className="relative flex size-8 items-center justify-center rounded-[10px] bg-[var(--atc-surface-icon-wash)] text-atc-text transition-colors group-hover:bg-[color-mix(in_oklab,var(--atc-text)_10%,transparent)] [&>svg]:size-4">
+        {statusDot ? (
+          <span className="absolute right-1 top-1 size-1.5 rounded-full bg-atc-accent shadow-[0_0_8px_var(--atc-accent)]" />
+        ) : null}
+        <MapControlIcon iconKey={iconKey} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[13px] font-semibold leading-tight text-atc-text">
+          {label}
+        </span>
+        <span className="mt-0.5 block text-[11px] leading-snug text-atc-muted">
+          {subtitle}
+        </span>
+      </span>
+      <SettingsSwitch active={active} />
+    </button>
+  );
+}
+
 export default function MapSettingsSheet({
   id,
   open,
@@ -213,11 +299,11 @@ export default function MapSettingsSheet({
             <section aria-labelledby={`${id}-modes`}>
               <h3
                 id={`${id}-modes`}
-                className="mb-3 text-[11px] font-semibold uppercase text-atc-muted"
+                className={sectionTitleClassName}
               >
                 {t("mapSettings.modeSection")}
               </h3>
-              <div className="grid grid-cols-2 gap-2">
+              <div className={optionGridClassName}>
                 {modeOptions.map((mode) => {
                   const active = settings.selectedMode === mode.id;
                   const disabled =
@@ -231,6 +317,7 @@ export default function MapSettingsSheet({
                       icon={<MapControlIcon iconKey={mode.iconKey} />}
                       title={t(mode.labelKey)}
                       description={t(mode.descriptionKey)}
+                      className={optionCardClassName}
                       onClick={() => onSelectMapMode?.(mode.id)}
                     />
                   );
@@ -241,11 +328,11 @@ export default function MapSettingsSheet({
             <section className="mt-6" aria-labelledby={`${id}-base-map`}>
               <h3
                 id={`${id}-base-map`}
-                className="mb-3 text-xs font-semibold uppercase text-atc-muted"
+                className={sectionTitleClassName}
               >
                 {t("mapSettings.baseMapSection")}
               </h3>
-              <div className="grid grid-cols-2 gap-2">
+              <div className={optionGridClassName}>
                 {baseLayerOptions.map((option) => {
                   const active = activeBaseLayerId === option.id;
                   return (
@@ -255,6 +342,7 @@ export default function MapSettingsSheet({
                       icon={<MapControlIcon iconKey={option.iconKey} />}
                       title={t(option.labelKey)}
                       description={t(option.descriptionKey)}
+                      className={optionCardClassName}
                       onClick={() => onSelectBaseLayer?.(option.id)}
                     />
                   );
@@ -265,161 +353,57 @@ export default function MapSettingsSheet({
             <section className="mt-6" aria-labelledby={`${id}-layers`}>
               <h3
                 id={`${id}-layers`}
-                className="mb-3 text-[11px] font-semibold uppercase text-atc-muted"
+                className={sectionTitleClassName}
               >
                 {t("mapSettings.layersSection")}
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {LAYER_CONTROLS.map((control) => {
                   const active = Boolean(state[control.prop]);
                   const title = active
                     ? t(control.activeKey)
                     : t(control.inactiveKey);
                   return (
-                    <button
+                    <LayerToggleRow
                       key={control.layerKey}
-                      type="button"
-                      className={cn(
-                        "grid min-h-[58px] w-full grid-cols-[36px_minmax(0,1fr)_42px] items-center gap-3 rounded-[8px]",
-                        "border border-[var(--atc-border-default)] bg-[var(--atc-surface-row-rest)] px-3 text-left",
-                        "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-focus-ring)]",
-                      )}
-                      role="switch"
-                      aria-checked={active}
-                      aria-label={title}
+                      active={active}
+                      ariaLabel={title}
+                      iconKey={control.iconKey}
+                      label={t(control.labelKey)}
+                      subtitle={title}
                       onClick={state[control.handler]}
-                    >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[var(--atc-surface-icon-wash)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
-                        <MapControlIcon iconKey={control.iconKey} />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-[13px] font-semibold leading-tight text-atc-text">
-                          {t(control.labelKey)}
-                        </span>
-                        <span className="mt-1 block text-[11px] leading-snug text-atc-muted">
-                          {title}
-                        </span>
-                      </span>
-                      <span
-                        className={cn(
-                          "relative h-6 w-10 rounded-full border transition",
-                          active
-                            ? "border-[var(--atc-interaction-primary-accent)] bg-[var(--atc-interaction-primary-accent)]"
-                            : "border-[var(--atc-line-strong)] bg-transparent",
-                        )}
-                        aria-hidden="true"
-                      >
-                        <span
-                          className={cn(
-                            "absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-atc-card shadow-sm transition-transform",
-                            active ? "translate-x-[20px]" : "translate-x-[3px]",
-                          )}
-                        />
-                      </span>
-                    </button>
+                    />
                   );
                 })}
 
                 {onToggleUserLocation && (
-                  <button
-                    type="button"
-                    className={cn(
-                      "grid min-h-[58px] w-full grid-cols-[36px_minmax(0,1fr)_42px] items-center gap-3 rounded-[8px]",
-                      "border border-[var(--atc-border-default)] bg-[var(--atc-surface-row-rest)] px-3 text-left",
-                      "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-focus-ring)]",
-                    )}
-                    role="switch"
-                    aria-checked={userLocationActive}
-                    aria-label={userLocationTitle}
+                  <LayerToggleRow
+                    active={userLocationActive}
+                    ariaLabel={userLocationTitle}
                     disabled={userLocationPending}
+                    iconKey="locateFixed"
+                    label={t("mapLayers.userLocation")}
+                    subtitle={userLocationTitle}
                     onClick={onToggleUserLocation}
-                  >
-                    <span className="relative flex h-8 w-8 items-center justify-center rounded-[7px] bg-[var(--atc-surface-icon-wash)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
-                      <MapControlIcon iconKey="locateFixed" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold leading-tight text-atc-text">
-                        {t("mapLayers.userLocation")}
-                      </span>
-                      <span className="mt-1 block text-[11px] leading-snug text-atc-muted">
-                        {userLocationTitle}
-                      </span>
-                    </span>
-                    <span
-                      className={cn(
-                        "relative h-6 w-10 rounded-full border transition",
-                        userLocationActive
-                          ? "border-[var(--atc-interaction-primary-accent)] bg-[var(--atc-interaction-primary-accent)]"
-                          : "border-[var(--atc-line-strong)] bg-transparent",
-                      )}
-                      aria-hidden="true"
-                    >
-                      <span
-                        className={cn(
-                          "absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-atc-card shadow-sm transition-transform",
-                          userLocationActive
-                            ? "translate-x-[20px]"
-                            : "translate-x-[3px]",
-                        )}
-                      />
-                    </span>
-                  </button>
+                  />
                 )}
 
                 {onToggleUserLocationAudio && (
-                  <button
-                    type="button"
-                    className={cn(
-                      "grid min-h-[58px] w-full grid-cols-[36px_minmax(0,1fr)_42px] items-center gap-3 rounded-[8px]",
-                      "border border-[var(--atc-border-default)] bg-[var(--atc-surface-row-rest)] px-3 text-left",
-                      "transition hover:border-[var(--atc-line-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-focus-ring)]",
-                      (!userLocationActive || userLocationPending) &&
-                        "cursor-not-allowed opacity-55 hover:border-[var(--atc-line)]",
-                    )}
-                    role="switch"
-                    aria-checked={userLocationAudioActive}
-                    aria-label={userLocationAudioTitle}
+                  <LayerToggleRow
+                    active={userLocationAudioActive}
+                    ariaLabel={userLocationAudioTitle}
                     disabled={!userLocationActive || userLocationPending}
+                    iconKey="radar"
+                    label={t("mapLayers.userLocationAudio")}
+                    statusDot={userLocationAudioActive}
+                    subtitle={userLocationAudioTitle}
                     onClick={onToggleUserLocationAudio}
-                  >
-                    <span className="relative flex h-8 w-8 items-center justify-center rounded-[7px] bg-[var(--atc-surface-icon-wash)] text-atc-text [&>svg]:h-4 [&>svg]:w-4">
-                      {userLocationAudioActive ? (
-                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-atc-accent shadow-[0_0_8px_var(--atc-accent)]" />
-                      ) : null}
-                      <MapControlIcon iconKey="radar" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold leading-tight text-atc-text">
-                        {t("mapLayers.userLocationAudio")}
-                      </span>
-                      <span className="mt-1 block text-[11px] leading-snug text-atc-muted">
-                        {userLocationAudioTitle}
-                      </span>
-                    </span>
-                    <span
-                      className={cn(
-                        "relative h-6 w-10 rounded-full border transition",
-                        userLocationAudioActive
-                          ? "border-[var(--atc-interaction-primary-accent)] bg-[var(--atc-interaction-primary-accent)]"
-                          : "border-[var(--atc-line-strong)] bg-transparent",
-                      )}
-                      aria-hidden="true"
-                    >
-                      <span
-                        className={cn(
-                          "absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-atc-card shadow-sm transition-transform",
-                          userLocationAudioActive
-                            ? "translate-x-[20px]"
-                            : "translate-x-[3px]",
-                        )}
-                      />
-                    </span>
-                  </button>
+                  />
                 )}
               </div>
               {userLocationNotice ? (
                 <div
-                  className="mt-3 rounded-[8px] border border-[var(--atc-border-default)] bg-[var(--atc-surface-scrim)] px-3 py-2 text-[11px] leading-snug text-atc-muted"
+                  className="mt-3 rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
                   role="status"
                   aria-live="polite"
                 >
@@ -431,7 +415,7 @@ export default function MapSettingsSheet({
             <section className="mt-6" aria-labelledby={`${id}-units`}>
               <h3
                 id={`${id}-units`}
-                className="mb-3 text-[11px] font-semibold uppercase text-atc-muted"
+                className={sectionTitleClassName}
               >
                 {t("mapSettings.unitsSection")}
               </h3>
