@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
+import { useCardInteraction } from "@/animations/useCardInteraction";
 import { cn } from "@/lib/utils";
 
 const forwardRef = React.forwardRef as <
@@ -14,6 +15,18 @@ const forwardRef = React.forwardRef as <
     ref: React.ForwardedRef<Element>,
   ) => React.ReactNode,
 ) => React.ForwardRefExoticComponent<Props & React.RefAttributes<Element>>;
+
+function composeEventHandlers<Event>(
+  internal?: (event: Event) => void,
+  external?: (event: Event) => void,
+) {
+  if (!internal) return external;
+  if (!external) return internal;
+  return (event: Event) => {
+    internal(event);
+    external(event);
+  };
+}
 
 // Shared chrome for every floating toolbar in the app — the home page
 // PageNavigationDock, the sidebar mobile-overlay toolbar, and the map
@@ -210,18 +223,71 @@ const toolbarButtonVariants = cva(
 );
 
 export const ToolbarButton = forwardRef(function ToolbarButton(
-  { className, tone, active = false, asChild = false, ...props },
+  {
+    className,
+    tone,
+    active = false,
+    asChild = false,
+    type,
+    disabled,
+    onMouseEnter: externalMouseEnter,
+    onMouseLeave: externalMouseLeave,
+    onPointerDown: externalPointerDown,
+    onPointerUp: externalPointerUp,
+    onPointerCancel: externalPointerCancel,
+    onPointerLeave: externalPointerLeave,
+    onKeyDown: externalKeyDown,
+    onKeyUp: externalKeyUp,
+    onBlur: externalBlur,
+    ...props
+  },
   ref,
 ) {
   const Comp = asChild ? Slot : "button";
-  const extraProps = asChild ? {} : { type: props.type || "button" };
+  const extraProps = asChild ? { disabled } : { type: type || "button", disabled };
+  const {
+    ref: gsapRef,
+    onMouseEnter,
+    onMouseLeave,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+  } = useCardInteraction({
+    enabled: !disabled,
+    hoverScale: 1.035,
+    hoverY: -1,
+    pressScale: 0.9,
+    releaseScale: 1.055,
+    duration: 0.18,
+  });
+  const setRefs = React.useCallback(
+    (node: HTMLElement | null) => {
+      gsapRef(node);
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLElement | null>).current = node;
+    },
+    [gsapRef, ref],
+  );
   return (
     <Comp
-      ref={ref}
+      ref={setRefs}
       data-active={active ? "true" : undefined}
       className={cn(toolbarButtonVariants({ tone }), className)}
       {...extraProps}
       {...props}
+      onMouseEnter={composeEventHandlers(onMouseEnter, externalMouseEnter)}
+      onMouseLeave={composeEventHandlers(onMouseLeave, externalMouseLeave)}
+      onPointerDown={composeEventHandlers(onPointerDown, externalPointerDown)}
+      onPointerUp={composeEventHandlers(onPointerUp, externalPointerUp)}
+      onPointerCancel={composeEventHandlers(onPointerCancel, externalPointerCancel)}
+      onPointerLeave={composeEventHandlers(onPointerLeave, externalPointerLeave)}
+      onKeyDown={composeEventHandlers(onKeyDown, externalKeyDown)}
+      onKeyUp={composeEventHandlers(onKeyUp, externalKeyUp)}
+      onBlur={composeEventHandlers(onBlur, externalBlur)}
     />
   );
 });

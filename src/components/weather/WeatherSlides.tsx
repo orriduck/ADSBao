@@ -541,8 +541,18 @@ function hourlyTemp(val, unit) {
 // MetricCard / SelectableCard glass cards. CSS owns the glass-capsule
 // background/box-shadow on [data-active]; GSAP owns transform only.
 function HourlyCell({ hour, active, onToggle, t, units }) {
-  const { ref, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } =
-    useCardInteraction();
+  const {
+    ref,
+    onMouseEnter,
+    onMouseLeave,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+  } = useCardInteraction();
   return (
     <button
       type="button"
@@ -552,8 +562,13 @@ function HourlyCell({ hour, active, onToggle, t, units }) {
       onClick={onToggle}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onPointerLeave={onPointerLeave}
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
+      onBlur={onBlur}
     >
       <span className="hourly-card__time">{hour.time}</span>
       <span className="hourly-card__temp notranslate" translate="no">

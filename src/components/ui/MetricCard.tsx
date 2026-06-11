@@ -149,8 +149,18 @@ function InteractiveMetricCard({
   className?: string;
   children: React.ReactNode;
 }) {
-  const { ref, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } =
-    useCardInteraction();
+  const {
+    ref,
+    onMouseEnter,
+    onMouseLeave,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
+  } = useCardInteraction();
   return (
     <button
       type="button"
@@ -162,8 +172,13 @@ function InteractiveMetricCard({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onPointerLeave={onPointerLeave}
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
+      onBlur={onBlur}
       className={cn("group", cardVariants({ interactive: true }), className)}
     >
       {children}

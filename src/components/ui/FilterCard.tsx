@@ -16,6 +16,18 @@ const forwardRef = React.forwardRef as <
   ) => React.ReactNode,
 ) => React.ForwardRefExoticComponent<Props & React.RefAttributes<Element>>;
 
+function composeEventHandlers<Event>(
+  internal?: (event: Event) => void,
+  external?: (event: Event) => void,
+) {
+  if (!internal) return external;
+  if (!external) return internal;
+  return (event: Event) => {
+    internal(event);
+    external(event);
+  };
+}
+
 // Compact filter "tile" shared by the AircraftTable filter strip and
 // the AircraftTypeFilterCard / AircraftFilterCardSelect dropdowns.
 // Same visual language as MetricCard (border + inset highlight +
@@ -102,11 +114,27 @@ const filterCardVariants = cva(
 );
 
 export const FilterCard = forwardRef(function FilterCard(
-  { className, shape, asChild = false, active, ...props },
+  {
+    className,
+    shape,
+    asChild = false,
+    active,
+    type,
+    onMouseEnter: externalMouseEnter,
+    onMouseLeave: externalMouseLeave,
+    onPointerDown: externalPointerDown,
+    onPointerUp: externalPointerUp,
+    onPointerCancel: externalPointerCancel,
+    onPointerLeave: externalPointerLeave,
+    onKeyDown: externalKeyDown,
+    onKeyUp: externalKeyUp,
+    onBlur: externalBlur,
+    ...props
+  },
   ref,
 ) {
   const Comp = asChild ? Slot : "button";
-  const extraProps = asChild ? {} : { type: props.type || "button" };
+  const extraProps = asChild ? {} : { type: type || "button" };
 
   // GSAP hover-lift + press-spring, matching MetricCard / SelectableCard.
   // CSS owns the glass-capsule background/box-shadow on active/open; GSAP
@@ -117,8 +145,13 @@ export const FilterCard = forwardRef(function FilterCard(
     ref: gsapRef,
     onMouseEnter,
     onMouseLeave,
-    onMouseDown,
-    onMouseUp,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
+    onKeyDown,
+    onKeyUp,
+    onBlur,
   } = useCardInteraction();
   const setRefs = React.useCallback(
     (node: HTMLElement | null) => {
@@ -135,12 +168,17 @@ export const FilterCard = forwardRef(function FilterCard(
       data-active={active ? "true" : undefined}
       data-ui="filter-card"
       className={cn(filterCardVariants({ shape }), className)}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
       {...extraProps}
       {...props}
+      onMouseEnter={composeEventHandlers(onMouseEnter, externalMouseEnter)}
+      onMouseLeave={composeEventHandlers(onMouseLeave, externalMouseLeave)}
+      onPointerDown={composeEventHandlers(onPointerDown, externalPointerDown)}
+      onPointerUp={composeEventHandlers(onPointerUp, externalPointerUp)}
+      onPointerCancel={composeEventHandlers(onPointerCancel, externalPointerCancel)}
+      onPointerLeave={composeEventHandlers(onPointerLeave, externalPointerLeave)}
+      onKeyDown={composeEventHandlers(onKeyDown, externalKeyDown)}
+      onKeyUp={composeEventHandlers(onKeyUp, externalKeyUp)}
+      onBlur={composeEventHandlers(onBlur, externalBlur)}
     />
   );
 });
