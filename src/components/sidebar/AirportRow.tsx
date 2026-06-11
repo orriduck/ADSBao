@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { TowerControl } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -13,7 +14,7 @@ import { formatAltitude } from "@/utils/units";
 // "airports & aircraft" mixed list reads as one coherent table.
 // Left: ICAO · IATA / city + country. Right: DIST and ELEV (in place of
 // the aircraft row's GS / ALT).
-export default function AirportRow({
+function AirportRow({
   airport,
   airportId,
   selected,
@@ -94,6 +95,35 @@ export default function AirportRow({
     </button>
   );
 }
+
+// Memoized (field-based, like AircraftRow) so poll-driven re-renders of the
+// list don't re-render every airport row when its displayed data is unchanged.
+function airportRowPropsEqual(
+  prev: Record<string, any>,
+  next: Record<string, any>,
+) {
+  if (
+    prev.selected !== next.selected ||
+    prev.airportId !== next.airportId ||
+    prev.onSelectAirport !== next.onSelectAirport
+  ) {
+    return false;
+  }
+  const a = prev.airport || {};
+  const b = next.airport || {};
+  if (a === b) return true;
+  return (
+    a.icao === b.icao &&
+    a.iata === b.iata &&
+    a.city === b.city &&
+    a.country === b.country &&
+    a.distanceNm === b.distanceNm &&
+    a.elevationFt === b.elevationFt &&
+    a.routeEndpointRole === b.routeEndpointRole
+  );
+}
+
+export default memo(AirportRow, airportRowPropsEqual);
 
 // Mirrors AircraftRow.NumberWithUnit — virtualization bounds the instance
 // count, so NumberFlow's digit-level animation is affordable here too.
