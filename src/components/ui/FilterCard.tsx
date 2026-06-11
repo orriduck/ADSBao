@@ -65,7 +65,7 @@ const filterCardVariants = cva(
     "data-[state=open]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[state=open]:text-[var(--atc-click-fg)]",
     "data-[state=open]:shadow-[var(--atc-glass-rim-shadow)]",
-    // Focus-visible — soft luminous frost ring. (--endf-yellow resolves
+    // Focus-visible — soft luminous frost ring. (--atc-solid-accent resolves
     // to near-black ink in light theme, which read as an ugly black
     // border; the open-state glass capsule is the primary feedback.)
     "focus-visible:shadow-[inset_0_0_0_1.5px_var(--app-frost-border)]",

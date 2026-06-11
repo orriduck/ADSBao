@@ -17,9 +17,9 @@ export default function MechanismPanel() {
   return (
     <div className="flex-1 overflow-y-auto pb-6">
         <div className="dither-section-header flex-none px-6 pt-6 pb-3">
-          <div className="endf-section-head">
-            <span className="endf-label">{t("mechanism.sidebarLabel")}</span>
-            <span className="endf-section-head__count">
+          <div className="atc-section-head">
+            <span className="atc-kicker">{t("mechanism.sidebarLabel")}</span>
+            <span className="atc-section-head__count">
               {t("mechanism.count", { count: MECHANISM_ITEMS.length })}
             </span>
           </div>

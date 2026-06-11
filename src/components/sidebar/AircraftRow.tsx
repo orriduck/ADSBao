@@ -69,13 +69,13 @@ export default function AircraftRow({
     <button
       type="button"
       data-selected={selected ? "true" : undefined}
-      className={`aircraft-table-card aircraft-table-row-grid endf-industrial-row grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow,transform] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:[background:var(--atc-glass-active-bg)] data-[selected=true]:text-[var(--atc-click-fg)] data-[selected=true]:shadow-[var(--atc-glass-rim-shadow)] data-[selected=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:hover:[background:var(--atc-glass-active-bg)] data-[selected=true]:[&_.text-atc-text]:text-[var(--atc-click-fg)] data-[selected=true]:[&_.text-atc-dim]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.text-atc-faint]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-route-cycle]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.endf-row-glyph]:bg-[var(--atc-click-fg)] data-[selected=true]:[&_.endf-row-glyph]:text-[var(--atc-click-bg)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
-        selected ? "aircraft-table-row--selected endf-row-active" : ""
+      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow,transform] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:[background:var(--atc-glass-active-bg)] data-[selected=true]:text-[var(--atc-click-fg)] data-[selected=true]:shadow-[var(--atc-glass-rim-shadow)] data-[selected=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:hover:[background:var(--atc-glass-active-bg)] data-[selected=true]:[&_.text-atc-text]:text-[var(--atc-click-fg)] data-[selected=true]:[&_.text-atc-dim]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.text-atc-faint]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-route-cycle]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-row-glyph]:bg-[var(--atc-click-fg)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-click-bg)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
+        selected ? "aircraft-table-row--selected aircraft-table-row--active" : ""
       }`}
       aria-pressed={selected}
       onClick={() => aircraftId && onSelectAircraft?.(aircraftId)}
     >
-      <span aria-hidden="true" className="endf-row-glyph">
+      <span aria-hidden="true" className="aircraft-table-row-glyph">
         <Plane size={13} strokeWidth={2.4} />
       </span>
       <AircraftIdentityCell
@@ -195,7 +195,7 @@ function AircraftIdentityCell({
 }
 
 // Animated numeric cell. NumberFlow handles digit-level animation natively,
-// replacing the older static-text + EndfieldValueSwap cross-fade. Cost is
+// replacing the older static-text cross-fade. Cost is
 // bounded by virtualization: only the rows in the visible window mount, so
 // the previous ~290-instance worst case becomes ~24 (12 rows × 2 cells).
 function NumberWithUnit({ value, unit, format, text, prefix }: Record<string, any>) {

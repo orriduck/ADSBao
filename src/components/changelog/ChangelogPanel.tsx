@@ -67,7 +67,7 @@ const CHINESE_RELEASE_COPY = {
     highlights: [
       "工具栏新增屏幕常亮切换 — Coffee 图标，点击防止屏幕休眠",
       "状态栏激活时显示「☕ 屏幕常亮」指示，与数据源标识同行",
-      "用 GSAP StatusSpan 替换 EndfieldValueSwap，文字切换更流畅",
+      "用 GSAP StatusSpan 替换旧文字切换动画，文字切换更流畅",
       "状态栏宽度放宽并移除换行 — 始终单行显示",
     ],
   },
@@ -366,9 +366,9 @@ export default function ChangelogPanel() {
   return (
     <>
       <div className="dither-section-header flex-none px-6 pt-6 pb-3">
-        <div className="endf-section-head">
-          <span className="endf-label">{t("changelog.releases")}</span>
-          <span className="endf-section-head__count">
+        <div className="atc-section-head">
+          <span className="atc-kicker">{t("changelog.releases")}</span>
+          <span className="atc-section-head__count">
             {t("changelog.total", { count: CHANGELOG.length })}
           </span>
         </div>
@@ -399,16 +399,16 @@ function ChangelogEntry({ release, isLatest, locale }) {
     <li className="changelog-entry">
       <div className="changelog-entry__header">
         {isLatest ? (
-          <span className="endf-tab">
+          <span className="atc-pill">
             <span>{release.version}</span>
           </span>
         ) : (
-          <span className="endf-tab endf-tab--outline">
+          <span className="atc-pill atc-pill--outline">
             <span>{release.version}</span>
           </span>
         )}
         {isLatest && (
-          <span className="endf-chip">
+          <span className="atc-chip">
             <span>{t("changelog.current")}</span>
           </span>
         )}
@@ -427,7 +427,7 @@ function ChangelogEntry({ release, isLatest, locale }) {
         <ul className="changelog-entry__highlights">
           {highlights.map((item, index) => (
             <li key={index}>
-              <span aria-hidden="true" className="endf-diamond endf-diamond--muted mt-0.5" />
+              <span aria-hidden="true" className="atc-dot atc-dot--muted mt-0.5" />
               <span className="min-w-0">{item}</span>
             </li>
           ))}

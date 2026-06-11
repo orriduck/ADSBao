@@ -37,7 +37,7 @@ export default function CandidateWatchingSpotPreviewMetadataCard({
       <div className="candidate-watching-spot-preview-motion">
         <div className="relative">
           <div className="min-w-0 pr-8">
-            <span className="endf-label">
+            <span className="atc-kicker">
               {t("preview.candidateWatchingSpotPreview")}
             </span>
             <div className="mt-1 min-w-0">

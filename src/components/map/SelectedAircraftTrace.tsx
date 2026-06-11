@@ -291,8 +291,8 @@ function SingleAircraftTrace({
   // -------------------------------------------------------------------
   // Effect 1: line + glow + sample dots. Re-runs on every geometry change
   // (poll-driven head extensions are visible here as the curve extends).
-  // Trace paths now mount settled. The Endfield-style loading and row
-  // replacement effects carry motion elsewhere, so the map trace avoids the
+  // Trace paths now mount settled. Loading and row replacement effects carry
+  // motion elsewhere, so the map trace avoids the
   // old long opacity animation on production hot paths.
   // -------------------------------------------------------------------
   useEffect(() => {

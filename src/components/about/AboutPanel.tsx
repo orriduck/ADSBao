@@ -48,7 +48,7 @@ export default function AboutPanel() {
                 </p>
               </div>
               <span
-                className="endf-diamond endf-diamond--muted mb-1"
+                className="atc-dot atc-dot--muted mb-1"
                 aria-hidden="true"
               />
             </div>
@@ -88,9 +88,9 @@ export default function AboutPanel() {
         </div>
 
         <div className="dither-section-header flex-none px-6 pt-6 pb-3">
-          <div className="endf-section-head">
-            <span className="endf-label">{t("about.dataSources")}</span>
-            <span className="endf-section-head__count">
+          <div className="atc-section-head">
+            <span className="atc-kicker">{t("about.dataSources")}</span>
+            <span className="atc-section-head__count">
               {getDataSourceCountLabel(ABOUT_DATA_SOURCES, locale)}
             </span>
           </div>
@@ -120,7 +120,7 @@ export default function AboutPanel() {
           <a
             {...getExternalLinkOpenTarget(ABOUT_REPOSITORY.href)}
             onClick={(event) => openExternalLink(event, ABOUT_REPOSITORY.href)}
-            className="group endf-cornered flex items-center justify-between gap-3 border border-[var(--atc-line-strong)] px-4 py-3.5 transition-colors hover:border-atc-orange md:gap-2.5 md:px-[13px] md:py-[11px]"
+            className="group atc-cornered flex items-center justify-between gap-3 border border-[var(--atc-line-strong)] px-4 py-3.5 transition-colors hover:border-atc-orange md:gap-2.5 md:px-[13px] md:py-[11px]"
           >
             <div className="flex items-center gap-3">
               <span className="grid h-8 w-8 place-items-center border border-atc-orange text-atc-orange">
@@ -137,7 +137,7 @@ export default function AboutPanel() {
                 </small>
               </div>
             </div>
-            <span className="endf-chip" aria-hidden="true">
+            <span className="atc-chip" aria-hidden="true">
               <span className="flex items-center gap-1">
                 <span>OPEN</span>
                 <ArrowUpRight className="h-3 w-3" />

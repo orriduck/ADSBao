@@ -52,7 +52,7 @@ export default function NavaidPreviewMetadataCard({
     <div className="aircraft-preview-metadata-card">
       <div className="relative">
         <div className="min-w-0 pr-8">
-          <span className="endf-label">{t("preview.navaidPreview")}</span>
+          <span className="atc-kicker">{t("preview.navaidPreview")}</span>
           <div className="mt-1 flex min-w-0 items-baseline gap-2">
             <span
               className="notranslate airport-sidebar-display-mono airport-sidebar-display-mono--hero text-[28px] font-extrabold leading-none text-atc-text"

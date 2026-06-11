@@ -29,7 +29,7 @@ export default function AirspacePreviewMetadataCard({
     <div className="aircraft-preview-metadata-card">
       <div className="relative">
         <div className="min-w-0 pr-8">
-          <span className="endf-label">{t("preview.airspacePreview")}</span>
+          <span className="atc-kicker">{t("preview.airspacePreview")}</span>
           <div className="mt-1 min-w-0">
             <span
               className="notranslate block min-w-0 whitespace-normal break-words font-sans text-[14px] font-bold leading-tight text-atc-text"

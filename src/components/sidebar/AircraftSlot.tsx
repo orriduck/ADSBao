@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useEndfieldContentSwap } from "@/components/effects/useEndfieldContentSwap";
+import { useContentSwap } from "@/components/effects/useContentSwap";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel";
 import AircraftRow from "./AircraftRow";
 
-// Single row "slot" that performs an Endfield-style erase/reveal for the
+// Single row "slot" that performs a soft erase/reveal for the
 // pinned selected-aircraft card. The scroll list renders rows directly so it
 // never leaves empty animated slots behind during live re-sorts.
 export default function AircraftSlot({
@@ -27,7 +27,7 @@ export default function AircraftSlot({
   const previousKey = previousKeyRef.current;
   const flipDelay =
     Math.max(cascadeOrderRef.current, 0) * flipStaggerStepRef.current;
-  const swap = useEndfieldContentSwap({
+  const swap = useContentSwap({
     identityKey: currentKey,
     value: aircraft,
     delaySeconds: flipDelay,
@@ -44,12 +44,12 @@ export default function AircraftSlot({
   return (
     <div
       style={swap.style}
-      className={`endf-content-swap ${
-        swap.replacing ? "endf-content-swap--replacing" : ""
+      className={`content-swap ${
+        swap.replacing ? "content-swap--replacing" : ""
       }`}
     >
       <div
-        className={`endf-content-swap__content ${swap.contentPhaseClass}`}
+        className={`content-swap__content ${swap.contentPhaseClass}`}
       >
         <AircraftRow
           aircraft={displayed}

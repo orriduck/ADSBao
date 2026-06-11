@@ -48,13 +48,13 @@ export default function AirportRow({
   return (
     <button
       type="button"
-      className={`aircraft-table-card aircraft-table-row-grid endf-industrial-row grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
-        selected ? "endf-row-active" : ""
+      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
+        selected ? "aircraft-table-row--active" : ""
       }`}
       aria-pressed={selected}
       onClick={() => airportId && onSelectAirport?.(airportId)}
     >
-      <span aria-hidden="true" className="endf-row-glyph">
+      <span aria-hidden="true" className="aircraft-table-row-glyph">
         <TowerControl size={13} strokeWidth={2.4} />
       </span>
       <div className="aircraft-table-identity aircraft-table-identity--solo min-w-0">

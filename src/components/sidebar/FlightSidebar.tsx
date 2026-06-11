@@ -140,7 +140,7 @@ function FlightIdentity({
           </span>
           {secondary && (
             <span
-              className="notranslate endf-chip flex-none"
+              className="notranslate atc-chip flex-none"
               translate="no"
               title={secondary}
             >

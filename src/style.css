@@ -574,7 +574,7 @@
     --atc-accent: oklch(0.18 0.008 98);
     --atc-accent-soft: color-mix(in oklab, var(--atc-accent) 14%, transparent);
     /* Deep variant of the primary — tinted text on the light grey paper.
-       Solid primary surfaces use --endf-yellow (aliased to
+       Solid primary surfaces use --atc-solid-accent (aliased to
        --primary-bright). */
     --atc-orange: var(--primary-bright);
     --atc-orange-soft: color-mix(in oklab, var(--atc-orange) 18%, transparent);
@@ -2610,7 +2610,7 @@ body:has(.app-detail-shell) {
 /* ============================================================
    2026 consumer-flight modernization layer.
    Spotify informs rounded app geometry; Uber informs geometric type.
-   This layer intentionally overrides the older cockpit/Endfield motifs
+   This layer intentionally overrides the older cockpit motifs
    without changing data, provider, map, auth, or tracking behavior.
    ============================================================ */
 
@@ -2982,10 +2982,6 @@ body {
     );
 }
 
-.dither-page-panel .endf-page-title {
-    text-transform: none;
-}
-
 .dither-page-panel p {
     letter-spacing: normal;
 }
@@ -3005,68 +3001,6 @@ body {
 .search-input input,
 .search-input .search-input {
     font-size: 16px;
-}
-
-.endf-section-head {
-    border-bottom: 0;
-    padding-bottom: 0;
-}
-
-.endf-label,
-.endf-section-head__count {
-    font-family: var(--font-sans);
-    letter-spacing: normal;
-    text-transform: none;
-}
-
-.endf-label::before {
-    content: "";
-    display: none;
-}
-
-.endf-tab,
-.endf-chip {
-    border-radius: var(--atc-radius-pill);
-    font-family: var(--font-sans);
-    letter-spacing: normal;
-    text-transform: none;
-    transform: none;
-}
-
-.endf-tab > *,
-.endf-chip > * {
-    transform: none;
-}
-
-.endf-tab--code {
-    min-width: 58px;
-    padding: 8px 12px;
-}
-
-.endf-diamond {
-    border-radius: 999px;
-    height: 7px;
-    transform: none;
-    width: 7px;
-}
-
-.endf-row-active {
-    border-radius: var(--atc-radius-card);
-}
-
-.endf-row-active::before {
-    border-radius: var(--atc-radius-pill);
-    inset: 8px auto 8px 8px;
-    width: 4px;
-}
-
-.endf-row-featured {
-    background: linear-gradient(
-        90deg,
-        color-mix(in oklab, var(--atc-orange) 16%, transparent),
-        color-mix(in oklab, var(--atc-card) 76%, transparent)
-    );
-    border-radius: var(--atc-radius-card);
 }
 
 .glass-panel {
@@ -4127,7 +4061,7 @@ body {
 /* Inside an active (ink + yellow) row the light pad still keeps the
    logo readable — no override needed, but suppress any inherited
    filters / opacity dimming from the row. */
-.endf-row-active .aircraft-table-airline-logo {
+.aircraft-table-row--active .aircraft-table-airline-logo {
     opacity: 1;
 }
 
@@ -4162,7 +4096,7 @@ body {
 }
 
 /* Pinned-aircraft slot above the scroll list. The inner row already
- * paints the ink+yellow active state via .endf-row-active, so the pin
+ * paints the ink+yellow active state via .aircraft-table-row--active, so the pin
  * itself only contributes a bottom hairline divider — no extra
  * background or border-left rail to avoid double-framing the row. */
 /* Pinned aircraft slot — the selected row promoted above the scrolling
@@ -4184,7 +4118,7 @@ body {
     z-index: 3;
 }
 
-.aircraft-table-pin .endf-row-active {
+.aircraft-table-pin .aircraft-table-row--active {
     background: var(--atc-click-bg);
     /* Only the bottom corners round — the top edge sits flush against
        the .aircraft-table-header strip above so the pinned row reads
@@ -4208,15 +4142,15 @@ body {
             color-mix(in oklab, var(--atc-click-fg) 7%, transparent);
 }
 
-.aircraft-table-pin .endf-row-active::before {
+.aircraft-table-pin .aircraft-table-row--active::before {
     display: none;
 }
 
 /* Bottom-up glow that fades upward — same gradient the metric tile uses
    on its own ::after. Sits behind the row's content (z-index: 0) while
-   text / glyphs render at z-index: 1 via the existing endf-industrial-row
+   text / glyphs render at z-index: 1 via the existing aircraft-table-row-shell
    stacking. */
-.aircraft-table-pin .endf-row-active::after {
+.aircraft-table-pin .aircraft-table-row--active::after {
     background: var(--sidebar-tile-bottom-glow);
     content: "";
     inset: 0;
@@ -4226,70 +4160,70 @@ body {
     z-index: 0;
 }
 
-.aircraft-table-pin .endf-row-active > * {
+.aircraft-table-pin .aircraft-table-row--active > * {
     position: relative;
     z-index: 1;
 }
 
-/* The default .endf-row-active uses --endf-ink as bg and --endf-yellow
+/* The default .aircraft-table-row--active uses --atc-solid-accent-fg as bg and --atc-solid-accent
    for child text — in light theme that's a light surface with dark text.
    The pinned row inverts to --atc-click-bg (dark) + --atc-click-fg
    (light) so it reads as a metric-tile peer, but those existing child
-   overrides still force text-atc-text → --endf-yellow (dark on dark in
+   overrides still force text-atc-text → --atc-solid-accent (dark on dark in
    light theme, the bug the user spotted). Re-target every coloured child
    to the click palette so the inverted surface stays legible in both
    themes. */
-.aircraft-table-pin .endf-row-active .text-atc-text {
+.aircraft-table-pin .aircraft-table-row--active .text-atc-text {
     color: var(--atc-click-fg);
 }
 
-.aircraft-table-pin .endf-row-active .text-atc-dim,
-.aircraft-table-pin .endf-row-active .text-atc-faint,
-.aircraft-table-pin .endf-row-active .aircraft-table-route-cycle {
+.aircraft-table-pin .aircraft-table-row--active .text-atc-dim,
+.aircraft-table-pin .aircraft-table-row--active .text-atc-faint,
+.aircraft-table-pin .aircraft-table-row--active .aircraft-table-route-cycle {
     color: var(--atc-click-muted);
 }
 
-.aircraft-table-pin .endf-row-active .endf-row-glyph {
+.aircraft-table-pin .aircraft-table-row--active .aircraft-table-row-glyph {
     background: var(--atc-click-fg);
     border-color: color-mix(in oklab, var(--atc-click-fg) 72%, transparent);
     color: var(--atc-click-bg);
 }
 
-.aircraft-table-pin .endf-row-active .endf-diamond {
+.aircraft-table-pin .aircraft-table-row--active .atc-dot {
     background: var(--atc-click-fg);
 }
 
-.aircraft-table-pin .endf-row-active .endf-diamond--hollow {
+.aircraft-table-pin .aircraft-table-row--active .atc-dot--hollow {
     background: transparent;
     border-color: var(--atc-click-fg);
 }
 
-.endf-content-swap {
+.content-swap {
     isolation: isolate;
     overflow: hidden;
     position: relative;
-    --endf-content-swap-delay: 0s;
+    --content-swap-delay: 0s;
 }
 
-.endf-content-swap__content {
+.content-swap__content {
     will-change: opacity;
 }
 
-.endf-content-swap__content--erasing {
-    animation: endf-content-swap-erase 150ms ease-out
-        var(--endf-content-swap-delay, 0s) both;
+.content-swap__content--erasing {
+    animation: content-swap-erase 150ms ease-out
+        var(--content-swap-delay, 0s) both;
 }
 
-.endf-content-swap__content--hidden {
+.content-swap__content--hidden {
     clip-path: none;
     opacity: 0;
 }
 
-.endf-content-swap__content--revealing {
-    animation: endf-content-swap-reveal 180ms ease-out both;
+.content-swap__content--revealing {
+    animation: content-swap-reveal 180ms ease-out both;
 }
 
-.endf-content-swap--replacing::before {
+.content-swap--replacing::before {
     background:
         radial-gradient(
                 circle,
@@ -4300,7 +4234,7 @@ body {
         linear-gradient(
             90deg,
             color-mix(in oklab, var(--sidebar) 94%, transparent),
-            color-mix(in oklab, var(--endf-yellow) 7%, var(--sidebar)) 46%,
+            color-mix(in oklab, var(--atc-solid-accent) 7%, var(--sidebar)) 46%,
             color-mix(in oklab, var(--sidebar) 94%, transparent)
         );
     content: "";
@@ -4311,10 +4245,10 @@ body {
     z-index: 5;
 }
 
-.endf-content-swap--replacing::after {
-    background: color-mix(in oklab, var(--endf-yellow) 70%, transparent);
+.content-swap--replacing::after {
+    background: color-mix(in oklab, var(--atc-solid-accent) 70%, transparent);
     box-shadow: 0 0 12px
-        color-mix(in oklab, var(--endf-yellow) 24%, transparent);
+        color-mix(in oklab, var(--atc-solid-accent) 24%, transparent);
     content: "";
     height: 22px;
     left: var(--airport-sidebar-inset);
@@ -4326,7 +4260,7 @@ body {
     z-index: 6;
 }
 
-@keyframes endf-content-swap-erase {
+@keyframes content-swap-erase {
     from {
         opacity: 1;
     }
@@ -4335,7 +4269,7 @@ body {
     }
 }
 
-@keyframes endf-content-swap-reveal {
+@keyframes content-swap-reveal {
     from {
         opacity: 0;
     }
@@ -4344,75 +4278,21 @@ body {
     }
 }
 
-@keyframes endf-content-swap-erase-reverse {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
-
-@keyframes endf-content-swap-reveal-reverse {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes endf-cursor-wipe {
-    0%,
-    8% {
-        opacity: 0;
-        transform: translateX(0);
-    }
-    10%,
-    18% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    20%,
-    27% {
-        opacity: 0.16;
-        transform: translateX(0);
-    }
-    29%,
-    37% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    39%,
-    43% {
-        opacity: 0.22;
-        transform: translateX(0);
-    }
-    45% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(100%);
-    }
-}
-
-@keyframes endf-text-decode {
+@keyframes preview-text-settle {
     0%,
     40% {
         text-shadow:
-            0.08em 0 color-mix(in oklab, var(--endf-yellow) 70%, transparent),
+            0.08em 0 color-mix(in oklab, var(--atc-solid-accent) 70%, transparent),
             -0.08em 0 color-mix(in oklab, var(--atc-text) 28%, transparent);
     }
     48% {
         text-shadow:
-            -0.05em 0 color-mix(in oklab, var(--endf-yellow) 60%, transparent),
+            -0.05em 0 color-mix(in oklab, var(--atc-solid-accent) 60%, transparent),
             0.05em 0 color-mix(in oklab, var(--atc-text) 22%, transparent);
     }
     56% {
         text-shadow:
-            0.04em 0 color-mix(in oklab, var(--endf-yellow) 42%, transparent),
+            0.04em 0 color-mix(in oklab, var(--atc-solid-accent) 42%, transparent),
             -0.04em 0 color-mix(in oklab, var(--atc-text) 18%, transparent);
     }
     70%,
@@ -4421,7 +4301,7 @@ body {
     }
 }
 
-@keyframes endf-content-reveal {
+@keyframes preview-content-reveal {
     0%,
     43% {
         opacity: 0;
@@ -4432,7 +4312,7 @@ body {
     }
 }
 
-@keyframes endf-placeholder-hold {
+@keyframes preview-placeholder-hold {
     0%,
     43% {
         opacity: 1;
@@ -4443,7 +4323,7 @@ body {
     }
 }
 
-@keyframes endf-placeholder-cursor {
+@keyframes preview-placeholder-cursor {
     0%,
     8% {
         opacity: 0;
@@ -4465,63 +4345,6 @@ body {
         opacity: 0.24;
     }
     44%,
-    100% {
-        opacity: 0;
-    }
-}
-
-@keyframes endf-data-flicker {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    16% {
-        opacity: 0.62;
-    }
-    22% {
-        opacity: 1;
-    }
-    34% {
-        opacity: 0.78;
-    }
-    40% {
-        opacity: 1;
-    }
-}
-
-@keyframes endf-content-swap-placeholder {
-    0%,
-    52% {
-        opacity: 1;
-    }
-    53%,
-    100% {
-        opacity: 0;
-    }
-}
-
-@keyframes endf-content-swap-cursor {
-    0%,
-    8% {
-        opacity: 0;
-    }
-    10%,
-    18% {
-        opacity: 0.68;
-    }
-    20%,
-    27% {
-        opacity: 0.18;
-    }
-    29%,
-    38% {
-        opacity: 0.6;
-    }
-    40%,
-    52% {
-        opacity: 0.26;
-    }
-    53%,
     100% {
         opacity: 0;
     }
@@ -4551,123 +4374,14 @@ body {
     }
 }
 
-.endf-value-swap {
-    display: inline-flex;
-    isolation: isolate;
-    line-height: 1;
-    overflow: hidden;
-    position: relative;
-    --endf-value-swap-surface: var(--sidebar);
-}
-
-.endf-value-swap__content {
-    will-change: opacity;
-}
-
-.endf-value-swap__content--erasing {
-    animation: endf-content-swap-erase 150ms ease-out
-        var(--endf-content-swap-delay, 0s) both;
-}
-
-.endf-value-swap__content--hidden {
-    clip-path: none;
-    opacity: 0;
-}
-
-.endf-value-swap__content--revealing {
-    animation: endf-content-swap-reveal 180ms ease-out both;
-}
-
-.endf-value-swap--reverse .endf-value-swap__content--erasing {
-    animation-name: endf-content-swap-erase-reverse;
-}
-
-.endf-value-swap--reverse .endf-value-swap__content--hidden {
-    clip-path: none;
-}
-
-.endf-value-swap--reverse .endf-value-swap__content--revealing {
-    animation-name: endf-content-swap-reveal-reverse;
-}
-
-.endf-value-swap--replacing::before {
-    background:
-        radial-gradient(
-                circle,
-                color-mix(in oklab, var(--atc-text) 18%, transparent) 0 1px,
-                transparent 1.4px
-            )
-            0 0 / 6px 6px,
-        linear-gradient(
-            90deg,
-            color-mix(
-                in oklab,
-                var(--endf-value-swap-surface) 88%,
-                transparent
-            ),
-            color-mix(
-                    in oklab,
-                    var(--endf-yellow) 12%,
-                    var(--endf-value-swap-surface)
-                )
-                52%,
-            color-mix(in oklab, var(--endf-value-swap-surface) 88%, transparent)
-        );
-    content: "";
-    inset: -1px 0;
-    display: none;
-    pointer-events: none;
-    position: absolute;
-    z-index: 2;
-}
-
-.endf-row-active .endf-value-swap {
-    --endf-value-swap-surface: var(--endf-ink);
-}
-
-.endf-value-swap--replacing::after {
-    background: color-mix(in oklab, var(--endf-yellow) 86%, transparent);
-    box-shadow: 0 0 10px
-        color-mix(in oklab, var(--endf-yellow) 34%, transparent);
-    content: "";
-    display: none;
-    height: 1.1em;
-    left: 0;
-    pointer-events: none;
-    position: absolute;
-    top: calc(50% - 0.55em);
-    width: 3px;
-    z-index: 3;
-}
-
-.endf-value-swap--reverse::after {
-    left: auto;
-    right: 0;
-}
 
 @media (prefers-reduced-motion: reduce) {
-    .endf-value-swap--replacing::before,
-    .endf-value-swap--replacing::after {
+    .content-swap--replacing::before,
+    .content-swap--replacing::after {
         display: none;
     }
 
-    .endf-value-swap,
-    .endf-value-swap__content,
-    .endf-content-swap,
-    .endf-content-swap__content {
-        animation: none;
-        clip-path: none;
-        filter: none;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .endf-content-swap--replacing::before,
-    .endf-content-swap--replacing::after {
-        display: none;
-    }
-
-    .endf-content-swap {
+    .content-swap {
         animation: none;
         transition: none;
     }
@@ -4714,13 +4428,13 @@ body {
     --aircraft-table-unit-width: 14px;
 }
 
-.endf-industrial-row {
+.aircraft-table-row-shell {
     isolation: isolate;
     overflow: hidden;
     position: relative;
 }
 
-.endf-row-glyph {
+.aircraft-table-row-glyph {
     align-items: center;
     background: color-mix(in oklab, var(--atc-text) 88%, var(--atc-card));
     border: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
@@ -4733,15 +4447,15 @@ body {
     width: 18px;
 }
 
-.endf-row-glyph svg {
+.aircraft-table-row-glyph svg {
     display: block;
     flex: 0 0 auto;
 }
 
-.endf-row-active .endf-row-glyph {
-    background: var(--endf-yellow);
-    border-color: color-mix(in oklab, var(--endf-yellow) 72%, transparent);
-    color: var(--endf-ink);
+.aircraft-table-row--active .aircraft-table-row-glyph {
+    background: var(--atc-solid-accent);
+    border-color: color-mix(in oklab, var(--atc-solid-accent) 72%, transparent);
+    color: var(--atc-solid-accent-fg);
 }
 
 .aircraft-table-route-slot {
@@ -4824,7 +4538,7 @@ body {
 }
 
 /* Focal airport label — vertical stack with the IATA/ICAO code as a
-   yellow parallelogram badge (.endf-tab--code) on top, then optional
+   yellow parallelogram badge (.atc-code-pill) on top, then optional
    small detail lines (RWY 4, APP 12) below. */
 .airport-overlay-label {
     align-items: center;
@@ -4839,7 +4553,7 @@ body {
     gap: 3px;
 }
 
-.airport-overlay-label__code.endf-tab--code {
+.airport-overlay-label__code.atc-code-pill {
     font-size: 7px;
     gap: 1px;
     letter-spacing: 0.03em;
@@ -4894,7 +4608,7 @@ body {
     opacity: 1;
 }
 
-.airport-overlay-label--map-badge .airport-overlay-label__code.endf-tab--code,
+.airport-overlay-label--map-badge .airport-overlay-label__code.atc-code-pill,
 .airport-overlay-label--map-badge .airport-overlay-label__detail {
     background: var(--map-entity-badge-bg);
     border: 1px solid var(--map-entity-badge-edge);
@@ -4903,7 +4617,7 @@ body {
     text-shadow: none;
 }
 
-.airport-overlay-label--map-badge .airport-overlay-label__code.endf-tab--code {
+.airport-overlay-label--map-badge .airport-overlay-label__code.atc-code-pill {
     font-size: 7.5px;
     gap: 1px;
     letter-spacing: 0.01em;
@@ -4925,7 +4639,7 @@ body {
     color: var(--map-entity-badge-muted);
 }
 
-.airport-overlay-label--navaid .airport-overlay-label__code.endf-tab--code {
+.airport-overlay-label--navaid .airport-overlay-label__code.atc-code-pill {
     font-family: var(--font-mono);
     font-size: 7px;
     font-weight: 850;
@@ -4933,13 +4647,13 @@ body {
 
 .airport-overlay-label__detail--near {
     align-items: center;
-    background: var(--endf-yellow);
+    background: var(--atc-solid-accent);
     border: 0;
     border-radius: 999px;
     box-shadow:
         0 1px 3px color-mix(in oklab, var(--atc-text) 22%, transparent),
-        inset 0 1px 0 color-mix(in oklab, var(--endf-ink) 13%, transparent);
-    color: var(--endf-ink);
+        inset 0 1px 0 color-mix(in oklab, var(--atc-solid-accent-fg) 13%, transparent);
+    color: var(--atc-solid-accent-fg);
     display: inline-flex;
     font-family: var(--font-sans);
     font-size: 6.5px;
@@ -4951,19 +4665,19 @@ body {
 }
 
 .airport-overlay-label__detail-label {
-    color: color-mix(in oklab, var(--endf-ink) 65%, transparent);
+    color: color-mix(in oklab, var(--atc-solid-accent-fg) 65%, transparent);
     font-weight: 800;
 }
 
 .airport-overlay-label__detail-value {
-    color: var(--endf-ink);
+    color: var(--atc-solid-accent-fg);
     font-weight: 900;
     min-width: 1ch;
     text-align: right;
 }
 
 .airport-overlay-label__detail-separator {
-    color: color-mix(in oklab, var(--endf-ink) 42%, transparent);
+    color: color-mix(in oklab, var(--atc-solid-accent-fg) 42%, transparent);
     font-weight: 800;
 }
 
@@ -5873,13 +5587,12 @@ body {
 }
 
 .aircraft-preview-card--desktop-reveal {
-    --endf-wipe-cover: var(--atc-card);
     isolation: isolate;
     position: fixed;
 }
 
 .aircraft-preview-card--desktop-reveal::before {
-    animation: endf-placeholder-hold var(--motion-ui-slow) steps(1, end) both;
+    animation: preview-placeholder-hold var(--motion-ui-slow) steps(1, end) both;
     background:
         radial-gradient(
                 circle,
@@ -5893,11 +5606,11 @@ body {
             color-mix(in oklab, var(--atc-card) 80%, transparent)
         );
     border: 1px solid
-        color-mix(in oklab, var(--endf-yellow) 18%, var(--tone-border-firm));
+        color-mix(in oklab, var(--atc-solid-accent) 18%, var(--tone-border-firm));
     border-radius: var(--atc-radius-panel);
     box-shadow:
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 8%, transparent),
-        inset 0 0 48px color-mix(in oklab, var(--endf-yellow) 8%, transparent);
+        inset 0 0 48px color-mix(in oklab, var(--atc-solid-accent) 8%, transparent);
     content: "";
     inset: 0;
     pointer-events: none;
@@ -5906,11 +5619,11 @@ body {
 }
 
 .aircraft-preview-card--desktop-reveal::after {
-    animation: endf-placeholder-cursor var(--motion-ui-slow) steps(1, end) both;
-    background: color-mix(in oklab, var(--endf-yellow) 78%, transparent);
+    animation: preview-placeholder-cursor var(--motion-ui-slow) steps(1, end) both;
+    background: color-mix(in oklab, var(--atc-solid-accent) 78%, transparent);
     border-radius: 999px;
     box-shadow: 0 0 16px
-        color-mix(in oklab, var(--endf-yellow) 28%, transparent);
+        color-mix(in oklab, var(--atc-solid-accent) 28%, transparent);
     content: "";
     height: 18px;
     left: 18px;
@@ -5924,8 +5637,8 @@ body {
 .aircraft-preview-card--desktop-reveal > *,
 .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card {
     animation:
-        endf-content-reveal var(--motion-ui-slow) steps(1, end) both,
-        endf-text-decode var(--motion-ui-slow) steps(3, end) both;
+        preview-content-reveal var(--motion-ui-slow) steps(1, end) both,
+        preview-text-settle var(--motion-ui-slow) steps(3, end) both;
 }
 
 .aircraft-preview-card--has-photo {
@@ -6453,38 +6166,20 @@ body {
    and SidebarMetric. No flight-specific layout CSS remains. */
 
 /* ============================================================
-   Endfield motif primitives.
-   - .endf-label   : `// LABEL` section header treatment.
-   - .endf-tab     : yellow skewed/clipped parallelogram tab.
-   - .endf-chip    : compact skewed chip (smaller variant).
-   - .endf-diamond : ◆ leading bullet for list rows.
-   - .endf-cta     : yellow CTA bar with watermark text behind value.
-   - .endf-brand   : vertical "ENDFIELD"-style watermark.
-   - .endf-corner  : hairline corner tick.
-   These are visual primitives — apply to existing markup, do not
-   replace layout regions.
+   Shared system primitives.
    ============================================================ */
 
 :root {
-    --endf-skew: -18deg;
-    /* Bright primary for solid surfaces — CTA bars, parallelogram tabs,
-       chips. Aliases --primary-bright. */
-    --endf-yellow: var(--primary-bright);
-    --endf-ink: var(--primary-ink);
-    /* Micro-accent color — used for `//` prefixes, diamond bullets,
-       ghost chip text, hairline ticks. Bright primary reads fine on
-       dark; on light mode it's too faint against grey, so we fall back
-       to ink. Solid CTAs / tabs keep --endf-yellow regardless. */
-    --endf-accent-ink: var(--endf-ink);
+    --atc-solid-accent: var(--primary-bright);
+    --atc-solid-accent-fg: var(--primary-ink);
+    --atc-micro-accent: var(--atc-solid-accent-fg);
 }
 
 :root[data-theme="dark"] {
-    --endf-accent-ink: var(--endf-yellow);
+    --atc-micro-accent: var(--atc-solid-accent);
 }
 
-/* `// LABEL` — uppercase mono header with a leading double-slash glyph
-   in yellow. Replaces the underlined header band where applicable. */
-.endf-label {
+.atc-kicker {
     align-items: center;
     color: var(--atc-faint);
     display: inline-flex;
@@ -6492,144 +6187,106 @@ body {
     font-size: 10px;
     font-weight: 900;
     gap: 6px;
-    letter-spacing: 0.18em;
+    letter-spacing: normal;
     line-height: 1;
-    text-transform: uppercase;
+    text-transform: none;
 }
 
-.endf-label::before {
-    color: var(--endf-accent-ink);
-    content: "//";
-    font-weight: 700;
-    letter-spacing: -0.02em;
-}
-
-.endf-label--lead {
+.atc-kicker--lead {
     color: var(--atc-text);
 }
 
-/* Section header band — `// LABEL` left, mono count right, hairline
-   rule under it. Used in place of the old border-b w/ uppercase pair. */
-.endf-section-head {
+.atc-section-head {
     align-items: baseline;
-    border-bottom: 1px solid var(--atc-line);
+    border-bottom: 0;
     display: flex;
     justify-content: space-between;
-    padding-bottom: 10px;
+    padding-bottom: 0;
 }
 
-.endf-section-head__count {
+.atc-section-head__count {
     color: var(--atc-dim);
     font-family: var(--font-display);
     font-size: 10px;
     font-weight: 900;
-    letter-spacing: 0.16em;
+    letter-spacing: normal;
 }
 
-/* Yellow skewed/clipped parallelogram. Used for active tabs, version
-   pills, "current" markers. Skew the wrapper; un-skew the children
-   so text stays upright. */
-.endf-tab {
-    background: var(--endf-yellow);
-    color: var(--endf-ink);
-    display: inline-flex;
+.atc-pill {
     align-items: center;
+    background: var(--atc-solid-accent);
+    border-radius: var(--atc-radius-pill);
+    color: var(--atc-solid-accent-fg);
+    display: inline-flex;
     font-family: var(--font-display);
     font-size: 11px;
     font-weight: 900;
-    letter-spacing: 0.06em;
+    letter-spacing: normal;
     line-height: 1;
     padding: 6px 14px;
-    text-transform: uppercase;
-    transform: skewX(var(--endf-skew));
+    text-transform: none;
 }
 
-.endf-tab > * {
-    transform: skewX(calc(-1 * var(--endf-skew)));
-}
-
-.endf-tab--outline {
+.atc-pill--outline {
     background: transparent;
-    border: 1px solid var(--endf-accent-ink);
+    border: 1px solid var(--atc-micro-accent);
     color: var(--atc-text);
 }
 
-/* Airport/IATA code badge — wider parallelogram with a stronger 13px
-   weight-900 face. Matches the search bar's ENTER chip family but sized
-   for IATA codes (LAX, JFK, ORD) in list rows. */
-.endf-tab--code {
+.atc-code-pill {
     font-size: 13px;
     justify-content: center;
-    letter-spacing: 0.04em;
-    min-width: 56px;
-    padding: 5px 10px;
+    letter-spacing: normal;
+    min-width: 58px;
+    padding: 8px 12px;
 }
 
-.endf-chip {
-    background: var(--endf-yellow);
-    color: var(--endf-ink);
-    display: inline-flex;
+.atc-chip {
     align-items: center;
+    background: var(--atc-solid-accent);
+    border-radius: var(--atc-radius-pill);
+    color: var(--atc-solid-accent-fg);
+    display: inline-flex;
     font-family: var(--font-display);
     font-size: 9px;
     font-weight: 900;
-    letter-spacing: 0.08em;
+    letter-spacing: normal;
     line-height: 1;
     padding: 3px 8px;
-    text-transform: uppercase;
-    transform: skewX(var(--endf-skew));
+    text-transform: none;
 }
 
-.endf-chip > * {
-    transform: skewX(calc(-1 * var(--endf-skew)));
-}
-
-/* Diamond bullet — solid rhombus, 6px square rotated 45deg.
-   Defaults to accent-ink so light theme renders it as near-black; dark
-   theme already aliases accent-ink → yellow so contrast holds there. */
-.endf-diamond {
-    background: var(--endf-accent-ink);
+.atc-dot {
+    background: var(--atc-micro-accent);
+    border-radius: 999px;
     display: inline-block;
     flex: none;
-    height: 6px;
-    transform: rotate(45deg);
-    width: 6px;
+    height: 7px;
+    width: 7px;
 }
 
-.endf-diamond--hollow {
+.atc-dot--hollow {
     background: transparent;
-    border: 1px solid var(--endf-accent-ink);
+    border: 1px solid var(--atc-micro-accent);
 }
 
-.endf-diamond--muted {
+.atc-dot--muted {
     background: var(--atc-faint);
 }
 
-/* Force the saturated-yellow variant — used on top of an ink surface
-   where the default accent-ink would disappear. */
-
-/* Yellow CTA bar — large yellow rectangle with a ghosted repeating
-   watermark text in the background and a value/label pair on top.
-   Used for reward-style rows and prominent action surfaces. */
-
-/* Poster-headline title — `< AIRPORT EXPLORER >` style. Saira 800-900
-   uppercase with subtle yellow brackets that scale with the text. The
-   wider tracking emulates Novecento Sans Wide's poster proportions. */
-.endf-page-title {
+.atc-page-title {
     font-weight: 800;
     letter-spacing: 0.01em;
+    text-transform: none;
 }
 
-/* Vertical brand watermark — for hero corners. */
-
-/* Hairline corner ticks — wraps a panel/row to add bracket marks. */
-.endf-cornered {
+.atc-cornered {
     position: relative;
 }
 
-.endf-cornered::before,
-.endf-cornered::after {
-    border: 1px solid var(--endf-accent-ink);
+.atc-cornered::before,
+.atc-cornered::after {
+    border: 1px solid var(--atc-micro-accent);
     content: "";
     height: 6px;
     pointer-events: none;
@@ -6637,68 +6294,59 @@ body {
     width: 6px;
 }
 
-.endf-cornered::before {
+.atc-cornered::before {
     border-right: 0;
     border-bottom: 0;
     left: -2px;
     top: -2px;
 }
 
-.endf-cornered::after {
+.atc-cornered::after {
     border-left: 0;
     border-top: 0;
     bottom: -2px;
     right: -2px;
 }
 
-/* Active row — yellow lead bar + ink background. Surface is always ink
-   regardless of theme; text on top is bright yellow. The pin slot's
-   height-only enter animation (no opacity fade) prevents this from
-   flashing white→black in light theme. */
-.endf-row-active {
-    background: var(--endf-ink);
-    color: var(--endf-yellow);
+.aircraft-table-row--active {
+    background: var(--atc-solid-accent-fg);
+    border-radius: var(--atc-radius-card);
+    color: var(--atc-solid-accent);
     position: relative;
 }
 
-.endf-row-active::before {
-    background: var(--endf-yellow);
+.aircraft-table-row--active::before {
+    background: var(--atc-solid-accent);
+    border-radius: var(--atc-radius-pill);
     content: "";
-    inset: 0 auto 0 0;
+    inset: 8px auto 8px 8px;
     position: absolute;
-    width: 3px;
+    width: 4px;
 }
 
-/* Diamonds inside an active ink row need to be yellow, not accent-ink
-   (which is already ink in light mode → invisible on ink bg). */
-.endf-row-active .endf-diamond {
-    background: var(--endf-yellow);
+.aircraft-table-row--active .atc-dot {
+    background: var(--atc-solid-accent);
 }
 
-.endf-row-active .endf-diamond--hollow {
+.aircraft-table-row--active .atc-dot--hollow {
     background: transparent;
-    border-color: var(--endf-yellow);
+    border-color: var(--atc-solid-accent);
 }
 
-/* Tailwind text-color utilities (text-atc-text, text-atc-dim,
-   text-atc-faint) win over the parent's color: var(--endf-yellow)
-   declaration via specificity, so secondary cells inside an active row
-   would render ink-on-ink (invisible in light theme). Force them to
-   the yellow palette so the whole row reads as a unit. */
-.endf-row-active .text-atc-text {
-    color: var(--endf-yellow);
+.aircraft-table-row--active .text-atc-text {
+    color: var(--atc-solid-accent);
 }
 
-.endf-row-active .text-atc-dim,
-.endf-row-active .text-atc-faint,
-.endf-row-active .aircraft-table-route-cycle {
-    color: color-mix(in oklab, var(--endf-yellow) 72%, transparent);
+.aircraft-table-row--active .text-atc-dim,
+.aircraft-table-row--active .text-atc-faint,
+.aircraft-table-row--active .aircraft-table-route-cycle {
+    color: color-mix(in oklab, var(--atc-solid-accent) 72%, transparent);
 }
 
 .aircraft-table-row--selected,
-.aircraft-table-row--selected.endf-row-active,
+.aircraft-table-row--selected.aircraft-table-row--active,
 .aircraft-table-pin .aircraft-table-row--selected,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active {
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active {
     background: var(--atc-glass-active-bg);
     border-color: transparent;
     border-radius: var(--atc-radius-card);
@@ -6709,16 +6357,16 @@ body {
 }
 
 .aircraft-table-row--selected::before,
-.aircraft-table-row--selected.endf-row-active::before,
+.aircraft-table-row--selected.aircraft-table-row--active::before,
 .aircraft-table-pin .aircraft-table-row--selected::before,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active::before {
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active::before {
     display: none;
 }
 
 .aircraft-table-row--selected::after,
-.aircraft-table-row--selected.endf-row-active::after,
+.aircraft-table-row--selected.aircraft-table-row--active::after,
 .aircraft-table-pin .aircraft-table-row--selected::after,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active::after {
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active::after {
     background: var(--atc-glass-sheen);
     content: "";
     inset: 0;
@@ -6729,39 +6377,39 @@ body {
 }
 
 .aircraft-table-row--selected > *,
-.aircraft-table-row--selected.endf-row-active > *,
+.aircraft-table-row--selected.aircraft-table-row--active > *,
 .aircraft-table-pin .aircraft-table-row--selected > *,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active > * {
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active > * {
     position: relative;
     z-index: 1;
 }
 
 .aircraft-table-row--selected .text-atc-text,
-.aircraft-table-row--selected.endf-row-active .text-atc-text,
+.aircraft-table-row--selected.aircraft-table-row--active .text-atc-text,
 .aircraft-table-pin .aircraft-table-row--selected .text-atc-text,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .text-atc-text {
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .text-atc-text {
     color: var(--atc-click-fg);
 }
 
 .aircraft-table-row--selected .text-atc-dim,
 .aircraft-table-row--selected .text-atc-faint,
 .aircraft-table-row--selected .aircraft-table-route-cycle,
-.aircraft-table-row--selected.endf-row-active .text-atc-dim,
-.aircraft-table-row--selected.endf-row-active .text-atc-faint,
-.aircraft-table-row--selected.endf-row-active .aircraft-table-route-cycle,
+.aircraft-table-row--selected.aircraft-table-row--active .text-atc-dim,
+.aircraft-table-row--selected.aircraft-table-row--active .text-atc-faint,
+.aircraft-table-row--selected.aircraft-table-row--active .aircraft-table-route-cycle,
 .aircraft-table-pin .aircraft-table-row--selected .text-atc-dim,
 .aircraft-table-pin .aircraft-table-row--selected .text-atc-faint,
 .aircraft-table-pin .aircraft-table-row--selected .aircraft-table-route-cycle,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .text-atc-dim,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .text-atc-faint,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .aircraft-table-route-cycle {
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .text-atc-dim,
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .text-atc-faint,
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .aircraft-table-route-cycle {
     color: var(--atc-click-muted);
 }
 
-.aircraft-table-row--selected .endf-row-glyph,
-.aircraft-table-row--selected.endf-row-active .endf-row-glyph,
-.aircraft-table-pin .aircraft-table-row--selected .endf-row-glyph,
-.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .endf-row-glyph {
+.aircraft-table-row--selected .aircraft-table-row-glyph,
+.aircraft-table-row--selected.aircraft-table-row--active .aircraft-table-row-glyph,
+.aircraft-table-pin .aircraft-table-row--selected .aircraft-table-row-glyph,
+.aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .aircraft-table-row-glyph {
     background: var(--atc-click-fg);
     border-color: color-mix(in oklab, var(--atc-click-fg) 72%, transparent);
     color: var(--atc-click-bg);
@@ -6780,15 +6428,15 @@ body {
 
     .aircraft-table-shell[data-has-pinned-aircraft="true"]
         .aircraft-table-pin
-        .endf-content-swap,
+        .content-swap,
     .aircraft-table-shell[data-has-pinned-aircraft="true"]
         .aircraft-table-pin
-        .endf-content-swap__content {
+        .content-swap__content {
         overflow: visible;
     }
 
     .aircraft-table-pin .aircraft-table-row--selected,
-    .aircraft-table-pin .aircraft-table-row--selected.endf-row-active {
+    .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active {
         border-radius: 0;
         height: 56px;
         margin: 0;
@@ -6803,43 +6451,6 @@ body {
     }
 }
 
-/* Featured row — left yellow rhombus marker + warm ink background. */
-.endf-row-featured {
-    background: linear-gradient(
-        90deg,
-        color-mix(in oklab, var(--endf-yellow) 24%, transparent) 0%,
-        color-mix(in oklab, var(--endf-yellow) 8%, transparent) 40%,
-        transparent 100%
-    );
-}
-
-/* Yellow underline used on hover/focus rows. */
-.endf-underline {
-    position: relative;
-}
-
-.endf-underline::after {
-    background: var(--endf-yellow);
-    bottom: 0;
-    content: "";
-    height: 1px;
-    left: 0;
-    opacity: 0;
-    position: absolute;
-    transform: scaleX(0.2);
-    transform-origin: left center;
-    transition:
-        opacity 180ms ease-out,
-        transform 220ms cubic-bezier(0.2, 0.6, 0.2, 1);
-    width: 100%;
-}
-
-.endf-underline:hover::after,
-.endf-underline:focus-visible::after {
-    opacity: 1;
-    transform: scaleX(1);
-}
-
 @media (prefers-reduced-motion: reduce) {
     .aircraft-preview-card--desktop-reveal::before,
     .aircraft-preview-card--desktop-reveal::after {
@@ -6850,8 +6461,7 @@ body {
     .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card,
     .aircraft-preview-card__media-slot,
     .aircraft-preview-card__trace-status,
-    .plane-hunter-rainbow-btn,
-    .endf-underline::after {
+    .plane-hunter-rainbow-btn {
         transition: none;
         animation: none;
         clip-path: none;
@@ -6869,10 +6479,10 @@ body {
     text-transform: none !important;
 }
 
-.endf-page-title,
-.endf-label,
-.endf-tab,
-.endf-chip,
+.atc-page-title,
+.atc-kicker,
+.atc-pill,
+.atc-chip,
 .sidebar-shell button,
 .sidebar-shell a,
 .aircraft-preview-card__track-btn,
@@ -6882,15 +6492,6 @@ body {
     font-family: var(--font-sans) !important;
     letter-spacing: normal !important;
     text-transform: none !important;
-}
-
-.endf-row-featured {
-    background: linear-gradient(
-        90deg,
-        color-mix(in oklab, var(--atc-orange) 16%, transparent),
-        color-mix(in oklab, var(--atc-card) 76%, transparent)
-    );
-    border-radius: var(--atc-radius-card);
 }
 
 .glass-panel,
@@ -6934,19 +6535,7 @@ body {
     gap: 6px;
 }
 
-/* Drop the Endfield parallelogram skew on the version badge + current
-   chip inside the changelog so they read as clean glass-system pills. */
-.changelog-entry .endf-tab,
-.changelog-entry .endf-chip {
-    transform: none;
-    border-radius: var(--atc-radius-pill);
-}
-.changelog-entry .endf-tab > *,
-.changelog-entry .endf-chip > * {
-    transform: none;
-}
-
-.changelog-entry .endf-tab--outline {
+.changelog-entry .atc-pill--outline {
     background: color-mix(in oklab, var(--atc-elev) 72%, var(--atc-card));
     border-color: color-mix(in oklab, var(--atc-line-strong) 70%, transparent);
     color: var(--atc-dim);
@@ -7011,7 +6600,7 @@ body {
         gap: 10px;
     }
 
-    .dither-page-header .endf-page-title {
+    .dither-page-header .atc-page-title {
         font-size: 24px;
         line-height: 1.16;
         margin-top: 16px;
@@ -7046,31 +6635,31 @@ body {
         padding-inline: 19px;
     }
 
-    .dither-page-panel .endf-section-head {
+    .dither-page-panel .atc-section-head {
         padding-bottom: 8px;
     }
 
-    .dither-page-panel .endf-label,
-    .dither-page-panel .endf-section-head__count {
+    .dither-page-panel .atc-kicker,
+    .dither-page-panel .atc-section-head__count {
         font-size: 8px;
     }
 
-    .dither-page-panel .endf-label {
+    .dither-page-panel .atc-kicker {
         gap: 5px;
     }
 
-    .dither-page-panel .endf-tab--code {
+    .dither-page-panel .atc-code-pill {
         font-size: 10px;
         min-width: 45px;
         padding: 4px 8px;
     }
 
-    .dither-page-panel .endf-chip {
+    .dither-page-panel .atc-chip {
         font-size: 7px;
         padding: 3px 6px;
     }
 
-    .dither-page-panel .endf-diamond {
+    .dither-page-panel .atc-dot {
         height: 5px;
         width: 5px;
     }
@@ -7150,8 +6739,8 @@ body {
         gap: 3px;
     }
 
-    .changelog-entry .endf-tab,
-    .changelog-entry .endf-chip {
+    .changelog-entry .atc-pill,
+    .changelog-entry .atc-chip {
         font-size: 9px;
         padding: 5px 9px;
     }
@@ -7552,13 +7141,13 @@ body {
         padding-block: 7px;
     }
 
-    .airport-map-kit .endf-row-glyph {
+    .airport-map-kit .aircraft-table-row-glyph {
         border-radius: 3px;
         height: 14px;
         width: 14px;
     }
 
-    .airport-map-kit .endf-row-glyph svg {
+    .airport-map-kit .aircraft-table-row-glyph svg {
         height: 10px;
         width: 10px;
     }
