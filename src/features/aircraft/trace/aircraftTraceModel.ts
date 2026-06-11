@@ -126,9 +126,9 @@ export function createAircraftTraceTracker(options = {}) {
         const point = normalizeTracePoint(item, nowMs);
 
         if (!id || !point) {
-          const emitted = { ...item, traceHistory: [] };
-          if (lastResult[index] !== emitted) changedFromLast = true;
-          return emitted;
+          // No id to cache under → a fresh object every tick, always a change.
+          changedFromLast = true;
+          return { ...item, traceHistory: [] };
         }
 
         activeIds.add(id);

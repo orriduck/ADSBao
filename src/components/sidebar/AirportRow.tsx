@@ -9,6 +9,7 @@ import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplay
 import { airportCityName, airportDisplayName } from "@/utils/airport";
 import { countryName } from "@/utils/flag";
 import { formatAltitude } from "@/utils/units";
+import { rowPropsEqual } from "./rowPropsEqual";
 
 // Airport equivalent of AircraftRow — same column rhythm so an
 // "airports & aircraft" mixed list reads as one coherent table.
@@ -98,32 +99,21 @@ function AirportRow({
 
 // Memoized (field-based, like AircraftRow) so poll-driven re-renders of the
 // list don't re-render every airport row when its displayed data is unchanged.
-function airportRowPropsEqual(
-  prev: Record<string, any>,
-  next: Record<string, any>,
-) {
-  if (
-    prev.selected !== next.selected ||
-    prev.airportId !== next.airportId ||
-    prev.onSelectAirport !== next.onSelectAirport
-  ) {
-    return false;
-  }
-  const a = prev.airport || {};
-  const b = next.airport || {};
-  if (a === b) return true;
-  return (
-    a.icao === b.icao &&
-    a.iata === b.iata &&
-    a.city === b.city &&
-    a.country === b.country &&
-    a.distanceNm === b.distanceNm &&
-    a.elevationFt === b.elevationFt &&
-    a.routeEndpointRole === b.routeEndpointRole
-  );
-}
-
-export default memo(AirportRow, airportRowPropsEqual);
+export default memo(AirportRow, (prev, next) =>
+  rowPropsEqual(prev, next, {
+    scalarKeys: ["selected", "airportId", "onSelectAirport"],
+    nestedKey: "airport",
+    nestedFields: [
+      "icao",
+      "iata",
+      "city",
+      "country",
+      "distanceNm",
+      "elevationFt",
+      "routeEndpointRole",
+    ],
+  }),
+);
 
 // Mirrors AircraftRow.NumberWithUnit — virtualization bounds the instance
 // count, so NumberFlow's digit-level animation is affordable here too.
