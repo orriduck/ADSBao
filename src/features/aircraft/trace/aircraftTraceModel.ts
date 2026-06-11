@@ -56,7 +56,34 @@ function shouldAppendTracePoint(
 
 function trimTraceHistory(history: TraceRecord[], nowMs: number, config: TraceRecord) {
   const freshHistory = history.filter((point) => nowMs - point.time <= config.maxAgeMs);
+  // Preserve the input reference when nothing was trimmed — lets the
+  // per-id structural sharing below skip rebuilding the emitted object
+  // for aircraft whose trace didn't change this tick.
+  if (
+    freshHistory.length === history.length &&
+    history.length <= config.maxSamples
+  ) {
+    return history;
+  }
   return freshHistory.slice(-config.maxSamples);
+}
+
+// True when the previously-emitted object still matches the incoming item
+// (same own fields) and the same trace-history array — so it can be reused
+// by reference instead of spreading a fresh object every poll.
+function emittedMatchesItem(
+  emitted: TraceRecord | undefined,
+  item: TraceRecord,
+  trimmedHistory: TraceRecord[],
+) {
+  if (!emitted || emitted.traceHistory !== trimmedHistory) return false;
+  const itemKeys = Object.keys(item);
+  // emitted = { ...item, traceHistory } → exactly one extra key.
+  if (Object.keys(emitted).length !== itemKeys.length + 1) return false;
+  for (const key of itemKeys) {
+    if (item[key] !== emitted[key]) return false;
+  }
+  return true;
 }
 
 function getAircraftTraceId(aircraft: TraceRecord = {}) {
@@ -82,17 +109,26 @@ export function createAircraftTraceTracker(options = {}) {
     ...options,
   };
   const histories = new Map<string, TraceRecord[]>();
+  // Per-id cache of the last emitted object so unchanged aircraft keep a
+  // stable reference across polls (enables React.memo to bail), plus the
+  // last returned array so a fully-unchanged tick returns the same array
+  // reference (lets the poller skip setState entirely).
+  const lastEmitted = new Map<string, TraceRecord>();
+  let lastResult: TraceRecord[] = [];
 
   return {
     update(aircraft = [], nowMs = Date.now()) {
       const activeIds = new Set();
+      let changedFromLast = aircraft.length !== lastResult.length;
 
-      const nextAircraft = aircraft.map((item) => {
+      const nextAircraft = aircraft.map((item, index) => {
         const id = getAircraftTraceId(item);
         const point = normalizeTracePoint(item, nowMs);
 
         if (!id || !point) {
-          return { ...item, traceHistory: [] };
+          const emitted = { ...item, traceHistory: [] };
+          if (lastResult[index] !== emitted) changedFromLast = true;
+          return emitted;
         }
 
         activeIds.add(id);
@@ -102,19 +138,34 @@ export function createAircraftTraceTracker(options = {}) {
           ? [...previousHistory, point]
           : previousHistory;
         const trimmedHistory = trimTraceHistory(nextHistory, nowMs, config);
-
         histories.set(id, trimmedHistory);
-        return { ...item, traceHistory: trimmedHistory };
+
+        const prevEmitted = lastEmitted.get(id);
+        const emitted = emittedMatchesItem(prevEmitted, item, trimmedHistory)
+          ? (prevEmitted as TraceRecord)
+          : { ...item, traceHistory: trimmedHistory };
+        lastEmitted.set(id, emitted);
+        if (lastResult[index] !== emitted) changedFromLast = true;
+        return emitted;
       });
 
       for (const id of histories.keys()) {
-        if (!activeIds.has(id)) histories.delete(id);
+        if (!activeIds.has(id)) {
+          histories.delete(id);
+          lastEmitted.delete(id);
+        }
       }
 
+      // Nothing changed (same length, every slot reference-identical) →
+      // return the previous array so consumers can skip re-rendering.
+      if (!changedFromLast) return lastResult;
+      lastResult = nextAircraft;
       return nextAircraft;
     },
     clear() {
       histories.clear();
+      lastEmitted.clear();
+      lastResult = [];
     },
   };
 }

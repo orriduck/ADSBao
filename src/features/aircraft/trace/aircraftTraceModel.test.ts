@@ -90,6 +90,64 @@ import {
 }
 
 {
+  // Structural sharing: an unchanged aircraft keeps the same object
+  // reference across polls, and a fully-unchanged tick returns the same
+  // array reference (so the poller can skip setState).
+  const tracker = createAircraftTraceTracker({
+    maxSamples: 8,
+    maxAgeMs: 60_000,
+    minDistanceNm: 0.01,
+    minSampleGapMs: 1_000,
+  });
+
+  const pass1 = tracker.update(
+    [
+      { icao24: "aaa111", lat: 42.0, lon: -71.0, altitude: 30000 },
+      { icao24: "bbb222", lat: 43.0, lon: -72.0, altitude: 31000 },
+    ],
+    1_000,
+  );
+  // Identical feed on the next tick → same refs, same array.
+  const pass2 = tracker.update(
+    [
+      { icao24: "aaa111", lat: 42.0, lon: -71.0, altitude: 30000 },
+      { icao24: "bbb222", lat: 43.0, lon: -72.0, altitude: 31000 },
+    ],
+    4_000,
+  );
+  assert.equal(pass2, pass1, "unchanged tick returns the same array reference");
+  assert.equal(pass2[0], pass1[0], "unchanged aircraft keeps the same object reference");
+  assert.equal(pass2[1], pass1[1], "unchanged aircraft keeps the same object reference");
+
+  // One aircraft moves enough to append a sample → that object is new,
+  // the unchanged one is still shared, and the array reference changes.
+  const pass3 = tracker.update(
+    [
+      { icao24: "aaa111", lat: 42.05, lon: -70.95, altitude: 30200 },
+      { icao24: "bbb222", lat: 43.0, lon: -72.0, altitude: 31000 },
+    ],
+    7_000,
+  );
+  assert.notEqual(pass3, pass2, "a changed tick returns a new array reference");
+  assert.notEqual(pass3[0], pass2[0], "moved aircraft gets a fresh object");
+  assert.equal(pass3[1], pass2[1], "still-unchanged aircraft keeps its shared object");
+  assert.equal(pass3[0].traceHistory.length, 2, "moving aircraft grows its trace");
+  assert.equal(pass3[1].traceHistory.length, 1, "stationary aircraft trace unchanged");
+
+  // A changed scalar field (altitude only, same position) still busts the
+  // shared reference so consumers see the new value.
+  const pass4 = tracker.update(
+    [
+      { icao24: "aaa111", lat: 42.05, lon: -70.95, altitude: 30200 },
+      { icao24: "bbb222", lat: 43.0, lon: -72.0, altitude: 31500 },
+    ],
+    10_000,
+  );
+  assert.notEqual(pass4[1], pass3[1], "changed altitude busts the shared reference");
+  assert.equal(pass4[1].altitude, 31500);
+}
+
+{
   const curve = buildAircraftTraceCurve([
     { lat: 42.0, lon: -71.0 },
     { lat: 42.02, lon: -70.99 },
