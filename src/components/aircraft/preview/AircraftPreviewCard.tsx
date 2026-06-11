@@ -18,12 +18,10 @@ import MobilePreviewCard, {
   MobilePreviewFeedbackLink,
   MobilePreviewSecondaryButton,
   MobilePreviewTrackButton,
-  MobilePreviewTraceStatus,
 } from "./MobilePreviewCard";
 import PlaneHunterStudio from "./PlaneHunterStudio";
 import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
-import { AsyncStatusLineDisplay } from "@/components/ui/AsyncStatusLine";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
 import { useAircraftTraceAsyncStatus } from "@/features/aircraft/trace/useAircraftTraceAsyncStatus";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -159,6 +157,8 @@ export default function AircraftPreviewCard({
     : alreadyTracking
       ? t("preview.trackingTrace")
       : t("preview.trackTrace");
+  const showMobileTrackButton =
+    Boolean(cardTrackHref) && !(alreadyTracking && isAircraftPreview);
   const previewAriaLabel = isAirport
     ? t("preview.airportPreview")
     : isNavaid
@@ -222,23 +222,10 @@ export default function AircraftPreviewCard({
           identityKey={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
           compact={!isAirport && !isNavaid && !isAirspace && !isCandidateWatchingSpot}
-          traceStatus={
-            cardTrackHref && !isAirport ? (
-              <MobilePreviewTraceStatus active={traceStatusVisible}>
-                <AsyncStatusLineDisplay
-                  state={traceAsyncState}
-                  pendingLabel={traceStatusLabels.pendingLabel}
-                  successLabel={traceStatusLabels.successLabel}
-                  errorLabel={traceStatusLabels.errorLabel}
-                  className="justify-center w-full"
-                />
-              </MobilePreviewTraceStatus>
-            ) : null
-          }
           actions={
-            (cardTrackHref || showMobilePlaneHunterTrigger || showMobileFeedbackTrigger) ? (
+            (showMobileTrackButton || showMobilePlaneHunterTrigger || showMobileFeedbackTrigger) ? (
               <MobilePreviewActions>
-                {showMobilePlaneHunterTrigger && cardTrackHref ? (
+                {showMobilePlaneHunterTrigger && showMobileTrackButton ? (
                   <div className="grid grid-cols-2 gap-1">
                     <MobilePreviewSecondaryButton
                       onClick={() => setPlaneHunterOpen(true)}
@@ -252,6 +239,14 @@ export default function AircraftPreviewCard({
                     >
                       {mobileTrackLabel}
                     </MobilePreviewTrackButton>
+                    {showMobileFeedbackTrigger && (
+                      <MobilePreviewFeedbackLink
+                        onClick={() => setFeedbackModalOpen(true)}
+                        className="col-start-2"
+                      >
+                        {mobileFeedbackLabel}
+                      </MobilePreviewFeedbackLink>
+                    )}
                   </div>
                 ) : (
                   <>
@@ -263,7 +258,7 @@ export default function AircraftPreviewCard({
                         {t("preview.planeHunter")}
                       </MobilePreviewSecondaryButton>
                     )}
-                    {cardTrackHref && (
+                    {showMobileTrackButton && (
                       <MobilePreviewTrackButton
                         onClick={handleMobileTap}
                         disabled={alreadyTracking}
@@ -273,7 +268,7 @@ export default function AircraftPreviewCard({
                     )}
                   </>
                 )}
-                {showMobileFeedbackTrigger && (
+                {showMobileFeedbackTrigger && !(showMobilePlaneHunterTrigger && showMobileTrackButton) && (
                   <MobilePreviewFeedbackLink
                     onClick={() => setFeedbackModalOpen(true)}
                   >
@@ -296,7 +291,10 @@ export default function AircraftPreviewCard({
               sourceAttribution={candidateWatchingSpotAttribution}
             />
           ) : (
-            <AircraftPreviewMobileCard aircraft={aircraft} />
+            <AircraftPreviewMobileCard
+              aircraft={aircraft}
+              traceStatusState={traceStatusVisible ? traceAsyncState : null}
+            />
           )}
         </MobilePreviewCard>
       )}
