@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
@@ -38,7 +38,7 @@ const getAircraftColor = (ac, showArrow) => {
   return AIRCRAFT_COLORS.unknown;
 };
 
-export default function AircraftPosition({
+function AircraftPosition({
   aircraft,
   theme = "dark",
   matchesFilters = true,
@@ -93,11 +93,19 @@ export default function AircraftPosition({
     }).addTo(map);
     markerRef.current = marker;
 
+    let lastLat = visualPos.lat;
+    let lastLon = visualPos.lon;
     let rafId = requestAnimationFrame(function tick() {
       const motion = motionRef.current;
       if (motion) {
         const pos = calculateAircraftVisualPosition(motion);
-        marker.setLatLng([pos.lat, pos.lon]);
+        // Skip redundant Leaflet DOM writes when the projected position
+        // hasn't moved (settled / stationary traffic).
+        if (pos.lat !== lastLat || pos.lon !== lastLon) {
+          marker.setLatLng([pos.lat, pos.lon]);
+          lastLat = pos.lat;
+          lastLon = pos.lon;
+        }
       }
       rafId = requestAnimationFrame(tick);
     });
@@ -193,6 +201,13 @@ export default function AircraftPosition({
     container,
   );
 }
+
+// Memoized: the trace tracker now shares references for unchanged aircraft
+// and all other props are stable (booleans + a useCallback handler), so a
+// poll that doesn't change a given aircraft skips its React re-render +
+// portal rebuild. Moving aircraft get a fresh `aircraft` ref → re-render →
+// the [aircraft] effect updates motionRef so the marker keeps animating.
+export default memo(AircraftPosition);
 
 function Pointer({
   color,
