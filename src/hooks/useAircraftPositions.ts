@@ -93,9 +93,14 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
       visibilityRefreshCancelRef.current = null;
     };
 
-    const poll = async ({ commitAfter = 0 } = {}) => {
+    const poll = async ({ commitAfter = 0, showLoading = false } = {}) => {
       if (queryLat == null || queryLon == null) return;
-      setLoading(true);
+      // Only flag `loading` for the initial fetch — steady-state interval
+      // polls must not toggle it, or every tick re-renders consumers (and
+      // flickers the traffic loading overlay). The initial/empty state is
+      // covered by `initialLoading` + `!settled`, and visibility refreshes
+      // use `visibilityRefreshLoading`.
+      if (showLoading) setLoading(true);
       try {
         const aircraftJson = await aircraftPositionClient.fetchNearbyAircraft({
           lat: queryLat,
@@ -122,7 +127,14 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
           typeof aircraftJson?.source === "string" ? aircraftJson.source : "",
         );
         const positionDate = resolveLastSuccessfulPositionDate(nextAircraft);
-        if (positionDate) setLastUpdated(positionDate);
+        if (positionDate) {
+          // Keep the previous Date instance when the timestamp is
+          // unchanged so a stale (identical) poll doesn't re-render via a
+          // fresh Date object of the same time.
+          setLastUpdated((prev) =>
+            prev && prev.getTime() === positionDate.getTime() ? prev : positionDate,
+          );
+        }
         setSettled(true);
         setInitialLoading(false);
         setVisibilityRefreshLoading(false);
@@ -160,7 +172,7 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
       setSettled(false);
       setInitialLoading(true);
       setLastUpdated(null);
-      poll({ commitAfter });
+      poll({ commitAfter, showLoading: true });
       timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
     };
 
