@@ -109,7 +109,7 @@ const LAYER_CONTROLS = [
 ];
 
 const sectionTitleClassName =
-  "mb-3 text-[11px] font-semibold uppercase tracking-normal text-atc-muted";
+  "mb-3 text-[11px] font-semibold tracking-normal text-atc-muted";
 
 const optionGridClassName = "grid grid-cols-2 gap-2.5";
 

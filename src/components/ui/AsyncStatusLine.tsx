@@ -55,7 +55,7 @@ export function AsyncStatusLineDisplay({
   return (
     <div
       className={cn(
-        "async-status-line inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-atc-muted",
+        "async-status-line inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.04em] text-atc-muted",
         "transition-opacity duration-300 ease-out motion-reduce:transition-none",
         isVisible ? "opacity-100" : "opacity-0",
         isFading && "opacity-0",

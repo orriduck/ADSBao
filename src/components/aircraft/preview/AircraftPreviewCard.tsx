@@ -219,7 +219,7 @@ export default function AircraftPreviewCard({
       )}
       {showMobile && (
         <MobilePreviewCard
-          identityKey={`mobile-${identityKey}`}
+          key={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
           compact={!isAirport && !isNavaid && !isAirspace && !isCandidateWatchingSpot}
           actions={
