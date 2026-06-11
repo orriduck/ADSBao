@@ -26,11 +26,10 @@ const forwardRef = React.forwardRef as <
 // it owns the entrance @keyframes (clip-path expand + over-clip end
 // state so box-shadow stays visible).
 //
-// One fixed size — 32px cells in a 42px pill — is baked into the primitive
-// so callers can't drift. Tone (soft vs rail) stays a variant because
-// the two surfaces (cards vs map) need different hover tints. If you
-// need a chunkier pill on a new surface, change the toolbar tokens,
-// not each caller.
+// One tokenized size is baked into the primitive so callers can't drift.
+// Tone (soft vs rail) stays a variant because the two surfaces (cards vs
+// map) need different hover tints. If you need a chunkier pill on a new
+// surface, change the toolbar tokens, not each caller.
 
 // Edge-glow halo — radial fades just outside the pill's left + right
 // edges so the toolbar reads as glowing against the dark map. Only
@@ -82,7 +81,7 @@ const toolbarVariants = cva(
     // pointer-events: none on the strip; the pill itself must opt back
     // in or every toolbar button becomes inert.
     "pointer-events-auto",
-    // 32px button cells in a 42px shell. Gap/padding stay on the
+    // Button cells in a tokenized shell. Gap/padding stay on the
     // Tailwind spacing scale; only the fixed shell/cell dimensions are tokens.
     "min-h-[var(--atc-toolbar-shell-min-height)] gap-1 p-1",
     mapKitGlow,
@@ -144,7 +143,7 @@ export function ToolbarSeparator({
 const toolbarButtonVariants = cva(
   cn(
     "relative isolate inline-flex items-center justify-center flex-none",
-    // 32px tokenized cell — keeps the button footprint identical
+    // Tokenized cell — keeps the button footprint identical
     // across every toolbar surface in the app. If a surface needs a
     // chunkier pill, change the token instead of each caller.
     "size-[var(--atc-toolbar-cell-size)] text-xs",
@@ -154,10 +153,10 @@ const toolbarButtonVariants = cva(
     "hover:-translate-y-px active:translate-y-0 motion-reduce:transform-none",
     "outline-none focus-visible:ring-2 focus-visible:ring-atc-accent/60",
     "disabled:cursor-not-allowed disabled:opacity-50",
-    // svg child sizing — Lucide ships 24px by default; clamp to 15px
-    // so the icon stays subordinate to the pill's chromed background.
+    // svg child sizing — Lucide ships 24px by default; clamp through
+    // the toolbar token so mobile can scale every toolbar icon together.
     // Keep the icon above the active-state ::after glow layer.
-    "[&_svg]:size-4 [&_svg]:relative [&_svg]:z-[1]",
+    "[&_svg]:size-[var(--atc-toolbar-icon-size)] [&_svg]:relative [&_svg]:z-[1]",
     // Active-state bottom-glow gradient — same language as MetricCard /
     // FilterCard. Lives on ::after so it can fade in + slide up
     // independently of the box's background. --sidebar-tile-bottom-glow
@@ -227,7 +226,7 @@ export const ToolbarButton = forwardRef(function ToolbarButton(
   );
 });
 
-// Account cell — same 32px footprint as ToolbarButton but renders
+// Account cell — same footprint as ToolbarButton but renders
 // arbitrary children (Clerk's <UserButton /> or a placeholder div
 // before Clerk boots).
 export function ToolbarAccountSlot({
