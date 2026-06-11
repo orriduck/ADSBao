@@ -349,12 +349,27 @@ export function useAircraftTrace(
     return () => window.clearTimeout(timer);
   }, [persistKey, tracePoints]);
 
-  return {
-    tracePoints,
-    loading: composedTrace.loading,
-    traceFetchLoading: Boolean(recentLoading || fullLoading),
-    traceStatusCode,
-    traceError,
-    traceCycle,
-  };
+  // Memoize the returned object so its identity is stable when the fields
+  // are unchanged — the SelectedAircraftTrace context keys a memo on this
+  // whole object, so a fresh literal every render would churn it (and all
+  // its consumers) on every poll-driven re-render.
+  return useMemo(
+    () => ({
+      tracePoints,
+      loading: composedTrace.loading,
+      traceFetchLoading: Boolean(recentLoading || fullLoading),
+      traceStatusCode,
+      traceError,
+      traceCycle,
+    }),
+    [
+      tracePoints,
+      composedTrace.loading,
+      recentLoading,
+      fullLoading,
+      traceStatusCode,
+      traceError,
+      traceCycle,
+    ],
+  );
 }
