@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
+import { useListReorderMotion } from "@/animations/useListReorderMotion";
 import AircraftRow from "./AircraftRow";
 import AirportRow from "./AirportRow";
 
@@ -70,6 +71,11 @@ export default function VirtualNearbyList({
 
   const virtualRows = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
+  const motionKey = useMemo(
+    () => items.map((item) => item.id).join("|"),
+    [items],
+  );
+  useListReorderMotion(parentRef, motionKey, { resetKey: resetSignal });
 
   return (
     <div ref={parentRef} className="app-virtual-list-motion h-full overflow-y-auto">
@@ -149,22 +155,24 @@ function NearbyVirtualRow({
         transform: `translateY(${start}px)`,
       }}
     >
-      <div className={entering ? "nearby-row-enter" : ""}>
-        {item.type === "aircraft" ? (
-          <AircraftRow
-            aircraft={item.data}
-            aircraftId={item.id}
-            selected={item.id === selectedAircraftId}
-            onSelectAircraft={onSelectAircraft}
-          />
-        ) : (
-          <AirportRow
-            airport={item.data}
-            airportId={item.data?.icao}
-            selected={item.data?.icao === selectedAirportIcao}
-            onSelectAirport={onSelectAirport}
-          />
-        )}
+      <div data-gsap-reorder-key={item.id}>
+        <div className={entering ? "nearby-row-enter" : ""}>
+          {item.type === "aircraft" ? (
+            <AircraftRow
+              aircraft={item.data}
+              aircraftId={item.id}
+              selected={item.id === selectedAircraftId}
+              onSelectAircraft={onSelectAircraft}
+            />
+          ) : (
+            <AirportRow
+              airport={item.data}
+              airportId={item.data?.icao}
+              selected={item.data?.icao === selectedAirportIcao}
+              onSelectAirport={onSelectAirport}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

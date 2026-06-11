@@ -36,6 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useListReorderMotion } from "@/animations/useListReorderMotion";
 import {
   aircraftTypeSearchText,
   resolveAircraftDisplayModel,
@@ -220,18 +221,27 @@ export default function AircraftTable({
         altitudeLevel,
         entityFilter,
         movementFilter,
-        selectedAircraftId,
       ].join("::"),
     [
       altitudeLevel,
       entityFilter,
       movementFilter,
       query,
-      selectedAircraftId,
       trafficFilter,
       typeFilter,
     ],
   );
+  const airportListMotionRef = useRef<HTMLUListElement | null>(null);
+  const airportListMotionKey = useMemo(
+    () =>
+      filteredAirports
+        .map((airport, index) => `airport:${airport.icao || index}`)
+        .join("|"),
+    [filteredAirports],
+  );
+  useListReorderMotion(airportListMotionRef, airportListMotionKey, {
+    resetKey: aircraftListResetKey,
+  });
 
   return (
     <div
@@ -395,7 +405,10 @@ export default function AircraftTable({
               />
             )}
             {filteredAirports.length > 0 && (
-              <ul className="app-list-motion divide-y divide-atc-line">
+              <ul
+                ref={airportListMotionRef}
+                className="app-list-motion divide-y divide-atc-line"
+              >
                 {filteredAirports.map((airport, index) => {
                   const motionStyle = {
                     "--motion-order": Math.min(index, 5),
@@ -403,6 +416,7 @@ export default function AircraftTable({
                   return (
                     <li
                       key={`airport:${airport.icao}`}
+                      data-gsap-reorder-key={`airport:${airport.icao || index}`}
                       className="relative list-none [perspective:800px]"
                       style={motionStyle}
                     >
