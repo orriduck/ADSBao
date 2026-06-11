@@ -35,6 +35,7 @@
     --color-atc-text: var(--atc-text);
     --color-atc-dim: var(--atc-dim);
     --color-atc-faint: var(--atc-faint);
+    --color-atc-muted: var(--atc-dim);
     --color-atc-line: var(--atc-line);
     --color-atc-line-strong: var(--atc-line-strong);
 
@@ -1408,8 +1409,8 @@ body:has(.app-detail-shell) {
 }
 
 /* Anything previously tagged as monospace (telemetry, METAR, ICAO) now
-   renders Chakra Petch with tabular numerals + slight tracking so digit
-   columns still align cleanly. */
+   renders Manrope (the global font) with tabular numerals + slight
+   tracking so digit columns still align cleanly. */
 .font-mono,
 [class*="font-mono"] {
     font-feature-settings:
@@ -4786,12 +4787,6 @@ body {
     font-size: clamp(15px, 4.4vw, 17px);
 }
 
-.airport-sidebar-panel--mobile .weather-metar-code {
-    font-size: clamp(12px, 3.25vw, 14px);
-    line-height: 1.35;
-    max-height: none;
-}
-
 .sidebar-shell {
     /* Shared baseline tokens for every sidebar variant: padding inset and
        the typography stack. Defined on the shell so AircraftTable rows
@@ -7203,15 +7198,6 @@ body {
             0 0 6px var(--map-label-glow);
     }
 
-    .airport-map-kit .nearby-airport-marker-dot {
-        height: 5px;
-        width: 5px;
-    }
-
-    .airport-map-kit .nearby-airport-marker-label {
-        left: 6px;
-        top: 5px;
-    }
 }
 
 @media (max-width: 767px) {

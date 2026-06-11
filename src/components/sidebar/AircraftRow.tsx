@@ -40,6 +40,14 @@ export default function AircraftRow({
   onSelectAircraft,
 }: Record<string, any>) {
   const { t } = useI18n();
+  // Press feedback only — the row already changes background on hover, so a
+  // hover lift would jitter the dense list; GSAP owns transform (the CSS
+  // transition below intentionally omits it).
+  const { ref, onMouseDown, onMouseUp, onMouseLeave } = useCardInteraction({
+    hoverScale: 1,
+    hoverY: 0,
+    pressScale: 0.985,
+  });
   const { preferences: units } = useUnitPreferences();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
@@ -68,8 +76,12 @@ export default function AircraftRow({
   return (
     <button
       type="button"
+      ref={ref}
       data-selected={selected ? "true" : undefined}
-      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow,transform] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:[background:var(--atc-glass-active-bg)] data-[selected=true]:text-[var(--atc-click-fg)] data-[selected=true]:shadow-[var(--atc-glass-rim-shadow)] data-[selected=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:hover:[background:var(--atc-glass-active-bg)] data-[selected=true]:[&_.text-atc-text]:text-[var(--atc-click-fg)] data-[selected=true]:[&_.text-atc-dim]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.text-atc-faint]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-route-cycle]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-row-glyph]:bg-[var(--atc-click-fg)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-click-bg)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
+      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:[background:var(--atc-glass-active-bg)] data-[selected=true]:text-[var(--atc-click-fg)] data-[selected=true]:shadow-[var(--atc-glass-rim-shadow)] data-[selected=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:hover:[background:var(--atc-glass-active-bg)] data-[selected=true]:[&_.text-atc-text]:text-[var(--atc-click-fg)] data-[selected=true]:[&_.text-atc-dim]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.text-atc-faint]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-route-cycle]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-row-glyph]:bg-[var(--atc-click-fg)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-click-bg)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
         selected ? "aircraft-table-row--selected aircraft-table-row--active" : ""
       }`}
       aria-pressed={selected}

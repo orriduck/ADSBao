@@ -18,16 +18,17 @@ import { cn } from "@/lib/utils";
 // re-enable interaction inside `MobilePreviewActions`.
 
 export default function MobilePreviewCard({
-  identityKey,
   ariaLabel,
   children,
   actions = null,
   traceStatus = null,
   compact = false,
 }: Record<string, any>) {
+  // NOTE: the enter animation replays on entity change via a `key` on the
+  // *call site* (<MobilePreviewCard key=...>), not a prop here — a `key`
+  // on this root <aside> would be a no-op (React reads key at the call site).
   return (
     <aside
-      key={identityKey}
       aria-label={ariaLabel}
       data-density={compact ? "compact" : undefined}
       data-ui="mobile-preview-card"
@@ -289,7 +290,7 @@ export const MobilePreviewSecondaryButton = React.forwardRef(
           "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[background-color,border-color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
-          "hover:border-atc-line-strong hover:bg-atc-card-strong active:scale-[0.97]",
+          "hover:border-atc-line-strong hover:bg-[var(--tone-card-strong)] active:scale-[0.97]",
           "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
           className,
         )}
