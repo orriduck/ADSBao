@@ -38,7 +38,7 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
    until curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 | grep -q 200; do sleep 2; done
    ```
 
-4. **After the restart**, reload the page in chrome-devtools-mcp with `ignoreCache: true` before re-checking the broken behavior. Verify the source CSS file with `grep` first, then verify the served bundle (`curl /_next/static/chunks/*.css | grep <class>`) before going deeper into a debugging rabbit hole.
+4. **After the restart**, reload the page in the available browser MCP with cache ignored before re-checking the broken behavior. Verify the source CSS file with `grep` first, then verify the served bundle (`curl /_next/static/chunks/*.css | grep <class>`) before going deeper into a debugging rabbit hole.
 5. Subagents working on ADSBao local development should own this lifecycle: start the tmux process when it is missing, restart it when it breaks, and do the `.next` reset themselves when CSS or JSX is stale. Do not wait for the user to explicitly ask for a dev-server restart.
 6. Never `--turbopack`-disable or `next build` mid-session as a workaround — restarting with `.next` removed is the supported escape hatch and is fast enough on this project (< 10s to ready). Don't add `package.json` scripts for this; it's an operational habit, not a permanent build flag.
 
@@ -74,6 +74,7 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
 | `src/features/weather/*` | Weather models and METAR mechanisms |
 | `src/features/about/*` | About-page view models |
 | `src/features/app-shell/*` | Theme preference state and helpers |
+| `src/features/webmcp/*` | Browser-native WebMCP tool registration for agents |
 | `src/hooks/*.ts` | React hooks for METAR, ADS-B positions, route lookups, wiki summaries, and scroll parallax |
 | `src/constants/aircraft.ts` | Shared aircraft color and threshold constants |
 | `src/utils/math.ts` | Shared numeric helpers (`toFiniteNumber`) |
@@ -81,6 +82,39 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
 | `src/data/airportFallbacks.ts` | Fallback airport metadata and coordinates |
 
 There is no standalone `src/services` or `src/server` layer. TSX belongs under `src/components/**`; mechanisms, models, clients, hooks, and feature-specific utils live inside the owning feature domain as plain `.ts` modules, except for API DAOs and route-handler helpers under `src/app/api`.
+
+## WebMCP for browser agents
+
+ADSBao exposes a small browser-native WebMCP surface from `src/features/webmcp/*`.
+This is a progressive enhancement: browsers without WebMCP simply skip
+registration, and the normal UI remains the source of truth.
+
+Current tools:
+
+- `search_airports` — searches `/api/search` and returns concise airport
+  matches with ICAO identifiers.
+- `open_airport` — navigates the visible tab to `/airport/{ICAO}`.
+- `open_aircraft` — navigates the visible tab to `/aircraft/{CALLSIGN}`.
+- `get_page_context` — reports the current ADSBao route, title, heading, page
+  kind, and active airport/aircraft identifier when present.
+
+When using a browser agent against ADSBao, prefer these WebMCP tools before
+clicking, typing, or screenshot-driven actuation. Re-list tools after
+navigation because WebMCP availability is page/browser state. Fall back to DOM
+interaction when no relevant WebMCP tool exists.
+
+Local Chrome testing:
+
+1. Enable `chrome://flags/#enable-webmcp-testing`.
+2. Relaunch Chrome and open `http://localhost:3000`.
+3. In DevTools, verify discovery with
+   `navigator.modelContextTesting.listTools()`.
+4. Execute tools with
+   `navigator.modelContextTesting.executeTool("search_airports", JSON.stringify({ query: "KBOS" }))`.
+
+WebMCP requires origin-keyed pages and the `tools` permissions policy. Keep
+`Origin-Agent-Cluster: ?1` and `Permissions-Policy: tools=(self)` in
+`src/config/securityHeaders.ts` unless the WebMCP platform requirement changes.
 
 ## Styling — Tailwind first
 
