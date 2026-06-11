@@ -300,6 +300,82 @@
         var(--motion-ease-out) both;
 }
 
+.mobile-trace-status-dot {
+    --mobile-trace-status-loading: oklch(0.72 0.15 70);
+    background: color-mix(in oklab, var(--atc-mint) 88%, var(--atc-text) 12%);
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--atc-bg) 72%, transparent),
+        0 0 8px color-mix(in oklab, var(--atc-mint) 24%, transparent);
+    display: inline-block;
+    flex: 0 0 auto;
+    height: 9px;
+    opacity: 1;
+    transform: scale(1);
+    transition: background-color 220ms var(--motion-ease-out),
+        box-shadow 220ms var(--motion-ease-out),
+        opacity 360ms var(--motion-ease-out),
+        transform 360ms var(--motion-ease-out);
+    vertical-align: middle;
+    width: 9px;
+}
+
+.mobile-trace-status-dot--loading {
+    background: color-mix(
+        in oklab,
+        var(--mobile-trace-status-loading) 92%,
+        var(--atc-text) 8%
+    );
+    animation: mobile-trace-status-dot-loading 1.35s ease-in-out infinite;
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--atc-bg) 72%, transparent),
+        0 0 7px
+            color-mix(in oklab, var(--mobile-trace-status-loading) 22%, transparent);
+}
+
+.mobile-trace-status-dot--success {
+    background: color-mix(in oklab, var(--atc-mint) 88%, var(--atc-text) 12%);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--atc-bg) 72%, transparent),
+        0 0 8px color-mix(in oklab, var(--atc-mint) 24%, transparent);
+}
+
+.mobile-trace-status-dot--error {
+    background: var(--atc-red);
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--atc-bg) 72%, transparent),
+        0 0 8px color-mix(in oklab, var(--atc-red) 24%, transparent);
+}
+
+.mobile-trace-status-dot--fading {
+    opacity: 0;
+    transform: scale(0.86);
+}
+
+@keyframes mobile-trace-status-dot-loading {
+    0%,
+    100% {
+        opacity: 0.68;
+        transform: scale(0.92);
+        box-shadow: 0 0 0 1px
+                color-mix(in oklab, var(--atc-bg) 72%, transparent),
+            0 0 4px
+                color-mix(
+                    in oklab,
+                    var(--mobile-trace-status-loading) 14%,
+                    transparent
+                );
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+        box-shadow: 0 0 0 1px
+                color-mix(in oklab, var(--atc-bg) 72%, transparent),
+            0 0 10px
+                color-mix(
+                    in oklab,
+                    var(--mobile-trace-status-loading) 28%,
+                    transparent
+                );
+    }
+}
+
 @keyframes map-settings-sheet-enter {
     from {
         opacity: 0;
@@ -370,6 +446,7 @@
     .mobile-preview-card-enter,
     .candidate-watching-spot-preview-motion,
     .candidate-watching-spot-marker__shell,
+    .mobile-trace-status-dot,
     .map-settings-sheet,
     .map-settings-sheet-overlay {
         animation: none;
@@ -387,6 +464,7 @@
     .app-list-motion > *,
     .candidate-watching-spot-preview-motion,
     .candidate-watching-spot-marker__shell,
+    .mobile-trace-status-dot,
     .map-settings-sheet,
     .map-settings-sheet-overlay {
         transform: none;

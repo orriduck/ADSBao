@@ -147,7 +147,7 @@ export default function AircraftPreviewMobileCard({
         primary={
           <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
             <span className="min-w-0 truncate">{callsign}</span>
-            <TraceStatusPulse
+            <TraceStatusDot
               state={traceStatusState}
               labels={{
                 pending: t("preview.loadingTrace"),
@@ -187,7 +187,7 @@ export default function AircraftPreviewMobileCard({
   );
 }
 
-function TraceStatusPulse({
+function TraceStatusDot({
   state,
   labels,
 }: {
@@ -196,13 +196,15 @@ function TraceStatusPulse({
 }) {
   if (!state || state.phase === "idle") return null;
 
-  const tone = state.hasError
+  const isErrorStatus =
+    state.statusCode != null && state.statusCode >= 400;
+  const tone = state.hasError || isErrorStatus
     ? "error"
     : state.phase === "pending"
-      ? "pending"
+      ? "loading"
       : "success";
   const label =
-    tone === "pending"
+    tone === "loading"
       ? labels.pending
       : tone === "error"
         ? labels.error
@@ -211,16 +213,13 @@ function TraceStatusPulse({
   return (
     <span
       className={cn(
-        "relative inline-flex size-[9px] flex-none rounded-full",
-        "before:absolute before:inset-[-4px] before:rounded-full before:opacity-45",
-        "before:animate-ping motion-reduce:before:animate-none",
-        tone === "pending" &&
-          "bg-[var(--primary-bright)] before:bg-[var(--primary-bright)]",
-        tone === "success" &&
-          "bg-[var(--atc-mint)] before:bg-[var(--atc-mint)]",
-        tone === "error" &&
-          "bg-[var(--atc-red)] before:bg-[var(--atc-red)]",
+        "mobile-trace-status-dot",
+        tone === "loading" && "mobile-trace-status-dot--loading",
+        tone === "success" && "mobile-trace-status-dot--success",
+        tone === "error" && "mobile-trace-status-dot--error",
+        state.phase === "fading" && "mobile-trace-status-dot--fading",
       )}
+      data-status={tone}
       aria-label={label}
       role="status"
       title={label}
