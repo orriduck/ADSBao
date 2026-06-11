@@ -6616,6 +6616,114 @@ body {
     color: color-mix(in oklab, var(--endf-yellow) 72%, transparent);
 }
 
+.aircraft-table-row--selected,
+.aircraft-table-row--selected.endf-row-active,
+.aircraft-table-pin .aircraft-table-row--selected,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active {
+    background: var(--atc-glass-active-bg);
+    border-color: transparent;
+    border-radius: var(--atc-radius-card);
+    box-shadow: var(--atc-glass-rim-shadow);
+    color: var(--atc-click-fg);
+    -webkit-backdrop-filter: var(--atc-glass-active-frost);
+    backdrop-filter: var(--atc-glass-active-frost);
+}
+
+.aircraft-table-row--selected::before,
+.aircraft-table-row--selected.endf-row-active::before,
+.aircraft-table-pin .aircraft-table-row--selected::before,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active::before {
+    display: none;
+}
+
+.aircraft-table-row--selected::after,
+.aircraft-table-row--selected.endf-row-active::after,
+.aircraft-table-pin .aircraft-table-row--selected::after,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active::after {
+    background: var(--atc-glass-sheen);
+    content: "";
+    inset: 0;
+    opacity: 0.88;
+    pointer-events: none;
+    position: absolute;
+    z-index: 0;
+}
+
+.aircraft-table-row--selected > *,
+.aircraft-table-row--selected.endf-row-active > *,
+.aircraft-table-pin .aircraft-table-row--selected > *,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active > * {
+    position: relative;
+    z-index: 1;
+}
+
+.aircraft-table-row--selected .text-atc-text,
+.aircraft-table-row--selected.endf-row-active .text-atc-text,
+.aircraft-table-pin .aircraft-table-row--selected .text-atc-text,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .text-atc-text {
+    color: var(--atc-click-fg);
+}
+
+.aircraft-table-row--selected .text-atc-dim,
+.aircraft-table-row--selected .text-atc-faint,
+.aircraft-table-row--selected .aircraft-table-route-cycle,
+.aircraft-table-row--selected.endf-row-active .text-atc-dim,
+.aircraft-table-row--selected.endf-row-active .text-atc-faint,
+.aircraft-table-row--selected.endf-row-active .aircraft-table-route-cycle,
+.aircraft-table-pin .aircraft-table-row--selected .text-atc-dim,
+.aircraft-table-pin .aircraft-table-row--selected .text-atc-faint,
+.aircraft-table-pin .aircraft-table-row--selected .aircraft-table-route-cycle,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .text-atc-dim,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .text-atc-faint,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .aircraft-table-route-cycle {
+    color: var(--atc-click-muted);
+}
+
+.aircraft-table-row--selected .endf-row-glyph,
+.aircraft-table-row--selected.endf-row-active .endf-row-glyph,
+.aircraft-table-pin .aircraft-table-row--selected .endf-row-glyph,
+.aircraft-table-pin .aircraft-table-row--selected.endf-row-active .endf-row-glyph {
+    background: var(--atc-click-fg);
+    border-color: color-mix(in oklab, var(--atc-click-fg) 72%, transparent);
+    color: var(--atc-click-bg);
+}
+
+@media (max-width: 767px) {
+    .aircraft-table-shell[data-has-pinned-aircraft="true"] .aircraft-table-pin {
+        background: linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--atc-bg) 66%, transparent) 0%,
+            color-mix(in oklab, var(--atc-bg) 34%, transparent) 100%
+        );
+        border-bottom: 1px solid var(--atc-line);
+        display: flow-root;
+        padding: 8px 0 9px;
+    }
+
+    .aircraft-table-shell[data-has-pinned-aircraft="true"]
+        .aircraft-table-pin
+        .endf-content-swap,
+    .aircraft-table-shell[data-has-pinned-aircraft="true"]
+        .aircraft-table-pin
+        .endf-content-swap__content {
+        overflow: visible;
+    }
+
+    .aircraft-table-pin .aircraft-table-row--selected {
+        border-radius: var(--atc-radius-card);
+        height: 48px;
+        margin: 0 var(--airport-sidebar-inset);
+        min-height: 48px;
+        overflow: hidden;
+        padding: 7px 12px;
+        width: calc(100% - (var(--airport-sidebar-inset) * 2));
+    }
+
+    .aircraft-table-pin .aircraft-table-row--selected::before {
+        display: none;
+    }
+}
+
 /* Featured row — left yellow rhombus marker + warm ink background. */
 .endf-row-featured {
     background: linear-gradient(

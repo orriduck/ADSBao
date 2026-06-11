@@ -23,11 +23,13 @@ export default function MobilePreviewCard({
   children,
   actions = null,
   traceStatus = null,
+  compact = false,
 }: Record<string, any>) {
   return (
     <aside
       key={identityKey}
       aria-label={ariaLabel}
+      data-density={compact ? "compact" : undefined}
       data-ui="mobile-preview-card"
       className={cn(
         "fixed left-1/2 z-popover",
@@ -49,6 +51,8 @@ export default function MobilePreviewCard({
         // actions row so the gap around the Track button reads as
         // equal on the left, right, and bottom.
         "flex flex-col gap-[3px] pb-[14px]",
+        compact &&
+          "top-[calc(10px+env(safe-area-inset-top))] w-[min(332px,calc(100vw-20px))] max-w-[calc(100vw-20px)] gap-0 pb-[10px]",
       )}
     >
       {children}
@@ -69,8 +73,9 @@ export function MobilePreviewTraceStatus({ active, children }: Record<string, an
         "font-[var(--font-mono)] text-[10px] font-semibold tracking-[0.08em] leading-[1.15] uppercase",
         "pointer-events-none whitespace-normal overflow-hidden",
         "transition-[max-height,margin-top,opacity,transform] duration-[var(--motion-ui-slow)] ease-[var(--motion-ease-out)]",
+        "[[data-density=compact]_&]:mx-[12px] [[data-density=compact]_&]:text-[9px] [[data-density=compact]_&]:tracking-normal",
         active
-          ? "max-h-[44px] mt-1 opacity-100 translate-y-0"
+          ? "max-h-[44px] mt-1 opacity-100 translate-y-0 [[data-density=compact]_&]:max-h-[20px] [[data-density=compact]_&]:mt-0.5"
           : "max-h-0 mt-0 opacity-0 -translate-y-1",
       )}
     >
@@ -83,7 +88,7 @@ export function MobilePreviewTraceStatus({ active, children }: Record<string, an
 // inside become tappable inside the otherwise pass-through card.
 export function MobilePreviewActions({ children }: Record<string, any>) {
   return (
-    <div className="pointer-events-auto mx-[14px] flex flex-col items-stretch gap-1">
+    <div className="pointer-events-auto mx-[14px] flex flex-col items-stretch gap-1 [[data-density=compact]_&]:mx-[12px] [[data-density=compact]_&]:gap-0.5">
       {children}
     </div>
   );
@@ -91,7 +96,7 @@ export function MobilePreviewActions({ children }: Record<string, any>) {
 
 export function MobilePreviewContent({ children }: React.PropsWithChildren) {
   return (
-    <div className="relative z-[2] box-border flex w-full flex-col items-stretch gap-[6px] px-[14px] pb-[7px] pt-[10px]">
+    <div className="relative z-[2] box-border flex w-full flex-col items-stretch gap-[6px] px-[14px] pb-[7px] pt-[10px] [[data-density=compact]_&]:gap-[4px] [[data-density=compact]_&]:px-[12px] [[data-density=compact]_&]:pb-[5px] [[data-density=compact]_&]:pt-[8px]">
       {children}
     </div>
   );
@@ -113,7 +118,7 @@ export function MobilePreviewIdentity({
   secondaryClassName?: string;
 }) {
   return (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end gap-2 [[data-density=compact]_&]:gap-1.5">
       <div className="flex min-w-0 items-end gap-[6px]">
         <span
           aria-label={label}
@@ -126,6 +131,7 @@ export function MobilePreviewIdentity({
           translate="no"
           className={cn(
             "notranslate min-w-0 truncate whitespace-nowrap font-[var(--font-mono)] text-[20px] font-extrabold leading-none tracking-normal text-atc-text",
+            "[[data-density=compact]_&]:text-[18px]",
             primaryClassName,
           )}
         >
@@ -174,11 +180,11 @@ export function MobilePreviewRuleRow({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 items-baseline justify-between gap-3 border-t border-atc-line pt-[5px] font-[var(--font-mono)]">
-      <div className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-left text-[11px] font-semibold leading-none tracking-normal text-atc-text">
+    <div className="flex min-w-0 items-baseline justify-between gap-3 border-t border-atc-line pt-[5px] font-[var(--font-mono)] [[data-density=compact]_&]:gap-2 [[data-density=compact]_&]:pt-[4px]">
+      <div className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-left text-[11px] font-semibold leading-none tracking-normal text-atc-text [[data-density=compact]_&]:text-[10px]">
         {left}
       </div>
-      <div className="flex min-w-0 shrink-0 items-baseline justify-end gap-[10px] overflow-hidden whitespace-nowrap text-right text-[11px] font-semibold leading-none tracking-normal text-atc-text">
+      <div className="flex min-w-0 shrink-0 items-baseline justify-end gap-[10px] overflow-hidden whitespace-nowrap text-right text-[11px] font-semibold leading-none tracking-normal text-atc-text [[data-density=compact]_&]:gap-[7px] [[data-density=compact]_&]:text-[10px]">
         {right}
       </div>
     </div>
@@ -187,7 +193,7 @@ export function MobilePreviewRuleRow({
 
 export function MobilePreviewMetaChips({ children }: React.PropsWithChildren) {
   return (
-    <dl className="flex min-w-0 items-baseline gap-[10px]">
+    <dl className="flex min-w-0 items-baseline gap-[10px] [[data-density=compact]_&]:gap-[7px]">
       {children}
     </dl>
   );
@@ -221,12 +227,12 @@ export const MobilePreviewTrackButton = React.forwardRef(
         ref={ref}
         type="button"
         className={cn(
-          "min-h-[34px] w-full px-[10px] cursor-pointer",
+          "min-h-[34px] w-full px-[10px] cursor-pointer [[data-density=compact]_&]:min-h-[30px] [[data-density=compact]_&]:px-2",
           "border border-[var(--atc-action-primary-border)]",
           "rounded-[calc(var(--atc-radius-card)-3px)]",
           "bg-[var(--primary-bright)] text-[var(--primary-ink)]",
           "shadow-[var(--atc-action-primary-shadow)]",
-          "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center",
+          "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[box-shadow,filter,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:brightness-[1.04] active:scale-[0.97] active:brightness-[0.96]",
@@ -252,9 +258,9 @@ export const MobilePreviewFeedbackLink = React.forwardRef(
         ref={ref}
         type="button"
         className={cn(
-          "flex w-full min-h-[20px] items-center justify-center px-0 py-1",
+          "flex w-full min-h-[20px] items-center justify-center px-0 py-1 [[data-density=compact]_&]:min-h-[15px] [[data-density=compact]_&]:py-0.5",
           "border-0 bg-transparent text-atc-dim cursor-pointer",
-          "font-sans text-[10px] font-bold tracking-normal leading-[1.15] text-center",
+          "font-sans text-[10px] font-bold tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[9px]",
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[color,opacity,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:text-atc-text hover:opacity-90 active:text-atc-text active:scale-[0.97]",
@@ -277,10 +283,10 @@ export const MobilePreviewSecondaryButton = React.forwardRef(
         ref={ref}
         type="button"
         className={cn(
-          "min-h-[32px] w-full px-[10px] cursor-pointer",
+          "min-h-[32px] w-full px-[10px] cursor-pointer [[data-density=compact]_&]:min-h-[30px] [[data-density=compact]_&]:px-2",
           "rounded-[calc(var(--atc-radius-card)-3px)] border border-atc-line",
           "bg-[color-mix(in_oklab,var(--atc-card)_72%,var(--primary-bright)_10%)] text-atc-text",
-          "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center",
+          "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[background-color,border-color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:border-atc-line-strong hover:bg-atc-card-strong active:scale-[0.97]",

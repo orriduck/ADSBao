@@ -140,7 +140,7 @@ export default function AircraftPreviewMobileCard({ aircraft }: AircraftPreviewM
         label={t("preview.aircraftPreview")}
         primary={callsign}
         secondary={secondary}
-        secondaryClassName="max-w-[min(50vw,220px)] text-[15px] font-extrabold text-atc-text"
+        secondaryClassName="max-w-[min(47vw,176px)] text-[13px] font-extrabold text-atc-text"
       />
       {(route || hasStats) ? (
         <MobilePreviewRuleRow

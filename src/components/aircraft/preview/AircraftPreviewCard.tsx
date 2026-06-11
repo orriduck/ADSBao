@@ -221,6 +221,7 @@ export default function AircraftPreviewCard({
         <MobilePreviewCard
           identityKey={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
+          compact={!isAirport && !isNavaid && !isAirspace && !isCandidateWatchingSpot}
           traceStatus={
             cardTrackHref && !isAirport ? (
               <MobilePreviewTraceStatus active={traceStatusVisible}>
@@ -367,4 +368,3 @@ function usePhotoTone(src) {
 
   return tone;
 }
-
