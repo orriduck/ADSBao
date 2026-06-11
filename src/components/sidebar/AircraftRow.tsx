@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Plane } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 import {
@@ -33,7 +33,7 @@ function AirlineLogo({ src, className }: Record<string, any>) {
   );
 }
 
-export default function AircraftRow({
+function AircraftRow({
   aircraft,
   aircraftId,
   selected,
@@ -128,6 +128,39 @@ export default function AircraftRow({
     </button>
   );
 }
+
+// Memoized so a poll tick only re-renders rows whose displayed fields
+// actually changed. The upstream pipeline (trace tracker + per-poll
+// distance re-map) hands down a fresh object identity for every aircraft
+// each tick, so the comparator is field-based, not referential.
+function aircraftRowPropsEqual(
+  prev: Record<string, any>,
+  next: Record<string, any>,
+) {
+  if (
+    prev.selected !== next.selected ||
+    prev.aircraftId !== next.aircraftId ||
+    prev.onSelectAircraft !== next.onSelectAircraft
+  ) {
+    return false;
+  }
+  const a = prev.aircraft || {};
+  const b = next.aircraft || {};
+  if (a === b) return true;
+  return (
+    a.callsign === b.callsign &&
+    a.icao24 === b.icao24 &&
+    a.flightRouteLabel === b.flightRouteLabel &&
+    a.flightRoute === b.flightRoute &&
+    a.distanceNm === b.distanceNm &&
+    a.altitude === b.altitude &&
+    a.onGround === b.onGround &&
+    a.flight_position_source === b.flight_position_source &&
+    a.positionQuality === b.positionQuality
+  );
+}
+
+export default memo(AircraftRow, aircraftRowPropsEqual);
 
 function AircraftIdentityCell({
   callsign,
