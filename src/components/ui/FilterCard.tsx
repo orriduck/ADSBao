@@ -4,6 +4,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { useCardInteraction } from "@/animations/useCardInteraction";
 
 const forwardRef = React.forwardRef as <
   Element = any,
@@ -52,8 +53,10 @@ const filterCardVariants = cva(
     "data-[state=open]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[state=open]:text-[var(--atc-click-fg)]",
     "data-[state=open]:shadow-[var(--atc-glass-rim-shadow)]",
-    // Focus-visible — yellow ring.
-    "focus-visible:shadow-[inset_0_0_0_2px_var(--endf-yellow)]",
+    // Focus-visible — soft luminous frost ring. (--endf-yellow resolves
+    // to near-black ink in light theme, which read as an ugly black
+    // border; the open-state glass capsule is the primary feedback.)
+    "focus-visible:shadow-[inset_0_0_0_1.5px_var(--app-frost-border)]",
     // SelectTrigger ships a ChevronDown as a direct svg child. Pin
     // it to the right edge so the label/value column stays a clean
     // stack and the card's outer shape matches non-select tiles.
@@ -104,12 +107,38 @@ export const FilterCard = forwardRef(function FilterCard(
 ) {
   const Comp = asChild ? Slot : "button";
   const extraProps = asChild ? {} : { type: props.type || "button" };
+
+  // GSAP hover-lift + press-spring, matching MetricCard / SelectableCard.
+  // CSS owns the glass-capsule background/box-shadow on active/open; GSAP
+  // owns transform only. The hook's callback ref is merged with the
+  // forwarded ref so Radix (SelectTrigger via asChild) still gets the
+  // node, and Radix Slot composes our mouse handlers with the child's.
+  const {
+    ref: gsapRef,
+    onMouseEnter,
+    onMouseLeave,
+    onMouseDown,
+    onMouseUp,
+  } = useCardInteraction();
+  const setRefs = React.useCallback(
+    (node: HTMLElement | null) => {
+      gsapRef(node);
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLElement | null>).current = node;
+    },
+    [gsapRef, ref],
+  );
+
   return (
     <Comp
-      ref={ref}
+      ref={setRefs}
       data-active={active ? "true" : undefined}
       data-ui="filter-card"
       className={cn(filterCardVariants({ shape }), className)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
       {...extraProps}
       {...props}
     />

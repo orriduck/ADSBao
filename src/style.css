@@ -1378,14 +1378,15 @@ body:has(.app-detail-shell) {
 }
 
 :root[data-theme="dark"] .atc-tile-base {
-    filter: saturate(0.4) brightness(0.82) contrast(1.06);
+    filter: saturate(0.28) brightness(0.82) contrast(1.06);
     mix-blend-mode: normal;
 }
 
-/* Light terrain is still mostly monochrome manual ink; a small amount of
-   blue-green saturation survives so water and vegetation remain legible. */
+/* Standard base map (CARTO voyager) runs hot out of the box — pull the
+   saturation well down so greens/blues read as a muted manual-paper
+   wash that the frosted glass sits over, not a candy basemap. */
 :root[data-theme="light"] .atc-tile-base {
-    filter: saturate(0.92) brightness(1.0) contrast(0.98);
+    filter: saturate(0.62) brightness(1.0) contrast(0.98);
     mix-blend-mode: normal;
 }
 
@@ -1896,8 +1897,13 @@ body:has(.app-detail-shell) {
 }
 
 .search-input:focus-within {
-    outline: 2px solid var(--atc-orange);
-    outline-offset: 2px;
+    /* No hard accent outline — in light theme --atc-orange resolves to
+       near-black ink and read as an ugly black border. Focus shows as a
+       soft luminous frost ring consistent with the glass material. */
+    outline: none;
+    box-shadow:
+        var(--atc-control-inset-shadow),
+        inset 0 0 0 1.5px color-mix(in oklab, var(--app-frost-border) 80%, transparent);
 }
 
 .background-rays {
@@ -2681,9 +2687,13 @@ body:has(.app-detail-shell) {
        greens through the ink and made the glass look murky brown-green
        instead of neutral smoke. */
     --atc-glass-active-frost: saturate(0.85) blur(14px);
+    /* Tight, crisp drop shadow for floating menus. Previously colored
+       with --atc-bg (near-white in light theme), which rendered as a
+       glowing halo; even a wide neutral shadow reads as a diffuse cloud
+       over the pale map, so keep the blur small and contact-y. */
     --atc-menu-panel-shadow:
-        0 12px 32px color-mix(in oklab, var(--atc-bg) 60%, transparent),
-        0 2px 6px color-mix(in oklab, var(--atc-bg) 40%, transparent);
+        0 6px 16px rgb(0 0 0 / 0.12),
+        0 1px 4px rgb(0 0 0 / 0.10);
     --atc-icon-button-shadow: 0 8px 24px
         color-mix(in oklab, var(--atc-bg) 62%, transparent);
     --atc-toolbar-cell-size: 2rem;
@@ -2769,6 +2779,12 @@ body:has(.app-detail-shell) {
     --app-toolbar-shadow:
         0 22px 52px rgb(0 0 0 / 0.36), 0 8px 22px rgb(0 0 0 / 0.28),
         0 1px 3px rgb(0 0 0 / 0.24);
+    /* Tight menu drop on the near-black shell — deeper than light theme
+       so frosted dropdowns still lift off the dark canvas, but kept
+       contact-y rather than a wide diffuse cloud. */
+    --atc-menu-panel-shadow:
+        0 8px 20px rgb(0 0 0 / 0.42),
+        0 2px 6px rgb(0 0 0 / 0.32);
     /* Resting-tile glass chrome on dark glass — the specular hairline and
        rim ring derive from --atc-text instead of literal white so the
        edge reads as a soft catch-light, and the drop shadows deepen to
@@ -2803,25 +2819,28 @@ body {
 }
 
 .dither-page-shell {
+    /* Warm glow moved to the bottom edge so the top of the page stays a
+       clean solid canvas under the Safari browser chrome. */
     background:
         radial-gradient(
-            circle at 78% 18%,
+            circle at 78% 96%,
             color-mix(in oklab, var(--atc-orange) 12%, transparent),
-            transparent 30%
+            transparent 32%
         ),
         var(--atc-bg);
 }
 
 .dither-page-panel {
-    /* Same warm-corner sweep as the airport / flight sidebar identity
-       blocks (line 4277), so home and about share the design language
-       with the detail pages. Sits over the inherited --atc-bg fill of
-       .sidebar-shell so the panel still reads as the same surface. */
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
-    );
+    /* Solid theme color at the TOP (seamless under the Safari clip) with
+       the warm accent moved to a soft wash rising from the BOTTOM —
+       matching the airport / flight detail sidebars. */
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--atc-orange) 8%, transparent),
+            transparent 38%
+        ),
+        var(--sidebar);
     border-right: 0;
     border-radius: 0 var(--atc-radius-shell) var(--atc-radius-shell) 0;
     box-shadow: var(--app-panel-shadow);
@@ -2831,11 +2850,13 @@ body {
 }
 
 :root[data-theme="dark"] .dither-page-panel {
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 18%, transparent),
-        transparent 48%
-    );
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--atc-orange) 14%, transparent),
+            transparent 40%
+        ),
+        var(--sidebar);
 }
 
 .dither-page-background {
@@ -2879,10 +2900,13 @@ body {
 }
 
 .search-input {
-    background: color-mix(in oklab, var(--atc-card) 86%, transparent);
-    border: 1px solid var(--app-frost-border);
+    /* Milky frosted-glass pill — same material as the toolbar pills and
+       resting tiles: near-opaque frost tint, luminous rim + soft lift
+       (--atc-control-inset-shadow), edge from light not a hard border. */
+    background: var(--atc-toolbar-surface);
+    border: 1px solid transparent;
     border-radius: var(--atc-radius-pill);
-    box-shadow: var(--app-card-shadow);
+    box-shadow: var(--atc-control-inset-shadow);
     -webkit-backdrop-filter: var(--app-frost);
     backdrop-filter: var(--app-frost);
 }
@@ -2962,11 +2986,17 @@ body {
 .airport-sidebar-panel,
 .flight-sidebar-panel,
 .sidebar-shell {
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--sidebar-accent) 72%, transparent),
-        var(--sidebar)
-    );
+    /* Solid theme color at the TOP so the sidebar's top edge blends
+       seamlessly with iPhone Safari's browser-chrome clip (no gradient
+       seam under the status bar / address bar). The warm accent light is
+       moved to a soft wash rising from the BOTTOM. */
+    background:
+        linear-gradient(
+            to top,
+            color-mix(in oklab, var(--atc-orange) 8%, transparent),
+            transparent 38%
+        ),
+        var(--sidebar);
     border-right: 0;
     box-shadow: var(--app-panel-shadow);
 }
@@ -3349,14 +3379,15 @@ body {
     -webkit-appearance: none;
     appearance: none;
     outline: none;
-    /* MetricCard bottom-glow */
+    /* Liquid-glass top-light sheen — same material as MetricCard's
+       selected state; fades/slides in when the cell becomes active. */
     &::after {
         content: '';
         position: absolute;
         inset: 0;
-        background: var(--sidebar-tile-bottom-glow);
+        background: var(--atc-glass-sheen);
         opacity: 0;
-        transform: translateY(4px);
+        transform: translateY(8px);
         pointer-events: none;
         transition: opacity .3s ease-out, transform .3s ease-out;
         border-radius: inherit;
@@ -3368,13 +3399,17 @@ body {
     &:hover {
         background: var(--atc-control-hover-bg);
     }
+    /* Active = the shared dark/bright liquid-glass capsule (see
+       --atc-glass-active-bg): translucent ink with a corner dissolve,
+       backdrop frost, specular rim. Border goes transparent — the rim
+       comes from the inset shadows. */
+    &[data-active="true"],
     &:active {
-        background: var(--atc-click-bg);
-    }
-    &[data-active="true"] {
-        background: var(--atc-click-bg);
-        border-color: color-mix(in oklab, var(--atc-click-fg) 50%, var(--atc-click-bg));
-        box-shadow: var(--atc-control-active-shadow-strong);
+        background: var(--atc-glass-active-bg);
+        border-color: transparent;
+        box-shadow: var(--atc-glass-rim-shadow);
+        -webkit-backdrop-filter: var(--atc-glass-active-frost);
+        backdrop-filter: var(--atc-glass-active-frost);
         & .hourly-card__time { color: var(--atc-click-muted); }
         & .hourly-card__condition { color: var(--atc-click-fg); }
         & .hourly-card__temp { color: var(--atc-click-fg); }
@@ -5114,11 +5149,10 @@ body {
 }
 
 .airport-sidebar-identity {
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
-    );
+    /* No top warm sweep — the top of the sidebar stays a solid theme
+       color so it aligns seamlessly with the Safari browser-chrome clip.
+       The warm accent now rises from the panel bottom instead. */
+    background: transparent;
     border-bottom: 0;
     padding: 75px var(--airport-sidebar-inset) 22px;
 }
@@ -5132,27 +5166,10 @@ body {
 }
 
 .flight-sidebar-panel .airport-sidebar-identity {
-    /* Match the airport sidebar's identity gradient so the flight detail
-       page gets the same subtle warm-corner lift instead of a paler,
-       slightly-different-angle variant. */
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
-    );
+    /* Solid top to match the airport sidebar — warm light lives at the
+       panel bottom now, not the identity hero. */
+    background: transparent;
     padding-bottom: 22px;
-}
-
-/* Dark theme: --atc-orange flips to a light highlight color, but at 10%
-   alpha on the inky sidebar background it nearly disappears. Bump the
-   stop to 18% so the same diagonal sweep stays visible. */
-:root[data-theme="dark"] .airport-sidebar-identity,
-:root[data-theme="dark"] .flight-sidebar-panel .airport-sidebar-identity {
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 18%, transparent),
-        transparent 48%
-    );
 }
 
 .flight-sidebar-panel .airport-sidebar-identity__rule {

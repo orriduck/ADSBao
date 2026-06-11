@@ -10,6 +10,22 @@ import { useRef, useCallback } from "react";
 import gsap from "gsap";
 import { MOTION, EASE, killTweensOf } from "./gsap";
 
+/**
+ * Read prefers-reduced-motion at call time (not render) so the hook
+ * honors the OS setting even if it changes mid-session. When true, the
+ * transform tweens are skipped entirely — the CSS-driven glass capsule
+ * (background / box-shadow / sheen) still transitions, just without the
+ * GSAP hover-lift / press-spring. Per the official GSAP accessibility
+ * guidance for vestibular-sensitive users.
+ */
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 interface CardInteractionOptions {
   /** Scale on hover. Default: 1.01 */
   hoverScale?: number;
@@ -41,7 +57,7 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
 
   /** Attach to onMouseEnter. */
   const onMouseEnter = useCallback(() => {
-    if (!enabled || !elRef.current) return;
+    if (!enabled || prefersReducedMotion() || !elRef.current) return;
     isHovering.current = true;
     killTweensOf(elRef.current);
     gsap.to(elRef.current, {
@@ -55,7 +71,7 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
 
   /** Attach to onMouseLeave. */
   const onMouseLeave = useCallback(() => {
-    if (!enabled || !elRef.current) return;
+    if (!enabled || prefersReducedMotion() || !elRef.current) return;
     isHovering.current = false;
     killTweensOf(elRef.current);
     gsap.to(elRef.current, {
@@ -69,7 +85,7 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
 
   /** Attach to onMouseDown. */
   const onMouseDown = useCallback(() => {
-    if (!enabled || !elRef.current) return;
+    if (!enabled || prefersReducedMotion() || !elRef.current) return;
     killTweensOf(elRef.current);
     gsap.to(elRef.current, {
       scale: pressScale,
@@ -81,7 +97,7 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
 
   /** Attach to onMouseUp. */
   const onMouseUp = useCallback(() => {
-    if (!enabled || !elRef.current) return;
+    if (!enabled || prefersReducedMotion() || !elRef.current) return;
     const targetScale = isHovering.current ? hoverScale : 1;
     const targetY = isHovering.current ? hoverY : 0;
     killTweensOf(elRef.current);
@@ -97,7 +113,7 @@ export function useCardInteraction(options: CardInteractionOptions = {}) {
   /** Animate to active state (pass `true`) or inactive (`false`). */
   const animateActive = useCallback(
     (active: boolean) => {
-      if (!enabled || !elRef.current) return;
+      if (!enabled || prefersReducedMotion() || !elRef.current) return;
       killTweensOf(elRef.current);
       if (active) {
         gsap.to(elRef.current, {
