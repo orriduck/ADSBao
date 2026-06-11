@@ -69,10 +69,10 @@ export default function BrandLogo({
         x="52"
         y="34.5"
         fill="currentColor"
-        fontFamily='"Plus Jakarta Sans", "Noto Sans SC", system-ui, sans-serif'
+        fontFamily='"Manrope", "Noto Sans SC", system-ui, sans-serif'
         fontWeight="800"
         fontSize={isCjkWordmark ? "27" : "29"}
-        letterSpacing="0"
+        letterSpacing="normal"
       >
         {normalizedWordmark}
       </text>

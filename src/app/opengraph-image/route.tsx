@@ -3,19 +3,19 @@ import { SITE_NAME, SITE_SOCIAL_IMAGE } from "@/config/site";
 
 const FONT_URLS = [
   {
-    name: "Plus Jakarta Sans",
+    name: "Manrope",
     weight: 500,
-    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_m07NSg.ttf",
+    url: "https://fonts.gstatic.com/s/manrope/v20/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk7PFO_F.ttf",
   },
   {
-    name: "Plus Jakarta Sans",
+    name: "Manrope",
     weight: 700,
-    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_TknNSg.ttf",
+    url: "https://fonts.gstatic.com/s/manrope/v20/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk4aE-_F.ttf",
   },
   {
-    name: "Plus Jakarta Sans",
+    name: "Manrope",
     weight: 800,
-    url: "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KUnNSg.ttf",
+    url: "https://fonts.gstatic.com/s/manrope/v20/xn7_YHE41ni1AdIRqAuZuw1Bx9mbZk59E-_F.ttf",
   },
   {
     name: "Noto Sans SC",
@@ -29,7 +29,7 @@ const imageSize = {
   height: SITE_SOCIAL_IMAGE.height,
 };
 
-const fontFamily = '"Plus Jakarta Sans", "Noto Sans SC", sans-serif';
+const fontFamily = '"Manrope", "Noto Sans SC", sans-serif';
 
 const colors = {
   paper: "#f1f1ef",
@@ -193,7 +193,7 @@ export async function GET() {
                 color: colors.ink,
                 fontSize: 126,
                 fontWeight: 800,
-                letterSpacing: -3,
+                letterSpacing: "normal",
                 lineHeight: 0.92,
               }}
             >
@@ -215,7 +215,7 @@ export async function GET() {
                 color: colors.ink,
                 fontSize: 50,
                 fontWeight: 800,
-                letterSpacing: -0.8,
+                letterSpacing: "normal",
                 lineHeight: 1,
               }}
             >

@@ -43,7 +43,7 @@ export default function DitherPageShell({
           </div>
           <h1
             className="endf-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "0" }}
+            style={{ fontFamily: "var(--font-display)", letterSpacing: "normal" }}
           >
             <span className="block break-words">{resolvedTitle}</span>
           </h1>

@@ -7,16 +7,25 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.4.3",
+    kind: "patch",
+    title: "Manrope typography",
+    summary:
+      "ADSBao now uses Manrope across the app for a cleaner, more confident transport-product voice.",
+    highlights: [
+      "Global font stack switches to Manrope with Noto Sans SC retained for Chinese text",
+      "Logo, Open Graph image, and display titles use preset normal tracking instead of custom spacing",
+    ],
+  },
+  {
     version: "v2.4.2",
     kind: "patch",
-    title: "Unified browse lists & toolbars",
+    title: "Browse lists & toolbar polish",
     summary:
-      "The home, about, mechanism, and changelog browse lists now share one tidy list style — aligned code pills, single-line rows, a rounded frosted hover, and the liquid-glass capsule for the selected/expanded row. Page toolbars reuse the airport detail toolbar's button style.",
+      "Static-page browse lists and page toolbars now share the same tidy liquid-glass patterns.",
     highlights: [
-      "All sidebar browse lists route through one TextPillListItem primitive: flat aligned rows, rounded frosted hover, glass-capsule active state",
-      "Selected search result and expanded mechanism row lift into the shared liquid-glass capsule",
-      "Home/about/mechanism/changelog toolbars reuse the airport detail rail button tone (frosted hover, not a dark-ink fill)",
-      "Changelog entries become clean reading blocks with de-skewed version pills",
+      "Home, about, mechanism, and changelog lists use aligned rows with frosted hover and glass active states",
+      "Static-page toolbars reuse the airport detail toolbar tone and sizing",
     ],
   },
   {
@@ -24,14 +33,11 @@ export const CHANGELOG = [
     kind: "patch",
     title: "Liquid glass polish",
     summary:
-      "Polish pass on the liquid-glass redesign: more surfaces adopt the material, GSAP hover/press motion on every interactive glass card, and a batch of UI fixes — solid sidebar tops, unified menu glassmorphism, no black focus borders, a muted standard basemap, and a frosted route tooltip.",
+      "More controls, cards, and menus now match the liquid-glass system with cleaner motion and focus states.",
     highlights: [
-      "Hourly forecast, tomorrow card, and home search bar adopt the liquid-glass material; selected hourly cells flip to the glass capsule",
-      "GSAP hover-lift + press-spring on metric tabs, filter chips, and hourly cells, with prefers-reduced-motion respected",
-      "Every sidebar keeps a solid theme-color top edge so it aligns seamlessly with the iPhone Safari browser-chrome clip; warm light moved to the bottom",
-      "Dropdowns and tooltips unified to frosted glassmorphism; menu drop shadows no longer read as a glowing halo",
-      "Removed the near-black focus borders on the search box, altitude filter, and select triggers",
-      "Standard basemap desaturated to a muted manual-paper wash",
+      "Hourly forecast, tomorrow card, and home search adopt the shared glass material",
+      "Interactive glass cards get smoother hover and press motion with reduced-motion support",
+      "Menus, tooltips, focus rings, and standard basemap tone were cleaned up",
     ],
   },
   {
@@ -39,14 +45,11 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Liquid glass redesign",
     summary:
-      "Every floating surface is rebuilt as Apple-style liquid glass over a colored basemap: milky frosted tiles and toolbars at rest, and a polished glass capsule for selected states — dark smoke in light theme, luminous white in dark theme — with a signature corner dissolve.",
+      "ADSBao's floating surfaces were rebuilt around a two-material liquid-glass system.",
     highlights: [
-      "Selected cards, filter chips, settings options, and toolbar buttons share one glass-capsule material: smoky translucent ink, backdrop frost, specular top rim, and a bottom-right corner that dissolves to reveal the surface behind",
-      "Dark theme selected state inverts to a bright white-glass capsule with dark ink text on the near-black shell",
-      "Resting tiles and toolbar pills become bright milky frosted glass with luminous rims, soft lift shadows, and crisp dark icons",
-      "Colored CARTO voyager basemap replaces the washed vector style so the frost has real geography to diffuse",
-      "Sidebar and panels rebuilt as a token-driven frosted material system (--app-frost, --atc-glass-*, --atc-control-*) shared across every surface",
-      "DESIGN.md rewritten as the liquid-glass source of truth for future UI work",
+      "Selected states use one shared glass capsule across cards, filters, settings, and toolbars",
+      "Resting tiles and toolbar pills use a bright frosted material with luminous rims",
+      "DESIGN.md and shared tokens now define the material system for future UI work",
     ],
   },
   {
@@ -54,15 +57,11 @@ export const CHANGELOG = [
     kind: "patch",
     title: "Hydration stability, list row polish & flight tracking resilience",
     summary:
-      "Eliminated SSR hydration mismatches and intermediate-state flicker across the app. Unified list row hover with background + underline. Flight tracking now uses nearby-favored positions and per-provider timeouts.",
+      "Hydration, list-row feedback, and flight tracking fallbacks are more stable.",
     highlights: [
-      "New Skeleton component replaces text placeholders during weather/settings loading — no more flash of unstyled content",
-      "Map settings and feature flags gate rendering on hydration to prevent layout jumps",
-      "Unified list row hover (background tint + underline) on home, about, mechanism, and changelog pages",
-      "HERE badge replaces near-me icon with aligned ICAO code row width",
-      "Flight map center falls back to nearby-favored position when merged data is fresher than callsign result",
-      "Per-provider 4s timeout in callsign fetch — one slow source no longer blocks the entire poll",
-      "useWakeLock detects browser support in useEffect to fix SSR hydration error",
+      "Skeleton loading and hydration gates reduce layout flicker",
+      "Static-page list rows get unified hover feedback",
+      "Flight tracking falls back to fresher nearby data and per-provider timeouts",
     ],
   },
   {
@@ -70,12 +69,11 @@ export const CHANGELOG = [
     kind: "feat",
     title: "Screen wake lock & status bar polish",
     summary:
-      "Map toolbar gets a screen wake lock toggle to keep the device awake during long spotting sessions. The map status bar gets wider, single-line rendering, and GSAP transitions.",
+      "The map toolbar can keep the screen awake, and the source status bar is easier to scan.",
     highlights: [
-      "Wake lock toggle in map toolbar — Coffee icon, click to prevent screen sleep",
-      "Status bar shows '☕ Keep awake' indicator when active, inline with source badges",
-      "Replaced EndfieldValueSwap with GSAP StatusSpan for smoother text transitions",
-      "Status bar width increased and flex-wrap removed — always single-line",
+      "Wake lock toggle prevents screen sleep during spotting sessions",
+      "Status bar shows keep-awake state inline with source badges",
+      "Source text transitions are smoother and stay single-line",
     ],
   },
   {
