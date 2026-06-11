@@ -10,6 +10,19 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.4.1": {
+    title: "液态玻璃打磨",
+    summary:
+      "在液态玻璃重设计之上的打磨：更多表面采用该材质，所有可交互玻璃卡片加上 GSAP hover/press 动效，并修复一批 UI 问题 —— 侧栏顶部纯色、下拉菜单统一玻璃拟态、去掉黑色 focus 边框、标准底图降饱和、航线 tooltip 改磨砂。",
+    highlights: [
+      "逐时天气、明天卡、首页搜索栏采用液态玻璃材质；逐时选中态变为玻璃胶囊",
+      "指标标签、筛选芯片、逐时卡片加上 GSAP hover 抬升 + press 回弹，并尊重 prefers-reduced-motion",
+      "所有侧栏顶边保持纯主题色，与 iPhone Safari 浏览器裁切无缝对齐；暖光挪到底部",
+      "下拉菜单与 tooltip 统一为磨砂玻璃拟态；菜单投影不再呈现发光光晕",
+      "去掉搜索框、海拔筛选、select 触发器上的近黑 focus 边框",
+      "标准底图降饱和为柔和的手册纸张色调",
+    ],
+  },
   "v2.4.0": {
     title: "液态玻璃重设计",
     summary:

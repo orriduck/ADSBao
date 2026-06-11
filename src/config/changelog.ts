@@ -7,6 +7,21 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.4.1",
+    kind: "patch",
+    title: "Liquid glass polish",
+    summary:
+      "Polish pass on the liquid-glass redesign: more surfaces adopt the material, GSAP hover/press motion on every interactive glass card, and a batch of UI fixes — solid sidebar tops, unified menu glassmorphism, no black focus borders, a muted standard basemap, and a frosted route tooltip.",
+    highlights: [
+      "Hourly forecast, tomorrow card, and home search bar adopt the liquid-glass material; selected hourly cells flip to the glass capsule",
+      "GSAP hover-lift + press-spring on metric tabs, filter chips, and hourly cells, with prefers-reduced-motion respected",
+      "Every sidebar keeps a solid theme-color top edge so it aligns seamlessly with the iPhone Safari browser-chrome clip; warm light moved to the bottom",
+      "Dropdowns and tooltips unified to frosted glassmorphism; menu drop shadows no longer read as a glowing halo",
+      "Removed the near-black focus borders on the search box, altitude filter, and select triggers",
+      "Standard basemap desaturated to a muted manual-paper wash",
+    ],
+  },
+  {
     version: "v2.4.0",
     kind: "feat",
     title: "Liquid glass redesign",
