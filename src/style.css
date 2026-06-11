@@ -2687,13 +2687,13 @@ body:has(.app-detail-shell) {
        greens through the ink and made the glass look murky brown-green
        instead of neutral smoke. */
     --atc-glass-active-frost: saturate(0.85) blur(14px);
-    /* Real soft drop shadow for floating menus. Previously colored with
-       --atc-bg, which in light theme is near-white — that rendered as a
-       glowing halo around dropdowns rather than a shadow. Neutral black
-       at low opacity reads as clean floating glass in both themes. */
+    /* Tight, crisp drop shadow for floating menus. Previously colored
+       with --atc-bg (near-white in light theme), which rendered as a
+       glowing halo; even a wide neutral shadow reads as a diffuse cloud
+       over the pale map, so keep the blur small and contact-y. */
     --atc-menu-panel-shadow:
-        0 16px 40px rgb(0 0 0 / 0.16),
-        0 4px 12px rgb(0 0 0 / 0.10);
+        0 6px 16px rgb(0 0 0 / 0.12),
+        0 1px 4px rgb(0 0 0 / 0.10);
     --atc-icon-button-shadow: 0 8px 24px
         color-mix(in oklab, var(--atc-bg) 62%, transparent);
     --atc-toolbar-cell-size: 2rem;
@@ -2779,11 +2779,12 @@ body:has(.app-detail-shell) {
     --app-toolbar-shadow:
         0 22px 52px rgb(0 0 0 / 0.36), 0 8px 22px rgb(0 0 0 / 0.28),
         0 1px 3px rgb(0 0 0 / 0.24);
-    /* Deeper menu drop on the near-black shell so frosted dropdowns still
-       lift off the dark canvas. */
+    /* Tight menu drop on the near-black shell — deeper than light theme
+       so frosted dropdowns still lift off the dark canvas, but kept
+       contact-y rather than a wide diffuse cloud. */
     --atc-menu-panel-shadow:
-        0 20px 48px rgb(0 0 0 / 0.44),
-        0 6px 16px rgb(0 0 0 / 0.32);
+        0 8px 20px rgb(0 0 0 / 0.42),
+        0 2px 6px rgb(0 0 0 / 0.32);
     /* Resting-tile glass chrome on dark glass — the specular hairline and
        rim ring derive from --atc-text instead of literal white so the
        edge reads as a soft catch-light, and the drop shadows deepen to
