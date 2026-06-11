@@ -10,6 +10,17 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.4.2": {
+    title: "统一的浏览列表与工具栏",
+    summary:
+      "首页、关于、机制、更新日志的浏览列表统一为一种整齐的列表风格 —— 对齐的代码药丸、单行行高、圆角磨砂 hover,选中/展开行采用液态玻璃胶囊。页面工具栏复用机场详情页工具栏的按钮样式。",
+    highlights: [
+      "所有侧栏浏览列表统一走 TextPillListItem 一个组件:扁平对齐行、圆角磨砂 hover、玻璃胶囊选中态",
+      "选中的搜索结果、展开的机制条目升起为共享的液态玻璃胶囊",
+      "首页/关于/机制/更新日志工具栏复用机场详情的 rail 按钮风格(磨砂 hover,不再深色墨水填充)",
+      "更新日志条目变为干净的阅读块,版本药丸去掉斜切",
+    ],
+  },
   "v2.4.1": {
     title: "液态玻璃打磨",
     summary:
@@ -373,7 +384,7 @@ export default function ChangelogPanel() {
         </div>
       </div>
 
-      <ol className="dither-list flex-1 overflow-y-auto px-6 pb-6">
+      <ol className="dither-list flex flex-1 flex-col gap-2 overflow-y-auto px-6 pb-6">
         {CHANGELOG.map((release, index) => (
           <ChangelogEntry
             key={release.version}
@@ -395,7 +406,7 @@ function ChangelogEntry({ release, isLatest, locale }) {
   const summary = localizedRelease?.summary || release.summary;
   const highlights = localizedRelease?.highlights || release.highlights;
   return (
-    <li className="changelog-entry endf-underline last:border-b-0">
+    <li className="changelog-entry">
       <div className="changelog-entry__header">
         {isLatest ? (
           <span className="endf-tab">

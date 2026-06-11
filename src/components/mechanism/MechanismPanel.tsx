@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import DitherPageShell from "@/components/app-shell/DitherPageShell";
+import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import { MECHANISM_ITEMS } from "@/config/mechanism";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
@@ -26,36 +27,23 @@ export default function MechanismPanel() {
           </div>
         </div>
 
-        <ol className="dither-list px-6 divide-y divide-[var(--atc-line)]">
+        <ol className="dither-list flex flex-col gap-1 px-6">
           {MECHANISM_ITEMS.map((item, index) => {
             const expanded = item.id === expandedId;
             const panelId = `mechanism-${item.id}`;
 
             return (
               <li key={item.id}>
-                <button
-                  type="button"
+                <TextPillListItem
+                  as="button"
+                  active={expanded}
                   aria-expanded={expanded}
                   aria-controls={panelId}
                   onClick={() => setExpandedId(expanded ? null : item.id)}
-                  className={cn(
-                    "about-data-source-row group endf-underline -mx-6 grid w-[calc(100%+3rem)] grid-cols-[max-content_minmax(0,1fr)] items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] md:w-[calc(100%+38px)]",
-                    expanded &&
-                      "bg-[color-mix(in_oklab,var(--atc-elev)_72%,transparent)]",
-                  )}
-                >
-                  <span className="endf-tab endf-tab--code whitespace-nowrap">
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                  </span>
-                  <span className="min-w-0">
-                    <strong className="block whitespace-normal break-words text-[13px] font-semibold leading-snug text-atc-text">
-                      {t(item.titleKey)}
-                    </strong>
-                    <small className="mt-0.5 block whitespace-normal break-words text-[11.5px] leading-snug text-atc-dim">
-                      {t(item.signalKey)}
-                    </small>
-                  </span>
-                </button>
+                  pill={String(index + 1).padStart(2, "0")}
+                  title={t(item.titleKey)}
+                  subtitle={t(item.signalKey)}
+                />
 
                 <div
                   id={panelId}
@@ -67,7 +55,7 @@ export default function MechanismPanel() {
                   )}
                 >
                   <div className="min-h-0 overflow-hidden">
-                    <div className="px-6 pb-4 pt-1">
+                    <div className="px-3.5 pb-3 pt-3">
                       <p className="text-[11.5px] leading-relaxed text-atc-dim">
                         {t(item.bodyKey)}
                       </p>

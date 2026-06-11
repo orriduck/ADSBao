@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import {
   airportDisplayCode,
   airportDisplayName,
@@ -90,7 +91,7 @@ function NearMeDiscoverySection() {
         id="airport-discovery-nearby"
         title={t("search.discovery.nearby.title")}
       />
-      <ul className="mt-3 divide-y divide-[var(--atc-line)] border-y border-[var(--atc-line)]">
+      <ul className="mt-3 flex flex-col gap-1">
         <NearbyPromptRow onRequest={handleOpenNearMe} />
       </ul>
     </section>
@@ -108,7 +109,7 @@ function AirportDiscoveryTopicSection({ topic, onOpen }) {
         description={t(topic.descriptionKey)}
       />
 
-      <ul className="mt-3 divide-y divide-[var(--atc-line)] border-y border-[var(--atc-line)]">
+      <ul className="mt-3 flex flex-col gap-1">
         {topic.airports.map((airport) => (
           <AirportDiscoveryAirportRow
             key={airport.icao || airport.code || airport.name}
@@ -150,27 +151,14 @@ function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
 
   return (
     <li>
-      <button
-        type="button"
-        className="group endf-underline -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[62px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3.5 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)]"
+      <TextPillListItem
+        as="button"
         onClick={onRequest}
-      >
-        <span className="endf-tab endf-tab--code whitespace-nowrap">
-          <span>HERE</span>
-        </span>
-        <span className="min-w-0">
-          <strong className="block truncate text-[13px] font-semibold text-atc-text">
-            {title}
-          </strong>
-          <small className="mt-0.5 block text-[11.5px] leading-snug text-atc-dim">
-            {hint}
-          </small>
-        </span>
-        <ChevronRight
-          className="h-4 w-4 text-atc-faint transition-transform group-hover:translate-x-0.5 group-hover:text-atc-text"
-          aria-hidden="true"
-        />
-      </button>
+        pill="HERE"
+        title={title}
+        subtitle={hint}
+        trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}
+      />
     </li>
   );
 }
@@ -182,27 +170,14 @@ function AirportDiscoveryAirportRow({ airport, onOpen }) {
 
   return (
     <li>
-      <button
-        type="button"
-        className="group endf-underline -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[62px_minmax(0,1fr)_16px] items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-atc-accent/60"
+      <TextPillListItem
+        as="button"
         onClick={() => onOpen(airport)}
-      >
-        <span className="endf-tab endf-tab--code">
-          <span>{code}</span>
-        </span>
-        <span className="min-w-0">
-          <strong className="block min-w-0 truncate text-[13px] font-semibold text-atc-text">
-            {airportDisplayName(airport, locale)}
-          </strong>
-          <small className="mt-0.5 block truncate text-[11.5px] text-atc-dim">
-            {label || airportSubtitle(airport, locale)}
-          </small>
-        </span>
-        <ChevronRight
-          className="h-4 w-4 text-atc-faint transition-transform group-hover:translate-x-0.5 group-hover:text-atc-text"
-          aria-hidden="true"
-        />
-      </button>
+        pill={code}
+        title={airportDisplayName(airport, locale)}
+        subtitle={label || airportSubtitle(airport, locale)}
+        trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}
+      />
     </li>
   );
 }

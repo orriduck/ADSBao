@@ -34,7 +34,10 @@ function resolveActiveHref(pathname) {
   return "/";
 }
 
-const buttonClass = toolbarButtonVariants({ tone: "soft" });
+// Reuse the airport detail map-rail button tone so every page's toolbar
+// shares one interaction style: hover reveals a soft frosted tint (not a
+// dark-ink fill), active flips to the glass capsule.
+const buttonClass = toolbarButtonVariants({ tone: "rail" });
 
 export default function PageNavigationDock() {
   const { locale, t } = useI18n();
@@ -83,6 +86,7 @@ export default function PageNavigationDock() {
           return (
             <ToolbarButton
               key={item.href}
+              tone="rail"
               asChild
               active={active}
               aria-current={active ? "page" : undefined}
@@ -131,7 +135,7 @@ export default function PageNavigationDock() {
           </ToolbarAccountSlot>
         ) : (
           <SignInButton mode="modal">
-            <ToolbarButton title={t("auth.signIn")} aria-label={t("auth.signIn")}>
+            <ToolbarButton tone="rail" title={t("auth.signIn")} aria-label={t("auth.signIn")}>
               <LogIn aria-hidden="true" />
             </ToolbarButton>
           </SignInButton>

@@ -6699,23 +6699,31 @@ body {
     background: var(--atc-surface-preview-card) !important;
 }
 
+/* Flat reading block — no per-entry border/shadow (that read as nested
+   glass on the already-frosted panel). Entries are separated by the
+   list gap; the de-skewed version pill heads each one. */
 .changelog-entry {
-    border-bottom: 1px solid var(--atc-line);
-    padding: 13px 0;
-    margin-inline: -24px;
-    padding-inline: 24px;
-    border-radius: 4px;
-    transition: background-color 150ms;
-}
-.changelog-entry:hover {
-    background: color-mix(in oklab, var(--atc-elev) 55%, transparent);
+    padding: 6px 4px;
+    border-radius: var(--atc-radius-card);
 }
 
 .changelog-entry__header {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 6px;
+}
+
+/* Drop the Endfield parallelogram skew on the version badge + current
+   chip inside the changelog so they read as clean glass-system pills. */
+.changelog-entry .endf-tab,
+.changelog-entry .endf-chip {
+    transform: none;
+    border-radius: var(--atc-radius-pill);
+}
+.changelog-entry .endf-tab > *,
+.changelog-entry .endf-chip > * {
+    transform: none;
 }
 
 .changelog-entry .endf-tab--outline {
@@ -6915,9 +6923,7 @@ body {
     }
 
     .changelog-screen li.changelog-entry {
-        padding: 10px 0;
-        margin-inline: -19px;
-        padding-inline: 19px;
+        padding: 12px 14px;
     }
 
     .changelog-entry__header {
