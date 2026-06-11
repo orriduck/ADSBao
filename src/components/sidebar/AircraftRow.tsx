@@ -14,6 +14,7 @@ import { formatFlightTelemetryMetric } from "@/features/aircraft/tracking/flight
 import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplayModel";
 import { formatAltitude } from "@/utils/units";
 import { useCardInteraction } from "@/animations/useCardInteraction";
+import { rowPropsEqual } from "./rowPropsEqual";
 
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
 // stamped broken-image icons in dense list rows when the logo isn't
@@ -130,37 +131,25 @@ function AircraftRow({
 }
 
 // Memoized so a poll tick only re-renders rows whose displayed fields
-// actually changed. The upstream pipeline (trace tracker + per-poll
-// distance re-map) hands down a fresh object identity for every aircraft
-// each tick, so the comparator is field-based, not referential.
-function aircraftRowPropsEqual(
-  prev: Record<string, any>,
-  next: Record<string, any>,
-) {
-  if (
-    prev.selected !== next.selected ||
-    prev.aircraftId !== next.aircraftId ||
-    prev.onSelectAircraft !== next.onSelectAircraft
-  ) {
-    return false;
-  }
-  const a = prev.aircraft || {};
-  const b = next.aircraft || {};
-  if (a === b) return true;
-  return (
-    a.callsign === b.callsign &&
-    a.icao24 === b.icao24 &&
-    a.flightRouteLabel === b.flightRouteLabel &&
-    a.flightRoute === b.flightRoute &&
-    a.distanceNm === b.distanceNm &&
-    a.altitude === b.altitude &&
-    a.onGround === b.onGround &&
-    a.flight_position_source === b.flight_position_source &&
-    a.positionQuality === b.positionQuality
-  );
-}
-
-export default memo(AircraftRow, aircraftRowPropsEqual);
+// actually changed (the pipeline hands down fresh object identities every
+// tick, so the compare is field-based — see rowPropsEqual).
+export default memo(AircraftRow, (prev, next) =>
+  rowPropsEqual(prev, next, {
+    scalarKeys: ["selected", "aircraftId", "onSelectAircraft"],
+    nestedKey: "aircraft",
+    nestedFields: [
+      "callsign",
+      "icao24",
+      "flightRouteLabel",
+      "flightRoute",
+      "distanceNm",
+      "altitude",
+      "onGround",
+      "flight_position_source",
+      "positionQuality",
+    ],
+  }),
+);
 
 function AircraftIdentityCell({
   callsign,
