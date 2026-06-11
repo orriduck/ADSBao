@@ -7,7 +7,6 @@ import {
   ABOUT_DATA_SOURCES,
   ABOUT_REPOSITORY,
 } from "../../config/about";
-import DitherPageShell from "../app-shell/DitherPageShell";
 import {
   getDataSourceCountLabel,
   getExternalLinkOpenTarget,
@@ -35,8 +34,7 @@ export default function AboutPanel() {
     : [];
 
   return (
-    <DitherPageShell title={t("app.aboutTitle")} description="">
-      <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto">
         <div className="about-meta-grid mx-6 flex-none border-y border-[var(--atc-line)]">
           {version ? (
             <div className="about-meta-version relative flex items-end justify-between gap-4 py-4">
@@ -147,7 +145,6 @@ export default function AboutPanel() {
             </span>
           </a>
         </div>
-      </div>
-    </DitherPageShell>
+    </div>
   );
 }

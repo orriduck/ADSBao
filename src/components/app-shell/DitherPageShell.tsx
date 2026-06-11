@@ -1,25 +1,39 @@
 "use client";
 
 import { useRef } from "react";
+import { usePathname } from "next/navigation";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
 import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
+import { CHANGELOG } from "@/config/changelog";
 import { SITE_DESCRIPTION } from "@/config/site";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { usePageEntrance } from "@/animations/usePageEntrance";
 
 export default function DitherPageShell({
   className = "",
-  title = null,
-  description = SITE_DESCRIPTION,
+  title = undefined,
+  description = undefined,
   children,
 }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const pathname = usePathname();
   const shellRef = useRef<HTMLDivElement>(null);
-  usePageEntrance(shellRef);
-  const resolvedTitle = title ?? t("app.airportExplorer");
+  const routeChrome = resolveRouteChrome(pathname, t);
+  usePageEntrance(shellRef, {
+    triggerKey: `${routeChrome.key}:${locale}`,
+  });
+
+  const resolvedTitle = title ?? routeChrome.title;
   const resolvedDescription =
-    description === SITE_DESCRIPTION ? t("app.siteDescription") : description;
+    description === undefined
+      ? routeChrome.description
+      : description === SITE_DESCRIPTION
+        ? t("app.siteDescription")
+        : description;
+  const resolvedClassName = [routeChrome.className, className]
+    .filter(Boolean)
+    .join(" ");
   const hasDescription =
     typeof resolvedDescription === "string"
       ? resolvedDescription.trim().length > 0
@@ -28,7 +42,7 @@ export default function DitherPageShell({
   return (
     <div
       ref={shellRef}
-      className={`dither-page-shell flex h-screen text-atc-text ${className}`.trim()}
+      className={`dither-page-shell flex h-screen text-atc-text ${resolvedClassName}`.trim()}
     >
       <PageNavigationDock />
 
@@ -41,17 +55,19 @@ export default function DitherPageShell({
               className="h-px flex-1 bg-[var(--atc-line-strong)]"
             />
           </div>
-          <h1
-            className="endf-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "normal" }}
-          >
-            <span className="block break-words">{resolvedTitle}</span>
-          </h1>
-          {hasDescription ? (
-            <p className="dither-page-description mt-3 text-[13px] leading-relaxed text-atc-dim">
-              {resolvedDescription}
-            </p>
-          ) : null}
+          <div className="dither-page-copy">
+            <h1
+              className="endf-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
+              style={{ fontFamily: "var(--font-display)", letterSpacing: "normal" }}
+            >
+              <span className="block break-words">{resolvedTitle}</span>
+            </h1>
+            {hasDescription ? (
+              <p className="dither-page-description mt-3 text-[13px] leading-relaxed text-atc-dim">
+                {resolvedDescription}
+              </p>
+            ) : null}
+          </div>
         </div>
 
         <div className="dither-page-body flex min-h-0 flex-1 flex-col">
@@ -64,4 +80,45 @@ export default function DitherPageShell({
       </div>
     </div>
   );
+}
+
+function resolveRouteChrome(pathname, t) {
+  const segment = String(pathname || "").split("/").filter(Boolean)[0] || "";
+
+  if (segment === "about") {
+    return {
+      key: "about",
+      className: "",
+      title: t("app.aboutTitle"),
+      description: "",
+    };
+  }
+
+  if (segment === "mechanism") {
+    return {
+      key: "mechanism",
+      className: "",
+      title: t("app.mechanismTitle"),
+      description: "",
+    };
+  }
+
+  if (segment === "changelog") {
+    const current = CHANGELOG[0]?.version || "";
+    return {
+      key: "changelog",
+      className: "changelog-screen",
+      title: t("changelog.title"),
+      description: current
+        ? t("changelog.description", { version: current })
+        : t("changelog.descriptionFallback"),
+    };
+  }
+
+  return {
+    key: "home",
+    className: "search-screen",
+    title: t("search.discovery.pageTitle"),
+    description: t("search.discovery.pageDescription"),
+  };
 }

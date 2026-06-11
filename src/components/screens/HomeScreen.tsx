@@ -64,11 +64,7 @@ export default function HomeScreen() {
   };
 
   if (!currentIcao) {
-    return (
-      <div key={screenTransitionKey} className="app-route-transition min-h-dvh">
-        <AirportSearchPanel onOpenAirport={handleOpenAirport} />
-      </div>
-    );
+    return <AirportSearchPanel onOpenAirport={handleOpenAirport} />;
   }
 
   return (

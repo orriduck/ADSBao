@@ -1,6 +1,5 @@
 "use client";
 
-import DitherPageShell from "@/components/app-shell/DitherPageShell";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { CHANGELOG } from "@/config/changelog";
 
@@ -363,18 +362,9 @@ const CHINESE_RELEASE_COPY = {
 
 export default function ChangelogPanel() {
   const { locale, t } = useI18n();
-  const current = CHANGELOG[0]?.version || "";
 
   return (
-    <DitherPageShell
-      className="changelog-screen"
-      title={t("changelog.title")}
-      description={
-        current
-          ? t("changelog.description", { version: current })
-          : t("changelog.descriptionFallback")
-      }
-    >
+    <>
       <div className="dither-section-header flex-none px-6 pt-6 pb-3">
         <div className="endf-section-head">
           <span className="endf-label">{t("changelog.releases")}</span>
@@ -394,7 +384,7 @@ export default function ChangelogPanel() {
           />
         ))}
       </ol>
-    </DitherPageShell>
+    </>
   );
 }
 

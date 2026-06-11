@@ -11,13 +11,19 @@ import gsap from "gsap";
 import { MOTION, EASE, killTweensOf } from "./gsap";
 
 interface PageEntranceOptions {
-  /** CSS selector for the header/title element. Default: ".dither-page-header" */
+  /** CSS selector for the copy block. Default: ".dither-page-copy" */
   headerSelector?: string;
   /** CSS selector for the body/content element. Default: ".dither-page-body" */
   bodySelector?: string;
-  /** Delay before starting (seconds). Default: 0.05 */
+  /** Optional selector for explicitly staggered children. */
+  itemSelector?: string;
+  /** Replays the entrance animation when this key changes. */
+  triggerKey?: string;
+  /** Delay before starting (seconds). Default: 0.02 */
   delay?: number;
-  /** Whether to animate on mount. Default: true */
+  /** Whether to reset sidebar scroll containers before animating. Default: true */
+  resetScroll?: boolean;
+  /** Whether to animate on mount / trigger. Default: true */
   enabled?: boolean;
 }
 
@@ -26,9 +32,12 @@ export function usePageEntrance(
   options: PageEntranceOptions = {},
 ) {
   const {
-    headerSelector = ".dither-page-header",
+    headerSelector = ".dither-page-copy",
     bodySelector = ".dither-page-body",
-    delay = 0.05,
+    itemSelector = ".app-list-motion > *, .gsap-stagger-item",
+    triggerKey = "initial",
+    delay = 0.02,
+    resetScroll = true,
     enabled = true,
   } = options;
 
@@ -38,19 +47,36 @@ export function usePageEntrance(
     const container = containerRef.current;
     if (!container) return;
 
-    // Kill any running animations on this container
-    killTweensOf(container);
-
     ctxRef.current?.revert();
+
+    const header = container.querySelector<HTMLElement>(headerSelector);
+    const body = container.querySelector<HTMLElement>(bodySelector);
+    const items = Array.from(container.querySelectorAll<HTMLElement>(itemSelector));
+    const animatedElements = [header, body, ...items].filter(Boolean);
+
+    if (resetScroll && body) {
+      body.scrollTop = 0;
+      body
+        .querySelectorAll<HTMLElement>(".overflow-y-auto")
+        .forEach((scroller) => {
+          scroller.scrollTop = 0;
+        });
+    }
+
+    killTweensOf(animatedElements);
+
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      gsap.set(animatedElements, { clearProps: "opacity,transform" });
+      return;
+    }
+
     ctxRef.current = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { overwrite: "auto" } });
 
-      // 1. Header slides up
-      const header = container.querySelector(headerSelector);
       if (header) {
         tl.fromTo(
           header,
-          { opacity: 0, y: 10 },
+          { opacity: 0, y: 8 },
           {
             opacity: 1,
             y: 0,
@@ -61,8 +87,6 @@ export function usePageEntrance(
         );
       }
 
-      // 2. Body content fades in with slight delay
-      const body = container.querySelector(bodySelector);
       if (body) {
         tl.fromTo(
           body,
@@ -73,35 +97,35 @@ export function usePageEntrance(
             duration: MOTION.med,
             ease: EASE.out,
           },
-          "-=0.1",
+          header ? "-=0.16" : delay,
         );
       }
 
-      // 3. Any list items stagger in
-      tl.fromTo(
-        container.querySelectorAll(".app-list-motion > *, .gsap-stagger-item"),
-        { opacity: 0, y: 5 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: MOTION.med,
-          ease: EASE.out,
-          stagger: { each: 0.035, from: "start" },
-        },
-        "-=0.05",
-      );
+      if (items.length > 0) {
+        tl.fromTo(
+          items,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: MOTION.fast,
+            ease: EASE.out,
+            stagger: { each: 0.025, from: "start" },
+          },
+          "-=0.08",
+        );
+      }
     }, container);
-  }, [containerRef, headerSelector, bodySelector, delay]);
+  }, [containerRef, headerSelector, bodySelector, itemSelector, delay, resetScroll]);
 
   useEffect(() => {
-    if (!enabled) return;
-    // Small RAF delay to let the DOM settle after React renders
+    if (!enabled) return undefined;
+    // Small RAF delay lets the new route segment commit before GSAP reads it.
     const raf = requestAnimationFrame(() => play());
     return () => {
       cancelAnimationFrame(raf);
       ctxRef.current?.revert();
     };
-  }, [enabled, play]);
+  }, [enabled, play, triggerKey]);
 
   return { play };
 }

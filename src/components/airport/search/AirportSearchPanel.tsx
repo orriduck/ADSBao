@@ -1,7 +1,6 @@
 "use client";
 
 import { Search } from "lucide-react";
-import DitherPageShell from "../../app-shell/DitherPageShell";
 import { Input } from "@/components/ui/input";
 import {
   createAirportSelection,
@@ -42,11 +41,7 @@ export default function AirportSearchPanel({ onOpenAirport }) {
   };
 
   return (
-    <DitherPageShell
-      className="search-screen"
-      title={t("search.discovery.pageTitle")}
-      description={t("search.discovery.pageDescription")}
-    >
+    <>
       <form
         onSubmit={doSearch}
         className="search-input mx-6 mb-4 flex-none flex items-center gap-3 px-4 py-3"
@@ -82,6 +77,6 @@ export default function AirportSearchPanel({ onOpenAirport }) {
           />
         )}
       </div>
-    </DitherPageShell>
+    </>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import DitherPageShell from "@/components/app-shell/DitherPageShell";
 import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import { MECHANISM_ITEMS } from "@/config/mechanism";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -16,8 +15,7 @@ export default function MechanismPanel() {
   );
 
   return (
-    <DitherPageShell title={t("app.mechanismTitle")} description="">
-      <div className="flex-1 overflow-y-auto pb-6">
+    <div className="flex-1 overflow-y-auto pb-6">
         <div className="dither-section-header flex-none px-6 pt-6 pb-3">
           <div className="endf-section-head">
             <span className="endf-label">{t("mechanism.sidebarLabel")}</span>
@@ -76,7 +74,6 @@ export default function MechanismPanel() {
             );
           })}
         </ol>
-      </div>
-    </DitherPageShell>
+    </div>
   );
 }
