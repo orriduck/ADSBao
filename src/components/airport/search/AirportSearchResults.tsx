@@ -50,7 +50,7 @@ export function AirportSearchResults({
           {t("search.noAirportMatched", { query: query.trim() })}
         </div>
       ) : (
-        <ul className="app-list-motion dither-list px-6 divide-y divide-[var(--atc-line)]">
+        <ul className="app-list-motion dither-list flex flex-col gap-1 px-6">
           {rows.map((airport, index) => (
             <AirportRow
               key={airport.icao || airport.code || airport.name}

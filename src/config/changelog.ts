@@ -7,6 +7,19 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.4.2",
+    kind: "patch",
+    title: "Unified browse lists & toolbars",
+    summary:
+      "The home, about, mechanism, and changelog browse lists now share one tidy list style — aligned code pills, single-line rows, a rounded frosted hover, and the liquid-glass capsule for the selected/expanded row. Page toolbars reuse the airport detail toolbar's button style.",
+    highlights: [
+      "All sidebar browse lists route through one TextPillListItem primitive: flat aligned rows, rounded frosted hover, glass-capsule active state",
+      "Selected search result and expanded mechanism row lift into the shared liquid-glass capsule",
+      "Home/about/mechanism/changelog toolbars reuse the airport detail rail button tone (frosted hover, not a dark-ink fill)",
+      "Changelog entries become clean reading blocks with de-skewed version pills",
+    ],
+  },
+  {
     version: "v2.4.1",
     kind: "patch",
     title: "Liquid glass polish",
