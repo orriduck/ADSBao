@@ -1676,7 +1676,7 @@ export default function PlaneHunterStudio({
               </div>
               <h2
                 className="mt-5 text-[26px] font-extrabold leading-[1.08] text-atc-text"
-                style={{ fontFamily: "var(--font-display)", letterSpacing: "0" }}
+                style={{ fontFamily: "var(--font-display)", letterSpacing: "normal" }}
               >
                 {t("planeHunter.title")}
               </h2>

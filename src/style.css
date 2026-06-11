@@ -38,9 +38,9 @@
     --color-atc-line: var(--atc-line);
     --color-atc-line-strong: var(--atc-line-strong);
 
-    /* Consumer flight-tracking typography. Plus Jakarta Sans gives ADSBao
-       the geometric mobility-product feel requested from Uber's type
-       system, while Noto Sans SC carries CJK glyphs. */
+    /* Consumer flight-tracking typography. Manrope gives ADSBao the
+       geometric mobility-product feel requested from Uber's type system,
+       while Noto Sans SC carries CJK glyphs. */
     --font-sans: var(--theme-font-sans);
     --font-mono: var(--theme-font-mono);
     --font-nav: var(--theme-font-nav);
@@ -458,15 +458,15 @@
    near-black in light mode and near-white in dark mode. */
 :root {
     --theme-font-harmony-medium:
-        "Plus Jakarta Sans", "Noto Sans SC", system-ui, sans-serif;
+        "Manrope", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-sans:
-        "Plus Jakarta Sans", "Noto Sans SC", system-ui, sans-serif;
+        "Manrope", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-mono:
-        "Plus Jakarta Sans", "Noto Sans SC", system-ui, sans-serif;
+        "Manrope", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-nav:
-        "Plus Jakarta Sans", "Noto Sans SC", system-ui, sans-serif;
+        "Manrope", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-display:
-        "Plus Jakarta Sans", "Noto Sans SC", system-ui, sans-serif;
+        "Manrope", "Noto Sans SC", system-ui, sans-serif;
     --theme-primary-bright: oklch(0.18 0.006 100);
     --theme-primary-deep: oklch(0.18 0.006 100);
     --theme-primary-ink: oklch(0.985 0.003 100);
@@ -1410,7 +1410,7 @@ body:has(.app-detail-shell) {
     font-weight: 700;
     height: 18px;
     justify-content: center;
-    letter-spacing: 0;
+    letter-spacing: normal;
     line-height: 1;
     text-shadow: 0 1px 2px rgb(0 0 0 / 0.45);
     width: 34px;
@@ -1494,7 +1494,7 @@ body:has(.app-detail-shell) {
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: normal;
     paint-order: stroke;
     opacity: 0.5;
     pointer-events: none;
@@ -1650,7 +1650,7 @@ body:has(.app-detail-shell) {
 .navaid-count-marker strong {
     font-size: 11px;
     font-weight: 900;
-    letter-spacing: 0;
+    letter-spacing: normal;
     line-height: 1;
 }
 
@@ -1658,7 +1658,7 @@ body:has(.app-detail-shell) {
     color: var(--navaid-label-muted);
     font-size: 7px;
     font-weight: 800;
-    letter-spacing: 0;
+    letter-spacing: normal;
     line-height: 1;
 }
 
@@ -2818,7 +2818,7 @@ body:has(.app-detail-shell) {
 }
 
 body {
-    letter-spacing: 0;
+    letter-spacing: normal;
 }
 
 .font-mono,
@@ -2828,7 +2828,7 @@ body {
     font-feature-settings:
         "tnum" 1,
         "ss01" 1;
-    letter-spacing: 0;
+    letter-spacing: normal;
 }
 
 .dither-page-shell {
@@ -2909,7 +2909,7 @@ body {
 }
 
 .dither-page-panel p {
-    letter-spacing: 0;
+    letter-spacing: normal;
 }
 
 .search-input {
@@ -2937,7 +2937,7 @@ body {
 .endf-label,
 .endf-section-head__count {
     font-family: var(--font-sans);
-    letter-spacing: 0;
+    letter-spacing: normal;
     text-transform: none;
 }
 
@@ -2950,7 +2950,7 @@ body {
 .endf-chip {
     border-radius: var(--atc-radius-pill);
     font-family: var(--font-sans);
-    letter-spacing: 0;
+    letter-spacing: normal;
     text-transform: none;
     transform: none;
 }
@@ -3121,13 +3121,13 @@ body {
 .airport-sidebar-display-mono {
     font-style: normal;
     font-weight: 800;
-    letter-spacing: 0;
+    letter-spacing: normal;
 }
 
 .aircraft-preview-stat__label,
 .aircraft-preview-meta-row__label,
 .route-feedback-form__label {
-    letter-spacing: 0;
+    letter-spacing: normal;
     text-transform: none;
 }
 
@@ -3175,7 +3175,7 @@ body {
 .route-feedback-form__open {
     border-radius: var(--atc-radius-pill);
     font-family: var(--font-sans);
-    letter-spacing: 0;
+    letter-spacing: normal;
     text-transform: none;
 }
 
@@ -3198,7 +3198,7 @@ body {
 
 .route-feedback-form__input {
     border-radius: 12px;
-    letter-spacing: 0;
+    letter-spacing: normal;
 }
 
 .route-feedback-modal__overlay {
@@ -4616,7 +4616,7 @@ body {
 .aircraft-table-header {
     background: color-mix(in oklab, var(--atc-bg) 42%, transparent);
     border-top: 1px solid color-mix(in oklab, var(--atc-line) 54%, transparent);
-    letter-spacing: 0;
+    letter-spacing: normal;
     min-height: 38px;
 }
 
@@ -4865,7 +4865,7 @@ body {
     font-family: var(--font-sans);
     font-size: 6.5px;
     gap: 2px;
-    letter-spacing: 0;
+    letter-spacing: normal;
     line-height: 1;
     min-height: 10px;
     padding: 1px 5px 1px 4px;
@@ -4986,7 +4986,7 @@ body {
 
 .airport-sidebar-panel .metar-token-strip strong {
     font-size: 17px;
-    letter-spacing: 0;
+    letter-spacing: normal;
 }
 
 .airport-sidebar-panel--mobile .metar-token-strip strong {
@@ -5237,7 +5237,7 @@ body {
     display: inline-block;
     font-size: 0.32em;
     font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: normal;
     margin-left: 0.18em;
     text-transform: uppercase;
     transform: translateY(0.52em);
@@ -5284,7 +5284,7 @@ body {
     font-family: var(--airport-sidebar-sans);
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0;
+    letter-spacing: normal;
     text-transform: uppercase;
 }
 
@@ -5292,7 +5292,7 @@ body {
     color: var(--atc-dim);
     font-family: var(--airport-sidebar-sans);
     font-size: 12px;
-    letter-spacing: 0;
+    letter-spacing: normal;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -6675,7 +6675,7 @@ body {
 /* Modernization override must stay last. */
 [class*="uppercase"],
 [class*="tracking-"] {
-    letter-spacing: 0 !important;
+    letter-spacing: normal !important;
 }
 
 [class*="uppercase"] {
@@ -6693,7 +6693,7 @@ body {
 .route-feedback-form__submit,
 .route-feedback-form__cancel {
     font-family: var(--font-sans) !important;
-    letter-spacing: 0 !important;
+    letter-spacing: normal !important;
     text-transform: none !important;
 }
 
