@@ -234,7 +234,10 @@ export default function AircraftTable({
   );
 
   return (
-    <div className={`flex flex-col ${fill ? "h-full" : ""}`}>
+    <div
+      data-has-pinned-aircraft={pinnedAircraft ? "true" : undefined}
+      className={cn("aircraft-table-shell flex flex-col", fill && "h-full")}
+    >
       <div className="flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
           <span className="endf-label endf-label--lead">
@@ -358,7 +361,12 @@ export default function AircraftTable({
         ) : null}
       </div>
 
-      <div className={fill ? "flex-1 min-h-0" : "overflow-visible"}>
+      <div
+        className={cn(
+          "aircraft-table-scroll-shell",
+          fill ? "flex-1 min-h-0" : "overflow-visible",
+        )}
+      >
         {listRows.length === 0 &&
         filteredAirports.length === 0 &&
         !pinnedAircraft ? (
