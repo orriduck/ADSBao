@@ -17,13 +17,17 @@ const securityHeaders = [
     value: "nosniff",
   },
   {
+    key: "Origin-Agent-Cluster",
+    value: "?1",
+  },
+  {
     key: "Referrer-Policy",
     value: "strict-origin-when-cross-origin",
   },
   {
     key: "Permissions-Policy",
     value:
-      "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), browsing-topics=()",
+      "camera=(), microphone=(), geolocation=(self), payment=(), tools=(self), usb=(), browsing-topics=()",
   },
 ];
 
