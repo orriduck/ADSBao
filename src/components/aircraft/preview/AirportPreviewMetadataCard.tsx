@@ -53,7 +53,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
     <div className="aircraft-preview-metadata-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <span className="endf-label">{t("sidebar.airport")}</span>
+          <span className="atc-kicker">{t("sidebar.airport")}</span>
           <div className="mt-1 flex min-w-0 items-baseline gap-2">
             <span
               className="airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[28px] font-extrabold leading-none text-atc-text"

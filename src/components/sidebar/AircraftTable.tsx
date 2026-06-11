@@ -250,7 +250,7 @@ export default function AircraftTable({
     >
       <div className="flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
-          <span className="endf-label endf-label--lead">
+          <span className="atc-kicker atc-kicker--lead">
             {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
           </span>
           <div className="whitespace-nowrap font-mono text-[10px] tracking-[0.18em] text-atc-dim tabular-nums">

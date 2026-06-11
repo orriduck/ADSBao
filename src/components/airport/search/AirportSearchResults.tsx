@@ -19,8 +19,8 @@ export function AirportSearchResults({
   return (
     <>
       <div className="dither-section-header px-6 pt-5 pb-3">
-        <div className="endf-section-head">
-          <span className="endf-label">{t("search.searchResults")}</span>
+        <div className="atc-section-head">
+          <span className="atc-kicker">{t("search.searchResults")}</span>
           <span className="flex items-center gap-2">
             <AsyncStatusLine
               loading={Boolean(loading)}
@@ -32,7 +32,7 @@ export function AirportSearchResults({
               errorLabel={t("search.searchAirportsError")}
               className="text-[9px]"
             />
-            <span className="endf-section-head__count">{countLabel}</span>
+            <span className="atc-section-head__count">{countLabel}</span>
           </span>
         </div>
       </div>

@@ -57,7 +57,7 @@ export default function DitherPageShell({
           </div>
           <div className="dither-page-copy">
             <h1
-              className="endf-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
+              className="atc-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
               style={{ fontFamily: "var(--font-display)", letterSpacing: "normal" }}
             >
               <span className="block break-words">{resolvedTitle}</span>

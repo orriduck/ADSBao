@@ -8,7 +8,7 @@ const HOLD_MS = 100;
 const REVEAL_MS = 220;
 const SETTLE_MS = 30;
 
-export function useEndfieldContentSwap({
+export function useContentSwap({
   identityKey,
   value,
   delaySeconds = 0,
@@ -85,17 +85,17 @@ export function useEndfieldContentSwap({
 
   const contentPhaseClass =
     phase === "erasing"
-      ? "endf-content-swap__content--erasing"
+      ? "content-swap__content--erasing"
       : phase === "hidden"
-        ? "endf-content-swap__content--hidden"
+        ? "content-swap__content--hidden"
         : phase === "revealing"
-          ? "endf-content-swap__content--revealing"
+          ? "content-swap__content--revealing"
           : "";
 
   return {
     displayedValue,
     replacing: phase !== "idle",
     contentPhaseClass,
-    style: { "--endf-content-swap-delay": `${replaceDelay}s` },
+    style: { "--content-swap-delay": `${replaceDelay}s` },
   };
 }

@@ -18,7 +18,7 @@ Industrial, precise, cinematic. The interface should feel like a serious field-o
 
 ## Anti-references
 
-Avoid generic SaaS dashboards, marketing hero pages, neon cyberpunk radar tropes, soft pastel consumer UI, busy gacha menu clutter, decorative glassmorphism, and purely military simulation aesthetics. Arknights: Endfield is a tonal reference for industrial science-fiction UI, not a source to copy directly.
+Avoid generic SaaS dashboards, marketing hero pages, neon cyberpunk radar tropes, soft pastel consumer UI, busy gacha menu clutter, decorative glassmorphism, and purely military simulation aesthetics. Industrial science-fiction can inform tone, but should not become a direct visual source.
 
 ## Design Principles
 

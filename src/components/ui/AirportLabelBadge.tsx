@@ -95,7 +95,7 @@ export function airportLabelBadgeHtml({
   const suffixHtml = codeSuffix
     ? `<span class="airport-overlay-label__code-suffix">${escapeHtml(codeSuffix)}</span>`
     : "";
-  const codePill = `<span class="airport-overlay-label__code endf-tab endf-tab--code">${iconHtml}<span>${escapeHtml(code)}</span>${suffixHtml}</span>`;
+  const codePill = `<span class="airport-overlay-label__code atc-pill atc-code-pill">${iconHtml}<span>${escapeHtml(code)}</span>${suffixHtml}</span>`;
   const detailsHtml = details.map(renderDetailHtml).join("");
   const collisionAttrs = collision
     ? ` data-map-badge="true" data-map-badge-type="${escapeHtml(badgeType)}"`
@@ -175,7 +175,7 @@ export function AirportLabelBadge({
       data-map-badge-type={collision ? badgeType : undefined}
       translate="no"
     >
-      <span className="airport-overlay-label__code endf-tab endf-tab--code">
+      <span className="airport-overlay-label__code atc-pill atc-code-pill">
         {icon ? <BadgeIcon type={icon} /> : null}
         <span>{code}</span>
       </span>

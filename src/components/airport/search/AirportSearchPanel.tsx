@@ -53,7 +53,7 @@ export default function AirportSearchPanel({ onOpenAirport }) {
           className="min-w-0 flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
           placeholder={t("search.placeholder")}
         />
-        <kbd className="endf-chip hidden shrink-0 sm:inline-flex">
+        <kbd className="atc-chip hidden shrink-0 sm:inline-flex">
           <span>{loading ? "..." : t("search.enter")}</span>
         </kbd>
       </form>

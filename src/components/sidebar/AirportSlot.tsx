@@ -1,6 +1,6 @@
 "use client";
 
-import { useEndfieldContentSwap } from "@/components/effects/useEndfieldContentSwap";
+import { useContentSwap } from "@/components/effects/useContentSwap";
 import AirportRow from "./AirportRow";
 
 function getAirportIdentity(airport) {
@@ -17,7 +17,7 @@ export default function AirportSlot({
 }) {
   const currentKey = getAirportIdentity(airport);
   const flipDelay = Math.max(cascadeOrder, 0) * flipStaggerStep;
-  const swap = useEndfieldContentSwap({
+  const swap = useContentSwap({
     identityKey: currentKey,
     value: airport,
     delaySeconds: flipDelay,
@@ -29,12 +29,12 @@ export default function AirportSlot({
   return (
     <div
       style={swap.style}
-      className={`endf-content-swap ${
-        swap.replacing ? "endf-content-swap--replacing" : ""
+      className={`content-swap ${
+        swap.replacing ? "content-swap--replacing" : ""
       }`}
     >
       <div
-        className={`endf-content-swap__content ${swap.contentPhaseClass}`}
+        className={`content-swap__content ${swap.contentPhaseClass}`}
       >
         <AirportRow
           airport={displayed}
