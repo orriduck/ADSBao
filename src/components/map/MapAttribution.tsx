@@ -10,7 +10,7 @@ export default function MapAttribution({ color, shadowColor, hidden = false }) {
         textShadow: `0 0 6px ${shadowColor}`,
       }}
     >
-      © OpenStreetMap contributors © CARTO
+      OpenFreeMap / OpenMapTiles / OpenStreetMap
     </div>
   );
 }

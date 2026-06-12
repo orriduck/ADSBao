@@ -1463,7 +1463,7 @@ body:has(.app-detail-shell) {
     mix-blend-mode: normal;
 }
 
-/* Standard base map (CARTO voyager) runs hot out of the box — pull the
+/* Standard base map runs hot out of the box — pull the
    saturation well down so greens/blues read as a muted manual-paper
    wash that the frosted glass sits over, not a candy basemap. */
 :root[data-theme="light"] .atc-tile-base {
