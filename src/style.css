@@ -4882,6 +4882,11 @@ body {
     transform-origin: center;
 }
 
+:root[data-theme="light"] .brand-logo__image {
+    filter: invert(1) drop-shadow(0 1px 1px rgb(31 39 49 / 0.16))
+        drop-shadow(0 2px 2px rgb(31 39 49 / 0.08));
+}
+
 .brand-logo--animated .brand-logo__mark {
     animation: brand-logo-mark-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
