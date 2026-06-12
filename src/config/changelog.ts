@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.4.4",
+    kind: "patch",
+    title: "Full airport names",
+    summary:
+      "Airport names now render in full instead of OpenAIP's truncated, all-caps form.",
+    highlights: [
+      "Restored an OurAirports name table to override OpenAIP's ~40-character truncated names",
+      "Airport headers and nearby lists show full mixed-case names (e.g. \"Boston Logan International Airport\")",
+      "Backfills the city label when OpenAIP leaves it blank",
+    ],
+  },
+  {
     version: "v2.4.3",
     kind: "patch",
     title: "Manrope typography",

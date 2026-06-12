@@ -4,6 +4,7 @@ import { getOpenAipAirportPage, searchOpenAipAirports } from "./openAipDirectory
 
 const airports = await searchOpenAipAirports({
   query: "shanghai",
+  ourAirportsNameRepository: null,
   client: {
     async listAirports() {
       return {
@@ -52,6 +53,7 @@ assert.ok(airports.every((airport) => airport.ident.length <= 4));
     radiusNm: 60,
     nearbyLimit: 12,
     runwayGeometryRepository: null,
+    ourAirportsNameRepository: null,
     facilityRepository: {
       async readFrequenciesByAirportIdent() {
         return [
