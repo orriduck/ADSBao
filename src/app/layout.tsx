@@ -39,6 +39,7 @@ export const metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  manifest: "/manifest.webmanifest",
   keywords: SITE_KEYWORDS,
   authors: [{ name: "Chen Liang" }],
   creator: "Chen Liang",

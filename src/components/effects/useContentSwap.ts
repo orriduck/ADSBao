@@ -94,8 +94,10 @@ export function useContentSwap({
 
   return {
     displayedValue,
+    phase,
     replacing: phase !== "idle",
     contentPhaseClass,
+    replaceDelaySeconds: replaceDelay,
     style: { "--content-swap-delay": `${replaceDelay}s` },
   };
 }
