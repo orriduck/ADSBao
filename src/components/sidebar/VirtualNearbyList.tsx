@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
-import { useListReorderMotion } from "@/animations/useListReorderMotion";
 import AircraftRow from "./AircraftRow";
 import AirportRow from "./AirportRow";
+import CardFlipSlot from "./CardFlipSlot";
 
 // Initial guess only — the actual row height is measured per element by
 // virtualizer.measureElement and may differ across breakpoints (the
@@ -35,7 +35,10 @@ export default function VirtualNearbyList({
     getScrollElement: () => parentRef.current,
     estimateSize: () => ROW_HEIGHT_ESTIMATE_PX,
     overscan: OVERSCAN_ROWS,
-    getItemKey: (index) => items[index]?.id ?? index,
+    // Position-keyed slots: a slot's occupant only changes on a real
+    // re-sort (scrolling changes which indices render, not items[index]),
+    // which is what drives the in-place card flip.
+    getItemKey: (index) => index,
   });
 
   // Track which item ids were present in the previous render so we can mark
@@ -71,11 +74,6 @@ export default function VirtualNearbyList({
 
   const virtualRows = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
-  const motionKey = useMemo(
-    () => items.map((item) => item.id).join("|"),
-    [items],
-  );
-  useListReorderMotion(parentRef, motionKey, { resetKey: resetSignal });
 
   return (
     <div ref={parentRef} className="app-virtual-list-motion h-full overflow-y-auto">
@@ -89,7 +87,7 @@ export default function VirtualNearbyList({
           return (
             <NearbyVirtualRow
               ref={virtualizer.measureElement}
-              key={virtualRow.key}
+              key={virtualRow.index}
               index={virtualRow.index}
               start={virtualRow.start}
               isFirst={isFirst}
@@ -150,30 +148,32 @@ function NearbyVirtualRow({
       data-index={index}
       className={`absolute left-0 top-0 w-full ${
         isFirst ? "" : "border-t border-atc-line"
-      } [perspective:800px]`}
+      }`}
       style={{
         transform: `translateY(${start}px)`,
       }}
     >
-      <div data-gsap-reorder-key={item.id}>
-        <div className={entering ? "nearby-row-enter" : ""}>
-          {item.type === "aircraft" ? (
-            <AircraftRow
-              aircraft={item.data}
-              aircraftId={item.id}
-              selected={item.id === selectedAircraftId}
-              onSelectAircraft={onSelectAircraft}
-            />
-          ) : (
-            <AirportRow
-              airport={item.data}
-              airportId={item.data?.icao}
-              selected={item.data?.icao === selectedAirportIcao}
-              onSelectAirport={onSelectAirport}
-            />
-          )}
-        </div>
-      </div>
+      <CardFlipSlot swapKey={item.id} value={item}>
+        {(displayed) => (
+          <div className={entering ? "nearby-row-enter" : ""}>
+            {displayed.type === "aircraft" ? (
+              <AircraftRow
+                aircraft={displayed.data}
+                aircraftId={displayed.id}
+                selected={displayed.id === selectedAircraftId}
+                onSelectAircraft={onSelectAircraft}
+              />
+            ) : (
+              <AirportRow
+                airport={displayed.data}
+                airportId={displayed.data?.icao}
+                selected={displayed.data?.icao === selectedAirportIcao}
+                onSelectAirport={onSelectAirport}
+              />
+            )}
+          </div>
+        )}
+      </CardFlipSlot>
     </div>
   );
 }

@@ -4279,6 +4279,68 @@ body {
     }
 }
 
+/* Card-flip variant for the re-sortable browse list. The slot stays put;
+   when its occupant changes the content rotates out around its horizontal
+   axis, the value is swapped while edge-on (handled by useContentSwap),
+   then the new content rotates back in — a card flip in place rather than
+   the row sliding to a new position. Scoped to .card-flip-slot so the
+   pinned-row content swap keeps its plain cross-fade. */
+.card-flip-slot {
+    perspective: 720px;
+}
+
+.card-flip-slot .content-swap__content {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    transform-origin: center center;
+    will-change: transform, opacity;
+}
+
+.card-flip-slot .content-swap__content--erasing {
+    animation: card-flip-out 150ms ease-in var(--content-swap-delay, 0s) both;
+}
+
+.card-flip-slot .content-swap__content--hidden {
+    transform: rotateX(90deg);
+    opacity: 0;
+}
+
+.card-flip-slot .content-swap__content--revealing {
+    animation: card-flip-in 200ms ease-out both;
+}
+
+@keyframes card-flip-out {
+    from {
+        transform: rotateX(0deg);
+        opacity: 1;
+    }
+    to {
+        transform: rotateX(90deg);
+        opacity: 0;
+    }
+}
+
+@keyframes card-flip-in {
+    from {
+        transform: rotateX(-90deg);
+        opacity: 0;
+    }
+    to {
+        transform: rotateX(0deg);
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card-flip-slot .content-swap__content--erasing,
+    .card-flip-slot .content-swap__content--revealing {
+        animation: none;
+    }
+    .card-flip-slot .content-swap__content--hidden {
+        transform: none;
+    }
+}
+
 @keyframes preview-text-settle {
     0%,
     40% {
