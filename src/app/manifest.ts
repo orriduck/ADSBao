@@ -22,9 +22,9 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["travel", "navigation", "utilities"],
     icons: [
       {
-        src: "/icon.svg",
-        sizes: "256x256",
-        type: "image/svg+xml",
+        src: "/icon.png",
+        sizes: "512x512",
+        type: "image/png",
         purpose: "any",
       },
       {
