@@ -26,7 +26,10 @@ export default function CardFlipSlot({
   value: unknown;
   disabled?: boolean;
   delaySeconds?: number;
-  children: (displayed: any) => ReactNode;
+  children: (
+    displayed: any,
+    state: { phase: string; replacing: boolean },
+  ) => ReactNode;
 }) {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const swap = useContentSwap({
@@ -93,7 +96,10 @@ export default function CardFlipSlot({
         ref={contentRef}
         className={`content-swap__content ${swap.contentPhaseClass}`}
       >
-        {children(swap.displayedValue)}
+        {children(swap.displayedValue, {
+          phase: swap.phase,
+          replacing: swap.replacing,
+        })}
       </div>
     </div>
   );

@@ -22,14 +22,16 @@ export default function AircraftList({
               swapKey={getAircraftIdentity(item) || `aircraft:${index}`}
               value={item}
             >
-              {(displayed) => {
+              {(displayed, swapState) => {
                 const aircraftId = getAircraftIdentity(displayed);
                 return (
                   <AircraftRow
                     aircraft={displayed}
                     aircraftId={aircraftId}
                     selected={
-                      Boolean(aircraftId) && aircraftId === selectedAircraftId
+                      swapState.phase !== "erasing" &&
+                      Boolean(aircraftId) &&
+                      aircraftId === selectedAircraftId
                     }
                     onSelectAircraft={onSelectAircraft}
                   />
