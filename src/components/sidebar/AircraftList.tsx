@@ -1,10 +1,8 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { useMemo, useRef } from "react";
-import { useListReorderMotion } from "@/animations/useListReorderMotion";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel";
 import AircraftRow from "./AircraftRow";
+import CardFlipSlot from "./CardFlipSlot";
 
 export default function AircraftList({
   aircraft = [],
@@ -12,40 +10,32 @@ export default function AircraftList({
   selectedAircraftId = "",
   onSelectAircraft,
 }) {
-  const listRef = useRef<HTMLUListElement | null>(null);
-  const motionKey = useMemo(
-    () =>
-      aircraft
-        .map((item, index) => getAircraftIdentity(item) || `aircraft:${index}`)
-        .join("|"),
-    [aircraft],
-  );
-  useListReorderMotion(listRef, motionKey, { resetKey });
-
   return (
-    <ul
-      key={resetKey}
-      ref={listRef}
-      className="app-list-motion divide-y divide-atc-line"
-    >
+    <ul key={resetKey} className="app-list-motion divide-y divide-atc-line">
       {aircraft.map((item, index) => {
-        const aircraftId = getAircraftIdentity(item);
-        const motionStyle = {
-          "--motion-order": Math.min(index, 5),
-        } as CSSProperties;
+        // Position-keyed slot: when the list re-sorts, this slot's occupant
+        // changes and its content card-flips in place (CardFlipSlot) instead
+        // of the row sliding to a new row.
         return (
-          <li
-            key={aircraftId || index}
-            data-gsap-reorder-key={aircraftId || `aircraft:${index}`}
-            className="relative list-none [perspective:800px]"
-            style={motionStyle}
-          >
-            <AircraftRow
-              aircraft={item}
-              aircraftId={aircraftId}
-              selected={Boolean(aircraftId) && aircraftId === selectedAircraftId}
-              onSelectAircraft={onSelectAircraft}
-            />
+          <li key={index} className="relative list-none">
+            <CardFlipSlot
+              swapKey={getAircraftIdentity(item) || `aircraft:${index}`}
+              value={item}
+            >
+              {(displayed) => {
+                const aircraftId = getAircraftIdentity(displayed);
+                return (
+                  <AircraftRow
+                    aircraft={displayed}
+                    aircraftId={aircraftId}
+                    selected={
+                      Boolean(aircraftId) && aircraftId === selectedAircraftId
+                    }
+                    onSelectAircraft={onSelectAircraft}
+                  />
+                );
+              }}
+            </CardFlipSlot>
           </li>
         );
       })}
