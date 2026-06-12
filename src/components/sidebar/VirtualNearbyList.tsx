@@ -156,15 +156,18 @@ function NearbyVirtualRow({
       <CardFlipSlot
         swapKey={item.id}
         value={item}
-        disabled={shouldAnimateEnter}
+        disabled={entering || shouldAnimateEnter}
       >
-        {(displayed) => (
+        {(displayed, swapState) => (
           <div className={entering ? "nearby-row-enter" : ""}>
             {displayed.type === "aircraft" ? (
               <AircraftRow
                 aircraft={displayed.data}
                 aircraftId={displayed.id}
-                selected={displayed.id === selectedAircraftId}
+                selected={
+                  swapState.phase !== "erasing" &&
+                  displayed.id === selectedAircraftId
+                }
                 onSelectAircraft={onSelectAircraft}
               />
             ) : (

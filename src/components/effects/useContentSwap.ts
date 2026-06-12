@@ -4,9 +4,9 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
 
 const ERASE_MS = 140;
-const HOLD_MS = 100;
-const REVEAL_MS = 220;
-const SETTLE_MS = 30;
+const HOLD_MS = 40;
+const REVEAL_MS = 180;
+const SETTLE_MS = 20;
 
 export function useContentSwap({
   identityKey,
@@ -45,7 +45,17 @@ export function useContentSwap({
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   useLayoutEffect(() => {
-    if (identityKey === lastKeyRef.current) return undefined;
+    if (identityKey === lastKeyRef.current) {
+      if ((disabled || reducedMotion) && phaseRef.current !== "idle") {
+        const nextValue = liveValueRef.current;
+        clearTimers();
+        setDisplayedValue(nextValue);
+        previousValueRef.current = nextValue;
+        setReplaceDelay(0);
+        setPhase("idle");
+      }
+      return undefined;
+    }
     const previousValue = previousValueRef.current;
     lastKeyRef.current = identityKey;
     clearTimers();
