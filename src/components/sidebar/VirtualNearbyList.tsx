@@ -153,7 +153,11 @@ function NearbyVirtualRow({
         transform: `translateY(${start}px)`,
       }}
     >
-      <CardFlipSlot swapKey={item.id} value={item}>
+      <CardFlipSlot
+        swapKey={item.id}
+        value={item}
+        disabled={shouldAnimateEnter}
+      >
         {(displayed) => (
           <div className={entering ? "nearby-row-enter" : ""}>
             {displayed.type === "aircraft" ? (
