@@ -23,6 +23,10 @@ import PlaneHunterStudio from "./PlaneHunterStudio";
 import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
+import {
+  getPlaneHunterClientDevice,
+  shouldEnablePlaneHunterForClientDevice,
+} from "@/features/aircraft/preview/planeHunterDeviceModel";
 import { useAircraftTraceAsyncStatus } from "@/features/aircraft/trace/useAircraftTraceAsyncStatus";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
@@ -139,7 +143,9 @@ export default function AircraftPreviewCard({
     !isNavaid &&
     Boolean(aircraftCallsign) &&
     typeof onApplyTemporaryRoute === "function";
-  const showPlaneHunterTrigger = isAircraftPreview && Boolean(entity);
+  const planeHunterDeviceAllowed = usePlaneHunterDeviceAllowed();
+  const showPlaneHunterTrigger =
+    planeHunterDeviceAllowed && isAircraftPreview && Boolean(entity);
   const showMobilePlaneHunterTrigger = showMobile && showPlaneHunterTrigger;
   const mobileFeedbackLabel = aircraft?.flightRouteLabel
     ? t("routeFeedback.suggestCorrection")
@@ -316,6 +322,18 @@ export default function AircraftPreviewCard({
       )}
     </>
   );
+}
+
+function usePlaneHunterDeviceAllowed() {
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    setAllowed(
+      shouldEnablePlaneHunterForClientDevice(getPlaneHunterClientDevice()),
+    );
+  }, []);
+
+  return allowed;
 }
 
 function usePhotoTone(src) {
