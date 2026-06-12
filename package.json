@@ -1,7 +1,7 @@
 {
   "name": "adsbao",
   "private": true,
-  "version": "2.4.3",
+  "version": "2.4.4",
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
@@ -10,6 +10,7 @@
     "knip": "knip",
     "ff": "tsx scripts/feature-flags.ts",
     "import:facilities": "tsx scripts/import-airport-facilities.ts",
+    "import:airports": "tsx scripts/import-airports.ts",
     "generate:watching-spots": "tsx scripts/generate-candidate-watching-spots.ts",
     "import:runways": "tsx scripts/import-runway-geometries.ts",
     "test": "tsx scripts/run-tests.ts",
