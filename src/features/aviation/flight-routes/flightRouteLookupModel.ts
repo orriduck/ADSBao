@@ -76,6 +76,11 @@ const centerContextNumber = (value: unknown) => {
   return String(Number((Math.round(number / 0.1) * 0.1).toFixed(4)));
 };
 
+function routeContextWithoutProvider(routeContext: RouteContext = {}) {
+  const { routeProvider: _routeProvider, ...rest } = routeContext;
+  return rest;
+}
+
 export function buildRouteCacheKey(callsign: unknown, routeContext: RouteContext = {}) {
   const normalizedCallsign = normalizeCallsign(callsign);
   if (!normalizedCallsign) return "";
@@ -97,7 +102,26 @@ function getFreshRouteCacheEntry(
   now = Date.now(),
   routeContext: RouteContext = {},
 ) {
-  const cacheKey = buildRouteCacheKey(callsign, routeContext);
+  const cacheKeys = [
+    buildRouteCacheKey(callsign, routeContext),
+    buildRouteCacheKey(callsign, routeContextWithoutProvider(routeContext)),
+    buildRouteCacheKey(callsign),
+  ].filter(Boolean);
+  let firstMiss: RouteCacheEntry | null = null;
+  for (const cacheKey of [...new Set(cacheKeys)]) {
+    const cached = getFreshRouteCacheEntryByKey(cache, cacheKey, now);
+    if (cached?.route) return cached;
+    if (cached && !firstMiss) firstMiss = cached;
+  }
+  return firstMiss;
+}
+
+function getFreshRouteCacheEntryByKey(
+  cache: Map<string, RouteCacheEntry>,
+  cacheKey: string,
+  now = Date.now(),
+) {
+  if (!cacheKey) return null;
   const cached = cache.get(cacheKey);
   if (!cached) return null;
   const maxAge = cached.route
@@ -117,7 +141,10 @@ export function writeRouteCacheEntry(
 ) {
   const cacheKeys = new Set(
     [callsign, route?.callsign, route?.callsignIcao, route?.callsignIata]
-      .map((value) => buildRouteCacheKey(value, routeContext))
+      .flatMap((value) => [
+        buildRouteCacheKey(value, routeContext),
+        buildRouteCacheKey(value),
+      ])
       .filter(Boolean),
   );
 

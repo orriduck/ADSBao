@@ -5,6 +5,7 @@ import {
   buildRoutesByCallsign,
   getRouteLookupStats,
   resolvePendingRouteLookups,
+  writeRouteCacheEntry,
 } from "./flightRouteLookupModel";
 
 const now = 1_700_000_000_000;
@@ -68,7 +69,7 @@ const route = {
       now,
       routeContext: { icao: "KBOS", iata: "BOS", routeProvider: "flightaware" },
     }),
-    {},
+    { DAL123: route },
   );
   assert.deepEqual(
     buildRoutesByCallsign({
@@ -89,6 +90,45 @@ const route = {
   );
   buildRoutesByCallsign({ aircraft: [{ callsign: "OLD" }], cache, now });
   assert.equal(cache.has("OLD"), false);
+}
+
+{
+  const cache = new Map();
+  writeRouteCacheEntry(
+    cache,
+    "LOT29",
+    {
+      callsign: "LOT29",
+      callsignIcao: "LOT29",
+      callsignIata: "LO29",
+      origin: { icao: "EPWA", iata: "WAW" },
+      destination: { icao: "KMIA", iata: "MIA" },
+      route: { icao: "EPWA-KMIA", iata: "WAW-MIA" },
+    },
+    now,
+    { lat: 42.32, lon: -71.56, routeProvider: "adsbdb" },
+  );
+
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "LOT29" }],
+      cache,
+      now,
+      routeContext: { lat: 42.42, lon: -71.36, routeProvider: "adsbdb" },
+    }).LOT29?.route,
+    { icao: "EPWA-KMIA", iata: "WAW-MIA" },
+  );
+  assert.deepEqual(
+    resolvePendingRouteLookups({
+      aircraft: [{ callsign: "LOT29" }],
+      cache,
+      inFlight: new Set(),
+      routeContext: { lat: 42.42, lon: -71.36, routeProvider: "adsbdb" },
+      now,
+      maxLookups: 3,
+    }),
+    [],
+  );
 }
 
 {
