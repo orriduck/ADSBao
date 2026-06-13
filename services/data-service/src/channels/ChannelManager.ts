@@ -35,7 +35,7 @@ export class ChannelManager {
 
   constructor({
     scheduler,
-    maxSubscriptionsPerSocket = 12,
+    maxSubscriptionsPerSocket = 96,
   }: ChannelManagerOptions) {
     this.scheduler = scheduler;
     this.maxSubscriptionsPerSocket = maxSubscriptionsPerSocket;

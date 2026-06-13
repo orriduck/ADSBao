@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   buildAirportAircraftChannel,
+  buildRouteChannel,
   buildViewportAircraftChannel,
   normalizeRealtimeChannel,
 } from "./realtimeChannels";
@@ -47,6 +48,14 @@ import {
 {
   assert.equal(normalizeRealtimeChannel("callsign:ual964"), "callsign:UAL964");
   assert.equal(normalizeRealtimeChannel(" aircraft:a1b2c3 "), "aircraft:A1B2C3");
+}
+
+{
+  assert.deepEqual(buildRouteChannel(" aal123 "), {
+    channel: "route:AAL123",
+    params: {},
+  });
+  assert.equal(normalizeRealtimeChannel(" route:aal123 "), "route:AAL123");
 }
 
 console.log("realtimeChannels.test.ts ok");

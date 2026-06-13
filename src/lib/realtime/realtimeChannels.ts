@@ -100,6 +100,12 @@ export function buildCallsignChannel(callsign: unknown) {
   return normalized ? `callsign:${normalized}` : "";
 }
 
+export function buildRouteChannel(callsign: unknown): RealtimeChannelRequest | null {
+  const normalized = normalizeCallsign(callsign);
+  if (!normalized || !/^[A-Z][A-Z0-9]{2,7}$/.test(normalized)) return null;
+  return { channel: `route:${normalized}`, params: {} };
+}
+
 export function normalizeRealtimeChannel(channel: unknown) {
   const raw = String(channel || "").trim();
   const separatorIndex = raw.indexOf(":");
@@ -117,6 +123,9 @@ export function normalizeRealtimeChannel(channel: unknown) {
   if (type === "callsign") {
     const callsign = normalizeCallsign(value);
     return callsign ? `callsign:${callsign}` : "";
+  }
+  if (type === "route") {
+    return buildRouteChannel(value)?.channel || "";
   }
   if (type === "viewport") {
     const [lat, lon, distNm] = value.split(":");

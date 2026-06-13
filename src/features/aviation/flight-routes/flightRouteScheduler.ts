@@ -231,6 +231,43 @@ export function createFlightRouteScheduler({
       return inFlightKeys.size + queuedKeys.size;
     },
 
+    getPendingCallsigns(
+      {
+        aircraft = [],
+        routeContext = {},
+        maxLookups,
+      }: {
+        aircraft?: any[];
+        routeContext?: Record<string, unknown>;
+        maxLookups?: number;
+      } = {},
+    ) {
+      return resolvePendingRouteLookups({
+        aircraft,
+        cache,
+        inFlight: new Set(),
+        queued: new Set(),
+        routeContext,
+        now: now(),
+        maxLookups: maxLookups ?? config.maxQueueSize,
+      });
+    },
+
+    applyRouteResult(callsign, route, routeContext = {}) {
+      const normalized = normalizeCallsign(callsign);
+      if (!normalized) return;
+      if (route) {
+        writeRouteCacheEntry(cache, normalized, route, now(), routeContext);
+      } else {
+        cache.set(buildRouteCacheKey(normalized, routeContext), {
+          route: null,
+          time: now(),
+        });
+      }
+      routeVersion += 1;
+      notify();
+    },
+
     applyTemporaryRoute(callsign, route, routeContext = {}) {
       const normalized = normalizeCallsign(callsign);
       if (!normalized || !route) return;

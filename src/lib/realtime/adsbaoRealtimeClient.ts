@@ -18,6 +18,12 @@ type RealtimeSubscription = {
   listener: (event: AdsbaoRealtimeEvent) => void;
 };
 
+type StoredRealtimeSubscription = {
+  channel: string;
+  params?: Record<string, unknown>;
+  listeners: Set<(event: AdsbaoRealtimeEvent) => void>;
+};
+
 declare global {
   interface Window {
     __adsbaoRealtimeDebug?: Record<string, unknown>;
@@ -42,7 +48,7 @@ export class AdsbaoRealtimeClient {
   private connectionState: ConnectionState;
   private reconnectTimer: number | null = null;
   private reconnectAttempt = 0;
-  private readonly subscriptions = new Map<string, RealtimeSubscription>();
+  private readonly subscriptions = new Map<string, StoredRealtimeSubscription>();
   private readonly listeners = new Set<(event: AdsbaoRealtimeEvent) => void>();
   private readonly stateListeners = new Set<(state: ConnectionState) => void>();
 
@@ -113,7 +119,16 @@ export class AdsbaoRealtimeClient {
   }: RealtimeSubscription): () => void {
     if (!channel) return () => {};
     const key = channel;
-    this.subscriptions.set(key, { channel, params, listener });
+    const existing = this.subscriptions.get(key);
+    if (existing) {
+      existing.listeners.add(listener);
+    } else {
+      this.subscriptions.set(key, {
+        channel,
+        params,
+        listeners: new Set([listener]),
+      });
+    }
     this.syncDebug({
       lastSubscribeAt: new Date().toISOString(),
       lastSubscribeChannel: channel,
@@ -121,14 +136,18 @@ export class AdsbaoRealtimeClient {
       subscriptionCount: this.subscriptions.size,
     });
     this.connect();
-    this.send({
-      type: "subscribe",
-      channel,
-      params,
-    });
+    if (!existing) {
+      this.send({
+        type: "subscribe",
+        channel,
+        params,
+      });
+    }
     return () => {
       const current = this.subscriptions.get(key);
-      if (current?.listener === listener) {
+      if (!current) return;
+      current.listeners.delete(listener);
+      if (current.listeners.size === 0) {
         this.subscriptions.delete(key);
         this.syncDebug({
           lastUnsubscribeAt: new Date().toISOString(),
@@ -202,7 +221,7 @@ export class AdsbaoRealtimeClient {
 
     for (const listener of this.listeners) listener(event);
     const subscription = this.subscriptions.get(event.channel);
-    subscription?.listener(event);
+    for (const listener of subscription?.listeners || []) listener(event);
   }
 
   private syncDebug(next: Record<string, unknown>) {
