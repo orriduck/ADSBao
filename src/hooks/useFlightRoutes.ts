@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../config/aviation";
 import { normalizeCallsign } from "../utils/callsign";
 import { flightRouteScheduler } from "../features/aviation/flight-routes/flightRouteScheduler";
@@ -11,15 +10,12 @@ import { buildRouteChannel } from "../lib/realtime/realtimeChannels";
 
 type FlightRouteHookRecord = Record<string, any>;
 
-const ROUTE_TOAST_ID = "adsbao-realtime-route-issue";
-
 export function useFlightRoutes(
   aircraft: FlightRouteHookRecord[],
   routeContextInput: FlightRouteHookRecord = {},
 ) {
   const enabled = routeContextInput?.enabled !== false;
   const client = useMemo(() => getAdsbaoRealtimeClient(), []);
-  const [connectionState, setConnectionState] = useState(client.state);
   const [version, setVersion] = useState(0);
   const mountedRef = useRef(true);
   const routeDisplayBatcherRef = useRef<any>(null);
@@ -59,13 +55,6 @@ export function useFlightRoutes(
       routeUnsubscribers.clear();
     };
   }, []);
-
-  useEffect(() => {
-    const unsubscribe = client.onConnectionState(setConnectionState);
-    return () => {
-      unsubscribe();
-    };
-  }, [client]);
 
   useEffect(() => {
     const unsubscribe = flightRouteScheduler.subscribe((state) => {
@@ -121,32 +110,11 @@ export function useFlightRoutes(
             );
             return;
           }
-          if (event.type === "channel:error" || event.type === "subscribe:error") {
-            toast.error("Realtime route lookup is unavailable.", {
-              id: ROUTE_TOAST_ID,
-              description: "Route labels are waiting for the ADSBao data service.",
-              duration: 8_000,
-            });
-          }
         },
       });
       routeUnsubscribersRef.current.set(request.channel, unsubscribe);
     }
   }, [client, pendingCallsigns, routeContext]);
-
-  useEffect(() => {
-    if (!enabled || pendingCallsigns.length === 0) return undefined;
-    const timer = window.setTimeout(() => {
-      if (!client.enabled || connectionState !== "open") {
-        toast.error("Realtime route lookup is unavailable.", {
-          id: ROUTE_TOAST_ID,
-          description: "Route labels are waiting for the ADSBao data service.",
-          duration: 8_000,
-        });
-      }
-    }, 8_000);
-    return () => window.clearTimeout(timer);
-  }, [client.enabled, connectionState, enabled, pendingCallsigns.length]);
 
   const routesByCallsign = useMemo(() => {
     version;

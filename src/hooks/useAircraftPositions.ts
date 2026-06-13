@@ -15,6 +15,7 @@ import {
 } from "../features/aircraft/tracking/flightTrackingContextModel";
 import { useRealtimeAircraftChannel } from "./useRealtimeAircraftChannel";
 import { buildAircraftTrafficChannel } from "../lib/realtime/realtimeChannels";
+import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
 
 const MAX_AIRCRAFT_RANGE_NM = 250;
 
@@ -121,6 +122,11 @@ export function useAircraftPositions(
 
   const waitingForRealtime =
     hasActiveQuery && (!settled || realtime.fallbackActive);
+  const realtimeStatus = resolveRealtimeStatusLabel({
+    available: realtime.available,
+    connectionState: realtime.connectionState,
+    settled,
+  });
 
   return {
     aircraft,
@@ -134,5 +140,6 @@ export function useAircraftPositions(
     feedStatus,
     feedSource,
     realtimeActive: realtime.connected && !realtime.fallbackActive,
+    realtimeStatus,
   };
 }

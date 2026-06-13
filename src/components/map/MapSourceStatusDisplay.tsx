@@ -71,10 +71,12 @@ export default function MapSourceStatusDisplay({
   updatedLabel = "",
   routeProviderLabel = "",
   loadingStatus = "",
+  realtimeStatus = "",
   placement = "mobile-map",
   wakeLockActive = false,
 }) {
   const loadingActive = Boolean(loadingStatus);
+  const realtimeStatusLabel = String(realtimeStatus || "").trim().toUpperCase();
   const [displayedLoadingStatus, setDisplayedLoadingStatus] = useState(
     loadingStatus,
   );
@@ -97,6 +99,7 @@ export default function MapSourceStatusDisplay({
     !routeProviderLabel &&
     !loadingStatus &&
     !displayedLoadingStatus &&
+    !realtimeStatusLabel &&
     !wakeLockActive
   ) {
     return null;
@@ -104,7 +107,12 @@ export default function MapSourceStatusDisplay({
 
   const isMapCorner = placement === "map-corner";
   const isInfer = feedStatus === "infer";
-  const hasPrimary = feedSource || routeProviderLabel || updatedLabel || wakeLockActive;
+  const hasPrimary =
+    feedSource ||
+    routeProviderLabel ||
+    updatedLabel ||
+    realtimeStatusLabel ||
+    wakeLockActive;
 
   return (
     <div
@@ -116,6 +124,23 @@ export default function MapSourceStatusDisplay({
     >
       {hasPrimary ? (
         <span className={lineClassName}>
+          {realtimeStatusLabel ? (
+            <>
+              <StatusSpan className="inline-flex flex-none items-center gap-1.5 font-mono text-atc-orange">
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full bg-atc-orange opacity-80 motion-safe:animate-pulse [.airport-map-kit_&]:size-1"
+                />
+                <span>{realtimeStatusLabel}</span>
+              </StatusSpan>
+              {(wakeLockActive || feedSource || routeProviderLabel || updatedLabel) ? (
+                <span
+                  aria-hidden="true"
+                  className={diamondClassName}
+                />
+              ) : null}
+            </>
+          ) : null}
           {wakeLockActive ? (
             <>
               <StatusSpan className="flex-none tabular-nums text-atc-orange">

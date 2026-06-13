@@ -57,8 +57,8 @@ function AirportExplorerContent({
   onBack,
   // "airport" (default) = standard airport detail view with full
   // metric cards, candidate watching spots, ATC, etc.
-  // "nearMe" = user-location centered view: metric cards (weather,
-  // spotting, dep/arr) become non-interactive read-only displays,
+  // "nearMe" = user-location centered view: metric cards collapse to
+  // weather + nearby traffic, airport-specific surfaces are skipped,
   // candidate-spots / ATC fetches are skipped, METAR temp comes from
   // the closest nearby airport, sidebar identity reads "Your location".
   mode = "airport",
@@ -457,9 +457,8 @@ function AirportExplorerContent({
     metarStatusCode: weather.metarStatusCode ?? null,
     aircraft: traffic.aircraft,
     airports: nearbyAirports.airports,
-    // In near-me mode there's no airport identity so frequencies /
-    // candidate watching spots are intentionally empty; the sidebar
-    // surfaces those metric cards as non-interactive "—" placeholders.
+    // In near-me mode there's no airport identity, so airport-specific
+    // frequencies stay empty and the metric grid only shows weather + nearby.
     frequencies: nearMe ? [] : airport?.frequencies || [],
     candidateWatchingSpots: candidateWatchingSpots.spots,
     focusLat: airportProfile.lat,
@@ -528,6 +527,7 @@ function AirportExplorerContent({
               lastUpdated={traffic.lastUpdated}
               routeProvider={traffic.routeProvider}
               loadingStatus={sourceLoadingStatus}
+              realtimeStatus={traffic.realtimeStatus}
               userLocationActive={userLocationEnabled || userLocationActive}
               userLocationAudioActive={
                 userLocationAudioEnabled || userLocationAudioActive

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import {
   type AdsbaoRealtimeEvent,
   getAdsbaoRealtimeClient,
@@ -15,7 +14,6 @@ import {
 
 const INITIAL_REALTIME_GRACE_MS = 8_000;
 const EMPTY_REALTIME_PARAMS: Record<string, unknown> = Object.freeze({});
-const REALTIME_ISSUE_TOAST_ID = "adsbao-realtime-issue";
 
 type RealtimeHookOptions = {
   channel?: string;
@@ -81,15 +79,6 @@ export function useRealtimeAircraftChannel({
     hasEvent: Boolean(event),
     hasEventData: Boolean(event?.data),
   });
-
-  useEffect(() => {
-    if (!fallbackActive || !available) return;
-    toast.error("Realtime data connection is unavailable.", {
-      id: REALTIME_ISSUE_TOAST_ID,
-      description: "Live ADS-B updates are waiting for the ADSBao data service.",
-      duration: 8_000,
-    });
-  }, [available, fallbackActive]);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;

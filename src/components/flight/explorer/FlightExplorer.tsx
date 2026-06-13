@@ -142,6 +142,7 @@ function FlightExplorerContent({ callsign }) {
     pollVersion: trackedPollVersion,
     visibilityRefreshVersion: trackedVisibilityRefreshVersion,
     trackingState,
+    realtimeStatus,
   } = useTrackedAircraft(callsign);
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
   const [contextTiles, setContextTiles] = useState({
@@ -800,6 +801,7 @@ function FlightExplorerContent({ callsign }) {
               lastUpdated={lastUpdated}
               routeProvider={routeProvider}
               loadingStatus={sourceLoadingStatus}
+              realtimeStatus={realtimeStatus}
               onFitToTrace={routeEndpointAirportsOnly ? null : fitToTrace}
               zoomDisabled={flightDisplayContext.zoomDisabled}
             />
@@ -871,7 +873,7 @@ function FlightExplorerContent({ callsign }) {
           )}
 
           <LostSignalToast
-            active={lostSignal && !lostSignalDismissed}
+            active={lostSignal && !lostSignalDismissed && !realtimeStatus}
             callsign={callsign}
             onStay={() => setLostSignalDismissed(true)}
             onBackHome={handleBack}

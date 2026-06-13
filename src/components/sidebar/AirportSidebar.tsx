@@ -41,9 +41,7 @@ export default function AirportSidebar({
   loadingStatus = "",
   // When true the explorer is centered on the user (not an airport).
   // The identity hero swaps to a "Your location" header and the
-  // weather / spotting / ATC / dep+arr metric cards become
-  // read-only "—" placeholders (weather still shows the live temp,
-  // but doesn't switch to a briefing view on click).
+  // metric cards collapse to weather + nearby traffic.
   nearMe = false,
   nearMeRefresh,
   onSelectAircraft,
