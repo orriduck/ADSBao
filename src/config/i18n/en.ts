@@ -8,7 +8,7 @@ const en = {
     live: "Live",
     airportExplorer: "Airports",
     aboutTitle: "About",
-    mechanismTitle: "Mechanism",
+    mechanismTitle: "Mechanism & Architecture",
     siteDescription:
       "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
   },
@@ -20,7 +20,7 @@ const en = {
     homePage: "Home",
     map: "Map",
     about: "About",
-    mechanism: "Mechanism",
+    mechanism: "Mechanism & Architecture",
     changelog: "Changelog",
   },
   auth: {
@@ -104,94 +104,130 @@ const en = {
     },
   },
   mechanism: {
-    title: "Mechanism",
+    title: "Mechanism & Architecture",
     description:
-      "How ADSBao turns provider data, airport context, persistence boundaries, and local map state into a readable operating picture.",
-    sidebarLabel: "System flow",
-    count: "{count} mechanisms",
+      "How ADSBao coordinates realtime connections, position fetching, route queues, and map context.",
+    sidebarLabel: "System profile",
+    count: "{count} entries",
+    groups: {
+      architecture: "Core Architecture",
+      mechanisms: "Core Mechanisms",
+    },
     items: {
-      providerFallback: {
-        title: "ADS-B provider fallback",
-        signal: "Position source selection",
+      realtimeBackbone: {
+        title: "Realtime data-service",
+        signal: "Long connection and shared polling",
         body:
-          "Position providers are treated as peers. The client-facing proxy races cold starts, keeps the current winner while it is healthy, then reselects when a feed fails.",
+          "The browser subscribes to channels. The always-on Railway service owns WebSocket delivery, channel management, and external ADS-B polling.",
+        flow: {
+          browser: "Browser",
+          socket: "WebSocket",
+          scheduler: "Channel scheduler",
+          providers: "ADS-B feeds",
+        },
         details: {
-          candidates:
-            "The browser does not talk to every upstream directly. It asks ADSBao for nearby positions, and the proxy decides which provider can currently answer with stable data.",
-          race:
-            "When the active provider is unknown or stale, the proxy evaluates candidates instead of assuming a fixed primary source. The first healthy response becomes the source for that request path.",
-          winner:
-            "The selected provider is reused while it remains healthy, so the map avoids visible source churn. If it fails, the next request can fall back without changing the public UI contract.",
+          connect:
+            "On page load, the client opens one WebSocket and subscribes to the airport, location, or tracking channels it needs.",
+          share:
+            "Each active channel gets one polling loop. Users watching the same airport or center point share the result.",
+          resume:
+            "After disconnects, the client reconnects and restores subscriptions. Short app switches stay in the status line instead of interrupting the page.",
         },
       },
-      openAipContext: {
-        title: "Airport context via OpenAIP",
-        signal: "Airport and overlay context",
+      positionChannels: {
+        title: "Position channels",
+        signal: "Airport / here / tracking reuse",
         body:
-          "OpenAIP supplies the airport-side operating context: runways, navaids, reporting points, airspace, frequencies, and other map annotations.",
+          "Airport, here, and flight tracking views all use normalized traffic channels. Coordinates are rounded to a grid so users do not create unique channels for every pixel.",
+        flow: {
+          view: "View center",
+          channel: "Traffic channel",
+          poll: "Position poll",
+          update: "aircraft:update",
+        },
         details: {
-          airport:
-            "Airport detail pages start from a known ICAO/IATA identity, then use OpenAIP only for the parts that make the surrounding airspace and procedures easier to understand.",
           normalize:
-            "Provider-specific shapes are normalized before they reach React components. That keeps runway, navaid, frequency, and airspace rendering from depending on raw upstream formats.",
-          overlay:
-            "The map can then decide which layers to show from one consistent aviation context, instead of making every overlay component repeat provider parsing rules.",
+            "Airports use an airport anchor; here and tracking use center-point anchors. The center is grid-rounded and the radius is clamped.",
+          poll:
+            "The service applies channel-specific intervals, jitter, and error backoff, so browsers do not repeat external API calls independently.",
+          push:
+            "Every payload has the same shape: type, channel, source, fetchedAt, stale, and data. The frontend handles one update event.",
+        },
+      },
+      routeQueue: {
+        title: "Route lookup queue",
+        signal: "Callsign route singleflight",
+        body:
+          "Route lookup stays separate from position polling. Callsigns enter a backend queue protected by TTL cache, singleflight de-duplication, and rate limits.",
+        flow: {
+          callsign: "Callsign",
+          queue: "Route queue",
+          cache: "TTL cache",
+          route: "Route update",
+        },
+        details: {
+          key:
+            "The queue keys normalized callsigns with context. Tracking and airport lists can reuse the same route result.",
+          limit:
+            "Concurrency caps, rate limits, and backoff prevent many visible aircraft from stampeding the upstream provider.",
+          cache:
+            "Cache hits return immediately; misses go to the provider. Community corrections and provider results still follow the existing precedence.",
+        },
+      },
+      providerFallback: {
+        title: "Provider fallback",
+        signal: "Provider selection",
+        body:
+          "External feeds are treated as peer candidates. The current source is reused while healthy and replaced only after timeout or failure.",
+        details: {
+          candidates:
+            "The client does not care whether data came from adsb.lol, airplanes.live, or another feed; it receives the same aircraft:update contract.",
+          race:
+            "On cold start or recovery, the service evaluates candidates. The first healthy response becomes the channel source.",
+          winner:
+            "The winner is reused while healthy to reduce map churn. Problems are surfaced as stale or error events instead of making the UI guess.",
         },
       },
       postgresBoundary: {
         title: "Postgres persistence boundaries",
-        signal: "Persistence without live coupling",
+        signal: "Slow data and cache boundary",
         body:
-          "Railway Postgres holds static augmentation and persisted records at clear boundaries. Route handlers decide when to read, refresh, or return cached context.",
+          "Railway Postgres stores airport augmentation, user state, and reusable slow data. Realtime keeps a clean extension point without leaking cache details into components.",
         details: {
           check:
-            "Reads go through route handlers and DAO helpers, so UI components do not need to know whether a value came from Postgres, a provider refresh, or static fallback data.",
+            "Reads go through route handlers and DAO helpers, so UI does not need to know whether a value came from Postgres, a provider refresh, or static fallback data.",
           persist:
-            "When a fetched record is worth keeping, the server stores the normalized version rather than leaking provider-specific payloads into the app surface.",
+            "Records worth keeping are stored in normalized form instead of pushing provider payloads into the display layer.",
           return:
-            "That boundary lets ADSBao return stable airport and route context even when an external provider changes shape or temporarily becomes unavailable.",
+            "That boundary lets ADSBao return stable context when an external provider changes shape or goes temporarily unavailable.",
         },
       },
       aircraftTrace: {
         title: "Aircraft tracking and trace",
-        signal: "Selected aircraft history",
+        signal: "Selected target state",
         body:
-          "A selected aircraft keeps a trace separate from the live list. Recent points, route hints, and session state are merged into one readable track.",
+          "The tracking page merges live position, recent trace, route hints, and session state without letting list refreshes reset map focus.",
         details: {
           select:
-            "Selecting an aircraft promotes it from the nearby list into a focused tracking state. The sidebar, preview card, and map all read from that same selection.",
+            "After selection, the sidebar, preview card, and map read from one focused object instead of maintaining separate selected state.",
           append:
-            "New ADS-B positions update the live marker and append to the visible trace when they are coherent enough to draw. The trace is kept separate from list refresh churn.",
+            "New ADS-B positions update the live marker and append to the visible trace when coherent. Trace updates stay separate from list sorting churn.",
           persist:
-            "Route hints, recent points, and user-facing tracking context are merged so the aircraft page can remain understandable after navigation or refresh.",
+            "Callsign, icao24, route, and recent points are retained where possible, so the flight remains understandable after refresh or app switching.",
         },
       },
       mapOverlays: {
-        title: "Map overlays",
-        signal: "Runways, navaids, airspace",
+        title: "Map aviation context",
+        signal: "Runways / airspace / navaids",
         body:
-          "Layer toggles choose which airport overlays enter the map. Geometry is projected into the current view, then labels fade with their features.",
+          "Airport context is normalized first, then enabled layers enter the map. Geometry, labels, and selection state read from the same context.",
         details: {
           layers:
-            "The map layer drawer resolves the user's active overlay choices before the map renders extra geometry. Disabled layers stay out of both the drawing and labeling paths.",
+            "The layer drawer resolves the user's active choices first. Disabled layers stay out of both drawing and labeling paths.",
           project:
-            "Runways, navaids, airspaces, and other shapes are projected against the current map view after normalization, which keeps pan and zoom behavior predictable.",
+            "Runways, navaids, airspaces, and other shapes are projected against the current view, keeping pan and zoom behavior predictable.",
           label:
-            "Labels are attached to their source geometry and animate with it, so turning a layer on or off does not leave orphaned names floating over the map.",
-        },
-      },
-      featureFlags: {
-        title: "Owner-only experiments",
-        signal: "Internal feature flags",
-        body:
-          "Internal flags let owner-only experiments exist beside the public product. The default path stays stable unless the active user can see the flag.",
-        details: {
-          read:
-            "Feature flags are read as product state, not as scattered one-off checks. That makes experimental surfaces easier to audit before they become public.",
-          gate:
-            "Owner-only UI can run in production-like conditions while staying invisible to normal users, which is useful for FlightAware and other integration-heavy flows.",
-          release:
-            "The public route keeps the stable behavior unless a flag explicitly opens a new branch. Removing the flag path later becomes a small cleanup instead of a redesign.",
+            "Labels stay attached to source geometry and transition with it, so disabled layers do not leave orphaned names on the map.",
         },
       },
     },

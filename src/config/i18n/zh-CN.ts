@@ -7,7 +7,7 @@ const zhCN = {
     live: "实时",
     airportExplorer: "机场",
     aboutTitle: "关于",
-    mechanismTitle: "机制",
+    mechanismTitle: "机制与架构",
     siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场运行信息。",
   },
   brand: {
@@ -18,7 +18,7 @@ const zhCN = {
     homePage: "首页",
     map: "地图",
     about: "关于",
-    mechanism: "机制",
+    mechanism: "机制与架构",
     changelog: "更新日志",
   },
   auth: {
@@ -99,94 +99,130 @@ const zhCN = {
     },
   },
   mechanism: {
-    title: "机制",
+    title: "机制与架构",
     description:
-      "ADSBao 如何把数据源、机场资料、持久化边界和本地地图状态整理成可读的运行画面。",
-    sidebarLabel: "系统流",
-    count: "{count} 个机制",
+      "ADSBao 的实时连接、位置获取、航路队列和地图上下文如何协同工作。",
+    sidebarLabel: "系统剖面",
+    count: "{count} 个条目",
+    groups: {
+      architecture: "核心架构",
+      mechanisms: "核心机制",
+    },
     items: {
-      providerFallback: {
-        title: "ADS-B 数据源 fallback",
-        signal: "位置源选择",
+      realtimeBackbone: {
+        title: "Realtime data-service",
+        signal: "长连接与共享轮询",
         body:
-          "位置数据源按并行候选处理。面向客户端的代理会在冷启动时竞速,当前胜出源健康时保持使用,失败后重新选择。",
+          "浏览器只订阅频道。Railway 上的常驻服务负责 WebSocket、频道管理和外部 ADS-B 轮询,把主动请求从前端移走。",
+        flow: {
+          browser: "浏览器",
+          socket: "WebSocket",
+          scheduler: "频道调度",
+          providers: "ADS-B 源",
+        },
         details: {
-          candidates:
-            "浏览器不会直接请求每一个上游。它向 ADSBao 请求附近飞机位置,由代理判断当前哪个数据源能稳定返回可用结果。",
-          race:
-            "当活跃数据源未知或变旧时,代理会评估候选源,而不是假设固定主源永远可用。第一个健康响应会成为这一路请求的来源。",
-          winner:
-            "胜出的数据源会在健康时继续复用,避免地图上出现明显的数据源抖动。失败后,下一次请求可以 fallback,但公开 UI 契约不变。",
+          connect:
+            "页面加载后建立一个 WebSocket,订阅当前机场、位置或追踪对象需要的频道。",
+          share:
+            "同一个频道只开一个 polling loop。多个用户看同一机场或同一中心点时共享结果。",
+          resume:
+            "断线后客户端自动重连并恢复订阅;短暂切后台只在状态文字里表现为连接恢复,不打断页面。",
         },
       },
-      openAipContext: {
-        title: "OpenAIP 机场资料",
-        signal: "机场与图层资料",
+      positionChannels: {
+        title: "位置获取频道",
+        signal: "机场 / here / 追踪复用",
         body:
-          "OpenAIP 提供机场侧运行资料:跑道、导航台、报告点、空域、频率和其他地图标注。",
+          "机场、here 和飞机追踪都走归一化后的 traffic 频道。经纬度会网格化,避免每个用户生成唯一频道。",
+        flow: {
+          view: "视图中心",
+          channel: "traffic channel",
+          poll: "位置轮询",
+          update: "aircraft:update",
+        },
         details: {
-          airport:
-            "机场详情页从明确的 ICAO/IATA 身份出发,只把 OpenAIP 用在能帮助理解周边空域、程序和设施的部分。",
           normalize:
-            "不同数据源的原始形状会先归一化,再进入 React 组件。跑道、导航台、频率和空域渲染不需要依赖上游原始格式。",
-          overlay:
-            "地图随后从同一份航空资料决定展示哪些图层,不用让每个叠加组件重复实现数据源解析规则。",
+            "机场用机场锚点,here 和追踪用中心点锚点。中心点按网格取整,半径被限制在安全范围内。",
+          poll:
+            "服务端按频道类型设置间隔、jitter 和错误 backoff,不会让浏览器各自重复打外部 API。",
+          push:
+            "返回 payload 统一包含 type、channel、source、fetchedAt、stale 和 data,前端只处理同一种更新事件。",
+        },
+      },
+      routeQueue: {
+        title: "航路查询队列",
+        signal: "呼号路由单飞",
+        body:
+          "航路查询不跟位置轮询混在一起。呼号先进入后端队列,再经 TTL cache、singleflight 和限速保护后查询 route provider。",
+        flow: {
+          callsign: "呼号",
+          queue: "route queue",
+          cache: "TTL cache",
+          route: "航路更新",
+        },
+        details: {
+          key:
+            "队列以归一化呼号和上下文为 key。追踪航班和机场列表需要同一条航路时会复用同一次结果。",
+          limit:
+            "队列有并发上限、速率限制和错误退避,避免大量可见飞机同时触发上游查询。",
+          cache:
+            "命中缓存时直接返回;未命中才进入 provider 查询。社区修正和 provider 结果会按已有优先级合并。",
+        },
+      },
+      providerFallback: {
+        title: "数据源 fallback",
+        signal: "provider 选择",
+        body:
+          "外部数据源被当作同级候选。当前源健康时保持使用,失败或超时后才切换,保持 UI 契约稳定。",
+        details: {
+          candidates:
+            "客户端不关心 adsb.lol、airplanes.live 或其他源的差异,只看统一后的 aircraft:update。",
+          race:
+            "冷启动或错误恢复时服务端评估候选源。第一个健康响应成为这一路频道的 source。",
+          winner:
+            "胜出源在健康时复用,减少地图数据源抖动。异常时事件会标记 stale 或 error,而不是让 UI 自己猜。",
         },
       },
       postgresBoundary: {
         title: "Postgres 持久化边界",
-        signal: "持久化但不耦合实时流",
+        signal: "慢数据与缓存",
         body:
-          "Railway Postgres 在清晰边界内保存静态增强资料和持久化记录。Route Handler 决定何时读取、刷新或返回缓存资料。",
+          "Railway Postgres 保存机场增强资料、用户状态和可复用的慢数据。实时流只留接口,不把缓存细节泄漏到组件。",
         details: {
           check:
-            "读取会经过 Route Handler 和 DAO helper,所以 UI 组件不需要知道一个值来自 Postgres、数据源刷新,还是静态 fallback。",
+            "读取经过 Route Handler 和 DAO helper,UI 不需要知道数据来自数据库、provider 刷新还是静态 fallback。",
           persist:
-            "当抓取到的记录值得保留时,服务端会存储归一化后的版本,而不是把数据源专有 payload 泄漏到应用展示层。",
+            "值得保留的记录会以归一化形态写入,避免把 provider 原始 payload 推进展示层。",
           return:
-            "这个边界让 ADSBao 在外部数据源改形或短暂不可用时,仍能返回稳定的机场和航路资料。",
+            "这个边界让 ADSBao 在外部数据源改形或短暂不可用时仍能返回稳定上下文。",
         },
       },
       aircraftTrace: {
         title: "飞机追踪与航迹",
-        signal: "选中飞机历史",
+        signal: "选中目标状态",
         body:
-          "选中飞机的航迹和实时列表分开维护。近期点位、航路提示和会话状态会合并成一条可读航迹。",
+          "追踪页把实时位置、最近航迹、航路提示和会话状态合并,但不让列表刷新直接重置地图焦点。",
         details: {
           select:
-            "选择飞机会把它从附近列表提升为聚焦追踪状态。侧边栏、预览卡片和地图都读取同一个选中对象。",
+            "选择飞机后,侧边栏、预览卡和地图都读取同一个聚焦对象,避免各自维护 selected state。",
           append:
-            "新的 ADS-B 点位会更新实时 marker,并在足够连贯时追加到可见航迹。航迹和列表刷新抖动分开维护。",
+            "新的 ADS-B 点位更新实时 marker,足够连贯时追加到可见航迹。航迹与列表排序抖动分开处理。",
           persist:
-            "航路提示、近期点位和面向用户的追踪信息会合并,让飞机页在跳转或刷新之后仍然容易理解。",
+            "呼号、icao24、航路和近期点位会尽量保留,让刷新或切回页面后仍能理解当前追踪对象。",
         },
       },
       mapOverlays: {
-        title: "地图图层",
-        signal: "跑道、导航台、空域",
+        title: "地图航空上下文",
+        signal: "跑道 / 空域 / 导航台",
         body:
-          "图层开关决定哪些机场叠加物进入地图。几何会投影到当前视图,标签随对应图形一起淡入淡出。",
+          "机场资料先被归一化,再按用户启用的图层进入地图。几何、标签和选中状态共享同一套上下文。",
         details: {
           layers:
-            "地图图层抽屉会先解析用户启用的叠加项,再让地图绘制额外几何。关闭的图层不会进入绘制或标注路径。",
+            "图层抽屉先解析用户启用项。关闭的图层不会进入绘制或标注路径。",
           project:
-            "跑道、导航台、空域和其他形状会在归一化后按当前地图视图投影,保证平移和缩放时行为稳定。",
+            "跑道、导航台、空域和其他形状按当前地图视图投影,保证平移和缩放时行为稳定。",
           label:
-            "标签绑定在自己的几何来源上,并跟随对应图形一起动效切换,不会在关闭图层后留下孤立名称。",
-        },
-      },
-      featureFlags: {
-        title: "Owner-only 实验",
-        signal: "内部功能开关",
-        body:
-          "内部开关让 owner-only 实验和公开产品并存。默认路径保持稳定,只有具备权限的用户能看到实验功能。",
-        details: {
-          read:
-            "功能开关作为产品状态读取,而不是散落在代码里的临时判断。这样实验界面在公开前更容易审计。",
-          gate:
-            "Owner-only UI 可以在接近生产的条件下运行,同时对普通用户不可见,这对 FlightAware 等依赖集成的流程很有用。",
-          release:
-            "公开路径会保持稳定行为,除非某个开关明确打开新分支。之后移除开关路径会是小清理,不是重新设计。",
+            "标签绑定自己的几何来源并跟随图形切换,不会在关闭图层后留下孤立名称。",
         },
       },
     },
