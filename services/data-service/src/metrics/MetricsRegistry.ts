@@ -54,7 +54,7 @@ const DURATION_BUCKETS = Object.freeze([
 function normalizeLabelValue(value: LabelValue) {
   return String(value ?? "unknown")
     .trim()
-    .replace(/[^a-zA-Z0-9_.:-]+/g, "_")
+    .replace(/[^a-zA-Z0-9_.:+-]+/g, "_")
     .slice(0, 80) || "unknown";
 }
 

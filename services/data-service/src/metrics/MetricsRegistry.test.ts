@@ -83,6 +83,10 @@ import { DataServiceMetrics } from "./MetricsRegistry";
     output,
     /adsbao_external_request_duration_seconds_bucket\{endpoint="positions",le="0.25",provider="adsb.lol",result="success"\} 1/,
   );
+  assert.match(
+    output,
+    /adsbao_external_request_duration_seconds_bucket\{endpoint="positions",le="\+Inf",provider="adsb.lol",result="success"\} 1/,
+  );
   assert.equal(output.endsWith("\n"), true);
 }
 
