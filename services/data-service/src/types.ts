@@ -6,7 +6,7 @@ export type RealtimeChannelType =
   | "session"
   | "traffic";
 
-export type RealtimeEventType =
+type RealtimeEventType =
   | "aircraft:update"
   | "channel:error"
   | "connection:ready"

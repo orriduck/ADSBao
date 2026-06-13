@@ -1,4 +1,4 @@
-export type RealtimeConnectionState = "closed" | "connecting" | "disabled" | "open";
+type RealtimeConnectionState = "closed" | "connecting" | "disabled" | "open";
 
 type RealtimeFallbackInput = {
   available: boolean;

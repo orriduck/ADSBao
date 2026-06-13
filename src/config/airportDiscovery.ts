@@ -1,8 +1,3 @@
-export const NEARBY_AIRPORT_DISCOVERY_CONFIG = Object.freeze({
-  radiusNm: 80,
-  limit: 5,
-});
-
 export const AIRPORT_DISCOVERY_TOPICS = Object.freeze([
   {
     id: "spotter-favorites",

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type AsyncPhase = "idle" | "pending" | "success" | "error" | "fading";
+type AsyncPhase = "idle" | "pending" | "success" | "error" | "fading";
 
 export interface AsyncStatusInput {
   loading: boolean;

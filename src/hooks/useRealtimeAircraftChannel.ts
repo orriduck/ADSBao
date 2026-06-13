@@ -7,9 +7,7 @@ import {
 } from "@/lib/realtime/adsbaoRealtimeClient";
 import { shouldUseRealtimeFallback } from "@/lib/realtime/realtimeFallbackModel";
 import {
-  buildAirportTrafficChannel,
   buildCallsignChannel,
-  buildCenterTrafficChannel,
 } from "@/lib/realtime/realtimeChannels";
 
 const INITIAL_REALTIME_GRACE_MS = 8_000;
@@ -113,52 +111,6 @@ export function useRealtimeAircraftChannel({
     fallbackActive,
     connected: connectionState === "open",
   };
-}
-
-export function useAirportAircraftRealtime({
-  icao,
-  lat,
-  lon,
-  distNm,
-  enabled = true,
-}: {
-  icao?: unknown;
-  lat?: unknown;
-  lon?: unknown;
-  distNm?: unknown;
-  enabled?: boolean;
-}) {
-  const request = useMemo(
-    () => buildAirportTrafficChannel(icao, lat, lon, distNm),
-    [distNm, icao, lat, lon],
-  );
-  return useRealtimeAircraftChannel({
-    channel: request?.channel || "",
-    params: request?.params || {},
-    enabled,
-  });
-}
-
-export function useViewportAircraftRealtime({
-  lat,
-  lon,
-  distNm,
-  enabled = true,
-}: {
-  lat?: unknown;
-  lon?: unknown;
-  distNm?: unknown;
-  enabled?: boolean;
-}) {
-  const request = useMemo(
-    () => buildCenterTrafficChannel({ lat, lon, distNm }),
-    [distNm, lat, lon],
-  );
-  return useRealtimeAircraftChannel({
-    channel: request?.channel || "",
-    params: request?.params || {},
-    enabled,
-  });
 }
 
 export function useAircraftTrackingRealtime(

@@ -4,21 +4,35 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../config/aviation";
 import { normalizeCallsign } from "../utils/callsign";
 import { flightRouteScheduler } from "../features/aviation/flight-routes/flightRouteScheduler";
+import type {
+  AircraftRouteCandidate,
+  FlightRoute,
+  RouteContext,
+} from "../features/aviation/flight-routes/flightRouteLookupModel";
 import { createRouteDisplayBatcher } from "../features/aviation/flight-routes/flightRouteDisplayBatchModel";
 import { getAdsbaoRealtimeClient } from "../lib/realtime/adsbaoRealtimeClient";
 import { buildRouteChannel } from "../lib/realtime/realtimeChannels";
 
-type FlightRouteHookRecord = Record<string, any>;
+type FlightRouteHookContext = RouteContext & {
+  enabled?: boolean;
+};
+
+type RouteEventData = {
+  callsign?: unknown;
+  route?: FlightRoute | null;
+};
 
 export function useFlightRoutes(
-  aircraft: FlightRouteHookRecord[],
-  routeContextInput: FlightRouteHookRecord = {},
+  aircraft: AircraftRouteCandidate[],
+  routeContextInput: FlightRouteHookContext = {},
 ) {
   const enabled = routeContextInput?.enabled !== false;
   const client = useMemo(() => getAdsbaoRealtimeClient(), []);
   const [version, setVersion] = useState(0);
   const mountedRef = useRef(true);
-  const routeDisplayBatcherRef = useRef<any>(null);
+  const routeDisplayBatcherRef = useRef<ReturnType<typeof createRouteDisplayBatcher> | null>(
+    null,
+  );
   const routeUnsubscribersRef = useRef(new Map<string, () => void>());
   const routeContext = useMemo(
     () => ({
@@ -102,7 +116,7 @@ export function useFlightRoutes(
         params: request.params,
         listener: (event) => {
           if (event.type === "route:update") {
-            const data = event.data as FlightRouteHookRecord;
+            const data = event.data as RouteEventData;
             flightRouteScheduler.applyRouteResult(
               data?.callsign || callsign,
               data?.route || null,
@@ -125,7 +139,7 @@ export function useFlightRoutes(
   }, [aircraft, routeContext, version]);
 
   const applyTemporaryRoute = useCallback(
-    (callsign: unknown, route: FlightRouteHookRecord) => {
+    (callsign: unknown, route: FlightRoute | null) => {
       const normalized = normalizeCallsign(callsign);
       if (!normalized || !route) return;
       flightRouteScheduler.applyTemporaryRoute(normalized, route, routeContext);

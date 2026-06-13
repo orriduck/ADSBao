@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 // Shared shell for the bottom-of-screen mobile preview card. Both the
 // aircraft and airport variants render through this so the outer
 // chrome — position, dark card surface + warm 135deg gradient, border,
-// shadow, action slot, trace-status slide — lives in one place. Variant
+// shadow, action slot — lives in one place. Variant
 // content goes in `children`; action buttons (Track / Suggest) go in
 // `actions` so they stay below the content with the right pointer
 // behaviour. Adjust card size / radius / gradient here and every
@@ -21,7 +21,6 @@ export default function MobilePreviewCard({
   ariaLabel,
   children,
   actions = null,
-  traceStatus = null,
   compact = false,
 }: Record<string, any>) {
   // NOTE: the enter animation replays on entity change via a `key` on the
@@ -57,31 +56,8 @@ export default function MobilePreviewCard({
       )}
     >
       {children}
-      {traceStatus}
       {actions}
     </aside>
-  );
-}
-
-// Slide-down loading strip — collapses out of the layout when inactive
-// so the card height stays stable.
-export function MobilePreviewTraceStatus({ active, children }: Record<string, any>) {
-  return (
-    <div
-      aria-hidden={!active}
-      className={cn(
-        "self-stretch mx-[14px] text-center text-atc-dim",
-        "font-[var(--font-mono)] text-[10px] font-semibold tracking-[0.08em] leading-[1.15] uppercase",
-        "pointer-events-none whitespace-normal overflow-hidden",
-        "transition-[max-height,margin-top,opacity,transform] duration-[var(--motion-ui-slow)] ease-[var(--motion-ease-out)]",
-        "[[data-density=compact]_&]:mx-[12px] [[data-density=compact]_&]:text-[9px] [[data-density=compact]_&]:tracking-normal",
-        active
-          ? "max-h-[44px] mt-1 opacity-100 translate-y-0 [[data-density=compact]_&]:max-h-[20px] [[data-density=compact]_&]:mt-0.5"
-          : "max-h-0 mt-0 opacity-0 -translate-y-1",
-      )}
-    >
-      {children}
-    </div>
   );
 }
 

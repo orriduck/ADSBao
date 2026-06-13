@@ -181,10 +181,3 @@ export function isHttp4xxOr5xx(error: AircraftFetchError) {
   const parsed = Number(match[1]);
   return parsed >= 400 && parsed < 600;
 }
-
-export function describeAircraftFetchError(error: AircraftFetchError) {
-  const isTimeout =
-    error?.name === "TimeoutError" ||
-    /timed out|signal timed out/i.test(String(error?.message || ""));
-  return isTimeout ? "timeout" : String(error?.message || "unknown");
-}

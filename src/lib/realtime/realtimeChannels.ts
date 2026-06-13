@@ -114,11 +114,6 @@ export function buildAircraftTrafficChannel({
   return buildCenterTrafficChannel({ lat, lon, distNm });
 }
 
-export function buildAircraftHexChannel(hex: unknown) {
-  const normalized = normalizeAircraftHex(hex);
-  return normalized ? `aircraft:${normalized}` : "";
-}
-
 export function buildCallsignChannel(callsign: unknown) {
   const normalized = normalizeCallsign(callsign);
   return normalized ? `callsign:${normalized}` : "";
