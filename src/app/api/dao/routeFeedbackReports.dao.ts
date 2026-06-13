@@ -38,13 +38,9 @@ function createRouteFeedbackReportsRepository({
   if (!queryClient) return null;
 
   return {
-    // Newest active, non-expired, non-soft-deleted feedback override for
-    // a callsign. We deliberately ignore cache_key on read: the stored key
-    // (callsign + airport context) is retained for analysis, but a
-    // correction the user submitted while looking at KBOS should also win
-    // on /aircraft/DAL977 where there is no airport context to namespace
-    // against. The handler treats a hit as "use this route instead of
-    // asking adsbdb" — see the lookup order in flightRoutes.mechanism.js.
+    // Newest active, non-expired, non-soft-deleted feedback report for a
+    // callsign. The route lookup path no longer uses this as a provider
+    // override; reads are retained for audit/admin workflows.
     async readActiveOverride({ normalizedCallsign }: RouteFeedbackRecord) {
       if (!normalizedCallsign) return null;
 

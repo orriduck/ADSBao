@@ -75,8 +75,37 @@ const routeContextCode = (value: unknown) =>
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
 
+const routeSourceCode = (value: unknown) =>
+  String(value || "").trim().toLowerCase();
+
 const isFlightAwareRouteContext = (routeContext: RouteContext = {}) =>
   routeContextCode(routeContext.routeProvider) === "FLIGHTAWARE";
+
+function routeProviderSource(routeContext: RouteContext = {}) {
+  const provider = routeSourceCode(routeContext.routeProvider);
+  return provider === "flightaware" || provider === "adsbdb" ? provider : "";
+}
+
+function routeMatchesProviderSource(
+  route: FlightRoute | null | undefined,
+  routeContext: RouteContext = {},
+) {
+  const requiredSource = routeProviderSource(routeContext);
+  if (!requiredSource) return true;
+  return routeSourceCode(route?.source) === requiredSource;
+}
+
+function normalizeRouteForProviderSource(
+  route: FlightRoute | null,
+  routeContext: RouteContext = {},
+) {
+  if (!route) return null;
+  return routeMatchesProviderSource(route, routeContext) ? route : null;
+}
+
+function shouldUseAircraftMetadataFallback(routeContext: RouteContext = {}) {
+  return !routeProviderSource(routeContext);
+}
 
 const centerContextNumber = (value: unknown) => {
   const number = Number(value);
@@ -153,7 +182,10 @@ function getFreshRouteCacheEntry(
   let firstMiss: RouteCacheEntry | null = null;
   for (const cacheKey of [...new Set(cacheKeys)]) {
     const cached = getFreshRouteCacheEntryByKey(cache, cacheKey, now);
-    if (cached?.route) return cached;
+    if (cached?.route) {
+      if (routeMatchesProviderSource(cached.route, routeContext)) return cached;
+      continue;
+    }
     if (cached && !firstMiss) firstMiss = cached;
   }
   return firstMiss;
@@ -182,11 +214,17 @@ export function writeRouteCacheEntry(
   time: number,
   routeContext: RouteContext = {},
 ) {
+  const routeForContext = normalizeRouteForProviderSource(route, routeContext);
   const exclusiveProvider =
     isFlightAwareRouteContext(routeContext) ||
-    String(route?.source || "").trim().toLowerCase() === "flightaware";
+    routeSourceCode(routeForContext?.source) === "flightaware";
   const cacheKeys = new Set(
-    [callsign, route?.callsign, route?.callsignIcao, route?.callsignIata]
+    [
+      callsign,
+      routeForContext?.callsign,
+      routeForContext?.callsignIcao,
+      routeForContext?.callsignIata,
+    ]
       .flatMap((value) =>
         exclusiveProvider
           ? [buildRouteCacheKey(value, routeContext)]
@@ -196,7 +234,7 @@ export function writeRouteCacheEntry(
   );
 
   for (const cacheKey of cacheKeys) {
-    cache.set(cacheKey, { route, time });
+    cache.set(cacheKey, { route: routeForContext, time });
   }
 }
 
@@ -377,7 +415,11 @@ export function buildRoutesByCallsign({
   for (const item of aircraft || []) {
     const callsign = normalizeCallsign(item.callsign);
     const cached = getFreshRouteCacheEntry(cache, callsign, now, routeContext);
-    const route = cached?.route || buildRouteFromAircraftMetadata(item);
+    const route =
+      cached?.route ||
+      (shouldUseAircraftMetadataFallback(routeContext)
+        ? buildRouteFromAircraftMetadata(item)
+        : null);
     if (route) routes[callsign] = route;
   }
   return routes;

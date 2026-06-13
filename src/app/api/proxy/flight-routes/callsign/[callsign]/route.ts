@@ -63,7 +63,7 @@ export async function GET(request, { params }) {
             }),
             // Expose the resolved upstream so the Network tab makes it
             // obvious which provider answered ("flightaware", "adsbdb",
-            // "community-feedback", or "none" on a miss).
+            // or "none" on a miss).
             "X-Route-Source": body?.source || "none",
           },
           { varyOrigin: false },

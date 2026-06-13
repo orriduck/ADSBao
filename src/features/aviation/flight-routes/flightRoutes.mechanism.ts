@@ -2,7 +2,6 @@ import {
   readResponseJson,
   readResponseText,
 } from "../../../app/api/_shared/apiProxySecurity";
-import { createRouteFeedbackReportsRepositoryFromEnv } from "../../../app/api/dao/routeFeedbackReports.dao";
 import { createOpenAipAirportQueriesFromEnv } from "../../airport/openaip/openAipDirectory";
 import {
   ADSBDB_USER_AGENT,
@@ -126,42 +125,13 @@ async function fetchFlightAwareRoute(
   });
 }
 
-async function readCommunityFeedbackOverride({
-  feedbackRepository,
-  normalizedCallsign,
-}: FlightRouteMechanismRecord) {
-  if (!feedbackRepository) return null;
-  try {
-    const row = await feedbackRepository.readActiveOverride({
-      normalizedCallsign,
-    });
-    return row?.route_payload || null;
-  } catch (err: any) {
-    console.warn(
-      `[route-feedback] override read failed for ${normalizedCallsign}:`,
-      err.message,
-    );
-    return null;
-  }
-}
-
 // Lookup order:
-//   1. Active persisted community feedback override (always wins so a
-//      user-submitted correction can temporarily fix a wrong route
-//      inside the 12-hour TTL). Override is keyed by callsign only —
-//      submissions made under any airport context apply universally
-//      to the same flight number.
-//   2. If the current Clerk user has flightAwareEnabled, FlightAware
-//      is the EXCLUSIVE provider. We return whatever the scraper gives
-//      us (route data or null), no adsbdb fallback. This guarantees
-//      that FlightAware-tier users always see FA-sourced metadata —
-//      origin / destination / airline are pulled from the live
-//      flightaware.com page, not from adsbdb's static dataset.
-//   3. All other users → adsbdb.
+//   1. If the current Clerk user has flightAwareEnabled, FlightAware is the
+//      exclusive provider. We return whatever the scraper gives us (route data
+//      or null), no adsbdb/community fallback.
+//   2. All other users use adsbdb exclusively.
 export const resolveFlightRoute = async ({
   callsign,
-  requestedProvider = "",
-  feedbackRepository = createRouteFeedbackReportsRepositoryFromEnv(),
   shouldUseFlightAwareRouteProvider = isFlightAwareRouteProviderEnabled,
   fetchFlightAwareRoute: fetchFlightAwareRouteImpl = fetchFlightAwareRoute,
   fetchAdsbdbRoute: fetchAdsbdbRouteImpl = fetchAdsbdbRoute,
@@ -169,13 +139,6 @@ export const resolveFlightRoute = async ({
   const normalizedCallsign = normalizeRouteCallsign(callsign);
   if (!normalizedCallsign) return null;
 
-  const override = await readCommunityFeedbackOverride({
-    feedbackRepository,
-    normalizedCallsign,
-  });
-  if (override) return override;
-
-  const provider = String(requestedProvider || "").trim().toLowerCase();
   let flightAwareAllowed = false;
   try {
     flightAwareAllowed = Boolean(
@@ -188,10 +151,7 @@ export const resolveFlightRoute = async ({
     );
   }
 
-  const useFlightAware =
-    flightAwareAllowed && (provider === "flightaware" || provider === "");
-
-  if (useFlightAware) {
+  if (flightAwareAllowed) {
     return fetchFlightAwareRouteImpl(normalizedCallsign);
   }
 

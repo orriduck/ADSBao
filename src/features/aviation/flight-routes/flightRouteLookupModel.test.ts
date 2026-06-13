@@ -136,6 +136,7 @@ const route = {
       origin: { icao: "EPWA", iata: "WAW" },
       destination: { icao: "KMIA", iata: "MIA" },
       route: { icao: "EPWA-KMIA", iata: "WAW-MIA" },
+      source: "adsbdb",
     },
     now,
     { lat: 42.32, lon: -71.56, routeProvider: "adsbdb" },
@@ -156,6 +157,76 @@ const route = {
       cache,
       inFlight: new Set(),
       routeContext: { lat: 42.42, lon: -71.36, routeProvider: "adsbdb" },
+      now,
+      maxLookups: 3,
+    }),
+    [],
+  );
+}
+
+{
+  const cache = new Map();
+  const adsbdbRoute = {
+    callsign: "DAL123",
+    source: "adsbdb",
+    origin: { icao: "KATL", iata: "ATL" },
+    destination: { icao: "KBOS", iata: "BOS" },
+    route: { icao: "KATL-KBOS", iata: "ATL-BOS" },
+  };
+  writeRouteCacheEntry(cache, "DAL123", adsbdbRoute, now, {
+    routeProvider: "flightaware",
+  });
+
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "DAL123" }],
+      cache,
+      now,
+      routeContext: { routeProvider: "flightaware" },
+    }),
+    {},
+  );
+  assert.deepEqual(
+    resolvePendingRouteLookups({
+      aircraft: [{ callsign: "DAL123" }],
+      cache,
+      inFlight: new Set(),
+      routeContext: { routeProvider: "flightaware" },
+      now,
+      maxLookups: 3,
+    }),
+    [],
+  );
+}
+
+{
+  const cache = new Map();
+  const flightAwareRoute = {
+    callsign: "AAL1234",
+    source: "flightaware",
+    origin: { icao: "KBOS", iata: "BOS" },
+    destination: { icao: "KLAX", iata: "LAX" },
+    route: { icao: "KBOS-KLAX", iata: "BOS-LAX" },
+  };
+  writeRouteCacheEntry(cache, "AAL1234", flightAwareRoute, now, {
+    routeProvider: "adsbdb",
+  });
+
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "AAL1234" }],
+      cache,
+      now,
+      routeContext: { routeProvider: "adsbdb" },
+    }),
+    {},
+  );
+  assert.deepEqual(
+    resolvePendingRouteLookups({
+      aircraft: [{ callsign: "AAL1234" }],
+      cache,
+      inFlight: new Set(),
+      routeContext: { routeProvider: "adsbdb" },
       now,
       maxLookups: 3,
     }),
@@ -291,6 +362,23 @@ const route = {
   });
 }
 
+{
+  const routes = buildRoutesByCallsign({
+    aircraft: [
+      {
+        callsign: "VIR26Q",
+        origin: "KJFK",
+        destination: "EGLL",
+      },
+    ],
+    cache: new Map(),
+    routeContext: { routeProvider: "adsbdb" },
+    now,
+  });
+
+  assert.deepEqual(routes, {});
+}
+
 // rankCandidatesByDistance: aircraft farthest from focal airport rank first.
 // KBOS focal -> JBU123 over Lisbon (~3000nm) outranks DAL123 over NYC (~190nm)
 // outranks UAL456 directly over KBOS (~0nm).
@@ -397,14 +485,7 @@ const route = {
   });
 
   assert.deepEqual(pending, ["DAL123"]);
-  assert.deepEqual(routes.AAL100, {
-    callsign: "AAL100",
-    origin: { icao: "KJFK" },
-    destination: { icao: "KLAX" },
-    route: { icao: "KJFK-KLAX" },
-    source: "aircraft-metadata",
-    confidence: "position-metadata",
-  });
+  assert.equal(routes.AAL100, undefined);
 }
 
 {

@@ -1,6 +1,5 @@
-// Lookup hits cache aggressively at the edge; misses use a shorter TTL so
-// a freshly-submitted community-feedback record can supplant the empty
-// result without waiting for the long hit-cache to expire.
+// Lookup hits cache aggressively at the edge; misses use a shorter TTL so a
+// provider miss can be retried quickly without hammering the upstream.
 const ROUTE_CACHE_TTL_SECONDS = 60 * 60;
 const ROUTE_MISS_CACHE_TTL_SECONDS = 5 * 60;
 const ROUTE_STALE_WHILE_REVALIDATE_SECONDS = 10 * 60;
@@ -15,9 +14,9 @@ export function buildRouteCacheHeaders(body, { bypassSharedCache = false } = {})
     return { "Cache-Control": "no-store" };
   }
 
-  // Community-feedback routes are temporary by design; we deliberately do
-  // not let the CDN cache them for the long TTL we use for adsbdb hits.
-  // The client hook still caches them in-memory until the local TTL lapses.
+  // Temporary routes should never land in the shared CDN cache. The current
+  // provider lookup path does not return them, but keep the guard local to the
+  // cache policy in case another endpoint reuses this helper.
   if (body && body.temporary) {
     return { "Cache-Control": "no-store" };
   }

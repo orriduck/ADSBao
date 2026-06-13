@@ -92,10 +92,8 @@ export function normalizeRouteFeedbackInput(rawBody: RouteFeedbackHandlerRecord 
   };
 }
 
-// Builds the canonical insert spec for the Postgres write *and* the route
-// payload the handler echoes back to the client. Keeping these two
-// derivations together guarantees that what is stored is exactly what the
-// UI will paint into the in-memory cache.
+// Builds the canonical insert spec for the Postgres write and the route
+// payload the handler echoes back to the client for acknowledgement.
 export function buildRouteFeedbackInsertSpec({
   input,
   originAirport,
