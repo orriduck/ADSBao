@@ -41,11 +41,6 @@ const AIRCRAFT_POSITION_SOURCE_LABELS = Object.freeze({
   unknown: "",
 });
 
-const ROUTE_PROVIDER_LABELS = Object.freeze({
-  [ROUTE_PROVIDER.ADSBDB]: DATA_SOURCE_LABELS[DATA_SOURCE.ADSBDB],
-  [ROUTE_PROVIDER.FLIGHTAWARE]: DATA_SOURCE_LABELS[DATA_SOURCE.FLIGHTAWARE],
-});
-
 function normalizeKey(value) {
   return String(value || "").trim().toLowerCase();
 }
@@ -54,12 +49,6 @@ function getDataSourceDisplayName(source) {
   const raw = String(source || "").trim();
   if (!raw) return "";
   return DATA_SOURCE_LABELS[normalizeKey(raw)] || raw;
-}
-
-function getRouteProviderDisplayName(provider) {
-  const raw = String(provider || "").trim();
-  if (!raw) return "";
-  return ROUTE_PROVIDER_LABELS[normalizeKey(raw)] || raw;
 }
 
 function getAircraftLocationProviderDisplayName(source) {
@@ -117,10 +106,8 @@ export function getAircraftPositionSourceBadge(quality: Record<string, any> = {}
 
 export function buildMapSourceStatusDisplay({
   feedSource = "",
-  routeProvider = "",
 } = {}) {
   return {
     feedSource: getAircraftLocationProviderDisplayName(feedSource),
-    routeProvider: getRouteProviderDisplayName(routeProvider),
   };
 }

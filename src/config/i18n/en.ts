@@ -313,6 +313,8 @@ const en = {
   },
   aircraft: {
     noRoute: "No route",
+    adsbdbRouteAccuracyNotice:
+      "This route may be inaccurate: adsbdb uses callsign reference data that may not match today's actual origin and destination.",
     airborne: "Airborne",
     ground: "Ground",
     gnd: "GND",

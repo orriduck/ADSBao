@@ -7,7 +7,10 @@ import NumberFlow from "@number-flow/react";
 import { Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toFiniteNumber } from "@/utils/math";
-import { getFlightRouteAirlineIconUrl } from "@/utils/flightRouteDisplay";
+import {
+  getFlightRouteAccuracyNotice,
+  getFlightRouteAirlineIconUrl,
+} from "@/utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
@@ -96,6 +99,9 @@ export default function AircraftPreviewMobileCard({
         );
   const route = aircraft?.flightRouteLabel || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
+  const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft?.flightRoute)
+    ? t("aircraft.adsbdbRouteAccuracyNotice")
+    : "";
 
   const speed = toFiniteNumber(aircraft?.velocity);
   const altitude = toFiniteNumber(aircraft?.altitude);
@@ -164,7 +170,10 @@ export default function AircraftPreviewMobileCard({
         <MobilePreviewRuleRow
           left={
             route ? (
-              <span className="inline-flex min-w-0 max-w-full items-center gap-[6px] align-baseline">
+              <span
+                className="inline-flex min-w-0 max-w-full items-center gap-[6px] align-baseline"
+                title={routeAccuracyNotice || route}
+              >
                 <AirlineLogo src={airlineIconUrl} />
                 <span className="min-w-0 truncate whitespace-nowrap">{route}</span>
               </span>

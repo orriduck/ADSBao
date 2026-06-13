@@ -308,6 +308,8 @@ const zhCN = {
   },
   aircraft: {
     noRoute: "无航路",
+    adsbdbRouteAccuracyNotice:
+      "该航路可能不准确: adsbdb 使用 callsign 参考数据,可能不是今天实际执行的起降机场。",
     airborne: "空中",
     ground: "地面",
     gnd: "地面",

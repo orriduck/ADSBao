@@ -6,6 +6,7 @@ import { Plane } from "lucide-react";
 import NumberFlow from "@number-flow/react";
 import {
   formatFlightRouteMunicipalityLabel,
+  getFlightRouteAccuracyNotice,
   getFlightRouteAirlineIconUrl,
 } from "../../utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -53,6 +54,9 @@ function AircraftRow({
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft.flightRoute);
+  const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft.flightRoute)
+    ? t("aircraft.adsbdbRouteAccuracyNotice")
+    : "";
   // Municipality labels come from route providers as source-data city names.
   // Keep them in every locale so the code/name cycle remains available.
   const routeMunicipalities = formatFlightRouteMunicipalityLabel(
@@ -97,6 +101,7 @@ function AircraftRow({
         airlineIconUrl={airlineIconUrl}
         routeMunicipalities={routeMunicipalities}
         hasRouteMunicipalities={hasRouteMunicipalities}
+        routeAccuracyNotice={routeAccuracyNotice}
       />
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
         {!distanceDisplay ? (
@@ -157,6 +162,7 @@ function AircraftIdentityCell({
   airlineIconUrl,
   routeMunicipalities,
   hasRouteMunicipalities,
+  routeAccuracyNotice,
 }: Record<string, any>) {
   const hasRoute = Boolean(route);
   const hadRoute = useRef(hasRoute);
@@ -188,6 +194,10 @@ function AircraftIdentityCell({
     );
   }
 
+  const routeTitle =
+    routeAccuracyNotice ||
+    (hasRouteMunicipalities ? `${routeMunicipalities}\n${route}` : route);
+
   return (
     <div
       className={`aircraft-table-identity aircraft-table-identity--routed min-w-0 ${
@@ -206,6 +216,7 @@ function AircraftIdentityCell({
           className="aircraft-table-airline-logo"
         />
         <div
+          title={routeTitle}
           className={`aircraft-table-route-cycle min-w-0 flex-1 ${
             hasRouteMunicipalities ? "aircraft-table-route-cycle--alternate" : ""
           }`}

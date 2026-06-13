@@ -67,7 +67,6 @@ assert.deepEqual(
   }),
   {
     feedSource: "ads-b",
-    routeProvider: "flightaware",
   },
 );
 
@@ -78,7 +77,6 @@ assert.deepEqual(
   }),
   {
     feedSource: "custom-feed",
-    routeProvider: "adsbdb",
   },
 );
 
@@ -89,7 +87,6 @@ assert.deepEqual(
   }),
   {
     feedSource: "",
-    routeProvider: "",
   },
 );
 
