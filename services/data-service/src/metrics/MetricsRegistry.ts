@@ -34,9 +34,17 @@ type ExternalRequestInput = {
 };
 
 type HistogramState = {
+  labels: Labels;
   buckets: Map<number, number>;
   count: number;
+  name: string;
   sum: number;
+};
+
+type CounterState = {
+  labels: Labels;
+  name: string;
+  value: number;
 };
 
 const DURATION_BUCKETS = Object.freeze([
@@ -58,11 +66,12 @@ function normalizeLabelValue(value: LabelValue) {
     .slice(0, 80) || "unknown";
 }
 
-function labelKey(labels: Labels) {
-  return Object.keys(labels)
+function seriesKey(name: string, labels: Labels) {
+  const labelsKey = Object.keys(labels)
     .sort()
     .map((key) => `${key}=${normalizeLabelValue(labels[key])}`)
     .join(",");
+  return `${name}|${labelsKey}`;
 }
 
 function labelText(labels: Labels) {
@@ -98,7 +107,7 @@ function classifyEndpoint(channelType: RealtimeChannelType) {
 
 export class DataServiceMetrics {
   private wsConnectionsCurrent = 0;
-  private readonly counters = new Map<string, number>();
+  private readonly counters = new Map<string, CounterState>();
   private readonly histograms = new Map<string, HistogramState>();
 
   recordWsConnectionOpened() {
@@ -187,17 +196,24 @@ export class DataServiceMetrics {
   }
 
   private increment(name: string, labels: Labels, value = 1) {
-    const key = `${name}|${labelKey(labels)}`;
-    this.counters.set(key, (this.counters.get(key) || 0) + value);
+    const key = seriesKey(name, labels);
+    const existing = this.counters.get(key);
+    if (existing) {
+      existing.value += value;
+      return;
+    }
+    this.counters.set(key, { labels, name, value });
   }
 
   private observe(name: string, labels: Labels, value: number) {
-    const key = `${name}|${labelKey(labels)}`;
+    const key = seriesKey(name, labels);
     let state = this.histograms.get(key);
     if (!state) {
       state = {
+        labels,
         buckets: new Map(DURATION_BUCKETS.map((bucket) => [bucket, 0])),
         count: 0,
+        name,
         sum: 0,
       };
       this.histograms.set(key, state);
@@ -259,13 +275,11 @@ export class DataServiceMetrics {
   }
 
   private renderCounters(lines: string[]) {
-    const grouped = new Map<string, Array<{ labels: Labels; value: number }>>();
-    for (const [key, value] of this.counters) {
-      const [name, rawLabels = ""] = key.split("|");
-      const labels = labelsFromKey(rawLabels);
-      const entries = grouped.get(name) || [];
-      entries.push({ labels, value });
-      grouped.set(name, entries);
+    const grouped = new Map<string, CounterState[]>();
+    for (const counter of this.counters.values()) {
+      const entries = grouped.get(counter.name) || [];
+      entries.push(counter);
+      grouped.set(counter.name, entries);
     }
     for (const [name, entries] of [...grouped].sort(([a], [b]) =>
       a.localeCompare(b),
@@ -273,7 +287,7 @@ export class DataServiceMetrics {
       lines.push(`# HELP ${name} Counter for ${name}.`);
       lines.push(`# TYPE ${name} counter`);
       for (const entry of entries.sort((a, b) =>
-        labelKey(a.labels).localeCompare(labelKey(b.labels)),
+        seriesKey("", a.labels).localeCompare(seriesKey("", b.labels)),
       )) {
         lines.push(metricLine(name, entry.labels, entry.value));
       }
@@ -281,37 +295,35 @@ export class DataServiceMetrics {
   }
 
   private renderHistograms(lines: string[]) {
-    for (const [key, state] of [...this.histograms].sort(([a], [b]) =>
-      a.localeCompare(b),
+    for (const state of [...this.histograms.values()].sort((a, b) =>
+      seriesKey(a.name, a.labels).localeCompare(seriesKey(b.name, b.labels)),
     )) {
-      const [name, rawLabels = ""] = key.split("|");
-      const labels = labelsFromKey(rawLabels);
-      lines.push(`# HELP ${name} Histogram for ${name}.`);
-      lines.push(`# TYPE ${name} histogram`);
+      lines.push(`# HELP ${state.name} Histogram for ${state.name}.`);
+      lines.push(`# TYPE ${state.name} histogram`);
       for (const bucket of DURATION_BUCKETS) {
         lines.push(
           metricLine(
-            `${name}_bucket`,
-            { ...labels, le: String(bucket) },
+            `${state.name}_bucket`,
+            { ...state.labels, le: String(bucket) },
             state.buckets.get(bucket) || 0,
           ),
         );
       }
       lines.push(
-        metricLine(`${name}_bucket`, { ...labels, le: "+Inf" }, state.count),
+        metricLine(
+          `${state.name}_bucket`,
+          { ...state.labels, le: "+Inf" },
+          state.count,
+        ),
       );
-      lines.push(metricLine(`${name}_sum`, labels, Number(state.sum.toFixed(6))));
-      lines.push(metricLine(`${name}_count`, labels, state.count));
+      lines.push(
+        metricLine(
+          `${state.name}_sum`,
+          state.labels,
+          Number(state.sum.toFixed(6)),
+        ),
+      );
+      lines.push(metricLine(`${state.name}_count`, state.labels, state.count));
     }
   }
-}
-
-function labelsFromKey(raw: string): Labels {
-  if (!raw) return {};
-  return Object.fromEntries(
-    raw.split(",").map((entry) => {
-      const [key, ...rest] = entry.split("=");
-      return [key, rest.join("=")];
-    }),
-  );
 }
