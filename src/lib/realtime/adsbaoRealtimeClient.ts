@@ -24,6 +24,42 @@ type StoredRealtimeSubscription = {
   listeners: Set<(event: AdsbaoRealtimeEvent) => void>;
 };
 
+type RealtimeSocket = Pick<
+  WebSocket,
+  "addEventListener" | "close" | "readyState" | "send"
+>;
+
+type RealtimeSocketConstructor = {
+  new (url: string): RealtimeSocket;
+  CONNECTING: number;
+  OPEN: number;
+};
+
+type RealtimeTimerHost = {
+  setTimeout: (callback: () => void, delay?: number) => number;
+  clearTimeout: (id: number) => void;
+  setInterval: (callback: () => void, delay?: number) => number;
+  clearInterval: (id: number) => void;
+  addEventListener?: (type: string, listener: () => void) => void;
+  removeEventListener?: (type: string, listener: () => void) => void;
+};
+
+type RealtimeDocumentHost = {
+  hidden?: boolean;
+  addEventListener?: (type: string, listener: () => void) => void;
+  removeEventListener?: (type: string, listener: () => void) => void;
+};
+
+type AdsbaoRealtimeClientOptions = {
+  WebSocketCtor?: RealtimeSocketConstructor;
+  timerHost?: RealtimeTimerHost | null;
+  documentHost?: RealtimeDocumentHost | null;
+  reconnectBaseDelayMs?: number;
+  reconnectMaxDelayMs?: number;
+  heartbeatIntervalMs?: number;
+  heartbeatTimeoutMs?: number;
+};
+
 declare global {
   interface Window {
     __adsbaoRealtimeDebug?: Record<string, unknown>;
@@ -42,19 +78,69 @@ function resolveRealtimeUrl() {
     : "";
 }
 
+function resolveWebSocketConstructor(): RealtimeSocketConstructor | null {
+  return typeof WebSocket !== "undefined"
+    ? (WebSocket as unknown as RealtimeSocketConstructor)
+    : null;
+}
+
+function resolveTimerHost(): RealtimeTimerHost | null {
+  return typeof window !== "undefined"
+    ? {
+        setTimeout: window.setTimeout.bind(window),
+        clearTimeout: window.clearTimeout.bind(window),
+        setInterval: window.setInterval.bind(window),
+        clearInterval: window.clearInterval.bind(window),
+        addEventListener: window.addEventListener.bind(window),
+        removeEventListener: window.removeEventListener.bind(window),
+      }
+    : null;
+}
+
+function resolveDocumentHost(): RealtimeDocumentHost | null {
+  return typeof document !== "undefined" ? document : null;
+}
+
 export class AdsbaoRealtimeClient {
   private readonly url: string;
-  private socket: WebSocket | null = null;
+  private readonly WebSocketCtor: RealtimeSocketConstructor | null;
+  private readonly timerHost: RealtimeTimerHost | null;
+  private readonly documentHost: RealtimeDocumentHost | null;
+  private readonly reconnectBaseDelayMs: number;
+  private readonly reconnectMaxDelayMs: number;
+  private readonly heartbeatIntervalMs: number;
+  private readonly heartbeatTimeoutMs: number;
+  private socket: RealtimeSocket | null = null;
   private connectionState: ConnectionState;
   private reconnectTimer: number | null = null;
+  private heartbeatIntervalTimer: number | null = null;
+  private heartbeatTimeoutTimer: number | null = null;
+  private intentionalClose = false;
   private reconnectAttempt = 0;
   private readonly subscriptions = new Map<string, StoredRealtimeSubscription>();
   private readonly listeners = new Set<(event: AdsbaoRealtimeEvent) => void>();
   private readonly stateListeners = new Set<(state: ConnectionState) => void>();
+  private readonly handleWindowReconnect = () => this.reconnectIfNeeded("window");
+  private readonly handleVisibilityReconnect = () => {
+    if (this.documentHost?.hidden) return;
+    this.reconnectIfNeeded("visibility");
+  };
 
-  constructor(url = resolveRealtimeUrl()) {
+  constructor(url = resolveRealtimeUrl(), options: AdsbaoRealtimeClientOptions = {}) {
     this.url = url;
+    this.WebSocketCtor = options.WebSocketCtor || resolveWebSocketConstructor();
+    this.timerHost =
+      options.timerHost === undefined ? resolveTimerHost() : options.timerHost;
+    this.documentHost =
+      options.documentHost === undefined
+        ? resolveDocumentHost()
+        : options.documentHost;
+    this.reconnectBaseDelayMs = options.reconnectBaseDelayMs ?? 500;
+    this.reconnectMaxDelayMs = options.reconnectMaxDelayMs ?? 30_000;
+    this.heartbeatIntervalMs = options.heartbeatIntervalMs ?? 25_000;
+    this.heartbeatTimeoutMs = options.heartbeatTimeoutMs ?? 10_000;
     this.connectionState = url ? "closed" : "disabled";
+    this.installLifecycleReconnectHandlers();
     this.syncDebug({
       enabled: this.enabled,
       state: this.connectionState,
@@ -73,21 +159,28 @@ export class AdsbaoRealtimeClient {
 
   connect() {
     this.syncDebug({ lastConnectAttemptAt: new Date().toISOString() });
-    if (!this.url || typeof WebSocket === "undefined") {
+    if (!this.url || !this.WebSocketCtor) {
       this.setState("disabled");
       this.syncDebug({ lastConnectSkippedReason: "missing-url-or-websocket" });
       return;
     }
-    if (this.socket && this.socket.readyState <= WebSocket.OPEN) return;
+    if (
+      this.socket &&
+      this.socket.readyState <= this.WebSocketCtor.OPEN
+    ) {
+      return;
+    }
 
     this.setState("connecting");
-    const socket = new WebSocket(this.url);
+    this.intentionalClose = false;
+    const socket = new this.WebSocketCtor(this.url);
     this.socket = socket;
     this.syncDebug({ lastSocketUrl: this.url });
 
     socket.addEventListener("open", () => {
       this.reconnectAttempt = 0;
       this.setState("open");
+      this.startHeartbeat();
       this.resubscribeAll();
     });
     socket.addEventListener("message", (event) => {
@@ -95,7 +188,12 @@ export class AdsbaoRealtimeClient {
     });
     socket.addEventListener("close", () => {
       if (this.socket === socket) this.socket = null;
+      this.stopHeartbeat();
       this.setState(this.url ? "closed" : "disabled");
+      if (this.intentionalClose) {
+        this.intentionalClose = false;
+        return;
+      }
       this.scheduleReconnect();
     });
     socket.addEventListener("error", () => {
@@ -105,8 +203,12 @@ export class AdsbaoRealtimeClient {
   }
 
   disconnect() {
-    if (this.reconnectTimer) window.clearTimeout(this.reconnectTimer);
+    if (this.reconnectTimer && this.timerHost) {
+      this.timerHost.clearTimeout(this.reconnectTimer);
+    }
     this.reconnectTimer = null;
+    this.stopHeartbeat();
+    this.intentionalClose = true;
     this.socket?.close();
     this.socket = null;
     this.setState(this.url ? "closed" : "disabled");
@@ -155,6 +257,9 @@ export class AdsbaoRealtimeClient {
           subscriptionCount: this.subscriptions.size,
         });
         this.send({ type: "unsubscribe", channel });
+        if (this.subscriptions.size === 0) {
+          this.disconnect();
+        }
       }
     };
   }
@@ -178,7 +283,13 @@ export class AdsbaoRealtimeClient {
   }
 
   private send(payload: unknown) {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
+    if (
+      !this.socket ||
+      !this.WebSocketCtor ||
+      this.socket.readyState !== this.WebSocketCtor.OPEN
+    ) {
+      return;
+    }
     this.socket.send(JSON.stringify(payload));
   }
 
@@ -193,10 +304,19 @@ export class AdsbaoRealtimeClient {
   }
 
   private scheduleReconnect() {
-    if (!this.url || this.reconnectTimer) return;
-    const delay = Math.min(30_000, 500 * 2 ** this.reconnectAttempt);
+    if (
+      !this.shouldMaintainConnection() ||
+      this.reconnectTimer ||
+      !this.timerHost
+    ) {
+      return;
+    }
+    const delay = Math.min(
+      this.reconnectMaxDelayMs,
+      this.reconnectBaseDelayMs * 2 ** this.reconnectAttempt,
+    );
     this.reconnectAttempt += 1;
-    this.reconnectTimer = window.setTimeout(() => {
+    this.reconnectTimer = this.timerHost.setTimeout(() => {
       this.reconnectTimer = null;
       this.connect();
     }, delay);
@@ -213,6 +333,11 @@ export class AdsbaoRealtimeClient {
       event = null;
     }
     if (!event) return;
+    if (event.type === "pong") {
+      this.clearHeartbeatTimeout();
+      this.syncDebug({ lastPongAt: new Date().toISOString() });
+      return;
+    }
     this.syncDebug({
       lastEventAt: new Date().toISOString(),
       lastEventChannel: event.channel,
@@ -232,6 +357,93 @@ export class AdsbaoRealtimeClient {
       ...(window.__adsbaoRealtimeDebug || {}),
       ...next,
     };
+  }
+
+  private shouldMaintainConnection() {
+    return Boolean(this.url && this.subscriptions.size > 0);
+  }
+
+  private reconnectIfNeeded(reason: string) {
+    if (!this.shouldMaintainConnection()) return;
+    if (
+      this.socket &&
+      this.WebSocketCtor &&
+      this.socket.readyState === this.WebSocketCtor.OPEN
+    ) {
+      this.sendHeartbeat();
+      return;
+    }
+    if (
+      this.socket &&
+      this.WebSocketCtor &&
+      this.socket.readyState === this.WebSocketCtor.CONNECTING
+    ) {
+      return;
+    }
+    this.syncDebug({
+      lastReconnectReason: reason,
+      lastReconnectAt: new Date().toISOString(),
+    });
+    this.connect();
+  }
+
+  private installLifecycleReconnectHandlers() {
+    this.timerHost?.addEventListener?.("online", this.handleWindowReconnect);
+    this.timerHost?.addEventListener?.("focus", this.handleWindowReconnect);
+    this.documentHost?.addEventListener?.(
+      "visibilitychange",
+      this.handleVisibilityReconnect,
+    );
+  }
+
+  private startHeartbeat() {
+    this.stopHeartbeat();
+    if (
+      !this.timerHost ||
+      this.heartbeatIntervalMs <= 0 ||
+      this.heartbeatTimeoutMs <= 0
+    ) {
+      return;
+    }
+    this.heartbeatIntervalTimer = this.timerHost.setInterval(() => {
+      this.sendHeartbeat();
+    }, this.heartbeatIntervalMs);
+  }
+
+  private stopHeartbeat() {
+    if (this.heartbeatIntervalTimer && this.timerHost) {
+      this.timerHost.clearInterval(this.heartbeatIntervalTimer);
+    }
+    this.heartbeatIntervalTimer = null;
+    this.clearHeartbeatTimeout();
+  }
+
+  private clearHeartbeatTimeout() {
+    if (this.heartbeatTimeoutTimer && this.timerHost) {
+      this.timerHost.clearTimeout(this.heartbeatTimeoutTimer);
+    }
+    this.heartbeatTimeoutTimer = null;
+  }
+
+  private sendHeartbeat() {
+    if (
+      !this.timerHost ||
+      !this.socket ||
+      !this.WebSocketCtor ||
+      this.socket.readyState !== this.WebSocketCtor.OPEN ||
+      this.heartbeatTimeoutTimer
+    ) {
+      return;
+    }
+    const socket = this.socket;
+    this.send({ type: "ping" });
+    this.syncDebug({ lastPingAt: new Date().toISOString() });
+    this.heartbeatTimeoutTimer = this.timerHost.setTimeout(() => {
+      this.heartbeatTimeoutTimer = null;
+      if (this.socket !== socket) return;
+      this.syncDebug({ lastPongTimeoutAt: new Date().toISOString() });
+      socket.close();
+    }, this.heartbeatTimeoutMs);
   }
 }
 

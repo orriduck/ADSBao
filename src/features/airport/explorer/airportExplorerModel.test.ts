@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   enrichAircraftWithRoutes,
   mergeTrackedAircraftIntoNearby,
+  resolveAirportExplorerTrafficAnchor,
   resolveAirportProfile,
   resolveAirportExplorerSelection,
 } from "./airportExplorerModel";
@@ -41,6 +42,28 @@ const localizedProfile = resolveAirportProfile({
   },
 });
 assert.equal(localizedProfile.localizedName, "上海浦东国际机场");
+
+assert.equal(
+  resolveAirportExplorerTrafficAnchor({
+    mode: "airport",
+    airportProfile: fallbackProfile,
+  }),
+  "airport",
+);
+assert.equal(
+  resolveAirportExplorerTrafficAnchor({
+    mode: "nearMe",
+    airportProfile: { icao: "", lat: 42.36, lon: -71.01 },
+  }),
+  "center",
+);
+assert.equal(
+  resolveAirportExplorerTrafficAnchor({
+    mode: "airport",
+    airportProfile: { icao: "", lat: 42.36, lon: -71.01 },
+  }),
+  "center",
+);
 
 const enriched = enrichAircraftWithRoutes({
   airportProfile: fallbackProfile,
