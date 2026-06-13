@@ -98,6 +98,14 @@ function normalizeCallsignChannel(value: string): ChannelResult {
   return { ok: true, channel: `callsign:${callsign}`, type: "callsign" };
 }
 
+function normalizeRouteChannel(value: string): ChannelResult {
+  const callsign = value.trim().toUpperCase().replace(/\s+/g, "");
+  if (!/^[A-Z][A-Z0-9]{2,7}$/.test(callsign)) {
+    return { ok: false, error: "Invalid route channel callsign" };
+  }
+  return { ok: true, channel: `route:${callsign}`, type: "route" };
+}
+
 function normalizeViewportChannel(value: string): ChannelResult {
   const [rawLat, rawLon, rawDist] = value.split(":");
   const lat = toNumber(rawLat);
@@ -177,6 +185,7 @@ export function normalizeChannelName(input: unknown): ChannelResult {
   if (type === "bbox") return normalizeBboxChannel(value);
   if (type === "callsign") return normalizeCallsignChannel(value);
   if (type === "camera") return normalizeScopedChannel("camera", value);
+  if (type === "route") return normalizeRouteChannel(value);
   if (type === "session") return normalizeScopedChannel("session", value);
   if (type === "viewport") return normalizeViewportChannel(value);
   return { ok: false, error: `Unsupported channel type: ${type}` };
@@ -253,6 +262,13 @@ export function buildChannelPollingTarget(
     };
   }
 
+  if (normalized.type === "route") {
+    return {
+      kind: "route",
+      callsign: normalized.channel.slice("route:".length),
+    };
+  }
+
   throw new Error(`${normalized.type} channel does not have an active polling target`);
 }
 
@@ -268,6 +284,9 @@ export function getChannelBaseIntervalMs(type: RealtimeChannelType) {
   }
   if (type === "bbox" || type === "viewport") {
     return 5_000;
+  }
+  if (type === "route") {
+    return 30 * 60_000;
   }
   return 15_000;
 }

@@ -154,6 +154,45 @@ function createManualTimer() {
   const scheduler = createFlightRouteScheduler({
     client: {
       async fetchFlightRoute() {
+        throw new Error("network should not run for realtime route writes");
+      },
+    },
+    config: {
+      maxConcurrentLookups: 1,
+      maxLookupsPerPass: 2,
+      maxQueueSize: 10,
+      queueIntervalMs: 0,
+      auditLogIntervalMs: 0,
+      hitCacheMs: 60_000,
+      missCacheMs: 10_000,
+    },
+    logger: { info() {}, warn() {} },
+    schedule: timer.schedule,
+    clearSchedule: timer.clear,
+    now: () => 1_700_000_000_000,
+  });
+
+  const notifications = [];
+  scheduler.subscribe((state) => notifications.push(state));
+  scheduler.applyRouteResult("dal123", null, {});
+
+  assert.equal(notifications.at(-1).routeVersion, 1);
+  assert.deepEqual(
+    scheduler.getRoutesByCallsign({
+      aircraft: [{ callsign: "DAL123" }],
+      routeContext: {},
+    }),
+    {},
+  );
+  assert.equal(timer.callbacks.length, 0);
+  scheduler.dispose();
+}
+
+{
+  const timer = createManualTimer();
+  const scheduler = createFlightRouteScheduler({
+    client: {
+      async fetchFlightRoute() {
         throw new Error("network should not run when route lookup is disabled");
       },
     },

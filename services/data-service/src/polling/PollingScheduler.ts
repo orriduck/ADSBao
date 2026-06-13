@@ -80,7 +80,7 @@ export class PollingScheduler {
   constructor({
     fetchChannel,
     minIntervalMs = 1_000,
-    maxIntervalMs = 60_000,
+    maxIntervalMs = 30 * 60_000,
     maxActiveChannels = 250,
     jitterRatio = 0.1,
     cacheTtlMs = 15_000,

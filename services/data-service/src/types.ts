@@ -4,13 +4,15 @@ export type RealtimeChannelType =
   | "bbox"
   | "callsign"
   | "camera"
+  | "route"
   | "session"
   | "viewport";
 
 export type RealtimeEventType =
   | "aircraft:update"
   | "channel:error"
-  | "connection:ready";
+  | "connection:ready"
+  | "route:update";
 
 export type RealtimeEvent<TData = unknown> = {
   type: RealtimeEventType | string;
@@ -36,6 +38,10 @@ export type PollingTarget =
   | {
       kind: "aircraft";
       hex: string;
+    }
+  | {
+      kind: "route";
+      callsign: string;
     };
 
 export type SubscribeParams = {

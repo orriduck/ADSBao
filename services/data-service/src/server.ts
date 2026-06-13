@@ -2,19 +2,21 @@ import { createServer, type ServerResponse } from "node:http";
 import { ChannelManager } from "./channels/ChannelManager.js";
 import { PollingScheduler } from "./polling/PollingScheduler.js";
 import { fetchAdsbChannel } from "./sources/adsbClient.js";
+import { fetchRouteChannel } from "./sources/routeClient.js";
 import { attachWebSocketServer } from "./ws.js";
 
 const port = Number(process.env.PORT || 8080);
 const scheduler = new PollingScheduler({
-  fetchChannel: fetchAdsbChannel,
+  fetchChannel: (input) =>
+    input.channelType === "route" ? fetchRouteChannel(input) : fetchAdsbChannel(input),
   minIntervalMs: Number(process.env.MIN_POLL_INTERVAL_MS || 1_000),
-  maxIntervalMs: Number(process.env.MAX_POLL_INTERVAL_MS || 60_000),
+  maxIntervalMs: Number(process.env.MAX_POLL_INTERVAL_MS || 30 * 60_000),
   maxActiveChannels: Number(process.env.MAX_ACTIVE_CHANNELS || 250),
   jitterRatio: Number(process.env.POLL_JITTER_RATIO || 0.1),
 });
 const channelManager = new ChannelManager({
   scheduler,
-  maxSubscriptionsPerSocket: Number(process.env.MAX_SOCKET_SUBSCRIPTIONS || 12),
+  maxSubscriptionsPerSocket: Number(process.env.MAX_SOCKET_SUBSCRIPTIONS || 96),
 });
 
 function parseCsv(value: string | undefined) {

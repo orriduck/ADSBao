@@ -19,6 +19,17 @@ import {
 }
 
 {
+  const channel = normalizeChannelName("route:aal123");
+  assert.equal(channel.ok, true);
+  assert.equal(channel.channel, "route:AAL123");
+  assert.equal(channel.type, "route");
+  assert.deepEqual(buildChannelPollingTarget(channel.channel), {
+    kind: "route",
+    callsign: "AAL123",
+  });
+}
+
+{
   const channel = normalizeChannelName("viewport:42.365:-71.009:40");
   assert.equal(channel.ok, true);
   assert.equal(channel.channel, "viewport:42.4:-71:40");
