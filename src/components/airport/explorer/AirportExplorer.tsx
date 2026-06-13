@@ -15,7 +15,6 @@ import {
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
 import {
   resolveAirportExplorerSelection,
-  resolveAirportExplorerTrafficAnchor,
   resolveAirportProfile,
 } from "@/features/airport/explorer/airportExplorerModel";
 import { resolveSpottingMetricZoomState } from "@/features/airport/explorer/airportExplorerUiModel";
@@ -128,13 +127,8 @@ function AirportExplorerContent({
   const metarIcao = nearMe
     ? nearbyAirports.airports?.[0]?.icao || ""
     : airportProfile.icao;
-  const trafficAnchor = resolveAirportExplorerTrafficAnchor({
-    mode,
-    airportProfile,
-  });
   const { weather, traffic } = useAirportExplorerData(airportProfile, {
     metarIcao,
-    trafficAnchor,
   });
   const userLocationActive = Boolean(userLocation);
   const userLocationAudioActive =

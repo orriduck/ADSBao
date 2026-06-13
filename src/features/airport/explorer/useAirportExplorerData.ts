@@ -13,7 +13,7 @@ import { enrichAircraftWithRoutes } from "./airportExplorerModel";
 
 export function useAirportExplorerData(
   airportProfile,
-  options: { metarIcao?: string; trafficAnchor?: "airport" | "center" } = {},
+  options: { metarIcao?: string } = {},
 ) {
   const { enabled: flightAwareEnabled, resolved: flightAwareResolved } = useFlightAwareEnabled();
   const routeProvider = resolveRouteProvider({ flightAwareEnabled });
@@ -48,7 +48,6 @@ export function useAirportExplorerData(
     airportProfile.icao,
     airportProfile.lat,
     airportProfile.lon,
-    { trafficAnchor: options.trafficAnchor || "airport" },
   );
   const {
     routesByCallsign,

@@ -53,27 +53,6 @@ function normalizeCallsign(value: unknown) {
   return /^[A-Z0-9]{2,12}$/.test(callsign) ? callsign : "";
 }
 
-export function buildAirportTrafficChannel(
-  icao: unknown,
-  lat: unknown,
-  lon: unknown,
-  distNm: unknown = DEFAULT_AIRPORT_RANGE_NM,
-): RealtimeChannelRequest | null {
-  const code = normalizeAirportCode(icao);
-  const normalizedLat = toFiniteNumber(lat);
-  const normalizedLon = toFiniteNumber(lon);
-  if (!code || !isLatitude(normalizedLat) || !isLongitude(normalizedLon)) {
-    return null;
-  }
-  const roundedLat = roundToGrid(normalizedLat);
-  const roundedLon = roundToGrid(normalizedLon);
-  const normalizedDist = normalizeRangeNm(distNm);
-  return {
-    channel: `traffic:airport:${code}:${formatNumber(roundedLat)}:${formatNumber(roundedLon)}:${normalizedDist}`,
-    params: {},
-  };
-}
-
 export function buildCenterTrafficChannel({
   lat,
   lon,
@@ -96,21 +75,14 @@ export function buildCenterTrafficChannel({
 }
 
 export function buildAircraftTrafficChannel({
-  anchor = "center",
-  icao,
   lat,
   lon,
   distNm,
 }: {
-  anchor?: "airport" | "center";
-  icao?: unknown;
   lat: unknown;
   lon: unknown;
   distNm?: unknown;
 }): RealtimeChannelRequest | null {
-  if (anchor === "airport") {
-    return buildAirportTrafficChannel(icao, lat, lon, distNm);
-  }
   return buildCenterTrafficChannel({ lat, lon, distNm });
 }
 
@@ -131,11 +103,6 @@ function normalizeRouteContext(routeContext: Record<string, unknown> = {}) {
 
 function normalizeTrafficChannel(value: string) {
   const [anchor, ...parts] = value.split(":");
-  if (anchor === "airport") {
-    if (parts.length !== 4) return "";
-    const [icao, lat, lon, distNm] = parts;
-    return buildAirportTrafficChannel(icao, lat, lon, distNm)?.channel || "";
-  }
   if (anchor === "center") {
     if (parts.length !== 3) return "";
     const [lat, lon, distNm] = parts;

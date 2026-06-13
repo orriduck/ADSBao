@@ -69,27 +69,6 @@ function normalizeCallsignChannel(value: string): ChannelResult {
 
 function normalizeTrafficChannel(value: string): ChannelResult {
   const [anchor, ...parts] = value.split(":");
-  if (anchor === "airport") {
-    if (parts.length !== 4) {
-      return { ok: false, error: "Invalid traffic airport channel" };
-    }
-    const [rawIcao, rawLat, rawLon, rawDist] = parts;
-    const icao = normalizeAirportIcao(rawIcao);
-    const lat = toNumber(rawLat);
-    const lon = toNumber(rawLon);
-    if (!icao || !isLatitude(lat) || !isLongitude(lon)) {
-      return { ok: false, error: "Invalid traffic airport channel" };
-    }
-    const roundedLat = roundToGrid(lat);
-    const roundedLon = roundToGrid(lon);
-    const distNm = clampRangeNm(rawDist);
-    return {
-      ok: true,
-      channel: `traffic:airport:${icao}:${formatNumber(roundedLat)}:${formatNumber(roundedLon)}:${distNm}`,
-      type: "traffic",
-    };
-  }
-
   if (anchor === "center") {
     if (parts.length !== 3) {
       return { ok: false, error: "Invalid traffic center channel" };
@@ -192,16 +171,7 @@ export function normalizeChannelName(input: unknown): ChannelResult {
 
 function parseTrafficChannel(channel: string): PollingTarget {
   const [, anchor, ...parts] = channel.split(":");
-  if (anchor === "airport") {
-    const [, rawLat, rawLon, rawDist] = parts;
-    return {
-      kind: "positions",
-      lat: Number(rawLat),
-      lon: Number(rawLon),
-      distNm: clampRangeNm(rawDist),
-    };
-  }
-
+  if (anchor !== "center") throw new Error("Invalid traffic channel anchor");
   const [rawLat, rawLon, rawDist] = parts;
   return {
     kind: "positions",

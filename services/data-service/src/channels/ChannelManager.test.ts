@@ -39,7 +39,7 @@ class FakeSocket extends EventEmitter {
     "message",
     JSON.stringify({
       type: "subscribe",
-      channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
+      channel: "traffic:center:42.3656:-71.0096:40",
     }),
   );
   socket.emit(
