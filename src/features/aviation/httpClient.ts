@@ -1,14 +1,14 @@
 import { AVIATION_REQUEST_TIMEOUT_MS } from "../../config/aviation";
 import { readResponseText } from "../../app/api/_shared/apiProxySecurity";
 
-export const createTimeoutSignal = (timeoutMs) =>
+const createTimeoutSignal = (timeoutMs) =>
   typeof AbortSignal !== "undefined" && AbortSignal.timeout
     ? AbortSignal.timeout(timeoutMs)
     : undefined;
 
 // Carries the HTTP status alongside the message so status badges and retry
 // logic can read it without parsing strings.
-export class HttpError extends Error {
+class HttpError extends Error {
   status: number;
   url: string;
   constructor(status: number, url: string, message?: string) {

@@ -3,18 +3,18 @@ import assert from "node:assert/strict";
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "./aviation";
 
 assert.equal(
-  FLIGHT_ROUTE_LOOKUP_CONFIG.maxConcurrentLookups,
-  2,
-  "route lookups should not saturate the browser network panel",
+  FLIGHT_ROUTE_LOOKUP_CONFIG.maxQueueSize,
+  60,
+  "route subscriptions should stay bounded per aircraft pass",
 );
 assert.equal(
-  FLIGHT_ROUTE_LOOKUP_CONFIG.maxLookupsPerPass,
-  4,
-  "route lookups should enter the queue in small batches for live traffic pages",
+  FLIGHT_ROUTE_LOOKUP_CONFIG.hitCacheMs,
+  6 * 60 * 60 * 1000,
+  "route hits should stay warm across long tracking sessions",
 );
 assert.ok(
-  FLIGHT_ROUTE_LOOKUP_CONFIG.queueIntervalMs >= 500,
-  "route lookups should be spaced out behind realtime ADS-B traffic",
+  FLIGHT_ROUTE_LOOKUP_CONFIG.missCacheMs < FLIGHT_ROUTE_LOOKUP_CONFIG.hitCacheMs,
+  "route misses should expire before successful route hits",
 );
 
 console.log("aviation.test.ts ok");

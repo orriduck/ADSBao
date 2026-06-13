@@ -5,7 +5,6 @@ import { createAircraftPositionClient } from "../aircraft/positions/aircraftPosi
 import { createAircraftTraceClient } from "../aircraft/trace/aircraftTraceClient";
 import { createLocalWeatherClient } from "../weather/localWeatherClient";
 import { createMetarClient } from "../weather/metar/metarClient";
-import { createFlightRouteClient } from "./flight-routes/flightRouteClient";
 import { normalizeFlightRoute } from "./flight-routes/flightRouteNormalizer";
 import { createRateLimiter } from "./rateLimiter";
 
@@ -255,107 +254,6 @@ try {
   assert.equal(route.destination.iata, "BOS");
   assert.equal(route.source, "vrs-standing-data");
   assert.equal(route.confidence, "reference-data");
-}
-
-{
-  const calls = [];
-  const client = createFlightRouteClient({
-    fetchImpl: async (url) => {
-      calls.push(url);
-      return createJsonResponse({
-        callsign: "BAW213",
-        airline: { icao: "BAW" },
-        origin: {
-          icao: "EGLL",
-          iata: "LHR",
-          name: "Heathrow Airport",
-          lat: 51.4706,
-          lon: -0.461941,
-        },
-        destination: {
-          icao: "KBOS",
-          iata: "BOS",
-          name: "Logan International Airport",
-          lat: 42.3643,
-          lon: -71.005203,
-        },
-        source: "vrs-standing-data",
-      });
-    },
-  });
-
-  const route = await client.fetchFlightRoute(" baw213 ", {
-    icao: "KBOS",
-    iata: "BOS",
-  });
-
-  assert.equal(calls.length, 1);
-  assert.equal(
-    calls[0],
-    "/api/proxy/flight-routes/callsign/BAW213?airportIcao=KBOS&airportIata=BOS",
-  );
-  assert.equal(route.origin.iata, "LHR");
-  assert.equal(route.destination.icao, "KBOS");
-}
-
-{
-  const client = createFlightRouteClient({
-    fetchImpl: async () => createJsonResponse(null, 200),
-  });
-
-  assert.equal(await client.fetchFlightRoute("NOPE123"), null);
-}
-
-{
-  const client = createFlightRouteClient({
-    fetchImpl: async () =>
-      createJsonResponse({ response: "unknown callsign" }, 404),
-  });
-
-  await assert.rejects(
-    () => client.fetchFlightRoute("NOPE123"),
-    /HTTP 404/,
-  );
-}
-
-{
-  // 429 should throw with rate-limited message
-  const calls = [];
-  const client = createFlightRouteClient({
-    fetchImpl: async (url) => {
-      calls.push(url);
-      if (calls.length <= 1)
-        return createJsonResponse({ response: "rate limited" }, 429);
-      return createJsonResponse({
-        callsign: "UAL456",
-        airline: { icao: "UAL" },
-        origin: {
-          icao: "KSFO",
-          lat: 37.6213,
-          lon: -122.379,
-        },
-        destination: {
-          icao: "KJFK",
-          lat: 40.6413,
-          lon: -73.7781,
-        },
-        source: "vrs-standing-data",
-      });
-    },
-  });
-
-  try {
-    await client.fetchFlightRoute("UAL456");
-    console.error("[test] ✗ 429 should have thrown");
-    process.exitCode = 1;
-  } catch (err) {
-    assert.ok(err.message.includes("429"));
-  }
-
-  // After backoff (which in test is very short), a retry should succeed —
-  // but for a unit test we just verify the limiter state. The second call
-  // above is the success one; a third call would need to wait for backoff.
-  console.log("[test] ✓ Flight route client handles 429 with backoff");
 }
 
 {

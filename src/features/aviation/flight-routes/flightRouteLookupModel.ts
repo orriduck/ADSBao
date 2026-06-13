@@ -1,7 +1,7 @@
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../../../config/aviation";
 import { isLookupCallsign, normalizeCallsign } from "../../../utils/callsign";
 
-type RouteContext = {
+export type RouteContext = {
   icao?: unknown;
   iata?: unknown;
   lat?: unknown;
@@ -9,7 +9,7 @@ type RouteContext = {
   routeProvider?: unknown;
 };
 
-type AircraftRouteCandidate = {
+export type AircraftRouteCandidate = {
   callsign?: unknown;
   lat?: unknown;
   lon?: unknown;
@@ -26,7 +26,7 @@ type RouteAirportCode = {
   iata?: string;
 };
 
-type FlightRoute = {
+export type FlightRoute = {
   callsign?: unknown;
   callsignIcao?: unknown;
   callsignIata?: unknown;
@@ -40,7 +40,7 @@ type FlightRoute = {
   confidence?: string;
 };
 
-type RouteCacheEntry = {
+export type RouteCacheEntry = {
   route: FlightRoute | null;
   time: number;
 };
@@ -279,7 +279,7 @@ export function resolvePendingRouteLookups({
   queued = new Set(),
   routeContext = {},
   now = Date.now(),
-  maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxLookupsPerPass,
+  maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxQueueSize,
 }: PendingRouteLookupOptions) {
   return rankCandidatesByDistance(aircraft, routeContext)
     .filter(

@@ -1,5 +1,3 @@
-import { buildAdsbaoUserAgent } from "./siteMeta";
-
 export const AIRPORT_MAP_ZOOM = {
   approach: 10,
   airport: 11,
@@ -26,7 +24,6 @@ export const AVIATION_PROXY_BASES = {
   aircraftCallsign: "/api/proxy/aircraft/callsign",
   aircraftPhotos: "/api/proxy/aircraft/photos",
   aircraftTrace: "/api/proxy/aircraft/trace",
-  flightRoute: "/api/proxy/flight-routes/callsign",
   localWeather: "/api/proxy/local-weather",
 };
 
@@ -38,20 +35,10 @@ export const AVIATION_REQUEST_TIMEOUT_MS = {
   aircraftCallsign: 6_000,
   aircraftPhoto: 8_000,
   aircraftTrace: 12_000,
-  flightRoute: 10_000,
 };
 
 export const FLIGHT_ROUTE_LOOKUP_CONFIG = {
   hitCacheMs: 6 * 60 * 60 * 1000,
   missCacheMs: 2 * 60 * 60 * 1000,
-  maxConcurrentLookups: 2,
-  maxLookupsPerPass: 4,
   maxQueueSize: 60,
-  auditLogIntervalMs: 2_000,
-  queueIntervalMs: 500,
-  rateLimitMaxTokens: 6,
-  rateLimitRefillMs: 1000,
-  backoffInitialMs: 2000,
-  backoffMaxMs: 60_000,
-  userAgent: buildAdsbaoUserAgent(),
 };

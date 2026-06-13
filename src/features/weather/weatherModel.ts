@@ -7,13 +7,6 @@ export function getCeilingFeet(metar) {
   return toNumber(layer?.base);
 }
 
-export function shouldShowCeilingSlide(metar) {
-  const ceilingFt = getCeilingFeet(metar);
-  const hasVisibility =
-    metar?.rawVisib != null && Number.isFinite(Number(metar.rawVisib));
-  return ceilingFt != null || hasVisibility;
-}
-
 // Token row above the raw METAR string: pulls station / issued / wind /
 // visibility tokens out so the row reads at-a-glance. Labels are i18n
 // keys; the renderer maps them through t().
