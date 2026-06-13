@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   LOST_SIGNAL_TOAST_ID,
   buildLostSignalToastOptions,
+  resolveLostSignalToastDelayMs,
 } from "./lostSignalToastModel";
 
 let stayed = false;
@@ -40,5 +41,60 @@ options.cancel.onClick();
 options.action.onClick();
 assert.equal(stayed, true);
 assert.equal(wentHome, true);
+
+assert.equal(
+  resolveLostSignalToastDelayMs({
+    active: false,
+    hidden: false,
+    delayMs: 45_000,
+    nowMs: 100_000,
+    resumeGraceUntilMs: 0,
+  }),
+  null,
+);
+
+assert.equal(
+  resolveLostSignalToastDelayMs({
+    active: true,
+    hidden: true,
+    delayMs: 45_000,
+    nowMs: 100_000,
+    resumeGraceUntilMs: 0,
+  }),
+  null,
+);
+
+assert.equal(
+  resolveLostSignalToastDelayMs({
+    active: true,
+    hidden: false,
+    delayMs: 45_000,
+    nowMs: 100_000,
+    resumeGraceUntilMs: 0,
+  }),
+  45_000,
+);
+
+assert.equal(
+  resolveLostSignalToastDelayMs({
+    active: true,
+    hidden: false,
+    delayMs: 45_000,
+    nowMs: 100_000,
+    resumeGraceUntilMs: 180_000,
+  }),
+  80_000,
+);
+
+assert.equal(
+  resolveLostSignalToastDelayMs({
+    active: true,
+    hidden: false,
+    delayMs: 45_000,
+    nowMs: 150_000,
+    resumeGraceUntilMs: 180_000,
+  }),
+  45_000,
+);
 
 console.log("lostSignalToastModel.test.ts ok");
