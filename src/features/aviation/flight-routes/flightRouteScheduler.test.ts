@@ -11,6 +11,7 @@ const lot29Route = {
   origin: { icao: "EPWA", iata: "WAW" },
   destination: { icao: "KMIA", iata: "MIA" },
   route: { icao: "EPWA-KMIA", iata: "WAW-MIA" },
+  source: "adsbdb",
 };
 
 {
@@ -80,6 +81,7 @@ const lot29Route = {
     callsignIata: "VS26Q",
     origin: { icao: "KJFK", iata: "JFK" },
     destination: { icao: "EGLL", iata: "LHR" },
+    source: "adsbdb",
   };
 
   scheduler.applyTemporaryRoute("VIR26Q", route, { routeProvider: "adsbdb" });

@@ -103,20 +103,20 @@ import {
   )
 }
 
-// Community-feedback routes are displayed with their `*` suffix on the
-// route label only (callsign stays clean). Both the ICAO-coded and
-// municipality variants carry the suffix so the sidebar and the preview
-// card agree.
+// The `*` marker is reserved for adsbdb accuracy warnings; legacy
+// displaySuffix values from other route sources are not rendered as route
+// accuracy markers.
 {
   const communityRoute = {
     origin: { iata: 'JFK', icao: 'KJFK', municipality: 'New York' },
     destination: { iata: 'BOS', icao: 'KBOS', municipality: 'Boston' },
+    source: 'community-feedback',
     displaySuffix: '*',
     temporary: true,
   }
-  assert.equal(formatFlightRouteLabel(communityRoute), 'JFK -> BOS*')
+  assert.equal(formatFlightRouteLabel(communityRoute), 'JFK -> BOS')
   assert.equal(
     formatFlightRouteMunicipalityLabel(communityRoute),
-    'New York -> Boston*',
+    'New York -> Boston',
   )
 }

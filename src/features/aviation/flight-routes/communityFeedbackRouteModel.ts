@@ -3,10 +3,9 @@ import {
   sanitizeAirportCode,
 } from "./flightRouteCallsign";
 
-// Community feedback gives us a temporary override that the UI labels with
-// a `*` suffix and an "expires in 12h" tooltip. Keeping the constants here
-// — alongside the builder — keeps the route shape and its UI contract in
-// one place so the handler, normalizer, and renderer can't drift.
+// Community feedback records keep the route shape we store for audit and
+// review. They no longer participate in provider route lookup, so rendered
+// route source remains exclusively flightaware or adsbdb.
 const COMMUNITY_FEEDBACK_TTL_MS = 12 * 60 * 60 * 1000;
 const COMMUNITY_FEEDBACK_SOURCE = "community-feedback";
 const COMMUNITY_FEEDBACK_DISPLAY_SUFFIX = "*";

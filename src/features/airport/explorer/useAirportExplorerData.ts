@@ -5,10 +5,7 @@ import { useAircraftPositions } from "@/hooks/useAircraftPositions";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes";
 import { useMetar } from "@/hooks/useMetar";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
-import {
-  ROUTE_PROVIDER,
-  resolveRouteProvider,
-} from "@/features/aviation/sourceDisplayModel";
+import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel";
 import { resolveRouteLookupEnabled } from "@/features/aviation/flight-routes/flightRouteLookupModel";
 import { enrichAircraftWithRoutes } from "./airportExplorerModel";
 
@@ -59,8 +56,7 @@ export function useAirportExplorerData(
     enabled: resolveRouteLookupEnabled({
       featureFlagsResolved: flightAwareResolved,
     }),
-    routeProvider:
-      routeProvider === ROUTE_PROVIDER.FLIGHTAWARE ? routeProvider : "",
+    routeProvider,
   });
 
   const aircraftWithRoutes = useMemo(
