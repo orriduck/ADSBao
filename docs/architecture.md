@@ -1,6 +1,8 @@
 # ADSBao Architecture
 
-ADSBao is a Vercel-first web app for airport lookup, weather context, nearby aircraft visualization, and airport-aware route labels.
+ADSBao is a Vercel-first web app for airport lookup, weather context, nearby
+aircraft visualization, and airport-aware route labels, with high-frequency
+ADS-B and route polling offloaded to a Railway realtime backend.
 
 ## Frontend stack
 
@@ -16,7 +18,7 @@ ADSBao is a Vercel-first web app for airport lookup, weather context, nearby air
 - METAR weather context.
 - ADS-B nearby traffic visualization.
 - Callsign route labels when route data can be resolved.
-- Vercel web deployment.
+- Vercel web deployment plus a Railway realtime data service.
 
 Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the previous local backend runtime, and previous transcription-oriented UI are not part of the current ADSBao web scope.
 
@@ -26,6 +28,21 @@ Legacy desktop distribution, Electron packaging, Homebrew cask publishing, the p
 
 Global airport context is sourced from [OpenAIP](https://www.openaip.net/) through server-only route handlers. `/api/search` resolves ranked airport matches, and `/api/airport/[ident]` returns airport detail, runways, frequencies, nearby airports, navaids, airspaces, reporting points, and obstacles. OpenAIP Core runway records do not include threshold coordinates, so runway map overlays are backed by a narrow `public.runway_geometries` table imported from OurAirports runway data. OurAirports `airport_frequencies` and `navaids` static tables also augment OpenAIP frequency/navaid coverage after normalization and conservative deduplication. The browser-side `airportDirectoryClient` is a thin wrapper over these routes — feature code does not see the provider boundary or the server-only OpenAIP API key.
 
+### Realtime data service
+
+High-frequency aircraft positions, tracked-aircraft updates, viewport traffic,
+airport traffic, and callsign route labels are served first through the
+WebSocket backend under `services/data-service`. It is deployed as a Railway
+service, shares one polling loop per active channel, applies provider fallback
+and backoff centrally, and exposes `/health`, `/debug/channels`, `/metrics`,
+and `/ws`.
+
+The frontend discovers it through `NEXT_PUBLIC_ADSBAO_REALTIME_URL`. Realtime
+surfaces do not start their own external-provider polling when the WebSocket is
+unavailable; they keep the loading state and notify the user while the browser
+client actively reconnects and resubscribes existing channels after a socket
+close. Railway WebSocket connections are expected to reconnect periodically.
+
 ### Vercel data paths
 
 The app uses same-origin Vercel paths for upstream aviation sources that are not directly browser-friendly.
@@ -33,8 +50,8 @@ The app uses same-origin Vercel paths for upstream aviation sources that are not
 | Path | Upstream | Purpose |
 |---|---|---|
 | `/api/proxy/metar/:icao` | AviationWeather METAR API | Airport weather context |
-| `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft positions |
-| `/api/proxy/flight-routes/callsign/:callsign` | VRS standing-data route fetcher | Callsign route lookup |
+| `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft one-off provider access |
+| `/api/proxy/flight-routes/callsign/:callsign` | adsbdb and route feedback | Callsign route one-off provider access |
 | `/api/proxy/local-weather/:lat/:lon` | Open-Meteo | Airport-local weather |
 | `/api/proxy/airports/nearby` | OpenAIP Core API | Nearby airport overlays |
 

@@ -86,7 +86,7 @@ export function useRealtimeAircraftChannel({
     if (!fallbackActive || !available) return;
     toast.error("Realtime data connection is unavailable.", {
       id: REALTIME_ISSUE_TOAST_ID,
-      description: "Live ADS-B updates are waiting for the ADSBao Fly.io data service.",
+      description: "Live ADS-B updates are waiting for the ADSBao data service.",
       duration: 8_000,
     });
   }, [available, fallbackActive]);

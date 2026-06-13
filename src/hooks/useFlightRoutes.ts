@@ -27,7 +27,7 @@ export function useFlightRoutes(
   const routeContext = useMemo(
     () => ({
       // Coordinates rank pending route channels only. The route cache key is
-      // callsign-only so airport and flight pages share the same Fly.io loop.
+      // callsign-only so airport and flight pages share the same realtime loop.
       lat: Number(routeContextInput?.lat),
       lon: Number(routeContextInput?.lon),
     }),
@@ -117,7 +117,7 @@ export function useFlightRoutes(
           if (event.type === "channel:error" || event.type === "subscribe:error") {
             toast.error("Realtime route lookup is unavailable.", {
               id: ROUTE_TOAST_ID,
-              description: "Route labels are waiting for the ADSBao Fly.io data service.",
+              description: "Route labels are waiting for the ADSBao data service.",
               duration: 8_000,
             });
           }
@@ -133,7 +133,7 @@ export function useFlightRoutes(
       if (!client.enabled || connectionState !== "open") {
         toast.error("Realtime route lookup is unavailable.", {
           id: ROUTE_TOAST_ID,
-          description: "Route labels are waiting for the ADSBao Fly.io data service.",
+          description: "Route labels are waiting for the ADSBao data service.",
           duration: 8_000,
         });
       }
