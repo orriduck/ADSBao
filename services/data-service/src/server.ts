@@ -1,11 +1,13 @@
 import { createServer, type ServerResponse } from "node:http";
 import { ChannelManager } from "./channels/ChannelManager.js";
+import { DataServiceMetrics } from "./metrics/MetricsRegistry.js";
 import { PollingScheduler } from "./polling/PollingScheduler.js";
 import { fetchAdsbChannel } from "./sources/adsbClient.js";
 import { fetchRouteChannel } from "./sources/routeClient.js";
 import { attachWebSocketServer } from "./ws.js";
 
 const port = Number(process.env.PORT || 8080);
+const metrics = new DataServiceMetrics();
 const scheduler = new PollingScheduler({
   fetchChannel: (input) =>
     input.channelType === "route" ? fetchRouteChannel(input) : fetchAdsbChannel(input),
@@ -13,10 +15,12 @@ const scheduler = new PollingScheduler({
   maxIntervalMs: Number(process.env.MAX_POLL_INTERVAL_MS || 30 * 60_000),
   maxActiveChannels: Number(process.env.MAX_ACTIVE_CHANNELS || 250),
   jitterRatio: Number(process.env.POLL_JITTER_RATIO || 0.1),
+  metrics,
 });
 const channelManager = new ChannelManager({
   scheduler,
   maxSubscriptionsPerSocket: Number(process.env.MAX_SOCKET_SUBSCRIPTIONS || 96),
+  metrics,
 });
 
 function parseCsv(value: string | undefined) {
@@ -54,16 +58,13 @@ const server = createServer((request, response) => {
   if (request.method === "GET" && url.pathname === "/metrics") {
     const channels = scheduler.getDebugChannels();
     response.writeHead(200, {
-      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Type": "text/plain; version=0.0.4; charset=utf-8",
       "Cache-Control": "no-store",
     });
-    response.end(
-      [
-        `adsbao_active_channels ${channels.length}`,
-        `adsbao_subscribers ${channels.reduce((sum: number, item) => sum + item.subscriberCount, 0)}`,
-        "",
-      ].join("\n"),
-    );
+    response.end(metrics.render({
+      channels,
+      uptimeSec: process.uptime(),
+    }));
     return;
   }
 

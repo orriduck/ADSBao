@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { DataServiceMetrics } from "../metrics/MetricsRegistry";
 import { PollingScheduler } from "./PollingScheduler";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -134,6 +135,46 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
       }),
     /active channel limit/i,
   );
+  unsubscribe();
+  scheduler.dispose();
+}
+
+{
+  const metrics = new DataServiceMetrics();
+  const scheduler = new PollingScheduler({
+    minIntervalMs: 25,
+    maxActiveChannels: 10,
+    jitterRatio: 0,
+    metrics,
+    fetchChannel: async ({ channel }) => ({
+      type: "route:update",
+      channel,
+      source: "adsbdb",
+      fetchedAt: new Date(0).toISOString(),
+      stale: false,
+      data: { callsign: "DAL44", route: null },
+    }),
+  });
+
+  const unsubscribe = scheduler.subscribe({
+    channel: "route:DAL44",
+    send: () => {},
+  });
+
+  await sleep(40);
+  const output = metrics.render({
+    uptimeSec: 1,
+    channels: scheduler.getDebugChannels(),
+  });
+  assert.match(
+    output,
+    /adsbao_poll_requests_total\{channel_type="route",result="success",source="adsbdb"\} 1/,
+  );
+  assert.match(
+    output,
+    /adsbao_external_requests_total\{endpoint="route",provider="adsbdb",result="success"\} 1/,
+  );
+
   unsubscribe();
   scheduler.dispose();
 }

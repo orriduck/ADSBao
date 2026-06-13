@@ -5,6 +5,7 @@ import {
   normalizeChannelName,
 } from "../channels/channelTypes.js";
 import { MemoryTtlCache } from "../cache/memoryCache.js";
+import type { DataServiceMetrics } from "../metrics/MetricsRegistry.js";
 import type {
   DebugChannel,
   FetchChannel,
@@ -46,6 +47,7 @@ type PollingSchedulerOptions = {
   maxActiveChannels?: number;
   jitterRatio?: number;
   cacheTtlMs?: number;
+  metrics?: DataServiceMetrics;
   now?: () => number;
 };
 
@@ -74,6 +76,7 @@ export class PollingScheduler {
   private readonly maxActiveChannels: number;
   private readonly jitterRatio: number;
   private readonly cache: MemoryTtlCache<RealtimeEvent>;
+  private readonly metrics: DataServiceMetrics | null;
   private readonly channels = new Map<string, ChannelState>();
   private subscriberId = 0;
 
@@ -84,6 +87,7 @@ export class PollingScheduler {
     maxActiveChannels = 250,
     jitterRatio = 0.1,
     cacheTtlMs = 15_000,
+    metrics = undefined,
     now = Date.now,
   }: PollingSchedulerOptions) {
     this.fetchChannel = fetchChannel;
@@ -92,6 +96,7 @@ export class PollingScheduler {
     this.maxActiveChannels = maxActiveChannels;
     this.jitterRatio = jitterRatio;
     this.cache = new MemoryTtlCache<RealtimeEvent>({ ttlMs: cacheTtlMs, now });
+    this.metrics = metrics || null;
   }
 
   subscribe({
@@ -234,6 +239,7 @@ export class PollingScheduler {
   private async poll(state: ChannelState) {
     if (state.inFlight || state.disposed) return;
     state.inFlight = true;
+    const startedAt = Date.now();
     try {
       const event = await this.fetchChannel({
         channel: state.channel,
@@ -248,6 +254,12 @@ export class PollingScheduler {
       state.source = event.source || null;
       state.stale = Boolean(event.stale);
       this.cache.set(state.key, event);
+      this.recordPollMetrics({
+        state,
+        source: event.source || "unknown",
+        result: "success",
+        durationMs: Date.now() - startedAt,
+      });
       this.broadcast(state, event);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -263,11 +275,43 @@ export class PollingScheduler {
         data: state.lastEvent?.data ?? null,
         error: message,
       };
+      this.recordPollMetrics({
+        state,
+        source: state.source || "failed",
+        result: "error",
+        durationMs: Date.now() - startedAt,
+      });
       this.broadcast(state, staleEvent);
     } finally {
       state.inFlight = false;
       this.scheduleNext(state);
     }
+  }
+
+  private recordPollMetrics({
+    state,
+    source,
+    result,
+    durationMs,
+  }: {
+    state: ChannelState;
+    source: string;
+    result: "success" | "error";
+    durationMs: number;
+  }) {
+    if (!this.metrics) return;
+    this.metrics.recordPoll({
+      channelType: state.type,
+      source,
+      result,
+      durationMs,
+    });
+    this.metrics.recordExternalRequestForPoll({
+      channelType: state.type,
+      provider: source,
+      result,
+      durationMs,
+    });
   }
 
   private broadcast(state: ChannelState, event: RealtimeEvent) {

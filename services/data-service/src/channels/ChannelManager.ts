@@ -1,11 +1,13 @@
 import type { WebSocket } from "ws";
 import { normalizeChannelName } from "./channelTypes.js";
+import type { DataServiceMetrics } from "../metrics/MetricsRegistry.js";
 import { PollingScheduler } from "../polling/PollingScheduler.js";
 import type { ClientMessage, RealtimeEvent, SubscribeParams } from "../types.js";
 
 type ChannelManagerOptions = {
   scheduler: PollingScheduler;
   maxSubscriptionsPerSocket?: number;
+  metrics?: DataServiceMetrics;
 };
 
 type SocketState = {
@@ -31,14 +33,17 @@ function parseClientMessage(raw: unknown): ClientMessage | null {
 export class ChannelManager {
   private readonly scheduler: PollingScheduler;
   private readonly maxSubscriptionsPerSocket: number;
+  private readonly metrics: DataServiceMetrics | null;
   private readonly sockets = new WeakMap<WebSocket, SocketState>();
 
   constructor({
     scheduler,
     maxSubscriptionsPerSocket = 96,
+    metrics = undefined,
   }: ChannelManagerOptions) {
     this.scheduler = scheduler;
     this.maxSubscriptionsPerSocket = maxSubscriptionsPerSocket;
+    this.metrics = metrics || null;
   }
 
   attach(socket: WebSocket) {
@@ -46,7 +51,8 @@ export class ChannelManager {
       subscriptions: new Map(),
     };
     this.sockets.set(socket, state);
-    sendJson(socket, {
+    this.metrics?.recordWsConnectionOpened();
+    this.sendJson(socket, {
       type: "connection:ready",
       channel: "session",
       source: "adsbao-data-service",
@@ -60,9 +66,19 @@ export class ChannelManager {
     socket.on("message", (raw) => {
       const message = parseClientMessage(raw);
       if (!message) {
-        sendJson(socket, { type: "error", error: "Invalid JSON message" });
+        this.metrics?.recordWsMessage({
+          direction: "inbound",
+          type: "invalid",
+          result: "error",
+        });
+        this.sendJson(socket, { type: "error", error: "Invalid JSON message" });
         return;
       }
+      this.metrics?.recordWsMessage({
+        direction: "inbound",
+        type: message.type,
+        result: "ok",
+      });
       this.handleMessage(socket, state, message);
     });
 
@@ -79,11 +95,13 @@ export class ChannelManager {
     if (!state) return;
     for (const unsubscribe of state.subscriptions.values()) unsubscribe();
     state.subscriptions.clear();
+    this.sockets.delete(socket);
+    this.metrics?.recordWsConnectionClosed();
   }
 
   private handleMessage(socket: WebSocket, state: SocketState, message: ClientMessage) {
     if (message.type === "ping") {
-      sendJson(socket, { type: "pong", now: new Date().toISOString() });
+      this.sendJson(socket, { type: "pong", now: new Date().toISOString() });
       return;
     }
 
@@ -94,7 +112,7 @@ export class ChannelManager {
       if (!unsubscribe) return;
       unsubscribe();
       state.subscriptions.delete(normalized.channel);
-      sendJson(socket, {
+      this.sendJson(socket, {
         type: "subscribed:removed",
         channel: normalized.channel,
       });
@@ -102,13 +120,17 @@ export class ChannelManager {
     }
 
     if (message.type !== "subscribe") {
-      sendJson(socket, { type: "error", error: "Unsupported message type" });
+      this.sendJson(socket, { type: "error", error: "Unsupported message type" });
       return;
     }
 
     const normalized = normalizeChannelName(message.channel);
     if (normalized.ok !== true) {
-      sendJson(socket, {
+      this.metrics?.recordWsSubscribe({
+        channelType: "unknown",
+        result: "invalid",
+      });
+      this.sendJson(socket, {
         type: "subscribe:error",
         channel: message.channel,
         error: normalized.error,
@@ -116,14 +138,22 @@ export class ChannelManager {
       return;
     }
     if (state.subscriptions.has(normalized.channel)) {
-      sendJson(socket, {
+      this.metrics?.recordWsSubscribe({
+        channelType: normalized.type,
+        result: "duplicate",
+      });
+      this.sendJson(socket, {
         type: "subscribed:ready",
         channel: normalized.channel,
       });
       return;
     }
     if (state.subscriptions.size >= this.maxSubscriptionsPerSocket) {
-      sendJson(socket, {
+      this.metrics?.recordWsSubscribe({
+        channelType: normalized.type,
+        result: "limit",
+      });
+      this.sendJson(socket, {
         type: "subscribe:error",
         channel: normalized.channel,
         error: "Socket subscription limit reached",
@@ -135,19 +165,40 @@ export class ChannelManager {
       const unsubscribe = this.scheduler.subscribe({
         channel: normalized.channel,
         params: message.params || ({} as SubscribeParams),
-        send: (event: RealtimeEvent) => sendJson(socket, event),
+        send: (event: RealtimeEvent) => this.sendJson(socket, event),
       });
       state.subscriptions.set(normalized.channel, unsubscribe);
-      sendJson(socket, {
+      this.metrics?.recordWsSubscribe({
+        channelType: normalized.type,
+        result: "ok",
+      });
+      this.sendJson(socket, {
         type: "subscribed:ready",
         channel: normalized.channel,
       });
     } catch (error) {
-      sendJson(socket, {
+      this.metrics?.recordWsSubscribe({
+        channelType: normalized.type,
+        result: "error",
+      });
+      this.sendJson(socket, {
         type: "subscribe:error",
         channel: normalized.channel,
         error: error instanceof Error ? error.message : String(error),
       });
     }
+  }
+
+  private sendJson(socket: WebSocket, payload: unknown) {
+    const type =
+      payload && typeof payload === "object" && "type" in payload
+        ? String((payload as { type?: unknown }).type || "unknown")
+        : "unknown";
+    this.metrics?.recordWsMessage({
+      direction: "outbound",
+      type,
+      result: socket.readyState === socket.OPEN ? "ok" : "error",
+    });
+    sendJson(socket, payload);
   }
 }
