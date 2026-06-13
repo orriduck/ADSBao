@@ -43,7 +43,6 @@ export function useAirportExplorerData(
     lastUpdated,
     feedStatus,
     feedSource,
-    realtimeActive,
   } = useAircraftPositions(
     airportProfile.icao,
     airportProfile.lat,
@@ -55,7 +54,6 @@ export function useAirportExplorerData(
     applyTemporaryRoute,
   } = useFlightRoutes(aircraft, {
     ...airportProfile,
-    enabled: !realtimeActive,
     routeProvider:
       routeProvider === ROUTE_PROVIDER.FLIGHTAWARE ? routeProvider : "",
   });

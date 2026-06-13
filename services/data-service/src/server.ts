@@ -17,6 +17,13 @@ const channelManager = new ChannelManager({
   maxSubscriptionsPerSocket: Number(process.env.MAX_SOCKET_SUBSCRIPTIONS || 12),
 });
 
+function parseCsv(value: string | undefined) {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function jsonResponse(response: ServerResponse, status: number, payload: unknown) {
   response.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
@@ -61,7 +68,11 @@ const server = createServer((request, response) => {
   jsonResponse(response, 404, { error: "Not found" });
 });
 
-attachWebSocketServer({ server, channelManager });
+attachWebSocketServer({
+  server,
+  channelManager,
+  allowedOrigins: parseCsv(process.env.ALLOWED_WS_ORIGINS),
+});
 
 server.listen(port, "0.0.0.0", () => {
   console.info(`adsbao-data-service listening on :${port}`);

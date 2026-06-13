@@ -344,7 +344,6 @@ function FlightExplorerContent({ callsign }) {
     aircraft: fetchedNearbyAircraft,
     loading: fetchedNearbyAircraftLoading,
     settled: fetchedNearbyAircraftSettled,
-    realtimeActive: nearbyAircraftRealtimeActive,
   } = useAircraftPositions(
     callsign || "",
     nearbyAircraftQueryLat,
@@ -415,7 +414,6 @@ function FlightExplorerContent({ callsign }) {
     loadingCount: routeLoadingCount,
     applyTemporaryRoute,
   } = useFlightRoutes(rawAircraft, {
-    enabled: !nearbyAircraftRealtimeActive,
     routeProvider,
   });
 

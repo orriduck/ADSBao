@@ -71,6 +71,7 @@ export type ClientMessage =
     };
 
 export type DebugChannel = {
+  key: string;
   channel: string;
   type: RealtimeChannelType;
   subscriberCount: number;

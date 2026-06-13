@@ -20,6 +20,7 @@ type Subscriber = {
 };
 
 type ChannelState = {
+  key: string;
   channel: string;
   type: RealtimeChannelType;
   target: PollingTarget;
@@ -47,6 +48,24 @@ type PollingSchedulerOptions = {
   cacheTtlMs?: number;
   now?: () => number;
 };
+
+function formatTargetNumber(value: number) {
+  return String(Number(value.toFixed(4)));
+}
+
+function buildChannelStateKey(
+  channel: string,
+  type: RealtimeChannelType,
+  target: PollingTarget,
+) {
+  if (type !== "airport" || target.kind !== "positions") return channel;
+  return [
+    channel,
+    formatTargetNumber(target.lat),
+    formatTargetNumber(target.lon),
+    String(target.distNm),
+  ].join("|");
+}
 
 export class PollingScheduler {
   private readonly fetchChannel: FetchChannel;
@@ -87,25 +106,34 @@ export class PollingScheduler {
     const normalized = normalizeChannelName(channel);
     if (normalized.ok !== true) throw new Error(normalized.error);
     const normalizedChannel = normalized.channel;
-    let state = this.channels.get(normalizedChannel);
+    const type = getChannelType(normalizedChannel);
+    const target = buildChannelPollingTarget(normalizedChannel, params);
+    const channelKey = buildChannelStateKey(normalizedChannel, type, target);
+    let state = this.channels.get(channelKey);
 
     if (!state) {
       if (this.channels.size >= this.maxActiveChannels) {
         throw new Error("Active channel limit reached");
       }
-      state = this.createChannelState(normalizedChannel, params);
-      this.channels.set(normalizedChannel, state);
+      state = this.createChannelState({
+        key: channelKey,
+        channel: normalizedChannel,
+        params,
+        target,
+        type,
+      });
+      this.channels.set(channelKey, state);
       this.poll(state);
     }
 
     const id = (this.subscriberId += 1);
     state.subscribers.set(id, { id, send });
 
-    const cached = this.cache.get(normalizedChannel) || state.lastEvent;
+    const cached = this.cache.get(channelKey) || state.lastEvent;
     if (cached) queueMicrotask(() => send(cached));
 
     return () => {
-      const activeState = this.channels.get(normalizedChannel);
+      const activeState = this.channels.get(channelKey);
       if (!activeState) return;
       activeState.subscribers.delete(id);
       if (activeState.subscribers.size === 0) {
@@ -117,6 +145,7 @@ export class PollingScheduler {
   getDebugChannels(): DebugChannel[] {
     return [...this.channels.values()]
       .map((state) => ({
+        key: state.key,
         channel: state.channel,
         type: state.type,
         subscriberCount: state.subscribers.size,
@@ -139,16 +168,26 @@ export class PollingScheduler {
   }
 
   private createChannelState(
-    channel: string,
-    params: SubscribeParams,
+    {
+      key,
+      channel,
+      params,
+      target,
+      type,
+    }: {
+      key: string;
+      channel: string;
+      params: SubscribeParams;
+      target: PollingTarget;
+      type: RealtimeChannelType;
+    },
   ): ChannelState {
-    const type = getChannelType(channel);
-    const target = buildChannelPollingTarget(channel, params);
     const baseIntervalMs = Math.max(
       this.minIntervalMs,
       getChannelBaseIntervalMs(type),
     );
     return {
+      key,
       channel,
       type,
       target,
@@ -173,7 +212,7 @@ export class PollingScheduler {
     if (state.timer) clearTimeout(state.timer);
     state.timer = null;
     state.subscribers.clear();
-    this.channels.delete(state.channel);
+    this.channels.delete(state.key);
   }
 
   private scheduleNext(state: ChannelState) {
@@ -208,7 +247,7 @@ export class PollingScheduler {
       state.lastEvent = event;
       state.source = event.source || null;
       state.stale = Boolean(event.stale);
-      this.cache.set(state.channel, event);
+      this.cache.set(state.key, event);
       this.broadcast(state, event);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

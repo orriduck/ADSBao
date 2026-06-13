@@ -13,6 +13,7 @@ import {
 } from "@/lib/realtime/realtimeChannels";
 
 const INITIAL_REALTIME_GRACE_MS = 8_000;
+const EMPTY_REALTIME_PARAMS: Record<string, unknown> = Object.freeze({});
 
 type RealtimeHookOptions = {
   channel?: string;
@@ -28,7 +29,7 @@ declare global {
 
 export function useRealtimeAircraftChannel({
   channel = "",
-  params = {},
+  params = EMPTY_REALTIME_PARAMS,
   enabled = true,
 }: RealtimeHookOptions) {
   const client = useMemo(() => getAdsbaoRealtimeClient(), []);
