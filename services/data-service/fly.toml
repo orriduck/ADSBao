@@ -12,6 +12,10 @@ primary_region = "sjc"
   MAX_POLL_INTERVAL_MS = "1800000"
   POLL_JITTER_RATIO = "0.1"
 
+[metrics]
+  port = 8080
+  path = "/metrics"
+
 [http_service]
   internal_port = 8080
   force_https = true
