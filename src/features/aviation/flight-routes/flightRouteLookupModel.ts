@@ -64,11 +64,19 @@ type RoutesByCallsignOptions = {
   now?: number;
 };
 
+export const ROUTE_LOOKUP_TRANSPORT = Object.freeze({
+  REALTIME: "realtime",
+  PROXY: "proxy",
+});
+
 const routeContextCode = (value: unknown) =>
   String(value || "")
     .trim()
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
+
+const isFlightAwareRouteContext = (routeContext: RouteContext = {}) =>
+  routeContextCode(routeContext.routeProvider) === "FLIGHTAWARE";
 
 const centerContextNumber = (value: unknown) => {
   const number = Number(value);
@@ -79,6 +87,31 @@ const centerContextNumber = (value: unknown) => {
 function routeContextWithoutProvider(routeContext: RouteContext = {}) {
   const { routeProvider: _routeProvider, ...rest } = routeContext;
   return rest;
+}
+
+export function resolveRouteLookupTransport(routeContext: RouteContext = {}) {
+  return isFlightAwareRouteContext(routeContext)
+    ? ROUTE_LOOKUP_TRANSPORT.PROXY
+    : ROUTE_LOOKUP_TRANSPORT.REALTIME;
+}
+
+export function buildRouteProxyRequest(
+  callsign: unknown,
+  routeContext: RouteContext = {},
+) {
+  const normalizedCallsign = normalizeCallsign(callsign);
+  if (!normalizedCallsign || !isLookupCallsign(normalizedCallsign)) return null;
+  const params = new URLSearchParams();
+  if (isFlightAwareRouteContext(routeContext)) {
+    params.set("provider", "flightaware");
+  }
+  const query = params.toString();
+  return {
+    callsign: normalizedCallsign,
+    url: `/api/proxy/flight-routes/callsign/${encodeURIComponent(normalizedCallsign)}${
+      query ? `?${query}` : ""
+    }`,
+  };
 }
 
 export function buildRouteCacheKey(callsign: unknown, routeContext: RouteContext = {}) {
@@ -102,11 +135,13 @@ function getFreshRouteCacheEntry(
   now = Date.now(),
   routeContext: RouteContext = {},
 ) {
-  const cacheKeys = [
-    buildRouteCacheKey(callsign, routeContext),
-    buildRouteCacheKey(callsign, routeContextWithoutProvider(routeContext)),
-    buildRouteCacheKey(callsign),
-  ].filter(Boolean);
+  const cacheKeys = isFlightAwareRouteContext(routeContext)
+    ? [buildRouteCacheKey(callsign, routeContext)].filter(Boolean)
+    : [
+        buildRouteCacheKey(callsign, routeContext),
+        buildRouteCacheKey(callsign, routeContextWithoutProvider(routeContext)),
+        buildRouteCacheKey(callsign),
+      ].filter(Boolean);
   let firstMiss: RouteCacheEntry | null = null;
   for (const cacheKey of [...new Set(cacheKeys)]) {
     const cached = getFreshRouteCacheEntryByKey(cache, cacheKey, now);
@@ -139,12 +174,16 @@ export function writeRouteCacheEntry(
   time: number,
   routeContext: RouteContext = {},
 ) {
+  const exclusiveProvider =
+    isFlightAwareRouteContext(routeContext) ||
+    String(route?.source || "").trim().toLowerCase() === "flightaware";
   const cacheKeys = new Set(
     [callsign, route?.callsign, route?.callsignIcao, route?.callsignIata]
-      .flatMap((value) => [
-        buildRouteCacheKey(value, routeContext),
-        buildRouteCacheKey(value),
-      ])
+      .flatMap((value) =>
+        exclusiveProvider
+          ? [buildRouteCacheKey(value, routeContext)]
+          : [buildRouteCacheKey(value, routeContext), buildRouteCacheKey(value)],
+      )
       .filter(Boolean),
   );
 

@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 
 import {
+  buildRouteProxyRequest,
   buildRouteCacheKey,
   buildRoutesByCallsign,
   getRouteLookupStats,
   resolvePendingRouteLookups,
+  resolveRouteLookupTransport,
   writeRouteCacheEntry,
 } from "./flightRouteLookupModel";
 
@@ -14,6 +16,32 @@ const route = {
   origin: { icao: "KATL" },
   destination: { icao: "KBOS" },
 };
+
+{
+  assert.equal(
+    resolveRouteLookupTransport({ routeProvider: "flightaware" }),
+    "proxy",
+  );
+  assert.equal(
+    resolveRouteLookupTransport({ routeProvider: "adsbdb" }),
+    "realtime",
+  );
+  assert.deepEqual(
+    buildRouteProxyRequest(" aal 1234 ", { routeProvider: "flightaware" }),
+    {
+      callsign: "AAL1234",
+      url: "/api/proxy/flight-routes/callsign/AAL1234?provider=flightaware",
+    },
+  );
+  assert.deepEqual(buildRouteProxyRequest("aal1234", {}), {
+    callsign: "AAL1234",
+    url: "/api/proxy/flight-routes/callsign/AAL1234",
+  });
+  assert.equal(
+    buildRouteProxyRequest("bad-call", { routeProvider: "flightaware" }),
+    null,
+  );
+}
 
 {
   assert.equal(
@@ -69,7 +97,7 @@ const route = {
       now,
       routeContext: { icao: "KBOS", iata: "BOS", routeProvider: "flightaware" },
     }),
-    { DAL123: route },
+    {},
   );
   assert.deepEqual(
     buildRoutesByCallsign({
@@ -128,6 +156,43 @@ const route = {
       maxLookups: 3,
     }),
     [],
+  );
+}
+
+{
+  const cache = new Map();
+  const flightAwareRoute = {
+    callsign: "AAL1234",
+    source: "flightaware",
+    origin: { icao: "KBOS", iata: "BOS" },
+    destination: { icao: "KLAX", iata: "LAX" },
+    route: { icao: "KBOS-KLAX", iata: "BOS-LAX" },
+  };
+  writeRouteCacheEntry(cache, "AAL1234", flightAwareRoute, now, {
+    icao: "KBOS",
+    iata: "BOS",
+    routeProvider: "flightaware",
+  });
+
+  assert.equal(cache.has("AAL1234"), false);
+  assert.equal(cache.has("AAL1234|KBOS|BOS|FLIGHTAWARE"), true);
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "AAL1234" }],
+      cache,
+      now,
+      routeContext: { icao: "KBOS", iata: "BOS" },
+    }),
+    {},
+  );
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "AAL1234" }],
+      cache,
+      now,
+      routeContext: { icao: "KBOS", iata: "BOS", routeProvider: "flightaware" },
+    }).AAL1234?.source,
+    "flightaware",
   );
 }
 
