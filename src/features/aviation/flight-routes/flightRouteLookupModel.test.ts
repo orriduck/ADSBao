@@ -35,6 +35,14 @@ const route = {
       routeProvider: "flightaware",
     }),
   );
+  assert.equal(
+    buildRouteCacheKey("dal123", { lat: 42.3656, lon: -71.0096 }),
+    "DAL123|CENTER|42.4|-71",
+  );
+  assert.notEqual(
+    buildRouteCacheKey("dal123", { lat: 42.3656, lon: -71.0096 }),
+    buildRouteCacheKey("dal123", { lat: 40.6413, lon: -73.7781 }),
+  );
 
   const cache = new Map([
     ["DAL123|KBOS|BOS", { route, time: now - 1_000 }],

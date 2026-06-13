@@ -294,6 +294,38 @@ export function resolveMapSettingsHydration({
   return { source: "empty", settings: null };
 }
 
+export function resolveMapSettingsPersistenceTargets({
+  authLoaded = false,
+  signedIn = false,
+}: MapSettingsOptions = {}) {
+  const hasSignedInUser = authLoaded === true && signedIn === true;
+  return {
+    readCache: true,
+    readDatabase: hasSignedInUser,
+    writeCache: true,
+    writeDatabase: hasSignedInUser,
+  };
+}
+
+export function resolveMapSettingsHydrationCommit({
+  pendingSettings = null,
+  currentSettings = DEFAULT_MAP_SETTINGS,
+}: MapSettingsOptions = {}) {
+  if (!pendingSettings) {
+    return { pending: false, committed: false, serialized: "" };
+  }
+
+  const pendingSerialized = JSON.stringify(normalizeMapSettings(pendingSettings));
+  const currentSerialized = JSON.stringify(normalizeMapSettings(currentSettings));
+  const committed = pendingSerialized === currentSerialized;
+
+  return {
+    pending: !committed,
+    committed,
+    serialized: pendingSerialized,
+  };
+}
+
 function hasOwnSetting(settings: MapSettingsRecord, key: string) {
   return Object.prototype.hasOwnProperty.call(settings || {}, key);
 }
@@ -477,4 +509,3 @@ export function mapSettingsToUserLocationPreferences(
       enabled && layers[MAP_LAYER_KEYS.USER_LOCATION_AUDIO] === true,
   };
 }
-

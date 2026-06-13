@@ -70,13 +70,22 @@ const routeContextCode = (value: unknown) =>
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
 
+const centerContextNumber = (value: unknown) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "";
+  return String(Number((Math.round(number / 0.1) * 0.1).toFixed(4)));
+};
+
 export function buildRouteCacheKey(callsign: unknown, routeContext: RouteContext = {}) {
   const normalizedCallsign = normalizeCallsign(callsign);
   if (!normalizedCallsign) return "";
   const airportIcao = routeContextCode(routeContext.icao);
   const airportIata = routeContextCode(routeContext.iata);
   const routeProvider = routeContextCode(routeContext.routeProvider);
-  const suffix = [airportIcao, airportIata, routeProvider]
+  const centerLat = airportIcao || airportIata ? "" : centerContextNumber(routeContext.lat);
+  const centerLon = airportIcao || airportIata ? "" : centerContextNumber(routeContext.lon);
+  const centerParts = centerLat && centerLon ? ["CENTER", centerLat, centerLon] : [];
+  const suffix = [airportIcao, airportIata, ...centerParts, routeProvider]
     .filter(Boolean)
     .join("|");
   return suffix ? `${normalizedCallsign}|${suffix}` : normalizedCallsign;

@@ -9,9 +9,9 @@ import { DataServiceMetrics } from "./MetricsRegistry";
     type: "subscribe",
     result: "ok",
   });
-  metrics.recordWsSubscribe({ channelType: "airport", result: "ok" });
+  metrics.recordWsSubscribe({ channelType: "traffic", result: "ok" });
   metrics.recordPoll({
-    channelType: "airport",
+    channelType: "traffic",
     source: "adsb.lol",
     result: "success",
     durationMs: 123,
@@ -27,9 +27,9 @@ import { DataServiceMetrics } from "./MetricsRegistry";
     uptimeSec: 10,
     channels: [
       {
-        key: "airport:KBOS|42.3656|-71.0096|40",
-        channel: "airport:KBOS",
-        type: "airport",
+        key: "traffic:airport:KBOS:42.4:-71:40",
+        channel: "traffic:airport:KBOS:42.4:-71:40",
+        type: "traffic",
         subscriberCount: 2,
         currentIntervalMs: 5_000,
         lastFetchedAt: new Date(0).toISOString(),
@@ -61,19 +61,19 @@ import { DataServiceMetrics } from "./MetricsRegistry";
   );
   assert.match(
     output,
-    /adsbao_ws_subscribe_total\{channel_type="airport",result="ok"\} 1/,
+    /adsbao_ws_subscribe_total\{channel_type="traffic",result="ok"\} 1/,
   );
   assert.match(
     output,
-    /adsbao_active_channels_current\{channel_type="airport"\} 1/,
+    /adsbao_active_channels_current\{channel_type="traffic"\} 1/,
   );
   assert.match(
     output,
-    /adsbao_subscriptions_current\{channel_type="airport"\} 2/,
+    /adsbao_subscriptions_current\{channel_type="traffic"\} 2/,
   );
   assert.match(
     output,
-    /adsbao_poll_requests_total\{channel_type="airport",result="success",source="adsb.lol"\} 1/,
+    /adsbao_poll_requests_total\{channel_type="traffic",result="success",source="adsb.lol"\} 1/,
   );
   assert.match(
     output,

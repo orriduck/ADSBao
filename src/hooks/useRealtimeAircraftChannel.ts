@@ -8,9 +8,9 @@ import {
 } from "@/lib/realtime/adsbaoRealtimeClient";
 import { shouldUseRealtimeFallback } from "@/lib/realtime/realtimeFallbackModel";
 import {
-  buildAirportAircraftChannel,
+  buildAirportTrafficChannel,
   buildCallsignChannel,
-  buildViewportAircraftChannel,
+  buildCenterTrafficChannel,
 } from "@/lib/realtime/realtimeChannels";
 
 const INITIAL_REALTIME_GRACE_MS = 8_000;
@@ -140,7 +140,7 @@ export function useAirportAircraftRealtime({
   enabled?: boolean;
 }) {
   const request = useMemo(
-    () => buildAirportAircraftChannel(icao, lat, lon, distNm),
+    () => buildAirportTrafficChannel(icao, lat, lon, distNm),
     [distNm, icao, lat, lon],
   );
   return useRealtimeAircraftChannel({
@@ -162,7 +162,7 @@ export function useViewportAircraftRealtime({
   enabled?: boolean;
 }) {
   const request = useMemo(
-    () => buildViewportAircraftChannel({ lat, lon, distNm }),
+    () => buildCenterTrafficChannel({ lat, lon, distNm }),
     [distNm, lat, lon],
   );
   return useRealtimeAircraftChannel({

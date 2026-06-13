@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  DEFAULT_MAP_SETTINGS,
   MAP_LAYER_KEYS,
   MAP_MODE_IDS,
   buildCustomMapSettings,
@@ -12,7 +13,9 @@ import {
   mergeMapSettings,
   normalizeMapSettings,
   normalizeMapSettingsDevice,
+  resolveMapSettingsHydrationCommit,
   resolveMapSettingsHydration,
+  resolveMapSettingsPersistenceTargets,
 } from "./mapSettingsModel";
 
 {
@@ -161,7 +164,7 @@ import {
 {
   assert.equal(
     getSelectableMapModeOptions().some(
-      (mode) => mode.id === "immersive",
+      (mode) => String(mode.id) === "immersive",
     ),
     false,
   );
@@ -251,6 +254,86 @@ import {
 
   assert.equal(hydrated.source, "cache");
   assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.SPOTTING);
+}
+
+{
+  assert.deepEqual(
+    resolveMapSettingsPersistenceTargets({
+      authLoaded: false,
+      signedIn: false,
+    }),
+    {
+      readCache: true,
+      readDatabase: false,
+      writeCache: true,
+      writeDatabase: false,
+    },
+    "pending auth should still rely on the local cache",
+  );
+  assert.deepEqual(
+    resolveMapSettingsPersistenceTargets({
+      authLoaded: true,
+      signedIn: true,
+    }),
+    {
+      readCache: true,
+      readDatabase: true,
+      writeCache: true,
+      writeDatabase: true,
+    },
+    "signed-in settings should use both cache and database",
+  );
+  assert.deepEqual(
+    resolveMapSettingsPersistenceTargets({
+      authLoaded: true,
+      signedIn: false,
+    }),
+    {
+      readCache: true,
+      readDatabase: false,
+      writeCache: true,
+      writeDatabase: false,
+    },
+    "guest settings should only use the local cache",
+  );
+}
+
+{
+  const pending = resolveMapSettingsHydrationCommit({
+    pendingSettings: {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+    currentSettings: DEFAULT_MAP_SETTINGS,
+  });
+
+  assert.equal(
+    pending.pending,
+    true,
+    "settings persistence should pause while cache hydration is still pending in state",
+  );
+  assert.equal(pending.committed, false);
+
+  const committed = resolveMapSettingsHydrationCommit({
+    pendingSettings: {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+    currentSettings: {
+      selectedMode: MAP_MODE_IDS.RADIO,
+      baseMode: MAP_MODE_IDS.RADIO,
+      hasSelectedMode: true,
+    },
+  });
+
+  assert.equal(committed.pending, false);
+  assert.equal(
+    committed.committed,
+    true,
+    "settings hydration should commit once state matches the pending settings",
+  );
 }
 
 {

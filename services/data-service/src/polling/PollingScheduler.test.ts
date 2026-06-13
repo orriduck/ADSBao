@@ -26,13 +26,11 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const first: unknown[] = [];
   const second: unknown[] = [];
   const unsubscribeFirst = scheduler.subscribe({
-    channel: "airport:KBOS",
-    params: { lat: 42.3656, lon: -71.0096, distNm: 40 },
+    channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
     send: (event) => first.push(event),
   });
   const unsubscribeSecond = scheduler.subscribe({
-    channel: "airport:KBOS",
-    params: { lat: 42.3656, lon: -71.0096, distNm: 40 },
+    channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
     send: (event) => second.push(event),
   });
 
@@ -74,13 +72,11 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   });
 
   const unsubscribeFirst = scheduler.subscribe({
-    channel: "airport:KBOS",
-    params: { lat: 42.3656, lon: -71.0096, distNm: 40 },
+    channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
     send: (event) => first.push(event),
   });
   const unsubscribeSecond = scheduler.subscribe({
-    channel: "airport:KBOS",
-    params: { lat: 33.9425, lon: -118.4081, distNm: 40 },
+    channel: "traffic:center:33.9425:-118.4081:40",
     send: (event) => second.push(event),
   });
 
@@ -88,16 +84,16 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   assert.equal(
     scheduler.getDebugChannels().length,
     2,
-    "airport subscriptions with different targets must not share one loop",
+    "traffic subscriptions with different centers must not share one loop",
   );
-  assert.equal(targetKeys.has("42.3656,-71.0096,40"), true);
-  assert.equal(targetKeys.has("33.9425,-118.4081,40"), true);
+  assert.equal(targetKeys.has("42.4,-71,40"), true);
+  assert.equal(targetKeys.has("33.9,-118.4,40"), true);
   assert.equal(
-    first.every((event) => event.data.targetKey === "42.3656,-71.0096,40"),
+    first.every((event) => event.data.targetKey === "42.4,-71,40"),
     true,
   );
   assert.equal(
-    second.every((event) => event.data.targetKey === "33.9425,-118.4081,40"),
+    second.every((event) => event.data.targetKey === "33.9,-118.4,40"),
     true,
   );
 
@@ -122,15 +118,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   });
 
   const unsubscribe = scheduler.subscribe({
-    channel: "airport:KBOS",
-    params: { lat: 42.3656, lon: -71.0096 },
+    channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
     send: () => {},
   });
   assert.throws(
     () =>
       scheduler.subscribe({
-        channel: "airport:KSFO",
-        params: { lat: 37.6213, lon: -122.379 },
+        channel: "traffic:airport:KSFO:37.6213:-122.379:40",
         send: () => {},
       }),
     /active channel limit/i,
