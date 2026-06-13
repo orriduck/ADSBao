@@ -1,4 +1,7 @@
-import { createServerSupabaseClient } from "./supabaseClient";
+import {
+  createPostgresQueryClientFromEnv,
+  type PostgresQueryClient,
+} from "./postgresClient";
 
 type AirportFacilityRecord = Record<string, any>;
 
@@ -119,38 +122,34 @@ const boundingBoxForAirport = ({
 };
 
 function createAirportFacilityRepository({
-  supabaseUrl,
-  supabaseKey,
-  createClientImpl,
+  queryClient,
 }: {
-  supabaseUrl?: string;
-  supabaseKey?: string;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
 } = {}) {
-  const client = createServerSupabaseClient({
-    supabaseUrl,
-    supabaseKey,
-    createClientImpl,
-  });
-  if (!client) return null;
+  if (!queryClient) return null;
 
   return {
     async readFrequenciesByAirportIdent(ident: unknown) {
       const airportIdent = normalizeIdent(ident);
       if (!airportIdent) return [];
 
-      const { data, error } = await client
-        .from(AIRPORT_FREQUENCIES_TABLE)
-        .select(AIRPORT_FREQUENCY_COLUMNS)
-        .eq("airport_ident", airportIdent)
-        .order("type", { ascending: true })
-        .order("frequency_mhz", { ascending: true });
-
-      if (error) {
+      let rows: AirportFacilityRecord[] = [];
+      try {
+        const result = await queryClient.query<AirportFacilityRecord>(
+          `
+            select ${AIRPORT_FREQUENCY_COLUMNS}
+            from ${AIRPORT_FREQUENCIES_TABLE}
+            where airport_ident = $1
+            order by type asc, frequency_mhz asc
+          `,
+          [airportIdent],
+        );
+        rows = result.rows || [];
+      } catch (error: any) {
         throw new Error(`Airport frequencies read failed (${error.message})`);
       }
 
-      return (data || []).map(mapFrequencyRow).filter(Boolean);
+      return rows.map(mapFrequencyRow).filter(Boolean);
     },
 
     async readNavaidsNearAirport({
@@ -163,21 +162,27 @@ function createAirportFacilityRepository({
       if (!bounds) return [];
       const safeLimit = Math.max(1, Math.min(Number(limit) || 50, 100));
 
-      const { data, error } = await client
-        .from(NAVAIDS_TABLE)
-        .select(NAVAID_COLUMNS)
-        .gte("latitude_deg", bounds.south)
-        .lte("latitude_deg", bounds.north)
-        .gte("longitude_deg", bounds.west)
-        .lte("longitude_deg", bounds.east)
-        .order("ident", { ascending: true })
-        .limit(safeLimit);
-
-      if (error) {
+      let rows: AirportFacilityRecord[] = [];
+      try {
+        const result = await queryClient.query<AirportFacilityRecord>(
+          `
+            select ${NAVAID_COLUMNS}
+            from ${NAVAIDS_TABLE}
+            where latitude_deg >= $1
+              and latitude_deg <= $2
+              and longitude_deg >= $3
+              and longitude_deg <= $4
+            order by ident asc
+            limit $5
+          `,
+          [bounds.south, bounds.north, bounds.west, bounds.east, safeLimit],
+        );
+        rows = result.rows || [];
+      } catch (error: any) {
         throw new Error(`Navaids read failed (${error.message})`);
       }
 
-      return (data || []).map(mapNavaidRow).filter(Boolean);
+      return rows.map(mapNavaidRow).filter(Boolean);
     },
 
     async readNavaidsInBounds({
@@ -194,21 +199,33 @@ function createAirportFacilityRepository({
       }
       const safeLimit = Math.max(1, Math.min(Number(limit) || 250, 500));
 
-      const { data, error } = await client
-        .from(NAVAIDS_TABLE)
-        .select(NAVAID_COLUMNS)
-        .gte("latitude_deg", Math.min(south, north))
-        .lte("latitude_deg", Math.max(south, north))
-        .gte("longitude_deg", Math.min(west, east))
-        .lte("longitude_deg", Math.max(west, east))
-        .order("ident", { ascending: true })
-        .limit(safeLimit);
-
-      if (error) {
+      let rows: AirportFacilityRecord[] = [];
+      try {
+        const result = await queryClient.query<AirportFacilityRecord>(
+          `
+            select ${NAVAID_COLUMNS}
+            from ${NAVAIDS_TABLE}
+            where latitude_deg >= $1
+              and latitude_deg <= $2
+              and longitude_deg >= $3
+              and longitude_deg <= $4
+            order by ident asc
+            limit $5
+          `,
+          [
+            Math.min(south, north),
+            Math.max(south, north),
+            Math.min(west, east),
+            Math.max(west, east),
+            safeLimit,
+          ],
+        );
+        rows = result.rows || [];
+      } catch (error: any) {
         throw new Error(`Navaid tile read failed (${error.message})`);
       }
 
-      return (data || []).map(mapNavaidRow).filter(Boolean);
+      return rows.map(mapNavaidRow).filter(Boolean);
     },
 
     async readNavaidCountInBounds({
@@ -223,15 +240,26 @@ function createAirportFacilityRepository({
         return 0;
       }
 
-      const { count, error } = await client
-        .from(NAVAIDS_TABLE)
-        .select("id", { count: "exact", head: true })
-        .gte("latitude_deg", Math.min(south, north))
-        .lte("latitude_deg", Math.max(south, north))
-        .gte("longitude_deg", Math.min(west, east))
-        .lte("longitude_deg", Math.max(west, east));
-
-      if (error) {
+      let count = 0;
+      try {
+        const result = await queryClient.query<{ count: number | string }>(
+          `
+            select count(*)::int as count
+            from ${NAVAIDS_TABLE}
+            where latitude_deg >= $1
+              and latitude_deg <= $2
+              and longitude_deg >= $3
+              and longitude_deg <= $4
+          `,
+          [
+            Math.min(south, north),
+            Math.max(south, north),
+            Math.min(west, east),
+            Math.max(west, east),
+          ],
+        );
+        count = Number(result.rows?.[0]?.count) || 0;
+      } catch (error: any) {
         throw new Error(`Navaid count tile read failed (${error.message})`);
       }
 
@@ -242,18 +270,17 @@ function createAirportFacilityRepository({
 
 export function createAirportFacilityRepositoryFromEnv({
   env = process.env,
-  createClientImpl,
+  queryClient,
+  createPoolImpl,
 }: {
   env?: Record<string, string | undefined>;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
+  createPoolImpl?: any;
 } = {}) {
   return createAirportFacilityRepository({
-    supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,
-    supabaseKey:
-      env.SUPABASE_SECRET_KEY ||
-      env.SUPABASE_SERVICE_ROLE_KEY ||
-      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-      env.SUPABASE_PUBLISHABLE_KEY,
-    createClientImpl,
+    queryClient:
+      queryClient === undefined
+        ? createPostgresQueryClientFromEnv({ env, createPoolImpl })
+        : queryClient,
   });
 }

@@ -29,7 +29,7 @@ export const createFlightRouteClient = ({
 
   let consecutiveBackoffMs = 0;
 
-  // targetAirport stays in the URL so the server can scope its Supabase
+  // targetAirport stays in the URL so the server can scope its persisted
   // community-feedback override lookup to the same (callsign, airport)
   // namespace the client uses for its in-memory cache key.
   const routeUrl = (callsign: string, targetAirport: Record<string, any> = {}) => {

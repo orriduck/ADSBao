@@ -56,7 +56,7 @@ export const normalizeFlightRoute = (payload) => {
     confidence: route.confidence || "",
     // Carry the community-feedback flags through so the renderer can show
     // the `*` suffix and the "user-supplied" hint without re-fetching the
-    // record from Supabase. These fields are unset for adsbdb routes.
+    // record from ADSBao persistence. These fields are unset for adsbdb routes.
     temporary: Boolean(route.temporary),
     displaySuffix: String(route.displaySuffix || "").trim(),
     expiresAt: route.expiresAt || null,

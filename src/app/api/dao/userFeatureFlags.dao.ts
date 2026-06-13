@@ -1,4 +1,7 @@
-import { createServerSupabaseClient } from "./supabaseClient";
+import {
+  createPostgresQueryClientFromEnv,
+  type PostgresQueryClient,
+} from "./postgresClient";
 import {
   normalizeFeatureFlags,
   normalizeFeatureFlagEnvironment,
@@ -12,17 +15,13 @@ const SELECT_COLUMNS = "email,environment,flags,updated_at";
 type UserFeatureFlagsRecord = Record<string, any>;
 
 function createUserFeatureFlagsRepository({
-  supabaseUrl,
-  supabaseKey,
   environment,
-  createClientImpl,
-}: UserFeatureFlagsRecord = {}) {
-  const client = createServerSupabaseClient({
-    supabaseUrl,
-    supabaseKey,
-    createClientImpl,
-  });
-  if (!client) return null;
+  queryClient,
+}: {
+  environment?: unknown;
+  queryClient?: PostgresQueryClient | null;
+} = {}) {
+  if (!queryClient) return null;
   const defaultEnvironment = normalizeFeatureFlagEnvironment(environment);
 
   return {
@@ -33,25 +32,31 @@ function createUserFeatureFlagsRepository({
         options.environment || defaultEnvironment,
       );
 
-      const { data, error } = await client
-        .from(USER_FEATURE_FLAGS_TABLE)
-        .select(SELECT_COLUMNS)
-        .eq("email", normalizedEmail)
-        .eq("environment", normalizedEnvironment)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") {
+      let row = null;
+      try {
+        const result = await queryClient.query<UserFeatureFlagsRecord>(
+          `
+            select ${SELECT_COLUMNS}
+            from ${USER_FEATURE_FLAGS_TABLE}
+            where email = $1
+              and environment = $2
+            limit 1
+          `,
+          [normalizedEmail, normalizedEnvironment],
+        );
+        row = result.rows?.[0] || null;
+      } catch (error: any) {
         throw new Error(
           `User feature flags read failed (${error.message})`,
         );
       }
 
-      if (!data) return null;
+      if (!row) return null;
       return {
-        email: normalizeUserEmail(data.email),
-        environment: normalizeFeatureFlagEnvironment(data.environment),
-        flags: normalizeFeatureFlags(data.flags),
-        updatedAt: data.updated_at || "",
+        email: normalizeUserEmail(row.email),
+        environment: normalizeFeatureFlagEnvironment(row.environment),
+        flags: normalizeFeatureFlags(row.flags),
+        updatedAt: row.updated_at || "",
       };
     },
 
@@ -62,31 +67,37 @@ function createUserFeatureFlagsRepository({
         environment || defaultEnvironment,
       );
 
-      const { data, error } = await client
-        .from(USER_FEATURE_FLAGS_TABLE)
-        .upsert(
-          {
-            email: normalizedEmail,
-            environment: normalizedEnvironment,
-            flags: normalizeFeatureFlags(flags),
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "email,environment" },
-        )
-        .select(SELECT_COLUMNS)
-        .single();
-
-      if (error) {
+      let row = null;
+      try {
+        const result = await queryClient.query<UserFeatureFlagsRecord>(
+          `
+            insert into ${USER_FEATURE_FLAGS_TABLE} (
+              email,
+              environment,
+              flags,
+              updated_at
+            )
+            values ($1, $2, $3::jsonb, timezone('utc', now()))
+            on conflict (email, environment)
+            do update set
+              flags = excluded.flags,
+              updated_at = excluded.updated_at
+            returning ${SELECT_COLUMNS}
+          `,
+          [normalizedEmail, normalizedEnvironment, normalizeFeatureFlags(flags)],
+        );
+        row = result.rows?.[0] || null;
+      } catch (error: any) {
         throw new Error(
           `User feature flags upsert failed (${error.message})`,
         );
       }
 
       return {
-        email: normalizeUserEmail(data.email),
-        environment: normalizeFeatureFlagEnvironment(data.environment),
-        flags: normalizeFeatureFlags(data.flags),
-        updatedAt: data.updated_at || "",
+        email: normalizeUserEmail(row?.email),
+        environment: normalizeFeatureFlagEnvironment(row?.environment),
+        flags: normalizeFeatureFlags(row?.flags),
+        updatedAt: row?.updated_at || "",
       };
     },
 
@@ -97,13 +108,16 @@ function createUserFeatureFlagsRepository({
         options.environment || defaultEnvironment,
       );
 
-      const { error } = await client
-        .from(USER_FEATURE_FLAGS_TABLE)
-        .delete()
-        .eq("email", normalizedEmail)
-        .eq("environment", normalizedEnvironment);
-
-      if (error) {
+      try {
+        await queryClient.query(
+          `
+            delete from ${USER_FEATURE_FLAGS_TABLE}
+            where email = $1
+              and environment = $2
+          `,
+          [normalizedEmail, normalizedEnvironment],
+        );
+      } catch (error: any) {
         throw new Error(
           `User feature flags delete failed (${error.message})`,
         );
@@ -116,15 +130,18 @@ function createUserFeatureFlagsRepository({
 
 export function createUserFeatureFlagsRepositoryFromEnv({
   env = process.env,
-  createClientImpl,
+  queryClient,
+  createPoolImpl,
 }: {
   env?: Record<string, string | undefined>;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
+  createPoolImpl?: any;
 } = {}) {
   return createUserFeatureFlagsRepository({
-    supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,
-    supabaseKey: env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY,
     environment: resolveFeatureFlagEnvironment(env),
-    createClientImpl,
+    queryClient:
+      queryClient === undefined
+        ? createPostgresQueryClientFromEnv({ env, createPoolImpl })
+        : queryClient,
   });
 }

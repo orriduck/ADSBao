@@ -207,7 +207,7 @@ const CHINESE_RELEASE_COPY = {
     summary: "机场搜索与详情上下文改用 OpenAIP 作为主航空目录。",
     highlights: [
       "搜索、详情、频率、导航台、空域全部迁移到 OpenAIP",
-      "跑道阈值几何继续由 Supabase 缓存的数据提供",
+      "跑道阈值几何继续由 Postgres 持久化数据提供",
     ],
   },
   "v1.6.0": {

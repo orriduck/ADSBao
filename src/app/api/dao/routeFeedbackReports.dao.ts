@@ -1,4 +1,7 @@
-import { createServerSupabaseClient } from "./supabaseClient";
+import {
+  createPostgresQueryClientFromEnv,
+  type PostgresQueryClient,
+} from "./postgresClient";
 
 type RouteFeedbackRecord = Record<string, any>;
 
@@ -26,22 +29,13 @@ const SELECT_COLUMNS = [
 ].join(",");
 
 function createRouteFeedbackReportsRepository({
-  supabaseUrl,
-  supabaseKey,
-  createClientImpl,
+  queryClient,
   now = Date.now,
 }: {
-  supabaseUrl?: string;
-  supabaseKey?: string;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
   now?: () => number;
 } = {}) {
-  const client = createServerSupabaseClient({
-    supabaseUrl,
-    supabaseKey,
-    createClientImpl,
-  });
-  if (!client) return null;
+  if (!queryClient) return null;
 
   return {
     // Newest active, non-expired, non-soft-deleted feedback override for
@@ -54,24 +48,26 @@ function createRouteFeedbackReportsRepository({
     async readActiveOverride({ normalizedCallsign }: RouteFeedbackRecord) {
       if (!normalizedCallsign) return null;
 
-      const { data, error } = await client
-        .from(ROUTE_FEEDBACK_TABLE)
-        .select(SELECT_COLUMNS)
-        .eq("normalized_callsign", normalizedCallsign)
-        .eq("status", ACTIVE_STATUS)
-        .is("deleted_at", null)
-        .gt("expires_at", new Date(now()).toISOString())
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") {
+      try {
+        const result = await queryClient.query<RouteFeedbackRecord>(
+          `
+            select ${SELECT_COLUMNS}
+            from ${ROUTE_FEEDBACK_TABLE}
+            where normalized_callsign = $1
+              and status = $2
+              and deleted_at is null
+              and expires_at > $3
+            order by created_at desc
+            limit 1
+          `,
+          [normalizedCallsign, ACTIVE_STATUS, new Date(now()).toISOString()],
+        );
+        return result.rows?.[0] || null;
+      } catch (error: any) {
         throw new Error(
           `Route feedback override read failed (${error.message})`,
         );
       }
-
-      return data || null;
     },
 
     async writeFeedbackReport({
@@ -109,39 +105,78 @@ function createRouteFeedbackReportsRepository({
         deleted_at: null,
       };
 
-      const { data, error } = await client
-        .from(ROUTE_FEEDBACK_TABLE)
-        .insert(row)
-        .select(SELECT_COLUMNS)
-        .single();
-
-      if (error) {
+      try {
+        const result = await queryClient.query<RouteFeedbackRecord>(
+          `
+            insert into ${ROUTE_FEEDBACK_TABLE} (
+              cache_key,
+              normalized_callsign,
+              target_airport_icao,
+              target_airport_iata,
+              origin_icao,
+              destination_icao,
+              aircraft_hex,
+              aircraft_type,
+              user_hash,
+              feedback_reason,
+              prior_route_payload,
+              route_payload,
+              status,
+              created_at,
+              expires_at,
+              deleted_at
+            )
+            values (
+              $1, $2, $3, $4, $5, $6, $7, $8,
+              $9, $10, $11::jsonb, $12::jsonb, $13, $14, $15, $16
+            )
+            returning ${SELECT_COLUMNS}
+          `,
+          [
+            row.cache_key,
+            row.normalized_callsign,
+            row.target_airport_icao,
+            row.target_airport_iata,
+            row.origin_icao,
+            row.destination_icao,
+            row.aircraft_hex,
+            row.aircraft_type,
+            row.user_hash,
+            row.feedback_reason,
+            row.prior_route_payload,
+            row.route_payload,
+            row.status,
+            row.created_at,
+            row.expires_at,
+            row.deleted_at,
+          ],
+        );
+        return result.rows?.[0] || null;
+      } catch (error: any) {
         throw new Error(
           `Route feedback write failed (${error.message})`,
         );
       }
-      return data;
     },
   };
 }
 
 export function createRouteFeedbackReportsRepositoryFromEnv({
   env = process.env,
-  createClientImpl,
+  queryClient,
+  createPoolImpl,
   now = Date.now,
 }: {
   env?: Record<string, string | undefined>;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
+  createPoolImpl?: any;
   now?: () => number;
 } = {}) {
   return createRouteFeedbackReportsRepository({
-    supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,
-    supabaseKey:
-      env.SUPABASE_SECRET_KEY ||
-      env.SUPABASE_SERVICE_ROLE_KEY ||
-      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-      env.SUPABASE_PUBLISHABLE_KEY,
-    createClientImpl,
+    queryClient:
+      queryClient === undefined
+        ? createPostgresQueryClientFromEnv({ env, createPoolImpl })
+        : queryClient,
     now,
   });
 }

@@ -94,14 +94,15 @@ ordinary short requests and one-off provider access.
 - **Frontend**: React, Next.js App Router, Tailwind CSS v4, DaisyUI, Lucide.
 - **Maps**: Leaflet plus MapLibre-backed tiles and custom aircraft/runway layers.
 - **Data layer**: OpenAIP served through same-origin Next.js API routes with
-  Supabase migration support for OpenAIP-shaped static/cache tables. OurAirports
-  augments runway threshold geometry, ATC frequencies, and navaid coverage.
+  Railway Postgres persistence for static augmentation tables and user-scoped
+  settings. OurAirports augments runway threshold geometry, ATC frequencies,
+  and navaid coverage.
 - **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
   Speed Insights, and optional Sentry monitoring.
 - **Realtime backend**: A deployable Node.js/TypeScript service under
   `services/data-service` for shared ADS-B polling, WebSocket subscriptions,
   provider fallback, health/debug endpoints, and Railway deployment.
-- **Auth and feature flags**: Clerk identity with Supabase-backed user feature
+- **Auth and feature flags**: Clerk identity with Postgres-backed user feature
   flags for gated provider behavior.
 
 ## Local Development
@@ -164,9 +165,9 @@ normally configure these variables:
 | Variable | Purpose |
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL for metadata and absolute links |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public Supabase key for browser-safe reads and public caches |
-| `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY` | Server-side Supabase writes, imports, route feedback, and feature flags |
+| `ADSBAO_DATABASE_URL` or `DATABASE_URL` | Server-side Postgres connection string for DAO reads/writes, imports, route feedback, feature flags, and map settings |
+| `PGSSLMODE` | Optional Postgres SSL mode. Set `disable` only for local non-SSL databases |
+| `PGPOOL_MAX` | Optional Postgres pool size cap for server route handlers and import scripts |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk browser identity |
 | `CLERK_SECRET_KEY` | Clerk server identity |
 | `NEXT_PUBLIC_ADSBAO_REALTIME_URL` | Optional WebSocket URL for the realtime ADS-B data service |
@@ -174,7 +175,7 @@ normally configure these variables:
 | `SENTRY_DSN` | Optional server/edge Sentry events |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Optional production source-map upload |
 
-Manage Supabase-backed user feature flags with:
+Manage Postgres-backed user feature flags with:
 
 ```bash
 pnpm ff
@@ -191,6 +192,15 @@ Import OurAirports ATC frequency and navaid augmentation data with:
 ```bash
 pnpm import:facilities
 ```
+
+Import OurAirports airport names with:
+
+```bash
+pnpm import:airports
+```
+
+The import scripts use `ADSBAO_DATABASE_URL`/`DATABASE_URL`; do not put database
+connection strings in `NEXT_PUBLIC_*` variables.
 
 ## Project Structure
 

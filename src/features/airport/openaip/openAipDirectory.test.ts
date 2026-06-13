@@ -151,9 +151,10 @@ assert.ok(airports.every((airport) => airport.ident.length <= 4));
   assert.equal(page.frequencies.length, 1);
   assert.equal(page.frequencies[0].type, "tower");
   assert.deepEqual(page.frequencies[0].sources, ["openaip", "ourairports"]);
-  assert.equal(page.nearbyNavaids.length, 1);
-  assert.equal(page.nearbyNavaids[0].type, "vordme");
-  assert.deepEqual(page.nearbyNavaids[0].sources, ["openaip", "ourairports"]);
+  const nearbyNavaids = page.nearbyNavaids as any[];
+  assert.equal(nearbyNavaids.length, 1);
+  assert.equal(nearbyNavaids[0].type, "vordme");
+  assert.deepEqual(nearbyNavaids[0].sources, ["openaip", "ourairports"]);
 }
 
 console.log("openAipDirectory.test.ts: ok");

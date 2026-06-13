@@ -146,7 +146,7 @@ async function readCommunityFeedbackOverride({
 }
 
 // Lookup order:
-//   1. Active Supabase community feedback override (always wins so a
+//   1. Active persisted community feedback override (always wins so a
 //      user-submitted correction can temporarily fix a wrong route
 //      inside the 12-hour TTL). Override is keyed by callsign only —
 //      submissions made under any airport context apply universally

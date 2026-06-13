@@ -146,6 +146,8 @@ assert.equal(nightVisualization.kind, "approach-beams");
 
 const runwayLights = buildRunwayLightCollection(runwayMap);
 assert.equal(runwayLights.features.length, 32);
+const runwayStartCoordinate = runwayMap.runways[0].centerline.geometry
+  .coordinates[0] as [any, any];
 assert.deepEqual(
   [...new Set(runwayLights.features.map((feature) => feature.properties.side))],
   ["left", "right"],
@@ -155,13 +157,13 @@ assert.equal(runwayLights.features.at(-1).properties.progress, 1);
 assert.ok(
   metersBetween(
     runwayLights.features[0].geometry.coordinates,
-    runwayMap.runways[0].centerline.geometry.coordinates[0],
+    runwayStartCoordinate,
   ) >= 20,
 );
 assert.ok(
   metersBetween(
     runwayLights.features[0].geometry.coordinates,
-    runwayMap.runways[0].centerline.geometry.coordinates[0],
+    runwayStartCoordinate,
   ) <= 26,
 );
 

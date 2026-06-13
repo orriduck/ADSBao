@@ -6,74 +6,49 @@ import {
   MAP_MODE_IDS,
 } from "../../../features/airport/map-settings/mapSettingsModel";
 
-const USER_MAP_SETTINGS_TABLE = "user_map_settings";
-
-function createFakeSupabaseClient({
-  readData = null,
-  readError = null,
-  writeData = null,
-  writeError = null,
-} = {}) {
+function createFakePostgresClient(responses: Array<Record<string, any>> = []) {
   const calls: Array<Record<string, any>> = [];
-  const query: Record<string, any> = {
-    select(columns) {
-      calls.push({ type: "select", columns });
-      return query;
-    },
-    eq(column, value) {
-      calls.push({ type: "eq", column, value });
-      return query;
-    },
-    async maybeSingle() {
-      calls.push({ type: "maybeSingle" });
-      return { data: readData, error: readError };
-    },
-    upsert(row, options) {
-      calls.push({ type: "upsert", row, options });
-      return query;
-    },
-    async single() {
-      calls.push({ type: "single" });
-      return { data: writeData, error: writeError };
-    },
-  };
-
-  const createClientImpl = (supabaseUrl, supabaseKey, options) => {
-    calls.push({ type: "createClient", supabaseUrl, supabaseKey, options });
-    return {
-      from(table) {
-        calls.push({ type: "from", table });
-        return query;
+  return {
+    calls,
+    queryClient: {
+      async query(text: string, values: unknown[] = []) {
+        calls.push({ text, values });
+        const response = responses.shift() || {};
+        if (response.error) throw new Error(response.error);
+        const rows = response.rows || [];
+        return { rows, rowCount: response.rowCount ?? rows.length };
       },
-    };
+    },
   };
-
-  return { calls, createClientImpl };
 }
 
+const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
+
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    writeData: {
-      email: "owner@example.com",
-      environment: "preview",
-      settings: {
-        selectedMode: MAP_MODE_IDS.CUSTOM,
-        baseMode: MAP_MODE_IDS.SPOTTING,
-        hasSelectedMode: true,
-        layerOverrides: { [MAP_LAYER_KEYS.AIRSPACES]: true },
-        updatedAt: "2026-06-02T15:00:00.000Z",
-      },
-      has_selected_mode: true,
-      updated_at: "2026-06-02T15:00:00.000Z",
+  const { calls, queryClient } = createFakePostgresClient([
+    { rows: [] },
+    {
+      rows: [
+        {
+          email: "owner@example.com",
+          environment: "preview",
+          device: "desktop",
+          settings: {
+            selectedMode: MAP_MODE_IDS.CUSTOM,
+            baseMode: MAP_MODE_IDS.SPOTTING,
+            hasSelectedMode: true,
+            layerOverrides: { [MAP_LAYER_KEYS.AIRSPACES]: true },
+            updatedAt: "2026-06-02T15:00:00.000Z",
+          },
+          has_selected_mode: true,
+          updated_at: "2026-06-02T15:00:00.000Z",
+        },
+      ],
     },
-  });
+  ]);
   const repository = createUserMapSettingsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
-      VERCEL_ENV: "preview",
-    },
-    createClientImpl,
+    env: { VERCEL_ENV: "preview" },
+    queryClient,
   });
 
   const row = await repository.upsertSettingsByEmail({
@@ -87,16 +62,13 @@ function createFakeSupabaseClient({
     },
   });
 
-  assert.equal(calls[1].type, "from");
-  assert.equal(calls[1].table, USER_MAP_SETTINGS_TABLE);
-  const upsertCall = calls.find((call) => call.type === "upsert");
-  assert.ok(upsertCall, "repository should write a settings row");
-  assert.equal(upsertCall.row.email, "owner@example.com");
-  assert.equal(upsertCall.row.environment, "preview");
-  assert.equal(upsertCall.row.device, "desktop");
-  assert.deepEqual(upsertCall.options, { onConflict: "email,environment,device" });
-  assert.equal(upsertCall.row.has_selected_mode, true);
-  assert.deepEqual(upsertCall.row.settings.layerOverrides, {
+  const writeCall = calls[1];
+  assert.match(normalizeSql(writeCall.text), /^insert into user_map_settings/i);
+  assert.equal(writeCall.values[0], "owner@example.com");
+  assert.equal(writeCall.values[1], "preview");
+  assert.equal(writeCall.values[2], "desktop");
+  assert.equal(writeCall.values[4], true);
+  assert.deepEqual(writeCall.values[3].layerOverrides, {
     [MAP_LAYER_KEYS.AIRSPACES]: true,
   });
   assert.deepEqual(row.settings.layerOverrides, {
@@ -105,68 +77,40 @@ function createFakeSupabaseClient({
 }
 
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    readData: {
-      email: "owner@example.com",
-      environment: "production",
-      settings: {
-        selectedMode: MAP_MODE_IDS.CONTROLLER,
-        layerOverrides: { [MAP_LAYER_KEYS.MAP_LABELS]: false },
-        updatedAt: "2026-06-02T15:02:00.000Z",
-      },
-      has_selected_mode: false,
-      updated_at: "2026-06-02T15:02:00.000Z",
+  const { calls, queryClient } = createFakePostgresClient([
+    {
+      rows: [
+        {
+          email: "owner@example.com",
+          environment: "production",
+          device: "desktop",
+          settings: {
+            selectedMode: MAP_MODE_IDS.CONTROLLER,
+            layerOverrides: { [MAP_LAYER_KEYS.MAP_LABELS]: false },
+            updatedAt: "2026-06-02T15:02:00.000Z",
+          },
+          has_selected_mode: false,
+          updated_at: "2026-06-02T15:02:00.000Z",
+        },
+      ],
     },
-  });
+  ]);
   const repository = createUserMapSettingsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
-      VERCEL_ENV: "production",
-    },
-    createClientImpl,
+    env: { VERCEL_ENV: "production" },
+    queryClient,
   });
 
   const row = await repository.readSettingsByEmail(" Owner@Example.COM ");
 
-  assert.deepEqual(calls.slice(1), [
-    { type: "from", table: USER_MAP_SETTINGS_TABLE },
-    { type: "select", columns: "email,environment,device,settings,has_selected_mode,updated_at" },
-    { type: "eq", column: "email", value: "owner@example.com" },
-    { type: "eq", column: "environment", value: "production" },
-    { type: "eq", column: "device", value: "desktop" },
-    { type: "maybeSingle" },
-  ]);
+  assert.match(normalizeSql(calls[0].text), /^select email,environment,device,settings,has_selected_mode,updated_at from user_map_settings/i);
+  assert.deepEqual(calls[0].values, ["owner@example.com", "production", "desktop"]);
   assert.equal(row.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
   assert.equal(row.settings.hasSelectedMode, false);
 }
 
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient();
-  const repository = createUserMapSettingsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_service_role_test",
-      VERCEL_ENV: "preview",
-    },
-    createClientImpl,
-  });
-
-  assert.ok(repository);
-  assert.equal(calls[0].supabaseKey, "sb_service_role_test");
-}
-
-{
-  const { createClientImpl } = createFakeSupabaseClient({
-    readError: { message: "permission denied" },
-  });
-  const repository = createUserMapSettingsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
-    },
-    createClientImpl,
-  });
+  const { queryClient } = createFakePostgresClient([{ error: "permission denied" }]);
+  const repository = createUserMapSettingsRepositoryFromEnv({ queryClient });
 
   await assert.rejects(
     () => repository.readSettingsByEmail("owner@example.com"),
@@ -175,50 +119,56 @@ function createFakeSupabaseClient({
 }
 
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    readData: {
-      email: "owner@example.com",
-      environment: "preview",
-      settings: {
-        selectedMode: MAP_MODE_IDS.CUSTOM,
-        baseMode: MAP_MODE_IDS.CONTROLLER,
-        hasSelectedMode: true,
-        layerOverrides: {
-          [MAP_LAYER_KEYS.AIRSPACES]: true,
-          [MAP_LAYER_KEYS.USER_LOCATION]: true,
-          [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
+  const { calls, queryClient } = createFakePostgresClient([
+    {
+      rows: [
+        {
+          email: "owner@example.com",
+          environment: "preview",
+          device: "desktop",
+          settings: {
+            selectedMode: MAP_MODE_IDS.CUSTOM,
+            baseMode: MAP_MODE_IDS.CONTROLLER,
+            hasSelectedMode: true,
+            layerOverrides: {
+              [MAP_LAYER_KEYS.AIRSPACES]: true,
+              [MAP_LAYER_KEYS.USER_LOCATION]: true,
+              [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
+            },
+            updatedAt: "2026-06-02T15:06:00.000Z",
+          },
+          has_selected_mode: true,
+          updated_at: "2026-06-02T15:06:00.000Z",
         },
-        updatedAt: "2026-06-02T15:06:00.000Z",
-      },
-      has_selected_mode: true,
-      updated_at: "2026-06-02T15:06:00.000Z",
+      ],
     },
-    writeData: {
-      email: "owner@example.com",
-      environment: "preview",
-      settings: {
-        selectedMode: MAP_MODE_IDS.CUSTOM,
-        baseMode: MAP_MODE_IDS.CONTROLLER,
-        hasSelectedMode: true,
-        layerOverrides: {
-          [MAP_LAYER_KEYS.AIRSPACES]: true,
-          [MAP_LAYER_KEYS.USER_LOCATION]: true,
-          [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
-          [MAP_LAYER_KEYS.MAP_LABELS]: false,
+    {
+      rows: [
+        {
+          email: "owner@example.com",
+          environment: "preview",
+          device: "desktop",
+          settings: {
+            selectedMode: MAP_MODE_IDS.CUSTOM,
+            baseMode: MAP_MODE_IDS.CONTROLLER,
+            hasSelectedMode: true,
+            layerOverrides: {
+              [MAP_LAYER_KEYS.AIRSPACES]: true,
+              [MAP_LAYER_KEYS.USER_LOCATION]: true,
+              [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
+              [MAP_LAYER_KEYS.MAP_LABELS]: false,
+            },
+            updatedAt: "2026-06-02T15:07:00.000Z",
+          },
+          has_selected_mode: true,
+          updated_at: "2026-06-02T15:07:00.000Z",
         },
-        updatedAt: "2026-06-02T15:07:00.000Z",
-      },
-      has_selected_mode: true,
-      updated_at: "2026-06-02T15:07:00.000Z",
+      ],
     },
-  });
+  ]);
   const repository = createUserMapSettingsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
-      VERCEL_ENV: "preview",
-    },
-    createClientImpl,
+    env: { VERCEL_ENV: "preview" },
+    queryClient,
   });
 
   await repository.upsertSettingsByEmail({
@@ -229,9 +179,7 @@ function createFakeSupabaseClient({
     },
   });
 
-  const upsertCall = calls.find((call) => call.type === "upsert");
-  assert.ok(upsertCall, "repository should write the merged settings row");
-  assert.deepEqual(upsertCall.row.settings.layerOverrides, {
+  assert.deepEqual(calls[1].values[3].layerOverrides, {
     [MAP_LAYER_KEYS.AIRSPACES]: true,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
@@ -240,41 +188,48 @@ function createFakeSupabaseClient({
 }
 
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    readData: {
-      email: "owner@example.com",
-      environment: "preview",
-      settings: {
-        selectedMode: "immersive",
-        baseMode: "immersive",
-        hasSelectedMode: true,
-        layerOverrides: {},
-        updatedAt: "2026-06-02T15:08:00.000Z",
-      },
-      has_selected_mode: true,
-      updated_at: "2026-06-02T15:08:00.000Z",
+  const { calls, queryClient } = createFakePostgresClient([
+    {
+      rows: [
+        {
+          email: "owner@example.com",
+          environment: "preview",
+          device: "desktop",
+          settings: {
+            selectedMode: "immersive",
+            baseMode: "immersive",
+            hasSelectedMode: true,
+            layerOverrides: {},
+            updatedAt: "2026-06-02T15:08:00.000Z",
+          },
+          has_selected_mode: true,
+          updated_at: "2026-06-02T15:08:00.000Z",
+        },
+      ],
     },
-    writeData: {
-      email: "owner@example.com",
-      environment: "preview",
-      settings: {
-        selectedMode: "immersive",
-        baseMode: "immersive",
-        hasSelectedMode: true,
-        layerOverrides: {},
-        updatedAt: "2026-06-02T15:09:00.000Z",
-      },
-      has_selected_mode: true,
-      updated_at: "2026-06-02T15:09:00.000Z",
+    { rows: [] },
+    {
+      rows: [
+        {
+          email: "owner@example.com",
+          environment: "preview",
+          device: "desktop",
+          settings: {
+            selectedMode: MAP_MODE_IDS.CONTROLLER,
+            baseMode: MAP_MODE_IDS.CONTROLLER,
+            hasSelectedMode: true,
+            layerOverrides: {},
+            updatedAt: "2026-06-02T15:09:00.000Z",
+          },
+          has_selected_mode: true,
+          updated_at: "2026-06-02T15:09:00.000Z",
+        },
+      ],
     },
-  });
+  ]);
   const repository = createUserMapSettingsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
-      VERCEL_ENV: "preview",
-    },
-    createClientImpl,
+    env: { VERCEL_ENV: "preview" },
+    queryClient,
   });
 
   const readRow = await repository.readSettingsByEmail("owner@example.com");
@@ -290,33 +245,32 @@ function createFakeSupabaseClient({
     },
   });
 
-  const upsertCall = calls.find((call) => call.type === "upsert");
-  assert.ok(upsertCall, "repository should migrate legacy immersive account settings");
-  assert.equal(upsertCall.row.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
-  assert.equal(upsertCall.row.settings.baseMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(calls[2].values[3].selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(calls[2].values[3].baseMode, MAP_MODE_IDS.CONTROLLER);
 }
 
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    writeData: {
-      email: "owner@example.com",
-      environment: "preview",
-      device: "mobile",
-      settings: {
-        selectedMode: MAP_MODE_IDS.RADIO,
-        baseMode: MAP_MODE_IDS.RADIO,
-        hasSelectedMode: true,
-      },
-      has_selected_mode: true,
+  const { calls, queryClient } = createFakePostgresClient([
+    { rows: [] },
+    {
+      rows: [
+        {
+          email: "owner@example.com",
+          environment: "preview",
+          device: "mobile",
+          settings: {
+            selectedMode: MAP_MODE_IDS.RADIO,
+            baseMode: MAP_MODE_IDS.RADIO,
+            hasSelectedMode: true,
+          },
+          has_selected_mode: true,
+        },
+      ],
     },
-  });
+  ]);
   const repository = createUserMapSettingsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
-      VERCEL_ENV: "preview",
-    },
-    createClientImpl,
+    env: { VERCEL_ENV: "preview" },
+    queryClient,
   });
 
   const row = await repository.upsertSettingsByEmail({
@@ -329,13 +283,11 @@ function createFakeSupabaseClient({
     },
   });
 
-  const deviceFilters = calls.filter(
-    (call) => call.type === "eq" && call.column === "device",
-  );
-  assert.deepEqual(deviceFilters.map((call) => call.value), ["mobile"]);
-  const upsertCall = calls.find((call) => call.type === "upsert");
-  assert.equal(upsertCall.row.device, "mobile");
+  assert.deepEqual(calls[0].values, ["owner@example.com", "preview", "mobile"]);
+  assert.equal(calls[1].values[2], "mobile");
   assert.equal(row.device, "mobile");
 }
+
+assert.equal(createUserMapSettingsRepositoryFromEnv({ env: {} }), null);
 
 console.log("userMapSettings.dao.test.ts ok");

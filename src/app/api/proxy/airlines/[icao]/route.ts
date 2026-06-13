@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
 
   // Same gate as the route provider — the upstream airline-logos CDN
   // we proxy is the FlightAware CDN, so requesting it for users
-  // without the Supabase-managed FlightAware-tier flag would be both unauthorized and
+  // without the Postgres-managed FlightAware-tier flag would be both unauthorized and
   // wasteful. Non-FA users get 404 here; the AirlineLogo wrapper on
   // the client already hides the <img> on error, so the UI degrades
   // cleanly to "no logo" without showing a broken image.

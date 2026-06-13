@@ -25,7 +25,7 @@ export async function resolveFeatureFlagsForUser({
     return normalizeFeatureFlags(row?.flags);
   } catch (error: any) {
     console.warn(
-      `[feature-flags] Supabase read failed for ${email}:`,
+      `[feature-flags] Postgres read failed for ${email}:`,
       error.message,
     );
     return {};

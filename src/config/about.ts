@@ -19,7 +19,7 @@ export const ABOUT_BUILD_META = {
       items: [
         "Next.js App Router",
         "Vercel route handlers",
-        "OpenAIP + Supabase cache",
+        "OpenAIP + Railway Postgres",
         "Same-origin aviation proxy",
       ],
     },
