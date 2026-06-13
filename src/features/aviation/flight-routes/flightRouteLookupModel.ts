@@ -95,6 +95,14 @@ export function resolveRouteLookupTransport(routeContext: RouteContext = {}) {
     : ROUTE_LOOKUP_TRANSPORT.REALTIME;
 }
 
+export function resolveRouteLookupEnabled({
+  featureFlagsResolved = true,
+}: {
+  featureFlagsResolved?: unknown;
+} = {}) {
+  return featureFlagsResolved !== false;
+}
+
 export function buildRouteProxyRequest(
   callsign: unknown,
   routeContext: RouteContext = {},

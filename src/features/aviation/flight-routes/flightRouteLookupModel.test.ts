@@ -6,6 +6,7 @@ import {
   buildRoutesByCallsign,
   getRouteLookupStats,
   resolvePendingRouteLookups,
+  resolveRouteLookupEnabled,
   resolveRouteLookupTransport,
   writeRouteCacheEntry,
 } from "./flightRouteLookupModel";
@@ -18,6 +19,9 @@ const route = {
 };
 
 {
+  assert.equal(resolveRouteLookupEnabled({ featureFlagsResolved: false }), false);
+  assert.equal(resolveRouteLookupEnabled({ featureFlagsResolved: true }), true);
+  assert.equal(resolveRouteLookupEnabled(), true);
   assert.equal(
     resolveRouteLookupTransport({ routeProvider: "flightaware" }),
     "proxy",
