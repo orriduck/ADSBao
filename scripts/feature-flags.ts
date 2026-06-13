@@ -61,7 +61,7 @@ async function main() {
   });
   if (!repository) {
     throw new Error(
-      "Supabase feature flag repository is not configured. Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local.",
+      "Postgres feature flag repository is not configured. Check ADSBAO_DATABASE_URL or DATABASE_URL in .env.local.",
     );
   }
 

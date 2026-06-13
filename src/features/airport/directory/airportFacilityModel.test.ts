@@ -111,14 +111,15 @@ import {
     ],
   });
 
-  assert.equal(navaids.length, 2);
-  assert.equal(navaids[0].ident, "BOS");
-  assert.equal(navaids[0].type, "vordme");
-  assert.equal(navaids[0].distanceNm < 1.2, true);
-  assert.deepEqual(navaids[0].sources, ["openaip", "ourairports"]);
-  assert.equal(navaids[1].ident, "LWM");
-  assert.equal(navaids[1].type, "ndb");
-  assert.equal(navaids[1].source, "ourairports");
+  const mergedNavaids = navaids as any[];
+  assert.equal(mergedNavaids.length, 2);
+  assert.equal(mergedNavaids[0].ident, "BOS");
+  assert.equal(mergedNavaids[0].type, "vordme");
+  assert.equal(mergedNavaids[0].distanceNm < 1.2, true);
+  assert.deepEqual(mergedNavaids[0].sources, ["openaip", "ourairports"]);
+  assert.equal(mergedNavaids[1].ident, "LWM");
+  assert.equal(mergedNavaids[1].type, "ndb");
+  assert.equal(mergedNavaids[1].source, "ourairports");
 }
 
 console.log("airportFacilityModel.test.ts ok");

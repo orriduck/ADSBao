@@ -1,4 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import {
+  bulkUpsertRows,
+  createImportDatabaseFromEnv,
+} from "./postgresImport";
 
 const FREQUENCIES_URL =
   process.env.OURAIRPORTS_FREQUENCIES_URL ||
@@ -119,11 +122,6 @@ const mapNavaidRow = (row: Record<string, string>) => {
   };
 };
 
-const requireEnv = (name: string, value: string | undefined) => {
-  if (!value) throw new Error(`${name} is required`);
-  return value;
-};
-
 async function fetchCsvRows(url: string) {
   const response = await fetch(url, {
     headers: { Accept: "text/csv" },
@@ -135,39 +133,35 @@ async function fetchCsvRows(url: string) {
 }
 
 async function replaceRows({
-  supabase,
+  queryClient,
   table,
   rows,
+  columns,
 }: {
-  supabase: any;
+  queryClient: any;
   table: string;
   rows: Record<string, any>[];
+  columns: string[];
 }) {
   console.log(`[import-airport-facilities] Clearing ${table}`);
-  const tableQuery = supabase.from(table) as any;
-  const { error: deleteError } = await tableQuery.delete().neq("id", -1);
-  if (deleteError) throw new Error(`${table} clear failed: ${deleteError.message}`);
+  await queryClient.query(`delete from "${table}" where id <> -1`);
 
   let imported = 0;
   for (let index = 0; index < rows.length; index += CHUNK_SIZE) {
     const chunk = rows.slice(index, index + CHUNK_SIZE);
-    const { error } = await tableQuery.upsert(chunk, { onConflict: "id" });
-    if (error) throw new Error(`${table} upsert failed: ${error.message}`);
+    await bulkUpsertRows({
+      queryClient,
+      table,
+      columns,
+      conflictColumns: ["id"],
+      rows: chunk,
+    });
     imported += chunk.length;
     console.log(`[import-airport-facilities] Imported ${imported}/${rows.length} ${table}`);
   }
 }
 
 async function main() {
-  const supabaseUrl = requireEnv(
-    "NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL",
-    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-  );
-  const serviceKey = requireEnv(
-    "SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY,
-  );
-
   console.log(`[import-airport-facilities] Fetching ${FREQUENCIES_URL}`);
   const frequencyRows = (await fetchCsvRows(FREQUENCIES_URL))
     .map(mapFrequencyRow)
@@ -177,24 +171,51 @@ async function main() {
     .map(mapNavaidRow)
     .filter(Boolean);
 
-  const supabase = createClient(supabaseUrl, serviceKey, {
-    auth: {
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      persistSession: false,
-    },
-  });
-
-  await replaceRows({
-    supabase,
-    table: "airport_frequencies",
-    rows: frequencyRows,
-  });
-  await replaceRows({
-    supabase,
-    table: "navaids",
-    rows: navaidRows,
-  });
+  const queryClient = createImportDatabaseFromEnv();
+  try {
+    await replaceRows({
+      queryClient,
+      table: "airport_frequencies",
+      rows: frequencyRows,
+      columns: [
+        "id",
+        "airport_ref",
+        "airport_ident",
+        "type",
+        "description",
+        "frequency_mhz",
+      ],
+    });
+    await replaceRows({
+      queryClient,
+      table: "navaids",
+      rows: navaidRows,
+      columns: [
+        "id",
+        "filename",
+        "ident",
+        "name",
+        "type",
+        "frequency_khz",
+        "latitude_deg",
+        "longitude_deg",
+        "elevation_ft",
+        "iso_country",
+        "dme_frequency_khz",
+        "dme_channel",
+        "dme_latitude_deg",
+        "dme_longitude_deg",
+        "dme_elevation_ft",
+        "slaved_variation_deg",
+        "magnetic_variation_deg",
+        "usage_type",
+        "power",
+        "associated_airport",
+      ],
+    });
+  } finally {
+    await queryClient.dispose?.();
+  }
 
   console.log(
     `[import-airport-facilities] Done. Imported ${frequencyRows.length} frequencies and ${navaidRows.length} navaids.`,

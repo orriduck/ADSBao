@@ -1,4 +1,7 @@
-import { createServerSupabaseClient } from "./supabaseClient";
+import {
+  createPostgresQueryClientFromEnv,
+  type PostgresQueryClient,
+} from "./postgresClient";
 
 type RunwayGeometryRecord = Record<string, any>;
 
@@ -70,39 +73,35 @@ const mapRunwayGeometryRow = (row: RunwayGeometryRecord | null | undefined) => {
 };
 
 function createRunwayGeometryRepository({
-  supabaseUrl,
-  supabaseKey,
-  createClientImpl,
+  queryClient,
 }: {
-  supabaseUrl?: string;
-  supabaseKey?: string;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
 } = {}) {
-  const client = createServerSupabaseClient({
-    supabaseUrl,
-    supabaseKey,
-    createClientImpl,
-  });
-  if (!client) return null;
+  if (!queryClient) return null;
 
   const readByAirportIdents = async (idents: unknown[] = []) => {
     const normalizedIdents = [...new Set(idents.map(normalizeIdent).filter(Boolean))];
     if (normalizedIdents.length === 0) return new Map();
 
-    const { data, error } = await client
-      .from(RUNWAY_GEOMETRIES_TABLE)
-      .select(SELECT_COLUMNS)
-      .eq("source", "ourairports")
-      .in("airport_ident", normalizedIdents)
-      .order("airport_ident", { ascending: true })
-      .order("le_ident", { ascending: true });
-
-    if (error) {
+    let rows: RunwayGeometryRecord[] = [];
+    try {
+      const result = await queryClient.query<RunwayGeometryRecord>(
+        `
+          select ${SELECT_COLUMNS}
+          from ${RUNWAY_GEOMETRIES_TABLE}
+          where source = $1
+            and airport_ident = any($2::text[])
+          order by airport_ident asc, le_ident asc
+        `,
+        ["ourairports", normalizedIdents],
+      );
+      rows = result.rows || [];
+    } catch (error: any) {
       throw new Error(`Runway geometry read failed (${error.message})`);
     }
 
     const byAirport = new Map();
-    for (const row of data || []) {
+    for (const row of rows) {
       const mapped = mapRunwayGeometryRow(row);
       if (!mapped?.airportIdent) continue;
       const current = byAirport.get(mapped.airportIdent) || [];
@@ -123,18 +122,17 @@ function createRunwayGeometryRepository({
 
 export function createRunwayGeometryRepositoryFromEnv({
   env = process.env,
-  createClientImpl,
+  queryClient,
+  createPoolImpl,
 }: {
   env?: Record<string, string | undefined>;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
+  createPoolImpl?: any;
 } = {}) {
   return createRunwayGeometryRepository({
-    supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,
-    supabaseKey:
-      env.SUPABASE_SECRET_KEY ||
-      env.SUPABASE_SERVICE_ROLE_KEY ||
-      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-      env.SUPABASE_PUBLISHABLE_KEY,
-    createClientImpl,
+    queryClient:
+      queryClient === undefined
+        ? createPostgresQueryClientFromEnv({ env, createPoolImpl })
+        : queryClient,
   });
 }

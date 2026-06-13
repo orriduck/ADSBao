@@ -70,11 +70,11 @@ Functionality-level domain code lives under `src/features/<domain>/` as plain `.
 
 JSX components live under `src/components/**`, grouped by screen or product domain. Components may import feature modules, but feature modules should not import JSX components.
 
-Persistence boundaries live under `src/app/api/dao/*.dao.ts`. DAO files should contain Supabase/SQL reads and writes only; they should not choose providers, cache policy, fallback behavior, or import mechanism files.
+Persistence boundaries live under `src/app/api/dao/*.dao.ts`. DAO files should contain Postgres reads and writes only; they should not choose providers, cache policy, fallback behavior, or import mechanism files.
 
 There is no separate `src/services` layer. Shared provider clients, normalizers, mechanisms, models, and utils live with their owning feature domain.
 
-The OpenAIP migration prepares `public.openaip_airports` and `public.openaip_cache` as OpenAIP-shaped persistence boundaries. Legacy airport directory tables and nearby airport caches are intentionally dropped by the migration; runtime code no longer reads OurAirports as an airport directory or FAA CIFP data. OurAirports is retained only as runway threshold geometry via `public.runway_geometries`.
+The Railway Postgres schema keeps ADSBao-owned persistence boundaries for OurAirports augmentation data, route feedback, feature flags, and user map settings. Runtime code no longer reads OurAirports as the primary airport directory or FAA CIFP data. OurAirports is retained for full airport names, runway threshold geometry, ATC frequencies, and navaid augmentation.
 
 ### Watcher Mode candidate watching spots
 

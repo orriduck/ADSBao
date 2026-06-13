@@ -45,7 +45,7 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
 ## Stack
 
 - **Frontend**: React + Next.js App Router + Tailwind CSS v4 + DaisyUI, managed by `pnpm`.
-- **Airport data**: Airport directory data comes from Supabase-hosted OurAirports tables through Next.js API routes. Route lookup and other live aviation data use public provider APIs with frontend or server caching where appropriate.
+- **Airport data**: Airport directory data comes from OpenAIP through Next.js API routes, with Railway Postgres tables for OurAirports augmentation data and user-scoped persistence. Route lookup and other live aviation data use public provider APIs with frontend or server caching where appropriate.
 - **Weather/traffic data**: Web deployment uses Vercel data paths under `/api/proxy/*` because AviationWeather, adsb.lol, and route lookups need same-origin handling for production browser use. Local Next.js dev uses equivalent rewrites where possible.
 - **Removed scope**: Live audio/transcription, desktop packaging, Homebrew cask publishing, and Python backend runtime config are no longer part of this repository.
 
@@ -67,7 +67,7 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
 | `src/components/map/*` | Leaflet map JSX components and map controls |
 | `src/components/weather/*` | Weather slide JSX components and view hooks |
 | `src/app/api/_shared/*` | Route-handler-only helpers for validation, rate limits, upstream fetches, and API responses |
-| `src/app/api/dao/*.dao.ts` | Persistence boundary for Supabase/SQL reads and writes |
+| `src/app/api/dao/*.dao.ts` | Persistence boundary for Postgres reads and writes |
 | `src/features/aircraft/*` | Aircraft filters, icons, photos, positions, preview, and trace logic |
 | `src/features/airport/*` | Airport context, directory, explorer, map, nearby, procedures, search, and wiki logic |
 | `src/features/aviation/*` | Aviation provider clients and flight-route mechanisms |
@@ -352,7 +352,7 @@ Use the current ADSBao web release line:
 | `v0.7.1` | Map and mobile polish |
 | `v0.8.0` | Next.js Vercel refactor |
 | `v0.9.0` | Navy tracking console redesign |
-| `v0.10.0` | Global airport data layer (OurAirports + Supabase) and richer aircraft silhouettes |
+| `v0.10.0` | Global airport data layer (OurAirports + persisted augmentation data) and richer aircraft silhouettes |
 | `v0.11.0` | Selected-aircraft trace + multi-provider failover + AeroDataBox revalidation |
 | `v0.12.0` | Aircraft tracking page + airport-prefixed routes + polymorphic sidebar/preview |
 

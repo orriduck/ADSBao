@@ -1,4 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import {
+  bulkUpsertRows,
+  createImportDatabaseFromEnv,
+} from "./postgresImport";
 
 const RUNWAYS_URL =
   process.env.OURAIRPORTS_RUNWAYS_URL ||
@@ -103,21 +106,7 @@ const mapRunwayRow = (row: Record<string, string>) => {
   };
 };
 
-const requireEnv = (name: string, value: string | undefined) => {
-  if (!value) throw new Error(`${name} is required`);
-  return value;
-};
-
 async function main() {
-  const supabaseUrl = requireEnv(
-    "NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL",
-    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-  );
-  const serviceKey = requireEnv(
-    "SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY,
-  );
-
   console.log(`[import-runway-geometries] Fetching ${RUNWAYS_URL}`);
   const response = await fetch(RUNWAYS_URL, {
     headers: { Accept: "text/csv" },
@@ -130,37 +119,54 @@ async function main() {
     .map(mapRunwayRow)
     .filter(Boolean);
 
-  const supabase = createClient(supabaseUrl, serviceKey, {
-    auth: {
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      persistSession: false,
-    },
-  });
+  const queryClient = createImportDatabaseFromEnv();
 
   console.log("[import-runway-geometries] Clearing existing OurAirports runway geometry rows");
-  const { error: deleteError } = await supabase
-    .from("runway_geometries")
-    .delete()
-    .eq("source", "ourairports");
-  if (deleteError) {
-    throw new Error(`runway_geometries clear failed: ${deleteError.message}`);
-  }
+  try {
+    await queryClient.query(
+      `delete from "runway_geometries" where source = $1`,
+      ["ourairports"],
+    );
 
-  let imported = 0;
-  for (let index = 0; index < rows.length; index += CHUNK_SIZE) {
-    const chunk = rows.slice(index, index + CHUNK_SIZE);
-    const { error } = await supabase
-      .from("runway_geometries")
-      .upsert(chunk, { onConflict: "source,source_id" });
-    if (error) {
-      throw new Error(`runway_geometries upsert failed: ${error.message}`);
+    let imported = 0;
+    for (let index = 0; index < rows.length; index += CHUNK_SIZE) {
+      const chunk = rows.slice(index, index + CHUNK_SIZE);
+      await bulkUpsertRows({
+        queryClient,
+        table: "runway_geometries",
+        columns: [
+          "source",
+          "source_id",
+          "airport_ident",
+          "length_ft",
+          "width_ft",
+          "surface",
+          "lighted",
+          "closed",
+          "le_ident",
+          "le_latitude_deg",
+          "le_longitude_deg",
+          "le_elevation_ft",
+          "le_heading_deg_t",
+          "le_displaced_threshold_ft",
+          "he_ident",
+          "he_latitude_deg",
+          "he_longitude_deg",
+          "he_elevation_ft",
+          "he_heading_deg_t",
+          "he_displaced_threshold_ft",
+        ],
+        conflictColumns: ["source", "source_id"],
+        rows: chunk,
+      });
+      imported += chunk.length;
+      console.log(`[import-runway-geometries] Imported ${imported}/${rows.length}`);
     }
-    imported += chunk.length;
-    console.log(`[import-runway-geometries] Imported ${imported}/${rows.length}`);
-  }
 
-  console.log(`[import-runway-geometries] Done. Imported ${imported} rows.`);
+    console.log(`[import-runway-geometries] Done. Imported ${imported} rows.`);
+  } finally {
+    await queryClient.dispose?.();
+  }
 }
 
 main().catch((error) => {

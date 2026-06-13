@@ -1,4 +1,7 @@
-import { createServerSupabaseClient } from "./supabaseClient";
+import {
+  createPostgresQueryClientFromEnv,
+  type PostgresQueryClient,
+} from "./postgresClient";
 
 type AirportNameRecord = Record<string, any>;
 
@@ -28,20 +31,11 @@ const mapAirportNameRow = (row: AirportNameRecord | null | undefined) => {
 };
 
 function createAirportNameRepository({
-  supabaseUrl,
-  supabaseKey,
-  createClientImpl,
+  queryClient,
 }: {
-  supabaseUrl?: string;
-  supabaseKey?: string;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
 } = {}) {
-  const client = createServerSupabaseClient({
-    supabaseUrl,
-    supabaseKey,
-    createClientImpl,
-  });
-  if (!client) return null;
+  if (!queryClient) return null;
 
   // Returns a Map keyed by every identifier a caller might hold (ICAO code and
   // OurAirports `ident`, which usually coincide) so a lookup by the OpenAIP
@@ -51,17 +45,22 @@ function createAirportNameRepository({
     const byIdent = new Map<string, { name: string; city: string }>();
     if (normalizedIdents.length === 0) return byIdent;
 
-    const list = normalizedIdents.join(",");
-    const { data, error } = await client
-      .from(AIRPORTS_TABLE)
-      .select(SELECT_COLUMNS)
-      .or(`icao_code.in.(${list}),ident.in.(${list})`);
-
-    if (error) {
+    let rows: AirportNameRecord[] = [];
+    try {
+      const result = await queryClient.query<AirportNameRecord>(
+        `
+          select ${SELECT_COLUMNS}
+          from ${AIRPORTS_TABLE}
+          where (icao_code = any($1::text[]) or ident = any($1::text[]))
+        `,
+        [normalizedIdents],
+      );
+      rows = result.rows || [];
+    } catch (error: any) {
       throw new Error(`Airport name read failed (${error.message})`);
     }
 
-    for (const row of data || []) {
+    for (const row of rows) {
       const mapped = mapAirportNameRow(row);
       if (!mapped) continue;
       const value = { name: mapped.name, city: mapped.city };
@@ -84,18 +83,17 @@ function createAirportNameRepository({
 
 export function createAirportNameRepositoryFromEnv({
   env = process.env,
-  createClientImpl,
+  queryClient,
+  createPoolImpl,
 }: {
   env?: Record<string, string | undefined>;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
+  createPoolImpl?: any;
 } = {}) {
   return createAirportNameRepository({
-    supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,
-    supabaseKey:
-      env.SUPABASE_SECRET_KEY ||
-      env.SUPABASE_SERVICE_ROLE_KEY ||
-      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-      env.SUPABASE_PUBLISHABLE_KEY,
-    createClientImpl,
+    queryClient:
+      queryClient === undefined
+        ? createPostgresQueryClientFromEnv({ env, createPoolImpl })
+        : queryClient,
   });
 }

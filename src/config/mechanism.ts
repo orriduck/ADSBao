@@ -22,14 +22,14 @@ export const MECHANISM_ITEMS = [
     ],
   },
   {
-    id: "supabaseBoundary",
-    titleKey: "mechanism.items.supabaseBoundary.title",
-    bodyKey: "mechanism.items.supabaseBoundary.body",
-    signalKey: "mechanism.items.supabaseBoundary.signal",
+    id: "postgresBoundary",
+    titleKey: "mechanism.items.postgresBoundary.title",
+    bodyKey: "mechanism.items.postgresBoundary.body",
+    signalKey: "mechanism.items.postgresBoundary.signal",
     detailKeys: [
-      "mechanism.items.supabaseBoundary.details.check",
-      "mechanism.items.supabaseBoundary.details.persist",
-      "mechanism.items.supabaseBoundary.details.return",
+      "mechanism.items.postgresBoundary.details.check",
+      "mechanism.items.postgresBoundary.details.persist",
+      "mechanism.items.postgresBoundary.details.return",
     ],
   },
   {

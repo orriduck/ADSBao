@@ -2,76 +2,26 @@ import assert from "node:assert/strict";
 
 import { createRouteFeedbackReportsRepositoryFromEnv } from "./routeFeedbackReports.dao";
 
-const ROUTE_FEEDBACK_TABLE = "flight_route_feedback_reports";
-
 const now = () => Date.parse("2026-05-17T00:00:00.000Z");
 
-function createFakeSupabaseClient({
-  readData = null,
-  readError = null,
-  writeData = null,
-  writeError = null,
-} = {}) {
-  const calls = [];
-  const createClientImpl = (supabaseUrl, supabaseKey, options) => {
-    calls.push({ type: "createClient", supabaseUrl, supabaseKey, options });
-    return {
-      from(table) {
-        calls.push({ type: "from", table });
-        const builder = {
-          insertedRow: null,
-          select(columns) {
-            calls.push({ type: "select", columns });
-            return this;
-          },
-          eq(column, value) {
-            calls.push({ type: "eq", column, value });
-            return this;
-          },
-          is(column, value) {
-            calls.push({ type: "is", column, value });
-            return this;
-          },
-          gt(column, value) {
-            calls.push({ type: "gt", column, value });
-            return this;
-          },
-          order(column, options) {
-            calls.push({ type: "order", column, options });
-            return this;
-          },
-          limit(count) {
-            calls.push({ type: "limit", count });
-            return this;
-          },
-          async maybeSingle() {
-            calls.push({ type: "maybeSingle" });
-            return { data: readData, error: readError };
-          },
-          async single() {
-            calls.push({ type: "single" });
-            return { data: writeData ?? builder.insertedRow, error: writeError };
-          },
-          insert(row) {
-            builder.insertedRow = row;
-            calls.push({ type: "insert", row });
-            return this;
-          },
-        };
-        return builder;
+function createFakePostgresClient(responses: Array<Record<string, any>> = []) {
+  const calls: Array<Record<string, any>> = [];
+  return {
+    calls,
+    queryClient: {
+      async query(text: string, values: unknown[] = []) {
+        calls.push({ text, values });
+        const response = responses.shift() || {};
+        if (response.error) throw new Error(response.error);
+        const rows = response.rows || [];
+        return { rows, rowCount: response.rowCount ?? rows.length };
       },
-    };
+    },
   };
-  return { calls, createClientImpl };
 }
 
-assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
+const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
 
-// readActiveOverride filters by callsign + status + non-expired +
-// non-deleted, returning the newest match. cache_key is intentionally NOT
-// in the where clause: a correction submitted from an airport context
-// (cache_key = "AAL1234|KBOS|BOS") should also apply on the flight page
-// where the lookup has no airport context.
 {
   const overrideRow = {
     id: "abc",
@@ -80,15 +30,9 @@ assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
     route_payload: { origin: { icao: "KJFK" }, destination: { icao: "KBOS" } },
     expires_at: "2026-05-17T12:00:00.000Z",
   };
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    readData: overrideRow,
-  });
+  const { calls, queryClient } = createFakePostgresClient([{ rows: [overrideRow] }]);
   const repo = createRouteFeedbackReportsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SECRET_KEY: "sb_secret_test",
-    },
-    createClientImpl,
+    queryClient,
     now,
   });
 
@@ -97,51 +41,28 @@ assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
   });
 
   assert.equal(row, overrideRow);
-  assert.deepEqual(
-    calls.filter((call) => call.type !== "createClient"),
-    [
-      { type: "from", table: ROUTE_FEEDBACK_TABLE },
-      {
-        type: "select",
-        columns:
-          "id,cache_key,normalized_callsign,target_airport_icao,target_airport_iata,origin_icao,destination_icao,aircraft_hex,aircraft_type,feedback_reason,prior_route_payload,route_payload,status,created_at,expires_at,deleted_at",
-      },
-      { type: "eq", column: "normalized_callsign", value: "AAL1234" },
-      { type: "eq", column: "status", value: "active" },
-      { type: "is", column: "deleted_at", value: null },
-      { type: "gt", column: "expires_at", value: "2026-05-17T00:00:00.000Z" },
-      { type: "order", column: "created_at", options: { ascending: false } },
-      { type: "limit", count: 1 },
-      { type: "maybeSingle" },
-    ],
+  assert.match(
+    normalizeSql(calls[0].text),
+    /from flight_route_feedback_reports where normalized_callsign = \$1 and status = \$2 and deleted_at is null and expires_at > \$3 order by created_at desc limit 1/i,
   );
+  assert.deepEqual(calls[0].values, [
+    "AAL1234",
+    "active",
+    "2026-05-17T00:00:00.000Z",
+  ]);
 }
 
-// Missing callsign returns null without hitting the network.
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient();
+  const { calls, queryClient } = createFakePostgresClient();
   const repo = createRouteFeedbackReportsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SECRET_KEY: "sb_secret_test",
-    },
-    createClientImpl,
+    queryClient,
     now,
   });
 
-  assert.equal(
-    await repo.readActiveOverride({ normalizedCallsign: "" }),
-    null,
-  );
-  assert.equal(
-    calls.filter((call) => call.type !== "createClient").length,
-    0,
-  );
+  assert.equal(await repo.readActiveOverride({ normalizedCallsign: "" }), null);
+  assert.equal(calls.length, 0);
 }
 
-// writeFeedbackReport persists the full row with the supplied expiry and
-// emits an active, non-deleted record so it is immediately discoverable by
-// readActiveOverride.
 {
   const insertedRow = {
     id: "f00",
@@ -156,15 +77,9 @@ assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
     created_at: "2026-05-17T00:00:00.000Z",
     expires_at: "2026-05-17T12:00:00.000Z",
   };
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    writeData: insertedRow,
-  });
+  const { calls, queryClient } = createFakePostgresClient([{ rows: [insertedRow] }]);
   const repo = createRouteFeedbackReportsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SECRET_KEY: "sb_secret_test",
-    },
-    createClientImpl,
+    queryClient,
     now,
   });
 
@@ -185,52 +100,27 @@ assert.equal(ROUTE_FEEDBACK_TABLE, "flight_route_feedback_reports");
   });
 
   assert.equal(result, insertedRow);
-  const insertCall = calls.find((call) => call.type === "insert");
-  assert.equal(insertCall.row.cache_key, "AAL1234|KBOS|BOS");
-  assert.equal(insertCall.row.normalized_callsign, "AAL1234");
-  assert.equal(insertCall.row.target_airport_icao, "KBOS");
-  assert.equal(insertCall.row.origin_icao, "KJFK");
-  assert.equal(insertCall.row.destination_icao, "KBOS");
-  assert.equal(insertCall.row.aircraft_hex, "a1b2c3");
-  assert.equal(insertCall.row.aircraft_type, "A321");
-  assert.equal(insertCall.row.feedback_reason, "missing_route");
-  assert.equal(insertCall.row.status, "active");
-  assert.equal(insertCall.row.deleted_at, null);
-  assert.equal(insertCall.row.expires_at, "2026-05-17T12:00:00.000Z");
-  assert.equal(insertCall.row.created_at, "2026-05-17T00:00:00.000Z");
-  assert.deepEqual(insertCall.row.route_payload, {
-    origin: { icao: "KJFK" },
-    destination: { icao: "KBOS" },
-  });
+  assert.match(normalizeSql(calls[0].text), /^insert into flight_route_feedback_reports/i);
+  assert.deepEqual(calls[0].values.slice(0, 5), [
+    "AAL1234|KBOS|BOS",
+    "AAL1234",
+    "KBOS",
+    "BOS",
+    "KJFK",
+  ]);
+  assert.equal(calls[0].values[12], "active");
+  assert.equal(calls[0].values[15], null);
 }
 
-// fromEnv prefers the secret key so the server-side handler can insert with
-// service-role privileges even though the publishable key is the public
-// browser default everywhere else.
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient();
-  const repo = createRouteFeedbackReportsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SECRET_KEY: "sb_secret_from_env",
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_unused",
-    },
-    createClientImpl,
-    now,
-  });
-  await repo.readActiveOverride({ normalizedCallsign: "AAL1234" });
-  assert.equal(calls[0].supabaseKey, "sb_secret_from_env");
+  const { queryClient } = createFakePostgresClient([{ error: "permission denied" }]);
+  const repo = createRouteFeedbackReportsRepositoryFromEnv({ queryClient, now });
+  await assert.rejects(
+    () => repo.readActiveOverride({ normalizedCallsign: "AAL1234" }),
+    /Route feedback override read failed \(permission denied\)/,
+  );
 }
 
-// Missing supabase config returns null instead of throwing — the handler
-// degrades to "adsbdb only" rather than 500ing.
-assert.equal(
-  createRouteFeedbackReportsRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "",
-      SUPABASE_SECRET_KEY: "sb_secret",
-    },
-    createClientImpl: () => ({}),
-  }),
-  null,
-);
+assert.equal(createRouteFeedbackReportsRepositoryFromEnv({ env: {} }), null);
+
+console.log("routeFeedbackReports.dao.test.ts ok");

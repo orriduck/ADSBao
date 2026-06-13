@@ -138,14 +138,14 @@ const en = {
             "The map can then decide which layers to show from one consistent aviation context, instead of making every overlay component repeat provider parsing rules.",
         },
       },
-      supabaseBoundary: {
-        title: "Supabase cache boundaries",
+      postgresBoundary: {
+        title: "Postgres persistence boundaries",
         signal: "Persistence without live coupling",
         body:
-          "Supabase holds directory and persisted records at clear boundaries. Route handlers decide when to read, refresh, or return cached context.",
+          "Railway Postgres holds static augmentation and persisted records at clear boundaries. Route handlers decide when to read, refresh, or return cached context.",
         details: {
           check:
-            "Reads go through route handlers and DAO helpers, so UI components do not need to know whether a value came from Supabase, a provider refresh, or static fallback data.",
+            "Reads go through route handlers and DAO helpers, so UI components do not need to know whether a value came from Postgres, a provider refresh, or static fallback data.",
           persist:
             "When a fetched record is worth keeping, the server stores the normalized version rather than leaking provider-specific payloads into the app surface.",
           return:

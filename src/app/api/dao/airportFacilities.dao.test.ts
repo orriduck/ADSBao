@@ -2,143 +2,71 @@ import assert from "node:assert/strict";
 
 import { createAirportFacilityRepositoryFromEnv } from "./airportFacilities.dao";
 
-const AIRPORT_FREQUENCIES_TABLE = "airport_frequencies";
-const NAVAIDS_TABLE = "navaids";
-
-function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
+function createFakePostgresClient(responses: Array<Record<string, any>> = []) {
   const calls: Array<Record<string, any>> = [];
-
-  const createQuery = (table: string) => {
-    const query: Record<string, any> = {
-      select(columns: string, options?: Record<string, any>) {
-        calls.push({
-          type: "select",
-          table,
-          columns,
-          ...(options ? { options } : {}),
-        });
-        return query;
+  return {
+    calls,
+    queryClient: {
+      async query(text: string, values: unknown[] = []) {
+        calls.push({ text, values });
+        const response = responses.shift() || {};
+        if (response.error) throw new Error(response.error);
+        const rows = response.rows || [];
+        return { rows, rowCount: response.rowCount ?? rows.length };
       },
-      eq(column: string, value: unknown) {
-        calls.push({ type: "eq", table, column, value });
-        return query;
-      },
-      gte(column: string, value: unknown) {
-        calls.push({ type: "gte", table, column, value });
-        return query;
-      },
-      lte(column: string, value: unknown) {
-        calls.push({ type: "lte", table, column, value });
-        return query;
-      },
-      order(column: string, options: Record<string, any>) {
-        calls.push({ type: "order", table, column, options });
-        return query;
-      },
-      limit(count: number) {
-        calls.push({ type: "limit", table, count });
-        return query;
-      },
-      then(resolve: (value: any) => void) {
-        const tableValue = tableData[table] || [];
-        const payload = Array.isArray(tableValue)
-          ? { data: tableValue, error: null }
-          : { data: tableValue.data || [], count: tableValue.count, error: null };
-        return Promise.resolve(payload).then(resolve);
-      },
-    };
-    return query;
+    },
   };
-
-  const createClientImpl = (supabaseUrl: string, supabaseKey: string, options: any) => {
-    calls.push({ type: "createClient", supabaseUrl, supabaseKey, options });
-    return {
-      from(table: string) {
-        calls.push({ type: "from", table });
-        return createQuery(table);
-      },
-    };
-  };
-
-  return { calls, createClientImpl };
 }
 
-{
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    [AIRPORT_FREQUENCIES_TABLE]: [
-      {
-        id: 1,
-        airport_ident: "KBOS",
-        type: "TWR",
-        description: "BOSTON TOWER",
-        frequency_mhz: 128.8,
-      },
-    ],
-  });
-  const repository = createAirportFacilityRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
-    },
-    createClientImpl,
-  });
+const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
 
-  const frequencies = await repository.readFrequenciesByAirportIdent(" kbos ");
+{
+  const { calls, queryClient } = createFakePostgresClient([
+    {
+      rows: [
+        {
+          id: 1,
+          airport_ident: "KBOS",
+          type: "TWR",
+          description: "BOSTON TOWER",
+          frequency_mhz: 128.8,
+        },
+      ],
+    },
+  ]);
+  const repository = createAirportFacilityRepositoryFromEnv({ queryClient });
+
+  const frequencies: any[] = await repository.readFrequenciesByAirportIdent(" kbos ");
 
   assert.equal(frequencies.length, 1);
   assert.equal(frequencies[0].airportIdent, "KBOS");
   assert.equal(frequencies[0].source, "ourairports");
-  assert.deepEqual(calls.slice(1), [
-    { type: "from", table: AIRPORT_FREQUENCIES_TABLE },
-    {
-      type: "select",
-      table: AIRPORT_FREQUENCIES_TABLE,
-      columns: "id,airport_ref,airport_ident,type,description,frequency_mhz",
-    },
-    {
-      type: "eq",
-      table: AIRPORT_FREQUENCIES_TABLE,
-      column: "airport_ident",
-      value: "KBOS",
-    },
-    {
-      type: "order",
-      table: AIRPORT_FREQUENCIES_TABLE,
-      column: "type",
-      options: { ascending: true },
-    },
-    {
-      type: "order",
-      table: AIRPORT_FREQUENCIES_TABLE,
-      column: "frequency_mhz",
-      options: { ascending: true },
-    },
-  ]);
+  assert.match(
+    normalizeSql(calls[0].text),
+    /from airport_frequencies where airport_ident = \$1 order by type asc, frequency_mhz asc/i,
+  );
+  assert.deepEqual(calls[0].values, ["KBOS"]);
 }
 
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    [NAVAIDS_TABLE]: [
-      {
-        id: 86260,
-        ident: "BOS",
-        name: "BOSTON",
-        type: "VOR-DME",
-        frequency_khz: 112700,
-        latitude_deg: 42.3576,
-        longitude_deg: -70.9896,
-      },
-    ],
-  });
-  const repository = createAirportFacilityRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
+  const { calls, queryClient } = createFakePostgresClient([
+    {
+      rows: [
+        {
+          id: 86260,
+          ident: "BOS",
+          name: "BOSTON",
+          type: "VOR-DME",
+          frequency_khz: 112700,
+          latitude_deg: 42.3576,
+          longitude_deg: -70.9896,
+        },
+      ],
     },
-    createClientImpl,
-  });
+  ]);
+  const repository = createAirportFacilityRepositoryFromEnv({ queryClient });
 
-  const navaids = await repository.readNavaidsNearAirport({
+  const navaids: any[] = await repository.readNavaidsNearAirport({
     lat: 42.3656,
     lon: -71.0096,
     radiusNm: 60,
@@ -148,36 +76,14 @@ function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
   assert.equal(navaids.length, 1);
   assert.equal(navaids[0].ident, "BOS");
   assert.equal(navaids[0].source, "ourairports");
-  assert.ok(calls.some((call) => call.type === "gte" && call.column === "latitude_deg"));
-  assert.ok(calls.some((call) => call.type === "lte" && call.column === "longitude_deg"));
-  assert.ok(calls.some((call) => call.type === "limit" && call.count === 50));
+  assert.match(normalizeSql(calls[0].text), /from navaids/i);
+  assert.match(normalizeSql(calls[0].text), /limit \$5/i);
+  assert.equal(calls[0].values[4], 50);
 }
 
 {
-  const { calls, createClientImpl } = createFakeSupabaseClient();
-  const repository = createAirportFacilityRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_service_role_test",
-    },
-    createClientImpl,
-  });
-
-  assert.ok(repository);
-  assert.equal(calls[0].supabaseKey, "sb_service_role_test");
-}
-
-{
-  const { calls, createClientImpl } = createFakeSupabaseClient({
-    [NAVAIDS_TABLE]: { data: [], count: 37 },
-  });
-  const repository = createAirportFacilityRepositoryFromEnv({
-    env: {
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_secret_test",
-    },
-    createClientImpl,
-  });
+  const { calls, queryClient } = createFakePostgresClient([{ rows: [{ count: "37" }] }]);
+  const repository = createAirportFacilityRepositoryFromEnv({ queryClient });
 
   const count = await repository.readNavaidCountInBounds({
     bbox: {
@@ -189,15 +95,18 @@ function createFakeSupabaseClient(tableData: Record<string, any[]> = {}) {
   });
 
   assert.equal(count, 37);
-  assert.ok(
-    calls.some(
-      (call) =>
-        call.type === "select" &&
-        call.columns === "id" &&
-        call.options?.count === "exact" &&
-        call.options?.head === true,
-    ),
+  assert.match(normalizeSql(calls[0].text), /select count\(\*\)::int as count from navaids/i);
+}
+
+{
+  const { queryClient } = createFakePostgresClient([{ error: "permission denied" }]);
+  const repository = createAirportFacilityRepositoryFromEnv({ queryClient });
+  await assert.rejects(
+    () => repository.readFrequenciesByAirportIdent("KBOS"),
+    /Airport frequencies read failed \(permission denied\)/,
   );
 }
+
+assert.equal(createAirportFacilityRepositoryFromEnv({ env: {} }), null);
 
 console.log("airportFacilities.dao.test.ts ok");

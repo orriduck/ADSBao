@@ -1,4 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import {
+  bulkUpsertRows,
+  createImportDatabaseFromEnv,
+} from "./postgresImport";
 
 const AIRPORTS_URL =
   process.env.OURAIRPORTS_AIRPORTS_URL ||
@@ -90,11 +93,6 @@ const mapAirportRow = (row: Record<string, string>) => {
   };
 };
 
-const requireEnv = (name: string, value: string | undefined) => {
-  if (!value) throw new Error(`${name} is required`);
-  return value;
-};
-
 async function fetchCsvRows(url: string) {
   const response = await fetch(url, {
     headers: { Accept: "text/csv" },
@@ -106,38 +104,42 @@ async function fetchCsvRows(url: string) {
 }
 
 async function replaceRows({
-  supabase,
+  queryClient,
   rows,
 }: {
-  supabase: any;
+  queryClient: any;
   rows: Record<string, any>[];
 }) {
   console.log(`[import-airports] Clearing ${AIRPORTS_TABLE}`);
-  const tableQuery = supabase.from(AIRPORTS_TABLE) as any;
-  // `ident` is the text primary key and is never empty, so this clears the table.
-  const { error: deleteError } = await tableQuery.delete().neq("ident", "");
-  if (deleteError) throw new Error(`${AIRPORTS_TABLE} clear failed: ${deleteError.message}`);
+  await queryClient.query(`delete from "${AIRPORTS_TABLE}" where ident <> ''`);
 
   let imported = 0;
   for (let index = 0; index < rows.length; index += CHUNK_SIZE) {
     const chunk = rows.slice(index, index + CHUNK_SIZE);
-    const { error } = await tableQuery.upsert(chunk, { onConflict: "ident" });
-    if (error) throw new Error(`${AIRPORTS_TABLE} upsert failed: ${error.message}`);
+    await bulkUpsertRows({
+      queryClient,
+      table: AIRPORTS_TABLE,
+      columns: [
+        "ident",
+        "ourairports_id",
+        "type",
+        "name",
+        "latitude_deg",
+        "longitude_deg",
+        "iso_country",
+        "municipality",
+        "icao_code",
+        "iata_code",
+      ],
+      conflictColumns: ["ident"],
+      rows: chunk,
+    });
     imported += chunk.length;
     console.log(`[import-airports] Imported ${imported}/${rows.length} ${AIRPORTS_TABLE}`);
   }
 }
 
 async function main() {
-  const supabaseUrl = requireEnv(
-    "NEXT_PUBLIC_SUPABASE_URL or SUPABASE_URL",
-    process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-  );
-  const serviceKey = requireEnv(
-    "SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY,
-  );
-
   console.log(`[import-airports] Fetching ${AIRPORTS_URL}`);
   const airportRows = (await fetchCsvRows(AIRPORTS_URL))
     .map(mapAirportRow)
@@ -149,15 +151,12 @@ async function main() {
   for (const row of airportRows) byIdent.set(row.ident, row);
   const dedupedRows = [...byIdent.values()];
 
-  const supabase = createClient(supabaseUrl, serviceKey, {
-    auth: {
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      persistSession: false,
-    },
-  });
-
-  await replaceRows({ supabase, rows: dedupedRows });
+  const queryClient = createImportDatabaseFromEnv();
+  try {
+    await replaceRows({ queryClient, rows: dedupedRows });
+  } finally {
+    await queryClient.dispose?.();
+  }
 
   console.log(
     `[import-airports] Done. Imported ${dedupedRows.length} airports.`,

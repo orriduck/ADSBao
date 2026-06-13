@@ -133,14 +133,14 @@ const zhCN = {
             "地图随后从同一份航空资料决定展示哪些图层,不用让每个叠加组件重复实现数据源解析规则。",
         },
       },
-      supabaseBoundary: {
-        title: "Supabase 缓存边界",
+      postgresBoundary: {
+        title: "Postgres 持久化边界",
         signal: "持久化但不耦合实时流",
         body:
-          "Supabase 在清晰边界内保存目录和持久化记录。Route Handler 决定何时读取、刷新或返回缓存资料。",
+          "Railway Postgres 在清晰边界内保存静态增强资料和持久化记录。Route Handler 决定何时读取、刷新或返回缓存资料。",
         details: {
           check:
-            "读取会经过 Route Handler 和 DAO helper,所以 UI 组件不需要知道一个值来自 Supabase、数据源刷新,还是静态 fallback。",
+            "读取会经过 Route Handler 和 DAO helper,所以 UI 组件不需要知道一个值来自 Postgres、数据源刷新,还是静态 fallback。",
           persist:
             "当抓取到的记录值得保留时,服务端会存储归一化后的版本,而不是把数据源专有 payload 泄漏到应用展示层。",
           return:

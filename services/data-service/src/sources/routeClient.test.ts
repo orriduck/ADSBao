@@ -51,8 +51,9 @@ function jsonResponse(payload: unknown, status = 200) {
   assert.equal(event.type, "route:update");
   assert.equal(event.channel, "route:DAL123");
   assert.equal(event.source, "adsbdb");
-  assert.equal(event.data.route.callsign, "DAL123");
-  assert.equal(event.data.route.route.iata, "ATL-BOS");
+  const data = event.data as any;
+  assert.equal(data.route.callsign, "DAL123");
+  assert.equal(data.route.route.iata, "ATL-BOS");
 }
 
 {
@@ -66,7 +67,8 @@ function jsonResponse(payload: unknown, status = 200) {
   });
 
   assert.equal(event.type, "route:update");
-  assert.equal(event.data.route, null);
+  const data = event.data as any;
+  assert.equal(data.route, null);
 }
 
 console.log("routeClient.test.ts ok");

@@ -1,4 +1,7 @@
-import { createServerSupabaseClient } from "./supabaseClient";
+import {
+  createPostgresQueryClientFromEnv,
+  type PostgresQueryClient,
+} from "./postgresClient";
 import {
   normalizeFeatureFlagEnvironment,
   normalizeUserEmail,
@@ -17,17 +20,13 @@ const SELECT_COLUMNS = "email,environment,device,settings,has_selected_mode,upda
 type UserMapSettingsRecord = Record<string, any>;
 
 function createUserMapSettingsRepository({
-  supabaseUrl,
-  supabaseKey,
   environment,
-  createClientImpl,
-}: UserMapSettingsRecord = {}) {
-  const client = createServerSupabaseClient({
-    supabaseUrl,
-    supabaseKey,
-    createClientImpl,
-  });
-  if (!client) return null;
+  queryClient,
+}: {
+  environment?: unknown;
+  queryClient?: PostgresQueryClient | null;
+} = {}) {
+  if (!queryClient) return null;
   const defaultEnvironment = normalizeFeatureFlagEnvironment(environment);
 
   return {
@@ -39,28 +38,34 @@ function createUserMapSettingsRepository({
       );
       const normalizedDevice = normalizeMapSettingsDevice(options.device);
 
-      const { data, error } = await client
-        .from(USER_MAP_SETTINGS_TABLE)
-        .select(SELECT_COLUMNS)
-        .eq("email", normalizedEmail)
-        .eq("environment", normalizedEnvironment)
-        .eq("device", normalizedDevice)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") {
+      let row = null;
+      try {
+        const result = await queryClient.query<UserMapSettingsRecord>(
+          `
+            select ${SELECT_COLUMNS}
+            from ${USER_MAP_SETTINGS_TABLE}
+            where email = $1
+              and environment = $2
+              and device = $3
+            limit 1
+          `,
+          [normalizedEmail, normalizedEnvironment, normalizedDevice],
+        );
+        row = result.rows?.[0] || null;
+      } catch (error: any) {
         throw new Error(`User map settings read failed (${error.message})`);
       }
 
-      if (!data) return null;
+      if (!row) return null;
       return {
-        email: normalizeUserEmail(data.email),
-        environment: normalizeFeatureFlagEnvironment(data.environment),
-        device: normalizeMapSettingsDevice(data.device),
+        email: normalizeUserEmail(row.email),
+        environment: normalizeFeatureFlagEnvironment(row.environment),
+        device: normalizeMapSettingsDevice(row.device),
         settings: normalizeMapSettings({
-          ...data.settings,
-          hasSelectedMode: data.has_selected_mode,
+          ...row.settings,
+          hasSelectedMode: row.has_selected_mode,
         }),
-        updatedAt: data.updated_at || "",
+        updatedAt: row.updated_at || "",
       };
     },
 
@@ -86,38 +91,52 @@ function createUserMapSettingsRepository({
       });
       const updatedAt = normalizedSettings.updatedAt || new Date().toISOString();
 
-      const { data, error } = await client
-        .from(USER_MAP_SETTINGS_TABLE)
-        .upsert(
-          {
-            email: normalizedEmail,
-            environment: normalizedEnvironment,
-            device: normalizedDevice,
-            settings: {
+      let row = null;
+      try {
+        const result = await queryClient.query<UserMapSettingsRecord>(
+          `
+            insert into ${USER_MAP_SETTINGS_TABLE} (
+              email,
+              environment,
+              device,
+              settings,
+              has_selected_mode,
+              updated_at
+            )
+            values ($1, $2, $3, $4::jsonb, $5, $6)
+            on conflict (email, environment, device)
+            do update set
+              settings = excluded.settings,
+              has_selected_mode = excluded.has_selected_mode,
+              updated_at = excluded.updated_at
+            returning ${SELECT_COLUMNS}
+          `,
+          [
+            normalizedEmail,
+            normalizedEnvironment,
+            normalizedDevice,
+            {
               ...normalizedSettings,
               updatedAt,
             },
-            has_selected_mode: normalizedSettings.hasSelectedMode === true,
-            updated_at: updatedAt,
-          },
-          { onConflict: "email,environment,device" },
-        )
-        .select(SELECT_COLUMNS)
-        .single();
-
-      if (error) {
+            normalizedSettings.hasSelectedMode === true,
+            updatedAt,
+          ],
+        );
+        row = result.rows?.[0] || null;
+      } catch (error: any) {
         throw new Error(`User map settings upsert failed (${error.message})`);
       }
 
       return {
-        email: normalizeUserEmail(data.email),
-        environment: normalizeFeatureFlagEnvironment(data.environment),
-        device: normalizeMapSettingsDevice(data.device),
+        email: normalizeUserEmail(row?.email),
+        environment: normalizeFeatureFlagEnvironment(row?.environment),
+        device: normalizeMapSettingsDevice(row?.device),
         settings: normalizeMapSettings({
-          ...data.settings,
-          hasSelectedMode: data.has_selected_mode,
+          ...row?.settings,
+          hasSelectedMode: row?.has_selected_mode,
         }),
-        updatedAt: data.updated_at || "",
+        updatedAt: row?.updated_at || "",
       };
     },
   };
@@ -125,15 +144,18 @@ function createUserMapSettingsRepository({
 
 export function createUserMapSettingsRepositoryFromEnv({
   env = process.env,
-  createClientImpl,
+  queryClient,
+  createPoolImpl,
 }: {
   env?: Record<string, string | undefined>;
-  createClientImpl?: any;
+  queryClient?: PostgresQueryClient | null;
+  createPoolImpl?: any;
 } = {}) {
   return createUserMapSettingsRepository({
-    supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL,
-    supabaseKey: env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY,
     environment: resolveFeatureFlagEnvironment(env),
-    createClientImpl,
+    queryClient:
+      queryClient === undefined
+        ? createPostgresQueryClientFromEnv({ env, createPoolImpl })
+        : queryClient,
   });
 }

@@ -25,7 +25,7 @@ export async function resolveMapSettingsForUser({
     // tries to PUT and sees a 500. Surface it loudly here so the
     // mismatch is caught immediately, while still letting the UI render
     // with the default settings.
-    console.error(`[map-settings] Supabase read failed for ${email}:`, error.message);
+    console.error(`[map-settings] Postgres read failed for ${email}:`, error.message);
     return null;
   }
 }

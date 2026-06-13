@@ -267,7 +267,7 @@ export const CHANGELOG = [
       "Airport search and detail context now use OpenAIP as the primary aviation directory.",
     highlights: [
       "Search, details, frequencies, navaids, airspaces moved to OpenAIP",
-      "Supabase-backed runway threshold geometry retained for accurate overlays",
+      "Postgres-backed runway threshold geometry retained for accurate overlays",
     ],
   },
   {
