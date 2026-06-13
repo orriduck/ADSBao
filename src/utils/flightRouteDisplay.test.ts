@@ -3,15 +3,43 @@ import assert from 'node:assert/strict'
 import {
   formatFlightRouteLabel,
   formatFlightRouteMunicipalityLabel,
+  getFlightRouteAccuracyNotice,
 } from './flightRouteDisplay'
 
 {
   const label = formatFlightRouteLabel({
     origin: { iata: 'JFK', icao: 'KJFK' },
     destination: { iata: 'LHR', icao: 'EGLL' },
+    source: 'flightaware',
   })
 
   assert.equal(label, 'JFK -> LHR')
+}
+
+{
+  const adsbdbRoute = {
+    origin: { iata: 'BOS', icao: 'KBOS', municipality: 'Boston' },
+    destination: { iata: 'SFO', icao: 'KSFO', municipality: 'San Francisco' },
+    source: 'adsbdb',
+  }
+
+  assert.equal(formatFlightRouteLabel(adsbdbRoute), 'BOS -> SFO*')
+  assert.equal(
+    formatFlightRouteMunicipalityLabel(adsbdbRoute),
+    'Boston -> San Francisco*',
+  )
+  assert.ok(getFlightRouteAccuracyNotice(adsbdbRoute).includes('adsbdb'))
+}
+
+{
+  const flightAwareRoute = {
+    origin: { iata: 'BOS', icao: 'KBOS' },
+    destination: { iata: 'SFO', icao: 'KSFO' },
+    source: 'flightaware',
+  }
+
+  assert.equal(formatFlightRouteLabel(flightAwareRoute), 'BOS -> SFO')
+  assert.equal(getFlightRouteAccuracyNotice(flightAwareRoute), '')
 }
 
 {

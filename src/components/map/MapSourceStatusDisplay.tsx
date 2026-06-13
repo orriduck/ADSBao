@@ -69,7 +69,6 @@ export default function MapSourceStatusDisplay({
   feedSource = "",
   feedStatus = "live",
   updatedLabel = "",
-  routeProviderLabel = "",
   loadingStatus = "",
   realtimeStatus = "",
   placement = "mobile-map",
@@ -96,7 +95,6 @@ export default function MapSourceStatusDisplay({
   if (
     !feedSource &&
     !updatedLabel &&
-    !routeProviderLabel &&
     !loadingStatus &&
     !displayedLoadingStatus &&
     !realtimeStatusLabel &&
@@ -109,7 +107,6 @@ export default function MapSourceStatusDisplay({
   const isInfer = feedStatus === "infer";
   const hasPrimary =
     feedSource ||
-    routeProviderLabel ||
     updatedLabel ||
     realtimeStatusLabel ||
     wakeLockActive;
@@ -133,7 +130,7 @@ export default function MapSourceStatusDisplay({
                 />
                 <span>{realtimeStatusLabel}</span>
               </StatusSpan>
-              {(wakeLockActive || feedSource || routeProviderLabel || updatedLabel) ? (
+              {(wakeLockActive || feedSource || updatedLabel) ? (
                 <span
                   aria-hidden="true"
                   className={diamondClassName}
@@ -146,7 +143,7 @@ export default function MapSourceStatusDisplay({
               <StatusSpan className="flex-none tabular-nums text-atc-orange">
                 ☕ Keep awake
               </StatusSpan>
-              {(feedSource || routeProviderLabel || updatedLabel) ? (
+              {(feedSource || updatedLabel) ? (
                 <span
                   aria-hidden="true"
                   className={diamondClassName}
@@ -161,18 +158,7 @@ export default function MapSourceStatusDisplay({
               {feedSource}
             </StatusSpan>
           ) : null}
-          {feedSource && routeProviderLabel ? (
-            <span
-              aria-hidden="true"
-              className={diamondClassName}
-            />
-          ) : null}
-          {routeProviderLabel ? (
-            <StatusSpan className="flex-none notranslate">
-              {routeProviderLabel}
-            </StatusSpan>
-          ) : null}
-          {(feedSource || routeProviderLabel) && updatedLabel ? (
+          {feedSource && updatedLabel ? (
             <span
               aria-hidden="true"
               className={diamondClassName}

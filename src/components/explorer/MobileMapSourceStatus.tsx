@@ -1,19 +1,15 @@
 import MapSourceStatusDisplay from "@/components/map/MapSourceStatusDisplay";
-import {
-  ROUTE_PROVIDER,
-  buildMapSourceStatusDisplay,
-} from "@/features/aviation/sourceDisplayModel";
+import { buildMapSourceStatusDisplay } from "@/features/aviation/sourceDisplayModel";
 
 export default function MobileMapSourceStatus({
   feedSource = "",
   feedStatus = "live",
   lastUpdated = null,
-  routeProvider = ROUTE_PROVIDER.ADSBDB,
   loadingStatus = "",
   realtimeStatus = "",
   wakeLockActive = false,
 }) {
-  const status = buildMapSourceStatusDisplay({ feedSource, routeProvider });
+  const status = buildMapSourceStatusDisplay({ feedSource });
   const updatedLabel = formatUpdated(lastUpdated);
 
   return (
@@ -21,7 +17,6 @@ export default function MobileMapSourceStatus({
       feedSource={status.feedSource}
       feedStatus={feedStatus}
       updatedLabel={updatedLabel}
-      routeProviderLabel={status.routeProvider}
       loadingStatus={loadingStatus}
       realtimeStatus={realtimeStatus}
       placement="map-corner"

@@ -9,6 +9,7 @@ import { SidebarMetricCard, SidebarMetricGrid } from "./SidebarMetric";
 import SidebarShell from "./SidebarShell";
 import {
   formatFlightRouteLabel,
+  getFlightRouteAccuracyNotice,
   getFlightRouteAirlineIconUrl,
 } from "@/utils/flightRouteDisplay";
 import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel";
@@ -46,6 +47,7 @@ export default function FlightSidebar({
   onMap = null,
   onClose = null,
 }) {
+  const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
   const displayCallsign =
     (aircraft?.callsign || callsign || "").trim() || "—";
@@ -53,6 +55,9 @@ export default function FlightSidebar({
   const typeDisplay = resolveAircraftDisplayModel(aircraft || {});
   const route = formatFlightRouteLabel(aircraft?.flightRoute) || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
+  const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft?.flightRoute)
+    ? t("aircraft.adsbdbRouteAccuracyNotice")
+    : "";
   const speed = toFiniteNumber(aircraft?.velocity);
   const altitude = toFiniteNumber(aircraft?.altitude);
   const vs = toFiniteNumber(aircraft?.baroRate);
@@ -70,6 +75,7 @@ export default function FlightSidebar({
         typeDisplay={typeDisplay}
         route={route}
         airlineIconUrl={airlineIconUrl}
+        routeAccuracyNotice={routeAccuracyNotice}
         positionSourceBadge={positionSourceBadge}
       />
       <FlightTelemetryGrid
@@ -119,6 +125,7 @@ function FlightIdentity({
   typeDisplay,
   route,
   airlineIconUrl,
+  routeAccuracyNotice,
   positionSourceBadge,
 }) {
   const { t } = useI18n();
@@ -153,6 +160,7 @@ function FlightIdentity({
         <div
           className="notranslate mt-2 flex items-center gap-2 font-mono text-[12px] tracking-[0.04em] text-atc-dim"
           translate="no"
+          title={routeAccuracyNotice || route}
         >
           {airlineIconUrl && (
             <img

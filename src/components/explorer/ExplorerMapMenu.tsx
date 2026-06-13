@@ -9,7 +9,6 @@ export default function ExplorerMapMenu({
   feedSource = "",
   feedStatus = "live",
   lastUpdated = null,
-  routeProvider = "",
   loadingStatus = "",
   realtimeStatus = "",
   userLocationActive = false,
@@ -100,7 +99,6 @@ export default function ExplorerMapMenu({
         feedSource={feedSource}
         feedStatus={feedStatus}
         lastUpdated={lastUpdated}
-        routeProvider={routeProvider}
         loadingStatus={loadingStatus}
         realtimeStatus={realtimeStatus}
         wakeLockActive={wakeLockState.active}

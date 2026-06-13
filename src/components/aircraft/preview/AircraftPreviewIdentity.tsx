@@ -4,7 +4,10 @@ import AirlineLogo from "./AirlineLogo";
 import AircraftPreviewType from "./AircraftPreviewType";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftPreviewTypeDisplay } from "@/features/aircraft/preview/aircraftPreviewTypeModel";
-import { getFlightRouteAirlineIconUrl } from "@/utils/flightRouteDisplay";
+import {
+  getFlightRouteAccuracyNotice,
+  getFlightRouteAirlineIconUrl,
+} from "@/utils/flightRouteDisplay";
 
 // Callsign + parsed route. Mirrors the sidebar row's identity cell so the
 // hover state feels like a richer continuation rather than new data.
@@ -14,6 +17,9 @@ export default function AircraftPreviewIdentity({ aircraft }) {
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
   const route = aircraft?.flightRouteLabel || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
+  const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft?.flightRoute)
+    ? t("aircraft.adsbdbRouteAccuracyNotice")
+    : "";
   const typeDisplay = getAircraftPreviewTypeDisplay(aircraft);
 
   return (
@@ -33,7 +39,7 @@ export default function AircraftPreviewIdentity({ aircraft }) {
           <span
             className="notranslate inline-flex min-w-0 items-center gap-1.5 overflow-hidden font-mono text-[11px] tracking-[0.04em] text-atc-dim md:gap-[5px] md:text-[9px]"
             translate="no"
-            title={route}
+            title={routeAccuracyNotice || route}
           >
             <AirlineLogo
               src={airlineIconUrl}
