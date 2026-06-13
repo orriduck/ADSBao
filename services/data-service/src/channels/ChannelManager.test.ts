@@ -39,8 +39,7 @@ class FakeSocket extends EventEmitter {
     "message",
     JSON.stringify({
       type: "subscribe",
-      channel: "airport:KBOS",
-      params: { lat: 42.3656, lon: -71.0096, distNm: 40 },
+      channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
     }),
   );
   socket.emit(
@@ -62,7 +61,7 @@ class FakeSocket extends EventEmitter {
   );
   assert.match(
     output,
-    /adsbao_ws_subscribe_total\{channel_type="airport",result="ok"\} 1/,
+    /adsbao_ws_subscribe_total\{channel_type="traffic",result="ok"\} 1/,
   );
   assert.match(
     output,

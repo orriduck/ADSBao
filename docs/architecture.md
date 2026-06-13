@@ -30,12 +30,28 @@ Global airport context is sourced from [OpenAIP](https://www.openaip.net/) throu
 
 ### Realtime data service
 
-High-frequency aircraft positions, tracked-aircraft updates, viewport traffic,
-airport traffic, and callsign route labels are served first through the
+High-frequency aircraft positions, tracked-aircraft updates, traffic around a
+current map center, and callsign route labels are served first through the
 WebSocket backend under `services/data-service`. It is deployed as a Railway
 service, shares one polling loop per active channel, applies provider fallback
 and backoff centrally, and exposes `/health`, `/debug/channels`, `/metrics`,
 and `/ws`.
+
+Realtime channel keys encode the polling target instead of hiding it in
+subscription params. This keeps shared loops correct when three product anchors
+are active:
+
+| Product anchor | Traffic channel | Route channel |
+|---|---|---|
+| Airport page | `traffic:airport:{icao}:{lat}:{lon}:{distNm}` | `route:{callsign}:airport:{icao}` |
+| Here / user location | `traffic:center:{lat}:{lon}:{distNm}` | `route:{callsign}:center:{lat}:{lon}` |
+| Tracking page | `traffic:center:{aircraftLat}:{aircraftLon}:{distNm}` | `route:{callsign}:center:{aircraftLat}:{aircraftLon}` |
+
+The service rounds center coordinates before accepting a channel so many users
+share the same loop instead of creating one-off subscriptions. `route:*` remains
+separate from `traffic:*` because route lookup cadence and cache lifetime are
+much slower than ADS-B positions, and because the route display context changes
+with the current center for here/tracking flows.
 
 The frontend discovers it through `NEXT_PUBLIC_ADSBAO_REALTIME_URL`. Realtime
 surfaces do not start their own external-provider polling when the WebSocket is

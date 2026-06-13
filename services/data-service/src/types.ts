@@ -1,12 +1,10 @@
 export type RealtimeChannelType =
-  | "airport"
   | "aircraft"
-  | "bbox"
   | "callsign"
   | "camera"
   | "route"
   | "session"
-  | "viewport";
+  | "traffic";
 
 export type RealtimeEventType =
   | "aircraft:update"
@@ -42,6 +40,14 @@ export type PollingTarget =
   | {
       kind: "route";
       callsign: string;
+      context?: {
+        type: "airport";
+        icao: string;
+      } | {
+        type: "center";
+        lat: number;
+        lon: number;
+      };
     };
 
 export type SubscribeParams = {

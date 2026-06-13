@@ -5,10 +5,16 @@ import {
 } from "./channelTypes";
 
 {
-  const channel = normalizeChannelName(" airport:kbos ");
+  const channel = normalizeChannelName(" traffic:airport:kbos:42.365:-71.009:37.8 ");
   assert.equal(channel.ok, true);
-  assert.equal(channel.channel, "airport:KBOS");
-  assert.equal(channel.type, "airport");
+  assert.equal(channel.channel, "traffic:airport:KBOS:42.4:-71:38");
+  assert.equal(channel.type, "traffic");
+  assert.deepEqual(buildChannelPollingTarget(channel.channel), {
+    kind: "positions",
+    lat: 42.4,
+    lon: -71,
+    distNm: 38,
+  });
 }
 
 {
@@ -19,26 +25,35 @@ import {
 }
 
 {
-  const channel = normalizeChannelName("route:aal123");
+  const channel = normalizeChannelName("route:aal123:airport:kbos");
   assert.equal(channel.ok, true);
-  assert.equal(channel.channel, "route:AAL123");
+  assert.equal(channel.channel, "route:AAL123:airport:KBOS");
   assert.equal(channel.type, "route");
   assert.deepEqual(buildChannelPollingTarget(channel.channel), {
     kind: "route",
     callsign: "AAL123",
+    context: { type: "airport", icao: "KBOS" },
   });
 }
 
 {
-  const channel = normalizeChannelName("viewport:42.365:-71.009:40");
+  const channel = normalizeChannelName("route:aal123:center:42.365:-71.009");
   assert.equal(channel.ok, true);
-  assert.equal(channel.channel, "viewport:42.4:-71:40");
-  assert.equal(channel.type, "viewport");
-  const target = buildChannelPollingTarget(channel.channel, {
-    lat: 42.365,
-    lon: -71.009,
-    distNm: 40,
+  assert.equal(channel.channel, "route:AAL123:center:42.4:-71");
+  assert.equal(channel.type, "route");
+  assert.deepEqual(buildChannelPollingTarget(channel.channel), {
+    kind: "route",
+    callsign: "AAL123",
+    context: { type: "center", lat: 42.4, lon: -71 },
   });
+}
+
+{
+  const channel = normalizeChannelName("traffic:center:42.365:-71.009:40");
+  assert.equal(channel.ok, true);
+  assert.equal(channel.channel, "traffic:center:42.4:-71:40");
+  assert.equal(channel.type, "traffic");
+  const target = buildChannelPollingTarget(channel.channel);
   assert.deepEqual(target, {
     kind: "positions",
     lat: 42.4,
@@ -48,21 +63,34 @@ import {
 }
 
 {
-  const channel = normalizeChannelName("bbox:42.1,-71.2,42.7,-70.5");
+  const channel = normalizeChannelName("traffic:center:42.365:-71.009:900");
   assert.equal(channel.ok, true);
-  assert.equal(channel.type, "bbox");
-  assert.equal(channel.channel, "bbox:42,-71.25,42.75,-70.5");
-  const target = buildChannelPollingTarget(channel.channel);
-  assert.equal(target.kind, "positions");
-  assert.equal(target.lat, 42.375);
-  assert.equal(target.lon, -70.875);
-  assert.equal(target.distNm > 0, true);
+  assert.equal(channel.channel, "traffic:center:42.4:-71:250");
 }
 
 {
-  const channel = normalizeChannelName("bbox:-80,-170,80,170");
+  assert.equal(
+    normalizeChannelName("traffic:center:42.365:-71.009:40:extra").ok,
+    false,
+  );
+  assert.equal(
+    normalizeChannelName("traffic:airport:kbos:42.365:-71.009:40:extra").ok,
+    false,
+  );
+  assert.equal(
+    normalizeChannelName("route:aal123:center:42.365:-71.009:extra").ok,
+    false,
+  );
+  assert.equal(
+    normalizeChannelName("route:aal123:airport:kbos:extra").ok,
+    false,
+  );
+}
+
+{
+  const channel = normalizeChannelName("airport:KBOS");
   assert.equal(channel.ok, false);
-  assert.match(channel.error, /too large/i);
+  assert.match(channel.error, /unsupported/i);
 }
 
 {

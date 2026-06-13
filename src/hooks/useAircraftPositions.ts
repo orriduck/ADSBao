@@ -14,10 +14,7 @@ import {
   normalizeLongitude,
 } from "../features/aircraft/tracking/flightTrackingContextModel";
 import { useRealtimeAircraftChannel } from "./useRealtimeAircraftChannel";
-import {
-  buildAirportAircraftChannel,
-  buildViewportAircraftChannel,
-} from "../lib/realtime/realtimeChannels";
+import { buildAircraftTrafficChannel } from "../lib/realtime/realtimeChannels";
 
 const MAX_AIRCRAFT_RANGE_NM = 250;
 
@@ -56,11 +53,14 @@ export function useAircraftPositions(
 
   const realtimeRequest = useMemo(() => {
     if (!hasActiveQuery) return null;
-    return (
-      buildAirportAircraftChannel(icao, queryLat, queryLon, distNm) ||
-      buildViewportAircraftChannel({ lat: queryLat, lon: queryLon, distNm })
-    );
-  }, [distNm, hasActiveQuery, icao, queryLat, queryLon]);
+    return buildAircraftTrafficChannel({
+      anchor: options?.trafficAnchor === "airport" ? "airport" : "center",
+      icao,
+      lat: queryLat,
+      lon: queryLon,
+      distNm,
+    });
+  }, [distNm, hasActiveQuery, icao, options?.trafficAnchor, queryLat, queryLon]);
 
   const realtime = useRealtimeAircraftChannel({
     channel: realtimeRequest?.channel || "",

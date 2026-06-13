@@ -414,6 +414,8 @@ function FlightExplorerContent({ callsign }) {
     loadingCount: routeLoadingCount,
     applyTemporaryRoute,
   } = useFlightRoutes(rawAircraft, {
+    lat: contextLat,
+    lon: contextLon,
     routeProvider,
   });
 

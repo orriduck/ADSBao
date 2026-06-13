@@ -26,7 +26,9 @@ import {
   mapSettingsToExplorerLayers,
   mapSettingsToUserLocationPreferences,
   normalizeMapSettings,
+  resolveMapSettingsHydrationCommit,
   resolveMapSettingsHydration,
+  resolveMapSettingsPersistenceTargets,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
   readStoredMapSettings,
@@ -347,6 +349,7 @@ function airportExplorerUiReducer(state, action) {
 export function ExplorerUiProvider({ children }) {
   const { isLoaded, isSignedIn } = useUser();
   const hasHydratedMapSettingsRef = useRef(false);
+  const pendingMapSettingsHydrationRef = useRef(null);
   const persistedMapSettingsRef = useRef("");
   const [mapSettingsHydrated, setMapSettingsHydrated] = useState(false);
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
@@ -381,6 +384,16 @@ export function ExplorerUiProvider({ children }) {
   } = state;
   const isMobile = sidebarMode === "mobile";
   const mapSettingsDevice = mapSettingsDeviceForSidebarMode(sidebarMode);
+  const queueMapSettingsHydration = useCallback((settings) => {
+    const normalizedSettings = normalizeMapSettings(settings);
+    pendingMapSettingsHydrationRef.current = normalizedSettings;
+    hasHydratedMapSettingsRef.current = false;
+    setMapSettingsHydrated(false);
+    dispatch({
+      type: "hydrateMapSettings",
+      settings: normalizedSettings,
+    });
+  }, []);
 
   useEffect(() => {
     const syncSidebarMode = () => {
@@ -397,42 +410,74 @@ export function ExplorerUiProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    setMapSettingsSaveStatus("idle");
+    const cachedSettings = readStoredMapSettings(mapSettingsDevice);
+    const hydratedSettings = resolveMapSettingsHydration({
+      signedIn: false,
+      userSettings: null,
+      cachedSettings,
+    });
+
+    if (hydratedSettings.settings) {
+      queueMapSettingsHydration(hydratedSettings.settings);
+      return;
+    }
+
+    const effectiveSettings = hydratedSettings.settings
+      ? hydratedSettings.settings
+      : normalizeMapSettings(DEFAULT_MAP_SETTINGS);
+    persistedMapSettingsRef.current = JSON.stringify(effectiveSettings);
+    hasHydratedMapSettingsRef.current = true;
+    setMapSettingsHydrated(true);
+  }, [
+    mapSettingsDevice,
+    queueMapSettingsHydration,
+  ]);
+
+  useEffect(() => {
     if (!isLoaded) return undefined;
+    const targets = resolveMapSettingsPersistenceTargets({
+      authLoaded: isLoaded,
+      signedIn: isSignedIn,
+    });
+    if (!targets.readDatabase) return undefined;
+
     let cancelled = false;
 
-    const hydrateMapSettings = async () => {
+    const hydrateUserMapSettings = async () => {
       hasHydratedMapSettingsRef.current = false;
       setMapSettingsSaveStatus("idle");
-      const cachedSettings = readStoredMapSettings(mapSettingsDevice);
+      const cachedSettings = targets.readCache
+        ? readStoredMapSettings(mapSettingsDevice)
+        : null;
       let userSettings = null;
 
-      if (isSignedIn) {
-        try {
-          const response = await fetch(`/api/map-settings?device=${mapSettingsDevice}`, {
-            cache: "no-store",
-          });
-          if (response.ok) {
-            const payload = await response.json();
-            userSettings = payload?.settings
-              ? normalizeMapSettings(payload.settings)
-              : null;
-          }
-        } catch {
-          userSettings = null;
+      try {
+        const response = await fetch(`/api/map-settings?device=${mapSettingsDevice}`, {
+          cache: "no-store",
+        });
+        if (response.ok) {
+          const payload = await response.json();
+          userSettings = payload?.settings
+            ? normalizeMapSettings(payload.settings)
+            : null;
         }
+      } catch {
+        userSettings = null;
       }
 
       if (cancelled) return;
       const hydratedSettings = resolveMapSettingsHydration({
-        signedIn: isSignedIn,
+        signedIn: true,
         userSettings,
         cachedSettings,
       });
       if (hydratedSettings.settings) {
-        dispatch({
-          type: "hydrateMapSettings",
-          settings: hydratedSettings.settings,
-        });
+        queueMapSettingsHydration(hydratedSettings.settings);
+        if (hydratedSettings.source === "user" && targets.writeCache) {
+          writeStoredMapSettings(hydratedSettings.settings, mapSettingsDevice);
+        }
+        return;
       }
 
       const effectiveSettings = hydratedSettings.settings
@@ -443,7 +488,7 @@ export function ExplorerUiProvider({ children }) {
       if (!cancelled) setMapSettingsHydrated(true);
     };
 
-    hydrateMapSettings();
+    hydrateUserMapSettings();
 
     return () => {
       cancelled = true;
@@ -452,11 +497,26 @@ export function ExplorerUiProvider({ children }) {
     isLoaded,
     isSignedIn,
     mapSettingsDevice,
+    queueMapSettingsHydration,
   ]);
 
   useEffect(() => {
+    const hydrationCommit = resolveMapSettingsHydrationCommit({
+      pendingSettings: pendingMapSettingsHydrationRef.current,
+      currentSettings: mapSettings,
+    });
+    if (hydrationCommit.pending) {
+      return undefined;
+    }
+    if (hydrationCommit.committed) {
+      pendingMapSettingsHydrationRef.current = null;
+      persistedMapSettingsRef.current = hydrationCommit.serialized;
+      hasHydratedMapSettingsRef.current = true;
+      setMapSettingsHydrated(true);
+      return undefined;
+    }
+
     if (
-      !isLoaded ||
       !hasHydratedMapSettingsRef.current
     ) {
       return undefined;
@@ -464,9 +524,16 @@ export function ExplorerUiProvider({ children }) {
     const nextSettings = normalizeMapSettings(mapSettings);
     const serialized = JSON.stringify(nextSettings);
     if (serialized === persistedMapSettingsRef.current) return undefined;
+    const targets = resolveMapSettingsPersistenceTargets({
+      authLoaded: isLoaded,
+      signedIn: isSignedIn,
+    });
 
-    if (!isSignedIn) {
+    if (targets.writeCache) {
       writeStoredMapSettings(nextSettings, mapSettingsDevice);
+    }
+
+    if (!targets.writeDatabase) {
       persistedMapSettingsRef.current = serialized;
       return undefined;
     }
@@ -496,6 +563,9 @@ export function ExplorerUiProvider({ children }) {
           : nextSettings;
         const savedSerialized = JSON.stringify(savedSettings);
         if (cancelled) return;
+        if (targets.writeCache) {
+          writeStoredMapSettings(savedSettings, mapSettingsDevice);
+        }
         persistedMapSettingsRef.current = savedSerialized;
         if (savedSerialized !== serialized) {
           dispatch({

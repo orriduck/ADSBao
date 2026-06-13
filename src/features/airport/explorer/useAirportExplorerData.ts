@@ -47,6 +47,7 @@ export function useAirportExplorerData(
     airportProfile.icao,
     airportProfile.lat,
     airportProfile.lon,
+    { trafficAnchor: "airport" },
   );
   const {
     routesByCallsign,

@@ -26,12 +26,19 @@ export function useFlightRoutes(
   const routeUnsubscribersRef = useRef(new Map<string, () => void>());
   const routeContext = useMemo(
     () => ({
-      // Coordinates rank pending route channels only. The route cache key is
-      // callsign-only so airport and flight pages share the same realtime loop.
+      icao: routeContextInput?.icao,
+      iata: routeContextInput?.iata,
       lat: Number(routeContextInput?.lat),
       lon: Number(routeContextInput?.lon),
+      routeProvider: routeContextInput?.routeProvider,
     }),
-    [routeContextInput?.lat, routeContextInput?.lon],
+    [
+      routeContextInput?.iata,
+      routeContextInput?.icao,
+      routeContextInput?.lat,
+      routeContextInput?.lon,
+      routeContextInput?.routeProvider,
+    ],
   );
 
   useEffect(() => {
@@ -87,7 +94,7 @@ export function useFlightRoutes(
   useEffect(() => {
     const wanted = new Set(
       pendingCallsigns
-        .map((callsign) => buildRouteChannel(callsign)?.channel || "")
+        .map((callsign) => buildRouteChannel(callsign, routeContext)?.channel || "")
         .filter(Boolean),
     );
 
@@ -99,7 +106,7 @@ export function useFlightRoutes(
     }
 
     for (const callsign of pendingCallsigns) {
-      const request = buildRouteChannel(callsign);
+      const request = buildRouteChannel(callsign, routeContext);
       if (!request || routeUnsubscribersRef.current.has(request.channel)) continue;
       const unsubscribe = client.subscribe({
         channel: request.channel,

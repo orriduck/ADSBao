@@ -1,48 +1,69 @@
 import assert from "node:assert/strict";
 import {
-  buildAirportAircraftChannel,
+  buildAircraftTrafficChannel,
+  buildAirportTrafficChannel,
+  buildCenterTrafficChannel,
   buildRouteChannel,
-  buildViewportAircraftChannel,
   normalizeRealtimeChannel,
 } from "./realtimeChannels";
 
 {
-  assert.deepEqual(buildAirportAircraftChannel("kbos", 42.3656, -71.0096), {
-    channel: "airport:KBOS",
-    params: {
-      lat: 42.3656,
-      lon: -71.0096,
-      distNm: 40,
-    },
+  assert.deepEqual(buildAirportTrafficChannel("kbos", 42.3656, -71.0096), {
+    channel: "traffic:airport:KBOS:42.4:-71:40",
+    params: {},
   });
 }
 
 {
   assert.deepEqual(
-    buildViewportAircraftChannel({
+    buildCenterTrafficChannel({
       lat: 42.3656,
       lon: -71.0096,
       distNm: 37.8,
     }),
     {
-      channel: "viewport:42.4:-71:38",
-      params: {
-        lat: 42.4,
-        lon: -71,
-        distNm: 38,
-      },
+      channel: "traffic:center:42.4:-71:38",
+      params: {},
     },
   );
 }
 
 {
-  const broad = buildViewportAircraftChannel({
+  const broad = buildCenterTrafficChannel({
     lat: 42.3656,
     lon: -71.0096,
     distNm: 900,
   });
-  assert.equal(broad.channel, "viewport:42.4:-71:250");
-  assert.equal(broad.params.distNm, 250);
+  assert.equal(broad.channel, "traffic:center:42.4:-71:250");
+}
+
+{
+  assert.deepEqual(
+    buildAircraftTrafficChannel({
+      anchor: "center",
+      icao: "TEST",
+      lat: 42.3656,
+      lon: -71.0096,
+      distNm: 30,
+    }),
+    {
+      channel: "traffic:center:42.4:-71:30",
+      params: {},
+    },
+  );
+  assert.deepEqual(
+    buildAircraftTrafficChannel({
+      anchor: "airport",
+      icao: "kbos",
+      lat: 42.3656,
+      lon: -71.0096,
+      distNm: 30,
+    }),
+    {
+      channel: "traffic:airport:KBOS:42.4:-71:30",
+      params: {},
+    },
+  );
 }
 
 {
@@ -51,11 +72,34 @@ import {
 }
 
 {
-  assert.deepEqual(buildRouteChannel(" aal123 "), {
-    channel: "route:AAL123",
+  assert.deepEqual(buildRouteChannel(" aal123 ", { icao: "kbos" }), {
+    channel: "route:AAL123:airport:KBOS",
     params: {},
   });
-  assert.equal(normalizeRealtimeChannel(" route:aal123 "), "route:AAL123");
+  assert.deepEqual(
+    buildRouteChannel(" aal123 ", { lat: 42.3656, lon: -71.0096 }),
+    {
+      channel: "route:AAL123:center:42.4:-71",
+      params: {},
+    },
+  );
+  assert.equal(
+    normalizeRealtimeChannel(" route:aal123:center:42.3656:-71.0096 "),
+    "route:AAL123:center:42.4:-71",
+  );
+  assert.equal(
+    normalizeRealtimeChannel("route:aal123:center:42.3656:-71.0096:extra"),
+    "",
+  );
+  assert.equal(normalizeRealtimeChannel("route:aal123:airport:kbos:extra"), "");
+  assert.equal(
+    normalizeRealtimeChannel("traffic:center:42.3656:-71.0096:40:extra"),
+    "",
+  );
+  assert.equal(
+    normalizeRealtimeChannel("traffic:airport:kbos:42.3656:-71.0096:40:extra"),
+    "",
+  );
 }
 
 console.log("realtimeChannels.test.ts ok");

@@ -51,22 +51,12 @@ type PollingSchedulerOptions = {
   now?: () => number;
 };
 
-function formatTargetNumber(value: number) {
-  return String(Number(value.toFixed(4)));
-}
-
 function buildChannelStateKey(
   channel: string,
-  type: RealtimeChannelType,
-  target: PollingTarget,
+  _type: RealtimeChannelType,
+  _target: PollingTarget,
 ) {
-  if (type !== "airport" || target.kind !== "positions") return channel;
-  return [
-    channel,
-    formatTargetNumber(target.lat),
-    formatTargetNumber(target.lon),
-    String(target.distNm),
-  ].join("|");
+  return channel;
 }
 
 export class PollingScheduler {

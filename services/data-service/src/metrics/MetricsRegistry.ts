@@ -92,13 +92,7 @@ function metricLine(name: string, labels: Labels, value: number) {
 }
 
 function classifyEndpoint(channelType: RealtimeChannelType) {
-  if (
-    channelType === "airport" ||
-    channelType === "bbox" ||
-    channelType === "viewport"
-  ) {
-    return "positions";
-  }
+  if (channelType === "traffic") return "positions";
   if (channelType === "callsign") return "callsign";
   if (channelType === "aircraft") return "aircraft";
   if (channelType === "route") return "route";
