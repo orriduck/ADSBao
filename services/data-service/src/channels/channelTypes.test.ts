@@ -5,9 +5,9 @@ import {
 } from "./channelTypes";
 
 {
-  const channel = normalizeChannelName(" traffic:airport:kbos:42.365:-71.009:37.8 ");
+  const channel = normalizeChannelName(" traffic:center:42.365:-71.009:37.8 ");
   assert.equal(channel.ok, true);
-  assert.equal(channel.channel, "traffic:airport:KBOS:42.4:-71:38");
+  assert.equal(channel.channel, "traffic:center:42.4:-71:38");
   assert.equal(channel.type, "traffic");
   assert.deepEqual(buildChannelPollingTarget(channel.channel), {
     kind: "positions",
@@ -75,6 +75,10 @@ import {
   );
   assert.equal(
     normalizeChannelName("traffic:airport:kbos:42.365:-71.009:40:extra").ok,
+    false,
+  );
+  assert.equal(
+    normalizeChannelName("traffic:airport:kbos:42.365:-71.009:40").ok,
     false,
   );
   assert.equal(

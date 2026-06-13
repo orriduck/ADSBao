@@ -27,8 +27,8 @@ import { DataServiceMetrics } from "./MetricsRegistry";
     uptimeSec: 10,
     channels: [
       {
-        key: "traffic:airport:KBOS:42.4:-71:40",
-        channel: "traffic:airport:KBOS:42.4:-71:40",
+        key: "traffic:center:42.4:-71:40",
+        channel: "traffic:center:42.4:-71:40",
         type: "traffic",
         subscriberCount: 2,
         currentIntervalMs: 5_000,

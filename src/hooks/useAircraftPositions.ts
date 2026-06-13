@@ -34,7 +34,7 @@ function normalizeRealtimeAircraftPayload(data: unknown) {
 }
 
 export function useAircraftPositions(
-  icao: unknown,
+  _icao: unknown,
   lat: unknown,
   lon: unknown,
   options: Record<string, any> = {},
@@ -55,13 +55,11 @@ export function useAircraftPositions(
   const realtimeRequest = useMemo(() => {
     if (!hasActiveQuery) return null;
     return buildAircraftTrafficChannel({
-      anchor: options?.trafficAnchor === "airport" ? "airport" : "center",
-      icao,
       lat: queryLat,
       lon: queryLon,
       distNm,
     });
-  }, [distNm, hasActiveQuery, icao, options?.trafficAnchor, queryLat, queryLon]);
+  }, [distNm, hasActiveQuery, queryLat, queryLon]);
 
   const realtime = useRealtimeAircraftChannel({
     channel: realtimeRequest?.channel || "",

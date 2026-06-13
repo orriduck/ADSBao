@@ -26,11 +26,11 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const first: unknown[] = [];
   const second: unknown[] = [];
   const unsubscribeFirst = scheduler.subscribe({
-    channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
+    channel: "traffic:center:42.3656:-71.0096:40",
     send: (event) => first.push(event),
   });
   const unsubscribeSecond = scheduler.subscribe({
-    channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
+    channel: "traffic:center:42.3656:-71.0096:40",
     send: (event) => second.push(event),
   });
 
@@ -72,7 +72,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   });
 
   const unsubscribeFirst = scheduler.subscribe({
-    channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
+    channel: "traffic:center:42.3656:-71.0096:40",
     send: (event) => first.push(event),
   });
   const unsubscribeSecond = scheduler.subscribe({
@@ -118,13 +118,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   });
 
   const unsubscribe = scheduler.subscribe({
-    channel: "traffic:airport:KBOS:42.3656:-71.0096:40",
+    channel: "traffic:center:42.3656:-71.0096:40",
     send: () => {},
   });
   assert.throws(
     () =>
       scheduler.subscribe({
-        channel: "traffic:airport:KSFO:37.6213:-122.379:40",
+        channel: "traffic:center:37.6213:-122.379:40",
         send: () => {},
       }),
     /active channel limit/i,

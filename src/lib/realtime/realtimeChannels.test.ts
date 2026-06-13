@@ -1,18 +1,10 @@
 import assert from "node:assert/strict";
 import {
   buildAircraftTrafficChannel,
-  buildAirportTrafficChannel,
   buildCenterTrafficChannel,
   buildRouteChannel,
   normalizeRealtimeChannel,
 } from "./realtimeChannels";
-
-{
-  assert.deepEqual(buildAirportTrafficChannel("kbos", 42.3656, -71.0096), {
-    channel: "traffic:airport:KBOS:42.4:-71:40",
-    params: {},
-  });
-}
 
 {
   assert.deepEqual(
@@ -40,27 +32,12 @@ import {
 {
   assert.deepEqual(
     buildAircraftTrafficChannel({
-      anchor: "center",
-      icao: "TEST",
       lat: 42.3656,
       lon: -71.0096,
       distNm: 30,
     }),
     {
       channel: "traffic:center:42.4:-71:30",
-      params: {},
-    },
-  );
-  assert.deepEqual(
-    buildAircraftTrafficChannel({
-      anchor: "airport",
-      icao: "kbos",
-      lat: 42.3656,
-      lon: -71.0096,
-      distNm: 30,
-    }),
-    {
-      channel: "traffic:airport:KBOS:42.4:-71:30",
       params: {},
     },
   );
@@ -98,6 +75,10 @@ import {
   );
   assert.equal(
     normalizeRealtimeChannel("traffic:airport:kbos:42.3656:-71.0096:40:extra"),
+    "",
+  );
+  assert.equal(
+    normalizeRealtimeChannel("traffic:airport:kbos:42.3656:-71.0096:40"),
     "",
   );
 }
