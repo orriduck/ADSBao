@@ -11,6 +11,7 @@ export default function ExplorerMapMenu({
   lastUpdated = null,
   routeProvider = "",
   loadingStatus = "",
+  realtimeStatus = "",
   userLocationActive = false,
   userLocationAudioActive = false,
   userLocationPending = false,
@@ -101,6 +102,7 @@ export default function ExplorerMapMenu({
         lastUpdated={lastUpdated}
         routeProvider={routeProvider}
         loadingStatus={loadingStatus}
+        realtimeStatus={realtimeStatus}
         wakeLockActive={wakeLockState.active}
       />
     </div>

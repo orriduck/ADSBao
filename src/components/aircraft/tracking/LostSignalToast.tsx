@@ -8,11 +8,14 @@ import {
   buildLostSignalToastOptions,
 } from "@/features/aircraft/tracking/lostSignalToastModel";
 
+const LOST_SIGNAL_TOAST_DELAY_MS = 45_000;
+
 export default function LostSignalToast({
   active = false,
   callsign = "",
   onStay,
   onBackHome,
+  delayMs = LOST_SIGNAL_TOAST_DELAY_MS,
 }) {
   const { t } = useI18n();
 
@@ -28,10 +31,12 @@ export default function LostSignalToast({
       onStay,
       onBackHome,
     });
-    toast.warning(title, options);
+    const timer = window.setTimeout(() => {
+      toast.warning(title, options);
+    }, Math.max(0, Number(delayMs) || 0));
 
-    return undefined;
-  }, [active, callsign, onBackHome, onStay, t]);
+    return () => window.clearTimeout(timer);
+  }, [active, callsign, delayMs, onBackHome, onStay, t]);
 
   return null;
 }

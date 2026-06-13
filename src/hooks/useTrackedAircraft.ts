@@ -14,6 +14,7 @@ import {
 import {
   getAdsbaoRealtimeClient,
 } from "../lib/realtime/adsbaoRealtimeClient";
+import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
 import { useAircraftTrackingRealtime } from "./useRealtimeAircraftChannel";
 
 function normalizeRealtimeTrackedPayload(data: unknown) {
@@ -147,6 +148,11 @@ export function useTrackedAircraft(callsign: unknown) {
 
   const waitingForRealtime =
     hasActiveQuery && (!settled || realtime.fallbackActive);
+  const realtimeStatus = resolveRealtimeStatusLabel({
+    available: realtime.available,
+    connectionState: realtime.connectionState,
+    settled,
+  });
 
   return {
     aircraft,
@@ -163,6 +169,7 @@ export function useTrackedAircraft(callsign: unknown) {
     visibilityRefreshVersion: 0,
     trackingState,
     flightAwareFallback,
+    realtimeStatus,
     retry,
   };
 }

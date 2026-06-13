@@ -43,6 +43,7 @@ export function useAirportExplorerData(
     lastUpdated,
     feedStatus,
     feedSource,
+    realtimeStatus,
   } = useAircraftPositions(
     airportProfile.icao,
     airportProfile.lat,
@@ -85,6 +86,7 @@ export function useAirportExplorerData(
       lastUpdated,
       feedStatus,
       feedSource,
+      realtimeStatus,
       routeProvider,
       routeLoadingCount,
       aircraftLoadingOverlayActive,
