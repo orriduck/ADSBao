@@ -1,0 +1,21 @@
+{
+  "name": "@adsbao/data-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "test": "tsx src/channels/channelTypes.test.ts && tsx src/polling/PollingScheduler.test.ts && tsx src/ws.test.ts"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3"
+  }
+}

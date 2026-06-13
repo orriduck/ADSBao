@@ -71,6 +71,12 @@ directory data, map tiles, and route context behind same-origin Next.js API
 routes. See [docs/architecture.md](docs/architecture.md) for the current
 feature/API boundary conventions and deployment topology.
 
+High-frequency ADS-B aircraft updates can also flow through the Fly.io
+realtime backend in [services/data-service](services/data-service). The
+frontend uses that WebSocket backend when `NEXT_PUBLIC_ADSBAO_REALTIME_URL` is
+set, and falls back to the existing Next.js API fetch paths when realtime is
+not configured or unavailable.
+
 | Path | Source | Purpose |
 |---|---|---|
 | `/api/search` | OpenAIP Core API | Airport search |
@@ -91,6 +97,9 @@ feature/API boundary conventions and deployment topology.
   augments runway threshold geometry, ATC frequencies, and navaid coverage.
 - **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
   Speed Insights, and optional Sentry monitoring.
+- **Realtime backend**: A deployable Node.js/TypeScript service under
+  `services/data-service` for shared ADS-B polling, WebSocket subscriptions,
+  provider fallback, health/debug endpoints, and Fly.io deployment.
 - **Auth and feature flags**: Clerk identity with Supabase-backed user feature
   flags for gated provider behavior.
 
@@ -110,11 +119,35 @@ pnpm run dev
 
 The local app runs at `http://localhost:3000` by default.
 
+### Run The Realtime Data Service
+
+The Fly.io realtime backend lives in `services/data-service`:
+
+```bash
+pnpm --dir services/data-service install
+pnpm --dir services/data-service dev
+```
+
+Then point the Next.js app at the local WebSocket:
+
+```bash
+NEXT_PUBLIC_ADSBAO_REALTIME_URL=ws://localhost:8080/ws pnpm run dev
+```
+
+Service health and channel debug endpoints:
+
+```bash
+curl http://localhost:8080/health
+curl http://localhost:8080/debug/channels
+```
+
 ### Verify
 
 ```bash
 pnpm test
 pnpm build
+pnpm --dir services/data-service test
+pnpm --dir services/data-service build
 ```
 
 `pnpm test` discovers every `*.test.ts` and `*.test.tsx` file and runs the critical mechanism
@@ -134,6 +167,7 @@ normally configure these variables:
 | `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY` | Server-side Supabase writes, imports, route feedback, and feature flags |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk browser identity |
 | `CLERK_SECRET_KEY` | Clerk server identity |
+| `NEXT_PUBLIC_ADSBAO_REALTIME_URL` | Optional WebSocket URL for the Fly.io realtime ADS-B data service |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry events |
 | `SENTRY_DSN` | Optional server/edge Sentry events |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Optional production source-map upload |
@@ -160,8 +194,11 @@ pnpm import:facilities
 
 ```text
 ADSBao/
+├── .github/workflows/     # CI for the Fly data-service and other automation
 ├── docs/                  # Architecture notes and repository screenshots
 ├── scripts/               # Data import and maintenance scripts
+├── services/
+│   └── data-service/      # Fly.io realtime ADS-B polling and WebSocket backend
 ├── src/
 │   ├── app/               # Next.js pages, API routes, API helpers, and DAOs
 │   ├── components/        # JSX components grouped by screen/domain
@@ -185,6 +222,22 @@ JSX belongs under `src/components/**`. Feature mechanisms, models, provider
 clients, and utilities live with their owning feature domain as plain `.ts`
 modules. API persistence boundaries stay under `src/app/api/dao`, and
 route-handler-only helpers stay under `src/app/api/_shared`.
+
+## Data Service Deployment
+
+The realtime backend is a separate Fly.io app, `adsbao-data-service`. Its
+Dockerfile and Fly config live under `services/data-service`.
+
+```bash
+cd services/data-service
+fly deploy
+```
+
+GitHub Actions workflow
+[.github/workflows/data-service.yml](.github/workflows/data-service.yml)
+validates the service on pull requests that touch `services/data-service/**`.
+It deploys to Fly.io on `main` pushes or manual `workflow_dispatch` runs using
+the repository secret `FLY_API_TOKEN`.
 
 ## Release Policy
 

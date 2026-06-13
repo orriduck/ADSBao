@@ -154,6 +154,40 @@ function createManualTimer() {
   const scheduler = createFlightRouteScheduler({
     client: {
       async fetchFlightRoute() {
+        throw new Error("network should not run when route lookup is disabled");
+      },
+    },
+    config: {
+      maxConcurrentLookups: 1,
+      maxLookupsPerPass: 2,
+      maxQueueSize: 10,
+      queueIntervalMs: 0,
+      auditLogIntervalMs: 0,
+      hitCacheMs: 60_000,
+      missCacheMs: 10_000,
+    },
+    logger: { info() {}, warn() {} },
+    schedule: timer.schedule,
+    clearSchedule: timer.clear,
+    now: () => 1_700_000_000_000,
+  });
+
+  scheduler.syncAircraft({
+    aircraft: [{ callsign: "DAL123", lat: 40.64, lon: -73.78 }],
+    enabled: false,
+    routeContext: { icao: "KBOS", iata: "BOS" },
+  });
+
+  assert.equal(scheduler.getLoadingCount(), 0);
+  assert.equal(timer.callbacks.length, 0);
+  scheduler.dispose();
+}
+
+{
+  const timer = createManualTimer();
+  const scheduler = createFlightRouteScheduler({
+    client: {
+      async fetchFlightRoute() {
         throw new Error("network should not run");
       },
     },

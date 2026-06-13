@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation";
 import { createAircraftPositionClient } from "../features/aircraft/positions/aircraftPositionClient";
 import {
@@ -23,6 +23,11 @@ import {
   normalizeLatitude,
   normalizeLongitude,
 } from "../features/aircraft/tracking/flightTrackingContextModel";
+import { useRealtimeAircraftChannel } from "./useRealtimeAircraftChannel";
+import {
+  buildAirportAircraftChannel,
+  buildViewportAircraftChannel,
+} from "../lib/realtime/realtimeChannels";
 
 const HIDDEN_POLL_GRACE_MS = AIRCRAFT_TRAFFIC_CONFIG.hiddenPollGraceMs;
 const MAX_AIRCRAFT_RANGE_NM = 250;
@@ -42,8 +47,17 @@ const waitUntil = (timestamp) => {
   });
 };
 
+function normalizeRealtimeAircraftPayload(data: unknown) {
+  if (Array.isArray(data)) return { ac: data };
+  if (data && typeof data === "object" && Array.isArray((data as any).ac)) {
+    return data;
+  }
+  return { ac: [] };
+}
+
 export function useAircraftPositions(icao, lat, lon, options: Record<string, any> = {}) {
   const pollWhenHidden = options?.pollWhenHidden === true;
+  const realtimeEnabled = options?.realtime !== false;
   const distNm = normalizeAircraftRangeNm(options?.distNm);
   const queryLat = normalizeLatitude(lat);
   const queryLon = normalizeLongitude(lon);
@@ -74,6 +88,82 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
   // aircraft when the center changes (airport switch / search jump)
   // rather than showing old traffic under the new airport briefly.
   const centerKeyRef = useRef("");
+  const realtimeRequest = useMemo(() => {
+    if (!hasActiveQuery) return null;
+    return (
+      buildAirportAircraftChannel(icao, queryLat, queryLon, distNm) ||
+      buildViewportAircraftChannel({
+        lat: queryLat,
+        lon: queryLon,
+        distNm,
+      })
+    );
+  }, [distNm, hasActiveQuery, icao, queryLat, queryLon]);
+  const realtime = useRealtimeAircraftChannel({
+    channel: realtimeRequest?.channel || "",
+    params: realtimeRequest?.params || {},
+    enabled: hasActiveQuery && realtimeEnabled,
+  });
+  const realtimeChannelKey = realtimeRequest?.channel || "";
+
+  useEffect(() => {
+    if (!hasActiveQuery) return;
+    const centerChanged =
+      centerKeyRef.current !== "" && centerKeyRef.current !== realtimeChannelKey;
+    centerKeyRef.current = realtimeChannelKey;
+    if (centerChanged) {
+      traceTrackerRef.current.clear();
+      setAircraft([]);
+    }
+    consecutiveFailuresRef.current = 0;
+    setFeedStatus("live");
+    setSettled(false);
+    setInitialLoading(true);
+    setLastUpdated(null);
+  }, [hasActiveQuery, realtimeChannelKey]);
+
+  useEffect(() => {
+    const event = realtime.event;
+    if (!hasActiveQuery || !event || realtime.fallbackActive) return;
+
+    if (event.type === "channel:error" && !event.data) {
+      setFeedStatus("infer");
+      setSettled(true);
+      setInitialLoading(false);
+      setVisibilityRefreshLoading(false);
+      setLoading(false);
+      return;
+    }
+
+    const payload = normalizeRealtimeAircraftPayload(event.data);
+    const fetchedAt = Date.parse(event.fetchedAt);
+    const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
+    const snapshot = normalizeAircraftSnapshot({
+      json: payload,
+      receiveTime,
+    });
+    const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
+    setAircraft(nextAircraft);
+    consecutiveFailuresRef.current = 0;
+    setFeedStatus(event.stale ? "infer" : "live");
+    setFeedSource(
+      typeof event.source === "string"
+        ? event.source
+        : typeof (payload as any)?.source === "string"
+          ? (payload as any).source
+          : "",
+    );
+    const positionDate = resolveLastSuccessfulPositionDate(nextAircraft);
+    if (positionDate) {
+      setLastUpdated((prev) =>
+        prev && prev.getTime() === positionDate.getTime() ? prev : positionDate,
+      );
+    }
+    setSettled(true);
+    setInitialLoading(false);
+    setVisibilityRefreshLoading(false);
+    setLoading(false);
+  }, [hasActiveQuery, realtime.event, realtime.fallbackActive]);
 
   useEffect(() => {
     let disposed = false;
@@ -177,6 +267,7 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
     };
 
     const handleVisibility = () => {
+      if (!realtime.fallbackActive) return;
       const visibilityAction = resolveAircraftVisibilityPolling({
         documentHidden: document.hidden,
         hasActiveQuery,
@@ -229,7 +320,8 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
 
     if (hasActiveQuery) {
       wasActiveRef.current = true;
-      start();
+      if (realtime.fallbackActive) start();
+      else stop({ clearAircraft: false, clearTrace: false });
     } else {
       wasActiveRef.current = false;
       centerKeyRef.current = "";
@@ -249,7 +341,15 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
       cancelPendingVisibilityRefresh();
       stop();
     };
-  }, [distNm, hasActiveQuery, icao, pollWhenHidden, queryLat, queryLon]);
+  }, [
+    distNm,
+    hasActiveQuery,
+    icao,
+    pollWhenHidden,
+    queryLat,
+    queryLon,
+    realtime.fallbackActive,
+  ]);
 
   return {
     aircraft,
@@ -263,5 +363,6 @@ export function useAircraftPositions(icao, lat, lon, options: Record<string, any
     lastUpdated,
     feedStatus,
     feedSource,
+    realtimeActive: realtime.connected && !realtime.fallbackActive,
   };
 }

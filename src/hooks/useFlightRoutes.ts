@@ -11,6 +11,7 @@ export function useFlightRoutes(
   aircraft: FlightRouteHookRecord[],
   routeContextInput: FlightRouteHookRecord = {},
 ) {
+  const enabled = routeContextInput?.enabled !== false;
   const [version, setVersion] = useState(0);
   const [loadingCount, setLoadingCount] = useState(0);
   const mountedRef = useRef(true);
@@ -54,9 +55,10 @@ export function useFlightRoutes(
   useEffect(() => {
     flightRouteScheduler.syncAircraft({
       aircraft,
+      enabled,
       routeContext,
     });
-  }, [aircraft, routeContext]);
+  }, [aircraft, enabled, routeContext]);
 
   useEffect(
     () => {
