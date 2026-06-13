@@ -9,6 +9,7 @@ import {
   ROUTE_PROVIDER,
   resolveRouteProvider,
 } from "@/features/aviation/sourceDisplayModel";
+import { resolveRouteLookupEnabled } from "@/features/aviation/flight-routes/flightRouteLookupModel";
 import { enrichAircraftWithRoutes } from "./airportExplorerModel";
 
 export function useAirportExplorerData(
@@ -55,6 +56,9 @@ export function useAirportExplorerData(
     applyTemporaryRoute,
   } = useFlightRoutes(aircraft, {
     ...airportProfile,
+    enabled: resolveRouteLookupEnabled({
+      featureFlagsResolved: flightAwareResolved,
+    }),
     routeProvider:
       routeProvider === ROUTE_PROVIDER.FLIGHTAWARE ? routeProvider : "",
   });

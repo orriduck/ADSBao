@@ -30,6 +30,7 @@ import {
   resolveFlightTrackingDisplayContext,
 } from "@/features/aircraft/tracking/flightTrackingDisplayModel";
 import { resolveFocusedFlightAwareRouteArcPath } from "@/features/aviation/flight-routes/flightRouteArcModel";
+import { resolveRouteLookupEnabled } from "@/features/aviation/flight-routes/flightRouteLookupModel";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
 import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel";
 import { mergeTrackedAircraftIntoNearby } from "@/features/airport/explorer/airportExplorerModel";
@@ -88,7 +89,10 @@ export default function FlightExplorer({ callsign = "" }) {
 
 function FlightExplorerContent({ callsign }) {
   const router = useRouter();
-  const { enabled: flightAwareEnabled } = useFlightAwareEnabled();
+  const {
+    enabled: flightAwareEnabled,
+    resolved: flightAwareResolved,
+  } = useFlightAwareEnabled();
   const routeProvider = resolveRouteProvider({ flightAwareEnabled });
   const {
     desktopSidebarWidth,
@@ -415,6 +419,9 @@ function FlightExplorerContent({ callsign }) {
     loadingCount: routeLoadingCount,
     applyTemporaryRoute,
   } = useFlightRoutes(rawAircraft, {
+    enabled: resolveRouteLookupEnabled({
+      featureFlagsResolved: flightAwareResolved,
+    }),
     lat: contextLat,
     lon: contextLon,
     routeProvider,
