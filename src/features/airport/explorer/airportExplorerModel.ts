@@ -26,6 +26,14 @@ export function resolveAirportProfile({ icao = "", airport = null }: AirportExpl
   };
 }
 
+export function resolveAirportExplorerTrafficAnchor({
+  mode = "airport",
+  airportProfile = {},
+}: AirportExplorerRecord = {}): "airport" | "center" {
+  if (mode === "nearMe") return "center";
+  return airportProfile?.icao ? "airport" : "center";
+}
+
 export function enrichAircraftWithRoutes({
   aircraft = [],
   routesByCallsign = {},
