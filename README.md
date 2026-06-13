@@ -71,11 +71,12 @@ directory data, map tiles, and route context behind same-origin Next.js API
 routes. See [docs/architecture.md](docs/architecture.md) for the current
 feature/API boundary conventions and deployment topology.
 
-High-frequency ADS-B aircraft updates can also flow through the Fly.io
+High-frequency ADS-B aircraft updates can also flow through the Railway-hosted
 realtime backend in [services/data-service](services/data-service). The
 frontend uses that WebSocket backend when `NEXT_PUBLIC_ADSBAO_REALTIME_URL` is
-set, and falls back to the existing Next.js API fetch paths when realtime is
-not configured or unavailable.
+set. Realtime surfaces keep their loading state and show a toast when the
+WebSocket service is unavailable; the existing Next.js API routes remain for
+ordinary short requests and one-off provider access.
 
 | Path | Source | Purpose |
 |---|---|---|
@@ -99,7 +100,7 @@ not configured or unavailable.
   Speed Insights, and optional Sentry monitoring.
 - **Realtime backend**: A deployable Node.js/TypeScript service under
   `services/data-service` for shared ADS-B polling, WebSocket subscriptions,
-  provider fallback, health/debug endpoints, and Fly.io deployment.
+  provider fallback, health/debug endpoints, and Railway deployment.
 - **Auth and feature flags**: Clerk identity with Supabase-backed user feature
   flags for gated provider behavior.
 
@@ -121,7 +122,8 @@ The local app runs at `http://localhost:3000` by default.
 
 ### Run The Realtime Data Service
 
-The Fly.io realtime backend lives in `services/data-service`:
+The Railway realtime backend lives in `services/data-service` and can also run
+locally:
 
 ```bash
 pnpm --dir services/data-service install
@@ -167,7 +169,7 @@ normally configure these variables:
 | `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY` | Server-side Supabase writes, imports, route feedback, and feature flags |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk browser identity |
 | `CLERK_SECRET_KEY` | Clerk server identity |
-| `NEXT_PUBLIC_ADSBAO_REALTIME_URL` | Optional WebSocket URL for the Fly.io realtime ADS-B data service |
+| `NEXT_PUBLIC_ADSBAO_REALTIME_URL` | Optional WebSocket URL for the realtime ADS-B data service |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry events |
 | `SENTRY_DSN` | Optional server/edge Sentry events |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Optional production source-map upload |
@@ -194,11 +196,11 @@ pnpm import:facilities
 
 ```text
 ADSBao/
-├── .github/workflows/     # CI for the Fly data-service and other automation
+├── .github/workflows/     # GitHub automation
 ├── docs/                  # Architecture notes and repository screenshots
 ├── scripts/               # Data import and maintenance scripts
 ├── services/
-│   └── data-service/      # Fly.io realtime ADS-B polling and WebSocket backend
+│   └── data-service/      # Realtime ADS-B polling and WebSocket backend
 ├── src/
 │   ├── app/               # Next.js pages, API routes, API helpers, and DAOs
 │   ├── components/        # JSX components grouped by screen/domain
@@ -225,19 +227,24 @@ route-handler-only helpers stay under `src/app/api/_shared`.
 
 ## Data Service Deployment
 
-The realtime backend is a separate Fly.io app, `adsbao-data-service`. Its
-Dockerfile and Fly config live under `services/data-service`.
+The realtime backend is a separate Railway service deployed from
+`services/data-service`. The service includes `railway.json` config-as-code,
+uses the Dockerfile in the same directory, and exposes `/health`,
+`/debug/channels`, `/metrics`, and `/ws`.
 
-```bash
-cd services/data-service
-fly deploy
-```
+Railway setup:
 
-GitHub Actions workflow
-[.github/workflows/data-service.yml](.github/workflows/data-service.yml)
-validates the service on pull requests that touch `services/data-service/**`.
-It deploys to Fly.io on `main` pushes or manual `workflow_dispatch` runs using
-the repository secret `FLY_API_TOKEN`.
+1. Create or open a Railway project and add the GitHub repo.
+2. Set the service root directory to `services/data-service`.
+3. Let Railway use `services/data-service/railway.json`.
+4. Generate a public Railway domain for the service.
+5. Set Vercel `NEXT_PUBLIC_ADSBAO_REALTIME_URL` to
+   `wss://<railway-domain>/ws` for production and preview.
+
+Railway handles production deployment through its GitHub integration. The
+service should be configured with root directory `services/data-service`,
+config file `/services/data-service/railway.json`, and public WebSocket URL
+`wss://<railway-domain>/ws`.
 
 ## Release Policy
 
