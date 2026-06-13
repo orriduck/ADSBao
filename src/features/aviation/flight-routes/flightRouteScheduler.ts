@@ -179,9 +179,14 @@ export function createFlightRouteScheduler({
       return () => listeners.delete(listener);
     },
 
-    syncAircraft({ aircraft = [], routeContext = {} }) {
+    syncAircraft({ aircraft = [], enabled = true, routeContext = {} }) {
       latestAircraft = aircraft;
       latestRouteContext = routeContext;
+
+      if (!enabled) {
+        notify();
+        return;
+      }
 
       const pending = resolvePendingRouteLookups({
         aircraft,

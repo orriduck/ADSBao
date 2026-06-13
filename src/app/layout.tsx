@@ -102,6 +102,7 @@ async function resolveInitialTheme() {
 export default async function RootLayout({ children }) {
   const locale = await getLocale();
   const initialTheme = await resolveInitialTheme();
+  const realtimeUrl = process.env.NEXT_PUBLIC_ADSBAO_REALTIME_URL || "";
   return (
     <html
       lang={locale}
@@ -109,6 +110,7 @@ export default async function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <head>
+        <meta name="adsbao-realtime-url" content={realtimeUrl} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="ADSBao" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

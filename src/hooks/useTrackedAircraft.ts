@@ -20,6 +20,7 @@ import {
 import {
   resolveAircraftVisibilityPolling,
 } from "../features/aircraft/positions/aircraftVisibilityPollingModel";
+import { useAircraftTrackingRealtime } from "./useRealtimeAircraftChannel";
 
 const waitUntil = (timestamp) => {
   const delay = Math.max(0, timestamp - Date.now());
@@ -31,6 +32,14 @@ const waitUntil = (timestamp) => {
 
 const aircraftCallsignClient = createAircraftCallsignClient();
 
+function normalizeRealtimeTrackedPayload(data: unknown) {
+  if (data && typeof data === "object" && Array.isArray((data as any).ac)) {
+    return data as Record<string, any>;
+  }
+  if (Array.isArray(data)) return { ac: data };
+  return { ac: [] };
+}
+
 // Polls the upstream ADS-B feed for the focal callsign so the flight
 // tracking page knows where the aircraft is right now and where to center
 // the map. The hook returns the latest normalized snapshot for that
@@ -41,6 +50,16 @@ const aircraftCallsignClient = createAircraftCallsignClient();
 // just blank the page out).
 export function useTrackedAircraft(callsign) {
   const hasActiveQuery = Boolean(callsign);
+  const realtime = useAircraftTrackingRealtime(callsign, {
+    enabled: hasActiveQuery,
+  });
+  const realtimePayload = normalizeRealtimeTrackedPayload(realtime.event?.data);
+  const realtimeEmptyUpdate =
+    realtime.event?.type === "aircraft:update" &&
+    Array.isArray(realtimePayload.ac) &&
+    realtimePayload.ac.length === 0;
+  const fallbackPollingActive =
+    realtime.fallbackActive || realtimeEmptyUpdate;
   const [aircraft, setAircraft] = useState(null);
   const [feedSource, setFeedSource] = useState("");
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -69,6 +88,82 @@ export function useTrackedAircraft(callsign) {
   const retry = useCallback(() => {
     setRetrySignal((value) => value + 1);
   }, []);
+
+  useEffect(() => {
+    if (
+      !callsign ||
+      !realtime.event ||
+      realtime.fallbackActive ||
+      realtimeEmptyUpdate
+    ) {
+      return;
+    }
+
+    const payload = normalizeRealtimeTrackedPayload(realtime.event.data);
+    const matches = Array.isArray(payload.ac) ? payload.ac : [];
+    if (matches.length === 0) return;
+
+    const fetchedAt = Date.parse(realtime.event.fetchedAt);
+    const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
+    const nextTrackingState = payload.trackingState || null;
+    const signalState = getTrackedAircraftSignalState({
+      matchesLength: getActiveAdsbMatchesLength({
+        matchesLength: matches.length,
+        source: payload.source || realtime.event.source,
+      }),
+      previousMisses: missesRef.current,
+      flightAwareFallback: payload.flightAwareFallback,
+      trackingState: nextTrackingState,
+    });
+    const retainActiveTrackingState = shouldRetainActiveTrackingState({
+      previousTrackingState: trackingStateRef.current,
+      nextTrackingState,
+      matchesLength: matches.length,
+      lostSignal: signalState.lostSignal,
+    });
+    const committedTrackingState = retainActiveTrackingState
+      ? trackingStateRef.current
+      : nextTrackingState;
+    const nextFeedSource =
+      typeof realtime.event.source === "string"
+        ? realtime.event.source
+        : typeof payload.source === "string"
+          ? payload.source
+          : "";
+    const committedFeedSource =
+      retainActiveTrackingState && !nextFeedSource
+        ? feedSourceRef.current
+        : nextFeedSource;
+    const best = pickFreshest(matches);
+    const normalized = normalizeAdsbAircraft(best, {
+      responseNow: payload.now,
+      receiveTime,
+    });
+
+    trackingStateRef.current = committedTrackingState;
+    setTrackingState(committedTrackingState);
+    setFlightAwareFallback(payload.flightAwareFallback || null);
+    setAircraft({
+      ...normalized,
+      trackingState: committedTrackingState,
+    });
+    const positionDate = resolveLastSuccessfulPositionDate(normalized);
+    if (positionDate) setLastUpdated(positionDate);
+    missesRef.current = signalState.misses;
+    setLostSignal(signalState.lostSignal);
+    feedSourceRef.current = committedFeedSource;
+    setFeedSource(committedFeedSource);
+    setError(null);
+    setSettled(true);
+    setInitialLoading(false);
+    setVisibilityRefreshLoading(false);
+    setPollVersion((value) => value + 1);
+  }, [
+    callsign,
+    realtime.event,
+    realtime.fallbackActive,
+    realtimeEmptyUpdate,
+  ]);
 
   useEffect(() => {
     disposedRef.current = false;
@@ -246,9 +341,11 @@ export function useTrackedAircraft(callsign) {
       }
     };
 
-    poll();
-    timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
-    document.addEventListener("visibilitychange", handleVisibility);
+    if (fallbackPollingActive) {
+      poll();
+      timerRef.current = setInterval(poll, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
+      document.addEventListener("visibilitychange", handleVisibility);
+    }
 
     return () => {
       disposedRef.current = true;
@@ -256,7 +353,7 @@ export function useTrackedAircraft(callsign) {
       cancelPendingVisibilityRefresh();
       stopPolling();
     };
-  }, [callsign, hasActiveQuery, retrySignal]);
+  }, [callsign, fallbackPollingActive, hasActiveQuery, retrySignal]);
 
   return {
     aircraft,

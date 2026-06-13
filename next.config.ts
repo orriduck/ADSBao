@@ -8,6 +8,10 @@ const withNextIntl = createNextIntlPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_ADSBAO_REALTIME_URL:
+      process.env.NEXT_PUBLIC_ADSBAO_REALTIME_URL || "",
+  },
   async headers() {
     return buildSecurityHeaders();
   },
