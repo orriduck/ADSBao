@@ -11,7 +11,7 @@ globalThis.fetch = async (url) => {
     return new Response(
       JSON.stringify({
         now: 1779678000,
-        aircraft: [{ hex: "a360b7", flight: "JBU396  " }],
+        aircraft: [{ hex: "a360b7", flight: "JBU396  ", seen_pos: 5.2 }],
         resultCount: 1,
       }),
       {
@@ -42,7 +42,27 @@ try {
   );
   if (result.source === "adsb.fi") {
     assert.deepEqual((result.payload as unknown as { ac: unknown[] }).ac, [
-      { hex: "a360b7", flight: "JBU396  " },
+      {
+        hex: "a360b7",
+        flight: "JBU396  ",
+        seen_pos: 5.2,
+        source: "adsb.fi",
+        positionQuality: {
+          source: "adsb_fi",
+          flight_position_source: "adsb",
+          kind: "observed",
+          isEstimated: false,
+          isPredicted: false,
+          isInterpolated: false,
+          isStale: false,
+          sourceLabel: "adsb.fi",
+          sourceUpdatedAt: new Date(1779678000 * 1000 - 5200).toISOString(),
+          fetchedAt: new Date(1779678000 * 1000).toISOString(),
+          ageSeconds: 5,
+          confidence: "high",
+          notes: undefined,
+        },
+      },
     ]);
   }
 } finally {

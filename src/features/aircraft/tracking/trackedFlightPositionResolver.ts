@@ -33,6 +33,10 @@ const toNumber = (value: unknown) => {
 };
 
 const isoFromNow = (now = Date.now()) => new Date(now || Date.now()).toISOString();
+const isoFromAge = (now: number, ageSeconds: number | null) =>
+  ageSeconds != null && Number.isFinite(ageSeconds)
+    ? new Date(now - ageSeconds * 1000).toISOString()
+    : undefined;
 
 function buildTrackingState(status: string, overrides: TrackingRecord = {}) {
   return {
@@ -121,6 +125,7 @@ export function annotateAdsbPosition(
       source,
       kind: isStale ? "stale" : "observed",
       fetchedAt: isoFromNow(now),
+      sourceUpdatedAt: isoFromAge(now, ageSeconds),
       ageSeconds: Number.isFinite(ageSeconds) ? Math.round(ageSeconds) : undefined,
       sourceLabel: source,
       confidence: isStale ? "low" : "high",
@@ -180,6 +185,7 @@ function annotateOceanicAdscPosition(
       kind: "oceanic",
       flightPositionSource: "adsc",
       fetchedAt: isoFromNow(now),
+      sourceUpdatedAt: isoFromAge(now, ageSeconds),
       ageSeconds: ageSeconds == null ? undefined : Math.round(ageSeconds),
       sourceLabel: candidate.source,
       confidence: "medium",
@@ -311,6 +317,7 @@ export async function resolveTrackedFlightPosition({
             source: "local_projection",
             kind: "interpolated",
             fetchedAt: isoFromNow(now),
+            sourceUpdatedAt: isoFromNow(now),
             confidence: "low",
           }),
       },
@@ -327,6 +334,10 @@ export async function resolveTrackedFlightPosition({
     const staleStatus = stale
       ? TRACKED_FLIGHT_STATUS.STALE
       : TRACKED_FLIGHT_STATUS.MISSING;
+    const fallbackAgeSeconds = getAdsbPositionAgeSeconds(fallbackPosition, now);
+    const roundedFallbackAgeSeconds = Number.isFinite(fallbackAgeSeconds)
+      ? Math.round(fallbackAgeSeconds)
+      : undefined;
     return {
       source: stale?.source || "last_known",
       position: {
@@ -335,7 +346,8 @@ export async function resolveTrackedFlightPosition({
           source: stale?.source || fallbackPosition.source || "unknown",
           kind: "stale",
           fetchedAt: isoFromNow(now),
-          ageSeconds: Math.round(getAdsbPositionAgeSeconds(fallbackPosition, now)),
+          sourceUpdatedAt: isoFromAge(now, fallbackAgeSeconds),
+          ageSeconds: roundedFallbackAgeSeconds,
           confidence: "low",
         }),
       },

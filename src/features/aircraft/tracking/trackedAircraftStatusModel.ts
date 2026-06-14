@@ -22,9 +22,14 @@ export function resolveTrackedAircraftStatusUpdatedDate({
   feedSource?: unknown;
   trackingState?: TrackingRecord | null;
 } = {}) {
+  const positionDate = aircraft
+    ? resolveLastSuccessfulPositionDate(aircraft)
+    : null;
+  if (positionDate) return positionDate;
+
   const fetchedDate =
     parseDate(fetchedAt) || parseDate(aircraft?.positionQuality?.fetchedAt);
   if (fetchedDate) return fetchedDate;
 
-  return aircraft ? resolveLastSuccessfulPositionDate(aircraft) : null;
+  return null;
 }

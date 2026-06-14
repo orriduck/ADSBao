@@ -32,10 +32,7 @@ import {
 import { resolveFocusedFlightAwareRouteArcPath } from "@/features/aviation/flight-routes/flightRouteArcModel";
 import { resolveRouteLookupEnabled } from "@/features/aviation/flight-routes/flightRouteLookupModel";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
-import {
-  getMapPositionSourceBadge,
-  resolveRouteProvider,
-} from "@/features/aviation/sourceDisplayModel";
+import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel";
 import { mergeTrackedAircraftIntoNearby } from "@/features/airport/explorer/airportExplorerModel";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "@/config/aviation";
 import {
@@ -565,11 +562,6 @@ function FlightExplorerContent({ callsign }) {
       trackedAircraftForDisplay
     );
   }, [aircraft, trackedAircraftForDisplay]);
-  const mapPositionSourceBadge = getMapPositionSourceBadge({
-    positionQuality: trackedAircraftForDisplay?.positionQuality,
-    trackingState,
-    lastUpdated,
-  });
   const routeEndpointCandidates = useMemo(
     () =>
       buildRouteEndpointCandidates({
@@ -874,13 +866,12 @@ function FlightExplorerContent({ callsign }) {
         <div className="airport-map-stage relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
           {!(isMobile && sidebarOpen) && (
             <ExplorerMapMenu
-              feedSource={feedSource}
+              feedSource=""
               feedStatus="live"
               lastUpdated={lastUpdated}
               routeProvider={routeProvider}
               loadingStatus={sourceLoadingStatus}
               realtimeStatus={realtimeStatus}
-              sourceLabel={mapPositionSourceBadge}
               {...toolbarContextProps}
             />
           )}
