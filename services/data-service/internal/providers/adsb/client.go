@@ -9,16 +9,19 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
 
 const (
-	defaultTimeout = 2800 * time.Millisecond
-	maxBodyBytes   = 2 * 1024 * 1024
-	userAgent      = "ADSBao data-service/1.0 (+https://adsbao.dev)"
+	defaultTimeout          = 2800 * time.Millisecond
+	defaultProviderCooldown = time.Minute
+	maxBodyBytes            = 2 * 1024 * 1024
+	userAgent               = "ADSBao data-service/1.0 (+https://adsbao.dev)"
 )
 
 type URLBuilder func(string) string
@@ -38,6 +41,8 @@ type Options struct {
 	Providers           []Provider
 	Timeout             time.Duration
 	MaxBytes            int64
+	ProviderCooldown    time.Duration
+	Now                 func() time.Time
 	FlightAwareFallback func(context.Context, string, realtime.MetricsSink) (FallbackResult, error)
 }
 
@@ -46,7 +51,11 @@ type Client struct {
 	providers           []Provider
 	timeout             time.Duration
 	maxBytes            int64
+	providerCooldown    time.Duration
+	now                 func() time.Time
 	flightAwareFallback func(context.Context, string, realtime.MetricsSink) (FallbackResult, error)
+	mu                  sync.Mutex
+	cooldowns           map[string]time.Time
 }
 
 type FallbackResult struct {
@@ -86,6 +95,14 @@ func NewClient(options Options) *Client {
 	if maxBytes <= 0 {
 		maxBytes = maxBodyBytes
 	}
+	providerCooldown := options.ProviderCooldown
+	if providerCooldown <= 0 {
+		providerCooldown = defaultProviderCooldown
+	}
+	now := options.Now
+	if now == nil {
+		now = time.Now
+	}
 	httpClient := options.HTTPClient
 	if httpClient == nil {
 		httpClient = &http.Client{}
@@ -95,7 +112,10 @@ func NewClient(options Options) *Client {
 		providers:           providers,
 		timeout:             timeout,
 		maxBytes:            maxBytes,
+		providerCooldown:    providerCooldown,
+		now:                 now,
 		flightAwareFallback: options.FlightAwareFallback,
+		cooldowns:           map[string]time.Time{},
 	}
 }
 
@@ -225,6 +245,10 @@ func (c *Client) fetchWithFallback(ctx context.Context, input realtime.FetchInpu
 	var lastRetryable *providerResult
 	var failures []error
 	for _, provider := range c.providers {
+		if c.providerInCooldown(provider.ID, endpoint) {
+			attempts = append(attempts, provider.ID+":cooldown")
+			continue
+		}
 		requestURL, ok := buildURL(provider)
 		if !ok {
 			continue
@@ -238,8 +262,10 @@ func (c *Client) fetchWithFallback(ctx context.Context, input realtime.FetchInpu
 			}
 			attempts = append(attempts, provider.ID+":"+status)
 			failures = append(failures, err)
+			c.recordProviderFailure(provider.ID, endpoint, err)
 			continue
 		}
+		c.recordProviderSuccess(provider.ID, endpoint)
 		attempts = append(attempts, provider.ID+":200")
 		result := providerResult{provider: provider, payload: payload, attempts: append([]string{}, attempts...)}
 		if retryEmpty && isEmptyAircraftPayload(payload) {
@@ -253,6 +279,59 @@ func (c *Client) fetchWithFallback(ctx context.Context, input realtime.FetchInpu
 		return *lastRetryable, nil
 	}
 	return providerResult{}, fmt.Errorf("all ADS-B providers failed: %v", failures)
+}
+
+func (c *Client) providerInCooldown(providerID, endpoint string) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	key := providerCooldownKey(providerID, endpoint)
+	expiresAt, ok := c.cooldowns[key]
+	if !ok {
+		return false
+	}
+	if c.now().Before(expiresAt) {
+		return true
+	}
+	delete(c.cooldowns, key)
+	return false
+}
+
+func (c *Client) recordProviderFailure(providerID, endpoint string, err error) {
+	if !shouldCooldownProviderError(err) {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cooldowns[providerCooldownKey(providerID, endpoint)] = c.now().Add(c.providerCooldown)
+}
+
+func (c *Client) recordProviderSuccess(providerID, endpoint string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	delete(c.cooldowns, providerCooldownKey(providerID, endpoint))
+}
+
+func providerCooldownKey(providerID, endpoint string) string {
+	return strings.ToLower(strings.TrimSpace(providerID)) + "|" + strings.ToLower(strings.TrimSpace(endpoint))
+}
+
+func shouldCooldownProviderError(err error) bool {
+	var providerErr providerError
+	if !errors.As(err, &providerErr) {
+		return true
+	}
+	statusText := strings.TrimSpace(fmt.Sprint(providerErr.status))
+	if statusText == "" {
+		return true
+	}
+	if statusText == "ERR" || statusText == "PARSE" || statusText == "SHAPE" || statusText == "SIZE" {
+		return true
+	}
+	statusCode, parseErr := strconv.Atoi(statusText)
+	if parseErr != nil {
+		return true
+	}
+	return statusCode == http.StatusTooManyRequests || statusCode >= 500
 }
 
 func (c *Client) fetchProviderPayload(ctx context.Context, input realtime.FetchInput, provider Provider, endpoint, requestURL string) (map[string]any, error) {

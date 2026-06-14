@@ -24,12 +24,20 @@ export type AircraftRouteCandidate = {
 type RouteAirportCode = {
   icao?: string;
   iata?: string;
+  lat?: number;
+  lon?: number;
 };
 
 export type FlightRoute = {
   callsign?: unknown;
   callsignIcao?: unknown;
   callsignIata?: unknown;
+  airlineIcao?: unknown;
+  airlineIata?: unknown;
+  airline?: {
+    icao?: unknown;
+    iata?: unknown;
+  } | null;
   origin?: RouteAirportCode | null;
   destination?: RouteAirportCode | null;
   route?: {

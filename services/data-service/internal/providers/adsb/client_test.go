@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
@@ -103,5 +104,76 @@ func TestCallsignCanUseFlightAwareFallbackAfterEmptyADSB(t *testing.T) {
 	aircraft := ac[0].(map[string]any)
 	if aircraft["flight_position_source"] != "flightaware" || aircraft["lat"] != 49.05 {
 		t.Fatalf("aircraft = %#v", aircraft)
+	}
+}
+
+func TestPositionProviderCooldownSkipsRecentlyFailingProvider(t *testing.T) {
+	now := time.Unix(1_800_000_000, 0)
+	var adsbLolRequests int
+	var airplanesRequests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.Path, "/adsb-lol/"):
+			adsbLolRequests++
+			if adsbLolRequests == 1 {
+				http.Error(w, "limited", http.StatusTooManyRequests)
+				return
+			}
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"a1","flight":"AAL100  ","lat":42.1,"lon":-71.1}]}`))
+		case strings.Contains(r.URL.Path, "/airplanes/"):
+			airplanesRequests++
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"b2","flight":"DAL200  ","lat":42.2,"lon":-71.2}]}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		Providers: []Provider{
+			{ID: "adsb.lol", PositionURL: func(lat, lon float64, distNM int) string { return server.URL + "/adsb-lol/positions" }},
+			{ID: "airplanes.live", PositionURL: func(lat, lon float64, distNM int) string { return server.URL + "/airplanes/positions" }},
+		},
+		ProviderCooldown: time.Minute,
+		Now:              func() time.Time { return now },
+	})
+	input := realtime.FetchInput{
+		Channel:     "traffic:center:42.4:-71:40",
+		ChannelType: realtime.ChannelTraffic,
+		Target: realtime.PollingTarget{
+			Kind:   "positions",
+			Lat:    42.4,
+			Lon:    -71,
+			DistNM: 40,
+		},
+	}
+
+	first, err := client.Fetch(context.Background(), input)
+	if err != nil {
+		t.Fatalf("first Fetch returned error: %v", err)
+	}
+	if first.Source != "airplanes.live" || adsbLolRequests != 1 || airplanesRequests != 1 {
+		t.Fatalf("first source=%q adsb=%d airplanes=%d", first.Source, adsbLolRequests, airplanesRequests)
+	}
+
+	second, err := client.Fetch(context.Background(), input)
+	if err != nil {
+		t.Fatalf("second Fetch returned error: %v", err)
+	}
+	if second.Source != "airplanes.live" || adsbLolRequests != 1 || airplanesRequests != 2 {
+		t.Fatalf("cooldown source=%q adsb=%d airplanes=%d", second.Source, adsbLolRequests, airplanesRequests)
+	}
+	secondAttempts := second.Data.(map[string]any)["attempts"].([]string)
+	if len(secondAttempts) != 2 || secondAttempts[0] != "adsb.lol:cooldown" || secondAttempts[1] != "airplanes.live:200" {
+		t.Fatalf("cooldown attempts = %#v", secondAttempts)
+	}
+
+	now = now.Add(time.Minute + time.Second)
+	third, err := client.Fetch(context.Background(), input)
+	if err != nil {
+		t.Fatalf("third Fetch returned error: %v", err)
+	}
+	if third.Source != "adsb.lol" || adsbLolRequests != 2 || airplanesRequests != 2 {
+		t.Fatalf("recovery source=%q adsb=%d airplanes=%d", third.Source, adsbLolRequests, airplanesRequests)
 	}
 }

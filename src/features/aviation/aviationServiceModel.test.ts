@@ -49,6 +49,33 @@ import { normalizeLocalWeather } from "../weather/localWeatherNormalizer";
 }
 
 {
+  const route = normalizeFlightRoute({
+    callsign: " aal1234 ",
+    callsignIata: "aa1234",
+    airlineIcao: "aal",
+    airlineIata: "aa",
+    origin: {
+      icao: "kbos",
+      iata: "bos",
+      lat: 42.3656,
+      lon: -71.0096,
+    },
+    destination: {
+      icao: "klax",
+      iata: "lax",
+      lat: 33.9416,
+      lon: -118.4085,
+    },
+    source: "flightaware",
+  });
+
+  assert.equal(route.callsignIata, "AA1234");
+  assert.equal(route.airlineIcao, "AAL");
+  assert.equal(route.airlineIata, "AA");
+  assert.equal(route.source, "flightaware");
+}
+
+{
   const weather = normalizeLocalWeather({
     timezone: "America/New_York",
     current: {

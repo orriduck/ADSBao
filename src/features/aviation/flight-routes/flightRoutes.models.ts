@@ -29,3 +29,70 @@ export function buildRouteCacheHeaders(body, { bypassSharedCache = false } = {})
     "Vercel-CDN-Cache-Control": sharedValue,
   };
 }
+
+const cleanString = (value) => String(value || "").trim();
+const cleanUpper = (value) => cleanString(value).toUpperCase();
+
+function compactAirportPayload(airport) {
+  if (!airport || typeof airport !== "object") return null;
+  const icao = cleanUpper(airport.icao || airport.icao_code);
+  const iata = cleanUpper(airport.iata || airport.iata_code);
+  const lat = Number(airport.lat ?? airport.latitude);
+  const lon = Number(airport.lon ?? airport.longitude);
+  if (!icao || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  return {
+    icao,
+    ...(iata ? { iata } : {}),
+    lat,
+    lon,
+  };
+}
+
+function compactRouteCodes(route) {
+  if (!route || typeof route !== "object") return null;
+  const icao = cleanUpper(route.icao);
+  const iata = cleanUpper(route.iata);
+  if (!icao && !iata) return null;
+  return {
+    ...(icao ? { icao } : {}),
+    ...(iata ? { iata } : {}),
+  };
+}
+
+export function compactFlightRoutePayload(payload) {
+  const route = payload && typeof payload === "object" ? payload : null;
+  if (!route) return null;
+
+  const origin = compactAirportPayload(route.origin);
+  const destination = compactAirportPayload(route.destination);
+  if (!origin || !destination) return null;
+
+  const airline = route.airline && typeof route.airline === "object" ? route.airline : {};
+  const compact: Record<string, any> = {
+    callsign: cleanUpper(route.callsign || route.callsign_icao),
+    callsignIcao: cleanUpper(
+      route.callsignIcao || route.callsign_icao || route.callsign,
+    ),
+    origin,
+    destination,
+    source: cleanString(route.source),
+    confidence: cleanString(route.confidence),
+  };
+  const callsignIata = cleanUpper(route.callsignIata || route.callsign_iata);
+  const airlineIcao = cleanUpper(route.airlineIcao || airline.icao);
+  const airlineIata = cleanUpper(route.airlineIata || airline.iata);
+  const routeCodes = compactRouteCodes(route.route);
+
+  if (callsignIata) compact.callsignIata = callsignIata;
+  if (/^[A-Z0-9]{2,3}$/.test(airlineIcao)) compact.airlineIcao = airlineIcao;
+  if (/^[A-Z0-9]{2}$/.test(airlineIata)) compact.airlineIata = airlineIata;
+  if (routeCodes) compact.route = routeCodes;
+
+  for (const key of ["temporary", "displaySuffix", "expiresAt", "feedbackReason"]) {
+    if (route[key] !== undefined && route[key] !== null && route[key] !== "") {
+      compact[key] = route[key];
+    }
+  }
+
+  return compact;
+}
