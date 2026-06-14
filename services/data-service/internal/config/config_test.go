@@ -21,7 +21,9 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 		"NEW_RELIC_LICENSE_KEY":        "new-relic-secret",
 		"NEW_RELIC_APP_NAME":           "adsbao-prod",
 		"NEW_RELIC_METRICS_ENDPOINT":   "https://metric-api.example.test/metric/v1",
+		"NEW_RELIC_LOGS_ENDPOINT":      "https://log-api.example.test/log/v1",
 		"METRICS_REPORT_INTERVAL_MS":   "45000",
+		"LOGS_REPORT_INTERVAL_MS":      "2000",
 	}
 
 	cfg := FromEnv(func(key string) string { return env[key] })
@@ -49,7 +51,9 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 	if cfg.NewRelicLicenseKey != "new-relic-secret" ||
 		cfg.NewRelicAppName != "adsbao-prod" ||
 		cfg.NewRelicMetricsEndpoint != "https://metric-api.example.test/metric/v1" ||
-		cfg.MetricsReportInterval != 45*time.Second {
+		cfg.NewRelicLogsEndpoint != "https://log-api.example.test/log/v1" ||
+		cfg.MetricsReportInterval != 45*time.Second ||
+		cfg.LogsReportInterval != 2*time.Second {
 		t.Fatalf("new relic config = %#v", cfg)
 	}
 }
@@ -69,7 +73,9 @@ func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
 		cfg.NewRelicLicenseKey != "" ||
 		cfg.NewRelicAppName != "adsbao-data-service" ||
 		cfg.NewRelicMetricsEndpoint != "https://metric-api.newrelic.com/metric/v1" ||
-		cfg.MetricsReportInterval != 30*time.Second {
+		cfg.NewRelicLogsEndpoint != "https://log-api.newrelic.com/log/v1" ||
+		cfg.MetricsReportInterval != 30*time.Second ||
+		cfg.LogsReportInterval != 5*time.Second {
 		t.Fatalf("defaults = %#v", cfg)
 	}
 }

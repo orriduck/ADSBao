@@ -173,10 +173,12 @@ normally configure these variables:
 | `CLERK_SECRET_KEY` | Clerk server identity |
 | `NEXT_PUBLIC_ADSBAO_REALTIME_URL` | Optional WebSocket URL for the realtime ADS-B data service |
 | `ADSBAO_REALTIME_AUTH_SECRET` | Shared HMAC secret used by Vercel and the Railway data service to authorize FlightAware realtime subscriptions |
-| `NEW_RELIC_LICENSE_KEY` | Optional Railway data-service ingest key for New Relic Metric API reporting |
-| `NEW_RELIC_APP_NAME` | Optional New Relic app name for data-service metrics; defaults to `adsbao-data-service` |
+| `NEW_RELIC_LICENSE_KEY` | Optional Railway data-service ingest key for New Relic Metric API and Log API reporting |
+| `NEW_RELIC_APP_NAME` | Optional New Relic app name for data-service telemetry; defaults to `adsbao-data-service` |
 | `NEW_RELIC_METRICS_ENDPOINT` | Optional Metric API endpoint override for non-US New Relic accounts |
+| `NEW_RELIC_LOGS_ENDPOINT` | Optional Log API endpoint override for non-US New Relic accounts |
 | `METRICS_REPORT_INTERVAL_MS` | Optional dynamic metrics flush interval for the data-service; defaults to `30000` |
+| `LOGS_REPORT_INTERVAL_MS` | Optional backend log flush interval for the data-service; defaults to `5000` |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry events |
 | `SENTRY_DSN` | Optional server/edge Sentry events |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Optional production source-map upload |
@@ -246,8 +248,8 @@ route-handler-only helpers stay under `src/app/api/_shared`.
 The realtime backend is a separate Railway service deployed from
 `services/data-service`. The service includes `railway.json` config-as-code,
 uses the Dockerfile in the same directory, exposes `/health`,
-`/debug/channels`, and `/ws`, and pushes business metrics to New Relic when
-`NEW_RELIC_LICENSE_KEY` is configured.
+`/debug/channels`, and `/ws`, and pushes business metrics and backend logs to
+New Relic when `NEW_RELIC_LICENSE_KEY` is configured.
 
 Railway setup:
 
@@ -260,7 +262,9 @@ Railway setup:
 6. Set the same `ADSBAO_REALTIME_AUTH_SECRET` in Vercel and Railway when
    FlightAware realtime subscriptions are enabled.
 7. Set `NEW_RELIC_LICENSE_KEY` on the Railway data-service to enable business
-   metric ingest.
+   metric and backend log ingest.
+8. Apply `infra/newrelic` with a New Relic user API key and account ID to create
+   the ADSBao dashboard and NRQL alert policy.
 
 Railway handles production deployment through its GitHub integration. The
 service should be configured with root directory `services/data-service`,
