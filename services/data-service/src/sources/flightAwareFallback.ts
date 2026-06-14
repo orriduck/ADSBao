@@ -1,14 +1,23 @@
 import type { DataServiceMetricsSink } from "../types.js";
+import {
+  FLIGHTAWARE_LIVE_FLIGHT_BASE,
+  type FlightAwareRecord,
+  buildFlightAwareLiveFlightUrl as buildFlightAwareFallbackUrl,
+  cleanString,
+  extractAssignedJson,
+  extractMetaContent,
+  normalizeFlightAwareCallsign as normalizeCallsign,
+  parseAssignedJson,
+  readFlightAwareResponseText as readResponseText,
+  toNumber,
+} from "./flightAwareShared.js";
 
-const FLIGHTAWARE_FALLBACK_BASE = "https://www.flightaware.com/live/flight";
 const FLIGHTAWARE_TRACKPOLL_PATH = "/ajax/trackpoll.rvt";
 const FLIGHTAWARE_FALLBACK_CACHE_TTL_MS = 60_000;
 const FLIGHTAWARE_FALLBACK_TIMEOUT_MS = 7_000;
 const FLIGHTAWARE_FALLBACK_USER_AGENT =
   "ADSBao data-service/1.0 (+https://adsbao.dev; flightaware/fallback)";
-const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 
-type FlightAwareRecord = Record<string, any>;
 type FlightAwareFetch = (
   input: string | URL | Request,
   init?: RequestInit,
@@ -41,99 +50,6 @@ type FlightAwareFallbackOptions = {
 
 const cache = new Map<string, FlightAwareFallbackCacheEntry>();
 const requestTimes: number[] = [];
-
-function cleanString(value: unknown) {
-  return String(value || "").trim();
-}
-
-function normalizeCallsign(value: unknown) {
-  const callsign = cleanString(value).toUpperCase().replace(/\s+/g, "");
-  return /^[A-Z][A-Z0-9]{2,7}$/.test(callsign) ? callsign : "";
-}
-
-function toNumber(value: unknown) {
-  if (value == null || value === "") return null;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-}
-
-function htmlDecode(value: unknown) {
-  return cleanString(value)
-    .replaceAll("&amp;", "&")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&#39;", "'")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">");
-}
-
-function escapeRegExp(value: unknown) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function extractMetaContent(html: unknown, key: string) {
-  const escaped = escapeRegExp(key);
-  const patterns = [
-    new RegExp(
-      `<meta\\b(?=[^>]*(?:name|property)=["']${escaped}["'])(?=[^>]*content=["']([^"']*)["'])[^>]*>`,
-      "i",
-    ),
-    new RegExp(
-      `<meta\\b(?=[^>]*content=["']([^"']*)["'])(?=[^>]*(?:name|property)=["']${escaped}["'])[^>]*>`,
-      "i",
-    ),
-  ];
-  for (const pattern of patterns) {
-    const match = pattern.exec(String(html || ""));
-    if (match?.[1]) return htmlDecode(match[1]);
-  }
-  return "";
-}
-
-function extractAssignedJson(html: unknown, name: string) {
-  const source = String(html || "");
-  const marker = `var ${name} =`;
-  const start = source.indexOf(marker);
-  if (start < 0) return null;
-  const objectStart = source.indexOf("{", start + marker.length);
-  if (objectStart < 0) return null;
-
-  let depth = 0;
-  let escaped = false;
-  let inString = false;
-  for (let index = objectStart; index < source.length; index += 1) {
-    const char = source[index];
-    if (inString) {
-      if (escaped) {
-        escaped = false;
-      } else if (char === "\\") {
-        escaped = true;
-      } else if (char === '"') {
-        inString = false;
-      }
-      continue;
-    }
-    if (char === '"') {
-      inString = true;
-      continue;
-    }
-    if (char === "{") depth += 1;
-    if (char === "}") {
-      depth -= 1;
-      if (depth === 0) return source.slice(objectStart, index + 1);
-    }
-  }
-  return null;
-}
-
-function parseAssignedJson(html: unknown, name: string) {
-  const jsonText = extractAssignedJson(html, name);
-  if (!jsonText) return null;
-  try {
-    return JSON.parse(jsonText) as FlightAwareRecord;
-  } catch {
-    return null;
-  }
-}
 
 function extractTrackpollToken(html: unknown) {
   const globals = parseAssignedJson(html, "trackpollGlobals");
@@ -298,14 +214,8 @@ function isTerminalFlight(flight: FlightAwareRecord | null | undefined, status =
   );
 }
 
-function buildFlightAwareFallbackUrl(callsign: unknown) {
-  const normalized = normalizeCallsign(callsign);
-  if (!normalized) return "";
-  return `${FLIGHTAWARE_FALLBACK_BASE}/${encodeURIComponent(normalized)}`;
-}
-
 function buildFlightAwareTrackpollUrl(pageUrl: string, token: string) {
-  const url = new URL(FLIGHTAWARE_TRACKPOLL_PATH, FLIGHTAWARE_FALLBACK_BASE);
+  const url = new URL(FLIGHTAWARE_TRACKPOLL_PATH, FLIGHTAWARE_LIVE_FLIGHT_BASE);
   try {
     const page = new URL(pageUrl);
     page.searchParams.forEach((value, key) => {
@@ -318,14 +228,6 @@ function buildFlightAwareTrackpollUrl(pageUrl: string, token: string) {
   url.searchParams.set("locale", "en_US");
   url.searchParams.set("summary", "0");
   return url.toString();
-}
-
-async function readResponseText(response: Response, maxBytes = MAX_RESPONSE_BYTES) {
-  const text = await response.text();
-  if (Buffer.byteLength(text, "utf8") > maxBytes) {
-    throw new Error("FlightAware response too large");
-  }
-  return text;
 }
 
 function buildMetadata({
