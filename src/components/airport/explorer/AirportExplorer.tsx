@@ -537,7 +537,7 @@ function AirportExplorerContent({
         >
           {!(isMobile && sidebarOpen) && (
             <ExplorerMapMenu
-              feedSource=""
+              feedSource={traffic.feedSource}
               feedStatus={traffic.feedStatus}
               lastUpdated={traffic.lastUpdated}
               routeProvider={traffic.routeProvider}
