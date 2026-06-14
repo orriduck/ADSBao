@@ -22,6 +22,7 @@ import (
 const (
 	defaultADSBDBBaseURL     = "https://api.adsbdb.com/v0"
 	defaultFlightAwareBase   = "https://www.flightaware.com/live/flight"
+	defaultAirportDirectory  = "https://www.adsbao.dev"
 	defaultTimeout           = 9 * time.Second
 	defaultMaxBytes          = 2 * 1024 * 1024
 	defaultQueueInterval     = 500 * time.Millisecond
@@ -31,24 +32,26 @@ const (
 )
 
 type Options struct {
-	HTTPClient      *http.Client
-	ADSBDBBaseURL   string
-	FlightAwareBase string
-	Timeout         time.Duration
-	MaxBytes        int64
-	QueueInterval   time.Duration
-	DisableQueue    bool
+	HTTPClient              *http.Client
+	ADSBDBBaseURL           string
+	FlightAwareBase         string
+	AirportDirectoryBaseURL string
+	Timeout                 time.Duration
+	MaxBytes                int64
+	QueueInterval           time.Duration
+	DisableQueue            bool
 }
 
 type Client struct {
-	httpClient      *http.Client
-	adsbdbBaseURL   string
-	flightAwareBase string
-	timeout         time.Duration
-	maxBytes        int64
-	queueInterval   time.Duration
-	mu              sync.Mutex
-	lastStarted     time.Time
+	httpClient              *http.Client
+	adsbdbBaseURL           string
+	flightAwareBase         string
+	airportDirectoryBaseURL string
+	timeout                 time.Duration
+	maxBytes                int64
+	queueInterval           time.Duration
+	mu                      sync.Mutex
+	lastStarted             time.Time
 }
 
 func NewClient(options Options) *Client {
@@ -64,6 +67,10 @@ func NewClient(options Options) *Client {
 	if flightAwareBase == "" {
 		flightAwareBase = defaultFlightAwareBase
 	}
+	airportDirectoryBaseURL := strings.TrimRight(options.AirportDirectoryBaseURL, "/")
+	if airportDirectoryBaseURL == "" {
+		airportDirectoryBaseURL = defaultAirportDirectory
+	}
 	timeout := options.Timeout
 	if timeout <= 0 {
 		timeout = defaultTimeout
@@ -77,12 +84,13 @@ func NewClient(options Options) *Client {
 		queueInterval = defaultQueueInterval
 	}
 	return &Client{
-		httpClient:      httpClient,
-		adsbdbBaseURL:   adsbdbBase,
-		flightAwareBase: flightAwareBase,
-		timeout:         timeout,
-		maxBytes:        maxBytes,
-		queueInterval:   queueInterval,
+		httpClient:              httpClient,
+		adsbdbBaseURL:           adsbdbBase,
+		flightAwareBase:         flightAwareBase,
+		airportDirectoryBaseURL: airportDirectoryBaseURL,
+		timeout:                 timeout,
+		maxBytes:                maxBytes,
+		queueInterval:           queueInterval,
 	}
 }
 
@@ -165,7 +173,7 @@ func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput
 		return realtime.Event{}, err
 	}
 	c.recordExternal(input, "flightaware", "success", status, started)
-	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, normalizeFlightAwareRoute(input.Target.Callsign, string(body))), nil
+	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, c.normalizeFlightAwareRoute(ctx, input, string(body))), nil
 }
 
 func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, context.CancelFunc, error) {
@@ -226,6 +234,14 @@ func (c *Client) flightAwareURL(callsign string) string {
 		return ""
 	}
 	return c.flightAwareBase + "/" + url.PathEscape(normalized)
+}
+
+func (c *Client) airportDirectoryURL(ident string) string {
+	normalized := code(ident, 3, 4)
+	if normalized == "" || c.airportDirectoryBaseURL == "" {
+		return ""
+	}
+	return c.airportDirectoryBaseURL + "/api/airport/" + url.PathEscape(normalized)
 }
 
 func (c *Client) recordExternal(input realtime.FetchInput, provider, result string, status any, started time.Time) {
@@ -300,7 +316,17 @@ func normalizeADSBDBRoute(callsign string, payload map[string]any) map[string]an
 	}
 }
 
+func (c *Client) normalizeFlightAwareRoute(ctx context.Context, input realtime.FetchInput, source string) map[string]any {
+	return normalizeFlightAwareRouteWithResolver(input.Target.Callsign, source, func(ident string) map[string]any {
+		return c.fetchDirectoryAirport(ctx, input, ident)
+	})
+}
+
 func normalizeFlightAwareRoute(callsign, source string) map[string]any {
+	return normalizeFlightAwareRouteWithResolver(callsign, source, nil)
+}
+
+func normalizeFlightAwareRouteWithResolver(callsign, source string, resolveAirport func(string) map[string]any) map[string]any {
 	normalizedCallsign := upper(callsign)
 	if !regexp.MustCompile(`^[A-Z][A-Z0-9]{2,7}$`).MatchString(normalizedCallsign) {
 		return nil
@@ -319,6 +345,14 @@ func normalizeFlightAwareRoute(callsign, source string) map[string]any {
 	airlineIATA, number := extractIATAAndNumber(normalizedCallsign, description, title)
 	origin := normalizeFlightAwareAirport(extractEmbeddedAirport(source, "origin", originICAO))
 	destination := normalizeFlightAwareAirport(extractEmbeddedAirport(source, "destination", destICAO))
+	if resolveAirport != nil {
+		if origin == nil {
+			origin = normalizeAirport(resolveAirport(originICAO))
+		}
+		if destination == nil {
+			destination = normalizeAirport(resolveAirport(destICAO))
+		}
+	}
 	if origin == nil || destination == nil {
 		return nil
 	}
@@ -354,6 +388,54 @@ func normalizeFlightAwareRoute(callsign, source string) map[string]any {
 	}
 }
 
+func (c *Client) fetchDirectoryAirport(ctx context.Context, input realtime.FetchInput, ident string) map[string]any {
+	requestURL := c.airportDirectoryURL(ident)
+	if requestURL == "" {
+		return nil
+	}
+	started := time.Now()
+	resp, cancel, err := c.do(ctx, requestURL, "application/json", userAgent)
+	if err != nil {
+		c.recordAirportDirectory(input, "error", "ERR", started)
+		return nil
+	}
+	defer cancel()
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		c.recordAirportDirectory(input, "success", resp.StatusCode, started)
+		return nil
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		c.recordAirportDirectory(input, "error", resp.StatusCode, started)
+		return nil
+	}
+	body, err := c.readBody(resp)
+	if err != nil {
+		c.recordAirportDirectory(input, "error", "ERR", started)
+		return nil
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		c.recordAirportDirectory(input, "error", "PARSE", started)
+		return nil
+	}
+	c.recordAirportDirectory(input, "success", resp.StatusCode, started)
+	return asMap(payload["airport"])
+}
+
+func (c *Client) recordAirportDirectory(input realtime.FetchInput, result string, status any, started time.Time) {
+	if input.Metrics == nil {
+		return
+	}
+	input.Metrics.RecordExternalRequest(realtime.ExternalRequestMetricInput{
+		Provider:   "adsbao-web",
+		Endpoint:   "airport",
+		Result:     result,
+		Status:     status,
+		DurationMS: time.Since(started).Milliseconds(),
+	})
+}
+
 func normalizeAirport(raw map[string]any) map[string]any {
 	if raw == nil {
 		return nil
@@ -369,7 +451,7 @@ func normalizeAirport(raw map[string]any) map[string]any {
 		"icao":         icao,
 		"iata":         iata,
 		"name":         clean(raw["name"]),
-		"municipality": clean(raw["municipality"]),
+		"municipality": clean(firstNonEmpty(raw["municipality"], raw["city"])),
 		"country":      upper(firstNonEmpty(raw["country_iso_name"], raw["country"])),
 		"lat":          lat,
 		"lon":          lon,

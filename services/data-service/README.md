@@ -37,6 +37,12 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
 - `MAX_SOCKET_SUBSCRIPTIONS`
 - `ALLOWED_WS_ORIGINS`
 - `FLIGHTAWARE_FALLBACK_ENABLED`
+- `ADSBAO_REALTIME_AUTH_SECRET` — shared HMAC secret used by Vercel
+  `/api/realtime/auth` and the data-service to authorize FlightAware realtime
+  subscriptions.
+- `AIRPORT_DIRECTORY_BASE_URL` — ADSBao web origin used as the fallback airport
+  directory for FlightAware route pages that omit embedded airport coordinates.
+  Defaults to `https://www.adsbao.dev`.
 - `ENABLE_PPROF`
 
 ## Railway Deployment

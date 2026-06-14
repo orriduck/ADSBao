@@ -15,6 +15,8 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 		"MAX_SOCKET_SUBSCRIPTIONS":     "7",
 		"ALLOWED_WS_ORIGINS":           "https://staging.example, https://preview.example",
 		"FLIGHTAWARE_FALLBACK_ENABLED": "false",
+		"ADSBAO_REALTIME_AUTH_SECRET":  "shared-secret",
+		"AIRPORT_DIRECTORY_BASE_URL":   "https://www.adsbao.dev",
 		"ENABLE_PPROF":                 "true",
 	}
 
@@ -37,6 +39,9 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 	if cfg.FlightAwareFallbackEnabled || !cfg.EnablePprof {
 		t.Fatalf("booleans = fallback:%v pprof:%v", cfg.FlightAwareFallbackEnabled, cfg.EnablePprof)
 	}
+	if cfg.RealtimeAuthSecret != "shared-secret" || cfg.AirportDirectoryBaseURL != "https://www.adsbao.dev" {
+		t.Fatalf("urls/secrets = %#v", cfg)
+	}
 }
 
 func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
@@ -48,6 +53,8 @@ func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
 		cfg.MaxSocketSubscriptions != 96 ||
 		cfg.PollJitterRatio != 0.1 ||
 		!cfg.FlightAwareFallbackEnabled ||
+		cfg.RealtimeAuthSecret != "" ||
+		cfg.AirportDirectoryBaseURL != "https://www.adsbao.dev" ||
 		cfg.EnablePprof {
 		t.Fatalf("defaults = %#v", cfg)
 	}

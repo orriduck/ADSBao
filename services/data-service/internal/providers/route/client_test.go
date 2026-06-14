@@ -96,6 +96,57 @@ func TestFlightAwareRouteNormalizesScrapedRoute(t *testing.T) {
 	}
 }
 
+func TestFlightAwareRouteUsesAirportDirectoryFallbackWhenPageOmitsEmbeddedAirports(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/live/flight/AAL1234":
+			_, _ = w.Write([]byte(`
+				<html>
+					<head>
+						<title>AA1234 (AAL1234) American Airlines Flight Tracking</title>
+						<meta name="origin" content="KBOS">
+						<meta name="destination" content="KLAX">
+						<meta name="airline" content="AAL">
+						<meta name="description" content="Track American Airlines (AA) #1234">
+					</head>
+				</html>
+			`))
+		case "/api/airport/KBOS":
+			_, _ = w.Write([]byte(`{"airport":{"icao":"KBOS","iata":"BOS","name":"Boston Logan","city":"Boston","country":"US","lat":42.3656,"lon":-71.0096}}`))
+		case "/api/airport/KLAX":
+			_, _ = w.Write([]byte(`{"airport":{"icao":"KLAX","iata":"LAX","name":"Los Angeles Intl","city":"Los Angeles","country":"US","lat":33.9416,"lon":-118.4085}}`))
+		default:
+			t.Fatalf("unexpected path = %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		FlightAwareBase:         server.URL + "/live/flight",
+		AirportDirectoryBaseURL: server.URL,
+		QueueInterval:           0,
+	})
+	event, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "route:AAL1234:airport:KBOS",
+		ChannelType: realtime.ChannelRoute,
+		Target: realtime.PollingTarget{
+			Kind:          "route",
+			Callsign:      "AAL1234",
+			RouteProvider: "flightaware",
+			RouteContext:  &realtime.RouteContext{Type: "airport", ICAO: "KBOS"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("Fetch returned error: %v", err)
+	}
+	data := event.Data.(map[string]any)
+	route := data["route"].(map[string]any)
+	routeCodes := route["route"].(map[string]any)
+	if routeCodes["iata"] != "BOS-LAX" || routeCodes["icao"] != "KBOS-KLAX" {
+		t.Fatalf("route = %#v", route)
+	}
+}
+
 func TestFlightAwareRouteAllowsLargeHTMLPage(t *testing.T) {
 	padding := strings.Repeat(" ", 600*1024)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

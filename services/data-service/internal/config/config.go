@@ -15,6 +15,8 @@ type Config struct {
 	MaxSocketSubscriptions     int
 	AllowedWSOrigins           []string
 	FlightAwareFallbackEnabled bool
+	RealtimeAuthSecret         string
+	AirportDirectoryBaseURL    string
 	EnablePprof                bool
 }
 
@@ -30,6 +32,8 @@ func FromEnv(lookup LookupFunc) Config {
 		MaxSocketSubscriptions:     intValue(lookup("MAX_SOCKET_SUBSCRIPTIONS"), 96),
 		AllowedWSOrigins:           csv(lookup("ALLOWED_WS_ORIGINS")),
 		FlightAwareFallbackEnabled: !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
+		RealtimeAuthSecret:         strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
+		AirportDirectoryBaseURL:    stringValue(lookup("AIRPORT_DIRECTORY_BASE_URL"), "https://www.adsbao.dev"),
 		EnablePprof:                trueString(lookup("ENABLE_PPROF")),
 	}
 }
@@ -56,6 +60,14 @@ func durationMS(raw string, fallback time.Duration) time.Duration {
 		return fallback
 	}
 	return time.Duration(value) * time.Millisecond
+}
+
+func stringValue(raw, fallback string) string {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return fallback
+	}
+	return value
 }
 
 func csv(raw string) []string {
