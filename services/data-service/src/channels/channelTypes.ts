@@ -204,9 +204,24 @@ function parseRouteChannel(channel: string): PollingTarget {
   return { kind: "route", callsign };
 }
 
+function readBooleanParam(value: unknown) {
+  if (value === true) return true;
+  if (typeof value === "string") {
+    return /^(1|true|yes)$/i.test(value.trim());
+  }
+  return false;
+}
+
+function readRouteProviderParam(value: unknown) {
+  const provider = String(value || "").trim().toLowerCase();
+  if (provider === "flightaware") return "flightaware";
+  if (provider === "adsbdb") return "adsbdb";
+  return undefined;
+}
+
 export function buildChannelPollingTarget(
   input: string,
-  _params: SubscribeParams = {},
+  params: SubscribeParams = {},
 ): PollingTarget {
   const normalized = normalizeChannelName(input);
   if (normalized.ok !== true) throw new Error(normalized.error);
@@ -219,6 +234,7 @@ export function buildChannelPollingTarget(
     return {
       kind: "callsign",
       callsign: normalized.channel.slice("callsign:".length),
+      flightAwareFallback: readBooleanParam(params.flightAware),
     };
   }
 
@@ -230,7 +246,10 @@ export function buildChannelPollingTarget(
   }
 
   if (normalized.type === "route") {
-    return parseRouteChannel(normalized.channel);
+    const target = parseRouteChannel(normalized.channel);
+    if (target.kind !== "route") return target;
+    const provider = readRouteProviderParam(params.routeProvider);
+    return provider ? { ...target, provider } : target;
   }
 
   throw new Error(`${normalized.type} channel does not have an active polling target`);

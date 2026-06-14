@@ -15,12 +15,12 @@ assert.equal(
 
 assert.equal(
   getTrackedFlightTraceRefreshKey({ lostSignal: true, pollVersion: 12 }),
-  "lost-signal:12",
+  "",
 );
 
 assert.equal(
-  getTrackedFlightTraceRefreshKey({ lostSignal: true, pollVersion: 13 }),
-  "lost-signal:13",
+  getTrackedFlightTraceRefreshKey({ lostSignal: true, pollVersion: 20 }),
+  "lost-signal:1",
 );
 
 assert.equal(
@@ -43,7 +43,16 @@ assert.equal(
     pollVersion: 21,
     visibilityRefreshVersion: 0,
   }),
-  "lost-signal:21",
+  "lost-signal:1",
+);
+
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: true,
+    pollVersion: 40,
+    visibilityRefreshVersion: 0,
+  }),
+  "lost-signal:2",
 );
 
 assert.equal(

@@ -54,6 +54,16 @@ import {
     params: {},
   });
   assert.deepEqual(
+    buildRouteChannel(" aal123 ", {
+      icao: "kbos",
+      routeProvider: "flightaware",
+    }),
+    {
+      channel: "route:AAL123:airport:KBOS",
+      params: { routeProvider: "flightaware" },
+    },
+  );
+  assert.deepEqual(
     buildRouteChannel(" aal123 ", { lat: 42.3656, lon: -71.0096 }),
     {
       channel: "route:AAL123:center:42.4:-71",

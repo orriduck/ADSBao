@@ -3,6 +3,8 @@ import type {
   FetchChannelInput,
   RealtimeEvent,
 } from "../types.js";
+import type { FlightAwareFallbackResult } from "./flightAwareFallback.js";
+import { getFlightAwareFallbackByCallsign } from "./flightAwareFallback.js";
 import { fetchWithProviderFallback } from "./providerFallback.js";
 
 const DEFAULT_TIMEOUT_MS = 2_800;
@@ -68,6 +70,9 @@ const ADSB_FI: Provider = {
 const POSITION_PROVIDER_CHAIN = Object.freeze([ADSB_LOL, AIRPLANES_LIVE, ADSB_FI]);
 const CALLSIGN_PROVIDER_CHAIN = Object.freeze([ADSB_LOL, AIRPLANES_LIVE, ADSB_FI]);
 const AIRCRAFT_PROVIDER_CHAIN = Object.freeze([ADSB_LOL, AIRPLANES_LIVE, ADSB_FI]);
+const FLIGHTAWARE_PROVIDER: Provider = {
+  id: "flightaware",
+};
 
 function isEmptyAircraftPayload(payload: Record<string, unknown>) {
   return !Array.isArray(payload.ac) || payload.ac.length === 0;
@@ -207,6 +212,137 @@ async function fetchCallsign(input: FetchChannelInput) {
   });
 }
 
+function toFiniteNumber(value: unknown) {
+  if (value == null || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function normalizeFlightAwareAircraft({
+  callsign,
+  fallback,
+}: {
+  callsign: string;
+  fallback: FlightAwareFallbackResult;
+}) {
+  const position = fallback.position || {};
+  const latitude = toFiniteNumber(position.lat);
+  const longitude = toFiniteNumber(position.lon);
+  if (latitude == null || longitude == null) return null;
+
+  const altitudeFt = toFiniteNumber(position.altitudeFt);
+  const groundSpeedKt = toFiniteNumber(position.groundSpeedKt);
+  const trackDeg = toFiniteNumber(position.trackDeg ?? position.headingDeg);
+  const normalizedCallsign = String(position.callsign || callsign || "")
+    .trim()
+    .toUpperCase();
+
+  return {
+    hex: String(position.hex || "").trim().toLowerCase() || undefined,
+    flight: normalizedCallsign ? `${normalizedCallsign.padEnd(8, " ")} ` : undefined,
+    callsign: normalizedCallsign || undefined,
+    lat: latitude,
+    lon: longitude,
+    alt_baro: altitudeFt ?? undefined,
+    gs: groundSpeedKt ?? undefined,
+    track: trackDeg ?? undefined,
+    seen: 0,
+    type: "flightaware",
+    flight_position_source: "flightaware",
+    flightAwareUrl: position.flightAwareUrl,
+    origin: position.origin,
+    destination: position.destination,
+    route: position.route,
+    status: position.status,
+    terminal: position.terminal,
+    quality: position.quality,
+  };
+}
+
+function getFlightAwareTrackingState(fallback: FlightAwareFallbackResult) {
+  const terminal =
+    fallback.position?.terminal === true ||
+    fallback.position?.quality?.terminal === true ||
+    fallback.metadata?.terminal === true;
+  if (terminal) {
+    return {
+      status: "flightaware_terminal",
+      source: "flightaware",
+      fetchedAt: fallback.fetchedAt,
+      sourceUpdatedAt: fallback.position?.quality?.sourceUpdatedAt,
+    };
+  }
+  if (fallback.ok && fallback.hasPosition === true) {
+    return {
+      status: "flightaware_active",
+      source: "flightaware",
+      fetchedAt: fallback.fetchedAt,
+      sourceUpdatedAt: fallback.position?.quality?.sourceUpdatedAt,
+    };
+  }
+  return {
+    status: "missing",
+    source: "flightaware",
+    fetchedAt: fallback.fetchedAt,
+    errorType: fallback.errorType,
+  };
+}
+
+function getFlightAwareAttemptStatus(fallback: FlightAwareFallbackResult) {
+  if (fallback.ok) return "200";
+  return String(fallback.upstreamStatus ?? fallback.errorType ?? "ERR");
+}
+
+async function fetchCallsignWithFlightAwareFallback(input: FetchChannelInput) {
+  if (input.target.kind !== "callsign") {
+    throw new Error("Expected callsign polling target");
+  }
+
+  const adsbResult = await fetchCallsign(input);
+  if (!isEmptyAircraftPayload(adsbResult.payload)) return adsbResult;
+
+  const fallback = await getFlightAwareFallbackByCallsign(input.target.callsign, {
+    metrics: input.metrics,
+  });
+  const attempts = [
+    ...adsbResult.attempts,
+    `flightaware:${getFlightAwareAttemptStatus(fallback)}`,
+  ];
+  const aircraft = normalizeFlightAwareAircraft({
+    callsign: input.target.callsign,
+    fallback,
+  });
+  const trackingState = getFlightAwareTrackingState(fallback);
+
+  if (!aircraft || fallback.ok !== true || fallback.hasPosition !== true) {
+    return {
+      ...adsbResult,
+      attempts,
+      payload: {
+        ...adsbResult.payload,
+        source: adsbResult.provider.id,
+        callsign: input.target.callsign,
+        flightAwareFallback: fallback,
+        trackingState,
+      },
+    };
+  }
+
+  return {
+    provider: FLIGHTAWARE_PROVIDER,
+    attempts,
+    payload: {
+      ac: [aircraft],
+      source: "flightaware",
+      callsign: input.target.callsign,
+      now: Date.now() / 1000,
+      fetchedAt: fallback.fetchedAt,
+      flightAwareFallback: fallback,
+      trackingState,
+    },
+  };
+}
+
 async function fetchAircraft(input: FetchChannelInput) {
   if (input.target.kind !== "aircraft") {
     throw new Error("Expected aircraft polling target");
@@ -258,6 +394,9 @@ export async function fetchAdsbChannel(input: FetchChannelInput): Promise<Realti
     return eventFromPayload(input, await fetchPositions(input));
   }
   if (input.target.kind === "callsign") {
+    if (input.target.flightAwareFallback === true) {
+      return eventFromPayload(input, await fetchCallsignWithFlightAwareFallback(input));
+    }
     return eventFromPayload(input, await fetchCallsign(input));
   }
   return eventFromPayload(input, await fetchAircraft(input));

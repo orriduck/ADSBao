@@ -4,6 +4,7 @@ type RealtimeChannelRequest = {
     lat?: number;
     lon?: number;
     distNm?: number;
+    routeProvider?: string;
   };
 };
 
@@ -101,6 +102,11 @@ function normalizeRouteContext(routeContext: Record<string, unknown> = {}) {
   return `center:${formatNumber(roundToGrid(lat))}:${formatNumber(roundToGrid(lon))}`;
 }
 
+function normalizeRouteProvider(value: unknown) {
+  const provider = String(value || "").trim().toLowerCase();
+  return provider === "flightaware" || provider === "adsbdb" ? provider : "";
+}
+
 function normalizeTrafficChannel(value: string) {
   const [anchor, ...parts] = value.split(":");
   if (anchor === "center") {
@@ -135,7 +141,11 @@ export function buildRouteChannel(
   const normalized = normalizeCallsign(callsign);
   if (!normalized || !/^[A-Z][A-Z0-9]{2,7}$/.test(normalized)) return null;
   const context = normalizeRouteContext(routeContext);
-  return { channel: `route:${normalized}${context ? `:${context}` : ""}`, params: {} };
+  const routeProvider = normalizeRouteProvider(routeContext.routeProvider);
+  return {
+    channel: `route:${normalized}${context ? `:${context}` : ""}`,
+    params: routeProvider ? { routeProvider } : {},
+  };
 }
 
 export function normalizeRealtimeChannel(channel: unknown) {

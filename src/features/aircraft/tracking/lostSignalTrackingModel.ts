@@ -39,10 +39,18 @@ export function hasTerminalFlightAwareFallback(fallback) {
 function getLostSignalTraceRefreshKey({
   lostSignal = false,
   pollVersion = 0,
+  pollMs = 3_000,
+  flightAwareTraceRefreshMs = 60_000,
 } = {}) {
   const version = Number(pollVersion);
   if (!lostSignal || !Number.isFinite(version) || version <= 0) return "";
-  return `lost-signal:${version}`;
+  const intervalMs = Math.max(1, Number(pollMs) || 1);
+  const refreshMs = Math.max(
+    intervalMs,
+    Number(flightAwareTraceRefreshMs) || intervalMs,
+  );
+  const bucket = Math.floor((version * intervalMs) / refreshMs);
+  return bucket > 0 ? `lost-signal:${bucket}` : "";
 }
 
 export function getTrackedFlightTraceRefreshKey({
@@ -64,7 +72,12 @@ export function getTrackedFlightTraceRefreshKey({
     flightAwareTraceRefreshMs,
   });
   if (flightAwareKey) return flightAwareKey;
-  return getLostSignalTraceRefreshKey({ lostSignal, pollVersion });
+  return getLostSignalTraceRefreshKey({
+    lostSignal,
+    pollVersion,
+    pollMs,
+    flightAwareTraceRefreshMs,
+  });
 }
 
 function getFlightAwareTraceRefreshKey({

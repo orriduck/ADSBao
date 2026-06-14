@@ -32,6 +32,7 @@ export type PollingTarget =
   | {
       kind: "callsign";
       callsign: string;
+      flightAwareFallback?: boolean;
     }
   | {
       kind: "aircraft";
@@ -40,6 +41,7 @@ export type PollingTarget =
   | {
       kind: "route";
       callsign: string;
+      provider?: "adsbdb" | "flightaware";
       context?: {
         type: "airport";
         icao: string;
