@@ -49,6 +49,10 @@ const flightAware = {
   assert.equal(resolved.source, "adsb.lol");
   assert.equal(resolved.position.lat, 42.1);
   assert.equal(resolved.position.positionQuality.source, "adsb_lol");
+  assert.equal(
+    resolved.position.positionQuality.sourceUpdatedAt,
+    "2026-05-25T02:59:48.000Z",
+  );
   assert.equal(flightAwareCalls, 0);
 }
 
@@ -106,6 +110,10 @@ const flightAware = {
   assert.equal(resolved.source, "airplanes.live");
   assert.equal(resolved.position.positionQuality.kind, "oceanic");
   assert.equal(resolved.position.positionQuality.flight_position_source, "adsc");
+  assert.equal(
+    resolved.position.positionQuality.sourceUpdatedAt,
+    "2026-05-25T02:50:00.000Z",
+  );
   assert.equal(resolved.trackingState.status, "oceanic_adsc");
   assert.equal(resolved.trackingState.active, true);
   assert.equal(flightAwareCalls, 0);
@@ -165,7 +173,32 @@ const flightAware = {
 
   assert.equal(resolved.source, "airplanes.live");
   assert.equal(resolved.position.positionQuality.kind, "stale");
+  assert.equal(
+    resolved.position.positionQuality.sourceUpdatedAt,
+    "2026-05-25T02:40:00.000Z",
+  );
   assert.equal(resolved.trackingState.status, "stale");
+}
+
+{
+  const resolved = await resolveTrackedFlightPosition({
+    adsbLolPosition: null,
+    airplanesLivePosition: null,
+    localProjection: {
+      lat: 40,
+      lon: -70,
+      callsign: "AAL100",
+    },
+    callsign: "AAL100",
+    featureEnabled: false,
+    now,
+  });
+
+  assert.equal(resolved.source, "local_projection");
+  assert.equal(
+    resolved.position.positionQuality.sourceUpdatedAt,
+    "2026-05-25T03:00:00.000Z",
+  );
 }
 
 {
@@ -207,6 +240,10 @@ const flightAware = {
   assert.equal(resolved.source, "last_known");
   assert.equal(resolved.position.lat, 40);
   assert.equal(resolved.position.positionQuality.kind, "stale");
+  assert.equal(
+    resolved.position.positionQuality.sourceUpdatedAt,
+    "2026-05-25T02:55:00.000Z",
+  );
   assert.equal(resolved.trackingState.status, "missing");
   assert.equal(flightAwareCalls, 1);
 }

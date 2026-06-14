@@ -4,6 +4,9 @@ import {
   createAdaptiveProviderSelector,
   raceProviders,
 } from "../../aviation/providerHealth";
+import {
+  annotateAdsbPosition,
+} from "../tracking/trackedFlightPositionResolver";
 
 import {
   AIRCRAFT_POSITIONS_MAX_BYTES,
@@ -17,6 +20,12 @@ import {
 const selector = createAdaptiveProviderSelector();
 
 type AircraftPositionsRecord = Record<string, any>;
+
+function payloadNowMs(payload: AircraftPositionsRecord) {
+  const now = Number(payload?.now);
+  if (!Number.isFinite(now)) return Date.now();
+  return now < 10_000_000_000 ? Math.round(now * 1000) : Math.round(now);
+}
 
 async function fetchProviderPayload(provider: AircraftPositionsRecord, { latitude, longitude, distanceNm }: AircraftPositionsRecord) {
   const url = provider.buildPositionUrl({
@@ -71,11 +80,24 @@ async function fetchProviderPayload(provider: AircraftPositionsRecord, { latitud
   return normalizedPayload;
 }
 
-const successResult = (provider: AircraftPositionsRecord, payload: AircraftPositionsRecord, attempts: string[]) => ({
-  payload: { ...payload, source: provider.id },
-  source: provider.id,
-  attempts,
-});
+const successResult = (
+  provider: AircraftPositionsRecord,
+  payload: AircraftPositionsRecord,
+  attempts: string[],
+) => {
+  const now = payloadNowMs(payload);
+  return {
+    payload: {
+      ...payload,
+      ac: (payload.ac || []).map((aircraft) =>
+        annotateAdsbPosition(aircraft, { source: provider.id, now }),
+      ),
+      source: provider.id,
+    },
+    source: provider.id,
+    attempts,
+  };
+};
 
 export const fetchAircraftPositions = async ({
   latitude,

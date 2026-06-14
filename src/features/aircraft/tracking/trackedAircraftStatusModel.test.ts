@@ -17,7 +17,7 @@ import { resolveTrackedAircraftStatusUpdatedDate } from "./trackedAircraftStatus
     trackingState: { status: "flightaware_active" },
   });
 
-  assert.equal(result?.toISOString(), "2026-06-14T04:26:20.000Z");
+  assert.equal(result?.toISOString(), "2026-06-14T04:25:16.000Z");
 }
 
 {
@@ -35,7 +35,7 @@ import { resolveTrackedAircraftStatusUpdatedDate } from "./trackedAircraftStatus
     trackingState: { status: "adsb_live" },
   });
 
-  assert.equal(result?.toISOString(), "2026-06-14T04:22:00.000Z");
+  assert.equal(result?.toISOString(), "2026-06-14T04:20:12.000Z");
 }
 
 {
@@ -51,7 +51,7 @@ import { resolveTrackedAircraftStatusUpdatedDate } from "./trackedAircraftStatus
     feedSource: "flightaware",
   });
 
-  assert.equal(result?.toISOString(), "2026-06-14T04:27:20.000Z");
+  assert.equal(result?.toISOString(), "2026-06-14T04:25:16.000Z");
 }
 
 {
@@ -66,6 +66,19 @@ import { resolveTrackedAircraftStatusUpdatedDate } from "./trackedAircraftStatus
   });
 
   assert.equal(result?.toISOString(), "2026-06-14T04:20:12.000Z");
+}
+
+{
+  const result = resolveTrackedAircraftStatusUpdatedDate({
+    aircraft: {
+      positionQuality: {
+        fetchedAt: "2026-06-14T04:27:20.000Z",
+      },
+    },
+    fetchedAt: "2026-06-14T04:28:20.000Z",
+  });
+
+  assert.equal(result?.toISOString(), "2026-06-14T04:28:20.000Z");
 }
 
 console.log("trackedAircraftStatusModel.test.ts ok");
