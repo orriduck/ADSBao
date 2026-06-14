@@ -9,6 +9,16 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.6.0": {
+    title: "New Relic 可观测性",
+    summary:
+      "ADSBao 在 realtime data-service 和 Vercel proxy routes 上输出更完整的 New Relic telemetry。",
+    highlights: [
+      "Go data-service 的 HTTP 入口和后台 provider polling 接入 New Relic APM transactions",
+      "外部 provider 请求会记录为结构化 logs、custom events、custom metrics 和 latency summaries",
+      "Vercel proxy routes 接入 New Relic Metric API 与 Log API，用于追踪 route latency 和 provider errors",
+    ],
+  },
   "v2.5.1": {
     title: "工具栏与跟踪打磨",
     summary:

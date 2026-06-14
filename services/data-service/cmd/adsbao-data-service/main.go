@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 	"github.com/adsbao/adsbao/services/data-service/internal/scheduler"
 	"github.com/adsbao/adsbao/services/data-service/internal/ws"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 func main() {
@@ -35,32 +37,55 @@ func main() {
 	log.SetFlags(0)
 	log.SetOutput(logForwarder)
 
+	nrApp := newRelicApplication(cfg)
 	started := time.Now()
 	metricSink := metrics.NewRelicSink(metrics.NewRelicOptions{
 		LicenseKey: cfg.NewRelicLicenseKey,
 		Endpoint:   cfg.NewRelicMetricsEndpoint,
 		AppName:    cfg.NewRelicAppName,
 	})
-	registry := metrics.New(metrics.WithSink(metricSink))
+	registryOptions := []metrics.Option{
+		metrics.WithSink(metricSink),
+		metrics.WithLogSink(logForwarder),
+	}
+	if nrApp != nil {
+		registryOptions = append(registryOptions, metrics.WithAPMReporter(nrApp))
+	}
+	registry := metrics.New(registryOptions...)
+	providerHTTPClient := newRelicHTTPClient(nrApp)
 
 	flightAwareFallback := flightaware.NewFallbackClient(flightaware.FallbackOptions{
 		Enabled:        cfg.FlightAwareFallbackEnabled,
 		ExplicitEnable: true,
+		HTTPClient:     providerHTTPClient,
 	})
 	adsbClient := adsb.NewClient(adsb.Options{
+		HTTPClient: providerHTTPClient,
 		FlightAwareFallback: func(ctx context.Context, callsign string, sink realtime.MetricsSink) (adsb.FallbackResult, error) {
 			return flightAwareFallback.ByCallsign(ctx, callsign, sink)
 		},
 	})
 	routeClient := route.NewClient(route.Options{
+		HTTPClient:              providerHTTPClient,
 		AirportDirectoryBaseURL: cfg.AirportDirectoryBaseURL,
 	})
 	polling := scheduler.New(scheduler.Options{
 		Fetch: func(input realtime.FetchInput) (realtime.Event, error) {
-			if input.ChannelType == realtime.ChannelRoute {
-				return routeClient.Fetch(context.Background(), input)
+			ctx, txn := startPollingTransaction(nrApp, input)
+			if txn != nil {
+				defer txn.End()
 			}
-			return adsbClient.Fetch(context.Background(), input)
+			var event realtime.Event
+			var err error
+			if input.ChannelType == realtime.ChannelRoute {
+				event, err = routeClient.Fetch(ctx, input)
+			} else {
+				event, err = adsbClient.Fetch(ctx, input)
+			}
+			if err != nil && txn != nil {
+				txn.NoticeError(err)
+			}
+			return event, err
 		},
 		MinInterval:       cfg.MinPollInterval,
 		MaxInterval:       cfg.MaxPollInterval,
@@ -75,12 +100,12 @@ func main() {
 		ws.WithMaxSubscriptions(cfg.MaxSocketSubscriptions),
 		ws.WithRealtimeAuthSecret(cfg.RealtimeAuthSecret),
 	)
-	handler := httpapi.New(httpapi.ServerOptions{
+	handler := instrumentHTTPHandler(nrApp, httpapi.New(httpapi.ServerOptions{
 		DebugChannels: polling.DebugChannels,
 		Uptime:        func() time.Duration { return time.Since(started) },
 		WSHandler:     http.HandlerFunc(socketHandler.Handle),
 		EnablePprof:   cfg.EnablePprof,
-	})
+	}))
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Port),
 		Handler:           handler,
@@ -115,9 +140,105 @@ func main() {
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("graceful shutdown failed: %v", err)
 	}
+	if nrApp != nil {
+		nrApp.Shutdown(10 * time.Second)
+	}
 	if err := logForwarder.Shutdown(shutdownCtx); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "logs shutdown failed: %v\n", err)
 	}
+}
+
+func newRelicApplication(cfg config.Config) *newrelic.Application {
+	if strings.TrimSpace(cfg.NewRelicLicenseKey) == "" {
+		return nil
+	}
+	app, err := newrelic.NewApplication(
+		newrelic.ConfigAppName(cfg.NewRelicAppName),
+		newrelic.ConfigLicense(cfg.NewRelicLicenseKey),
+		newrelic.ConfigDistributedTracerEnabled(true),
+		newrelic.ConfigAppLogForwardingEnabled(false),
+	)
+	if err != nil {
+		log.Printf("new relic apm init failed: %v", err)
+		return nil
+	}
+	return app
+}
+
+func newRelicHTTPClient(app *newrelic.Application) *http.Client {
+	if app == nil {
+		return &http.Client{}
+	}
+	return &http.Client{Transport: newrelic.NewRoundTripper(http.DefaultTransport)}
+}
+
+func startPollingTransaction(app *newrelic.Application, input realtime.FetchInput) (context.Context, *newrelic.Transaction) {
+	if app == nil {
+		return context.Background(), nil
+	}
+	txn := app.StartTransaction("Polling/" + transactionNamePart(string(input.ChannelType)))
+	txn.AddAttribute("channel.type", string(input.ChannelType))
+	txn.AddAttribute("target.kind", transactionNamePart(input.Target.Kind))
+	if input.Target.RouteProvider != "" {
+		txn.AddAttribute("route.provider", transactionNamePart(input.Target.RouteProvider))
+	}
+	return newrelic.NewContext(context.Background(), txn), txn
+}
+
+func instrumentHTTPHandler(app *newrelic.Application, next http.Handler) http.Handler {
+	if app == nil {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		txn := app.StartTransaction("HTTP " + routeName(r))
+		defer txn.End()
+		txn.SetWebRequestHTTP(r)
+		w = txn.SetWebResponse(w)
+		next.ServeHTTP(w, newrelic.RequestWithTransactionContext(r, txn))
+	})
+}
+
+func routeName(r *http.Request) string {
+	if r == nil || r.URL == nil {
+		return "unknown"
+	}
+	switch {
+	case r.URL.Path == "/ws":
+		return "/ws"
+	case r.URL.Path == "/health":
+		return "/health"
+	case r.URL.Path == "/debug/channels":
+		return "/debug/channels"
+	case strings.HasPrefix(r.URL.Path, "/debug/pprof"):
+		return "/debug/pprof"
+	default:
+		return "not_found"
+	}
+}
+
+func transactionNamePart(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "unknown"
+	}
+	var b strings.Builder
+	for _, r := range value {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case r == '-', r == '_', r == '.', r == ':':
+			b.WriteRune(r)
+		default:
+			b.WriteRune('_')
+		}
+		if b.Len() >= 80 {
+			break
+		}
+	}
+	if b.Len() == 0 {
+		return "unknown"
+	}
+	return b.String()
 }
 
 func reportMetrics(ctx context.Context, registry *metrics.Metrics, started time.Time, interval time.Duration, debugChannels func() []realtime.DebugChannel) {

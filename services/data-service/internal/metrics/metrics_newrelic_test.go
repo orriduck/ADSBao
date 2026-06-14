@@ -15,6 +15,26 @@ type recordingSink struct {
 	points []Point
 }
 
+type recordingLogSink struct {
+	entries []recordedLog
+}
+
+type recordingAPMReporter struct {
+	metrics map[string]float64
+	events  []recordedAPMEvent
+}
+
+type recordedLog struct {
+	level      string
+	message    string
+	attributes map[string]any
+}
+
+type recordedAPMEvent struct {
+	eventType string
+	params    map[string]interface{}
+}
+
 func (s *recordingSink) Record(point Point) {
 	s.points = append(s.points, point)
 }
@@ -25,6 +45,25 @@ func (s *recordingSink) Flush(context.Context) error {
 
 func (s *recordingSink) Shutdown(context.Context) error {
 	return nil
+}
+
+func (s *recordingLogSink) RecordLog(level, message string, attributes map[string]any) {
+	s.entries = append(s.entries, recordedLog{
+		level:      level,
+		message:    message,
+		attributes: attributes,
+	})
+}
+
+func (r *recordingAPMReporter) RecordCustomMetric(name string, value float64) {
+	if r.metrics == nil {
+		r.metrics = map[string]float64{}
+	}
+	r.metrics[name] = value
+}
+
+func (r *recordingAPMReporter) RecordCustomEvent(eventType string, params map[string]interface{}) {
+	r.events = append(r.events, recordedAPMEvent{eventType: eventType, params: params})
 }
 
 func TestMetricsReportDimensionalNewRelicPoints(t *testing.T) {
@@ -82,6 +121,83 @@ func TestMetricsReportDimensionalNewRelicPoints(t *testing.T) {
 			if key == "channel" || key == "key" || value == "traffic:center:42.4:-71:40" {
 				t.Fatalf("high-cardinality channel identity leaked into point %#v", point)
 			}
+		}
+	}
+}
+
+func TestMetricsRecordExternalRequestWritesStructuredLog(t *testing.T) {
+	logs := &recordingLogSink{}
+	m := New(WithLogSink(logs))
+
+	m.RecordExternalRequest(realtime.ExternalRequestMetricInput{
+		Provider:   "adsb.lol",
+		Endpoint:   "positions",
+		Result:     "error",
+		Status:     503,
+		DurationMS: 2480,
+	})
+
+	if len(logs.entries) != 1 {
+		t.Fatalf("logs = %#v", logs.entries)
+	}
+	entry := logs.entries[0]
+	if entry.level != "error" || entry.message != "external_request_done" {
+		t.Fatalf("entry = %#v", entry)
+	}
+	want := map[string]any{
+		"event.name":       "external_request_done",
+		"provider":         "adsb.lol",
+		"endpoint":         "positions",
+		"result":           "error",
+		"status":           "503",
+		"status.class":     "5xx",
+		"duration.ms":      int64(2480),
+		"duration.seconds": 2.48,
+	}
+	for key, value := range want {
+		if entry.attributes[key] != value {
+			t.Fatalf("attribute %s = %#v, want %#v in %#v", key, entry.attributes[key], value, entry.attributes)
+		}
+	}
+}
+
+func TestMetricsRecordExternalRequestReportsAPMCustomTelemetry(t *testing.T) {
+	reporter := &recordingAPMReporter{}
+	m := New(WithAPMReporter(reporter))
+
+	m.RecordExternalRequest(realtime.ExternalRequestMetricInput{
+		Provider:   "adsb.lol",
+		Endpoint:   "positions",
+		Result:     "success",
+		Status:     200,
+		DurationMS: 123,
+	})
+
+	if reporter.metrics["ExternalRequest/Count"] != 1 {
+		t.Fatalf("metrics = %#v", reporter.metrics)
+	}
+	if reporter.metrics["ExternalRequest/DurationSeconds"] != 0.123 {
+		t.Fatalf("metrics = %#v", reporter.metrics)
+	}
+	if len(reporter.events) != 1 {
+		t.Fatalf("events = %#v", reporter.events)
+	}
+	event := reporter.events[0]
+	if event.eventType != "ADSBaoExternalRequest" {
+		t.Fatalf("event type = %q", event.eventType)
+	}
+	want := map[string]interface{}{
+		"provider":        "adsb.lol",
+		"endpoint":        "positions",
+		"result":          "success",
+		"status":          "200",
+		"statusClass":     "2xx",
+		"durationMs":      int64(123),
+		"durationSeconds": 0.123,
+	}
+	for key, value := range want {
+		if event.params[key] != value {
+			t.Fatalf("event param %s = %#v, want %#v in %#v", key, event.params[key], value, event.params)
 		}
 	}
 }

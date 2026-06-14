@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.0",
+    kind: "feat",
+    title: "New Relic observability",
+    summary:
+      "ADSBao now emits richer New Relic telemetry across the realtime data-service and Vercel proxy routes.",
+    highlights: [
+      "Added New Relic APM transactions for the Go data-service HTTP surface and background provider polling",
+      "Recorded external provider requests as structured logs, custom events, custom metrics, and latency summaries",
+      "Connected Vercel proxy routes to New Relic Metric API and Log API telemetry for route latency and provider errors",
+    ],
+  },
+  {
     version: "v2.5.1",
     kind: "patch",
     title: "Toolbar and tracking polish",

@@ -91,6 +91,19 @@ func (f *LogForwarder) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+func (f *LogForwarder) RecordLog(level, message string, attributes map[string]any) {
+	message = strings.TrimSpace(message)
+	if message == "" || f.licenseKey == "" {
+		return
+	}
+	f.enqueue(newRelicLogEntry{
+		Timestamp:  f.now().UnixMilli(),
+		Message:    truncateLogValue(message),
+		Level:      normalizeLogLevel(level, message),
+		Attributes: sanitizeLogAttributes(attributes),
+	})
+}
+
 func (f *LogForwarder) Run(ctx context.Context, interval time.Duration) {
 	if f.licenseKey == "" {
 		return
@@ -196,9 +209,10 @@ type newRelicLogCommon struct {
 }
 
 type newRelicLogEntry struct {
-	Timestamp int64  `json:"timestamp"`
-	Message   string `json:"message"`
-	Level     string `json:"level"`
+	Timestamp  int64          `json:"timestamp"`
+	Message    string         `json:"message"`
+	Level      string         `json:"level"`
+	Attributes map[string]any `json:"attributes,omitempty"`
 }
 
 func inferLogLevel(message string) string {
@@ -214,6 +228,42 @@ func inferLogLevel(message string) string {
 	default:
 		return "info"
 	}
+}
+
+func normalizeLogLevel(level, message string) string {
+	switch strings.ToLower(strings.TrimSpace(level)) {
+	case "trace", "debug", "info", "warn", "error", "fatal":
+		return strings.ToLower(strings.TrimSpace(level))
+	default:
+		return inferLogLevel(message)
+	}
+}
+
+func sanitizeLogAttributes(input map[string]any) map[string]any {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make(map[string]any, len(input))
+	for key, value := range input {
+		key = strings.TrimSpace(key)
+		if key == "" {
+			continue
+		}
+		switch v := value.(type) {
+		case nil:
+			continue
+		case string:
+			out[key] = truncateLogValue(v)
+		case bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+			out[key] = v
+		default:
+			out[key] = truncateLogValue(fmt.Sprint(v))
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func truncateLogValue(value string) string {

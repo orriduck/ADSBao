@@ -47,11 +47,22 @@ type Sink interface {
 	Shutdown(ctx context.Context) error
 }
 
+type LogSink interface {
+	RecordLog(level, message string, attributes map[string]any)
+}
+
+type APMReporter interface {
+	RecordCustomMetric(name string, value float64)
+	RecordCustomEvent(eventType string, params map[string]interface{})
+}
+
 type Option func(*Metrics)
 
 type Metrics struct {
 	mu                   sync.Mutex
 	sink                 Sink
+	logSink              LogSink
+	apmReporter          APMReporter
 	wsConnectionsCurrent int
 }
 
@@ -70,6 +81,22 @@ func WithSink(sink Sink) Option {
 	return func(m *Metrics) {
 		if sink != nil {
 			m.sink = sink
+		}
+	}
+}
+
+func WithLogSink(sink LogSink) Option {
+	return func(m *Metrics) {
+		if sink != nil {
+			m.logSink = sink
+		}
+	}
+}
+
+func WithAPMReporter(reporter APMReporter) Option {
+	return func(m *Metrics) {
+		if reporter != nil {
+			m.apmReporter = reporter
 		}
 	}
 }
@@ -159,6 +186,8 @@ func (m *Metrics) RecordExternalRequest(input realtime.ExternalRequestMetricInpu
 	if input.DurationMS >= 0 {
 		m.summary("adsbao.external_request.duration.seconds", float64(input.DurationMS)/1000, labels)
 	}
+	m.recordExternalRequestLog(input, status, class)
+	m.recordExternalRequestAPM(input, status, class)
 }
 
 func (m *Metrics) RecordDynamic(uptimeSec float64, channels []realtime.DebugChannel) {
@@ -232,6 +261,57 @@ func (m *Metrics) gauge(name string, value float64, attributes map[string]string
 
 func (m *Metrics) summary(name string, value float64, attributes map[string]string) {
 	m.sink.Record(Point{Name: name, Kind: Summary, Value: value, Attributes: attributes})
+}
+
+func (m *Metrics) recordExternalRequestLog(input realtime.ExternalRequestMetricInput, status, class string) {
+	if m.logSink == nil {
+		return
+	}
+	durationSeconds := float64(input.DurationMS) / 1000
+	attributes := map[string]any{
+		"event.name":       "external_request_done",
+		"provider":         normalize(input.Provider),
+		"endpoint":         normalize(input.Endpoint),
+		"result":           normalize(input.Result),
+		"status":           normalize(status),
+		"status.class":     normalize(class),
+		"duration.ms":      input.DurationMS,
+		"duration.seconds": durationSeconds,
+	}
+	m.logSink.RecordLog(externalRequestLogLevel(input.Result, class), "external_request_done", attributes)
+}
+
+func externalRequestLogLevel(result, class string) string {
+	normalizedResult := normalize(result)
+	normalizedClass := normalize(class)
+	switch {
+	case normalizedResult == "success" && normalizedClass != "4xx" && normalizedClass != "5xx":
+		return "info"
+	case normalizedClass == "4xx":
+		return "warn"
+	default:
+		return "error"
+	}
+}
+
+func (m *Metrics) recordExternalRequestAPM(input realtime.ExternalRequestMetricInput, status, class string) {
+	if m.apmReporter == nil {
+		return
+	}
+	durationSeconds := float64(input.DurationMS) / 1000
+	m.apmReporter.RecordCustomMetric("ExternalRequest/Count", 1)
+	if input.DurationMS >= 0 {
+		m.apmReporter.RecordCustomMetric("ExternalRequest/DurationSeconds", durationSeconds)
+	}
+	m.apmReporter.RecordCustomEvent("ADSBaoExternalRequest", map[string]interface{}{
+		"provider":        normalize(input.Provider),
+		"endpoint":        normalize(input.Endpoint),
+		"result":          normalize(input.Result),
+		"status":          normalize(status),
+		"statusClass":     normalize(class),
+		"durationMs":      input.DurationMS,
+		"durationSeconds": durationSeconds,
+	})
 }
 
 type noopSink struct{}
