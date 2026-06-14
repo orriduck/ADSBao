@@ -866,7 +866,7 @@ function FlightExplorerContent({ callsign }) {
         <div className="airport-map-stage relative min-w-0 flex-1 overflow-hidden bg-atc-bg">
           {!(isMobile && sidebarOpen) && (
             <ExplorerMapMenu
-              feedSource=""
+              feedSource={feedSource}
               feedStatus="live"
               lastUpdated={lastUpdated}
               routeProvider={routeProvider}
