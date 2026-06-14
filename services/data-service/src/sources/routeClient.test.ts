@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { DataServiceMetrics } from "../metrics/MetricsRegistry";
 import { fetchRouteChannel } from "./routeClient";
 
 function jsonResponse(payload: unknown, status = 200) {
@@ -13,9 +14,11 @@ function jsonResponse(payload: unknown, status = 200) {
 
 {
   const calls: string[] = [];
+  const metrics = new DataServiceMetrics();
   const event = await fetchRouteChannel({
     channel: "route:DAL123",
     channelType: "route",
+    metrics,
     target: { kind: "route", callsign: "DAL123" },
     params: {},
     waitForTurn: async () => {},
@@ -54,12 +57,19 @@ function jsonResponse(payload: unknown, status = 200) {
   const data = event.data as any;
   assert.equal(data.route.callsign, "DAL123");
   assert.equal(data.route.route.iata, "ATL-BOS");
+  const output = metrics.render({ uptimeSec: 1, channels: [] });
+  assert.match(
+    output,
+    /adsbao_external_requests_total\{endpoint="route",provider="adsbdb",result="success",status="200",status_class="2xx"\} 1/,
+  );
 }
 
 {
+  const metrics = new DataServiceMetrics();
   const event = await fetchRouteChannel({
     channel: "route:NOPE123",
     channelType: "route",
+    metrics,
     target: { kind: "route", callsign: "NOPE123" },
     params: {},
     waitForTurn: async () => {},
@@ -69,6 +79,11 @@ function jsonResponse(payload: unknown, status = 200) {
   assert.equal(event.type, "route:update");
   const data = event.data as any;
   assert.equal(data.route, null);
+  const output = metrics.render({ uptimeSec: 1, channels: [] });
+  assert.match(
+    output,
+    /adsbao_external_requests_total\{endpoint="route",provider="adsbdb",result="success",status="404",status_class="4xx"\} 1/,
+  );
 }
 
 console.log("routeClient.test.ts ok");

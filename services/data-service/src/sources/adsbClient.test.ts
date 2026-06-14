@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { DataServiceMetrics } from "../metrics/MetricsRegistry";
 import { fetchAdsbChannel } from "./adsbClient";
 
 function jsonResponse(payload: unknown) {
@@ -13,6 +14,7 @@ function jsonResponse(payload: unknown) {
 {
   const originalFetch = globalThis.fetch;
   const requestedUrls: string[] = [];
+  const metrics = new DataServiceMetrics();
   try {
     globalThis.fetch = (async (url: RequestInfo | URL) => {
       const href = String(url);
@@ -39,6 +41,7 @@ function jsonResponse(payload: unknown) {
     const event = await fetchAdsbChannel({
       channel: "callsign:DAL58",
       channelType: "callsign",
+      metrics,
       target: {
         kind: "callsign",
         callsign: "DAL58",
@@ -56,6 +59,15 @@ function jsonResponse(payload: unknown) {
     assert.equal(event.data.ac.length, 1);
     assert.equal(event.data.ac[0].type, "adsc");
     assert.equal(requestedUrls.length, 2);
+    const output = metrics.render({ uptimeSec: 1, channels: [] });
+    assert.match(
+      output,
+      /adsbao_external_requests_total\{endpoint="callsign",provider="adsb.lol",result="success",status="200",status_class="2xx"\} 1/,
+    );
+    assert.match(
+      output,
+      /adsbao_external_requests_total\{endpoint="callsign",provider="airplanes.live",result="success",status="200",status_class="2xx"\} 1/,
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }

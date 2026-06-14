@@ -53,7 +53,15 @@ class FakeSocket extends EventEmitter {
   assert.match(output, /adsbao_ws_connections_total 1/);
   assert.match(
     output,
+    /adsbao_ws_disconnects_total\{close_code="unknown",result="closed"\} 1/,
+  );
+  assert.match(
+    output,
     /adsbao_ws_messages_total\{direction="inbound",result="ok",type="subscribe"\} 2/,
+  );
+  assert.match(
+    output,
+    /adsbao_ws_message_bytes_bucket\{direction="inbound",le="\+Inf",result="ok",type="subscribe"\} 2/,
   );
   assert.match(
     output,

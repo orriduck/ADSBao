@@ -234,6 +234,7 @@ export class PollingScheduler {
       const event = await this.fetchChannel({
         channel: state.channel,
         channelType: state.type,
+        metrics: this.metrics || undefined,
         target: state.target,
         params: state.params,
       });
@@ -293,12 +294,6 @@ export class PollingScheduler {
     this.metrics.recordPoll({
       channelType: state.type,
       source,
-      result,
-      durationMs,
-    });
-    this.metrics.recordExternalRequestForPoll({
-      channelType: state.type,
-      provider: source,
       result,
       durationMs,
     });
