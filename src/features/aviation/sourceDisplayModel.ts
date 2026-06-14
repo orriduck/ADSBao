@@ -41,8 +41,31 @@ const AIRCRAFT_POSITION_SOURCE_LABELS = Object.freeze({
   unknown: "",
 });
 
+const STALE_POSITION_AGE_MS = 90 * 1000;
+
+type MapPositionSourceBadgeOptions = {
+  positionQuality?: Record<string, any> | null;
+  trackingState?: Record<string, any> | null;
+  lastUpdated?: unknown;
+  now?: number;
+};
+
 function normalizeKey(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function parseTimestampMs(value: unknown) {
+  if (value == null || value === "") return null;
+  if (value instanceof Date) {
+    const timestamp = value.getTime();
+    return Number.isFinite(timestamp) ? timestamp : null;
+  }
+  const number = Number(value);
+  if (Number.isFinite(number)) {
+    return number < 10_000_000_000 ? Math.round(number * 1000) : Math.round(number);
+  }
+  const parsed = Date.parse(String(value));
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function getDataSourceDisplayName(source) {
@@ -102,6 +125,29 @@ export function getAircraftPositionSourceBadge(quality: Record<string, any> = {}
   if (source === "flightaware") return sourceLabel;
   if (kind === "stale") return "Stale";
   return sourceLabel;
+}
+
+export function getMapPositionSourceBadge({
+  positionQuality = {},
+  trackingState = null,
+  lastUpdated = null,
+  now = Date.now(),
+}: MapPositionSourceBadgeOptions = {}) {
+  const normalizedPositionQuality = positionQuality || {};
+  const trackingStatus = normalizeKey(trackingState?.status);
+  const qualityKind = normalizeKey(normalizedPositionQuality.kind);
+  if (trackingStatus === "stale" || qualityKind === "stale") return "Stale";
+
+  const lastUpdatedMs = parseTimestampMs(lastUpdated);
+  if (
+    lastUpdatedMs != null &&
+    Number.isFinite(now) &&
+    now - lastUpdatedMs > STALE_POSITION_AGE_MS
+  ) {
+    return "Stale";
+  }
+
+  return getAircraftPositionSourceBadge(normalizedPositionQuality);
 }
 
 export function buildMapSourceStatusDisplay({

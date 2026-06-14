@@ -11,6 +11,7 @@ export default function ExplorerMapMenu({
   lastUpdated = null,
   loadingStatus = "",
   realtimeStatus = "",
+  sourceLabel = "",
   traceViewItems = [],
   userLocationActive = false,
   userLocationAudioActive = false,
@@ -110,6 +111,7 @@ export default function ExplorerMapMenu({
         lastUpdated={lastUpdated}
         loadingStatus={loadingStatus}
         realtimeStatus={realtimeStatus}
+        sourceLabel={sourceLabel}
         wakeLockActive={wakeLockState.active}
       />
     </div>
