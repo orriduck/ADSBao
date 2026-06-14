@@ -1,7 +1,6 @@
 # ADSBao New Relic Observability
 
-This Terraform module creates the ADSBao data-service dashboard and NRQL alert
-conditions in New Relic.
+This Terraform module creates ADSBao NRQL alert conditions in New Relic.
 
 It does not store secrets. Provide credentials through environment variables:
 
@@ -21,7 +20,7 @@ terraform apply
 The data-service itself uses `NEW_RELIC_LICENSE_KEY` on Railway for APM, custom
 events, custom metrics, Metric API, and Log API ingest. Vercel proxy routes use
 the same key for Metric API and Log API ingest. The user API key above is only
-for managing dashboards and alerts through Terraform.
+for managing alert policy resources through Terraform.
 
 Useful New Relic queries after deploy:
 

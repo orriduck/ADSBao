@@ -4,7 +4,7 @@ variable "new_relic_account_id" {
 }
 
 variable "new_relic_api_key" {
-  description = "New Relic user API key for managing dashboards and alerts."
+  description = "New Relic user API key for managing alerts."
   type        = string
   sensitive   = true
 }
@@ -18,12 +18,6 @@ variable "new_relic_region" {
     condition     = contains(["US", "EU"], var.new_relic_region)
     error_message = "new_relic_region must be US or EU."
   }
-}
-
-variable "dashboard_permissions" {
-  description = "New Relic dashboard permissions."
-  type        = string
-  default     = "public_read_only"
 }
 
 variable "external_error_ratio_critical" {
