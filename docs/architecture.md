@@ -35,7 +35,8 @@ current map center, and callsign route labels are served first through the Go
 WebSocket backend under `services/data-service`. It is deployed as a Railway
 service, shares one polling loop per active channel, applies provider fallback
 and backoff centrally, exposes `/health`, `/debug/channels`, and `/ws`, and
-pushes low-cardinality business metrics to New Relic.
+pushes New Relic APM transactions, custom external-request events, structured
+logs, and low-cardinality business metrics.
 
 Realtime channel keys encode the polling target instead of hiding it in
 subscription params. This keeps shared loops correct when three product anchors

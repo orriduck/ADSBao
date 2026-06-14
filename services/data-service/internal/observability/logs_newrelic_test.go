@@ -72,6 +72,52 @@ func TestNewRelicLogForwarderWritesSourceAndPostsStructuredLogs(t *testing.T) {
 	}
 }
 
+func TestNewRelicLogForwarderPostsStructuredAttributes(t *testing.T) {
+	var gotPayload []newRelicLogPayload
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(&gotPayload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		w.WriteHeader(http.StatusAccepted)
+	}))
+	defer server.Close()
+
+	forwarder := NewRelicLogForwarder(NewRelicLogOptions{
+		LicenseKey: "test-license",
+		Endpoint:   server.URL,
+		AppName:    "adsbao-test",
+		Now: func() time.Time {
+			return time.UnixMilli(1710000000456)
+		},
+	})
+
+	forwarder.RecordLog("warn", "external_request_done", map[string]any{
+		"provider":    "adsb.lol",
+		"endpoint":    "positions",
+		"status":      "429",
+		"duration.ms": int64(982),
+	})
+	if err := forwarder.Flush(context.Background()); err != nil {
+		t.Fatalf("flush: %v", err)
+	}
+
+	if len(gotPayload) != 1 || len(gotPayload[0].Logs) != 1 {
+		t.Fatalf("payload = %#v", gotPayload)
+	}
+	log := gotPayload[0].Logs[0]
+	if log.Timestamp != 1710000000456 ||
+		log.Message != "external_request_done" ||
+		log.Level != "warn" {
+		t.Fatalf("log = %#v", log)
+	}
+	if log.Attributes["provider"] != "adsb.lol" ||
+		log.Attributes["endpoint"] != "positions" ||
+		log.Attributes["status"] != "429" ||
+		log.Attributes["duration.ms"] != float64(982) {
+		t.Fatalf("attributes = %#v", log.Attributes)
+	}
+}
+
 func TestNewRelicLogForwarderRequeuesOnFailedFlush(t *testing.T) {
 	var attempts int
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

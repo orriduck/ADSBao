@@ -33,17 +33,21 @@ Stable channel behavior:
   provider polling loop.
 - When the last subscriber leaves a key, its polling loop is cancelled.
 
-Stable metrics behavior:
+Stable observability behavior:
 
-- Business metrics are pushed to New Relic through the Metric API when
-  `NEW_RELIC_LICENSE_KEY` is present.
-- Backend logs emitted through the service logger are pushed to New Relic
-  through the Log API when `NEW_RELIC_LICENSE_KEY` is present.
+- APM transactions, custom events, custom metrics, Metric API payloads, and Log
+  API payloads are sent to New Relic when `NEW_RELIC_LICENSE_KEY` is present.
+- Background provider polling is wrapped in APM transactions, and provider HTTP
+  clients use the New Relic transport so external latency can appear in APM.
+- External provider requests emit `ADSBaoExternalRequest` custom events,
+  `ExternalRequest/*` custom metrics, `adsbao.external_*` Metric API series,
+  and structured `external_request_done` logs.
 - Metric names use the `adsbao.*` namespace and low-cardinality attributes.
 - Do not add callsign, full channel name, user id, lat/lon, raw URL, token, or
   exact error text as New Relic metric attributes.
 - Log events include `service.name=adsbao-data-service`, `app.name`, `logtype`,
-  `environment`, `level`, `timestamp`, and `message`.
+  `environment`, `level`, `timestamp`, `message`, and low-cardinality provider
+  attributes when applicable.
 - Railway built-in metrics remain the source for service CPU, memory, network,
   and volume usage.
 
@@ -74,7 +78,8 @@ Compatible env vars:
 - `AIRPORT_DIRECTORY_BASE_URL` defaults to `https://www.adsbao.dev` and is used
   as a fallback airport directory when FlightAware route pages omit embedded
   airport coordinates.
-- `NEW_RELIC_LICENSE_KEY` enables New Relic Metric API and Log API reporting.
+- `NEW_RELIC_LICENSE_KEY` enables New Relic APM, custom events, custom metrics,
+  Metric API, and Log API reporting.
 - `NEW_RELIC_APP_NAME` defaults to `adsbao-data-service`.
 - `NEW_RELIC_METRICS_ENDPOINT` defaults to
   `https://metric-api.newrelic.com/metric/v1`.
@@ -149,6 +154,8 @@ wss://<railway-domain>/ws
 
 Check New Relic metrics for:
 
+- APM transactions for `/health`, `/debug/channels`, `/ws`, and background
+  `Polling/*` work
 - WebSocket connections and disconnects
 - WebSocket message and byte rate
 - Subscribe and unsubscribe rate
@@ -156,15 +163,21 @@ Check New Relic metrics for:
 - Poll duration
 - Active channels and subscriptions
 - Stale channels and consecutive failures
-- Backend log volume and error logs
+- `ADSBaoExternalRequest` custom events
+- Backend structured log volume and error logs
+- Vercel proxy route latency and provider error logs when the Vercel deployment
+  also has `NEW_RELIC_LICENSE_KEY`
 
 Useful NRQL starting points:
 
 ```sql
 FROM Metric SELECT sum(adsbao.ws.subscribe) FACET channel_type, result TIMESERIES
 FROM Metric SELECT sum(adsbao.external_requests) FACET provider, status_class TIMESERIES
+FROM ADSBaoExternalRequest SELECT count(*), percentile(durationSeconds, 95) FACET provider, endpoint, statusClass TIMESERIES
 FROM Metric SELECT average(adsbao.active_channels.current) FACET channel_type TIMESERIES
 FROM Log SELECT timestamp, level, message WHERE service.name = 'adsbao-data-service' LIMIT 100
+FROM Metric SELECT sum(adsbao.vercel.proxy.requests), percentile(adsbao.vercel.proxy.duration.seconds, 95) WHERE service.name = 'adsbao-web' FACET route, source, status.class TIMESERIES
+FROM Log SELECT timestamp, level, message WHERE service.name = 'adsbao-web' LIMIT 100
 ```
 
 The dynamic channel gauges should emit zero-valued series for idle aircraft,
@@ -183,5 +196,5 @@ Rollback is a Git or Railway deployment rollback:
    and merge the revert to `main`.
 2. Keep `NEXT_PUBLIC_ADSBAO_REALTIME_URL` pointed at the Railway data-service
    public `/ws` URL unless the service domain itself changed.
-3. Verify `/health`, New Relic metric ingest, Railway resource metrics, and a
-   live browser WebSocket session.
+3. Verify `/health`, New Relic APM/custom event/metric/log ingest, Railway
+   resource metrics, and a live browser WebSocket session.

@@ -43,8 +43,9 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
   directory for FlightAware route pages that omit embedded airport coordinates.
   Defaults to `https://www.adsbao.dev`.
 - `ENABLE_PPROF`
-- `NEW_RELIC_LICENSE_KEY` — New Relic ingest license key. When unset, metrics
-  and backend log reporting are disabled.
+- `NEW_RELIC_LICENSE_KEY` — New Relic ingest license key. When unset, APM,
+  custom events, custom metrics, Metric API, and backend log reporting are
+  disabled.
 - `NEW_RELIC_APP_NAME` — New Relic app name. Defaults to `adsbao-data-service`.
 - `NEW_RELIC_METRICS_ENDPOINT` — Metric API endpoint. Defaults to the US
   endpoint `https://metric-api.newrelic.com/metric/v1`.
@@ -59,7 +60,8 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
 
 Deploy this service from the repository root directory `services/data-service`
 using `services/data-service/railway.json`. Validate `/health`, direct
-WebSocket subscribe/ping behavior, Railway resource metrics, and New Relic
-business metrics and backend logs after each production deploy.
+WebSocket subscribe/ping behavior, Railway resource metrics, and New Relic APM
+transactions, external provider custom events, business metrics, latency
+summaries, and backend logs after each production deploy.
 
 See the repository deployment runbook at `docs/data-service-deployment.md`.

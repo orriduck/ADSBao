@@ -5,6 +5,10 @@ const DEFAULT_RATE_LIMIT = {
 };
 const DEFAULT_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_RATE_LIMIT_ENTRIES = 2_000;
+const DEFAULT_NEW_RELIC_METRICS_ENDPOINT =
+  "https://metric-api.newrelic.com/metric/v1";
+const DEFAULT_NEW_RELIC_LOGS_ENDPOINT =
+  "https://log-api.newrelic.com/log/v1";
 
 type EnvLike = Record<string, string | undefined>;
 type CoordinateRange = { min: number; max: number };
@@ -38,11 +42,28 @@ type LogProxyRouteResponseOptions = {
   response?: Response;
   startMs?: number;
   nowMs?: number;
+  nowEpochMs?: number;
   logger?: (...data: unknown[]) => void;
+  env?: EnvLike;
+  fetcher?: typeof fetch;
 };
 type ResponseReadOptions = {
   label?: string;
   maxBytes?: number;
+};
+type ProxyObservation = {
+  level: "info" | "warn" | "error";
+  msg: "proxy_route_done";
+  route: string;
+  requestId: string | null;
+  status: number;
+  statusClass: string;
+  result: "success" | "error";
+  ms: number | null;
+  source: string | null;
+  attempts: string | null;
+  environment: string;
+  timestamp: number;
 };
 
 const rateLimitBuckets = new Map<string, RateLimitBucket>();
@@ -259,7 +280,7 @@ export function jsonProxyResponse(
   });
 }
 
-export function logProxyRouteResponse({
+export async function logProxyRouteResponse({
   request,
   route,
   response,
@@ -268,18 +289,24 @@ export function logProxyRouteResponse({
     typeof performance !== "undefined" && typeof performance.now === "function"
       ? performance.now()
       : Date.now(),
+  nowEpochMs = Date.now(),
   logger = console.info,
+  env = typeof process !== "undefined" ? process.env : {},
+  fetcher = typeof fetch === "function" ? fetch : undefined,
 }: LogProxyRouteResponseOptions = {}) {
-  if (typeof logger !== "function") return response;
-
   const startedAt = Number(startMs);
   const finishedAt = Number(nowMs);
-  const payload = {
-    level: "info",
+  const status = Number(response?.status) || 0;
+  const statusClass = status > 0 ? `${Math.floor(status / 100)}xx` : "unknown";
+  const result = status > 0 && status < 400 ? "success" : "error";
+  const payload: ProxyObservation = {
+    level: status >= 500 || status === 0 ? "error" : status >= 400 ? "warn" : "info",
     msg: "proxy_route_done",
     route: String(route || ""),
     requestId: request?.headers?.get?.("x-vercel-id") || null,
-    status: Number(response?.status) || 0,
+    status,
+    statusClass,
+    result,
     ms:
       Number.isFinite(startedAt) && Number.isFinite(finishedAt)
         ? Math.max(0, Math.round(finishedAt - startedAt))
@@ -289,9 +316,154 @@ export function logProxyRouteResponse({
       response?.headers?.get?.("x-route-source") ||
       null,
     attempts: response?.headers?.get?.("x-provider-attempts") || null,
+    environment: String(env.VERCEL_ENV || env.NODE_ENV || "production"),
+    timestamp: Number.isFinite(Number(nowEpochMs)) ? Number(nowEpochMs) : Date.now(),
   };
-  logger(JSON.stringify(payload));
+  if (typeof logger === "function") {
+    logger(JSON.stringify(toProxyConsolePayload(payload)));
+  }
+  await recordNewRelicProxyObservation(payload, { env, fetcher });
   return response;
+}
+
+function toProxyConsolePayload(payload: ProxyObservation) {
+  return {
+    level: payload.level,
+    msg: payload.msg,
+    route: payload.route,
+    requestId: payload.requestId,
+    status: payload.status,
+    ms: payload.ms,
+    source: payload.source,
+    attempts: payload.attempts,
+  };
+}
+
+async function recordNewRelicProxyObservation(
+  payload: ProxyObservation,
+  {
+    env = typeof process !== "undefined" ? process.env : {},
+    fetcher = typeof fetch === "function" ? fetch : undefined,
+  }: { env?: EnvLike; fetcher?: typeof fetch } = {},
+) {
+  const licenseKey = String(env.NEW_RELIC_LICENSE_KEY || "").trim();
+  if (!licenseKey || typeof fetcher !== "function") return;
+
+  const metricEndpoint = String(
+    env.NEW_RELIC_METRICS_ENDPOINT || DEFAULT_NEW_RELIC_METRICS_ENDPOINT,
+  ).trim();
+  const logsEndpoint = String(
+    env.NEW_RELIC_LOGS_ENDPOINT || DEFAULT_NEW_RELIC_LOGS_ENDPOINT,
+  ).trim();
+  const appName = String(env.NEW_RELIC_APP_NAME || "adsbao-web").trim();
+  const attributes = proxyTelemetryAttributes(payload);
+  const headers = {
+    "Content-Type": "application/json",
+    "Api-Key": licenseKey,
+  };
+  const requests = [
+    fetcher(metricEndpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify([
+        {
+          common: {
+            timestamp: payload.timestamp,
+            attributes: {
+              "app.name": appName,
+              "service.name": "adsbao-web",
+              environment: payload.environment,
+            },
+          },
+          metrics: proxyMetrics(payload, attributes),
+        },
+      ]),
+    }),
+    fetcher(logsEndpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify([
+        {
+          common: {
+            attributes: {
+              "app.name": appName,
+              "service.name": "adsbao-web",
+              environment: payload.environment,
+              logtype: "adsbao-web",
+            },
+          },
+          logs: [
+            {
+              timestamp: payload.timestamp,
+              message: payload.msg,
+              level: payload.level,
+              attributes: {
+                ...attributes,
+                "request.id": payload.requestId || "unknown",
+                "duration.ms": payload.ms,
+              },
+            },
+          ],
+        },
+      ]),
+    }),
+  ];
+
+  try {
+    const responses = await Promise.all(requests);
+    for (const response of responses) {
+      if (!response.ok && response.status !== 202) {
+        throw new Error(`New Relic ingest returned ${response.status}`);
+      }
+    }
+  } catch (error) {
+    console.warn(
+      "[newrelic-proxy] ingest failed",
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+}
+
+function proxyTelemetryAttributes(payload: ProxyObservation) {
+  return {
+    route: payload.route || "unknown",
+    source: payload.source || "unknown",
+    attempts: payload.attempts || "none",
+    result: payload.result,
+    status: String(payload.status || "unknown"),
+    "status.class": payload.statusClass,
+  };
+}
+
+function proxyMetrics(
+  payload: ProxyObservation,
+  attributes: ReturnType<typeof proxyTelemetryAttributes>,
+) {
+  const metrics: Array<Record<string, unknown>> = [
+    {
+      name: "adsbao.vercel.proxy.requests",
+      type: "count",
+      value: 1,
+      "interval.ms": 1000,
+      attributes,
+    },
+  ];
+  if (payload.ms != null) {
+    const durationSeconds = payload.ms / 1000;
+    metrics.push({
+      name: "adsbao.vercel.proxy.duration.seconds",
+      type: "summary",
+      value: {
+        count: 1,
+        sum: durationSeconds,
+        min: durationSeconds,
+        max: durationSeconds,
+      },
+      "interval.ms": 1000,
+      attributes,
+    });
+  }
+  return metrics;
 }
 
 async function readResponseBytes(
