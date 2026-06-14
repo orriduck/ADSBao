@@ -58,7 +58,7 @@ export default function MapControlRail({
             aria-label={t("map.openDetails")}
             onClick={onToggleSidebar}
           >
-            <MapControlIcon iconKey="chartNoAxesColumnIncreasing" />
+            <MapControlIcon iconKey="panelsTopLeft" />
           </ToolbarButton>
           <ToolbarSeparator />
         </>

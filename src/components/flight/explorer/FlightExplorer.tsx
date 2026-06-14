@@ -229,7 +229,7 @@ function FlightExplorerContent({ callsign }) {
       {
         id: "trace:all",
         labelKey: "map.allRecordedPoints",
-        iconKey: "waypoints",
+        iconKey: "chartScatter",
         active: !mapFollowsAircraft && traceViewMode === TRACE_VIEW_ALL,
         onSelect: () => requestTraceView(TRACE_VIEW_ALL),
       },

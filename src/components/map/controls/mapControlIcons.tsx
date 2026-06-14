@@ -5,6 +5,7 @@ import {
   ArrowDownToLine,
   ArrowUpToLine,
   ChartNoAxesColumnIncreasing,
+  ChartScatter,
   Coffee,
   Crosshair,
   Gauge,
@@ -17,10 +18,12 @@ import {
   MonitorCheck,
   Moon,
   Mountain,
+  PanelsTopLeft,
   Plane,
   PlaneLanding,
   Radar,
   Route,
+  ScanSearch,
   ShieldAlert,
   SlidersHorizontal,
   Spotlight,
@@ -42,6 +45,8 @@ export function MapControlIcon({ iconKey }) {
       return <ArrowUpToLine />;
     case "chartNoAxesColumnIncreasing":
       return <ChartNoAxesColumnIncreasing />;
+    case "chartScatter":
+      return <ChartScatter />;
     case "crosshair":
       return <Crosshair />;
     case "gauge":
@@ -64,6 +69,8 @@ export function MapControlIcon({ iconKey }) {
       return <Moon />;
     case "mountain":
       return <Mountain />;
+    case "panelsTopLeft":
+      return <PanelsTopLeft />;
     case "plane":
       return <Plane />;
     case "planeLanding":
@@ -72,6 +79,8 @@ export function MapControlIcon({ iconKey }) {
       return <Radar />;
     case "route":
       return <Route />;
+    case "scanSearch":
+      return <ScanSearch />;
     case "shieldAlert":
       return <ShieldAlert />;
     case "spotlight":
