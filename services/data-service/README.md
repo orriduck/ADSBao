@@ -2,7 +2,7 @@
 
 Go implementation of the Railway realtime data-service. It owns long-running
 ADS-B polling, WebSocket fanout, provider fallback, health/debug endpoints, and
-Prometheus metrics for ADSBao realtime surfaces.
+New Relic Metric API reporting for ADSBao realtime surfaces.
 
 ## Local Run
 
@@ -21,7 +21,6 @@ NEXT_PUBLIC_ADSBAO_REALTIME_URL=ws://localhost:8080/ws pnpm run dev
 
 - `GET /health`
 - `GET /debug/channels`
-- `GET /metrics`
 - `GET /ws` WebSocket upgrade
 
 Optional Go profiling endpoints are available under `/debug/pprof/` only when
@@ -44,12 +43,19 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
   directory for FlightAware route pages that omit embedded airport coordinates.
   Defaults to `https://www.adsbao.dev`.
 - `ENABLE_PPROF`
+- `NEW_RELIC_LICENSE_KEY` — New Relic ingest license key. When unset, metrics
+  reporting is disabled.
+- `NEW_RELIC_APP_NAME` — New Relic app name. Defaults to `adsbao-data-service`.
+- `NEW_RELIC_METRICS_ENDPOINT` — Metric API endpoint. Defaults to the US
+  endpoint `https://metric-api.newrelic.com/metric/v1`.
+- `METRICS_REPORT_INTERVAL_MS` — periodic dynamic gauge flush interval.
+  Defaults to `30000`.
 
 ## Railway Deployment
 
 Deploy this service from the repository root directory `services/data-service`
-using `services/data-service/railway.json`. Validate `/health`, `/metrics`,
-direct WebSocket subscribe/ping behavior, provider request rate, and Grafana
-panels after each production deploy.
+using `services/data-service/railway.json`. Validate `/health`, direct
+WebSocket subscribe/ping behavior, Railway resource metrics, and New Relic
+business metrics after each production deploy.
 
 See the repository deployment runbook at `docs/data-service-deployment.md`.

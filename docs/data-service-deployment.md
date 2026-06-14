@@ -10,7 +10,6 @@ The service exposes:
 
 - `GET /health`
 - `GET /debug/channels`
-- `GET /metrics`
 - `GET /ws` WebSocket upgrade
 
 Stable WebSocket events:
@@ -36,11 +35,13 @@ Stable channel behavior:
 
 Stable metrics behavior:
 
-- Prometheus metrics are exposed under `/metrics`.
-- Existing `adsbao_*` metric names and low-cardinality label names are kept for
-  Grafana compatibility.
+- Business metrics are pushed to New Relic through the Metric API when
+  `NEW_RELIC_LICENSE_KEY` is present.
+- Metric names use the `adsbao.*` namespace and low-cardinality attributes.
 - Do not add callsign, full channel name, user id, lat/lon, raw URL, token, or
-  exact error text as Prometheus labels.
+  exact error text as New Relic metric attributes.
+- Railway built-in metrics remain the source for service CPU, memory, network,
+  and volume usage.
 
 ## Railway Service
 
@@ -69,6 +70,11 @@ Compatible env vars:
 - `AIRPORT_DIRECTORY_BASE_URL` defaults to `https://www.adsbao.dev` and is used
   as a fallback airport directory when FlightAware route pages omit embedded
   airport coordinates.
+- `NEW_RELIC_LICENSE_KEY` enables New Relic Metric API reporting.
+- `NEW_RELIC_APP_NAME` defaults to `adsbao-data-service`.
+- `NEW_RELIC_METRICS_ENDPOINT` defaults to
+  `https://metric-api.newrelic.com/metric/v1`.
+- `METRICS_REPORT_INTERVAL_MS` defaults to `30000`.
 
 Optional Go-only debug env:
 
@@ -107,7 +113,6 @@ Validate HTTP endpoints:
 
 ```bash
 curl http://localhost:8080/health
-curl http://localhost:8080/metrics
 curl http://localhost:8080/debug/channels
 ```
 
@@ -127,7 +132,6 @@ After Railway deploys:
 
 ```bash
 curl https://<railway-domain>/health
-curl https://<railway-domain>/metrics
 ```
 
 Then run a direct WebSocket smoke against:
@@ -136,7 +140,7 @@ Then run a direct WebSocket smoke against:
 wss://<railway-domain>/ws
 ```
 
-Check Grafana panels for:
+Check New Relic metrics for:
 
 - WebSocket connections and disconnects
 - WebSocket message and byte rate
@@ -146,12 +150,20 @@ Check Grafana panels for:
 - Active channels and subscriptions
 - Stale channels and consecutive failures
 
+Useful NRQL starting points:
+
+```sql
+FROM Metric SELECT sum(adsbao.ws.subscribe) FACET channel_type, result TIMESERIES
+FROM Metric SELECT sum(adsbao.external_requests) FACET provider, status_class TIMESERIES
+FROM Metric SELECT average(adsbao.active_channels.current) FACET channel_type TIMESERIES
+```
+
 The dynamic channel gauges should emit zero-valued series for idle aircraft,
-callsign, route, and traffic channel types so panels remain visible when no
+callsign, route, and traffic channel types so charts remain visible when no
 clients are connected.
 
-Also watch Railway memory, CPU, provider request rate, and Vercel aircraft
-proxy invocations after each production deploy.
+Also watch Railway memory/CPU/network, provider request rate in New Relic, and
+Vercel aircraft proxy invocations after each production deploy.
 
 ## Rollback
 
@@ -161,4 +173,5 @@ Rollback is a Git or Railway deployment rollback:
    and merge the revert to `main`.
 2. Keep `NEXT_PUBLIC_ADSBAO_REALTIME_URL` pointed at the Railway data-service
    public `/ws` URL unless the service domain itself changed.
-3. Verify `/health`, `/metrics`, Grafana, and a live browser WebSocket session.
+3. Verify `/health`, New Relic metric ingest, Railway resource metrics, and a
+   live browser WebSocket session.

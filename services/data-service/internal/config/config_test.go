@@ -18,6 +18,10 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 		"ADSBAO_REALTIME_AUTH_SECRET":  "shared-secret",
 		"AIRPORT_DIRECTORY_BASE_URL":   "https://www.adsbao.dev",
 		"ENABLE_PPROF":                 "true",
+		"NEW_RELIC_LICENSE_KEY":        "new-relic-secret",
+		"NEW_RELIC_APP_NAME":           "adsbao-prod",
+		"NEW_RELIC_METRICS_ENDPOINT":   "https://metric-api.example.test/metric/v1",
+		"METRICS_REPORT_INTERVAL_MS":   "45000",
 	}
 
 	cfg := FromEnv(func(key string) string { return env[key] })
@@ -42,6 +46,12 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 	if cfg.RealtimeAuthSecret != "shared-secret" || cfg.AirportDirectoryBaseURL != "https://www.adsbao.dev" {
 		t.Fatalf("urls/secrets = %#v", cfg)
 	}
+	if cfg.NewRelicLicenseKey != "new-relic-secret" ||
+		cfg.NewRelicAppName != "adsbao-prod" ||
+		cfg.NewRelicMetricsEndpoint != "https://metric-api.example.test/metric/v1" ||
+		cfg.MetricsReportInterval != 45*time.Second {
+		t.Fatalf("new relic config = %#v", cfg)
+	}
 }
 
 func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
@@ -55,7 +65,11 @@ func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
 		!cfg.FlightAwareFallbackEnabled ||
 		cfg.RealtimeAuthSecret != "" ||
 		cfg.AirportDirectoryBaseURL != "https://www.adsbao.dev" ||
-		cfg.EnablePprof {
+		cfg.EnablePprof ||
+		cfg.NewRelicLicenseKey != "" ||
+		cfg.NewRelicAppName != "adsbao-data-service" ||
+		cfg.NewRelicMetricsEndpoint != "https://metric-api.newrelic.com/metric/v1" ||
+		cfg.MetricsReportInterval != 30*time.Second {
 		t.Fatalf("defaults = %#v", cfg)
 	}
 }

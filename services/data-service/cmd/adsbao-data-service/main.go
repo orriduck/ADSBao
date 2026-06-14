@@ -25,7 +25,12 @@ import (
 func main() {
 	cfg := config.FromEnv(os.Getenv)
 	started := time.Now()
-	registry := metrics.New()
+	metricSink := metrics.NewRelicSink(metrics.NewRelicOptions{
+		LicenseKey: cfg.NewRelicLicenseKey,
+		Endpoint:   cfg.NewRelicMetricsEndpoint,
+		AppName:    cfg.NewRelicAppName,
+	})
+	registry := metrics.New(metrics.WithSink(metricSink))
 
 	flightAwareFallback := flightaware.NewFallbackClient(flightaware.FallbackOptions{
 		Enabled:        cfg.FlightAwareFallbackEnabled,
@@ -60,7 +65,6 @@ func main() {
 		ws.WithRealtimeAuthSecret(cfg.RealtimeAuthSecret),
 	)
 	handler := httpapi.New(httpapi.ServerOptions{
-		Metrics:       registry,
 		DebugChannels: polling.DebugChannels,
 		Uptime:        func() time.Duration { return time.Since(started) },
 		WSHandler:     http.HandlerFunc(socketHandler.Handle),
@@ -74,6 +78,7 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+	go reportMetrics(ctx, registry, started, cfg.MetricsReportInterval, polling.DebugChannels)
 	go func() {
 		log.Printf("adsbao-data-service listening on :%d", cfg.Port)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -85,7 +90,30 @@ func main() {
 	polling.Dispose()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	registry.RecordDynamic(time.Since(started).Seconds(), polling.DebugChannels())
+	if err := registry.Shutdown(shutdownCtx); err != nil {
+		log.Printf("metrics shutdown failed: %v", err)
+	}
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("graceful shutdown failed: %v", err)
+	}
+}
+
+func reportMetrics(ctx context.Context, registry *metrics.Metrics, started time.Time, interval time.Duration, debugChannels func() []realtime.DebugChannel) {
+	if interval <= 0 {
+		interval = 30 * time.Second
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			registry.RecordDynamic(time.Since(started).Seconds(), debugChannels())
+			if err := registry.Flush(ctx); err != nil {
+				log.Printf("metrics flush failed: %v", err)
+			}
+		}
 	}
 }

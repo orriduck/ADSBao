@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/adsbao/adsbao/services/data-service/internal/metrics"
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
 
@@ -21,9 +20,7 @@ func (fakeDebugScheduler) DebugChannels() []realtime.DebugChannel {
 }
 
 func TestHealthAndDebugEndpoints(t *testing.T) {
-	m := metrics.New()
 	server := New(ServerOptions{
-		Metrics:       m,
 		DebugChannels: fakeDebugScheduler{}.DebugChannels,
 		Uptime:        func() time.Duration { return 42 * time.Second },
 	})
@@ -50,23 +47,15 @@ func TestHealthAndDebugEndpoints(t *testing.T) {
 	}
 }
 
-func TestMetricsEndpoint(t *testing.T) {
-	m := metrics.New()
+func TestMetricsEndpointIsRemoved(t *testing.T) {
 	server := New(ServerOptions{
-		Metrics:       m,
 		DebugChannels: fakeDebugScheduler{}.DebugChannels,
 		Uptime:        func() time.Duration { return 42 * time.Second },
 	})
 	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
 	rr := httptest.NewRecorder()
 	server.ServeHTTP(rr, req)
-	if rr.Code != http.StatusOK {
+	if rr.Code != http.StatusNotFound {
 		t.Fatalf("metrics status = %d", rr.Code)
-	}
-	if !strings.Contains(rr.Header().Get("Content-Type"), "text/plain") {
-		t.Fatalf("metrics content type = %q", rr.Header().Get("Content-Type"))
-	}
-	if !strings.Contains(rr.Body.String(), "adsbao_uptime_seconds 42") {
-		t.Fatalf("metrics body = %s", rr.Body.String())
 	}
 }

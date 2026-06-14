@@ -7,12 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/adsbao/adsbao/services/data-service/internal/metrics"
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
 
 type ServerOptions struct {
-	Metrics       *metrics.Metrics
 	DebugChannels func() []realtime.DebugChannel
 	Uptime        func() time.Duration
 	WSHandler     http.Handler
@@ -20,7 +18,6 @@ type ServerOptions struct {
 }
 
 type Server struct {
-	metrics       *metrics.Metrics
 	debugChannels func() []realtime.DebugChannel
 	uptime        func() time.Duration
 	wsHandler     http.Handler
@@ -38,7 +35,6 @@ func New(options ServerOptions) *Server {
 		debugChannels = func() []realtime.DebugChannel { return nil }
 	}
 	return &Server{
-		metrics:       options.Metrics,
 		debugChannels: debugChannels,
 		uptime:        uptime,
 		wsHandler:     options.WSHandler,
@@ -66,21 +62,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodGet && r.URL.Path == "/debug/channels" {
 		s.json(w, http.StatusOK, map[string]any{"channels": s.debugChannels()})
-		return
-	}
-	if r.Method == http.MethodGet && r.URL.Path == "/metrics" {
-		if s.metrics == nil {
-			http.Error(w, "metrics unavailable", http.StatusServiceUnavailable)
-			return
-		}
-		out, err := s.metrics.Render(s.uptime().Seconds(), s.debugChannels())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
-		w.Header().Set("Cache-Control", "no-store")
-		_, _ = w.Write([]byte(out))
 		return
 	}
 	s.json(w, http.StatusNotFound, map[string]any{"error": "Not found"})

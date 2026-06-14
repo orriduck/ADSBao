@@ -18,6 +18,10 @@ type Config struct {
 	RealtimeAuthSecret         string
 	AirportDirectoryBaseURL    string
 	EnablePprof                bool
+	NewRelicLicenseKey         string
+	NewRelicAppName            string
+	NewRelicMetricsEndpoint    string
+	MetricsReportInterval      time.Duration
 }
 
 type LookupFunc func(string) string
@@ -35,6 +39,10 @@ func FromEnv(lookup LookupFunc) Config {
 		RealtimeAuthSecret:         strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
 		AirportDirectoryBaseURL:    stringValue(lookup("AIRPORT_DIRECTORY_BASE_URL"), "https://www.adsbao.dev"),
 		EnablePprof:                trueString(lookup("ENABLE_PPROF")),
+		NewRelicLicenseKey:         strings.TrimSpace(lookup("NEW_RELIC_LICENSE_KEY")),
+		NewRelicAppName:            stringValue(lookup("NEW_RELIC_APP_NAME"), "adsbao-data-service"),
+		NewRelicMetricsEndpoint:    stringValue(lookup("NEW_RELIC_METRICS_ENDPOINT"), "https://metric-api.newrelic.com/metric/v1"),
+		MetricsReportInterval:      durationMS(lookup("METRICS_REPORT_INTERVAL_MS"), 30*time.Second),
 	}
 }
 
