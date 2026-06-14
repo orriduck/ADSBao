@@ -101,7 +101,7 @@ API routes remain for ordinary short requests and one-off provider access.
   Speed Insights, and optional Sentry monitoring.
 - **Realtime backend**: A deployable Go service under `services/data-service`
   for shared ADS-B polling, WebSocket subscriptions, provider fallback,
-  health/debug endpoints, Prometheus metrics, and Railway deployment.
+  health/debug endpoints, New Relic business metrics, and Railway deployment.
 - **Auth and feature flags**: Clerk identity with Postgres-backed user feature
   flags for gated provider behavior.
 
@@ -173,6 +173,10 @@ normally configure these variables:
 | `CLERK_SECRET_KEY` | Clerk server identity |
 | `NEXT_PUBLIC_ADSBAO_REALTIME_URL` | Optional WebSocket URL for the realtime ADS-B data service |
 | `ADSBAO_REALTIME_AUTH_SECRET` | Shared HMAC secret used by Vercel and the Railway data service to authorize FlightAware realtime subscriptions |
+| `NEW_RELIC_LICENSE_KEY` | Optional Railway data-service ingest key for New Relic Metric API reporting |
+| `NEW_RELIC_APP_NAME` | Optional New Relic app name for data-service metrics; defaults to `adsbao-data-service` |
+| `NEW_RELIC_METRICS_ENDPOINT` | Optional Metric API endpoint override for non-US New Relic accounts |
+| `METRICS_REPORT_INTERVAL_MS` | Optional dynamic metrics flush interval for the data-service; defaults to `30000` |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry events |
 | `SENTRY_DSN` | Optional server/edge Sentry events |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Optional production source-map upload |
@@ -212,8 +216,7 @@ ADSBao/
 ├── docs/                  # Architecture notes and repository screenshots
 ├── scripts/               # Data import and maintenance scripts
 ├── services/
-│   ├── data-service/      # Go realtime ADS-B polling and WebSocket backend
-│   └── grafana/           # Railway Grafana provisioning
+│   └── data-service/      # Go realtime ADS-B polling and WebSocket backend
 ├── src/
 │   ├── app/               # Next.js pages, API routes, API helpers, and DAOs
 │   ├── components/        # JSX components grouped by screen/domain
@@ -242,8 +245,9 @@ route-handler-only helpers stay under `src/app/api/_shared`.
 
 The realtime backend is a separate Railway service deployed from
 `services/data-service`. The service includes `railway.json` config-as-code,
-uses the Dockerfile in the same directory, and exposes `/health`,
-`/debug/channels`, `/metrics`, and `/ws`.
+uses the Dockerfile in the same directory, exposes `/health`,
+`/debug/channels`, and `/ws`, and pushes business metrics to New Relic when
+`NEW_RELIC_LICENSE_KEY` is configured.
 
 Railway setup:
 
@@ -255,6 +259,8 @@ Railway setup:
    `wss://<railway-domain>/ws` for production and preview.
 6. Set the same `ADSBAO_REALTIME_AUTH_SECRET` in Vercel and Railway when
    FlightAware realtime subscriptions are enabled.
+7. Set `NEW_RELIC_LICENSE_KEY` on the Railway data-service to enable business
+   metric ingest.
 
 Railway handles production deployment through its GitHub integration. The
 service should be configured with root directory `services/data-service`,

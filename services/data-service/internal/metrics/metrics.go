@@ -2,22 +2,23 @@ package metrics
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/expfmt"
 )
 
-var durationBuckets = []float64{0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30}
-var messageByteBuckets = []float64{128, 512, 1024, 4 * 1024, 16 * 1024, 64 * 1024, 256 * 1024, 1024 * 1024}
+const defaultNewRelicEndpoint = "https://metric-api.newrelic.com/metric/v1"
+
 var dynamicChannelTypes = []string{
 	string(realtime.ChannelAircraft),
 	string(realtime.ChannelCallsign),
@@ -25,167 +26,143 @@ var dynamicChannelTypes = []string{
 	string(realtime.ChannelTraffic),
 }
 
-type Metrics struct {
-	mu       sync.Mutex
-	registry *prometheus.Registry
+type Kind string
 
-	uptimeSeconds             prometheus.Gauge
-	wsConnectionsCurrent      prometheus.Gauge
-	wsUpgradesTotal           *prometheus.CounterVec
-	wsConnectionsTotal        prometheus.Counter
-	wsDisconnectsTotal        *prometheus.CounterVec
-	wsConnectionDuration      *prometheus.HistogramVec
-	wsMessagesTotal           *prometheus.CounterVec
-	wsMessageBytes            *prometheus.HistogramVec
-	wsSubscribeTotal          *prometheus.CounterVec
-	wsUnsubscribeTotal        *prometheus.CounterVec
-	pollRequestsTotal         *prometheus.CounterVec
-	pollDuration              *prometheus.HistogramVec
-	externalRequestsTotal     *prometheus.CounterVec
-	externalRequestDuration   *prometheus.HistogramVec
-	activeChannelsCurrent     *prometheus.GaugeVec
-	subscriptionsCurrent      *prometheus.GaugeVec
-	channelFailuresCurrent    *prometheus.GaugeVec
-	channelPollIntervalSecond *prometheus.GaugeVec
-	staleChannelsCurrent      *prometheus.GaugeVec
+const (
+	Count   Kind = "count"
+	Gauge   Kind = "gauge"
+	Summary Kind = "summary"
+)
+
+type Point struct {
+	Name       string
+	Kind       Kind
+	Value      float64
+	Attributes map[string]string
 }
 
-func New() *Metrics {
-	m := &Metrics{registry: prometheus.NewRegistry()}
-	m.uptimeSeconds = prometheus.NewGauge(prometheus.GaugeOpts{Name: "adsbao_uptime_seconds", Help: "Process uptime in seconds."})
-	m.wsConnectionsCurrent = prometheus.NewGauge(prometheus.GaugeOpts{Name: "adsbao_ws_connections_current", Help: "Current open WebSocket connections."})
-	m.wsUpgradesTotal = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "adsbao_ws_upgrades_total", Help: "Counter for adsbao_ws_upgrades_total."}, []string{"reason", "result"})
-	m.wsConnectionsTotal = prometheus.NewCounter(prometheus.CounterOpts{Name: "adsbao_ws_connections_total", Help: "Counter for adsbao_ws_connections_total."})
-	m.wsDisconnectsTotal = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "adsbao_ws_disconnects_total", Help: "Counter for adsbao_ws_disconnects_total."}, []string{"close_code", "result"})
-	m.wsConnectionDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "adsbao_ws_connection_duration_seconds", Help: "Histogram for adsbao_ws_connection_duration_seconds.", Buckets: durationBuckets}, []string{"close_code", "result"})
-	m.wsMessagesTotal = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "adsbao_ws_messages_total", Help: "Counter for adsbao_ws_messages_total."}, []string{"direction", "result", "type"})
-	m.wsMessageBytes = prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "adsbao_ws_message_bytes", Help: "Histogram for adsbao_ws_message_bytes.", Buckets: messageByteBuckets}, []string{"direction", "result", "type"})
-	m.wsSubscribeTotal = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "adsbao_ws_subscribe_total", Help: "Counter for adsbao_ws_subscribe_total."}, []string{"channel_type", "result"})
-	m.wsUnsubscribeTotal = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "adsbao_ws_unsubscribe_total", Help: "Counter for adsbao_ws_unsubscribe_total."}, []string{"channel_type", "result"})
-	m.pollRequestsTotal = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "adsbao_poll_requests_total", Help: "Counter for adsbao_poll_requests_total."}, []string{"channel_type", "result", "source"})
-	m.pollDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "adsbao_poll_duration_seconds", Help: "Histogram for adsbao_poll_duration_seconds.", Buckets: durationBuckets}, []string{"channel_type", "result", "source"})
-	m.externalRequestsTotal = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "adsbao_external_requests_total", Help: "Counter for adsbao_external_requests_total."}, []string{"endpoint", "provider", "result", "status", "status_class"})
-	m.externalRequestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "adsbao_external_request_duration_seconds", Help: "Histogram for adsbao_external_request_duration_seconds.", Buckets: durationBuckets}, []string{"endpoint", "provider", "result", "status", "status_class"})
-	m.activeChannelsCurrent = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "adsbao_active_channels_current", Help: "Current active polling channels by channel type."}, []string{"channel_type"})
-	m.subscriptionsCurrent = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "adsbao_subscriptions_current", Help: "Current active subscriptions by channel type."}, []string{"channel_type"})
-	m.channelFailuresCurrent = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "adsbao_channel_consecutive_failures_current", Help: "Current sum of consecutive polling failures by channel type."}, []string{"channel_type"})
-	m.channelPollIntervalSecond = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "adsbao_channel_poll_interval_seconds", Help: "Current maximum polling interval in seconds by channel type."}, []string{"channel_type"})
-	m.staleChannelsCurrent = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: "adsbao_stale_channels_current", Help: "Current stale polling channels by channel type."}, []string{"channel_type"})
+type Sink interface {
+	Record(point Point)
+	Flush(ctx context.Context) error
+	Shutdown(ctx context.Context) error
+}
 
-	for _, collector := range []prometheus.Collector{
-		m.uptimeSeconds,
-		m.wsConnectionsCurrent,
-		m.wsUpgradesTotal,
-		m.wsConnectionsTotal,
-		m.wsDisconnectsTotal,
-		m.wsConnectionDuration,
-		m.wsMessagesTotal,
-		m.wsMessageBytes,
-		m.wsSubscribeTotal,
-		m.wsUnsubscribeTotal,
-		m.pollRequestsTotal,
-		m.pollDuration,
-		m.externalRequestsTotal,
-		m.externalRequestDuration,
-		m.activeChannelsCurrent,
-		m.subscriptionsCurrent,
-		m.channelFailuresCurrent,
-		m.channelPollIntervalSecond,
-		m.staleChannelsCurrent,
-	} {
-		m.registry.MustRegister(collector)
+type Option func(*Metrics)
+
+type Metrics struct {
+	mu                   sync.Mutex
+	sink                 Sink
+	wsConnectionsCurrent int
+}
+
+func New(options ...Option) *Metrics {
+	m := &Metrics{sink: noopSink{}}
+	for _, option := range options {
+		option(m)
+	}
+	if m.sink == nil {
+		m.sink = noopSink{}
 	}
 	return m
 }
 
-func (m *Metrics) Handler(uptime func() float64, channels func() []realtime.DebugChannel) http.Handler {
-	handler := promhttp.HandlerFor(m.registry, promhttp.HandlerOpts{})
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		m.UpdateDynamic(uptime(), channels())
-		handler.ServeHTTP(w, r)
-	})
-}
-
-func (m *Metrics) Render(uptimeSec float64, channels []realtime.DebugChannel) (string, error) {
-	m.UpdateDynamic(uptimeSec, channels)
-	families, err := m.registry.Gather()
-	if err != nil {
-		return "", err
-	}
-	sort.Slice(families, func(i, j int) bool { return families[i].GetName() < families[j].GetName() })
-	var buf bytes.Buffer
-	for _, family := range families {
-		if _, err := expfmt.MetricFamilyToText(&buf, family); err != nil {
-			return "", err
+func WithSink(sink Sink) Option {
+	return func(m *Metrics) {
+		if sink != nil {
+			m.sink = sink
 		}
 	}
-	return buf.String(), nil
+}
+
+func (m *Metrics) Flush(ctx context.Context) error {
+	return m.sink.Flush(ctx)
+}
+
+func (m *Metrics) Shutdown(ctx context.Context) error {
+	return m.sink.Shutdown(ctx)
 }
 
 func (m *Metrics) RecordWSUpgrade(reason, result string) {
-	m.wsUpgradesTotal.WithLabelValues(normalize(reason), normalize(result)).Inc()
+	m.count("adsbao.ws.upgrades", attrs(
+		"reason", normalize(reason),
+		"result", normalize(result),
+	))
 }
 
 func (m *Metrics) RecordWSConnectionOpened() {
-	m.wsConnectionsCurrent.Inc()
-	m.wsConnectionsTotal.Inc()
+	current := m.updateWSConnectionsCurrent(1)
+	m.count("adsbao.ws.connections", nil)
+	m.gauge("adsbao.ws.connections.current", float64(current), nil)
 }
 
 func (m *Metrics) RecordWSConnectionClosed(code any, result string, durationMS int64) {
-	m.wsConnectionsCurrent.Dec()
-	labels := []string{normalize(code), normalize(result)}
-	m.wsDisconnectsTotal.WithLabelValues(labels...).Inc()
+	current := m.updateWSConnectionsCurrent(-1)
+	labels := attrs(
+		"close_code", normalize(code),
+		"result", normalize(result),
+	)
+	m.count("adsbao.ws.disconnects", labels)
+	m.gauge("adsbao.ws.connections.current", float64(current), nil)
 	if durationMS > 0 {
-		m.wsConnectionDuration.WithLabelValues(labels...).Observe(float64(durationMS) / 1000)
+		m.summary("adsbao.ws.connection.duration.seconds", float64(durationMS)/1000, labels)
 	}
 }
 
 func (m *Metrics) RecordWSMessage(direction, typ, result string, bytes int) {
-	labels := []string{normalize(direction), normalizeMessageType(typ), normalize(result)}
-	m.wsMessagesTotal.WithLabelValues(labels[0], labels[2], labels[1]).Inc()
+	labels := attrs(
+		"direction", normalize(direction),
+		"type", normalizeMessageType(typ),
+		"result", normalize(result),
+	)
+	m.count("adsbao.ws.messages", labels)
 	if bytes >= 0 {
-		m.wsMessageBytes.WithLabelValues(labels[0], labels[2], labels[1]).Observe(float64(bytes))
+		m.summary("adsbao.ws.message.bytes", float64(bytes), labels)
 	}
 }
 
 func (m *Metrics) RecordWSSubscribe(channelType realtime.ChannelType, result string) {
-	m.wsSubscribeTotal.WithLabelValues(normalize(channelType), normalize(result)).Inc()
+	m.count("adsbao.ws.subscribe", attrs(
+		"channel_type", normalize(channelType),
+		"result", normalize(result),
+	))
 }
 
 func (m *Metrics) RecordWSUnsubscribe(channelType realtime.ChannelType, result string) {
-	m.wsUnsubscribeTotal.WithLabelValues(normalize(channelType), normalize(result)).Inc()
+	m.count("adsbao.ws.unsubscribe", attrs(
+		"channel_type", normalize(channelType),
+		"result", normalize(result),
+	))
 }
 
 func (m *Metrics) RecordPoll(channelType realtime.ChannelType, source, result string, durationMS int64) {
-	labels := []string{normalize(channelType), normalize(result), normalize(source)}
-	m.pollRequestsTotal.WithLabelValues(labels...).Inc()
-	m.pollDuration.WithLabelValues(labels...).Observe(float64(durationMS) / 1000)
+	labels := attrs(
+		"channel_type", normalize(channelType),
+		"source", normalize(source),
+		"result", normalize(result),
+	)
+	m.count("adsbao.poll.requests", labels)
+	if durationMS >= 0 {
+		m.summary("adsbao.poll.duration.seconds", float64(durationMS)/1000, labels)
+	}
 }
 
 func (m *Metrics) RecordExternalRequest(input realtime.ExternalRequestMetricInput) {
 	status, class := classifyStatus(input.Status, input.Result)
-	labels := []string{normalize(input.Endpoint), normalize(input.Provider), normalize(input.Result), normalize(status), normalize(class)}
-	m.externalRequestsTotal.WithLabelValues(labels...).Inc()
-	m.externalRequestDuration.WithLabelValues(labels...).Observe(float64(input.DurationMS) / 1000)
+	labels := attrs(
+		"endpoint", normalize(input.Endpoint),
+		"provider", normalize(input.Provider),
+		"result", normalize(input.Result),
+		"status", normalize(status),
+		"status_class", normalize(class),
+	)
+	m.count("adsbao.external_requests", labels)
+	if input.DurationMS >= 0 {
+		m.summary("adsbao.external_request.duration.seconds", float64(input.DurationMS)/1000, labels)
+	}
 }
 
-func (m *Metrics) UpdateDynamic(uptimeSec float64, channels []realtime.DebugChannel) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.uptimeSeconds.Set(math.Round(uptimeSec))
-	m.activeChannelsCurrent.Reset()
-	m.subscriptionsCurrent.Reset()
-	m.channelFailuresCurrent.Reset()
-	m.channelPollIntervalSecond.Reset()
-	m.staleChannelsCurrent.Reset()
-
-	for _, typ := range dynamicChannelTypes {
-		m.activeChannelsCurrent.WithLabelValues(typ).Set(0)
-		m.subscriptionsCurrent.WithLabelValues(typ).Set(0)
-		m.channelFailuresCurrent.WithLabelValues(typ).Set(0)
-		m.channelPollIntervalSecond.WithLabelValues(typ).Set(0)
-		m.staleChannelsCurrent.WithLabelValues(typ).Set(0)
-	}
+func (m *Metrics) RecordDynamic(uptimeSec float64, channels []realtime.DebugChannel) {
+	m.gauge("adsbao.uptime.seconds", math.Round(uptimeSec), nil)
 
 	type aggregate struct {
 		active      int
@@ -194,7 +171,12 @@ func (m *Metrics) UpdateDynamic(uptimeSec float64, channels []realtime.DebugChan
 		maxInterval int64
 		stale       int
 	}
-	byType := map[string]*aggregate{}
+
+	byType := make(map[string]*aggregate, len(dynamicChannelTypes))
+	for _, typ := range dynamicChannelTypes {
+		byType[typ] = &aggregate{}
+	}
+
 	for _, channel := range channels {
 		typ := normalize(channel.Type)
 		item := byType[typ]
@@ -212,13 +194,251 @@ func (m *Metrics) UpdateDynamic(uptimeSec float64, channels []realtime.DebugChan
 			item.stale++
 		}
 	}
-	for typ, item := range byType {
-		m.activeChannelsCurrent.WithLabelValues(typ).Set(float64(item.active))
-		m.subscriptionsCurrent.WithLabelValues(typ).Set(float64(item.subscribers))
-		m.channelFailuresCurrent.WithLabelValues(typ).Set(float64(item.failures))
-		m.channelPollIntervalSecond.WithLabelValues(typ).Set(float64(item.maxInterval) / 1000)
-		m.staleChannelsCurrent.WithLabelValues(typ).Set(float64(item.stale))
+
+	types := make([]string, 0, len(byType))
+	for typ := range byType {
+		types = append(types, typ)
 	}
+	sort.Strings(types)
+
+	for _, typ := range types {
+		item := byType[typ]
+		labels := attrs("channel_type", typ)
+		m.gauge("adsbao.active_channels.current", float64(item.active), labels)
+		m.gauge("adsbao.subscriptions.current", float64(item.subscribers), labels)
+		m.gauge("adsbao.channel_consecutive_failures.current", float64(item.failures), labels)
+		m.gauge("adsbao.channel_poll_interval.seconds", float64(item.maxInterval)/1000, labels)
+		m.gauge("adsbao.stale_channels.current", float64(item.stale), labels)
+	}
+}
+
+func (m *Metrics) updateWSConnectionsCurrent(delta int) int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.wsConnectionsCurrent += delta
+	if m.wsConnectionsCurrent < 0 {
+		m.wsConnectionsCurrent = 0
+	}
+	return m.wsConnectionsCurrent
+}
+
+func (m *Metrics) count(name string, attributes map[string]string) {
+	m.sink.Record(Point{Name: name, Kind: Count, Value: 1, Attributes: attributes})
+}
+
+func (m *Metrics) gauge(name string, value float64, attributes map[string]string) {
+	m.sink.Record(Point{Name: name, Kind: Gauge, Value: value, Attributes: attributes})
+}
+
+func (m *Metrics) summary(name string, value float64, attributes map[string]string) {
+	m.sink.Record(Point{Name: name, Kind: Summary, Value: value, Attributes: attributes})
+}
+
+type noopSink struct{}
+
+func (noopSink) Record(Point)                   {}
+func (noopSink) Flush(context.Context) error    { return nil }
+func (noopSink) Shutdown(context.Context) error { return nil }
+
+type NewRelicOptions struct {
+	LicenseKey string
+	Endpoint   string
+	AppName    string
+	HTTPClient *http.Client
+	Now        func() time.Time
+	MaxBatch   int
+}
+
+type newRelicSink struct {
+	mu         sync.Mutex
+	points     []Point
+	licenseKey string
+	endpoint   string
+	appName    string
+	client     *http.Client
+	now        func() time.Time
+	maxBatch   int
+}
+
+func NewRelicSink(options NewRelicOptions) Sink {
+	licenseKey := strings.TrimSpace(options.LicenseKey)
+	if licenseKey == "" {
+		return noopSink{}
+	}
+	endpoint := strings.TrimSpace(options.Endpoint)
+	if endpoint == "" {
+		endpoint = defaultNewRelicEndpoint
+	}
+	appName := strings.TrimSpace(options.AppName)
+	if appName == "" {
+		appName = "adsbao-data-service"
+	}
+	client := options.HTTPClient
+	if client == nil {
+		client = &http.Client{Timeout: 10 * time.Second}
+	}
+	now := options.Now
+	if now == nil {
+		now = time.Now
+	}
+	maxBatch := options.MaxBatch
+	if maxBatch <= 0 {
+		maxBatch = 1000
+	}
+	return &newRelicSink{
+		licenseKey: licenseKey,
+		endpoint:   endpoint,
+		appName:    appName,
+		client:     client,
+		now:        now,
+		maxBatch:   maxBatch,
+	}
+}
+
+func (s *newRelicSink) Record(point Point) {
+	if point.Name == "" || point.Kind == "" {
+		return
+	}
+	point.Attributes = copyAttributes(point.Attributes)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if len(s.points) >= s.maxBatch {
+		copy(s.points, s.points[1:])
+		s.points[len(s.points)-1] = point
+		return
+	}
+	s.points = append(s.points, point)
+}
+
+func (s *newRelicSink) Flush(ctx context.Context) error {
+	points := s.drain()
+	if len(points) == 0 {
+		return nil
+	}
+	body, err := json.Marshal([]newRelicPayload{{
+		Common: newRelicCommon{
+			Timestamp: s.now().UnixMilli(),
+			Attributes: map[string]string{
+				"app.name":     s.appName,
+				"service.name": "adsbao-data-service",
+			},
+		},
+		Metrics: newRelicMetrics(points),
+	}})
+	if err != nil {
+		s.requeue(points)
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.endpoint, bytes.NewReader(body))
+	if err != nil {
+		s.requeue(points)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Api-Key", s.licenseKey)
+	resp, err := s.client.Do(req)
+	if err != nil {
+		s.requeue(points)
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusAccepted {
+		responseBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		s.requeue(points)
+		return fmt.Errorf("new relic metrics status %d: %s", resp.StatusCode, strings.TrimSpace(string(responseBody)))
+	}
+	return nil
+}
+
+func (s *newRelicSink) Shutdown(ctx context.Context) error {
+	return s.Flush(ctx)
+}
+
+func (s *newRelicSink) drain() []Point {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	points := s.points
+	s.points = nil
+	return points
+}
+
+func (s *newRelicSink) requeue(points []Point) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	combined := append(points, s.points...)
+	if len(combined) > s.maxBatch {
+		combined = combined[len(combined)-s.maxBatch:]
+	}
+	s.points = combined
+}
+
+type newRelicPayload struct {
+	Common  newRelicCommon   `json:"common"`
+	Metrics []newRelicMetric `json:"metrics"`
+}
+
+type newRelicCommon struct {
+	Timestamp  int64             `json:"timestamp"`
+	Attributes map[string]string `json:"attributes"`
+}
+
+type newRelicMetric struct {
+	Name       string            `json:"name"`
+	Type       Kind              `json:"type"`
+	Value      any               `json:"value"`
+	IntervalMS int64             `json:"interval.ms,omitempty"`
+	Attributes map[string]string `json:"attributes,omitempty"`
+}
+
+func newRelicMetrics(points []Point) []newRelicMetric {
+	out := make([]newRelicMetric, 0, len(points))
+	for _, point := range points {
+		metric := newRelicMetric{
+			Name:       point.Name,
+			Type:       point.Kind,
+			Attributes: point.Attributes,
+		}
+		switch point.Kind {
+		case Count:
+			metric.Value = point.Value
+			metric.IntervalMS = 1000
+		case Summary:
+			metric.Value = map[string]float64{
+				"count": 1,
+				"sum":   point.Value,
+				"min":   point.Value,
+				"max":   point.Value,
+			}
+			metric.IntervalMS = 1000
+		default:
+			metric.Type = Gauge
+			metric.Value = point.Value
+		}
+		out = append(out, metric)
+	}
+	return out
+}
+
+func attrs(pairs ...string) map[string]string {
+	if len(pairs) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(pairs)/2)
+	for i := 0; i+1 < len(pairs); i += 2 {
+		out[pairs[i]] = pairs[i+1]
+	}
+	return out
+}
+
+func copyAttributes(input map[string]string) map[string]string {
+	if len(input) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(input))
+	for key, value := range input {
+		out[key] = value
+	}
+	return out
 }
 
 func classifyStatus(status any, result string) (string, string) {

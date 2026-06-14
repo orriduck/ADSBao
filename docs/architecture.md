@@ -34,8 +34,8 @@ High-frequency aircraft positions, tracked-aircraft updates, traffic around a
 current map center, and callsign route labels are served first through the Go
 WebSocket backend under `services/data-service`. It is deployed as a Railway
 service, shares one polling loop per active channel, applies provider fallback
-and backoff centrally, and exposes `/health`, `/debug/channels`, `/metrics`,
-and `/ws`.
+and backoff centrally, exposes `/health`, `/debug/channels`, and `/ws`, and
+pushes low-cardinality business metrics to New Relic.
 
 Realtime channel keys encode the polling target instead of hiding it in
 subscription params. This keeps shared loops correct when three product anchors
