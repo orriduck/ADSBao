@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -91,6 +92,56 @@ func TestFlightAwareRouteNormalizesScrapedRoute(t *testing.T) {
 	route := data["route"].(map[string]any)
 	routeCodes := route["route"].(map[string]any)
 	if routeCodes["iata"] != "BOS-LAX" || route["source"] != "flightaware" {
+		t.Fatalf("route = %#v", route)
+	}
+}
+
+func TestFlightAwareRouteAllowsLargeHTMLPage(t *testing.T) {
+	padding := strings.Repeat(" ", 600*1024)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/live/flight/JBU1238" {
+			t.Fatalf("path = %s", r.URL.Path)
+		}
+		_, _ = w.Write([]byte(padding + `
+			<html>
+				<head>
+					<title>B61238 (JBU1238) JetBlue Flight Tracking</title>
+					<meta name="origin" content="KBOS">
+					<meta name="destination" content="KJFK">
+					<meta name="airline" content="JBU">
+					<meta name="description" content="Track JetBlue (B6) #1238">
+				</head>
+				<body>
+					<script>
+						var trackpollBootstrap = {"flights":{"JBU1238":{
+							"origin":{"icao":"KBOS","iata":"BOS","coord":[-71.0096,42.3656],"friendlyName":"Boston Logan","friendlyLocation":"Boston, MA"},
+							"destination":{"icao":"KJFK","iata":"JFK","coord":[-73.7781,40.6413],"friendlyName":"John F Kennedy Intl","friendlyLocation":"New York, NY"}
+						}}};
+					</script>
+				</body>
+			</html>
+		`))
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{FlightAwareBase: server.URL + "/live/flight", QueueInterval: 0})
+	event, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "route:JBU1238:airport:KBOS",
+		ChannelType: realtime.ChannelRoute,
+		Target: realtime.PollingTarget{
+			Kind:          "route",
+			Callsign:      "JBU1238",
+			RouteProvider: "flightaware",
+			RouteContext:  &realtime.RouteContext{Type: "airport", ICAO: "KBOS"},
+		},
+	})
+	if err != nil {
+		t.Fatalf("Fetch returned error: %v", err)
+	}
+	data := event.Data.(map[string]any)
+	route := data["route"].(map[string]any)
+	routeCodes := route["route"].(map[string]any)
+	if routeCodes["icao"] != "KBOS-KJFK" {
 		t.Fatalf("route = %#v", route)
 	}
 }
