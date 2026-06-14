@@ -4,6 +4,7 @@ import {
   ROUTE_PROVIDER,
   buildMapSourceStatusDisplay,
   getAircraftPositionSourceBadge,
+  getMapPositionSourceBadge,
   resolveFlightPositionSource,
 } from "./sourceDisplayModel";
 
@@ -49,6 +50,40 @@ assert.equal(
 assert.equal(
   getAircraftPositionSourceBadge({ source: "unknown", kind: "stale" }),
   "Stale",
+);
+assert.equal(
+  getAircraftPositionSourceBadge({
+    source: "airplanes_live",
+    flight_position_source: "estimated",
+    kind: "stale",
+    isStale: true,
+  }),
+  "Stale",
+);
+assert.equal(
+  getMapPositionSourceBadge({
+    positionQuality: { source: "airplanes_live", kind: "observed" },
+    lastUpdated: new Date("2026-06-14T04:00:00.000Z"),
+    now: Date.parse("2026-06-14T04:02:00.000Z"),
+  }),
+  "Stale",
+);
+assert.equal(
+  getMapPositionSourceBadge({
+    positionQuality: { source: "airplanes_live", kind: "observed" },
+    trackingState: { status: "stale" },
+    lastUpdated: new Date("2026-06-14T04:01:50.000Z"),
+    now: Date.parse("2026-06-14T04:02:00.000Z"),
+  }),
+  "Stale",
+);
+assert.equal(
+  getMapPositionSourceBadge({
+    positionQuality: { source: "airplanes_live", kind: "observed" },
+    lastUpdated: new Date("2026-06-14T04:01:50.000Z"),
+    now: Date.parse("2026-06-14T04:02:00.000Z"),
+  }),
+  "ads-b",
 );
 
 assert.equal(resolveFlightPositionSource({ flight_position_source: "MLAT" }), "mlat");
