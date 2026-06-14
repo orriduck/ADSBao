@@ -97,6 +97,10 @@ async function fetchAllCallsignProviders({ callsign }: AircraftCallsignRecord) {
     .filter(Boolean);
 }
 
+function statusFetchedAt(now: unknown) {
+  return new Date(Number(now) || Date.now()).toISOString();
+}
+
 function annotatePayload(payload: AircraftCallsignRecord, { source, now, fallback, trackingState }: AircraftCallsignRecord) {
   return {
     ...payload,
@@ -104,6 +108,7 @@ function annotatePayload(payload: AircraftCallsignRecord, { source, now, fallbac
       annotateAdsbPosition(aircraft, { source, now }),
     ),
     source,
+    fetchedAt: statusFetchedAt(now),
     flightAwareFallback: sanitizeFallbackForClient(fallback),
     trackingState,
   };
@@ -116,6 +121,7 @@ function payloadForResolvedPosition({ resolved, callsign, fallback, now }: Aircr
       ac: [],
       source: "",
       now: now / 1000,
+      fetchedAt: statusFetchedAt(now),
       flightAwareFallback: clientFallback,
       trackingState: resolved.trackingState,
     };
@@ -126,6 +132,7 @@ function payloadForResolvedPosition({ resolved, callsign, fallback, now }: Aircr
       ac: [resolved.position],
       source: "flightaware",
       now: now / 1000,
+      fetchedAt: statusFetchedAt(now),
       flightAwareFallback: clientFallback,
       trackingState: resolved.trackingState,
     };
@@ -135,6 +142,7 @@ function payloadForResolvedPosition({ resolved, callsign, fallback, now }: Aircr
     ac: [resolved.position],
     source: resolved.source || "",
     now: now / 1000,
+    fetchedAt: statusFetchedAt(now),
     flightAwareFallback: clientFallback,
     callsign,
     trackingState: resolved.trackingState,
