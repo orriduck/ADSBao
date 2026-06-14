@@ -265,8 +265,8 @@ Railway setup:
 7. Set `NEW_RELIC_LICENSE_KEY` on the Railway data-service to enable APM,
    external provider metrics/events, latency, and backend log ingest. Set the
    same key on Vercel to enable `/api/proxy/*` metric and log ingest.
-8. Apply `infra/newrelic` with a New Relic user API key and account ID to create
-   the ADSBao dashboard and NRQL alert policy.
+8. Apply `infra/newrelic` with a New Relic user API key and account ID to manage
+   the ADSBao NRQL alert policy and conditions.
 
 Railway handles production deployment through its GitHub integration. The
 service should be configured with root directory `services/data-service`,

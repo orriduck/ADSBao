@@ -184,7 +184,7 @@ The dynamic channel gauges should emit zero-valued series for idle aircraft,
 callsign, route, and traffic channel types so charts remain visible when no
 clients are connected.
 
-Apply `infra/newrelic` to create the ADSBao dashboard and NRQL alert policy in
+Apply `infra/newrelic` to manage the ADSBao NRQL alert policy and conditions in
 New Relic. Also watch Railway memory/CPU/network, provider request rate in New
 Relic, and Vercel aircraft proxy invocations after each production deploy.
 

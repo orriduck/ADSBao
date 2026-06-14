@@ -1,11 +1,6 @@
 # Production resources already applied in New Relic account 8173845.
-# These imports keep a fresh local state from creating duplicate dashboards or
-# alert conditions when applying this repo from a new machine.
-
-import {
-  to = newrelic_one_dashboard.adsbao_data_service
-  id = "ODE3Mzg0NXxWSVp8REFTSEJPQVJEfGRhOjEyNzIwODc3"
-}
+# These imports keep a fresh local state from creating duplicate alert
+# conditions when applying this repo from a new machine.
 
 import {
   to = newrelic_alert_policy.adsbao_data_service
