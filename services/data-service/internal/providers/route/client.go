@@ -23,7 +23,7 @@ const (
 	defaultADSBDBBaseURL     = "https://api.adsbdb.com/v0"
 	defaultFlightAwareBase   = "https://www.flightaware.com/live/flight"
 	defaultTimeout           = 9 * time.Second
-	defaultMaxBytes          = 512 * 1024
+	defaultMaxBytes          = 2 * 1024 * 1024
 	defaultQueueInterval     = 500 * time.Millisecond
 	userAgent                = "ADSBao data-service/1.0 (+https://adsbao.dev)"
 	flightAwareRouteUA       = "ADSBao data-service/1.0 (+https://adsbao.dev; flightaware/html)"
