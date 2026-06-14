@@ -32,17 +32,24 @@ export const normalizeFlightRoute = (payload) => {
     .toUpperCase();
   if (!callsign) return null;
   const number = String(route.number || "").trim();
-  const airlineIata = String(route.airline?.iata || "")
+  const airlineIata = String(route.airlineIata || route.airline?.iata || "")
     .trim()
     .toUpperCase();
-  const airlineIcao = String(route.airline?.icao || "")
+  const airlineIcao = String(route.airlineIcao || route.airline?.icao || "")
+    .trim()
+    .toUpperCase();
+  const callsignIata = String(
+    route.callsignIata ||
+      route.callsign_iata ||
+      (airlineIata && number ? `${airlineIata}${number}` : ""),
+  )
     .trim()
     .toUpperCase();
 
   return {
     callsign,
     callsignIcao: callsign,
-    callsignIata: airlineIata && number ? `${airlineIata}${number}` : "",
+    callsignIata,
     airlineName: String(route.airline?.name || "").trim(),
     airlineIcao,
     airlineIata,

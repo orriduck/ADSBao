@@ -26,6 +26,7 @@ const (
 	defaultTimeout           = 9 * time.Second
 	defaultMaxBytes          = 2 * 1024 * 1024
 	defaultQueueInterval     = 500 * time.Millisecond
+	defaultFlightAwareSlots  = 3
 	userAgent                = "ADSBao data-service/1.0 (+https://adsbao.dev)"
 	flightAwareRouteUA       = "ADSBao data-service/1.0 (+https://adsbao.dev; flightaware/html)"
 	flightAwareLogoURLFormat = "https://www.flightaware.com/images/airline_logos/90p/%s.png"
@@ -39,6 +40,7 @@ type Options struct {
 	Timeout                 time.Duration
 	MaxBytes                int64
 	QueueInterval           time.Duration
+	FlightAwareConcurrency  int
 	DisableQueue            bool
 }
 
@@ -50,6 +52,7 @@ type Client struct {
 	timeout                 time.Duration
 	maxBytes                int64
 	queueInterval           time.Duration
+	flightAwareSlots        chan struct{}
 	mu                      sync.Mutex
 	lastStarted             time.Time
 }
@@ -83,6 +86,10 @@ func NewClient(options Options) *Client {
 	if queueInterval == 0 && !options.DisableQueue {
 		queueInterval = defaultQueueInterval
 	}
+	flightAwareConcurrency := options.FlightAwareConcurrency
+	if flightAwareConcurrency <= 0 {
+		flightAwareConcurrency = defaultFlightAwareSlots
+	}
 	return &Client{
 		httpClient:              httpClient,
 		adsbdbBaseURL:           adsbdbBase,
@@ -91,6 +98,7 @@ func NewClient(options Options) *Client {
 		timeout:                 timeout,
 		maxBytes:                maxBytes,
 		queueInterval:           queueInterval,
+		flightAwareSlots:        make(chan struct{}, flightAwareConcurrency),
 	}
 }
 
@@ -142,9 +150,11 @@ func (c *Client) fetchADSBDB(ctx context.Context, input realtime.FetchInput) (re
 }
 
 func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
-	if err := c.waitForTurn(ctx); err != nil {
+	release, err := c.acquireFlightAwareSlot(ctx)
+	if err != nil {
 		return realtime.Event{}, err
 	}
+	defer release()
 	requestURL := c.flightAwareURL(input.Target.Callsign)
 	if requestURL == "" {
 		return realtime.Event{}, errors.New("Invalid FlightAware route callsign")
@@ -174,6 +184,18 @@ func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput
 	}
 	c.recordExternal(input, "flightaware", "success", status, started)
 	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, c.normalizeFlightAwareRoute(ctx, input, string(body))), nil
+}
+
+func (c *Client) acquireFlightAwareSlot(ctx context.Context) (func(), error) {
+	if c.flightAwareSlots == nil {
+		return func() {}, nil
+	}
+	select {
+	case c.flightAwareSlots <- struct{}{}:
+		return func() { <-c.flightAwareSlots }, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, context.CancelFunc, error) {
@@ -266,9 +288,94 @@ func routeEvent(channel, source, callsign string, route map[string]any) realtime
 		Stale:     false,
 		Data: map[string]any{
 			"callsign": callsign,
-			"route":    route,
+			"route":    compactRoutePayload(route),
 		},
 	}
+}
+
+func compactRoutePayload(route map[string]any) map[string]any {
+	if route == nil {
+		return nil
+	}
+	origin := compactAirportPayload(asMap(route["origin"]))
+	destination := compactAirportPayload(asMap(route["destination"]))
+	if origin == nil || destination == nil {
+		return nil
+	}
+	airlineRaw := asMap(route["airline"])
+	out := map[string]any{
+		"origin":      origin,
+		"destination": destination,
+	}
+	if callsign := firstNonEmpty(upper(route["callsign"]), upper(route["callsignIcao"]), upper(route["callsign_icao"])); callsign != "" {
+		out["callsign"] = callsign
+	}
+	if callsignICAO := firstNonEmpty(upper(route["callsignIcao"]), upper(route["callsign_icao"]), upper(route["callsign"])); callsignICAO != "" {
+		out["callsignIcao"] = callsignICAO
+	}
+	if callsignIata := firstNonEmpty(upper(route["callsignIata"]), upper(route["callsign_iata"])); callsignIata != "" {
+		out["callsignIata"] = callsignIata
+	}
+	if airlineICAO := firstNonEmpty(code(route["airlineIcao"], 2, 3), code(airlineRaw["icao"], 2, 3)); airlineICAO != "" {
+		out["airlineIcao"] = airlineICAO
+	}
+	if airlineIATA := firstNonEmpty(code(route["airlineIata"], 2, 2), code(airlineRaw["iata"], 2, 2)); airlineIATA != "" {
+		out["airlineIata"] = airlineIATA
+	}
+	if routeCodes := compactRouteCodes(asMap(route["route"])); routeCodes != nil {
+		out["route"] = routeCodes
+	}
+	if source := clean(route["source"]); source != "" {
+		out["source"] = source
+	}
+	if confidence := clean(route["confidence"]); confidence != "" {
+		out["confidence"] = confidence
+	}
+	for _, key := range []string{"temporary", "displaySuffix", "expiresAt", "feedbackReason"} {
+		if value, ok := route[key]; ok && value != nil {
+			if text, ok := value.(string); ok && strings.TrimSpace(text) == "" {
+				continue
+			}
+			out[key] = value
+		}
+	}
+	return out
+}
+
+func compactAirportPayload(airport map[string]any) map[string]any {
+	if airport == nil {
+		return nil
+	}
+	icao := code(firstNonEmpty(airport["icao"], airport["icao_code"]), 3, 4)
+	iata := code(firstNonEmpty(airport["iata"], airport["iata_code"]), 3, 3)
+	lat, latOK := number(firstNonEmpty(airport["lat"], airport["latitude"]))
+	lon, lonOK := number(firstNonEmpty(airport["lon"], airport["longitude"]))
+	if icao == "" || !latOK || !lonOK {
+		return nil
+	}
+	out := map[string]any{
+		"icao": icao,
+		"lat":  lat,
+		"lon":  lon,
+	}
+	if iata != "" {
+		out["iata"] = iata
+	}
+	return out
+}
+
+func compactRouteCodes(route map[string]any) map[string]any {
+	out := map[string]any{}
+	if icao := upper(route["icao"]); icao != "" {
+		out["icao"] = icao
+	}
+	if iata := upper(route["iata"]); iata != "" {
+		out["iata"] = iata
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func normalizeADSBDBRoute(callsign string, payload map[string]any) map[string]any {

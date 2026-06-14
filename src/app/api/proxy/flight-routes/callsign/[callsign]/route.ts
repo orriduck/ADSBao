@@ -9,6 +9,7 @@ import { normalizeRouteCallsign } from "@/features/aviation/flight-routes/flight
 import {
   ROUTE_MISS_STATUS,
   buildRouteCacheHeaders,
+  compactFlightRoutePayload,
 } from "@/features/aviation/flight-routes/flightRoutes.models";
 import { resolveFlightRoute } from "@/features/aviation/flight-routes/flightRoutes.mechanism";
 
@@ -45,10 +46,11 @@ export async function GET(request, { params }) {
       .trim()
       .toLowerCase();
     const providerSpecificRequest = requestedProvider === "flightaware";
-    const body = await resolveFlightRoute({
+    const resolvedRoute = await resolveFlightRoute({
       callsign,
       requestedProvider,
     });
+    const body = compactFlightRoutePayload(resolvedRoute);
 
     return logProxyRouteResponse({
       request,
