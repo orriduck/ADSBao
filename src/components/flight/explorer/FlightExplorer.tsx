@@ -153,7 +153,10 @@ function FlightExplorerContent({ callsign }) {
     visibilityRefreshVersion: trackedVisibilityRefreshVersion,
     trackingState,
     realtimeStatus,
-  } = useTrackedAircraft(callsign);
+  } = useTrackedAircraft(callsign, {
+    flightAwareEnabled,
+    flightAwareResolved,
+  });
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
   const [contextTiles, setContextTiles] = useState({
     airspaces: [],
