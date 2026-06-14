@@ -65,6 +65,10 @@ const POSITION_PROVIDER_CHAIN = Object.freeze([ADSB_LOL, AIRPLANES_LIVE, ADSB_FI
 const CALLSIGN_PROVIDER_CHAIN = Object.freeze([ADSB_LOL, AIRPLANES_LIVE, ADSB_FI]);
 const AIRCRAFT_PROVIDER_CHAIN = Object.freeze([ADSB_LOL, AIRPLANES_LIVE, ADSB_FI]);
 
+function isEmptyAircraftPayload(payload: Record<string, unknown>) {
+  return !Array.isArray(payload.ac) || payload.ac.length === 0;
+}
+
 async function fetchProviderJson(url: string, timeoutMs = DEFAULT_TIMEOUT_MS) {
   let response: Response;
   try {
@@ -144,6 +148,7 @@ async function fetchCallsign(input: FetchChannelInput) {
       if (!url) throw new AdsbProviderError("Provider has no callsign URL");
       return normalizeProviderPayload(provider, await fetchProviderJson(url));
     },
+    shouldRetryPayload: isEmptyAircraftPayload,
   });
 }
 
@@ -162,6 +167,7 @@ async function fetchAircraft(input: FetchChannelInput) {
       if (!url) throw new AdsbProviderError("Provider has no aircraft URL");
       return normalizeProviderPayload(provider, await fetchProviderJson(url));
     },
+    shouldRetryPayload: isEmptyAircraftPayload,
   });
 }
 

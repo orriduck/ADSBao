@@ -16,6 +16,7 @@ export const CHANGELOG = [
       "Moved live map traffic behind a Railway data-service deployment with WebSocket updates for airport and nearby views",
       "Migrated app persistence to Railway Postgres so static airport augmentation and user settings share one app-owned database",
       "Tightened realtime channel boundaries around public traffic and selected-aircraft tracking while keeping internal route-cache work private",
+      "Precise callsign tracking now continues past empty provider responses so oceanic flights can resolve from the next live source",
     ],
   },
   {
