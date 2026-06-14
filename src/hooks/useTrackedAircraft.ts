@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  AIRCRAFT_TRAFFIC_CONFIG,
+  AVIATION_PROXY_BASES,
+} from "../config/aviation";
+import {
   normalizeAdsbAircraft,
   resolveLastSuccessfulPositionDate,
 } from "../features/aircraft/positions/aircraftPositionsModel";
@@ -25,7 +29,26 @@ function normalizeRealtimeTrackedPayload(data: unknown) {
   return { ac: [] };
 }
 
-export function useTrackedAircraft(callsign: unknown) {
+function normalizeTrackedPayload(data: unknown) {
+  return normalizeRealtimeTrackedPayload(data);
+}
+
+function shouldHoldFlightAwarePosition(trackingState: unknown) {
+  return (
+    String((trackingState as any)?.status || "").trim() === "flightaware_active"
+  );
+}
+
+export function useTrackedAircraft(
+  callsign: unknown,
+  {
+    flightAwareEnabled = false,
+    flightAwareResolved = true,
+  }: {
+    flightAwareEnabled?: boolean;
+    flightAwareResolved?: boolean;
+  } = {},
+) {
   const hasActiveQuery = Boolean(callsign);
   const realtime = useAircraftTrackingRealtime(callsign, {
     enabled: hasActiveQuery,
@@ -46,6 +69,79 @@ export function useTrackedAircraft(callsign: unknown) {
   const retry = useCallback(() => {
     getAdsbaoRealtimeClient().connect();
   }, []);
+  const applyTrackedPayload = useCallback(
+    (
+      payloadInput: unknown,
+      {
+        source = "",
+        fetchedAt = "",
+      }: {
+        source?: string;
+        fetchedAt?: string;
+      } = {},
+    ) => {
+      const payload = normalizeTrackedPayload(payloadInput);
+      const matches = Array.isArray(payload.ac) ? payload.ac : [];
+      const nextTrackingState = payload.trackingState || null;
+      const nextSource =
+        typeof source === "string" && source
+          ? source
+          : typeof payload.source === "string"
+            ? payload.source
+            : "";
+      const signalState = getTrackedAircraftSignalState({
+        matchesLength: getActiveAdsbMatchesLength({
+          matchesLength: matches.length,
+          source: nextSource,
+        }),
+        previousMisses: missesRef.current,
+        flightAwareFallback: payload.flightAwareFallback,
+        trackingState: nextTrackingState,
+      });
+      const retainActiveTrackingState = shouldRetainActiveTrackingState({
+        previousTrackingState: trackingStateRef.current,
+        nextTrackingState,
+        matchesLength: matches.length,
+        lostSignal: signalState.lostSignal,
+      });
+      const committedTrackingState = retainActiveTrackingState
+        ? trackingStateRef.current
+        : nextTrackingState;
+      const committedFeedSource =
+        retainActiveTrackingState && !nextSource
+          ? feedSourceRef.current
+          : nextSource;
+
+      trackingStateRef.current = committedTrackingState;
+      feedSourceRef.current = committedFeedSource;
+      missesRef.current = signalState.misses;
+      setTrackingState(committedTrackingState);
+      setFlightAwareFallback(payload.flightAwareFallback || null);
+      setLostSignal(signalState.lostSignal);
+      setFeedSource(committedFeedSource);
+      setError(null);
+      setSettled(true);
+      setPollVersion((value) => value + 1);
+
+      if (matches.length === 0) return;
+
+      const parsedFetchedAt = Date.parse(fetchedAt);
+      const receiveTime = Number.isFinite(parsedFetchedAt)
+        ? parsedFetchedAt
+        : Date.now();
+      const normalized = normalizeAdsbAircraft(pickFreshest(matches), {
+        responseNow: payload.now,
+        receiveTime,
+      });
+      setAircraft({
+        ...normalized,
+        trackingState: committedTrackingState,
+      });
+      const positionDate = resolveLastSuccessfulPositionDate(normalized);
+      if (positionDate) setLastUpdated(positionDate);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!callsign) {
@@ -86,65 +182,92 @@ export function useTrackedAircraft(callsign: unknown) {
   useEffect(() => {
     const event = realtime.event;
     if (!callsign || !event || event.type !== "aircraft:update") return;
+    if (
+      flightAwareEnabled &&
+      flightAwareResolved &&
+      shouldHoldFlightAwarePosition(trackingStateRef.current)
+    ) {
+      return;
+    }
 
-    const payload = normalizeRealtimeTrackedPayload(event.data);
-    const matches = Array.isArray(payload.ac) ? payload.ac : [];
-    const nextTrackingState = payload.trackingState || null;
-    const signalState = getTrackedAircraftSignalState({
-      matchesLength: getActiveAdsbMatchesLength({
-        matchesLength: matches.length,
-        source: payload.source || event.source,
-      }),
-      previousMisses: missesRef.current,
-      flightAwareFallback: payload.flightAwareFallback,
-      trackingState: nextTrackingState,
+    applyTrackedPayload(event.data, {
+      source: event.source,
+      fetchedAt: event.fetchedAt,
     });
-    const retainActiveTrackingState = shouldRetainActiveTrackingState({
-      previousTrackingState: trackingStateRef.current,
-      nextTrackingState,
-      matchesLength: matches.length,
-      lostSignal: signalState.lostSignal,
-    });
-    const committedTrackingState = retainActiveTrackingState
-      ? trackingStateRef.current
-      : nextTrackingState;
-    const nextFeedSource =
-      typeof event.source === "string"
-        ? event.source
-        : typeof payload.source === "string"
-          ? payload.source
-          : "";
-    const committedFeedSource =
-      retainActiveTrackingState && !nextFeedSource
-        ? feedSourceRef.current
-        : nextFeedSource;
+  }, [
+    applyTrackedPayload,
+    callsign,
+    flightAwareEnabled,
+    flightAwareResolved,
+    realtime.event,
+  ]);
 
-    trackingStateRef.current = committedTrackingState;
-    feedSourceRef.current = committedFeedSource;
-    missesRef.current = signalState.misses;
-    setTrackingState(committedTrackingState);
-    setFlightAwareFallback(payload.flightAwareFallback || null);
-    setLostSignal(signalState.lostSignal);
-    setFeedSource(committedFeedSource);
-    setError(null);
-    setSettled(true);
-    setPollVersion((value) => value + 1);
+  useEffect(() => {
+    if (!callsign || !flightAwareResolved || !flightAwareEnabled) return undefined;
 
-    if (matches.length === 0) return;
+    const normalizedCallsign = String(callsign || "").trim().toUpperCase();
+    if (!normalizedCallsign) return undefined;
 
-    const fetchedAt = Date.parse(event.fetchedAt);
-    const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
-    const normalized = normalizeAdsbAircraft(pickFreshest(matches), {
-      responseNow: payload.now,
-      receiveTime,
-    });
-    setAircraft({
-      ...normalized,
-      trackingState: committedTrackingState,
-    });
-    const positionDate = resolveLastSuccessfulPositionDate(normalized);
-    if (positionDate) setLastUpdated(positionDate);
-  }, [callsign, realtime.event]);
+    let disposed = false;
+    let timer: number | null = null;
+    let controller: AbortController | null = null;
+
+    const poll = async () => {
+      controller?.abort();
+      controller = new AbortController();
+      try {
+        const response = await fetch(
+          `${AVIATION_PROXY_BASES.aircraftCallsign}/${encodeURIComponent(normalizedCallsign)}`,
+          {
+            cache: "no-store",
+            credentials: "same-origin",
+            signal: controller.signal,
+          },
+        );
+        if (!response.ok) {
+          throw new Error(`Aircraft callsign proxy HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        if (disposed) return;
+        applyTrackedPayload(payload, {
+          source:
+            response.headers.get("X-Data-Source") ||
+            (typeof payload?.source === "string" ? payload.source : ""),
+          fetchedAt: new Date().toISOString(),
+        });
+      } catch (error: any) {
+        if (disposed || error?.name === "AbortError") return;
+        setError(error);
+        setSettled(true);
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            `[tracked-aircraft] FlightAware-aware refresh failed for ${normalizedCallsign}:`,
+            error,
+          );
+        }
+      } finally {
+        if (!disposed) {
+          timer = window.setTimeout(
+            poll,
+            AIRCRAFT_TRAFFIC_CONFIG.flightAwareTraceRefreshMs,
+          );
+        }
+      }
+    };
+
+    poll();
+
+    return () => {
+      disposed = true;
+      if (timer) window.clearTimeout(timer);
+      controller?.abort();
+    };
+  }, [
+    applyTrackedPayload,
+    callsign,
+    flightAwareEnabled,
+    flightAwareResolved,
+  ]);
 
   const waitingForRealtime =
     hasActiveQuery && (!settled || realtime.fallbackActive);

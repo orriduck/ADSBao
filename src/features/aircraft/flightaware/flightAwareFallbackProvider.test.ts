@@ -88,6 +88,13 @@ const arrivedHtml = `
   </script>
 `;
 
+const activeHtmlWithTrackpoll = `
+  ${activeHtml}
+  <script>
+    var trackpollGlobals = {"TOKEN":"track-token","INTERVAL":60,"SINGLE_FLIGHT":true};
+  </script>
+`;
+
 const getFallbackFromHtml = async (callsign, html) =>
   getFlightAwareFallbackByCallsign(callsign, {
     env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
@@ -126,6 +133,66 @@ const getFallbackFromHtml = async (callsign, html) =>
   assert.equal(result.position.quality.isEstimated, true);
   assert.equal(result.position.quality.sourceUpdatedAt, "2026-05-25T01:21:06.000Z");
   assert.equal("raw" in result, false);
+}
+
+{
+  const urls = [];
+  const trackpollJson = JSON.stringify({
+    version: "2.24",
+    summary: false,
+    flights: {
+      "AAL100-2": {
+        ident: "AAL100",
+        displayIdent: "AAL100",
+        flightStatus: "enroute",
+        historical: false,
+        coord: null,
+        altitude: 380,
+        groundspeed: 510,
+        heading: 80,
+        timestamp: null,
+        origin: { icao: "KJFK" },
+        destination: { icao: "EGLL" },
+        flightPlan: { speed: 488, altitude: 380, route: "NATV DOGAL" },
+        track: [
+          {
+            timestamp: 1779672308,
+            coord: [-46.1666, 47.4667],
+            alt: null,
+            gs: null,
+            type: "TP",
+            isolated: false,
+          },
+        ],
+        updateType: "predicted",
+      },
+    },
+  });
+  const result = await getFlightAwareFallbackByCallsign("AAL100", {
+    env: { FLIGHTAWARE_FALLBACK_ENABLED: "true" },
+    fetchImpl: async (url) => {
+      urls.push(String(url));
+      if (String(url).includes("/ajax/trackpoll.rvt")) {
+        return new Response(trackpollJson, { status: 200 });
+      }
+      return new Response(activeHtmlWithTrackpoll, { status: 200 });
+    },
+    now: () => Date.parse(fetchedAt),
+    cacheStore: new Map(),
+  });
+
+  assert.equal(urls[0], "https://www.flightaware.com/live/flight/AAL100");
+  assert.match(urls[1], /\/ajax\/trackpoll\.rvt\?/);
+  assert.match(urls[1], /token=track-token/);
+  assert.equal(result.ok, true);
+  assert.equal(result.hasPosition, true);
+  assert.equal(result.position.lat, 47.4667);
+  assert.equal(result.position.lon, -46.1666);
+  assert.equal(result.position.quality.kind, "predicted");
+  assert.equal(
+    result.position.quality.sourceUpdatedAt,
+    "2026-05-25T01:25:08.000Z",
+  );
 }
 
 {

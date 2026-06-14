@@ -3,6 +3,7 @@ import { buildAdsbaoUserAgent } from "../../../config/siteMeta";
 import { normalizeRouteCallsign } from "../../aviation/flight-routes/flightRouteCallsign";
 
 const FLIGHTAWARE_FALLBACK_BASE = "https://www.flightaware.com/live/flight";
+const FLIGHTAWARE_TRACKPOLL_PATH = "/ajax/trackpoll.rvt";
 const FLIGHTAWARE_FALLBACK_CACHE_TTL_MS = 60_000;
 const FLIGHTAWARE_FALLBACK_TIMEOUT_MS = 7_000;
 const FLIGHTAWARE_FALLBACK_USER_AGENT =
@@ -151,6 +152,21 @@ function extractAssignedJson(html: unknown, name: string) {
     }
   }
   return null;
+}
+
+function parseAssignedJson(html: unknown, name: string) {
+  const jsonText = extractAssignedJson(html, name);
+  if (!jsonText) return null;
+  try {
+    return JSON.parse(jsonText);
+  } catch {
+    return null;
+  }
+}
+
+function extractTrackpollToken(html: unknown) {
+  const globals = parseAssignedJson(html, "trackpollGlobals");
+  return cleanString(globals?.TOKEN);
 }
 
 function readCoord(value: unknown) {
@@ -302,18 +318,36 @@ function buildFlightAwareFallbackUrl(callsign: unknown) {
   return `${FLIGHTAWARE_FALLBACK_BASE}/${encodeURIComponent(normalized)}`;
 }
 
+function buildFlightAwareTrackpollUrl(pageUrl: string, token: string) {
+  const url = new URL(FLIGHTAWARE_TRACKPOLL_PATH, FLIGHTAWARE_FALLBACK_BASE);
+  try {
+    const page = new URL(pageUrl);
+    page.searchParams.forEach((value, key) => {
+      url.searchParams.set(key, value);
+    });
+  } catch {
+    // Keep the plain trackpoll endpoint if the page URL is unexpectedly invalid.
+  }
+  url.searchParams.set("token", token);
+  url.searchParams.set("locale", "en_US");
+  url.searchParams.set("summary", "0");
+  return url.toString();
+}
+
 function isFlightAwareFallbackEnabled(env: EnvLike = process.env) {
   return String(env?.FLIGHTAWARE_FALLBACK_ENABLED || "true").toLowerCase() !== "false";
 }
 
-function parseFlightAwareFallbackPage({
+function parseFlightAwarePayload({
   callsign,
-  html,
+  payload,
   fetchedAt,
+  html = "",
 }: {
   callsign?: unknown;
-  html?: unknown;
+  payload?: FlightAwareRecord | null;
   fetchedAt?: string;
+  html?: unknown;
 } = {}): FlightAwareFallbackResult {
   const normalizedCallsign = normalizeRouteCallsign(callsign);
   const fetched = fetchedAt || new Date().toISOString();
@@ -321,25 +355,7 @@ function parseFlightAwareFallbackPage({
     return errorResult("invalid_callsign", { fetchedAt: fetched });
   }
 
-  const jsonText = extractAssignedJson(html, "trackpollBootstrap");
-  if (!jsonText) {
-    return errorResult("parse_failed", {
-      message: "trackpollBootstrap not found",
-      fetchedAt: fetched,
-    });
-  }
-
-  let bootstrap;
-  try {
-    bootstrap = JSON.parse(jsonText);
-  } catch (error) {
-    return errorResult("parse_failed", {
-      message: error.message,
-      fetchedAt: fetched,
-    });
-  }
-
-  const flight = selectBestFlight(bootstrap?.flights);
+  const flight = selectBestFlight(payload?.flights);
   if (!flight) {
     return errorResult("parse_failed", {
       message: "No flight entries found",
@@ -401,6 +417,64 @@ function parseFlightAwareFallbackPage({
       },
     },
   };
+}
+
+function parseFlightAwareFallbackPage({
+  callsign,
+  html,
+  fetchedAt,
+}: {
+  callsign?: unknown;
+  html?: unknown;
+  fetchedAt?: string;
+} = {}): FlightAwareFallbackResult {
+  const jsonText = extractAssignedJson(html, "trackpollBootstrap");
+  if (!jsonText) {
+    return errorResult("parse_failed", {
+      message: "trackpollBootstrap not found",
+      fetchedAt,
+    });
+  }
+
+  try {
+    return parseFlightAwarePayload({
+      callsign,
+      payload: JSON.parse(jsonText),
+      fetchedAt,
+      html,
+    });
+  } catch (error) {
+    return errorResult("parse_failed", {
+      message: error.message,
+      fetchedAt,
+    });
+  }
+}
+
+function parseFlightAwareTrackpollResponse({
+  callsign,
+  text,
+  fetchedAt,
+  html,
+}: {
+  callsign?: unknown;
+  text?: unknown;
+  fetchedAt?: string;
+  html?: unknown;
+} = {}) {
+  try {
+    return parseFlightAwarePayload({
+      callsign,
+      payload: JSON.parse(String(text || "")),
+      fetchedAt,
+      html,
+    });
+  } catch (error) {
+    return errorResult("parse_failed", {
+      message: error.message,
+      fetchedAt,
+    });
+  }
 }
 
 function checkRateLimit(
@@ -489,6 +563,47 @@ export async function getFlightAwareFallbackByCallsign(callsign: unknown, {
       label: "flightaware fallback page",
       maxBytes: MAX_HTML_BYTES,
     });
+
+    const trackpollToken = extractTrackpollToken(html);
+    if (trackpollToken) {
+      try {
+        const trackpollResponse = await fetchImpl(
+          buildFlightAwareTrackpollUrl(url, trackpollToken),
+          {
+            headers: {
+              Accept: "application/json, text/javascript, */*; q=0.01",
+              Referer: url,
+              "User-Agent": FLIGHTAWARE_FALLBACK_USER_AGENT,
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            signal:
+              typeof AbortSignal !== "undefined" && AbortSignal.timeout
+                ? AbortSignal.timeout(timeoutMs)
+                : undefined,
+          },
+        );
+        if (trackpollResponse.ok) {
+          const text = await readResponseText(trackpollResponse, {
+            label: "flightaware trackpoll response",
+            maxBytes: MAX_HTML_BYTES,
+          });
+          const trackpollResult = parseFlightAwareTrackpollResponse({
+            callsign: normalizedCallsign,
+            text,
+            fetchedAt,
+            html,
+          });
+          if (trackpollResult.ok) {
+            cacheFallbackResult(cacheStore, normalizedCallsign, trackpollResult, nowMs);
+            return trackpollResult;
+          }
+        }
+      } catch {
+        // The public page bootstrap remains a valid fallback when the private
+        // trackpoll request is blocked, expired, or changes shape.
+      }
+    }
+
     const result = parseFlightAwareFallbackPage({
       callsign: normalizedCallsign,
       html,
