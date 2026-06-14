@@ -164,10 +164,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
     output,
     /adsbao_poll_requests_total\{channel_type="route",result="success",source="adsbdb"\} 1/,
   );
-  assert.match(
-    output,
-    /adsbao_external_requests_total\{endpoint="route",provider="adsbdb",result="success"\} 1/,
-  );
 
   unsubscribe();
   scheduler.dispose();

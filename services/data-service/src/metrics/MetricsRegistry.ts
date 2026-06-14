@@ -1,4 +1,8 @@
-import type { DebugChannel, RealtimeChannelType } from "../types.js";
+import type {
+  DebugChannel,
+  ExternalRequestMetricInput,
+  RealtimeChannelType,
+} from "../types.js";
 
 type LabelValue = string | number | boolean | null | undefined;
 type Labels = Record<string, LabelValue>;
@@ -12,6 +16,18 @@ type WsMessageInput = {
   direction: "inbound" | "outbound";
   type: string;
   result: "ok" | "error";
+  bytes?: number;
+};
+
+type WsConnectionCloseInput = {
+  code?: number | string | null;
+  durationMs?: number;
+  result?: "closed" | "error";
+};
+
+type WsUpgradeInput = {
+  reason: "ok" | "path" | "origin";
+  result: "accepted" | "rejected";
 };
 
 type WsSubscribeInput = {
@@ -22,13 +38,6 @@ type WsSubscribeInput = {
 type PollInput = {
   channelType: RealtimeChannelType;
   source: string;
-  result: "success" | "error";
-  durationMs: number;
-};
-
-type ExternalRequestInput = {
-  provider: string;
-  endpoint: "positions" | "callsign" | "aircraft" | "route" | "unknown";
   result: "success" | "error";
   durationMs: number;
 };
@@ -57,6 +66,17 @@ const DURATION_BUCKETS = Object.freeze([
   5,
   10,
   30,
+]);
+
+const MESSAGE_BYTE_BUCKETS = Object.freeze([
+  128,
+  512,
+  1024,
+  4 * 1024,
+  16 * 1024,
+  64 * 1024,
+  256 * 1024,
+  1024 * 1024,
 ]);
 
 function normalizeLabelValue(value: LabelValue) {
@@ -99,30 +119,75 @@ function classifyEndpoint(channelType: RealtimeChannelType) {
   return "unknown";
 }
 
+function classifyStatus(status: ExternalRequestMetricInput["status"], result: string) {
+  if (typeof status === "number" && Number.isFinite(status)) {
+    return `${Math.floor(status / 100)}xx`;
+  }
+  const normalized = normalizeLabelValue(status).toLowerCase();
+  if (normalized !== "unknown") return normalized;
+  return result === "success" ? "ok" : "unknown";
+}
+
 export class DataServiceMetrics {
   private wsConnectionsCurrent = 0;
   private readonly counters = new Map<string, CounterState>();
   private readonly histograms = new Map<string, HistogramState>();
+
+  recordWsUpgrade({ reason, result }: WsUpgradeInput) {
+    this.increment("adsbao_ws_upgrades_total", { reason, result });
+  }
 
   recordWsConnectionOpened() {
     this.wsConnectionsCurrent += 1;
     this.increment("adsbao_ws_connections_total", {});
   }
 
-  recordWsConnectionClosed() {
+  recordWsConnectionClosed({
+    code = "unknown",
+    durationMs = 0,
+    result = "closed",
+  }: WsConnectionCloseInput = {}) {
     this.wsConnectionsCurrent = Math.max(0, this.wsConnectionsCurrent - 1);
+    const labels = {
+      close_code: code,
+      result,
+    };
+    this.increment("adsbao_ws_disconnects_total", labels);
+    if (durationMs > 0) {
+      this.observe(
+        "adsbao_ws_connection_duration_seconds",
+        labels,
+        durationMs / 1000,
+      );
+    }
   }
 
-  recordWsMessage({ direction, type, result }: WsMessageInput) {
-    this.increment("adsbao_ws_messages_total", {
+  recordWsMessage({ bytes, direction, type, result }: WsMessageInput) {
+    const labels = {
       direction,
       result,
       type,
-    });
+    };
+    this.increment("adsbao_ws_messages_total", labels);
+    if (typeof bytes === "number" && bytes >= 0) {
+      this.observe(
+        "adsbao_ws_message_bytes",
+        labels,
+        bytes,
+        MESSAGE_BYTE_BUCKETS,
+      );
+    }
   }
 
   recordWsSubscribe({ channelType, result }: WsSubscribeInput) {
     this.increment("adsbao_ws_subscribe_total", {
+      channel_type: channelType,
+      result,
+    });
+  }
+
+  recordWsUnsubscribe({ channelType, result }: WsSubscribeInput) {
+    this.increment("adsbao_ws_unsubscribe_total", {
       channel_type: channelType,
       result,
     });
@@ -138,11 +203,13 @@ export class DataServiceMetrics {
     this.observe("adsbao_poll_duration_seconds", labels, durationMs / 1000);
   }
 
-  recordExternalRequest(input: ExternalRequestInput) {
+  recordExternalRequest(input: ExternalRequestMetricInput) {
     const labels = {
       endpoint: input.endpoint,
       provider: input.provider,
       result: input.result,
+      status: input.status ?? "unknown",
+      status_class: classifyStatus(input.status, input.result),
     };
     this.increment("adsbao_external_requests_total", labels);
     this.observe(
@@ -199,20 +266,25 @@ export class DataServiceMetrics {
     this.counters.set(key, { labels, name, value });
   }
 
-  private observe(name: string, labels: Labels, value: number) {
+  private observe(
+    name: string,
+    labels: Labels,
+    value: number,
+    buckets: readonly number[] = DURATION_BUCKETS,
+  ) {
     const key = seriesKey(name, labels);
     let state = this.histograms.get(key);
     if (!state) {
       state = {
         labels,
-        buckets: new Map(DURATION_BUCKETS.map((bucket) => [bucket, 0])),
+        buckets: new Map(buckets.map((bucket) => [bucket, 0])),
         count: 0,
         name,
         sum: 0,
       };
       this.histograms.set(key, state);
     }
-    for (const bucket of DURATION_BUCKETS) {
+    for (const bucket of state.buckets.keys()) {
       if (value <= bucket) {
         state.buckets.set(bucket, (state.buckets.get(bucket) || 0) + 1);
       }
@@ -242,9 +314,23 @@ export class DataServiceMetrics {
 
   private renderDynamicChannelGauges(lines: string[], channels: DebugChannel[]) {
     const activeByType = new Map<string, number>();
+    const failureSumByType = new Map<string, number>();
+    const maxIntervalByType = new Map<string, number>();
+    const staleByType = new Map<string, number>();
     const subscribersByType = new Map<string, number>();
     for (const channel of channels) {
       activeByType.set(channel.type, (activeByType.get(channel.type) || 0) + 1);
+      failureSumByType.set(
+        channel.type,
+        (failureSumByType.get(channel.type) || 0) + channel.consecutiveFailures,
+      );
+      maxIntervalByType.set(
+        channel.type,
+        Math.max(maxIntervalByType.get(channel.type) || 0, channel.currentIntervalMs),
+      );
+      if (channel.stale) {
+        staleByType.set(channel.type, (staleByType.get(channel.type) || 0) + 1);
+      }
       subscribersByType.set(
         channel.type,
         (subscribersByType.get(channel.type) || 0) + channel.subscriberCount,
@@ -262,6 +348,30 @@ export class DataServiceMetrics {
       name: "adsbao_subscriptions_current",
       help: "Current active subscriptions by channel type.",
       values: [...subscribersByType].map(([channelType, value]) => ({
+        labels: { channel_type: channelType },
+        value,
+      })),
+    });
+    this.renderGauge(lines, {
+      name: "adsbao_channel_consecutive_failures_current",
+      help: "Current sum of consecutive polling failures by channel type.",
+      values: [...failureSumByType].map(([channelType, value]) => ({
+        labels: { channel_type: channelType },
+        value,
+      })),
+    });
+    this.renderGauge(lines, {
+      name: "adsbao_channel_poll_interval_seconds",
+      help: "Current maximum polling interval in seconds by channel type.",
+      values: [...maxIntervalByType].map(([channelType, value]) => ({
+        labels: { channel_type: channelType },
+        value: Number((value / 1000).toFixed(3)),
+      })),
+    });
+    this.renderGauge(lines, {
+      name: "adsbao_stale_channels_current",
+      help: "Current stale polling channels by channel type.",
+      values: [...staleByType].map(([channelType, value]) => ({
         labels: { channel_type: channelType },
         value,
       })),
@@ -294,7 +404,7 @@ export class DataServiceMetrics {
     )) {
       lines.push(`# HELP ${state.name} Histogram for ${state.name}.`);
       lines.push(`# TYPE ${state.name} histogram`);
-      for (const bucket of DURATION_BUCKETS) {
+      for (const bucket of state.buckets.keys()) {
         lines.push(
           metricLine(
             `${state.name}_bucket`,

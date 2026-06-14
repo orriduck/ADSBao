@@ -11,12 +11,14 @@ type ChannelManagerOptions = {
 };
 
 type SocketState = {
+  openedAtMs: number;
   subscriptions: Map<string, () => void>;
 };
 
-function sendJson(socket: WebSocket, payload: unknown) {
-  if (socket.readyState !== socket.OPEN) return;
-  socket.send(JSON.stringify(payload));
+function rawMessageBytes(raw: unknown) {
+  if (Buffer.isBuffer(raw)) return raw.byteLength;
+  if (typeof raw === "string") return Buffer.byteLength(raw, "utf8");
+  return 0;
 }
 
 function parseClientMessage(raw: unknown): ClientMessage | null {
@@ -48,6 +50,7 @@ export class ChannelManager {
 
   attach(socket: WebSocket) {
     const state: SocketState = {
+      openedAtMs: Date.now(),
       subscriptions: new Map(),
     };
     this.sockets.set(socket, state);
@@ -67,6 +70,7 @@ export class ChannelManager {
       const message = parseClientMessage(raw);
       if (!message) {
         this.metrics?.recordWsMessage({
+          bytes: rawMessageBytes(raw),
           direction: "inbound",
           type: "invalid",
           result: "error",
@@ -75,6 +79,7 @@ export class ChannelManager {
         return;
       }
       this.metrics?.recordWsMessage({
+        bytes: rawMessageBytes(raw),
         direction: "inbound",
         type: message.type,
         result: "ok",
@@ -82,21 +87,40 @@ export class ChannelManager {
       this.handleMessage(socket, state, message);
     });
 
-    socket.on("close", () => {
-      this.detach(socket);
+    socket.on("close", (code) => {
+      this.detach(socket, {
+        code,
+        result: "closed",
+      });
     });
     socket.on("error", () => {
-      this.detach(socket);
+      this.detach(socket, {
+        code: "error",
+        result: "error",
+      });
     });
   }
 
-  detach(socket: WebSocket) {
+  detach(
+    socket: WebSocket,
+    {
+      code = "unknown",
+      result = "closed",
+    }: {
+      code?: number | string | null;
+      result?: "closed" | "error";
+    } = {},
+  ) {
     const state = this.sockets.get(socket);
     if (!state) return;
     for (const unsubscribe of state.subscriptions.values()) unsubscribe();
     state.subscriptions.clear();
     this.sockets.delete(socket);
-    this.metrics?.recordWsConnectionClosed();
+    this.metrics?.recordWsConnectionClosed({
+      code,
+      durationMs: Date.now() - state.openedAtMs,
+      result,
+    });
   }
 
   private handleMessage(socket: WebSocket, state: SocketState, message: ClientMessage) {
@@ -107,11 +131,27 @@ export class ChannelManager {
 
     if (message.type === "unsubscribe") {
       const normalized = normalizeChannelName(message.channel);
-      if (!normalized.ok) return;
+      if (!normalized.ok) {
+        this.metrics?.recordWsUnsubscribe({
+          channelType: "unknown",
+          result: "invalid",
+        });
+        return;
+      }
       const unsubscribe = state.subscriptions.get(normalized.channel);
-      if (!unsubscribe) return;
+      if (!unsubscribe) {
+        this.metrics?.recordWsUnsubscribe({
+          channelType: normalized.type,
+          result: "invalid",
+        });
+        return;
+      }
       unsubscribe();
       state.subscriptions.delete(normalized.channel);
+      this.metrics?.recordWsUnsubscribe({
+        channelType: normalized.type,
+        result: "ok",
+      });
       this.sendJson(socket, {
         type: "subscribed:removed",
         channel: normalized.channel,
@@ -190,15 +230,18 @@ export class ChannelManager {
   }
 
   private sendJson(socket: WebSocket, payload: unknown) {
+    const serialized = JSON.stringify(payload);
     const type =
       payload && typeof payload === "object" && "type" in payload
         ? String((payload as { type?: unknown }).type || "unknown")
         : "unknown";
     this.metrics?.recordWsMessage({
+      bytes: Buffer.byteLength(serialized, "utf8"),
       direction: "outbound",
       type,
       result: socket.readyState === socket.OPEN ? "ok" : "error",
     });
-    sendJson(socket, payload);
+    if (socket.readyState !== socket.OPEN) return;
+    socket.send(serialized);
   }
 }

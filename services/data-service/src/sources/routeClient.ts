@@ -103,6 +103,7 @@ async function readJson(response: Response) {
 
 export async function fetchRouteChannel({
   channel,
+  metrics,
   target,
   fetchImpl = fetch,
   waitForTurn: waitForTurnImpl = waitForRouteTurn,
@@ -110,18 +111,42 @@ export async function fetchRouteChannel({
   if (target.kind !== "route") throw new Error("Expected route polling target");
   await waitForTurnImpl();
   const url = `${ADSBDB_BASE}/callsign/${encodeURIComponent(target.callsign)}`;
-  const response = await fetchImpl(url, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": USER_AGENT,
-    },
-    signal: AbortSignal.timeout(ROUTE_TIMEOUT_MS),
-  });
-  if (!response.ok && response.status !== 404) {
-    throw new Error(`adsbdb route HTTP ${response.status}`);
+  const startedAt = Date.now();
+  let status: number | string | null = null;
+  let route: ReturnType<typeof normalizeRoute> | null = null;
+  try {
+    const response = await fetchImpl(url, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": USER_AGENT,
+      },
+      signal: AbortSignal.timeout(ROUTE_TIMEOUT_MS),
+    });
+    status = response.status;
+    if (!response.ok && response.status !== 404) {
+      throw new Error(`adsbdb route HTTP ${response.status}`);
+    }
+    route =
+      response.status === 404
+        ? null
+        : normalizeRoute(target.callsign, await readJson(response));
+    metrics?.recordExternalRequest({
+      provider: "adsbdb",
+      endpoint: "route",
+      result: "success",
+      status,
+      durationMs: Date.now() - startedAt,
+    });
+  } catch (error) {
+    metrics?.recordExternalRequest({
+      provider: "adsbdb",
+      endpoint: "route",
+      result: "error",
+      status: status ?? "ERR",
+      durationMs: Date.now() - startedAt,
+    });
+    throw error;
   }
-  const route =
-    response.status === 404 ? null : normalizeRoute(target.callsign, await readJson(response));
   return {
     type: "route:update",
     channel,

@@ -1,4 +1,8 @@
-import type { FetchChannelInput, RealtimeEvent } from "../types.js";
+import type {
+  ExternalRequestEndpoint,
+  FetchChannelInput,
+  RealtimeEvent,
+} from "../types.js";
 import { fetchWithProviderFallback } from "./providerFallback.js";
 
 const DEFAULT_TIMEOUT_MS = 2_800;
@@ -69,36 +73,77 @@ function isEmptyAircraftPayload(payload: Record<string, unknown>) {
   return !Array.isArray(payload.ac) || payload.ac.length === 0;
 }
 
-async function fetchProviderJson(url: string, timeoutMs = DEFAULT_TIMEOUT_MS) {
-  let response: Response;
+async function fetchProviderPayload({
+  endpoint,
+  input,
+  provider,
+  url,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+}: {
+  endpoint: ExternalRequestEndpoint;
+  input: FetchChannelInput;
+  provider: Provider;
+  url: string;
+  timeoutMs?: number;
+}) {
+  const startedAt = Date.now();
+  let status: number | string | null = null;
   try {
-    response = await fetch(url, {
+    const response = await fetch(url, {
       headers: {
         Accept: "application/json",
         "User-Agent": USER_AGENT,
       },
       signal: AbortSignal.timeout(timeoutMs),
     });
-  } catch (error) {
-    throw new AdsbProviderError(
-      error instanceof Error ? error.message : "network error",
-      "ERR",
+    status = response.status;
+
+    if (!response.ok) {
+      throw new AdsbProviderError(`HTTP ${response.status}`, response.status);
+    }
+
+    const text = await response.text();
+    if (Buffer.byteLength(text, "utf8") > MAX_AIRCRAFT_BYTES) {
+      status = "SIZE";
+      throw new AdsbProviderError("ADS-B response too large", status);
+    }
+
+    let payload: unknown;
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      status = "PARSE";
+      throw new AdsbProviderError("Invalid ADS-B JSON", status);
+    }
+
+    const normalized = normalizeProviderPayload(
+      provider,
+      payload as Record<string, unknown>,
     );
-  }
-
-  if (!response.ok) {
-    throw new AdsbProviderError(`HTTP ${response.status}`, response.status);
-  }
-
-  const text = await response.text();
-  if (Buffer.byteLength(text, "utf8") > MAX_AIRCRAFT_BYTES) {
-    throw new AdsbProviderError("ADS-B response too large", "SIZE");
-  }
-
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new AdsbProviderError("Invalid ADS-B JSON", "PARSE");
+    input.metrics?.recordExternalRequest({
+      provider: provider.id,
+      endpoint,
+      result: "success",
+      status,
+      durationMs: Date.now() - startedAt,
+    });
+    return normalized;
+  } catch (error) {
+    const providerError =
+      error instanceof AdsbProviderError
+        ? error
+        : new AdsbProviderError(
+            error instanceof Error ? error.message : "network error",
+            "ERR",
+          );
+    input.metrics?.recordExternalRequest({
+      provider: provider.id,
+      endpoint,
+      result: "error",
+      status: providerError.status ?? status ?? "ERR",
+      durationMs: Date.now() - startedAt,
+    });
+    throw providerError;
   }
 }
 
@@ -128,7 +173,12 @@ async function fetchPositions(input: FetchChannelInput) {
         distanceNm: target.distNm,
       });
       if (!url) throw new AdsbProviderError("Provider has no position URL");
-      return normalizeProviderPayload(provider, await fetchProviderJson(url));
+      return fetchProviderPayload({
+        endpoint: "positions",
+        input,
+        provider,
+        url,
+      });
     },
   });
 }
@@ -146,7 +196,12 @@ async function fetchCallsign(input: FetchChannelInput) {
         callsign: target.callsign,
       });
       if (!url) throw new AdsbProviderError("Provider has no callsign URL");
-      return normalizeProviderPayload(provider, await fetchProviderJson(url));
+      return fetchProviderPayload({
+        endpoint: "callsign",
+        input,
+        provider,
+        url,
+      });
     },
     shouldRetryPayload: isEmptyAircraftPayload,
   });
@@ -165,7 +220,12 @@ async function fetchAircraft(input: FetchChannelInput) {
         hex: target.hex,
       });
       if (!url) throw new AdsbProviderError("Provider has no aircraft URL");
-      return normalizeProviderPayload(provider, await fetchProviderJson(url));
+      return fetchProviderPayload({
+        endpoint: "aircraft",
+        input,
+        provider,
+        url,
+      });
     },
     shouldRetryPayload: isEmptyAircraftPayload,
   });

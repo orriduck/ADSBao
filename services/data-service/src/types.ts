@@ -57,11 +57,31 @@ export type SubscribeParams = {
   [key: string]: unknown;
 };
 
+export type ExternalRequestEndpoint =
+  | "positions"
+  | "callsign"
+  | "aircraft"
+  | "route"
+  | "unknown";
+
+export type ExternalRequestMetricInput = {
+  provider: string;
+  endpoint: ExternalRequestEndpoint;
+  result: "success" | "error";
+  durationMs: number;
+  status?: number | string | null;
+};
+
+export type DataServiceMetricsSink = {
+  recordExternalRequest(input: ExternalRequestMetricInput): void;
+};
+
 export type FetchChannelInput = {
   channel: string;
   channelType: RealtimeChannelType;
   target: PollingTarget;
   params: SubscribeParams;
+  metrics?: DataServiceMetricsSink;
 };
 
 export type FetchChannel = (

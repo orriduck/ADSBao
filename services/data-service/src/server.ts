@@ -74,6 +74,7 @@ const server = createServer((request, response) => {
 attachWebSocketServer({
   server,
   channelManager,
+  metrics,
   allowedOrigins: parseCsv(process.env.ALLOWED_WS_ORIGINS),
 });
 
