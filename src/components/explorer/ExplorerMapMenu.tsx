@@ -3,21 +3,24 @@
 import MapControlBar from "@/components/ui/MapControlBar";
 import MobileMapSourceStatus from "./MobileMapSourceStatus";
 import { useExplorerUi } from "./ExplorerUiContext";
-import { useWakeLock } from "@/hooks/useWakeLock";
 
 export default function ExplorerMapMenu({
+  surface = "map",
   feedSource = "",
   feedStatus = "live",
   lastUpdated = null,
   loadingStatus = "",
   realtimeStatus = "",
+  traceViewItems = [],
   userLocationActive = false,
   userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
+  wakeLockState = { supported: false, active: false },
+  onToggleWakeLock = null,
+  onMap = null,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
-  onFitToTrace = null,
   zoomDisabled = false,
 }: Record<string, any> = {}) {
   const {
@@ -47,7 +50,51 @@ export default function ExplorerMapMenu({
     toggleShowCallsigns,
   } = useExplorerUi();
 
-  const [wakeLockState, toggleWakeLock] = useWakeLock();
+  const toolbar = (
+    <MapControlBar
+      surface={surface}
+      menuPlacement={isMobile ? "top" : "bottom"}
+      activeZoom={mapZoom}
+      zoomActive={mapFollowsAircraft}
+      zoomDisabled={zoomDisabled}
+      traceViewItems={traceViewItems}
+      showMapLabels={showMapLabels}
+      showRunwayBeams={showRunwayBeams}
+      showNavaidMarkers={showNavaidMarkers}
+      showAirspaces={showAirspaces}
+      showCandidateWatchingSpots={showCandidateWatchingSpots}
+      showCallsigns={showCallsigns}
+      mapSettings={mapSettings}
+      mapSettingsDevice={mapSettingsDevice}
+      mapSettingsSaveStatus={mapSettingsSaveStatus}
+      mapSettingsSaveStatusCode={mapSettingsSaveStatusCode}
+      mapSettingsSaveCycle={mapSettingsSaveCycle}
+      userLocationActive={userLocationActive}
+      userLocationAudioActive={userLocationAudioActive}
+      userLocationPending={userLocationPending}
+      userLocationNotice={userLocationNotice}
+      showSidebarToggle={surface === "map" && isMobile}
+      showMapButton={surface === "sidebar"}
+      wakeLockActive={wakeLockState.active}
+      wakeLockSupported={wakeLockState.supported}
+      onZoom={setMapZoom}
+      onToggleMapLabels={toggleMapLabels}
+      onToggleRunwayBeams={toggleRunwayBeams}
+      onToggleNavaidMarkers={toggleNavaidMarkers}
+      onToggleAirspaces={toggleAirspaces}
+      onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
+      onToggleShowCallsigns={toggleShowCallsigns}
+      onSelectMapMode={applyMapMode}
+      onSelectBaseLayer={setMapBaseLayer}
+      onToggleUserLocation={onToggleUserLocation}
+      onToggleUserLocationAudio={onToggleUserLocationAudio}
+      onToggleSidebar={toggleSidebar}
+      onMap={onMap}
+      onToggleWakeLock={onToggleWakeLock}
+    />
+  );
+
+  if (surface === "sidebar") return toolbar;
 
   return (
     <div
@@ -55,45 +102,7 @@ export default function ExplorerMapMenu({
         isMobile ? "airport-map-menu--mobile" : "airport-map-menu--desktop"
       }`}
     >
-      <MapControlBar
-        menuPlacement={isMobile ? "top" : "bottom"}
-        activeZoom={mapZoom}
-        zoomActive={mapFollowsAircraft}
-        zoomDisabled={zoomDisabled}
-        showMapLabels={showMapLabels}
-        showRunwayBeams={showRunwayBeams}
-        showNavaidMarkers={showNavaidMarkers}
-        showAirspaces={showAirspaces}
-        showCandidateWatchingSpots={showCandidateWatchingSpots}
-        showCallsigns={showCallsigns}
-        mapSettings={mapSettings}
-        mapSettingsDevice={mapSettingsDevice}
-        mapSettingsSaveStatus={mapSettingsSaveStatus}
-        mapSettingsSaveStatusCode={mapSettingsSaveStatusCode}
-        mapSettingsSaveCycle={mapSettingsSaveCycle}
-        userLocationActive={userLocationActive}
-        userLocationAudioActive={userLocationAudioActive}
-        userLocationPending={userLocationPending}
-        userLocationNotice={userLocationNotice}
-        showSidebarToggle={isMobile}
-        wakeLockActive={wakeLockState.active}
-        onZoom={setMapZoom}
-        onToggleMapLabels={toggleMapLabels}
-        onToggleRunwayBeams={toggleRunwayBeams}
-        onToggleNavaidMarkers={toggleNavaidMarkers}
-        onToggleAirspaces={toggleAirspaces}
-        onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
-        onToggleShowCallsigns={toggleShowCallsigns}
-        onSelectMapMode={applyMapMode}
-        onSelectBaseLayer={setMapBaseLayer}
-        onToggleUserLocation={onToggleUserLocation}
-        onToggleUserLocationAudio={onToggleUserLocationAudio}
-        onToggleSidebar={toggleSidebar}
-        onFitToTrace={onFitToTrace}
-        onToggleWakeLock={
-          wakeLockState.supported ? toggleWakeLock : null
-        }
-      />
+      {toolbar}
 
       <MobileMapSourceStatus
         feedSource={feedSource}

@@ -46,6 +46,7 @@ export default function FlightSidebar({
   onBack,
   onMap = null,
   onClose = null,
+  mobileToolbar = null,
 }) {
   const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
@@ -100,6 +101,7 @@ export default function FlightSidebar({
       onMap={onMap}
       onClose={onClose}
       header={header}
+      mobileToolbar={mobileToolbar}
     >
       {showNearbyList ? (
         <AircraftTable

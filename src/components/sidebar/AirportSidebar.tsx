@@ -51,6 +51,7 @@ export default function AirportSidebar({
   onBack,
   onMap = null,
   onClose = null,
+  mobileToolbar = null,
 }) {
   const isMobileOverlay = Boolean(onClose);
   const [activeView, setActiveView] = useState("traffic");
@@ -157,6 +158,7 @@ export default function AirportSidebar({
       onMap={onMap}
       onClose={onClose}
       header={header}
+      mobileToolbar={mobileToolbar}
     >
       <div
         key={`${activeView}:${movementFilter}`}

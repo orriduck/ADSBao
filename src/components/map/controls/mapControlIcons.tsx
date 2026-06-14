@@ -4,6 +4,8 @@ import {
   Antenna,
   ArrowDownToLine,
   ArrowUpToLine,
+  ChartNoAxesColumnIncreasing,
+  ChartScatter,
   Coffee,
   Crosshair,
   Gauge,
@@ -13,18 +15,23 @@ import {
   Map as MapIcon,
   MapPinned,
   Monitor,
+  MonitorCheck,
   Moon,
   Mountain,
+  PanelsTopLeft,
   Plane,
   PlaneLanding,
   Radar,
   Route,
+  ScanSearch,
   ShieldAlert,
   SlidersHorizontal,
   Spotlight,
   Sun,
   Telescope,
+  Text,
   Type,
+  TowerControl,
   Waypoints,
 } from "lucide-react";
 
@@ -36,6 +43,10 @@ export function MapControlIcon({ iconKey }) {
       return <ArrowDownToLine />;
     case "arrowUpToLine":
       return <ArrowUpToLine />;
+    case "chartNoAxesColumnIncreasing":
+      return <ChartNoAxesColumnIncreasing />;
+    case "chartScatter":
+      return <ChartScatter />;
     case "crosshair":
       return <Crosshair />;
     case "gauge":
@@ -50,12 +61,16 @@ export function MapControlIcon({ iconKey }) {
       return <MapIcon />;
     case "mapPinned":
       return <MapPinned />;
+    case "monitorCheck":
+      return <MonitorCheck />;
     case "coffee":
       return <Coffee />;
     case "moon":
       return <Moon />;
     case "mountain":
       return <Mountain />;
+    case "panelsTopLeft":
+      return <PanelsTopLeft />;
     case "plane":
       return <Plane />;
     case "planeLanding":
@@ -64,6 +79,8 @@ export function MapControlIcon({ iconKey }) {
       return <Radar />;
     case "route":
       return <Route />;
+    case "scanSearch":
+      return <ScanSearch />;
     case "shieldAlert":
       return <ShieldAlert />;
     case "spotlight":
@@ -72,6 +89,10 @@ export function MapControlIcon({ iconKey }) {
       return <Sun />;
     case "telescope":
       return <Telescope />;
+    case "text":
+      return <Text />;
+    case "towerControl":
+      return <TowerControl />;
     case "type":
       return <Type />;
     case "waypoints":

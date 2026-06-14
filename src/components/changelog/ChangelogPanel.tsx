@@ -9,6 +9,26 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.5.1": {
+    title: "工具栏与跟踪打磨",
+    summary:
+      "地图工具栏在桌面端和移动端更一致；精确航班号跟踪遇到空 provider 响应时会继续尝试后续数据源。",
+    highlights: [
+      "地图范围控制改为共享的 Far / Medium / Near 菜单，并为跟踪页加入完整轨迹与全部记录点视图",
+      "设置、屏幕常亮、语言与主题控制在地图工具栏和移动端侧边栏里保持一致",
+      "修复 realtime 航班号 provider fallback，像 DAL58 这样的海洋航段在 adsb.lol 为空时能继续从 airplanes.live 解析",
+    ],
+  },
+  "v2.5.0": {
+    title: "Realtime 数据服务",
+    summary:
+      "实时交通切到 ADSBao 自有 realtime data-service，并接入 app-owned persistence。",
+    highlights: [
+      "机场与附近视图的实时地图交通改由 Railway data-service 通过 WebSocket 推送",
+      "app 持久化迁移到 Railway Postgres，静态机场补充数据与用户设置共用自有数据库",
+      "收紧 realtime channel 边界：公开交通、选中飞机跟踪和内部 route-cache 各自分层",
+    ],
+  },
   "v2.4.2": {
     title: "统一的浏览列表与工具栏",
     summary:

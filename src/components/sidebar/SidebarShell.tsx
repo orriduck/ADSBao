@@ -26,6 +26,7 @@ type SidebarShellProps = {
   feedStatus?: string;
   lastUpdated?: unknown;
   loadingStatus?: string;
+  mobileToolbar?: React.ReactNode;
 };
 
 const TOOLBAR_BUTTON_CLASS = toolbarButtonVariants({ tone: "soft" });
@@ -44,6 +45,7 @@ export default function SidebarShell({
   header,
   children,
   variant = "airport",
+  mobileToolbar = null,
 }: SidebarShellProps) {
   const { t } = useI18n();
   const {
@@ -74,63 +76,65 @@ export default function SidebarShell({
     <div className={panelClasses}>
       {isMobileOverlay ? (
         <div className="sidebar-top-dock">
-          <Toolbar layout="inline" aria-label={t("nav.home")}>
-            <ToolbarButton
-              onClick={onBack}
-              aria-label={t("nav.homePage")}
-              title={t("nav.homePage")}
-            >
-              <Home aria-hidden="true" />
-            </ToolbarButton>
-            {mapAction ? (
+          {mobileToolbar || (
+            <Toolbar layout="inline" aria-label={t("nav.home")}>
               <ToolbarButton
-                onClick={mapAction}
-                aria-label={t("nav.map")}
-                title={t("nav.map")}
+                onClick={onBack}
+                aria-label={t("nav.homePage")}
+                title={t("nav.homePage")}
               >
-                <Map aria-hidden="true" />
+                <Home aria-hidden="true" />
               </ToolbarButton>
-            ) : null}
-            <ToolbarSeparator />
-            <LanguageSwitch
-              className={TOOLBAR_BUTTON_CLASS}
-              menuPlacement="bottom"
-              menuAlign="center"
-            />
-            <ThemeToggle
-              className={TOOLBAR_BUTTON_CLASS}
-              iconKey={themeIconKey}
-              preference={themePreference}
-              title={themeTitle}
-              onClick={cycleTheme}
-              onSelectTheme={selectTheme}
-              menuPlacement="bottom"
-              menuAlign="center"
-            />
-            <ToolbarSeparator />
-            {!isLoaded ? (
-              <ToolbarAccountSlot aria-hidden="true" />
-            ) : showSignedIn ? (
-              <ToolbarAccountSlot aria-label={t("auth.account")}>
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "h-7 w-7 rounded-[2px]",
-                    },
-                  }}
-                />
-              </ToolbarAccountSlot>
-            ) : (
-              <SignInButton mode="modal">
+              {mapAction ? (
                 <ToolbarButton
-                  title={t("auth.signIn")}
-                  aria-label={t("auth.signIn")}
+                  onClick={mapAction}
+                  aria-label={t("nav.map")}
+                  title={t("nav.map")}
                 >
-                  <LogIn aria-hidden="true" />
+                  <Map aria-hidden="true" />
                 </ToolbarButton>
-              </SignInButton>
-            )}
-          </Toolbar>
+              ) : null}
+              <ToolbarSeparator />
+              <LanguageSwitch
+                className={TOOLBAR_BUTTON_CLASS}
+                menuPlacement="bottom"
+                menuAlign="center"
+              />
+              <ThemeToggle
+                className={TOOLBAR_BUTTON_CLASS}
+                iconKey={themeIconKey}
+                preference={themePreference}
+                title={themeTitle}
+                onClick={cycleTheme}
+                onSelectTheme={selectTheme}
+                menuPlacement="bottom"
+                menuAlign="center"
+              />
+              <ToolbarSeparator />
+              {!isLoaded ? (
+                <ToolbarAccountSlot aria-hidden="true" />
+              ) : showSignedIn ? (
+                <ToolbarAccountSlot aria-label={t("auth.account")}>
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        avatarBox: "h-7 w-7 rounded-[2px]",
+                      },
+                    }}
+                  />
+                </ToolbarAccountSlot>
+              ) : (
+                <SignInButton mode="modal">
+                  <ToolbarButton
+                    title={t("auth.signIn")}
+                    aria-label={t("auth.signIn")}
+                  >
+                    <LogIn aria-hidden="true" />
+                  </ToolbarButton>
+                </SignInButton>
+              )}
+            </Toolbar>
+          )}
         </div>
       ) : null}
 

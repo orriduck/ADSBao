@@ -6,18 +6,21 @@ import { useThemePreference } from "../../features/app-shell/useThemePreference"
 import MapControlRail from "@/components/map/controls/MapControlRail";
 import MapSettingsSheet from "@/components/map/controls/MapSettingsSheet";
 import {
-  getNextZoomValue,
   resolveZoomOption,
 } from "../../features/airport/map-controls/mapControlModel";
 import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay";
+import { cn } from "@/lib/utils";
+import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 const MAP_SETTINGS_SHEET_ID = "map-settings-sheet";
 
 export default function MapControlBar({
+  surface = "map",
   menuPlacement = "bottom",
   activeZoom = ZOOM_AIRPORT,
   zoomActive = true,
   zoomDisabled = false,
+  traceViewItems = [],
   showMapLabels = false,
   showRunwayBeams = true,
   showNavaidMarkers = false,
@@ -34,7 +37,9 @@ export default function MapControlBar({
   userLocationPending = false,
   userLocationNotice = "",
   showSidebarToggle = true,
+  showMapButton = false,
   wakeLockActive = false,
+  wakeLockSupported = false,
   onZoom,
   onToggleMapLabels,
   onToggleRunwayBeams,
@@ -44,13 +49,14 @@ export default function MapControlBar({
   onToggleShowCallsigns,
   onSelectMapMode,
   onSelectBaseLayer,
+  onMap = null,
   onToggleUserLocation = null,
   onToggleUserLocationAudio = null,
   onToggleSidebar,
-  onFitToTrace = null,
   onToggleWakeLock = null,
 }) {
   const controlZone = useRef(null);
+  const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const {
     themePreference,
@@ -64,25 +70,49 @@ export default function MapControlBar({
     [activeZoom],
   );
 
-  const cycleZoom = () => {
-    if (zoomDisabled) return;
-    // If the button is currently inactive (auto-follow is off because the
-    // user clicked fit-to-trace), the first click should resume tracking
-    // at the SAME preset zoom they were on — not skip to the next one.
-    // Once auto-follow is back on, subsequent clicks cycle as usual.
-    if (!zoomActive) {
-      onZoom?.(activeZoom);
-      return;
-    }
-    onZoom?.(getNextZoomValue(activeZoom, MAP_ZOOM_OPTIONS));
-  };
+  const zoomViewItems = useMemo(
+    () =>
+      MAP_ZOOM_OPTIONS.map((option) => ({
+        id: `zoom:${option.value}`,
+        label: t(option.labelKey),
+        iconKey: option.iconKey,
+        active: zoomActive && !zoomDisabled && option.value === activeZoom,
+        disabled: zoomDisabled,
+        onSelect: () => onZoom?.(option.value),
+      })),
+    [activeZoom, onZoom, t, zoomActive, zoomDisabled],
+  );
+  const normalizedTraceViewItems = useMemo(
+    () =>
+      traceViewItems.map((item) => ({
+        ...item,
+        label: item.label || (item.labelKey ? t(item.labelKey) : ""),
+      })),
+    [t, traceViewItems],
+  );
+  const viewItems = useMemo(
+    () => [...zoomViewItems, ...normalizedTraceViewItems],
+    [normalizedTraceViewItems, zoomViewItems],
+  );
+  const currentZoomViewItem =
+    zoomViewItems.find((item) => item.id === `zoom:${activeZoom}`) ||
+    zoomViewItems[0] ||
+    null;
+  const activeViewItem =
+    viewItems.find((item) => item.active) || currentZoomViewItem;
 
   const toggleSettings = () => {
     setSettingsOpen((value) => !value);
   };
 
   return (
-    <div ref={controlZone} className="map-ctrl-zone">
+    <div
+      ref={controlZone}
+      className={cn(
+        "map-ctrl-zone",
+        surface === "sidebar" && "map-ctrl-zone--sidebar",
+      )}
+    >
       <MapSettingsSheet
         id={MAP_SETTINGS_SHEET_ID}
         open={settingsOpen}
@@ -117,18 +147,19 @@ export default function MapControlBar({
       <MapControlRail
         menuPlacement={menuPlacement}
         currentZoomOption={currentZoomOption}
-        zoomActive={zoomActive}
-        zoomDisabled={zoomDisabled}
+        viewItems={viewItems}
+        activeViewItem={activeViewItem}
         currentTheme={themePreference}
         themeTitle={themeTitle}
         onSelectTheme={selectTheme}
         settingsOpen={settingsOpen}
         settingsSheetId={MAP_SETTINGS_SHEET_ID}
         showSidebarToggle={showSidebarToggle}
+        showMapButton={showMapButton}
         wakeLockActive={wakeLockActive}
+        wakeLockSupported={wakeLockSupported}
         onToggleSidebar={onToggleSidebar}
-        onCycleZoom={cycleZoom}
-        onFitToTrace={onFitToTrace}
+        onMap={onMap}
         onCycleTheme={cycleTheme}
         onToggleSettings={toggleSettings}
         onToggleWakeLock={onToggleWakeLock}
