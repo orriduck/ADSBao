@@ -1,9 +1,16 @@
 import type { FetchChannelInput, RealtimeEvent } from "../types.js";
+import {
+  buildFlightAwareLiveFlightUrl,
+  cleanString as clean,
+  escapeRegExp,
+  extractMetaContent,
+  htmlDecode,
+  readFlightAwareResponseText,
+  toNumber as numberOrNull,
+} from "./flightAwareShared.js";
 
 const ADSBDB_BASE = "https://api.adsbdb.com/v0";
-const FLIGHTAWARE_BASE = "https://www.flightaware.com/live/flight";
 const MAX_ROUTE_BYTES = 512 * 1024;
-const MAX_FLIGHTAWARE_ROUTE_BYTES = 2 * 1024 * 1024;
 const ROUTE_TIMEOUT_MS = 9_000;
 const ROUTE_QUEUE_INTERVAL_MS = 500;
 const USER_AGENT = "ADSBao data-service/1.0 (+https://adsbao.dev)";
@@ -15,15 +22,10 @@ type RouteFetchInput = FetchChannelInput & {
   waitForTurn?: () => Promise<void>;
 };
 
-const clean = (value: unknown) => String(value || "").trim();
 const upper = (value: unknown) => clean(value).toUpperCase();
 const code = (value: unknown, min = 3, max = 4) => {
   const next = upper(value);
   return new RegExp(`^[A-Z0-9]{${min},${max}}$`).test(next) ? next : "";
-};
-const numberOrNull = (value: unknown) => {
-  const next = Number(value);
-  return Number.isFinite(next) ? next : null;
 };
 const inRange = (
   value: number | null,
@@ -85,38 +87,6 @@ function normalizeRoute(callsign: string, payload: any) {
     source: "adsbdb",
     confidence: "reference-data",
   };
-}
-
-function htmlDecode(value: unknown) {
-  return clean(value)
-    .replaceAll("&amp;", "&")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&#39;", "'")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">");
-}
-
-function escapeRegExp(value: unknown) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function extractMetaContent(html: unknown, key: string) {
-  const escaped = escapeRegExp(key);
-  const patterns = [
-    new RegExp(
-      `<meta\\b(?=[^>]*(?:name|property)=["']${escaped}["'])(?=[^>]*content=["']([^"']*)["'])[^>]*>`,
-      "i",
-    ),
-    new RegExp(
-      `<meta\\b(?=[^>]*content=["']([^"']*)["'])(?=[^>]*(?:name|property)=["']${escaped}["'])[^>]*>`,
-      "i",
-    ),
-  ];
-  for (const pattern of patterns) {
-    const match = pattern.exec(String(html || ""));
-    if (match?.[1]) return htmlDecode(match[1]);
-  }
-  return "";
 }
 
 function extractTitle(html: unknown) {
@@ -244,12 +214,6 @@ function extractEmbeddedAirport(html: unknown, key: string, expectedIcao: string
   return null;
 }
 
-function buildFlightAwareCallsignRouteUrl(callsign: unknown) {
-  const normalized = upper(callsign);
-  if (!/^[A-Z][A-Z0-9]{2,7}$/.test(normalized)) return "";
-  return `${FLIGHTAWARE_BASE}/${encodeURIComponent(normalized)}`;
-}
-
 function buildFlightAwareAirlineLogoUrl(airlineIcao: unknown) {
   const normalized = code(airlineIcao, 2, 3);
   return normalized
@@ -338,14 +302,6 @@ async function readJson(response: Response) {
   return JSON.parse(text);
 }
 
-async function readText(response: Response, maxBytes = MAX_FLIGHTAWARE_ROUTE_BYTES) {
-  const text = await response.text();
-  if (Buffer.byteLength(text, "utf8") > maxBytes) {
-    throw new Error("Route response too large");
-  }
-  return text;
-}
-
 async function fetchFlightAwareRouteChannel({
   channel,
   metrics,
@@ -355,7 +311,7 @@ async function fetchFlightAwareRouteChannel({
 }: RouteFetchInput): Promise<RealtimeEvent> {
   if (target.kind !== "route") throw new Error("Expected route polling target");
   await waitForTurnImpl();
-  const url = buildFlightAwareCallsignRouteUrl(target.callsign);
+  const url = buildFlightAwareLiveFlightUrl(target.callsign);
   if (!url) throw new Error("Invalid FlightAware route callsign");
   const startedAt = Date.now();
   let status: number | string | null = null;
@@ -375,7 +331,10 @@ async function fetchFlightAwareRouteChannel({
     route =
       response.status === 404
         ? null
-        : normalizeFlightAwareRoute(target.callsign, await readText(response));
+        : normalizeFlightAwareRoute(
+            target.callsign,
+            await readFlightAwareResponseText(response),
+          );
     metrics?.recordExternalRequest({
       provider: "flightaware",
       endpoint: "route",
