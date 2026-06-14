@@ -76,9 +76,7 @@ export async function bulkUpsertRows({
 export function createImportDatabaseFromEnv() {
   const queryClient = createPostgresQueryClientFromEnv();
   if (!queryClient) {
-    throw new Error(
-      "ADSBAO_DATABASE_URL or DATABASE_URL is required for database imports",
-    );
+    throw new Error("ADSBAO_DATABASE_URL is required for database imports");
   }
   return queryClient;
 }

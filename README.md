@@ -166,7 +166,7 @@ normally configure these variables:
 | Variable | Purpose |
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL for metadata and absolute links |
-| `ADSBAO_DATABASE_URL` or `DATABASE_URL` | Server-side Postgres connection string for DAO reads/writes, imports, route feedback, feature flags, and map settings |
+| `ADSBAO_DATABASE_URL` | Server-side Postgres connection string for DAO reads/writes, imports, route feedback, feature flags, and map settings |
 | `PGSSLMODE` | Optional Postgres SSL mode. Set `disable` only for local non-SSL databases |
 | `PGPOOL_MAX` | Optional Postgres pool size cap for server route handlers and import scripts |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk browser identity |
@@ -207,7 +207,7 @@ Import OurAirports airport names with:
 pnpm import:airports
 ```
 
-The import scripts use `ADSBAO_DATABASE_URL`/`DATABASE_URL`; do not put database
+The import scripts use `ADSBAO_DATABASE_URL`; do not put database
 connection strings in `NEXT_PUBLIC_*` variables.
 
 ## Project Structure

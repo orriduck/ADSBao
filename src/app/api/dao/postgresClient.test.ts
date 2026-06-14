@@ -7,7 +7,6 @@ import { createPostgresQueryClientFromEnv } from "./postgresClient";
   const client = createPostgresQueryClientFromEnv({
     env: {
       ADSBAO_DATABASE_URL: "postgres://adsbao:secret@db.railway.internal:5432/railway",
-      DATABASE_URL: "postgres://ignored",
       PGPOOL_MAX: "3",
     },
     createPoolImpl: (options: Record<string, any>) => {
@@ -43,7 +42,7 @@ import { createPostgresQueryClientFromEnv } from "./postgresClient";
 {
   const client = createPostgresQueryClientFromEnv({
     env: {
-      DATABASE_URL: "postgres://adsbao:secret@localhost:5432/adsbao",
+      ADSBAO_DATABASE_URL: "postgres://adsbao:secret@localhost:5432/adsbao",
       PGSSLMODE: "disable",
     },
     createPoolImpl: (options: Record<string, any>) => ({
@@ -59,5 +58,24 @@ import { createPostgresQueryClientFromEnv } from "./postgresClient";
 }
 
 assert.equal(createPostgresQueryClientFromEnv({ env: {} }), null);
+
+assert.equal(
+  createPostgresQueryClientFromEnv({
+    env: {
+      DATABASE_URL: "postgres://legacy-generic-url",
+    },
+  }),
+  null,
+);
+
+assert.equal(
+  createPostgresQueryClientFromEnv({
+    env: {
+      POSTGRES_URL: "postgres://legacy-marketplace-url",
+      POSTGRES_PRISMA_URL: "postgres://legacy-prisma-url",
+    },
+  }),
+  null,
+);
 
 console.log("postgresClient.test.ts ok");

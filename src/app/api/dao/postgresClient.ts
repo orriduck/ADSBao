@@ -27,11 +27,7 @@ type PoolLike = {
 type CreatePoolImpl = (options: Record<string, any>) => PoolLike;
 
 const databaseUrlFromEnv = (env: Record<string, string | undefined>) =>
-  env.ADSBAO_DATABASE_URL ||
-  env.DATABASE_URL ||
-  env.POSTGRES_URL ||
-  env.POSTGRES_PRISMA_URL ||
-  "";
+  env.ADSBAO_DATABASE_URL || "";
 
 const shouldDisableSsl = (
   connectionString: string,
