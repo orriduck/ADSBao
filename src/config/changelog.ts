@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.5.0",
+    kind: "feat",
+    title: "Realtime data service",
+    summary:
+      "Live traffic now runs through ADSBao's realtime data service with app-owned persistence.",
+    highlights: [
+      "Moved live map traffic behind a Railway data-service deployment with WebSocket updates for airport and nearby views",
+      "Migrated app persistence to Railway Postgres so static airport augmentation and user settings share one app-owned database",
+      "Tightened realtime channel boundaries around public traffic and selected-aircraft tracking while keeping internal route-cache work private",
+    ],
+  },
+  {
     version: "v2.4.4",
     kind: "patch",
     title: "Full airport names",
