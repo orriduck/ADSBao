@@ -34,6 +34,7 @@ import {
 import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandidateWatchingSpots";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
+import { useWakeLock } from "@/hooks/useWakeLock";
 import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
 import { ZOOM_APPROACH, ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 
@@ -107,6 +108,7 @@ function AirportExplorerContent({
   const [userLocationMode, setUserLocationMode] = useState<UserLocationAudioMode>(
     USER_LOCATION_AUDIO_MODES.OFF,
   );
+  const [wakeLockState, toggleWakeLock] = useWakeLock();
   const [userLocationPending, setUserLocationPending] = useState(false);
   const [userLocationNotice, setUserLocationNotice] = useState("");
   const userLocationWatchIdRef = useRef<number | null>(null);
@@ -434,6 +436,24 @@ function AirportExplorerContent({
   const sourceLoadingStatus = sourceLoadingState.active
     ? sourceLoadingCopy.status
     : "";
+  const toolbarContextProps = {
+    wakeLockState,
+    onToggleWakeLock: toggleWakeLock,
+    userLocationActive: userLocationEnabled || userLocationActive,
+    userLocationAudioActive:
+      userLocationAudioEnabled || userLocationAudioActive,
+    userLocationPending,
+    userLocationNotice,
+    onToggleUserLocation: toggleUserLocation,
+    onToggleUserLocationAudio: toggleUserLocationAudio,
+  };
+  const mobileSidebarToolbar = (
+    <ExplorerMapMenu
+      surface="sidebar"
+      onMap={closeSidebar}
+      {...toolbarContextProps}
+    />
+  );
   const sidebarProps = {
     icao: airportProfile.icao,
     iata: airportProfile.iata,
@@ -474,6 +494,7 @@ function AirportExplorerContent({
     onOpenSpotting: openSpottingDetail,
     onBack,
     onMap: closeSidebar,
+    mobileToolbar: mobileSidebarToolbar,
   };
 
   return (
@@ -522,14 +543,7 @@ function AirportExplorerContent({
               routeProvider={traffic.routeProvider}
               loadingStatus={sourceLoadingStatus}
               realtimeStatus={traffic.realtimeStatus}
-              userLocationActive={userLocationEnabled || userLocationActive}
-              userLocationAudioActive={
-                userLocationAudioEnabled || userLocationAudioActive
-              }
-              userLocationPending={userLocationPending}
-              userLocationNotice={userLocationNotice}
-              onToggleUserLocation={toggleUserLocation}
-              onToggleUserLocationAudio={toggleUserLocationAudio}
+              {...toolbarContextProps}
             />
           )}
 

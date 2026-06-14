@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
@@ -60,6 +60,7 @@ import { useAircraftPositions } from "@/hooks/useAircraftPositions";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { useTrackedAircraft } from "@/hooks/useTrackedAircraft";
+import { useWakeLock } from "@/hooks/useWakeLock";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { normalizeCallsign } from "@/utils/callsign";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay";
@@ -78,6 +79,8 @@ const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
 });
 
 const FOCAL_VISUAL_POSITION_TICK_MS = 500;
+const TRACE_VIEW_SESSION = "session";
+const TRACE_VIEW_ALL = "all";
 
 export default function FlightExplorer({ callsign = "" }) {
   return (
@@ -122,6 +125,9 @@ function FlightExplorerContent({ callsign }) {
     suspendMapFollow,
     mapFollowsAircraft,
   } = useExplorerUi();
+  const [wakeLockState, toggleWakeLock] = useWakeLock();
+  const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_SESSION);
+  const pendingTraceFitRef = useRef(false);
 
   // Default-on location labels for the flight page: when tracking a
   // specific aircraft cross-country the place names give the moving map
@@ -184,13 +190,51 @@ function FlightExplorerContent({ callsign }) {
     });
     if (session) setTrackingSession(session);
   }, [callsign, trackedAircraftForDisplay?.icao24]);
-  const focalTraceStartAtMs = useMemo(
+  const sessionTraceStartAtMs = useMemo(
     () =>
       getFlightAwareFallbackTraceStartAtMs({
         trackingState,
         defaultTraceStartAtMs: getTraceCutoffMs(trackingSession),
       }),
     [trackingSession, trackingState],
+  );
+  const focalTraceStartAtMs =
+    traceViewMode === TRACE_VIEW_ALL ? null : sessionTraceStartAtMs;
+  const requestTraceView = useCallback(
+    (mode) => {
+      if (traceViewMode === mode) {
+        fitToTrace();
+        return;
+      }
+      pendingTraceFitRef.current = true;
+      setTraceViewMode(mode);
+    },
+    [fitToTrace, traceViewMode],
+  );
+  useEffect(() => {
+    if (!pendingTraceFitRef.current) return undefined;
+    pendingTraceFitRef.current = false;
+    const frame = window.requestAnimationFrame(() => fitToTrace());
+    return () => window.cancelAnimationFrame(frame);
+  }, [fitToTrace, traceViewMode]);
+  const traceViewItems = useMemo(
+    () => [
+      {
+        id: "trace:full",
+        labelKey: "map.fullTrace",
+        iconKey: "route",
+        active: !mapFollowsAircraft && traceViewMode === TRACE_VIEW_SESSION,
+        onSelect: () => requestTraceView(TRACE_VIEW_SESSION),
+      },
+      {
+        id: "trace:all",
+        labelKey: "map.allRecordedPoints",
+        iconKey: "waypoints",
+        active: !mapFollowsAircraft && traceViewMode === TRACE_VIEW_ALL,
+        onSelect: () => requestTraceView(TRACE_VIEW_ALL),
+      },
+    ],
+    [mapFollowsAircraft, requestTraceView, traceViewMode],
   );
   const flightAwareAutoFitKey = useMemo(
     () =>
@@ -738,6 +782,19 @@ function FlightExplorerContent({ callsign }) {
   const sourceLoadingStatus = sourceLoadingState.active
     ? sourceLoadingCopy.status
     : "";
+  const toolbarContextProps = {
+    traceViewItems,
+    wakeLockState,
+    onToggleWakeLock: toggleWakeLock,
+    zoomDisabled: flightDisplayContext.zoomDisabled,
+  };
+  const mobileSidebarToolbar = (
+    <ExplorerMapMenu
+      surface="sidebar"
+      onMap={closeSidebar}
+      {...toolbarContextProps}
+    />
+  );
 
   const sidebarProps = {
     callsign,
@@ -757,6 +814,7 @@ function FlightExplorerContent({ callsign }) {
     loadingStatus: sourceLoadingStatus,
     onBack: handleBack,
     onMap: closeSidebar,
+    mobileToolbar: mobileSidebarToolbar,
   };
 
   return (
@@ -766,7 +824,9 @@ function FlightExplorerContent({ callsign }) {
       fullTraceForFocal={flightDisplayContext.fullTraceForFocal}
       showSelectedTrace={showNearbyMapContext}
       focalTraceStartAtMs={focalTraceStartAtMs}
-      focalPersistKey={callsign || null}
+      focalPersistKey={
+        traceViewMode === TRACE_VIEW_ALL ? null : callsign || null
+      }
       focalTraceRefreshKey={focalTraceRefreshKey}
     >
       <AircraftPreviewCard
@@ -809,8 +869,7 @@ function FlightExplorerContent({ callsign }) {
               routeProvider={routeProvider}
               loadingStatus={sourceLoadingStatus}
               realtimeStatus={realtimeStatus}
-              onFitToTrace={routeEndpointAirportsOnly ? null : fitToTrace}
-              zoomDisabled={flightDisplayContext.zoomDisabled}
+              {...toolbarContextProps}
             />
           )}
           <AirportMap

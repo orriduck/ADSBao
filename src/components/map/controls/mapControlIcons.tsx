@@ -4,6 +4,7 @@ import {
   Antenna,
   ArrowDownToLine,
   ArrowUpToLine,
+  ChartNoAxesColumnIncreasing,
   Coffee,
   Crosshair,
   Gauge,
@@ -13,6 +14,7 @@ import {
   Map as MapIcon,
   MapPinned,
   Monitor,
+  MonitorCheck,
   Moon,
   Mountain,
   Plane,
@@ -24,7 +26,9 @@ import {
   Spotlight,
   Sun,
   Telescope,
+  Text,
   Type,
+  TowerControl,
   Waypoints,
 } from "lucide-react";
 
@@ -36,6 +40,8 @@ export function MapControlIcon({ iconKey }) {
       return <ArrowDownToLine />;
     case "arrowUpToLine":
       return <ArrowUpToLine />;
+    case "chartNoAxesColumnIncreasing":
+      return <ChartNoAxesColumnIncreasing />;
     case "crosshair":
       return <Crosshair />;
     case "gauge":
@@ -50,6 +56,8 @@ export function MapControlIcon({ iconKey }) {
       return <MapIcon />;
     case "mapPinned":
       return <MapPinned />;
+    case "monitorCheck":
+      return <MonitorCheck />;
     case "coffee":
       return <Coffee />;
     case "moon":
@@ -72,6 +80,10 @@ export function MapControlIcon({ iconKey }) {
       return <Sun />;
     case "telescope":
       return <Telescope />;
+    case "text":
+      return <Text />;
+    case "towerControl":
+      return <TowerControl />;
     case "type":
       return <Type />;
     case "waypoints":
