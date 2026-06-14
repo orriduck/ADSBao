@@ -7,9 +7,9 @@ import {
 } from "../config/aviation";
 import {
   normalizeAdsbAircraft,
-  resolveLastSuccessfulPositionDate,
 } from "../features/aircraft/positions/aircraftPositionsModel";
 import { shouldShowAircraftLoadingOverlay } from "../features/aircraft/positions/aircraftLoadingOverlayModel";
+import { resolveTrackedAircraftStatusUpdatedDate } from "../features/aircraft/tracking/trackedAircraftStatusModel";
 import {
   getActiveAdsbMatchesLength,
   getTrackedAircraftSignalState,
@@ -137,8 +137,19 @@ export function useTrackedAircraft(
         ...normalized,
         trackingState: committedTrackingState,
       });
-      const positionDate = resolveLastSuccessfulPositionDate(normalized);
-      if (positionDate) setLastUpdated(positionDate);
+      const statusUpdatedDate = resolveTrackedAircraftStatusUpdatedDate({
+        aircraft: normalized,
+        fetchedAt,
+        feedSource: committedFeedSource,
+        trackingState: committedTrackingState,
+      });
+      if (statusUpdatedDate) {
+        setLastUpdated((prev) =>
+          prev && prev.getTime() === statusUpdatedDate.getTime()
+            ? prev
+            : statusUpdatedDate,
+        );
+      }
     },
     [],
   );
@@ -233,7 +244,10 @@ export function useTrackedAircraft(
           source:
             response.headers.get("X-Data-Source") ||
             (typeof payload?.source === "string" ? payload.source : ""),
-          fetchedAt: new Date().toISOString(),
+          fetchedAt:
+            typeof payload?.fetchedAt === "string"
+              ? payload.fetchedAt
+              : response.headers.get("Date") || "",
         });
       } catch (error: any) {
         if (disposed || error?.name === "AbortError") return;

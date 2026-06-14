@@ -876,7 +876,7 @@ function FlightExplorerContent({ callsign }) {
             <ExplorerMapMenu
               feedSource={feedSource}
               feedStatus="live"
-              lastUpdated={null}
+              lastUpdated={lastUpdated}
               routeProvider={routeProvider}
               loadingStatus={sourceLoadingStatus}
               realtimeStatus={realtimeStatus}

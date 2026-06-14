@@ -39,6 +39,7 @@ const staleAircraft = {
   const result = await fetchTrackedAircraftByCallsign({
     callsign: "AAL100",
     featureEnabled: true,
+    now: Date.parse("2026-06-14T04:22:00.000Z"),
     fetchPrimaryProviders: async () => [
       providerPayload(ADSB_LOL_ID, [freshAircraft]),
       providerPayload(AIRPLANES_LIVE_ID, []),
@@ -50,6 +51,7 @@ const staleAircraft = {
   });
 
   assert.equal(result.source, ADSB_LOL_ID);
+  assert.equal(result.payload.fetchedAt, "2026-06-14T04:22:00.000Z");
   assert.equal(result.payload.ac[0].lat, 42.1);
   assert.equal(result.payload.ac[0].positionQuality.source, "adsb_lol");
   assert.equal(flightAwareCalls, 0);

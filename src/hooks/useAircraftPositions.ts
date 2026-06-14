@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation";
 import {
   normalizeAircraftSnapshot,
-  resolveLastSuccessfulPositionDate,
 } from "../features/aircraft/positions/aircraftPositionsModel";
 import { shouldShowAircraftLoadingOverlay } from "../features/aircraft/positions/aircraftLoadingOverlayModel";
 import { createAircraftTraceTracker } from "../features/aircraft/trace/aircraftTraceModel";
@@ -109,10 +108,14 @@ export function useAircraftPositions(
           ? payload.source
           : "",
     );
-    const positionDate = resolveLastSuccessfulPositionDate(nextAircraft);
-    if (positionDate) {
+    const statusUpdatedDate = Number.isFinite(fetchedAt)
+      ? new Date(fetchedAt)
+      : null;
+    if (statusUpdatedDate) {
       setLastUpdated((prev) =>
-        prev && prev.getTime() === positionDate.getTime() ? prev : positionDate,
+        prev && prev.getTime() === statusUpdatedDate.getTime()
+          ? prev
+          : statusUpdatedDate,
       );
     }
     setSettled(true);
