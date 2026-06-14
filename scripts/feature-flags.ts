@@ -61,7 +61,7 @@ async function main() {
   });
   if (!repository) {
     throw new Error(
-      "Postgres feature flag repository is not configured. Check ADSBAO_DATABASE_URL or DATABASE_URL in .env.local.",
+      "Postgres feature flag repository is not configured. Check ADSBAO_DATABASE_URL in .env.local.",
     );
   }
 

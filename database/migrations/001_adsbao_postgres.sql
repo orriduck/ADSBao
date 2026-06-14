@@ -1,6 +1,6 @@
 -- ADSBao Railway Postgres schema.
 --
--- This migration owns ADSBao persistence without Supabase Data API/RLS roles.
+-- This migration owns ADSBao persistence in Railway Postgres.
 -- Application code reaches these tables only from server-side DAO helpers.
 
 create extension if not exists pgcrypto;
