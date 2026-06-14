@@ -64,6 +64,11 @@ Compatible env vars:
 - `MAX_SOCKET_SUBSCRIPTIONS`
 - `ALLOWED_WS_ORIGINS`
 - `FLIGHTAWARE_FALLBACK_ENABLED`
+- `ADSBAO_REALTIME_AUTH_SECRET` must match the Vercel environment value so
+  `/api/realtime/auth` grants can authorize FlightAware realtime subscriptions.
+- `AIRPORT_DIRECTORY_BASE_URL` defaults to `https://www.adsbao.dev` and is used
+  as a fallback airport directory when FlightAware route pages omit embedded
+  airport coordinates.
 
 Optional Go-only debug env:
 
@@ -140,6 +145,10 @@ Check Grafana panels for:
 - Poll duration
 - Active channels and subscriptions
 - Stale channels and consecutive failures
+
+The dynamic channel gauges should emit zero-valued series for idle aircraft,
+callsign, route, and traffic channel types so panels remain visible when no
+clients are connected.
 
 Also watch Railway memory, CPU, provider request rate, and Vercel aircraft
 proxy invocations after each production deploy.

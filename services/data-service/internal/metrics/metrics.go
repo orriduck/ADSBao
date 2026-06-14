@@ -18,6 +18,12 @@ import (
 
 var durationBuckets = []float64{0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30}
 var messageByteBuckets = []float64{128, 512, 1024, 4 * 1024, 16 * 1024, 64 * 1024, 256 * 1024, 1024 * 1024}
+var dynamicChannelTypes = []string{
+	string(realtime.ChannelAircraft),
+	string(realtime.ChannelCallsign),
+	string(realtime.ChannelRoute),
+	string(realtime.ChannelTraffic),
+}
 
 type Metrics struct {
 	mu       sync.Mutex
@@ -173,6 +179,14 @@ func (m *Metrics) UpdateDynamic(uptimeSec float64, channels []realtime.DebugChan
 	m.channelPollIntervalSecond.Reset()
 	m.staleChannelsCurrent.Reset()
 
+	for _, typ := range dynamicChannelTypes {
+		m.activeChannelsCurrent.WithLabelValues(typ).Set(0)
+		m.subscriptionsCurrent.WithLabelValues(typ).Set(0)
+		m.channelFailuresCurrent.WithLabelValues(typ).Set(0)
+		m.channelPollIntervalSecond.WithLabelValues(typ).Set(0)
+		m.staleChannelsCurrent.WithLabelValues(typ).Set(0)
+	}
+
 	type aggregate struct {
 		active      int
 		subscribers int
@@ -203,9 +217,7 @@ func (m *Metrics) UpdateDynamic(uptimeSec float64, channels []realtime.DebugChan
 		m.subscriptionsCurrent.WithLabelValues(typ).Set(float64(item.subscribers))
 		m.channelFailuresCurrent.WithLabelValues(typ).Set(float64(item.failures))
 		m.channelPollIntervalSecond.WithLabelValues(typ).Set(float64(item.maxInterval) / 1000)
-		if item.stale > 0 {
-			m.staleChannelsCurrent.WithLabelValues(typ).Set(float64(item.stale))
-		}
+		m.staleChannelsCurrent.WithLabelValues(typ).Set(float64(item.stale))
 	}
 }
 

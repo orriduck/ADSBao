@@ -43,7 +43,7 @@ are active:
 
 | Product anchor | Traffic channel | Route channel |
 |---|---|---|
-| Airport page | `traffic:airport:{icao}:{lat}:{lon}:{distNm}` | `route:{callsign}:airport:{icao}` |
+| Airport page | `traffic:center:{lat}:{lon}:{distNm}` | `route:{callsign}:airport:{icao}` |
 | Here / user location | `traffic:center:{lat}:{lon}:{distNm}` | `route:{callsign}:center:{lat}:{lon}` |
 | Tracking page | `traffic:center:{aircraftLat}:{aircraftLon}:{distNm}` | `route:{callsign}:center:{aircraftLat}:{aircraftLon}` |
 
@@ -52,6 +52,13 @@ share the same loop instead of creating one-off subscriptions. `route:*` remains
 separate from `traffic:*` because route lookup cadence and cache lifetime are
 much slower than ADS-B positions, and because the route display context changes
 with the current center for here/tracking flows.
+
+FlightAware-backed realtime modes are privileged. The browser first asks
+Vercel `/api/realtime/auth` for a short-lived provider grant after the normal
+Clerk feature-flag check, then sends that grant with `flightAware` or
+`routeProvider=flightaware` subscription params. The Go service verifies the
+HMAC grant with `ADSBAO_REALTIME_AUTH_SECRET` before it starts any FlightAware
+polling loop, and strips the token before params reach the scheduler.
 
 The frontend discovers it through `NEXT_PUBLIC_ADSBAO_REALTIME_URL`. Realtime
 surfaces do not start their own external-provider polling when the WebSocket is

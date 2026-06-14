@@ -172,6 +172,7 @@ normally configure these variables:
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk browser identity |
 | `CLERK_SECRET_KEY` | Clerk server identity |
 | `NEXT_PUBLIC_ADSBAO_REALTIME_URL` | Optional WebSocket URL for the realtime ADS-B data service |
+| `ADSBAO_REALTIME_AUTH_SECRET` | Shared HMAC secret used by Vercel and the Railway data service to authorize FlightAware realtime subscriptions |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry events |
 | `SENTRY_DSN` | Optional server/edge Sentry events |
 | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Optional production source-map upload |
@@ -252,6 +253,8 @@ Railway setup:
 4. Generate a public Railway domain for the service.
 5. Set Vercel `NEXT_PUBLIC_ADSBAO_REALTIME_URL` to
    `wss://<railway-domain>/ws` for production and preview.
+6. Set the same `ADSBAO_REALTIME_AUTH_SECRET` in Vercel and Railway when
+   FlightAware realtime subscriptions are enabled.
 
 Railway handles production deployment through its GitHub integration. The
 service should be configured with root directory `services/data-service`,

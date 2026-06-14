@@ -65,3 +65,26 @@ func TestMetricsPreserveNamesAndLowCardinalityLabels(t *testing.T) {
 		t.Fatalf("metrics output contains high-cardinality channel name:\n%s", out)
 	}
 }
+
+func TestMetricsExposeZeroSeriesForIdleChannelTypes(t *testing.T) {
+	m := New()
+	out, err := m.Render(10, nil)
+	if err != nil {
+		t.Fatalf("Render returned error: %v", err)
+	}
+
+	for _, channelType := range []string{"aircraft", "callsign", "route", "traffic"} {
+		required := []string{
+			`adsbao_active_channels_current{channel_type="` + channelType + `"} 0`,
+			`adsbao_subscriptions_current{channel_type="` + channelType + `"} 0`,
+			`adsbao_channel_consecutive_failures_current{channel_type="` + channelType + `"} 0`,
+			`adsbao_channel_poll_interval_seconds{channel_type="` + channelType + `"} 0`,
+			`adsbao_stale_channels_current{channel_type="` + channelType + `"} 0`,
+		}
+		for _, needle := range required {
+			if !strings.Contains(out, needle) {
+				t.Fatalf("metrics output missing %q\n%s", needle, out)
+			}
+		}
+	}
+}

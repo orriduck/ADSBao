@@ -36,7 +36,9 @@ func main() {
 			return flightAwareFallback.ByCallsign(ctx, callsign, sink)
 		},
 	})
-	routeClient := route.NewClient(route.Options{})
+	routeClient := route.NewClient(route.Options{
+		AirportDirectoryBaseURL: cfg.AirportDirectoryBaseURL,
+	})
 	polling := scheduler.New(scheduler.Options{
 		Fetch: func(input realtime.FetchInput) (realtime.Event, error) {
 			if input.ChannelType == realtime.ChannelRoute {
@@ -55,6 +57,7 @@ func main() {
 		registry,
 		cfg.AllowedWSOrigins,
 		ws.WithMaxSubscriptions(cfg.MaxSocketSubscriptions),
+		ws.WithRealtimeAuthSecret(cfg.RealtimeAuthSecret),
 	)
 	handler := httpapi.New(httpapi.ServerOptions{
 		Metrics:       registry,

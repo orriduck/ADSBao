@@ -190,4 +190,105 @@ function createTimerHost() {
   assert.equal(timers.timeoutCount, 0);
 }
 
+{
+  FakeSocket.instances = [];
+  const timers = createTimerHost();
+  const tokenProviders: string[] = [];
+  const client = new AdsbaoRealtimeClient("ws://example.test/ws", {
+    WebSocketCtor: FakeSocket as any,
+    timerHost: timers.host as any,
+    heartbeatIntervalMs: 0,
+    authTokenFetcher: async (provider) => {
+      tokenProviders.push(provider);
+      return "signed-flightaware-grant";
+    },
+  });
+
+  client.subscribe({
+    channel: "route:DAL58",
+    params: { routeProvider: "adsbdb" },
+    listener: () => {},
+  });
+  const unsubscribeFlightAware = client.subscribe({
+    channel: "route:DAL58",
+    params: { routeProvider: "flightaware" },
+    listener: () => {},
+  });
+  const socket = FakeSocket.instances[0];
+  socket.open();
+  for (let i = 0; i < 4 && socket.sent.length < 2; i += 1) {
+    await Promise.resolve();
+  }
+
+  assert.deepEqual(socket.sent.map((payload) => JSON.parse(payload)), [
+    {
+      type: "subscribe",
+      channel: "route:DAL58",
+      params: { routeProvider: "adsbdb" },
+    },
+    {
+      type: "subscribe",
+      channel: "route:DAL58",
+      params: {
+        routeProvider: "flightaware",
+        realtimeAuthToken: "signed-flightaware-grant",
+      },
+    },
+  ]);
+  assert.deepEqual(tokenProviders, ["flightaware"]);
+
+  unsubscribeFlightAware();
+  assert.deepEqual(JSON.parse(socket.sent.at(-1) || "{}"), {
+    type: "unsubscribe",
+    channel: "route:DAL58",
+    params: { routeProvider: "flightaware" },
+  });
+}
+
+{
+  FakeSocket.instances = [];
+  const timers = createTimerHost();
+  const received: string[] = [];
+  const client = new AdsbaoRealtimeClient("ws://example.test/ws", {
+    WebSocketCtor: FakeSocket as any,
+    timerHost: timers.host as any,
+    heartbeatIntervalMs: 0,
+    authTokenFetcher: async () => "signed-flightaware-grant",
+  });
+
+  client.subscribe({
+    channel: "route:DAL58",
+    params: { routeProvider: "adsbdb" },
+    listener: () => received.push("adsbdb"),
+  });
+  client.subscribe({
+    channel: "route:DAL58",
+    params: { routeProvider: "flightaware" },
+    listener: () => received.push("flightaware"),
+  });
+  const socket = FakeSocket.instances[0];
+  socket.open();
+  for (let i = 0; i < 4 && socket.sent.length < 2; i += 1) {
+    await Promise.resolve();
+  }
+
+  socket.message({
+    type: "route:update",
+    channel: "route:DAL58",
+    source: "adsbdb",
+    fetchedAt: new Date().toISOString(),
+    stale: false,
+    data: {},
+  });
+  socket.message({
+    type: "route:update",
+    channel: "route:DAL58",
+    source: "flightaware",
+    fetchedAt: new Date().toISOString(),
+    stale: false,
+    data: {},
+  });
+  assert.deepEqual(received, ["adsbdb", "flightaware"]);
+}
+
 console.log("adsbaoRealtimeClient.test.ts ok");
