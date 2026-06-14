@@ -18,6 +18,19 @@ service, which scrapes:
 adsbao-data-service.railway.internal:8080/metrics
 ```
 
+During the Go data-service migration, add the parallel Railway service as a
+second scrape target, for example:
+
+```text
+adsbao-data-service-go.railway.internal:8080/metrics
+```
+
+The Go service preserves the existing `adsbao_*` metric names and label names,
+so the dashboard queries should continue to work if the Prometheus `job` label
+is kept as `adsbao-data-service`. If the parallel scrape uses a different
+`job` label, duplicate or parameterize panels that currently filter on
+`job="adsbao-data-service"` before cutover.
+
 ## Provisioned service
 
 The Railway `Grafana` service builds from:
@@ -36,7 +49,9 @@ Provisioning files:
 ## Dashboard
 
 - `adsbao-data-service-dashboard.json` — WebSocket, provider contact, polling,
-  and channel-health graphs/tables for `services/data-service`.
+  and channel-health graphs/tables for the realtime data service. It applies to
+  both `services/data-service` and the Go migration candidate in
+  `services/data-service-go` when scrape labels are compatible.
 
 Import path:
 

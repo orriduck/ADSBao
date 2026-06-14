@@ -37,6 +37,14 @@ service, shares one polling loop per active channel, applies provider fallback
 and backoff centrally, and exposes `/health`, `/debug/channels`, `/metrics`,
 and `/ws`.
 
+A contract-compatible Go migration candidate is staged under
+`services/data-service-go`. It is not the production realtime backend until a
+separate Railway service has been deployed, scraped by Prometheus, compared
+against the TypeScript service, and selected by changing
+`NEXT_PUBLIC_ADSBAO_REALTIME_URL` to the new public `/ws` URL. Keep both
+services deployable during the migration so rollback is a realtime URL change,
+not a code revert.
+
 Realtime channel keys encode the polling target instead of hiding it in
 subscription params. This keeps shared loops correct when three product anchors
 are active:
