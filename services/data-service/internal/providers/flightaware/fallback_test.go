@@ -15,6 +15,10 @@ func TestFallbackParsesBootstrapPositionAndCaches(t *testing.T) {
 		if r.URL.Path != "/live/flight/DAL58" {
 			t.Fatalf("path = %s", r.URL.Path)
 		}
+		if flusher, ok := w.(http.Flusher); ok {
+			flusher.Flush()
+			time.Sleep(20 * time.Millisecond)
+		}
 		_, _ = w.Write([]byte(`
 			<html>
 				<head>
