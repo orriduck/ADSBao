@@ -103,11 +103,12 @@ func (c *Client) fetchADSBDB(ctx context.Context, input realtime.FetchInput) (re
 	requestURL := c.adsbdbBaseURL + "/callsign/" + url.PathEscape(input.Target.Callsign)
 	started := time.Now()
 	status := any(nil)
-	resp, err := c.do(ctx, requestURL, "application/json", userAgent)
+	resp, cancel, err := c.do(ctx, requestURL, "application/json", userAgent)
 	if err != nil {
 		c.recordExternal(input, "adsbdb", "error", "ERR", started)
 		return realtime.Event{}, err
 	}
+	defer cancel()
 	defer resp.Body.Close()
 	status = resp.StatusCode
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -142,11 +143,12 @@ func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput
 	}
 	started := time.Now()
 	status := any(nil)
-	resp, err := c.do(ctx, requestURL, "text/html,application/xhtml+xml", flightAwareRouteUA)
+	resp, cancel, err := c.do(ctx, requestURL, "text/html,application/xhtml+xml", flightAwareRouteUA)
 	if err != nil {
 		c.recordExternal(input, "flightaware", "error", "ERR", started)
 		return realtime.Event{}, err
 	}
+	defer cancel()
 	defer resp.Body.Close()
 	status = resp.StatusCode
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -166,16 +168,21 @@ func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput
 	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, normalizeFlightAwareRoute(input.Target.Callsign, string(body))), nil
 }
 
-func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, error) {
+func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, context.CancelFunc, error) {
 	requestCtx, cancel := context.WithTimeout(ctx, c.timeout)
-	defer cancel()
 	req, err := http.NewRequestWithContext(requestCtx, http.MethodGet, requestURL, nil)
 	if err != nil {
-		return nil, err
+		cancel()
+		return nil, nil, err
 	}
 	req.Header.Set("Accept", accept)
 	req.Header.Set("User-Agent", ua)
-	return c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		cancel()
+		return nil, nil, err
+	}
+	return resp, cancel, nil
 }
 
 func (c *Client) readBody(resp *http.Response) ([]byte, error) {

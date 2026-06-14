@@ -130,11 +130,12 @@ func (c *FallbackClient) ByCallsign(ctx context.Context, callsign any, metrics r
 	}
 
 	started := time.Now()
-	resp, err := c.do(ctx, pageURL, "text/html,application/xhtml+xml", "", metrics, started)
+	resp, cancel, err := c.do(ctx, pageURL, "text/html,application/xhtml+xml", "", metrics, started)
 	if err != nil {
 		record(metrics, "error", "ERR", started)
 		return errorResult(timeoutOrNetwork(err), fetchedAt, err.Error(), nil), nil
 	}
+	defer cancel()
 	defer resp.Body.Close()
 	record(metrics, resultForStatus(resp.StatusCode), resp.StatusCode, started)
 	if resp.StatusCode == http.StatusNotFound {
@@ -170,11 +171,12 @@ func (c *FallbackClient) ByCallsign(ctx context.Context, callsign any, metrics r
 func (c *FallbackClient) tryTrackpoll(ctx context.Context, callsign, fetchedAt, pageURL, token, htmlText string, metrics realtime.MetricsSink) (adsb.FallbackResult, bool) {
 	trackURL := buildTrackpollURL(pageURL, token)
 	started := time.Now()
-	resp, err := c.do(ctx, trackURL, "application/json, text/javascript, */*; q=0.01", pageURL, metrics, started)
+	resp, cancel, err := c.do(ctx, trackURL, "application/json, text/javascript, */*; q=0.01", pageURL, metrics, started)
 	if err != nil {
 		record(metrics, "error", "ERR", started)
 		return adsb.FallbackResult{}, false
 	}
+	defer cancel()
 	defer resp.Body.Close()
 	record(metrics, resultForStatus(resp.StatusCode), resp.StatusCode, started)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -188,12 +190,12 @@ func (c *FallbackClient) tryTrackpoll(ctx context.Context, callsign, fetchedAt, 
 	return result, result.OK
 }
 
-func (c *FallbackClient) do(ctx context.Context, requestURL, accept, referer string, _ realtime.MetricsSink, _ time.Time) (*http.Response, error) {
+func (c *FallbackClient) do(ctx context.Context, requestURL, accept, referer string, _ realtime.MetricsSink, _ time.Time) (*http.Response, context.CancelFunc, error) {
 	requestCtx, cancel := context.WithTimeout(ctx, c.timeout)
-	defer cancel()
 	req, err := http.NewRequestWithContext(requestCtx, http.MethodGet, requestURL, nil)
 	if err != nil {
-		return nil, err
+		cancel()
+		return nil, nil, err
 	}
 	req.Header.Set("Accept", accept)
 	req.Header.Set("User-Agent", userAgentFallback)
@@ -201,7 +203,12 @@ func (c *FallbackClient) do(ctx context.Context, requestURL, accept, referer str
 		req.Header.Set("Referer", referer)
 		req.Header.Set("X-Requested-With", "XMLHttpRequest")
 	}
-	return c.httpClient.Do(req)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		cancel()
+		return nil, nil, err
+	}
+	return resp, cancel, nil
 }
 
 func (c *FallbackClient) pageURL(callsign string) string {
