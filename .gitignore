@@ -39,6 +39,13 @@ dist-ssr
 .playwright-mcp
 *.lock
 
+# Terraform / OpenTofu local state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+
 # clerk configuration (can include secrets)
 /.clerk/
 .claude/dev-server.log

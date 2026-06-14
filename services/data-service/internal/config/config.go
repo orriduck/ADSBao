@@ -21,7 +21,9 @@ type Config struct {
 	NewRelicLicenseKey         string
 	NewRelicAppName            string
 	NewRelicMetricsEndpoint    string
+	NewRelicLogsEndpoint       string
 	MetricsReportInterval      time.Duration
+	LogsReportInterval         time.Duration
 }
 
 type LookupFunc func(string) string
@@ -42,7 +44,9 @@ func FromEnv(lookup LookupFunc) Config {
 		NewRelicLicenseKey:         strings.TrimSpace(lookup("NEW_RELIC_LICENSE_KEY")),
 		NewRelicAppName:            stringValue(lookup("NEW_RELIC_APP_NAME"), "adsbao-data-service"),
 		NewRelicMetricsEndpoint:    stringValue(lookup("NEW_RELIC_METRICS_ENDPOINT"), "https://metric-api.newrelic.com/metric/v1"),
+		NewRelicLogsEndpoint:       stringValue(lookup("NEW_RELIC_LOGS_ENDPOINT"), "https://log-api.newrelic.com/log/v1"),
 		MetricsReportInterval:      durationMS(lookup("METRICS_REPORT_INTERVAL_MS"), 30*time.Second),
+		LogsReportInterval:         durationMS(lookup("LOGS_REPORT_INTERVAL_MS"), 5*time.Second),
 	}
 }
 

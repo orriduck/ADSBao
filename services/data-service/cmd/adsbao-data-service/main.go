@@ -14,6 +14,7 @@ import (
 	"github.com/adsbao/adsbao/services/data-service/internal/config"
 	"github.com/adsbao/adsbao/services/data-service/internal/httpapi"
 	"github.com/adsbao/adsbao/services/data-service/internal/metrics"
+	"github.com/adsbao/adsbao/services/data-service/internal/observability"
 	"github.com/adsbao/adsbao/services/data-service/internal/providers/adsb"
 	"github.com/adsbao/adsbao/services/data-service/internal/providers/flightaware"
 	"github.com/adsbao/adsbao/services/data-service/internal/providers/route"
@@ -24,6 +25,16 @@ import (
 
 func main() {
 	cfg := config.FromEnv(os.Getenv)
+	logForwarder := observability.NewRelicLogForwarder(observability.NewRelicLogOptions{
+		LicenseKey:  cfg.NewRelicLicenseKey,
+		Endpoint:    cfg.NewRelicLogsEndpoint,
+		AppName:     cfg.NewRelicAppName,
+		Environment: stringValue(os.Getenv("RAILWAY_ENVIRONMENT_NAME"), "production"),
+		Source:      os.Stdout,
+	})
+	log.SetFlags(0)
+	log.SetOutput(logForwarder)
+
 	started := time.Now()
 	metricSink := metrics.NewRelicSink(metrics.NewRelicOptions{
 		LicenseKey: cfg.NewRelicLicenseKey,
@@ -79,14 +90,21 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go reportMetrics(ctx, registry, started, cfg.MetricsReportInterval, polling.DebugChannels)
+	go logForwarder.Run(ctx, cfg.LogsReportInterval)
+	serverErr := make(chan error, 1)
 	go func() {
 		log.Printf("adsbao-data-service listening on :%d", cfg.Port)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("server failed: %v", err)
+			serverErr <- err
 		}
 	}()
 
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case err := <-serverErr:
+		log.Printf("server failed: %v", err)
+		stop()
+	}
 	polling.Dispose()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -96,6 +114,9 @@ func main() {
 	}
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("graceful shutdown failed: %v", err)
+	}
+	if err := logForwarder.Shutdown(shutdownCtx); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "logs shutdown failed: %v\n", err)
 	}
 }
 
@@ -116,4 +137,11 @@ func reportMetrics(ctx context.Context, registry *metrics.Metrics, started time.
 			}
 		}
 	}
+}
+
+func stringValue(value, fallback string) string {
+	if value == "" {
+		return fallback
+	}
+	return value
 }

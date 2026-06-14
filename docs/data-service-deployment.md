@@ -37,9 +37,13 @@ Stable metrics behavior:
 
 - Business metrics are pushed to New Relic through the Metric API when
   `NEW_RELIC_LICENSE_KEY` is present.
+- Backend logs emitted through the service logger are pushed to New Relic
+  through the Log API when `NEW_RELIC_LICENSE_KEY` is present.
 - Metric names use the `adsbao.*` namespace and low-cardinality attributes.
 - Do not add callsign, full channel name, user id, lat/lon, raw URL, token, or
   exact error text as New Relic metric attributes.
+- Log events include `service.name=adsbao-data-service`, `app.name`, `logtype`,
+  `environment`, `level`, `timestamp`, and `message`.
 - Railway built-in metrics remain the source for service CPU, memory, network,
   and volume usage.
 
@@ -70,11 +74,14 @@ Compatible env vars:
 - `AIRPORT_DIRECTORY_BASE_URL` defaults to `https://www.adsbao.dev` and is used
   as a fallback airport directory when FlightAware route pages omit embedded
   airport coordinates.
-- `NEW_RELIC_LICENSE_KEY` enables New Relic Metric API reporting.
+- `NEW_RELIC_LICENSE_KEY` enables New Relic Metric API and Log API reporting.
 - `NEW_RELIC_APP_NAME` defaults to `adsbao-data-service`.
 - `NEW_RELIC_METRICS_ENDPOINT` defaults to
   `https://metric-api.newrelic.com/metric/v1`.
+- `NEW_RELIC_LOGS_ENDPOINT` defaults to
+  `https://log-api.newrelic.com/log/v1`.
 - `METRICS_REPORT_INTERVAL_MS` defaults to `30000`.
+- `LOGS_REPORT_INTERVAL_MS` defaults to `5000`.
 
 Optional Go-only debug env:
 
@@ -149,6 +156,7 @@ Check New Relic metrics for:
 - Poll duration
 - Active channels and subscriptions
 - Stale channels and consecutive failures
+- Backend log volume and error logs
 
 Useful NRQL starting points:
 
@@ -156,14 +164,16 @@ Useful NRQL starting points:
 FROM Metric SELECT sum(adsbao.ws.subscribe) FACET channel_type, result TIMESERIES
 FROM Metric SELECT sum(adsbao.external_requests) FACET provider, status_class TIMESERIES
 FROM Metric SELECT average(adsbao.active_channels.current) FACET channel_type TIMESERIES
+FROM Log SELECT timestamp, level, message WHERE service.name = 'adsbao-data-service' LIMIT 100
 ```
 
 The dynamic channel gauges should emit zero-valued series for idle aircraft,
 callsign, route, and traffic channel types so charts remain visible when no
 clients are connected.
 
-Also watch Railway memory/CPU/network, provider request rate in New Relic, and
-Vercel aircraft proxy invocations after each production deploy.
+Apply `infra/newrelic` to create the ADSBao dashboard and NRQL alert policy in
+New Relic. Also watch Railway memory/CPU/network, provider request rate in New
+Relic, and Vercel aircraft proxy invocations after each production deploy.
 
 ## Rollback
 

@@ -2,7 +2,7 @@
 
 Go implementation of the Railway realtime data-service. It owns long-running
 ADS-B polling, WebSocket fanout, provider fallback, health/debug endpoints, and
-New Relic Metric API reporting for ADSBao realtime surfaces.
+New Relic telemetry reporting for ADSBao realtime surfaces.
 
 ## Local Run
 
@@ -44,18 +44,22 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
   Defaults to `https://www.adsbao.dev`.
 - `ENABLE_PPROF`
 - `NEW_RELIC_LICENSE_KEY` — New Relic ingest license key. When unset, metrics
-  reporting is disabled.
+  and backend log reporting are disabled.
 - `NEW_RELIC_APP_NAME` — New Relic app name. Defaults to `adsbao-data-service`.
 - `NEW_RELIC_METRICS_ENDPOINT` — Metric API endpoint. Defaults to the US
   endpoint `https://metric-api.newrelic.com/metric/v1`.
+- `NEW_RELIC_LOGS_ENDPOINT` — Log API endpoint. Defaults to the US endpoint
+  `https://log-api.newrelic.com/log/v1`.
 - `METRICS_REPORT_INTERVAL_MS` — periodic dynamic gauge flush interval.
   Defaults to `30000`.
+- `LOGS_REPORT_INTERVAL_MS` — periodic backend log flush interval. Defaults to
+  `5000`.
 
 ## Railway Deployment
 
 Deploy this service from the repository root directory `services/data-service`
 using `services/data-service/railway.json`. Validate `/health`, direct
 WebSocket subscribe/ping behavior, Railway resource metrics, and New Relic
-business metrics after each production deploy.
+business metrics and backend logs after each production deploy.
 
 See the repository deployment runbook at `docs/data-service-deployment.md`.
