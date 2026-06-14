@@ -71,16 +71,12 @@ directory data, map tiles, and route context behind same-origin Next.js API
 routes. See [docs/architecture.md](docs/architecture.md) for the current
 feature/API boundary conventions and deployment topology.
 
-High-frequency ADS-B aircraft updates can also flow through the Railway-hosted
-realtime backend in [services/data-service](services/data-service). A parallel
-Go migration candidate lives in
-[services/data-service-go](services/data-service-go); deploy it as a separate
-Railway service and validate it before changing any production realtime URL.
-The frontend uses whichever WebSocket backend
-`NEXT_PUBLIC_ADSBAO_REALTIME_URL` points at. Realtime surfaces keep their
-loading state and show a toast when the WebSocket service is unavailable; the
-existing Next.js API routes remain for ordinary short requests and one-off
-provider access.
+High-frequency ADS-B aircraft updates flow through the Railway-hosted Go
+realtime backend in [services/data-service](services/data-service). The
+frontend uses that WebSocket backend when `NEXT_PUBLIC_ADSBAO_REALTIME_URL`
+points at its public `/ws` URL. Realtime surfaces keep their loading state and
+show a toast when the WebSocket service is unavailable; the existing Next.js
+API routes remain for ordinary short requests and one-off provider access.
 
 | Path | Source | Purpose |
 |---|---|---|
@@ -103,11 +99,9 @@ provider access.
   and navaid coverage.
 - **Runtime**: Vercel Git deployments, same-origin proxy routes, Web Analytics,
   Speed Insights, and optional Sentry monitoring.
-- **Realtime backend**: A deployable Node.js/TypeScript service under
-  `services/data-service` for shared ADS-B polling, WebSocket subscriptions,
-  provider fallback, health/debug endpoints, and Railway deployment. A
-  contract-compatible Go candidate is staged under `services/data-service-go`
-  for parallel Railway validation before cutover.
+- **Realtime backend**: A deployable Go service under `services/data-service`
+  for shared ADS-B polling, WebSocket subscriptions, provider fallback,
+  health/debug endpoints, Prometheus metrics, and Railway deployment.
 - **Auth and feature flags**: Clerk identity with Postgres-backed user feature
   flags for gated provider behavior.
 
@@ -117,7 +111,7 @@ provider access.
 
 - Node.js 24+
 - pnpm
-- Go 1.26+ for the optional `services/data-service-go` migration candidate
+- Go 1.26+ for `services/data-service`
 
 ### Run The App
 
@@ -130,12 +124,13 @@ The local app runs at `http://localhost:3000` by default.
 
 ### Run The Realtime Data Service
 
-The Railway realtime backend lives in `services/data-service` and can also run
+The Railway realtime backend lives in `services/data-service` and can run
 locally:
 
 ```bash
-pnpm --dir services/data-service install
-pnpm --dir services/data-service dev
+cd services/data-service
+go test ./...
+PORT=8080 go run ./cmd/adsbao-data-service
 ```
 
 Then point the Next.js app at the local WebSocket:
@@ -151,23 +146,12 @@ curl http://localhost:8080/health
 curl http://localhost:8080/debug/channels
 ```
 
-The Go migration candidate can run independently from
-`services/data-service-go`:
-
-```bash
-cd services/data-service-go
-go test ./...
-PORT=8080 go run ./cmd/adsbao-data-service
-```
-
 ### Verify
 
 ```bash
 pnpm test
 pnpm build
-pnpm --dir services/data-service test
-pnpm --dir services/data-service build
-cd services/data-service-go && go test ./...
+cd services/data-service && go test ./...
 ```
 
 `pnpm test` discovers every `*.test.ts` and `*.test.tsx` file and runs the critical mechanism
@@ -227,8 +211,8 @@ ADSBao/
 ├── docs/                  # Architecture notes and repository screenshots
 ├── scripts/               # Data import and maintenance scripts
 ├── services/
-│   ├── data-service/      # Production realtime ADS-B polling and WebSocket backend
-│   └── data-service-go/   # Parallel Go migration candidate for the realtime backend
+│   ├── data-service/      # Go realtime ADS-B polling and WebSocket backend
+│   └── grafana/           # Railway Grafana provisioning
 ├── src/
 │   ├── app/               # Next.js pages, API routes, API helpers, and DAOs
 │   ├── components/        # JSX components grouped by screen/domain
@@ -255,7 +239,7 @@ route-handler-only helpers stay under `src/app/api/_shared`.
 
 ## Data Service Deployment
 
-The production realtime backend is a separate Railway service deployed from
+The realtime backend is a separate Railway service deployed from
 `services/data-service`. The service includes `railway.json` config-as-code,
 uses the Dockerfile in the same directory, and exposes `/health`,
 `/debug/channels`, `/metrics`, and `/ws`.
@@ -273,14 +257,8 @@ Railway handles production deployment through its GitHub integration. The
 service should be configured with root directory `services/data-service`,
 config file `/services/data-service/railway.json`, and public WebSocket URL
 `wss://<railway-domain>/ws`.
-
-For the Go migration, create a separate Railway service instead of changing the
-existing production service in place. Use root directory
-`services/data-service-go`, config file `/services/data-service-go/railway.json`,
-and the same compatible env vars as the TypeScript service. Validate health,
-metrics, WebSocket subscribe behavior, provider request rate, and Grafana panels
-before changing `NEXT_PUBLIC_ADSBAO_REALTIME_URL`. See
-[docs/data-service-go-migration.md](docs/data-service-go-migration.md).
+See [docs/data-service-deployment.md](docs/data-service-deployment.md) for the
+deployment and smoke-check runbook.
 
 ## Release Policy
 
