@@ -11,8 +11,6 @@ import type {
 } from "../features/aviation/flight-routes/flightRouteLookupModel";
 import {
   ROUTE_LOOKUP_TRANSPORT,
-  buildRouteCacheKey,
-  buildRouteProxyRequest,
   resolveRouteLookupTransport,
 } from "../features/aviation/flight-routes/flightRouteLookupModel";
 import { createRouteDisplayBatcher } from "../features/aviation/flight-routes/flightRouteDisplayBatchModel";
@@ -28,13 +26,14 @@ type RouteEventData = {
   route?: FlightRoute | null;
 };
 
-async function readRouteProxyResult(response: Response) {
-  if (!response.ok) {
-    throw new Error(`Route proxy HTTP ${response.status}`);
-  }
-  const text = await response.text();
-  if (!text) return null;
-  return JSON.parse(text) as FlightRoute | null;
+function routeSubscriptionKey({
+  channel,
+  params,
+}: {
+  channel: string;
+  params?: Record<string, unknown>;
+}) {
+  return `${channel}|${JSON.stringify(params || {})}`;
 }
 
 export function useFlightRoutes(
@@ -49,7 +48,6 @@ export function useFlightRoutes(
     null,
   );
   const routeUnsubscribersRef = useRef(new Map<string, () => void>());
-  const proxyControllersRef = useRef(new Map<string, AbortController>());
   const routeContext = useMemo(
     () => ({
       icao: routeContextInput?.icao,
@@ -74,7 +72,6 @@ export function useFlightRoutes(
   useEffect(() => {
     mountedRef.current = true;
     const routeUnsubscribers = routeUnsubscribersRef.current;
-    const proxyControllers = proxyControllersRef.current;
     routeDisplayBatcherRef.current = createRouteDisplayBatcher({
       publish: (routeVersion) => {
         if (!mountedRef.current) return;
@@ -88,8 +85,6 @@ export function useFlightRoutes(
       routeDisplayBatcherRef.current = null;
       for (const unsubscribe of routeUnsubscribers.values()) unsubscribe();
       routeUnsubscribers.clear();
-      for (const controller of proxyControllers.values()) controller.abort();
-      proxyControllers.clear();
     };
   }, []);
 
@@ -128,20 +123,25 @@ export function useFlightRoutes(
 
     const wanted = new Set(
       pendingCallsigns
-        .map((callsign) => buildRouteChannel(callsign, routeContext)?.channel || "")
+        .map((callsign) => {
+          const request = buildRouteChannel(callsign, routeContext);
+          return request ? routeSubscriptionKey(request) : "";
+        })
         .filter(Boolean),
     );
 
-    for (const [channel, unsubscribe] of routeUnsubscribersRef.current) {
-      if (!wanted.has(channel)) {
+    for (const [key, unsubscribe] of routeUnsubscribersRef.current) {
+      if (!wanted.has(key)) {
         unsubscribe();
-        routeUnsubscribersRef.current.delete(channel);
+        routeUnsubscribersRef.current.delete(key);
       }
     }
 
     for (const callsign of pendingCallsigns) {
       const request = buildRouteChannel(callsign, routeContext);
-      if (!request || routeUnsubscribersRef.current.has(request.channel)) continue;
+      if (!request) continue;
+      const key = routeSubscriptionKey(request);
+      if (routeUnsubscribersRef.current.has(key)) continue;
       const unsubscribe = client.subscribe({
         channel: request.channel,
         params: request.params,
@@ -157,65 +157,9 @@ export function useFlightRoutes(
           }
         },
       });
-      routeUnsubscribersRef.current.set(request.channel, unsubscribe);
+      routeUnsubscribersRef.current.set(key, unsubscribe);
     }
   }, [client, pendingCallsigns, routeContext, routeTransport]);
-
-  useEffect(() => {
-    const proxyControllers = proxyControllersRef.current;
-    if (routeTransport !== ROUTE_LOOKUP_TRANSPORT.PROXY) {
-      for (const controller of proxyControllers.values()) controller.abort();
-      proxyControllers.clear();
-      return;
-    }
-
-    const wanted = new Set<string>();
-    for (const callsign of pendingCallsigns) {
-      const request = buildRouteProxyRequest(callsign, routeContext);
-      if (!request) continue;
-      const key = buildRouteCacheKey(request.callsign, routeContext) || request.url;
-      wanted.add(key);
-      if (proxyControllers.has(key)) continue;
-
-      const controller = new AbortController();
-      proxyControllers.set(key, controller);
-      fetch(request.url, {
-        cache: "no-store",
-        credentials: "same-origin",
-        signal: controller.signal,
-      })
-        .then(readRouteProxyResult)
-        .then((route) => {
-          if (!mountedRef.current || controller.signal.aborted) return;
-          flightRouteScheduler.applyRouteResult(
-            request.callsign,
-            route || null,
-            routeContext,
-          );
-        })
-        .catch((error) => {
-          if (controller.signal.aborted) return;
-          if (process.env.NODE_ENV !== "production") {
-            console.warn(
-              `[flight-route-proxy] lookup failed for ${request.callsign}:`,
-              error,
-            );
-          }
-        })
-        .finally(() => {
-          if (proxyControllers.get(key) === controller) {
-            proxyControllers.delete(key);
-          }
-        });
-    }
-
-    for (const [key, controller] of proxyControllers) {
-      if (!wanted.has(key)) {
-        controller.abort();
-        proxyControllers.delete(key);
-      }
-    }
-  }, [pendingCallsigns, routeContext, routeTransport]);
 
   const routesByCallsign = useMemo(() => {
     version;

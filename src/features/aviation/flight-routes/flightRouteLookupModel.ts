@@ -66,7 +66,6 @@ type RoutesByCallsignOptions = {
 
 export const ROUTE_LOOKUP_TRANSPORT = Object.freeze({
   REALTIME: "realtime",
-  PROXY: "proxy",
 });
 
 const routeContextCode = (value: unknown) =>
@@ -119,9 +118,8 @@ function routeContextWithoutProvider(routeContext: RouteContext = {}) {
 }
 
 export function resolveRouteLookupTransport(routeContext: RouteContext = {}) {
-  return isFlightAwareRouteContext(routeContext)
-    ? ROUTE_LOOKUP_TRANSPORT.PROXY
-    : ROUTE_LOOKUP_TRANSPORT.REALTIME;
+  void routeContext;
+  return ROUTE_LOOKUP_TRANSPORT.REALTIME;
 }
 
 export function resolveRouteLookupEnabled({
@@ -130,25 +128,6 @@ export function resolveRouteLookupEnabled({
   featureFlagsResolved?: unknown;
 } = {}) {
   return featureFlagsResolved !== false;
-}
-
-export function buildRouteProxyRequest(
-  callsign: unknown,
-  routeContext: RouteContext = {},
-) {
-  const normalizedCallsign = normalizeCallsign(callsign);
-  if (!normalizedCallsign || !isLookupCallsign(normalizedCallsign)) return null;
-  const params = new URLSearchParams();
-  if (isFlightAwareRouteContext(routeContext)) {
-    params.set("provider", "flightaware");
-  }
-  const query = params.toString();
-  return {
-    callsign: normalizedCallsign,
-    url: `/api/proxy/flight-routes/callsign/${encodeURIComponent(normalizedCallsign)}${
-      query ? `?${query}` : ""
-    }`,
-  };
 }
 
 export function buildRouteCacheKey(callsign: unknown, routeContext: RouteContext = {}) {

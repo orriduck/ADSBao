@@ -34,6 +34,15 @@ import {
     callsign: "AAL123",
     context: { type: "airport", icao: "KBOS" },
   });
+  assert.deepEqual(
+    buildChannelPollingTarget(channel.channel, { routeProvider: "flightaware" }),
+    {
+      kind: "route",
+      callsign: "AAL123",
+      context: { type: "airport", icao: "KBOS" },
+      provider: "flightaware",
+    },
+  );
 }
 
 {

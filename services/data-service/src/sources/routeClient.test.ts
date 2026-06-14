@@ -12,6 +12,16 @@ function jsonResponse(payload: unknown, status = 200) {
   } as Response;
 }
 
+function textResponse(body: string, status = 200) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    async text() {
+      return body;
+    },
+  } as Response;
+}
+
 {
   const calls: string[] = [];
   const metrics = new DataServiceMetrics();
@@ -61,6 +71,60 @@ function jsonResponse(payload: unknown, status = 200) {
   assert.match(
     output,
     /adsbao_external_requests_total\{endpoint="route",provider="adsbdb",result="success",status="200",status_class="2xx"\} 1/,
+  );
+}
+
+{
+  const calls: string[] = [];
+  const metrics = new DataServiceMetrics();
+  const event = await fetchRouteChannel({
+    channel: "route:AAL1234:airport:KBOS",
+    channelType: "route",
+    metrics,
+    target: {
+      kind: "route",
+      callsign: "AAL1234",
+      context: { type: "airport", icao: "KBOS" },
+      provider: "flightaware",
+    },
+    params: { routeProvider: "flightaware" },
+    waitForTurn: async () => {},
+    fetchImpl: async (url: string) => {
+      calls.push(url);
+      return textResponse(`
+        <html>
+          <head>
+            <title>AA1234 (AAL1234) American Airlines Flight Tracking</title>
+            <meta name="origin" content="KBOS">
+            <meta name="destination" content="KLAX">
+            <meta name="airline" content="AAL">
+            <meta name="description" content="Track American Airlines (AA) #1234">
+          </head>
+          <body>
+            <script>
+              var trackpollBootstrap = {"flights":{"AAL1234":{
+                "origin":{"icao":"KBOS","iata":"BOS","coord":[-71.0096,42.3656],"friendlyName":"Boston Logan","friendlyLocation":"Boston, MA"},
+                "destination":{"icao":"KLAX","iata":"LAX","coord":[-118.4085,33.9416],"friendlyName":"Los Angeles Intl","friendlyLocation":"Los Angeles, CA"}
+              }}};
+            </script>
+          </body>
+        </html>
+      `);
+    },
+  });
+
+  assert.equal(calls[0], "https://www.flightaware.com/live/flight/AAL1234");
+  assert.equal(event.type, "route:update");
+  assert.equal(event.channel, "route:AAL1234:airport:KBOS");
+  assert.equal(event.source, "flightaware");
+  const data = event.data as any;
+  assert.equal(data.route.callsign, "AAL1234");
+  assert.equal(data.route.route.iata, "BOS-LAX");
+  assert.equal(data.route.source, "flightaware");
+  const output = metrics.render({ uptimeSec: 1, channels: [] });
+  assert.match(
+    output,
+    /adsbao_external_requests_total\{endpoint="route",provider="flightaware",result="success",status="200",status_class="2xx"\} 1/,
   );
 }
 

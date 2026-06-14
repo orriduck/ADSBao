@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 
 import {
-  buildRouteProxyRequest,
   buildRouteCacheKey,
   buildRoutesByCallsign,
   getRouteLookupStats,
@@ -24,26 +23,11 @@ const route = {
   assert.equal(resolveRouteLookupEnabled(), true);
   assert.equal(
     resolveRouteLookupTransport({ routeProvider: "flightaware" }),
-    "proxy",
+    "realtime",
   );
   assert.equal(
     resolveRouteLookupTransport({ routeProvider: "adsbdb" }),
     "realtime",
-  );
-  assert.deepEqual(
-    buildRouteProxyRequest(" aal 1234 ", { routeProvider: "flightaware" }),
-    {
-      callsign: "AAL1234",
-      url: "/api/proxy/flight-routes/callsign/AAL1234?provider=flightaware",
-    },
-  );
-  assert.deepEqual(buildRouteProxyRequest("aal1234", {}), {
-    callsign: "AAL1234",
-    url: "/api/proxy/flight-routes/callsign/AAL1234",
-  });
-  assert.equal(
-    buildRouteProxyRequest("bad-call", { routeProvider: "flightaware" }),
-    null,
   );
 }
 

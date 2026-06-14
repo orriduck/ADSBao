@@ -54,8 +54,14 @@ type PollingSchedulerOptions = {
 function buildChannelStateKey(
   channel: string,
   _type: RealtimeChannelType,
-  _target: PollingTarget,
+  target: PollingTarget,
 ) {
+  if (target.kind === "callsign" && target.flightAwareFallback === true) {
+    return `${channel}:mode:flightaware`;
+  }
+  if (target.kind === "route" && target.provider) {
+    return `${channel}:provider:${target.provider}`;
+  }
   return channel;
 }
 

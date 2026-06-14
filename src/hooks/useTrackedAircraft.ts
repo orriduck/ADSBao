@@ -2,10 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  AIRCRAFT_TRAFFIC_CONFIG,
-  AVIATION_PROXY_BASES,
-} from "../config/aviation";
-import {
   normalizeAdsbAircraft,
 } from "../features/aircraft/positions/aircraftPositionsModel";
 import { shouldShowAircraftLoadingOverlay } from "../features/aircraft/positions/aircraftLoadingOverlayModel";
@@ -33,12 +29,6 @@ function normalizeTrackedPayload(data: unknown) {
   return normalizeRealtimeTrackedPayload(data);
 }
 
-function shouldHoldFlightAwarePosition(trackingState: unknown) {
-  return (
-    String((trackingState as any)?.status || "").trim() === "flightaware_active"
-  );
-}
-
 export function useTrackedAircraft(
   callsign: unknown,
   {
@@ -52,6 +42,7 @@ export function useTrackedAircraft(
   const hasActiveQuery = Boolean(callsign);
   const realtime = useAircraftTrackingRealtime(callsign, {
     enabled: hasActiveQuery,
+    flightAware: flightAwareEnabled && flightAwareResolved,
   });
   const [aircraft, setAircraft] = useState<any>(null);
   const [feedSource, setFeedSource] = useState("");
@@ -193,13 +184,6 @@ export function useTrackedAircraft(
   useEffect(() => {
     const event = realtime.event;
     if (!callsign || !event || event.type !== "aircraft:update") return;
-    if (
-      flightAwareEnabled &&
-      flightAwareResolved &&
-      shouldHoldFlightAwarePosition(trackingStateRef.current)
-    ) {
-      return;
-    }
 
     applyTrackedPayload(event.data, {
       source: event.source,
@@ -208,79 +192,7 @@ export function useTrackedAircraft(
   }, [
     applyTrackedPayload,
     callsign,
-    flightAwareEnabled,
-    flightAwareResolved,
     realtime.event,
-  ]);
-
-  useEffect(() => {
-    if (!callsign || !flightAwareResolved || !flightAwareEnabled) return undefined;
-
-    const normalizedCallsign = String(callsign || "").trim().toUpperCase();
-    if (!normalizedCallsign) return undefined;
-
-    let disposed = false;
-    let timer: number | null = null;
-    let controller: AbortController | null = null;
-
-    const poll = async () => {
-      controller?.abort();
-      controller = new AbortController();
-      try {
-        const response = await fetch(
-          `${AVIATION_PROXY_BASES.aircraftCallsign}/${encodeURIComponent(normalizedCallsign)}`,
-          {
-            cache: "no-store",
-            credentials: "same-origin",
-            signal: controller.signal,
-          },
-        );
-        if (!response.ok) {
-          throw new Error(`Aircraft callsign proxy HTTP ${response.status}`);
-        }
-        const payload = await response.json();
-        if (disposed) return;
-        applyTrackedPayload(payload, {
-          source:
-            response.headers.get("X-Data-Source") ||
-            (typeof payload?.source === "string" ? payload.source : ""),
-          fetchedAt:
-            typeof payload?.fetchedAt === "string"
-              ? payload.fetchedAt
-              : response.headers.get("Date") || "",
-        });
-      } catch (error: any) {
-        if (disposed || error?.name === "AbortError") return;
-        setError(error);
-        setSettled(true);
-        if (process.env.NODE_ENV !== "production") {
-          console.warn(
-            `[tracked-aircraft] FlightAware-aware refresh failed for ${normalizedCallsign}:`,
-            error,
-          );
-        }
-      } finally {
-        if (!disposed) {
-          timer = window.setTimeout(
-            poll,
-            AIRCRAFT_TRAFFIC_CONFIG.flightAwareTraceRefreshMs,
-          );
-        }
-      }
-    };
-
-    poll();
-
-    return () => {
-      disposed = true;
-      if (timer) window.clearTimeout(timer);
-      controller?.abort();
-    };
-  }, [
-    applyTrackedPayload,
-    callsign,
-    flightAwareEnabled,
-    flightAwareResolved,
   ]);
 
   const waitingForRealtime =
