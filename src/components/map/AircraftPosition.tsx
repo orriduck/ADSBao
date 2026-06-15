@@ -23,12 +23,11 @@ import { createAttitudeTracker } from "../../utils/aircraftAttitude";
 import { getAircraftPositionSourceBadge } from "../../features/aviation/sourceDisplayModel";
 import { AircraftLabel } from "@/components/ui/AircraftLabel";
 
-// Marker glyph size. Stays at 18 to keep the existing density of the map
-// — the visual cue now carries through the offset ground shadow + tilt
-// stack rather than enlarging the silhouette. The Leaflet divIcon and the
-// label baseline follow this constant, so changing it keeps the anchor
-// centered on the geo coordinate and the callsign hugs the silhouette.
-const SILHOUETTE_SIZE_PX = 18;
+// Marker glyph size. Keep this modest so dense airport maps stay readable,
+// but large enough that masked silhouettes survive busy vector basemaps. The
+// Leaflet divIcon and label baseline follow this constant, so changing it
+// keeps the anchor centered and the callsign hugged to the silhouette.
+const SILHOUETTE_SIZE_PX = 20;
 
 const getAircraftColor = (ac, showArrow) => {
   if (ac.onGround) return AIRCRAFT_COLORS.ground;

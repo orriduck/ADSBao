@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.9",
+    kind: "patch",
+    title: "Aircraft marker visibility",
+    summary:
+      "Airport maps restore readable aircraft silhouettes after the Railway map migration.",
+    highlights: [
+      "Darkened the monochrome aircraft marker ink on light maps so active traffic no longer disappears into the basemap",
+      "Added a subtle marker halo and shadow so masked aircraft silhouettes stay legible over dense map detail",
+      "Kept the single-color aircraft treatment while preserving the airport/runway accent hierarchy",
+    ],
+  },
+  {
     version: "v2.6.8",
     kind: "patch",
     title: "New Relic service cleanup",
