@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.5",
+    kind: "patch",
+    title: "Runtime Clerk config",
+    summary:
+      "Railway now serves browser auth configuration at runtime so Clerk sign-in works after Docker builds.",
+    highlights: [
+      "Added a runtime public env script served by the Go app instead of relying on Docker build-time Vite variables",
+      "Restored Clerk modal sign-in by reading the Railway runtime `VITE_CLERK_PUBLISHABLE_KEY` before falling back to baked env values",
+      "Kept server-only Clerk secrets out of the browser runtime config",
+    ],
+  },
+  {
     version: "v2.6.4",
     kind: "patch",
     title: "Railway home shell restore",

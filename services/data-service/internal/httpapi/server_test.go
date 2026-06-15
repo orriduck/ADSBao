@@ -114,6 +114,41 @@ func TestFeatureFlagsEndpoint(t *testing.T) {
 	}
 }
 
+func TestRuntimeEnvEndpointServesOnlyPublicConfig(t *testing.T) {
+	t.Setenv("VITE_CLERK_PUBLISHABLE_KEY", "pk_test_public")
+	t.Setenv("VITE_SITE_URL", "")
+	t.Setenv("ADSBAO_SITE_URL", "https://adsbao.test")
+	t.Setenv("CLERK_SECRET_KEY", "sk_test_secret")
+
+	server := New(ServerOptions{})
+	req := httptest.NewRequest(http.MethodGet, "/runtime-env.js", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d", rr.Code)
+	}
+	if ct := rr.Header().Get("Content-Type"); !strings.Contains(ct, "application/javascript") {
+		t.Fatalf("Content-Type = %q, want JavaScript", ct)
+	}
+	if rr.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("Cache-Control = %q", rr.Header().Get("Cache-Control"))
+	}
+	body := rr.Body.String()
+	if !strings.Contains(body, "window.__ADSBAO_ENV__") {
+		t.Fatalf("body = %q, want runtime env assignment", body)
+	}
+	if !strings.Contains(body, `"VITE_CLERK_PUBLISHABLE_KEY":"pk_test_public"`) {
+		t.Fatalf("body = %q, want public Clerk key", body)
+	}
+	if !strings.Contains(body, `"VITE_SITE_URL":"https://adsbao.test"`) {
+		t.Fatalf("body = %q, want site URL fallback", body)
+	}
+	if strings.Contains(body, "CLERK_SECRET_KEY") || strings.Contains(body, "sk_test_secret") {
+		t.Fatalf("runtime env leaked server-only Clerk secret: %q", body)
+	}
+}
+
 func TestRealtimeAuthEndpointIsRoutedBeforeApi404(t *testing.T) {
 	called := false
 	server := New(ServerOptions{

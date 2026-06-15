@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -89,6 +90,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.json(w, http.StatusOK, map[string]any{"flags": s.featureFlags})
 		return
 	}
+	if r.Method == http.MethodGet && r.URL.Path == "/runtime-env.js" {
+		s.serveRuntimeEnv(w)
+		return
+	}
 	if strings.HasPrefix(r.URL.Path, "/api/") && s.webAPI != nil {
 		s.webAPI.ServeHTTP(w, r)
 		return
@@ -156,6 +161,35 @@ func (s *Server) serveStaticOrSPA(w http.ResponseWriter, r *http.Request) {
 func (s *Server) setSecurityHeaders(w http.ResponseWriter) {
 	w.Header().Set("Origin-Agent-Cluster", "?1")
 	w.Header().Set("Permissions-Policy", "tools=(self)")
+}
+
+func (s *Server) serveRuntimeEnv(w http.ResponseWriter) {
+	payload, err := json.Marshal(publicRuntimeEnv())
+	if err != nil {
+		s.json(w, http.StatusInternalServerError, map[string]any{"error": "Failed to encode runtime env"})
+		return
+	}
+	w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	_, _ = fmt.Fprintf(w, "window.__ADSBAO_ENV__ = Object.assign({}, window.__ADSBAO_ENV__, %s);\n", payload)
+}
+
+func publicRuntimeEnv() map[string]string {
+	siteURL := strings.TrimSpace(os.Getenv("VITE_SITE_URL"))
+	if siteURL == "" {
+		siteURL = strings.TrimSpace(os.Getenv("ADSBAO_SITE_URL"))
+	}
+	return map[string]string{
+		"VITE_ADSBAO_REALTIME_URL":     strings.TrimSpace(os.Getenv("VITE_ADSBAO_REALTIME_URL")),
+		"VITE_CLERK_PUBLISHABLE_KEY":   strings.TrimSpace(os.Getenv("VITE_CLERK_PUBLISHABLE_KEY")),
+		"VITE_SITE_URL":                siteURL,
+		"VITE_AIRCRAFT_PHOTOS_BASE":    strings.TrimSpace(os.Getenv("VITE_AIRCRAFT_PHOTOS_BASE")),
+		"VITE_AIRCRAFT_POSITIONS_BASE": strings.TrimSpace(os.Getenv("VITE_AIRCRAFT_POSITIONS_BASE")),
+		"VITE_AIRCRAFT_TRACE_BASE":     strings.TrimSpace(os.Getenv("VITE_AIRCRAFT_TRACE_BASE")),
+		"VITE_LOCAL_WEATHER_BASE":      strings.TrimSpace(os.Getenv("VITE_LOCAL_WEATHER_BASE")),
+		"VITE_METAR_PROXY_BASE":        strings.TrimSpace(os.Getenv("VITE_METAR_PROXY_BASE")),
+	}
 }
 
 func (s *Server) servePprof(w http.ResponseWriter, r *http.Request) {

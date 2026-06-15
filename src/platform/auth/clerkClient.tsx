@@ -7,6 +7,7 @@ import {
 } from "@clerk/react";
 import { createContext, useContext } from "react";
 import type { PropsWithChildren, ReactNode } from "react";
+import { runtimeEnvValue } from "@/platform/env/runtimeEnv";
 
 type ClerkProviderProps = PropsWithChildren<{
   publishableKey?: string;
@@ -31,6 +32,7 @@ const ClerkAuthContext = createContext<AuthState>(anonymousAuth);
 function getPublishableKey(explicit?: string) {
   return (
     explicit ||
+    runtimeEnvValue("VITE_CLERK_PUBLISHABLE_KEY") ||
     import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
     ""
   );

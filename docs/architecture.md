@@ -18,6 +18,8 @@ The root `Dockerfile` builds the Vite frontend, compiles
 binary. The Go service owns:
 
 - Static SPA serving and deep-link fallback.
+- `/runtime-env.js` browser-visible public env generated from Railway runtime
+  variables.
 - `/api/**` same-origin routes.
 - `/ws` realtime WebSocket traffic.
 - `/health` and `/debug/channels`.
@@ -26,6 +28,9 @@ binary. The Go service owns:
 
 Production browser traffic should stay same-origin. `VITE_ADSBAO_REALTIME_URL`
 is only an override for split local development or temporary external testing.
+Browser-visible env such as `VITE_CLERK_PUBLISHABLE_KEY` is served by
+`/runtime-env.js` at runtime so Docker builds do not need access to public
+Railway variables.
 
 ## API Boundaries
 
