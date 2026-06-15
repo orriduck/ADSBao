@@ -25,7 +25,14 @@ function DitherRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomeScreen />} />
+      <Route
+        path="/"
+        element={
+          <DitherRoute>
+            <HomeScreen />
+          </DitherRoute>
+        }
+      />
       <Route path="/airport/:icao" element={<HomeScreen />} />
       <Route path="/aircraft/:callsign" element={<FlightRoute />} />
       <Route path="/here" element={<NearMeScreen />} />
