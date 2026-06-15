@@ -10,6 +10,14 @@ import {
   shouldSuppressMapLibreTileError,
 } from "@/features/airport/map/mapTileLayerModel";
 import { isLightMapTheme } from "@/features/airport/map/airportMapModel";
+import {
+  buildLocalizedMapLibreStyle,
+  buildProxiedMapLibreStyle,
+  buildReadableTerrainMapLibreStyle,
+  buildStandardDetailMapLibreStyle,
+  shouldApplyReadableTerrain,
+  shouldApplyStandardDetail,
+} from "@/features/airport/map/mapTileLanguageModel";
 
 const MAP_STYLE_THEME_REVISION = "standard-detail-v10";
 
@@ -117,7 +125,14 @@ async function loadLocalizedMapStyle({
     v: MAP_STYLE_THEME_REVISION,
   });
   if (baseLayer) params.set("baseLayer", baseLayer);
-  return requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
+  const upstreamStyle = await requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
+  const proxiedStyle = buildProxiedMapLibreStyle(upstreamStyle);
+  const themedStyle = resolveClientMapStyle({
+    style: proxiedStyle,
+    theme,
+    baseLayer,
+  });
+  return buildLocalizedMapLibreStyle(themedStyle, { locale, showLabels });
 }
 
 async function requestJson(url: string, { signal }: Record<string, any> = {}) {
@@ -130,6 +145,24 @@ async function requestJson(url: string, { signal }: Record<string, any> = {}) {
   }
 
   return requestJsonWithXhr(url, { signal });
+}
+
+function resolveClientMapStyle({
+  style,
+  theme,
+  baseLayer,
+}: {
+  style: Record<string, any>;
+  theme: string;
+  baseLayer?: string;
+}) {
+  if (shouldApplyReadableTerrain(baseLayer)) {
+    return buildReadableTerrainMapLibreStyle(style, { theme });
+  }
+  if (shouldApplyStandardDetail(baseLayer)) {
+    return buildStandardDetailMapLibreStyle(style, { theme });
+  }
+  return style;
 }
 
 function requestJsonWithXhr(url: string, { signal }: Record<string, any> = {}) {

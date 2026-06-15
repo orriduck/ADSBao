@@ -29,6 +29,7 @@ type AirportGroundFilterOptions = {
 
 type NearbyAirportLayerDisplayOptions = {
   nearbyAirports?: AirportMapCoordinate[];
+  showMapLabels?: unknown;
 };
 
 type VisibleAircraftOptions = AirportGroundFilterOptions & {
@@ -65,9 +66,10 @@ export const getMapOverlayTheme = (theme: unknown) =>
 
 export const resolveNearbyAirportLayerDisplay = ({
   nearbyAirports = [],
+  showMapLabels = true,
 }: NearbyAirportLayerDisplayOptions = {}) => ({
   airports: Array.isArray(nearbyAirports) ? nearbyAirports : [],
-  showAirportBadges: true,
+  showAirportBadges: showMapLabels === true,
   showRunwayBadges: false,
 });
 

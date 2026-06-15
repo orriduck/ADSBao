@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.6",
+    kind: "patch",
+    title: "Map style settings restore",
+    summary:
+      "Map labels and base layer styling now behave correctly on the Railway frontend.",
+    highlights: [
+      "Restored the client-side MapLibre style transforms used for terrain readability and standard-map detail after the Railway migration",
+      "Made the map label setting hide base-map text labels again instead of always showing OpenFreeMap labels",
+      "Made nearby airport badges follow the map label setting while keeping the focused airport marker visible",
+    ],
+  },
+  {
     version: "v2.6.5",
     kind: "patch",
     title: "Runtime Clerk config",

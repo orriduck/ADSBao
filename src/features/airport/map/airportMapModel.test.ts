@@ -126,6 +126,7 @@ const nearbyLayerAirports = [
 assert.deepEqual(
   resolveNearbyAirportLayerDisplay({
     nearbyAirports: nearbyLayerAirports,
+    showMapLabels: true,
   }),
   {
     airports: nearbyLayerAirports,
@@ -153,10 +154,11 @@ assert.equal(
 assert.deepEqual(
   resolveNearbyAirportLayerDisplay({
     nearbyAirports: nearbyLayerAirports,
+    showMapLabels: false,
   }),
   {
     airports: nearbyLayerAirports,
-    showAirportBadges: true,
+    showAirportBadges: false,
     showRunwayBadges: false,
   },
 );

@@ -404,6 +404,7 @@ export default function AirportMap({
   });
   const nearbyAirportLayerDisplay = resolveNearbyAirportLayerDisplay({
     nearbyAirports,
+    showMapLabels,
   });
   const loadingOverlayState = useResolvedMapLoadingOverlay({
     mapReady: Boolean(mapInstance),
