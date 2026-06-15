@@ -208,9 +208,14 @@ assert.deepEqual(
 
   const logPayload = logIngest.body[0];
   assert.equal(logPayload.common.attributes["service.name"], "adsbao-web");
-  assert.equal(logPayload.logs[0].message, "proxy_route_done");
+  assert.equal(
+    logPayload.logs[0].message,
+    "proxy_route route=/api/proxy/aircraft/positions source=adsb.lol result=error status=503 status_class=5xx duration_ms=245 attempts=adsb.lol:503;airplanes.live:429",
+  );
   assert.equal(logPayload.logs[0].level, "error");
   assert.equal(logPayload.logs[0].attributes.route, "/api/proxy/aircraft/positions");
   assert.equal(logPayload.logs[0].attributes["request.id"], "iad1::proxy");
   assert.equal(logPayload.logs[0].attributes["duration.ms"], 245);
+  assert.equal(logPayload.logs[0].attributes.duration_ms, 245);
+  assert.equal(logPayload.logs[0].attributes.status_class, "5xx");
 }

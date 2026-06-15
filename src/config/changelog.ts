@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.1",
+    kind: "patch",
+    title: "Readable observability logs",
+    summary:
+      "New Relic logs now expose provider, route, status, result, and latency directly in the message column.",
+    highlights: [
+      "Expanded data-service external request logs with readable provider, endpoint, result, status class, and duration details",
+      "Expanded Vercel proxy logs with route, source, attempt chain, status class, and duration details",
+      "Added snake_case New Relic fields so Logs and NRQL views can show latency and status columns without dotted-field friction",
+    ],
+  },
+  {
     version: "v2.6.0",
     kind: "feat",
     title: "New Relic observability",

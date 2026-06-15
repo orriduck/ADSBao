@@ -395,13 +395,9 @@ async function recordNewRelicProxyObservation(
           logs: [
             {
               timestamp: payload.timestamp,
-              message: payload.msg,
+              message: proxyLogMessage(payload),
               level: payload.level,
-              attributes: {
-                ...attributes,
-                "request.id": payload.requestId || "unknown",
-                "duration.ms": payload.ms,
-              },
+              attributes: proxyLogAttributes(payload, attributes),
             },
           ],
         },
@@ -432,7 +428,38 @@ function proxyTelemetryAttributes(payload: ProxyObservation) {
     result: payload.result,
     status: String(payload.status || "unknown"),
     "status.class": payload.statusClass,
+    status_class: payload.statusClass,
   };
+}
+
+function proxyLogMessage(payload: ProxyObservation) {
+  return [
+    "proxy_route",
+    `route=${payload.route || "unknown"}`,
+    `source=${payload.source || "unknown"}`,
+    `result=${payload.result}`,
+    `status=${payload.status || "unknown"}`,
+    `status_class=${payload.statusClass}`,
+    `duration_ms=${payload.ms ?? "unknown"}`,
+    `attempts=${payload.attempts || "none"}`,
+  ].join(" ");
+}
+
+function proxyLogAttributes(
+  payload: ProxyObservation,
+  attributes: ReturnType<typeof proxyTelemetryAttributes>,
+) {
+  const out: Record<string, unknown> = {
+    ...attributes,
+    "request.id": payload.requestId || "unknown",
+  };
+  if (payload.ms != null) {
+    out["duration.ms"] = payload.ms;
+    out["duration.seconds"] = payload.ms / 1000;
+    out.duration_ms = payload.ms;
+    out.duration_seconds = payload.ms / 1000;
+  }
+  return out;
 }
 
 function proxyMetrics(
