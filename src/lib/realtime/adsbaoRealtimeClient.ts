@@ -61,6 +61,11 @@ type AdsbaoRealtimeClientOptions = {
   authTokenFetcher?: RealtimeAuthTokenFetcher | null;
 };
 
+type RealtimeLocationLike = {
+  protocol?: string;
+  host?: string;
+};
+
 declare global {
   interface Window {
     __adsbaoRealtimeDebug?: Record<string, unknown>;
@@ -69,16 +74,29 @@ declare global {
 
 type RealtimeAuthTokenFetcher = (provider: string) => Promise<string>;
 
+export function resolveSameOriginRealtimeUrl(locationLike?: RealtimeLocationLike | null) {
+  const location = locationLike ||
+    (typeof window !== "undefined" ? window.location : null);
+  const host = String(location?.host || "").trim();
+  if (!host) return "";
+  const protocol = String(location?.protocol || "").trim().toLowerCase();
+  if (protocol === "https:") return `wss://${host}/ws`;
+  if (protocol === "http:") return `ws://${host}/ws`;
+  return "";
+}
+
 function resolveRealtimeUrl() {
   if (typeof document !== "undefined") {
     const meta = document.querySelector<HTMLMetaElement>(
       'meta[name="adsbao-realtime-url"]',
     );
-    if (meta?.content) return meta.content;
+    if (meta?.content?.trim()) return meta.content.trim();
   }
-  return typeof process !== "undefined"
-    ? process.env.VITE_ADSBAO_REALTIME_URL || ""
-    : "";
+  const envUrl =
+    typeof process !== "undefined"
+      ? String(process.env.VITE_ADSBAO_REALTIME_URL || "").trim()
+      : "";
+  return envUrl || resolveSameOriginRealtimeUrl();
 }
 
 function resolveWebSocketConstructor(): RealtimeSocketConstructor | null {

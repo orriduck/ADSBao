@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.7",
+    kind: "patch",
+    title: "Realtime traffic restore",
+    summary:
+      "Airport pages recover live aircraft traffic when Railway runtime realtime configuration is empty.",
+    highlights: [
+      "Derived the WebSocket endpoint from the current Railway domain when no explicit realtime URL is configured",
+      "Restored HTTP aircraft-position polling as a fallback when realtime is unavailable or has not produced an event",
+      "Kept the same aircraft normalization and trace smoothing for realtime and fallback traffic updates",
+    ],
+  },
+  {
     version: "v2.6.6",
     kind: "patch",
     title: "Map style settings restore",

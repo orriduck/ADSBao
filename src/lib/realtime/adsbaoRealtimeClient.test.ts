@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { AdsbaoRealtimeClient } from "./adsbaoRealtimeClient";
+import {
+  AdsbaoRealtimeClient,
+  resolveSameOriginRealtimeUrl,
+} from "./adsbaoRealtimeClient";
 
 type Listener = (event?: any) => void;
 
@@ -90,6 +93,19 @@ function createTimerHost() {
     },
   };
 }
+
+assert.equal(
+  resolveSameOriginRealtimeUrl({ protocol: "https:", host: "www.adsbao.dev" }),
+  "wss://www.adsbao.dev/ws",
+);
+assert.equal(
+  resolveSameOriginRealtimeUrl({ protocol: "http:", host: "localhost:8080" }),
+  "ws://localhost:8080/ws",
+);
+assert.equal(
+  resolveSameOriginRealtimeUrl({ protocol: "file:", host: "" }),
+  "",
+);
 
 {
   FakeSocket.instances = [];

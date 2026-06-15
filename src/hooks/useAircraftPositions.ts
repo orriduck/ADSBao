@@ -13,6 +13,7 @@ import {
   normalizeLatitude,
   normalizeLongitude,
 } from "../features/aircraft/tracking/flightTrackingContextModel";
+import { createAircraftPositionClient } from "../features/aircraft/positions/aircraftPositionClient";
 import { useRealtimeAircraftChannel } from "./useRealtimeAircraftChannel";
 import { buildAircraftTrafficChannel } from "../lib/realtime/realtimeChannels";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
@@ -31,6 +32,13 @@ function normalizeRealtimeAircraftPayload(data: unknown) {
     return data as Record<string, any>;
   }
   return { ac: [] };
+}
+
+function sourceFromAircraftPayload(payload: Record<string, any>) {
+  if (typeof payload.source === "string" && payload.source.trim()) {
+    return payload.source.trim();
+  }
+  return "adsb.lol";
 }
 
 export function useAircraftPositions(
@@ -119,6 +127,65 @@ export function useAircraftPositions(
     }
     setSettled(true);
   }, [hasActiveQuery, realtime.event]);
+
+  useEffect(() => {
+    if (!hasActiveQuery || !realtime.fallbackActive) return undefined;
+
+    let cancelled = false;
+    let timer: number | null = null;
+    const client = createAircraftPositionClient();
+
+    const load = async () => {
+      try {
+        const payload = normalizeRealtimeAircraftPayload(
+          await client.fetchNearbyAircraft({
+            lat: queryLat,
+            lon: queryLon,
+            distNm,
+          }),
+        );
+        if (cancelled) return;
+        const receiveTime = Date.now();
+        const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
+        const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
+        setAircraft(nextAircraft);
+        setFeedStatus("live");
+        setFeedSource(sourceFromAircraftPayload(payload));
+        const statusUpdatedDate = resolveLastSuccessfulPositionDate(snapshot);
+        if (statusUpdatedDate) {
+          setLastUpdated((prev) =>
+            prev && prev.getTime() === statusUpdatedDate.getTime()
+              ? prev
+              : statusUpdatedDate,
+          );
+        }
+        setSettled(true);
+      } catch (error) {
+        if (!cancelled) {
+          setFeedStatus("error");
+          setSettled(true);
+          console.warn("[aircraft-positions] realtime fallback failed", error);
+        }
+      } finally {
+        if (!cancelled) {
+          timer = window.setTimeout(load, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+      if (timer != null) window.clearTimeout(timer);
+    };
+  }, [
+    distNm,
+    hasActiveQuery,
+    queryLat,
+    queryLon,
+    realtime.fallbackActive,
+  ]);
 
   const waitingForRealtime =
     hasActiveQuery && (!settled || realtime.fallbackActive);
