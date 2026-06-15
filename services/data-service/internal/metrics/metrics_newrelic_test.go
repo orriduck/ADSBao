@@ -141,7 +141,8 @@ func TestMetricsRecordExternalRequestWritesStructuredLog(t *testing.T) {
 		t.Fatalf("logs = %#v", logs.entries)
 	}
 	entry := logs.entries[0]
-	if entry.level != "error" || entry.message != "external_request_done" {
+	wantMessage := "external_request provider=adsb.lol endpoint=positions result=error status=503 status_class=5xx duration_ms=2480"
+	if entry.level != "error" || entry.message != wantMessage {
 		t.Fatalf("entry = %#v", entry)
 	}
 	want := map[string]any{
@@ -151,8 +152,11 @@ func TestMetricsRecordExternalRequestWritesStructuredLog(t *testing.T) {
 		"result":           "error",
 		"status":           "503",
 		"status.class":     "5xx",
+		"status_class":     "5xx",
 		"duration.ms":      int64(2480),
+		"duration_ms":      int64(2480),
 		"duration.seconds": 2.48,
+		"duration_seconds": 2.48,
 	}
 	for key, value := range want {
 		if entry.attributes[key] != value {

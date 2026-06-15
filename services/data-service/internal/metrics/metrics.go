@@ -267,18 +267,42 @@ func (m *Metrics) recordExternalRequestLog(input realtime.ExternalRequestMetricI
 	if m.logSink == nil {
 		return
 	}
+	provider := normalize(input.Provider)
+	endpoint := normalize(input.Endpoint)
+	result := normalize(input.Result)
+	status = normalize(status)
+	class = normalize(class)
 	durationSeconds := float64(input.DurationMS) / 1000
 	attributes := map[string]any{
 		"event.name":       "external_request_done",
-		"provider":         normalize(input.Provider),
-		"endpoint":         normalize(input.Endpoint),
-		"result":           normalize(input.Result),
-		"status":           normalize(status),
-		"status.class":     normalize(class),
+		"provider":         provider,
+		"endpoint":         endpoint,
+		"result":           result,
+		"status":           status,
+		"status.class":     class,
+		"status_class":     class,
 		"duration.ms":      input.DurationMS,
+		"duration_ms":      input.DurationMS,
 		"duration.seconds": durationSeconds,
+		"duration_seconds": durationSeconds,
 	}
-	m.logSink.RecordLog(externalRequestLogLevel(input.Result, class), "external_request_done", attributes)
+	m.logSink.RecordLog(
+		externalRequestLogLevel(result, class),
+		externalRequestLogMessage(provider, endpoint, result, status, class, input.DurationMS),
+		attributes,
+	)
+}
+
+func externalRequestLogMessage(provider, endpoint, result, status, class string, durationMS int64) string {
+	return fmt.Sprintf(
+		"external_request provider=%s endpoint=%s result=%s status=%s status_class=%s duration_ms=%d",
+		provider,
+		endpoint,
+		result,
+		status,
+		class,
+		durationMS,
+	)
 }
 
 func externalRequestLogLevel(result, class string) string {
