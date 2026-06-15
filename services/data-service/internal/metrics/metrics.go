@@ -493,8 +493,8 @@ func (s *newRelicSink) Flush(ctx context.Context) error {
 		Common: newRelicCommon{
 			Timestamp: s.now().UnixMilli(),
 			Attributes: map[string]string{
-				"app.name":     s.appName,
-				"service.name": "adsbao-data-service",
+				"app.name":       s.appName,
+				"adsbao.service": s.appName,
 			},
 		},
 		Metrics: newRelicMetrics(points),

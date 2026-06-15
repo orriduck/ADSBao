@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.8",
+    kind: "patch",
+    title: "New Relic service cleanup",
+    summary:
+      "New Relic now keeps the Railway data-service as the canonical APM service while custom telemetry remains queryable.",
+    highlights: [
+      "Stopped ADSBao Metric API and Log API payloads from creating duplicate OpenTelemetry service entities",
+      "Kept custom metrics and backend logs queryable by `app.name` and `adsbao.service`",
+      "Removed stale frontend proxy New Relic ingest left over from the Vercel/Next runtime",
+    ],
+  },
+  {
     version: "v2.6.7",
     kind: "patch",
     title: "Realtime traffic restore",

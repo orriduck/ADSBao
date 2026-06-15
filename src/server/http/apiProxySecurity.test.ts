@@ -152,7 +152,7 @@ assert.deepEqual(
 }
 
 {
-  const ingests = [];
+  const logs = [];
   const response = new Response("{}", {
     status: 503,
     headers: {
@@ -169,60 +169,22 @@ assert.deepEqual(
       response,
       startMs: 100,
       nowMs: 345,
-      logger: () => {},
-      env: {
-        NEW_RELIC_LICENSE_KEY: "test-license",
-        NEW_RELIC_APP_NAME: "adsbao-test",
-        NEW_RELIC_METRICS_ENDPOINT: "https://metric-api.example.test/metric/v1",
-        NEW_RELIC_LOGS_ENDPOINT: "https://log-api.example.test/log/v1",
-        RAILWAY_ENVIRONMENT_NAME: "production",
-      },
-      fetcher: async (url, init) => {
-        ingests.push({
-          url: String(url),
-          apiKey: init?.headers?.["Api-Key"],
-          body: JSON.parse(String(init?.body || "null")),
-        });
-        return new Response(null, { status: 202 });
-      },
+      logger: (line) => logs.push(line),
     }),
     response,
   );
 
-  assert.equal(ingests.length, 2);
-  const metricIngest = ingests.find((ingest) => ingest.url.includes("metric"));
-  const logIngest = ingests.find((ingest) => ingest.url.includes("log"));
-  assert.equal(metricIngest.apiKey, "test-license");
-  assert.equal(logIngest.apiKey, "test-license");
-
-  const metricPayload = metricIngest.body[0];
-  assert.equal(metricPayload.common.attributes["app.name"], "adsbao-test");
-  assert.equal(metricPayload.common.attributes["service.name"], "adsbao-app");
-  assert.deepEqual(
-    metricPayload.metrics.map((metric) => metric.name),
-    ["adsbao.web.proxy.requests", "adsbao.web.proxy.duration.seconds"],
-  );
-  assert.equal(metricPayload.metrics[0].attributes.route, "/api/proxy/aircraft/positions");
-  assert.equal(metricPayload.metrics[0].attributes.source, "adsb.lol");
-  assert.equal(metricPayload.metrics[0].attributes.status, "503");
-  assert.equal(metricPayload.metrics[0].attributes.status_code, "503");
-  assert.equal(metricPayload.metrics[0].attributes["status.class"], "5xx");
-  assert.equal(metricPayload.metrics[0].attributes.result, "error");
-  assert.equal(metricPayload.metrics[1].value.sum, 0.245);
-
-  const logPayload = logIngest.body[0];
-  assert.equal(logPayload.common.attributes["service.name"], "adsbao-app");
-  assert.equal(
-    logPayload.logs[0].message,
-    "[503]/api/proxy/aircraft/positions/1/2/3, params: provider=adsb.lol, error: status=503, duration: 245ms",
-  );
-  assert.equal(logPayload.logs[0].level, "error");
-  assert.equal(logPayload.logs[0].attributes.route, "/api/proxy/aircraft/positions");
-  assert.equal(logPayload.logs[0].attributes.url, "/api/proxy/aircraft/positions/1/2/3");
-  assert.equal(logPayload.logs[0].attributes.query_params, "provider=adsb.lol");
-  assert.equal(logPayload.logs[0].attributes.error, "status=503");
-  assert.equal(logPayload.logs[0].attributes["request.id"], "railway-proxy");
-  assert.equal(logPayload.logs[0].attributes["duration.ms"], 245);
-  assert.equal(logPayload.logs[0].attributes.duration_ms, 245);
-  assert.equal(logPayload.logs[0].attributes.status_class, "5xx");
+  assert.deepEqual(JSON.parse(logs[0]), {
+    level: "error",
+    msg: "proxy_route_done",
+    route: "/api/proxy/aircraft/positions",
+    url: "/api/proxy/aircraft/positions/1/2/3",
+    queryParams: "provider=adsb.lol",
+    requestId: "railway-proxy",
+    status: 503,
+    error: "status=503",
+    ms: 245,
+    source: "adsb.lol",
+    attempts: "adsb.lol:503;airplanes.live:429",
+  });
 }

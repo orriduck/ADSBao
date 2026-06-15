@@ -5,10 +5,6 @@ const DEFAULT_RATE_LIMIT = {
 };
 const DEFAULT_MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_RATE_LIMIT_ENTRIES = 2_000;
-const DEFAULT_NEW_RELIC_METRICS_ENDPOINT =
-  "https://metric-api.newrelic.com/metric/v1";
-const DEFAULT_NEW_RELIC_LOGS_ENDPOINT =
-  "https://log-api.newrelic.com/log/v1";
 
 type EnvLike = Record<string, string | undefined>;
 type CoordinateRange = { min: number; max: number };
@@ -42,10 +38,7 @@ type LogProxyRouteResponseOptions = {
   response?: Response;
   startMs?: number;
   nowMs?: number;
-  nowEpochMs?: number;
   logger?: (...data: unknown[]) => void;
-  env?: EnvLike;
-  fetcher?: typeof fetch;
 };
 type ResponseReadOptions = {
   label?: string;
@@ -65,8 +58,6 @@ type ProxyObservation = {
   ms: number | null;
   source: string | null;
   attempts: string | null;
-  environment: string;
-  timestamp: number;
 };
 
 const rateLimitBuckets = new Map<string, RateLimitBucket>();
@@ -292,10 +283,7 @@ export async function logProxyRouteResponse({
     typeof performance !== "undefined" && typeof performance.now === "function"
       ? performance.now()
       : Date.now(),
-  nowEpochMs = Date.now(),
   logger = console.info,
-  env = typeof process !== "undefined" ? process.env : {},
-  fetcher = typeof fetch === "function" ? fetch : undefined,
 }: LogProxyRouteResponseOptions = {}) {
   const startedAt = Number(startMs);
   const finishedAt = Number(nowMs);
@@ -326,13 +314,10 @@ export async function logProxyRouteResponse({
       response?.headers?.get?.("x-route-source") ||
       null,
     attempts: response?.headers?.get?.("x-provider-attempts") || null,
-    environment: String(env.RAILWAY_ENVIRONMENT_NAME || env.NODE_ENV || "production"),
-    timestamp: Number.isFinite(Number(nowEpochMs)) ? Number(nowEpochMs) : Date.now(),
   };
   if (typeof logger === "function") {
     logger(JSON.stringify(toProxyConsolePayload(payload)));
   }
-  await recordNewRelicProxyObservation(payload, { env, fetcher });
   return response;
 }
 
@@ -350,136 +335,6 @@ function toProxyConsolePayload(payload: ProxyObservation) {
     source: payload.source,
     attempts: payload.attempts,
   };
-}
-
-async function recordNewRelicProxyObservation(
-  payload: ProxyObservation,
-  {
-    env = typeof process !== "undefined" ? process.env : {},
-    fetcher = typeof fetch === "function" ? fetch : undefined,
-  }: { env?: EnvLike; fetcher?: typeof fetch } = {},
-) {
-  const licenseKey = String(env.NEW_RELIC_LICENSE_KEY || "").trim();
-  if (!licenseKey || typeof fetcher !== "function") return;
-
-  const metricEndpoint = String(
-    env.NEW_RELIC_METRICS_ENDPOINT || DEFAULT_NEW_RELIC_METRICS_ENDPOINT,
-  ).trim();
-  const logsEndpoint = String(
-    env.NEW_RELIC_LOGS_ENDPOINT || DEFAULT_NEW_RELIC_LOGS_ENDPOINT,
-  ).trim();
-  const appName = String(env.NEW_RELIC_APP_NAME || "adsbao-app").trim();
-  const attributes = proxyTelemetryAttributes(payload);
-  const headers = {
-    "Content-Type": "application/json",
-    "Api-Key": licenseKey,
-  };
-  const requests = [
-    fetcher(metricEndpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify([
-        {
-          common: {
-            timestamp: payload.timestamp,
-            attributes: {
-              "app.name": appName,
-              "service.name": "adsbao-app",
-              environment: payload.environment,
-            },
-          },
-          metrics: proxyMetrics(payload, attributes),
-        },
-      ]),
-    }),
-    fetcher(logsEndpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify([
-        {
-          common: {
-            attributes: {
-              "app.name": appName,
-              "service.name": "adsbao-app",
-              environment: payload.environment,
-              logtype: "adsbao-app",
-            },
-          },
-          logs: [
-            {
-              timestamp: payload.timestamp,
-              message: proxyLogMessage(payload),
-              level: payload.level,
-              attributes: proxyLogAttributes(payload, attributes),
-            },
-          ],
-        },
-      ]),
-    }),
-  ];
-
-  try {
-    const responses = await Promise.all(requests);
-    for (const response of responses) {
-      if (!response.ok && response.status !== 202) {
-        throw new Error(`New Relic ingest returned ${response.status}`);
-      }
-    }
-  } catch (error) {
-    console.warn(
-      "[newrelic-proxy] ingest failed",
-      error instanceof Error ? error.message : String(error),
-    );
-  }
-}
-
-function proxyTelemetryAttributes(payload: ProxyObservation) {
-  return {
-    route: payload.route || "unknown",
-    source: payload.source || "unknown",
-    attempts: payload.attempts || "none",
-    result: payload.result,
-    status: String(payload.status || "unknown"),
-    status_code: String(payload.status || "unknown"),
-    "status.class": payload.statusClass,
-    status_class: payload.statusClass,
-  };
-}
-
-function proxyLogMessage(payload: ProxyObservation) {
-  const parts = [`[${payload.status || "unknown"}]${payload.url || "unknown"}`];
-  if (payload.queryParams) {
-    parts.push(`params: ${payload.queryParams}`);
-  }
-  if (payload.error) {
-    parts.push(`error: ${payload.error}`);
-  }
-  parts.push(`duration: ${payload.ms ?? "unknown"}ms`);
-  return parts.join(", ");
-}
-
-function proxyLogAttributes(
-  payload: ProxyObservation,
-  attributes: ReturnType<typeof proxyTelemetryAttributes>,
-) {
-  const out: Record<string, unknown> = {
-    ...attributes,
-    url: payload.url || "unknown",
-    "request.id": payload.requestId || "unknown",
-  };
-  if (payload.queryParams) {
-    out.query_params = payload.queryParams;
-  }
-  if (payload.error) {
-    out.error = payload.error;
-  }
-  if (payload.ms != null) {
-    out["duration.ms"] = payload.ms;
-    out["duration.seconds"] = payload.ms / 1000;
-    out.duration_ms = payload.ms;
-    out.duration_seconds = payload.ms / 1000;
-  }
-  return out;
 }
 
 function proxyRequestTarget(request?: Request, route?: string) {
@@ -514,37 +369,6 @@ function isSensitiveQueryKey(key: string) {
     normalized.includes("secret") ||
     normalized.includes("password")
   );
-}
-
-function proxyMetrics(
-  payload: ProxyObservation,
-  attributes: ReturnType<typeof proxyTelemetryAttributes>,
-) {
-  const metrics: Array<Record<string, unknown>> = [
-    {
-      name: "adsbao.web.proxy.requests",
-      type: "count",
-      value: 1,
-      "interval.ms": 1000,
-      attributes,
-    },
-  ];
-  if (payload.ms != null) {
-    const durationSeconds = payload.ms / 1000;
-    metrics.push({
-      name: "adsbao.web.proxy.duration.seconds",
-      type: "summary",
-      value: {
-        count: 1,
-        sum: durationSeconds,
-        min: durationSeconds,
-        max: durationSeconds,
-      },
-      "interval.ms": 1000,
-      attributes,
-    });
-  }
-  return metrics;
 }
 
 async function readResponseBytes(

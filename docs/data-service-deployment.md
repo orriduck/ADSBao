@@ -181,7 +181,7 @@ FROM Metric SELECT sum(adsbao.ws.subscribe) FACET channel_type, result TIMESERIE
 FROM Metric SELECT sum(adsbao.external_requests) FACET provider, status_class TIMESERIES
 FROM ADSBaoExternalRequest SELECT count(*), percentile(durationSeconds, 95) FACET provider, endpoint, statusClass TIMESERIES
 FROM Metric SELECT average(adsbao.active_channels.current) FACET channel_type TIMESERIES
-FROM Log SELECT timestamp, level, message WHERE service.name = 'adsbao-data-service' LIMIT 100
+FROM Log SELECT timestamp, level, message WHERE app.name = 'adsbao-data-service' LIMIT 100
 ```
 
 The dynamic channel gauges should emit zero-valued series for idle aircraft,

@@ -16,7 +16,7 @@ resource "newrelic_nrql_alert_condition" "external_provider_error_ratio" {
   aggregation_delay            = 120
 
   nrql {
-    query = "FROM Metric SELECT percentage(sum(adsbao.external_requests), WHERE result != 'success' OR status_class = '5xx') WHERE service.name = 'adsbao-data-service'"
+    query = "FROM Metric SELECT percentage(sum(adsbao.external_requests), WHERE result != 'success' OR status_class = '5xx') WHERE app.name = 'adsbao-data-service'"
   }
 
   critical {
@@ -40,7 +40,7 @@ resource "newrelic_nrql_alert_condition" "stale_channels" {
   aggregation_delay            = 120
 
   nrql {
-    query = "FROM Metric SELECT sum(adsbao.stale_channels.current) WHERE service.name = 'adsbao-data-service'"
+    query = "FROM Metric SELECT sum(adsbao.stale_channels.current) WHERE app.name = 'adsbao-data-service'"
   }
 
   critical {
@@ -64,7 +64,7 @@ resource "newrelic_nrql_alert_condition" "backend_error_logs" {
   aggregation_delay            = 120
 
   nrql {
-    query = "FROM Log SELECT count(*) WHERE service.name = 'adsbao-data-service' AND level = 'error'"
+    query = "FROM Log SELECT count(*) WHERE app.name = 'adsbao-data-service' AND level = 'error'"
   }
 
   critical {

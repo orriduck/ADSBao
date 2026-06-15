@@ -67,6 +67,11 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
 - `LOGS_REPORT_INTERVAL_MS` — periodic backend log flush interval. Defaults to
   `5000`.
 
+Custom Metric API and Log API payloads use `app.name` plus `adsbao.service` as
+their service identity. Do not add `service.name` to these payloads; New Relic
+uses that OpenTelemetry resource attribute to synthesize separate service
+entities.
+
 ## Railway Deployment
 
 Deploy ADSBao from the repository root using the root `Dockerfile` and

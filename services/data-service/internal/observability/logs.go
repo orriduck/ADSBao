@@ -133,10 +133,10 @@ func (f *LogForwarder) Flush(ctx context.Context) error {
 	body, err := json.Marshal([]newRelicLogPayload{{
 		Common: newRelicLogCommon{
 			Attributes: map[string]string{
-				"app.name":     f.appName,
-				"service.name": "adsbao-data-service",
-				"environment":  f.environment,
-				"logtype":      "adsbao-data-service",
+				"app.name":       f.appName,
+				"adsbao.service": f.appName,
+				"environment":    f.environment,
+				"logtype":        f.appName,
 			},
 		},
 		Logs: entries,

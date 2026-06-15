@@ -251,7 +251,9 @@ func TestNewRelicSinkPostsMetricPayload(t *testing.T) {
 	}
 	common := gotPayload[0]["common"].(map[string]any)
 	attrs := common["attributes"].(map[string]any)
-	if attrs["app.name"] != "adsbao-test" || attrs["service.name"] != "adsbao-data-service" {
+	if attrs["app.name"] != "adsbao-test" ||
+		attrs["adsbao.service"] != "adsbao-test" ||
+		attrs["service.name"] != nil {
 		t.Fatalf("common attrs = %#v", attrs)
 	}
 	metric := gotPayload[0]["metrics"].([]any)[0].(map[string]any)

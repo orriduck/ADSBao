@@ -252,7 +252,9 @@ ADSBao deploys to Railway as one service from the repository root. The root
 `/health`, `/debug/channels`, `/api/**`, `/ws`, and the static SPA fallback.
 It pushes APM transactions, external provider custom events, business metrics,
 latency summaries, and backend logs to New Relic when `NEW_RELIC_LICENSE_KEY`
-is configured.
+is configured. Custom metric and log payloads are queryable by `app.name` and
+`adsbao.service`; avoid using `service.name` for ADSBao custom telemetry so New
+Relic does not synthesize duplicate OpenTelemetry service entities.
 
 Railway setup:
 

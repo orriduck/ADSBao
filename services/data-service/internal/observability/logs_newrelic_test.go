@@ -59,9 +59,10 @@ func TestNewRelicLogForwarderWritesSourceAndPostsStructuredLogs(t *testing.T) {
 	}
 	attrs := gotPayload[0].Common.Attributes
 	if attrs["app.name"] != "adsbao-test" ||
-		attrs["service.name"] != "adsbao-data-service" ||
+		attrs["adsbao.service"] != "adsbao-test" ||
+		attrs["service.name"] != "" ||
 		attrs["environment"] != "production" ||
-		attrs["logtype"] != "adsbao-data-service" {
+		attrs["logtype"] != "adsbao-test" {
 		t.Fatalf("common attrs = %#v", attrs)
 	}
 	log := gotPayload[0].Logs[0]
