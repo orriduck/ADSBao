@@ -55,10 +55,13 @@ type ProxyObservation = {
   level: "info" | "warn" | "error";
   msg: "proxy_route_done";
   route: string;
+  url: string;
+  queryParams: string | null;
   requestId: string | null;
   status: number;
   statusClass: string;
   result: "success" | "error";
+  error: string | null;
   ms: number | null;
   source: string | null;
   attempts: string | null;
@@ -299,14 +302,18 @@ export async function logProxyRouteResponse({
   const status = Number(response?.status) || 0;
   const statusClass = status > 0 ? `${Math.floor(status / 100)}xx` : "unknown";
   const result = status > 0 && status < 400 ? "success" : "error";
+  const target = proxyRequestTarget(request, route);
   const payload: ProxyObservation = {
     level: status >= 500 || status === 0 ? "error" : status >= 400 ? "warn" : "info",
     msg: "proxy_route_done",
     route: String(route || ""),
+    url: target.url,
+    queryParams: target.queryParams,
     requestId: request?.headers?.get?.("x-vercel-id") || null,
     status,
     statusClass,
     result,
+    error: result === "error" ? `status=${status || "unknown"}` : null,
     ms:
       Number.isFinite(startedAt) && Number.isFinite(finishedAt)
         ? Math.max(0, Math.round(finishedAt - startedAt))
@@ -331,8 +338,11 @@ function toProxyConsolePayload(payload: ProxyObservation) {
     level: payload.level,
     msg: payload.msg,
     route: payload.route,
+    url: payload.url,
+    queryParams: payload.queryParams,
     requestId: payload.requestId,
     status: payload.status,
+    error: payload.error,
     ms: payload.ms,
     source: payload.source,
     attempts: payload.attempts,
@@ -427,22 +437,22 @@ function proxyTelemetryAttributes(payload: ProxyObservation) {
     attempts: payload.attempts || "none",
     result: payload.result,
     status: String(payload.status || "unknown"),
+    status_code: String(payload.status || "unknown"),
     "status.class": payload.statusClass,
     status_class: payload.statusClass,
   };
 }
 
 function proxyLogMessage(payload: ProxyObservation) {
-  return [
-    "proxy_route",
-    `route=${payload.route || "unknown"}`,
-    `source=${payload.source || "unknown"}`,
-    `result=${payload.result}`,
-    `status=${payload.status || "unknown"}`,
-    `status_class=${payload.statusClass}`,
-    `duration_ms=${payload.ms ?? "unknown"}`,
-    `attempts=${payload.attempts || "none"}`,
-  ].join(" ");
+  const parts = [`[${payload.status || "unknown"}]${payload.url || "unknown"}`];
+  if (payload.queryParams) {
+    parts.push(`params: ${payload.queryParams}`);
+  }
+  if (payload.error) {
+    parts.push(`error: ${payload.error}`);
+  }
+  parts.push(`duration: ${payload.ms ?? "unknown"}ms`);
+  return parts.join(", ");
 }
 
 function proxyLogAttributes(
@@ -451,8 +461,15 @@ function proxyLogAttributes(
 ) {
   const out: Record<string, unknown> = {
     ...attributes,
+    url: payload.url || "unknown",
     "request.id": payload.requestId || "unknown",
   };
+  if (payload.queryParams) {
+    out.query_params = payload.queryParams;
+  }
+  if (payload.error) {
+    out.error = payload.error;
+  }
   if (payload.ms != null) {
     out["duration.ms"] = payload.ms;
     out["duration.seconds"] = payload.ms / 1000;
@@ -460,6 +477,40 @@ function proxyLogAttributes(
     out.duration_seconds = payload.ms / 1000;
   }
   return out;
+}
+
+function proxyRequestTarget(request?: Request, route?: string) {
+  const fallback = String(route || "unknown");
+  if (!request?.url) {
+    return { url: fallback, queryParams: null };
+  }
+  try {
+    const parsed = new URL(request.url);
+    return {
+      url: parsed.pathname || fallback,
+      queryParams: sanitizedQueryParams(parsed.searchParams),
+    };
+  } catch {
+    return { url: fallback, queryParams: null };
+  }
+}
+
+function sanitizedQueryParams(params: URLSearchParams) {
+  const parts: string[] = [];
+  params.forEach((value, key) => {
+    parts.push(`${key}=${isSensitiveQueryKey(key) ? "[redacted]" : value}`);
+  });
+  return parts.length > 0 ? parts.join("&") : null;
+}
+
+function isSensitiveQueryKey(key: string) {
+  const normalized = key.toLowerCase();
+  return (
+    normalized.includes("key") ||
+    normalized.includes("token") ||
+    normalized.includes("secret") ||
+    normalized.includes("password")
+  );
 }
 
 function proxyMetrics(

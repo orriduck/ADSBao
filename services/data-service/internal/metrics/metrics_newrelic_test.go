@@ -134,6 +134,8 @@ func TestMetricsRecordExternalRequestWritesStructuredLog(t *testing.T) {
 		Endpoint:   "positions",
 		Result:     "error",
 		Status:     503,
+		URL:        "https://api.adsb.lol/v2/aircraft?lat=42.3656&lon=-71.0096&api_key=secret",
+		Error:      "HTTP 503",
 		DurationMS: 2480,
 	})
 
@@ -141,7 +143,7 @@ func TestMetricsRecordExternalRequestWritesStructuredLog(t *testing.T) {
 		t.Fatalf("logs = %#v", logs.entries)
 	}
 	entry := logs.entries[0]
-	wantMessage := "external_request provider=adsb.lol endpoint=positions result=error status=503 status_class=5xx duration_ms=2480"
+	wantMessage := "[503]https://api.adsb.lol/v2/aircraft, params: api_key=[redacted]&lat=42.3656&lon=-71.0096, error: HTTP 503, duration: 2480ms"
 	if entry.level != "error" || entry.message != wantMessage {
 		t.Fatalf("entry = %#v", entry)
 	}
@@ -153,6 +155,9 @@ func TestMetricsRecordExternalRequestWritesStructuredLog(t *testing.T) {
 		"status":           "503",
 		"status.class":     "5xx",
 		"status_class":     "5xx",
+		"url":              "https://api.adsb.lol/v2/aircraft",
+		"query_params":     "api_key=[redacted]&lat=42.3656&lon=-71.0096",
+		"error":            "HTTP 503",
 		"duration.ms":      int64(2480),
 		"duration_ms":      int64(2480),
 		"duration.seconds": 2.48,

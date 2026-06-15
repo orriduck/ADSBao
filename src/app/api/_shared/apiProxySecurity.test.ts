@@ -124,8 +124,11 @@ assert.deepEqual(
     level: "info",
     msg: "proxy_route_done",
     route: "/api/proxy/aircraft/positions",
+    url: "/api/proxy/aircraft/positions/1/2/3",
+    queryParams: null,
     requestId: "iad1::abc",
     status: 200,
+    error: null,
     ms: 28,
     source: "adsb.lol",
     attempts: "adsb.lol:200",
@@ -159,7 +162,7 @@ assert.deepEqual(
   });
   assert.equal(
     await logProxyRouteResponse({
-      request: new Request("https://adsbao.test/api/proxy/aircraft/positions/1/2/3", {
+      request: new Request("https://adsbao.test/api/proxy/aircraft/positions/1/2/3?provider=adsb.lol", {
         headers: { "x-vercel-id": "iad1::proxy" },
       }),
       route: "/api/proxy/aircraft/positions",
@@ -202,6 +205,7 @@ assert.deepEqual(
   assert.equal(metricPayload.metrics[0].attributes.route, "/api/proxy/aircraft/positions");
   assert.equal(metricPayload.metrics[0].attributes.source, "adsb.lol");
   assert.equal(metricPayload.metrics[0].attributes.status, "503");
+  assert.equal(metricPayload.metrics[0].attributes.status_code, "503");
   assert.equal(metricPayload.metrics[0].attributes["status.class"], "5xx");
   assert.equal(metricPayload.metrics[0].attributes.result, "error");
   assert.equal(metricPayload.metrics[1].value.sum, 0.245);
@@ -210,10 +214,13 @@ assert.deepEqual(
   assert.equal(logPayload.common.attributes["service.name"], "adsbao-web");
   assert.equal(
     logPayload.logs[0].message,
-    "proxy_route route=/api/proxy/aircraft/positions source=adsb.lol result=error status=503 status_class=5xx duration_ms=245 attempts=adsb.lol:503;airplanes.live:429",
+    "[503]/api/proxy/aircraft/positions/1/2/3, params: provider=adsb.lol, error: status=503, duration: 245ms",
   );
   assert.equal(logPayload.logs[0].level, "error");
   assert.equal(logPayload.logs[0].attributes.route, "/api/proxy/aircraft/positions");
+  assert.equal(logPayload.logs[0].attributes.url, "/api/proxy/aircraft/positions/1/2/3");
+  assert.equal(logPayload.logs[0].attributes.query_params, "provider=adsb.lol");
+  assert.equal(logPayload.logs[0].attributes.error, "status=503");
   assert.equal(logPayload.logs[0].attributes["request.id"], "iad1::proxy");
   assert.equal(logPayload.logs[0].attributes["duration.ms"], 245);
   assert.equal(logPayload.logs[0].attributes.duration_ms, 245);

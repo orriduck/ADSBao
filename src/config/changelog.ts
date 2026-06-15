@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.2",
+    kind: "patch",
+    title: "URL-first provider logs",
+    summary:
+      "New Relic log messages now show the called URL, query parameters, error, and duration in one compact line.",
+    highlights: [
+      "Changed data-service external request logs to use status-prefixed provider URLs with optional query params and error details",
+      "Changed Vercel proxy logs to show the requested API path, query params, status error, and duration",
+      "Kept provider, source, route, status class, and duration fields queryable as structured New Relic attributes",
+    ],
+  },
+  {
     version: "v2.6.1",
     kind: "patch",
     title: "Readable observability logs",
