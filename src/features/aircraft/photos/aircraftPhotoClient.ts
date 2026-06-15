@@ -3,7 +3,7 @@ import {
   AVIATION_REQUEST_TIMEOUT_MS,
 } from "../../../config/aviation";
 import { withAuditLogging } from "../../../utils/apiLogger";
-import { normalizeAircraftHex } from "../../../app/api/_shared/apiProxySecurity";
+import { normalizeAircraftHex } from "@/server/http/apiProxySecurity";
 
 const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
 
@@ -15,7 +15,7 @@ const appendOptionalParam = (url: URL, key: string, value: unknown) => {
 export const createAircraftPhotoClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
-    env.NEXT_PUBLIC_AIRCRAFT_PHOTOS_BASE || AVIATION_PROXY_BASES.aircraftPhotos,
+    env.VITE_AIRCRAFT_PHOTOS_BASE || AVIATION_PROXY_BASES.aircraftPhotos,
 }: Record<string, any> = {}) => {
   if (!fetchImpl) throw new Error("Aircraft photo client requires fetch support");
 

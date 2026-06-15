@@ -3,7 +3,7 @@ import {
   AVIATION_REQUEST_TIMEOUT_MS,
 } from "../../../config/aviation";
 import { withAuditLogging } from "../../../utils/apiLogger";
-import { normalizeAircraftHex } from "../../../app/api/_shared/apiProxySecurity";
+import { normalizeAircraftHex } from "@/server/http/apiProxySecurity";
 import { fetchJson } from "../../aviation/httpClient";
 
 const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
@@ -11,7 +11,7 @@ const env: Record<string, string | undefined> = typeof process !== "undefined" ?
 export const createAircraftTraceClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
-    env.NEXT_PUBLIC_AIRCRAFT_TRACE_BASE || AVIATION_PROXY_BASES.aircraftTrace,
+    env.VITE_AIRCRAFT_TRACE_BASE || AVIATION_PROXY_BASES.aircraftTrace,
 }: Record<string, any> = {}) => {
   if (!fetchImpl) throw new Error("Aircraft trace client requires fetch support");
 

@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.3",
+    kind: "patch",
+    title: "Railway single-service runtime",
+    summary:
+      "ADSBao now builds as a Vite React app served by the Railway Go data-service with same-origin API and WebSocket traffic.",
+    highlights: [
+      "Removed the Next.js and Vercel runtime from the production app and switched the frontend scripts to Vite",
+      "Moved SPA static serving, realtime auth, feature flags, provider proxy routes, and WebSocket traffic behind one Go service",
+      "Updated Railway Docker/config-as-code and browser env naming to the Vite/Railway deployment path",
+    ],
+  },
+  {
     version: "v2.6.2",
     kind: "patch",
     title: "URL-first provider logs",

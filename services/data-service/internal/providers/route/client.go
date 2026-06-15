@@ -538,8 +538,8 @@ func (c *Client) recordAirportDirectory(input realtime.FetchInput, result string
 	if input.Metrics == nil {
 		return
 	}
-	input.Metrics.RecordExternalRequest(realtime.ExternalRequestMetricInput{
-		Provider:   "adsbao-web",
+		input.Metrics.RecordExternalRequest(realtime.ExternalRequestMetricInput{
+			Provider:   "adsbao-data-service",
 		Endpoint:   "airport",
 		Result:     result,
 		Status:     status,

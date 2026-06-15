@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/platform/router/Link";
+import { usePathname } from "@/platform/router/navigation";
 import NumberFlow from "@number-flow/react";
 import { TowerControl } from "lucide-react";
 import { countryName, flagEmoji } from "@/utils/flag";

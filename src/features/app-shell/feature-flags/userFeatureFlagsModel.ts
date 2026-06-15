@@ -41,7 +41,7 @@ export function normalizeFeatureFlagEnvironment(environment: unknown) {
 
 export function resolveFeatureFlagEnvironment(env: Record<string, string | undefined> = process.env) {
   return normalizeFeatureFlagEnvironment(
-    env.FEATURE_FLAGS_ENV || env.VERCEL_ENV || FEATURE_FLAG_ENVIRONMENTS.LOCAL,
+    env.FEATURE_FLAGS_ENV || FEATURE_FLAG_ENVIRONMENTS.LOCAL,
   );
 }
 

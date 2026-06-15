@@ -1,8 +1,8 @@
 # ADSBao Database
 
 ADSBao uses Railway Postgres for server-side persistence. The application only
-connects from server code through `src/app/api/dao/*.dao.ts`; do not expose the
-database URL through `NEXT_PUBLIC_*` variables.
+connects from server code through `src/server/dao/*.dao.ts`; do not expose the
+database URL through `VITE_*` variables.
 
 ## Environment
 

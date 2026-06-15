@@ -6,10 +6,10 @@
 // to pick a fresh winner, including the just-failed provider in case the
 // error was transient.
 //
-// State is per-process. Vercel serverless reuses warm container memory
-// across invocations, so this gives us "sticky on the same instance,
-// re-race on cold start" — the cost is one extra race per cold start,
-// and the happy path is single-provider load.
+// State is per-process. Warm app instances reuse memory across requests, so
+// this gives us "sticky on the same instance, re-race on cold start" — the
+// cost is one extra race per cold start, and the happy path is
+// single-provider load.
 
 export function createAdaptiveProviderSelector() {
   let preferredId = null;

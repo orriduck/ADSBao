@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
 import { Check, LogIn } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

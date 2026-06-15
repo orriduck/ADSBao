@@ -13,9 +13,9 @@ import {
 } from "./openAipNormalizer";
 import { createOpenAipClientFromEnv } from "./openAipClient";
 import { AirportDirectoryConfigurationError } from "../directory/airportDirectory.models";
-import { createAirportFacilityRepositoryFromEnv } from "../../../app/api/dao/airportFacilities.dao";
-import { createRunwayGeometryRepositoryFromEnv } from "../../../app/api/dao/runwayGeometries.dao";
-import { createAirportNameRepositoryFromEnv } from "../../../app/api/dao/airportNames.dao";
+import { createAirportFacilityRepositoryFromEnv } from "@/server/dao/airportFacilities.dao";
+import { createRunwayGeometryRepositoryFromEnv } from "@/server/dao/runwayGeometries.dao";
+import { createAirportNameRepositoryFromEnv } from "@/server/dao/airportNames.dao";
 import {
   mergeAirportFrequencies,
   mergeNearbyNavaids,

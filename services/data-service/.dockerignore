@@ -1,7 +1,0 @@
-.git
-.next
-dist
-node_modules
-coverage
-*.log
-adsbao-data-service

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
-import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
-import { usePathname } from "next/navigation";
+import Link from "@/platform/router/Link";
+import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
+import { usePathname } from "@/platform/router/navigation";
 import { GitBranch, History, Home, Info, LogIn } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";

@@ -162,7 +162,7 @@ export function useFlightRoutes(
   }, [client, pendingCallsigns, routeContext, routeTransport]);
 
   const routesByCallsign = useMemo(() => {
-    version;
+    void version;
     return flightRouteScheduler.getRoutesByCallsign({
       aircraft,
       routeContext,

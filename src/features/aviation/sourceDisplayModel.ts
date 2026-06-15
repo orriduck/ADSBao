@@ -106,7 +106,7 @@ export function getAircraftPositionSourceBadge(quality: Record<string, any> = {}
 
 export function buildMapSourceStatusDisplay({
   feedSource = "",
-} = {}) {
+}: Record<string, any> = {}) {
   return {
     feedSource: getAircraftLocationProviderDisplayName(feedSource),
   };

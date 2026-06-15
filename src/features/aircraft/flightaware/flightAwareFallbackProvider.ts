@@ -1,4 +1,4 @@
-import { readResponseText } from "../../../app/api/_shared/apiProxySecurity";
+import { readResponseText } from "@/server/http/apiProxySecurity";
 import { buildAdsbaoUserAgent } from "../../../config/siteMeta";
 import { normalizeRouteCallsign } from "../../aviation/flight-routes/flightRouteCallsign";
 

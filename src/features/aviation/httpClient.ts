@@ -1,5 +1,5 @@
 import { AVIATION_REQUEST_TIMEOUT_MS } from "../../config/aviation";
-import { readResponseText } from "../../app/api/_shared/apiProxySecurity";
+import { readResponseText } from "@/server/http/apiProxySecurity";
 
 const createTimeoutSignal = (timeoutMs) =>
   typeof AbortSignal !== "undefined" && AbortSignal.timeout

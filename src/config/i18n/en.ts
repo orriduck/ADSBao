@@ -35,7 +35,7 @@ const en = {
       release: "Release",
       stack: "Stack",
       architecture: "Architecture",
-      nextWeb: "Next.js Web",
+      webRuntime: "Vite Web",
       mapsWeatherTraffic: "Maps · Weather · Traffic",
     },
     dataSources: "Data sources",

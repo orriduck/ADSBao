@@ -1,8 +1,8 @@
 # ADSBao Data Service
 
-Go implementation of the Railway realtime data-service. It owns long-running
-ADS-B polling, WebSocket fanout, provider fallback, health/debug endpoints, and
-New Relic telemetry reporting for ADSBao realtime surfaces.
+Go implementation of the Railway ADSBao service. It serves the Vite SPA,
+same-origin API routes, long-running ADS-B polling, WebSocket fanout, provider
+fallback, health/debug endpoints, and New Relic telemetry reporting.
 
 ## Local Run
 
@@ -11,16 +11,17 @@ go test ./...
 PORT=8080 go run ./cmd/adsbao-data-service
 ```
 
-Then point the Next.js app at:
+For split local development, point Vite at this local WebSocket:
 
 ```bash
-NEXT_PUBLIC_ADSBAO_REALTIME_URL=ws://localhost:8080/ws pnpm run dev
+VITE_ADSBAO_REALTIME_URL=ws://localhost:8080/ws pnpm run dev
 ```
 
 ## Endpoints
 
 - `GET /health`
 - `GET /debug/channels`
+- `GET /api/**`
 - `GET /ws` WebSocket upgrade
 
 Optional Go profiling endpoints are available under `/debug/pprof/` only when
@@ -35,10 +36,20 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
 - `POLL_JITTER_RATIO`
 - `MAX_SOCKET_SUBSCRIPTIONS`
 - `ALLOWED_WS_ORIGINS`
+- `DATABASE_URL` / `ADSBAO_DATABASE_URL` — Postgres connection string used by
+  Go `/api/map-settings` and `/api/route-feedback` after the Vite/Railway
+  migration.
+- `FEATURE_FLAGS_ENV` — one of `local`, `preview`, or `production`; scopes
+  user map settings to the same environment names as the existing tables.
+- `CLERK_SECRET_KEY` — Clerk Backend API key used to resolve the signed-in
+  user's primary email after verifying the browser bearer token.
+- `CLERK_JWKS_URL` — optional override for Clerk JWT public keys. When unset,
+  the service uses the token issuer's `/.well-known/jwks.json`.
+- `CLERK_API_BASE_URL` — optional Clerk Backend API base URL. Defaults to
+  `https://api.clerk.com`.
 - `FLIGHTAWARE_FALLBACK_ENABLED`
-- `ADSBAO_REALTIME_AUTH_SECRET` — shared HMAC secret used by Vercel
-  `/api/realtime/auth` and the data-service to authorize FlightAware realtime
-  subscriptions.
+- `ADSBAO_REALTIME_AUTH_SECRET` — HMAC secret used by `/api/realtime/auth` and
+  the WebSocket handler to authorize FlightAware realtime subscriptions.
 - `AIRPORT_DIRECTORY_BASE_URL` — ADSBao web origin used as the fallback airport
   directory for FlightAware route pages that omit embedded airport coordinates.
   Defaults to `https://www.adsbao.dev`.
@@ -58,8 +69,8 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
 
 ## Railway Deployment
 
-Deploy this service from the repository root directory `services/data-service`
-using `services/data-service/railway.json`. Validate `/health`, direct
+Deploy ADSBao from the repository root using the root `Dockerfile` and
+`railway.json`. Validate `/health`, SPA deep links, `/api/feature-flags`, direct
 WebSocket subscribe/ping behavior, Railway resource metrics, and New Relic APM
 transactions, external provider custom events, business metrics, latency
 summaries, and backend logs after each production deploy.

@@ -11,14 +11,14 @@ export const ABOUT_BUILD_META = {
       label: "Stack",
       labelKey: "about.meta.stack",
       layout: "compact-grid",
-      items: ["React 19", "Next 16", "Tailwind CSS v4", "Leaflet"],
+      items: ["React 19", "Vite 8", "Tailwind CSS v4", "Leaflet"],
     },
     {
       label: "Architecture",
       labelKey: "about.meta.architecture",
       items: [
-        "Next.js App Router",
-        "Vercel route handlers",
+        "Railway Go service",
+        "Vite static frontend",
         "OpenAIP + Railway Postgres",
         "Same-origin aviation proxy",
       ],

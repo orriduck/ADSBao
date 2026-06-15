@@ -15,8 +15,11 @@ type Config struct {
 	MaxSocketSubscriptions     int
 	AllowedWSOrigins           []string
 	FlightAwareFallbackEnabled bool
+	FlightAwareAccessEnabled   bool
 	RealtimeAuthSecret         string
 	AirportDirectoryBaseURL    string
+	OpenAIPAPIKey              string
+	OpenAIPBaseURL             string
 	StaticDir                  string
 	EnablePprof                bool
 	NewRelicLicenseKey         string
@@ -25,6 +28,11 @@ type Config struct {
 	NewRelicLogsEndpoint       string
 	MetricsReportInterval      time.Duration
 	LogsReportInterval         time.Duration
+	DatabaseURL                string
+	ClerkSecretKey             string
+	ClerkJWKSURL               string
+	ClerkAPIBaseURL            string
+	FeatureFlagsEnvironment    string
 }
 
 type LookupFunc func(string) string
@@ -39,8 +47,11 @@ func FromEnv(lookup LookupFunc) Config {
 		MaxSocketSubscriptions:     intValue(lookup("MAX_SOCKET_SUBSCRIPTIONS"), 96),
 		AllowedWSOrigins:           csv(lookup("ALLOWED_WS_ORIGINS")),
 		FlightAwareFallbackEnabled: !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
+		FlightAwareAccessEnabled:   trueString(lookup("FLIGHTAWARE_ACCESS_ENABLED")),
 		RealtimeAuthSecret:         strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
 		AirportDirectoryBaseURL:    stringValue(lookup("AIRPORT_DIRECTORY_BASE_URL"), "https://www.adsbao.dev"),
+		OpenAIPAPIKey:              strings.TrimSpace(lookup("OPENAIP_API_KEY")),
+		OpenAIPBaseURL:             stringValue(lookup("OPENAIP_BASE_URL"), "https://api.core.openaip.net/api"),
 		StaticDir:                  strings.TrimSpace(lookup("STATIC_DIR")),
 		EnablePprof:                trueString(lookup("ENABLE_PPROF")),
 		NewRelicLicenseKey:         strings.TrimSpace(lookup("NEW_RELIC_LICENSE_KEY")),
@@ -49,6 +60,11 @@ func FromEnv(lookup LookupFunc) Config {
 		NewRelicLogsEndpoint:       stringValue(lookup("NEW_RELIC_LOGS_ENDPOINT"), "https://log-api.newrelic.com/log/v1"),
 		MetricsReportInterval:      durationMS(lookup("METRICS_REPORT_INTERVAL_MS"), 30*time.Second),
 		LogsReportInterval:         durationMS(lookup("LOGS_REPORT_INTERVAL_MS"), 5*time.Second),
+		DatabaseURL:                strings.TrimSpace(firstNonEmpty(lookup("DATABASE_URL"), lookup("ADSBAO_DATABASE_URL"))),
+		ClerkSecretKey:             strings.TrimSpace(lookup("CLERK_SECRET_KEY")),
+		ClerkJWKSURL:               strings.TrimSpace(lookup("CLERK_JWKS_URL")),
+		ClerkAPIBaseURL:            stringValue(lookup("CLERK_API_BASE_URL"), "https://api.clerk.com"),
+		FeatureFlagsEnvironment:    featureFlagsEnvironment(lookup("FEATURE_FLAGS_ENV"), lookup("RAILWAY_ENVIRONMENT_NAME")),
 	}
 }
 
@@ -82,6 +98,30 @@ func stringValue(raw, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func featureFlagsEnvironment(raw, railwayEnvironment string) string {
+	value := strings.ToLower(strings.TrimSpace(raw))
+	if value == "" {
+		value = strings.ToLower(strings.TrimSpace(railwayEnvironment))
+	}
+	switch value {
+	case "production", "preview", "local":
+		return value
+	case "development":
+		return "local"
+	default:
+		return "local"
+	}
 }
 
 func csv(raw string) []string {

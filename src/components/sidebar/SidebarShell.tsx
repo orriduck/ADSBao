@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
 import { Home, LogIn, Map } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";

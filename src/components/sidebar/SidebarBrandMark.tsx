@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import Link from "@/platform/router/Link";
+import { useSearchParams } from "@/platform/router/navigation";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { setHomeSearchParamCarryover } from "@/features/app-shell/navigationModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

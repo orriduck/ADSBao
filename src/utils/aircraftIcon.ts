@@ -2,9 +2,9 @@
 // ADS-B `type` field (the ICAO type designator, e.g. "A320", "B738", "CRJ9").
 //
 // Icons live on disk under `public/icons/aircraft/<name>.svg` and are served
-// same-origin by `src/app/api/icons/aircraft/[name]/route.js` so CSS
+// same-origin by the app server so CSS
 // `mask-image` tinting works without CORS friction. When a type isn't on disk
-// the API route falls back to an inline arrow SVG.
+// callers fall back to the inline arrow baseline.
 //
 // Silhouette set is RexKramer1/AircraftShapesSVG (GPL-3.0). See
 // `public/icons/aircraft/LICENSE-GPL-3.0.txt` and `ATTRIBUTION.md`.
@@ -14,11 +14,10 @@
 // Returning `null` means "no silhouette match" — the caller renders the
 // arrow/dot baseline.
 
-const AIRCRAFT_ICON_BASE_PATH = "/api/icons/aircraft";
+const AIRCRAFT_ICON_BASE_PATH = "/icons/aircraft";
 
-// Canonical list of icon names available on disk. Used by the API route to
-// allowlist incoming names (preventing path traversal) and by the resolver
-// for direct lookup. Names are lowercase, no extension.
+// Canonical list of icon names available on disk. Used by the resolver for
+// direct lookup. Names are lowercase, no extension.
 const AIRCRAFT_ICON_NAMES = Object.freeze([
   "a10", "a124", "a19n", "a20n", "a21n", "a225", "a306", "a310", "a318",
   "a320", "a321", "a332", "a333", "a337", "a338", "a339", "a342", "a343",

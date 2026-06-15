@@ -1,4 +1,4 @@
-import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity";
+import { readResponseJson } from "@/server/http/apiProxySecurity";
 
 import {
   AIRCRAFT_PHOTO_IMAGE_MAX_BYTES,
@@ -65,7 +65,6 @@ async function fetchPhotoPayload({ hex, registration, type }: AircraftPhotoRecor
         Accept: "application/json",
         "User-Agent": AIRCRAFT_PHOTOS_USER_AGENT,
       },
-      next: { revalidate: 3600 },
     });
   } catch (networkError: any) {
     throw new AircraftPhotoProviderError(`network: ${networkError.message}`);
@@ -96,7 +95,6 @@ export async function getAircraftPhotoImage({ hex, registration, type }: Aircraf
       Accept: "image/avif,image/webp,image/jpeg,image/*",
       "User-Agent": AIRCRAFT_PHOTOS_USER_AGENT,
     },
-    next: { revalidate: 3600 },
   });
   if (!response.ok) {
     throw new AircraftPhotoProviderError(`HTTP ${response.status}`, response.status);

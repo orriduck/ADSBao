@@ -15,8 +15,11 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 		"MAX_SOCKET_SUBSCRIPTIONS":     "7",
 		"ALLOWED_WS_ORIGINS":           "https://staging.example, https://preview.example",
 		"FLIGHTAWARE_FALLBACK_ENABLED": "false",
+		"FLIGHTAWARE_ACCESS_ENABLED":   "true",
 		"ADSBAO_REALTIME_AUTH_SECRET":  "shared-secret",
 		"AIRPORT_DIRECTORY_BASE_URL":   "https://www.adsbao.dev",
+		"OPENAIP_API_KEY":              "openaip-secret",
+		"OPENAIP_BASE_URL":             "https://openaip.example.test/api",
 		"ENABLE_PPROF":                 "true",
 		"NEW_RELIC_LICENSE_KEY":        "new-relic-secret",
 		"NEW_RELIC_APP_NAME":           "adsbao-prod",
@@ -42,10 +45,13 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 	if len(cfg.AllowedWSOrigins) != 2 || cfg.AllowedWSOrigins[0] != "https://staging.example" {
 		t.Fatalf("origins = %#v", cfg.AllowedWSOrigins)
 	}
-	if cfg.FlightAwareFallbackEnabled || !cfg.EnablePprof {
-		t.Fatalf("booleans = fallback:%v pprof:%v", cfg.FlightAwareFallbackEnabled, cfg.EnablePprof)
+	if cfg.FlightAwareFallbackEnabled || !cfg.FlightAwareAccessEnabled || !cfg.EnablePprof {
+		t.Fatalf("booleans = fallback:%v access:%v pprof:%v", cfg.FlightAwareFallbackEnabled, cfg.FlightAwareAccessEnabled, cfg.EnablePprof)
 	}
-	if cfg.RealtimeAuthSecret != "shared-secret" || cfg.AirportDirectoryBaseURL != "https://www.adsbao.dev" {
+	if cfg.RealtimeAuthSecret != "shared-secret" ||
+		cfg.AirportDirectoryBaseURL != "https://www.adsbao.dev" ||
+		cfg.OpenAIPAPIKey != "openaip-secret" ||
+		cfg.OpenAIPBaseURL != "https://openaip.example.test/api" {
 		t.Fatalf("urls/secrets = %#v", cfg)
 	}
 	if cfg.NewRelicLicenseKey != "new-relic-secret" ||
@@ -67,8 +73,11 @@ func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
 		cfg.MaxSocketSubscriptions != 96 ||
 		cfg.PollJitterRatio != 0.1 ||
 		!cfg.FlightAwareFallbackEnabled ||
+		cfg.FlightAwareAccessEnabled ||
 		cfg.RealtimeAuthSecret != "" ||
 		cfg.AirportDirectoryBaseURL != "https://www.adsbao.dev" ||
+		cfg.OpenAIPAPIKey != "" ||
+		cfg.OpenAIPBaseURL != "https://api.core.openaip.net/api" ||
 		cfg.EnablePprof ||
 		cfg.NewRelicLicenseKey != "" ||
 		cfg.NewRelicAppName != "adsbao-data-service" ||

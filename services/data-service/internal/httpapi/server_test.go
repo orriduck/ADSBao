@@ -69,7 +69,7 @@ func TestApiRoutesNeverServeIndexHTML(t *testing.T) {
 		t.Fatal(err)
 	}
 	server := New(ServerOptions{
-		StaticDir:    staticDir,
+		StaticDir:     staticDir,
 		DebugChannels: fakeDebugScheduler{}.DebugChannels,
 	})
 	for _, path := range []string{"/api/anything", "/api/v1/airports/KBOS", "/api/"} {
@@ -88,6 +88,70 @@ func TestApiRoutesNeverServeIndexHTML(t *testing.T) {
 	}
 }
 
+func TestFeatureFlagsEndpoint(t *testing.T) {
+	server := New(ServerOptions{
+		FeatureFlags: map[string]bool{
+			"flightAwareEnabled": true,
+		},
+	})
+	req := httptest.NewRequest(http.MethodGet, "/api/feature-flags", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d", rr.Code)
+	}
+	var payload struct {
+		Flags map[string]bool `json:"flags"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode = %v", err)
+	}
+	if !payload.Flags["flightAwareEnabled"] {
+		t.Fatalf("payload = %#v", payload)
+	}
+	if rr.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("Cache-Control = %q", rr.Header().Get("Cache-Control"))
+	}
+}
+
+func TestRealtimeAuthEndpointIsRoutedBeforeApi404(t *testing.T) {
+	called := false
+	server := New(ServerOptions{
+		RealtimeAuth: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusTeapot)
+		}),
+	})
+	req := httptest.NewRequest(http.MethodGet, "/api/realtime/auth?provider=flightaware", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if !called {
+		t.Fatal("realtime auth handler was not called")
+	}
+	if rr.Code != http.StatusTeapot {
+		t.Fatalf("status = %d", rr.Code)
+	}
+}
+
+func TestWebAPIEndpointIsRoutedBeforeApi404(t *testing.T) {
+	called := false
+	server := New(ServerOptions{
+		WebAPI: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			w.WriteHeader(http.StatusAccepted)
+		}),
+	})
+	req := httptest.NewRequest(http.MethodGet, "/api/search?q=KBOS", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if !called {
+		t.Fatal("web API handler was not called")
+	}
+	if rr.Code != http.StatusAccepted {
+		t.Fatalf("status = %d", rr.Code)
+	}
+}
+
 func TestSpaDeepLinkServesIndexHTML(t *testing.T) {
 	staticDir := t.TempDir()
 	indexPath := filepath.Join(staticDir, "index.html")
@@ -95,7 +159,7 @@ func TestSpaDeepLinkServesIndexHTML(t *testing.T) {
 		t.Fatal(err)
 	}
 	server := New(ServerOptions{
-		StaticDir:    staticDir,
+		StaticDir:     staticDir,
 		DebugChannels: fakeDebugScheduler{}.DebugChannels,
 	})
 	req := httptest.NewRequest(http.MethodGet, "/airport/KBOS", nil)
@@ -120,7 +184,7 @@ func TestStaticAssetServedWhenExists(t *testing.T) {
 		t.Fatal(err)
 	}
 	server := New(ServerOptions{
-		StaticDir:    staticDir,
+		StaticDir:     staticDir,
 		DebugChannels: fakeDebugScheduler{}.DebugChannels,
 	})
 	req := httptest.NewRequest(http.MethodGet, "/assets/app-abc123.js", nil)
@@ -140,7 +204,7 @@ func TestMissingStaticAssetReturns404(t *testing.T) {
 		t.Fatal(err)
 	}
 	server := New(ServerOptions{
-		StaticDir:    staticDir,
+		StaticDir:     staticDir,
 		DebugChannels: fakeDebugScheduler{}.DebugChannels,
 	})
 	req := httptest.NewRequest(http.MethodGet, "/assets/nonexistent-xyz.js", nil)
@@ -160,7 +224,7 @@ func TestMultipleDeepLinksServedAsSPAFallback(t *testing.T) {
 		t.Fatal(err)
 	}
 	server := New(ServerOptions{
-		StaticDir:    staticDir,
+		StaticDir:     staticDir,
 		DebugChannels: fakeDebugScheduler{}.DebugChannels,
 	})
 	deepLinks := []string{"/airport/KBOS", "/airport/ZBAA", "/about", "/settings/profile"}
@@ -181,7 +245,7 @@ func TestNoSPAFallbackWhenIndexHTMLMissing(t *testing.T) {
 	staticDir := t.TempDir()
 	// No index.html created — directory exists but no SPA entrypoint
 	server := New(ServerOptions{
-		StaticDir:    staticDir,
+		StaticDir:     staticDir,
 		DebugChannels: fakeDebugScheduler{}.DebugChannels,
 	})
 	req := httptest.NewRequest(http.MethodGet, "/airport/KBOS", nil)
@@ -227,11 +291,11 @@ func TestDirectoryTraversalBlocked(t *testing.T) {
 	})
 
 	traversalPaths := []string{
-		"/../secret.txt",          // direct parent traversal
-		"/../../etc/passwd",       // deep traversal
-		"/..%2Fsecret.txt",        // URL-encoded slash
-		"/api/../secret.txt",      // /api bypass then backtrack
-		"/secret-link",            // symlink to outside file
+		"/../secret.txt",     // direct parent traversal
+		"/../../etc/passwd",  // deep traversal
+		"/..%2Fsecret.txt",   // URL-encoded slash
+		"/api/../secret.txt", // /api bypass then backtrack
+		"/secret-link",       // symlink to outside file
 	}
 	for _, path := range traversalPaths {
 		t.Run(path, func(t *testing.T) {

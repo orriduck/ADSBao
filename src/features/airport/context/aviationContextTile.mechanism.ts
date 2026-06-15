@@ -1,4 +1,4 @@
-import { createAirportFacilityRepositoryFromEnv } from "@/app/api/dao/airportFacilities.dao";
+import { createAirportFacilityRepositoryFromEnv } from "@/server/dao/airportFacilities.dao";
 import { AirportDirectoryConfigurationError } from "../directory/airportDirectory.models";
 import {
   createOpenAipClientFromEnv,

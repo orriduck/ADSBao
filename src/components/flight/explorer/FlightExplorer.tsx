@@ -1,8 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import dynamic from "@/platform/react/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/platform/router/navigation";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
 import {

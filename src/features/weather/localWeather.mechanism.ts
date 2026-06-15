@@ -1,5 +1,4 @@
-import { unstable_cache } from "next/cache";
-import { readResponseJson } from "../../app/api/_shared/apiProxySecurity";
+import { readResponseJson } from "@/server/http/apiProxySecurity";
 import {
   buildOpenMeteoCurrentWeatherUrl,
   isValidOpenMeteoCurrentPayload,
@@ -46,19 +45,32 @@ async function _fetchOpenMeteo({ latitude, longitude }) {
 
 const DAY_MS = 86_400_000;
 const JITTER_MS = Math.floor(Math.random() * 120_000); // 0–2 min
+const localWeatherCache = new Map<
+  string,
+  { expiresAt: number; promise: Promise<{ payload: unknown; status: number }> }
+>();
 
 export function fetchLocalWeather({ latitude, longitude }) {
   // Round coordinates to 2 decimal places (~1.1 km) as cache key —
   // nearby requests share the same cached upstream fetch.
   const lat = Number(latitude.toFixed(2));
   const lon = Number(longitude.toFixed(2));
+  const key = `local-weather-${lat}-${lon}`;
+  const now = Date.now();
+  const cached = localWeatherCache.get(key);
+  if (cached && cached.expiresAt > now) {
+    return cached.promise;
+  }
 
-  return unstable_cache(
-    () => _fetchOpenMeteo({ latitude: lat, longitude: lon }),
-    [`local-weather-${lat}-${lon}`],
-    {
-      revalidate: DAY_MS + JITTER_MS,
-      tags: ["local-weather"],
-    },
-  )();
+  const promise = _fetchOpenMeteo({ latitude: lat, longitude: lon });
+  localWeatherCache.set(key, {
+    expiresAt: now + DAY_MS + JITTER_MS,
+    promise,
+  });
+  promise.catch(() => {
+    if (localWeatherCache.get(key)?.promise === promise) {
+      localWeatherCache.delete(key);
+    }
+  });
+  return promise;
 }

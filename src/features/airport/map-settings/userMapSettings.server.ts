@@ -1,6 +1,6 @@
 import {
   createUserMapSettingsRepositoryFromEnv,
-} from "../../../app/api/dao/userMapSettings.dao";
+} from "@/server/dao/userMapSettings.dao";
 import {
   getClerkUserPrimaryEmail,
 } from "../../app-shell/feature-flags/userFeatureFlagsModel";

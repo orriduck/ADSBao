@@ -21,7 +21,8 @@ export const SITE_KEYWORDS = [
 
 export const FEATURED_AIRPORT_CODES = ["KBOS", "KLAX", "KJFK", "KORD", "KSFO", "KSEA"];
 
-export const getSiteUrl = () => new URL(process.env.NEXT_PUBLIC_SITE_URL || SITE_URL);
+export const getSiteUrl = () =>
+  new URL(process.env.VITE_SITE_URL || process.env.ADSBAO_SITE_URL || SITE_URL);
 
 export const getAbsoluteUrl = (path = "/") => new URL(path, getSiteUrl()).toString();
 

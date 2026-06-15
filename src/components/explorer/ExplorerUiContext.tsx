@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useAuth, useUser } from "@/platform/auth/clerkClient";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "@/features/airport/explorer/airportExplorerUiModel";
 import {
@@ -348,6 +348,7 @@ function airportExplorerUiReducer(state, action) {
 
 export function ExplorerUiProvider({ children }) {
   const { isLoaded, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const hasHydratedMapSettingsRef = useRef(false);
   const pendingMapSettingsHydrationRef = useRef(null);
   const persistedMapSettingsRef = useRef("");
@@ -394,6 +395,10 @@ export function ExplorerUiProvider({ children }) {
       settings: normalizedSettings,
     });
   }, []);
+  const buildClerkAuthHeaders = useCallback(async () => {
+    const token = await getToken?.().catch(() => "");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }, [getToken]);
 
   useEffect(() => {
     const syncSidebarMode = () => {
@@ -455,6 +460,7 @@ export function ExplorerUiProvider({ children }) {
       try {
         const response = await fetch(`/api/map-settings?device=${mapSettingsDevice}`, {
           cache: "no-store",
+          headers: await buildClerkAuthHeaders(),
         });
         if (response.ok) {
           const payload = await response.json();
@@ -496,6 +502,7 @@ export function ExplorerUiProvider({ children }) {
   }, [
     isLoaded,
     isSignedIn,
+    buildClerkAuthHeaders,
     mapSettingsDevice,
     queueMapSettingsHydration,
   ]);
@@ -549,6 +556,7 @@ export function ExplorerUiProvider({ children }) {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            ...(await buildClerkAuthHeaders()),
           },
           body: JSON.stringify({ settings: nextSettings, device: mapSettingsDevice }),
           signal: controller.signal,
@@ -589,6 +597,7 @@ export function ExplorerUiProvider({ children }) {
   }, [
     isLoaded,
     isSignedIn,
+    buildClerkAuthHeaders,
     mapSettings,
     mapSettingsDevice,
   ]);

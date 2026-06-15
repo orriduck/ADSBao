@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -13,6 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/adsbao/adsbao/services/data-service/internal/api/realtimeauth"
+	"github.com/adsbao/adsbao/services/data-service/internal/api/webapi"
 	"github.com/adsbao/adsbao/services/data-service/internal/config"
 	"github.com/adsbao/adsbao/services/data-service/internal/httpapi"
 	"github.com/adsbao/adsbao/services/data-service/internal/metrics"
@@ -23,6 +26,7 @@ import (
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 	"github.com/adsbao/adsbao/services/data-service/internal/scheduler"
 	"github.com/adsbao/adsbao/services/data-service/internal/ws"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
@@ -54,6 +58,10 @@ func main() {
 	}
 	registry := metrics.New(registryOptions...)
 	providerHTTPClient := newRelicHTTPClient(nrApp)
+	db := openDatabase(cfg)
+	if db != nil {
+		defer db.Close()
+	}
 
 	flightAwareFallback := flightaware.NewFallbackClient(flightaware.FallbackOptions{
 		Enabled:        cfg.FlightAwareFallbackEnabled,
@@ -101,12 +109,34 @@ func main() {
 		ws.WithMaxSubscriptions(cfg.MaxSocketSubscriptions),
 		ws.WithRealtimeAuthSecret(cfg.RealtimeAuthSecret),
 	)
+	realtimeAuthHandler := realtimeauth.New(
+		cfg.RealtimeAuthSecret,
+		realtimeauth.StaticAuthChecker{Allow: cfg.FlightAwareAccessEnabled},
+		5*time.Minute,
+	)
+	webAPIHandler := webapi.New(webapi.Options{
+		HTTPClient:     providerHTTPClient,
+		OpenAIPAPIKey:  cfg.OpenAIPAPIKey,
+		OpenAIPBaseURL: cfg.OpenAIPBaseURL,
+		Authenticator: webapi.NewClerkAuthenticator(
+			providerHTTPClient,
+			cfg.ClerkSecretKey,
+			cfg.ClerkJWKSURL,
+			cfg.ClerkAPIBaseURL,
+		),
+		UserDataStore: webapi.NewUserDataStore(db, cfg.FeatureFlagsEnvironment),
+	})
 	handler := instrumentHTTPHandler(nrApp, httpapi.New(httpapi.ServerOptions{
 		DebugChannels: polling.DebugChannels,
 		Uptime:        func() time.Duration { return time.Since(started) },
 		WSHandler:     http.HandlerFunc(socketHandler.Handle),
-		StaticDir:     cfg.StaticDir,
-		EnablePprof:   cfg.EnablePprof,
+		RealtimeAuth:  realtimeAuthHandler,
+		WebAPI:        webAPIHandler,
+		FeatureFlags: map[string]bool{
+			"flightAwareEnabled": cfg.FlightAwareAccessEnabled,
+		},
+		StaticDir:   cfg.StaticDir,
+		EnablePprof: cfg.EnablePprof,
 	}))
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Port),
@@ -148,6 +178,28 @@ func main() {
 	if err := logForwarder.Shutdown(shutdownCtx); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "logs shutdown failed: %v\n", err)
 	}
+}
+
+func openDatabase(cfg config.Config) *sql.DB {
+	if strings.TrimSpace(cfg.DatabaseURL) == "" {
+		return nil
+	}
+	db, err := sql.Open("pgx", cfg.DatabaseURL)
+	if err != nil {
+		log.Printf("postgres init failed: %v", err)
+		return nil
+	}
+	db.SetMaxOpenConns(8)
+	db.SetMaxIdleConns(4)
+	db.SetConnMaxLifetime(30 * time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		log.Printf("postgres ping failed: %v", err)
+		_ = db.Close()
+		return nil
+	}
+	return db
 }
 
 func newRelicApplication(cfg config.Config) *newrelic.Application {

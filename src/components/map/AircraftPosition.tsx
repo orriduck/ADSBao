@@ -164,7 +164,7 @@ function AircraftPosition({
   const labelColor = color;
   const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
   const labelLeft = showArrow
-    ? Boolean(silhouette)
+    ? silhouette
       ? SILHOUETTE_SIZE_PX + 4
       : 22
     : SILHOUETTE_SIZE_PX;

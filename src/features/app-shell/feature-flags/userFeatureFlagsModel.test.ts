@@ -25,7 +25,7 @@ assert.equal(
   "preview",
 );
 assert.equal(
-  resolveFeatureFlagEnvironment({ VERCEL_ENV: "production" }),
+  resolveFeatureFlagEnvironment({ FEATURE_FLAGS_ENV: "production" }),
   "production",
 );
 assert.equal(resolveFeatureFlagEnvironment({}), "local");

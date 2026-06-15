@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/platform/router/navigation";
 import { toast } from "sonner";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import AirportSearchPanel from "@/components/airport/search/AirportSearchPanel";

@@ -7,7 +7,7 @@ import {
 } from "./userFeatureFlagsModel";
 import {
   createUserFeatureFlagsRepositoryFromEnv,
-} from "../../../app/api/dao/userFeatureFlags.dao";
+} from "@/server/dao/userFeatureFlags.dao";
 
 type UserFeatureFlagsServerRecord = Record<string, any>;
 

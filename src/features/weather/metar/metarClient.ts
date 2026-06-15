@@ -9,7 +9,7 @@ const env: Record<string, string | undefined> = typeof process !== "undefined" ?
 
 export const createMetarClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
-  baseUrl = env.NEXT_PUBLIC_METAR_PROXY_BASE || AVIATION_PROXY_BASES.metar,
+  baseUrl = env.VITE_METAR_PROXY_BASE || AVIATION_PROXY_BASES.metar,
 }: Record<string, any> = {}) => {
   if (!fetchImpl) throw new Error("METAR client requires fetch support");
 

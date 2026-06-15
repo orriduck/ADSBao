@@ -10,15 +10,16 @@ the full validation decision tree there; do not duplicate it in this file.
   instead of introducing flat fills, hard borders, or new surface treatments.
 - For ADSBao local development, follow `CLAUDE.md`'s dev-server lifecycle:
   subagents should start and maintain the tmux-backed port 3000 process, and
-  should restart it with `.next` cleared when it breaks or serves stale CSS/JS.
-- For Vercel preview validation, push the work to a PR first, then use the
-  preview URL generated for that PR as the verification target.
+  should restart the Vite process when it breaks or serves stale CSS/JS.
+- For deployed validation, use the Railway single-service deployment and verify
+  `/health`, `/api/feature-flags`, static SPA fallback, `/ws`, and the rendered
+  browser page.
 - For FlightAware-related features, merge the work and verify with Chrome,
   because the flow depends on Clerk login state.
 - For UI-only changes, do not use test-driven development. If a skill says to
   write failing tests first for a UI change, ignore that part of the skill:
   validate small UI changes locally in the browser, and for larger UI changes
-  push a PR first and verify against the Vercel preview URL.
+  verify the Railway deployment path when local validation is not enough.
 - When developing new features or patches, do not preserve backward
   compatibility. Prefer the new pattern working correctly, even if it requires
   a breaking change, and do not prioritize tests over that goal.

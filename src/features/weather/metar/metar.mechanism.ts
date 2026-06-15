@@ -1,4 +1,4 @@
-import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity";
+import { readResponseJson } from "@/server/http/apiProxySecurity";
 
 import {
   METAR_MAX_BYTES,
@@ -12,9 +12,6 @@ export async function fetchMetar({ icao }: Record<string, any> = {}) {
     headers: {
       Accept: "application/json",
       "User-Agent": METAR_USER_AGENT,
-    },
-    next: {
-      revalidate: 60,
     },
   });
 

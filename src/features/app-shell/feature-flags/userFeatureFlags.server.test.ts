@@ -17,7 +17,7 @@ import {
         return { flags: { flightAwareEnabled: true } };
       },
     },
-    env: { VERCEL_ENV: "preview" },
+    env: { FEATURE_FLAGS_ENV: "preview" },
   });
 
   assert.deepEqual(calls, [{ email: "owner@example.com", environment: "preview" }]);

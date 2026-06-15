@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/platform/router/navigation";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard";

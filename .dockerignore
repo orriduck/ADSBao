@@ -1,0 +1,9 @@
+.git
+.next
+.vercel
+dist
+node_modules
+tmp
+tsconfig.tsbuildinfo
+coverage
+docs/superpowers

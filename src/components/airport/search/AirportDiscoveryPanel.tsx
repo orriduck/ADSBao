@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/platform/router/navigation";
 import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import {
   airportDisplayCode,

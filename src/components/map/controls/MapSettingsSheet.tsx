@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/platform/auth/clerkClient";
 import {
   DEFAULT_MAP_BASE_LAYER,
   MAP_LAYER_KEYS,

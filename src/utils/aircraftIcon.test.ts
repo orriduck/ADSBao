@@ -6,7 +6,7 @@ import {
   resolveAircraftSizeScale,
 } from "./aircraftIcon";
 
-const AIRCRAFT_ICON_BASE_PATH = "/api/icons/aircraft";
+const AIRCRAFT_ICON_BASE_PATH = "/icons/aircraft";
 const AIRCRAFT_BASELINE_SCALE = 1;
 
 const expectIcon = (aircraft, expectedName, expectedSource) => {

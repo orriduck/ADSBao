@@ -33,7 +33,7 @@ const zhCN = {
       release: "发布",
       stack: "技术栈",
       architecture: "架构",
-      nextWeb: "Next.js Web",
+      webRuntime: "Vite Web",
       mapsWeatherTraffic: "地图 · 天气 · 交通",
     },
     dataSources: "数据来源",

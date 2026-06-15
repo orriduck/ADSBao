@@ -1,6 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import dynamic from "@/platform/react/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar";

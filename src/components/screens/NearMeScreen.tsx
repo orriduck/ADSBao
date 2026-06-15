@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/platform/router/navigation";
 import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

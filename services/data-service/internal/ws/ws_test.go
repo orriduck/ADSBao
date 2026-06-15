@@ -184,9 +184,8 @@ func TestAllowedOriginRules(t *testing.T) {
 		"":                      true,
 		"http://localhost:3000": true,
 		"https://adsbao.dev":    true,
-		"https://adsbao-git-codex-realtime-data-service-orriduck.vercel.app": true,
-		"https://evil.example":                     false,
-		"https://adsbao-attacker-other.vercel.app": false,
+		"https://adsbao-preview.example": false,
+		"https://evil.example":           false,
 	}
 	for origin, want := range cases {
 		if got := IsAllowedOrigin(origin, nil); got != want {

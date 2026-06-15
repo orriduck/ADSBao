@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "@/platform/image/Image";
 
 const CARD_WIDTH_PX = 280;
 const PHOTO_VISIBLE_HEIGHT_RATIO = 0.9;

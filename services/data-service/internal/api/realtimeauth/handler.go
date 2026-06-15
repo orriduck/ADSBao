@@ -17,6 +17,14 @@ type AuthChecker interface {
 	AuthorizeFlightAware(r *http.Request) bool
 }
 
+type StaticAuthChecker struct {
+	Allow bool
+}
+
+func (c StaticAuthChecker) AuthorizeFlightAware(_ *http.Request) bool {
+	return c.Allow
+}
+
 // Handler serves GET /api/realtime/auth?provider=flightaware.
 type Handler struct {
 	secret      string

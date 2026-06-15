@@ -9,6 +9,16 @@ import { CHANGELOG } from "@/config/changelog";
 // optional current marker, summary, then short highlights.
 
 const CHINESE_RELEASE_COPY = {
+  "v2.6.3": {
+    title: "Railway 单服务运行时",
+    summary:
+      "ADSBao 现在以 Vite React 前端构建，并由 Railway Go data-service 同源提供静态页面、API 和 WebSocket。",
+    highlights: [
+      "生产运行时移除 Next.js 与 Vercel，前端脚本切到 Vite",
+      "SPA 静态文件、realtime auth、feature flags、provider proxy routes 与 WebSocket 统一落到 Go 服务",
+      "Railway Docker/config-as-code 与浏览器环境变量改为 Vite/Railway 部署路径",
+    ],
+  },
   "v2.6.0": {
     title: "New Relic 可观测性",
     summary:

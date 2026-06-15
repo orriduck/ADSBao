@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { COORDS } from "../src/data/airportFallbacks";
-import { createRunwayGeometryRepositoryFromEnv } from "../src/app/api/dao/runwayGeometries.dao";
+import { createRunwayGeometryRepositoryFromEnv } from "../src/server/dao/runwayGeometries.dao";
 import { buildRunwayMapFromGeometries } from "../src/features/airport/runways/runwayGeometryMap";
 import {
   buildCandidateWatchingSpotFile,

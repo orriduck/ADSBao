@@ -16,7 +16,7 @@ const user = {
   const calls: Array<Record<string, any>> = [];
   const settings = await resolveMapSettingsForUser({
     user,
-    env: { VERCEL_ENV: "preview" },
+    env: { FEATURE_FLAGS_ENV: "preview" },
     featureFlagsRepository: {
       async readFlagsByEmail(email, options) {
         calls.push({ type: "flags", email, options });
@@ -51,7 +51,7 @@ const user = {
   const calls: Array<Record<string, any>> = [];
   await persistMapSettingsForUser({
     user,
-    env: { VERCEL_ENV: "preview" },
+    env: { FEATURE_FLAGS_ENV: "preview" },
     featureFlagsRepository: {
       async readFlagsByEmail() {
         throw new Error("map settings should not read feature flags");

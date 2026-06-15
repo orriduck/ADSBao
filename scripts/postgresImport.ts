@@ -1,7 +1,7 @@
 import {
   createPostgresQueryClientFromEnv,
   type PostgresQueryClient,
-} from "../src/app/api/dao/postgresClient";
+} from "../src/server/dao/postgresClient";
 
 type BulkUpsertOptions = {
   table: string;

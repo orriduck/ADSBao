@@ -1,4 +1,4 @@
-import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity";
+import { readResponseJson } from "@/server/http/apiProxySecurity";
 import { TRACE_PROVIDER_CHAIN } from "../../aviation/aircraftDataProviders";
 
 import {

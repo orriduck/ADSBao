@@ -1,4 +1,4 @@
-import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity";
+import { readResponseJson } from "@/server/http/apiProxySecurity";
 import { POSITION_PROVIDER_CHAIN } from "../../aviation/aircraftDataProviders";
 import {
   createAdaptiveProviderSelector,
@@ -41,7 +41,6 @@ async function fetchProviderPayload(provider: AircraftPositionsRecord, { latitud
         Accept: "application/json",
         "User-Agent": AIRCRAFT_POSITIONS_USER_AGENT,
       },
-      next: { revalidate: 0 },
     });
   } catch (networkError: any) {
     throw new AircraftPositionProviderError(`network: ${networkError.message}`);

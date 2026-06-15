@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/platform/auth/clerkClient";
 import {
   FEATURE_FLAGS,
   getClerkUserPrimaryEmail,

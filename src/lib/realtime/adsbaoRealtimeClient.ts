@@ -77,7 +77,7 @@ function resolveRealtimeUrl() {
     if (meta?.content) return meta.content;
   }
   return typeof process !== "undefined"
-    ? process.env.NEXT_PUBLIC_ADSBAO_REALTIME_URL || ""
+    ? process.env.VITE_ADSBAO_REALTIME_URL || ""
     : "";
 }
 

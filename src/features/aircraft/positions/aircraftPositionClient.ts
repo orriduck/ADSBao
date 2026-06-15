@@ -8,7 +8,7 @@ import {
   normalizeDistanceNm,
   normalizeLatitude,
   normalizeLongitude,
-} from "../../../app/api/_shared/apiProxySecurity";
+} from "@/server/http/apiProxySecurity";
 import { fetchJson } from "../../aviation/httpClient";
 
 const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
@@ -16,7 +16,7 @@ const env: Record<string, string | undefined> = typeof process !== "undefined" ?
 export const createAircraftPositionClient = ({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   baseUrl =
-    env.NEXT_PUBLIC_AIRCRAFT_POSITIONS_BASE ||
+    env.VITE_AIRCRAFT_POSITIONS_BASE ||
     AVIATION_PROXY_BASES.aircraftPositions,
 }: Record<string, any> = {}) => {
   if (!fetchImpl)

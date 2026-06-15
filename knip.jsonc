@@ -6,7 +6,7 @@
   // run by hand from the CLI, get reported as dead code and would be
   // deleted by mistake.
   "entry": [
-    "src/app/**/{page,layout,route,not-found,error,global-error,loading,opengraph-image,sitemap,robots,icon}.{ts,tsx}",
+    "src/main.tsx",
     "scripts/**/*.ts",
     "src/**/*.test.{ts,tsx}"
   ],

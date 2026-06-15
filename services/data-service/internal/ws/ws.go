@@ -92,7 +92,7 @@ func IsAllowedOrigin(origin string, extraAllowedOrigins []string) bool {
 			return true
 		}
 	}
-	return isAdsbaoVercelPreviewOrigin(normalized)
+	return false
 }
 
 func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
@@ -406,16 +406,6 @@ func normalizeOrigin(origin string) string {
 		return ""
 	}
 	return parsed.Scheme + "://" + parsed.Host
-}
-
-func isAdsbaoVercelPreviewOrigin(origin string) bool {
-	parsed, err := url.Parse(origin)
-	if err != nil {
-		return false
-	}
-	return parsed.Scheme == "https" &&
-		strings.HasPrefix(parsed.Hostname(), "adsbao-") &&
-		strings.HasSuffix(parsed.Hostname(), "-orriduck.vercel.app")
 }
 
 func (c *clientConn) String() string {

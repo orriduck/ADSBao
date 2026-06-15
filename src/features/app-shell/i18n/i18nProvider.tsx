@@ -7,8 +7,7 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
-import { NextIntlClientProvider } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams } from "@/platform/router/navigation";
 import { DICTIONARIES } from "@/config/i18n/index";
 import {
   DEFAULT_LOCALE,
@@ -18,6 +17,7 @@ import {
 
 type I18nRuntimeContextValue = {
   locale: string;
+  messages: Record<string, unknown>;
   setLocale: (locale: string) => void;
 };
 
@@ -28,6 +28,7 @@ type I18nProviderProps = {
 
 export const I18nRuntimeContext = createContext<I18nRuntimeContextValue>({
   locale: DEFAULT_LOCALE,
+  messages: {},
   setLocale: () => {},
 });
 
@@ -81,16 +82,15 @@ export function I18nProvider({
   const runtime = useMemo(
     () => ({
       locale,
+      messages,
       setLocale,
     }),
-    [locale],
+    [locale, messages],
   );
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <I18nRuntimeContext.Provider value={runtime}>
-        {children}
-      </I18nRuntimeContext.Provider>
-    </NextIntlClientProvider>
+    <I18nRuntimeContext.Provider value={runtime}>
+      {children}
+    </I18nRuntimeContext.Provider>
   );
 }

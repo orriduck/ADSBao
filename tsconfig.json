@@ -21,19 +21,11 @@
       "@/*": [
         "./src/*"
       ]
-    },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    }
   },
   "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/dev/types/**/*.ts",
     "src/vite-env.d.ts"
   ],
   "exclude": [

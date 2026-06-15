@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/platform/router/Link";
+import { usePathname } from "@/platform/router/navigation";
 import AircraftPreviewIdentity from "./AircraftPreviewIdentity";
 import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry";

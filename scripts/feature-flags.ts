@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import {
   createUserFeatureFlagsRepositoryFromEnv,
-} from "../src/app/api/dao/userFeatureFlags.dao";
+} from "../src/server/dao/userFeatureFlags.dao";
 import {
   applyFeatureFlagCommand,
   parseFeatureFlagCommand,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/platform/router/navigation";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
 import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";

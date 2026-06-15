@@ -1,7 +1,7 @@
 import {
   readResponseJson,
   readResponseText,
-} from "../../../app/api/_shared/apiProxySecurity";
+} from "@/server/http/apiProxySecurity";
 import { createOpenAipAirportQueriesFromEnv } from "../../airport/openaip/openAipDirectory";
 import {
   ADSBDB_USER_AGENT,
@@ -25,29 +25,16 @@ let lastGateLog = "";
 type FlightRouteMechanismRecord = Record<string, any>;
 
 async function isFlightAwareRouteProviderEnabled() {
-  const [{ currentUser }, featureFlagAccess, featureFlagModel] = await Promise.all([
-    import("@clerk/nextjs/server"),
-    import("../../app-shell/feature-flags/userFeatureFlags.server"),
-    import("../../app-shell/feature-flags/userFeatureFlagsModel"),
-  ]);
-  const user = await currentUser();
-  const email = featureFlagModel.getClerkUserPrimaryEmail(user);
-  const enabled = await featureFlagAccess.isFlightAwareEnabledForUser({ user });
+  const enabled =
+    String(process.env.FLIGHTAWARE_ACCESS_ENABLED || "").toLowerCase() ===
+    "true";
   if (process.env.NODE_ENV !== "production") {
-    const signature = `${user ? user.id || "no-id" : "no-user"}|${email || "no-email"}|${enabled}`;
+    const signature = `env|${enabled}`;
     if (signature !== lastGateLog) {
       lastGateLog = signature;
-      if (!user) {
-        console.info("[flightaware-route] gate: no Clerk user → adsbdb");
-      } else if (!email) {
-        console.info(
-          "[flightaware-route] gate: Clerk user lacks primary email → adsbdb",
-        );
-      } else {
-        console.info(
-          `[flightaware-route] gate: clerkUser=${user.id || "no-id"} email=${email} flightAwareEnabled=${enabled} → ${enabled ? "flightaware" : "adsbdb"}`,
-        );
-      }
+      console.info(
+        `[flightaware-route] gate: FLIGHTAWARE_ACCESS_ENABLED=${enabled} -> ${enabled ? "flightaware" : "adsbdb"}`,
+      );
     }
   }
   return enabled;

@@ -1,4 +1,4 @@
-import { readResponseJson } from "../../../app/api/_shared/apiProxySecurity";
+import { readResponseJson } from "@/server/http/apiProxySecurity";
 import { CALLSIGN_PROVIDER_CHAIN } from "../../aviation/aircraftDataProviders";
 import {
   getFlightAwareFallbackByCallsign,
@@ -33,7 +33,6 @@ async function fetchProviderPayload(provider: AircraftCallsignRecord, { callsign
         "User-Agent": AIRCRAFT_CALLSIGN_USER_AGENT,
       },
       signal: AbortSignal.timeout(AIRCRAFT_CALLSIGN_PROVIDER_TIMEOUT_MS),
-      next: { revalidate: 0 },
     });
   } catch (networkError: any) {
     throw new AircraftCallsignProviderError(
