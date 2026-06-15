@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -104,6 +105,7 @@ func main() {
 		DebugChannels: polling.DebugChannels,
 		Uptime:        func() time.Duration { return time.Since(started) },
 		WSHandler:     http.HandlerFunc(socketHandler.Handle),
+		StaticDir:     cfg.StaticDir,
 		EnablePprof:   cfg.EnablePprof,
 	}))
 	server := &http.Server{
@@ -211,8 +213,17 @@ func routeName(r *http.Request) string {
 		return "/debug/channels"
 	case strings.HasPrefix(r.URL.Path, "/debug/pprof"):
 		return "/debug/pprof"
+	case strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == "/api":
+		return "/api/*"
+	case strings.Contains(filepath.Ext(r.URL.Path), "."):
+		// Static/hashed asset: group by top-level directory
+		dir := filepath.Dir(r.URL.Path)
+		if dir == "/" || dir == "." {
+			return "/*"
+		}
+		return dir + "/*"
 	default:
-		return "not_found"
+		return "spa_fallback"
 	}
 }
 

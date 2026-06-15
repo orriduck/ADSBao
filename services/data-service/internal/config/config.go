@@ -17,6 +17,7 @@ type Config struct {
 	FlightAwareFallbackEnabled bool
 	RealtimeAuthSecret         string
 	AirportDirectoryBaseURL    string
+	StaticDir                  string
 	EnablePprof                bool
 	NewRelicLicenseKey         string
 	NewRelicAppName            string
@@ -40,6 +41,7 @@ func FromEnv(lookup LookupFunc) Config {
 		FlightAwareFallbackEnabled: !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
 		RealtimeAuthSecret:         strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
 		AirportDirectoryBaseURL:    stringValue(lookup("AIRPORT_DIRECTORY_BASE_URL"), "https://www.adsbao.dev"),
+		StaticDir:                  strings.TrimSpace(lookup("STATIC_DIR")),
 		EnablePprof:                trueString(lookup("ENABLE_PPROF")),
 		NewRelicLicenseKey:         strings.TrimSpace(lookup("NEW_RELIC_LICENSE_KEY")),
 		NewRelicAppName:            stringValue(lookup("NEW_RELIC_APP_NAME"), "adsbao-data-service"),

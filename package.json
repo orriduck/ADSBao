@@ -6,6 +6,11 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --webpack",
+    "start": "next start",
+    "dev:vite": "vite",
+    "build:vite": "vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
     "lint": "eslint .",
     "knip": "knip",
     "ff": "tsx scripts/feature-flags.ts",
@@ -14,11 +19,11 @@
     "generate:watching-spots": "tsx scripts/generate-candidate-watching-spots.ts",
     "import:runways": "tsx scripts/import-runway-geometries.ts",
     "test": "tsx scripts/run-tests.ts",
-    "test:all": "tsx scripts/run-tests.ts",
-    "start": "next start"
+    "test:all": "tsx scripts/run-tests.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.0",
+    "@clerk/react": "^6.9.1",
     "@maplibre/maplibre-gl-leaflet": "^0.1.3",
     "@number-flow/react": "^0.5.0",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -26,6 +31,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@sentry/nextjs": "^10.53.1",
+    "@sentry/react": "^10.58.0",
     "@tanstack/react-query": "^5.100.14",
     "@tanstack/react-virtual": "^3.13.26",
     "@vercel/analytics": "^2.0.1",
@@ -42,23 +48,27 @@
     "pg": "^8.21.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-router-dom": "^7.17.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",
+    "@tailwindcss/vite": "^4.3.1",
     "@tanstack/react-query-devtools": "^5.100.14",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^25.9.1",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.0.10",
     "knip": "^6.15.0",
     "tailwindcss": "^4.2.4",
     "tsx": "^4.22.3",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

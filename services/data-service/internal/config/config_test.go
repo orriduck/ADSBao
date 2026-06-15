@@ -75,7 +75,25 @@ func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
 		cfg.NewRelicMetricsEndpoint != "https://metric-api.newrelic.com/metric/v1" ||
 		cfg.NewRelicLogsEndpoint != "https://log-api.newrelic.com/log/v1" ||
 		cfg.MetricsReportInterval != 30*time.Second ||
-		cfg.LogsReportInterval != 5*time.Second {
+		cfg.LogsReportInterval != 5*time.Second ||
+		cfg.StaticDir != "" {
 		t.Fatalf("defaults = %#v", cfg)
+	}
+}
+
+func TestFromEnvParsesStaticDir(t *testing.T) {
+	env := map[string]string{
+		"STATIC_DIR": "/app/static",
+	}
+	cfg := FromEnv(func(key string) string { return env[key] })
+	if cfg.StaticDir != "/app/static" {
+		t.Fatalf("StaticDir = %q, want %q", cfg.StaticDir, "/app/static")
+	}
+}
+
+func TestStaticDirEmptyWhenUnset(t *testing.T) {
+	cfg := FromEnv(func(key string) string { return "" })
+	if cfg.StaticDir != "" {
+		t.Fatalf("StaticDir = %q, want empty (backend-only mode)", cfg.StaticDir)
 	}
 }

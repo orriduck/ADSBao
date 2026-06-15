@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -57,5 +59,209 @@ func TestMetricsEndpointIsRemoved(t *testing.T) {
 	server.ServeHTTP(rr, req)
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("metrics status = %d", rr.Code)
+	}
+}
+
+func TestApiRoutesNeverServeIndexHTML(t *testing.T) {
+	staticDir := t.TempDir()
+	indexPath := filepath.Join(staticDir, "index.html")
+	if err := os.WriteFile(indexPath, []byte("<html>SPA</html>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := New(ServerOptions{
+		StaticDir:    staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	for _, path := range []string{"/api/anything", "/api/v1/airports/KBOS", "/api/"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		server.ServeHTTP(rr, req)
+		if rr.Code != http.StatusNotFound {
+			t.Fatalf("%s: got status %d, want 404", path, rr.Code)
+		}
+		if strings.Contains(rr.Body.String(), "<html>SPA</html>") {
+			t.Fatalf("%s: unexpectedly served index.html", path)
+		}
+		if ct := rr.Header().Get("Content-Type"); !strings.Contains(ct, "application/json") {
+			t.Fatalf("%s: Content-Type = %q, want application/json", path, ct)
+		}
+	}
+}
+
+func TestSpaDeepLinkServesIndexHTML(t *testing.T) {
+	staticDir := t.TempDir()
+	indexPath := filepath.Join(staticDir, "index.html")
+	if err := os.WriteFile(indexPath, []byte("<html>SPA</html>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := New(ServerOptions{
+		StaticDir:    staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/airport/KBOS", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("got status %d, want 200", rr.Code)
+	}
+	if !strings.Contains(rr.Body.String(), "<html>SPA</html>") {
+		t.Fatalf("body = %q, want SPA content", rr.Body.String())
+	}
+}
+
+func TestStaticAssetServedWhenExists(t *testing.T) {
+	staticDir := t.TempDir()
+	assetsDir := filepath.Join(staticDir, "assets")
+	if err := os.MkdirAll(assetsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	jsFile := filepath.Join(assetsDir, "app-abc123.js")
+	if err := os.WriteFile(jsFile, []byte("console.log('hello');"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := New(ServerOptions{
+		StaticDir:    staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/assets/app-abc123.js", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("got status %d, want 200", rr.Code)
+	}
+	if strings.TrimSpace(rr.Body.String()) != "console.log('hello');" {
+		t.Fatalf("body = %q, want JS content", rr.Body.String())
+	}
+}
+
+func TestMissingStaticAssetReturns404(t *testing.T) {
+	staticDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(staticDir, "index.html"), []byte("<html>SPA</html>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := New(ServerOptions{
+		StaticDir:    staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/assets/nonexistent-xyz.js", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("got status %d, want 404", rr.Code)
+	}
+	if strings.Contains(rr.Body.String(), "<html>SPA</html>") {
+		t.Fatalf("unexpectedly served index.html for missing asset")
+	}
+}
+
+func TestMultipleDeepLinksServedAsSPAFallback(t *testing.T) {
+	staticDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(staticDir, "index.html"), []byte("<html>SPA</html>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := New(ServerOptions{
+		StaticDir:    staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	deepLinks := []string{"/airport/KBOS", "/airport/ZBAA", "/about", "/settings/profile"}
+	for _, path := range deepLinks {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		server.ServeHTTP(rr, req)
+		if rr.Code != http.StatusOK {
+			t.Fatalf("%s: got status %d, want 200", path, rr.Code)
+		}
+		if !strings.Contains(rr.Body.String(), "<html>SPA</html>") {
+			t.Fatalf("%s: body = %q, want index.html", path, rr.Body.String())
+		}
+	}
+}
+
+func TestNoSPAFallbackWhenIndexHTMLMissing(t *testing.T) {
+	staticDir := t.TempDir()
+	// No index.html created — directory exists but no SPA entrypoint
+	server := New(ServerOptions{
+		StaticDir:    staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/airport/KBOS", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("got status %d, want 404 (no index.html to fall back to)", rr.Code)
+	}
+}
+
+func TestBackendOnlyWhenNoStaticDir(t *testing.T) {
+	server := New(ServerOptions{
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/airport/KBOS", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("got status %d, want 404 (backend-only mode)", rr.Code)
+	}
+}
+
+func TestDirectoryTraversalBlocked(t *testing.T) {
+	staticDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(staticDir, "index.html"), []byte("<html>SPA</html>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Create a file outside StaticDir that must not be served
+	outsideDir := t.TempDir()
+	secretPath := filepath.Join(outsideDir, "secret.txt")
+	if err := os.WriteFile(secretPath, []byte("SECRET_DATA"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Symlink from within StaticDir pointing outside — must not be followed
+	linkPath := filepath.Join(staticDir, "secret-link")
+	if err := os.Symlink(secretPath, linkPath); err != nil {
+		t.Fatal(err)
+	}
+
+	server := New(ServerOptions{
+		StaticDir:     staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+
+	traversalPaths := []string{
+		"/../secret.txt",          // direct parent traversal
+		"/../../etc/passwd",       // deep traversal
+		"/..%2Fsecret.txt",        // URL-encoded slash
+		"/api/../secret.txt",      // /api bypass then backtrack
+		"/secret-link",            // symlink to outside file
+	}
+	for _, path := range traversalPaths {
+		t.Run(path, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			server.ServeHTTP(rr, req)
+			if rr.Code != http.StatusNotFound {
+				t.Errorf("got status %d, want 404", rr.Code)
+			}
+			if strings.Contains(rr.Body.String(), "SECRET_DATA") {
+				t.Errorf("directory traversal leaked secret file content")
+			}
+		})
+	}
+}
+
+func TestSecurityHeaders(t *testing.T) {
+	server := New(ServerOptions{
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("health status = %d", rr.Code)
+	}
+	if v := rr.Header().Get("Origin-Agent-Cluster"); v != "?1" {
+		t.Fatalf("Origin-Agent-Cluster = %q, want ?1", v)
+	}
+	if v := rr.Header().Get("Permissions-Policy"); !strings.Contains(v, "tools=(self)") {
+		t.Fatalf("Permissions-Policy = %q, want tools=(self)", v)
 	}
 }
