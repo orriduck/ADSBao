@@ -11,6 +11,14 @@ import (
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
 
+type recordingMetricsSink struct {
+	external []realtime.ExternalRequestMetricInput
+}
+
+func (s *recordingMetricsSink) RecordExternalRequest(input realtime.ExternalRequestMetricInput) {
+	s.external = append(s.external, input)
+}
+
 func TestCallsignProviderFallbackRetriesEmptyPayload(t *testing.T) {
 	var requested []string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -104,6 +112,47 @@ func TestCallsignCanUseFlightAwareFallbackAfterEmptyADSB(t *testing.T) {
 	aircraft := ac[0].(map[string]any)
 	if aircraft["flight_position_source"] != "flightaware" || aircraft["lat"] != 49.05 {
 		t.Fatalf("aircraft = %#v", aircraft)
+	}
+}
+
+func TestPositionProviderMetricsIncludeRequestURLAndError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "limited", http.StatusTooManyRequests)
+	}))
+	defer server.Close()
+
+	metrics := &recordingMetricsSink{}
+	client := NewClient(Options{
+		Providers: []Provider{
+			{ID: "adsb.lol", PositionURL: func(lat, lon float64, distNM int) string {
+				return server.URL + "/adsb-lol/positions?lat=42.4&lon=-71&dist=40"
+			}},
+		},
+	})
+
+	_, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "traffic:center:42.4:-71:40",
+		ChannelType: realtime.ChannelTraffic,
+		Metrics:     metrics,
+		Target: realtime.PollingTarget{
+			Kind:   "positions",
+			Lat:    42.4,
+			Lon:    -71,
+			DistNM: 40,
+		},
+	})
+	if err == nil {
+		t.Fatal("Fetch returned nil error")
+	}
+	if len(metrics.external) != 1 {
+		t.Fatalf("external metrics = %#v", metrics.external)
+	}
+	entry := metrics.external[0]
+	if entry.URL != server.URL+"/adsb-lol/positions?lat=42.4&lon=-71&dist=40" ||
+		entry.Error != "HTTP 429" ||
+		entry.Status != http.StatusTooManyRequests ||
+		entry.DurationMS < 0 {
+		t.Fatalf("external metric = %#v", entry)
 	}
 }
 

@@ -121,7 +121,7 @@ func (c *Client) fetchADSBDB(ctx context.Context, input realtime.FetchInput) (re
 	status := any(nil)
 	resp, cancel, err := c.do(ctx, requestURL, "application/json", userAgent)
 	if err != nil {
-		c.recordExternal(input, "adsbdb", "error", "ERR", started)
+		c.recordExternal(input, "adsbdb", "error", "ERR", requestURL, err.Error(), started)
 		return realtime.Event{}, err
 	}
 	defer cancel()
@@ -129,23 +129,24 @@ func (c *Client) fetchADSBDB(ctx context.Context, input realtime.FetchInput) (re
 	status = resp.StatusCode
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		if resp.StatusCode != http.StatusNotFound {
-			c.recordExternal(input, "adsbdb", "error", status, started)
+			message := fmt.Sprintf("HTTP %d", resp.StatusCode)
+			c.recordExternal(input, "adsbdb", "error", status, requestURL, message, started)
 			return realtime.Event{}, fmt.Errorf("adsbdb route HTTP %d", resp.StatusCode)
 		}
-		c.recordExternal(input, "adsbdb", "success", status, started)
+		c.recordExternal(input, "adsbdb", "success", status, requestURL, "", started)
 		return routeEvent(input.Channel, "adsbdb", input.Target.Callsign, nil), nil
 	}
 	body, err := c.readBody(resp)
 	if err != nil {
-		c.recordExternal(input, "adsbdb", "error", "ERR", started)
+		c.recordExternal(input, "adsbdb", "error", "ERR", requestURL, err.Error(), started)
 		return realtime.Event{}, err
 	}
 	var payload map[string]any
 	if err := json.Unmarshal(body, &payload); err != nil {
-		c.recordExternal(input, "adsbdb", "error", "PARSE", started)
+		c.recordExternal(input, "adsbdb", "error", "PARSE", requestURL, "Invalid ADSBDB JSON", started)
 		return realtime.Event{}, err
 	}
-	c.recordExternal(input, "adsbdb", "success", status, started)
+	c.recordExternal(input, "adsbdb", "success", status, requestURL, "", started)
 	return routeEvent(input.Channel, "adsbdb", input.Target.Callsign, normalizeADSBDBRoute(input.Target.Callsign, payload)), nil
 }
 
@@ -163,7 +164,7 @@ func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput
 	status := any(nil)
 	resp, cancel, err := c.do(ctx, requestURL, "text/html,application/xhtml+xml", flightAwareRouteUA)
 	if err != nil {
-		c.recordExternal(input, "flightaware", "error", "ERR", started)
+		c.recordExternal(input, "flightaware", "error", "ERR", requestURL, err.Error(), started)
 		return realtime.Event{}, err
 	}
 	defer cancel()
@@ -171,18 +172,19 @@ func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput
 	status = resp.StatusCode
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		if resp.StatusCode != http.StatusNotFound {
-			c.recordExternal(input, "flightaware", "error", status, started)
+			message := fmt.Sprintf("HTTP %d", resp.StatusCode)
+			c.recordExternal(input, "flightaware", "error", status, requestURL, message, started)
 			return realtime.Event{}, fmt.Errorf("flightaware route HTTP %d", resp.StatusCode)
 		}
-		c.recordExternal(input, "flightaware", "success", status, started)
+		c.recordExternal(input, "flightaware", "success", status, requestURL, "", started)
 		return routeEvent(input.Channel, "flightaware", input.Target.Callsign, nil), nil
 	}
 	body, err := c.readBody(resp)
 	if err != nil {
-		c.recordExternal(input, "flightaware", "error", "ERR", started)
+		c.recordExternal(input, "flightaware", "error", "ERR", requestURL, err.Error(), started)
 		return realtime.Event{}, err
 	}
-	c.recordExternal(input, "flightaware", "success", status, started)
+	c.recordExternal(input, "flightaware", "success", status, requestURL, "", started)
 	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, c.normalizeFlightAwareRoute(ctx, input, string(body))), nil
 }
 
@@ -266,7 +268,7 @@ func (c *Client) airportDirectoryURL(ident string) string {
 	return c.airportDirectoryBaseURL + "/api/airport/" + url.PathEscape(normalized)
 }
 
-func (c *Client) recordExternal(input realtime.FetchInput, provider, result string, status any, started time.Time) {
+func (c *Client) recordExternal(input realtime.FetchInput, provider, result string, status any, requestURL, errorText string, started time.Time) {
 	if input.Metrics == nil {
 		return
 	}
@@ -275,6 +277,8 @@ func (c *Client) recordExternal(input realtime.FetchInput, provider, result stri
 		Endpoint:   "route",
 		Result:     result,
 		Status:     status,
+		URL:        requestURL,
+		Error:      errorText,
 		DurationMS: time.Since(started).Milliseconds(),
 	})
 }
@@ -503,34 +507,34 @@ func (c *Client) fetchDirectoryAirport(ctx context.Context, input realtime.Fetch
 	started := time.Now()
 	resp, cancel, err := c.do(ctx, requestURL, "application/json", userAgent)
 	if err != nil {
-		c.recordAirportDirectory(input, "error", "ERR", started)
+		c.recordAirportDirectory(input, "error", "ERR", requestURL, err.Error(), started)
 		return nil
 	}
 	defer cancel()
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		c.recordAirportDirectory(input, "success", resp.StatusCode, started)
+		c.recordAirportDirectory(input, "success", resp.StatusCode, requestURL, "", started)
 		return nil
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		c.recordAirportDirectory(input, "error", resp.StatusCode, started)
+		c.recordAirportDirectory(input, "error", resp.StatusCode, requestURL, fmt.Sprintf("HTTP %d", resp.StatusCode), started)
 		return nil
 	}
 	body, err := c.readBody(resp)
 	if err != nil {
-		c.recordAirportDirectory(input, "error", "ERR", started)
+		c.recordAirportDirectory(input, "error", "ERR", requestURL, err.Error(), started)
 		return nil
 	}
 	var payload map[string]any
 	if err := json.Unmarshal(body, &payload); err != nil {
-		c.recordAirportDirectory(input, "error", "PARSE", started)
+		c.recordAirportDirectory(input, "error", "PARSE", requestURL, "Invalid airport directory JSON", started)
 		return nil
 	}
-	c.recordAirportDirectory(input, "success", resp.StatusCode, started)
+	c.recordAirportDirectory(input, "success", resp.StatusCode, requestURL, "", started)
 	return asMap(payload["airport"])
 }
 
-func (c *Client) recordAirportDirectory(input realtime.FetchInput, result string, status any, started time.Time) {
+func (c *Client) recordAirportDirectory(input realtime.FetchInput, result string, status any, requestURL, errorText string, started time.Time) {
 	if input.Metrics == nil {
 		return
 	}
@@ -539,6 +543,8 @@ func (c *Client) recordAirportDirectory(input realtime.FetchInput, result string
 		Endpoint:   "airport",
 		Result:     result,
 		Status:     status,
+		URL:        requestURL,
+		Error:      errorText,
 		DurationMS: time.Since(started).Milliseconds(),
 	})
 }

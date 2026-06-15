@@ -132,12 +132,12 @@ func (c *FallbackClient) ByCallsign(ctx context.Context, callsign any, metrics r
 	started := time.Now()
 	resp, cancel, err := c.do(ctx, pageURL, "text/html,application/xhtml+xml", "", metrics, started)
 	if err != nil {
-		record(metrics, "error", "ERR", started)
+		record(metrics, "error", "ERR", pageURL, err.Error(), started)
 		return errorResult(timeoutOrNetwork(err), fetchedAt, err.Error(), nil), nil
 	}
 	defer cancel()
 	defer resp.Body.Close()
-	record(metrics, resultForStatus(resp.StatusCode), resp.StatusCode, started)
+	record(metrics, resultForStatus(resp.StatusCode), resp.StatusCode, pageURL, statusError(resp.StatusCode), started)
 	if resp.StatusCode == http.StatusNotFound {
 		return errorResult("not_found", fetchedAt, "", nil), nil
 	}
@@ -173,12 +173,12 @@ func (c *FallbackClient) tryTrackpoll(ctx context.Context, callsign, fetchedAt, 
 	started := time.Now()
 	resp, cancel, err := c.do(ctx, trackURL, "application/json, text/javascript, */*; q=0.01", pageURL, metrics, started)
 	if err != nil {
-		record(metrics, "error", "ERR", started)
+		record(metrics, "error", "ERR", trackURL, err.Error(), started)
 		return adsb.FallbackResult{}, false
 	}
 	defer cancel()
 	defer resp.Body.Close()
-	record(metrics, resultForStatus(resp.StatusCode), resp.StatusCode, started)
+	record(metrics, resultForStatus(resp.StatusCode), resp.StatusCode, trackURL, statusError(resp.StatusCode), started)
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return adsb.FallbackResult{}, false
 	}
@@ -620,12 +620,12 @@ func readBody(reader io.Reader, limit int64) ([]byte, error) {
 	return body, nil
 }
 
-func record(metrics realtime.MetricsSink, result string, status any, started time.Time) {
+func record(metrics realtime.MetricsSink, result string, status any, requestURL, errorText string, started time.Time) {
 	if metrics == nil {
 		return
 	}
 	metrics.RecordExternalRequest(realtime.ExternalRequestMetricInput{
-		Provider: "flightaware", Endpoint: "callsign", Result: result, Status: status, DurationMS: time.Since(started).Milliseconds(),
+		Provider: "flightaware", Endpoint: "callsign", Result: result, Status: status, URL: requestURL, Error: errorText, DurationMS: time.Since(started).Milliseconds(),
 	})
 }
 
@@ -634,6 +634,13 @@ func resultForStatus(status int) string {
 		return "success"
 	}
 	return "error"
+}
+
+func statusError(status int) string {
+	if status >= 200 && status < 300 {
+		return ""
+	}
+	return fmt.Sprintf("HTTP %d", status)
 }
 
 func timeoutOrNetwork(err error) string {

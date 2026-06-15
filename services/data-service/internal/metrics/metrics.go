@@ -8,6 +8,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -272,6 +273,8 @@ func (m *Metrics) recordExternalRequestLog(input realtime.ExternalRequestMetricI
 	result := normalize(input.Result)
 	status = normalize(status)
 	class = normalize(class)
+	requestURL, queryParams := externalRequestURLParts(input.URL)
+	errorText := truncateExternalLogValue(strings.TrimSpace(input.Error))
 	durationSeconds := float64(input.DurationMS) / 1000
 	attributes := map[string]any{
 		"event.name":       "external_request_done",
@@ -279,6 +282,7 @@ func (m *Metrics) recordExternalRequestLog(input realtime.ExternalRequestMetricI
 		"endpoint":         endpoint,
 		"result":           result,
 		"status":           status,
+		"status_code":      status,
 		"status.class":     class,
 		"status_class":     class,
 		"duration.ms":      input.DurationMS,
@@ -286,23 +290,89 @@ func (m *Metrics) recordExternalRequestLog(input realtime.ExternalRequestMetricI
 		"duration.seconds": durationSeconds,
 		"duration_seconds": durationSeconds,
 	}
+	if requestURL != "" {
+		attributes["url"] = requestURL
+	}
+	if queryParams != "" {
+		attributes["query_params"] = queryParams
+	}
+	if errorText != "" {
+		attributes["error"] = errorText
+	}
 	m.logSink.RecordLog(
 		externalRequestLogLevel(result, class),
-		externalRequestLogMessage(provider, endpoint, result, status, class, input.DurationMS),
+		externalRequestLogMessage(status, requestURL, queryParams, errorText, input.DurationMS),
 		attributes,
 	)
 }
 
-func externalRequestLogMessage(provider, endpoint, result, status, class string, durationMS int64) string {
-	return fmt.Sprintf(
-		"external_request provider=%s endpoint=%s result=%s status=%s status_class=%s duration_ms=%d",
-		provider,
-		endpoint,
-		result,
-		status,
-		class,
-		durationMS,
-	)
+func externalRequestLogMessage(status, requestURL, queryParams, errorText string, durationMS int64) string {
+	if requestURL == "" {
+		requestURL = "unknown"
+	}
+	parts := []string{fmt.Sprintf("[%s]%s", normalize(status), requestURL)}
+	if queryParams != "" {
+		parts = append(parts, "params: "+queryParams)
+	}
+	if errorText != "" {
+		parts = append(parts, "error: "+errorText)
+	}
+	parts = append(parts, fmt.Sprintf("duration: %dms", durationMS))
+	return strings.Join(parts, ", ")
+}
+
+func externalRequestURLParts(rawURL string) (string, string) {
+	rawURL = strings.TrimSpace(rawURL)
+	if rawURL == "" {
+		return "", ""
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return truncateExternalLogValue(rawURL), ""
+	}
+	query := sanitizedQuery(parsed.Query())
+	parsed.RawQuery = ""
+	parsed.Fragment = ""
+	return truncateExternalLogValue(parsed.String()), query
+}
+
+func sanitizedQuery(values url.Values) string {
+	if len(values) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	parts := make([]string, 0, len(values))
+	for _, key := range keys {
+		vals := values[key]
+		if sensitiveQueryKey(key) {
+			parts = append(parts, key+"=[redacted]")
+			continue
+		}
+		for _, value := range vals {
+			parts = append(parts, key+"="+value)
+		}
+	}
+	return truncateExternalLogValue(strings.Join(parts, "&"))
+}
+
+func sensitiveQueryKey(key string) bool {
+	key = strings.ToLower(key)
+	return strings.Contains(key, "key") ||
+		strings.Contains(key, "token") ||
+		strings.Contains(key, "secret") ||
+		strings.Contains(key, "password")
+}
+
+func truncateExternalLogValue(value string) string {
+	const maxLogValueBytes = 4094
+	if len(value) <= maxLogValueBytes {
+		return value
+	}
+	return value[:maxLogValueBytes]
 }
 
 func externalRequestLogLevel(result, class string) string {

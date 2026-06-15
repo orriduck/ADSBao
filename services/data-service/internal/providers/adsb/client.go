@@ -341,48 +341,50 @@ func (c *Client) fetchProviderPayload(ctx context.Context, input realtime.FetchI
 	status := any(nil)
 	req, err := http.NewRequestWithContext(requestCtx, http.MethodGet, requestURL, nil)
 	if err != nil {
+		c.recordExternal(input, provider.ID, endpoint, "error", "ERR", requestURL, err.Error(), started)
 		return nil, providerError{message: err.Error(), status: "ERR"}
 	}
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", userAgent)
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		c.recordExternal(input, provider.ID, endpoint, "error", "ERR", started)
+		c.recordExternal(input, provider.ID, endpoint, "error", "ERR", requestURL, err.Error(), started)
 		return nil, providerError{message: err.Error(), status: "ERR"}
 	}
 	defer resp.Body.Close()
 	status = resp.StatusCode
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		c.recordExternal(input, provider.ID, endpoint, "error", status, started)
+		message := fmt.Sprintf("HTTP %d", resp.StatusCode)
+		c.recordExternal(input, provider.ID, endpoint, "error", status, requestURL, message, started)
 		return nil, providerError{message: fmt.Sprintf("HTTP %d", resp.StatusCode), status: status}
 	}
 	body, err := io.ReadAll(io.LimitReader(resp.Body, c.maxBytes+1))
 	if err != nil {
-		c.recordExternal(input, provider.ID, endpoint, "error", "ERR", started)
+		c.recordExternal(input, provider.ID, endpoint, "error", "ERR", requestURL, err.Error(), started)
 		return nil, providerError{message: err.Error(), status: "ERR"}
 	}
 	if int64(len(body)) > c.maxBytes {
-		c.recordExternal(input, provider.ID, endpoint, "error", "SIZE", started)
+		c.recordExternal(input, provider.ID, endpoint, "error", "SIZE", requestURL, "ADS-B response too large", started)
 		return nil, providerError{message: "ADS-B response too large", status: "SIZE"}
 	}
 	var payload map[string]any
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	if err := decoder.Decode(&payload); err != nil {
-		c.recordExternal(input, provider.ID, endpoint, "error", "PARSE", started)
+		c.recordExternal(input, provider.ID, endpoint, "error", "PARSE", requestURL, "Invalid ADS-B JSON", started)
 		return nil, providerError{message: "Invalid ADS-B JSON", status: "PARSE"}
 	}
 	if provider.Normalize != nil {
 		payload = provider.Normalize(payload)
 	}
 	if _, ok := payload["ac"].([]any); !ok {
-		c.recordExternal(input, provider.ID, endpoint, "error", "SHAPE", started)
+		c.recordExternal(input, provider.ID, endpoint, "error", "SHAPE", requestURL, "Invalid aircraft payload", started)
 		return nil, providerError{message: "Invalid aircraft payload", status: "SHAPE"}
 	}
-	c.recordExternal(input, provider.ID, endpoint, "success", status, started)
+	c.recordExternal(input, provider.ID, endpoint, "success", status, requestURL, "", started)
 	return payload, nil
 }
 
-func (c *Client) recordExternal(input realtime.FetchInput, provider, endpoint, result string, status any, started time.Time) {
+func (c *Client) recordExternal(input realtime.FetchInput, provider, endpoint, result string, status any, requestURL, errorText string, started time.Time) {
 	if input.Metrics == nil {
 		return
 	}
@@ -391,6 +393,8 @@ func (c *Client) recordExternal(input realtime.FetchInput, provider, endpoint, r
 		Endpoint:   endpoint,
 		Result:     result,
 		Status:     status,
+		URL:        requestURL,
+		Error:      errorText,
 		DurationMS: time.Since(started).Milliseconds(),
 	})
 }

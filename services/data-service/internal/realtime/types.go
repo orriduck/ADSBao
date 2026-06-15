@@ -76,6 +76,8 @@ type ExternalRequestMetricInput struct {
 	Endpoint   string
 	Result     string
 	Status     any
+	URL        string
+	Error      string
 	DurationMS int64
 }
 
