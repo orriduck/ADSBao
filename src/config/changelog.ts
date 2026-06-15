@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.4",
+    kind: "patch",
+    title: "Railway home shell restore",
+    summary:
+      "The migrated Railway frontend now renders the home page inside the intended dither shell again.",
+    highlights: [
+      "Restored the Vite root route to the same dither page shell used before the Railway cutover",
+      "Kept airport detail pages on the full-screen map explorer route",
+      "Verified the custom domains keep serving from Railway after removing the old Vercel project and domain record",
+    ],
+  },
+  {
     version: "v2.6.3",
     kind: "patch",
     title: "Railway single-service runtime",
