@@ -15,8 +15,13 @@ import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
   buildRunwayMapFromSurfaceMap,
-  buildRunwayLightCollection,
 } from "../../features/airport/map/runwayAnnotationModel";
+import { buildRunwayFaaLightCollection } from "../../features/airport/map/runwayLightingModel";
+import { runwayLightingLodForZoom } from "../../features/airport/map/airportMapZoomFeatures";
+import {
+  buildRunwayLightCanvasLayer,
+  startReilFlashTimer,
+} from "../../features/airport/map/runwayLightCanvas";
 
 const escapeHtml = (value: unknown) =>
   String(value).replace(/[&<>"']/g, (character) => {
@@ -51,11 +56,6 @@ const isWideAirportZoom = (zoom: unknown) => {
   return Number.isFinite(numericZoom) && numericZoom <= AIRPORT_MAP_ZOOM.approach;
 };
 
-const shouldShowRunwayLightsForZoom = (zoom: unknown) => {
-  const numericZoom = Number(zoom);
-  return !Number.isFinite(numericZoom) || numericZoom >= AIRPORT_MAP_ZOOM.airport;
-};
-
 const runwayLabelIcon = (ident: string, theme: string) =>
   L.divIcon({
     className: `runway-end-label runway-end-label--${theme}`,
@@ -63,14 +63,6 @@ const runwayLabelIcon = (ident: string, theme: string) =>
     iconSize: [34, 18],
     iconAnchor: [17, 22],
   });
-
-const runwayLightRadius = (feature: Record<string, any>) => {
-  const kind = String(feature?.properties?.kind || "");
-  if (kind === "centerline") return 0.82;
-  const progress = Number(feature?.properties?.progress);
-  if (progress === 0 || progress === 1) return 1.55;
-  return 1.12;
-};
 
 const isLeafletLayer = (layer: unknown): layer is L.Layer =>
   Boolean(
@@ -126,30 +118,6 @@ const buildApproachLayer = ({ kind, data, map, theme }: Record<string, any>) => 
   return { layer, beamLayer: layer, beamRenderer };
 };
 
-const buildRunwayLightLayer = ({ data }: Record<string, any>) =>
-  L.geoJSON(data as any, {
-    interactive: false,
-    pointToLayer(feature, latlng) {
-      const kind = String(feature?.properties?.kind || "");
-      const isCenterline = kind === "centerline";
-      const fillColor = isCenterline
-        ? "var(--runway-light-core)"
-        : "var(--runway-light)";
-      return L.circleMarker(latlng, {
-        bubblingMouseEvents: false,
-        className: "runway-light-dot",
-        color: "var(--runway-light-core)",
-        fill: true,
-        fillColor,
-        fillOpacity: isCenterline ? 0.68 : 0.86,
-        opacity: isCenterline ? 0.62 : 0.88,
-        radius: runwayLightRadius(feature as Record<string, any>),
-        stroke: true,
-        weight: 0.45,
-      });
-    },
-  } as any);
-
 export default function RunwayAnnotationLayer({
   runwayMap,
   surfaceMap = null,
@@ -166,13 +134,19 @@ export default function RunwayAnnotationLayer({
     () => buildRunwayMapFromSurfaceMap(surfaceMap, runwayMap),
     [runwayMap, surfaceMap],
   );
+  const annotationRunwayMap = useMemo(
+    () => surfaceRunwayMap || runwayMap,
+    [surfaceRunwayMap, runwayMap],
+  );
+  // Level-of-detail band for point lights. Derived from zoom but only changes
+  // at the breakpoints, so the canvas light effect rebuilds on band crossings
+  // (far→mid→near) — not on every fractional zoomend.
+  const lightingBand = useMemo(() => runwayLightingLodForZoom(zoom), [zoom]);
 
   useEffect(() => {
-    const annotationRunwayMap = surfaceRunwayMap || runwayMap;
     if (!map || !annotationRunwayMap?.runways?.length) return undefined;
 
     const compactZoom = Boolean(compact) || isWideAirportZoom(zoom);
-    const showRunwayLights = shouldShowRunwayLightsForZoom(zoom);
     const sublayers: L.Layer[] = [];
     if (showCenterlines) {
       const centerlines = buildRunwayCenterlineCollection(annotationRunwayMap);
@@ -194,7 +168,10 @@ export default function RunwayAnnotationLayer({
     let beamLayer = null;
     let beamRenderer = null;
 
-    if (showBeams && !compactZoom) {
+    // Approach beams render at ALL zoom levels, including the farthest, where
+    // they are the only lighting cue (point lights are hidden at the `far`
+    // band). The beam profile already widens/lengthens at approach zoom.
+    if (showBeams) {
       const visualization = buildRunwayApproachVisualization(annotationRunwayMap, {
         zoom,
         theme,
@@ -208,14 +185,6 @@ export default function RunwayAnnotationLayer({
       if (isLeafletLayer(built.layer)) sublayers.unshift(built.layer);
       beamLayer = isLeafletLayer(built.beamLayer) ? built.beamLayer : null;
       beamRenderer = built.beamRenderer;
-    }
-
-    if (!compactZoom && theme !== "light" && showRunwayLights) {
-      const runwayLights = buildRunwayLightCollection(annotationRunwayMap);
-      if (runwayLights.features.length) {
-        const lightLayer = buildRunwayLightLayer({ data: runwayLights });
-        if (isLeafletLayer(lightLayer)) sublayers.push(lightLayer);
-      }
     }
 
     if (!compactZoom && showBadges) {
@@ -264,8 +233,7 @@ export default function RunwayAnnotationLayer({
     };
   }, [
     map,
-    runwayMap,
-    surfaceRunwayMap,
+    annotationRunwayMap,
     theme,
     zoom,
     compact,
@@ -273,6 +241,34 @@ export default function RunwayAnnotationLayer({
     showBadges,
     showCenterlines,
   ]);
+
+  // FAA point lights on a single shared canvas. Separate effect so it rebuilds
+  // only when the LOD band crosses a breakpoint (far→mid→near), the airport, or
+  // the theme changes — not on every fractional zoom. Within a band, Leaflet
+  // reprojects the canvas on zoom without a rebuild.
+  useEffect(() => {
+    if (!map || !annotationRunwayMap?.runways?.length) return undefined;
+    if (lightingBand === "far") return undefined;
+
+    const lights = buildRunwayFaaLightCollection(annotationRunwayMap, {
+      band: lightingBand,
+    });
+    if (!lights.features.length) return undefined;
+
+    const { layer, renderer, reilMarkers } = buildRunwayLightCanvasLayer({
+      data: lights,
+      map,
+    });
+    renderer.addTo(map);
+    layer.addTo(map);
+    const stopReilFlash = startReilFlashTimer(reilMarkers);
+
+    return () => {
+      stopReilFlash();
+      layer.remove();
+      renderer.remove();
+    };
+  }, [map, annotationRunwayMap, lightingBand, theme]);
 
   return null;
 }

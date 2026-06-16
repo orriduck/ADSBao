@@ -6,6 +6,9 @@ import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
 import { buildRenderableAirportSurfaceFeatureCollection } from "../../features/airport/map/runwayAnnotationModel";
+import { buildTaxiwayLightCollection } from "../../features/airport/map/runwayLightingModel";
+import { runwayLightingLodForZoom } from "../../features/airport/map/airportMapZoomFeatures";
+import { buildRunwayLightCanvasLayer } from "../../features/airport/map/runwayLightCanvas";
 import {
   safeAddToMap,
   safeRemoveFromMap,
@@ -124,6 +127,27 @@ export default function AirportSurfaceLayer({
       layerRef.current = null;
     };
   }, [map, surfaceFeatures, theme, zoom]);
+
+  // Taxiway lights (green centerline + blue edge) on a shared canvas. Near band
+  // only — taxiway lights are dense and low-value when zoomed out. Rebuilds only
+  // on band crossing / airport / theme change, not on every fractional zoom.
+  const lightingBand = useMemo(() => runwayLightingLodForZoom(zoom), [zoom]);
+  useEffect(() => {
+    if (!map || !surfaceFeatures?.features?.length) return undefined;
+    if (lightingBand !== "near") return undefined;
+
+    const lights = buildTaxiwayLightCollection(surfaceFeatures, { band: lightingBand });
+    if (!lights.features.length) return undefined;
+
+    const { layer, renderer } = buildRunwayLightCanvasLayer({ data: lights, map });
+    renderer.addTo(map);
+    layer.addTo(map);
+
+    return () => {
+      layer.remove();
+      renderer.remove();
+    };
+  }, [map, surfaceFeatures, lightingBand, theme]);
 
   return null;
 }

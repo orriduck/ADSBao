@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.7.1",
+    kind: "feat",
+    title: {
+      en: "FAA-accurate runway & taxiway lighting",
+      zh: "符合 FAA 的跑道与滑行道灯光",
+    },
+    summary: {
+      en: "Runway and taxiway lights now follow FAA color conventions and scale by zoom for performance.",
+      zh: "跑道与滑行道灯光改为遵循 FAA 配色规范，并按缩放级别分层渲染以保证性能。",
+    },
+    highlights: [
+      {
+        en: "Synthesized FAA color zones: white/amber runway edges, white→red-white→red centerline, green threshold + red end bars, touchdown-zone lights, flashing REIL, plus blue taxiway edges and green taxiway centerline",
+        zh: "合成 FAA 配色分区：白/琥珀色跑道边灯、白→红白→红的中线灯、绿色入口与红色端灯、接地区灯、闪烁 REIL，以及蓝色滑行道边灯与绿色滑行道中线灯",
+      },
+      {
+        en: "Zoom level-of-detail: farthest zoom shows only approach beams, mid adds edge/threshold lights, near shows full detail — all point lights moved to a single canvas to stay smooth at busy fields",
+        zh: "按缩放分级渲染：最远缩放只显示进近光束，中景加入边灯/入口灯，近景显示完整细节；所有点光源统一改用 canvas 渲染，繁忙机场也能保持流畅",
+      },
+      {
+        en: "Light spacing is widened from the exact FAA values so individual lights stay legible at the map's maximum zoom, while the color zones remain distance-accurate; lights render in both light and dark themes",
+        zh: "灯光间距在 FAA 实际值基础上适当放大，使单个灯光在最大缩放下仍可分辨，同时配色分区仍按真实距离精确呈现；明暗主题下均可显示",
+      },
+    ],
+  },
+  {
     version: "v2.7.0",
     kind: "feat",
     title: {
