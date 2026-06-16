@@ -175,6 +175,7 @@ function AircraftPosition({
       }`}
       style={{ opacity: emphasis.opacity }}
     >
+      <span className="aircraft-marker-hit-target" aria-hidden="true" />
       <Pointer
         color={color}
         rot={rot}
@@ -254,6 +255,7 @@ function Pointer({
           silhouette.source === "type" ? "aircraft type" : "aircraft category"
         }
         style={{
+          color,
           width: `${SILHOUETTE_SIZE_PX}px`,
           height: `${SILHOUETTE_SIZE_PX}px`,
           transform: wrapperTransform,
@@ -267,23 +269,6 @@ function Pointer({
             transform: silhouetteTransform,
           } as any}
         />
-        {selected && (
-          <svg
-            aria-hidden="true"
-            className="aircraft-pointer-core"
-            viewBox="0 0 24 24"
-            style={{
-              color,
-              transform: silhouetteTransform,
-            }}
-          >
-            <path
-              className="aircraft-pointer-core__shape"
-              d="M12 2.25c.72 0 1.25.55 1.25 1.3v6.1l6.35 3.72v2.05l-6.35-1.95v4.03l2.25 1.62v1.72L12 19.82l-3.5 1.02v-1.72l2.25-1.62v-4.03L4.4 15.42v-2.05l6.35-3.72v-6.1c0-.75.53-1.3 1.25-1.3Z"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-        )}
         {theme === "dark" && (
           <span aria-hidden="true" className="aircraft-nose-beam" />
         )}
@@ -295,6 +280,7 @@ function Pointer({
       <div
         className={`aircraft-pointer-glyph${selected ? " aircraft-pointer-glyph--selected" : ""}`}
         style={{
+          color,
           width: `${SILHOUETTE_SIZE_PX}px`,
           height: `${SILHOUETTE_SIZE_PX}px`,
           transform: wrapperTransform,

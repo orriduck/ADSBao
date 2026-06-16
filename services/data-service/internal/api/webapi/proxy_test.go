@@ -3,12 +3,28 @@ package webapi
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (fn roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
+}
+
+func jsonResponse(status int, body string) *http.Response {
+	return &http.Response{
+		StatusCode: status,
+		Header:     http.Header{"Content-Type": []string{"application/json"}},
+		Body:       io.NopCloser(strings.NewReader(body)),
+	}
+}
 
 func TestAircraftPositionsRouteUsesUnifiedFetcher(t *testing.T) {
 	var got realtime.FetchInput
@@ -62,6 +78,87 @@ func TestAircraftPositionsRouteUsesUnifiedFetcher(t *testing.T) {
 		t.Fatalf("invalid json: %v", err)
 	}
 	if payload["source"] != "airplanes.live" {
+		t.Fatalf("payload = %#v", payload)
+	}
+}
+
+func TestAircraftTraceUpstreamFailureReturnsEmptyTrace(t *testing.T) {
+	handler := New(Options{
+		HTTPClient: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				if req.URL.Host != "adsb.lol" {
+					t.Fatalf("unexpected upstream host %q", req.URL.Host)
+				}
+				return jsonResponse(http.StatusServiceUnavailable, `{"error":"try later"}`), nil
+			}),
+		},
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/api/proxy/aircraft/trace/C00DEA", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rr.Code, rr.Body.String())
+	}
+	if rr.Header().Get("X-Provider-Attempts") != "adsb.lol:503" {
+		t.Fatalf("attempts header = %q", rr.Header().Get("X-Provider-Attempts"))
+	}
+	if rr.Header().Get("X-Upstream-Status") != "503" {
+		t.Fatalf("upstream status header = %q", rr.Header().Get("X-Upstream-Status"))
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v", err)
+	}
+	if payload["traceUnavailable"] != true || payload["source"] != "adsb.lol" {
+		t.Fatalf("payload = %#v", payload)
+	}
+	recent, ok := payload["recent"].(map[string]any)
+	if !ok {
+		t.Fatalf("recent payload = %#v", payload["recent"])
+	}
+	trace, ok := recent["trace"].([]any)
+	if !ok || len(trace) != 0 {
+		t.Fatalf("trace = %#v", recent["trace"])
+	}
+}
+
+func TestAircraftPhotoUpstreamForbiddenReturnsEmptyPhoto(t *testing.T) {
+	handler := New(Options{
+		HTTPClient: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				if req.URL.Host != "api.planespotters.net" {
+					t.Fatalf("unexpected upstream host %q", req.URL.Host)
+				}
+				if req.URL.Query().Get("reg") != "C-FFGZ" || req.URL.Query().Get("icaoType") != "A321" {
+					t.Fatalf("unexpected upstream query %q", req.URL.RawQuery)
+				}
+				return jsonResponse(http.StatusForbidden, `{"error":"forbidden"}`), nil
+			}),
+		},
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/api/proxy/aircraft/photos/C00DEA?registration=C-FFGZ&type=A321", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rr.Code, rr.Body.String())
+	}
+	if rr.Header().Get("X-Provider-Attempts") != "planespotters.net:403" {
+		t.Fatalf("attempts header = %q", rr.Header().Get("X-Provider-Attempts"))
+	}
+	if rr.Header().Get("X-Upstream-Status") != "403" {
+		t.Fatalf("upstream status header = %q", rr.Header().Get("X-Upstream-Status"))
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v", err)
+	}
+	if payload["photo"] != nil ||
+		payload["photoUnavailable"] != true ||
+		payload["source"] != "planespotters.net" {
 		t.Fatalf("payload = %#v", payload)
 	}
 }

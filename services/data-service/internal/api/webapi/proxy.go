@@ -222,17 +222,12 @@ func (h *Handler) handleAircraftTrace(w http.ResponseWriter, r *http.Request) {
 	}
 	upstream := fmt.Sprintf("https://adsb.lol/data/traces/%s/%s?_=%d", url.PathEscape(suffix), url.PathEscape(name), time.Now().UnixMilli())
 	payload, status, err := h.fetchJSONAny(r.Context(), upstream, adsbHeaders())
-	if status == http.StatusNotFound {
-		writeJSONWithHeaders(w, http.StatusNotFound, map[string]any{"error": "Aircraft trace not found"}, map[string]string{
-			"X-Data-Source":       "adsb.lol",
-			"X-Provider-Attempts": "adsb.lol:404",
-		})
-		return
-	}
 	if err != nil || status < 200 || status >= 300 {
-		writeJSONWithHeaders(w, http.StatusBadGateway, map[string]any{"error": "Failed to load aircraft trace"}, map[string]string{
-			"X-Data-Source":       "failed",
-			"X-Provider-Attempts": "adsb.lol:ERR",
+		writeJSONWithHeaders(w, http.StatusOK, emptyAircraftTracePayload(hex, status, err), map[string]string{
+			"Cache-Control":       "no-store",
+			"X-Data-Source":       "adsb.lol",
+			"X-Provider-Attempts": "adsb.lol:" + upstreamAttemptStatus(status, err),
+			"X-Upstream-Status":   upstreamStatusHeader(status, err),
 		})
 		return
 	}
@@ -258,17 +253,21 @@ func (h *Handler) handleAircraftPhoto(w http.ResponseWriter, r *http.Request) {
 		"User-Agent": "ADSBao data-service/1.0",
 	})
 	if err != nil || status < 200 || status >= 300 {
-		writeJSONWithHeaders(w, statusOr(status, http.StatusBadGateway), map[string]any{"error": "Failed to load aircraft photo"}, map[string]string{
-			"Cache-Control": "no-store",
-			"X-Data-Source": "failed",
+		writeJSONWithHeaders(w, http.StatusOK, emptyAircraftPhotoPayload(hex, status, err), map[string]string{
+			"Cache-Control":       "public, s-maxage=900, stale-while-revalidate=3600",
+			"X-Data-Source":       "planespotters.net",
+			"X-Provider-Attempts": "planespotters.net:" + upstreamAttemptStatus(status, err),
+			"X-Upstream-Status":   upstreamStatusHeader(status, err),
 		})
 		return
 	}
 	photo := selectPlanespottersPhoto(hex, r, payload)
 	if photo == nil {
-		writeJSONWithHeaders(w, http.StatusNotFound, map[string]any{"error": "Aircraft photo not found"}, map[string]string{
-			"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
-			"X-Data-Source": "planespotters.net",
+		writeJSONWithHeaders(w, http.StatusOK, emptyAircraftPhotoPayload(hex, status, nil), map[string]string{
+			"Cache-Control":       "public, s-maxage=3600, stale-while-revalidate=86400",
+			"X-Data-Source":       "planespotters.net",
+			"X-Provider-Attempts": "planespotters.net:empty",
+			"X-Upstream-Status":   upstreamStatusHeader(status, nil),
 		})
 		return
 	}
@@ -289,17 +288,29 @@ func (h *Handler) handleAircraftPhotoImage(w http.ResponseWriter, r *http.Reques
 		"User-Agent": "ADSBao data-service/1.0",
 	})
 	if err != nil || status < 200 || status >= 300 {
-		writeJSONWithHeaders(w, statusOr(status, http.StatusBadGateway), map[string]any{"error": "Failed to load aircraft photo image"}, map[string]string{"X-Data-Source": "failed"})
+		w.Header().Set("Cache-Control", "public, s-maxage=900, stale-while-revalidate=3600")
+		w.Header().Set("X-Data-Source", "planespotters.net")
+		w.Header().Set("X-Provider-Attempts", "planespotters.net:"+upstreamAttemptStatus(status, err))
+		w.Header().Set("X-Upstream-Status", upstreamStatusHeader(status, err))
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	imageURL := planespottersImageURL(payload)
 	if imageURL == "" {
-		writeJSONWithHeaders(w, http.StatusNotFound, map[string]any{"error": "Aircraft photo not found"}, map[string]string{"X-Data-Source": "planespotters.net"})
+		w.Header().Set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400")
+		w.Header().Set("X-Data-Source", "planespotters.net")
+		w.Header().Set("X-Provider-Attempts", "planespotters.net:empty")
+		w.Header().Set("X-Upstream-Status", upstreamStatusHeader(status, nil))
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	body, contentType, status, err := h.fetchImage(r.Context(), imageURL)
 	if err != nil || status < 200 || status >= 300 {
-		writeJSONWithHeaders(w, statusOr(status, http.StatusBadGateway), map[string]any{"error": "Failed to load aircraft photo image"}, map[string]string{"X-Data-Source": "failed"})
+		w.Header().Set("Cache-Control", "public, s-maxage=900, stale-while-revalidate=3600")
+		w.Header().Set("X-Data-Source", "planespotters.net")
+		w.Header().Set("X-Provider-Attempts", "planespotters.net:image:"+upstreamAttemptStatus(status, err))
+		w.Header().Set("X-Upstream-Status", upstreamStatusHeader(status, err))
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 	w.Header().Set("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400")
@@ -647,6 +658,58 @@ func providerSource(provider string) string {
 	default:
 		return "unknown"
 	}
+}
+
+func emptyAircraftTracePayload(hex string, upstreamStatus int, upstreamErr error) map[string]any {
+	payload := map[string]any{
+		"hex":              hex,
+		"recent":           map[string]any{"timestamp": float64(time.Now().Unix()), "trace": []any{}},
+		"source":           "adsb.lol",
+		"traceUnavailable": true,
+	}
+	if upstreamStatus > 0 {
+		payload["upstreamStatus"] = upstreamStatus
+	}
+	if upstreamErr != nil {
+		payload["upstreamError"] = true
+	}
+	return payload
+}
+
+func emptyAircraftPhotoPayload(hex string, upstreamStatus int, upstreamErr error) map[string]any {
+	payload := map[string]any{
+		"hex":              hex,
+		"photo":            nil,
+		"source":           "planespotters.net",
+		"photoUnavailable": true,
+	}
+	if upstreamStatus > 0 {
+		payload["upstreamStatus"] = upstreamStatus
+	}
+	if upstreamErr != nil {
+		payload["upstreamError"] = true
+	}
+	return payload
+}
+
+func upstreamAttemptStatus(status int, err error) string {
+	if err != nil {
+		return "ERR"
+	}
+	if status > 0 {
+		return strconv.Itoa(status)
+	}
+	return "ERR"
+}
+
+func upstreamStatusHeader(status int, err error) string {
+	if status > 0 {
+		return strconv.Itoa(status)
+	}
+	if err != nil {
+		return "ERR"
+	}
+	return "unknown"
 }
 
 func planespottersURL(hex string, query url.Values) string {

@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.15",
+    kind: "patch",
+    title: "Aircraft click diagnostics",
+    summary:
+      "Aircraft clicks no longer surface optional provider failures as browser 403/5xx errors.",
+    highlights: [
+      "Downgraded aircraft photo and trace upstream failures to empty provider payloads with diagnostic headers",
+      "Removed the duplicate selected-aircraft core icon so a clicked plane keeps a single silhouette",
+      "Restored a larger invisible marker hit target so aircraft clicks do not fall through to map overlays",
+    ],
+  },
+  {
     version: "v2.6.14",
     kind: "patch",
     title: "Aircraft position stale cache",
