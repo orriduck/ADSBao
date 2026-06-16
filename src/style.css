@@ -1282,6 +1282,9 @@
     --aviation-runway-approach-line: rgba(255, 211, 106, 0.78);
     --aviation-runway-approach-beam: var(--aviation-runway-yellow);
     --aviation-nearby-runway-line: var(--aviation-runway-yellow);
+    --aviation-runway-light-core: oklch(96% 0.042 94);
+    --aviation-runway-light: oklch(91% 0.095 91);
+    --aviation-runway-light-glow: oklch(86% 0.12 88 / 0.42);
     --aircraft-trace-line: var(--aviation-trace-line);
     --aircraft-trace-glow: var(--aviation-trace-glow);
     --aircraft-trace-point: var(--aviation-trace-point);
@@ -1306,11 +1309,11 @@
     );
     --airport-surface-runway-stroke: color-mix(
         in oklab,
-        var(--aviation-runway-yellow) 88%,
+        var(--aviation-runway-yellow) 92%,
         transparent
     );
-    --airport-surface-taxiway-line: oklch(76% 0.006 100 / 0.88);
-    --airport-surface-taxilane-line: oklch(70% 0.006 100 / 0.78);
+    --airport-surface-taxiway-line: oklch(72% 0.004 100 / 0.76);
+    --airport-surface-taxilane-line: oklch(66% 0.004 100 / 0.64);
 
     /* Dark theme: same single light ink for every aircraft. */
     --aircraft-departure: oklch(0.86 0.006 100);
@@ -1681,11 +1684,6 @@ body:has(.app-detail-shell) {
     filter: drop-shadow(0 0 1.2px var(--runway-light-glow))
         drop-shadow(0 0 3px var(--runway-light-glow));
     mix-blend-mode: screen;
-}
-
-.runway-threshold-light-dot {
-    filter: drop-shadow(0 0 1.5px var(--runway-light-glow))
-        drop-shadow(0 0 5px var(--runway-light-glow));
 }
 
 .runway-approach-light-dot {

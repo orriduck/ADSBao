@@ -5,6 +5,7 @@ import {
   buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
+  buildRunwayMapFromSurfaceMap,
   buildRunwayLightCollection,
   resolveRunwayAnnotationVisibility,
 } from "./runwayAnnotationModel";
@@ -100,34 +101,34 @@ assert.deepEqual(
 );
 
 const approachBeam = approachBeams.features[0];
-assert.equal(approachBeam.properties.beamAngleDegrees, 10);
-assert.equal(Math.round(approachBeam.properties.beamDistanceMeters), 16093);
+assert.equal(approachBeam.properties.beamAngleDegrees, 7);
+assert.equal(Math.round(approachBeam.properties.beamDistanceMeters), 5150);
 assert.equal(approachBeam.geometry.coordinates[0].length, 22);
 assert.ok(
   metersBetween(
     approachBeam.geometry.coordinates[0][0],
     approachBeam.geometry.coordinates[0][1],
-  ) >= 519,
+  ) >= 119,
 );
 
 const airportBeam = buildRunwayApproachVisualization(runwayMap, {
   zoom: ZOOM_AIRPORT,
 }).data.features[0];
-assert.equal(airportBeam.properties.beamAngleDegrees, 12);
-assert.equal(Math.round(airportBeam.properties.beamDistanceMeters), 5794);
+assert.equal(airportBeam.properties.beamAngleDegrees, 9);
+assert.equal(Math.round(airportBeam.properties.beamDistanceMeters), 2012);
 
 const nearbyAirportBeam = buildRunwayApproachVisualization(runwayMap, {
   zoom: ZOOM_AIRPORT,
   distanceScale: 0.3,
 }).data.features[0];
-assert.equal(nearbyAirportBeam.properties.beamAngleDegrees, 12);
-assert.equal(Math.round(nearbyAirportBeam.properties.beamDistanceMeters), 1738);
+assert.equal(nearbyAirportBeam.properties.beamAngleDegrees, 9);
+assert.equal(Math.round(nearbyAirportBeam.properties.beamDistanceMeters), 604);
 
 const detailBeam = buildRunwayApproachVisualization(runwayMap, {
   zoom: ZOOM_DETAIL,
 }).data.features[0];
-assert.equal(detailBeam.properties.beamAngleDegrees, 16);
-assert.equal(Math.round(detailBeam.properties.beamDistanceMeters), 2334);
+assert.equal(detailBeam.properties.beamAngleDegrees, 13);
+assert.equal(Math.round(detailBeam.properties.beamDistanceMeters), 998);
 
 const lightVisualization = buildRunwayApproachVisualization(runwayMap, {
   theme: "light",
@@ -146,16 +147,16 @@ const nightVisualization = buildRunwayApproachVisualization(runwayMap, {
 assert.equal(nightVisualization.kind, "approach-beams");
 
 const runwayLights = buildRunwayLightCollection(runwayMap);
-assert.equal(runwayLights.features.length, 92);
+assert.equal(runwayLights.features.length, 45);
 const runwayStartCoordinate = runwayMap.runways[0].centerline.geometry
   .coordinates[0] as [any, any];
 assert.deepEqual(
   [...new Set(runwayLights.features.map((feature) => feature.properties.side))],
-  ["left", "right", "center", "threshold"],
+  ["left", "right", "center"],
 );
 assert.equal(runwayLights.features[0].properties.progress, 0);
-assert.equal(runwayLights.features.at(-15).properties.progress, 1);
-assert.equal(runwayLights.features.at(-15).properties.kind, "centerline");
+assert.equal(runwayLights.features.at(-1).properties.progress, 1);
+assert.equal(runwayLights.features.at(-1).properties.kind, "centerline");
 assert.ok(
   metersBetween(
     runwayLights.features[0].geometry.coordinates,
@@ -168,26 +169,10 @@ assert.ok(
     runwayStartCoordinate,
   ) <= 26,
 );
-assert.equal(
-  runwayLights.features.filter((feature) => feature.properties.kind === "threshold")
-    .length,
-  14,
-);
-assert.deepEqual(
-  [
-    ...new Set(
-      runwayLights.features
-        .filter((feature) => feature.properties.kind === "threshold")
-        .map((feature) => feature.properties.runwayEnd),
-    ),
-  ],
-  ["04R", "22L"],
-);
-
 const approachLights = buildRunwayApproachLightCollection(runwayMap, {
   zoom: ZOOM_AIRPORT,
 });
-assert.equal(approachLights.features.length, 26);
+assert.equal(approachLights.features.length, 8);
 assert.deepEqual(
   [...new Set(approachLights.features.map((feature) => feature.properties.runwayEnd))],
   ["04R", "22L"],
@@ -199,6 +184,64 @@ assert.ok(
     runwayStartCoordinate,
   ) > 90,
 );
+
+const surfaceRunwayMap = buildRunwayMapFromSurfaceMap({
+  airport: "KBOS",
+  source: "OpenStreetMap",
+  sourceAttribution: "OpenStreetMap contributors",
+  features: {
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [-71.0103, 42.354],
+            [-71.005, 42.365],
+            [-70.9991, 42.3773],
+          ],
+        },
+        properties: {
+          id: "osm-way-123",
+          kind: "runway",
+          ref: "04R/22L",
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [-71.01, 42.35],
+            [-71.02, 42.36],
+          ],
+        },
+        properties: {
+          id: "osm-way-456",
+          kind: "taxiway",
+          ref: "A",
+        },
+      },
+    ],
+  },
+});
+assert.equal(surfaceRunwayMap?.source, "OpenStreetMap");
+assert.equal(surfaceRunwayMap?.runways.length, 1);
+assert.deepEqual(
+  surfaceRunwayMap?.runways[0].ends.map((end) => end.ident),
+  ["04R", "22L"],
+);
+assert.deepEqual(
+  buildRunwayCenterlineCollection(surfaceRunwayMap).features[0].geometry
+    .coordinates,
+  [
+    [-71.0103, 42.354],
+    [-71.005, 42.365],
+    [-70.9991, 42.3773],
+  ],
+);
+assert.ok(buildRunwayLightCollection(surfaceRunwayMap).features.length > 0);
 
 assert.deepEqual(
   resolveRunwayAnnotationVisibility({

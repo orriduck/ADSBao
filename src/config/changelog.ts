@@ -7,6 +7,17 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.18",
+    kind: "patch",
+    title: "机场跑道显示修复",
+    summary: "主机场跑道、滑行道和灯光在迁移后改为同源渲染，减少重叠和错位。",
+    highlights: [
+      "远距离视图只显示简化跑道线和机场标记",
+      "近距离视图使用 OSM 地面几何绘制跑道、滑行道和跑道灯",
+      "移除主机场重复跑道线、端点编号和错位进近点阵",
+    ],
+  },
+  {
     version: "v2.6.17",
     kind: "feat",
     title: "Railway 单服务迁移",

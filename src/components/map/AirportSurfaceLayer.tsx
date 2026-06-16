@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import L from "leaflet";
+import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
 import {
@@ -13,23 +14,26 @@ import { useMapInstance } from "./MapContext";
 const airportSurfaceClassName = (kind: string) =>
   `airport-surface-feature airport-surface-feature--${kind}`;
 
-const airportSurfaceStyle = (feature: Record<string, any>) => {
+const shouldShowAirportSurfaceForZoom = (zoom: unknown) => {
+  const numericZoom = Number(zoom);
+  return !Number.isFinite(numericZoom) || numericZoom > AIRPORT_MAP_ZOOM.approach;
+};
+
+const shouldRenderAirportSurfaceFeature = (
+  feature: Record<string, any>,
+) => {
+  const kind = String(feature?.properties?.kind || "");
+  return kind === "runway" || kind === "taxiway" || kind === "taxilane";
+};
+
+const airportSurfaceStyle = (
+  feature: Record<string, any>,
+  theme: string,
+) => {
   const kind = String(feature?.properties?.kind || "");
   const geometryType = String(feature?.geometry?.type || "");
   const polygon = geometryType === "Polygon" || geometryType === "MultiPolygon";
-
-  if (kind === "apron") {
-    return {
-      className: airportSurfaceClassName(kind),
-      color: "var(--airport-surface-apron-stroke)",
-      fill: true,
-      fillColor: "var(--airport-surface-apron-fill)",
-      fillOpacity: 0.28,
-      opacity: 0.42,
-      stroke: true,
-      weight: 1,
-    };
-  }
+  const isLight = theme === "light";
 
   if (kind === "runway") {
     return {
@@ -40,9 +44,11 @@ const airportSurfaceStyle = (feature: Record<string, any>) => {
       fillOpacity: 0,
       lineCap: "round",
       lineJoin: "round",
-      opacity: 0.56,
+      opacity: isLight ? 0.28 : 0.68,
       stroke: true,
-      weight: polygon ? 4.6 : 5.2,
+      weight: isLight
+        ? polygon ? 1.8 : 2.4
+        : polygon ? 5.6 : 6.2,
     };
   }
 
@@ -53,9 +59,9 @@ const airportSurfaceStyle = (feature: Record<string, any>) => {
       fill: false,
       lineCap: "round",
       lineJoin: "round",
-      opacity: 0.28,
+      opacity: isLight ? 0.24 : 0.3,
       stroke: true,
-      weight: 2.4,
+      weight: isLight ? 1.8 : 3,
     };
   }
 
@@ -65,21 +71,23 @@ const airportSurfaceStyle = (feature: Record<string, any>) => {
     fill: false,
     lineCap: "round",
     lineJoin: "round",
-    opacity: 0.34,
+    opacity: isLight ? 0.3 : 0.38,
     stroke: true,
-    weight: 3.2,
+    weight: isLight ? 2.4 : 4,
   };
 };
 
 export default function AirportSurfaceLayer({
   surfaceMap = null,
   theme = "dark",
+  zoom,
 }: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
 
   useEffect(() => {
     if (!map || !surfaceMap?.features?.features?.length) return undefined;
+    if (!shouldShowAirportSurfaceForZoom(zoom)) return undefined;
 
     safeRemoveFromMap(layerRef.current, map);
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.surface);
@@ -89,8 +97,11 @@ export default function AirportSurfaceLayer({
     const layer = L.geoJSON(surfaceMap.features as any, {
       interactive: false,
       renderer,
+      filter(feature) {
+        return shouldRenderAirportSurfaceFeature(feature as Record<string, any>);
+      },
       style(feature) {
-        return airportSurfaceStyle(feature as Record<string, any>);
+        return airportSurfaceStyle(feature as Record<string, any>, theme);
       },
     } as any);
 
@@ -106,7 +117,7 @@ export default function AirportSurfaceLayer({
       renderer.remove();
       layerRef.current = null;
     };
-  }, [map, surfaceMap, theme]);
+  }, [map, surfaceMap, theme, zoom]);
 
   return null;
 }

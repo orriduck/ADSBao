@@ -5,13 +5,11 @@ import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const STATUTE_MILE_METERS = 1_609.344;
 const FEET_TO_METERS = 0.3048;
-const RUNWAY_LIGHT_SPACING_METERS = 90;
-const RUNWAY_CENTERLINE_LIGHT_SPACING_METERS = 180;
-const RUNWAY_APPROACH_LIGHT_SPACING_METERS = 120;
-const RUNWAY_THRESHOLD_LIGHT_COUNT = 7;
-const RUNWAY_THRESHOLD_LIGHT_OVERHANG_METERS = 8;
-const MIN_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 900;
-const MAX_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 1_800;
+const RUNWAY_LIGHT_SPACING_METERS = 170;
+const RUNWAY_CENTERLINE_LIGHT_SPACING_METERS = 260;
+const RUNWAY_APPROACH_LIGHT_SPACING_METERS = 180;
+const MIN_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 260;
+const MAX_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 900;
 const DEFAULT_RUNWAY_WIDTH_METERS = 45;
 const MIN_RUNWAY_LIGHT_WIDTH_METERS = 18;
 const MAX_RUNWAY_LIGHT_WIDTH_METERS = 80;
@@ -32,6 +30,85 @@ const isCoordinate2D = (value: unknown): value is Coordinate2D =>
   Array.isArray(value) &&
   Number.isFinite(value[0]) &&
   Number.isFinite(value[1]);
+
+const runwaySurfaceId = (feature: RunwayAnnotationRecord, index: number) => {
+  const properties = feature?.properties || {};
+  const raw =
+    properties.ref ||
+    properties.name ||
+    properties.id ||
+    `surface-runway-${index + 1}`;
+  return String(raw || `surface-runway-${index + 1}`).toUpperCase();
+};
+
+const runwayEndsFromSurfaceFeature = (
+  runwayId: string,
+  coordinates: Coordinate2D[],
+) => {
+  const start = coordinates[0];
+  const end = coordinates.at(-1);
+  if (!isCoordinate2D(start) || !isCoordinate2D(end)) return [];
+
+  const [startIdent = runwayId, endIdent = runwayId] = runwayId
+    .split("/")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  return [
+    { ident: startIdent, lon: start[0], lat: start[1] },
+    { ident: endIdent, lon: end[0], lat: end[1] },
+  ];
+};
+
+export function buildRunwayMapFromSurfaceMap(surfaceMap: RunwayAnnotationRecord) {
+  const sourceFeatures = surfaceMap?.features?.features;
+  if (!Array.isArray(sourceFeatures)) return null;
+
+  const runways = sourceFeatures
+    .filter(
+      (feature) =>
+        feature?.properties?.kind === "runway" &&
+        feature?.geometry?.type === "LineString",
+    )
+    .map((feature, index) => {
+      const coordinates = (feature?.geometry?.coordinates || []).filter(isCoordinate2D);
+      if (coordinates.length < 2) return null;
+
+      const id = runwaySurfaceId(feature, index);
+      const ends = runwayEndsFromSurfaceFeature(id, coordinates);
+      if (ends.length < 2) return null;
+
+      return {
+        id,
+        sourceId: feature?.properties?.id || "",
+        widthFt: Number(feature?.properties?.widthFt),
+        ends,
+        centerline: {
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates,
+          },
+          properties: {
+            id,
+            sourceId: feature?.properties?.id || "",
+            source: surfaceMap?.source || "OpenStreetMap",
+            ends: ends.map((end) => end.ident),
+          },
+        },
+      };
+    })
+    .filter(Boolean);
+
+  if (!runways.length) return null;
+
+  return {
+    airport: surfaceMap?.airport || "",
+    source: surfaceMap?.source || "OpenStreetMap",
+    sourceAttribution: surfaceMap?.sourceAttribution || "",
+    runways,
+  };
+}
 
 const runwayBeamProfileForZoom = (zoom: unknown) => {
   const numericZoom = Number.isFinite(Number(zoom)) ? Number(zoom) : ZOOM_APPROACH;
@@ -138,16 +215,6 @@ const offsetCoordinate = (
   ] as Coordinate2D;
 };
 
-const offsetAlongRunway = (
-  coordinate: Coordinate2D,
-  vector: RunwayAnnotationRecord,
-  distanceMeters: number,
-) =>
-  [
-    coordinate[0] + (vector.x * distanceMeters) / vector.lonMeters,
-    coordinate[1] + (vector.y * distanceMeters) / METERS_PER_DEGREE_LATITUDE,
-  ] as Coordinate2D;
-
 const runwayWidthMeters = (runway: RunwayAnnotationRecord) => {
   const widthMeters = Number(runway?.widthFt) * FEET_TO_METERS;
   if (!Number.isFinite(widthMeters) || widthMeters <= 0) {
@@ -223,41 +290,7 @@ const runwayLightFeaturesForRunway = (runway: RunwayAnnotationRecord) => {
     };
   });
 
-  const thresholdLights = [start, end].flatMap((threshold, thresholdIndex) => {
-    const direction = thresholdIndex === 0 ? -1 : 1;
-    const baseCoordinate = offsetAlongRunway(
-      threshold,
-      vector,
-      RUNWAY_THRESHOLD_LIGHT_OVERHANG_METERS * direction,
-    );
-    const runwayEnd = runway?.ends?.[thresholdIndex]?.ident || "";
-
-    return Array.from({ length: RUNWAY_THRESHOLD_LIGHT_COUNT }, (_, index) => {
-      const progress =
-        RUNWAY_THRESHOLD_LIGHT_COUNT <= 1
-          ? 0.5
-          : index / (RUNWAY_THRESHOLD_LIGHT_COUNT - 1);
-      const lateralDistance = (progress - 0.5) * halfWidthMeters * 2.25;
-
-      return {
-        type: "Feature",
-        geometry: {
-          type: "Point",
-          coordinates: offsetCoordinate(baseCoordinate, vector, lateralDistance),
-        },
-        properties: {
-          kind: "threshold",
-          runwayId: runway.id,
-          runwayEnd,
-          lightIndex: index,
-          progress,
-          side: "threshold",
-        },
-      };
-    });
-  });
-
-  return [...edgeLights, ...centerlineLights, ...thresholdLights];
+  return [...edgeLights, ...centerlineLights];
 };
 
 const runwayApproachLightDistance = (profile: RunwayAnnotationRecord) =>

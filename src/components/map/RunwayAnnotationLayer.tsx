@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
+import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
 import {
   AIRPORT_MAP_PANES,
   RUNWAY_ANNOTATION_STYLE_CONFIG,
@@ -10,10 +11,10 @@ import {
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
 import { createRunwayBeamGradientController } from "../../features/airport/map/runwayBeamGradientController";
 import {
-  buildRunwayApproachLightCollection,
   buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
+  buildRunwayMapFromSurfaceMap,
   buildRunwayLightCollection,
 } from "../../features/airport/map/runwayAnnotationModel";
 
@@ -29,13 +30,31 @@ const escapeHtml = (value: unknown) =>
     return entities[character];
   });
 
-const runwayLineStyle = (theme: string) =>
-  RUNWAY_ANNOTATION_STYLE_CONFIG.lineStyles[theme] ||
-  RUNWAY_ANNOTATION_STYLE_CONFIG.lineStyles.dark;
+const compactRunwayLineStyle = () => ({
+  color: "var(--nearby-runway-line)",
+  weight: 3,
+  opacity: 0.5,
+});
+
+const runwayLineStyle = (theme: string, compact: boolean) =>
+  compact
+    ? compactRunwayLineStyle()
+    : RUNWAY_ANNOTATION_STYLE_CONFIG.lineStyles[theme] ||
+      RUNWAY_ANNOTATION_STYLE_CONFIG.lineStyles.dark;
 
 const runwayBeamColor = (theme: string) =>
   RUNWAY_ANNOTATION_STYLE_CONFIG.beamColors[theme] ||
   RUNWAY_ANNOTATION_STYLE_CONFIG.beamColors.dark;
+
+const isWideAirportZoom = (zoom: unknown) => {
+  const numericZoom = Number(zoom);
+  return Number.isFinite(numericZoom) && numericZoom <= AIRPORT_MAP_ZOOM.approach;
+};
+
+const isDetailAirportZoom = (zoom: unknown) => {
+  const numericZoom = Number(zoom);
+  return !Number.isFinite(numericZoom) || numericZoom >= AIRPORT_MAP_ZOOM.detail;
+};
 
 const runwayLabelIcon = (ident: string, theme: string) =>
   L.divIcon({
@@ -47,17 +66,10 @@ const runwayLabelIcon = (ident: string, theme: string) =>
 
 const runwayLightRadius = (feature: Record<string, any>) => {
   const kind = String(feature?.properties?.kind || "");
-  if (kind === "threshold") return 1.7;
   if (kind === "centerline") return 0.82;
   const progress = Number(feature?.properties?.progress);
   if (progress === 0 || progress === 1) return 1.55;
   return 1.12;
-};
-
-const runwayApproachLightRadius = (feature: Record<string, any>) => {
-  const progress = Number(feature?.properties?.progress);
-  if (!Number.isFinite(progress)) return 1.08;
-  return Math.max(0.72, 1.24 - progress * 0.42);
 };
 
 const isLeafletLayer = (layer: unknown): layer is L.Layer =>
@@ -120,78 +132,67 @@ const buildRunwayLightLayer = ({ data }: Record<string, any>) =>
     pointToLayer(feature, latlng) {
       const kind = String(feature?.properties?.kind || "");
       const isCenterline = kind === "centerline";
-      const isThreshold = kind === "threshold";
+      const fillColor = isCenterline
+        ? "var(--runway-light-core)"
+        : "var(--runway-light)";
       return L.circleMarker(latlng, {
         bubblingMouseEvents: false,
-        className:
-          isThreshold
-            ? "runway-light-dot runway-threshold-light-dot"
-            : "runway-light-dot",
+        className: "runway-light-dot",
         color: "var(--runway-light-core)",
         fill: true,
-        fillColor: isCenterline
-          ? "var(--runway-light-core)"
-          : "var(--runway-light)",
-        fillOpacity: isCenterline ? 0.68 : isThreshold ? 0.96 : 0.86,
-        opacity: isCenterline ? 0.62 : isThreshold ? 0.96 : 0.88,
+        fillColor,
+        fillOpacity: isCenterline ? 0.68 : 0.86,
+        opacity: isCenterline ? 0.62 : 0.88,
         radius: runwayLightRadius(feature as Record<string, any>),
         stroke: true,
-        weight: isThreshold ? 0.5 : 0.45,
-      });
-    },
-  } as any);
-
-const buildRunwayApproachLightLayer = ({ data }: Record<string, any>) =>
-  L.geoJSON(data as any, {
-    interactive: false,
-    pointToLayer(feature, latlng) {
-      return L.circleMarker(latlng, {
-        bubblingMouseEvents: false,
-        className: "runway-approach-light-dot",
-        color: "var(--runway-light-core)",
-        fill: true,
-        fillColor: "var(--runway-light)",
-        fillOpacity: 0.78,
-        opacity: 0.76,
-        radius: runwayApproachLightRadius(feature as Record<string, any>),
-        stroke: true,
-        weight: 0.38,
+        weight: 0.45,
       });
     },
   } as any);
 
 export default function RunwayAnnotationLayer({
   runwayMap,
+  surfaceMap = null,
   theme = "dark",
   zoom,
+  compact = false,
   showBeams = true,
   showBadges = true,
+  showCenterlines = true,
 }: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
 
   useEffect(() => {
-    if (!map || !runwayMap?.runways?.length) return undefined;
+    const annotationRunwayMap =
+      buildRunwayMapFromSurfaceMap(surfaceMap) || runwayMap;
+    if (!map || !annotationRunwayMap?.runways?.length) return undefined;
 
-    const centerlines = buildRunwayCenterlineCollection(runwayMap);
-    const lineLayer = L.geoJSON(centerlines as any, {
-      interactive: false,
-      style() {
-        return {
-          ...runwayLineStyle(theme),
-          className: "runway-centerline",
-          lineCap: "butt",
-          lineJoin: "round",
-        };
-      },
-    });
-
-    const sublayers: L.Layer[] = [lineLayer].filter(isLeafletLayer);
+    const compactZoom = Boolean(compact) || isWideAirportZoom(zoom);
+    const detailZoom = isDetailAirportZoom(zoom);
+    const sublayers: L.Layer[] = [];
+    if (showCenterlines) {
+      const centerlines = buildRunwayCenterlineCollection(annotationRunwayMap);
+      const lineLayer = L.geoJSON(centerlines as any, {
+        interactive: false,
+        style() {
+          return {
+            ...runwayLineStyle(theme, compactZoom),
+            className: compactZoom
+              ? "runway-centerline runway-centerline--compact"
+              : "runway-centerline",
+            lineCap: "butt",
+            lineJoin: "round",
+          };
+        },
+      });
+      if (isLeafletLayer(lineLayer)) sublayers.push(lineLayer);
+    }
     let beamLayer = null;
     let beamRenderer = null;
 
-    if (showBeams) {
-      const visualization = buildRunwayApproachVisualization(runwayMap, {
+    if (showBeams && !compactZoom) {
+      const visualization = buildRunwayApproachVisualization(annotationRunwayMap, {
         zoom,
         theme,
       });
@@ -204,28 +205,18 @@ export default function RunwayAnnotationLayer({
       if (isLeafletLayer(built.layer)) sublayers.unshift(built.layer);
       beamLayer = isLeafletLayer(built.beamLayer) ? built.beamLayer : null;
       beamRenderer = built.beamRenderer;
+    }
 
-      if (theme !== "light") {
-        const approachLights = buildRunwayApproachLightCollection(runwayMap, {
-          zoom,
-        });
-        if (approachLights.features.length) {
-          const approachLightLayer = buildRunwayApproachLightLayer({
-            data: approachLights,
-          });
-          if (isLeafletLayer(approachLightLayer)) sublayers.push(approachLightLayer);
-        }
-
-        const runwayLights = buildRunwayLightCollection(runwayMap);
-        if (runwayLights.features.length) {
-          const lightLayer = buildRunwayLightLayer({ data: runwayLights });
-          if (isLeafletLayer(lightLayer)) sublayers.push(lightLayer);
-        }
+    if (!compactZoom && theme !== "light" && detailZoom) {
+      const runwayLights = buildRunwayLightCollection(annotationRunwayMap);
+      if (runwayLights.features.length) {
+        const lightLayer = buildRunwayLightLayer({ data: runwayLights });
+        if (isLeafletLayer(lightLayer)) sublayers.push(lightLayer);
       }
     }
 
-    if (showBadges) {
-      const labels = buildRunwayEndLabels(runwayMap, { zoom });
+    if (!compactZoom && showBadges) {
+      const labels = buildRunwayEndLabels(annotationRunwayMap, { zoom });
       const labelLayer = L.layerGroup(
         labels.map((label) =>
           L.marker([label.lat, label.lon], {
@@ -268,7 +259,17 @@ export default function RunwayAnnotationLayer({
       beamRenderer?.remove();
       layerRef.current = null;
     };
-  }, [map, runwayMap, theme, zoom, showBeams, showBadges]);
+  }, [
+    map,
+    runwayMap,
+    surfaceMap,
+    theme,
+    zoom,
+    compact,
+    showBeams,
+    showBadges,
+    showCenterlines,
+  ]);
 
   return null;
 }

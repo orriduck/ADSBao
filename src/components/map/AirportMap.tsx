@@ -19,6 +19,7 @@ import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
 import AirportSurfaceLayer from "./AirportSurfaceLayer";
 import { resolveRunwayAnnotationVisibility } from "../../features/airport/map/runwayAnnotationModel";
 import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap";
+import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
 import MapAttribution from "./MapAttribution";
 import MapLoadingOverlay, {
   useMapLoadingOverlayText,
@@ -122,6 +123,7 @@ export default function AirportMap({
     exiting: false,
   });
   const [currentTheme, setCurrentTheme] = useState(() => resolveCurrentTheme());
+  const compactRunwayAnnotations = Number(zoom) <= AIRPORT_MAP_ZOOM.approach;
   const focalCenter = useMemo(
     () => resolveAirportMapFocalCenter({ lat, lon }),
     [lat, lon],
@@ -465,6 +467,7 @@ export default function AirportMap({
           <AirportSurfaceLayer
             surfaceMap={surfaceMap}
             theme={currentTheme}
+            zoom={zoom}
           />
           {icao && (
             <AirportMarker
@@ -515,10 +518,13 @@ export default function AirportMap({
           />
           <RunwayAnnotationLayer
             runwayMap={runwayMap}
+            surfaceMap={surfaceMap}
             theme={currentTheme}
             zoom={zoom}
+            compact={compactRunwayAnnotations}
             showBeams={runwayAnnotationVisibility.showBeams}
-            showBadges={runwayAnnotationVisibility.showBadges}
+            showBadges={false}
+            showCenterlines={compactRunwayAnnotations}
           />
           <CandidateWatchingSpotsLayer
             enabled={showCandidateWatchingSpots}

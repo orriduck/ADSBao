@@ -4,6 +4,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  const localApiOrigin =
+    env.VITE_ADSBAO_LOCAL_API_ORIGIN ||
+    env.ADSBAO_LOCAL_API_ORIGIN ||
+    "http://localhost:8081";
   const clientEnv = {
     NODE_ENV: mode === "production" ? "production" : "development",
     VITE_ADSBAO_REALTIME_URL: env.VITE_ADSBAO_REALTIME_URL || "",
@@ -19,8 +23,28 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
     server: {
+      host: "0.0.0.0",
       port: 3000,
       strictPort: true,
+      proxy: {
+        "/api": {
+          target: localApiOrigin,
+          changeOrigin: true,
+        },
+        "/ws": {
+          target: localApiOrigin,
+          changeOrigin: true,
+          ws: true,
+        },
+        "/health": {
+          target: localApiOrigin,
+          changeOrigin: true,
+        },
+        "/debug": {
+          target: localApiOrigin,
+          changeOrigin: true,
+        },
+      },
     },
     preview: {
       port: 3000,
