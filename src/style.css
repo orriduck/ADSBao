@@ -4975,42 +4975,125 @@ body {
 }
 
 .brand-logo__mark {
+    --brand-logo-disc: oklch(0.12 0.012 260);
+    --brand-logo-ink: oklch(0.97 0.008 95);
+    --brand-logo-rim: color-mix(in oklab, var(--brand-logo-ink) 44%, transparent);
+    filter: drop-shadow(0 1px 1px rgb(31 39 49 / 0.18))
+        drop-shadow(0 2px 2px rgb(31 39 49 / 0.1));
     transform-box: fill-box;
     transform-origin: center;
 }
 
-.brand-logo__image,
+:root[data-theme="light"] .brand-logo__mark {
+    --brand-logo-disc: oklch(0.96 0.012 92);
+    --brand-logo-ink: oklch(0.16 0.018 258);
+    --brand-logo-rim: color-mix(in oklab, var(--brand-logo-ink) 26%, transparent);
+    filter: drop-shadow(0 1px 1px rgb(31 39 49 / 0.16))
+        drop-shadow(0 2px 2px rgb(31 39 49 / 0.08));
+}
+
+:root[data-theme="dark"] .brand-logo__mark {
+    --brand-logo-disc: oklch(0.12 0.012 260);
+    --brand-logo-ink: oklch(0.97 0.008 95);
+    --brand-logo-rim: color-mix(in oklab, var(--brand-logo-ink) 44%, transparent);
+}
+
+.brand-logo__disc {
+    fill: var(--brand-logo-disc);
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.brand-logo__disc-rim {
+    fill: none;
+    stroke: var(--brand-logo-rim);
+    stroke-width: 0.75;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.brand-logo__route {
+    fill: none;
+    stroke: var(--brand-logo-ink);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.9;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.brand-logo__plane,
 .brand-logo__word {
     transform-box: fill-box;
 }
 
-.brand-logo__image {
-    filter: drop-shadow(0 1px 1px rgb(31 39 49 / 0.18))
-        drop-shadow(0 2px 2px rgb(31 39 49 / 0.1));
+.brand-logo__plane {
+    fill: var(--brand-logo-ink);
     transform-origin: center;
 }
 
-:root[data-theme="light"] .brand-logo__image {
-    filter: invert(1) drop-shadow(0 1px 1px rgb(31 39 49 / 0.16))
-        drop-shadow(0 2px 2px rgb(31 39 49 / 0.08));
+.brand-logo__word {
+    transform-origin: left center;
 }
 
-.brand-logo--animated .brand-logo__mark {
-    animation: brand-logo-mark-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.brand-logo--animated .brand-logo__disc,
+.brand-logo--animated .brand-logo__disc-rim {
+    animation: brand-logo-disc-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.brand-logo--animated .brand-logo__route {
+    animation: brand-logo-route-draw 940ms cubic-bezier(0.16, 1, 0.3, 1) 90ms both;
+}
+
+.brand-logo--animated .brand-logo__plane {
+    animation: brand-logo-plane-enter 780ms cubic-bezier(0.22, 1, 0.36, 1) 210ms both;
 }
 
 .brand-logo--animated .brand-logo__word {
-    animation: brand-logo-word-enter 620ms ease-out 180ms both;
+    animation: brand-logo-word-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) 430ms both;
 }
 
-@keyframes brand-logo-mark-enter {
+@keyframes brand-logo-disc-enter {
     from {
         opacity: 0;
-        transform: translateY(3px) scale(0.9);
+        transform: scale(0.82);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: scale(1);
+    }
+}
+
+@keyframes brand-logo-route-draw {
+    0% {
+        opacity: 0;
+        stroke-dashoffset: 1;
+        transform: translate(-3px, 3px);
+    }
+    18% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 1;
+        stroke-dashoffset: 0;
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes brand-logo-plane-enter {
+    0% {
+        opacity: 0;
+        transform: translate(-5px, 2px) rotate(-4deg) scale(0.88);
+    }
+    64% {
+        opacity: 1;
+        transform: translate(0.8px, -0.3px) rotate(0.7deg) scale(1.03);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg) scale(1);
     }
 }
 
@@ -5026,7 +5109,10 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .brand-logo--animated .brand-logo__mark,
+    .brand-logo--animated .brand-logo__disc,
+    .brand-logo--animated .brand-logo__disc-rim,
+    .brand-logo--animated .brand-logo__route,
+    .brand-logo--animated .brand-logo__plane,
     .brand-logo--animated .brand-logo__word {
         animation: none;
     }
