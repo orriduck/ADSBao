@@ -93,8 +93,8 @@ export const RUNWAY_ANNOTATION_STYLE_CONFIG = {
   lineStyles: {
     dark: {
       color: "var(--aviation-runway-annotation-line)",
-      weight: 3,
-      opacity: 0.55,
+      weight: 5.2,
+      opacity: 0.82,
     },
     night: {
       color: "var(--runway-night-line)",

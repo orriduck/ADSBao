@@ -35,14 +35,14 @@ const airportSurfaceStyle = (feature: Record<string, any>) => {
     return {
       className: airportSurfaceClassName(kind),
       color: "var(--airport-surface-runway-stroke)",
-      fill: polygon,
+      fill: false,
       fillColor: "var(--airport-surface-runway-fill)",
-      fillOpacity: polygon ? 0.68 : 0,
-      lineCap: "butt",
+      fillOpacity: 0,
+      lineCap: "round",
       lineJoin: "round",
-      opacity: 0.88,
+      opacity: 0.56,
       stroke: true,
-      weight: polygon ? 1.2 : 7,
+      weight: polygon ? 4.6 : 5.2,
     };
   }
 

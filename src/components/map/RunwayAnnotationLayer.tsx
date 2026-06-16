@@ -179,6 +179,7 @@ export default function RunwayAnnotationLayer({
       style() {
         return {
           ...runwayLineStyle(theme),
+          className: "runway-centerline",
           lineCap: "butt",
           lineJoin: "round",
         };

@@ -1301,16 +1301,16 @@
     );
     --airport-surface-runway-fill: color-mix(
         in oklab,
-        var(--atc-text) 76%,
+        var(--aviation-runway-yellow) 42%,
         transparent
     );
     --airport-surface-runway-stroke: color-mix(
         in oklab,
-        var(--atc-text) 84%,
+        var(--aviation-runway-yellow) 88%,
         transparent
     );
-    --airport-surface-taxiway-line: oklch(67% 0.055 224 / 0.72);
-    --airport-surface-taxilane-line: oklch(68% 0.08 152 / 0.62);
+    --airport-surface-taxiway-line: oklch(76% 0.006 100 / 0.88);
+    --airport-surface-taxilane-line: oklch(70% 0.006 100 / 0.78);
 
     /* Dark theme: same single light ink for every aircraft. */
     --aircraft-departure: oklch(0.86 0.006 100);
