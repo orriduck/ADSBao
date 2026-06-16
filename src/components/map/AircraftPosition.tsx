@@ -181,7 +181,6 @@ function AircraftPosition({
         rot={rot}
         roll={attitude.roll}
         pitch={attitude.pitch}
-        selected={selected}
         showArrow={showArrow}
         silhouette={silhouette}
         sizeScale={sizeScale}
@@ -214,7 +213,6 @@ function Pointer({
   rot,
   roll = 0,
   pitch = 0,
-  selected = false,
   showArrow,
   silhouette,
   sizeScale = 1,
@@ -249,7 +247,7 @@ function Pointer({
     };
     return (
       <div
-        className={`aircraft-pointer-glyph${selected ? " aircraft-pointer-glyph--selected" : ""}`}
+        className="aircraft-pointer-glyph"
         role="img"
         aria-label={
           silhouette.source === "type" ? "aircraft type" : "aircraft category"
@@ -278,7 +276,7 @@ function Pointer({
   if (showArrow) {
     return (
       <div
-        className={`aircraft-pointer-glyph${selected ? " aircraft-pointer-glyph--selected" : ""}`}
+        className="aircraft-pointer-glyph"
         style={{
           color,
           width: `${SILHOUETTE_SIZE_PX}px`,

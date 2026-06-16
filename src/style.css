@@ -3937,19 +3937,6 @@ body {
     z-index: -1;
 }
 
-.aircraft-pointer-glyph--selected::after {
-    border: 1.5px solid color-mix(in oklab, currentColor 42%, var(--aircraft-marker-halo));
-    border-radius: 999px;
-    box-shadow:
-        0 0 0 1px color-mix(in oklab, var(--aircraft-marker-halo) 22%, transparent),
-        0 0 8px color-mix(in oklab, currentColor 24%, transparent);
-    content: "";
-    inset: -4px;
-    pointer-events: none;
-    position: absolute;
-    z-index: 0;
-}
-
 .aircraft-silhouette {
     transition:
         transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1),

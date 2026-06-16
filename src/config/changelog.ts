@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.17",
+    kind: "patch",
+    title: "Aircraft selection marker cleanup",
+    summary:
+      "Clicking an aircraft no longer draws an extra circular ring around the plane marker.",
+    highlights: [
+      "Removed the selected-aircraft glyph ring while keeping the selected marker emphasis",
+      "Kept aircraft silhouettes, labels, click targets, and trace preview behavior unchanged",
+      "Verified the change against live KBOS traffic through the local Railway/Vite frontend",
+    ],
+  },
+  {
     version: "v2.6.16",
     kind: "patch",
     title: "Airport map visual cleanup",
