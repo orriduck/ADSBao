@@ -19,7 +19,7 @@ const DEFAULT_GROUND_AREA_RADIUS_NM = 3;
 const AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS: AirportMapZoomFeatures = Object.freeze({
   airportGroundTrafficHideRadiusNm: null,
   showAirportAreaCount: false,
-  showNearbyAirportRunways: false,
+  showNearbyAirportRunways: true,
   showRangeRingLabels: false,
   showRunwayEndLabels: false,
   showCandidateWatchingSpotCount: false,

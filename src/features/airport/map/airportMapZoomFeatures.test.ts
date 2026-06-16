@@ -29,6 +29,6 @@ assert.equal(shouldShowCandidateWatchingSpotDetailsForZoom(ZOOM_AIRPORT), false)
 assert.equal(shouldShowCandidateWatchingSpotDetailsForZoom(ZOOM_DETAIL), true);
 assert.equal(airportGroundTrafficHideRadiusNmForZoom(12), null);
 assert.equal(shouldShowAirportAreaCountForZoom(12), false);
-assert.equal(shouldShowNearbyAirportRunwaysForZoom(12), false);
+assert.equal(shouldShowNearbyAirportRunwaysForZoom(12), true);
 
 console.log("airportMapZoomFeatures.test.ts ok");

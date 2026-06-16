@@ -8,6 +8,7 @@ import {
 } from "./airspaceAccessModel";
 
 const METERS_TO_FEET = 3.280839895;
+const METERS_PER_DEGREE_LATITUDE = 111_320;
 
 const AIRPORT_TYPE_LABELS: Record<number, string> = {
   0: "Airport",
@@ -46,6 +47,58 @@ const metersToFeet = (value: unknown) => {
   const number = toFiniteNumber(value);
   if (!Number.isFinite(number)) return null;
   return Math.round(number * METERS_TO_FEET);
+};
+
+const coordinateOffsetFromCenter = ({
+  lat,
+  lon,
+  headingDeg,
+  distanceMeters,
+}: OpenAipRecord) => {
+  const metersPerDegreeLongitude =
+    METERS_PER_DEGREE_LATITUDE * Math.cos((lat * Math.PI) / 180);
+  if (!Number.isFinite(metersPerDegreeLongitude) || Math.abs(metersPerDegreeLongitude) < 1) {
+    return { lat: null, lon: null };
+  }
+  const radians = (headingDeg * Math.PI) / 180;
+  const eastMeters = Math.sin(radians) * distanceMeters;
+  const northMeters = Math.cos(radians) * distanceMeters;
+  return {
+    lat: lat + northMeters / METERS_PER_DEGREE_LATITUDE,
+    lon: lon + eastMeters / metersPerDegreeLongitude,
+  };
+};
+
+const runwayEndpointCoordinates = (
+  runway: OpenAipRecord,
+  airport: OpenAipRecord,
+) => {
+  const center = pointCoordinates(airport.geometry);
+  const headingDeg = toFiniteNumber(runway.trueHeading);
+  const lengthMeters = toFiniteNumber(runway.dimension?.length?.value);
+  if (
+    !Number.isFinite(center.lat) ||
+    !Number.isFinite(center.lon) ||
+    !Number.isFinite(headingDeg) ||
+    !Number.isFinite(lengthMeters) ||
+    Number(lengthMeters) <= 0
+  ) {
+    return { le: { lat: null, lon: null }, he: { lat: null, lon: null } };
+  }
+  return {
+    le: coordinateOffsetFromCenter({
+      lat: center.lat,
+      lon: center.lon,
+      headingDeg,
+      distanceMeters: -Number(lengthMeters) / 2,
+    }),
+    he: coordinateOffsetFromCenter({
+      lat: center.lat,
+      lon: center.lon,
+      headingDeg,
+      distanceMeters: Number(lengthMeters) / 2,
+    }),
+  };
 };
 
 const frequencyMhz = (frequency: OpenAipRecord | null | undefined) => {
@@ -178,6 +231,7 @@ export const mapOpenAipRunway = (
 ) => {
   if (!runway) return null;
   const designator = upperString(runway.designator);
+  const endpoints = runwayEndpointCoordinates(runway, airport);
   return {
     id: runway._id || `${openAipAirportCode(airport)}:${designator}`,
     airportIdent: openAipAirportCode(airport),
@@ -188,16 +242,16 @@ export const mapOpenAipRunway = (
     closed: false,
     le: {
       ident: designator,
-      lat: null,
-      lon: null,
+      lat: endpoints.le.lat,
+      lon: endpoints.le.lon,
       elevationFt: null,
       headingDegT: firstFinite(runway.trueHeading),
       displacedThresholdFt: null,
     },
     he: {
       ident: reciprocalDesignator(designator),
-      lat: null,
-      lon: null,
+      lat: endpoints.he.lat,
+      lon: endpoints.he.lon,
       elevationFt: null,
       headingDegT: firstFinite(runway.trueHeading) == null
         ? null

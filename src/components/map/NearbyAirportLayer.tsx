@@ -73,6 +73,7 @@ const runwayLayers = ({ airport, map, theme, zoom, showBadges }: Record<string, 
       style() {
         return {
           ...runwayLineStyle(theme),
+          className: "nearby-runway-line",
           lineCap: "butt",
           lineJoin: "round",
         };

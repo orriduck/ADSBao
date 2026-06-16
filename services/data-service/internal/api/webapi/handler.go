@@ -21,6 +21,7 @@ import (
 const (
 	defaultOpenAIPBaseURL = "https://api.core.openaip.net/api"
 	defaultTimeout        = 12 * time.Second
+	metersPerDegreeLat    = 111320.0
 	metersPerNM           = 1852
 	maxJSONBytes          = 4 * 1024 * 1024
 )
@@ -203,13 +204,17 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		reportingPoints = h.reportingPoints(r.Context(), id)
 		obstacles = h.nearbyObstacles(r.Context(), lat, lon, minInt(radiusNm, 50))
 	}
+	runways := mapRunways(asRecords(detail["runways"]), detail)
 	runwayMap, runwayMapErr := h.userDataStore.readRunwayMap(r.Context(), ident)
 	if runwayMapErr != nil {
 		log.Printf("runway geometry read failed airport=%s error=%v", ident, runwayMapErr)
 	}
+	if runwayMap == nil {
+		runwayMap = buildRunwayMapFromMappedRunways(ident, runways, "OpenAIP")
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"airport":         airport,
-		"runways":         mapRunways(asRecords(detail["runways"]), detail),
+		"runways":         runways,
 		"frequencies":     mapFrequencies(asRecords(detail["frequencies"]), detail),
 		"nearbyAirports":  nearbyAirports,
 		"nearbyNavaids":   nearbyNavaids,
@@ -338,6 +343,11 @@ func (h *Handler) nearbyAirports(ctx context.Context, lat, lon float64, exclude 
 			continue
 		}
 		airport["distanceNm"] = distanceNm(lat, lon, numberValue(airport["lat"]), numberValue(airport["lon"]))
+		airport["runwayMap"] = buildRunwayMapFromMappedRunways(
+			firstString(airport["icao"], airport["code"], airport["ident"]),
+			mapRunways(asRecords(item["runways"]), item),
+			"OpenAIP",
+		)
 		out = append(out, airport)
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -523,6 +533,7 @@ func mapRunways(runways []map[string]any, airport map[string]any) []map[string]a
 			continue
 		}
 		heading := numberValue(runway["trueHeading"])
+		leLat, leLon, heLat, heLon := runwayEndpointCoordinates(runway, airport)
 		out = append(out, map[string]any{
 			"id":           fallbackString(stringValue(runway["_id"]), openAIPCode(airport)+":"+designator),
 			"airportIdent": openAIPCode(airport),
@@ -533,16 +544,16 @@ func mapRunways(runways []map[string]any, airport map[string]any) []map[string]a
 			"closed":       false,
 			"le": map[string]any{
 				"ident":                designator,
-				"lat":                  nil,
-				"lon":                  nil,
+				"lat":                  leLat,
+				"lon":                  leLon,
 				"elevationFt":          nil,
 				"headingDegT":          nullableNumber(heading),
 				"displacedThresholdFt": nil,
 			},
 			"he": map[string]any{
 				"ident":                reciprocalDesignator(designator),
-				"lat":                  nil,
-				"lon":                  nil,
+				"lat":                  heLat,
+				"lon":                  heLon,
 				"elevationFt":          nil,
 				"headingDegT":          nullableNumber(math.Mod(heading+180, 360)),
 				"displacedThresholdFt": nil,
@@ -551,6 +562,99 @@ func mapRunways(runways []map[string]any, airport map[string]any) []map[string]a
 		})
 	}
 	return out
+}
+
+func runwayEndpointCoordinates(runway, airport map[string]any) (any, any, any, any) {
+	airportLat, airportLon := pointCoordinates(asRecord(airport["geometry"]))
+	lat, lon := numberValue(airportLat), numberValue(airportLon)
+	heading := numberValue(runway["trueHeading"])
+	lengthMeters := numberValue(valueAt(runway, "dimension", "length", "value"))
+	if !finite(lat) || !finite(lon) || !finite(heading) || !finite(lengthMeters) || lengthMeters <= 0 {
+		return nil, nil, nil, nil
+	}
+	leLat, leLon := coordinateOffsetFromCenter(lat, lon, heading, -lengthMeters/2)
+	heLat, heLon := coordinateOffsetFromCenter(lat, lon, heading, lengthMeters/2)
+	return leLat, leLon, heLat, heLon
+}
+
+func coordinateOffsetFromCenter(lat, lon, headingDeg, distanceMeters float64) (any, any) {
+	headingRad := headingDeg * math.Pi / 180
+	eastMeters := math.Sin(headingRad) * distanceMeters
+	northMeters := math.Cos(headingRad) * distanceMeters
+	metersPerDegreeLon := metersPerDegreeLat * math.Cos(lat*math.Pi/180)
+	if math.Abs(metersPerDegreeLon) < 1 {
+		return nil, nil
+	}
+	return lat + northMeters/metersPerDegreeLat, lon + eastMeters/metersPerDegreeLon
+}
+
+func buildRunwayMapFromMappedRunways(airport string, runways []map[string]any, source string) map[string]any {
+	normalizedAirport := normalizeAirportIdent(airport)
+	if normalizedAirport == "" || len(runways) == 0 {
+		return nil
+	}
+	if strings.TrimSpace(source) == "" {
+		source = "OpenAIP"
+	}
+
+	mapped := []map[string]any{}
+	for _, runway := range runways {
+		if boolValue(runway["closed"]) {
+			continue
+		}
+		le, he := asRecord(runway["le"]), asRecord(runway["he"])
+		if strings.TrimSpace(stringValue(le["ident"])) == "" ||
+			strings.TrimSpace(stringValue(he["ident"])) == "" {
+			continue
+		}
+		leLat, leLon := numberValue(le["lat"]), numberValue(le["lon"])
+		heLat, heLon := numberValue(he["lat"]), numberValue(he["lon"])
+		if !finite(leLat) || !finite(leLon) || !finite(heLat) || !finite(heLon) {
+			continue
+		}
+		ends := []map[string]any{
+			{"ident": upper(le["ident"]), "lat": leLat, "lon": leLon},
+			{"ident": upper(he["ident"]), "lat": heLat, "lon": heLon},
+		}
+		sort.Slice(ends, func(i, j int) bool {
+			return runwayEndSortKey(ends[i]["ident"]) < runwayEndSortKey(ends[j]["ident"])
+		})
+		id := strings.Join([]string{stringValue(ends[0]["ident"]), stringValue(ends[1]["ident"])}, "/")
+		mapped = append(mapped, map[string]any{
+			"id":       id,
+			"lengthFt": runway["lengthFt"],
+			"widthFt":  runway["widthFt"],
+			"ends":     ends,
+			"centerline": map[string]any{
+				"type": "Feature",
+				"geometry": map[string]any{
+					"type": "LineString",
+					"coordinates": []any{
+						[]any{ends[0]["lon"], ends[0]["lat"]},
+						[]any{ends[1]["lon"], ends[1]["lat"]},
+					},
+				},
+				"properties": map[string]any{
+					"id":      id,
+					"airport": normalizedAirport,
+					"source":  source,
+					"ends":    []any{ends[0]["ident"], ends[1]["ident"]},
+				},
+			},
+		})
+	}
+	if len(mapped) == 0 {
+		return nil
+	}
+	sort.Slice(mapped, func(i, j int) bool {
+		return stringValue(mapped[i]["id"]) < stringValue(mapped[j]["id"])
+	})
+	return map[string]any{
+		"airport": normalizedAirport,
+		"source":  source,
+		"cycle":   "",
+		"runways": mapped,
+	}
 }
 
 func mapFrequencies(frequencies []map[string]any, airport map[string]any) []map[string]any {

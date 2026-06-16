@@ -4,6 +4,7 @@ import {
   mapOpenAipAirport,
   mapOpenAipAirspace,
   mapOpenAipFrequency,
+  mapOpenAipRunway,
   mapOpenAipNavaid,
   rankOpenAipAirports,
 } from "./openAipNormalizer";
@@ -90,6 +91,20 @@ const misleadingBos = {
   assert.equal(frequency.description, "BOSTON APP");
   assert.equal(frequency.frequencyMhz, 118.25);
   assert.equal(frequency.source, "openaip");
+}
+
+{
+  const runway = mapOpenAipRunway(kbos.runways[0], kbos);
+  assert.equal(runway.airportIdent, "KBOS");
+  assert.equal(runway.le.ident, "04L");
+  assert.equal(runway.he.ident, "22R");
+  assert.equal(runway.lengthFt, 7861);
+  assert.ok(Number.isFinite(runway.le.lat));
+  assert.ok(Number.isFinite(runway.le.lon));
+  assert.ok(Number.isFinite(runway.he.lat));
+  assert.ok(Number.isFinite(runway.he.lon));
+  assert.ok(runway.he.lat > runway.le.lat);
+  assert.ok(runway.he.lon > runway.le.lon);
 }
 
 {

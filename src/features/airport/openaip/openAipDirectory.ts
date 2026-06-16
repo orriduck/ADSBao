@@ -268,6 +268,44 @@ const readRunwayGeometryMaps = async ({
   return maps;
 };
 
+const buildOpenAipRunwayMap = (airportDocument: OpenAipDirectoryRecord | null | undefined) => {
+  const airport = mapOpenAipAirport(airportDocument);
+  const airportCode = normalizeCode(airport?.icao || airport?.ident);
+  if (!airportCode) return null;
+  const runways = (airportDocument?.runways || [])
+    .map((runway: OpenAipDirectoryRecord) =>
+      mapOpenAipRunway(runway, airportDocument),
+    )
+    .filter(Boolean);
+  return buildRunwayMapFromGeometries({
+    airport: airportCode,
+    runways,
+    source: "OpenAIP",
+  });
+};
+
+const buildOpenAipRunwayMaps = (
+  airportDocuments: Array<OpenAipDirectoryRecord | null | undefined> = [],
+) => {
+  const maps = new Map();
+  for (const airportDocument of airportDocuments) {
+    const airportCode = normalizeCode(openAipAirportCode(airportDocument));
+    if (!airportCode || maps.has(airportCode)) continue;
+    maps.set(airportCode, buildOpenAipRunwayMap(airportDocument));
+  }
+  return maps;
+};
+
+const runwayMapForAirport = ({
+  airport,
+  runwayMaps,
+  openAipRunwayMaps,
+}: OpenAipDirectoryRecord = {}) => {
+  const airportCode = normalizeCode(airport?.icao || airport?.ident);
+  if (!airportCode) return null;
+  return runwayMaps.get(airportCode) || openAipRunwayMaps.get(airportCode) || null;
+};
+
 const readOurAirportsFrequencies = async ({
   repository,
   airportIdent,
@@ -458,6 +496,18 @@ export async function getOpenAipAirportPage({
     .filter(Boolean)
     .sort((left: OpenAipDirectoryRecord, right: OpenAipDirectoryRecord) => left.distanceNm - right.distanceNm)
     .slice(0, limit);
+  const nearbyAirportDocumentsByCode = new Map(
+    nearbyAirportDocuments.map((document) => [
+      normalizeCode(openAipAirportCode(document)),
+      document,
+    ]),
+  );
+  const openAipRunwayMaps = buildOpenAipRunwayMaps([
+    airportDocument,
+    ...nearbyAirportsBase.map((item: OpenAipDirectoryRecord) =>
+      nearbyAirportDocumentsByCode.get(normalizeCode(item.icao || item.ident)),
+    ),
+  ]);
   const [runwayMaps, nameMap] = await Promise.all([
     readRunwayGeometryMaps({
       repository: runwayRepository,
@@ -475,7 +525,11 @@ export async function getOpenAipAirportPage({
   const nearbyAirports = applyOurAirportsNames(nearbyAirportsBase, nameMap).map(
     (item: OpenAipDirectoryRecord) => ({
       ...item,
-      runwayMap: runwayMaps.get(item.icao) || null,
+      runwayMap: runwayMapForAirport({
+        airport: item,
+        runwayMaps,
+        openAipRunwayMaps,
+      }),
     }),
   );
   const openAipFrequencies = (airportDocument.frequencies || [])
@@ -515,7 +569,11 @@ export async function getOpenAipAirportPage({
       .map(mapOpenAipReportingPoint)
       .filter(Boolean),
     obstacles: obstacleDocuments.map(mapOpenAipObstacle).filter(Boolean),
-    runwayMap: runwayMaps.get(airport.icao) || null,
+    runwayMap: runwayMapForAirport({
+      airport,
+      runwayMaps,
+      openAipRunwayMaps,
+    }),
   };
 }
 
@@ -559,6 +617,14 @@ export async function getOpenAipNearbyAirports({
     .filter(Boolean)
     .sort((left: OpenAipDirectoryRecord, right: OpenAipDirectoryRecord) => left.distanceNm - right.distanceNm)
     .slice(0, limit);
+  const documentsByCode = new Map(
+    documents.map((document) => [normalizeCode(openAipAirportCode(document)), document]),
+  );
+  const openAipRunwayMaps = buildOpenAipRunwayMaps(
+    airportsBase.map((airport: OpenAipDirectoryRecord) =>
+      documentsByCode.get(normalizeCode(airport.icao || airport.ident)),
+    ),
+  );
   const [runwayMaps, nameMap] = await Promise.all([
     readRunwayGeometryMaps({
       repository: runwayRepository,
@@ -572,7 +638,11 @@ export async function getOpenAipNearbyAirports({
   const airports = applyOurAirportsNames(airportsBase, nameMap).map(
     (airport: OpenAipDirectoryRecord) => ({
       ...airport,
-      runwayMap: runwayMaps.get(airport.icao) || null,
+      runwayMap: runwayMapForAirport({
+        airport,
+        runwayMaps,
+        openAipRunwayMaps,
+      }),
     }),
   );
 
