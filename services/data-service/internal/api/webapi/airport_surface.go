@@ -68,7 +68,7 @@ func (c *airportSurfaceCache) get(key string) (map[string]any, bool) {
 }
 
 func (c *airportSurfaceCache) set(key string, payload map[string]any) {
-	if c == nil || strings.TrimSpace(key) == "" {
+	if c == nil || strings.TrimSpace(key) == "" || payload == nil {
 		return
 	}
 	c.mu.Lock()

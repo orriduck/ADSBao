@@ -104,6 +104,21 @@ func TestBuildAirportSurfaceMapFromOverpass(t *testing.T) {
 	}
 }
 
+func TestAirportSurfaceCacheSkipsNilPayload(t *testing.T) {
+	cache := newAirportSurfaceCache(time.Hour)
+	cache.set("KBOS", nil)
+	if payload, ok := cache.get("KBOS"); ok || payload != nil {
+		t.Fatalf("nil payload should not be cached: payload=%#v ok=%v", payload, ok)
+	}
+
+	expected := map[string]any{"source": "OpenStreetMap"}
+	cache.set("KBOS", expected)
+	payload, ok := cache.get("KBOS")
+	if !ok || payload["source"] != "OpenStreetMap" {
+		t.Fatalf("expected non-nil payload to be cached: payload=%#v ok=%v", payload, ok)
+	}
+}
+
 func TestAirportDetailIncludesOptionalSurfaceMap(t *testing.T) {
 	overpassHits := 0
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
