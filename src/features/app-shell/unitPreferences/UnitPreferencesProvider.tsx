@@ -55,13 +55,20 @@ export function UnitPreferencesProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Normalize only when the raw preferences change, not when `hydrated`
+  // flips — keeps the context value stable across the one-time hydration.
+  const normalized = useMemo(
+    () => normalizeUnitPreferences(preferences),
+    [preferences],
+  );
+
   const value = useMemo(
     () => ({
-      preferences: normalizeUnitPreferences(preferences),
+      preferences: normalized,
       setPreferences,
       hydrated,
     }),
-    [preferences, setPreferences, hydrated],
+    [normalized, setPreferences, hydrated],
   );
 
   return (

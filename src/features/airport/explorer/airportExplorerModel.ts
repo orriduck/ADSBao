@@ -38,7 +38,7 @@ export function enrichAircraftWithRoutes({
     const flightRouteLabel = formatFlightRouteLabel(route);
     // Tie movement to a renderable label so the marker color and the
     // sidebar row text never disagree. A partial route (origin known,
-    // destination missing — common in AeroDataBox responses for flights
+    // destination missing — common in route-provider responses for flights
     // mid-departure) would otherwise color the marker DEPARTURE while
     // leaving the route text empty.
     const movement = flightRouteLabel
