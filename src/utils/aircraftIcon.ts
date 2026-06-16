@@ -63,7 +63,7 @@ export function isKnownAircraftIconName(name: unknown) {
   return typeof name === "string" && ICON_NAME_SET.has(name);
 }
 
-const iconUrl = (name: string) => `${AIRCRAFT_ICON_BASE_PATH}/${name}`;
+const iconUrl = (name: string) => `${AIRCRAFT_ICON_BASE_PATH}/${name}.svg`;
 
 // Family fallbacks for ICAO type designators that aren't shipped as direct
 // SVGs. Each target name must exist in AIRCRAFT_ICON_NAMES — the closest

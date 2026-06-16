@@ -19,7 +19,7 @@ const expectIcon = (aircraft, expectedName, expectedSource) => {
   );
   assert.equal(
     result.src,
-    `${AIRCRAFT_ICON_BASE_PATH}/${expectedName}`,
+    `${AIRCRAFT_ICON_BASE_PATH}/${expectedName}.svg`,
     `wrong icon src for ${JSON.stringify(aircraft)}`,
   );
   assert.equal(result.source, expectedSource);

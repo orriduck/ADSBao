@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.11",
+    kind: "patch",
+    title: "Airport aircraft silhouettes",
+    summary:
+      "Airport maps load the deployed SVG silhouettes for ordinary traffic markers again.",
+    highlights: [
+      "Fixed aircraft marker mask URLs so Railway serves SVG files instead of the SPA fallback page",
+      "Restored airport-page traffic silhouettes beyond the selected aircraft marker overlay",
+      "Kept the selected aircraft core and trace-label spacing from v2.6.10",
+    ],
+  },
+  {
     version: "v2.6.10",
     kind: "patch",
     title: "Mobile aircraft marker visibility",
