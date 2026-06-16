@@ -7,6 +7,17 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.19",
+    kind: "patch",
+    title: "机场跑道灯与缩放修复",
+    summary: "修正 KBOS 等机场的跑道分段重复、暗色中景灯光缺失和机场详情加载路径。",
+    highlights: [
+      "远景跑道显示改回物理跑道数量，避免 OSM 分段重复成星型",
+      "中景暗色地图恢复跑道灯，跑道与灯光共用去重后的 OSM 几何",
+      "机场详情接口并发加载周边数据，减少静态地面图层等待",
+    ],
+  },
+  {
     version: "v2.6.18",
     kind: "patch",
     title: "机场跑道显示修复",

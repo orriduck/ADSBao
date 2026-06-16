@@ -1681,8 +1681,7 @@ body:has(.app-detail-shell) {
 }
 
 .runway-light-dot {
-    filter: drop-shadow(0 0 1.2px var(--runway-light-glow))
-        drop-shadow(0 0 3px var(--runway-light-glow));
+    filter: drop-shadow(0 0 1.6px var(--runway-light-glow));
     mix-blend-mode: screen;
 }
 
@@ -1712,13 +1711,6 @@ body:has(.app-detail-shell) {
 .airport-surface-feature--runway {
     filter: drop-shadow(
         0 0 1.5px color-mix(in oklab, var(--atc-text) 18%, transparent)
-    );
-}
-
-.airport-surface-feature--taxiway,
-.airport-surface-feature--taxilane {
-    filter: drop-shadow(
-        0 0 2px color-mix(in oklab, currentColor 34%, transparent)
     );
 }
 

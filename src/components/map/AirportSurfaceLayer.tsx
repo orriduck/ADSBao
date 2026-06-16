@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
+import { buildRenderableAirportSurfaceFeatureCollection } from "../../features/airport/map/runwayAnnotationModel";
 import {
   safeAddToMap,
   safeRemoveFromMap,
@@ -84,9 +85,13 @@ export default function AirportSurfaceLayer({
 }: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
+  const surfaceFeatures = useMemo(
+    () => buildRenderableAirportSurfaceFeatureCollection(surfaceMap),
+    [surfaceMap],
+  );
 
   useEffect(() => {
-    if (!map || !surfaceMap?.features?.features?.length) return undefined;
+    if (!map || !surfaceFeatures?.features?.length) return undefined;
     if (!shouldShowAirportSurfaceForZoom(zoom)) return undefined;
 
     safeRemoveFromMap(layerRef.current, map);
@@ -94,7 +99,7 @@ export default function AirportSurfaceLayer({
     const renderer = L.svg({ pane, padding: 0.5 } as any);
     renderer.addTo(map);
 
-    const layer = L.geoJSON(surfaceMap.features as any, {
+    const layer = L.geoJSON(surfaceFeatures as any, {
       interactive: false,
       renderer,
       filter(feature) {
@@ -117,7 +122,7 @@ export default function AirportSurfaceLayer({
       renderer.remove();
       layerRef.current = null;
     };
-  }, [map, surfaceMap, theme, zoom]);
+  }, [map, surfaceFeatures, theme, zoom]);
 
   return null;
 }

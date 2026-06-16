@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
@@ -208,11 +209,29 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 	reportingPoints := []map[string]any{}
 	obstacles := []map[string]any{}
 	if finite(lat) && finite(lon) {
-		nearbyAirports = h.nearbyAirports(r.Context(), lat, lon, ident, radiusNm, nearbyLimit)
-		nearbyNavaids = h.nearbyNavaids(r.Context(), lat, lon, radiusNm, nearbyLimit)
-		airspaces = h.nearbyAirspaces(r.Context(), lat, lon, radiusNm)
-		reportingPoints = h.reportingPoints(r.Context(), id)
-		obstacles = h.nearbyObstacles(r.Context(), lat, lon, minInt(radiusNm, 50))
+		var wg sync.WaitGroup
+		wg.Add(5)
+		go func() {
+			defer wg.Done()
+			nearbyAirports = h.nearbyAirports(r.Context(), lat, lon, ident, radiusNm, nearbyLimit)
+		}()
+		go func() {
+			defer wg.Done()
+			nearbyNavaids = h.nearbyNavaids(r.Context(), lat, lon, radiusNm, nearbyLimit)
+		}()
+		go func() {
+			defer wg.Done()
+			airspaces = h.nearbyAirspaces(r.Context(), lat, lon, radiusNm)
+		}()
+		go func() {
+			defer wg.Done()
+			reportingPoints = h.reportingPoints(r.Context(), id)
+		}()
+		go func() {
+			defer wg.Done()
+			obstacles = h.nearbyObstacles(r.Context(), lat, lon, minInt(radiusNm, 50))
+		}()
+		wg.Wait()
 	}
 	runways := mapRunways(asRecords(detail["runways"]), detail)
 	runwayMap, runwayMapErr := h.userDataStore.readRunwayMap(r.Context(), ident)

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  buildRenderableAirportSurfaceFeatureCollection,
   buildRunwayApproachLightCollection,
   buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
@@ -185,7 +186,7 @@ assert.ok(
   ) > 90,
 );
 
-const surfaceRunwayMap = buildRunwayMapFromSurfaceMap({
+const surfaceMapFixture = {
   airport: "KBOS",
   source: "OpenStreetMap",
   sourceAttribution: "OpenStreetMap contributors",
@@ -213,6 +214,36 @@ const surfaceRunwayMap = buildRunwayMapFromSurfaceMap({
         geometry: {
           type: "LineString",
           coordinates: [
+            [-71.0103, 42.354],
+            [-71.009, 42.356],
+          ],
+        },
+        properties: {
+          id: "osm-way-124",
+          kind: "runway",
+          ref: "04R/22L",
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [-71.0103, 42.354],
+            [-71.009, 42.356],
+          ],
+        },
+        properties: {
+          id: "osm-way-125",
+          kind: "runway",
+          ref: "<nil>",
+        },
+      },
+      {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
             [-71.01, 42.35],
             [-71.02, 42.36],
           ],
@@ -225,7 +256,8 @@ const surfaceRunwayMap = buildRunwayMapFromSurfaceMap({
       },
     ],
   },
-});
+};
+const surfaceRunwayMap = buildRunwayMapFromSurfaceMap(surfaceMapFixture);
 assert.equal(surfaceRunwayMap?.source, "OpenStreetMap");
 assert.equal(surfaceRunwayMap?.runways.length, 1);
 assert.deepEqual(
@@ -242,6 +274,12 @@ assert.deepEqual(
   ],
 );
 assert.ok(buildRunwayLightCollection(surfaceRunwayMap).features.length > 0);
+const renderableSurface =
+  buildRenderableAirportSurfaceFeatureCollection(surfaceMapFixture);
+assert.deepEqual(
+  renderableSurface?.features.map((feature) => feature.properties.id),
+  ["osm-way-123", "osm-way-456"],
+);
 
 assert.deepEqual(
   resolveRunwayAnnotationVisibility({

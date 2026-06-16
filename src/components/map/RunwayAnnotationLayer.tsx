@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
 import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
@@ -51,9 +51,9 @@ const isWideAirportZoom = (zoom: unknown) => {
   return Number.isFinite(numericZoom) && numericZoom <= AIRPORT_MAP_ZOOM.approach;
 };
 
-const isDetailAirportZoom = (zoom: unknown) => {
+const shouldShowRunwayLightsForZoom = (zoom: unknown) => {
   const numericZoom = Number(zoom);
-  return !Number.isFinite(numericZoom) || numericZoom >= AIRPORT_MAP_ZOOM.detail;
+  return !Number.isFinite(numericZoom) || numericZoom >= AIRPORT_MAP_ZOOM.airport;
 };
 
 const runwayLabelIcon = (ident: string, theme: string) =>
@@ -162,14 +162,17 @@ export default function RunwayAnnotationLayer({
 }: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
+  const surfaceRunwayMap = useMemo(
+    () => buildRunwayMapFromSurfaceMap(surfaceMap),
+    [surfaceMap],
+  );
 
   useEffect(() => {
-    const annotationRunwayMap =
-      buildRunwayMapFromSurfaceMap(surfaceMap) || runwayMap;
+    const annotationRunwayMap = surfaceRunwayMap || runwayMap;
     if (!map || !annotationRunwayMap?.runways?.length) return undefined;
 
     const compactZoom = Boolean(compact) || isWideAirportZoom(zoom);
-    const detailZoom = isDetailAirportZoom(zoom);
+    const showRunwayLights = shouldShowRunwayLightsForZoom(zoom);
     const sublayers: L.Layer[] = [];
     if (showCenterlines) {
       const centerlines = buildRunwayCenterlineCollection(annotationRunwayMap);
@@ -207,7 +210,7 @@ export default function RunwayAnnotationLayer({
       beamRenderer = built.beamRenderer;
     }
 
-    if (!compactZoom && theme !== "light" && detailZoom) {
+    if (!compactZoom && theme !== "light" && showRunwayLights) {
       const runwayLights = buildRunwayLightCollection(annotationRunwayMap);
       if (runwayLights.features.length) {
         const lightLayer = buildRunwayLightLayer({ data: runwayLights });
@@ -262,7 +265,7 @@ export default function RunwayAnnotationLayer({
   }, [
     map,
     runwayMap,
-    surfaceMap,
+    surfaceRunwayMap,
     theme,
     zoom,
     compact,

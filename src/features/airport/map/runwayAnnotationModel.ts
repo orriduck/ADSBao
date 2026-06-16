@@ -13,6 +13,13 @@ const MAX_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 900;
 const DEFAULT_RUNWAY_WIDTH_METERS = 45;
 const MIN_RUNWAY_LIGHT_WIDTH_METERS = 18;
 const MAX_RUNWAY_LIGHT_WIDTH_METERS = 80;
+const INVALID_SURFACE_RUNWAY_IDS = new Set([
+  "",
+  "<NIL>",
+  "NIL",
+  "NULL",
+  "UNDEFINED",
+]);
 
 const shouldShowRunwayEndLabels = shouldShowRunwayEndLabelsForZoom;
 
@@ -31,15 +38,91 @@ const isCoordinate2D = (value: unknown): value is Coordinate2D =>
   Number.isFinite(value[0]) &&
   Number.isFinite(value[1]);
 
+const normalizedSurfaceRunwayId = (value: unknown) => {
+  const normalized = String(value || "").trim().toUpperCase();
+  if (INVALID_SURFACE_RUNWAY_IDS.has(normalized)) return null;
+  return normalized || null;
+};
+
 const runwaySurfaceId = (feature: RunwayAnnotationRecord, index: number) => {
   const properties = feature?.properties || {};
-  const raw =
-    properties.ref ||
-    properties.name ||
-    properties.id ||
-    `surface-runway-${index + 1}`;
-  return String(raw || `surface-runway-${index + 1}`).toUpperCase();
+  for (const value of [properties.ref, properties.name, properties.id]) {
+    if (value == null) continue;
+    const text = String(value).trim();
+    if (!text) continue;
+    const rawId = normalizedSurfaceRunwayId(text);
+    return rawId || null;
+  }
+
+  return `SURFACE-RUNWAY-${index + 1}`;
 };
+
+const lineLengthMeters = (coordinates: Coordinate2D[]) =>
+  coordinates.reduce((total, coordinate, index) => {
+    if (index === 0) return total;
+    const previous = coordinates[index - 1];
+    const lonMeters = metersPerDegreeLongitude((previous[1] + coordinate[1]) / 2);
+    const dx = (coordinate[0] - previous[0]) * lonMeters;
+    const dy = (coordinate[1] - previous[1]) * METERS_PER_DEGREE_LATITUDE;
+    return total + Math.hypot(dx, dy);
+  }, 0);
+
+const canonicalSurfaceRunwayFeatures = (surfaceMap: RunwayAnnotationRecord) => {
+  const sourceFeatures = surfaceMap?.features?.features;
+  if (!Array.isArray(sourceFeatures)) return [];
+
+  const byRunwayId = new Map();
+  sourceFeatures.forEach((feature, index) => {
+    if (
+      feature?.properties?.kind !== "runway" ||
+      feature?.geometry?.type !== "LineString"
+    ) {
+      return;
+    }
+
+    const coordinates = (feature?.geometry?.coordinates || []).filter(isCoordinate2D);
+    if (coordinates.length < 2) return;
+
+    const id = runwaySurfaceId(feature, index);
+    if (!id) return;
+
+    const lengthMeters = lineLengthMeters(coordinates);
+    if (!Number.isFinite(lengthMeters) || lengthMeters <= 0) return;
+
+    const existing = byRunwayId.get(id);
+    if (!existing || lengthMeters > existing.lengthMeters) {
+      byRunwayId.set(id, {
+        id,
+        feature,
+        firstIndex: existing?.firstIndex ?? index,
+        coordinates,
+        lengthMeters,
+      });
+    }
+  });
+
+  return [...byRunwayId.values()].sort((left, right) => left.firstIndex - right.firstIndex);
+};
+
+export function buildRenderableAirportSurfaceFeatureCollection(
+  surfaceMap: RunwayAnnotationRecord,
+) {
+  const sourceFeatures = surfaceMap?.features?.features;
+  if (!Array.isArray(sourceFeatures)) return null;
+
+  const canonicalRunwayFeatures = new Set(
+    canonicalSurfaceRunwayFeatures(surfaceMap).map((entry) => entry.feature),
+  );
+  const features = sourceFeatures.filter((feature) => {
+    if (feature?.properties?.kind !== "runway") return true;
+    return canonicalRunwayFeatures.has(feature);
+  });
+
+  return {
+    type: "FeatureCollection",
+    features,
+  };
+}
 
 const runwayEndsFromSurfaceFeature = (
   runwayId: string,
@@ -61,20 +144,8 @@ const runwayEndsFromSurfaceFeature = (
 };
 
 export function buildRunwayMapFromSurfaceMap(surfaceMap: RunwayAnnotationRecord) {
-  const sourceFeatures = surfaceMap?.features?.features;
-  if (!Array.isArray(sourceFeatures)) return null;
-
-  const runways = sourceFeatures
-    .filter(
-      (feature) =>
-        feature?.properties?.kind === "runway" &&
-        feature?.geometry?.type === "LineString",
-    )
-    .map((feature, index) => {
-      const coordinates = (feature?.geometry?.coordinates || []).filter(isCoordinate2D);
-      if (coordinates.length < 2) return null;
-
-      const id = runwaySurfaceId(feature, index);
+  const runways = canonicalSurfaceRunwayFeatures(surfaceMap)
+    .map(({ feature, id, coordinates }) => {
       const ends = runwayEndsFromSurfaceFeature(id, coordinates);
       if (ends.length < 2) return null;
 
