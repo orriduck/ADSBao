@@ -50,26 +50,24 @@ const airportSurfaceStyle = (feature: Record<string, any>) => {
     return {
       className: airportSurfaceClassName(kind),
       color: "var(--airport-surface-taxilane-line)",
-      dashArray: "1 7",
       fill: false,
       lineCap: "round",
       lineJoin: "round",
-      opacity: 0.62,
+      opacity: 0.28,
       stroke: true,
-      weight: 1.15,
+      weight: 2.4,
     };
   }
 
   return {
     className: airportSurfaceClassName(kind || "taxiway"),
     color: "var(--airport-surface-taxiway-line)",
-    dashArray: "1 6",
     fill: false,
     lineCap: "round",
     lineJoin: "round",
-    opacity: 0.72,
+    opacity: 0.34,
     stroke: true,
-    weight: 1.45,
+    weight: 3.2,
   };
 };
 
