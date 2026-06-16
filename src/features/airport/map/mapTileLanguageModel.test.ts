@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 
 import {
+  buildReadableTerrainMapLibreStyle,
   buildProxiedMapLibreStyle,
   buildLocalizedMapLibreStyle,
+  buildStandardDetailMapLibreStyle,
   getMapLibreBaseStyleUrl,
 } from "./mapTileLanguageModel";
 
@@ -161,4 +163,56 @@ assert.equal(
 
   assert.equal(localized.layers[0].layout.visibility, "none");
   assert.equal(localized.layers[1].layout.visibility, undefined);
+}
+
+{
+  const style = {
+    version: 8,
+    sources: { openmaptiles: { type: "vector" } },
+    layers: [
+      { id: "background", type: "background" },
+      { id: "landuse_park", type: "fill", paint: { "fill-color": "#00ff00" } },
+      { id: "road_motorway", type: "line", "source-layer": "transportation" },
+      { id: "road_residential", type: "line", "source-layer": "transportation" },
+    ],
+  };
+
+  const darkStandard = buildStandardDetailMapLibreStyle(style, {
+    theme: "dark",
+  });
+  const layerById = Object.fromEntries(
+    darkStandard.layers.map((layer) => [layer.id, layer]),
+  );
+
+  assert.equal(layerById.background.paint["background-color"], "#111413");
+  assert.equal(layerById.landuse_park.paint["fill-color"], "#141817");
+  assert.equal(layerById.landuse_park.paint["fill-opacity"], 0.1);
+  assert.equal(layerById.road_motorway.paint["line-opacity"], 0.36);
+  assert.equal(layerById.road_residential.paint["line-opacity"], 0.14);
+}
+
+{
+  const style = {
+    version: 8,
+    sources: { openmaptiles: { type: "vector" } },
+    layers: [
+      { id: "background", type: "background" },
+      { id: "landcover_forest", type: "fill", paint: { "fill-color": "#00ff00" } },
+      { id: "highway_primary", type: "line", "source-layer": "transportation" },
+      { id: "road_service", type: "line", "source-layer": "transportation" },
+    ],
+  };
+
+  const darkTerrain = buildReadableTerrainMapLibreStyle(style, {
+    theme: "dark",
+  });
+  const layerById = Object.fromEntries(
+    darkTerrain.layers.map((layer) => [layer.id, layer]),
+  );
+
+  assert.equal(layerById.background.paint["background-color"], "#101312");
+  assert.equal(layerById.landcover_forest.paint["fill-color"], "#151918");
+  assert.equal(layerById.landcover_forest.paint["fill-opacity"], 0.12);
+  assert.equal(layerById.highway_primary.paint["line-opacity"], 0.32);
+  assert.equal(layerById.road_service.paint["line-opacity"], 0.13);
 }

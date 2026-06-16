@@ -10,6 +10,7 @@ import {
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
 import { createRunwayBeamGradientController } from "../../features/airport/map/runwayBeamGradientController";
 import {
+  buildRunwayApproachLightCollection,
   buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
@@ -45,9 +46,17 @@ const runwayLabelIcon = (ident: string, theme: string) =>
   });
 
 const runwayLightRadius = (feature: Record<string, any>) => {
+  const kind = String(feature?.properties?.kind || "");
+  if (kind === "centerline") return 0.82;
   const progress = Number(feature?.properties?.progress);
   if (progress === 0 || progress === 1) return 1.55;
   return 1.12;
+};
+
+const runwayApproachLightRadius = (feature: Record<string, any>) => {
+  const progress = Number(feature?.properties?.progress);
+  if (!Number.isFinite(progress)) return 1.08;
+  return Math.max(0.72, 1.24 - progress * 0.42);
 };
 
 const isLeafletLayer = (layer: unknown): layer is L.Layer =>
@@ -113,12 +122,33 @@ const buildRunwayLightLayer = ({ data }: Record<string, any>) =>
         className: "runway-light-dot",
         color: "var(--runway-light-core)",
         fill: true,
-        fillColor: "var(--runway-light)",
-        fillOpacity: 0.84,
-        opacity: 0.88,
+        fillColor: feature?.properties?.kind === "centerline"
+          ? "var(--runway-light-core)"
+          : "var(--runway-light)",
+        fillOpacity: feature?.properties?.kind === "centerline" ? 0.68 : 0.86,
+        opacity: feature?.properties?.kind === "centerline" ? 0.62 : 0.88,
         radius: runwayLightRadius(feature as Record<string, any>),
         stroke: true,
         weight: 0.45,
+      });
+    },
+  } as any);
+
+const buildRunwayApproachLightLayer = ({ data }: Record<string, any>) =>
+  L.geoJSON(data as any, {
+    interactive: false,
+    pointToLayer(feature, latlng) {
+      return L.circleMarker(latlng, {
+        bubblingMouseEvents: false,
+        className: "runway-approach-light-dot",
+        color: "var(--runway-light-core)",
+        fill: true,
+        fillColor: "var(--runway-light)",
+        fillOpacity: 0.78,
+        opacity: 0.76,
+        radius: runwayApproachLightRadius(feature as Record<string, any>),
+        stroke: true,
+        weight: 0.38,
       });
     },
   } as any);
@@ -167,7 +197,17 @@ export default function RunwayAnnotationLayer({
       beamLayer = isLeafletLayer(built.beamLayer) ? built.beamLayer : null;
       beamRenderer = built.beamRenderer;
 
-      if (theme === "night") {
+      if (theme !== "light") {
+        const approachLights = buildRunwayApproachLightCollection(runwayMap, {
+          zoom,
+        });
+        if (approachLights.features.length) {
+          const approachLightLayer = buildRunwayApproachLightLayer({
+            data: approachLights,
+          });
+          if (isLeafletLayer(approachLightLayer)) sublayers.push(approachLightLayer);
+        }
+
         const runwayLights = buildRunwayLightCollection(runwayMap);
         if (runwayLights.features.length) {
           const lightLayer = buildRunwayLightLayer({ data: runwayLights });

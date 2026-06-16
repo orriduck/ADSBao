@@ -85,6 +85,10 @@ type TerrainPalette = {
   roadCasing: string;
   roadOpacity: number;
   roadCasingOpacity: number;
+  minorRoad: string;
+  minorRoadCasing: string;
+  minorRoadOpacity: number;
+  minorRoadCasingOpacity: number;
   roadLabel: string;
   roadLabelHalo: string;
   roadLabelOpacity: number;
@@ -130,29 +134,33 @@ type StandardDetailPalette = {
   roadCasing: string;
   roadOpacity: number;
   roadCasingOpacity: number;
+  minorRoad: string;
+  minorRoadCasing: string;
+  minorRoadOpacity: number;
+  minorRoadCasingOpacity: number;
   background: string;
 };
 
 const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> =
   Object.freeze({
     dark: Object.freeze({
-      background: "#1a1e1a",
-      // Buildings — much brighter so they're clearly visible
-      building: "#6b7564",
-      buildingOutline: "#828a7a",
-      buildingOpacity: 0.82,
-      // Water bodies — clear blue-grey, visibly distinct from land
-      water: "#3d6b7a",
-      // Landuse (parks, forests) — clearly green, low-contrast
-      landuse: "#4a7048",
-      landuseOpacity: 0.7,
-      landcover: "#456b43",
-      landcoverOpacity: 0.62,
-      // Roads — subtle grey, less prominent
-      road: "#5b6057",
-      roadCasing: "#2e322c",
-      roadOpacity: 0.3,
-      roadCasingOpacity: 0.18,
+      background: "#111413",
+      building: "#303634",
+      buildingOutline: "#454c49",
+      buildingOpacity: 0.58,
+      water: "#34464c",
+      landuse: "#141817",
+      landuseOpacity: 0.1,
+      landcover: "#141817",
+      landcoverOpacity: 0.08,
+      road: "#58605d",
+      roadCasing: "#171a19",
+      roadOpacity: 0.36,
+      roadCasingOpacity: 0.16,
+      minorRoad: "#2d3331",
+      minorRoadCasing: "#111413",
+      minorRoadOpacity: 0.14,
+      minorRoadCasingOpacity: 0.08,
     }),
     light: Object.freeze({
       background: "#f2f0ea",
@@ -168,43 +176,51 @@ const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> 
       roadCasing: "#d8d5cd",
       roadOpacity: 0.55,
       roadCasingOpacity: 0.35,
+      minorRoad: "#c5c2ba",
+      minorRoadCasing: "#dedbd2",
+      minorRoadOpacity: 0.42,
+      minorRoadCasingOpacity: 0.22,
     }),
   });
 
 const READABLE_TERRAIN_PALETTES: Record<"dark" | "light", TerrainPalette> =
   Object.freeze({
     dark: Object.freeze({
-      background: "#252a26",
-      water: "#465b5f",
-      waterLabel: "#879b9e",
-      waterLabelHalo: "#202620",
-      terrain: "#3b453d",
-      terrainOpacity: 0.5,
-      terrainSecondary: "#333a35",
-      terrainSecondaryOpacity: 0.42,
-      residential: "#2e332f",
-      building: "#333631",
-      buildingOutline: "#464b44",
-      road: "#686d64",
-      roadCasing: "#363b36",
-      roadOpacity: 0.34,
-      roadCasingOpacity: 0.2,
-      roadLabel: "#80847c",
-      roadLabelHalo: "#171b18",
-      roadLabelOpacity: 0.62,
-      aeroway: "#454a43",
-      aerowayOpacity: 0.58,
-      boundary: "#6f746d",
+      background: "#101312",
+      water: "#33454a",
+      waterLabel: "#849598",
+      waterLabelHalo: "#101312",
+      terrain: "#151918",
+      terrainOpacity: 0.12,
+      terrainSecondary: "#151918",
+      terrainSecondaryOpacity: 0.1,
+      residential: "#171b1a",
+      building: "#262b2a",
+      buildingOutline: "#3a4140",
+      road: "#565e5b",
+      roadCasing: "#151918",
+      roadOpacity: 0.32,
+      roadCasingOpacity: 0.14,
+      minorRoad: "#2a302f",
+      minorRoadCasing: "#101312",
+      minorRoadOpacity: 0.13,
+      minorRoadCasingOpacity: 0.07,
+      roadLabel: "#7a817e",
+      roadLabelHalo: "#101312",
+      roadLabelOpacity: 0.54,
+      aeroway: "#3a403e",
+      aerowayOpacity: 0.52,
+      boundary: "#6c7470",
       boundaryOpacity: 0.24,
-      label: "#adb3aa",
-      labelHalo: "#202620",
+      label: "#a7adaa",
+      labelHalo: "#101312",
       hillshadeExaggeration: 1,
       hillshadeShadow: "rgba(0, 0, 0, 0.62)",
-      hillshadeHighlight: "rgba(221, 226, 213, 0.22)",
-      hillshadeAccent: "rgba(82, 101, 86, 0.2)",
+      hillshadeHighlight: "rgba(210, 216, 212, 0.16)",
+      hillshadeAccent: "rgba(92, 103, 101, 0.1)",
       hillshadeDetailShadow: "rgba(0, 0, 0, 0.32)",
-      hillshadeDetailHighlight: "rgba(236, 240, 226, 0.12)",
-      hillshadeDetailAccent: "rgba(89, 111, 95, 0.12)",
+      hillshadeDetailHighlight: "rgba(218, 224, 220, 0.08)",
+      hillshadeDetailAccent: "rgba(92, 103, 101, 0.06)",
     }),
     light: Object.freeze({
       background: "#eef0ec",
@@ -222,6 +238,10 @@ const READABLE_TERRAIN_PALETTES: Record<"dark" | "light", TerrainPalette> =
       roadCasing: "#daddd3",
       roadOpacity: 0.42,
       roadCasingOpacity: 0.22,
+      minorRoad: "#b3b7ae",
+      minorRoadCasing: "#e3e4dc",
+      minorRoadOpacity: 0.28,
+      minorRoadCasingOpacity: 0.14,
       roadLabel: "#6d7168",
       roadLabelHalo: "#f7f5ef",
       roadLabelOpacity: 0.58,
@@ -436,7 +456,7 @@ function buildStandardDetailFillLayers(
   const layers: MapLibreLayer[] = [];
 
   if (sources.openmaptiles) {
-    // Parks, forests, grass — clear green fills
+    // Parks, forests, grass — theme-owned low-contrast fills.
     layers.push({
       id: "adsbao_std_landuse",
       type: "fill",
@@ -522,15 +542,22 @@ function resolveStandardDetailLayerPaint(
     setPaint("fill-color", palette.water);
   }
 
-  // Roads — gray and visible (not background-black)
+  // Roads — keep arterials legible while pushing residential/service streets back.
   if (isLayerId(id, "road") || isLayerId(id, "highway") || isLayerId(id, "street")) {
+    const roadPaint = resolveRoadPaint(layer, palette);
     if (layer.type === "line") {
-      setPaint("line-color", isLayerId(id, "casing") ? palette.roadCasing : palette.road);
-      setPaint("line-opacity", isLayerId(id, "casing") ? palette.roadCasingOpacity : palette.roadOpacity);
+      setPaint(
+        "line-color",
+        isRoadCasingLayer(id) ? roadPaint.casing : roadPaint.line,
+      );
+      setPaint(
+        "line-opacity",
+        isRoadCasingLayer(id) ? roadPaint.casingOpacity : roadPaint.opacity,
+      );
     }
     if (layer.type === "fill") {
-      setPaint("fill-color", palette.roadCasing);
-      setPaint("fill-opacity", palette.roadCasingOpacity);
+      setPaint("fill-color", roadPaint.casing);
+      setPaint("fill-opacity", roadPaint.casingOpacity);
     }
   }
 
@@ -787,16 +814,20 @@ function resolveTerrainLayerPaint(
   }
 
   if (isLayerId(id, "road") || isLayerId(id, "highway")) {
+    const roadPaint = resolveRoadPaint(layer, palette);
     setPaintForType(layer, setPaint, {
-      fill: ["fill-color", palette.roadCasing],
-      line: ["line-color", isLayerId(id, "casing") ? palette.roadCasing : palette.road],
+      fill: ["fill-color", roadPaint.casing],
+      line: [
+        "line-color",
+        isRoadCasingLayer(id) ? roadPaint.casing : roadPaint.line,
+      ],
       symbol: ["text-color", palette.roadLabel],
     });
-    if (layer.type === "fill") setPaint("fill-opacity", palette.roadCasingOpacity);
+    if (layer.type === "fill") setPaint("fill-opacity", roadPaint.casingOpacity);
     if (layer.type === "line") {
       setPaint(
         "line-opacity",
-        isLayerId(id, "casing") ? palette.roadCasingOpacity : palette.roadOpacity,
+        isRoadCasingLayer(id) ? roadPaint.casingOpacity : roadPaint.opacity,
       );
     }
     if (layer.type === "symbol") {
@@ -842,6 +873,50 @@ function setPaintForType(
   const value = layer.type ? values[layer.type] : null;
   if (!value) return;
   setPaint(value[0], value[1]);
+}
+
+function resolveRoadPaint(
+  layer: MapLibreLayer,
+  palette: Pick<
+    TerrainPalette,
+    | "road"
+    | "roadCasing"
+    | "roadOpacity"
+    | "roadCasingOpacity"
+    | "minorRoad"
+    | "minorRoadCasing"
+    | "minorRoadOpacity"
+    | "minorRoadCasingOpacity"
+  >,
+) {
+  const id = String(layer?.id || "").toLowerCase();
+  const sourceLayer = String(layer?.["source-layer"] || "").toLowerCase();
+  const haystack = `${id} ${sourceLayer}`;
+  const isMinor =
+    /minor|service|track|path|pedestrian|residential|tertiary|living|lane/.test(
+      haystack,
+    ) ||
+    (isLayerId(id, "street") && !/primary|secondary|trunk|motorway/.test(haystack));
+
+  if (!isMinor) {
+    return {
+      line: palette.road,
+      casing: palette.roadCasing,
+      opacity: palette.roadOpacity,
+      casingOpacity: palette.roadCasingOpacity,
+    };
+  }
+
+  return {
+    line: palette.minorRoad,
+    casing: palette.minorRoadCasing,
+    opacity: palette.minorRoadOpacity,
+    casingOpacity: palette.minorRoadCasingOpacity,
+  };
+}
+
+function isRoadCasingLayer(id: string) {
+  return isLayerId(id, "casing");
 }
 
 function isLayerId(id: string, needle: string) {

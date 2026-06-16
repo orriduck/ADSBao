@@ -530,7 +530,12 @@ export function ExplorerUiProvider({ children }) {
     }
     const nextSettings = normalizeMapSettings(mapSettings);
     const serialized = JSON.stringify(nextSettings);
-    if (serialized === persistedMapSettingsRef.current) return undefined;
+    if (serialized === persistedMapSettingsRef.current) {
+      setMapSettingsSaveStatus((current) =>
+        current === "saving" ? "idle" : current,
+      );
+      return undefined;
+    }
     const targets = resolveMapSettingsPersistenceTargets({
       authLoaded: isLoaded,
       signedIn: isSignedIn,
@@ -546,8 +551,10 @@ export function ExplorerUiProvider({ children }) {
     }
 
     let cancelled = false;
+    let saveStarted = false;
     const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
+      saveStarted = true;
       setMapSettingsSaveStatus("saving");
       setMapSettingsSaveStatusCode(null);
       setMapSettingsSaveCycle((c) => c + 1);
@@ -584,7 +591,12 @@ export function ExplorerUiProvider({ children }) {
         setMapSettingsSaveStatusCode(response.status);
         setMapSettingsSaveStatus("saved");
       } catch (error: any) {
-        if (cancelled || error?.name === "AbortError") return;
+        if (cancelled || error?.name === "AbortError") {
+          setMapSettingsSaveStatus((current) =>
+            current === "saving" ? "idle" : current,
+          );
+          return;
+        }
         setMapSettingsSaveStatus("error");
       }
     }, 250);
@@ -593,6 +605,11 @@ export function ExplorerUiProvider({ children }) {
       cancelled = true;
       window.clearTimeout(timeoutId);
       controller.abort();
+      if (saveStarted) {
+        setMapSettingsSaveStatus((current) =>
+          current === "saving" ? "idle" : current,
+        );
+      }
     };
   }, [
     isLoaded,

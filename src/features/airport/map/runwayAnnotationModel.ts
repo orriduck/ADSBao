@@ -5,7 +5,11 @@ import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const STATUTE_MILE_METERS = 1_609.344;
 const FEET_TO_METERS = 0.3048;
-const RUNWAY_LIGHT_SPACING_METERS = 180;
+const RUNWAY_LIGHT_SPACING_METERS = 90;
+const RUNWAY_CENTERLINE_LIGHT_SPACING_METERS = 180;
+const RUNWAY_APPROACH_LIGHT_SPACING_METERS = 120;
+const MIN_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 900;
+const MAX_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 1_800;
 const DEFAULT_RUNWAY_WIDTH_METERS = 45;
 const MIN_RUNWAY_LIGHT_WIDTH_METERS = 18;
 const MAX_RUNWAY_LIGHT_WIDTH_METERS = 80;
@@ -95,16 +99,6 @@ const coordinateFromVectorMeters = ({ end, vector, distance }: RunwayAnnotationR
   end.lat + (vector.y * distance) / METERS_PER_DEGREE_LATITUDE,
 ];
 
-const metersBetweenCoordinates = (
-  [startLon, startLat]: Coordinate2D,
-  [endLon, endLat]: Coordinate2D,
-) => {
-  const lonMeters = metersPerDegreeLongitude((startLat + endLat) / 2);
-  const dx = (endLon - startLon) * lonMeters;
-  const dy = (endLat - startLat) * METERS_PER_DEGREE_LATITUDE;
-  return Math.hypot(dx, dy);
-};
-
 const lineCoordinateAtProgress = (
   start: Coordinate2D,
   end: Coordinate2D,
@@ -166,11 +160,18 @@ const runwayLightFeaturesForRunway = (runway: RunwayAnnotationRecord) => {
   if (!vector) return [];
   const lightCount = Math.max(
     2,
-    Math.min(36, Math.floor(vector.length / RUNWAY_LIGHT_SPACING_METERS)),
+    Math.min(72, Math.floor(vector.length / RUNWAY_LIGHT_SPACING_METERS)),
+  );
+  const centerLightCount = Math.max(
+    2,
+    Math.min(
+      42,
+      Math.floor(vector.length / RUNWAY_CENTERLINE_LIGHT_SPACING_METERS),
+    ),
   );
   const halfWidthMeters = runwayWidthMeters(runway) / 2;
 
-  return [-1, 1].flatMap((side) =>
+  const edgeLights = [-1, 1].flatMap((side) =>
     Array.from({ length: lightCount + 1 }, (_, index) => {
       const progress = index / lightCount;
       const center = lineCoordinateAtProgress(start, end, progress);
@@ -182,6 +183,7 @@ const runwayLightFeaturesForRunway = (runway: RunwayAnnotationRecord) => {
           coordinates: coordinate,
         },
         properties: {
+          kind: "edge",
           runwayId: runway.id,
           lightIndex: index,
           progress,
@@ -190,6 +192,77 @@ const runwayLightFeaturesForRunway = (runway: RunwayAnnotationRecord) => {
       };
     }),
   );
+
+  const centerlineLights = Array.from({ length: centerLightCount + 1 }, (_, index) => {
+    const progress = index / centerLightCount;
+    return {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: lineCoordinateAtProgress(start, end, progress),
+      },
+      properties: {
+        kind: "centerline",
+        runwayId: runway.id,
+        lightIndex: index,
+        progress,
+        side: "center",
+      },
+    };
+  });
+
+  return [...edgeLights, ...centerlineLights];
+};
+
+const runwayApproachLightDistance = (profile: RunwayAnnotationRecord) =>
+  clamp(
+    profile.distance * 0.28,
+    MIN_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS,
+    MAX_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS,
+  );
+
+const runwayApproachLightFeaturesForRunway = (
+  runway: RunwayAnnotationRecord,
+  profile: RunwayAnnotationRecord,
+) => {
+  const ends = (runway.ends || []).filter(
+    (end) => Number.isFinite(end.lat) && Number.isFinite(end.lon),
+  );
+  if (ends.length < 2) return [];
+
+  const distance = runwayApproachLightDistance(profile);
+  const lightCount = Math.max(
+    4,
+    Math.min(18, Math.floor(distance / RUNWAY_APPROACH_LIGHT_SPACING_METERS)),
+  );
+
+  return ends.flatMap((end, endIndex) => {
+    const oppositeEnd = ends[endIndex === 0 ? 1 : 0];
+    const vector = runwayEndVector(end, oppositeEnd);
+    if (!vector) return [];
+
+    return Array.from({ length: lightCount }, (_, index) => {
+      const progress = (index + 1) / lightCount;
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: coordinateFromVectorMeters({
+            end,
+            vector,
+            distance: progress * distance,
+          }),
+        },
+        properties: {
+          kind: "approach",
+          runwayId: runway.id,
+          runwayEnd: end.ident,
+          lightIndex: index,
+          progress,
+        },
+      };
+    });
+  });
 };
 
 const rotateVector = (vector: RunwayAnnotationRecord, degrees: number) => {
@@ -431,6 +504,28 @@ export function buildRunwayLightCollection(runwayMap: RunwayAnnotationRecord) {
       cycle: runwayMap?.cycle || "",
     },
     features: (runwayMap?.runways || []).flatMap(runwayLightFeaturesForRunway),
+  };
+}
+
+export function buildRunwayApproachLightCollection(
+  runwayMap: RunwayAnnotationRecord,
+  { zoom, distanceScale = 1 }: RunwayAnnotationRecord = {},
+) {
+  const profile = scaleRunwayBeamProfile(
+    runwayBeamProfileForZoom(zoom),
+    distanceScale,
+  );
+
+  return {
+    type: "FeatureCollection",
+    properties: {
+      airport: runwayMap?.airport || "",
+      source: runwayMap?.source || "Runway geometry",
+      cycle: runwayMap?.cycle || "",
+    },
+    features: (runwayMap?.runways || []).flatMap((runway) =>
+      runwayApproachLightFeaturesForRunway(runway, profile),
+    ),
   };
 }
 
