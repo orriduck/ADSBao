@@ -34,6 +34,10 @@ import { computeTraceGeometry } from "./traceGeometry";
     geometry.labelPoints.length <= 5,
     "labels should keep a global cap even when samples are spread out",
   );
+  assert.ok(
+    geometry.labelPoints.every((point) => point.timestampMs <= tracePoints[5].timestampMs),
+    "labels should leave clearance around the live trace head",
+  );
 }
 
 {
@@ -88,7 +92,7 @@ import { computeTraceGeometry } from "./traceGeometry";
   assert.ok(geometry, "full trace should still produce geometry");
   assert.deepEqual(
     geometry.labelPoints.map((point) => (point.timestampMs - base) / 60_000),
-    [0, 10, 20, 30],
+    [0, 10, 20],
     "full trace labels should land at ten-minute intervals",
   );
 }

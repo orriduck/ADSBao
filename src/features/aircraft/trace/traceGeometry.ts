@@ -12,6 +12,7 @@ import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
 
 const DEFAULT_TRACE_MAX_LABELS = 5;
 const DEFAULT_TRACE_LABEL_MIN_DISTANCE_NM = 2;
+const DEFAULT_TRACE_LABEL_HEAD_CLEARANCE_NM = 12;
 const FULL_TRACE_LABEL_INTERVAL_MS = 10 * 60 * 1000;
 
 function buildTraceSamplePoints(points) {
@@ -22,6 +23,24 @@ function buildTraceSamplePoints(points) {
   return usable.filter((_, index) => index % stride === 0);
 }
 
+function isClearOfTraceHead(point, headPoint, minDistanceNm) {
+  if (!headPoint || !(minDistanceNm > 0)) return true;
+  const distanceNm = getDistanceNm(
+    point.lat,
+    point.lon,
+    headPoint.lat,
+    headPoint.lon,
+  );
+  return !Number.isFinite(distanceNm) || distanceNm >= minDistanceNm;
+}
+
+function buildTraceLabelCandidates(points, headClearanceNm) {
+  const headPoint = points.at(-1);
+  return points
+    .slice(0, -1)
+    .filter((point) => isClearOfTraceHead(point, headPoint, headClearanceNm));
+}
+
 // Sparser sample for human-readable text labels. Fewer items than the dot
 // markers so the labels don't pile on top of each other along the trail.
 function buildTraceLabelPoints(
@@ -29,9 +48,10 @@ function buildTraceLabelPoints(
   {
     maxLabels = DEFAULT_TRACE_MAX_LABELS,
     minDistanceNm = DEFAULT_TRACE_LABEL_MIN_DISTANCE_NM,
+    headClearanceNm = DEFAULT_TRACE_LABEL_HEAD_CLEARANCE_NM,
   } = {},
 ) {
-  const usable = points.slice(0, -1);
+  const usable = buildTraceLabelCandidates(points, headClearanceNm);
   if (usable.length === 0) return [];
 
   const selected = [];
@@ -56,9 +76,12 @@ function buildTraceLabelPoints(
 
 function buildFullTraceLabelPoints(
   points,
-  { intervalMs = FULL_TRACE_LABEL_INTERVAL_MS } = {},
+  {
+    intervalMs = FULL_TRACE_LABEL_INTERVAL_MS,
+    headClearanceNm = DEFAULT_TRACE_LABEL_HEAD_CLEARANCE_NM,
+  } = {},
 ) {
-  const usable = points.slice(0, -1);
+  const usable = buildTraceLabelCandidates(points, headClearanceNm);
   if (usable.length === 0) return [];
 
   const selected = [];

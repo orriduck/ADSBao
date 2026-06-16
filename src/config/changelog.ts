@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.10",
+    kind: "patch",
+    title: "Mobile aircraft marker visibility",
+    summary:
+      "Flight tracking maps keep the selected aircraft icon visible on mobile.",
+    highlights: [
+      "Added a high-contrast selected-aircraft core so the plane remains readable when tiny masked silhouettes collapse on mobile",
+      "Kept recent trace time labels clear of the live aircraft position so labels no longer cover the active plane",
+      "Reduced the marker backing plate opacity while preserving enough contrast over busy map detail",
+    ],
+  },
+  {
     version: "v2.6.9",
     kind: "patch",
     title: "Aircraft marker visibility",
