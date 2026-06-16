@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   resolveAirspaceClientPoint,
   resolveClickedAirspaceId,
+  shouldHandleAirspaceSelection,
 } from "./airspaceSelectionModel";
 
 const baseFeature = {
@@ -64,5 +65,27 @@ const innerFeature = {
 
   assert.equal(id, "inner");
 }
+
+assert.equal(
+  shouldHandleAirspaceSelection({
+    visible: false,
+    onSelectAirspace: () => {},
+  }),
+  false,
+);
+assert.equal(
+  shouldHandleAirspaceSelection({
+    visible: true,
+    onSelectAirspace: null,
+  }),
+  false,
+);
+assert.equal(
+  shouldHandleAirspaceSelection({
+    visible: true,
+    onSelectAirspace: () => {},
+  }),
+  true,
+);
 
 console.log("airspaceSelectionModel.test.ts ok");

@@ -59,14 +59,25 @@ import { createPostgresQueryClientFromEnv } from "./postgresClient";
 
 assert.equal(createPostgresQueryClientFromEnv({ env: {} }), null);
 
-assert.equal(
-  createPostgresQueryClientFromEnv({
+{
+  const calls: Array<Record<string, any>> = [];
+  const client = createPostgresQueryClientFromEnv({
     env: {
       DATABASE_URL: "postgres://legacy-generic-url",
     },
-  }),
-  null,
-);
+    createPoolImpl: (options: Record<string, any>) => {
+      calls.push({ type: "pool", options });
+      return {
+        async query<T = Record<string, any>>() {
+          return { rows: [] as T[], rowCount: 0 };
+        },
+      };
+    },
+  });
+
+  assert.ok(client);
+  assert.equal(calls[0].options.connectionString, "postgres://legacy-generic-url");
+}
 
 assert.equal(
   createPostgresQueryClientFromEnv({

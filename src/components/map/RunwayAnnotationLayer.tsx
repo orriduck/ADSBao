@@ -163,8 +163,8 @@ export default function RunwayAnnotationLayer({
   const map = useMapInstance();
   const layerRef = useRef(null);
   const surfaceRunwayMap = useMemo(
-    () => buildRunwayMapFromSurfaceMap(surfaceMap),
-    [surfaceMap],
+    () => buildRunwayMapFromSurfaceMap(surfaceMap, runwayMap),
+    [runwayMap, surfaceMap],
   );
 
   useEffect(() => {

@@ -15,6 +15,7 @@ import {
   airspaceFeatureIdsAtClientPoint,
   resolveAirspaceClientPoint,
   resolveClickedAirspaceId,
+  shouldHandleAirspaceSelection,
 } from "@/features/airport/map/airspaceSelectionModel";
 import { ensureAirportMapPane } from "@/features/airport/map/mapPane";
 import {
@@ -109,7 +110,14 @@ export default function AirspaceLayer({
       ) {
         return;
       }
-      if (!visibleRef.current || !onSelectRef.current) return;
+      if (
+        !shouldHandleAirspaceSelection({
+          visible: visibleRef.current,
+          onSelectAirspace: onSelectRef.current,
+        })
+      ) {
+        return;
+      }
       const clientPoint = resolveAirspaceClientPoint(event);
       const hitIds = airspaceFeatureIdsAtClientPoint(clientPoint);
       const clickedId = hitIds[0] || "";
@@ -151,6 +159,14 @@ export default function AirspaceLayer({
           setAirspaceLayerDomMetadata(featureLayer, featureId);
         });
         featureLayer.on("click", (event) => {
+          if (
+            !shouldHandleAirspaceSelection({
+              visible: visibleRef.current,
+              onSelectAirspace: onSelectRef.current,
+            })
+          ) {
+            return;
+          }
           if (event?.originalEvent) {
             L.DomEvent.stop(event.originalEvent);
             event.originalEvent.stopPropagation?.();

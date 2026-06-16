@@ -3892,6 +3892,18 @@ body {
     filter: saturate(1.22) brightness(1.16);
 }
 
+:root[data-theme="light"] .aircraft-marker--selected {
+    filter: none;
+}
+
+:root[data-theme="light"] .aircraft-marker--selected .aircraft-pointer-glyph {
+    filter: none;
+}
+
+:root[data-theme="light"] .aircraft-marker--selected .aircraft-pointer-glyph::before {
+    opacity: 0;
+}
+
 .aircraft-marker-hit-target {
     cursor: pointer;
     display: block;

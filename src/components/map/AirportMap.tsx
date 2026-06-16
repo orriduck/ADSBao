@@ -241,7 +241,7 @@ export default function AirportMap({
   useEffect(() => {
     if (!mapInstance) return undefined;
     const handleMapClick = (event: any) => {
-      if (mapClickTargetsAirspace(event)) return;
+      if (showAirspaces && mapClickTargetsAirspace(event)) return;
       if (selectedAircraftId && typeof onSelectAircraft === "function") {
         onSelectAircraft("");
       }
@@ -272,6 +272,7 @@ export default function AirportMap({
     onSelectNavaid,
     onSelectAirspace,
     onSelectCandidateWatchingSpot,
+    showAirspaces,
     selectedAircraftId,
     selectedAirportIcao,
     selectedNavaidKey,
@@ -465,6 +466,7 @@ export default function AirportMap({
             onSelectAirspace={onSelectAirspace}
           />
           <AirportSurfaceLayer
+            runwayMap={runwayMap}
             surfaceMap={surfaceMap}
             theme={currentTheme}
             zoom={zoom}
