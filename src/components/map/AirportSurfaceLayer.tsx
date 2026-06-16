@@ -27,12 +27,20 @@ const shouldRenderAirportSurfaceFeature = (
   feature: Record<string, any>,
 ) => {
   const kind = String(feature?.properties?.kind || "");
-  return kind === "runway" || kind === "taxiway" || kind === "taxilane";
+  return (
+    kind === "runway" ||
+    kind === "taxiway" ||
+    kind === "taxilane" ||
+    kind === "apron" ||
+    kind === "terminal" ||
+    kind === "building"
+  );
 };
 
 const airportSurfaceStyle = (
   feature: Record<string, any>,
   theme: string,
+  lightsActive: boolean,
 ) => {
   const kind = String(feature?.properties?.kind || "");
   const geometryType = String(feature?.geometry?.type || "");
@@ -40,6 +48,11 @@ const airportSurfaceStyle = (
   const isLight = theme === "light";
 
   if (kind === "runway") {
+    // When FAA lights are rendered (mid/near band), the thick runway stroke
+    // fills the narrow runway into a solid "bar" that competes with the lights.
+    // Thin and dim it so the lights define the runway; keep the full stroke at
+    // far zoom, where it is the only runway indicator.
+    const baseWeight = isLight ? (polygon ? 1.8 : 2.4) : polygon ? 5.6 : 6.2;
     return {
       className: airportSurfaceClassName(kind),
       color: "var(--airport-surface-runway-stroke)",
@@ -48,11 +61,28 @@ const airportSurfaceStyle = (
       fillOpacity: 0,
       lineCap: "round",
       lineJoin: "round",
-      opacity: isLight ? 0.28 : 0.68,
+      opacity: lightsActive ? (isLight ? 0.16 : 0.34) : isLight ? 0.28 : 0.68,
       stroke: true,
-      weight: isLight
-        ? polygon ? 1.8 : 2.4
-        : polygon ? 5.6 : 6.2,
+      weight: lightsActive ? (isLight ? 1.2 : 2.2) : baseWeight,
+    };
+  }
+
+  // Filled airport structures. Terminals get a distinct accent; other
+  // buildings a muted fill; aprons a subtle pavement tone. Colors resolve from
+  // theme tokens so both light and dark stay in the design system.
+  if (kind === "terminal" || kind === "building" || kind === "apron") {
+    const variant = kind === "apron" ? "apron" : kind === "terminal" ? "terminal" : "building";
+    return {
+      className: airportSurfaceClassName(kind),
+      color: `var(--airport-surface-${variant}-stroke)`,
+      fill: true,
+      fillColor: `var(--airport-surface-${variant}-fill)`,
+      fillOpacity: isLight ? 0.42 : 0.5,
+      lineCap: "round",
+      lineJoin: "round",
+      opacity: isLight ? 0.5 : 0.6,
+      stroke: true,
+      weight: isLight ? 0.7 : 0.8,
     };
   }
 
@@ -93,6 +123,8 @@ export default function AirportSurfaceLayer({
     () => buildRenderableAirportSurfaceFeatureCollection(surfaceMap, runwayMap),
     [runwayMap, surfaceMap],
   );
+  const lightingBand = useMemo(() => runwayLightingLodForZoom(zoom), [zoom]);
+  const lightsActive = lightingBand !== "far";
 
   useEffect(() => {
     if (!map || !surfaceFeatures?.features?.length) return undefined;
@@ -110,7 +142,7 @@ export default function AirportSurfaceLayer({
         return shouldRenderAirportSurfaceFeature(feature as Record<string, any>);
       },
       style(feature) {
-        return airportSurfaceStyle(feature as Record<string, any>, theme);
+        return airportSurfaceStyle(feature as Record<string, any>, theme, lightsActive);
       },
     } as any);
 
@@ -126,12 +158,11 @@ export default function AirportSurfaceLayer({
       renderer.remove();
       layerRef.current = null;
     };
-  }, [map, surfaceFeatures, theme, zoom]);
+  }, [map, surfaceFeatures, theme, zoom, lightsActive]);
 
   // Taxiway lights (green centerline + blue edge) on a shared canvas. Near band
   // only — taxiway lights are dense and low-value when zoomed out. Rebuilds only
   // on band crossing / airport / theme change, not on every fractional zoom.
-  const lightingBand = useMemo(() => runwayLightingLodForZoom(zoom), [zoom]);
   useEffect(() => {
     if (!map || !surfaceFeatures?.features?.length) return undefined;
     if (lightingBand !== "near") return undefined;

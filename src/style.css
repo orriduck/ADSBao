@@ -873,6 +873,14 @@
         oklch(46% 0.06 154) 74%,
         var(--atc-text)
     );
+    /* Filled airport structures (dark theme): terminals teal-accent, other
+       buildings muted slate, aprons a darker pavement tone. */
+    --airport-surface-terminal-fill: oklch(62% 0.11 215 / 0.5);
+    --airport-surface-terminal-stroke: oklch(74% 0.12 215 / 0.85);
+    --airport-surface-building-fill: oklch(58% 0.02 250 / 0.42);
+    --airport-surface-building-stroke: oklch(70% 0.02 250 / 0.7);
+    --airport-surface-apron-fill: oklch(50% 0.015 250 / 0.34);
+    --airport-surface-apron-stroke: oklch(64% 0.02 250 / 0.55);
 
     /* Single map-ink tone for every aircraft regardless of departure/arrival —
        the airport is the only thing painted yellow on the map. */
@@ -1329,6 +1337,14 @@
     );
     --airport-surface-taxiway-line: oklch(72% 0.004 100 / 0.76);
     --airport-surface-taxilane-line: oklch(66% 0.004 100 / 0.64);
+    /* Filled airport structures (light theme): deeper, higher-contrast so the
+       fills read on the bright basemap. */
+    --airport-surface-terminal-fill: oklch(58% 0.12 220 / 0.5);
+    --airport-surface-terminal-stroke: oklch(46% 0.13 220 / 0.92);
+    --airport-surface-building-fill: oklch(60% 0.025 250 / 0.42);
+    --airport-surface-building-stroke: oklch(44% 0.03 250 / 0.78);
+    --airport-surface-apron-fill: oklch(66% 0.018 250 / 0.34);
+    --airport-surface-apron-stroke: oklch(52% 0.02 250 / 0.6);
 
     /* Dark theme: same single light ink for every aircraft. */
     --aircraft-departure: oklch(0.86 0.006 100);

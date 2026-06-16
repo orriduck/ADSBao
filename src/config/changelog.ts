@@ -52,6 +52,10 @@ export const CHANGELOG: ChangelogEntry[] = [
         en: "Light spacing is widened from the exact FAA values so individual lights stay legible at the map's maximum zoom, while the color zones remain distance-accurate; lights render in both light and dark themes",
         zh: "灯光间距在 FAA 实际值基础上适当放大，使单个灯光在最大缩放下仍可分辨，同时配色分区仍按真实距离精确呈现；明暗主题下均可显示",
       },
+      {
+        en: "Airport buildings are now colored: terminals get an accent fill, other on-field buildings and aprons a muted fill. Buildings are pulled from OpenStreetMap constrained to inside the aerodrome boundary, and the thick runway surface stroke is thinned when lights are shown so it no longer reads as a solid bar",
+        zh: "机场建筑现在带有配色：航站楼使用强调色填充，场内其他建筑与停机坪使用低饱和填充。建筑数据取自 OpenStreetMap 并限定在机场边界内；显示灯光时跑道地面描边会变细，不再呈现为实心色条",
+      },
     ],
   },
   {

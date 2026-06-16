@@ -39,9 +39,12 @@ func TestBuildAirportSurfaceOverpassQuery(t *testing.T) {
 		east:  -70.986,
 	})
 
-	if !strings.Contains(query, `[out:json][timeout:8];`) ||
+	if !strings.Contains(query, `[out:json][timeout:20];`) ||
 		!strings.Contains(query, `way["aeroway"~"^(runway|taxiway|taxilane|apron)$"](42.344000,-71.031000,42.385000,-70.986000);`) ||
 		!strings.Contains(query, `relation["aeroway"~"^(runway|taxiway|taxilane|apron)$"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+		!strings.Contains(query, `way["aeroway"="terminal"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+		!strings.Contains(query, `map_to_area->.apt;`) ||
+		!strings.Contains(query, `way["building"](area.apt);`) ||
 		!strings.Contains(query, `out tags geom;`) {
 		t.Fatalf("unexpected query:\n%s", query)
 	}
@@ -76,6 +79,19 @@ func TestBuildAirportSurfaceMapFromOverpass(t *testing.T) {
 				"tags":     map[string]any{"aeroway": "helipad"},
 				"geometry": []any{map[string]any{"lat": 42.36, "lon": -71.01}},
 			},
+			// A building with no aeroway tag must be classified as "building"
+			// (guards the missing-tag "<nil>" normalization).
+			map[string]any{
+				"type": "way",
+				"id":   104,
+				"tags": map[string]any{"building": "yes", "name": "Terminal A"},
+				"geometry": []any{
+					map[string]any{"lat": 42.365, "lon": -71.015},
+					map[string]any{"lat": 42.365, "lon": -71.013},
+					map[string]any{"lat": 42.366, "lon": -71.013},
+					map[string]any{"lat": 42.365, "lon": -71.015},
+				},
+			},
 		},
 	}
 
@@ -87,19 +103,24 @@ func TestBuildAirportSurfaceMapFromOverpass(t *testing.T) {
 		t.Fatalf("unexpected surface map metadata: %#v", surfaceMap)
 	}
 	features := surfaceMap["features"].(map[string]any)["features"].([]map[string]any)
-	if len(features) != 2 {
+	if len(features) != 3 {
 		t.Fatalf("features = %#v", features)
 	}
-	if valueAt(features[0], "properties", "kind") != "apron" ||
+	// Buildings rank first (drawn underneath), then apron, then taxiway.
+	if valueAt(features[0], "properties", "kind") != "building" ||
 		valueAt(features[0], "geometry", "type") != "Polygon" {
-		t.Fatalf("expected apron polygon first, got %#v", features[0])
+		t.Fatalf("expected building polygon first, got %#v", features[0])
 	}
-	if valueAt(features[1], "properties", "kind") != "taxiway" ||
-		valueAt(features[1], "geometry", "type") != "LineString" {
-		t.Fatalf("expected taxiway line second, got %#v", features[1])
+	if valueAt(features[1], "properties", "kind") != "apron" ||
+		valueAt(features[1], "geometry", "type") != "Polygon" {
+		t.Fatalf("expected apron polygon second, got %#v", features[1])
+	}
+	if valueAt(features[2], "properties", "kind") != "taxiway" ||
+		valueAt(features[2], "geometry", "type") != "LineString" {
+		t.Fatalf("expected taxiway line third, got %#v", features[2])
 	}
 	counts := surfaceMap["counts"].(map[string]int)
-	if counts["apron"] != 1 || counts["taxiway"] != 1 {
+	if counts["apron"] != 1 || counts["taxiway"] != 1 || counts["building"] != 1 {
 		t.Fatalf("counts = %#v", counts)
 	}
 }
