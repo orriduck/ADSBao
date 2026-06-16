@@ -120,6 +120,17 @@ pnpm run dev
 
 The local app runs at `http://localhost:3000` by default.
 
+Agent-oriented local debug shortcut:
+
+```bash
+pnpm debug:local
+pnpm debug:local:service
+```
+
+`debug:local` adopts or starts the Vite server and writes a local health
+snapshot to `.codex-tmp/local-debug/latest.md`. `debug:local:service` also
+starts the Go data-service on the local Vite proxy target.
+
 ### Run The Railway Service Locally
 
 Build the frontend, then run the Go service with `STATIC_DIR` pointed at Vite's
@@ -136,7 +147,9 @@ For a split local setup, keep Vite on port 3000 and point it at a local Go
 service:
 
 ```bash
-VITE_ADSBAO_REALTIME_URL=ws://localhost:8080/ws pnpm run dev
+VITE_ADSBAO_LOCAL_API_ORIGIN=http://localhost:8081 pnpm run dev
+cd services/data-service
+PORT=8081 go run ./cmd/adsbao-data-service
 ```
 
 Service health and channel debug endpoints:

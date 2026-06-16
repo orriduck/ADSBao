@@ -10,11 +10,23 @@ pnpm run dev
 
 Frontend runs on `http://localhost:3000` by default.
 
+Agent shortcut:
+
+```bash
+pnpm debug:local
+```
+
+This adopts or starts the port 3000 Vite server, checks the local SPA routes,
+records Vite proxy/API health, and writes a reusable snapshot to
+`.codex-tmp/local-debug/latest.md`. Use `pnpm debug:local:service` when local
+debugging needs the Go data-service behind Vite's `/api`, `/health`, `/debug`,
+or `/ws` proxy.
+
 ### Dev server lifecycle (Claude operational rules)
 
 You are expected to keep one long-running `pnpm dev` process on port 3000 across the session. Pattern:
 
-1. **Before touching code**, check whether port 3000 is already serving by hitting `http://localhost:3000` (any 2xx/3xx counts). If it isn't, start and maintain the server yourself. In Codex, prefer a detached tmux session so subagents can keep the process alive without asking the user:
+1. **Before touching code**, check whether port 3000 is already serving by hitting `http://localhost:3000` (any 2xx/3xx counts). The fastest path is `pnpm debug:local`, which performs the health probe, starts the server when needed, and records a debug snapshot. If you need to do the steps manually, start and maintain the server yourself. In Codex, prefer a detached tmux session so subagents can keep the process alive without asking the user:
    ```bash
    tmux new-session -d -s adsbao-dev -c /Users/ruyyi/Devs/ADSBao '/opt/homebrew/bin/pnpm run dev'
    ```
@@ -40,6 +52,12 @@ You are expected to keep one long-running `pnpm dev` process on port 3000 across
 4. **After the restart**, reload the page in the available browser MCP with cache ignored before re-checking the broken behavior. Verify the source CSS file with `grep` first, then verify the served bundle (`curl /assets/*.css | grep <class>`) before going deeper into debugging.
 5. Subagents working on ADSBao local development should own this lifecycle: start the tmux process when it is missing and restart it when it breaks or serves stale CSS/JS. Do not wait for the user to explicitly ask for a dev-server restart.
 6. Do not switch frameworks or add alternate dev scripts as a workaround. Restarting Vite is the supported escape hatch and is fast enough on this project.
+
+Local API/WebSocket debugging: Vite proxies `/api`, `/health`, `/debug`, and
+`/ws` to `VITE_ADSBAO_LOCAL_API_ORIGIN` / `ADSBAO_LOCAL_API_ORIGIN`, defaulting
+to `http://localhost:8081`. Use `pnpm debug:local:service` to start both the
+frontend and the local Go data-service on that proxy target, then inspect
+`.codex-tmp/local-debug/latest.md` before opening the browser.
 
 ## Stack
 
