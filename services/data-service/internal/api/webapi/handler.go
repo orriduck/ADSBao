@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -202,6 +203,10 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		reportingPoints = h.reportingPoints(r.Context(), id)
 		obstacles = h.nearbyObstacles(r.Context(), lat, lon, minInt(radiusNm, 50))
 	}
+	runwayMap, runwayMapErr := h.userDataStore.readRunwayMap(r.Context(), ident)
+	if runwayMapErr != nil {
+		log.Printf("runway geometry read failed airport=%s error=%v", ident, runwayMapErr)
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"airport":         airport,
 		"runways":         mapRunways(asRecords(detail["runways"]), detail),
@@ -211,7 +216,7 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		"airspaces":       airspaces,
 		"reportingPoints": reportingPoints,
 		"obstacles":       obstacles,
-		"runwayMap":       nil,
+		"runwayMap":       runwayMap,
 		"source":          "openaip",
 	})
 }
