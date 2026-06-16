@@ -66,10 +66,9 @@ export const getMapOverlayTheme = (theme: unknown) =>
 
 export const resolveNearbyAirportLayerDisplay = ({
   nearbyAirports = [],
-  showMapLabels = true,
 }: NearbyAirportLayerDisplayOptions = {}) => ({
   airports: Array.isArray(nearbyAirports) ? nearbyAirports : [],
-  showAirportBadges: showMapLabels === true,
+  showAirportBadges: true,
   showRunwayBadges: false,
 });
 

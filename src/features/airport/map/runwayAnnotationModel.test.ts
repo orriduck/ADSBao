@@ -146,16 +146,16 @@ const nightVisualization = buildRunwayApproachVisualization(runwayMap, {
 assert.equal(nightVisualization.kind, "approach-beams");
 
 const runwayLights = buildRunwayLightCollection(runwayMap);
-assert.equal(runwayLights.features.length, 78);
+assert.equal(runwayLights.features.length, 92);
 const runwayStartCoordinate = runwayMap.runways[0].centerline.geometry
   .coordinates[0] as [any, any];
 assert.deepEqual(
   [...new Set(runwayLights.features.map((feature) => feature.properties.side))],
-  ["left", "right", "center"],
+  ["left", "right", "center", "threshold"],
 );
 assert.equal(runwayLights.features[0].properties.progress, 0);
-assert.equal(runwayLights.features.at(-1).properties.progress, 1);
-assert.equal(runwayLights.features.at(-1).properties.kind, "centerline");
+assert.equal(runwayLights.features.at(-15).properties.progress, 1);
+assert.equal(runwayLights.features.at(-15).properties.kind, "centerline");
 assert.ok(
   metersBetween(
     runwayLights.features[0].geometry.coordinates,
@@ -167,6 +167,21 @@ assert.ok(
     runwayLights.features[0].geometry.coordinates,
     runwayStartCoordinate,
   ) <= 26,
+);
+assert.equal(
+  runwayLights.features.filter((feature) => feature.properties.kind === "threshold")
+    .length,
+  14,
+);
+assert.deepEqual(
+  [
+    ...new Set(
+      runwayLights.features
+        .filter((feature) => feature.properties.kind === "threshold")
+        .map((feature) => feature.properties.runwayEnd),
+    ),
+  ],
+  ["04R", "22L"],
 );
 
 const approachLights = buildRunwayApproachLightCollection(runwayMap, {

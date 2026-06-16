@@ -1631,6 +1631,11 @@ body:has(.app-detail-shell) {
     mix-blend-mode: screen;
 }
 
+.runway-threshold-light-dot {
+    filter: drop-shadow(0 0 1.5px var(--runway-light-glow))
+        drop-shadow(0 0 5px var(--runway-light-glow));
+}
+
 .runway-approach-light-dot {
     filter: drop-shadow(0 0 1px var(--runway-light-glow))
         drop-shadow(0 0 4px var(--runway-light-glow));

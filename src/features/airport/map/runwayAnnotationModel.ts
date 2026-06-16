@@ -8,6 +8,8 @@ const FEET_TO_METERS = 0.3048;
 const RUNWAY_LIGHT_SPACING_METERS = 90;
 const RUNWAY_CENTERLINE_LIGHT_SPACING_METERS = 180;
 const RUNWAY_APPROACH_LIGHT_SPACING_METERS = 120;
+const RUNWAY_THRESHOLD_LIGHT_COUNT = 7;
+const RUNWAY_THRESHOLD_LIGHT_OVERHANG_METERS = 8;
 const MIN_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 900;
 const MAX_RUNWAY_APPROACH_LIGHT_DISTANCE_METERS = 1_800;
 const DEFAULT_RUNWAY_WIDTH_METERS = 45;
@@ -136,6 +138,16 @@ const offsetCoordinate = (
   ] as Coordinate2D;
 };
 
+const offsetAlongRunway = (
+  coordinate: Coordinate2D,
+  vector: RunwayAnnotationRecord,
+  distanceMeters: number,
+) =>
+  [
+    coordinate[0] + (vector.x * distanceMeters) / vector.lonMeters,
+    coordinate[1] + (vector.y * distanceMeters) / METERS_PER_DEGREE_LATITUDE,
+  ] as Coordinate2D;
+
 const runwayWidthMeters = (runway: RunwayAnnotationRecord) => {
   const widthMeters = Number(runway?.widthFt) * FEET_TO_METERS;
   if (!Number.isFinite(widthMeters) || widthMeters <= 0) {
@@ -211,7 +223,41 @@ const runwayLightFeaturesForRunway = (runway: RunwayAnnotationRecord) => {
     };
   });
 
-  return [...edgeLights, ...centerlineLights];
+  const thresholdLights = [start, end].flatMap((threshold, thresholdIndex) => {
+    const direction = thresholdIndex === 0 ? -1 : 1;
+    const baseCoordinate = offsetAlongRunway(
+      threshold,
+      vector,
+      RUNWAY_THRESHOLD_LIGHT_OVERHANG_METERS * direction,
+    );
+    const runwayEnd = runway?.ends?.[thresholdIndex]?.ident || "";
+
+    return Array.from({ length: RUNWAY_THRESHOLD_LIGHT_COUNT }, (_, index) => {
+      const progress =
+        RUNWAY_THRESHOLD_LIGHT_COUNT <= 1
+          ? 0.5
+          : index / (RUNWAY_THRESHOLD_LIGHT_COUNT - 1);
+      const lateralDistance = (progress - 0.5) * halfWidthMeters * 2.25;
+
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: offsetCoordinate(baseCoordinate, vector, lateralDistance),
+        },
+        properties: {
+          kind: "threshold",
+          runwayId: runway.id,
+          runwayEnd,
+          lightIndex: index,
+          progress,
+          side: "threshold",
+        },
+      };
+    });
+  });
+
+  return [...edgeLights, ...centerlineLights, ...thresholdLights];
 };
 
 const runwayApproachLightDistance = (profile: RunwayAnnotationRecord) =>

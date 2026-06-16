@@ -13,7 +13,7 @@ export const CHANGELOG = [
     summary: "前端、实时数据、代理接口和观测链路已收敛到 Railway 单服务架构。",
     highlights: [
       "移除 Next.js / Vercel 运行时，改为 Go data-service 托管 Vite SPA、API、WebSocket 和静态资源",
-      "修复迁移后的首页、Clerk 登录、地图设置保存、暗色底图、进近跑道灯、飞机图标、点击选中、截图分享和 OpenAIP 占位码显示",
+      "修复迁移后的首页、Clerk 登录、地图设置保存、附近机场、暗色底图、进近跑道灯、飞机图标、点击选中、截图分享和 OpenAIP 占位码显示",
       "统一 ADS-B 实时与 HTTP fallback，补上 provider 并发探测、冷却恢复和短暂失败缓存",
       "收敛 New Relic APM、日志和指标，保留可诊断的上游状态但不再把可选 provider 失败暴露成浏览器错误",
     ],

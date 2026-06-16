@@ -158,7 +158,7 @@ assert.deepEqual(
   }),
   {
     airports: nearbyLayerAirports,
-    showAirportBadges: false,
+    showAirportBadges: true,
     showRunwayBadges: false,
   },
 );

@@ -47,6 +47,7 @@ const runwayLabelIcon = (ident: string, theme: string) =>
 
 const runwayLightRadius = (feature: Record<string, any>) => {
   const kind = String(feature?.properties?.kind || "");
+  if (kind === "threshold") return 1.7;
   if (kind === "centerline") return 0.82;
   const progress = Number(feature?.properties?.progress);
   if (progress === 0 || progress === 1) return 1.55;
@@ -117,19 +118,25 @@ const buildRunwayLightLayer = ({ data }: Record<string, any>) =>
   L.geoJSON(data as any, {
     interactive: false,
     pointToLayer(feature, latlng) {
+      const kind = String(feature?.properties?.kind || "");
+      const isCenterline = kind === "centerline";
+      const isThreshold = kind === "threshold";
       return L.circleMarker(latlng, {
         bubblingMouseEvents: false,
-        className: "runway-light-dot",
+        className:
+          isThreshold
+            ? "runway-light-dot runway-threshold-light-dot"
+            : "runway-light-dot",
         color: "var(--runway-light-core)",
         fill: true,
-        fillColor: feature?.properties?.kind === "centerline"
+        fillColor: isCenterline
           ? "var(--runway-light-core)"
           : "var(--runway-light)",
-        fillOpacity: feature?.properties?.kind === "centerline" ? 0.68 : 0.86,
-        opacity: feature?.properties?.kind === "centerline" ? 0.62 : 0.88,
+        fillOpacity: isCenterline ? 0.68 : isThreshold ? 0.96 : 0.86,
+        opacity: isCenterline ? 0.62 : isThreshold ? 0.96 : 0.88,
         radius: runwayLightRadius(feature as Record<string, any>),
         stroke: true,
-        weight: 0.45,
+        weight: isThreshold ? 0.5 : 0.45,
       });
     },
   } as any);
