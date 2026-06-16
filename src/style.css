@@ -3959,7 +3959,7 @@ body {
     stroke-width: 1.8;
 }
 
-.aircraft-pointer-glyph > svg {
+.aircraft-pointer-glyph > svg:not(.aircraft-pointer-core) {
     z-index: 1;
 }
 
