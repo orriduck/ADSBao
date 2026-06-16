@@ -77,3 +77,27 @@ export const shouldShowCandidateWatchingSpotCountForZoom = (zoom: unknown) =>
 
 export const shouldShowCandidateWatchingSpotDetailsForZoom = (zoom: unknown) =>
   airportMapZoomFeaturesFor(zoom).showCandidateWatchingSpotDetails;
+
+// Level-of-detail band for runway/taxiway point lights. Keyed to the same
+// zoom breakpoints as the rest of the airport map:
+//   far  (<= approach)  → no point lights, approach beams only
+//   mid  (airport..<detail) → edge + threshold/end + ALS dots, coarse centerline
+//   near (>= detail)    → full FAA density (50ft centerline, TDZL, REIL, taxiway)
+export type RunwayLightingLodBand = "far" | "mid" | "near";
+
+const LOD_BAND_RANK: Record<RunwayLightingLodBand, number> = {
+  far: 0,
+  mid: 1,
+  near: 2,
+};
+
+export const runwayLightingLodBandRank = (band: RunwayLightingLodBand) =>
+  LOD_BAND_RANK[band] ?? 0;
+
+export const runwayLightingLodForZoom = (zoom: unknown): RunwayLightingLodBand => {
+  const numericZoom = Number(zoom);
+  if (!Number.isFinite(numericZoom)) return "near";
+  if (numericZoom <= ZOOM_APPROACH) return "far";
+  if (numericZoom >= ZOOM_DETAIL) return "near";
+  return "mid";
+};

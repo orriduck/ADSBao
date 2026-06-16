@@ -16,10 +16,11 @@ import (
 const (
 	defaultOverpassBaseURL             = "https://overpass-api.de/api/interpreter"
 	defaultAirportSurfaceCacheTTL      = 6 * time.Hour
-	airportSurfaceRequestTimeout       = 6 * time.Second
+	airportSurfaceRequestTimeout       = 18 * time.Second
 	airportSurfaceBBoxPaddingMeters    = 1800
 	airportSurfaceFallbackRadiusMeters = 4500
-	maxAirportSurfaceFeatures          = 500
+	maxAirportSurfaceFeatures          = 1400
+	maxAirportSurfaceBuildings         = 600
 )
 
 type airportSurfaceBBox struct {
@@ -185,12 +186,25 @@ func buildAirportSurfaceOverpassQuery(bbox airportSurfaceBBox) string {
 		formatBBoxCoordinate(bbox.east),
 	}, ",")
 
-	return fmt.Sprintf(`[out:json][timeout:8];
+	// Buildings are constrained to INSIDE the airport's aerodrome polygon (via
+	// map_to_area) so we color only on-field structures, not the surrounding
+	// city. Aeroway pavement still uses the bbox so runways/taxiways render even
+	// when an airport has no mapped aerodrome area.
+	return fmt.Sprintf(`[out:json][timeout:20];
+(
+  way["aeroway"="aerodrome"](%s);
+  relation["aeroway"="aerodrome"](%s);
+)->.aerodrome;
+.aerodrome map_to_area->.apt;
 (
   way["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
   relation["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
+  way["aeroway"="terminal"](%s);
+  relation["aeroway"="terminal"](%s);
+  way["building"](area.apt);
+  relation["building"](area.apt);
 );
-out tags geom;`, formatted, formatted)
+out tags geom;`, formatted, formatted, formatted, formatted, formatted, formatted)
 }
 
 func formatBBoxCoordinate(value float64) string {
@@ -205,12 +219,22 @@ func buildAirportSurfaceMapFromOverpass(airport string, payload map[string]any) 
 
 	features := []map[string]any{}
 	counts := map[string]int{}
+	buildingCount := 0
 	for _, element := range asRecords(payload["elements"]) {
 		feature := airportSurfaceFeature(element)
 		if feature == nil {
 			continue
 		}
 		kind := stringValue(valueAt(feature, "properties", "kind"))
+		// Cap buildings independently so a building-dense airport can never
+		// starve the aeroway pavement (runways/taxiways/aprons) it shares the
+		// overall budget with.
+		if kind == "building" {
+			if buildingCount >= maxAirportSurfaceBuildings {
+				continue
+			}
+			buildingCount++
+		}
 		counts[kind]++
 		features = append(features, feature)
 		if len(features) >= maxAirportSurfaceFeatures {
@@ -244,6 +268,18 @@ func buildAirportSurfaceMapFromOverpass(airport string, payload map[string]any) 
 func airportSurfaceFeature(element map[string]any) map[string]any {
 	tags := asRecord(element["tags"])
 	kind := strings.ToLower(stringValue(tags["aeroway"]))
+	// `stringValue` yields "<nil>" for a missing tag — normalize to empty.
+	if kind == "<nil>" {
+		kind = ""
+	}
+	// Buildings carry no aeroway tag; aeroway=terminal is already a building.
+	// Classify them so the frontend can color terminals distinctly from other
+	// airport buildings.
+	if kind == "" {
+		if _, ok := tags["building"]; ok {
+			kind = "building"
+		}
+	}
 	if !isAirportSurfaceKind(kind) {
 		return nil
 	}
@@ -283,7 +319,7 @@ func airportSurfaceFeature(element map[string]any) map[string]any {
 
 func isAirportSurfaceKind(kind string) bool {
 	switch kind {
-	case "runway", "taxiway", "taxilane", "apron":
+	case "runway", "taxiway", "taxilane", "apron", "terminal", "building":
 		return true
 	default:
 		return false
@@ -306,7 +342,9 @@ func shouldRenderAirportSurfaceAsPolygon(kind string, coordinates []any) bool {
 	if len(coordinates) < 4 {
 		return false
 	}
-	if kind != "apron" && kind != "runway" {
+	switch kind {
+	case "apron", "runway", "terminal", "building":
+	default:
 		return false
 	}
 	first := coordinates[0].([]any)
@@ -315,16 +353,22 @@ func shouldRenderAirportSurfaceAsPolygon(kind string, coordinates []any) bool {
 }
 
 func airportSurfaceKindRank(kind string) int {
+	// Lower ranks render first (underneath). Buildings/terminals sit below the
+	// pavement; runways sit on top.
 	switch kind {
-	case "apron":
+	case "building":
 		return 0
-	case "taxilane":
+	case "terminal":
 		return 1
-	case "taxiway":
+	case "apron":
 		return 2
-	case "runway":
+	case "taxilane":
 		return 3
-	default:
+	case "taxiway":
 		return 4
+	case "runway":
+		return 5
+	default:
+		return 6
 	}
 }

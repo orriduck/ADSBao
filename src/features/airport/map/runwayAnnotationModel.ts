@@ -4,7 +4,7 @@ import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const STATUTE_MILE_METERS = 1_609.344;
-const FEET_TO_METERS = 0.3048;
+export const FEET_TO_METERS = 0.3048;
 const RUNWAY_LIGHT_SPACING_METERS = 170;
 const RUNWAY_CENTERLINE_LIGHT_SPACING_METERS = 260;
 const RUNWAY_APPROACH_LIGHT_SPACING_METERS = 180;
@@ -25,7 +25,7 @@ const INVALID_SURFACE_RUNWAY_IDS = new Set([
 const shouldShowRunwayEndLabels = shouldShowRunwayEndLabelsForZoom;
 
 type RunwayAnnotationRecord = Record<string, any>;
-type Coordinate2D = [number, number];
+export type Coordinate2D = [number, number];
 type SurfaceRunwaySegment = {
   feature: RunwayAnnotationRecord;
   coordinates: Coordinate2D[];
@@ -59,7 +59,7 @@ type CanonicalSurfaceRunwayFeature = RunwayAnnotationRecord & {
 const metersPerDegreeLongitude = (latitude: number) =>
   METERS_PER_DEGREE_LATITUDE * Math.cos((latitude * Math.PI) / 180);
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+export const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
 const interpolate = (from: number, to: number, progress: number) => from + (to - from) * progress;
 
@@ -103,7 +103,7 @@ const normalizedRunwayMapById = (runwayMap: RunwayAnnotationRecord) => {
   return byId;
 };
 
-const metersBetweenCoordinates = (left: Coordinate2D, right: Coordinate2D) => {
+export const metersBetweenCoordinates = (left: Coordinate2D, right: Coordinate2D) => {
   const lonMeters = metersPerDegreeLongitude((left[1] + right[1]) / 2);
   const dx = (right[0] - left[0]) * lonMeters;
   const dy = (right[1] - left[1]) * METERS_PER_DEGREE_LATITUDE;
@@ -506,7 +506,7 @@ const scaleRunwayBeamProfile = (profile: RunwayAnnotationRecord, distanceScale =
   nearWidth: profile.nearWidth * distanceScale,
 });
 
-const runwayEndVector = (end: RunwayAnnotationRecord, oppositeEnd: RunwayAnnotationRecord) => {
+export const runwayEndVector = (end: RunwayAnnotationRecord, oppositeEnd: RunwayAnnotationRecord) => {
   const lonMeters = metersPerDegreeLongitude(end.lat);
   const dx = (end.lon - oppositeEnd.lon) * lonMeters;
   const dy = (end.lat - oppositeEnd.lat) * METERS_PER_DEGREE_LATITUDE;
@@ -532,12 +532,12 @@ const offsetPoint = ({ end, vector, distance, halfWidth, side }: RunwayAnnotatio
   ];
 };
 
-const coordinateFromVectorMeters = ({ end, vector, distance }: RunwayAnnotationRecord) => [
+export const coordinateFromVectorMeters = ({ end, vector, distance }: RunwayAnnotationRecord) => [
   end.lon + (vector.x * distance) / vector.lonMeters,
   end.lat + (vector.y * distance) / METERS_PER_DEGREE_LATITUDE,
 ];
 
-const lineCoordinateAtProgress = (
+export const lineCoordinateAtProgress = (
   start: Coordinate2D,
   end: Coordinate2D,
   progress: number,
@@ -546,7 +546,7 @@ const lineCoordinateAtProgress = (
   start[1] + (end[1] - start[1]) * progress,
 ] as Coordinate2D;
 
-const runwayVectorFromCoordinates = (start: Coordinate2D, end: Coordinate2D) => {
+export const runwayVectorFromCoordinates = (start: Coordinate2D, end: Coordinate2D) => {
   const lonMeters = metersPerDegreeLongitude((start[1] + end[1]) / 2);
   const dx = (end[0] - start[0]) * lonMeters;
   const dy = (end[1] - start[1]) * METERS_PER_DEGREE_LATITUDE;
@@ -561,7 +561,7 @@ const runwayVectorFromCoordinates = (start: Coordinate2D, end: Coordinate2D) => 
   };
 };
 
-const offsetCoordinate = (
+export const offsetCoordinate = (
   coordinate: Coordinate2D,
   vector: RunwayAnnotationRecord,
   lateralDistanceMeters: number,
@@ -574,7 +574,7 @@ const offsetCoordinate = (
   ] as Coordinate2D;
 };
 
-const runwayWidthMeters = (runway: RunwayAnnotationRecord) => {
+export const runwayWidthMeters = (runway: RunwayAnnotationRecord) => {
   const widthMeters = Number(runway?.widthFt) * FEET_TO_METERS;
   if (!Number.isFinite(widthMeters) || widthMeters <= 0) {
     return DEFAULT_RUNWAY_WIDTH_METERS;

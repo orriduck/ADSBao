@@ -89,6 +89,51 @@ export const RUNWAY_APPROACH_BEAM_CONFIG = {
   ],
 };
 
+// FAA AIM Ch.2 §3 lighting geometry. Spacing/zone distances are in feet
+// (FAA spec units); the model converts to meters. Colors are NOT here — the
+// renderer maps each light's semantic color role to a CSS variable so themes
+// stay the source of truth (see --atc-runway-light-* in style.css).
+export const RUNWAY_FAA_LIGHTING_CONFIG = {
+  // Longitudinal spacing along the runway. NOTE: these are intentionally WIDER
+  // than the real FAA spacing (edge 200ft, centerline 50ft). At the map's max
+  // usable zoom, true spacing packs the dots into a solid line; widening the
+  // gaps keeps individual lights legible. Color ZONES below stay distance-exact
+  // (in feet), so the FAA color pattern is preserved regardless of spacing.
+  edgeSpacingFt: 400,
+  centerlineSpacingFt: 200,
+  // Symmetric color zones, measured from the nearer threshold.
+  edgeCautionFt: 2000, // edge turns amber within last 2000ft (or half, whichever less)
+  centerlineRedFt: 1000, // centerline all-red within last 1000ft
+  centerlineAltFt: 3000, // centerline alternates red/white from 3000ft to 1000ft remaining
+  // Touchdown zone lights: from `tdzStartFt` past the (displaced) threshold,
+  // extending up to `tdzLengthFt` or the runway midpoint, whichever is less.
+  tdzStartFt: 100,
+  tdzLengthFt: 3000,
+  tdzBarSpacingFt: 300, // widened for legibility (real ~100ft)
+  tdzBarHalfCount: 2, // lights per side of a single TDZ bar
+  // Threshold / runway-end bar: number of lights across the runway width.
+  endBarLightCount: 5,
+  // REIL: a pair of synchronized flashing strobes flanking each threshold.
+  reilOffsetFt: 40, // lateral offset outboard of the runway edge
+  // Taxiway lights (OSM geometry; width is estimated since OSM rarely has it).
+  // Also widened from real spacing (centerline 50ft, edge 200ft) for legibility.
+  taxiwayCenterlineSpacingFt: 200,
+  taxiwayEdgeSpacingFt: 400,
+  taxiwayDefaultHalfWidthFt: 38, // ~11.5m assumed half-width for blue edge offset
+  // Per-band decimation: keep mid-zoom point counts sane.
+  midCenterlineDecimation: 2, // render every Nth centerline light at mid band
+  // Canvas point radius (screen px) per color role bucket.
+  radius: {
+    edge: 1.55,
+    centerline: 0.95,
+    tdz: 0.95,
+    endBar: 1.3,
+    reil: 1.6,
+    approach: 1.15,
+    taxiway: 0.85,
+  },
+} as const;
+
 export const RUNWAY_ANNOTATION_STYLE_CONFIG = {
   lineStyles: {
     dark: {

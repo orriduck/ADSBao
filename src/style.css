@@ -820,6 +820,14 @@
     --aviation-runway-light-core: #fff0a8;
     --aviation-runway-light: #ffd36a;
     --aviation-runway-light-glow: rgba(255, 207, 93, 0.36);
+    /* FAA AIM Ch.2 §3 light colors (dark basemap): warm white, amber caution,
+       red end, green threshold, blue taxiway. Consumed by the canvas renderer
+       via getComputedStyle — keep these as the source of truth. */
+    --atc-runway-light-white: #fff2c0;
+    --atc-runway-light-amber: #ffce4d;
+    --atc-runway-light-red: #ff5a52;
+    --atc-runway-light-green: #54e08a;
+    --atc-runway-light-blue: #5aa6ff;
     --aviation-runway-night-line: rgba(255, 211, 106, 0.48);
     --aviation-runway-night-beam: #ffd36a;
     --aviation-nearby-runway-line: #24231f;
@@ -865,6 +873,14 @@
         oklch(46% 0.06 154) 74%,
         var(--atc-text)
     );
+    /* Filled airport structures (dark theme): terminals teal-accent, other
+       buildings muted slate, aprons a darker pavement tone. */
+    --airport-surface-terminal-fill: oklch(62% 0.11 215 / 0.5);
+    --airport-surface-terminal-stroke: oklch(74% 0.12 215 / 0.85);
+    --airport-surface-building-fill: oklch(58% 0.02 250 / 0.42);
+    --airport-surface-building-stroke: oklch(70% 0.02 250 / 0.7);
+    --airport-surface-apron-fill: oklch(50% 0.015 250 / 0.34);
+    --airport-surface-apron-stroke: oklch(64% 0.02 250 / 0.55);
 
     /* Single map-ink tone for every aircraft regardless of departure/arrival —
        the airport is the only thing painted yellow on the map. */
@@ -1285,6 +1301,13 @@
     --aviation-runway-light-core: oklch(96% 0.042 94);
     --aviation-runway-light: oklch(91% 0.095 91);
     --aviation-runway-light-glow: oklch(86% 0.12 88 / 0.42);
+    /* FAA light colors tuned for the bright basemap: deeper, higher-saturation
+       so white/amber/green stay legible without a dark backdrop. */
+    --atc-runway-light-white: #6b6450;
+    --atc-runway-light-amber: #d98a00;
+    --atc-runway-light-red: #d42f29;
+    --atc-runway-light-green: #1f9d57;
+    --atc-runway-light-blue: #1f6fd4;
     --aircraft-trace-line: var(--aviation-trace-line);
     --aircraft-trace-glow: var(--aviation-trace-glow);
     --aircraft-trace-point: var(--aviation-trace-point);
@@ -1314,6 +1337,14 @@
     );
     --airport-surface-taxiway-line: oklch(72% 0.004 100 / 0.76);
     --airport-surface-taxilane-line: oklch(66% 0.004 100 / 0.64);
+    /* Filled airport structures (light theme): deeper, higher-contrast so the
+       fills read on the bright basemap. */
+    --airport-surface-terminal-fill: oklch(58% 0.12 220 / 0.5);
+    --airport-surface-terminal-stroke: oklch(46% 0.13 220 / 0.92);
+    --airport-surface-building-fill: oklch(60% 0.025 250 / 0.42);
+    --airport-surface-building-stroke: oklch(44% 0.03 250 / 0.78);
+    --airport-surface-apron-fill: oklch(66% 0.018 250 / 0.34);
+    --airport-surface-apron-stroke: oklch(52% 0.02 250 / 0.6);
 
     /* Dark theme: same single light ink for every aircraft. */
     --aircraft-departure: oklch(0.86 0.006 100);

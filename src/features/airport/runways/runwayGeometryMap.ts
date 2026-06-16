@@ -44,15 +44,29 @@ export const buildRunwayMapFromGeometries = ({
       .filter((row) => row?.le?.ident && row?.he?.ident)
       .filter((row) => hasFiniteCoord(row.le) && hasFiniteCoord(row.he))
       .map((row) => {
-        const ends = [
-          { ident: String(row.le.ident).toUpperCase(), lat: row.le.lat, lon: row.le.lon },
-          { ident: String(row.he.ident).toUpperCase(), lat: row.he.lat, lon: row.he.lon },
-        ].sort((left, right) => sortKey(left.ident).localeCompare(sortKey(right.ident)));
+        const endFromSide = (side: RunwayGeometryRecord) => ({
+          ident: String(side.ident).toUpperCase(),
+          lat: side.lat,
+          lon: side.lon,
+          // Carried through for FAA lighting: threshold/TDZL start offset and
+          // (where available) heading/elevation.
+          displacedThresholdFt: side.displacedThresholdFt ?? null,
+          headingDegT: side.headingDegT ?? null,
+          elevationFt: side.elevationFt ?? null,
+        });
+        const ends = [endFromSide(row.le), endFromSide(row.he)].sort(
+          (left, right) => sortKey(left.ident).localeCompare(sortKey(right.ident)),
+        );
         const id = ends.map((end) => end.ident).join("/");
         return {
           id,
           lengthFt: row.lengthFt ?? null,
           widthFt: row.widthFt ?? null,
+          // `lighted` drives whether FAA lights render at all. Undefined (e.g.
+          // OSM-derived runways) is treated as lighted downstream; only an
+          // explicit `false` suppresses lights.
+          lighted: typeof row.lighted === "boolean" ? row.lighted : undefined,
+          surface: row.surface || "",
           ends,
           centerline: {
             type: "Feature",

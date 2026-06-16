@@ -36,6 +36,27 @@ assert.deepEqual(
 );
 assert.deepEqual(runwayMap.runways[0].centerline.properties.ends, ["04L", "22R"]);
 
+// `lighted` and per-end `displacedThresholdFt` must survive into the runway
+// object so FAA lighting can use them (previously dropped).
+const litRunwayMap = buildRunwayMapFromGeometries({
+  airport: "KBOS",
+  runways: [
+    {
+      lengthFt: 7861,
+      widthFt: 150,
+      lighted: true,
+      le: { ident: "22R", lat: 42.3745, lon: -70.999, displacedThresholdFt: 300 },
+      he: { ident: "04L", lat: 42.3581, lon: -71.0142, displacedThresholdFt: 0 },
+    },
+  ],
+});
+assert.equal(litRunwayMap.runways[0].lighted, true);
+const end22R = litRunwayMap.runways[0].ends.find((end) => end.ident === "22R");
+assert.equal(end22R.displacedThresholdFt, 300);
+
+// Missing `lighted` stays undefined (treated as lighted downstream, for OSM).
+assert.equal(runwayMap.runways[0].lighted, undefined);
+
 const openAipDirectionalRunwayMap = buildRunwayMapFromGeometries({
   airport: "KJFK",
   source: "OpenAIP",
