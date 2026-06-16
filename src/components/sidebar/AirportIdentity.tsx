@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 
 import SidebarIdentityHero from "./SidebarIdentityHero";
 import { countryName, flagEmoji } from "../../utils/flag";
-import { airportCityName, airportDisplayName } from "../../utils/airport";
+import {
+  airportCityName,
+  airportDisplayCodeLine,
+  airportDisplayName,
+  cleanAirportCode,
+} from "../../utils/airport";
 import { resolveTimezone } from "../../utils/timezone";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
@@ -53,17 +58,20 @@ export default function AirportIdentity({
       ? [nearMeFlag, nearMeCountryLabel].filter(Boolean).join(" ").trim()
       : t("sidebar.nearMeSubtitle");
 
+  const displayIcao = cleanAirportCode(icao);
+  const displayIata = cleanAirportCode(iata);
   const codeLine = nearMe
     ? nearMeBadge
-    : iata && iata !== icao
-      ? `${iata} · ${icao}`
-      : icao || "—";
+    : airportDisplayCodeLine({ icao: displayIcao, iata: displayIata });
   const flag = nearMe ? "" : flagEmoji(country);
   const countryLabel = nearMe ? "" : countryName(country, locale) || country;
   const cityLabel = nearMe ? "" : airportCityName(city, locale);
   const displayName = nearMe
     ? nearMeTitle
-    : airportDisplayName({ icao, iata, name, localizedName }, locale);
+    : airportDisplayName(
+        { icao: displayIcao, iata: displayIata, name, localizedName },
+        locale,
+      );
   const placeText = nearMe
     ? nearMeSubtitle
     : [cityLabel, countryLabel].filter(Boolean).join(", ");

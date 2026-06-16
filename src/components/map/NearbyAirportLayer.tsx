@@ -15,6 +15,7 @@ import {
 } from "../../features/airport/map/runwayAnnotationModel";
 import { shouldShowNearbyAirportRunwaysForZoom } from "../../features/airport/map/airportMapZoomFeatures";
 import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
+import { airportDisplayCode } from "@/utils/airport";
 
 const escapeHtml = (value: unknown) =>
   String(value || "")
@@ -24,8 +25,7 @@ const escapeHtml = (value: unknown) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 
-const airportLabel = (airport: Record<string, any>) =>
-  airport.iata || airport.icao || airport.code || "";
+const airportLabel = (airport: Record<string, any>) => airportDisplayCode(airport);
 
 const markerHtml = (airport: Record<string, any>) => {
   const code = airportLabel(airport);

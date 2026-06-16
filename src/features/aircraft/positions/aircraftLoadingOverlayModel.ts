@@ -58,6 +58,11 @@ type OverlayPaintSchedulerOptions = {
 
 type PageVisibleReplayOptions = {
   documentHidden?: boolean;
+  eventPersisted?: boolean;
+  wasHidden?: boolean;
+  hiddenSince?: number;
+  now?: number;
+  minHiddenMs?: number;
 };
 
 export function areCriticalLoadingRequestsSettled({
@@ -149,8 +154,20 @@ export function getLoadingOverlayExitDelay({
 
 export function shouldReplayLoadingOverlayOnPageVisible({
   documentHidden = false,
+  eventPersisted = false,
+  wasHidden = false,
+  hiddenSince = 0,
+  now = Date.now(),
+  minHiddenMs = 15_000,
 }: PageVisibleReplayOptions = {}) {
-  return !documentHidden;
+  if (documentHidden) return false;
+  if (eventPersisted) return true;
+  return shouldTriggerVisibilityRefreshOverlay({
+    wasActive: wasHidden,
+    hiddenSince,
+    now,
+    minHiddenMs,
+  });
 }
 
 export function scheduleAfterOverlayPaint(

@@ -6,7 +6,7 @@ import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplayModel";
-import { airportCityName, airportDisplayName } from "@/utils/airport";
+import { airportCityName, airportDisplayCodeLine, airportDisplayName } from "@/utils/airport";
 import { countryName } from "@/utils/flag";
 import { formatAltitude } from "@/utils/units";
 import { rowPropsEqual } from "./rowPropsEqual";
@@ -23,9 +23,7 @@ function AirportRow({
 }: Record<string, any>) {
   const { locale, t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const icao = airport?.icao || "";
-  const iata = airport?.iata || "";
-  const code = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
+  const code = airportDisplayCodeLine(airport);
   const city = airportCityName(airport?.city, locale);
   const country = countryName(airport?.country, locale) || airport?.country || "";
   const placeText =

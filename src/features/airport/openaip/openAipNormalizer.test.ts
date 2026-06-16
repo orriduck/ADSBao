@@ -68,6 +68,17 @@ const misleadingBos = {
 }
 
 {
+  const airport = mapOpenAipAirport({
+    ...kbos,
+    icaoCode: "KDAW",
+    iataCode: "<NIL>",
+  });
+  assert.equal(airport.icao, "KDAW");
+  assert.equal(airport.iata, "");
+  assert.equal(airport.code, "KDAW");
+}
+
+{
   const ranked = rankOpenAipAirports([misleadingBos, kbos], "BOS");
   assert.equal(ranked[0].icaoCode, "KBOS");
 }

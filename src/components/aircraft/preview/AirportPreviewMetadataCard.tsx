@@ -5,7 +5,12 @@ import { usePathname } from "@/platform/router/navigation";
 import NumberFlow from "@number-flow/react";
 import { TowerControl } from "lucide-react";
 import { countryName, flagEmoji } from "@/utils/flag";
-import { airportCityName, airportDisplayName } from "@/utils/airport";
+import {
+  airportCityName,
+  airportDisplayCodeLine,
+  airportDisplayName,
+  cleanAirportCode,
+} from "@/utils/airport";
 import { toFiniteNumber } from "@/utils/math";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
@@ -22,9 +27,9 @@ export default function AirportPreviewMetadataCard({ airport }) {
   const { locale, t } = useI18n();
   const { preferences: units } = useUnitPreferences();
   const pathname = usePathname();
-  const icao = (airport?.icao || "").trim().toUpperCase();
-  const iata = (airport?.iata || "").trim().toUpperCase();
-  const codeLine = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
+  const icao = cleanAirportCode(airport?.icao || airport?.code);
+  const iata = cleanAirportCode(airport?.iata);
+  const codeLine = airportDisplayCodeLine(airport);
   const name = airportDisplayName(airport, locale) || t("sidebar.unknownAirport");
   const flag = flagEmoji(airport?.country);
   const country = countryName(airport?.country, locale) || airport?.country || "";

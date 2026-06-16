@@ -3,7 +3,11 @@
 import type { ComponentProps } from "react";
 import NumberFlow from "@number-flow/react";
 import { TowerControl } from "lucide-react";
-import { airportCityName, airportDisplayName } from "@/utils/airport";
+import {
+  airportCityName,
+  airportDisplayCodeLine,
+  airportDisplayName,
+} from "@/utils/airport";
 import { countryName, flagEmoji } from "@/utils/flag";
 import { toFiniteNumber } from "@/utils/math";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -48,9 +52,7 @@ type StatProps = {
 export default function AirportPreviewMobileCard({ airport }: AirportPreviewMobileCardProps) {
   const { locale, t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const icao = (airport?.icao || "").trim().toUpperCase();
-  const iata = (airport?.iata || "").trim().toUpperCase();
-  const codeLine = iata && iata !== icao ? `${iata} · ${icao}` : icao || "—";
+  const codeLine = airportDisplayCodeLine(airport);
   const name = airportDisplayName(airport, locale);
   const flag = flagEmoji(airport?.country);
   const country = countryName(airport?.country, locale) || airport?.country || "";

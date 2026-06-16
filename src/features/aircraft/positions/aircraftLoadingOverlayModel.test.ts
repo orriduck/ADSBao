@@ -19,6 +19,36 @@ assert.equal(
   shouldReplayLoadingOverlayOnPageVisible({
     documentHidden: false,
   }),
+  false,
+);
+
+assert.equal(
+  shouldReplayLoadingOverlayOnPageVisible({
+    documentHidden: false,
+    wasHidden: true,
+    hiddenSince: 1_000,
+    now: 1_500,
+    minHiddenMs: 5_000,
+  }),
+  false,
+);
+
+assert.equal(
+  shouldReplayLoadingOverlayOnPageVisible({
+    documentHidden: false,
+    wasHidden: true,
+    hiddenSince: 1_000,
+    now: 7_000,
+    minHiddenMs: 5_000,
+  }),
+  true,
+);
+
+assert.equal(
+  shouldReplayLoadingOverlayOnPageVisible({
+    documentHidden: false,
+    eventPersisted: true,
+  }),
   true,
 );
 

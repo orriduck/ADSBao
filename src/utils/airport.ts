@@ -1,5 +1,15 @@
 import { countryName, flagEmoji } from "./flag";
 
+const INVALID_AIRPORT_CODE_VALUES = new Set([
+  "NIL",
+  "<NIL>",
+  "NULL",
+  "<NULL>",
+  "NONE",
+  "N/A",
+  "\\N",
+]);
+
 const AIRPORT_NAME_ZH = Object.freeze({
   KJFK: "约翰·F·肯尼迪国际机场",
   KLAX: "洛杉矶国际机场",
@@ -46,19 +56,37 @@ const CITY_NAME_ZH = Object.freeze({
   Louisville: "路易维尔",
 });
 
+export const cleanAirportCode = (value: unknown) => {
+  const code = String(value ?? "").trim().toUpperCase();
+  if (!code || INVALID_AIRPORT_CODE_VALUES.has(code)) return "";
+  return code;
+};
+
 export const airportDisplayName = (airport, locale = "en") => {
-  const fallback = airport?.name || airport?.icao || airport?.iata || "";
+  const fallback =
+    airport?.name ||
+    cleanAirportCode(airport?.icao) ||
+    cleanAirportCode(airport?.code) ||
+    cleanAirportCode(airport?.iata) ||
+    "";
   if (locale !== "zh-CN") return fallback;
   const localizedName = String(airport?.localizedName || "").trim();
   if (localizedName) return localizedName;
-  const icao = String(airport?.icao || airport?.code || "").toUpperCase();
+  const icao = cleanAirportCode(airport?.icao) || cleanAirportCode(airport?.code);
   return AIRPORT_NAME_ZH[icao] || fallback;
 };
 
 export const airportDisplayCode = (airport: Record<string, any> = {}) =>
-  String(airport?.icao || airport?.code || airport?.iata || "")
-    .trim()
-    .toUpperCase();
+  cleanAirportCode(airport?.icao) ||
+  cleanAirportCode(airport?.code) ||
+  cleanAirportCode(airport?.iata);
+
+export const airportDisplayCodeLine = (airport: Record<string, any> = {}) => {
+  const icao = cleanAirportCode(airport?.icao || airport?.code);
+  const iata = cleanAirportCode(airport?.iata);
+  if (iata && icao && iata !== icao) return `${iata} · ${icao}`;
+  return icao || iata || "—";
+};
 
 export const airportCityName = (city, locale = "en") => {
   const fallback = String(city || "");

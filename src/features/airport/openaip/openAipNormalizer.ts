@@ -1,4 +1,5 @@
 import { toFiniteNumber } from "../../../utils/math";
+import { cleanAirportCode } from "../../../utils/airport";
 import {
   classifyOpenAipAirspaceAccess,
   formatOpenAipAirspaceLimit,
@@ -30,6 +31,8 @@ type OpenAipRecord = Record<string, any>;
 const cleanString = (value: unknown) => String(value ?? "").trim();
 
 const upperString = (value: unknown) => cleanString(value).toUpperCase();
+
+const upperAirportCode = (value: unknown) => cleanAirportCode(value);
 
 const firstFinite = (...values: unknown[]) => {
   for (const value of values) {
@@ -64,10 +67,12 @@ const pointCoordinates = (geometry: OpenAipRecord | null | undefined) => {
 };
 
 export const openAipAirportCode = (airport: OpenAipRecord | null | undefined) =>
-  upperString(airport?.icaoCode || airport?.iataCode || airport?.altIdentifier || airport?._id);
+  upperAirportCode(
+    airport?.icaoCode || airport?.iataCode || airport?.altIdentifier || airport?._id,
+  );
 
 export const isNormalOpenAipAirportCode = (value: unknown) =>
-  /^[A-Z0-9]{2,4}$/.test(upperString(value));
+  /^[A-Z0-9]{2,4}$/.test(upperAirportCode(value));
 
 const typeRank = (airport: OpenAipRecord | null | undefined) => {
   if (airport?.type === 3) return 0;
@@ -84,9 +89,9 @@ export const rankOpenAipAirports = (
 ) => {
   const normalizedQuery = upperString(query);
   const score = (airport: OpenAipRecord) => {
-    const icao = upperString(airport?.icaoCode);
-    const iata = upperString(airport?.iataCode);
-    const alt = upperString(airport?.altIdentifier);
+    const icao = upperAirportCode(airport?.icaoCode);
+    const iata = upperAirportCode(airport?.iataCode);
+    const alt = upperAirportCode(airport?.altIdentifier);
     const name = upperString(airport?.name);
     if (icao === normalizedQuery || iata === normalizedQuery || alt === normalizedQuery) return 0;
     if (icao.startsWith(normalizedQuery) || iata.startsWith(normalizedQuery)) return 1;
@@ -107,10 +112,10 @@ export const rankOpenAipAirports = (
 export const mapOpenAipAirport = (airport: OpenAipRecord | null | undefined) => {
   if (!airport) return null;
   const { lat, lon } = pointCoordinates(airport.geometry);
-  const icao = upperString(airport.icaoCode);
-  const iata = upperString(airport.iataCode);
-  const alt = upperString(airport.altIdentifier);
-  const code = icao || iata || alt || upperString(airport._id);
+  const icao = upperAirportCode(airport.icaoCode);
+  const iata = upperAirportCode(airport.iataCode);
+  const alt = upperAirportCode(airport.altIdentifier);
+  const code = icao || iata || alt || upperAirportCode(airport._id);
   if (!isNormalOpenAipAirportCode(code)) return null;
   const typeLabel = AIRPORT_TYPE_LABELS[Number(airport.type)] || "Airport";
 

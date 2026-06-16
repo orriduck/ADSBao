@@ -54,6 +54,7 @@ export default function MapLoadingOverlay({
   const [exiting, setExiting] = useState(false);
   const [playbackCycle, setPlaybackCycle] = useState(0);
   const shownAtRef = useRef(Date.now());
+  const hiddenSinceRef = useRef(0);
 
   const replay = useCallback(() => {
     shownAtRef.current = Date.now();
@@ -63,25 +64,43 @@ export default function MapLoadingOverlay({
   }, []);
 
   useEffect(() => {
-    const handlePageVisible = () => {
-      if (
-        typeof document !== "undefined" &&
-        !shouldReplayLoadingOverlayOnPageVisible({
-          documentHidden: document.hidden,
-        })
-      ) {
+    const maybeReplayAfterVisible = (event?: PageTransitionEvent) => {
+      const hiddenSince = hiddenSinceRef.current;
+      const shouldReplay = shouldReplayLoadingOverlayOnPageVisible({
+        documentHidden:
+          typeof document !== "undefined" &&
+          (document.hidden || document.visibilityState === "hidden"),
+        eventPersisted: Boolean(event?.persisted),
+        wasHidden: hiddenSince > 0,
+        hiddenSince,
+      });
+      hiddenSinceRef.current = 0;
+      if (!shouldReplay) {
         return;
       }
 
       replay();
     };
+    const handleVisibility = () => {
+      if (
+        typeof document !== "undefined" &&
+        (document.hidden || document.visibilityState === "hidden")
+      ) {
+        hiddenSinceRef.current = Date.now();
+        return;
+      }
+      maybeReplayAfterVisible();
+    };
+    const handlePageShow = (event: PageTransitionEvent) => {
+      maybeReplayAfterVisible(event);
+    };
 
-    document.addEventListener("visibilitychange", handlePageVisible);
-    window.addEventListener("pageshow", handlePageVisible);
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pageshow", handlePageShow);
 
     return () => {
-      document.removeEventListener("visibilitychange", handlePageVisible);
-      window.removeEventListener("pageshow", handlePageVisible);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pageshow", handlePageShow);
     };
   }, [replay]);
 

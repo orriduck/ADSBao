@@ -3925,13 +3925,13 @@ body {
     background: radial-gradient(
         circle,
         var(--aircraft-marker-plate) 0%,
-        color-mix(in oklab, var(--aircraft-marker-plate) 58%, transparent)
-            46%,
-        transparent 74%
+        color-mix(in oklab, var(--aircraft-marker-plate) 38%, transparent)
+            34%,
+        transparent 60%
     );
     border-radius: 999px;
     content: "";
-    inset: -5px;
+    inset: -3px;
     pointer-events: none;
     position: absolute;
     z-index: -1;
@@ -3941,10 +3941,10 @@ body {
     border: 1.5px solid color-mix(in oklab, currentColor 42%, var(--aircraft-marker-halo));
     border-radius: 999px;
     box-shadow:
-        0 0 0 2px color-mix(in oklab, var(--aircraft-marker-halo) 28%, transparent),
-        0 0 14px color-mix(in oklab, currentColor 32%, transparent);
+        0 0 0 1px color-mix(in oklab, var(--aircraft-marker-halo) 22%, transparent),
+        0 0 8px color-mix(in oklab, currentColor 24%, transparent);
     content: "";
-    inset: -7px;
+    inset: -4px;
     pointer-events: none;
     position: absolute;
     z-index: 0;
@@ -3973,17 +3973,18 @@ body {
 .aircraft-nose-beam {
     position: absolute;
     left: 50%;
-    top: -60%;
-    width: 75%;
-    height: 75%;
+    top: -38%;
+    width: 48%;
+    height: 48%;
     transform: translateX(-50%);
     background: radial-gradient(
         ellipse at 50% 95%,
-        rgba(255, 246, 210, 0.55) 0%,
-        rgba(255, 226, 130, 0.22) 28%,
-        rgba(255, 226, 130, 0.08) 58%,
-        rgba(255, 226, 130, 0) 92%
+        rgba(255, 246, 210, 0.36) 0%,
+        rgba(255, 226, 130, 0.13) 30%,
+        rgba(255, 226, 130, 0.04) 56%,
+        rgba(255, 226, 130, 0) 86%
     );
+    opacity: 0.78;
     pointer-events: none;
 }
 

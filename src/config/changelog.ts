@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.16",
+    kind: "patch",
+    title: "Airport map visual cleanup",
+    summary:
+      "Airport maps keep aircraft markers tighter and stop showing upstream placeholder airport codes.",
+    highlights: [
+      "Reduced aircraft marker halo and nose-beam glow so silhouettes stay readable without oversized bloom",
+      "Filtered OpenAIP placeholder codes such as <NIL> across nearby airport lists, badges, and previews",
+      "Stopped short screenshot/share visibility changes from replaying the map loading overlay",
+    ],
+  },
+  {
     version: "v2.6.15",
     kind: "patch",
     title: "Aircraft click diagnostics",
