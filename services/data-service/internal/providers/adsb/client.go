@@ -20,6 +20,7 @@ import (
 const (
 	defaultTimeout          = 2800 * time.Millisecond
 	defaultProviderCooldown = time.Minute
+	defaultPositionHedge    = 700 * time.Millisecond
 	maxBodyBytes            = 2 * 1024 * 1024
 	userAgent               = "ADSBao data-service/1.0 (+https://adsbao.dev)"
 )
@@ -42,6 +43,7 @@ type Options struct {
 	Timeout             time.Duration
 	MaxBytes            int64
 	ProviderCooldown    time.Duration
+	PositionHedgeDelay  time.Duration
 	Now                 func() time.Time
 	FlightAwareFallback func(context.Context, string, realtime.MetricsSink) (FallbackResult, error)
 }
@@ -52,6 +54,7 @@ type Client struct {
 	timeout             time.Duration
 	maxBytes            int64
 	providerCooldown    time.Duration
+	positionHedgeDelay  time.Duration
 	now                 func() time.Time
 	flightAwareFallback func(context.Context, string, realtime.MetricsSink) (FallbackResult, error)
 	mu                  sync.Mutex
@@ -99,6 +102,10 @@ func NewClient(options Options) *Client {
 	if providerCooldown <= 0 {
 		providerCooldown = defaultProviderCooldown
 	}
+	positionHedgeDelay := options.PositionHedgeDelay
+	if positionHedgeDelay <= 0 {
+		positionHedgeDelay = defaultPositionHedge
+	}
 	now := options.Now
 	if now == nil {
 		now = time.Now
@@ -113,6 +120,7 @@ func NewClient(options Options) *Client {
 		timeout:             timeout,
 		maxBytes:            maxBytes,
 		providerCooldown:    providerCooldown,
+		positionHedgeDelay:  positionHedgeDelay,
 		now:                 now,
 		flightAwareFallback: options.FlightAwareFallback,
 		cooldowns:           map[string]time.Time{},
@@ -184,7 +192,7 @@ func (c *Client) Fetch(ctx context.Context, input realtime.FetchInput) (realtime
 }
 
 func (c *Client) fetchPositions(ctx context.Context, input realtime.FetchInput) (providerResult, error) {
-	return c.fetchWithFallback(ctx, input, "positions", false, func(provider Provider) (string, bool) {
+	return c.fetchPositionsHedged(ctx, input, func(provider Provider) (string, bool) {
 		if provider.PositionURL == nil {
 			return "", false
 		}
@@ -279,6 +287,140 @@ func (c *Client) fetchWithFallback(ctx context.Context, input realtime.FetchInpu
 		return *lastRetryable, nil
 	}
 	return providerResult{}, fmt.Errorf("all ADS-B providers failed: %v", failures)
+}
+
+type positionCandidate struct {
+	provider   Provider
+	requestURL string
+}
+
+type positionCandidateResult struct {
+	provider Provider
+	payload  map[string]any
+	err      error
+}
+
+func (c *Client) fetchPositionsHedged(ctx context.Context, input realtime.FetchInput, buildURL func(Provider) (string, bool)) (providerResult, error) {
+	var attempts []string
+	var candidates []positionCandidate
+	for _, provider := range c.providers {
+		if c.providerInCooldown(provider.ID, "positions") {
+			attempts = append(attempts, provider.ID+":cooldown")
+			continue
+		}
+		requestURL, ok := buildURL(provider)
+		if !ok {
+			continue
+		}
+		candidates = append(candidates, positionCandidate{
+			provider:   provider,
+			requestURL: requestURL,
+		})
+	}
+	if len(candidates) == 0 {
+		return providerResult{}, fmt.Errorf("all ADS-B providers failed: %v", []error{})
+	}
+
+	resultCh := make(chan positionCandidateResult, len(candidates))
+	started := 0
+	completed := 0
+	active := 0
+	var failures []error
+
+	startCandidate := func(candidate positionCandidate) {
+		started++
+		active++
+		go func() {
+			payload, err := c.fetchProviderPayload(
+				ctx,
+				input,
+				candidate.provider,
+				"positions",
+				candidate.requestURL,
+			)
+			resultCh <- positionCandidateResult{
+				provider: candidate.provider,
+				payload:  payload,
+				err:      err,
+			}
+		}()
+	}
+
+	startNext := func() bool {
+		if started >= len(candidates) {
+			return false
+		}
+		startCandidate(candidates[started])
+		return true
+	}
+
+	startNext()
+	hedgeTimer := time.NewTimer(c.positionHedgeDelay)
+	defer hedgeTimer.Stop()
+	timerActive := started < len(candidates)
+	if !timerActive {
+		stopTimer(hedgeTimer)
+	}
+
+	for completed < len(candidates) {
+		var timerC <-chan time.Time
+		if timerActive {
+			timerC = hedgeTimer.C
+		}
+		select {
+		case <-ctx.Done():
+			return providerResult{}, ctx.Err()
+		case <-timerC:
+			timerActive = false
+			if startNext() && started < len(candidates) {
+				hedgeTimer.Reset(c.positionHedgeDelay)
+				timerActive = true
+			}
+		case result := <-resultCh:
+			completed++
+			active--
+			if result.err != nil {
+				attempts = append(attempts, result.provider.ID+":"+providerAttemptStatus(result.err))
+				failures = append(failures, result.err)
+				c.recordProviderFailure(result.provider.ID, "positions", result.err)
+				if active == 0 && startNext() && started < len(candidates) {
+					if timerActive {
+						stopTimer(hedgeTimer)
+					}
+					hedgeTimer.Reset(c.positionHedgeDelay)
+					timerActive = true
+				}
+				continue
+			}
+
+			c.recordProviderSuccess(result.provider.ID, "positions")
+			attempts = append(attempts, result.provider.ID+":200")
+			return providerResult{
+				provider: result.provider,
+				payload:  result.payload,
+				attempts: append([]string{}, attempts...),
+			}, nil
+		}
+	}
+	return providerResult{}, fmt.Errorf("all ADS-B providers failed: %v", failures)
+}
+
+func providerAttemptStatus(err error) string {
+	status := "ERR"
+	var providerErr providerError
+	if errors.As(err, &providerErr) {
+		status = fmt.Sprint(providerErr.status)
+	}
+	return status
+}
+
+func stopTimer(timer *time.Timer) {
+	if !timer.Stop() {
+		select {
+		case <-timer.C:
+		default:
+		}
+	}
 }
 
 func (c *Client) providerInCooldown(providerID, endpoint string) bool {

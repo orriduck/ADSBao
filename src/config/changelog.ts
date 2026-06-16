@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.12",
+    kind: "patch",
+    title: "Aircraft position fallback",
+    summary:
+      "Airport traffic fallback now uses the same ADS-B provider client as realtime.",
+    highlights: [
+      "Removed the legacy HTTP aircraft-position provider loop left from the Railway migration",
+      "Started hedged position requests so a slow ADS-B source no longer blocks faster peers",
+      "Raised the browser fallback timeout to cover backend provider failover instead of aborting at the 3 second poll interval",
+    ],
+  },
+  {
     version: "v2.6.11",
     kind: "patch",
     title: "Airport aircraft silhouettes",

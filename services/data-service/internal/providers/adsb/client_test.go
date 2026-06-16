@@ -156,6 +156,54 @@ func TestPositionProviderMetricsIncludeRequestURLAndError(t *testing.T) {
 	}
 }
 
+func TestPositionProviderHedgesSlowFirstProvider(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.Path, "/adsb-lol/"):
+			time.Sleep(200 * time.Millisecond)
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"slow","flight":"SLOW1   ","lat":42.1,"lon":-71.1}]}`))
+		case strings.Contains(r.URL.Path, "/airplanes/"):
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"fast","flight":"FAST1   ","lat":42.2,"lon":-71.2}]}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		Providers: []Provider{
+			{ID: "adsb.lol", PositionURL: func(lat, lon float64, distNM int) string { return server.URL + "/adsb-lol/positions" }},
+			{ID: "airplanes.live", PositionURL: func(lat, lon float64, distNM int) string { return server.URL + "/airplanes/positions" }},
+		},
+		PositionHedgeDelay: 10 * time.Millisecond,
+	})
+
+	started := time.Now()
+	event, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "traffic:center:42.4:-71:40",
+		ChannelType: realtime.ChannelTraffic,
+		Target: realtime.PollingTarget{
+			Kind:   "positions",
+			Lat:    42.4,
+			Lon:    -71,
+			DistNM: 40,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Fetch returned error: %v", err)
+	}
+	if elapsed := time.Since(started); elapsed >= 150*time.Millisecond {
+		t.Fatalf("hedged fetch waited for slow provider: %s", elapsed)
+	}
+	if event.Source != "airplanes.live" {
+		t.Fatalf("source = %q", event.Source)
+	}
+	attempts := event.Data.(map[string]any)["attempts"].([]string)
+	if len(attempts) != 1 || attempts[0] != "airplanes.live:200" {
+		t.Fatalf("attempts = %#v", attempts)
+	}
+}
+
 func TestPositionProviderCooldownSkipsRecentlyFailingProvider(t *testing.T) {
 	now := time.Unix(1_800_000_000, 0)
 	var adsbLolRequests int

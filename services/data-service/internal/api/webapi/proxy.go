@@ -12,6 +12,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/adsbao/adsbao/services/data-service/internal/channels"
+	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
 
 const (
@@ -68,6 +71,10 @@ func (h *Handler) handleAircraftPositions(w http.ResponseWriter, r *http.Request
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid aircraft position query"})
 		return
 	}
+	if h.aircraftFetcher != nil {
+		h.handleAircraftPositionsWithFetcher(w, r, lat, lon, dist)
+		return
+	}
 	for _, provider := range adsbProviders {
 		payload, status, err := h.fetchJSONMap(r.Context(), provider.positionURL(lat, lon, dist), adsbHeaders())
 		if err != nil || status < 200 || status >= 300 {
@@ -85,6 +92,80 @@ func (h *Handler) handleAircraftPositions(w http.ResponseWriter, r *http.Request
 		"X-Data-Source":       "failed",
 		"X-Provider-Attempts": "failed",
 	})
+}
+
+func (h *Handler) handleAircraftPositionsWithFetcher(w http.ResponseWriter, r *http.Request, lat, lon float64, dist int) {
+	channel := fmt.Sprintf("traffic:center:%s:%s:%d", trimFloat(lat), trimFloat(lon), dist)
+	normalized, err := channels.NormalizeName(channel)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid aircraft position query"})
+		return
+	}
+	target, err := channels.PollingTarget(normalized.Channel, nil)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid aircraft position query"})
+		return
+	}
+	event, err := h.aircraftFetcher(r.Context(), realtime.FetchInput{
+		Channel:     normalized.Channel,
+		ChannelType: realtime.ChannelTraffic,
+		Target:      target,
+		Metrics:     h.metrics,
+	})
+	if err != nil {
+		writeJSONWithHeaders(w, http.StatusBadGateway, map[string]any{"error": "Failed to load aircraft positions"}, map[string]string{
+			"X-Data-Source":       "failed",
+			"X-Provider-Attempts": "failed",
+		})
+		return
+	}
+	payload, ok := event.Data.(map[string]any)
+	if !ok {
+		writeJSONWithHeaders(w, http.StatusBadGateway, map[string]any{"error": "Invalid aircraft provider payload"}, map[string]string{
+			"X-Data-Source":       "failed",
+			"X-Provider-Attempts": "failed",
+		})
+		return
+	}
+	source := firstString(event.Source, payload["source"])
+	if source == "" {
+		source = "unknown"
+	}
+	attempts := providerAttemptsHeader(payload["attempts"], source)
+	writeJSONWithHeaders(w, http.StatusOK, payload, map[string]string{
+		"Cache-Control":       "no-store",
+		"X-Data-Source":       source,
+		"X-Provider-Attempts": attempts,
+	})
+}
+
+func providerAttemptsHeader(value any, source string) string {
+	switch attempts := value.(type) {
+	case []string:
+		if len(attempts) > 0 {
+			return strings.Join(attempts, ";")
+		}
+	case []any:
+		var parts []string
+		for _, attempt := range attempts {
+			part := strings.TrimSpace(fmt.Sprint(attempt))
+			if part != "" {
+				parts = append(parts, part)
+			}
+		}
+		if len(parts) > 0 {
+			return strings.Join(parts, ";")
+		}
+	case string:
+		if strings.TrimSpace(attempts) != "" {
+			return attempts
+		}
+	}
+	source = strings.TrimSpace(source)
+	if source == "" {
+		return "unknown"
+	}
+	return source + ":200"
 }
 
 func (h *Handler) handleAircraftCallsign(w http.ResponseWriter, r *http.Request) {

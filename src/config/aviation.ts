@@ -31,7 +31,7 @@ export const AVIATION_REQUEST_TIMEOUT_MS = {
   json: 14_000,
   metar: 10_000,
   localWeather: 10_000,
-  aircraftPositions: AIRCRAFT_TRAFFIC_CONFIG.pollMs,
+  aircraftPositions: 10_000,
   aircraftCallsign: 6_000,
   aircraftPhoto: 8_000,
   aircraftTrace: 12_000,

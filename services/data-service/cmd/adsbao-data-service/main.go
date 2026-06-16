@@ -118,6 +118,10 @@ func main() {
 		HTTPClient:     providerHTTPClient,
 		OpenAIPAPIKey:  cfg.OpenAIPAPIKey,
 		OpenAIPBaseURL: cfg.OpenAIPBaseURL,
+		AircraftFetcher: func(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
+			return adsbClient.Fetch(ctx, input)
+		},
+		Metrics: registry,
 		Authenticator: webapi.NewClerkAuthenticator(
 			providerHTTPClient,
 			cfg.ClerkSecretKey,

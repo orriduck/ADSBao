@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
 
 const (
@@ -23,21 +25,25 @@ const (
 )
 
 type Options struct {
-	HTTPClient     *http.Client
-	OpenAIPAPIKey  string
-	OpenAIPBaseURL string
-	Timeout        time.Duration
-	Authenticator  *ClerkAuthenticator
-	UserDataStore  *UserDataStore
+	HTTPClient      *http.Client
+	OpenAIPAPIKey   string
+	OpenAIPBaseURL  string
+	Timeout         time.Duration
+	AircraftFetcher func(context.Context, realtime.FetchInput) (realtime.Event, error)
+	Metrics         realtime.MetricsSink
+	Authenticator   *ClerkAuthenticator
+	UserDataStore   *UserDataStore
 }
 
 type Handler struct {
-	httpClient     *http.Client
-	openAIPAPIKey  string
-	openAIPBaseURL string
-	timeout        time.Duration
-	authenticator  *ClerkAuthenticator
-	userDataStore  *UserDataStore
+	httpClient      *http.Client
+	openAIPAPIKey   string
+	openAIPBaseURL  string
+	timeout         time.Duration
+	aircraftFetcher func(context.Context, realtime.FetchInput) (realtime.Event, error)
+	metrics         realtime.MetricsSink
+	authenticator   *ClerkAuthenticator
+	userDataStore   *UserDataStore
 }
 
 type openAIPList struct {
@@ -58,12 +64,14 @@ func New(options Options) *Handler {
 		timeout = defaultTimeout
 	}
 	return &Handler{
-		httpClient:     httpClient,
-		openAIPAPIKey:  strings.TrimSpace(options.OpenAIPAPIKey),
-		openAIPBaseURL: baseURL,
-		timeout:        timeout,
-		authenticator:  options.Authenticator,
-		userDataStore:  options.UserDataStore,
+		httpClient:      httpClient,
+		openAIPAPIKey:   strings.TrimSpace(options.OpenAIPAPIKey),
+		openAIPBaseURL:  baseURL,
+		timeout:         timeout,
+		aircraftFetcher: options.AircraftFetcher,
+		metrics:         options.Metrics,
+		authenticator:   options.Authenticator,
+		userDataStore:   options.UserDataStore,
 	}
 }
 
