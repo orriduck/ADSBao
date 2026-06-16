@@ -677,6 +677,7 @@ func buildRunwayMapFromMappedRunways(airport string, runways []map[string]any, s
 	if len(mapped) == 0 {
 		return nil
 	}
+	mapped = dedupeRunwaysByPhysicalID(mapped)
 	sort.Slice(mapped, func(i, j int) bool {
 		return stringValue(mapped[i]["id"]) < stringValue(mapped[j]["id"])
 	})

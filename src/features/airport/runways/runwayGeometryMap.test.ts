@@ -36,4 +36,50 @@ assert.deepEqual(
 );
 assert.deepEqual(runwayMap.runways[0].centerline.properties.ends, ["04L", "22R"]);
 
+const openAipDirectionalRunwayMap = buildRunwayMapFromGeometries({
+  airport: "KJFK",
+  source: "OpenAIP",
+  runways: [
+    {
+      id: "openaip-04L",
+      lengthFt: 11348,
+      widthFt: 200,
+      closed: false,
+      le: { ident: "04L", lat: 40.621, lon: -73.795 },
+      he: { ident: "22R", lat: 40.651, lon: -73.765 },
+    },
+    {
+      id: "openaip-22R",
+      lengthFt: 11348,
+      widthFt: 200,
+      closed: false,
+      le: { ident: "22R", lat: 40.651, lon: -73.765 },
+      he: { ident: "04L", lat: 40.621, lon: -73.795 },
+    },
+    {
+      id: "openaip-13L",
+      lengthFt: 10000,
+      widthFt: 200,
+      closed: false,
+      le: { ident: "13L", lat: 40.64, lon: -73.8 },
+      he: { ident: "31R", lat: 40.62, lon: -73.75 },
+    },
+  ],
+});
+
+assert.equal(openAipDirectionalRunwayMap.airport, "KJFK");
+assert.equal(openAipDirectionalRunwayMap.source, "OpenAIP");
+assert.equal(openAipDirectionalRunwayMap.runways.length, 2);
+assert.deepEqual(
+  openAipDirectionalRunwayMap.runways.map((runway) => runway.id),
+  ["04L/22R", "13L/31R"],
+);
+assert.deepEqual(
+  openAipDirectionalRunwayMap.runways[0].centerline.geometry.coordinates,
+  [
+    [-73.795, 40.621],
+    [-73.765, 40.651],
+  ],
+);
+
 console.log("runwayGeometryMap.test.ts ok");

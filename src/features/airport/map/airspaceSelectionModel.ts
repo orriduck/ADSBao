@@ -18,6 +18,16 @@ type PointerLike = TouchLike & {
   touches?: ArrayLike<TouchLike>;
 };
 
+export function shouldHandleAirspaceSelection({
+  visible = true,
+  onSelectAirspace = null,
+}: {
+  visible?: boolean;
+  onSelectAirspace?: unknown;
+} = {}) {
+  return visible === true && typeof onSelectAirspace === "function";
+}
+
 export function resolveAirspaceClientPoint(event?: PointerLike | null): ClientPoint | null {
   const directPoint = toClientPoint(event);
   if (directPoint) return directPoint;

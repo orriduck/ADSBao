@@ -131,6 +131,10 @@ func TestAircraftPhotoUpstreamForbiddenReturnsEmptyPhoto(t *testing.T) {
 				if req.URL.Host != "api.planespotters.net" {
 					t.Fatalf("unexpected upstream host %q", req.URL.Host)
 				}
+				userAgent := req.Header.Get("User-Agent")
+				if !strings.Contains(userAgent, "+https://adsbao.dev") {
+					t.Fatalf("user agent missing contact URL: %q", userAgent)
+				}
 				if req.URL.Query().Get("reg") != "C-FFGZ" || req.URL.Query().Get("icaoType") != "A321" {
 					t.Fatalf("unexpected upstream query %q", req.URL.RawQuery)
 				}

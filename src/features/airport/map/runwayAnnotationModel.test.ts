@@ -198,7 +198,6 @@ const surfaceMapFixture = {
         geometry: {
           type: "LineString",
           coordinates: [
-            [-71.0103, 42.354],
             [-71.005, 42.365],
             [-70.9991, 42.3773],
           ],
@@ -214,14 +213,14 @@ const surfaceMapFixture = {
         geometry: {
           type: "LineString",
           coordinates: [
-            [-71.0103, 42.354],
             [-71.009, 42.356],
+            [-71.005, 42.365],
           ],
         },
         properties: {
           id: "osm-way-124",
           kind: "runway",
-          ref: "04R/22L",
+          ref: "4R/22L",
         },
       },
       {
@@ -257,9 +256,13 @@ const surfaceMapFixture = {
     ],
   },
 };
-const surfaceRunwayMap = buildRunwayMapFromSurfaceMap(surfaceMapFixture);
+const surfaceRunwayMap = buildRunwayMapFromSurfaceMap(
+  surfaceMapFixture,
+  runwayMap,
+);
 assert.equal(surfaceRunwayMap?.source, "OpenStreetMap");
 assert.equal(surfaceRunwayMap?.runways.length, 1);
+assert.equal(surfaceRunwayMap?.runways[0].id, "04R/22L");
 assert.deepEqual(
   surfaceRunwayMap?.runways[0].ends.map((end) => end.ident),
   ["04R", "22L"],
@@ -269,16 +272,17 @@ assert.deepEqual(
     .coordinates,
   [
     [-71.0103, 42.354],
+    [-71.009, 42.356],
     [-71.005, 42.365],
     [-70.9991, 42.3773],
   ],
 );
 assert.ok(buildRunwayLightCollection(surfaceRunwayMap).features.length > 0);
 const renderableSurface =
-  buildRenderableAirportSurfaceFeatureCollection(surfaceMapFixture);
+  buildRenderableAirportSurfaceFeatureCollection(surfaceMapFixture, runwayMap);
 assert.deepEqual(
   renderableSurface?.features.map((feature) => feature.properties.id),
-  ["osm-way-123", "osm-way-456"],
+  ["osm-way-456", "osm-runway-04R-22L"],
 );
 
 assert.deepEqual(

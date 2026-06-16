@@ -128,3 +128,61 @@ func TestOpenAIPRunwaysBuildApproximateRunwayMap(t *testing.T) {
 		t.Fatalf("centerline did not use endpoint coordinates: %#v", coordinates)
 	}
 }
+
+func TestOpenAIPDirectionalRunwaysDedupeToPhysicalRunways(t *testing.T) {
+	runwayMap := buildRunwayMapFromMappedRunways("KJFK", []map[string]any{
+		{
+			"lengthFt": 11348,
+			"widthFt":  200,
+			"le": map[string]any{
+				"ident": "04L",
+				"lat":   40.621,
+				"lon":   -73.795,
+			},
+			"he": map[string]any{
+				"ident": "22R",
+				"lat":   40.651,
+				"lon":   -73.765,
+			},
+		},
+		{
+			"lengthFt": 11348,
+			"widthFt":  200,
+			"le": map[string]any{
+				"ident": "22R",
+				"lat":   40.651,
+				"lon":   -73.765,
+			},
+			"he": map[string]any{
+				"ident": "04L",
+				"lat":   40.621,
+				"lon":   -73.795,
+			},
+		},
+		{
+			"lengthFt": 10000,
+			"widthFt":  200,
+			"le": map[string]any{
+				"ident": "13L",
+				"lat":   40.64,
+				"lon":   -73.8,
+			},
+			"he": map[string]any{
+				"ident": "31R",
+				"lat":   40.62,
+				"lon":   -73.75,
+			},
+		},
+	}, "OpenAIP")
+
+	if runwayMap == nil {
+		t.Fatal("expected runway map")
+	}
+	runways := runwayMap["runways"].([]map[string]any)
+	if len(runways) != 2 {
+		t.Fatalf("expected two physical runways, got %#v", runways)
+	}
+	if runways[0]["id"] != "04L/22R" || runways[1]["id"] != "13L/31R" {
+		t.Fatalf("unexpected runway ids: %#v", runways)
+	}
+}

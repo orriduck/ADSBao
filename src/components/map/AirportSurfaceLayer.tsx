@@ -79,6 +79,7 @@ const airportSurfaceStyle = (
 };
 
 export default function AirportSurfaceLayer({
+  runwayMap = null,
   surfaceMap = null,
   theme = "dark",
   zoom,
@@ -86,8 +87,8 @@ export default function AirportSurfaceLayer({
   const map = useMapInstance();
   const layerRef = useRef(null);
   const surfaceFeatures = useMemo(
-    () => buildRenderableAirportSurfaceFeatureCollection(surfaceMap),
-    [surfaceMap],
+    () => buildRenderableAirportSurfaceFeatureCollection(surfaceMap, runwayMap),
+    [runwayMap, surfaceMap],
   );
 
   useEffect(() => {

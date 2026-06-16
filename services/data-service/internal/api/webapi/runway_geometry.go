@@ -141,6 +141,7 @@ func buildRunwayMapFromGeometryRows(airport string, rows []runwayGeometryRow) ma
 	if len(runways) == 0 {
 		return nil
 	}
+	runways = dedupeRunwaysByPhysicalID(runways)
 	sort.Slice(runways, func(i, j int) bool {
 		return stringValue(runways[i]["id"]) < stringValue(runways[j]["id"])
 	})
@@ -150,6 +151,40 @@ func buildRunwayMapFromGeometryRows(airport string, rows []runwayGeometryRow) ma
 		"cycle":   "",
 		"runways": runways,
 	}
+}
+
+func runwayCompletenessScore(runway map[string]any) int {
+	score := 0
+	if finite(numberValue(runway["lengthFt"])) {
+		score += 2
+	}
+	if finite(numberValue(runway["widthFt"])) {
+		score++
+	}
+	if _, ok := runway["centerline"].(map[string]any); ok {
+		score++
+	}
+	return score
+}
+
+func dedupeRunwaysByPhysicalID(runways []map[string]any) []map[string]any {
+	byID := map[string]map[string]any{}
+	for _, runway := range runways {
+		id := stringValue(runway["id"])
+		if id == "" {
+			continue
+		}
+		existing, ok := byID[id]
+		if !ok || runwayCompletenessScore(runway) > runwayCompletenessScore(existing) {
+			byID[id] = runway
+		}
+	}
+
+	deduped := make([]map[string]any, 0, len(byID))
+	for _, runway := range byID {
+		deduped = append(deduped, runway)
+	}
+	return deduped
 }
 
 func normalizeAirportIdent(value string) string {

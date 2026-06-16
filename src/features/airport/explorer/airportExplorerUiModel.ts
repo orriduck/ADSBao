@@ -36,3 +36,13 @@ export function resolveSpottingMetricZoomState({
     nextPreviousZoom: finiteZoomOr(currentZoom, fallback),
   };
 }
+
+export function resolveSelectedAirspaceIdForLayerVisibility({
+  showAirspaces = true,
+  selectedAirspaceId = "",
+  airspaceId = "",
+}: Record<string, any> = {}) {
+  if (!showAirspaces) return "";
+  const normalizedAirspaceId = String(airspaceId || "");
+  return selectedAirspaceId === normalizedAirspaceId ? "" : normalizedAirspaceId;
+}

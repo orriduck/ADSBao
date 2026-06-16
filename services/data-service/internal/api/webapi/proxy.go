@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	aircraftJSONMaxBytes  = 24 * 1024 * 1024
-	aircraftImageMaxBytes = 2 * 1024 * 1024
-	aircraftTraceTimeout  = 6 * time.Second
+	aircraftJSONMaxBytes   = 24 * 1024 * 1024
+	aircraftImageMaxBytes  = 2 * 1024 * 1024
+	aircraftTraceTimeout   = 6 * time.Second
+	planespottersUserAgent = "ADSBao data-service/1.0 (+https://adsbao.dev; planespotters/photos)"
 )
 
 type adsbProvider struct {
@@ -251,7 +252,7 @@ func (h *Handler) handleAircraftPhoto(w http.ResponseWriter, r *http.Request) {
 	}
 	payload, status, err := h.fetchJSONMap(r.Context(), planespottersURL(hex, r.URL.Query()), map[string]string{
 		"Accept":     "application/json",
-		"User-Agent": "ADSBao data-service/1.0",
+		"User-Agent": planespottersUserAgent,
 	})
 	if err != nil || status < 200 || status >= 300 {
 		writeJSONWithHeaders(w, http.StatusOK, emptyAircraftPhotoPayload(hex, status, err), map[string]string{
@@ -286,7 +287,7 @@ func (h *Handler) handleAircraftPhotoImage(w http.ResponseWriter, r *http.Reques
 	}
 	payload, status, err := h.fetchJSONMap(r.Context(), planespottersURL(hex, r.URL.Query()), map[string]string{
 		"Accept":     "application/json",
-		"User-Agent": "ADSBao data-service/1.0",
+		"User-Agent": planespottersUserAgent,
 	})
 	if err != nil || status < 200 || status >= 300 {
 		w.Header().Set("Cache-Control", "public, s-maxage=900, stale-while-revalidate=3600")

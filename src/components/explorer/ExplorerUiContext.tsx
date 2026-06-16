@@ -12,7 +12,10 @@ import {
 } from "react";
 import { useAuth, useUser } from "@/platform/auth/clerkClient";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
-import { DEFAULT_AIRPORT_EXPLORER_UI_STATE } from "@/features/airport/explorer/airportExplorerUiModel";
+import {
+  DEFAULT_AIRPORT_EXPLORER_UI_STATE,
+  resolveSelectedAirspaceIdForLayerVisibility,
+} from "@/features/airport/explorer/airportExplorerUiModel";
 import {
   DEFAULT_MAP_SETTINGS,
   MAP_SETTINGS_DEVICE_TYPES,
@@ -268,16 +271,29 @@ function airportExplorerUiReducer(state, action) {
         selectedCandidateWatchingSpotId: "",
       };
     case "selectAirspace":
+      if (!state.showAirspaces) {
+        return state.selectedAirspaceId
+          ? { ...state, selectedAirspaceId: "" }
+          : state;
+      }
       return {
         ...state,
-        selectedAirspaceId:
-          state.selectedAirspaceId === action.airspaceId ? "" : action.airspaceId,
+        selectedAirspaceId: resolveSelectedAirspaceIdForLayerVisibility({
+          showAirspaces: state.showAirspaces,
+          selectedAirspaceId: state.selectedAirspaceId,
+          airspaceId: action.airspaceId,
+        }),
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
         selectedCandidateWatchingSpotId: "",
       };
     case "setSelectedAirspaceId":
+      if (!state.showAirspaces) {
+        return state.selectedAirspaceId
+          ? { ...state, selectedAirspaceId: "" }
+          : state;
+      }
       return {
         ...state,
         selectedAirspaceId: action.airspaceId,
