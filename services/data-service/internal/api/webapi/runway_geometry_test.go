@@ -8,7 +8,6 @@ import (
 func TestBuildRunwayMapFromGeometryRows(t *testing.T) {
 	runwayMap := buildRunwayMapFromGeometryRows("kbos", []runwayGeometryRow{
 		{
-			airportIdent:  "KBOS",
 			lengthFt:      sql.NullFloat64{Float64: 10_083, Valid: true},
 			widthFt:       sql.NullFloat64{Float64: 150, Valid: true},
 			leIdent:       "22L",
@@ -25,7 +24,6 @@ func TestBuildRunwayMapFromGeometryRows(t *testing.T) {
 			},
 		},
 		{
-			airportIdent:  "KBOS",
 			closed:        sql.NullBool{Bool: true, Valid: true},
 			leIdent:       "01",
 			leLatitudeDeg: sql.NullFloat64{Float64: 42.1, Valid: true},

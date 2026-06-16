@@ -8,49 +8,27 @@ import (
 )
 
 type runwayGeometryRow struct {
-	source                 string
-	sourceID               string
-	airportIdent           string
-	lengthFt               sql.NullFloat64
-	widthFt                sql.NullFloat64
-	surface                string
-	lighted                sql.NullBool
-	closed                 sql.NullBool
-	leIdent                string
-	leLatitudeDeg          sql.NullFloat64
-	leLongitudeDeg         sql.NullFloat64
-	leElevationFt          sql.NullFloat64
-	leHeadingDegT          sql.NullFloat64
-	leDisplacedThresholdFt sql.NullFloat64
-	heIdent                string
-	heLatitudeDeg          sql.NullFloat64
-	heLongitudeDeg         sql.NullFloat64
-	heElevationFt          sql.NullFloat64
-	heHeadingDegT          sql.NullFloat64
-	heDisplacedThresholdFt sql.NullFloat64
+	lengthFt       sql.NullFloat64
+	widthFt        sql.NullFloat64
+	closed         sql.NullBool
+	leIdent        string
+	leLatitudeDeg  sql.NullFloat64
+	leLongitudeDeg sql.NullFloat64
+	heIdent        string
+	heLatitudeDeg  sql.NullFloat64
+	heLongitudeDeg sql.NullFloat64
 }
 
 const runwayGeometrySelectColumns = `
-	source,
-	source_id,
-	airport_ident,
 	length_ft,
 	width_ft,
-	surface,
-	lighted,
 	closed,
 	le_ident,
 	le_latitude_deg,
 	le_longitude_deg,
-	le_elevation_ft,
-	le_heading_deg_t,
-	le_displaced_threshold_ft,
 	he_ident,
 	he_latitude_deg,
-	he_longitude_deg,
-	he_elevation_ft,
-	he_heading_deg_t,
-	he_displaced_threshold_ft
+	he_longitude_deg
 `
 
 func (s *UserDataStore) readRunwayMap(ctx context.Context, ident string) (map[string]any, error) {
@@ -80,26 +58,15 @@ func (s *UserDataStore) readRunwayMap(ctx context.Context, ident string) (map[st
 	for rows.Next() {
 		var row runwayGeometryRow
 		if err := rows.Scan(
-			&row.source,
-			&row.sourceID,
-			&row.airportIdent,
 			&row.lengthFt,
 			&row.widthFt,
-			&row.surface,
-			&row.lighted,
 			&row.closed,
 			&row.leIdent,
 			&row.leLatitudeDeg,
 			&row.leLongitudeDeg,
-			&row.leElevationFt,
-			&row.leHeadingDegT,
-			&row.leDisplacedThresholdFt,
 			&row.heIdent,
 			&row.heLatitudeDeg,
 			&row.heLongitudeDeg,
-			&row.heElevationFt,
-			&row.heHeadingDegT,
-			&row.heDisplacedThresholdFt,
 		); err != nil {
 			return nil, err
 		}
