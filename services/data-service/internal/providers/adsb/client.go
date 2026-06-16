@@ -303,19 +303,25 @@ type positionCandidateResult struct {
 func (c *Client) fetchPositionsHedged(ctx context.Context, input realtime.FetchInput, buildURL func(Provider) (string, bool)) (providerResult, error) {
 	var attempts []string
 	var candidates []positionCandidate
+	var cooldownCandidates []positionCandidate
 	for _, provider := range c.providers {
-		if c.providerInCooldown(provider.ID, "positions") {
-			attempts = append(attempts, provider.ID+":cooldown")
-			continue
-		}
 		requestURL, ok := buildURL(provider)
 		if !ok {
 			continue
 		}
-		candidates = append(candidates, positionCandidate{
+		candidate := positionCandidate{
 			provider:   provider,
 			requestURL: requestURL,
-		})
+		}
+		if c.providerInCooldown(provider.ID, "positions") {
+			attempts = append(attempts, provider.ID+":cooldown")
+			cooldownCandidates = append(cooldownCandidates, candidate)
+			continue
+		}
+		candidates = append(candidates, candidate)
+	}
+	if len(candidates) == 0 && len(cooldownCandidates) > 0 {
+		candidates = cooldownCandidates
 	}
 	if len(candidates) == 0 {
 		return providerResult{}, fmt.Errorf("all ADS-B providers failed: %v", []error{})

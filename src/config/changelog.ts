@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.13",
+    kind: "patch",
+    title: "Aircraft provider cooldown recovery",
+    summary:
+      "Airport traffic keeps probing ADS-B providers when cooldown would otherwise block every source.",
+    highlights: [
+      "Prevented global positions cooldown from turning all aircraft-position fallback requests into hard 502s",
+      "Kept provider attempts visible when a cooled-down source is probed and recovers",
+      "Preserved the unified realtime and HTTP aircraft-position provider path from v2.6.12",
+    ],
+  },
+  {
     version: "v2.6.12",
     kind: "patch",
     title: "Aircraft position fallback",

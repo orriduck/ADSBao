@@ -204,6 +204,54 @@ func TestPositionProviderHedgesSlowFirstProvider(t *testing.T) {
 	}
 }
 
+func TestPositionProviderProbesWhenAllProvidersAreInCooldown(t *testing.T) {
+	now := time.Unix(1_800_000_000, 0)
+	var requests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if requests == 1 {
+			http.Error(w, "temporary", http.StatusTooManyRequests)
+			return
+		}
+		_, _ = w.Write([]byte(`{"ac":[{"hex":"a1","flight":"TEST1   ","lat":42.1,"lon":-71.1}]}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		Providers: []Provider{
+			{ID: "adsb.lol", PositionURL: func(lat, lon float64, distNM int) string { return server.URL + "/positions" }},
+		},
+		ProviderCooldown:   time.Minute,
+		PositionHedgeDelay: time.Millisecond,
+		Now:                func() time.Time { return now },
+	})
+	input := realtime.FetchInput{
+		Channel:     "traffic:center:42.4:-71:40",
+		ChannelType: realtime.ChannelTraffic,
+		Target: realtime.PollingTarget{
+			Kind:   "positions",
+			Lat:    42.4,
+			Lon:    -71,
+			DistNM: 40,
+		},
+	}
+
+	if _, err := client.Fetch(context.Background(), input); err == nil {
+		t.Fatal("first Fetch returned nil error")
+	}
+	second, err := client.Fetch(context.Background(), input)
+	if err != nil {
+		t.Fatalf("second Fetch returned error: %v", err)
+	}
+	if second.Source != "adsb.lol" || requests != 2 {
+		t.Fatalf("source=%q requests=%d", second.Source, requests)
+	}
+	attempts := second.Data.(map[string]any)["attempts"].([]string)
+	if len(attempts) != 2 || attempts[0] != "adsb.lol:cooldown" || attempts[1] != "adsb.lol:200" {
+		t.Fatalf("attempts = %#v", attempts)
+	}
+}
+
 func TestPositionProviderCooldownSkipsRecentlyFailingProvider(t *testing.T) {
 	now := time.Unix(1_800_000_000, 0)
 	var adsbLolRequests int
