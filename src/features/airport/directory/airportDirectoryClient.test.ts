@@ -85,6 +85,7 @@ const KBOS = {
         reportingPoints: [{ id: "pt-1", name: "HYLND" }],
         obstacles: [{ id: "obs-1", name: "Tower" }],
         runwayMap: { airport: "KBOS", source: "OurAirports", runways: [] },
+        surfaceMap: { airport: "KBOS", source: "OpenStreetMap", features: { type: "FeatureCollection", features: [] } },
         source: "openaip",
       });
     }
@@ -100,6 +101,7 @@ const KBOS = {
   assert.deepEqual(airport.reportingPoints, [{ id: "pt-1", name: "HYLND" }]);
   assert.deepEqual(airport.obstacles, [{ id: "obs-1", name: "Tower" }]);
   assert.deepEqual(airport.runwayMap, { airport: "KBOS", source: "OurAirports", runways: [] });
+  assert.equal(airport.surfaceMap?.source, "OpenStreetMap");
 }
 
 // resolveAirport forwards the active locale so the detail route can enrich

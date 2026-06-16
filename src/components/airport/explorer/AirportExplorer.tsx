@@ -589,6 +589,7 @@ function AirportExplorerContent({
             onSelectAirspace={selectAirspace}
             onSelectCandidateWatchingSpot={selectCandidateWatchingSpot}
             runwayMap={airport?.runwayMap}
+            surfaceMap={airport?.surfaceMap}
             loadingOverlayActive={loadingOverlayActive}
             loadingOverlaySources={loadingOverlaySources}
             userLocation={userLocation}

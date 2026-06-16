@@ -27,25 +27,29 @@ const (
 )
 
 type Options struct {
-	HTTPClient      *http.Client
-	OpenAIPAPIKey   string
-	OpenAIPBaseURL  string
-	Timeout         time.Duration
-	AircraftFetcher func(context.Context, realtime.FetchInput) (realtime.Event, error)
-	Metrics         realtime.MetricsSink
-	Authenticator   *ClerkAuthenticator
-	UserDataStore   *UserDataStore
+	HTTPClient             *http.Client
+	OpenAIPAPIKey          string
+	OpenAIPBaseURL         string
+	OverpassBaseURL        string
+	Timeout                time.Duration
+	AirportSurfaceCacheTTL time.Duration
+	AircraftFetcher        func(context.Context, realtime.FetchInput) (realtime.Event, error)
+	Metrics                realtime.MetricsSink
+	Authenticator          *ClerkAuthenticator
+	UserDataStore          *UserDataStore
 }
 
 type Handler struct {
-	httpClient      *http.Client
-	openAIPAPIKey   string
-	openAIPBaseURL  string
-	timeout         time.Duration
-	aircraftFetcher func(context.Context, realtime.FetchInput) (realtime.Event, error)
-	metrics         realtime.MetricsSink
-	authenticator   *ClerkAuthenticator
-	userDataStore   *UserDataStore
+	httpClient          *http.Client
+	openAIPAPIKey       string
+	openAIPBaseURL      string
+	overpassBaseURL     string
+	timeout             time.Duration
+	airportSurfaceCache *airportSurfaceCache
+	aircraftFetcher     func(context.Context, realtime.FetchInput) (realtime.Event, error)
+	metrics             realtime.MetricsSink
+	authenticator       *ClerkAuthenticator
+	userDataStore       *UserDataStore
 }
 
 type openAIPList struct {
@@ -61,19 +65,25 @@ func New(options Options) *Handler {
 	if baseURL == "" {
 		baseURL = defaultOpenAIPBaseURL
 	}
+	overpassBaseURL := strings.TrimSpace(options.OverpassBaseURL)
+	if overpassBaseURL == "" {
+		overpassBaseURL = defaultOverpassBaseURL
+	}
 	timeout := options.Timeout
 	if timeout <= 0 {
 		timeout = defaultTimeout
 	}
 	return &Handler{
-		httpClient:      httpClient,
-		openAIPAPIKey:   strings.TrimSpace(options.OpenAIPAPIKey),
-		openAIPBaseURL:  baseURL,
-		timeout:         timeout,
-		aircraftFetcher: options.AircraftFetcher,
-		metrics:         options.Metrics,
-		authenticator:   options.Authenticator,
-		userDataStore:   options.UserDataStore,
+		httpClient:          httpClient,
+		openAIPAPIKey:       strings.TrimSpace(options.OpenAIPAPIKey),
+		openAIPBaseURL:      baseURL,
+		overpassBaseURL:     overpassBaseURL,
+		timeout:             timeout,
+		airportSurfaceCache: newAirportSurfaceCache(options.AirportSurfaceCacheTTL),
+		aircraftFetcher:     options.AircraftFetcher,
+		metrics:             options.Metrics,
+		authenticator:       options.Authenticator,
+		userDataStore:       options.UserDataStore,
 	}
 }
 
@@ -212,6 +222,7 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 	if runwayMap == nil {
 		runwayMap = buildRunwayMapFromMappedRunways(ident, runways, "OpenAIP")
 	}
+	surfaceMap := h.airportSurfaceMap(r.Context(), ident, lat, lon, runwayMap)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"airport":         airport,
 		"runways":         runways,
@@ -222,6 +233,7 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		"reportingPoints": reportingPoints,
 		"obstacles":       obstacles,
 		"runwayMap":       runwayMap,
+		"surfaceMap":      surfaceMap,
 		"source":          "openaip",
 	})
 }

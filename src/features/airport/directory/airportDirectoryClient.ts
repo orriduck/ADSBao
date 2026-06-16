@@ -105,6 +105,7 @@ const createAirportDirectoryClient = ({
           : [],
         obstacles: Array.isArray(detail.obstacles) ? detail.obstacles : [],
         runwayMap: detail.runwayMap || null,
+        surfaceMap: detail.surfaceMap || null,
       };
     }
 

@@ -16,6 +16,7 @@ import AircraftPosition from "./AircraftPosition";
 import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
+import AirportSurfaceLayer from "./AirportSurfaceLayer";
 import { resolveRunwayAnnotationVisibility } from "../../features/airport/map/runwayAnnotationModel";
 import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap";
 import MapAttribution from "./MapAttribution";
@@ -95,6 +96,7 @@ export default function AirportMap({
   onSelectAirspace,
   onSelectCandidateWatchingSpot,
   runwayMap = null,
+  surfaceMap = null,
   focalRangeRings = null,
   fallbackCenter = AIRPORT_MAP_FALLBACK_CENTER,
   deferUntilFocal = false,
@@ -459,6 +461,10 @@ export default function AirportMap({
             showBoundaryLabels={false}
             selectedAirspaceId={selectedAirspaceId}
             onSelectAirspace={onSelectAirspace}
+          />
+          <AirportSurfaceLayer
+            surfaceMap={surfaceMap}
+            theme={currentTheme}
           />
           {icao && (
             <AirportMarker

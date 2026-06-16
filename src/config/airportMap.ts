@@ -6,6 +6,10 @@ export const AIRPORT_MAP_FALLBACK_CENTER = {
 };
 
 export const AIRPORT_MAP_PANES = {
+  surface: {
+    name: "airport-map-surface-overlay",
+    zIndex: 360,
+  },
   airspace: {
     name: "airport-map-airspace",
     zIndex: 395,

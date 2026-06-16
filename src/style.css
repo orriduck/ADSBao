@@ -835,6 +835,36 @@
     --runway-night-line: var(--aviation-runway-night-line);
     --runway-night-beam: var(--aviation-runway-night-beam);
     --nearby-runway-line: var(--aviation-nearby-runway-line);
+    --airport-surface-apron-fill: color-mix(
+        in oklab,
+        var(--atc-text) 16%,
+        transparent
+    );
+    --airport-surface-apron-stroke: color-mix(
+        in oklab,
+        var(--atc-text) 30%,
+        transparent
+    );
+    --airport-surface-runway-fill: color-mix(
+        in oklab,
+        var(--atc-text) 84%,
+        transparent
+    );
+    --airport-surface-runway-stroke: color-mix(
+        in oklab,
+        var(--atc-text) 88%,
+        transparent
+    );
+    --airport-surface-taxiway-line: color-mix(
+        in oklab,
+        oklch(44% 0.045 220) 78%,
+        var(--atc-text)
+    );
+    --airport-surface-taxilane-line: color-mix(
+        in oklab,
+        oklch(46% 0.06 154) 74%,
+        var(--atc-text)
+    );
 
     /* Single map-ink tone for every aircraft regardless of departure/arrival —
        the airport is the only thing painted yellow on the map. */
@@ -1259,6 +1289,28 @@
     --runway-approach-line: var(--aviation-runway-approach-line);
     --runway-approach-beam: var(--aviation-runway-approach-beam);
     --nearby-runway-line: var(--aviation-nearby-runway-line);
+    --airport-surface-apron-fill: color-mix(
+        in oklab,
+        var(--atc-text) 10%,
+        transparent
+    );
+    --airport-surface-apron-stroke: color-mix(
+        in oklab,
+        var(--atc-text) 22%,
+        transparent
+    );
+    --airport-surface-runway-fill: color-mix(
+        in oklab,
+        var(--atc-text) 76%,
+        transparent
+    );
+    --airport-surface-runway-stroke: color-mix(
+        in oklab,
+        var(--atc-text) 84%,
+        transparent
+    );
+    --airport-surface-taxiway-line: oklch(67% 0.055 224 / 0.72);
+    --airport-surface-taxilane-line: oklch(68% 0.08 152 / 0.62);
 
     /* Dark theme: same single light ink for every aircraft. */
     --aircraft-departure: oklch(0.86 0.006 100);
@@ -1652,6 +1704,23 @@ body:has(.app-detail-shell) {
 .runway-approach-line {
     filter: drop-shadow(
         0 0 1px color-mix(in oklab, var(--atc-card) 60%, transparent)
+    );
+}
+
+.airport-surface-feature {
+    pointer-events: none;
+}
+
+.airport-surface-feature--runway {
+    filter: drop-shadow(
+        0 0 1.5px color-mix(in oklab, var(--atc-text) 18%, transparent)
+    );
+}
+
+.airport-surface-feature--taxiway,
+.airport-surface-feature--taxilane {
+    filter: drop-shadow(
+        0 0 2px color-mix(in oklab, currentColor 34%, transparent)
     );
 }
 
