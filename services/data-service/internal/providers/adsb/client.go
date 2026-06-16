@@ -21,6 +21,7 @@ const (
 	defaultTimeout          = 2800 * time.Millisecond
 	defaultProviderCooldown = time.Minute
 	defaultPositionHedge    = 700 * time.Millisecond
+	defaultPositionCacheTTL = 20 * time.Second
 	maxBodyBytes            = 2 * 1024 * 1024
 	userAgent               = "ADSBao data-service/1.0 (+https://adsbao.dev)"
 )
@@ -44,6 +45,7 @@ type Options struct {
 	MaxBytes            int64
 	ProviderCooldown    time.Duration
 	PositionHedgeDelay  time.Duration
+	PositionCacheTTL    time.Duration
 	Now                 func() time.Time
 	FlightAwareFallback func(context.Context, string, realtime.MetricsSink) (FallbackResult, error)
 }
@@ -55,10 +57,12 @@ type Client struct {
 	maxBytes            int64
 	providerCooldown    time.Duration
 	positionHedgeDelay  time.Duration
+	positionCacheTTL    time.Duration
 	now                 func() time.Time
 	flightAwareFallback func(context.Context, string, realtime.MetricsSink) (FallbackResult, error)
 	mu                  sync.Mutex
 	cooldowns           map[string]time.Time
+	positionCache       map[string]cachedProviderResult
 }
 
 type FallbackResult struct {
@@ -76,6 +80,12 @@ type providerResult struct {
 	provider Provider
 	payload  map[string]any
 	attempts []string
+	stale    bool
+}
+
+type cachedProviderResult struct {
+	result    providerResult
+	expiresAt time.Time
 }
 
 type providerError struct {
@@ -106,6 +116,10 @@ func NewClient(options Options) *Client {
 	if positionHedgeDelay <= 0 {
 		positionHedgeDelay = defaultPositionHedge
 	}
+	positionCacheTTL := options.PositionCacheTTL
+	if positionCacheTTL <= 0 {
+		positionCacheTTL = defaultPositionCacheTTL
+	}
 	now := options.Now
 	if now == nil {
 		now = time.Now
@@ -121,9 +135,11 @@ func NewClient(options Options) *Client {
 		maxBytes:            maxBytes,
 		providerCooldown:    providerCooldown,
 		positionHedgeDelay:  positionHedgeDelay,
+		positionCacheTTL:    positionCacheTTL,
 		now:                 now,
 		flightAwareFallback: options.FlightAwareFallback,
 		cooldowns:           map[string]time.Time{},
+		positionCache:       map[string]cachedProviderResult{},
 	}
 }
 
@@ -192,12 +208,20 @@ func (c *Client) Fetch(ctx context.Context, input realtime.FetchInput) (realtime
 }
 
 func (c *Client) fetchPositions(ctx context.Context, input realtime.FetchInput) (providerResult, error) {
-	return c.fetchPositionsHedged(ctx, input, func(provider Provider) (string, bool) {
+	result, err := c.fetchPositionsHedged(ctx, input, func(provider Provider) (string, bool) {
 		if provider.PositionURL == nil {
 			return "", false
 		}
 		return provider.PositionURL(input.Target.Lat, input.Target.Lon, input.Target.DistNM), true
 	})
+	if err == nil {
+		c.storePositionResult(input, result)
+		return result, nil
+	}
+	if cached, ok := c.cachedPositionResult(input); ok {
+		return cached, nil
+	}
+	return result, err
 }
 
 func (c *Client) fetchCallsign(ctx context.Context, input realtime.FetchInput) (providerResult, error) {
@@ -429,6 +453,64 @@ func stopTimer(timer *time.Timer) {
 	}
 }
 
+func (c *Client) storePositionResult(input realtime.FetchInput, result providerResult) {
+	key := positionCacheKey(input)
+	if key == "" || c.positionCacheTTL <= 0 {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.positionCache[key] = cachedProviderResult{
+		result:    cloneProviderResult(result),
+		expiresAt: c.now().Add(c.positionCacheTTL),
+	}
+}
+
+func (c *Client) cachedPositionResult(input realtime.FetchInput) (providerResult, bool) {
+	key := positionCacheKey(input)
+	if key == "" {
+		return providerResult{}, false
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	cached, ok := c.positionCache[key]
+	if !ok {
+		return providerResult{}, false
+	}
+	if c.now().After(cached.expiresAt) {
+		delete(c.positionCache, key)
+		return providerResult{}, false
+	}
+	result := cloneProviderResult(cached.result)
+	result.stale = true
+	result.attempts = append(result.attempts, "cache:stale")
+	return result, true
+}
+
+func positionCacheKey(input realtime.FetchInput) string {
+	if strings.TrimSpace(input.Channel) != "" {
+		return strings.TrimSpace(input.Channel)
+	}
+	if input.Target.Kind == "positions" {
+		return fmt.Sprintf(
+			"positions:%s:%s:%d",
+			pathFloat(input.Target.Lat),
+			pathFloat(input.Target.Lon),
+			input.Target.DistNM,
+		)
+	}
+	return ""
+}
+
+func cloneProviderResult(result providerResult) providerResult {
+	return providerResult{
+		provider: result.provider,
+		payload:  cloneMap(result.payload),
+		attempts: append([]string{}, result.attempts...),
+		stale:    result.stale,
+	}
+}
+
 func (c *Client) providerInCooldown(providerID, endpoint string) bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -556,7 +638,7 @@ func eventFromPayload(channel string, result providerResult) realtime.Event {
 		Channel:   channel,
 		Source:    result.provider.ID,
 		FetchedAt: time.Now().UTC().Format(time.RFC3339Nano),
-		Stale:     false,
+		Stale:     result.stale,
 		Data:      data,
 	}
 }

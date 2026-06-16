@@ -7,6 +7,18 @@
 
 export const CHANGELOG = [
   {
+    version: "v2.6.14",
+    kind: "patch",
+    title: "Aircraft position stale cache",
+    summary:
+      "Airport traffic keeps the last good ADS-B snapshot through brief provider failures.",
+    highlights: [
+      "Added a short positions cache so provider 429s or timeouts no longer turn recent aircraft data into hard 502s",
+      "Marks cached provider fallbacks as stale and exposes `cache:stale` in provider attempts",
+      "Keeps realtime and HTTP aircraft-position fallback on the same provider pipeline",
+    ],
+  },
+  {
     version: "v2.6.13",
     kind: "patch",
     title: "Aircraft provider cooldown recovery",
