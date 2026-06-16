@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { CHANGELOG } from "@/config/changelog";
+import { CHANGELOG, resolveChangelogText } from "@/config/changelog";
 
 // Sidebar-scoped changelog. Reuses DitherPageShell so the page reads as
 // a sibling of Home and About — same brand block, same footer, same
@@ -432,9 +432,13 @@ function ChangelogEntry({ release, isLatest, locale }) {
   const { t } = useI18n();
   const localizedRelease =
     locale === "zh-CN" ? CHINESE_RELEASE_COPY[release.version] : null;
-  const title = localizedRelease?.title || release.title;
-  const summary = localizedRelease?.summary || release.summary;
-  const highlights = localizedRelease?.highlights || release.highlights;
+  const title =
+    localizedRelease?.title || resolveChangelogText(release.title, locale);
+  const summary =
+    localizedRelease?.summary || resolveChangelogText(release.summary, locale);
+  const highlights =
+    localizedRelease?.highlights ||
+    release.highlights.map((item) => resolveChangelogText(item, locale));
   return (
     <li className="changelog-entry">
       <div className="changelog-entry__header">

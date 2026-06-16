@@ -5,7 +5,55 @@
 // `highlights` bullets. Keep entries terse — the long-form story
 // belongs in the PR.
 
-export const CHANGELOG = [
+export type LocalizedText = string | { en: string; zh: string };
+
+export type ChangelogEntry = {
+  version: string;
+  kind: "feat" | "patch" | "breaking";
+  title: LocalizedText;
+  summary?: LocalizedText;
+  highlights: LocalizedText[];
+};
+
+// Resolve a possibly-bilingual changelog field to a single string for the
+// active locale. Historical entries store plain strings and pass through
+// unchanged; { en, zh } entries pick the language, falling back to English.
+export function resolveChangelogText(
+  value: LocalizedText | undefined,
+  locale: string,
+): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  return locale === "zh-CN" ? value.zh : value.en;
+}
+
+export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: "v2.7.0",
+    kind: "feat",
+    title: {
+      en: "Legacy cleanup & bilingual changelog",
+      zh: "旧架构清理与双语更新日志",
+    },
+    summary: {
+      en: "Removed dead client-side provider code left from the Vercel/Next era and made the changelog fully bilingual.",
+      zh: "移除 Vercel/Next 时期遗留的客户端 provider 死代码，更新日志改为完整双语。",
+    },
+    highlights: [
+      {
+        en: "Deleted ~1,500 lines of unused client-side fetch mechanisms (aircraft photos, trace, icons, airport directory, local weather, METAR) now served by the Go data-service",
+        zh: "删除约 1,500 行未使用的客户端抓取机制（飞机照片、轨迹、图标、机场目录、本地天气、METAR），相关逻辑已由 Go data-service 提供",
+      },
+      {
+        en: "Changelog entries now carry per-locale en/zh fields and render in the active language",
+        zh: "更新日志条目新增按语言的 en/zh 字段，并按当前语言渲染",
+      },
+      {
+        en: "Stabilized the unit-preferences context value to cut redundant re-renders",
+        zh: "稳定单位偏好 context 的值，减少多余的重渲染",
+      },
+    ],
+  },
   {
     version: "v2.6.19",
     kind: "patch",
