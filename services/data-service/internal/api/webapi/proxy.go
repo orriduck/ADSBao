@@ -20,6 +20,7 @@ import (
 const (
 	aircraftJSONMaxBytes  = 24 * 1024 * 1024
 	aircraftImageMaxBytes = 2 * 1024 * 1024
+	aircraftTraceTimeout  = 6 * time.Second
 )
 
 type adsbProvider struct {
@@ -221,7 +222,7 @@ func (h *Handler) handleAircraftTrace(w http.ResponseWriter, r *http.Request) {
 		name = "trace_full_" + lower + ".json"
 	}
 	upstream := fmt.Sprintf("https://adsb.lol/data/traces/%s/%s?_=%d", url.PathEscape(suffix), url.PathEscape(name), time.Now().UnixMilli())
-	payload, status, err := h.fetchJSONAny(r.Context(), upstream, adsbHeaders())
+	payload, status, err := h.fetchJSONAnyWithTimeout(r.Context(), upstream, adsbHeaders(), aircraftTraceTimeout)
 	if err != nil || status < 200 || status >= 300 {
 		writeJSONWithHeaders(w, http.StatusOK, emptyAircraftTracePayload(hex, status, err), map[string]string{
 			"Cache-Control":       "no-store",
@@ -526,7 +527,20 @@ func (h *Handler) fetchJSONAny(ctx context.Context, upstream string, headers map
 }
 
 func (h *Handler) fetchJSON(ctx context.Context, upstream string, headers map[string]string, out any) (int, error) {
-	ctx, cancel := context.WithTimeout(ctx, h.timeout)
+	return h.fetchJSONWithTimeout(ctx, upstream, headers, out, h.timeout)
+}
+
+func (h *Handler) fetchJSONAnyWithTimeout(ctx context.Context, upstream string, headers map[string]string, timeout time.Duration) (any, int, error) {
+	var payload any
+	status, err := h.fetchJSONWithTimeout(ctx, upstream, headers, &payload, timeout)
+	return payload, status, err
+}
+
+func (h *Handler) fetchJSONWithTimeout(ctx context.Context, upstream string, headers map[string]string, out any, timeout time.Duration) (int, error) {
+	if timeout <= 0 {
+		timeout = h.timeout
+	}
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, upstream, nil)
 	if err != nil {
