@@ -20,6 +20,7 @@ import {
 } from "../../features/airport/map/runwayLightCanvas";
 import {
   shouldShowNearbyAirportRunwaysForZoom,
+  shouldShowRunwayEndLabelsForZoom,
   runwayLightingLodForZoom,
   type RunwayLightingLodBand,
 } from "../../features/airport/map/airportMapZoomFeatures";
@@ -70,10 +71,21 @@ const runwayLabelIcon = (ident: string, theme: string) =>
     iconAnchor: [17, 22],
   });
 
-const runwayLayers = ({ airport, map, theme, zoom, showBadges }: Record<string, any>) => {
+const setAirportMarkerSelectedClass = (marker: any, selected: boolean) => {
+  const element = marker?.getElement?.() || marker?._icon;
+  element?.classList?.toggle("nearby-airport-marker--selected", selected);
+};
+
+const runwayLayers = ({
+  airport,
+  map,
+  theme,
+  zoom,
+  showRunways,
+  showBadges,
+}: Record<string, any>) => {
   if (!airport?.runwayMap?.runways?.length) return [];
   const centerlines = buildRunwayCenterlineCollection(airport.runwayMap);
-  const showRunways = shouldShowNearbyAirportRunwaysForZoom(zoom);
   if (!showRunways) return [];
 
   const layers = [
@@ -119,30 +131,74 @@ export default function NearbyAirportLayer({
   showRunwayBadges = true,
 }: Record<string, any>) {
   const map = useMapInstance();
-  const layerRef = useRef(null);
+  const airportMarkerLayerRef = useRef(null);
+  const airportMarkerRefs = useRef(new Map());
+  const runwayLayerRef = useRef(null);
   // Keep the click handler in a ref so re-rendering the layer doesn't
   // require tearing down + re-adding the markers each time the callback
   // identity changes.
   const onSelectRef = useRef(onSelectAirport);
   onSelectRef.current = onSelectAirport;
+  const selectedIcaoRef = useRef(selectedIcao);
+  selectedIcaoRef.current = selectedIcao;
+  const showNearbyRunways = shouldShowNearbyAirportRunwaysForZoom(zoom);
+  const showNearbyRunwayEndLabels =
+    showRunwayBadges && shouldShowRunwayEndLabelsForZoom(zoom);
+  const runwayLayerLabelZoom = showNearbyRunwayEndLabels ? zoom : null;
+  const lightingBand = runwayLightingLodForZoom(zoom);
+  const nearbyLightingBand: RunwayLightingLodBand =
+    lightingBand === "near" ? "mid" : lightingBand;
+  const airportMarkersInteractive = Boolean(onSelectAirport);
 
   useEffect(() => {
     if (!map || !map.getContainer || !map.getPane) return undefined;
 
-    safeRemoveFromMap(layerRef.current, map);
+    safeRemoveFromMap(runwayLayerRef.current, map);
     const layer = L.layerGroup();
 
     for (const airport of airports) {
+      runwayLayers({
+        airport,
+        map,
+        theme,
+        zoom: runwayLayerLabelZoom,
+        showRunways: showNearbyRunways,
+        showBadges: showNearbyRunwayEndLabels,
+      }).forEach((runwayLayer) => runwayLayer.addTo(layer));
+    }
+
+    const added = safeAddToMap(layer, map, { label: "NearbyAirportLayer" });
+    if (!added) return undefined;
+    runwayLayerRef.current = layer;
+
+    return () => {
+      safeRemoveFromMap(layer, map);
+      if (runwayLayerRef.current === layer) runwayLayerRef.current = null;
+    };
+  }, [
+    map,
+    airports,
+    theme,
+    runwayLayerLabelZoom,
+    showNearbyRunways,
+    showNearbyRunwayEndLabels,
+  ]);
+
+  useEffect(() => {
+    if (!map || !map.getContainer || !map.getPane) return undefined;
+
+    safeRemoveFromMap(airportMarkerLayerRef.current, map);
+    airportMarkerRefs.current = new Map();
+    if (!showAirportBadges) return undefined;
+
+    const layer = L.layerGroup();
+    for (const airport of airports) {
       if (!airport?.lat || !airport?.lon) continue;
-      runwayLayers({ airport, map, theme, zoom, showBadges: showRunwayBadges }).forEach((runwayLayer) =>
-        runwayLayer.addTo(layer),
-      );
-      if (!showAirportBadges) continue;
-      const interactive = Boolean(onSelectRef.current);
-      const isSelected = selectedIcao && airport.icao === selectedIcao;
+      const isSelected =
+        selectedIcaoRef.current && airport.icao === selectedIcaoRef.current;
       const marker = L.marker([airport.lat, airport.lon], {
-        interactive,
-        keyboard: interactive,
+        interactive: airportMarkersInteractive,
+        keyboard: airportMarkersInteractive,
         pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),
         icon: L.divIcon({
           className: [
@@ -154,32 +210,42 @@ export default function NearbyAirportLayer({
           iconAnchor: [0, -8],
         }),
       });
-      if (interactive) {
+      if (airportMarkersInteractive) {
         marker.on("click", (event) => {
           event?.originalEvent?.stopPropagation?.();
           onSelectRef.current?.(airport.icao);
         });
       }
       marker.addTo(layer);
+      if (airport.icao) airportMarkerRefs.current.set(airport.icao, marker);
     }
 
-    const added = safeAddToMap(layer, map, { label: "NearbyAirportLayer" });
-    if (!added) return undefined;
-    layerRef.current = layer;
+    const added = safeAddToMap(layer, map, { label: "NearbyAirportMarkerLayer" });
+    if (!added) {
+      airportMarkerRefs.current = new Map();
+      return undefined;
+    }
+    airportMarkerLayerRef.current = layer;
 
     return () => {
       safeRemoveFromMap(layer, map);
-      layerRef.current = null;
+      if (airportMarkerLayerRef.current === layer) {
+        airportMarkerLayerRef.current = null;
+      }
+      airportMarkerRefs.current = new Map();
     };
   }, [
     map,
     airports,
-    theme,
-    zoom,
-    selectedIcao,
     showAirportBadges,
-    showRunwayBadges,
+    airportMarkersInteractive,
   ]);
+
+  useEffect(() => {
+    airportMarkerRefs.current.forEach((marker, icao) => {
+      setAirportMarkerSelectedClass(marker, Boolean(selectedIcao && icao === selectedIcao));
+    });
+  }, [selectedIcao]);
 
   // --- FAA runway point lights for nearby airports ---
   // Shared canvas renderer avoids thousands of DOM nodes. Capped at "mid"
@@ -187,18 +253,14 @@ export default function NearbyAirportLayer({
   // never get the full "near" density (TDZL, REIL, taxiway lights).
   useEffect(() => {
     if (!map || !map.getContainer || !map.getPane) return undefined;
-
-    const lightingBand = runwayLightingLodForZoom(zoom);
-    if (lightingBand === "far") return undefined;
-
-    // Cap nearby airports at "mid" — cleaner, and we lack surfaceMap for taxiways.
-    const band: RunwayLightingLodBand =
-      lightingBand === "near" ? "mid" : lightingBand;
+    if (nearbyLightingBand === "far") return undefined;
 
     const allFeatures: any[] = [];
     for (const airport of airports) {
       if (!airport?.runwayMap?.runways?.length) continue;
-      const collection = buildRunwayFaaLightCollection(airport.runwayMap, { band });
+      const collection = buildRunwayFaaLightCollection(airport.runwayMap, {
+        band: nearbyLightingBand,
+      });
       if (collection.features?.length) {
         allFeatures.push(...collection.features);
       }
@@ -222,7 +284,7 @@ export default function NearbyAirportLayer({
       layer.remove();
       renderer.remove();
     };
-  }, [map, airports, zoom, theme]);
+  }, [map, airports, nearbyLightingBand, theme]);
 
   return null;
 }
