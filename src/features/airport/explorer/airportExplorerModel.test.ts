@@ -15,8 +15,26 @@ assert.equal(fallbackProfile.name, "Boston Logan");
 assert.equal(fallbackProfile.lat, 42.3656);
 assert.equal(fallbackProfile.lon, -71.0096);
 
-const providedProfile = resolveAirportProfile({
+const staleRouteProfile = resolveAirportProfile({
   icao: "kbos",
+  airport: {
+    icao: "KSEA",
+    iata: "SEA",
+    name: "Seattle-Tacoma International Airport",
+    city: "Seattle",
+    country: "United States",
+    lat: 47.4502,
+    lon: -122.3088,
+  },
+});
+assert.equal(staleRouteProfile.icao, "KBOS");
+assert.equal(staleRouteProfile.iata, "BOS");
+assert.equal(staleRouteProfile.city, "Boston");
+assert.equal(staleRouteProfile.lat, 42.3656);
+assert.equal(staleRouteProfile.lon, -71.0096);
+
+const providedProfile = resolveAirportProfile({
+  icao: "ksea",
   airport: {
     icao: "KSEA",
     iata: "SEA",

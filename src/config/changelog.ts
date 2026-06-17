@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.8.2",
+    kind: "patch",
+    title: {
+      en: "Nearby-airport tracking stability",
+      zh: "附近机场追踪稳定性修复",
+    },
+    summary: {
+      en: "Airport-to-airport navigation now keeps the URL airport as the page anchor while the next airport detail resolves, preventing stale nearby-airport previews from rendering the previous airport map.",
+      zh: "机场到机场的跳转现在会以 URL 中的机场作为页面锚点，等待新机场详情解析时不会再用上一座机场的对象渲染地图。",
+    },
+    highlights: [
+      {
+        en: "Nearby airport Track actions no longer reuse the previous airport profile during the route transition",
+        zh: "附近机场的追踪操作在路由切换期间不再复用上一座机场的 profile",
+      },
+      {
+        en: "Airport explorer profile resolution ignores stale airport objects that do not match the current route ICAO",
+        zh: "机场详情页的 profile 解析会忽略与当前路由 ICAO 不匹配的旧机场对象",
+      },
+    ],
+  },
+  {
     version: "v2.8.1",
     kind: "patch",
     title: {

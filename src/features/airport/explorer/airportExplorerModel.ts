@@ -8,22 +8,45 @@ import { buildNavaidLabels } from "../map/navaidLabelModel";
 type AirportExplorerRecord = Record<string, any>;
 
 export function resolveAirportProfile({ icao = "", airport = null }: AirportExplorerRecord = {}) {
-  const normalizedIcao = String(airport?.icao || icao || "").toUpperCase();
+  const routeIcao = normalizeAirportProfileCode(icao);
+  const airportIcao = normalizeAirportProfileCode(
+    airport?.icao || airport?.code || airport?.ident,
+  );
+  const useAirportDetails = Boolean(
+    airport && (!routeIcao || !airportIcao || airportIcao === routeIcao),
+  );
+  const normalizedIcao = routeIcao || airportIcao;
   const airportFallback = AIRPORT_FALLBACKS[normalizedIcao] || null;
   const airportCodeLabel =
-    airport?.iata || airportFallback?.iata || normalizedIcao;
+    (useAirportDetails ? airport?.iata : "") ||
+    airportFallback?.iata ||
+    normalizedIcao;
 
   return {
     icao: normalizedIcao,
     iata: airportCodeLabel,
-    name: airport?.name || airportFallback?.name || normalizedIcao || "Airport",
-    localizedName: airport?.localizedName || "",
-    city: airport?.city || airportFallback?.city || "",
-    country: airport?.country || airportFallback?.country || "",
-    lat: COORDS[normalizedIcao]?.[0] || airport?.lat || 0,
-    lon: COORDS[normalizedIcao]?.[1] || airport?.lon || 0,
-    elevationFt: airport?.elevationFt ?? null,
+    name:
+      (useAirportDetails ? airport?.name : "") ||
+      airportFallback?.name ||
+      normalizedIcao ||
+      "Airport",
+    localizedName: useAirportDetails ? airport?.localizedName || "" : "",
+    city:
+      (useAirportDetails ? airport?.city : "") || airportFallback?.city || "",
+    country:
+      (useAirportDetails ? airport?.country : "") ||
+      airportFallback?.country ||
+      "",
+    lat: COORDS[normalizedIcao]?.[0] || (useAirportDetails ? airport?.lat : 0) || 0,
+    lon: COORDS[normalizedIcao]?.[1] || (useAirportDetails ? airport?.lon : 0) || 0,
+    elevationFt: useAirportDetails ? airport?.elevationFt ?? null : null,
   };
+}
+
+function normalizeAirportProfileCode(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toUpperCase();
 }
 
 export function enrichAircraftWithRoutes({
