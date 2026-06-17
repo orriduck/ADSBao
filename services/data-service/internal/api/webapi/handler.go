@@ -366,6 +366,9 @@ func (h *Handler) nearbyAirports(ctx context.Context, lat, lon float64, exclude 
 		return nil
 	}
 	out := []map[string]any{}
+	// Keep raw OpenAIP items keyed by ICAO so we can build runwayMap from
+	// OpenAIP runway data when the database doesn't have stored geometry.
+	rawByIcao := map[string]map[string]any{}
 	for _, item := range items {
 		airport := mapAirport(item)
 		if airport == nil {
@@ -377,12 +380,23 @@ func (h *Handler) nearbyAirports(ctx context.Context, lat, lon float64, exclude 
 		}
 		airport["distanceNm"] = distanceNm(lat, lon, numberValue(airport["lat"]), numberValue(airport["lon"]))
 		out = append(out, airport)
+		if code != "" {
+			rawByIcao[code] = item
+		}
 	}
 	storedRunwayMaps := h.storedRunwayMapsForAirports(ctx, out)
 	for _, airport := range out {
 		ident := normalizeAirportIdent(firstString(airport["icao"], airport["code"], airport["ident"]))
 		if runwayMap := storedRunwayMaps[ident]; runwayMap != nil {
 			airport["runwayMap"] = runwayMap
+			continue
+		}
+		// Fallback: build runwayMap from OpenAIP runway data, same as the main airport.
+		if raw, ok := rawByIcao[ident]; ok {
+			runways := mapRunways(asRecords(raw["runways"]), raw)
+			if rwMap := buildRunwayMapFromMappedRunways(ident, runways, "OpenAIP"); rwMap != nil {
+				airport["runwayMap"] = rwMap
+			}
 		}
 	}
 	sort.Slice(out, func(i, j int) bool {
