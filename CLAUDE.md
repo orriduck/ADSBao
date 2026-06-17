@@ -1,71 +1,99 @@
-# ADSBao — Claude Code Guide
+# ADSBao — Agent Guide (Claude Code, Codex, Hermes)
 
-## Dev environment
+## Dev environment — two-service local startup
 
-Start the frontend:
+Local dev needs **two services** running simultaneously. Vite proxies `/api`,
+`/health`, `/ws`, `/debug` to the Go data-service on port 8081.
+
+| Service | Port | Start command |
+|---|---|---|
+| Go data-service | 8081 | `cd services/data-service && go run ./cmd/adsbao-data-service` |
+| Vite frontend | 3000 | `pnpm run dev` |
+
+### Quick start (both services)
 
 ```bash
-pnpm run dev
+# 1. Go data-service (port 8081) — must set PATH for arm64 binaries
+cd /Users/ruyyi/Devs/ADSBao/services/data-service
+export PATH="/opt/homebrew/bin:$PATH"
+PORT=8081 \
+FLIGHTAWARE_ACCESS_ENABLED=true \
+ADSBAO_REALTIME_AUTH_SECRET=any-random-string-works-locally \
+  go run ./cmd/adsbao-data-service &
+
+# 2. Vite frontend (port 3000)
+cd /Users/ruyyi/Devs/ADSBao
+export PATH="/opt/homebrew/bin:$PATH"
+pnpm run dev &
 ```
 
-Frontend runs on `http://localhost:3000` by default.
+**Verify both:**
+```bash
+curl -s http://localhost:3000/health | jq .ok          # → true (via Vite proxy)
+curl -s http://localhost:3000/api/feature-flags | jq .  # → flightAwareEnabled: true
+curl -s http://localhost:3000/                          # → 200 SPA homepage
+```
 
-Agent shortcut:
+### Go data-service env vars
+
+The Go service reads these from the environment (not `.env.local`). All three
+are set on Railway production; local `go run` must include them explicitly.
+
+| Variable | Required | Default | Why |
+|---|---|---|---|
+| `PORT` | **Yes** | 8080 | Vite proxy targets 8081 → must override |
+| `FLIGHTAWARE_ACCESS_ENABLED` | **Yes** | `false` | Without it, `resolveRouteProvider()` falls back to adsbdb regardless of Clerk login |
+| `ADSBAO_REALTIME_AUTH_SECRET` | **Yes** | `""` | HMAC key for `/api/realtime/auth?provider=flightaware`. Any non-empty string works locally. Missing → 503 |
+| `OPENAIP_API_KEY` | No | — | Airport data |
+| `DATABASE_URL` | No | — | Postgres for user settings |
+
+### Frontend env vars (`.env.local`)
+
+Only `VITE_`-prefixed variables are exposed to the browser. **Critical:
+`.env.local` may contain `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` from the Next.js
+migration — Vite ignores it.** The code reads `VITE_CLERK_PUBLISHABLE_KEY`.
 
 ```bash
-pnpm debug:local
+# .env.local — correct form for Vite
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 ```
 
-This adopts or starts the port 3000 Vite server, checks the local SPA routes,
-records Vite proxy/API health, and writes a reusable snapshot to
-`.codex-tmp/local-debug/latest.md`. Use `pnpm debug:local:service` when local
-debugging needs the Go data-service behind Vite's `/api`, `/health`, `/debug`,
-or `/ws` proxy.
+If Clerk appears "not loaded" (app shows Sign in with no effect on click),
+check that `VITE_CLERK_PUBLISHABLE_KEY` exists in `.env.local`.
 
-### Dev server lifecycle (Claude operational rules)
+### PATH pitfall — x86_64 binaries on arm64 Mac
 
-You are expected to keep one long-running `pnpm dev` process on port 3000 across the session. Pattern:
+`/usr/local/bin/` contains x86_64 binaries that fail with *"Bad CPU type in
+executable"*. The working arm64 binaries are at `/opt/homebrew/bin/`. Affected:
+`node`, `pnpm`, `tmux`, `openssl`. Go at `/opt/homebrew/bin/go` is fine.
 
-1. **Before touching code**, check whether port 3000 is already serving by hitting `http://localhost:3000` (any 2xx/3xx counts). The fastest path is `pnpm debug:local`, which performs the health probe, starts the server when needed, and records a debug snapshot. If you need to do the steps manually, start and maintain the server yourself. In Codex, prefer a detached tmux session so subagents can keep the process alive without asking the user:
-   ```bash
-   tmux new-session -d -s adsbao-dev -c /Users/ruyyi/Devs/ADSBao '/opt/homebrew/bin/pnpm run dev'
-   ```
-   Then wait until ready (`curl -s -o /dev/null -w '%{http_code}' http://localhost:3000` returns `200`).
-2. **Adopt, don't fight, an existing dev server.** If port 3000 is already taken by a `pnpm dev` you started in a prior turn, just use it — don't kill it. Vite HMR will pick up most edits.
-3. **Restart when you spot stale-bundle symptoms**, even if you never see an error in the terminal. Symptoms that mean "the dev server is serving old code":
-   - DevTools shows both old + new class names in the same stylesheet after you renamed something.
-   - A CSS change that's plainly in `src/style.css` (verify with `grep`) isn't reflected in `getComputedStyle()`.
-   - A JSX rename / removed component still appears in the rendered DOM.
-   - `curl http://localhost:3000/assets/...css` returns content that doesn't match the source file.
+**Always** `export PATH="/opt/homebrew/bin:$PATH"` before any command.
 
-   When you see any of those, run this restart sequence (no need to ask the user first — it's idempotent and recoverable):
+### tmux unavailable? Use background processes
 
-   ```bash
-   lsof -nP -iTCP:3000 -sTCP:LISTEN | awk 'NR>1 {print $2}' | xargs -r kill
-   sleep 2
-   tmux kill-session -t adsbao-dev 2>/dev/null || true
-   tmux new-session -d -s adsbao-dev -c /Users/ruyyi/Devs/ADSBao '/opt/homebrew/bin/pnpm run dev'
-   # then poll until ready:
-   until curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 | grep -q 200; do sleep 2; done
-   ```
+`/usr/local/bin/tmux` is x86_64 and broken. The old dev-server lifecycle used
+tmux; prefer direct background processes instead:
 
-4. **After the restart**, reload the page in the available browser MCP with cache ignored before re-checking the broken behavior. Verify the source CSS file with `grep` first, then verify the served bundle (`curl /assets/*.css | grep <class>`) before going deeper into debugging.
-5. Subagents working on ADSBao local development should own this lifecycle: start the tmux process when it is missing and restart it when it breaks or serves stale CSS/JS. Do not wait for the user to explicitly ask for a dev-server restart.
-6. Do not switch frameworks or add alternate dev scripts as a workaround. Restarting Vite is the supported escape hatch and is fast enough on this project.
+```bash
+# Hermes: terminal(background=true)
+# Shell/manual: go run ... &   /   pnpm run dev &
+```
 
-Local API/WebSocket debugging: Vite proxies `/api`, `/health`, `/debug`, and
-`/ws` to `VITE_ADSBAO_LOCAL_API_ORIGIN` / `ADSBAO_LOCAL_API_ORIGIN`, defaulting
-to `http://localhost:8081`. Use `pnpm debug:local:service` to start both the
-frontend and the local Go data-service on that proxy target, then inspect
-`.codex-tmp/local-debug/latest.md` before opening the browser.
+### Dev server lifecycle
+
+1. **Check** both ports: `lsof -nP -iTCP:3000 -sTCP:LISTEN`, `lsof -nP -iTCP:8081 -sTCP:LISTEN`
+2. **Adopt** existing servers — don't kill them. Vite HMR picks up most edits.
+3. **Restart with cache cleared** only for stale-bundle symptoms (old CSS/JSX in
+   DOM despite source changes). Kill both, `rm -rf node_modules/.vite`, restart.
+4. **Reload** with cache ignored after restart.
 
 ## Stack
 
-- **Frontend**: React + Vite + React Router + Tailwind CSS v4, managed by `pnpm`.
-- **Runtime**: Railway single-service deployment. The Go data-service serves the Vite `dist/` assets, SPA fallback, `/health`, `/api/feature-flags`, `/api/realtime/auth`, and `/ws`.
-- **Airport data**: Airport directory data comes from OpenAIP-backed mechanisms, with Railway Postgres tables for OurAirports augmentation data and user-scoped persistence. Route lookup and other live aviation data use public provider APIs with frontend or server caching where appropriate.
-- **Weather/traffic data**: High-frequency ADS-B updates flow through the Railway Go service. Browser routes use same-origin app paths where a provider cannot be called directly.
-- **Removed scope**: Live audio/transcription, desktop packaging, Homebrew cask publishing, and Python backend runtime config are no longer part of this repository.
+- **Frontend**: React 19 + Vite 8 + React Router 7 + Tailwind CSS v4 + MapLibre GL + Leaflet, managed by `pnpm`.
+- **Backend**: Go data-service (`services/data-service/`) deployed on Railway. Serves Vite `dist/` assets, SPA fallback, `/health`, `/api/feature-flags`, `/api/realtime/auth`, `/ws`, and all `/api/proxy/*` routes.
+- **Auth**: Clerk React for browser identity. Go service validates Clerk JWTs for authenticated endpoints.
+- **Airport data**: OpenAIP-backed with Railway Postgres for augmentation data.
+- **Weather/traffic**: Open-Meteo, AviationWeather (METAR), multi-provider ADS-B.
 
 ## Key paths
 

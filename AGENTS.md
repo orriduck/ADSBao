@@ -9,8 +9,9 @@ the full validation decision tree there; do not duplicate it in this file.
   system (two materials, token-driven) is the source of truth; extend it
   instead of introducing flat fills, hard borders, or new surface treatments.
 - For ADSBao local development, follow `CLAUDE.md`'s dev-server lifecycle:
-  subagents should start and maintain the tmux-backed port 3000 process, and
-  should restart the Vite process when it breaks or serves stale CSS/JS.
+  subagents should start and maintain both the Go data-service on port 8081
+  and the Vite frontend on port 3000. See `CLAUDE.md` for env vars and the
+  full two-service startup procedure.
 - For deployed validation, use the Railway single-service deployment and verify
   `/health`, `/api/feature-flags`, static SPA fallback, `/ws`, and the rendered
   browser page.
