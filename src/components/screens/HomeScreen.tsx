@@ -26,6 +26,9 @@ export default function HomeScreen() {
       setAirport(null);
       return;
     }
+    setAirport((current) =>
+      airportCode(current) === currentIcao ? current : null,
+    );
     let cancelled = false;
     (async () => {
       try {
@@ -86,7 +89,7 @@ export default function HomeScreen() {
     <div key={screenTransitionKey} className="app-route-transition min-h-dvh">
       <AirportExplorer
         icao={currentIcao}
-        airport={airport}
+        airport={airportCode(airport) === currentIcao ? airport : null}
         onBack={handleBack}
       />
     </div>
