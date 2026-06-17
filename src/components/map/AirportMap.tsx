@@ -38,6 +38,15 @@ import {
   shouldRenderSelectedAircraftTrace,
 } from "../../features/airport/map/airportMapModel";
 import {
+  MAP_DEFERRED_FOCAL_CENTER_CUTOFF_MS,
+  MAP_VISUAL_CONTENT_POLL_MS,
+  MAP_VISUAL_CONTENT_READY_CUTOFF_MS,
+  hasActiveMapLoadingSource,
+  resolveMapVisualGateKey,
+  resolveMapVisualReady,
+  resolveMapVisualRequirements,
+} from "@/features/airport/map/mapVisualReadinessModel";
+import {
   resolveMapLoadingPresentation,
   resolveMapSurfaceVisibility,
 } from "../../features/aircraft/positions/aircraftLoadingOverlayModel";
@@ -117,6 +126,11 @@ export default function AirportMap({
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
+  const [mapTilesReady, setMapTilesReady] = useState(false);
+  const [visualContentReady, setVisualContentReady] = useState(false);
+  const [initialVisualReady, setInitialVisualReady] = useState(false);
+  const [deferredFocalCutoffReached, setDeferredFocalCutoffReached] =
+    useState(false);
   const [leafletZoom, setLeafletZoom] = useState(zoom);
   const [loadingOverlayPlayback, setLoadingOverlayPlayback] = useState({
     visible: true,
@@ -128,16 +142,35 @@ export default function AirportMap({
     () => resolveAirportMapFocalCenter({ lat, lon }),
     [lat, lon],
   );
+  useEffect(() => {
+    if (!deferUntilFocal || focalCenter) {
+      setDeferredFocalCutoffReached(false);
+      return undefined;
+    }
+
+    setDeferredFocalCutoffReached(false);
+    const timer = window.setTimeout(() => {
+      setDeferredFocalCutoffReached(true);
+    }, MAP_DEFERRED_FOCAL_CENTER_CUTOFF_MS);
+    return () => window.clearTimeout(timer);
+  }, [deferUntilFocal, focalCenter]);
+  const shouldDeferInitialCenter =
+    Boolean(deferUntilFocal && !deferredFocalCutoffReached);
   const initialCenter = useMemo(
     () =>
       resolveAirportMapInitialCenter({
         focalCenter,
         fallbackCenter,
-        deferUntilFocal,
+        deferUntilFocal: shouldDeferInitialCenter,
       }),
-    [deferUntilFocal, fallbackCenter, focalCenter],
+    [fallbackCenter, focalCenter, shouldDeferInitialCenter],
   );
   const canInitializeMap = Boolean(initialCenter);
+  const visualGateKey = resolveMapVisualGateKey({
+    variant: loadingOverlayVariant,
+    icao,
+    callsign: loadingOverlayCallsign,
+  });
 
   useEffect(() => {
     setCurrentTheme(resolveCurrentTheme());
@@ -151,6 +184,12 @@ export default function AirportMap({
     });
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    setInitialVisualReady(false);
+    setVisualContentReady(false);
+    setMapTilesReady(false);
+  }, [visualGateKey]);
 
   useEffect(() => {
     if (!mapEl.current || mapRef.current || !initialCenter) return undefined;
@@ -316,6 +355,84 @@ export default function AirportMap({
     selectedAircraftId,
     selectedAircraft,
   });
+  const feedLoadingActive = hasActiveMapLoadingSource({
+    active: loadingOverlayActive,
+    sources: loadingOverlaySources,
+  });
+  const visualRequirements = useMemo(
+    () =>
+      resolveMapVisualRequirements({
+        feedLoading: feedLoadingActive,
+        renderedAircraftCount: visibleAircraft.length,
+        traceExpected:
+          loadingOverlayVariant === "flight" && renderSelectedAircraftTrace,
+      }),
+    [
+      feedLoadingActive,
+      loadingOverlayVariant,
+      renderSelectedAircraftTrace,
+      visibleAircraft.length,
+    ],
+  );
+  const visualRequirementKey = [
+    visualGateKey,
+    visualRequirements.aircraftMarkersRequired ? "aircraft" : "no-aircraft",
+    visualRequirements.traceRequired ? "trace" : "no-trace",
+    visibleAircraft.length,
+    selectedAircraftId,
+  ].join("|");
+
+  useEffect(() => {
+    if (initialVisualReady) {
+      setVisualContentReady(true);
+      return undefined;
+    }
+    if (!mapInstance) {
+      setVisualContentReady(false);
+      return undefined;
+    }
+
+    const { aircraftMarkersRequired, traceRequired } = visualRequirements;
+    if (!aircraftMarkersRequired && !traceRequired) {
+      setVisualContentReady(true);
+      return undefined;
+    }
+
+    setVisualContentReady(false);
+    let cancelled = false;
+    let timer: number | null = null;
+    const startedAt = window.performance.now();
+    const mapContainer = mapInstance.getContainer?.() || null;
+    const checkReadiness = () => {
+      if (cancelled) return;
+      const aircraftMarkersReady =
+        !aircraftMarkersRequired ||
+        Boolean(mapContainer?.querySelector(".aircraft-marker"));
+      const traceReady =
+        !traceRequired || Boolean(mapContainer?.querySelector(".aircraft-trace"));
+      const timedOut =
+        window.performance.now() - startedAt >=
+        MAP_VISUAL_CONTENT_READY_CUTOFF_MS;
+
+      if ((aircraftMarkersReady && traceReady) || timedOut) {
+        setVisualContentReady(true);
+        return;
+      }
+
+      timer = window.setTimeout(checkReadiness, MAP_VISUAL_CONTENT_POLL_MS);
+    };
+
+    timer = window.setTimeout(checkReadiness, 0);
+    return () => {
+      cancelled = true;
+      if (timer != null) window.clearTimeout(timer);
+    };
+  }, [
+    initialVisualReady,
+    mapInstance,
+    visualRequirementKey,
+    visualRequirements,
+  ]);
   useEffect(() => {
     if (!mapInstance) {
       setLeafletZoom(zoom);
@@ -411,8 +528,21 @@ export default function AirportMap({
     nearbyAirports,
     showMapLabels,
   });
+  const mapVisualReady = resolveMapVisualReady({
+    mapCreated: Boolean(mapInstance),
+    tilesReady: mapTilesReady,
+    aircraftMarkersRequired: visualRequirements.aircraftMarkersRequired,
+    aircraftMarkersReady: visualContentReady,
+    traceRequired: visualRequirements.traceRequired,
+    traceReady: visualContentReady,
+  });
+  const overlayMapReady =
+    Boolean(mapInstance) && (initialVisualReady || mapVisualReady);
+  useEffect(() => {
+    if (mapVisualReady) setInitialVisualReady(true);
+  }, [mapVisualReady]);
   const loadingOverlayState = useResolvedMapLoadingOverlay({
-    mapReady: Boolean(mapInstance),
+    mapReady: overlayMapReady,
     variant: loadingOverlayVariant,
     active: loadingOverlayActive,
     sources: loadingOverlaySources,
@@ -435,6 +565,9 @@ export default function AirportMap({
       exiting: Boolean(state?.exiting),
     });
   }, []);
+  const handleMapTileReadinessChange = useCallback((state) => {
+    setMapTilesReady(Boolean(state?.ready));
+  }, []);
 
   return (
     <div className="relative h-full w-full bg-atc-bg">
@@ -445,6 +578,7 @@ export default function AirportMap({
         style={{
           opacity: mapVisible ? 1 : 0,
           pointerEvents: mapVisible ? undefined : "none",
+          transition: mapVisible ? "none" : undefined,
         }}
       />
 
@@ -456,6 +590,7 @@ export default function AirportMap({
             showLabels={showMapLabels}
             baseLayer={baseLayer}
             selectionActive={selectionActive}
+            onReadinessChange={handleMapTileReadinessChange}
           />
           <AirspaceLayer
             airspaces={renderedAirspaces}

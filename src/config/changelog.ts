@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.8.0",
+    kind: "feat",
+    title: {
+      en: "Faster map readiness and view controls",
+      zh: "更快的地图就绪与视图控制",
+    },
+    summary: {
+      en: "Airport and aircraft detail maps now wait for the first usable visual frame instead of just the Leaflet instance, while the detail toolbar can cycle view ranges with a tap and keep the full menu behind a long press.",
+      zh: "机场与飞机详情地图现在会等待首个可用视觉帧，而不只是等待 Leaflet 实例创建；详情页工具栏也支持轻点切换视图范围，长按再打开完整菜单。",
+    },
+    highlights: [
+      {
+        en: "Initial loading now gates on base tile readiness plus aircraft markers or traces, with short cutoffs so slow optional visuals do not block the page forever",
+        zh: "初始加载现在会等待底图 tile、飞机标记或轨迹就绪，并设置短 cutoff，避免较慢的可选视觉元素永久阻塞页面",
+      },
+      {
+        en: "Aircraft detail pages with no current focal position fall back to a usable map center after a short timeout instead of staying in the full-screen loader",
+        zh: "没有当前焦点位置的飞机详情页会在短暂超时后回退到可用地图中心，不再停留在整屏加载动画",
+      },
+      {
+        en: "The view-range toolbar button now cycles far / mid / near on tap, while long press opens the full menu with a subtle progress indicator",
+        zh: "视图范围工具栏按钮现在轻点即可在远 / 中 / 近之间循环，长按才打开完整菜单，并显示轻量进度提示",
+      },
+    ],
+  },
+  {
     version: "v2.7.4",
     kind: "patch",
     title: {

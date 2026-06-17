@@ -147,6 +147,8 @@ export default function MapControlBar({
       <MapControlRail
         menuPlacement={menuPlacement}
         currentZoomOption={currentZoomOption}
+        zoomViewItems={zoomViewItems}
+        currentZoomViewItem={currentZoomViewItem}
         viewItems={viewItems}
         activeViewItem={activeViewItem}
         currentTheme={themePreference}

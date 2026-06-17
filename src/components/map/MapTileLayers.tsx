@@ -18,6 +18,7 @@ import {
   shouldApplyReadableTerrain,
   shouldApplyStandardDetail,
 } from "@/features/airport/map/mapTileLanguageModel";
+import { MAP_TILE_READY_CUTOFF_MS } from "@/features/airport/map/mapVisualReadinessModel";
 
 const MAP_STYLE_THEME_REVISION = "standard-detail-v10";
 
@@ -27,6 +28,7 @@ export default function MapTileLayers({
   showLabels = true,
   baseLayer = "terrain",
   selectionActive = false,
+  onReadinessChange = null,
 }: Record<string, any>) {
   const map = useMapInstance();
   const layerRef = useRef(null);
@@ -37,17 +39,23 @@ export default function MapTileLayers({
   }, [selectionActive]);
 
   useEffect(() => {
-    if (!hasTilePane(map)) return undefined;
+    if (!hasTilePane(map)) {
+      onReadinessChange?.({ ready: true, reason: "no-tile-pane" });
+      return undefined;
+    }
     if (
       !shouldAttemptMapLibreTiles({
         userAgent: navigator.userAgent,
         webGlAvailable: hasWebGlContext(),
       })
     ) {
+      onReadinessChange?.({ ready: true, reason: "webgl-unavailable" });
       return undefined;
     }
     const abort = new AbortController();
     let cancelled = false;
+    let cleanupReadinessWatcher: (() => void) | null = null;
+    onReadinessChange?.({ ready: false, reason: "loading" });
 
     loadLocalizedMapStyle({
       theme,
@@ -79,6 +87,10 @@ export default function MapTileLayers({
           ) {
             maplibreMap.setMaxTileCacheSize(512);
           }
+          cleanupReadinessWatcher = watchMapLibreReadiness(maplibreMap, {
+            isCancelled: () => cancelled,
+            onReady: (reason) => onReadinessChange?.({ ready: true, reason }),
+          });
           setSelectionOpacity(
             layerRef.current,
             theme,
@@ -87,6 +99,7 @@ export default function MapTileLayers({
         } catch (error) {
           removeLayer(nextLayer, map);
           layerRef.current = null;
+          onReadinessChange?.({ ready: true, reason: "init-failed" });
           if (shouldLogMapTileLayerFailure(error)) {
             console.error("[airport-map] failed to initialize map tiles", error);
           }
@@ -94,16 +107,18 @@ export default function MapTileLayers({
       })
       .catch((error) => {
         if (error?.name === "AbortError") return;
+        onReadinessChange?.({ ready: true, reason: "style-failed" });
         console.error("[airport-map] failed to load localized map tiles", error);
       });
 
     return () => {
       cancelled = true;
       abort.abort();
+      cleanupReadinessWatcher?.();
       removeLayer(layerRef.current, map);
       layerRef.current = null;
     };
-  }, [map, theme, locale, showLabels, baseLayer]);
+  }, [map, theme, locale, showLabels, baseLayer, onReadinessChange]);
 
   useEffect(() => {
     setSelectionOpacity(layerRef.current, theme, selectionActive);
@@ -250,6 +265,57 @@ function attachMapLibreErrorHandler(layer: any) {
     if (shouldSuppressMapLibreTileError(event)) return;
     console.error("[airport-map] map tile error", event?.error || event);
   });
+}
+
+function watchMapLibreReadiness(
+  maplibreMap: any,
+  {
+    isCancelled,
+    onReady,
+  }: {
+    isCancelled?: () => boolean;
+    onReady?: (reason: string) => void;
+  } = {},
+) {
+  if (!maplibreMap || typeof onReady !== "function") {
+    onReady?.("unavailable");
+    return () => {};
+  }
+
+  let settled = false;
+  const cleanupFns: Array<() => void> = [];
+  const markReady = (reason: string) => {
+    if (settled || isCancelled?.()) return;
+    settled = true;
+    cleanupFns.forEach((cleanup) => cleanup());
+    onReady(reason);
+  };
+  const on = (eventName: string, reason: string) => {
+    if (typeof maplibreMap.once !== "function") return;
+    const handler = () => markReady(reason);
+    maplibreMap.once(eventName, handler);
+    if (typeof maplibreMap.off === "function") {
+      cleanupFns.push(() => maplibreMap.off(eventName, handler));
+    }
+  };
+
+  on("idle", "idle");
+  on("load", "load");
+
+  const timeout = window.setTimeout(
+    () => markReady("cutoff"),
+    MAP_TILE_READY_CUTOFF_MS,
+  );
+  cleanupFns.push(() => window.clearTimeout(timeout));
+
+  if (typeof maplibreMap.loaded === "function" && maplibreMap.loaded()) {
+    window.setTimeout(() => markReady("already-loaded"), 0);
+  }
+
+  return () => {
+    settled = true;
+    cleanupFns.forEach((cleanup) => cleanup());
+  };
 }
 
 function hasWebGlContext() {

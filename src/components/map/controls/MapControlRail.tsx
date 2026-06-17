@@ -19,15 +19,22 @@ import {
   ToolbarSeparator,
   toolbarButtonVariants,
 } from "@/components/ui/Toolbar";
+import { cn } from "@/lib/utils";
 import { MapControlIcon } from "./mapControlIcons";
 
 const SETTINGS_ICON_KEY = "slidersHorizontal";
+const VIEW_MENU_LONG_PRESS_MS = 480;
+const VIEW_MENU_PROGRESS_REVEAL_MS = 80;
+const VIEW_MENU_PROGRESS_FADE_MS = 160;
+const VIEW_MENU_PROGRESS_TICK_MS = 24;
 
 const RAIL_BUTTON_CLASS = toolbarButtonVariants({ tone: "rail" });
 
 export default function MapControlRail({
   menuPlacement = "bottom",
   currentZoomOption,
+  zoomViewItems = [],
+  currentZoomViewItem = null,
   viewItems = [],
   activeViewItem = null,
   currentTheme,
@@ -81,6 +88,8 @@ export default function MapControlRail({
       <ViewMenuButton
         items={viewItems}
         activeItem={activeViewItem || currentZoomOption}
+        cycleItems={zoomViewItems}
+        cycleActiveItem={currentZoomViewItem}
         menuPlacement={menuPlacement}
       />
 
@@ -168,11 +177,22 @@ export default function MapControlRail({
 function ViewMenuButton({
   items = [],
   activeItem = null,
+  cycleItems = [],
+  cycleActiveItem = null,
   menuPlacement = "bottom",
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [pressProgress, setPressProgress] = useState(0);
+  const [pressProgressOpacity, setPressProgressOpacity] = useState(0);
   const containerRef = useRef(null);
+  const longPressTimerRef = useRef(null);
+  const progressTickTimerRef = useRef(null);
+  const progressHideTimerRef = useRef(null);
+  const pressStartAtRef = useRef(0);
+  const pressProgressOpacityRef = useRef(0);
+  const pressActiveRef = useRef(false);
+  const longPressOpenedRef = useRef(false);
   const placementClass =
     menuPlacement === "bottom" ? "top-full mt-2" : "bottom-full mb-2";
   const selectedItem =
@@ -183,6 +203,8 @@ function ViewMenuButton({
     null;
   const selectedLabel = selectedItem?.label || t("map.viewMenu");
   const title = t("map.viewMenuTitle", { label: selectedLabel });
+  const enabledCycleItems = cycleItems.filter((item) => !item?.disabled);
+  const canCycle = enabledCycleItems.length > 0;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -200,10 +222,165 @@ function ViewMenuButton({
     };
   }, [open]);
 
+  const clearLongPressTimer = () => {
+    if (!longPressTimerRef.current) return;
+    window.clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = null;
+  };
+
+  const setProgressOpacityValue = (value) => {
+    pressProgressOpacityRef.current = value;
+    setPressProgressOpacity(value);
+  };
+
+  const clearProgressTickTimer = () => {
+    if (!progressTickTimerRef.current) return;
+    window.clearTimeout(progressTickTimerRef.current);
+    progressTickTimerRef.current = null;
+  };
+
+  const clearProgressHideTimer = () => {
+    if (!progressHideTimerRef.current) return;
+    window.clearTimeout(progressHideTimerRef.current);
+    progressHideTimerRef.current = null;
+  };
+
+  useEffect(
+    () => () => {
+      clearLongPressTimer();
+      clearProgressTickTimer();
+      clearProgressHideTimer();
+      pressActiveRef.current = false;
+    },
+    [],
+  );
+
+  const tickPressProgress = () => {
+    const elapsed = window.performance.now() - pressStartAtRef.current;
+    const progressElapsed = Math.max(0, elapsed - VIEW_MENU_PROGRESS_REVEAL_MS);
+    const progressDuration =
+      VIEW_MENU_LONG_PRESS_MS - VIEW_MENU_PROGRESS_REVEAL_MS;
+    const nextProgress = Math.min(progressElapsed / progressDuration, 1);
+    const nextOpacity = Math.min(progressElapsed / VIEW_MENU_PROGRESS_FADE_MS, 1);
+    setPressProgress(nextProgress);
+    setProgressOpacityValue(nextOpacity);
+    if (elapsed >= VIEW_MENU_LONG_PRESS_MS) {
+      progressTickTimerRef.current = null;
+      return;
+    }
+    progressTickTimerRef.current = window.setTimeout(
+      tickPressProgress,
+      VIEW_MENU_PROGRESS_TICK_MS,
+    );
+  };
+
+  const fadeProgress = () => {
+    clearProgressTickTimer();
+    clearProgressHideTimer();
+    const startedAt = window.performance.now();
+    const startOpacity = pressProgressOpacityRef.current;
+    const fadeStep = () => {
+      const elapsed = window.performance.now() - startedAt;
+      const nextOpacity = Math.max(
+        startOpacity * (1 - elapsed / VIEW_MENU_PROGRESS_FADE_MS),
+        0,
+      );
+      setProgressOpacityValue(nextOpacity);
+      if (nextOpacity > 0) {
+        progressHideTimerRef.current = window.setTimeout(
+          fadeStep,
+          VIEW_MENU_PROGRESS_TICK_MS,
+        );
+        return;
+      }
+      setPressProgress(0);
+      progressHideTimerRef.current = null;
+    };
+    fadeStep();
+  };
+
+  const openMenuFromLongPress = () => {
+    longPressOpenedRef.current = true;
+    setPressProgress(1);
+    setOpen(true);
+    fadeProgress();
+  };
+
+  const startLongPress = (event) => {
+    if (!items.length) return;
+    if ("button" in event && event.button !== 0) return;
+    if (pressActiveRef.current) return;
+    pressActiveRef.current = true;
+    longPressOpenedRef.current = false;
+    clearLongPressTimer();
+    clearProgressTickTimer();
+    clearProgressHideTimer();
+    pressStartAtRef.current = window.performance.now();
+    setPressProgress(0);
+    setProgressOpacityValue(0);
+    progressTickTimerRef.current = window.setTimeout(
+      tickPressProgress,
+      VIEW_MENU_PROGRESS_TICK_MS,
+    );
+    longPressTimerRef.current = window.setTimeout(
+      openMenuFromLongPress,
+      VIEW_MENU_LONG_PRESS_MS,
+    );
+  };
+
+  const endLongPress = () => {
+    if (!pressActiveRef.current) return;
+    pressActiveRef.current = false;
+    clearLongPressTimer();
+    clearProgressTickTimer();
+    fadeProgress();
+  };
+
   const handleSelect = (item) => {
     if (item?.disabled) return;
     item?.onSelect?.();
     setOpen(false);
+  };
+
+  const handleCycle = () => {
+    if (!canCycle) return;
+    const activeCycleItem =
+      enabledCycleItems.find((item) => item?.id === cycleActiveItem?.id) ||
+      enabledCycleItems.find((item) => item?.active) ||
+      enabledCycleItems[0];
+    const currentIndex = enabledCycleItems.findIndex(
+      (item) => item?.id === activeCycleItem?.id,
+    );
+    const nextIndex = (currentIndex + 1) % enabledCycleItems.length;
+    handleSelect(enabledCycleItems[nextIndex]);
+  };
+
+  const handleClick = (event) => {
+    if (longPressOpenedRef.current) {
+      event.preventDefault();
+      longPressOpenedRef.current = false;
+      return;
+    }
+    handleCycle();
+  };
+
+  const handleContextMenu = (event) => {
+    if (!items.length) return;
+    event.preventDefault();
+    longPressOpenedRef.current = true;
+    pressActiveRef.current = false;
+    clearLongPressTimer();
+    clearProgressTickTimer();
+    setPressProgress(1);
+    setOpen(true);
+    fadeProgress();
+  };
+
+  const handleKeyDown = (event) => {
+    if (!items.length) return;
+    if (event.key !== "ArrowDown") return;
+    event.preventDefault();
+    setOpen((value) => !value);
   };
 
   return (
@@ -236,17 +413,41 @@ function ViewMenuButton({
         </MenuPanel>
       ) : null}
 
-      <ToolbarButton
-        tone="rail"
-        active={open || Boolean(selectedItem?.active)}
-        title={title}
-        aria-label={title}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        onClick={() => setOpen((value) => !value)}
-      >
-        <MapControlIcon iconKey={selectedItem?.iconKey || "mapPinned"} />
-      </ToolbarButton>
+      <div className="relative inline-flex">
+        <ToolbarButton
+          tone="rail"
+          active={open || Boolean(selectedItem?.active)}
+          title={title}
+          aria-label={title}
+          aria-expanded={open}
+          aria-haspopup="menu"
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}
+          onKeyDown={handleKeyDown}
+          onMouseDown={startLongPress}
+          onMouseLeave={endLongPress}
+          onMouseUp={endLongPress}
+          onPointerCancel={endLongPress}
+          onPointerDown={startLongPress}
+          onPointerLeave={endLongPress}
+          onPointerUp={endLongPress}
+        >
+          <MapControlIcon iconKey={selectedItem?.iconKey || "mapPinned"} />
+        </ToolbarButton>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute -bottom-1 left-1/2 h-[3px] w-7 -translate-x-1/2 overflow-hidden rounded-full",
+            "bg-[color-mix(in_oklab,var(--atc-control-hover-bg-strong)_82%,transparent)]",
+          )}
+          style={{ opacity: pressProgressOpacity }}
+        >
+          <span
+            className="block h-full origin-left rounded-full bg-[var(--atc-click-bg)]"
+            style={{ transform: `scaleX(${pressProgress})` }}
+          />
+        </span>
+      </div>
     </div>
   );
 }
