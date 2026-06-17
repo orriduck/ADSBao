@@ -3,6 +3,7 @@ import {
   AVIATION_REQUEST_TIMEOUT_MS,
 } from "../../../config/aviation";
 import { withAuditLogging } from "../../../utils/apiLogger";
+import { createRequestCache } from "../../../utils/requestCache";
 import { normalizeAircraftHex } from "@/server/http/apiProxySecurity";
 import { fetchJson } from "../../aviation/httpClient";
 
@@ -18,7 +19,7 @@ export const createAircraftTraceClient = ({
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: "adsb.lol/AircraftTrace",
   });
-  const inFlight = new Map<string, Promise<any>>();
+  const requestCache = createRequestCache<any>();
 
   return {
     fetchAircraftTrace({ hex, full = false }: Record<string, any>) {
@@ -28,18 +29,14 @@ export const createAircraftTraceClient = ({
       const path = `${baseUrl}/${encodeURIComponent(normalizedHex)}${
         full ? "?full=1" : ""
       }`;
-      const pending = inFlight.get(path);
-      if (pending) return pending;
-      const promise = fetchJson(auditedFetch, path, {
-        timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.aircraftTrace,
-        // Full traces for long-haul flights can run multi-MB — give the
-        // client buffer some headroom too.
-        maxBytes: 24 * 1024 * 1024,
-      }).finally(() => {
-        inFlight.delete(path);
-      });
-      inFlight.set(path, promise);
-      return promise;
+      return requestCache.request(path, () =>
+        fetchJson(auditedFetch, path, {
+          timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.aircraftTrace,
+          // Full traces for long-haul flights can run multi-MB — give the
+          // client buffer some headroom too.
+          maxBytes: 24 * 1024 * 1024,
+        }),
+      );
     },
   };
 };

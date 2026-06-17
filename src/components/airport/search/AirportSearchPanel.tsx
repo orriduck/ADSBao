@@ -11,7 +11,10 @@ import AirportDiscoveryPanel from "./AirportDiscoveryPanel";
 import { useAirportSearch } from "@/features/airport/search/useAirportSearch";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
-export default function AirportSearchPanel({ onOpenAirport }) {
+export default function AirportSearchPanel({
+  onOpenAirport,
+  onPrefetchAirport,
+}) {
   const { t } = useI18n();
   const {
     query,
@@ -69,11 +72,13 @@ export default function AirportSearchPanel({ onOpenAirport }) {
             searchCycle={searchCycle}
             countLabel={countLabel}
             onOpen={openAirport}
+            onPrefetch={onPrefetchAirport}
           />
         ) : (
           <AirportDiscoveryPanel
             topics={discoveryTopics}
             onOpen={openAirport}
+            onPrefetch={onPrefetchAirport}
           />
         )}
       </div>

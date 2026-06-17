@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "@/platform/router/navigation";
 import { toast } from "sonner";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import AirportSearchPanel from "@/components/airport/search/AirportSearchPanel";
-import { airportDirectoryClient } from "../../features/airport/directory/airportDirectoryClient";
+import {
+  airportProfileCode,
+  prefetchAirportProfile,
+  useAirportProfileQueries,
+} from "@/features/airport/directory/airportProfileQueries";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 
@@ -18,103 +22,69 @@ export default function HomeScreen() {
   const pathname = usePathname();
   const { locale } = useI18n();
   const currentIcao = normalizePathIcao(pathname);
-  const [airport, setAirport] = useState(null);
-  const [routeTransitionActive, setRouteTransitionActive] = useState(true);
-  const hasPlayedInitialRouteTransitionRef = useRef(false);
+  const seedAirportRef = useRef(null);
+  const pageLeavingRef = useRef(false);
+  const routeTransitionActive = useRouteTransition(currentIcao);
+  const seededAirport = useMemo(
+    () =>
+      airportProfileCode(seedAirportRef.current) === currentIcao
+        ? seedAirportRef.current
+        : null,
+    [currentIcao],
+  );
+  const {
+    airport,
+    detailQuery,
+    contextQuery,
+    surfaceQuery,
+    queryClient,
+  } = useAirportProfileQueries({
+    icao: currentIcao,
+    locale,
+    seedAirport: seededAirport,
+  });
 
   useEffect(() => {
-    if (!currentIcao) return undefined;
-    if (!hasPlayedInitialRouteTransitionRef.current) {
-      hasPlayedInitialRouteTransitionRef.current = true;
-      setRouteTransitionActive(true);
-      return undefined;
-    }
-    setRouteTransitionActive(false);
-    const frameId = window.requestAnimationFrame(() => {
-      setRouteTransitionActive(true);
-    });
-    return () => window.cancelAnimationFrame(frameId);
+    const handlePageHide = () => {
+      pageLeavingRef.current = true;
+    };
+    const handlePageShow = () => {
+      pageLeavingRef.current = false;
+    };
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("pageshow", handlePageShow);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!currentIcao) seedAirportRef.current = null;
   }, [currentIcao]);
 
   useEffect(() => {
-    if (!currentIcao) {
-      setAirport(null);
-      return;
-    }
-    setAirport((current) =>
-      airportCode(current) === currentIcao ? current : null,
+    if (!currentIcao || !detailQuery.error) return;
+    if (pageLeavingRef.current) return;
+    if (isInterruptedNavigationFetch(detailQuery.error, currentIcao)) return;
+    console.error("Failed to load airport", detailQuery.error);
+    toast.error(
+      detailQuery.error?.message || "Airport not found or unavailable",
+      { id: "airport-resolve" },
     );
-    let cancelled = false;
-    let pageLeaving = false;
-    const deferredController = new AbortController();
-    const handlePageHide = () => {
-      pageLeaving = true;
-    };
-    window.addEventListener("pagehide", handlePageHide);
-    (async () => {
-      try {
-        const resolved = await airportDirectoryClient.resolveAirport(currentIcao, {
-          locale,
-        });
-        if (cancelled) return;
-        setAirport(resolved);
-        airportDirectoryClient
-          .resolveAirportContext(currentIcao, {
-            signal: deferredController.signal,
-          })
-          .then((context) => {
-            if (cancelled || !context) return;
-            setAirport((current) => {
-              if (airportCode(current) !== currentIcao) return current;
-              return { ...current, ...context };
-            });
-          })
-          .catch((contextError) => {
-            if (!cancelled && !isInterruptedFetch(contextError)) {
-              console.warn("Failed to load airport context", contextError);
-            }
-          });
-        airportDirectoryClient
-          .resolveAirportSurface(currentIcao, {
-            signal: deferredController.signal,
-          })
-          .then((surfaceMap) => {
-            if (cancelled || !surfaceMap) return;
-            setAirport((current) => {
-              if (airportCode(current) !== currentIcao) return current;
-              return { ...current, surfaceMap };
-            });
-          })
-          .catch((surfaceError) => {
-            if (
-              !cancelled &&
-              !pageLeaving &&
-              !isInterruptedFetch(surfaceError)
-            ) {
-              console.warn("Failed to load airport surface", surfaceError);
-            }
-          });
-      } catch (err) {
-        if (
-          cancelled ||
-          pageLeaving ||
-          isInterruptedNavigationFetch(err, currentIcao)
-        ) {
-          return;
-        }
-        console.error("Failed to load airport", err);
-        toast.error(err?.message || "Airport not found or unavailable", {
-          id: "airport-resolve",
-        });
-        setAirport(null);
-      }
-    })();
-    return () => {
-      cancelled = true;
-      deferredController.abort();
-      window.removeEventListener("pagehide", handlePageHide);
-    };
-  }, [currentIcao, locale]);
+  }, [currentIcao, detailQuery.error]);
+
+  useEffect(() => {
+    if (!contextQuery.error || isInterruptedFetch(contextQuery.error)) return;
+    if (pageLeavingRef.current) return;
+    console.warn("Failed to load airport context", contextQuery.error);
+  }, [contextQuery.error]);
+
+  useEffect(() => {
+    if (!surfaceQuery.error || isInterruptedFetch(surfaceQuery.error)) return;
+    if (pageLeavingRef.current) return;
+    console.warn("Failed to load airport surface", surfaceQuery.error);
+  }, [surfaceQuery.error]);
 
   const handleOpenAirport = (selectedAirport) => {
     const nextIcao = String(
@@ -124,8 +94,16 @@ export default function HomeScreen() {
     // Optimistically seed the airport data so the detail view renders
     // without a flash while the resolveAirport effect re-fires off the
     // new pathname.
-    setAirport(selectedAirport);
+    seedAirportRef.current = selectedAirport;
     router.push(setLocaleSearchParam(`/airport/${nextIcao}`, "", locale));
+  };
+
+  const handlePrefetchAirport = (selectedAirport) => {
+    const nextIcao = String(
+      selectedAirport?.icao || selectedAirport?.code || "",
+    ).toUpperCase();
+    if (!nextIcao) return;
+    prefetchAirportProfile(queryClient, { icao: nextIcao, locale });
   };
 
   const handleBack = () => {
@@ -133,7 +111,12 @@ export default function HomeScreen() {
   };
 
   if (!currentIcao) {
-    return <AirportSearchPanel onOpenAirport={handleOpenAirport} />;
+    return (
+      <AirportSearchPanel
+        onOpenAirport={handleOpenAirport}
+        onPrefetchAirport={handlePrefetchAirport}
+      />
+    );
   }
 
   return (
@@ -142,7 +125,7 @@ export default function HomeScreen() {
     >
       <AirportExplorer
         icao={currentIcao}
-        airport={airportCode(airport) === currentIcao ? airport : null}
+        airport={airport}
         onBack={handleBack}
       />
     </div>
@@ -161,10 +144,25 @@ function normalizePathIcao(pathname) {
   return /^[A-Z0-9]{3,4}$/.test(normalized) ? normalized : "";
 }
 
-function airportCode(airport) {
-  return String(airport?.icao || airport?.code || airport?.ident || "")
-    .trim()
-    .toUpperCase();
+function useRouteTransition(currentIcao) {
+  const [routeTransitionActive, setRouteTransitionActive] = useState(true);
+  const hasPlayedInitialRouteTransitionRef = useRef(false);
+
+  useEffect(() => {
+    if (!currentIcao) return undefined;
+    if (!hasPlayedInitialRouteTransitionRef.current) {
+      hasPlayedInitialRouteTransitionRef.current = true;
+      setRouteTransitionActive(true);
+      return undefined;
+    }
+    setRouteTransitionActive(false);
+    const frameId = window.requestAnimationFrame(() => {
+      setRouteTransitionActive(true);
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [currentIcao]);
+
+  return routeTransitionActive;
 }
 
 function isInterruptedNavigationFetch(error, expectedIcao) {

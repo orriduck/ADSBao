@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.10.0",
+    kind: "feat",
+    title: {
+      en: "Route data reuse",
+      zh: "跨页面数据复用",
+    },
+    summary: {
+      en: "Airport detail, deferred context, surface maps, and aircraft photos now share TanStack-backed session data so repeat page switches reuse fresh payloads instead of restarting every request path.",
+      zh: "机场详情、延迟上下文、地面图层和飞机照片现在共享 TanStack 会话数据，重复页面切换会复用新鲜 payload，而不是重新走一遍请求链路。",
+    },
+    highlights: [
+      {
+        en: "Airport-to-airport transitions keep an immediate seeded profile while the full detail, context, and surface payloads hydrate through shared route queries",
+        zh: "机场到机场切换会先保留即时 seed profile，再通过共享 route query 补齐完整详情、上下文与地面 payload",
+      },
+      {
+        en: "Search result opens prefetch the target airport profile before navigation so common airport hops spend less time waiting on the next page",
+        zh: "从搜索结果打开机场时会在导航前预取目标机场 profile，常见机场跳转减少下一页等待时间",
+      },
+      {
+        en: "Aircraft photo lookups now reuse the same query cache across preview and aircraft-detail surfaces",
+        zh: "飞机照片查询现在在 preview 和飞机详情页面之间复用同一份 query cache",
+      },
+    ],
+  },
+  {
     version: "v2.9.0",
     kind: "feat",
     title: {

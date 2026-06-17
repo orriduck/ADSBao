@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { createAircraftPhotoClient } from "../photos/aircraftPhotoClient";
 
 const EMPTY_STATE = Object.freeze({ key: "", photo: null, status: "idle" });
+const AIRCRAFT_PHOTO_STALE_TIME_MS = 30 * 60_000;
 const aircraftPhotoClient = createAircraftPhotoClient();
 
 type AircraftPhoto = Record<string, unknown>;
@@ -20,7 +22,16 @@ type AircraftPhotoSubject = {
   type?: unknown;
 };
 
-function buildPhotoKey(aircraft: AircraftPhotoSubject | null | undefined) {
+export const aircraftPhotoQueryKeys = {
+  all: ["aircraft-photo"] as const,
+  detail: (aircraft: AircraftPhotoSubject | null | undefined) =>
+    [
+      ...aircraftPhotoQueryKeys.all,
+      buildPhotoKey(aircraft),
+    ] as const,
+};
+
+export function buildPhotoKey(aircraft: AircraftPhotoSubject | null | undefined) {
   const hex = String(aircraft?.icao24 || "").trim().toUpperCase();
   if (!hex) return "";
   return [
@@ -32,34 +43,35 @@ function buildPhotoKey(aircraft: AircraftPhotoSubject | null | undefined) {
 
 export function useAircraftPhoto(aircraft: AircraftPhotoSubject | null | undefined) {
   const key = buildPhotoKey(aircraft);
-  const [state, setState] = useState<AircraftPhotoState>(EMPTY_STATE as AircraftPhotoState);
-
-  useEffect(() => {
-    if (!key) {
-      setState(EMPTY_STATE);
-      return undefined;
-    }
-
-    let cancelled = false;
-    const [hex, registration, type] = key.split(":");
-    setState({ key, photo: null, status: "loading" });
-
-    aircraftPhotoClient
-      .fetchAircraftPhoto({ hex, registration, type })
-      .then((payload) => {
-        if (!cancelled) {
-          const photo = payload?.photo as AircraftPhoto | null || null;
-          setState({ key, photo, status: photo ? "found" : "missing" });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setState({ key, photo: null, status: "missing" });
+  const query = useQuery({
+    queryKey: aircraftPhotoQueryKeys.detail(aircraft),
+    queryFn: async ({ queryKey }) => {
+      const [, photoKey] = queryKey;
+      const [hex, registration, type] = String(photoKey).split(":");
+      const payload = await aircraftPhotoClient.fetchAircraftPhoto({
+        hex,
+        registration,
+        type,
       });
+      return (payload?.photo as AircraftPhoto | null) || null;
+    },
+    enabled: Boolean(key),
+    staleTime: AIRCRAFT_PHOTO_STALE_TIME_MS,
+    gcTime: 2 * AIRCRAFT_PHOTO_STALE_TIME_MS,
+    retry: false,
+  });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [key]);
-
-  return state.key === key ? state : { key, photo: null, status: "loading" };
+  const photo = query.data || null;
+  const state = useMemo<AircraftPhotoState>(
+    () =>
+      key
+        ? {
+            key,
+            photo,
+            status: query.isPending ? "loading" : photo ? "found" : "missing",
+          }
+        : (EMPTY_STATE as AircraftPhotoState),
+    [key, photo, query.isPending],
+  );
+  return state;
 }
