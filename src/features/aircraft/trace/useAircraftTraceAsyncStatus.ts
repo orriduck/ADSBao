@@ -13,6 +13,7 @@ interface SelectedTraceLike {
   traceFetchLoading?: boolean;
   traceStatusCode?: number | null;
   traceError?: unknown;
+  traceUnavailable?: boolean;
   traceCycle?: number;
 }
 
@@ -50,6 +51,9 @@ export function useAircraftTraceAsyncStatus({
     ? selectedTrace.traceStatusCode ?? null
     : null;
   const error = traceMatchesAircraft ? selectedTrace.traceError ?? null : null;
+  const traceUnavailable = traceMatchesAircraft
+    ? Boolean(selectedTrace.traceUnavailable)
+    : false;
   const cycle = traceMatchesAircraft ? selectedTrace.traceCycle ?? 0 : 0;
 
   const loading = useMinimumVisibleTraceLoading({
@@ -61,7 +65,7 @@ export function useAircraftTraceAsyncStatus({
   const state = useAsyncStatus(
     {
       loading,
-      error,
+      error: traceUnavailable ? "trace-unavailable" : error,
       statusCode,
       cycleKey: `${aircraftIdentity || ""}:${cycle}`,
     },

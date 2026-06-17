@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createAircraftTraceClient } from "../features/aircraft/trace/aircraftTraceClient";
 import {
   composeAircraftTrace,
+  isAircraftTraceUnavailable,
   normalizeAdsbTracePayload,
 } from "../features/aircraft/trace/aircraftTraceModel";
 import {
@@ -78,6 +79,36 @@ function liveAircraftToTracePoint(aircraft: AircraftTraceHookRecord | null) {
   };
 }
 
+function localTraceHistoryToTracePoints(aircraft: AircraftTraceHookRecord | null) {
+  const traceHistory = Array.isArray(aircraft?.traceHistory)
+    ? aircraft.traceHistory
+    : [];
+  return traceHistory
+    .map((point) => {
+      const timestampMs = Number(point?.timestampMs ?? point?.time);
+      const lat = Number(point?.lat);
+      const lon = Number(point?.lon);
+      if (
+        !Number.isFinite(timestampMs) ||
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lon)
+      ) {
+        return null;
+      }
+      return {
+        timestampMs,
+        lat,
+        lon,
+        altitude: null,
+        onGround: false,
+        velocity: null,
+        track: null,
+        baroRate: null,
+      };
+    })
+    .filter(Boolean);
+}
+
 // Resolves the displayed trace from independent sources through
 // `composeAircraftTrace`: selected airport traces directly stitch
 // recent+live; focus-flight traces directly stitch clipped full,
@@ -132,8 +163,13 @@ export function useAircraftTrace(
   const [fullLoading, setFullLoading] = useState(false);
   const [traceStatusCode, setTraceStatusCode] = useState<number | null>(null);
   const [traceError, setTraceError] = useState<unknown>(null);
+  const [recentTraceUnavailable, setRecentTraceUnavailable] = useState(false);
   const cycleRef = useRef(0);
   const [traceCycle, setTraceCycle] = useState(0);
+  const localTracePoints = useMemo(
+    () => localTraceHistoryToTracePoints(selectedAircraft),
+    [selectedAircraft],
+  );
 
   // Fetch sources whenever the selected aircraft changes. Trace sources
   // are deliberately not cached in this hook: every selection pays a
@@ -147,6 +183,7 @@ export function useAircraftTrace(
       setLivePoints([]);
       setRecentLoading(false);
       setFullLoading(false);
+      setRecentTraceUnavailable(false);
       return undefined;
     }
 
@@ -158,6 +195,7 @@ export function useAircraftTrace(
     setRecentLoading(true);
     setTraceError(null);
     setTraceStatusCode(null);
+    setRecentTraceUnavailable(false);
     cycleRef.current += 1;
     setTraceCycle(cycleRef.current);
 
@@ -170,6 +208,9 @@ export function useAircraftTrace(
       .then(({ payload, points }) => {
         if (disposed) return;
         setRecentPoints(points);
+        setRecentTraceUnavailable(
+          Boolean(payload?.traceUnavailable) || points.length < 2,
+        );
         setTraceStatusCode(readResponseStatus(payload) ?? 200);
       })
       .catch((error) => {
@@ -316,6 +357,7 @@ export function useAircraftTrace(
       sources: {
         live: livePoints,
         recent: recentPoints,
+        local: localTracePoints,
         full: fullPoints,
         persisted: persistedPoints,
       },
@@ -329,6 +371,7 @@ export function useAircraftTrace(
     fullTrace,
     livePoints,
     recentPoints,
+    localTracePoints,
     fullPoints,
     persistedPoints,
     recentLoading,
@@ -336,6 +379,11 @@ export function useAircraftTrace(
     traceStartAtMs,
   ]);
   const tracePoints = composedTrace.points;
+  const traceUnavailable = isAircraftTraceUnavailable({
+    recentTraceUnavailable,
+    loading: composedTrace.loading,
+    tracePointCount: tracePoints.length,
+  });
 
   // Persist the clipped trace back to localStorage. Debounced so a burst
   // of live polls collapses into one write. We only persist what the
@@ -360,6 +408,7 @@ export function useAircraftTrace(
       traceFetchLoading: Boolean(recentLoading || fullLoading),
       traceStatusCode,
       traceError,
+      traceUnavailable,
       traceCycle,
     }),
     [
@@ -369,6 +418,7 @@ export function useAircraftTrace(
       fullLoading,
       traceStatusCode,
       traceError,
+      traceUnavailable,
       traceCycle,
     ],
   );

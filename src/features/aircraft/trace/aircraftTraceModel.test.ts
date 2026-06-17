@@ -4,6 +4,7 @@ import {
   buildAircraftTraceCurve,
   composeAircraftTrace,
   downsampleTracePoints,
+  isAircraftTraceUnavailable,
   normalizeAdsbTracePayload,
   createAircraftTraceTracker,
   segmentTracePoints,
@@ -282,6 +283,68 @@ import {
   });
 
   assert.equal(composed.points[0].altitude, 200);
+}
+
+{
+  const composed = composeAircraftTrace({
+    mode: "selected",
+    sources: {
+      recent: [],
+      local: [
+        { lat: 42.0, lon: -71.0, time: 60_000 },
+        { lat: 42.02, lon: -70.98, time: 120_000 },
+      ],
+    },
+  });
+
+  assert.deepEqual(
+    composed.points.map((point) => [point.lat, point.lon, point.timestampMs]),
+    [
+      [42.0, -71.0, 60_000],
+      [42.02, -70.98, 120_000],
+    ],
+    "selected airport trace should fall back to locally accumulated track history",
+  );
+}
+
+{
+  const composed = composeAircraftTrace({
+    mode: "selected",
+    sources: {
+      local: [{ lat: 42.0, lon: -71.0, time: 60_000, altitude: 100 }],
+      live: [{ lat: 42.01, lon: -70.99, timestampMs: 60_000, altitude: 300 }],
+    },
+  });
+
+  assert.equal(composed.points[0].altitude, 300, "live point wins local overlap");
+}
+
+{
+  assert.equal(
+    isAircraftTraceUnavailable({
+      recentTraceUnavailable: true,
+      loading: false,
+      tracePointCount: 0,
+    }),
+    true,
+  );
+  assert.equal(
+    isAircraftTraceUnavailable({
+      recentTraceUnavailable: true,
+      loading: false,
+      tracePointCount: 2,
+    }),
+    false,
+    "local fallback points should suppress unavailable state",
+  );
+  assert.equal(
+    isAircraftTraceUnavailable({
+      recentTraceUnavailable: true,
+      loading: true,
+      tracePointCount: 0,
+    }),
+    false,
+  );
 }
 
 {

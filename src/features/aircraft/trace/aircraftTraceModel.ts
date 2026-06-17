@@ -12,11 +12,11 @@ const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
 const TRACE_MINUTE_BUCKET_MS = 60 * 1000;
 
 type TraceRecord = Record<string, any>;
-type TracePoint = TraceRecord & {
-  timestampMs?: number;
-  time?: number;
-  lat: number;
-  lon: number;
+
+type AircraftTraceUnavailableOptions = {
+  recentTraceUnavailable?: unknown;
+  loading?: unknown;
+  tracePointCount?: unknown;
 };
 
 function isFiniteNumber(value: unknown) {
@@ -402,6 +402,7 @@ export function composeAircraftTrace({
     : [
         { name: "live", points: livePoints, priority: 3 },
         { name: "recent", points: recentPoints, priority: 2 },
+        { name: "local", points: sources.local, priority: 1 },
       ];
   const merged = mergeTracesByPriority({
     sources: modeSources,
@@ -412,6 +413,19 @@ export function composeAircraftTrace({
     fullLoading: isFocusMode ? Boolean(fullLoading) : false,
     recentLoading: Boolean(recentLoading),
   };
+}
+
+export function isAircraftTraceUnavailable({
+  recentTraceUnavailable = false,
+  loading = false,
+  tracePointCount = 0,
+}: AircraftTraceUnavailableOptions = {}) {
+  const pointCount = Number(tracePointCount);
+  return Boolean(
+    recentTraceUnavailable &&
+      !loading &&
+      (!Number.isFinite(pointCount) || pointCount < 2),
+  );
 }
 
 // Drop trace points older than the cutoff. Applied before merge so only

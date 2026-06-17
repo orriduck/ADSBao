@@ -337,7 +337,7 @@ const zhCN = {
     trackingTrace: "正在追踪航迹",
     loadingTrace: "正在加载航迹…",
     loadedTrace: "航迹已加载",
-    traceLoadError: "航迹加载失败",
+    traceLoadError: "航迹不可用",
     openAirport: "追踪机场",
     viewingAirport: "正在查看机场",
     planeHunter: "开始拍机",

@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.8.1",
+    kind: "patch",
+    title: {
+      en: "Selected aircraft trace fallback",
+      zh: "选中飞机航迹兜底修复",
+    },
+    summary: {
+      en: "Airport pages now handle successful-but-empty aircraft trace responses more clearly: locally accumulated traffic history can still draw the selected trace, and unavailable traces no longer look like a silent success.",
+      zh: "机场页现在会更清楚地处理请求成功但航迹为空的情况：本地积累的交通历史可用于绘制选中飞机航迹，确实不可用时也不再表现得像静默成功。",
+    },
+    highlights: [
+      {
+        en: "Selected airport traces merge live, recent, and locally accumulated points, so a remote empty response can still render when the airport feed has enough motion history",
+        zh: "机场页选中飞机航迹会合并实时点、远端 recent trace 与本地积累点；远端为空时，只要机场流量已有足够运动历史仍可绘制",
+      },
+      {
+        en: "HTTP 200 trace responses with `traceUnavailable` or fewer than two points are now surfaced as unavailable unless another source provides a drawable trace",
+        zh: "HTTP 200 但带有 `traceUnavailable` 或少于两个点的航迹响应，现在会显示为不可用，除非其他数据源补足可绘制航迹",
+      },
+      {
+        en: "Mobile trace status now distinguishes unavailable traces from completed loads instead of briefly showing success with no visible line",
+        zh: "移动端航迹状态现在会区分不可用与加载完成，不再短暂显示成功但地图上没有可见航迹",
+      },
+    ],
+  },
+  {
     version: "v2.8.0",
     kind: "feat",
     title: {
