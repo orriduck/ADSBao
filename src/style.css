@@ -1928,13 +1928,7 @@ body:has(.app-detail-shell) {
     z-index: var(--z-index-toast);
 }
 
-/* Clerk avatar inside any Toolbar AccountSlot needs a token clamp —
-   Clerk's defaults are bigger and we want it to fit the toolbar cell. */
-.page-nav-dock .cl-avatarBox,
-.page-nav-dock .cl-avatarBox img {
-    height: var(--atc-toolbar-avatar-size) !important;
-    width: var(--atc-toolbar-avatar-size) !important;
-}
+
 
 @media (max-width: 720px) {
     .dither-page-background {
@@ -3211,14 +3205,7 @@ body {
     z-index: var(--z-index-sticky);
 }
 
-/* Clerk avatar clamp inside the sidebar mobile-overlay toolbar.
-   Without this Clerk renders at its default ~40px, blowing out the
-   ToolbarAccountSlot cell. */
-.sidebar-top-dock .cl-avatarBox,
-.sidebar-top-dock .cl-avatarBox img {
-    height: var(--atc-toolbar-avatar-size) !important;
-    width: var(--atc-toolbar-avatar-size) !important;
-}
+
 
 .sidebar-shell button,
 .sidebar-shell a {
@@ -3810,14 +3797,7 @@ body {
     z-index: 1;
 }
 
-/* Clerk avatar clamp inside the map control rail Toolbar AccountSlot.
-   Without this Clerk renders at its default ~40px, blowing out the
-   ToolbarAccountSlot cell on .airport-map-kit. */
-.airport-map-kit .cl-avatarBox,
-.airport-map-kit .cl-avatarBox img {
-    height: var(--atc-toolbar-avatar-size) !important;
-    width: var(--atc-toolbar-avatar-size) !important;
-}
+
 
 .mobile-status-bar {
     align-items: center;

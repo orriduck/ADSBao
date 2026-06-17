@@ -33,7 +33,6 @@ export default defineConfig(({ mode }) => {
         },
         "/ws": {
           target: localApiOrigin,
-          changeOrigin: true,
           ws: true,
         },
         "/health": {

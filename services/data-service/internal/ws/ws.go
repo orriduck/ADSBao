@@ -19,6 +19,8 @@ import (
 var defaultAllowedOrigins = map[string]bool{
 	"http://localhost:3000":  true,
 	"http://127.0.0.1:3000":  true,
+	"http://localhost:8081":  true,
+	"http://127.0.0.1:8081":  true,
 	"https://adsbao.dev":     true,
 	"https://www.adsbao.dev": true,
 }

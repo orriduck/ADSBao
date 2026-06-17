@@ -272,7 +272,16 @@ export class AdsbaoRealtimeClient {
     this.reconnectTimer = null;
     this.stopHeartbeat();
     this.intentionalClose = true;
-    this.socket?.close();
+    // Don't close a still-connecting socket — the browser logs
+    // "closed before connection established" and StrictMode
+    // double-mounts make this noisy in dev.
+    if (
+      this.socket &&
+      this.WebSocketCtor &&
+      this.socket.readyState !== this.WebSocketCtor.CONNECTING
+    ) {
+      this.socket.close();
+    }
     this.socket = null;
     this.setState(this.url ? "closed" : "disabled");
   }

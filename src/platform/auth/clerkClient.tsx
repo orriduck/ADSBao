@@ -50,7 +50,21 @@ export function ClerkProvider({ children, publishableKey }: ClerkProviderProps) 
     );
   }
   return (
-    <ReactClerkProvider publishableKey={key}>
+    <ReactClerkProvider
+      publishableKey={key}
+      appearance={{
+        elements: {
+          avatarBox: {
+            width: "var(--atc-toolbar-avatar-size)",
+            height: "var(--atc-toolbar-avatar-size)",
+          },
+          avatarImage: {
+            width: "var(--atc-toolbar-avatar-size)",
+            height: "var(--atc-toolbar-avatar-size)",
+          },
+        },
+      }}
+    >
       <ClerkUserBridge>{children}</ClerkUserBridge>
     </ReactClerkProvider>
   );

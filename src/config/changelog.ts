@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.7.3",
+    kind: "patch",
+    title: {
+      en: "Dev console warnings cleanup",
+      zh: "开发控制台警告清理",
+    },
+    summary: {
+      en: "Fixed WebSocket connection failure in local dev (Vite proxy origin mismatch), replaced Clerk structural CSS overrides with the official appearance API, and added the modern mobile-web-app-capable meta tag.",
+      zh: "修复本地开发中 WebSocket 连接失败（Vite 代理 origin 不匹配），用 Clerk 官方 appearance API 替代结构性 CSS 覆盖，补充了新的 mobile-web-app-capable meta 标签。",
+    },
+    highlights: [
+      {
+        en: "WebSocket no longer fails on localhost — Vite proxy changeOrigin sent localhost:8081 as Origin which the Go WS handler rejected; added to the allowed origins list",
+        zh: "WebSocket 在本地不再失败——Vite 代理的 changeOrigin 将 Origin 改为 localhost:8081 被 Go WS handler 拒绝，已加入允许列表",
+      },
+      {
+        en: "Clerk avatar sizing now uses the appearance.elements API instead of targeting internal .cl-avatarBox CSS classes, silencing the structural CSS warning",
+        zh: "Clerk 头像大小现使用 appearance.elements API 而非 .cl-avatarBox 内部 CSS 选择器，消除结构性 CSS 警告",
+      },
+      {
+        en: "Added deprecated mobile-web-app-capable meta tag alongside the aging apple-mobile-web-app-capable",
+        zh: "在过时的 apple-mobile-web-app-capable 旁补充了新的 mobile-web-app-capable meta 标签",
+      },
+    ],
+  },
+  {
     version: "v2.7.2",
     kind: "patch",
     title: {
