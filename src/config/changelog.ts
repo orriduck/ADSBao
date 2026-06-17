@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.7.4",
+    kind: "patch",
+    title: {
+      en: "Aircraft exterior navigation & anti-collision lights",
+      zh: "飞机外部航行灯与防撞灯",
+    },
+    summary: {
+      en: "Every silhouette icon now renders realistic navigation lights (red/green/white position lights, red flashing beacons, white strobes, landing and taxi lights) driven by ADS-B flight phase. Lighting anchors are auto-generated for all 178 aircraft types.",
+      zh: "每个飞机剪影图标现在渲染真实的航行灯光（红/绿/白航行灯、红色闪烁防撞灯、白色频闪灯、着陆灯和滑行灯），由 ADS-B 飞行阶段驱动。灯光锚点为全部 178 种机型自动生成。",
+    },
+    highlights: [
+      {
+        en: "10 light types with correct colors and blink patterns: nav left (red steady), nav right (green steady), nav tail (white steady), beacon top/bottom (red ~1 Hz flash), strobe left/right (white ~2 Hz double-flash), landing (white steady + glow), taxi, logo",
+        zh: "10 种灯光，颜色与闪烁行为正确：左航行灯（红常亮）、右航行灯（绿常亮）、尾航行灯（白常亮）、上下防撞灯（红 ~1Hz 闪烁）、左右频闪灯（白 ~2Hz 双闪）、着陆灯（白常亮+光晕）、滑行灯、Logo 灯",
+      },
+      {
+        en: "Flight phase classifier maps ADS-B onGround / velocity / baroAltitude to parked → taxi → climb → cruise → descent light states per FAA AIM 4-3-23",
+        zh: "飞行阶段推断器根据 ADS-B onGround / 速度 / 气压高度映射至停放→滑行→爬升→巡航→下降灯光状态，符合 FAA AIM 4-3-23",
+      },
+      {
+        en: "5 new lighting anchors (topBeacon, bottomBeacon, landingLight, taxiLight, logoLight) auto-generated for all 178 aircraft icons via the anchor generator script",
+        zh: "5 个新灯光锚点（顶部防撞灯、底部防撞灯、着陆灯、滑行灯、Logo灯）通过锚点生成脚本为全部 178 个飞机图标自动生成",
+      },
+    ],
+  },
+  {
     version: "v2.7.3",
     kind: "patch",
     title: {

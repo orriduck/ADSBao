@@ -119,10 +119,21 @@ const familyFor = (name: string): AnchorRecord["family"] => {
 };
 
 const anchorsFor = (family: AnchorRecord["family"]) => {
+  // Lighting anchors available on all powered aircraft.
+  // Aircraft faces UP: nose y→0, tail y→1.
+  const lightingAnchors: Record<string, AnchorPoint> = {
+    topBeacon: point(0.5, 0.22, "medium", "type-rule"),
+    bottomBeacon: point(0.5, 0.78, "medium", "type-rule"),
+    landingLight: point(0.5, 0.1, "medium", "type-rule"),
+    taxiLight: point(0.5, 0.06, "low", "type-rule"),
+    logoLight: point(0.5, 0.92, "low", "type-rule"),
+  };
+
   const anchors: Record<string, AnchorPoint> = {
     nose: point(0.5, 0.02, "medium"),
     tail: point(0.5, 0.96, "medium"),
     fuselageCenter: point(0.5, 0.52, "medium"),
+    belly: point(0.5, 0.78, "medium", "type-rule"),
     leftWingTip: point(0.04, 0.52, "medium"),
     rightWingTip: point(0.96, 0.52, "medium"),
     noseUnderside: point(0.5, 0.16, "low", "type-rule"),
@@ -130,11 +141,15 @@ const anchorsFor = (family: AnchorRecord["family"]) => {
     antiCollisionBeacon: point(0.5, 0.5, "low", "type-rule"),
     contrailLeft: point(0.43, 0.98, "low", "type-rule"),
     contrailRight: point(0.57, 0.98, "low", "type-rule"),
+    ...lightingAnchors,
   };
 
   if (family === "rotorcraft") {
+    // Helicopters: beacon often on engine cowling/rotor mast (higher than
+    // the generic topBeacon). Bottom beacon stays on the belly.
     return {
       ...anchors,
+      topBeacon: point(0.5, 0.18, "medium", "type-rule"),
       rotorHub: point(0.5, 0.5, "medium", "type-rule"),
       rotorLeftTip: point(0.08, 0.5, "low", "type-rule"),
       rotorRightTip: point(0.92, 0.5, "low", "type-rule"),
@@ -152,10 +167,13 @@ const anchorsFor = (family: AnchorRecord["family"]) => {
   }
 
   if (family === "balloon") {
+    // Balloons have no landing/taxi lights or anti-collision beacons.
+    // A single strobe is sometimes mounted on the basket.
     return {
       envelopeCenter: point(0.5, 0.38, "low", "type-rule"),
       basketCenter: point(0.5, 0.88, "low", "type-rule"),
       antiCollisionBeacon: point(0.5, 0.84, "low", "type-rule"),
+      bottomBeacon: point(0.5, 0.84, "low", "type-rule"),
     };
   }
 

@@ -42,6 +42,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -81,6 +87,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -125,6 +161,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -164,6 +206,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -208,6 +280,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -247,6 +325,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -291,6 +399,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -330,6 +444,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -374,6 +518,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -413,6 +563,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -457,6 +637,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -496,6 +682,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -540,6 +756,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -579,6 +801,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -623,6 +875,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -662,6 +920,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -706,6 +994,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -745,6 +1039,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -789,6 +1113,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -828,6 +1158,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -872,6 +1232,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -911,6 +1277,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -955,6 +1351,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -994,6 +1396,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1038,6 +1470,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1077,6 +1515,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1121,6 +1589,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1160,6 +1634,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1204,6 +1708,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1243,6 +1753,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1287,6 +1827,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1326,6 +1872,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1370,6 +1946,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1409,6 +1991,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1453,6 +2065,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1492,6 +2110,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1536,6 +2184,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1575,6 +2229,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1619,6 +2303,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1658,6 +2348,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1702,6 +2422,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1741,6 +2467,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1785,6 +2541,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1824,6 +2586,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1868,6 +2660,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1907,6 +2705,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -1951,6 +2779,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -1990,6 +2824,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2034,6 +2898,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2073,6 +2943,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2117,6 +3017,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2156,6 +3062,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2206,6 +3142,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2245,6 +3187,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2289,6 +3261,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2328,6 +3306,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2378,6 +3386,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2417,6 +3431,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2467,6 +3511,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2506,6 +3556,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2550,6 +3630,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2589,6 +3675,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2645,6 +3761,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2684,6 +3806,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2740,6 +3892,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2779,6 +3937,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2829,6 +4017,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2868,6 +4062,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -2918,6 +4142,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -2957,6 +4187,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3001,6 +4261,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3040,6 +4306,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3084,6 +4380,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3123,6 +4425,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3173,6 +4505,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3212,6 +4550,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3256,6 +4624,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3295,6 +4669,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3339,6 +4743,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3378,6 +4788,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3422,6 +4862,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3461,6 +4907,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3505,6 +4981,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3544,6 +5026,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3588,6 +5100,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3627,6 +5145,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3671,6 +5219,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3710,6 +5264,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3754,6 +5338,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3793,6 +5383,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3837,6 +5457,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3876,6 +5502,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -3920,6 +5576,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -3959,6 +5621,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4003,6 +5695,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4042,6 +5740,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4086,6 +5814,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4125,6 +5859,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4169,6 +5933,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4208,6 +5978,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4252,6 +6052,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4291,6 +6097,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4335,6 +6171,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4374,6 +6216,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4418,6 +6290,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4457,6 +6335,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4501,6 +6409,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4540,6 +6454,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4584,6 +6528,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4623,6 +6573,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4667,6 +6647,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4706,6 +6692,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4750,6 +6766,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4789,6 +6811,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4833,6 +6885,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4872,6 +6930,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4916,6 +7004,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -4955,6 +7049,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -4999,6 +7123,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5038,6 +7168,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5082,6 +7242,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5121,6 +7287,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5165,6 +7361,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5204,6 +7406,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5248,6 +7480,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5287,6 +7525,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5331,6 +7599,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5370,6 +7644,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5414,6 +7718,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5453,6 +7763,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5497,6 +7837,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5536,6 +7882,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5580,6 +7956,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5619,6 +8001,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5663,6 +8075,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5702,6 +8120,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5745,6 +8193,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "y": 0.84,
         "confidence": "low",
         "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.84,
+        "confidence": "low",
+        "source": "type-rule"
       }
     }
   },
@@ -5774,6 +8228,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "y": 0.52,
         "confidence": "medium",
         "source": "svg-bounds"
+      },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
       },
       "leftWingTip": {
         "x": 0.04,
@@ -5814,6 +8274,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5858,6 +8348,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5897,6 +8393,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -5941,6 +8467,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -5980,6 +8512,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6024,6 +8586,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6063,6 +8631,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6113,6 +8711,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6152,6 +8756,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6202,6 +8836,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6241,6 +8881,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6291,6 +8961,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6330,6 +9006,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6374,6 +9080,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6413,6 +9125,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6463,6 +9205,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6502,6 +9250,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6546,6 +9324,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6585,6 +9369,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6635,6 +9449,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6674,6 +9494,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6718,6 +9568,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6757,6 +9613,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6807,6 +9693,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6846,6 +9738,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6890,6 +9812,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -6929,6 +9857,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -6973,6 +9931,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7012,6 +9976,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7056,6 +10050,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7095,6 +10095,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7145,6 +10175,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7184,6 +10220,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7228,6 +10294,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7267,6 +10339,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7311,6 +10413,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7350,6 +10458,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7394,6 +10532,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7433,6 +10577,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7477,6 +10651,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7516,6 +10696,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7566,6 +10776,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7605,6 +10821,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7655,6 +10901,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7694,6 +10946,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7744,6 +11026,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7783,6 +11071,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7827,6 +11145,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7866,6 +11190,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7916,6 +11270,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -7955,6 +11315,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -7999,6 +11389,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8038,6 +11434,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8088,6 +11514,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8127,6 +11559,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8177,6 +11639,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8216,6 +11684,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8266,6 +11764,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8305,6 +11809,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8355,6 +11889,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8394,6 +11934,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8438,6 +12008,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8477,6 +12053,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8521,6 +12127,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8560,6 +12172,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8610,6 +12252,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8649,6 +12297,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8693,6 +12371,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8732,6 +12416,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8776,6 +12490,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8815,6 +12535,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8859,6 +12609,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8898,6 +12654,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -8942,6 +12728,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -8981,6 +12773,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9025,6 +12847,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9064,6 +12892,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9108,6 +12966,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9147,6 +13011,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9203,6 +13097,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9242,6 +13142,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9298,6 +13228,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9337,6 +13273,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9393,6 +13359,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9432,6 +13404,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9476,6 +13478,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9515,6 +13523,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9559,6 +13597,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9598,6 +13642,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9642,6 +13716,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9681,6 +13761,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9725,6 +13835,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9764,6 +13880,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9808,6 +13954,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9847,6 +13999,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9891,6 +14073,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -9930,6 +14118,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -9974,6 +14192,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10013,6 +14237,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10063,6 +14317,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10102,6 +14362,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10146,6 +14436,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10185,6 +14481,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10229,6 +14555,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10268,6 +14600,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10312,6 +14674,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10351,6 +14719,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10407,6 +14805,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10446,6 +14850,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10490,6 +14924,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10529,6 +14969,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10573,6 +15043,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10612,6 +15088,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10656,6 +15162,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10695,6 +15207,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10751,6 +15293,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10790,6 +15338,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10846,6 +15424,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10885,6 +15469,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -10941,6 +15555,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -10980,6 +15600,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11024,6 +15674,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11063,6 +15719,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11107,6 +15793,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11146,6 +15838,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11190,6 +15912,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11229,6 +15957,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11273,6 +16031,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11312,6 +16076,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11356,6 +16150,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11395,6 +16195,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11439,6 +16269,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11478,6 +16314,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11522,6 +16388,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11561,6 +16433,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11605,6 +16507,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11644,6 +16552,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11688,6 +16626,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11727,6 +16671,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11771,6 +16745,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11810,6 +16790,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11866,6 +16876,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11905,6 +16921,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -11949,6 +16995,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -11988,6 +17040,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12032,6 +17114,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12071,6 +17159,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12127,6 +17245,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12166,6 +17290,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12210,6 +17364,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12249,6 +17409,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12293,6 +17483,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12332,6 +17528,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12388,6 +17614,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12427,6 +17659,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12477,6 +17739,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12516,6 +17784,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12566,6 +17864,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12605,6 +17909,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12655,6 +17989,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12694,6 +18034,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12744,6 +18114,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12783,6 +18159,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12827,6 +18233,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12866,6 +18278,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -12916,6 +18358,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -12955,6 +18403,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13005,6 +18483,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13044,6 +18528,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13094,6 +18608,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13133,6 +18653,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13183,6 +18733,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13222,6 +18778,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13266,6 +18852,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13305,6 +18897,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13349,6 +18971,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13388,6 +19016,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13444,6 +19102,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13483,6 +19147,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13527,6 +19221,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13566,6 +19266,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13610,6 +19340,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13649,6 +19385,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13705,6 +19471,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13744,6 +19516,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13788,6 +19590,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13827,6 +19635,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13877,6 +19715,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -13916,6 +19760,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -13966,6 +19840,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14005,6 +19885,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14055,6 +19965,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14094,6 +20010,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14138,6 +20084,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14177,6 +20129,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14221,6 +20203,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14260,6 +20248,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14310,6 +20328,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14349,6 +20373,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14393,6 +20447,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14432,6 +20492,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14476,6 +20566,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14515,6 +20611,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14559,6 +20685,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14598,6 +20730,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14642,6 +20804,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14681,6 +20849,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14725,6 +20923,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14764,6 +20968,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14808,6 +21042,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14847,6 +21087,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.18,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14903,6 +21173,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -14942,6 +21218,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -14986,6 +21292,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -15025,6 +21337,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },
@@ -15069,6 +21411,12 @@ export const AIRCRAFT_ICON_ANCHORS = {
         "confidence": "medium",
         "source": "svg-bounds"
       },
+      "belly": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
       "leftWingTip": {
         "x": 0.04,
         "y": 0.52,
@@ -15108,6 +21456,36 @@ export const AIRCRAFT_ICON_ANCHORS = {
       "contrailRight": {
         "x": 0.57,
         "y": 0.98,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "topBeacon": {
+        "x": 0.5,
+        "y": 0.22,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "bottomBeacon": {
+        "x": 0.5,
+        "y": 0.78,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "landingLight": {
+        "x": 0.5,
+        "y": 0.1,
+        "confidence": "medium",
+        "source": "type-rule"
+      },
+      "taxiLight": {
+        "x": 0.5,
+        "y": 0.06,
+        "confidence": "low",
+        "source": "type-rule"
+      },
+      "logoLight": {
+        "x": 0.5,
+        "y": 0.92,
         "confidence": "low",
         "source": "type-rule"
       },

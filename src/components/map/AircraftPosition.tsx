@@ -22,6 +22,7 @@ import {
 import { createAttitudeTracker } from "../../utils/aircraftAttitude";
 import { getAircraftPositionSourceBadge } from "../../features/aviation/sourceDisplayModel";
 import { AircraftLabel } from "@/components/ui/AircraftLabel";
+import { AircraftLights } from "@/features/aircraft/icons/AircraftLights";
 
 // Marker glyph size. Keep this modest so dense airport maps stay readable,
 // but large enough that masked silhouettes survive busy vector basemaps. The
@@ -185,6 +186,12 @@ function AircraftPosition({
         silhouette={silhouette}
         sizeScale={sizeScale}
         theme={theme}
+        iconName={silhouette?.name ?? undefined}
+        aircraftState={{
+          onGround: aircraft.onGround,
+          velocity: Number(aircraft.velocity ?? 0),
+          baroAltitude: Number(aircraft.baroAltitude ?? 0),
+        }}
       />
       {(selected ||
         forceSilhouette ||
@@ -217,6 +224,8 @@ function Pointer({
   silhouette,
   sizeScale = 1,
   theme = "dark",
+  iconName,
+  aircraftState,
 }) {
   // The wrapper carries heading + wake-class scale; the silhouette inside
   // carries the 3D pitch/bank stack + a translateY lift. perspective(280px)
@@ -267,6 +276,9 @@ function Pointer({
             transform: silhouetteTransform,
           } as any}
         />
+        {iconName && aircraftState && (
+          <AircraftLights iconName={iconName} state={aircraftState} />
+        )}
         {theme === "dark" && (
           <span aria-hidden="true" className="aircraft-nose-beam" />
         )}
