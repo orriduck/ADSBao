@@ -99,8 +99,8 @@ export const RUNWAY_FAA_LIGHTING_CONFIG = {
   // usable zoom, true spacing packs the dots into a solid line; widening the
   // gaps keeps individual lights legible. Color ZONES below stay distance-exact
   // (in feet), so the FAA color pattern is preserved regardless of spacing.
-  edgeSpacingFt: 400,
-  centerlineSpacingFt: 200,
+  edgeSpacingFt: 600,
+  centerlineSpacingFt: 400,
   // Symmetric color zones, measured from the nearer threshold.
   edgeCautionFt: 2000, // edge turns amber within last 2000ft (or half, whichever less)
   centerlineRedFt: 1000, // centerline all-red within last 1000ft
@@ -109,7 +109,7 @@ export const RUNWAY_FAA_LIGHTING_CONFIG = {
   // extending up to `tdzLengthFt` or the runway midpoint, whichever is less.
   tdzStartFt: 100,
   tdzLengthFt: 3000,
-  tdzBarSpacingFt: 300, // widened for legibility (real ~100ft)
+  tdzBarSpacingFt: 500, // widened for legibility (real ~100ft)
   tdzBarHalfCount: 2, // lights per side of a single TDZ bar
   // Threshold / runway-end bar: number of lights across the runway width.
   endBarLightCount: 5,
@@ -117,20 +117,26 @@ export const RUNWAY_FAA_LIGHTING_CONFIG = {
   reilOffsetFt: 40, // lateral offset outboard of the runway edge
   // Taxiway lights (OSM geometry; width is estimated since OSM rarely has it).
   // Also widened from real spacing (centerline 50ft, edge 200ft) for legibility.
-  taxiwayCenterlineSpacingFt: 200,
-  taxiwayEdgeSpacingFt: 400,
+  taxiwayCenterlineSpacingFt: 400,
+  taxiwayEdgeSpacingFt: 600,
   taxiwayDefaultHalfWidthFt: 38, // ~11.5m assumed half-width for blue edge offset
   // Per-band decimation: keep mid-zoom point counts sane.
   midCenterlineDecimation: 2, // render every Nth centerline light at mid band
-  // Canvas point radius (screen px) per color role bucket.
+  // Canvas point radius (screen px) per color role bucket — the core dot.
+  // A subtle glow halo (radius × glowMultiplier, low opacity) is drawn
+  // underneath in the canvas renderer.
   radius: {
-    edge: 1.55,
-    centerline: 0.95,
-    tdz: 0.95,
-    endBar: 1.3,
-    reil: 1.6,
-    approach: 1.15,
-    taxiway: 0.85,
+    edge: 1.0,
+    centerline: 0.6,
+    tdz: 0.6,
+    endBar: 0.85,
+    reil: 1.05,
+    approach: 0.75,
+    taxiway: 0.35,
+  },
+  glow: {
+    multiplier: 3.2, // glow halo radius = core radius × this
+    fillOpacity: 0.22,
   },
 } as const;
 

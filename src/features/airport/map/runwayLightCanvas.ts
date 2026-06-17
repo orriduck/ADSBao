@@ -13,6 +13,7 @@
 
 import L from "leaflet";
 import { runwayLightRadius, type LightColorRole } from "./runwayLightingModel";
+import { RUNWAY_FAA_LIGHTING_CONFIG as C } from "../../../config/airportMap";
 
 const FALLBACK_LIGHT_COLORS: Record<LightColorRole, string> = {
   white: "#fff2c0",
@@ -41,6 +42,13 @@ const resolveLightColors = (map: any): Record<LightColorRole, string> => {
 
 const REIL_ON_OPACITY = 0.95;
 
+const faaLightRadiusFor = (role: unknown) =>
+  runwayLightRadius((role as any) || "centerline");
+
+/** Glow halo radius = core radius × this multiplier. */
+const glowMultiplier = C.glow.multiplier;
+const glowFillOpacity = C.glow.fillOpacity;
+
 // Build a single canvas layer for a FeatureCollection of light points. Returns
 // the geoJSON layer, the canvas renderer (add/remove on the map alongside it),
 // and the subset of flashing REIL markers for the flash timer.
@@ -53,7 +61,7 @@ export const buildRunwayLightCanvasLayer = ({
 }) => {
   const renderer = L.canvas({ padding: 0.5 });
   const colors = resolveLightColors(map);
-  const reilMarkers: any[] = [];
+  const reilLayers: any[] = [];
 
   const layer = L.geoJSON(data as any, {
     interactive: false,
@@ -61,29 +69,47 @@ export const buildRunwayLightCanvasLayer = ({
       const props = feature?.properties || {};
       const colorRole = (props.color || "white") as LightColorRole;
       const color = colors[colorRole] || colors.white;
-      const marker = L.circleMarker(latlng, {
+      const coreRadius = faaLightRadiusFor(props.role);
+      const glowRadius = coreRadius * glowMultiplier;
+
+      // Glow halo — larger, very low opacity, rendered underneath.
+      const glow = L.circleMarker(latlng, {
         renderer,
         interactive: false,
         bubblingMouseEvents: false,
         color,
         fill: true,
         fillColor: color,
-        fillOpacity: 0.92,
-        opacity: 0.65,
-        radius: faaLightRadiusFor(props.role),
+        fillOpacity: glowFillOpacity,
+        opacity: 0,
+        radius: glowRadius,
         stroke: false,
         weight: 0,
       } as any);
-      if (props.flashing) reilMarkers.push(marker);
-      return marker;
+
+      // Core dot — crisp and bright.
+      const core = L.circleMarker(latlng, {
+        renderer,
+        interactive: false,
+        bubblingMouseEvents: false,
+        color,
+        fill: true,
+        fillColor: color,
+        fillOpacity: 0.95,
+        opacity: 0.75,
+        radius: coreRadius,
+        stroke: false,
+        weight: 0,
+      } as any);
+
+      const group = L.layerGroup([glow, core]);
+      if (props.flashing) reilLayers.push(group);
+      return group;
     },
   } as any);
 
-  return { layer, renderer, reilMarkers };
+  return { layer, renderer, reilMarkers: reilLayers };
 };
-
-const faaLightRadiusFor = (role: unknown) =>
-  runwayLightRadius((role as any) || "centerline");
 
 // Synchronized REIL flash (~1.5 Hz) driven by one shared timer. Honors
 // prefers-reduced-motion by leaving the strobes steady-on (no timer). Returns a
@@ -101,11 +127,17 @@ export const startReilFlashTimer = (reilMarkers: any[]): (() => void) => {
     on = !on;
     const fillOpacity = on ? REIL_ON_OPACITY : 0;
     const opacity = on ? REIL_ON_OPACITY : 0;
-    reilMarkers.forEach((marker) => {
+    reilMarkers.forEach((layerGroup) => {
       try {
-        marker.setStyle({ fillOpacity, opacity });
+        layerGroup.eachLayer((marker: any) => {
+          try {
+            marker.setStyle({ fillOpacity, opacity });
+          } catch {
+            // marker removed mid-cycle — ignore
+          }
+        });
       } catch {
-        // marker removed mid-cycle — ignore
+        // layer group removed mid-cycle — ignore
       }
     });
   }, 640);
