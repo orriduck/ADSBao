@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.9.0",
+    kind: "feat",
+    title: {
+      en: "Faster page transitions",
+      zh: "页面切换提速",
+    },
+    summary: {
+      en: "Airport-to-airport, airport-to-aircraft, and aircraft-to-airport transitions now avoid duplicate payloads, keep more route shell state alive, and move heavy optional modules out of the first page switch.",
+      zh: "机场到机场、机场到飞机、飞机回机场的切换现在会避免重复 payload，保留更多路由外壳状态，并把较重的可选模块移出首次页面切换。",
+    },
+    highlights: [
+      {
+        en: "Airport detail now loads as a lightweight payload first, while large context and surface maps hydrate separately and are cached briefly for return transitions",
+        zh: "机场详情现在先加载轻量 payload，大型上下文与地面图层会分段补齐，并在短时间内缓存以加速返回切换",
+      },
+      {
+        en: "Airport pages no longer remount the full explorer shell on every airport-to-airport route change",
+        zh: "机场页在机场到机场跳转时不再按每个机场强制重建整套 explorer 外壳",
+      },
+      {
+        en: "Route modules and the Plane Hunter studio load on demand, reducing the JavaScript pulled into unrelated airport and aircraft transitions",
+        zh: "路由模块与拍机工作室改为按需加载，减少无关机场与飞机切换时需要拉取的 JavaScript",
+      },
+    ],
+  },
+  {
     version: "v2.8.2",
     kind: "patch",
     title: {

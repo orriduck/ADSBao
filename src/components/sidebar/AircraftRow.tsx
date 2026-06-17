@@ -16,6 +16,8 @@ import { formatAltitude } from "@/utils/units";
 import { useCardInteraction } from "@/animations/useCardInteraction";
 import { rowPropsEqual } from "./rowPropsEqual";
 
+const ROUTE_ENTER_MS = 300;
+
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
 // stamped broken-image icons in dense list rows when the logo isn't
 // served by the airline-icon CDN.
@@ -170,7 +172,10 @@ function AircraftIdentityCell({
   useEffect(() => {
     if (!hadRoute.current && hasRoute) {
       setRouteEntering(true);
-      const timer = window.setTimeout(() => setRouteEntering(false), 520);
+      const timer = window.setTimeout(
+        () => setRouteEntering(false),
+        ROUTE_ENTER_MS,
+      );
       hadRoute.current = hasRoute;
       return () => window.clearTimeout(timer);
     }

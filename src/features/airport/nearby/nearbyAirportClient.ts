@@ -29,19 +29,29 @@ function createNearbyAirportClient({
   basePath = DEFAULT_BASE_PATH,
 }: NearbyAirportClientRecord = {}) {
   if (!fetchImpl) throw new Error("Nearby airport client requires fetch support");
+  const inFlight = new Map<string, Promise<any>>();
 
   return {
     async fetchNearbyAirports(options: NearbyAirportClientRecord = {}) {
       const url = buildNearbyAirportsPath({ ...options, basePath });
-      const response = await fetchImpl(url, {
+      const pending = inFlight.get(url);
+      if (pending) return pending;
+      const promise = fetchImpl(url, {
         headers: { Accept: "application/json" },
         cache: "no-store",
-      });
-      if (response.status === 404) return { airports: [] };
-      if (!response.ok) {
-        throw new Error(`Failed to load nearby airports: HTTP ${response.status}`);
-      }
-      return response.json();
+      })
+        .then((response) => {
+          if (response.status === 404) return { airports: [] };
+          if (!response.ok) {
+            throw new Error(`Failed to load nearby airports: HTTP ${response.status}`);
+          }
+          return response.json();
+        })
+        .finally(() => {
+          inFlight.delete(url);
+        });
+      inFlight.set(url, promise);
+      return promise;
     },
   };
 }

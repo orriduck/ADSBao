@@ -4218,13 +4218,13 @@ body {
 }
 
 .aircraft-table-identity--route-entering .aircraft-table-callsign {
-    animation: aircraft-table-callsign-lift 0.5s cubic-bezier(0.22, 1, 0.36, 1)
+    animation: aircraft-table-callsign-lift 0.28s cubic-bezier(0.22, 1, 0.36, 1)
         both;
 }
 
 .aircraft-table-identity--route-entering .aircraft-table-route-slot {
-    animation: aircraft-table-route-reveal 0.42s cubic-bezier(0.22, 1, 0.36, 1)
-        0.08s both;
+    animation: aircraft-table-route-reveal 0.24s cubic-bezier(0.22, 1, 0.36, 1)
+        0.04s both;
 }
 
 /* Pinned-aircraft slot above the scroll list. The inner row already

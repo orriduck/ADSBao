@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAsyncStatus, type AsyncStatusState } from "@/hooks/useAsyncStatus";
 
-// Minimum time the trace-status surface stays visible after entering "loading"
-// so users actually notice the "正在加载航迹…" copy even if the upstream
-// request resolves in a few hundred ms.
-const TRACE_STATUS_MIN_VISIBLE_MS = 4200;
+// Keep the pending label visible for one fast motion beat. Longer trace waits
+// are handled by the async-status fade lifecycle instead of a hard hold.
+const TRACE_STATUS_MIN_VISIBLE_MS = 320;
 
 interface SelectedTraceLike {
   aircraftHex?: string | null;

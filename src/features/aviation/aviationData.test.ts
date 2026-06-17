@@ -188,6 +188,27 @@ try {
 
 {
   const calls = [];
+  let resolveResponse;
+  const client = createAircraftTraceClient({
+    fetchImpl: async (url) => {
+      calls.push(url);
+      return new Promise((resolve) => {
+        resolveResponse = () =>
+          resolve(createJsonResponse({ recent: { trace: [] } }));
+      });
+    },
+  });
+
+  const first = client.fetchAircraftTrace({ hex: "a7bbe9", full: true });
+  const second = client.fetchAircraftTrace({ hex: "A7BBE9", full: true });
+  assert.equal(calls.length, 1);
+  resolveResponse();
+  await Promise.all([first, second]);
+  assert.deepEqual(calls, ["/api/proxy/aircraft/trace/A7BBE9?full=1"]);
+}
+
+{
+  const calls = [];
   const client = createLocalWeatherClient({
     fetchImpl: async (url) => {
       calls.push(url);

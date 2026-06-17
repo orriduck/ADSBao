@@ -5,6 +5,11 @@ import { ClerkProvider } from "@/platform/auth/clerkClient";
 import ThemedToaster from "@/components/app-shell/ThemedToaster";
 import QueryProvider from "@/features/app-shell/queryProvider";
 import { I18nProvider } from "@/features/app-shell/i18n/i18nProvider";
+import {
+  DEFAULT_LOCALE,
+  normalizeLocaleSelection,
+  resolveLocaleFromSearchParams,
+} from "@/features/app-shell/i18n/i18nModel";
 import { UnitPreferencesProvider } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import WebMcpProvider from "@/features/webmcp/WebMcpProvider";
 import { runtimeEnvValue } from "@/platform/env/runtimeEnv";
@@ -26,7 +31,13 @@ function resolveInitialTheme() {
 
 function resolveInitialLocale() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("lang") || navigator.language || "en";
+  const legacyLocale = params.get("lang");
+  return (
+    resolveLocaleFromSearchParams(window.location.search) ||
+    (legacyLocale ? normalizeLocaleSelection(legacyLocale, DEFAULT_LOCALE) : null) ||
+    navigator.language ||
+    DEFAULT_LOCALE
+  );
 }
 
 function applyDocumentShell() {

@@ -45,6 +45,7 @@ export type ReverseGeocodeResult = {
 };
 
 const CACHE = new Map<string, ReverseGeocodeResult>();
+const IN_FLIGHT = new Map<string, Promise<ReverseGeocodeResult | null>>();
 // Same-origin proxy in front of Nominatim so we don't have to relax
 // the app's CSP `connect-src` and the upstream sees our application
 // User-Agent (set inside the proxy route).
@@ -119,57 +120,66 @@ export async function fetchReverseGeocode(
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   const key = cacheKey(lat, lon, language);
   if (CACHE.has(key)) return CACHE.get(key) || null;
+  const pending = IN_FLIGHT.get(key);
+  if (pending) return pending;
 
   const url =
     `${ENDPOINT}?lat=${lat}&lon=${lon}` +
     `&language=${encodeURIComponent(buildAcceptLanguage(language))}`;
-  const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) throw new Error(`reverse-geocode HTTP ${response.status}`);
-  const json = (await response.json()) as NominatimResponse;
-  const address = json?.address || {};
+  const promise = fetch(url, { cache: "no-store" })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`reverse-geocode HTTP ${response.status}`);
+      const json = (await response.json()) as NominatimResponse;
+      const address = json?.address || {};
 
-  const rawResult: ReverseGeocodeResult = {
-    // City fallback chain — Nominatim populates the most specific
-    // bucket the OSM relation provided. Urban points usually fill
-    // `city`; rural points fill `town` / `village` / `hamlet`.
-    city: firstOsmVariant(
-      firstNonEmpty(
-        address.city,
-        address.town,
-        address.village,
-        address.borough,
-        address.hamlet,
-        address.municipality,
-      ),
-    ),
-    county: firstOsmVariant(
-      firstNonEmpty(
-        address.county,
-        address.district,
-        address.state_district,
-      ),
-    ),
-    state: firstOsmVariant(firstNonEmpty(address.state, address.region)),
-    countryName: firstOsmVariant(normalizeString(address.country)),
-    countryCode: normalizeString(address.country_code).toUpperCase(),
-  };
+      const rawResult: ReverseGeocodeResult = {
+        // City fallback chain — Nominatim populates the most specific
+        // bucket the OSM relation provided. Urban points usually fill
+        // `city`; rural points fill `town` / `village` / `hamlet`.
+        city: firstOsmVariant(
+          firstNonEmpty(
+            address.city,
+            address.town,
+            address.village,
+            address.borough,
+            address.hamlet,
+            address.municipality,
+          ),
+        ),
+        county: firstOsmVariant(
+          firstNonEmpty(
+            address.county,
+            address.district,
+            address.state_district,
+          ),
+        ),
+        state: firstOsmVariant(firstNonEmpty(address.state, address.region)),
+        countryName: firstOsmVariant(normalizeString(address.country)),
+        countryCode: normalizeString(address.country_code).toUpperCase(),
+      };
 
-  // Even with accept-language: zh-Hans,zh-CN OSM data is inconsistent —
-  // many mainland features only carry the contributor-managed `name:zh`
-  // tag which mixes simplified and traditional. Run the localized fields
-  // through a focused t2s converter so simplified-Chinese users get a
-  // canonical simplified rendering.
-  const isSimplifiedChinese = /(^|,)\s*zh-?cn|zh-?hans/i.test(language);
-  const result: ReverseGeocodeResult = isSimplifiedChinese
-    ? {
-        city: toSimplifiedChinese(rawResult.city),
-        county: toSimplifiedChinese(rawResult.county),
-        state: toSimplifiedChinese(rawResult.state),
-        countryName: toSimplifiedChinese(rawResult.countryName),
-        countryCode: rawResult.countryCode,
-      }
-    : rawResult;
+      // Even with accept-language: zh-Hans,zh-CN OSM data is inconsistent —
+      // many mainland features only carry the contributor-managed `name:zh`
+      // tag which mixes simplified and traditional. Run the localized fields
+      // through a focused t2s converter so simplified-Chinese users get a
+      // canonical simplified rendering.
+      const isSimplifiedChinese = /(^|,)\s*zh-?cn|zh-?hans/i.test(language);
+      const result: ReverseGeocodeResult = isSimplifiedChinese
+        ? {
+            city: toSimplifiedChinese(rawResult.city),
+            county: toSimplifiedChinese(rawResult.county),
+            state: toSimplifiedChinese(rawResult.state),
+            countryName: toSimplifiedChinese(rawResult.countryName),
+            countryCode: rawResult.countryCode,
+          }
+        : rawResult;
 
-  CACHE.set(key, result);
-  return result;
+      CACHE.set(key, result);
+      return result;
+    })
+    .finally(() => {
+      IN_FLIGHT.delete(key);
+    });
+  IN_FLIGHT.set(key, promise);
+  return promise;
 }

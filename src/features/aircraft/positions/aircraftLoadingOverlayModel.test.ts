@@ -13,7 +13,7 @@ import {
   shouldTriggerVisibilityRefreshOverlay,
 } from "./aircraftLoadingOverlayModel";
 
-assert.equal(AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS, 1_000);
+assert.equal(AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS, 220);
 
 assert.equal(
   shouldReplayLoadingOverlayOnPageVisible({
@@ -129,7 +129,7 @@ assert.equal(
     now: 1_120,
     minVisibleMs: AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS,
   }),
-  880,
+  100,
 );
 
 assert.equal(

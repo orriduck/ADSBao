@@ -97,6 +97,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleSearch(w, r)
 	case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/api/airport/") && strings.HasSuffix(r.URL.Path, "/surface"):
 		h.handleAirportSurface(w, r)
+	case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/api/airport/") && strings.HasSuffix(r.URL.Path, "/context"):
+		h.handleAirportContext(w, r)
 	case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/api/airport/"):
 		h.handleAirport(w, r)
 	case r.Method == http.MethodGet && r.URL.Path == "/api/proxy/airports/nearby":
@@ -181,8 +183,6 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid airport ident"})
 		return
 	}
-	radiusNm := intInRange(r.URL.Query().Get("nearbyRadiusNm"), 60, 1, 250)
-	nearbyLimit := intInRange(r.URL.Query().Get("nearbyLimit"), 12, 1, 50)
 	detail, airport, runways, runwayMap, err := h.resolveAirportDetail(r.Context(), ident)
 	if err != nil {
 		writeAPIError(w, err, "Airport detail load failed")
@@ -192,40 +192,22 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Airport not found"})
 		return
 	}
-	lat, lon := numberValue(airport["lat"]), numberValue(airport["lon"])
-	id := stringValue(detail["_id"])
 	nearbyAirports := []map[string]any{}
 	nearbyNavaids := []map[string]any{}
 	airspaces := []map[string]any{}
 	reportingPoints := []map[string]any{}
 	obstacles := []map[string]any{}
-	if finite(lat) && finite(lon) {
-		var wg sync.WaitGroup
-		wg.Add(5)
-		go func() {
-			defer wg.Done()
-			nearbyAirports = h.nearbyAirports(r.Context(), lat, lon, ident, radiusNm, nearbyLimit)
-		}()
-		go func() {
-			defer wg.Done()
-			nearbyNavaids = h.nearbyNavaids(r.Context(), lat, lon, radiusNm, nearbyLimit)
-		}()
-		go func() {
-			defer wg.Done()
-			airspaces = h.nearbyAirspaces(r.Context(), lat, lon, radiusNm)
-		}()
-		go func() {
-			defer wg.Done()
-			reportingPoints = h.reportingPoints(r.Context(), id)
-		}()
-		go func() {
-			defer wg.Done()
-			obstacles = h.nearbyObstacles(r.Context(), lat, lon, minInt(radiusNm, 50))
-		}()
-		wg.Wait()
+	if shouldIncludeAirportContext(r) {
+		context := h.airportContext(r.Context(), detail, airport, ident, r)
+		nearbyAirports = context.nearbyAirports
+		nearbyNavaids = context.nearbyNavaids
+		airspaces = context.airspaces
+		reportingPoints = context.reportingPoints
+		obstacles = context.obstacles
 	}
 	var surfaceMap map[string]any
 	if shouldIncludeAirportSurface(r) {
+		lat, lon := numberValue(airport["lat"]), numberValue(airport["lon"])
 		surfaceMap = h.airportSurfaceMap(r.Context(), ident, lat, lon, runwayMap)
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
@@ -266,6 +248,32 @@ func (h *Handler) handleAirportSurface(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *Handler) handleAirportContext(w http.ResponseWriter, r *http.Request) {
+	ident := strings.ToUpper(strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/api/airport/"), "/context")))
+	if !match(ident, `^[A-Z0-9]{2,7}$`) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid airport ident"})
+		return
+	}
+	detail, airport, _, _, err := h.resolveAirportDetail(r.Context(), ident)
+	if err != nil {
+		writeAPIError(w, err, "Airport context load failed")
+		return
+	}
+	if airport == nil {
+		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Airport not found"})
+		return
+	}
+	context := h.airportContext(r.Context(), detail, airport, ident, r)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"nearbyAirports":  context.nearbyAirports,
+		"nearbyNavaids":   context.nearbyNavaids,
+		"airspaces":       context.airspaces,
+		"reportingPoints": context.reportingPoints,
+		"obstacles":       context.obstacles,
+		"source":          "openaip",
+	})
+}
+
 func shouldIncludeAirportSurface(r *http.Request) bool {
 	value := strings.ToLower(strings.TrimSpace(firstString(
 		r.URL.Query().Get("includeSurface"),
@@ -277,6 +285,69 @@ func shouldIncludeAirportSurface(r *http.Request) bool {
 	default:
 		return false
 	}
+}
+
+func shouldIncludeAirportContext(r *http.Request) bool {
+	value := strings.ToLower(strings.TrimSpace(firstString(
+		r.URL.Query().Get("includeContext"),
+		r.URL.Query().Get("context"),
+	)))
+	switch value {
+	case "1", "true", "yes", "include", "inline":
+		return true
+	default:
+		return false
+	}
+}
+
+type airportContextPayload struct {
+	nearbyAirports  []map[string]any
+	nearbyNavaids   []map[string]any
+	airspaces       []map[string]any
+	reportingPoints []map[string]any
+	obstacles       []map[string]any
+}
+
+func (h *Handler) airportContext(ctx context.Context, detail, airport map[string]any, ident string, r *http.Request) airportContextPayload {
+	radiusNm := intInRange(r.URL.Query().Get("nearbyRadiusNm"), 60, 1, 250)
+	nearbyLimit := intInRange(r.URL.Query().Get("nearbyLimit"), 12, 1, 50)
+	lat, lon := numberValue(airport["lat"]), numberValue(airport["lon"])
+	id := stringValue(detail["_id"])
+	context := airportContextPayload{
+		nearbyAirports:  []map[string]any{},
+		nearbyNavaids:   []map[string]any{},
+		airspaces:       []map[string]any{},
+		reportingPoints: []map[string]any{},
+		obstacles:       []map[string]any{},
+	}
+	if !finite(lat) || !finite(lon) {
+		return context
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(5)
+	go func() {
+		defer wg.Done()
+		context.nearbyAirports = h.nearbyAirports(ctx, lat, lon, ident, radiusNm, nearbyLimit)
+	}()
+	go func() {
+		defer wg.Done()
+		context.nearbyNavaids = h.nearbyNavaids(ctx, lat, lon, radiusNm, nearbyLimit)
+	}()
+	go func() {
+		defer wg.Done()
+		context.airspaces = h.nearbyAirspaces(ctx, lat, lon, radiusNm)
+	}()
+	go func() {
+		defer wg.Done()
+		context.reportingPoints = h.reportingPoints(ctx, id)
+	}()
+	go func() {
+		defer wg.Done()
+		context.obstacles = h.nearbyObstacles(ctx, lat, lon, minInt(radiusNm, 50))
+	}()
+	wg.Wait()
+	return context
 }
 
 func (h *Handler) handleNearbyAirports(w http.ResponseWriter, r *http.Request) {

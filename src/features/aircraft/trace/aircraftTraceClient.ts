@@ -18,6 +18,7 @@ export const createAircraftTraceClient = ({
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: "adsb.lol/AircraftTrace",
   });
+  const inFlight = new Map<string, Promise<any>>();
 
   return {
     fetchAircraftTrace({ hex, full = false }: Record<string, any>) {
@@ -27,12 +28,18 @@ export const createAircraftTraceClient = ({
       const path = `${baseUrl}/${encodeURIComponent(normalizedHex)}${
         full ? "?full=1" : ""
       }`;
-      return fetchJson(auditedFetch, path, {
+      const pending = inFlight.get(path);
+      if (pending) return pending;
+      const promise = fetchJson(auditedFetch, path, {
         timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.aircraftTrace,
         // Full traces for long-haul flights can run multi-MB — give the
         // client buffer some headroom too.
         maxBytes: 24 * 1024 * 1024,
+      }).finally(() => {
+        inFlight.delete(path);
       });
+      inFlight.set(path, promise);
+      return promise;
     },
   };
 };
