@@ -9,6 +9,7 @@
 // geolocation jitter floor keep us well under that).
 
 import { toSimplifiedChinese } from "@/utils/chineseSimplified";
+import { createRequestCache } from "@/utils/requestCache";
 
 type NominatimAddress = {
   city?: unknown;
@@ -44,8 +45,10 @@ export type ReverseGeocodeResult = {
   countryCode: string;
 };
 
-const CACHE = new Map<string, ReverseGeocodeResult>();
-const IN_FLIGHT = new Map<string, Promise<ReverseGeocodeResult | null>>();
+const requestCache = createRequestCache<ReverseGeocodeResult | null>({
+  ttlMs: Number.POSITIVE_INFINITY,
+  shouldCache: () => true,
+});
 // Same-origin proxy in front of Nominatim so we don't have to relax
 // the app's CSP `connect-src` and the upstream sees our application
 // User-Agent (set inside the proxy route).
@@ -119,15 +122,12 @@ export async function fetchReverseGeocode(
 ): Promise<ReverseGeocodeResult | null> {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   const key = cacheKey(lat, lon, language);
-  if (CACHE.has(key)) return CACHE.get(key) || null;
-  const pending = IN_FLIGHT.get(key);
-  if (pending) return pending;
 
   const url =
     `${ENDPOINT}?lat=${lat}&lon=${lon}` +
     `&language=${encodeURIComponent(buildAcceptLanguage(language))}`;
-  const promise = fetch(url, { cache: "no-store" })
-    .then(async (response) => {
+  return requestCache.request(key, () =>
+    fetch(url, { cache: "no-store" }).then(async (response) => {
       if (!response.ok) throw new Error(`reverse-geocode HTTP ${response.status}`);
       const json = (await response.json()) as NominatimResponse;
       const address = json?.address || {};
@@ -174,12 +174,7 @@ export async function fetchReverseGeocode(
           }
         : rawResult;
 
-      CACHE.set(key, result);
       return result;
-    })
-    .finally(() => {
-      IN_FLIGHT.delete(key);
-    });
-  IN_FLIGHT.set(key, promise);
-  return promise;
+    }),
+  );
 }

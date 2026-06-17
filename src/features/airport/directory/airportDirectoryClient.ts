@@ -2,6 +2,8 @@
 // routes. Server routes own OpenAIP access so the API key never reaches the
 // browser bundle.
 
+import { createRequestCache } from "@/utils/requestCache";
+
 const SEARCH_PATH = "/api/search";
 const AIRPORT_PATH = "/api/airport";
 const DEFAULT_RESPONSE_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -69,39 +71,19 @@ const createAirportDirectoryClient = ({
     throw new Error("Airport directory client requires fetch support");
   }
 
-  const inFlightJson = new Map<string, Promise<any>>();
-  const responseCache = new Map<string, { expiresAt: number; payload: any }>();
+  const requestCache = createRequestCache<any>({
+    ttlMs: responseCacheTtlMs,
+    shouldCache: (payload) => payload !== null,
+  });
   const requestJsonOnce = (
     url: string,
     { signal }: { signal?: AbortSignal } = {},
-  ) => {
-    const cached = responseCache.get(url);
-    if (cached && cached.expiresAt > Date.now()) {
-      return Promise.resolve(cached.payload);
-    }
-    if (cached) {
-      responseCache.delete(url);
-    }
-    if (!signal) {
-      const pending = inFlightJson.get(url);
-      if (pending) return pending;
-    }
-    const promise = requestJson(fetchImpl, url, { signal })
-      .then((payload) => {
-        if (responseCacheTtlMs > 0 && payload !== null) {
-          responseCache.set(url, {
-            expiresAt: Date.now() + responseCacheTtlMs,
-            payload,
-          });
-        }
-        return payload;
-      })
-      .finally(() => {
-        inFlightJson.delete(url);
-      });
-    if (!signal) inFlightJson.set(url, promise);
-    return promise;
-  };
+  ) =>
+    requestCache.request(
+      url,
+      () => requestJson(fetchImpl, url, { signal }),
+      { coalesce: !signal },
+    );
 
   const loadAirports = async ({
     query = "",
@@ -129,7 +111,10 @@ const createAirportDirectoryClient = ({
     };
   };
 
-  const resolveAirport = async (code: unknown, { locale = "" }: Record<string, any> = {}) => {
+  const resolveAirport = async (
+    code: unknown,
+    { locale = "", signal }: Record<string, any> = {},
+  ) => {
     const trimmed = String(code || "").trim().toUpperCase();
     if (!trimmed) {
       throw new Error("Airport code is required");
@@ -137,6 +122,7 @@ const createAirportDirectoryClient = ({
 
     const detail = await requestJsonOnce(
       buildAirportUrl({ baseUrl, ident: trimmed, locale }),
+      { signal },
     );
     if (detail?.airport) {
       return {
@@ -161,6 +147,7 @@ const createAirportDirectoryClient = ({
 
     const searchPayload = await requestJsonOnce(
       buildSearchUrl({ baseUrl, query: trimmed, limit: 1 }),
+      { signal },
     );
     const fallback = searchPayload?.airports?.[0];
     if (fallback) return fallback;

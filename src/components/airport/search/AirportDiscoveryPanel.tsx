@@ -14,7 +14,13 @@ import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 import gsap from "gsap";
 import { MOTION, EASE } from "@/animations/gsap";
 
-export default function AirportDiscoveryPanel({ topics = [], onOpen }) {
+const PREFETCH_INTENT_DELAY_MS = 120;
+
+export default function AirportDiscoveryPanel({
+  topics = [],
+  onOpen,
+  onPrefetch,
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,6 +76,7 @@ export default function AirportDiscoveryPanel({ topics = [], onOpen }) {
             key={topic.id}
             topic={topic}
             onOpen={onOpen}
+            onPrefetch={onPrefetch}
           />
         ))}
       </div>
@@ -102,7 +109,7 @@ function NearMeDiscoverySection() {
   );
 }
 
-function AirportDiscoveryTopicSection({ topic, onOpen }) {
+function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
   const { t } = useI18n();
 
   return (
@@ -119,6 +126,7 @@ function AirportDiscoveryTopicSection({ topic, onOpen }) {
             key={airport.icao || airport.code || airport.name}
             airport={airport}
             onOpen={onOpen}
+            onPrefetch={onPrefetch}
           />
         ))}
       </ul>
@@ -167,13 +175,36 @@ function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
   );
 }
 
-function AirportDiscoveryAirportRow({ airport, onOpen }) {
+function AirportDiscoveryAirportRow({ airport, onOpen, onPrefetch }) {
   const { locale, t } = useI18n();
   const code = airportDisplayCode(airport);
   const label = airport.discoveryLabelKey ? t(airport.discoveryLabelKey) : "";
+  const prefetchTimerRef = useRef<number | null>(null);
+
+  const cancelPrefetch = () => {
+    if (prefetchTimerRef.current == null) return;
+    window.clearTimeout(prefetchTimerRef.current);
+    prefetchTimerRef.current = null;
+  };
+
+  const schedulePrefetch = () => {
+    cancelPrefetch();
+    prefetchTimerRef.current = window.setTimeout(() => {
+      prefetchTimerRef.current = null;
+      onPrefetch?.(airport);
+    }, PREFETCH_INTENT_DELAY_MS);
+  };
+
+  useEffect(() => cancelPrefetch, [airport, onPrefetch]);
 
   return (
-    <li>
+    <li
+      onMouseEnter={schedulePrefetch}
+      onMouseLeave={cancelPrefetch}
+      onFocus={schedulePrefetch}
+      onBlur={cancelPrefetch}
+      onMouseDown={cancelPrefetch}
+    >
       <TextPillListItem
         as="button"
         onClick={() => onOpen(airport)}

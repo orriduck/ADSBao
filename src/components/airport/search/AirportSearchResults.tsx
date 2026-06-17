@@ -13,6 +13,7 @@ export function AirportSearchResults({
   searchCycle = 0,
   countLabel,
   onOpen,
+  onPrefetch,
 }) {
   const { t } = useI18n();
 
@@ -57,6 +58,7 @@ export function AirportSearchResults({
               airport={airport}
               motionOrder={Math.min(index, 5)}
               onOpen={onOpen}
+              onPrefetch={onPrefetch}
             />
           ))}
         </ul>

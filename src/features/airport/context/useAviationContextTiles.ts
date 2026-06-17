@@ -4,12 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getContextTilesForBounds,
 } from "./aviationContextTileModel";
+import { createRequestCache } from "@/utils/requestCache";
 
 type ContextTileRecord = Record<string, any>;
 
 const FRONTEND_CACHE_TTL_MS = 5 * 60 * 1000;
-const memoryCache = new Map<string, { expiresAt: number; payload: ContextTileRecord }>();
-const inFlight = new Map<string, Promise<ContextTileRecord>>();
+const tileRequestCache = createRequestCache<ContextTileRecord>({
+  ttlMs: FRONTEND_CACHE_TTL_MS,
+});
 
 function tilePath(resource: string, tile: ContextTileRecord) {
   return `/api/${resource}/${tile.z}/${tile.x}/${tile.y}`;
@@ -32,28 +34,12 @@ function uniqueBy(items = [], keyFn) {
 }
 
 async function fetchTile(url: string) {
-  const now = Date.now();
-  const cached = memoryCache.get(url);
-  if (cached && cached.expiresAt > now) return cached.payload;
-
-  const pending = inFlight.get(url);
-  if (pending) return pending;
-
-  const promise = fetch(url)
-    .then(async (response) => {
+  return tileRequestCache.request(url, () =>
+    fetch(url).then(async (response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = await response.json();
-      memoryCache.set(url, {
-        expiresAt: Date.now() + FRONTEND_CACHE_TTL_MS,
-        payload,
-      });
-      return payload;
-    })
-    .finally(() => {
-      inFlight.delete(url);
-    });
-  inFlight.set(url, promise);
-  return promise;
+      return response.json();
+    }),
+  );
 }
 
 export function useAviationContextTiles({
