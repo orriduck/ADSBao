@@ -289,7 +289,7 @@ func TestNearbyAirportsPreferStoredRunwayMapOverOpenAIPApproximation(t *testing.
 	}
 }
 
-func TestNearbyAirportsOmitOpenAIPApproximateRunwayMapWithoutStoredGeometry(t *testing.T) {
+func TestNearbyAirportsBuildOpenAIPRunwayMapWithoutStoredGeometry(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/openaip/airports" {
 			t.Fatalf("unexpected request: %s", r.URL.String())
@@ -333,7 +333,15 @@ func TestNearbyAirportsOmitOpenAIPApproximateRunwayMapWithoutStoredGeometry(t *t
 	}
 	airports := payload["airports"].([]any)
 	airport := airports[0].(map[string]any)
-	if runwayMap := airport["runwayMap"]; runwayMap != nil {
-		t.Fatalf("nearby airport should omit synthetic OpenAIP runway map, got %#v", runwayMap)
+	runwayMap, ok := airport["runwayMap"].(map[string]any)
+	if !ok {
+		t.Fatalf("nearby airport missing OpenAIP runway map: %#v", airport["runwayMap"])
+	}
+	if runwayMap["source"] != "OpenAIP" {
+		t.Fatalf("expected OpenAIP fallback runway map, got %#v", runwayMap)
+	}
+	runways := runwayMap["runways"].([]any)
+	if len(runways) != 1 {
+		t.Fatalf("expected one OpenAIP fallback runway, got %#v", runways)
 	}
 }

@@ -69,7 +69,7 @@ const KBOS = {
   assert.doesNotMatch(calls[0], /type=/);
 }
 
-// resolveAirport hits the airport-detail route and unwraps .airport
+// resolveAirport hits the fast airport-detail route and unwraps .airport
 {
   const calls = [];
   fetchImpl = async (url) => {
@@ -85,7 +85,7 @@ const KBOS = {
         reportingPoints: [{ id: "pt-1", name: "HYLND" }],
         obstacles: [{ id: "obs-1", name: "Tower" }],
         runwayMap: { airport: "KBOS", source: "OurAirports", runways: [] },
-        surfaceMap: { airport: "KBOS", source: "OpenStreetMap", features: { type: "FeatureCollection", features: [] } },
+        surfaceMap: null,
         source: "openaip",
       });
     }
@@ -101,7 +101,29 @@ const KBOS = {
   assert.deepEqual(airport.reportingPoints, [{ id: "pt-1", name: "HYLND" }]);
   assert.deepEqual(airport.obstacles, [{ id: "obs-1", name: "Tower" }]);
   assert.deepEqual(airport.runwayMap, { airport: "KBOS", source: "OurAirports", runways: [] });
-  assert.equal(airport.surfaceMap?.source, "OpenStreetMap");
+  assert.equal(airport.surfaceMap, null);
+}
+
+// resolveAirportSurface loads the deferred OSM surface payload separately.
+{
+  const calls = [];
+  fetchImpl = async (url) => {
+    calls.push(url);
+    if (url === "/api/airport/KBOS/surface") {
+      return createJsonResponse({
+        surfaceMap: {
+          airport: "KBOS",
+          source: "OpenStreetMap",
+          features: { type: "FeatureCollection", features: [] },
+        },
+      });
+    }
+    throw new Error(`unexpected url: ${url}`);
+  };
+
+  const surfaceMap = await airportDirectoryClient.resolveAirportSurface("kbos");
+  assert.deepEqual(calls, ["/api/airport/KBOS/surface"]);
+  assert.equal(surfaceMap.source, "OpenStreetMap");
 }
 
 // resolveAirport forwards the active locale so the detail route can enrich

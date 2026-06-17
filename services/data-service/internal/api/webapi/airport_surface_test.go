@@ -140,7 +140,7 @@ func TestAirportSurfaceCacheSkipsNilPayload(t *testing.T) {
 	}
 }
 
-func TestAirportDetailIncludesOptionalSurfaceMap(t *testing.T) {
+func TestAirportDetailDefersSurfaceMapByDefault(t *testing.T) {
 	overpassHits := 0
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
@@ -209,6 +209,31 @@ func TestAirportDetailIncludesOptionalSurfaceMap(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("invalid json: %v", err)
 	}
+	if payload["surfaceMap"] != nil {
+		t.Fatalf("surfaceMap should be deferred by default: %#v", payload["surfaceMap"])
+	}
+	if overpassHits != 0 {
+		t.Fatalf("default detail overpass hits = %d", overpassHits)
+	}
+	runwayMap, ok := payload["runwayMap"].(map[string]any)
+	if !ok {
+		t.Fatalf("missing runwayMap: %#v", payload["runwayMap"])
+	}
+	if runwayMap["source"] != "OpenAIP" {
+		t.Fatalf("runwayMap = %#v", runwayMap)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/api/airport/KBOS/surface", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("surface status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	payload = map[string]any{}
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid surface json: %v", err)
+	}
 	surfaceMap, ok := payload["surfaceMap"].(map[string]any)
 	if !ok {
 		t.Fatalf("missing surfaceMap: %#v", payload["surfaceMap"])
@@ -218,5 +243,24 @@ func TestAirportDetailIncludesOptionalSurfaceMap(t *testing.T) {
 	}
 	if overpassHits != 1 {
 		t.Fatalf("overpass hits = %d", overpassHits)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/api/airport/KBOS?includeSurface=1", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("inline status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	payload = map[string]any{}
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid inline json: %v", err)
+	}
+	surfaceMap, ok = payload["surfaceMap"].(map[string]any)
+	if !ok || surfaceMap["source"] != "OpenStreetMap" {
+		t.Fatalf("inline surfaceMap = %#v", payload["surfaceMap"])
+	}
+	if overpassHits != 1 {
+		t.Fatalf("inline request should reuse cached surface, hits = %d", overpassHits)
 	}
 }
