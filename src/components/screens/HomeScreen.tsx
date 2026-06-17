@@ -32,7 +32,22 @@ export default function HomeScreen() {
         const resolved = await airportDirectoryClient.resolveAirport(currentIcao, {
           locale,
         });
-        if (!cancelled) setAirport(resolved);
+        if (cancelled) return;
+        setAirport(resolved);
+        airportDirectoryClient
+          .resolveAirportSurface(currentIcao)
+          .then((surfaceMap) => {
+            if (cancelled || !surfaceMap) return;
+            setAirport((current) => {
+              if (airportCode(current) !== currentIcao) return current;
+              return { ...current, surfaceMap };
+            });
+          })
+          .catch((surfaceError) => {
+            if (!cancelled) {
+              console.warn("Failed to load airport surface", surfaceError);
+            }
+          });
       } catch (err) {
         if (cancelled) return;
         console.error("Failed to load airport", err);
@@ -88,4 +103,10 @@ function normalizePathIcao(pathname) {
   const candidate = airportIndex >= 0 ? segments[airportIndex + 1] : "";
   const normalized = String(candidate || "").trim().toUpperCase();
   return /^[A-Z0-9]{3,4}$/.test(normalized) ? normalized : "";
+}
+
+function airportCode(airport) {
+  return String(airport?.icao || airport?.code || airport?.ident || "")
+    .trim()
+    .toUpperCase();
 }

@@ -52,6 +52,10 @@ export const CHANGELOG: ChangelogEntry[] = [
         en: "5 new lighting anchors (topBeacon, bottomBeacon, landingLight, taxiLight, logoLight) auto-generated for all 178 aircraft icons via the anchor generator script",
         zh: "5 个新灯光锚点（顶部防撞灯、底部防撞灯、着陆灯、滑行灯、Logo灯）通过锚点生成脚本为全部 178 个飞机图标自动生成",
       },
+      {
+        en: "Airport detail now returns runway geometry before the optional OpenStreetMap surface layer, so the focused airport's runways render without waiting on slow Overpass responses",
+        zh: "机场详情现在先返回跑道几何，再异步补充可选的 OpenStreetMap 地面图层；主机场跑道不再等待较慢的 Overpass 响应",
+      },
     ],
   },
   {

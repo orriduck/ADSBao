@@ -33,6 +33,11 @@ const buildAirportUrl = ({ baseUrl = "", ident, locale = "" }: Record<string, an
   return baseUrl ? url.toString() : `${url.pathname}${url.search}`;
 };
 
+const buildAirportSurfaceUrl = ({ baseUrl = "", ident }: Record<string, any>) => {
+  const safeIdent = encodeURIComponent(String(ident || "").trim().toUpperCase());
+  return `${baseUrl}${AIRPORT_PATH}/${safeIdent}/surface`;
+};
+
 const requestJson = async (fetchImpl: any, url: string) => {
   const response = await fetchImpl(url, {
     headers: { Accept: "application/json" },
@@ -119,7 +124,20 @@ const createAirportDirectoryClient = ({
     throw new Error("Airport not found");
   };
 
-  return { loadAirports, resolveAirport };
+  const resolveAirportSurface = async (code: unknown) => {
+    const trimmed = String(code || "").trim().toUpperCase();
+    if (!trimmed) {
+      throw new Error("Airport code is required");
+    }
+
+    const payload = await requestJson(
+      fetchImpl,
+      buildAirportSurfaceUrl({ baseUrl, ident: trimmed }),
+    );
+    return payload?.surfaceMap || null;
+  };
+
+  return { loadAirports, resolveAirport, resolveAirportSurface };
 };
 
 export const airportDirectoryClient = createAirportDirectoryClient();

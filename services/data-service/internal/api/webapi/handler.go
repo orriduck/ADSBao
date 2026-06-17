@@ -95,6 +95,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodGet && r.URL.Path == "/api/search":
 		h.handleSearch(w, r)
+	case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/api/airport/") && strings.HasSuffix(r.URL.Path, "/surface"):
+		h.handleAirportSurface(w, r)
 	case r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/api/airport/"):
 		h.handleAirport(w, r)
 	case r.Method == http.MethodGet && r.URL.Path == "/api/proxy/airports/nearby":
@@ -181,30 +183,17 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 	}
 	radiusNm := intInRange(r.URL.Query().Get("nearbyRadiusNm"), 60, 1, 250)
 	nearbyLimit := intInRange(r.URL.Query().Get("nearbyLimit"), 12, 1, 50)
-	matchDoc, err := h.findAirport(r.Context(), ident)
+	detail, airport, runways, runwayMap, err := h.resolveAirportDetail(r.Context(), ident)
 	if err != nil {
 		writeAPIError(w, err, "Airport detail load failed")
 		return
 	}
-	if matchDoc == nil {
-		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Airport not found"})
-		return
-	}
-	id := stringValue(matchDoc["_id"])
-	detail := matchDoc
-	if id != "" {
-		if fetched, err := h.getOpenAIP(r.Context(), "/airports/"+url.PathEscape(id), url.Values{
-			"fields": {strings.Join(airportDetailFields(), ",")},
-		}); err == nil {
-			detail = fetched
-		}
-	}
-	airport := mapAirport(detail)
 	if airport == nil {
 		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Airport not found"})
 		return
 	}
 	lat, lon := numberValue(airport["lat"]), numberValue(airport["lon"])
+	id := stringValue(detail["_id"])
 	nearbyAirports := []map[string]any{}
 	nearbyNavaids := []map[string]any{}
 	airspaces := []map[string]any{}
@@ -235,15 +224,10 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		}()
 		wg.Wait()
 	}
-	runways := mapRunways(asRecords(detail["runways"]), detail)
-	runwayMap, runwayMapErr := h.userDataStore.readRunwayMap(r.Context(), ident)
-	if runwayMapErr != nil {
-		log.Printf("runway geometry read failed airport=%s error=%v", ident, runwayMapErr)
+	var surfaceMap map[string]any
+	if shouldIncludeAirportSurface(r) {
+		surfaceMap = h.airportSurfaceMap(r.Context(), ident, lat, lon, runwayMap)
 	}
-	if runwayMap == nil {
-		runwayMap = buildRunwayMapFromMappedRunways(ident, runways, "OpenAIP")
-	}
-	surfaceMap := h.airportSurfaceMap(r.Context(), ident, lat, lon, runwayMap)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"airport":         airport,
 		"runways":         runways,
@@ -257,6 +241,42 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		"surfaceMap":      surfaceMap,
 		"source":          "openaip",
 	})
+}
+
+func (h *Handler) handleAirportSurface(w http.ResponseWriter, r *http.Request) {
+	ident := strings.ToUpper(strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/api/airport/"), "/surface")))
+	if !match(ident, `^[A-Z0-9]{2,7}$`) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid airport ident"})
+		return
+	}
+	_, airport, _, runwayMap, err := h.resolveAirportDetail(r.Context(), ident)
+	if err != nil {
+		writeAPIError(w, err, "Airport surface load failed")
+		return
+	}
+	if airport == nil {
+		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Airport not found"})
+		return
+	}
+	lat, lon := numberValue(airport["lat"]), numberValue(airport["lon"])
+	surfaceMap := h.airportSurfaceMap(r.Context(), ident, lat, lon, runwayMap)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"surfaceMap": surfaceMap,
+		"source":     "OpenStreetMap",
+	})
+}
+
+func shouldIncludeAirportSurface(r *http.Request) bool {
+	value := strings.ToLower(strings.TrimSpace(firstString(
+		r.URL.Query().Get("includeSurface"),
+		r.URL.Query().Get("surface"),
+	)))
+	switch value {
+	case "1", "true", "yes", "include", "inline":
+		return true
+	default:
+		return false
+	}
 }
 
 func (h *Handler) handleNearbyAirports(w http.ResponseWriter, r *http.Request) {
@@ -352,6 +372,38 @@ func (h *Handler) findAirport(ctx context.Context, ident string) (map[string]any
 		return nil, nil
 	}
 	return ranked[0], nil
+}
+
+func (h *Handler) resolveAirportDetail(ctx context.Context, ident string) (map[string]any, map[string]any, []map[string]any, map[string]any, error) {
+	matchDoc, err := h.findAirport(ctx, ident)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	if matchDoc == nil {
+		return nil, nil, nil, nil, nil
+	}
+	id := stringValue(matchDoc["_id"])
+	detail := matchDoc
+	if id != "" {
+		if fetched, err := h.getOpenAIP(ctx, "/airports/"+url.PathEscape(id), url.Values{
+			"fields": {strings.Join(airportDetailFields(), ",")},
+		}); err == nil {
+			detail = fetched
+		}
+	}
+	airport := mapAirport(detail)
+	if airport == nil {
+		return detail, nil, nil, nil, nil
+	}
+	runways := mapRunways(asRecords(detail["runways"]), detail)
+	runwayMap, runwayMapErr := h.userDataStore.readRunwayMap(ctx, ident)
+	if runwayMapErr != nil {
+		log.Printf("runway geometry read failed airport=%s error=%v", ident, runwayMapErr)
+	}
+	if runwayMap == nil {
+		runwayMap = buildRunwayMapFromMappedRunways(ident, runways, "OpenAIP")
+	}
+	return detail, airport, runways, runwayMap, nil
 }
 
 func (h *Handler) nearbyAirports(ctx context.Context, lat, lon float64, exclude string, radiusNm, limit int) []map[string]any {
