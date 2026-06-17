@@ -13,7 +13,16 @@ import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel";
-import { shouldShowNearbyAirportRunwaysForZoom } from "../../features/airport/map/airportMapZoomFeatures";
+import { buildRunwayFaaLightCollection } from "../../features/airport/map/runwayLightingModel";
+import {
+  buildRunwayLightCanvasLayer,
+  startReilFlashTimer,
+} from "../../features/airport/map/runwayLightCanvas";
+import {
+  shouldShowNearbyAirportRunwaysForZoom,
+  runwayLightingLodForZoom,
+  type RunwayLightingLodBand,
+} from "../../features/airport/map/airportMapZoomFeatures";
 import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
 import { airportDisplayCode } from "@/utils/airport";
 
@@ -171,6 +180,49 @@ export default function NearbyAirportLayer({
     showAirportBadges,
     showRunwayBadges,
   ]);
+
+  // --- FAA runway point lights for nearby airports ---
+  // Shared canvas renderer avoids thousands of DOM nodes. Capped at "mid"
+  // band (edge + threshold/end + ALS, decimated centerline) — nearby airports
+  // never get the full "near" density (TDZL, REIL, taxiway lights).
+  useEffect(() => {
+    if (!map || !map.getContainer || !map.getPane) return undefined;
+
+    const lightingBand = runwayLightingLodForZoom(zoom);
+    if (lightingBand === "far") return undefined;
+
+    // Cap nearby airports at "mid" — cleaner, and we lack surfaceMap for taxiways.
+    const band: RunwayLightingLodBand =
+      lightingBand === "near" ? "mid" : lightingBand;
+
+    const allFeatures: any[] = [];
+    for (const airport of airports) {
+      if (!airport?.runwayMap?.runways?.length) continue;
+      const collection = buildRunwayFaaLightCollection(airport.runwayMap, { band });
+      if (collection.features?.length) {
+        allFeatures.push(...collection.features);
+      }
+    }
+    if (!allFeatures.length) return undefined;
+
+    const data = {
+      type: "FeatureCollection",
+      features: allFeatures,
+    };
+    const { layer, renderer, reilMarkers } = buildRunwayLightCanvasLayer({
+      data,
+      map,
+    });
+    renderer.addTo(map);
+    layer.addTo(map);
+    const stopReilFlash = startReilFlashTimer(reilMarkers);
+
+    return () => {
+      stopReilFlash();
+      layer.remove();
+      renderer.remove();
+    };
+  }, [map, airports, zoom, theme]);
 
   return null;
 }
