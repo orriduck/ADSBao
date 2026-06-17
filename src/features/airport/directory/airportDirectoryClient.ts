@@ -4,6 +4,7 @@
 
 const SEARCH_PATH = "/api/search";
 const AIRPORT_PATH = "/api/airport";
+const DEFAULT_RESPONSE_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const defaultFetch = () =>
   typeof globalThis.fetch === "function" ? globalThis.fetch.bind(globalThis) : null;
@@ -38,9 +39,19 @@ const buildAirportSurfaceUrl = ({ baseUrl = "", ident }: Record<string, any>) =>
   return `${baseUrl}${AIRPORT_PATH}/${safeIdent}/surface`;
 };
 
-const requestJson = async (fetchImpl: any, url: string) => {
+const buildAirportContextUrl = ({ baseUrl = "", ident }: Record<string, any>) => {
+  const safeIdent = encodeURIComponent(String(ident || "").trim().toUpperCase());
+  return `${baseUrl}${AIRPORT_PATH}/${safeIdent}/context`;
+};
+
+const requestJson = async (
+  fetchImpl: any,
+  url: string,
+  { signal }: { signal?: AbortSignal } = {},
+) => {
   const response = await fetchImpl(url, {
     headers: { Accept: "application/json" },
+    signal,
   });
   if (response.status === 404) return null;
   if (!response.ok) {
@@ -52,10 +63,45 @@ const requestJson = async (fetchImpl: any, url: string) => {
 const createAirportDirectoryClient = ({
   fetchImpl = defaultFetch(),
   baseUrl = "",
+  responseCacheTtlMs = DEFAULT_RESPONSE_CACHE_TTL_MS,
 }: Record<string, any> = {}) => {
   if (!fetchImpl) {
     throw new Error("Airport directory client requires fetch support");
   }
+
+  const inFlightJson = new Map<string, Promise<any>>();
+  const responseCache = new Map<string, { expiresAt: number; payload: any }>();
+  const requestJsonOnce = (
+    url: string,
+    { signal }: { signal?: AbortSignal } = {},
+  ) => {
+    const cached = responseCache.get(url);
+    if (cached && cached.expiresAt > Date.now()) {
+      return Promise.resolve(cached.payload);
+    }
+    if (cached) {
+      responseCache.delete(url);
+    }
+    if (!signal) {
+      const pending = inFlightJson.get(url);
+      if (pending) return pending;
+    }
+    const promise = requestJson(fetchImpl, url, { signal })
+      .then((payload) => {
+        if (responseCacheTtlMs > 0 && payload !== null) {
+          responseCache.set(url, {
+            expiresAt: Date.now() + responseCacheTtlMs,
+            payload,
+          });
+        }
+        return payload;
+      })
+      .finally(() => {
+        inFlightJson.delete(url);
+      });
+    if (!signal) inFlightJson.set(url, promise);
+    return promise;
+  };
 
   const loadAirports = async ({
     query = "",
@@ -76,7 +122,7 @@ const createAirportDirectoryClient = ({
       limit,
     });
 
-    const payload = (await requestJson(fetchImpl, url)) || {};
+    const payload = (await requestJsonOnce(url)) || {};
     return {
       airports: Array.isArray(payload.airports) ? payload.airports : [],
       source: payload.source || "openaip",
@@ -89,8 +135,7 @@ const createAirportDirectoryClient = ({
       throw new Error("Airport code is required");
     }
 
-    const detail = await requestJson(
-      fetchImpl,
+    const detail = await requestJsonOnce(
       buildAirportUrl({ baseUrl, ident: trimmed, locale }),
     );
     if (detail?.airport) {
@@ -114,8 +159,7 @@ const createAirportDirectoryClient = ({
       };
     }
 
-    const searchPayload = await requestJson(
-      fetchImpl,
+    const searchPayload = await requestJsonOnce(
       buildSearchUrl({ baseUrl, query: trimmed, limit: 1 }),
     );
     const fallback = searchPayload?.airports?.[0];
@@ -124,20 +168,57 @@ const createAirportDirectoryClient = ({
     throw new Error("Airport not found");
   };
 
-  const resolveAirportSurface = async (code: unknown) => {
+  const resolveAirportSurface = async (
+    code: unknown,
+    { signal }: { signal?: AbortSignal } = {},
+  ) => {
     const trimmed = String(code || "").trim().toUpperCase();
     if (!trimmed) {
       throw new Error("Airport code is required");
     }
 
-    const payload = await requestJson(
-      fetchImpl,
+    const payload = await requestJsonOnce(
       buildAirportSurfaceUrl({ baseUrl, ident: trimmed }),
+      { signal },
     );
     return payload?.surfaceMap || null;
   };
 
-  return { loadAirports, resolveAirport, resolveAirportSurface };
+  const resolveAirportContext = async (
+    code: unknown,
+    { signal }: { signal?: AbortSignal } = {},
+  ) => {
+    const trimmed = String(code || "").trim().toUpperCase();
+    if (!trimmed) {
+      throw new Error("Airport code is required");
+    }
+
+    const payload = await requestJsonOnce(
+      buildAirportContextUrl({ baseUrl, ident: trimmed }),
+      { signal },
+    ) || {};
+    return {
+      nearbyAirports: Array.isArray(payload.nearbyAirports)
+        ? payload.nearbyAirports
+        : [],
+      nearbyNavaids: Array.isArray(payload.nearbyNavaids)
+        ? payload.nearbyNavaids
+        : [],
+      airspaces: Array.isArray(payload.airspaces) ? payload.airspaces : [],
+      reportingPoints: Array.isArray(payload.reportingPoints)
+        ? payload.reportingPoints
+        : [],
+      obstacles: Array.isArray(payload.obstacles) ? payload.obstacles : [],
+    };
+  };
+
+  return {
+    loadAirports,
+    resolveAirport,
+    resolveAirportSurface,
+    resolveAirportContext,
+  };
 };
 
 export const airportDirectoryClient = createAirportDirectoryClient();
+export { createAirportDirectoryClient };

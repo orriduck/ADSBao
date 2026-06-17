@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 let fetchImpl;
 globalThis.fetch = ((...args) => fetchImpl(...args)) as any;
 
-const { airportDirectoryClient } = await import("./airportDirectoryClient");
+const { createAirportDirectoryClient } = await import("./airportDirectoryClient");
+
+const createClient = () =>
+  createAirportDirectoryClient({
+    fetchImpl: (...args) => fetchImpl(...args),
+  });
 
 const createJsonResponse = (payload, status = 200) => ({
   ok: status >= 200 && status < 300,
@@ -39,7 +44,7 @@ const KBOS = {
     });
   };
 
-  const result = await airportDirectoryClient.loadAirports({
+  const result = await createClient().loadAirports({
     query: "KBOS",
     country: "us",
     kind: "large_airport",
@@ -64,12 +69,13 @@ const KBOS = {
     return createJsonResponse({ airports: [], source: "openaip" });
   };
 
-  await airportDirectoryClient.loadAirports({ country: "US", kind: "all", limit: 12 });
+  await createClient().loadAirports({ country: "US", kind: "all", limit: 12 });
   assert.equal(calls.length, 1);
   assert.doesNotMatch(calls[0], /type=/);
 }
 
-// resolveAirport hits the fast airport-detail route and unwraps .airport
+// resolveAirport hits the fast airport-detail route and leaves heavy context
+// empty until resolveAirportContext hydrates it separately.
 {
   const calls = [];
   fetchImpl = async (url) => {
@@ -80,10 +86,6 @@ const KBOS = {
         runways: [],
         frequencies: [],
         nearbyAirports: [],
-        nearbyNavaids: [{ ident: "BOS", type: "VORTAC" }],
-        airspaces: [{ id: "asp-1", name: "BOSTON CLASS B" }],
-        reportingPoints: [{ id: "pt-1", name: "HYLND" }],
-        obstacles: [{ id: "obs-1", name: "Tower" }],
         runwayMap: { airport: "KBOS", source: "OurAirports", runways: [] },
         surfaceMap: null,
         source: "openaip",
@@ -92,16 +94,67 @@ const KBOS = {
     throw new Error(`unexpected url: ${url}`);
   };
 
-  const airport = await airportDirectoryClient.resolveAirport("kbos");
+  const airport = await createClient().resolveAirport("kbos");
   assert.deepEqual(calls, ["/api/airport/KBOS"]);
   assert.equal(airport.icao, "KBOS");
   assert.equal(airport.iata, "BOS");
-  assert.deepEqual(airport.nearbyNavaids, [{ ident: "BOS", type: "VORTAC" }]);
-  assert.deepEqual(airport.airspaces, [{ id: "asp-1", name: "BOSTON CLASS B" }]);
-  assert.deepEqual(airport.reportingPoints, [{ id: "pt-1", name: "HYLND" }]);
-  assert.deepEqual(airport.obstacles, [{ id: "obs-1", name: "Tower" }]);
+  assert.deepEqual(airport.nearbyNavaids, []);
+  assert.deepEqual(airport.airspaces, []);
+  assert.deepEqual(airport.reportingPoints, []);
+  assert.deepEqual(airport.obstacles, []);
   assert.deepEqual(airport.runwayMap, { airport: "KBOS", source: "OurAirports", runways: [] });
   assert.equal(airport.surfaceMap, null);
+}
+
+// concurrent identical requests share a single in-flight fetch instead of
+// doubling the route transition wait.
+{
+  const calls = [];
+  let resolveResponse;
+  fetchImpl = async (url) => {
+    calls.push(url);
+    return new Promise((resolve) => {
+      resolveResponse = () =>
+        resolve(
+          createJsonResponse({
+            airport: KBOS,
+            runways: [],
+            frequencies: [],
+          }),
+        );
+    });
+  };
+
+  const client = createClient();
+  const first = client.resolveAirport("kbos");
+  const second = client.resolveAirport("KBOS");
+  assert.equal(calls.length, 1);
+  resolveResponse();
+  const [firstAirport, secondAirport] = await Promise.all([first, second]);
+  assert.equal(firstAirport.icao, "KBOS");
+  assert.equal(secondAirport.icao, "KBOS");
+  assert.deepEqual(calls, ["/api/airport/KBOS"]);
+}
+
+// resolved airport detail responses are kept briefly so returning to the
+// same airport does not re-fetch the static profile/context payloads.
+{
+  const calls = [];
+  fetchImpl = async (url) => {
+    calls.push(url);
+    return createJsonResponse({
+      airport: KBOS,
+      runways: [],
+      frequencies: [],
+    });
+  };
+
+  const client = createClient();
+  const first = await client.resolveAirport("kbos");
+  const second = await client.resolveAirport("KBOS");
+  assert.equal(first.icao, "KBOS");
+  assert.equal(second.icao, "KBOS");
+  assert.deepEqual(calls, ["/api/airport/KBOS"]);
 }
 
 // resolveAirportSurface loads the deferred OSM surface payload separately.
@@ -121,9 +174,35 @@ const KBOS = {
     throw new Error(`unexpected url: ${url}`);
   };
 
-  const surfaceMap = await airportDirectoryClient.resolveAirportSurface("kbos");
+  const surfaceMap = await createClient().resolveAirportSurface("kbos");
   assert.deepEqual(calls, ["/api/airport/KBOS/surface"]);
   assert.equal(surfaceMap.source, "OpenStreetMap");
+}
+
+// resolveAirportContext loads the deferred airspace/navaid/obstacle payload.
+{
+  const calls = [];
+  fetchImpl = async (url) => {
+    calls.push(url);
+    if (url === "/api/airport/KBOS/context") {
+      return createJsonResponse({
+        nearbyAirports: [{ icao: "KOWD" }],
+        nearbyNavaids: [{ ident: "BOS", type: "VORTAC" }],
+        airspaces: [{ id: "asp-1", name: "BOSTON CLASS B" }],
+        reportingPoints: [{ id: "pt-1", name: "HYLND" }],
+        obstacles: [{ id: "obs-1", name: "Tower" }],
+      });
+    }
+    throw new Error(`unexpected url: ${url}`);
+  };
+
+  const context = await createClient().resolveAirportContext("kbos");
+  assert.deepEqual(calls, ["/api/airport/KBOS/context"]);
+  assert.deepEqual(context.nearbyAirports, [{ icao: "KOWD" }]);
+  assert.deepEqual(context.nearbyNavaids, [{ ident: "BOS", type: "VORTAC" }]);
+  assert.deepEqual(context.airspaces, [{ id: "asp-1", name: "BOSTON CLASS B" }]);
+  assert.deepEqual(context.reportingPoints, [{ id: "pt-1", name: "HYLND" }]);
+  assert.deepEqual(context.obstacles, [{ id: "obs-1", name: "Tower" }]);
 }
 
 // resolveAirport forwards the active locale so the detail route can enrich
@@ -145,7 +224,7 @@ const KBOS = {
     throw new Error(`unexpected url: ${url}`);
   };
 
-  const airport = await airportDirectoryClient.resolveAirport("zspd", { locale: "zh-CN" });
+  const airport = await createClient().resolveAirport("zspd", { locale: "zh-CN" });
   assert.deepEqual(calls, ["/api/airport/ZSPD?locale=zh-CN"]);
   assert.equal(airport.localizedName, "上海浦东国际机场");
 }
@@ -164,7 +243,7 @@ const KBOS = {
     throw new Error(`unexpected url: ${url}`);
   };
 
-  const airport = await airportDirectoryClient.resolveAirport("KBOS");
+  const airport = await createClient().resolveAirport("KBOS");
   assert.equal(calls.length, 2);
   assert.equal(calls[0], "/api/airport/KBOS");
   assert.match(calls[1], /^\/api\/search\?.*q=KBOS/);
@@ -175,13 +254,13 @@ const KBOS = {
 {
   fetchImpl = async () => createJsonResponse({ error: "no" }, 404);
 
-  await assert.rejects(() => airportDirectoryClient.resolveAirport("ZZZZ"), /Airport not found/);
+  await assert.rejects(() => createClient().resolveAirport("ZZZZ"), /Airport not found/);
 }
 
 // resolveAirport rejects empty code
 {
   fetchImpl = async () => createJsonResponse({});
-  await assert.rejects(() => airportDirectoryClient.resolveAirport(""), /Airport code is required/);
+  await assert.rejects(() => createClient().resolveAirport(""), /Airport code is required/);
 }
 
 console.log("airportDirectory.test.ts: ok");

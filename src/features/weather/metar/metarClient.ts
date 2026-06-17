@@ -16,6 +16,7 @@ export const createMetarClient = ({
   const auditedFetch = withAuditLogging(fetchImpl, {
     service: "AviationWeather/METAR",
   });
+  const inFlight = new Map<string, Promise<any>>();
 
   return {
     fetchMetar(icao) {
@@ -23,13 +24,16 @@ export const createMetarClient = ({
         .trim()
         .toUpperCase();
       if (!normalized) return [];
-      return fetchJson(
-        auditedFetch,
-        `${baseUrl}/${encodeURIComponent(normalized)}`,
-        {
-          timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.metar,
-        },
-      );
+      const url = `${baseUrl}/${encodeURIComponent(normalized)}`;
+      const pending = inFlight.get(url);
+      if (pending) return pending;
+      const promise = fetchJson(auditedFetch, url, {
+        timeoutMs: AVIATION_REQUEST_TIMEOUT_MS.metar,
+      }).finally(() => {
+        inFlight.delete(url);
+      });
+      inFlight.set(url, promise);
+      return promise;
     },
   };
 };

@@ -212,6 +212,12 @@ func TestAirportDetailDefersSurfaceMapByDefault(t *testing.T) {
 	if payload["surfaceMap"] != nil {
 		t.Fatalf("surfaceMap should be deferred by default: %#v", payload["surfaceMap"])
 	}
+	if airspaces, ok := payload["airspaces"].([]any); !ok || len(airspaces) != 0 {
+		t.Fatalf("airspaces should be deferred by default: %#v", payload["airspaces"])
+	}
+	if obstacles, ok := payload["obstacles"].([]any); !ok || len(obstacles) != 0 {
+		t.Fatalf("obstacles should be deferred by default: %#v", payload["obstacles"])
+	}
 	if overpassHits != 0 {
 		t.Fatalf("default detail overpass hits = %d", overpassHits)
 	}
@@ -221,6 +227,24 @@ func TestAirportDetailDefersSurfaceMapByDefault(t *testing.T) {
 	}
 	if runwayMap["source"] != "OpenAIP" {
 		t.Fatalf("runwayMap = %#v", runwayMap)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/api/airport/KBOS/context", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("context status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	payload = map[string]any{}
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid context json: %v", err)
+	}
+	if _, ok := payload["airspaces"].([]any); !ok {
+		t.Fatalf("missing context airspaces: %#v", payload["airspaces"])
+	}
+	if _, ok := payload["obstacles"].([]any); !ok {
+		t.Fatalf("missing context obstacles: %#v", payload["obstacles"])
 	}
 
 	req = httptest.NewRequest(http.MethodGet, "/api/airport/KBOS/surface", nil)

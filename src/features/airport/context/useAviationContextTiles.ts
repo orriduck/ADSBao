@@ -132,13 +132,14 @@ export function useAviationContextTiles({
       return undefined;
     }
 
-    setLoading(true);
-    setError(null);
-    Promise.allSettled(requestUrls.map(fetchTile)).then((results) => {
+    const payloadsByUrl = new Map<string, ContextTileRecord>();
+    let pendingCount = requestUrls.length;
+    let rejectedReason = null;
+    const commitPayloads = () => {
       if (cancelled) return;
-      const payloads = results
-        .filter((result) => result.status === "fulfilled")
-        .map((result) => result.value);
+      const payloads = requestUrls
+        .map((url) => payloadsByUrl.get(url))
+        .filter(Boolean);
       setAirspaces(
         uniqueBy(
           payloads.flatMap((payload) => payload.airspaces || []),
@@ -163,9 +164,32 @@ export function useAviationContextTiles({
           (item) => item?.id || `${item?.name}:${item?.lat}:${item?.lon}`,
         ),
       );
-      const rejected = results.find((result) => result.status === "rejected");
-      setError(rejected?.reason || null);
-      setLoading(false);
+      setError(rejectedReason);
+    };
+
+    setLoading(true);
+    setError(null);
+    setAirspaces([]);
+    setNavaids([]);
+    setNavaidCounts([]);
+    setWaypoints([]);
+
+    requestUrls.forEach((url) => {
+      fetchTile(url)
+        .then((payload) => {
+          payloadsByUrl.set(url, payload);
+          commitPayloads();
+        })
+        .catch((reason) => {
+          rejectedReason ||= reason;
+          setError(rejectedReason);
+        })
+        .finally(() => {
+          pendingCount -= 1;
+          if (!cancelled && pendingCount === 0) {
+            setLoading(false);
+          }
+        });
     });
 
     return () => {

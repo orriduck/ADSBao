@@ -590,26 +590,24 @@ function FlightExplorerContent({ callsign }) {
     if (missingCodes.length === 0) return undefined;
 
     const controller = new AbortController();
-    Promise.all(
-      missingCodes.map(async (code) => {
-        try {
-          const response = await fetch(`/api/airport/${encodeURIComponent(code)}`, {
-            signal: controller.signal,
-          });
-          if (!response.ok) return [code, null];
+    missingCodes.forEach((code) => {
+      fetch(`/api/airport/${encodeURIComponent(code)}`, {
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) return null;
           const payload = await response.json();
-          return [code, payload?.airport || null];
-        } catch {
-          return [code, null];
-        }
-      }),
-    ).then((entries) => {
-      if (controller.signal.aborted) return;
-      setRouteAirportDetailsByCode((current) => {
-        const next = { ...current };
-        for (const [code, airport] of entries) next[code] = airport;
-        return next;
-      });
+          return payload?.airport || null;
+        })
+        .catch(() => null)
+        .then((airport) => {
+          if (controller.signal.aborted) return;
+          setRouteAirportDetailsByCode((current) =>
+            current[code] === undefined
+              ? { ...current, [code]: airport }
+              : current,
+          );
+        });
     });
 
     return () => controller.abort();

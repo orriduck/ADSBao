@@ -1,4 +1,4 @@
-export const AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS = 1_000;
+export const AIRCRAFT_LOADING_OVERLAY_MIN_VISIBLE_MS = 220;
 
 type LoadingSettledOptions = {
   aircraftPositionsSettled?: boolean;

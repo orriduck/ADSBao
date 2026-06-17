@@ -7,30 +7,45 @@ const { nearbyAirportClient } = await import("./nearbyAirportClient");
 
 {
   const calls = [];
+  let resolveResponse;
   fetchImpl = async (url) => {
     calls.push(url);
-    return {
-      ok: true,
-      status: 200,
-      async json() {
-        return { airports: [{ icao: "KLGA", distanceNm: 9.3 }] };
-      },
-    };
+    return new Promise((resolve) => {
+      resolveResponse = () =>
+        resolve({
+          ok: true,
+          status: 200,
+          async json() {
+            return { airports: [{ icao: "KLGA", distanceNm: 9.3 }] };
+          },
+        });
+    });
   };
 
-  const payload = await nearbyAirportClient.fetchNearbyAirports({
+  const first = nearbyAirportClient.fetchNearbyAirports({
     lat: 40.639928,
     lon: -73.778692,
     icao: "kjfk",
     radiusNm: 30,
     limit: 6,
   });
+  const second = nearbyAirportClient.fetchNearbyAirports({
+    lat: 40.639928,
+    lon: -73.778692,
+    icao: "KJFK",
+    radiusNm: 30,
+    limit: 6,
+  });
+  assert.equal(calls.length, 1);
+  resolveResponse();
+  const [payload, repeatedPayload] = await Promise.all([first, second]);
 
   assert.equal(
     calls[0],
     "/api/proxy/airports/nearby?lat=40.639928&lon=-73.778692&icao=KJFK&radiusNm=30&limit=6",
   );
   assert.equal(payload.airports[0].icao, "KLGA");
+  assert.equal(repeatedPayload.airports[0].icao, "KLGA");
 }
 
 {

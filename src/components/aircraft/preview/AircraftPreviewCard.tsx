@@ -19,7 +19,6 @@ import MobilePreviewCard, {
   MobilePreviewSecondaryButton,
   MobilePreviewTrackButton,
 } from "./MobilePreviewCard";
-import PlaneHunterStudio from "./PlaneHunterStudio";
 import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
@@ -31,9 +30,11 @@ import { useAircraftTraceAsyncStatus } from "@/features/aircraft/trace/useAircra
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
+import dynamic from "@/platform/react/dynamic";
 
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
+const PlaneHunterStudio = dynamic(() => import("./PlaneHunterStudio"));
 
 export default function AircraftPreviewCard({
   aircraft = null,
