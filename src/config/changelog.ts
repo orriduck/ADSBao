@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.7.2",
+    kind: "patch",
+    title: {
+      en: "Nearby airport runway geometry fix",
+      zh: "附近机场跑道几何修复",
+    },
+    summary: {
+      en: "Nearby airports in here mode now use stored OurAirports runway geometry when available, so large airports no longer render as synthetic star-shaped runway clusters.",
+      zh: "here 模式的附近机场现在会优先使用已存储的 OurAirports 跑道几何，大型机场不再显示为合成的星型跑道簇。",
+    },
+    highlights: [
+      {
+        en: "The Railway data-service now batch-loads stored runway maps for nearby airport results and omits runway lines when stored geometry is unavailable, instead of showing OpenAIP heading-based approximations",
+        zh: "Railway data-service 会为附近机场结果批量读取已存储的跑道图；没有存储几何时会省略跑道线，不再显示 OpenAIP 基于航向的近似跑道",
+      },
+      {
+        en: "Fixes KBOS near the user's location showing a centered star pattern instead of the real runway layout",
+        zh: "修复用户位置附近的 KBOS 显示成围绕中心展开的星型，而不是实际跑道布局的问题",
+      },
+    ],
+  },
+  {
     version: "v2.7.1",
     kind: "feat",
     title: {
