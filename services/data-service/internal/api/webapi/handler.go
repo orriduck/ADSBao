@@ -51,6 +51,7 @@ type Handler struct {
 	metrics             realtime.MetricsSink
 	authenticator       *ClerkAuthenticator
 	userDataStore       *UserDataStore
+	runwayMapReader     runwayMapReader
 }
 
 type openAIPList struct {
@@ -85,6 +86,7 @@ func New(options Options) *Handler {
 		metrics:             options.Metrics,
 		authenticator:       options.Authenticator,
 		userDataStore:       options.UserDataStore,
+		runwayMapReader:     options.UserDataStore,
 	}
 }
 
@@ -374,12 +376,14 @@ func (h *Handler) nearbyAirports(ctx context.Context, lat, lon float64, exclude 
 			continue
 		}
 		airport["distanceNm"] = distanceNm(lat, lon, numberValue(airport["lat"]), numberValue(airport["lon"]))
-		airport["runwayMap"] = buildRunwayMapFromMappedRunways(
-			firstString(airport["icao"], airport["code"], airport["ident"]),
-			mapRunways(asRecords(item["runways"]), item),
-			"OpenAIP",
-		)
 		out = append(out, airport)
+	}
+	storedRunwayMaps := h.storedRunwayMapsForAirports(ctx, out)
+	for _, airport := range out {
+		ident := normalizeAirportIdent(firstString(airport["icao"], airport["code"], airport["ident"]))
+		if runwayMap := storedRunwayMaps[ident]; runwayMap != nil {
+			airport["runwayMap"] = runwayMap
+		}
 	}
 	sort.Slice(out, func(i, j int) bool {
 		return numberValue(out[i]["distanceNm"]) < numberValue(out[j]["distanceNm"])
@@ -388,6 +392,29 @@ func (h *Handler) nearbyAirports(ctx context.Context, lat, lon float64, exclude 
 		out = out[:limit]
 	}
 	return out
+}
+
+func (h *Handler) storedRunwayMapsForAirports(ctx context.Context, airports []map[string]any) map[string]map[string]any {
+	if h == nil || h.runwayMapReader == nil || len(airports) == 0 {
+		return nil
+	}
+	idents := make([]string, 0, len(airports))
+	for _, airport := range airports {
+		ident := normalizeAirportIdent(firstString(airport["icao"], airport["code"], airport["ident"]))
+		if ident == "" {
+			continue
+		}
+		idents = append(idents, ident)
+	}
+	if len(idents) == 0 {
+		return nil
+	}
+	runwayMaps, err := h.runwayMapReader.readRunwayMaps(ctx, idents)
+	if err != nil {
+		log.Printf("nearby runway geometry read failed airports=%s error=%v", strings.Join(idents, ","), err)
+		return nil
+	}
+	return runwayMaps
 }
 
 func (h *Handler) nearbyNavaids(ctx context.Context, lat, lon float64, radiusNm, limit int) []map[string]any {

@@ -3,6 +3,7 @@ package webapi
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -19,6 +20,10 @@ type runwayGeometryRow struct {
 	heLongitudeDeg sql.NullFloat64
 }
 
+type runwayMapReader interface {
+	readRunwayMaps(ctx context.Context, idents []string) (map[string]map[string]any, error)
+}
+
 const runwayGeometrySelectColumns = `
 	length_ft,
 	width_ft,
@@ -32,32 +37,63 @@ const runwayGeometrySelectColumns = `
 `
 
 func (s *UserDataStore) readRunwayMap(ctx context.Context, ident string) (map[string]any, error) {
-	if s == nil || s.db == nil {
-		return nil, nil
-	}
 	normalizedIdent := normalizeAirportIdent(ident)
 	if normalizedIdent == "" {
 		return nil, nil
 	}
+	runwayMaps, err := s.readRunwayMaps(ctx, []string{normalizedIdent})
+	if err != nil {
+		return nil, err
+	}
+	return runwayMaps[normalizedIdent], nil
+}
+
+func (s *UserDataStore) readRunwayMaps(ctx context.Context, idents []string) (map[string]map[string]any, error) {
+	out := map[string]map[string]any{}
+	if s == nil || s.db == nil {
+		return out, nil
+	}
+	normalizedIdents := make([]string, 0, len(idents))
+	seen := map[string]bool{}
+	for _, ident := range idents {
+		normalizedIdent := normalizeAirportIdent(ident)
+		if normalizedIdent == "" || seen[normalizedIdent] {
+			continue
+		}
+		seen[normalizedIdent] = true
+		normalizedIdents = append(normalizedIdents, normalizedIdent)
+	}
+	if len(normalizedIdents) == 0 {
+		return out, nil
+	}
+
+	placeholders := make([]string, len(normalizedIdents))
+	args := make([]any, 0, len(normalizedIdents)+1)
+	args = append(args, "ourairports")
+	for index, ident := range normalizedIdents {
+		placeholders[index] = fmt.Sprintf("$%d", index+2)
+		args = append(args, ident)
+	}
 	rows, err := s.db.QueryContext(
 		ctx,
-		`select `+runwayGeometrySelectColumns+`
+		`select airport_ident, `+runwayGeometrySelectColumns+`
 		 from runway_geometries
 		 where source = $1
-		   and airport_ident = $2
+		   and airport_ident in (`+strings.Join(placeholders, ",")+`)
 		 order by airport_ident asc, le_ident asc`,
-		"ourairports",
-		normalizedIdent,
+		args...,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	geometries := []runwayGeometryRow{}
+	geometriesByAirport := map[string][]runwayGeometryRow{}
 	for rows.Next() {
+		var airportIdent string
 		var row runwayGeometryRow
 		if err := rows.Scan(
+			&airportIdent,
 			&row.lengthFt,
 			&row.widthFt,
 			&row.closed,
@@ -70,12 +106,25 @@ func (s *UserDataStore) readRunwayMap(ctx context.Context, ident string) (map[st
 		); err != nil {
 			return nil, err
 		}
-		geometries = append(geometries, row)
+		normalizedAirport := normalizeAirportIdent(airportIdent)
+		if normalizedAirport == "" {
+			continue
+		}
+		geometriesByAirport[normalizedAirport] = append(
+			geometriesByAirport[normalizedAirport],
+			row,
+		)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return buildRunwayMapFromGeometryRows(normalizedIdent, geometries), nil
+	for _, ident := range normalizedIdents {
+		runwayMap := buildRunwayMapFromGeometryRows(ident, geometriesByAirport[ident])
+		if runwayMap != nil {
+			out[ident] = runwayMap
+		}
+	}
+	return out, nil
 }
 
 func buildRunwayMapFromGeometryRows(airport string, rows []runwayGeometryRow) map[string]any {
