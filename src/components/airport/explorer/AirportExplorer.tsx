@@ -504,19 +504,21 @@ function AirportExplorerContent({
       showSelectedTrace
     >
       {previewSelectionActive && (
-        <AircraftPreviewCard
-          aircraft={selection.selectedAircraft}
-          airport={selection.selectedAirport}
-          navaid={selection.selectedNavaid}
-          airspace={selection.selectedAirspace}
-          candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
-          candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
-          isMobile={isMobile}
-          sidebarOpen={sidebarOpen}
-          airportProfile={airportProfile}
-          onApplyTemporaryRoute={traffic.applyTemporaryRoute}
-          onDismiss={clearAllPreviewSelections}
-        />
+        <Suspense fallback={null}>
+          <AircraftPreviewCard
+            aircraft={selection.selectedAircraft}
+            airport={selection.selectedAirport}
+            navaid={selection.selectedNavaid}
+            airspace={selection.selectedAirspace}
+            candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
+            candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
+            isMobile={isMobile}
+            sidebarOpen={sidebarOpen}
+            airportProfile={airportProfile}
+            onApplyTemporaryRoute={traffic.applyTemporaryRoute}
+            onDismiss={clearAllPreviewSelections}
+          />
+        </Suspense>
       )}
       <div
         className={`font-sans text-atc-text ${

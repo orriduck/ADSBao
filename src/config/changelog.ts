@@ -29,6 +29,24 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.14.2",
+    kind: "patch",
+    title: {
+      en: "Stable aircraft preview open",
+      zh: "飞机预览打开更稳定",
+    },
+    summary: {
+      en: "Opening the first aircraft preview on an airport page no longer blanks the map while the preview module loads.",
+      zh: "机场详情页首次点击飞机时，预览模块加载期间不再让地图短暂空白。",
+    },
+    highlights: [
+      {
+        en: "Aircraft preview loading is isolated from the airport route shell, so the map and sidebar stay mounted on first click",
+        zh: "飞机预览加载与机场页面外壳隔离，首次点击时地图和侧栏保持挂载",
+      },
+    ],
+  },
+  {
     version: "v2.14.1",
     kind: "patch",
     title: {
