@@ -126,6 +126,13 @@ assert.equal(greenBars.length, 10, "two green threshold bars of 5 lights each");
 assert.equal(redBars.length, 10, "two red end bars of 5 lights each");
 assert.ok(greenBars.every((f) => f.properties.color === "green"));
 assert.ok(redBars.every((f) => f.properties.color === "red"));
+const redSideLights = byRole(near, (role) => role === "end-side");
+assert.equal(
+  redSideLights.length,
+  RUNWAY_FAA_LIGHTING_CONFIG.endSideLightCount * 4,
+  "red side lights run along both sides at both runway ends",
+);
+assert.ok(redSideLights.every((f) => f.properties.color === "red"));
 
 // REIL flashing strobes only at the near band.
 const reil = byRole(near, (role) => role === "reil");
@@ -235,7 +242,7 @@ assert.ok(
 );
 
 // --- Radius lookup returns a finite size per role.
-const radiusRoles = ["edge", "centerline", "tdz", "reil", "approach", "taxiway-centerline"] as const;
+const radiusRoles = ["edge", "centerline", "end-side", "tdz", "reil", "approach", "taxiway-centerline"] as const;
 for (const role of radiusRoles) {
   assert.ok(Number.isFinite(runwayLightRadius(role)), `radius for ${role}`);
 }

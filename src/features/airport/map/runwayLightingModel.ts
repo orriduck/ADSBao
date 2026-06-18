@@ -39,6 +39,7 @@ export type LightRole =
   | "centerline-red"
   | "threshold"
   | "end"
+  | "end-side"
   | "tdz"
   | "reil"
   | "approach"
@@ -56,6 +57,7 @@ const ROLE_RADIUS_BUCKET: Record<LightRole, keyof typeof C.radius> = {
   "centerline-red": "centerline",
   threshold: "endBar",
   end: "endBar",
+  "end-side": "endBar",
   tdz: "tdz",
   reil: "reil",
   approach: "approach",
@@ -265,6 +267,28 @@ const runwayLightFeatures = (
       }) as Coordinate2D;
       for (let i = 0; i < C.endBarLightCount; i += 1) {
         features.push(barLight(endBarCoord, i, C.endBarLightCount, "end", "red"));
+      }
+      for (const sideSign of [-1, 1]) {
+        for (let i = 0; i < C.endSideLightCount; i += 1) {
+          const longitudinal = -ftToM((i + 1) * C.endSideLightSpacingFt);
+          const lateral = sideSign * (halfWidthMeters + ftToM(C.endSideLightOffsetFt));
+          const center = coordinateFromVectorMeters({
+            end: thresholdEnd,
+            vector: vectorOut,
+            distance: longitudinal,
+          }) as Coordinate2D;
+          features.push(
+            feature(offsetCoordinate(center, vectorOut, lateral), {
+              role: "end-side",
+              color: "red",
+              runwayId: runway.id,
+              runwayEnd: end.ident,
+              side: sideSign < 0 ? "left" : "right",
+              lightIndex: i,
+              minBand: "near",
+            }),
+          );
+        }
       }
 
       // ALS approach centerline dots, extending outward from the threshold.

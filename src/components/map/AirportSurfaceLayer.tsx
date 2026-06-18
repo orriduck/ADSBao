@@ -61,9 +61,9 @@ const airportSurfaceStyle = (
       fillOpacity: 0,
       lineCap: "round",
       lineJoin: "round",
-      opacity: lightsActive ? (isLight ? 0.16 : 0.34) : isLight ? 0.28 : 0.68,
+      opacity: lightsActive ? (isLight ? 0.22 : 0.46) : isLight ? 0.28 : 0.68,
       stroke: true,
-      weight: lightsActive ? (isLight ? 1.2 : 2.2) : baseWeight,
+      weight: lightsActive ? (isLight ? 0.9 : 1.35) : baseWeight,
     };
   }
 
@@ -93,9 +93,9 @@ const airportSurfaceStyle = (
       fill: false,
       lineCap: "round",
       lineJoin: "round",
-      opacity: isLight ? 0.24 : 0.3,
+      opacity: isLight ? 0.3 : 0.54,
       stroke: true,
-      weight: isLight ? 1.8 : 3,
+      weight: isLight ? 1.15 : 1.05,
     };
   }
 
@@ -105,9 +105,9 @@ const airportSurfaceStyle = (
     fill: false,
     lineCap: "round",
     lineJoin: "round",
-    opacity: isLight ? 0.3 : 0.38,
+    opacity: isLight ? 0.34 : 0.58,
     stroke: true,
-    weight: isLight ? 2.4 : 4,
+    weight: isLight ? 1.25 : 1.15,
   };
 };
 
