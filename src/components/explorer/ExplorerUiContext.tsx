@@ -68,6 +68,24 @@ const initialUiState = {
   mapFollowsAircraft: true,
 };
 
+function getCurrentAirportSidebarMode(clientDeviceProfile) {
+  if (typeof window === "undefined") return "desktop";
+  return getAirportSidebarMode(
+    window.innerWidth,
+    clientDeviceProfile,
+    window.innerHeight,
+  );
+}
+
+function getInitialUiState(clientDeviceProfile) {
+  const sidebarMode = getCurrentAirportSidebarMode(clientDeviceProfile);
+  return {
+    ...initialUiState,
+    sidebarMode,
+    sidebarOpen: getAirportSidebarOpenForMode(sidebarMode),
+  };
+}
+
 function toggleValue(value) {
   return !value;
 }
@@ -372,7 +390,8 @@ export function ExplorerUiProvider({ children }) {
   });
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
-    initialUiState,
+    clientDeviceProfile,
+    getInitialUiState,
   );
   const {
     sidebarMode,
@@ -419,14 +438,36 @@ export function ExplorerUiProvider({ children }) {
     const syncSidebarMode = () => {
       dispatch({
         type: "setSidebarMode",
-        sidebarMode: getAirportSidebarMode(window.innerWidth, clientDeviceProfile),
+        sidebarMode: getCurrentAirportSidebarMode(clientDeviceProfile),
       });
     };
+    const syncSidebarModeWhenVisible = () => {
+      if (document.visibilityState === "visible") syncSidebarMode();
+    };
+    const visualViewport = window.visualViewport;
+    const screenOrientation = window.screen?.orientation;
 
     syncSidebarMode();
     window.addEventListener("resize", syncSidebarMode);
+    window.addEventListener("orientationchange", syncSidebarMode);
+    window.addEventListener("pageshow", syncSidebarMode);
+    window.addEventListener("focus", syncSidebarMode);
+    document.addEventListener("visibilitychange", syncSidebarModeWhenVisible);
+    visualViewport?.addEventListener("resize", syncSidebarMode);
+    screenOrientation?.addEventListener?.("change", syncSidebarMode);
 
-    return () => window.removeEventListener("resize", syncSidebarMode);
+    return () => {
+      window.removeEventListener("resize", syncSidebarMode);
+      window.removeEventListener("orientationchange", syncSidebarMode);
+      window.removeEventListener("pageshow", syncSidebarMode);
+      window.removeEventListener("focus", syncSidebarMode);
+      document.removeEventListener(
+        "visibilitychange",
+        syncSidebarModeWhenVisible,
+      );
+      visualViewport?.removeEventListener("resize", syncSidebarMode);
+      screenOrientation?.removeEventListener?.("change", syncSidebarMode);
+    };
   }, [clientDeviceProfile]);
 
   useEffect(() => {

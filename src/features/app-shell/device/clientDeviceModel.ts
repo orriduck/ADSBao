@@ -177,6 +177,25 @@ function normalizeSafeAreaInsets(
   };
 }
 
+function normalizeViewport(
+  viewport: ClientDeviceViewport | null | undefined,
+): ClientDeviceViewport | null {
+  const width = toFiniteNumber(viewport?.width);
+  const height = toFiniteNumber(viewport?.height);
+  if (width <= 0 || height <= 0) return null;
+  return { width, height };
+}
+
+export function resolveClientViewportSnapshot({
+  layoutViewport,
+  visualViewport,
+}: {
+  layoutViewport?: ClientDeviceViewport | null;
+  visualViewport?: ClientDeviceViewport | null;
+}): ClientDeviceViewport | null {
+  return normalizeViewport(layoutViewport) || normalizeViewport(visualViewport);
+}
+
 function resolveHasCamera({
   deviceClass,
   mediaDevices,
@@ -321,10 +340,13 @@ export function getClientDeviceSnapshot({
     viewport:
       typeof window === "undefined"
         ? null
-        : {
-            width: visualViewport?.width || window.innerWidth,
-            height: visualViewport?.height || window.innerHeight,
-          },
+        : resolveClientViewportSnapshot({
+            layoutViewport: {
+              width: window.innerWidth,
+              height: window.innerHeight,
+            },
+            visualViewport,
+          }),
     safeAreaInsets: includeSafeAreaInsets ? readClientSafeAreaInsets() : null,
   };
 }
