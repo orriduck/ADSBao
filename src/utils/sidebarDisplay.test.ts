@@ -4,7 +4,7 @@ import { getAirportSidebarMode } from "./sidebarDisplay";
 import { resolveClientDeviceProfile } from "@/features/app-shell/device/clientDeviceModel";
 
 {
-  const profile = resolveClientDeviceProfile({
+  const landscapeProfile = resolveClientDeviceProfile({
     userAgent:
       "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
     platform: "iPhone",
@@ -12,11 +12,12 @@ import { resolveClientDeviceProfile } from "@/features/app-shell/device/clientDe
     viewport: { width: 667, height: 375 },
   });
 
-  assert.equal(getAirportSidebarMode(667, profile), "desktop");
+  assert.equal(getAirportSidebarMode(667, landscapeProfile, 375), "desktop");
+  assert.equal(getAirportSidebarMode(393, landscapeProfile, 852), "mobile");
 }
 
 {
-  const profile = resolveClientDeviceProfile({
+  const portraitProfile = resolveClientDeviceProfile({
     userAgent:
       "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
     platform: "iPhone",
@@ -24,7 +25,8 @@ import { resolveClientDeviceProfile } from "@/features/app-shell/device/clientDe
     viewport: { width: 375, height: 667 },
   });
 
-  assert.equal(getAirportSidebarMode(375, profile), "mobile");
+  assert.equal(getAirportSidebarMode(375, portraitProfile, 667), "mobile");
+  assert.equal(getAirportSidebarMode(667, portraitProfile, 375), "desktop");
 }
 
 assert.equal(getAirportSidebarMode(767), "mobile");

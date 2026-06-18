@@ -3,7 +3,26 @@ import assert from "node:assert/strict";
 import {
   resolveClientDeviceLayoutProfile,
   resolveClientDeviceProfile,
+  resolveClientViewportSnapshot,
 } from "./clientDeviceModel";
+
+{
+  assert.deepEqual(
+    resolveClientViewportSnapshot({
+      layoutViewport: { width: 393, height: 852 },
+      visualViewport: { width: 852, height: 393 },
+    }),
+    { width: 393, height: 852 },
+  );
+
+  assert.deepEqual(
+    resolveClientViewportSnapshot({
+      layoutViewport: { width: 0, height: 0 },
+      visualViewport: { width: 852, height: 393 },
+    }),
+    { width: 852, height: 393 },
+  );
+}
 
 {
   const profile = resolveClientDeviceProfile({
