@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -150,6 +151,13 @@ func numericLogValue(value any) float64 {
 		return float64(v)
 	case float64:
 		return v
+	case string:
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			return f
+		}
+		return 0
+	case time.Duration:
+		return float64(v.Milliseconds())
 	default:
 		return 0
 	}
@@ -261,8 +269,8 @@ type betterStackLogEntry struct {
 	Result          string         `json:"result,omitempty"`
 	Status          string         `json:"status,omitempty"`
 	StatusClass     string         `json:"status.class,omitempty"`
-	DurationMS      float64        `json:"duration.ms,omitempty"`
-	DurationSeconds float64        `json:"duration.seconds,omitempty"`
+	DurationMS      float64        `json:"duration_ms,omitempty"`
+	DurationSeconds float64        `json:"duration_seconds,omitempty"`
 	URL             string         `json:"url,omitempty"`
 	QueryParams     string         `json:"query_params,omitempty"`
 	Error           string         `json:"error,omitempty"`

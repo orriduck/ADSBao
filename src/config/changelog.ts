@@ -51,6 +51,24 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
+    version: "v2.12.1",
+    kind: "patch",
+    title: {
+      en: "Better Stack log duration parsing fix",
+      zh: "Better Stack 日志 duration 解析修复",
+    },
+    summary: {
+      en: "Fixed Better Stack log tail duration column parsing by switching duration field names from dotted to underscore format.",
+      zh: "通过将 duration 字段名从点号格式改为下划线格式，修复 Better Stack 日志尾页 duration 列解析错误。",
+    },
+    highlights: [
+      {
+        en: "Duration JSON fields renamed from `duration.ms`/`duration.seconds` to `duration_ms`/`duration_seconds` for Better Stack parser compatibility",
+        zh: "duration JSON 字段从 `duration.ms`/`duration.seconds` 改为 `duration_ms`/`duration_seconds`，兼容 Better Stack 解析器",
+      },
+    ],
+  },
+  {
     version: "v2.11.0",
     kind: "feat",
     title: {
