@@ -69,7 +69,7 @@ airspace, runway, route, and map data as reference context only.
 ADSBao combines public aviation weather, ADS-B aircraft positions, airport
 directory data, map tiles, and route context behind one same-origin Railway Go
 service. The Go data-service serves the Vite SPA, `/api/**` routes, `/ws`, and
-New Relic telemetry from the same deployment. See
+Better Stack telemetry from the same deployment. See
 [docs/architecture.md](docs/architecture.md) for the current feature/API
 boundary conventions and deployment topology.
 
@@ -99,7 +99,7 @@ data-service origin.
   and navaid coverage.
 - **Runtime**: One Railway service built from the root `Dockerfile`. The Go
   binary serves the Vite `dist/` assets, same-origin APIs, WebSocket traffic,
-  health/debug endpoints, provider fallback, and New Relic telemetry.
+  health/debug endpoints, provider fallback, and Better Stack telemetry.
 - **Auth and feature flags**: Clerk identity with Postgres-backed user feature
   flags for gated provider behavior.
 
@@ -188,10 +188,11 @@ normally configure these variables:
 | `CLERK_API_BASE_URL` | Optional Clerk Backend API base URL override |
 | `VITE_ADSBAO_REALTIME_URL` | Optional override for the realtime WebSocket URL; production normally uses same-origin `/ws` |
 | `ADSBAO_REALTIME_AUTH_SECRET` | HMAC secret used by the Go service to authorize FlightAware realtime subscriptions |
-| `NEW_RELIC_LICENSE_KEY` | Optional New Relic ingest key for APM, custom metrics/events, Metric API, and Log API telemetry |
-| `NEW_RELIC_APP_NAME` | Optional New Relic app name. Defaults to `adsbao-data-service` |
-| `NEW_RELIC_METRICS_ENDPOINT` | Optional Metric API endpoint override for non-US New Relic accounts |
-| `NEW_RELIC_LOGS_ENDPOINT` | Optional Log API endpoint override for non-US New Relic accounts |
+| `BETTERSTACK_METRICS_SOURCE_TOKEN` | Optional Better Stack source token for backend custom metrics |
+| `BETTERSTACK_METRICS_ENDPOINT` | Optional Better Stack metrics source endpoint, usually `https://<metrics-source-host>/metrics` |
+| `BETTERSTACK_LOG_SOURCE_TOKEN` | Optional Better Stack source token for backend structured logs |
+| `BETTERSTACK_LOGS_ENDPOINT` | Optional Better Stack logs source endpoint, usually `https://<logs-source-host>` |
+| `BETTERSTACK_SERVICE_NAME` | Optional Better Stack service name. Defaults to `adsbao-data-service` |
 | `METRICS_REPORT_INTERVAL_MS` | Optional dynamic metrics flush interval for the data-service; defaults to `30000` |
 | `LOGS_REPORT_INTERVAL_MS` | Optional backend log flush interval for the data-service; defaults to `5000` |
 
@@ -263,11 +264,11 @@ ADSBao deploys to Railway as one service from the repository root. The root
 `Dockerfile` builds the Vite frontend, compiles `services/data-service`, copies
 `dist/` into the runtime image, and starts the Go binary. The service exposes
 `/health`, `/debug/channels`, `/api/**`, `/ws`, and the static SPA fallback.
-It pushes APM transactions, external provider custom events, business metrics,
-latency summaries, and backend logs to New Relic when `NEW_RELIC_LICENSE_KEY`
-is configured. Custom metric and log payloads are queryable by `app.name` and
-`adsbao.service`; avoid using `service.name` for ADSBao custom telemetry so New
-Relic does not synthesize duplicate OpenTelemetry service entities.
+It pushes HTTP, external provider, database, WebSocket, scheduler, and dynamic
+channel metrics plus structured backend logs to Better Stack when the
+`BETTERSTACK_*` source settings are configured. Custom metric and log payloads
+are queryable by `service.name`, `adsbao.service`, and low-cardinality
+dimensions such as route, provider, operation, status class, and channel type.
 
 Railway setup:
 
@@ -277,10 +278,8 @@ Railway setup:
 4. Generate a public Railway domain for the service.
 5. Set `ADSBAO_REALTIME_AUTH_SECRET` when FlightAware realtime subscriptions
    are enabled.
-6. Set `NEW_RELIC_LICENSE_KEY` on Railway to enable APM, external provider
-   metrics/events, latency, and backend log ingest.
-7. Apply `infra/newrelic` with a New Relic user API key and account ID to manage
-   the ADSBao NRQL alert policy and conditions.
+6. Set the Better Stack metrics and logs source token/endpoint variables on
+   Railway to enable backend metric and log ingest.
 
 Railway handles production deployment through its GitHub integration. The
 service should be configured with root directory `.`, config file

@@ -12,12 +12,10 @@ import (
 	"time"
 )
 
-const defaultNewRelicLogsEndpoint = "https://log-api.newrelic.com/log/v1"
-
-type NewRelicLogOptions struct {
-	LicenseKey  string
+type BetterStackLogOptions struct {
+	SourceToken string
 	Endpoint    string
-	AppName     string
+	ServiceName string
 	Environment string
 	Source      io.Writer
 	HTTPClient  *http.Client
@@ -27,10 +25,10 @@ type NewRelicLogOptions struct {
 
 type LogForwarder struct {
 	mu          sync.Mutex
-	entries     []newRelicLogEntry
-	licenseKey  string
+	entries     []betterStackLogEntry
+	sourceToken string
 	endpoint    string
-	appName     string
+	serviceName string
 	environment string
 	source      io.Writer
 	client      *http.Client
@@ -38,14 +36,10 @@ type LogForwarder struct {
 	maxBatch    int
 }
 
-func NewRelicLogForwarder(options NewRelicLogOptions) *LogForwarder {
-	endpoint := strings.TrimSpace(options.Endpoint)
-	if endpoint == "" {
-		endpoint = defaultNewRelicLogsEndpoint
-	}
-	appName := strings.TrimSpace(options.AppName)
-	if appName == "" {
-		appName = "adsbao-data-service"
+func NewBetterStackLogForwarder(options BetterStackLogOptions) *LogForwarder {
+	serviceName := strings.TrimSpace(options.ServiceName)
+	if serviceName == "" {
+		serviceName = "adsbao-data-service"
 	}
 	environment := strings.TrimSpace(options.Environment)
 	if environment == "" {
@@ -64,9 +58,9 @@ func NewRelicLogForwarder(options NewRelicLogOptions) *LogForwarder {
 		maxBatch = 100
 	}
 	return &LogForwarder{
-		licenseKey:  strings.TrimSpace(options.LicenseKey),
-		endpoint:    endpoint,
-		appName:     appName,
+		sourceToken: strings.TrimSpace(options.SourceToken),
+		endpoint:    betterStackLogsEndpoint(options.Endpoint),
+		serviceName: serviceName,
 		environment: environment,
 		source:      options.Source,
 		client:      client,
@@ -80,32 +74,97 @@ func (f *LogForwarder) Write(p []byte) (int, error) {
 		_, _ = f.source.Write(p)
 	}
 	message := strings.TrimSpace(string(p))
-	if message == "" || f.licenseKey == "" {
+	if message == "" || f.sourceToken == "" || f.endpoint == "" {
 		return len(p), nil
 	}
-	f.enqueue(newRelicLogEntry{
-		Timestamp: f.now().UnixMilli(),
-		Message:   truncateLogValue(message),
-		Level:     inferLogLevel(message),
-	})
+	f.enqueue(f.entry(inferLogLevel(message), message, nil))
 	return len(p), nil
+}
+
+func (f *LogForwarder) entry(level, message string, attributes map[string]any) betterStackLogEntry {
+	entry := betterStackLogEntry{
+		Timestamp:     f.now().UTC().Format(time.RFC3339Nano),
+		Message:       truncateLogValue(message),
+		Level:         level,
+		ServiceName:   f.serviceName,
+		ADSBaoService: f.serviceName,
+		Environment:   f.environment,
+	}
+	for key, value := range sanitizeLogAttributes(attributes) {
+		switch key {
+		case "event.name":
+			entry.EventName = fmt.Sprint(value)
+		case "provider":
+			entry.Provider = fmt.Sprint(value)
+		case "endpoint":
+			entry.Endpoint = fmt.Sprint(value)
+		case "result":
+			entry.Result = fmt.Sprint(value)
+		case "status", "status_code":
+			entry.Status = fmt.Sprint(value)
+		case "status.class", "status_class":
+			entry.StatusClass = fmt.Sprint(value)
+		case "duration.ms", "duration_ms":
+			entry.DurationMS = numericLogValue(value)
+		case "duration.seconds", "duration_seconds":
+			entry.DurationSeconds = numericLogValue(value)
+		case "url":
+			entry.URL = fmt.Sprint(value)
+		case "query_params":
+			entry.QueryParams = fmt.Sprint(value)
+		case "error":
+			entry.Error = fmt.Sprint(value)
+		default:
+			if entry.Attributes == nil {
+				entry.Attributes = map[string]any{}
+			}
+			entry.Attributes[key] = value
+		}
+	}
+	return entry
+}
+
+func numericLogValue(value any) float64 {
+	switch v := value.(type) {
+	case int:
+		return float64(v)
+	case int8:
+		return float64(v)
+	case int16:
+		return float64(v)
+	case int32:
+		return float64(v)
+	case int64:
+		return float64(v)
+	case uint:
+		return float64(v)
+	case uint8:
+		return float64(v)
+	case uint16:
+		return float64(v)
+	case uint32:
+		return float64(v)
+	case uint64:
+		return float64(v)
+	case float32:
+		return float64(v)
+	case float64:
+		return v
+	default:
+		return 0
+	}
 }
 
 func (f *LogForwarder) RecordLog(level, message string, attributes map[string]any) {
 	message = strings.TrimSpace(message)
-	if message == "" || f.licenseKey == "" {
+	if message == "" || f.sourceToken == "" || f.endpoint == "" {
 		return
 	}
-	f.enqueue(newRelicLogEntry{
-		Timestamp:  f.now().UnixMilli(),
-		Message:    truncateLogValue(message),
-		Level:      normalizeLogLevel(level, message),
-		Attributes: sanitizeLogAttributes(attributes),
-	})
+	f.enqueue(f.entry(normalizeLogLevel(level, message), message, attributes))
 }
 
 func (f *LogForwarder) Run(ctx context.Context, interval time.Duration) {
-	if f.licenseKey == "" {
+	if f.sourceToken == "" || f.endpoint == "" {
 		return
 	}
 	if interval <= 0 {
@@ -119,7 +178,7 @@ func (f *LogForwarder) Run(ctx context.Context, interval time.Duration) {
 			return
 		case <-ticker.C:
 			if err := f.Flush(ctx); err != nil && f.source != nil {
-				_, _ = fmt.Fprintf(f.source, "new relic logs flush failed: %v\n", err)
+				_, _ = fmt.Fprintf(f.source, "better stack logs flush failed: %v\n", err)
 			}
 		}
 	}
@@ -127,20 +186,10 @@ func (f *LogForwarder) Run(ctx context.Context, interval time.Duration) {
 
 func (f *LogForwarder) Flush(ctx context.Context) error {
 	entries := f.drain()
-	if len(entries) == 0 || f.licenseKey == "" {
+	if len(entries) == 0 || f.sourceToken == "" || f.endpoint == "" {
 		return nil
 	}
-	body, err := json.Marshal([]newRelicLogPayload{{
-		Common: newRelicLogCommon{
-			Attributes: map[string]string{
-				"app.name":       f.appName,
-				"adsbao.service": f.appName,
-				"environment":    f.environment,
-				"logtype":        f.appName,
-			},
-		},
-		Logs: entries,
-	}})
+	body, err := json.Marshal(entries)
 	if err != nil {
 		f.requeue(entries)
 		return err
@@ -151,7 +200,7 @@ func (f *LogForwarder) Flush(ctx context.Context) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Api-Key", f.licenseKey)
+	req.Header.Set("Authorization", "Bearer "+f.sourceToken)
 	resp, err := f.client.Do(req)
 	if err != nil {
 		f.requeue(entries)
@@ -161,7 +210,7 @@ func (f *LogForwarder) Flush(ctx context.Context) error {
 	if resp.StatusCode != http.StatusAccepted {
 		responseBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 		f.requeue(entries)
-		return fmt.Errorf("new relic logs status %d: %s", resp.StatusCode, strings.TrimSpace(string(responseBody)))
+		return fmt.Errorf("better stack logs status %d: %s", resp.StatusCode, strings.TrimSpace(string(responseBody)))
 	}
 	return nil
 }
@@ -170,7 +219,7 @@ func (f *LogForwarder) Shutdown(ctx context.Context) error {
 	return f.Flush(ctx)
 }
 
-func (f *LogForwarder) enqueue(entry newRelicLogEntry) {
+func (f *LogForwarder) enqueue(entry betterStackLogEntry) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if len(f.entries) >= f.maxBatch {
@@ -181,7 +230,7 @@ func (f *LogForwarder) enqueue(entry newRelicLogEntry) {
 	f.entries = append(f.entries, entry)
 }
 
-func (f *LogForwarder) drain() []newRelicLogEntry {
+func (f *LogForwarder) drain() []betterStackLogEntry {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	entries := f.entries
@@ -189,7 +238,7 @@ func (f *LogForwarder) drain() []newRelicLogEntry {
 	return entries
 }
 
-func (f *LogForwarder) requeue(entries []newRelicLogEntry) {
+func (f *LogForwarder) requeue(entries []betterStackLogEntry) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	combined := append(entries, f.entries...)
@@ -199,20 +248,25 @@ func (f *LogForwarder) requeue(entries []newRelicLogEntry) {
 	f.entries = combined
 }
 
-type newRelicLogPayload struct {
-	Common newRelicLogCommon  `json:"common"`
-	Logs   []newRelicLogEntry `json:"logs"`
-}
-
-type newRelicLogCommon struct {
-	Attributes map[string]string `json:"attributes"`
-}
-
-type newRelicLogEntry struct {
-	Timestamp  int64          `json:"timestamp"`
-	Message    string         `json:"message"`
-	Level      string         `json:"level"`
-	Attributes map[string]any `json:"attributes,omitempty"`
+type betterStackLogEntry struct {
+	Timestamp       string         `json:"dt"`
+	Message         string         `json:"message"`
+	Level           string         `json:"level"`
+	ServiceName     string         `json:"service.name"`
+	ADSBaoService   string         `json:"adsbao.service"`
+	Environment     string         `json:"environment"`
+	EventName       string         `json:"event.name,omitempty"`
+	Provider        string         `json:"provider,omitempty"`
+	Endpoint        string         `json:"endpoint,omitempty"`
+	Result          string         `json:"result,omitempty"`
+	Status          string         `json:"status,omitempty"`
+	StatusClass     string         `json:"status.class,omitempty"`
+	DurationMS      float64        `json:"duration.ms,omitempty"`
+	DurationSeconds float64        `json:"duration.seconds,omitempty"`
+	URL             string         `json:"url,omitempty"`
+	QueryParams     string         `json:"query_params,omitempty"`
+	Error           string         `json:"error,omitempty"`
+	Attributes      map[string]any `json:"attributes,omitempty"`
 }
 
 func inferLogLevel(message string) string {
@@ -272,4 +326,15 @@ func truncateLogValue(value string) string {
 		return value
 	}
 	return value[:maxLogValueBytes]
+}
+
+func betterStackLogsEndpoint(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	if !strings.HasPrefix(raw, "http://") && !strings.HasPrefix(raw, "https://") {
+		raw = "https://" + raw
+	}
+	return raw
 }

@@ -18,8 +18,6 @@ import (
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
 
-const defaultNewRelicEndpoint = "https://metric-api.newrelic.com/metric/v1"
-
 var dynamicChannelTypes = []string{
 	string(realtime.ChannelAircraft),
 	string(realtime.ChannelCallsign),
@@ -52,18 +50,12 @@ type LogSink interface {
 	RecordLog(level, message string, attributes map[string]any)
 }
 
-type APMReporter interface {
-	RecordCustomMetric(name string, value float64)
-	RecordCustomEvent(eventType string, params map[string]interface{})
-}
-
 type Option func(*Metrics)
 
 type Metrics struct {
 	mu                   sync.Mutex
 	sink                 Sink
 	logSink              LogSink
-	apmReporter          APMReporter
 	wsConnectionsCurrent int
 }
 
@@ -90,14 +82,6 @@ func WithLogSink(sink LogSink) Option {
 	return func(m *Metrics) {
 		if sink != nil {
 			m.logSink = sink
-		}
-	}
-}
-
-func WithAPMReporter(reporter APMReporter) Option {
-	return func(m *Metrics) {
-		if reporter != nil {
-			m.apmReporter = reporter
 		}
 	}
 }
@@ -188,7 +172,31 @@ func (m *Metrics) RecordExternalRequest(input realtime.ExternalRequestMetricInpu
 		m.summary("adsbao.external_request.duration.seconds", float64(input.DurationMS)/1000, labels)
 	}
 	m.recordExternalRequestLog(input, status, class)
-	m.recordExternalRequestAPM(input, status, class)
+}
+
+func (m *Metrics) RecordHTTPRequest(method, route string, status int, durationMS int64) {
+	statusText, class := classifyStatus(status, "")
+	labels := attrs(
+		"method", normalizeHTTPMethod(method),
+		"route", normalizeRoute(route),
+		"status", normalize(statusText),
+		"status_class", normalize(class),
+	)
+	m.count("adsbao.http.requests", labels)
+	if durationMS >= 0 {
+		m.summary("adsbao.http.request.duration.seconds", float64(durationMS)/1000, labels)
+	}
+}
+
+func (m *Metrics) RecordDBTransaction(operation, result string, durationMS int64) {
+	labels := attrs(
+		"operation", normalize(operation),
+		"result", normalize(result),
+	)
+	m.count("adsbao.db.transactions", labels)
+	if durationMS >= 0 {
+		m.summary("adsbao.db.transaction.duration.seconds", float64(durationMS)/1000, labels)
+	}
 }
 
 func (m *Metrics) RecordDynamic(uptimeSec float64, channels []realtime.DebugChannel) {
@@ -388,64 +396,47 @@ func externalRequestLogLevel(result, class string) string {
 	}
 }
 
-func (m *Metrics) recordExternalRequestAPM(input realtime.ExternalRequestMetricInput, status, class string) {
-	if m.apmReporter == nil {
-		return
-	}
-	durationSeconds := float64(input.DurationMS) / 1000
-	m.apmReporter.RecordCustomMetric("ExternalRequest/Count", 1)
-	if input.DurationMS >= 0 {
-		m.apmReporter.RecordCustomMetric("ExternalRequest/DurationSeconds", durationSeconds)
-	}
-	m.apmReporter.RecordCustomEvent("ADSBaoExternalRequest", map[string]interface{}{
-		"provider":        normalize(input.Provider),
-		"endpoint":        normalize(input.Endpoint),
-		"result":          normalize(input.Result),
-		"status":          normalize(status),
-		"statusClass":     normalize(class),
-		"durationMs":      input.DurationMS,
-		"durationSeconds": durationSeconds,
-	})
-}
-
 type noopSink struct{}
 
 func (noopSink) Record(Point)                   {}
 func (noopSink) Flush(context.Context) error    { return nil }
 func (noopSink) Shutdown(context.Context) error { return nil }
 
-type NewRelicOptions struct {
-	LicenseKey string
-	Endpoint   string
-	AppName    string
-	HTTPClient *http.Client
-	Now        func() time.Time
-	MaxBatch   int
+type BetterStackOptions struct {
+	SourceToken string
+	Endpoint    string
+	ServiceName string
+	Environment string
+	HTTPClient  *http.Client
+	Now         func() time.Time
+	MaxBatch    int
 }
 
-type newRelicSink struct {
-	mu         sync.Mutex
-	points     []Point
-	licenseKey string
-	endpoint   string
-	appName    string
-	client     *http.Client
-	now        func() time.Time
-	maxBatch   int
+type betterStackSink struct {
+	mu          sync.Mutex
+	points      []Point
+	sourceToken string
+	endpoint    string
+	serviceName string
+	environment string
+	client      *http.Client
+	now         func() time.Time
+	maxBatch    int
 }
 
-func NewRelicSink(options NewRelicOptions) Sink {
-	licenseKey := strings.TrimSpace(options.LicenseKey)
-	if licenseKey == "" {
+func BetterStackSink(options BetterStackOptions) Sink {
+	sourceToken := strings.TrimSpace(options.SourceToken)
+	endpoint := betterStackMetricsEndpoint(options.Endpoint)
+	if sourceToken == "" || endpoint == "" {
 		return noopSink{}
 	}
-	endpoint := strings.TrimSpace(options.Endpoint)
-	if endpoint == "" {
-		endpoint = defaultNewRelicEndpoint
+	serviceName := strings.TrimSpace(options.ServiceName)
+	if serviceName == "" {
+		serviceName = "adsbao-data-service"
 	}
-	appName := strings.TrimSpace(options.AppName)
-	if appName == "" {
-		appName = "adsbao-data-service"
+	environment := strings.TrimSpace(options.Environment)
+	if environment == "" {
+		environment = "production"
 	}
 	client := options.HTTPClient
 	if client == nil {
@@ -459,17 +450,18 @@ func NewRelicSink(options NewRelicOptions) Sink {
 	if maxBatch <= 0 {
 		maxBatch = 1000
 	}
-	return &newRelicSink{
-		licenseKey: licenseKey,
-		endpoint:   endpoint,
-		appName:    appName,
-		client:     client,
-		now:        now,
-		maxBatch:   maxBatch,
+	return &betterStackSink{
+		sourceToken: sourceToken,
+		endpoint:    endpoint,
+		serviceName: serviceName,
+		environment: environment,
+		client:      client,
+		now:         now,
+		maxBatch:    maxBatch,
 	}
 }
 
-func (s *newRelicSink) Record(point Point) {
+func (s *betterStackSink) Record(point Point) {
 	if point.Name == "" || point.Kind == "" {
 		return
 	}
@@ -484,21 +476,12 @@ func (s *newRelicSink) Record(point Point) {
 	s.points = append(s.points, point)
 }
 
-func (s *newRelicSink) Flush(ctx context.Context) error {
+func (s *betterStackSink) Flush(ctx context.Context) error {
 	points := s.drain()
 	if len(points) == 0 {
 		return nil
 	}
-	body, err := json.Marshal([]newRelicPayload{{
-		Common: newRelicCommon{
-			Timestamp: s.now().UnixMilli(),
-			Attributes: map[string]string{
-				"app.name":       s.appName,
-				"adsbao.service": s.appName,
-			},
-		},
-		Metrics: newRelicMetrics(points),
-	}})
+	body, err := json.Marshal(s.betterStackMetrics(points))
 	if err != nil {
 		s.requeue(points)
 		return err
@@ -509,7 +492,7 @@ func (s *newRelicSink) Flush(ctx context.Context) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Api-Key", s.licenseKey)
+	req.Header.Set("Authorization", "Bearer "+s.sourceToken)
 	resp, err := s.client.Do(req)
 	if err != nil {
 		s.requeue(points)
@@ -519,16 +502,16 @@ func (s *newRelicSink) Flush(ctx context.Context) error {
 	if resp.StatusCode != http.StatusAccepted {
 		responseBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 		s.requeue(points)
-		return fmt.Errorf("new relic metrics status %d: %s", resp.StatusCode, strings.TrimSpace(string(responseBody)))
+		return fmt.Errorf("better stack metrics status %d: %s", resp.StatusCode, strings.TrimSpace(string(responseBody)))
 	}
 	return nil
 }
 
-func (s *newRelicSink) Shutdown(ctx context.Context) error {
+func (s *betterStackSink) Shutdown(ctx context.Context) error {
 	return s.Flush(ctx)
 }
 
-func (s *newRelicSink) drain() []Point {
+func (s *betterStackSink) drain() []Point {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	points := s.points
@@ -536,7 +519,7 @@ func (s *newRelicSink) drain() []Point {
 	return points
 }
 
-func (s *newRelicSink) requeue(points []Point) {
+func (s *betterStackSink) requeue(points []Point) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	combined := append(points, s.points...)
@@ -546,51 +529,90 @@ func (s *newRelicSink) requeue(points []Point) {
 	s.points = combined
 }
 
-type newRelicPayload struct {
-	Common  newRelicCommon   `json:"common"`
-	Metrics []newRelicMetric `json:"metrics"`
+type betterStackMetric struct {
+	Name      string                `json:"name"`
+	Dt        string                `json:"dt"`
+	Tags      map[string]string     `json:"tags,omitempty"`
+	Counter   *betterStackValue     `json:"counter,omitempty"`
+	Gauge     *betterStackValue     `json:"gauge,omitempty"`
+	Histogram *betterStackHistogram `json:"histogram,omitempty"`
 }
 
-type newRelicCommon struct {
-	Timestamp  int64             `json:"timestamp"`
-	Attributes map[string]string `json:"attributes"`
+type betterStackValue struct {
+	Value float64 `json:"value"`
 }
 
-type newRelicMetric struct {
-	Name       string            `json:"name"`
-	Type       Kind              `json:"type"`
-	Value      any               `json:"value"`
-	IntervalMS int64             `json:"interval.ms,omitempty"`
-	Attributes map[string]string `json:"attributes,omitempty"`
+type betterStackHistogram struct {
+	Count   int                          `json:"count"`
+	Sum     float64                      `json:"sum"`
+	Buckets []betterStackHistogramBucket `json:"buckets"`
 }
 
-func newRelicMetrics(points []Point) []newRelicMetric {
-	out := make([]newRelicMetric, 0, len(points))
+type betterStackHistogramBucket struct {
+	UpperLimit float64 `json:"upper_limit"`
+	Count      int     `json:"count"`
+}
+
+func (s *betterStackSink) betterStackMetrics(points []Point) []betterStackMetric {
+	out := make([]betterStackMetric, 0, len(points))
+	dt := s.now().UTC().Format(time.RFC3339Nano)
 	for _, point := range points {
-		metric := newRelicMetric{
-			Name:       point.Name,
-			Type:       point.Kind,
-			Attributes: point.Attributes,
+		metric := betterStackMetric{
+			Name: point.Name,
+			Dt:   dt,
+			Tags: s.metricTags(point.Attributes),
 		}
 		switch point.Kind {
 		case Count:
-			metric.Value = point.Value
-			metric.IntervalMS = 1000
+			metric.Counter = &betterStackValue{Value: point.Value}
 		case Summary:
-			metric.Value = map[string]float64{
-				"count": 1,
-				"sum":   point.Value,
-				"min":   point.Value,
-				"max":   point.Value,
-			}
-			metric.IntervalMS = 1000
+			metric.Histogram = histogramObservation(point.Name, point.Value)
 		default:
-			metric.Type = Gauge
-			metric.Value = point.Value
+			metric.Gauge = &betterStackValue{Value: point.Value}
 		}
 		out = append(out, metric)
 	}
 	return out
+}
+
+func (s *betterStackSink) metricTags(attrs map[string]string) map[string]string {
+	tags := map[string]string{
+		"service.name":   s.serviceName,
+		"adsbao.service": s.serviceName,
+		"environment":    s.environment,
+	}
+	for key, value := range attrs {
+		if strings.TrimSpace(key) != "" && strings.TrimSpace(value) != "" {
+			tags[key] = value
+		}
+	}
+	return tags
+}
+
+func histogramObservation(name string, value float64) *betterStackHistogram {
+	limits := histogramLimits(name, value)
+	buckets := make([]betterStackHistogramBucket, 0, len(limits))
+	for _, limit := range limits {
+		count := 0
+		if value <= limit {
+			count = 1
+		}
+		buckets = append(buckets, betterStackHistogramBucket{UpperLimit: limit, Count: count})
+	}
+	return &betterStackHistogram{Count: 1, Sum: value, Buckets: buckets}
+}
+
+func histogramLimits(name string, value float64) []float64 {
+	var limits []float64
+	if strings.Contains(name, ".bytes") {
+		limits = []float64{64, 256, 1024, 4096, 16384, 65536, 262144, 1048576}
+	} else {
+		limits = []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60}
+	}
+	if value > limits[len(limits)-1] {
+		limits = append(limits, value)
+	}
+	return limits
 }
 
 func attrs(pairs ...string) map[string]string {
@@ -660,6 +682,25 @@ func normalize(value any) string {
 	return out
 }
 
+func normalizeHTTPMethod(value string) string {
+	value = strings.ToUpper(strings.TrimSpace(value))
+	if value == "" {
+		return "UNKNOWN"
+	}
+	return normalize(value)
+}
+
+func normalizeRoute(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "unknown"
+	}
+	if len(value) > 120 {
+		value = value[:120]
+	}
+	return value
+}
+
 func normalizeMessageType(value string) string {
 	switch value {
 	case "aircraft:update", "channel:error", "connection:ready", "error", "invalid", "ping", "pong", "route:update", "subscribe", "subscribe:error", "subscribed:ready", "subscribed:removed", "unsubscribe":
@@ -667,4 +708,25 @@ func normalizeMessageType(value string) string {
 	default:
 		return "unknown"
 	}
+}
+
+func betterStackMetricsEndpoint(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	if !strings.HasPrefix(raw, "http://") && !strings.HasPrefix(raw, "https://") {
+		raw = "https://" + raw
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Host == "" {
+		return ""
+	}
+	path := strings.TrimRight(parsed.Path, "/")
+	if path == "" {
+		parsed.Path = "/metrics"
+	} else {
+		parsed.Path = path
+	}
+	return parsed.String()
 }

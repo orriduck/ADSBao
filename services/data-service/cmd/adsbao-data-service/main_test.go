@@ -1,10 +1,93 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"testing"
+	"time"
+
+	"github.com/adsbao/adsbao/services/data-service/internal/metrics"
 )
+
+type mainRecordingSink struct {
+	points []metrics.Point
+}
+
+func (s *mainRecordingSink) Record(point metrics.Point) {
+	s.points = append(s.points, point)
+}
+
+func (s *mainRecordingSink) Flush(context.Context) error {
+	return nil
+}
+
+func (s *mainRecordingSink) Shutdown(context.Context) error {
+	return nil
+}
+
+func TestInstrumentHTTPHandlerRecordsRequestMetrics(t *testing.T) {
+	sink := &mainRecordingSink{}
+	registry := metrics.New(metrics.WithSink(sink))
+	handler := instrumentHTTPHandler(registry, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Millisecond)
+		w.WriteHeader(http.StatusTeapot)
+	}))
+
+	req := &http.Request{
+		Method: http.MethodPost,
+		URL:    &url.URL{Path: "/api/search"},
+	}
+	handler.ServeHTTP(noopResponseWriter{}, req)
+
+	if !hasMetricPoint(sink.points, "adsbao.http.requests", metrics.Count, map[string]string{
+		"method":       "POST",
+		"route":        "/api/*",
+		"status":       "418",
+		"status_class": "4xx",
+	}) {
+		t.Fatalf("missing http request count in %#v", sink.points)
+	}
+	if !hasMetricPoint(sink.points, "adsbao.http.request.duration.seconds", metrics.Summary, map[string]string{
+		"method":       "POST",
+		"route":        "/api/*",
+		"status":       "418",
+		"status_class": "4xx",
+	}) {
+		t.Fatalf("missing http request duration in %#v", sink.points)
+	}
+}
+
+type noopResponseWriter struct{}
+
+func (noopResponseWriter) Header() http.Header {
+	return http.Header{}
+}
+
+func (noopResponseWriter) Write(p []byte) (int, error) {
+	return len(p), nil
+}
+
+func (noopResponseWriter) WriteHeader(int) {}
+
+func hasMetricPoint(points []metrics.Point, name string, kind metrics.Kind, attrs map[string]string) bool {
+	for _, point := range points {
+		if point.Name != name || point.Kind != kind {
+			continue
+		}
+		matches := true
+		for key, value := range attrs {
+			if point.Attributes[key] != value {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			return true
+		}
+	}
+	return false
+}
 
 func TestRouteNameKnownEndpoints(t *testing.T) {
 	tests := []struct {

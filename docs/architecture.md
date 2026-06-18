@@ -23,8 +23,8 @@ binary. The Go service owns:
 - `/api/**` same-origin routes.
 - `/ws` realtime WebSocket traffic.
 - `/health` and `/debug/channels`.
-- New Relic APM, custom metrics/events, Metric API, and Log API telemetry when
-  `NEW_RELIC_LICENSE_KEY` is configured.
+- Better Stack custom metrics and structured backend logs when the
+  `BETTERSTACK_*` source token and endpoint variables are configured.
 
 Production browser traffic should stay same-origin. `VITE_ADSBAO_REALTIME_URL`
 is only an override for split local development or temporary external testing.
@@ -66,9 +66,9 @@ reads return no saved settings, writes return `401`, and route feedback returns
 High-frequency aircraft positions, tracked-aircraft updates, traffic around a
 current map center, and callsign route labels are served through the Go
 WebSocket backend under `services/data-service`. It shares one polling loop per
-active channel, applies provider fallback/backoff centrally, and emits structured
-New Relic telemetry for external provider calls, scheduler activity, WebSocket
-messages, and active channel gauges.
+active channel, applies provider fallback/backoff centrally, and emits Better
+Stack metrics/logs for HTTP requests, external provider calls, database
+operations, scheduler activity, WebSocket messages, and active channel gauges.
 
 Realtime channel keys encode the polling target:
 

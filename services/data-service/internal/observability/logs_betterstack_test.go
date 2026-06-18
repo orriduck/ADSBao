@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
-func TestNewRelicLogForwarderWritesSourceAndPostsStructuredLogs(t *testing.T) {
+func TestBetterStackLogForwarderWritesSourceAndPostsStructuredLogs(t *testing.T) {
 	var source bytes.Buffer
-	var gotAPIKey string
-	var gotPayload []newRelicLogPayload
+	var gotAuth string
+	var gotPayload []betterStackLogEntry
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotAPIKey = r.Header.Get("Api-Key")
+		gotAuth = r.Header.Get("Authorization")
 		if r.Method != http.MethodPost {
 			t.Fatalf("method = %s", r.Method)
 		}
@@ -30,10 +30,10 @@ func TestNewRelicLogForwarderWritesSourceAndPostsStructuredLogs(t *testing.T) {
 	}))
 	defer server.Close()
 
-	forwarder := NewRelicLogForwarder(NewRelicLogOptions{
-		LicenseKey:  "test-license",
+	forwarder := NewBetterStackLogForwarder(BetterStackLogOptions{
+		SourceToken: "test-source-token",
 		Endpoint:    server.URL,
-		AppName:     "adsbao-test",
+		ServiceName: "adsbao-test",
 		Environment: "production",
 		Source:      &source,
 		Now: func() time.Time {
@@ -51,30 +51,25 @@ func TestNewRelicLogForwarderWritesSourceAndPostsStructuredLogs(t *testing.T) {
 	if source.String() != "metrics flush failed: boom\n" {
 		t.Fatalf("source output = %q", source.String())
 	}
-	if gotAPIKey != "test-license" {
-		t.Fatalf("api key = %q", gotAPIKey)
+	if gotAuth != "Bearer test-source-token" {
+		t.Fatalf("authorization = %q", gotAuth)
 	}
-	if len(gotPayload) != 1 || len(gotPayload[0].Logs) != 1 {
+	if len(gotPayload) != 1 {
 		t.Fatalf("payload = %#v", gotPayload)
 	}
-	attrs := gotPayload[0].Common.Attributes
-	if attrs["app.name"] != "adsbao-test" ||
-		attrs["adsbao.service"] != "adsbao-test" ||
-		attrs["service.name"] != "" ||
-		attrs["environment"] != "production" ||
-		attrs["logtype"] != "adsbao-test" {
-		t.Fatalf("common attrs = %#v", attrs)
-	}
-	log := gotPayload[0].Logs[0]
-	if log.Timestamp != 1710000000123 ||
+	log := gotPayload[0]
+	if log.Timestamp != "2024-03-09T16:00:00.123Z" ||
 		log.Message != "metrics flush failed: boom" ||
-		log.Level != "error" {
+		log.Level != "error" ||
+		log.ServiceName != "adsbao-test" ||
+		log.ADSBaoService != "adsbao-test" ||
+		log.Environment != "production" {
 		t.Fatalf("log = %#v", log)
 	}
 }
 
-func TestNewRelicLogForwarderPostsStructuredAttributes(t *testing.T) {
-	var gotPayload []newRelicLogPayload
+func TestBetterStackLogForwarderPostsStructuredAttributes(t *testing.T) {
+	var gotPayload []betterStackLogEntry
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewDecoder(r.Body).Decode(&gotPayload); err != nil {
 			t.Fatalf("decode payload: %v", err)
@@ -83,10 +78,10 @@ func TestNewRelicLogForwarderPostsStructuredAttributes(t *testing.T) {
 	}))
 	defer server.Close()
 
-	forwarder := NewRelicLogForwarder(NewRelicLogOptions{
-		LicenseKey: "test-license",
-		Endpoint:   server.URL,
-		AppName:    "adsbao-test",
+	forwarder := NewBetterStackLogForwarder(BetterStackLogOptions{
+		SourceToken: "test-source-token",
+		Endpoint:    server.URL,
+		ServiceName: "adsbao-test",
 		Now: func() time.Time {
 			return time.UnixMilli(1710000000456)
 		},
@@ -102,24 +97,24 @@ func TestNewRelicLogForwarderPostsStructuredAttributes(t *testing.T) {
 		t.Fatalf("flush: %v", err)
 	}
 
-	if len(gotPayload) != 1 || len(gotPayload[0].Logs) != 1 {
+	if len(gotPayload) != 1 {
 		t.Fatalf("payload = %#v", gotPayload)
 	}
-	log := gotPayload[0].Logs[0]
-	if log.Timestamp != 1710000000456 ||
+	log := gotPayload[0]
+	if log.Timestamp != "2024-03-09T16:00:00.456Z" ||
 		log.Message != "external_request_done" ||
 		log.Level != "warn" {
 		t.Fatalf("log = %#v", log)
 	}
-	if log.Attributes["provider"] != "adsb.lol" ||
-		log.Attributes["endpoint"] != "positions" ||
-		log.Attributes["status"] != "429" ||
-		log.Attributes["duration.ms"] != float64(982) {
-		t.Fatalf("attributes = %#v", log.Attributes)
+	if log.Provider != "adsb.lol" ||
+		log.Endpoint != "positions" ||
+		log.Status != "429" ||
+		log.DurationMS != float64(982) {
+		t.Fatalf("log attributes = %#v", log)
 	}
 }
 
-func TestNewRelicLogForwarderRequeuesOnFailedFlush(t *testing.T) {
+func TestBetterStackLogForwarderRequeuesOnFailedFlush(t *testing.T) {
 	var attempts int
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		attempts++
@@ -131,18 +126,18 @@ func TestNewRelicLogForwarderRequeuesOnFailedFlush(t *testing.T) {
 	}))
 	defer server.Close()
 
-	forwarder := NewRelicLogForwarder(NewRelicLogOptions{
-		LicenseKey: "test-license",
-		Endpoint:   server.URL,
-		AppName:    "adsbao-test",
-		Source:     &bytes.Buffer{},
+	forwarder := NewBetterStackLogForwarder(BetterStackLogOptions{
+		SourceToken: "test-source-token",
+		Endpoint:    server.URL,
+		ServiceName: "adsbao-test",
+		Source:      &bytes.Buffer{},
 	})
 
 	if _, err := forwarder.Write([]byte("server failed: listen tcp\n")); err != nil {
 		t.Fatalf("write: %v", err)
 	}
 	err := forwarder.Flush(context.Background())
-	if err == nil || !strings.Contains(err.Error(), "new relic logs status 503") {
+	if err == nil || !strings.Contains(err.Error(), "better stack logs status 503") {
 		t.Fatalf("first flush error = %v", err)
 	}
 	if err := forwarder.Flush(context.Background()); err != nil {
