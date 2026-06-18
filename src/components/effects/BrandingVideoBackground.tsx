@@ -25,6 +25,9 @@ export default function BrandingVideoBackground({ source = DEFAULT_SOURCE }) {
       video.play()?.catch?.(() => {});
     };
     video.addEventListener("loadeddata", show);
+    if (video.readyState >= 2) {
+      show();
+    }
     play();
 
     return () => {

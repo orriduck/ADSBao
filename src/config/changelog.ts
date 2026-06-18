@@ -44,6 +44,10 @@ export const CHANGELOG: ChangelogEntry[] = [
         en: "Version comparison uses semver ordering instead of strict equality, so the toast only appears when the deployed version is genuinely newer",
         zh: "版本比较改用 semver 排序代替严格相等，升级提示仅在部署版本确实更新时出现",
       },
+      {
+        en: "The home page branding video now becomes visible even when the browser finishes loading the MP4 before React attaches the loadeddata listener",
+        zh: "首页品牌视频即使在 React 绑定 loadeddata 监听前已被浏览器加载完成，也会正确显示",
+      },
     ],
   },
   {
