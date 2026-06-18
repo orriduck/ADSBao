@@ -15,6 +15,12 @@ const en = {
   brand: {
     wordmarkZh: "拍机宝",
   },
+  appUpdate: {
+    title: "New ADSBao version available",
+    description:
+      "You are running {currentVersion}. Refresh to load {latestVersion}.",
+    refresh: "Refresh",
+  },
   nav: {
     home: "ADSBao",
     homePage: "Home",

@@ -140,6 +140,11 @@ func (s *Server) serveStaticOrSPA(w http.ResponseWriter, r *http.Request) {
 	// Try to serve the requested file directly
 	info, err := os.Stat(fsPath)
 	if err == nil && !info.IsDir() {
+		if filepath.Clean(r.URL.Path) == "/adsbao-version.json" {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			w.Header().Set("Cache-Control", "no-store")
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+		}
 		http.ServeFile(w, r, fsPath)
 		return
 	}

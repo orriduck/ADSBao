@@ -1,6 +1,39 @@
-import { defineConfig, loadEnv } from "vite";
+import { readFileSync } from "node:fs";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+
+const packageJson = JSON.parse(
+  readFileSync(new URL("./package.json", import.meta.url), "utf8"),
+) as { version?: string };
+const ADSBAO_APP_VERSION = String(packageJson.version || "0.0.0");
+
+function appVersionManifestPlugin(version: string): Plugin {
+  const payload = () => `${JSON.stringify({ version }, null, 2)}\n`;
+  return {
+    name: "adsbao-app-version-manifest",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.split("?")[0] !== "/adsbao-version.json") {
+          next();
+          return;
+        }
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        res.setHeader("Cache-Control", "no-store");
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        res.end(payload());
+      });
+    },
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "adsbao-version.json",
+        source: payload(),
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -21,7 +54,7 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), appVersionManifestPlugin(ADSBAO_APP_VERSION)],
     server: {
       host: "0.0.0.0",
       port: 3000,

@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ClerkProvider } from "@/platform/auth/clerkClient";
+import AppUpdateToast from "@/components/app-shell/AppUpdateToast";
 import ThemedToaster from "@/components/app-shell/ThemedToaster";
 import QueryProvider from "@/features/app-shell/queryProvider";
 import { I18nProvider } from "@/features/app-shell/i18n/i18nProvider";
@@ -76,6 +77,7 @@ createRoot(root).render(
           <QueryProvider>
             <UnitPreferencesProvider>
               <WebMcpProvider />
+              <AppUpdateToast />
               <div className="min-h-dvh bg-atc-bg text-atc-text">
                 <App />
               </div>
