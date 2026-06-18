@@ -378,6 +378,17 @@ Validation: Railway deploy — checked <deployment URL or route>; ran <local com
 - Data/provider/API/backend changes: Mode 3 plus project checks; escalate to Mode 4 when Railway routing or deployed configuration matters.
 - Env/dependency/migration/internal feature flag changes: Mode 3 plus project checks, with a PR note about default user-facing behavior; use Mode 4 when the deployed environment is part of the change.
 
+## PR simplification pass
+
+Before treating a non-docs PR as ready for review or merge, run a Ponytail
+simplification pass with the PR diff in view. Use `ponytail-audit` for this
+pass: look for code that can be deleted, shrunk, replaced with native/stdlib
+APIs, or de-abstracted.
+
+Apply relevant simplifications before final validation. This pass is
+complexity-only; correctness, security, performance, and runtime behavior still
+follow the selected validation mode above.
+
 ## Runtime config
 
 There is no Python backend runtime config, frontend settings page, or `/api/config` flow.
