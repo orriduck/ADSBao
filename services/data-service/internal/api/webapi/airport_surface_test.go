@@ -42,7 +42,7 @@ func TestBuildAirportSurfacePavementOverpassQuery(t *testing.T) {
 
 	if !strings.Contains(query, `[out:json][timeout:3];`) ||
 		!strings.Contains(query, `way["aeroway"~"^(runway|taxiway|taxilane|apron)$"](42.344000,-71.031000,42.385000,-70.986000);`) ||
-		!strings.Contains(query, `relation["aeroway"~"^(runway|taxiway|taxilane|apron)$"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+		strings.Contains(query, `relation`) ||
 		strings.Contains(query, `building`) ||
 		strings.Contains(query, `terminal`) ||
 		strings.Contains(query, `map_to_area`) {
@@ -59,12 +59,25 @@ func TestBuildAirportSurfaceStructuresOverpassQuery(t *testing.T) {
 	})
 
 	if !strings.Contains(query, `way["aeroway"="terminal"](42.344000,-71.031000,42.385000,-70.986000);`) ||
-		!strings.Contains(query, `way["building"~"^(terminal|transportation|hangar)$"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+		!strings.Contains(query, `way["building"="hangar"](42.344000,-71.031000,42.385000,-70.986000);`) ||
 		strings.Contains(query, `way["building"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+		strings.Contains(query, `transportation`) ||
+		strings.Contains(query, `relation`) ||
 		strings.Contains(query, `map_to_area`) ||
 		strings.Contains(query, `aerodrome`) ||
 		strings.Contains(query, `taxiway`) {
 		t.Fatalf("unexpected structures query:\n%s", query)
+	}
+}
+
+func TestBuildAirportSurfacePavementAreaOverpassQuery(t *testing.T) {
+	query := buildAirportSurfacePavementAreaOverpassQuery("kord")
+
+	if !strings.Contains(query, `area["icao"="KORD"]["aeroway"="aerodrome"]->.airport;`) ||
+		!strings.Contains(query, `way(area.airport)["aeroway"~"^(runway|taxiway|taxilane|apron)$"];`) ||
+		strings.Contains(query, `relation`) ||
+		strings.Contains(query, `map_to_area`) {
+		t.Fatalf("unexpected area pavement query:\n%s", query)
 	}
 }
 
@@ -253,6 +266,117 @@ func TestAirportSurfaceFallsBackToOSMMapWhenOverpassFails(t *testing.T) {
 	}
 }
 
+func TestAirportSurfacePavementFallsBackToAirportAreaQuery(t *testing.T) {
+	overpassHits := 0
+	handler := New(Options{
+		HTTPClient: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				switch req.URL.Host {
+				case "overpass.invalid":
+					overpassHits++
+					data := airportSurfaceRequestData(t, req)
+					if strings.Contains(data, `area["icao"="KORD"]["aeroway"="aerodrome"]`) {
+						return jsonResponse(http.StatusOK, `{"elements":[{
+							"type":"way",
+							"id":910,
+							"tags":{"aeroway":"taxiway","ref":"A"},
+							"geometry":[{"lat":41.97,"lon":-87.91},{"lat":41.971,"lon":-87.909}]
+						}]}`), nil
+					}
+					return jsonResponse(http.StatusGatewayTimeout, `{"error":"timeout"}`), nil
+				case "api.openstreetmap.org":
+					t.Fatalf("area fallback should avoid OSM map")
+					return nil, nil
+				default:
+					t.Fatalf("unexpected upstream host %q", req.URL.Host)
+					return nil, nil
+				}
+			}),
+		},
+		OverpassBaseURL:        "https://overpass.invalid/api/interpreter",
+		AirportSurfaceCacheTTL: time.Hour,
+	})
+
+	surfaceMap := handler.airportSurfaceMap(
+		context.Background(),
+		"KORD",
+		41.9742,
+		-87.9073,
+		nil,
+		airportSurfaceScopePavement,
+	)
+	if surfaceMap == nil {
+		t.Fatal("expected area fallback surface map")
+	}
+	counts := surfaceMap["counts"].(map[string]int)
+	if counts["taxiway"] != 1 {
+		t.Fatalf("expected taxiway from area fallback, counts=%#v", counts)
+	}
+	if overpassHits != 2 {
+		t.Fatalf("overpass hits = %d", overpassHits)
+	}
+}
+
+func TestAirportSurfaceStructuresFallsBackToCenterOSMMap(t *testing.T) {
+	osmHits := 0
+	handler := New(Options{
+		HTTPClient: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				switch req.URL.Host {
+				case "overpass.invalid":
+					return jsonResponse(http.StatusGatewayTimeout, `{"error":"timeout"}`), nil
+				case "api.openstreetmap.org":
+					osmHits++
+					rawBBox := strings.TrimPrefix(req.URL.RawQuery, "bbox=")
+					parts := strings.Split(rawBBox, ",")
+					if len(parts) != 4 {
+						t.Fatalf("unexpected bbox query: %s", req.URL.RawQuery)
+					}
+					if !strings.HasPrefix(parts[0], "-87.921") ||
+						!strings.HasPrefix(parts[2], "-87.892") {
+						t.Fatalf("expected center OSM bbox, got %s", req.URL.RawQuery)
+					}
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Header:     http.Header{"Content-Type": []string{"application/xml"}},
+						Body: io.NopCloser(strings.NewReader(`<osm>
+<node id="1" lat="41.970000" lon="-87.910000"/>
+<node id="2" lat="41.970000" lon="-87.909000"/>
+<node id="3" lat="41.971000" lon="-87.909000"/>
+<node id="4" lat="41.970000" lon="-87.910000"/>
+<way id="920"><nd ref="1"/><nd ref="2"/><nd ref="3"/><nd ref="4"/><tag k="building" v="yes"/></way>
+</osm>`)),
+					}, nil
+				default:
+					t.Fatalf("unexpected upstream host %q", req.URL.Host)
+					return nil, nil
+				}
+			}),
+		},
+		OverpassBaseURL:        "https://overpass.invalid/api/interpreter",
+		AirportSurfaceCacheTTL: time.Hour,
+	})
+
+	surfaceMap := handler.airportSurfaceMap(
+		context.Background(),
+		"KORD",
+		41.9742,
+		-87.9073,
+		nil,
+		airportSurfaceScopeStructures,
+	)
+	if surfaceMap == nil {
+		t.Fatal("expected center OSM fallback surface map")
+	}
+	counts := surfaceMap["counts"].(map[string]int)
+	if counts["building"] != 1 {
+		t.Fatalf("expected building from center OSM fallback, counts=%#v", counts)
+	}
+	if osmHits != 1 {
+		t.Fatalf("osm hits = %d", osmHits)
+	}
+}
+
 func TestAirportSurfaceScopesKeepPavementSeparateFromStructures(t *testing.T) {
 	overpassHits := 0
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -297,12 +421,13 @@ func TestAirportSurfaceScopesKeepPavementSeparateFromStructures(t *testing.T) {
 				}]}`))
 				return
 			}
-			if !strings.Contains(data, `building`) ||
-				!strings.Contains(data, `terminal`) ||
+			if !strings.Contains(data, `building"="hangar"`) ||
+				!strings.Contains(data, `aeroway"="terminal"`) ||
 				strings.Contains(data, `taxiway`) {
 				t.Fatalf("second query should be structures-only: %s", data)
 			}
-			if !strings.Contains(data, `building"~"^(terminal|transportation|hangar)$"`) ||
+			if strings.Contains(data, `transportation`) ||
+				strings.Contains(data, `relation`) ||
 				strings.Contains(data, `map_to_area`) {
 				t.Fatalf("second query should be narrow bbox structures: %s", data)
 			}
@@ -310,7 +435,7 @@ func TestAirportSurfaceScopesKeepPavementSeparateFromStructures(t *testing.T) {
 			_, _ = w.Write([]byte(`{"elements":[{
 				"type":"way",
 				"id":301,
-				"tags":{"building":"transportation","name":"Terminal 1"},
+				"tags":{"building":"hangar","name":"Hangar 1"},
 				"geometry":[{"lat":40.64,"lon":-73.78},{"lat":40.64,"lon":-73.779},{"lat":40.641,"lon":-73.779},{"lat":40.64,"lon":-73.78}]
 			}]}`))
 		default:

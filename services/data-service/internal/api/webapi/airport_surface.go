@@ -18,15 +18,16 @@ import (
 )
 
 const (
-	defaultOverpassBaseURL             = "https://overpass-api.de/api/interpreter"
-	defaultAirportSurfaceOSMMapBaseURL = "https://api.openstreetmap.org/api/0.6/map"
-	defaultAirportSurfaceCacheTTL      = 6 * time.Hour
-	airportSurfaceRequestTimeout       = 3 * time.Second
-	airportSurfaceOSMMapRequestTimeout = 12 * time.Second
-	airportSurfaceBBoxPaddingMeters    = 400
-	airportSurfaceFallbackRadiusMeters = 4500
-	maxAirportSurfaceFeatures          = 1400
-	maxAirportSurfaceBuildings         = 600
+	defaultOverpassBaseURL              = "https://overpass-api.de/api/interpreter"
+	defaultAirportSurfaceOSMMapBaseURL  = "https://api.openstreetmap.org/api/0.6/map"
+	defaultAirportSurfaceCacheTTL       = 6 * time.Hour
+	airportSurfaceRequestTimeout        = 3 * time.Second
+	airportSurfaceOSMMapRequestTimeout  = 12 * time.Second
+	airportSurfaceBBoxPaddingMeters     = 400
+	airportSurfaceStructureRadiusMeters = 1200
+	airportSurfaceFallbackRadiusMeters  = 4500
+	maxAirportSurfaceFeatures           = 1400
+	maxAirportSurfaceBuildings          = 600
 )
 
 const (
@@ -133,25 +134,41 @@ func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon 
 		return nil
 	}
 
-	query := buildAirportSurfacePavementOverpassQuery(bbox)
-	if normalizedScope == airportSurfaceScopeStructures {
-		query = buildAirportSurfaceStructuresOverpassQuery(bbox)
-	}
-	payload, ok := h.fetchAirportSurfacePayload(
+	surfaceMap := h.airportSurfaceMapFromOverpassQuery(
 		ctx,
 		airport,
-		query,
+		buildAirportSurfaceOverpassQuery(bbox, normalizedScope),
 		normalizedScope,
 	)
-	if !ok {
-		return h.airportSurfaceMapFromOSMMap(ctx, airport, bbox, normalizedScope)
+	if surfaceMap == nil && normalizedScope == airportSurfaceScopePavement {
+		surfaceMap = h.airportSurfaceMapFromOverpassQuery(
+			ctx,
+			airport,
+			buildAirportSurfacePavementAreaOverpassQuery(airport),
+			normalizedScope,
+		)
 	}
-	surfaceMap := buildAirportSurfaceMapFromOverpass(airport, payload)
+	if surfaceMap == nil && normalizedScope == airportSurfaceScopeStructures {
+		if centerBBox, ok := expandedBBoxAroundPoint(lat, lon, airportSurfaceStructureRadiusMeters); ok {
+			surfaceMap = h.airportSurfaceMapFromOSMMap(ctx, airport, centerBBox, normalizedScope)
+		}
+	}
 	if surfaceMap == nil {
-		return h.airportSurfaceMapFromOSMMap(ctx, airport, bbox, normalizedScope)
+		surfaceMap = h.airportSurfaceMapFromOSMMap(ctx, airport, bbox, normalizedScope)
+	}
+	if surfaceMap == nil {
+		return nil
 	}
 	h.airportSurfaceCache.set(cacheKey, surfaceMap)
 	return surfaceMap
+}
+
+func (h *Handler) airportSurfaceMapFromOverpassQuery(ctx context.Context, airport string, query string, scope string) map[string]any {
+	payload, ok := h.fetchAirportSurfacePayload(ctx, airport, query, scope)
+	if !ok {
+		return nil
+	}
+	return buildAirportSurfaceMapFromOverpass(airport, payload)
 }
 
 func normalizeAirportSurfaceScope(scope string) string {
@@ -336,9 +353,8 @@ func buildAirportSurfacePavementOverpassQuery(bbox airportSurfaceBBox) string {
 	return fmt.Sprintf(`[out:json][timeout:3];
 (
   way["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
-  relation["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
 );
-out tags geom;`, formatted, formatted)
+out tags geom;`, formatted)
 }
 
 func buildAirportSurfaceStructuresOverpassQuery(bbox airportSurfaceBBox) string {
@@ -352,11 +368,25 @@ func buildAirportSurfaceStructuresOverpassQuery(bbox airportSurfaceBBox) string 
 	return fmt.Sprintf(`[out:json][timeout:3];
 (
   way["aeroway"="terminal"](%s);
-  relation["aeroway"="terminal"](%s);
-  way["building"~"^(terminal|transportation|hangar)$"](%s);
-  relation["building"~"^(terminal|transportation|hangar)$"](%s);
+  way["building"="hangar"](%s);
 );
-out tags geom;`, formatted, formatted, formatted, formatted)
+out tags geom;`, formatted, formatted)
+}
+
+func buildAirportSurfacePavementAreaOverpassQuery(airport string) string {
+	return fmt.Sprintf(`[out:json][timeout:3];
+area["icao"="%s"]["aeroway"="aerodrome"]->.airport;
+(
+  way(area.airport)["aeroway"~"^(runway|taxiway|taxilane|apron)$"];
+);
+out tags geom;`, normalizeAirportIdent(airport))
+}
+
+func buildAirportSurfaceOverpassQuery(bbox airportSurfaceBBox, scope string) string {
+	if normalizeAirportSurfaceScope(scope) == airportSurfaceScopeStructures {
+		return buildAirportSurfaceStructuresOverpassQuery(bbox)
+	}
+	return buildAirportSurfacePavementOverpassQuery(bbox)
 }
 
 func formatBBoxCoordinate(value float64) string {
