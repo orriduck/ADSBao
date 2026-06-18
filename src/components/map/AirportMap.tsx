@@ -196,6 +196,8 @@ export default function AirportMap({
     const map = L.map(mapEl.current, {
       center: [initialCenter.lat, initialCenter.lon],
       zoom,
+      zoomSnap: 0.25,
+      zoomDelta: 0.5,
       zoomControl: false,
       attributionControl: false,
       scrollWheelZoom: false,

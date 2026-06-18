@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.13.1",
+    kind: "patch",
+    title: {
+      en: "Airport night map detail",
+      zh: "机场夜间细节图",
+    },
+    summary: {
+      en: "Near airport maps now render tighter, finer runway and taxiway lighting so dense airfields read more like night-light diagrams.",
+      zh: "机场近景地图现在使用更近的视图和更细密的跑道、滑行道灯阵，让大型机场更像夜间灯光图。",
+    },
+    highlights: [
+      {
+        en: "Near range moves closer with fractional zoom support, matching the 0.5 NM inspection view more closely",
+        zh: "近景档位加入 fractional zoom 并推近视图，更贴近 0.5 NM 的检查视角",
+      },
+      {
+        en: "Runway, taxiway, centerline, threshold, and approach lights use smaller micro-dots with reduced halos",
+        zh: "跑道、滑行道、中线、入口和进近灯改为更小的微点，并收短光晕",
+      },
+      {
+        en: "Runway ends add subtle red side cues while the underlying surface lines stay thin",
+        zh: "跑道端部增加低调红色侧向提示，同时底层道面线保持细线效果",
+      },
+    ],
+  },
+  {
     version: "v2.13.0",
     kind: "feat",
     title: {
