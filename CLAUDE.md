@@ -1,4 +1,4 @@
-# ADSBao — Agent Guide (Claude Code, Codex, Hermes)
+# ADSBao — Agent Guide (Claude Code, Codex)
 
 ## Dev environment — two-service local startup
 
@@ -75,8 +75,7 @@ executable"*. The working arm64 binaries are at `/opt/homebrew/bin/`. Affected:
 tmux; prefer direct background processes instead:
 
 ```bash
-# Hermes: terminal(background=true)
-# Shell/manual: go run ... &   /   pnpm run dev &
+# Agent/manual: go run ... &   /   pnpm run dev &
 ```
 
 ### Dev server lifecycle
@@ -387,33 +386,29 @@ There is no Python backend runtime config, frontend settings page, or `/api/conf
 
 Railway can deploy every push to `main`, but a deployment is not automatically a product release. Do not bump `package.json` or create a Git tag just because a Railway deployment happened.
 
-Use the current ADSBao web release line:
+### Version sources and the update toast
 
-| Version | Meaning |
+Two files carry the product version and they **must stay in sync**:
+
+| File | Role |
 |---|---|
-| `v0.4.0` | Breaking ADSBao web pivot |
-| `v0.5.0` | Vercel-first web architecture |
-| `v0.6.0` | Vercel observability and production routing |
-| `v0.7.0` | Flight route and traffic context |
-| `v0.7.1` | Map and mobile polish |
-| `v0.8.0` | Next.js Vercel refactor |
-| `v0.9.0` | Navy tracking console redesign |
-| `v0.10.0` | Global airport data layer (OurAirports + persisted augmentation data) and richer aircraft silhouettes |
-| `v0.11.0` | Selected-aircraft trace + multi-provider failover + AeroDataBox revalidation |
-| `v0.12.0` | Aircraft tracking page + airport-prefixed routes + polymorphic sidebar/preview |
+| `package.json` → `"version"` | Fed into `vite.config.ts` → generates `/adsbao-version.json` at build time. This is the **deployed manifest** that the browser fetches. |
+| `src/config/changelog.ts` → `version: "vX.Y.Z"` on the first entry | Source of truth for `ADSBAO_SITE_VERSION`. This is the **client version** baked into the JS bundle. |
 
-`v0.3.x` and earlier are legacy desktop-app history. Do not use those releases as the current ADSBao web product line.
+The client compares these at runtime (`AppUpdateToast.tsx` → `appVersionModel.ts`). It uses `semver` to only show the toast when `deployed > client`. If the two files disagree the toast will fire incorrectly — either a false "downgrade" prompt (when `package.json` lags behind `changelog.ts`) or a missing upgrade prompt (the reverse).
+
+### How to bump a version
 
 When preparing a new product release:
 
-1. Decide the next SemVer-style version based on product meaning, not deploy count.
-   - Minor: user-visible feature, architecture milestone, or substantial production behavior change.
-   - Patch: bug fix, compatibility fix, or small UX correction.
-   - No version bump: docs-only, screenshot-only, refactor-only, or routine dependency cleanup with no product-visible impact.
-2. Update all visible version strings together:
-   - `package.json`
-   - `src/config/changelog.ts` (prepend a new entry; this is the source of truth — there is no `CHANGELOG.md` anymore)
-   - `README.md`, only if it states the current version
+1. Decide the next semver-style version based on product meaning, not deploy count.
+   - **Minor**: user-visible feature, architecture milestone, or substantial production behavior change.
+   - **Patch**: bug fix, compatibility fix, or small UX correction.
+   - **No version bump**: docs-only, screenshot-only, refactor-only, or routine dependency cleanup with no product-visible impact.
+2. **Update both version files together:**
+   - `package.json` — set `"version"` (no `v` prefix, e.g. `"2.13.0"`)
+   - `src/config/changelog.ts` — prepend a new entry with `version: "v2.13.0"` (with `v` prefix; this is the source of truth for the changelog page)
+   - `README.md` — only if it states the current version string explicitly
 3. Run `pnpm build` and the test command above before tagging.
 4. Tag only after the release commit is on `main` and the Railway production deployment is healthy.
 5. Use an annotated tag for product releases:

@@ -29,6 +29,24 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.12.1",
+    kind: "patch",
+    title: {
+      en: "Version update toast fix",
+      zh: "版本更新提示修复",
+    },
+    summary: {
+      en: "The in-app update toast no longer prompts for downgrades, and the version sync between package.json and the changelog is now documented.",
+      zh: "应用内更新提示不再出现降级版本提示，package.json 与 changelog 的版本同步规范已文档化。",
+    },
+    highlights: [
+      {
+        en: "Version comparison uses semver ordering instead of strict equality, so the toast only appears when the deployed version is genuinely newer",
+        zh: "版本比较改用 semver 排序代替严格相等，升级提示仅在部署版本确实更新时出现",
+      },
+    ],
+  },
+  {
     version: "v2.12.0",
     kind: "feat",
     title: {

@@ -10,6 +10,20 @@ export function normalizeAppVersion(value: unknown) {
   return typeof value === "string" ? value.trim().replace(/^v/i, "") : "";
 }
 
+function cmpSemver(a: string, b: string): number {
+  const aParts = a.split(".").map(Number);
+  const bParts = b.split(".").map(Number);
+  const len = Math.max(aParts.length, bParts.length);
+  for (let i = 0; i < len; i++) {
+    const av = aParts[i] ?? 0;
+    const bv = bParts[i] ?? 0;
+    if (isNaN(av) || isNaN(bv)) return 0;
+    if (av < bv) return -1;
+    if (av > bv) return 1;
+  }
+  return 0;
+}
+
 export function resolveAppVersionUpdate({
   currentVersion,
   latestVersion,
@@ -19,7 +33,8 @@ export function resolveAppVersionUpdate({
 }): AppVersionUpdate | null {
   const current = normalizeAppVersion(currentVersion);
   const latest = normalizeAppVersion(latestVersion);
-  if (!current || !latest || current === latest) return null;
+  if (!current || !latest) return null;
+  if (cmpSemver(latest, current) <= 0) return null;
   return {
     currentVersion: current,
     latestVersion: latest,

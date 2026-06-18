@@ -1,0 +1,521 @@
+{
+  "name": "ADSBao Observability Center",
+  "refresh_interval": 60,
+  "date_range_from": "now-24h",
+  "date_range_to": "now",
+  "source_eligibility_sql": null,
+  "charts": [
+    {
+      "chart_type": "number_chart",
+      "name": "HTTP TPS 15m",
+      "description": "Backend HTTP transactions per second over the latest 15 minutes inside the selected range.",
+      "x": 0,
+      "y": 0,
+      "w": 2,
+      "h": 3,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "unit": "shortened",
+        "decimal_places": 3,
+        "value_columns": [
+          "value"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "WITH greatest({{start_time}}, {{end_time}} - INTERVAL 15 MINUTE) AS window_start SELECT round(countMerge(events_count) / greatest(dateDiff('second', window_start, {{end_time}}), 1), 3) AS value FROM {{source}} WHERE name = 'adsbao.http.requests' AND dt BETWEEN window_start AND {{end_time}}",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "number_chart",
+      "name": "HTTP Error %",
+      "description": "Share of backend HTTP requests classified as 4xx or 5xx over the selected range.",
+      "x": 2,
+      "y": 0,
+      "w": 2,
+      "h": 3,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "unit": "percent",
+        "decimal_places": 2,
+        "value_columns": [
+          "value"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT round(coalesce(sumIf(points, status_class IN ('4xx', '5xx')) / nullIf(sum(points), 0), 0), 4) AS value FROM (SELECT coalesce(tags['status_class'], 'unknown') AS status_class, countMerge(events_count) AS points FROM {{source}} WHERE name = 'adsbao.http.requests' AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY status_class)",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "number_chart",
+      "name": "HTTP 2xx",
+      "description": "Successful backend HTTP responses over the selected range.",
+      "x": 4,
+      "y": 0,
+      "w": 2,
+      "h": 3,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "unit": "shortened",
+        "decimal_places": 0,
+        "value_columns": [
+          "value"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT coalesce(sumIf(points, status_class = '2xx'), 0) AS value FROM (SELECT coalesce(tags['status_class'], 'unknown') AS status_class, countMerge(events_count) AS points FROM {{source}} WHERE name = 'adsbao.http.requests' AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY status_class)",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "number_chart",
+      "name": "HTTP 4xx/5xx",
+      "description": "Backend client and server errors over the selected range.",
+      "x": 6,
+      "y": 0,
+      "w": 2,
+      "h": 3,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "unit": "shortened",
+        "decimal_places": 0,
+        "value_columns": [
+          "value"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT coalesce(sumIf(points, status_class IN ('4xx', '5xx')), 0) AS value FROM (SELECT coalesce(tags['status_class'], 'unknown') AS status_class, countMerge(events_count) AS points FROM {{source}} WHERE name = 'adsbao.http.requests' AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY status_class)",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "number_chart",
+      "name": "WS Connections",
+      "description": "Latest reported active WebSocket connections.",
+      "x": 8,
+      "y": 0,
+      "w": 2,
+      "h": 3,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "unit": "shortened",
+        "decimal_places": 0,
+        "value_columns": [
+          "value"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT round(maxMerge(value_max), 0) AS value FROM {{source}} WHERE name = 'adsbao.ws.connections.current' AND dt BETWEEN {{start_time}} AND {{end_time}}",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "number_chart",
+      "name": "External Error %",
+      "description": "Share of outbound provider transactions classified as 4xx, 5xx, or err over the selected range.",
+      "x": 10,
+      "y": 0,
+      "w": 2,
+      "h": 3,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "unit": "percent",
+        "decimal_places": 2,
+        "value_columns": [
+          "value"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT round(coalesce(sumIf(points, status_class IN ('4xx', '5xx', 'err')) / nullIf(sum(points), 0), 0), 4) AS value FROM (SELECT coalesce(tags['status_class'], 'unknown') AS status_class, countMerge(events_count) AS points FROM {{source}} WHERE name = 'adsbao.external_requests' AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY status_class)",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "table_chart",
+      "name": "HTTP Status Breakdown",
+      "description": "Backend 1xx/2xx/3xx/4xx/5xx request counts and percentages for the selected range.",
+      "x": 0,
+      "y": 3,
+      "w": 4,
+      "h": 5,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "table_width": 520,
+        "column_widths": {
+          "status_class": 120,
+          "requests": 120,
+          "pct": 120
+        },
+        "percentage_highlight_columns": [
+          "pct"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT status_class, requests, round(requests / nullIf(sum(requests) OVER (), 0), 4) AS pct FROM (SELECT coalesce(tags['status_class'], 'unknown') AS status_class, countMerge(events_count) AS requests FROM {{source}} WHERE name = 'adsbao.http.requests' AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY status_class) ORDER BY status_class",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "table_chart",
+      "name": "External Provider Status",
+      "description": "Outbound provider/API request counts and per-provider status percentages.",
+      "x": 4,
+      "y": 3,
+      "w": 8,
+      "h": 5,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "table_width": 820,
+        "column_widths": {
+          "provider": 180,
+          "status_class": 120,
+          "requests": 120,
+          "provider_pct": 140
+        },
+        "percentage_highlight_columns": [
+          "provider_pct"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT provider, status_class, requests, round(requests / nullIf(sum(requests) OVER (PARTITION BY provider), 0), 4) AS provider_pct FROM (SELECT coalesce(tags['provider'], 'unknown') AS provider, coalesce(tags['status_class'], 'unknown') AS status_class, countMerge(events_count) AS requests FROM {{source}} WHERE name = 'adsbao.external_requests' AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY provider, status_class) ORDER BY provider, requests DESC",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "line_chart",
+      "name": "HTTP Requests by Status Class - Last 3h",
+      "description": "Backend HTTP volume, narrowed to the latest 3 hours so the 24h dashboard does not collapse fresh data into a thin right edge.",
+      "x": 0,
+      "y": 8,
+      "w": 6,
+      "h": 6,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "unit": "shortened",
+        "legend": "shown_below",
+        "label": "shown_below",
+        "x_axis_type": "time",
+        "time_column": "time",
+        "series_column": "series",
+        "value_columns": [
+          "value"
+        ],
+        "y_axis_scale": "linear",
+        "treat_missing_values": "show_gaps"
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "WITH greatest({{start_time}}, {{end_time}} - INTERVAL 3 HOUR) AS window_start SELECT {{time}} AS time, countMerge(events_count) AS value, 'HTTP ' || coalesce(tags['status_class'], 'unknown') AS series FROM {{source}} WHERE name = 'adsbao.http.requests' AND dt BETWEEN window_start AND {{end_time}} GROUP BY time, series ORDER BY time",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "table_chart",
+      "name": "External Latency by Provider",
+      "description": "Outbound provider/API latency computed from structured logs, because current histogram buckets do not yet produce reliable p95 values.",
+      "x": 6,
+      "y": 8,
+      "w": 6,
+      "h": 6,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "table_width": 720,
+        "column_widths": {
+          "provider": 170,
+          "requests": 110,
+          "avg_ms": 110,
+          "p95_ms": 110,
+          "max_ms": 110
+        }
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "/* {{source}} */ SELECT provider, count() AS requests, round(avg(duration_ms), 1) AS avg_ms, round(quantile(0.95)(duration_ms), 1) AS p95_ms, max(duration_ms) AS max_ms FROM (SELECT JSONExtract(raw, 'provider', 'Nullable(String)') AS provider, coalesce(JSONExtract(raw, 'duration_ms', 'Nullable(Int64)'), JSONExtract(raw, 'duration.ms', 'Nullable(Int64)'), toInt64OrNull(extract(JSONExtractString(raw, 'message'), 'duration: ([0-9]+)ms'))) AS duration_ms FROM remote(t558886_adsbao_data_service_logs_logs) WHERE dt BETWEEN {{start_time}} AND {{end_time}} AND JSONExtract(raw, 'event.name', 'Nullable(String)') = 'external_request_done') WHERE duration_ms IS NOT NULL GROUP BY provider ORDER BY requests DESC",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "table_chart",
+      "name": "DB Transactions",
+      "description": "Database operation counts grouped by operation/result. Latency requires one more direct duration field because current histogram bucket aggregates are empty.",
+      "x": 0,
+      "y": 14,
+      "w": 6,
+      "h": 5,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "table_width": 720,
+        "column_widths": {
+          "operation": 240,
+          "result": 110,
+          "transactions": 130,
+          "pct": 100
+        },
+        "percentage_highlight_columns": [
+          "pct"
+        ]
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT operation, result, transactions, round(transactions / nullIf(sum(transactions) OVER (), 0), 4) AS pct FROM (SELECT coalesce(tags['operation'], 'unknown') AS operation, coalesce(tags['result'], 'unknown') AS result, countMerge(events_count) AS transactions FROM {{source}} WHERE name = 'adsbao.db.transactions' AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY operation, result) ORDER BY transactions DESC",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "table_chart",
+      "name": "WebSocket Activity",
+      "description": "WebSocket upgrades, connects, disconnects, subscribes, unsubscribes, and message outcomes.",
+      "x": 6,
+      "y": 14,
+      "w": 6,
+      "h": 5,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "table_width": 720,
+        "column_widths": {
+          "metric": 190,
+          "series": 140,
+          "events": 110
+        }
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT replaceRegexpOne(name, '^adsbao\\\\.ws\\\\.', '') AS metric, coalesce(nullIf(tags['result'], ''), coalesce(nullIf(tags['direction'], ''), 'all')) AS series, countMerge(events_count) AS events FROM {{source}} WHERE name IN ('adsbao.ws.upgrades', 'adsbao.ws.connections', 'adsbao.ws.disconnects', 'adsbao.ws.messages', 'adsbao.ws.subscribe', 'adsbao.ws.unsubscribe') AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY metric, series ORDER BY metric, events DESC",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "line_chart",
+      "name": "External Transactions - Last 3h",
+      "description": "Outbound provider/API transaction volume grouped by provider and status class, narrowed to the latest 3 hours for readability.",
+      "x": 0,
+      "y": 19,
+      "w": 6,
+      "h": 6,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "unit": "shortened",
+        "legend": "shown_below",
+        "label": "shown_below",
+        "x_axis_type": "time",
+        "time_column": "time",
+        "series_column": "series",
+        "value_columns": [
+          "value"
+        ],
+        "y_axis_scale": "linear",
+        "treat_missing_values": "show_gaps"
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "WITH greatest({{start_time}}, {{end_time}} - INTERVAL 3 HOUR) AS window_start SELECT {{time}} AS time, countMerge(events_count) AS value, coalesce(tags['provider'], 'unknown') || ' ' || coalesce(tags['status_class'], 'unknown') AS series FROM {{source}} WHERE name = 'adsbao.external_requests' AND dt BETWEEN window_start AND {{end_time}} GROUP BY time, series ORDER BY time",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "table_chart",
+      "name": "Channel Health",
+      "description": "Latest channel subscriber, active-channel, stale-channel, and consecutive-failure gauges.",
+      "x": 6,
+      "y": 19,
+      "w": 6,
+      "h": 6,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "table_width": 720,
+        "column_widths": {
+          "metric": 280,
+          "channel_type": 170,
+          "latest": 100
+        }
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "SELECT replaceRegexpOne(name, '^adsbao\\\\.', '') AS metric, coalesce(nullIf(tags['channel_type'], ''), 'all') AS channel_type, round(maxMerge(value_max), 0) AS latest FROM {{source}} WHERE name IN ('adsbao.active_channels.current', 'adsbao.subscriptions.current', 'adsbao.stale_channels.current', 'adsbao.channel_consecutive_failures.current') AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY metric, channel_type ORDER BY metric, latest DESC",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    },
+    {
+      "chart_type": "table_chart",
+      "name": "Recent External Errors",
+      "description": "Recent warning/error logs with provider, status, duration, and message columns.",
+      "x": 0,
+      "y": 25,
+      "w": 12,
+      "h": 6,
+      "transform_with": "async (existingDataByQuery, newDataByQuery) => newDataByQuery;",
+      "settings": {
+        "table_width": 1180,
+        "column_widths": {
+          "dt": 190,
+          "level": 80,
+          "provider": 140,
+          "status": 80,
+          "duration_ms": 110,
+          "message": 580
+        }
+      },
+      "chart_queries": [
+        {
+          "query_type": "sql_expression",
+          "sql_query": "/* {{source}} */ SELECT dt, JSONExtract(raw, 'level', 'Nullable(String)') AS level, JSONExtract(raw, 'provider', 'Nullable(String)') AS provider, JSONExtract(raw, 'status', 'Nullable(String)') AS status, coalesce(JSONExtract(raw, 'duration_ms', 'Nullable(Int64)'), JSONExtract(raw, 'duration.ms', 'Nullable(Int64)'), toInt64OrNull(extract(JSONExtractString(raw, 'message'), 'duration: ([0-9]+)ms'))) AS duration_ms, JSONExtractString(raw, 'message') AS message FROM remote(t558886_adsbao_data_service_logs_logs) WHERE dt BETWEEN {{start_time}} AND {{end_time}} AND JSONExtract(raw, 'level', 'Nullable(String)') IN ('warn', 'error') ORDER BY dt DESC LIMIT 100",
+          "source_variable": "source",
+          "name": null,
+          "where_condition": null,
+          "static_text": null,
+          "filters": [],
+          "group_by": [],
+          "y_axis": []
+        }
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "name": "Service Overview",
+      "y": 0,
+      "collapsed": false
+    },
+    {
+      "name": "HTTP and Provider Status",
+      "y": 3,
+      "collapsed": false
+    },
+    {
+      "name": "Readable Trends and Latency",
+      "y": 8,
+      "collapsed": false
+    },
+    {
+      "name": "Persistence and Realtime",
+      "y": 14,
+      "collapsed": false
+    },
+    {
+      "name": "Logs",
+      "y": 25,
+      "collapsed": false
+    }
+  ]
+}
