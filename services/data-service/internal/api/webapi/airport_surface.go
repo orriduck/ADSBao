@@ -18,16 +18,16 @@ import (
 )
 
 const (
-	defaultOverpassBaseURL              = "https://overpass-api.de/api/interpreter"
-	defaultAirportSurfaceOSMMapBaseURL  = "https://api.openstreetmap.org/api/0.6/map"
-	defaultAirportSurfaceCacheTTL       = 6 * time.Hour
-	airportSurfaceRequestTimeout        = 3 * time.Second
-	airportSurfaceOSMMapRequestTimeout  = 12 * time.Second
-	airportSurfaceBBoxPaddingMeters     = 400
-	airportSurfaceStructureRadiusMeters = 1200
-	airportSurfaceFallbackRadiusMeters  = 4500
-	maxAirportSurfaceFeatures           = 1400
-	maxAirportSurfaceBuildings          = 600
+	defaultOverpassBaseURL             = "https://overpass-api.de/api/interpreter"
+	defaultAirportSurfaceOSMMapBaseURL = "https://api.openstreetmap.org/api/0.6/map"
+	defaultAirportSurfaceCacheTTL      = 6 * time.Hour
+	airportSurfaceRequestTimeout       = 3 * time.Second
+	airportSurfaceOSMMapRequestTimeout = 12 * time.Second
+	airportSurfaceBBoxPaddingMeters    = 400
+	airportSurfaceCenterRadiusMeters   = 1200
+	airportSurfaceFallbackRadiusMeters = 4500
+	maxAirportSurfaceFeatures          = 1400
+	maxAirportSurfaceBuildings         = 600
 )
 
 const (
@@ -140,16 +140,8 @@ func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon 
 		buildAirportSurfaceOverpassQuery(bbox, normalizedScope),
 		normalizedScope,
 	)
-	if surfaceMap == nil && normalizedScope == airportSurfaceScopePavement {
-		surfaceMap = h.airportSurfaceMapFromOverpassQuery(
-			ctx,
-			airport,
-			buildAirportSurfacePavementAreaOverpassQuery(airport),
-			normalizedScope,
-		)
-	}
-	if surfaceMap == nil && normalizedScope == airportSurfaceScopeStructures {
-		if centerBBox, ok := expandedBBoxAroundPoint(lat, lon, airportSurfaceStructureRadiusMeters); ok {
+	if surfaceMap == nil {
+		if centerBBox, ok := expandedBBoxAroundPoint(lat, lon, airportSurfaceCenterRadiusMeters); ok {
 			surfaceMap = h.airportSurfaceMapFromOSMMap(ctx, airport, centerBBox, normalizedScope)
 		}
 	}
@@ -371,15 +363,6 @@ func buildAirportSurfaceStructuresOverpassQuery(bbox airportSurfaceBBox) string 
   way["building"="hangar"](%s);
 );
 out tags geom;`, formatted, formatted)
-}
-
-func buildAirportSurfacePavementAreaOverpassQuery(airport string) string {
-	return fmt.Sprintf(`[out:json][timeout:3];
-area["icao"="%s"]["aeroway"="aerodrome"]->.airport;
-(
-  way(area.airport)["aeroway"~"^(runway|taxiway|taxilane|apron)$"];
-);
-out tags geom;`, normalizeAirportIdent(airport))
 }
 
 func buildAirportSurfaceOverpassQuery(bbox airportSurfaceBBox, scope string) string {

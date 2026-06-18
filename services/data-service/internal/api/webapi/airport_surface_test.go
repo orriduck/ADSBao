@@ -70,17 +70,6 @@ func TestBuildAirportSurfaceStructuresOverpassQuery(t *testing.T) {
 	}
 }
 
-func TestBuildAirportSurfacePavementAreaOverpassQuery(t *testing.T) {
-	query := buildAirportSurfacePavementAreaOverpassQuery("kord")
-
-	if !strings.Contains(query, `area["icao"="KORD"]["aeroway"="aerodrome"]->.airport;`) ||
-		!strings.Contains(query, `way(area.airport)["aeroway"~"^(runway|taxiway|taxilane|apron)$"];`) ||
-		strings.Contains(query, `relation`) ||
-		strings.Contains(query, `map_to_area`) {
-		t.Fatalf("unexpected area pavement query:\n%s", query)
-	}
-}
-
 func TestBuildAirportSurfaceMapFromOverpass(t *testing.T) {
 	payload := map[string]any{
 		"elements": []any{
@@ -263,57 +252,6 @@ func TestAirportSurfaceFallsBackToOSMMapWhenOverpassFails(t *testing.T) {
 	}
 	if osmHits != 1 {
 		t.Fatalf("osm hits = %d", osmHits)
-	}
-}
-
-func TestAirportSurfacePavementFallsBackToAirportAreaQuery(t *testing.T) {
-	overpassHits := 0
-	handler := New(Options{
-		HTTPClient: &http.Client{
-			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-				switch req.URL.Host {
-				case "overpass.invalid":
-					overpassHits++
-					data := airportSurfaceRequestData(t, req)
-					if strings.Contains(data, `area["icao"="KORD"]["aeroway"="aerodrome"]`) {
-						return jsonResponse(http.StatusOK, `{"elements":[{
-							"type":"way",
-							"id":910,
-							"tags":{"aeroway":"taxiway","ref":"A"},
-							"geometry":[{"lat":41.97,"lon":-87.91},{"lat":41.971,"lon":-87.909}]
-						}]}`), nil
-					}
-					return jsonResponse(http.StatusGatewayTimeout, `{"error":"timeout"}`), nil
-				case "api.openstreetmap.org":
-					t.Fatalf("area fallback should avoid OSM map")
-					return nil, nil
-				default:
-					t.Fatalf("unexpected upstream host %q", req.URL.Host)
-					return nil, nil
-				}
-			}),
-		},
-		OverpassBaseURL:        "https://overpass.invalid/api/interpreter",
-		AirportSurfaceCacheTTL: time.Hour,
-	})
-
-	surfaceMap := handler.airportSurfaceMap(
-		context.Background(),
-		"KORD",
-		41.9742,
-		-87.9073,
-		nil,
-		airportSurfaceScopePavement,
-	)
-	if surfaceMap == nil {
-		t.Fatal("expected area fallback surface map")
-	}
-	counts := surfaceMap["counts"].(map[string]int)
-	if counts["taxiway"] != 1 {
-		t.Fatalf("expected taxiway from area fallback, counts=%#v", counts)
-	}
-	if overpassHits != 2 {
-		t.Fatalf("overpass hits = %d", overpassHits)
 	}
 }
 
