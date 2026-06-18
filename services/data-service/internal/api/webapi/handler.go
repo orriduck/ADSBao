@@ -1043,6 +1043,9 @@ func asRecord(value any) map[string]any {
 }
 
 func asRecords(value any) []map[string]any {
+	if records, ok := value.([]map[string]any); ok {
+		return records
+	}
 	raw, ok := value.([]any)
 	if !ok {
 		return nil

@@ -33,10 +33,7 @@ export default function VirtualNearbyList({
     getScrollElement: () => parentRef.current,
     estimateSize: () => ROW_HEIGHT_ESTIMATE_PX,
     overscan: OVERSCAN_ROWS,
-    // Position-keyed slots: a slot's occupant only changes on a real
-    // re-sort (scrolling changes which indices render, not items[index]),
-    // which is what drives the in-place card flip.
-    getItemKey: (index) => index,
+    getItemKey: (index) => items[index]?.id ?? index,
   });
 
   // Track which item ids were present in the previous render so we can mark
@@ -70,6 +67,16 @@ export default function VirtualNearbyList({
     parentRef.current?.scrollTo({ top: 0 });
   }, [resetSignal]);
 
+  useEffect(() => {
+    virtualizer.measure();
+  }, [
+    items.length,
+    resetSignal,
+    selectedAircraftId,
+    selectedAirportIcao,
+    virtualizer,
+  ]);
+
   const virtualRows = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
 
@@ -85,7 +92,7 @@ export default function VirtualNearbyList({
           return (
             <NearbyVirtualRow
               ref={virtualizer.measureElement}
-              key={virtualRow.index}
+              key={item.id}
               index={virtualRow.index}
               start={virtualRow.start}
               isFirst={isFirst}

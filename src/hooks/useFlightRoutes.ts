@@ -34,6 +34,29 @@ function routeSubscriptionKey({
   return `${channel}|${JSON.stringify(params || {})}`;
 }
 
+function routeProviderCode(routeContext: RouteContext = {}) {
+  return String(routeContext.routeProvider || "").trim().toLowerCase();
+}
+
+export function buildRouteSubscriptionRequests(
+  callsign: unknown,
+  routeContext: RouteContext = {},
+) {
+  const primary = buildRouteChannel(callsign, routeContext);
+  const requests = primary ? [primary] : [];
+  if (routeProviderCode(routeContext) !== "flightaware") return requests;
+
+  const fallback = buildRouteChannel(callsign, {
+    ...routeContext,
+    routeProvider: "adsbdb",
+  });
+  const seen = new Set(requests.map(routeSubscriptionKey));
+  if (fallback && !seen.has(routeSubscriptionKey(fallback))) {
+    requests.push(fallback);
+  }
+  return requests;
+}
+
 export function useFlightRoutes(
   aircraft: AircraftRouteCandidate[],
   routeContextInput: FlightRouteHookContext = {},
@@ -121,11 +144,11 @@ export function useFlightRoutes(
 
     const wanted = new Set(
       pendingCallsigns
-        .map((callsign) => {
-          const request = buildRouteChannel(callsign, routeContext);
-          return request ? routeSubscriptionKey(request) : "";
-        })
-        .filter(Boolean),
+        .flatMap((callsign) =>
+          buildRouteSubscriptionRequests(callsign, routeContext).map(
+            routeSubscriptionKey,
+          ),
+        ),
     );
 
     for (const [key, unsubscribe] of routeUnsubscribersRef.current) {
@@ -136,26 +159,29 @@ export function useFlightRoutes(
     }
 
     for (const callsign of pendingCallsigns) {
-      const request = buildRouteChannel(callsign, routeContext);
-      if (!request) continue;
-      const key = routeSubscriptionKey(request);
-      if (routeUnsubscribersRef.current.has(key)) continue;
-      const unsubscribe = client.subscribe({
-        channel: request.channel,
-        params: request.params,
-        listener: (event) => {
-          if (event.type === "route:update") {
-            const data = event.data as RouteEventData;
-            flightRouteScheduler.applyRouteResult(
-              data?.callsign || callsign,
-              data?.route || null,
-              routeContext,
-            );
-            return;
-          }
-        },
-      });
-      routeUnsubscribersRef.current.set(key, unsubscribe);
+      for (const request of buildRouteSubscriptionRequests(
+        callsign,
+        routeContext,
+      )) {
+        const key = routeSubscriptionKey(request);
+        if (routeUnsubscribersRef.current.has(key)) continue;
+        const unsubscribe = client.subscribe({
+          channel: request.channel,
+          params: request.params,
+          listener: (event) => {
+            if (event.type === "route:update") {
+              const data = event.data as RouteEventData;
+              flightRouteScheduler.applyRouteResult(
+                data?.callsign || callsign,
+                data?.route || null,
+                routeContext,
+              );
+              return;
+            }
+          },
+        });
+        routeUnsubscribersRef.current.set(key, unsubscribe);
+      }
     }
   }, [client, pendingCallsigns, routeContext, routeTransport]);
 

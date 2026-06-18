@@ -21,12 +21,17 @@ import { createAttitudeTracker } from "../../utils/aircraftAttitude";
 import { getAircraftPositionSourceBadge } from "../../features/aviation/sourceDisplayModel";
 import { AircraftLabel } from "@/components/ui/AircraftLabel";
 import { AircraftLights } from "@/features/aircraft/icons/AircraftLights";
+import {
+  safeAddToMap,
+  safeRemoveFromMap,
+} from "@/features/airport/map/leafletLayerSafety";
 
 // Marker glyph size. Keep this modest so dense airport maps stay readable,
 // but large enough that masked silhouettes survive busy vector basemaps. The
 // Leaflet divIcon and label baseline follow this constant, so changing it
 // keeps the anchor centered and the callsign hugged to the silhouette.
 const SILHOUETTE_SIZE_PX = 20;
+const silentLeafletLogger = { ...console, warn: () => {} };
 
 const getAircraftColor = (ac, showArrow) => {
   if (ac.onGround) return AIRCRAFT_COLORS.ground;
@@ -81,14 +86,19 @@ function AircraftPosition({
     motionRef.current = beginAircraftMotionState(aircraft, now);
     const visualPos = calculateAircraftVisualPosition(motionRef.current, now);
 
-    const marker = L.marker([visualPos.lat, visualPos.lon], {
-      icon: L.divIcon({
-        className: "",
-        html: container,
-        iconSize: [SILHOUETTE_SIZE_PX, SILHOUETTE_SIZE_PX],
-        iconAnchor: [SILHOUETTE_SIZE_PX / 2, SILHOUETTE_SIZE_PX / 2],
+    const marker = safeAddToMap(
+      L.marker([visualPos.lat, visualPos.lon], {
+        icon: L.divIcon({
+          className: "",
+          html: container,
+          iconSize: [SILHOUETTE_SIZE_PX, SILHOUETTE_SIZE_PX],
+          iconAnchor: [SILHOUETTE_SIZE_PX / 2, SILHOUETTE_SIZE_PX / 2],
+        }),
       }),
-    }).addTo(map);
+      map,
+      { label: "AircraftPosition", logger: silentLeafletLogger },
+    );
+    if (!marker) return undefined;
     markerRef.current = marker;
 
     let lastLat = visualPos.lat;
@@ -110,7 +120,7 @@ function AircraftPosition({
 
     return () => {
       cancelAnimationFrame(rafId);
-      marker.remove();
+      safeRemoveFromMap(marker, map);
       markerRef.current = null;
     };
     // We intentionally only re-run on map/container change. Aircraft data

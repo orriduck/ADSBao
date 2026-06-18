@@ -2,9 +2,13 @@ package webapi
 
 import (
 	"context"
+	"encoding/json"
+	"encoding/xml"
 	"fmt"
+	"io"
 	"log"
 	"math"
+	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
@@ -15,9 +19,11 @@ import (
 
 const (
 	defaultOverpassBaseURL             = "https://overpass-api.de/api/interpreter"
+	defaultAirportSurfaceOSMMapBaseURL = "https://api.openstreetmap.org/api/0.6/map"
 	defaultAirportSurfaceCacheTTL      = 6 * time.Hour
-	airportSurfaceRequestTimeout       = 18 * time.Second
-	airportSurfaceBBoxPaddingMeters    = 1800
+	airportSurfaceRequestTimeout       = 3 * time.Second
+	airportSurfaceOSMMapRequestTimeout = 12 * time.Second
+	airportSurfaceBBoxPaddingMeters    = 400
 	airportSurfaceFallbackRadiusMeters = 4500
 	maxAirportSurfaceFeatures          = 1400
 	maxAirportSurfaceBuildings         = 600
@@ -44,6 +50,32 @@ type airportSurfaceCache struct {
 type airportSurfaceCacheEntry struct {
 	payload   map[string]any
 	expiresAt time.Time
+}
+
+type airportSurfaceOSMMap struct {
+	Nodes []airportSurfaceOSMNode `xml:"node"`
+	Ways  []airportSurfaceOSMWay  `xml:"way"`
+}
+
+type airportSurfaceOSMNode struct {
+	ID  int64   `xml:"id,attr"`
+	Lat float64 `xml:"lat,attr"`
+	Lon float64 `xml:"lon,attr"`
+}
+
+type airportSurfaceOSMWay struct {
+	ID   int64                  `xml:"id,attr"`
+	NDs  []airportSurfaceOSMND  `xml:"nd"`
+	Tags []airportSurfaceOSMTag `xml:"tag"`
+}
+
+type airportSurfaceOSMND struct {
+	Ref int64 `xml:"ref,attr"`
+}
+
+type airportSurfaceOSMTag struct {
+	Key   string `xml:"k,attr"`
+	Value string `xml:"v,attr"`
 }
 
 func newAirportSurfaceCache(ttl time.Duration) *airportSurfaceCache {
@@ -112,9 +144,12 @@ func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon 
 		normalizedScope,
 	)
 	if !ok {
-		return nil
+		return h.airportSurfaceMapFromOSMMap(ctx, airport, bbox, normalizedScope)
 	}
 	surfaceMap := buildAirportSurfaceMapFromOverpass(airport, payload)
+	if surfaceMap == nil {
+		return h.airportSurfaceMapFromOSMMap(ctx, airport, bbox, normalizedScope)
+	}
 	h.airportSurfaceCache.set(cacheKey, surfaceMap)
 	return surfaceMap
 }
@@ -145,26 +180,96 @@ func (h *Handler) fetchAirportSurfacePayload(
 		log.Printf("airport surface url parse failed airport=%s mode=%s error=%v", airport, mode, err)
 		return nil, false
 	}
-	values := requestURL.Query()
-	values.Set("data", query)
-	requestURL.RawQuery = values.Encode()
 
 	var payload map[string]any
-	status, err := h.fetchJSONWithTimeout(
-		ctx,
-		requestURL.String(),
-		map[string]string{
-			"Accept":     "application/json",
-			"User-Agent": "ADSBao data-service/1.0 (+https://adsbao.dev)",
-		},
-		&payload,
-		airportSurfaceRequestTimeout,
-	)
+	status, err := h.fetchAirportSurfaceJSON(ctx, requestURL.String(), query, &payload)
 	if err != nil || status < 200 || status >= 300 {
 		log.Printf("airport surface fetch failed airport=%s mode=%s status=%d error=%v", airport, mode, status, err)
 		return nil, false
 	}
 	return payload, true
+}
+
+func (h *Handler) fetchAirportSurfaceJSON(ctx context.Context, upstream string, query string, out any) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, airportSurfaceRequestTimeout)
+	defer cancel()
+	body := strings.NewReader(url.Values{"data": {query}}.Encode())
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, upstream, body)
+	if err != nil {
+		return 0, err
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", "ADSBao data-service/1.0 (+https://adsbao.dev)")
+	resp, err := h.httpClient.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+	responseBody, err := io.ReadAll(io.LimitReader(resp.Body, aircraftJSONMaxBytes))
+	if err != nil {
+		return resp.StatusCode, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return resp.StatusCode, nil
+	}
+	if err := json.Unmarshal(responseBody, out); err != nil {
+		return resp.StatusCode, err
+	}
+	return resp.StatusCode, nil
+}
+
+func (h *Handler) airportSurfaceMapFromOSMMap(ctx context.Context, airport string, bbox airportSurfaceBBox, scope string) map[string]any {
+	payload, ok := h.fetchAirportSurfaceOSMMap(ctx, airport, bbox, scope)
+	if !ok {
+		return nil
+	}
+	surfaceMap := buildAirportSurfaceMapFromOSMMap(airport, payload, scope)
+	if surfaceMap == nil {
+		return nil
+	}
+	h.airportSurfaceCache.set(airportSurfaceCacheKey(airport, scope), surfaceMap)
+	return surfaceMap
+}
+
+func (h *Handler) fetchAirportSurfaceOSMMap(ctx context.Context, airport string, bbox airportSurfaceBBox, scope string) (*airportSurfaceOSMMap, bool) {
+	requestURL, err := url.Parse(defaultAirportSurfaceOSMMapBaseURL)
+	if err != nil {
+		log.Printf("airport surface osm url parse failed airport=%s scope=%s error=%v", airport, scope, err)
+		return nil, false
+	}
+	requestURL.RawQuery = "bbox=" + strings.Join([]string{
+		formatBBoxCoordinate(bbox.west),
+		formatBBoxCoordinate(bbox.south),
+		formatBBoxCoordinate(bbox.east),
+		formatBBoxCoordinate(bbox.north),
+	}, ",")
+
+	ctx, cancel := context.WithTimeout(ctx, airportSurfaceOSMMapRequestTimeout)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL.String(), nil)
+	if err != nil {
+		return nil, false
+	}
+	req.Header.Set("Accept", "application/xml,text/xml")
+	req.Header.Set("User-Agent", "ADSBao data-service/1.0 (+https://adsbao.dev)")
+	resp, err := h.httpClient.Do(req)
+	if err != nil {
+		log.Printf("airport surface osm fetch failed airport=%s scope=%s status=0 error=%v", airport, scope, err)
+		return nil, false
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(resp.Body, aircraftJSONMaxBytes))
+	if err != nil || resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		log.Printf("airport surface osm fetch failed airport=%s scope=%s status=%d error=%v", airport, scope, resp.StatusCode, err)
+		return nil, false
+	}
+	var payload airportSurfaceOSMMap
+	if err := xml.Unmarshal(body, &payload); err != nil {
+		log.Printf("airport surface osm parse failed airport=%s scope=%s error=%v", airport, scope, err)
+		return nil, false
+	}
+	return &payload, true
 }
 
 func airportSurfaceSearchBBox(lat, lon float64, runwayMap map[string]any) (airportSurfaceBBox, bool) {
@@ -228,7 +333,7 @@ func buildAirportSurfacePavementOverpassQuery(bbox airportSurfaceBBox) string {
 		formatBBoxCoordinate(bbox.east),
 	}, ",")
 
-	return fmt.Sprintf(`[out:json][timeout:20];
+	return fmt.Sprintf(`[out:json][timeout:3];
 (
   way["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
   relation["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
@@ -244,17 +349,12 @@ func buildAirportSurfaceStructuresOverpassQuery(bbox airportSurfaceBBox) string 
 		formatBBoxCoordinate(bbox.east),
 	}, ",")
 
-	return fmt.Sprintf(`[out:json][timeout:20];
-(
-  way["aeroway"="aerodrome"](%s);
-  relation["aeroway"="aerodrome"](%s);
-)->.aerodrome;
-.aerodrome map_to_area->.apt;
+	return fmt.Sprintf(`[out:json][timeout:3];
 (
   way["aeroway"="terminal"](%s);
   relation["aeroway"="terminal"](%s);
-  way["building"](area.apt);
-  relation["building"](area.apt);
+  way["building"~"^(terminal|transportation|hangar)$"](%s);
+  relation["building"~"^(terminal|transportation|hangar)$"](%s);
 );
 out tags geom;`, formatted, formatted, formatted, formatted)
 }
@@ -317,12 +417,74 @@ func buildAirportSurfaceMapFromOverpass(airport string, payload map[string]any) 
 	}
 }
 
+func buildAirportSurfaceMapFromOSMMap(airport string, payload *airportSurfaceOSMMap, scope string) map[string]any {
+	if payload == nil {
+		return nil
+	}
+	nodes := map[int64]airportSurfaceOSMNode{}
+	for _, node := range payload.Nodes {
+		if node.ID != 0 && finite(node.Lat) && finite(node.Lon) {
+			nodes[node.ID] = node
+		}
+	}
+	elements := []any{}
+	for _, way := range payload.Ways {
+		tags := map[string]any{}
+		for _, tag := range way.Tags {
+			tags[tag.Key] = tag.Value
+		}
+		if !airportSurfaceTagsMatchScope(tags, scope) {
+			continue
+		}
+		geometry := []any{}
+		for _, nd := range way.NDs {
+			node, ok := nodes[nd.Ref]
+			if !ok {
+				continue
+			}
+			geometry = append(geometry, map[string]any{
+				"lat": node.Lat,
+				"lon": node.Lon,
+			})
+		}
+		elements = append(elements, map[string]any{
+			"type":     "way",
+			"id":       way.ID,
+			"tags":     tags,
+			"geometry": geometry,
+		})
+	}
+	return buildAirportSurfaceMapFromOverpass(airport, map[string]any{
+		"elements": elements,
+	})
+}
+
+func airportSurfaceTagsMatchScope(tags map[string]any, scope string) bool {
+	kind := strings.ToLower(stringValue(tags["aeroway"]))
+	if normalizeAirportSurfaceScope(scope) == airportSurfaceScopeStructures {
+		if kind == "terminal" {
+			return true
+		}
+		_, hasBuilding := tags["building"]
+		return hasBuilding
+	}
+	switch kind {
+	case "runway", "taxiway", "taxilane", "apron":
+		return true
+	default:
+		return false
+	}
+}
+
 func airportSurfaceFeature(element map[string]any) map[string]any {
 	tags := asRecord(element["tags"])
 	kind := strings.ToLower(stringValue(tags["aeroway"]))
 	// `stringValue` yields "<nil>" for a missing tag — normalize to empty.
 	if kind == "<nil>" {
 		kind = ""
+	}
+	if kind == "hangar" {
+		kind = "building"
 	}
 	// Buildings carry no aeroway tag; aeroway=terminal is already a building.
 	// Classify them so the frontend can color terminals distinctly from other
