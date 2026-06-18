@@ -1,7 +1,5 @@
-"use client";
-
 import { useRef } from "react";
-import { usePathname } from "@/platform/router/navigation";
+import { useLocation } from "react-router-dom";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
 import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
@@ -17,7 +15,7 @@ export default function DitherPageShell({
   children,
 }) {
   const { locale, t } = useI18n();
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const shellRef = useRef<HTMLDivElement>(null);
   const routeChrome = resolveRouteChrome(pathname, t);
   usePageEntrance(shellRef, {

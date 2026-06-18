@@ -1,7 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "@/platform/router/navigation";
+import { lazy, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard";
@@ -30,11 +28,10 @@ import { useAircraftTraceAsyncStatus } from "@/features/aircraft/trace/useAircra
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
-import dynamic from "@/platform/react/dynamic";
 
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
-const PlaneHunterStudio = dynamic(() => import("./PlaneHunterStudio"));
+const PlaneHunterStudio = lazy(() => import("./PlaneHunterStudio"));
 
 export default function AircraftPreviewCard({
   aircraft = null,
@@ -77,8 +74,8 @@ export default function AircraftPreviewCard({
   const aircraftIdentity = isAircraftPreview
     ? getAircraftIdentity(aircraft)
     : null;
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const trackHref = isCandidateWatchingSpot
     ? null
     : isAirport
@@ -119,7 +116,7 @@ export default function AircraftPreviewCard({
   // no-op so they don't bounce.
   const handleMobileTap = () => {
     if (!cardTrackHref || alreadyTracking) return;
-    router.push(cardTrackHref);
+    navigate(cardTrackHref);
   };
 
   // Swipe up anywhere on screen while the mobile preview is showing →

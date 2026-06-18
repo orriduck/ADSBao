@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, type CSSProperties } from "react";
 import { airportDisplayCode, airportDisplayName, airportSubtitle } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

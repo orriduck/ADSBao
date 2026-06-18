@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef } from "react";
 import { useContentSwap } from "@/components/effects/useContentSwap";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel";

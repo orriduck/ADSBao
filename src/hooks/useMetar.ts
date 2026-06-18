@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { createMetarClient } from "../features/weather/metar/metarClient";
 import { normalizeMetarPayload } from "../features/weather/metar/metarModel";

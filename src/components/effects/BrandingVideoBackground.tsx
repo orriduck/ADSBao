@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 
 const DEFAULT_SOURCE = "/brand/adsbao-aircraft-brand-loop.mp4";

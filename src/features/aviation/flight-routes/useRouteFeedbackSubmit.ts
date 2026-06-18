@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useState } from "react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 

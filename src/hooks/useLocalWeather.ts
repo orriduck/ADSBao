@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { createLocalWeatherClient } from "../features/weather/localWeatherClient";
 import { normalizeLocalWeather } from "../features/weather/localWeatherNormalizer";

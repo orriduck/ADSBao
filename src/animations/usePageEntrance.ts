@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * usePageEntrance — GSAP-driven page shell entrance animation.
  *

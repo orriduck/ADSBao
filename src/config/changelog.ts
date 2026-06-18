@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.14.1",
+    kind: "patch",
+    title: {
+      en: "Runtime cleanup",
+      zh: "运行时代码精简",
+    },
+    summary: {
+      en: "Removed old Next-era shims, dead TypeScript server scrapers, and generated aircraft-light ballast after the Railway data-service migration.",
+      zh: "清理 Railway data-service 迁移后遗留的 Next 兼容层、旧 TypeScript 服务端抓取代码和飞机灯光生成表。",
+    },
+    highlights: [
+      {
+        en: "Aircraft light anchors now resolve from family templates instead of a 21k-line generated map",
+        zh: "飞机灯光锚点改为按机型族模板解析，不再依赖 2.1 万行生成表",
+      },
+      {
+        en: "Old TypeScript FlightAware, ADSBDB, and community-route server paths were removed in favor of the active Go data-service providers",
+        zh: "移除旧 TypeScript FlightAware、ADSBDB 与社区航线服务端路径，保留当前 Go data-service provider",
+      },
+      {
+        en: "Vite React code now uses React Router and native React lazy loading directly instead of local compatibility wrappers",
+        zh: "Vite React 代码直接使用 React Router 与 React lazy，不再经过本地兼容封装",
+      },
+    ],
+  },
+  {
     version: "v2.14.0",
     kind: "feat",
     title: {

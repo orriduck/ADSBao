@@ -1,5 +1,3 @@
-"use client";
-
 import { useContentSwap } from "@/components/effects/useContentSwap";
 import AirportRow from "./AirportRow";
 

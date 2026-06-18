@@ -1,5 +1,3 @@
-"use client";
-
 // Callsign / aircraft-ID label that floats next to a Leaflet aircraft
 // marker on the map. Pulled out of AircraftPosition.jsx so the same
 // rendering shape (callsign + optional source-quality badge in the

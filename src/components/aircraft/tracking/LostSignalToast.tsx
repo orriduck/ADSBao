@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

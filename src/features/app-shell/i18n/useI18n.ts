@@ -1,11 +1,9 @@
-"use client";
-
 import { useCallback, useContext, useMemo } from "react";
 import {
-  usePathname,
-  useRouter,
+  useLocation,
+  useNavigate,
   useSearchParams,
-} from "@/platform/router/navigation";
+} from "react-router-dom";
 import {
   DEFAULT_LOCALE,
   nextLocale,
@@ -17,21 +15,21 @@ import { I18nRuntimeContext } from "./i18nProvider";
 export function useI18n() {
   const runtime = useContext(I18nRuntimeContext);
   const locale = normalizeLocaleSelection(runtime.locale, DEFAULT_LOCALE);
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const setLocale = useCallback(
     (next) => {
       const selected = normalizeLocaleSelection(next, locale);
       if (selected === locale) return;
       runtime.setLocale(selected);
-      router.replace(
+      navigate(
         setLocaleSearchParam(pathname, searchParams.toString(), selected),
-        { scroll: false },
+        { replace: true },
       );
     },
-    [locale, pathname, router, runtime, searchParams],
+    [locale, navigate, pathname, runtime, searchParams],
   );
 
   const cycle = useCallback(() => {

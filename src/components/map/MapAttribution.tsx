@@ -1,5 +1,3 @@
-"use client";
-
 export default function MapAttribution({ color, shadowColor, hidden = false }) {
   return (
     <div

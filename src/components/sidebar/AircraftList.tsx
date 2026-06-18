@@ -1,5 +1,3 @@
-"use client";
-
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel";
 import AircraftRow from "./AircraftRow";
 import CardFlipSlot from "./CardFlipSlot";

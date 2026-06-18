@@ -1,14 +1,13 @@
 /**
  * Renders exterior aircraft light dots over a silhouette icon.
  *
- * Anchors are looked up from the pre-generated AIRCRAFT_ICON_ANCHORS map
- * using the resolved icon name. Lights are positioned in the icon's
+ * Anchors are looked up by resolved icon family. Lights are positioned in the icon's
  * normalized 0–1 coordinate space and inherit the parent's heading rotation
  * (the icon container already applies `rotate(heading)`).
  */
 
 import { memo } from "react";
-import { AIRCRAFT_ICON_ANCHORS, type AircraftIconAnchorRecord } from "./aircraftIconAnchors.generated";
+import { resolveAircraftIconAnchorRecord } from "./aircraftIconAnchors";
 import { resolveActiveLights, type AircraftState } from "../lighting/aircraftLightingModel";
 
 interface AircraftLightsProps {
@@ -19,7 +18,7 @@ interface AircraftLightsProps {
 }
 
 function AircraftLightsInner({ iconName, state }: AircraftLightsProps) {
-  const record: AircraftIconAnchorRecord | undefined = (AIRCRAFT_ICON_ANCHORS as any)[iconName];
+  const record = resolveAircraftIconAnchorRecord(iconName);
   if (!record?.anchors) return null;
 
   const activeLights = resolveActiveLights(state, record.anchors, record.family);

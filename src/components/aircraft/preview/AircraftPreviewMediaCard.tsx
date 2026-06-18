@@ -1,7 +1,3 @@
-"use client";
-
-import Image from "@/platform/image/Image";
-
 const CARD_WIDTH_PX = 280;
 const PHOTO_VISIBLE_HEIGHT_RATIO = 0.9;
 const DEFAULT_PHOTO_ASPECT_HEIGHT_RATIO = 2 / 3;
@@ -29,14 +25,13 @@ export default function AircraftPreviewMediaCard({ photo }) {
       style={style}
     >
       <div className="aircraft-preview-media-card__photo">
-        <Image
+        <img
           className="aircraft-preview-media-card__image"
           src={photo.src}
           width={photo.width || CARD_WIDTH_PX}
           height={photo.height || Math.round(CARD_WIDTH_PX * DEFAULT_PHOTO_ASPECT_HEIGHT_RATIO)}
           alt=""
           draggable="false"
-          unoptimized
         />
       </div>
       <span className="aircraft-preview-photo__credit">

@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo } from "react";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
 import {

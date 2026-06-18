@@ -1,8 +1,6 @@
-"use client";
-
 import { useMemo } from "react";
 import NumberFlow from "@number-flow/react";
-import { SidebarMetricCard, SidebarMetricGrid } from "./SidebarMetric";
+import { MetricCard as SidebarMetricCard, MetricGrid as SidebarMetricGrid } from "@/components/ui/MetricCard";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useMapInstance } from "./MapContext";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

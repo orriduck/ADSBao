@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { nearbyAirportClient } from "../features/airport/nearby/nearbyAirportClient";
 import {

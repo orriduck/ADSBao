@@ -1,5 +1,3 @@
-"use client";
-
 import AirlineLogo from "./AirlineLogo";
 import AircraftPreviewType from "./AircraftPreviewType";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

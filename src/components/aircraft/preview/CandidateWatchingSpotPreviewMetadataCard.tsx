@@ -1,5 +1,3 @@
-"use client";
-
 import { Camera } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {

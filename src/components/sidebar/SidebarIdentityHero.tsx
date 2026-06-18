@@ -1,5 +1,3 @@
-"use client";
-
 import SidebarBrandMark from "./SidebarBrandMark";
 
 // Shared identity-hero pattern used at the top of every sidebar (airport

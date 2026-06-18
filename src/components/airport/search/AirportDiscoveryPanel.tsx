@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
-import { useRouter } from "@/platform/router/navigation";
+import { useNavigate } from "react-router-dom";
 import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import {
   airportDisplayCode,
@@ -90,10 +88,10 @@ export default function AirportDiscoveryPanel({
 // nearby button now sends them into the user-centered explorer page.
 function NearMeDiscoverySection() {
   const { locale, t } = useI18n();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const handleOpenNearMe = () => {
-    router.push(setLocaleSearchParam("/here", "", locale));
+    navigate(setLocaleSearchParam("/here", "", locale));
   };
 
   return (

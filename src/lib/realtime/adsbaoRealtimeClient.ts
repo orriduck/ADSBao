@@ -1,5 +1,3 @@
-"use client";
-
 type ConnectionState = "closed" | "connecting" | "disabled" | "open";
 
 export type AdsbaoRealtimeEvent<TData = unknown> = {

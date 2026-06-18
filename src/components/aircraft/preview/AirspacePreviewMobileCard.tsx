@@ -1,5 +1,3 @@
-"use client";
-
 import { ShieldAlert } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { resolveAirspacePreviewDisplay } from "@/features/airport/openaip/airspacePreviewDisplayModel";

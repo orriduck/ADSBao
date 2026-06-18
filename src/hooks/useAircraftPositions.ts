@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "../config/aviation";
 import {

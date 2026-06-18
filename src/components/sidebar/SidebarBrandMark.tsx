@@ -1,7 +1,4 @@
-"use client";
-
-import Link from "@/platform/router/Link";
-import { useSearchParams } from "@/platform/router/navigation";
+import { Link, useSearchParams } from "react-router-dom";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { setHomeSearchParamCarryover } from "@/features/app-shell/navigationModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -18,7 +15,7 @@ export default function SidebarBrandMark({ className = "" }) {
       className={`mb-[18px] flex min-h-[28px] items-center text-atc-text ${className}`.trim()}
     >
       <Link
-        href={homeHref}
+        to={homeHref}
         aria-label={t("nav.homePage")}
         title={t("nav.homePage")}
         className="inline-flex items-center rounded-[2px] text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-atc-accent"

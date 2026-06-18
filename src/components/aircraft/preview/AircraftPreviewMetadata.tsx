@@ -1,5 +1,3 @@
-"use client";
-
 import type { ComponentProps, ReactNode } from "react";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

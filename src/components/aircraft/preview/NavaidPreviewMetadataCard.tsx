@@ -1,5 +1,3 @@
-"use client";
-
 import NumberFlow from "@number-flow/react";
 import { RadioTower } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";

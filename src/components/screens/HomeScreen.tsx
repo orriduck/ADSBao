@@ -1,10 +1,7 @@
-"use client";
-
-import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter } from "@/platform/router/navigation";
+import { lazy, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AirportSearchPanel from "@/components/airport/search/AirportSearchPanel";
-import dynamic from "@/platform/react/dynamic";
 import {
   airportProfileCode,
   prefetchAirportProfile,
@@ -13,15 +10,15 @@ import {
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 
-const AirportExplorer = dynamic(() => import("@/components/airport/explorer/AirportExplorer"));
+const AirportExplorer = lazy(() => import("@/components/airport/explorer/AirportExplorer"));
 
 // Single client component shared between "/" and "/airport/[icao]" —
 // pathname drives which sub-screen renders, so back/forward, the
-// sidebar logo Link, and any other Next router navigation all stay in
+// sidebar logo Link, and any other React Router navigation all stay in
 // sync without manual history.pushState or popstate plumbing.
 export default function HomeScreen() {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { locale } = useI18n();
   const currentIcao = normalizePathIcao(pathname);
   const seedAirportRef = useRef(null);
@@ -112,7 +109,7 @@ export default function HomeScreen() {
     // without a flash while the resolveAirport effect re-fires off the
     // new pathname.
     seedAirportRef.current = selectedAirport;
-    router.push(setLocaleSearchParam(`/airport/${nextIcao}`, "", locale));
+    navigate(setLocaleSearchParam(`/airport/${nextIcao}`, "", locale));
   };
 
   const handlePrefetchAirport = (selectedAirport) => {
@@ -124,7 +121,7 @@ export default function HomeScreen() {
   };
 
   const handleBack = () => {
-    router.push(setLocaleSearchParam("/", "", locale));
+    navigate(setLocaleSearchParam("/", "", locale));
   };
 
   if (!currentIcao) {

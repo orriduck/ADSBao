@@ -1,7 +1,5 @@
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "@/platform/router/navigation";
+import { useNavigate } from "react-router-dom";
 import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -24,7 +22,7 @@ function isDesktopDevice() {
 
 // `/here` — explorer view centered on the user's current position.
 export default function NearMeScreen() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { locale, t } = useI18n();
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [status, setStatus] = useState<
@@ -144,8 +142,8 @@ export default function NearMeScreen() {
   );
 
   const handleBack = useCallback(() => {
-    router.push(setLocaleSearchParam("/", "", locale));
-  }, [router, locale]);
+    navigate(setLocaleSearchParam("/", "", locale));
+  }, [navigate, locale]);
 
   if (status !== "granted" || !airport) {
     return (

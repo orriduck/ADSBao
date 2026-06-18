@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 import { AIRPORT_MAP_PANES } from "@/config/airportMap";
 import { useMapInstance } from "./MapContext";

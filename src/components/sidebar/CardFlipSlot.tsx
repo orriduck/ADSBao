@@ -1,5 +1,3 @@
-"use client";
-
 import type { ReactNode } from "react";
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";

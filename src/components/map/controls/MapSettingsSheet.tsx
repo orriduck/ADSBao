@@ -1,5 +1,3 @@
-"use client";
-
 import { useUser } from "@/platform/auth/clerkClient";
 import {
   DEFAULT_MAP_BASE_LAYER,

@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../config/aviation";
 import { normalizeCallsign } from "../utils/callsign";

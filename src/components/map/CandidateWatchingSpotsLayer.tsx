@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { Camera } from "lucide-react";

@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * useCardInteraction — GSAP-powered hover and active-state animations
  * for interactive card elements (SelectableCard, MetricCard, AircraftRow).
