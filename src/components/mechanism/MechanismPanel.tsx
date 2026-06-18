@@ -14,7 +14,7 @@ export default function MechanismPanel() {
   );
 
   return (
-    <div className="flex-1 overflow-y-auto pb-6">
+    <div className="flex flex-none flex-col pb-6">
       <div className="dither-section-header flex-none px-6 pt-6 pb-3">
         <div className="atc-section-head">
           <span className="atc-kicker">{t("mechanism.sidebarLabel")}</span>

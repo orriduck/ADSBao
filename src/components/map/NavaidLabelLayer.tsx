@@ -67,7 +67,8 @@ export default function NavaidLabelLayer({
         const interactive = Boolean(onSelectRef.current);
         const marker = L.marker([label.lat, label.lon], {
           interactive,
-          keyboard: interactive,
+          autoPanOnFocus: false,
+          keyboard: false,
           title: [label.ident, label.name, label.type].filter(Boolean).join(" "),
           icon: navaidLabelIcon(label, theme, selectedNavaidKey),
           pane,

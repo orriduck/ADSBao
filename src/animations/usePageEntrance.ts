@@ -52,13 +52,16 @@ export function usePageEntrance(
     const items = Array.from(container.querySelectorAll<HTMLElement>(itemSelector));
     const animatedElements = [header, body, ...items].filter(Boolean);
 
-    if (resetScroll && body) {
-      body.scrollTop = 0;
-      body
-        .querySelectorAll<HTMLElement>(".overflow-y-auto")
-        .forEach((scroller) => {
-          scroller.scrollTop = 0;
-        });
+    if (resetScroll) {
+      container.scrollTop = 0;
+      if (body) {
+        body.scrollTop = 0;
+        body
+          .querySelectorAll<HTMLElement>(".overflow-y-auto")
+          .forEach((scroller) => {
+            scroller.scrollTop = 0;
+          });
+      }
     }
 
     killTweensOf(animatedElements);

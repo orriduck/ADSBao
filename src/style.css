@@ -2053,6 +2053,11 @@ body:has(.airport-map-kit) {
         padding-bottom: var(--map-toolbar-mobile-clearance);
     }
 
+    .dither-page-shell:not(.plane-hunter-shell) .dither-page-panel {
+        overflow: visible;
+        overscroll-behavior-y: auto;
+    }
+
     /* Inner panels normally use `flex-1 overflow-y-auto` so the desktop
        sidebar panel scrolls internally. On mobile we want the whole
        page to scroll instead, so reset those containers to natural
@@ -3052,6 +3057,7 @@ body {
 .dither-page-panel {
     /* Floating frosted sidebar over the full-bleed dither layer, matching
        the airport / flight detail sidebars. */
+    --airport-sidebar-inset: 24px;
     background:
         linear-gradient(
             to top,
@@ -3066,7 +3072,25 @@ body {
     box-shadow: var(--app-panel-shadow);
     margin: 12px 0 12px 12px;
     max-height: calc(100dvh - 24px);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.dither-page-panel[data-collapsed="true"] {
+    align-self: flex-start;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    max-height: none;
+    overflow: visible;
+    width: max-content !important;
+}
+
+.dither-page-header.dither-page-header--copy-only {
+    padding-top: 8px;
 }
 
 :root[data-theme="dark"] .dither-page-panel {
@@ -3188,7 +3212,29 @@ body {
 .airport-desktop-sidebar > .h-full,
 .airport-desktop-sidebar .sidebar-shell {
     border-radius: var(--atc-radius-shell);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.airport-desktop-sidebar[data-collapsed="true"] {
+    bottom: auto;
+    height: auto;
+}
+
+.airport-desktop-sidebar[data-collapsed="true"] > .h-full,
+.airport-desktop-sidebar[data-collapsed="true"] .sidebar-shell {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+.airport-desktop-sidebar[data-collapsed="true"] .sidebar-shell {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: transparent;
+    box-shadow: none;
 }
 
 .airport-sidebar-panel--mobile,
@@ -5180,7 +5226,7 @@ body {
        The warm accent now rises from the panel bottom instead. */
     background: transparent;
     border-bottom: 0;
-    padding: 75px var(--airport-sidebar-inset) 22px;
+    padding: 18px var(--airport-sidebar-inset) 22px;
 }
 
 .airport-sidebar-identity__rule {
@@ -5207,10 +5253,9 @@ body {
     .airport-sidebar-panel--mobile .airport-sidebar-identity,
     .flight-sidebar-panel .airport-sidebar-identity {
         /* Match the home page's dither-page-header top padding so the
-           "拍机宝" brand mark lands at the same vertical position
-           across the app on mobile. The dock no longer pins at the top
-           on mobile, so we no longer need to reserve 75px for it. */
-        padding-top: calc(28px + env(safe-area-inset-top));
+           identity block lands at the same visual rhythm under the
+           shell-owned brand dock. */
+        padding-top: 18px;
         padding-bottom: 20px;
     }
 
@@ -6782,6 +6827,7 @@ body {
     }
 
     .dither-page-panel {
+        --airport-sidebar-inset: 19px;
         border-radius: var(--atc-radius-shell);
         margin: 10px 0 10px 10px;
         max-height: calc(100dvh - 20px);
@@ -6794,6 +6840,10 @@ body {
 
     .dither-page-header {
         padding: 22px 19px 19px;
+    }
+
+    .dither-page-header.dither-page-header--copy-only {
+        padding-top: 4px;
     }
 
     .dither-page-header > .flex {
@@ -7101,6 +7151,7 @@ body {
     --map-kit-inset: 16px;
     --map-kit-gap: 12px;
     --map-plane-inset: 0px;
+    --map-stage-border-width: 1px;
     background: var(--atc-bg);
     height: 100vh;
     height: 100dvh;
@@ -7113,7 +7164,7 @@ body {
 
 .airport-map-kit .airport-map-stage {
     background: var(--atc-bg);
-    border: 1px solid
+    border: var(--map-stage-border-width) solid
         color-mix(in oklab, var(--atc-line-strong) 78%, transparent);
     border-radius: 0;
     box-shadow:
@@ -7194,7 +7245,39 @@ body {
 .airport-map-kit .airport-desktop-sidebar .sidebar-shell {
     border-radius: calc(var(--atc-radius-shell) - 2px);
     height: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.airport-map-kit .airport-desktop-sidebar[data-collapsed="true"] {
+    bottom: auto;
+    height: auto;
+    left: calc(
+        var(--map-plane-inset) + var(--map-kit-inset) +
+            var(--map-stage-border-width)
+    );
+    top: calc(
+        var(--map-plane-inset) + var(--map-kit-inset) +
+            var(--map-stage-border-width)
+    );
+}
+
+.airport-map-kit[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
+    .airport-desktop-sidebar[data-collapsed="true"] {
+    left: calc(
+        var(--map-plane-inset) + var(--map-kit-inset) +
+            var(--app-safe-area-left, 0px) + var(--map-stage-border-width)
+    );
+}
+
+.airport-map-kit .airport-desktop-sidebar[data-collapsed="true"] > .h-full,
+.airport-map-kit .airport-desktop-sidebar[data-collapsed="true"] .sidebar-shell {
+    border-radius: var(--atc-radius-shell);
+    height: auto;
+    min-height: 0;
+    overflow: visible;
 }
 
 .airport-map-kit .airport-sidebar-panel,
@@ -7214,6 +7297,13 @@ body {
     );
     border: 0;
     box-shadow: var(--app-map-sidebar-shadow);
+}
+
+.airport-map-kit .airport-desktop-sidebar[data-collapsed="true"] .sidebar-shell {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: transparent;
+    box-shadow: none;
 }
 
 :root[data-theme="dark"] .airport-map-kit .airport-sidebar-panel,
@@ -7438,29 +7528,6 @@ body {
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .aircraft-table-controls {
         display: contents;
-    }
-
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .aircraft-table-search-bar,
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .aircraft-table-header {
-        -webkit-backdrop-filter: var(--app-frost-strong);
-        backdrop-filter: var(--app-frost-strong);
-        background: color-mix(in oklab, var(--app-frost-tint) 88%, transparent);
-        box-shadow: 0 1px 0 color-mix(in oklab, var(--atc-line) 62%, transparent);
-        position: sticky;
-    }
-
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .aircraft-table-search-bar {
-        top: 0;
-        z-index: calc(var(--z-index-sticky) + 2);
-    }
-
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .aircraft-table-header {
-        top: 42px;
-        z-index: calc(var(--z-index-sticky) + 1);
     }
 
 }

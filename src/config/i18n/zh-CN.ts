@@ -532,6 +532,7 @@ const zhCN = {
     layerOverlaysAria: "地图图层叠加",
     toggleSidebar: "切换侧栏",
     openDetails: "打开信息卡",
+    expandDetails: "展开信息卡",
     fitTrace: "适配航迹",
     zoomLockedFlightAware: "FlightAware 兜底时锁定缩放",
     approachingView: "进近视图(点击循环)",

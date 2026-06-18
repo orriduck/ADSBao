@@ -43,6 +43,10 @@ export default function FlightSidebar({
   onBack,
   onMap = null,
   onClose = null,
+  collapsed = false,
+  collapseEnabled = false,
+  onCollapse = null,
+  onExpand = null,
   mobileToolbar = null,
   fillAircraftList = true,
 }) {
@@ -98,6 +102,10 @@ export default function FlightSidebar({
       onBack={onBack}
       onMap={onMap}
       onClose={onClose}
+      collapsed={collapsed}
+      collapseEnabled={collapseEnabled}
+      onCollapse={onCollapse}
+      onExpand={onExpand}
       header={header}
       mobileToolbar={mobileToolbar}
     >

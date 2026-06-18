@@ -62,6 +62,7 @@ export default function NavaidCountLayer({
       markers.map((item) =>
         L.marker([item.lat, item.lon], {
           interactive: false,
+          autoPanOnFocus: false,
           keyboard: false,
           title: `${item.count} navaids`,
           icon: navaidCountIcon(item.count, theme),

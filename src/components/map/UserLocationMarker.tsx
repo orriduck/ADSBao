@@ -35,6 +35,7 @@ export default function UserLocationMarker({
 
     const marker = L.marker([locationLat, locationLon], {
       interactive: false,
+      autoPanOnFocus: false,
       keyboard: false,
       zIndexOffset: 900,
       icon: L.divIcon({

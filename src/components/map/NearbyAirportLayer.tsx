@@ -107,6 +107,7 @@ const runwayLayers = ({
         labels.map((label) =>
           L.marker([label.lat, label.lon], {
             interactive: false,
+            autoPanOnFocus: false,
             keyboard: false,
             icon: runwayLabelIcon(label.ident, theme),
             pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),
@@ -196,7 +197,8 @@ export default function NearbyAirportLayer({
         selectedIcaoRef.current && airport.icao === selectedIcaoRef.current;
       const marker = L.marker([airport.lat, airport.lon], {
         interactive: airportMarkersInteractive,
-        keyboard: airportMarkersInteractive,
+        autoPanOnFocus: false,
+        keyboard: false,
         pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),
         icon: L.divIcon({
           className: [

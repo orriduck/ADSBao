@@ -52,6 +52,8 @@ export default function AirportMarker({
     const marker = safeAddToMap(
       L.marker([lat, lon], {
         interactive: false,
+        autoPanOnFocus: false,
+        keyboard: false,
         icon: L.divIcon({
           className: "",
           html: container,

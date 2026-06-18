@@ -485,6 +485,7 @@ function SingleAircraftTrace({
       const marker = addTraceLayer(
         L.marker([point.lat, point.lon], {
           pane,
+          autoPanOnFocus: false,
           icon: L.divIcon({
             className: "aircraft-trace-label",
             html: `

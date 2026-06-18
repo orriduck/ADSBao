@@ -14,8 +14,12 @@ import {
   useRef,
   useState,
 } from "react";
-import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
+import {
+  SidebarBrandDock,
+  useCollapsibleSidebarPanel,
+} from "@/components/sidebar/CollapsibleSidebarChrome";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
+import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
@@ -1338,6 +1342,7 @@ export default function PlaneHunterStudio({
 }) {
   const { t } = useI18n();
   const { enabled: flightAwareEnabled } = useFlightAwareEnabled();
+  const clientDeviceProfile = useClientDeviceProfile();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   // Two-step flow: a source-picker modal hands off to the OS camera
@@ -1365,9 +1370,30 @@ export default function PlaneHunterStudio({
   // Image" / "Add to Photos", on Android surfaces the system share
   // sheet, etc.) and fall back to download on browsers without it.
   const [canShareFile, setCanShareFile] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [enabledFields, setEnabledFields] = useState<Set<MetaField>>(
     () => new Set<MetaField>(DEFAULT_META_FIELDS),
   );
+  const captured = Boolean(capturedImage);
+  const collapseEnabled =
+    captured && (clientDeviceProfile.viewport?.width ?? 0) >= 768;
+  const {
+    shellRef: sidebarRef,
+    brandCompact,
+    isCollapsed,
+    handleScroll,
+    handleWheel,
+    handleTouchStart,
+    handleTouchMove,
+  } = useCollapsibleSidebarPanel<HTMLElement>({
+    collapsed: sidebarCollapsed,
+    collapseEnabled,
+    onCollapse: () => setSidebarCollapsed(true),
+  });
+
+  useEffect(() => {
+    if (!open || !collapseEnabled) setSidebarCollapsed(false);
+  }, [collapseEnabled, open]);
 
   useEffect(() => {
     if (typeof navigator === "undefined") return;
@@ -1649,8 +1675,6 @@ export default function PlaneHunterStudio({
 
   if (!open) return null;
 
-  const captured = Boolean(capturedImage);
-
   return (
     <div
       className="fixed inset-0 z-[10000] bg-[color-mix(in_oklab,var(--atc-bg)_82%,black_18%)] text-atc-text"
@@ -1660,57 +1684,75 @@ export default function PlaneHunterStudio({
     >
       <div className="dither-page-shell plane-hunter-shell flex h-dvh w-full flex-col text-atc-text md:flex-row">
         {captured && (
-          <aside className="dither-page-panel plane-hunter-panel sidebar-shell order-2 flex w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg md:order-1 md:w-[var(--app-sidebar-width)] md:border-r md:border-t-0">
-            {/* Desktop header — brand + title + callsign/type. Mobile
-                swaps this for the compact header inline with the
-                control panel to keep the bottom card tight. */}
-            <div className="hidden flex-none px-6 pt-7 pb-5 md:block">
-              <div className="flex items-center gap-3">
-                <SidebarBrandMark className="dither-page-brand-mark" />
-                <span
-                  aria-hidden="true"
-                  className="h-px flex-1 bg-[var(--atc-line-strong)]"
-                />
-              </div>
-              <h2
-                className="mt-5 text-[26px] font-extrabold leading-[1.08] text-atc-text"
-                style={{ fontFamily: "var(--font-display)", letterSpacing: "normal" }}
-              >
-                {t("planeHunter.title")}
-              </h2>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span
-                  translate="no"
-                  className="notranslate truncate text-[15px] font-black leading-none text-atc-text"
-                >
-                  {labels.callsign}
-                </span>
-                {labels.type && (
-                  <span className="truncate text-[11px] font-extrabold uppercase tracking-[0.06em] text-atc-faint">
-                    {labels.type}
-                  </span>
-                )}
-              </div>
-            </div>
+          <aside
+            ref={sidebarRef}
+            className="dither-page-panel plane-hunter-panel sidebar-shell order-2 flex w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg transition-[width] duration-300 ease-in-out md:order-1 md:w-[var(--app-sidebar-width)] md:border-r md:border-t-0"
+            data-collapsed={isCollapsed ? "true" : undefined}
+            style={{ width: isCollapsed ? "max-content" : undefined }}
+            onScroll={handleScroll}
+            onWheel={handleWheel}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+          >
+            <SidebarBrandDock
+              compact={isCollapsed || brandCompact}
+              collapsed={isCollapsed}
+              expandLabel={t("map.expandDetails")}
+              onExpand={() => setSidebarCollapsed(false)}
+              showRule
+              className="hidden md:flex"
+            />
 
-            <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-2 pt-2.5 md:gap-4 md:px-6 md:pb-4 md:pt-0">
-              <PlaneHunterControlPanel
-                template={template}
-                onSelectTemplate={setTemplate}
-                enabledFields={enabledFields}
-                onToggleField={toggleField}
-                mapPosition={mapPosition}
-                onSelectMapPosition={setMapPosition}
-                captured={captured}
-                canShareFile={canShareFile}
-                status={status}
-                onClose={close}
-                onRetake={retake}
-                onCopy={copyImage}
-                onSave={saveImage}
-                t={t}
-              />
-            </div>
+            {isCollapsed ? null : (
+              <>
+                {/* Desktop header — title + callsign/type. Mobile
+                    swaps this for the compact header inline with the
+                    control panel to keep the bottom card tight. */}
+                <div className="hidden flex-none px-6 pb-5 pt-2 md:block">
+                  <h2
+                    className="text-[26px] font-extrabold leading-[1.08] text-atc-text"
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      letterSpacing: "normal",
+                    }}
+                  >
+                    {t("planeHunter.title")}
+                  </h2>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span
+                      translate="no"
+                      className="notranslate truncate text-[15px] font-black leading-none text-atc-text"
+                    >
+                      {labels.callsign}
+                    </span>
+                    {labels.type && (
+                      <span className="truncate text-[11px] font-extrabold uppercase tracking-[0.06em] text-atc-faint">
+                        {labels.type}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-2 pt-2.5 md:gap-4 md:px-6 md:pb-4 md:pt-0">
+                  <PlaneHunterControlPanel
+                    template={template}
+                    onSelectTemplate={setTemplate}
+                    enabledFields={enabledFields}
+                    onToggleField={toggleField}
+                    mapPosition={mapPosition}
+                    onSelectMapPosition={setMapPosition}
+                    captured={captured}
+                    canShareFile={canShareFile}
+                    status={status}
+                    onClose={close}
+                    onRetake={retake}
+                    onCopy={copyImage}
+                    onSave={saveImage}
+                    t={t}
+                  />
+                </div>
+              </>
+            )}
           </aside>
         )}
 

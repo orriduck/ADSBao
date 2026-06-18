@@ -88,6 +88,7 @@ function FlightExplorerContent({ callsign }) {
     clientDeviceProfile,
     clientDeviceLayout,
     sidebarOpen,
+    sidebarCollapsed,
     isMobile,
     mapZoom,
     showMapLabels,
@@ -108,6 +109,8 @@ function FlightExplorerContent({ callsign }) {
     selectNavaid,
     selectAirspace,
     clearAllPreviewSelections,
+    collapseSidebar,
+    expandSidebar,
     toggleMapLabels,
     fitToTrace,
     suspendMapFollow,
@@ -806,7 +809,11 @@ function FlightExplorerContent({ callsign }) {
     onBack: handleBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
-    fillAircraftList: !clientDeviceLayout.useDesktopMobileLandscapeLayout,
+    collapsed: sidebarCollapsed,
+    collapseEnabled: !isMobile,
+    onCollapse: collapseSidebar,
+    onExpand: expandSidebar,
+    fillAircraftList: false,
   };
 
   return (
@@ -827,7 +834,7 @@ function FlightExplorerContent({ callsign }) {
         navaid={selectedNavaid}
         airspace={selectedAirspace}
         isMobile={isMobile}
-        sidebarOpen={sidebarOpen}
+        sidebarOpen={sidebarOpen && !sidebarCollapsed}
         onApplyTemporaryRoute={applyTemporaryRoute}
         onDismiss={clearAllPreviewSelections}
         clientDeviceProfile={clientDeviceProfile}
@@ -855,9 +862,23 @@ function FlightExplorerContent({ callsign }) {
           <div
             className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
             data-open={sidebarOpen ? "true" : "false"}
-            style={{ width: sidebarOpen ? desktopSidebarWidth : "0" }}
+            data-collapsed={sidebarCollapsed ? "true" : undefined}
+            style={{
+              width: sidebarOpen
+                ? sidebarCollapsed
+                  ? "max-content"
+                  : desktopSidebarWidth
+                : "0",
+            }}
           >
-            <div className="app-panel-transition h-full" style={{ width: desktopSidebarWidth }}>
+            <div
+              className="app-panel-transition h-full"
+              style={{
+                width: sidebarCollapsed
+                  ? "max-content"
+                  : desktopSidebarWidth,
+              }}
+            >
               <FlightSidebar {...sidebarProps} />
             </div>
           </div>

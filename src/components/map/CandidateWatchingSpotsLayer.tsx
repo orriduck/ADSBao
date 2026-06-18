@@ -94,6 +94,7 @@ export default function CandidateWatchingSpotsLayer({
         const selected = Boolean(selectedSpotId && spot.id === selectedSpotId);
         const marker = L.marker([Number(spot.lat), Number(spot.lon)], {
           interactive: typeof onSelectSpot === "function",
+          autoPanOnFocus: false,
           keyboard: false,
           title: candidateTitle(spot, t),
           icon: markerIcon(selected),

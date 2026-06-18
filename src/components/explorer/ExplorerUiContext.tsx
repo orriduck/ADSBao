@@ -58,6 +58,7 @@ const initialUiState = {
   mapSettings: DEFAULT_MAP_SETTINGS,
   sidebarMode: "desktop",
   sidebarOpen: true,
+  sidebarCollapsed: false,
   selectedAircraftId: "",
   selectedAirportIcao: "",
   selectedNavaidKey: "",
@@ -141,12 +142,23 @@ function airportExplorerUiReducer(state, action) {
         ...state,
         sidebarMode: action.sidebarMode,
         sidebarOpen: getSidebarOpenForLayoutMode(action.sidebarMode),
+        sidebarCollapsed: false,
       };
     }
     case "toggleSidebar":
-      return { ...state, sidebarOpen: toggleValue(state.sidebarOpen) };
+      return {
+        ...state,
+        sidebarOpen: toggleValue(state.sidebarOpen),
+        sidebarCollapsed: false,
+      };
     case "closeSidebar":
-      return { ...state, sidebarOpen: false };
+      return { ...state, sidebarOpen: false, sidebarCollapsed: false };
+    case "collapseSidebar":
+      if (!state.sidebarOpen || state.sidebarCollapsed) return state;
+      return { ...state, sidebarCollapsed: true };
+    case "expandSidebar":
+      if (state.sidebarOpen && !state.sidebarCollapsed) return state;
+      return { ...state, sidebarOpen: true, sidebarCollapsed: false };
     case "setMapZoom":
       // Any user-initiated zoom cycle re-engages auto-follow — the user
       // is asking for one of the named perspectives again, so the map
@@ -414,6 +426,7 @@ export function ExplorerUiProvider({ children }) {
   const {
     sidebarMode,
     sidebarOpen,
+    sidebarCollapsed,
     mapZoom,
     showMapLabels,
     showRunwayBeams,
@@ -442,6 +455,10 @@ export function ExplorerUiProvider({ children }) {
     sidebarMode === effectiveSidebarMode
       ? sidebarOpen
       : getSidebarOpenForLayoutMode(effectiveSidebarMode);
+  const effectiveSidebarCollapsed =
+    sidebarMode === effectiveSidebarMode && effectiveSidebarOpen
+      ? sidebarCollapsed
+      : false;
   const isMobile = clientDeviceLayout.isMobileLayout;
   const mapSettingsDevice =
     resolveMapSettingsDeviceForClientDeviceProfile(clientDeviceProfile);
@@ -703,6 +720,14 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "closeSidebar" });
   }, []);
 
+  const collapseSidebar = useCallback(() => {
+    dispatch({ type: "collapseSidebar" });
+  }, []);
+
+  const expandSidebar = useCallback(() => {
+    dispatch({ type: "expandSidebar" });
+  }, []);
+
   const setMapZoom = useCallback((mapZoom) => {
     dispatch({ type: "setMapZoom", mapZoom });
   }, []);
@@ -823,6 +848,7 @@ export function ExplorerUiProvider({ children }) {
       clientDeviceLayout,
       sidebarMode: effectiveSidebarMode,
       sidebarOpen: effectiveSidebarOpen,
+      sidebarCollapsed: effectiveSidebarCollapsed,
       isMobile,
       mapZoom,
       mapFollowsAircraft,
@@ -857,6 +883,8 @@ export function ExplorerUiProvider({ children }) {
       setEntityFilter,
       toggleSidebar,
       closeSidebar,
+      collapseSidebar,
+      expandSidebar,
       toggleMapLabels,
       toggleRunwayBeams,
       toggleNavaidMarkers,
@@ -884,6 +912,7 @@ export function ExplorerUiProvider({ children }) {
       clientDeviceLayout,
       effectiveSidebarMode,
       effectiveSidebarOpen,
+      effectiveSidebarCollapsed,
       isMobile,
       mapZoom,
       mapFollowsAircraft,
@@ -918,6 +947,8 @@ export function ExplorerUiProvider({ children }) {
       setEntityFilter,
       toggleSidebar,
       closeSidebar,
+      collapseSidebar,
+      expandSidebar,
       toggleMapLabels,
       toggleRunwayBeams,
       toggleNavaidMarkers,

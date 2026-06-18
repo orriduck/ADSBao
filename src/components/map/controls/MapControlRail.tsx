@@ -17,14 +17,10 @@ import {
   ToolbarSeparator,
   toolbarButtonVariants,
 } from "@/components/ui/Toolbar";
-import { cn } from "@/lib/utils";
 import { MapControlIcon } from "./mapControlIcons";
 
 const SETTINGS_ICON_KEY = "slidersHorizontal";
 const VIEW_MENU_LONG_PRESS_MS = 480;
-const VIEW_MENU_PROGRESS_REVEAL_MS = 80;
-const VIEW_MENU_PROGRESS_FADE_MS = 160;
-const VIEW_MENU_PROGRESS_TICK_MS = 24;
 
 const RAIL_BUTTON_CLASS = toolbarButtonVariants({ tone: "rail" });
 
@@ -181,14 +177,8 @@ function ViewMenuButton({
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  const [pressProgress, setPressProgress] = useState(0);
-  const [pressProgressOpacity, setPressProgressOpacity] = useState(0);
   const containerRef = useRef(null);
   const longPressTimerRef = useRef(null);
-  const progressTickTimerRef = useRef(null);
-  const progressHideTimerRef = useRef(null);
-  const pressStartAtRef = useRef(0);
-  const pressProgressOpacityRef = useRef(0);
   const pressActiveRef = useRef(false);
   const longPressOpenedRef = useRef(false);
   const placementClass =
@@ -226,82 +216,17 @@ function ViewMenuButton({
     longPressTimerRef.current = null;
   };
 
-  const setProgressOpacityValue = (value) => {
-    pressProgressOpacityRef.current = value;
-    setPressProgressOpacity(value);
-  };
-
-  const clearProgressTickTimer = () => {
-    if (!progressTickTimerRef.current) return;
-    window.clearTimeout(progressTickTimerRef.current);
-    progressTickTimerRef.current = null;
-  };
-
-  const clearProgressHideTimer = () => {
-    if (!progressHideTimerRef.current) return;
-    window.clearTimeout(progressHideTimerRef.current);
-    progressHideTimerRef.current = null;
-  };
-
   useEffect(
     () => () => {
       clearLongPressTimer();
-      clearProgressTickTimer();
-      clearProgressHideTimer();
       pressActiveRef.current = false;
     },
     [],
   );
 
-  const tickPressProgress = () => {
-    const elapsed = window.performance.now() - pressStartAtRef.current;
-    const progressElapsed = Math.max(0, elapsed - VIEW_MENU_PROGRESS_REVEAL_MS);
-    const progressDuration =
-      VIEW_MENU_LONG_PRESS_MS - VIEW_MENU_PROGRESS_REVEAL_MS;
-    const nextProgress = Math.min(progressElapsed / progressDuration, 1);
-    const nextOpacity = Math.min(progressElapsed / VIEW_MENU_PROGRESS_FADE_MS, 1);
-    setPressProgress(nextProgress);
-    setProgressOpacityValue(nextOpacity);
-    if (elapsed >= VIEW_MENU_LONG_PRESS_MS) {
-      progressTickTimerRef.current = null;
-      return;
-    }
-    progressTickTimerRef.current = window.setTimeout(
-      tickPressProgress,
-      VIEW_MENU_PROGRESS_TICK_MS,
-    );
-  };
-
-  const fadeProgress = () => {
-    clearProgressTickTimer();
-    clearProgressHideTimer();
-    const startedAt = window.performance.now();
-    const startOpacity = pressProgressOpacityRef.current;
-    const fadeStep = () => {
-      const elapsed = window.performance.now() - startedAt;
-      const nextOpacity = Math.max(
-        startOpacity * (1 - elapsed / VIEW_MENU_PROGRESS_FADE_MS),
-        0,
-      );
-      setProgressOpacityValue(nextOpacity);
-      if (nextOpacity > 0) {
-        progressHideTimerRef.current = window.setTimeout(
-          fadeStep,
-          VIEW_MENU_PROGRESS_TICK_MS,
-        );
-        return;
-      }
-      setPressProgress(0);
-      progressHideTimerRef.current = null;
-    };
-    fadeStep();
-  };
-
   const openMenuFromLongPress = () => {
     longPressOpenedRef.current = true;
-    setPressProgress(1);
     setOpen(true);
-    fadeProgress();
   };
 
   const startLongPress = (event) => {
@@ -311,15 +236,7 @@ function ViewMenuButton({
     pressActiveRef.current = true;
     longPressOpenedRef.current = false;
     clearLongPressTimer();
-    clearProgressTickTimer();
-    clearProgressHideTimer();
-    pressStartAtRef.current = window.performance.now();
-    setPressProgress(0);
-    setProgressOpacityValue(0);
-    progressTickTimerRef.current = window.setTimeout(
-      tickPressProgress,
-      VIEW_MENU_PROGRESS_TICK_MS,
-    );
+    // ponytail: long press opens the menu; no progress animation on every tap.
     longPressTimerRef.current = window.setTimeout(
       openMenuFromLongPress,
       VIEW_MENU_LONG_PRESS_MS,
@@ -330,14 +247,13 @@ function ViewMenuButton({
     if (!pressActiveRef.current) return;
     pressActiveRef.current = false;
     clearLongPressTimer();
-    clearProgressTickTimer();
-    fadeProgress();
   };
 
   const handleSelect = (item) => {
     if (item?.disabled) return;
-    item?.onSelect?.();
     setOpen(false);
+    // ponytail: let the tap paint before heavier map fit/zoom work runs.
+    window.setTimeout(() => item?.onSelect?.(), 0);
   };
 
   const handleCycle = () => {
@@ -368,10 +284,7 @@ function ViewMenuButton({
     longPressOpenedRef.current = true;
     pressActiveRef.current = false;
     clearLongPressTimer();
-    clearProgressTickTimer();
-    setPressProgress(1);
     setOpen(true);
-    fadeProgress();
   };
 
   const handleKeyDown = (event) => {
@@ -422,9 +335,6 @@ function ViewMenuButton({
           onClick={handleClick}
           onContextMenu={handleContextMenu}
           onKeyDown={handleKeyDown}
-          onMouseDown={startLongPress}
-          onMouseLeave={endLongPress}
-          onMouseUp={endLongPress}
           onPointerCancel={endLongPress}
           onPointerDown={startLongPress}
           onPointerLeave={endLongPress}
@@ -432,19 +342,6 @@ function ViewMenuButton({
         >
           <MapControlIcon iconKey={selectedItem?.iconKey || "mapPinned"} />
         </ToolbarButton>
-        <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute -bottom-1 left-1/2 h-[3px] w-7 -translate-x-1/2 overflow-hidden rounded-full",
-            "bg-[color-mix(in_oklab,var(--atc-control-hover-bg-strong)_82%,transparent)]",
-          )}
-          style={{ opacity: pressProgressOpacity }}
-        >
-          <span
-            className="block h-full origin-left rounded-full bg-[var(--atc-click-bg)]"
-            style={{ transform: `scaleX(${pressProgress})` }}
-          />
-        </span>
       </div>
     </div>
   );

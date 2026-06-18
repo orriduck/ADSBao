@@ -191,6 +191,7 @@ export default function RunwayAnnotationLayer({
         labels.map((label) =>
           L.marker([label.lat, label.lon], {
             interactive: false,
+            autoPanOnFocus: false,
             keyboard: false,
             icon: runwayLabelIcon(label.ident, theme),
             pane: ensureAirportMapPane(map, AIRPORT_MAP_PANES.badge),

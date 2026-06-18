@@ -88,6 +88,8 @@ function AircraftPosition({
 
     const marker = safeAddToMap(
       L.marker([visualPos.lat, visualPos.lon], {
+        autoPanOnFocus: false,
+        keyboard: false,
         icon: L.divIcon({
           className: "",
           html: container,

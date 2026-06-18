@@ -32,7 +32,7 @@ export default function AboutPanel() {
     : [];
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex flex-none flex-col">
         <div className="about-meta-grid mx-6 flex-none border-y border-[var(--atc-line)]">
           {version ? (
             <div className="about-meta-version relative flex items-end justify-between gap-4 py-4">

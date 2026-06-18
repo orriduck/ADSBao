@@ -1,5 +1,3 @@
-import SidebarBrandMark from "./SidebarBrandMark";
-
 // Shared identity-hero pattern used at the top of every sidebar (airport
 // and flight). Renders:
 //   - A small uppercase label (e.g. "Airport", "Tracking").
@@ -18,7 +16,6 @@ export default function SidebarIdentityHero({
 }) {
   return (
     <div className="airport-sidebar-identity">
-      <SidebarBrandMark />
       <span className="atc-kicker">{label}</span>
       <div className="mt-3 flex items-baseline gap-3">
         <span

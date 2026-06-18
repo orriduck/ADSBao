@@ -59,7 +59,7 @@ export default function AirportSearchPanel({
         </kbd>
       </form>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex flex-none flex-col">
         {query.trim() ? (
           <AirportSearchResults
             query={query}

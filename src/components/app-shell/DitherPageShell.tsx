@@ -1,9 +1,12 @@
-import { useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useLocation } from "react-router-dom";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
-import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
+import {
+  SidebarBrandDock,
+  useCollapsibleSidebarPanel,
+} from "@/components/sidebar/CollapsibleSidebarChrome";
 import { CHANGELOG } from "@/config/changelog";
 import { SITE_DESCRIPTION } from "@/config/site";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -19,7 +22,10 @@ export default function DitherPageShell({
 }) {
   const { locale, t } = useI18n();
   const { pathname } = useLocation();
-  const shellRef = useRef<HTMLDivElement>(null);
+  const [sidebarCollapseState, setSidebarCollapseState] = useState({
+    collapsed: false,
+    routeKey: "",
+  });
   const clientDeviceProfile = useClientDeviceProfile({
     includeSafeAreaInsets: true,
   });
@@ -29,8 +35,39 @@ export default function DitherPageShell({
   const shellStyle =
     clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined;
   const routeChrome = resolveRouteChrome(pathname, t);
+  const routeKey = `${routeChrome.key}:${locale}`;
+  const sidebarCollapsed =
+    sidebarCollapseState.collapsed &&
+    sidebarCollapseState.routeKey === routeKey;
+  const viewportWidth = clientDeviceProfile.viewport?.width ?? 1024;
+  const collapseEnabled =
+    clientDeviceLayout.layoutMode === "desktop" && viewportWidth > 720;
+  const collapseSidebar = useCallback(() => {
+    setSidebarCollapseState({ collapsed: true, routeKey });
+  }, [routeKey]);
+  const expandSidebar = useCallback(() => {
+    setSidebarCollapseState({ collapsed: false, routeKey });
+  }, [routeKey]);
+  const {
+    shellRef,
+    brandCompact,
+    isCollapsed,
+    handleScroll,
+    handleWheel,
+    handleTouchStart,
+    handleTouchMove,
+  } = useCollapsibleSidebarPanel({
+    collapsed: sidebarCollapsed,
+    collapseEnabled,
+    onCollapse: collapseSidebar,
+  });
+
+  useEffect(() => {
+    if (!collapseEnabled) expandSidebar();
+  }, [collapseEnabled, expandSidebar]);
+
   usePageEntrance(shellRef, {
-    triggerKey: `${routeChrome.key}:${locale}`,
+    triggerKey: routeKey,
   });
 
   const resolvedTitle = title ?? routeChrome.title;
@@ -50,7 +87,6 @@ export default function DitherPageShell({
 
   return (
     <div
-      ref={shellRef}
       data-client-orientation={clientDeviceLayout.orientation}
       data-client-mobile-device={
         clientDeviceLayout.isMobileDevice ? "true" : "false"
@@ -63,33 +99,50 @@ export default function DitherPageShell({
     >
       <PageNavigationDock />
 
-      <div className="dither-page-panel relative isolate flex w-[var(--app-sidebar-width)] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg">
-        <div className="dither-page-header flex-none px-6 pt-7 pb-6">
-          <div className="flex items-center gap-3">
-            <SidebarBrandMark className="dither-page-brand-mark" />
-            <span
-              aria-hidden="true"
-              className="h-px flex-1 bg-[var(--atc-line-strong)]"
-            />
-          </div>
-          <div className="dither-page-copy">
-            <h1
-              className="atc-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
-              style={{ fontFamily: "var(--font-display)", letterSpacing: "normal" }}
-            >
-              <span className="block break-words">{resolvedTitle}</span>
-            </h1>
-            {hasDescription ? (
-              <p className="dither-page-description mt-3 text-[13px] leading-relaxed text-atc-dim">
-                {resolvedDescription}
-              </p>
-            ) : null}
-          </div>
-        </div>
+      <div
+        ref={shellRef}
+        className="dither-page-panel relative isolate flex w-[var(--app-sidebar-width)] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg transition-[width] duration-300 ease-in-out"
+        data-collapsed={isCollapsed ? "true" : undefined}
+        style={{ width: isCollapsed ? "max-content" : undefined }}
+        onScroll={handleScroll}
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
+        <SidebarBrandDock
+          compact={isCollapsed || brandCompact}
+          collapsed={isCollapsed}
+          expandLabel={t("map.expandDetails")}
+          onExpand={expandSidebar}
+          showRule
+        />
 
-        <div className="dither-page-body flex min-h-0 flex-1 flex-col">
-          {children}
-        </div>
+        {isCollapsed ? null : (
+          <>
+            <div className="dither-page-header dither-page-header--copy-only flex-none px-6 pb-6 pt-2">
+              <div className="dither-page-copy">
+                <h1
+                  className="atc-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    letterSpacing: "normal",
+                  }}
+                >
+                  <span className="block break-words">{resolvedTitle}</span>
+                </h1>
+                {hasDescription ? (
+                  <p className="dither-page-description mt-3 text-[13px] leading-relaxed text-atc-dim">
+                    {resolvedDescription}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="dither-page-body flex flex-none flex-col">
+              {children}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="dither-page-background relative isolate flex-1 overflow-hidden">

@@ -49,6 +49,10 @@ export default function AirportSidebar({
   onBack,
   onMap = null,
   onClose = null,
+  collapsed = false,
+  collapseEnabled = false,
+  onCollapse = null,
+  onExpand = null,
   mobileToolbar = null,
   fillAircraftList = true,
 }) {
@@ -156,6 +160,10 @@ export default function AirportSidebar({
       onBack={onBack}
       onMap={onMap}
       onClose={onClose}
+      collapsed={collapsed}
+      collapseEnabled={collapseEnabled}
+      onCollapse={onCollapse}
+      onExpand={onExpand}
       header={header}
       mobileToolbar={mobileToolbar}
     >
@@ -164,7 +172,7 @@ export default function AirportSidebar({
         className={
           isMobileOverlay
             ? "app-panel-transition"
-            : "airport-sidebar-content app-panel-transition flex h-full min-h-0 flex-col"
+            : "airport-sidebar-content app-panel-transition flex min-h-0 flex-col"
         }
       >
         {activeViewContent}
@@ -180,7 +188,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
   )}`;
 
   return (
-    <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-[var(--airport-sidebar-inset)] pb-6 pt-2">
+    <div className="flex flex-col gap-3 px-[var(--airport-sidebar-inset)] pb-6 pt-2">
       <div className="flex items-baseline justify-between border-b border-atc-line pb-2">
         <h2 className="text-[12px] font-bold uppercase tracking-normal text-atc-text">
           ATC Frequencies
@@ -235,7 +243,7 @@ function SpottingPanel({
   onSelectSpot,
 }) {
   return (
-    <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-[var(--airport-sidebar-inset)] pb-6 pt-2">
+    <div className="flex flex-col gap-3 px-[var(--airport-sidebar-inset)] pb-6 pt-2">
       <div className="flex items-baseline justify-between border-b border-atc-line pb-2">
         <h2 className="text-[12px] font-bold uppercase tracking-normal text-atc-text">
           Spotting

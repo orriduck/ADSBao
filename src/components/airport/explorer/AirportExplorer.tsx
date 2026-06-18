@@ -66,6 +66,7 @@ function AirportExplorerContent({
     clientDeviceProfile,
     clientDeviceLayout,
     sidebarOpen,
+    sidebarCollapsed,
     isMobile,
     mapZoom,
     showMapLabels,
@@ -96,6 +97,8 @@ function AirportExplorerContent({
     selectCandidateWatchingSpot,
     setSelectedCandidateWatchingSpotId,
     clearAllPreviewSelections,
+    collapseSidebar,
+    expandSidebar,
     mapFollowsAircraft,
     setMapZoom,
     applyMapMode,
@@ -501,7 +504,11 @@ function AirportExplorerContent({
     onBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
-    fillAircraftList: !clientDeviceLayout.useDesktopMobileLandscapeLayout,
+    collapsed: sidebarCollapsed,
+    collapseEnabled: !isMobile,
+    onCollapse: collapseSidebar,
+    onExpand: expandSidebar,
+    fillAircraftList: false,
   };
 
   return (
@@ -519,7 +526,7 @@ function AirportExplorerContent({
             candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
             candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
             isMobile={isMobile}
-            sidebarOpen={sidebarOpen}
+            sidebarOpen={sidebarOpen && !sidebarCollapsed}
             airportProfile={airportProfile}
             onApplyTemporaryRoute={traffic.applyTemporaryRoute}
             onDismiss={clearAllPreviewSelections}
@@ -551,6 +558,7 @@ function AirportExplorerContent({
         {!isMobile && (
           <AirportExplorerDesktopSidebar
             open={sidebarOpen}
+            collapsed={sidebarCollapsed}
             width={desktopSidebarWidth}
             sidebarProps={sidebarProps}
           />
