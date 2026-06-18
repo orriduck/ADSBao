@@ -2036,12 +2036,13 @@ body:has(.airport-map-kit) {
         overflow: visible;
     }
 
-    /* Mobile static pages scroll as a single document — release the
-       desktop `h-screen` flex layout so the shell grows with content
-       and the browser's own scroller handles overflow. */
+    /* Mobile static pages keep the outer shell locked to the viewport;
+       the frosted panel remains the scroll owner so the sticky brand
+       dock can compact while content moves underneath it. */
     .dither-page-shell {
-        height: auto !important;
+        height: 100dvh !important;
         min-height: 100dvh;
+        overflow: hidden;
     }
 
     .dither-page-panel {
@@ -2053,15 +2054,8 @@ body:has(.airport-map-kit) {
         padding-bottom: var(--map-toolbar-mobile-clearance);
     }
 
-    .dither-page-shell:not(.plane-hunter-shell) .dither-page-panel {
-        overflow: visible;
-        overscroll-behavior-y: auto;
-    }
-
-    /* Inner panels normally use `flex-1 overflow-y-auto` so the desktop
-       sidebar panel scrolls internally. On mobile we want the whole
-       page to scroll instead, so reset those containers to natural
-       flow. */
+    /* Inner panels normally use `flex-1 overflow-y-auto`; mobile keeps
+       them in natural flow so the outer frosted panel owns scrolling. */
     .dither-page-panel > .flex-1.overflow-y-auto,
     .dither-page-panel main.flex-1.overflow-y-auto,
     .dither-page-panel .dither-list.flex-1.overflow-y-auto {
@@ -7507,6 +7501,19 @@ body {
         overflow-y: auto;
         overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .airport-desktop-sidebar[data-collapsed="true"],
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .airport-desktop-sidebar[data-collapsed="true"]
+        > .h-full,
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .airport-desktop-sidebar[data-collapsed="true"]
+        .sidebar-shell {
+        height: auto;
+        overflow: visible;
+        overscroll-behavior-y: auto;
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
