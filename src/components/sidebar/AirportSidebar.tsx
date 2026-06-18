@@ -50,6 +50,7 @@ export default function AirportSidebar({
   onMap = null,
   onClose = null,
   mobileToolbar = null,
+  fillAircraftList = true,
 }) {
   const isMobileOverlay = Boolean(onClose);
   const [activeView, setActiveView] = useState("traffic");
@@ -141,7 +142,7 @@ export default function AirportSidebar({
         movementFilter={movementFilter}
         onSelectAircraft={onSelectAircraft}
         onSelectAirport={onSelectAirport}
-        fill={!isMobileOverlay}
+        fill={fillAircraftList && !isMobileOverlay}
       />
     );
 
@@ -163,7 +164,7 @@ export default function AirportSidebar({
         className={
           isMobileOverlay
             ? "app-panel-transition"
-            : "app-panel-transition flex h-full min-h-0 flex-col"
+            : "airport-sidebar-content app-panel-transition flex h-full min-h-0 flex-col"
         }
       >
         {activeViewContent}

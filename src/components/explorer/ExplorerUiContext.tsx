@@ -11,12 +11,15 @@ import {
 import { useAuth, useUser } from "@/platform/auth/clerkClient";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import {
+  getClientDeviceSnapshot,
+  resolveClientDeviceProfile,
+} from "@/features/app-shell/device/clientDeviceModel";
+import {
   DEFAULT_AIRPORT_EXPLORER_UI_STATE,
   resolveSelectedAirspaceIdForLayerVisibility,
 } from "@/features/airport/explorer/airportExplorerUiModel";
 import {
   DEFAULT_MAP_SETTINGS,
-  MAP_SETTINGS_DEVICE_TYPES,
   MAP_LAYER_KEYS,
   PRE_HYDRATION_VISUAL_LAYERS,
   buildCustomMapSettings,
@@ -27,6 +30,7 @@ import {
   mapSettingsToExplorerLayers,
   mapSettingsToUserLocationPreferences,
   normalizeMapSettings,
+  resolveMapSettingsDeviceForClientDeviceProfile,
   resolveMapSettingsHydrationCommit,
   resolveMapSettingsHydration,
   resolveMapSettingsPersistenceTargets,
@@ -41,14 +45,13 @@ import {
 } from "@/utils/sidebarDisplay";
 
 const ExplorerUiContext = createContext(null);
-const DEFAULT_MAP_LAYERS = mapSettingsToExplorerLayers(DEFAULT_MAP_SETTINGS);
 const DEFAULT_USER_LOCATION_PREFERENCES =
   mapSettingsToUserLocationPreferences(DEFAULT_MAP_SETTINGS);
 
-const mapSettingsDeviceForSidebarMode = (sidebarMode) =>
-  sidebarMode === "mobile"
-    ? MAP_SETTINGS_DEVICE_TYPES.MOBILE
-    : MAP_SETTINGS_DEVICE_TYPES.DESKTOP;
+const getCurrentClientDeviceProfile = (includeSafeAreaInsets = false) =>
+  resolveClientDeviceProfile(
+    getClientDeviceSnapshot({ includeSafeAreaInsets }),
+  );
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
@@ -370,6 +373,9 @@ export function ExplorerUiProvider({ children }) {
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
   const [mapSettingsSaveStatusCode, setMapSettingsSaveStatusCode] = useState<number | null>(null);
   const [mapSettingsSaveCycle, setMapSettingsSaveCycle] = useState(0);
+  const [clientDeviceProfile, setClientDeviceProfile] = useState(() =>
+    getCurrentClientDeviceProfile(true),
+  );
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
     initialUiState,
@@ -398,7 +404,8 @@ export function ExplorerUiProvider({ children }) {
     selectedCandidateWatchingSpotId,
   } = state;
   const isMobile = sidebarMode === "mobile";
-  const mapSettingsDevice = mapSettingsDeviceForSidebarMode(sidebarMode);
+  const mapSettingsDevice =
+    resolveMapSettingsDeviceForClientDeviceProfile(clientDeviceProfile);
   const queueMapSettingsHydration = useCallback((settings) => {
     const normalizedSettings = normalizeMapSettings(settings);
     pendingMapSettingsHydrationRef.current = normalizedSettings;
@@ -413,6 +420,23 @@ export function ExplorerUiProvider({ children }) {
     const token = await getToken?.().catch(() => "");
     return token ? { Authorization: `Bearer ${token}` } : {};
   }, [getToken]);
+
+  useEffect(() => {
+    const syncClientDeviceProfile = () => {
+      setClientDeviceProfile(getCurrentClientDeviceProfile(true));
+    };
+
+    syncClientDeviceProfile();
+    window.addEventListener("resize", syncClientDeviceProfile);
+    window.addEventListener("orientationchange", syncClientDeviceProfile);
+    window.visualViewport?.addEventListener("resize", syncClientDeviceProfile);
+
+    return () => {
+      window.removeEventListener("resize", syncClientDeviceProfile);
+      window.removeEventListener("orientationchange", syncClientDeviceProfile);
+      window.visualViewport?.removeEventListener("resize", syncClientDeviceProfile);
+    };
+  }, []);
 
   useEffect(() => {
     const syncSidebarMode = () => {
@@ -757,6 +781,7 @@ export function ExplorerUiProvider({ children }) {
   const value = useMemo(
     () => ({
       desktopSidebarWidth: AIRPORT_EXPLORER_UI_CONFIG.desktopSidebarWidth,
+      clientDeviceProfile,
       sidebarMode,
       sidebarOpen,
       isMobile,
@@ -816,6 +841,7 @@ export function ExplorerUiProvider({ children }) {
       suspendMapFollow,
     }),
     [
+      clientDeviceProfile,
       sidebarMode,
       sidebarOpen,
       isMobile,

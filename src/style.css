@@ -7172,6 +7172,11 @@ body {
     z-index: var(--z-index-map-panel);
 }
 
+.airport-map-kit[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
+    .airport-desktop-sidebar {
+    left: calc(var(--map-kit-inset) + var(--airport-sidebar-safe-offset-left, 0px));
+}
+
 .airport-map-kit--sidebar-open .airport-desktop-sidebar {
     box-shadow: var(--app-map-sidebar-shadow);
 }
@@ -7393,6 +7398,59 @@ body {
         text-shadow:
             0 0 3px var(--map-label-glow),
             0 0 6px var(--map-label-glow);
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .airport-desktop-sidebar
+        .sidebar-shell {
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .sidebar-shell-body,
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .sidebar-shell-main,
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .airport-sidebar-content,
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-shell,
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-scroll-shell {
+        flex: none;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-controls {
+        display: contents;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-search-bar,
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-header {
+        -webkit-backdrop-filter: var(--app-frost-strong);
+        backdrop-filter: var(--app-frost-strong);
+        background: color-mix(in oklab, var(--app-frost-tint) 88%, transparent);
+        box-shadow: 0 1px 0 color-mix(in oklab, var(--atc-line) 62%, transparent);
+        position: sticky;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-search-bar {
+        top: 0;
+        z-index: calc(var(--z-index-sticky) + 2);
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-header {
+        top: 42px;
+        z-index: calc(var(--z-index-sticky) + 1);
     }
 
 }

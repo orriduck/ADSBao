@@ -246,7 +246,7 @@ export default function AircraftTable({
       data-has-pinned-aircraft={pinnedAircraft ? "true" : undefined}
       className={cn("aircraft-table-shell flex flex-col", fill && "h-full")}
     >
-      <div className="flex-none">
+      <div className="aircraft-table-controls flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
           <span className="atc-kicker atc-kicker--lead">
             {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
@@ -261,7 +261,7 @@ export default function AircraftTable({
           </div>
         </div>
 
-        <div className="px-[var(--airport-sidebar-inset)] pb-3">
+        <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-3">
           <label className="aircraft-search">
             <Search size={13} aria-hidden="true" />
             <input

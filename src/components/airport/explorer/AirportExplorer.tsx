@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar";
 import {
@@ -62,6 +63,7 @@ function AirportExplorerContent({
   const { t } = useI18n();
   const {
     desktopSidebarWidth,
+    clientDeviceProfile,
     sidebarOpen,
     isMobile,
     mapZoom,
@@ -455,6 +457,22 @@ function AirportExplorerContent({
       {...toolbarContextProps}
     />
   );
+  const clientDeviceOrientation = clientDeviceProfile?.orientation || "unknown";
+  const clientDeviceIsMobile = clientDeviceProfile?.isMobileDevice === true;
+  const clientDeviceHasHorizontalObstruction =
+    clientDeviceProfile?.hasHorizontalViewportObstruction === true;
+  const clientDeviceIsLandscape = clientDeviceOrientation === "landscape";
+  const sidebarSafeOffsetLeftPx =
+    !isMobile && clientDeviceIsLandscape && clientDeviceHasHorizontalObstruction
+      ? Math.max(0, Number(clientDeviceProfile?.safeAreaInsets?.left || 0))
+      : 0;
+  const useWholeSidebarScroll =
+    !isMobile && clientDeviceIsMobile && clientDeviceIsLandscape;
+  const mapShellStyle = sidebarSafeOffsetLeftPx > 0
+    ? ({
+        "--airport-sidebar-safe-offset-left": `${sidebarSafeOffsetLeftPx}px`,
+      } as CSSProperties)
+    : undefined;
   const sidebarProps = {
     icao: airportProfile.icao,
     iata: airportProfile.iata,
@@ -496,6 +514,7 @@ function AirportExplorerContent({
     onBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
+    fillAircraftList: !useWholeSidebarScroll,
   };
 
   return (
@@ -521,6 +540,12 @@ function AirportExplorerContent({
         </Suspense>
       )}
       <div
+        data-client-orientation={clientDeviceOrientation}
+        data-client-mobile-device={clientDeviceIsMobile ? "true" : "false"}
+        data-client-horizontal-obstruction={
+          clientDeviceHasHorizontalObstruction ? "true" : "false"
+        }
+        style={mapShellStyle}
         className={`font-sans text-atc-text ${
           isMobile
             ? "app-detail-shell fixed inset-0 z-0 flex overflow-hidden overscroll-y-none"

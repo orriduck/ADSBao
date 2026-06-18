@@ -139,16 +139,16 @@ export default function SidebarShell({
       <div
         className={
           isMobileOverlay
-            ? "flex flex-none flex-col overflow-visible"
-            : "flex flex-1 flex-col overflow-hidden"
+            ? "sidebar-shell-body flex flex-none flex-col overflow-visible"
+            : "sidebar-shell-body flex flex-1 flex-col overflow-hidden"
         }
       >
         {header ? <div className="flex-none">{header}</div> : null}
         <div
           className={
             isMobileOverlay
-              ? "flex-none overflow-visible"
-              : "flex-1 overflow-y-auto"
+              ? "sidebar-shell-main flex-none overflow-visible"
+              : "sidebar-shell-main flex-1 overflow-y-auto"
           }
         >
           {children}

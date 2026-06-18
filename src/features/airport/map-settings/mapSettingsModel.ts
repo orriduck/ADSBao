@@ -223,6 +223,15 @@ export function getAlternateMapSettingsDevice(value: unknown) {
     : MAP_SETTINGS_DEVICE_TYPES.MOBILE;
 }
 
+export function resolveMapSettingsDeviceForClientDeviceProfile(
+  profile: { deviceClass?: unknown } | null | undefined,
+) {
+  const deviceClass = String(profile?.deviceClass || "");
+  return deviceClass === "phone" || deviceClass === "tablet"
+    ? MAP_SETTINGS_DEVICE_TYPES.MOBILE
+    : MAP_SETTINGS_DEVICE_TYPES.DESKTOP;
+}
+
 function getMapSettingsBaseMode(
   settings: MapSettingsRecord = {},
 ) {

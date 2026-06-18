@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.15.0",
+    kind: "feat",
+    title: {
+      en: "Landscape mobile cockpit",
+      zh: "移动设备横屏座舱",
+    },
+    summary: {
+      en: "Airport detail now treats phones and tablets as mobile devices even when their landscape viewport uses the desktop sidebar.",
+      zh: "机场详情页现在会按真实设备识别手机和平板，即使横屏视口使用桌面侧栏布局。",
+    },
+    highlights: [
+      {
+        en: "Landscape phones with a Dynamic Island or similar cutout shift the airport sidebar away from the safe-area obstruction",
+        zh: "带灵动岛或类似遮挡的手机横屏时，机场侧栏会避开 safe-area 遮挡",
+      },
+      {
+        en: "Phone and tablet landscape sidebars scroll as one panel, with the search bar and aircraft table header sticking at the top",
+        zh: "手机和平板横屏侧栏改为整面板滚动，搜索栏和飞机表头会在顶部置顶",
+      },
+      {
+        en: "Plane Hunter availability now follows the shared client-device model across preview cards and map settings",
+        zh: "拍机入口现在复用统一客户端设备模型，预览卡与地图设置的设备判断保持一致",
+      },
+    ],
+  },
+  {
     version: "v2.14.2",
     kind: "patch",
     title: {

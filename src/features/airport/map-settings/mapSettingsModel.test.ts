@@ -13,6 +13,7 @@ import {
   mergeMapSettings,
   normalizeMapSettings,
   normalizeMapSettingsDevice,
+  resolveMapSettingsDeviceForClientDeviceProfile,
   resolveMapSettingsHydrationCommit,
   resolveMapSettingsHydration,
   resolveMapSettingsPersistenceTargets,
@@ -24,6 +25,30 @@ import {
   assert.equal(normalizeMapSettingsDevice("tablet"), "desktop");
   assert.equal(getAlternateMapSettingsDevice("mobile"), "desktop");
   assert.equal(getAlternateMapSettingsDevice("desktop"), "mobile");
+}
+
+{
+  assert.equal(
+    resolveMapSettingsDeviceForClientDeviceProfile({
+      deviceClass: "phone",
+    }),
+    "mobile",
+    "phone landscape should still use mobile map settings",
+  );
+  assert.equal(
+    resolveMapSettingsDeviceForClientDeviceProfile({
+      deviceClass: "tablet",
+    }),
+    "mobile",
+    "tablet layout may be desktop-width, but map settings stay mobile-class",
+  );
+  assert.equal(
+    resolveMapSettingsDeviceForClientDeviceProfile({
+      deviceClass: "desktop",
+    }),
+    "desktop",
+    "desktop systems should keep desktop map settings",
+  );
 }
 
 {
