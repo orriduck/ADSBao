@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.11.0",
+    kind: "feat",
+    title: {
+      en: "Version refresh prompt",
+      zh: "新版刷新提示",
+    },
+    summary: {
+      en: "Open ADSBao tabs now check the latest deployed build and show a persistent refresh toast when a newer version is available.",
+      zh: "已打开的 ADSBao 页面现在会检查最新部署版本；当有新版可用时，会显示持续的刷新提示。",
+    },
+    highlights: [
+      {
+        en: "The Vite build emits a no-store version manifest that old tabs can compare against their current bundle",
+        zh: "Vite 构建会产出 no-store 版本 manifest，旧页面可用它与当前 bundle 版本比较",
+      },
+      {
+        en: "A localized Sonner toast offers a one-click refresh action and re-checks after tab focus or visibility changes",
+        zh: "本地化 Sonner toast 提供一键刷新，并在页面重新聚焦或可见性变化后再次检查",
+      },
+    ],
+  },
+  {
     version: "v2.10.0",
     kind: "feat",
     title: {

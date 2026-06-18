@@ -233,6 +233,33 @@ func TestStaticAssetServedWhenExists(t *testing.T) {
 	}
 }
 
+func TestAppVersionManifestServedNoStore(t *testing.T) {
+	staticDir := t.TempDir()
+	manifestPath := filepath.Join(staticDir, "adsbao-version.json")
+	if err := os.WriteFile(manifestPath, []byte(`{"version":"2.11.0"}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := New(ServerOptions{
+		StaticDir:     staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/adsbao-version.json", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("got status %d, want 200", rr.Code)
+	}
+	if rr.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("Cache-Control = %q", rr.Header().Get("Cache-Control"))
+	}
+	if ct := rr.Header().Get("Content-Type"); !strings.Contains(ct, "application/json") {
+		t.Fatalf("Content-Type = %q, want application/json", ct)
+	}
+	if strings.TrimSpace(rr.Body.String()) != `{"version":"2.11.0"}` {
+		t.Fatalf("body = %q, want version manifest", rr.Body.String())
+	}
+}
+
 func TestMissingStaticAssetReturns404(t *testing.T) {
 	staticDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(staticDir, "index.html"), []byte("<html>SPA</html>"), 0o644); err != nil {

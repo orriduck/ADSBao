@@ -13,6 +13,11 @@ const zhCN = {
   brand: {
     wordmarkZh: "拍机宝",
   },
+  appUpdate: {
+    title: "ADSBao 有新版本",
+    description: "当前是 {currentVersion}，刷新后载入 {latestVersion}。",
+    refresh: "刷新",
+  },
   nav: {
     home: "ADSBao",
     homePage: "首页",
