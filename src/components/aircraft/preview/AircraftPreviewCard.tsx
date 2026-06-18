@@ -22,8 +22,7 @@ import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
 import {
-  getPlaneHunterClientDevice,
-  shouldEnablePlaneHunterForClientDevice,
+  shouldEnablePlaneHunterForClientDeviceProfile,
 } from "@/features/aircraft/preview/planeHunterDeviceModel";
 import { useAircraftTraceAsyncStatus } from "@/features/aircraft/trace/useAircraftTraceAsyncStatus";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -47,6 +46,7 @@ export default function AircraftPreviewCard({
   onApplyTemporaryRoute,
   onDismiss,
   suppressMobileWhenAlreadyTracking = false,
+  clientDeviceProfile = null,
   preferMobilePreview = false,
   safeAreaInsets = null,
 }) {
@@ -162,7 +162,8 @@ export default function AircraftPreviewCard({
     !isNavaid &&
     Boolean(aircraftCallsign) &&
     typeof onApplyTemporaryRoute === "function";
-  const planeHunterDeviceAllowed = usePlaneHunterDeviceAllowed();
+  const planeHunterDeviceAllowed =
+    shouldEnablePlaneHunterForClientDeviceProfile(clientDeviceProfile);
   const showPlaneHunterTrigger =
     planeHunterDeviceAllowed && isAircraftPreview && Boolean(entity);
   const showMobilePlaneHunterTrigger = showMobilePreview && showPlaneHunterTrigger;
@@ -343,18 +344,6 @@ export default function AircraftPreviewCard({
       )}
     </>
   );
-}
-
-function usePlaneHunterDeviceAllowed() {
-  const [allowed, setAllowed] = useState(false);
-
-  useEffect(() => {
-    setAllowed(
-      shouldEnablePlaneHunterForClientDevice(getPlaneHunterClientDevice()),
-    );
-  }, []);
-
-  return allowed;
 }
 
 function usePhotoTone(src) {

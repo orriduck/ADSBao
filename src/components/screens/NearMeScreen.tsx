@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
 
@@ -11,19 +12,12 @@ import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
 // getCurrentPosition and a manual refresh button.
 const POSITION_REFRESH_THRESHOLD_NM = 0.15;
 
-// Desktop device detection — fine pointer + no touch = laptop/desktop.
-function isDesktopDevice() {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(pointer: fine)").matches &&
-    !("ontouchstart" in window)
-  );
-}
-
 // `/here` — explorer view centered on the user's current position.
 export default function NearMeScreen() {
   const navigate = useNavigate();
   const { locale, t } = useI18n();
+  const clientDeviceProfile = useClientDeviceProfile();
+  const useOneShotLocation = clientDeviceProfile.deviceClass === "desktop";
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [status, setStatus] = useState<
     "idle" | "requesting" | "granted" | "denied" | "unavailable"
@@ -32,7 +26,6 @@ export default function NearMeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastTime, setLastTime] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
-  const desktopRef = useRef(isDesktopDevice());
   const initialRequestRef = useRef(true);
 
   // Desktop: one-shot getCurrentPosition + manual refresh.
@@ -66,7 +59,7 @@ export default function NearMeScreen() {
       }
       setStatus("granted");
       setRefreshing(false);
-      if (desktopRef.current) {
+      if (useOneShotLocation) {
         setLastTime(
           new Intl.DateTimeFormat("en-US", {
             hour: "2-digit",
@@ -99,10 +92,10 @@ export default function NearMeScreen() {
     const options: PositionOptions = {
       enableHighAccuracy: true,
       timeout: 12_000,
-      maximumAge: desktopRef.current ? 0 : 30_000,
+      maximumAge: useOneShotLocation ? 0 : 30_000,
     };
 
-    if (desktopRef.current) {
+    if (useOneShotLocation) {
       navigator.geolocation.getCurrentPosition(handleSuccess, handleError, options);
     } else {
       watchIdRef.current = navigator.geolocation.watchPosition(
@@ -111,7 +104,7 @@ export default function NearMeScreen() {
         options,
       );
     }
-  }, [t]);
+  }, [t, useOneShotLocation]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -165,7 +158,7 @@ export default function NearMeScreen() {
         mode="nearMe"
         onBack={handleBack}
         nearMeRefresh={
-          desktopRef.current
+          useOneShotLocation
             ? { lastTime, refreshing, onRefresh: handleRefresh }
             : undefined
         }

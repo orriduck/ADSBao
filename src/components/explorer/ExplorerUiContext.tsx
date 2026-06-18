@@ -11,6 +11,10 @@ import {
 import { useAuth, useUser } from "@/platform/auth/clerkClient";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import {
+  resolveClientDeviceLayoutProfile,
+  type ClientLayoutMode,
+} from "@/features/app-shell/device/clientDeviceModel";
+import {
   useClientDeviceProfile,
 } from "@/features/app-shell/device/useClientDeviceProfile";
 import {
@@ -38,11 +42,6 @@ import {
   readStoredMapSettings,
   writeStoredMapSettings,
 } from "@/features/airport/map-settings/mapSettingsStorage";
-import {
-  getAirportSidebarMode,
-  getAirportSidebarOpenForMode,
-} from "@/utils/sidebarDisplay";
-
 const ExplorerUiContext = createContext(null);
 const DEFAULT_USER_LOCATION_PREFERENCES =
   mapSettingsToUserLocationPreferences(DEFAULT_MAP_SETTINGS);
@@ -68,21 +67,23 @@ const initialUiState = {
   mapFollowsAircraft: true,
 };
 
-function getCurrentAirportSidebarMode(clientDeviceProfile) {
-  if (typeof window === "undefined") return "desktop";
-  return getAirportSidebarMode(
-    window.innerWidth,
-    clientDeviceProfile,
-    window.innerHeight,
-  );
+function getExplorerLayoutProfile(clientDeviceProfile) {
+  return resolveClientDeviceLayoutProfile({
+    mobileBreakpointPx: AIRPORT_EXPLORER_UI_CONFIG.mobileBreakpointPx,
+    profile: clientDeviceProfile,
+  });
+}
+
+function getSidebarOpenForLayoutMode(mode: ClientLayoutMode) {
+  return mode === "desktop";
 }
 
 function getInitialUiState(clientDeviceProfile) {
-  const sidebarMode = getCurrentAirportSidebarMode(clientDeviceProfile);
+  const sidebarMode = getExplorerLayoutProfile(clientDeviceProfile).layoutMode;
   return {
     ...initialUiState,
     sidebarMode,
-    sidebarOpen: getAirportSidebarOpenForMode(sidebarMode),
+    sidebarOpen: getSidebarOpenForLayoutMode(sidebarMode),
   };
 }
 
@@ -139,7 +140,7 @@ function airportExplorerUiReducer(state, action) {
       return {
         ...state,
         sidebarMode: action.sidebarMode,
-        sidebarOpen: getAirportSidebarOpenForMode(action.sidebarMode),
+        sidebarOpen: getSidebarOpenForLayoutMode(action.sidebarMode),
       };
     }
     case "toggleSidebar":
@@ -401,6 +402,10 @@ export function ExplorerUiProvider({ children }) {
   const clientDeviceProfile = useClientDeviceProfile({
     includeSafeAreaInsets: true,
   });
+  const clientDeviceLayout = useMemo(
+    () => getExplorerLayoutProfile(clientDeviceProfile),
+    [clientDeviceProfile],
+  );
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
     clientDeviceProfile,
@@ -429,7 +434,15 @@ export function ExplorerUiProvider({ children }) {
     selectedAirspaceId,
     selectedCandidateWatchingSpotId,
   } = state;
-  const isMobile = sidebarMode === "mobile";
+  const effectiveSidebarMode =
+    sidebarMode === clientDeviceLayout.layoutMode
+      ? sidebarMode
+      : clientDeviceLayout.layoutMode;
+  const effectiveSidebarOpen =
+    sidebarMode === effectiveSidebarMode
+      ? sidebarOpen
+      : getSidebarOpenForLayoutMode(effectiveSidebarMode);
+  const isMobile = clientDeviceLayout.isMobileLayout;
   const mapSettingsDevice =
     resolveMapSettingsDeviceForClientDeviceProfile(clientDeviceProfile);
   const queueMapSettingsHydration = useCallback((settings) => {
@@ -448,45 +461,16 @@ export function ExplorerUiProvider({ children }) {
   }, [getToken]);
 
   useEffect(() => {
-    const syncSidebarMode = () => {
-      dispatch({
-        type: "setSidebarMode",
-        sidebarMode: getCurrentAirportSidebarMode(clientDeviceProfile),
-      });
-    };
-    const syncSidebarModeWhenVisible = () => {
-      if (document.visibilityState === "visible") syncSidebarMode();
-    };
-    const visualViewport = window.visualViewport;
-    const screenOrientation = window.screen?.orientation;
-
-    syncSidebarMode();
-    window.addEventListener("resize", syncSidebarMode);
-    window.addEventListener("orientationchange", syncSidebarMode);
-    window.addEventListener("pageshow", syncSidebarMode);
-    window.addEventListener("focus", syncSidebarMode);
-    document.addEventListener("visibilitychange", syncSidebarModeWhenVisible);
-    visualViewport?.addEventListener("resize", syncSidebarMode);
-    screenOrientation?.addEventListener?.("change", syncSidebarMode);
-
-    return () => {
-      window.removeEventListener("resize", syncSidebarMode);
-      window.removeEventListener("orientationchange", syncSidebarMode);
-      window.removeEventListener("pageshow", syncSidebarMode);
-      window.removeEventListener("focus", syncSidebarMode);
-      document.removeEventListener(
-        "visibilitychange",
-        syncSidebarModeWhenVisible,
-      );
-      visualViewport?.removeEventListener("resize", syncSidebarMode);
-      screenOrientation?.removeEventListener?.("change", syncSidebarMode);
-    };
-  }, [clientDeviceProfile]);
+    dispatch({
+      type: "setSidebarMode",
+      sidebarMode: clientDeviceLayout.layoutMode,
+    });
+  }, [clientDeviceLayout.layoutMode]);
 
   useEffect(() => {
     if (
-      sidebarMode !== "desktop" ||
-      clientDeviceProfile.orientation !== "landscape"
+      effectiveSidebarMode !== "desktop" ||
+      clientDeviceLayout.orientation !== "landscape"
     ) {
       return undefined;
     }
@@ -500,10 +484,10 @@ export function ExplorerUiProvider({ children }) {
       window.clearTimeout(timeoutId);
     };
   }, [
-    sidebarMode,
-    clientDeviceProfile.orientation,
-    clientDeviceProfile.safeAreaInsets.left,
-    clientDeviceProfile.safeAreaInsets.right,
+    effectiveSidebarMode,
+    clientDeviceLayout.orientation,
+    clientDeviceLayout.safeAreaInsets.left,
+    clientDeviceLayout.safeAreaInsets.right,
   ]);
 
   useEffect(() => {
@@ -836,8 +820,9 @@ export function ExplorerUiProvider({ children }) {
     () => ({
       desktopSidebarWidth: AIRPORT_EXPLORER_UI_CONFIG.desktopSidebarWidth,
       clientDeviceProfile,
-      sidebarMode,
-      sidebarOpen,
+      clientDeviceLayout,
+      sidebarMode: effectiveSidebarMode,
+      sidebarOpen: effectiveSidebarOpen,
       isMobile,
       mapZoom,
       mapFollowsAircraft,
@@ -896,8 +881,9 @@ export function ExplorerUiProvider({ children }) {
     }),
     [
       clientDeviceProfile,
-      sidebarMode,
-      sidebarOpen,
+      clientDeviceLayout,
+      effectiveSidebarMode,
+      effectiveSidebarOpen,
       isMobile,
       mapZoom,
       mapFollowsAircraft,

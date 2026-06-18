@@ -19,6 +19,7 @@ export type ClientDeviceSystem =
 
 export type ClientDeviceClass = "phone" | "tablet" | "desktop" | "unknown";
 export type ClientDeviceOrientation = "portrait" | "landscape" | "unknown";
+export type ClientLayoutMode = "mobile" | "desktop";
 
 export type ClientDeviceSafeAreaInsets = {
   top: number;
@@ -52,6 +53,7 @@ export type ClientDeviceSnapshot = {
 export type ClientDeviceProfile = {
   deviceClass: ClientDeviceClass;
   system: ClientDeviceSystem;
+  viewport: ClientDeviceViewport | null;
   orientation: ClientDeviceOrientation;
   isMobileDevice: boolean;
   hasCamera: boolean;
@@ -60,6 +62,8 @@ export type ClientDeviceProfile = {
 };
 
 export type ClientDeviceLayoutProfile = {
+  layoutMode: ClientLayoutMode;
+  isMobileLayout: boolean;
   orientation: ClientDeviceOrientation;
   isMobileDevice: boolean;
   hasHorizontalViewportObstruction: boolean;
@@ -67,6 +71,8 @@ export type ClientDeviceLayoutProfile = {
   safeAreaCssVariables?: Record<string, string>;
   useDesktopMobileLandscapeLayout: boolean;
 };
+
+const DEFAULT_LAYOUT_MOBILE_BREAKPOINT_PX = 768;
 
 const EMPTY_SAFE_AREA_INSETS: ClientDeviceSafeAreaInsets = Object.freeze({
   top: 0,
@@ -231,11 +237,13 @@ export function resolveClientDeviceProfile(
     userAgent,
   });
   const safeAreaInsets = normalizeSafeAreaInsets(snapshot?.safeAreaInsets);
+  const viewport = normalizeViewport(snapshot?.viewport);
 
   return {
     deviceClass,
     system,
-    orientation: resolveClientDeviceOrientation(snapshot?.viewport),
+    viewport,
+    orientation: resolveClientDeviceOrientation(viewport),
     isMobileDevice: deviceClass === "phone" || deviceClass === "tablet",
     hasCamera: resolveHasCamera({
       deviceClass,
@@ -247,13 +255,32 @@ export function resolveClientDeviceProfile(
   };
 }
 
-export function resolveClientDeviceLayoutProfile({
-  isMobileLayout = false,
+function resolveClientLayoutMode({
+  mobileBreakpointPx = DEFAULT_LAYOUT_MOBILE_BREAKPOINT_PX,
   profile,
 }: {
-  isMobileLayout?: boolean;
+  mobileBreakpointPx?: number;
+  profile: ClientDeviceProfile | null | undefined;
+}): ClientLayoutMode {
+  const orientation = profile?.orientation || "unknown";
+  const isMobileDevice = profile?.isMobileDevice === true;
+  const width = toFiniteNumber(profile?.viewport?.width);
+  const breakpoint = Math.max(1, toFiniteNumber(mobileBreakpointPx));
+
+  if (isMobileDevice && orientation === "landscape") return "desktop";
+  if (width > 0 && width < breakpoint) return "mobile";
+  return "desktop";
+}
+
+export function resolveClientDeviceLayoutProfile({
+  mobileBreakpointPx = DEFAULT_LAYOUT_MOBILE_BREAKPOINT_PX,
+  profile,
+}: {
+  mobileBreakpointPx?: number;
   profile: ClientDeviceProfile | null | undefined;
 }): ClientDeviceLayoutProfile {
+  const layoutMode = resolveClientLayoutMode({ mobileBreakpointPx, profile });
+  const isMobileLayout = layoutMode === "mobile";
   const orientation = profile?.orientation || "unknown";
   const isMobileDevice = profile?.isMobileDevice === true;
   const hasHorizontalViewportObstruction =
@@ -265,7 +292,7 @@ export function resolveClientDeviceLayoutProfile({
   const shouldApplySafeAreaVariables =
     orientation === "landscape" && hasHorizontalViewportObstruction;
   const useDesktopMobileLandscapeLayout =
-    !isMobileLayout && isMobileDevice && orientation === "landscape";
+    layoutMode === "desktop" && isMobileDevice && orientation === "landscape";
   const safeAreaCssVariables = shouldApplySafeAreaVariables
     ? {
         "--app-safe-area-left": `${safeAreaInsets.left}px`,
@@ -275,6 +302,8 @@ export function resolveClientDeviceLayoutProfile({
     : undefined;
 
   return {
+    layoutMode,
+    isMobileLayout,
     orientation,
     isMobileDevice,
     hasHorizontalViewportObstruction,

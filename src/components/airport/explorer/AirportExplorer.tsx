@@ -32,7 +32,6 @@ import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandida
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
 import { useWakeLock } from "@/hooks/useWakeLock";
-import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/clientDeviceModel";
 import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
 import { ZOOM_APPROACH, ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 
@@ -65,6 +64,7 @@ function AirportExplorerContent({
   const {
     desktopSidebarWidth,
     clientDeviceProfile,
+    clientDeviceLayout,
     sidebarOpen,
     isMobile,
     mapZoom,
@@ -458,10 +458,6 @@ function AirportExplorerContent({
       {...toolbarContextProps}
     />
   );
-  const clientDeviceLayout = resolveClientDeviceLayoutProfile({
-    isMobileLayout: isMobile,
-    profile: clientDeviceProfile,
-  });
   const mapShellStyle =
     clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined;
   const sidebarProps = {
@@ -527,6 +523,7 @@ function AirportExplorerContent({
             airportProfile={airportProfile}
             onApplyTemporaryRoute={traffic.applyTemporaryRoute}
             onDismiss={clearAllPreviewSelections}
+            clientDeviceProfile={clientDeviceProfile}
             preferMobilePreview={
               clientDeviceLayout.useDesktopMobileLandscapeLayout
             }
