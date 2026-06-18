@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.15.2",
+    kind: "patch",
+    title: {
+      en: "Home landscape safe area",
+      zh: "主页横屏安全区",
+    },
+    summary: {
+      en: "Home and map pages now keep the sidebar layout consistent on landscape phones with left or right safe-area obstructions.",
+      zh: "主页和地图页现在会在手机横屏左右安全区遮挡下保持一致的侧栏布局。",
+    },
+    highlights: [
+      {
+        en: "The home sidebar offsets from the active landscape safe-area edge instead of staying pinned to the physical screen edge",
+        zh: "主页侧栏横屏时会避开当前 safe-area 边缘，不再贴住物理屏幕边",
+      },
+      {
+        en: "Landscape mobile airport views stay in desktop-sidebar mode instead of occasionally falling into the mobile map-only toolbar state",
+        zh: "移动设备横屏机场页会保持桌面侧栏布局，不再偶发落入只有地图和移动工具栏的状态",
+      },
+    ],
+  },
+  {
     version: "v2.15.1",
     kind: "patch",
     title: {

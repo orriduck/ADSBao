@@ -2228,6 +2228,11 @@ body:has(.app-detail-shell) {
         display: none;
     }
 
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .airport-desktop-sidebar {
+        display: block;
+    }
+
     .flight-sidebar-panel .airport-sidebar-identity__rule {
         display: none;
     }
@@ -3097,6 +3102,16 @@ body {
 .dither-page-background {
     margin: 12px 12px 12px 0;
     border-radius: var(--atc-radius-shell);
+}
+
+.dither-page-shell[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
+    .dither-page-panel {
+    margin-left: calc(12px + var(--app-safe-area-left, 0px));
+}
+
+.dither-page-shell[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
+    .dither-page-background {
+    margin-right: calc(12px + var(--app-safe-area-right, 0px));
 }
 
 .dither-page-background.plane-hunter-stage {
@@ -7477,6 +7492,7 @@ body {
         padding: 0;
     }
 
+    .airport-map-kit .airport-map-menu--mobile,
     .airport-map-menu--mobile {
         align-items: center;
         -webkit-backdrop-filter: none;

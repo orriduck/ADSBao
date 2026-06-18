@@ -11,9 +11,8 @@ import {
 import { useAuth, useUser } from "@/platform/auth/clerkClient";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import {
-  getClientDeviceSnapshot,
-  resolveClientDeviceProfile,
-} from "@/features/app-shell/device/clientDeviceModel";
+  useClientDeviceProfile,
+} from "@/features/app-shell/device/useClientDeviceProfile";
 import {
   DEFAULT_AIRPORT_EXPLORER_UI_STATE,
   resolveSelectedAirspaceIdForLayerVisibility,
@@ -47,11 +46,6 @@ import {
 const ExplorerUiContext = createContext(null);
 const DEFAULT_USER_LOCATION_PREFERENCES =
   mapSettingsToUserLocationPreferences(DEFAULT_MAP_SETTINGS);
-
-const getCurrentClientDeviceProfile = (includeSafeAreaInsets = false) =>
-  resolveClientDeviceProfile(
-    getClientDeviceSnapshot({ includeSafeAreaInsets }),
-  );
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
@@ -373,9 +367,9 @@ export function ExplorerUiProvider({ children }) {
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
   const [mapSettingsSaveStatusCode, setMapSettingsSaveStatusCode] = useState<number | null>(null);
   const [mapSettingsSaveCycle, setMapSettingsSaveCycle] = useState(0);
-  const [clientDeviceProfile, setClientDeviceProfile] = useState(() =>
-    getCurrentClientDeviceProfile(true),
-  );
+  const clientDeviceProfile = useClientDeviceProfile({
+    includeSafeAreaInsets: true,
+  });
   const [state, dispatch] = useReducer(
     airportExplorerUiReducer,
     initialUiState,
@@ -422,27 +416,10 @@ export function ExplorerUiProvider({ children }) {
   }, [getToken]);
 
   useEffect(() => {
-    const syncClientDeviceProfile = () => {
-      setClientDeviceProfile(getCurrentClientDeviceProfile(true));
-    };
-
-    syncClientDeviceProfile();
-    window.addEventListener("resize", syncClientDeviceProfile);
-    window.addEventListener("orientationchange", syncClientDeviceProfile);
-    window.visualViewport?.addEventListener("resize", syncClientDeviceProfile);
-
-    return () => {
-      window.removeEventListener("resize", syncClientDeviceProfile);
-      window.removeEventListener("orientationchange", syncClientDeviceProfile);
-      window.visualViewport?.removeEventListener("resize", syncClientDeviceProfile);
-    };
-  }, []);
-
-  useEffect(() => {
     const syncSidebarMode = () => {
       dispatch({
         type: "setSidebarMode",
-        sidebarMode: getAirportSidebarMode(window.innerWidth),
+        sidebarMode: getAirportSidebarMode(window.innerWidth, clientDeviceProfile),
       });
     };
 
@@ -450,7 +427,7 @@ export function ExplorerUiProvider({ children }) {
     window.addEventListener("resize", syncSidebarMode);
 
     return () => window.removeEventListener("resize", syncSidebarMode);
-  }, []);
+  }, [clientDeviceProfile]);
 
   useEffect(() => {
     setMapSettingsSaveStatus("idle");

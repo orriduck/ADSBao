@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import type { CSSProperties } from "react";
 import { useLocation } from "react-router-dom";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
@@ -6,6 +7,8 @@ import SidebarBrandMark from "@/components/sidebar/SidebarBrandMark";
 import { CHANGELOG } from "@/config/changelog";
 import { SITE_DESCRIPTION } from "@/config/site";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/clientDeviceModel";
+import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { usePageEntrance } from "@/animations/usePageEntrance";
 
 export default function DitherPageShell({
@@ -17,6 +20,14 @@ export default function DitherPageShell({
   const { locale, t } = useI18n();
   const { pathname } = useLocation();
   const shellRef = useRef<HTMLDivElement>(null);
+  const clientDeviceProfile = useClientDeviceProfile({
+    includeSafeAreaInsets: true,
+  });
+  const clientDeviceLayout = resolveClientDeviceLayoutProfile({
+    profile: clientDeviceProfile,
+  });
+  const shellStyle =
+    clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined;
   const routeChrome = resolveRouteChrome(pathname, t);
   usePageEntrance(shellRef, {
     triggerKey: `${routeChrome.key}:${locale}`,
@@ -40,6 +51,14 @@ export default function DitherPageShell({
   return (
     <div
       ref={shellRef}
+      data-client-orientation={clientDeviceLayout.orientation}
+      data-client-mobile-device={
+        clientDeviceLayout.isMobileDevice ? "true" : "false"
+      }
+      data-client-horizontal-obstruction={
+        clientDeviceLayout.hasHorizontalViewportObstruction ? "true" : "false"
+      }
+      style={shellStyle}
       className={`dither-page-shell flex h-screen text-atc-text ${resolvedClassName}`.trim()}
     >
       <PageNavigationDock />
