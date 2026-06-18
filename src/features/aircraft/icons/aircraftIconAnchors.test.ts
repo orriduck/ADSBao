@@ -1,21 +1,24 @@
 import assert from "node:assert/strict";
 
-import { AIRCRAFT_ICON_ANCHORS } from "./aircraftIconAnchors.generated";
+import { resolveAircraftIconAnchorRecord } from "./aircraftIconAnchors";
 
-const iconNames = Object.keys(AIRCRAFT_ICON_ANCHORS);
+const a320 = resolveAircraftIconAnchorRecord("a320");
+const pc12 = resolveAircraftIconAnchorRecord("pc12");
+const h60 = resolveAircraftIconAnchorRecord("h60");
+const balloon = resolveAircraftIconAnchorRecord("ball");
 
-assert.ok(iconNames.length > 100, "expected the generated anchor map to cover the full icon set");
-assert.equal(AIRCRAFT_ICON_ANCHORS.a320.family, "jet");
-assert.ok(AIRCRAFT_ICON_ANCHORS.a320.anchors.leftWingTip);
-assert.ok(AIRCRAFT_ICON_ANCHORS.a320.anchors.rightWingTip);
-assert.ok(AIRCRAFT_ICON_ANCHORS.a320.anchors.noseUnderside);
-assert.ok(AIRCRAFT_ICON_ANCHORS.a320.anchors.belly);
-assert.equal(AIRCRAFT_ICON_ANCHORS.pc12.family, "propeller");
-assert.ok(AIRCRAFT_ICON_ANCHORS.pc12.anchors.propeller);
-assert.ok(AIRCRAFT_ICON_ANCHORS.pc12.anchors.belly);
-assert.equal(AIRCRAFT_ICON_ANCHORS.h60.family, "rotorcraft");
-assert.ok(AIRCRAFT_ICON_ANCHORS.h60.anchors.rotorHub);
-assert.ok(AIRCRAFT_ICON_ANCHORS.h60.anchors.belly);
-assert.equal(AIRCRAFT_ICON_ANCHORS.ball.family, "balloon");
+assert.equal(a320?.family, "jet");
+assert.ok(a320?.anchors.leftWingTip);
+assert.ok(a320?.anchors.rightWingTip);
+assert.ok(a320?.anchors.noseUnderside);
+assert.ok(a320?.anchors.belly);
+assert.equal(pc12?.family, "propeller");
+assert.ok(pc12?.anchors.propeller);
+assert.ok(pc12?.anchors.belly);
+assert.equal(h60?.family, "rotorcraft");
+assert.ok(h60?.anchors.rotorHub);
+assert.ok(h60?.anchors.belly);
+assert.equal(balloon?.family, "balloon");
 // balloon has no belly — it's a basket instead
-assert.ok(AIRCRAFT_ICON_ANCHORS.ball.anchors.basketCenter);
+assert.ok(balloon?.anchors.basketCenter);
+assert.equal(resolveAircraftIconAnchorRecord("not-real"), null);

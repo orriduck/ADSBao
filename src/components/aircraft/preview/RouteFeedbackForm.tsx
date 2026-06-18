@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import RouteFeedbackFields from "./RouteFeedbackFields";
 import { useRouteFeedbackSubmit } from "@/features/aviation/flight-routes/useRouteFeedbackSubmit";

@@ -1,5 +1,3 @@
-"use client";
-
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { CHANGELOG, resolveChangelogText } from "@/config/changelog";
 

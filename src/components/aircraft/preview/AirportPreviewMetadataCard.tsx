@@ -1,7 +1,4 @@
-"use client";
-
-import Link from "@/platform/router/Link";
-import { usePathname } from "@/platform/router/navigation";
+import { Link, useLocation } from "react-router-dom";
 import NumberFlow from "@number-flow/react";
 import { TowerControl } from "lucide-react";
 import { countryName, flagEmoji } from "@/utils/flag";
@@ -26,7 +23,7 @@ import {
 export default function AirportPreviewMetadataCard({ airport }) {
   const { locale, t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const icao = cleanAirportCode(airport?.icao || airport?.code);
   const iata = cleanAirportCode(airport?.iata);
   const codeLine = airportDisplayCodeLine(airport);
@@ -159,7 +156,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
 
       {trackHref && !alreadyTracking ? (
         <Link
-          href={trackHref}
+          to={trackHref}
           className="aircraft-preview-card__track-btn"
           aria-label={`${t("preview.openAirport")} ${codeLine}`}
         >

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import L from "leaflet";
 import { AIRPORT_MAP_PANES } from "@/config/airportMap";

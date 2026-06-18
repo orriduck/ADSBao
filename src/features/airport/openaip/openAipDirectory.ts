@@ -388,13 +388,6 @@ async function findOpenAipAirportByIdent({
   return rankOpenAipAirports(matches, normalized)[0] || null;
 }
 
-export const createOpenAipAirportQueriesFromEnv = () => ({
-  async getAirportByIdent(ident: unknown) {
-    const document = await findOpenAipAirportByIdent({ ident });
-    return mapOpenAipAirport(document);
-  },
-});
-
 export async function getOpenAipAirportPage({
   ident,
   radiusNm = 60,

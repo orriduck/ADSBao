@@ -1,5 +1,3 @@
-"use client";
-
 import MapControlBar from "@/components/ui/MapControlBar";
 import MobileMapSourceStatus from "./MobileMapSourceStatus";
 import { useExplorerUi } from "./ExplorerUiContext";

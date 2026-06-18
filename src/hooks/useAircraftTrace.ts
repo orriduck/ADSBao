@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createAircraftTraceClient } from "../features/aircraft/trace/aircraftTraceClient";
 import {

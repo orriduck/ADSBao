@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useRef, useState } from "react";
 import { MAP_ZOOM_OPTIONS } from "../../config/mapControls";
 import { useThemePreference } from "../../features/app-shell/useThemePreference";

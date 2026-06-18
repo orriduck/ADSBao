@@ -1,5 +1,3 @@
-"use client";
-
 import AirportRow from "./AirportRow";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import AsyncStatusLine from "@/components/ui/AsyncStatusLine";

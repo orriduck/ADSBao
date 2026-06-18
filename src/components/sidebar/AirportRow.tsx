@@ -1,5 +1,3 @@
-"use client";
-
 import { memo } from "react";
 import { TowerControl } from "lucide-react";
 import NumberFlow from "@number-flow/react";

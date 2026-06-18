@@ -1,8 +1,5 @@
-"use client";
-
-import dynamic from "@/platform/react/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "@/platform/router/navigation";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
 import {
@@ -41,17 +38,6 @@ import {
   writeTrackedFlightMetadata,
 } from "@/features/aircraft/tracking/trackedFlightMetadataStorage";
 
-// These map helpers import Leaflet, which evaluates `window` at module
-// top — SSR-incompatible. Dynamic-import keeps those helpers
-// out of the server bundle, same pattern AirportMap uses.
-const FlightAwareRouteArc = dynamic(
-  () => import("@/components/map/FlightAwareRouteArc"),
-  { ssr: false },
-);
-const MapFitToTraceController = dynamic(
-  () => import("@/components/map/MapFitToTraceController"),
-  { ssr: false },
-);
 import {
   ExplorerUiProvider,
   useExplorerUi,
@@ -73,10 +59,9 @@ import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/Selec
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard";
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 
-const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
-  ssr: false,
-  loading: () => <MapLoadingFallback variant="flight" />,
-});
+const FlightAwareRouteArc = lazy(() => import("@/components/map/FlightAwareRouteArc"));
+const MapFitToTraceController = lazy(() => import("@/components/map/MapFitToTraceController"));
+const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 
 const FOCAL_VISUAL_POSITION_TICK_MS = 500;
 const TRACE_VIEW_SESSION = "session";
@@ -91,7 +76,7 @@ export default function FlightExplorer({ callsign = "" }) {
 }
 
 function FlightExplorerContent({ callsign }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const {
     enabled: flightAwareEnabled,
     resolved: flightAwareResolved,
@@ -751,7 +736,7 @@ function FlightExplorerContent({ callsign }) {
     selectedAircraft,
   ]);
 
-  const handleBack = () => router.push("/");
+  const handleBack = () => navigate("/");
 
   const flightTrackingLoadingActive = shouldShowFlightTrackingLoadingOverlay({
     hasActiveFlight: Boolean(callsign),
@@ -873,65 +858,67 @@ function FlightExplorerContent({ callsign }) {
               {...toolbarContextProps}
             />
           )}
-          <AirportMap
-            icao=""
-            lat={focalLat}
-            lon={focalLon}
-            zoom={mapZoom}
-            aircraft={mapAircraft}
-            nearbyAirports={mapNearbyAirports}
-            nearbyNavaids={contextTiles.navaids}
-            airspaces={contextTiles.airspaces}
-            airport={null}
-            showMapLabels={showMapLabels}
-            showRunwayBeams={false}
-            showNavaidMarkers={showNavaidMarkers}
-            showAirspaces={showAirspaces}
-            baseLayer={mapSettings?.baseLayer}
-            trafficFilter={trafficFilter}
-            typeFilter={typeFilter}
-            altitudeLevel={altitudeLevel}
-            selectedAircraftId={selectedAircraftId}
-            selectedAirportIcao={selectedAirportIcao}
-            selectedNavaidKey={selectedNavaidKey}
-            selectedAirspaceId={selectedAirspaceId}
-            focalAircraftId={focalKey}
-            followsCenter={mapFollowsAircraft}
-            floatingSidebarAware={!isMobile && sidebarOpen}
-            onSelectAircraft={selectAircraft}
-            onSelectAirport={selectAirport}
-            onSelectNavaid={selectNavaid}
-            onSelectAirspace={selectAirspace}
-            runwayMap={null}
-            focalRangeRings={false}
-            contextTileOverlays
-            contextTileRefreshKey={`${callsign}:${mapFollowsAircraft}:${mapZoom}`}
-            fullTraceContext={!mapFollowsAircraft}
-            onContextTilesChange={setContextTiles}
-            deferUntilFocal
-            loadingOverlayActive={flightTrackingLoadingActive}
-            loadingOverlayVariant="flight"
-            loadingOverlayCallsign={callsign}
-            loadingOverlaySources={loadingOverlaySources}
-          >
-            <FlightAwareRouteArc path={focalRoutePath} />
-            <MapFitToTraceController
-              routePath={focalRoutePath}
-              centerAnchor={{ lat: focalLat, lon: focalLon }}
-              centerAnchorFollowKey={
-                !mapFollowsAircraft && focalLat != null && focalLon != null
-                  ? routeAutoFitKey
-                  : ""
-              }
-              autoFitKey={routeAutoFitKey}
-              fitOptions={flightDisplayContext.mapFitOptions}
-              onAutoFit={
-                flightDisplayContext.autoFitSuspendsFollow
-                  ? suspendMapFollow
-                  : undefined
-              }
-            />
-          </AirportMap>
+          <Suspense fallback={<MapLoadingFallback variant="flight" />}>
+            <AirportMap
+              icao=""
+              lat={focalLat}
+              lon={focalLon}
+              zoom={mapZoom}
+              aircraft={mapAircraft}
+              nearbyAirports={mapNearbyAirports}
+              nearbyNavaids={contextTiles.navaids}
+              airspaces={contextTiles.airspaces}
+              airport={null}
+              showMapLabels={showMapLabels}
+              showRunwayBeams={false}
+              showNavaidMarkers={showNavaidMarkers}
+              showAirspaces={showAirspaces}
+              baseLayer={mapSettings?.baseLayer}
+              trafficFilter={trafficFilter}
+              typeFilter={typeFilter}
+              altitudeLevel={altitudeLevel}
+              selectedAircraftId={selectedAircraftId}
+              selectedAirportIcao={selectedAirportIcao}
+              selectedNavaidKey={selectedNavaidKey}
+              selectedAirspaceId={selectedAirspaceId}
+              focalAircraftId={focalKey}
+              followsCenter={mapFollowsAircraft}
+              floatingSidebarAware={!isMobile && sidebarOpen}
+              onSelectAircraft={selectAircraft}
+              onSelectAirport={selectAirport}
+              onSelectNavaid={selectNavaid}
+              onSelectAirspace={selectAirspace}
+              runwayMap={null}
+              focalRangeRings={false}
+              contextTileOverlays
+              contextTileRefreshKey={`${callsign}:${mapFollowsAircraft}:${mapZoom}`}
+              fullTraceContext={!mapFollowsAircraft}
+              onContextTilesChange={setContextTiles}
+              deferUntilFocal
+              loadingOverlayActive={flightTrackingLoadingActive}
+              loadingOverlayVariant="flight"
+              loadingOverlayCallsign={callsign}
+              loadingOverlaySources={loadingOverlaySources}
+            >
+              <FlightAwareRouteArc path={focalRoutePath} />
+              <MapFitToTraceController
+                routePath={focalRoutePath}
+                centerAnchor={{ lat: focalLat, lon: focalLon }}
+                centerAnchorFollowKey={
+                  !mapFollowsAircraft && focalLat != null && focalLon != null
+                    ? routeAutoFitKey
+                    : ""
+                }
+                autoFitKey={routeAutoFitKey}
+                fitOptions={flightDisplayContext.mapFitOptions}
+                onAutoFit={
+                  flightDisplayContext.autoFitSuspendsFollow
+                    ? suspendMapFollow
+                    : undefined
+                }
+              />
+            </AirportMap>
+          </Suspense>
 
           {isMobile && sidebarOpen && (
             <div className="absolute inset-0 z-map-panel overscroll-none overflow-y-auto">

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   createContext,
   useEffect,
@@ -7,7 +5,7 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
-import { useSearchParams } from "@/platform/router/navigation";
+import { useSearchParams } from "react-router-dom";
 import { DICTIONARIES } from "@/config/i18n/index";
 import {
   DEFAULT_LOCALE,
@@ -52,7 +50,7 @@ export function I18nProvider({
   children,
   initialLocale = DEFAULT_LOCALE,
 }: I18nProviderProps) {
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [locale, setLocale] = useState(() =>
     normalizeLocaleSelection(initialLocale, DEFAULT_LOCALE),
   );

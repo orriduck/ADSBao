@@ -1,10 +1,8 @@
-"use client";
-
 import { useState } from "react";
 import NumberFlow from "@number-flow/react";
 import AircraftTable from "./AircraftTable";
 import SidebarIdentityHero from "./SidebarIdentityHero";
-import { SidebarMetricCard, SidebarMetricGrid } from "./SidebarMetric";
+import { MetricCard as SidebarMetricCard, MetricGrid as SidebarMetricGrid } from "@/components/ui/MetricCard";
 import SidebarShell from "./SidebarShell";
 import {
   formatFlightRouteLabel,

@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowUpRight, Github } from "lucide-react";
 import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import {

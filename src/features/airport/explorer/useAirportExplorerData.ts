@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo } from "react";
 import { useAircraftPositions } from "@/hooks/useAircraftPositions";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes";

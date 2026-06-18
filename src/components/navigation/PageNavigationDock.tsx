@@ -1,10 +1,7 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "@/platform/router/Link";
+import { Link, useLocation } from "react-router-dom";
 import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
-import { usePathname } from "@/platform/router/navigation";
 import { GitBranch, History, Home, Info, LogIn } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
@@ -41,7 +38,7 @@ const buttonClass = toolbarButtonVariants({ tone: "rail" });
 
 export default function PageNavigationDock() {
   const { locale, t } = useI18n();
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const activeHref = resolveActiveHref(pathname);
   const {
     themePreference,
@@ -93,7 +90,7 @@ export default function PageNavigationDock() {
               aria-label={label}
               title={label}
             >
-              <Link href={buildPageNavigationHref(item.href, locale)}>
+              <Link to={buildPageNavigationHref(item.href, locale)}>
                 <Icon aria-hidden="true" />
               </Link>
             </ToolbarButton>

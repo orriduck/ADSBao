@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo } from "react";
 import { useAirportWiki } from "../../hooks/useAirportWiki";
 import { useWeatherSlides } from "@/components/weather/useWeatherSlides";

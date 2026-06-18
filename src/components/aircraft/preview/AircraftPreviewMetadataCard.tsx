@@ -1,7 +1,4 @@
-"use client";
-
-import Link from "@/platform/router/Link";
-import { usePathname } from "@/platform/router/navigation";
+import { Link, useLocation } from "react-router-dom";
 import AircraftPreviewIdentity from "./AircraftPreviewIdentity";
 import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry";
@@ -20,7 +17,7 @@ export default function AircraftPreviewMetadataCard({
   traceStatusLabels = null,
 }) {
   const { t } = useI18n();
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const credit = photo?.photographer || null;
   const trackCallsign = (aircraft?.callsign || "").trim().toUpperCase();
   const alreadyTracking =
@@ -67,7 +64,7 @@ export default function AircraftPreviewMetadataCard({
       )}
       {trackHref && !alreadyTracking ? (
         <Link
-          href={trackHref}
+          to={trackHref}
           className="aircraft-preview-card__track-btn"
           aria-label={`${t("preview.trackTrace")} ${trackCallsign}`}
         >

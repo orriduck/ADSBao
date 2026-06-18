@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useAsyncStatus, type AsyncStatusState } from "@/hooks/useAsyncStatus";
 

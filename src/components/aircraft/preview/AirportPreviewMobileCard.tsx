@@ -1,5 +1,3 @@
-"use client";
-
 import type { ComponentProps } from "react";
 import NumberFlow from "@number-flow/react";
 import { TowerControl } from "lucide-react";

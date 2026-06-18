@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";

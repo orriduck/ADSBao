@@ -1,5 +1,3 @@
-"use client";
-
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 
 export default function AirportExplorerDesktopSidebar({

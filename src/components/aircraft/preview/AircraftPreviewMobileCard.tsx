@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import type { ComponentProps, ReactElement } from "react";
 import NumberFlow from "@number-flow/react";

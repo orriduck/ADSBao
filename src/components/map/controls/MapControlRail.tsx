@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
 import { Check, LogIn } from "lucide-react";

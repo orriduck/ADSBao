@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Cloud, Droplets, Eye, Gauge, Moon, Sun, Thermometer } from "lucide-react";
 import { FLIGHT_RULE_ORDER, FLIGHT_RULES } from "../../config/weather";

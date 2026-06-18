@@ -1,7 +1,4 @@
-"use client";
-
-import dynamic from "@/platform/react/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar";
 import {
@@ -37,11 +34,8 @@ import { useWakeLock } from "@/hooks/useWakeLock";
 import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
 import { ZOOM_APPROACH, ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 
-const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
-  ssr: false,
-  loading: () => <MapLoadingFallback />,
-});
-const AircraftPreviewCard = dynamic(() => import("../../aircraft/preview/AircraftPreviewCard"));
+const AirportMap = lazy(() => import("@/components/map/AirportMap"));
+const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
 
 export default function AirportExplorer(props) {
   return (
@@ -556,61 +550,63 @@ function AirportExplorerContent({
             />
           )}
 
-          <AirportMap
-            icao={airportProfile.icao}
-            lat={airportProfile.lat}
-            lon={airportProfile.lon}
-            airportElevationFt={airportProfile.elevationFt}
-            zoom={mapZoom}
-            aircraft={traffic.aircraft}
-            nearbyAirports={nearbyAirports.airports}
-            nearbyNavaids={airport?.nearbyNavaids || []}
-            airspaces={airport?.airspaces || []}
-            airport={airport}
-            // In near-me mode the airport profile has no ICAO and so
-            // no server-side airspaces / navaids attached. Flip the
-            // lat/lon-keyed aviation context tile fetch on so the
-            // map still shows Class B/C/D etc. polygons around the
-            // user — same hook the flight explorer already uses.
-            contextTileOverlays={nearMe}
-            showMapLabels={showMapLabels}
-            showRunwayBeams={showRunwayBeams}
-            showNavaidMarkers={showNavaidMarkers}
-            showAirspaces={showAirspaces}
-            showCandidateWatchingSpots={showCandidateWatchingSpots}
-            showCallsigns={showCallsigns}
-            baseLayer={mapSettings?.baseLayer}
-            trafficFilter={trafficFilter}
-            typeFilter={typeFilter}
-            altitudeLevel={altitudeLevel}
-            selectedAircraftId={selectedAircraftId}
-            selectedAirportIcao={selectedAirportIcao}
-            selectedNavaidKey={selectedNavaidKey}
-            selectedAirspaceId={selectedAirspaceId}
-            selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
-            candidateWatchingSpots={candidateWatchingSpots.spots}
-            candidateWatchingSpotCount={0}
-            followsCenter={mapFollowsAircraft}
-            floatingSidebarAware={!isMobile && sidebarOpen}
-            onSelectAircraft={selectAircraft}
-            onSelectAirport={selectAirport}
-            onSelectNavaid={selectNavaid}
-            onSelectAirspace={selectAirspace}
-            onSelectCandidateWatchingSpot={selectCandidateWatchingSpot}
-            runwayMap={airport?.runwayMap}
-            surfaceMap={airport?.surfaceMap}
-            loadingOverlayActive={loadingOverlayActive}
-            loadingOverlaySources={loadingOverlaySources}
-            userLocation={userLocation}
-            userLocationPulseIntervalMs={
-              userLocationAudioActive
-                ? userLocationAudioCue?.intervalMs
-                : undefined
-            }
-            userLocationPulseBeat={
-              userLocationAudioActive ? userLocationPulseBeat : undefined
-            }
-          />
+          <Suspense fallback={<MapLoadingFallback />}>
+            <AirportMap
+              icao={airportProfile.icao}
+              lat={airportProfile.lat}
+              lon={airportProfile.lon}
+              airportElevationFt={airportProfile.elevationFt}
+              zoom={mapZoom}
+              aircraft={traffic.aircraft}
+              nearbyAirports={nearbyAirports.airports}
+              nearbyNavaids={airport?.nearbyNavaids || []}
+              airspaces={airport?.airspaces || []}
+              airport={airport}
+              // In near-me mode the airport profile has no ICAO and so
+              // no server-side airspaces / navaids attached. Flip the
+              // lat/lon-keyed aviation context tile fetch on so the
+              // map still shows Class B/C/D etc. polygons around the
+              // user — same hook the flight explorer already uses.
+              contextTileOverlays={nearMe}
+              showMapLabels={showMapLabels}
+              showRunwayBeams={showRunwayBeams}
+              showNavaidMarkers={showNavaidMarkers}
+              showAirspaces={showAirspaces}
+              showCandidateWatchingSpots={showCandidateWatchingSpots}
+              showCallsigns={showCallsigns}
+              baseLayer={mapSettings?.baseLayer}
+              trafficFilter={trafficFilter}
+              typeFilter={typeFilter}
+              altitudeLevel={altitudeLevel}
+              selectedAircraftId={selectedAircraftId}
+              selectedAirportIcao={selectedAirportIcao}
+              selectedNavaidKey={selectedNavaidKey}
+              selectedAirspaceId={selectedAirspaceId}
+              selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
+              candidateWatchingSpots={candidateWatchingSpots.spots}
+              candidateWatchingSpotCount={0}
+              followsCenter={mapFollowsAircraft}
+              floatingSidebarAware={!isMobile && sidebarOpen}
+              onSelectAircraft={selectAircraft}
+              onSelectAirport={selectAirport}
+              onSelectNavaid={selectNavaid}
+              onSelectAirspace={selectAirspace}
+              onSelectCandidateWatchingSpot={selectCandidateWatchingSpot}
+              runwayMap={airport?.runwayMap}
+              surfaceMap={airport?.surfaceMap}
+              loadingOverlayActive={loadingOverlayActive}
+              loadingOverlaySources={loadingOverlaySources}
+              userLocation={userLocation}
+              userLocationPulseIntervalMs={
+                userLocationAudioActive
+                  ? userLocationAudioCue?.intervalMs
+                  : undefined
+              }
+              userLocationPulseBeat={
+                userLocationAudioActive ? userLocationPulseBeat : undefined
+              }
+            />
+          </Suspense>
 
           {isMobile && sidebarOpen && (
             <div className="absolute inset-0 z-map-panel overscroll-none overflow-y-auto">

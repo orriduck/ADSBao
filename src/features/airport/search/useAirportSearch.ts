@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AIRPORT_SEARCH_CONFIG } from "../../../config/airportSearch";
 import { AIRPORT_DISCOVERY_TOPICS } from "../../../config/airportDiscovery";

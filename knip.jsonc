@@ -18,11 +18,5 @@
   },
   "ignoreDependencies": [
     "tailwindcss"
-  ],
-  "ignore": [
-    // Generator output — the type is part of the contract even if the
-    // app only consumes the value export. Keeping the type avoids
-    // round-tripping through the generator just to drop one line.
-    "src/features/aircraft/icons/aircraftIconAnchors.generated.ts"
   ]
 }

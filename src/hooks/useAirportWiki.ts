@@ -1,5 +1,3 @@
-"use client";
-
 import { useQuery } from "@tanstack/react-query";
 import { fetchAirportWikiSummary } from "../features/airport/wiki/airportWiki";
 import { useI18n } from "../features/app-shell/i18n/useI18n";

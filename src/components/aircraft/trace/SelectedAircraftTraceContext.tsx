@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext, useMemo } from "react";
 import { useAircraftTrace } from "@/hooks/useAircraftTrace";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";

@@ -1,5 +1,3 @@
-"use client";
-
 import { RadioTower, TowerControl } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 

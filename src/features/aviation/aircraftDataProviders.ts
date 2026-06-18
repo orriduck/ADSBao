@@ -12,10 +12,6 @@ const ADSB_LOL = Object.freeze({
     )}/lon/${encodeURIComponent(String(lon))}/dist/${encodeURIComponent(
       String(distanceNm),
     )}`,
-  buildCallsignUrl: ({ callsign }) =>
-    `https://api.adsb.lol/v2/callsign/${encodeURIComponent(
-      String(callsign || "").toUpperCase(),
-    )}`,
   buildTraceUrl: ({ hex }) => {
     const lower = String(hex || "").toLowerCase();
     const suffix = lower.slice(-2);
@@ -41,10 +37,6 @@ const AIRPLANES_LIVE = Object.freeze({
     )}/${encodeURIComponent(String(lon))}/${encodeURIComponent(
       String(distanceNm),
     )}`,
-  buildCallsignUrl: ({ callsign }) =>
-    `https://api.airplanes.live/v2/callsign/${encodeURIComponent(
-      String(callsign || "").toUpperCase(),
-    )}`,
   buildTraceUrl: null,
 });
 
@@ -57,10 +49,6 @@ const ADSB_FI = Object.freeze({
     )}/lon/${encodeURIComponent(String(lon))}/dist/${encodeURIComponent(
       String(distanceNm),
     )}`,
-  buildCallsignUrl: ({ callsign }) =>
-    `https://opendata.adsb.fi/api/v2/callsign/${encodeURIComponent(
-      String(callsign || "").toUpperCase(),
-    )}`,
   buildTraceUrl: null,
   normalizePositionPayload: (payload) =>
     Array.isArray(payload?.aircraft)
@@ -72,11 +60,6 @@ const ADSB_FI = Object.freeze({
 // (data.adsbhub.org:5002), not a public point-query JSON endpoint that can
 // participate in this serverless HTTP provider race.
 export const POSITION_PROVIDER_CHAIN = Object.freeze([
-  ADSB_LOL,
-  AIRPLANES_LIVE,
-  ADSB_FI,
-]);
-export const CALLSIGN_PROVIDER_CHAIN = Object.freeze([
   ADSB_LOL,
   AIRPLANES_LIVE,
   ADSB_FI,

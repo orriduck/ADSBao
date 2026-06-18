@@ -1,5 +1,3 @@
-"use client";
-
 import FlightExplorer from "@/components/flight/explorer/FlightExplorer";
 
 // Entry point for the per-aircraft tracking page. Shares the airport

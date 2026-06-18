@@ -1,5 +1,3 @@
-"use client";
-
 import {
   DEFAULT_MAP_SETTINGS,
   DEFAULT_MAP_SETTINGS_DEVICE,

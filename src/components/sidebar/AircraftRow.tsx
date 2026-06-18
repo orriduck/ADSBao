@@ -1,5 +1,3 @@
-"use client";
-
 import { memo, useEffect, useRef, useState } from "react";
 import { Plane } from "lucide-react";
 import NumberFlow from "@number-flow/react";

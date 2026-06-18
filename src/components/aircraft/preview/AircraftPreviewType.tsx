@@ -1,5 +1,3 @@
-"use client";
-
 import { getAircraftPreviewTypeDisplay } from "@/features/aircraft/preview/aircraftPreviewTypeModel";
 
 // Aircraft type designator + ADS-B emitter category. Sits next to the
