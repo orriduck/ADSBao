@@ -140,9 +140,10 @@ func (s *Server) serveStaticOrSPA(w http.ResponseWriter, r *http.Request) {
 	// Try to serve the requested file directly
 	info, err := os.Stat(fsPath)
 	if err == nil && !info.IsDir() {
-		if filepath.Clean(r.URL.Path) == "/adsbao-version.json" {
+		cleanURLPath := filepath.Clean(r.URL.Path)
+		setStaticCacheHeaders(w, cleanURLPath)
+		if cleanURLPath == "/adsbao-version.json" {
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			w.Header().Set("Cache-Control", "no-store")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 		}
 		http.ServeFile(w, r, fsPath)
@@ -155,12 +156,22 @@ func (s *Server) serveStaticOrSPA(w http.ResponseWriter, r *http.Request) {
 	if filepath.Ext(cleanPath) == "" {
 		indexPath := filepath.Join(s.staticDir, "index.html")
 		if _, err := os.Stat(indexPath); err == nil {
+			w.Header().Set("Cache-Control", "no-store")
 			http.ServeFile(w, r, indexPath)
 			return
 		}
 	}
 
 	s.json(w, http.StatusNotFound, map[string]any{"error": "Not found"})
+}
+
+func setStaticCacheHeaders(w http.ResponseWriter, cleanURLPath string) {
+	switch {
+	case cleanURLPath == "/index.html" || cleanURLPath == "/adsbao-version.json" || cleanURLPath == "/sw.js":
+		w.Header().Set("Cache-Control", "no-store")
+	case strings.HasPrefix(cleanURLPath, "/assets/"):
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	}
 }
 
 func (s *Server) setSecurityHeaders(w http.ResponseWriter) {

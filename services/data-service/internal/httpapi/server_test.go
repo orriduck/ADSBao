@@ -231,6 +231,49 @@ func TestStaticAssetServedWhenExists(t *testing.T) {
 	if strings.TrimSpace(rr.Body.String()) != "console.log('hello');" {
 		t.Fatalf("body = %q, want JS content", rr.Body.String())
 	}
+	if rr.Header().Get("Cache-Control") != "public, max-age=31536000, immutable" {
+		t.Fatalf("Cache-Control = %q", rr.Header().Get("Cache-Control"))
+	}
+}
+
+func TestSpaFallbackServesIndexNoStore(t *testing.T) {
+	staticDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(staticDir, "index.html"), []byte("<html>SPA</html>"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := New(ServerOptions{
+		StaticDir:     staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/about", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("got status %d, want 200", rr.Code)
+	}
+	if rr.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("Cache-Control = %q", rr.Header().Get("Cache-Control"))
+	}
+}
+
+func TestServiceWorkerServedNoStore(t *testing.T) {
+	staticDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(staticDir, "sw.js"), []byte("self.addEventListener('fetch', () => {});"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	server := New(ServerOptions{
+		StaticDir:     staticDir,
+		DebugChannels: fakeDebugScheduler{}.DebugChannels,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/sw.js", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("got status %d, want 200", rr.Code)
+	}
+	if rr.Header().Get("Cache-Control") != "no-store" {
+		t.Fatalf("Cache-Control = %q", rr.Header().Get("Cache-Control"))
+	}
 }
 
 func TestAppVersionManifestServedNoStore(t *testing.T) {

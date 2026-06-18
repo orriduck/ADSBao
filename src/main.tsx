@@ -5,6 +5,7 @@ import { ClerkProvider } from "@/platform/auth/clerkClient";
 import AppUpdateToast from "@/components/app-shell/AppUpdateToast";
 import ThemedToaster from "@/components/app-shell/ThemedToaster";
 import QueryProvider from "@/features/app-shell/queryProvider";
+import { registerAdsbaoServiceWorker } from "@/features/app-shell/registerServiceWorker";
 import { I18nProvider } from "@/features/app-shell/i18n/i18nProvider";
 import {
   DEFAULT_LOCALE,
@@ -68,6 +69,7 @@ if (!root) {
 }
 
 const { initialTheme } = applyDocumentShell();
+registerAdsbaoServiceWorker();
 
 createRoot(root).render(
   <React.StrictMode>
