@@ -87,7 +87,6 @@ const KBOS = {
         frequencies: [],
         nearbyAirports: [],
         runwayMap: { airport: "KBOS", source: "OurAirports", runways: [] },
-        surfaceMap: null,
         source: "openaip",
       });
     }
@@ -103,7 +102,6 @@ const KBOS = {
   assert.deepEqual(airport.reportingPoints, []);
   assert.deepEqual(airport.obstacles, []);
   assert.deepEqual(airport.runwayMap, { airport: "KBOS", source: "OurAirports", runways: [] });
-  assert.equal(airport.surfaceMap, null);
 }
 
 // concurrent identical requests share a single in-flight fetch instead of
@@ -157,12 +155,12 @@ const KBOS = {
   assert.deepEqual(calls, ["/api/airport/KBOS"]);
 }
 
-// resolveAirportSurface loads the deferred OSM surface payload separately.
+// resolveAirportSurface loads scoped OSM surface payloads separately.
 {
   const calls = [];
   fetchImpl = async (url) => {
     calls.push(url);
-    if (url === "/api/airport/KBOS/surface") {
+    if (url === "/api/airport/KBOS/surface?scope=pavement") {
       return createJsonResponse({
         surfaceMap: {
           airport: "KBOS",
@@ -174,8 +172,10 @@ const KBOS = {
     throw new Error(`unexpected url: ${url}`);
   };
 
-  const surfaceMap = await createClient().resolveAirportSurface("kbos");
-  assert.deepEqual(calls, ["/api/airport/KBOS/surface"]);
+  const surfaceMap = await createClient().resolveAirportSurface("kbos", {
+    scope: "pavement",
+  });
+  assert.deepEqual(calls, ["/api/airport/KBOS/surface?scope=pavement"]);
   assert.equal(surfaceMap.source, "OpenStreetMap");
 }
 

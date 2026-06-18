@@ -23,6 +23,11 @@ const (
 	maxAirportSurfaceBuildings         = 600
 )
 
+const (
+	airportSurfaceScopePavement   = "pavement"
+	airportSurfaceScopeStructures = "structures"
+)
+
 type airportSurfaceBBox struct {
 	south float64
 	west  float64
@@ -80,27 +85,68 @@ func (c *airportSurfaceCache) set(key string, payload map[string]any) {
 	}
 }
 
-func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon float64, runwayMap map[string]any) map[string]any {
+func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon float64, runwayMap map[string]any, scope string) map[string]any {
 	airport := normalizeAirportIdent(ident)
+	normalizedScope := normalizeAirportSurfaceScope(scope)
 	if airport == "" || h == nil || h.overpassBaseURL == "" || !finite(lat) || !finite(lon) {
 		return nil
 	}
-	if cached, ok := h.airportSurfaceCache.get(airport); ok {
+	cacheKey := airportSurfaceCacheKey(airport, normalizedScope)
+	if cached, ok := h.airportSurfaceCache.get(cacheKey); ok {
 		return cached
 	}
 
 	bbox, ok := airportSurfaceSearchBBox(lat, lon, runwayMap)
 	if !ok {
-		h.airportSurfaceCache.set(airport, nil)
 		return nil
 	}
+
+	query := buildAirportSurfacePavementOverpassQuery(bbox)
+	if normalizedScope == airportSurfaceScopeStructures {
+		query = buildAirportSurfaceStructuresOverpassQuery(bbox)
+	}
+	payload, ok := h.fetchAirportSurfacePayload(
+		ctx,
+		airport,
+		query,
+		normalizedScope,
+	)
+	if !ok {
+		return nil
+	}
+	surfaceMap := buildAirportSurfaceMapFromOverpass(airport, payload)
+	h.airportSurfaceCache.set(cacheKey, surfaceMap)
+	return surfaceMap
+}
+
+func normalizeAirportSurfaceScope(scope string) string {
+	switch strings.ToLower(strings.TrimSpace(scope)) {
+	case airportSurfaceScopePavement:
+		return airportSurfaceScopePavement
+	case airportSurfaceScopeStructures:
+		return airportSurfaceScopeStructures
+	default:
+		return airportSurfaceScopePavement
+	}
+}
+
+func airportSurfaceCacheKey(airport string, scope string) string {
+	return normalizeAirportIdent(airport) + ":" + normalizeAirportSurfaceScope(scope)
+}
+
+func (h *Handler) fetchAirportSurfacePayload(
+	ctx context.Context,
+	airport string,
+	query string,
+	mode string,
+) (map[string]any, bool) {
 	requestURL, err := url.Parse(h.overpassBaseURL)
 	if err != nil {
-		log.Printf("airport surface url parse failed airport=%s error=%v", airport, err)
-		return nil
+		log.Printf("airport surface url parse failed airport=%s mode=%s error=%v", airport, mode, err)
+		return nil, false
 	}
 	values := requestURL.Query()
-	values.Set("data", buildAirportSurfaceOverpassQuery(bbox))
+	values.Set("data", query)
 	requestURL.RawQuery = values.Encode()
 
 	var payload map[string]any
@@ -115,14 +161,10 @@ func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon 
 		airportSurfaceRequestTimeout,
 	)
 	if err != nil || status < 200 || status >= 300 {
-		log.Printf("airport surface fetch failed airport=%s status=%d error=%v", airport, status, err)
-		h.airportSurfaceCache.set(airport, nil)
-		return nil
+		log.Printf("airport surface fetch failed airport=%s mode=%s status=%d error=%v", airport, mode, status, err)
+		return nil, false
 	}
-
-	surfaceMap := buildAirportSurfaceMapFromOverpass(airport, payload)
-	h.airportSurfaceCache.set(airport, surfaceMap)
-	return surfaceMap
+	return payload, true
 }
 
 func airportSurfaceSearchBBox(lat, lon float64, runwayMap map[string]any) (airportSurfaceBBox, bool) {
@@ -178,7 +220,7 @@ func expandAirportSurfaceBBox(bbox airportSurfaceBBox, paddingMeters float64) (a
 	}, true
 }
 
-func buildAirportSurfaceOverpassQuery(bbox airportSurfaceBBox) string {
+func buildAirportSurfacePavementOverpassQuery(bbox airportSurfaceBBox) string {
 	formatted := strings.Join([]string{
 		formatBBoxCoordinate(bbox.south),
 		formatBBoxCoordinate(bbox.west),
@@ -186,10 +228,22 @@ func buildAirportSurfaceOverpassQuery(bbox airportSurfaceBBox) string {
 		formatBBoxCoordinate(bbox.east),
 	}, ",")
 
-	// Buildings are constrained to INSIDE the airport's aerodrome polygon (via
-	// map_to_area) so we color only on-field structures, not the surrounding
-	// city. Aeroway pavement still uses the bbox so runways/taxiways render even
-	// when an airport has no mapped aerodrome area.
+	return fmt.Sprintf(`[out:json][timeout:20];
+(
+  way["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
+  relation["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
+);
+out tags geom;`, formatted, formatted)
+}
+
+func buildAirportSurfaceStructuresOverpassQuery(bbox airportSurfaceBBox) string {
+	formatted := strings.Join([]string{
+		formatBBoxCoordinate(bbox.south),
+		formatBBoxCoordinate(bbox.west),
+		formatBBoxCoordinate(bbox.north),
+		formatBBoxCoordinate(bbox.east),
+	}, ",")
+
 	return fmt.Sprintf(`[out:json][timeout:20];
 (
   way["aeroway"="aerodrome"](%s);
@@ -197,14 +251,12 @@ func buildAirportSurfaceOverpassQuery(bbox airportSurfaceBBox) string {
 )->.aerodrome;
 .aerodrome map_to_area->.apt;
 (
-  way["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
-  relation["aeroway"~"^(runway|taxiway|taxilane|apron)$"](%s);
   way["aeroway"="terminal"](%s);
   relation["aeroway"="terminal"](%s);
   way["building"](area.apt);
   relation["building"](area.apt);
 );
-out tags geom;`, formatted, formatted, formatted, formatted, formatted, formatted)
+out tags geom;`, formatted, formatted, formatted, formatted)
 }
 
 func formatBBoxCoordinate(value float64) string {

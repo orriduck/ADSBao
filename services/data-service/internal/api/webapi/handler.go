@@ -205,11 +205,6 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		reportingPoints = context.reportingPoints
 		obstacles = context.obstacles
 	}
-	var surfaceMap map[string]any
-	if shouldIncludeAirportSurface(r) {
-		lat, lon := numberValue(airport["lat"]), numberValue(airport["lon"])
-		surfaceMap = h.airportSurfaceMap(r.Context(), ident, lat, lon, runwayMap)
-	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"airport":         airport,
 		"runways":         runways,
@@ -220,7 +215,6 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		"reportingPoints": reportingPoints,
 		"obstacles":       obstacles,
 		"runwayMap":       runwayMap,
-		"surfaceMap":      surfaceMap,
 		"source":          "openaip",
 	})
 }
@@ -241,7 +235,14 @@ func (h *Handler) handleAirportSurface(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	lat, lon := numberValue(airport["lat"]), numberValue(airport["lon"])
-	surfaceMap := h.airportSurfaceMap(r.Context(), ident, lat, lon, runwayMap)
+	surfaceMap := h.airportSurfaceMap(
+		r.Context(),
+		ident,
+		lat,
+		lon,
+		runwayMap,
+		r.URL.Query().Get("scope"),
+	)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"surfaceMap": surfaceMap,
 		"source":     "OpenStreetMap",
@@ -272,19 +273,6 @@ func (h *Handler) handleAirportContext(w http.ResponseWriter, r *http.Request) {
 		"obstacles":       context.obstacles,
 		"source":          "openaip",
 	})
-}
-
-func shouldIncludeAirportSurface(r *http.Request) bool {
-	value := strings.ToLower(strings.TrimSpace(firstString(
-		r.URL.Query().Get("includeSurface"),
-		r.URL.Query().Get("surface"),
-	)))
-	switch value {
-	case "1", "true", "yes", "include", "inline":
-		return true
-	default:
-		return false
-	}
 }
 
 func shouldIncludeAirportContext(r *http.Request) bool {

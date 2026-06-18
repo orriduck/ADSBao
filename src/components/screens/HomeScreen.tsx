@@ -39,6 +39,7 @@ export default function HomeScreen() {
     detailQuery,
     contextQuery,
     surfaceQuery,
+    surfaceStructuresQuery,
     queryClient,
   } = useAirportProfileQueries({
     icao: currentIcao,
@@ -87,6 +88,20 @@ export default function HomeScreen() {
     if (pageLeavingRef.current) return;
     console.warn("Failed to load airport surface", surfaceQuery.error);
   }, [surfaceQuery.error]);
+
+  useEffect(() => {
+    if (
+      !surfaceStructuresQuery.error ||
+      isInterruptedFetch(surfaceStructuresQuery.error)
+    ) {
+      return;
+    }
+    if (pageLeavingRef.current) return;
+    console.warn(
+      "Failed to load airport surface structures",
+      surfaceStructuresQuery.error,
+    );
+  }, [surfaceStructuresQuery.error]);
 
   const handleOpenAirport = (selectedAirport) => {
     const nextIcao = String(

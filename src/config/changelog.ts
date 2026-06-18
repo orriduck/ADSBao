@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.14.0",
+    kind: "feat",
+    title: {
+      en: "Airport surface layers load progressively",
+      zh: "机场地面图层分层加载",
+    },
+    summary: {
+      en: "Airport maps now fetch pavement before structures so runway, taxiway, taxilane, and apron detail appears even when building-heavy OpenStreetMap queries are slow or unavailable.",
+      zh: "机场地图现在先加载跑道、滑行道、滑行线和停机坪，再加载建筑结构；即使 OpenStreetMap 的建筑查询较慢或失败，关键地面灯光也会先出现。",
+    },
+    highlights: [
+      {
+        en: "The surface endpoint is split into `pavement` and `structures` scopes, removing the old inline surface path from airport detail responses",
+        zh: "地面图接口拆成 `pavement` 与 `structures` 两个 scope，并移除机场详情响应里的旧 inline surface 路径",
+      },
+      {
+        en: "Large airports such as KJFK now return taxiways and taxilanes from the first pavement request instead of waiting behind terminal and building geometry",
+        zh: "KJFK 这类大型机场现在会在首个 pavement 请求中返回滑行道和滑行线，不再被航站楼与建筑几何拖住",
+      },
+      {
+        en: "Structure-layer failures are isolated, so pavement rendering remains available when the secondary buildings query times out",
+        zh: "结构层失败被隔离处理，第二阶段建筑查询超时时仍保留已加载的道面渲染",
+      },
+    ],
+  },
+  {
     version: "v2.13.1",
     kind: "patch",
     title: {

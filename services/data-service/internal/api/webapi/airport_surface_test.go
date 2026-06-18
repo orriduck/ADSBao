@@ -31,8 +31,8 @@ func TestAirportSurfaceSearchBBoxUsesRunwayMap(t *testing.T) {
 	}
 }
 
-func TestBuildAirportSurfaceOverpassQuery(t *testing.T) {
-	query := buildAirportSurfaceOverpassQuery(airportSurfaceBBox{
+func TestBuildAirportSurfacePavementOverpassQuery(t *testing.T) {
+	query := buildAirportSurfacePavementOverpassQuery(airportSurfaceBBox{
 		south: 42.344,
 		west:  -71.031,
 		north: 42.385,
@@ -42,11 +42,28 @@ func TestBuildAirportSurfaceOverpassQuery(t *testing.T) {
 	if !strings.Contains(query, `[out:json][timeout:20];`) ||
 		!strings.Contains(query, `way["aeroway"~"^(runway|taxiway|taxilane|apron)$"](42.344000,-71.031000,42.385000,-70.986000);`) ||
 		!strings.Contains(query, `relation["aeroway"~"^(runway|taxiway|taxilane|apron)$"](42.344000,-71.031000,42.385000,-70.986000);`) ||
-		!strings.Contains(query, `way["aeroway"="terminal"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+		strings.Contains(query, `building`) ||
+		strings.Contains(query, `terminal`) ||
+		strings.Contains(query, `map_to_area`) {
+		t.Fatalf("unexpected pavement query:\n%s", query)
+	}
+}
+
+func TestBuildAirportSurfaceStructuresOverpassQuery(t *testing.T) {
+	query := buildAirportSurfaceStructuresOverpassQuery(airportSurfaceBBox{
+		south: 42.344,
+		west:  -71.031,
+		north: 42.385,
+		east:  -70.986,
+	})
+
+	if !strings.Contains(query, `way["aeroway"="aerodrome"](42.344000,-71.031000,42.385000,-70.986000);`) ||
 		!strings.Contains(query, `map_to_area->.apt;`) ||
+		!strings.Contains(query, `way["aeroway"="terminal"](42.344000,-71.031000,42.385000,-70.986000);`) ||
 		!strings.Contains(query, `way["building"](area.apt);`) ||
-		!strings.Contains(query, `out tags geom;`) {
-		t.Fatalf("unexpected query:\n%s", query)
+		strings.Contains(query, `taxiway`) ||
+		strings.Contains(query, `taxilane`) {
+		t.Fatalf("unexpected structures query:\n%s", query)
 	}
 }
 
@@ -122,6 +139,108 @@ func TestBuildAirportSurfaceMapFromOverpass(t *testing.T) {
 	counts := surfaceMap["counts"].(map[string]int)
 	if counts["apron"] != 1 || counts["taxiway"] != 1 || counts["building"] != 1 {
 		t.Fatalf("counts = %#v", counts)
+	}
+}
+
+func TestAirportSurfaceScopesKeepPavementSeparateFromStructures(t *testing.T) {
+	overpassHits := 0
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasPrefix(r.URL.Path, "/openaip/airports"):
+			w.Header().Set("Content-Type", "application/json")
+			if strings.Count(r.URL.Path, "/") > 2 {
+				_, _ = w.Write([]byte(`{
+					"_id":"airport-kjfk",
+					"icaoCode":"KJFK",
+					"iataCode":"JFK",
+					"name":"John F Kennedy International Airport",
+					"country":"US",
+					"geometry":{"type":"Point","coordinates":[-73.7789,40.6398]},
+					"runways":[{"_id":"rw","designator":"04L","trueHeading":44,"dimension":{"length":{"value":3459},"width":{"value":45}}}]
+				}`))
+				return
+			}
+			_, _ = w.Write([]byte(`{"items":[{
+				"_id":"airport-kjfk",
+				"icaoCode":"KJFK",
+				"iataCode":"JFK",
+				"name":"John F Kennedy International Airport",
+				"country":"US",
+				"geometry":{"type":"Point","coordinates":[-73.7789,40.6398]}
+			}]}`))
+		case strings.HasPrefix(r.URL.Path, "/overpass"):
+			overpassHits++
+			data, _ := url.QueryUnescape(r.URL.Query().Get("data"))
+			if overpassHits == 1 {
+				if strings.Contains(data, `building`) ||
+					strings.Contains(data, `terminal`) ||
+					!strings.Contains(data, `aeroway"~"^(runway|taxiway|taxilane|apron)$"`) {
+					t.Fatalf("first query should be pavement-only: %s", data)
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"elements":[{
+					"type":"way",
+					"id":300,
+					"tags":{"aeroway":"taxiway","ref":"A"},
+					"geometry":[{"lat":40.64,"lon":-73.78},{"lat":40.641,"lon":-73.779}]
+				}]}`))
+				return
+			}
+			if !strings.Contains(data, `building`) ||
+				!strings.Contains(data, `terminal`) ||
+				strings.Contains(data, `taxiway`) {
+				t.Fatalf("second query should be structures-only: %s", data)
+			}
+			w.WriteHeader(http.StatusGatewayTimeout)
+			_, _ = w.Write([]byte(`{"error":"timeout"}`))
+		default:
+			t.Fatalf("unexpected request: %s", r.URL.String())
+		}
+	}))
+	defer upstream.Close()
+
+	handler := New(Options{
+		HTTPClient:             upstream.Client(),
+		OpenAIPAPIKey:          "test-key",
+		OpenAIPBaseURL:         upstream.URL + "/openaip",
+		OverpassBaseURL:        upstream.URL + "/overpass",
+		AirportSurfaceCacheTTL: time.Hour,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/api/airport/KJFK/surface?scope=pavement", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("surface status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid surface json: %v", err)
+	}
+	surfaceMap, ok := payload["surfaceMap"].(map[string]any)
+	if !ok {
+		t.Fatalf("missing pavement surfaceMap: %#v", payload["surfaceMap"])
+	}
+	counts := surfaceMap["counts"].(map[string]any)
+	if numberValue(counts["taxiway"]) != 1 {
+		t.Fatalf("expected taxiway from pavement query, counts=%#v", counts)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/api/airport/KJFK/surface?scope=structures", nil)
+	rr = httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("structures status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	payload = map[string]any{}
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid structures json: %v", err)
+	}
+	if payload["surfaceMap"] != nil {
+		t.Fatalf("structures failure should not synthesize surfaceMap: %#v", payload["surfaceMap"])
+	}
+	if overpassHits != 2 {
+		t.Fatalf("overpass hits = %d", overpassHits)
 	}
 }
 
@@ -209,8 +328,8 @@ func TestAirportDetailDefersSurfaceMapByDefault(t *testing.T) {
 	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
 		t.Fatalf("invalid json: %v", err)
 	}
-	if payload["surfaceMap"] != nil {
-		t.Fatalf("surfaceMap should be deferred by default: %#v", payload["surfaceMap"])
+	if _, ok := payload["surfaceMap"]; ok {
+		t.Fatalf("surfaceMap should be omitted by default: %#v", payload["surfaceMap"])
 	}
 	if airspaces, ok := payload["airspaces"].([]any); !ok || len(airspaces) != 0 {
 		t.Fatalf("airspaces should be deferred by default: %#v", payload["airspaces"])
@@ -269,22 +388,4 @@ func TestAirportDetailDefersSurfaceMapByDefault(t *testing.T) {
 		t.Fatalf("overpass hits = %d", overpassHits)
 	}
 
-	req = httptest.NewRequest(http.MethodGet, "/api/airport/KBOS?includeSurface=1", nil)
-	rr = httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-
-	if rr.Code != http.StatusOK {
-		t.Fatalf("inline status=%d body=%s", rr.Code, rr.Body.String())
-	}
-	payload = map[string]any{}
-	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
-		t.Fatalf("invalid inline json: %v", err)
-	}
-	surfaceMap, ok = payload["surfaceMap"].(map[string]any)
-	if !ok || surfaceMap["source"] != "OpenStreetMap" {
-		t.Fatalf("inline surfaceMap = %#v", payload["surfaceMap"])
-	}
-	if overpassHits != 1 {
-		t.Fatalf("inline request should reuse cached surface, hits = %d", overpassHits)
-	}
 }

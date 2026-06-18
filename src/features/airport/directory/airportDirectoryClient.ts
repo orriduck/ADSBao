@@ -36,9 +36,18 @@ const buildAirportUrl = ({ baseUrl = "", ident, locale = "" }: Record<string, an
   return baseUrl ? url.toString() : `${url.pathname}${url.search}`;
 };
 
-const buildAirportSurfaceUrl = ({ baseUrl = "", ident }: Record<string, any>) => {
+const buildAirportSurfaceUrl = ({
+  baseUrl = "",
+  ident,
+  scope = "",
+}: Record<string, any>) => {
   const safeIdent = encodeURIComponent(String(ident || "").trim().toUpperCase());
-  return `${baseUrl}${AIRPORT_PATH}/${safeIdent}/surface`;
+  const path = `${baseUrl}${AIRPORT_PATH}/${safeIdent}/surface`;
+  const normalizedScope = String(scope || "").trim();
+  if (!normalizedScope) return path;
+  const url = new URL(path, baseUrl ? undefined : "http://placeholder");
+  url.searchParams.set("scope", normalizedScope);
+  return baseUrl ? url.toString() : `${url.pathname}${url.search}`;
 };
 
 const buildAirportContextUrl = ({ baseUrl = "", ident }: Record<string, any>) => {
@@ -141,7 +150,6 @@ const createAirportDirectoryClient = ({
           : [],
         obstacles: Array.isArray(detail.obstacles) ? detail.obstacles : [],
         runwayMap: detail.runwayMap || null,
-        surfaceMap: detail.surfaceMap || null,
       };
     }
 
@@ -157,7 +165,7 @@ const createAirportDirectoryClient = ({
 
   const resolveAirportSurface = async (
     code: unknown,
-    { signal }: { signal?: AbortSignal } = {},
+    { scope = "", signal }: { scope?: string; signal?: AbortSignal } = {},
   ) => {
     const trimmed = String(code || "").trim().toUpperCase();
     if (!trimmed) {
@@ -165,7 +173,7 @@ const createAirportDirectoryClient = ({
     }
 
     const payload = await requestJsonOnce(
-      buildAirportSurfaceUrl({ baseUrl, ident: trimmed }),
+      buildAirportSurfaceUrl({ baseUrl, ident: trimmed, scope }),
       { signal },
     );
     return payload?.surfaceMap || null;

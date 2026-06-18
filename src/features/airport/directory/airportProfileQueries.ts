@@ -8,6 +8,8 @@ import { airportDirectoryClient } from "./airportDirectoryClient";
 
 const AIRPORT_DETAIL_STALE_TIME_MS = 5 * 60_000;
 const AIRPORT_CONTEXT_STALE_TIME_MS = 5 * 60_000;
+const AIRPORT_SURFACE_PAVEMENT_SCOPE = "pavement";
+const AIRPORT_SURFACE_STRUCTURES_SCOPE = "structures";
 
 export const airportProfileQueryKeys = {
   all: ["airport-profile"] as const,
@@ -24,11 +26,12 @@ export const airportProfileQueryKeys = {
       "context",
       normalizeAirportProfileIcao(icao),
     ] as const,
-  surface: (icao: unknown) =>
+  surface: (icao: unknown, scope: unknown = AIRPORT_SURFACE_PAVEMENT_SCOPE) =>
     [
       ...airportProfileQueryKeys.all,
       "surface",
       normalizeAirportProfileIcao(icao),
+      normalizeAirportSurfaceScope(scope),
     ] as const,
 };
 
@@ -39,6 +42,12 @@ export function normalizeAirportProfileIcao(value: unknown) {
 
 export function normalizeAirportProfileLocale(value: unknown) {
   return String(value || "").trim();
+}
+
+export function normalizeAirportSurfaceScope(value: unknown) {
+  return String(value || "").trim() === AIRPORT_SURFACE_STRUCTURES_SCOPE
+    ? AIRPORT_SURFACE_STRUCTURES_SCOPE
+    : AIRPORT_SURFACE_PAVEMENT_SCOPE;
 }
 
 export function airportProfileCode(airport: any) {
@@ -60,7 +69,64 @@ export function mergeAirportProfile({
   return {
     ...detail,
     ...(context || {}),
-    surfaceMap: surfaceMap ?? detail.surfaceMap ?? null,
+    surfaceMap: surfaceMap ?? null,
+  };
+}
+
+const AIRPORT_SURFACE_KIND_RANK: Record<string, number> = {
+  building: 0,
+  terminal: 1,
+  apron: 2,
+  taxilane: 3,
+  taxiway: 4,
+  runway: 5,
+};
+
+const airportSurfaceKindRank = (feature: any) =>
+  AIRPORT_SURFACE_KIND_RANK[String(feature?.properties?.kind || "")] ?? 6;
+
+export function mergeAirportSurfaceMaps(...surfaceMaps: any[]) {
+  const usableMaps = surfaceMaps.filter(Boolean);
+  if (!usableMaps.length) return null;
+
+  const features = usableMaps
+    .flatMap((surfaceMap) =>
+      Array.isArray(surfaceMap?.features?.features)
+        ? surfaceMap.features.features
+        : [],
+    )
+    .filter(Boolean);
+  if (!features.length) return null;
+
+  const counts: Record<string, number> = {};
+  for (const surfaceMap of usableMaps) {
+    const sourceCounts = surfaceMap?.counts || {};
+    for (const [kind, value] of Object.entries(sourceCounts)) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) continue;
+      counts[kind] = (counts[kind] || 0) + numeric;
+    }
+  }
+
+  const sortedFeatures = [...features].sort((left, right) => {
+    const rankDelta = airportSurfaceKindRank(left) - airportSurfaceKindRank(right);
+    if (rankDelta !== 0) return rankDelta;
+    return String(left?.properties?.id || "").localeCompare(
+      String(right?.properties?.id || ""),
+    );
+  });
+
+  return {
+    airport: usableMaps[0]?.airport || "",
+    source: usableMaps[0]?.source || "OpenStreetMap",
+    sourceAttribution:
+      usableMaps.find((surfaceMap) => surfaceMap?.sourceAttribution)
+        ?.sourceAttribution || "",
+    counts,
+    features: {
+      type: "FeatureCollection",
+      features: sortedFeatures,
+    },
   };
 }
 
@@ -130,22 +196,51 @@ export function useAirportProfileQueries({
     staleTime: AIRPORT_CONTEXT_STALE_TIME_MS,
   });
 
-  const surfaceQuery = useQuery({
-    queryKey: airportProfileQueryKeys.surface(normalizedIcao),
+  const surfacePavementQuery = useQuery({
+    queryKey: airportProfileQueryKeys.surface(
+      normalizedIcao,
+      AIRPORT_SURFACE_PAVEMENT_SCOPE,
+    ),
     queryFn: ({ signal }) =>
-      airportDirectoryClient.resolveAirportSurface(normalizedIcao, { signal }),
+      airportDirectoryClient.resolveAirportSurface(normalizedIcao, {
+        scope: AIRPORT_SURFACE_PAVEMENT_SCOPE,
+        signal,
+      }),
     enabled: canHydrateDeferredPayloads,
     staleTime: AIRPORT_CONTEXT_STALE_TIME_MS,
   });
+
+  const surfaceStructuresQuery = useQuery({
+    queryKey: airportProfileQueryKeys.surface(
+      normalizedIcao,
+      AIRPORT_SURFACE_STRUCTURES_SCOPE,
+    ),
+    queryFn: ({ signal }) =>
+      airportDirectoryClient.resolveAirportSurface(normalizedIcao, {
+        scope: AIRPORT_SURFACE_STRUCTURES_SCOPE,
+        signal,
+      }),
+    enabled: canHydrateDeferredPayloads && surfacePavementQuery.isSuccess,
+    staleTime: AIRPORT_CONTEXT_STALE_TIME_MS,
+  });
+
+  const surfaceMap = useMemo(
+    () =>
+      mergeAirportSurfaceMaps(
+        surfacePavementQuery.data,
+        surfaceStructuresQuery.data,
+      ),
+    [surfacePavementQuery.data, surfaceStructuresQuery.data],
+  );
 
   const airport = useMemo(
     () =>
       mergeAirportProfile({
         detail: detailQuery.data,
         context: contextQuery.data,
-        surfaceMap: surfaceQuery.data,
+        surfaceMap,
       }),
-    [contextQuery.data, detailQuery.data, surfaceQuery.data],
+    [contextQuery.data, detailQuery.data, surfaceMap],
   );
 
   return {
@@ -153,7 +248,8 @@ export function useAirportProfileQueries({
       airportProfileCode(airport) === normalizedIcao ? airport : null,
     detailQuery,
     contextQuery,
-    surfaceQuery,
+    surfaceQuery: surfacePavementQuery,
+    surfaceStructuresQuery,
     queryClient,
   };
 }
