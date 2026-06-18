@@ -100,10 +100,7 @@ function routeMatchesProviderSource(
   const requiredSource = routeProviderSource(routeContext);
   if (!requiredSource) return true;
   const source = routeSourceCode(route?.source);
-  return (
-    source === requiredSource ||
-    (requiredSource === "flightaware" && source === "adsbdb")
-  );
+  return source === requiredSource;
 }
 
 function normalizeRouteForProviderSource(

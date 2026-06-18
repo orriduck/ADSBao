@@ -167,8 +167,8 @@ const route = {
       cache,
       now,
       routeContext: { routeProvider: "flightaware" },
-    }).DAL123?.source,
-    "adsbdb",
+    }),
+    {},
   );
   assert.deepEqual(
     resolvePendingRouteLookups({

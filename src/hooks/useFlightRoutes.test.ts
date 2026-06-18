@@ -12,10 +12,6 @@ assert.deepEqual(
       channel: "route:DAL58:airport:KBOS",
       params: { routeProvider: "flightaware" },
     },
-    {
-      channel: "route:DAL58:airport:KBOS",
-      params: { routeProvider: "adsbdb" },
-    },
   ],
 );
 

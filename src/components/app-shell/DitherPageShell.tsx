@@ -114,7 +114,6 @@ export default function DitherPageShell({
           collapsed={isCollapsed}
           expandLabel={t("map.expandDetails")}
           onExpand={expandSidebar}
-          showRule
         />
 
         {isCollapsed ? null : (

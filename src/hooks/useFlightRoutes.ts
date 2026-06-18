@@ -34,27 +34,12 @@ function routeSubscriptionKey({
   return `${channel}|${JSON.stringify(params || {})}`;
 }
 
-function routeProviderCode(routeContext: RouteContext = {}) {
-  return String(routeContext.routeProvider || "").trim().toLowerCase();
-}
-
 export function buildRouteSubscriptionRequests(
   callsign: unknown,
   routeContext: RouteContext = {},
 ) {
   const primary = buildRouteChannel(callsign, routeContext);
-  const requests = primary ? [primary] : [];
-  if (routeProviderCode(routeContext) !== "flightaware") return requests;
-
-  const fallback = buildRouteChannel(callsign, {
-    ...routeContext,
-    routeProvider: "adsbdb",
-  });
-  const seen = new Set(requests.map(routeSubscriptionKey));
-  if (fallback && !seen.has(routeSubscriptionKey(fallback))) {
-    requests.push(fallback);
-  }
-  return requests;
+  return primary ? [primary] : [];
 }
 
 export function useFlightRoutes(
