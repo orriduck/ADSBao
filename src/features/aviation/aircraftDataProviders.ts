@@ -81,4 +81,3 @@ export const CALLSIGN_PROVIDER_CHAIN = Object.freeze([
   AIRPLANES_LIVE,
   ADSB_FI,
 ]);
-export const TRACE_PROVIDER_CHAIN = Object.freeze([ADSB_LOL]);

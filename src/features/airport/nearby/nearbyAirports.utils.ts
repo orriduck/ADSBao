@@ -1,5 +1,3 @@
-import { toFiniteNumber } from "../../../utils/math";
-
 import {
   NEARBY_AIRPORT_DEFAULTS,
   NEARBY_AIRPORT_LIMITS,
@@ -11,11 +9,6 @@ type NearbyAirportQuery = {
   icao?: unknown;
   radiusNm?: number | null;
   limit?: number | null;
-};
-
-export const readNearbyAirportNumber = (searchParams: URLSearchParams, key: string) => {
-  const raw = searchParams.get(key);
-  return raw == null || raw === "" ? null : toFiniteNumber(raw);
 };
 
 export const normalizeNearbyAirportQuery = ({

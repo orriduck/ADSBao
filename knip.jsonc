@@ -6,7 +6,6 @@
   // run by hand from the CLI, get reported as dead code and would be
   // deleted by mistake.
   "entry": [
-    "src/main.tsx",
     "scripts/**/*.ts",
     "src/**/*.test.{ts,tsx}"
   ],

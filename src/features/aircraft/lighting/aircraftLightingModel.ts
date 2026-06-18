@@ -26,10 +26,10 @@
 // Light definitions
 // ---------------------------------------------------------------------------
 
-export type LightColor = "red" | "green" | "white";
+type LightColor = "red" | "green" | "white";
 
 /** Blink pattern for pulsed anti-collision / strobe lights. */
-export type BlinkPattern =
+type BlinkPattern =
   | "steady"     // always on — navigation / taxi / landing
   | "beacon"     // ~1 Hz, symmetric on/off (~500ms cycle) — red anti-collision
   | "strobe"     // ~2 Hz, short flash — white wingtip strobes
@@ -282,21 +282,3 @@ export function resolveActiveLights(
   }
   return lights;
 }
-
-/**
- * Return all light definitions that could apply to this aircraft family.
- * Useful for prerendering CSS that positions each light once and toggles
- * visibility/opacity rather than repositioning on each frame.
- */
-export function getAllLightsForFamily(family?: string): AircraftLightDef[] {
-  const all = Object.values(ALL_LIGHTS);
-  if (family === "balloon") {
-    return all.filter(
-      (l) => l.id === "navLeft" || l.id === "navRight" || l.id === "navTail" || l.id === "beaconTop" || l.id === "beaconBottom",
-    );
-  }
-  return all;
-}
-
-// Re-export for convenience
-export type { AircraftLightDef as LightDef };

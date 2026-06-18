@@ -81,12 +81,3 @@ export function useSearchParams() {
   const [searchParams] = useRouterSearchParams();
   return searchParams;
 }
-
-export function notFound(): never {
-  throw new Error("Not found");
-}
-
-export function redirect(href: string): never {
-  window.location.assign(href);
-  throw new Error(`Redirected to ${href}`);
-}

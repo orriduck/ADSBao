@@ -8,7 +8,7 @@ export type AdsbaoRuntimeEnvKey =
   | "VITE_LOCAL_WEATHER_BASE"
   | "VITE_METAR_PROXY_BASE";
 
-export type AdsbaoRuntimeEnv = Partial<Record<AdsbaoRuntimeEnvKey, string>>;
+type AdsbaoRuntimeEnv = Partial<Record<AdsbaoRuntimeEnvKey, string>>;
 
 declare global {
   interface Window {

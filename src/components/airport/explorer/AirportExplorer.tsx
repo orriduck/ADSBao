@@ -21,7 +21,6 @@ import { resolveSpottingMetricZoomState } from "@/features/airport/explorer/airp
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext";
-import AircraftPreviewCard from "../../aircraft/preview/AircraftPreviewCard";
 import {
   areCriticalLoadingRequestsSettled,
   resolveAircraftLoadingOverlayState,
@@ -42,6 +41,7 @@ const AirportMap = dynamic(() => import("@/components/map/AirportMap"), {
   ssr: false,
   loading: () => <MapLoadingFallback />,
 });
+const AircraftPreviewCard = dynamic(() => import("../../aircraft/preview/AircraftPreviewCard"));
 
 export default function AirportExplorer(props) {
   return (
@@ -436,6 +436,13 @@ function AirportExplorerContent({
   const sourceLoadingStatus = sourceLoadingState.active
     ? sourceLoadingCopy.status
     : "";
+  const previewSelectionActive = Boolean(
+    selection.selectedAircraft ||
+      selection.selectedAirport ||
+      selection.selectedNavaid ||
+      selection.selectedAirspace ||
+      selection.selectedCandidateWatchingSpot,
+  );
   const toolbarContextProps = {
     wakeLockState,
     onToggleWakeLock: toggleWakeLock,
@@ -502,19 +509,21 @@ function AirportExplorerContent({
       selectedAircraft={selection.selectedAircraft}
       showSelectedTrace
     >
-      <AircraftPreviewCard
-        aircraft={selection.selectedAircraft}
-        airport={selection.selectedAirport}
-        navaid={selection.selectedNavaid}
-        airspace={selection.selectedAirspace}
-        candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
-        candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
-        isMobile={isMobile}
-        sidebarOpen={sidebarOpen}
-        airportProfile={airportProfile}
-        onApplyTemporaryRoute={traffic.applyTemporaryRoute}
-        onDismiss={clearAllPreviewSelections}
-      />
+      {previewSelectionActive && (
+        <AircraftPreviewCard
+          aircraft={selection.selectedAircraft}
+          airport={selection.selectedAirport}
+          navaid={selection.selectedNavaid}
+          airspace={selection.selectedAirspace}
+          candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
+          candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
+          isMobile={isMobile}
+          sidebarOpen={sidebarOpen}
+          airportProfile={airportProfile}
+          onApplyTemporaryRoute={traffic.applyTemporaryRoute}
+          onDismiss={clearAllPreviewSelections}
+        />
+      )}
       <div
         className={`font-sans text-atc-text ${
           isMobile

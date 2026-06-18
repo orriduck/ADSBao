@@ -2132,6 +2132,25 @@ body:has(.app-detail-shell) {
     z-index: 0;
 }
 
+.branding-video-background::after {
+    background-position: center;
+    background-size: cover;
+    content: "";
+    inset: 0;
+    mix-blend-mode: screen;
+    opacity: 0.72;
+    pointer-events: none;
+    position: absolute;
+    transform: scale(1.015);
+    z-index: 1;
+}
+
+@media (min-width: 721px) {
+    .branding-video-background::after {
+        background-image: url("/brand/adsbao-aircraft-brand-poster.jpg");
+    }
+}
+
 .branding-video-background__media {
     filter: none;
     height: 100%;
@@ -2143,7 +2162,7 @@ body:has(.app-detail-shell) {
     transform: scale(1.015);
     transition: opacity 1.8s cubic-bezier(0.25, 1, 0.5, 1);
     width: 100%;
-    z-index: 1;
+    z-index: 2;
 }
 
 :root[data-theme="dark"] .branding-video-background__media {
@@ -2161,6 +2180,12 @@ body:has(.app-detail-shell) {
 :root[data-theme="light"] .branding-video-background::before {
     filter: blur(84px);
     opacity: 0.37;
+}
+
+:root[data-theme="light"] .branding-video-background::after {
+    filter: invert(1);
+    mix-blend-mode: multiply;
+    opacity: 0.4;
 }
 
 :root[data-theme="light"] .branding-video-background__media {

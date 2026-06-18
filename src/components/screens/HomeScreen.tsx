@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "@/platform/router/navigation";
 import { toast } from "sonner";
-import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import AirportSearchPanel from "@/components/airport/search/AirportSearchPanel";
+import dynamic from "@/platform/react/dynamic";
 import {
   airportProfileCode,
   prefetchAirportProfile,
@@ -12,6 +12,8 @@ import {
 } from "@/features/airport/directory/airportProfileQueries";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
+
+const AirportExplorer = dynamic(() => import("@/components/airport/explorer/AirportExplorer"));
 
 // Single client component shared between "/" and "/airport/[icao]" —
 // pathname drives which sub-screen renders, so back/forward, the

@@ -5,7 +5,6 @@ export const DEFAULT_LOCALE = "en";
 export const SUPPORTED_LOCALES = Object.freeze(["en", "zh-CN"]);
 export const LOCALE_STORAGE_KEY = "adsbao:i18n:locale";
 export const LOCALE_QUERY_PARAM = "locale";
-export const ADSBAO_LOCALE_HEADER = "x-adsbao-locale";
 
 const LOCALE_LABELS = Object.freeze({
   en: "EN",
