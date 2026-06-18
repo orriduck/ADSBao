@@ -2049,9 +2049,11 @@ body:has(.airport-map-kit) {
         background: var(--atc-bg);
         box-shadow: none;
         width: 100vw !important;
-        /* Leaves room for the floating bottom toolbar so the last row
-           of content remains visible when scrolled to the end. */
-        padding-bottom: var(--map-toolbar-mobile-clearance);
+        /* The mobile page toolbar floats over static pages. Avoid a
+           visible bottom spacer that reads as a white block, but keep
+           programmatic scroll/focus targets from landing under the pill. */
+        padding-bottom: 0;
+        scroll-padding-bottom: var(--map-toolbar-mobile-clearance);
     }
 
     /* Inner panels normally use `flex-1 overflow-y-auto`; mobile keeps
