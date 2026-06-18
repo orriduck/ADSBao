@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.13.0",
+    kind: "feat",
+    title: {
+      en: "Faster first screen",
+      zh: "首屏加载提速",
+    },
+    summary: {
+      en: "The first screen now keeps a static brand frame while heavier video and preview modules load after the initial route.",
+      zh: "首屏先呈现静态品牌帧，较重的视频与预览模块延后到初始路由之后加载。",
+    },
+    highlights: [
+      {
+        en: "The branding MP4 waits until after the first frame and is skipped on small screens or reduced-motion sessions",
+        zh: "品牌 MP4 延后到首帧之后加载，并在小屏或减少动态效果时跳过",
+      },
+      {
+        en: "The home airport explorer and aircraft preview card now load on demand, reducing JavaScript pulled into the initial screen",
+        zh: "首页机场探索器与飞机预览卡改为按需加载，减少初始屏需要拉取的 JavaScript",
+      },
+      {
+        en: "Unused exports reported by knip were removed or made private so the dependency audit stays actionable",
+        zh: "清理或收口 knip 报告的未使用导出，让依赖审计保持可执行",
+      },
+    ],
+  },
+  {
     version: "v2.12.1",
     kind: "patch",
     title: {

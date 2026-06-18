@@ -29,9 +29,6 @@ type RateLimitBucket = {
 type EnforceProxyOptions = ProxyHeaderOptions & {
   rateLimit?: Omit<RateLimitOptions, "request">;
 };
-type JsonProxyInit = ResponseInit & {
-  headers?: HeadersInit;
-};
 type LogProxyRouteResponseOptions = {
   request?: Request;
   route?: string;
@@ -111,11 +108,6 @@ export function normalizeLongitude(value: unknown) {
 export function normalizeDistanceNm(value: unknown, { min = 1, max = 250 }: DistanceRange = {}) {
   const number = Number(value);
   return Number.isFinite(number) && number >= min && number <= max ? number : null;
-}
-
-export function normalizeIcao(value: unknown) {
-  const icao = String(value || "").trim().toUpperCase();
-  return /^[A-Z0-9]{3,4}$/.test(icao) ? icao : "";
 }
 
 export function normalizeAircraftHex(value: unknown) {
@@ -260,18 +252,6 @@ export function enforceProxyRequest(request: Request, options: EnforceProxyOptio
   }
 
   return null;
-}
-
-export function jsonProxyResponse(
-  request: Request,
-  body: unknown,
-  init: JsonProxyInit = {},
-  options: ProxyHeaderOptions = {},
-) {
-  return Response.json(body, {
-    ...init,
-    headers: buildProxyHeaders(request, init.headers || {}, options),
-  });
 }
 
 export async function logProxyRouteResponse({
@@ -435,14 +415,4 @@ export async function readResponseJson(response: Response, options: ResponseRead
   } catch {
     throw new Error(`Expected JSON from ${options.label || "upstream response"}`);
   }
-}
-
-export async function readResponseArrayBuffer(
-  response: Response,
-  options: ResponseReadOptions = {},
-) {
-  const bytes = await readResponseBytes(response, options);
-  const copy = new Uint8Array(bytes.byteLength);
-  copy.set(bytes);
-  return copy.buffer;
 }

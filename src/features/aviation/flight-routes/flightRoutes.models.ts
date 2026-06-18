@@ -4,11 +4,6 @@ const ROUTE_CACHE_TTL_SECONDS = 60 * 60;
 const ROUTE_MISS_CACHE_TTL_SECONDS = 5 * 60;
 const ROUTE_STALE_WHILE_REVALIDATE_SECONDS = 10 * 60;
 
-// We always reply 200 — even on a miss — so shared caches can cache the
-// empty body. A 404 would short-circuit many CDNs and make every miss hit
-// the origin again on the next aircraft pass.
-export const ROUTE_MISS_STATUS = 200;
-
 export function buildRouteCacheHeaders(body, { bypassSharedCache = false } = {}) {
   if (bypassSharedCache || body?.source === "flightaware") {
     return { "Cache-Control": "no-store" };
