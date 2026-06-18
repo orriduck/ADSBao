@@ -66,20 +66,26 @@ export function useAviationContextTiles({
     }
 
     const updateTiles = () => {
-      const nextTiles = getContextTilesForBounds({
-        bounds: map.getBounds?.(),
-        zoom: map.getZoom?.(),
-      });
+      let nextTiles = [];
+      try {
+        nextTiles = getContextTilesForBounds({
+          bounds: map.getBounds?.(),
+          zoom: map.getZoom?.(),
+        });
+      } catch {
+        return;
+      }
       const signature = nextTiles.map(tileSignature).join("|");
       if (signature === lastTileSignatureRef.current) return;
       lastTileSignatureRef.current = signature;
       setTiles(nextTiles);
     };
 
-    updateTiles();
+    const frame = window.requestAnimationFrame(updateTiles);
     map.on?.("moveend", updateTiles);
     map.on?.("zoomend", updateTiles);
     return () => {
+      window.cancelAnimationFrame(frame);
       map.off?.("moveend", updateTiles);
       map.off?.("zoomend", updateTiles);
     };

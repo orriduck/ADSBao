@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  resolveClientDeviceLayoutProfile,
   resolveClientDeviceProfile,
 } from "./clientDeviceModel";
 
@@ -22,6 +23,39 @@ import {
   assert.equal(profile.isMobileDevice, true);
   assert.equal(profile.hasCamera, true);
   assert.equal(profile.hasHorizontalViewportObstruction, true);
+
+  const layout = resolveClientDeviceLayoutProfile({
+    isMobileLayout: false,
+    profile,
+  });
+  assert.equal(layout.useDesktopMobileLandscapeLayout, true);
+  assert.deepEqual(layout.safeAreaCssVariables, {
+    "--app-safe-area-left": "47px",
+    "--app-safe-area-right": "47px",
+    "--app-safe-area-bottom": "21px",
+  });
+}
+
+{
+  const profile = resolveClientDeviceProfile({
+    userAgent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+    platform: "iPhone",
+    maxTouchPoints: 5,
+    viewport: { width: 852, height: 393 },
+    safeAreaInsets: { top: "0px", right: "47px", bottom: "21px", left: "0px" },
+  });
+  const layout = resolveClientDeviceLayoutProfile({
+    isMobileLayout: false,
+    profile,
+  });
+
+  assert.equal(layout.useDesktopMobileLandscapeLayout, true);
+  assert.deepEqual(layout.safeAreaCssVariables, {
+    "--app-safe-area-left": "0px",
+    "--app-safe-area-right": "47px",
+    "--app-safe-area-bottom": "21px",
+  });
 }
 
 {
@@ -57,4 +91,11 @@ import {
   assert.equal(profile.isMobileDevice, false);
   assert.equal(profile.hasCamera, true);
   assert.equal(profile.hasHorizontalViewportObstruction, false);
+  assert.equal(
+    resolveClientDeviceLayoutProfile({
+      isMobileLayout: false,
+      profile,
+    }).useDesktopMobileLandscapeLayout,
+    false,
+  );
 }
