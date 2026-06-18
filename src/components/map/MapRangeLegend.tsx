@@ -26,12 +26,17 @@ export default function MapRangeLegend() {
     if (!map || !map.getContainer?.() || typeof map.getSize !== "function") return;
 
     const update = () => {
-      const size = map.getSize();
-      if (!size?.x || !size?.y) return;
-      const midY = size.y / 2;
-      const left = map.containerPointToLatLng([0, midY]);
-      const right = map.containerPointToLatLng([DESKTOP_TARGET_PX, midY]);
-      const meters = map.distance(left, right);
+      let meters = 0;
+      try {
+        const size = map.getSize();
+        if (!size?.x || !size?.y) return;
+        const midY = size.y / 2;
+        const left = map.containerPointToLatLng([0, midY]);
+        const right = map.containerPointToLatLng([DESKTOP_TARGET_PX, midY]);
+        meters = map.distance(left, right);
+      } catch {
+        return;
+      }
       if (!Number.isFinite(meters) || meters <= 0) return;
       const nmPerPx = meters / METERS_PER_NM / DESKTOP_TARGET_PX;
 
@@ -45,11 +50,16 @@ export default function MapRangeLegend() {
       setScale({ desktopNm: dNm, desktopPx: dNm / nmPerPx, mobileNm: mNm, mobilePx: mNm / nmPerPx });
     };
 
-    update();
+    const frame = window.requestAnimationFrame(update);
     map.on("zoomend", update);
     map.on("moveend", update);
     map.on("resize", update);
-    return () => { map.off("zoomend", update); map.off("moveend", update); map.off("resize", update); };
+    return () => {
+      window.cancelAnimationFrame(frame);
+      map.off("zoomend", update);
+      map.off("moveend", update);
+      map.off("resize", update);
+    };
   }, [map]);
 
   if (!scale) return null;

@@ -44,6 +44,7 @@ export default function FlightSidebar({
   onMap = null,
   onClose = null,
   mobileToolbar = null,
+  fillAircraftList = true,
 }) {
   const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
@@ -112,7 +113,7 @@ export default function FlightSidebar({
           suppressSelectedAircraftDistance
           onSelectAircraft={onSelectAircraft}
           onSelectAirport={onSelectAirport}
-          fill={!isMobileOverlay}
+          fill={fillAircraftList && !isMobileOverlay}
         />
       ) : null}
     </SidebarShell>

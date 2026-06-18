@@ -1,4 +1,5 @@
 import { lazy, useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
@@ -46,6 +47,8 @@ export default function AircraftPreviewCard({
   onApplyTemporaryRoute,
   onDismiss,
   suppressMobileWhenAlreadyTracking = false,
+  preferMobilePreview = false,
+  safeAreaInsets = null,
 }) {
   const { t } = useI18n();
   const selectedTrace = useSelectedAircraftTrace();
@@ -92,11 +95,30 @@ export default function AircraftPreviewCard({
     !sidebarOpen &&
     Boolean(entity) &&
     !(suppressMobileWhenAlreadyTracking && alreadyTracking);
+  const showPreferredMobilePreview =
+    preferMobilePreview && !isMobile && Boolean(entity);
+  const showMobilePreview = showMobile || showPreferredMobilePreview;
+  const mobilePreviewSafeAreaStyle = showPreferredMobilePreview
+    ? ({
+        "--mobile-preview-safe-left": `${Math.max(
+          0,
+          Number(safeAreaInsets?.left || 0),
+        )}px`,
+        "--mobile-preview-safe-right": `${Math.max(
+          0,
+          Number(safeAreaInsets?.right || 0),
+        )}px`,
+        "--mobile-preview-safe-bottom": `${Math.max(
+          0,
+          Number(safeAreaInsets?.bottom || 0),
+        )}px`,
+      } as CSSProperties)
+    : undefined;
   const traceStatusSurfaceActive =
     isAircraftPreview &&
     Boolean(aircraftIdentity) &&
     Boolean(entity) &&
-    (isMobile ? showMobile : !isMobile);
+    (isMobile ? showMobile : showPreferredMobilePreview || !preferMobilePreview);
   const { visible: traceStatusVisible, state: traceAsyncState } =
     useAircraftTraceAsyncStatus({
       aircraftIdentity,
@@ -124,7 +146,7 @@ export default function AircraftPreviewCard({
   // enough that a normal Leaflet pan doesn't trigger; the user has to
   // flick up >100px in <600ms. Only registered when `onDismiss` is
   // wired AND the mobile card is currently visible.
-  useSwipeUpToDismiss(showMobile && typeof onDismiss === "function", () => {
+  useSwipeUpToDismiss(showMobilePreview && typeof onDismiss === "function", () => {
     onDismiss?.();
   });
 
@@ -136,7 +158,7 @@ export default function AircraftPreviewCard({
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const aircraftCallsign = (aircraft?.callsign || "").trim().toUpperCase();
   const showMobileFeedbackTrigger =
-    showMobile &&
+    showMobilePreview &&
     !isAirport &&
     !isNavaid &&
     Boolean(aircraftCallsign) &&
@@ -144,7 +166,7 @@ export default function AircraftPreviewCard({
   const planeHunterDeviceAllowed = usePlaneHunterDeviceAllowed();
   const showPlaneHunterTrigger =
     planeHunterDeviceAllowed && isAircraftPreview && Boolean(entity);
-  const showMobilePlaneHunterTrigger = showMobile && showPlaneHunterTrigger;
+  const showMobilePlaneHunterTrigger = showMobilePreview && showPlaneHunterTrigger;
   const mobileFeedbackLabel = aircraft?.flightRouteLabel
     ? t("routeFeedback.suggestCorrection")
     : t("routeFeedback.suggestRight");
@@ -176,7 +198,7 @@ export default function AircraftPreviewCard({
 
   return (
     <>
-      {entity && !isMobile && (
+      {entity && !isMobile && !preferMobilePreview && (
         <aside
           key={identityKey}
           className={`aircraft-preview-card app-preview-transition aircraft-preview-card--desktop-reveal ${
@@ -221,11 +243,13 @@ export default function AircraftPreviewCard({
           )}
         </aside>
       )}
-      {showMobile && (
+      {showMobilePreview && (
         <MobilePreviewCard
           key={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
           compact={!isAirport && !isNavaid && !isAirspace && !isCandidateWatchingSpot}
+          placement={showPreferredMobilePreview ? "bottomRight" : "top"}
+          style={mobilePreviewSafeAreaStyle}
           actions={
             (showMobileTrackButton || showMobilePlaneHunterTrigger || showMobileFeedbackTrigger) ? (
               <MobilePreviewActions>

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
@@ -48,6 +49,7 @@ import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { useTrackedAircraft } from "@/hooks/useTrackedAircraft";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/clientDeviceModel";
 import { normalizeCallsign } from "@/utils/callsign";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay";
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
@@ -84,6 +86,7 @@ function FlightExplorerContent({ callsign }) {
   const routeProvider = resolveRouteProvider({ flightAwareEnabled });
   const {
     desktopSidebarWidth,
+    clientDeviceProfile,
     sidebarOpen,
     isMobile,
     mapZoom,
@@ -781,6 +784,12 @@ function FlightExplorerContent({ callsign }) {
       {...toolbarContextProps}
     />
   );
+  const clientDeviceLayout = resolveClientDeviceLayoutProfile({
+    isMobileLayout: isMobile,
+    profile: clientDeviceProfile,
+  });
+  const mapShellStyle =
+    clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined;
 
   const sidebarProps = {
     callsign,
@@ -801,6 +810,7 @@ function FlightExplorerContent({ callsign }) {
     onBack: handleBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
+    fillAircraftList: !clientDeviceLayout.useDesktopMobileLandscapeLayout,
   };
 
   return (
@@ -824,8 +834,18 @@ function FlightExplorerContent({ callsign }) {
         sidebarOpen={sidebarOpen}
         onApplyTemporaryRoute={applyTemporaryRoute}
         onDismiss={clearAllPreviewSelections}
+        preferMobilePreview={clientDeviceLayout.useDesktopMobileLandscapeLayout}
+        safeAreaInsets={clientDeviceLayout.safeAreaInsets}
       />
       <div
+        data-client-orientation={clientDeviceLayout.orientation}
+        data-client-mobile-device={
+          clientDeviceLayout.isMobileDevice ? "true" : "false"
+        }
+        data-client-horizontal-obstruction={
+          clientDeviceLayout.hasHorizontalViewportObstruction ? "true" : "false"
+        }
+        style={mapShellStyle}
         className={`font-sans text-atc-text ${
           isMobile
             ? "app-detail-shell fixed inset-0 z-0 flex overflow-hidden overscroll-y-none"

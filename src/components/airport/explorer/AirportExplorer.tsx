@@ -32,6 +32,7 @@ import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandida
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationAircraftAudio } from "@/hooks/useUserLocationAircraftAudio";
 import { useWakeLock } from "@/hooks/useWakeLock";
+import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/clientDeviceModel";
 import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
 import { ZOOM_APPROACH, ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 
@@ -457,22 +458,12 @@ function AirportExplorerContent({
       {...toolbarContextProps}
     />
   );
-  const clientDeviceOrientation = clientDeviceProfile?.orientation || "unknown";
-  const clientDeviceIsMobile = clientDeviceProfile?.isMobileDevice === true;
-  const clientDeviceHasHorizontalObstruction =
-    clientDeviceProfile?.hasHorizontalViewportObstruction === true;
-  const clientDeviceIsLandscape = clientDeviceOrientation === "landscape";
-  const sidebarSafeOffsetLeftPx =
-    !isMobile && clientDeviceIsLandscape && clientDeviceHasHorizontalObstruction
-      ? Math.max(0, Number(clientDeviceProfile?.safeAreaInsets?.left || 0))
-      : 0;
-  const useWholeSidebarScroll =
-    !isMobile && clientDeviceIsMobile && clientDeviceIsLandscape;
-  const mapShellStyle = sidebarSafeOffsetLeftPx > 0
-    ? ({
-        "--airport-sidebar-safe-offset-left": `${sidebarSafeOffsetLeftPx}px`,
-      } as CSSProperties)
-    : undefined;
+  const clientDeviceLayout = resolveClientDeviceLayoutProfile({
+    isMobileLayout: isMobile,
+    profile: clientDeviceProfile,
+  });
+  const mapShellStyle =
+    clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined;
   const sidebarProps = {
     icao: airportProfile.icao,
     iata: airportProfile.iata,
@@ -514,7 +505,7 @@ function AirportExplorerContent({
     onBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
-    fillAircraftList: !useWholeSidebarScroll,
+    fillAircraftList: !clientDeviceLayout.useDesktopMobileLandscapeLayout,
   };
 
   return (
@@ -536,14 +527,20 @@ function AirportExplorerContent({
             airportProfile={airportProfile}
             onApplyTemporaryRoute={traffic.applyTemporaryRoute}
             onDismiss={clearAllPreviewSelections}
+            preferMobilePreview={
+              clientDeviceLayout.useDesktopMobileLandscapeLayout
+            }
+            safeAreaInsets={clientDeviceLayout.safeAreaInsets}
           />
         </Suspense>
       )}
       <div
-        data-client-orientation={clientDeviceOrientation}
-        data-client-mobile-device={clientDeviceIsMobile ? "true" : "false"}
+        data-client-orientation={clientDeviceLayout.orientation}
+        data-client-mobile-device={
+          clientDeviceLayout.isMobileDevice ? "true" : "false"
+        }
         data-client-horizontal-obstruction={
-          clientDeviceHasHorizontalObstruction ? "true" : "false"
+          clientDeviceLayout.hasHorizontalViewportObstruction ? "true" : "false"
         }
         style={mapShellStyle}
         className={`font-sans text-atc-text ${

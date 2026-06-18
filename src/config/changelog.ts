@@ -29,6 +29,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.15.1",
+    kind: "patch",
+    title: {
+      en: "Landscape safe-area polish",
+      zh: "横屏安全区打磨",
+    },
+    summary: {
+      en: "Landscape mobile map pages now share the same safe-area handling and use the compact mobile preview when the desktop sidebar is active.",
+      zh: "移动设备横屏地图页现在复用同一套安全区处理，并在桌面侧栏布局下改用紧凑移动预览卡。",
+    },
+    highlights: [
+      {
+        en: "Airport and flight detail pages offset the sidebar or map controls based on the active left or right safe-area inset",
+        zh: "机场页和航班页会按当前左侧或右侧 safe-area inset 偏置侧栏与地图控件",
+      },
+      {
+        en: "Reversed landscape orientation follows the obstruction side instead of assuming the same edge every time",
+        zh: "反向横屏时会跟随遮挡所在一侧，不再固定假设同一边",
+      },
+      {
+        en: "Landscape phones keep aircraft previews compact in the lower-right corner instead of opening the taller desktop preview",
+        zh: "手机横屏时飞机预览保持右下角紧凑移动卡片，不再打开较高的桌面预览",
+      },
+    ],
+  },
+  {
     version: "v2.15.0",
     kind: "feat",
     title: {

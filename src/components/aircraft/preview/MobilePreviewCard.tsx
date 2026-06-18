@@ -20,6 +20,8 @@ export default function MobilePreviewCard({
   children,
   actions = null,
   compact = false,
+  placement = "top",
+  style,
 }: Record<string, any>) {
   // NOTE: the enter animation replays on entity change via a `key` on the
   // *call site* (<MobilePreviewCard key=...>), not a prop here — a `key`
@@ -28,11 +30,23 @@ export default function MobilePreviewCard({
     <aside
       aria-label={ariaLabel}
       data-density={compact ? "compact" : undefined}
+      data-placement={placement === "bottomRight" ? "bottom-right" : "top"}
       data-ui="mobile-preview-card"
+      style={style}
       className={cn(
-        "fixed left-1/2 z-popover",
-        "top-[calc(12px+env(safe-area-inset-top))]",
-        "w-[min(342px,calc(100vw-24px))] max-w-[calc(100vw-24px)]",
+        "fixed z-popover",
+        placement === "bottomRight"
+          ? [
+              "bottom-[calc(12px+var(--mobile-preview-safe-bottom,env(safe-area-inset-bottom)))]",
+              "right-[calc(12px+var(--mobile-preview-safe-right,env(safe-area-inset-right)))]",
+              "w-[min(332px,calc(100vw-24px-var(--mobile-preview-safe-left,0px)-var(--mobile-preview-safe-right,0px)))]",
+              "max-w-[calc(100vw-24px-var(--mobile-preview-safe-left,0px)-var(--mobile-preview-safe-right,0px))]",
+            ]
+          : [
+              "left-1/2",
+              "top-[calc(12px+env(safe-area-inset-top))]",
+              "w-[min(342px,calc(100vw-24px))] max-w-[calc(100vw-24px)]",
+            ],
         "isolate overflow-hidden select-none pointer-events-none",
         "app-preview-transition mobile-preview-card-enter",
         "rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] text-atc-text",
@@ -49,8 +63,9 @@ export default function MobilePreviewCard({
         // actions row so the gap around the Track button reads as
         // equal on the left, right, and bottom.
         "flex flex-col gap-[3px] pb-[14px]",
-        compact &&
+        compact && placement !== "bottomRight" &&
           "top-[calc(10px+env(safe-area-inset-top))] w-[min(332px,calc(100vw-20px))] max-w-[calc(100vw-20px)] gap-0 pb-[10px]",
+        compact && placement === "bottomRight" && "gap-0 pb-[10px]",
       )}
     >
       {children}

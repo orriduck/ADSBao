@@ -59,6 +59,15 @@ export type ClientDeviceProfile = {
   safeAreaInsets: ClientDeviceSafeAreaInsets;
 };
 
+export type ClientDeviceLayoutProfile = {
+  orientation: ClientDeviceOrientation;
+  isMobileDevice: boolean;
+  hasHorizontalViewportObstruction: boolean;
+  safeAreaInsets: ClientDeviceSafeAreaInsets;
+  safeAreaCssVariables?: Record<string, string>;
+  useDesktopMobileLandscapeLayout: boolean;
+};
+
 const EMPTY_SAFE_AREA_INSETS: ClientDeviceSafeAreaInsets = Object.freeze({
   top: 0,
   right: 0,
@@ -216,6 +225,43 @@ export function resolveClientDeviceProfile(
     hasHorizontalViewportObstruction:
       safeAreaInsets.left > 0 || safeAreaInsets.right > 0,
     safeAreaInsets,
+  };
+}
+
+export function resolveClientDeviceLayoutProfile({
+  isMobileLayout = false,
+  profile,
+}: {
+  isMobileLayout?: boolean;
+  profile: ClientDeviceProfile | null | undefined;
+}): ClientDeviceLayoutProfile {
+  const orientation = profile?.orientation || "unknown";
+  const isMobileDevice = profile?.isMobileDevice === true;
+  const hasHorizontalViewportObstruction =
+    profile?.hasHorizontalViewportObstruction === true;
+  const safeAreaInsets =
+    orientation === "landscape" && hasHorizontalViewportObstruction
+      ? normalizeSafeAreaInsets(profile?.safeAreaInsets)
+      : EMPTY_SAFE_AREA_INSETS;
+  const shouldApplySafeAreaVariables =
+    orientation === "landscape" && hasHorizontalViewportObstruction;
+  const useDesktopMobileLandscapeLayout =
+    !isMobileLayout && isMobileDevice && orientation === "landscape";
+  const safeAreaCssVariables = shouldApplySafeAreaVariables
+    ? {
+        "--app-safe-area-left": `${safeAreaInsets.left}px`,
+        "--app-safe-area-right": `${safeAreaInsets.right}px`,
+        "--app-safe-area-bottom": `${safeAreaInsets.bottom}px`,
+      }
+    : undefined;
+
+  return {
+    orientation,
+    isMobileDevice,
+    hasHorizontalViewportObstruction,
+    safeAreaInsets,
+    safeAreaCssVariables,
+    useDesktopMobileLandscapeLayout,
   };
 }
 
