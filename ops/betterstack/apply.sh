@@ -75,7 +75,7 @@ create_metric "histogram_sum" "JSONExtract(raw, 'histogram', 'sum', 'Nullable(Fl
 
 dashboard_ids="$(
   api GET "/api/v2/dashboards?per_page=250" |
-    jq -r --arg name "$DASHBOARD_NAME" '.data[]? | select(.attributes.name == $name or (.attributes.name | startswith("ADSBao Metrics Smoke"))) | .id'
+    jq -r --arg name "$DASHBOARD_NAME" '.data[]? | select(.attributes.name == $name) | .id'
 )"
 
 for dashboard_id in $dashboard_ids; do
