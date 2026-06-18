@@ -1921,9 +1921,11 @@ body:has(.app-detail-shell) {
    The video stays neutral; CSS filters and overlays bind it to theme tokens. */
 .dither-page-background {
     background: var(--atc-bg);
+    inset: 0;
     min-width: 0;
     overflow: hidden;
-    position: relative;
+    pointer-events: none;
+    position: absolute;
     z-index: 0;
 }
 
@@ -2148,25 +2150,6 @@ body:has(.app-detail-shell) {
     z-index: 0;
 }
 
-.branding-video-background::after {
-    background-position: center;
-    background-size: cover;
-    content: "";
-    inset: 0;
-    mix-blend-mode: screen;
-    opacity: 0.72;
-    pointer-events: none;
-    position: absolute;
-    transform: scale(1.015);
-    z-index: 1;
-}
-
-@media (min-width: 721px) {
-    .branding-video-background::after {
-        background-image: url("/brand/adsbao-aircraft-brand-poster.jpg");
-    }
-}
-
 .branding-video-background__media {
     filter: none;
     height: 100%;
@@ -2178,7 +2161,7 @@ body:has(.app-detail-shell) {
     transform: scale(1.015);
     transition: opacity 1.8s cubic-bezier(0.25, 1, 0.5, 1);
     width: 100%;
-    z-index: 2;
+    z-index: 1;
 }
 
 :root[data-theme="dark"] .branding-video-background__media {
@@ -2196,12 +2179,6 @@ body:has(.app-detail-shell) {
 :root[data-theme="light"] .branding-video-background::before {
     filter: blur(84px);
     opacity: 0.37;
-}
-
-:root[data-theme="light"] .branding-video-background::after {
-    filter: invert(1);
-    mix-blend-mode: multiply;
-    opacity: 0.4;
 }
 
 :root[data-theme="light"] .branding-video-background__media {
@@ -3071,16 +3048,17 @@ body {
 }
 
 .dither-page-panel {
-    /* Solid theme color at the TOP (seamless under the Safari clip) with
-       the warm accent moved to a soft wash rising from the BOTTOM —
-       matching the airport / flight detail sidebars. */
+    /* Floating frosted sidebar over the full-bleed dither layer, matching
+       the airport / flight detail sidebars. */
     background:
         linear-gradient(
             to top,
             color-mix(in oklab, var(--atc-orange) 8%, transparent),
             transparent 38%
         ),
-        var(--sidebar);
+        color-mix(in oklab, var(--app-frost-tint) 88%, transparent);
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
     border-right: 0;
     border-radius: 0 var(--atc-radius-shell) var(--atc-radius-shell) 0;
     box-shadow: var(--app-panel-shadow);
@@ -3096,22 +3074,17 @@ body {
             color-mix(in oklab, var(--atc-orange) 14%, transparent),
             transparent 40%
         ),
-        var(--sidebar);
+        color-mix(in oklab, var(--app-frost-tint) 84%, transparent);
 }
 
 .dither-page-background {
-    margin: 12px 12px 12px 0;
-    border-radius: var(--atc-radius-shell);
+    border-radius: 0;
+    margin: 0;
 }
 
 .dither-page-shell[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
     .dither-page-panel {
     margin-left: calc(12px + var(--app-safe-area-left, 0px));
-}
-
-.dither-page-shell[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
-    .dither-page-background {
-    margin-right: calc(12px + var(--app-safe-area-right, 0px));
 }
 
 .dither-page-background.plane-hunter-stage {
@@ -3122,6 +3095,8 @@ body {
         0 18px 42px rgba(14, 15, 16, 0.18);
     display: block;
     margin-left: 12px;
+    pointer-events: auto;
+    position: relative;
 }
 
 .dither-page-panel.plane-hunter-panel {
@@ -6811,8 +6786,8 @@ body {
     }
 
     .dither-page-background {
-        border-radius: var(--atc-radius-shell);
-        margin: 10px 10px 10px 0;
+        border-radius: 0;
+        margin: 0;
     }
 
     .dither-page-header {
