@@ -1494,12 +1494,14 @@ body {
 /* iOS Safari rubber-bands the document body even when no element is
    scrollable, so dragging up on an airport / flight detail page slides
    the whole map UI and exposes the page background. Lock document
-   overscroll only while a `.app-detail-shell` (full-viewport map
-   layout) is mounted — static pages keep their normal scroll, and
-   in-component gestures (preview-card swipe-to-dismiss, map drag)
-   stay live because we don't touch `touch-action`. */
+   overscroll only while a full-viewport map shell is mounted — static
+   pages keep their normal scroll, and in-component gestures
+   (preview-card swipe-to-dismiss, map drag) stay live because we don't
+   touch `touch-action`. */
 html:has(.app-detail-shell),
-body:has(.app-detail-shell) {
+body:has(.app-detail-shell),
+html:has(.airport-map-kit),
+body:has(.airport-map-kit) {
     overflow: hidden;
     overscroll-behavior: none;
 }
@@ -7102,9 +7104,10 @@ body {
     background: var(--atc-bg);
     height: 100vh;
     height: 100dvh;
+    inset: 0;
     min-height: 100vh;
     padding: 0;
-    position: relative;
+    position: fixed;
     width: 100vw;
 }
 

@@ -86,6 +86,19 @@ function getInitialUiState(clientDeviceProfile) {
   };
 }
 
+function resetExplorerMapViewportScroll() {
+  const kit = document.querySelector(".airport-map-kit");
+  if (!kit) return;
+
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  kit.querySelectorAll<HTMLElement>(".sidebar-shell").forEach((element) => {
+    element.scrollTop = 0;
+    element.scrollLeft = 0;
+  });
+}
+
 function toggleValue(value) {
   return !value;
 }
@@ -469,6 +482,29 @@ export function ExplorerUiProvider({ children }) {
       screenOrientation?.removeEventListener?.("change", syncSidebarMode);
     };
   }, [clientDeviceProfile]);
+
+  useEffect(() => {
+    if (
+      sidebarMode !== "desktop" ||
+      clientDeviceProfile.orientation !== "landscape"
+    ) {
+      return undefined;
+    }
+
+    resetExplorerMapViewportScroll();
+    const frameId = window.requestAnimationFrame(resetExplorerMapViewportScroll);
+    const timeoutId = window.setTimeout(resetExplorerMapViewportScroll, 180);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    sidebarMode,
+    clientDeviceProfile.orientation,
+    clientDeviceProfile.safeAreaInsets.left,
+    clientDeviceProfile.safeAreaInsets.right,
+  ]);
 
   useEffect(() => {
     setMapSettingsSaveStatus("idle");
