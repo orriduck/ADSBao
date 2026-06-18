@@ -108,10 +108,9 @@ export default function AircraftPreviewCard({
           0,
           Number(safeAreaInsets?.right || 0),
         )}px`,
-        "--mobile-preview-safe-bottom": `${Math.max(
-          0,
-          Number(safeAreaInsets?.bottom || 0),
-        )}px`,
+        // Landscape compact previews align to the map/sidebar inset; only
+        // horizontal safe-area edges shift the card away from obstructions.
+        "--mobile-preview-safe-bottom": "0px",
       } as CSSProperties)
     : undefined;
   const traceStatusSurfaceActive =
