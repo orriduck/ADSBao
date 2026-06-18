@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.12.0",
+    kind: "feat",
+    title: {
+      en: "Better Stack observability",
+      zh: "Better Stack 可观测性",
+    },
+    summary: {
+      en: "The Railway data-service now reports backend metrics and structured logs to Better Stack instead of New Relic.",
+      zh: "Railway data-service 现在将后端指标和结构化日志上报到 Better Stack，不再依赖 New Relic。",
+    },
+    highlights: [
+      {
+        en: "HTTP requests, external provider calls, database operations, WebSocket activity, scheduler polling, and active channel gauges share the `adsbao.*` metric namespace",
+        zh: "HTTP 请求、外部 provider 调用、数据库操作、WebSocket 活动、scheduler 轮询和活跃 channel gauge 都统一使用 `adsbao.*` 指标命名空间",
+      },
+      {
+        en: "Backend logs keep the existing compact message format while adding Better Stack service, environment, provider, status, and latency fields",
+        zh: "后端日志保留现有紧凑 message 格式，同时增加 Better Stack 可查询的 service、environment、provider、status 和 latency 字段",
+      },
+    ],
+  },
+  {
     version: "v2.11.0",
     kind: "feat",
     title: {

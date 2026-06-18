@@ -7,64 +7,66 @@ import (
 )
 
 type Config struct {
-	Port                       int
-	MinPollInterval            time.Duration
-	MaxPollInterval            time.Duration
-	MaxActiveChannels          int
-	PollJitterRatio            float64
-	MaxSocketSubscriptions     int
-	AllowedWSOrigins           []string
-	FlightAwareFallbackEnabled bool
-	FlightAwareAccessEnabled   bool
-	RealtimeAuthSecret         string
-	AirportDirectoryBaseURL    string
-	OpenAIPAPIKey              string
-	OpenAIPBaseURL             string
-	StaticDir                  string
-	EnablePprof                bool
-	NewRelicLicenseKey         string
-	NewRelicAppName            string
-	NewRelicMetricsEndpoint    string
-	NewRelicLogsEndpoint       string
-	MetricsReportInterval      time.Duration
-	LogsReportInterval         time.Duration
-	DatabaseURL                string
-	ClerkSecretKey             string
-	ClerkJWKSURL               string
-	ClerkAPIBaseURL            string
-	FeatureFlagsEnvironment    string
+	Port                          int
+	MinPollInterval               time.Duration
+	MaxPollInterval               time.Duration
+	MaxActiveChannels             int
+	PollJitterRatio               float64
+	MaxSocketSubscriptions        int
+	AllowedWSOrigins              []string
+	FlightAwareFallbackEnabled    bool
+	FlightAwareAccessEnabled      bool
+	RealtimeAuthSecret            string
+	AirportDirectoryBaseURL       string
+	OpenAIPAPIKey                 string
+	OpenAIPBaseURL                string
+	StaticDir                     string
+	EnablePprof                   bool
+	BetterStackMetricsSourceToken string
+	BetterStackMetricsEndpoint    string
+	BetterStackLogSourceToken     string
+	BetterStackLogsEndpoint       string
+	BetterStackServiceName        string
+	MetricsReportInterval         time.Duration
+	LogsReportInterval            time.Duration
+	DatabaseURL                   string
+	ClerkSecretKey                string
+	ClerkJWKSURL                  string
+	ClerkAPIBaseURL               string
+	FeatureFlagsEnvironment       string
 }
 
 type LookupFunc func(string) string
 
 func FromEnv(lookup LookupFunc) Config {
 	return Config{
-		Port:                       intValue(lookup("PORT"), 8080),
-		MinPollInterval:            durationMS(lookup("MIN_POLL_INTERVAL_MS"), time.Second),
-		MaxPollInterval:            durationMS(lookup("MAX_POLL_INTERVAL_MS"), 30*time.Minute),
-		MaxActiveChannels:          intValue(lookup("MAX_ACTIVE_CHANNELS"), 250),
-		PollJitterRatio:            floatValue(lookup("POLL_JITTER_RATIO"), 0.1),
-		MaxSocketSubscriptions:     intValue(lookup("MAX_SOCKET_SUBSCRIPTIONS"), 96),
-		AllowedWSOrigins:           csv(lookup("ALLOWED_WS_ORIGINS")),
-		FlightAwareFallbackEnabled: !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
-		FlightAwareAccessEnabled:   trueString(lookup("FLIGHTAWARE_ACCESS_ENABLED")),
-		RealtimeAuthSecret:         strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
-		AirportDirectoryBaseURL:    stringValue(lookup("AIRPORT_DIRECTORY_BASE_URL"), "https://www.adsbao.dev"),
-		OpenAIPAPIKey:              strings.TrimSpace(lookup("OPENAIP_API_KEY")),
-		OpenAIPBaseURL:             stringValue(lookup("OPENAIP_BASE_URL"), "https://api.core.openaip.net/api"),
-		StaticDir:                  strings.TrimSpace(lookup("STATIC_DIR")),
-		EnablePprof:                trueString(lookup("ENABLE_PPROF")),
-		NewRelicLicenseKey:         strings.TrimSpace(lookup("NEW_RELIC_LICENSE_KEY")),
-		NewRelicAppName:            stringValue(lookup("NEW_RELIC_APP_NAME"), "adsbao-data-service"),
-		NewRelicMetricsEndpoint:    stringValue(lookup("NEW_RELIC_METRICS_ENDPOINT"), "https://metric-api.newrelic.com/metric/v1"),
-		NewRelicLogsEndpoint:       stringValue(lookup("NEW_RELIC_LOGS_ENDPOINT"), "https://log-api.newrelic.com/log/v1"),
-		MetricsReportInterval:      durationMS(lookup("METRICS_REPORT_INTERVAL_MS"), 30*time.Second),
-		LogsReportInterval:         durationMS(lookup("LOGS_REPORT_INTERVAL_MS"), 5*time.Second),
-		DatabaseURL:                strings.TrimSpace(firstNonEmpty(lookup("DATABASE_URL"), lookup("ADSBAO_DATABASE_URL"))),
-		ClerkSecretKey:             strings.TrimSpace(lookup("CLERK_SECRET_KEY")),
-		ClerkJWKSURL:               strings.TrimSpace(lookup("CLERK_JWKS_URL")),
-		ClerkAPIBaseURL:            stringValue(lookup("CLERK_API_BASE_URL"), "https://api.clerk.com"),
-		FeatureFlagsEnvironment:    featureFlagsEnvironment(lookup("FEATURE_FLAGS_ENV"), lookup("RAILWAY_ENVIRONMENT_NAME")),
+		Port:                          intValue(lookup("PORT"), 8080),
+		MinPollInterval:               durationMS(lookup("MIN_POLL_INTERVAL_MS"), time.Second),
+		MaxPollInterval:               durationMS(lookup("MAX_POLL_INTERVAL_MS"), 30*time.Minute),
+		MaxActiveChannels:             intValue(lookup("MAX_ACTIVE_CHANNELS"), 250),
+		PollJitterRatio:               floatValue(lookup("POLL_JITTER_RATIO"), 0.1),
+		MaxSocketSubscriptions:        intValue(lookup("MAX_SOCKET_SUBSCRIPTIONS"), 96),
+		AllowedWSOrigins:              csv(lookup("ALLOWED_WS_ORIGINS")),
+		FlightAwareFallbackEnabled:    !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
+		FlightAwareAccessEnabled:      trueString(lookup("FLIGHTAWARE_ACCESS_ENABLED")),
+		RealtimeAuthSecret:            strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
+		AirportDirectoryBaseURL:       stringValue(lookup("AIRPORT_DIRECTORY_BASE_URL"), "https://www.adsbao.dev"),
+		OpenAIPAPIKey:                 strings.TrimSpace(lookup("OPENAIP_API_KEY")),
+		OpenAIPBaseURL:                stringValue(lookup("OPENAIP_BASE_URL"), "https://api.core.openaip.net/api"),
+		StaticDir:                     strings.TrimSpace(lookup("STATIC_DIR")),
+		EnablePprof:                   trueString(lookup("ENABLE_PPROF")),
+		BetterStackMetricsSourceToken: strings.TrimSpace(lookup("BETTERSTACK_METRICS_SOURCE_TOKEN")),
+		BetterStackMetricsEndpoint:    strings.TrimSpace(lookup("BETTERSTACK_METRICS_ENDPOINT")),
+		BetterStackLogSourceToken:     strings.TrimSpace(lookup("BETTERSTACK_LOG_SOURCE_TOKEN")),
+		BetterStackLogsEndpoint:       strings.TrimSpace(lookup("BETTERSTACK_LOGS_ENDPOINT")),
+		BetterStackServiceName:        stringValue(lookup("BETTERSTACK_SERVICE_NAME"), "adsbao-data-service"),
+		MetricsReportInterval:         durationMS(lookup("METRICS_REPORT_INTERVAL_MS"), 30*time.Second),
+		LogsReportInterval:            durationMS(lookup("LOGS_REPORT_INTERVAL_MS"), 5*time.Second),
+		DatabaseURL:                   strings.TrimSpace(firstNonEmpty(lookup("DATABASE_URL"), lookup("ADSBAO_DATABASE_URL"))),
+		ClerkSecretKey:                strings.TrimSpace(lookup("CLERK_SECRET_KEY")),
+		ClerkJWKSURL:                  strings.TrimSpace(lookup("CLERK_JWKS_URL")),
+		ClerkAPIBaseURL:               stringValue(lookup("CLERK_API_BASE_URL"), "https://api.clerk.com"),
+		FeatureFlagsEnvironment:       featureFlagsEnvironment(lookup("FEATURE_FLAGS_ENV"), lookup("RAILWAY_ENVIRONMENT_NAME")),
 	}
 }
 

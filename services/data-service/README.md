@@ -2,7 +2,7 @@
 
 Go implementation of the Railway ADSBao service. It serves the Vite SPA,
 same-origin API routes, long-running ADS-B polling, WebSocket fanout, provider
-fallback, health/debug endpoints, and New Relic telemetry reporting.
+fallback, health/debug endpoints, and Better Stack telemetry reporting.
 
 ## Local Run
 
@@ -54,30 +54,30 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
   directory for FlightAware route pages that omit embedded airport coordinates.
   Defaults to `https://www.adsbao.dev`.
 - `ENABLE_PPROF`
-- `NEW_RELIC_LICENSE_KEY` — New Relic ingest license key. When unset, APM,
-  custom events, custom metrics, Metric API, and backend log reporting are
-  disabled.
-- `NEW_RELIC_APP_NAME` — New Relic app name. Defaults to `adsbao-data-service`.
-- `NEW_RELIC_METRICS_ENDPOINT` — Metric API endpoint. Defaults to the US
-  endpoint `https://metric-api.newrelic.com/metric/v1`.
-- `NEW_RELIC_LOGS_ENDPOINT` — Log API endpoint. Defaults to the US endpoint
-  `https://log-api.newrelic.com/log/v1`.
+- `BETTERSTACK_METRICS_SOURCE_TOKEN` — Better Stack metrics source token. When
+  unset, backend metric forwarding is disabled.
+- `BETTERSTACK_METRICS_ENDPOINT` — Better Stack metrics ingest endpoint,
+  normally `https://<metrics-source-host>/metrics`.
+- `BETTERSTACK_LOG_SOURCE_TOKEN` — Better Stack logs source token. When unset,
+  backend log forwarding is disabled while stdout logging still works.
+- `BETTERSTACK_LOGS_ENDPOINT` — Better Stack logs ingest endpoint, normally
+  `https://<logs-source-host>`.
+- `BETTERSTACK_SERVICE_NAME` — service name tag for metrics and logs. Defaults
+  to `adsbao-data-service`.
 - `METRICS_REPORT_INTERVAL_MS` — periodic dynamic gauge flush interval.
   Defaults to `30000`.
 - `LOGS_REPORT_INTERVAL_MS` — periodic backend log flush interval. Defaults to
   `5000`.
 
-Custom Metric API and Log API payloads use `app.name` plus `adsbao.service` as
-their service identity. Do not add `service.name` to these payloads; New Relic
-uses that OpenTelemetry resource attribute to synthesize separate service
-entities.
+Better Stack metric and log payloads use `service.name` plus `adsbao.service`
+as their service identity, with low-cardinality route, provider, operation,
+status class, and channel labels for dashboard queries.
 
 ## Railway Deployment
 
 Deploy ADSBao from the repository root using the root `Dockerfile` and
 `railway.json`. Validate `/health`, SPA deep links, `/api/feature-flags`, direct
-WebSocket subscribe/ping behavior, Railway resource metrics, and New Relic APM
-transactions, external provider custom events, business metrics, latency
-summaries, and backend logs after each production deploy.
+WebSocket subscribe/ping behavior, Railway resource metrics, Better Stack
+backend metrics, and structured logs after each production deploy.
 
 See the repository deployment runbook at `docs/data-service-deployment.md`.

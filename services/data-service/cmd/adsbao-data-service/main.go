@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -27,38 +29,34 @@ import (
 	"github.com/adsbao/adsbao/services/data-service/internal/scheduler"
 	"github.com/adsbao/adsbao/services/data-service/internal/ws"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 func main() {
 	cfg := config.FromEnv(os.Getenv)
-	logForwarder := observability.NewRelicLogForwarder(observability.NewRelicLogOptions{
-		LicenseKey:  cfg.NewRelicLicenseKey,
-		Endpoint:    cfg.NewRelicLogsEndpoint,
-		AppName:     cfg.NewRelicAppName,
+	logForwarder := observability.NewBetterStackLogForwarder(observability.BetterStackLogOptions{
+		SourceToken: cfg.BetterStackLogSourceToken,
+		Endpoint:    cfg.BetterStackLogsEndpoint,
+		ServiceName: cfg.BetterStackServiceName,
 		Environment: stringValue(os.Getenv("RAILWAY_ENVIRONMENT_NAME"), "production"),
 		Source:      os.Stdout,
 	})
 	log.SetFlags(0)
 	log.SetOutput(logForwarder)
 
-	nrApp := newRelicApplication(cfg)
 	started := time.Now()
-	metricSink := metrics.NewRelicSink(metrics.NewRelicOptions{
-		LicenseKey: cfg.NewRelicLicenseKey,
-		Endpoint:   cfg.NewRelicMetricsEndpoint,
-		AppName:    cfg.NewRelicAppName,
+	metricSink := metrics.BetterStackSink(metrics.BetterStackOptions{
+		SourceToken: cfg.BetterStackMetricsSourceToken,
+		Endpoint:    cfg.BetterStackMetricsEndpoint,
+		ServiceName: cfg.BetterStackServiceName,
+		Environment: stringValue(os.Getenv("RAILWAY_ENVIRONMENT_NAME"), "production"),
 	})
 	registryOptions := []metrics.Option{
 		metrics.WithSink(metricSink),
 		metrics.WithLogSink(logForwarder),
 	}
-	if nrApp != nil {
-		registryOptions = append(registryOptions, metrics.WithAPMReporter(nrApp))
-	}
 	registry := metrics.New(registryOptions...)
-	providerHTTPClient := newRelicHTTPClient(nrApp)
-	db := openDatabase(cfg)
+	providerHTTPClient := &http.Client{}
+	db := openDatabase(cfg, registry)
 	if db != nil {
 		defer db.Close()
 	}
@@ -80,19 +78,13 @@ func main() {
 	})
 	polling := scheduler.New(scheduler.Options{
 		Fetch: func(input realtime.FetchInput) (realtime.Event, error) {
-			ctx, txn := startPollingTransaction(nrApp, input)
-			if txn != nil {
-				defer txn.End()
-			}
+			ctx := context.Background()
 			var event realtime.Event
 			var err error
 			if input.ChannelType == realtime.ChannelRoute {
 				event, err = routeClient.Fetch(ctx, input)
 			} else {
 				event, err = adsbClient.Fetch(ctx, input)
-			}
-			if err != nil && txn != nil {
-				txn.NoticeError(err)
 			}
 			return event, err
 		},
@@ -128,9 +120,9 @@ func main() {
 			cfg.ClerkJWKSURL,
 			cfg.ClerkAPIBaseURL,
 		),
-		UserDataStore: webapi.NewUserDataStore(db, cfg.FeatureFlagsEnvironment),
+		UserDataStore: webapi.NewUserDataStore(db, cfg.FeatureFlagsEnvironment, registry),
 	})
-	handler := instrumentHTTPHandler(nrApp, httpapi.New(httpapi.ServerOptions{
+	handler := instrumentHTTPHandler(registry, httpapi.New(httpapi.ServerOptions{
 		DebugChannels: polling.DebugChannels,
 		Uptime:        func() time.Duration { return time.Since(started) },
 		WSHandler:     http.HandlerFunc(socketHandler.Handle),
@@ -176,15 +168,12 @@ func main() {
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("graceful shutdown failed: %v", err)
 	}
-	if nrApp != nil {
-		nrApp.Shutdown(10 * time.Second)
-	}
 	if err := logForwarder.Shutdown(shutdownCtx); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "logs shutdown failed: %v\n", err)
 	}
 }
 
-func openDatabase(cfg config.Config) *sql.DB {
+func openDatabase(cfg config.Config, registry *metrics.Metrics) *sql.DB {
 	if strings.TrimSpace(cfg.DatabaseURL) == "" {
 		return nil
 	}
@@ -198,62 +187,71 @@ func openDatabase(cfg config.Config) *sql.DB {
 	db.SetConnMaxLifetime(30 * time.Minute)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+	started := time.Now()
 	if err := db.PingContext(ctx); err != nil {
+		if registry != nil {
+			registry.RecordDBTransaction("postgres_ping", "error", time.Since(started).Milliseconds())
+		}
 		log.Printf("postgres ping failed: %v", err)
 		_ = db.Close()
 		return nil
 	}
+	if registry != nil {
+		registry.RecordDBTransaction("postgres_ping", "success", time.Since(started).Milliseconds())
+	}
 	return db
 }
 
-func newRelicApplication(cfg config.Config) *newrelic.Application {
-	if strings.TrimSpace(cfg.NewRelicLicenseKey) == "" {
-		return nil
-	}
-	app, err := newrelic.NewApplication(
-		newrelic.ConfigAppName(cfg.NewRelicAppName),
-		newrelic.ConfigLicense(cfg.NewRelicLicenseKey),
-		newrelic.ConfigDistributedTracerEnabled(true),
-		newrelic.ConfigAppLogForwardingEnabled(false),
-	)
-	if err != nil {
-		log.Printf("new relic apm init failed: %v", err)
-		return nil
-	}
-	return app
-}
-
-func newRelicHTTPClient(app *newrelic.Application) *http.Client {
-	if app == nil {
-		return &http.Client{}
-	}
-	return &http.Client{Transport: newrelic.NewRoundTripper(http.DefaultTransport)}
-}
-
-func startPollingTransaction(app *newrelic.Application, input realtime.FetchInput) (context.Context, *newrelic.Transaction) {
-	if app == nil {
-		return context.Background(), nil
-	}
-	txn := app.StartTransaction("Polling/" + transactionNamePart(string(input.ChannelType)))
-	txn.AddAttribute("channel.type", string(input.ChannelType))
-	txn.AddAttribute("target.kind", transactionNamePart(input.Target.Kind))
-	if input.Target.RouteProvider != "" {
-		txn.AddAttribute("route.provider", transactionNamePart(input.Target.RouteProvider))
-	}
-	return newrelic.NewContext(context.Background(), txn), txn
-}
-
-func instrumentHTTPHandler(app *newrelic.Application, next http.Handler) http.Handler {
-	if app == nil {
+func instrumentHTTPHandler(registry *metrics.Metrics, next http.Handler) http.Handler {
+	if registry == nil {
 		return next
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		txn := app.StartTransaction("HTTP " + routeName(r))
-		defer txn.End()
-		txn.SetWebRequestHTTP(r)
-		w = txn.SetWebResponse(w)
-		next.ServeHTTP(w, newrelic.RequestWithTransactionContext(r, txn))
+		started := time.Now()
+		recorder := &statusRecordingResponseWriter{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(recorder, r)
+		registry.RecordHTTPRequest(r.Method, routeName(r), recorder.status, time.Since(started).Milliseconds())
 	})
+}
+
+type statusRecordingResponseWriter struct {
+	http.ResponseWriter
+	status int
+	wrote  bool
+}
+
+func (w *statusRecordingResponseWriter) Write(p []byte) (int, error) {
+	if !w.wrote {
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(p)
+}
+
+func (w *statusRecordingResponseWriter) WriteHeader(status int) {
+	if w.wrote {
+		return
+	}
+	w.wrote = true
+	w.status = status
+	w.ResponseWriter.WriteHeader(status)
+}
+
+func (w *statusRecordingResponseWriter) Unwrap() http.ResponseWriter {
+	return w.ResponseWriter
+}
+
+func (w *statusRecordingResponseWriter) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+func (w *statusRecordingResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hijacker, ok := w.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("underlying response writer does not support hijacking")
+	}
+	return hijacker.Hijack()
 }
 
 func routeName(r *http.Request) string {

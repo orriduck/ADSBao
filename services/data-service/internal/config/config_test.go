@@ -7,26 +7,27 @@ import (
 
 func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 	env := map[string]string{
-		"PORT":                         "9090",
-		"MIN_POLL_INTERVAL_MS":         "1500",
-		"MAX_POLL_INTERVAL_MS":         "120000",
-		"MAX_ACTIVE_CHANNELS":          "12",
-		"POLL_JITTER_RATIO":            "0.25",
-		"MAX_SOCKET_SUBSCRIPTIONS":     "7",
-		"ALLOWED_WS_ORIGINS":           "https://staging.example, https://preview.example",
-		"FLIGHTAWARE_FALLBACK_ENABLED": "false",
-		"FLIGHTAWARE_ACCESS_ENABLED":   "true",
-		"ADSBAO_REALTIME_AUTH_SECRET":  "shared-secret",
-		"AIRPORT_DIRECTORY_BASE_URL":   "https://www.adsbao.dev",
-		"OPENAIP_API_KEY":              "openaip-secret",
-		"OPENAIP_BASE_URL":             "https://openaip.example.test/api",
-		"ENABLE_PPROF":                 "true",
-		"NEW_RELIC_LICENSE_KEY":        "new-relic-secret",
-		"NEW_RELIC_APP_NAME":           "adsbao-prod",
-		"NEW_RELIC_METRICS_ENDPOINT":   "https://metric-api.example.test/metric/v1",
-		"NEW_RELIC_LOGS_ENDPOINT":      "https://log-api.example.test/log/v1",
-		"METRICS_REPORT_INTERVAL_MS":   "45000",
-		"LOGS_REPORT_INTERVAL_MS":      "2000",
+		"PORT":                             "9090",
+		"MIN_POLL_INTERVAL_MS":             "1500",
+		"MAX_POLL_INTERVAL_MS":             "120000",
+		"MAX_ACTIVE_CHANNELS":              "12",
+		"POLL_JITTER_RATIO":                "0.25",
+		"MAX_SOCKET_SUBSCRIPTIONS":         "7",
+		"ALLOWED_WS_ORIGINS":               "https://staging.example, https://preview.example",
+		"FLIGHTAWARE_FALLBACK_ENABLED":     "false",
+		"FLIGHTAWARE_ACCESS_ENABLED":       "true",
+		"ADSBAO_REALTIME_AUTH_SECRET":      "shared-secret",
+		"AIRPORT_DIRECTORY_BASE_URL":       "https://www.adsbao.dev",
+		"OPENAIP_API_KEY":                  "openaip-secret",
+		"OPENAIP_BASE_URL":                 "https://openaip.example.test/api",
+		"ENABLE_PPROF":                     "true",
+		"BETTERSTACK_METRICS_SOURCE_TOKEN": "metrics-source-token",
+		"BETTERSTACK_METRICS_ENDPOINT":     "https://metrics.example.test/metrics",
+		"BETTERSTACK_LOG_SOURCE_TOKEN":     "logs-source-token",
+		"BETTERSTACK_LOGS_ENDPOINT":        "https://logs.example.test",
+		"BETTERSTACK_SERVICE_NAME":         "adsbao-prod",
+		"METRICS_REPORT_INTERVAL_MS":       "45000",
+		"LOGS_REPORT_INTERVAL_MS":          "2000",
 	}
 
 	cfg := FromEnv(func(key string) string { return env[key] })
@@ -54,13 +55,14 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 		cfg.OpenAIPBaseURL != "https://openaip.example.test/api" {
 		t.Fatalf("urls/secrets = %#v", cfg)
 	}
-	if cfg.NewRelicLicenseKey != "new-relic-secret" ||
-		cfg.NewRelicAppName != "adsbao-prod" ||
-		cfg.NewRelicMetricsEndpoint != "https://metric-api.example.test/metric/v1" ||
-		cfg.NewRelicLogsEndpoint != "https://log-api.example.test/log/v1" ||
+	if cfg.BetterStackMetricsSourceToken != "metrics-source-token" ||
+		cfg.BetterStackMetricsEndpoint != "https://metrics.example.test/metrics" ||
+		cfg.BetterStackLogSourceToken != "logs-source-token" ||
+		cfg.BetterStackLogsEndpoint != "https://logs.example.test" ||
+		cfg.BetterStackServiceName != "adsbao-prod" ||
 		cfg.MetricsReportInterval != 45*time.Second ||
 		cfg.LogsReportInterval != 2*time.Second {
-		t.Fatalf("new relic config = %#v", cfg)
+		t.Fatalf("better stack config = %#v", cfg)
 	}
 }
 
@@ -79,10 +81,11 @@ func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
 		cfg.OpenAIPAPIKey != "" ||
 		cfg.OpenAIPBaseURL != "https://api.core.openaip.net/api" ||
 		cfg.EnablePprof ||
-		cfg.NewRelicLicenseKey != "" ||
-		cfg.NewRelicAppName != "adsbao-data-service" ||
-		cfg.NewRelicMetricsEndpoint != "https://metric-api.newrelic.com/metric/v1" ||
-		cfg.NewRelicLogsEndpoint != "https://log-api.newrelic.com/log/v1" ||
+		cfg.BetterStackMetricsSourceToken != "" ||
+		cfg.BetterStackMetricsEndpoint != "" ||
+		cfg.BetterStackLogSourceToken != "" ||
+		cfg.BetterStackLogsEndpoint != "" ||
+		cfg.BetterStackServiceName != "adsbao-data-service" ||
 		cfg.MetricsReportInterval != 30*time.Second ||
 		cfg.LogsReportInterval != 5*time.Second ||
 		cfg.StaticDir != "" {

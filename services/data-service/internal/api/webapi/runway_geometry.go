@@ -74,8 +74,9 @@ func (s *UserDataStore) readRunwayMaps(ctx context.Context, idents []string) (ma
 		placeholders[index] = fmt.Sprintf("$%d", index+2)
 		args = append(args, ident)
 	}
-	rows, err := s.db.QueryContext(
+	rows, err := s.query(
 		ctx,
+		"read_runway_geometries",
 		`select airport_ident, `+runwayGeometrySelectColumns+`
 		 from runway_geometries
 		 where source = $1

@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/adsbao/adsbao/services/data-service/internal/metrics"
 )
 
 const (
@@ -33,14 +35,23 @@ var (
 type UserDataStore struct {
 	db          *sql.DB
 	environment string
+	metrics     databaseMetrics
 }
 
-func NewUserDataStore(db *sql.DB, environment string) *UserDataStore {
+type databaseMetrics interface {
+	RecordDBTransaction(operation, result string, durationMS int64)
+}
+
+type rowScanner interface {
+	Scan(dest ...any) error
+}
+
+func NewUserDataStore(db *sql.DB, environment string, registry *metrics.Metrics) *UserDataStore {
 	if db == nil {
 		return nil
 	}
 	env := normalizeEnvironment(environment)
-	return &UserDataStore{db: db, environment: env}
+	return &UserDataStore{db: db, environment: env, metrics: registry}
 }
 
 func (s *UserDataStore) readMapSettings(ctx context.Context, email, device string) (map[string]any, error) {
@@ -50,8 +61,7 @@ func (s *UserDataStore) readMapSettings(ctx context.Context, email, device strin
 	var raw []byte
 	var hasSelected bool
 	var updatedAt time.Time
-	err := s.db.QueryRowContext(
-		ctx,
+	err := s.queryRow(ctx, "read_map_settings",
 		`select settings, has_selected_mode, updated_at
 		 from user_map_settings
 		 where email = $1 and environment = $2 and device = $3
@@ -97,8 +107,7 @@ func (s *UserDataStore) upsertMapSettings(ctx context.Context, email, device str
 	var raw []byte
 	var hasSelected bool
 	var storedAt time.Time
-	err = s.db.QueryRowContext(
-		ctx,
+	err = s.queryRow(ctx, "upsert_map_settings",
 		`insert into user_map_settings (
 		   email, environment, device, settings, has_selected_mode, updated_at
 		 )
@@ -141,8 +150,7 @@ func (s *UserDataStore) writeRouteFeedback(ctx context.Context, record map[strin
 	if err != nil {
 		return err
 	}
-	_, err = s.db.ExecContext(
-		ctx,
+	_, err = s.exec(ctx, "write_route_feedback",
 		`insert into flight_route_feedback_reports (
 		   cache_key, normalized_callsign, target_airport_icao, target_airport_iata,
 		   origin_icao, destination_icao, aircraft_hex, aircraft_type, user_hash,
@@ -169,6 +177,61 @@ func (s *UserDataStore) writeRouteFeedback(ctx context.Context, record map[strin
 		record["createdAt"],
 		record["expiresAt"],
 	)
+	return err
+}
+
+func (s *UserDataStore) queryRow(ctx context.Context, operation string, query string, args ...any) rowScanner {
+	started := time.Now()
+	row := s.db.QueryRowContext(ctx, query, args...)
+	return &instrumentedRow{
+		Row:       row,
+		metrics:   s.metrics,
+		operation: operation,
+		started:   started,
+	}
+}
+
+func (s *UserDataStore) query(ctx context.Context, operation string, query string, args ...any) (*sql.Rows, error) {
+	started := time.Now()
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	s.recordDB(operation, err, started)
+	return rows, err
+}
+
+func (s *UserDataStore) exec(ctx context.Context, operation string, query string, args ...any) (sql.Result, error) {
+	started := time.Now()
+	result, err := s.db.ExecContext(ctx, query, args...)
+	s.recordDB(operation, err, started)
+	return result, err
+}
+
+func (s *UserDataStore) recordDB(operation string, err error, started time.Time) {
+	if s == nil || s.metrics == nil {
+		return
+	}
+	result := "success"
+	if err != nil && err != sql.ErrNoRows {
+		result = "error"
+	}
+	s.metrics.RecordDBTransaction(operation, result, time.Since(started).Milliseconds())
+}
+
+type instrumentedRow struct {
+	*sql.Row
+	metrics   databaseMetrics
+	operation string
+	started   time.Time
+}
+
+func (r *instrumentedRow) Scan(dest ...any) error {
+	err := r.Row.Scan(dest...)
+	if r.metrics != nil {
+		result := "success"
+		if err != nil && err != sql.ErrNoRows {
+			result = "error"
+		}
+		r.metrics.RecordDBTransaction(r.operation, result, time.Since(r.started).Milliseconds())
+	}
 	return err
 }
 

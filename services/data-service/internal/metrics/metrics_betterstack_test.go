@@ -19,20 +19,10 @@ type recordingLogSink struct {
 	entries []recordedLog
 }
 
-type recordingAPMReporter struct {
-	metrics map[string]float64
-	events  []recordedAPMEvent
-}
-
 type recordedLog struct {
 	level      string
 	message    string
 	attributes map[string]any
-}
-
-type recordedAPMEvent struct {
-	eventType string
-	params    map[string]interface{}
 }
 
 func (s *recordingSink) Record(point Point) {
@@ -55,18 +45,7 @@ func (s *recordingLogSink) RecordLog(level, message string, attributes map[strin
 	})
 }
 
-func (r *recordingAPMReporter) RecordCustomMetric(name string, value float64) {
-	if r.metrics == nil {
-		r.metrics = map[string]float64{}
-	}
-	r.metrics[name] = value
-}
-
-func (r *recordingAPMReporter) RecordCustomEvent(eventType string, params map[string]interface{}) {
-	r.events = append(r.events, recordedAPMEvent{eventType: eventType, params: params})
-}
-
-func TestMetricsReportDimensionalNewRelicPoints(t *testing.T) {
+func TestMetricsReportDimensionalBetterStackPoints(t *testing.T) {
 	sink := &recordingSink{}
 	m := New(WithSink(sink))
 
@@ -78,6 +57,8 @@ func TestMetricsReportDimensionalNewRelicPoints(t *testing.T) {
 		Status:     200,
 		DurationMS: 123,
 	})
+	m.RecordHTTPRequest("GET", "/api/*", 200, 42)
+	m.RecordDBTransaction("read_map_settings", "success", 17)
 	lastFetched := "1970-01-01T00:00:00.000Z"
 	m.RecordDynamic(10, []realtime.DebugChannel{
 		{
@@ -109,6 +90,26 @@ func TestMetricsReportDimensionalNewRelicPoints(t *testing.T) {
 		"result":       "success",
 		"status":       "200",
 		"status_class": "2xx",
+	})
+	assertPoint(t, sink.points, "adsbao.http.requests", Count, 1, map[string]string{
+		"method":       "GET",
+		"route":        "/api/*",
+		"status":       "200",
+		"status_class": "2xx",
+	})
+	assertSummaryPoint(t, sink.points, "adsbao.http.request.duration.seconds", 0.042, map[string]string{
+		"method":       "GET",
+		"route":        "/api/*",
+		"status":       "200",
+		"status_class": "2xx",
+	})
+	assertPoint(t, sink.points, "adsbao.db.transactions", Count, 1, map[string]string{
+		"operation": "read_map_settings",
+		"result":    "success",
+	})
+	assertSummaryPoint(t, sink.points, "adsbao.db.transaction.duration.seconds", 0.017, map[string]string{
+		"operation": "read_map_settings",
+		"result":    "success",
 	})
 	assertPoint(t, sink.points, "adsbao.active_channels.current", Gauge, 1, map[string]string{"channel_type": "traffic"})
 	assertPoint(t, sink.points, "adsbao.subscriptions.current", Gauge, 2, map[string]string{"channel_type": "traffic"})
@@ -170,52 +171,14 @@ func TestMetricsRecordExternalRequestWritesStructuredLog(t *testing.T) {
 	}
 }
 
-func TestMetricsRecordExternalRequestReportsAPMCustomTelemetry(t *testing.T) {
-	reporter := &recordingAPMReporter{}
-	m := New(WithAPMReporter(reporter))
-
-	m.RecordExternalRequest(realtime.ExternalRequestMetricInput{
-		Provider:   "adsb.lol",
-		Endpoint:   "positions",
-		Result:     "success",
-		Status:     200,
-		DurationMS: 123,
-	})
-
-	if reporter.metrics["ExternalRequest/Count"] != 1 {
-		t.Fatalf("metrics = %#v", reporter.metrics)
-	}
-	if reporter.metrics["ExternalRequest/DurationSeconds"] != 0.123 {
-		t.Fatalf("metrics = %#v", reporter.metrics)
-	}
-	if len(reporter.events) != 1 {
-		t.Fatalf("events = %#v", reporter.events)
-	}
-	event := reporter.events[0]
-	if event.eventType != "ADSBaoExternalRequest" {
-		t.Fatalf("event type = %q", event.eventType)
-	}
-	want := map[string]interface{}{
-		"provider":        "adsb.lol",
-		"endpoint":        "positions",
-		"result":          "success",
-		"status":          "200",
-		"statusClass":     "2xx",
-		"durationMs":      int64(123),
-		"durationSeconds": 0.123,
-	}
-	for key, value := range want {
-		if event.params[key] != value {
-			t.Fatalf("event param %s = %#v, want %#v in %#v", key, event.params[key], value, event.params)
-		}
-	}
-}
-
-func TestNewRelicSinkPostsMetricPayload(t *testing.T) {
-	var gotKey string
+func TestBetterStackSinkPostsMetricPayload(t *testing.T) {
+	var gotAuth string
 	var gotPayload []map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotKey = r.Header.Get("Api-Key")
+		gotAuth = r.Header.Get("Authorization")
+		if r.URL.Path != "/metrics" {
+			t.Fatalf("path = %q", r.URL.Path)
+		}
 		if r.Header.Get("Content-Type") != "application/json" {
 			t.Fatalf("content-type = %q", r.Header.Get("Content-Type"))
 		}
@@ -226,12 +189,13 @@ func TestNewRelicSinkPostsMetricPayload(t *testing.T) {
 	}))
 	defer server.Close()
 
-	sink := NewRelicSink(NewRelicOptions{
-		LicenseKey: "test-license",
-		Endpoint:   server.URL,
-		AppName:    "adsbao-test",
-		HTTPClient: server.Client(),
-		Now:        func() time.Time { return time.Unix(1_700_000_000, 123_000_000) },
+	sink := BetterStackSink(BetterStackOptions{
+		SourceToken: "test-source-token",
+		Endpoint:    server.URL,
+		ServiceName: "adsbao-test",
+		Environment: "test",
+		HTTPClient:  server.Client(),
+		Now:         func() time.Time { return time.Unix(1_700_000_000, 123_000_000) },
 	})
 	sink.Record(Point{
 		Name:       "adsbao.ws.subscribe",
@@ -239,29 +203,51 @@ func TestNewRelicSinkPostsMetricPayload(t *testing.T) {
 		Value:      1,
 		Attributes: map[string]string{"channel_type": "traffic", "result": "ok"},
 	})
+	sink.Record(Point{
+		Name:       "adsbao.http.request.duration.seconds",
+		Kind:       Summary,
+		Value:      0.42,
+		Attributes: map[string]string{"route": "/api/*", "status_class": "2xx"},
+	})
 
 	if err := sink.Flush(context.Background()); err != nil {
 		t.Fatalf("Flush returned error: %v", err)
 	}
-	if gotKey != "test-license" {
-		t.Fatalf("api key header = %q", gotKey)
+	if gotAuth != "Bearer test-source-token" {
+		t.Fatalf("authorization header = %q", gotAuth)
 	}
-	if len(gotPayload) != 1 {
+	if len(gotPayload) != 2 {
 		t.Fatalf("payload length = %d", len(gotPayload))
 	}
-	common := gotPayload[0]["common"].(map[string]any)
-	attrs := common["attributes"].(map[string]any)
-	if attrs["app.name"] != "adsbao-test" ||
-		attrs["adsbao.service"] != "adsbao-test" ||
-		attrs["service.name"] != nil {
-		t.Fatalf("common attrs = %#v", attrs)
+	counter := gotPayload[0]
+	if counter["name"] != "adsbao.ws.subscribe" {
+		t.Fatalf("counter = %#v", counter)
 	}
-	metric := gotPayload[0]["metrics"].([]any)[0].(map[string]any)
-	if metric["name"] != "adsbao.ws.subscribe" || metric["type"] != "count" || metric["value"] != float64(1) {
-		t.Fatalf("metric = %#v", metric)
+	if counter["dt"] != "2023-11-14T22:13:20.123Z" {
+		t.Fatalf("counter dt = %#v", counter["dt"])
 	}
-	if metric["interval.ms"] != float64(1000) {
-		t.Fatalf("interval = %#v", metric["interval.ms"])
+	counterValue := counter["counter"].(map[string]any)
+	if counterValue["value"] != float64(1) {
+		t.Fatalf("counter value = %#v", counterValue)
+	}
+	tags := counter["tags"].(map[string]any)
+	if tags["service.name"] != "adsbao-test" ||
+		tags["adsbao.service"] != "adsbao-test" ||
+		tags["environment"] != "test" ||
+		tags["channel_type"] != "traffic" ||
+		tags["result"] != "ok" {
+		t.Fatalf("tags = %#v", tags)
+	}
+	histogramMetric := gotPayload[1]
+	if histogramMetric["name"] != "adsbao.http.request.duration.seconds" {
+		t.Fatalf("histogram metric = %#v", histogramMetric)
+	}
+	histogram := histogramMetric["histogram"].(map[string]any)
+	if histogram["count"] != float64(1) || histogram["sum"] != 0.42 {
+		t.Fatalf("histogram = %#v", histogram)
+	}
+	if len(histogram["buckets"].([]any)) == 0 {
+		t.Fatalf("histogram buckets = %#v", histogram)
 	}
 }
 

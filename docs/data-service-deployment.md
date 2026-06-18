@@ -40,16 +40,19 @@ Stable channel behavior:
 
 Stable observability behavior:
 
-- APM transactions, custom events, custom metrics, Metric API payloads, and Log
-  API payloads are sent to New Relic when `NEW_RELIC_LICENSE_KEY` is present.
-- Background provider polling is wrapped in APM transactions, and provider HTTP
-  clients use the New Relic transport so external latency can appear in APM.
-- External provider requests emit `ADSBaoExternalRequest` custom events,
-  `ExternalRequest/*` custom metrics, `adsbao.external_*` Metric API series,
-  and structured `external_request_done` logs.
+- Better Stack receives custom metrics when
+  `BETTERSTACK_METRICS_SOURCE_TOKEN` and `BETTERSTACK_METRICS_ENDPOINT` are
+  present.
+- Better Stack receives structured backend logs when
+  `BETTERSTACK_LOG_SOURCE_TOKEN` and `BETTERSTACK_LOGS_ENDPOINT` are present.
+- External provider requests emit `adsbao.external_requests`,
+  `adsbao.external_request.duration.seconds`, and structured
+  `external_request_done` logs.
+- HTTP requests emit route/status-class counters and duration histograms.
+- Database operations emit operation/result counters and duration histograms.
 - Metric names use the `adsbao.*` namespace and low-cardinality attributes.
 - Do not add callsign, full channel name, user id, lat/lon, raw URL, token, or
-  exact error text as New Relic metric attributes.
+  exact error text as Better Stack metric attributes.
 - Railway built-in metrics remain the source for service CPU, memory, network,
   and volume usage.
 
@@ -93,10 +96,11 @@ Compatible env vars:
 - `MAX_SOCKET_SUBSCRIPTIONS`
 - `ALLOWED_WS_ORIGINS`
 - `AIRPORT_DIRECTORY_BASE_URL`
-- `NEW_RELIC_LICENSE_KEY`
-- `NEW_RELIC_APP_NAME`
-- `NEW_RELIC_METRICS_ENDPOINT`
-- `NEW_RELIC_LOGS_ENDPOINT`
+- `BETTERSTACK_METRICS_SOURCE_TOKEN`
+- `BETTERSTACK_METRICS_ENDPOINT`
+- `BETTERSTACK_LOG_SOURCE_TOKEN`
+- `BETTERSTACK_LOGS_ENDPOINT`
+- `BETTERSTACK_SERVICE_NAME`
 - `METRICS_REPORT_INTERVAL_MS`
 - `LOGS_REPORT_INTERVAL_MS`
 
@@ -160,37 +164,37 @@ https://<railway-domain>/airport/KBOS
 wss://<railway-domain>/ws
 ```
 
-Check New Relic for:
+Check Better Stack for:
 
-- APM transactions for `/health`, `/api/**`, `/ws`, static SPA requests, and
-  background `Polling/*` work.
+- HTTP request count and duration by `/health`, `/api/**`, `/ws`, static SPA
+  requests, and SPA fallback route groups.
 - WebSocket connections and disconnects.
 - WebSocket message and byte rate.
 - Subscribe and unsubscribe rate.
 - Provider request rate and status class.
+- Database transaction rate, result, and duration by operation.
 - Poll duration.
 - Active channels and subscriptions.
 - Stale channels and consecutive failures.
-- `ADSBaoExternalRequest` custom events.
 - Backend structured log volume and error logs.
 
-Useful NRQL starting points:
+Useful Better Stack query starting points:
 
 ```sql
-FROM Metric SELECT sum(adsbao.ws.subscribe) FACET channel_type, result TIMESERIES
-FROM Metric SELECT sum(adsbao.external_requests) FACET provider, status_class TIMESERIES
-FROM ADSBaoExternalRequest SELECT count(*), percentile(durationSeconds, 95) FACET provider, endpoint, statusClass TIMESERIES
-FROM Metric SELECT average(adsbao.active_channels.current) FACET channel_type TIMESERIES
-FROM Log SELECT timestamp, level, message WHERE app.name = 'adsbao-data-service' LIMIT 100
+SELECT sum(value) FROM adsbao_data_service_metrics WHERE name = 'adsbao.http.requests' GROUP BY route, status_class
+SELECT sum(value) FROM adsbao_data_service_metrics WHERE name = 'adsbao.external_requests' GROUP BY provider, status_class
+SELECT quantile(0.95)(value) FROM adsbao_data_service_metrics WHERE name = 'adsbao.external_request.duration.seconds' GROUP BY provider, endpoint
+SELECT avg(value) FROM adsbao_data_service_metrics WHERE name = 'adsbao.active_channels.current' GROUP BY channel_type
+SELECT dt, level, message FROM adsbao_data_service_logs WHERE service.name = 'adsbao-data-service' ORDER BY dt DESC LIMIT 100
 ```
 
 The dynamic channel gauges should emit zero-valued series for idle aircraft,
 callsign, route, and traffic channel types so charts remain visible when no
 clients are connected.
 
-Apply `infra/newrelic` to manage the ADSBao NRQL alert policy and conditions in
-New Relic. Also watch Railway memory/CPU/network and provider request rate after
-each production deploy.
+Manage Better Stack dashboards and monitors in the Better Stack UI/API. Also
+watch Railway memory/CPU/network and provider request rate after each
+production deploy.
 
 ## Rollback
 
@@ -200,6 +204,5 @@ Rollback is a Git or Railway deployment rollback:
    and merge the revert to `main`.
 2. Restore the previous Cloudflare record target if a domain cutover was part of
    the rollout.
-3. Verify `/health`, deep-link SPA fallback, New Relic APM/custom
-   event/metric/log ingest, Railway resource metrics, and a live browser
-   WebSocket session.
+3. Verify `/health`, deep-link SPA fallback, Better Stack metric/log ingest,
+   Railway resource metrics, and a live browser WebSocket session.
