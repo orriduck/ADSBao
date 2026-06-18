@@ -39,14 +39,16 @@ import {
   assert.equal(profile.deviceClass, "phone");
   assert.equal(profile.system, "ios");
   assert.equal(profile.orientation, "landscape");
+  assert.deepEqual(profile.viewport, { width: 852, height: 393 });
   assert.equal(profile.isMobileDevice, true);
   assert.equal(profile.hasCamera, true);
   assert.equal(profile.hasHorizontalViewportObstruction, true);
 
   const layout = resolveClientDeviceLayoutProfile({
-    isMobileLayout: false,
     profile,
   });
+  assert.equal(layout.layoutMode, "desktop");
+  assert.equal(layout.isMobileLayout, false);
   assert.equal(layout.useDesktopMobileLandscapeLayout, true);
   assert.deepEqual(layout.safeAreaCssVariables, {
     "--app-safe-area-left": "47px",
@@ -65,10 +67,11 @@ import {
     safeAreaInsets: { top: "0px", right: "47px", bottom: "21px", left: "0px" },
   });
   const layout = resolveClientDeviceLayoutProfile({
-    isMobileLayout: false,
     profile,
   });
 
+  assert.equal(layout.layoutMode, "desktop");
+  assert.equal(layout.isMobileLayout, false);
   assert.equal(layout.useDesktopMobileLandscapeLayout, true);
   assert.deepEqual(layout.safeAreaCssVariables, {
     "--app-safe-area-left": "0px",
@@ -91,6 +94,27 @@ import {
   assert.equal(profile.orientation, "landscape");
   assert.equal(profile.isMobileDevice, true);
   assert.equal(profile.hasCamera, true);
+  assert.equal(
+    resolveClientDeviceLayoutProfile({ profile }).layoutMode,
+    "desktop",
+  );
+}
+
+{
+  const profile = resolveClientDeviceProfile({
+    userAgent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+    platform: "iPhone",
+    maxTouchPoints: 5,
+    viewport: { width: 393, height: 852 },
+    safeAreaInsets: { top: "59px", right: "0px", bottom: "34px", left: "0px" },
+  });
+  const layout = resolveClientDeviceLayoutProfile({ profile });
+
+  assert.equal(layout.layoutMode, "mobile");
+  assert.equal(layout.isMobileLayout, true);
+  assert.equal(layout.useDesktopMobileLandscapeLayout, false);
+  assert.equal(layout.safeAreaCssVariables, undefined);
 }
 
 {
@@ -110,11 +134,8 @@ import {
   assert.equal(profile.isMobileDevice, false);
   assert.equal(profile.hasCamera, true);
   assert.equal(profile.hasHorizontalViewportObstruction, false);
-  assert.equal(
-    resolveClientDeviceLayoutProfile({
-      isMobileLayout: false,
-      profile,
-    }).useDesktopMobileLandscapeLayout,
-    false,
-  );
+  const layout = resolveClientDeviceLayoutProfile({ profile });
+  assert.equal(layout.layoutMode, "desktop");
+  assert.equal(layout.isMobileLayout, false);
+  assert.equal(layout.useDesktopMobileLandscapeLayout, false);
 }

@@ -1,7 +1,7 @@
 {
   "name": "adsbao",
   "private": true,
-  "version": "2.15.5",
+  "version": "2.15.6",
   "type": "module",
   "scripts": {
     "dev": "vite",

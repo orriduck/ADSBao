@@ -49,7 +49,6 @@ import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { useTrackedAircraft } from "@/hooks/useTrackedAircraft";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
-import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/clientDeviceModel";
 import { normalizeCallsign } from "@/utils/callsign";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay";
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
@@ -87,6 +86,7 @@ function FlightExplorerContent({ callsign }) {
   const {
     desktopSidebarWidth,
     clientDeviceProfile,
+    clientDeviceLayout,
     sidebarOpen,
     isMobile,
     mapZoom,
@@ -784,10 +784,6 @@ function FlightExplorerContent({ callsign }) {
       {...toolbarContextProps}
     />
   );
-  const clientDeviceLayout = resolveClientDeviceLayoutProfile({
-    isMobileLayout: isMobile,
-    profile: clientDeviceProfile,
-  });
   const mapShellStyle =
     clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined;
 
@@ -834,6 +830,7 @@ function FlightExplorerContent({ callsign }) {
         sidebarOpen={sidebarOpen}
         onApplyTemporaryRoute={applyTemporaryRoute}
         onDismiss={clearAllPreviewSelections}
+        clientDeviceProfile={clientDeviceProfile}
         preferMobilePreview={clientDeviceLayout.useDesktopMobileLandscapeLayout}
         safeAreaInsets={clientDeviceLayout.safeAreaInsets}
       />

@@ -17,6 +17,8 @@ function areClientDeviceProfilesEqual(
   return (
     currentProfile.deviceClass === nextProfile.deviceClass &&
     currentProfile.system === nextProfile.system &&
+    currentProfile.viewport?.width === nextProfile.viewport?.width &&
+    currentProfile.viewport?.height === nextProfile.viewport?.height &&
     currentProfile.orientation === nextProfile.orientation &&
     currentProfile.isMobileDevice === nextProfile.isMobileDevice &&
     currentProfile.hasCamera === nextProfile.hasCamera &&

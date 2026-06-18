@@ -1,6 +1,27 @@
 import assert from "node:assert/strict";
 
-import { shouldEnablePlaneHunterForClientDevice } from "./planeHunterDeviceModel";
+import { resolveClientDeviceProfile } from "@/features/app-shell/device/clientDeviceModel";
+import {
+  shouldEnablePlaneHunterForClientDevice,
+  shouldEnablePlaneHunterForClientDeviceProfile,
+} from "./planeHunterDeviceModel";
+
+{
+  const profile = resolveClientDeviceProfile({
+    userAgent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+    platform: "iPhone",
+    maxTouchPoints: 5,
+    userAgentData: { mobile: true, platform: "iOS" },
+    mediaDevices: { getUserMedia: () => undefined },
+  });
+
+  assert.equal(
+    shouldEnablePlaneHunterForClientDeviceProfile(profile),
+    true,
+    "provider-sampled mobile profiles should expose Plane Hunter",
+  );
+}
 
 {
   assert.equal(
