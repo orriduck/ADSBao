@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 90;
+export const CHANGELOG_TOTAL_COUNT = 91;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.19.2",
+    kind: "patch",
+    title: {
+      en: "Brand video refresh",
+      zh: "品牌视频刷新",
+    },
+    summary: {
+      en: "The static-page brand background has a regenerated grayscale dither loop from Mixkit stock video, with a smaller 15fps encode for lighter playback.",
+      zh: "静态页品牌背景已用 Mixkit 库存视频重新生成灰度点阵循环，并改为更轻的 15fps 编码。",
+    },
+    highlights: [
+      {
+        en: "Home, About, Mechanism, and Changelog now share the refreshed airport-and-aircraft dither video and matching poster frame",
+        zh: "首页、关于、机制与更新日志现在共用新的机场与飞机点阵视频和同步 poster 帧",
+      },
+      {
+        en: "The loop is preprocessed into H.264 with no audio, lower frame rate, and a much smaller file while keeping the existing cached asset path",
+        zh: "循环视频预处理为无音频 H.264、降低帧率并显著缩小文件，同时保留原有缓存资源路径",
+      },
+    ],
+  },
   {
     version: "v2.19.1",
     kind: "feat",
@@ -482,28 +504,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The layout profile is resampled after orientation, focus, visibility, and page restore events so safe-area edges settle correctly",
         zh: "布局 profile 会在旋转、聚焦、可见性变化和页面恢复后重新采样，让 safe-area 方向稳定回正",
-      },
-    ],
-  },
-  {
-    version: "v2.15.2",
-    kind: "patch",
-    title: {
-      en: "Home landscape safe area",
-      zh: "主页横屏安全区",
-    },
-    summary: {
-      en: "Home and map pages now keep the sidebar layout consistent on landscape phones with left or right safe-area obstructions.",
-      zh: "主页和地图页现在会在手机横屏左右安全区遮挡下保持一致的侧栏布局。",
-    },
-    highlights: [
-      {
-        en: "The home sidebar offsets from the active landscape safe-area edge instead of staying pinned to the physical screen edge",
-        zh: "主页侧栏横屏时会避开当前 safe-area 边缘，不再贴住物理屏幕边",
-      },
-      {
-        en: "Landscape mobile airport views stay in desktop-sidebar mode instead of occasionally falling into the mobile map-only toolbar state",
-        zh: "移动设备横屏机场页会保持桌面侧栏布局，不再偶发落入只有地图和移动工具栏的状态",
       },
     ],
   },

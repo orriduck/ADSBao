@@ -103,9 +103,9 @@ const en = {
         description: "Light and dark base map tiles plus reference labels.",
       },
       brandingVideo: {
-        title: "Bilibili Aircraft Footage",
+        title: "Mixkit Stock Video",
         description:
-          "Aircraft branding footage credit: 【视频分享】素材分享——飞机起飞降落 by 霸波奔bo奔波霸.",
+          "Aircraft branding footage processed from Mixkit airport and airplane stock video clips under the Mixkit Stock Video Free License.",
       },
     },
   },

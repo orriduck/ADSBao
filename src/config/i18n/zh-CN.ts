@@ -97,9 +97,9 @@ const zhCN = {
         description: "亮色和暗色底图瓦片及参考标签。",
       },
       brandingVideo: {
-        title: "B站飞机视频素材",
+        title: "Mixkit 库存视频",
         description:
-          "品牌视频飞机素材署名：【视频分享】素材分享——飞机起飞降落，UP 主：霸波奔bo奔波霸。",
+          "品牌点阵视频由 Mixkit 机场与飞机免费库存视频素材二次处理生成，遵循 Mixkit Stock Video Free License。",
       },
     },
   },
