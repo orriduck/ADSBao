@@ -14,6 +14,13 @@ import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/cl
 import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { usePageEntrance } from "@/animations/usePageEntrance";
 
+function resetDocumentViewportScroll() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+
 export default function DitherPageShell({
   className = "",
   title = undefined,
@@ -62,10 +69,35 @@ export default function DitherPageShell({
     collapseEnabled,
     onCollapse: collapseSidebar,
   });
+  const viewportHeight = clientDeviceProfile.viewport?.height ?? 0;
 
   useEffect(() => {
     if (!collapseEnabled) expandSidebar();
   }, [collapseEnabled, expandSidebar]);
+
+  useEffect(() => {
+    let frameId: number | null = null;
+    let timeoutIds: number[] = [];
+
+    const resetScroll = () => {
+      resetDocumentViewportScroll();
+      shellRef.current?.scrollTo({ top: 0, left: 0 });
+    };
+
+    resetScroll();
+    frameId = window.requestAnimationFrame(() => {
+      frameId = null;
+      resetScroll();
+    });
+    timeoutIds = [120, 360].map((delayMs) =>
+      window.setTimeout(resetScroll, delayMs),
+    );
+
+    return () => {
+      if (frameId != null) window.cancelAnimationFrame(frameId);
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    };
+  }, [clientDeviceLayout.orientation, routeKey, shellRef, viewportHeight]);
 
   usePageEntrance(shellRef, {
     triggerKey: routeKey,

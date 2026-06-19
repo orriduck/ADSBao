@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.17.6",
+    kind: "patch",
+    title: {
+      en: "Static page rotation cleanup",
+      zh: "静态页旋转清理",
+    },
+    summary: {
+      en: "Home and static pages now clear stale document scroll and keep their sidebar panel height tied to the sampled viewport after repeated iOS PWA rotations.",
+      zh: "主页和静态页在 iOS PWA 反复旋转后会清理过期 document 滚动，并让侧栏面板高度继续跟随采样视口。",
+    },
+    highlights: [
+      {
+        en: "Route and viewport recovery now resets the document and static sidebar scroll positions in delayed passes, covering iOS adjustments that land after React commits",
+        zh: "路由与视口恢复会分阶段重置 document 和静态侧栏滚动位置，覆盖 React 提交后才落下的 iOS 调整",
+      },
+      {
+        en: "The static-page scroll panel now uses `--app-viewport-height` instead of raw `100dvh`, so the shell and scroll owner no longer disagree after rotation",
+        zh: "静态页滚动面板现在使用 `--app-viewport-height` 而不是原始 `100dvh`，旋转后外壳和滚动容器不再高度不一致",
+      },
+    ],
+  },
+  {
     version: "v2.17.5",
     kind: "patch",
     title: {

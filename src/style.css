@@ -3072,7 +3072,7 @@ body {
     border-radius: 0 var(--atc-radius-shell) var(--atc-radius-shell) 0;
     box-shadow: var(--app-panel-shadow);
     margin: 12px 0 12px 12px;
-    max-height: calc(100dvh - 24px);
+    max-height: calc(var(--app-viewport-height, 100dvh) - 24px);
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior-y: contain;
@@ -6831,7 +6831,7 @@ body {
         --airport-sidebar-inset: 19px;
         border-radius: var(--atc-radius-shell);
         margin: 10px 0 10px 10px;
-        max-height: calc(100dvh - 20px);
+        max-height: calc(var(--app-viewport-height, 100dvh) - 20px);
     }
 
     .dither-page-background {

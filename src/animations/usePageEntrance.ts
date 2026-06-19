@@ -25,6 +25,12 @@ interface PageEntranceOptions {
   enabled?: boolean;
 }
 
+function resetDocumentViewportScroll() {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+
 export function usePageEntrance(
   containerRef: React.RefObject<HTMLElement | null>,
   options: PageEntranceOptions = {},
@@ -53,6 +59,7 @@ export function usePageEntrance(
     const animatedElements = [header, body, ...items].filter(Boolean);
 
     if (resetScroll) {
+      resetDocumentViewportScroll();
       container.scrollTop = 0;
       if (body) {
         body.scrollTop = 0;
