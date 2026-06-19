@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.17.3",
+    kind: "patch",
+    title: {
+      en: "Home Screen app update handoff",
+      zh: "主屏应用更新接管",
+    },
+    summary: {
+      en: "The Home Screen app now lets the newest static shell service worker activate immediately, so mobile pages stop staying on an older cached toolbar layout.",
+      zh: "主屏应用现在会让最新静态壳 service worker 立即激活，避免移动端页面长期停留在旧缓存工具栏布局。",
+    },
+    highlights: [
+      {
+        en: "New service workers skip the waiting phase and claim same-origin pages after activation",
+        zh: "新的 service worker 会跳过等待阶段，并在激活后接管同源页面",
+      },
+      {
+        en: "Live aviation API and WebSocket paths remain network-only",
+        zh: "实时航空 API 和 WebSocket 路径仍保持只走网络",
+      },
+    ],
+  },
+  {
     version: "v2.17.2",
     kind: "patch",
     title: {
