@@ -53,7 +53,7 @@ const markerIcon = (selected: boolean) =>
   });
 
 const candidateTitle = (spot: Record<string, any>, t: (key: string) => string) =>
-  spot.name || spot.category || t("watcherMode.fallbackName");
+  spot.name || spot.title || spot.category || t("watcherMode.fallbackName");
 
 export default function CandidateWatchingSpotsLayer({
   enabled = false,

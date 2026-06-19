@@ -384,6 +384,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.16.1",
+    kind: "patch",
+    title: {
+      en: "Mobile sidebar scroll fixes",
+      zh: "移动端侧栏滚动修正",
+    },
+    summary: {
+      en: "Landscape mobile collapsed sidebars no longer leave a scrollable transparent hit area, and portrait static pages keep the compact sticky logo while scrolling.",
+      zh: "移动端横屏侧栏收起后不再留下透明可滚动命中区域；竖屏静态页面滚动时继续保留置顶并缩小的 Logo。",
+    },
+    highlights: [
+      {
+        en: "Collapsed landscape map sidebars shrink their shell to the pill height so touches beneath the pill return to the map",
+        zh: "横屏地图侧栏收起后，外壳会缩到胶囊高度，胶囊下方触摸回到地图",
+      },
+      {
+        en: "Mobile static pages keep the frosted panel as the scroll owner so the brand dock stays sticky and compacts on scroll",
+        zh: "移动端静态页继续由磨砂面板负责滚动，让品牌栏保持置顶并在滚动时缩小",
+      },
+    ],
+  },
+  {
     version: "v2.16.0",
     kind: "feat",
     title: {

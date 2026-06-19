@@ -41,18 +41,19 @@ type Options struct {
 }
 
 type Handler struct {
-	httpClient          *http.Client
-	openAIPAPIKey       string
-	openAIPBaseURL      string
-	overpassBaseURL     string
-	timeout             time.Duration
-	airportSurfaceCache *airportSurfaceCache
-	aircraftFetcher     func(context.Context, realtime.FetchInput) (realtime.Event, error)
-	metrics             realtime.MetricsSink
-	authenticator       *ClerkAuthenticator
-	userDataStore       *UserDataStore
-	runwayMapReader     runwayMapReader
-	airportNameReader   airportNameReader
+	httpClient            *http.Client
+	openAIPAPIKey         string
+	openAIPBaseURL        string
+	overpassBaseURL       string
+	timeout               time.Duration
+	airportSurfaceCache   *airportSurfaceCache
+	aircraftFetcher       func(context.Context, realtime.FetchInput) (realtime.Event, error)
+	metrics               realtime.MetricsSink
+	authenticator         *ClerkAuthenticator
+	userDataStore         *UserDataStore
+	runwayMapReader       runwayMapReader
+	airportNameReader     airportNameReader
+	spotterLocationReader spotterLocationReader
 }
 
 type openAIPList struct {
@@ -77,18 +78,19 @@ func New(options Options) *Handler {
 		timeout = defaultTimeout
 	}
 	return &Handler{
-		httpClient:          httpClient,
-		openAIPAPIKey:       strings.TrimSpace(options.OpenAIPAPIKey),
-		openAIPBaseURL:      baseURL,
-		overpassBaseURL:     overpassBaseURL,
-		timeout:             timeout,
-		airportSurfaceCache: newAirportSurfaceCache(options.AirportSurfaceCacheTTL),
-		aircraftFetcher:     options.AircraftFetcher,
-		metrics:             options.Metrics,
-		authenticator:       options.Authenticator,
-		userDataStore:       options.UserDataStore,
-		runwayMapReader:     options.UserDataStore,
-		airportNameReader:   options.UserDataStore,
+		httpClient:            httpClient,
+		openAIPAPIKey:         strings.TrimSpace(options.OpenAIPAPIKey),
+		openAIPBaseURL:        baseURL,
+		overpassBaseURL:       overpassBaseURL,
+		timeout:               timeout,
+		airportSurfaceCache:   newAirportSurfaceCache(options.AirportSurfaceCacheTTL),
+		aircraftFetcher:       options.AircraftFetcher,
+		metrics:               options.Metrics,
+		authenticator:         options.Authenticator,
+		userDataStore:         options.UserDataStore,
+		runwayMapReader:       options.UserDataStore,
+		airportNameReader:     options.UserDataStore,
+		spotterLocationReader: options.UserDataStore,
 	}
 }
 
@@ -208,17 +210,19 @@ func (h *Handler) handleAirport(w http.ResponseWriter, r *http.Request) {
 		reportingPoints = context.reportingPoints
 		obstacles = context.obstacles
 	}
+	spotterLocations := h.spotterLocations(r.Context(), ident, airport)
 	writeJSON(w, http.StatusOK, map[string]any{
-		"airport":         airport,
-		"runways":         runways,
-		"frequencies":     mapFrequencies(asRecords(detail["frequencies"]), detail),
-		"nearbyAirports":  nearbyAirports,
-		"nearbyNavaids":   nearbyNavaids,
-		"airspaces":       airspaces,
-		"reportingPoints": reportingPoints,
-		"obstacles":       obstacles,
-		"runwayMap":       runwayMap,
-		"source":          "openaip",
+		"airport":          airport,
+		"runways":          runways,
+		"frequencies":      mapFrequencies(asRecords(detail["frequencies"]), detail),
+		"nearbyAirports":   nearbyAirports,
+		"nearbyNavaids":    nearbyNavaids,
+		"airspaces":        airspaces,
+		"reportingPoints":  reportingPoints,
+		"obstacles":        obstacles,
+		"runwayMap":        runwayMap,
+		"spotterLocations": spotterLocations,
+		"source":           "openaip",
 	})
 }
 

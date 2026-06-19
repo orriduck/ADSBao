@@ -6,6 +6,7 @@ import SidebarShell from "./SidebarShell";
 import SidebarViewSwitch from "./SidebarViewSwitch";
 import WeatherBriefingStack from "./WeatherBriefingStack";
 import { TextPillListItem } from "@/components/ui/TextPillListItem";
+import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
 
 export default function AirportSidebar({
@@ -56,6 +57,7 @@ export default function AirportSidebar({
   mobileToolbar = null,
   fillAircraftList = true,
 }) {
+  const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
   const [activeView, setActiveView] = useState("traffic");
   const atcFrequencies = Array.isArray(frequencies) ? frequencies : [];
@@ -134,6 +136,7 @@ export default function AirportSidebar({
         spots={spottingSpots}
         selectedSpotId={selectedCandidateWatchingSpotId}
         onSelectSpot={onSelectCandidateWatchingSpot}
+        t={t}
       />
     ) : (
       <AircraftTable
@@ -241,15 +244,18 @@ function SpottingPanel({
   spots = [],
   selectedSpotId = "",
   onSelectSpot,
+  t,
 }) {
+  const countKey =
+    spots.length === 1 ? "watcherMode.countOne" : "watcherMode.countMany";
   return (
     <div className="flex flex-col gap-3 px-[var(--airport-sidebar-inset)] pb-6 pt-2">
       <div className="flex items-baseline justify-between border-b border-atc-line pb-2">
         <h2 className="text-[12px] font-bold uppercase tracking-normal text-atc-text">
-          Spotting
+          {t("watcherMode.cardsTitle")}
         </h2>
         <span className="font-mono text-[10px] font-semibold uppercase text-atc-faint">
-          {spots.length} spots
+          {t(countKey, { count: spots.length })}
         </span>
       </div>
       <div className="app-list-motion grid gap-2">
@@ -266,21 +272,21 @@ function SpottingPanel({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="truncate text-[11px] font-bold uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
-                    {spot.name || spot.category || "Candidate spot"}
+                    {spot.name || spot.title || spot.category || "Spotter location"}
                   </div>
                   <div className="mt-1 text-[11px] font-medium text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
-                    {spot.category || "map candidate"}
+                    {spot.what || spot.category || spot.sourceLabel || "Photo guide"}
                   </div>
                 </div>
-                {Number.isFinite(Number(spot.score)) ? (
+                {spot.spotNumber ? (
                   <span className="shrink-0 font-mono text-[10px] font-semibold text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
-                    {Math.round(Number(spot.score))}
+                    #{spot.spotNumber}
                   </span>
                 ) : null}
               </div>
-              {spot.runwayAlignment?.end ? (
+              {spot.focalLength || spot.when ? (
                 <div className="mt-2 font-mono text-[9px] font-semibold uppercase text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
-                  RWY {spot.runwayAlignment.end}
+                  {[spot.focalLength, spot.when].filter(Boolean).join(" · ")}
                 </div>
               ) : null}
             </button>

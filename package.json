@@ -1,7 +1,7 @@
 {
   "name": "adsbao",
   "private": true,
-  "version": "2.20.0",
+  "version": "2.21.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,9 +17,9 @@
     "lint": "eslint src scripts vite.config.ts eslint.config.mjs",
     "knip": "knip",
     "ff": "tsx scripts/feature-flags.ts",
+    "migrate:database": "tsx scripts/apply-database-migrations.ts",
     "import:facilities": "tsx scripts/import-airport-facilities.ts",
     "import:airports": "tsx scripts/import-airports.ts",
-    "generate:watching-spots": "tsx scripts/generate-candidate-watching-spots.ts",
     "import:runways": "tsx scripts/import-runway-geometries.ts",
     "test": "tsx scripts/run-tests.ts",
     "test:all": "tsx scripts/run-tests.ts"

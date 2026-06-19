@@ -23,11 +23,12 @@ export default function CandidateWatchingSpotPreviewMetadataCard({
   const category = formatCandidateWatchingSpotCategory(spot);
   const distance = formatCandidateWatchingSpotDistance(spot, t);
   const disclaimer = String(spot?.disclaimer || t("watcherMode.disclaimer")).trim();
-  const attribution = sourceAttribution || t("watcherMode.attribution");
+  const sourceLabel = String(spot?.sourceLabel || spot?.source || "").trim();
+  const attribution = String(sourceAttribution || "").trim();
   const detailRows = [
     { label: t("preview.candidateWatchingSpotType"), value: category },
     { label: t("metrics.distance"), value: distance },
-    { label: t("preview.airspaceSource"), value: "OSM" },
+    { label: t("preview.airspaceSource"), value: sourceLabel },
   ].filter((row) => row.value);
 
   return (
@@ -79,9 +80,11 @@ export default function CandidateWatchingSpotPreviewMetadataCard({
         <p className="text-[11px] leading-snug text-atc-dim">
           {disclaimer}
         </p>
-        <p className="mt-2 text-[9px] leading-tight text-atc-faint">
-          {attribution}
-        </p>
+        {attribution ? (
+          <p className="mt-2 text-[9px] leading-tight text-atc-faint">
+            {attribution}
+          </p>
+        ) : null}
       </div>
     </div>
   );

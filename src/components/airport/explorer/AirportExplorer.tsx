@@ -152,6 +152,7 @@ function AirportExplorerContent({
   const candidateWatchingSpots = useCandidateWatchingSpots({
     airportIcao: airportProfile.icao,
     enabled: Boolean(airportProfile.icao),
+    spots: airport?.spotterLocations || [],
   });
   const selection = useMemo(
     () =>

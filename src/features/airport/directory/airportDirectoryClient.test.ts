@@ -85,6 +85,14 @@ const KBOS = {
         airport: KBOS,
         runways: [],
         frequencies: [],
+        spotterLocations: [
+          {
+            id: "spotter-kbos-1",
+            airportIdent: "KBOS",
+            source: "spotterguide",
+            name: "Spot #1 - Shirley Beach - 27 arrivals",
+          },
+        ],
         nearbyAirports: [],
         runwayMap: { airport: "KBOS", source: "OurAirports", runways: [] },
         source: "openaip",
@@ -101,6 +109,8 @@ const KBOS = {
   assert.deepEqual(airport.airspaces, []);
   assert.deepEqual(airport.reportingPoints, []);
   assert.deepEqual(airport.obstacles, []);
+  assert.equal(airport.spotterLocations[0].airportIdent, "KBOS");
+  assert.equal(airport.spotterLocations[0].source, "spotterguide");
   assert.deepEqual(airport.runwayMap, { airport: "KBOS", source: "OurAirports", runways: [] });
 }
 

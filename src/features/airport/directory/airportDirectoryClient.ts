@@ -149,6 +149,9 @@ const createAirportDirectoryClient = ({
           ? detail.reportingPoints
           : [],
         obstacles: Array.isArray(detail.obstacles) ? detail.obstacles : [],
+        spotterLocations: Array.isArray(detail.spotterLocations)
+          ? detail.spotterLocations
+          : [],
         runwayMap: detail.runwayMap || null,
       };
     }

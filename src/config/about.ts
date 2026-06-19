@@ -118,6 +118,16 @@ export const ABOUT_DATA_SOURCES = [
     href: "https://ourairports.com/data/",
   },
   {
+    glyph: "SPOT",
+    titleKey: "about.sources.spotterGuide.title",
+    title: "spotterguide.net",
+    descriptionKey: "about.sources.spotterGuide.description",
+    description:
+      "Some curated public photo location data for Watcher Mode comes from airport guides on spotterguide.net.",
+    host: "spotterguide.net",
+    href: "https://www.spotterguide.net/",
+  },
+  {
     glyph: "WIKI",
     titleKey: "about.sources.wikipedia.title",
     title: "Wikipedia Summary",

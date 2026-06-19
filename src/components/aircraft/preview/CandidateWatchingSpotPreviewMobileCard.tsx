@@ -26,7 +26,7 @@ export default function CandidateWatchingSpotPreviewMobileCard({
   );
   const category = formatCandidateWatchingSpotCategory(spot);
   const distance = formatCandidateWatchingSpotDistance(spot, t);
-  const attribution = sourceAttribution || t("watcherMode.attribution");
+  const attribution = String(sourceAttribution || "").trim();
   const summaryLabel = distance || category || null;
 
   return (
@@ -46,9 +46,11 @@ export default function CandidateWatchingSpotPreviewMobileCard({
           >
             {summaryLabel}
           </span>
-          <span className="min-w-0 truncate whitespace-nowrap text-right text-[10px] font-medium leading-tight tracking-normal text-atc-dim">
-            {attribution}
-          </span>
+          {attribution ? (
+            <span className="min-w-0 truncate whitespace-nowrap text-right text-[10px] font-medium leading-tight tracking-normal text-atc-dim">
+              {attribution}
+            </span>
+          ) : null}
         </div>
       </div>
     </MobilePreviewContent>

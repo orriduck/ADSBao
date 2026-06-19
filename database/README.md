@@ -20,9 +20,7 @@ PGPOOL_MAX=5
 ## Apply Schema
 
 ```bash
-for migration in database/migrations/*.sql; do
-  psql "$ADSBAO_DATABASE_URL" -f "$migration"
-done
+pnpm migrate:database
 ```
 
 ## Namespaces

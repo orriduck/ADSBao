@@ -94,6 +94,11 @@ const en = {
         description:
           "Runway threshold coordinates plus ATC frequency and navaid augmentation data.",
       },
+      spotterGuide: {
+        title: "spotterguide.net",
+        description:
+          "Some curated public photo location data for Watcher Mode comes from airport guides on spotterguide.net.",
+      },
       wikipedia: {
         title: "Wikipedia Summary",
         description: "First-paragraph summaries for airport context cards.",
@@ -591,9 +596,9 @@ const en = {
     airspaces: "Airspace",
     showAirspaces: "Show airspace",
     hideAirspaces: "Hide airspace",
-    candidateWatchingSpots: "Candidate watching spots",
-    showCandidateWatchingSpots: "Show candidate watching spots",
-    hideCandidateWatchingSpots: "Hide candidate watching spots",
+    candidateWatchingSpots: "Photo locations",
+    showCandidateWatchingSpots: "Show photo locations",
+    hideCandidateWatchingSpots: "Hide photo locations",
     showCallsigns: "Show callsigns",
     hideCallsigns: "Hide callsigns",
     userLocation: "My location",
@@ -642,7 +647,7 @@ const en = {
       custom: "Custom",
     },
     modeDescriptions: {
-      spotting: "Runway-aligned candidate watching spots with labels and approach geometry.",
+      spotting: "Photo locations with labels and approach geometry.",
       radio: "Navigation aids and labels for listening context.",
       controller: "Airspace, navaids, and route context.",
       custom: "Your manual overrides on top of a preset.",
@@ -657,19 +662,19 @@ const en = {
     },
   },
   watcherMode: {
-    countOne: "{count} candidate watching spot",
-    countMany: "{count} candidate watching spots",
-    possibleSpot: "Possible watching spot",
+    countOne: "{count} photo location",
+    countMany: "{count} photo locations",
+    possibleSpot: "Photo location",
     possibleSpotDescription:
-      "Based on runway alignment and public map data.",
-    cardsTitle: "Candidate watching spots",
-    empty: "No candidate watching spots in the static file for this airport.",
-    dataError: "Candidate watching spots could not be loaded.",
-    fallbackName: "Candidate spot",
+      "Curated location guidance where an airport guide is available.",
+    cardsTitle: "Photo locations",
+    empty: "No photo locations are available for this airport.",
+    dataError: "Photo locations could not be loaded.",
+    fallbackName: "Photo spot",
     distanceMeters: "{distance} m",
-    attribution: "© OpenStreetMap contributors",
+    attribution: "Photo guide data",
     disclaimer:
-      "This is a map-derived candidate only. It may not have a clear view, legal parking, public access, safe access, or good lighting.",
+      "Photo location data can change; verify public access, local rules, weather, and personal safety before using a location.",
   },
   lostSignal: {
     subtitle: "Signal lost",

@@ -73,7 +73,6 @@ language plpgsql
 as $$
 begin
   delete from aviation.airport_aliases;
-  delete from aviation.airports;
 
   insert into aviation.airports (
     ident,
@@ -124,7 +123,22 @@ begin
     canonical_ident,
     (icao_code <> '') desc,
     (name <> '') desc,
-    ourairports_ident asc;
+    ourairports_ident asc
+  on conflict (ident) do update set
+    icao_code = excluded.icao_code,
+    iata_code = case
+      when excluded.iata_code <> '' then excluded.iata_code
+      else aviation.airports.iata_code
+    end,
+    ourairports_ident = excluded.ourairports_ident,
+    openaip_id = aviation.airports.openaip_id,
+    name = excluded.name,
+    municipality = excluded.municipality,
+    iso_country = excluded.iso_country,
+    latitude_deg = excluded.latitude_deg,
+    longitude_deg = excluded.longitude_deg,
+    source = excluded.source,
+    refreshed_at = excluded.refreshed_at;
 
   insert into aviation.airports (
     ident,

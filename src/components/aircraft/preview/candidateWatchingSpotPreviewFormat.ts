@@ -4,7 +4,7 @@ export function formatCandidateWatchingSpotName(
   spot: Record<string, any> | null | undefined,
   fallbackName: string,
 ) {
-  return String(spot?.name || spot?.category || fallbackName).trim();
+  return String(spot?.name || spot?.title || spot?.category || fallbackName).trim();
 }
 
 export function formatCandidateWatchingSpotCategory(
