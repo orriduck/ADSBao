@@ -21,20 +21,37 @@ export default function BrandingVideoBackground({ source = DEFAULT_SOURCE }) {
       return undefined;
     }
 
-    const show = () => setVisible(true);
+    let animationFrame = 0;
+    let cancelled = false;
+
+    const showWhenReady = () => {
+      if (cancelled) return;
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        setVisible(true);
+        return;
+      }
+      animationFrame = window.requestAnimationFrame(showWhenReady);
+    };
+    const videoEvents = ["loadeddata", "canplay", "playing"];
 
     setVisible(false);
     video.removeAttribute("src");
     video.load();
-    video.addEventListener("loadeddata", show);
+    for (const eventName of videoEvents) {
+      video.addEventListener(eventName, showWhenReady);
+    }
     video.src = source;
     video.load();
     video.muted = true;
     video.play()?.catch?.(() => {});
-    if (video.readyState >= 2) show();
+    showWhenReady();
 
     return () => {
-      video.removeEventListener("loadeddata", show);
+      cancelled = true;
+      window.cancelAnimationFrame(animationFrame);
+      for (const eventName of videoEvents) {
+        video.removeEventListener(eventName, showWhenReady);
+      }
       video.pause();
       video.removeAttribute("src");
       video.load();

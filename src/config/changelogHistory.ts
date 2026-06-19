@@ -384,6 +384,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.15.3",
+    kind: "patch",
+    title: {
+      en: "Rotation recovery",
+      zh: "旋转恢复稳定性",
+    },
+    summary: {
+      en: "Airport and flight pages now recover their mobile or landscape layout after rotation, reversed orientation, and app focus changes.",
+      zh: "机场页和航班页现在会在旋转、倒转和切出切回后恢复到对应的移动端或横屏布局。",
+    },
+    highlights: [
+      {
+        en: "Portrait phones no longer keep the landscape desktop sidebar when the browser reports a stale visual viewport",
+        zh: "当浏览器短暂保留旧的 visual viewport 时，手机竖屏不会继续停留在横屏桌面侧栏布局",
+      },
+      {
+        en: "The layout profile is resampled after orientation, focus, visibility, and page restore events so safe-area edges settle correctly",
+        zh: "布局 profile 会在旋转、聚焦、可见性变化和页面恢复后重新采样，让 safe-area 方向稳定回正",
+      },
+    ],
+  },
+  {
     version: "v2.15.2",
     kind: "patch",
     title: {

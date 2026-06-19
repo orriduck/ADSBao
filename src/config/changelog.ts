@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 91;
+export const CHANGELOG_TOTAL_COUNT = 92;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.19.3",
+    kind: "patch",
+    title: {
+      en: "Sidebar and dither polish",
+      zh: "侧栏与点阵打磨",
+    },
+    summary: {
+      en: "Sidebar panels suppress visible scrollbar chrome, and the brand dither loop now uses a finer grayscale dot matrix with clearer aircraft and airport detail.",
+      zh: "侧栏隐藏可见滚动条，品牌点阵循环也改为更细的灰度点阵，让飞机与机场细节更清楚。",
+    },
+    highlights: [
+      {
+        en: "Desktop and mobile sidebar scroll owners now hide WebKit, Firefox, and legacy Edge scrollbar tracks without changing overflow ownership",
+        zh: "桌面端与移动端侧栏滚动容器现在会隐藏 WebKit、Firefox 和旧 Edge 滚动条，同时不改变滚动归属",
+      },
+      {
+        en: "Static pages keep the same cached brand video path, but the regenerated 2px grayscale matrix preserves more runway, window, and aircraft silhouette texture",
+        zh: "静态页保留同一个品牌视频缓存路径，但重新生成的 2px 灰度点阵保留了更多跑道、舷窗与飞机轮廓纹理",
+      },
+    ],
+  },
   {
     version: "v2.19.2",
     kind: "patch",
@@ -482,28 +504,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The dither video loads directly, stays hidden until ready, and fills the static-page shell behind the frosted sidebar",
         zh: "点阵视频直接加载、未就绪前隐藏，并铺满静态页外壳、位于磨砂侧栏背后",
-      },
-    ],
-  },
-  {
-    version: "v2.15.3",
-    kind: "patch",
-    title: {
-      en: "Rotation recovery",
-      zh: "旋转恢复稳定性",
-    },
-    summary: {
-      en: "Airport and flight pages now recover their mobile or landscape layout after rotation, reversed orientation, and app focus changes.",
-      zh: "机场页和航班页现在会在旋转、倒转和切出切回后恢复到对应的移动端或横屏布局。",
-    },
-    highlights: [
-      {
-        en: "Portrait phones no longer keep the landscape desktop sidebar when the browser reports a stale visual viewport",
-        zh: "当浏览器短暂保留旧的 visual viewport 时，手机竖屏不会继续停留在横屏桌面侧栏布局",
-      },
-      {
-        en: "The layout profile is resampled after orientation, focus, visibility, and page restore events so safe-area edges settle correctly",
-        zh: "布局 profile 会在旋转、聚焦、可见性变化和页面恢复后重新采样，让 safe-area 方向稳定回正",
       },
     ],
   },

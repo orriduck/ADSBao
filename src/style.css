@@ -1556,6 +1556,26 @@ body:has(.dither-page-shell) {
         transparent;
 }
 
+/* Sidebar scroll owners keep touch/wheel scrolling but hide painted scrollbars. */
+.sidebar-shell,
+.dither-page-panel,
+.airport-desktop-sidebar > .h-full,
+.airport-desktop-sidebar .sidebar-shell,
+.airport-sidebar-panel--mobile,
+.flight-sidebar-panel--mobile {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.sidebar-shell::-webkit-scrollbar,
+.dither-page-panel::-webkit-scrollbar,
+.airport-desktop-sidebar > .h-full::-webkit-scrollbar,
+.airport-desktop-sidebar .sidebar-shell::-webkit-scrollbar,
+.airport-sidebar-panel--mobile::-webkit-scrollbar,
+.flight-sidebar-panel--mobile::-webkit-scrollbar {
+    display: none;
+}
+
 /* ============================================================
    Leaflet — chart-paper aesthetic.
    Canvas matches the sidebar bg exactly so the two regions read
