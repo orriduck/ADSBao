@@ -16,8 +16,9 @@ type Config struct {
 	AllowedWSOrigins              []string
 	FlightAwareFallbackEnabled    bool
 	FlightAwareAccessEnabled      bool
+	FlightAwareServiceBaseURL     string
+	FlightAwareServiceToken       string
 	RealtimeAuthSecret            string
-	AirportDirectoryBaseURL       string
 	OpenAIPAPIKey                 string
 	OpenAIPBaseURL                string
 	StaticDir                     string
@@ -49,8 +50,9 @@ func FromEnv(lookup LookupFunc) Config {
 		AllowedWSOrigins:              csv(lookup("ALLOWED_WS_ORIGINS")),
 		FlightAwareFallbackEnabled:    !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
 		FlightAwareAccessEnabled:      trueString(lookup("FLIGHTAWARE_ACCESS_ENABLED")),
+		FlightAwareServiceBaseURL:     strings.TrimRight(strings.TrimSpace(lookup("FLIGHTAWARE_SERVICE_BASE_URL")), "/"),
+		FlightAwareServiceToken:       strings.TrimSpace(lookup("FLIGHTAWARE_SERVICE_TOKEN")),
 		RealtimeAuthSecret:            strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
-		AirportDirectoryBaseURL:       stringValue(lookup("AIRPORT_DIRECTORY_BASE_URL"), "https://www.adsbao.dev"),
 		OpenAIPAPIKey:                 strings.TrimSpace(lookup("OPENAIP_API_KEY")),
 		OpenAIPBaseURL:                stringValue(lookup("OPENAIP_BASE_URL"), "https://api.core.openaip.net/api"),
 		StaticDir:                     strings.TrimSpace(lookup("STATIC_DIR")),

@@ -356,7 +356,19 @@ func (h *Handler) handleAirlineLogo(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid airline code"})
 		return
 	}
-	body, contentType, status, err := h.fetchImage(r.Context(), "https://www.flightaware.com/images/airline_logos/90p/"+url.PathEscape(code)+".png")
+	if h.flightAwareServiceBaseURL == "" {
+		writeJSONWithHeaders(w, http.StatusNotFound, map[string]any{"error": "Airline logo not found"}, map[string]string{
+			"Cache-Control": "public, max-age=3600",
+			"X-Data-Source": "flightaware",
+		})
+		return
+	}
+	upstream := h.flightAwareServiceBaseURL + "/api/flightaware/airline-logo/" + url.PathEscape(code)
+	headers := map[string]string{}
+	if h.flightAwareServiceToken != "" {
+		headers["Authorization"] = "Bearer " + h.flightAwareServiceToken
+	}
+	body, contentType, status, err := h.fetchImageWithHeaders(r.Context(), upstream, headers)
 	if err != nil || status < 200 || status >= 300 {
 		writeJSONWithHeaders(w, statusOr(status, http.StatusNotFound), map[string]any{"error": "Airline logo not found"}, map[string]string{
 			"Cache-Control": "public, max-age=3600",
@@ -569,6 +581,10 @@ func (h *Handler) fetchJSONWithTimeout(ctx context.Context, upstream string, hea
 }
 
 func (h *Handler) fetchImage(ctx context.Context, upstream string) ([]byte, string, int, error) {
+	return h.fetchImageWithHeaders(ctx, upstream, nil)
+}
+
+func (h *Handler) fetchImageWithHeaders(ctx context.Context, upstream string, headers map[string]string) ([]byte, string, int, error) {
 	ctx, cancel := context.WithTimeout(ctx, h.timeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, upstream, nil)
@@ -577,6 +593,9 @@ func (h *Handler) fetchImage(ctx context.Context, upstream string) ([]byte, stri
 	}
 	req.Header.Set("Accept", "image/avif,image/webp,image/png,image/jpeg,image/*")
 	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; ADSBao/1.0; +https://adsbao.dev)")
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
 		return nil, "", 0, err

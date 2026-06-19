@@ -36,13 +36,16 @@ curl -s http://localhost:3000/                          # → 200 SPA homepage
 
 ### Go data-service env vars
 
-The Go service reads these from the environment (not `.env.local`). All three
-are set on Railway production; local `go run` must include them explicitly.
+The Go service reads these from the environment (not `.env.local`). Required
+runtime secrets are set on Railway production; local `go run` must include them
+explicitly when exercising the same paths.
 
 | Variable | Required | Default | Why |
 |---|---|---|---|
 | `PORT` | **Yes** | 8080 | Vite proxy targets 8081 → must override |
 | `FLIGHTAWARE_ACCESS_ENABLED` | **Yes** | `false` | Without it, `resolveRouteProvider()` falls back to adsbdb regardless of Clerk login |
+| `FLIGHTAWARE_SERVICE_BASE_URL` | FlightAware paths | `""` | Private Railway service origin for FlightAware callsign fallback, route lookup, and airline logos |
+| `FLIGHTAWARE_SERVICE_TOKEN` | FlightAware paths | `""` | Bearer token sent to the private FlightAware service |
 | `ADSBAO_REALTIME_AUTH_SECRET` | **Yes** | `""` | HMAC key for `/api/realtime/auth?provider=flightaware`. Any non-empty string works locally. Missing → 503 |
 | `OPENAIP_API_KEY` | No | — | Airport data |
 | `DATABASE_URL` | No | — | Postgres for user settings |

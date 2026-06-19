@@ -28,32 +28,36 @@ const (
 )
 
 type Options struct {
-	HTTPClient             *http.Client
-	OpenAIPAPIKey          string
-	OpenAIPBaseURL         string
-	OverpassBaseURL        string
-	Timeout                time.Duration
-	AirportSurfaceCacheTTL time.Duration
-	AircraftFetcher        func(context.Context, realtime.FetchInput) (realtime.Event, error)
-	Metrics                realtime.MetricsSink
-	Authenticator          *ClerkAuthenticator
-	UserDataStore          *UserDataStore
+	HTTPClient                *http.Client
+	OpenAIPAPIKey             string
+	OpenAIPBaseURL            string
+	OverpassBaseURL           string
+	Timeout                   time.Duration
+	AirportSurfaceCacheTTL    time.Duration
+	AircraftFetcher           func(context.Context, realtime.FetchInput) (realtime.Event, error)
+	Metrics                   realtime.MetricsSink
+	Authenticator             *ClerkAuthenticator
+	UserDataStore             *UserDataStore
+	FlightAwareServiceBaseURL string
+	FlightAwareServiceToken   string
 }
 
 type Handler struct {
-	httpClient            *http.Client
-	openAIPAPIKey         string
-	openAIPBaseURL        string
-	overpassBaseURL       string
-	timeout               time.Duration
-	airportSurfaceCache   *airportSurfaceCache
-	aircraftFetcher       func(context.Context, realtime.FetchInput) (realtime.Event, error)
-	metrics               realtime.MetricsSink
-	authenticator         *ClerkAuthenticator
-	userDataStore         *UserDataStore
-	runwayMapReader       runwayMapReader
-	airportNameReader     airportNameReader
-	spotterLocationReader spotterLocationReader
+	httpClient                *http.Client
+	openAIPAPIKey             string
+	openAIPBaseURL            string
+	overpassBaseURL           string
+	timeout                   time.Duration
+	airportSurfaceCache       *airportSurfaceCache
+	aircraftFetcher           func(context.Context, realtime.FetchInput) (realtime.Event, error)
+	metrics                   realtime.MetricsSink
+	authenticator             *ClerkAuthenticator
+	userDataStore             *UserDataStore
+	flightAwareServiceBaseURL string
+	flightAwareServiceToken   string
+	runwayMapReader           runwayMapReader
+	airportNameReader         airportNameReader
+	spotterLocationReader     spotterLocationReader
 }
 
 type openAIPList struct {
@@ -78,19 +82,21 @@ func New(options Options) *Handler {
 		timeout = defaultTimeout
 	}
 	return &Handler{
-		httpClient:            httpClient,
-		openAIPAPIKey:         strings.TrimSpace(options.OpenAIPAPIKey),
-		openAIPBaseURL:        baseURL,
-		overpassBaseURL:       overpassBaseURL,
-		timeout:               timeout,
-		airportSurfaceCache:   newAirportSurfaceCache(options.AirportSurfaceCacheTTL),
-		aircraftFetcher:       options.AircraftFetcher,
-		metrics:               options.Metrics,
-		authenticator:         options.Authenticator,
-		userDataStore:         options.UserDataStore,
-		runwayMapReader:       options.UserDataStore,
-		airportNameReader:     options.UserDataStore,
-		spotterLocationReader: options.UserDataStore,
+		httpClient:                httpClient,
+		openAIPAPIKey:             strings.TrimSpace(options.OpenAIPAPIKey),
+		openAIPBaseURL:            baseURL,
+		overpassBaseURL:           overpassBaseURL,
+		timeout:                   timeout,
+		airportSurfaceCache:       newAirportSurfaceCache(options.AirportSurfaceCacheTTL),
+		aircraftFetcher:           options.AircraftFetcher,
+		metrics:                   options.Metrics,
+		authenticator:             options.Authenticator,
+		userDataStore:             options.UserDataStore,
+		flightAwareServiceBaseURL: strings.TrimRight(strings.TrimSpace(options.FlightAwareServiceBaseURL), "/"),
+		flightAwareServiceToken:   strings.TrimSpace(options.FlightAwareServiceToken),
+		runwayMapReader:           options.UserDataStore,
+		airportNameReader:         options.UserDataStore,
+		spotterLocationReader:     options.UserDataStore,
 	}
 }
 

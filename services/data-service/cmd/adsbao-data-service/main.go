@@ -61,20 +61,27 @@ func main() {
 		defer db.Close()
 	}
 
-	flightAwareFallback := flightaware.NewFallbackClient(flightaware.FallbackOptions{
-		Enabled:        cfg.FlightAwareFallbackEnabled,
-		ExplicitEnable: true,
-		HTTPClient:     providerHTTPClient,
-	})
+	flightAwareByCallsign := disabledFlightAwareFallback
+	if cfg.FlightAwareFallbackEnabled && cfg.FlightAwareServiceBaseURL != "" {
+		remoteFlightAwareFallback := flightaware.NewRemoteFallbackClient(flightaware.RemoteFallbackOptions{
+			BaseURL:    cfg.FlightAwareServiceBaseURL,
+			Token:      cfg.FlightAwareServiceToken,
+			HTTPClient: providerHTTPClient,
+		})
+		flightAwareByCallsign = func(ctx context.Context, callsign string, sink realtime.MetricsSink) (adsb.FallbackResult, error) {
+			return remoteFlightAwareFallback.ByCallsign(ctx, callsign, sink)
+		}
+	}
 	adsbClient := adsb.NewClient(adsb.Options{
 		HTTPClient: providerHTTPClient,
 		FlightAwareFallback: func(ctx context.Context, callsign string, sink realtime.MetricsSink) (adsb.FallbackResult, error) {
-			return flightAwareFallback.ByCallsign(ctx, callsign, sink)
+			return flightAwareByCallsign(ctx, callsign, sink)
 		},
 	})
 	routeClient := route.NewClient(route.Options{
 		HTTPClient:              providerHTTPClient,
-		AirportDirectoryBaseURL: cfg.AirportDirectoryBaseURL,
+		FlightAwareServiceBase:  cfg.FlightAwareServiceBaseURL,
+		FlightAwareServiceToken: cfg.FlightAwareServiceToken,
 	})
 	polling := scheduler.New(scheduler.Options{
 		Fetch: func(input realtime.FetchInput) (realtime.Event, error) {
@@ -107,9 +114,11 @@ func main() {
 		5*time.Minute,
 	)
 	webAPIHandler := webapi.New(webapi.Options{
-		HTTPClient:     providerHTTPClient,
-		OpenAIPAPIKey:  cfg.OpenAIPAPIKey,
-		OpenAIPBaseURL: cfg.OpenAIPBaseURL,
+		HTTPClient:                providerHTTPClient,
+		OpenAIPAPIKey:             cfg.OpenAIPAPIKey,
+		OpenAIPBaseURL:            cfg.OpenAIPBaseURL,
+		FlightAwareServiceBaseURL: cfg.FlightAwareServiceBaseURL,
+		FlightAwareServiceToken:   cfg.FlightAwareServiceToken,
 		AircraftFetcher: func(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
 			return adsbClient.Fetch(ctx, input)
 		},
@@ -171,6 +180,22 @@ func main() {
 	if err := logForwarder.Shutdown(shutdownCtx); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "logs shutdown failed: %v\n", err)
 	}
+}
+
+func disabledFlightAwareFallback(_ context.Context, _ string, _ realtime.MetricsSink) (adsb.FallbackResult, error) {
+	fetchedAt := time.Now().UTC().Format(time.RFC3339Nano)
+	return adsb.FallbackResult{
+		OK:          false,
+		HasPosition: false,
+		ErrorType:   "feature_disabled",
+		FetchedAt:   fetchedAt,
+		Raw: map[string]any{
+			"ok":          false,
+			"hasPosition": false,
+			"errorType":   "feature_disabled",
+			"fetchedAt":   fetchedAt,
+		},
+	}, nil
 }
 
 func openDatabase(cfg config.Config, registry *metrics.Metrics) *sql.DB {

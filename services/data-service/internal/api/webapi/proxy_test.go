@@ -26,6 +26,14 @@ func jsonResponse(status int, body string) *http.Response {
 	}
 }
 
+func imageResponse(status int, contentType string, body string) *http.Response {
+	return &http.Response{
+		StatusCode: status,
+		Header:     http.Header{"Content-Type": []string{contentType}},
+		Body:       io.NopCloser(strings.NewReader(body)),
+	}
+}
+
 func TestAircraftPositionsRouteUsesUnifiedFetcher(t *testing.T) {
 	var got realtime.FetchInput
 	handler := New(Options{
@@ -79,6 +87,37 @@ func TestAircraftPositionsRouteUsesUnifiedFetcher(t *testing.T) {
 	}
 	if payload["source"] != "airplanes.live" {
 		t.Fatalf("payload = %#v", payload)
+	}
+}
+
+func TestAirlineLogoUsesFlightAwarePrivateServiceWhenConfigured(t *testing.T) {
+	handler := New(Options{
+		FlightAwareServiceBaseURL: "https://flightaware-private.example",
+		FlightAwareServiceToken:   "remote-token",
+		HTTPClient: &http.Client{
+			Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				if req.URL.String() != "https://flightaware-private.example/api/flightaware/airline-logo/DAL" {
+					t.Fatalf("unexpected upstream URL %q", req.URL.String())
+				}
+				if req.Header.Get("Authorization") != "Bearer remote-token" {
+					t.Fatalf("authorization = %q", req.Header.Get("Authorization"))
+				}
+				return imageResponse(http.StatusOK, "image/png", "png"), nil
+			}),
+		},
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/api/proxy/airlines/DAL", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rr.Code, rr.Body.String())
+	}
+	if rr.Header().Get("Content-Type") != "image/png" ||
+		rr.Header().Get("X-Data-Source") != "flightaware" ||
+		rr.Body.String() != "png" {
+		t.Fatalf("response headers/body = %s %#v", rr.Body.String(), rr.Header())
 	}
 }
 

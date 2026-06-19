@@ -384,6 +384,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.17.0",
+    kind: "feat",
+    title: {
+      en: "Offline static shell",
+      zh: "静态页面离线壳",
+    },
+    summary: {
+      en: "Home, About, Mechanism, and Changelog can now reopen from the local app shell, with the homepage branding video cached for offline starts while live aviation data remains network-only.",
+      zh: "首页、关于、机制和更新日志现在可以从本地应用壳重新打开；首页品牌视频会为离线启动缓存，而实时航空数据仍保持只走网络。",
+    },
+    highlights: [
+      {
+        en: "The Vite build emits a small service worker that precaches the static-page shell, icons, manifest, and homepage branding video",
+        zh: "Vite 构建会产出一个小型 service worker，预缓存静态页面壳、图标、manifest 和首页品牌视频",
+      },
+      {
+        en: "API routes, WebSocket traffic, runtime env, and version checks stay network-only so stale aircraft positions, METAR, airport traffic, and flight status are not replayed offline",
+        zh: "API 路由、WebSocket 流量、运行时环境和版本检查继续只走网络，避免离线回放过期飞机位置、METAR、机场流量和航班状态",
+      },
+      {
+        en: "Railway static serving now gives hashed assets immutable cache headers while SPA HTML stays no-store",
+        zh: "Railway 静态服务现在为带 hash 的资源设置 immutable 缓存头，同时 SPA HTML 保持 no-store",
+      },
+    ],
+  },
+  {
     version: "v2.16.2",
     kind: "patch",
     title: {

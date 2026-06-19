@@ -48,11 +48,14 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
 - `CLERK_API_BASE_URL` — optional Clerk Backend API base URL. Defaults to
   `https://api.clerk.com`.
 - `FLIGHTAWARE_FALLBACK_ENABLED`
+- `FLIGHTAWARE_SERVICE_BASE_URL` — optional private FlightAware REST service
+  origin. When set, FlightAware callsign fallback, FlightAware route lookup,
+  and airline-logo proxy requests are forwarded to that service instead of
+  calling FlightAware directly from the public ADSBao deployment.
+- `FLIGHTAWARE_SERVICE_TOKEN` — bearer token sent to
+  `FLIGHTAWARE_SERVICE_BASE_URL` as `Authorization: Bearer ...`.
 - `ADSBAO_REALTIME_AUTH_SECRET` — HMAC secret used by `/api/realtime/auth` and
   the WebSocket handler to authorize FlightAware realtime subscriptions.
-- `AIRPORT_DIRECTORY_BASE_URL` — ADSBao web origin used as the fallback airport
-  directory for FlightAware route pages that omit embedded airport coordinates.
-  Defaults to `https://www.adsbao.dev`.
 - `ENABLE_PPROF`
 - `BETTERSTACK_METRICS_SOURCE_TOKEN` — Better Stack metrics source token. When
   unset, backend metric forwarding is disabled.

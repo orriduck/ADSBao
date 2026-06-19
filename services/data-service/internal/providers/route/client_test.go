@@ -4,11 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"strings"
-	"sync"
-	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 )
@@ -42,38 +38,24 @@ func TestADSBDBRouteNormalizesRoutePayload(t *testing.T) {
 	}
 }
 
-func TestFlightAwareRouteNormalizesScrapedRoute(t *testing.T) {
+func TestFlightAwareRouteUsesRemotePrivateServiceWhenConfigured(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/live/flight/AAL1234" {
+		if r.URL.Path != "/api/flightaware/route/AAL1234" {
 			t.Fatalf("path = %s", r.URL.Path)
 		}
-		if flusher, ok := w.(http.Flusher); ok {
-			flusher.Flush()
-			time.Sleep(20 * time.Millisecond)
+		if r.Header.Get("Authorization") != "Bearer remote-token" {
+			t.Fatalf("authorization = %q", r.Header.Get("Authorization"))
 		}
-		_, _ = w.Write([]byte(`
-			<html>
-				<head>
-					<title>AA1234 (AAL1234) American Airlines Flight Tracking</title>
-					<meta name="origin" content="KBOS">
-					<meta name="destination" content="KLAX">
-					<meta name="airline" content="AAL">
-					<meta name="description" content="Track American Airlines (AA) #1234">
-				</head>
-				<body>
-					<script>
-						var trackpollBootstrap = {"flights":{"AAL1234":{
-							"origin":{"icao":"KBOS","iata":"BOS","coord":[-71.0096,42.3656],"friendlyName":"Boston Logan","friendlyLocation":"Boston, MA"},
-							"destination":{"icao":"KLAX","iata":"LAX","coord":[-118.4085,33.9416],"friendlyName":"Los Angeles Intl","friendlyLocation":"Los Angeles, CA"}
-						}}};
-					</script>
-				</body>
-			</html>
-		`))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"callsign":"AAL1234","route":{"callsign":"AAL1234","origin":{"icao":"KBOS","iata":"BOS","lat":42.3656,"lon":-71.0096},"destination":{"icao":"KLAX","iata":"LAX","lat":33.9416,"lon":-118.4085},"route":{"iata":"BOS-LAX","icao":"KBOS-KLAX"},"airline":{"icao":"AAL","iata":"AA"},"source":"flightaware","confidence":"scraped-reference"}}`))
 	}))
 	defer server.Close()
 
-	client := NewClient(Options{FlightAwareBase: server.URL + "/live/flight", QueueInterval: 0})
+	client := NewClient(Options{
+		FlightAwareServiceBase:  server.URL,
+		FlightAwareServiceToken: "remote-token",
+		QueueInterval:           0,
+	})
 	event, err := client.Fetch(context.Background(), realtime.FetchInput{
 		Channel:     "route:AAL1234:airport:KBOS",
 		ChannelType: realtime.ChannelRoute,
@@ -81,7 +63,6 @@ func TestFlightAwareRouteNormalizesScrapedRoute(t *testing.T) {
 			Kind:          "route",
 			Callsign:      "AAL1234",
 			RouteProvider: "flightaware",
-			RouteContext:  &realtime.RouteContext{Type: "airport", ICAO: "KBOS"},
 		},
 	})
 	if err != nil {
@@ -96,184 +77,6 @@ func TestFlightAwareRouteNormalizesScrapedRoute(t *testing.T) {
 	if routeCodes["iata"] != "BOS-LAX" || route["source"] != "flightaware" {
 		t.Fatalf("route = %#v", route)
 	}
-}
-
-func TestFlightAwareRouteUsesAirportDirectoryFallbackWhenPageOmitsEmbeddedAirports(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/live/flight/AAL1234":
-			_, _ = w.Write([]byte(`
-				<html>
-					<head>
-						<title>AA1234 (AAL1234) American Airlines Flight Tracking</title>
-						<meta name="origin" content="KBOS">
-						<meta name="destination" content="KLAX">
-						<meta name="airline" content="AAL">
-						<meta name="description" content="Track American Airlines (AA) #1234">
-					</head>
-				</html>
-			`))
-		case "/api/airport/KBOS":
-			_, _ = w.Write([]byte(`{"airport":{"icao":"KBOS","iata":"BOS","name":"Boston Logan","city":"Boston","country":"US","lat":42.3656,"lon":-71.0096}}`))
-		case "/api/airport/KLAX":
-			_, _ = w.Write([]byte(`{"airport":{"icao":"KLAX","iata":"LAX","name":"Los Angeles Intl","city":"Los Angeles","country":"US","lat":33.9416,"lon":-118.4085}}`))
-		default:
-			t.Fatalf("unexpected path = %s", r.URL.Path)
-		}
-	}))
-	defer server.Close()
-
-	client := NewClient(Options{
-		FlightAwareBase:         server.URL + "/live/flight",
-		AirportDirectoryBaseURL: server.URL,
-		QueueInterval:           0,
-	})
-	event, err := client.Fetch(context.Background(), realtime.FetchInput{
-		Channel:     "route:AAL1234:airport:KBOS",
-		ChannelType: realtime.ChannelRoute,
-		Target: realtime.PollingTarget{
-			Kind:          "route",
-			Callsign:      "AAL1234",
-			RouteProvider: "flightaware",
-			RouteContext:  &realtime.RouteContext{Type: "airport", ICAO: "KBOS"},
-		},
-	})
-	if err != nil {
-		t.Fatalf("Fetch returned error: %v", err)
-	}
-	data := event.Data.(map[string]any)
-	route := data["route"].(map[string]any)
-	routeCodes := route["route"].(map[string]any)
-	if routeCodes["iata"] != "BOS-LAX" || routeCodes["icao"] != "KBOS-KLAX" {
-		t.Fatalf("route = %#v", route)
-	}
-}
-
-func TestFlightAwareRouteAllowsLargeHTMLPage(t *testing.T) {
-	padding := strings.Repeat(" ", 600*1024)
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/live/flight/JBU1238" {
-			t.Fatalf("path = %s", r.URL.Path)
-		}
-		_, _ = w.Write([]byte(padding + `
-			<html>
-				<head>
-					<title>B61238 (JBU1238) JetBlue Flight Tracking</title>
-					<meta name="origin" content="KBOS">
-					<meta name="destination" content="KJFK">
-					<meta name="airline" content="JBU">
-					<meta name="description" content="Track JetBlue (B6) #1238">
-				</head>
-				<body>
-					<script>
-						var trackpollBootstrap = {"flights":{"JBU1238":{
-							"origin":{"icao":"KBOS","iata":"BOS","coord":[-71.0096,42.3656],"friendlyName":"Boston Logan","friendlyLocation":"Boston, MA"},
-							"destination":{"icao":"KJFK","iata":"JFK","coord":[-73.7781,40.6413],"friendlyName":"John F Kennedy Intl","friendlyLocation":"New York, NY"}
-						}}};
-					</script>
-				</body>
-			</html>
-		`))
-	}))
-	defer server.Close()
-
-	client := NewClient(Options{FlightAwareBase: server.URL + "/live/flight", QueueInterval: 0})
-	event, err := client.Fetch(context.Background(), realtime.FetchInput{
-		Channel:     "route:JBU1238:airport:KBOS",
-		ChannelType: realtime.ChannelRoute,
-		Target: realtime.PollingTarget{
-			Kind:          "route",
-			Callsign:      "JBU1238",
-			RouteProvider: "flightaware",
-			RouteContext:  &realtime.RouteContext{Type: "airport", ICAO: "KBOS"},
-		},
-	})
-	if err != nil {
-		t.Fatalf("Fetch returned error: %v", err)
-	}
-	data := event.Data.(map[string]any)
-	route := data["route"].(map[string]any)
-	routeCodes := route["route"].(map[string]any)
-	if routeCodes["icao"] != "KBOS-KJFK" {
-		t.Fatalf("route = %#v", route)
-	}
-}
-
-func TestFlightAwareRouteRequestsStartInParallel(t *testing.T) {
-	started := make(chan string, 3)
-	release := make(chan struct{})
-	var releaseOnce sync.Once
-	releaseAll := func() {
-		releaseOnce.Do(func() { close(release) })
-	}
-	var active atomic.Int64
-	var maxActive atomic.Int64
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		current := active.Add(1)
-		for {
-			peak := maxActive.Load()
-			if current <= peak || maxActive.CompareAndSwap(peak, current) {
-				break
-			}
-		}
-		started <- r.URL.Path
-		defer active.Add(-1)
-		<-release
-		_, _ = w.Write([]byte(`
-			<html>
-				<head>
-					<title>AA1234 (AAL1234) American Airlines Flight Tracking</title>
-					<meta name="origin" content="KBOS">
-					<meta name="destination" content="KLAX">
-					<meta name="airline" content="AAL">
-					<meta name="description" content="Track American Airlines (AA) #1234">
-				</head>
-				<body>
-					<script>
-						var trackpollBootstrap = {"flights":{"AAL1234":{
-							"origin":{"icao":"KBOS","iata":"BOS","coord":[-71.0096,42.3656],"friendlyName":"Boston Logan","friendlyLocation":"Boston, MA"},
-							"destination":{"icao":"KLAX","iata":"LAX","coord":[-118.4085,33.9416],"friendlyName":"Los Angeles Intl","friendlyLocation":"Los Angeles, CA"}
-						}}};
-					</script>
-				</body>
-			</html>
-		`))
-	}))
-	defer func() {
-		releaseAll()
-		server.Close()
-	}()
-
-	client := NewClient(Options{
-		FlightAwareBase: server.URL + "/live/flight",
-		QueueInterval:   150 * time.Millisecond,
-	})
-	var wg sync.WaitGroup
-	for _, callsign := range []string{"AAL1234", "AAL1235"} {
-		wg.Add(1)
-		go func(callsign string) {
-			defer wg.Done()
-			_, _ = client.Fetch(context.Background(), realtime.FetchInput{
-				Channel:     "route:" + callsign + ":airport:KBOS",
-				ChannelType: realtime.ChannelRoute,
-				Target: realtime.PollingTarget{
-					Kind:          "route",
-					Callsign:      callsign,
-					RouteProvider: "flightaware",
-					RouteContext:  &realtime.RouteContext{Type: "airport", ICAO: "KBOS"},
-				},
-			})
-		}(callsign)
-	}
-
-	waitStartedPath(t, started, 250*time.Millisecond)
-	waitStartedPath(t, started, 75*time.Millisecond)
-	if maxActive.Load() < 2 {
-		t.Fatalf("FlightAware route fetches did not overlap; max active = %d", maxActive.Load())
-	}
-	releaseAll()
-	wg.Wait()
 }
 
 func TestRouteEventCompactsRealtimeRoutePayload(t *testing.T) {
@@ -338,16 +141,5 @@ func TestRouteEventCompactsRealtimeRoutePayload(t *testing.T) {
 	}
 	if destination["icao"] != "KLAX" || destination["iata"] != "LAX" || destination["lat"] != 33.9416 || destination["lon"] != -118.4085 {
 		t.Fatalf("destination = %#v", destination)
-	}
-}
-
-func waitStartedPath(t *testing.T, started <-chan string, timeout time.Duration) string {
-	t.Helper()
-	select {
-	case path := <-started:
-		return path
-	case <-time.After(timeout):
-		t.Fatal("timed out waiting for parallel FlightAware route request to start")
-		return ""
 	}
 }

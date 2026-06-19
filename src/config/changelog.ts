@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 98;
+export const CHANGELOG_TOTAL_COUNT = 99;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.0",
+    kind: "feat",
+    title: {
+      en: "Private FlightAware service",
+      zh: "FlightAware 私有服务",
+    },
+    summary: {
+      en: "FlightAware-backed lookups now go through a private Railway service instead of public ADSBao code.",
+      zh: "FlightAware 相关查询现在走私有 Railway 服务，不再由公共 ADSBao 代码直接访问上游。",
+    },
+    highlights: [
+      {
+        en: "Callsign fallback, FlightAware route lookup, and airline logos share the same private REST boundary",
+        zh: "呼号兜底、FlightAware 航路查询和航司 logo 都统一到私有 REST 边界",
+      },
+      {
+        en: "The public data-service keeps only remote client code and feature-gated wiring",
+        zh: "公共 data-service 只保留远端 client 和 feature gate 接线",
+      },
+    ],
+  },
   {
     version: "v2.21.1",
     kind: "patch",
@@ -466,32 +488,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Programmatic scroll and focus positioning still keep toolbar clearance without pushing the page content upward",
         zh: "程序化滚动和聚焦仍保留工具栏避让距离，但不会把页面内容整体向上顶",
-      },
-    ],
-  },
-  {
-    version: "v2.17.0",
-    kind: "feat",
-    title: {
-      en: "Offline static shell",
-      zh: "静态页面离线壳",
-    },
-    summary: {
-      en: "Home, About, Mechanism, and Changelog can now reopen from the local app shell, with the homepage branding video cached for offline starts while live aviation data remains network-only.",
-      zh: "首页、关于、机制和更新日志现在可以从本地应用壳重新打开；首页品牌视频会为离线启动缓存，而实时航空数据仍保持只走网络。",
-    },
-    highlights: [
-      {
-        en: "The Vite build emits a small service worker that precaches the static-page shell, icons, manifest, and homepage branding video",
-        zh: "Vite 构建会产出一个小型 service worker，预缓存静态页面壳、图标、manifest 和首页品牌视频",
-      },
-      {
-        en: "API routes, WebSocket traffic, runtime env, and version checks stay network-only so stale aircraft positions, METAR, airport traffic, and flight status are not replayed offline",
-        zh: "API 路由、WebSocket 流量、运行时环境和版本检查继续只走网络，避免离线回放过期飞机位置、METAR、机场流量和航班状态",
-      },
-      {
-        en: "Railway static serving now gives hashed assets immutable cache headers while SPA HTML stays no-store",
-        zh: "Railway 静态服务现在为带 hash 的资源设置 immutable 缓存头，同时 SPA HTML 保持 no-store",
       },
     ],
   },
