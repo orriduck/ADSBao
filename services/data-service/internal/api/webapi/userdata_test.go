@@ -19,12 +19,13 @@ func TestMergeMapSettingsPreservesExistingLayerOverrides(t *testing.T) {
 
 	next := mergeMapSettings(current, map[string]any{
 		"layerOverrides": map[string]any{
-			"airspaces": true,
+			"airspaces":       true,
+			"reportingPoints": true,
 		},
 	})
 
 	layers := next["layerOverrides"].(map[string]any)
-	if layers["mapLabels"] != false || layers["showCallsigns"] != true || layers["airspaces"] != true {
+	if layers["mapLabels"] != false || layers["showCallsigns"] != true || layers["airspaces"] != true || layers["reportingPoints"] != true {
 		t.Fatalf("expected merged layer overrides, got %#v", layers)
 	}
 	if next["baseLayer"] != "terrain" {
