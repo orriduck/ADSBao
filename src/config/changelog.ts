@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 92;
+export const CHANGELOG_TOTAL_COUNT = 93;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.19.4",
+    kind: "patch",
+    title: {
+      en: "Mobile sidebar bottom clearance",
+      zh: "移动侧栏底部留白",
+    },
+    summary: {
+      en: "Mobile airport and flight sidebars now keep a 96px scroll-end placeholder so bottom content clears the fixed toolbar.",
+      zh: "移动端机场与航班侧栏在内容末尾保留 96px 滚动占位，避免底部内容被固定工具栏挡住。",
+    },
+    highlights: [
+      {
+        en: "The shared mobile sidebar panels use a dedicated bottom-placeholder token while preserving the existing single scroll owner",
+        zh: "共享移动侧栏面板改用专门的底部占位 token，同时保留现有单一滚动容器",
+      },
+      {
+        en: "Scroll padding matches the placeholder so focus and programmatic scroll positions also clear the bottom toolbar",
+        zh: "scroll padding 与占位高度保持一致，让聚焦和程序滚动位置也能避开底部工具栏",
+      },
+    ],
+  },
   {
     version: "v2.19.3",
     kind: "patch",
@@ -482,28 +504,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Returning to landscape resets the sidebar scroll position so the header does not reopen midway down the panel",
         zh: "回到横屏时会重置侧栏滚动位置，避免侧栏从面板中段重新打开",
-      },
-    ],
-  },
-  {
-    version: "v2.15.4",
-    kind: "patch",
-    title: {
-      en: "Preview and dither polish",
-      zh: "预览卡与点阵背景打磨",
-    },
-    summary: {
-      en: "Landscape preview cards now sit on the same lower edge as the sidebar, and the home dither animation fills behind the floating panel without a poster-frame ghost.",
-      zh: "横屏预览卡现在与侧栏下缘对齐，主页点阵动画会铺到浮动面板背后，并去掉首帧重影。",
-    },
-    highlights: [
-      {
-        en: "Compact mobile preview cards in landscape keep horizontal safe-area offsets while aligning their bottom edge with the sidebar",
-        zh: "横屏紧凑移动预览卡保留左右 safe-area 偏置，同时底边与侧栏对齐",
-      },
-      {
-        en: "The dither video loads directly, stays hidden until ready, and fills the static-page shell behind the frosted sidebar",
-        zh: "点阵视频直接加载、未就绪前隐藏，并铺满静态页外壳、位于磨砂侧栏背后",
       },
     ],
   },

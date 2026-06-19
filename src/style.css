@@ -99,6 +99,7 @@
     --map-toolbar-mobile-clearance: calc(
         var(--atc-toolbar-shell-min-height) + max(24px, var(--app-bottom-safe-area) + 12px)
     );
+    --sidebar-mobile-bottom-placeholder: max(96px, var(--map-toolbar-mobile-clearance));
 
     /* Vertical room the Plane Hunter mobile bottom card reserves at
        the foot of the viewfinder. The template overlay anchors its
@@ -5037,9 +5038,10 @@ body {
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
-    /* Reserves room for the bottom-pinned (position: fixed) sidebar dock
-       so the last list row clears the floating toolbar at scroll end. */
-    padding-bottom: var(--map-toolbar-mobile-clearance);
+    /* Explicit scroll-end placeholder for the bottom-pinned sidebar dock so
+       the last content row can clear the floating toolbar on mobile. */
+    padding-bottom: var(--sidebar-mobile-bottom-placeholder);
+    scroll-padding-bottom: var(--sidebar-mobile-bottom-placeholder);
 }
 
 .airport-sidebar-panel--mobile .metar-token-strip {
