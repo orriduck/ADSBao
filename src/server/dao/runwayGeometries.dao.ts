@@ -5,7 +5,7 @@ import {
 
 type RunwayGeometryRecord = Record<string, any>;
 
-const RUNWAY_GEOMETRIES_TABLE = "runway_geometries";
+const RUNWAY_GEOMETRIES_TABLE = "ourairports.runway_geometries";
 
 const SELECT_COLUMNS = [
   "source",

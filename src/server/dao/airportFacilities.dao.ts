@@ -5,8 +5,8 @@ import {
 
 type AirportFacilityRecord = Record<string, any>;
 
-const AIRPORT_FREQUENCIES_TABLE = "airport_frequencies";
-const NAVAIDS_TABLE = "navaids";
+const AIRPORT_FREQUENCIES_TABLE = "ourairports.airport_frequencies";
+const NAVAIDS_TABLE = "ourairports.navaids";
 
 const AIRPORT_FREQUENCY_COLUMNS = [
   "id",

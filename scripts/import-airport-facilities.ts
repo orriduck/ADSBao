@@ -1,6 +1,7 @@
 import {
   bulkUpsertRows,
   createImportDatabaseFromEnv,
+  quoteQualifiedIdentifier,
 } from "./postgresImport";
 
 const FREQUENCIES_URL =
@@ -144,7 +145,7 @@ async function replaceRows({
   columns: string[];
 }) {
   console.log(`[import-airport-facilities] Clearing ${table}`);
-  await queryClient.query(`delete from "${table}" where id <> -1`);
+  await queryClient.query(`delete from ${quoteQualifiedIdentifier(table)} where id <> -1`);
 
   let imported = 0;
   for (let index = 0; index < rows.length; index += CHUNK_SIZE) {
@@ -175,7 +176,7 @@ async function main() {
   try {
     await replaceRows({
       queryClient,
-      table: "airport_frequencies",
+      table: "ourairports.airport_frequencies",
       rows: frequencyRows,
       columns: [
         "id",
@@ -188,7 +189,7 @@ async function main() {
     });
     await replaceRows({
       queryClient,
-      table: "navaids",
+      table: "ourairports.navaids",
       rows: navaidRows,
       columns: [
         "id",

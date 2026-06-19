@@ -19,7 +19,10 @@ assert.equal(isAdsbaoNetworkOnlyPath("/api/realtime/auth"), true);
 assert.equal(isAdsbaoNetworkOnlyPath("/ws"), true);
 assert.equal(isAdsbaoNetworkOnlyPath("/runtime-env.js"), true);
 assert.equal(isAdsbaoNetworkOnlyPath("/adsbao-version.json"), true);
-assert.equal(isAdsbaoNetworkOnlyPath("/brand/adsbao-aircraft-brand-loop.mp4"), false);
+assert.equal(
+  isAdsbaoNetworkOnlyPath("/brand/adsbao-aircraft-brand-loop-20260619.mp4"),
+  false,
+);
 
 assert.equal(
   shouldPrecacheViteChunk({

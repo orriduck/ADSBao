@@ -1,12 +1,14 @@
 import {
   bulkUpsertRows,
   createImportDatabaseFromEnv,
+  quoteQualifiedIdentifier,
 } from "./postgresImport";
 
 const RUNWAYS_URL =
   process.env.OURAIRPORTS_RUNWAYS_URL ||
   "https://davidmegginson.github.io/ourairports-data/runways.csv";
 
+const RUNWAY_GEOMETRIES_TABLE = "ourairports.runway_geometries";
 const CHUNK_SIZE = 1000;
 
 const parseCsvRows = (text: string) => {
@@ -124,7 +126,7 @@ async function main() {
   console.log("[import-runway-geometries] Clearing existing OurAirports runway geometry rows");
   try {
     await queryClient.query(
-      `delete from "runway_geometries" where source = $1`,
+      `delete from ${quoteQualifiedIdentifier(RUNWAY_GEOMETRIES_TABLE)} where source = $1`,
       ["ourairports"],
     );
 
@@ -133,7 +135,7 @@ async function main() {
       const chunk = rows.slice(index, index + CHUNK_SIZE);
       await bulkUpsertRows({
         queryClient,
-        table: "runway_geometries",
+        table: RUNWAY_GEOMETRIES_TABLE,
         columns: [
           "source",
           "source_id",

@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 94;
+export const CHANGELOG_TOTAL_COUNT = 95;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.19.6",
+    kind: "patch",
+    title: {
+      en: "Homepage video cache refresh",
+      zh: "首页视频缓存刷新",
+    },
+    summary: {
+      en: "The homepage branding video now uses a new asset URL so stale browser and PWA caches fetch the refreshed file.",
+      zh: "首页品牌视频现在使用新的资源 URL，让旧的浏览器和 PWA 缓存能拉到刷新后的文件。",
+    },
+    highlights: [
+      {
+        en: "Renamed the homepage MP4 asset and updated the video component, service worker video path, and precache list together",
+        zh: "重命名首页 MP4 资源，并同步更新视频组件、service worker 视频路径和预缓存列表",
+      },
+      {
+        en: "The package version and changelog version are bumped together so the update toast can prompt old tabs to refresh",
+        zh: "同步提升 package 版本和 changelog 版本，让旧页面能通过更新提示刷新",
+      },
+    ],
+  },
   {
     version: "v2.19.5",
     kind: "patch",
@@ -478,32 +500,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Map range toolbar taps skip the old long-press progress animation path and defer heavier fit work so pointer interactions paint sooner",
         zh: "地图视野范围按钮跳过旧的长按进度动画路径，并延后较重的 fit 计算，让 pointer 交互更快完成绘制",
-      },
-    ],
-  },
-  {
-    version: "v2.15.6",
-    kind: "patch",
-    title: {
-      en: "Unified layout profile",
-      zh: "统一布局 Profile",
-    },
-    summary: {
-      en: "Home, airport, flight, preview, Plane Hunter, and near-me surfaces now share the same client-device layout profile, with a duplicate historical changelog version cleaned up.",
-      zh: "主页、机场、航班、预览卡、拍机入口和附近页面现在共用同一套客户端设备布局 profile，同时清理了一处历史 changelog 版本重复。",
-    },
-    highlights: [
-      {
-        en: "Airport and flight shells derive mobile, desktop, and landscape-phone sidebar modes from the shared app-shell device model",
-        zh: "机场和航班外壳改由共享 app-shell 设备模型决定移动端、桌面端和手机横屏侧栏模式",
-      },
-      {
-        en: "Plane Hunter and the near-me location flow no longer keep separate device heuristics from the rest of the app",
-        zh: "拍机入口和附近位置流程不再维护独立于应用其它部分的设备判断",
-      },
-      {
-        en: "The version update toast fix and Better Stack duration parser patch now have distinct historical patch entries",
-        zh: "版本更新提示修复与 Better Stack duration 解析修复现在各自对应独立的历史 patch 条目",
       },
     ],
   },

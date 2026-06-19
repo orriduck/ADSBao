@@ -4,7 +4,7 @@ import { buildBulkUpsertQuery } from "./postgresImport";
 
 {
   const query = buildBulkUpsertQuery({
-    table: "airports",
+    table: "ourairports.airports",
     columns: ["ident", "name", "latitude_deg"],
     conflictColumns: ["ident"],
     rows: [
@@ -16,7 +16,7 @@ import { buildBulkUpsertQuery } from "./postgresImport";
   assert.ok(query);
   assert.equal(
     query.text.replace(/\s+/g, " ").trim(),
-    'insert into "airports" ("ident", "name", "latitude_deg") values ($1, $2, $3), ($4, $5, $6) on conflict ("ident") do update set "name" = excluded."name", "latitude_deg" = excluded."latitude_deg"',
+    'insert into "ourairports"."airports" ("ident", "name", "latitude_deg") values ($1, $2, $3), ($4, $5, $6) on conflict ("ident") do update set "name" = excluded."name", "latitude_deg" = excluded."latitude_deg"',
   );
   assert.deepEqual(query.values, [
     "KBOS",

@@ -40,7 +40,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   assert.equal(byAirport.get("KBOS")[0].le.ident, "04L");
   assert.match(
     normalizeSql(calls[0].text),
-    /from runway_geometries where source = \$1 and airport_ident = any\(\$2::text\[\]\) order by airport_ident asc, le_ident asc/i,
+    /from ourairports\.runway_geometries where source = \$1 and airport_ident = any\(\$2::text\[\]\) order by airport_ident asc, le_ident asc/i,
   );
   assert.deepEqual(calls[0].values, ["ourairports", ["KBOS"]]);
 }

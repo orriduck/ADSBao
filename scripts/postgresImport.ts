@@ -12,11 +12,19 @@ type BulkUpsertOptions = {
 
 const IDENTIFIER_PATTERN = /^[a-z_][a-z0-9_]*$/;
 
-const quoteIdentifier = (identifier: string) => {
+export const quoteIdentifier = (identifier: string) => {
   if (!IDENTIFIER_PATTERN.test(identifier)) {
     throw new Error(`Invalid SQL identifier: ${identifier}`);
   }
   return `"${identifier}"`;
+};
+
+export const quoteQualifiedIdentifier = (identifier: string) => {
+  const parts = identifier.split(".");
+  if (parts.length < 1 || parts.length > 2 || parts.some((part) => !part)) {
+    throw new Error(`Invalid SQL identifier: ${identifier}`);
+  }
+  return parts.map(quoteIdentifier).join(".");
 };
 
 export function buildBulkUpsertQuery({
@@ -26,7 +34,7 @@ export function buildBulkUpsertQuery({
   rows,
 }: BulkUpsertOptions) {
   if (rows.length === 0) return null;
-  const quotedTable = quoteIdentifier(table);
+  const quotedTable = quoteQualifiedIdentifier(table);
   const quotedColumns = columns.map(quoteIdentifier);
   const quotedConflictColumns = conflictColumns.map(quoteIdentifier);
   const values: unknown[] = [];

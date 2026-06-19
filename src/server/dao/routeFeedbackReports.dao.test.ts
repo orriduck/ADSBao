@@ -43,7 +43,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   assert.equal(row, overrideRow);
   assert.match(
     normalizeSql(calls[0].text),
-    /from flight_route_feedback_reports where normalized_callsign = \$1 and status = \$2 and deleted_at is null and expires_at > \$3 order by created_at desc limit 1/i,
+    /from runtime\.flight_route_feedback_reports where normalized_callsign = \$1 and status = \$2 and deleted_at is null and expires_at > \$3 order by created_at desc limit 1/i,
   );
   assert.deepEqual(calls[0].values, [
     "AAL1234",
@@ -100,7 +100,10 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   });
 
   assert.equal(result, insertedRow);
-  assert.match(normalizeSql(calls[0].text), /^insert into flight_route_feedback_reports/i);
+  assert.match(
+    normalizeSql(calls[0].text),
+    /^insert into runtime\.flight_route_feedback_reports/i,
+  );
   assert.deepEqual(calls[0].values.slice(0, 5), [
     "AAL1234|KBOS|BOS",
     "AAL1234",

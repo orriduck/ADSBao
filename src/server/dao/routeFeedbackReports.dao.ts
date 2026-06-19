@@ -5,7 +5,7 @@ import {
 
 type RouteFeedbackRecord = Record<string, any>;
 
-const ROUTE_FEEDBACK_TABLE = "flight_route_feedback_reports";
+const ROUTE_FEEDBACK_TABLE = "runtime.flight_route_feedback_reports";
 
 const ACTIVE_STATUS = "active";
 

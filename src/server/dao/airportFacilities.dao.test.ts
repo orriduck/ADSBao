@@ -43,7 +43,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   assert.equal(frequencies[0].source, "ourairports");
   assert.match(
     normalizeSql(calls[0].text),
-    /from airport_frequencies where airport_ident = \$1 order by type asc, frequency_mhz asc/i,
+    /from ourairports\.airport_frequencies where airport_ident = \$1 order by type asc, frequency_mhz asc/i,
   );
   assert.deepEqual(calls[0].values, ["KBOS"]);
 }
@@ -76,7 +76,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   assert.equal(navaids.length, 1);
   assert.equal(navaids[0].ident, "BOS");
   assert.equal(navaids[0].source, "ourairports");
-  assert.match(normalizeSql(calls[0].text), /from navaids/i);
+  assert.match(normalizeSql(calls[0].text), /from ourairports\.navaids/i);
   assert.match(normalizeSql(calls[0].text), /limit \$5/i);
   assert.equal(calls[0].values[4], 50);
 }
@@ -95,7 +95,10 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   });
 
   assert.equal(count, 37);
-  assert.match(normalizeSql(calls[0].text), /select count\(\*\)::int as count from navaids/i);
+  assert.match(
+    normalizeSql(calls[0].text),
+    /select count\(\*\)::int as count from ourairports\.navaids/i,
+  );
 }
 
 {

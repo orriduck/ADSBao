@@ -78,7 +78,7 @@ func (s *UserDataStore) readRunwayMaps(ctx context.Context, idents []string) (ma
 		ctx,
 		"read_runway_geometries",
 		`select airport_ident, `+runwayGeometrySelectColumns+`
-		 from runway_geometries
+		 from ourairports.runway_geometries
 		 where source = $1
 		   and airport_ident in (`+strings.Join(placeholders, ",")+`)
 		 order by airport_ident asc, le_ident asc`,

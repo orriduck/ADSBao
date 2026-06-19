@@ -5,7 +5,12 @@
 
 create extension if not exists pgcrypto;
 
-create table if not exists airports (
+create schema if not exists ourairports;
+create schema if not exists app_user;
+create schema if not exists runtime;
+create schema if not exists openaip;
+
+create table if not exists ourairports.airports (
   ident text primary key,
   ourairports_id bigint,
   type text not null default '',
@@ -27,14 +32,14 @@ create table if not exists airports (
 );
 
 create index if not exists airports_icao_code_idx
-  on airports (icao_code)
+  on ourairports.airports (icao_code)
   where icao_code <> '';
 
 create index if not exists airports_iata_code_idx
-  on airports (iata_code)
+  on ourairports.airports (iata_code)
   where iata_code <> '';
 
-create table if not exists airport_frequencies (
+create table if not exists ourairports.airport_frequencies (
   id bigint primary key,
   airport_ref bigint,
   airport_ident text not null,
@@ -49,9 +54,9 @@ create table if not exists airport_frequencies (
 );
 
 create index if not exists airport_frequencies_airport_ident_idx
-  on airport_frequencies (airport_ident);
+  on ourairports.airport_frequencies (airport_ident);
 
-create table if not exists navaids (
+create table if not exists ourairports.navaids (
   id bigint primary key,
   filename text not null default '',
   ident text not null default '',
@@ -88,13 +93,13 @@ create table if not exists navaids (
 );
 
 create index if not exists navaids_associated_airport_idx
-  on navaids (associated_airport)
+  on ourairports.navaids (associated_airport)
   where associated_airport <> '';
 
 create index if not exists navaids_lat_lon_idx
-  on navaids (latitude_deg, longitude_deg);
+  on ourairports.navaids (latitude_deg, longitude_deg);
 
-create table if not exists runway_geometries (
+create table if not exists ourairports.runway_geometries (
   source text not null,
   source_id text not null,
   airport_ident text not null,
@@ -133,12 +138,12 @@ create table if not exists runway_geometries (
 );
 
 create index if not exists runway_geometries_airport_ident_idx
-  on runway_geometries (airport_ident);
+  on ourairports.runway_geometries (airport_ident);
 
 create index if not exists runway_geometries_source_airport_idx
-  on runway_geometries (source, airport_ident);
+  on ourairports.runway_geometries (source, airport_ident);
 
-create or replace function set_runway_geometries_updated_at()
+create or replace function ourairports.set_runway_geometries_updated_at()
 returns trigger
 language plpgsql
 as $$
@@ -149,14 +154,14 @@ end;
 $$;
 
 drop trigger if exists runway_geometries_set_updated_at
-  on runway_geometries;
+  on ourairports.runway_geometries;
 
 create trigger runway_geometries_set_updated_at
-before update on runway_geometries
+before update on ourairports.runway_geometries
 for each row
-execute function set_runway_geometries_updated_at();
+execute function ourairports.set_runway_geometries_updated_at();
 
-create table if not exists flight_route_feedback_reports (
+create table if not exists runtime.flight_route_feedback_reports (
   id uuid primary key default gen_random_uuid(),
   cache_key text not null,
   normalized_callsign text not null,
@@ -185,11 +190,11 @@ create table if not exists flight_route_feedback_reports (
 );
 
 create index if not exists flight_route_feedback_reports_active_callsign_idx
-  on flight_route_feedback_reports
+  on runtime.flight_route_feedback_reports
   (normalized_callsign, expires_at desc, created_at desc)
   where deleted_at is null and status = 'active';
 
-create table if not exists user_feature_flags (
+create table if not exists app_user.user_feature_flags (
   email text not null,
   environment text not null default 'production',
   flags jsonb not null default '{}'::jsonb,
@@ -207,7 +212,7 @@ create table if not exists user_feature_flags (
     check (jsonb_typeof(flags) = 'object')
 );
 
-create table if not exists user_map_settings (
+create table if not exists app_user.user_map_settings (
   email text not null,
   environment text not null default 'production',
   device text not null default 'desktop',
@@ -229,7 +234,7 @@ create table if not exists user_map_settings (
     check (jsonb_typeof(settings) = 'object')
 );
 
-create table if not exists openaip_airports (
+create table if not exists openaip.openaip_airports (
   openaip_id text primary key,
   icao_code text not null default '',
   iata_code text not null default '',
@@ -259,23 +264,23 @@ create table if not exists openaip_airports (
 );
 
 create index if not exists openaip_airports_icao_code_idx
-  on openaip_airports (icao_code)
+  on openaip.openaip_airports (icao_code)
   where icao_code <> '';
 
 create index if not exists openaip_airports_iata_code_idx
-  on openaip_airports (iata_code)
+  on openaip.openaip_airports (iata_code)
   where iata_code <> '';
 
 create index if not exists openaip_airports_country_type_idx
-  on openaip_airports (country, type);
+  on openaip.openaip_airports (country, type);
 
 create index if not exists openaip_airports_name_idx
-  on openaip_airports (lower(name));
+  on openaip.openaip_airports (lower(name));
 
 create index if not exists openaip_airports_lat_lon_idx
-  on openaip_airports (latitude_deg, longitude_deg);
+  on openaip.openaip_airports (latitude_deg, longitude_deg);
 
-create table if not exists openaip_cache (
+create table if not exists runtime.openaip_cache (
   cache_key text primary key,
   resource_type text not null,
   query jsonb not null,
@@ -292,12 +297,12 @@ create table if not exists openaip_cache (
 );
 
 create index if not exists openaip_cache_resource_type_idx
-  on openaip_cache (resource_type);
+  on runtime.openaip_cache (resource_type);
 
 create index if not exists openaip_cache_expires_at_idx
-  on openaip_cache (expires_at);
+  on runtime.openaip_cache (expires_at);
 
-create or replace function set_openaip_cache_updated_at()
+create or replace function runtime.set_openaip_cache_updated_at()
 returns trigger
 language plpgsql
 as $$
@@ -308,9 +313,9 @@ end;
 $$;
 
 drop trigger if exists openaip_cache_set_updated_at
-  on openaip_cache;
+  on runtime.openaip_cache;
 
 create trigger openaip_cache_set_updated_at
-before update on openaip_cache
+before update on runtime.openaip_cache
 for each row
-execute function set_openaip_cache_updated_at();
+execute function runtime.set_openaip_cache_updated_at();

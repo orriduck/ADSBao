@@ -14,7 +14,7 @@ export const ADSBAO_PWA_PUBLIC_ASSET_PATHS = [
   "/manifest.webmanifest",
   "/icon.png",
   "/apple-icon.png",
-  "/brand/adsbao-aircraft-brand-loop.mp4",
+  "/brand/adsbao-aircraft-brand-loop-20260619.mp4",
   "/brand/adsbao-aircraft-brand-poster.jpg",
   "/brand/adsbao-logo.png",
 ] as const;

@@ -118,7 +118,7 @@ const PRECACHE_URLS = ${JSON.stringify(precacheUrls, null, 2)};
 const OFFLINE_NAVIGATION_PATHS = ${JSON.stringify(ADSBAO_OFFLINE_NAVIGATION_PATHS)};
 const NETWORK_ONLY_PATHS = ${JSON.stringify(ADSBAO_NETWORK_ONLY_PATHS)};
 const NETWORK_ONLY_PREFIXES = ${JSON.stringify(ADSBAO_NETWORK_ONLY_PREFIXES)};
-const HOME_VIDEO_PATH = "/brand/adsbao-aircraft-brand-loop.mp4";
+const HOME_VIDEO_PATH = "/brand/adsbao-aircraft-brand-loop-20260619.mp4";
 const RUNTIME_ENV_FALLBACK = "window.__ADSBAO_ENV__ = Object.assign({}, window.__ADSBAO_ENV__, {});\\n";
 
 function cleanNavigationPath(pathname) {

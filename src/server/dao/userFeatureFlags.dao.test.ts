@@ -43,7 +43,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
     flags: { flightAwareEnabled: true, otherFlag: "true" },
   });
 
-  assert.match(normalizeSql(calls[0].text), /^insert into user_feature_flags/i);
+  assert.match(normalizeSql(calls[0].text), /^insert into app_user\.user_feature_flags/i);
   assert.deepEqual(calls[0].values.slice(0, 3), [
     "owner@example.com",
     "preview",
@@ -67,7 +67,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   const result = await repository.deleteFlagsByEmail(" Owner@Example.COM ");
 
   assert.deepEqual(result, { email: "owner@example.com", environment: "preview" });
-  assert.match(normalizeSql(calls[0].text), /^delete from user_feature_flags/i);
+  assert.match(normalizeSql(calls[0].text), /^delete from app_user\.user_feature_flags/i);
   assert.deepEqual(calls[0].values, ["owner@example.com", "preview"]);
 }
 
@@ -91,7 +91,10 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
 
   const row = await repository.readFlagsByEmail(" Owner@Example.COM ");
 
-  assert.match(normalizeSql(calls[0].text), /^select email,environment,flags,updated_at from user_feature_flags/i);
+  assert.match(
+    normalizeSql(calls[0].text),
+    /^select email,environment,flags,updated_at from app_user\.user_feature_flags/i,
+  );
   assert.deepEqual(calls[0].values, ["owner@example.com", "preview"]);
   assert.deepEqual(row, {
     email: "owner@example.com",

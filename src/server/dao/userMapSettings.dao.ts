@@ -14,7 +14,7 @@ import {
   normalizeMapSettingsDevice,
 } from "../../features/airport/map-settings/mapSettingsModel";
 
-const USER_MAP_SETTINGS_TABLE = "user_map_settings";
+const USER_MAP_SETTINGS_TABLE = "app_user.user_map_settings";
 const SELECT_COLUMNS = "email,environment,device,settings,has_selected_mode,updated_at";
 
 type UserMapSettingsRecord = Record<string, any>;

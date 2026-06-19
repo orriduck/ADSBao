@@ -63,7 +63,7 @@ func (s *UserDataStore) readMapSettings(ctx context.Context, email, device strin
 	var updatedAt time.Time
 	err := s.queryRow(ctx, "read_map_settings",
 		`select settings, has_selected_mode, updated_at
-		 from user_map_settings
+		 from app_user.user_map_settings
 		 where email = $1 and environment = $2 and device = $3
 		 limit 1`,
 		normalizeEmail(email),
@@ -108,7 +108,7 @@ func (s *UserDataStore) upsertMapSettings(ctx context.Context, email, device str
 	var hasSelected bool
 	var storedAt time.Time
 	err = s.queryRow(ctx, "upsert_map_settings",
-		`insert into user_map_settings (
+		`insert into app_user.user_map_settings (
 		   email, environment, device, settings, has_selected_mode, updated_at
 		 )
 		 values ($1, $2, $3, $4::jsonb, $5, $6)
@@ -151,7 +151,7 @@ func (s *UserDataStore) writeRouteFeedback(ctx context.Context, record map[strin
 		return err
 	}
 	_, err = s.exec(ctx, "write_route_feedback",
-		`insert into flight_route_feedback_reports (
+		`insert into runtime.flight_route_feedback_reports (
 		   cache_key, normalized_callsign, target_airport_icao, target_airport_iata,
 		   origin_icao, destination_icao, aircraft_hex, aircraft_type, user_hash,
 		   feedback_reason, prior_route_payload, route_payload, status, created_at,

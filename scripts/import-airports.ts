@@ -1,13 +1,14 @@
 import {
   bulkUpsertRows,
   createImportDatabaseFromEnv,
+  quoteQualifiedIdentifier,
 } from "./postgresImport";
 
 const AIRPORTS_URL =
   process.env.OURAIRPORTS_AIRPORTS_URL ||
   "https://davidmegginson.github.io/ourairports-data/airports.csv";
 
-const AIRPORTS_TABLE = "airports";
+const AIRPORTS_TABLE = "ourairports.airports";
 const CHUNK_SIZE = 1000;
 
 const parseCsvRows = (text: string) => {
@@ -111,7 +112,9 @@ async function replaceRows({
   rows: Record<string, any>[];
 }) {
   console.log(`[import-airports] Clearing ${AIRPORTS_TABLE}`);
-  await queryClient.query(`delete from "${AIRPORTS_TABLE}" where ident <> ''`);
+  await queryClient.query(
+    `delete from ${quoteQualifiedIdentifier(AIRPORTS_TABLE)} where ident <> ''`,
+  );
 
   let imported = 0;
   for (let index = 0; index < rows.length; index += CHUNK_SIZE) {

@@ -20,8 +20,22 @@ PGPOOL_MAX=5
 ## Apply Schema
 
 ```bash
-psql "$ADSBAO_DATABASE_URL" -f database/migrations/001_adsbao_postgres.sql
+for migration in database/migrations/*.sql; do
+  psql "$ADSBAO_DATABASE_URL" -f "$migration"
+done
 ```
+
+## Namespaces
+
+The Railway Postgres service uses one database with schema namespaces:
+
+| Schema | Tables |
+|---|---|
+| `ourairports` | `airports`, `airport_frequencies`, `navaids`, `runway_geometries` |
+| `spotter` | `spotter_locations` |
+| `app_user` | `user_map_settings`, `user_feature_flags` |
+| `runtime` | `flight_route_feedback_reports`, `openaip_cache` |
+| `openaip` | `openaip_airports` |
 
 ## Import Static Data
 

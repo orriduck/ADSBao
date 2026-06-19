@@ -1,7 +1,9 @@
 -- Spotter locations: plane spotting positions near airports.
 -- Data sourced from spotterguide.net (rewritten, factual data only).
 
-create table if not exists spotter_locations (
+create schema if not exists spotter;
+
+create table if not exists spotter.spotter_locations (
   id uuid primary key default gen_random_uuid(),
   airport_icao text not null,
   airport_name text not null default '',
@@ -27,12 +29,12 @@ create table if not exists spotter_locations (
 );
 
 create index if not exists spotter_locations_airport_icao_idx
-  on spotter_locations (airport_icao);
+  on spotter.spotter_locations (airport_icao);
 
 create index if not exists spotter_locations_lat_lon_idx
-  on spotter_locations (latitude_deg, longitude_deg);
+  on spotter.spotter_locations (latitude_deg, longitude_deg);
 
-create or replace function set_spotter_locations_updated_at()
+create or replace function spotter.set_spotter_locations_updated_at()
 returns trigger
 language plpgsql
 as $$
@@ -43,9 +45,9 @@ end;
 $$;
 
 drop trigger if exists spotter_locations_set_updated_at
-  on spotter_locations;
+  on spotter.spotter_locations;
 
 create trigger spotter_locations_set_updated_at
-before update on spotter_locations
+before update on spotter.spotter_locations
 for each row
-execute function set_spotter_locations_updated_at();
+execute function spotter.set_spotter_locations_updated_at();

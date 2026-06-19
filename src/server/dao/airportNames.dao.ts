@@ -7,7 +7,7 @@ type AirportNameRecord = Record<string, any>;
 
 // OurAirports static reference table, restored to provide the full, mixed-case
 // airport name that OpenAIP truncates. Keyed by identifier; we read names only.
-const AIRPORTS_TABLE = "airports";
+const AIRPORTS_TABLE = "ourairports.airports";
 
 const SELECT_COLUMNS = ["ident", "icao_code", "iata_code", "name", "municipality"].join(",");
 

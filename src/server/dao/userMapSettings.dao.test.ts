@@ -63,7 +63,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   });
 
   const writeCall = calls[1];
-  assert.match(normalizeSql(writeCall.text), /^insert into user_map_settings/i);
+  assert.match(normalizeSql(writeCall.text), /^insert into app_user\.user_map_settings/i);
   assert.equal(writeCall.values[0], "owner@example.com");
   assert.equal(writeCall.values[1], "preview");
   assert.equal(writeCall.values[2], "desktop");
@@ -102,7 +102,10 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
 
   const row = await repository.readSettingsByEmail(" Owner@Example.COM ");
 
-  assert.match(normalizeSql(calls[0].text), /^select email,environment,device,settings,has_selected_mode,updated_at from user_map_settings/i);
+  assert.match(
+    normalizeSql(calls[0].text),
+    /^select email,environment,device,settings,has_selected_mode,updated_at from app_user\.user_map_settings/i,
+  );
   assert.deepEqual(calls[0].values, ["owner@example.com", "production", "desktop"]);
   assert.equal(row.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
   assert.equal(row.settings.hasSelectedMode, false);

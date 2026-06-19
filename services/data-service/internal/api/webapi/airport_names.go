@@ -46,7 +46,7 @@ func (s *UserDataStore) readAirportNames(ctx context.Context, idents []string) (
 		ctx,
 		"read_airport_names",
 		`select ident, icao_code, iata_code, name, municipality
-		 from airports
+		 from ourairports.airports
 		 where name <> ''
 		   and (icao_code in (`+inClause+`) or ident in (`+inClause+`) or iata_code in (`+inClause+`))`,
 		args...,

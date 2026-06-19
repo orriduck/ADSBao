@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const DEFAULT_SOURCE = "/brand/adsbao-aircraft-brand-loop.mp4";
+const DEFAULT_SOURCE = "/brand/adsbao-aircraft-brand-loop-20260619.mp4";
 const BACKGROUND_HIDDEN_QUERY = "(max-width: 720px)";
 
 export default function BrandingVideoBackground({ source = DEFAULT_SOURCE }) {
