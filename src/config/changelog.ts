@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 97;
+export const CHANGELOG_TOTAL_COUNT = 98;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.21.1",
+    kind: "patch",
+    title: {
+      en: "Photo location navigation",
+      zh: "拍机点导航",
+    },
+    summary: {
+      en: "Photo locations now open a navigation chooser with system maps and Google Maps options.",
+      zh: "点击拍机点现在会打开导航选择，可用系统地图或 Google Maps 导航到该位置。",
+    },
+    highlights: [
+      {
+        en: "Selecting a photo location keeps the existing preview while opening a focused directions modal",
+        zh: "选中拍机点时保留现有预览，同时弹出聚焦的路线选择窗口",
+      },
+      {
+        en: "System Maps uses the device-native map route where available, with Google Maps as a separate option",
+        zh: "系统地图优先使用设备原生地图路线，Google Maps 作为独立选项提供",
+      },
+    ],
+  },
   {
     version: "v2.21.0",
     kind: "feat",
@@ -470,28 +492,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Railway static serving now gives hashed assets immutable cache headers while SPA HTML stays no-store",
         zh: "Railway 静态服务现在为带 hash 的资源设置 immutable 缓存头，同时 SPA HTML 保持 no-store",
-      },
-    ],
-  },
-  {
-    version: "v2.16.2",
-    kind: "patch",
-    title: {
-      en: "Route provider exclusivity fixes",
-      zh: "航路数据源互斥修正",
-    },
-    summary: {
-      en: "FlightAware and adsbdb route lookup now stay mutually exclusive, and static-page brand docks no longer gain an extra divider line.",
-      zh: "FlightAware 与 adsbdb 航路查询现在保持互斥，静态页品牌栏也不再多出额外分隔线。",
-    },
-    highlights: [
-      {
-        en: "FlightAware route mode no longer subscribes to adsbdb route channels or accepts adsbdb cached routes as a fallback",
-        zh: "FlightAware 航路模式不再订阅 adsbdb 航路频道，也不会把 adsbdb 缓存航路当作 fallback",
-      },
-      {
-        en: "Home and static pages keep the clean brand dock without the sidebar divider rule",
-        zh: "首页和静态页保持干净的品牌栏，不再添加侧栏分隔横线",
       },
     ],
   },

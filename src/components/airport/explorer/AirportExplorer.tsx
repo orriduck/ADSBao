@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { CSSProperties } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar";
+import CandidateWatchingSpotNavigationModal from "./CandidateWatchingSpotNavigationModal";
 import {
   MapLoadingFallback,
   useMapLoadingOverlayText,
@@ -98,7 +99,6 @@ function AirportExplorerContent({
     setSelectedReportingPointKey,
     selectAirspace,
     setSelectedAirspaceId,
-    selectCandidateWatchingSpot,
     setSelectedCandidateWatchingSpotId,
     clearAllPreviewSelections,
     collapseSidebar,
@@ -115,6 +115,7 @@ function AirportExplorerContent({
   const [wakeLockState, toggleWakeLock] = useWakeLock();
   const [userLocationPending, setUserLocationPending] = useState(false);
   const [userLocationNotice, setUserLocationNotice] = useState("");
+  const [navigationSpotId, setNavigationSpotId] = useState("");
   const userLocationWatchIdRef = useRef<number | null>(null);
   const autoUserLocationAttemptKeyRef = useRef("");
   const spottingPreviousZoomRef = useRef<number | null>(null);
@@ -154,6 +155,15 @@ function AirportExplorerContent({
     enabled: Boolean(airportProfile.icao),
     spots: airport?.spotterLocations || [],
   });
+  const navigationSpot = useMemo(
+    () =>
+      navigationSpotId
+        ? candidateWatchingSpots.spots.find(
+            (spot) => String(spot?.id || "") === navigationSpotId,
+          ) || null
+        : null,
+    [candidateWatchingSpots.spots, navigationSpotId],
+  );
   const selection = useMemo(
     () =>
       resolveAirportExplorerSelection({
@@ -234,6 +244,10 @@ function AirportExplorerContent({
     selection.selectedCandidateWatchingSpotStillVisible,
     setSelectedCandidateWatchingSpotId,
   ]);
+
+  useEffect(() => {
+    if (navigationSpotId && !navigationSpot) setNavigationSpotId("");
+  }, [navigationSpot, navigationSpotId]);
 
   useEffect(() => {
     if (!userLocationNotice) return undefined;
@@ -428,6 +442,18 @@ function AirportExplorerContent({
     setMapZoom(zoomUpdate.nextZoom);
   }, [applyMapMode, mapZoom, setMapZoom]);
 
+  const handleSelectCandidateWatchingSpot = useCallback((spotId) => {
+    const nextSpotId = String(spotId || "").trim();
+    if (!nextSpotId) return;
+    setSelectedCandidateWatchingSpotId(nextSpotId);
+    setNavigationSpotId(nextSpotId);
+  }, [setSelectedCandidateWatchingSpotId]);
+
+  const handleClearPreviewSelections = useCallback(() => {
+    setNavigationSpotId("");
+    clearAllPreviewSelections();
+  }, [clearAllPreviewSelections]);
+
   const criticalLoadingSettled = areCriticalLoadingRequestsSettled({
     aircraftPositionsSettled: traffic.aircraftPositionsSettled,
     metarSettled: weather.metarSettled,
@@ -520,7 +546,7 @@ function AirportExplorerContent({
     nearMeRefresh,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
-    onSelectCandidateWatchingSpot: selectCandidateWatchingSpot,
+    onSelectCandidateWatchingSpot: handleSelectCandidateWatchingSpot,
     onOpenSpotting: openSpottingDetail,
     onBack,
     onMap: closeSidebar,
@@ -551,7 +577,7 @@ function AirportExplorerContent({
             sidebarOpen={sidebarOpen && !sidebarCollapsed}
             airportProfile={airportProfile}
             onApplyTemporaryRoute={traffic.applyTemporaryRoute}
-            onDismiss={clearAllPreviewSelections}
+            onDismiss={handleClearPreviewSelections}
             clientDeviceProfile={clientDeviceProfile}
             preferMobilePreview={
               clientDeviceLayout.useDesktopMobileLandscapeLayout
@@ -646,7 +672,7 @@ function AirportExplorerContent({
               onSelectNavaid={selectNavaid}
               onSelectReportingPoint={selectReportingPoint}
               onSelectAirspace={selectAirspace}
-              onSelectCandidateWatchingSpot={selectCandidateWatchingSpot}
+              onSelectCandidateWatchingSpot={handleSelectCandidateWatchingSpot}
               runwayMap={airport?.runwayMap}
               surfaceMap={airport?.surfaceMap}
               loadingOverlayActive={loadingOverlayActive}
@@ -668,6 +694,13 @@ function AirportExplorerContent({
               <AirportSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}
+          <CandidateWatchingSpotNavigationModal
+            spot={navigationSpot}
+            open={Boolean(navigationSpot)}
+            onOpenChange={(nextOpen) => {
+              if (!nextOpen) setNavigationSpotId("");
+            }}
+          />
         </div>
       </div>
     </SelectedAircraftTraceProvider>

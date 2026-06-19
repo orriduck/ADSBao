@@ -384,6 +384,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.16.2",
+    kind: "patch",
+    title: {
+      en: "Route provider exclusivity fixes",
+      zh: "航路数据源互斥修正",
+    },
+    summary: {
+      en: "FlightAware and adsbdb route lookup now stay mutually exclusive, and static-page brand docks no longer gain an extra divider line.",
+      zh: "FlightAware 与 adsbdb 航路查询现在保持互斥，静态页品牌栏也不再多出额外分隔线。",
+    },
+    highlights: [
+      {
+        en: "FlightAware route mode no longer subscribes to adsbdb route channels or accepts adsbdb cached routes as a fallback",
+        zh: "FlightAware 航路模式不再订阅 adsbdb 航路频道，也不会把 adsbdb 缓存航路当作 fallback",
+      },
+      {
+        en: "Home and static pages keep the clean brand dock without the sidebar divider rule",
+        zh: "首页和静态页保持干净的品牌栏，不再添加侧栏分隔横线",
+      },
+    ],
+  },
+  {
     version: "v2.16.1",
     kind: "patch",
     title: {
