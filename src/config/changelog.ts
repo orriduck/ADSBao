@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 101;
+export const CHANGELOG_TOTAL_COUNT = 102;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.3",
+    kind: "patch",
+    title: {
+      en: "Route fetch parallel hedge",
+      zh: "航路请求并行提速",
+    },
+    summary: {
+      en: "FlightAware route queries now run in parallel with ADSBDB fallback, cutting tail latency on FA timeouts.",
+      zh: "FlightAware 航路查询现在与 ADSBDB 兜底并行运行，减少 FA 超时时的尾延迟。",
+    },
+    highlights: [
+      {
+        en: "When RouteProvider is FlightAware, both FA and ADSBDB fire simultaneously; FA wins on success, ADSBDB serves as instant fallback",
+        zh: "RouteProvider 为 FlightAware 时，FA 与 ADSBDB 同时发起；FA 成功即返回，失败则 ADSBDB 作为即时兜底",
+      },
+      {
+        en: "Eliminates the serial wait for ADSBDB after an FA failure, making route polling more resilient under degraded conditions",
+        zh: "消除了 FA 失败后串行等待 ADSBDB 的步骤，让航路轮询在降级情况下更稳定",
+      },
+    ],
+  },
   {
     version: "v2.22.2",
     kind: "patch",
