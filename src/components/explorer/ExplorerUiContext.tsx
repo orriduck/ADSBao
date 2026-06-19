@@ -14,6 +14,7 @@ import {
   resolveClientDeviceLayoutProfile,
   type ClientLayoutMode,
 } from "@/features/app-shell/device/clientDeviceModel";
+import { resetViewportScroll } from "@/features/app-shell/viewportScroll";
 import {
   useClientDeviceProfile,
 } from "@/features/app-shell/device/useClientDeviceProfile";
@@ -92,9 +93,7 @@ function resetExplorerMapViewportScroll() {
   const kit = document.querySelector(".airport-map-kit");
   if (!kit) return;
 
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
+  resetViewportScroll();
   kit.querySelectorAll<HTMLElement>(".sidebar-shell").forEach((element) => {
     element.scrollTop = 0;
     element.scrollLeft = 0;

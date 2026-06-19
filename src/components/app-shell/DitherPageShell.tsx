@@ -12,14 +12,8 @@ import { SITE_DESCRIPTION } from "@/config/site";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/clientDeviceModel";
 import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
+import { scheduleViewportScrollReset } from "@/features/app-shell/viewportScroll";
 import { usePageEntrance } from "@/animations/usePageEntrance";
-
-function resetDocumentViewportScroll() {
-  if (typeof window === "undefined" || typeof document === "undefined") return;
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
-}
 
 export default function DitherPageShell({
   className = "",
@@ -76,27 +70,7 @@ export default function DitherPageShell({
   }, [collapseEnabled, expandSidebar]);
 
   useEffect(() => {
-    let frameId: number | null = null;
-    let timeoutIds: number[] = [];
-
-    const resetScroll = () => {
-      resetDocumentViewportScroll();
-      shellRef.current?.scrollTo({ top: 0, left: 0 });
-    };
-
-    resetScroll();
-    frameId = window.requestAnimationFrame(() => {
-      frameId = null;
-      resetScroll();
-    });
-    timeoutIds = [120, 360].map((delayMs) =>
-      window.setTimeout(resetScroll, delayMs),
-    );
-
-    return () => {
-      if (frameId != null) window.cancelAnimationFrame(frameId);
-      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
-    };
+    return scheduleViewportScrollReset(() => shellRef.current);
   }, [clientDeviceLayout.orientation, routeKey, shellRef, viewportHeight]);
 
   usePageEntrance(shellRef, {

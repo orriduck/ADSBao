@@ -6,6 +6,7 @@
  */
 import { useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
+import { resetViewportScroll } from "@/features/app-shell/viewportScroll";
 import { MOTION, EASE, killTweensOf } from "./gsap";
 
 interface PageEntranceOptions {
@@ -23,12 +24,6 @@ interface PageEntranceOptions {
   resetScroll?: boolean;
   /** Whether to animate on mount / trigger. Default: true */
   enabled?: boolean;
-}
-
-function resetDocumentViewportScroll() {
-  window.scrollTo(0, 0);
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
 }
 
 export function usePageEntrance(
@@ -59,8 +54,7 @@ export function usePageEntrance(
     const animatedElements = [header, body, ...items].filter(Boolean);
 
     if (resetScroll) {
-      resetDocumentViewportScroll();
-      container.scrollTop = 0;
+      resetViewportScroll(container);
       if (body) {
         body.scrollTop = 0;
         body
