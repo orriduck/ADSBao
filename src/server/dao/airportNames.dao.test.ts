@@ -20,6 +20,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
 {
   const { calls, queryClient } = createFakePostgresClient([
     {
+      alias_ident: "KBOS",
       ident: "KBOS",
       icao_code: "KBOS",
       iata_code: "BOS",
@@ -27,6 +28,14 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
       municipality: "Boston",
     },
     { ident: "KZZZ", icao_code: "KZZZ", iata_code: "", name: "   ", municipality: "" },
+    {
+      alias_ident: "BOS",
+      ident: "KBOS",
+      icao_code: "KBOS",
+      iata_code: "BOS",
+      name: "General Edward Lawrence Logan International Airport",
+      municipality: "Boston",
+    },
   ]);
   const repository = createAirportNameRepositoryFromEnv({ queryClient });
 
@@ -40,7 +49,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   assert.deepEqual(byIdent.get("BOS"), byIdent.get("KBOS"));
   assert.match(
     normalizeSql(calls[0].text),
-    /from ourairports\.airports where \( icao_code = any\(\$1::text\[\]\) or ident = any\(\$1::text\[\]\) or iata_code = any\(\$1::text\[\]\) \)/i,
+    /from aviation\.airport_aliases requested_aliases join aviation\.airports airports on airports\.ident = requested_aliases\.airport_ident join aviation\.airport_aliases returned_aliases on returned_aliases\.airport_ident = airports\.ident where requested_aliases\.alias_ident = any\(\$1::text\[\]\)/i,
   );
   assert.deepEqual(calls[0].values, [["KBOS", "KZZZ"]]);
 }
@@ -48,6 +57,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
 {
   const { queryClient } = createFakePostgresClient([
     {
+      alias_ident: "BOS",
       ident: "US-0001",
       icao_code: "",
       iata_code: "BOS",

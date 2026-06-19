@@ -157,6 +157,8 @@ async function main() {
   const queryClient = createImportDatabaseFromEnv();
   try {
     await replaceRows({ queryClient, rows: dedupedRows });
+    console.log("[import-airports] Refreshing aviation airport identity cache");
+    await queryClient.query("select aviation.refresh_airport_identity_cache()");
   } finally {
     await queryClient.dispose?.();
   }

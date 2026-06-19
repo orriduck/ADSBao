@@ -45,10 +45,14 @@ func (s *UserDataStore) readAirportNames(ctx context.Context, idents []string) (
 	rows, err := s.query(
 		ctx,
 		"read_airport_names",
-		`select ident, icao_code, iata_code, name, municipality
-		 from ourairports.airports
-		 where name <> ''
-		   and (icao_code in (`+inClause+`) or ident in (`+inClause+`) or iata_code in (`+inClause+`))`,
+		`select returned_aliases.alias_ident, airports.name, airports.municipality
+		 from aviation.airport_aliases requested_aliases
+		 join aviation.airports airports
+		   on airports.ident = requested_aliases.airport_ident
+		 join aviation.airport_aliases returned_aliases
+		   on returned_aliases.airport_ident = airports.ident
+		 where requested_aliases.alias_ident in (`+inClause+`)
+		   and airports.name <> ''`,
 		args...,
 	)
 	if err != nil {
@@ -57,8 +61,8 @@ func (s *UserDataStore) readAirportNames(ctx context.Context, idents []string) (
 	defer rows.Close()
 
 	for rows.Next() {
-		var ident, icao, iata, name, city string
-		if err := rows.Scan(&ident, &icao, &iata, &name, &city); err != nil {
+		var alias, name, city string
+		if err := rows.Scan(&alias, &name, &city); err != nil {
 			return nil, err
 		}
 		value := airportNameRecord{
@@ -68,18 +72,8 @@ func (s *UserDataStore) readAirportNames(ctx context.Context, idents []string) (
 		if value.name == "" {
 			continue
 		}
-		if key := normalizeAirportIdent(icao); key != "" {
+		if key := normalizeAirportIdent(alias); key != "" {
 			out[key] = value
-		}
-		if key := normalizeAirportIdent(ident); key != "" {
-			if _, ok := out[key]; !ok {
-				out[key] = value
-			}
-		}
-		if key := normalizeAirportIdent(iata); key != "" {
-			if _, ok := out[key]; !ok {
-				out[key] = value
-			}
 		}
 	}
 	if err := rows.Err(); err != nil {

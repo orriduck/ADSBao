@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 95;
+export const CHANGELOG_TOTAL_COUNT = 96;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.20.0",
+    kind: "feat",
+    title: {
+      en: "Canonical airport identity",
+      zh: "机场身份统一层",
+    },
+    summary: {
+      en: "Airport lookups now resolve ICAO, IATA, OurAirports, and OpenAIP aliases through a shared canonical identity layer before reading source-specific data.",
+      zh: "机场查询现在先通过共享的 canonical identity 层解析 ICAO、IATA、OurAirports 与 OpenAIP 别名，再读取各来源数据。",
+    },
+    highlights: [
+      {
+        en: "Railway Postgres now has aviation.airports and aviation.airport_aliases so airport-related tables no longer need each DAO to reinterpret its own identifier columns",
+        zh: "Railway Postgres 新增 aviation.airports 与 aviation.airport_aliases，让机场相关表不再由每个 DAO 各自解释 identifier 字段",
+      },
+      {
+        en: "Airport names, runway geometry, and OurAirports frequencies resolve through the same alias cache, so IATA and ICAO inputs map back to the same canonical airport",
+        zh: "机场名称、跑道几何与 OurAirports 频率都通过同一个 alias cache 解析，因此 IATA 与 ICAO 输入会映射回同一个 canonical airport",
+      },
+    ],
+  },
   {
     version: "v2.19.6",
     kind: "patch",
@@ -470,36 +492,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Mobile static pages keep the frosted panel as the scroll owner so the brand dock stays sticky and compacts on scroll",
         zh: "移动端静态页继续由磨砂面板负责滚动，让品牌栏保持置顶并在滚动时缩小",
-      },
-    ],
-  },
-  {
-    version: "v2.16.0",
-    kind: "feat",
-    title: {
-      en: "Collapsible sidebars and faster map controls",
-      zh: "可收起侧栏与更快地图控件",
-    },
-    summary: {
-      en: "Airport, flight, Plane Hunter, and static-page sidebars now share the same compact collapse behavior, while map taps avoid unwanted recentering and the view-range toolbar responds faster.",
-      zh: "机场、航班、拍机入口和静态页面侧栏现在共用同一套紧凑收起行为；地图点击不会意外重心移动，视野范围工具栏响应也更快。",
-    },
-    highlights: [
-      {
-        en: "The airport identity, filters, table headers, and nearby rows move together instead of keeping a fixed table head above an inner list",
-        zh: "机场身份、筛选器、表头和附近目标会一起滚动，不再把表头固定在内部列表上方",
-      },
-      {
-        en: "At the true bottom of a desktop sidebar, one more upward scroll collapses it to the same pill-style ADSBao mark used across map and static pages",
-        zh: "桌面侧栏真正滚到底后，再向上滑一次会收起为地图页和静态页一致的胶囊式 ADSBao 标识",
-      },
-      {
-        en: "Selecting aircraft, airport, navaid, runway, or watching-spot map elements no longer asks the map to pan itself into focus",
-        zh: "选择飞机、机场、导航点、跑道或拍摄点等地图元素时，不再触发地图自动平移聚焦",
-      },
-      {
-        en: "Map range toolbar taps skip the old long-press progress animation path and defer heavier fit work so pointer interactions paint sooner",
-        zh: "地图视野范围按钮跳过旧的长按进度动画路径，并延后较重的 fit 计算，让 pointer 交互更快完成绘制",
       },
     ],
   },

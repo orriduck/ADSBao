@@ -20,6 +20,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
 {
   const { calls, queryClient } = createFakePostgresClient([
     {
+      lookup_ident: "BOS",
       source: "ourairports",
       source_id: "123",
       airport_ident: "KBOS",
@@ -34,15 +35,15 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   ]);
   const repository = createRunwayGeometryRepositoryFromEnv({ queryClient });
 
-  const byAirport = await repository.readByAirportIdents([" kbos ", "KBOS"]);
+  const byAirport = await repository.readByAirportIdents([" bos ", "BOS"]);
 
-  assert.equal(byAirport.get("KBOS").length, 1);
-  assert.equal(byAirport.get("KBOS")[0].le.ident, "04L");
+  assert.equal(byAirport.get("BOS").length, 1);
+  assert.equal(byAirport.get("BOS")[0].le.ident, "04L");
   assert.match(
     normalizeSql(calls[0].text),
-    /from ourairports\.runway_geometries where source = \$1 and airport_ident = any\(\$2::text\[\]\) order by airport_ident asc, le_ident asc/i,
+    /from aviation\.airport_aliases aliases join aviation\.airports airports on airports\.ident = aliases\.airport_ident join ourairports\.runway_geometries runway_geometries on runway_geometries\.airport_ident = airports\.ourairports_ident where aliases\.alias_ident = any\(\$1::text\[\]\) and runway_geometries\.source = \$2 order by aliases\.alias_ident asc, runway_geometries\.airport_ident asc, runway_geometries\.le_ident asc/i,
   );
-  assert.deepEqual(calls[0].values, ["ourairports", ["KBOS"]]);
+  assert.deepEqual(calls[0].values, [["BOS"], "ourairports"]);
 }
 
 {

@@ -5,11 +5,19 @@ import {
 
 type AirportNameRecord = Record<string, any>;
 
-// OurAirports static reference table, restored to provide the full, mixed-case
-// airport name that OpenAIP truncates. Keyed by identifier; we read names only.
-const AIRPORTS_TABLE = "ourairports.airports";
+// Canonical airport identity cache. Source tables keep upstream keys, while
+// reads resolve the identifier a caller has through aviation.airport_aliases.
+const AIRPORTS_TABLE = "aviation.airports";
+const AIRPORT_ALIASES_TABLE = "aviation.airport_aliases";
 
-const SELECT_COLUMNS = ["ident", "icao_code", "iata_code", "name", "municipality"].join(",");
+const SELECT_COLUMNS = [
+  "returned_aliases.alias_ident",
+  "airports.ident",
+  "airports.icao_code",
+  "airports.iata_code",
+  "airports.name",
+  "airports.municipality",
+].join(",");
 
 const normalizeIdent = (value: unknown) =>
   String(value || "")
@@ -22,6 +30,7 @@ const mapAirportNameRow = (row: AirportNameRecord | null | undefined) => {
   const name = String(row.name || "").trim();
   if (!name) return null;
   return {
+    alias: normalizeIdent(row.alias_ident),
     ident: normalizeIdent(row.ident),
     icao: normalizeIdent(row.icao_code),
     iata: normalizeIdent(row.iata_code),
@@ -50,12 +59,13 @@ function createAirportNameRepository({
       const result = await queryClient.query<AirportNameRecord>(
         `
           select ${SELECT_COLUMNS}
-          from ${AIRPORTS_TABLE}
-          where (
-            icao_code = any($1::text[])
-            or ident = any($1::text[])
-            or iata_code = any($1::text[])
-          )
+          from ${AIRPORT_ALIASES_TABLE} requested_aliases
+          join ${AIRPORTS_TABLE} airports
+            on airports.ident = requested_aliases.airport_ident
+          join ${AIRPORT_ALIASES_TABLE} returned_aliases
+            on returned_aliases.airport_ident = airports.ident
+          where requested_aliases.alias_ident = any($1::text[])
+            and airports.name <> ''
         `,
         [normalizedIdents],
       );
@@ -68,6 +78,7 @@ function createAirportNameRepository({
       const mapped = mapAirportNameRow(row);
       if (!mapped) continue;
       const value = { name: mapped.name, city: mapped.city };
+      if (mapped.alias) byIdent.set(mapped.alias, value);
       if (mapped.icao) byIdent.set(mapped.icao, value);
       // `ident` only fills a slot the ICAO code didn't already claim, so an
       // exact ICAO match always wins over an ident-only collision.

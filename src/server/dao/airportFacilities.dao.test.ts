@@ -25,6 +25,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
     {
       rows: [
         {
+          lookup_ident: "BOS",
           id: 1,
           airport_ident: "KBOS",
           type: "TWR",
@@ -36,16 +37,16 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   ]);
   const repository = createAirportFacilityRepositoryFromEnv({ queryClient });
 
-  const frequencies: any[] = await repository.readFrequenciesByAirportIdent(" kbos ");
+  const frequencies: any[] = await repository.readFrequenciesByAirportIdent(" bos ");
 
   assert.equal(frequencies.length, 1);
   assert.equal(frequencies[0].airportIdent, "KBOS");
   assert.equal(frequencies[0].source, "ourairports");
   assert.match(
     normalizeSql(calls[0].text),
-    /from ourairports\.airport_frequencies where airport_ident = \$1 order by type asc, frequency_mhz asc/i,
+    /from aviation\.airport_aliases aliases join aviation\.airports airports on airports\.ident = aliases\.airport_ident join ourairports\.airport_frequencies airport_frequencies on airport_frequencies\.airport_ident = airports\.ourairports_ident where aliases\.alias_ident = \$1 order by airport_frequencies\.type asc, airport_frequencies\.frequency_mhz asc/i,
   );
-  assert.deepEqual(calls[0].values, ["KBOS"]);
+  assert.deepEqual(calls[0].values, ["BOS"]);
 }
 
 {

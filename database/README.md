@@ -31,11 +31,22 @@ The Railway Postgres service uses one database with schema namespaces:
 
 | Schema | Tables |
 |---|---|
+| `aviation` | `airports`, `airport_aliases` |
 | `ourairports` | `airports`, `airport_frequencies`, `navaids`, `runway_geometries` |
 | `spotter` | `spotter_locations` |
 | `app_user` | `user_map_settings`, `user_feature_flags` |
 | `runtime` | `flight_route_feedback_reports`, `openaip_cache` |
 | `openaip` | `openaip_airports` |
+
+`aviation.airports` is the canonical ADSBao airport identity cache. Source
+tables keep upstream keys, while app queries should resolve ICAO, IATA,
+OurAirports, and OpenAIP aliases through `aviation.airport_aliases` first.
+
+After manually changing airport source tables, refresh the identity cache:
+
+```sql
+select aviation.refresh_airport_identity_cache();
+```
 
 ## Import Static Data
 

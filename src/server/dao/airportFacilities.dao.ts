@@ -7,15 +7,21 @@ type AirportFacilityRecord = Record<string, any>;
 
 const AIRPORT_FREQUENCIES_TABLE = "ourairports.airport_frequencies";
 const NAVAIDS_TABLE = "ourairports.navaids";
+const AIRPORTS_TABLE = "aviation.airports";
+const AIRPORT_ALIASES_TABLE = "aviation.airport_aliases";
 
-const AIRPORT_FREQUENCY_COLUMNS = [
+const AIRPORT_FREQUENCY_COLUMN_NAMES = [
   "id",
   "airport_ref",
   "airport_ident",
   "type",
   "description",
   "frequency_mhz",
-].join(",");
+];
+
+const AIRPORT_FREQUENCY_COLUMNS = AIRPORT_FREQUENCY_COLUMN_NAMES.map(
+  (column) => `airport_frequencies.${column}`,
+).join(",");
 
 const NAVAID_COLUMNS = [
   "id",
@@ -138,9 +144,13 @@ function createAirportFacilityRepository({
         const result = await queryClient.query<AirportFacilityRecord>(
           `
             select ${AIRPORT_FREQUENCY_COLUMNS}
-            from ${AIRPORT_FREQUENCIES_TABLE}
-            where airport_ident = $1
-            order by type asc, frequency_mhz asc
+            from ${AIRPORT_ALIASES_TABLE} aliases
+            join ${AIRPORTS_TABLE} airports
+              on airports.ident = aliases.airport_ident
+            join ${AIRPORT_FREQUENCIES_TABLE} airport_frequencies
+              on airport_frequencies.airport_ident = airports.ourairports_ident
+            where aliases.alias_ident = $1
+            order by airport_frequencies.type asc, airport_frequencies.frequency_mhz asc
           `,
           [airportIdent],
         );

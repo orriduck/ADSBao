@@ -6,8 +6,10 @@ import {
 type RunwayGeometryRecord = Record<string, any>;
 
 const RUNWAY_GEOMETRIES_TABLE = "ourairports.runway_geometries";
+const AIRPORTS_TABLE = "aviation.airports";
+const AIRPORT_ALIASES_TABLE = "aviation.airport_aliases";
 
-const SELECT_COLUMNS = [
+const RUNWAY_GEOMETRY_COLUMNS = [
   "source",
   "source_id",
   "airport_ident",
@@ -28,6 +30,11 @@ const SELECT_COLUMNS = [
   "he_elevation_ft",
   "he_heading_deg_t",
   "he_displaced_threshold_ft",
+];
+
+const SELECT_COLUMNS = [
+  "aliases.alias_ident as lookup_ident",
+  ...RUNWAY_GEOMETRY_COLUMNS.map((column) => `runway_geometries.${column}`),
 ].join(",");
 
 const normalizeIdent = (value: unknown) =>
@@ -45,9 +52,10 @@ const numberOrNull = (value: unknown) => {
 const mapRunwayGeometryRow = (row: RunwayGeometryRecord | null | undefined) => {
   if (!row) return null;
   return {
+    lookupIdent: normalizeIdent(row.lookup_ident || row.airport_ident),
     source: row.source || "",
     sourceId: row.source_id || "",
-    airportIdent: row.airport_ident || "",
+    airportIdent: normalizeIdent(row.airport_ident),
     lengthFt: numberOrNull(row.length_ft),
     widthFt: numberOrNull(row.width_ft),
     surface: row.surface || "",
@@ -88,12 +96,16 @@ function createRunwayGeometryRepository({
       const result = await queryClient.query<RunwayGeometryRecord>(
         `
           select ${SELECT_COLUMNS}
-          from ${RUNWAY_GEOMETRIES_TABLE}
-          where source = $1
-            and airport_ident = any($2::text[])
-          order by airport_ident asc, le_ident asc
+          from ${AIRPORT_ALIASES_TABLE} aliases
+          join ${AIRPORTS_TABLE} airports
+            on airports.ident = aliases.airport_ident
+          join ${RUNWAY_GEOMETRIES_TABLE} runway_geometries
+            on runway_geometries.airport_ident = airports.ourairports_ident
+          where aliases.alias_ident = any($1::text[])
+            and runway_geometries.source = $2
+          order by aliases.alias_ident asc, runway_geometries.airport_ident asc, runway_geometries.le_ident asc
         `,
-        ["ourairports", normalizedIdents],
+        [normalizedIdents, "ourairports"],
       );
       rows = result.rows || [];
     } catch (error: any) {
@@ -103,10 +115,10 @@ function createRunwayGeometryRepository({
     const byAirport = new Map();
     for (const row of rows) {
       const mapped = mapRunwayGeometryRow(row);
-      if (!mapped?.airportIdent) continue;
-      const current = byAirport.get(mapped.airportIdent) || [];
+      if (!mapped?.lookupIdent) continue;
+      const current = byAirport.get(mapped.lookupIdent) || [];
       current.push(mapped);
-      byAirport.set(mapped.airportIdent, current);
+      byAirport.set(mapped.lookupIdent, current);
     }
     return byAirport;
   };

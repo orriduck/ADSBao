@@ -69,19 +69,24 @@ func (s *UserDataStore) readRunwayMaps(ctx context.Context, idents []string) (ma
 
 	placeholders := make([]string, len(normalizedIdents))
 	args := make([]any, 0, len(normalizedIdents)+1)
-	args = append(args, "ourairports")
 	for index, ident := range normalizedIdents {
-		placeholders[index] = fmt.Sprintf("$%d", index+2)
+		placeholders[index] = fmt.Sprintf("$%d", index+1)
 		args = append(args, ident)
 	}
+	sourcePlaceholder := fmt.Sprintf("$%d", len(args)+1)
+	args = append(args, "ourairports")
 	rows, err := s.query(
 		ctx,
 		"read_runway_geometries",
-		`select airport_ident, `+runwayGeometrySelectColumns+`
-		 from ourairports.runway_geometries
-		 where source = $1
-		   and airport_ident in (`+strings.Join(placeholders, ",")+`)
-		 order by airport_ident asc, le_ident asc`,
+		`select aliases.alias_ident, `+runwayGeometrySelectColumns+`
+		 from aviation.airport_aliases aliases
+		 join aviation.airports airports
+		   on airports.ident = aliases.airport_ident
+		 join ourairports.runway_geometries runway_geometries
+		   on runway_geometries.airport_ident = airports.ourairports_ident
+		 where aliases.alias_ident in (`+strings.Join(placeholders, ",")+`)
+		   and runway_geometries.source = `+sourcePlaceholder+`
+		 order by aliases.alias_ident asc, runway_geometries.airport_ident asc, runway_geometries.le_ident asc`,
 		args...,
 	)
 	if err != nil {
@@ -91,10 +96,10 @@ func (s *UserDataStore) readRunwayMaps(ctx context.Context, idents []string) (ma
 
 	geometriesByAirport := map[string][]runwayGeometryRow{}
 	for rows.Next() {
-		var airportIdent string
+		var lookupIdent string
 		var row runwayGeometryRow
 		if err := rows.Scan(
-			&airportIdent,
+			&lookupIdent,
 			&row.lengthFt,
 			&row.widthFt,
 			&row.closed,
@@ -107,7 +112,7 @@ func (s *UserDataStore) readRunwayMaps(ctx context.Context, idents []string) (ma
 		); err != nil {
 			return nil, err
 		}
-		normalizedAirport := normalizeAirportIdent(airportIdent)
+		normalizedAirport := normalizeAirportIdent(lookupIdent)
 		if normalizedAirport == "" {
 			continue
 		}
