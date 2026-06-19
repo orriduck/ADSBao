@@ -217,25 +217,28 @@ function traceMinuteBucket(timestampMs: number) {
 
 export function dedupeTracePointsByMinuteLatest(points = []) {
   const buckets = new Map();
-  const normalized = Array.isArray(points)
-    ? points
-        .filter(
-          (point) =>
-            isFiniteNumber(point?.lat) &&
-            isFiniteNumber(point?.lon) &&
-            Number.isFinite(Number(point?.timestampMs ?? point?.time)),
-        )
-        .map((point) => ({
-          ...point,
-          timestampMs: Number(point?.timestampMs ?? point?.time),
-          lat: Number(point.lat),
-          lon: Number(point.lon),
-        }))
-        .sort((a, b) => a.timestampMs - b.timestampMs)
-    : [];
+  if (!Array.isArray(points)) return [];
 
-  for (const point of normalized) {
-    buckets.set(traceMinuteBucket(point.timestampMs), point);
+  for (const point of points) {
+    const timestampMs = Number(point?.timestampMs ?? point?.time);
+    if (
+      !isFiniteNumber(point?.lat) ||
+      !isFiniteNumber(point?.lon) ||
+      !Number.isFinite(timestampMs)
+    ) {
+      continue;
+    }
+    const normalizedPoint = {
+      ...point,
+      timestampMs,
+      lat: Number(point.lat),
+      lon: Number(point.lon),
+    };
+    const bucket = traceMinuteBucket(timestampMs);
+    const existing = buckets.get(bucket);
+    if (!existing || existing.timestampMs <= timestampMs) {
+      buckets.set(bucket, normalizedPoint);
+    }
   }
 
   return Array.from(buckets.values()).sort(
