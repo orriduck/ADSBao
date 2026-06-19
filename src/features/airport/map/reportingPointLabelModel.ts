@@ -1,5 +1,3 @@
-import { AIRPORT_MAP_ZOOM } from "../../../config/aviation";
-
 type ReportingPointRecord = Record<string, any>;
 
 const numberOrNull = (value: unknown) => {
@@ -7,11 +5,6 @@ const numberOrNull = (value: unknown) => {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : null;
 };
-
-export function shouldShowReportingPointLabels(zoom: unknown) {
-  const numericZoom = numberOrNull(zoom);
-  return numericZoom != null && numericZoom >= AIRPORT_MAP_ZOOM.detail;
-}
 
 export const buildReportingPointLabels = (
   points: ReportingPointRecord[] = [],

@@ -113,6 +113,7 @@ function badgePriority(element: HTMLElement) {
   const type = element.dataset.mapBadgeType || "";
   if (type === "airport") return 90;
   if (type === "nearby-airport") return 70;
+  if (type === "reporting-point") return 60;
   if (type === "navaid") return 60;
   return 50;
 }
