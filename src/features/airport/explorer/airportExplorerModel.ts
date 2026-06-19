@@ -4,6 +4,7 @@ import { resolveMovement, UNKNOWN } from "../../../utils/aircraftMovement";
 import { normalizeCallsign } from "../../../utils/callsign";
 import { formatFlightRouteLabel } from "../../../utils/flightRouteDisplay";
 import { buildNavaidLabels } from "../map/navaidLabelModel";
+import { buildReportingPointLabels } from "../map/reportingPointLabelModel";
 
 type AirportExplorerRecord = Record<string, any>;
 
@@ -133,6 +134,8 @@ export function resolveAirportExplorerSelection({
   selectedAirportIcao = "",
   navaids = [],
   selectedNavaidKey = "",
+  reportingPoints = [],
+  selectedReportingPointKey = "",
   airspaces = [],
   selectedAirspaceId = "",
   candidateWatchingSpots = [],
@@ -146,6 +149,11 @@ export function resolveAirportExplorerSelection({
   const navaidLabels = buildNavaidLabels(navaids);
   const selectedNavaid =
     navaidLabels.find((navaid) => navaid?.key === selectedNavaidKey) || null;
+  const reportingPointLabels = buildReportingPointLabels(reportingPoints);
+  const selectedReportingPoint =
+    reportingPointLabels.find(
+      (point) => point?.key === selectedReportingPointKey,
+    ) || null;
   const selectedAirspace =
     airspaces.find((airspace) => airspace?.id === selectedAirspaceId) || null;
   const selectedCandidateWatchingSpot =
@@ -159,6 +167,9 @@ export function resolveAirportExplorerSelection({
     selectedAirport,
     selectedNavaid,
     selectedNavaidStillVisible: !selectedNavaidKey || Boolean(selectedNavaid),
+    selectedReportingPoint,
+    selectedReportingPointStillVisible:
+      !selectedReportingPointKey || Boolean(selectedReportingPoint),
     selectedAirspace,
     selectedAirspaceStillVisible: !selectedAirspaceId || Boolean(selectedAirspace),
     selectedCandidateWatchingSpot,

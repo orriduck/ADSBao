@@ -72,6 +72,7 @@ function AirportExplorerContent({
     showMapLabels,
     showRunwayBeams,
     showNavaidMarkers,
+    showReportingPoints,
     showAirspaces,
     showCandidateWatchingSpots,
     showCallsigns,
@@ -84,6 +85,7 @@ function AirportExplorerContent({
     selectedAircraftId,
     selectedAirportIcao,
     selectedNavaidKey,
+    selectedReportingPointKey,
     selectedAirspaceId,
     selectedCandidateWatchingSpotId,
     closeSidebar,
@@ -92,6 +94,8 @@ function AirportExplorerContent({
     selectAirport,
     selectNavaid,
     setSelectedNavaidKey,
+    selectReportingPoint,
+    setSelectedReportingPointKey,
     selectAirspace,
     setSelectedAirspaceId,
     selectCandidateWatchingSpot,
@@ -158,6 +162,8 @@ function AirportExplorerContent({
         selectedAirportIcao,
         navaids: airport?.nearbyNavaids || [],
         selectedNavaidKey,
+        reportingPoints: airport?.reportingPoints || [],
+        selectedReportingPointKey,
         airspaces: airport?.airspaces || [],
         selectedAirspaceId,
         candidateWatchingSpots: candidateWatchingSpots.spots,
@@ -166,11 +172,13 @@ function AirportExplorerContent({
     [
       airport?.airspaces,
       airport?.nearbyNavaids,
+      airport?.reportingPoints,
       candidateWatchingSpots.spots,
       nearbyAirports.airports,
       selectedAircraftId,
       selectedAirportIcao,
       selectedNavaidKey,
+      selectedReportingPointKey,
       selectedAirspaceId,
       selectedCandidateWatchingSpotId,
       traffic.aircraft,
@@ -193,6 +201,17 @@ function AirportExplorerContent({
     selectedNavaidKey,
     selection.selectedNavaidStillVisible,
     setSelectedNavaidKey,
+  ]);
+
+  useEffect(() => {
+    if (!selectedReportingPointKey) return;
+    if (!selection.selectedReportingPointStillVisible) {
+      setSelectedReportingPointKey("");
+    }
+  }, [
+    selectedReportingPointKey,
+    selection.selectedReportingPointStillVisible,
+    setSelectedReportingPointKey,
   ]);
 
   useEffect(() => {
@@ -440,6 +459,7 @@ function AirportExplorerContent({
     selection.selectedAircraft ||
       selection.selectedAirport ||
       selection.selectedNavaid ||
+      selection.selectedReportingPoint ||
       selection.selectedAirspace ||
       selection.selectedCandidateWatchingSpot,
   );
@@ -522,6 +542,7 @@ function AirportExplorerContent({
             aircraft={selection.selectedAircraft}
             airport={selection.selectedAirport}
             navaid={selection.selectedNavaid}
+            reportingPoint={selection.selectedReportingPoint}
             airspace={selection.selectedAirspace}
             candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
             candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
@@ -601,6 +622,7 @@ function AirportExplorerContent({
               showMapLabels={showMapLabels}
               showRunwayBeams={showRunwayBeams}
               showNavaidMarkers={showNavaidMarkers}
+              showReportingPoints={showReportingPoints}
               showAirspaces={showAirspaces}
               showCandidateWatchingSpots={showCandidateWatchingSpots}
               showCallsigns={showCallsigns}
@@ -611,6 +633,7 @@ function AirportExplorerContent({
               selectedAircraftId={selectedAircraftId}
               selectedAirportIcao={selectedAirportIcao}
               selectedNavaidKey={selectedNavaidKey}
+              selectedReportingPointKey={selectedReportingPointKey}
               selectedAirspaceId={selectedAirspaceId}
               selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
               candidateWatchingSpots={candidateWatchingSpots.spots}
@@ -620,6 +643,7 @@ function AirportExplorerContent({
               onSelectAircraft={selectAircraft}
               onSelectAirport={selectAirport}
               onSelectNavaid={selectNavaid}
+              onSelectReportingPoint={selectReportingPoint}
               onSelectAirspace={selectAirspace}
               onSelectCandidateWatchingSpot={selectCandidateWatchingSpot}
               runwayMap={airport?.runwayMap}

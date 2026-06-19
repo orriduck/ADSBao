@@ -83,6 +83,7 @@ export default function AirportMap({
   showMapLabels = false,
   showRunwayBeams = true,
   showNavaidMarkers = false,
+  showReportingPoints = false,
   showAirspaces = true,
   showCandidateWatchingSpots = false,
   showCallsigns = true,
@@ -93,6 +94,7 @@ export default function AirportMap({
   selectedAircraftId = "",
   selectedAirportIcao = "",
   selectedNavaidKey = "",
+  selectedReportingPointKey = "",
   selectedAirspaceId = "",
   selectedCandidateWatchingSpotId = "",
   candidateWatchingSpots = [],
@@ -103,6 +105,7 @@ export default function AirportMap({
   onSelectAircraft,
   onSelectAirport,
   onSelectNavaid,
+  onSelectReportingPoint,
   onSelectAirspace,
   onSelectCandidateWatchingSpot,
   runwayMap = null,
@@ -641,15 +644,20 @@ export default function AirportMap({
           <ReportingPointLabelLayer
             points={reportingPoints}
             theme={currentTheme}
-            visible={reportingPoints.length > 0}
+            visible={showReportingPoints && reportingPoints.length > 0}
+            selectedReportingPointKey={selectedReportingPointKey}
+            onSelectReportingPoint={onSelectReportingPoint}
           />
           <MapBadgeCollisionLayer
             refreshKey={[
               selectedAirportIcao,
               selectedNavaidKey,
+              selectedReportingPointKey,
               selectedAirspaceId,
               showNavaidMarkers ? "navaid-on" : "navaid-off",
-              reportingPoints.length ? "reporting-on" : "reporting-off",
+              showReportingPoints && reportingPoints.length
+                ? "reporting-on"
+                : "reporting-off",
               nearbyAirportLayerDisplay.showAirportBadges ? "airport-on" : "airport-off",
               renderedNavaids.length,
               reportingPoints.length,

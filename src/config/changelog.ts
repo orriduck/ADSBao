@@ -40,9 +40,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 89;
+export const CHANGELOG_TOTAL_COUNT = 90;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.19.1",
+    kind: "feat",
+    title: {
+      en: "Reporting point previews",
+      zh: "报告点预览",
+    },
+    summary: {
+      en: "Airport maps can optionally show OpenAIP reporting points with their own icon treatment and desktop/mobile preview cards.",
+      zh: "机场地图现在可按设置显示 OpenAIP 报告点，并使用独立图标样式与桌面端/移动端预览卡。",
+    },
+    highlights: [
+      {
+        en: "Reporting points default off and can be enabled from the shared map settings panel",
+        zh: "报告点默认关闭，可从共享地图设置面板打开",
+      },
+      {
+        en: "Reporting point map badges use the shared badge base with a signpost icon and a round point marker instead of the navaid diamond",
+        zh: "报告点地图标牌复用共享 badge 基座，但使用路牌图标和圆形点位，不再沿用 navaid 菱形",
+      },
+      {
+        en: "Selecting a reporting point opens its own shared-shell desktop or mobile preview card",
+        zh: "选中报告点会打开基于共享外壳的专属桌面端或移动端预览卡",
+      },
+    ],
+  },
   {
     version: "v2.19.0",
     kind: "feat",
@@ -62,10 +88,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "When an OurAirports name is missing, the API leaves the airport name blank instead of exposing the OpenAIP value",
         zh: "缺少 OurAirports 名称时，API 会留空机场名称，而不是暴露 OpenAIP 值",
-      },
-      {
-        en: "Airport maps can show OpenAIP reporting points at detail range",
-        zh: "机场地图可在近景显示 OpenAIP reporting points",
       },
     ],
   },
@@ -482,32 +504,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Landscape mobile airport views stay in desktop-sidebar mode instead of occasionally falling into the mobile map-only toolbar state",
         zh: "移动设备横屏机场页会保持桌面侧栏布局，不再偶发落入只有地图和移动工具栏的状态",
-      },
-    ],
-  },
-  {
-    version: "v2.15.1",
-    kind: "patch",
-    title: {
-      en: "Landscape safe-area polish",
-      zh: "横屏安全区打磨",
-    },
-    summary: {
-      en: "Landscape mobile map pages now share the same safe-area handling and use the compact mobile preview when the desktop sidebar is active.",
-      zh: "移动设备横屏地图页现在复用同一套安全区处理，并在桌面侧栏布局下改用紧凑移动预览卡。",
-    },
-    highlights: [
-      {
-        en: "Airport and flight detail pages offset the sidebar or map controls based on the active left or right safe-area inset",
-        zh: "机场页和航班页会按当前左侧或右侧 safe-area inset 偏置侧栏与地图控件",
-      },
-      {
-        en: "Reversed landscape orientation follows the obstruction side instead of assuming the same edge every time",
-        zh: "反向横屏时会跟随遮挡所在一侧，不再固定假设同一边",
-      },
-      {
-        en: "Landscape phones keep aircraft previews compact in the lower-right corner instead of opening the taller desktop preview",
-        zh: "手机横屏时飞机预览保持右下角紧凑移动卡片，不再打开较高的桌面预览",
       },
     ],
   },

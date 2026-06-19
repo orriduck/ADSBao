@@ -23,6 +23,7 @@ import {
   Route,
   ScanSearch,
   ShieldAlert,
+  Signpost,
   SlidersHorizontal,
   Spotlight,
   Sun,
@@ -81,6 +82,8 @@ export function MapControlIcon({ iconKey }) {
       return <ScanSearch />;
     case "shieldAlert":
       return <ShieldAlert />;
+    case "signpost":
+      return <Signpost />;
     case "spotlight":
       return <Spotlight />;
     case "sun":

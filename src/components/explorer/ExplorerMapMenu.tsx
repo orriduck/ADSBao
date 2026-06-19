@@ -28,6 +28,7 @@ export default function ExplorerMapMenu({
     showMapLabels,
     showRunwayBeams,
     showNavaidMarkers,
+    showReportingPoints,
     showAirspaces,
     showCandidateWatchingSpots,
     showCallsigns,
@@ -43,6 +44,7 @@ export default function ExplorerMapMenu({
     toggleMapLabels,
     toggleRunwayBeams,
     toggleNavaidMarkers,
+    toggleReportingPoints,
     toggleAirspaces,
     toggleCandidateWatchingSpots,
     toggleShowCallsigns,
@@ -59,6 +61,7 @@ export default function ExplorerMapMenu({
       showMapLabels={showMapLabels}
       showRunwayBeams={showRunwayBeams}
       showNavaidMarkers={showNavaidMarkers}
+      showReportingPoints={showReportingPoints}
       showAirspaces={showAirspaces}
       showCandidateWatchingSpots={showCandidateWatchingSpots}
       showCallsigns={showCallsigns}
@@ -79,6 +82,7 @@ export default function ExplorerMapMenu({
       onToggleMapLabels={toggleMapLabels}
       onToggleRunwayBeams={toggleRunwayBeams}
       onToggleNavaidMarkers={toggleNavaidMarkers}
+      onToggleReportingPoints={toggleReportingPoints}
       onToggleAirspaces={toggleAirspaces}
       onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
       onToggleShowCallsigns={toggleShowCallsigns}

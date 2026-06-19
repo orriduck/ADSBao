@@ -6,6 +6,7 @@ export const DEFAULT_AIRPORT_EXPLORER_UI_STATE = {
   showMapLabels: false,
   showRunwayBeams: true,
   showNavaidMarkers: false,
+  showReportingPoints: false,
   showAirspaces: true,
   ...DEFAULT_AIRCRAFT_FILTERS,
 };

@@ -64,6 +64,7 @@ const initialUiState = {
   selectedAircraftId: "",
   selectedAirportIcao: "",
   selectedNavaidKey: "",
+  selectedReportingPointKey: "",
   selectedAirspaceId: "",
   selectedCandidateWatchingSpotId: "",
   fitToTraceSignal: 0,
@@ -116,6 +117,9 @@ function applyMapSettingsToUiState(state, settings) {
     ...userLocationPreferences,
     mapSettings: normalizedSettings,
     selectedAirspaceId: layers.showAirspaces ? state.selectedAirspaceId : "",
+    selectedReportingPointKey: layers.showReportingPoints
+      ? state.selectedReportingPointKey
+      : "",
     selectedCandidateWatchingSpotId: layers.showCandidateWatchingSpots
       ? state.selectedCandidateWatchingSpotId
       : "",
@@ -185,6 +189,12 @@ function airportExplorerUiReducer(state, action) {
         state,
         MAP_LAYER_KEYS.NAVAID_MARKERS,
         toggleValue(state.showNavaidMarkers),
+      );
+    case "toggleReportingPoints":
+      return applyManualLayerToggle(
+        state,
+        MAP_LAYER_KEYS.REPORTING_POINTS,
+        toggleValue(state.showReportingPoints),
       );
     case "toggleAirspaces":
       return applyManualLayerToggle(
@@ -268,6 +278,7 @@ function airportExplorerUiReducer(state, action) {
         // preview card is up at a time.
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedReportingPointKey: "",
         selectedAirspaceId: "",
         selectedCandidateWatchingSpotId: "",
       };
@@ -277,6 +288,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: action.aircraftId,
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedReportingPointKey: "",
         selectedAirspaceId: "",
         selectedCandidateWatchingSpotId: "",
       };
@@ -287,6 +299,7 @@ function airportExplorerUiReducer(state, action) {
           state.selectedAirportIcao === action.icao ? "" : action.icao,
         selectedAircraftId: "",
         selectedNavaidKey: "",
+        selectedReportingPointKey: "",
         selectedAirspaceId: "",
         selectedCandidateWatchingSpotId: "",
       };
@@ -297,6 +310,7 @@ function airportExplorerUiReducer(state, action) {
           state.selectedNavaidKey === action.navaidKey ? "" : action.navaidKey,
         selectedAircraftId: "",
         selectedAirportIcao: "",
+        selectedReportingPointKey: "",
         selectedAirspaceId: "",
         selectedCandidateWatchingSpotId: "",
       };
@@ -306,6 +320,35 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: action.navaidKey,
         selectedAircraftId: "",
         selectedAirportIcao: "",
+        selectedReportingPointKey: "",
+        selectedAirspaceId: "",
+        selectedCandidateWatchingSpotId: "",
+      };
+    case "selectReportingPoint":
+      if (!state.showReportingPoints) {
+        return state.selectedReportingPointKey
+          ? { ...state, selectedReportingPointKey: "" }
+          : state;
+      }
+      return {
+        ...state,
+        selectedReportingPointKey:
+          state.selectedReportingPointKey === action.reportingPointKey
+            ? ""
+            : action.reportingPointKey,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
+        selectedNavaidKey: "",
+        selectedAirspaceId: "",
+        selectedCandidateWatchingSpotId: "",
+      };
+    case "setSelectedReportingPointKey":
+      return {
+        ...state,
+        selectedReportingPointKey: action.reportingPointKey,
+        selectedAircraftId: "",
+        selectedAirportIcao: "",
+        selectedNavaidKey: "",
         selectedAirspaceId: "",
         selectedCandidateWatchingSpotId: "",
       };
@@ -325,6 +368,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedReportingPointKey: "",
         selectedCandidateWatchingSpotId: "",
       };
     case "setSelectedAirspaceId":
@@ -339,6 +383,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedReportingPointKey: "",
         selectedCandidateWatchingSpotId: "",
       };
     case "selectCandidateWatchingSpot":
@@ -351,6 +396,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedReportingPointKey: "",
         selectedAirspaceId: "",
       };
     case "setSelectedCandidateWatchingSpotId":
@@ -360,6 +406,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedReportingPointKey: "",
         selectedAirspaceId: "",
       };
     case "clearAllPreviewSelections":
@@ -371,6 +418,7 @@ function airportExplorerUiReducer(state, action) {
         !state.selectedAircraftId &&
         !state.selectedAirportIcao &&
         !state.selectedNavaidKey &&
+        !state.selectedReportingPointKey &&
         !state.selectedAirspaceId &&
         !state.selectedCandidateWatchingSpotId
       ) {
@@ -381,6 +429,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
+        selectedReportingPointKey: "",
         selectedAirspaceId: "",
         selectedCandidateWatchingSpotId: "",
       };
@@ -431,6 +480,7 @@ export function ExplorerUiProvider({ children }) {
     showMapLabels,
     showRunwayBeams,
     showNavaidMarkers,
+    showReportingPoints,
     showAirspaces,
     showCandidateWatchingSpots,
     showCallsigns,
@@ -444,6 +494,7 @@ export function ExplorerUiProvider({ children }) {
     selectedAircraftId,
     selectedAirportIcao,
     selectedNavaidKey,
+    selectedReportingPointKey,
     selectedAirspaceId,
     selectedCandidateWatchingSpotId,
   } = state;
@@ -748,6 +799,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "toggleNavaidMarkers" });
   }, []);
 
+  const toggleReportingPoints = useCallback(() => {
+    dispatch({ type: "toggleReportingPoints" });
+  }, []);
+
   const toggleAirspaces = useCallback(() => {
     dispatch({ type: "toggleAirspaces" });
   }, []);
@@ -815,6 +870,14 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "setSelectedNavaidKey", navaidKey });
   }, []);
 
+  const selectReportingPoint = useCallback((reportingPointKey) => {
+    dispatch({ type: "selectReportingPoint", reportingPointKey });
+  }, []);
+
+  const setSelectedReportingPointKey = useCallback((reportingPointKey) => {
+    dispatch({ type: "setSelectedReportingPointKey", reportingPointKey });
+  }, []);
+
   const selectAirspace = useCallback((airspaceId) => {
     dispatch({ type: "selectAirspace", airspaceId });
   }, []);
@@ -859,6 +922,7 @@ export function ExplorerUiProvider({ children }) {
       showMapLabels,
       showRunwayBeams,
       showNavaidMarkers,
+      showReportingPoints,
       showAirspaces,
       showCandidateWatchingSpots,
       showCallsigns,
@@ -877,6 +941,7 @@ export function ExplorerUiProvider({ children }) {
       selectedAircraftId,
       selectedAirportIcao,
       selectedNavaidKey,
+      selectedReportingPointKey,
       selectedAirspaceId,
       selectedCandidateWatchingSpotId,
       fitToTraceSignal,
@@ -892,6 +957,7 @@ export function ExplorerUiProvider({ children }) {
       toggleMapLabels,
       toggleRunwayBeams,
       toggleNavaidMarkers,
+      toggleReportingPoints,
       toggleAirspaces,
       toggleCandidateWatchingSpots,
       toggleShowCallsigns,
@@ -903,6 +969,8 @@ export function ExplorerUiProvider({ children }) {
       selectAirport,
       selectNavaid,
       setSelectedNavaidKey,
+      selectReportingPoint,
+      setSelectedReportingPointKey,
       selectAirspace,
       setSelectedAirspaceId,
       selectCandidateWatchingSpot,
@@ -923,6 +991,7 @@ export function ExplorerUiProvider({ children }) {
       showMapLabels,
       showRunwayBeams,
       showNavaidMarkers,
+      showReportingPoints,
       showAirspaces,
       showCandidateWatchingSpots,
       showCallsigns,
@@ -941,6 +1010,7 @@ export function ExplorerUiProvider({ children }) {
       selectedAircraftId,
       selectedAirportIcao,
       selectedNavaidKey,
+      selectedReportingPointKey,
       selectedAirspaceId,
       selectedCandidateWatchingSpotId,
       fitToTraceSignal,
@@ -956,6 +1026,7 @@ export function ExplorerUiProvider({ children }) {
       toggleMapLabels,
       toggleRunwayBeams,
       toggleNavaidMarkers,
+      toggleReportingPoints,
       toggleAirspaces,
       toggleCandidateWatchingSpots,
       toggleShowCallsigns,
@@ -967,6 +1038,8 @@ export function ExplorerUiProvider({ children }) {
       selectAirport,
       selectNavaid,
       setSelectedNavaidKey,
+      selectReportingPoint,
+      setSelectedReportingPointKey,
       selectAirspace,
       setSelectedAirspaceId,
       selectCandidateWatchingSpot,

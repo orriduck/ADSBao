@@ -22,6 +22,7 @@ export default function MapControlBar({
   showMapLabels = false,
   showRunwayBeams = true,
   showNavaidMarkers = false,
+  showReportingPoints = false,
   showAirspaces = true,
   showCandidateWatchingSpots = false,
   showCallsigns = true,
@@ -42,6 +43,7 @@ export default function MapControlBar({
   onToggleMapLabels,
   onToggleRunwayBeams,
   onToggleNavaidMarkers,
+  onToggleReportingPoints,
   onToggleAirspaces,
   onToggleCandidateWatchingSpots,
   onToggleShowCallsigns,
@@ -119,6 +121,7 @@ export default function MapControlBar({
         showMapLabels={showMapLabels}
         showBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
+        showReportingPoints={showReportingPoints}
         showAirspaces={showAirspaces}
         showCandidateWatchingSpots={showCandidateWatchingSpots}
         showCallsigns={showCallsigns}
@@ -135,6 +138,7 @@ export default function MapControlBar({
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}
+        onToggleReportingPoints={onToggleReportingPoints}
         onToggleAirspaces={onToggleAirspaces}
         onToggleCandidateWatchingSpots={onToggleCandidateWatchingSpots}
         onToggleShowCallsigns={onToggleShowCallsigns}
