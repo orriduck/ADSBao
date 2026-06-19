@@ -8,6 +8,7 @@ import AirspaceLayer from "./AirspaceLayer";
 import NearbyAirportLayer from "./NearbyAirportLayer";
 import NavaidLabelLayer from "./NavaidLabelLayer";
 import NavaidCountLayer from "./NavaidCountLayer";
+import ReportingPointLabelLayer from "./ReportingPointLabelLayer";
 import MapBadgeCollisionLayer from "./MapBadgeCollisionLayer";
 import CandidateWatchingSpotsLayer from "./CandidateWatchingSpotsLayer";
 import AircraftPosition from "./AircraftPosition";
@@ -50,6 +51,7 @@ import {
 } from "../../features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useAviationContextTiles } from "../../features/airport/context/useAviationContextTiles";
 import { shouldUseNavaidCountTiles } from "../../features/airport/context/aviationContextDisplayModel";
+import { shouldShowReportingPointLabels } from "../../features/airport/map/reportingPointLabelModel";
 import { getOffsetMapCenter } from "./mapViewportOffset";
 
 const resolveCurrentTheme = () =>
@@ -72,6 +74,7 @@ export default function AirportMap({
   aircraft = [],
   nearbyAirports = [],
   nearbyNavaids = [],
+  reportingPoints = [],
   airspaces = [],
   contextTileOverlays = false,
   contextTileRefreshKey = "",
@@ -452,6 +455,7 @@ export default function AirportMap({
     fullTraceMode: fullTraceContext,
     zoom: leafletZoom,
   });
+  const showReportingPointLabels = shouldShowReportingPointLabels(leafletZoom);
   const contextTiles = useAviationContextTiles({
     map: mapInstance,
     enabled: contextTileOverlays,
@@ -636,14 +640,21 @@ export default function AirportMap({
             selectedNavaidKey={selectedNavaidKey}
             onSelectNavaid={onSelectNavaid}
           />
+          <ReportingPointLabelLayer
+            points={reportingPoints}
+            theme={currentTheme}
+            visible={showReportingPointLabels}
+          />
           <MapBadgeCollisionLayer
             refreshKey={[
               selectedAirportIcao,
               selectedNavaidKey,
               selectedAirspaceId,
               showNavaidMarkers ? "navaid-on" : "navaid-off",
+              showReportingPointLabels ? "reporting-on" : "reporting-off",
               nearbyAirportLayerDisplay.showAirportBadges ? "airport-on" : "airport-off",
               renderedNavaids.length,
+              reportingPoints.length,
               nearbyAirportLayerDisplay.airports.length,
               leafletZoom,
             ].join("|")}

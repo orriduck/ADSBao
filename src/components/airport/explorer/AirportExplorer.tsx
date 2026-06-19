@@ -589,6 +589,7 @@ function AirportExplorerContent({
               aircraft={traffic.aircraft}
               nearbyAirports={nearbyAirports.airports}
               nearbyNavaids={airport?.nearbyNavaids || []}
+              reportingPoints={airport?.reportingPoints || []}
               airspaces={airport?.airspaces || []}
               airport={airport}
               // In near-me mode the airport profile has no ICAO and so

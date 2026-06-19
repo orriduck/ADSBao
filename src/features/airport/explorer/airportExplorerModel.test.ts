@@ -49,6 +49,17 @@ assert.equal(providedProfile.icao, "KSEA");
 assert.equal(providedProfile.iata, "SEA");
 assert.equal(providedProfile.city, "Seattle");
 
+const emptyNameProfile = resolveAirportProfile({
+  icao: "kbos",
+  airport: {
+    icao: "KBOS",
+    iata: "BOS",
+    name: "",
+    city: "Boston",
+  },
+});
+assert.equal(emptyNameProfile.name, "");
+
 const localizedProfile = resolveAirportProfile({
   icao: "zspd",
   airport: {

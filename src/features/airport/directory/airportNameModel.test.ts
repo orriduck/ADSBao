@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import { applyOurAirportsAirport, chooseAirportName } from "./airportNameModel";
 
-// chooseAirportName: OurAirports wins when present, else the OpenAIP value.
+// chooseAirportName: OurAirports wins when present; OpenAIP is never a name fallback.
 {
   assert.equal(
     chooseAirportName(
@@ -14,10 +14,9 @@ import { applyOurAirportsAirport, chooseAirportName } from "./airportNameModel";
 }
 
 {
-  // No OurAirports name -> keep the OpenAIP value verbatim.
-  assert.equal(chooseAirportName("KBOS", ""), "KBOS");
-  assert.equal(chooseAirportName("KBOS", "   "), "KBOS");
-  assert.equal(chooseAirportName("KBOS", null), "KBOS");
+  assert.equal(chooseAirportName("KBOS", ""), "");
+  assert.equal(chooseAirportName("KBOS", "   "), "");
+  assert.equal(chooseAirportName("KBOS", null), "");
 }
 
 // applyOurAirportsAirport: overrides the truncated name and fills an empty city.
@@ -50,10 +49,10 @@ import { applyOurAirportsAirport, chooseAirportName } from "./airportNameModel";
 }
 
 {
-  // No override -> the record passes through unchanged (same reference).
+  // No override -> name is blank instead of falling back to OpenAIP.
   const airport = { icao: "KBOS", name: "GENERAL EDWARD LAWRENCE LOGAN INTERNATIO" };
-  assert.equal(applyOurAirportsAirport(airport, null), airport);
-  assert.equal(applyOurAirportsAirport(airport, undefined), airport);
+  assert.equal(applyOurAirportsAirport(airport, null).name, "");
+  assert.equal(applyOurAirportsAirport(airport, undefined).name, "");
 }
 
 {
