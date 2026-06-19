@@ -1,8 +1,14 @@
 # ADSBao Railway Deployment Runbook
 
-ADSBao deploys as one Railway service from the repository root. The root
-`Dockerfile` builds the Vite frontend, compiles the Go data-service, copies
-`dist/` into the runtime image, and starts `adsbao-data-service`.
+The public ADSBao app deploys as one Railway service from the repository root.
+The root `Dockerfile` builds the Vite frontend, compiles the Go data-service,
+copies `dist/` into the runtime image, and starts `adsbao-data-service`.
+
+The private FlightAware endpoint should be added as a second service in the
+same Railway project/environment, not as a separate Railway project. Railway
+private networking is scoped to one project/environment, so keeping the
+endpoint beside the public app lets `adsbao-data-service` use the private
+internal domain without exposing FlightAware-only endpoints to browsers.
 
 ## Runtime Contract
 
@@ -68,6 +74,32 @@ Healthcheck: /health
 Public app URL: https://<railway-domain>
 WebSocket URL: wss://<railway-domain>/ws
 ```
+
+## Private FlightAware Service
+
+Deploy the private FlightAware endpoint as a separate Railway service in the
+same project canvas as ADSBao:
+
+```text
+Service name: adsbao-flightaware
+Source: private FlightAware endpoint repository
+Public domain: not required
+Private URL for ADSBao: http://adsbao-flightaware.railway.internal:<PORT>
+```
+
+Set these variables on the public ADSBao service:
+
+```text
+FLIGHTAWARE_SERVICE_BASE_URL=http://adsbao-flightaware.railway.internal:<PORT>
+FLIGHTAWARE_SERVICE_TOKEN=<shared bearer token>
+FLIGHTAWARE_ACCESS_ENABLED=true
+FLIGHTAWARE_FALLBACK_ENABLED=true
+```
+
+Use the private `railway.internal` hostname, not a public Railway domain, for
+service-to-service requests. The private endpoint must listen on the same
+`PORT` configured in its Railway service variables; Railway reference variables
+can be used to avoid hard-coding the host or port.
 
 Compatible env vars:
 

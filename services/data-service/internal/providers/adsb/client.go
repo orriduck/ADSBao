@@ -83,6 +83,11 @@ type providerResult struct {
 	stale    bool
 }
 
+type flightAwareFallbackResult struct {
+	fallback FallbackResult
+	err      error
+}
+
 type cachedProviderResult struct {
 	result    providerResult
 	expiresAt time.Time
@@ -243,11 +248,27 @@ func (c *Client) fetchAircraft(ctx context.Context, input realtime.FetchInput) (
 }
 
 func (c *Client) fetchCallsignWithFlightAware(ctx context.Context, input realtime.FetchInput) (providerResult, error) {
+	if c.flightAwareFallback == nil {
+		return c.fetchCallsign(ctx, input)
+	}
+	fallbackCtx, cancelFallback := context.WithCancel(ctx)
+	defer cancelFallback()
+	fallbackCh := make(chan flightAwareFallbackResult, 1)
+	go func() {
+		fallback, err := c.flightAwareFallback(fallbackCtx, input.Target.Callsign, input.Metrics)
+		fallbackCh <- flightAwareFallbackResult{fallback: fallback, err: err}
+	}()
+
 	adsbResult, err := c.fetchCallsign(ctx, input)
-	if err != nil || !isEmptyAircraftPayload(adsbResult.payload) || c.flightAwareFallback == nil {
+	if err != nil || !isEmptyAircraftPayload(adsbResult.payload) {
+		cancelFallback()
 		return adsbResult, err
 	}
-	fallback, fallbackErr := c.flightAwareFallback(ctx, input.Target.Callsign, input.Metrics)
+	fallbackResult := <-fallbackCh
+	return c.applyFlightAwareFallback(input, adsbResult, fallbackResult.fallback, fallbackResult.err), nil
+}
+
+func (c *Client) applyFlightAwareFallback(input realtime.FetchInput, adsbResult providerResult, fallback FallbackResult, fallbackErr error) providerResult {
 	attempts := append([]string{}, adsbResult.attempts...)
 	attempts = append(attempts, "flightaware:"+flightAwareAttemptStatus(fallback, fallbackErr))
 	aircraft := normalizeFlightAwareAircraft(input.Target.Callsign, fallback)
@@ -258,7 +279,7 @@ func (c *Client) fetchCallsignWithFlightAware(ctx context.Context, input realtim
 		payload["callsign"] = input.Target.Callsign
 		payload["flightAwareFallback"] = fallbackMap(fallback)
 		payload["trackingState"] = trackingState
-		return providerResult{provider: adsbResult.provider, payload: payload, attempts: attempts}, nil
+		return providerResult{provider: adsbResult.provider, payload: payload, attempts: attempts}
 	}
 	payload := map[string]any{
 		"ac":                  []any{aircraft},
@@ -269,7 +290,7 @@ func (c *Client) fetchCallsignWithFlightAware(ctx context.Context, input realtim
 		"flightAwareFallback": fallbackMap(fallback),
 		"trackingState":       trackingState,
 	}
-	return providerResult{provider: Provider{ID: "flightaware"}, payload: payload, attempts: attempts}, nil
+	return providerResult{provider: Provider{ID: "flightaware"}, payload: payload, attempts: attempts}
 }
 
 func (c *Client) fetchWithFallback(ctx context.Context, input realtime.FetchInput, endpoint string, retryEmpty bool, buildURL func(Provider) (string, bool)) (providerResult, error) {

@@ -40,9 +40,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 100;
+export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.2",
+    kind: "patch",
+    title: {
+      en: "FlightAware private-service efficiency",
+      zh: "FlightAware 私有服务提速",
+    },
+    summary: {
+      en: "FlightAware callsign fallback now starts in parallel with ADS-B tracking, and the deployment docs keep the private endpoint in the same Railway project.",
+      zh: "FlightAware 呼号兜底现在会和 ADS-B 跟踪并行启动，部署文档也明确私有 endpoint 放在同一个 Railway project。",
+    },
+    highlights: [
+      {
+        en: "When ADS-B returns empty, the app can reuse an already-started FlightAware fallback request instead of waiting for another serial round trip",
+        zh: "当 ADS-B 返回空结果时，app 会复用已启动的 FlightAware 兜底请求，不再等下一轮串行请求",
+      },
+      {
+        en: "ADS-B still wins when it has a real aircraft result, and the pending FlightAware request is canceled without logging a provider error",
+        zh: "ADS-B 有真实飞机结果时仍然优先，并会取消待处理的 FlightAware 请求且不记录为 provider error",
+      },
+      {
+        en: "FlightAware route and callsign calls now share one private-service remote client",
+        zh: "FlightAware 航路与呼号请求现在共用同一个 private-service remote client",
+      },
+    ],
+  },
   {
     version: "v2.22.1",
     kind: "patch",
@@ -466,28 +492,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Live aviation API and WebSocket paths remain network-only",
         zh: "实时航空 API 和 WebSocket 路径仍保持只走网络",
-      },
-    ],
-  },
-  {
-    version: "v2.17.2",
-    kind: "patch",
-    title: {
-      en: "Static-page iOS viewport lock",
-      zh: "静态页 iOS 视口锁定",
-    },
-    summary: {
-      en: "Home and static pages now keep the document viewport locked after returning from a rotated airport map, preventing the bottom toolbar from revealing a white safe-area block.",
-      zh: "从旋转过的机场地图返回后，首页和静态页现在会继续锁住 document 视口，避免底部工具栏露出白色安全区块。",
-    },
-    highlights: [
-      {
-        en: "The dither static shell now uses the same document overscroll lock as the full-screen map shell while preserving its own panel scrolling",
-        zh: "静态 dither 壳现在和全屏地图壳一样锁住 document overscroll，同时保留面板自身滚动",
-      },
-      {
-        en: "This targets the rotate-map, open-sidebar, return-home path that could leave iOS showing a bottom white block behind the floating toolbar",
-        zh: "这个修复针对“旋转地图、打开侧边栏、回首页”路径下 iOS 底部工具栏后方出现白块的问题",
       },
     ],
   },

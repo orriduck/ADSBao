@@ -38,23 +38,22 @@ func TestADSBDBRouteNormalizesRoutePayload(t *testing.T) {
 	}
 }
 
-func TestFlightAwareRouteUsesRemotePrivateServiceWhenConfigured(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/api/flightaware/route/AAL1234" {
-			t.Fatalf("path = %s", r.URL.Path)
-		}
-		if r.Header.Get("Authorization") != "Bearer remote-token" {
-			t.Fatalf("authorization = %q", r.Header.Get("Authorization"))
-		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"callsign":"AAL1234","route":{"callsign":"AAL1234","origin":{"icao":"KBOS","iata":"BOS","lat":42.3656,"lon":-71.0096},"destination":{"icao":"KLAX","iata":"LAX","lat":33.9416,"lon":-118.4085},"route":{"iata":"BOS-LAX","icao":"KBOS-KLAX"},"airline":{"icao":"AAL","iata":"AA"},"source":"flightaware","confidence":"scraped-reference"}}`))
-	}))
-	defer server.Close()
-
+func TestFlightAwareRouteUsesInjectedPrivateServiceFetcher(t *testing.T) {
+	var requestedCallsign string
 	client := NewClient(Options{
-		FlightAwareServiceBase:  server.URL,
-		FlightAwareServiceToken: "remote-token",
-		QueueInterval:           0,
+		FlightAwareRouteFetcher: func(ctx context.Context, callsign string, metrics realtime.MetricsSink) (map[string]any, error) {
+			requestedCallsign = callsign
+			return map[string]any{
+				"callsign":    callsign,
+				"origin":      map[string]any{"icao": "KBOS", "iata": "BOS", "lat": 42.3656, "lon": -71.0096},
+				"destination": map[string]any{"icao": "KLAX", "iata": "LAX", "lat": 33.9416, "lon": -118.4085},
+				"route":       map[string]any{"iata": "BOS-LAX", "icao": "KBOS-KLAX"},
+				"airline":     map[string]any{"icao": "AAL", "iata": "AA"},
+				"source":      "flightaware",
+				"confidence":  "scraped-reference",
+			}, nil
+		},
+		QueueInterval: 0,
 	})
 	event, err := client.Fetch(context.Background(), realtime.FetchInput{
 		Channel:     "route:AAL1234:airport:KBOS",
@@ -67,6 +66,9 @@ func TestFlightAwareRouteUsesRemotePrivateServiceWhenConfigured(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("Fetch returned error: %v", err)
+	}
+	if requestedCallsign != "AAL1234" {
+		t.Fatalf("requested callsign = %q", requestedCallsign)
 	}
 	if event.Source != "flightaware" {
 		t.Fatalf("source = %q", event.Source)

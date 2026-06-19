@@ -260,15 +260,16 @@ HTTP helper utilities stay under `src/server/http`.
 
 ## Data Service Deployment
 
-ADSBao deploys to Railway as one service from the repository root. The root
-`Dockerfile` builds the Vite frontend, compiles `services/data-service`, copies
-`dist/` into the runtime image, and starts the Go binary. The service exposes
-`/health`, `/debug/channels`, `/api/**`, `/ws`, and the static SPA fallback.
-It pushes HTTP, external provider, database, WebSocket, scheduler, and dynamic
-channel metrics plus structured backend logs to Better Stack when the
-`BETTERSTACK_*` source settings are configured. Custom metric and log payloads
-are queryable by `service.name`, `adsbao.service`, and low-cardinality
-dimensions such as route, provider, operation, status class, and channel type.
+The public ADSBao app deploys to Railway as one service from the repository
+root. The root `Dockerfile` builds the Vite frontend, compiles
+`services/data-service`, copies `dist/` into the runtime image, and starts the
+Go binary. The service exposes `/health`, `/debug/channels`, `/api/**`, `/ws`,
+and the static SPA fallback. It pushes HTTP, external provider, database,
+WebSocket, scheduler, and dynamic channel metrics plus structured backend logs
+to Better Stack when the `BETTERSTACK_*` source settings are configured.
+Custom metric and log payloads are queryable by `service.name`,
+`adsbao.service`, and low-cardinality dimensions such as route, provider,
+operation, status class, and channel type.
 
 Railway setup:
 
@@ -278,7 +279,10 @@ Railway setup:
 4. Generate a public Railway domain for the service.
 5. Set `ADSBAO_REALTIME_AUTH_SECRET` when FlightAware realtime subscriptions
    are enabled.
-6. Set the Better Stack metrics and logs source token/endpoint variables on
+6. If FlightAware private access is enabled, add the private FlightAware
+   endpoint as another service in the same Railway project and set
+   `FLIGHTAWARE_SERVICE_BASE_URL` to its private `railway.internal` URL.
+7. Set the Better Stack metrics and logs source token/endpoint variables on
    Railway to enable backend metric and log ingest.
 
 Railway handles production deployment through its GitHub integration. The
