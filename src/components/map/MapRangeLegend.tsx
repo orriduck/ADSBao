@@ -96,7 +96,7 @@ export default function MapRangeLegend() {
         role="note"
         aria-label={t("map.distanceAria", { distance: mobileDist })}
         style={{ height: `${barH + 20}px` }}
-        className="pointer-events-none absolute bottom-[calc(max(12px,env(safe-area-inset-bottom))+54px)] left-4 z-map-legend flex flex-col items-center gap-0.5 md:hidden"
+        className="pointer-events-none absolute bottom-[calc(var(--app-bottom-dock-offset)+54px)] left-4 z-map-legend flex flex-col items-center gap-0.5 md:hidden"
       >
         <span className="text-[9px] font-semibold tabular-nums text-[var(--map-range-text)]">
           {mobileDist}{" "}

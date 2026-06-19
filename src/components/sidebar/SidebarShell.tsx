@@ -76,6 +76,7 @@ export default function SidebarShell({
     handleScroll,
     handleWheel,
     handleTouchStart,
+    handleTouchEnd,
     handleTouchMove,
   } = useCollapsibleSidebarPanel({
     collapsed,
@@ -105,6 +106,8 @@ export default function SidebarShell({
       onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       <SidebarBrandDock
         compact={isCollapsed || brandCompact}

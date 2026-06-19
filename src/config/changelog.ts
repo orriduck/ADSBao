@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.17.4",
+    kind: "patch",
+    title: {
+      en: "Mobile dock and sidebar gestures",
+      zh: "移动端 Dock 与侧栏手势",
+    },
+    summary: {
+      en: "Mobile bottom chrome now clamps rotated iOS safe-area offsets, and collapsible sidebars wait for a fresh scroll gesture after reaching the end.",
+      zh: "移动端底部浮层现在会夹住旋转后的 iOS safe-area 偏移；可收起侧栏也会等到底部后的下一次主动滑动再缩小。",
+    },
+    highlights: [
+      {
+        en: "Bottom toolbars, preview cards, and map scale labels share a capped safe-area offset so rotation cannot leave a large blank strip below them",
+        zh: "底部工具栏、预览卡和地图比例尺共用受限的 safe-area 偏移，旋转后不会在下方留下大块空白",
+      },
+      {
+        en: "Desktop collapsible sidebars only shrink when the wheel or touch gesture starts at the true bottom",
+        zh: "桌面可收起侧栏只有在滚轮或触摸手势从真正底部开始时才会缩小",
+      },
+    ],
+  },
+  {
     version: "v2.17.3",
     kind: "patch",
     title: {

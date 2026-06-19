@@ -37,7 +37,7 @@ export default function MobilePreviewCard({
         "fixed z-popover",
         placement === "bottomRight"
           ? [
-              "bottom-[calc(12px+var(--mobile-preview-safe-bottom,env(safe-area-inset-bottom)))]",
+              "bottom-[calc(12px+var(--mobile-preview-safe-bottom,var(--app-bottom-safe-area)))]",
               "right-[calc(12px+var(--mobile-preview-safe-right,env(safe-area-inset-right)))]",
               "w-[min(332px,calc(100vw-24px-var(--mobile-preview-safe-left,0px)-var(--mobile-preview-safe-right,0px)))]",
               "max-w-[calc(100vw-24px-var(--mobile-preview-safe-left,0px)-var(--mobile-preview-safe-right,0px))]",

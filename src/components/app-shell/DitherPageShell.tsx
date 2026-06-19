@@ -55,6 +55,7 @@ export default function DitherPageShell({
     handleScroll,
     handleWheel,
     handleTouchStart,
+    handleTouchEnd,
     handleTouchMove,
   } = useCollapsibleSidebarPanel({
     collapsed: sidebarCollapsed,
@@ -108,6 +109,8 @@ export default function DitherPageShell({
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
       >
         <SidebarBrandDock
           compact={isCollapsed || brandCompact}

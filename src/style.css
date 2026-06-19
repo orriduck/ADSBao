@@ -87,12 +87,15 @@
     --z-index-modal-content: 610;
     --z-index-toast: 700;
 
+    --app-bottom-safe-area: clamp(0px, env(safe-area-inset-bottom), 34px);
+    --app-bottom-dock-offset: max(12px, var(--app-bottom-safe-area));
+
     /* Vertical breathing room the always-on bottom mobile toolbar pill
        needs at the foot of the viewport so it does not cover the last
        row of a page's content. Toolbar shell min-height + bottom inset
        + small gap. */
     --map-toolbar-mobile-clearance: calc(
-        var(--atc-toolbar-shell-min-height) + max(24px, env(safe-area-inset-bottom) + 12px)
+        var(--atc-toolbar-shell-min-height) + max(24px, var(--app-bottom-safe-area) + 12px)
     );
 
     /* Vertical room the Plane Hunter mobile bottom card reserves at
@@ -100,7 +103,7 @@
        bottom to this value so it always sits above the floating card
        with a comfortable gap. Always defined here so the value still
        resolves between the 720px and the 768px Tailwind breakpoint. */
-    --plane-hunter-card-clearance: calc(290px + max(16px, env(safe-area-inset-bottom)));
+    --plane-hunter-card-clearance: calc(290px + max(16px, var(--app-bottom-safe-area)));
 }
 
 :root {
@@ -2014,7 +2017,7 @@ body:has(.dither-page-shell) {
         backdrop-filter: var(--app-frost-strong);
         box-shadow: var(--app-floating-shadow), var(--atc-preview-card-inset);
         flex: 0 0 auto;
-        margin: 0 auto max(10px, env(safe-area-inset-bottom));
+        margin: 0 auto max(10px, var(--app-bottom-safe-area));
         max-height: min(58dvh, 460px);
         max-width: min(390px, calc(100vw - 20px));
         /* Card grows to fit content up to max-height; scroll only if
@@ -2073,7 +2076,7 @@ body:has(.dither-page-shell) {
         left: 50%;
         right: auto;
         top: auto;
-        bottom: max(12px, env(safe-area-inset-bottom));
+        bottom: var(--app-bottom-dock-offset);
         transform: translateX(-50%);
     }
 }
@@ -3254,7 +3257,7 @@ body {
        containing block resolves to the viewport. */
     align-items: flex-end;
     height: auto;
-    inset: auto 0 max(12px, env(safe-area-inset-bottom));
+    inset: auto 0 var(--app-bottom-dock-offset);
     padding: 0 16px;
     position: fixed;
     z-index: var(--z-index-map-ui-floating);
@@ -7556,7 +7559,7 @@ body {
         display: flex;
         justify-content: center;
         height: auto;
-        inset: auto 0 max(12px, env(safe-area-inset-bottom));
+        inset: auto 0 var(--app-bottom-dock-offset);
         padding: 0 16px;
         pointer-events: none;
         position: fixed;
