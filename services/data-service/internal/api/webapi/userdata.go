@@ -26,7 +26,7 @@ var (
 	mapModes        = map[string]bool{"spotting": true, "radio": true, "controller": true, "custom": true}
 	selectableModes = map[string]bool{"spotting": true, "radio": true, "controller": true}
 	layerKeys       = map[string]bool{
-		"mapLabels": true, "approachBeams": true, "navaidMarkers": true, "airspaces": true,
+		"mapLabels": true, "approachBeams": true, "navaidMarkers": true, "reportingPoints": true, "airspaces": true,
 		"candidateWatchingSpots": true, "showCallsigns": true, "userLocation": true, "userLocationAudio": true,
 	}
 	baseLayers = map[string]bool{"standard": true, "terrain": true}
