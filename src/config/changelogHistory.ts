@@ -384,6 +384,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.15.5",
+    kind: "patch",
+    title: {
+      en: "Rotation scroll recovery",
+      zh: "旋转滚动恢复",
+    },
+    summary: {
+      en: "Airport and flight maps now clear stale page and sidebar scroll after repeated phone rotations, keeping the landscape shell pinned to the viewport.",
+      zh: "机场和航班地图现在会在手机多次旋转后清理残留页面与侧栏滚动，让横屏地图外壳固定在可视区域。",
+    },
+    highlights: [
+      {
+        en: "The full-screen landscape map shell participates in the same document scroll lock as portrait map pages",
+        zh: "横屏全屏地图外壳与竖屏地图页使用同一套 document 滚动锁",
+      },
+      {
+        en: "Returning to landscape resets the sidebar scroll position so the header does not reopen midway down the panel",
+        zh: "回到横屏时会重置侧栏滚动位置，避免侧栏从面板中段重新打开",
+      },
+    ],
+  },
+  {
     version: "v2.15.4",
     kind: "patch",
     title: {

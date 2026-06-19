@@ -2082,11 +2082,11 @@ body:has(.dither-page-shell) {
         background: var(--atc-bg);
         box-shadow: none;
         width: 100vw !important;
-        /* The mobile page toolbar floats over static pages. Avoid a
-           visible bottom spacer that reads as a white block, but keep
-           programmatic scroll/focus targets from landing under the pill. */
-        padding-bottom: 0;
-        scroll-padding-bottom: var(--map-toolbar-mobile-clearance);
+        /* Static-page sidebars use the same visible scroll-end placeholder
+           as map sidebars so the final source/update rows clear the
+           bottom-pinned page toolbar. */
+        padding-bottom: var(--sidebar-mobile-bottom-placeholder);
+        scroll-padding-bottom: var(--sidebar-mobile-bottom-placeholder);
     }
 
     /* Inner panels normally use `flex-1 overflow-y-auto`; mobile keeps

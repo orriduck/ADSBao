@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 93;
+export const CHANGELOG_TOTAL_COUNT = 94;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.19.5",
+    kind: "patch",
+    title: {
+      en: "Static sidebar bottom placeholder",
+      zh: "静态侧栏底部占位",
+    },
+    summary: {
+      en: "Static mobile sidebars such as About now keep the same 96px scroll-end placeholder used by map sidebars.",
+      zh: "关于等静态页移动侧栏现在也使用与地图侧栏一致的 96px 滚动末尾占位。",
+    },
+    highlights: [
+      {
+        en: "The DitherPageShell panel now has visible bottom padding on mobile so the last source, mechanism, or changelog rows can scroll above the page toolbar",
+        zh: "DitherPageShell 面板在移动端现在有可见底部 padding，让最后的来源、机制或更新日志条目能滚到页面工具栏上方",
+      },
+      {
+        en: "The same bottom-placeholder token drives static, airport, and flight sidebars without changing their scroll owners",
+        zh: "静态页、机场页和航班页侧栏共用同一个底部占位 token，同时不改变滚动容器归属",
+      },
+    ],
+  },
   {
     version: "v2.19.4",
     kind: "patch",
@@ -482,28 +504,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The version update toast fix and Better Stack duration parser patch now have distinct historical patch entries",
         zh: "版本更新提示修复与 Better Stack duration 解析修复现在各自对应独立的历史 patch 条目",
-      },
-    ],
-  },
-  {
-    version: "v2.15.5",
-    kind: "patch",
-    title: {
-      en: "Rotation scroll recovery",
-      zh: "旋转滚动恢复",
-    },
-    summary: {
-      en: "Airport and flight maps now clear stale page and sidebar scroll after repeated phone rotations, keeping the landscape shell pinned to the viewport.",
-      zh: "机场和航班地图现在会在手机多次旋转后清理残留页面与侧栏滚动，让横屏地图外壳固定在可视区域。",
-    },
-    highlights: [
-      {
-        en: "The full-screen landscape map shell participates in the same document scroll lock as portrait map pages",
-        zh: "横屏全屏地图外壳与竖屏地图页使用同一套 document 滚动锁",
-      },
-      {
-        en: "Returning to landscape resets the sidebar scroll position so the header does not reopen midway down the panel",
-        zh: "回到横屏时会重置侧栏滚动位置，避免侧栏从面板中段重新打开",
       },
     ],
   },
