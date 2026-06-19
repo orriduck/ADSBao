@@ -24,3 +24,18 @@ the full validation decision tree there; do not duplicate it in this file.
 - When developing new features or patches, do not preserve backward
   compatibility. Prefer the new pattern working correctly, even if it requires
   a breaking change, and do not prioritize tests over that goal.
+
+## Version bump rules (non-negotiable)
+
+The user uses Chinese labels for semver:
+
+| 中文 | Semver | 数字位 | When |
+|---|---|---|---|
+| **大版本** | Major | 最左 X | Breaking change. Almost never. |
+| **中版本** | Minor | 中间 Y | User-visible feature, architecture milestone. |
+| **小版本** | Patch | 最右 Z | Bug fix, small UX correction. |
+| 不 bump | — | — | Docs-only, refactor-only, no product-visible change. |
+
+When bumping: always update **both** `package.json` ("version") and
+`src/config/changelog.ts` (prepend entry with `version: "vX.Y.Z"`) in the
+same commit. They must stay in sync or the update toast breaks.

@@ -412,10 +412,14 @@ The client compares these at runtime (`AppUpdateToast.tsx` → `appVersionModel.
 
 When preparing a new product release:
 
-1. Decide the next semver-style version based on product meaning, not deploy count.
-   - **Minor**: user-visible feature, architecture milestone, or substantial production behavior change.
-   - **Patch**: bug fix, compatibility fix, or small UX correction.
-   - **No version bump**: docs-only, screenshot-only, refactor-only, or routine dependency cleanup with no product-visible impact.
+1. Decide the next semver version based on product meaning, not deploy count.
+   
+   | 中文 | Semver | 数字位 | When to use |
+   |---|---|---|---|
+   | **大版本** | **Major** | 最左 X | Breaking change, fundamental architecture rewrite. Almost never. |
+   | **中版本** | **Minor** | 中间 Y | User-visible feature, architecture milestone, or substantial production behavior change. |
+   | **小版本** | **Patch** | 最右 Z | Bug fix, compatibility fix, or small UX correction. |
+   | 不 bump | — | — | Docs-only, screenshot-only, refactor-only, or routine dependency cleanup with no product-visible impact. |
 2. **Update both version files together:**
    - `package.json` — set `"version"` (no `v` prefix, e.g. `"2.13.0"`)
    - `src/config/changelog.ts` — prepend a new entry with `version: "v2.13.0"` (with `v` prefix; this is the source of truth for the changelog page)
