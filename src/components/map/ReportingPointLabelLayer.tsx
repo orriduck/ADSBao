@@ -8,27 +8,19 @@ import {
   safeRemoveFromMap,
 } from "../../features/airport/map/leafletLayerSafety";
 import { buildReportingPointLabels } from "../../features/airport/map/reportingPointLabelModel";
-
-const escapeHtml = (value: unknown) =>
-  String(value || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
 
 const reportingPointMarkerHtml = (label: Record<string, any>) => `
-  <div
-    class="reporting-point-road-sign notranslate"
-    translate="no"
-    data-map-badge="true"
-    data-map-badge-type="reporting-point"
-  >
-    <span class="reporting-point-road-sign__post" aria-hidden="true"></span>
-    <span class="reporting-point-road-sign__blade">
-      <span class="reporting-point-road-sign__tag" aria-hidden="true">RP</span>
-      <span class="reporting-point-road-sign__name">${escapeHtml(label.name)}</span>
-    </span>
+  <div class="navaid-map-marker reporting-point-map-marker notranslate" translate="no">
+    <span class="navaid-map-marker__dot" aria-hidden="true"></span>
+    <div class="navaid-map-marker__badge">
+      ${airportLabelBadgeHtml({
+        code: label.name,
+        icon: "navaid",
+        badgeType: "reporting-point",
+        className: "airport-overlay-label--map-badge airport-overlay-label--navaid airport-overlay-label--reporting-point",
+      })}
+    </div>
   </div>
 `;
 
@@ -39,8 +31,8 @@ const reportingPointLabelIcon = (label: Record<string, any>, theme: string) =>
       `reporting-point-label-icon--${theme}`,
     ].join(" "),
     html: reportingPointMarkerHtml(label),
-    iconSize: [148, 44],
-    iconAnchor: [6, 40],
+    iconSize: [136, 78],
+    iconAnchor: [4, 4],
   });
 
 export default function ReportingPointLabelLayer({

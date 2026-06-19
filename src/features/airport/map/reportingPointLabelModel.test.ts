@@ -1,12 +1,6 @@
 import assert from "node:assert/strict";
 
-import {
-  buildReportingPointLabels,
-  shouldShowReportingPointLabels,
-} from "./reportingPointLabelModel";
-
-assert.equal(shouldShowReportingPointLabels(13.5), true);
-assert.equal(shouldShowReportingPointLabels(12), false);
+import { buildReportingPointLabels } from "./reportingPointLabelModel";
 
 assert.deepEqual(
   buildReportingPointLabels([

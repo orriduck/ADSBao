@@ -51,7 +51,6 @@ import {
 } from "../../features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useAviationContextTiles } from "../../features/airport/context/useAviationContextTiles";
 import { shouldUseNavaidCountTiles } from "../../features/airport/context/aviationContextDisplayModel";
-import { shouldShowReportingPointLabels } from "../../features/airport/map/reportingPointLabelModel";
 import { getOffsetMapCenter } from "./mapViewportOffset";
 
 const resolveCurrentTheme = () =>
@@ -455,7 +454,6 @@ export default function AirportMap({
     fullTraceMode: fullTraceContext,
     zoom: leafletZoom,
   });
-  const showReportingPointLabels = shouldShowReportingPointLabels(leafletZoom);
   const contextTiles = useAviationContextTiles({
     map: mapInstance,
     enabled: contextTileOverlays,
@@ -643,7 +641,7 @@ export default function AirportMap({
           <ReportingPointLabelLayer
             points={reportingPoints}
             theme={currentTheme}
-            visible={showReportingPointLabels}
+            visible={reportingPoints.length > 0}
           />
           <MapBadgeCollisionLayer
             refreshKey={[
@@ -651,7 +649,7 @@ export default function AirportMap({
               selectedNavaidKey,
               selectedAirspaceId,
               showNavaidMarkers ? "navaid-on" : "navaid-off",
-              showReportingPointLabels ? "reporting-on" : "reporting-off",
+              reportingPoints.length ? "reporting-on" : "reporting-off",
               nearbyAirportLayerDisplay.showAirportBadges ? "airport-on" : "airport-off",
               renderedNavaids.length,
               reportingPoints.length,
