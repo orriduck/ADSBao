@@ -115,6 +115,107 @@ func TestCallsignCanUseFlightAwareFallbackAfterEmptyADSB(t *testing.T) {
 	}
 }
 
+func TestFlightAwareFallbackStartsBeforeEmptyADSBCallsignFinishes(t *testing.T) {
+	const adsbDelay = 250 * time.Millisecond
+	started := time.Now()
+	var fallbackStarted time.Time
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(adsbDelay)
+		_, _ = w.Write([]byte(`{"ac":[]}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		Providers: []Provider{
+			{ID: "adsb.lol", CallsignURL: func(callsign string) string { return server.URL + "/" + callsign }},
+		},
+		FlightAwareFallback: func(ctx context.Context, callsign string, metrics realtime.MetricsSink) (FallbackResult, error) {
+			fallbackStarted = time.Now()
+			return FallbackResult{
+				OK:          true,
+				HasPosition: true,
+				FetchedAt:   "2026-06-14T00:00:00Z",
+				Position: map[string]any{
+					"lat":      49.05,
+					"lon":      -48.9,
+					"callsign": callsign,
+				},
+			}, nil
+		},
+	})
+
+	event, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "callsign:DAL58",
+		ChannelType: realtime.ChannelCallsign,
+		Target: realtime.PollingTarget{
+			Kind:                "callsign",
+			Callsign:            "DAL58",
+			FlightAwareFallback: true,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Fetch returned error: %v", err)
+	}
+	if event.Source != "flightaware" {
+		t.Fatalf("source = %q", event.Source)
+	}
+	if fallbackStarted.IsZero() {
+		t.Fatal("FlightAware fallback was not called")
+	}
+	if delay := fallbackStarted.Sub(started); delay >= adsbDelay/2 {
+		t.Fatalf("FlightAware fallback started after %s; expected it to hedge before ADS-B finished", delay)
+	}
+}
+
+func TestFlightAwareFallbackIsCanceledWhenADSBCallsignWins(t *testing.T) {
+	fallbackStarted := make(chan struct{}, 1)
+	fallbackCanceled := make(chan struct{}, 1)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"ac":[{"hex":"a50370","type":"adsc","flight":"DAL58   ","lat":49.05,"lon":-48.9}]}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		Providers: []Provider{
+			{ID: "adsb.lol", CallsignURL: func(callsign string) string { return server.URL + "/" + callsign }},
+		},
+		FlightAwareFallback: func(ctx context.Context, callsign string, metrics realtime.MetricsSink) (FallbackResult, error) {
+			fallbackStarted <- struct{}{}
+			<-ctx.Done()
+			fallbackCanceled <- struct{}{}
+			return FallbackResult{}, ctx.Err()
+		},
+	})
+
+	event, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "callsign:DAL58",
+		ChannelType: realtime.ChannelCallsign,
+		Target: realtime.PollingTarget{
+			Kind:                "callsign",
+			Callsign:            "DAL58",
+			FlightAwareFallback: true,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Fetch returned error: %v", err)
+	}
+	if event.Source != "adsb.lol" {
+		t.Fatalf("source = %q", event.Source)
+	}
+	select {
+	case <-fallbackStarted:
+	case <-time.After(time.Second):
+		t.Fatal("FlightAware fallback did not start")
+	}
+	select {
+	case <-fallbackCanceled:
+	case <-time.After(time.Second):
+		t.Fatal("FlightAware fallback was not canceled after ADS-B won")
+	}
+}
+
 func TestPositionProviderMetricsIncludeRequestURLAndError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "limited", http.StatusTooManyRequests)

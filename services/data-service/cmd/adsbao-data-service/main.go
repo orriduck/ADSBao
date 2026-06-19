@@ -61,27 +61,26 @@ func main() {
 		defer db.Close()
 	}
 
+	remoteFlightAware := flightaware.NewRemoteClient(flightaware.RemoteOptions{
+		BaseURL:    cfg.FlightAwareServiceBaseURL,
+		Token:      cfg.FlightAwareServiceToken,
+		HTTPClient: providerHTTPClient,
+	})
 	flightAwareByCallsign := disabledFlightAwareFallback
-	if cfg.FlightAwareFallbackEnabled && cfg.FlightAwareServiceBaseURL != "" {
-		remoteFlightAwareFallback := flightaware.NewRemoteFallbackClient(flightaware.RemoteFallbackOptions{
-			BaseURL:    cfg.FlightAwareServiceBaseURL,
-			Token:      cfg.FlightAwareServiceToken,
-			HTTPClient: providerHTTPClient,
-		})
-		flightAwareByCallsign = func(ctx context.Context, callsign string, sink realtime.MetricsSink) (adsb.FallbackResult, error) {
-			return remoteFlightAwareFallback.ByCallsign(ctx, callsign, sink)
-		}
+	if cfg.FlightAwareFallbackEnabled && remoteFlightAware.Enabled() {
+		flightAwareByCallsign = remoteFlightAware.ByCallsign
 	}
 	adsbClient := adsb.NewClient(adsb.Options{
-		HTTPClient: providerHTTPClient,
-		FlightAwareFallback: func(ctx context.Context, callsign string, sink realtime.MetricsSink) (adsb.FallbackResult, error) {
-			return flightAwareByCallsign(ctx, callsign, sink)
-		},
+		HTTPClient:          providerHTTPClient,
+		FlightAwareFallback: flightAwareByCallsign,
 	})
+	var flightAwareRouteFetcher func(context.Context, string, realtime.MetricsSink) (map[string]any, error)
+	if remoteFlightAware.Enabled() {
+		flightAwareRouteFetcher = remoteFlightAware.Route
+	}
 	routeClient := route.NewClient(route.Options{
 		HTTPClient:              providerHTTPClient,
-		FlightAwareServiceBase:  cfg.FlightAwareServiceBaseURL,
-		FlightAwareServiceToken: cfg.FlightAwareServiceToken,
+		FlightAwareRouteFetcher: flightAwareRouteFetcher,
 	})
 	polling := scheduler.New(scheduler.Options{
 		Fetch: func(input realtime.FetchInput) (realtime.Event, error) {

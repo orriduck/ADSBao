@@ -10,7 +10,6 @@ import (
 	"math"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -24,14 +23,12 @@ const (
 	defaultMaxBytes      = 2 * 1024 * 1024
 	defaultQueueInterval = 500 * time.Millisecond
 	userAgent            = "ADSBao data-service/1.0 (+https://adsbao.dev)"
-	flightAwareRemoteUA  = "ADSBao data-service/1.0 (+https://adsbao.dev; flightaware/remote)"
 )
 
 type Options struct {
 	HTTPClient              *http.Client
 	ADSBDBBaseURL           string
-	FlightAwareServiceBase  string
-	FlightAwareServiceToken string
+	FlightAwareRouteFetcher func(context.Context, string, realtime.MetricsSink) (map[string]any, error)
 	Timeout                 time.Duration
 	MaxBytes                int64
 	QueueInterval           time.Duration
@@ -41,8 +38,7 @@ type Options struct {
 type Client struct {
 	httpClient              *http.Client
 	adsbdbBaseURL           string
-	flightAwareServiceBase  string
-	flightAwareServiceToken string
+	flightAwareRouteFetcher func(context.Context, string, realtime.MetricsSink) (map[string]any, error)
 	timeout                 time.Duration
 	maxBytes                int64
 	queueInterval           time.Duration
@@ -59,7 +55,6 @@ func NewClient(options Options) *Client {
 	if adsbdbBase == "" {
 		adsbdbBase = defaultADSBDBBaseURL
 	}
-	flightAwareServiceBase := strings.TrimRight(strings.TrimSpace(options.FlightAwareServiceBase), "/")
 	timeout := options.Timeout
 	if timeout <= 0 {
 		timeout = defaultTimeout
@@ -75,8 +70,7 @@ func NewClient(options Options) *Client {
 	return &Client{
 		httpClient:              httpClient,
 		adsbdbBaseURL:           adsbdbBase,
-		flightAwareServiceBase:  flightAwareServiceBase,
-		flightAwareServiceToken: strings.TrimSpace(options.FlightAwareServiceToken),
+		flightAwareRouteFetcher: options.FlightAwareRouteFetcher,
 		timeout:                 timeout,
 		maxBytes:                maxBytes,
 		queueInterval:           queueInterval,
@@ -88,7 +82,7 @@ func (c *Client) Fetch(ctx context.Context, input realtime.FetchInput) (realtime
 		return realtime.Event{}, errors.New("Expected route polling target")
 	}
 	if input.Target.RouteProvider == "flightaware" {
-		return c.fetchFlightAware(ctx, input)
+		return c.fetchFlightAwareWithHedge(ctx, input)
 	}
 	return c.fetchADSBDB(ctx, input)
 }
@@ -132,39 +126,58 @@ func (c *Client) fetchADSBDB(ctx context.Context, input realtime.FetchInput) (re
 }
 
 func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
-	if c.flightAwareServiceBase == "" {
+	if c.flightAwareRouteFetcher == nil {
 		return routeEvent(input.Channel, "flightaware", input.Target.Callsign, nil), nil
 	}
-	requestURL := c.flightAwareRemoteURL(input.Target.Callsign)
-	if requestURL == "" {
-		return realtime.Event{}, errors.New("Invalid FlightAware route callsign")
-	}
-	started := time.Now()
-	resp, cancel, err := c.doFlightAwareRemote(ctx, requestURL)
+	route, err := c.flightAwareRouteFetcher(ctx, input.Target.Callsign, input.Metrics)
 	if err != nil {
-		c.recordExternal(input, "flightaware", "error", "ERR", requestURL, err.Error(), started)
 		return realtime.Event{}, err
 	}
-	defer cancel()
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		message := fmt.Sprintf("HTTP %d", resp.StatusCode)
-		c.recordExternal(input, "flightaware", "error", resp.StatusCode, requestURL, message, started)
-		return realtime.Event{}, fmt.Errorf("flightaware remote route HTTP %d", resp.StatusCode)
-	}
-	body, err := c.readBody(resp)
-	if err != nil {
-		c.recordExternal(input, "flightaware", "error", "ERR", requestURL, err.Error(), started)
-		return realtime.Event{}, err
-	}
-	var payload map[string]any
-	if err := json.Unmarshal(body, &payload); err != nil {
-		c.recordExternal(input, "flightaware", "error", "PARSE", requestURL, "Invalid FlightAware service JSON", started)
-		return realtime.Event{}, err
-	}
-	c.recordExternal(input, "flightaware", "success", resp.StatusCode, requestURL, "", started)
-	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, asMap(payload["route"])), nil
+	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, route), nil
 }
+
+// fetchFlightAwareWithHedge fires both FlightAware and ADSBDB route queries in
+// parallel. If FA returns first and succeeds, it wins immediately. If FA fails,
+// the ADSBDB result is used as fallback.
+func (c *Client) fetchFlightAwareWithHedge(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
+	if c.flightAwareRouteFetcher == nil {
+		return c.fetchADSBDB(ctx, input)
+	}
+
+	type result struct {
+		event  realtime.Event
+		err    error
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	faCh := make(chan result, 1)
+	go func() {
+		event, err := c.fetchFlightAware(ctx, input)
+		faCh <- result{event: event, err: err}
+	}()
+
+	adsbCh := make(chan result, 1)
+	go func() {
+		event, err := c.fetchADSBDB(ctx, input)
+		adsbCh <- result{event: event, err: err}
+	}()
+
+	// Wait for FA first; fall back to ADSBDB on failure.
+	select {
+	case r := <-faCh:
+		if r.err == nil {
+			return r.event, nil
+		}
+		// FA failed — wait for ADSBDB.
+		r2 := <-adsbCh
+		return r2.event, r2.err
+	case <-ctx.Done():
+		return realtime.Event{}, ctx.Err()
+	}
+}
+
 
 func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, context.CancelFunc, error) {
 	requestCtx, cancel := context.WithTimeout(ctx, c.timeout)
@@ -175,26 +188,6 @@ func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.R
 	}
 	req.Header.Set("Accept", accept)
 	req.Header.Set("User-Agent", ua)
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		cancel()
-		return nil, nil, err
-	}
-	return resp, cancel, nil
-}
-
-func (c *Client) doFlightAwareRemote(ctx context.Context, requestURL string) (*http.Response, context.CancelFunc, error) {
-	requestCtx, cancel := context.WithTimeout(ctx, c.timeout)
-	req, err := http.NewRequestWithContext(requestCtx, http.MethodGet, requestURL, nil)
-	if err != nil {
-		cancel()
-		return nil, nil, err
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", flightAwareRemoteUA)
-	if c.flightAwareServiceToken != "" {
-		req.Header.Set("Authorization", "Bearer "+c.flightAwareServiceToken)
-	}
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		cancel()
@@ -236,14 +229,6 @@ func (c *Client) waitForTurn(ctx context.Context) error {
 	case <-timer.C:
 		return nil
 	}
-}
-
-func (c *Client) flightAwareRemoteURL(callsign string) string {
-	normalized := upper(callsign)
-	if !regexp.MustCompile(`^[A-Z][A-Z0-9]{2,7}$`).MatchString(normalized) || c.flightAwareServiceBase == "" {
-		return ""
-	}
-	return c.flightAwareServiceBase + "/api/flightaware/route/" + url.PathEscape(normalized)
 }
 
 func (c *Client) recordExternal(input realtime.FetchInput, provider, result string, status any, requestURL, errorText string, started time.Time) {
