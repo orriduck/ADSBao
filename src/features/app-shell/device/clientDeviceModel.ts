@@ -171,6 +171,25 @@ function resolveClientDeviceOrientation(
   return width > height ? "landscape" : "portrait";
 }
 
+function resolveSafeAreaOrientation(
+  safeAreaInsets: ClientDeviceSafeAreaInsets,
+): ClientDeviceOrientation {
+  if (safeAreaInsets.left > 0 || safeAreaInsets.right > 0) return "landscape";
+  if (safeAreaInsets.top > 0 && safeAreaInsets.bottom > 0) return "portrait";
+  return "unknown";
+}
+
+function resolveViewportOrientationHint(value: unknown): ClientDeviceOrientation {
+  const normalized = normalizeText(value);
+  if (normalized.includes("portrait")) return "portrait";
+  if (normalized.includes("landscape")) return "landscape";
+  if (normalized === "0" || normalized === "180") return "portrait";
+  if (normalized === "90" || normalized === "-90" || normalized === "270") {
+    return "landscape";
+  }
+  return "unknown";
+}
+
 function normalizeSafeAreaInsets(
   safeAreaInsets: ClientDeviceSafeAreaInsetsInput | null | undefined,
 ): ClientDeviceSafeAreaInsets {
@@ -194,12 +213,29 @@ function normalizeViewport(
 
 export function resolveClientViewportSnapshot({
   layoutViewport,
+  orientationHint,
   visualViewport,
 }: {
   layoutViewport?: ClientDeviceViewport | null;
+  orientationHint?: ClientDeviceOrientation | string | number | null;
   visualViewport?: ClientDeviceViewport | null;
 }): ClientDeviceViewport | null {
-  return normalizeViewport(layoutViewport) || normalizeViewport(visualViewport);
+  const layout = normalizeViewport(layoutViewport);
+  const visual = normalizeViewport(visualViewport);
+  if (!layout) return visual;
+  if (!visual) return layout;
+
+  const layoutOrientation = resolveClientDeviceOrientation(layout);
+  const visualOrientation = resolveClientDeviceOrientation(visual);
+  const hint = resolveViewportOrientationHint(orientationHint);
+  if (
+    hint !== "unknown" &&
+    layoutOrientation !== visualOrientation &&
+    visualOrientation === hint
+  ) {
+    return visual;
+  }
+  return layout;
 }
 
 function resolveHasCamera({
@@ -238,12 +274,20 @@ export function resolveClientDeviceProfile(
   });
   const safeAreaInsets = normalizeSafeAreaInsets(snapshot?.safeAreaInsets);
   const viewport = normalizeViewport(snapshot?.viewport);
+  const viewportOrientation = resolveClientDeviceOrientation(viewport);
+  const safeAreaOrientation = resolveSafeAreaOrientation(safeAreaInsets);
+  const orientation =
+    deviceClass === "phone" &&
+    safeAreaOrientation !== "unknown" &&
+    safeAreaOrientation !== viewportOrientation
+      ? safeAreaOrientation
+      : viewportOrientation;
 
   return {
     deviceClass,
     system,
     viewport,
-    orientation: resolveClientDeviceOrientation(viewport),
+    orientation,
     isMobileDevice: deviceClass === "phone" || deviceClass === "tablet",
     hasCamera: resolveHasCamera({
       deviceClass,
@@ -264,9 +308,11 @@ function resolveClientLayoutMode({
 }): ClientLayoutMode {
   const orientation = profile?.orientation || "unknown";
   const isMobileDevice = profile?.isMobileDevice === true;
+  const isPhone = profile?.deviceClass === "phone";
   const width = toFiniteNumber(profile?.viewport?.width);
   const breakpoint = Math.max(1, toFiniteNumber(mobileBreakpointPx));
 
+  if (isPhone && orientation === "portrait") return "mobile";
   if (isMobileDevice && orientation === "landscape") return "desktop";
   if (width > 0 && width < breakpoint) return "mobile";
   return "desktop";
@@ -354,6 +400,12 @@ export function getClientDeviceSnapshot({
   };
   const visualViewport =
     typeof window !== "undefined" ? window.visualViewport : null;
+  const screenOrientation =
+    typeof window !== "undefined" ? window.screen?.orientation : null;
+  const legacyOrientation =
+    typeof window !== "undefined"
+      ? (window as Window & { orientation?: number }).orientation
+      : undefined;
 
   return {
     userAgent: clientNavigator.userAgent,
@@ -374,6 +426,8 @@ export function getClientDeviceSnapshot({
               width: window.innerWidth,
               height: window.innerHeight,
             },
+            orientationHint:
+              screenOrientation?.type || screenOrientation?.angle || legacyOrientation,
             visualViewport,
           }),
     safeAreaInsets: includeSafeAreaInsets ? readClientSafeAreaInsets() : null,

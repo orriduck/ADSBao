@@ -10,7 +10,17 @@ import {
   assert.deepEqual(
     resolveClientViewportSnapshot({
       layoutViewport: { width: 393, height: 852 },
+      orientationHint: "portrait-primary",
       visualViewport: { width: 852, height: 393 },
+    }),
+    { width: 393, height: 852 },
+  );
+
+  assert.deepEqual(
+    resolveClientViewportSnapshot({
+      layoutViewport: { width: 852, height: 393 },
+      orientationHint: "portrait-primary",
+      visualViewport: { width: 393, height: 852 },
     }),
     { width: 393, height: 852 },
   );
@@ -115,6 +125,39 @@ import {
   assert.equal(layout.isMobileLayout, true);
   assert.equal(layout.useDesktopMobileLandscapeLayout, false);
   assert.equal(layout.safeAreaCssVariables, undefined);
+}
+
+{
+  const profile = resolveClientDeviceProfile({
+    userAgent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+    platform: "iPhone",
+    maxTouchPoints: 5,
+    viewport: { width: 852, height: 393 },
+    safeAreaInsets: { top: "59px", right: "0px", bottom: "34px", left: "0px" },
+  });
+  const layout = resolveClientDeviceLayoutProfile({ profile });
+
+  assert.equal(profile.orientation, "portrait");
+  assert.equal(layout.layoutMode, "mobile");
+  assert.equal(layout.isMobileLayout, true);
+  assert.equal(layout.useDesktopMobileLandscapeLayout, false);
+}
+
+{
+  const profile = resolveClientDeviceProfile({
+    userAgent:
+      "Mozilla/5.0 (iPad; CPU OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+    platform: "iPad",
+    maxTouchPoints: 5,
+    viewport: { width: 1024, height: 1366 },
+    safeAreaInsets: { top: "24px", right: "0px", bottom: "20px", left: "0px" },
+  });
+  const layout = resolveClientDeviceLayoutProfile({ profile });
+
+  assert.equal(profile.deviceClass, "tablet");
+  assert.equal(profile.orientation, "portrait");
+  assert.equal(layout.layoutMode, "desktop");
 }
 
 {

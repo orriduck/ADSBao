@@ -87,6 +87,8 @@
     --z-index-modal-content: 610;
     --z-index-toast: 700;
 
+    --app-viewport-width: 100vw;
+    --app-viewport-height: 100dvh;
     --app-bottom-safe-area: clamp(0px, env(safe-area-inset-bottom), 34px);
     --app-bottom-dock-offset: max(12px, var(--app-bottom-safe-area));
 
@@ -1974,8 +1976,8 @@ body:has(.dither-page-shell) {
     .dither-page-shell.plane-hunter-shell {
         background: rgb(5 5 5);
         gap: 0;
-        height: 100dvh !important;
-        min-height: 100dvh;
+        height: var(--app-viewport-height, 100dvh) !important;
+        min-height: var(--app-viewport-height, 100dvh);
         overflow: hidden;
         padding: 0;
         position: relative;
@@ -2043,8 +2045,8 @@ body:has(.dither-page-shell) {
        the frosted panel remains the scroll owner so the sticky brand
        dock can compact while content moves underneath it. */
     .dither-page-shell {
-        height: 100dvh !important;
-        min-height: 100dvh;
+        height: var(--app-viewport-height, 100dvh) !important;
+        min-height: var(--app-viewport-height, 100dvh);
         overflow: hidden;
     }
 
@@ -7153,9 +7155,9 @@ body {
     --map-stage-border-width: 1px;
     background: var(--atc-bg);
     height: 100vh;
-    height: 100dvh;
+    height: var(--app-viewport-height, 100dvh);
     inset: 0;
-    min-height: 100vh;
+    min-height: var(--app-viewport-height, 100vh);
     padding: 0;
     position: fixed;
     width: 100vw;

@@ -10,6 +10,23 @@ export const getCurrentClientDeviceProfile = (includeSafeAreaInsets = false) =>
     getClientDeviceSnapshot({ includeSafeAreaInsets }),
   );
 
+function applyClientViewportCssVariables(profile: ClientDeviceProfile) {
+  if (typeof document === "undefined") return;
+  const { width, height } = profile.viewport || {};
+  if (typeof width === "number" && width > 0) {
+    document.documentElement.style.setProperty(
+      "--app-viewport-width",
+      `${width}px`,
+    );
+  }
+  if (typeof height === "number" && height > 0) {
+    document.documentElement.style.setProperty(
+      "--app-viewport-height",
+      `${height}px`,
+    );
+  }
+}
+
 function areClientDeviceProfilesEqual(
   currentProfile: ClientDeviceProfile,
   nextProfile: ClientDeviceProfile,
@@ -47,8 +64,9 @@ export function useClientDeviceProfile({
     const screenOrientation = window.screen?.orientation;
 
     const syncProfile = () => {
+      const nextProfile = getCurrentClientDeviceProfile(includeSafeAreaInsets);
+      applyClientViewportCssVariables(nextProfile);
       setProfile((currentProfile) => {
-        const nextProfile = getCurrentClientDeviceProfile(includeSafeAreaInsets);
         return areClientDeviceProfilesEqual(currentProfile, nextProfile)
           ? currentProfile
           : nextProfile;

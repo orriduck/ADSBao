@@ -29,6 +29,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "v2.17.5",
+    kind: "patch",
+    title: {
+      en: "iOS PWA rotation recovery",
+      zh: "iOS PWA 旋转恢复",
+    },
+    summary: {
+      en: "Home Screen launches now recover the real portrait layout after repeated rotations, so static pages and airport detail sidebars stop inheriting stale landscape geometry.",
+      zh: "主屏启动的 PWA 在反复旋转后会恢复真实竖屏布局，静态页和机场详情侧栏不再继承过期横屏几何。",
+    },
+    highlights: [
+      {
+        en: "The app-shell device model now reconciles layout viewport, visualViewport, orientation, and safe-area evidence before choosing mobile or landscape desktop layout",
+        zh: "app-shell 设备模型现在会综合 layout viewport、visualViewport、方向和 safe-area 证据，再决定移动端或横屏桌面布局",
+      },
+      {
+        en: "Locked static and map shells use the sampled viewport height so iOS standalone mode cannot leave a stale bottom block after rotation",
+        zh: "锁定视口的静态页和地图壳会使用采样后的视口高度，避免 iOS standalone 旋转后留下过期底部白块",
+      },
+    ],
+  },
+  {
     version: "v2.17.4",
     kind: "patch",
     title: {
