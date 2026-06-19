@@ -25,11 +25,9 @@ export function resolveAirportProfile({ icao = "", airport = null }: AirportExpl
   return {
     icao: normalizedIcao,
     iata: airportCodeLabel,
-    name:
-      (useAirportDetails ? airport?.name : "") ||
-      airportFallback?.name ||
-      normalizedIcao ||
-      "Airport",
+    name: useAirportDetails
+      ? String(airport?.name || "")
+      : airportFallback?.name || normalizedIcao || "Airport",
     localizedName: useAirportDetails ? airport?.localizedName || "" : "",
     city:
       (useAirportDetails ? airport?.city : "") || airportFallback?.city || "",

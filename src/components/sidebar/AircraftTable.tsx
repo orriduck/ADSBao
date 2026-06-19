@@ -43,7 +43,6 @@ import {
   ALTITUDE_LEVEL_OPTIONS,
   ENTITY_FILTER_OPTIONS,
   aircraftMatchesFilters,
-  aircraftTypeLabel,
   getAircraftTypeGroups,
   getNextEntityFilter,
 } from "@/features/aircraft/filters/aircraftFilters";

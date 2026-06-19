@@ -134,25 +134,25 @@ export function annotateAdsbPosition(
 }
 
 function pickFreshPrimary(candidates: TrackingRecord[], now: number): TrackingRecord | null {
-  return candidates
-    .filter((candidate) => candidate?.position && hasUsableLatLon(candidate.position))
-    .filter((candidate) => !isAdscPosition(candidate.position))
-    .map((candidate) => ({
-      ...candidate,
-      ageSeconds: getAdsbPositionAgeSeconds(candidate.position, now),
-    }))
-    .filter((candidate) => candidate.ageSeconds <= ADSB_FRESH_MAX_AGE_SECONDS)
-    .sort((a, b) => a.ageSeconds - b.ageSeconds)[0] || null;
+  let best: TrackingRecord | null = null;
+  for (const candidate of candidates) {
+    if (!candidate?.position || !hasUsableLatLon(candidate.position)) continue;
+    if (isAdscPosition(candidate.position)) continue;
+    const ageSeconds = getAdsbPositionAgeSeconds(candidate.position, now);
+    if (ageSeconds > ADSB_FRESH_MAX_AGE_SECONDS) continue;
+    if (!best || ageSeconds < best.ageSeconds) best = { ...candidate, ageSeconds };
+  }
+  return best;
 }
 
 function pickStalePrimary(candidates: TrackingRecord[], now: number): TrackingRecord | null {
-  return candidates
-    .filter((candidate) => candidate?.position && hasUsableLatLon(candidate.position))
-    .map((candidate) => ({
-      ...candidate,
-      ageSeconds: getAdsbPositionAgeSeconds(candidate.position, now),
-    }))
-    .sort((a, b) => a.ageSeconds - b.ageSeconds)[0] || null;
+  let best: TrackingRecord | null = null;
+  for (const candidate of candidates) {
+    if (!candidate?.position || !hasUsableLatLon(candidate.position)) continue;
+    const ageSeconds = getAdsbPositionAgeSeconds(candidate.position, now);
+    if (!best || ageSeconds < best.ageSeconds) best = { ...candidate, ageSeconds };
+  }
+  return best;
 }
 
 function isAdscPosition(position: TrackingRecord | null | undefined) {

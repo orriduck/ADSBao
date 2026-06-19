@@ -1768,7 +1768,8 @@ body:has(.dither-page-shell) {
     );
 }
 
-.leaflet-marker-icon.navaid-label-icon {
+.leaflet-marker-icon.navaid-label-icon,
+.leaflet-marker-icon.reporting-point-label-icon {
     overflow: visible;
     pointer-events: none !important;
 }
@@ -1826,6 +1827,71 @@ body:has(.dither-page-shell) {
 .leaflet-marker-icon.navaid-label-icon .airport-overlay-label--map-badge,
 .leaflet-marker-icon.nearby-airport-marker-icon .airport-overlay-label--map-badge {
     pointer-events: auto;
+}
+
+.reporting-point-road-sign {
+    --map-badge-offset-x: 0px;
+    --map-badge-offset-y: 0px;
+    --map-badge-stack-z: 0;
+    --reporting-point-sign-bg: oklch(0.82 0.14 86);
+    --reporting-point-sign-edge: oklch(0.24 0.02 95);
+    --reporting-point-sign-fg: oklch(0.18 0.012 96);
+    display: inline-flex;
+    filter: drop-shadow(
+        0 2px 4px color-mix(in oklab, var(--atc-bg) 54%, transparent)
+    );
+    opacity: 0.9;
+    padding-bottom: 17px;
+    pointer-events: none;
+    position: relative;
+    transform: translate3d(
+        var(--map-badge-offset-x),
+        var(--map-badge-offset-y),
+        0
+    );
+    width: max-content;
+    z-index: var(--map-badge-stack-z);
+}
+
+.reporting-point-road-sign__post {
+    background: var(--reporting-point-sign-edge);
+    border-radius: 999px;
+    bottom: 0;
+    box-shadow: 0 1px 3px color-mix(in oklab, var(--atc-bg) 50%, transparent);
+    height: 18px;
+    left: 5px;
+    position: absolute;
+    width: 2px;
+}
+
+.reporting-point-road-sign__blade {
+    align-items: center;
+    background: var(--reporting-point-sign-bg);
+    border: 1px solid var(--reporting-point-sign-edge);
+    box-shadow:
+        inset 0 1px 0 color-mix(in oklab, var(--atc-card) 52%, transparent),
+        0 2px 7px color-mix(in oklab, var(--atc-bg) 36%, transparent);
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
+    color: var(--reporting-point-sign-fg);
+    display: inline-flex;
+    font-family: var(--font-mono);
+    font-size: 7.5px;
+    font-weight: 900;
+    gap: 5px;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    min-height: 18px;
+    padding: 4px 12px 4px 4px;
+    white-space: nowrap;
+}
+
+.reporting-point-road-sign__tag {
+    background: var(--reporting-point-sign-fg);
+    border-radius: 1px;
+    color: var(--reporting-point-sign-bg);
+    font-size: 6px;
+    line-height: 1;
+    padding: 2px 3px;
 }
 
 .navaid-count-icon {

@@ -51,7 +51,11 @@ function createAirportNameRepository({
         `
           select ${SELECT_COLUMNS}
           from ${AIRPORTS_TABLE}
-          where (icao_code = any($1::text[]) or ident = any($1::text[]))
+          where (
+            icao_code = any($1::text[])
+            or ident = any($1::text[])
+            or iata_code = any($1::text[])
+          )
         `,
         [normalizedIdents],
       );
@@ -68,6 +72,7 @@ function createAirportNameRepository({
       // `ident` only fills a slot the ICAO code didn't already claim, so an
       // exact ICAO match always wins over an ident-only collision.
       if (mapped.ident && !byIdent.has(mapped.ident)) byIdent.set(mapped.ident, value);
+      if (mapped.iata && !byIdent.has(mapped.iata)) byIdent.set(mapped.iata, value);
     }
     return byIdent;
   };

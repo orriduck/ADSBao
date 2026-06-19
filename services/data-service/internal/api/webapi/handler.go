@@ -52,6 +52,7 @@ type Handler struct {
 	authenticator       *ClerkAuthenticator
 	userDataStore       *UserDataStore
 	runwayMapReader     runwayMapReader
+	airportNameReader   airportNameReader
 }
 
 type openAIPList struct {
@@ -87,6 +88,7 @@ func New(options Options) *Handler {
 		authenticator:       options.Authenticator,
 		userDataStore:       options.UserDataStore,
 		runwayMapReader:     options.UserDataStore,
+		airportNameReader:   options.UserDataStore,
 	}
 }
 
@@ -168,6 +170,7 @@ func (h *Handler) handleSearch(w http.ResponseWriter, r *http.Request) {
 			airports = append(airports, airport)
 		}
 	}
+	h.applyAirportNames(r.Context(), airports)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"airports": airports,
 		"source":   "openaip",
@@ -454,6 +457,7 @@ func (h *Handler) resolveAirportDetail(ctx context.Context, ident string) (map[s
 	if airport == nil {
 		return detail, nil, nil, nil, nil
 	}
+	h.applyAirportNames(ctx, []map[string]any{airport})
 	runways := mapRunways(asRecords(detail["runways"]), detail)
 	runwayMap, runwayMapErr := h.userDataStore.readRunwayMap(ctx, ident)
 	if runwayMapErr != nil {
@@ -510,6 +514,7 @@ func (h *Handler) nearbyAirports(ctx context.Context, lat, lon float64, exclude 
 			}
 		}
 	}
+	h.applyAirportNames(ctx, out)
 	sort.Slice(out, func(i, j int) bool {
 		return numberValue(out[i]["distanceNm"]) < numberValue(out[j]["distanceNm"])
 	})
@@ -517,6 +522,46 @@ func (h *Handler) nearbyAirports(ctx context.Context, lat, lon float64, exclude 
 		out = out[:limit]
 	}
 	return out
+}
+
+func airportNameLookupIdent(airport map[string]any) string {
+	return normalizeAirportIdent(firstString(airport["icao"], airport["code"], airport["ident"], airport["iata"]))
+}
+
+func (h *Handler) applyAirportNames(ctx context.Context, airports []map[string]any) {
+	names := h.storedAirportNamesForAirports(ctx, airports)
+	for _, airport := range airports {
+		if airport == nil {
+			continue
+		}
+		airport["name"] = ""
+		airport["city"] = ""
+		if name, ok := names[airportNameLookupIdent(airport)]; ok {
+			airport["name"] = name.name
+			airport["city"] = name.city
+		}
+	}
+}
+
+func (h *Handler) storedAirportNamesForAirports(ctx context.Context, airports []map[string]any) map[string]airportNameRecord {
+	if h == nil || h.airportNameReader == nil || len(airports) == 0 {
+		return nil
+	}
+	idents := make([]string, 0, len(airports))
+	for _, airport := range airports {
+		if ident := airportNameLookupIdent(airport); ident != "" {
+			idents = append(idents, ident)
+		}
+	}
+	if len(idents) == 0 {
+		return nil
+	}
+	names, err := h.airportNameReader.readAirportNames(ctx, idents)
+	if err != nil {
+		log.Printf("airport name read failed airports=%s error=%v", strings.Join(idents, ","), err)
+		return nil
+	}
+	return names
 }
 
 func (h *Handler) storedRunwayMapsForAirports(ctx context.Context, airports []map[string]any) map[string]map[string]any {
@@ -687,7 +732,7 @@ func mapAirport(airport map[string]any) map[string]any {
 		"iata":             upper(stringValue(airport["iataCode"])),
 		"code":             code,
 		"openAipId":        stringValue(airport["_id"]),
-		"name":             fallbackString(stringValue(airport["name"]), code),
+		"name":             "",
 		"type":             stringValue(airport["type"]),
 		"type_label":       airportTypeLabel(airport["type"]),
 		"city":             "",

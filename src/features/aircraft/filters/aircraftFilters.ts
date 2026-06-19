@@ -109,10 +109,10 @@ export function getAircraftTypeGroups(
 ) {
   const typeToEntry = new Map();
   for (const item of aircraft) {
-    const type = aircraftTypeLabel(item);
+    const display = resolveAircraftDisplayModel(item);
+    const type = display.icaoType || display.category;
     if (!type) continue;
     if (typeToEntry.has(type)) continue;
-    const display = resolveAircraftDisplayModel(item);
     const label = getAircraftTypeFilterLabel(display);
     typeToEntry.set(type, {
       category: getAircraftCategoryCode(item),

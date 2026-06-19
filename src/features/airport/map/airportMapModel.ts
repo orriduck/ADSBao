@@ -169,6 +169,10 @@ export const getVisibleAircraft = ({
 }: VisibleAircraftOptions) => {
   const airportGroundTrafficHideRadiusNm =
     airportGroundTrafficHideRadiusNmForZoom(zoom);
+  if (airportGroundTrafficHideRadiusNm == null) {
+    return aircraft.filter((ac) => ac.lat != null && ac.lon != null);
+  }
+
   const groundFilters = airportGroundFilters({
     airportLat,
     airportLon,
@@ -178,7 +182,6 @@ export const getVisibleAircraft = ({
 
   return aircraft.filter((ac) => {
     if (ac.lat == null || ac.lon == null) return false;
-    if (airportGroundTrafficHideRadiusNm == null) return true;
     return !groundFilters.some((airport) =>
       isInsideAirportGroundArea(ac, airport, airportGroundTrafficHideRadiusNm),
     );
