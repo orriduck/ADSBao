@@ -1,8 +1,4 @@
-type ScrollTarget =
-  | HTMLElement
-  | null
-  | undefined
-  | (() => HTMLElement | null | undefined);
+type ScrollTarget = HTMLElement | null | undefined | (() => HTMLElement | null | undefined);
 
 const VIEWPORT_SCROLL_RESET_DELAYS_MS = [120, 360] as const;
 
@@ -32,3 +28,9 @@ export function scheduleViewportScrollReset(target?: ScrollTarget) {
   const timeoutIds = VIEWPORT_SCROLL_RESET_DELAYS_MS.map((delayMs) =>
     window.setTimeout(() => resetViewportScroll(target), delayMs),
   );
+
+  return () => {
+    if (frameId != null) window.cancelAnimationFrame(frameId);
+    timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+  };
+}
