@@ -31,6 +31,13 @@ assert.equal(
 assert.equal(
   shouldPrecacheViteChunk({
     isEntry: false,
+    moduleIds: ["/repo/src/config/changelogHistory.ts"],
+  }),
+  false,
+);
+assert.equal(
+  shouldPrecacheViteChunk({
+    isEntry: false,
     moduleIds: ["/repo/src/components/map/AirportMap.tsx"],
   }),
   false,

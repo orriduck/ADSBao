@@ -7,7 +7,7 @@ import {
   SidebarBrandDock,
   useCollapsibleSidebarPanel,
 } from "@/components/sidebar/CollapsibleSidebarChrome";
-import { CHANGELOG } from "@/config/changelog";
+import { ADSBAO_LATEST_CHANGELOG_VERSION } from "@/config/changelog";
 import { SITE_DESCRIPTION } from "@/config/site";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/clientDeviceModel";
@@ -182,7 +182,7 @@ function resolveRouteChrome(pathname, t) {
   }
 
   if (segment === "changelog") {
-    const current = CHANGELOG[0]?.version || "";
+    const current = ADSBAO_LATEST_CHANGELOG_VERSION;
     return {
       key: "changelog",
       className: "changelog-screen",
