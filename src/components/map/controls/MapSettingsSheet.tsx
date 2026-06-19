@@ -261,6 +261,14 @@ export default function MapSettingsSheet({
     mapSettingsDevice === "mobile"
       ? "mapSettings.devices.mobile"
       : "mapSettings.devices.desktop";
+  const sheetPositionStyle = {
+    top: "8px",
+    right: "calc(8px + env(safe-area-inset-right))",
+    bottom: "calc(8px + env(safe-area-inset-bottom))",
+    height: "calc(100dvh - 16px - env(safe-area-inset-bottom))",
+    width:
+      "min(448px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)))",
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -268,10 +276,10 @@ export default function MapSettingsSheet({
         id={id}
         side="right"
         overlayClassName="map-settings-sheet-overlay z-[var(--z-index-modal)]"
+        style={sheetPositionStyle}
         className={cn(
           "map-settings-sheet",
           "z-[var(--z-index-modal-content)]",
-          "right-2 top-2 bottom-2 h-[calc(100dvh-16px)] w-[min(448px,calc(100vw-16px))]",
           "rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)]",
           "overflow-hidden bg-[var(--atc-surface-preview-card)] p-0 text-atc-text",
           // Frosted material — strong backdrop blur diffuses the map
@@ -284,7 +292,7 @@ export default function MapSettingsSheet({
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <SheetHeader className="border-b border-[var(--atc-line)] px-5 py-5 pr-14 text-left">
+          <SheetHeader className="border-b border-[var(--atc-line)] px-5 py-5 pr-16 text-left">
             <SheetTitle className="text-[20px] font-semibold leading-tight text-atc-text">
               {t("mapSettings.title")}
             </SheetTitle>

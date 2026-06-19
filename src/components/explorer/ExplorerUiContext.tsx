@@ -38,6 +38,7 @@ import {
   resolveMapSettingsHydrationCommit,
   resolveMapSettingsHydration,
   resolveMapSettingsPersistenceTargets,
+  serializeMapSettingsPersistenceSignature,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
   readStoredMapSettings,
@@ -405,7 +406,7 @@ export function ExplorerUiProvider({ children }) {
   const { getToken } = useAuth();
   const hasHydratedMapSettingsRef = useRef(false);
   const pendingMapSettingsHydrationRef = useRef(null);
-  const persistedMapSettingsRef = useRef("");
+  const persistedMapSettingsSignatureRef = useRef("");
   const [mapSettingsHydrated, setMapSettingsHydrated] = useState(false);
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
   const [mapSettingsSaveStatusCode, setMapSettingsSaveStatusCode] = useState<number | null>(null);
@@ -523,7 +524,8 @@ export function ExplorerUiProvider({ children }) {
     const effectiveSettings = hydratedSettings.settings
       ? hydratedSettings.settings
       : normalizeMapSettings(DEFAULT_MAP_SETTINGS);
-    persistedMapSettingsRef.current = JSON.stringify(effectiveSettings);
+    persistedMapSettingsSignatureRef.current =
+      serializeMapSettingsPersistenceSignature(effectiveSettings);
     hasHydratedMapSettingsRef.current = true;
     setMapSettingsHydrated(true);
   }, [
@@ -581,7 +583,8 @@ export function ExplorerUiProvider({ children }) {
       const effectiveSettings = hydratedSettings.settings
         ? hydratedSettings.settings
         : normalizeMapSettings(DEFAULT_MAP_SETTINGS);
-      persistedMapSettingsRef.current = JSON.stringify(effectiveSettings);
+      persistedMapSettingsSignatureRef.current =
+        serializeMapSettingsPersistenceSignature(effectiveSettings);
       hasHydratedMapSettingsRef.current = true;
       if (!cancelled) setMapSettingsHydrated(true);
     };
@@ -609,7 +612,8 @@ export function ExplorerUiProvider({ children }) {
     }
     if (hydrationCommit.committed) {
       pendingMapSettingsHydrationRef.current = null;
-      persistedMapSettingsRef.current = hydrationCommit.serialized;
+      persistedMapSettingsSignatureRef.current =
+        serializeMapSettingsPersistenceSignature(mapSettings);
       hasHydratedMapSettingsRef.current = true;
       setMapSettingsHydrated(true);
       return undefined;
@@ -621,8 +625,8 @@ export function ExplorerUiProvider({ children }) {
       return undefined;
     }
     const nextSettings = normalizeMapSettings(mapSettings);
-    const serialized = JSON.stringify(nextSettings);
-    if (serialized === persistedMapSettingsRef.current) {
+    const signature = serializeMapSettingsPersistenceSignature(nextSettings);
+    if (signature === persistedMapSettingsSignatureRef.current) {
       setMapSettingsSaveStatus((current) =>
         current === "saving" ? "idle" : current,
       );
@@ -638,7 +642,7 @@ export function ExplorerUiProvider({ children }) {
     }
 
     if (!targets.writeDatabase) {
-      persistedMapSettingsRef.current = serialized;
+      persistedMapSettingsSignatureRef.current = signature;
       return undefined;
     }
 
@@ -668,13 +672,14 @@ export function ExplorerUiProvider({ children }) {
         const savedSettings = payload?.settings
           ? normalizeMapSettings(payload.settings)
           : nextSettings;
-        const savedSerialized = JSON.stringify(savedSettings);
+        const savedSignature =
+          serializeMapSettingsPersistenceSignature(savedSettings);
         if (cancelled) return;
         if (targets.writeCache) {
           writeStoredMapSettings(savedSettings, mapSettingsDevice);
         }
-        persistedMapSettingsRef.current = savedSerialized;
-        if (savedSerialized !== serialized) {
+        persistedMapSettingsSignatureRef.current = savedSignature;
+        if (savedSignature !== signature) {
           dispatch({
             type: "hydrateMapSettings",
             settings: savedSettings,

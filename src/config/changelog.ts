@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 87;
+export const CHANGELOG_TOTAL_COUNT = 88;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.18.1",
+    kind: "patch",
+    title: {
+      en: "Landscape settings stability",
+      zh: "横屏设置稳定性",
+    },
+    summary: {
+      en: "Mobile landscape map settings no longer get stuck saving, and the settings sheet keeps its close button clear of safe-area cutouts.",
+      zh: "移动端横屏地图设置不再卡在保存中，设置面板关闭按钮也会避开 safe-area 遮挡。",
+    },
+    highlights: [
+      {
+        en: "Server timestamp-only responses no longer mark map settings dirty again",
+        zh: "服务端只更新时间戳的响应不再把地图设置重新标记为待保存",
+      },
+      {
+        en: "The map settings sheet now uses native safe-area insets in landscape and exposes a larger glass close target",
+        zh: "地图设置面板在横屏下使用原生 safe-area inset，并提供更大的玻璃关闭按钮",
+      },
+    ],
+  },
   {
     version: "v2.18.0",
     kind: "feat",
@@ -486,24 +508,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Plane Hunter availability now follows the shared client-device model across preview cards and map settings",
         zh: "拍机入口现在复用统一客户端设备模型，预览卡与地图设置的设备判断保持一致",
-      },
-    ],
-  },
-  {
-    version: "v2.14.2",
-    kind: "patch",
-    title: {
-      en: "Stable aircraft preview open",
-      zh: "飞机预览打开更稳定",
-    },
-    summary: {
-      en: "Opening the first aircraft preview on an airport page no longer blanks the map while the preview module loads.",
-      zh: "机场详情页首次点击飞机时，预览模块加载期间不再让地图短暂空白。",
-    },
-    highlights: [
-      {
-        en: "Aircraft preview loading is isolated from the airport route shell, so the map and sidebar stay mounted on first click",
-        zh: "飞机预览加载与机场页面外壳隔离，首次点击时地图和侧栏保持挂载",
       },
     ],
   },

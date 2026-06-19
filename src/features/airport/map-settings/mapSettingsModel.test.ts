@@ -17,6 +17,7 @@ import {
   resolveMapSettingsHydrationCommit,
   resolveMapSettingsHydration,
   resolveMapSettingsPersistenceTargets,
+  serializeMapSettingsPersistenceSignature,
 } from "./mapSettingsModel";
 
 {
@@ -392,6 +393,50 @@ import {
     [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
     [MAP_LAYER_KEYS.MAP_LABELS]: false,
   });
+}
+
+{
+  const first = serializeMapSettingsPersistenceSignature({
+    selectedMode: MAP_MODE_IDS.CUSTOM,
+    baseMode: MAP_MODE_IDS.CONTROLLER,
+    layerOverrides: {
+      [MAP_LAYER_KEYS.MAP_LABELS]: false,
+    },
+    baseLayer: "standard",
+    hasSelectedMode: true,
+    updatedAt: "2026-06-02T15:08:00.000Z",
+  });
+  const timestampOnlyChange = serializeMapSettingsPersistenceSignature({
+    selectedMode: MAP_MODE_IDS.CUSTOM,
+    baseMode: MAP_MODE_IDS.CONTROLLER,
+    layerOverrides: {
+      [MAP_LAYER_KEYS.MAP_LABELS]: false,
+    },
+    baseLayer: "standard",
+    hasSelectedMode: true,
+    updatedAt: "2026-06-02T15:09:00.000Z",
+  });
+  const layerChange = serializeMapSettingsPersistenceSignature({
+    selectedMode: MAP_MODE_IDS.CUSTOM,
+    baseMode: MAP_MODE_IDS.CONTROLLER,
+    layerOverrides: {
+      [MAP_LAYER_KEYS.MAP_LABELS]: true,
+    },
+    baseLayer: "standard",
+    hasSelectedMode: true,
+    updatedAt: "2026-06-02T15:09:00.000Z",
+  });
+
+  assert.equal(
+    first,
+    timestampOnlyChange,
+    "server timestamp changes should not mark map settings dirty again",
+  );
+  assert.notEqual(
+    first,
+    layerChange,
+    "real layer changes should still mark map settings dirty",
+  );
 }
 
 console.log("mapSettingsModel.test.ts ok");

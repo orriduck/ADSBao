@@ -282,6 +282,14 @@ export function normalizeMapSettings(
   };
 }
 
+export function serializeMapSettingsPersistenceSignature(
+  settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS,
+) {
+  const normalized = normalizeMapSettings(settings);
+  const { updatedAt: _updatedAt, ...semanticSettings } = normalized;
+  return JSON.stringify(semanticSettings);
+}
+
 export function resolveMapSettingsHydration({
   signedIn = false,
   userSettings = null,

@@ -18,10 +18,6 @@ const forwardRef = React.forwardRef as <
 
 const Sheet = SheetPrimitive.Root
 
-const SheetTrigger = SheetPrimitive.Trigger
-
-const SheetClose = SheetPrimitive.Close
-
 const SheetPortal = SheetPrimitive.Portal
 
 const SheetOverlay = forwardRef(({ className, ...props }, ref) => (
@@ -62,7 +58,15 @@ const SheetContent = forwardRef(({ side = "right", className, overlayClassName, 
       <SheetOverlay className={overlayClassName} />
       <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
         <SheetPrimitive.Close
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+          className={cn(
+            "absolute right-3 top-3 flex size-10 items-center justify-center rounded-full",
+            "border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] text-atc-text",
+            "shadow-[var(--atc-control-inset-shadow-subtle)] opacity-85",
+            "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
+            "transition-[background,opacity,box-shadow] duration-150 hover:bg-[var(--atc-control-surface-hover)] hover:opacity-100",
+            "focus:outline-none focus:ring-2 focus:ring-[var(--atc-accent)] disabled:pointer-events-none",
+            "[&>svg]:size-4",
+          )}>
           <X className="h-4 w-4" />
           <span className="sr-only">{t("ui.close")}</span>
         </SheetPrimitive.Close>
