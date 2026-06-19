@@ -1,5 +1,7 @@
 # ADSBao — Codex Guide
 
+**ADSBao is not a commercial product.** Do not frame work in terms of monetization, business value, or commercial viability.
+
 Use `CLAUDE.md` as the canonical local agent guide for this repository. Keep
 the full validation decision tree there; do not duplicate it in this file.
 
