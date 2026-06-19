@@ -446,8 +446,15 @@ function AirportExplorerContent({
     const nextSpotId = String(spotId || "").trim();
     if (!nextSpotId) return;
     setSelectedCandidateWatchingSpotId(nextSpotId);
-    setNavigationSpotId(nextSpotId);
   }, [setSelectedCandidateWatchingSpotId]);
+
+  const handleOpenCandidateWatchingSpotNavigation = useCallback(() => {
+    const nextSpotId = String(
+      selection.selectedCandidateWatchingSpot?.id || "",
+    ).trim();
+    if (!nextSpotId) return;
+    setNavigationSpotId(nextSpotId);
+  }, [selection.selectedCandidateWatchingSpot]);
 
   const handleClearPreviewSelections = useCallback(() => {
     setNavigationSpotId("");
@@ -573,6 +580,11 @@ function AirportExplorerContent({
             airspace={selection.selectedAirspace}
             candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
             candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
+            onOpenCandidateWatchingSpotNavigation={
+              selection.selectedCandidateWatchingSpot
+                ? handleOpenCandidateWatchingSpotNavigation
+                : undefined
+            }
             isMobile={isMobile}
             sidebarOpen={sidebarOpen && !sidebarCollapsed}
             airportProfile={airportProfile}

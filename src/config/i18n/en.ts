@@ -362,6 +362,7 @@ const en = {
     traceLoadError: "Trace unavailable",
     openAirport: "Track airport",
     viewingAirport: "Viewing airport",
+    goToSpot: "Go",
     planeHunter: "Plane Hunter",
     creditPrefix: "credit@",
   },

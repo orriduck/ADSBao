@@ -9,11 +9,13 @@ import {
 type CandidateWatchingSpotPreviewMetadataCardProps = {
   spot?: Record<string, any> | null;
   sourceAttribution?: string;
+  onOpenNavigation?: () => void;
 };
 
 export default function CandidateWatchingSpotPreviewMetadataCard({
   spot,
   sourceAttribution = "",
+  onOpenNavigation,
 }: CandidateWatchingSpotPreviewMetadataCardProps) {
   const { t } = useI18n();
   const name = formatCandidateWatchingSpotName(
@@ -84,6 +86,16 @@ export default function CandidateWatchingSpotPreviewMetadataCard({
           <p className="mt-2 text-[9px] leading-tight text-atc-faint">
             {attribution}
           </p>
+        ) : null}
+        {typeof onOpenNavigation === "function" ? (
+          <button
+            type="button"
+            className="aircraft-preview-card__track-btn mt-3"
+            onClick={onOpenNavigation}
+            aria-label={`${t("preview.goToSpot")} ${name}`}
+          >
+            {t("preview.goToSpot")}
+          </button>
         ) : null}
       </div>
     </div>

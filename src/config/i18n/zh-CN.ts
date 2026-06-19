@@ -356,6 +356,7 @@ const zhCN = {
     traceLoadError: "航迹不可用",
     openAirport: "追踪机场",
     viewingAirport: "正在查看机场",
+    goToSpot: "前往",
     planeHunter: "开始拍机",
     creditPrefix: "图源@",
   },

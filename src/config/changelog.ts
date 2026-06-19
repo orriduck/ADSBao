@@ -40,9 +40,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 99;
+export const CHANGELOG_TOTAL_COUNT = 100;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.1",
+    kind: "patch",
+    title: {
+      en: "Photo location directions trigger",
+      zh: "拍机点前往按钮",
+    },
+    summary: {
+      en: "Photo locations now show their preview first; the directions chooser opens only from the Go button.",
+      zh: "点击拍机点现在先显示预览卡，只有点“前往”按钮才会打开导航选择。",
+    },
+    highlights: [
+      {
+        en: "Selecting a photo location no longer opens the navigation modal immediately",
+        zh: "选中拍机点时不再立刻弹出导航窗口",
+      },
+      {
+        en: "Desktop and mobile previews use a dedicated Go action before showing map-app choices",
+        zh: "桌面和移动端预览卡都会先显示独立的“前往”操作，再进入地图应用选择",
+      },
+    ],
+  },
   {
     version: "v2.22.0",
     kind: "feat",
@@ -466,28 +488,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "This targets the rotate-map, open-sidebar, return-home path that could leave iOS showing a bottom white block behind the floating toolbar",
         zh: "这个修复针对“旋转地图、打开侧边栏、回首页”路径下 iOS 底部工具栏后方出现白块的问题",
-      },
-    ],
-  },
-  {
-    version: "v2.17.1",
-    kind: "patch",
-    title: {
-      en: "Mobile static-page toolbar spacing",
-      zh: "移动端静态页工具栏留白修正",
-    },
-    summary: {
-      en: "Mobile Home and static pages no longer reserve a visible white block behind the floating bottom toolbar after scrolling or interacting.",
-      zh: "移动端首页和静态页在滚动或操作后，不再在底部悬浮工具栏后方预留可见白块。",
-    },
-    highlights: [
-      {
-        en: "The static-page scroll panel now uses scroll padding instead of visible bottom padding, so content can continue behind the floating toolbar",
-        zh: "静态页滚动面板改用 scroll padding，而不是可见底部 padding，让内容可以继续延伸到悬浮工具栏后方",
-      },
-      {
-        en: "Programmatic scroll and focus positioning still keep toolbar clearance without pushing the page content upward",
-        zh: "程序化滚动和聚焦仍保留工具栏避让距离，但不会把页面内容整体向上顶",
       },
     ],
   },

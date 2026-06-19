@@ -43,6 +43,7 @@ export default function AircraftPreviewCard({
   airspace = null,
   candidateWatchingSpot = null,
   candidateWatchingSpotAttribution = "",
+  onOpenCandidateWatchingSpotNavigation = undefined,
   isMobile = false,
   sidebarOpen = false,
   airportProfile = null,
@@ -191,6 +192,10 @@ export default function AircraftPreviewCard({
   const showPlaneHunterTrigger =
     planeHunterDeviceAllowed && isAircraftPreview && Boolean(entity);
   const showMobilePlaneHunterTrigger = showMobilePreview && showPlaneHunterTrigger;
+  const showMobileSpotNavigationTrigger =
+    showMobilePreview &&
+    isCandidateWatchingSpot &&
+    typeof onOpenCandidateWatchingSpotNavigation === "function";
   const mobileFeedbackLabel = aircraft?.flightRouteLabel
     ? t("routeFeedback.suggestCorrection")
     : t("routeFeedback.suggestRight");
@@ -258,6 +263,7 @@ export default function AircraftPreviewCard({
             <CandidateWatchingSpotPreviewMetadataCard
               spot={candidateWatchingSpot}
               sourceAttribution={candidateWatchingSpotAttribution}
+              onOpenNavigation={onOpenCandidateWatchingSpotNavigation}
             />
           ) : (
             <AircraftPreviewMetadataCard
@@ -289,7 +295,10 @@ export default function AircraftPreviewCard({
           placement={showPreferredMobilePreview ? "bottomRight" : "top"}
           style={mobilePreviewSafeAreaStyle}
           actions={
-            (showMobileTrackButton || showMobilePlaneHunterTrigger || showMobileFeedbackTrigger) ? (
+            (showMobileTrackButton ||
+              showMobilePlaneHunterTrigger ||
+              showMobileFeedbackTrigger ||
+              showMobileSpotNavigationTrigger) ? (
               <MobilePreviewActions>
                 {showMobilePlaneHunterTrigger && showMobileTrackButton ? (
                   <div className="grid grid-cols-2 gap-1">
@@ -330,6 +339,13 @@ export default function AircraftPreviewCard({
                         disabled={alreadyTracking}
                       >
                         {mobileTrackLabel}
+                      </MobilePreviewTrackButton>
+                    )}
+                    {showMobileSpotNavigationTrigger && (
+                      <MobilePreviewTrackButton
+                        onClick={onOpenCandidateWatchingSpotNavigation}
+                      >
+                        {t("preview.goToSpot")}
                       </MobilePreviewTrackButton>
                     )}
                   </>

@@ -384,6 +384,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.17.1",
+    kind: "patch",
+    title: {
+      en: "Mobile static-page toolbar spacing",
+      zh: "移动端静态页工具栏留白修正",
+    },
+    summary: {
+      en: "Mobile Home and static pages no longer reserve a visible white block behind the floating bottom toolbar after scrolling or interacting.",
+      zh: "移动端首页和静态页在滚动或操作后，不再在底部悬浮工具栏后方预留可见白块。",
+    },
+    highlights: [
+      {
+        en: "The static-page scroll panel now uses scroll padding instead of visible bottom padding, so content can continue behind the floating toolbar",
+        zh: "静态页滚动面板改用 scroll padding，而不是可见底部 padding，让内容可以继续延伸到悬浮工具栏后方",
+      },
+      {
+        en: "Programmatic scroll and focus positioning still keep toolbar clearance without pushing the page content upward",
+        zh: "程序化滚动和聚焦仍保留工具栏避让距离，但不会把页面内容整体向上顶",
+      },
+    ],
+  },
+  {
     version: "v2.17.0",
     kind: "feat",
     title: {
