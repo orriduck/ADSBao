@@ -1,4 +1,4 @@
-import { RadioTower, TowerControl } from "lucide-react";
+import { RadioTower, Signpost, TowerControl } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Shared airport-pin badge — a code pill (IATA / ICAO) plus an
@@ -30,7 +30,12 @@ const detailClass = (variant) =>
     : "airport-overlay-label__detail";
 
 function BadgeIcon({ type = "airport" }) {
-  const Icon = type === "navaid" ? RadioTower : TowerControl;
+  const Icon =
+    type === "reporting-point"
+      ? Signpost
+      : type === "navaid"
+        ? RadioTower
+        : TowerControl;
   return (
     <span className="airport-overlay-label__code-icon" aria-hidden="true">
       <Icon

@@ -1824,6 +1824,11 @@ body:has(.dither-page-shell) {
     white-space: nowrap;
 }
 
+.reporting-point-map-marker .navaid-map-marker__dot {
+    border-radius: 999px;
+    transform: none;
+}
+
 .leaflet-marker-icon.navaid-label-icon .airport-overlay-label--map-badge,
 .leaflet-marker-icon.reporting-point-label-icon .airport-overlay-label--map-badge,
 .leaflet-marker-icon.nearby-airport-marker-icon .airport-overlay-label--map-badge {
@@ -4841,7 +4846,8 @@ body {
 }
 
 .nearby-airport-marker--selected .airport-overlay-label--map-badge,
-.navaid-label-icon--selected .airport-overlay-label--map-badge {
+.navaid-label-icon--selected .airport-overlay-label--map-badge,
+.reporting-point-label-icon--selected .airport-overlay-label--map-badge {
     opacity: 1;
 }
 
@@ -4878,6 +4884,12 @@ body {
 
 .airport-overlay-label--navaid .airport-overlay-label__code.atc-code-pill {
     font-family: var(--font-mono);
+    font-size: 7px;
+    font-weight: 850;
+}
+
+.airport-overlay-label--reporting-point .airport-overlay-label__code.atc-code-pill {
+    font-family: var(--font-sans);
     font-size: 7px;
     font-weight: 850;
 }
