@@ -1,4 +1,7 @@
 import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
+import { resolveMovement, UNKNOWN } from "../../../utils/aircraftMovement";
+import { normalizeCallsign } from "../../../utils/callsign";
+import { formatFlightRouteLabel } from "../../../utils/flightRouteDisplay";
 import { toFiniteNumber } from "../../../utils/math";
 
 const AIRSPACE_SOURCE_OFFICIAL = "official-airspace";
@@ -33,40 +36,6 @@ function resolveAltitudeBand({
   if (altitude < 12000) return "terminal-high";
   if (altitude < 18000) return "enroute";
   return "class-a";
-}
-
-function resolveVisibilityRole({
-  rangeBand,
-  altitudeBand,
-  movement = "unknown",
-  airspace = null,
-}: {
-  rangeBand?: string;
-  altitudeBand?: string;
-  movement?: string;
-  airspace?: AirportContextRecord | null;
-} = {}) {
-  if (isRouteTerminalMovement(movement)) {
-    return rangeBand === "outside-airport-context" ? "secondary" : "primary";
-  }
-
-  if (altitudeBand === "enroute" || altitudeBand === "class-a") {
-    return "dimmed";
-  }
-
-  if (airspace?.matched && isTerminalAirspace(airspace)) {
-    return rangeBand === "outside-airport-context" ? "secondary" : "primary";
-  }
-
-  if (
-    rangeBand === "airport-core" ||
-    rangeBand === "terminal-inner" ||
-    rangeBand === "terminal-outer"
-  ) {
-    return "secondary";
-  }
-
-  return "dimmed";
 }
 
 function resolveAirportContextGroup({
@@ -115,35 +84,54 @@ export function enrichAircraftWithAirportContext({
   aircraft = [],
   airportProfile = {},
   airspaceVolumes = [],
+  routesByCallsign,
 }: {
   aircraft?: AirportContextRecord[];
   airportProfile?: AirportContextRecord;
   airspaceVolumes?: AirportContextRecord[];
+  routesByCallsign?: Record<string, any>;
 } = {}) {
   const airportIcao = String(airportProfile?.icao || "").toUpperCase();
   const airportLat = toFiniteNumber(airportProfile?.lat);
   const airportLon = toFiniteNumber(airportProfile?.lon);
-  const volumes = airspaceVolumes.filter(
-    (volume) =>
-      !airportIcao ||
-      !volume?.airportIcao ||
-      String(volume.airportIcao).toUpperCase() === airportIcao,
-  );
+  const hasRouteLookup = routesByCallsign != null;
+  const routeMap = routesByCallsign || {};
+  const volumes = airspaceVolumes.length
+    ? airspaceVolumes.filter(
+        (volume) =>
+          !airportIcao ||
+          !volume?.airportIcao ||
+          String(volume.airportIcao).toUpperCase() === airportIcao,
+      )
+    : [];
 
   return aircraft.map((item) => {
+    const route = hasRouteLookup
+      ? routeMap[normalizeCallsign(item.callsign)] || null
+      : null;
+    const flightRouteLabel = hasRouteLookup
+      ? formatFlightRouteLabel(route)
+      : "";
+    const routeMovement =
+      hasRouteLookup && flightRouteLabel
+        ? resolveMovement(route, airportProfile?.icao, airportProfile?.iata)
+        : UNKNOWN;
     const existingDistance = toNullableFiniteNumber(item.distanceNm);
     const distanceNm =
       existingDistance ??
       getDistanceNm(item.lat, item.lon, airportLat, airportLon);
-    const movement = normalizeMovement(item.movement ?? item.trafficIntent);
+    const movement = normalizeMovement(
+      routeMovement !== UNKNOWN ? routeMovement : (item.movement ?? item.trafficIntent),
+    );
     const rangeBand = resolveRangeBand(distanceNm);
     const altitudeBand = resolveAltitudeBand({
       altitudeFtMsl: item.altitude,
       onGround: item.onGround,
     });
-    const matchedVolume = volumes.find((volume) =>
-      matchesAirspaceVolume(item, volume),
-    );
+    const matchedVolume = volumes.length
+      ? volumes.find((volume) => matchesAirspaceVolume(item, volume))
+      : undefined;
+
     const airspace: AirportContextRecord = matchedVolume
       ? airspaceMatchFromVolume(matchedVolume)
       : {
@@ -156,15 +144,16 @@ export function enrichAircraftWithAirportContext({
       movement,
       airspace,
     });
-    const visibilityRole = resolveVisibilityRole({
-      rangeBand,
-      altitudeBand,
-      movement,
-      airspace,
-    });
 
     return {
       ...item,
+      ...(hasRouteLookup
+        ? {
+            flightRoute: route,
+            movement: routeMovement,
+            flightRouteLabel,
+          }
+        : null),
       distanceNm,
       airportContext: {
         airportIcao,
@@ -172,14 +161,10 @@ export function enrichAircraftWithAirportContext({
         movement,
         rangeBand,
         altitudeBand,
-        visibilityRole,
         airspace,
         display: {
           group,
           label: resolveContextLabel({ group, rangeBand, altitudeBand, airspace }),
-          confidence: airspace.matched
-            ? "official-airspace-match"
-            : "estimated",
         },
       },
     };
@@ -214,12 +199,6 @@ function airspaceMatchFromVolume(volume: AirportContextRecord) {
   };
 }
 
-function isTerminalAirspace(airspace: AirportContextRecord | null | undefined) {
-  return (
-    airspace?.matched &&
-    ["B", "C", "D"].includes(String(airspace.classType || "").toUpperCase())
-  );
-}
 
 function resolveContextLabel({
   group,

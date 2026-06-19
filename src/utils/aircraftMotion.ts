@@ -96,3 +96,23 @@ export const calculateAircraftVisualPosition = (state, nowMs = Date.now()) => {
     lon: target.lon + (toFiniteNumber(state.correctionLon) ?? 0) * remaining,
   }
 }
+
+export const shouldAnimateAircraftVisualPosition = (state, nowMs = Date.now()) => {
+  if (!state) return false
+
+  const correctionStartTime = toFiniteNumber(state.correctionStartTime)
+  if (
+    correctionStartTime != null &&
+    nowMs - correctionStartTime < CORRECTION_DURATION_MS
+  ) {
+    return true
+  }
+
+  const velocity = Math.max(0, toFiniteNumber(state?.velocity) ?? 0)
+  const positionTime = toFiniteNumber(state?.positionTime)
+  if (!velocity || positionTime == null) return false
+
+  const renderTime = nowMs - VISUAL_DELAY_MS
+  const elapsedMs = renderTime - positionTime
+  return elapsedMs < getAircraftExtrapolationLimitMs(state)
+}

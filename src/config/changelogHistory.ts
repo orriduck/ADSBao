@@ -384,6 +384,50 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.17.4",
+    kind: "patch",
+    title: {
+      en: "Mobile dock and sidebar gestures",
+      zh: "移动端 Dock 与侧栏手势",
+    },
+    summary: {
+      en: "Mobile bottom chrome now clamps rotated iOS safe-area offsets, and collapsible sidebars wait for a fresh scroll gesture after reaching the end.",
+      zh: "移动端底部浮层现在会夹住旋转后的 iOS safe-area 偏移；可收起侧栏也会等到底部后的下一次主动滑动再缩小。",
+    },
+    highlights: [
+      {
+        en: "Bottom toolbars, preview cards, and map scale labels share a capped safe-area offset so rotation cannot leave a large blank strip below them",
+        zh: "底部工具栏、预览卡和地图比例尺共用受限的 safe-area 偏移，旋转后不会在下方留下大块空白",
+      },
+      {
+        en: "Desktop collapsible sidebars only shrink when the wheel or touch gesture starts at the true bottom",
+        zh: "桌面可收起侧栏只有在滚轮或触摸手势从真正底部开始时才会缩小",
+      },
+    ],
+  },
+  {
+    version: "v2.17.3",
+    kind: "patch",
+    title: {
+      en: "Home Screen app update handoff",
+      zh: "主屏应用更新接管",
+    },
+    summary: {
+      en: "The Home Screen app now lets the newest static shell service worker activate immediately, so mobile pages stop staying on an older cached toolbar layout.",
+      zh: "主屏应用现在会让最新静态壳 service worker 立即激活，避免移动端页面长期停留在旧缓存工具栏布局。",
+    },
+    highlights: [
+      {
+        en: "New service workers skip the waiting phase and claim same-origin pages after activation",
+        zh: "新的 service worker 会跳过等待阶段，并在激活后接管同源页面",
+      },
+      {
+        en: "Live aviation API and WebSocket paths remain network-only",
+        zh: "实时航空 API 和 WebSocket 路径仍保持只走网络",
+      },
+    ],
+  },
+  {
     version: "v2.17.2",
     kind: "patch",
     title: {

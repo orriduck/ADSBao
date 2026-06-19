@@ -96,9 +96,9 @@ export default function AircraftTable({
     [aircraft, selectedTypes],
   );
   // Aircraft entries enriched with a distanceNm relative to the focus
-  // point (focal aircraft or airport). The airport-explorer enrichment
-  // already provides distanceNm in airport-page context; for the flight
-  // page we compute it on the fly here.
+  // point (focal aircraft or airport). Recompute from the current focus
+  // because an existing distance may have been produced for a different
+  // sidebar context.
   const aircraftWithDist = useMemo(() => {
     const shouldSuppressSelectedDistance = (item) =>
       suppressSelectedAircraftDistance &&

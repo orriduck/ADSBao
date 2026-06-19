@@ -4,11 +4,13 @@ The public ADSBao app deploys as one Railway service from the repository root.
 The root `Dockerfile` builds the Vite frontend, compiles the Go data-service,
 copies `dist/` into the runtime image, and starts `adsbao-data-service`.
 
-The private FlightAware endpoint should be added as a second service in the
-same Railway project/environment, not as a separate Railway project. Railway
-private networking is scoped to one project/environment, so keeping the
-endpoint beside the public app lets `adsbao-data-service` use the private
-internal domain without exposing FlightAware-only endpoints to browsers.
+The private FlightAware endpoint is a separate protected service. It can live
+beside ADSBao in the same Railway project/environment when you want
+`railway.internal` private networking, or it can live in a separate Railway
+project when exposed through a protected HTTPS origin. In either topology, the
+public ADSBao service talks to it through `FLIGHTAWARE_SERVICE_BASE_URL` plus
+`FLIGHTAWARE_SERVICE_TOKEN`; browsers never call FlightAware-only endpoints
+directly.
 
 ## Runtime Contract
 
@@ -77,14 +79,22 @@ WebSocket URL: wss://<railway-domain>/ws
 
 ## Private FlightAware Service
 
-Deploy the private FlightAware endpoint as a separate Railway service in the
-same project canvas as ADSBao:
+Deploy the private FlightAware endpoint as a separate protected service. Same
+Railway project private networking is the lowest-latency option:
 
 ```text
 Service name: adsbao-flightaware
 Source: private FlightAware endpoint repository
 Public domain: not required
 Private URL for ADSBao: http://adsbao-flightaware.railway.internal:<PORT>
+```
+
+A separate Railway project is also supported. In that case configure a
+protected HTTPS service URL instead of `railway.internal`:
+
+```text
+FLIGHTAWARE_SERVICE_BASE_URL=https://<private-flightaware-domain>
+FLIGHTAWARE_SERVICE_TOKEN=<shared bearer token>
 ```
 
 Set these variables on the public ADSBao service:
@@ -96,10 +106,10 @@ FLIGHTAWARE_ACCESS_ENABLED=true
 FLIGHTAWARE_FALLBACK_ENABLED=true
 ```
 
-Use the private `railway.internal` hostname, not a public Railway domain, for
-service-to-service requests. The private endpoint must listen on the same
-`PORT` configured in its Railway service variables; Railway reference variables
-can be used to avoid hard-coding the host or port.
+Use the private `railway.internal` hostname for same-project service-to-service
+requests. Use a protected HTTPS origin for a separate Railway project. The
+private endpoint must listen on the configured Railway `PORT`; Railway
+reference variables can be used to avoid hard-coding the host or port.
 
 Compatible env vars:
 

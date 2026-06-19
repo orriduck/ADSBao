@@ -4,6 +4,7 @@ import {
   beginAircraftMotionState,
   calculateAircraftVisualPosition,
   parseAdsbPositionTime,
+  shouldAnimateAircraftVisualPosition,
 } from './aircraftMotion'
 
 const nearlyEqual = (actual, expected, tolerance = 1e-8) => {
@@ -67,4 +68,48 @@ const nearlyEqual = (actual, expected, tolerance = 1e-8) => {
   nearlyEqual(immediate.lat, staleVisualPosition.lat)
   assert.ok(settled.lat < immediate.lat, 'settled correction should move back from the stale prediction')
   nearlyEqual(settled.lat, target.lat)
+}
+
+{
+  assert.equal(
+    shouldAnimateAircraftVisualPosition({
+      lat: 33,
+      lon: -118,
+      velocity: 0,
+      positionTime: 0,
+    }, 3_000),
+    false,
+  )
+
+  assert.equal(
+    shouldAnimateAircraftVisualPosition({
+      lat: 33,
+      lon: -118,
+      velocity: 120,
+      track: 90,
+      positionTime: 1_000,
+    }, 3_000),
+    true,
+  )
+
+  assert.equal(
+    shouldAnimateAircraftVisualPosition({
+      lat: 33,
+      lon: -118,
+      velocity: 120,
+      track: 90,
+      positionTime: 1_000,
+    }, 40_000),
+    false,
+  )
+
+  const correcting = beginAircraftMotionState({
+    lat: 33,
+    lon: -118,
+    velocity: 0,
+    positionTime: 1_000,
+  }, 3_000, { lat: 33.1, lon: -118 })
+
+  assert.equal(shouldAnimateAircraftVisualPosition(correcting, 3_300), true)
+  assert.equal(shouldAnimateAircraftVisualPosition(correcting, 4_000), false)
 }

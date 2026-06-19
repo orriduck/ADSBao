@@ -300,25 +300,51 @@ const haversineNm = (lat1: number, lon1: number, lat2: number, lon2: number) => 
 // fetching the far-side traffic first makes more route labels appear quickly
 // where the user's eye is actually looking. Falls back to source order when
 // the focal coords or aircraft coords are missing.
-function rankCandidatesByDistance(
-  aircraft: AircraftRouteCandidate[],
-  routeContext: RouteContext = {},
+function collectPendingRouteCandidates(
+  {
+    aircraft,
+    cache,
+    inFlight,
+    queued = new Set(),
+    routeContext = {},
+    now = Date.now(),
+    maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxQueueSize,
+  }: PendingRouteLookupOptions,
 ) {
+  if (maxLookups <= 0) return [];
   const focusLat = Number(routeContext.lat);
   const focusLon = Number(routeContext.lon);
   const haveFocus = Number.isFinite(focusLat) && Number.isFinite(focusLon);
   const seen = new Map<string, { distance: number; index: number }>();
+  const blocked = new Set(
+    [...inFlight, ...queued]
+      .map((callsign) => normalizeCallsign(callsign))
+      .filter((callsign): callsign is string => Boolean(callsign)),
+  );
+  const sourceOrder: string[] = [];
 
   (aircraft || []).forEach((item, index) => {
     if (shouldSuppressRouteLookup(item)) return;
     const callsign = normalizeCallsign(item?.callsign);
     if (!isLookupCallsign(callsign)) return;
+    if (blocked.has(callsign)) return;
+    if (getFreshRouteCacheEntry(cache, callsign, now, routeContext)) {
+      blocked.add(callsign);
+      return;
+    }
+
+    if (!haveFocus) {
+      if (seen.has(callsign)) return;
+      seen.set(callsign, { distance: -1, index });
+      sourceOrder.push(callsign);
+      return;
+    }
+
     const lat = Number(item?.lat);
     const lon = Number(item?.lon);
-    const distance =
-      haveFocus && Number.isFinite(lat) && Number.isFinite(lon)
-        ? haversineNm(focusLat, focusLon, lat, lon)
-        : -1;
+    const distance = Number.isFinite(lat) && Number.isFinite(lon)
+      ? haversineNm(focusLat, focusLon, lat, lon)
+      : -1;
     // Keep the farthest occurrence per callsign so duplicates don't pull the
     // candidate forward by mistake.
     const prior = seen.get(callsign);
@@ -326,6 +352,10 @@ function rankCandidatesByDistance(
       seen.set(callsign, { distance, index });
     }
   });
+
+  if (!haveFocus) {
+    return sourceOrder.slice(0, maxLookups);
+  }
 
   return [...seen.entries()]
     .sort((left, right) => {
@@ -336,6 +366,7 @@ function rankCandidatesByDistance(
       }
       return leftMeta.index - rightMeta.index;
     })
+    .slice(0, maxLookups)
     .map(([callsign]) => callsign);
 }
 
@@ -354,14 +385,15 @@ export function resolvePendingRouteLookups({
   now = Date.now(),
   maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxQueueSize,
 }: PendingRouteLookupOptions) {
-  return rankCandidatesByDistance(aircraft, routeContext)
-    .filter(
-      (callsign) =>
-        !getFreshRouteCacheEntry(cache, callsign, now, routeContext) &&
-        !inFlight.has(callsign) &&
-        !queued.has(callsign),
-    )
-    .slice(0, maxLookups);
+  return collectPendingRouteCandidates({
+    aircraft,
+    cache,
+    inFlight,
+    queued,
+    routeContext,
+    now,
+    maxLookups,
+  });
 }
 
 export function getRouteLookupStats({

@@ -82,7 +82,7 @@ func (c *Client) Fetch(ctx context.Context, input realtime.FetchInput) (realtime
 		return realtime.Event{}, errors.New("Expected route polling target")
 	}
 	if input.Target.RouteProvider == "flightaware" {
-		return c.fetchFlightAwareWithHedge(ctx, input)
+		return c.fetchFlightAware(ctx, input)
 	}
 	return c.fetchADSBDB(ctx, input)
 }
@@ -135,49 +135,6 @@ func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput
 	}
 	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, route), nil
 }
-
-// fetchFlightAwareWithHedge fires both FlightAware and ADSBDB route queries in
-// parallel. If FA returns first and succeeds, it wins immediately. If FA fails,
-// the ADSBDB result is used as fallback.
-func (c *Client) fetchFlightAwareWithHedge(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
-	if c.flightAwareRouteFetcher == nil {
-		return c.fetchADSBDB(ctx, input)
-	}
-
-	type result struct {
-		event  realtime.Event
-		err    error
-	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	faCh := make(chan result, 1)
-	go func() {
-		event, err := c.fetchFlightAware(ctx, input)
-		faCh <- result{event: event, err: err}
-	}()
-
-	adsbCh := make(chan result, 1)
-	go func() {
-		event, err := c.fetchADSBDB(ctx, input)
-		adsbCh <- result{event: event, err: err}
-	}()
-
-	// Wait for FA first; fall back to ADSBDB on failure.
-	select {
-	case r := <-faCh:
-		if r.err == nil {
-			return r.event, nil
-		}
-		// FA failed — wait for ADSBDB.
-		r2 := <-adsbCh
-		return r2.event, r2.err
-	case <-ctx.Done():
-		return realtime.Event{}, ctx.Err()
-	}
-}
-
 
 func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, context.CancelFunc, error) {
 	requestCtx, cancel := context.WithTimeout(ctx, c.timeout)

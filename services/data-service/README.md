@@ -49,12 +49,13 @@ Optional Go profiling endpoints are available under `/debug/pprof/` only when
   `https://api.clerk.com`.
 - `FLIGHTAWARE_FALLBACK_ENABLED`
 - `FLIGHTAWARE_SERVICE_BASE_URL` — optional private FlightAware REST service
-  origin. In Railway production, set this to the private URL of the
-  FlightAware service in the same project/environment, e.g.
-  `http://adsbao-flightaware.railway.internal:<PORT>`. When set, FlightAware
-  callsign fallback, FlightAware route lookup, and airline-logo proxy requests
-  are forwarded to that service instead of calling FlightAware directly from
-  the public ADSBao deployment.
+  origin. Same-project Railway private URLs such as
+  `http://adsbao-flightaware.railway.internal:<PORT>` are supported, and a
+  separate Railway project or other protected HTTPS origin is also valid when
+  reachable from the public ADSBao service. When set, FlightAware callsign
+  fallback, FlightAware route lookup, and airline-logo proxy requests are
+  forwarded to that service instead of calling FlightAware directly from the
+  public ADSBao deployment.
 - `FLIGHTAWARE_SERVICE_TOKEN` — bearer token sent to
   `FLIGHTAWARE_SERVICE_BASE_URL` as `Authorization: Bearer ...`.
 - `ADSBAO_REALTIME_AUTH_SECRET` — HMAC secret used by `/api/realtime/auth` and

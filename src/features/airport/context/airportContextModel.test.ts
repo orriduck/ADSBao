@@ -100,17 +100,15 @@ const enriched = enrichAircraftWithAirportContext({
 });
 
 assert.equal(enriched[0].airportContext.airportIcao, "KBOS");
+assert.equal(enriched[0].movement, "ARRIVAL");
 assert.equal(enriched[0].airportContext.movement, "arrival");
 assert.equal(enriched[0].airportContext.rangeBand, "terminal-inner");
 assert.equal(enriched[0].airportContext.altitudeBand, "terminal-low");
-assert.equal(enriched[0].airportContext.visibilityRole, "primary");
 assert.equal(enriched[0].airportContext.airspace.matched, true);
 assert.equal(enriched[0].airportContext.airspace.label, "70/SFC");
 assert.equal(enriched[0].airportContext.display.group, "Terminal Flow");
-assert.equal(enriched[0].airportContext.display.confidence, "official-airspace-match");
 
 assert.equal(enriched[1].airportContext.altitudeBand, "class-a");
-assert.equal(enriched[1].airportContext.visibilityRole, "dimmed");
 assert.equal(enriched[1].airportContext.display.group, "High / Passing Over");
 
 assert.equal(enriched[2].airportContext.rangeBand, "airport-core");
@@ -119,10 +117,9 @@ assert.equal(enriched[2].airportContext.display.group, "Airport Area");
 
 assert.equal(enriched[3].airportContext.rangeBand, "terminal-outer");
 assert.equal(enriched[3].airportContext.altitudeBand, "terminal-high");
-assert.equal(enriched[3].airportContext.visibilityRole, "primary");
+assert.equal(enriched[3].movement, "departure");
 assert.equal(enriched[3].airportContext.display.group, "Terminal Flow");
 
 assert.equal(enriched[4].airportContext.rangeBand, "outside-airport-context");
 assert.equal(enriched[4].airportContext.altitudeBand, "unknown");
-assert.equal(enriched[4].airportContext.visibilityRole, "dimmed");
 assert.equal(enriched[4].airportContext.display.group, "Unknown");

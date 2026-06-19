@@ -1,6 +1,5 @@
 import { memo } from "react";
 import { TowerControl } from "lucide-react";
-import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { formatNearbyDistanceDisplay } from "@/features/aviation/distanceDisplayModel";
@@ -111,20 +110,13 @@ export default memo(AirportRow, (prev, next) =>
   }),
 );
 
-// Mirrors AircraftRow.NumberWithUnit — virtualization bounds the instance
-// count, so NumberFlow's digit-level animation is affordable here too.
 function NumberWithUnit({ value, unit, format, text }: Record<string, any>) {
+  const displayText =
+    text ?? format?.format?.(Number(value)) ?? String(value ?? "");
+
   return (
     <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
-      {text != null ? (
-        <span className="block min-w-0 text-right">{text}</span>
-      ) : (
-        <NumberFlow
-          value={value}
-          format={format}
-          className="block min-w-0 text-right"
-        />
-      )}
+      <span className="block min-w-0 text-right">{displayText}</span>
       <sub
         className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
         translate="no"

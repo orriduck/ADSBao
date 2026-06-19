@@ -1,6 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { Plane } from "lucide-react";
-import NumberFlow from "@number-flow/react";
 import {
   formatFlightRouteMunicipalityLabel,
   getFlightRouteAccuracyNotice,
@@ -241,11 +240,10 @@ function AircraftIdentityCell({
   );
 }
 
-// Animated numeric cell. NumberFlow handles digit-level animation natively,
-// replacing the older static-text cross-fade. Cost is
-// bounded by virtualization: only the rows in the visible window mount, so
-// the previous ~290-instance worst case becomes ~24 (12 rows × 2 cells).
 function NumberWithUnit({ value, unit, format, text, prefix }: Record<string, any>) {
+  const displayText =
+    text ?? format?.format?.(Number(value)) ?? String(value ?? "");
+
   return (
     <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
       <span className="flex min-w-0 items-baseline justify-end">
@@ -254,15 +252,7 @@ function NumberWithUnit({ value, unit, format, text, prefix }: Record<string, an
             {prefix}
           </span>
         ) : null}
-        {text != null ? (
-          <span className="block min-w-0 text-right">{text}</span>
-        ) : (
-          <NumberFlow
-            value={value}
-            format={format}
-            className="block min-w-0 text-right"
-          />
-        )}
+        <span className="block min-w-0 text-right">{displayText}</span>
       </span>
       <sub
         className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"

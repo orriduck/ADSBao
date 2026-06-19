@@ -81,6 +81,39 @@ func TestFlightAwareRouteUsesInjectedPrivateServiceFetcher(t *testing.T) {
 	}
 }
 
+func TestFlightAwareRouteDoesNotFallbackToADSBDB(t *testing.T) {
+	adsbdbCalled := false
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		adsbdbCalled = true
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"response":{"flightroute":{"callsign":"AAL1234"}}}`))
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		ADSBDBBaseURL: server.URL + "/v0",
+		FlightAwareRouteFetcher: func(ctx context.Context, callsign string, metrics realtime.MetricsSink) (map[string]any, error) {
+			return nil, context.Canceled
+		},
+		QueueInterval: 0,
+	})
+	_, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "route:AAL1234:airport:KBOS",
+		ChannelType: realtime.ChannelRoute,
+		Target: realtime.PollingTarget{
+			Kind:          "route",
+			Callsign:      "AAL1234",
+			RouteProvider: "flightaware",
+		},
+	})
+	if err == nil {
+		t.Fatal("expected FlightAware route error")
+	}
+	if adsbdbCalled {
+		t.Fatal("flightaware route lookup should not call ADSBDB fallback")
+	}
+}
+
 func TestRouteEventCompactsRealtimeRoutePayload(t *testing.T) {
 	event := routeEvent("route:AAL1234:airport:KBOS", "flightaware", "AAL1234", map[string]any{
 		"callsign":     "AAL1234",

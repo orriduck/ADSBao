@@ -279,9 +279,12 @@ Railway setup:
 4. Generate a public Railway domain for the service.
 5. Set `ADSBAO_REALTIME_AUTH_SECRET` when FlightAware realtime subscriptions
    are enabled.
-6. If FlightAware private access is enabled, add the private FlightAware
-   endpoint as another service in the same Railway project and set
-   `FLIGHTAWARE_SERVICE_BASE_URL` to its private `railway.internal` URL.
+6. If FlightAware private access is enabled, deploy the private FlightAware
+   endpoint as a separate protected service and set
+   `FLIGHTAWARE_SERVICE_BASE_URL` to its reachable origin. A same-project
+   Railway `railway.internal` URL works, but a separate Railway project can
+   be used when the endpoint is exposed through protected HTTPS and guarded
+   by `FLIGHTAWARE_SERVICE_TOKEN`.
 7. Set the Better Stack metrics and logs source token/endpoint variables on
    Railway to enable backend metric and log ingest.
 
