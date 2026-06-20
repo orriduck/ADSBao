@@ -2,117 +2,53 @@ import type { ChangelogEntry, ChangelogLocalizedReleaseCopy } from "./changelog"
 
 export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedReleaseCopy> = {
   "v2.6.0": {
-    title: "New Relic 可观测性",
+    title: "Railway 单服务与可观测性",
     summary:
-      "ADSBao 在 realtime data-service 和 Vercel proxy routes 上输出更完整的 New Relic telemetry。",
+      "这一版线把应用收敛到 Railway 单服务，并补齐后端可观测性与迁移后的地图修复。",
     highlights: [
-      "Go data-service 的 HTTP 入口和后台 provider polling 接入 New Relic APM transactions",
-      "外部 provider 请求会记录为结构化 logs、custom events、custom metrics 和 latency summaries",
-      "Vercel proxy routes 接入 New Relic Metric API 与 Log API，用于追踪 route latency 和 provider errors",
-    ],
-  },
-  "v2.5.1": {
-    title: "工具栏与跟踪打磨",
-    summary:
-      "地图工具栏在桌面端和移动端更一致；精确航班号跟踪遇到空 provider 响应时会继续尝试后续数据源。",
-    highlights: [
-      "地图范围控制改为共享的 Far / Medium / Near 菜单，并为跟踪页加入完整轨迹与全部记录点视图",
-      "设置、屏幕常亮、语言与主题控制在地图工具栏和移动端侧边栏里保持一致",
-      "修复 realtime 航班号 provider fallback，像 DAL58 这样的海洋航段在 adsb.lol 为空时能继续从 airplanes.live 解析",
+      "前端、API、WebSocket 和实时数据收敛到同一个 Railway 服务",
+      "机场地图、跑道灯和飞机预览在迁移后恢复稳定",
+      "后端日志和指标更容易排查",
     ],
   },
   "v2.5.0": {
-    title: "Realtime 数据服务",
+    title: "Realtime 数据服务与工具栏打磨",
     summary:
-      "实时交通切到 ADSBao 自有 realtime data-service，并接入 app-owned persistence。",
+      "实时交通切到 ADSBao 自有数据服务，地图工具栏与跟踪流程也一起收紧。",
     highlights: [
-      "机场与附近视图的实时地图交通改由 Railway data-service 通过 WebSocket 推送",
-      "app 持久化迁移到 Railway Postgres，静态机场补充数据与用户设置共用自有数据库",
-      "收紧 realtime channel 边界：公开交通、选中飞机跟踪和内部 route-cache 各自分层",
-    ],
-  },
-  "v2.4.2": {
-    title: "统一的浏览列表与工具栏",
-    summary:
-      "首页、关于、机制、更新日志的浏览列表统一为一种整齐的列表风格 —— 对齐的代码药丸、单行行高、圆角磨砂 hover,选中/展开行采用液态玻璃胶囊。页面工具栏复用机场详情页工具栏的按钮样式。",
-    highlights: [
-      "所有侧栏浏览列表统一走 TextPillListItem 一个组件:扁平对齐行、圆角磨砂 hover、玻璃胶囊选中态",
-      "选中的搜索结果、展开的机制条目升起为共享的液态玻璃胶囊",
-      "首页/关于/机制/更新日志工具栏复用机场详情的 rail 按钮风格(磨砂 hover,不再深色墨水填充)",
-      "更新日志条目变为干净的阅读块,版本药丸去掉斜切",
-    ],
-  },
-  "v2.4.1": {
-    title: "液态玻璃打磨",
-    summary:
-      "在液态玻璃重设计之上的打磨：更多表面采用该材质，所有可交互玻璃卡片加上 GSAP hover/press 动效，并修复一批 UI 问题 —— 侧栏顶部纯色、下拉菜单统一玻璃拟态、去掉黑色 focus 边框、标准底图降饱和、航线 tooltip 改磨砂。",
-    highlights: [
-      "逐时天气、明天卡、首页搜索栏采用液态玻璃材质；逐时选中态变为玻璃胶囊",
-      "指标标签、筛选芯片、逐时卡片加上 GSAP hover 抬升 + press 回弹，并尊重 prefers-reduced-motion",
-      "所有侧栏顶边保持纯主题色，与 iPhone Safari 浏览器裁切无缝对齐；暖光挪到底部",
-      "下拉菜单与 tooltip 统一为磨砂玻璃拟态；菜单投影不再呈现发光光晕",
-      "去掉搜索框、海拔筛选、select 触发器上的近黑 focus 边框",
-      "标准底图降饱和为柔和的手册纸张色调",
+      "机场与附近视图改用自有 realtime 服务",
+      "应用持久化迁移到自有数据库",
+      "地图工具栏和精确航班跟踪更一致",
     ],
   },
   "v2.4.0": {
-    title: "液态玻璃重设计",
+    title: "液态玻璃视觉系统",
     summary:
-      "所有浮层在彩色底图之上重建为 Apple 风格的液态玻璃：静止态是奶白磨砂的卡片与工具栏，选中态是抛光玻璃胶囊 — 浅色主题为深色烟雾、深色主题为通透白光 — 并带有标志性的一角溶解。",
+      "应用界面重建为液态玻璃视觉系统，并统一了浏览列表、工具栏、字体和机场名称显示。",
     highlights: [
-      "选中卡片、筛选芯片、设置选项和工具栏按钮共用同一种玻璃胶囊材质：烟雾般的半透墨水、背景磨砂、顶部高光镶边，右下角溶解露出背后的表面",
-      "深色主题选中态反转为通透白玻璃胶囊，深色墨水文字落在近黑机身上",
-      "静止态卡片与工具栏胶囊变为明亮奶白磨砂玻璃，带发光镶边、柔和浮起阴影和清晰深色图标",
-      "彩色 CARTO voyager 底图替换原本被冲淡的矢量样式，让磨砂有真实地理细节可扩散",
-      "侧边栏与面板重建为 token 驱动的磨砂材质系统（--app-frost、--atc-glass-*、--atc-control-*），全站表面共享",
-      "DESIGN.md 重写为液态玻璃的设计基准，供后续 UI 工作参考",
-    ],
-  },
-  "v2.3.1": {
-    title: "水合稳定性、列表行打磨与飞行跟踪韧性",
-    summary:
-      "消除全站 SSR 水合不匹配和中间状态闪烁。统一列表行 hover 背景+下划线。飞行跟踪使用 nearby 优先位置和单源超时保护。",
-    highlights: [
-      "全新 Skeleton 组件替换天气/设置加载中的文字占位 — 消除闪白",
-      "地图设置和 feature flag 在水合完成前阻止渲染，防止布局跳动",
-      "首页、关于、机制、更新日志页统一列表行 hover 效果（背景底色 + 下划线）",
-      "HERE 徽章替换我的位置图标，宽度对齐 ICAO 代码行",
-      "飞行地图焦点在 nearby 数据比 callsign 新鲜时自动使用合并后的位置",
-      "callsign 请求单源 4s 超时 — 一个慢源不再拖死整次轮询",
-      "useWakeLock 在 useEffect 中检测浏览器支持，修复 SSR 水合报错",
+      "浮层、卡片和工具栏统一到两套玻璃材质",
+      "首页、关于、机制和更新日志的浏览列表更一致",
+      "字体与机场名称显示更完整清晰",
     ],
   },
   "v2.3.0": {
-    title: "屏幕常亮开关 + 状态栏打磨",
+    title: "屏幕常亮与追踪稳定性",
     summary:
-      "地图工具栏新增屏幕常亮开关，长时间看飞机时防止设备休眠。状态栏加宽、单行显示，并用 GSAP 过渡替换了旧动画。",
+      "地图页加入屏幕常亮控制，同时改善状态栏、加载稳定性和飞行跟踪韧性。",
     highlights: [
-      "工具栏新增屏幕常亮切换 — Coffee 图标，点击防止屏幕休眠",
-      "状态栏激活时显示「☕ 屏幕常亮」指示，与数据源标识同行",
-      "用 GSAP StatusSpan 替换旧文字切换动画，文字切换更流畅",
-      "状态栏宽度放宽并移除换行 — 始终单行显示",
-    ],
-  },
-  "v2.2.1": {
-    title: "标准地图细节增强 + GSAP 动画层",
-    summary:
-      "标准底图现在能显示建筑、水体、公园和道路 — 暗色主题不再隐藏地理信息。GSAP 为全站注入入场动画、卡片交互动效和列表交错展现。",
-    highlights: [
-      "标准底图在暗色主题下渲染建筑、水体、绿地与灰色道路,不再一片黑",
-      "GSAP 驱动的页面入场、卡片 hover 弹性回弹、列表交错动画覆盖全站",
-      "亮色主题切换至 Bright OSM 风格,119 层地理细节完整呈现",
+      "长时间看图时可以保持屏幕常亮",
+      "状态栏和列表反馈更清晰",
+      "飞行跟踪遇到慢数据源时更稳",
     ],
   },
   "v2.2.0": {
-    title: "逐时预报 + 中文修正 + 我的位置天气",
+    title: "天气、地图细节与动效",
     summary:
-      "本地天气新增 6 小时逐时预报网格和明天卡片。简中地名统一修正。桌面端我的位置改用单次定位 + 手动刷新。",
+      "天气卡片、我的位置体验、标准地图细节和全站动效一起升级。",
     highlights: [
-      "本地天气: 3×2 逐时预报网格,点击卡片有 MetricCard 风格的 ink 背景和底部光晕,附带明天摘要卡片",
-      "简中修正: OSM 分号分隔的多地名变体只取第一个; 繁→简转换器不再污染已达简中的文字",
-      "我的位置模式: 天气面板只显示逐时预报 (不再有 METAR / 规则 / 气压 / 百科); 天气卡片可点击",
-      "桌面端我的位置: 改用单次定位,右上角显示刷新按钮和最后获取时间戳",
-      "高度前缀样式: FL 等前缀现在与单位同级字号,预览卡高度行三元素对齐",
+      "本地天气增加逐时预报和明日摘要",
+      "我的位置页面更轻、更聚焦",
+      "标准底图和页面动效更有层次",
     ],
   },
   "v2.1.0": {
@@ -137,11 +73,6 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
       "feature flag 移除,所有登录用户都能使用",
     ],
   },
-  "v1.13.1": {
-    title: "工具栏不透明度打磨",
-    summary: "所有浮动工具栏在繁忙地图背景上都更易读。",
-    highlights: ["首页 dock、侧栏覆盖层、地图控制栏的表面统一收紧"],
-  },
   "v1.13.0": {
     title: "移动端底部浮动工具栏与设备感知设置",
     summary:
@@ -159,14 +90,6 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
       "亮暗主题都采用更平静的 hillshade 地形",
       "机场 / 导航台 badge 重叠时自动避让并连出引线",
       "点击重叠空域可循环切换",
-    ],
-  },
-  "v1.11.1": {
-    title: "地图 UI 细节打磨",
-    summary: "空域可读性、全航迹视野、移动端页面滚动和紧凑 metric card 一起优化。",
-    highlights: [
-      "空域边缘内向标记,全航迹下边界文字更整洁",
-      "移动端静态页只在面板内部滚动",
     ],
   },
   "v1.11.0": {
@@ -194,34 +117,14 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
       "可点击的相机标记和带 OSM attribution 的预览卡",
     ],
   },
-  "v1.8.4": {
-    title: "机场缩放层级减噪",
-    summary: "机场地图缩放层级现在共用一张 feature 配置表。",
-    highlights: ["缩放相关地图功能集中到同一配置表维护"],
-  },
-  "v1.8.3": {
-    title: "机制页与导航细节",
-    summary: "机制页改回 Home / About 同款点阵壳;顶部导航跨页保留当前语言。",
-    highlights: [
-      "机制页改回 Home / About 同款点阵背景",
-      "Home / About / Mechanism / Changelog 跳转时保留 locale",
-    ],
-  },
-  "v1.8.1": {
-    title: "机型名称与空域初始动画",
-    summary: "预览与筛选优先显示友好机型名称;默认空域图层首次加载会淡入。",
-    highlights: [
-      "预览卡显示友好机型名称,ICAO 码降为辅助信息",
-      "空域图层首次加载播放分层淡入",
-    ],
-  },
   "v1.8.0": {
-    title: "机场空域图层",
+    title: "机场空域与导航细节",
     summary:
-      "机场地图直接渲染 OpenAIP 空域:透明填充、边界文字、可点击预览、可持久化图层开关。",
+      "机场地图加入 OpenAIP 空域，并补齐机型名称、导航细节和缩放层级减噪。",
     highlights: [
-      "机场地图加入 OpenAIP 风格空域,点击可预览",
-      "图层开关会缓存到浏览器",
+      "空域可在机场地图上直接查看和预览",
+      "机型名称与跨页导航更友好",
+      "机场缩放层级更安静",
     ],
   },
   "v1.7.0": {
@@ -269,11 +172,6 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
       "带 `*` 的用户航路在 12 小时内优先",
       "全球跑道地图来自 OpenAIP(含 VFR-only 跑道)",
     ],
-  },
-  "v1.2.1": {
-    title: "Track 按钮支持新标签页打开",
-    summary: "预览卡 Track 改为真实链接,右键新标签页打开可以正常工作。",
-    highlights: ["Track 改为 <Link>"],
   },
   "v1.2.0": {
     title: "主题化跑道进近、机首光束与比例尺",
@@ -343,11 +241,6 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
       "通过 Next 集成接入 Vercel Analytics 与 Speed Insights",
     ],
   },
-  "v0.7.1": {
-    title: "地图和移动端打磨",
-    summary: "轮询保护、移动端 sheet 优化、ADS-B 合并修复。",
-    highlights: ["坐标加载后才开始飞机轮询"],
-  },
   "v0.7.0": {
     title: "飞行航路与交通上下文",
     summary: "机场感知航路标签、航路查询、双范围 ADS-B 轮询。",
@@ -406,28 +299,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     ],
   },
   {
-    version: "v2.18.1",
-    kind: "patch",
-    title: {
-      en: "Landscape settings stability",
-      zh: "横屏设置稳定性",
-    },
-    summary: {
-      en: "Mobile landscape map settings no longer get stuck saving, and the settings sheet keeps its close button clear of safe-area cutouts.",
-      zh: "移动端横屏地图设置不再卡在保存中，设置面板关闭按钮也会避开 safe-area 遮挡。",
-    },
-    highlights: [
-      {
-        en: "Server timestamp-only responses no longer mark map settings dirty again",
-        zh: "服务端只更新时间戳的响应不再把地图设置重新标记为待保存",
-      },
-      {
-        en: "The map settings sheet now uses native safe-area insets in landscape and exposes a larger glass close target",
-        zh: "地图设置面板在横屏下使用原生 safe-area inset，并提供更大的玻璃关闭按钮",
-      },
-    ],
-  },
-  {
     version: "v2.18.0",
     kind: "feat",
     title: {
@@ -435,175 +306,17 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "更新日志渐进加载",
     },
     summary: {
-      en: "The changelog now ships the latest 20 releases in the PWA shell and loads older history only as readers scroll.",
-      zh: "更新日志现在只把最新 20 条发布记录放进 PWA 静态壳，读者继续滚动时再加载更早历史。",
+      en: "The changelog became lighter by keeping recent releases in the shell and loading older history only when readers ask for it.",
+      zh: "更新日志变得更轻：静态壳只带近期发布记录，更早历史在读者继续查看时再加载。",
     },
     highlights: [
       {
-        en: "Static shell version metadata now reads the latest release without importing the complete historical changelog",
-        zh: "静态壳版本信息现在只读取最新版本，不再导入完整历史 changelog",
+        en: "Recent releases stay fast to open",
+        zh: "近期发布记录打开更快",
       },
       {
-        en: "The /changelog page starts with 20 entries, then reveals older releases in 20-entry batches near the scroll boundary",
-        zh: "/changelog 页面先显示 20 条，在接近滚动边界时按 20 条一批继续展开旧版本",
-      },
-      {
-        en: "The package version and baked client changelog version are synchronized for the v2.18.0 minor release",
-        zh: "package 版本与客户端内置 changelog 版本已同步到 v2.18.0 小版本发布",
-      },
-    ],
-  },
-  {
-    version: "v2.17.7",
-    kind: "patch",
-    title: {
-      en: "Viewport scroll cleanup",
-      zh: "视口滚动清理",
-    },
-    summary: {
-      en: "The iOS rotation recovery now shares one viewport-scroll reset helper across static and map shells, reducing duplicated platform workaround code.",
-      zh: "iOS 旋转恢复现在让静态页和地图壳共用同一个视口滚动重置 helper，减少重复的平台 workaround 代码。",
-    },
-    highlights: [
-      {
-        en: "Root and shell scroll resets are centralized in the app-shell viewport helper instead of being repeated in page animation and static shell code",
-        zh: "root 与 shell 的滚动重置集中到 app-shell 视口 helper，不再散落在页面入场动画和静态页壳中",
-      },
-      {
-        en: "The delayed iOS recovery passes remain, but their timing now lives in one small utility that can be retuned without hunting through page components",
-        zh: "延迟执行的 iOS 恢复步骤保留，但时序集中在一个小工具里，后续调整不需要翻多个页面组件",
-      },
-    ],
-  },
-  {
-    version: "v2.17.6",
-    kind: "patch",
-    title: {
-      en: "Static page rotation cleanup",
-      zh: "静态页旋转清理",
-    },
-    summary: {
-      en: "Home and static pages now clear stale document scroll and keep their sidebar panel height tied to the sampled viewport after repeated iOS PWA rotations.",
-      zh: "主页和静态页在 iOS PWA 反复旋转后会清理过期 document 滚动，并让侧栏面板高度继续跟随采样视口。",
-    },
-    highlights: [
-      {
-        en: "Route and viewport recovery now resets the document and static sidebar scroll positions in delayed passes, covering iOS adjustments that land after React commits",
-        zh: "路由与视口恢复会分阶段重置 document 和静态侧栏滚动位置，覆盖 React 提交后才落下的 iOS 调整",
-      },
-      {
-        en: "The static-page scroll panel now uses `--app-viewport-height` instead of raw `100dvh`, so the shell and scroll owner no longer disagree after rotation",
-        zh: "静态页滚动面板现在使用 `--app-viewport-height` 而不是原始 `100dvh`，旋转后外壳和滚动容器不再高度不一致",
-      },
-    ],
-  },
-  {
-    version: "v2.17.5",
-    kind: "patch",
-    title: {
-      en: "iOS PWA rotation recovery",
-      zh: "iOS PWA 旋转恢复",
-    },
-    summary: {
-      en: "Home Screen launches now recover the real portrait layout after repeated rotations, so static pages and airport detail sidebars stop inheriting stale landscape geometry.",
-      zh: "主屏启动的 PWA 在反复旋转后会恢复真实竖屏布局，静态页和机场详情侧栏不再继承过期横屏几何。",
-    },
-    highlights: [
-      {
-        en: "The app-shell device model now reconciles layout viewport, visualViewport, orientation, and safe-area evidence before choosing mobile or landscape desktop layout",
-        zh: "app-shell 设备模型现在会综合 layout viewport、visualViewport、方向和 safe-area 证据，再决定移动端或横屏桌面布局",
-      },
-      {
-        en: "Locked static and map shells use the sampled viewport height so iOS standalone mode cannot leave a stale bottom block after rotation",
-        zh: "锁定视口的静态页和地图壳会使用采样后的视口高度，避免 iOS standalone 旋转后留下过期底部白块",
-      },
-    ],
-  },
-  {
-    version: "v2.17.4",
-    kind: "patch",
-    title: {
-      en: "Mobile dock and sidebar gestures",
-      zh: "移动端 Dock 与侧栏手势",
-    },
-    summary: {
-      en: "Mobile bottom chrome now clamps rotated iOS safe-area offsets, and collapsible sidebars wait for a fresh scroll gesture after reaching the end.",
-      zh: "移动端底部浮层现在会夹住旋转后的 iOS safe-area 偏移；可收起侧栏也会等到底部后的下一次主动滑动再缩小。",
-    },
-    highlights: [
-      {
-        en: "Bottom toolbars, preview cards, and map scale labels share a capped safe-area offset so rotation cannot leave a large blank strip below them",
-        zh: "底部工具栏、预览卡和地图比例尺共用受限的 safe-area 偏移，旋转后不会在下方留下大块空白",
-      },
-      {
-        en: "Desktop collapsible sidebars only shrink when the wheel or touch gesture starts at the true bottom",
-        zh: "桌面可收起侧栏只有在滚轮或触摸手势从真正底部开始时才会缩小",
-      },
-    ],
-  },
-  {
-    version: "v2.17.3",
-    kind: "patch",
-    title: {
-      en: "Home Screen app update handoff",
-      zh: "主屏应用更新接管",
-    },
-    summary: {
-      en: "The Home Screen app now lets the newest static shell service worker activate immediately, so mobile pages stop staying on an older cached toolbar layout.",
-      zh: "主屏应用现在会让最新静态壳 service worker 立即激活，避免移动端页面长期停留在旧缓存工具栏布局。",
-    },
-    highlights: [
-      {
-        en: "New service workers skip the waiting phase and claim same-origin pages after activation",
-        zh: "新的 service worker 会跳过等待阶段，并在激活后接管同源页面",
-      },
-      {
-        en: "Live aviation API and WebSocket paths remain network-only",
-        zh: "实时航空 API 和 WebSocket 路径仍保持只走网络",
-      },
-    ],
-  },
-  {
-    version: "v2.17.2",
-    kind: "patch",
-    title: {
-      en: "Static-page iOS viewport lock",
-      zh: "静态页 iOS 视口锁定",
-    },
-    summary: {
-      en: "Home and static pages now keep the document viewport locked after returning from a rotated airport map, preventing the bottom toolbar from revealing a white safe-area block.",
-      zh: "从旋转过的机场地图返回后，首页和静态页现在会继续锁住 document 视口，避免底部工具栏露出白色安全区块。",
-    },
-    highlights: [
-      {
-        en: "The dither static shell now uses the same document overscroll lock as the full-screen map shell while preserving its own panel scrolling",
-        zh: "静态 dither 壳现在和全屏地图壳一样锁住 document overscroll，同时保留面板自身滚动",
-      },
-      {
-        en: "This targets the rotate-map, open-sidebar, return-home path that could leave iOS showing a bottom white block behind the floating toolbar",
-        zh: "这个修复针对“旋转地图、打开侧边栏、回首页”路径下 iOS 底部工具栏后方出现白块的问题",
-      },
-    ],
-  },
-  {
-    version: "v2.17.1",
-    kind: "patch",
-    title: {
-      en: "Mobile static-page toolbar spacing",
-      zh: "移动端静态页工具栏留白修正",
-    },
-    summary: {
-      en: "Mobile Home and static pages no longer reserve a visible white block behind the floating bottom toolbar after scrolling or interacting.",
-      zh: "移动端首页和静态页在滚动或操作后，不再在底部悬浮工具栏后方预留可见白块。",
-    },
-    highlights: [
-      {
-        en: "The static-page scroll panel now uses scroll padding instead of visible bottom padding, so content can continue behind the floating toolbar",
-        zh: "静态页滚动面板改用 scroll padding，而不是可见底部 padding，让内容可以继续延伸到悬浮工具栏后方",
-      },
-      {
-        en: "Programmatic scroll and focus positioning still keep toolbar clearance without pushing the page content upward",
-        zh: "程序化滚动和聚焦仍保留工具栏避让距离，但不会把页面内容整体向上顶",
+        en: "Older release history loads progressively",
+        zh: "更早发布历史渐进加载",
       },
     ],
   },
@@ -615,65 +328,21 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "静态页面离线壳",
     },
     summary: {
-      en: "Home, About, Mechanism, and Changelog can now reopen from the local app shell, with the homepage branding video cached for offline starts while live aviation data remains network-only.",
-      zh: "首页、关于、机制和更新日志现在可以从本地应用壳重新打开；首页品牌视频会为离线启动缓存，而实时航空数据仍保持只走网络。",
+      en: "Static pages gained an offline shell and the mobile app handoff became steadier across updates and rotation.",
+      zh: "静态页面加入离线壳，移动端在更新接管和旋转恢复上也更稳定。",
     },
     highlights: [
       {
-        en: "The Vite build emits a small service worker that precaches the static-page shell, icons, manifest, and homepage branding video",
-        zh: "Vite 构建会产出一个小型 service worker，预缓存静态页面壳、图标、manifest 和首页品牌视频",
+        en: "Home, About, Mechanism, and Changelog can reopen from the local shell",
+        zh: "首页、关于、机制和更新日志可从本地壳重新打开",
       },
       {
-        en: "API routes, WebSocket traffic, runtime env, and version checks stay network-only so stale aircraft positions, METAR, airport traffic, and flight status are not replayed offline",
-        zh: "API 路由、WebSocket 流量、运行时环境和版本检查继续只走网络，避免离线回放过期飞机位置、METAR、机场流量和航班状态",
+        en: "Live aviation data stays online-only",
+        zh: "实时航空数据仍保持只走网络",
       },
       {
-        en: "Railway static serving now gives hashed assets immutable cache headers while SPA HTML stays no-store",
-        zh: "Railway 静态服务现在为带 hash 的资源设置 immutable 缓存头，同时 SPA HTML 保持 no-store",
-      },
-    ],
-  },
-  {
-    version: "v2.16.2",
-    kind: "patch",
-    title: {
-      en: "Route provider exclusivity fixes",
-      zh: "航路数据源互斥修正",
-    },
-    summary: {
-      en: "FlightAware and adsbdb route lookup now stay mutually exclusive, and static-page brand docks no longer gain an extra divider line.",
-      zh: "FlightAware 与 adsbdb 航路查询现在保持互斥，静态页品牌栏也不再多出额外分隔线。",
-    },
-    highlights: [
-      {
-        en: "FlightAware route mode no longer subscribes to adsbdb route channels or accepts adsbdb cached routes as a fallback",
-        zh: "FlightAware 航路模式不再订阅 adsbdb 航路频道，也不会把 adsbdb 缓存航路当作 fallback",
-      },
-      {
-        en: "Home and static pages keep the clean brand dock without the sidebar divider rule",
-        zh: "首页和静态页保持干净的品牌栏，不再添加侧栏分隔横线",
-      },
-    ],
-  },
-  {
-    version: "v2.16.1",
-    kind: "patch",
-    title: {
-      en: "Mobile sidebar scroll fixes",
-      zh: "移动端侧栏滚动修正",
-    },
-    summary: {
-      en: "Landscape mobile collapsed sidebars no longer leave a scrollable transparent hit area, and portrait static pages keep the compact sticky logo while scrolling.",
-      zh: "移动端横屏侧栏收起后不再留下透明可滚动命中区域；竖屏静态页面滚动时继续保留置顶并缩小的 Logo。",
-    },
-    highlights: [
-      {
-        en: "Collapsed landscape map sidebars shrink their shell to the pill height so touches beneath the pill return to the map",
-        zh: "横屏地图侧栏收起后，外壳会缩到胶囊高度，胶囊下方触摸回到地图",
-      },
-      {
-        en: "Mobile static pages keep the frosted panel as the scroll owner so the brand dock stays sticky and compacts on scroll",
-        zh: "移动端静态页继续由磨砂面板负责滚动，让品牌栏保持置顶并在滚动时缩小",
+        en: "Mobile static pages recover more cleanly after updates, scrolling, and rotation",
+        zh: "移动端静态页在更新、滚动和旋转后恢复更干净",
       },
     ],
   },
@@ -685,165 +354,21 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "可收起侧栏与更快地图控件",
     },
     summary: {
-      en: "Airport, flight, Plane Hunter, and static-page sidebars now share the same compact collapse behavior, while map taps avoid unwanted recentering and the view-range toolbar responds faster.",
-      zh: "机场、航班、拍机入口和静态页面侧栏现在共用同一套紧凑收起行为；地图点击不会意外重心移动，视野范围工具栏响应也更快。",
+      en: "Sidebars became more consistent across map and static pages, while common map controls felt faster and less jumpy.",
+      zh: "地图页和静态页侧栏变得更一致，常用地图控件也更快、更少跳动。",
     },
     highlights: [
       {
-        en: "The airport identity, filters, table headers, and nearby rows move together instead of keeping a fixed table head above an inner list",
-        zh: "机场身份、筛选器、表头和附近目标会一起滚动，不再把表头固定在内部列表上方",
+        en: "Airport, flight, Plane Hunter, and static-page sidebars share a tighter interaction model",
+        zh: "机场、航班、拍机入口和静态页面侧栏共享更紧凑的交互模型",
       },
       {
-        en: "At the true bottom of a desktop sidebar, one more upward scroll collapses it to the same pill-style ADSBao mark used across map and static pages",
-        zh: "桌面侧栏真正滚到底后，再向上滑一次会收起为地图页和静态页一致的胶囊式 ADSBao 标识",
+        en: "Map selections and range controls respond with fewer surprise movements",
+        zh: "地图选择和视野控制减少了意外移动",
       },
       {
-        en: "Selecting aircraft, airport, navaid, runway, or watching-spot map elements no longer asks the map to pan itself into focus",
-        zh: "选择飞机、机场、导航点、跑道或拍摄点等地图元素时，不再触发地图自动平移聚焦",
-      },
-      {
-        en: "Map range toolbar taps skip the old long-press progress animation path and defer heavier fit work so pointer interactions paint sooner",
-        zh: "地图视野范围按钮跳过旧的长按进度动画路径，并延后较重的 fit 计算，让 pointer 交互更快完成绘制",
-      },
-    ],
-  },
-  {
-    version: "v2.15.6",
-    kind: "patch",
-    title: {
-      en: "Unified layout profile",
-      zh: "统一布局 Profile",
-    },
-    summary: {
-      en: "Home, airport, flight, preview, Plane Hunter, and near-me surfaces now share the same client-device layout profile, with a duplicate historical changelog version cleaned up.",
-      zh: "主页、机场、航班、预览卡、拍机入口和附近页面现在共用同一套客户端设备布局 profile，同时清理了一处历史 changelog 版本重复。",
-    },
-    highlights: [
-      {
-        en: "Airport and flight shells derive mobile, desktop, and landscape-phone sidebar modes from the shared app-shell device model",
-        zh: "机场和航班外壳改由共享 app-shell 设备模型决定移动端、桌面端和手机横屏侧栏模式",
-      },
-      {
-        en: "Plane Hunter and the near-me location flow no longer keep separate device heuristics from the rest of the app",
-        zh: "拍机入口和附近位置流程不再维护独立于应用其它部分的设备判断",
-      },
-      {
-        en: "The version update toast fix and Better Stack duration parser patch now have distinct historical patch entries",
-        zh: "版本更新提示修复与 Better Stack duration 解析修复现在各自对应独立的历史 patch 条目",
-      },
-    ],
-  },
-  {
-    version: "v2.15.5",
-    kind: "patch",
-    title: {
-      en: "Rotation scroll recovery",
-      zh: "旋转滚动恢复",
-    },
-    summary: {
-      en: "Airport and flight maps now clear stale page and sidebar scroll after repeated phone rotations, keeping the landscape shell pinned to the viewport.",
-      zh: "机场和航班地图现在会在手机多次旋转后清理残留页面与侧栏滚动，让横屏地图外壳固定在可视区域。",
-    },
-    highlights: [
-      {
-        en: "The full-screen landscape map shell participates in the same document scroll lock as portrait map pages",
-        zh: "横屏全屏地图外壳与竖屏地图页使用同一套 document 滚动锁",
-      },
-      {
-        en: "Returning to landscape resets the sidebar scroll position so the header does not reopen midway down the panel",
-        zh: "回到横屏时会重置侧栏滚动位置，避免侧栏从面板中段重新打开",
-      },
-    ],
-  },
-  {
-    version: "v2.15.4",
-    kind: "patch",
-    title: {
-      en: "Preview and dither polish",
-      zh: "预览卡与点阵背景打磨",
-    },
-    summary: {
-      en: "Landscape preview cards now sit on the same lower edge as the sidebar, and the home dither animation fills behind the floating panel without a poster-frame ghost.",
-      zh: "横屏预览卡现在与侧栏下缘对齐，主页点阵动画会铺到浮动面板背后，并去掉首帧重影。",
-    },
-    highlights: [
-      {
-        en: "Compact mobile preview cards in landscape keep horizontal safe-area offsets while aligning their bottom edge with the sidebar",
-        zh: "横屏紧凑移动预览卡保留左右 safe-area 偏置，同时底边与侧栏对齐",
-      },
-      {
-        en: "The dither video loads directly, stays hidden until ready, and fills the static-page shell behind the frosted sidebar",
-        zh: "点阵视频直接加载、未就绪前隐藏，并铺满静态页外壳、位于磨砂侧栏背后",
-      },
-    ],
-  },
-  {
-    version: "v2.15.3",
-    kind: "patch",
-    title: {
-      en: "Rotation recovery",
-      zh: "旋转恢复稳定性",
-    },
-    summary: {
-      en: "Airport and flight pages now recover their mobile or landscape layout after rotation, reversed orientation, and app focus changes.",
-      zh: "机场页和航班页现在会在旋转、倒转和切出切回后恢复到对应的移动端或横屏布局。",
-    },
-    highlights: [
-      {
-        en: "Portrait phones no longer keep the landscape desktop sidebar when the browser reports a stale visual viewport",
-        zh: "当浏览器短暂保留旧的 visual viewport 时，手机竖屏不会继续停留在横屏桌面侧栏布局",
-      },
-      {
-        en: "The layout profile is resampled after orientation, focus, visibility, and page restore events so safe-area edges settle correctly",
-        zh: "布局 profile 会在旋转、聚焦、可见性变化和页面恢复后重新采样，让 safe-area 方向稳定回正",
-      },
-    ],
-  },
-  {
-    version: "v2.15.2",
-    kind: "patch",
-    title: {
-      en: "Home landscape safe area",
-      zh: "主页横屏安全区",
-    },
-    summary: {
-      en: "Home and map pages now keep the sidebar layout consistent on landscape phones with left or right safe-area obstructions.",
-      zh: "主页和地图页现在会在手机横屏左右安全区遮挡下保持一致的侧栏布局。",
-    },
-    highlights: [
-      {
-        en: "The home sidebar offsets from the active landscape safe-area edge instead of staying pinned to the physical screen edge",
-        zh: "主页侧栏横屏时会避开当前 safe-area 边缘，不再贴住物理屏幕边",
-      },
-      {
-        en: "Landscape mobile airport views stay in desktop-sidebar mode instead of occasionally falling into the mobile map-only toolbar state",
-        zh: "移动设备横屏机场页会保持桌面侧栏布局，不再偶发落入只有地图和移动工具栏的状态",
-      },
-    ],
-  },
-  {
-    version: "v2.15.1",
-    kind: "patch",
-    title: {
-      en: "Landscape safe-area polish",
-      zh: "横屏安全区打磨",
-    },
-    summary: {
-      en: "Landscape mobile map pages now share the same safe-area handling and use the compact mobile preview when the desktop sidebar is active.",
-      zh: "移动设备横屏地图页现在复用同一套安全区处理，并在桌面侧栏布局下改用紧凑移动预览卡。",
-    },
-    highlights: [
-      {
-        en: "Airport and flight detail pages offset the sidebar or map controls based on the active left or right safe-area inset",
-        zh: "机场页和航班页会按当前左侧或右侧 safe-area inset 偏置侧栏与地图控件",
-      },
-      {
-        en: "Reversed landscape orientation follows the obstruction side instead of assuming the same edge every time",
-        zh: "反向横屏时会跟随遮挡所在一侧，不再固定假设同一边",
-      },
-      {
-        en: "Landscape phones keep aircraft previews compact in the lower-right corner instead of opening the taller desktop preview",
-        zh: "手机横屏时飞机预览保持右下角紧凑移动卡片，不再打开较高的桌面预览",
+        en: "FlightAware route behavior and static-page chrome were tightened in the same release line",
+        zh: "FlightAware 航路行为和静态页外观也在这一版线中收紧",
       },
     ],
   },
@@ -855,65 +380,21 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "移动设备横屏座舱",
     },
     summary: {
-      en: "Airport detail now treats phones and tablets as mobile devices even when their landscape viewport uses the desktop sidebar.",
-      zh: "机场详情页现在会按真实设备识别手机和平板，即使横屏视口使用桌面侧栏布局。",
+      en: "Mobile landscape layouts became more reliable across safe areas, rotation recovery, previews, and shared device behavior.",
+      zh: "移动横屏布局在安全区、旋转恢复、预览卡和共享设备判断上更可靠。",
     },
     highlights: [
       {
-        en: "Landscape phones with a Dynamic Island or similar cutout shift the airport sidebar away from the safe-area obstruction",
-        zh: "带灵动岛或类似遮挡的手机横屏时，机场侧栏会避开 safe-area 遮挡",
+        en: "Landscape phones and tablets get a more reliable cockpit layout",
+        zh: "手机和平板横屏获得更可靠的座舱布局",
       },
       {
-        en: "Phone and tablet landscape sidebars scroll as one panel, with the search bar and aircraft table header sticking at the top",
-        zh: "手机和平板横屏侧栏改为整面板滚动，搜索栏和飞机表头会在顶部置顶",
+        en: "Rotation and safe-area recovery became steadier across airport, flight, and home surfaces",
+        zh: "机场、航班和首页在旋转与安全区恢复上更稳定",
       },
       {
-        en: "Plane Hunter availability now follows the shared client-device model across preview cards and map settings",
-        zh: "拍机入口现在复用统一客户端设备模型，预览卡与地图设置的设备判断保持一致",
-      },
-    ],
-  },
-  {
-    version: "v2.14.2",
-    kind: "patch",
-    title: {
-      en: "Stable aircraft preview open",
-      zh: "飞机预览打开更稳定",
-    },
-    summary: {
-      en: "Opening the first aircraft preview on an airport page no longer blanks the map while the preview module loads.",
-      zh: "机场详情页首次点击飞机时，预览模块加载期间不再让地图短暂空白。",
-    },
-    highlights: [
-      {
-        en: "Aircraft preview loading is isolated from the airport route shell, so the map and sidebar stay mounted on first click",
-        zh: "飞机预览加载与机场页面外壳隔离，首次点击时地图和侧栏保持挂载",
-      },
-    ],
-  },
-  {
-    version: "v2.14.1",
-    kind: "patch",
-    title: {
-      en: "Runtime cleanup",
-      zh: "运行时代码精简",
-    },
-    summary: {
-      en: "Removed old Next-era shims, dead TypeScript server scrapers, and generated aircraft-light ballast after the Railway data-service migration.",
-      zh: "清理 Railway data-service 迁移后遗留的 Next 兼容层、旧 TypeScript 服务端抓取代码和飞机灯光生成表。",
-    },
-    highlights: [
-      {
-        en: "Aircraft light anchors now resolve from family templates instead of a 21k-line generated map",
-        zh: "飞机灯光锚点改为按机型族模板解析，不再依赖 2.1 万行生成表",
-      },
-      {
-        en: "Old TypeScript FlightAware, ADSBDB, and community-route server paths were removed in favor of the active Go data-service providers",
-        zh: "移除旧 TypeScript FlightAware、ADSBDB 与社区航线服务端路径，保留当前 Go data-service provider",
-      },
-      {
-        en: "Vite React code now uses React Router and native React lazy loading directly instead of local compatibility wrappers",
-        zh: "Vite React 代码直接使用 React Router 与 React lazy，不再经过本地兼容封装",
+        en: "Preview cards, Plane Hunter, and layout decisions now follow one device model",
+        zh: "预览卡、拍机入口和布局判断现在跟随同一套设备模型",
       },
     ],
   },
@@ -925,47 +406,21 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "机场地面图层分层加载",
     },
     summary: {
-      en: "Airport maps now fetch pavement before structures so runway, taxiway, taxilane, and apron detail appears even when building-heavy OpenStreetMap queries are slow or unavailable.",
-      zh: "机场地图现在先加载跑道、滑行道、滑行线和停机坪，再加载建筑结构；即使 OpenStreetMap 的建筑查询较慢或失败，关键地面灯光也会先出现。",
+      en: "Airport surface maps became more resilient, and older runtime paths were cleaned up around the active Railway data-service.",
+      zh: "机场地面图层更有韧性，同时围绕当前 Railway data-service 清理了旧运行时代码。",
     },
     highlights: [
       {
-        en: "The surface endpoint is split into `pavement` and `structures` scopes, removing the old inline surface path from airport detail responses",
-        zh: "地面图接口拆成 `pavement` 与 `structures` 两个 scope，并移除机场详情响应里的旧 inline surface 路径",
+        en: "Runway, taxiway, and apron detail appears sooner on large airports",
+        zh: "大型机场的跑道、滑行道和停机坪细节出现更快",
       },
       {
-        en: "Large airports such as KJFK now return taxiways and taxilanes from the first pavement request instead of waiting behind terminal and building geometry",
-        zh: "KJFK 这类大型机场现在会在首个 pavement 请求中返回滑行道和滑行线，不再被航站楼与建筑几何拖住",
+        en: "Preview loading became less disruptive",
+        zh: "预览加载不再那么打断地图体验",
       },
       {
-        en: "Structure-layer failures are isolated, so pavement rendering remains available when the secondary buildings query times out",
-        zh: "结构层失败被隔离处理，第二阶段建筑查询超时时仍保留已加载的道面渲染",
-      },
-    ],
-  },
-  {
-    version: "v2.13.1",
-    kind: "patch",
-    title: {
-      en: "Airport night map detail",
-      zh: "机场夜间细节图",
-    },
-    summary: {
-      en: "Near airport maps now render tighter, finer runway and taxiway lighting so dense airfields read more like night-light diagrams.",
-      zh: "机场近景地图现在使用更近的视图和更细密的跑道、滑行道灯阵，让大型机场更像夜间灯光图。",
-    },
-    highlights: [
-      {
-        en: "Near range moves closer with fractional zoom support, matching the 0.5 NM inspection view more closely",
-        zh: "近景档位加入 fractional zoom 并推近视图，更贴近 0.5 NM 的检查视角",
-      },
-      {
-        en: "Runway, taxiway, centerline, threshold, and approach lights use smaller micro-dots with reduced halos",
-        zh: "跑道、滑行道、中线、入口和进近灯改为更小的微点，并收短光晕",
-      },
-      {
-        en: "Runway ends add subtle red side cues while the underlying surface lines stay thin",
-        zh: "跑道端部增加低调红色侧向提示，同时底层道面线保持细线效果",
+        en: "Legacy runtime code was removed from the active app path",
+        zh: "旧运行时代码从当前应用路径中移除",
       },
     ],
   },
@@ -977,43 +432,21 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "首屏加载提速",
     },
     summary: {
-      en: "The first screen now keeps a static brand frame while heavier video and preview modules load after the initial route.",
-      zh: "首屏先呈现静态品牌帧，较重的视频与预览模块延后到初始路由之后加载。",
+      en: "The first screen and near-airport map detail became lighter, faster, and easier to read.",
+      zh: "首屏和近场机场地图细节变得更轻、更快，也更容易读。",
     },
     highlights: [
       {
-        en: "The branding MP4 waits until after the first frame and is skipped on small screens or reduced-motion sessions",
-        zh: "品牌 MP4 延后到首帧之后加载，并在小屏或减少动态效果时跳过",
+        en: "Heavy visual modules wait until the main route is usable",
+        zh: "较重的视觉模块会等主路由可用后再加载",
       },
       {
-        en: "The home airport explorer and aircraft preview card now load on demand, reducing JavaScript pulled into the initial screen",
-        zh: "首页机场探索器与飞机预览卡改为按需加载，减少初始屏需要拉取的 JavaScript",
+        en: "Airport night-map detail became more legible",
+        zh: "机场夜间细节图更清晰",
       },
       {
-        en: "Unused exports reported by knip were removed or made private so the dependency audit stays actionable",
-        zh: "清理或收口 knip 报告的未使用导出，让依赖审计保持可执行",
-      },
-    ],
-  },
-  {
-    version: "v2.12.2",
-    kind: "patch",
-    title: {
-      en: "Version update toast fix",
-      zh: "版本更新提示修复",
-    },
-    summary: {
-      en: "The in-app update toast no longer prompts for downgrades, and the version sync between package.json and the changelog is now documented.",
-      zh: "应用内更新提示不再出现降级版本提示，package.json 与 changelog 的版本同步规范已文档化。",
-    },
-    highlights: [
-      {
-        en: "Version comparison uses semver ordering instead of strict equality, so the toast only appears when the deployed version is genuinely newer",
-        zh: "版本比较改用 semver 排序代替严格相等，升级提示仅在部署版本确实更新时出现",
-      },
-      {
-        en: "The home page branding video now becomes visible even when the browser finishes loading the MP4 before React attaches the loadeddata listener",
-        zh: "首页品牌视频即使在 React 绑定 loadeddata 监听前已被浏览器加载完成，也会正确显示",
+        en: "Routine cleanup kept the release lean",
+        zh: "常规清理让这一版保持轻量",
       },
     ],
   },
@@ -1025,35 +458,21 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "Better Stack 可观测性",
     },
     summary: {
-      en: "The Railway data-service now reports backend metrics and structured logs to Better Stack instead of New Relic.",
-      zh: "Railway data-service 现在将后端指标和结构化日志上报到 Better Stack，不再依赖 New Relic。",
+      en: "Backend observability moved to Better Stack, and the in-app version prompt became less noisy.",
+      zh: "后端可观测性迁移到 Better Stack，应用内版本提示也减少了误报。",
     },
     highlights: [
       {
-        en: "HTTP requests, external provider calls, database operations, WebSocket activity, scheduler polling, and active channel gauges share the `adsbao.*` metric namespace",
-        zh: "HTTP 请求、外部 provider 调用、数据库操作、WebSocket 活动、scheduler 轮询和活跃 channel gauge 都统一使用 `adsbao.*` 指标命名空间",
+        en: "Railway data-service health is easier to inspect",
+        zh: "Railway data-service 状态更容易排查",
       },
       {
-        en: "Backend logs keep the existing compact message format while adding Better Stack service, environment, provider, status, and latency fields",
-        zh: "后端日志保留现有紧凑 message 格式，同时增加 Better Stack 可查询的 service、environment、provider、status 和 latency 字段",
+        en: "Log and metric fields are friendlier to dashboards",
+        zh: "日志和指标字段更适合仪表盘使用",
       },
-    ],
-  },
-  {
-    version: "v2.12.1",
-    kind: "patch",
-    title: {
-      en: "Better Stack log duration parsing fix",
-      zh: "Better Stack 日志 duration 解析修复",
-    },
-    summary: {
-      en: "Fixed Better Stack log tail duration column parsing by switching duration field names from dotted to underscore format.",
-      zh: "通过将 duration 字段名从点号格式改为下划线格式，修复 Better Stack 日志尾页 duration 列解析错误。",
-    },
-    highlights: [
       {
-        en: "Duration JSON fields renamed from `duration.ms`/`duration.seconds` to `duration_ms`/`duration_seconds` for Better Stack parser compatibility",
-        zh: "duration JSON 字段从 `duration.ms`/`duration.seconds` 改为 `duration_ms`/`duration_seconds`，兼容 Better Stack 解析器",
+        en: "Refresh prompts now avoid false downgrade messages",
+        zh: "刷新提示会避免错误的降级提示",
       },
     ],
   },
@@ -1132,54 +551,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     ],
   },
   {
-    version: "v2.8.2",
-    kind: "patch",
-    title: {
-      en: "Nearby-airport tracking stability",
-      zh: "附近机场追踪稳定性修复",
-    },
-    summary: {
-      en: "Airport-to-airport navigation now keeps the URL airport as the page anchor while the next airport detail resolves, preventing stale nearby-airport previews from rendering the previous airport map.",
-      zh: "机场到机场的跳转现在会以 URL 中的机场作为页面锚点，等待新机场详情解析时不会再用上一座机场的对象渲染地图。",
-    },
-    highlights: [
-      {
-        en: "Nearby airport Track actions no longer reuse the previous airport profile during the route transition",
-        zh: "附近机场的追踪操作在路由切换期间不再复用上一座机场的 profile",
-      },
-      {
-        en: "Airport explorer profile resolution ignores stale airport objects that do not match the current route ICAO",
-        zh: "机场详情页的 profile 解析会忽略与当前路由 ICAO 不匹配的旧机场对象",
-      },
-    ],
-  },
-  {
-    version: "v2.8.1",
-    kind: "patch",
-    title: {
-      en: "Selected aircraft trace fallback",
-      zh: "选中飞机航迹兜底修复",
-    },
-    summary: {
-      en: "Airport pages now handle successful-but-empty aircraft trace responses more clearly: locally accumulated traffic history can still draw the selected trace, and unavailable traces no longer look like a silent success.",
-      zh: "机场页现在会更清楚地处理请求成功但航迹为空的情况：本地积累的交通历史可用于绘制选中飞机航迹，确实不可用时也不再表现得像静默成功。",
-    },
-    highlights: [
-      {
-        en: "Selected airport traces merge live, recent, and locally accumulated points, so a remote empty response can still render when the airport feed has enough motion history",
-        zh: "机场页选中飞机航迹会合并实时点、远端 recent trace 与本地积累点；远端为空时，只要机场流量已有足够运动历史仍可绘制",
-      },
-      {
-        en: "HTTP 200 trace responses with `traceUnavailable` or fewer than two points are now surfaced as unavailable unless another source provides a drawable trace",
-        zh: "HTTP 200 但带有 `traceUnavailable` 或少于两个点的航迹响应，现在会显示为不可用，除非其他数据源补足可绘制航迹",
-      },
-      {
-        en: "Mobile trace status now distinguishes unavailable traces from completed loads instead of briefly showing success with no visible line",
-        zh: "移动端航迹状态现在会区分不可用与加载完成，不再短暂显示成功但地图上没有可见航迹",
-      },
-    ],
-  },
-  {
     version: "v2.8.0",
     kind: "feat",
     title: {
@@ -1187,129 +558,21 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "更快的地图就绪与视图控制",
     },
     summary: {
-      en: "Airport and aircraft detail maps now wait for the first usable visual frame instead of just the Leaflet instance, while the detail toolbar can cycle view ranges with a tap and keep the full menu behind a long press.",
-      zh: "机场与飞机详情地图现在会等待首个可用视觉帧，而不只是等待 Leaflet 实例创建；详情页工具栏也支持轻点切换视图范围，长按再打开完整菜单。",
+      en: "Airport and aircraft maps became quicker to reach, clearer when traces are missing, and steadier during nearby-airport navigation.",
+      zh: "机场和飞机地图进入更快，航迹缺失时更清楚，附近机场跳转时也更稳定。",
     },
     highlights: [
       {
-        en: "Initial loading now gates on base tile readiness plus aircraft markers or traces, with short cutoffs so slow optional visuals do not block the page forever",
-        zh: "初始加载现在会等待底图 tile、飞机标记或轨迹就绪，并设置短 cutoff，避免较慢的可选视觉元素永久阻塞页面",
+        en: "Map loading waits for useful visual context without blocking too long",
+        zh: "地图加载会等待有用的视觉上下文，但不会卡太久",
       },
       {
-        en: "Aircraft detail pages with no current focal position fall back to a usable map center after a short timeout instead of staying in the full-screen loader",
-        zh: "没有当前焦点位置的飞机详情页会在短暂超时后回退到可用地图中心，不再停留在整屏加载动画",
+        en: "Trace and airport transitions report uncertainty more clearly",
+        zh: "航迹和机场跳转的不确定状态更清楚",
       },
       {
-        en: "The view-range toolbar button now cycles far / mid / near on tap, while long press opens the full menu with a subtle progress indicator",
-        zh: "视图范围工具栏按钮现在轻点即可在远 / 中 / 近之间循环，长按才打开完整菜单，并显示轻量进度提示",
-      },
-    ],
-  },
-  {
-    version: "v2.7.4",
-    kind: "patch",
-    title: {
-      en: "Aircraft exterior navigation & anti-collision lights",
-      zh: "飞机外部航行灯与防撞灯",
-    },
-    summary: {
-      en: "Every silhouette icon now renders realistic navigation lights (red/green/white position lights, red flashing beacons, white strobes, landing and taxi lights) driven by ADS-B flight phase. Lighting anchors are auto-generated for all 178 aircraft types.",
-      zh: "每个飞机剪影图标现在渲染真实的航行灯光（红/绿/白航行灯、红色闪烁防撞灯、白色频闪灯、着陆灯和滑行灯），由 ADS-B 飞行阶段驱动。灯光锚点为全部 178 种机型自动生成。",
-    },
-    highlights: [
-      {
-        en: "10 light types with correct colors and blink patterns: nav left (red steady), nav right (green steady), nav tail (white steady), beacon top/bottom (red ~1 Hz flash), strobe left/right (white ~2 Hz double-flash), landing (white steady + glow), taxi, logo",
-        zh: "10 种灯光，颜色与闪烁行为正确：左航行灯（红常亮）、右航行灯（绿常亮）、尾航行灯（白常亮）、上下防撞灯（红 ~1Hz 闪烁）、左右频闪灯（白 ~2Hz 双闪）、着陆灯（白常亮+光晕）、滑行灯、Logo 灯",
-      },
-      {
-        en: "Flight phase classifier maps ADS-B onGround / velocity / baroAltitude to parked → taxi → climb → cruise → descent light states per FAA AIM 4-3-23",
-        zh: "飞行阶段推断器根据 ADS-B onGround / 速度 / 气压高度映射至停放→滑行→爬升→巡航→下降灯光状态，符合 FAA AIM 4-3-23",
-      },
-      {
-        en: "5 new lighting anchors (topBeacon, bottomBeacon, landingLight, taxiLight, logoLight) auto-generated for all 178 aircraft icons via the anchor generator script",
-        zh: "5 个新灯光锚点（顶部防撞灯、底部防撞灯、着陆灯、滑行灯、Logo灯）通过锚点生成脚本为全部 178 个飞机图标自动生成",
-      },
-      {
-        en: "Airport detail now returns runway geometry before the optional OpenStreetMap surface layer, so the focused airport's runways render without waiting on slow Overpass responses",
-        zh: "机场详情现在先返回跑道几何，再异步补充可选的 OpenStreetMap 地面图层；主机场跑道不再等待较慢的 Overpass 响应",
-      },
-    ],
-  },
-  {
-    version: "v2.7.3",
-    kind: "patch",
-    title: {
-      en: "Dev console warnings cleanup",
-      zh: "开发控制台警告清理",
-    },
-    summary: {
-      en: "Fixed WebSocket connection failure in local dev (Vite proxy origin mismatch), replaced Clerk structural CSS overrides with the official appearance API, and added the modern mobile-web-app-capable meta tag.",
-      zh: "修复本地开发中 WebSocket 连接失败（Vite 代理 origin 不匹配），用 Clerk 官方 appearance API 替代结构性 CSS 覆盖，补充了新的 mobile-web-app-capable meta 标签。",
-    },
-    highlights: [
-      {
-        en: "WebSocket no longer fails on localhost — Vite proxy changeOrigin sent localhost:8081 as Origin which the Go WS handler rejected; added to the allowed origins list",
-        zh: "WebSocket 在本地不再失败——Vite 代理的 changeOrigin 将 Origin 改为 localhost:8081 被 Go WS handler 拒绝，已加入允许列表",
-      },
-      {
-        en: "Clerk avatar sizing now uses the appearance.elements API instead of targeting internal .cl-avatarBox CSS classes, silencing the structural CSS warning",
-        zh: "Clerk 头像大小现使用 appearance.elements API 而非 .cl-avatarBox 内部 CSS 选择器，消除结构性 CSS 警告",
-      },
-      {
-        en: "Added deprecated mobile-web-app-capable meta tag alongside the aging apple-mobile-web-app-capable",
-        zh: "在过时的 apple-mobile-web-app-capable 旁补充了新的 mobile-web-app-capable meta 标签",
-      },
-    ],
-  },
-  {
-    version: "v2.7.2",
-    kind: "patch",
-    title: {
-      en: "Nearby airport runway geometry fix",
-      zh: "附近机场跑道几何修复",
-    },
-    summary: {
-      en: "Nearby airports in here mode now use stored OurAirports runway geometry when available, so large airports no longer render as synthetic star-shaped runway clusters.",
-      zh: "here 模式的附近机场现在会优先使用已存储的 OurAirports 跑道几何，大型机场不再显示为合成的星型跑道簇。",
-    },
-    highlights: [
-      {
-        en: "The Railway data-service now batch-loads stored runway maps for nearby airport results and omits runway lines when stored geometry is unavailable, instead of showing OpenAIP heading-based approximations",
-        zh: "Railway data-service 会为附近机场结果批量读取已存储的跑道图；没有存储几何时会省略跑道线，不再显示 OpenAIP 基于航向的近似跑道",
-      },
-      {
-        en: "Fixes KBOS near the user's location showing a centered star pattern instead of the real runway layout",
-        zh: "修复用户位置附近的 KBOS 显示成围绕中心展开的星型，而不是实际跑道布局的问题",
-      },
-    ],
-  },
-  {
-    version: "v2.7.1",
-    kind: "feat",
-    title: {
-      en: "FAA-accurate runway & taxiway lighting",
-      zh: "符合 FAA 的跑道与滑行道灯光",
-    },
-    summary: {
-      en: "Runway and taxiway lights now follow FAA color conventions and scale by zoom for performance.",
-      zh: "跑道与滑行道灯光改为遵循 FAA 配色规范，并按缩放级别分层渲染以保证性能。",
-    },
-    highlights: [
-      {
-        en: "Synthesized FAA color zones: white/amber runway edges, white→red-white→red centerline, green threshold + red end bars, touchdown-zone lights, flashing REIL, plus blue taxiway edges and green taxiway centerline",
-        zh: "合成 FAA 配色分区：白/琥珀色跑道边灯、白→红白→红的中线灯、绿色入口与红色端灯、接地区灯、闪烁 REIL，以及蓝色滑行道边灯与绿色滑行道中线灯",
-      },
-      {
-        en: "Zoom level-of-detail: farthest zoom shows only approach beams, mid adds edge/threshold lights, near shows full detail — all point lights moved to a single canvas to stay smooth at busy fields",
-        zh: "按缩放分级渲染：最远缩放只显示进近光束，中景加入边灯/入口灯，近景显示完整细节；所有点光源统一改用 canvas 渲染，繁忙机场也能保持流畅",
-      },
-      {
-        en: "Light spacing is widened from the exact FAA values so individual lights stay legible at the map's maximum zoom, while the color zones remain distance-accurate; lights render in both light and dark themes",
-        zh: "灯光间距在 FAA 实际值基础上适当放大，使单个灯光在最大缩放下仍可分辨，同时配色分区仍按真实距离精确呈现；明暗主题下均可显示",
-      },
-      {
-        en: "Airport buildings are now colored: terminals get an accent fill, other on-field buildings and aprons a muted fill. Buildings are pulled from OpenStreetMap constrained to inside the aerodrome boundary, and the thick runway surface stroke is thinned when lights are shown so it no longer reads as a solid bar",
-        zh: "机场建筑现在带有配色：航站楼使用强调色填充，场内其他建筑与停机坪使用低饱和填充。建筑数据取自 OpenStreetMap 并限定在机场边界内；显示灯光时跑道地面描边会变细，不再呈现为实心色条",
+        en: "View controls are faster for common range changes",
+        zh: "常用视野切换更快",
       },
     ],
   },
@@ -1321,229 +584,82 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "旧架构清理与双语更新日志",
     },
     summary: {
-      en: "Removed dead client-side provider code left from the Vercel/Next era and made the changelog fully bilingual.",
-      zh: "移除 Vercel/Next 时期遗留的客户端 provider 死代码，更新日志改为完整双语。",
+      en: "The app shed legacy client code, made the changelog bilingual, and improved runway, taxiway, and aircraft-light visuals.",
+      zh: "应用清理了旧客户端代码，更新日志变为双语，并增强了跑道、滑行道和飞机灯光表现。",
     },
     highlights: [
       {
-        en: "Deleted ~1,500 lines of unused client-side fetch mechanisms (aircraft photos, trace, icons, airport directory, local weather, METAR) now served by the Go data-service",
-        zh: "删除约 1,500 行未使用的客户端抓取机制（飞机照片、轨迹、图标、机场目录、本地天气、METAR），相关逻辑已由 Go data-service 提供",
+        en: "Old client-side data paths were removed",
+        zh: "旧的客户端数据路径已移除",
       },
       {
-        en: "Changelog entries now carry per-locale en/zh fields and render in the active language",
-        zh: "更新日志条目新增按语言的 en/zh 字段，并按当前语言渲染",
+        en: "Runway and taxiway lighting became richer",
+        zh: "跑道与滑行道灯光更丰富",
       },
       {
-        en: "Stabilized the unit-preferences context value to cut redundant re-renders",
-        zh: "稳定单位偏好 context 的值，减少多余的重渲染",
+        en: "Aircraft icons gained clearer exterior-light treatment",
+        zh: "飞机图标加入更清晰的外部灯光表现",
       },
-    ],
-  },
-  {
-    version: "v2.6.19",
-    kind: "patch",
-    title: "机场跑道灯与缩放修复",
-    summary: "修正 KBOS 等机场的跑道分段重复、暗色中景灯光缺失和机场详情加载路径。",
-    highlights: [
-      "远景跑道显示改回物理跑道数量，避免 OSM 分段重复成星型",
-      "中景暗色地图恢复跑道灯，跑道与灯光共用去重后的 OSM 几何",
-      "OpenAIP fallback 按物理跑道去重，JFK/KBOS 等机场不再按双向记录重复绘制灯带",
-      "空域图层关闭时隐藏几何不再触发空域预览卡",
-      "PlaneSpotters 照片代理补充合规 User-Agent，恢复飞机预览照片",
-      "浅色地图选中飞机不再叠加白色光晕",
-      "机场详情接口并发加载周边数据，减少静态地面图层等待",
-      "侧边栏品牌标识改为 SVG 分层动效，保留静态安装图标不变",
-    ],
-  },
-  {
-    version: "v2.6.18",
-    kind: "patch",
-    title: "机场跑道显示修复",
-    summary: "主机场跑道、滑行道和灯光在迁移后改为同源渲染，减少重叠和错位。",
-    highlights: [
-      "远距离视图只显示简化跑道线和机场标记",
-      "近距离视图使用 OSM 地面几何绘制跑道、滑行道和跑道灯",
-      "移除主机场重复跑道线、端点编号和错位进近点阵",
-    ],
-  },
-  {
-    version: "v2.6.17",
-    kind: "feat",
-    title: "Railway 单服务迁移",
-    summary: "前端、实时数据、代理接口和观测链路已收敛到 Railway 单服务架构。",
-    highlights: [
-      "移除 Next.js / Vercel 运行时，改为 Go data-service 托管 Vite SPA、API、WebSocket 和静态资源",
-      "修复迁移后的首页、Clerk 登录、地图设置保存、附近机场跑道、主机场 OSM 地面几何、暗色底图、进近跑道灯、飞机图标、点击选中、截图分享和 OpenAIP 占位码显示",
-      "统一 ADS-B 实时与 HTTP fallback，补上 provider 并发探测、冷却恢复和短暂失败缓存",
-      "收敛 New Relic APM、日志和指标，保留可诊断的上游状态但不再把可选 provider 失败暴露成浏览器错误",
-    ],
-  },
-  {
-    version: "v2.6.2",
-    kind: "patch",
-    title: "URL-first provider logs",
-    summary:
-      "New Relic log messages now show the called URL, query parameters, error, and duration in one compact line.",
-    highlights: [
-      "Changed data-service external request logs to use status-prefixed provider URLs with optional query params and error details",
-      "Changed Vercel proxy logs to show the requested API path, query params, status error, and duration",
-      "Kept provider, source, route, status class, and duration fields queryable as structured New Relic attributes",
-    ],
-  },
-  {
-    version: "v2.6.1",
-    kind: "patch",
-    title: "Readable observability logs",
-    summary:
-      "New Relic logs now expose provider, route, status, result, and latency directly in the message column.",
-    highlights: [
-      "Expanded data-service external request logs with readable provider, endpoint, result, status class, and duration details",
-      "Expanded Vercel proxy logs with route, source, attempt chain, status class, and duration details",
-      "Added snake_case New Relic fields so Logs and NRQL views can show latency and status columns without dotted-field friction",
     ],
   },
   {
     version: "v2.6.0",
     kind: "feat",
-    title: "New Relic observability",
+    title: "Railway single-service and observability",
     summary:
-      "ADSBao now emits richer New Relic telemetry across the realtime data-service and Vercel proxy routes.",
+      "The app converged on a Railway single-service architecture, with observability and migration polish folded into one release line.",
     highlights: [
-      "Added New Relic APM transactions for the Go data-service HTTP surface and background provider polling",
-      "Recorded external provider requests as structured logs, custom events, custom metrics, and latency summaries",
-      "Connected Vercel proxy routes to New Relic Metric API and Log API telemetry for route latency and provider errors",
-    ],
-  },
-  {
-    version: "v2.5.1",
-    kind: "patch",
-    title: "Toolbar and tracking polish",
-    summary:
-      "Map toolbars are more consistent across desktop and mobile, and precise callsign tracking recovers from empty provider responses.",
-    highlights: [
-      "Reworked map range controls into a shared Far, Medium, and Near menu with tracking-specific trace views",
-      "Kept settings, screen wake lock, language, and theme controls consistent across map and mobile sidebar surfaces",
-      "Fixed realtime callsign provider fallback so oceanic flights like DAL58 can resolve from airplanes.live when adsb.lol is empty",
+      "Frontend, API, WebSocket, and realtime data moved onto one Railway service",
+      "Airport maps, runway lights, and aircraft previews recovered after the migration",
+      "Backend logs and metrics became easier to inspect",
     ],
   },
   {
     version: "v2.5.0",
     kind: "feat",
-    title: "Realtime data service",
+    title: "Realtime data service and toolbar polish",
     summary:
-      "Live traffic now runs through ADSBao's realtime data service with app-owned persistence.",
+      "Live traffic moved to ADSBao's own realtime service, while map toolbars and tracking flows became more consistent.",
     highlights: [
-      "Moved live map traffic behind a Railway data-service deployment with WebSocket updates for airport and nearby views",
-      "Migrated app persistence to Railway Postgres so static airport augmentation and user settings share one app-owned database",
-      "Tightened realtime channel boundaries around public traffic and selected-aircraft tracking while keeping internal route-cache work private",
-    ],
-  },
-  {
-    version: "v2.4.4",
-    kind: "patch",
-    title: "Full airport names",
-    summary:
-      "Airport names now render in full instead of OpenAIP's truncated, all-caps form.",
-    highlights: [
-      "Restored an OurAirports name table to override OpenAIP's ~40-character truncated names",
-      "Airport headers and nearby lists show full mixed-case names (e.g. \"Boston Logan International Airport\")",
-      "Backfills the city label when OpenAIP leaves it blank",
-    ],
-  },
-  {
-    version: "v2.4.3",
-    kind: "patch",
-    title: "Manrope typography",
-    summary:
-      "ADSBao now uses Manrope across the app for a cleaner, more confident transport-product voice.",
-    highlights: [
-      "Global font stack switches to Manrope with Noto Sans SC retained for Chinese text",
-      "Logo, Open Graph image, and display titles use preset normal tracking instead of custom spacing",
-    ],
-  },
-  {
-    version: "v2.4.2",
-    kind: "patch",
-    title: "Browse lists & toolbar polish",
-    summary:
-      "Static-page browse lists and page toolbars now share the same tidy liquid-glass patterns.",
-    highlights: [
-      "Home, about, mechanism, and changelog lists use aligned rows with frosted hover and glass active states",
-      "Static-page toolbars reuse the airport detail toolbar tone and sizing",
-    ],
-  },
-  {
-    version: "v2.4.1",
-    kind: "patch",
-    title: "Liquid glass polish",
-    summary:
-      "More controls, cards, and menus now match the liquid-glass system with cleaner motion and focus states.",
-    highlights: [
-      "Hourly forecast, tomorrow card, and home search adopt the shared glass material",
-      "Interactive glass cards get smoother hover and press motion with reduced-motion support",
-      "Menus, tooltips, focus rings, and standard basemap tone were cleaned up",
+      "Airport and nearby traffic now use the app-owned realtime path",
+      "Persistence moved into the app-owned database",
+      "Map controls and precise callsign tracking became steadier",
     ],
   },
   {
     version: "v2.4.0",
     kind: "feat",
-    title: "Liquid glass redesign",
+    title: "Liquid glass visual system",
     summary:
-      "ADSBao's floating surfaces were rebuilt around a two-material liquid-glass system.",
+      "The interface moved to a liquid-glass visual system, with cleaner browse lists, toolbar treatment, typography, and airport names.",
     highlights: [
-      "Selected states use one shared glass capsule across cards, filters, settings, and toolbars",
-      "Resting tiles and toolbar pills use a bright frosted material with luminous rims",
-      "DESIGN.md and shared tokens now define the material system for future UI work",
-    ],
-  },
-  {
-    version: "v2.3.1",
-    kind: "patch",
-    title: "Hydration stability, list row polish & flight tracking resilience",
-    summary:
-      "Hydration, list-row feedback, and flight tracking fallbacks are more stable.",
-    highlights: [
-      "Skeleton loading and hydration gates reduce layout flicker",
-      "Static-page list rows get unified hover feedback",
-      "Flight tracking falls back to fresher nearby data and per-provider timeouts",
+      "Cards, controls, and toolbars share the same glass material language",
+      "Static-page browse lists and page toolbars became more consistent",
+      "Typography and full airport-name display were cleaned up",
     ],
   },
   {
     version: "v2.3.0",
     kind: "feat",
-    title: "Screen wake lock & status bar polish",
+    title: "Screen wake lock and tracking stability",
     summary:
-      "The map toolbar can keep the screen awake, and the source status bar is easier to scan.",
+      "The map gained a keep-awake control, while loading states, list feedback, and flight tracking became sturdier.",
     highlights: [
-      "Wake lock toggle prevents screen sleep during spotting sessions",
-      "Status bar shows keep-awake state inline with source badges",
-      "Source text transitions are smoother and stay single-line",
-    ],
-  },
-  {
-    version: "v2.2.1",
-    kind: "patch",
-    title: "Standard map detail boost & GSAP animation layer",
-    summary:
-      "The standard base map now shows buildings, water bodies, parks, and roads with visible contrast — the dark theme no longer hides geography. GSAP powers entrance animations, card interactions, and staggered list reveals across the entire app.",
-    highlights: [
-      "Standard base layer renders buildings, water, landuse (parks/forests), and roads at visible grey tones on dark theme",
-      "GSAP-driven page shell entrance, card hover/press spring interactions, and staggered list animations",
-      "Bright OSM style replaces positron for light theme — 119 layers of geographic detail",
+      "Long watching sessions can keep the screen awake",
+      "Status and list feedback became clearer",
+      "Flight tracking handles slow providers more gracefully",
     ],
   },
   {
     version: "v2.2.0",
     kind: "feat",
-    title: "Hourly forecast, locale fixes & near-me weather",
+    title: "Weather, map detail, and motion polish",
     summary:
-      "Local weather gets a 6-hour forecast grid and next-day card. Simplified Chinese place names are consistently simplified. Near-me mode shows only weather. Desktop uses one-shot geolocation with a manual refresh.",
+      "Weather cards, near-me behavior, standard map detail, and app-wide motion all became richer.",
     highlights: [
-      "Local weather: 3×2 hourly forecast grid with MetricCard-style tap interaction, plus a Tomorrow summary card",
-      "Simplified Chinese: OSM semicolon-delimited name variants are stripped; trad→simp converter no longer corrupts already-simplified text",
-      "Near-me mode: weather panel shows only the forecast (no METAR / rules / pressure / wiki); weather card is clickable",
-      "Desktop near-me: one-shot geolocation instead of continuous watch, with a refresh button and last-fix timestamp",
-      "Altitude prefix (FL) in preview cards now matches the unit typography so the row aligns cleanly",
+      "Local weather added hourly and tomorrow views",
+      "Near-me weather became more focused",
+      "Standard maps and page motion gained more depth",
     ],
   },
   {
@@ -1573,16 +689,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     ],
   },
   {
-    version: "v1.13.1",
-    kind: "patch",
-    title: "Toolbar opacity polish",
-    summary:
-      "Floating toolbar pills sit on a more opaque surface so they stay legible against busy map backdrops on both themes.",
-    highlights: [
-      "Toolbar surface tightened across home dock, sidebar overlay, and map control rail",
-    ],
-  },
-  {
     version: "v1.13.0",
     kind: "feat",
     title: "Bottom-floating mobile toolbar + device-aware settings",
@@ -1604,17 +710,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       "Calmer hillshade terrain in both themes",
       "Collision-aware airport / navaid badges with leader lines",
       "Click cycles through overlapping airspaces",
-    ],
-  },
-  {
-    version: "v1.11.1",
-    kind: "patch",
-    title: "Map UI polish",
-    summary:
-      "Tightens airspace readability, full-trace framing, mobile scrolling, and compact metric cards.",
-    highlights: [
-      "Inward airspace edge markings + cleaner full-trace boundary labels",
-      "Mobile static pages keep panel-scoped scroll",
     ],
   },
   {
@@ -1651,44 +746,15 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     ],
   },
   {
-    version: "v1.8.4",
-    kind: "patch",
-    title: "Airport zoom declutter",
-    summary:
-      "Airport map zoom levels share one feature configuration for labels, range rings, and surface-traffic suppression.",
-    highlights: ["Unified zoom-level feature config"],
-  },
-  {
-    version: "v1.8.3",
-    kind: "patch",
-    title: "Mechanism + navigation polish",
-    summary:
-      "Mechanism returns to the same dithered shell as Home / About; top nav preserves the active locale.",
-    highlights: [
-      "Mechanism page back on the Home/About background",
-      "Locale survives Home / About / Mechanism / Changelog navigation",
-    ],
-  },
-  {
-    version: "v1.8.1",
-    kind: "patch",
-    title: "Aircraft type labels + airspace entry polish",
-    summary:
-      "Previews and filters prefer friendly aircraft names; the default airspace layer fades in on first load.",
-    highlights: [
-      "Friendly aircraft names; ICAO codes demoted to secondary",
-      "Airspace overlays stagger-fade in",
-    ],
-  },
-  {
     version: "v1.8.0",
     kind: "feat",
-    title: "Airport airspace overlays",
+    title: "Airport airspace and navigation polish",
     summary:
-      "Airport maps render OpenAIP airspaces directly with translucent fills, labeled boundaries, clickable previews, and persisted layer toggles.",
+      "Airport maps gained OpenAIP airspace overlays, friendlier aircraft labels, navigation fixes, and quieter zoom behavior.",
     highlights: [
-      "OpenAIP-style airspaces on airport maps with click-to-preview",
-      "Map layer toggles persist in the browser",
+      "Airspaces can be viewed and previewed directly on airport maps",
+      "Aircraft labels and static-page navigation became friendlier",
+      "Airport zoom levels became less noisy",
     ],
   },
   {
@@ -1748,14 +814,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       "12 h community route overrides marked with `*`",
       "Complete OpenAIP-sourced runway map (incl. VFR-only runways)",
     ],
-  },
-  {
-    version: "v1.2.1",
-    kind: "patch",
-    title: "Track button opens in a new tab",
-    summary:
-      "Preview-card Track action is now a real link so right-click → Open in New Tab works.",
-    highlights: ["Track switched to <Link>"],
   },
   {
     version: "v1.2.0",
@@ -1846,14 +904,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       "React on the Next.js App Router",
       "Vercel Analytics + Speed Insights via Next integrations",
     ],
-  },
-  {
-    version: "v0.7.1",
-    kind: "patch",
-    title: "Map and mobile polish",
-    summary:
-      "Polling guards, mobile sheet refinements, and ADS-B merge fixes.",
-    highlights: ["Start aircraft polling only after coordinates load"],
   },
   {
     version: "v0.7.0",
