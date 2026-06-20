@@ -245,6 +245,42 @@ assert.equal(
 {
   FakeSocket.instances = [];
   const timers = createTimerHost();
+  const states: string[] = [];
+  const client = new AdsbaoRealtimeClient("ws://example.test/ws", {
+    WebSocketCtor: FakeSocket as any,
+    timerHost: timers.host as any,
+    connectTimeoutMs: 1,
+    heartbeatIntervalMs: 0,
+  });
+  client.onConnectionState((state) => states.push(state));
+
+  client.subscribe({
+    channel: "traffic:center:42.4:-71:40",
+    listener: () => {},
+  });
+  const staleConnectingSocket = FakeSocket.instances[0];
+
+  assert.equal(client.state, "connecting");
+  assert.equal(timers.runNextTimeout(), true);
+  assert.equal(staleConnectingSocket.readyState, FakeSocket.CLOSED);
+  assert.equal(client.state, "closed");
+  assert.equal(timers.timeoutCount, 1);
+
+  assert.equal(timers.runNextTimeout(), true);
+  const replacementSocket = FakeSocket.instances[1];
+  replacementSocket.open();
+
+  assert.equal(client.state, "open");
+  assert.deepEqual(JSON.parse(replacementSocket.sent[0]), {
+    type: "subscribe",
+    channel: "traffic:center:42.4:-71:40",
+  });
+  assert.deepEqual(states, ["closed", "connecting", "closed", "connecting", "open"]);
+}
+
+{
+  FakeSocket.instances = [];
+  const timers = createTimerHost();
   const tokenProviders: string[] = [];
   const client = new AdsbaoRealtimeClient("ws://example.test/ws", {
     WebSocketCtor: FakeSocket as any,

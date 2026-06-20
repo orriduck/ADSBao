@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 53;
+export const CHANGELOG_TOTAL_COUNT = 54;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.15",
+    kind: "patch",
+    title: {
+      en: "Here view resume recovery",
+      zh: "我的位置视图恢复修正",
+    },
+    summary: {
+      en: "The /here map now recovers more reliably after the browser has been hidden for a while.",
+      zh: "/here 地图在浏览器长时间后台后会更可靠地恢复实时连接和底图。",
+    },
+    highlights: [
+      {
+        en: "Realtime sockets that stay stuck while connecting are now replaced automatically",
+        zh: "卡在连接中的实时 socket 现在会自动替换",
+      },
+      {
+        en: "Returning from a long background pause refreshes and rebuilds the MapLibre tile layer",
+        zh: "长时间后台后返回会刷新并重建 MapLibre 底图层",
+      },
+      {
+        en: "Here-mode recovery is covered by focused realtime tests and local browser validation",
+        zh: "here 模式恢复已通过聚焦实时连接测试和本地浏览器验证",
+      },
+    ],
+  },
   {
     version: "v2.22.14",
     kind: "patch",
@@ -171,28 +197,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "FlightAware-backed lookups and photo-location directions behave more predictably",
         zh: "FlightAware 相关查询和拍机点导航行为更可预期",
-      },
-    ],
-  },
-  {
-    version: "v2.22.0",
-    kind: "feat",
-    title: {
-      en: "Private FlightAware service",
-      zh: "FlightAware 私有服务",
-    },
-    summary: {
-      en: "FlightAware-backed lookups now go through a private Railway service instead of public ADSBao code.",
-      zh: "FlightAware 相关查询现在走私有 Railway 服务，不再由公共 ADSBao 代码直接访问上游。",
-    },
-    highlights: [
-      {
-        en: "FlightAware-only work now sits behind one private boundary",
-        zh: "FlightAware 专属工作统一放在一个私有边界后",
-      },
-      {
-        en: "The public app keeps only the feature-gated integration path",
-        zh: "公共应用只保留受功能开关控制的接入路径",
       },
     ],
   },

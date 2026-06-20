@@ -277,6 +277,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.22.0",
+    kind: "feat",
+    title: {
+      en: "Private FlightAware service",
+      zh: "FlightAware 私有服务",
+    },
+    summary: {
+      en: "FlightAware-backed lookups now go through a private Railway service instead of public ADSBao code.",
+      zh: "FlightAware 相关查询现在走私有 Railway 服务，不再由公共 ADSBao 代码直接访问上游。",
+    },
+    highlights: [
+      {
+        en: "FlightAware-only work now sits behind one private boundary",
+        zh: "FlightAware 专属工作统一放在一个私有边界后",
+      },
+      {
+        en: "The public app keeps only the feature-gated integration path",
+        zh: "公共应用只保留受功能开关控制的接入路径",
+      },
+    ],
+  },
+  {
     version: "v2.21.0",
     kind: "feat",
     title: {

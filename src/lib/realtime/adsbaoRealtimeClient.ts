@@ -54,6 +54,7 @@ type AdsbaoRealtimeClientOptions = {
   documentHost?: RealtimeDocumentHost | null;
   reconnectBaseDelayMs?: number;
   reconnectMaxDelayMs?: number;
+  connectTimeoutMs?: number;
   heartbeatIntervalMs?: number;
   heartbeatTimeoutMs?: number;
   authTokenFetcher?: RealtimeAuthTokenFetcher | null;
@@ -164,12 +165,15 @@ export class AdsbaoRealtimeClient {
   private readonly documentHost: RealtimeDocumentHost | null;
   private readonly reconnectBaseDelayMs: number;
   private readonly reconnectMaxDelayMs: number;
+  private readonly connectTimeoutMs: number;
   private readonly heartbeatIntervalMs: number;
   private readonly heartbeatTimeoutMs: number;
   private readonly authTokenFetcher: RealtimeAuthTokenFetcher | null;
   private socket: RealtimeSocket | null = null;
   private connectionState: ConnectionState;
   private reconnectTimer: number | null = null;
+  private connectTimeoutTimer: number | null = null;
+  private connectStartedAt = 0;
   private heartbeatIntervalTimer: number | null = null;
   private heartbeatTimeoutTimer: number | null = null;
   private intentionalClose = false;
@@ -194,6 +198,7 @@ export class AdsbaoRealtimeClient {
         : options.documentHost;
     this.reconnectBaseDelayMs = options.reconnectBaseDelayMs ?? 500;
     this.reconnectMaxDelayMs = options.reconnectMaxDelayMs ?? 30_000;
+    this.connectTimeoutMs = options.connectTimeoutMs ?? 8_000;
     this.heartbeatIntervalMs = options.heartbeatIntervalMs ?? 25_000;
     this.heartbeatTimeoutMs = options.heartbeatTimeoutMs ?? 10_000;
     this.authTokenFetcher =
@@ -227,8 +232,12 @@ export class AdsbaoRealtimeClient {
     }
     if (
       this.socket &&
-      this.socket.readyState <= this.WebSocketCtor.OPEN
+      this.socket.readyState === this.WebSocketCtor.CONNECTING &&
+      !this.closeStaleConnectingSocket("connect")
     ) {
+      return;
+    }
+    if (this.socket && this.socket.readyState <= this.WebSocketCtor.OPEN) {
       return;
     }
 
@@ -236,10 +245,12 @@ export class AdsbaoRealtimeClient {
     this.intentionalClose = false;
     const socket = new this.WebSocketCtor(this.url);
     this.socket = socket;
+    this.startConnectTimeout(socket);
     this.syncDebug({ lastSocketUrl: this.url });
 
     socket.addEventListener("open", () => {
       if (this.socket !== socket) return;
+      this.clearConnectTimeout();
       this.reconnectAttempt = 0;
       this.setState("open");
       this.startHeartbeat();
@@ -252,6 +263,7 @@ export class AdsbaoRealtimeClient {
     socket.addEventListener("close", () => {
       if (this.socket !== socket) return;
       this.socket = null;
+      this.clearConnectTimeout();
       this.stopHeartbeat();
       this.setState(this.url ? "closed" : "disabled");
       if (this.intentionalClose) {
@@ -272,19 +284,20 @@ export class AdsbaoRealtimeClient {
       this.timerHost.clearTimeout(this.reconnectTimer);
     }
     this.reconnectTimer = null;
+    this.clearConnectTimeout();
     this.stopHeartbeat();
-    this.intentionalClose = true;
-    // Don't close a still-connecting socket — the browser logs
-    // "closed before connection established" and StrictMode
-    // double-mounts make this noisy in dev.
-    if (
-      this.socket &&
-      this.WebSocketCtor &&
-      this.socket.readyState !== this.WebSocketCtor.CONNECTING
-    ) {
-      this.socket.close();
-    }
+    const socket = this.socket;
     this.socket = null;
+    this.intentionalClose = true;
+    if (socket) {
+      try {
+        socket.close();
+      } catch {
+        // Ignore close errors from half-open sockets; there is no active
+        // subscription left and the client is already detached from it.
+      }
+    }
+    this.intentionalClose = false;
     this.setState(this.url ? "closed" : "disabled");
   }
 
@@ -513,6 +526,7 @@ export class AdsbaoRealtimeClient {
       this.WebSocketCtor &&
       this.socket.readyState === this.WebSocketCtor.CONNECTING
     ) {
+      this.closeStaleConnectingSocket(reason);
       return;
     }
     this.syncDebug({
@@ -551,6 +565,55 @@ export class AdsbaoRealtimeClient {
     }
     this.heartbeatIntervalTimer = null;
     this.clearHeartbeatTimeout();
+  }
+
+  private startConnectTimeout(socket: RealtimeSocket) {
+    this.clearConnectTimeout();
+    this.connectStartedAt = Date.now();
+    if (!this.timerHost || this.connectTimeoutMs <= 0 || !this.WebSocketCtor) {
+      return;
+    }
+    this.connectTimeoutTimer = this.timerHost.setTimeout(() => {
+      this.connectTimeoutTimer = null;
+      if (
+        this.socket !== socket ||
+        !this.WebSocketCtor ||
+        socket.readyState !== this.WebSocketCtor.CONNECTING
+      ) {
+        return;
+      }
+      this.syncDebug({ lastConnectTimeoutAt: new Date().toISOString() });
+      socket.close();
+    }, this.connectTimeoutMs);
+  }
+
+  private clearConnectTimeout() {
+    if (this.connectTimeoutTimer && this.timerHost) {
+      this.timerHost.clearTimeout(this.connectTimeoutTimer);
+    }
+    this.connectTimeoutTimer = null;
+    this.connectStartedAt = 0;
+  }
+
+  private closeStaleConnectingSocket(reason: string) {
+    if (
+      !this.socket ||
+      !this.WebSocketCtor ||
+      this.socket.readyState !== this.WebSocketCtor.CONNECTING ||
+      this.connectTimeoutMs <= 0
+    ) {
+      return false;
+    }
+    const startedAt = this.connectStartedAt;
+    if (!startedAt || Date.now() - startedAt < this.connectTimeoutMs) {
+      return false;
+    }
+    this.syncDebug({
+      lastConnectTimeoutAt: new Date().toISOString(),
+      lastReconnectReason: reason,
+    });
+    this.socket.close();
+    return true;
   }
 
   private clearHeartbeatTimeout() {

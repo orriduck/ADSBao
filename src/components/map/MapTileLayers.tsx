@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "@maplibre/maplibre-gl-leaflet";
 import { useMapInstance } from "./MapContext";
@@ -19,6 +19,7 @@ import {
 import { MAP_TILE_READY_CUTOFF_MS } from "@/features/airport/map/mapVisualReadinessModel";
 
 const MAP_STYLE_THEME_REVISION = "standard-detail-v10";
+const MAP_TILE_REBUILD_AFTER_HIDDEN_MS = 15_000;
 
 export default function MapTileLayers({
   theme = "dark",
@@ -31,6 +32,8 @@ export default function MapTileLayers({
   const map = useMapInstance();
   const layerRef = useRef(null);
   const selectionActiveRef = useRef(selectionActive);
+  const hiddenSinceRef = useRef(0);
+  const [resumeRevision, setResumeRevision] = useState(0);
 
   useEffect(() => {
     selectionActiveRef.current = selectionActive;
@@ -116,11 +119,57 @@ export default function MapTileLayers({
       removeLayer(layerRef.current, map);
       layerRef.current = null;
     };
-  }, [map, theme, locale, showLabels, baseLayer, onReadinessChange]);
+  }, [map, theme, locale, showLabels, baseLayer, onReadinessChange, resumeRevision]);
 
   useEffect(() => {
     setSelectionOpacity(layerRef.current, theme, selectionActive);
   }, [selectionActive, theme]);
+
+  useEffect(() => {
+    const refreshCurrentLayer = () => {
+      map?.invalidateSize?.();
+      const maplibreMap = layerRef.current?.getMaplibreMap?.();
+      maplibreMap?.resize?.();
+      maplibreMap?.triggerRepaint?.();
+    };
+    const rememberHidden = () => {
+      hiddenSinceRef.current = Date.now();
+    };
+    const handleVisible = (forceRebuild = false) => {
+      const hiddenSince = hiddenSinceRef.current;
+      hiddenSinceRef.current = 0;
+      refreshCurrentLayer();
+      if (
+        forceRebuild ||
+        (hiddenSince > 0 &&
+          Date.now() - hiddenSince >= MAP_TILE_REBUILD_AFTER_HIDDEN_MS)
+      ) {
+        setResumeRevision((value) => value + 1);
+      }
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        rememberHidden();
+        return;
+      }
+      handleVisible(false);
+    };
+    const handlePageShow = (event: PageTransitionEvent) => {
+      handleVisible(Boolean(event.persisted));
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pagehide", rememberHidden);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("focus", refreshCurrentLayer);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pagehide", rememberHidden);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("focus", refreshCurrentLayer);
+    };
+  }, [map]);
 
   return null;
 }
