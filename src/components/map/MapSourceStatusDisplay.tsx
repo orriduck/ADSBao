@@ -56,10 +56,19 @@ const STATUS_LINE_SELECTOR = "[data-status-line-key]";
 type StatusLineItem = {
   key: string;
   line: string;
+  animationKey: string;
   order: number;
   entering: boolean;
   exiting: boolean;
 };
+
+type StatusLineInput =
+  | string
+  | {
+      key?: unknown;
+      line?: unknown;
+      animationKey?: unknown;
+    };
 
 function getStatusLineKey(line: string, index: number) {
   const parts = line.split("·").map((part) => part.trim()).filter(Boolean);
@@ -68,27 +77,61 @@ function getStatusLineKey(line: string, index: number) {
   return `line:${line}:${index}`;
 }
 
-function buildStatusLineItems(lines: string[], entering = false) {
-  return lines.map((line, index) => ({
-    key: getStatusLineKey(line, index),
-    line,
+function normalizeStatusLineInput(input: StatusLineInput, index: number) {
+  const line =
+    typeof input === "string"
+      ? input
+      : String(input?.line || "").trim();
+  const key =
+    typeof input === "string"
+      ? getStatusLineKey(line, index)
+      : String(input?.key || getStatusLineKey(line, index));
+  const animationKey =
+    typeof input === "string"
+      ? line
+      : String(input?.animationKey || line);
+
+  return { key, line, animationKey };
+}
+
+function buildStatusLineItems(lines: StatusLineInput[], entering = false) {
+  return lines.map((input, index) => ({
+    ...normalizeStatusLineInput(input, index),
     order: index,
     entering,
     exiting: false,
   }));
 }
 
+function getStatusLinesSignature(lines: StatusLineInput[]) {
+  return lines
+    .map((input, index) => {
+      const item = normalizeStatusLineInput(input, index);
+      return `${item.key}\u0001${item.animationKey}\u0001${item.line}`;
+    })
+    .join("\u0000");
+}
+
 /**
  * Inline span with GSAP fade transition when content changes.
  */
-function StatusSpan({ children, className }: { children: React.ReactNode; className?: string }) {
+function StatusSpan({
+  children,
+  className,
+  animationKey,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  animationKey?: string;
+}) {
   const ref = useRef<HTMLSpanElement>(null);
-  const prevRef = useRef(children);
+  const prevRef = useRef(animationKey ?? children);
   const prefersReducedMotion = usePrefersReducedMotion();
+  const motionKey = animationKey ?? children;
 
   useLayoutEffect(() => {
-    if (prevRef.current === children) return;
-    prevRef.current = children;
+    if (prevRef.current === motionKey) return;
+    prevRef.current = motionKey;
     const el = ref.current;
     if (!el) return;
     gsap.killTweensOf(el);
@@ -114,7 +157,7 @@ function StatusSpan({ children, className }: { children: React.ReactNode; classN
     }, el);
 
     return () => context.revert();
-  }, [children, prefersReducedMotion]);
+  }, [motionKey, prefersReducedMotion]);
 
   return (
     <span ref={ref} className={className}>
@@ -123,7 +166,7 @@ function StatusSpan({ children, className }: { children: React.ReactNode; classN
   );
 }
 
-function AnimatedStatusLines({ lines }: { lines: string[] }) {
+function AnimatedStatusLines({ lines }: { lines: StatusLineInput[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const previousRectsRef = useRef<Map<string, DOMRect>>(new Map());
   const previousActiveKeysRef = useRef<Set<string>>(new Set());
@@ -131,7 +174,7 @@ function AnimatedStatusLines({ lines }: { lines: string[] }) {
   const [items, setItems] = useState<StatusLineItem[]>(() =>
     buildStatusLineItems(lines, true),
   );
-  const linesKey = lines.join("\u0000");
+  const linesKey = getStatusLinesSignature(lines);
 
   useEffect(() => {
     const nextItems = buildStatusLineItems(lines);
@@ -307,7 +350,12 @@ function AnimatedStatusLines({ lines }: { lines: string[] }) {
           }
           aria-hidden={item.exiting}
         >
-          <StatusSpan className={detailLineClassName}>{item.line}</StatusSpan>
+          <StatusSpan
+            className={detailLineClassName}
+            animationKey={item.animationKey}
+          >
+            {item.line}
+          </StatusSpan>
         </span>
       ))}
     </div>
@@ -326,8 +374,10 @@ export default function MapSourceStatusDisplay({
 }) {
   const loadingActive = Boolean(loadingStatus);
   const realtimeStatusLabel = String(realtimeStatus || "").trim().toUpperCase();
-  const detailLines = Array.isArray(statusLines)
-    ? statusLines.map((line) => String(line || "").trim()).filter(Boolean)
+  const detailLines: StatusLineInput[] = Array.isArray(statusLines)
+    ? statusLines
+        .map((line, index) => normalizeStatusLineInput(line, index))
+        .filter((line) => Boolean(line.line))
     : [];
   const [displayedLoadingStatus, setDisplayedLoadingStatus] = useState(
     loadingStatus,

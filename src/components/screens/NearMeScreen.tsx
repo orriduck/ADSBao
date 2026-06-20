@@ -9,6 +9,7 @@ import {
   buildNearMeLocationFromCoords,
   requestNearMeDeviceOrientationPermission,
   resolveNearMeDeviceHeading,
+  shouldRefreshNearMeSidebarLocation,
   shouldUpdateNearMeLocation,
   type NearMeLocation,
 } from "@/features/airport/nearby/nearMeLocationModel";
@@ -20,6 +21,7 @@ export default function NearMeScreen() {
   const clientDeviceProfile = useClientDeviceProfile();
   const useOneShotLocation = clientDeviceProfile.deviceClass === "desktop";
   const [coords, setCoords] = useState<NearMeLocation | null>(null);
+  const [sidebarCoords, setSidebarCoords] = useState<NearMeLocation | null>(null);
   const [status, setStatus] = useState<
     "idle" | "requesting" | "granted" | "denied" | "unavailable"
   >("idle");
@@ -133,6 +135,12 @@ export default function NearMeScreen() {
         if (shouldUpdateNearMeLocation(previous, nextLocation)) return nextLocation;
         return previous;
       });
+      setSidebarCoords((previous) => {
+        if (shouldRefreshNearMeSidebarLocation(previous, nextLocation)) {
+          return nextLocation;
+        }
+        return previous;
+      });
     };
 
     const handleError = (error: GeolocationPositionError) => {
@@ -229,6 +237,7 @@ export default function NearMeScreen() {
         airport={airport}
         mode="nearMe"
         nearMeUserLocation={coords}
+        nearMeSidebarLocation={sidebarCoords || coords}
         onBack={handleBack}
         nearMeRefresh={
           useOneShotLocation

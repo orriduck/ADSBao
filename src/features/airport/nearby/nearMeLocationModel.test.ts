@@ -3,6 +3,7 @@ import {
   buildNearMeLocationFromCoords,
   normalizeNearMeHeadingDeg,
   resolveNearMeDeviceHeading,
+  shouldRefreshNearMeSidebarLocation,
   shouldUpdateNearMeLocation,
   type NearMeLocation,
 } from "./nearMeLocationModel";
@@ -58,12 +59,43 @@ assert.equal(resolveNearMeDeviceHeading({ absolute: true, alpha: null }), null);
   const next = {
     ...baseLocation,
     lat: 42.3656,
-    lon: -71.004,
-    headingDeg: 11,
+    lon: -71.009,
     updatedAt: 2_000,
   };
 
   assert.equal(shouldUpdateNearMeLocation(baseLocation, next), true);
+}
+
+{
+  const next = {
+    ...baseLocation,
+    headingDeg: 15,
+    updatedAt: 2_000,
+  };
+
+  assert.equal(shouldRefreshNearMeSidebarLocation(baseLocation, next), false);
+}
+
+{
+  const next = {
+    ...baseLocation,
+    lat: 42.3656,
+    lon: -71.009,
+    updatedAt: 2_000,
+  };
+
+  assert.equal(shouldRefreshNearMeSidebarLocation(baseLocation, next), false);
+}
+
+{
+  const next = {
+    ...baseLocation,
+    lat: 42.3656,
+    lon: -71.004,
+    updatedAt: 2_000,
+  };
+
+  assert.equal(shouldRefreshNearMeSidebarLocation(baseLocation, next), true);
 }
 
 {

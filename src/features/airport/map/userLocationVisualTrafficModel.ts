@@ -19,6 +19,29 @@ export type UserLocationVisualTrafficItem = {
   clockHour: number | null;
 };
 
+export function getUserLocationVisualTrafficStatusLineKey(
+  item: Pick<UserLocationVisualTrafficItem, "aircraftId" | "callsign">,
+) {
+  return `traffic:${item.aircraftId || item.callsign || "unknown"}`;
+}
+
+function getUserLocationVisualTrafficDistanceBucket(distanceNm: number) {
+  if (!Number.isFinite(distanceNm)) return "unknown";
+  if (distanceNm < 1) return "<1";
+  return String(Math.round(distanceNm));
+}
+
+export function getUserLocationVisualTrafficStatusAnimationKey(
+  item: Pick<
+    UserLocationVisualTrafficItem,
+    "aircraftId" | "callsign" | "distanceNm"
+  >,
+) {
+  const lineKey = getUserLocationVisualTrafficStatusLineKey(item);
+  const distanceBucket = getUserLocationVisualTrafficDistanceBucket(item.distanceNm);
+  return `${lineKey}:distance:${distanceBucket}`;
+}
+
 const normalizeDegrees = (degrees: number) => ((degrees % 360) + 360) % 360;
 
 const normalizeHeadingDeg = (value: unknown) => {

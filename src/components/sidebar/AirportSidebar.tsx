@@ -18,6 +18,8 @@ export default function AirportSidebar({
   country = "",
   lat = 0,
   lon = 0,
+  placeLat = null,
+  placeLon = null,
   metar = null,
   metarRaw = "",
   metarLoading = false,
@@ -93,6 +95,8 @@ export default function AirportSidebar({
         country={country}
         lat={lat}
         lon={lon}
+        placeLat={placeLat}
+        placeLon={placeLon}
         nearMe={nearMe}
         nearMeRefresh={nearMeRefresh}
       />

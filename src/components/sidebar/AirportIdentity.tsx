@@ -21,6 +21,8 @@ export default function AirportIdentity({
   country = "",
   lat = 0,
   lon = 0,
+  placeLat = null,
+  placeLon = null,
   // When true, render a "Your location" hero instead of an airport
   // identity. There's no ICAO / IATA / country flag — the hero shows
   // the localized "Your location" label, the lat/lon coordinates,
@@ -35,8 +37,8 @@ export default function AirportIdentity({
   // labels. While the geocode is in-flight the UI falls back to the
   // static copy so the hero never appears empty.
   const { data: place } = useReverseGeocode(
-    nearMe ? lat : null,
-    nearMe ? lon : null,
+    nearMe ? (placeLat ?? lat) : null,
+    nearMe ? (placeLon ?? lon) : null,
     locale,
   );
   const nearMeBadge =

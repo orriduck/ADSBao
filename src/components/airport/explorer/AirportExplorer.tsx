@@ -29,6 +29,8 @@ import {
 } from "@/features/airport/map/userLocationModel";
 import {
   buildUserLocationVisualTraffic,
+  getUserLocationVisualTrafficStatusAnimationKey,
+  getUserLocationVisualTrafficStatusLineKey,
   type UserLocationVisualTrafficItem,
 } from "@/features/airport/map/userLocationVisualTrafficModel";
 import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandidateWatchingSpots";
@@ -88,6 +90,24 @@ function formatVisualTrafficDirection(
   }
 }
 
+function normalizeNearMeLocation(location) {
+  const lat = Number(location?.lat);
+  const lon = Number(location?.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  const accuracyMeters = Number(location?.accuracyMeters);
+  const headingDeg = Number(location?.headingDeg);
+  return {
+    lat,
+    lon,
+    accuracyMeters: Number.isFinite(accuracyMeters) ? accuracyMeters : null,
+    headingDeg:
+      Number.isFinite(headingDeg) && headingDeg >= 0
+        ? ((headingDeg % 360) + 360) % 360
+        : null,
+    updatedAt: Number(location?.updatedAt) || Date.now(),
+  };
+}
+
 function AirportExplorerContent({
   icao = "",
   airport = null,
@@ -100,6 +120,7 @@ function AirportExplorerContent({
   // the closest nearby airport, sidebar identity reads "Your location".
   mode = "airport",
   nearMeUserLocation = null,
+  nearMeSidebarLocation = null,
   nearMeRefresh,
 }) {
   const nearMe = mode === "nearMe";
@@ -164,13 +185,22 @@ function AirportExplorerContent({
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
   );
+  const nearMeMapUserLocation = useMemo(() => {
+    if (!nearMe || nearMeUserLocationHidden) return null;
+    return normalizeNearMeLocation(nearMeUserLocation);
+  }, [nearMe, nearMeUserLocation, nearMeUserLocationHidden]);
+  const nearMeSidebarUserLocation = useMemo(() => {
+    if (!nearMe) return null;
+    return normalizeNearMeLocation(nearMeSidebarLocation) || nearMeMapUserLocation;
+  }, [nearMe, nearMeMapUserLocation, nearMeSidebarLocation]);
+  const nearbyAirportsFocus = nearMeSidebarUserLocation || airportProfile;
   // Nearby-airports list runs first in near-me mode so we can borrow
   // the closest airport's ICAO for the METAR temperature fetch — the
   // current location otherwise has no METAR station of its own.
   const nearbyAirports = useNearbyAirports({
     icao: airportProfile.icao,
-    lat: airportProfile.lat,
-    lon: airportProfile.lon,
+    lat: nearbyAirportsFocus.lat,
+    lon: nearbyAirportsFocus.lon,
   });
   const metarIcao = nearMe
     ? nearbyAirports.airports?.[0]?.icao || ""
@@ -178,24 +208,6 @@ function AirportExplorerContent({
   const { weather, traffic } = useAirportExplorerData(airportProfile, {
     metarIcao,
   });
-  const nearMeMapUserLocation = useMemo(() => {
-    if (!nearMe || nearMeUserLocationHidden) return null;
-    const lat = Number(nearMeUserLocation?.lat);
-    const lon = Number(nearMeUserLocation?.lon);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-    const accuracyMeters = Number(nearMeUserLocation?.accuracyMeters);
-    const headingDeg = Number(nearMeUserLocation?.headingDeg);
-    return {
-      lat,
-      lon,
-      accuracyMeters: Number.isFinite(accuracyMeters) ? accuracyMeters : null,
-      headingDeg:
-        Number.isFinite(headingDeg) && headingDeg >= 0
-          ? ((headingDeg % 360) + 360) % 360
-          : null,
-      updatedAt: Number(nearMeUserLocation?.updatedAt) || Date.now(),
-    };
-  }, [nearMe, nearMeUserLocation, nearMeUserLocationHidden]);
   const effectiveUserLocation = userLocation || nearMeMapUserLocation;
   const userLocationActive = Boolean(effectiveUserLocation);
   const userLocationVisualTraffic = useMemo(
@@ -208,9 +220,11 @@ function AirportExplorerContent({
   );
   const userLocationStatusLines = useMemo(
     () =>
-      userLocationVisualTraffic.map((item) =>
-        formatUserLocationVisualTrafficStatusLine(item, t),
-      ),
+      userLocationVisualTraffic.map((item) => ({
+        key: getUserLocationVisualTrafficStatusLineKey(item),
+        animationKey: getUserLocationVisualTrafficStatusAnimationKey(item),
+        line: formatUserLocationVisualTrafficStatusLine(item, t),
+      })),
     [t, userLocationVisualTraffic],
   );
   const candidateWatchingSpots = useCandidateWatchingSpots({
@@ -577,6 +591,12 @@ function AirportExplorerContent({
     userLocationNotice,
     onToggleUserLocation: toggleUserLocation,
   };
+  const sidebarFocusLat = nearMe
+    ? nearMeSidebarUserLocation?.lat ?? airportProfile.lat
+    : airportProfile.lat;
+  const sidebarFocusLon = nearMe
+    ? nearMeSidebarUserLocation?.lon ?? airportProfile.lon
+    : airportProfile.lon;
   const mobileSidebarToolbar = (
     <ExplorerMapMenu
       surface="sidebar"
@@ -595,6 +615,8 @@ function AirportExplorerContent({
     country: airportProfile.country,
     lat: airportProfile.lat,
     lon: airportProfile.lon,
+    placeLat: nearMe ? sidebarFocusLat : undefined,
+    placeLon: nearMe ? sidebarFocusLon : undefined,
     elevationFt: airportProfile.elevationFt,
     metar: weather.metar,
     metarRaw: weather.metarRaw,
@@ -607,8 +629,8 @@ function AirportExplorerContent({
     // frequencies stay empty and the metric grid only shows weather + nearby.
     frequencies: nearMe ? [] : airport?.frequencies || [],
     candidateWatchingSpots: candidateWatchingSpots.spots,
-    focusLat: airportProfile.lat,
-    focusLon: airportProfile.lon,
+    focusLat: sidebarFocusLat,
+    focusLon: sidebarFocusLon,
     selectedAircraftId,
     selectedAirportIcao,
     selectedCandidateWatchingSpotId,

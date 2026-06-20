@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.22.10",
+    kind: "patch",
+    title: {
+      en: "Tracking, airspace, and FlightAware patch rollup",
+      zh: "追踪、空域与 FlightAware 补丁汇总",
+    },
+    summary: {
+      en: "Tracking, airspace previews, sidebar gestures, FlightAware-backed flows, and photo-location navigation are steadier as a group.",
+      zh: "追踪、空域预览、侧栏手势、FlightAware 相关流程和拍机点导航整体更稳定。",
+    },
+    highlights: [
+      {
+        en: "Tracking pages feel steadier while live routes, traces, and focused flights update",
+        zh: "追踪页在实时航线、轨迹和焦点航班更新时更稳定",
+      },
+      {
+        en: "Airspace previews and sidebar gestures are clearer on compact screens",
+        zh: "紧凑屏幕上的空域预览和侧栏手势更清晰",
+      },
+      {
+        en: "FlightAware-backed lookups and photo-location directions behave more predictably",
+        zh: "FlightAware 相关查询和拍机点导航行为更可预期",
+      },
+    ],
+  },
+  {
     version: "v2.22.0",
     kind: "feat",
     title: {

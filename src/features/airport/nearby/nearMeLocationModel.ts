@@ -2,6 +2,8 @@ import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
 import { toFiniteNumber } from "@/utils/math";
 
 export const NEAR_ME_POSITION_REFRESH_THRESHOLD_NM = 0.05;
+export const NEAR_ME_SIDEBAR_REFRESH_THRESHOLD_NM =
+  NEAR_ME_POSITION_REFRESH_THRESHOLD_NM;
 
 export type NearMeLocation = {
   lat: number;
@@ -91,17 +93,29 @@ export function buildNearMeLocationFromCoords(
 export function shouldUpdateNearMeLocation(
   previous: NearMeLocation | null,
   next: NearMeLocation,
-  {
-    positionThresholdNm = NEAR_ME_POSITION_REFRESH_THRESHOLD_NM,
-  }: ShouldUpdateNearMeLocationOptions = {},
 ) {
   if (!previous) return true;
 
-  const distance = getDistanceNm(previous.lat, previous.lon, next.lat, next.lon);
-  if (distance == null || distance >= positionThresholdNm) return true;
+  if (previous.lat !== next.lat || previous.lon !== next.lon) return true;
+  if (previous.accuracyMeters !== next.accuracyMeters) return true;
 
   if (previous.headingDeg == null) return next.headingDeg != null;
   if (next.headingDeg == null) return false;
 
   return normalizeDegrees(previous.headingDeg) !== normalizeDegrees(next.headingDeg);
+}
+
+export function shouldRefreshNearMeSidebarLocation(
+  previous: NearMeLocation | null,
+  next: NearMeLocation,
+  {
+    positionThresholdNm = NEAR_ME_SIDEBAR_REFRESH_THRESHOLD_NM,
+  }: ShouldUpdateNearMeLocationOptions = {},
+) {
+  if (!previous) return true;
+
+  const distance = getDistanceNm(previous.lat, previous.lon, next.lat, next.lon);
+  if (distance == null) return true;
+
+  return distance >= Math.max(0, positionThresholdNm);
 }

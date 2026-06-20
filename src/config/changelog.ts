@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 54;
+export const CHANGELOG_TOTAL_COUNT = 55;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.16",
+    kind: "patch",
+    title: {
+      en: "Here view steadier sidebar",
+      zh: "我的位置视图侧栏更稳定",
+    },
+    summary: {
+      en: "The /here map keeps following the device live while sidebar place and distance details refresh on a steadier movement threshold.",
+      zh: "/here 地图继续实时跟随设备,侧栏里的所在区域和距离信息改为按移动阈值刷新。",
+    },
+    highlights: [
+      {
+        en: "Map position, GPS marker, and heading remain driven by the device feed",
+        zh: "地图位置、GPS 标记和朝向继续由设备实时驱动",
+      },
+      {
+        en: "Sidebar place lookup and nearby distance anchors refresh only after meaningful movement",
+        zh: "侧栏区域识别和附近距离锚点只在有明显移动后重新确定",
+      },
+      {
+        en: "Visual-traffic text no longer fades just because the viewing direction changes",
+        zh: "视距内状态文字不会再因为视角变化而触发淡入淡出",
+      },
+    ],
+  },
   {
     version: "v2.22.15",
     kind: "patch",
@@ -171,32 +197,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "My-location heading and visual-traffic status lines are steadier after the previous patch",
         zh: "上一个补丁中的我的位置航向与视距内飞机状态行更稳定",
-      },
-    ],
-  },
-  {
-    version: "v2.22.10",
-    kind: "patch",
-    title: {
-      en: "Tracking, airspace, and FlightAware patch rollup",
-      zh: "追踪、空域与 FlightAware 补丁汇总",
-    },
-    summary: {
-      en: "Tracking, airspace previews, sidebar gestures, FlightAware-backed flows, and photo-location navigation are steadier as a group.",
-      zh: "追踪、空域预览、侧栏手势、FlightAware 相关流程和拍机点导航整体更稳定。",
-    },
-    highlights: [
-      {
-        en: "Tracking pages feel steadier while live routes, traces, and focused flights update",
-        zh: "追踪页在实时航线、轨迹和焦点航班更新时更稳定",
-      },
-      {
-        en: "Airspace previews and sidebar gestures are clearer on compact screens",
-        zh: "紧凑屏幕上的空域预览和侧栏手势更清晰",
-      },
-      {
-        en: "FlightAware-backed lookups and photo-location directions behave more predictably",
-        zh: "FlightAware 相关查询和拍机点导航行为更可预期",
       },
     ],
   },

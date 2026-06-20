@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { buildUserLocationVisualTraffic } from "./userLocationVisualTrafficModel";
+import {
+  buildUserLocationVisualTraffic,
+  getUserLocationVisualTrafficStatusAnimationKey,
+} from "./userLocationVisualTrafficModel";
 
 const userLocation = { lat: 42.3656, lon: -71.0096, headingDeg: 90 };
 
@@ -118,6 +121,38 @@ const userLocation = { lat: 42.3656, lon: -71.0096, headingDeg: 90 };
     traffic.map((item) => item.aircraftId),
     ["one", "two"],
   );
+}
+
+{
+  const sameDistanceKeys = [
+    getUserLocationVisualTrafficStatusAnimationKey({
+      aircraftId: "same",
+      callsign: "SAME1",
+      distanceNm: 1.2,
+    }),
+    getUserLocationVisualTrafficStatusAnimationKey({
+      aircraftId: "same",
+      callsign: "SAME1",
+      distanceNm: 1.2,
+    }),
+  ];
+
+  assert.equal(sameDistanceKeys[0], sameDistanceKeys[1]);
+}
+
+{
+  const nearKey = getUserLocationVisualTrafficStatusAnimationKey({
+    aircraftId: "moving",
+    callsign: "MOVE1",
+    distanceNm: 1.2,
+  });
+  const fartherKey = getUserLocationVisualTrafficStatusAnimationKey({
+    aircraftId: "moving",
+    callsign: "MOVE1",
+    distanceNm: 1.6,
+  });
+
+  assert.notEqual(nearKey, fartherKey);
 }
 
 console.log("userLocationVisualTrafficModel.test.ts ok");
