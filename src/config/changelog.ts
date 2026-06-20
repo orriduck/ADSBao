@@ -40,9 +40,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 107;
+export const CHANGELOG_TOTAL_COUNT = 108;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.9",
+    kind: "patch",
+    title: {
+      en: "Airspace carousel and sidebar gestures",
+      zh: "空域轮播与侧栏手势",
+    },
+    summary: {
+      en: "Airspace previews now use compact dot carousel controls, and sidebar collapse requires a clearer bottom-edge gesture.",
+      zh: "空域预览现在使用更紧凑的点控轮播，侧栏缩起也需要更明确的底部二次手势。",
+    },
+    highlights: [
+      {
+        en: "Mobile airspace preview cards stay near the top of the screen and can be changed by swipe, trackpad wheel, or tapping dots",
+        zh: "移动端空域预览卡保持在屏幕上方，可通过横向滑动、触控板滚动或点按圆点切换",
+      },
+      {
+        en: "Trackpad carousel gestures advance one card per gesture while still recognizing a second deliberate quick swipe",
+        zh: "触控板轮播手势每次只前进一张，同时仍能识别明确的第二次快滑",
+      },
+      {
+        en: "Sidebar collapse no longer fires from the same scroll that merely reaches the bottom, and small bottom-edge scrolls are ignored",
+        zh: "侧栏不会再因为同一段滚动刚到达底部就缩起，底部的小幅滚动也会被忽略",
+      },
+    ],
+  },
   {
     version: "v2.22.8",
     kind: "patch",
@@ -490,28 +516,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "When an OurAirports name is missing, the API leaves the airport name blank instead of exposing the OpenAIP value",
         zh: "缺少 OurAirports 名称时，API 会留空机场名称，而不是暴露 OpenAIP 值",
-      },
-    ],
-  },
-  {
-    version: "v2.18.1",
-    kind: "patch",
-    title: {
-      en: "Landscape settings stability",
-      zh: "横屏设置稳定性",
-    },
-    summary: {
-      en: "Mobile landscape map settings no longer get stuck saving, and the settings sheet keeps its close button clear of safe-area cutouts.",
-      zh: "移动端横屏地图设置不再卡在保存中，设置面板关闭按钮也会避开 safe-area 遮挡。",
-    },
-    highlights: [
-      {
-        en: "Server timestamp-only responses no longer mark map settings dirty again",
-        zh: "服务端只更新时间戳的响应不再把地图设置重新标记为待保存",
-      },
-      {
-        en: "The map settings sheet now uses native safe-area insets in landscape and exposes a larger glass close target",
-        zh: "地图设置面板在横屏下使用原生 safe-area inset，并提供更大的玻璃关闭按钮",
       },
     ],
   },

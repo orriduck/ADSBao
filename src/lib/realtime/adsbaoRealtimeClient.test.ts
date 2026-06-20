@@ -209,6 +209,42 @@ assert.equal(
 {
   FakeSocket.instances = [];
   const timers = createTimerHost();
+  const states: string[] = [];
+  const client = new AdsbaoRealtimeClient("ws://example.test/ws", {
+    WebSocketCtor: FakeSocket as any,
+    timerHost: timers.host as any,
+    heartbeatIntervalMs: 0,
+  });
+  client.onConnectionState((state) => states.push(state));
+
+  const unsubscribeFirst = client.subscribe({
+    channel: "callsign:DAL58",
+    listener: () => {},
+  });
+  const staleSocket = FakeSocket.instances[0];
+  unsubscribeFirst();
+
+  client.subscribe({
+    channel: "callsign:DAL58",
+    params: { flightAware: true },
+    listener: () => {},
+  });
+  const activeSocket = FakeSocket.instances[1];
+  activeSocket.open();
+  staleSocket.close();
+
+  assert.equal(
+    client.state,
+    "open",
+    "stale connecting socket close should not override the active socket state",
+  );
+  assert.equal(timers.timeoutCount, 0);
+  assert.equal(states.at(-1), "open");
+}
+
+{
+  FakeSocket.instances = [];
+  const timers = createTimerHost();
   const tokenProviders: string[] = [];
   const client = new AdsbaoRealtimeClient("ws://example.test/ws", {
     WebSocketCtor: FakeSocket as any,

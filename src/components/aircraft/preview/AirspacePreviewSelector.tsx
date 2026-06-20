@@ -2,8 +2,8 @@ import { useRef } from "react";
 import type {
   PointerEvent as ReactPointerEvent,
   TouchEvent as ReactTouchEvent,
+  WheelEvent as ReactWheelEvent,
 } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +23,14 @@ type AirspaceCarouselSwipeProps = {
 const AIRSPACE_CAROUSEL_SWIPE_MIN_DISTANCE_PX = 42;
 const AIRSPACE_CAROUSEL_SWIPE_MAX_VERTICAL_RATIO = 0.72;
 const AIRSPACE_CAROUSEL_SWIPE_MAX_DURATION_MS = 900;
+const AIRSPACE_CAROUSEL_WHEEL_MIN_DISTANCE_PX = 36;
+const AIRSPACE_CAROUSEL_WHEEL_MAX_VERTICAL_RATIO = 0.86;
+const AIRSPACE_CAROUSEL_WHEEL_RESET_MS = 180;
+const AIRSPACE_CAROUSEL_WHEEL_RESTART_GAP_MS = 140;
+const AIRSPACE_CAROUSEL_WHEEL_DECAY_DELTA_PX = 12;
+const AIRSPACE_CAROUSEL_WHEEL_REARM_MS = 120;
+const AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_MIN_DELTA_PX = 20;
+const AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_RATIO = 1.55;
 
 export default function AirspacePreviewSelector({
   airspaces = [],
@@ -30,20 +38,12 @@ export default function AirspacePreviewSelector({
   onSelectAirspace = null,
   compact = false,
 }: AirspacePreviewSelectorProps) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const options = uniqueAirspaces(airspaces);
 
   if (options.length <= 1) return null;
 
   const activeIndex = resolveActiveAirspaceIndex(options, selectedAirspaceId);
-  const previousIndex = (activeIndex - 1 + options.length) % options.length;
-  const nextIndex = (activeIndex + 1) % options.length;
-  const isZh = locale.startsWith("zh");
-  const previousLabel = isZh ? "上一个空域" : "Previous airspace";
-  const nextLabel = isZh ? "下一个空域" : "Next airspace";
-  const positionLabel = isZh
-    ? `${activeIndex + 1} / ${options.length}`
-    : `${activeIndex + 1} of ${options.length}`;
   const selectAtIndex = (index: number) => {
     const id = String(options[index]?.id || "").trim();
     if (id) onSelectAirspace?.(id);
@@ -53,24 +53,16 @@ export default function AirspacePreviewSelector({
     <div
       aria-label={t("preview.airspacePreview")}
       className={cn(
-        "pointer-events-auto flex min-w-0 items-center gap-2 border-t border-atc-line/70 pt-2",
-        compact ? "mt-1.5 pt-1.5" : "mt-3",
+        "pointer-events-auto flex min-w-0 items-center justify-center",
+        compact ? "mt-0 h-4" : "mt-1 h-5",
       )}
     >
-      <button
-        type="button"
-        aria-label={previousLabel}
-        onClick={() => selectAtIndex(previousIndex)}
-        className={carouselButtonClass(compact)}
+      <div
+        className={cn(
+          "flex min-w-0 items-center justify-center",
+          compact ? "gap-1" : "gap-1.5",
+        )}
       >
-        <ChevronLeft
-          aria-hidden="true"
-          className={compact ? "size-3" : "size-3.5"}
-          strokeWidth={2.1}
-        />
-      </button>
-
-      <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
         {options.map((airspace, index) => {
           const id = String(airspace?.id || "").trim();
           const active = index === activeIndex;
@@ -86,39 +78,27 @@ export default function AirspacePreviewSelector({
               title={name}
               onClick={() => selectAtIndex(index)}
               className={cn(
-                "h-2.5 rounded-full border border-transparent bg-atc-faint/45 transition-[width,background,box-shadow,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
-                "w-2.5 hover:bg-atc-dim focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
-                "data-[active=true]:w-6 data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
-                "active:scale-95",
-                compact && "h-2 w-2 data-[active=true]:w-5",
+                "group grid size-5 place-items-center rounded-full transition-transform duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
+                "[-webkit-tap-highlight-color:transparent] active:scale-95",
+                "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[2px]",
+                compact && "size-4",
               )}
-            />
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "block h-2 w-2 rounded-full border border-transparent bg-atc-faint/45 transition-[width,background,box-shadow] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
+                  "group-hover:bg-atc-dim",
+                  active &&
+                    "w-[18px] [background:var(--atc-glass-active-bg)] shadow-[var(--atc-glass-rim-shadow)]",
+                  compact && "h-1.5 w-1.5",
+                  compact && active && "w-[14px]",
+                )}
+              />
+            </button>
           );
         })}
       </div>
-
-      <span
-        translate="no"
-        className={cn(
-          "notranslate min-w-[34px] text-center font-[var(--font-mono)] text-[9px] font-bold leading-none text-atc-dim",
-          compact && "min-w-[30px] text-[8px]",
-        )}
-      >
-        {positionLabel}
-      </span>
-
-      <button
-        type="button"
-        aria-label={nextLabel}
-        onClick={() => selectAtIndex(nextIndex)}
-        className={carouselButtonClass(compact)}
-      >
-        <ChevronRight
-          aria-hidden="true"
-          className={compact ? "size-3" : "size-3.5"}
-          strokeWidth={2.1}
-        />
-      </button>
     </div>
   );
 }
@@ -135,6 +115,16 @@ export function useAirspaceCarouselSwipe({
     time: number;
     pointerId: number | null;
   } | null>(null);
+  const wheelRef = useRef({
+    dx: 0,
+    dy: 0,
+    time: 0,
+    triggered: false,
+    triggerTime: 0,
+    direction: 0,
+    lastAbsDx: 0,
+    decayed: false,
+  });
 
   const selectByDelta = (dx: number) => {
     if (options.length <= 1 || typeof onSelectAirspace !== "function") return;
@@ -215,6 +205,86 @@ export function useAirspaceCarouselSwipe({
     onPointerCancel() {
       startRef.current = null;
     },
+    onWheel(event: ReactWheelEvent<HTMLElement>) {
+      if (options.length <= 1 || typeof onSelectAirspace !== "function") {
+        return;
+      }
+
+      const dx = Number(event.deltaX);
+      const dy = Number(event.deltaY);
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+      if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+      if (absDx < 3 || absDx <= absDy * 1.15) return;
+
+      event.preventDefault();
+      const wheel = wheelRef.current;
+      const direction = dx < 0 ? -1 : 1;
+      const gap = event.timeStamp - wheel.time;
+      const timeSinceTrigger = event.timeStamp - wheel.triggerTime;
+      const directionChanged =
+        wheel.direction !== 0 && direction !== wheel.direction;
+      const secondSwipeAfterGap =
+        wheel.triggered &&
+        gap >= AIRSPACE_CAROUSEL_WHEEL_RESTART_GAP_MS &&
+        absDx >= AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_MIN_DELTA_PX;
+      const secondSwipeByAcceleration =
+        wheel.triggered &&
+        wheel.decayed &&
+        timeSinceTrigger >= AIRSPACE_CAROUSEL_WHEEL_REARM_MS &&
+        absDx >= AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_MIN_DELTA_PX &&
+        wheel.lastAbsDx > 0 &&
+        absDx >=
+          wheel.lastAbsDx * AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_RATIO;
+
+      if (
+        gap > AIRSPACE_CAROUSEL_WHEEL_RESET_MS ||
+        directionChanged ||
+        secondSwipeAfterGap ||
+        secondSwipeByAcceleration
+      ) {
+        wheel.dx = 0;
+        wheel.dy = 0;
+        wheel.triggered = false;
+        wheel.triggerTime = 0;
+        wheel.decayed = false;
+      }
+
+      if (wheel.triggered) {
+        if (absDx <= AIRSPACE_CAROUSEL_WHEEL_DECAY_DELTA_PX) {
+          wheel.decayed = true;
+        }
+        wheel.time = event.timeStamp;
+        wheel.direction = direction;
+        wheel.lastAbsDx = absDx;
+        return;
+      }
+
+      wheel.dx += dx;
+      wheel.dy += dy;
+      wheel.time = event.timeStamp;
+      wheel.direction = direction;
+      wheel.lastAbsDx = absDx;
+
+      const accumulatedAbsDx = Math.abs(wheel.dx);
+      const accumulatedAbsDy = Math.abs(wheel.dy);
+      if (accumulatedAbsDx < AIRSPACE_CAROUSEL_WHEEL_MIN_DISTANCE_PX) return;
+      if (
+        accumulatedAbsDy >
+        accumulatedAbsDx * AIRSPACE_CAROUSEL_WHEEL_MAX_VERTICAL_RATIO
+      ) {
+        return;
+      }
+
+      // Wheel delta is content scroll direction, the inverse of pointer drag.
+      selectByDelta(-wheel.dx);
+      wheel.dx = 0;
+      wheel.dy = 0;
+      wheel.time = event.timeStamp;
+      wheel.triggered = true;
+      wheel.triggerTime = event.timeStamp;
+      wheel.decayed = false;
+    },
   };
 }
 
@@ -227,16 +297,6 @@ function uniqueAirspaces(airspaces: Record<string, any>[] | null | undefined) {
     seen.add(key);
     return true;
   });
-}
-
-function carouselButtonClass(compact: boolean) {
-  return cn(
-    "grid flex-none place-items-center rounded-full border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] text-atc-dim",
-    "shadow-[var(--atc-control-inset-shadow-subtle)] transition-[background,color,box-shadow,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
-    "hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-95",
-    "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[2px]",
-    compact ? "size-7" : "size-8",
-  );
 }
 
 function resolveActiveAirspaceIndex(

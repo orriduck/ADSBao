@@ -114,10 +114,10 @@ export default function AircraftPreviewCard({
       : isReportingPoint
         ? `reporting-point:${reportingPoint?.key || reportingPoint?.name || "preview"}`
         : isAirspace
-          ? `airspace:${activeAirspace?.id || "preview"}:${airspaceOptions
+          ? `airspace:${airspaceOptions
               .map((item) => item?.id || item?.name || "")
               .filter(Boolean)
-              .join(",")}`
+              .join(",") || activeAirspace?.id || "preview"}`
           : isCandidateWatchingSpot
             ? `candidate-spot:${candidateWatchingSpot?.id || "preview"}`
             : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
@@ -324,7 +324,7 @@ export default function AircraftPreviewCard({
             !isCandidateWatchingSpot
           }
           placement={
-            showPreferredMobilePreview || isAirspace ? "bottomRight" : "top"
+            showPreferredMobilePreview ? "bottomRight" : "top"
           }
           style={mobilePreviewSafeAreaStyle}
           actions={

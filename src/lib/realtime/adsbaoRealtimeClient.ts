@@ -239,16 +239,19 @@ export class AdsbaoRealtimeClient {
     this.syncDebug({ lastSocketUrl: this.url });
 
     socket.addEventListener("open", () => {
+      if (this.socket !== socket) return;
       this.reconnectAttempt = 0;
       this.setState("open");
       this.startHeartbeat();
       this.resubscribeAll();
     });
     socket.addEventListener("message", (event) => {
+      if (this.socket !== socket) return;
       this.handleMessage(event.data);
     });
     socket.addEventListener("close", () => {
-      if (this.socket === socket) this.socket = null;
+      if (this.socket !== socket) return;
+      this.socket = null;
       this.stopHeartbeat();
       this.setState(this.url ? "closed" : "disabled");
       if (this.intentionalClose) {
@@ -258,6 +261,7 @@ export class AdsbaoRealtimeClient {
       this.scheduleReconnect();
     });
     socket.addEventListener("error", () => {
+      if (this.socket !== socket) return;
       this.syncDebug({ lastSocketErrorAt: new Date().toISOString() });
       socket.close();
     });

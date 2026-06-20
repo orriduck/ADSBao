@@ -11,6 +11,17 @@ type CollapsibleSidebarOptions = {
   onCollapse?: (() => void) | null;
 };
 
+type WheelCollapseGesture = {
+  startedAtBottom: boolean;
+  accumulatedDeltaY: number;
+  lastTime: number;
+};
+
+const SIDEBAR_COLLAPSE_WHEEL_MIN_DELTA_Y = 8;
+const SIDEBAR_COLLAPSE_WHEEL_TRIGGER_DISTANCE_PX = 72;
+const SIDEBAR_COLLAPSE_WHEEL_GESTURE_RESET_MS = 340;
+const SIDEBAR_COLLAPSE_TOUCH_TRIGGER_DISTANCE_PX = 54;
+
 export function useCollapsibleSidebarPanel<
   Element extends HTMLElement = HTMLDivElement,
 >({
@@ -21,7 +32,7 @@ export function useCollapsibleSidebarPanel<
   const shellRef = useRef<Element | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const touchStartedAtBottomRef = useRef(false);
-  const wheelStartedAtBottomRef = useRef<boolean | null>(null);
+  const wheelGestureRef = useRef<WheelCollapseGesture | null>(null);
   const wheelResetTimerRef = useRef<number | null>(null);
   const wasCollapsedRef = useRef(false);
   const brandCompactRef = useRef(false);
@@ -33,6 +44,14 @@ export function useCollapsibleSidebarPanel<
     if (brandCompactRef.current === nextCompact) return;
     brandCompactRef.current = nextCompact;
     setBrandCompactState(nextCompact);
+  }, []);
+
+  const resetWheelGesture = useCallback(() => {
+    wheelGestureRef.current = null;
+    if (wheelResetTimerRef.current != null) {
+      window.clearTimeout(wheelResetTimerRef.current);
+      wheelResetTimerRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
@@ -82,22 +101,53 @@ export function useCollapsibleSidebarPanel<
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<Element>) => {
-      if (event.deltaY <= 8) return;
-      if (wheelStartedAtBottomRef.current == null) {
-        wheelStartedAtBottomRef.current = isScrolledToBottom();
+      const deltaY = Number(event.deltaY);
+      const deltaX = Math.abs(Number(event.deltaX));
+      if (!Number.isFinite(deltaY) || !Number.isFinite(deltaX)) return;
+      if (deltaY <= SIDEBAR_COLLAPSE_WHEEL_MIN_DELTA_Y) return;
+      if (deltaX > Math.abs(deltaY) * 0.8) return;
+
+      const now = event.timeStamp;
+      const previousGesture = wheelGestureRef.current;
+      const startsNewGesture =
+        !previousGesture ||
+        now - previousGesture.lastTime >
+          SIDEBAR_COLLAPSE_WHEEL_GESTURE_RESET_MS;
+      if (startsNewGesture) {
+        wheelGestureRef.current = {
+          startedAtBottom: isScrolledToBottom(),
+          accumulatedDeltaY: 0,
+          lastTime: now,
+        };
       }
+
+      const gesture = wheelGestureRef.current;
+      if (!gesture) return;
+      gesture.lastTime = now;
       if (wheelResetTimerRef.current != null) {
         window.clearTimeout(wheelResetTimerRef.current);
       }
       wheelResetTimerRef.current = window.setTimeout(() => {
-        wheelStartedAtBottomRef.current = null;
+        wheelGestureRef.current = null;
         wheelResetTimerRef.current = null;
-      }, 180);
-      if (requestCollapseFromEnd(wheelStartedAtBottomRef.current === true)) {
+      }, SIDEBAR_COLLAPSE_WHEEL_GESTURE_RESET_MS);
+
+      if (!gesture.startedAtBottom || !isScrolledToBottom()) return;
+
+      gesture.accumulatedDeltaY += deltaY;
+      if (
+        gesture.accumulatedDeltaY <
+        SIDEBAR_COLLAPSE_WHEEL_TRIGGER_DISTANCE_PX
+      ) {
+        return;
+      }
+
+      if (requestCollapseFromEnd(true)) {
         event.preventDefault();
+        resetWheelGesture();
       }
     },
-    [isScrolledToBottom, requestCollapseFromEnd],
+    [isScrolledToBottom, requestCollapseFromEnd, resetWheelGesture],
   );
 
   const handleTouchStart = useCallback((event: React.TouchEvent<Element>) => {
@@ -115,7 +165,9 @@ export function useCollapsibleSidebarPanel<
       const startY = touchStartYRef.current;
       const currentY = event.touches[0]?.clientY ?? null;
       if (startY == null || currentY == null) return;
-      if (startY - currentY <= 18) return;
+      if (startY - currentY <= SIDEBAR_COLLAPSE_TOUCH_TRIGGER_DISTANCE_PX) {
+        return;
+      }
       if (requestCollapseFromEnd(touchStartedAtBottomRef.current)) {
         touchStartYRef.current = null;
         touchStartedAtBottomRef.current = false;
@@ -125,12 +177,10 @@ export function useCollapsibleSidebarPanel<
   );
 
   useEffect(() => {
-    return () => {
-      if (wheelResetTimerRef.current != null) {
-        window.clearTimeout(wheelResetTimerRef.current);
-      }
-    };
-  }, []);
+    if (!canCollapse || isCollapsed) resetWheelGesture();
+  }, [canCollapse, isCollapsed, resetWheelGesture]);
+
+  useEffect(() => resetWheelGesture, [resetWheelGesture]);
 
   return {
     shellRef,

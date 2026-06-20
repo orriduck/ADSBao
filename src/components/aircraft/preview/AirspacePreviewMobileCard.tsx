@@ -36,7 +36,7 @@ export default function AirspacePreviewMobileCard({
 
   return (
     <MobilePreviewContent
-      className="pointer-events-auto touch-pan-y"
+      className="pointer-events-auto touch-pan-y gap-[3px] pb-[4px]"
       {...carouselSwipeHandlers}
     >
       <div className="flex min-w-0 items-start gap-[6px]">
