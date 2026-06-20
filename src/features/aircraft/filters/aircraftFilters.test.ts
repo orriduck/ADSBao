@@ -6,6 +6,8 @@ import {
   aircraftTypeLabel,
   getAircraftTypeGroups,
   getNextEntityFilter,
+  isAltitudeSelectionAll,
+  normalizeAltitudeLevelSelection,
 } from "./aircraftFilters";
 
 test("cycles entity filter from all to aircraft to airports and back", () => {
@@ -41,6 +43,77 @@ test("filters aircraft by airport movement", () => {
   );
   assert.equal(
     aircraftMatchesFilters(unknown, { movementFilter: "all" }),
+    true,
+  );
+});
+
+test("defaults altitude filters to aircraft below 20,000 ft", () => {
+  assert.equal(aircraftMatchesFilters({ altitude: 2500 }), true);
+  assert.equal(aircraftMatchesFilters({ altitude: 9999 }), true);
+  assert.equal(aircraftMatchesFilters({ altitude: 19999 }), true);
+  assert.equal(aircraftMatchesFilters({ altitude: 20000 }), false);
+});
+
+test("matches multi-selected altitude bands by boundary", () => {
+  assert.equal(
+    aircraftMatchesFilters(
+      { altitude: 2999 },
+      { altitudeLevel: ["below-3000"] },
+    ),
+    true,
+  );
+  assert.equal(
+    aircraftMatchesFilters(
+      { altitude: 3000 },
+      { altitudeLevel: ["3000-10000"] },
+    ),
+    true,
+  );
+  assert.equal(
+    aircraftMatchesFilters(
+      { altitude: 10000 },
+      { altitudeLevel: ["10000-20000"] },
+    ),
+    true,
+  );
+  assert.equal(
+    aircraftMatchesFilters(
+      { altitude: 20000 },
+      { altitudeLevel: ["above-20000"] },
+    ),
+    true,
+  );
+});
+
+test("keeps unknown altitude aircraft in the low altitude band", () => {
+  assert.equal(
+    aircraftMatchesFilters({}, { altitudeLevel: ["below-3000"] }),
+    true,
+  );
+  assert.equal(
+    aircraftMatchesFilters({}, { altitudeLevel: ["3000-10000"] }),
+    false,
+  );
+});
+
+test("normalizes altitude multi-select and all selection", () => {
+  assert.deepEqual(normalizeAltitudeLevelSelection("all"), [
+    "below-3000",
+    "3000-10000",
+    "10000-20000",
+    "above-20000",
+  ]);
+  assert.deepEqual(normalizeAltitudeLevelSelection(["below-3000", "below-3000"]), [
+    "below-3000",
+  ]);
+  assert.equal(isAltitudeSelectionAll(["below-3000", "3000-10000"]), false);
+  assert.equal(
+    isAltitudeSelectionAll([
+      "below-3000",
+      "3000-10000",
+      "10000-20000",
+      "above-20000",
+    ]),
     true,
   );
 });

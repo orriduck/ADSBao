@@ -26,7 +26,10 @@ import MapLoadingOverlay, {
 } from "./MapLoadingOverlay";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel";
 import { useI18n } from "../../features/app-shell/i18n/useI18n";
-import { aircraftMatchesFilters } from "../../features/aircraft/filters/aircraftFilters";
+import {
+  DEFAULT_ALTITUDE_LEVELS,
+  aircraftMatchesFilters,
+} from "../../features/aircraft/filters/aircraftFilters";
 import {
   getMapOverlayTheme,
   resolveAirportMapInitialCenter,
@@ -90,7 +93,7 @@ export default function AirportMap({
   baseLayer = "terrain",
   trafficFilter = "all",
   typeFilter = "all",
-  altitudeLevel = "all",
+  altitudeLevel = DEFAULT_ALTITUDE_LEVELS,
   selectedAircraftId = "",
   selectedAirportIcao = "",
   selectedNavaidKey = "",

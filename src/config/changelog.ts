@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 49;
+export const CHANGELOG_TOTAL_COUNT = 50;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.11",
+    kind: "patch",
+    title: {
+      en: "Altitude bands and visual traffic polish",
+      zh: "高度分层与视距内飞机状态打磨",
+    },
+    summary: {
+      en: "Sidebar altitude filtering is now multi-select, while my-location traffic status reads more clearly around nearby aircraft.",
+      zh: "侧栏高度筛选改为多选，我的位置周边飞机状态也更清晰。",
+    },
+    highlights: [
+      {
+        en: "Altitude filtering now uses four selectable bands, defaulting to traffic below 20,000 ft",
+        zh: "高度筛选现在使用四个可多选高度层，默认显示 20000 ft 以下飞机",
+      },
+      {
+        en: "The altitude trigger shows all, one selected band, or a multiple-bands state",
+        zh: "高度选项框会显示全部、单个高度层或多个高度层状态",
+      },
+      {
+        en: "My-location heading and visual-traffic status lines are steadier after the previous patch",
+        zh: "上一个补丁中的我的位置航向与视距内飞机状态行更稳定",
+      },
+    ],
+  },
   {
     version: "v2.22.10",
     kind: "patch",
@@ -159,28 +185,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Home, About, Mechanism, and Changelog read cleaner as a group",
         zh: "首页、关于、机制与更新日志整体更干净统一",
-      },
-    ],
-  },
-  {
-    version: "v2.19.1",
-    kind: "feat",
-    title: {
-      en: "Reporting point previews",
-      zh: "报告点预览",
-    },
-    summary: {
-      en: "Airport maps can optionally show OpenAIP reporting points with their own icon treatment and desktop/mobile preview cards.",
-      zh: "机场地图现在可按设置显示 OpenAIP 报告点，并使用独立图标样式与桌面端/移动端预览卡。",
-    },
-    highlights: [
-      {
-        en: "Reporting points can be enabled when they are useful for airport context",
-        zh: "需要机场上下文时可以开启报告点",
-      },
-      {
-        en: "They get distinct map treatment and matching previews on desktop and mobile",
-        zh: "它们有独立的地图呈现，并在桌面端和移动端提供对应预览",
       },
     ],
   },

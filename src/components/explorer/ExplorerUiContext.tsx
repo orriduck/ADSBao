@@ -23,6 +23,7 @@ import {
   normalizeAirspaceSelectionIds,
   resolveAirspaceSelectionForLayerVisibility,
 } from "@/features/airport/explorer/airportExplorerUiModel";
+import { normalizeAltitudeLevelSelection } from "@/features/aircraft/filters/aircraftFilters";
 import {
   DEFAULT_MAP_SETTINGS,
   MAP_LAYER_KEYS,
@@ -260,7 +261,10 @@ function airportExplorerUiReducer(state, action) {
     case "setTypeFilter":
       return { ...state, typeFilter: action.typeFilter };
     case "setAltitudeLevel":
-      return { ...state, altitudeLevel: action.altitudeLevel };
+      return {
+        ...state,
+        altitudeLevel: normalizeAltitudeLevelSelection(action.altitudeLevel),
+      };
     case "setEntityFilter":
       return { ...state, entityFilter: action.entityFilter };
     case "selectAircraft":

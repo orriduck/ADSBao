@@ -5,20 +5,49 @@
 import { resolveAircraftDisplayModel } from "../aircraftTypeDisplayModel";
 
 export const ALTITUDE_LEVEL_OPTIONS = [
-  { value: "all", labelKey: "filters.altAny", label: "Any" },
-  { value: "ground", labelKey: "filters.altGround", label: "Ground" },
   {
-    value: "climb-descent",
-    labelKey: "filters.altClimbDescent",
-    label: "Climb / descent",
+    value: "below-3000",
+    labelKey: "filters.altBelow3000",
+    label: "Below 3,000 ft",
   },
-  { value: "high", labelKey: "filters.altHigh", label: "High" },
+  {
+    value: "3000-10000",
+    labelKey: "filters.alt3000To10000",
+    label: "3,000-10,000 ft",
+  },
+  {
+    value: "10000-20000",
+    labelKey: "filters.alt10000To20000",
+    label: "10,000-20,000 ft",
+  },
+  {
+    value: "above-20000",
+    labelKey: "filters.altAbove20000",
+    label: "Above 20,000 ft",
+  },
 ];
+
+export const ALTITUDE_LEVEL_VALUES = Object.freeze(
+  ALTITUDE_LEVEL_OPTIONS.map((option) => option.value),
+);
+
+export const DEFAULT_ALTITUDE_LEVELS = Object.freeze([
+  "below-3000",
+  "3000-10000",
+  "10000-20000",
+]);
+
+const LEGACY_ALTITUDE_LEVELS = Object.freeze({
+  all: ALTITUDE_LEVEL_VALUES,
+  ground: ["below-3000"],
+  "climb-descent": ["3000-10000", "10000-20000"],
+  high: ["10000-20000", "above-20000"],
+});
 
 export const DEFAULT_AIRCRAFT_FILTERS = Object.freeze({
   trafficFilter: "all",
   typeFilter: "all",
-  altitudeLevel: "all",
+  altitudeLevel: DEFAULT_ALTITUDE_LEVELS,
   // What kind of entities to show in the list:
   //   "all"      — aircraft + nearby airports
   //   "airports" — nearby airports only
@@ -72,7 +101,7 @@ type AircraftFilterRecord = {
 type AircraftFilterOptions = {
   trafficFilter?: string;
   typeFilter?: string | string[];
-  altitudeLevel?: string;
+  altitudeLevel?: string | readonly string[];
   movementFilter?: string;
 };
 
@@ -184,16 +213,56 @@ function matchesTypeFilter(aircraft: AircraftFilterRecord, typeFilter: string | 
   return aircraftTypeLabel(aircraft) === typeFilter;
 }
 
-function matchesAltitudeLevel(aircraft: AircraftFilterRecord, altitudeLevel: string) {
-  if (altitudeLevel === "all") return true;
-  const altitude = aircraft.onGround ? 0 : toNumber(aircraft.altitude);
-  if (altitudeLevel === "ground") return altitude == null || altitude < 100;
-  if (altitude == null) return false;
-  if (altitudeLevel === "climb-descent") {
-    return altitude >= 100 && altitude < 12000;
+export function normalizeAltitudeLevelSelection(
+  altitudeLevel: unknown = DEFAULT_ALTITUDE_LEVELS,
+) {
+  if (altitudeLevel == null) return [...DEFAULT_ALTITUDE_LEVELS];
+
+  const rawValues = Array.isArray(altitudeLevel) ? altitudeLevel : [altitudeLevel];
+  if (rawValues.length === 0) return [...ALTITUDE_LEVEL_VALUES];
+
+  const next = [];
+  for (const rawValue of rawValues) {
+    const value = String(rawValue || "").trim();
+    if (!value) continue;
+    const legacy = LEGACY_ALTITUDE_LEVELS[value];
+    if (legacy) {
+      if (value === "all") return [...ALTITUDE_LEVEL_VALUES];
+      next.push(...legacy);
+      continue;
+    }
+    if (ALTITUDE_LEVEL_VALUES.includes(value)) {
+      next.push(value);
+    }
   }
-  if (altitudeLevel === "high") return altitude >= 12000;
+
+  return next.length > 0
+    ? Array.from(new Set(next))
+    : [...DEFAULT_ALTITUDE_LEVELS];
+}
+
+export function isAltitudeSelectionAll(altitudeLevel: unknown) {
+  const selected = normalizeAltitudeLevelSelection(altitudeLevel);
+  return ALTITUDE_LEVEL_VALUES.every((value) => selected.includes(value));
+}
+
+function matchesAltitudeBand(aircraft: AircraftFilterRecord, altitudeLevel: string) {
+  const altitude = aircraft.onGround ? 0 : toNumber(aircraft.altitude);
+  if (altitudeLevel === "below-3000") return altitude == null || altitude < 3000;
+  if (altitude == null) return false;
+  if (altitudeLevel === "3000-10000") return altitude >= 3000 && altitude < 10000;
+  if (altitudeLevel === "10000-20000") return altitude >= 10000 && altitude < 20000;
+  if (altitudeLevel === "above-20000") return altitude >= 20000;
   return true;
+}
+
+function matchesAltitudeLevel(
+  aircraft: AircraftFilterRecord,
+  altitudeLevel: string | readonly string[],
+) {
+  const selectedAltitudeLevels = normalizeAltitudeLevelSelection(altitudeLevel);
+  if (isAltitudeSelectionAll(selectedAltitudeLevels)) return true;
+  return selectedAltitudeLevels.some((level) => matchesAltitudeBand(aircraft, level));
 }
 
 export function aircraftMatchesFilters(
@@ -201,7 +270,7 @@ export function aircraftMatchesFilters(
   {
     trafficFilter = "all",
     typeFilter = "all",
-    altitudeLevel = "all",
+    altitudeLevel = DEFAULT_ALTITUDE_LEVELS,
     movementFilter = "all",
   }: AircraftFilterOptions = {},
 ) {

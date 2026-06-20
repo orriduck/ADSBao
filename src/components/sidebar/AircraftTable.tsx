@@ -3,14 +3,6 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, Minus, Search } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -21,7 +13,6 @@ import {
   FilterCardGrid,
   FilterCardLabel,
   FilterCardValue,
-  filterCardVariants,
 } from "@/components/ui/FilterCard";
 import {
   MenuPanel,
@@ -40,10 +31,13 @@ import {
 } from "@/features/aircraft/aircraftTypeDisplayModel";
 import {
   ALTITUDE_LEVEL_OPTIONS,
+  ALTITUDE_LEVEL_VALUES,
   ENTITY_FILTER_OPTIONS,
   aircraftMatchesFilters,
   getAircraftTypeGroups,
   getNextEntityFilter,
+  isAltitudeSelectionAll,
+  normalizeAltitudeLevelSelection,
 } from "@/features/aircraft/filters/aircraftFilters";
 import {
   getAircraftContextGroup,
@@ -90,6 +84,10 @@ export default function AircraftTable({
     () => (Array.isArray(typeFilter) ? typeFilter : []),
     [typeFilter],
   );
+  const selectedAltitudeLevels = useMemo(
+    () => normalizeAltitudeLevelSelection(altitudeLevel),
+    [altitudeLevel],
+  );
   const typeGroups = useMemo(
     () => getAircraftTypeGroups(aircraft, selectedTypes),
     [aircraft, selectedTypes],
@@ -127,7 +125,7 @@ export default function AircraftTable({
     () =>
       filterAndSortAircraft({
         aircraft: aircraftWithDist,
-        altitudeLevel,
+        altitudeLevel: selectedAltitudeLevels,
         query,
         trafficFilter,
         typeFilter,
@@ -135,9 +133,9 @@ export default function AircraftTable({
       }),
     [
       aircraftWithDist,
-      altitudeLevel,
       movementFilter,
       query,
+      selectedAltitudeLevels,
       trafficFilter,
       typeFilter,
     ],
@@ -214,15 +212,15 @@ export default function AircraftTable({
         query.trim().toLowerCase(),
         trafficFilter,
         Array.isArray(typeFilter) ? typeFilter.join("|") : typeFilter,
-        altitudeLevel,
+        selectedAltitudeLevels.join("|"),
         entityFilter,
         movementFilter,
       ].join("::"),
     [
-      altitudeLevel,
       entityFilter,
       movementFilter,
       query,
+      selectedAltitudeLevels,
       trafficFilter,
       typeFilter,
     ],
@@ -316,13 +314,11 @@ export default function AircraftTable({
             selectedTypes={selectedTypes}
             onChange={setTypeFilter}
           />
-          <AircraftFilterCardSelect
+          <AircraftAltitudeFilterCard
             label={t("sidebar.altitudeFilter")}
-            value={altitudeLevel}
-            onValueChange={setAltitudeLevel}
-            options={ALTITUDE_LEVEL_OPTIONS}
+            selectedLevels={selectedAltitudeLevels}
+            onChange={setAltitudeLevel}
             ariaLabel={t("filters.altitudeFilterAria")}
-            contentClassName="min-w-[220px]"
           />
         </FilterCardGrid>
 
@@ -645,38 +641,134 @@ function EntityFilterCycleCard({
   );
 }
 
-function AircraftFilterCardSelect({
+function AircraftAltitudeFilterCard({
   label,
-  value,
-  onValueChange,
-  options,
+  selectedLevels,
+  onChange,
   ariaLabel,
-  contentClassName = "",
 }) {
   const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [panelStyle, setPanelStyle] = useState(null);
+  const wrapperRef = useRef(null);
+  const panelRef = useRef(null);
+  const selectedSet = useMemo(() => new Set(selectedLevels), [selectedLevels]);
+  const allSelected = isAltitudeSelectionAll(selectedLevels);
   const resolveLabel = (option) =>
     option.labelKey ? t(option.labelKey) : option.label;
+  const selectedOption =
+    selectedLevels.length === 1
+      ? ALTITUDE_LEVEL_OPTIONS.find((item) => item.value === selectedLevels[0])
+      : null;
+  const displayValue = allSelected
+    ? t("sidebar.all")
+    : selectedOption
+      ? resolveLabel(selectedOption)
+      : t("sidebar.altitudeLayersMultiple");
+
+  useLayoutEffect(() => {
+    if (!open || !wrapperRef.current) return undefined;
+    const update = () => {
+      if (!wrapperRef.current) return;
+      const rect = wrapperRef.current.getBoundingClientRect();
+      setPanelStyle({
+        position: "fixed",
+        top: rect.bottom,
+        left: rect.left,
+        minWidth: Math.max(rect.width, 220),
+      });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handlePointerDown = (event) => {
+      if (
+        wrapperRef.current?.contains(event.target) ||
+        panelRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+    const handleKeydown = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeydown);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeydown);
+    };
+  }, [open]);
+
+  const commit = (next) => {
+    onChange(next.length > 0 ? next : [...ALTITUDE_LEVEL_VALUES]);
+  };
+
+  const selectAll = () => commit([...ALTITUDE_LEVEL_VALUES]);
+
+  const toggleLevel = (level) => {
+    const next = selectedSet.has(level)
+      ? selectedLevels.filter((item) => item !== level)
+      : [...selectedLevels, level];
+    commit(next);
+  };
+
   return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger
+    <div ref={wrapperRef} className="relative">
+      <FilterCard
+        shape="select"
+        data-state={open ? "open" : "closed"}
+        active={!allSelected}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         aria-label={ariaLabel}
-        className={cn(filterCardVariants({ shape: "select" }), "h-auto")}
+        onClick={() => setOpen((value) => !value)}
       >
         <FilterCardLabel>{label}</FilterCardLabel>
-        <FilterCardValue>
-          <SelectValue />
-        </FilterCardValue>
-      </SelectTrigger>
-      <SelectContent className={contentClassName}>
-        <SelectGroup>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {resolveLabel(option)}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+        <FilterCardValue>{displayValue}</FilterCardValue>
+      </FilterCard>
+      {open && panelStyle && typeof document !== "undefined" && createPortal(
+        <MenuPanel
+          ref={panelRef}
+          style={panelStyle}
+          role="listbox"
+          aria-multiselectable="true"
+          className="absolute z-popover max-h-[320px] gap-1 overflow-y-auto"
+        >
+          <MenuItem selected={allSelected} onClick={selectAll}>
+            <MenuItemCheck>
+              {allSelected ? <Check size={11} aria-hidden="true" /> : null}
+            </MenuItemCheck>
+            <MenuItemLabel>{t("sidebar.all")}</MenuItemLabel>
+          </MenuItem>
+          {ALTITUDE_LEVEL_OPTIONS.map((option) => {
+            const selected = selectedSet.has(option.value);
+            return (
+              <MenuItem
+                key={option.value}
+                selected={selected}
+                onClick={() => toggleLevel(option.value)}
+              >
+                <MenuItemCheck>
+                  {selected ? <Check size={11} aria-hidden="true" /> : null}
+                </MenuItemCheck>
+                <MenuItemLabel>{resolveLabel(option)}</MenuItemLabel>
+              </MenuItem>
+            );
+          })}
+        </MenuPanel>,
+        document.body,
+      )}
+    </div>
   );
 }
 
@@ -700,14 +792,14 @@ function NumericHeader({ children }: { children: React.ReactNode }) {
 
 function filterAndSortAircraft({
   aircraft = [],
-  altitudeLevel = "all",
+  altitudeLevel = [],
   query = "",
   trafficFilter = "all",
   typeFilter = "all",
   movementFilter = "all",
 }: {
   aircraft?: AircraftLike[];
-  altitudeLevel?: string;
+  altitudeLevel?: string | string[];
   query?: string;
   trafficFilter?: string;
   typeFilter?: any;

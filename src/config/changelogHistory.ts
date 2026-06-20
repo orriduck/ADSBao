@@ -277,6 +277,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.19.1",
+    kind: "feat",
+    title: {
+      en: "Reporting point previews",
+      zh: "报告点预览",
+    },
+    summary: {
+      en: "Airport maps can optionally show OpenAIP reporting points with their own icon treatment and desktop/mobile preview cards.",
+      zh: "机场地图现在可按设置显示 OpenAIP 报告点，并使用独立图标样式与桌面端/移动端预览卡。",
+    },
+    highlights: [
+      {
+        en: "Reporting points can be enabled when they are useful for airport context",
+        zh: "需要机场上下文时可以开启报告点",
+      },
+      {
+        en: "They get distinct map treatment and matching previews on desktop and mobile",
+        zh: "它们有独立的地图呈现，并在桌面端和移动端提供对应预览",
+      },
+    ],
+  },
+  {
     version: "v2.19.0",
     kind: "feat",
     title: {
