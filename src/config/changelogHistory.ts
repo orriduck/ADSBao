@@ -384,6 +384,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.17.7",
+    kind: "patch",
+    title: {
+      en: "Viewport scroll cleanup",
+      zh: "视口滚动清理",
+    },
+    summary: {
+      en: "The iOS rotation recovery now shares one viewport-scroll reset helper across static and map shells, reducing duplicated platform workaround code.",
+      zh: "iOS 旋转恢复现在让静态页和地图壳共用同一个视口滚动重置 helper，减少重复的平台 workaround 代码。",
+    },
+    highlights: [
+      {
+        en: "Root and shell scroll resets are centralized in the app-shell viewport helper instead of being repeated in page animation and static shell code",
+        zh: "root 与 shell 的滚动重置集中到 app-shell 视口 helper，不再散落在页面入场动画和静态页壳中",
+      },
+      {
+        en: "The delayed iOS recovery passes remain, but their timing now lives in one small utility that can be retuned without hunting through page components",
+        zh: "延迟执行的 iOS 恢复步骤保留，但时序集中在一个小工具里，后续调整不需要翻多个页面组件",
+      },
+    ],
+  },
+  {
     version: "v2.17.6",
     kind: "patch",
     title: {

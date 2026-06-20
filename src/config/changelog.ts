@@ -40,9 +40,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 105;
+export const CHANGELOG_TOTAL_COUNT = 106;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.7",
+    kind: "patch",
+    title: {
+      en: "Metric card count transitions",
+      zh: "指标卡数字过渡",
+    },
+    summary: {
+      en: "Airport sidebar metric cards keep their compact count transitions while dense lists and row headers stay on static numbers.",
+      zh: "机场侧栏指标卡保留紧凑的数字过渡动画，同时高密度列表和行表头继续使用静态数字。",
+    },
+    highlights: [
+      {
+        en: "Restored NumberFlow only on the small metric-card count surface",
+        zh: "只在少量指标卡计数区域恢复 NumberFlow",
+      },
+      {
+        en: "Nearby list rows and table summary counts remain static to avoid extra work in the dense scrolling path",
+        zh: "附近列表行和表格汇总计数保持静态，避免给高密度滚动路径增加额外工作",
+      },
+      {
+        en: "The heavier aircraft light animation reduction from v2.22.6 remains unchanged",
+        zh: "v2.22.6 中更重的飞机灯效减负保持不变",
+      },
+    ],
+  },
   {
     version: "v2.22.6",
     kind: "patch",
@@ -486,28 +512,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The package version and baked client changelog version are synchronized for the v2.18.0 minor release",
         zh: "package 版本与客户端内置 changelog 版本已同步到 v2.18.0 小版本发布",
-      },
-    ],
-  },
-  {
-    version: "v2.17.7",
-    kind: "patch",
-    title: {
-      en: "Viewport scroll cleanup",
-      zh: "视口滚动清理",
-    },
-    summary: {
-      en: "The iOS rotation recovery now shares one viewport-scroll reset helper across static and map shells, reducing duplicated platform workaround code.",
-      zh: "iOS 旋转恢复现在让静态页和地图壳共用同一个视口滚动重置 helper，减少重复的平台 workaround 代码。",
-    },
-    highlights: [
-      {
-        en: "Root and shell scroll resets are centralized in the app-shell viewport helper instead of being repeated in page animation and static shell code",
-        zh: "root 与 shell 的滚动重置集中到 app-shell 视口 helper，不再散落在页面入场动画和静态页壳中",
-      },
-      {
-        en: "The delayed iOS recovery passes remain, but their timing now lives in one small utility that can be retuned without hunting through page components",
-        zh: "延迟执行的 iOS 恢复步骤保留，但时序集中在一个小工具里，后续调整不需要翻多个页面组件",
       },
     ],
   },
