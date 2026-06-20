@@ -117,7 +117,7 @@ const en = {
   mechanism: {
     title: "Mechanism & Architecture",
     description:
-      "How ADSBao coordinates realtime connections, position fetching, route queues, and map context.",
+      "How ADSBao keeps map tracking, here mode, nearby lists, and realtime delivery coordinated.",
     sidebarLabel: "System profile",
     count: "{count} entries",
     groups: {
@@ -126,119 +126,103 @@ const en = {
     },
     items: {
       realtimeBackbone: {
-        title: "Realtime data-service",
-        signal: "Long connection and shared polling",
+        title: "WebSocket realtime spine",
+        signal: "One connection, many channels",
         body:
-          "The browser subscribes to channels. The always-on Railway service owns WebSocket delivery, channel management, and external ADS-B polling.",
+          "The browser opens one WebSocket, subscribes to the channels each view needs, and receives normalized update payloads from the always-on data service.",
         flow: {
           browser: "Browser",
           socket: "WebSocket",
           scheduler: "Channel scheduler",
-          providers: "ADS-B feeds",
+          payload: "Normalized payload",
         },
         details: {
           connect:
-            "On page load, the client opens one WebSocket and subscribes to the airport, location, or tracking channels it needs.",
+            "Airport pages, tracking pages, and here mode all reuse the same socket instead of each screen owning a separate connection.",
           share:
-            "Each active channel gets one polling loop. Users watching the same airport or center point share the result.",
+            "The service keeps one polling loop per active channel, so matching airport or center subscriptions share work.",
           resume:
-            "After disconnects, the client reconnects and restores subscriptions. Short app switches stay in the status line instead of interrupting the page.",
+            "Reconnects restore subscriptions and refresh stale map state without making the user restart the page.",
         },
       },
-      positionChannels: {
-        title: "Position channels",
-        signal: "Airport / here / tracking reuse",
+      parallelPipelines: {
+        title: "Parallel data pipelines",
+        signal: "Independent work, coordinated paint",
         body:
-          "Airport, here, and flight tracking views all use normalized traffic channels. Coordinates are rounded to a grid so users do not create unique channels for every pixel.",
+          "Positions, route labels, local context, weather, and overlays load independently. The UI combines them only after each piece has its own freshness and loading state.",
         flow: {
-          view: "View center",
-          channel: "Traffic channel",
-          poll: "Position poll",
-          update: "aircraft:update",
+          positions: "Positions",
+          routes: "Route labels",
+          context: "Context data",
+          ui: "View model",
         },
         details: {
-          normalize:
-            "Airports use an airport anchor; here and tracking use center-point anchors. The center is grid-rounded and the radius is clamped.",
-          poll:
-            "The service applies channel-specific intervals, jitter, and error backoff, so browsers do not repeat external API calls independently.",
-          push:
-            "Every payload has the same shape: type, channel, source, fetchedAt, stale, and data. The frontend handles one update event.",
+          independent:
+            "A slow route label does not block live aircraft movement, and slow weather does not block nearby traffic.",
+          batch:
+            "Expensive list and route repaints are batched behind version keys, while primary position updates can stay immediate.",
+          boundary:
+            "Components receive normalized view models, not raw provider payloads or persistence details.",
         },
       },
-      routeQueue: {
-        title: "Route lookup queue",
-        signal: "Callsign route singleflight",
+      trackingTargets: {
+        title: "Aircraft and airport tracking",
+        signal: "Stable focal anchors",
         body:
-          "Route lookup stays separate from position polling. Callsigns enter a backend queue protected by TTL cache, singleflight de-duplication, and rate limits.",
+          "Tracking a plane or an airport starts by choosing a focal anchor. Nearby traffic, route hints, trace geometry, and sidebar rows derive from that anchor without competing for map focus.",
         flow: {
-          callsign: "Callsign",
-          queue: "Route queue",
-          cache: "TTL cache",
-          route: "Route update",
+          select: "Select target",
+          anchor: "Resolve anchor",
+          context: "Load context",
+          render: "Render map + sidebar",
         },
         details: {
-          key:
-            "The queue keys normalized callsigns with context. Tracking and airport lists can reuse the same route result.",
-          limit:
-            "Concurrency caps, rate limits, and backoff prevent many visible aircraft from stampeding the upstream provider.",
-          cache:
-            "Cache hits return immediately; misses go to the provider. Community corrections and provider results still follow the existing precedence.",
-        },
-      },
-      providerFallback: {
-        title: "Provider fallback",
-        signal: "Provider selection",
-        body:
-          "External feeds are treated as peer candidates. The current source is reused while healthy and replaced only after timeout or failure.",
-        details: {
-          candidates:
-            "The client does not care whether data came from adsb.lol, airplanes.live, or another feed; it receives the same aircraft:update contract.",
-          race:
-            "On cold start or recovery, the service evaluates candidates. The first healthy response becomes the channel source.",
-          winner:
-            "The winner is reused while healthy to reduce map churn. Problems are surfaced as stale or error events instead of making the UI guess.",
+          aircraft:
+            "Aircraft tracking keeps a focused object for the map, sidebar, preview card, and trace head so list refreshes do not steal selection.",
+          airport:
+            "Airport tracking uses the airport center as the stable anchor for traffic, nearby airports, navaids, airspaces, and weather context.",
+          fit:
+            "Map follow, trace fit, and sidebar-aware centering are separate decisions so a route or list update does not unexpectedly recenter the view.",
         },
       },
-      postgresBoundary: {
-        title: "Postgres persistence boundaries",
-        signal: "Slow data and cache boundary",
+      hereMode: {
+        title: "Here mode",
+        signal: "Device-driven map, thresholded sidebar",
         body:
-          "Railway Postgres stores airport augmentation, user state, and reusable slow data. Realtime keeps a clean extension point without leaking cache details into components.",
+          "Here mode is centered on the user's device. GPS position, the current-location marker, and heading remain live, while sidebar place and distance details refresh only after meaningful movement.",
+        flow: {
+          device: "Device sample",
+          map: "Map + marker",
+          sidebar: "Sidebar anchor",
+          status: "Status text",
+        },
         details: {
-          check:
-            "Reads go through route handlers and DAO helpers, so UI does not need to know whether a value came from Postgres, a provider refresh, or static fallback data.",
-          persist:
-            "Records worth keeping are stored in normalized form instead of pushing provider payloads into the display layer.",
-          return:
-            "That boundary lets ADSBao return stable context when an external provider changes shape or goes temporarily unavailable.",
+          device:
+            "Position, GPS accuracy, and compass heading come from the browser's device APIs and keep the map view current.",
+          sidebar:
+            "Reverse geocoding and nearby-distance anchors use a separate thresholded location so small GPS drift does not churn the sidebar.",
+          status:
+            "Nearby visual-traffic text updates with heading changes, but transition motion is keyed to distance changes.",
         },
       },
-      aircraftTrace: {
-        title: "Aircraft tracking and trace",
-        signal: "Selected target state",
+      nearbyListRendering: {
+        title: "Nearby list rendering",
+        signal: "Distance-derived rows",
         body:
-          "The tracking page merges live position, recent trace, route hints, and session state without letting list refreshes reset map focus.",
-        details: {
-          select:
-            "After selection, the sidebar, preview card, and map read from one focused object instead of maintaining separate selected state.",
-          append:
-            "New ADS-B positions update the live marker and append to the visible trace when coherent. Trace updates stay separate from list sorting churn.",
-          persist:
-            "Callsign, icao24, route, and recent points are retained where possible, so the flight remains understandable after refresh or app switching.",
+          "The nearby list turns aircraft and airport payloads into stable rows with computed distances, filtering state, selection state, and motion keys.",
+        flow: {
+          payload: "Payload",
+          derive: "Derived distance",
+          memo: "Row memo",
+          paint: "Virtual paint",
         },
-      },
-      mapOverlays: {
-        title: "Map aviation context",
-        signal: "Runways / airspace / navaids",
-        body:
-          "Airport context is normalized first, then enabled layers enter the map. Geometry, labels, and selection state read from the same context.",
         details: {
-          layers:
-            "The layer drawer resolves the user's active choices first. Disabled layers stay out of both drawing and labeling paths.",
-          project:
-            "Runways, navaids, airspaces, and other shapes are projected against the current view, keeping pan and zoom behavior predictable.",
-          label:
-            "Labels stay attached to source geometry and transition with it, so disabled layers do not leave orphaned names on the map.",
+          distance:
+            "Distances are recomputed against the active focal anchor, so the same aircraft payload can be reused on airport, tracking, and here pages.",
+          virtual:
+            "Large nearby sets render through a virtual list, keeping DOM size bounded while preserving keyboard and selection state.",
+          motion:
+            "Rows compare rendered fields by value and use stable keys, so live updates change the right cells without replaying every row animation.",
         },
       },
     },
@@ -560,7 +544,7 @@ const en = {
     openDetails: "Open detail cards",
     expandDetails: "Expand detail cards",
     fitTrace: "Fit map to trace",
-    zoomLockedFlightAware: "Zoom is locked while using FlightAware fallback",
+    zoomLockedFlightAware: "Zoom is locked while using route fallback",
     approachingView: "Approaching view (click to cycle)",
     viewMenu: "Map range",
     viewMenuTitle: "Map range: {label}",

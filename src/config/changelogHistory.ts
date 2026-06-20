@@ -59,7 +59,7 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
       "/here:显示你周围的飞机、附近机场和空域,跟随你移动自动刷新",
       "侧栏头部按你的实际位置显示城市 / 州 / 国家",
       "拍机入口简化为系统相机 / 相册选择器;地图模板半径约 1 海里",
-      "细节修复 — 预览卡按方向滑入、长机型不再压到 callsign 上、航路只在 FlightAware 时显示",
+      "细节修复 — 预览卡按方向滑入、长机型不再压到 callsign 上、航路只在上下文完整时显示",
     ],
   },
   "v2.0.0": {
@@ -70,7 +70,7 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
       "两步流程 — 先拍照,再套模板 + 分享 / 保存 / 复制",
       "调用系统原生相机或相册",
       "新增「地图」模板 — 以你为中心的 OSM 瓦片,飞机在视野内会叠上去",
-      "feature flag 移除,所有登录用户都能使用",
+      "入口限制移除,所有登录用户都能使用",
     ],
   },
   "v1.13.0": {
@@ -280,12 +280,12 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     version: "v2.22.10",
     kind: "patch",
     title: {
-      en: "Tracking, airspace, and FlightAware patch rollup",
-      zh: "追踪、空域与 FlightAware 补丁汇总",
+      en: "Tracking, airspace, and route patch rollup",
+      zh: "追踪、空域与航路补丁汇总",
     },
     summary: {
-      en: "Tracking, airspace previews, sidebar gestures, FlightAware-backed flows, and photo-location navigation are steadier as a group.",
-      zh: "追踪、空域预览、侧栏手势、FlightAware 相关流程和拍机点导航整体更稳定。",
+      en: "Tracking, airspace previews, sidebar gestures, route lookups, and photo-location navigation are steadier as a group.",
+      zh: "追踪、空域预览、侧栏手势、航路查询和拍机点导航整体更稳定。",
     },
     highlights: [
       {
@@ -297,8 +297,8 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
         zh: "紧凑屏幕上的空域预览和侧栏手势更清晰",
       },
       {
-        en: "FlightAware-backed lookups and photo-location directions behave more predictably",
-        zh: "FlightAware 相关查询和拍机点导航行为更可预期",
+        en: "Route lookups and photo-location directions behave more predictably",
+        zh: "航路查询和拍机点导航行为更可预期",
       },
     ],
   },
@@ -306,21 +306,21 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     version: "v2.22.0",
     kind: "feat",
     title: {
-      en: "Private FlightAware service",
-      zh: "FlightAware 私有服务",
+      en: "Route lookup boundary",
+      zh: "航路查询边界",
     },
     summary: {
-      en: "FlightAware-backed lookups now go through a private Railway service instead of public ADSBao code.",
-      zh: "FlightAware 相关查询现在走私有 Railway 服务，不再由公共 ADSBao 代码直接访问上游。",
+      en: "Route lookup and aircraft metadata flows now go through a protected backend boundary instead of browser-side upstream calls.",
+      zh: "航路查询和飞机元数据现在走受保护的后端边界,不再由浏览器直接访问上游。",
     },
     highlights: [
       {
-        en: "FlightAware-only work now sits behind one private boundary",
-        zh: "FlightAware 专属工作统一放在一个私有边界后",
+        en: "Provider-specific work is isolated behind one backend boundary",
+        zh: "特定来源的工作统一收敛到后端边界",
       },
       {
-        en: "The public app keeps only the feature-gated integration path",
-        zh: "公共应用只保留受功能开关控制的接入路径",
+        en: "The public app keeps a single normalized route and metadata contract",
+        zh: "公共应用只保留归一化后的航路和元数据契约",
       },
     ],
   },
@@ -507,8 +507,8 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
         zh: "地图选择和视野控制减少了意外移动",
       },
       {
-        en: "FlightAware route behavior and static-page chrome were tightened in the same release line",
-        zh: "FlightAware 航路行为和静态页外观也在这一版线中收紧",
+        en: "Route behavior and static-page chrome were tightened in the same release line",
+        zh: "航路行为和静态页外观也在这一版线中收紧",
       },
     ],
   },
@@ -812,7 +812,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       "/here: live aircraft, nearby airports, and airspaces around your current position; auto-refreshes as you move",
       "Sidebar hero shows your actual city / state / country via reverse geocoding",
       "Plane Hunter capture simplified to a native camera / library picker; map template now ~1 NM radius",
-      "Misc UI fixes — preview card slides in directionally, long aircraft types no longer overlap the callsign, route line only appears with FlightAware",
+      "Misc UI fixes — preview card slides in directionally, long aircraft types no longer overlap the callsign, route line only appears when route context is complete",
     ],
   },
   {
@@ -825,7 +825,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       "Two-step flow — shoot the photo, then compose with templates and share / save / copy",
       "Touch devices hand off to the OS camera or photo library",
       "New Maps template centers an OSM tile on your location with the aircraft when it's in view",
-      "Feature flag removed — Plane Hunter is on for every signed-in user",
+      "Entry restriction removed — Plane Hunter is on for every signed-in user",
     ],
   },
   {

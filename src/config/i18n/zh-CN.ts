@@ -111,7 +111,7 @@ const zhCN = {
   mechanism: {
     title: "机制与架构",
     description:
-      "ADSBao 的实时连接、位置获取、航路队列和地图上下文如何协同工作。",
+      "ADSBao 如何协调地图追踪、here 模式、附近列表与实时传递。",
     sidebarLabel: "系统剖面",
     count: "{count} 个条目",
     groups: {
@@ -120,119 +120,103 @@ const zhCN = {
     },
     items: {
       realtimeBackbone: {
-        title: "Realtime data-service",
-        signal: "长连接与共享轮询",
+        title: "WebSocket 实时主干",
+        signal: "一个连接,多个频道",
         body:
-          "浏览器只订阅频道。Railway 上的常驻服务负责 WebSocket、频道管理和外部 ADS-B 轮询,把主动请求从前端移走。",
+          "浏览器只打开一个 WebSocket,按当前视图订阅所需频道,并从常驻数据服务接收归一化更新。",
         flow: {
           browser: "浏览器",
           socket: "WebSocket",
           scheduler: "频道调度",
-          providers: "ADS-B 源",
+          payload: "归一化 payload",
         },
         details: {
           connect:
-            "页面加载后建立一个 WebSocket,订阅当前机场、位置或追踪对象需要的频道。",
+            "页面加载后建立同源连接,机场、here 和追踪视图都通过频道参数描述自己的数据需求。",
           share:
-            "同一个频道只开一个 polling loop。多个用户看同一机场或同一中心点时共享结果。",
+            "同一个频道只保留一条后台轮询路径。多个视图需要同一中心点或同一呼号时共享结果。",
           resume:
-            "断线后客户端自动重连并恢复订阅;短暂切后台只在状态文字里表现为连接恢复,不打断页面。",
+            "断线后客户端恢复订阅,旧 payload 会标记新鲜度,让 UI 能显示连接状态而不重置地图。",
         },
       },
-      positionChannels: {
-        title: "位置获取频道",
-        signal: "机场 / here / 追踪复用",
+      parallelPipelines: {
+        title: "并行数据管线",
+        signal: "独立工作,协同绘制",
         body:
-          "机场、here 和飞机追踪都走归一化后的 traffic 频道。经纬度会网格化,避免每个用户生成唯一频道。",
+          "位置、航路标签、本地上下文、天气和图层独立加载。UI 只在每块数据带着自己的新鲜度和加载状态后合并展示。",
         flow: {
-          view: "视图中心",
-          channel: "traffic channel",
-          poll: "位置轮询",
-          update: "aircraft:update",
+          positions: "位置",
+          routes: "航路标签",
+          context: "本地上下文",
+          ui: "视图模型",
         },
         details: {
-          normalize:
-            "机场用机场锚点,here 和追踪用中心点锚点。中心点按网格取整,半径被限制在安全范围内。",
-          poll:
-            "服务端按频道类型设置间隔、jitter 和错误 backoff,不会让浏览器各自重复打外部 API。",
-          push:
-            "返回 payload 统一包含 type、channel、source、fetchedAt、stale 和 data,前端只处理同一种更新事件。",
+          independent:
+            "一个数据块变慢时不会阻塞其他块。地图可以先画位置,再补齐航路、天气和图层上下文。",
+          batch:
+            "模型层把密集更新批量合并后再交给 React,减少附近列表和地图 marker 的重复渲染。",
+          boundary:
+            "组件只读取归一化后的视图模型,不直接依赖后端轮询、缓存或上游 payload 形状。",
         },
       },
-      routeQueue: {
-        title: "航路查询队列",
-        signal: "呼号路由单飞",
+      trackingTargets: {
+        title: "飞机与机场追踪",
+        signal: "稳定焦点锚点",
         body:
-          "航路查询不跟位置轮询混在一起。呼号先进入后端队列,再经 TTL cache、singleflight 和限速保护后查询 route provider。",
+          "追踪飞机或机场时先确定焦点锚点。附近交通、航路提示、航迹几何和侧栏行都从这个锚点派生,不会互相抢地图焦点。",
         flow: {
-          callsign: "呼号",
-          queue: "route queue",
-          cache: "TTL cache",
-          route: "航路更新",
+          select: "选择目标",
+          anchor: "焦点锚点",
+          context: "附近上下文",
+          render: "地图与侧栏",
         },
         details: {
-          key:
-            "队列以归一化呼号和上下文为 key。追踪航班和机场列表需要同一条航路时会复用同一次结果。",
-          limit:
-            "队列有并发上限、速率限制和错误退避,避免大量可见飞机同时触发上游查询。",
-          cache:
-            "命中缓存时直接返回;未命中才进入 provider 查询。社区修正和 provider 结果会按已有优先级合并。",
-        },
-      },
-      providerFallback: {
-        title: "数据源 fallback",
-        signal: "provider 选择",
-        body:
-          "外部数据源被当作同级候选。当前源健康时保持使用,失败或超时后才切换,保持 UI 契约稳定。",
-        details: {
-          candidates:
-            "客户端不关心 adsb.lol、airplanes.live 或其他源的差异,只看统一后的 aircraft:update。",
-          race:
-            "冷启动或错误恢复时服务端评估候选源。第一个健康响应成为这一路频道的 source。",
-          winner:
-            "胜出源在健康时复用,减少地图数据源抖动。异常时事件会标记 stale 或 error,而不是让 UI 自己猜。",
+          aircraft:
+            "飞机追踪以选中 aircraft 的实时位置和近期航迹为核心,航路和附近列表只补充上下文。",
+          airport:
+            "机场追踪以机场坐标和视图半径为核心,附近飞机、跑道、空域和天气围绕同一锚点刷新。",
+          fit:
+            "地图适配只响应目标、航迹范围或用户显式操作,不会因为侧栏列表重新排序就自动抢视角。",
         },
       },
-      postgresBoundary: {
-        title: "Postgres 持久化边界",
-        signal: "慢数据与缓存",
+      hereMode: {
+        title: "here 模式",
+        signal: "设备驱动地图,阈值刷新侧栏",
         body:
-          "Railway Postgres 保存机场增强资料、用户状态和可复用的慢数据。实时流只留接口,不把缓存细节泄漏到组件。",
+          "here 模式以用户设备为中心。GPS 位置、当前位置标记和朝向实时跟随设备,侧栏区域和距离信息只在有意义移动后刷新。",
+        flow: {
+          device: "设备 GPS",
+          map: "地图视角",
+          sidebar: "区域与距离",
+          status: "状态文字",
+        },
         details: {
-          check:
-            "读取经过 Route Handler 和 DAO helper,UI 不需要知道数据来自数据库、provider 刷新还是静态 fallback。",
-          persist:
-            "值得保留的记录会以归一化形态写入,避免把 provider 原始 payload 推进展示层。",
-          return:
-            "这个边界让 ADSBao 在外部数据源改形或短暂不可用时仍能返回稳定上下文。",
+          device:
+            "设备定位驱动我的位置、GPS 坐标和 heading,手动地图操作不会篡改设备报告的位置。",
+          sidebar:
+            "所在区域和附近飞机距离按移动阈值重新确定,避免轻微 GPS 抖动让侧栏持续重算。",
+          status:
+            "状态文字只在距离语义变化时触发过渡。单纯视角或朝向变化会直接更新,不播放动画。",
         },
       },
-      aircraftTrace: {
-        title: "飞机追踪与航迹",
-        signal: "选中目标状态",
+      nearbyListRendering: {
+        title: "附近列表渲染",
+        signal: "距离派生行",
         body:
-          "追踪页把实时位置、最近航迹、航路提示和会话状态合并,但不让列表刷新直接重置地图焦点。",
-        details: {
-          select:
-            "选择飞机后,侧边栏、预览卡和地图都读取同一个聚焦对象,避免各自维护 selected state。",
-          append:
-            "新的 ADS-B 点位更新实时 marker,足够连贯时追加到可见航迹。航迹与列表排序抖动分开处理。",
-          persist:
-            "呼号、icao24、航路和近期点位会尽量保留,让刷新或切回页面后仍能理解当前追踪对象。",
+          "附近列表把飞机和机场 payload 转成稳定行,包含计算距离、筛选状态、选中状态和动效 key。",
+        flow: {
+          payload: "实时 payload",
+          derive: "距离与排序",
+          memo: "稳定行 key",
+          paint: "列表渲染",
         },
-      },
-      mapOverlays: {
-        title: "地图航空上下文",
-        signal: "跑道 / 空域 / 导航台",
-        body:
-          "机场资料先被归一化,再按用户启用的图层进入地图。几何、标签和选中状态共享同一套上下文。",
         details: {
-          layers:
-            "图层抽屉先解析用户启用项。关闭的图层不会进入绘制或标注路径。",
-          project:
-            "跑道、导航台、空域和其他形状按当前地图视图投影,保证平移和缩放时行为稳定。",
-          label:
-            "标签绑定自己的几何来源并跟随图形切换,不会在关闭图层后留下孤立名称。",
+          distance:
+            "距离是从当前焦点锚点派生的展示字段。距离变化才会让对应状态文案进入动画队列。",
+          virtual:
+            "筛选、排序和可见行先在模型层稳定下来,列表组件只渲染当前窗口需要的行。",
+          motion:
+            "行级动效绑定距离和进入/离开状态,不会因为地图视角或 heading 微调反复重播。",
         },
       },
     },
@@ -551,7 +535,7 @@ const zhCN = {
     openDetails: "打开信息卡",
     expandDetails: "展开信息卡",
     fitTrace: "适配航迹",
-    zoomLockedFlightAware: "FlightAware 兜底时锁定缩放",
+    zoomLockedFlightAware: "航路兜底时锁定缩放",
     approachingView: "进近视图(点击循环)",
     viewMenu: "地图范围",
     viewMenuTitle: "地图范围:{label}",

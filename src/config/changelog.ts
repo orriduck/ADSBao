@@ -48,12 +48,12 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
     version: "v2.22.16",
     kind: "patch",
     title: {
-      en: "Here view steadier sidebar",
-      zh: "我的位置视图侧栏更稳定",
+      en: "Here view and mechanism notes",
+      zh: "我的位置视图与机制说明",
     },
     summary: {
-      en: "The /here map keeps following the device live while sidebar place and distance details refresh on a steadier movement threshold.",
-      zh: "/here 地图继续实时跟随设备,侧栏里的所在区域和距离信息改为按移动阈值刷新。",
+      en: "The /here map keeps following the device live, and the mechanism and architecture notes now explain the current WebSocket, tracking, here-mode, and nearby-list model.",
+      zh: "/here 地图继续实时跟随设备,机制与架构说明也更新为当前 WebSocket、追踪、here 模式和附近列表模型。",
     },
     highlights: [
       {
@@ -67,6 +67,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Visual-traffic text no longer fades just because the viewing direction changes",
         zh: "视距内状态文字不会再因为视角变化而触发淡入淡出",
+      },
+      {
+        en: "The mechanism and architecture pages now focus on WebSocket delivery, parallel pipelines, tracking anchors, here mode, and nearby-list rendering",
+        zh: "机制与架构页现在聚焦 WebSocket 传递、并行管线、追踪锚点、here 模式和附近列表渲染",
       },
     ],
   },
