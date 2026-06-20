@@ -25,8 +25,13 @@ import {
   resolveAircraftLoadingOverlayState,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import {
+  mergeUserLocationHeading,
   resolveUserLocationWatchUpdate,
 } from "@/features/airport/map/userLocationModel";
+import {
+  requestNearMeDeviceOrientationPermission,
+  resolveNearMeDeviceHeading,
+} from "@/features/airport/nearby/nearMeLocationModel";
 import {
   buildUserLocationVisualTraffic,
   getUserLocationVisualTrafficStatusAnimationKey,
@@ -179,6 +184,9 @@ function AirportExplorerContent({
   const [navigationSpotId, setNavigationSpotId] = useState("");
   const userLocationWatchIdRef = useRef<number | null>(null);
   const userLocationRequestIdRef = useRef(0);
+  const userLocationCompassHeadingRef = useRef<number | null>(null);
+  const userLocationCompassPermissionRequestedRef = useRef(false);
+  const userLocationCompassCleanupRef = useRef<(() => void) | null>(null);
   const autoUserLocationAttemptKeyRef = useRef("");
   const spottingPreviousZoomRef = useRef<number | null>(null);
   const airportProfile = useMemo(
@@ -351,19 +359,80 @@ function AirportExplorerContent({
 
   useEffect(() => stopUserLocationWatch, [stopUserLocationWatch]);
 
+  const stopUserLocationCompassHeading = useCallback(() => {
+    userLocationCompassCleanupRef.current?.();
+    userLocationCompassCleanupRef.current = null;
+    userLocationCompassHeadingRef.current = null;
+  }, []);
+
+  const applyUserLocationCompassHeading = useCallback((headingDeg: number) => {
+    userLocationCompassHeadingRef.current = headingDeg;
+    setUserLocation((previous) =>
+      mergeUserLocationHeading(previous, headingDeg),
+    );
+  }, []);
+
+  const startUserLocationCompassHeading = useCallback(() => {
+    if (
+      typeof window === "undefined" ||
+      !window.DeviceOrientationEvent ||
+      userLocationCompassCleanupRef.current
+    ) {
+      return;
+    }
+
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      const headingDeg = resolveNearMeDeviceHeading(event);
+      if (headingDeg != null) applyUserLocationCompassHeading(headingDeg);
+    };
+
+    window.addEventListener("deviceorientation", handleOrientation);
+    window.addEventListener(
+      "deviceorientationabsolute" as keyof WindowEventMap,
+      handleOrientation as EventListener,
+    );
+    userLocationCompassCleanupRef.current = () => {
+      window.removeEventListener("deviceorientation", handleOrientation);
+      window.removeEventListener(
+        "deviceorientationabsolute" as keyof WindowEventMap,
+        handleOrientation as EventListener,
+      );
+      userLocationCompassCleanupRef.current = null;
+    };
+  }, [applyUserLocationCompassHeading]);
+
+  const requestUserLocationCompassHeading = useCallback(() => {
+    startUserLocationCompassHeading();
+    if (userLocationCompassPermissionRequestedRef.current) return;
+    userLocationCompassPermissionRequestedRef.current = true;
+    void requestNearMeDeviceOrientationPermission().then((permission) => {
+      if (permission === "granted") startUserLocationCompassHeading();
+    });
+  }, [startUserLocationCompassHeading]);
+
+  useEffect(
+    () => () => {
+      stopUserLocationCompassHeading();
+    },
+    [stopUserLocationCompassHeading],
+  );
+
   const clearUserLocation = useCallback(() => {
     userLocationRequestIdRef.current += 1;
     stopUserLocationWatch();
+    stopUserLocationCompassHeading();
     setUserLocation(null);
     setUserLocationNotice("");
-  }, [stopUserLocationWatch]);
+  }, [stopUserLocationCompassHeading, stopUserLocationWatch]);
 
   const requestUserLocation = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
+      stopUserLocationCompassHeading();
       setUserLocationNotice(t("map.locationUnavailable"));
       return;
     }
 
+    startUserLocationCompassHeading();
     const requestId = userLocationRequestIdRef.current + 1;
     userLocationRequestIdRef.current = requestId;
     const handlePosition = (position) => {
@@ -380,7 +449,10 @@ function AirportExplorerContent({
         setUserLocationPreferences({
           userLocationEnabled: result.locationEnabled,
         });
-        if (!result.locationEnabled) stopUserLocationWatch();
+        if (!result.locationEnabled) {
+          stopUserLocationWatch();
+          stopUserLocationCompassHeading();
+        }
         setUserLocationNotice(
           result.noticeKey === "tooFar"
             ? t("map.locationTooFar")
@@ -389,7 +461,12 @@ function AirportExplorerContent({
         return;
       }
 
-      setUserLocation(result.location);
+      setUserLocation(
+        mergeUserLocationHeading(
+          result.location,
+          userLocationCompassHeadingRef.current,
+        ),
+      );
       setUserLocationPreferences({
         userLocationEnabled: result.locationEnabled,
       });
@@ -398,6 +475,7 @@ function AirportExplorerContent({
     const handleError = (error) => {
       if (userLocationRequestIdRef.current !== requestId) return;
       stopUserLocationWatch();
+      stopUserLocationCompassHeading();
       setUserLocationPending(false);
       setUserLocationNotice(
         error?.code === error?.PERMISSION_DENIED
@@ -436,6 +514,8 @@ function AirportExplorerContent({
     airportProfile.lat,
     airportProfile.lon,
     setUserLocationPreferences,
+    startUserLocationCompassHeading,
+    stopUserLocationCompassHeading,
     stopUserLocationWatch,
     t,
   ]);
@@ -446,6 +526,7 @@ function AirportExplorerContent({
       if (userLocation) clearUserLocation();
       else {
         stopUserLocationWatch();
+        stopUserLocationCompassHeading();
         setUserLocationNotice("");
       }
       return;
@@ -456,6 +537,7 @@ function AirportExplorerContent({
       if (userLocation) clearUserLocation();
       else {
         stopUserLocationWatch();
+        stopUserLocationCompassHeading();
         setUserLocationNotice("");
       }
       return;
@@ -471,6 +553,7 @@ function AirportExplorerContent({
     clearUserLocation,
     nearMe,
     requestUserLocation,
+    stopUserLocationCompassHeading,
     stopUserLocationWatch,
     userLocation,
     userLocationEnabled,
@@ -498,12 +581,14 @@ function AirportExplorerContent({
       return;
     }
 
+    requestUserLocationCompassHeading();
     requestUserLocation();
   }, [
     clearUserLocation,
     nearMe,
     nearMeMapUserLocation,
     nearMeUserLocationHidden,
+    requestUserLocationCompassHeading,
     requestUserLocation,
     setUserLocationPreferences,
     userLocation,

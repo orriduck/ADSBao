@@ -187,9 +187,9 @@ const en = {
       },
       hereMode: {
         title: "Here mode",
-        signal: "Device-driven map, thresholded sidebar",
+        signal: "Global live marker, thresholded sidebar",
         body:
-          "Here mode is centered on the user's device. GPS position, the current-location marker, and heading remain live, while sidebar place and distance details refresh only after meaningful movement.",
+          "The my-location marker is device-driven anywhere it can be shown. Here mode adds a device-centered camera plus sidebar place and distance details that refresh only after meaningful movement.",
         flow: {
           device: "Device sample",
           map: "Map + marker",
@@ -198,9 +198,9 @@ const en = {
         },
         details: {
           device:
-            "Position, GPS accuracy, and compass heading come from the browser's device APIs and keep the map view current.",
+            "Coordinates, GPS accuracy, and compass heading come from the browser's device APIs and update the visible marker immediately.",
           sidebar:
-            "Reverse geocoding and nearby-distance anchors use a separate thresholded location so small GPS drift does not churn the sidebar.",
+            "Here-mode reverse geocoding and nearby-distance anchors use a separate thresholded location so small GPS drift does not churn the sidebar.",
           status:
             "Nearby visual-traffic text updates with heading changes, but transition motion is keyed to distance changes.",
         },

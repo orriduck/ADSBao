@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 55;
+export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.17",
+    kind: "patch",
+    title: {
+      en: "My-location heading everywhere",
+      zh: "我的位置朝向全局即时更新",
+    },
+    summary: {
+      en: "Any map view that can show my location now keeps the marker coordinates and compass heading live, not only /here.",
+      zh: "任何能显示我的位置的地图视图现在都会即时更新定位点坐标和罗盘朝向,不再只限于 /here。",
+    },
+    highlights: [
+      {
+        en: "Airport maps reuse the same live compass heading path as here mode when my location is visible",
+        zh: "机场地图在显示我的位置时会复用 here 模式同一套实时罗盘朝向",
+      },
+      {
+        en: "GPS coordinate updates still arrive through the existing watchPosition flow",
+        zh: "GPS 坐标更新仍沿用现有 watchPosition 流程",
+      },
+      {
+        en: "Turning my location off now also stops the extra heading listener",
+        zh: "关闭我的位置时也会一起停止额外的朝向监听",
+      },
+    ],
+  },
   {
     version: "v2.22.16",
     kind: "patch",
@@ -175,32 +201,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Nearby visual-traffic status lines use the same here-mode location source",
         zh: "视距内飞机状态行也使用同一份 here 模式位置来源",
-      },
-    ],
-  },
-  {
-    version: "v2.22.11",
-    kind: "patch",
-    title: {
-      en: "Altitude bands and visual traffic polish",
-      zh: "高度分层与视距内飞机状态打磨",
-    },
-    summary: {
-      en: "Sidebar altitude filtering is now multi-select, while my-location traffic status reads more clearly around nearby aircraft.",
-      zh: "侧栏高度筛选改为多选，我的位置周边飞机状态也更清晰。",
-    },
-    highlights: [
-      {
-        en: "Altitude filtering now uses four selectable bands, defaulting to traffic below 20,000 ft",
-        zh: "高度筛选现在使用四个可多选高度层，默认显示 20000 ft 以下飞机",
-      },
-      {
-        en: "The altitude trigger shows all, one selected band, or a multiple-bands state",
-        zh: "高度选项框会显示全部、单个高度层或多个高度层状态",
-      },
-      {
-        en: "My-location heading and visual-traffic status lines are steadier after the previous patch",
-        zh: "上一个补丁中的我的位置航向与视距内飞机状态行更稳定",
       },
     ],
   },

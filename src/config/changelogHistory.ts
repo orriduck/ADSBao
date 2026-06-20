@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.22.11",
+    kind: "patch",
+    title: {
+      en: "Altitude bands and visual traffic polish",
+      zh: "高度分层与视距内飞机状态打磨",
+    },
+    summary: {
+      en: "Sidebar altitude filtering is now multi-select, while my-location traffic status reads more clearly around nearby aircraft.",
+      zh: "侧栏高度筛选改为多选，我的位置周边飞机状态也更清晰。",
+    },
+    highlights: [
+      {
+        en: "Altitude filtering now uses four selectable bands, defaulting to traffic below 20,000 ft",
+        zh: "高度筛选现在使用四个可多选高度层，默认显示 20000 ft 以下飞机",
+      },
+      {
+        en: "The altitude trigger shows all, one selected band, or a multiple-bands state",
+        zh: "高度选项框会显示全部、单个高度层或多个高度层状态",
+      },
+      {
+        en: "My-location heading and visual-traffic status lines are steadier after the previous patch",
+        zh: "上一个补丁中的我的位置航向与视距内飞机状态行更稳定",
+      },
+    ],
+  },
+  {
     version: "v2.22.10",
     kind: "patch",
     title: {

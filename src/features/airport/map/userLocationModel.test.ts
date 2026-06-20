@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  mergeUserLocationHeading,
   resolveUserLocationWatchUpdate,
 } from "./userLocationModel";
 
@@ -73,6 +74,37 @@ const KBOS = { lat: 42.3656, lon: -71.0096 };
   assert.equal(result.mode, "off");
   assert.equal(result.noticeKey, "unavailable");
   assert.equal(result.locationEnabled, false);
+}
+
+{
+  const location = {
+    lat: 42.36,
+    lon: -71.01,
+    accuracyMeters: 18,
+    headingDeg: null,
+    updatedAt: 1,
+  };
+  const result = mergeUserLocationHeading(location, 725, 2);
+
+  assert.notEqual(result, location);
+  assert.equal(result?.lat, location.lat);
+  assert.equal(result?.lon, location.lon);
+  assert.equal(result?.headingDeg, 5);
+  assert.equal(result?.updatedAt, 2);
+}
+
+{
+  const location = {
+    lat: 42.36,
+    lon: -71.01,
+    accuracyMeters: 18,
+    headingDeg: 5,
+    updatedAt: 1,
+  };
+
+  assert.equal(mergeUserLocationHeading(location, 365, 2), location);
+  assert.equal(mergeUserLocationHeading(location, -1, 2), location);
+  assert.equal(mergeUserLocationHeading(null, 90, 2), null);
 }
 
 console.log("userLocationModel.test.ts ok");

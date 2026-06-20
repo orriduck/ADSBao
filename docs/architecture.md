@@ -81,11 +81,13 @@ Nearby traffic, route labels, trace geometry, and sidebar rows are then derived
 from that anchor. A sidebar reorder should not move the map; only target changes,
 trace extent changes, or explicit user actions should refit the viewport.
 
-Here mode uses the device as the anchor. GPS coordinates, the current-location
-marker, and heading follow device updates directly. The sidebar's area label and
-nearby-aircraft distances are recomputed only after meaningful movement so small
-GPS changes do not continually rebuild nearby context. Status text transitions
-are tied to distance semantics, not camera or heading changes.
+Any visible current-location marker uses the device as its live source. GPS
+coordinates and compass heading update the marker directly wherever that layer is
+available. Here mode additionally uses the device as the map anchor. The
+sidebar's area label and nearby-aircraft distances are recomputed only after
+meaningful movement so small GPS changes do not continually rebuild nearby
+context. Status text transitions are tied to distance semantics, not camera or
+heading changes.
 
 ## Nearby List Rendering
 

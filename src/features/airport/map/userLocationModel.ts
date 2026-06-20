@@ -16,6 +16,14 @@ type UserLocationCoords = {
   heading?: unknown;
 };
 
+export type UserLocationRecord = {
+  lat: number;
+  lon: number;
+  accuracyMeters: number | null;
+  headingDeg: number | null;
+  updatedAt: number;
+};
+
 type ResolveUserLocationRequestOptions = {
   coords?: UserLocationCoords | null;
   focalLat?: unknown;
@@ -108,5 +116,21 @@ export function resolveUserLocationWatchUpdate({
     mode: USER_LOCATION_MODES.LOCATION,
     noticeKey: "",
     locationEnabled: true,
+  };
+}
+
+export function mergeUserLocationHeading(
+  location: UserLocationRecord | null,
+  headingDeg: unknown,
+  updatedAt = Date.now(),
+) {
+  const normalizedHeadingDeg = normalizeHeadingDeg(headingDeg);
+  if (!location || normalizedHeadingDeg == null) return location;
+  if (location.headingDeg === normalizedHeadingDeg) return location;
+
+  return {
+    ...location,
+    headingDeg: normalizedHeadingDeg,
+    updatedAt,
   };
 }
