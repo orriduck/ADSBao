@@ -187,9 +187,9 @@ const en = {
       },
       hereMode: {
         title: "Here mode",
-        signal: "Global live marker, thresholded sidebar",
+        signal: "Own permissions, thresholded sidebar",
         body:
-          "The my-location marker is device-driven anywhere it can be shown. Here mode adds a device-centered camera plus sidebar place and distance details that refresh only after meaningful movement.",
+          "Here mode always requests location and compass for its device-centered view without reading or saving the map setting. Detail pages use that setting before they request my location.",
         flow: {
           device: "Device sample",
           map: "Map + marker",
@@ -198,11 +198,11 @@ const en = {
         },
         details: {
           device:
-            "Coordinates, GPS accuracy, and compass heading come from the browser's device APIs and update the visible marker immediately.",
+            "Coordinates, GPS accuracy, and compass heading come from the browser's device APIs and update any visible marker immediately.",
           sidebar:
             "Here-mode reverse geocoding and nearby-distance anchors use a separate thresholded location so small GPS drift does not churn the sidebar.",
           status:
-            "Nearby visual-traffic text updates with heading changes, but transition motion is keyed to distance changes.",
+            "Airport and flight detail pages wait for hydrated map settings; turning my location on starts the location and compass request.",
         },
       },
       nearbyListRendering: {

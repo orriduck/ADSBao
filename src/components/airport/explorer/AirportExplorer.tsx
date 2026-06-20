@@ -25,19 +25,12 @@ import {
   resolveAircraftLoadingOverlayState,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import {
-  mergeUserLocationHeading,
-  resolveUserLocationWatchUpdate,
-} from "@/features/airport/map/userLocationModel";
-import {
-  requestNearMeDeviceOrientationPermission,
-  resolveNearMeDeviceHeading,
-} from "@/features/airport/nearby/nearMeLocationModel";
-import {
   buildUserLocationVisualTraffic,
   getUserLocationVisualTrafficStatusAnimationKey,
   getUserLocationVisualTrafficStatusLineKey,
   type UserLocationVisualTrafficItem,
 } from "@/features/airport/map/userLocationVisualTrafficModel";
+import { useUserLocationLayer } from "@/hooks/useUserLocationLayer";
 import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandidateWatchingSpots";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useWakeLock } from "@/hooks/useWakeLock";
@@ -146,6 +139,7 @@ function AirportExplorerContent({
     showCandidateWatchingSpots,
     showCallsigns,
     mapSettings,
+    mapSettingsReadyForUserLocation,
     userLocationEnabled,
     trafficFilter,
     typeFilter,
@@ -176,23 +170,23 @@ function AirportExplorerContent({
     applyMapMode,
     setUserLocationPreferences,
   } = useExplorerUi();
-  const [userLocation, setUserLocation] = useState(null);
   const [nearMeUserLocationHidden, setNearMeUserLocationHidden] = useState(false);
   const [wakeLockState, toggleWakeLock] = useWakeLock();
-  const [userLocationPending, setUserLocationPending] = useState(false);
-  const [userLocationNotice, setUserLocationNotice] = useState("");
   const [navigationSpotId, setNavigationSpotId] = useState("");
-  const userLocationWatchIdRef = useRef<number | null>(null);
-  const userLocationRequestIdRef = useRef(0);
-  const userLocationCompassHeadingRef = useRef<number | null>(null);
-  const userLocationCompassPermissionRequestedRef = useRef(false);
-  const userLocationCompassCleanupRef = useRef<(() => void) | null>(null);
-  const autoUserLocationAttemptKeyRef = useRef("");
   const spottingPreviousZoomRef = useRef<number | null>(null);
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
   );
+  const userLocationLayer = useUserLocationLayer({
+    enabled: !nearMe,
+    focalLat: airportProfile.lat,
+    focalLon: airportProfile.lon,
+    mapSettingsHydrated: mapSettingsReadyForUserLocation,
+    userLocationEnabled,
+    setUserLocationPreferences,
+    t,
+  });
   const nearMeMapUserLocation = useMemo(() => {
     if (!nearMe || nearMeUserLocationHidden) return null;
     return normalizeNearMeLocation(nearMeUserLocation);
@@ -216,7 +210,8 @@ function AirportExplorerContent({
   const { weather, traffic } = useAirportExplorerData(airportProfile, {
     metarIcao,
   });
-  const effectiveUserLocation = userLocation || nearMeMapUserLocation;
+  const effectiveUserLocation =
+    (nearMe ? null : userLocationLayer.userLocation) || nearMeMapUserLocation;
   const userLocationActive = Boolean(effectiveUserLocation);
   const userLocationVisualTraffic = useMemo(
     () =>
@@ -336,263 +331,25 @@ function AirportExplorerContent({
     if (navigationSpotId && !navigationSpot) setNavigationSpotId("");
   }, [navigationSpot, navigationSpotId]);
 
-  useEffect(() => {
-    if (!userLocationNotice) return undefined;
-    const timer = window.setTimeout(() => setUserLocationNotice(""), 3400);
-    return () => window.clearTimeout(timer);
-  }, [userLocationNotice]);
-
-  const stopUserLocationWatch = useCallback(() => {
-    if (
-      userLocationWatchIdRef.current == null ||
-      typeof navigator === "undefined" ||
-      !navigator.geolocation ||
-      typeof navigator.geolocation.clearWatch !== "function"
-    ) {
-      userLocationWatchIdRef.current = null;
-      return;
-    }
-
-    navigator.geolocation.clearWatch(userLocationWatchIdRef.current);
-    userLocationWatchIdRef.current = null;
-  }, []);
-
-  useEffect(() => stopUserLocationWatch, [stopUserLocationWatch]);
-
-  const stopUserLocationCompassHeading = useCallback(() => {
-    userLocationCompassCleanupRef.current?.();
-    userLocationCompassCleanupRef.current = null;
-    userLocationCompassHeadingRef.current = null;
-  }, []);
-
-  const applyUserLocationCompassHeading = useCallback((headingDeg: number) => {
-    userLocationCompassHeadingRef.current = headingDeg;
-    setUserLocation((previous) =>
-      mergeUserLocationHeading(previous, headingDeg),
-    );
-  }, []);
-
-  const startUserLocationCompassHeading = useCallback(() => {
-    if (
-      typeof window === "undefined" ||
-      !window.DeviceOrientationEvent ||
-      userLocationCompassCleanupRef.current
-    ) {
-      return;
-    }
-
-    const handleOrientation = (event: DeviceOrientationEvent) => {
-      const headingDeg = resolveNearMeDeviceHeading(event);
-      if (headingDeg != null) applyUserLocationCompassHeading(headingDeg);
-    };
-
-    window.addEventListener("deviceorientation", handleOrientation);
-    window.addEventListener(
-      "deviceorientationabsolute" as keyof WindowEventMap,
-      handleOrientation as EventListener,
-    );
-    userLocationCompassCleanupRef.current = () => {
-      window.removeEventListener("deviceorientation", handleOrientation);
-      window.removeEventListener(
-        "deviceorientationabsolute" as keyof WindowEventMap,
-        handleOrientation as EventListener,
-      );
-      userLocationCompassCleanupRef.current = null;
-    };
-  }, [applyUserLocationCompassHeading]);
-
-  const requestUserLocationCompassHeading = useCallback(() => {
-    startUserLocationCompassHeading();
-    if (userLocationCompassPermissionRequestedRef.current) return;
-    userLocationCompassPermissionRequestedRef.current = true;
-    void requestNearMeDeviceOrientationPermission().then((permission) => {
-      if (permission === "granted") startUserLocationCompassHeading();
-    });
-  }, [startUserLocationCompassHeading]);
-
-  useEffect(
-    () => () => {
-      stopUserLocationCompassHeading();
-    },
-    [stopUserLocationCompassHeading],
-  );
-
-  const clearUserLocation = useCallback(() => {
-    userLocationRequestIdRef.current += 1;
-    stopUserLocationWatch();
-    stopUserLocationCompassHeading();
-    setUserLocation(null);
-    setUserLocationNotice("");
-  }, [stopUserLocationCompassHeading, stopUserLocationWatch]);
-
-  const requestUserLocation = useCallback(() => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      stopUserLocationCompassHeading();
-      setUserLocationNotice(t("map.locationUnavailable"));
-      return;
-    }
-
-    startUserLocationCompassHeading();
-    const requestId = userLocationRequestIdRef.current + 1;
-    userLocationRequestIdRef.current = requestId;
-    const handlePosition = (position) => {
-      if (userLocationRequestIdRef.current !== requestId) return;
-      setUserLocationPending(false);
-      const result = resolveUserLocationWatchUpdate({
-        coords: position.coords,
-        focalLat: airportProfile.lat,
-        focalLon: airportProfile.lon,
-      });
-
-      if (!result.location) {
-        setUserLocation(null);
-        setUserLocationPreferences({
-          userLocationEnabled: result.locationEnabled,
-        });
-        if (!result.locationEnabled) {
-          stopUserLocationWatch();
-          stopUserLocationCompassHeading();
-        }
-        setUserLocationNotice(
-          result.noticeKey === "tooFar"
-            ? t("map.locationTooFar")
-            : t("map.locationUnavailable"),
-        );
-        return;
-      }
-
-      setUserLocation(
-        mergeUserLocationHeading(
-          result.location,
-          userLocationCompassHeadingRef.current,
-        ),
-      );
-      setUserLocationPreferences({
-        userLocationEnabled: result.locationEnabled,
-      });
-      setUserLocationNotice("");
-    };
-    const handleError = (error) => {
-      if (userLocationRequestIdRef.current !== requestId) return;
-      stopUserLocationWatch();
-      stopUserLocationCompassHeading();
-      setUserLocationPending(false);
-      setUserLocationNotice(
-        error?.code === error?.PERMISSION_DENIED
-          ? t("map.locationDenied")
-          : t("map.locationUnavailable"),
-      );
-    };
-    const locationOptions = {
-      enableHighAccuracy: true,
-      timeout: 10_000,
-      maximumAge: 0,
-    };
-
-    setUserLocationPending(true);
-    stopUserLocationWatch();
-    if (typeof navigator.geolocation.watchPosition === "function") {
-      userLocationWatchIdRef.current = navigator.geolocation.watchPosition(
-        handlePosition,
-        handleError,
-        locationOptions,
-      );
-      navigator.geolocation.getCurrentPosition(
-        handlePosition,
-        handleError,
-        locationOptions,
-      );
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      handlePosition,
-      handleError,
-      locationOptions,
-    );
-  }, [
-    airportProfile.lat,
-    airportProfile.lon,
-    setUserLocationPreferences,
-    startUserLocationCompassHeading,
-    stopUserLocationCompassHeading,
-    stopUserLocationWatch,
-    t,
-  ]);
-
-  useEffect(() => {
-    if (nearMe) {
-      autoUserLocationAttemptKeyRef.current = "";
-      if (userLocation) clearUserLocation();
-      else {
-        stopUserLocationWatch();
-        stopUserLocationCompassHeading();
-        setUserLocationNotice("");
-      }
-      return;
-    }
-
-    if (!userLocationEnabled) {
-      autoUserLocationAttemptKeyRef.current = "";
-      if (userLocation) clearUserLocation();
-      else {
-        stopUserLocationWatch();
-        stopUserLocationCompassHeading();
-        setUserLocationNotice("");
-      }
-      return;
-    }
-
-    if (userLocation || userLocationPending) return;
-    const attemptKey = airportProfile.icao;
-    if (autoUserLocationAttemptKeyRef.current === attemptKey) return;
-    autoUserLocationAttemptKeyRef.current = attemptKey;
-    requestUserLocation();
-  }, [
-    airportProfile.icao,
-    clearUserLocation,
-    nearMe,
-    requestUserLocation,
-    stopUserLocationCompassHeading,
-    stopUserLocationWatch,
-    userLocation,
-    userLocationEnabled,
-    userLocationPending,
-  ]);
-
   const toggleUserLocation = useCallback(() => {
-    if (nearMe && nearMeMapUserLocation && !userLocation) {
+    if (nearMe && nearMeMapUserLocation && !userLocationLayer.userLocation) {
       setNearMeUserLocationHidden(true);
-      setUserLocationNotice("");
       return;
     }
 
-    if (nearMe && nearMeUserLocationHidden && !userLocation) {
+    if (nearMe && nearMeUserLocationHidden && !userLocationLayer.userLocation) {
       setNearMeUserLocationHidden(false);
-      setUserLocationNotice("");
       return;
     }
 
-    if (userLocation || userLocationEnabled) {
-      setUserLocationPreferences({
-        userLocationEnabled: false,
-      });
-      clearUserLocation();
-      return;
-    }
+    if (nearMe) return;
 
-    requestUserLocationCompassHeading();
-    requestUserLocation();
+    userLocationLayer.toggleUserLocation();
   }, [
-    clearUserLocation,
     nearMe,
     nearMeMapUserLocation,
     nearMeUserLocationHidden,
-    requestUserLocationCompassHeading,
-    requestUserLocation,
-    setUserLocationPreferences,
-    userLocation,
-    userLocationEnabled,
+    userLocationLayer,
   ]);
 
   const openSpottingDetail = useCallback((activeView = "") => {
@@ -671,9 +428,9 @@ function AirportExplorerContent({
     onToggleWakeLock: toggleWakeLock,
     userLocationActive: nearMe
       ? userLocationActive
-      : userLocationEnabled || userLocationActive,
-    userLocationPending,
-    userLocationNotice,
+      : userLocationLayer.userLocationActive,
+    userLocationPending: nearMe ? false : userLocationLayer.userLocationPending,
+    userLocationNotice: nearMe ? "" : userLocationLayer.userLocationNotice,
     onToggleUserLocation: toggleUserLocation,
   };
   const sidebarFocusLat = nearMe

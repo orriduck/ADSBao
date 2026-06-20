@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 56;
+export const CHANGELOG_TOTAL_COUNT = 57;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.18",
+    kind: "patch",
+    title: {
+      en: "Location permission flow cleanup",
+      zh: "位置权限流程整理",
+    },
+    summary: {
+      en: "Here mode now owns its location and compass prompt directly, while airport and flight detail maps wait for saved map settings before requesting my location.",
+      zh: "here 模式现在自己请求位置和罗盘,机场与飞机详情地图会先等地图设置,只有我的位置开启后才请求定位。",
+    },
+    highlights: [
+      {
+        en: "Entering /here requests location and compass without reading or saving the map setting",
+        zh: "进入 /here 会请求位置和罗盘,不读取也不保存地图里的我的位置设置",
+      },
+      {
+        en: "Airport and flight detail pages request location only after hydrated settings enable the layer",
+        zh: "机场和飞机详情页只会在设置加载完成且我的位置开启后请求定位",
+      },
+      {
+        en: "Turning my location on from map settings immediately saves the setting and starts the location plus compass request",
+        zh: "在地图设置里打开我的位置会立即保存设置,并开始请求定位和罗盘",
+      },
+    ],
+  },
   {
     version: "v2.22.17",
     kind: "patch",
@@ -175,32 +201,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The here-mode location refresh logic is covered by focused tests",
         zh: "here 模式的位置刷新逻辑已补上聚焦测试",
-      },
-    ],
-  },
-  {
-    version: "v2.22.12",
-    kind: "patch",
-    title: {
-      en: "Here view location marker fix",
-      zh: "我的位置视图定位点修正",
-    },
-    summary: {
-      en: "The /here view now shows its own current-location marker and heading independently of the map settings layer.",
-      zh: "/here 现在会独立显示自己的当前位置点和朝向,不再依赖地图设置里的位置图层。",
-    },
-    highlights: [
-      {
-        en: "Here mode uses the location it already requested as the map marker source",
-        zh: "here 模式直接使用自己已获取的位置作为地图定位点来源",
-      },
-      {
-        en: "The map settings user-location toggle no longer decides whether /here shows the user marker",
-        zh: "地图设置里的我的位置开关不再决定 /here 是否显示自己的定位点",
-      },
-      {
-        en: "Nearby visual-traffic status lines use the same here-mode location source",
-        zh: "视距内飞机状态行也使用同一份 here 模式位置来源",
       },
     ],
   },

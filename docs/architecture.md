@@ -81,13 +81,16 @@ Nearby traffic, route labels, trace geometry, and sidebar rows are then derived
 from that anchor. A sidebar reorder should not move the map; only target changes,
 trace extent changes, or explicit user actions should refit the viewport.
 
-Any visible current-location marker uses the device as its live source. GPS
-coordinates and compass heading update the marker directly wherever that layer is
-available. Here mode additionally uses the device as the map anchor. The
-sidebar's area label and nearby-aircraft distances are recomputed only after
-meaningful movement so small GPS changes do not continually rebuild nearby
-context. Status text transitions are tied to distance semantics, not camera or
-heading changes.
+Here mode owns its location and compass permission flow directly: entering the
+view requests both for the device-centered map and does not read or save the
+map-setting location layer. Airport and flight detail pages use the hydrated map
+setting first. When that layer is enabled, they request location and compass and
+update the visible marker from device coordinates and heading; when it is off,
+they do not show or request the marker until the user enables it in map settings.
+Here-mode sidebar place labels and nearby-aircraft distances are still
+recomputed only after meaningful movement so small GPS changes do not continually
+rebuild nearby context. Status text transitions are tied to distance semantics,
+not camera or heading changes.
 
 ## Nearby List Rendering
 

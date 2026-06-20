@@ -59,6 +59,8 @@ import {
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard";
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
+import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useUserLocationLayer } from "@/hooks/useUserLocationLayer";
 
 const FlightAwareRouteArc = lazy(() => import("@/components/map/FlightAwareRouteArc"));
 const MapFitToTraceController = lazy(() => import("@/components/map/MapFitToTraceController"));
@@ -78,6 +80,7 @@ export default function FlightExplorer({ callsign = "" }) {
 
 function FlightExplorerContent({ callsign }) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const {
     enabled: flightAwareEnabled,
     resolved: flightAwareResolved,
@@ -95,6 +98,8 @@ function FlightExplorerContent({ callsign }) {
     showNavaidMarkers,
     showAirspaces,
     mapSettings,
+    mapSettingsReadyForUserLocation,
+    userLocationEnabled,
     trafficFilter,
     typeFilter,
     altitudeLevel,
@@ -114,6 +119,7 @@ function FlightExplorerContent({ callsign }) {
     collapseSidebar,
     expandSidebar,
     toggleMapLabels,
+    setUserLocationPreferences,
     fitToTrace,
     suspendMapFollow,
     mapFollowsAircraft,
@@ -360,6 +366,14 @@ function FlightExplorerContent({ callsign }) {
   );
   const contextLat = contextPosition?.lat ?? null;
   const contextLon = contextPosition?.lon ?? null;
+  const userLocationLayer = useUserLocationLayer({
+    focalLat,
+    focalLon,
+    mapSettingsHydrated: mapSettingsReadyForUserLocation,
+    userLocationEnabled,
+    setUserLocationPreferences,
+    t,
+  });
   const flightDisplayContext: Record<string, any> = useMemo(
     () =>
       resolveFlightTrackingDisplayContext({
@@ -807,6 +821,10 @@ function FlightExplorerContent({ callsign }) {
     wakeLockState,
     onToggleWakeLock: toggleWakeLock,
     zoomDisabled: flightDisplayContext.zoomDisabled,
+    userLocationActive: userLocationLayer.userLocationActive,
+    userLocationPending: userLocationLayer.userLocationPending,
+    userLocationNotice: userLocationLayer.userLocationNotice,
+    onToggleUserLocation: userLocationLayer.toggleUserLocation,
   };
   const mobileSidebarToolbar = (
     <ExplorerMapMenu
@@ -968,6 +986,7 @@ function FlightExplorerContent({ callsign }) {
               loadingOverlayVariant="flight"
               loadingOverlayCallsign={callsign}
               loadingOverlaySources={loadingOverlaySources}
+              userLocation={userLocationLayer.userLocation}
             >
               <FlightAwareRouteArc path={focalRoutePath} />
               <MapFitToTraceController

@@ -478,8 +478,11 @@ export function ExplorerUiProvider({ children }) {
   const { getToken } = useAuth();
   const hasHydratedMapSettingsRef = useRef(false);
   const pendingMapSettingsHydrationRef = useRef(null);
+  const pendingAccountMapSettingsHydrationRef = useRef(false);
   const persistedMapSettingsSignatureRef = useRef("");
   const [mapSettingsHydrated, setMapSettingsHydrated] = useState(false);
+  const [accountMapSettingsHydrated, setAccountMapSettingsHydrated] =
+    useState(false);
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
   const [mapSettingsSaveStatusCode, setMapSettingsSaveStatusCode] = useState<number | null>(null);
   const [mapSettingsSaveCycle, setMapSettingsSaveCycle] = useState(0);
@@ -536,16 +539,24 @@ export function ExplorerUiProvider({ children }) {
   const isMobile = clientDeviceLayout.isMobileLayout;
   const mapSettingsDevice =
     resolveMapSettingsDeviceForClientDeviceProfile(clientDeviceProfile);
-  const queueMapSettingsHydration = useCallback((settings) => {
-    const normalizedSettings = normalizeMapSettings(settings);
-    pendingMapSettingsHydrationRef.current = normalizedSettings;
-    hasHydratedMapSettingsRef.current = false;
-    setMapSettingsHydrated(false);
-    dispatch({
-      type: "hydrateMapSettings",
-      settings: normalizedSettings,
-    });
-  }, []);
+  const queueMapSettingsHydration = useCallback(
+    (settings, options: { accountHydration?: boolean } = {}) => {
+      const normalizedSettings = normalizeMapSettings(settings);
+      pendingMapSettingsHydrationRef.current = normalizedSettings;
+      pendingAccountMapSettingsHydrationRef.current =
+        options?.accountHydration === true;
+      if (options?.accountHydration !== true) {
+        setAccountMapSettingsHydrated(false);
+      }
+      hasHydratedMapSettingsRef.current = false;
+      setMapSettingsHydrated(false);
+      dispatch({
+        type: "hydrateMapSettings",
+        settings: normalizedSettings,
+      });
+    },
+    [],
+  );
   const buildClerkAuthHeaders = useCallback(async () => {
     const token = await getToken?.().catch(() => "");
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -613,12 +624,16 @@ export function ExplorerUiProvider({ children }) {
       authLoaded: isLoaded,
       signedIn: isSignedIn,
     });
-    if (!targets.readDatabase) return undefined;
+    if (!targets.readDatabase) {
+      setAccountMapSettingsHydrated(false);
+      return undefined;
+    }
 
     let cancelled = false;
 
     const hydrateUserMapSettings = async () => {
       hasHydratedMapSettingsRef.current = false;
+      setAccountMapSettingsHydrated(false);
       setMapSettingsSaveStatus("idle");
       const cachedSettings = targets.readCache
         ? readStoredMapSettings(mapSettingsDevice)
@@ -647,7 +662,9 @@ export function ExplorerUiProvider({ children }) {
         cachedSettings,
       });
       if (hydratedSettings.settings) {
-        queueMapSettingsHydration(hydratedSettings.settings);
+        queueMapSettingsHydration(hydratedSettings.settings, {
+          accountHydration: true,
+        });
         if (hydratedSettings.source === "user" && targets.writeCache) {
           writeStoredMapSettings(hydratedSettings.settings, mapSettingsDevice);
         }
@@ -660,6 +677,7 @@ export function ExplorerUiProvider({ children }) {
       persistedMapSettingsSignatureRef.current =
         serializeMapSettingsPersistenceSignature(effectiveSettings);
       hasHydratedMapSettingsRef.current = true;
+      setAccountMapSettingsHydrated(true);
       if (!cancelled) setMapSettingsHydrated(true);
     };
 
@@ -685,10 +703,14 @@ export function ExplorerUiProvider({ children }) {
       return undefined;
     }
     if (hydrationCommit.committed) {
+      const accountHydrationCommitted =
+        pendingAccountMapSettingsHydrationRef.current;
       pendingMapSettingsHydrationRef.current = null;
+      pendingAccountMapSettingsHydrationRef.current = false;
       persistedMapSettingsSignatureRef.current =
         serializeMapSettingsPersistenceSignature(mapSettings);
       hasHydratedMapSettingsRef.current = true;
+      if (accountHydrationCommitted) setAccountMapSettingsHydrated(true);
       setMapSettingsHydrated(true);
       return undefined;
     }
@@ -930,6 +952,10 @@ export function ExplorerUiProvider({ children }) {
 
   const fitToTraceSignal = state.fitToTraceSignal;
   const mapFollowsAircraft = state.mapFollowsAircraft;
+  const mapSettingsReadyForUserLocation =
+    mapSettingsHydrated &&
+    isLoaded &&
+    (isSignedIn ? accountMapSettingsHydrated : true);
   const value = useMemo(
     () => ({
       desktopSidebarWidth: AIRPORT_EXPLORER_UI_CONFIG.desktopSidebarWidth,
@@ -952,6 +978,7 @@ export function ExplorerUiProvider({ children }) {
       mapSettings,
       mapSettingsDevice,
       mapSettingsHydrated,
+      mapSettingsReadyForUserLocation,
       mapSettingsSaveStatus,
       mapSettingsSaveStatusCode,
       mapSettingsSaveCycle,
@@ -1021,6 +1048,7 @@ export function ExplorerUiProvider({ children }) {
       mapSettings,
       mapSettingsDevice,
       mapSettingsHydrated,
+      mapSettingsReadyForUserLocation,
       mapSettingsSaveStatus,
       mapSettingsSaveStatusCode,
       mapSettingsSaveCycle,

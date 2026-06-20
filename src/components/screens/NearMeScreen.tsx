@@ -187,7 +187,7 @@ export default function NearMeScreen() {
   }, [requestCompassHeading, requestLocation]);
 
   useEffect(() => {
-    startCompassHeading();
+    requestCompassHeading();
     requestLocation();
     return () => {
       if (watchIdRef.current != null && typeof navigator !== "undefined" && typeof navigator.geolocation?.clearWatch === "function") {
@@ -196,7 +196,7 @@ export default function NearMeScreen() {
       }
       compassCleanupRef.current?.();
     };
-  }, [requestLocation, startCompassHeading]);
+  }, [requestCompassHeading, requestLocation]);
 
   const airport = useMemo(
     () =>

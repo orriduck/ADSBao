@@ -134,3 +134,15 @@ export function mergeUserLocationHeading(
     updatedAt,
   };
 }
+
+export function shouldAutoRequestUserLocationLayer({
+  nearMe = false,
+  mapSettingsHydrated = false,
+  userLocationEnabled = false,
+} = {}) {
+  return (
+    nearMe !== true &&
+    mapSettingsHydrated === true &&
+    userLocationEnabled === true
+  );
+}

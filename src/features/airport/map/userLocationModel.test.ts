@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   mergeUserLocationHeading,
   resolveUserLocationWatchUpdate,
+  shouldAutoRequestUserLocationLayer,
 } from "./userLocationModel";
 
 const KBOS = { lat: 42.3656, lon: -71.0096 };
@@ -105,6 +106,45 @@ const KBOS = { lat: 42.3656, lon: -71.0096 };
   assert.equal(mergeUserLocationHeading(location, 365, 2), location);
   assert.equal(mergeUserLocationHeading(location, -1, 2), location);
   assert.equal(mergeUserLocationHeading(null, 90, 2), null);
+}
+
+{
+  assert.equal(
+    shouldAutoRequestUserLocationLayer({
+      nearMe: true,
+      mapSettingsHydrated: true,
+      userLocationEnabled: true,
+    }),
+    false,
+    "here mode should not use saved map settings to start user-location requests",
+  );
+  assert.equal(
+    shouldAutoRequestUserLocationLayer({
+      nearMe: false,
+      mapSettingsHydrated: false,
+      userLocationEnabled: true,
+    }),
+    false,
+    "detail pages should wait for map settings hydration before requesting location",
+  );
+  assert.equal(
+    shouldAutoRequestUserLocationLayer({
+      nearMe: false,
+      mapSettingsHydrated: true,
+      userLocationEnabled: false,
+    }),
+    false,
+    "detail pages should not request location when the saved location layer is off",
+  );
+  assert.equal(
+    shouldAutoRequestUserLocationLayer({
+      nearMe: false,
+      mapSettingsHydrated: true,
+      userLocationEnabled: true,
+    }),
+    true,
+    "detail pages should request location after hydrated settings enable the layer",
+  );
 }
 
 console.log("userLocationModel.test.ts ok");

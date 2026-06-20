@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.22.12",
+    kind: "patch",
+    title: {
+      en: "Here view location marker fix",
+      zh: "我的位置视图定位点修正",
+    },
+    summary: {
+      en: "The /here view now shows its own current-location marker and heading independently of the map settings layer.",
+      zh: "/here 现在会独立显示自己的当前位置点和朝向,不再依赖地图设置里的位置图层。",
+    },
+    highlights: [
+      {
+        en: "Here mode uses the location it already requested as the map marker source",
+        zh: "here 模式直接使用自己已获取的位置作为地图定位点来源",
+      },
+      {
+        en: "The map settings user-location toggle no longer decides whether /here shows the user marker",
+        zh: "地图设置里的我的位置开关不再决定 /here 是否显示自己的定位点",
+      },
+      {
+        en: "Nearby visual-traffic status lines use the same here-mode location source",
+        zh: "视距内飞机状态行也使用同一份 here 模式位置来源",
+      },
+    ],
+  },
+  {
     version: "v2.22.11",
     kind: "patch",
     title: {
