@@ -40,9 +40,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 106;
+export const CHANGELOG_TOTAL_COUNT = 107;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.8",
+    kind: "patch",
+    title: {
+      en: "OpenAIP airspace access metadata",
+      zh: "OpenAIP 空域准入信息",
+    },
+    summary: {
+      en: "Airport airspace previews now preserve OpenAIP class, vertical limits, and access status from the data-service payload.",
+      zh: "机场空域预览现在会保留 data-service payload 中的 OpenAIP 等级、高度范围和准入状态。",
+    },
+    highlights: [
+      {
+        en: "Class B/C/D/E airspaces now display as controlled airspace instead of falling back to status unknown",
+        zh: "B/C/D/E 类空域现在显示为管制空域，不再回退成状态未明",
+      },
+      {
+        en: "OpenAIP lower and upper limits are carried through the Go data-service for the preview card and map overlay model",
+        zh: "OpenAIP 下限和上限会经由 Go data-service 保留给预览卡和地图覆盖模型使用",
+      },
+      {
+        en: "Restricted, danger, and temporary airspaces keep their active-window and dynamic-status access classification",
+        zh: "限制区、危险区和临时空域保留活动时段与动态状态的准入分类",
+      },
+    ],
+  },
   {
     version: "v2.22.7",
     kind: "patch",
@@ -486,32 +512,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The map settings sheet now uses native safe-area insets in landscape and exposes a larger glass close target",
         zh: "地图设置面板在横屏下使用原生 safe-area inset，并提供更大的玻璃关闭按钮",
-      },
-    ],
-  },
-  {
-    version: "v2.18.0",
-    kind: "feat",
-    title: {
-      en: "Progressive changelog loading",
-      zh: "更新日志渐进加载",
-    },
-    summary: {
-      en: "The changelog now ships the latest 20 releases in the PWA shell and loads older history only as readers scroll.",
-      zh: "更新日志现在只把最新 20 条发布记录放进 PWA 静态壳，读者继续滚动时再加载更早历史。",
-    },
-    highlights: [
-      {
-        en: "Static shell version metadata now reads the latest release without importing the complete historical changelog",
-        zh: "静态壳版本信息现在只读取最新版本，不再导入完整历史 changelog",
-      },
-      {
-        en: "The /changelog page starts with 20 entries, then reveals older releases in 20-entry batches near the scroll boundary",
-        zh: "/changelog 页面先显示 20 条，在接近滚动边界时按 20 条一批继续展开旧版本",
-      },
-      {
-        en: "The package version and baked client changelog version are synchronized for the v2.18.0 minor release",
-        zh: "package 版本与客户端内置 changelog 版本已同步到 v2.18.0 小版本发布",
       },
     ],
   },

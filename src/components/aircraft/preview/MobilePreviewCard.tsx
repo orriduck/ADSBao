@@ -84,9 +84,19 @@ export function MobilePreviewActions({ children }: Record<string, any>) {
   );
 }
 
-export function MobilePreviewContent({ children }: React.PropsWithChildren) {
+export function MobilePreviewContent({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="relative z-[2] box-border flex w-full flex-col items-stretch gap-[6px] px-[14px] pb-[7px] pt-[10px] [[data-density=compact]_&]:gap-[4px] [[data-density=compact]_&]:px-[12px] [[data-density=compact]_&]:pb-[5px] [[data-density=compact]_&]:pt-[8px]">
+    <div
+      className={cn(
+        "relative z-[2] box-border flex w-full flex-col items-stretch gap-[6px] px-[14px] pb-[7px] pt-[10px] [[data-density=compact]_&]:gap-[4px] [[data-density=compact]_&]:px-[12px] [[data-density=compact]_&]:pb-[5px] [[data-density=compact]_&]:pt-[8px]",
+        className,
+      )}
+      {...props}
+    >
       {children}
     </div>
   );

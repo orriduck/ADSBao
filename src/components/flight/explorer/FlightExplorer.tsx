@@ -102,12 +102,14 @@ function FlightExplorerContent({ callsign }) {
     selectedAirportIcao,
     selectedNavaidKey,
     selectedAirspaceId,
+    selectedAirspaceIds,
     closeSidebar,
     selectAircraft,
     setSelectedAircraftId,
     selectAirport,
     selectNavaid,
     selectAirspace,
+    setSelectedAirspaceId,
     clearAllPreviewSelections,
     collapseSidebar,
     expandSidebar,
@@ -427,13 +429,31 @@ function FlightExplorerContent({ callsign }) {
       }) || null,
     [contextTiles.navaids, selectedNavaidKey],
   );
+  const selectedAirspaces = useMemo(() => {
+    const ids = selectedAirspaceIds.length
+      ? selectedAirspaceIds
+      : selectedAirspaceId
+        ? [selectedAirspaceId]
+        : [];
+    const idSet = new Set(ids.map((id) => String(id || "")).filter(Boolean));
+    if (idSet.size === 0) return [];
+    return contextTiles.airspaces.filter((airspace) =>
+      idSet.has(String(airspace?.id || "")),
+    );
+  }, [contextTiles.airspaces, selectedAirspaceId, selectedAirspaceIds]);
   const selectedAirspace = useMemo(
     () =>
-      contextTiles.airspaces.find(
-        (airspace) => airspace?.id === selectedAirspaceId,
-      ) || null,
-    [contextTiles.airspaces, selectedAirspaceId],
+      selectedAirspaces.find(
+        (airspace) => String(airspace?.id || "") === selectedAirspaceId,
+      ) ||
+      selectedAirspaces[0] ||
+      null,
+    [selectedAirspaceId, selectedAirspaces],
   );
+  useEffect(() => {
+    if (!selectedAirspaceId) return;
+    if (!selectedAirspace) setSelectedAirspaceId("");
+  }, [selectedAirspace, selectedAirspaceId, setSelectedAirspaceId]);
 
   // Merge tracked aircraft into the nearby list so the map always renders
   // it (the radius poll can lag a beat behind the callsign poll).
@@ -833,6 +853,9 @@ function FlightExplorerContent({ callsign }) {
         airport={selectedAirport}
         navaid={selectedNavaid}
         airspace={selectedAirspace}
+        airspaces={selectedAirspaces}
+        selectedAirspaceId={selectedAirspaceId}
+        onSelectAirspace={setSelectedAirspaceId}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen && !sidebarCollapsed}
         onApplyTemporaryRoute={applyTemporaryRoute}

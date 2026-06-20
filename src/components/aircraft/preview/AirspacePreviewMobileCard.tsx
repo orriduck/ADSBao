@@ -5,13 +5,22 @@ import {
   MobilePreviewContent,
   MobilePreviewDetailRow,
 } from "./MobilePreviewCard";
+import AirspacePreviewSelector, {
+  useAirspaceCarouselSwipe,
+} from "./AirspacePreviewSelector";
 
 type AirspacePreviewMobileCardProps = {
   airspace?: Record<string, any> | null;
+  airspaces?: Record<string, any>[] | null;
+  selectedAirspaceId?: string;
+  onSelectAirspace?: ((airspaceId: string) => void) | null;
 };
 
 export default function AirspacePreviewMobileCard({
   airspace,
+  airspaces = null,
+  selectedAirspaceId = "",
+  onSelectAirspace = null,
 }: AirspacePreviewMobileCardProps) {
   const { locale, t } = useI18n();
   const name = String(airspace?.name || "Airspace").trim();
@@ -19,9 +28,17 @@ export default function AirspacePreviewMobileCard({
   const typeAndClass = [display.type, display.classLabel]
     .filter(Boolean)
     .join(" / ");
+  const carouselSwipeHandlers = useAirspaceCarouselSwipe({
+    airspaces,
+    selectedAirspaceId,
+    onSelectAirspace,
+  });
 
   return (
-    <MobilePreviewContent>
+    <MobilePreviewContent
+      className="pointer-events-auto touch-pan-y"
+      {...carouselSwipeHandlers}
+    >
       <div className="flex min-w-0 items-start gap-[6px]">
         <span
           aria-label={t("preview.airspacePreview")}
@@ -54,6 +71,12 @@ export default function AirspacePreviewMobileCard({
           {display.vertical}
         </MobilePreviewDetailRow>
       ) : null}
+      <AirspacePreviewSelector
+        airspaces={airspaces}
+        selectedAirspaceId={selectedAirspaceId}
+        onSelectAirspace={onSelectAirspace}
+        compact
+      />
     </MobilePreviewContent>
   );
 }

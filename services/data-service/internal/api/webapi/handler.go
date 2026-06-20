@@ -930,14 +930,377 @@ func mapNavaid(navaid map[string]any) map[string]any {
 }
 
 func mapAirspace(airspace map[string]any) map[string]any {
+	icaoClass, hasICAOClass := airspaceNumber(airspace["icaoClass"])
+	lowerLimit := asRecord(airspace["lowerLimit"])
+	upperLimit := asRecord(airspace["upperLimit"])
+
 	return map[string]any{
-		"id":       stringValue(airspace["_id"]),
-		"name":     stringValue(airspace["name"]),
-		"type":     stringValue(airspace["type"]),
-		"country":  upper(stringValue(airspace["country"])),
-		"geometry": airspace["geometry"],
-		"source":   "openaip",
+		"id":                stringValue(airspace["_id"]),
+		"name":              stringValue(airspace["name"]),
+		"type":              stringValue(airspace["type"]),
+		"typeLabel":         openAIPAirspaceTypeLabel(airspace["type"]),
+		"icaoClass":         nullableAirspaceNumber(icaoClass, hasICAOClass),
+		"classLabel":        openAIPAirspaceClassLabel(airspace["icaoClass"]),
+		"country":           upper(stringValue(airspace["country"])),
+		"lowerLimit":        lowerLimit,
+		"upperLimit":        upperLimit,
+		"lowerLimitLabel":   formatOpenAIPAirspaceLimit(lowerLimit),
+		"upperLimitLabel":   formatOpenAIPAirspaceLimit(upperLimit),
+		"activeFrom":        cleanStringValue(airspace["activeFrom"]),
+		"activeUntil":       cleanStringValue(airspace["activeUntil"]),
+		"onDemand":          boolValue(airspace["onDemand"]),
+		"onRequest":         boolValue(airspace["onRequest"]),
+		"byNotam":           boolValue(airspace["byNotam"]),
+		"specialAgreement":  boolValue(airspace["specialAgreement"]),
+		"requestCompliance": boolValue(airspace["requestCompliance"]),
+		"hoursOfOperation":  airspace["hoursOfOperation"],
+		"remarks":           cleanStringValue(airspace["remarks"]),
+		"accessTag":         classifyOpenAIPAirspaceAccess(airspace),
+		"geometry":          airspace["geometry"],
+		"source":            "openaip",
 	}
+}
+
+const (
+	openAIPAirspaceTypeOther      = 0
+	openAIPAirspaceTypeRestricted = 1
+	openAIPAirspaceTypeDanger     = 2
+	openAIPAirspaceTypeProhibited = 3
+	openAIPAirspaceTypeCTR        = 4
+	openAIPAirspaceTypeTMZ        = 5
+	openAIPAirspaceTypeRMZ        = 6
+	openAIPAirspaceTypeTMA        = 7
+	openAIPAirspaceTypeTRA        = 8
+	openAIPAirspaceTypeTSA        = 9
+	openAIPAirspaceTypeFIR        = 10
+	openAIPAirspaceTypeUIR        = 11
+	openAIPAirspaceTypeADIZ       = 12
+	openAIPAirspaceTypeATZ        = 13
+	openAIPAirspaceTypeMATZ       = 14
+	openAIPAirspaceTypeCTA        = 26
+	openAIPAirspaceTypeMCTR       = 36
+)
+
+var openAIPAirspaceTypeLabels = map[int]string{
+	0:  "Other",
+	1:  "Restricted Area",
+	2:  "Danger Area",
+	3:  "Prohibited Area",
+	4:  "CTR",
+	5:  "TMZ",
+	6:  "RMZ",
+	7:  "TMA",
+	8:  "TRA",
+	9:  "TSA",
+	10: "FIR",
+	11: "UIR",
+	12: "ADIZ",
+	13: "ATZ",
+	14: "MATZ",
+	15: "Airway",
+	16: "Military Training Route",
+	17: "Alert Area",
+	18: "Warning Area",
+	19: "Protected Area",
+	20: "HTZ",
+	21: "Gliding Sector",
+	22: "Transponder Setting",
+	23: "TIZ",
+	24: "TIA",
+	25: "Military Training Area",
+	26: "CTA",
+	27: "ACC Sector",
+	28: "Aerial Sporting / Recreational Activity",
+	29: "Low Altitude Overflight Restriction",
+	30: "Military Route",
+	31: "TSA/TRA Feeding Route",
+	32: "VFR Sector",
+	33: "FIS Sector",
+	34: "LTA",
+	35: "UTA",
+	36: "MCTR",
+}
+
+var openAIPAirspaceClassLabels = map[int]string{
+	0: "A",
+	1: "B",
+	2: "C",
+	3: "D",
+	4: "E",
+	5: "F",
+	6: "G",
+	8: "Unclassified / SUA",
+}
+
+var controlledOpenAIPAirspaceTypes = map[int]bool{
+	openAIPAirspaceTypeCTR:  true,
+	openAIPAirspaceTypeTMA:  true,
+	openAIPAirspaceTypeCTA:  true,
+	openAIPAirspaceTypeATZ:  true,
+	openAIPAirspaceTypeRMZ:  true,
+	openAIPAirspaceTypeTMZ:  true,
+	openAIPAirspaceTypeMCTR: true,
+	openAIPAirspaceTypeMATZ: true,
+}
+
+var controlledOpenAIPAirspaceClasses = map[int]bool{
+	0: true,
+	1: true,
+	2: true,
+	3: true,
+	4: true,
+}
+
+var openAIPAirspaceAccessLabels = map[string]map[string]string{
+	"blocked":             {"label": "Blocked", "shortLabel": "Blocked"},
+	"restricted":          {"label": "Restricted", "shortLabel": "Restricted"},
+	"permission-required": {"label": "Permission required", "shortLabel": "Permission"},
+	"caution":             {"label": "Caution", "shortLabel": "Caution"},
+	"controlled":          {"label": "Controlled", "shortLabel": "Controlled"},
+	"informational":       {"label": "Informational", "shortLabel": "Info"},
+	"unknown":             {"label": "Status unknown", "shortLabel": "Unknown"},
+}
+
+var openAIPAirspaceNow = time.Now
+
+func openAIPAirspaceTypeLabel(value any) string {
+	number, ok := airspaceNumber(value)
+	if !ok {
+		return "Airspace"
+	}
+	if label := openAIPAirspaceTypeLabels[int(number)]; label != "" {
+		return label
+	}
+	return "Airspace"
+}
+
+func openAIPAirspaceClassLabel(value any) string {
+	number, ok := airspaceNumber(value)
+	if !ok {
+		return ""
+	}
+	return openAIPAirspaceClassLabels[int(number)]
+}
+
+func classifyOpenAIPAirspaceAccess(airspace map[string]any) map[string]any {
+	airspaceType, hasType := airspaceNumber(airspace["type"])
+	icaoClass, hasICAOClass := airspaceNumber(airspace["icaoClass"])
+	airspaceTypeInt := int(airspaceType)
+	icaoClassInt := int(icaoClass)
+
+	if hasType && airspaceTypeInt == openAIPAirspaceTypeProhibited {
+		return openAIPAirspaceAccessTag("blocked", "Prohibited Area: do not enter unless explicitly authorized.", false)
+	}
+	if hasType && airspaceTypeInt == openAIPAirspaceTypeRestricted {
+		return activeDependentAirspaceTag(
+			airspace,
+			"restricted",
+			"Restricted Area is active; clearance, controlling authority permission, or inactive confirmation is required.",
+		)
+	}
+	if hasType && airspaceTypeInt == openAIPAirspaceTypeTSA {
+		return activeDependentAirspaceTag(
+			airspace,
+			"restricted",
+			"Temporary Segregated Area is active; ordinary civil traffic should avoid entry.",
+		)
+	}
+	if hasType && airspaceTypeInt == openAIPAirspaceTypeTRA {
+		return activeDependentAirspaceTag(
+			airspace,
+			"permission-required",
+			"Temporary Reserved Area is active; coordination or authorization may be required.",
+		)
+	}
+	if hasType && airspaceTypeInt == openAIPAirspaceTypeDanger {
+		return activeDependentAirspaceTag(
+			airspace,
+			"caution",
+			"Danger Area is active; avoid unless cleared or confirmed safe.",
+		)
+	}
+	if hasType && airspaceTypeInt == openAIPAirspaceTypeADIZ {
+		return openAIPAirspaceAccessTag(
+			"permission-required",
+			"ADIZ: flight plan, identification, communication, or other procedures may be required.",
+			hasDynamicOpenAIPAirspaceStatus(airspace),
+		)
+	}
+	if hasType && controlledOpenAIPAirspaceTypes[airspaceTypeInt] {
+		return openAIPAirspaceAccessTag(
+			"controlled",
+			fmt.Sprintf("%s is controlled or procedure airspace, not blocked by default.", openAIPAirspaceTypeLabel(airspace["type"])),
+			false,
+		)
+	}
+	if hasICAOClass && controlledOpenAIPAirspaceClasses[icaoClassInt] {
+		return openAIPAirspaceAccessTag(
+			"controlled",
+			fmt.Sprintf("Class %s controlled airspace is not blocked by default.", openAIPAirspaceClassLabel(airspace["icaoClass"])),
+			false,
+		)
+	}
+	if hasType && (airspaceTypeInt == openAIPAirspaceTypeFIR || airspaceTypeInt == openAIPAirspaceTypeUIR) {
+		return openAIPAirspaceAccessTag(
+			"informational",
+			fmt.Sprintf("%s is informational flight information airspace.", openAIPAirspaceTypeLabel(airspace["type"])),
+			false,
+		)
+	}
+	return openAIPAirspaceAccessTag(
+		"unknown",
+		"OpenAIP airspace type is not mapped to a civil access rule; confirm current procedures.",
+		true,
+	)
+}
+
+func activeDependentAirspaceTag(airspace map[string]any, activeLevel, activeReason string) map[string]any {
+	activeState := resolveOpenAIPAirspaceActiveState(airspace, openAIPAirspaceNow())
+	if activeState == "inactive" {
+		return openAIPAirspaceAccessTag(
+			"informational",
+			fmt.Sprintf("%s is not currently active by its published active window.", openAIPAirspaceTypeLabel(airspace["type"])),
+			false,
+		)
+	}
+	if hasDynamicOpenAIPAirspaceStatus(airspace) {
+		return openAIPAirspaceAccessTag(activeLevel, dynamicOpenAIPAirspaceStatusReason(airspace), true)
+	}
+	if activeState == "active" {
+		return openAIPAirspaceAccessTag(activeLevel, activeReason, false)
+	}
+	return openAIPAirspaceAccessTag(
+		activeLevel,
+		"Active status is not explicit in OpenAIP; confirm current status before entry.",
+		true,
+	)
+}
+
+func resolveOpenAIPAirspaceActiveState(airspace map[string]any, now time.Time) string {
+	activeFrom, hasActiveFrom := parseOpenAIPAirspaceTime(airspace["activeFrom"])
+	activeUntil, hasActiveUntil := parseOpenAIPAirspaceTime(airspace["activeUntil"])
+	if hasActiveFrom && now.Before(activeFrom) {
+		return "inactive"
+	}
+	if hasActiveUntil && now.After(activeUntil) {
+		return "inactive"
+	}
+	if hasActiveFrom || hasActiveUntil {
+		return "active"
+	}
+	return "unknown"
+}
+
+func parseOpenAIPAirspaceTime(value any) (time.Time, bool) {
+	text := cleanStringValue(value)
+	if text == "" {
+		return time.Time{}, false
+	}
+	parsed, err := time.Parse(time.RFC3339Nano, text)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return parsed, true
+}
+
+func hasDynamicOpenAIPAirspaceStatus(airspace map[string]any) bool {
+	return boolValue(airspace["onDemand"]) ||
+		boolValue(airspace["onRequest"]) ||
+		boolValue(airspace["byNotam"]) ||
+		boolValue(airspace["specialAgreement"]) ||
+		boolValue(airspace["requestCompliance"]) ||
+		airspace["hoursOfOperation"] != nil
+}
+
+func dynamicOpenAIPAirspaceStatusReason(airspace map[string]any) string {
+	if boolValue(airspace["byNotam"]) {
+		return "Status may be activated by NOTAM; confirm current status before entry."
+	}
+	if boolValue(airspace["onDemand"]) || boolValue(airspace["onRequest"]) {
+		return "Status can change on demand or request; confirm current status before entry."
+	}
+	if boolValue(airspace["specialAgreement"]) {
+		return "Entry may depend on a special agreement or authorization."
+	}
+	if boolValue(airspace["requestCompliance"]) {
+		return "Published as request-compliance airspace; confirm local procedures."
+	}
+	if airspace["hoursOfOperation"] != nil {
+		return "Hours of operation are published; confirm the current active period."
+	}
+	return "Active status is not explicit in OpenAIP; confirm current status before entry."
+}
+
+func openAIPAirspaceAccessTag(level, reason string, requiresStatusCheck bool) map[string]any {
+	labels := openAIPAirspaceAccessLabels[level]
+	if labels == nil {
+		level = "unknown"
+		labels = openAIPAirspaceAccessLabels[level]
+	}
+	return map[string]any{
+		"level":               level,
+		"label":               labels["label"],
+		"shortLabel":          labels["shortLabel"],
+		"reason":              reason,
+		"requiresStatusCheck": requiresStatusCheck,
+	}
+}
+
+func formatOpenAIPAirspaceLimit(limit map[string]any) string {
+	if limit == nil {
+		return ""
+	}
+	value, hasValue := airspaceNumber(limit["value"])
+	if !hasValue {
+		return ""
+	}
+	unit, hasUnit := airspaceNumber(limit["unit"])
+	referenceDatum, hasDatum := airspaceNumber(limit["referenceDatum"])
+	if hasDatum && value == 0 && int(referenceDatum) == 0 {
+		return "SFC"
+	}
+	if hasUnit && int(unit) == 6 {
+		return fmt.Sprintf("FL %s", formatAirspaceNumber(value))
+	}
+
+	unitLabel := "ft"
+	if hasUnit && int(unit) == 0 {
+		unitLabel = "m"
+	}
+	datumLabel := "MSL"
+	if hasDatum && int(referenceDatum) == 0 {
+		datumLabel = "AGL"
+	} else if hasDatum && int(referenceDatum) == 2 {
+		datumLabel = "STD"
+	}
+	return fmt.Sprintf("%s %s %s", formatAirspaceNumber(value), unitLabel, datumLabel)
+}
+
+func airspaceNumber(value any) (float64, bool) {
+	number := numberValue(value)
+	return number, finite(number)
+}
+
+func nullableAirspaceNumber(value float64, ok bool) any {
+	if !ok {
+		return nil
+	}
+	return value
+}
+
+func formatAirspaceNumber(value float64) string {
+	if math.Trunc(value) == value {
+		return strconv.FormatInt(int64(value), 10)
+	}
+	return strconv.FormatFloat(value, 'f', -1, 64)
+}
+
+func cleanStringValue(value any) string {
+	text := stringValue(value)
+	if text == "<nil>" {
+		return ""
+	}
+	return text
 }
 
 func mapReportingPoint(point map[string]any) map[string]any {

@@ -1,18 +1,32 @@
 import { ShieldAlert } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { resolveAirspacePreviewDisplay } from "@/features/airport/openaip/airspacePreviewDisplayModel";
+import AirspacePreviewSelector, {
+  useAirspaceCarouselSwipe,
+} from "./AirspacePreviewSelector";
 
 type AirspacePreviewMetadataCardProps = {
   airspace?: Record<string, any> | null;
+  airspaces?: Record<string, any>[] | null;
+  selectedAirspaceId?: string;
+  onSelectAirspace?: ((airspaceId: string) => void) | null;
 };
 
 export default function AirspacePreviewMetadataCard({
   airspace,
+  airspaces = null,
+  selectedAirspaceId = "",
+  onSelectAirspace = null,
 }: AirspacePreviewMetadataCardProps) {
   const { locale, t } = useI18n();
   const name = String(airspace?.name || "Airspace").trim();
   const display = resolveAirspacePreviewDisplay(airspace, locale);
   const source = airspace?.source === "openaip" ? "OpenAIP" : String(airspace?.source || "");
+  const carouselSwipeHandlers = useAirspaceCarouselSwipe({
+    airspaces,
+    selectedAirspaceId,
+    onSelectAirspace,
+  });
 
   const detailRows = [
     { label: t("preview.airspaceType"), value: display.type },
@@ -24,7 +38,10 @@ export default function AirspacePreviewMetadataCard({
   ].filter((row) => row.value);
 
   return (
-    <div className="aircraft-preview-metadata-card">
+    <div
+      className="aircraft-preview-metadata-card pointer-events-auto touch-pan-y"
+      {...carouselSwipeHandlers}
+    >
       <div className="relative">
         <div className="min-w-0 pr-8">
           <span className="atc-kicker">{t("preview.airspacePreview")}</span>
@@ -70,6 +87,12 @@ export default function AirspacePreviewMetadataCard({
           </p>
         </>
       ) : null}
+
+      <AirspacePreviewSelector
+        airspaces={airspaces}
+        selectedAirspaceId={selectedAirspaceId}
+        onSelectAirspace={onSelectAirspace}
+      />
     </div>
   );
 }

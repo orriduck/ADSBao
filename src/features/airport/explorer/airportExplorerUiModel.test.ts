@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 
-import { resolveSelectedAirspaceIdForLayerVisibility } from "./airportExplorerUiModel";
+import {
+  normalizeAirspaceSelectionIds,
+  resolveAirspaceSelectionForLayerVisibility,
+  resolveSelectedAirspaceIdForLayerVisibility,
+} from "./airportExplorerUiModel";
 
 assert.equal(
   resolveSelectedAirspaceIdForLayerVisibility({
@@ -26,7 +30,36 @@ assert.equal(
     selectedAirspaceId: "bos-class-b",
     airspaceId: "bos-class-b",
   }),
-  "",
+  "bos-class-b",
+);
+
+assert.deepEqual(
+  normalizeAirspaceSelectionIds(["inner", "base", "inner", ""]),
+  ["inner", "base"],
+);
+
+assert.deepEqual(
+  resolveAirspaceSelectionForLayerVisibility({
+    showAirspaces: true,
+    selectedAirspaceId: "inner",
+    airspaceIds: ["base", "inner"],
+  }),
+  {
+    selectedAirspaceId: "inner",
+    selectedAirspaceIds: ["base", "inner"],
+  },
+);
+
+assert.deepEqual(
+  resolveAirspaceSelectionForLayerVisibility({
+    showAirspaces: false,
+    selectedAirspaceId: "inner",
+    airspaceIds: ["base", "inner"],
+  }),
+  {
+    selectedAirspaceId: "",
+    selectedAirspaceIds: [],
+  },
 );
 
 console.log("airportExplorerUiModel.test.ts ok");

@@ -384,6 +384,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.18.0",
+    kind: "feat",
+    title: {
+      en: "Progressive changelog loading",
+      zh: "更新日志渐进加载",
+    },
+    summary: {
+      en: "The changelog now ships the latest 20 releases in the PWA shell and loads older history only as readers scroll.",
+      zh: "更新日志现在只把最新 20 条发布记录放进 PWA 静态壳，读者继续滚动时再加载更早历史。",
+    },
+    highlights: [
+      {
+        en: "Static shell version metadata now reads the latest release without importing the complete historical changelog",
+        zh: "静态壳版本信息现在只读取最新版本，不再导入完整历史 changelog",
+      },
+      {
+        en: "The /changelog page starts with 20 entries, then reveals older releases in 20-entry batches near the scroll boundary",
+        zh: "/changelog 页面先显示 20 条，在接近滚动边界时按 20 条一批继续展开旧版本",
+      },
+      {
+        en: "The package version and baked client changelog version are synchronized for the v2.18.0 minor release",
+        zh: "package 版本与客户端内置 changelog 版本已同步到 v2.18.0 小版本发布",
+      },
+    ],
+  },
+  {
     version: "v2.17.7",
     kind: "patch",
     title: {

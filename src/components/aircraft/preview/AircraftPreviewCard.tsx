@@ -41,6 +41,9 @@ export default function AircraftPreviewCard({
   navaid = null,
   reportingPoint = null,
   airspace = null,
+  airspaces = null,
+  selectedAirspaceId = "",
+  onSelectAirspace = null,
   candidateWatchingSpot = null,
   candidateWatchingSpotAttribution = "",
   onOpenCandidateWatchingSpotNavigation = undefined,
@@ -60,26 +63,42 @@ export default function AircraftPreviewCard({
   const photo = photoState.photo;
   const hasPhoto = Boolean(photo?.src);
   const photoTone = usePhotoTone(photo?.src);
+  const airspaceOptions = Array.isArray(airspaces)
+    ? airspaces.filter(Boolean)
+    : airspace
+      ? [airspace]
+      : [];
+  const activeAirspace =
+    airspace ||
+    airspaceOptions.find(
+      (item) => String(item?.id || "") === selectedAirspaceId,
+    ) ||
+    airspaceOptions[0] ||
+    null;
 
   const entity =
     aircraft ||
     airport ||
     navaid ||
     reportingPoint ||
-    airspace ||
+    activeAirspace ||
     candidateWatchingSpot;
   const isAirport = !aircraft && Boolean(airport);
   const isNavaid = !aircraft && !airport && Boolean(navaid);
   const isReportingPoint =
     !aircraft && !airport && !navaid && Boolean(reportingPoint);
   const isAirspace =
-    !aircraft && !airport && !navaid && !isReportingPoint && Boolean(airspace);
+    !aircraft &&
+    !airport &&
+    !navaid &&
+    !isReportingPoint &&
+    Boolean(activeAirspace);
   const isCandidateWatchingSpot =
     !aircraft &&
     !airport &&
     !navaid &&
     !isReportingPoint &&
-    !airspace &&
+    !activeAirspace &&
     Boolean(candidateWatchingSpot);
   const isAircraftPreview =
     !isAirport &&
@@ -94,11 +113,14 @@ export default function AircraftPreviewCard({
       ? `navaid:${navaid?.key || navaid?.ident || "preview"}`
       : isReportingPoint
         ? `reporting-point:${reportingPoint?.key || reportingPoint?.name || "preview"}`
-      : isAirspace
-        ? `airspace:${airspace?.id || "preview"}`
-        : isCandidateWatchingSpot
-          ? `candidate-spot:${candidateWatchingSpot?.id || "preview"}`
-          : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
+        : isAirspace
+          ? `airspace:${activeAirspace?.id || "preview"}:${airspaceOptions
+              .map((item) => item?.id || item?.name || "")
+              .filter(Boolean)
+              .join(",")}`
+          : isCandidateWatchingSpot
+            ? `candidate-spot:${candidateWatchingSpot?.id || "preview"}`
+            : (aircraft && getAircraftIdentity(aircraft)) || "preview-card";
   const aircraftIdentity = isAircraftPreview
     ? getAircraftIdentity(aircraft)
     : null;
@@ -258,7 +280,14 @@ export default function AircraftPreviewCard({
           ) : isReportingPoint ? (
             <ReportingPointPreviewMetadataCard point={reportingPoint} />
           ) : isAirspace ? (
-            <AirspacePreviewMetadataCard airspace={airspace} />
+            <AirspacePreviewMetadataCard
+              airspace={activeAirspace}
+              airspaces={airspaceOptions}
+              selectedAirspaceId={
+                selectedAirspaceId || String(activeAirspace?.id || "")
+              }
+              onSelectAirspace={onSelectAirspace}
+            />
           ) : isCandidateWatchingSpot ? (
             <CandidateWatchingSpotPreviewMetadataCard
               spot={candidateWatchingSpot}
@@ -272,7 +301,9 @@ export default function AircraftPreviewCard({
               airportProfile={airportProfile}
               onApplyTemporaryRoute={onApplyTemporaryRoute}
               onOpenPlaneHunter={
-                showPlaneHunterTrigger ? () => setPlaneHunterOpen(true) : undefined
+                showPlaneHunterTrigger
+                  ? () => setPlaneHunterOpen(true)
+                  : undefined
               }
               traceStatusVisible={traceStatusVisible}
               traceStatusState={traceAsyncState}
@@ -292,7 +323,9 @@ export default function AircraftPreviewCard({
             !isAirspace &&
             !isCandidateWatchingSpot
           }
-          placement={showPreferredMobilePreview ? "bottomRight" : "top"}
+          placement={
+            showPreferredMobilePreview || isAirspace ? "bottomRight" : "top"
+          }
           style={mobilePreviewSafeAreaStyle}
           actions={
             (showMobileTrackButton ||
@@ -368,7 +401,14 @@ export default function AircraftPreviewCard({
           ) : isReportingPoint ? (
             <ReportingPointPreviewMobileCard point={reportingPoint} />
           ) : isAirspace ? (
-            <AirspacePreviewMobileCard airspace={airspace} />
+            <AirspacePreviewMobileCard
+              airspace={activeAirspace}
+              airspaces={airspaceOptions}
+              selectedAirspaceId={
+                selectedAirspaceId || String(activeAirspace?.id || "")
+              }
+              onSelectAirspace={onSelectAirspace}
+            />
           ) : isCandidateWatchingSpot ? (
             <CandidateWatchingSpotPreviewMobileCard
               spot={candidateWatchingSpot}

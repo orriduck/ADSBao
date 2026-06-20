@@ -135,8 +135,12 @@ const selection = resolveAirportExplorerSelection({
     },
   ],
   selectedReportingPointKey: "rp-alpha-ALPHA",
-  airspaces: [{ id: "airspace-1", name: "Boston Class B" }],
-  selectedAirspaceId: "airspace-1",
+  airspaces: [
+    { id: "airspace-1", name: "Boston Class B" },
+    { id: "airspace-2", name: "Boston Class B shelf" },
+  ],
+  selectedAirspaceId: "airspace-2",
+  selectedAirspaceIds: ["airspace-1", "airspace-2"],
   candidateWatchingSpots: [
     {
       id: "osm-node-1",
@@ -155,7 +159,11 @@ assert.equal(selection.selectedNavaid.ident, "BOS");
 assert.equal(selection.selectedNavaidStillVisible, true);
 assert.equal(selection.selectedReportingPoint.name, "ALPHA");
 assert.equal(selection.selectedReportingPointStillVisible, true);
-assert.equal(selection.selectedAirspace.name, "Boston Class B");
+assert.equal(selection.selectedAirspace.name, "Boston Class B shelf");
+assert.deepEqual(
+  selection.selectedAirspaces.map((airspace) => airspace.name),
+  ["Boston Class B", "Boston Class B shelf"],
+);
 assert.equal(selection.selectedAirspaceStillVisible, true);
 assert.equal(selection.selectedCandidateWatchingSpot.name, "Piers Park");
 assert.equal(selection.selectedCandidateWatchingSpotStillVisible, true);
@@ -183,6 +191,7 @@ assert.equal(missingSelection.selectedNavaidStillVisible, false);
 assert.equal(missingSelection.selectedReportingPoint, null);
 assert.equal(missingSelection.selectedReportingPointStillVisible, false);
 assert.equal(missingSelection.selectedAirspace, null);
+assert.deepEqual(missingSelection.selectedAirspaces, []);
 assert.equal(missingSelection.selectedAirspaceStillVisible, false);
 assert.equal(missingSelection.selectedCandidateWatchingSpot, null);
 assert.equal(missingSelection.selectedCandidateWatchingSpotStillVisible, false);

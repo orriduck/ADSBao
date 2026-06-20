@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   resolveAirspaceClientPoint,
-  resolveClickedAirspaceId,
+  resolveClickedAirspaceIds,
   shouldHandleAirspaceSelection,
 } from "./airspaceSelectionModel";
 
@@ -54,16 +54,27 @@ const innerFeature = {
 }
 
 {
-  const id = resolveClickedAirspaceId({
+  const ids = resolveClickedAirspaceIds({
     hitIds: [],
     features: [baseFeature, innerFeature],
     latlng: { lat: 43, lng: -71 },
     clickedId: "",
     selectableAirspaceIds: new Set(["base", "inner"]),
-    selectedAirspaceId: "",
   });
 
-  assert.equal(id, "inner");
+  assert.deepEqual(ids, ["inner", "base"]);
+}
+
+{
+  const ids = resolveClickedAirspaceIds({
+    hitIds: ["base"],
+    features: [baseFeature, innerFeature],
+    latlng: { lat: 43, lng: -71 },
+    clickedId: "base",
+    selectableAirspaceIds: new Set(["base", "inner"]),
+  });
+
+  assert.deepEqual(ids, ["base", "inner"]);
 }
 
 assert.equal(

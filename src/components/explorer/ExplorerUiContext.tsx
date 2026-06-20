@@ -20,7 +20,8 @@ import {
 } from "@/features/app-shell/device/useClientDeviceProfile";
 import {
   DEFAULT_AIRPORT_EXPLORER_UI_STATE,
-  resolveSelectedAirspaceIdForLayerVisibility,
+  normalizeAirspaceSelectionIds,
+  resolveAirspaceSelectionForLayerVisibility,
 } from "@/features/airport/explorer/airportExplorerUiModel";
 import {
   DEFAULT_MAP_SETTINGS,
@@ -66,6 +67,7 @@ const initialUiState = {
   selectedNavaidKey: "",
   selectedReportingPointKey: "",
   selectedAirspaceId: "",
+  selectedAirspaceIds: [],
   selectedCandidateWatchingSpotId: "",
   fitToTraceSignal: 0,
   mapFollowsAircraft: true,
@@ -117,6 +119,7 @@ function applyMapSettingsToUiState(state, settings) {
     ...userLocationPreferences,
     mapSettings: normalizedSettings,
     selectedAirspaceId: layers.showAirspaces ? state.selectedAirspaceId : "",
+    selectedAirspaceIds: layers.showAirspaces ? state.selectedAirspaceIds : [],
     selectedReportingPointKey: layers.showReportingPoints
       ? state.selectedReportingPointKey
       : "",
@@ -280,6 +283,7 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: "",
         selectedReportingPointKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
         selectedCandidateWatchingSpotId: "",
       };
     case "setSelectedAircraftId":
@@ -290,6 +294,7 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: "",
         selectedReportingPointKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
         selectedCandidateWatchingSpotId: "",
       };
     case "selectAirport":
@@ -301,6 +306,7 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: "",
         selectedReportingPointKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
         selectedCandidateWatchingSpotId: "",
       };
     case "selectNavaid":
@@ -312,6 +318,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAirportIcao: "",
         selectedReportingPointKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
         selectedCandidateWatchingSpotId: "",
       };
     case "setSelectedNavaidKey":
@@ -322,6 +329,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAirportIcao: "",
         selectedReportingPointKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
         selectedCandidateWatchingSpotId: "",
       };
     case "selectReportingPoint":
@@ -340,6 +348,7 @@ function airportExplorerUiReducer(state, action) {
         selectedAirportIcao: "",
         selectedNavaidKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
         selectedCandidateWatchingSpotId: "",
       };
     case "setSelectedReportingPointKey":
@@ -350,42 +359,55 @@ function airportExplorerUiReducer(state, action) {
         selectedAirportIcao: "",
         selectedNavaidKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
         selectedCandidateWatchingSpotId: "",
       };
-    case "selectAirspace":
+    case "selectAirspace": {
       if (!state.showAirspaces) {
         return state.selectedAirspaceId
-          ? { ...state, selectedAirspaceId: "" }
+          ? { ...state, selectedAirspaceId: "", selectedAirspaceIds: [] }
           : state;
       }
+      const selection = resolveAirspaceSelectionForLayerVisibility({
+        showAirspaces: state.showAirspaces,
+        selectedAirspaceId: state.selectedAirspaceId,
+        airspaceIds: action.airspaceIds ?? action.airspaceId,
+      });
       return {
         ...state,
-        selectedAirspaceId: resolveSelectedAirspaceIdForLayerVisibility({
-          showAirspaces: state.showAirspaces,
-          selectedAirspaceId: state.selectedAirspaceId,
-          airspaceId: action.airspaceId,
-        }),
+        selectedAirspaceId: selection.selectedAirspaceId,
+        selectedAirspaceIds: selection.selectedAirspaceIds,
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
         selectedReportingPointKey: "",
         selectedCandidateWatchingSpotId: "",
       };
-    case "setSelectedAirspaceId":
+    }
+    case "setSelectedAirspaceId": {
       if (!state.showAirspaces) {
         return state.selectedAirspaceId
-          ? { ...state, selectedAirspaceId: "" }
+          ? { ...state, selectedAirspaceId: "", selectedAirspaceIds: [] }
           : state;
       }
+      const nextAirspaceId = String(action.airspaceId || "").trim();
+      const nextAirspaceIds = nextAirspaceId
+        ? normalizeAirspaceSelectionIds([
+            ...state.selectedAirspaceIds,
+            nextAirspaceId,
+          ])
+        : [];
       return {
         ...state,
-        selectedAirspaceId: action.airspaceId,
+        selectedAirspaceId: nextAirspaceId,
+        selectedAirspaceIds: nextAirspaceIds,
         selectedAircraftId: "",
         selectedAirportIcao: "",
         selectedNavaidKey: "",
         selectedReportingPointKey: "",
         selectedCandidateWatchingSpotId: "",
       };
+    }
     case "selectCandidateWatchingSpot":
       return {
         ...state,
@@ -398,6 +420,7 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: "",
         selectedReportingPointKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
       };
     case "setSelectedCandidateWatchingSpotId":
       return {
@@ -408,6 +431,7 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: "",
         selectedReportingPointKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
       };
     case "clearAllPreviewSelections":
       // Used by the swipe-up-to-dismiss gesture: clears whatever entity
@@ -420,6 +444,7 @@ function airportExplorerUiReducer(state, action) {
         !state.selectedNavaidKey &&
         !state.selectedReportingPointKey &&
         !state.selectedAirspaceId &&
+        state.selectedAirspaceIds.length === 0 &&
         !state.selectedCandidateWatchingSpotId
       ) {
         return state;
@@ -431,6 +456,7 @@ function airportExplorerUiReducer(state, action) {
         selectedNavaidKey: "",
         selectedReportingPointKey: "",
         selectedAirspaceId: "",
+        selectedAirspaceIds: [],
         selectedCandidateWatchingSpotId: "",
       };
     case "fitToTrace":
@@ -496,6 +522,7 @@ export function ExplorerUiProvider({ children }) {
     selectedNavaidKey,
     selectedReportingPointKey,
     selectedAirspaceId,
+    selectedAirspaceIds,
     selectedCandidateWatchingSpotId,
   } = state;
   const effectiveSidebarMode =
@@ -943,6 +970,7 @@ export function ExplorerUiProvider({ children }) {
       selectedNavaidKey,
       selectedReportingPointKey,
       selectedAirspaceId,
+      selectedAirspaceIds,
       selectedCandidateWatchingSpotId,
       fitToTraceSignal,
       setMapZoom,
@@ -1012,6 +1040,7 @@ export function ExplorerUiProvider({ children }) {
       selectedNavaidKey,
       selectedReportingPointKey,
       selectedAirspaceId,
+      selectedAirspaceIds,
       selectedCandidateWatchingSpotId,
       fitToTraceSignal,
       setMapZoom,

@@ -115,6 +115,7 @@ export function resolveAirportExplorerSelection({
   selectedReportingPointKey = "",
   airspaces = [],
   selectedAirspaceId = "",
+  selectedAirspaceIds = [],
   candidateWatchingSpots = [],
   selectedCandidateWatchingSpotId = "",
 }: AirportExplorerRecord = {}) {
@@ -131,8 +132,21 @@ export function resolveAirportExplorerSelection({
     reportingPointLabels.find(
       (point) => point?.key === selectedReportingPointKey,
     ) || null;
+  const selectedAirspaceIdSet = new Set(
+    normalizeSelectedAirspaceIds(selectedAirspaceIds, selectedAirspaceId),
+  );
+  const selectedAirspaces =
+    selectedAirspaceIdSet.size > 0
+      ? airspaces.filter((airspace) =>
+          selectedAirspaceIdSet.has(String(airspace?.id || "")),
+        )
+      : [];
   const selectedAirspace =
-    airspaces.find((airspace) => airspace?.id === selectedAirspaceId) || null;
+    selectedAirspaces.find(
+      (airspace) => String(airspace?.id || "") === selectedAirspaceId,
+    ) ||
+    selectedAirspaces[0] ||
+    null;
   const selectedCandidateWatchingSpot =
     candidateWatchingSpots.find(
       (spot) => spot?.id === selectedCandidateWatchingSpotId,
@@ -148,9 +162,26 @@ export function resolveAirportExplorerSelection({
     selectedReportingPointStillVisible:
       !selectedReportingPointKey || Boolean(selectedReportingPoint),
     selectedAirspace,
+    selectedAirspaces,
     selectedAirspaceStillVisible: !selectedAirspaceId || Boolean(selectedAirspace),
     selectedCandidateWatchingSpot,
     selectedCandidateWatchingSpotStillVisible:
       !selectedCandidateWatchingSpotId || Boolean(selectedCandidateWatchingSpot),
   };
+}
+
+function normalizeSelectedAirspaceIds(ids: unknown, fallbackId = "") {
+  const values = Array.isArray(ids) ? ids : [ids];
+  const normalized = Array.from(
+    new Set(
+      values
+        .map((id) => String(id || "").trim())
+        .filter(Boolean),
+    ),
+  );
+  const normalizedFallbackId = String(fallbackId || "").trim();
+  if (normalized.length === 0 && normalizedFallbackId) {
+    return [normalizedFallbackId];
+  }
+  return normalized;
 }

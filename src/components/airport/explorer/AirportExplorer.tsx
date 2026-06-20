@@ -88,6 +88,7 @@ function AirportExplorerContent({
     selectedNavaidKey,
     selectedReportingPointKey,
     selectedAirspaceId,
+    selectedAirspaceIds,
     selectedCandidateWatchingSpotId,
     closeSidebar,
     selectAircraft,
@@ -177,6 +178,7 @@ function AirportExplorerContent({
         selectedReportingPointKey,
         airspaces: airport?.airspaces || [],
         selectedAirspaceId,
+        selectedAirspaceIds,
         candidateWatchingSpots: candidateWatchingSpots.spots,
         selectedCandidateWatchingSpotId,
       }),
@@ -191,6 +193,7 @@ function AirportExplorerContent({
       selectedNavaidKey,
       selectedReportingPointKey,
       selectedAirspaceId,
+      selectedAirspaceIds,
       selectedCandidateWatchingSpotId,
       traffic.aircraft,
     ],
@@ -495,6 +498,7 @@ function AirportExplorerContent({
       selection.selectedNavaid ||
       selection.selectedReportingPoint ||
       selection.selectedAirspace ||
+      selection.selectedAirspaces?.length ||
       selection.selectedCandidateWatchingSpot,
   );
   const toolbarContextProps = {
@@ -578,6 +582,9 @@ function AirportExplorerContent({
             navaid={selection.selectedNavaid}
             reportingPoint={selection.selectedReportingPoint}
             airspace={selection.selectedAirspace}
+            airspaces={selection.selectedAirspaces}
+            selectedAirspaceId={selectedAirspaceId}
+            onSelectAirspace={setSelectedAirspaceId}
             candidateWatchingSpot={selection.selectedCandidateWatchingSpot}
             candidateWatchingSpotAttribution={candidateWatchingSpots.sourceAttribution}
             onOpenCandidateWatchingSpotNavigation={

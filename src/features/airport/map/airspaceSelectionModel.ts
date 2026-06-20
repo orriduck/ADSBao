@@ -39,41 +39,28 @@ export function resolveAirspaceClientPoint(event?: PointerLike | null): ClientPo
   return toClientPoint(event?.touches?.[0]);
 }
 
-export function resolveClickedAirspaceId({
+export function resolveClickedAirspaceIds({
   hitIds = [],
   features = [],
   latlng = null,
   clickedId = "",
   selectableAirspaceIds = new Set<string>(),
-  selectedAirspaceId = "",
 }: {
   hitIds?: string[];
   features?: Record<string, any>[];
   latlng?: LatLngLike | null;
   clickedId?: string;
   selectableAirspaceIds?: Set<string>;
-  selectedAirspaceId?: string;
 }) {
   const allAirspacesSelectable = selectableAirspaceIds.size === 0;
   const isSelectable = (id: string) =>
     Boolean(id) && (allAirspacesSelectable || selectableAirspaceIds.has(id));
-  const overlappingIds = uniqueStrings([
+  const normalizedClickedId = String(clickedId || "");
+  return uniqueStrings([
+    normalizedClickedId,
     ...hitIds,
     ...airspaceFeatureIdsAtLatLng(features, latlng),
-  ]);
-  const normalizedClickedId = String(clickedId || "");
-
-  if (!isSelectable(normalizedClickedId)) {
-    return overlappingIds.find(isSelectable) || "";
-  }
-
-  if (!selectedAirspaceId || normalizedClickedId !== selectedAirspaceId) {
-    return normalizedClickedId;
-  }
-  const nextId = overlappingIds.find((id) => id !== selectedAirspaceId && isSelectable(id));
-  if (nextId) return nextId;
-  const hasOverlappingAirspace = overlappingIds.some((id) => id !== selectedAirspaceId);
-  return hasOverlappingAirspace ? "" : selectedAirspaceId;
+  ]).filter(isSelectable);
 }
 
 export function airspaceFeatureIdsAtClientPoint(

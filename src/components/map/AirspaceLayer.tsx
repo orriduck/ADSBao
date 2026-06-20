@@ -12,7 +12,7 @@ import {
 import {
   airspaceFeatureIdsAtClientPoint,
   resolveAirspaceClientPoint,
-  resolveClickedAirspaceId,
+  resolveClickedAirspaceIds,
   shouldHandleAirspaceSelection,
 } from "@/features/airport/map/airspaceSelectionModel";
 import { ensureAirportMapPane } from "@/features/airport/map/mapPane";
@@ -46,7 +46,7 @@ export default function AirspaceLayer({
   visible?: boolean;
   showBoundaryLabels?: boolean;
   selectedAirspaceId?: string;
-  onSelectAirspace?: ((airspaceId: string) => void) | null;
+  onSelectAirspace?: ((airspaceId: string | string[]) => void) | null;
 }) {
   const map = useMapInstance();
   const layerRef = useRef<L.GeoJSON | null>(null);
@@ -102,13 +102,6 @@ export default function AirspaceLayer({
     if (paneElement) paneElement.style.pointerEvents = visibleRef.current ? "auto" : "none";
     const handleNativeAirspacePointer = (event: PointerEvent | TouchEvent) => {
       if (
-        typeof PointerEvent !== "undefined" &&
-        event instanceof PointerEvent &&
-        event.pointerType === "mouse"
-      ) {
-        return;
-      }
-      if (
         !shouldHandleAirspaceSelection({
           visible: visibleRef.current,
           onSelectAirspace: onSelectRef.current,
@@ -121,18 +114,17 @@ export default function AirspaceLayer({
       const clickedId = hitIds[0] || "";
       if (!clickedId && hitIds.length === 0) return;
       const latlng = resolveAirspaceLatLngFromClientPoint(map, clientPoint);
-      const id = resolveClickedAirspaceId({
+      const ids = resolveClickedAirspaceIds({
         hitIds,
         features,
         latlng,
         clickedId,
         selectableAirspaceIds: selectableAirspaceIdSet,
-        selectedAirspaceId: selectedAirspaceIdRef.current,
       });
-      if (!id) return;
+      if (ids.length === 0) return;
       L.DomEvent.stop(event as any);
       event.preventDefault?.();
-      onSelectRef.current?.(id);
+      onSelectRef.current?.(ids);
     };
     const usePointerEvents = typeof window.PointerEvent !== "undefined";
     const nativeAirspacePointerOptions = { passive: false, capture: true };
@@ -171,15 +163,14 @@ export default function AirspaceLayer({
           }
           const clientPoint = resolveAirspaceClientPoint(event?.originalEvent);
           const hitIds = airspaceFeatureIdsAtClientPoint(clientPoint);
-          const id = resolveClickedAirspaceId({
+          const ids = resolveClickedAirspaceIds({
             hitIds,
             features,
             latlng: event?.latlng,
             clickedId: featureId,
             selectableAirspaceIds: selectableAirspaceIdSet,
-            selectedAirspaceId: selectedAirspaceIdRef.current,
           });
-          if (id) onSelectRef.current?.(id);
+          if (ids.length > 0) onSelectRef.current?.(ids);
         });
       },
     });
