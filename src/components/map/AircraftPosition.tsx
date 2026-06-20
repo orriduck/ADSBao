@@ -1,11 +1,8 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
 import {
-  beginAircraftMotionState,
-  calculateAircraftVisualPosition,
-  shouldAnimateAircraftVisualPosition,
   SLOW_AIRCRAFT_THRESHOLD_KT,
 } from "../../utils/aircraftMotion";
 import { AIRCRAFT_COLORS } from "../../constants/aircraft";
@@ -26,7 +23,6 @@ import {
   safeAddToMap,
   safeRemoveFromMap,
 } from "@/features/airport/map/leafletLayerSafety";
-import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
 
 // Marker glyph size. Keep this modest so dense airport maps stay readable,
 // but large enough that masked silhouettes survive busy vector basemaps. The
@@ -34,6 +30,12 @@ import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
 // keeps the anchor centered and the callsign hugged to the silhouette.
 const SILHOUETTE_SIZE_PX = 20;
 const silentLeafletLogger = { ...console, warn: () => {} };
+
+function resolveAircraftLatLng(latValue, lonValue) {
+  const lat = Number(latValue);
+  const lon = Number(lonValue);
+  return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+}
 
 const getAircraftColor = (ac, showArrow) => {
   if (ac.onGround) return AIRCRAFT_COLORS.ground;
@@ -55,12 +57,9 @@ function AircraftPosition({
   onSelectAircraft,
 }) {
   const map = useMapInstance();
-  const motionRef = useRef(null);
   const markerRef = useRef(null);
-  const unsubscribeMotionFrameRef = useRef<(() => void) | null>(null);
-  const lastVisualPositionRef = useRef<{ lat: number; lon: number } | null>(
-    null,
-  );
+  const aircraftLat = aircraft?.lat;
+  const aircraftLon = aircraft?.lon;
   const attitudeTrackerRef = useRef(null);
   if (attitudeTrackerRef.current === null) {
     attitudeTrackerRef.current = createAttitudeTracker();
@@ -71,34 +70,6 @@ function AircraftPosition({
     el.style.cssText = "position:relative;display:flex;align-items:center";
     return el;
   });
-  const applyMarkerPosition = useCallback((now = Date.now()) => {
-    const marker = markerRef.current;
-    const motion = motionRef.current;
-    if (!marker || !motion) return false;
-
-    const pos = calculateAircraftVisualPosition(motion, now);
-    const last = lastVisualPositionRef.current;
-    if (!last || pos.lat !== last.lat || pos.lon !== last.lon) {
-      marker.setLatLng([pos.lat, pos.lon]);
-      lastVisualPositionRef.current = pos;
-    }
-    return shouldAnimateAircraftVisualPosition(motion, now);
-  }, []);
-  const stopMotionLoop = useCallback(() => {
-    unsubscribeMotionFrameRef.current?.();
-    unsubscribeMotionFrameRef.current = null;
-  }, []);
-  const scheduleMotionLoop = useCallback(() => {
-    if (unsubscribeMotionFrameRef.current) return;
-
-    unsubscribeMotionFrameRef.current = subscribeAircraftMotionFrame((now) => {
-      const keepGoing = applyMarkerPosition(now);
-      if (!keepGoing) {
-        unsubscribeMotionFrameRef.current = null;
-      }
-      return keepGoing;
-    });
-  }, [applyMarkerPosition]);
 
   useEffect(() => {
     if (!container) return undefined;
@@ -116,12 +87,11 @@ function AircraftPosition({
 
   useEffect(() => {
     if (!map || !map.getContainer || !container) return undefined;
-    const now = Date.now();
-    motionRef.current = beginAircraftMotionState(aircraft, now);
-    const visualPos = calculateAircraftVisualPosition(motionRef.current, now);
+    const position = resolveAircraftLatLng(aircraftLat, aircraftLon);
+    if (!position) return undefined;
 
     const marker = safeAddToMap(
-      L.marker([visualPos.lat, visualPos.lon], {
+      L.marker([position.lat, position.lon], {
         autoPanOnFocus: false,
         keyboard: false,
         icon: L.divIcon({
@@ -136,36 +106,27 @@ function AircraftPosition({
     );
     if (!marker) return undefined;
     markerRef.current = marker;
-    lastVisualPositionRef.current = visualPos;
-    if (shouldAnimateAircraftVisualPosition(motionRef.current, now)) {
-      scheduleMotionLoop();
-    }
 
     return () => {
-      stopMotionLoop();
       safeRemoveFromMap(marker, map);
       markerRef.current = null;
-      lastVisualPositionRef.current = null;
     };
-    // We intentionally only re-run on map/container change. Aircraft data
-    // updates are handled in a separate effect that mutates motionRef.
+    // We intentionally only re-run on map/container change. Aircraft position
+    // snapshots are handled below with direct Leaflet writes, avoiding a
+    // per-marker animation loop on dense airport maps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyMarkerPosition, map, container, scheduleMotionLoop, stopMotionLoop]);
+  }, [map, container]);
 
   useEffect(() => {
-    if (!markerRef.current) return;
-    const now = Date.now();
-    const cur = markerRef.current.getLatLng();
-    motionRef.current = beginAircraftMotionState(aircraft, now, {
-      lat: cur.lat,
-      lon: cur.lng,
-    });
-    if (applyMarkerPosition(now)) {
-      scheduleMotionLoop();
-    } else {
-      stopMotionLoop();
+    const marker = markerRef.current;
+    if (!marker) return;
+    const position = resolveAircraftLatLng(aircraftLat, aircraftLon);
+    if (!position) return;
+    const current = marker.getLatLng();
+    if (current.lat !== position.lat || current.lng !== position.lon) {
+      marker.setLatLng([position.lat, position.lon]);
     }
-  }, [aircraft, applyMarkerPosition, scheduleMotionLoop, stopMotionLoop]);
+  }, [aircraftLat, aircraftLon]);
 
   // Compute attitude (roll/pitch) on each data update. The tracker holds
   // the previous track sample + smoothed values so this is a pure render-
@@ -246,11 +207,10 @@ function AircraftPosition({
   );
 }
 
-// Memoized: the trace tracker now shares references for unchanged aircraft
-// and all other props are stable (booleans + a useCallback handler), so a
-// poll that doesn't change a given aircraft skips its React re-render +
-// portal rebuild. Moving aircraft get a fresh `aircraft` ref → re-render →
-// the [aircraft] effect updates motionRef so the marker keeps animating.
+// Memoized: the trace tracker shares references for unchanged aircraft and
+// all other props are stable, so polls that do not change a given aircraft
+// skip its React re-render and portal rebuild. Position snapshots update the
+// Leaflet marker directly without a continuous animation frame loop.
 export default memo(AircraftPosition);
 
 function Pointer({

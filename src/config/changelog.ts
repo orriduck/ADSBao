@@ -40,9 +40,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 103;
+export const CHANGELOG_TOTAL_COUNT = 104;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.5",
+    kind: "patch",
+    title: {
+      en: "Stable aircraft marker updates",
+      zh: "飞机标记位置稳定性",
+    },
+    summary: {
+      en: "Dense airport maps now update aircraft markers only from fresh snapshots, removing the visual extrapolation path that could lag the map and animate markers backward.",
+      zh: "高密度机场地图现在只按最新快照更新飞机标记，移除会拖慢地图并让标记倒退的视觉外推路径。",
+    },
+    highlights: [
+      {
+        en: "Aircraft markers no longer keep per-marker correction animation work alive between traffic snapshots",
+        zh: "飞机标记不再在交通快照之间保留逐标记位置修正动画",
+      },
+      {
+        en: "Flight tracking map focus also follows snapshot positions instead of extrapolated visual correction",
+        zh: "航班跟踪页的地图焦点也改为跟随快照位置，不再使用外推视觉修正",
+      },
+      {
+        en: "The stale prediction path that could ease a marker back from an overshot position has been removed",
+        zh: "会把标记从外推过头的位置缓慢拉回的旧预测路径已移除",
+      },
+    ],
+  },
   {
     version: "v2.22.4",
     kind: "patch",
@@ -474,28 +500,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The static-page scroll panel now uses `--app-viewport-height` instead of raw `100dvh`, so the shell and scroll owner no longer disagree after rotation",
         zh: "静态页滚动面板现在使用 `--app-viewport-height` 而不是原始 `100dvh`，旋转后外壳和滚动容器不再高度不一致",
-      },
-    ],
-  },
-  {
-    version: "v2.17.5",
-    kind: "patch",
-    title: {
-      en: "iOS PWA rotation recovery",
-      zh: "iOS PWA 旋转恢复",
-    },
-    summary: {
-      en: "Home Screen launches now recover the real portrait layout after repeated rotations, so static pages and airport detail sidebars stop inheriting stale landscape geometry.",
-      zh: "主屏启动的 PWA 在反复旋转后会恢复真实竖屏布局，静态页和机场详情侧栏不再继承过期横屏几何。",
-    },
-    highlights: [
-      {
-        en: "The app-shell device model now reconciles layout viewport, visualViewport, orientation, and safe-area evidence before choosing mobile or landscape desktop layout",
-        zh: "app-shell 设备模型现在会综合 layout viewport、visualViewport、方向和 safe-area 证据，再决定移动端或横屏桌面布局",
-      },
-      {
-        en: "Locked static and map shells use the sampled viewport height so iOS standalone mode cannot leave a stale bottom block after rotation",
-        zh: "锁定视口的静态页和地图壳会使用采样后的视口高度，避免 iOS standalone 旋转后留下过期底部白块",
       },
     ],
   },
