@@ -16,12 +16,20 @@ import {
   readErrorStatus,
   readResponseStatus,
 } from "../features/aviation/httpClient";
+import {
+  beginAircraftMotionState,
+  calculateAircraftVisualPosition,
+  shouldAnimateAircraftVisualPosition,
+} from "../utils/aircraftMotion";
 
 // How long to wait after the last merged-trace change before writing to
 // localStorage. Live polls land every 3s, so a short debounce lets a
 // burst of updates collapse into one write without putting the user
 // more than a tick behind on the persisted set.
 const PERSIST_DEBOUNCE_MS = 750;
+const TRACE_VISUAL_TICK_MS = 1_000;
+const LIVE_TRACE_MAX_POINTS = 120;
+const TRACE_LIVE_BUCKET_MS = 60_000;
 const aircraftTraceClient = createAircraftTraceClient();
 
 type AircraftTraceHookRecord = Record<string, any>;
@@ -53,27 +61,70 @@ function fetchTraceSource({ hex, label, source, full }: AircraftTraceHookRecord)
     });
 }
 
-function liveAircraftToTracePoint(aircraft: AircraftTraceHookRecord | null) {
+function liveTraceBucket(timestampMs: number) {
+  return Math.floor(timestampMs / TRACE_LIVE_BUCKET_MS);
+}
+
+function appendLiveTracePoint(current: AircraftTraceHookRecord[], point: AircraftTraceHookRecord) {
+  const last = current[current.length - 1];
+  if (
+    last &&
+    last.timestampMs === point.timestampMs &&
+    last.lat === point.lat &&
+    last.lon === point.lon
+  ) {
+    return current;
+  }
+  if (
+    last &&
+    Number.isFinite(Number(last.timestampMs)) &&
+    Number.isFinite(Number(point.timestampMs)) &&
+    liveTraceBucket(Number(last.timestampMs)) === liveTraceBucket(Number(point.timestampMs))
+  ) {
+    return [...current.slice(0, -1), point];
+  }
+  return [...current, point].slice(-LIVE_TRACE_MAX_POINTS);
+}
+
+function resolveLatLonPosition(position: AircraftTraceHookRecord | null | undefined) {
+  const lat = Number(position?.lat);
+  const lon = Number(position?.lon);
+  return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+}
+
+function liveAircraftToTracePoint(
+  aircraft: AircraftTraceHookRecord | null,
+  {
+    position = null,
+    timestampMs = null,
+    inferred = false,
+  }: AircraftTraceHookRecord = {},
+) {
   if (!aircraft) return null;
-  const lat = Number(aircraft.lat);
-  const lon = Number(aircraft.lon);
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  const resolvedPosition = resolveLatLonPosition(position) || resolveLatLonPosition(aircraft);
+  if (!resolvedPosition) return null;
 
   const positionTime = Number(aircraft.positionTime);
+  const traceTimestampMs = Number(timestampMs);
   const altitude = Number(aircraft.altitude);
   const velocity = Number(aircraft.velocity);
   const track = Number(aircraft.track);
   const baroRate = Number(aircraft.baroRate);
 
   return {
-    timestampMs: Number.isFinite(positionTime) ? positionTime : Date.now(),
-    lat,
-    lon,
+    timestampMs: Number.isFinite(traceTimestampMs)
+      ? traceTimestampMs
+      : Number.isFinite(positionTime)
+        ? positionTime
+        : Date.now(),
+    lat: resolvedPosition.lat,
+    lon: resolvedPosition.lon,
     altitude: Number.isFinite(altitude) ? altitude : null,
     onGround: Boolean(aircraft.onGround),
     velocity: Number.isFinite(velocity) ? velocity : null,
     track: Number.isFinite(track) ? track : null,
     baroRate: Number.isFinite(baroRate) ? baroRate : null,
+    ...(inferred ? { inferred: true } : null),
   };
 }
 
@@ -163,6 +214,8 @@ export function useAircraftTrace(
   const [traceError, setTraceError] = useState<unknown>(null);
   const [recentTraceUnavailable, setRecentTraceUnavailable] = useState(false);
   const cycleRef = useRef(0);
+  const traceMotionRef = useRef<AircraftTraceHookRecord | null>(null);
+  const latestVisualTracePointRef = useRef<AircraftTraceHookRecord | null>(null);
   const [traceCycle, setTraceCycle] = useState(0);
   const localTracePoints = useMemo(
     () => localTraceHistoryToTracePoints(selectedAircraft),
@@ -179,6 +232,8 @@ export function useAircraftTrace(
       setFullPoints([]);
       setRecentPoints([]);
       setLivePoints([]);
+      traceMotionRef.current = null;
+      latestVisualTracePointRef.current = null;
       setRecentLoading(false);
       setFullLoading(false);
       setRecentTraceUnavailable(false);
@@ -189,6 +244,8 @@ export function useAircraftTrace(
     const label = traceLabel;
     setActiveHex(hex);
     setLivePoints([]);
+    traceMotionRef.current = null;
+    latestVisualTracePointRef.current = null;
     setRecentPoints([]);
     setRecentLoading(true);
     setTraceError(null);
@@ -311,28 +368,55 @@ export function useAircraftTrace(
   }, [hex, traceRefreshKey, fullTrace, traceLabel]);
 
   // Append the latest polled position so the trail extends forward in
-  // real time. We don't gate on loading anymore — the priority merge
-  // resolves overlap correctly even if a live point lands before the
-  // recent fetch resolves.
+  // real time. Use the same visual motion model as aircraft markers so
+  // the trace head follows inferred movement without rebuilding on every
+  // animation frame.
   useEffect(() => {
     if (!hex) return;
-    const point = liveAircraftToTracePoint(selectedAircraft);
-    if (!point) return;
-    setLivePoints((current) => {
-      // Cheap dedupe on the latest entry so repeated polls with the same
-      // (timestamp, lat, lon) don't grow the array unboundedly. Older
-      // dupes from earlier ticks are deduped by the priority merge.
-      const last = current[current.length - 1];
-      if (
-        last &&
-        last.timestampMs === point.timestampMs &&
-        last.lat === point.lat &&
-        last.lon === point.lon
-      ) {
-        return current;
-      }
-      return [...current, point];
+    const now = Date.now();
+    const currentVisual = latestVisualTracePointRef.current
+      ? {
+          lat: latestVisualTracePointRef.current.lat,
+          lon: latestVisualTracePointRef.current.lon,
+        }
+      : null;
+    traceMotionRef.current = beginAircraftMotionState(
+      selectedAircraft,
+      now,
+      currentVisual,
+    );
+    const point = liveAircraftToTracePoint(selectedAircraft, {
+      position: calculateAircraftVisualPosition(traceMotionRef.current, now),
+      timestampMs: now,
+      inferred: true,
     });
+    if (!point) return;
+    latestVisualTracePointRef.current = point;
+    setLivePoints((current) => {
+      return appendLiveTracePoint(current, point);
+    });
+  }, [hex, selectedAircraft]);
+
+  useEffect(() => {
+    if (!hex || typeof window === "undefined") return undefined;
+
+    const tick = () => {
+      const motion = traceMotionRef.current;
+      const now = Date.now();
+      if (!motion || !shouldAnimateAircraftVisualPosition(motion, now)) return;
+      const point = liveAircraftToTracePoint(selectedAircraft, {
+        position: calculateAircraftVisualPosition(motion, now),
+        timestampMs: now,
+        inferred: true,
+      });
+      if (!point) return;
+      latestVisualTracePointRef.current = point;
+      setLivePoints((current) => appendLiveTracePoint(current, point));
+    };
+
+    tick();
+    const timer = window.setInterval(tick, TRACE_VISUAL_TICK_MS);
+    return () => window.clearInterval(timer);
   }, [hex, selectedAircraft]);
 
   // Seed the persisted buffer when the persistKey changes so refreshes
@@ -377,6 +461,10 @@ export function useAircraftTrace(
     traceStartAtMs,
   ]);
   const tracePoints = composedTrace.points;
+  const persistedTracePoints = useMemo(
+    () => tracePoints.filter((point) => !point?.inferred),
+    [tracePoints],
+  );
   const traceUnavailable = isAircraftTraceUnavailable({
     recentTraceUnavailable,
     loading: composedTrace.loading,
@@ -384,16 +472,16 @@ export function useAircraftTrace(
   });
 
   // Persist the clipped trace back to localStorage. Debounced so a burst
-  // of live polls collapses into one write. We only persist what the
-  // user can see — the cutoff already bounds the size, so the storage
-  // cap rarely kicks in.
+  // of live polls collapses into one write. Inferred visual-head points
+  // stay display-only; the persisted trace remains actual provider/local
+  // samples.
   useEffect(() => {
-    if (!persistKey || tracePoints.length === 0) return undefined;
+    if (!persistKey || persistedTracePoints.length === 0) return undefined;
     const timer = window.setTimeout(() => {
-      writeTrackedTrace(persistKey, tracePoints);
+      writeTrackedTrace(persistKey, persistedTracePoints);
     }, PERSIST_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [persistKey, tracePoints]);
+  }, [persistKey, persistedTracePoints]);
 
   // Memoize the returned object so its identity is stable when the fields
   // are unchanged — the SelectedAircraftTrace context keys a memo on this

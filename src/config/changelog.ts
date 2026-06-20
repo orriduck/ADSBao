@@ -40,9 +40,39 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 104;
+export const CHANGELOG_TOTAL_COUNT = 105;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.6",
+    kind: "patch",
+    title: {
+      en: "Viewport-bounded inferred motion",
+      zh: "视口内推断动画",
+    },
+    summary: {
+      en: "Aircraft motion keeps inferred animation for smooth movement, while dense mobile maps skip extrapolation work for aircraft outside the current viewport.",
+      zh: "飞机移动保留推断动画以保持流畅，同时高密度移动端地图会跳过当前视口外飞机的外推开销。",
+    },
+    highlights: [
+      {
+        en: "Visible and near-viewport aircraft use shared inferred motion again instead of snapshot-only jumps",
+        zh: "可见和接近视口的飞机重新使用共享推断动画，不再只按快照跳动",
+      },
+      {
+        en: "Aircraft outside the viewport settle directly to the latest real position until a later snapshot brings them into view",
+        zh: "视口外飞机会直接落到最新真实位置，直到之后的快照进入视口再开始推断",
+      },
+      {
+        en: "The shared marker frame loop now uses epoch time, so aircraft markers move with inferred trace heads instead of freezing at the latest snapshot",
+        zh: "共享 marker 帧循环现在使用 epoch 时间，飞机本体会跟随推断轨迹头部移动，不再停在最新快照点",
+      },
+      {
+        en: "Dense maps no longer render wingtip, side, beacon, or strobe light animations; daytime markers have no light effect and night markers keep a static headlight only",
+        zh: "高密度地图不再渲染翼尖、侧边、防撞灯或频闪动画；日间飞机没有灯效，夜间只保留静态头灯",
+      },
+    ],
+  },
   {
     version: "v2.22.5",
     kind: "patch",
@@ -478,28 +508,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The delayed iOS recovery passes remain, but their timing now lives in one small utility that can be retuned without hunting through page components",
         zh: "延迟执行的 iOS 恢复步骤保留，但时序集中在一个小工具里，后续调整不需要翻多个页面组件",
-      },
-    ],
-  },
-  {
-    version: "v2.17.6",
-    kind: "patch",
-    title: {
-      en: "Static page rotation cleanup",
-      zh: "静态页旋转清理",
-    },
-    summary: {
-      en: "Home and static pages now clear stale document scroll and keep their sidebar panel height tied to the sampled viewport after repeated iOS PWA rotations.",
-      zh: "主页和静态页在 iOS PWA 反复旋转后会清理过期 document 滚动，并让侧栏面板高度继续跟随采样视口。",
-    },
-    highlights: [
-      {
-        en: "Route and viewport recovery now resets the document and static sidebar scroll positions in delayed passes, covering iOS adjustments that land after React commits",
-        zh: "路由与视口恢复会分阶段重置 document 和静态侧栏滚动位置，覆盖 React 提交后才落下的 iOS 调整",
-      },
-      {
-        en: "The static-page scroll panel now uses `--app-viewport-height` instead of raw `100dvh`, so the shell and scroll owner no longer disagree after rotation",
-        zh: "静态页滚动面板现在使用 `--app-viewport-height` 而不是原始 `100dvh`，旋转后外壳和滚动容器不再高度不一致",
       },
     ],
   },

@@ -52,6 +52,10 @@ import { getAircraftIdentity } from "@/features/airport/context/airportContextUi
 import { normalizeCallsign } from "@/utils/callsign";
 import { formatFlightRouteLabel } from "@/utils/flightRouteDisplay";
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
+import {
+  beginAircraftMotionState,
+  calculateAircraftVisualPosition,
+} from "@/utils/aircraftMotion";
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard";
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
@@ -60,6 +64,7 @@ const FlightAwareRouteArc = lazy(() => import("@/components/map/FlightAwareRoute
 const MapFitToTraceController = lazy(() => import("@/components/map/MapFitToTraceController"));
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 
+const FOCAL_VISUAL_POSITION_TICK_MS = 500;
 const TRACE_VIEW_SESSION = "session";
 const TRACE_VIEW_ALL = "all";
 
@@ -281,6 +286,12 @@ function FlightExplorerContent({ callsign }) {
   // Keep the last known position around so the map doesn't snap back when
   // the tracked aircraft is briefly absent from the feed.
   const lastKnownRef = useRef({ lat: null, lon: null });
+  const focalMotionRef = useRef(null);
+  const visualFocalPositionRef = useRef({ lat: null, lon: null });
+  const [visualFocalPosition, setVisualFocalPosition] = useState({
+    lat: null,
+    lon: null,
+  });
   const trackedLat = toFiniteCoordinate(trackedAircraftForDisplay?.lat);
   const trackedLon = toFiniteCoordinate(trackedAircraftForDisplay?.lon);
   if (trackedLat != null && trackedLon != null) {
@@ -289,8 +300,54 @@ function FlightExplorerContent({ callsign }) {
       lon: trackedLon,
     };
   }
-  const focalLat = trackedLat ?? lastKnownRef.current.lat;
-  const focalLon = trackedLon ?? lastKnownRef.current.lon;
+  useEffect(() => {
+    visualFocalPositionRef.current = { lat: null, lon: null };
+    focalMotionRef.current = null;
+    setVisualFocalPosition({ lat: null, lon: null });
+  }, [callsign]);
+  useEffect(() => {
+    if (!trackedAircraftForDisplay || trackedLat == null || trackedLon == null) {
+      return;
+    }
+    const now = Date.now();
+    const currentVisual =
+      visualFocalPositionRef.current.lat != null &&
+      visualFocalPositionRef.current.lon != null
+        ? visualFocalPositionRef.current
+        : null;
+    focalMotionRef.current = beginAircraftMotionState(
+      trackedAircraftForDisplay,
+      now,
+      currentVisual,
+    );
+    const nextPosition = calculateAircraftVisualPosition(
+      focalMotionRef.current,
+      now,
+    );
+    updateVisualFocalPosition({
+      nextPosition,
+      positionRef: visualFocalPositionRef,
+      setPosition: setVisualFocalPosition,
+    });
+  }, [trackedAircraftForDisplay, trackedLat, trackedLon]);
+  useEffect(() => {
+    const tick = () => {
+      const motion = focalMotionRef.current;
+      if (!motion) return;
+      updateVisualFocalPosition({
+        nextPosition: calculateAircraftVisualPosition(motion),
+        positionRef: visualFocalPositionRef,
+        setPosition: setVisualFocalPosition,
+      });
+    };
+    tick();
+    const timer = window.setInterval(tick, FOCAL_VISUAL_POSITION_TICK_MS);
+    return () => window.clearInterval(timer);
+  }, []);
+  const visualFocalLat = toFiniteCoordinate(visualFocalPosition.lat);
+  const visualFocalLon = toFiniteCoordinate(visualFocalPosition.lon);
+  const focalLat = visualFocalLat ?? lastKnownRef.current.lat;
+  const focalLon = visualFocalLon ?? lastKnownRef.current.lon;
   const contextPosition = useMemo(
     () =>
       getFlightTrackingContextPosition({
@@ -973,4 +1030,22 @@ function buildRouteEndpointCandidates({ route, aircraft }) {
     { code: originCode, point: route?.origin || null, role: "origin" },
     { code: destinationCode, point: route?.destination || null, role: "destination" },
   ].filter((candidate) => candidate.code || candidate.point);
+}
+
+function positionsNear(a, b) {
+  if (!a || !b) return false;
+  return (
+    Math.abs(Number(a.lat) - Number(b.lat)) < 0.000001 &&
+    Math.abs(Number(a.lon) - Number(b.lon)) < 0.000001
+  );
+}
+
+function updateVisualFocalPosition({ nextPosition, positionRef, setPosition }) {
+  const nextLat = toFiniteCoordinate(nextPosition?.lat);
+  const nextLon = toFiniteCoordinate(nextPosition?.lon);
+  if (nextLat == null || nextLon == null) return;
+  const next = { lat: nextLat, lon: nextLon };
+  if (positionsNear(positionRef.current, next)) return;
+  positionRef.current = next;
+  setPosition(next);
 }

@@ -17,8 +17,8 @@ const ENTER_ANIMATION_MS = 300;
 // Windowed render for the nearby list. Both aircraft and airport rows live in
 // a single scroll container so the virtualizer can manage them as one stream.
 // Stable per-item keys (icao for airports, callsign/icao24 for aircraft) let
-// React preserve component identity across scrolls so NumberFlow inside each
-// row keeps its animation state instead of remounting.
+// React preserve component identity across scrolls so rows do not remount while
+// the user scrolls dense airport lists.
 export default function VirtualNearbyList({
   items,
   selectedAircraftId = "",

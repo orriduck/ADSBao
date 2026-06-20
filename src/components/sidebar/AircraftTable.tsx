@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import NumberFlow from "@number-flow/react";
 import { Check, Minus, Search } from "lucide-react";
 import {
   Select,
@@ -251,12 +250,11 @@ export default function AircraftTable({
             {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
           </span>
           <div className="whitespace-nowrap font-mono text-[10px] tracking-[0.18em] text-atc-dim tabular-nums">
-            <NumberFlow value={filteredAircraft.length + filteredAirports.length} />
+            <span>{filteredAircraft.length + filteredAirports.length}</span>
             <span> / </span>
-            <NumberFlow
-              value={aircraft.length + airports.length}
-              suffix={` ${t("sidebar.nearby")}`}
-            />
+            <span>
+              {aircraft.length + airports.length} {t("sidebar.nearby")}
+            </span>
           </div>
         </div>
 

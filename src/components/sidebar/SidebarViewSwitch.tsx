@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import NumberFlow from "@number-flow/react";
 import { MetricCard as SidebarMetricCard, MetricGrid as SidebarMetricGrid } from "@/components/ui/MetricCard";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
@@ -74,7 +73,7 @@ export default function SidebarViewSwitch({
         />
         <SidebarMetricCard
           label={t("sidebar.nearby")}
-          value={<NumberFlow value={aircraft.length} />}
+          value={aircraft.length}
           unit={`${rule} / ADS-B`}
           active={activeView === "traffic"}
           onClick={() => onViewChange?.("traffic")}
@@ -94,7 +93,7 @@ export default function SidebarViewSwitch({
       />
       <SidebarMetricCard
         label={t("sidebar.flights")}
-        value={<NumberFlow value={aircraft.length} />}
+        value={aircraft.length}
         unit={`${rule} / ADS-B`}
         active={activeView === "traffic"}
         onClick={() => onViewChange?.("traffic")}
@@ -102,7 +101,7 @@ export default function SidebarViewSwitch({
       {showAtcCard && (
         <SidebarMetricCard
           label={t("sidebar.atc")}
-          value={<NumberFlow value={atcCount} />}
+          value={atcCount}
           unit={t("sidebar.metricUnits.frequency")}
           active={activeView === "atc"}
           onClick={() => onViewChange?.("atc")}
@@ -110,7 +109,7 @@ export default function SidebarViewSwitch({
       )}
       <SidebarMetricCard
         label={t("sidebar.spotting")}
-        value={<NumberFlow value={spottingCount} />}
+        value={spottingCount}
         unit={t("sidebar.metricUnits.spots")}
         active={activeView === "spotting"}
         onClick={onOpenSpotting}
@@ -119,14 +118,14 @@ export default function SidebarViewSwitch({
         <>
           <SidebarMetricCard
             label={t("sidebar.departures")}
-            value={<NumberFlow value={departureCount} />}
+            value={departureCount}
             unit={t("sidebar.metricUnits.flights")}
             active={activeView === "departures"}
             onClick={() => onViewChange?.("departures")}
           />
           <SidebarMetricCard
             label={t("sidebar.arrivals")}
-            value={<NumberFlow value={arrivalCount} />}
+            value={arrivalCount}
             unit={t("sidebar.metricUnits.flights")}
             active={activeView === "arrivals"}
             onClick={() => onViewChange?.("arrivals")}

@@ -33,11 +33,7 @@ function AircraftLightsInner({ iconName, state }: AircraftLightsProps) {
           style={{
             left: `${light.x * 100}%`,
             top: `${light.y * 100}%`,
-            color: light.def.color === "red"
-              ? "#ff2020"
-              : light.def.color === "green"
-                ? "#00e040"
-                : "#ffffff",
+            color: "#ffffff",
           }}
         />
       ))}

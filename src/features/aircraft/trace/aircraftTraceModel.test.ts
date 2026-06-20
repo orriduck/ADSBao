@@ -287,6 +287,27 @@ import {
 
 {
   const composed = composeAircraftTrace({
+    mode: "focus",
+    sources: {
+      recent: [{ lat: 1, lon: 1, timestampMs: 1_000, altitude: 100 }],
+      live: [
+        {
+          lat: 1.5,
+          lon: 1.5,
+          timestampMs: 1_000,
+          altitude: 200,
+          inferred: true,
+        },
+      ],
+    },
+  });
+
+  assert.equal(composed.points[0].altitude, 200);
+  assert.equal(composed.points[0].inferred, true);
+}
+
+{
+  const composed = composeAircraftTrace({
     mode: "selected",
     sources: {
       recent: [],

@@ -288,6 +288,7 @@ function mergeTracesByPriority({ sources = [] } = {}) {
           velocity: isFiniteNumber(point?.velocity) ? Number(point.velocity) : null,
           track: isFiniteNumber(point?.track) ? Number(point.track) : null,
           baroRate: isFiniteNumber(point?.baroRate) ? Number(point.baroRate) : null,
+          ...(point?.inferred ? { inferred: true } : null),
         },
       });
     }
