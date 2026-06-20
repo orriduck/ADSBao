@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 51;
+export const CHANGELOG_TOTAL_COUNT = 52;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.13",
+    kind: "patch",
+    title: {
+      en: "Here view heading refresh",
+      zh: "我的位置视角刷新",
+    },
+    summary: {
+      en: "The /here view now keeps the current-location heading arc in sync while using a tighter position filter.",
+      zh: "/here 现在会让当前位置的视角圆弧跟随转身实时刷新，并使用更灵敏的位置防抖。",
+    },
+    highlights: [
+      {
+        en: "The heading arc updates whenever the device heading changes",
+        zh: "设备朝向变化时，视角圆弧会同步转动",
+      },
+      {
+        en: "Here-mode position filtering now uses a 0.05 nm movement threshold",
+        zh: "here 模式的位置防抖阈值调整为 0.05 海里",
+      },
+      {
+        en: "The here-mode location refresh logic is covered by focused tests",
+        zh: "here 模式的位置刷新逻辑已补上聚焦测试",
+      },
+    ],
+  },
   {
     version: "v2.22.12",
     kind: "patch",
@@ -163,28 +189,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Desktop and mobile users can preview a spot before choosing a navigation app",
         zh: "桌面端和移动端都可以先预览拍机点，再选择导航应用",
-      },
-    ],
-  },
-  {
-    version: "v2.20.0",
-    kind: "feat",
-    title: {
-      en: "Canonical airport identity",
-      zh: "机场身份统一层",
-    },
-    summary: {
-      en: "Airport lookups now resolve ICAO, IATA, OurAirports, and OpenAIP aliases through a shared canonical identity layer before reading source-specific data.",
-      zh: "机场查询现在先通过共享的 canonical identity 层解析 ICAO、IATA、OurAirports 与 OpenAIP 别名，再读取各来源数据。",
-    },
-    highlights: [
-      {
-        en: "ICAO, IATA, OurAirports, and OpenAIP identifiers resolve through one shared airport identity model",
-        zh: "ICAO、IATA、OurAirports 和 OpenAIP 标识统一通过同一套机场身份模型解析",
-      },
-      {
-        en: "Names, runways, frequencies, and related airport data now agree on the same place",
-        zh: "机场名称、跑道、频率和相关数据现在会指向同一座机场",
       },
     ],
   },

@@ -277,6 +277,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.20.0",
+    kind: "feat",
+    title: {
+      en: "Canonical airport identity",
+      zh: "机场身份统一层",
+    },
+    summary: {
+      en: "Airport lookups now resolve ICAO, IATA, OurAirports, and OpenAIP aliases through a shared canonical identity layer before reading source-specific data.",
+      zh: "机场查询现在先通过共享的 canonical identity 层解析 ICAO、IATA、OurAirports 与 OpenAIP 别名，再读取各来源数据。",
+    },
+    highlights: [
+      {
+        en: "ICAO, IATA, OurAirports, and OpenAIP identifiers resolve through one shared airport identity model",
+        zh: "ICAO、IATA、OurAirports 和 OpenAIP 标识统一通过同一套机场身份模型解析",
+      },
+      {
+        en: "Names, runways, frequencies, and related airport data now agree on the same place",
+        zh: "机场名称、跑道、频率和相关数据现在会指向同一座机场",
+      },
+    ],
+  },
+  {
     version: "v2.19.6",
     kind: "patch",
     title: {
