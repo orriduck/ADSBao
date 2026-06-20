@@ -50,6 +50,74 @@ explicitly when exercising the same paths.
 | `OPENAIP_API_KEY` | No | — | Airport data |
 | `DATABASE_URL` | No | — | Postgres for user settings |
 
+## Product direction guardrails
+
+These rules are intentional product boundaries. Do not blur them for convenience
+fallbacks, compatibility, or speculative abstractions.
+
+### Version labels
+
+When the user says `大版本`, `中版本`, or `小版本`, map it directly to the
+corresponding semver digit:
+
+| 中文 | Semver | 数字位 |
+|---|---|---|
+| `大版本` | Major | 最左 X |
+| `中版本` | Minor | 中间 Y |
+| `小版本` | Patch | 最右 Z |
+
+The detailed release-file contract remains in "Version and release rules"
+below.
+
+### Private/secret FlightAware service
+
+If the user says "secret service", treat it as the private FlightAware service
+behind `FLIGHTAWARE_SERVICE_BASE_URL` and `FLIGHTAWARE_SERVICE_TOKEN`. This
+service is an upstream-secret boundary, not a general ADSBao backend.
+
+It may own FlightAware-only work that cannot live in public browser code or the
+public ADSBao repository:
+
+- callsign fallback / active-flight resolution when the FlightAware feature path
+  is enabled
+- FlightAware route lookup
+- FlightAware airline-logo proxying
+- FlightAware position metadata used by the tracked-flight page when ADS-B is
+  absent or stale
+
+It should not own general ADS-B positions, adsbdb route lookup, user settings,
+airport data, map rendering logic, generic caches, or UI state.
+
+Feature-flag gating is part of the contract:
+
+- Without a resolved FlightAware grant, the app must stay on the adsbdb route
+  provider and must not call the private FlightAware service.
+- FlightAware realtime/WebSocket subscriptions require
+  `/api/realtime/auth?provider=flightaware` and
+  `ADSBAO_REALTIME_AUTH_SECRET`.
+- `FLIGHTAWARE_ACCESS_ENABLED` and user feature flags open the FlightAware path;
+  they do not permit mixed-provider fallback.
+
+FlightAware and adsbdb route lookup are mutually exclusive providers. When
+`routeProvider` is `flightaware`, do not subscribe to adsbdb route channels, do
+not use adsbdb as a fallback route provider, and do not accept adsbdb cached
+route entries as FlightAware-compatible. If FlightAware fails, surface the
+FlightAware miss/empty state instead of quietly replacing it with adsbdb data.
+
+### Inferred aircraft positions
+
+Displaying inferred aircraft position matters. ADS-B and FlightAware updates can
+arrive slower than the visual frame rate; freezing aircraft at the last snapshot
+makes the map read stale, especially for selected/focal aircraft and trace
+heads.
+
+Keep finite inferred/extrapolated positions visible for aircraft that are in or
+near the current viewport, selected, focused, or anchoring a trace/map fit. It is
+fine to bound inference work for dense maps and off-viewport aircraft, but do
+not remove the visible inferred-position path wholesale for performance. If a
+position is estimated, preserve the source/quality display instead of hiding the
+position.
+
 ### Frontend env vars (`.env.local`)
 
 Only `VITE_`-prefixed variables are exposed to the browser. **Critical:

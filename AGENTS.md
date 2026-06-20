@@ -26,6 +26,12 @@ the full validation decision tree there; do not duplicate it in this file.
 - When developing new features or patches, do not preserve backward
   compatibility. Prefer the new pattern working correctly, even if it requires
   a breaking change, and do not prioritize tests over that goal.
+- Follow `CLAUDE.md`'s `Product direction guardrails` for cross-agent product
+  rules: Chinese semver labels map to the matching version digit; the
+  private/secret FlightAware service is limited to FlightAware-only upstream
+  secret work and stays mutually exclusive with adsbdb route lookup; visible
+  inferred aircraft positions are important and should not be removed wholesale
+  for performance.
 
 ## Version bump rules (non-negotiable)
 
