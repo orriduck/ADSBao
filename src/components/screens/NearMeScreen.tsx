@@ -18,7 +18,13 @@ export default function NearMeScreen() {
   const { locale, t } = useI18n();
   const clientDeviceProfile = useClientDeviceProfile();
   const useOneShotLocation = clientDeviceProfile.deviceClass === "desktop";
-  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [coords, setCoords] = useState<{
+    lat: number;
+    lon: number;
+    accuracyMeters: number | null;
+    headingDeg: number | null;
+    updatedAt: number;
+  } | null>(null);
   const [status, setStatus] = useState<
     "idle" | "requesting" | "granted" | "denied" | "unavailable"
   >("idle");
@@ -51,12 +57,23 @@ export default function NearMeScreen() {
     setErrorMessage("");
 
     const handleSuccess = (position: GeolocationPosition) => {
-      const { latitude, longitude } = position.coords;
+      const { accuracy, heading, latitude, longitude } = position.coords;
       if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
         setStatus("unavailable");
         setErrorMessage(t("nearMe.unsupported"));
         return;
       }
+      const headingNumber = Number(heading);
+      const nextLocation = {
+        lat: latitude,
+        lon: longitude,
+        accuracyMeters: Number.isFinite(accuracy) ? accuracy : null,
+        headingDeg:
+          Number.isFinite(headingNumber) && headingNumber >= 0
+            ? ((headingNumber % 360) + 360) % 360
+            : null,
+        updatedAt: Date.now(),
+      };
       setStatus("granted");
       setRefreshing(false);
       if (useOneShotLocation) {
@@ -69,12 +86,12 @@ export default function NearMeScreen() {
         );
       }
       setCoords((previous) => {
-        if (!previous) return { lat: latitude, lon: longitude };
+        if (!previous) return nextLocation;
         const distance = getDistanceNm(previous.lat, previous.lon, latitude, longitude);
         if (distance != null && distance < POSITION_REFRESH_THRESHOLD_NM) {
           return previous;
         }
-        return { lat: latitude, lon: longitude };
+        return nextLocation;
       });
     };
 
@@ -156,6 +173,7 @@ export default function NearMeScreen() {
         icao=""
         airport={airport}
         mode="nearMe"
+        nearMeUserLocation={coords}
         onBack={handleBack}
         nearMeRefresh={
           useOneShotLocation

@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.19.6",
+    kind: "patch",
+    title: {
+      en: "Static shell media and sidebar polish",
+      zh: "静态壳媒体与侧栏打磨",
+    },
+    summary: {
+      en: "Static pages feel cleaner through refreshed brand media, steadier sidebar spacing, and quieter page chrome.",
+      zh: "静态页面通过新版品牌媒体、更稳定的侧栏留白和更安静的页面外观变得更干净。",
+    },
+    highlights: [
+      {
+        en: "Static pages use refreshed brand media with a lighter feel",
+        zh: "静态页面使用更轻盈的新版品牌媒体",
+      },
+      {
+        en: "Mobile sidebars have more consistent bottom breathing room",
+        zh: "移动端侧栏底部留白更一致",
+      },
+      {
+        en: "Home, About, Mechanism, and Changelog read cleaner as a group",
+        zh: "首页、关于、机制与更新日志整体更干净统一",
+      },
+    ],
+  },
+  {
     version: "v2.19.1",
     kind: "feat",
     title: {

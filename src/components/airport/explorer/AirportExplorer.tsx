@@ -99,6 +99,7 @@ function AirportExplorerContent({
   // candidate-spots / ATC fetches are skipped, METAR temp comes from
   // the closest nearby airport, sidebar identity reads "Your location".
   mode = "airport",
+  nearMeUserLocation = null,
   nearMeRefresh,
 }) {
   const nearMe = mode === "nearMe";
@@ -150,6 +151,7 @@ function AirportExplorerContent({
     setUserLocationPreferences,
   } = useExplorerUi();
   const [userLocation, setUserLocation] = useState(null);
+  const [nearMeUserLocationHidden, setNearMeUserLocationHidden] = useState(false);
   const [wakeLockState, toggleWakeLock] = useWakeLock();
   const [userLocationPending, setUserLocationPending] = useState(false);
   const [userLocationNotice, setUserLocationNotice] = useState("");
@@ -176,14 +178,33 @@ function AirportExplorerContent({
   const { weather, traffic } = useAirportExplorerData(airportProfile, {
     metarIcao,
   });
-  const userLocationActive = Boolean(userLocation);
+  const nearMeMapUserLocation = useMemo(() => {
+    if (!nearMe || nearMeUserLocationHidden) return null;
+    const lat = Number(nearMeUserLocation?.lat);
+    const lon = Number(nearMeUserLocation?.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    const accuracyMeters = Number(nearMeUserLocation?.accuracyMeters);
+    const headingDeg = Number(nearMeUserLocation?.headingDeg);
+    return {
+      lat,
+      lon,
+      accuracyMeters: Number.isFinite(accuracyMeters) ? accuracyMeters : null,
+      headingDeg:
+        Number.isFinite(headingDeg) && headingDeg >= 0
+          ? ((headingDeg % 360) + 360) % 360
+          : null,
+      updatedAt: Number(nearMeUserLocation?.updatedAt) || Date.now(),
+    };
+  }, [nearMe, nearMeUserLocation, nearMeUserLocationHidden]);
+  const effectiveUserLocation = userLocation || nearMeMapUserLocation;
+  const userLocationActive = Boolean(effectiveUserLocation);
   const userLocationVisualTraffic = useMemo(
     () =>
       buildUserLocationVisualTraffic({
-        userLocation,
+        userLocation: effectiveUserLocation,
         aircraft: traffic.aircraft,
       }),
-    [traffic.aircraft, userLocation],
+    [effectiveUserLocation, traffic.aircraft],
   );
   const userLocationStatusLines = useMemo(
     () =>
@@ -406,6 +427,16 @@ function AirportExplorerContent({
   ]);
 
   useEffect(() => {
+    if (nearMe) {
+      autoUserLocationAttemptKeyRef.current = "";
+      if (userLocation) clearUserLocation();
+      else {
+        stopUserLocationWatch();
+        setUserLocationNotice("");
+      }
+      return;
+    }
+
     if (!userLocationEnabled) {
       autoUserLocationAttemptKeyRef.current = "";
       if (userLocation) clearUserLocation();
@@ -424,6 +455,7 @@ function AirportExplorerContent({
   }, [
     airportProfile.icao,
     clearUserLocation,
+    nearMe,
     requestUserLocation,
     stopUserLocationWatch,
     userLocation,
@@ -432,6 +464,18 @@ function AirportExplorerContent({
   ]);
 
   const toggleUserLocation = useCallback(() => {
+    if (nearMe && nearMeMapUserLocation && !userLocation) {
+      setNearMeUserLocationHidden(true);
+      setUserLocationNotice("");
+      return;
+    }
+
+    if (nearMe && nearMeUserLocationHidden && !userLocation) {
+      setNearMeUserLocationHidden(false);
+      setUserLocationNotice("");
+      return;
+    }
+
     if (userLocation || userLocationEnabled) {
       setUserLocationPreferences({
         userLocationEnabled: false,
@@ -443,6 +487,9 @@ function AirportExplorerContent({
     requestUserLocation();
   }, [
     clearUserLocation,
+    nearMe,
+    nearMeMapUserLocation,
+    nearMeUserLocationHidden,
     requestUserLocation,
     setUserLocationPreferences,
     userLocation,
@@ -523,7 +570,9 @@ function AirportExplorerContent({
   const toolbarContextProps = {
     wakeLockState,
     onToggleWakeLock: toggleWakeLock,
-    userLocationActive: userLocationEnabled || userLocationActive,
+    userLocationActive: nearMe
+      ? userLocationActive
+      : userLocationEnabled || userLocationActive,
     userLocationPending,
     userLocationNotice,
     onToggleUserLocation: toggleUserLocation,
@@ -713,7 +762,7 @@ function AirportExplorerContent({
               surfaceMap={airport?.surfaceMap}
               loadingOverlayActive={loadingOverlayActive}
               loadingOverlaySources={loadingOverlaySources}
-              userLocation={userLocation}
+              userLocation={effectiveUserLocation}
             />
           </Suspense>
 

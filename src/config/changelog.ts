@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 50;
+export const CHANGELOG_TOTAL_COUNT = 51;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.12",
+    kind: "patch",
+    title: {
+      en: "Here view location marker fix",
+      zh: "我的位置视图定位点修正",
+    },
+    summary: {
+      en: "The /here view now shows its own current-location marker and heading independently of the map settings layer.",
+      zh: "/here 现在会独立显示自己的当前位置点和朝向,不再依赖地图设置里的位置图层。",
+    },
+    highlights: [
+      {
+        en: "Here mode uses the location it already requested as the map marker source",
+        zh: "here 模式直接使用自己已获取的位置作为地图定位点来源",
+      },
+      {
+        en: "The map settings user-location toggle no longer decides whether /here shows the user marker",
+        zh: "地图设置里的我的位置开关不再决定 /here 是否显示自己的定位点",
+      },
+      {
+        en: "Nearby visual-traffic status lines use the same here-mode location source",
+        zh: "视距内飞机状态行也使用同一份 here 模式位置来源",
+      },
+    ],
+  },
   {
     version: "v2.22.11",
     kind: "patch",
@@ -159,32 +185,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Names, runways, frequencies, and related airport data now agree on the same place",
         zh: "机场名称、跑道、频率和相关数据现在会指向同一座机场",
-      },
-    ],
-  },
-  {
-    version: "v2.19.6",
-    kind: "patch",
-    title: {
-      en: "Static shell media and sidebar polish",
-      zh: "静态壳媒体与侧栏打磨",
-    },
-    summary: {
-      en: "Static pages feel cleaner through refreshed brand media, steadier sidebar spacing, and quieter page chrome.",
-      zh: "静态页面通过新版品牌媒体、更稳定的侧栏留白和更安静的页面外观变得更干净。",
-    },
-    highlights: [
-      {
-        en: "Static pages use refreshed brand media with a lighter feel",
-        zh: "静态页面使用更轻盈的新版品牌媒体",
-      },
-      {
-        en: "Mobile sidebars have more consistent bottom breathing room",
-        zh: "移动端侧栏底部留白更一致",
-      },
-      {
-        en: "Home, About, Mechanism, and Changelog read cleaner as a group",
-        zh: "首页、关于、机制与更新日志整体更干净统一",
       },
     ],
   },
