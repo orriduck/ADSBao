@@ -24,6 +24,7 @@ import { AircraftLabel } from "@/components/ui/AircraftLabel";
 import { AircraftLights } from "@/features/aircraft/icons/AircraftLights";
 import {
   safeAddToMap,
+  safeGetMapBounds,
   safeRemoveFromMap,
 } from "@/features/airport/map/leafletLayerSafety";
 import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
@@ -43,8 +44,11 @@ function resolveAircraftLatLng(latValue, lonValue) {
 }
 
 function resolveMotionBounds(map) {
-  const bounds = map?.getBounds?.();
-  if (!bounds?.contains) return null;
+  const bounds = safeGetMapBounds(map, {
+    label: "AircraftPosition",
+    logger: silentLeafletLogger,
+  });
+  if (!bounds) return null;
   const width = Number(map?.getContainer?.()?.clientWidth);
   const padRatio = Number.isFinite(width) && width <= MOBILE_VIEWPORT_WIDTH_PX
     ? 0.06

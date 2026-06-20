@@ -17,6 +17,20 @@ export function safeAddToMap(
   }
 }
 
+export function safeGetMapBounds(
+  map,
+  { label = "LeafletMap", logger = console } = {},
+) {
+  if (!map?.getBounds) return null;
+  try {
+    const bounds = map.getBounds();
+    return bounds?.contains ? bounds : null;
+  } catch (error) {
+    logger.warn?.(`[${label}] bounds skipped (map not ready)`, error.message);
+    return null;
+  }
+}
+
 export function safeRemoveFromMap(layer, map) {
   if (!layer || !map) return;
   try {

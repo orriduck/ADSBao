@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 
-import { safeAddToMap, safeRemoveFromMap } from "./leafletLayerSafety";
+import {
+  safeAddToMap,
+  safeGetMapBounds,
+  safeRemoveFromMap,
+} from "./leafletLayerSafety";
 
 {
   const layer = {
@@ -71,4 +75,34 @@ import { safeAddToMap, safeRemoveFromMap } from "./leafletLayerSafety";
   safeRemoveFromMap(layer, map);
   assert.equal(removedFrom, map);
   assert.doesNotThrow(() => safeRemoveFromMap(null, map));
+}
+
+{
+  const bounds = { contains: () => true };
+  const map = {
+    getBounds() {
+      return bounds;
+    },
+  };
+
+  assert.equal(safeGetMapBounds(map), bounds);
+}
+
+{
+  const warnings: any[] = [];
+  const map = {
+    getBounds() {
+      throw new Error("Cannot read properties of undefined (reading '_leaflet_pos')");
+    },
+  };
+
+  assert.equal(
+    safeGetMapBounds(map, {
+      label: "aircraft-layer",
+      logger: { warn: (...args: any[]) => warnings.push(args) } as any,
+    }),
+    null,
+  );
+  assert.equal(warnings.length, 1);
+  assert.equal(warnings[0][0], "[aircraft-layer] bounds skipped (map not ready)");
 }
