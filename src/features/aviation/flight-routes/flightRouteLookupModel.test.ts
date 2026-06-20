@@ -256,6 +256,45 @@ const route = {
 }
 
 {
+  const cache = new Map();
+  const flightAwareRoute = {
+    callsign: "AAL1234",
+    source: "flightaware",
+    origin: { icao: "KBOS", iata: "BOS" },
+    destination: { icao: "KLAX", iata: "LAX" },
+    route: { icao: "KBOS-KLAX", iata: "BOS-LAX" },
+  };
+  writeRouteCacheEntry(cache, "AAL1234", flightAwareRoute, now, {
+    lat: 42.36,
+    lon: -71.01,
+    routeProvider: "flightaware",
+  });
+
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "AAL1234" }],
+      cache,
+      now,
+      routeContext: { lat: 42.49, lon: -70.88, routeProvider: "flightaware" },
+    }).AAL1234?.route,
+    { icao: "KBOS-KLAX", iata: "BOS-LAX" },
+    "FlightAware routes should stay visible when tracking center moves grid cells",
+  );
+  assert.deepEqual(
+    resolvePendingRouteLookups({
+      aircraft: [{ callsign: "AAL1234" }],
+      cache,
+      inFlight: new Set(),
+      routeContext: { lat: 42.49, lon: -70.88, routeProvider: "flightaware" },
+      now,
+      maxLookups: 3,
+    }),
+    [],
+    "a provider-scoped FlightAware hit should prevent duplicate lookup after center drift",
+  );
+}
+
+{
   const cache = new Map([["DAL123", { route, time: now }]]);
   const inFlight = new Set(["UAL456"]);
   const queued = new Set(["AAL789"]);
@@ -435,6 +474,34 @@ const route = {
   });
   // Farthest two first, limited to 2.
   assert.deepEqual(pending, ["JBU123", "DAL123"]);
+}
+
+{
+  const aircraft = [
+    { callsign: "UAL456", lat: 42.36, lon: -71.01 },
+    { callsign: "DAL123", lat: 40.64, lon: -73.78 },
+    { callsign: "JBU123", lat: 38.78, lon: -9.13 },
+  ];
+  const pending = resolvePendingRouteLookups({
+    aircraft,
+    cache: new Map(),
+    inFlight: new Set(),
+    queued: new Set(),
+    routeContext: {
+      icao: "KBOS",
+      lat: 42.3656,
+      lon: -71.0096,
+      priorityCallsigns: ["UAL456"],
+    },
+    now,
+    maxLookups: 2,
+  });
+
+  assert.deepEqual(
+    pending,
+    ["UAL456", "JBU123"],
+    "focused flight route lookup should outrank distance-based nearby traffic",
+  );
 }
 
 {

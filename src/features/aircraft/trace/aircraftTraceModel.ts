@@ -10,6 +10,7 @@ const DEFAULT_SOLID_TRACE_MAX_GAP_MS = 90 * 1000;
 const DEFAULT_TRACE_CONNECTOR_MAX_GAP_MS = 10 * 60 * 1000;
 const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
 const TRACE_MINUTE_BUCKET_MS = 60 * 1000;
+const TRACE_LIVE_BUCKET_MS = 15 * 1000;
 
 type TraceRecord = Record<string, any>;
 
@@ -215,6 +216,10 @@ function traceMinuteBucket(timestampMs: number) {
   return Math.floor(timestampMs / TRACE_MINUTE_BUCKET_MS);
 }
 
+function traceBucket(timestampMs: number, bucketMs: number) {
+  return Math.floor(timestampMs / bucketMs);
+}
+
 export function dedupeTracePointsByMinuteLatest(points = []) {
   const buckets = new Map();
   if (!Array.isArray(points)) return [];
@@ -246,28 +251,38 @@ export function dedupeTracePointsByMinuteLatest(points = []) {
   );
 }
 
-// Resolve overlapping trace points across multiple sources, preferring
-// the latest point within each minute. If two sources publish the same
-// timestamp in that minute, the explicit `priority` field breaks the tie
-// (higher wins). The map renders the resulting point set directly, so this
-// keeps recent/full/live traces from drawing multiple dots or labels for
-// the same minute.
+// Resolve overlapping trace points across multiple sources. Live samples keep
+// a finer bucket so turning traces do not rewrite the same minute's control
+// point, while historical sources still collapse to the latest point per
+// minute. If two sources publish the same timestamp in a bucket, the explicit
+// `priority` field breaks the tie (higher wins).
 //
 // Used by the aircraft detail page where three sources overlap:
-//   priority 2 — live polled position (freshest, includes telemetry)
-//   priority 1 — trace_recent (rolling tail, can include corrections)
-//   priority 0 — trace_full (historical baseline)
+//   priority 3 — live polled position (freshest, includes telemetry)
+//   priority 2 — trace_recent (rolling tail, can include corrections)
+//   priority 1 — trace_full (historical baseline)
 function mergeTracesByPriority({ sources = [] } = {}) {
   const buckets = new Map();
+  const liveMinuteBuckets = new Set();
   for (const source of sources) {
     if (!source) continue;
     const priority = Number(source.priority) || 0;
+    const bucketMs =
+      Number.isFinite(Number(source.bucketMs)) && Number(source.bucketMs) > 0
+        ? Number(source.bucketMs)
+        : TRACE_MINUTE_BUCKET_MS;
+    const suppressesMinuteBucket = Boolean(source.suppressesMinuteBucket);
     const points = Array.isArray(source.points) ? source.points : [];
     for (const point of points) {
       if (!isFiniteNumber(point?.lat) || !isFiniteNumber(point?.lon)) continue;
       const timestampMs = Number(point?.timestampMs ?? point?.time);
       if (!Number.isFinite(timestampMs)) continue;
-      const bucket = traceMinuteBucket(timestampMs);
+      const minuteBucket = traceMinuteBucket(timestampMs);
+      if (!suppressesMinuteBucket && liveMinuteBuckets.has(minuteBucket)) {
+        continue;
+      }
+      if (suppressesMinuteBucket) liveMinuteBuckets.add(minuteBucket);
+      const bucket = `${bucketMs}:${traceBucket(timestampMs, bucketMs)}`;
       const existing = buckets.get(bucket);
       if (
         existing &&
@@ -398,13 +413,25 @@ export function composeAircraftTrace({
     : [];
   const modeSources = isFocusMode
     ? [
-        { name: "live", points: livePoints, priority: 3 },
+        {
+          name: "live",
+          points: livePoints,
+          priority: 3,
+          bucketMs: TRACE_LIVE_BUCKET_MS,
+          suppressesMinuteBucket: true,
+        },
         { name: "recent", points: recentPoints, priority: 2 },
         { name: "full", points: fullPoints, priority: 1 },
         { name: "persisted", points: persistedPoints, priority: 0 },
       ]
     : [
-        { name: "live", points: livePoints, priority: 3 },
+        {
+          name: "live",
+          points: livePoints,
+          priority: 3,
+          bucketMs: TRACE_LIVE_BUCKET_MS,
+          suppressesMinuteBucket: true,
+        },
         { name: "recent", points: recentPoints, priority: 2 },
         { name: "local", points: sources.local, priority: 1 },
       ];

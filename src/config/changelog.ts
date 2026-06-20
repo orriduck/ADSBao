@@ -40,9 +40,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 20;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 108;
+export const CHANGELOG_TOTAL_COUNT = 109;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.10",
+    kind: "patch",
+    title: {
+      en: "Tracking route and trace stability",
+      zh: "追踪页航线与轨迹稳定性",
+    },
+    summary: {
+      en: "Aircraft tracking now keeps its realtime connection state, FlightAware routes, and turning trace samples stable while the focused flight is prioritized.",
+      zh: "飞机追踪页现在会稳定保持实时连接状态、FlightAware 航线和转弯轨迹点，并优先获取焦点航班航线。",
+    },
+    highlights: [
+      {
+        en: "Stale WebSocket callbacks can no longer overwrite the active tracking connection with a reconnecting state",
+        zh: "旧 WebSocket 回调不再能把当前追踪连接覆盖成重新连接状态",
+      },
+      {
+        en: "FlightAware routes stay visible across tracking-center drift and focused callsigns move to the front of the route lookup queue",
+        zh: "FlightAware 航线会在追踪中心移动后继续显示，焦点航班号也会排在航线查询队列前面",
+      },
+      {
+        en: "Live tracking traces keep finer turn samples so curves stop reshaping around the latest minute bucket",
+        zh: "实时追踪轨迹会保留更细的转弯采样，曲线不再围绕最新分钟桶反复修正",
+      },
+    ],
+  },
   {
     version: "v2.22.9",
     kind: "patch",
@@ -494,28 +520,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Selecting a reporting point opens its own shared-shell desktop or mobile preview card",
         zh: "选中报告点会打开基于共享外壳的专属桌面端或移动端预览卡",
-      },
-    ],
-  },
-  {
-    version: "v2.19.0",
-    kind: "feat",
-    title: {
-      en: "OurAirports airport names",
-      zh: "OurAirports 机场名称",
-    },
-    summary: {
-      en: "Airport names now come from the OurAirports database table instead of OpenAIP, with no OpenAIP name fallback.",
-      zh: "机场名称现在来自数据库里的 OurAirports 表，不再回退使用 OpenAIP 名称。",
-    },
-    highlights: [
-      {
-        en: "/api/search, /api/airport, and nearby-airport payloads all apply the same OurAirports name lookup",
-        zh: "/api/search、/api/airport 和附近机场 payload 都使用同一套 OurAirports 名称查询",
-      },
-      {
-        en: "When an OurAirports name is missing, the API leaves the airport name blank instead of exposing the OpenAIP value",
-        zh: "缺少 OurAirports 名称时，API 会留空机场名称，而不是暴露 OpenAIP 值",
       },
     ],
   },

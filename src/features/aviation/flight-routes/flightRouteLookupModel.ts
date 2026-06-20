@@ -7,6 +7,7 @@ export type RouteContext = {
   lat?: unknown;
   lon?: unknown;
   routeProvider?: unknown;
+  priorityCallsigns?: unknown;
 };
 
 export type AircraftRouteCandidate = {
@@ -126,6 +127,11 @@ function routeContextWithoutProvider(routeContext: RouteContext = {}) {
   return rest;
 }
 
+function routeContextProviderOnly(routeContext: RouteContext = {}) {
+  const provider = routeContext.routeProvider;
+  return routeProviderSource(routeContext) ? { routeProvider: provider } : {};
+}
+
 export function resolveRouteLookupTransport(routeContext: RouteContext = {}) {
   void routeContext;
   return ROUTE_LOOKUP_TRANSPORT.REALTIME;
@@ -161,7 +167,10 @@ function getFreshRouteCacheEntry(
   routeContext: RouteContext = {},
 ) {
   const cacheKeys = isFlightAwareRouteContext(routeContext)
-    ? [buildRouteCacheKey(callsign, routeContext)].filter(Boolean)
+    ? [
+        buildRouteCacheKey(callsign, routeContext),
+        buildRouteCacheKey(callsign, routeContextProviderOnly(routeContext)),
+      ].filter(Boolean)
     : [
         buildRouteCacheKey(callsign, routeContext),
         buildRouteCacheKey(callsign, routeContextWithoutProvider(routeContext)),
@@ -215,7 +224,10 @@ export function writeRouteCacheEntry(
     ]
       .flatMap((value) =>
         exclusiveProvider
-          ? [buildRouteCacheKey(value, routeContext)]
+          ? [
+              buildRouteCacheKey(value, routeContext),
+              buildRouteCacheKey(value, routeContextProviderOnly(routeContext)),
+            ]
           : [buildRouteCacheKey(value, routeContext), buildRouteCacheKey(value)],
       )
       .filter(Boolean),
@@ -315,13 +327,16 @@ function collectPendingRouteCandidates(
   const focusLat = Number(routeContext.lat);
   const focusLon = Number(routeContext.lon);
   const haveFocus = Number.isFinite(focusLat) && Number.isFinite(focusLon);
-  const seen = new Map<string, { distance: number; index: number }>();
+  const priorityCallsigns = normalizePriorityCallsigns(routeContext.priorityCallsigns);
+  const seen = new Map<
+    string,
+    { distance: number; index: number; priorityIndex: number }
+  >();
   const blocked = new Set(
     [...inFlight, ...queued]
       .map((callsign) => normalizeCallsign(callsign))
       .filter((callsign): callsign is string => Boolean(callsign)),
   );
-  const sourceOrder: string[] = [];
 
   (aircraft || []).forEach((item, index) => {
     if (shouldSuppressRouteLookup(item)) return;
@@ -332,11 +347,11 @@ function collectPendingRouteCandidates(
       blocked.add(callsign);
       return;
     }
+    const priorityIndex = priorityCallsigns.get(callsign) ?? Number.POSITIVE_INFINITY;
 
     if (!haveFocus) {
       if (seen.has(callsign)) return;
-      seen.set(callsign, { distance: -1, index });
-      sourceOrder.push(callsign);
+      seen.set(callsign, { distance: -1, index, priorityIndex });
       return;
     }
 
@@ -349,18 +364,17 @@ function collectPendingRouteCandidates(
     // candidate forward by mistake.
     const prior = seen.get(callsign);
     if (!prior || distance > prior.distance) {
-      seen.set(callsign, { distance, index });
+      seen.set(callsign, { distance, index, priorityIndex });
     }
   });
-
-  if (!haveFocus) {
-    return sourceOrder.slice(0, maxLookups);
-  }
 
   return [...seen.entries()]
     .sort((left, right) => {
       const [, leftMeta] = left;
       const [, rightMeta] = right;
+      if (leftMeta.priorityIndex !== rightMeta.priorityIndex) {
+        return leftMeta.priorityIndex - rightMeta.priorityIndex;
+      }
       if (leftMeta.distance !== rightMeta.distance) {
         return rightMeta.distance - leftMeta.distance; // farthest first
       }
@@ -368,6 +382,17 @@ function collectPendingRouteCandidates(
     })
     .slice(0, maxLookups)
     .map(([callsign]) => callsign);
+}
+
+function normalizePriorityCallsigns(value: unknown) {
+  const values = Array.isArray(value) ? value : [value];
+  const priorities = new Map<string, number>();
+  values.forEach((item, index) => {
+    const callsign = normalizeCallsign(item);
+    if (!callsign || priorities.has(callsign)) return;
+    priorities.set(callsign, index);
+  });
+  return priorities;
 }
 
 function shouldSuppressRouteLookup(aircraft: AircraftRouteCandidate = {}) {

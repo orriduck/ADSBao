@@ -466,12 +466,19 @@ function FlightExplorerContent({ callsign }) {
       nearbyAircraft,
     });
   }, [showNearbyTrafficContext, trackedAircraftForDisplay, nearbyAircraft]);
+  const routePriorityCallsigns = useMemo(
+    () => [
+      trackedAircraftForDisplay?.callsign,
+      callsign,
+    ],
+    [callsign, trackedAircraftForDisplay?.callsign],
+  );
 
   // Look up routes for the tracked aircraft and any nearby traffic the user
-  // might preview. No airport context on this page — the cache key is just
-  // the callsign — and the same hook gives us the applyTemporaryRoute
-  // callback so the preview-card feedback form can splice an override into
-  // the in-memory cache without a refetch.
+  // might preview. The focal callsign is prioritized ahead of nearby traffic,
+  // and the same hook gives us the applyTemporaryRoute callback so the
+  // preview-card feedback form can splice an override into the in-memory cache
+  // without a refetch.
   const {
     routesByCallsign,
     loadingCount: routeLoadingCount,
@@ -483,6 +490,7 @@ function FlightExplorerContent({ callsign }) {
     lat: contextLat,
     lon: contextLon,
     routeProvider,
+    priorityCallsigns: routePriorityCallsigns,
   });
 
   const aircraft = useMemo(

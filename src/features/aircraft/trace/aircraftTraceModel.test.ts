@@ -308,6 +308,40 @@ import {
 
 {
   const composed = composeAircraftTrace({
+    mode: "focus",
+    sources: {
+      live: [
+        {
+          lat: 42.0,
+          lon: -71.0,
+          timestampMs: 120_000,
+          inferred: true,
+        },
+        {
+          lat: 42.01,
+          lon: -70.99,
+          timestampMs: 135_000,
+          inferred: true,
+        },
+        {
+          lat: 42.02,
+          lon: -70.97,
+          timestampMs: 150_000,
+          inferred: true,
+        },
+      ],
+    },
+  });
+
+  assert.deepEqual(
+    composed.points.map((point) => point.timestampMs),
+    [120_000, 135_000, 150_000],
+    "live trace turn samples should stay cached within the same minute instead of replacing the curve control point",
+  );
+}
+
+{
+  const composed = composeAircraftTrace({
     mode: "selected",
     sources: {
       recent: [],

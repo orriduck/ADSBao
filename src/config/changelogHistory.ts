@@ -384,6 +384,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.19.0",
+    kind: "feat",
+    title: {
+      en: "OurAirports airport names",
+      zh: "OurAirports 机场名称",
+    },
+    summary: {
+      en: "Airport names now come from the OurAirports database table instead of OpenAIP, with no OpenAIP name fallback.",
+      zh: "机场名称现在来自数据库里的 OurAirports 表，不再回退使用 OpenAIP 名称。",
+    },
+    highlights: [
+      {
+        en: "/api/search, /api/airport, and nearby-airport payloads all apply the same OurAirports name lookup",
+        zh: "/api/search、/api/airport 和附近机场 payload 都使用同一套 OurAirports 名称查询",
+      },
+      {
+        en: "When an OurAirports name is missing, the API leaves the airport name blank instead of exposing the OpenAIP value",
+        zh: "缺少 OurAirports 名称时，API 会留空机场名称，而不是暴露 OpenAIP 值",
+      },
+    ],
+  },
+  {
     version: "v2.18.1",
     kind: "patch",
     title: {

@@ -29,7 +29,7 @@ import {
 const PERSIST_DEBOUNCE_MS = 750;
 const TRACE_VISUAL_TICK_MS = 1_000;
 const LIVE_TRACE_MAX_POINTS = 120;
-const TRACE_LIVE_BUCKET_MS = 60_000;
+const TRACE_LIVE_BUCKET_MS = 15_000;
 const aircraftTraceClient = createAircraftTraceClient();
 
 type AircraftTraceHookRecord = Record<string, any>;
