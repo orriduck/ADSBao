@@ -277,6 +277,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.21.0",
+    kind: "feat",
+    title: {
+      en: "Curated photo locations and navigation",
+      zh: "机场拍机点与导航",
+    },
+    summary: {
+      en: "Watcher Mode now uses curated airport photo locations, with a preview-first flow and direct handoff to map navigation.",
+      zh: "看客模式现在使用精选机场拍机点，并提供先预览、再跳转地图导航的流程。",
+    },
+    highlights: [
+      {
+        en: "Photo locations come from curated airport data instead of browser-side candidate files",
+        zh: "拍机点来自精选机场数据，不再依赖浏览器侧候选文件",
+      },
+      {
+        en: "Desktop and mobile users can preview a spot before choosing a navigation app",
+        zh: "桌面端和移动端都可以先预览拍机点，再选择导航应用",
+      },
+    ],
+  },
+  {
     version: "v2.20.0",
     kind: "feat",
     title: {

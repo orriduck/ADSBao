@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 52;
+export const CHANGELOG_TOTAL_COUNT = 53;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.22.14",
+    kind: "patch",
+    title: {
+      en: "Phone compass heading for here view",
+      zh: "我的位置视图手机罗盘朝向",
+    },
+    summary: {
+      en: "The /here heading arc now follows the phone compass instead of relying only on movement direction.",
+      zh: "/here 的视角圆弧现在会跟随手机罗盘方向，不再只依赖移动方向。",
+    },
+    highlights: [
+      {
+        en: "Phone rotation updates the current-location heading arc while standing still",
+        zh: "原地转动手机时，当前位置的视角圆弧会同步变化",
+      },
+      {
+        en: "iOS compass permission is requested from the here-view entry flow when available",
+        zh: "支持时会在进入 here 视图时请求 iOS 罗盘方向权限",
+      },
+      {
+        en: "GPS heading remains as a fallback when compass orientation is unavailable",
+        zh: "无法获得罗盘方向时，仍保留 GPS 移动航向作为兜底",
+      },
+    ],
+  },
   {
     version: "v2.22.13",
     kind: "patch",
@@ -167,28 +193,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The public app keeps only the feature-gated integration path",
         zh: "公共应用只保留受功能开关控制的接入路径",
-      },
-    ],
-  },
-  {
-    version: "v2.21.0",
-    kind: "feat",
-    title: {
-      en: "Curated photo locations and navigation",
-      zh: "机场拍机点与导航",
-    },
-    summary: {
-      en: "Watcher Mode now uses curated airport photo locations, with a preview-first flow and direct handoff to map navigation.",
-      zh: "看客模式现在使用精选机场拍机点，并提供先预览、再跳转地图导航的流程。",
-    },
-    highlights: [
-      {
-        en: "Photo locations come from curated airport data instead of browser-side candidate files",
-        zh: "拍机点来自精选机场数据，不再依赖浏览器侧候选文件",
-      },
-      {
-        en: "Desktop and mobile users can preview a spot before choosing a navigation app",
-        zh: "桌面端和移动端都可以先预览拍机点，再选择导航应用",
       },
     ],
   },

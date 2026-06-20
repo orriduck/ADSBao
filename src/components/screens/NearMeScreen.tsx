@@ -7,6 +7,8 @@ import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDev
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 import {
   buildNearMeLocationFromCoords,
+  requestNearMeDeviceOrientationPermission,
+  resolveNearMeDeviceHeading,
   shouldUpdateNearMeLocation,
   type NearMeLocation,
 } from "@/features/airport/nearby/nearMeLocationModel";
@@ -26,6 +28,59 @@ export default function NearMeScreen() {
   const [lastTime, setLastTime] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const initialRequestRef = useRef(true);
+  const compassHeadingRef = useRef<number | null>(null);
+  const compassPermissionRequestedRef = useRef(false);
+  const compassCleanupRef = useRef<(() => void) | null>(null);
+
+  const applyCompassHeading = useCallback((headingDeg: number) => {
+    compassHeadingRef.current = headingDeg;
+    setCoords((previous) => {
+      if (!previous || previous.headingDeg === headingDeg) return previous;
+      return {
+        ...previous,
+        headingDeg,
+        updatedAt: Date.now(),
+      };
+    });
+  }, []);
+
+  const startCompassHeading = useCallback(() => {
+    if (
+      typeof window === "undefined" ||
+      !window.DeviceOrientationEvent ||
+      compassCleanupRef.current
+    ) {
+      return;
+    }
+
+    const handleOrientation = (event: DeviceOrientationEvent) => {
+      const headingDeg = resolveNearMeDeviceHeading(event);
+      if (headingDeg != null) applyCompassHeading(headingDeg);
+    };
+
+    window.addEventListener("deviceorientation", handleOrientation);
+    window.addEventListener(
+      "deviceorientationabsolute" as keyof WindowEventMap,
+      handleOrientation as EventListener,
+    );
+    compassCleanupRef.current = () => {
+      window.removeEventListener("deviceorientation", handleOrientation);
+      window.removeEventListener(
+        "deviceorientationabsolute" as keyof WindowEventMap,
+        handleOrientation as EventListener,
+      );
+      compassCleanupRef.current = null;
+    };
+  }, [applyCompassHeading]);
+
+  const requestCompassHeading = useCallback(() => {
+    startCompassHeading();
+    if (compassPermissionRequestedRef.current) return;
+    compassPermissionRequestedRef.current = true;
+    void requestNearMeDeviceOrientationPermission().then((permission) => {
+      if (permission === "granted") startCompassHeading();
+    });
+  }, [startCompassHeading]);
 
   // Desktop: one-shot getCurrentPosition + manual refresh.
   // Mobile: continuous watchPosition with position filtering and live heading updates.
@@ -50,12 +105,19 @@ export default function NearMeScreen() {
     setErrorMessage("");
 
     const handleSuccess = (position: GeolocationPosition) => {
-      const nextLocation = buildNearMeLocationFromCoords(position.coords);
-      if (!nextLocation) {
+      const rawLocation = buildNearMeLocationFromCoords(position.coords);
+      if (!rawLocation) {
         setStatus("unavailable");
         setErrorMessage(t("nearMe.unsupported"));
         return;
       }
+      const nextLocation =
+        compassHeadingRef.current == null
+          ? rawLocation
+          : {
+              ...rawLocation,
+              headingDeg: compassHeadingRef.current,
+            };
       setStatus("granted");
       setRefreshing(false);
       if (useOneShotLocation) {
@@ -101,20 +163,32 @@ export default function NearMeScreen() {
     }
   }, [t, useOneShotLocation]);
 
+  const handleRequestLocation = useCallback(() => {
+    requestCompassHeading();
+    requestLocation();
+  }, [requestCompassHeading, requestLocation]);
+
+  const handleNearMeInteraction = useCallback(() => {
+    requestCompassHeading();
+  }, [requestCompassHeading]);
+
   const handleRefresh = useCallback(() => {
+    requestCompassHeading();
     setRefreshing(true);
     requestLocation();
-  }, [requestLocation]);
+  }, [requestCompassHeading, requestLocation]);
 
   useEffect(() => {
+    startCompassHeading();
     requestLocation();
     return () => {
       if (watchIdRef.current != null && typeof navigator !== "undefined" && typeof navigator.geolocation?.clearWatch === "function") {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
+      compassCleanupRef.current?.();
     };
-  }, [requestLocation]);
+  }, [requestLocation, startCompassHeading]);
 
   const airport = useMemo(
     () =>
@@ -138,7 +212,7 @@ export default function NearMeScreen() {
       <NearMePermissionPrompt
         status={status}
         errorMessage={errorMessage}
-        onRequest={requestLocation}
+        onRequest={handleRequestLocation}
         onBack={handleBack}
         t={t}
       />
@@ -146,7 +220,10 @@ export default function NearMeScreen() {
   }
 
   return (
-    <div className="app-route-transition min-h-dvh">
+    <div
+      className="app-route-transition min-h-dvh"
+      onPointerDown={handleNearMeInteraction}
+    >
       <AirportExplorer
         icao=""
         airport={airport}

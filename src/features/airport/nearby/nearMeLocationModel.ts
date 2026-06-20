@@ -18,6 +18,12 @@ type NearMeCoords = {
   heading?: unknown;
 };
 
+type NearMeDeviceOrientationEvent = {
+  absolute?: unknown;
+  alpha?: unknown;
+  webkitCompassHeading?: unknown;
+};
+
 type ShouldUpdateNearMeLocationOptions = {
   positionThresholdNm?: number;
 };
@@ -29,6 +35,41 @@ export const normalizeNearMeHeadingDeg = (value: unknown) => {
   if (heading == null || heading < 0) return null;
   return normalizeDegrees(heading);
 };
+
+export function resolveNearMeDeviceHeading(
+  event?: NearMeDeviceOrientationEvent | null,
+) {
+  const webkitCompassHeading = normalizeNearMeHeadingDeg(
+    event?.webkitCompassHeading,
+  );
+  if (webkitCompassHeading != null) return webkitCompassHeading;
+
+  if (event?.absolute !== true) return null;
+
+  const alpha = toFiniteNumber(event?.alpha);
+  if (alpha == null) return null;
+  return normalizeDegrees(360 - alpha);
+}
+
+export async function requestNearMeDeviceOrientationPermission() {
+  if (typeof window === "undefined") return "unavailable" as const;
+
+  const DeviceOrientationEventWithPermission = window.DeviceOrientationEvent as
+    | (typeof DeviceOrientationEvent & {
+        requestPermission?: () => Promise<PermissionState>;
+      })
+    | undefined;
+  if (!DeviceOrientationEventWithPermission) return "unavailable" as const;
+  if (typeof DeviceOrientationEventWithPermission.requestPermission !== "function") {
+    return "granted" as const;
+  }
+
+  try {
+    return await DeviceOrientationEventWithPermission.requestPermission();
+  } catch {
+    return "denied" as const;
+  }
+}
 
 export function buildNearMeLocationFromCoords(
   coords?: NearMeCoords | null,

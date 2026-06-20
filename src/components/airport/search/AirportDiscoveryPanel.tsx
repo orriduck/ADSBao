@@ -9,6 +9,7 @@ import {
 } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
+import { requestNearMeDeviceOrientationPermission } from "@/features/airport/nearby/nearMeLocationModel";
 import gsap from "gsap";
 import { MOTION, EASE } from "@/animations/gsap";
 
@@ -91,7 +92,9 @@ function NearMeDiscoverySection() {
   const navigate = useNavigate();
 
   const handleOpenNearMe = () => {
-    navigate(setLocaleSearchParam("/here", "", locale));
+    void requestNearMeDeviceOrientationPermission().finally(() => {
+      navigate(setLocaleSearchParam("/here", "", locale));
+    });
   };
 
   return (

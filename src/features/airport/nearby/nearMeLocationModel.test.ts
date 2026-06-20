@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   buildNearMeLocationFromCoords,
   normalizeNearMeHeadingDeg,
+  resolveNearMeDeviceHeading,
   shouldUpdateNearMeLocation,
   type NearMeLocation,
 } from "./nearMeLocationModel";
@@ -21,6 +22,18 @@ assert.equal(
 
 assert.equal(normalizeNearMeHeadingDeg(725), 5);
 assert.equal(normalizeNearMeHeadingDeg(-1), null);
+assert.equal(resolveNearMeDeviceHeading({ webkitCompassHeading: 725 }), 5);
+assert.equal(
+  resolveNearMeDeviceHeading({
+    absolute: true,
+    alpha: 90,
+    webkitCompassHeading: 45,
+  }),
+  45,
+);
+assert.equal(resolveNearMeDeviceHeading({ absolute: true, alpha: 90 }), 270);
+assert.equal(resolveNearMeDeviceHeading({ absolute: false, alpha: 90 }), null);
+assert.equal(resolveNearMeDeviceHeading({ absolute: true, alpha: null }), null);
 
 {
   const next = {
