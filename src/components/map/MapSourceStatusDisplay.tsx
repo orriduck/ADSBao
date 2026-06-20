@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { MOTION, EASE } from "@/animations/gsap";
+import { usePrefersReducedMotion } from "@/components/effects/usePrefersReducedMotion";
 import { cn } from "@/lib/utils";
 
 const rootClassName =
@@ -37,29 +38,279 @@ const loadingClassName = cn(
   "[.airport-map-menu--mobile_&]:max-w-[min(360px,calc(100vw-16px))] [.airport-map-menu--mobile_&]:text-center [.airport-map-menu--mobile_&]:text-[7px]",
 );
 
+const detailLineClassName = cn(
+  "min-h-0 max-w-[min(420px,calc(100vw-72px))] overflow-hidden whitespace-normal",
+  "text-right font-mono text-[8px] font-semibold uppercase leading-tight text-atc-dim",
+  "[overflow-wrap:anywhere]",
+  "[.airport-map-kit_&]:max-w-[min(360px,calc(100vw-72px))] [.airport-map-kit_&]:text-[7px]",
+  "[.airport-map-menu--mobile_&]:max-w-[min(360px,calc(100vw-16px))] [.airport-map-menu--mobile_&]:text-center [.airport-map-menu--mobile_&]:text-[7px]",
+);
+
+const statusLineShellClassName =
+  "flex w-full min-w-0 items-center justify-end overflow-hidden [.airport-map-menu--mobile_&]:justify-center [.airport-map-menu--mobile_&]:text-center";
+
+const STATUS_LINE_EXIT_MS = 190;
+const STATUS_LINE_ENTER_MS = MOTION.med * 1000;
+const STATUS_LINE_SELECTOR = "[data-status-line-key]";
+
+type StatusLineItem = {
+  key: string;
+  line: string;
+  order: number;
+  entering: boolean;
+  exiting: boolean;
+};
+
+function getStatusLineKey(line: string, index: number) {
+  const parts = line.split("·").map((part) => part.trim()).filter(Boolean);
+  const callsign = parts[1];
+  if (callsign) return `traffic:${callsign}`;
+  return `line:${line}:${index}`;
+}
+
+function buildStatusLineItems(lines: string[], entering = false) {
+  return lines.map((line, index) => ({
+    key: getStatusLineKey(line, index),
+    line,
+    order: index,
+    entering,
+    exiting: false,
+  }));
+}
+
 /**
  * Inline span with GSAP fade transition when content changes.
  */
 function StatusSpan({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const prevRef = useRef(children);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useLayoutEffect(() => {
     if (prevRef.current === children) return;
     prevRef.current = children;
     const el = ref.current;
     if (!el) return;
-    gsap.fromTo(
-      el,
-      { opacity: 0, y: 2 },
-      { opacity: 1, y: 0, duration: MOTION.fast, ease: EASE.out, overwrite: "auto" },
-    );
-  }, [children]);
+    gsap.killTweensOf(el);
+
+    if (prefersReducedMotion) {
+      gsap.set(el, { clearProps: "opacity,visibility,transform" });
+      return undefined;
+    }
+
+    const context = gsap.context(() => {
+      gsap.fromTo(
+        el,
+        { autoAlpha: 0, y: 2 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          clearProps: "opacity,visibility,transform",
+          duration: MOTION.fast,
+          ease: EASE.out,
+          overwrite: "auto",
+        },
+      );
+    }, el);
+
+    return () => context.revert();
+  }, [children, prefersReducedMotion]);
 
   return (
     <span ref={ref} className={className}>
       {children}
     </span>
+  );
+}
+
+function AnimatedStatusLines({ lines }: { lines: string[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const previousRectsRef = useRef<Map<string, DOMRect>>(new Map());
+  const previousActiveKeysRef = useRef<Set<string>>(new Set());
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const [items, setItems] = useState<StatusLineItem[]>(() =>
+    buildStatusLineItems(lines, true),
+  );
+  const linesKey = lines.join("\u0000");
+
+  useEffect(() => {
+    const nextItems = buildStatusLineItems(lines);
+    if (prefersReducedMotion) {
+      setItems(nextItems);
+      return undefined;
+    }
+
+    const nextKeys = new Set(nextItems.map((item) => item.key));
+    setItems((currentItems) => {
+      const currentItemByKey = new Map(
+        currentItems.map((item) => [item.key, item]),
+      );
+      const currentActiveKeys = new Set(
+        currentItems.filter((item) => !item.exiting).map((item) => item.key),
+      );
+      const exitingItems = currentItems
+        .filter((item) => !item.exiting && !nextKeys.has(item.key))
+        .map((item) => ({ ...item, entering: false, exiting: true }));
+      const activeItems = nextItems.map((item) => ({
+        ...item,
+        entering:
+          currentItemByKey.get(item.key)?.entering === true ||
+          !currentActiveKeys.has(item.key),
+      }));
+
+      return [...activeItems, ...exitingItems].sort((a, b) => {
+        if (a.order !== b.order) return a.order - b.order;
+        return Number(a.exiting) - Number(b.exiting);
+      });
+    });
+
+    return undefined;
+  }, [linesKey, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!items.some((item) => item.entering || item.exiting)) return undefined;
+
+    const clearTimer = window.setTimeout(() => {
+      setItems((currentItems) =>
+        currentItems
+          .filter((item) => !item.exiting)
+          .map((item) => ({ ...item, entering: false })),
+      );
+    }, Math.max(STATUS_LINE_ENTER_MS, STATUS_LINE_EXIT_MS) + 40);
+
+    return () => window.clearTimeout(clearTimer);
+  }, [items]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const elements = Array.from(
+      container.querySelectorAll<HTMLElement>(STATUS_LINE_SELECTOR),
+    );
+    const previousRects = previousRectsRef.current;
+    const previousActiveKeys = previousActiveKeysRef.current;
+    const nextRects = new Map<string, DOMRect>();
+    const nextActiveKeys = new Set(
+      items.filter((item) => !item.exiting).map((item) => item.key),
+    );
+
+    for (const element of elements) {
+      const key = element.dataset.statusLineKey;
+      if (key) nextRects.set(key, element.getBoundingClientRect());
+    }
+
+    previousRectsRef.current = nextRects;
+    previousActiveKeysRef.current = nextActiveKeys;
+
+    if (prefersReducedMotion) {
+      gsap.set(elements, { clearProps: "opacity,visibility,transform,willChange" });
+      return undefined;
+    }
+
+    const context = gsap.context(() => {
+      const entering: HTMLElement[] = [];
+      const exiting: HTMLElement[] = [];
+      const moving: HTMLElement[] = [];
+      const deltaByElement = new WeakMap<HTMLElement, { x: number; y: number }>();
+
+      for (const element of elements) {
+        const key = element.dataset.statusLineKey;
+        if (!key) continue;
+
+        const state = element.dataset.statusLineState;
+        if (state === "exiting") {
+          exiting.push(element);
+          continue;
+        }
+
+        if (state === "entering" || !previousActiveKeys.has(key)) {
+          entering.push(element);
+          continue;
+        }
+
+        const previousRect = previousRects.get(key);
+        const nextRect = nextRects.get(key);
+        if (!previousRect || !nextRect) continue;
+
+        const deltaX = previousRect.left - nextRect.left;
+        const deltaY = previousRect.top - nextRect.top;
+        if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) continue;
+
+        moving.push(element);
+        deltaByElement.set(element, { x: deltaX, y: deltaY });
+      }
+
+      const animatedTargets = [...new Set([...entering, ...exiting, ...moving])];
+      if (animatedTargets.length > 0) {
+        gsap.killTweensOf(animatedTargets);
+      }
+
+      if (moving.length > 0) {
+        gsap.set(moving, {
+          willChange: "transform",
+          x: (_index, target) => deltaByElement.get(target)?.x ?? 0,
+          y: (_index, target) => deltaByElement.get(target)?.y ?? 0,
+        });
+        gsap.to(moving, {
+          x: 0,
+          y: 0,
+          clearProps: "transform,willChange",
+          duration: MOTION.med,
+          ease: EASE.snap,
+          overwrite: true,
+        });
+      }
+
+      if (entering.length > 0) {
+        gsap.fromTo(
+          entering,
+          { autoAlpha: 0, y: -4, scale: 0.985, willChange: "transform,opacity" },
+          {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            clearProps: "opacity,visibility,transform,willChange",
+            duration: MOTION.med,
+            ease: EASE.out,
+            stagger: 0.035,
+            overwrite: "auto",
+          },
+        );
+      }
+
+      if (exiting.length > 0) {
+        gsap.to(exiting, {
+          autoAlpha: 0,
+          y: -3,
+          duration: STATUS_LINE_EXIT_MS / 1000,
+          ease: EASE.out,
+          overwrite: true,
+        });
+      }
+    }, container);
+
+    return () => context.revert();
+  }, [items, prefersReducedMotion]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div ref={containerRef} className="contents">
+      {items.map((item) => (
+        <span
+          key={item.key}
+          className={statusLineShellClassName}
+          data-status-line-key={item.key}
+          data-status-line-state={
+            item.exiting ? "exiting" : item.entering ? "entering" : "active"
+          }
+          aria-hidden={item.exiting}
+        >
+          <StatusSpan className={detailLineClassName}>{item.line}</StatusSpan>
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -69,11 +320,15 @@ export default function MapSourceStatusDisplay({
   updatedLabel = "",
   loadingStatus = "",
   realtimeStatus = "",
+  statusLines = [],
   placement = "mobile-map",
   wakeLockActive = false,
 }) {
   const loadingActive = Boolean(loadingStatus);
   const realtimeStatusLabel = String(realtimeStatus || "").trim().toUpperCase();
+  const detailLines = Array.isArray(statusLines)
+    ? statusLines.map((line) => String(line || "").trim()).filter(Boolean)
+    : [];
   const [displayedLoadingStatus, setDisplayedLoadingStatus] = useState(
     loadingStatus,
   );
@@ -96,6 +351,7 @@ export default function MapSourceStatusDisplay({
     !loadingStatus &&
     !displayedLoadingStatus &&
     !realtimeStatusLabel &&
+    detailLines.length === 0 &&
     !wakeLockActive
   ) {
     return null;
@@ -173,7 +429,7 @@ export default function MapSourceStatusDisplay({
       ) : null}
       {loadingActive || displayedLoadingStatus ? (
         <span
-          className="flex w-full min-w-0 items-center justify-end overflow-hidden [.airport-map-menu--mobile_&]:justify-center [.airport-map-menu--mobile_&]:text-center"
+          className={statusLineShellClassName}
           aria-hidden={!loadingActive}
         >
           <span
@@ -186,6 +442,7 @@ export default function MapSourceStatusDisplay({
           </span>
         </span>
       ) : null}
+      <AnimatedStatusLines lines={detailLines} />
     </div>
   );
 }

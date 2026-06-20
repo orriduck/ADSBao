@@ -246,19 +246,12 @@ function airportExplorerUiReducer(state, action) {
       return applyMapSettingsToUiState(state, action.settings);
     case "setUserLocationPreferences": {
       const userLocationEnabled = action.userLocationEnabled === true;
-      const userLocationAudioEnabled =
-        userLocationEnabled && action.userLocationAudioEnabled === true;
-      const locationSettings = buildCustomMapSettings({
-        settings: state.mapSettings,
-        layerKey: MAP_LAYER_KEYS.USER_LOCATION,
-        value: userLocationEnabled,
-      });
       return applyMapSettingsToUiState(
         state,
         buildCustomMapSettings({
-          settings: locationSettings,
-          layerKey: MAP_LAYER_KEYS.USER_LOCATION_AUDIO,
-          value: userLocationAudioEnabled,
+          settings: state.mapSettings,
+          layerKey: MAP_LAYER_KEYS.USER_LOCATION,
+          value: userLocationEnabled,
         }),
       );
     }
@@ -511,7 +504,6 @@ export function ExplorerUiProvider({ children }) {
     showCandidateWatchingSpots,
     showCallsigns,
     userLocationEnabled,
-    userLocationAudioEnabled,
     mapSettings,
     trafficFilter,
     typeFilter,
@@ -851,11 +843,10 @@ export function ExplorerUiProvider({ children }) {
   }, []);
 
   const setUserLocationPreferences = useCallback(
-    ({ userLocationEnabled, userLocationAudioEnabled = false }) => {
+    ({ userLocationEnabled }) => {
       dispatch({
         type: "setUserLocationPreferences",
         userLocationEnabled,
-        userLocationAudioEnabled,
       });
     },
     [],
@@ -954,7 +945,6 @@ export function ExplorerUiProvider({ children }) {
       showCandidateWatchingSpots,
       showCallsigns,
       userLocationEnabled,
-      userLocationAudioEnabled,
       mapSettings,
       mapSettingsDevice,
       mapSettingsHydrated,
@@ -1024,7 +1014,6 @@ export function ExplorerUiProvider({ children }) {
       showCandidateWatchingSpots,
       showCallsigns,
       userLocationEnabled,
-      userLocationAudioEnabled,
       mapSettings,
       mapSettingsDevice,
       mapSettingsHydrated,

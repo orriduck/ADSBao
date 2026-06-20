@@ -136,7 +136,6 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
             layerOverrides: {
               [MAP_LAYER_KEYS.AIRSPACES]: true,
               [MAP_LAYER_KEYS.USER_LOCATION]: true,
-              [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
             },
             updatedAt: "2026-06-02T15:06:00.000Z",
           },
@@ -158,7 +157,6 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
             layerOverrides: {
               [MAP_LAYER_KEYS.AIRSPACES]: true,
               [MAP_LAYER_KEYS.USER_LOCATION]: true,
-              [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
               [MAP_LAYER_KEYS.MAP_LABELS]: false,
             },
             updatedAt: "2026-06-02T15:07:00.000Z",
@@ -185,7 +183,6 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   assert.deepEqual(calls[1].values[3].layerOverrides, {
     [MAP_LAYER_KEYS.AIRSPACES]: true,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
-    [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
     [MAP_LAYER_KEYS.MAP_LABELS]: false,
   });
 }

@@ -4072,16 +4072,81 @@ body {
     width: 18px;
 }
 
-.user-location-marker__pulse {
-    border: 1.5px solid color-mix(in oklab, var(--atc-accent) 72%, transparent);
-    border-radius: 999px;
-    box-shadow: 0 0 16px color-mix(in oklab, var(--atc-accent) 24%, transparent);
-    height: var(--user-location-pulse-diameter, 18px);
+.user-location-marker__heading-beam {
+    --user-location-heading-color: var(--atc-orange);
+    --user-location-heading-size: 86px;
+
+    height: var(--user-location-heading-size);
+    left: 50%;
     position: absolute;
-    width: var(--user-location-pulse-diameter, 18px);
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(var(--user-location-heading, 0deg));
+    transform-origin: center;
+    width: var(--user-location-heading-size);
     z-index: 0;
-    animation: user-location-pulse var(--user-location-pulse-duration, 1s)
-        ease-out infinite;
+}
+
+.user-location-marker__heading-beam::before {
+    background:
+        radial-gradient(
+            circle at 50% 50%,
+            color-mix(in oklab, var(--user-location-heading-color) 42%, transparent) 0 7px,
+            color-mix(in oklab, var(--user-location-heading-color) 28%, transparent) 18px,
+            color-mix(in oklab, var(--user-location-heading-color) 12%, transparent) 35px,
+            transparent 43px
+        );
+    border-radius: 999px;
+    content: "";
+    inset: 0;
+    mask: conic-gradient(
+        from -29deg at 50% 50%,
+        transparent 0deg,
+        rgb(0 0 0 / 70%) 7deg,
+        #000 17deg,
+        #000 41deg,
+        rgb(0 0 0 / 70%) 51deg,
+        transparent 58deg,
+        transparent 360deg
+    );
+    position: absolute;
+    -webkit-mask: conic-gradient(
+        from -29deg at 50% 50%,
+        transparent 0deg,
+        rgb(0 0 0 / 70%) 7deg,
+        #000 17deg,
+        #000 41deg,
+        rgb(0 0 0 / 70%) 51deg,
+        transparent 58deg,
+        transparent 360deg
+    );
+}
+
+.user-location-marker__heading-beam::after {
+    background: conic-gradient(
+        from -29deg at 50% 50%,
+        transparent 0deg,
+        color-mix(in oklab, var(--user-location-heading-color) 16%, transparent) 9deg,
+        color-mix(in oklab, var(--user-location-heading-color) 34%, transparent) 29deg,
+        color-mix(in oklab, var(--user-location-heading-color) 16%, transparent) 49deg,
+        transparent 58deg,
+        transparent 360deg
+    );
+    border-radius: 999px;
+    content: "";
+    inset: 0;
+    mask: radial-gradient(
+        circle at 50% 50%,
+        transparent 0 29px,
+        #000 35px,
+        transparent 43px
+    );
+    position: absolute;
+    -webkit-mask: radial-gradient(
+        circle at 50% 50%,
+        transparent 0 29px,
+        #000 35px,
+        transparent 43px
+    );
 }
 
 .user-location-marker__diamond {
@@ -4096,30 +4161,6 @@ body {
     transform: rotate(45deg);
     width: 13px;
     z-index: 1;
-}
-
-@keyframes user-location-pulse {
-    0% {
-        opacity: 0.78;
-        transform: scale(0.08);
-    }
-
-    72% {
-        opacity: 0.18;
-    }
-
-    100% {
-        opacity: 0;
-        transform: scale(1);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .user-location-marker__pulse {
-        animation: none;
-        opacity: 0.38;
-        transform: scale(1);
-    }
 }
 
 /* Marker stack:

@@ -32,7 +32,6 @@ export default function MapControlBar({
   mapSettingsSaveStatusCode = null,
   mapSettingsSaveCycle = 0,
   userLocationActive = false,
-  userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
   showSidebarToggle = true,
@@ -51,7 +50,6 @@ export default function MapControlBar({
   onSelectBaseLayer,
   onMap = null,
   onToggleUserLocation = null,
-  onToggleUserLocationAudio = null,
   onToggleSidebar,
   onToggleWakeLock = null,
 }) {
@@ -130,7 +128,6 @@ export default function MapControlBar({
         mapSettingsSaveStatusCode={mapSettingsSaveStatusCode}
         mapSettingsSaveCycle={mapSettingsSaveCycle}
         userLocationActive={userLocationActive}
-        userLocationAudioActive={userLocationAudioActive}
         userLocationPending={userLocationPending}
         userLocationNotice={userLocationNotice}
         onSelectMapMode={onSelectMapMode}
@@ -143,7 +140,6 @@ export default function MapControlBar({
         onToggleCandidateWatchingSpots={onToggleCandidateWatchingSpots}
         onToggleShowCallsigns={onToggleShowCallsigns}
         onToggleUserLocation={onToggleUserLocation}
-        onToggleUserLocationAudio={onToggleUserLocationAudio}
       />
 
       <MapControlRail

@@ -7,6 +7,7 @@ export default function MobileMapSourceStatus({
   lastUpdated = null,
   loadingStatus = "",
   realtimeStatus = "",
+  statusLines = [],
   wakeLockActive = false,
 }) {
   const status = buildMapSourceStatusDisplay({ feedSource });
@@ -19,6 +20,7 @@ export default function MobileMapSourceStatus({
       updatedLabel={updatedLabel}
       loadingStatus={loadingStatus}
       realtimeStatus={realtimeStatus}
+      statusLines={statusLines}
       placement="map-corner"
       wakeLockActive={wakeLockActive}
     />

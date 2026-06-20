@@ -167,7 +167,6 @@ import {
       [MAP_LAYER_KEYS.AIRSPACES]: true,
       [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
       [MAP_LAYER_KEYS.USER_LOCATION]: true,
-      [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
     },
     now: "2026-06-02T15:05:00.000Z",
   });
@@ -187,7 +186,6 @@ import {
     [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
     [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: true,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
-    [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: false,
   });
 }
 
@@ -375,7 +373,6 @@ import {
       layerOverrides: {
         [MAP_LAYER_KEYS.AIRSPACES]: true,
         [MAP_LAYER_KEYS.USER_LOCATION]: true,
-        [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
       },
       hasSelectedMode: true,
       updatedAt: "2026-06-02T15:06:00.000Z",
@@ -395,7 +392,6 @@ import {
   assert.deepEqual(merged.layerOverrides, {
     [MAP_LAYER_KEYS.AIRSPACES]: true,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
-    [MAP_LAYER_KEYS.USER_LOCATION_AUDIO]: true,
     [MAP_LAYER_KEYS.MAP_LABELS]: false,
   });
 }

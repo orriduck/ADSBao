@@ -118,8 +118,6 @@ export default function AirportMap({
   loadingOverlayCallsign = "",
   loadingOverlaySources = {},
   userLocation = null,
-  userLocationPulseIntervalMs = null,
-  userLocationPulseBeat = null,
   children = null,
 }: Record<string, any>) {
   const { locale } = useI18n();
@@ -691,11 +689,7 @@ export default function AirportMap({
             <SelectedAircraftTrace theme={currentTheme} />
           )}
           <MapRangeLegend />
-          <UserLocationMarker
-            location={userLocation}
-            pulseIntervalMs={userLocationPulseIntervalMs}
-            pulseBeat={userLocationPulseBeat}
-          />
+          <UserLocationMarker location={userLocation} />
           {children}
           {visibleAircraft.map((ac) => (
             <AircraftPosition

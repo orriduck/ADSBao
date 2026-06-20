@@ -11,14 +11,13 @@ export default function ExplorerMapMenu({
   realtimeStatus = "",
   traceViewItems = [],
   userLocationActive = false,
-  userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
+  userLocationStatusLines = [],
   wakeLockState = { supported: false, active: false },
   onToggleWakeLock = null,
   onMap = null,
   onToggleUserLocation = null,
-  onToggleUserLocationAudio = null,
   zoomDisabled = false,
 }: Record<string, any> = {}) {
   const {
@@ -71,7 +70,6 @@ export default function ExplorerMapMenu({
       mapSettingsSaveStatusCode={mapSettingsSaveStatusCode}
       mapSettingsSaveCycle={mapSettingsSaveCycle}
       userLocationActive={userLocationActive}
-      userLocationAudioActive={userLocationAudioActive}
       userLocationPending={userLocationPending}
       userLocationNotice={userLocationNotice}
       showSidebarToggle={surface === "map" && isMobile}
@@ -89,7 +87,6 @@ export default function ExplorerMapMenu({
       onSelectMapMode={applyMapMode}
       onSelectBaseLayer={setMapBaseLayer}
       onToggleUserLocation={onToggleUserLocation}
-      onToggleUserLocationAudio={onToggleUserLocationAudio}
       onToggleSidebar={toggleSidebar}
       onMap={onMap}
       onToggleWakeLock={onToggleWakeLock}
@@ -112,6 +109,7 @@ export default function ExplorerMapMenu({
         lastUpdated={lastUpdated}
         loadingStatus={loadingStatus}
         realtimeStatus={realtimeStatus}
+        statusLines={userLocationStatusLines}
         wakeLockActive={wakeLockState.active}
       />
     </div>

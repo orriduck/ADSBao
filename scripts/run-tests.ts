@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 const rootDir = process.cwd();
 const ignoredDirs = new Set([
   ".git",
+  ".codex-tmp",
   ".next",
   ".playwright-mcp",
   ".ruff_cache",

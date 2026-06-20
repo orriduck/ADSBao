@@ -168,7 +168,6 @@ function LayerToggleRow({
   iconKey,
   label,
   onClick,
-  statusDot = false,
   subtitle,
 }) {
   return (
@@ -183,9 +182,6 @@ function LayerToggleRow({
       onClick={onClick}
     >
       <span className="relative flex size-8 items-center justify-center rounded-[10px] bg-[var(--atc-surface-icon-wash)] text-atc-text transition-colors group-hover:bg-[color-mix(in_oklab,var(--atc-text)_10%,transparent)] [&>svg]:size-4">
-        {statusDot ? (
-          <span className="absolute right-1 top-1 size-1.5 rounded-full bg-atc-accent shadow-[0_0_8px_var(--atc-accent)]" />
-        ) : null}
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
@@ -215,7 +211,6 @@ export default function MapSettingsSheet({
   showCallsigns = true,
   mapSettingsDevice = "desktop",
   userLocationActive = false,
-  userLocationAudioActive = false,
   userLocationPending = false,
   userLocationNotice = "",
   onSelectMapMode,
@@ -228,7 +223,6 @@ export default function MapSettingsSheet({
   onToggleCandidateWatchingSpots,
   onToggleShowCallsigns,
   onToggleUserLocation = null,
-  onToggleUserLocationAudio = null,
   mapSettingsSaveStatus = "idle",
   mapSettingsSaveStatusCode = null,
   mapSettingsSaveCycle = 0,
@@ -265,9 +259,6 @@ export default function MapSettingsSheet({
     : userLocationActive
       ? t("mapLayers.showUserLocation")
       : t("mapLayers.hideUserLocation");
-  const userLocationAudioTitle = userLocationAudioActive
-    ? t("mapLayers.enableUserLocationAudio")
-    : t("mapLayers.disableUserLocationAudio");
   const showGuestPrompt = isLoaded && !isSignedIn;
   const showSignedInPersistence = isLoaded && isSignedIn;
   const deviceLabelKey =
@@ -407,18 +398,6 @@ export default function MapSettingsSheet({
                   />
                 )}
 
-                {onToggleUserLocationAudio && (
-                  <LayerToggleRow
-                    active={userLocationAudioActive}
-                    ariaLabel={userLocationAudioTitle}
-                    disabled={!userLocationActive || userLocationPending}
-                    iconKey="radar"
-                    label={t("mapLayers.userLocationAudio")}
-                    statusDot={userLocationAudioActive}
-                    subtitle={userLocationAudioTitle}
-                    onClick={onToggleUserLocationAudio}
-                  />
-                )}
               </div>
               {userLocationNotice ? (
                 <div
