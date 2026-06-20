@@ -32,6 +32,10 @@ the full validation decision tree there; do not duplicate it in this file.
   secret work and stays mutually exclusive with adsbdb route lookup; visible
   inferred aircraft positions are important and should not be removed wholesale
   for performance.
+- Follow `CLAUDE.md`'s end-of-task bump and merge default: when validated work
+  is mergeable, auto-evaluate no bump / `小版本` / `中版本`, apply patch or minor
+  directly when appropriate, merge without waiting for a second prompt, and ask
+  before any possible `大版本`.
 
 ## Version bump rules (non-negotiable)
 

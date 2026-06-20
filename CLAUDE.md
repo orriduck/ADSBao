@@ -479,6 +479,23 @@ Two files carry the product version and they **must stay in sync**:
 
 The client compares these at runtime (`AppUpdateToast.tsx` → `appVersionModel.ts`). It uses `semver` to only show the toast when `deployed > client`. If the two files disagree the toast will fire incorrectly — either a false "downgrade" prompt (when `package.json` lags behind `changelog.ts`) or a missing upgrade prompt (the reverse).
 
+### End-of-task bump and merge default
+
+When a task is complete, validated, and ready to merge, do not wait for a
+separate "bump" or "merge" prompt. First evaluate whether the completed work has
+product-visible impact:
+
+- No bump: docs-only, refactor-only, screenshot-only, or cleanup work with no
+  product-visible behavior change.
+- Patch (`小版本`): bug fixes, compatibility fixes, and small UX corrections.
+- Minor (`中版本`): user-visible features, architecture milestones, or
+  substantial production behavior changes.
+
+Apply the no-bump, patch, or minor decision directly and merge/push using the
+current repo flow once validation passes. If the work looks large enough to
+justify a major (`大版本`) bump, ask the user before applying it. Keep unrelated
+worktree changes out of the release commit.
+
 ### How to bump a version
 
 When preparing a new product release:
