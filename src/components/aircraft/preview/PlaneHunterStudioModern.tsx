@@ -67,6 +67,7 @@ const DEFAULT_CAMERA_ZOOM_RANGE: CameraZoomRange = {
   step: 0.1,
   supported: false,
 };
+const CAMERA_ZOOM_UI_MAX = 4;
 
 // Web Mercator slippy-tile math (zoom + tile {x,y}, and the fractional
 // pixel offset of a (lat, lon) within that tile). Used both by the
@@ -285,7 +286,7 @@ async function applySystemCameraZoom(
 
 function getCameraZoomStops(range: CameraZoomRange) {
   if (!range.supported) return [1];
-  const stops = [range.min, 1, 2, range.max]
+  const stops = [1, 2, 4]
     .filter((value) => value >= range.min && value <= range.max)
     .map((value) => Number(value.toFixed(1)));
   return Array.from(new Set(stops));
@@ -414,6 +415,12 @@ function clampCameraZoom(value: number, range: CameraZoomRange) {
   const min = Number.isFinite(range.min) ? range.min : 1;
   const max = Number.isFinite(range.max) ? range.max : min;
   return Math.min(Math.max(value, min), Math.max(min, max));
+}
+
+function constrainCameraZoomRangeForUi(range: CameraZoomRange) {
+  if (!range.supported) return range;
+  const max = Math.max(range.min, Math.min(range.max, CAMERA_ZOOM_UI_MAX));
+  return { ...range, max };
 }
 
 function formatCameraZoom(value: number) {
@@ -1680,7 +1687,9 @@ export default function PlaneHunterStudio({
             },
       });
       const track = getPrimaryVideoTrack(stream);
-      const range = resolveSystemCameraZoomRange(track);
+      const range = constrainCameraZoomRangeForUi(
+        resolveSystemCameraZoomRange(track),
+      );
       const activeDeviceId = String(
         track?.getSettings?.().deviceId || normalizedDeviceId || "",
       ).trim();

@@ -41,9 +41,27 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 58;
+export const CHANGELOG_TOTAL_COUNT = 59;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.23.1",
+    kind: "patch",
+    title: {
+      en: "Plane Hunter zoom cap",
+      zh: "拍机倍率收敛",
+    },
+    summary: {
+      en: "Plane Hunter camera zoom now stays within practical 1x, 2x, and 4x controls instead of surfacing excessive digital magnification.",
+      zh: "拍机相机倍率现在收敛到更实用的 1x、2x、4x,不再把过高的数码放大作为主控制。",
+    },
+    highlights: [
+      {
+        en: "The live camera zoom shortcuts and slider now cap at 4x even when the browser reports a larger camera zoom range",
+        zh: "即使浏览器报告更大的相机缩放范围,实时相机的快捷倍率和滑杆也会限制在 4x",
+      },
+    ],
+  },
   {
     version: "v2.23.0",
     kind: "feat",
