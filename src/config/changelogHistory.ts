@@ -277,6 +277,84 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.22.15",
+    kind: "patch",
+    title: {
+      en: "Here view resume recovery",
+      zh: "我的位置视图恢复修正",
+    },
+    summary: {
+      en: "The /here map now recovers more reliably after the browser has been hidden for a while.",
+      zh: "/here 地图在浏览器长时间后台后会更可靠地恢复实时连接和底图。",
+    },
+    highlights: [
+      {
+        en: "Realtime sockets that stay stuck while connecting are now replaced automatically",
+        zh: "卡在连接中的实时 socket 现在会自动替换",
+      },
+      {
+        en: "Returning from a long background pause refreshes and rebuilds the MapLibre tile layer",
+        zh: "长时间后台后返回会刷新并重建 MapLibre 底图层",
+      },
+      {
+        en: "Here-mode recovery is covered by focused realtime tests and local browser validation",
+        zh: "here 模式恢复已通过聚焦实时连接测试和本地浏览器验证",
+      },
+    ],
+  },
+  {
+    version: "v2.22.14",
+    kind: "patch",
+    title: {
+      en: "Phone compass heading for here view",
+      zh: "我的位置视图手机罗盘朝向",
+    },
+    summary: {
+      en: "The /here heading arc now follows the phone compass instead of relying only on movement direction.",
+      zh: "/here 的视角圆弧现在会跟随手机罗盘方向，不再只依赖移动方向。",
+    },
+    highlights: [
+      {
+        en: "Phone rotation updates the current-location heading arc while standing still",
+        zh: "原地转动手机时，当前位置的视角圆弧会同步变化",
+      },
+      {
+        en: "iOS compass permission is requested from the here-view entry flow when available",
+        zh: "支持时会在进入 here 视图时请求 iOS 罗盘方向权限",
+      },
+      {
+        en: "GPS heading remains as a fallback when compass orientation is unavailable",
+        zh: "无法获得罗盘方向时，仍保留 GPS 移动航向作为兜底",
+      },
+    ],
+  },
+  {
+    version: "v2.22.13",
+    kind: "patch",
+    title: {
+      en: "Here view heading refresh",
+      zh: "我的位置视角刷新",
+    },
+    summary: {
+      en: "The /here view now keeps the current-location heading arc in sync while using a tighter position filter.",
+      zh: "/here 现在会让当前位置的视角圆弧跟随转身实时刷新，并使用更灵敏的位置防抖。",
+    },
+    highlights: [
+      {
+        en: "The heading arc updates whenever the device heading changes",
+        zh: "设备朝向变化时，视角圆弧会同步转动",
+      },
+      {
+        en: "Here-mode position filtering now uses a 0.05 nm movement threshold",
+        zh: "here 模式的位置防抖阈值调整为 0.05 海里",
+      },
+      {
+        en: "The here-mode location refresh logic is covered by focused tests",
+        zh: "here 模式的位置刷新逻辑已补上聚焦测试",
+      },
+    ],
+  },
+  {
     version: "v2.22.12",
     kind: "patch",
     title: {

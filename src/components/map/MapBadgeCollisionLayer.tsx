@@ -114,6 +114,7 @@ function badgePriority(element: HTMLElement) {
   if (type === "airport") return 90;
   if (type === "nearby-airport") return 70;
   if (type === "reporting-point") return 60;
+  if (type === "candidate-spot") return 60;
   if (type === "navaid") return 60;
   return 50;
 }

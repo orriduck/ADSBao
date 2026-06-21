@@ -679,13 +679,9 @@ const en = {
     disclaimer:
       "Photo location data can change; verify public access, local rules, weather, and personal safety before using a location.",
     navigationTitle: "Navigate to photo location",
-    navigationDescription:
-      "Choose a map app to open directions to this location.",
+    navigationDescription: "Open directions in a map app.",
     navigationNative: "System Maps",
-    navigationNativeDescription: "Open directions in the built-in maps app.",
     navigationGoogle: "Google Maps",
-    navigationGoogleDescription: "Open directions in Google Maps.",
-    navigationCoordinates: "{lat}, {lon}",
     navigationClose: "Close navigation choices",
   },
   lostSignal: {

@@ -44,7 +44,7 @@ export default function CandidateWatchingSpotNavigationModal({
         <Dialog.Content
           className={cn(
             "fixed left-1/2 top-1/2 z-[var(--z-index-modal-content)]",
-            "flex w-[min(92vw,390px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4",
+            "flex w-[min(92vw,360px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4",
             "rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)]",
             "[background:var(--atc-surface-preview-card)] p-5 text-atc-text",
             "shadow-[var(--preview-card-shadow)] outline-none",
@@ -53,14 +53,25 @@ export default function CandidateWatchingSpotNavigationModal({
             "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
           )}
         >
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <Dialog.Title className="text-[16px] font-bold leading-tight text-atc-text">
-                {t("watcherMode.navigationTitle")}
-              </Dialog.Title>
-              <Dialog.Description className="mt-1 text-[12px] leading-relaxed text-atc-dim">
-                {t("watcherMode.navigationDescription")}
-              </Dialog.Description>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--atc-control-surface)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)]">
+                <MapPinned className="size-5" aria-hidden="true" strokeWidth={1.9} />
+              </span>
+              <div className="min-w-0">
+                <Dialog.Title className="text-[16px] font-bold leading-tight text-atc-text">
+                  {t("watcherMode.navigationTitle")}
+                </Dialog.Title>
+                <Dialog.Description className="mt-1 text-[12px] leading-relaxed text-atc-dim">
+                  {t("watcherMode.navigationDescription")}
+                </Dialog.Description>
+                <div
+                  className="notranslate mt-2 truncate text-[13px] font-bold leading-tight text-atc-text"
+                  translate="no"
+                >
+                  {links.label}
+                </div>
+              </div>
             </div>
             <Dialog.Close asChild>
               <button
@@ -80,27 +91,11 @@ export default function CandidateWatchingSpotNavigationModal({
             </Dialog.Close>
           </div>
 
-          <div className="min-w-0 rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] px-4 py-3 shadow-[var(--atc-control-inset-shadow-subtle)]">
-            <div
-              className="notranslate truncate text-[13px] font-bold leading-tight text-atc-text"
-              translate="no"
-            >
-              {links.label}
-            </div>
-            <div className="mt-1 font-mono text-[10px] font-semibold text-atc-faint">
-              {t("watcherMode.navigationCoordinates", {
-                lat: links.latitudeLabel,
-                lon: links.longitudeLabel,
-              })}
-            </div>
-          </div>
-
-          <div className="grid gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <NavigationLink
               href={links.nativeMapUrl}
               icon={Navigation}
               title={t("watcherMode.navigationNative")}
-              description={t("watcherMode.navigationNativeDescription")}
               primary
               onOpenChange={onOpenChange}
             />
@@ -108,7 +103,6 @@ export default function CandidateWatchingSpotNavigationModal({
               href={links.googleMapsUrl}
               icon={MapPinned}
               title={t("watcherMode.navigationGoogle")}
-              description={t("watcherMode.navigationGoogleDescription")}
               onOpenChange={onOpenChange}
             />
           </div>
@@ -122,14 +116,12 @@ function NavigationLink({
   href,
   icon: Icon,
   title,
-  description,
   primary = false,
   onOpenChange,
 }: {
   href: string;
   icon: typeof Navigation;
   title: string;
-  description: string;
   primary?: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -143,8 +135,8 @@ function NavigationLink({
       {...externalProps}
       onClick={() => onOpenChange(false)}
       className={cn(
-        "group flex min-h-[70px] items-center gap-3 rounded-[var(--atc-radius-card)] px-4 py-3",
-        "text-left no-underline transition-[background,box-shadow,transform,filter] duration-150",
+        "group flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-[var(--atc-radius-card)] px-3 py-3",
+        "text-center no-underline transition-[background,box-shadow,transform,filter] duration-150",
         "focus:outline-none focus:ring-2 focus:ring-[var(--atc-accent)]",
         primary
           ? cn(
@@ -169,23 +161,13 @@ function NavigationLink({
       >
         <Icon className="size-5" aria-hidden="true" />
       </span>
-      <span className="min-w-0">
-        <span
-          className={cn(
-            "block text-[13px] font-bold leading-tight",
-            primary ? "text-[var(--atc-click-fg)]" : "text-atc-text",
-          )}
-        >
-          {title}
-        </span>
-        <span
-          className={cn(
-            "mt-1 block text-[11px] font-medium leading-snug",
-            primary ? "text-[var(--atc-click-muted)]" : "text-atc-dim",
-          )}
-        >
-          {description}
-        </span>
+      <span
+        className={cn(
+          "block max-w-full truncate text-[13px] font-bold leading-tight",
+          primary ? "text-[var(--atc-click-fg)]" : "text-atc-text",
+        )}
+      >
+        {title}
       </span>
     </a>
   );

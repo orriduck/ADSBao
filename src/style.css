@@ -1808,7 +1808,8 @@ body:has(.dither-page-shell) {
 }
 
 .leaflet-marker-icon.navaid-label-icon,
-.leaflet-marker-icon.reporting-point-label-icon {
+.leaflet-marker-icon.reporting-point-label-icon,
+.leaflet-marker-icon.candidate-watching-spot-label-icon {
     overflow: visible;
     pointer-events: none !important;
 }
@@ -1868,9 +1869,17 @@ body:has(.dither-page-shell) {
     transform: none;
 }
 
+.candidate-watching-spot-map-marker .navaid-map-marker__dot {
+    background: var(--watcher-candidate-marker-surface);
+    border-color: var(--watcher-candidate-marker-border);
+    border-radius: 999px;
+    transform: none;
+}
+
 .leaflet-marker-icon.navaid-label-icon .airport-overlay-label--map-badge,
 .leaflet-marker-icon.reporting-point-label-icon .airport-overlay-label--map-badge,
-.leaflet-marker-icon.nearby-airport-marker-icon .airport-overlay-label--map-badge {
+.leaflet-marker-icon.nearby-airport-marker-icon .airport-overlay-label--map-badge,
+.leaflet-marker-icon.candidate-watching-spot-label-icon .airport-overlay-label--map-badge {
     pointer-events: auto;
 }
 
@@ -4938,7 +4947,8 @@ body {
 
 .nearby-airport-marker--selected .airport-overlay-label--map-badge,
 .navaid-label-icon--selected .airport-overlay-label--map-badge,
-.reporting-point-label-icon--selected .airport-overlay-label--map-badge {
+.reporting-point-label-icon--selected .airport-overlay-label--map-badge,
+.candidate-watching-spot-label-icon--selected .airport-overlay-label--map-badge {
     opacity: 1;
 }
 
@@ -4983,6 +4993,13 @@ body {
     font-family: var(--font-sans);
     font-size: 7px;
     font-weight: 850;
+}
+
+.airport-overlay-label--candidate-spot .airport-overlay-label__code.atc-code-pill {
+    font-family: var(--font-sans);
+    font-size: 7px;
+    font-weight: 850;
+    max-width: 76px;
 }
 
 .airport-overlay-label__detail--near {

@@ -101,7 +101,6 @@ export default function AirportMap({
   selectedAirspaceId = "",
   selectedCandidateWatchingSpotId = "",
   candidateWatchingSpots = [],
-  candidateWatchingSpotCount = 0,
   focalAircraftId = "",
   followsCenter = true,
   floatingSidebarAware = false,
@@ -621,9 +620,6 @@ export default function AirportMap({
               aircraft={aircraft}
               zoom={zoom}
               groundRadiusNm={groundRadiusNm}
-              candidateWatchingSpotCount={
-                showCandidateWatchingSpots ? candidateWatchingSpotCount : 0
-              }
             />
           )}
           <NearbyAirportLayer
@@ -654,14 +650,19 @@ export default function AirportMap({
               selectedAirportIcao,
               selectedNavaidKey,
               selectedReportingPointKey,
+              selectedCandidateWatchingSpotId,
               selectedAirspaceId,
               showNavaidMarkers ? "navaid-on" : "navaid-off",
               showReportingPoints && reportingPoints.length
                 ? "reporting-on"
                 : "reporting-off",
+              showCandidateWatchingSpots && candidateWatchingSpots.length
+                ? "candidate-spots-on"
+                : "candidate-spots-off",
               nearbyAirportLayerDisplay.showAirportBadges ? "airport-on" : "airport-off",
               renderedNavaids.length,
               reportingPoints.length,
+              candidateWatchingSpots.length,
               nearbyAirportLayerDisplay.airports.length,
               leafletZoom,
             ].join("|")}

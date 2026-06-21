@@ -12,8 +12,6 @@ export type SpotNavigationLinks = {
   nativeMapUrl: string;
   googleMapsUrl: string;
   label: string;
-  latitudeLabel: string;
-  longitudeLabel: string;
   platform: SpotNavigationPlatform;
 };
 
@@ -55,8 +53,6 @@ export function buildSpotNavigationLinks(
         : appleMapsUrl({ destination, label }),
     googleMapsUrl: `https://www.google.com/maps/dir/?${googleParams.toString()}`,
     label,
-    latitudeLabel,
-    longitudeLabel,
     platform,
   };
 }

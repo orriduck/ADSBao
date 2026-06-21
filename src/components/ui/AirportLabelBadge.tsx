@@ -1,4 +1,4 @@
-import { RadioTower, Signpost, TowerControl } from "lucide-react";
+import { Camera, RadioTower, Signpost, TowerControl } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Shared airport-pin badge — a code pill (IATA / ICAO) plus an
@@ -33,6 +33,8 @@ function BadgeIcon({ type = "airport" }) {
   const Icon =
     type === "reporting-point"
       ? Signpost
+      : type === "candidate-spot"
+        ? Camera
       : type === "navaid"
         ? RadioTower
         : TowerControl;

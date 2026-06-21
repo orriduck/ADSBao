@@ -10,7 +10,6 @@ import {
 } from "../../features/airport/map/leafletLayerSafety";
 import {
   shouldShowAirportAreaCountForZoom,
-  shouldShowCandidateWatchingSpotCountForZoom,
 } from "../../features/airport/map/airportMapZoomFeatures";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent";
 import { AirportLabelBadge } from "@/components/ui/AirportLabelBadge";
@@ -24,7 +23,6 @@ export default function AirportMarker({
   aircraft = [],
   zoom = null,
   groundRadiusNm = 3,
-  candidateWatchingSpotCount = 0,
 }) {
   const map = useMapInstance();
   const markerRef = useRef(null);
@@ -35,9 +33,6 @@ export default function AirportMarker({
   // Count aircraft within `groundRadiusNm` of the focal airport when
   // zoom-feature config enables the "NEAR n" badge detail.
   const showAreaCount = shouldShowAirportAreaCountForZoom(zoom);
-  const showCandidateWatchingSpotCount =
-    shouldShowCandidateWatchingSpotCountForZoom(zoom) &&
-    Number(candidateWatchingSpotCount) > 0;
   const areaCount = useMemo(() => {
     if (!showAreaCount || !lat || !lon) return 0;
     return aircraft.filter((item) => {
@@ -81,20 +76,8 @@ export default function AirportMarker({
     details.push({
       key: "near",
       variant: "near",
-      ...(showCandidateWatchingSpotCount
-        ? {
-            parts: [
-              { type: "label", value: "NEAR" },
-              { type: "value", value: areaCount },
-              { type: "separator", value: "|" },
-              { type: "label", value: "PHOTO SPOT", motion: true },
-              { type: "value", value: candidateWatchingSpotCount, motion: true },
-            ],
-          }
-        : {
-            label: "NEAR",
-            value: areaCount,
-          }),
+      label: "NEAR",
+      value: areaCount,
     });
   }
   const approachCount = Number(airport?.approachCount);

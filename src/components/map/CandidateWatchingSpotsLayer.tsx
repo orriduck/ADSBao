@@ -2,8 +2,12 @@ import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { Camera } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
 import { AIRPORT_MAP_PANES } from "@/config/airportMap";
-import { shouldShowCandidateWatchingSpotDetailsForZoom } from "@/features/airport/map/airportMapZoomFeatures";
+import {
+  shouldShowCandidateWatchingSpotDetailsForZoom,
+  shouldUseCandidateWatchingSpotBadgesForZoom,
+} from "@/features/airport/map/airportMapZoomFeatures";
 import { ensureAirportMapPane } from "@/features/airport/map/mapPane";
 import {
   safeAddToMap,
@@ -55,6 +59,47 @@ const markerIcon = (selected: boolean) =>
 const candidateTitle = (spot: Record<string, any>, t: (key: string) => string) =>
   spot.name || spot.title || spot.category || t("watcherMode.fallbackName");
 
+const compactBadgeText = (value: string) => {
+  const normalized = String(value || "").replace(/\s+/g, " ").trim();
+  if (normalized.length <= 12) return normalized;
+  const words = normalized.split(" ").filter(Boolean);
+  const compact = words.length > 1 ? words.slice(0, 2).join(" ") : normalized;
+  if (compact.length <= 12) return compact;
+  return `${compact.slice(0, 9).trim()}...`;
+};
+
+const candidateBadgeMarkerHtml = (
+  spot: Record<string, any>,
+  t: (key: string) => string,
+) => `
+  <div class="navaid-map-marker candidate-watching-spot-map-marker notranslate" translate="no">
+    <span class="navaid-map-marker__dot candidate-watching-spot-map-marker__dot" aria-hidden="true"></span>
+    <div class="navaid-map-marker__badge">
+      ${airportLabelBadgeHtml({
+        code: compactBadgeText(String(candidateTitle(spot, t))),
+        icon: "candidate-spot",
+        badgeType: "candidate-spot",
+        className: "airport-overlay-label--map-badge airport-overlay-label--candidate-spot",
+      })}
+    </div>
+  </div>
+`;
+
+const candidateBadgeIcon = (
+  spot: Record<string, any>,
+  t: (key: string) => string,
+  selected: boolean,
+) =>
+  L.divIcon({
+    className: [
+      "candidate-watching-spot-label-icon",
+      selected ? "candidate-watching-spot-label-icon--selected" : "",
+    ].filter(Boolean).join(" "),
+    html: candidateBadgeMarkerHtml(spot, t),
+    iconSize: [136, 78],
+    iconAnchor: [4, 4],
+  });
+
 export default function CandidateWatchingSpotsLayer({
   enabled = false,
   spots = [],
@@ -71,7 +116,8 @@ export default function CandidateWatchingSpotsLayer({
   const map = useMapInstance();
   const { t } = useI18n();
   const layerRef = useRef<L.LayerGroup | null>(null);
-  const showDetails = enabled && shouldShowCandidateWatchingSpotDetailsForZoom(zoom);
+  const showSpots = enabled && shouldShowCandidateWatchingSpotDetailsForZoom(zoom);
+  const useBadgeMarkers = shouldUseCandidateWatchingSpotBadgesForZoom(zoom);
   const visibleSpots = useMemo(
     () =>
       spots.filter((spot: Record<string, any>) =>
@@ -81,14 +127,17 @@ export default function CandidateWatchingSpotsLayer({
   );
 
   useEffect(() => {
-    if (!map || !showDetails || visibleSpots.length === 0) {
+    if (!map || !showSpots || visibleSpots.length === 0) {
       safeRemoveFromMap(layerRef.current, map);
       layerRef.current = null;
       return undefined;
     }
 
     safeRemoveFromMap(layerRef.current, map);
-    const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.candidateSpot);
+    const pane = ensureAirportMapPane(
+      map,
+      useBadgeMarkers ? AIRPORT_MAP_PANES.badge : AIRPORT_MAP_PANES.candidateSpot,
+    );
     const layer = L.layerGroup(
       visibleSpots.map((spot: Record<string, any>) => {
         const selected = Boolean(selectedSpotId && spot.id === selectedSpotId);
@@ -97,13 +146,16 @@ export default function CandidateWatchingSpotsLayer({
           autoPanOnFocus: false,
           keyboard: false,
           title: candidateTitle(spot, t),
-          icon: markerIcon(selected),
+          icon: useBadgeMarkers
+            ? candidateBadgeIcon(spot, t, selected)
+            : markerIcon(selected),
           pane,
           zIndexOffset: selected ? 40 : 0,
         });
         if (typeof onSelectSpot === "function") {
           marker.on("click", (event) => {
             L.DomEvent.stopPropagation(event);
+            event?.originalEvent?.stopPropagation?.();
             onSelectSpot(String(spot.id || ""));
           });
         }
@@ -119,7 +171,7 @@ export default function CandidateWatchingSpotsLayer({
       safeRemoveFromMap(layer, map);
       layerRef.current = null;
     };
-  }, [map, onSelectSpot, selectedSpotId, showDetails, t, visibleSpots]);
+  }, [map, onSelectSpot, selectedSpotId, showSpots, t, useBadgeMarkers, visibleSpots]);
 
   return null;
 }

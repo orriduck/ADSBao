@@ -613,7 +613,6 @@ function AirportExplorerContent({
               selectedAirspaceId={selectedAirspaceId}
               selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
               candidateWatchingSpots={candidateWatchingSpots.spots}
-              candidateWatchingSpotCount={0}
               followsCenter={mapFollowsAircraft}
               floatingSidebarAware={!isMobile && sidebarOpen}
               onSelectAircraft={selectAircraft}

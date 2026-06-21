@@ -668,12 +668,9 @@ const zhCN = {
     disclaimer:
       "拍机点信息可能变化；使用前请自行确认公共通行、当地规则、天气和人身安全。",
     navigationTitle: "导航到拍机点",
-    navigationDescription: "选择一个地图应用，打开到这个位置的路线。",
+    navigationDescription: "打开地图路线。",
     navigationNative: "系统地图",
-    navigationNativeDescription: "用设备自带地图打开路线。",
     navigationGoogle: "Google Maps",
-    navigationGoogleDescription: "用 Google Maps 打开路线。",
-    navigationCoordinates: "{lat}, {lon}",
     navigationClose: "关闭导航选择",
   },
   lostSignal: {

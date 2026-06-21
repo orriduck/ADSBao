@@ -10,8 +10,8 @@ type AirportMapZoomFeatures = {
   showNearbyAirportRunways: boolean;
   showRangeRingLabels: boolean;
   showRunwayEndLabels: boolean;
-  showCandidateWatchingSpotCount: boolean;
   showCandidateWatchingSpotDetails: boolean;
+  showCandidateWatchingSpotBadges: boolean;
 };
 
 const DEFAULT_GROUND_AREA_RADIUS_NM = 3;
@@ -22,8 +22,8 @@ const AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS: AirportMapZoomFeatures = Object.freeze(
   showNearbyAirportRunways: true,
   showRangeRingLabels: false,
   showRunwayEndLabels: false,
-  showCandidateWatchingSpotCount: false,
-  showCandidateWatchingSpotDetails: false,
+  showCandidateWatchingSpotDetails: true,
+  showCandidateWatchingSpotBadges: false,
 });
 
 const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures> = Object.freeze({
@@ -33,8 +33,8 @@ const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures>
     showNearbyAirportRunways: true,
     showRangeRingLabels: false,
     showRunwayEndLabels: false,
-    showCandidateWatchingSpotCount: true,
-    showCandidateWatchingSpotDetails: false,
+    showCandidateWatchingSpotDetails: true,
+    showCandidateWatchingSpotBadges: true,
   }),
   [ZOOM_AIRPORT]: Object.freeze({
     airportGroundTrafficHideRadiusNm: 0.5,
@@ -42,8 +42,8 @@ const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures>
     showNearbyAirportRunways: true,
     showRangeRingLabels: true,
     showRunwayEndLabels: false,
-    showCandidateWatchingSpotCount: true,
-    showCandidateWatchingSpotDetails: false,
+    showCandidateWatchingSpotDetails: true,
+    showCandidateWatchingSpotBadges: false,
   }),
   [ZOOM_DETAIL]: Object.freeze({
     airportGroundTrafficHideRadiusNm: null,
@@ -51,8 +51,8 @@ const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures>
     showNearbyAirportRunways: true,
     showRangeRingLabels: true,
     showRunwayEndLabels: true,
-    showCandidateWatchingSpotCount: false,
     showCandidateWatchingSpotDetails: true,
+    showCandidateWatchingSpotBadges: false,
   }),
 });
 
@@ -72,11 +72,14 @@ export const shouldShowNearbyAirportRunwaysForZoom = (zoom: unknown) =>
 export const shouldShowRunwayEndLabelsForZoom = (zoom: unknown) =>
   airportMapZoomFeaturesFor(zoom).showRunwayEndLabels;
 
-export const shouldShowCandidateWatchingSpotCountForZoom = (zoom: unknown) =>
-  airportMapZoomFeaturesFor(zoom).showCandidateWatchingSpotCount;
-
 export const shouldShowCandidateWatchingSpotDetailsForZoom = (zoom: unknown) =>
   airportMapZoomFeaturesFor(zoom).showCandidateWatchingSpotDetails;
+
+export const shouldUseCandidateWatchingSpotBadgesForZoom = (zoom: unknown) => {
+  const numericZoom = Number(zoom);
+  if (Number.isFinite(numericZoom)) return numericZoom <= ZOOM_APPROACH;
+  return airportMapZoomFeaturesFor(zoom).showCandidateWatchingSpotBadges;
+};
 
 // Level-of-detail band for runway/taxiway point lights. Keyed to the same
 // zoom breakpoints as the rest of the airport map:
