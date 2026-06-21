@@ -326,8 +326,8 @@
 }
 
 .candidate-watching-spot-dot__point {
-    background: var(--atc-card);
-    border: 1px solid color-mix(in oklab, var(--atc-text) 18%, transparent);
+    background: var(--map-entity-badge-bg);
+    border: 1px solid var(--map-entity-badge-edge);
     border-radius: 999px;
     box-shadow:
         0 1px 4px color-mix(in oklab, var(--atc-text) 32%, transparent),
