@@ -575,6 +575,13 @@ const en = {
     locationTooFar:
       "Location is on, but you're too far from this airport to show it on this map.",
     locationUnavailable: "Location is unavailable.",
+    locationReady: "Location acquired",
+    locationNotReady: "No location",
+    locationDeniedShort: "Location denied",
+    compassHeading: "Compass",
+    compassReady: "Ready · {degrees}°",
+    compassUnavailable: "Unavailable",
+    forceRetryLocation: "Re-acquire location",
     visualTrafficUnknown: "Traffic",
     visualTrafficLine: "In sight · {callsign} · {distance} NM · {direction}",
     visualTrafficAhead: "{clock} o'clock · ahead",

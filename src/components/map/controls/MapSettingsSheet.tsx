@@ -211,6 +211,8 @@ export default function MapSettingsSheet({
   userLocationNotice = "",
   userLocationPermissionDenied = false,
   onRequestUserLocationPermission = null,
+  userLocationPositionReady = false,
+  userLocationCompassHeadingDeg = null,
   onSelectBaseLayer,
   onToggleMapLabels,
   onToggleBeams,
@@ -363,23 +365,54 @@ export default function MapSettingsSheet({
                 )}
 
               </div>
-              {userLocationNotice ? (
-                <div
-                  className="mt-3 rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
-                  role="status"
-                  aria-live="polite"
-                >
-                  {userLocationNotice}
+              {userLocationActive ? (
+                <div className="mt-3 space-y-2">
+                  <div
+                    className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={userLocationPositionReady ? "text-[var(--atc-mint)]" : userLocationPermissionDenied ? "text-[var(--atc-interaction-danger)]" : "text-atc-muted"}>
+                        {userLocationPositionReady
+                          ? t("map.locationReady")
+                          : userLocationPermissionDenied
+                            ? t("map.locationDeniedShort")
+                            : userLocationPending
+                              ? t("mapLayers.locatingUser")
+                              : t("map.locationNotReady")}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <span>{t("map.compassHeading")}</span>
+                      <span className={userLocationCompassHeadingDeg != null ? "text-[var(--atc-mint)]" : "text-atc-muted"}>
+                        {userLocationCompassHeadingDeg != null
+                          ? t("map.compassReady", { degrees: Math.round(userLocationCompassHeadingDeg) })
+                          : t("map.compassUnavailable")}
+                      </span>
+                    </div>
+                  </div>
+                  {userLocationNotice ? (
+                    <div
+                      className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      {userLocationNotice}
+                    </div>
+                  ) : null}
+                  {!userLocationPositionReady && !userLocationPending && onRequestUserLocationPermission ? (
+                    <button
+                      type="button"
+                      className="w-full rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] font-semibold leading-snug text-[var(--atc-accent)] shadow-[var(--atc-control-inset-shadow-subtle)] transition-colors hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98]"
+                      onClick={onRequestUserLocationPermission}
+                    >
+                      {userLocationPermissionDenied
+                        ? t("map.requestLocationPermission")
+                        : t("map.forceRetryLocation")}
+                    </button>
+                  ) : null}
                 </div>
-              ) : null}
-              {userLocationActive && userLocationPermissionDenied && onRequestUserLocationPermission ? (
-                <button
-                  type="button"
-                  className="mt-3 w-full rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] font-semibold leading-snug text-[var(--atc-accent)] shadow-[var(--atc-control-inset-shadow-subtle)] transition-colors hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98]"
-                  onClick={onRequestUserLocationPermission}
-                >
-                  {t("map.requestLocationPermission")}
-                </button>
               ) : null}
             </section>
 

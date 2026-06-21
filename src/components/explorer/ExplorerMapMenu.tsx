@@ -15,6 +15,8 @@ export default function ExplorerMapMenu({
   userLocationNotice = "",
   userLocationPermissionDenied = false,
   onRequestUserLocationPermission = null,
+  userLocationPositionReady = false,
+  userLocationCompassHeadingDeg = null,
   userLocationStatusLines = [],
   wakeLockState = { supported: false, active: false },
   onToggleWakeLock = null,
@@ -75,6 +77,8 @@ export default function ExplorerMapMenu({
       userLocationNotice={userLocationNotice}
       userLocationPermissionDenied={userLocationPermissionDenied}
       onRequestUserLocationPermission={onRequestUserLocationPermission}
+      userLocationPositionReady={userLocationPositionReady}
+      userLocationCompassHeadingDeg={userLocationCompassHeadingDeg}
       showSidebarToggle={surface === "map" && isMobile}
       showMapButton={surface === "sidebar"}
       wakeLockActive={wakeLockState.active}

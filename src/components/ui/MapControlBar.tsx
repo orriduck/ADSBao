@@ -36,6 +36,8 @@ export default function MapControlBar({
   userLocationNotice = "",
   userLocationPermissionDenied = false,
   onRequestUserLocationPermission = null,
+  userLocationPositionReady = false,
+  userLocationCompassHeadingDeg = null,
   showSidebarToggle = true,
   showMapButton = false,
   wakeLockActive = false,
@@ -133,6 +135,8 @@ export default function MapControlBar({
         userLocationNotice={userLocationNotice}
         userLocationPermissionDenied={userLocationPermissionDenied}
         onRequestUserLocationPermission={onRequestUserLocationPermission}
+        userLocationPositionReady={userLocationPositionReady}
+        userLocationCompassHeadingDeg={userLocationCompassHeadingDeg}
         onSelectBaseLayer={onSelectBaseLayer}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}

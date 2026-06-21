@@ -41,9 +41,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 63;
+export const CHANGELOG_TOTAL_COUNT = 64;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.24.0",
+    kind: "feat",
+    title: {
+      en: "My location status and compass in settings",
+      zh: "设置中显示我的位置状态与罗盘",
+    },
+    summary: {
+      en: "Map settings now show live location acquisition and compass heading status. A force re-acquire button appears when position is not yet ready.",
+      zh: "地图设置中现在显示位置获取与罗盘朝向状态。当位置尚未就绪时显示强制重新获取按钮。",
+    },
+    highlights: [
+      {
+        en: "Live location and compass heading status in map settings",
+        zh: "地图设置中实时显示位置与罗盘朝向状态",
+      },
+      {
+        en: "Force re-acquire location when position is not ready or permission was denied",
+        zh: "位置未就绪或权限被拒绝时可强制重新获取",
+      },
+    ],
+  },
   {
     version: "v2.23.5",
     kind: "patch",

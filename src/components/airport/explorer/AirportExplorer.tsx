@@ -417,6 +417,8 @@ function AirportExplorerContent({
     userLocationPermissionDenied: nearMe
       ? false
       : userLocationLayer.userLocationPermissionDenied,
+    userLocationPositionReady: nearMe ? false : userLocationLayer.userLocationPositionReady,
+    userLocationCompassHeadingDeg: nearMe ? null : userLocationLayer.userLocationCompassHeadingDeg,
     onRequestUserLocationPermission: nearMe
       ? null
       : () => userLocationLayer.requestUserLocation({ requestCompassPermission: true }),

@@ -286,6 +286,9 @@ export function useUserLocationLayer({
     userLocationEnabled,
   ]);
 
+  const userLocationPositionReady = userLocation != null;
+  const userLocationCompassHeadingDeg = userLocation?.headingDeg ?? null;
+
   return {
     userLocation,
     userLocationActive: userLocationEnabled || Boolean(userLocation),
@@ -294,5 +297,7 @@ export function useUserLocationLayer({
     requestUserLocation,
     toggleUserLocation,
     userLocationPermissionDenied,
+    userLocationPositionReady,
+    userLocationCompassHeadingDeg,
   };
 }

@@ -824,6 +824,9 @@ function FlightExplorerContent({ callsign }) {
     userLocationActive: userLocationLayer.userLocationActive,
     userLocationPending: userLocationLayer.userLocationPending,
     userLocationNotice: userLocationLayer.userLocationNotice,
+    userLocationPositionReady: userLocationLayer.userLocationPositionReady,
+    userLocationCompassHeadingDeg: userLocationLayer.userLocationCompassHeadingDeg,
+    onRequestUserLocationPermission: () => userLocationLayer.requestUserLocation({ requestCompassPermission: true }),
     onToggleUserLocation: userLocationLayer.toggleUserLocation,
   };
   const mobileSidebarToolbar = (
