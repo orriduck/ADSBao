@@ -1,8 +1,12 @@
 import {
   Camera,
+  Check,
+  ChevronDown,
+  CircleHelp,
   ImageIcon,
   RotateCcw,
   Share2,
+  SwitchCamera,
   X,
   ZoomIn,
 } from "lucide-react";
@@ -49,6 +53,12 @@ type CameraZoomRange = {
   max: number;
   step: number;
   supported: boolean;
+};
+
+type CameraDeviceOption = {
+  deviceId: string;
+  label: string;
+  index: number;
 };
 
 const DEFAULT_CAMERA_ZOOM_RANGE: CameraZoomRange = {
@@ -219,6 +229,23 @@ type ZoomableVideoTrack = MediaStreamTrack & {
 
 function getPrimaryVideoTrack(stream: MediaStream | null) {
   return (stream?.getVideoTracks()[0] || null) as ZoomableVideoTrack | null;
+}
+
+async function listCameraDeviceOptions() {
+  if (
+    typeof navigator === "undefined" ||
+    !navigator.mediaDevices?.enumerateDevices
+  ) {
+    return [];
+  }
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  return devices
+    .filter((device) => device.kind === "videoinput" && device.deviceId)
+    .map((device, index) => ({
+      deviceId: device.deviceId,
+      label: String(device.label || "").trim(),
+      index: index + 1,
+    }));
 }
 
 function resolveSystemCameraZoomRange(
@@ -1198,15 +1225,112 @@ function PlaneHunterMetadataBar({
 function PlaneHunterCameraZoomControl({
   zoom,
   range,
+  cameraDevices,
+  selectedCameraDeviceId,
   onChange,
+  onCameraDeviceSelect,
+  t,
 }: {
   zoom: number;
   range: CameraZoomRange;
+  cameraDevices: CameraDeviceOption[];
+  selectedCameraDeviceId: string;
   onChange: (nextZoom: number) => void;
+  onCameraDeviceSelect: (deviceId: string) => void;
+  t: PlaneHunterTranslator;
 }) {
+  const [devicePickerOpen, setDevicePickerOpen] = useState(false);
+  const [zoomHelpOpen, setZoomHelpOpen] = useState(false);
   const stops = getCameraZoomStops(range);
+  const selectedDevice =
+    cameraDevices.find((device) => device.deviceId === selectedCameraDeviceId) ||
+    cameraDevices[0] ||
+    null;
+  const selectedLabel = selectedDevice?.label || t("planeHunter.currentLens");
+  const deviceCountLabel =
+    cameraDevices.length > 1
+      ? t("planeHunter.cameraLensCount", { count: cameraDevices.length })
+      : t("planeHunter.currentLens");
+  const displayDeviceLabel = (device: CameraDeviceOption) =>
+    device.label || t("planeHunter.cameraOption", { number: device.index });
   return (
-    <div className="mx-auto flex w-full max-w-[460px] flex-col gap-3 rounded-[28px] border border-[rgba(242,243,238,0.1)] bg-[rgba(0,0,0,0.34)] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_28px_rgba(0,0,0,0.2)]">
+    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-3 rounded-[28px] border border-[rgba(242,243,238,0.1)] bg-[rgba(0,0,0,0.34)] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_28px_rgba(0,0,0,0.2)]">
+      <div className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={() => setDevicePickerOpen((open) => !open)}
+            aria-expanded={devicePickerOpen}
+            className="flex min-h-11 w-full items-center gap-2 rounded-full bg-[rgba(242,243,238,0.1)] px-3 text-left text-[rgba(242,243,238,0.88)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[rgba(242,243,238,0.14)] active:scale-[0.99]"
+          >
+            <SwitchCamera aria-hidden="true" className="size-[18px] shrink-0 text-[rgb(255,221,119)]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[10px] font-black uppercase leading-none text-[rgba(242,243,238,0.48)]">
+                {deviceCountLabel}
+              </span>
+              <span className="mt-1 block truncate text-[12px] font-black leading-none">
+                {selectedLabel}
+              </span>
+            </span>
+            <ChevronDown
+              aria-hidden="true"
+              className={cn(
+                "size-4 shrink-0 text-[rgba(242,243,238,0.58)] transition",
+                devicePickerOpen && "rotate-180",
+              )}
+            />
+          </button>
+          {devicePickerOpen && (
+            <div className="absolute inset-x-0 bottom-[calc(100%+8px)] z-10 overflow-hidden rounded-[22px] border border-[rgba(242,243,238,0.12)] bg-[rgba(8,8,8,0.9)] p-1.5 text-[rgb(242,243,238)] shadow-[0_18px_38px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl">
+              {cameraDevices.length > 0 ? (
+                <div className="max-h-[168px] overflow-y-auto">
+                  {cameraDevices.map((device) => {
+                    const selected = device.deviceId === selectedCameraDeviceId;
+                    return (
+                      <button
+                        key={device.deviceId}
+                        type="button"
+                        onClick={() => {
+                          setDevicePickerOpen(false);
+                          onCameraDeviceSelect(device.deviceId);
+                        }}
+                        data-active={selected ? "true" : undefined}
+                        className="flex min-h-10 w-full items-center gap-2 rounded-[18px] px-3 text-left text-[12px] font-bold text-[rgba(242,243,238,0.82)] transition hover:bg-[rgba(242,243,238,0.1)] data-[active=true]:bg-[rgb(255,221,119)] data-[active=true]:text-[rgb(14,15,16)]"
+                      >
+                        <span className="min-w-0 flex-1 truncate">
+                          {displayDeviceLabel(device)}
+                        </span>
+                        {selected && <Check aria-hidden="true" className="size-4 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="px-3 py-2 text-[12px] font-bold leading-snug text-[rgba(242,243,238,0.68)]">
+                  {t("planeHunter.cameraPickerUnavailable")}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setZoomHelpOpen((open) => !open)}
+          aria-label={t("planeHunter.zoomInfoTitle")}
+          aria-expanded={zoomHelpOpen}
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgba(242,243,238,0.78)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95"
+        >
+          <CircleHelp aria-hidden="true" className="size-[19px]" />
+        </button>
+      </div>
+      {zoomHelpOpen && (
+        <div className="rounded-[20px] border border-[rgba(242,243,238,0.1)] bg-[rgba(242,243,238,0.08)] px-3 py-2 text-[11.5px] font-bold leading-snug text-[rgba(242,243,238,0.72)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <span className="mb-1 block text-[10px] font-black uppercase leading-none text-[rgb(255,221,119)]">
+            {t("planeHunter.zoomInfoTitle")}
+          </span>
+          {t("planeHunter.zoomInfoBody")}
+        </div>
+      )}
       <div className="flex items-center justify-center gap-3">
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgb(255,221,119)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <ZoomIn aria-hidden="true" className="size-[18px]" />
@@ -1250,8 +1374,11 @@ function PlaneHunterLiveCameraView({
   cameraReady,
   zoom,
   zoomRange,
+  cameraDevices,
+  selectedCameraDeviceId,
   status,
   onZoomChange,
+  onCameraDeviceSelect,
   onCapture,
   onStartCamera,
   onChooseLibrary,
@@ -1263,8 +1390,11 @@ function PlaneHunterLiveCameraView({
   cameraReady: boolean;
   zoom: number;
   zoomRange: CameraZoomRange;
+  cameraDevices: CameraDeviceOption[];
+  selectedCameraDeviceId: string;
   status: string;
   onZoomChange: (nextZoom: number) => void;
+  onCameraDeviceSelect: (deviceId: string) => void;
   onCapture: () => void;
   onStartCamera: () => void;
   onChooseLibrary: () => void;
@@ -1300,7 +1430,11 @@ function PlaneHunterLiveCameraView({
         <PlaneHunterCameraZoomControl
           zoom={zoom}
           range={zoomRange}
+          cameraDevices={cameraDevices}
+          selectedCameraDeviceId={selectedCameraDeviceId}
           onChange={onZoomChange}
+          onCameraDeviceSelect={onCameraDeviceSelect}
+          t={t}
         />
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           <button
@@ -1392,6 +1526,8 @@ export default function PlaneHunterStudio({
   const [cameraZoomRange, setCameraZoomRange] = useState<CameraZoomRange>(
     DEFAULT_CAMERA_ZOOM_RANGE,
   );
+  const [cameraDevices, setCameraDevices] = useState<CameraDeviceOption[]>([]);
+  const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState("");
   const [capturedImage, setCapturedImage] = useState("");
   const [previewImage, setPreviewImage] = useState("");
   const [template, setTemplate] = useState<PlaneHunterTemplate>("previewCard");
@@ -1416,6 +1552,24 @@ export default function PlaneHunterStudio({
     });
     setCameraZoom(1);
     setCameraZoomRange(DEFAULT_CAMERA_ZOOM_RANGE);
+  }, []);
+
+  const refreshCameraDevices = useCallback(async (currentDeviceId = "") => {
+    try {
+      const devices = await listCameraDeviceOptions();
+      setCameraDevices(devices);
+      const normalizedCurrent = String(currentDeviceId || "").trim();
+      const selected =
+        devices.find((device) => device.deviceId === normalizedCurrent)
+          ?.deviceId ||
+        normalizedCurrent ||
+        devices[0]?.deviceId ||
+        "";
+      setSelectedCameraDeviceId(selected);
+    } catch {
+      setCameraDevices([]);
+      if (currentDeviceId) setSelectedCameraDeviceId(currentDeviceId);
+    }
   }, []);
 
   // Lazy-request the photographer's location when the maps template is
@@ -1496,7 +1650,7 @@ export default function PlaneHunterStudio({
     [ingestFile],
   );
 
-  const startSystemCamera = useCallback(async () => {
+  const startSystemCamera = useCallback(async (deviceId = "") => {
     if (
       typeof navigator === "undefined" ||
       !navigator.mediaDevices?.getUserMedia
@@ -1510,16 +1664,26 @@ export default function PlaneHunterStudio({
       setCapturedImage("");
       setPreviewImage("");
       setStatus("");
+      const normalizedDeviceId = String(deviceId || "").trim();
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
+        video: normalizedDeviceId
+          ? {
+              deviceId: { exact: normalizedDeviceId },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            }
+          : {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
       });
       const track = getPrimaryVideoTrack(stream);
       const range = resolveSystemCameraZoomRange(track);
+      const activeDeviceId = String(
+        track?.getSettings?.().deviceId || normalizedDeviceId || "",
+      ).trim();
       const settingsZoom = Number(track?.getSettings?.().zoom);
       const initialZoom = clampCameraZoom(
         Number.isFinite(settingsZoom) ? settingsZoom : range.min,
@@ -1528,6 +1692,8 @@ export default function PlaneHunterStudio({
       setCameraStream(stream);
       setCameraZoomRange(range);
       setCameraZoom(initialZoom);
+      setSelectedCameraDeviceId(activeDeviceId);
+      void refreshCameraDevices(activeDeviceId);
       if (range.supported) {
         void applySystemCameraZoom(stream, initialZoom, range).catch(() => {
           setStatus(t("planeHunter.cameraZoomUnsupported"));
@@ -1542,7 +1708,7 @@ export default function PlaneHunterStudio({
           : t("planeHunter.cameraUnavailable"),
       );
     }
-  }, [stopCamera, t]);
+  }, [refreshCameraDevices, stopCamera, t]);
 
   useEffect(() => {
     if (!open) {
@@ -1579,6 +1745,15 @@ export default function PlaneHunterStudio({
       });
     },
     [cameraStream, cameraZoomRange, t],
+  );
+
+  const handleCameraDeviceSelect = useCallback(
+    (deviceId: string) => {
+      const nextDeviceId = String(deviceId || "").trim();
+      if (!nextDeviceId || nextDeviceId === selectedCameraDeviceId) return;
+      void startSystemCamera(nextDeviceId);
+    },
+    [selectedCameraDeviceId, startSystemCamera],
   );
 
   const captureCameraFrame = useCallback(() => {
@@ -1792,10 +1967,13 @@ export default function PlaneHunterStudio({
               cameraReady={Boolean(cameraStream)}
               zoom={cameraZoom}
               zoomRange={cameraZoomRange}
+              cameraDevices={cameraDevices}
+              selectedCameraDeviceId={selectedCameraDeviceId}
               status={status}
               onZoomChange={handleCameraZoomChange}
+              onCameraDeviceSelect={handleCameraDeviceSelect}
               onCapture={captureCameraFrame}
-              onStartCamera={startSystemCamera}
+              onStartCamera={() => startSystemCamera(selectedCameraDeviceId)}
               onChooseLibrary={triggerLibraryPicker}
               onClose={close}
               t={t}

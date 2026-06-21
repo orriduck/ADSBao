@@ -41,9 +41,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 57;
+export const CHANGELOG_TOTAL_COUNT = 58;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.23.0",
+    kind: "feat",
+    title: {
+      en: "Plane Hunter lens controls",
+      zh: "拍机镜头控制",
+    },
+    summary: {
+      en: "Plane Hunter's live camera now exposes camera selection when the browser provides multiple lenses, with clearer guidance about how zoom is applied.",
+      zh: "拍机实时相机现在会在浏览器暴露多个镜头时提供镜头选择,并更清楚说明倍率如何作用在当前镜头上。",
+    },
+    highlights: [
+      {
+        en: "Added a lens picker next to camera zoom for browsers that expose ultra-wide, wide, or telephoto inputs",
+        zh: "在相机倍率旁加入镜头选择,支持浏览器暴露的超广角、广角或长焦输入",
+      },
+      {
+        en: "Zoom controls now explain that magnification is based on the selected camera and may become digital crop when no separate lens is exposed",
+        zh: "倍率控件会说明倍率基于当前镜头,没有独立镜头可切时高倍率可能是数码裁切",
+      },
+    ],
+  },
   {
     version: "v2.22.18",
     kind: "patch",
