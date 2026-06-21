@@ -112,6 +112,9 @@ func main() {
 		realtimeauth.StaticAuthChecker{Allow: cfg.FlightAwareAccessEnabled},
 		5*time.Minute,
 	)
+	defaultFeatureFlags := map[string]bool{
+		"flightAwareEnabled": cfg.FlightAwareAccessEnabled,
+	}
 	webAPIHandler := webapi.New(webapi.Options{
 		HTTPClient:                providerHTTPClient,
 		OpenAIPAPIKey:             cfg.OpenAIPAPIKey,
@@ -129,6 +132,7 @@ func main() {
 			cfg.ClerkAPIBaseURL,
 		),
 		UserDataStore: webapi.NewUserDataStore(db, cfg.FeatureFlagsEnvironment, registry),
+		FeatureFlags:  defaultFeatureFlags,
 	})
 	handler := instrumentHTTPHandler(registry, httpapi.New(httpapi.ServerOptions{
 		DebugChannels: polling.DebugChannels,
@@ -136,11 +140,9 @@ func main() {
 		WSHandler:     http.HandlerFunc(socketHandler.Handle),
 		RealtimeAuth:  realtimeAuthHandler,
 		WebAPI:        webAPIHandler,
-		FeatureFlags: map[string]bool{
-			"flightAwareEnabled": cfg.FlightAwareAccessEnabled,
-		},
-		StaticDir:   cfg.StaticDir,
-		EnablePprof: cfg.EnablePprof,
+		FeatureFlags:  defaultFeatureFlags,
+		StaticDir:     cfg.StaticDir,
+		EnablePprof:   cfg.EnablePprof,
 	}))
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Port),

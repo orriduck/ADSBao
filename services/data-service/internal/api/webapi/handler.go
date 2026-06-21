@@ -40,6 +40,7 @@ type Options struct {
 	UserDataStore             *UserDataStore
 	FlightAwareServiceBaseURL string
 	FlightAwareServiceToken   string
+	FeatureFlags              map[string]bool
 }
 
 type Handler struct {
@@ -55,6 +56,7 @@ type Handler struct {
 	userDataStore             *UserDataStore
 	flightAwareServiceBaseURL string
 	flightAwareServiceToken   string
+	featureFlags              map[string]bool
 	runwayMapReader           runwayMapReader
 	airportNameReader         airportNameReader
 	spotterLocationReader     spotterLocationReader
@@ -94,6 +96,7 @@ func New(options Options) *Handler {
 		userDataStore:             options.UserDataStore,
 		flightAwareServiceBaseURL: strings.TrimRight(strings.TrimSpace(options.FlightAwareServiceBaseURL), "/"),
 		flightAwareServiceToken:   strings.TrimSpace(options.FlightAwareServiceToken),
+		featureFlags:              cloneFeatureFlags(options.FeatureFlags),
 		runwayMapReader:           options.UserDataStore,
 		airportNameReader:         options.UserDataStore,
 		spotterLocationReader:     options.UserDataStore,
@@ -137,6 +140,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleMapStyle(w, r)
 	case r.URL.Path == "/api/map-settings" && (r.Method == http.MethodGet || r.Method == http.MethodPut):
 		h.handleMapSettings(w, r)
+	case r.Method == http.MethodGet && r.URL.Path == "/api/feature-flags":
+		h.handleFeatureFlags(w, r)
 	case r.URL.Path == "/api/route-feedback" && r.Method == http.MethodPost:
 		h.handleRouteFeedback(w, r)
 	case r.Method == http.MethodGet && contextTileResource(r.URL.Path) != "":

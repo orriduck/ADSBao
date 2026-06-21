@@ -461,6 +461,38 @@ func (h *Handler) handleMapSettings(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *Handler) handleFeatureFlags(w http.ResponseWriter, r *http.Request) {
+	flags := cloneFeatureFlags(h.featureFlags)
+	if h.authenticator == nil || h.userDataStore == nil {
+		writeJSON(w, http.StatusOK, map[string]any{"flags": flags})
+		return
+	}
+
+	user, err := h.authenticator.CurrentUser(r.Context(), r)
+	if err != nil || user == nil {
+		writeJSON(w, http.StatusOK, map[string]any{"flags": flags})
+		return
+	}
+
+	userFlags, err := h.userDataStore.readFeatureFlags(r.Context(), user.Email)
+	if err != nil && err != sql.ErrNoRows {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Feature flags read failed"})
+		return
+	}
+	for key, value := range userFlags {
+		flags[key] = value
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"flags": flags})
+}
+
+func cloneFeatureFlags(flags map[string]bool) map[string]bool {
+	out := map[string]bool{}
+	for key, value := range flags {
+		out[key] = value
+	}
+	return out
+}
+
 func (h *Handler) handleRouteFeedback(w http.ResponseWriter, r *http.Request) {
 	body, err := decodeJSONBody(r, 128*1024)
 	if err != nil {

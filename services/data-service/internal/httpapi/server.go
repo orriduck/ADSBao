@@ -87,6 +87,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == http.MethodGet && r.URL.Path == "/api/feature-flags" {
+		if s.webAPI != nil {
+			s.webAPI.ServeHTTP(w, r)
+			return
+		}
 		s.json(w, http.StatusOK, map[string]any{"flags": s.featureFlags})
 		return
 	}

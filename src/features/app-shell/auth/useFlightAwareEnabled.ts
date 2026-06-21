@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUser } from "@/platform/auth/clerkClient";
+import { useAuth, useUser } from "@/platform/auth/clerkClient";
 import {
   FEATURE_FLAGS,
   getClerkUserPrimaryEmail,
@@ -15,13 +15,16 @@ let lastLoggedSignature = "";
 const cachedFlagsByEmail = new Map();
 const inflightFlagsByEmail = new Map();
 
-async function fetchFlagsForEmail(email) {
-  if (cachedFlagsByEmail.has(email)) return cachedFlagsByEmail.get(email);
-  if (inflightFlagsByEmail.has(email)) return inflightFlagsByEmail.get(email);
+async function fetchFlagsForEmail(email, getToken) {
+  const token = await getToken?.().catch(() => "");
+  const cacheKey = token ? `${email}|auth` : `${email}|anonymous`;
+  if (cachedFlagsByEmail.has(cacheKey)) return cachedFlagsByEmail.get(cacheKey);
+  if (inflightFlagsByEmail.has(cacheKey)) return inflightFlagsByEmail.get(cacheKey);
 
   const promise = fetch("/api/feature-flags", {
     cache: "no-store",
     credentials: "same-origin",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
     .then((response) => {
       if (!response.ok) {
@@ -31,17 +34,18 @@ async function fetchFlagsForEmail(email) {
     })
     .then((payload) => normalizeFeatureFlags(payload?.flags))
     .finally(() => {
-      inflightFlagsByEmail.delete(email);
+      inflightFlagsByEmail.delete(cacheKey);
     });
 
-  inflightFlagsByEmail.set(email, promise);
+  inflightFlagsByEmail.set(cacheKey, promise);
   const flags = await promise;
-  cachedFlagsByEmail.set(email, flags);
+  cachedFlagsByEmail.set(cacheKey, flags);
   return flags;
 }
 
 export function useUserFeatureFlags() {
   const { isLoaded, isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
   const hasUser = Boolean(isLoaded && isSignedIn && user);
   const email = hasUser ? getClerkUserPrimaryEmail(user) : "";
   const [state, setState] = useState({ flags: {}, resolved: false });
@@ -55,7 +59,7 @@ export function useUserFeatureFlags() {
       };
     }
 
-    fetchFlagsForEmail(email)
+    fetchFlagsForEmail(email, getToken)
       .then((nextFlags) => {
         if (!cancelled) setState({ flags: nextFlags, resolved: true });
       })
@@ -69,7 +73,7 @@ export function useUserFeatureFlags() {
     return () => {
       cancelled = true;
     };
-  }, [email, isLoaded]);
+  }, [email, getToken, isLoaded]);
 
   return {
     email,
@@ -78,6 +82,19 @@ export function useUserFeatureFlags() {
     resolved: state.resolved,
     user,
   };
+}
+
+export function useFeatureFlagEnabled(flagKey) {
+  const featureFlags = useUserFeatureFlags();
+  const enabled = isFeatureFlagEnabled(featureFlags.flags, flagKey);
+  return { ...featureFlags, enabled };
+}
+
+export function usePlaneHunterCameraStudioEnabled() {
+  const { enabled, resolved } = useFeatureFlagEnabled(
+    FEATURE_FLAGS.PLANE_HUNTER_CAMERA_STUDIO,
+  );
+  return { enabled, resolved };
 }
 
 export function useFlightAwareEnabled() {

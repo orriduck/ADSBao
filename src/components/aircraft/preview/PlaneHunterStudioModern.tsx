@@ -1,10 +1,10 @@
 import {
   Camera,
-  Copy,
   ImageIcon,
   RotateCcw,
   Share2,
   X,
+  ZoomIn,
 } from "lucide-react";
 import {
   type ChangeEvent,
@@ -14,18 +14,9 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  SidebarBrandDock,
-  useCollapsibleSidebarPanel,
-} from "@/components/sidebar/CollapsibleSidebarChrome";
-import {
-  useFlightAwareEnabled,
-  usePlaneHunterCameraStudioEnabled,
-} from "@/features/app-shell/auth/useFlightAwareEnabled";
-import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
+import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
-import PlaneHunterStudioModern from "./PlaneHunterStudioModern";
 
 const TEMPLATES = ["none", "previewCard", "lowerThird", "maps"] as const;
 type PlaneHunterTemplate = (typeof TEMPLATES)[number];
@@ -52,6 +43,20 @@ type MapPosition = (typeof MAP_POSITIONS)[number];
 
 const SETTINGS_TABS = ["templates", "settings"] as const;
 type SettingsTab = (typeof SETTINGS_TABS)[number];
+
+type CameraZoomRange = {
+  min: number;
+  max: number;
+  step: number;
+  supported: boolean;
+};
+
+const DEFAULT_CAMERA_ZOOM_RANGE: CameraZoomRange = {
+  min: 1,
+  max: 1,
+  step: 0.1,
+  supported: false,
+};
 
 // Web Mercator slippy-tile math (zoom + tile {x,y}, and the fractional
 // pixel offset of a (lat, lon) within that tile). Used both by the
@@ -197,6 +202,68 @@ function isFiniteCoord(value: number | null | undefined): value is number {
   return value != null && Number.isFinite(value);
 }
 
+type CameraZoomCapability = {
+  min?: number;
+  max?: number;
+  step?: number;
+};
+
+type ZoomableVideoTrack = MediaStreamTrack & {
+  getCapabilities?: () => MediaTrackCapabilities & {
+    zoom?: CameraZoomCapability;
+  };
+  getSettings?: () => MediaTrackSettings & {
+    zoom?: number;
+  };
+};
+
+function getPrimaryVideoTrack(stream: MediaStream | null) {
+  return (stream?.getVideoTracks()[0] || null) as ZoomableVideoTrack | null;
+}
+
+function resolveSystemCameraZoomRange(
+  track: ZoomableVideoTrack | null,
+): CameraZoomRange {
+  const capabilities = track?.getCapabilities?.() as
+    | (MediaTrackCapabilities & { zoom?: CameraZoomCapability })
+    | undefined;
+  const capability = capabilities?.zoom;
+  const min = Number(capability?.min);
+  const max = Number(capability?.max);
+  const step = Number(capability?.step);
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+    return DEFAULT_CAMERA_ZOOM_RANGE;
+  }
+  return {
+    min,
+    max,
+    step: Number.isFinite(step) && step > 0 ? step : 0.1,
+    supported: true,
+  };
+}
+
+async function applySystemCameraZoom(
+  stream: MediaStream | null,
+  zoom: number,
+  range: CameraZoomRange,
+) {
+  if (!range.supported) return;
+  const track = getPrimaryVideoTrack(stream);
+  if (!track?.applyConstraints) return;
+  const nextZoom = clampCameraZoom(zoom, range);
+  await track.applyConstraints({
+    advanced: [{ zoom: nextZoom } as MediaTrackConstraintSet],
+  });
+}
+
+function getCameraZoomStops(range: CameraZoomRange) {
+  if (!range.supported) return [1];
+  const stops = [range.min, 1, 2, range.max]
+    .filter((value) => value >= range.min && value <= range.max)
+    .map((value) => Number(value.toFixed(1)));
+  return Array.from(new Set(stops));
+}
+
 // Compose a MAP_RENDER_PX × MAP_RENDER_PX canvas centered on the
 // photographer's location at MAP_TILE_ZOOM, stitching whichever 2–4
 // OSM tiles cover the window. Falls back to a plane-centered view if
@@ -314,6 +381,16 @@ function roundedRect(
   context.arcTo(x, y + height, x, y, nextRadius);
   context.arcTo(x, y, x + width, y, nextRadius);
   context.closePath();
+}
+
+function clampCameraZoom(value: number, range: CameraZoomRange) {
+  const min = Number.isFinite(range.min) ? range.min : 1;
+  const max = Number.isFinite(range.max) ? range.max : min;
+  return Math.min(Math.max(value, min), Math.max(min, max));
+}
+
+function formatCameraZoom(value: number) {
+  return `${value.toFixed(value % 1 === 0 ? 0 : 1)}x`;
 }
 
 // Single source of truth for overlay proportions. Both the on-screen
@@ -694,33 +771,22 @@ function drawTemplate(
   context.restore();
 }
 
-// Shared chip style for every "choose one of these" surface in the
-// control panel — templates, meta fields, map positions. Uses the
-// same rounded-card radius as MetricCard / FilterCard / Map Settings
-// tiles so the panel sits in the same visual system instead of using
-// pill-shaped controls that don't appear elsewhere in the app.
 const planeHunterPillClass = cn(
   "group relative isolate inline-flex select-none items-center justify-center gap-1.5 overflow-hidden border bg-clip-padding",
-  "rounded-[var(--atc-radius-card)]",
-  "border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] text-atc-text",
-  "shadow-[var(--atc-control-inset-shadow-subtle),0_1px_2px_rgba(14,15,16,0.04)]",
+  "rounded-[18px]",
+  "border-[rgba(242,243,238,0.12)] bg-[rgba(242,243,238,0.08)] text-[rgba(242,243,238,0.78)]",
+  "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_5px_16px_rgba(0,0,0,0.18)]",
   "transition-[background,border-color,box-shadow,color] duration-150",
-  "hover:bg-[var(--atc-control-surface-hover)]",
+  "hover:bg-[rgba(242,243,238,0.13)]",
   "active:scale-[0.97]",
-  // Active — ink fill + active shadow stack. Identical treatment to
-  // FilterCard / MetricCard so the photographer's selected chip reads
-  // as "the chosen option" instead of a hover effect.
-  "data-[active=true]:border-transparent",
-  "data-[active=true]:bg-[var(--atc-click-bg)]",
-  "data-[active=true]:text-[var(--atc-click-fg)]",
-  "data-[active=true]:shadow-[var(--atc-control-active-shadow)]",
-  // Bottom-glow halo on active — gives the ink fill a subtle bottom
-  // sheen, the same way the Map Settings cards lift off the page.
+  "data-[active=true]:border-[rgba(255,210,92,0.72)]",
+  "data-[active=true]:bg-[rgba(255,210,92,0.18)]",
+  "data-[active=true]:text-[rgb(255,221,119)]",
+  "data-[active=true]:shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_8px_22px_rgba(255,194,56,0.18)]",
   "after:content-[''] after:absolute after:inset-0 after:pointer-events-none",
-  "after:[background:var(--sidebar-tile-bottom-glow)]",
-  "after:opacity-0 after:translate-y-1.5",
-  "after:transition-[opacity,transform] after:duration-300 after:ease-out",
-  "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",
+  "after:bg-[linear-gradient(180deg,rgba(255,255,255,0.10),transparent_58%)]",
+  "after:opacity-0 after:transition-opacity after:duration-200",
+  "data-[active=true]:after:opacity-100",
   "[&>*]:relative [&>*]:z-[1]",
 );
 
@@ -748,12 +814,10 @@ function PlaneHunterPill({
       aria-label={ariaLabel}
       className={cn(
         planeHunterPillClass,
-        // Grid cells stretch the pill via w-full so labels line up
-        // across columns. Flex-row pickers keep their natural width.
         fullWidth ? "flex w-full min-w-0" : "",
         size === "sm"
-          ? "min-h-7 px-2.5 text-[10.5px] font-extrabold uppercase tracking-[0.06em] leading-none"
-          : "min-h-9 px-2 text-[11.5px] font-extrabold leading-none md:min-h-10 md:px-3 md:text-[12.5px]",
+          ? "min-h-8 px-3 text-[11px] font-extrabold leading-none"
+          : "min-h-[58px] min-w-[92px] px-3 text-[12px] font-extrabold leading-none md:min-h-[64px] md:min-w-[116px] md:px-4 md:text-[13px]",
       )}
     >
       {children}
@@ -761,9 +825,6 @@ function PlaneHunterPill({
   );
 }
 
-// Tab bar — segmented control style at the top of the compose pane.
-// Two tabs: Templates (pick the overlay shape) and Settings
-// (per-template knobs: meta-field toggles, map position).
 function PlaneHunterTabBar({
   activeTab,
   onChange,
@@ -777,7 +838,7 @@ function PlaneHunterTabBar({
     <div
       role="tablist"
       aria-label={t("planeHunter.title")}
-      className="inline-flex w-full gap-1 rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] p-1 shadow-[var(--atc-control-inset-shadow-subtle)]"
+      className="inline-flex w-full justify-center gap-5 text-[12px] font-extrabold leading-none md:text-[13px]"
     >
       {SETTINGS_TABS.map((tab) => {
         const active = activeTab === tab;
@@ -790,19 +851,12 @@ function PlaneHunterTabBar({
             data-active={active ? "true" : undefined}
             onClick={() => onChange(tab)}
             className={cn(
-              "group relative isolate flex-1 overflow-hidden rounded-[calc(var(--atc-radius-card)-4px)] px-3 leading-none transition-[background,color,box-shadow] duration-150",
-              "text-[12px] font-extrabold min-h-8 md:min-h-9 md:text-[13px]",
-              "text-atc-dim hover:text-atc-text",
-              "data-[active=true]:bg-[var(--atc-click-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
-              "data-[active=true]:shadow-[var(--atc-control-active-shadow)]",
-              // Bottom-glow halo so the active tab matches the same
-              // sheen treatment as the pills below it.
-              "after:content-[''] after:absolute after:inset-0 after:pointer-events-none",
-              "after:[background:var(--sidebar-tile-bottom-glow)]",
-              "after:opacity-0 after:translate-y-1",
-              "after:transition-[opacity,transform] after:duration-300 after:ease-out",
-              "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",
-              "[&>span]:relative [&>span]:z-[1]",
+              "relative px-1 py-1 text-[rgba(242,243,238,0.58)] transition-colors duration-150",
+              "hover:text-[rgba(242,243,238,0.9)]",
+              "data-[active=true]:text-[rgb(255,221,119)]",
+              "after:absolute after:-bottom-1 after:left-1/2 after:h-[2px] after:w-5 after:-translate-x-1/2 after:rounded-full",
+              "after:bg-[rgb(255,221,119)] after:opacity-0 after:transition-opacity after:duration-150",
+              "data-[active=true]:after:opacity-100",
             )}
           >
             <span>{t(`planeHunter.tabs.${tab}`)}</span>
@@ -826,17 +880,21 @@ function PlaneHunterTemplatePills({
     <div
       role="radiogroup"
       aria-label={t("planeHunter.tabs.templates")}
-      className="grid grid-cols-4 gap-1.5"
+      className="-mx-3 flex snap-x snap-mandatory gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {TEMPLATES.map((item) => (
         <PlaneHunterPill
           key={item}
           active={template === item}
           onClick={() => onSelect(item)}
-          fullWidth
         >
-          <span translate="no" className="notranslate truncate">
-            {t(`planeHunter.templates.${item}`)}
+          <span className="flex min-w-0 flex-col items-center gap-1">
+            <span translate="no" className="notranslate truncate">
+              {t(`planeHunter.templateUnits.${item}`)}
+            </span>
+            <span className="truncate text-[10px] font-bold text-[rgba(242,243,238,0.48)] group-data-[active=true]:text-[rgba(255,236,174,0.72)]">
+              {t(`planeHunter.templates.${item}`)}
+            </span>
           </span>
         </PlaneHunterPill>
       ))}
@@ -848,11 +906,8 @@ function PlaneHunterTemplatePills({
 // stays compact so it leaves room below for the map-position picker
 // when the maps template is active.
 function PlaneHunterSectionLabel({ children }: { children: React.ReactNode }) {
-  // Section heading style matches the Map Settings dialog: dark text,
-  // semibold, sentence case (no uppercase tracking) so the panel reads
-  // as part of the same family as other settings surfaces.
   return (
-    <span className="text-[12px] font-semibold leading-none text-atc-text md:text-[13px]">
+    <span className="px-1 text-[11px] font-extrabold leading-none text-[rgba(242,243,238,0.58)] md:text-[12px]">
       {children}
     </span>
   );
@@ -868,20 +923,19 @@ function PlaneHunterMetaToggles({
   t: PlaneHunterTranslator;
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex min-w-full snap-start flex-col gap-2">
       <PlaneHunterSectionLabel>
         {t("planeHunter.metaToggle")}
       </PlaneHunterSectionLabel>
-      <div className="grid grid-cols-5 gap-1.5">
+      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {META_FIELDS.map((field) => (
           <PlaneHunterPill
             key={field}
             size="sm"
             active={enabledFields.has(field)}
             onClick={() => onToggle(field)}
-            fullWidth
           >
-            <span className="truncate">
+            <span className="whitespace-nowrap">
               {t(`planeHunter.metaFields.${field}`)}
             </span>
           </PlaneHunterPill>
@@ -942,14 +996,14 @@ function PlaneHunterMapPositionPicker({
   t: PlaneHunterTranslator;
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex min-w-full snap-start flex-col gap-2">
       <PlaneHunterSectionLabel>
         {t("planeHunter.mapPosition")}
       </PlaneHunterSectionLabel>
       <div
         role="radiogroup"
         aria-label={t("planeHunter.mapPosition")}
-        className="grid grid-cols-4 gap-1.5"
+        className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {MAP_POSITIONS.map((position) => (
           <PlaneHunterPill
@@ -958,10 +1012,9 @@ function PlaneHunterMapPositionPicker({
             active={mapPosition === position}
             onClick={() => onSelect(position)}
             ariaLabel={t(`planeHunter.mapPositions.${position}`)}
-            fullWidth
           >
             <MapPositionGlyph position={position} />
-            <span className="truncate">
+            <span className="whitespace-nowrap">
               {t(`planeHunter.mapPositions.${position}`)}
             </span>
           </PlaneHunterPill>
@@ -972,73 +1025,55 @@ function PlaneHunterMapPositionPicker({
 }
 
 function PlaneHunterActionStack({
-  canShareFile,
   onRetake,
-  onCopy,
-  onSave,
+  onShare,
   t,
 }: {
-  canShareFile: boolean;
   onRetake: () => void;
-  onCopy: () => void;
-  onSave: () => void;
+  onShare: () => void;
   t: PlaneHunterTranslator;
 }) {
+  const actionClass = cn(
+    "inline-flex size-12 items-center justify-center rounded-full",
+    "transition hover:scale-[1.02] active:scale-95",
+    "md:size-[52px]",
+  );
   const primaryClass = cn(
-    "flex min-h-9 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] px-3 text-[12px] font-extrabold leading-none",
-    "bg-[var(--primary-bright)] text-[var(--primary-ink)]",
-    // Layered shadow: a tight inner drop for definition and a wider
-    // ambient halo so the primary action lifts off a light panel.
-    "shadow-[var(--atc-action-primary-shadow),0_8px_22px_rgba(14,15,16,0.18)]",
-    "transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45",
-    "md:min-h-11 md:text-[13px]",
+    actionClass,
+    "bg-[rgb(242,243,238)] text-[rgb(14,15,16)]",
+    "shadow-[0_10px_28px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.72)]",
   );
   const secondaryClass = cn(
-    "flex min-h-9 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] px-3 text-[12px] font-extrabold leading-none",
-    "border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] text-atc-text",
-    "shadow-[var(--atc-control-inset-shadow),0_2px_6px_rgba(14,15,16,0.06)]",
-    "transition hover:bg-[var(--atc-control-hover-bg)] active:scale-[0.98]",
-    "md:min-h-11 md:text-[13px]",
+    actionClass,
+    "border border-[rgba(242,243,238,0.13)] bg-[rgba(242,243,238,0.08)] text-[rgba(242,243,238,0.9)]",
+    "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_22px_rgba(0,0,0,0.2)]",
+    "hover:bg-[rgba(242,243,238,0.14)]",
   );
 
-  // Action stack only renders during the compose step (post-capture);
-  // the source picker has its own back affordance.
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="flex items-center justify-center gap-4">
       <button
         type="button"
         onClick={onRetake}
         className={secondaryClass}
         aria-label={t("planeHunter.retake")}
+        title={t("planeHunter.retake")}
       >
-        <RotateCcw aria-hidden="true" className="size-4" />
-        {t("planeHunter.retake")}
+        <RotateCcw aria-hidden="true" className="size-5" />
       </button>
       <button
         type="button"
-        onClick={onCopy}
-        className={secondaryClass}
-        aria-label={t("planeHunter.copy")}
-      >
-        <Copy aria-hidden="true" className="size-4" />
-        {t("planeHunter.copy")}
-      </button>
-      <button
-        type="button"
-        onClick={onSave}
+        onClick={onShare}
         className={primaryClass}
-        aria-label={canShareFile ? t("planeHunter.share") : t("planeHunter.save")}
+        aria-label={t("planeHunter.share")}
+        title={t("planeHunter.share")}
       >
-        <Share2 aria-hidden="true" className="size-4" />
-        {canShareFile ? t("planeHunter.share") : t("planeHunter.save")}
+        <Share2 aria-hidden="true" className="size-5" />
       </button>
     </div>
   );
 }
 
-// Shared control surface used by both layouts. Mobile gets a compact
-// header inline; desktop renders the larger brand+title block above
-// this panel so the picker + actions stay identical across viewports.
 function PlaneHunterControlPanel({
   template,
   onSelectTemplate,
@@ -1046,11 +1081,9 @@ function PlaneHunterControlPanel({
   onToggleField,
   mapPosition,
   onSelectMapPosition,
-  canShareFile,
   status,
   onRetake,
-  onCopy,
-  onSave,
+  onShare,
   t,
 }: {
   template: PlaneHunterTemplate;
@@ -1059,18 +1092,14 @@ function PlaneHunterControlPanel({
   onToggleField: (field: MetaField) => void;
   mapPosition: MapPosition;
   onSelectMapPosition: (next: MapPosition) => void;
-  captured: boolean;
-  canShareFile: boolean;
   status: string;
-  onClose: () => void;
   onRetake: () => void;
-  onCopy: () => void;
-  onSave: () => void;
+  onShare: () => void;
   t: PlaneHunterTranslator;
 }) {
   const [activeTab, setActiveTab] = useState<SettingsTab>("templates");
   return (
-    <div className="flex flex-col gap-2 md:gap-2.5">
+    <div className="flex flex-col gap-3">
       <PlaneHunterTabBar activeTab={activeTab} onChange={setActiveTab} t={t} />
       {activeTab === "templates" ? (
         <PlaneHunterTemplatePills
@@ -1079,7 +1108,7 @@ function PlaneHunterControlPanel({
           t={t}
         />
       ) : (
-        <div className="flex flex-col gap-2 md:gap-2.5">
+        <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <PlaneHunterMetaToggles
             enabledFields={enabledFields}
             onToggle={onToggleField}
@@ -1098,152 +1127,252 @@ function PlaneHunterControlPanel({
         <p
           role="status"
           aria-live="polite"
-          className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-atc-bg/70 px-3 py-2 text-[11px] font-semibold leading-snug text-atc-dim"
+          className="rounded-[18px] border border-[rgba(242,243,238,0.12)] bg-[rgba(242,243,238,0.08)] px-3 py-2 text-[11px] font-semibold leading-snug text-[rgba(242,243,238,0.72)]"
         >
           {status}
         </p>
       )}
       <PlaneHunterActionStack
-        canShareFile={canShareFile}
         onRetake={onRetake}
-        onCopy={onCopy}
-        onSave={onSave}
+        onShare={onShare}
         t={t}
       />
     </div>
   );
 }
 
-// Step 1 "source picker" — a small centered modal that hands off to
-// the OS for image acquisition. Two large options (Take photo /
-// Choose from library) plus a Close action. No in-page camera — both
-// options trigger a single-shot `<input type="file">` so the OS
-// camera or photo library handles the actual capture and we just
-// ingest the chosen file when control returns.
-function PlaneHunterSourcePicker({
-  callsign,
-  type,
-  onTakePhoto,
+function PlaneHunterMetadataBar({
+  labels,
+  onClose,
+  t,
+}: {
+  labels: AircraftLabels;
+  onClose: () => void;
+  t: PlaneHunterTranslator;
+}) {
+  const metadata = labels.metadata.slice(0, 3);
+  return (
+    <header className="flex flex-none items-center gap-3 border-b border-[rgba(242,243,238,0.08)] bg-[color-mix(in_oklab,black_66%,transparent)] px-3 pb-3 pt-[max(12px,env(safe-area-inset-top))] text-[rgb(242,243,238)] shadow-[0_12px_32px_rgba(0,0,0,0.22)] backdrop-blur-2xl md:px-5 md:pb-4">
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t("planeHunter.closeStudio")}
+        className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgba(242,243,238,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[rgba(242,243,238,0.16)] active:scale-95"
+      >
+        <X aria-hidden="true" className="size-4" />
+      </button>
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <strong
+            translate="no"
+            className="notranslate truncate text-[18px] font-black leading-none md:text-[24px]"
+          >
+            {labels.callsign}
+          </strong>
+          {labels.type && (
+            <span className="truncate text-[11px] font-extrabold leading-none text-[rgba(242,243,238,0.6)] md:text-[13px]">
+              {labels.type}
+            </span>
+          )}
+        </div>
+        <div className="mt-2 flex min-w-0 items-center gap-1.5 overflow-hidden">
+          {labels.route && (
+            <span className="min-w-0 truncate rounded-full bg-[rgba(242,243,238,0.1)] px-2 py-1 text-[10.5px] font-extrabold leading-none text-[rgba(242,243,238,0.78)]">
+              {labels.route}
+            </span>
+          )}
+          {metadata.map((item) => (
+            <span
+              key={item}
+              className="shrink-0 rounded-full bg-[rgba(242,243,238,0.08)] px-2 py-1 text-[10.5px] font-bold leading-none text-[rgba(242,243,238,0.62)]"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function PlaneHunterCameraZoomControl({
+  zoom,
+  range,
+  onChange,
+}: {
+  zoom: number;
+  range: CameraZoomRange;
+  onChange: (nextZoom: number) => void;
+}) {
+  const stops = getCameraZoomStops(range);
+  return (
+    <div className="mx-auto flex w-full max-w-[460px] flex-col gap-3 rounded-[28px] border border-[rgba(242,243,238,0.1)] bg-[rgba(0,0,0,0.34)] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_28px_rgba(0,0,0,0.2)]">
+      <div className="flex items-center justify-center gap-3">
+        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgb(255,221,119)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <ZoomIn aria-hidden="true" className="size-[18px]" />
+        </span>
+        <div className="flex min-w-0 rounded-full bg-[rgba(242,243,238,0.08)] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          {stops.map((stop) => {
+            const active = Math.abs(zoom - stop) < Math.max(range.step, 0.1);
+            return (
+              <button
+                key={stop}
+                type="button"
+                onClick={() => onChange(stop)}
+                data-active={active ? "true" : undefined}
+                className="min-h-9 min-w-[50px] rounded-full px-3 text-[13px] font-black leading-none text-[rgba(242,243,238,0.7)] transition data-[active=true]:bg-[rgb(255,221,119)] data-[active=true]:text-[rgb(14,15,16)] data-[active=true]:shadow-[0_8px_18px_rgba(255,197,59,0.18)]"
+              >
+                {formatCameraZoom(stop)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {range.supported && (
+        <input
+          type="range"
+          min={range.min}
+          max={range.max}
+          step={range.step}
+          value={zoom}
+          onChange={(event) => onChange(Number(event.currentTarget.value))}
+          aria-label="Camera zoom"
+          className="h-2 w-full accent-[rgb(255,221,119)]"
+        />
+      )}
+    </div>
+  );
+}
+
+function PlaneHunterLiveCameraView({
+  labels,
+  videoRef,
+  cameraReady,
+  zoom,
+  zoomRange,
+  status,
+  onZoomChange,
+  onCapture,
+  onStartCamera,
   onChooseLibrary,
   onClose,
   t,
 }: {
-  callsign: string;
-  type: string;
-  onTakePhoto: () => void;
+  labels: AircraftLabels;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  cameraReady: boolean;
+  zoom: number;
+  zoomRange: CameraZoomRange;
+  status: string;
+  onZoomChange: (nextZoom: number) => void;
+  onCapture: () => void;
+  onStartCamera: () => void;
   onChooseLibrary: () => void;
   onClose: () => void;
   t: PlaneHunterTranslator;
 }) {
   return (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_28%,rgba(242,243,238,0.16),transparent_42%),linear-gradient(135deg,rgba(242,243,238,0.06)_0_1px,transparent_1px_22px),rgb(10,11,12)] p-5 text-[rgb(242,243,238)]">
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label={t("planeHunter.back")}
-        className="absolute right-3 top-3 inline-flex size-9 items-center justify-center rounded-full bg-[rgba(10,11,12,0.55)] text-[rgba(242,243,238,0.92)] shadow-[0_4px_12px_rgba(0,0,0,0.32)] backdrop-blur transition active:scale-95 hover:bg-[rgba(10,11,12,0.72)] md:right-5 md:top-5 md:size-10"
-      >
-        <X aria-hidden="true" className="size-4 md:size-5" />
-      </button>
-      <div className="w-full max-w-[420px] rounded-[var(--atc-radius-panel)] border border-[rgba(242,243,238,0.16)] bg-[rgba(10,11,12,0.78)] px-5 py-5 shadow-[0_24px_56px_rgba(0,0,0,0.42)] backdrop-blur md:px-6 md:py-6">
-        <div className="flex flex-col items-center gap-1 text-center">
-          <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[rgba(242,243,238,0.58)]">
-            {t("planeHunter.title")}
-          </span>
-          <h2 className="text-[17px] font-extrabold leading-tight md:text-[19px]">
-            {t("planeHunter.pickSourceTitle")}
-          </h2>
-          <p className="mt-0.5 text-[11px] font-semibold leading-snug text-[rgba(242,243,238,0.62)] md:text-[12px]">
-            {t("planeHunter.pickSourceHint")}
-          </p>
-          <div
-            translate="no"
-            className="notranslate mt-2 inline-flex items-baseline gap-2 text-[12px] font-extrabold leading-none"
-          >
-            <span>{callsign}</span>
-            {type && (
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-[rgba(242,243,238,0.6)]">
-                {type}
-              </span>
-            )}
+    <div className="absolute inset-0 flex flex-col bg-black">
+      <PlaneHunterMetadataBar labels={labels} onClose={onClose} t={t} />
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
+        {cameraReady ? (
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center bg-[radial-gradient(circle_at_50%_34%,rgba(242,243,238,0.11),transparent_36%),linear-gradient(180deg,rgba(242,243,238,0.03),transparent_30%),rgb(4,4,4)]">
+            <span className="inline-flex size-20 items-center justify-center rounded-full border border-[rgba(242,243,238,0.1)] bg-[rgba(242,243,238,0.05)] text-[rgba(242,243,238,0.5)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <Camera aria-hidden="true" className="size-8" />
+            </span>
           </div>
-        </div>
-
-        <div className="mt-5 grid gap-2 md:gap-2.5">
-          <PlaneHunterSourceButton
-            primary
-            icon={Camera}
-            label={t("planeHunter.takePhoto")}
-            hint={t("planeHunter.takePhotoHint")}
-            onClick={onTakePhoto}
-          />
-          <PlaneHunterSourceButton
-            icon={ImageIcon}
-            label={t("planeHunter.chooseLibrary")}
-            hint={t("planeHunter.chooseLibraryHint")}
-            onClick={onChooseLibrary}
-          />
-        </div>
+        )}
+        {status && (
+          <div className="absolute inset-x-3 top-3 mx-auto max-w-[420px] rounded-full bg-[rgba(0,0,0,0.52)] px-3 py-2 text-center text-[11px] font-bold leading-snug text-[rgba(242,243,238,0.82)] backdrop-blur-md">
+            {status}
+          </div>
+        )}
       </div>
+      <footer className="flex flex-none flex-col gap-4 border-t border-[rgba(242,243,238,0.08)] bg-[color-mix(in_oklab,black_72%,transparent)] px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-4 text-[rgb(242,243,238)] shadow-[0_-18px_42px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:px-6">
+        <PlaneHunterCameraZoomControl
+          zoom={zoom}
+          range={zoomRange}
+          onChange={onZoomChange}
+        />
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <button
+            type="button"
+            onClick={onChooseLibrary}
+            aria-label={t("planeHunter.chooseLibrary")}
+            title={t("planeHunter.chooseLibrary")}
+            className="inline-flex size-[52px] items-center justify-center justify-self-start rounded-full border border-[rgba(242,243,238,0.13)] bg-[rgba(242,243,238,0.08)] text-[rgba(242,243,238,0.86)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_22px_rgba(0,0,0,0.2)] transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95"
+          >
+            <ImageIcon aria-hidden="true" className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={cameraReady ? onCapture : onStartCamera}
+            aria-label={cameraReady ? t("planeHunter.takePhoto") : t("planeHunter.tryAgain")}
+            className="size-[74px] rounded-full border-[5px] border-[rgba(242,243,238,0.92)] bg-[rgba(242,243,238,0.18)] shadow-[0_10px_30px_rgba(0,0,0,0.34),inset_0_0_0_4px_rgba(0,0,0,0.84)] transition active:scale-95"
+          />
+          <span className="justify-self-center rounded-full bg-[rgba(242,243,238,0.08)] px-3 py-2 text-[11px] font-black text-[rgba(242,243,238,0.68)]">
+            {zoomRange.supported
+              ? `Max ${formatCameraZoom(zoomRange.max)}`
+              : t("planeHunter.cameraZoomUnsupported")}
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
 
-function PlaneHunterSourceButton({
-  primary = false,
-  icon: Icon,
-  label,
-  hint,
-  onClick,
+function PlaneHunterComposeView({
+  labels,
+  previewImage,
+  capturedImage,
+  controlPanel,
+  onClose,
+  t,
 }: {
-  primary?: boolean;
-  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-  label: string;
-  hint: string;
-  onClick: () => void;
+  labels: AircraftLabels;
+  previewImage: string;
+  capturedImage: string;
+  controlPanel: React.ReactNode;
+  onClose: () => void;
+  t: PlaneHunterTranslator;
 }) {
+  const imageSrc = previewImage || capturedImage;
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "group flex w-full items-center gap-3 rounded-[var(--atc-radius-card)] px-3 py-3 text-left transition active:scale-[0.98] md:px-4 md:py-3.5",
-        primary
-          ? "bg-[rgba(242,243,238,0.94)] text-[rgb(14,15,16)] shadow-[0_10px_28px_rgba(0,0,0,0.32)] hover:brightness-105"
-          : "border border-[rgba(242,243,238,0.16)] bg-[rgba(242,243,238,0.05)] text-[rgba(242,243,238,0.96)] hover:bg-[rgba(242,243,238,0.1)]",
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "inline-flex size-9 shrink-0 items-center justify-center rounded-full md:size-10",
-          primary
-            ? "bg-[rgba(14,15,16,0.08)]"
-            : "bg-[rgba(242,243,238,0.08)]",
-        )}
-      >
-        <Icon aria-hidden className="size-4 md:size-5" />
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="text-[13px] font-extrabold leading-tight md:text-[14px]">
-          {label}
-        </span>
-        <span
-          className={cn(
-            "text-[10.5px] font-semibold leading-snug md:text-[11.5px]",
-            primary
-              ? "text-[rgba(14,15,16,0.62)]"
-              : "text-[rgba(242,243,238,0.6)]",
-          )}
-        >
-          {hint}
-        </span>
-      </span>
-    </button>
+    <div className="absolute inset-0 flex flex-col bg-black">
+      <PlaneHunterMetadataBar labels={labels} onClose={onClose} t={t} />
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
+        <div className="absolute inset-0 overflow-hidden bg-black">
+          <img
+            src={imageSrc}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-2xl"
+            draggable="false"
+          />
+          <img
+            src={imageSrc}
+            alt=""
+            className="relative z-[1] h-full w-full object-contain"
+            draggable="false"
+          />
+        </div>
+      </div>
+      <footer className="flex flex-none flex-col border-t border-[rgba(242,243,238,0.08)] bg-[color-mix(in_oklab,black_72%,transparent)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 text-[rgb(242,243,238)] shadow-[0_-18px_42px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:px-6 md:pb-[max(16px,env(safe-area-inset-bottom))] md:pt-4">
+        <div className="mx-auto w-full max-w-[760px]">{controlPanel}</div>
+      </footer>
+    </div>
   );
 }
 
-function PlaneHunterStudioLegacy({
+export default function PlaneHunterStudio({
   aircraft,
   open,
   onOpenChange,
@@ -1254,13 +1383,15 @@ function PlaneHunterStudioLegacy({
 }) {
   const { t } = useI18n();
   const { enabled: flightAwareEnabled } = useFlightAwareEnabled();
-  const clientDeviceProfile = useClientDeviceProfile();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  // Two-step flow: a source-picker modal hands off to the OS camera
-  // or photo library; once the photographer chooses an image we move
-  // to the compose step with template + meta + share/retake/back.
-  // No in-page getUserMedia viewfinder.
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const cameraStartAttemptedRef = useRef(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraZoom, setCameraZoom] = useState(1);
+  const [cameraZoomRange, setCameraZoomRange] = useState<CameraZoomRange>(
+    DEFAULT_CAMERA_ZOOM_RANGE,
+  );
   const [capturedImage, setCapturedImage] = useState("");
   const [previewImage, setPreviewImage] = useState("");
   const [template, setTemplate] = useState<PlaneHunterTemplate>("previewCard");
@@ -1273,51 +1404,18 @@ function PlaneHunterStudioLegacy({
     "idle" | "requesting" | "granted" | "denied" | "unavailable"
   >("idle");
   const [status, setStatus] = useState("");
-  // Photo-box aspect ratio. Updated once we ingest the captured /
-  // uploaded image so the on-screen preview matches the saved PNG's
-  // shape and the template overlay lands in the right proportions.
-  const [photoAspect, setPhotoAspect] = useState(16 / 9);
-  // Detect Web Share API file support so the captured "Save" action
-  // can prefer the native share sheet (which on iOS surfaces "Save
-  // Image" / "Add to Photos", on Android surfaces the system share
-  // sheet, etc.) and fall back to download on browsers without it.
-  const [canShareFile, setCanShareFile] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [enabledFields, setEnabledFields] = useState<Set<MetaField>>(
     () => new Set<MetaField>(DEFAULT_META_FIELDS),
   );
   const captured = Boolean(capturedImage);
-  const collapseEnabled =
-    captured && (clientDeviceProfile.viewport?.width ?? 0) >= 768;
-  const {
-    shellRef: sidebarRef,
-    brandCompact,
-    isCollapsed,
-    handleScroll,
-    handleWheel,
-    handleTouchStart,
-    handleTouchMove,
-  } = useCollapsibleSidebarPanel<HTMLElement>({
-    collapsed: sidebarCollapsed,
-    collapseEnabled,
-    onCollapse: () => setSidebarCollapsed(true),
-  });
 
-  useEffect(() => {
-    if (!open || !collapseEnabled) setSidebarCollapsed(false);
-  }, [collapseEnabled, open]);
-
-  useEffect(() => {
-    if (typeof navigator === "undefined") return;
-    try {
-      const probe = new File(["probe"], "probe.png", { type: "image/png" });
-      setCanShareFile(
-        typeof navigator.canShare === "function" &&
-          navigator.canShare({ files: [probe] }),
-      );
-    } catch {
-      setCanShareFile(false);
-    }
+  const stopCamera = useCallback(() => {
+    setCameraStream((current) => {
+      current?.getTracks().forEach((track) => track.stop());
+      return null;
+    });
+    setCameraZoom(1);
+    setCameraZoomRange(DEFAULT_CAMERA_ZOOM_RANGE);
   }, []);
 
   // Lazy-request the photographer's location when the maps template is
@@ -1366,14 +1464,11 @@ function PlaneHunterStudioLegacy({
     [aircraft, enabledFields, flightAwareEnabled],
   );
 
-  // Read a selected file (from the OS camera OR from the photo
-  // library) into the captured-image state. Loads it first so we can
-  // measure its natural aspect ratio and update the photo-box shape
-  // before transitioning to the compose step — otherwise the template
-  // overlay would land in the wrong proportions for portrait shots
-  // until the image finally renders.
+  // Read a selected photo-library file into the captured-image state.
+  // Live camera frames use captureCameraFrame instead.
   const ingestFile = useCallback(async (file: File) => {
     try {
+      stopCamera();
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result || ""));
@@ -1381,16 +1476,13 @@ function PlaneHunterStudioLegacy({
         reader.readAsDataURL(file);
       });
       if (!dataUrl) return;
-      const image = await loadImage(dataUrl);
-      const w = image.naturalWidth || image.width;
-      const h = image.naturalHeight || image.height;
-      if (w > 0 && h > 0) setPhotoAspect(w / h);
+      setPreviewImage("");
       setCapturedImage(dataUrl);
       setStatus("");
     } catch {
       setStatus(t("planeHunter.saveFailed"));
     }
-  }, [t]);
+  }, [stopCamera, t]);
 
   const handleFileInput = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -1404,12 +1496,113 @@ function PlaneHunterStudioLegacy({
     [ingestFile],
   );
 
-  const triggerNativeCamera = useCallback(() => {
-    const input = fileInputRef.current;
-    if (!input) return;
-    input.setAttribute("capture", "environment");
-    input.click();
-  }, []);
+  const startSystemCamera = useCallback(async () => {
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices?.getUserMedia
+    ) {
+      setStatus(t("planeHunter.cameraUnavailable"));
+      return;
+    }
+
+    try {
+      stopCamera();
+      setCapturedImage("");
+      setPreviewImage("");
+      setStatus("");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      });
+      const track = getPrimaryVideoTrack(stream);
+      const range = resolveSystemCameraZoomRange(track);
+      const settingsZoom = Number(track?.getSettings?.().zoom);
+      const initialZoom = clampCameraZoom(
+        Number.isFinite(settingsZoom) ? settingsZoom : range.min,
+        range,
+      );
+      setCameraStream(stream);
+      setCameraZoomRange(range);
+      setCameraZoom(initialZoom);
+      if (range.supported) {
+        void applySystemCameraZoom(stream, initialZoom, range).catch(() => {
+          setStatus(t("planeHunter.cameraZoomUnsupported"));
+        });
+      } else {
+        setStatus(t("planeHunter.cameraZoomUnsupported"));
+      }
+    } catch (error) {
+      setStatus(
+        (error as Error | undefined)?.name === "NotAllowedError"
+          ? t("planeHunter.cameraPermissionDenied")
+          : t("planeHunter.cameraUnavailable"),
+      );
+    }
+  }, [stopCamera, t]);
+
+  useEffect(() => {
+    if (!open) {
+      cameraStartAttemptedRef.current = false;
+      return;
+    }
+    if (captured || cameraStream || cameraStartAttemptedRef.current) return;
+    cameraStartAttemptedRef.current = true;
+    void startSystemCamera();
+  }, [cameraStream, captured, open, startSystemCamera]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !cameraStream) return undefined;
+    video.srcObject = cameraStream;
+    void video.play().catch(() => {
+      setStatus(t("planeHunter.cameraUnavailable"));
+    });
+    return () => {
+      if (video.srcObject === cameraStream) video.srcObject = null;
+    };
+  }, [cameraStream, t]);
+
+  const handleCameraZoomChange = useCallback(
+    (nextZoom: number) => {
+      const clampedZoom = clampCameraZoom(nextZoom, cameraZoomRange);
+      setCameraZoom(clampedZoom);
+      void applySystemCameraZoom(
+        cameraStream,
+        clampedZoom,
+        cameraZoomRange,
+      ).catch(() => {
+        setStatus(t("planeHunter.cameraZoomUnsupported"));
+      });
+    },
+    [cameraStream, cameraZoomRange, t],
+  );
+
+  const captureCameraFrame = useCallback(() => {
+    const video = videoRef.current;
+    const width = video?.videoWidth || 0;
+    const height = video?.videoHeight || 0;
+    if (!video || width <= 0 || height <= 0) {
+      setStatus(t("planeHunter.cameraUnavailable"));
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      setStatus(t("planeHunter.cameraUnavailable"));
+      return;
+    }
+    context.drawImage(video, 0, 0, width, height);
+    setPreviewImage("");
+    setCapturedImage(canvas.toDataURL("image/png"));
+    setStatus("");
+    stopCamera();
+  }, [stopCamera, t]);
 
   const triggerLibraryPicker = useCallback(() => {
     const input = fileInputRef.current;
@@ -1419,10 +1612,18 @@ function PlaneHunterStudioLegacy({
   }, []);
 
   const close = useCallback(() => {
+    cameraStartAttemptedRef.current = false;
+    stopCamera();
     setCapturedImage("");
+    setPreviewImage("");
     setStatus("");
     onOpenChange(false);
-  }, [onOpenChange]);
+  }, [onOpenChange, stopCamera]);
+
+  useEffect(() => {
+    if (!open) stopCamera();
+    return () => stopCamera();
+  }, [open, stopCamera]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -1435,7 +1636,7 @@ function PlaneHunterStudioLegacy({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [close, open]);
 
-  // Auto-dismiss the inline status note so save/copy feedback doesn't
+  // Auto-dismiss the inline status note so share/camera feedback doesn't
   // stay forever and shift the action stack down on repeat actions.
   useEffect(() => {
     if (!status) return undefined;
@@ -1444,7 +1645,9 @@ function PlaneHunterStudioLegacy({
   }, [status]);
 
   const retake = useCallback(() => {
+    cameraStartAttemptedRef.current = false;
     setCapturedImage("");
+    setPreviewImage("");
     setStatus("");
   }, []);
 
@@ -1517,203 +1720,86 @@ function PlaneHunterStudioLegacy({
     };
   }, [capturedImage, renderFinalCanvas]);
 
-  const saveImage = useCallback(async () => {
+  const shareImage = useCallback(async () => {
     try {
       const canvas = await renderFinalCanvas();
       if (!canvas) return;
       const blob = await canvasToBlob(canvas);
       const filename = `adsbao-plane-hunter-${labels.callsign.toLowerCase()}.png`;
+      const file = new File([blob], filename, {
+        type: blob.type || "image/png",
+      });
 
-      // Prefer the system share sheet on supported devices — that's
-      // how iOS Safari users land an image in Photos (the share sheet
-      // exposes "Save Image" / "Add to Photos"). Falls back to a
-      // download link if the user cancels or the browser cannot share
-      // files (desktop browsers, older Android WebViews).
-      if (canShareFile && typeof navigator.share === "function") {
-        const file = new File([blob], filename, { type: blob.type });
-        if (
-          typeof navigator.canShare === "function" &&
-          !navigator.canShare({ files: [file] })
-        ) {
-          // Capability changed since the initial probe — fall through
-          // to the download path below.
-        } else {
-          try {
-            await navigator.share({
-              files: [file],
-              title: `ADSBao · ${labels.callsign}`,
-            });
-            setStatus(t("planeHunter.shared"));
-            return;
-          } catch (error) {
-            // AbortError = user dismissed the sheet. Treat as a
-            // non-error so we don't flash a failure toast.
-            if ((error as Error | undefined)?.name === "AbortError") return;
-            // Anything else: fall through to the download path so
-            // the photo isn't lost.
-          }
-        }
-      }
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      link.click();
-      URL.revokeObjectURL(url);
-      setStatus(t("planeHunter.saved"));
-    } catch {
-      setStatus(t("planeHunter.saveFailed"));
-    }
-  }, [canShareFile, labels.callsign, renderFinalCanvas, t]);
-
-  const copyImage = useCallback(async () => {
-    try {
-      const canvas = await renderFinalCanvas();
-      if (!canvas) return;
-      const blob = await canvasToBlob(canvas);
-      if (!navigator.clipboard || typeof ClipboardItem === "undefined") {
-        setStatus(t("planeHunter.copyUnsupported"));
+      if (
+        typeof navigator === "undefined" ||
+        typeof navigator.share !== "function" ||
+        (typeof navigator.canShare === "function" &&
+          !navigator.canShare({ files: [file] }))
+      ) {
+        setStatus(t("planeHunter.shareUnsupported"));
         return;
       }
-      await navigator.clipboard.write([
-        new ClipboardItem({ [blob.type]: blob }),
-      ]);
-      setStatus(t("planeHunter.copied"));
-    } catch {
-      setStatus(t("planeHunter.copyFailed"));
+
+      await navigator.share({ files: [file] });
+      setStatus(t("planeHunter.shared"));
+    } catch (error) {
+      if ((error as Error | undefined)?.name === "AbortError") return;
+      setStatus(t("planeHunter.saveFailed"));
     }
-  }, [renderFinalCanvas, t]);
+  }, [labels.callsign, renderFinalCanvas, t]);
 
   if (!open) return null;
 
+  const controlPanel = (
+    <PlaneHunterControlPanel
+      template={template}
+      onSelectTemplate={setTemplate}
+      enabledFields={enabledFields}
+      onToggleField={toggleField}
+      mapPosition={mapPosition}
+      onSelectMapPosition={setMapPosition}
+      status={status}
+      onRetake={retake}
+      onShare={shareImage}
+      t={t}
+    />
+  );
+
   return (
     <div
-      className="fixed inset-0 z-[10000] bg-[color-mix(in_oklab,var(--atc-bg)_82%,black_18%)] text-atc-text"
+      className="fixed inset-0 z-[10000] bg-black text-atc-text"
       role="dialog"
       aria-modal="true"
       aria-label={t("planeHunter.title")}
     >
-      <div className="dither-page-shell plane-hunter-shell flex h-dvh w-full flex-col text-atc-text md:flex-row">
-        {captured && (
-          <aside
-            ref={sidebarRef}
-            className="dither-page-panel plane-hunter-panel sidebar-shell order-2 flex w-full flex-none flex-col border-t border-atc-line-strong bg-atc-bg transition-[width] duration-300 ease-in-out md:order-1 md:w-[var(--app-sidebar-width)] md:border-r md:border-t-0"
-            data-collapsed={isCollapsed ? "true" : undefined}
-            style={{ width: isCollapsed ? "max-content" : undefined }}
-            onScroll={handleScroll}
-            onWheel={handleWheel}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-          >
-            <SidebarBrandDock
-              compact={isCollapsed || brandCompact}
-              collapsed={isCollapsed}
-              expandLabel={t("map.expandDetails")}
-              onExpand={() => setSidebarCollapsed(false)}
-              showRule
-              className="hidden md:flex"
-            />
-
-            {isCollapsed ? null : (
-              <>
-                {/* Desktop header — title + callsign/type. Mobile
-                    swaps this for the compact header inline with the
-                    control panel to keep the bottom card tight. */}
-                <div className="hidden flex-none px-6 pb-5 pt-2 md:block">
-                  <h2
-                    className="text-[26px] font-extrabold leading-[1.08] text-atc-text"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      letterSpacing: "normal",
-                    }}
-                  >
-                    {t("planeHunter.title")}
-                  </h2>
-                  <div className="mt-3 flex items-baseline gap-2">
-                    <span
-                      translate="no"
-                      className="notranslate truncate text-[15px] font-black leading-none text-atc-text"
-                    >
-                      {labels.callsign}
-                    </span>
-                    {labels.type && (
-                      <span className="truncate text-[11px] font-extrabold uppercase tracking-[0.06em] text-atc-faint">
-                        {labels.type}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-2 pt-2.5 md:gap-4 md:px-6 md:pb-4 md:pt-0">
-                  <PlaneHunterControlPanel
-                    template={template}
-                    onSelectTemplate={setTemplate}
-                    enabledFields={enabledFields}
-                    onToggleField={toggleField}
-                    mapPosition={mapPosition}
-                    onSelectMapPosition={setMapPosition}
-                    captured={captured}
-                    canShareFile={canShareFile}
-                    status={status}
-                    onClose={close}
-                    onRetake={retake}
-                    onCopy={copyImage}
-                    onSave={saveImage}
-                    t={t}
-                  />
-                </div>
-              </>
-            )}
-          </aside>
-        )}
-
+      <div className="dither-page-shell plane-hunter-shell flex h-dvh w-full flex-col text-atc-text">
         <main
-          className={cn(
-            "dither-page-background plane-hunter-stage relative min-h-0 flex-1 overflow-hidden bg-black",
-            captured ? "order-1 md:order-2" : "order-1",
-          )}
+          className="dither-page-background plane-hunter-stage relative min-h-0 flex-1 overflow-hidden bg-black"
         >
-          {!captured ? (
-            <PlaneHunterSourcePicker
-              callsign={labels.callsign}
-              type={labels.type}
-              onTakePhoto={triggerNativeCamera}
-              onChooseLibrary={triggerLibraryPicker}
+          {captured ? (
+            <PlaneHunterComposeView
+              labels={labels}
+              previewImage={previewImage}
+              capturedImage={capturedImage}
+              controlPanel={controlPanel}
               onClose={close}
               t={t}
             />
           ) : (
-            <div
-              className="absolute inset-0 flex items-center justify-center p-[clamp(6px,1.5vmin,18px)] [container-type:size]"
-              style={{
-                paddingBottom:
-                  "var(--plane-hunter-stage-bottom-inset, clamp(6px,1.5vmin,18px))",
-                ["--ph-r" as string]: String(photoAspect),
-              }}
-            >
-              {/* Photo-box: shared coordinate space between the
-                  on-screen `<img>` preview and the export canvas. Its
-                  aspect ratio matches the ingested photo so the
-                  template overlay lands in the same proportional
-                  position you see while composing. */}
-              <div
-                className="plane-hunter-photo-box relative overflow-hidden bg-black [container-type:inline-size]"
-                style={{
-                  width: `min(100cqw, calc(100cqh * var(--ph-r)))`,
-                  height: `min(100cqh, calc(100cqw / var(--ph-r)))`,
-                  aspectRatio: String(photoAspect),
-                }}
-              >
-                <img
-                  src={previewImage || capturedImage}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
-                  style={{ touchAction: "pinch-zoom" }}
-                  draggable="false"
-                />
-              </div>
-            </div>
+            <PlaneHunterLiveCameraView
+              labels={labels}
+              videoRef={videoRef}
+              cameraReady={Boolean(cameraStream)}
+              zoom={cameraZoom}
+              zoomRange={cameraZoomRange}
+              status={status}
+              onZoomChange={handleCameraZoomChange}
+              onCapture={captureCameraFrame}
+              onStartCamera={startSystemCamera}
+              onChooseLibrary={triggerLibraryPicker}
+              onClose={close}
+              t={t}
+            />
           )}
           <canvas ref={canvasRef} className="hidden" />
         </main>
@@ -1728,19 +1814,5 @@ function PlaneHunterStudioLegacy({
         tabIndex={-1}
       />
     </div>
-  );
-}
-
-export default function PlaneHunterStudio(props: {
-  aircraft?: Record<string, any> | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const { enabled, resolved } = usePlaneHunterCameraStudioEnabled();
-  if (props.open && !resolved) return null;
-  return enabled ? (
-    <PlaneHunterStudioModern {...props} />
-  ) : (
-    <PlaneHunterStudioLegacy {...props} />
   );
 }

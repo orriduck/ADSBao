@@ -54,6 +54,29 @@ func NewUserDataStore(db *sql.DB, environment string, registry *metrics.Metrics)
 	return &UserDataStore{db: db, environment: env, metrics: registry}
 }
 
+func (s *UserDataStore) readFeatureFlags(ctx context.Context, email string) (map[string]bool, error) {
+	if s == nil || s.db == nil {
+		return nil, sql.ErrNoRows
+	}
+	var raw []byte
+	err := s.queryRow(ctx, "read_feature_flags",
+		`select flags
+		 from app_user.user_feature_flags
+		 where email = $1 and environment = $2
+		 limit 1`,
+		normalizeEmail(email),
+		s.environment,
+	).Scan(&raw)
+	if err != nil {
+		return nil, err
+	}
+	var flags map[string]any
+	if len(raw) > 0 {
+		_ = json.Unmarshal(raw, &flags)
+	}
+	return normalizeFeatureFlags(flags), nil
+}
+
 func (s *UserDataStore) readMapSettings(ctx context.Context, email, device string) (map[string]any, error) {
 	if s == nil || s.db == nil {
 		return nil, sql.ErrNoRows
@@ -552,6 +575,14 @@ func nullableJSONString(raw []byte) any {
 
 func normalizeEmail(email string) string {
 	return strings.ToLower(strings.TrimSpace(email))
+}
+
+func normalizeFeatureFlags(flags map[string]any) map[string]bool {
+	out := map[string]bool{}
+	for key, value := range flags {
+		out[strings.TrimSpace(key)] = value == true
+	}
+	return out
 }
 
 func normalizeEnvironment(value string) string {

@@ -114,6 +114,36 @@ func TestFeatureFlagsEndpoint(t *testing.T) {
 	}
 }
 
+func TestFeatureFlagsEndpointDelegatesToWebAPI(t *testing.T) {
+	server := New(ServerOptions{
+		FeatureFlags: map[string]bool{
+			"flightAwareEnabled": true,
+		},
+		WebAPI: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/api/feature-flags" {
+				t.Fatalf("path = %q", r.URL.Path)
+			}
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			_, _ = w.Write([]byte(`{"flags":{"planeHunterCameraStudio":true}}`))
+		}),
+	})
+	req := httptest.NewRequest(http.MethodGet, "/api/feature-flags", nil)
+	rr := httptest.NewRecorder()
+	server.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d", rr.Code)
+	}
+	var payload struct {
+		Flags map[string]bool `json:"flags"`
+	}
+	if err := json.Unmarshal(rr.Body.Bytes(), &payload); err != nil {
+		t.Fatalf("decode = %v", err)
+	}
+	if !payload.Flags["planeHunterCameraStudio"] || payload.Flags["flightAwareEnabled"] {
+		t.Fatalf("payload = %#v", payload)
+	}
+}
+
 func TestRuntimeEnvEndpointServesOnlyPublicConfig(t *testing.T) {
 	t.Setenv("VITE_CLERK_PUBLISHABLE_KEY", "pk_test_public")
 	t.Setenv("VITE_SITE_URL", "")
