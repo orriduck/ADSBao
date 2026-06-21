@@ -277,6 +277,36 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.22.16",
+    kind: "patch",
+    title: {
+      en: "Here view and mechanism notes",
+      zh: "我的位置视图与机制说明",
+    },
+    summary: {
+      en: "The /here map keeps following the device live, and the mechanism and architecture notes now explain the current WebSocket, tracking, here-mode, and nearby-list model.",
+      zh: "/here 地图继续实时跟随设备,机制与架构说明也更新为当前 WebSocket、追踪、here 模式和附近列表模型。",
+    },
+    highlights: [
+      {
+        en: "Map position, GPS marker, and heading remain driven by the device feed",
+        zh: "地图位置、GPS 标记和朝向继续由设备实时驱动",
+      },
+      {
+        en: "Sidebar place lookup and nearby distance anchors refresh only after meaningful movement",
+        zh: "侧栏区域识别和附近距离锚点只在有明显移动后重新确定",
+      },
+      {
+        en: "Visual-traffic text no longer fades just because the viewing direction changes",
+        zh: "视距内状态文字不会再因为视角变化而触发淡入淡出",
+      },
+      {
+        en: "The mechanism and architecture pages now focus on WebSocket delivery, parallel pipelines, tracking anchors, here mode, and nearby-list rendering",
+        zh: "机制与架构页现在聚焦 WebSocket 传递、并行管线、追踪锚点、here 模式和附近列表渲染",
+      },
+    ],
+  },
+  {
     version: "v2.22.15",
     kind: "patch",
     title: {

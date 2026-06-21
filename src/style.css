@@ -313,10 +313,36 @@
     }
 }
 
-.candidate-watching-spot-marker__shell {
+.candidate-watching-spot-dot {
     animation: candidate-watching-spot-marker-enter 340ms
         cubic-bezier(0.22, 1, 0.36, 1) both;
+    align-items: center;
+    display: flex;
+    height: 18px;
+    justify-content: center;
+    pointer-events: auto;
+    width: 18px;
     will-change: opacity, transform;
+}
+
+.candidate-watching-spot-dot__point {
+    background: var(--atc-card);
+    border: 1px solid color-mix(in oklab, var(--atc-text) 18%, transparent);
+    border-radius: 999px;
+    box-shadow:
+        0 1px 4px color-mix(in oklab, var(--atc-text) 32%, transparent),
+        0 0 0 2px color-mix(in oklab, var(--atc-bg) 48%, transparent);
+    display: block;
+    height: 7px;
+    transition: transform 160ms ease-out, box-shadow 160ms ease-out;
+    width: 7px;
+}
+
+.candidate-watching-spot-dot--selected .candidate-watching-spot-dot__point {
+    box-shadow:
+        0 2px 7px color-mix(in oklab, var(--atc-text) 38%, transparent),
+        0 0 0 3px color-mix(in oklab, var(--atc-click-bg) 34%, transparent);
+    transform: scale(1.25);
 }
 
 @keyframes candidate-watching-spot-marker-enter {
@@ -486,7 +512,7 @@
     .app-list-motion > *,
     .mobile-preview-card-enter,
     .candidate-watching-spot-preview-motion,
-    .candidate-watching-spot-marker__shell,
+    .candidate-watching-spot-dot,
     .mobile-trace-status-dot,
     .map-settings-sheet,
     .map-settings-sheet-overlay {
@@ -504,7 +530,7 @@
     .app-panel-transition,
     .app-list-motion > *,
     .candidate-watching-spot-preview-motion,
-    .candidate-watching-spot-marker__shell,
+    .candidate-watching-spot-dot,
     .mobile-trace-status-dot,
     .map-settings-sheet,
     .map-settings-sheet-overlay {
@@ -1870,8 +1896,6 @@ body:has(.dither-page-shell) {
 }
 
 .candidate-watching-spot-map-marker .navaid-map-marker__dot {
-    background: var(--watcher-candidate-marker-surface);
-    border-color: var(--watcher-candidate-marker-border);
     border-radius: 999px;
     transform: none;
 }

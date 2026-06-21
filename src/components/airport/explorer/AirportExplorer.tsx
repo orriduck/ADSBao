@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar";
@@ -16,7 +16,6 @@ import {
   resolveAirportExplorerSelection,
   resolveAirportProfile,
 } from "@/features/airport/explorer/airportExplorerModel";
-import { resolveSpottingMetricZoomState } from "@/features/airport/explorer/airportExplorerUiModel";
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext";
@@ -35,7 +34,6 @@ import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandida
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
-import { ZOOM_APPROACH, ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
@@ -166,14 +164,12 @@ function AirportExplorerContent({
     collapseSidebar,
     expandSidebar,
     mapFollowsAircraft,
-    setMapZoom,
     applyMapMode,
     setUserLocationPreferences,
   } = useExplorerUi();
   const [nearMeUserLocationHidden, setNearMeUserLocationHidden] = useState(false);
   const [wakeLockState, toggleWakeLock] = useWakeLock();
   const [navigationSpotId, setNavigationSpotId] = useState("");
-  const spottingPreviousZoomRef = useRef<number | null>(null);
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
@@ -353,19 +349,10 @@ function AirportExplorerContent({
   ]);
 
   const openSpottingDetail = useCallback((activeView = "") => {
-    const zoomUpdate = resolveSpottingMetricZoomState({
-      activeView,
-      currentZoom: mapZoom,
-      previousZoom: spottingPreviousZoomRef.current,
-      detailZoom: ZOOM_DETAIL,
-      fallbackZoom: ZOOM_APPROACH,
-    });
-    spottingPreviousZoomRef.current = zoomUpdate.nextPreviousZoom;
     if (activeView !== "spotting") {
       applyMapMode(MAP_MODE_IDS.SPOTTING);
     }
-    setMapZoom(zoomUpdate.nextZoom);
-  }, [applyMapMode, mapZoom, setMapZoom]);
+  }, [applyMapMode]);
 
   const handleSelectCandidateWatchingSpot = useCallback((spotId) => {
     const nextSpotId = String(spotId || "").trim();

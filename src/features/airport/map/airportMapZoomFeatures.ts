@@ -23,7 +23,7 @@ const AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS: AirportMapZoomFeatures = Object.freeze(
   showRangeRingLabels: false,
   showRunwayEndLabels: false,
   showCandidateWatchingSpotDetails: true,
-  showCandidateWatchingSpotBadges: false,
+  showCandidateWatchingSpotBadges: true,
 });
 
 const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures> = Object.freeze({
@@ -34,7 +34,7 @@ const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures>
     showRangeRingLabels: false,
     showRunwayEndLabels: false,
     showCandidateWatchingSpotDetails: true,
-    showCandidateWatchingSpotBadges: true,
+    showCandidateWatchingSpotBadges: false,
   }),
   [ZOOM_AIRPORT]: Object.freeze({
     airportGroundTrafficHideRadiusNm: 0.5,
@@ -43,7 +43,7 @@ const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures>
     showRangeRingLabels: true,
     showRunwayEndLabels: false,
     showCandidateWatchingSpotDetails: true,
-    showCandidateWatchingSpotBadges: false,
+    showCandidateWatchingSpotBadges: true,
   }),
   [ZOOM_DETAIL]: Object.freeze({
     airportGroundTrafficHideRadiusNm: null,
@@ -52,7 +52,7 @@ const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures>
     showRangeRingLabels: true,
     showRunwayEndLabels: true,
     showCandidateWatchingSpotDetails: true,
-    showCandidateWatchingSpotBadges: false,
+    showCandidateWatchingSpotBadges: true,
   }),
 });
 
@@ -77,7 +77,7 @@ export const shouldShowCandidateWatchingSpotDetailsForZoom = (zoom: unknown) =>
 
 export const shouldUseCandidateWatchingSpotBadgesForZoom = (zoom: unknown) => {
   const numericZoom = Number(zoom);
-  if (Number.isFinite(numericZoom)) return numericZoom <= ZOOM_APPROACH;
+  if (Number.isFinite(numericZoom)) return numericZoom > ZOOM_APPROACH;
   return airportMapZoomFeaturesFor(zoom).showCandidateWatchingSpotBadges;
 };
 

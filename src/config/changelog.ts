@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 60;
+export const CHANGELOG_TOTAL_COUNT = 61;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.23.3",
+    kind: "patch",
+    title: {
+      en: "Photo spot zoom behavior",
+      zh: "拍机点缩放行为",
+    },
+    summary: {
+      en: "Photo locations now stay quieter at the farthest airport view, then switch to map badges at closer zoom levels without the sidebar metric changing zoom.",
+      zh: "拍机点现在会在最远机场视图只显示小点,靠近后切换为地图 badge,侧栏拍机点卡片也不再改变缩放。",
+    },
+    highlights: [
+      {
+        en: "The farthest airport zoom uses small white point markers for photo locations",
+        zh: "最远机场缩放下拍机点只显示小白点",
+      },
+      {
+        en: "Middle and near airport zooms use the shared airport/navaid badge style for photo locations",
+        zh: "中间和近景机场缩放下拍机点使用机场/导航台同款 badge",
+      },
+      {
+        en: "Clicking the spotting metric card opens the spotting panel without changing the current map zoom",
+        zh: "点击拍机点指标卡只打开拍机点面板,不会改变当前地图缩放",
+      },
+    ],
+  },
   {
     version: "v2.23.2",
     kind: "patch",
@@ -155,36 +181,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Turning my location off now also stops the extra heading listener",
         zh: "关闭我的位置时也会一起停止额外的朝向监听",
-      },
-    ],
-  },
-  {
-    version: "v2.22.16",
-    kind: "patch",
-    title: {
-      en: "Here view and mechanism notes",
-      zh: "我的位置视图与机制说明",
-    },
-    summary: {
-      en: "The /here map keeps following the device live, and the mechanism and architecture notes now explain the current WebSocket, tracking, here-mode, and nearby-list model.",
-      zh: "/here 地图继续实时跟随设备,机制与架构说明也更新为当前 WebSocket、追踪、here 模式和附近列表模型。",
-    },
-    highlights: [
-      {
-        en: "Map position, GPS marker, and heading remain driven by the device feed",
-        zh: "地图位置、GPS 标记和朝向继续由设备实时驱动",
-      },
-      {
-        en: "Sidebar place lookup and nearby distance anchors refresh only after meaningful movement",
-        zh: "侧栏区域识别和附近距离锚点只在有明显移动后重新确定",
-      },
-      {
-        en: "Visual-traffic text no longer fades just because the viewing direction changes",
-        zh: "视距内状态文字不会再因为视角变化而触发淡入淡出",
-      },
-      {
-        en: "The mechanism and architecture pages now focus on WebSocket delivery, parallel pipelines, tracking anchors, here mode, and nearby-list rendering",
-        zh: "机制与架构页现在聚焦 WebSocket 传递、并行管线、追踪锚点、here 模式和附近列表渲染",
       },
     ],
   },
