@@ -34,8 +34,8 @@ try {
 
   assert.equal(
     normalizeMapSettings(readStoredMapSettings() || {}).selectedMode,
-    MAP_MODE_IDS.CONTROLLER,
-    "cache should migrate legacy immersive settings to the default mode",
+    MAP_MODE_IDS.CUSTOM,
+    "cache should migrate legacy immersive settings to custom defaults",
   );
 
   writeStoredMapSettings(
@@ -54,7 +54,7 @@ try {
   );
   assert.equal(
     normalizeMapSettings(readStoredMapSettings("desktop") || {}).selectedMode,
-    MAP_MODE_IDS.CONTROLLER,
+    MAP_MODE_IDS.CUSTOM,
     "desktop settings should keep the legacy storage key",
   );
 } finally {

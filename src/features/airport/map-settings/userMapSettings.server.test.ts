@@ -37,7 +37,7 @@ const user = {
     },
   });
 
-  assert.equal(settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(settings.selectedMode, MAP_MODE_IDS.CUSTOM);
   assert.deepEqual(calls, [
     {
       type: "settings",
@@ -73,7 +73,7 @@ const user = {
 
   assert.equal(calls[0].email, "owner@example.com");
   assert.equal(calls[0].device, "mobile");
-  assert.equal(calls[0].settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(calls[0].settings.selectedMode, MAP_MODE_IDS.CUSTOM);
 }
 
 console.log("userMapSettings.server.test.ts ok");

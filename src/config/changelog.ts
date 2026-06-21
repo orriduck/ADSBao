@@ -180,32 +180,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       },
     ],
   },
-  {
-    version: "v2.22.17",
-    kind: "patch",
-    title: {
-      en: "My-location heading everywhere",
-      zh: "我的位置朝向全局即时更新",
-    },
-    summary: {
-      en: "Any map view that can show my location now keeps the marker coordinates and compass heading live, not only /here.",
-      zh: "任何能显示我的位置的地图视图现在都会即时更新定位点坐标和罗盘朝向,不再只限于 /here。",
-    },
-    highlights: [
-      {
-        en: "Airport maps reuse the same live compass heading path as here mode when my location is visible",
-        zh: "机场地图在显示我的位置时会复用 here 模式同一套实时罗盘朝向",
-      },
-      {
-        en: "GPS coordinate updates still arrive through the existing watchPosition flow",
-        zh: "GPS 坐标更新仍沿用现有 watchPosition 流程",
-      },
-      {
-        en: "Turning my location off now also stops the extra heading listener",
-        zh: "关闭我的位置时也会一起停止额外的朝向监听",
-      },
-    ],
-  },
 ];
 
 export const ADSBAO_LATEST_CHANGELOG_VERSION =

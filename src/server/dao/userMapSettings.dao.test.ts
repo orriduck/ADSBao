@@ -215,8 +215,8 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
           environment: "preview",
           device: "desktop",
           settings: {
-            selectedMode: MAP_MODE_IDS.CONTROLLER,
-            baseMode: MAP_MODE_IDS.CONTROLLER,
+            selectedMode: MAP_MODE_IDS.CUSTOM,
+            baseMode: MAP_MODE_IDS.CUSTOM,
             hasSelectedMode: true,
             layerOverrides: {},
             updatedAt: "2026-06-02T15:09:00.000Z",
@@ -233,7 +233,7 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
   });
 
   const readRow = await repository.readSettingsByEmail("owner@example.com");
-  assert.equal(readRow.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(readRow.settings.selectedMode, MAP_MODE_IDS.CUSTOM);
 
   await repository.upsertSettingsByEmail({
     email: "owner@example.com",
@@ -245,8 +245,8 @@ const normalizeSql = (sql: string) => sql.replace(/\s+/g, " ").trim();
     },
   });
 
-  assert.equal(calls[2].values[3].selectedMode, MAP_MODE_IDS.CONTROLLER);
-  assert.equal(calls[2].values[3].baseMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(calls[2].values[3].selectedMode, MAP_MODE_IDS.CUSTOM);
+  assert.equal(calls[2].values[3].baseMode, MAP_MODE_IDS.CUSTOM);
 }
 
 {
