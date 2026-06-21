@@ -61,6 +61,32 @@ export function enrichAircraftWithRoutes({
 
 const aircraftSelectionId = (aircraft: AirportExplorerRecord | null | undefined) => aircraft?.icao24 || aircraft?.callsign || "";
 
+function normalizeAircraftHex(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeAircraftCallsign(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "");
+}
+
+function sameAircraftRecord(
+  a: AirportExplorerRecord | null | undefined,
+  b: AirportExplorerRecord | null | undefined,
+) {
+  const aHex = normalizeAircraftHex(a?.icao24);
+  const bHex = normalizeAircraftHex(b?.icao24);
+  if (aHex && bHex && aHex === bHex) return true;
+
+  const aCallsign = normalizeAircraftCallsign(a?.callsign);
+  const bCallsign = normalizeAircraftCallsign(b?.callsign);
+  return Boolean(aCallsign && bCallsign && aCallsign === bCallsign);
+}
+
 const LIVE_POSITION_FIELDS = [
   "lat",
   "lon",
@@ -82,9 +108,8 @@ export function mergeTrackedAircraftIntoNearby({
 }: AirportExplorerRecord = {}) {
   if (!trackedAircraft) return nearbyAircraft;
 
-  const trackedKey = aircraftSelectionId(trackedAircraft);
   const matchIndex = nearbyAircraft.findIndex(
-    (item) => trackedKey && aircraftSelectionId(item) === trackedKey,
+    (item) => sameAircraftRecord(trackedAircraft, item),
   );
 
   if (matchIndex < 0) return [trackedAircraft, ...nearbyAircraft];

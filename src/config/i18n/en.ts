@@ -571,6 +571,7 @@ const en = {
     loadingAircraftAria: "Loading ADS-B aircraft data",
     loadingTrackedAircraftAria: "Loading aircraft tracking data",
     locationDenied: "Location permission was denied.",
+    requestLocationPermission: "Re-request permission",
     locationTooFar:
       "Location is on, but you're too far from this airport to show it on this map.",
     locationUnavailable: "Location is unavailable.",
@@ -614,8 +615,7 @@ const en = {
   },
   mapSettings: {
     title: "Map settings",
-    description: "Choose a map mode, then fine-tune the layers shown on this airport map.",
-    modeSection: "Modes",
+    description: "Fine-tune the layers shown on this airport map.",
     baseMapSection: "Base map",
     layersSection: "Display",
     unitsSection: "Units",
@@ -642,18 +642,6 @@ const en = {
     devices: {
       desktop: "Desktop",
       mobile: "Mobile",
-    },
-    modes: {
-      spotting: "Watcher Mode",
-      radio: "Radio Mode",
-      controller: "Airspace Mode",
-      custom: "Custom",
-    },
-    modeDescriptions: {
-      spotting: "Photo locations with labels and approach geometry.",
-      radio: "Navigation aids and labels for listening context.",
-      controller: "Airspace, navaids, and route context.",
-      custom: "Your manual overrides on top of a preset.",
     },
     baseLayers: {
       standard: "Standard",

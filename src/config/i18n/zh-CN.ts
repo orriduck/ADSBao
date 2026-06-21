@@ -562,6 +562,7 @@ const zhCN = {
     loadingAircraftAria: "正在加载 ADS-B 飞机数据",
     loadingTrackedAircraftAria: "正在加载航迹追踪数据",
     locationDenied: "定位权限已被拒绝。",
+    requestLocationPermission: "重新请求权限",
     locationTooFar: "我的位置已开启,但离这个机场太远,不会显示在这张地图上。",
     locationUnavailable: "暂时无法获取位置。",
     visualTrafficUnknown: "飞机",
@@ -604,8 +605,7 @@ const zhCN = {
   },
   mapSettings: {
     title: "地图设置",
-    description: "选择地图模式,再微调这个机场地图显示的图层。",
-    modeSection: "模式",
+    description: "微调这个机场地图显示的图层。",
     baseMapSection: "底图",
     layersSection: "显示",
     unitsSection: "单位",
@@ -632,18 +632,6 @@ const zhCN = {
     devices: {
       desktop: "桌面端",
       mobile: "移动端",
-    },
-    modes: {
-      spotting: "看客模式",
-      radio: "无线电模式",
-      controller: "空域模式",
-      custom: "自定义",
-    },
-    modeDescriptions: {
-      spotting: "显示拍机点、地图标签和进近几何。",
-      radio: "显示导航台和标签,适合配合无线电收听。",
-      controller: "显示空域、导航台和航路语境。",
-      custom: "基于某个预设叠加你的手动调整。",
     },
     baseLayers: {
       standard: "标准地图",

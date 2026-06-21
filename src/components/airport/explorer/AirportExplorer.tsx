@@ -33,7 +33,6 @@ import { useUserLocationLayer } from "@/hooks/useUserLocationLayer";
 import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandidateWatchingSpots";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useWakeLock } from "@/hooks/useWakeLock";
-import { MAP_MODE_IDS } from "@/features/airport/map-settings/mapSettingsModel";
 
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
@@ -164,7 +163,6 @@ function AirportExplorerContent({
     collapseSidebar,
     expandSidebar,
     mapFollowsAircraft,
-    applyMapMode,
     setUserLocationPreferences,
   } = useExplorerUi();
   const [nearMeUserLocationHidden, setNearMeUserLocationHidden] = useState(false);
@@ -348,11 +346,9 @@ function AirportExplorerContent({
     userLocationLayer,
   ]);
 
-  const openSpottingDetail = useCallback((activeView = "") => {
-    if (activeView !== "spotting") {
-      applyMapMode(MAP_MODE_IDS.SPOTTING);
-    }
-  }, [applyMapMode]);
+  const openSpottingDetail = useCallback((_activeView = "") => {
+    // No-op: preset modes have been removed; layers are toggled independently
+  }, []);
 
   const handleSelectCandidateWatchingSpot = useCallback((spotId) => {
     const nextSpotId = String(spotId || "").trim();
@@ -418,6 +414,12 @@ function AirportExplorerContent({
       : userLocationLayer.userLocationActive,
     userLocationPending: nearMe ? false : userLocationLayer.userLocationPending,
     userLocationNotice: nearMe ? "" : userLocationLayer.userLocationNotice,
+    userLocationPermissionDenied: nearMe
+      ? false
+      : userLocationLayer.userLocationPermissionDenied,
+    onRequestUserLocationPermission: nearMe
+      ? null
+      : () => userLocationLayer.requestUserLocation({ requestCompassPermission: true }),
     onToggleUserLocation: toggleUserLocation,
   };
   const sidebarFocusLat = nearMe

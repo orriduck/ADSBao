@@ -232,3 +232,34 @@ assert.equal(mergedTracked[0].destination, "LHR");
 assert.equal(mergedTracked[0].flightRouteLabel, "JFK -> LHR");
 assert.equal(mergedTracked[0].lat, 46.5);
 assert.equal(mergedTracked[0].altitude, 40975);
+
+const mergedTrackedByCallsign = mergeTrackedAircraftIntoNearby({
+  trackedAircraft: {
+    icao24: "",
+    callsign: "CPA812",
+    origin: "HKG",
+    destination: "BOS",
+    lat: 42.3,
+    lon: -72.1,
+    altitude: 11800,
+    positionTime: 1,
+  },
+  nearbyAircraft: [
+    {
+      icao24: "780abc",
+      callsign: " CPA812 ",
+      lat: 42.5,
+      lon: -71.6,
+      altitude: 10400,
+      positionTime: 2,
+    },
+  ],
+});
+
+assert.equal(mergedTrackedByCallsign.length, 1);
+assert.equal(mergedTrackedByCallsign[0].callsign, "CPA812");
+assert.equal(mergedTrackedByCallsign[0].origin, "HKG");
+assert.equal(mergedTrackedByCallsign[0].destination, "BOS");
+assert.equal(mergedTrackedByCallsign[0].lat, 42.5);
+assert.equal(mergedTrackedByCallsign[0].lon, -71.6);
+assert.equal(mergedTrackedByCallsign[0].altitude, 10400);

@@ -2,11 +2,7 @@ import { useUser } from "@/platform/auth/clerkClient";
 import {
   DEFAULT_MAP_BASE_LAYER,
   MAP_LAYER_KEYS,
-  MAP_MODE_IDS,
-  CUSTOM_MAP_MODE_OPTION,
-  DISABLED_MAP_MODE_IDS,
   getMapBaseLayerOptions,
-  getSelectableMapModeOptions,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
@@ -213,7 +209,8 @@ export default function MapSettingsSheet({
   userLocationActive = false,
   userLocationPending = false,
   userLocationNotice = "",
-  onSelectMapMode,
+  userLocationPermissionDenied = false,
+  onRequestUserLocationPermission = null,
   onSelectBaseLayer,
   onToggleMapLabels,
   onToggleBeams,
@@ -232,10 +229,6 @@ export default function MapSettingsSheet({
     useUnitPreferences();
   const { isLoaded, isSignedIn } = useUser();
   const settings = normalizeMapSettings(mapSettings);
-  const modeOptions = [
-    ...getSelectableMapModeOptions(),
-    CUSTOM_MAP_MODE_OPTION,
-  ];
   const baseLayerOptions = getMapBaseLayerOptions();
   const activeBaseLayerId = settings.baseLayer || DEFAULT_MAP_BASE_LAYER;
   const state = {
@@ -306,35 +299,6 @@ export default function MapSettingsSheet({
           </SheetHeader>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
-            <section aria-labelledby={`${id}-modes`}>
-              <h3
-                id={`${id}-modes`}
-                className={sectionTitleClassName}
-              >
-                {t("mapSettings.modeSection")}
-              </h3>
-              <div className={optionGridClassName}>
-                {modeOptions.map((mode) => {
-                  const active = settings.selectedMode === mode.id;
-                  const disabled =
-                    mode.id === MAP_MODE_IDS.CUSTOM ||
-                    (DISABLED_MAP_MODE_IDS as readonly string[]).includes(mode.id);
-                  return (
-                    <SelectableCard
-                      key={mode.id}
-                      active={active}
-                      disabled={disabled}
-                      icon={<MapControlIcon iconKey={mode.iconKey} />}
-                      title={t(mode.labelKey)}
-                      description={t(mode.descriptionKey)}
-                      className={optionCardClassName}
-                      onClick={() => onSelectMapMode?.(mode.id)}
-                    />
-                  );
-                })}
-              </div>
-            </section>
-
             <section className="mt-6" aria-labelledby={`${id}-base-map`}>
               <h3
                 id={`${id}-base-map`}
@@ -407,6 +371,15 @@ export default function MapSettingsSheet({
                 >
                   {userLocationNotice}
                 </div>
+              ) : null}
+              {userLocationActive && userLocationPermissionDenied && onRequestUserLocationPermission ? (
+                <button
+                  type="button"
+                  className="mt-3 w-full rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] font-semibold leading-snug text-[var(--atc-accent)] shadow-[var(--atc-control-inset-shadow-subtle)] transition-colors hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98]"
+                  onClick={onRequestUserLocationPermission}
+                >
+                  {t("map.requestLocationPermission")}
+                </button>
               ) : null}
             </section>
 

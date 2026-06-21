@@ -30,56 +30,6 @@ const PERSISTED_MAP_LAYER_KEYS = Object.freeze([
   MAP_LAYER_KEYS.USER_LOCATION,
 ]);
 
-const MAP_MODE_PRESETS = Object.freeze({
-  [MAP_MODE_IDS.SPOTTING]: Object.freeze({
-    id: MAP_MODE_IDS.SPOTTING,
-    labelKey: "mapSettings.modes.spotting",
-    descriptionKey: "mapSettings.modeDescriptions.spotting",
-    iconKey: "telescope",
-    layers: Object.freeze({
-      [MAP_LAYER_KEYS.MAP_LABELS]: true,
-      [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
-      [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
-      [MAP_LAYER_KEYS.REPORTING_POINTS]: false,
-      [MAP_LAYER_KEYS.AIRSPACES]: false,
-      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
-      [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: true,
-      [MAP_LAYER_KEYS.USER_LOCATION]: false,
-    }),
-  }),
-  [MAP_MODE_IDS.RADIO]: Object.freeze({
-    id: MAP_MODE_IDS.RADIO,
-    labelKey: "mapSettings.modes.radio",
-    descriptionKey: "mapSettings.modeDescriptions.radio",
-    iconKey: "radar",
-    layers: Object.freeze({
-      [MAP_LAYER_KEYS.MAP_LABELS]: true,
-      [MAP_LAYER_KEYS.APPROACH_BEAMS]: false,
-      [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
-      [MAP_LAYER_KEYS.REPORTING_POINTS]: false,
-      [MAP_LAYER_KEYS.AIRSPACES]: false,
-      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
-      [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: true,
-      [MAP_LAYER_KEYS.USER_LOCATION]: false,
-    }),
-  }),
-  [MAP_MODE_IDS.CONTROLLER]: Object.freeze({
-    id: MAP_MODE_IDS.CONTROLLER,
-    labelKey: "mapSettings.modes.controller",
-    descriptionKey: "mapSettings.modeDescriptions.controller",
-    iconKey: "monitor",
-    layers: Object.freeze({
-      [MAP_LAYER_KEYS.MAP_LABELS]: true,
-      [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
-      [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
-      [MAP_LAYER_KEYS.REPORTING_POINTS]: false,
-      [MAP_LAYER_KEYS.AIRSPACES]: true,
-      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
-      [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: true,
-      [MAP_LAYER_KEYS.USER_LOCATION]: false,
-    }),
-  }),
-});
 
 export const CUSTOM_MAP_MODE_OPTION = Object.freeze({
   id: MAP_MODE_IDS.CUSTOM,
@@ -140,8 +90,8 @@ export function getMapBaseLayerOptions() {
 }
 
 export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
-  selectedMode: MAP_MODE_IDS.CONTROLLER,
-  baseMode: MAP_MODE_IDS.CONTROLLER,
+  selectedMode: MAP_MODE_IDS.CUSTOM,
+  baseMode: MAP_MODE_IDS.CUSTOM,
   layerOverrides: Object.freeze({}),
   baseLayer: DEFAULT_MAP_BASE_LAYER,
   audioEnabled: false,
@@ -173,42 +123,22 @@ export const MAP_SETTINGS_DEVICE_TYPES = Object.freeze({
 export const DEFAULT_MAP_SETTINGS_DEVICE = MAP_SETTINGS_DEVICE_TYPES.DESKTOP;
 
 const MAP_MODE_ID_SET: Set<string> = new Set(Object.values(MAP_MODE_IDS));
-// Ordered list of built-in mode presets — used internally to compute
-// the selectable mode list and the preset-id set. Not exported because
-// no caller outside this module needs the array shape.
-const MAP_MODE_OPTIONS = [
-  MAP_MODE_PRESETS[MAP_MODE_IDS.SPOTTING],
-  MAP_MODE_PRESETS[MAP_MODE_IDS.RADIO],
-  MAP_MODE_PRESETS[MAP_MODE_IDS.CONTROLLER],
-] as const;
-const PRESET_MODE_ID_SET: Set<string> = new Set(MAP_MODE_OPTIONS.map((mode) => mode.id));
 const LAYER_KEY_SET: Set<string> = new Set(PERSISTED_MAP_LAYER_KEYS);
 const DISABLED_MAP_MODE_ID_SET: Set<string> = new Set(DISABLED_MAP_MODE_IDS);
 const MAP_SETTINGS_DEVICE_SET: Set<string> = new Set(
   Object.values(MAP_SETTINGS_DEVICE_TYPES),
 );
 
-function getMapModePreset(modeId) {
-  return MAP_MODE_PRESETS[modeId] || MAP_MODE_PRESETS[DEFAULT_MAP_SETTINGS.baseMode];
-}
-
 function isMapModeId(value) {
   return MAP_MODE_ID_SET.has(value);
 }
 
-function isPresetMapModeId(value) {
-  return PRESET_MODE_ID_SET.has(value);
-}
-
-export function isSelectableMapModeId(value) {
-  if (!isPresetMapModeId(value) || DISABLED_MAP_MODE_ID_SET.has(value)) {
-    return false;
-  }
-  return true;
+export function isSelectableMapModeId(_value: unknown) {
+  return false;
 }
 
 export function getSelectableMapModeOptions() {
-  return MAP_MODE_OPTIONS.filter((mode) => isSelectableMapModeId(mode.id));
+  return [];
 }
 
 export function normalizeMapSettingsDevice(value: unknown) {
@@ -234,13 +164,9 @@ export function resolveMapSettingsDeviceForClientDeviceProfile(
 }
 
 function getMapSettingsBaseMode(
-  settings: MapSettingsRecord = {},
+  _settings: MapSettingsRecord = {},
 ) {
-  const selectedMode = settings?.selectedMode;
-  const baseMode = settings?.baseMode;
-  if (isSelectableMapModeId(selectedMode)) return selectedMode;
-  if (isSelectableMapModeId(baseMode)) return baseMode;
-  return DEFAULT_MAP_SETTINGS.baseMode;
+  return MAP_MODE_IDS.CUSTOM;
 }
 
 function normalizeMapLayerOverrides(layerOverrides: unknown) {
@@ -373,11 +299,7 @@ export function mergeMapSettings({
     isMapModeId(updateRecord.selectedMode)
       ? updateRecord.selectedMode
       : normalized.selectedMode;
-  const baseMode =
-    hasOwnSetting(updateRecord, "baseMode") &&
-    isSelectableMapModeId(updateRecord.baseMode)
-      ? updateRecord.baseMode
-      : normalized.baseMode;
+  const baseMode = MAP_MODE_IDS.CUSTOM;
 
   return normalizeMapSettings({
     selectedMode,
@@ -425,31 +347,16 @@ function resolveMapSettingsLayers(
   settings: MapSettingsRecord = DEFAULT_MAP_SETTINGS,
 ) {
   const normalized = normalizeMapSettings(settings);
-  const preset = getMapModePreset(getMapSettingsBaseMode(normalized));
   return {
-    ...preset.layers,
+    [MAP_LAYER_KEYS.MAP_LABELS]: true,
+    [MAP_LAYER_KEYS.APPROACH_BEAMS]: false,
+    [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
+    [MAP_LAYER_KEYS.REPORTING_POINTS]: false,
+    [MAP_LAYER_KEYS.AIRSPACES]: false,
+    [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: false,
+    [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: true,
+    [MAP_LAYER_KEYS.USER_LOCATION]: false,
     ...normalized.layerOverrides,
-  };
-}
-
-export function buildPresetMapSettings({
-  modeId,
-  audioEnabled = false,
-  baseLayer = DEFAULT_MAP_BASE_LAYER,
-  now = new Date().toISOString(),
-}: MapSettingsOptions = {}) {
-  if (!isSelectableMapModeId(modeId)) {
-    return normalizeMapSettings(DEFAULT_MAP_SETTINGS);
-  }
-  const preset = getMapModePreset(modeId);
-  return {
-    selectedMode: preset.id,
-    baseMode: preset.id,
-    layerOverrides: {},
-    baseLayer: normalizeMapBaseLayer(baseLayer),
-    audioEnabled: audioEnabled === true,
-    hasSelectedMode: true,
-    updatedAt: now,
   };
 }
 
@@ -467,7 +374,7 @@ export function buildCustomMapSettings({
   return {
     ...normalized,
     selectedMode: MAP_MODE_IDS.CUSTOM,
-    baseMode: getMapSettingsBaseMode(normalized),
+    baseMode: MAP_MODE_IDS.CUSTOM,
     layerOverrides: {
       ...normalized.layerOverrides,
       [layerKey]: value,
@@ -482,22 +389,17 @@ export function buildMapSettingsFromLayerState({
   now = new Date().toISOString(),
 }: MapSettingsOptions = {}) {
   const normalized = normalizeMapSettings(settings);
-  const baseMode = getMapSettingsBaseMode(normalized);
-  const baseLayers = getMapModePreset(baseMode).layers;
   const layerOverrides = normalizeMapLayerOverrides(layers);
   const nextLayers = {
     ...resolveMapSettingsLayers(normalized),
     ...layerOverrides,
   };
-  const custom = PERSISTED_MAP_LAYER_KEYS.some(
-    (layerKey) => nextLayers[layerKey] !== baseLayers[layerKey],
-  );
 
   return {
     ...normalized,
-    selectedMode: custom ? MAP_MODE_IDS.CUSTOM : baseMode,
-    baseMode,
-    layerOverrides: custom ? normalizeMapLayerOverrides(nextLayers) : {},
+    selectedMode: MAP_MODE_IDS.CUSTOM,
+    baseMode: MAP_MODE_IDS.CUSTOM,
+    layerOverrides: normalizeMapLayerOverrides(nextLayers),
     updatedAt: now,
   };
 }

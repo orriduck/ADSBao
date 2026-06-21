@@ -36,6 +36,7 @@ export function useUserLocationLayer({
   );
   const [userLocationPending, setUserLocationPending] = useState(false);
   const [userLocationNotice, setUserLocationNotice] = useState("");
+  const [userLocationPermissionDenied, setUserLocationPermissionDenied] = useState(false);
   const userLocationWatchIdRef = useRef<number | null>(null);
   const userLocationRequestIdRef = useRef(0);
   const userLocationCompassHeadingRef = useRef<number | null>(null);
@@ -127,6 +128,7 @@ export function useUserLocationLayer({
     setUserLocation(null);
     setUserLocationPending(false);
     setUserLocationNotice("");
+    setUserLocationPermissionDenied(false);
   }, [stopUserLocationCompassHeading, stopUserLocationWatch]);
 
   useEffect(
@@ -185,17 +187,20 @@ export function useUserLocationLayer({
           ),
         );
         setUserLocationNotice("");
+        setUserLocationPermissionDenied(false);
       };
       const handleError = (error: GeolocationPositionError) => {
         if (userLocationRequestIdRef.current !== requestId) return;
         stopUserLocationWatch();
         stopUserLocationCompassHeading();
         setUserLocationPending(false);
+        const isDenied = error?.code === error?.PERMISSION_DENIED;
         setUserLocationNotice(
-          error?.code === error?.PERMISSION_DENIED
+          isDenied
             ? t("map.locationDenied")
             : t("map.locationUnavailable"),
         );
+        if (isDenied) setUserLocationPermissionDenied(true);
       };
       const locationOptions: PositionOptions = {
         enableHighAccuracy: true,
@@ -271,6 +276,7 @@ export function useUserLocationLayer({
     }
 
     setUserLocationPreferences?.({ userLocationEnabled: true });
+    setUserLocationPermissionDenied(false);
     requestUserLocation({ requestCompassPermission: true });
   }, [
     clearUserLocation,
@@ -287,5 +293,6 @@ export function useUserLocationLayer({
     userLocationNotice,
     requestUserLocation,
     toggleUserLocation,
+    userLocationPermissionDenied,
   };
 }

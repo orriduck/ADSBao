@@ -41,9 +41,31 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 61;
+export const CHANGELOG_TOTAL_COUNT = 62;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.23.4",
+    kind: "patch",
+    title: {
+      en: "Location permission re-request",
+      zh: "定位权限重新请求",
+    },
+    summary: {
+      en: "When map location is enabled but browser permission is denied, a re-request button now appears in map settings.",
+      zh: "开启地图定位但浏览器权限被拒绝时,地图设置中现在会显示重新请求权限的按钮。",
+    },
+    highlights: [
+      {
+        en: "Re-request button shows in map settings when location toggle is on but permission is denied",
+        zh: "当「我的位置」开关开启但权限被拒绝时,地图设置中显示重新请求按钮",
+      },
+      {
+        en: "Cleaned up unused preset mode labels from map settings",
+        zh: "清理了地图设置中已废弃的预设模式标签",
+      },
+    ],
+  },
   {
     version: "v2.23.3",
     kind: "patch",

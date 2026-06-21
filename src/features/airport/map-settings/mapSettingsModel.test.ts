@@ -6,8 +6,6 @@ import {
   MAP_MODE_IDS,
   buildCustomMapSettings,
   buildMapSettingsFromLayerState,
-  buildPresetMapSettings,
-  getSelectableMapModeOptions,
   getAlternateMapSettingsDevice,
   mapSettingsToExplorerLayers,
   mergeMapSettings,
@@ -53,22 +51,9 @@ import {
 }
 
 {
-  const spotting = buildPresetMapSettings({ modeId: MAP_MODE_IDS.SPOTTING });
-  assert.equal(spotting.selectedMode, MAP_MODE_IDS.SPOTTING);
-  assert.deepEqual(mapSettingsToExplorerLayers(spotting), {
-    showMapLabels: true,
-    showRunwayBeams: true,
-    showNavaidMarkers: false,
-    showReportingPoints: false,
-    showAirspaces: false,
-    showCandidateWatchingSpots: true,
-    showCallsigns: true,
-  });
-}
-
-{
+  // normalizeMapSettings defaults to CUSTOM for unknown modes
   const settings = normalizeMapSettings({
-    selectedMode: MAP_MODE_IDS.CONTROLLER,
+    selectedMode: "spotting",
     layerOverrides: {
       [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
       unknownLayer: true,
@@ -76,13 +61,15 @@ import {
     updatedAt: "2026-06-02T15:00:00.000Z",
   });
 
-  assert.equal(settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(settings.selectedMode, "spotting");
+  assert.equal(settings.baseMode, MAP_MODE_IDS.CUSTOM);
+  // With no preset, layers come from defaults + overrides
   assert.deepEqual(mapSettingsToExplorerLayers(settings), {
     showMapLabels: true,
-    showRunwayBeams: true,
+    showRunwayBeams: false,
     showNavaidMarkers: false,
     showReportingPoints: false,
-    showAirspaces: true,
+    showAirspaces: false,
     showCandidateWatchingSpots: false,
     showCallsigns: true,
   });
@@ -92,12 +79,11 @@ import {
 }
 
 {
+  // buildCustomMapSettings always sets baseMode to CUSTOM
   const base = normalizeMapSettings({
-    selectedMode: MAP_MODE_IDS.RADIO,
     layerOverrides: {},
     updatedAt: "2026-06-02T15:00:00.000Z",
   });
-  const before = mapSettingsToExplorerLayers(base);
   const custom = buildCustomMapSettings({
     settings: base,
     layerKey: MAP_LAYER_KEYS.AIRSPACES,
@@ -106,28 +92,18 @@ import {
   });
 
   assert.equal(custom.selectedMode, MAP_MODE_IDS.CUSTOM);
-  assert.equal(custom.baseMode, MAP_MODE_IDS.RADIO);
+  assert.equal(custom.baseMode, MAP_MODE_IDS.CUSTOM);
   assert.equal(custom.layerOverrides[MAP_LAYER_KEYS.AIRSPACES], true);
   assert.equal(custom.updatedAt, "2026-06-02T15:01:00.000Z");
-  assert.equal(before.showAirspaces, false);
 }
 
 {
+  // hasSelectedMode still hydrates correctly
   const defaults = normalizeMapSettings({});
   assert.equal(
     defaults.hasSelectedMode,
     false,
     "default settings should record that the user has not actively selected a mode",
-  );
-
-  const preset = buildPresetMapSettings({
-    modeId: MAP_MODE_IDS.SPOTTING,
-    now: "2026-06-02T15:02:00.000Z",
-  });
-  assert.equal(
-    preset.hasSelectedMode,
-    true,
-    "selecting a preset should record that the user actively chose a mode",
   );
 
   const custom = buildCustomMapSettings({
@@ -143,7 +119,7 @@ import {
   );
 
   const restored = normalizeMapSettings({
-    selectedMode: MAP_MODE_IDS.RADIO,
+    selectedMode: MAP_MODE_IDS.CUSTOM,
     has_selected_mode: true,
   });
   assert.equal(
@@ -155,10 +131,7 @@ import {
 
 {
   const saved = buildMapSettingsFromLayerState({
-    settings: buildPresetMapSettings({
-      modeId: MAP_MODE_IDS.CONTROLLER,
-      now: "2026-06-02T15:04:00.000Z",
-    }),
+    settings: normalizeMapSettings({}),
     layers: {
       [MAP_LAYER_KEYS.MAP_LABELS]: false,
       [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
@@ -176,7 +149,7 @@ import {
     MAP_MODE_IDS.CUSTOM,
     "saving visible layer overrides should persist the setup as Custom",
   );
-  assert.equal(saved.baseMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(saved.baseMode, MAP_MODE_IDS.CUSTOM);
   assert.deepEqual(saved.layerOverrides, {
     [MAP_LAYER_KEYS.MAP_LABELS]: false,
     [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
@@ -190,38 +163,24 @@ import {
 }
 
 {
-  assert.equal(
-    getSelectableMapModeOptions().some(
-      (mode) => String(mode.id) === "immersive",
-    ),
-    false,
+  // Legacy "immersive" mode gracefully degrades to CUSTOM defaults
+  const normalized = normalizeMapSettings(
+    { selectedMode: "immersive", baseMode: "immersive" },
   );
-}
-
-{
-  const legacyImmersive = buildPresetMapSettings({
-    modeId: "immersive",
-    now: "2026-06-02T15:08:00.000Z",
-  });
-
-  assert.equal(legacyImmersive.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(normalized.selectedMode, MAP_MODE_IDS.CUSTOM);
+  assert.equal(normalized.baseMode, MAP_MODE_IDS.CUSTOM);
   assert.deepEqual(
-    mapSettingsToExplorerLayers(legacyImmersive),
+    mapSettingsToExplorerLayers(normalized),
     {
       showMapLabels: true,
-      showRunwayBeams: true,
+      showRunwayBeams: false,
       showNavaidMarkers: false,
       showReportingPoints: false,
-      showAirspaces: true,
+      showAirspaces: false,
       showCandidateWatchingSpots: false,
       showCallsigns: true,
     },
   );
-  const normalized = normalizeMapSettings(
-    { selectedMode: "immersive", baseMode: "immersive" },
-  );
-  assert.equal(normalized.selectedMode, MAP_MODE_IDS.CONTROLLER);
-  assert.equal(normalized.baseMode, MAP_MODE_IDS.CONTROLLER);
 }
 
 {
@@ -263,7 +222,7 @@ import {
     "cache",
     "signed-in hydration should only fall back to cache when no user settings exist",
   );
-  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.CUSTOM);
 }
 
 {
@@ -275,14 +234,14 @@ import {
       hasSelectedMode: true,
     },
     cachedSettings: {
-      selectedMode: MAP_MODE_IDS.SPOTTING,
-      baseMode: MAP_MODE_IDS.SPOTTING,
+      selectedMode: MAP_MODE_IDS.CUSTOM,
+      baseMode: MAP_MODE_IDS.CUSTOM,
       hasSelectedMode: true,
     },
   });
 
   assert.equal(hydrated.source, "cache");
-  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.SPOTTING);
+  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.CUSTOM);
 }
 
 {
@@ -386,7 +345,7 @@ import {
   });
 
   assert.equal(merged.selectedMode, MAP_MODE_IDS.CUSTOM);
-  assert.equal(merged.baseMode, MAP_MODE_IDS.CONTROLLER);
+  assert.equal(merged.baseMode, MAP_MODE_IDS.CUSTOM);
   assert.equal(merged.hasSelectedMode, true);
   assert.equal(merged.updatedAt, "2026-06-02T15:07:00.000Z");
   assert.deepEqual(merged.layerOverrides, {
@@ -399,7 +358,7 @@ import {
 {
   const first = serializeMapSettingsPersistenceSignature({
     selectedMode: MAP_MODE_IDS.CUSTOM,
-    baseMode: MAP_MODE_IDS.CONTROLLER,
+    baseMode: MAP_MODE_IDS.CUSTOM,
     layerOverrides: {
       [MAP_LAYER_KEYS.MAP_LABELS]: false,
     },
@@ -409,7 +368,7 @@ import {
   });
   const timestampOnlyChange = serializeMapSettingsPersistenceSignature({
     selectedMode: MAP_MODE_IDS.CUSTOM,
-    baseMode: MAP_MODE_IDS.CONTROLLER,
+    baseMode: MAP_MODE_IDS.CUSTOM,
     layerOverrides: {
       [MAP_LAYER_KEYS.MAP_LABELS]: false,
     },
@@ -419,7 +378,7 @@ import {
   });
   const layerChange = serializeMapSettingsPersistenceSignature({
     selectedMode: MAP_MODE_IDS.CUSTOM,
-    baseMode: MAP_MODE_IDS.CONTROLLER,
+    baseMode: MAP_MODE_IDS.CUSTOM,
     layerOverrides: {
       [MAP_LAYER_KEYS.MAP_LABELS]: true,
     },

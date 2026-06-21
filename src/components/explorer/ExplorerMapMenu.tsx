@@ -13,6 +13,8 @@ export default function ExplorerMapMenu({
   userLocationActive = false,
   userLocationPending = false,
   userLocationNotice = "",
+  userLocationPermissionDenied = false,
+  onRequestUserLocationPermission = null,
   userLocationStatusLines = [],
   wakeLockState = { supported: false, active: false },
   onToggleWakeLock = null,
@@ -37,7 +39,6 @@ export default function ExplorerMapMenu({
     mapSettingsSaveStatusCode,
     mapSettingsSaveCycle,
     setMapZoom,
-    applyMapMode,
     setMapBaseLayer,
     toggleSidebar,
     toggleMapLabels,
@@ -72,6 +73,8 @@ export default function ExplorerMapMenu({
       userLocationActive={userLocationActive}
       userLocationPending={userLocationPending}
       userLocationNotice={userLocationNotice}
+      userLocationPermissionDenied={userLocationPermissionDenied}
+      onRequestUserLocationPermission={onRequestUserLocationPermission}
       showSidebarToggle={surface === "map" && isMobile}
       showMapButton={surface === "sidebar"}
       wakeLockActive={wakeLockState.active}
@@ -84,7 +87,6 @@ export default function ExplorerMapMenu({
       onToggleAirspaces={toggleAirspaces}
       onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
       onToggleShowCallsigns={toggleShowCallsigns}
-      onSelectMapMode={applyMapMode}
       onSelectBaseLayer={setMapBaseLayer}
       onToggleUserLocation={onToggleUserLocation}
       onToggleSidebar={toggleSidebar}

@@ -30,9 +30,7 @@ import {
   PRE_HYDRATION_VISUAL_LAYERS,
   buildCustomMapSettings,
   buildMapSettingsWithBaseLayer,
-  buildPresetMapSettings,
   isKnownMapBaseLayer,
-  isSelectableMapModeId,
   mapSettingsToExplorerLayers,
   mapSettingsToUserLocationPreferences,
   normalizeMapSettings,
@@ -217,21 +215,6 @@ function airportExplorerUiReducer(state, action) {
         state,
         MAP_LAYER_KEYS.SHOW_CALLSIGNS,
         toggleValue(state.showCallsigns),
-      );
-    case "applyMapMode":
-      if (!isSelectableMapModeId(action.modeId)) {
-        return state;
-      }
-      return applyMapSettingsToUiState(
-        state,
-        buildPresetMapSettings({
-          modeId: action.modeId,
-          audioEnabled: state.mapSettings?.audioEnabled,
-          // Carry the user's current base map choice across mode
-          // switches — they picked it deliberately, no need to reset
-          // it just because they cycled the mode preset.
-          baseLayer: state.mapSettings?.baseLayer,
-        }),
       );
     case "setMapBaseLayer":
       if (!isKnownMapBaseLayer(action.baseLayer)) return state;
@@ -860,10 +843,6 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "toggleShowCallsigns" });
   }, []);
 
-  const applyMapMode = useCallback((modeId) => {
-    dispatch({ type: "applyMapMode", modeId });
-  }, []);
-
   const setMapBaseLayer = useCallback((baseLayer) => {
     dispatch({ type: "setMapBaseLayer", baseLayer });
   }, []);
@@ -1010,7 +989,6 @@ export function ExplorerUiProvider({ children }) {
       toggleAirspaces,
       toggleCandidateWatchingSpots,
       toggleShowCallsigns,
-      applyMapMode,
       setMapBaseLayer,
       setUserLocationPreferences,
       selectAircraft,
@@ -1080,7 +1058,6 @@ export function ExplorerUiProvider({ children }) {
       toggleAirspaces,
       toggleCandidateWatchingSpots,
       toggleShowCallsigns,
-      applyMapMode,
       setMapBaseLayer,
       setUserLocationPreferences,
       selectAircraft,
