@@ -464,6 +464,35 @@ follow the selected validation mode above.
 
 There is no Python backend runtime config, frontend settings page, or `/api/config` flow.
 
+## Railway staging service
+
+ADSBao has two app services in the Railway `production` environment:
+
+| Service | Purpose | URL |
+|---|---|---|
+| `adsbao-app` | Production app | `https://www.adsbao.dev` |
+| `adsbao-staging` | Staging app | `https://adsbao-staging-production.up.railway.app` |
+
+The local Railway CLI should normally stay linked to `adsbao-app`. To deploy or
+inspect staging, always pass the service and environment explicitly:
+
+```bash
+# Deploy the latest commit from the configured GitHub source to staging only.
+railway redeploy --service adsbao-staging --environment production --from-source --yes
+
+# Upload the current local worktree to staging only.
+railway up --service adsbao-staging --environment production
+```
+
+Staging intentionally shares the production Postgres service through Railway
+reference variables, but uses `FEATURE_FLAGS_ENV=preview` so user feature flags
+and map settings are logically separate from production rows. Do not print raw
+Railway variable values; use presence checks or redaction when validating env.
+
+If the user wants pushes to deploy staging without also deploying production,
+connect `adsbao-staging` to a non-`main` branch such as `staging`; otherwise,
+both Railway app services may deploy from `main`.
+
 ## Version and release rules
 
 Railway can deploy every push to `main`, but a deployment is not automatically a product release. Do not bump `package.json` or create a Git tag just because a Railway deployment happened.
