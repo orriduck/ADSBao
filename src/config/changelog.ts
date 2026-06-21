@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 64;
+export const CHANGELOG_TOTAL_COUNT = 65;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.24.1",
+    kind: "patch",
+    title: {
+      en: "Compass heading beam rotation fix; proactive permission request",
+      zh: "修复罗盘朝向光束旋转问题；进入机场时主动请求权限",
+    },
+    summary: {
+      en: "Heading beam now rotates reliably on mobile. DeviceOrientation permission is requested proactively on airport entry. Location status block always visible in map settings.",
+      zh: "罗盘光束在移动端可靠旋转。进入机场时主动请求 DeviceOrientation 权限。地图设置中始终显示位置状态。",
+    },
+    highlights: [
+      {
+        en: "Heading beam rotates reliably on mobile",
+        zh: "罗盘光束在移动端可靠旋转",
+      },
+      {
+        en: "DeviceOrientation requested proactively on airport entry",
+        zh: "进入机场时主动请求 DeviceOrientation 权限",
+      },
+      {
+        en: "Location status always visible in map settings",
+        zh: "地图设置中始终显示位置状态",
+      },
+    ],
+  },
   {
     version: "v2.24.0",
     kind: "feat",

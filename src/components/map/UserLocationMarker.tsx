@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
@@ -61,11 +60,7 @@ export default function UserLocationMarker({
         <span
           className="user-location-marker__heading-beam"
           aria-hidden="true"
-          style={
-            {
-              "--user-location-heading": `${headingDeg}deg`,
-            } as CSSProperties
-          }
+          style={{ transform: `translate(-50%, -50%) rotate(${headingDeg}deg)` }}
         />
       )}
       <span className="user-location-marker__diamond" aria-hidden="true" />

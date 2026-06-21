@@ -268,6 +268,13 @@ export function useUserLocationLayer({
     userLocationPending,
   ]);
 
+
+  // Auto-request compass (DeviceOrientation) permission on airport entry
+  // so the heading beam works immediately without toggling location first.
+  useEffect(() => {
+    if (!mapSettingsHydrated || !enabled) return;
+    requestUserLocationCompassHeading();
+  }, [mapSettingsHydrated, enabled, requestUserLocationCompassHeading]);
   const toggleUserLocation = useCallback(() => {
     if (userLocationEnabled || userLocation) {
       setUserLocationPreferences?.({ userLocationEnabled: false });

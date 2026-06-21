@@ -365,8 +365,9 @@ export default function MapSettingsSheet({
                 )}
 
               </div>
-              {userLocationActive ? (
-                <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-2">
+                {userLocationActive ? (
+                  <>
                   <div
                     className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
                     role="status"
@@ -412,8 +413,16 @@ export default function MapSettingsSheet({
                         : t("map.forceRetryLocation")}
                     </button>
                   ) : null}
-                </div>
-              ) : null}
+                  </>
+                ) : (
+                  <div
+                    className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
+                    role="status"
+                  >
+                    {t("mapLayers.hideUserLocation")}
+                  </div>
+                )}
+              </div>
             </section>
 
             <section className="mt-6" aria-labelledby={`${id}-units`}>
