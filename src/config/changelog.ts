@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 80;
+export const CHANGELOG_TOTAL_COUNT = 81;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.9",
+    kind: "patch",
+    title: {
+      en: "Compact mechanism flow rows",
+      zh: "机制页流程行压缩",
+    },
+    summary: {
+      en: "The mechanism page now renders flow steps as compact inline chips instead of a vertical timeline, keeping the static page more open.",
+      zh: "机制页流程步骤改为紧凑行内 chip，不再使用垂直时间线，让静态页保持更开放。",
+    },
+    highlights: [
+      {
+        en: "The expanded first mechanism item is much shorter while preserving the same explanation and step labels",
+        zh: "展开的首个机制项明显变短，同时保留原有说明和步骤标签",
+      },
+      {
+        en: "Mobile now shows all five mechanism rows in the first screen after the selected detail",
+        zh: "移动端首屏现在能在选中详情后看到全部五个机制行",
+      },
+      {
+        en: "The GSAP-only timeline animation was removed from this static explainer because the inline layout carries the same state with less chrome",
+        zh: "移除这个静态说明页的 GSAP 时间线动画，用更少界面元素承载同样流程状态",
+      },
+    ],
+  },
   {
     version: "v2.26.8",
     kind: "patch",

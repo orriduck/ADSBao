@@ -1,5 +1,4 @@
-import { Fragment, useLayoutEffect, useRef, useState } from "react";
-import gsap from "gsap";
+import { Fragment, useState } from "react";
 import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import { MECHANISM_ITEMS } from "@/config/mechanism";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -72,7 +71,7 @@ export default function MechanismPanel() {
                       <p className="text-[10px] leading-relaxed text-atc-dim">
                         {t(item.bodyKey)}
                       </p>
-                      <MechanismFlow labels={flowLabels} active={expanded} />
+                      <MechanismFlow labels={flowLabels} />
                       <div className="mt-2 grid gap-1 pl-0.5">
                         {item.detailKeys.map((key) => (
                           <p
@@ -97,75 +96,26 @@ export default function MechanismPanel() {
 
 function MechanismFlow({
   labels,
-  active,
 }: {
   labels: string[];
-  active: boolean;
 }) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const labelsKey = labels.join("|");
-
-  useLayoutEffect(() => {
-    const root = rootRef.current;
-    if (!root || !active || !labels.length) return undefined;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return undefined;
-    }
-
-    const context = gsap.context(() => {
-      gsap.fromTo(
-        "[data-flow-line]",
-        { scaleY: 0, transformOrigin: "top center" },
-        { scaleY: 1, duration: 0.22, ease: "power2.out" },
-      );
-      gsap.fromTo(
-        "[data-flow-node]",
-        { opacity: 0, x: -8 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.24,
-          ease: "power2.out",
-          stagger: 0.045,
-        },
-      );
-    }, root);
-
-    return () => context.revert();
-  }, [active, labels.length, labelsKey]);
-
   if (!labels.length) return null;
 
   return (
-    <div
-      ref={rootRef}
-      className={cn(
-        "relative mt-2 overflow-hidden",
-        "border-l border-[var(--atc-line)]",
-        "py-1 pl-2.5",
-      )}
-    >
-      <div
-        data-flow-line
-        aria-hidden="true"
-        className="absolute bottom-3 left-[11px] top-3 w-px bg-[var(--atc-line)]"
-      />
-      <ol className="relative grid gap-1.5">
-        {labels.map((label, index) => (
-          <li
-            key={`${label}-${index}`}
-            data-flow-node
-            className="grid grid-cols-[16px_minmax(0,1fr)] items-center gap-2"
-          >
-            <span className="relative z-[1] flex size-4 items-center justify-center rounded-full bg-atc-text font-mono text-[8px] font-black leading-none text-atc-bg">
-              {index + 1}
-            </span>
-            <span className="min-w-0 truncate text-[9.5px] font-semibold leading-none text-atc-dim">
-              {label}
-            </span>
-          </li>
-        ))}
-      </ol>
-    </div>
+    <ol className="mt-2 flex flex-wrap gap-1">
+      {labels.map((label, index) => (
+        <li
+          key={`${label}-${index}`}
+          className="inline-grid max-w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-1 rounded-[6px] bg-[color-mix(in_oklab,var(--atc-text)_7%,transparent)] px-1.5 py-1"
+        >
+          <span className="font-mono text-[7.5px] font-black leading-none text-atc-faint">
+            {String(index + 1).padStart(2, "0")}
+          </span>
+          <span className="min-w-0 truncate text-[9px] font-semibold leading-none text-atc-dim">
+            {label}
+          </span>
+        </li>
+      ))}
+    </ol>
   );
 }
