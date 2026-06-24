@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.26.14",
+    kind: "patch",
+    title: {
+      en: "Linear map settings controls",
+      zh: "地图设置控件线性化",
+    },
+    summary: {
+      en: "Map settings now use lighter inline rows and compact unit controls so the panel reads by alignment instead of heavy capsules.",
+      zh: "地图设置现在使用更轻的内联行和紧凑单位控件，让面板主要依靠对齐而不是厚重胶囊建立秩序。",
+    },
+    highlights: [
+      {
+        en: "The active base-map row uses a quiet marker instead of a large glass highlight",
+        zh: "选中的底图行改用安静的行内标记，不再使用大块玻璃高光",
+      },
+      {
+        en: "Layer switches and unit selectors are smaller, flatter, and keep the same interaction behavior",
+        zh: "图层开关和单位选择器更小、更平，并保持原有交互行为",
+      },
+      {
+        en: "Settings persistence copy now separates by placement and weight instead of a hard divider line",
+        zh: "设置保存提示现在依靠位置和字重区分，不再使用硬分隔线",
+      },
+    ],
+  },
+  {
     version: "v2.26.13",
     kind: "patch",
     title: {

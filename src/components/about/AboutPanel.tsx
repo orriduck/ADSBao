@@ -35,40 +35,36 @@ export default function AboutPanel() {
     <div className="flex flex-none flex-col">
       <div className="about-meta-grid dither-meta-flow dither-list-flow flex-none">
         {version ? (
-          <div className="about-meta-version grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 py-2.5">
-            <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-atc-faint">
-              <span>/&zwj;/</span>{" "}
+          <div className="about-meta-row about-meta-version">
+            <span className="about-meta-label">
               {version.labelKey ? t(version.labelKey) : version.label}
             </span>
-            <span className="truncate font-display text-[17px] font-black leading-none text-atc-text">
+            <span className="about-meta-value">
               {resolveCopy(version, t)}
             </span>
           </div>
         ) : null}
 
-        <div className="grid gap-2">
+        <div className="about-meta-sections">
           {sections.map((section) => (
             <section
               key={section.label}
-              className="about-meta-section grid gap-1.5 py-2.5"
+              className="about-meta-row about-meta-section"
             >
-              <h2 className="font-mono text-[8px] uppercase tracking-[0.14em] text-atc-faint">
-                <span>/&zwj;/</span>{" "}
+              <h2 className="about-meta-label">
                 {section.labelKey ? t(section.labelKey) : section.label}
               </h2>
               <ul
                 className={
                   section.layout === "compact-grid"
-                    ? "grid min-w-0 grid-cols-2 gap-x-4 gap-y-1.5"
-                    : "grid min-w-0 gap-1.5"
+                    ? "about-meta-list about-meta-list--grid"
+                    : "about-meta-list"
                 }
               >
                 {section.items.map((item) => (
                   <li
                     key={item}
-                    className={`min-w-0 text-[10px] font-semibold leading-snug text-atc-text ${
-                      section.layout === "compact-grid" ? "even:text-right" : ""
-                    }`}
+                    className="min-w-0"
                   >
                     <span className="min-w-0">{resolveCopy(item, t)}</span>
                   </li>

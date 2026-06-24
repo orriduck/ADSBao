@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 91;
+export const CHANGELOG_TOTAL_COUNT = 92;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.20",
+    kind: "patch",
+    title: {
+      en: "Home and about rails",
+      zh: "首页与关于页 rail",
+    },
+    summary: {
+      en: "Home airport lists and about-page metadata now share quieter rail alignment with less visual chrome.",
+      zh: "首页机场列表和关于页元信息现在共用更安静的 rail 对齐，并减少视觉 chrome。",
+    },
+    highlights: [
+      {
+        en: "Home discovery and search-result airport rows now keep code, title, and header axes aligned",
+        zh: "首页发现列表与搜索结果机场行现在保持 code、标题和表头轴线一致",
+      },
+      {
+        en: "Version, stack, and architecture rows now share one label rail and one content axis",
+        zh: "版本、技术栈和架构行现在共用同一条标签 rail 与内容轴",
+      },
+      {
+        en: "The oversized version readout is replaced by compact inline metadata",
+        zh: "大号版本读数改为紧凑的行内元信息",
+      },
+    ],
+  },
   {
     version: "v2.26.19",
     kind: "patch",
@@ -171,32 +197,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "This is display-only and leaves the accordion behavior and mechanism copy unchanged",
         zh: "这次仅调整展示，不改变折叠行为和机制页文案",
-      },
-    ],
-  },
-  {
-    version: "v2.26.14",
-    kind: "patch",
-    title: {
-      en: "Linear map settings controls",
-      zh: "地图设置控件线性化",
-    },
-    summary: {
-      en: "Map settings now use lighter inline rows and compact unit controls so the panel reads by alignment instead of heavy capsules.",
-      zh: "地图设置现在使用更轻的内联行和紧凑单位控件，让面板主要依靠对齐而不是厚重胶囊建立秩序。",
-    },
-    highlights: [
-      {
-        en: "The active base-map row uses a quiet marker instead of a large glass highlight",
-        zh: "选中的底图行改用安静的行内标记，不再使用大块玻璃高光",
-      },
-      {
-        en: "Layer switches and unit selectors are smaller, flatter, and keep the same interaction behavior",
-        zh: "图层开关和单位选择器更小、更平，并保持原有交互行为",
-      },
-      {
-        en: "Settings persistence copy now separates by placement and weight instead of a hard divider line",
-        zh: "设置保存提示现在依靠位置和字重区分，不再使用硬分隔线",
       },
     ],
   },
