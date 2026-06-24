@@ -111,23 +111,23 @@ const LAYER_CONTROLS = [
 ];
 
 const sectionTitleClassName =
-  "mb-0.5 px-0.5 text-[8px] font-bold uppercase tracking-normal text-atc-muted";
+  "mb-px px-0.5 text-[7.5px] font-bold uppercase tracking-normal text-atc-muted";
 
 const settingsListGroupClassName =
   "map-settings-list-group grid gap-0 overflow-visible";
 
 const settingsOptionRowClassName = cn(
-  "group map-settings-option-row grid min-h-8 w-full grid-cols-[18px_minmax(0,1fr)_3px] items-center gap-1.5",
-  "rounded-[4px] px-0.5 py-0.5 text-left text-atc-text transition-[background,color,opacity] duration-150",
+  "group map-settings-option-row grid min-h-[25px] w-full grid-cols-[16px_minmax(0,1fr)_3px] items-center gap-1",
+  "rounded-[4px] px-0 py-0.5 text-left text-atc-text transition-[background,color,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-text)_7%,transparent)] data-[active=true]:text-atc-text",
-  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_9%,transparent)]",
+  "data-[active=true]:bg-transparent data-[active=true]:text-atc-text",
+  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_7%,transparent)]",
 );
 
 const layerToggleRowClassName = cn(
-  "group grid min-h-8 w-full grid-cols-[18px_minmax(0,1fr)_24px] items-center gap-1.5",
-  "rounded-[4px] bg-transparent px-0.5 py-0.5 text-left text-atc-text",
+  "group grid min-h-[25px] w-full grid-cols-[16px_minmax(0,1fr)_22px] items-center gap-1",
+  "rounded-[4px] bg-transparent px-0 py-0.5 text-left text-atc-text",
   "transition-[background,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
@@ -135,13 +135,13 @@ const layerToggleRowClassName = cn(
 );
 
 const unitSegmentButtonClassName = cn(
-  "min-h-[18px] rounded-[4px] px-1.5 text-[8px] font-semibold leading-none text-atc-muted",
+  "min-h-4 rounded-[3px] px-1.5 text-[7.5px] font-semibold leading-none text-atc-muted",
   "transition-[background,color,box-shadow] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-text)_16%,transparent)] data-[active=true]:text-atc-text",
+  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-text)_12%,transparent)] data-[active=true]:text-atc-text",
   "data-[active=true]:shadow-none",
-  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_18%,transparent)]",
+  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_14%,transparent)]",
 );
 
 function SettingsOptionRow({
@@ -158,14 +158,14 @@ function SettingsOptionRow({
       data-active={active ? "true" : "false"}
       onClick={onClick}
     >
-      <span className="relative flex size-4 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-2.5">
+      <span className="relative flex size-3.5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-2.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[10.5px] font-semibold leading-tight text-atc-text">
+        <span className="block text-[9.5px] font-semibold leading-[1.08] text-atc-text">
           {title}
         </span>
-        <span className="mt-px block text-[8.5px] leading-snug text-atc-muted">
+        <span className="block text-[7.5px] leading-[1.08] text-atc-muted">
           {description}
         </span>
       </span>
@@ -186,7 +186,7 @@ function SettingsSwitch({ active }) {
   return (
     <span
       className={cn(
-        "relative h-[14px] w-6 overflow-hidden rounded-full border transition-[background,border-color,box-shadow]",
+        "relative h-3 w-[22px] overflow-hidden rounded-full border transition-[background,border-color,box-shadow]",
         active
           ? "border-transparent bg-[color-mix(in_oklab,var(--atc-text)_24%,transparent)] shadow-none"
           : "border-[var(--sidebar-tile-rest-border)] bg-transparent shadow-none",
@@ -197,8 +197,8 @@ function SettingsSwitch({ active }) {
         className={cn(
           "absolute top-1/2 size-2 -translate-y-1/2 rounded-full shadow-sm transition-transform",
           active
-            ? "translate-x-[13px] bg-atc-text"
-            : "translate-x-[3px] bg-atc-dim",
+            ? "translate-x-3 bg-atc-text"
+            : "translate-x-0.5 bg-atc-dim",
         )}
       />
     </span>
@@ -225,14 +225,14 @@ function LayerToggleRow({
       disabled={disabled}
       onClick={onClick}
     >
-      <span className="relative flex size-4 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-2.5">
+      <span className="relative flex size-3.5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-2.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[10.5px] font-semibold leading-tight text-atc-text">
+        <span className="block text-[9.5px] font-semibold leading-[1.08] text-atc-text">
           {label}
         </span>
-        <span className="mt-px block text-[8.5px] leading-snug text-atc-muted">
+        <span className="block text-[7.5px] leading-[1.08] text-atc-muted">
           {subtitle}
         </span>
       </span>
@@ -314,7 +314,7 @@ export default function MapSettingsSheet({
     bottom: "calc(8px + env(safe-area-inset-bottom))",
     height: "calc(100dvh - 16px - env(safe-area-inset-bottom))",
     width:
-      "min(360px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)))",
+      "min(340px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)))",
   };
 
   return (
@@ -340,16 +340,16 @@ export default function MapSettingsSheet({
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <SheetHeader className="space-y-1 px-4 py-2 pr-12 text-left">
-            <SheetTitle className="text-[15px] font-semibold leading-tight text-atc-text">
+          <SheetHeader className="space-y-0.5 px-4 py-1.5 pr-11 text-left">
+            <SheetTitle className="text-[14px] font-semibold leading-tight text-atc-text">
               {t("mapSettings.title")}
             </SheetTitle>
-            <SheetDescription className="text-[10px] leading-snug text-atc-muted">
+            <SheetDescription className="text-[9.5px] leading-snug text-atc-muted">
               {t("mapSettings.description")}
             </SheetDescription>
           </SheetHeader>
 
-          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2">
+          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-1.5">
             <section
               className="map-settings-section"
               aria-labelledby={`${id}-base-map`}
@@ -418,7 +418,7 @@ export default function MapSettingsSheet({
                   />
                 )}
               </div>
-              <div className="mt-2 space-y-1.5">
+              <div className="mt-1 space-y-1">
                 {userLocationActive ? (
                   <>
                     <div
@@ -485,14 +485,7 @@ export default function MapSettingsSheet({
                       </button>
                     ) : null}
                   </>
-                ) : (
-                  <div
-                    className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-atc-muted shadow-none"
-                    role="status"
-                  >
-                    {t("mapLayers.hideUserLocation")}
-                  </div>
-                )}
+                ) : null}
               </div>
             </section>
 
@@ -512,9 +505,9 @@ export default function MapSettingsSheet({
                   return (
                     <div
                       key={group.key}
-                      className="map-settings-unit-row grid min-h-[30px] grid-cols-[minmax(0,1fr)_minmax(94px,auto)] items-center gap-1.5 px-0.5 py-0.5"
+                      className="map-settings-unit-row grid min-h-6 grid-cols-[minmax(0,1fr)_minmax(88px,auto)] items-center gap-1 px-0 py-0"
                     >
-                      <span className="min-w-0 text-[10px] font-semibold leading-tight text-atc-text">
+                      <span className="min-w-0 text-[9.5px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}
                       </span>
                       <div
@@ -548,7 +541,10 @@ export default function MapSettingsSheet({
           </div>
 
           {showGuestPrompt ? (
-            <div className="px-4 py-1 text-[10px] leading-none text-atc-muted">
+            <div
+              className="map-settings-persistence px-4 py-0.5 text-[8.5px] leading-none text-atc-muted"
+              data-status="guest"
+            >
               {t("mapSettings.guestPrompt")}
             </div>
           ) : null}
@@ -556,16 +552,17 @@ export default function MapSettingsSheet({
           {showSignedInPersistence ? (
             <div
               className={cn(
-                "px-4 py-1 text-[10px] leading-none",
+                "map-settings-persistence px-4 py-0.5 text-[8.5px] leading-none",
                 mapSettingsSaveStatus === "error"
                   ? "text-[var(--atc-interaction-danger)]"
                   : "text-atc-muted",
               )}
+              data-status={mapSettingsSaveStatus}
               role="status"
               aria-live="polite"
             >
               <span className="flex items-center justify-between gap-3">
-                <span className="block text-[11px] font-semibold leading-tight text-atc-text">
+                <span className="block text-[9.5px] font-semibold leading-tight text-atc-text">
                   {t("mapSettings.deviceScope", { device: t(deviceLabelKey) })}
                 </span>
                 <AsyncStatusLine

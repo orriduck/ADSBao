@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 93;
+export const CHANGELOG_TOTAL_COUNT = 94;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.22",
+    kind: "patch",
+    title: {
+      en: "Compact interface rails",
+      zh: "界面 rail 压缩",
+    },
+    summary: {
+      en: "Home airport lists and map settings now use tighter aligned rails with quieter surfaces.",
+      zh: "首页机场列表和地图设置现在使用更紧凑的对齐 rail 与更安静的表面。",
+    },
+    highlights: [
+      {
+        en: "Home search, section labels, airport codes, and airport names now share exact rail coordinates",
+        zh: "首页搜索、分组标题、机场代码和机场名现在使用精确一致的 rail 坐标",
+      },
+      {
+        en: "Settings rows are shorter while preserving the same controls and labels",
+        zh: "设置行更短，同时保留原有控件和标签",
+      },
+      {
+        en: "The active base-map option now relies on the right rail marker instead of a filled row",
+        zh: "选中的底图选项现在依靠右侧 rail 标记，不再使用整行填充",
+      },
+    ],
+  },
   {
     version: "v2.26.21",
     kind: "patch",
@@ -171,32 +197,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "External-link affordance remains, but the arrow is smaller and quieter",
         zh: "外部链接提示仍然保留，但箭头更小、更安静",
-      },
-    ],
-  },
-  {
-    version: "v2.26.16",
-    kind: "patch",
-    title: {
-      en: "Tighter home list rails",
-      zh: "首页列表 rail 精修",
-    },
-    summary: {
-      en: "Home airport sections now share the same text axis as the search input and airport row names.",
-      zh: "首页机场分组现在与搜索输入文字和机场行名称共用同一条文字轴。",
-    },
-    highlights: [
-      {
-        en: "Section headings and descriptions move onto the airport-name rail instead of starting in the code column",
-        zh: "分组标题和说明移到机场名 rail，不再从代码列起始",
-      },
-      {
-        en: "Desktop airport code tags gain a little width without moving the airport-name axis",
-        zh: "桌面端机场代码标签略微加宽，同时不移动机场名对齐轴",
-      },
-      {
-        en: "Changelog highlight rows now use a quiet number rail instead of dot bullets",
-        zh: "更新日志摘要行现在使用更安静的数字 rail，不再使用圆点符号",
       },
     ],
   },

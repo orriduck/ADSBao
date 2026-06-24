@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.26.16",
+    kind: "patch",
+    title: {
+      en: "Tighter home list rails",
+      zh: "首页列表 rail 精修",
+    },
+    summary: {
+      en: "Home airport sections now share the same text axis as the search input and airport row names.",
+      zh: "首页机场分组现在与搜索输入文字和机场行名称共用同一条文字轴。",
+    },
+    highlights: [
+      {
+        en: "Section headings and descriptions move onto the airport-name rail instead of starting in the code column",
+        zh: "分组标题和说明移到机场名 rail，不再从代码列起始",
+      },
+      {
+        en: "Desktop airport code tags gain a little width without moving the airport-name axis",
+        zh: "桌面端机场代码标签略微加宽，同时不移动机场名对齐轴",
+      },
+      {
+        en: "Changelog highlight rows now use a quiet number rail instead of dot bullets",
+        zh: "更新日志摘要行现在使用更安静的数字 rail，不再使用圆点符号",
+      },
+    ],
+  },
+  {
     version: "v2.26.15",
     kind: "patch",
     title: {
