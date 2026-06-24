@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 76;
+export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.5",
+    kind: "patch",
+    title: {
+      en: "Compact map settings sheet",
+      zh: "地图设置面板压缩",
+    },
+    summary: {
+      en: "The map settings sheet is narrower and denser, with lighter selected-row glass and less footer chrome in landscape.",
+      zh: "地图设置面板变窄并提高密度，选中行玻璃感更轻，横屏底部提示也更少占位。",
+    },
+    highlights: [
+      {
+        en: "The settings drawer width, close control, header, and footer are tightened so the map keeps more working space",
+        zh: "设置抽屉宽度、关闭按钮、标题区和底部提示都更紧凑，让地图保留更多工作空间",
+      },
+      {
+        en: "Settings rows now use a tighter inline grid and smaller switches without adding separators or table wrappers",
+        zh: "设置行改用更紧的行内网格和更小开关，不新增分隔符或表格式包裹",
+      },
+      {
+        en: "Phone landscape now shows seven complete settings rows before scrolling",
+        zh: "手机横屏首屏现在能完整显示七行设置项后再滚动",
+      },
+    ],
+  },
   {
     version: "v2.26.4",
     kind: "patch",

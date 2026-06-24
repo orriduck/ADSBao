@@ -111,14 +111,14 @@ const LAYER_CONTROLS = [
 ];
 
 const sectionTitleClassName =
-  "mb-1 px-0.5 text-[8px] font-bold uppercase tracking-normal text-atc-muted";
+  "mb-0.5 px-0.5 text-[8px] font-bold uppercase tracking-normal text-atc-muted";
 
 const settingsListGroupClassName =
-  "map-settings-list-group grid gap-0.5 overflow-visible";
+  "map-settings-list-group grid gap-0 overflow-visible";
 
 const settingsOptionRowClassName = cn(
-  "group map-settings-option-row grid min-h-[38px] w-full grid-cols-[22px_minmax(0,1fr)_10px] items-center gap-2",
-  "rounded-[calc(var(--atc-radius-card)-2px)] px-1 py-1 text-left text-atc-text transition-[background,color,box-shadow,opacity] duration-150",
+  "group map-settings-option-row grid min-h-9 w-full grid-cols-[20px_minmax(0,1fr)_8px] items-center gap-1.5",
+  "rounded-[calc(var(--atc-radius-card)-2px)] px-1 py-0.5 text-left text-atc-text transition-[background,color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
   "data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
@@ -128,8 +128,8 @@ const settingsOptionRowClassName = cn(
 );
 
 const layerToggleRowClassName = cn(
-  "group grid min-h-[40px] w-full grid-cols-[22px_minmax(0,1fr)_34px] items-center gap-2",
-  "rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-left text-atc-text",
+  "group grid min-h-9 w-full grid-cols-[20px_minmax(0,1fr)_30px] items-center gap-1.5",
+  "rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-0.5 text-left text-atc-text",
   "transition-[background,border-color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
@@ -160,21 +160,21 @@ function SettingsOptionRow({
       data-active={active ? "true" : "false"}
       onClick={onClick}
     >
-      <span className="relative flex size-5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-[var(--atc-click-fg)] group-hover:text-atc-text [&>svg]:size-3">
+      <span className="relative flex size-5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-[var(--atc-click-fg)] group-hover:text-atc-text [&>svg]:size-[11px]">
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[11px] font-semibold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+        <span className="block text-[10.5px] font-semibold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
           {title}
         </span>
-        <span className="mt-0.5 block text-[9px] leading-snug text-atc-muted group-data-[active=true]:text-[var(--atc-click-muted)]">
+        <span className="mt-px block text-[8.5px] leading-snug text-atc-muted group-data-[active=true]:text-[var(--atc-click-muted)]">
           {description}
         </span>
       </span>
       <span
         aria-hidden="true"
         className={cn(
-          "ml-auto size-2 rounded-full border transition-[background,border-color,box-shadow]",
+          "ml-auto size-1.5 rounded-full border transition-[background,border-color,box-shadow]",
           active
             ? "border-[var(--atc-click-fg)] bg-[var(--atc-click-fg)] shadow-[0_0_0_2px_color-mix(in_oklab,var(--atc-click-fg)_14%,transparent)]"
             : "border-[var(--atc-line-strong)]",
@@ -188,7 +188,7 @@ function SettingsSwitch({ active }) {
   return (
     <span
       className={cn(
-        "relative h-5 w-8 overflow-hidden rounded-full border transition-[background,border-color,box-shadow]",
+        "relative h-[18px] w-[30px] overflow-hidden rounded-full border transition-[background,border-color,box-shadow]",
         active
           ? cn(
               "border-transparent [background:var(--atc-glass-active-bg)]",
@@ -201,9 +201,9 @@ function SettingsSwitch({ active }) {
     >
       <span
         className={cn(
-          "absolute top-1/2 size-3 -translate-y-1/2 rounded-full shadow-sm transition-transform",
+          "absolute top-1/2 size-2.5 -translate-y-1/2 rounded-full shadow-sm transition-transform",
           active
-            ? "translate-x-[17px] bg-[var(--atc-click-fg)]"
+            ? "translate-x-[15px] bg-[var(--atc-click-fg)]"
             : "translate-x-[3px] bg-atc-dim",
         )}
       />
@@ -231,14 +231,14 @@ function LayerToggleRow({
       disabled={disabled}
       onClick={onClick}
     >
-      <span className="relative flex size-5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-3">
+      <span className="relative flex size-5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-[11px]">
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[11px] font-semibold leading-tight text-atc-text">
+        <span className="block text-[10.5px] font-semibold leading-tight text-atc-text">
           {label}
         </span>
-        <span className="mt-0.5 block text-[9px] leading-snug text-atc-muted">
+        <span className="mt-px block text-[8.5px] leading-snug text-atc-muted">
           {subtitle}
         </span>
       </span>
@@ -320,7 +320,7 @@ export default function MapSettingsSheet({
     bottom: "calc(8px + env(safe-area-inset-bottom))",
     height: "calc(100dvh - 16px - env(safe-area-inset-bottom))",
     width:
-      "min(448px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)))",
+      "min(360px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)))",
   };
 
   return (
@@ -346,16 +346,16 @@ export default function MapSettingsSheet({
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <SheetHeader className="px-4 py-3 pr-14 text-left">
-            <SheetTitle className="text-[16px] font-semibold leading-tight text-atc-text">
+          <SheetHeader className="space-y-1 px-4 py-2 pr-12 text-left">
+            <SheetTitle className="text-[15px] font-semibold leading-tight text-atc-text">
               {t("mapSettings.title")}
             </SheetTitle>
-            <SheetDescription className="text-[10px] leading-relaxed text-atc-muted">
+            <SheetDescription className="text-[10px] leading-snug text-atc-muted">
               {t("mapSettings.description")}
             </SheetDescription>
           </SheetHeader>
 
-          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
+          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2">
             <section
               className="map-settings-section"
               aria-labelledby={`${id}-base-map`}
@@ -518,7 +518,7 @@ export default function MapSettingsSheet({
                   return (
                     <div
                       key={group.key}
-                      className="map-settings-unit-row grid min-h-[38px] grid-cols-[minmax(0,1fr)_minmax(112px,auto)] items-center gap-2 px-1 py-1.5"
+                      className="map-settings-unit-row grid min-h-[34px] grid-cols-[minmax(0,1fr)_minmax(104px,auto)] items-center gap-1.5 px-1 py-1"
                     >
                       <span className="min-w-0 text-[10px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}
@@ -554,7 +554,7 @@ export default function MapSettingsSheet({
           </div>
 
           {showGuestPrompt ? (
-            <div className="px-5 py-4 text-[12px] leading-relaxed text-atc-muted">
+            <div className="px-4 py-1 text-[10px] leading-none text-atc-muted">
               {t("mapSettings.guestPrompt")}
             </div>
           ) : null}
@@ -562,7 +562,7 @@ export default function MapSettingsSheet({
           {showSignedInPersistence ? (
             <div
               className={cn(
-                "border-t border-[var(--atc-line)] px-5 py-4 text-[12px] leading-relaxed",
+                "border-t border-[var(--atc-line)] px-4 py-1 text-[10px] leading-none",
                 mapSettingsSaveStatus === "error"
                   ? "text-[var(--atc-interaction-danger)]"
                   : "text-atc-muted",
