@@ -7506,21 +7506,21 @@ body {
 }
 
 .map-settings-sheet > button {
-    height: 34px;
-    right: 10px;
-    top: 10px;
-    width: 34px;
+    height: 28px;
+    right: 12px;
+    top: 12px;
+    width: 28px;
 }
 
 .map-settings-sheet > button > svg {
-    height: 14px;
-    width: 14px;
+    height: 12px;
+    width: 12px;
 }
 
 .map-settings-body {
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 7px;
 }
 
 .map-settings-section {

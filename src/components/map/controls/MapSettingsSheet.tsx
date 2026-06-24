@@ -117,33 +117,31 @@ const settingsListGroupClassName =
   "map-settings-list-group grid gap-0 overflow-visible";
 
 const settingsOptionRowClassName = cn(
-  "group map-settings-option-row grid min-h-9 w-full grid-cols-[20px_minmax(0,1fr)_8px] items-center gap-1.5",
-  "rounded-[calc(var(--atc-radius-card)-2px)] px-1 py-0.5 text-left text-atc-text transition-[background,color,box-shadow,opacity] duration-150",
+  "group map-settings-option-row grid min-h-8 w-full grid-cols-[18px_minmax(0,1fr)_3px] items-center gap-1.5",
+  "rounded-[4px] px-0.5 py-0.5 text-left text-atc-text transition-[background,color,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-  "data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
-  "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
-  "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[active=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
-  "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
+  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-text)_7%,transparent)] data-[active=true]:text-atc-text",
+  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_9%,transparent)]",
 );
 
 const layerToggleRowClassName = cn(
-  "group grid min-h-9 w-full grid-cols-[20px_minmax(0,1fr)_30px] items-center gap-1.5",
-  "rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-0.5 text-left text-atc-text",
-  "transition-[background,border-color,box-shadow,opacity] duration-150",
+  "group grid min-h-8 w-full grid-cols-[18px_minmax(0,1fr)_24px] items-center gap-1.5",
+  "rounded-[4px] bg-transparent px-0.5 py-0.5 text-left text-atc-text",
+  "transition-[background,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
   "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent",
 );
 
 const unitSegmentButtonClassName = cn(
-  "min-h-5 rounded-[var(--atc-radius-pill)] px-1.5 text-[8px] font-semibold leading-none text-atc-muted",
+  "min-h-[18px] rounded-[4px] px-1.5 text-[8px] font-semibold leading-none text-atc-muted",
   "transition-[background,color,box-shadow] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-  "data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
-  "data-[active=true]:shadow-[var(--atc-toolbar-button-active-shadow)]",
-  "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
+  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-text)_16%,transparent)] data-[active=true]:text-atc-text",
+  "data-[active=true]:shadow-none",
+  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_18%,transparent)]",
 );
 
 function SettingsOptionRow({
@@ -160,24 +158,24 @@ function SettingsOptionRow({
       data-active={active ? "true" : "false"}
       onClick={onClick}
     >
-      <span className="relative flex size-5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-[var(--atc-click-fg)] group-hover:text-atc-text [&>svg]:size-[11px]">
+      <span className="relative flex size-4 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-2.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[10.5px] font-semibold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+        <span className="block text-[10.5px] font-semibold leading-tight text-atc-text">
           {title}
         </span>
-        <span className="mt-px block text-[8.5px] leading-snug text-atc-muted group-data-[active=true]:text-[var(--atc-click-muted)]">
+        <span className="mt-px block text-[8.5px] leading-snug text-atc-muted">
           {description}
         </span>
       </span>
       <span
         aria-hidden="true"
         className={cn(
-          "ml-auto size-1.5 rounded-full border transition-[background,border-color,box-shadow]",
+          "ml-auto h-3 w-[2px] rounded-full transition-[background,opacity]",
           active
-            ? "border-[var(--atc-click-fg)] bg-[var(--atc-click-fg)] shadow-[0_0_0_2px_color-mix(in_oklab,var(--atc-click-fg)_14%,transparent)]"
-            : "border-[var(--atc-line-strong)]",
+            ? "bg-atc-text opacity-90"
+            : "bg-transparent opacity-0",
         )}
       />
     </button>
@@ -188,22 +186,18 @@ function SettingsSwitch({ active }) {
   return (
     <span
       className={cn(
-        "relative h-[18px] w-[30px] overflow-hidden rounded-full border transition-[background,border-color,box-shadow]",
+        "relative h-[14px] w-6 overflow-hidden rounded-full border transition-[background,border-color,box-shadow]",
         active
-          ? cn(
-              "border-transparent [background:var(--atc-glass-active-bg)]",
-              "[backdrop-filter:var(--atc-glass-active-frost)] [-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
-              "shadow-[var(--atc-toolbar-button-active-shadow)]",
-            )
+          ? "border-transparent bg-[color-mix(in_oklab,var(--atc-text)_24%,transparent)] shadow-none"
           : "border-[var(--sidebar-tile-rest-border)] bg-transparent shadow-none",
       )}
       aria-hidden="true"
     >
       <span
         className={cn(
-          "absolute top-1/2 size-2.5 -translate-y-1/2 rounded-full shadow-sm transition-transform",
+          "absolute top-1/2 size-2 -translate-y-1/2 rounded-full shadow-sm transition-transform",
           active
-            ? "translate-x-[15px] bg-[var(--atc-click-fg)]"
+            ? "translate-x-[13px] bg-atc-text"
             : "translate-x-[3px] bg-atc-dim",
         )}
       />
@@ -231,7 +225,7 @@ function LayerToggleRow({
       disabled={disabled}
       onClick={onClick}
     >
-      <span className="relative flex size-5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-[11px]">
+      <span className="relative flex size-4 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-2.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
@@ -518,7 +512,7 @@ export default function MapSettingsSheet({
                   return (
                     <div
                       key={group.key}
-                      className="map-settings-unit-row grid min-h-[34px] grid-cols-[minmax(0,1fr)_minmax(104px,auto)] items-center gap-1.5 px-1 py-1"
+                      className="map-settings-unit-row grid min-h-[30px] grid-cols-[minmax(0,1fr)_minmax(94px,auto)] items-center gap-1.5 px-0.5 py-0.5"
                     >
                       <span className="min-w-0 text-[10px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}
@@ -526,7 +520,7 @@ export default function MapSettingsSheet({
                       <div
                         role="radiogroup"
                         aria-label={t(group.titleKey)}
-                        className="map-settings-segmented-control grid auto-cols-fr grid-flow-col gap-0.5 rounded-[var(--atc-radius-pill)] border border-transparent bg-[var(--atc-control-surface-muted)] p-0.5 shadow-none"
+                        className="map-settings-segmented-control grid auto-cols-fr grid-flow-col gap-0.5 rounded-none border-0 bg-transparent p-0 shadow-none"
                       >
                         {group.options.map((option) => (
                           <button
@@ -562,7 +556,7 @@ export default function MapSettingsSheet({
           {showSignedInPersistence ? (
             <div
               className={cn(
-                "border-t border-[var(--atc-line)] px-4 py-1 text-[10px] leading-none",
+                "px-4 py-1 text-[10px] leading-none",
                 mapSettingsSaveStatus === "error"
                   ? "text-[var(--atc-interaction-danger)]"
                   : "text-atc-muted",
