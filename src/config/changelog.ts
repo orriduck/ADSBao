@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 74;
+export const CHANGELOG_TOTAL_COUNT = 75;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.3",
+    kind: "patch",
+    title: {
+      en: "Home airport list alignment",
+      zh: "首页机场列表对齐",
+    },
+    summary: {
+      en: "The home airport picker now uses a stricter inline row grid so airport codes, names, and right-side affordances stay aligned.",
+      zh: "首页机场选择列表改用更严格的行内网格，让机场代码、名称和右侧控件保持同一列线。",
+    },
+    highlights: [
+      {
+        en: "Airport rows now reserve a fixed code badge, text column, and trailing slot across discovery and search-result lists",
+        zh: "机场行现在在发现列表和搜索结果中统一保留固定代码 badge、正文列和右侧占位列",
+      },
+      {
+        en: "The code badge is subtle and token-driven, adding a column anchor without turning the list into boxed cards",
+        zh: "代码 badge 保持轻量并沿用 token，只提供列锚点，不把列表变成重盒子",
+      },
+      {
+        en: "The development Query Devtools button no longer covers the left sidebar during local UI review",
+        zh: "开发环境的 Query Devtools 按钮不再覆盖本地 UI 检查时的左侧栏",
+      },
+    ],
+  },
   {
     version: "v2.26.2",
     kind: "patch",

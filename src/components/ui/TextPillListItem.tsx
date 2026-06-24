@@ -58,14 +58,16 @@ export function TextPillListItem({
     <>
       <span
         className={cn(
-          "inline-flex w-full min-w-0 items-center justify-start px-0 py-0.5",
-          "truncate text-left text-[9px] font-black uppercase leading-none text-atc-text",
+          "inline-flex h-[18px] w-[42px] min-w-0 items-center justify-center rounded-[6px]",
+          "bg-[color-mix(in_oklab,var(--atc-text)_7%,transparent)] px-1",
+          "truncate text-center text-[8.5px] font-black uppercase leading-none text-atc-text",
+          "group-data-[active=true]:bg-[color-mix(in_oklab,var(--atc-click-fg)_12%,transparent)]",
           "group-data-[active=true]:text-[var(--atc-click-muted)]",
         )}
       >
         {pill}
       </span>
-      <span className="flex min-w-0 flex-col items-start">
+      <span className="flex min-w-0 flex-col items-start self-center">
         <span className="block w-full min-w-0 truncate text-[11.5px] font-bold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
           {title}
         </span>
@@ -84,16 +86,15 @@ export function TextPillListItem({
         <span className="flex w-4 items-center justify-center self-center text-atc-faint transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-atc-text group-data-[active=true]:text-[var(--atc-click-muted)]">
           {trailing}
         </span>
-      ) : null}
+      ) : (
+        <span aria-hidden="true" className="block w-4 self-center" />
+      )}
     </>
   );
 
   const classes = cn(
     "group relative isolate overflow-hidden text-left",
-    "grid w-full items-start gap-x-2.5",
-    trailing
-      ? "grid-cols-[38px_minmax(0,1fr)_16px]"
-      : "grid-cols-[38px_minmax(0,1fr)]",
+    "grid w-full grid-cols-[42px_minmax(0,1fr)_16px] items-center gap-x-2",
     // Flat at rest (no border/shadow) so the divided list stays tidy and
     // aligned like the original — but always rounded, so the hover tint and
     // active capsule read as rounded glass (a square highlight clashes with
