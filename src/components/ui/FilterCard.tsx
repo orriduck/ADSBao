@@ -115,6 +115,7 @@ export const FilterCard = forwardRef(function FilterCard(
   {
     className,
     shape,
+    contentLayout = "stack",
     asChild = false,
     active,
     type,
@@ -164,6 +165,7 @@ export const FilterCard = forwardRef(function FilterCard(
     <Comp
       ref={setRefs}
       data-active={active ? "true" : undefined}
+      data-layout={contentLayout}
       data-ui="filter-card"
       className={cn(filterCardVariants({ shape }), className)}
       {...extraProps}
@@ -199,6 +201,7 @@ export function FilterCardLabel({
         "[.airport-map-kit_&]:text-[8px]",
         className,
       )}
+      data-ui="filter-label"
       {...props}
     />
   );
@@ -220,6 +223,7 @@ export function FilterCardValue({
         "[.airport-map-kit_&]:text-[10px]",
         className,
       )}
+      data-ui="filter-value"
       {...props}
     />
   );

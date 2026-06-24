@@ -122,7 +122,7 @@ const layerToggleRowClassName = cn(
   "group grid min-h-[56px] w-full grid-cols-[34px_minmax(0,1fr)_40px] items-center gap-3",
   "rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)]",
   "bg-[var(--atc-control-surface-muted)] bg-clip-padding px-3 py-2 text-left text-atc-text",
-  "shadow-[var(--atc-control-inset-shadow-subtle)]",
+  "shadow-none",
   "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
   "transition-[background,border-color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
@@ -300,8 +300,11 @@ export default function MapSettingsSheet({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
-            <section className="mt-6" aria-labelledby={`${id}-base-map`}>
+          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
+            <section
+              className="map-settings-section"
+              aria-labelledby={`${id}-base-map`}
+            >
               <h3
                 id={`${id}-base-map`}
                 className={sectionTitleClassName}
@@ -326,7 +329,10 @@ export default function MapSettingsSheet({
               </div>
             </section>
 
-            <section className="mt-6" aria-labelledby={`${id}-layers`}>
+            <section
+              className="map-settings-section"
+              aria-labelledby={`${id}-layers`}
+            >
               <h3
                 id={`${id}-layers`}
                 className={sectionTitleClassName}
@@ -363,60 +369,77 @@ export default function MapSettingsSheet({
                     onClick={onToggleUserLocation}
                   />
                 )}
-
               </div>
               <div className="mt-3 space-y-2">
                 {userLocationActive ? (
                   <>
-                  <div
-                    className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={userLocationPositionReady ? "text-[var(--atc-mint)]" : userLocationPermissionDenied ? "text-[var(--atc-interaction-danger)]" : "text-atc-muted"}>
-                        {userLocationPositionReady
-                          ? t("map.locationReady")
-                          : userLocationPermissionDenied
-                            ? t("map.locationDeniedShort")
-                            : userLocationPending
-                              ? t("mapLayers.locatingUser")
-                              : t("map.locationNotReady")}
-                      </span>
-                    </div>
-                    <div className="mt-1.5 flex items-center gap-2">
-                      <span>{t("map.compassHeading")}</span>
-                      <span className={userLocationCompassHeadingDeg != null ? "text-[var(--atc-mint)]" : "text-atc-muted"}>
-                        {userLocationCompassHeadingDeg != null
-                          ? t("map.compassReady", { degrees: Math.round(userLocationCompassHeadingDeg) })
-                          : t("map.compassUnavailable")}
-                      </span>
-                    </div>
-                  </div>
-                  {userLocationNotice ? (
                     <div
-                      className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
+                      className="map-settings-note rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-none"
                       role="status"
                       aria-live="polite"
                     >
-                      {userLocationNotice}
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={
+                            userLocationPositionReady
+                              ? "text-[var(--atc-mint)]"
+                              : userLocationPermissionDenied
+                                ? "text-[var(--atc-interaction-danger)]"
+                                : "text-atc-muted"
+                          }
+                        >
+                          {userLocationPositionReady
+                            ? t("map.locationReady")
+                            : userLocationPermissionDenied
+                              ? t("map.locationDeniedShort")
+                              : userLocationPending
+                                ? t("mapLayers.locatingUser")
+                                : t("map.locationNotReady")}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span>{t("map.compassHeading")}</span>
+                        <span
+                          className={
+                            userLocationCompassHeadingDeg != null
+                              ? "text-[var(--atc-mint)]"
+                              : "text-atc-muted"
+                          }
+                        >
+                          {userLocationCompassHeadingDeg != null
+                            ? t("map.compassReady", {
+                                degrees: Math.round(userLocationCompassHeadingDeg),
+                              })
+                            : t("map.compassUnavailable")}
+                        </span>
+                      </div>
                     </div>
-                  ) : null}
-                  {!userLocationPositionReady && !userLocationPending && onRequestUserLocationPermission ? (
-                    <button
-                      type="button"
-                      className="w-full rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] font-semibold leading-snug text-[var(--atc-accent)] shadow-[var(--atc-control-inset-shadow-subtle)] transition-colors hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98]"
-                      onClick={onRequestUserLocationPermission}
-                    >
-                      {userLocationPermissionDenied
-                        ? t("map.requestLocationPermission")
-                        : t("map.forceRetryLocation")}
-                    </button>
-                  ) : null}
+                    {userLocationNotice ? (
+                      <div
+                        className="map-settings-note rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-none"
+                        role="status"
+                        aria-live="polite"
+                      >
+                        {userLocationNotice}
+                      </div>
+                    ) : null}
+                    {!userLocationPositionReady &&
+                    !userLocationPending &&
+                    onRequestUserLocationPermission ? (
+                      <button
+                        type="button"
+                        className="map-settings-note w-full rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] font-semibold leading-snug text-[var(--atc-accent)] shadow-none transition-colors hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98]"
+                        onClick={onRequestUserLocationPermission}
+                      >
+                        {userLocationPermissionDenied
+                          ? t("map.requestLocationPermission")
+                          : t("map.forceRetryLocation")}
+                      </button>
+                    ) : null}
                   </>
                 ) : (
                   <div
-                    className="rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-[var(--atc-control-inset-shadow-subtle)]"
+                    className="map-settings-note rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 text-[11px] leading-snug text-atc-muted shadow-none"
                     role="status"
                   >
                     {t("mapLayers.hideUserLocation")}
@@ -425,7 +448,10 @@ export default function MapSettingsSheet({
               </div>
             </section>
 
-            <section className="mt-6" aria-labelledby={`${id}-units`}>
+            <section
+              className="map-settings-section"
+              aria-labelledby={`${id}-units`}
+            >
               <h3
                 id={`${id}-units`}
                 className={sectionTitleClassName}

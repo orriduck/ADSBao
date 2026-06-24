@@ -13,6 +13,7 @@ type MetricCardProps = {
   unit?: React.ReactNode;
   active?: boolean;
   onClick?: () => void;
+  contentLayout?: "stack" | "split";
   valueSize?: "default" | "compact" | string;
   valueTranslate?: boolean;
   className?: string;
@@ -28,6 +29,7 @@ export function MetricGrid({ className, children, label = "Metrics" }: MetricGri
   return (
     <div
       role="group"
+      data-ui="metric-grid"
       aria-label={label}
       className={cn(
         "grid grid-cols-2 gap-2.5 bg-transparent",
@@ -139,11 +141,13 @@ const unitClass = cn(
 function InteractiveMetricCard({
   active,
   onClick,
+  contentLayout = "stack",
   className,
   children,
 }: {
   active: boolean;
   onClick?: () => void;
+  contentLayout?: "stack" | "split";
   className?: string;
   children: React.ReactNode;
 }) {
@@ -166,6 +170,7 @@ function InteractiveMetricCard({
       ref={ref}
       aria-selected={active}
       data-active={active ? "true" : undefined}
+      data-layout={contentLayout}
       data-ui="metric-card"
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -190,32 +195,56 @@ export function MetricCard({
   unit = "",
   active = false,
   onClick,
+  contentLayout = "stack",
   valueSize = "default",
   valueTranslate = false,
   className,
 }: MetricCardProps) {
   const isInteractive = Boolean(onClick);
+  const valueNode = (
+    <strong
+      data-ui="metric-value"
+      translate={valueTranslate ? undefined : "no"}
+      className={cn(
+        valueClass,
+        valueSize === "compact" && "text-[22px] [.airport-map-kit_&]:text-[18px]",
+        contentLayout === "split" && "h-auto w-auto justify-end text-right",
+        !valueTranslate && "notranslate",
+      )}
+    >
+      {value}
+    </strong>
+  );
+  const unitNode = unit ? (
+    <small
+      data-ui="metric-unit"
+      className={cn(
+        unitClass,
+        contentLayout === "split" && "h-auto leading-none",
+        "notranslate",
+      )}
+      translate="no"
+    >
+      {unit}
+    </small>
+  ) : contentLayout === "split" ? null : (
+    <small data-ui="metric-unit" className={unitClass} aria-hidden="true">
+      &nbsp;
+    </small>
+  );
   const body = (
     <>
-      <span className={labelClass}>{label}</span>
-      <strong
-        translate={valueTranslate ? undefined : "no"}
-        className={cn(
-          valueClass,
-          valueSize === "compact" && "text-[22px] [.airport-map-kit_&]:text-[18px]",
-          !valueTranslate && "notranslate",
-        )}
-      >
-        {value}
-      </strong>
-      {unit ? (
-        <small className={cn(unitClass, "notranslate")} translate="no">
-          {unit}
-        </small>
+      <span data-ui="metric-label" className={labelClass}>{label}</span>
+      {contentLayout === "split" ? (
+        <span data-ui="metric-value-group" className="flex min-w-0 items-baseline justify-end gap-1 text-right">
+          {valueNode}
+          {unitNode}
+        </span>
       ) : (
-        <small className={unitClass} aria-hidden="true">
-          &nbsp;
-        </small>
+        <>
+          {valueNode}
+          {unitNode}
+        </>
       )}
     </>
   );
@@ -225,6 +254,7 @@ export function MetricCard({
       <InteractiveMetricCard
         active={active}
         onClick={onClick}
+        contentLayout={contentLayout}
         className={className}
       >
         {body}
@@ -235,6 +265,7 @@ export function MetricCard({
   return (
     <div
       data-active={active ? "true" : undefined}
+      data-layout={contentLayout}
       data-ui="metric-card"
       className={cn("group", cardVariants({ interactive: false }), className)}
     >

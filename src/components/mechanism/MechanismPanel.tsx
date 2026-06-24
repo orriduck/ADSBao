@@ -27,7 +27,7 @@ export default function MechanismPanel() {
         </p>
       </div>
 
-      <ol className="dither-list flex flex-col gap-1 px-6">
+      <ol className="dither-list dither-list-flow mx-6 flex flex-col gap-1">
         {MECHANISM_ITEMS.map((item, index) => {
           const expanded = item.id === expandedId;
           const panelId = `mechanism-${item.id}`;
@@ -142,7 +142,7 @@ function MechanismFlow({
       className={cn(
         "relative mt-3 overflow-hidden rounded-[calc(var(--atc-radius-card)-6px)]",
         "border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)]",
-        "px-3 py-2.5 shadow-[var(--atc-control-inset-shadow)]",
+        "px-3 py-2.5 shadow-none",
         "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
       )}
     >

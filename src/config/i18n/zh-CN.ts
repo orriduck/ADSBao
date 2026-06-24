@@ -249,7 +249,7 @@ const zhCN = {
     any: "不限",
     routed: "仅有航路",
     flightTelemetry: "飞行参数",
-    airportViews: "机场侧栏视图",
+    airportViews: "视图",
     weatherViews: "天气视图",
     unknownAirport: "未知机场",
     nearMeLabel: "位置",

@@ -66,19 +66,17 @@ export default function AirportDiscoveryPanel({
   }, [topics.length]);
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-5 px-6 pb-7">
+    <div ref={containerRef} className="dither-content-stack flex flex-col">
       <NearMeDiscoverySection />
 
-      <div className="flex flex-col gap-5">
-        {topics.map((topic) => (
-          <AirportDiscoveryTopicSection
-            key={topic.id}
-            topic={topic}
-            onOpen={onOpen}
-            onPrefetch={onPrefetch}
-          />
-        ))}
-      </div>
+      {topics.map((topic) => (
+        <AirportDiscoveryTopicSection
+          key={topic.id}
+          topic={topic}
+          onOpen={onOpen}
+          onPrefetch={onPrefetch}
+        />
+      ))}
     </div>
   );
 }
@@ -98,7 +96,10 @@ function NearMeDiscoverySection() {
   };
 
   return (
-    <section className="min-w-0" aria-labelledby="airport-discovery-nearby">
+    <section
+      className="dither-section-flow min-w-0"
+      aria-labelledby="airport-discovery-nearby"
+    >
       <DiscoverySectionHeader
         id="airport-discovery-nearby"
         title={t("search.discovery.nearby.title")}
@@ -114,7 +115,10 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
   const { t } = useI18n();
 
   return (
-    <section className="min-w-0" aria-labelledby={`airport-discovery-${topic.id}`}>
+    <section
+      className="dither-section-flow min-w-0"
+      aria-labelledby={`airport-discovery-${topic.id}`}
+    >
       <DiscoverySectionHeader
         id={`airport-discovery-${topic.id}`}
         title={t(topic.titleKey)}

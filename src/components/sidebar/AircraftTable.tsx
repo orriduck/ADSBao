@@ -257,7 +257,7 @@ export default function AircraftTable({
         </div>
 
         <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-3">
-          <label className="aircraft-search">
+          <label className="search-input aircraft-search">
             <Search size={13} aria-hidden="true" />
             <input
               type="search"
@@ -285,6 +285,7 @@ export default function AircraftTable({
               <TooltipTrigger asChild>
                 <FilterCard
                   active={trafficFilter === "routed"}
+                  contentLayout="split"
                   aria-pressed={trafficFilter === "routed"}
                   onClick={() =>
                     setTrafficFilter(
@@ -321,7 +322,14 @@ export default function AircraftTable({
             ariaLabel={t("filters.altitudeFilterAria")}
           />
         </FilterCardGrid>
+      </div>
 
+      <div
+        className={cn(
+          "aircraft-table-list-card flex flex-col",
+          fill && "flex-1 min-h-0",
+        )}
+      >
         <div className="aircraft-table-header aircraft-table-row-grid grid grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3">
           <span aria-hidden="true" />
           <span>{t("sidebar.callsignOrRoute")}</span>
@@ -360,71 +368,71 @@ export default function AircraftTable({
             ))}
           </ul>
         ) : null}
-      </div>
 
-      <div
-        className={cn(
-          "aircraft-table-scroll-shell",
-          fill ? "flex-1 min-h-0" : "overflow-visible",
-        )}
-      >
-        {listRows.length === 0 &&
-        filteredAirports.length === 0 &&
-        !pinnedAircraft ? (
-          <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
-            {aircraft.length + airports.length
-              ? t("sidebar.noMatches")
-              : t("sidebar.nothingInRange")}
-          </div>
-        ) : fill ? (
-          <VirtualNearbyList
-            items={combinedRows}
-            selectedAircraftId={selectedAircraftId}
-            selectedAirportIcao={selectedAirportIcao}
-            onSelectAircraft={onSelectAircraft}
-            onSelectAirport={onSelectAirport}
-            resetSignal={aircraftListResetKey}
-          />
-        ) : (
-          <>
-            {listRows.length > 0 && (
-              <AircraftList
-                aircraft={listRows}
-                resetKey={aircraftListResetKey}
-                selectedAircraftId={selectedAircraftId}
-                onSelectAircraft={onSelectAircraft}
-              />
-            )}
-            {filteredAirports.length > 0 && (
-              <ul
-                ref={airportListMotionRef}
-                className="app-list-motion divide-y divide-atc-line"
-              >
-                {filteredAirports.map((airport, index) => {
-                  const motionStyle = {
-                    "--motion-order": Math.min(index, 5),
-                  } as CSSProperties;
-                  return (
-                    <li
-                      key={`airport:${airport.icao}`}
-                      data-gsap-reorder-key={`airport:${airport.icao || index}`}
-                      className="relative list-none [perspective:800px]"
-                      style={motionStyle}
-                    >
-                      <AirportSlot
-                        airport={airport}
-                        cascadeOrder={-1}
-                        airportId={airport.icao}
-                        selected={airport.icao === selectedAirportIcao}
-                        onSelectAirport={onSelectAirport}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </>
-        )}
+        <div
+          className={cn(
+            "aircraft-table-scroll-shell",
+            fill ? "flex-1 min-h-0" : "overflow-visible",
+          )}
+        >
+          {listRows.length === 0 &&
+          filteredAirports.length === 0 &&
+          !pinnedAircraft ? (
+            <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
+              {aircraft.length + airports.length
+                ? t("sidebar.noMatches")
+                : t("sidebar.nothingInRange")}
+            </div>
+          ) : fill ? (
+            <VirtualNearbyList
+              items={combinedRows}
+              selectedAircraftId={selectedAircraftId}
+              selectedAirportIcao={selectedAirportIcao}
+              onSelectAircraft={onSelectAircraft}
+              onSelectAirport={onSelectAirport}
+              resetSignal={aircraftListResetKey}
+            />
+          ) : (
+            <>
+              {listRows.length > 0 && (
+                <AircraftList
+                  aircraft={listRows}
+                  resetKey={aircraftListResetKey}
+                  selectedAircraftId={selectedAircraftId}
+                  onSelectAircraft={onSelectAircraft}
+                />
+              )}
+              {filteredAirports.length > 0 && (
+                <ul
+                  ref={airportListMotionRef}
+                  className="app-list-motion divide-y divide-atc-line"
+                >
+                  {filteredAirports.map((airport, index) => {
+                    const motionStyle = {
+                      "--motion-order": Math.min(index, 5),
+                    } as CSSProperties;
+                    return (
+                      <li
+                        key={`airport:${airport.icao}`}
+                        data-gsap-reorder-key={`airport:${airport.icao || index}`}
+                        className="relative list-none [perspective:800px]"
+                        style={motionStyle}
+                      >
+                        <AirportSlot
+                          airport={airport}
+                          cascadeOrder={-1}
+                          airportId={airport.icao}
+                          selected={airport.icao === selectedAirportIcao}
+                          onSelectAirport={onSelectAirport}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -523,6 +531,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
     <div ref={wrapperRef} className="relative">
       <FilterCard
         shape="select"
+        contentLayout="split"
         data-state={open ? "open" : "closed"}
         active={isMultiSelect}
         aria-haspopup="listbox"
@@ -632,6 +641,7 @@ function EntityFilterCycleCard({
   return (
     <FilterCard
       active={value !== "all"}
+      contentLayout="split"
       aria-label={ariaLabel}
       onClick={onValueChange}
     >
@@ -726,6 +736,7 @@ function AircraftAltitudeFilterCard({
     <div ref={wrapperRef} className="relative">
       <FilterCard
         shape="select"
+        contentLayout="split"
         data-state={open ? "open" : "closed"}
         active={!allSelected}
         aria-haspopup="listbox"

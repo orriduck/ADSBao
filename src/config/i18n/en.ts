@@ -255,7 +255,7 @@ const en = {
     any: "Any",
     routed: "Routed",
     flightTelemetry: "Flight telemetry",
-    airportViews: "Airport sidebar views",
+    airportViews: "Views",
     weatherViews: "Weather views",
     unknownAirport: "Unknown airport",
     nearMeLabel: "Position",

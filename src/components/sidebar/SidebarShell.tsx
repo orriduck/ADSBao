@@ -74,10 +74,6 @@ export default function SidebarShell({
     brandCompact,
     isCollapsed,
     handleScroll,
-    handleWheel,
-    handleTouchStart,
-    handleTouchEnd,
-    handleTouchMove,
   } = useCollapsibleSidebarPanel({
     collapsed,
     collapseEnabled: collapseEnabled && !isMobileOverlay,
@@ -103,11 +99,6 @@ export default function SidebarShell({
       data-collapsed={isCollapsed ? "true" : undefined}
       data-mobile-overlay={isMobileOverlay ? "true" : undefined}
       onScroll={handleScroll}
-      onWheel={handleWheel}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
     >
       <SidebarBrandDock
         compact={isCollapsed || brandCompact}

@@ -27,6 +27,7 @@ Avoid generic SaaS dashboards, marketing hero pages, neon cyberpunk radar tropes
 3. State colors carry meaning: reserve accent color for selection, active controls, and operational state; use warnings and errors sparingly.
 4. Industrial restraint: use sharp panels, thin rules, gridded surfaces, and tinted neutrals instead of rounded marketing cards.
 5. Preserve flow: visual changes must not change route structure, click paths, data flow, or existing map-layer semantics.
+6. Split workspace on large screens: desktop and landscape layouts should reserve a real left column for airport context and controls, not float the sidebar over the map. Keep the column quiet and Linear-like in structure: compact two-column groups, small section labels, restrained spacing, and the established metric-card glass selected state for active controls.
 
 ## Accessibility & Inclusion
 

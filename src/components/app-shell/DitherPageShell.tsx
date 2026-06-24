@@ -40,9 +40,7 @@ export default function DitherPageShell({
   const sidebarCollapsed =
     sidebarCollapseState.collapsed &&
     sidebarCollapseState.routeKey === routeKey;
-  const viewportWidth = clientDeviceProfile.viewport?.width ?? 1024;
-  const collapseEnabled =
-    clientDeviceLayout.layoutMode === "desktop" && viewportWidth > 720;
+  const collapseEnabled = false;
   const collapseSidebar = useCallback(() => {
     setSidebarCollapseState({ collapsed: true, routeKey });
   }, [routeKey]);

@@ -14,8 +14,8 @@ export default function SidebarViewSwitch({
   activeView = "briefing",
   onViewChange,
   metar = null,
-  aircraft = [],
   metarLoading = false,
+  aircraft = [],
   routeProvider = "",
   frequencies = [],
   candidateSpotCount = 0,
@@ -32,14 +32,10 @@ export default function SidebarViewSwitch({
 }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const temperature = formatTemperature(metar, units.temperature);
-  // When METAR is loading, show a pending label instead of default
-  // "WX" — the user should see that data is inbound, not assume WX means
-  // the flight rule category.
-  const isMetarMissing = !metar;
-  const rule = metarLoading && isMetarMissing
-    ? "—"
-    : (metar?.flightCategory?.toUpperCase() || "WX");
+  const temperature = metarLoading
+    ? { value: "—", unit: temperatureUnitLabel(units.temperature) }
+    : formatTemperature(metar, units.temperature);
+  const temperatureUnit = temperature.value === "—" ? undefined : temperature.unit;
   const showMovementCards =
     featureFlagsResolved && routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
   const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
@@ -68,14 +64,15 @@ export default function SidebarViewSwitch({
         <SidebarMetricCard
           label={t("sidebar.weather")}
           value={temperature.value}
-          unit={temperature.unit}
+          unit={temperatureUnit}
+          contentLayout="split"
           active={activeView === "briefing"}
           onClick={() => onViewChange?.("briefing")}
         />
         <SidebarMetricCard
           label={t("sidebar.nearby")}
           value={<NumberFlow value={aircraft.length} />}
-          unit={`${rule} / ADS-B`}
+          contentLayout="split"
           active={activeView === "traffic"}
           onClick={() => onViewChange?.("traffic")}
         />
@@ -88,14 +85,15 @@ export default function SidebarViewSwitch({
       <SidebarMetricCard
         label={t("sidebar.weather")}
         value={temperature.value}
-        unit={temperature.unit}
+        unit={temperatureUnit}
+        contentLayout="split"
         active={activeView === "briefing"}
         onClick={() => onViewChange?.("briefing")}
       />
       <SidebarMetricCard
         label={t("sidebar.flights")}
         value={<NumberFlow value={aircraft.length} />}
-        unit={`${rule} / ADS-B`}
+        contentLayout="split"
         active={activeView === "traffic"}
         onClick={() => onViewChange?.("traffic")}
       />
@@ -103,7 +101,7 @@ export default function SidebarViewSwitch({
         <SidebarMetricCard
           label={t("sidebar.atc")}
           value={<NumberFlow value={atcCount} />}
-          unit={t("sidebar.metricUnits.frequency")}
+          contentLayout="split"
           active={activeView === "atc"}
           onClick={() => onViewChange?.("atc")}
         />
@@ -111,7 +109,7 @@ export default function SidebarViewSwitch({
       <SidebarMetricCard
         label={t("sidebar.spotting")}
         value={<NumberFlow value={spottingCount} />}
-        unit={t("sidebar.metricUnits.spots")}
+        contentLayout="split"
         active={activeView === "spotting"}
         onClick={onOpenSpotting}
       />
@@ -120,14 +118,14 @@ export default function SidebarViewSwitch({
           <SidebarMetricCard
             label={t("sidebar.departures")}
             value={<NumberFlow value={departureCount} />}
-            unit={t("sidebar.metricUnits.flights")}
+            contentLayout="split"
             active={activeView === "departures"}
             onClick={() => onViewChange?.("departures")}
           />
           <SidebarMetricCard
             label={t("sidebar.arrivals")}
             value={<NumberFlow value={arrivalCount} />}
-            unit={t("sidebar.metricUnits.flights")}
+            contentLayout="split"
             active={activeView === "arrivals"}
             onClick={() => onViewChange?.("arrivals")}
           />

@@ -100,6 +100,19 @@ Soft, capsule-driven geometry:
   override it smaller).
 - Panels/shell: `--atc-radius-panel` (18px) and `--atc-radius-shell` (32px).
 
+## Split Sidebars
+
+Airport, aircraft, and static app pages use a split workspace on desktop and
+landscape: the sidebar owns a real left column and the main surface starts to
+its right. Do not turn the sidebar into a floating overlay in those contexts.
+The left column still uses the frosted glass material, but its internal rhythm
+should be closer to Linear than to a chat client: compact two-column groups,
+small section labels, short tabular values, and restrained spacing. Active
+sidebar controls should keep the established metric-card glass selected state,
+including the luminous selected shadow and large numeric values where the card
+is metric-driven. The right-side map/page toolbar keeps its existing toolbar
+material and placement.
+
 ## Typography
 
 Sans stack (Google Sans Flex / Manrope style) for product text; tabular

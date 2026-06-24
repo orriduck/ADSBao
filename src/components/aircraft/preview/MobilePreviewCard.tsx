@@ -50,15 +50,11 @@ export default function MobilePreviewCard({
         "isolate overflow-hidden select-none pointer-events-none",
         "app-preview-transition mobile-preview-card-enter",
         "rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] text-atc-text",
-        // Frosted material card under a warm top-left gradient layer
-        // (same 135deg language as the sidebar identity surface). The
-        // semi-opaque preview surface plus a strong backdrop blur diffuse
-        // the map behind the card into soft gray; the gradient's
-        // transparent half lets that frosted wash read through.
-        "bg-[var(--atc-surface-preview-card)]",
-        "[background-image:var(--atc-preview-accent-wash)]",
+        // Same frosted preview surface as the desktop card: one
+        // semi-opaque material plus strong backdrop blur over the map.
+        "[background:var(--atc-surface-preview-card)]",
         "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
-        "shadow-[var(--app-floating-shadow),var(--atc-preview-card-inset)]",
+        "shadow-[var(--preview-card-shadow),var(--atc-preview-card-inset)]",
         // Bottom padding matches the 14px horizontal inset on the
         // actions row so the gap around the Track button reads as
         // equal on the left, right, and bottom.

@@ -106,7 +106,7 @@ export default function ChangelogPanel() {
         </div>
       </div>
 
-      <ol className="dither-list flex flex-none flex-col gap-2 px-6 pb-6">
+      <ol className="dither-list dither-list-flow mx-6 mb-6 flex flex-none flex-col gap-2">
         {visibleReleases.map((release, index) => (
           <ChangelogEntry
             key={release.version}

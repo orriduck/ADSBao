@@ -41,9 +41,47 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 65;
+export const CHANGELOG_TOTAL_COUNT = 66;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.24.2",
+    kind: "patch",
+    title: {
+      en: "Sidebar layout and navigation cleanup",
+      zh: "侧边栏布局与导航呈现优化",
+    },
+    summary: {
+      en: "Desktop and landscape views now keep the sidebar and main surface as separate left-right regions. Sidebar controls use full-cell two-column groups while preserving the metric-card glass selected state and large numeric values.",
+      zh: "桌面与横屏现在将侧边栏和主界面保持为左右两个区域。侧栏控件改为铺满单元格的双列分组，同时保留 metric card 的玻璃选中态和大号数字。",
+    },
+    highlights: [
+      {
+        en: "Airport view metrics now keep large values, with weather showing value and unit together while other metrics drop secondary unit labels",
+        zh: "机场视图指标继续保持大号数值，天气合并显示数值和单位，其它指标移除副单位文字",
+      },
+      {
+        en: "Desktop and landscape sidebars keep the original width while the map/page toolbar remains unchanged",
+        zh: "桌面与横屏侧边栏保持原来的宽度，地图/页面工具栏保持不变",
+      },
+      {
+        en: "Mobile portrait and landscape sidebar controls now share the same selected-state vocabulary",
+        zh: "移动端竖屏与横屏的侧栏控件现在使用同一套选中态语言",
+      },
+      {
+        en: "The sidebar aircraft search now matches the Home search pill while metric and filter groups read as distinct resting glass sections",
+        zh: "侧栏航班搜索现在与首页搜索胶囊保持一致，metric 与筛选组也更像独立的静态玻璃分区",
+      },
+      {
+        en: "Static pages keep open sections with aligned rounded rows, and no scroll-to-pill collapse",
+        zh: "首页等静态页保持开放式分段，条目圆角和缩进统一，并取消滚动收成 pill 的效果",
+      },
+      {
+        en: "Desktop and mobile preview cards now share the same frosted preview-card material",
+        zh: "桌面与移动端 preview card 现在共享同一套磨砂玻璃材质",
+      },
+    ],
+  },
   {
     version: "v2.24.1",
     kind: "patch",
@@ -155,94 +193,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Clicking the spotting metric card opens the spotting panel without changing the current map zoom",
         zh: "点击拍机点指标卡只打开拍机点面板,不会改变当前地图缩放",
-      },
-    ],
-  },
-  {
-    version: "v2.23.2",
-    kind: "patch",
-    title: {
-      en: "Photo spot map polish",
-      zh: "拍机点地图修正",
-    },
-    summary: {
-      en: "Airport photo locations now stay visible across map zoom levels, with compact map badges at the farthest view and a simpler navigation chooser.",
-      zh: "机场拍机点现在会在各级地图缩放中保持显示,最远视图使用更紧凑的地图 badge,导航选择也更精简。",
-    },
-    highlights: [
-      {
-        en: "Photo locations render as compact map badges at the farthest zoom and as direct camera markers when zoomed closer",
-        zh: "拍机点在最远缩放下以紧凑地图 badge 呈现,靠近后恢复为直接的相机点",
-      },
-      {
-        en: "The map-navigation modal now keeps only the spot name and icon-based map choices, without exposing coordinates",
-        zh: "地图导航弹窗现在只保留点名和图标化地图入口,不再展示坐标",
-      },
-    ],
-  },
-  {
-    version: "v2.23.1",
-    kind: "patch",
-    title: {
-      en: "Plane Hunter zoom cap",
-      zh: "拍机倍率收敛",
-    },
-    summary: {
-      en: "Plane Hunter camera zoom now stays within practical 1x, 2x, and 4x controls instead of surfacing excessive digital magnification.",
-      zh: "拍机相机倍率现在收敛到更实用的 1x、2x、4x,不再把过高的数码放大作为主控制。",
-    },
-    highlights: [
-      {
-        en: "The live camera zoom shortcuts and slider now cap at 4x even when the browser reports a larger camera zoom range",
-        zh: "即使浏览器报告更大的相机缩放范围,实时相机的快捷倍率和滑杆也会限制在 4x",
-      },
-    ],
-  },
-  {
-    version: "v2.23.0",
-    kind: "feat",
-    title: {
-      en: "Plane Hunter lens controls",
-      zh: "拍机镜头控制",
-    },
-    summary: {
-      en: "Plane Hunter's live camera now exposes camera selection when the browser provides multiple lenses, with clearer guidance about how zoom is applied.",
-      zh: "拍机实时相机现在会在浏览器暴露多个镜头时提供镜头选择,并更清楚说明倍率如何作用在当前镜头上。",
-    },
-    highlights: [
-      {
-        en: "Added a lens picker next to camera zoom for browsers that expose ultra-wide, wide, or telephoto inputs",
-        zh: "在相机倍率旁加入镜头选择,支持浏览器暴露的超广角、广角或长焦输入",
-      },
-      {
-        en: "Zoom controls now explain that magnification is based on the selected camera and may become digital crop when no separate lens is exposed",
-        zh: "倍率控件会说明倍率基于当前镜头,没有独立镜头可切时高倍率可能是数码裁切",
-      },
-    ],
-  },
-  {
-    version: "v2.22.18",
-    kind: "patch",
-    title: {
-      en: "Location permission flow cleanup",
-      zh: "位置权限流程整理",
-    },
-    summary: {
-      en: "Here mode now owns its location and compass prompt directly, while airport and flight detail maps wait for saved map settings before requesting my location.",
-      zh: "here 模式现在自己请求位置和罗盘,机场与飞机详情地图会先等地图设置,只有我的位置开启后才请求定位。",
-    },
-    highlights: [
-      {
-        en: "Entering /here requests location and compass without reading or saving the map setting",
-        zh: "进入 /here 会请求位置和罗盘,不读取也不保存地图里的我的位置设置",
-      },
-      {
-        en: "Airport and flight detail pages request location only after hydrated settings enable the layer",
-        zh: "机场和飞机详情页只会在设置加载完成且我的位置开启后请求定位",
-      },
-      {
-        en: "Turning my location on from map settings immediately saves the setting and starts the location plus compass request",
-        zh: "在地图设置里打开我的位置会立即保存设置,并开始请求定位和罗盘",
       },
     ],
   },
