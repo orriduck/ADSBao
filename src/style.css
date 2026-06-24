@@ -7898,6 +7898,26 @@ body {
     }
 }
 
+/* Home airport lists share one rail with the search input. The row itself
+   stays open, while the code, name, and chevron define the order. */
+.search-screen .dither-content-stack {
+    padding-inline: 20px;
+}
+
+.search-screen .dither-section-flow [data-ui="text-pill-list-item"] {
+    column-gap: 8px;
+    grid-template-columns: 42px minmax(0, 1fr) 16px;
+    margin-inline: 0;
+    padding: 4px 8px 4px 0;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .search-screen .dither-content-stack {
+        padding-inline: var(--airport-sidebar-inset, 16px);
+    }
+}
+
 /* Floating map kit composition. Desktop explorer pages now treat the map as
    the full canvas and lift navigation chrome over it as independent panels. */
 .airport-map-kit {

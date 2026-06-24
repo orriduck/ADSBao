@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 78;
+export const CHANGELOG_TOTAL_COUNT = 79;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.7",
+    kind: "patch",
+    title: {
+      en: "Home airport list rail alignment",
+      zh: "首页机场列表列线对齐",
+    },
+    summary: {
+      en: "The home airport picker now uses one shared rail for section headings, discovery rows, and search result rows.",
+      zh: "首页机场选择器现在让分组标题、发现列表和搜索结果共用同一条列线。",
+    },
+    highlights: [
+      {
+        en: "Discovery and search-result rows now anchor their airport code column to the same edge as the search field",
+        zh: "发现列表和搜索结果的机场代码列现在贴齐搜索框同一外缘",
+      },
+      {
+        en: "Airport row text and chevrons keep fixed columns while the row height is slightly tighter",
+        zh: "机场名称和右侧箭头保持固定列，同时行高更紧凑",
+      },
+      {
+        en: "The change is scoped to the home search screen so static-page list primitives keep their current rhythm",
+        zh: "调整只作用于首页搜索界面，静态页列表原语保持现有节奏",
+      },
+    ],
+  },
   {
     version: "v2.26.6",
     kind: "patch",
