@@ -28,8 +28,7 @@ function composeEventHandlers<Event>(
 
 // Compact filter "tile" shared by the AircraftTable filter strip and
 // the AircraftTypeFilterCard / AircraftFilterCardSelect dropdowns.
-// Same visual language as MetricCard (border + inset highlight +
-// bottom-glow on active) but smaller padding + type ramps.
+// Same dense cell language as MetricCard, with smaller padding + type ramps.
 
 const filterCardVariants = cva(
   cn(
@@ -42,27 +41,19 @@ const filterCardVariants = cva(
     "px-2.5 py-2 min-w-0",
     "outline-none transition-[background,box-shadow,color] duration-150",
     // Hover — light dim of the card surface; active/open cards keep the
-    // liquid-glass gradient instead (explicit override below since
-    // hover:bg sets background-color under the `background` shorthand).
+    // solid selected fill.
     "hover:bg-[var(--atc-control-surface-muted)]",
-    "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
-    "data-[state=open]:hover:[background:var(--atc-glass-active-bg)]",
-    // Active / open = dark liquid glass (Siri-capsule material), matching
-    // MetricCard: smoky translucent ink + backdrop frost, specular sheen
-    // (::after), crisp top rim + soft drop. Border goes transparent —
-    // the rim hairline comes from the inset shadows.
-    "data-[active=true]:[background:var(--atc-glass-active-bg)]",
+    "data-[active=true]:hover:bg-[var(--atc-click-bg)]",
+    "data-[state=open]:hover:bg-[var(--atc-click-bg)]",
+    // Active / open = solid selection, matching MetricCard.
+    "data-[active=true]:bg-[var(--atc-click-bg)]",
     "data-[active=true]:border-transparent",
-    "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)]",
-    "data-[active=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
-    "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
-    "data-[state=open]:[background:var(--atc-glass-active-bg)]",
+    "data-[active=true]:shadow-none",
+    "data-[state=open]:bg-[var(--atc-click-bg)]",
     "data-[state=open]:border-transparent",
-    "data-[state=open]:[backdrop-filter:var(--atc-glass-active-frost)]",
-    "data-[state=open]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[state=open]:text-[var(--atc-click-fg)]",
-    "data-[state=open]:shadow-[var(--atc-glass-rim-shadow)]",
+    "data-[state=open]:shadow-none",
     // Focus-visible — soft luminous frost ring. (--atc-solid-accent resolves
     // to near-black ink in light theme, which read as an ugly black
     // border; the open-state glass capsule is the primary feedback.)
@@ -78,19 +69,6 @@ const filterCardVariants = cva(
     // Compact spacing inside the desktop map kit sidebar.
     "[.airport-map-kit_&]:gap-0",
     "[.airport-map-kit_&]:px-2 [.airport-map-kit_&]:py-1.5",
-    // Bottom-glow halo — same animation as MetricCard, fires on
-    // [data-active=true] (filter chips that are on) and
-    // [data-state=open] (open select menus). --sidebar-tile-bottom-glow
-    // is a gradient value, so set the `background` shorthand instead
-    // of background-color.
-    "after:content-[''] after:absolute after:inset-0",
-    "after:[background:var(--atc-glass-sheen)]",
-    "after:opacity-0 after:translate-y-2 after:pointer-events-none",
-    "after:transition-[opacity,transform] after:duration-300 after:ease-out",
-    "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",
-    "data-[state=open]:after:opacity-100 data-[state=open]:after:translate-y-0",
-    // Lift content above the ::after layer.
-    "[&>*]:relative [&>*]:z-[1]",
   ),
   {
     variants: {
@@ -136,7 +114,7 @@ export const FilterCard = forwardRef(function FilterCard(
   const extraProps = asChild ? {} : { type: type || "button" };
 
   // GSAP hover-lift + press-spring, matching MetricCard / SelectableCard.
-  // CSS owns the glass-capsule background/box-shadow on active/open; GSAP
+  // CSS owns the active/open background; GSAP
   // owns transform only. The hook's callback ref is merged with the
   // forwarded ref so Radix (SelectTrigger via asChild) still gets the
   // node, and Radix Slot composes our mouse handlers with the child's.

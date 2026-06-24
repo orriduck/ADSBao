@@ -1,7 +1,6 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { Plane } from "lucide-react";
 import {
-  formatFlightRouteMunicipalityLabel,
   getFlightRouteAccuracyNotice,
   getFlightRouteAirlineIconUrl,
 } from "../../utils/flightRouteDisplay";
@@ -55,14 +54,6 @@ function AircraftRow({
   const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft.flightRoute)
     ? t("aircraft.adsbdbRouteAccuracyNotice")
     : "";
-  // Municipality labels come from route providers as source-data city names.
-  // Keep them in every locale so the code/name cycle remains available.
-  const routeMunicipalities = formatFlightRouteMunicipalityLabel(
-    aircraft.flightRoute,
-  );
-  const hasRouteMunicipalities = Boolean(
-    routeMunicipalities && routeMunicipalities !== route,
-  );
   const distValue = toNumber(aircraft.distanceNm);
   const distanceDisplay = formatNearbyDistanceDisplay(distValue, units.distance);
   const rawAltitude = formatFlightTelemetryMetric({
@@ -97,8 +88,6 @@ function AircraftRow({
         callsign={callsign}
         route={route}
         airlineIconUrl={airlineIconUrl}
-        routeMunicipalities={routeMunicipalities}
-        hasRouteMunicipalities={hasRouteMunicipalities}
         routeAccuracyNotice={routeAccuracyNotice}
       />
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
@@ -158,8 +147,6 @@ function AircraftIdentityCell({
   callsign,
   route,
   airlineIconUrl,
-  routeMunicipalities,
-  hasRouteMunicipalities,
   routeAccuracyNotice,
 }: Record<string, any>) {
   const hasRoute = Boolean(route);
@@ -195,9 +182,7 @@ function AircraftIdentityCell({
     );
   }
 
-  const routeTitle =
-    routeAccuracyNotice ||
-    (hasRouteMunicipalities ? `${routeMunicipalities}\n${route}` : route);
+  const routeTitle = routeAccuracyNotice || route;
 
   return (
     <div
@@ -205,36 +190,24 @@ function AircraftIdentityCell({
         routeEntering ? "aircraft-table-identity--route-entering" : ""
       }`}
     >
-      <span
-        className="aircraft-table-callsign airport-sidebar-display-mono notranslate truncate text-[12px] font-semibold text-atc-text"
-        translate="no"
-      >
-        {callsign}
-      </span>
-      <div className="aircraft-table-route-slot flex min-w-0 items-center">
+      <div className="aircraft-table-primary-line flex min-w-0 items-center gap-1.5">
+        <span
+          className="aircraft-table-callsign airport-sidebar-display-mono notranslate min-w-0 truncate text-[12px] font-semibold text-atc-text"
+          translate="no"
+        >
+          {callsign}
+        </span>
         <AirlineLogo
           src={airlineIconUrl}
           className="aircraft-table-airline-logo"
         />
-        <div
+        <span
           title={routeTitle}
-          className={`aircraft-table-route-cycle min-w-0 flex-1 ${
-            hasRouteMunicipalities ? "aircraft-table-route-cycle--alternate" : ""
-          }`}
+          className="aircraft-table-route-badge notranslate min-w-0 truncate"
+          translate="no"
         >
-          {hasRouteMunicipalities && (
-            <div className="aircraft-table-route-face aircraft-table-route-face--flight">
-              <span className="notranslate truncate text-[9.5px]" translate="no">
-                {routeMunicipalities}
-              </span>
-            </div>
-          )}
-          <div className="aircraft-table-route-face aircraft-table-route-face--route">
-            <span className="notranslate truncate text-[9.5px]" translate="no">
-              {route}
-            </span>
-          </div>
-        </div>
+          {route}
+        </span>
       </div>
     </div>
   );

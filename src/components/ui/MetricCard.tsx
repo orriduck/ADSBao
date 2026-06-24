@@ -22,7 +22,7 @@ type MetricCardProps = {
 // Two-column metric grid + uniform stat-card cell shared between the
 // airport sidebar (interactive WEATHER / FLIGHTS tabs) and the flight
 // sidebar (static focal-aircraft telemetry). Layout, type ramps and
-// the active-state bottom-glow are colocated here instead of in
+// the active-state fill are colocated here instead of in
 // style.css so the cell stops accumulating bespoke modifier classes.
 
 export function MetricGrid({ className, children, label = "Metrics" }: MetricGridProps) {
@@ -55,47 +55,31 @@ const cardVariants = cva(
     "rounded-[calc(var(--atc-radius-card)-2px)] border border-transparent bg-clip-padding",
     "bg-transparent",
     "shadow-none",
-    "text-atc-text text-center min-h-16 p-2.5 min-w-0",
+    "text-atc-text text-center min-h-14 p-2 min-w-0",
     "select-none [appearance:none]",
     "transition-[background,border-color,box-shadow,color] duration-150",
     // Fixed-format rows: label → value → unit.
-    "grid-rows-[10px_24px_8px]",
+    "grid-rows-[8px_21px_7px]",
     // Compact variant inside the desktop map kit sidebar.
     "[.airport-map-kit_&]:rounded-[var(--atc-radius-card)]",
     "[.airport-map-kit_&]:gap-0",
-    "[.airport-map-kit_&]:grid-rows-[9px_20px_8px]",
-    "[.airport-map-kit_&]:min-h-13",
-    "[.airport-map-kit_&]:p-2",
-    // Active = dark liquid glass (Siri-capsule material): smoky ink
-    // dissolving to translucent at the bottom, backdrop frost so the
-    // panel behind diffuses through, specular sheen (::after), crisp
-    // top rim + deep soft drop (rim shadow). Border goes transparent —
-    // the rim hairline comes from the inset shadows, not the border.
-    "data-[active=true]:[background:var(--atc-glass-active-bg)]",
+    "[.airport-map-kit_&]:grid-rows-[7px_18px_6px]",
+    "[.airport-map-kit_&]:min-h-11",
+    "[.airport-map-kit_&]:p-[7px]",
+    // Active metric cards are a restrained solid selection, not a glass
+    // capsule. The hierarchy comes from alignment and value contrast.
+    "data-[active=true]:bg-[var(--atc-click-bg)]",
     "data-[active=true]:border-transparent",
-    "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)]",
-    "data-[active=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
-    "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
-    // ::after carries the diagonal specular highlight; fades/slides in on active.
-    "after:content-[''] after:absolute after:inset-0",
-    "after:[background:var(--atc-glass-sheen)]",
-    "after:opacity-0 after:translate-y-2 after:pointer-events-none",
-    "after:transition-[opacity,transform] after:duration-300 after:ease-out",
-    "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",
-    // Make sure label / value / unit paint above the glow layer.
-    "[&>*]:relative [&>*]:z-[1]",
+    "data-[active=true]:shadow-none",
   ),
   {
     variants: {
       interactive: {
         true: cn(
           "cursor-pointer",
-          // Hover only tints non-active cards; active cards keep the
-          // liquid-glass gradient (hover:bg sets background-color, which
-          // the active `background` shorthand must win over explicitly).
           "hover:bg-[var(--atc-control-surface-muted)]",
-          "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
+          "data-[active=true]:hover:bg-[var(--atc-click-bg)]",
           "focus:outline-none",
         ),
         false: "cursor-default",
@@ -107,31 +91,31 @@ const cardVariants = cva(
 
 const valueClass = cn(
   "flex items-center justify-center",
-  "w-full max-w-full min-w-0 h-6 overflow-hidden whitespace-nowrap text-center",
+  "w-full max-w-full min-w-0 h-[21px] overflow-hidden whitespace-nowrap text-center",
   "font-[var(--font-display)] not-italic font-black text-atc-text",
-  "text-[22px] leading-none tracking-normal",
+  "text-[20px] leading-none tracking-normal",
   // Active card — flip to the click foreground so the value reads
   // on the ink background. The parent <button> already sets this
   // color, but text-atc-text on <strong> shadows it.
   "group-data-[active=true]:text-[var(--atc-click-fg)]",
   // Compact in desktop map kit context.
-  "[.airport-map-kit_&]:text-[18px] [.airport-map-kit_&]:h-5",
+  "[.airport-map-kit_&]:text-[17px] [.airport-map-kit_&]:h-[18px]",
 );
 
 const labelClass = cn(
-  "text-atc-faint uppercase text-[8px] font-bold leading-[1.1]",
+  "text-atc-faint uppercase text-[7.5px] font-bold leading-none",
   "tracking-normal",
   // Active card dims label + unit to --atc-click-muted to stay
   // legible against the ink background.
   "group-data-[active=true]:text-[var(--atc-click-muted)]",
-  "[.airport-map-kit_&]:text-[7px]",
+  "[.airport-map-kit_&]:text-[6.5px]",
 );
 
 const unitClass = cn(
-  "flex h-2 items-center justify-center text-atc-faint uppercase text-[8px] font-semibold",
-  "tracking-normal leading-3",
+  "flex h-[7px] items-center justify-center text-atc-faint uppercase text-[7.5px] font-semibold",
+  "tracking-normal leading-none",
   "group-data-[active=true]:text-[var(--atc-click-muted)]",
-  "[.airport-map-kit_&]:h-2 [.airport-map-kit_&]:text-[7px] [.airport-map-kit_&]:leading-2",
+  "[.airport-map-kit_&]:h-[6px] [.airport-map-kit_&]:text-[6.5px] [.airport-map-kit_&]:leading-none",
 );
 
 // Interactive tab card — same GSAP hover-lift + press-spring as

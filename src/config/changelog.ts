@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 70;
+export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.25.1",
+    kind: "patch",
+    title: {
+      en: "Dense list and metric polish",
+      zh: "高密度列表与指标打磨",
+    },
+    summary: {
+      en: "The compact interface pass now tightens nearby rows, removes glass highlights from metric and filter selection states, and quiets search and table-header styling.",
+      zh: "极简界面继续收紧邻近列表行，移除指标和筛选选中态的玻璃高光，并让搜索框与表头样式更克制。",
+    },
+    highlights: [
+      {
+        en: "Nearby aircraft rows now keep callsign and route on one line, with route rendered as a small badge when route data is available",
+        zh: "邻近航班行现在把呼号与航路放在同一行，有航路数据时用小 badge 呈现",
+      },
+      {
+        en: "Metric and filter selected states use a solid compact fill instead of glass sheen or rim shadows",
+        zh: "指标与筛选选中态改为紧凑实底，不再使用玻璃高光或边缘阴影",
+      },
+      {
+        en: "Search boxes regain the lighter previous pill rhythm while table headers fall back to a single restrained divider",
+        zh: "搜索框恢复更接近之前的轻量胶囊节奏，表头则收回到单条克制分隔线",
+      },
+    ],
+  },
   {
     version: "v2.25.0",
     kind: "feat",
