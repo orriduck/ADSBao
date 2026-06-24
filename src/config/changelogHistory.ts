@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.23.3",
+    kind: "patch",
+    title: {
+      en: "Photo spot zoom behavior",
+      zh: "拍机点缩放行为",
+    },
+    summary: {
+      en: "Photo locations now stay quieter at the farthest airport view, then switch to map badges at closer zoom levels without the sidebar metric changing zoom.",
+      zh: "拍机点现在会在最远机场视图只显示小点,靠近后切换为地图 badge,侧栏拍机点卡片也不再改变缩放。",
+    },
+    highlights: [
+      {
+        en: "The farthest airport zoom uses small white point markers for photo locations",
+        zh: "最远机场缩放下拍机点只显示小白点",
+      },
+      {
+        en: "Middle and near airport zooms use the shared airport/navaid badge style for photo locations",
+        zh: "中间和近景机场缩放下拍机点使用机场/导航台同款 badge",
+      },
+      {
+        en: "Clicking the spotting metric card opens the spotting panel without changing the current map zoom",
+        zh: "点击拍机点指标卡只打开拍机点面板,不会改变当前地图缩放",
+      },
+    ],
+  },
+  {
     version: "v2.23.2",
     kind: "patch",
     title: {

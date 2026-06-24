@@ -3198,6 +3198,16 @@ body {
     .dither-page-shell {
         --app-sidebar-width: 18.8rem;
     }
+
+    .dither-page-shell[data-client-mobile-device="true"][data-client-orientation="landscape"] {
+        --app-sidebar-width: 22.5rem;
+    }
+}
+
+@media (min-width: 640px) and (max-width: 900px) {
+    .dither-page-shell[data-client-orientation="landscape"] {
+        --app-sidebar-width: 22.5rem;
+    }
 }
 
 .dither-page-background.plane-hunter-stage {
@@ -4780,9 +4790,10 @@ body {
     overflow: hidden;
 }
 
-.aircraft-table-list-card .aircraft-table-row-grid {
+.aircraft-table-list-card .aircraft-table-row-grid,
+.aircraft-table-list-card .aircraft-table-header {
     padding-left: 12px;
-    padding-right: 12px;
+    padding-right: 4px;
 }
 
 .aircraft-table-list-card .aircraft-table-row--selected {
@@ -8004,6 +8015,10 @@ body {
         gap: 0;
     }
 
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"] {
+        --app-sidebar-width: 22.5rem;
+    }
+
     .airport-map-kit .airport-sidebar-identity {
         padding: 15px var(--airport-sidebar-inset) 11px;
     }
@@ -8119,6 +8134,12 @@ body {
         display: none;
     }
 
+}
+
+@media (min-width: 640px) and (max-width: 900px) {
+    .airport-map-kit[data-client-orientation="landscape"] {
+        --app-sidebar-width: 22.5rem;
+    }
 }
 
 @media (max-width: 767px) {

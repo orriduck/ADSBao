@@ -68,27 +68,32 @@ export default function MapRangeLegend() {
   const desktopDist = Math.round(convertDistanceFromNm(scale.desktopNm, units.distance));
   const mobileRaw = convertDistanceFromNm(scale.mobileNm, units.distance);
   const mobileDist = Number.isInteger(mobileRaw) ? mobileRaw : +mobileRaw.toFixed(1);
+  const desktopBarH = Math.max(scale.desktopPx, 24);
   const barH = Math.max(scale.mobilePx, 16);
 
   return (
     <>
-      {/* Desktop: horizontal bar */}
+      {/* Desktop/tablet keeps the same vertical scale language as mobile. */}
       <div
         role="note"
         aria-label={t("map.distanceAria", { distance: desktopDist })}
-        className="pointer-events-none absolute bottom-3 left-3 z-map-legend hidden items-center gap-2 rounded-[8px] border border-[var(--atc-border-default)] bg-[var(--atc-surface-preview-card)] px-2.5 py-1.5 font-mono text-[var(--map-range-text)] shadow-[var(--app-panel-shadow)] backdrop-blur-md md:flex"
+        style={{ height: `${desktopBarH + 20}px` }}
+        className="pointer-events-none absolute bottom-3 left-4 z-map-legend hidden flex-col items-center gap-0.5 font-mono md:flex"
       >
-        <span className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[var(--map-range-label)]">
-          {t("map.distanceLabel")}
+        <span className="text-[9px] font-semibold tabular-nums text-[var(--map-range-text)]">
+          {desktopDist}{" "}
+          <span className="notranslate text-[7px] font-medium" translate="no">{unit}</span>
         </span>
-        <div style={{ width: `${scale.desktopPx}px` }} className="relative h-[10px]">
-          <span aria-hidden="true" className="absolute left-0 right-0 top-1/2 h-px bg-current opacity-70" />
-          <span aria-hidden="true" className="absolute left-0 top-0 h-full w-px bg-current" />
-          <span aria-hidden="true" className="absolute right-0 top-0 h-full w-px bg-current" />
+        <div className="relative flex-1">
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 w-px bg-[var(--map-range-text)] opacity-80"
+          />
+          <span
+            aria-hidden="true"
+            className="absolute bottom-0 -left-[3px] h-px w-[7px] bg-[var(--map-range-text)] opacity-80"
+          />
         </div>
-        <span className="text-[10px] font-semibold tracking-[0.12em] tabular-nums">
-          {desktopDist} <span className="notranslate" translate="no">{unit}</span>
-        </span>
       </div>
 
       {/* Mobile: vertical line + tick, no box */}

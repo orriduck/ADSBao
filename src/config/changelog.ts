@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 66;
+export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.24.3",
+    kind: "patch",
+    title: {
+      en: "Landscape sidebar and map scale polish",
+      zh: "横屏侧栏与比例尺打磨",
+    },
+    summary: {
+      en: "Landscape sidebars regain the wider column on narrow devices, nearby altitude values align closer to the table edge, and every map scale now uses the vertical ruler style.",
+      zh: "窄横屏设备上的侧栏恢复较宽列，邻近列表的高度值更贴近表格右侧，所有地图比例尺也统一为竖向样式。",
+    },
+    highlights: [
+      {
+        en: "Mobile and narrow landscape views use the wider sidebar width again",
+        zh: "移动端与窄屏横向视图重新使用更宽的侧栏宽度",
+      },
+      {
+        en: "Nearby table altitude values sit closer to the right edge",
+        zh: "邻近列表中的高度值更贴近右侧边界",
+      },
+      {
+        en: "Desktop and mobile map scale indicators now share the vertical ruler treatment",
+        zh: "桌面与移动端地图比例尺现在统一为竖向标尺",
+      },
+    ],
+  },
   {
     version: "v2.24.2",
     kind: "patch",
@@ -167,32 +193,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Cleaned up unused preset mode labels from map settings",
         zh: "清理了地图设置中已废弃的预设模式标签",
-      },
-    ],
-  },
-  {
-    version: "v2.23.3",
-    kind: "patch",
-    title: {
-      en: "Photo spot zoom behavior",
-      zh: "拍机点缩放行为",
-    },
-    summary: {
-      en: "Photo locations now stay quieter at the farthest airport view, then switch to map badges at closer zoom levels without the sidebar metric changing zoom.",
-      zh: "拍机点现在会在最远机场视图只显示小点,靠近后切换为地图 badge,侧栏拍机点卡片也不再改变缩放。",
-    },
-    highlights: [
-      {
-        en: "The farthest airport zoom uses small white point markers for photo locations",
-        zh: "最远机场缩放下拍机点只显示小白点",
-      },
-      {
-        en: "Middle and near airport zooms use the shared airport/navaid badge style for photo locations",
-        zh: "中间和近景机场缩放下拍机点使用机场/导航台同款 badge",
-      },
-      {
-        en: "Clicking the spotting metric card opens the spotting panel without changing the current map zoom",
-        zh: "点击拍机点指标卡只打开拍机点面板,不会改变当前地图缩放",
       },
     ],
   },
