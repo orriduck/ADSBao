@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 79;
+export const CHANGELOG_TOTAL_COUNT = 80;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.8",
+    kind: "patch",
+    title: {
+      en: "Mobile home readability",
+      zh: "移动端首页可读性修复",
+    },
+    summary: {
+      en: "The mobile home screen now uses the same readable dark static-page panel as the other app pages instead of placing light text over a pale background.",
+      zh: "移动端首页现在与其他静态页共用可读的深色面板，不再把浅色文字放在偏亮背景上。",
+    },
+    highlights: [
+      {
+        en: "The home screen's mobile-only pale panel override was removed so headings, discovery rows, and search results keep strong contrast",
+        zh: "移除首页移动端专属浅色面板覆盖，让标题、发现列表和搜索结果保持足够对比度",
+      },
+      {
+        en: "Discovery and search-result row alignment stays on the 20 px mobile rail",
+        zh: "发现列表和搜索结果仍保持 20px 移动端列线",
+      },
+      {
+        en: "Mechanism and about pages remain visually unchanged because they already used the readable static-page surface",
+        zh: "机制页和关于页保持现状，因为它们已经使用可读的静态页表面",
+      },
+    ],
+  },
   {
     version: "v2.26.7",
     kind: "patch",

@@ -2148,16 +2148,6 @@ body:has(.dither-page-shell) {
         scroll-padding-bottom: var(--sidebar-mobile-bottom-placeholder);
     }
 
-    .dither-page-shell.search-screen .dither-page-panel {
-        background: linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--app-frost-tint) 86%, transparent),
-            color-mix(in oklab, var(--app-frost-tint) 91%, transparent)
-        );
-        -webkit-backdrop-filter: var(--app-frost-strong);
-        backdrop-filter: var(--app-frost-strong);
-    }
-
     /* Inner panels normally use `flex-1 overflow-y-auto`; mobile keeps
        them in natural flow so the outer frosted panel owns scrolling. */
     .dither-page-panel > .flex-1.overflow-y-auto,
