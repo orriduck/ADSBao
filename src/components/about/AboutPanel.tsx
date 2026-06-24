@@ -33,7 +33,7 @@ export default function AboutPanel() {
 
   return (
     <div className="flex flex-none flex-col">
-      <div className="about-meta-grid dither-meta-flow mx-5 flex-none">
+      <div className="about-meta-grid dither-meta-flow dither-list-flow flex-none">
         {version ? (
           <div className="about-meta-version relative flex items-end justify-between gap-4 py-3.5">
             <div className="min-w-0">

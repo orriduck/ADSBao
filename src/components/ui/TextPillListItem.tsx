@@ -58,8 +58,8 @@ export function TextPillListItem({
     <>
       <span
         className={cn(
-          "inline-flex min-w-11 items-center justify-start px-0 py-0.5",
-          "text-left text-[9px] font-black uppercase leading-none text-atc-text",
+          "inline-flex w-full min-w-0 items-center justify-start px-0 py-0.5",
+          "truncate text-left text-[9px] font-black uppercase leading-none text-atc-text",
           "group-data-[active=true]:bg-[var(--atc-click-fg)] group-data-[active=true]:text-[var(--atc-click-bg)]",
         )}
       >
@@ -81,7 +81,7 @@ export function TextPillListItem({
         ) : null}
       </span>
       {trailing ? (
-        <span className="flex items-center self-center text-atc-faint transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-atc-text group-data-[active=true]:text-[var(--atc-click-muted)]">
+        <span className="flex w-4 items-center justify-center self-center text-atc-faint transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-atc-text group-data-[active=true]:text-[var(--atc-click-muted)]">
           {trailing}
         </span>
       ) : null}
@@ -92,8 +92,8 @@ export function TextPillListItem({
     "group relative isolate overflow-hidden text-left",
     "grid w-full items-start gap-x-2.5",
     trailing
-      ? "grid-cols-[max-content_minmax(0,1fr)_max-content]"
-      : "grid-cols-[max-content_minmax(0,1fr)]",
+      ? "grid-cols-[38px_minmax(0,1fr)_16px]"
+      : "grid-cols-[38px_minmax(0,1fr)]",
     // Flat at rest (no border/shadow) so the divided list stays tidy and
     // aligned like the original — but always rounded, so the hover tint and
     // active capsule read as rounded glass (a square highlight clashes with

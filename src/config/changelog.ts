@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 72;
+export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.1",
+    kind: "patch",
+    title: {
+      en: "Sidebar alignment and type polish",
+      zh: "侧栏对齐与字号字色打磨",
+    },
+    summary: {
+      en: "The dark-glass interface now tightens first-screen list columns, airport detail search, table colors, and mobile landscape sidebar density.",
+      zh: "深色玻璃界面继续收紧首屏列表列线、机场详情搜索框、表格字色，以及移动横屏侧栏密度。",
+    },
+    highlights: [
+      {
+        en: "Home airport rows now use fixed code, title, and trailing columns so discovery lists align consistently",
+        zh: "首页机场行改为固定 code、标题与右侧箭头列，发现列表不再随机场代码长度漂移",
+      },
+      {
+        en: "Airport detail search is lighter and less pill-shaped, with table headers and row values sharing the same readable dark-sidebar text palette",
+        zh: "机场详情搜索框更轻、更少胶囊感，表头与行数据统一到深色侧栏上可读的字色",
+      },
+      {
+        en: "Mobile landscape sidebars spend less vertical space before the nearby table, bringing the header and first rows into the first screen",
+        zh: "移动横屏侧栏减少进入邻近表格前的纵向占用，让表头和首行进入首屏",
+      },
+    ],
+  },
   {
     version: "v2.26.0",
     kind: "feat",

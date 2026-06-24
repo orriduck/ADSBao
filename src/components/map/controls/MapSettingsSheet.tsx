@@ -111,14 +111,14 @@ const LAYER_CONTROLS = [
 ];
 
 const sectionTitleClassName =
-  "mb-1.5 px-0.5 text-[8px] font-bold uppercase tracking-normal text-atc-muted";
+  "mb-1 px-0.5 text-[8px] font-bold uppercase tracking-normal text-atc-muted";
 
 const settingsListGroupClassName =
-  "map-settings-list-group grid gap-1 overflow-visible";
+  "map-settings-list-group grid gap-0.5 overflow-visible";
 
 const settingsOptionRowClassName = cn(
-  "group map-settings-option-row grid min-h-[40px] w-full grid-cols-[24px_minmax(0,1fr)_12px] items-center gap-2",
-  "rounded-[calc(var(--atc-radius-card)-2px)] px-1 py-1.5 text-left text-atc-text transition-[background,color,box-shadow,opacity] duration-150",
+  "group map-settings-option-row grid min-h-[38px] w-full grid-cols-[22px_minmax(0,1fr)_10px] items-center gap-2",
+  "rounded-[calc(var(--atc-radius-card)-2px)] px-1 py-1 text-left text-atc-text transition-[background,color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
   "data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
@@ -128,8 +128,8 @@ const settingsOptionRowClassName = cn(
 );
 
 const layerToggleRowClassName = cn(
-  "group grid min-h-[42px] w-full grid-cols-[24px_minmax(0,1fr)_34px] items-center gap-2",
-  "rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1.5 text-left text-atc-text",
+  "group grid min-h-[40px] w-full grid-cols-[22px_minmax(0,1fr)_34px] items-center gap-2",
+  "rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-left text-atc-text",
   "transition-[background,border-color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
