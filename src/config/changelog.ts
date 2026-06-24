@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 81;
+export const CHANGELOG_TOTAL_COUNT = 82;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.10",
+    kind: "patch",
+    title: {
+      en: "Quieter airport traffic list",
+      zh: "机场航班列表去表格线",
+    },
+    summary: {
+      en: "The airport sidebar traffic list now relies on aligned columns instead of full-width divider lines, making the dense sidebar quieter.",
+      zh: "机场侧栏航班列表改为依靠列对齐建立秩序，不再使用贯穿式分隔线，让密集侧栏更安静。",
+    },
+    highlights: [
+      {
+        en: "Traffic rows, route endpoint rows, and virtualized nearby rows no longer draw table-like horizontal rules",
+        zh: "航班行、航路端点行和虚拟化附近行不再绘制表格式横线",
+      },
+      {
+        en: "The callsign, distance, and altitude columns keep their fixed alignment for fast scanning",
+        zh: "呼号、距离和高度列继续保持固定对齐，便于快速扫读",
+      },
+      {
+        en: "The list header is shorter and uses type hierarchy rather than a divider to mark the columns",
+        zh: "列表表头更短，改用文字层级而不是分隔线标记列结构",
+      },
+    ],
+  },
   {
     version: "v2.26.9",
     kind: "patch",

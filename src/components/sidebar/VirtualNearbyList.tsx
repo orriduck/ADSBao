@@ -88,14 +88,12 @@ export default function VirtualNearbyList({
         {virtualRows.map((virtualRow) => {
           const item = items[virtualRow.index];
           if (!item) return null;
-          const isFirst = virtualRow.index === 0;
           return (
             <NearbyVirtualRow
               ref={virtualizer.measureElement}
               key={item.id}
               index={virtualRow.index}
               start={virtualRow.start}
-              isFirst={isFirst}
               shouldAnimateEnter={enterFlags.get(item.id) === true}
               item={item}
               selectedAircraftId={selectedAircraftId}
@@ -114,7 +112,6 @@ function NearbyVirtualRow({
   ref,
   index,
   start,
-  isFirst,
   shouldAnimateEnter,
   item,
   selectedAircraftId,
@@ -151,9 +148,7 @@ function NearbyVirtualRow({
     <div
       ref={ref}
       data-index={index}
-      className={`absolute left-0 top-0 w-full ${
-        isFirst ? "" : "border-t border-atc-line"
-      }`}
+      className="absolute left-0 top-0 w-full"
       style={{
         transform: `translateY(${start}px)`,
       }}

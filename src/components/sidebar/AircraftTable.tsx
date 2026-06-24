@@ -351,7 +351,7 @@ export default function AircraftTable({
           </div>
         )}
         {endpointAirportRows.length > 0 ? (
-          <ul className="divide-y divide-atc-line border-t border-atc-line">
+          <ul>
             {endpointAirportRows.map((airport, index) => (
               <li
                 key={`endpoint-airport:${airport.icao || index}`}
@@ -405,7 +405,7 @@ export default function AircraftTable({
               {filteredAirports.length > 0 && (
                 <ul
                   ref={airportListMotionRef}
-                  className="app-list-motion divide-y divide-atc-line"
+                  className="app-list-motion"
                 >
                   {filteredAirports.map((airport, index) => {
                     const motionStyle = {

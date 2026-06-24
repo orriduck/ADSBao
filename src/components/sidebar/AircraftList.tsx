@@ -9,7 +9,7 @@ export default function AircraftList({
   onSelectAircraft,
 }) {
   return (
-    <ul key={resetKey} className="app-list-motion divide-y divide-atc-line">
+    <ul key={resetKey} className="app-list-motion">
       {aircraft.map((item, index) => {
         // Position-keyed slot: when the list re-sorts, this slot's occupant
         // changes and its content card-flips in place (CardFlipSlot) instead

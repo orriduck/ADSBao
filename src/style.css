@@ -5086,14 +5086,13 @@ body {
 
 .aircraft-table-header {
     background: transparent;
-    border-bottom: 1px solid color-mix(in oklab, var(--atc-line) 28%, transparent);
+    border-bottom: 0;
     border-top: 0;
     letter-spacing: normal;
-    min-height: 24px;
+    min-height: 20px;
 }
 
 .airport-map-kit .aircraft-table-header {
-    border-bottom-color: color-mix(in oklab, var(--atc-text) 7%, transparent);
     color: color-mix(in oklab, var(--atc-text) 54%, transparent);
 }
 
@@ -5141,7 +5140,7 @@ body {
 }
 
 .airport-map-kit .aircraft-table-card {
-    border-bottom: 1px solid color-mix(in oklab, var(--atc-text) 5%, transparent);
+    border-bottom: 0;
 }
 
 .airport-map-kit .aircraft-table-card:hover {
