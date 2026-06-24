@@ -84,7 +84,7 @@ function AircraftRow({
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
-      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:[background:var(--atc-glass-active-bg)] data-[selected=true]:text-[var(--atc-click-fg)] data-[selected=true]:shadow-[var(--atc-glass-rim-shadow)] data-[selected=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:hover:[background:var(--atc-glass-active-bg)] data-[selected=true]:[&_.text-atc-text]:text-[var(--atc-click-fg)] data-[selected=true]:[&_.text-atc-dim]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.text-atc-faint]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-route-cycle]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-row-glyph]:bg-[var(--atc-click-fg)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-click-bg)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
+      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full items-center px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:[background:var(--atc-glass-active-bg)] data-[selected=true]:text-[var(--atc-click-fg)] data-[selected=true]:shadow-[var(--atc-glass-rim-shadow)] data-[selected=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:hover:[background:var(--atc-glass-active-bg)] data-[selected=true]:[&_.text-atc-text]:text-[var(--atc-click-fg)] data-[selected=true]:[&_.text-atc-dim]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.text-atc-faint]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-route-cycle]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-row-glyph]:bg-[var(--atc-click-fg)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-click-bg)] ${
         selected ? "aircraft-table-row--selected aircraft-table-row--active" : ""
       }`}
       aria-pressed={selected}
@@ -103,7 +103,7 @@ function AircraftRow({
       />
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
         {!distanceDisplay ? (
-          <span>-</span>
+          <NumberWithUnit text="-" unit="" />
         ) : distanceDisplay.text ? (
           <NumberWithUnit
             text={distanceDisplay.text}
@@ -118,9 +118,9 @@ function AircraftRow({
       </div>
       <div className="aircraft-table-cell aircraft-table-cell--altitude text-right font-mono text-[12px] font-semibold text-atc-text">
         {aircraft.onGround ? (
-          <span>{t("aircraft.gnd")}</span>
+          <NumberWithUnit text={t("aircraft.gnd")} unit="" />
         ) : !altitudeDisplay ? (
-          <span>-</span>
+          <NumberWithUnit text="-" unit="" />
         ) : (
           <NumberWithUnit
             value={altitudeDisplay.value}
@@ -245,7 +245,7 @@ function NumberWithUnit({ value, unit, format, text, prefix }: Record<string, an
     text ?? format?.format?.(Number(value)) ?? String(value ?? "");
 
   return (
-    <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
+    <span className="aircraft-table-number grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
       <span className="flex min-w-0 items-baseline justify-end">
         {prefix ? (
           <span className="notranslate flex-none text-atc-dim" translate="no">

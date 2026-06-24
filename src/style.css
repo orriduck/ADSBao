@@ -4812,7 +4812,8 @@ body {
 }
 
 .aircraft-table-row-grid {
-    grid-template-columns: 18px minmax(0, 1fr) 68px 84px;
+    column-gap: 8px;
+    grid-template-columns: 18px minmax(0, 1fr) 74px 74px;
 }
 
 .aircraft-table-header {
@@ -4829,8 +4830,17 @@ body {
     min-width: 0;
 }
 
+.aircraft-table-number {
+    min-width: 0;
+}
+
 .aircraft-table-cell--distance {
     --aircraft-table-unit-width: 17px;
+    justify-content: center;
+}
+
+.aircraft-table-cell--distance .aircraft-table-number {
+    width: min(100%, 48px);
 }
 
 .aircraft-table-cell--altitude {
@@ -7135,11 +7145,13 @@ body {
 .map-settings-note {
     background: color-mix(
         in oklab,
-        var(--atc-control-surface-muted) 72%,
-        var(--atc-bg) 28%
+        var(--atc-control-surface-muted) 82%,
+        transparent
     );
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
     border-color: color-mix(in oklab, var(--atc-line-strong) 30%, transparent);
-    box-shadow: none;
+    box-shadow: var(--atc-control-inset-shadow-subtle);
 }
 
 .map-settings-section [data-ui="selectable-card"][data-active="true"] {
@@ -7148,7 +7160,7 @@ body {
 
 .map-settings-section [role="switch"][data-active="true"] {
     border-color: color-mix(in oklab, var(--atc-line-strong) 30%, transparent);
-    box-shadow: none;
+    box-shadow: var(--atc-control-inset-shadow-subtle);
 }
 
 @media (min-width: 768px) {
@@ -7887,7 +7899,8 @@ body {
     }
 
     .airport-map-kit .aircraft-table-row-grid {
-        grid-template-columns: 14px minmax(0, 1fr) 54px 67px;
+        column-gap: 7px;
+        grid-template-columns: 14px minmax(0, 1fr) 58px 58px;
     }
 
     .airport-map-kit .aircraft-table-header {
@@ -7923,6 +7936,10 @@ body {
 
     .airport-map-kit .aircraft-table-cell--distance {
         --aircraft-table-unit-width: 14px;
+    }
+
+    .airport-map-kit .aircraft-table-cell--distance .aircraft-table-number {
+        width: min(100%, 42px);
     }
 
     .airport-map-kit .aircraft-table-cell--altitude {
@@ -7970,6 +7987,8 @@ body {
         overflow-x: hidden;
         overflow-y: auto;
         overscroll-behavior-y: contain;
+        padding-bottom: max(14px, var(--app-safe-area-bottom, 0px));
+        scroll-padding-bottom: max(18px, var(--app-safe-area-bottom, 0px));
         -webkit-overflow-scrolling: touch;
     }
 
@@ -8004,7 +8023,19 @@ body {
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .aircraft-table-controls {
-        display: contents;
+        display: block;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .app-panel-transition,
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .nearby-row-enter,
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .app-list-motion
+        > * {
+        animation: none;
+        transform: none;
+        transition: none;
     }
 
 }
@@ -8094,44 +8125,100 @@ body {
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .airport-sidebar-identity {
-        padding-bottom: 8px;
-        padding-top: 8px;
+        padding-bottom: 6px;
+        padding-top: 6px;
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .sidebar-brand-dock {
-        min-height: 42px;
-        padding-bottom: 7px;
-        padding-top: 7px;
+        min-height: 36px;
+        padding-bottom: 5px;
+        padding-top: 5px;
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .sidebar-brand-dock
         svg {
-        height: 22px;
+        height: 20px;
         width: auto;
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .airport-sidebar-display-mono--hero {
-        font-size: 16px;
+        font-size: 14px;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .airport-sidebar-identity
+        .mt-3 {
+        gap: 6px;
+        margin-top: 4px;
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .airport-sidebar-identity
         h1 {
-        font-size: 13px;
-        margin-top: 7px;
+        font-size: 12px;
+        line-height: 1.1;
+        margin-top: 4px;
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .airport-sidebar-identity
         h1
-        + div,
+        ~ div,
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .airport-sidebar-identity
         .font-mono {
         display: none;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        [data-ui="metric-grid"] {
+        margin-bottom: 8px;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        [data-ui="metric-card"] {
+        min-height: 54px;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        [data-ui="metric-card"][data-layout="split"] {
+        gap: 8px;
+        min-height: 54px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        [data-ui="metric-card"][data-layout="split"]
+        [data-ui="metric-value"] {
+        font-size: 24px;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-controls
+        > div:first-child {
+        padding-bottom: 6px;
+        padding-top: 8px;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-table-search-bar {
+        padding-bottom: 8px;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        .aircraft-search {
+        min-height: 38px;
+        padding-bottom: 8px;
+        padding-top: 8px;
+    }
+
+    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+        [data-ui="filter-card"] {
+        min-height: 50px;
     }
 
 }

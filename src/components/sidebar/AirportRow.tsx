@@ -45,7 +45,7 @@ function AirportRow({
   return (
     <button
       type="button"
-      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full grid-cols-[18px_minmax(0,1fr)_48px_54px] items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] sm:grid-cols-[18px_minmax(0,1fr)_54px_70px] sm:gap-3 ${
+      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full items-center px-[var(--airport-sidebar-inset)] text-left transition-[background,color] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] ${
         selected ? "aircraft-table-row--active" : ""
       }`}
       aria-pressed={selected}
@@ -67,7 +67,7 @@ function AirportRow({
       </div>
       <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
         {!distanceDisplay ? (
-          <span>—</span>
+          <NumberWithUnit text="-" unit="" />
         ) : distanceDisplay.text ? (
           <NumberWithUnit text={distanceDisplay.text} unit={distanceDisplay.unit} />
         ) : (
@@ -80,7 +80,7 @@ function AirportRow({
             {endpointLabel}
           </span>
         ) : !elevationDisplay ? (
-          <span>—</span>
+          <NumberWithUnit text="-" unit="" />
         ) : (
           <NumberWithUnit
             value={elevationDisplay.value}
@@ -115,7 +115,7 @@ function NumberWithUnit({ value, unit, format, text }: Record<string, any>) {
     text ?? format?.format?.(Number(value)) ?? String(value ?? "");
 
   return (
-    <span className="grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
+    <span className="aircraft-table-number grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
       <span className="block min-w-0 text-right">{displayText}</span>
       <sub
         className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"

@@ -112,17 +112,17 @@ const LAYER_CONTROLS = [
 ];
 
 const sectionTitleClassName =
-  "mb-3 text-[11px] font-semibold tracking-normal text-atc-muted";
+  "mb-2.5 px-0.5 text-[10px] font-bold uppercase tracking-normal text-atc-muted";
 
-const optionGridClassName = "grid grid-cols-2 gap-2.5";
+const optionGridClassName = "grid grid-cols-2 gap-2";
 
-const optionCardClassName = "min-h-[112px] p-3.5";
+const optionCardClassName = "min-h-[106px] p-3.5";
 
 const layerToggleRowClassName = cn(
   "group grid min-h-[56px] w-full grid-cols-[34px_minmax(0,1fr)_40px] items-center gap-3",
   "rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)]",
   "bg-[var(--atc-control-surface-muted)] bg-clip-padding px-3 py-2 text-left text-atc-text",
-  "shadow-none",
+  "shadow-[var(--atc-control-inset-shadow-subtle)]",
   "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
   "transition-[background,border-color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
@@ -280,7 +280,8 @@ export default function MapSettingsSheet({
           "map-settings-sheet",
           "z-[var(--z-index-modal-content)]",
           "rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)]",
-          "overflow-hidden bg-[var(--atc-surface-preview-card)] p-0 text-atc-text",
+          "overflow-hidden p-0 text-atc-text",
+          "[background:linear-gradient(180deg,color-mix(in_oklab,var(--app-frost-tint)_86%,transparent),color-mix(in_oklab,var(--app-frost-tint)_90%,transparent))]",
           // Frosted material — strong backdrop blur diffuses the map
           // behind the slide-in settings panel into soft gray.
           "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
@@ -300,7 +301,7 @@ export default function MapSettingsSheet({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
+          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
             <section
               className="map-settings-section"
               aria-labelledby={`${id}-base-map`}
