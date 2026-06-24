@@ -1,19 +1,63 @@
 import { useEffect, useRef, useState } from "react";
 
 const DEFAULT_SOURCE = "/brand/adsbao-aircraft-brand-loop-20260619.mp4";
-const BACKGROUND_HIDDEN_QUERY = "(max-width: 720px)";
+const DEFAULT_POSTER = "/brand/adsbao-aircraft-brand-poster.jpg";
 
-export default function BrandingVideoBackground({ source = DEFAULT_SOURCE }) {
+export default function BrandingVideoBackground({
+  source = DEFAULT_SOURCE,
+  poster = DEFAULT_POSTER,
+}) {
+  const containerRef = useRef(null);
   const videoRef = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
   const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const reduceMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    let frame = 0;
+
+    const updateShouldLoad = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect();
+        const style = window.getComputedStyle(container);
+        setShouldLoad(
+          !reduceMotionQuery.matches &&
+            style.display !== "none" &&
+            style.visibility !== "hidden" &&
+            rect.width > 0 &&
+            rect.height > 0,
+        );
+      });
+    };
+
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateShouldLoad);
+    resizeObserver?.observe(container);
+    window.addEventListener("resize", updateShouldLoad);
+    reduceMotionQuery.addEventListener("change", updateShouldLoad);
+    updateShouldLoad();
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", updateShouldLoad);
+      reduceMotionQuery.removeEventListener("change", updateShouldLoad);
+    };
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return undefined;
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const backgroundHidden = window.matchMedia(BACKGROUND_HIDDEN_QUERY).matches;
-    if (reduceMotion || backgroundHidden) {
+    if (!shouldLoad) {
       video.pause();
       video.removeAttribute("src");
       video.load();
@@ -56,16 +100,21 @@ export default function BrandingVideoBackground({ source = DEFAULT_SOURCE }) {
       video.removeAttribute("src");
       video.load();
     };
-  }, [source]);
+  }, [shouldLoad, source]);
 
   return (
-    <div className="branding-video-background" aria-hidden="true">
+    <div
+      ref={containerRef}
+      className="branding-video-background"
+      aria-hidden="true"
+    >
       <video
         ref={videoRef}
         className={`branding-video-background__media ${visible ? "is-visible" : ""}`.trim()}
         muted
         playsInline
         loop
+        poster={poster}
         preload="auto"
       />
     </div>

@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import {
+  ADSBAO_HOME_VIDEO_PATH,
+  ADSBAO_HOME_VIDEO_POSTER_PATH,
+  ADSBAO_PWA_PUBLIC_ASSET_PATHS,
   isAdsbaoOfflineNavigationPath,
   isAdsbaoNetworkOnlyPath,
   shouldPrecacheViteChunk,
@@ -22,6 +25,11 @@ assert.equal(isAdsbaoNetworkOnlyPath("/adsbao-version.json"), true);
 assert.equal(
   isAdsbaoNetworkOnlyPath("/brand/adsbao-aircraft-brand-loop-20260619.mp4"),
   false,
+);
+assert.equal(ADSBAO_PWA_PUBLIC_ASSET_PATHS.includes(ADSBAO_HOME_VIDEO_PATH), true);
+assert.equal(
+  ADSBAO_PWA_PUBLIC_ASSET_PATHS.includes(ADSBAO_HOME_VIDEO_POSTER_PATH),
+  true,
 );
 
 assert.equal(

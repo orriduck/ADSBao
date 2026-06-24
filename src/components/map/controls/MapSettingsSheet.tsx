@@ -12,7 +12,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { SelectableCard } from "@/components/ui/SelectableCard";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
@@ -114,21 +113,76 @@ const LAYER_CONTROLS = [
 const sectionTitleClassName =
   "mb-2.5 px-0.5 text-[10px] font-bold uppercase tracking-normal text-atc-muted";
 
-const optionGridClassName = "grid grid-cols-2 gap-2";
+const settingsListGroupClassName =
+  "map-settings-list-group overflow-hidden rounded-[var(--atc-content-group-radius)] border border-[var(--atc-content-group-border)]";
 
-const optionCardClassName = "min-h-[106px] p-3.5";
+const settingsOptionRowClassName = cn(
+  "group map-settings-option-row grid min-h-[54px] w-full grid-cols-[34px_minmax(0,1fr)_18px] items-center gap-3",
+  "px-3 py-2 text-left text-atc-text transition-[background,color,box-shadow,opacity] duration-150",
+  "hover:bg-[var(--atc-control-surface-hover)]",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
+  "data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
+  "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
+  "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[active=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
+  "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
+);
 
 const layerToggleRowClassName = cn(
   "group grid min-h-[56px] w-full grid-cols-[34px_minmax(0,1fr)_40px] items-center gap-3",
-  "rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)]",
-  "bg-[var(--atc-control-surface-muted)] bg-clip-padding px-3 py-2 text-left text-atc-text",
-  "shadow-[var(--atc-control-inset-shadow-subtle)]",
-  "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
+  "bg-transparent px-3 py-2 text-left text-atc-text",
   "transition-[background,border-color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-  "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-[var(--atc-control-surface-muted)]",
+  "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent",
 );
+
+const unitSegmentButtonClassName = cn(
+  "min-h-7 rounded-[var(--atc-radius-pill)] px-2.5 text-[10px] font-semibold leading-none text-atc-muted",
+  "transition-[background,color,box-shadow] duration-150",
+  "hover:bg-[var(--atc-control-surface-hover)]",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
+  "data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
+  "data-[active=true]:shadow-[var(--atc-toolbar-button-active-shadow)]",
+  "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
+);
+
+function SettingsOptionRow({
+  active,
+  description,
+  iconKey,
+  onClick,
+  title,
+}) {
+  return (
+    <button
+      type="button"
+      className={settingsOptionRowClassName}
+      data-active={active ? "true" : "false"}
+      onClick={onClick}
+    >
+      <span className="relative flex size-8 items-center justify-center rounded-[10px] bg-[var(--atc-surface-icon-wash)] text-atc-text transition-colors group-data-[active=true]:bg-[var(--atc-click-fg)] group-data-[active=true]:text-[var(--atc-click-bg)] group-hover:bg-[color-mix(in_oklab,var(--atc-text)_10%,transparent)] [&>svg]:size-4">
+        <MapControlIcon iconKey={iconKey} />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[13px] font-semibold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+          {title}
+        </span>
+        <span className="mt-0.5 block text-[11px] leading-snug text-atc-muted group-data-[active=true]:text-[var(--atc-click-muted)]">
+          {description}
+        </span>
+      </span>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "ml-auto size-2.5 rounded-full border transition-[background,border-color,box-shadow]",
+          active
+            ? "border-[var(--atc-click-fg)] bg-[var(--atc-click-fg)] shadow-[0_0_0_3px_color-mix(in_oklab,var(--atc-click-fg)_18%,transparent)]"
+            : "border-[var(--atc-line-strong)]",
+        )}
+      />
+    </button>
+  );
+}
 
 function SettingsSwitch({ active }) {
   return (
@@ -312,17 +366,16 @@ export default function MapSettingsSheet({
               >
                 {t("mapSettings.baseMapSection")}
               </h3>
-              <div className={optionGridClassName}>
+              <div className={settingsListGroupClassName}>
                 {baseLayerOptions.map((option) => {
                   const active = activeBaseLayerId === option.id;
                   return (
-                    <SelectableCard
+                    <SettingsOptionRow
                       key={option.id}
                       active={active}
-                      icon={<MapControlIcon iconKey={option.iconKey} />}
+                      iconKey={option.iconKey}
                       title={t(option.labelKey)}
                       description={t(option.descriptionKey)}
-                      className={optionCardClassName}
                       onClick={() => onSelectBaseLayer?.(option.id)}
                     />
                   );
@@ -340,7 +393,7 @@ export default function MapSettingsSheet({
               >
                 {t("mapSettings.layersSection")}
               </h3>
-              <div className="space-y-2.5">
+              <div className={settingsListGroupClassName}>
                 {LAYER_CONTROLS.map((control) => {
                   const active = Boolean(state[control.prop]);
                   const title = active
@@ -459,29 +512,38 @@ export default function MapSettingsSheet({
               >
                 {t("mapSettings.unitsSection")}
               </h3>
-              <div className="space-y-3">
+              <div className={settingsListGroupClassName}>
                 {UNIT_GROUPS.map((group) => {
                   const activeUnit = unitPreferences[group.key];
                   return (
-                    <div key={group.key} className="flex flex-col gap-1.5">
-                      <span className="text-[11px] font-semibold leading-tight text-atc-text">
+                    <div
+                      key={group.key}
+                      className="map-settings-unit-row grid min-h-[54px] grid-cols-[minmax(0,1fr)_minmax(132px,auto)] items-center gap-3 px-3 py-2"
+                    >
+                      <span className="min-w-0 text-[12px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}
                       </span>
                       <div
                         role="radiogroup"
                         aria-label={t(group.titleKey)}
-                        className="grid auto-cols-fr grid-flow-col gap-1.5"
+                        className="map-settings-segmented-control grid auto-cols-fr grid-flow-col gap-1 rounded-[var(--atc-radius-pill)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface-muted)] p-0.5 shadow-[var(--atc-control-inset-shadow-subtle)]"
                       >
                         {group.options.map((option) => (
-                          <SelectableCard
+                          <button
                             key={option}
-                            size="compact"
-                            active={activeUnit === option}
-                            title={t(group.labelKey(option))}
+                            type="button"
+                            role="radio"
+                            aria-checked={activeUnit === option}
+                            data-active={
+                              activeUnit === option ? "true" : "false"
+                            }
+                            className={unitSegmentButtonClassName}
                             onClick={() =>
                               setUnitPreferences({ [group.key]: option } as any)
                             }
-                          />
+                          >
+                            {t(group.labelKey(option))}
+                          </button>
                         ))}
                       </div>
                     </div>

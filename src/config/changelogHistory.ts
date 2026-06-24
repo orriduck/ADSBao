@@ -277,6 +277,24 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.23.5",
+    kind: "patch",
+    title: {
+      en: "Spot dot theme color fix",
+      zh: "拍机点远视图标颜色修复",
+    },
+    summary: {
+      en: "Far-zoom spotting dots now use the same badge color: black in light theme, white in dark theme.",
+      zh: "最远缩放下的拍机点圆点现在使用与 badge 一致的主题色:亮色主题为黑,暗色主题为白。",
+    },
+    highlights: [
+      {
+        en: "Spotting dots at far zoom now match the badge foreground color per theme",
+        zh: "最远缩放下的拍机小点现在按主题匹配 badge 前景色",
+      },
+    ],
+  },
+  {
     version: "v2.23.4",
     kind: "patch",
     title: {

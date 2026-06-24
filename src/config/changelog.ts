@@ -41,9 +41,39 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 68;
+export const CHANGELOG_TOTAL_COUNT = 69;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.24.5",
+    kind: "patch",
+    title: {
+      en: "Mobile shell video and sidebar fit",
+      zh: "移动端视频与侧栏适配",
+    },
+    summary: {
+      en: "Mobile home now loads the aircraft dot-matrix video from the PWA static shell, while landscape sidebars fit the safe area and nearby focused rows keep their numeric columns aligned.",
+      zh: "移动端首页现在从 PWA 静态 shell 加载飞机点阵视频；横屏侧栏避开安全区并完整显示首屏内容，邻近列表 focused 行的数值列也保持对齐。",
+    },
+    highlights: [
+      {
+        en: "The home aircraft video is visible on mobile and included in the PWA precache with its poster",
+        zh: "首页飞机点阵视频现在会在移动端显示，并与 poster 一起进入 PWA 预缓存",
+      },
+      {
+        en: "Mobile landscape airport sidebars fit inside safe-area bounds with the list header visible in the first screen",
+        zh: "移动横屏机场侧栏现在落在安全区内，列表表头也能进入首屏",
+      },
+      {
+        en: "Focused nearby rows align missing and unitless values to the same numeric column edge",
+        zh: "邻近列表 focused 行的空值和无单位值会对齐到同一数值列边界",
+      },
+      {
+        en: "Map settings now use compact sidebar-style row groups instead of large option cards",
+        zh: "地图设置改用更接近侧边栏的紧凑行组，不再是大号选项卡片",
+      },
+    ],
+  },
   {
     version: "v2.24.4",
     kind: "patch",
@@ -179,24 +209,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Force re-acquire location when position is not ready or permission was denied",
         zh: "位置未就绪或权限被拒绝时可强制重新获取",
-      },
-    ],
-  },
-  {
-    version: "v2.23.5",
-    kind: "patch",
-    title: {
-      en: "Spot dot theme color fix",
-      zh: "拍机点远视图标颜色修复",
-    },
-    summary: {
-      en: "Far-zoom spotting dots now use the same badge color: black in light theme, white in dark theme.",
-      zh: "最远缩放下的拍机点圆点现在使用与 badge 一致的主题色:亮色主题为黑,暗色主题为白。",
-    },
-    highlights: [
-      {
-        en: "Spotting dots at far zoom now match the badge foreground color per theme",
-        zh: "最远缩放下的拍机小点现在按主题匹配 badge 前景色",
       },
     ],
   },

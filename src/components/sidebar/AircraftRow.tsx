@@ -243,6 +243,22 @@ function AircraftIdentityCell({
 function NumberWithUnit({ value, unit, format, text, prefix }: Record<string, any>) {
   const displayText =
     text ?? format?.format?.(Number(value)) ?? String(value ?? "");
+  const hasUnit = Boolean(unit);
+
+  if (!hasUnit) {
+    return (
+      <span className="aircraft-table-number aircraft-table-number--unitless block w-full min-w-0 text-right tabular-nums">
+        {prefix ? (
+          <span className="notranslate text-atc-dim" translate="no">
+            {prefix}
+          </span>
+        ) : null}
+        <span className="notranslate" translate="no">
+          {displayText}
+        </span>
+      </span>
+    );
+  }
 
   return (
     <span className="aircraft-table-number grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
