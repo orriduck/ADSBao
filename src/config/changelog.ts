@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 82;
+export const CHANGELOG_TOTAL_COUNT = 83;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.11",
+    kind: "patch",
+    title: {
+      en: "Toolbar grouping by spacing",
+      zh: "工具栏分组改为空距",
+    },
+    summary: {
+      en: "Floating toolbars now separate icon groups with spacing instead of visible vertical rules, keeping the chrome quieter.",
+      zh: "浮动工具栏现在用空距区分图标组，不再绘制可见竖向分隔线，让工具栏更安静。",
+    },
+    highlights: [
+      {
+        en: "The shared toolbar separator is now a transparent spacer, so map, page, and sidebar toolbars all lose the extra rule",
+        zh: "共享工具栏分隔符现在是透明间隔，地图、页面和侧栏工具栏都会少一条显式线",
+      },
+      {
+        en: "Icon order and group rhythm stay intact without changing any toolbar action",
+        zh: "图标顺序和分组节奏保持不变，不改变任何工具栏操作",
+      },
+      {
+        en: "Desktop and mobile toolbars were checked in light and dark themes against the live KBOS map",
+        zh: "已在 KBOS 实时地图的桌面和移动端检查亮色与暗色工具栏",
+      },
+    ],
+  },
   {
     version: "v2.26.10",
     kind: "patch",

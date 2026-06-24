@@ -131,8 +131,8 @@ export const Toolbar = forwardRef(function Toolbar(
   );
 });
 
-// Low-contrast divider between toolbar groups. Keep it quieter than
-// the button silhouettes so grouping comes mostly from spacing.
+// Spacing-only separator between toolbar groups. Grouping comes from
+// rhythm and icon alignment rather than another visible rule.
 export function ToolbarSeparator({
   className,
   ...props
@@ -141,8 +141,7 @@ export function ToolbarSeparator({
     <span
       aria-hidden="true"
       className={cn(
-        "flex-none h-3.5 w-px self-center",
-        "bg-[color-mix(in_oklab,var(--atc-line-strong)_45%,transparent)]",
+        "flex-none h-3.5 w-1.5 self-center",
         className,
       )}
       {...props}
