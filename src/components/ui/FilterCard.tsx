@@ -34,7 +34,7 @@ const filterCardVariants = cva(
   cn(
     "group relative isolate w-full overflow-hidden",
     "grid items-center justify-items-center gap-0.5",
-    "rounded-[calc(var(--atc-radius-card)-2px)] border border-transparent bg-clip-padding",
+    "rounded-[calc(var(--atc-radius-card)_-_2px)] border border-transparent bg-clip-padding",
     "bg-transparent",
     "shadow-none",
     "text-atc-text text-center cursor-pointer",

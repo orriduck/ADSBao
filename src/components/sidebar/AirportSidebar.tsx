@@ -195,8 +195,8 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
   )}`;
 
   return (
-    <div className="flex flex-col gap-2.5 px-[var(--airport-sidebar-inset)] pb-5 pt-1.5">
-      <div className="flex items-baseline justify-between border-b border-atc-line pb-1.5">
+    <div className="flex flex-col gap-2 px-[var(--airport-sidebar-inset)] pb-5 pt-1">
+      <div className="flex items-baseline justify-between pb-0.5">
         <h2 className="text-[11px] font-bold uppercase tracking-normal text-atc-text">
           ATC Frequencies
         </h2>
@@ -209,36 +209,41 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           href={liveAtcHref}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="mt-1 mb-0.5 inline-flex items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card/50 px-2.5 py-1.5 text-center text-[10px] font-bold uppercase tracking-normal text-atc-text transition-colors hover:bg-[var(--atc-control-hover-bg)]"
+          className="inline-flex items-center justify-between gap-2 px-2 py-1 text-[9.5px] font-semibold uppercase tracking-normal text-atc-dim transition-colors hover:text-atc-text"
         >
           <span>Search {normalizedIcao} on LiveATC</span>
           <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2.3} />
         </a>
       ) : null}
-      <div className="app-list-motion grid gap-1.5">
-        {frequencies.map((frequency) => (
-          <TextPillListItem
-            key={`${frequency.type}-${frequency.frequencyMHz}-${frequency.source}`}
-            pill={
-              <span className="notranslate" translate="no">
-                {formatFrequencyBadge(frequency.frequencyMHz)}
-              </span>
-            }
-            title={formatFrequencyType(frequency.type)}
-            subtitle={
-              frequency.callsign || frequency.description || "Airport frequency"
-            }
-            meta={visibleFrequencySources(frequency)
-              .map((source) => (
-                <span
-                  key={source}
-                  className="rounded-full border border-atc-line px-2 py-1 font-mono text-[7px] font-semibold uppercase leading-none text-atc-faint"
-                >
-                  {source}
+      <div className="app-list-motion grid gap-1">
+        {frequencies.map((frequency, index) => {
+          const frequencyMhz = frequency.frequencyMHz ?? frequency.frequencyMhz;
+          return (
+            <TextPillListItem
+              key={frequency.id || `${frequency.type}-${frequencyMhz}-${index}`}
+              pill={
+                <span className="notranslate" translate="no">
+                  {formatFrequencyBadge(frequencyMhz)}
                 </span>
-              ))}
-          />
-        ))}
+              }
+              title={
+                frequency.callsign ||
+                frequency.description ||
+                formatFrequencyType(frequency.type)
+              }
+              subtitle={formatFrequencyType(frequency.type, frequency.description)}
+              meta={visibleFrequencySources(frequency)
+                .map((source) => (
+                  <span
+                    key={source}
+                    className="rounded-full border border-atc-line px-2 py-1 font-mono text-[7px] font-semibold uppercase leading-none text-atc-faint"
+                  >
+                    {source}
+                  </span>
+                ))}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -253,8 +258,8 @@ function SpottingPanel({
   const countKey =
     spots.length === 1 ? "watcherMode.countOne" : "watcherMode.countMany";
   return (
-    <div className="flex flex-col gap-2.5 px-[var(--airport-sidebar-inset)] pb-5 pt-1.5">
-      <div className="flex items-baseline justify-between border-b border-atc-line pb-1.5">
+    <div className="flex flex-col gap-2 px-[var(--airport-sidebar-inset)] pb-5 pt-1">
+      <div className="flex items-baseline justify-between pb-0.5">
         <h2 className="text-[11px] font-bold uppercase tracking-normal text-atc-text">
           {t("watcherMode.cardsTitle")}
         </h2>
@@ -262,7 +267,7 @@ function SpottingPanel({
           {t(countKey, { count: spots.length })}
         </span>
       </div>
-      <div className="app-list-motion grid gap-1.5">
+      <div className="app-list-motion grid gap-1">
         {spots.map((spot) => {
           const active = Boolean(selectedSpotId && selectedSpotId === spot.id);
           return (
@@ -271,7 +276,7 @@ function SpottingPanel({
               key={spot.id}
               data-active={active ? "true" : undefined}
               onClick={() => onSelectSpot?.(spot.id)}
-              className="group rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card/70 p-2.5 text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:border-transparent data-[active=true]:bg-[var(--atc-click-bg)]"
+              className="group rounded-[calc(var(--atc-radius-card)_-_2px)] px-2 py-1.5 text-left transition-[background,box-shadow,color] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)] data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -301,21 +306,34 @@ function SpottingPanel({
   );
 }
 
-function formatFrequencyMhz(value) {
-  const frequency = Number(value);
-  if (!Number.isFinite(frequency)) return "—";
-  return frequency.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
-}
-
 function formatFrequencyBadge(value) {
   const frequency = Number(value);
   if (!Number.isFinite(frequency)) return "—";
   return frequency.toFixed(3);
 }
 
-function formatFrequencyType(value) {
+function formatFrequencyType(value, description = "") {
+  const inferred = inferFrequencyType(description);
+  if (inferred) return inferred;
+  if (/^\d+$/.test(String(value || "").trim())) return "Airport frequency";
   const text = String(value || "other").replace(/-/g, " ");
   return text.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function inferFrequencyType(description) {
+  const normalized = String(description || "").toUpperCase();
+  if (/\bAPP(ROACH)?\b/.test(normalized)) return "Approach";
+  if (/\bDEP(ARTURE)?\b/.test(normalized)) return "Departure";
+  if (/\bTWR\b|\bTOWER\b/.test(normalized)) return "Tower";
+  if (/\bGND\b|\bGROUND\b/.test(normalized)) return "Ground";
+  if (/\bCLNC\b|\bCLD\b|\bCLR\b|\bCLEARANCE\b/.test(normalized)) {
+    return "Clearance";
+  }
+  if (/\bATIS\b/.test(normalized)) return "ATIS";
+  if (/\bUNICOM\b/.test(normalized)) return "UNICOM";
+  if (/\bCTAF\b/.test(normalized)) return "CTAF";
+  if (/\bGATE\b/.test(normalized)) return "Gate";
+  return "";
 }
 
 function visibleFrequencySources(frequency) {

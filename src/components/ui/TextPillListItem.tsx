@@ -60,7 +60,7 @@ export function TextPillListItem({
         className={cn(
           "inline-flex w-full min-w-0 items-center justify-start px-0 py-0.5",
           "truncate text-left text-[9px] font-black uppercase leading-none text-atc-text",
-          "group-data-[active=true]:bg-[var(--atc-click-fg)] group-data-[active=true]:text-[var(--atc-click-bg)]",
+          "group-data-[active=true]:text-[var(--atc-click-muted)]",
         )}
       >
         {pill}
@@ -98,7 +98,7 @@ export function TextPillListItem({
     // aligned like the original — but always rounded, so the hover tint and
     // active capsule read as rounded glass (a square highlight clashes with
     // the rounded design language).
-    "rounded-[calc(var(--atc-radius-card)-2px)] px-2 py-1.5",
+    "rounded-[calc(var(--atc-radius-card)_-_2px)] px-2 py-1.5",
     "transition-[background,border-color,box-shadow,color] duration-150",
     // Active = the shared liquid-glass capsule (dark in light theme, bright
     // in dark theme) — same material as MetricCard / SelectableCard.

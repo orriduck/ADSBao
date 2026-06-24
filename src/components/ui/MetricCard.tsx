@@ -52,7 +52,7 @@ const cardVariants = cva(
   cn(
     "relative isolate overflow-hidden",
     "grid content-center justify-items-center gap-1",
-    "rounded-[calc(var(--atc-radius-card)-2px)] border border-transparent bg-clip-padding",
+    "rounded-[calc(var(--atc-radius-card)_-_2px)] border border-transparent bg-clip-padding",
     "bg-transparent",
     "shadow-none",
     "text-atc-text text-center min-h-14 p-2 min-w-0",

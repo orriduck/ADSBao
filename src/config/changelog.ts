@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 73;
+export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.2",
+    kind: "patch",
+    title: {
+      en: "Compact sidebar refinement",
+      zh: "紧凑侧栏精修",
+    },
+    summary: {
+      en: "The dark sidebar pass now removes heavier separators, neutralizes the chrome hue, tightens mobile landscape width, and restores readable ATC frequency rows.",
+      zh: "深色侧栏继续减少厚重分隔符，收回 chrome 色相，压缩移动横屏宽度，并恢复 ATC 频率行的可读展示。",
+    },
+    highlights: [
+      {
+        en: "Metric and filter groups use softer internal lines with smaller selected-state margins, so alignment carries more of the structure",
+        zh: "指标与筛选组改用更轻的内部线和更小的选中态留白，让结构更多依靠对齐呈现",
+      },
+      {
+        en: "ATC and spotting subviews drop heavy header rules and boxed links while keeping their rows compact and scannable",
+        zh: "ATC 与拍机点子页去掉厚重标题线和盒状链接，同时保留紧凑、可扫读的行布局",
+      },
+      {
+        en: "ATC frequency rows now read current frequency fields correctly and avoid duplicate row keys during live refreshes",
+        zh: "ATC 频率行现在正确读取当前频率字段，并避免实时刷新时出现重复行 key",
+      },
+    ],
+  },
   {
     version: "v2.26.1",
     kind: "patch",
