@@ -35,17 +35,14 @@ export default function AboutPanel() {
     <div className="flex flex-none flex-col">
       <div className="about-meta-grid dither-meta-flow dither-list-flow flex-none">
         {version ? (
-          <div className="about-meta-version relative flex items-end justify-between gap-4 py-3.5">
-            <div className="min-w-0">
-              <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-atc-faint">
-                <span>/&zwj;/</span>{" "}
-                {version.labelKey ? t(version.labelKey) : version.label}
-              </span>
-              <p className="mt-1 truncate font-display text-[26px] font-black leading-none text-atc-text">
-                {resolveCopy(version, t)}
-              </p>
-            </div>
-            <span className="atc-dot atc-dot--muted mb-1" aria-hidden="true" />
+          <div className="about-meta-version grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 py-2.5">
+            <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-atc-faint">
+              <span>/&zwj;/</span>{" "}
+              {version.labelKey ? t(version.labelKey) : version.label}
+            </span>
+            <span className="truncate font-display text-[17px] font-black leading-none text-atc-text">
+              {resolveCopy(version, t)}
+            </span>
           </div>
         ) : null}
 

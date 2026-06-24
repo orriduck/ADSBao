@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 77;
+export const CHANGELOG_TOTAL_COUNT = 78;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.6",
+    kind: "patch",
+    title: {
+      en: "About page metadata polish",
+      zh: "关于页元信息打磨",
+    },
+    summary: {
+      en: "The about page version metadata is now inline and quieter, removing a decorative status dot and bringing data sources higher on the page.",
+      zh: "关于页版本元信息改为更安静的内联展示，移除无意义装饰圆点，让数据来源更早进入首屏。",
+    },
+    highlights: [
+      {
+        en: "The version number now reads as an aligned value instead of a large standalone metric",
+        zh: "版本号现在作为对齐值展示，不再像独立的大号指标卡",
+      },
+      {
+        en: "The decorative muted dot beside the version field was removed because it did not carry state or meaning",
+        zh: "版本字段旁的灰色圆点没有状态含义，已移除",
+      },
+      {
+        en: "The data-source list starts higher on mobile while keeping the open, unboxed static-page layout",
+        zh: "移动端数据来源列表更早出现，同时保持静态页开放、无重盒子的布局",
+      },
+    ],
+  },
   {
     version: "v2.26.5",
     kind: "patch",
