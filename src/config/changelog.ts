@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 83;
+export const CHANGELOG_TOTAL_COUNT = 84;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.12",
+    kind: "patch",
+    title: {
+      en: "Aligned home airport rows",
+      zh: "首页机场列表对齐",
+    },
+    summary: {
+      en: "The home airport list now aligns row titles with the search input rail on mobile and desktop.",
+      zh: "首页机场列表现在让机场名在移动端和桌面端都与搜索输入文字同轴。",
+    },
+    highlights: [
+      {
+        en: "Airport code badges are narrower on the home screen so they no longer push names off the input rail",
+        zh: "首页机场代码标签更窄，不再把机场名推离搜索输入的对齐轴",
+      },
+      {
+        en: "Desktop and mobile use separate compact columns so each layout keeps the same visual rail",
+        zh: "桌面和移动端使用各自更紧凑的列宽，保持相同的视觉 rail",
+      },
+      {
+        en: "The shared list primitive stays unchanged for other pages",
+        zh: "其他页面共用的列表 primitive 保持不变",
+      },
+    ],
+  },
   {
     version: "v2.26.11",
     kind: "patch",

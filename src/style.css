@@ -7894,16 +7894,30 @@ body {
 }
 
 .search-screen .dither-section-flow [data-ui="text-pill-list-item"] {
-    column-gap: 8px;
-    grid-template-columns: 42px minmax(0, 1fr) 16px;
+    column-gap: 5px;
+    grid-template-columns: 36px minmax(0, 1fr) 16px;
     margin-inline: 0;
     padding: 4px 8px 4px 0;
     width: 100%;
 }
 
+.search-screen .dither-section-flow [data-ui="text-pill-list-item"] > span:first-child {
+    width: 36px;
+}
+
 @media (min-width: 768px) {
     .search-screen .dither-content-stack {
         padding-inline: var(--airport-sidebar-inset, 16px);
+    }
+
+    .search-screen .dither-section-flow [data-ui="text-pill-list-item"] {
+        column-gap: 2px;
+        grid-template-columns: 32px minmax(0, 1fr) 16px;
+    }
+
+    .search-screen .dither-section-flow [data-ui="text-pill-list-item"] > span:first-child {
+        width: 32px;
+        font-size: 8px;
     }
 }
 
