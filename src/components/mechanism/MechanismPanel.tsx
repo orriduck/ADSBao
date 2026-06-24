@@ -48,7 +48,6 @@ export default function MechanismPanel() {
               <li key={item.id}>
                 <TextPillListItem
                   as="button"
-                  active={expanded}
                   aria-expanded={expanded}
                   aria-controls={panelId}
                   onClick={() => setExpandedId(expanded ? null : item.id)}
