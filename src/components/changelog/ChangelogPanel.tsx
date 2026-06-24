@@ -176,7 +176,9 @@ function ChangelogEntry({
         <ul className="changelog-entry__highlights">
           {highlights.map((item, index) => (
             <li key={index}>
-              <span aria-hidden="true" className="atc-dot atc-dot--muted mt-0.5" />
+              <span aria-hidden="true" className="changelog-entry__highlight-index">
+                {String(index + 1).padStart(2, "0")}
+              </span>
               <span className="min-w-0">{item}</span>
             </li>
           ))}

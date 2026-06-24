@@ -7334,8 +7334,8 @@ body {
 .changelog-entry__highlights {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    margin-top: 6px;
+    gap: 2px;
+    margin-top: 5px;
     padding: 0;
 }
 
@@ -7344,9 +7344,18 @@ body {
     color: var(--atc-text);
     display: grid;
     font-size: 10px;
-    gap: 5px;
-    grid-template-columns: 8px minmax(0, 1fr);
+    gap: 4px;
+    grid-template-columns: 14px minmax(0, 1fr);
     line-height: 1.32;
+}
+
+.changelog-entry__highlight-index {
+    color: var(--atc-faint);
+    font-family: var(--font-mono);
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
 }
 
 .sidebar-shell,
@@ -7753,15 +7762,19 @@ body {
     }
 
     .changelog-entry__highlights {
-        gap: 3px;
-        margin-top: 6px;
+        gap: 2px;
+        margin-top: 5px;
     }
 
     .changelog-entry__highlights li {
         font-size: 9px;
-        gap: 5px;
-        grid-template-columns: 8px minmax(0, 1fr);
+        gap: 4px;
+        grid-template-columns: 13px minmax(0, 1fr);
         line-height: 1.34;
+    }
+
+    .changelog-entry__highlight-index {
+        font-size: 6.5px;
     }
 
     .aircraft-preview-card {
@@ -7887,37 +7900,54 @@ body {
     }
 }
 
-/* Home airport lists share one rail with the search input. The row itself
-   stays open, while the code, name, and chevron define the order. */
+/* Home airport lists share one rail with the search input. Section labels,
+   airport names, and search text sit on the same axis; codes own the left rail. */
+.search-screen {
+    --home-list-code-column: 36px;
+    --home-list-column-gap: 5px;
+    --home-list-code-font: 8.5px;
+}
+
 .search-screen .dither-content-stack {
     padding-inline: 20px;
 }
 
+.search-screen .dither-section-flow > header {
+    column-gap: var(--home-list-column-gap);
+    display: grid;
+    grid-template-columns: var(--home-list-code-column) minmax(0, 1fr);
+}
+
+.search-screen .dither-section-flow > header > * {
+    grid-column: 2;
+}
+
 .search-screen .dither-section-flow [data-ui="text-pill-list-item"] {
-    column-gap: 5px;
-    grid-template-columns: 36px minmax(0, 1fr) 16px;
+    column-gap: var(--home-list-column-gap);
+    grid-template-columns: var(--home-list-code-column) minmax(0, 1fr) 16px;
     margin-inline: 0;
     padding: 4px 8px 4px 0;
     width: 100%;
 }
 
 .search-screen .dither-section-flow [data-ui="text-pill-list-item"] > span:first-child {
-    width: 36px;
+    font-size: var(--home-list-code-font);
+    width: var(--home-list-code-column);
 }
 
 @media (min-width: 768px) {
+    .search-screen {
+        --home-list-code-column: 34px;
+        --home-list-column-gap: 0px;
+        --home-list-code-font: 7.5px;
+    }
+
     .search-screen .dither-content-stack {
         padding-inline: var(--airport-sidebar-inset, 16px);
     }
 
-    .search-screen .dither-section-flow [data-ui="text-pill-list-item"] {
-        column-gap: 2px;
-        grid-template-columns: 32px minmax(0, 1fr) 16px;
-    }
-
     .search-screen .dither-section-flow [data-ui="text-pill-list-item"] > span:first-child {
-        width: 32px;
-        font-size: 8px;
+        padding-inline: 0;
     }
 }
 
