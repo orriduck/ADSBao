@@ -234,7 +234,6 @@ export function FilterCardGrid({
       data-ui="filter-grid"
       className={cn(
         "grid gap-0 px-[var(--airport-sidebar-inset)] py-1.5",
-        "border-y border-y-[color-mix(in_oklab,var(--atc-line)_58%,transparent)]",
         columns === 2
           ? "grid-cols-[repeat(2,minmax(0,1fr))]"
           : "grid-cols-[repeat(3,minmax(0,1fr))]",

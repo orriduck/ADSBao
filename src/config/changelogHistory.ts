@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.26.17",
+    kind: "patch",
+    title: {
+      en: "Quieter about source rails",
+      zh: "关于页来源 rail 降噪",
+    },
+    summary: {
+      en: "The about page data-source list now reads as aligned source rails instead of repeated badge rows.",
+      zh: "关于页数据来源列表现在以对齐 source rail 阅读，不再依赖重复的 badge 行。",
+    },
+    highlights: [
+      {
+        en: "Source type labels now sit in a fixed mono rail without filled mini badges",
+        zh: "来源类型标签现在位于固定 mono rail，不再使用填充小 badge",
+      },
+      {
+        en: "Provider names and descriptions keep one stable text axis on desktop and mobile",
+        zh: "供应方名称和说明在桌面端与移动端保持同一条稳定文字轴",
+      },
+      {
+        en: "External-link affordance remains, but the arrow is smaller and quieter",
+        zh: "外部链接提示仍然保留，但箭头更小、更安静",
+      },
+    ],
+  },
+  {
     version: "v2.26.16",
     kind: "patch",
     title: {

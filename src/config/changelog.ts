@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 94;
+export const CHANGELOG_TOTAL_COUNT = 95;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.23",
+    kind: "patch",
+    title: {
+      en: "Quieter traffic controls",
+      zh: "航班控件降噪",
+    },
+    summary: {
+      en: "The airport traffic sidebar now relies more on aligned rails and less on boxed control surfaces.",
+      zh: "机场航班侧栏现在更多依靠对齐 rail 建立秩序，减少成块控件表面。",
+    },
+    highlights: [
+      {
+        en: "Metric and filter controls no longer read as a boxed table in the map sidebar",
+        zh: "地图侧栏里的指标和筛选控件不再像一个外框表格",
+      },
+      {
+        en: "The traffic search field is quieter and embedded into the control rail",
+        zh: "航班搜索框更安静，并嵌入控件 rail",
+      },
+      {
+        en: "Selected filters keep their state without the heavier glass shadow",
+        zh: "选中的筛选项保留状态提示，但不再使用较重的玻璃阴影",
+      },
+    ],
+  },
   {
     version: "v2.26.22",
     kind: "patch",
@@ -171,32 +197,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The /here denied and unavailable states move into a compact split workspace without changing location behavior",
         zh: "/here 拒绝和不可用状态进入紧凑分栏工作区，不改变定位行为",
-      },
-    ],
-  },
-  {
-    version: "v2.26.17",
-    kind: "patch",
-    title: {
-      en: "Quieter about source rails",
-      zh: "关于页来源 rail 降噪",
-    },
-    summary: {
-      en: "The about page data-source list now reads as aligned source rails instead of repeated badge rows.",
-      zh: "关于页数据来源列表现在以对齐 source rail 阅读，不再依赖重复的 badge 行。",
-    },
-    highlights: [
-      {
-        en: "Source type labels now sit in a fixed mono rail without filled mini badges",
-        zh: "来源类型标签现在位于固定 mono rail，不再使用填充小 badge",
-      },
-      {
-        en: "Provider names and descriptions keep one stable text axis on desktop and mobile",
-        zh: "供应方名称和说明在桌面端与移动端保持同一条稳定文字轴",
-      },
-      {
-        en: "External-link affordance remains, but the arrow is smaller and quieter",
-        zh: "外部链接提示仍然保留，但箭头更小、更安静",
       },
     ],
   },
