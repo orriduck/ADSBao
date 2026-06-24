@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 84;
+export const CHANGELOG_TOTAL_COUNT = 85;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.13",
+    kind: "patch",
+    title: {
+      en: "Cleaner airport sidebar filters",
+      zh: "机场侧栏过滤区精简",
+    },
+    summary: {
+      en: "The airport sidebar filter strip now relies on aligned controls instead of an enclosing grid box, and short landscape viewports use a tighter identity header.",
+      zh: "机场侧栏过滤区现在依靠控件对齐而不是外层网格盒子，短横屏视口也使用更紧凑的机场身份头部。",
+    },
+    highlights: [
+      {
+        en: "Filter controls keep their active glass capsule but lose the table-like parent border and internal rules",
+        zh: "过滤控件保留选中玻璃 capsule，但去掉表格式父级边框和内部线条",
+      },
+      {
+        en: "Short landscape airport pages collapse the identity block to the code rail so the traffic list enters the first screen",
+        zh: "短横屏机场页将身份块收缩到代码 rail，让航班列表进入首屏",
+      },
+      {
+        en: "The change is display-only and leaves filter behavior, route data, and map layers untouched",
+        zh: "这次仅调整展示，不改变过滤行为、航路数据或地图图层",
+      },
+    ],
+  },
   {
     version: "v2.26.12",
     kind: "patch",

@@ -8112,9 +8112,7 @@ body {
 }
 
 .airport-sidebar-panel [data-ui="metric-grid"],
-.airport-sidebar-panel [data-ui="filter-grid"],
-.flight-sidebar-panel [data-ui="metric-grid"],
-.flight-sidebar-panel [data-ui="filter-grid"] {
+.flight-sidebar-panel [data-ui="metric-grid"] {
     background: color-mix(in oklab, var(--atc-bg) 46%, var(--atc-text) 3%);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -8124,6 +8122,19 @@ body {
     margin-left: var(--airport-sidebar-inset);
     margin-right: var(--airport-sidebar-inset);
     overflow: hidden;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.airport-sidebar-panel [data-ui="filter-grid"],
+.flight-sidebar-panel [data-ui="filter-grid"] {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    gap: 2px;
+    margin-left: var(--airport-sidebar-inset);
+    margin-right: var(--airport-sidebar-inset);
+    overflow: visible;
     padding-left: 0;
     padding-right: 0;
 }
@@ -8139,10 +8150,8 @@ body {
 
 .airport-sidebar-panel [data-ui="filter-grid"],
 .flight-sidebar-panel [data-ui="filter-grid"] {
-    border-bottom-color: color-mix(in oklab, var(--atc-text) 6%, transparent);
-    border-top-color: color-mix(in oklab, var(--atc-text) 6%, transparent);
-    padding-bottom: 0;
-    padding-top: 0;
+    padding-bottom: 2px;
+    padding-top: 2px;
 }
 
 .airport-sidebar-panel [data-ui="metric-card"],
@@ -8163,16 +8172,12 @@ body {
 }
 
 .airport-sidebar-panel [data-ui="metric-card"]:nth-child(odd),
-.airport-sidebar-panel [data-ui="filter-card"]:nth-child(odd),
-.flight-sidebar-panel [data-ui="metric-card"]:nth-child(odd),
-.flight-sidebar-panel [data-ui="filter-card"]:nth-child(odd) {
+.flight-sidebar-panel [data-ui="metric-card"]:nth-child(odd) {
     border-right-color: color-mix(in oklab, var(--atc-line) 36%, transparent);
 }
 
 .airport-sidebar-panel [data-ui="metric-card"]:nth-child(n + 3),
-.airport-sidebar-panel [data-ui="filter-card"]:nth-child(n + 3),
-.flight-sidebar-panel [data-ui="metric-card"]:nth-child(n + 3),
-.flight-sidebar-panel [data-ui="filter-card"]:nth-child(n + 3) {
+.flight-sidebar-panel [data-ui="metric-card"]:nth-child(n + 3) {
     border-top-color: color-mix(in oklab, var(--atc-line) 36%, transparent);
 }
 
@@ -8187,9 +8192,9 @@ body {
 .airport-sidebar-panel [data-ui="filter-card"][data-state="open"],
 .flight-sidebar-panel [data-ui="filter-card"][data-active="true"],
 .flight-sidebar-panel [data-ui="filter-card"][data-state="open"] {
-    border-radius: 10px;
+    border-radius: 8px;
     box-shadow: var(--atc-glass-rim-shadow);
-    margin: 1px;
+    margin: 0;
 }
 
 .airport-sidebar-panel [data-ui="metric-card"][data-layout="split"],
@@ -8713,6 +8718,118 @@ body {
 @media (min-width: 640px) and (max-width: 900px) {
     .airport-map-kit[data-client-orientation="landscape"] {
         --app-sidebar-width: 18rem;
+    }
+}
+
+@media (min-width: 640px) and (max-height: 480px) {
+    .airport-map-kit[data-client-orientation="landscape"]
+        .airport-sidebar-identity {
+        padding-bottom: 5px;
+        padding-top: 5px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .sidebar-brand-dock {
+        min-height: 32px;
+        padding-bottom: 3px;
+        padding-top: 3px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .sidebar-brand-dock
+        svg {
+        height: 20px;
+        width: auto;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .airport-sidebar-display-mono--hero {
+        font-size: 14px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .airport-sidebar-identity
+        .mt-3 {
+        gap: 5px;
+        margin-top: 3px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .airport-sidebar-identity
+        h1,
+    .airport-map-kit[data-client-orientation="landscape"]
+        .airport-sidebar-identity
+        h1
+        ~ div,
+    .airport-map-kit[data-client-orientation="landscape"]
+        .airport-sidebar-identity
+        .font-mono {
+        display: none;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        [data-ui="metric-grid"] {
+        margin-bottom: 4px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        [data-ui="metric-card"] {
+        min-height: 30px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        [data-ui="metric-card"][data-layout="split"] {
+        gap: 5px;
+        min-height: 30px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        [data-ui="metric-card"][data-layout="split"]
+        [data-ui="metric-value"] {
+        font-size: 15px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .aircraft-table-controls
+        > div:first-child {
+        padding-bottom: 3px;
+        padding-top: 3px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .aircraft-table-search-bar {
+        padding-bottom: 2px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .aircraft-search {
+        min-height: 30px;
+        padding-bottom: 4px;
+        padding-top: 4px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        [data-ui="filter-grid"] {
+        gap: 1px;
+        padding-bottom: 1px;
+        padding-top: 1px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        [data-ui="filter-card"] {
+        min-height: 28px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .aircraft-table-list-card {
+        margin-top: 2px;
+    }
+
+    .airport-map-kit[data-client-orientation="landscape"]
+        .aircraft-table-header {
+        min-height: 18px;
+        padding-bottom: 1px;
+        padding-top: 1px;
     }
 }
 
