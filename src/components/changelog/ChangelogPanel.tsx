@@ -11,9 +11,9 @@ import {
 } from "@/config/changelog";
 
 // Sidebar-scoped changelog. Reuses DitherPageShell so the page reads as
-// a sibling of Home and About — same brand block, same footer, same
-// dither background. Each release is a compact text row: version,
-// optional current marker, summary, then short highlights.
+// a sibling of Home and About: same brand block, same footer, same
+// dither background. Each release is a compact rail row: version/status on the
+// left, release copy on one stable content axis.
 
 export default function ChangelogPanel() {
   const { locale, t } = useI18n();
@@ -145,45 +145,45 @@ function ChangelogEntry({
     localizedRelease?.highlights ||
     release.highlights.map((item) => resolveChangelogText(item, locale));
   return (
-    <li className="changelog-entry">
-      <div className="changelog-entry__header">
-        {isLatest ? (
-          <span className="atc-pill">
-            <span>{release.version}</span>
-          </span>
-        ) : (
-          <span className="atc-pill atc-pill--outline">
-            <span>{release.version}</span>
-          </span>
-        )}
+    <li
+      className="changelog-entry"
+      data-current={isLatest ? "true" : undefined}
+    >
+      <div className="changelog-entry__rail">
+        <span className="changelog-entry__version">{release.version}</span>
         {isLatest && (
-          <span className="atc-chip">
-            <span>{t("changelog.current")}</span>
+          <span className="changelog-entry__current">
+            {t("changelog.current")}
           </span>
         )}
       </div>
-      {title ? (
-        <p className="changelog-entry__title">
-          {title}
-        </p>
-      ) : null}
-      {summary ? (
-        <p className="changelog-entry__summary">
-          {summary}
-        </p>
-      ) : null}
-      {Array.isArray(highlights) && highlights.length > 0 ? (
-        <ul className="changelog-entry__highlights">
-          {highlights.map((item, index) => (
-            <li key={index}>
-              <span aria-hidden="true" className="changelog-entry__highlight-index">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <span className="min-w-0">{item}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <div className="changelog-entry__body">
+        {title ? (
+          <p className="changelog-entry__title">
+            {title}
+          </p>
+        ) : null}
+        {summary ? (
+          <p className="changelog-entry__summary">
+            {summary}
+          </p>
+        ) : null}
+        {Array.isArray(highlights) && highlights.length > 0 ? (
+          <ul className="changelog-entry__highlights">
+            {highlights.map((item, index) => (
+              <li key={index}>
+                <span
+                  aria-hidden="true"
+                  className="changelog-entry__highlight-index"
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0">{item}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
     </li>
   );
 }
