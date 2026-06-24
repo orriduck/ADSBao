@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 89;
+export const CHANGELOG_TOTAL_COUNT = 90;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.18",
+    kind: "patch",
+    title: {
+      en: "Sharper home and here rails",
+      zh: "首页与 Here rail 精修",
+    },
+    summary: {
+      en: "The home airport list and /here permission state now use tighter aligned rails instead of heavier standalone blocks.",
+      zh: "首页机场列表和 /here 权限态现在使用更紧凑的对齐 rail，不再依赖厚重的独立块。",
+    },
+    highlights: [
+      {
+        en: "Home airport codes become a quiet mono rail aligned with the search icon",
+        zh: "首页机场代码改为安静的 mono rail，并与搜索图标对齐",
+      },
+      {
+        en: "Section titles, descriptions, airport names, and search text now share one stable content axis",
+        zh: "分组标题、说明、机场名和搜索文字现在共用同一条稳定内容轴",
+      },
+      {
+        en: "The /here denied and unavailable states move into a compact split workspace without changing location behavior",
+        zh: "/here 拒绝和不可用状态进入紧凑分栏工作区，不改变定位行为",
+      },
+    ],
+  },
   {
     version: "v2.26.17",
     kind: "patch",

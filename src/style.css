@@ -2015,6 +2015,145 @@ body:has(.dither-page-shell) {
     z-index: 0;
 }
 
+.near-me-permission-shell {
+    --near-me-permission-panel-width: 17.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, var(--near-me-permission-panel-width)) minmax(0, 1fr);
+    height: 100vh;
+    height: var(--app-viewport-height, 100dvh);
+    isolation: isolate;
+    overflow: hidden;
+    position: relative;
+}
+
+.near-me-permission-panel {
+    --near-me-permission-rail: 46px;
+    background: var(--atc-bg);
+    border-right: 1px solid var(--atc-line-strong);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: 24px 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.near-me-permission-status {
+    display: grid;
+    gap: 4px;
+    grid-template-columns: var(--near-me-permission-rail) minmax(0, 1fr);
+}
+
+.near-me-permission-code {
+    align-self: start;
+    color: var(--atc-dim);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 850;
+    line-height: 1;
+    margin-top: 7px;
+}
+
+.near-me-permission-copy {
+    min-width: 0;
+    position: relative;
+}
+
+.near-me-permission-icon {
+    color: var(--atc-faint);
+    display: inline-flex;
+    margin-bottom: 5px;
+}
+
+.near-me-permission-copy h1 {
+    color: var(--atc-text);
+    font-size: 18px;
+    font-weight: 850;
+    line-height: 1.05;
+    margin: 0;
+}
+
+.near-me-permission-copy p {
+    color: var(--atc-dim);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 5px 0 0;
+}
+
+.near-me-permission-actions {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: var(--near-me-permission-rail) repeat(2, minmax(0, 1fr));
+    margin-top: 14px;
+}
+
+.near-me-permission-action {
+    align-items: center;
+    border: 0;
+    border-radius: calc(var(--atc-radius-card) - 2px);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 800;
+    justify-content: center;
+    line-height: 1;
+    min-height: 30px;
+    padding: 0 10px;
+    transition:
+        background var(--motion-ui-fast) var(--motion-ease-out),
+        box-shadow var(--motion-ui-fast) var(--motion-ease-out),
+        transform var(--motion-ui-fast) var(--motion-ease-out);
+}
+
+.near-me-permission-action:active {
+    transform: scale(0.98);
+}
+
+.near-me-permission-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.near-me-permission-action:focus-visible {
+    outline: 0;
+    box-shadow: inset 0 0 0 1.5px var(--app-frost-border);
+}
+
+.near-me-permission-action--primary {
+    -webkit-backdrop-filter: var(--atc-glass-active-frost);
+    backdrop-filter: var(--atc-glass-active-frost);
+    background: var(--atc-glass-active-bg);
+    color: var(--atc-click-fg);
+    grid-column: 2;
+    box-shadow: var(--atc-glass-rim-shadow);
+}
+
+.near-me-permission-action--secondary {
+    background: color-mix(in oklab, var(--atc-bg) 76%, var(--atc-text) 5%);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 10%, transparent);
+    color: var(--atc-text);
+    grid-column: 3;
+}
+
+.near-me-permission-action--secondary:hover {
+    background: var(--atc-control-hover-bg);
+}
+
+.near-me-permission-background {
+    background: var(--atc-bg);
+    min-width: 0;
+    overflow: hidden;
+    pointer-events: none;
+    position: relative;
+}
+
+.near-me-permission-background > .branding-video-background {
+    inset: 0;
+    position: absolute;
+}
+
 .page-nav-dock {
     display: flex;
     justify-content: flex-end;
@@ -2036,6 +2175,25 @@ body:has(.dither-page-shell) {
 
 @media (max-width: 720px) {
     .dither-page-background {
+        display: none;
+    }
+
+    .near-me-permission-shell {
+        display: block;
+    }
+
+    .near-me-permission-panel {
+        border-right: 0;
+        min-height: var(--app-viewport-height, 100dvh);
+        padding: 28px 24px;
+    }
+
+    .near-me-permission-status,
+    .near-me-permission-actions {
+        grid-template-columns: 46px repeat(2, minmax(0, 1fr));
+    }
+
+    .near-me-permission-background {
         display: none;
     }
 
@@ -7942,19 +8100,42 @@ body {
 /* Home airport lists share one rail with the search input. Section labels,
    airport names, and search text sit on the same axis; codes own the left rail. */
 .search-screen {
-    --home-list-code-column: 36px;
+    --home-list-rail-inset: 8px;
+    --home-list-code-column: 28px;
     --home-list-column-gap: 5px;
-    --home-list-code-font: 8.5px;
+    --home-list-code-font: 8px;
 }
 
 .search-screen .dither-content-stack {
     padding-inline: 20px;
 }
 
+.search-screen .search-input {
+    align-items: center;
+    column-gap: var(--home-list-column-gap);
+    display: grid;
+    grid-template-columns: var(--home-list-code-column) minmax(0, 1fr) auto;
+    padding-left: var(--home-list-rail-inset);
+}
+
+.search-screen .search-input > svg {
+    justify-self: start;
+}
+
+.search-screen .search-input > input {
+    grid-column: 2;
+}
+
+.search-screen .search-input > kbd {
+    grid-column: 3;
+    justify-self: end;
+}
+
 .search-screen .dither-section-flow > header {
     column-gap: var(--home-list-column-gap);
     display: grid;
     grid-template-columns: var(--home-list-code-column) minmax(0, 1fr);
+    padding-left: var(--home-list-rail-inset);
 }
 
 .search-screen .dither-section-flow > header > * {
@@ -7965,18 +8146,27 @@ body {
     column-gap: var(--home-list-column-gap);
     grid-template-columns: var(--home-list-code-column) minmax(0, 1fr) 16px;
     margin-inline: 0;
-    padding: 4px 8px 4px 0;
+    padding: 4px 8px 4px var(--home-list-rail-inset);
     width: 100%;
 }
 
 .search-screen .dither-section-flow [data-ui="text-pill-list-item"] > span:first-child {
+    align-self: center;
+    background: transparent;
+    border-radius: 0;
+    color: var(--atc-dim);
+    font-family: var(--font-mono);
     font-size: var(--home-list-code-font);
+    font-weight: 850;
+    height: auto;
+    justify-content: flex-start;
+    padding: 0;
     width: var(--home-list-code-column);
 }
 
 @media (min-width: 768px) {
     .search-screen {
-        --home-list-code-column: 34px;
+        --home-list-code-column: 26px;
         --home-list-column-gap: 0px;
         --home-list-code-font: 7.5px;
     }
