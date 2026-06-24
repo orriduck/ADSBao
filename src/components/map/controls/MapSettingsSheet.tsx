@@ -114,11 +114,11 @@ const sectionTitleClassName =
   "mb-1.5 px-0.5 text-[8px] font-bold uppercase tracking-normal text-atc-muted";
 
 const settingsListGroupClassName =
-  "map-settings-list-group overflow-visible border-y border-[var(--atc-content-group-border)]";
+  "map-settings-list-group grid gap-1 overflow-visible";
 
 const settingsOptionRowClassName = cn(
   "group map-settings-option-row grid min-h-[40px] w-full grid-cols-[24px_minmax(0,1fr)_12px] items-center gap-2",
-  "px-1 py-1.5 text-left text-atc-text transition-[background,color,box-shadow,opacity] duration-150",
+  "rounded-[calc(var(--atc-radius-card)-2px)] px-1 py-1.5 text-left text-atc-text transition-[background,color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
   "data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)]",
@@ -129,7 +129,7 @@ const settingsOptionRowClassName = cn(
 
 const layerToggleRowClassName = cn(
   "group grid min-h-[42px] w-full grid-cols-[24px_minmax(0,1fr)_34px] items-center gap-2",
-  "bg-transparent px-1 py-1.5 text-left text-atc-text",
+  "rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1.5 text-left text-atc-text",
   "transition-[background,border-color,box-shadow,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
@@ -346,7 +346,7 @@ export default function MapSettingsSheet({
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <SheetHeader className="border-b border-[var(--atc-line)] px-4 py-3 pr-14 text-left">
+          <SheetHeader className="px-4 py-3 pr-14 text-left">
             <SheetTitle className="text-[16px] font-semibold leading-tight text-atc-text">
               {t("mapSettings.title")}
             </SheetTitle>
@@ -428,7 +428,7 @@ export default function MapSettingsSheet({
                 {userLocationActive ? (
                   <>
                     <div
-                      className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] border border-[var(--sidebar-tile-rest-border)] bg-transparent px-2 py-1.5 text-[10px] leading-snug text-atc-muted shadow-none"
+                      className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-atc-muted shadow-none"
                       role="status"
                       aria-live="polite"
                     >
@@ -470,7 +470,7 @@ export default function MapSettingsSheet({
                     </div>
                     {userLocationNotice ? (
                       <div
-                        className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] border border-[var(--sidebar-tile-rest-border)] bg-transparent px-2 py-1.5 text-[10px] leading-snug text-atc-muted shadow-none"
+                        className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-atc-muted shadow-none"
                         role="status"
                         aria-live="polite"
                       >
@@ -482,7 +482,7 @@ export default function MapSettingsSheet({
                     onRequestUserLocationPermission ? (
                       <button
                         type="button"
-                        className="map-settings-note w-full rounded-[calc(var(--atc-radius-card)-2px)] border border-[var(--sidebar-tile-rest-border)] bg-transparent px-2 py-1.5 text-[10px] font-semibold leading-snug text-[var(--atc-accent)] shadow-none transition-colors hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98]"
+                        className="map-settings-note w-full rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] font-semibold leading-snug text-[var(--atc-accent)] shadow-none transition-colors hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98]"
                         onClick={onRequestUserLocationPermission}
                       >
                         {userLocationPermissionDenied
@@ -493,7 +493,7 @@ export default function MapSettingsSheet({
                   </>
                 ) : (
                   <div
-                    className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] border border-[var(--sidebar-tile-rest-border)] bg-transparent px-2 py-1.5 text-[10px] leading-snug text-atc-muted shadow-none"
+                    className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-atc-muted shadow-none"
                     role="status"
                   >
                     {t("mapLayers.hideUserLocation")}
@@ -526,7 +526,7 @@ export default function MapSettingsSheet({
                       <div
                         role="radiogroup"
                         aria-label={t(group.titleKey)}
-                        className="map-settings-segmented-control grid auto-cols-fr grid-flow-col gap-0.5 rounded-[var(--atc-radius-pill)] border border-[var(--sidebar-tile-rest-border)] bg-transparent p-0.5 shadow-none"
+                        className="map-settings-segmented-control grid auto-cols-fr grid-flow-col gap-0.5 rounded-[var(--atc-radius-pill)] border border-transparent bg-[var(--atc-control-surface-muted)] p-0.5 shadow-none"
                       >
                         {group.options.map((option) => (
                           <button
@@ -554,7 +554,7 @@ export default function MapSettingsSheet({
           </div>
 
           {showGuestPrompt ? (
-            <div className="border-t border-[var(--atc-line)] px-5 py-4 text-[12px] leading-relaxed text-atc-muted">
+            <div className="px-5 py-4 text-[12px] leading-relaxed text-atc-muted">
               {t("mapSettings.guestPrompt")}
             </div>
           ) : null}

@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 71;
+export const CHANGELOG_TOTAL_COUNT = 72;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.0",
+    kind: "feat",
+    title: {
+      en: "Dark glass interface redesign",
+      zh: "深色玻璃界面重设计",
+    },
+    summary: {
+      en: "Sidebars, static pages, toolbars, search fields, and settings now share a denser dark-glass interface language inspired by compact professional dashboards.",
+      zh: "侧栏、静态页、工具栏、搜索框和设置面板统一到更紧凑的深色玻璃界面语言，接近专业仪表盘的克制密度。",
+    },
+    highlights: [
+      {
+        en: "Airport and flight sidebars now use a continuous dark translucent shell with inline metric and filter readouts instead of heavier boxed surfaces",
+        zh: "机场和航班侧栏改为连续的深色半透明外壳，指标与筛选保留内联读数，不再依赖厚重盒子表面",
+      },
+      {
+        en: "Home, about, changelog, and other static pages now share the same dark sidebar rhythm while keeping their open list layout",
+        zh: "首页、关于、更新日志等静态页统一到同一套深色侧栏节奏，同时保留开放式列表布局",
+      },
+      {
+        en: "Toolbar buttons, search fields, and map settings now use local glass highlights and subtler recessed controls",
+        zh: "工具栏按钮、搜索框和地图设置改用局部玻璃高亮与更克制的内凹控件",
+      },
+    ],
+  },
   {
     version: "v2.25.1",
     kind: "patch",

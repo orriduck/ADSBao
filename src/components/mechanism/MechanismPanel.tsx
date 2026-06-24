@@ -73,7 +73,7 @@ export default function MechanismPanel() {
                         {t(item.bodyKey)}
                       </p>
                       <MechanismFlow labels={flowLabels} active={expanded} />
-                      <div className="mt-2 grid gap-1 border-l border-[var(--atc-line)] pl-2">
+                      <div className="mt-2 grid gap-1 pl-0.5">
                         {item.detailKeys.map((key) => (
                           <p
                             key={key}

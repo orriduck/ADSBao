@@ -22,7 +22,7 @@ type MetricCardProps = {
 // Two-column metric grid + uniform stat-card cell shared between the
 // airport sidebar (interactive WEATHER / FLIGHTS tabs) and the flight
 // sidebar (static focal-aircraft telemetry). Layout, type ramps and
-// the active-state fill are colocated here instead of in
+// the active-state glass are colocated here instead of in
 // style.css so the cell stops accumulating bespoke modifier classes.
 
 export function MetricGrid({ className, children, label = "Metrics" }: MetricGridProps) {
@@ -66,12 +66,20 @@ const cardVariants = cva(
     "[.airport-map-kit_&]:grid-rows-[7px_18px_6px]",
     "[.airport-map-kit_&]:min-h-11",
     "[.airport-map-kit_&]:p-[7px]",
-    // Active metric cards are a restrained solid selection, not a glass
-    // capsule. The hierarchy comes from alignment and value contrast.
-    "data-[active=true]:bg-[var(--atc-click-bg)]",
+    // Active metric cells stay inline readouts, but flip into the selected
+    // glass capsule so the current tab reads like the reference sidebar.
+    "data-[active=true]:[background:var(--atc-glass-active-bg)]",
     "data-[active=true]:border-transparent",
+    "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)]",
+    "data-[active=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",
-    "data-[active=true]:shadow-none",
+    "data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]",
+    "after:content-[''] after:absolute after:inset-0",
+    "after:[background:var(--atc-glass-sheen)]",
+    "after:opacity-0 after:translate-y-2 after:pointer-events-none",
+    "after:transition-[opacity,transform] after:duration-300 after:ease-out",
+    "data-[active=true]:after:opacity-100 data-[active=true]:after:translate-y-0",
+    "[&>*]:relative [&>*]:z-[1]",
   ),
   {
     variants: {
@@ -79,7 +87,7 @@ const cardVariants = cva(
         true: cn(
           "cursor-pointer",
           "hover:bg-[var(--atc-control-surface-muted)]",
-          "data-[active=true]:hover:bg-[var(--atc-click-bg)]",
+          "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
           "focus:outline-none",
         ),
         false: "cursor-default",

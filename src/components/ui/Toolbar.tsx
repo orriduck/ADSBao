@@ -131,9 +131,8 @@ export const Toolbar = forwardRef(function Toolbar(
   );
 });
 
-// 1px vertical divider between groups of toolbar buttons. All three
-// callers used a ~20px-tall hairline against --atc-line-strong, with
-// trivial spacing differences. One primitive replaces three.
+// Low-contrast divider between toolbar groups. Keep it quieter than
+// the button silhouettes so grouping comes mostly from spacing.
 export function ToolbarSeparator({
   className,
   ...props
@@ -142,7 +141,7 @@ export function ToolbarSeparator({
     <span
       aria-hidden="true"
       className={cn(
-        "flex-none self-center w-px h-5",
+        "flex-none self-center w-px h-4 opacity-50",
         "bg-[var(--atc-line-strong)]",
         className,
       )}

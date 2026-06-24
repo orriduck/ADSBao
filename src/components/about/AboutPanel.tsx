@@ -49,7 +49,7 @@ export default function AboutPanel() {
           </div>
         ) : null}
 
-        <div className="divide-y divide-[var(--atc-line)] border-t border-[var(--atc-line)]">
+        <div className="grid gap-2">
           {sections.map((section) => (
             <section
               key={section.label}
