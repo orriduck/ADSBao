@@ -7423,6 +7423,60 @@ body {
     min-height: 0;
 }
 
+.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link {
+    column-gap: 4px;
+    grid-template-columns: 46px minmax(0, 1fr) 12px;
+    margin-inline: 0;
+    padding: 3px 0;
+    width: 100%;
+}
+
+.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link > span:first-child {
+    background: transparent;
+    border-radius: 0;
+    align-self: start;
+    color: var(--atc-dim);
+    font-family: var(--font-mono);
+    font-size: 7.5px;
+    font-weight: 850;
+    height: auto;
+    justify-content: flex-start;
+    margin-top: 4px;
+    padding: 0;
+    width: 46px;
+}
+
+.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link > span:nth-child(2) {
+    gap: 0;
+}
+
+.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link
+    > span:nth-child(2)
+    > span:first-child {
+    font-size: 10.5px;
+    line-height: 1.18;
+}
+
+.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link
+    > span:nth-child(2)
+    > span:nth-child(2) {
+    font-size: 8.5px;
+    line-height: 1.25;
+    margin-top: 1px;
+}
+
+.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link > span:last-child {
+    align-self: start;
+    margin-top: 5px;
+    opacity: 0.55;
+    width: 12px;
+}
+
+.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link svg {
+    height: 12px;
+    width: 12px;
+}
+
 .dither-page-panel .search-input {
     background: color-mix(in oklab, var(--atc-bg) 74%, var(--atc-text) 5%);
     -webkit-backdrop-filter: var(--app-frost);
@@ -7718,21 +7772,6 @@ body {
         font-size: 10px;
         gap: 6px;
         grid-template-columns: 8px minmax(0, 1fr);
-    }
-
-    .about-data-source-row {
-        gap: 10px;
-        grid-template-columns: max-content minmax(0, 1fr);
-        margin-inline: -19px;
-        padding: 10px 19px;
-    }
-
-    .about-data-source-row strong {
-        font-size: 10px;
-    }
-
-    .about-data-source-row small {
-        font-size: 9px;
     }
 
     .changelog-screen li.changelog-entry {

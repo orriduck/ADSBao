@@ -93,6 +93,7 @@ export default function AboutPanel() {
           <li key={source.host || source.title || source.glyph}>
             <TextPillListItem
               as="a"
+              className="about-data-source-link"
               {...getExternalLinkOpenTarget(source.href)}
               onClick={(event) => openExternalLink(event, source.href)}
               pill={source.glyph}
