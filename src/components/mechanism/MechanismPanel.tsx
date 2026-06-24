@@ -14,20 +14,20 @@ export default function MechanismPanel() {
   );
 
   return (
-    <div className="flex flex-none flex-col pb-6">
-      <div className="dither-section-header flex-none px-6 pt-6 pb-3">
+    <div className="flex flex-none flex-col pb-4">
+      <div className="dither-section-header flex-none px-5 pb-2 pt-4">
         <div className="atc-section-head">
           <span className="atc-kicker">{t("mechanism.sidebarLabel")}</span>
           <span className="atc-section-head__count">
             {t("mechanism.count", { count: MECHANISM_ITEMS.length })}
           </span>
         </div>
-        <p className="mt-2 max-w-[36ch] text-[11.5px] leading-relaxed text-atc-dim">
+        <p className="mt-1 max-w-[36ch] text-[10px] leading-relaxed text-atc-dim">
           {t("mechanism.description")}
         </p>
       </div>
 
-      <ol className="dither-list dither-list-flow mx-6 flex flex-col gap-1">
+      <ol className="dither-list dither-list-flow mx-5 flex flex-col gap-0.5">
         {MECHANISM_ITEMS.map((item, index) => {
           const expanded = item.id === expandedId;
           const panelId = `mechanism-${item.id}`;
@@ -40,8 +40,8 @@ export default function MechanismPanel() {
           return (
             <Fragment key={item.id}>
               {showGroup ? (
-                <li className="px-3.5 pb-1 pt-4 first:pt-0">
-                  <span className="font-mono text-[10px] font-black uppercase leading-none tracking-normal text-atc-faint">
+                <li className="px-2 pb-1 pt-3 first:pt-0">
+                  <span className="font-mono text-[8px] font-black uppercase leading-none tracking-normal text-atc-faint">
                     {t(item.groupKey)}
                   </span>
                 </li>
@@ -68,16 +68,16 @@ export default function MechanismPanel() {
                   )}
                 >
                   <div className="min-h-0 overflow-hidden">
-                    <div className="px-3.5 pb-3 pt-3">
-                      <p className="text-[11.5px] leading-relaxed text-atc-dim">
+                    <div className="px-2 pb-2 pt-2">
+                      <p className="text-[10px] leading-relaxed text-atc-dim">
                         {t(item.bodyKey)}
                       </p>
                       <MechanismFlow labels={flowLabels} active={expanded} />
-                      <div className="mt-3 grid gap-2 border-l border-[var(--atc-line)] pl-3">
+                      <div className="mt-2 grid gap-1 border-l border-[var(--atc-line)] pl-2">
                         {item.detailKeys.map((key) => (
                           <p
                             key={key}
-                            className="text-[11.5px] leading-relaxed text-atc-dim"
+                            className="text-[10px] leading-relaxed text-atc-dim"
                           >
                             {t(key)}
                           </p>
@@ -140,28 +140,27 @@ function MechanismFlow({
     <div
       ref={rootRef}
       className={cn(
-        "relative mt-3 overflow-hidden rounded-[calc(var(--atc-radius-card)-6px)]",
-        "border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)]",
-        "px-3 py-2.5 shadow-none",
-        "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
+        "relative mt-2 overflow-hidden",
+        "border-l border-[var(--atc-line)]",
+        "py-1 pl-2.5",
       )}
     >
       <div
         data-flow-line
         aria-hidden="true"
-        className="absolute bottom-4 left-[21px] top-4 w-px bg-[var(--atc-line)]"
+        className="absolute bottom-3 left-[11px] top-3 w-px bg-[var(--atc-line)]"
       />
-      <ol className="relative grid gap-2">
+      <ol className="relative grid gap-1.5">
         {labels.map((label, index) => (
           <li
             key={`${label}-${index}`}
             data-flow-node
-            className="grid grid-cols-[18px_minmax(0,1fr)] items-center gap-2"
+            className="grid grid-cols-[16px_minmax(0,1fr)] items-center gap-2"
           >
-            <span className="relative z-[1] flex size-[18px] items-center justify-center rounded-full bg-atc-text font-mono text-[9px] font-black leading-none text-atc-bg">
+            <span className="relative z-[1] flex size-4 items-center justify-center rounded-full bg-atc-text font-mono text-[8px] font-black leading-none text-atc-bg">
               {index + 1}
             </span>
-            <span className="min-w-0 truncate text-[10.5px] font-semibold leading-none text-atc-dim">
+            <span className="min-w-0 truncate text-[9.5px] font-semibold leading-none text-atc-dim">
               {label}
             </span>
           </li>

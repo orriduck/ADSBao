@@ -32,14 +32,14 @@ export function MetricGrid({ className, children, label = "Metrics" }: MetricGri
       data-ui="metric-grid"
       aria-label={label}
       className={cn(
-        "grid grid-cols-2 gap-2.5 bg-transparent",
-        "px-[var(--airport-sidebar-inset)] pb-4.5 pt-0.5",
+        "grid grid-cols-2 gap-0 bg-transparent",
+        "px-[var(--airport-sidebar-inset)] pb-2 pt-0",
         // Flight sidebar wants a slightly wider gap; opt-in via class.
-        "data-[layout=flight]:gap-3",
+        "data-[layout=flight]:gap-0",
         // Desktop map kit context — tighter rhythm so the sidebar
         // doesn't dominate vertically next to the dense map area.
-        "[.airport-map-kit_&]:gap-2",
-        "[.airport-map-kit_&]:pb-3.5",
+        "[.airport-map-kit_&]:gap-0",
+        "[.airport-map-kit_&]:pb-2",
         className,
       )}
     >
@@ -51,21 +51,21 @@ export function MetricGrid({ className, children, label = "Metrics" }: MetricGri
 const cardVariants = cva(
   cn(
     "relative isolate overflow-hidden",
-    "grid content-center justify-items-center gap-2",
-    "rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-clip-padding",
-    "bg-[var(--atc-control-surface)]",
-    "shadow-[var(--atc-control-inset-shadow)]",
-    "text-atc-text text-center min-h-26 p-4.5 min-w-0",
+    "grid content-center justify-items-center gap-1",
+    "rounded-[calc(var(--atc-radius-card)-2px)] border border-transparent bg-clip-padding",
+    "bg-transparent",
+    "shadow-none",
+    "text-atc-text text-center min-h-16 p-2.5 min-w-0",
     "select-none [appearance:none]",
     "transition-[background,border-color,box-shadow,color] duration-150",
     // Fixed-format rows: label → value → unit.
-    "grid-rows-[14px_34px_12px]",
+    "grid-rows-[10px_24px_8px]",
     // Compact variant inside the desktop map kit sidebar.
     "[.airport-map-kit_&]:rounded-[var(--atc-radius-card)]",
-    "[.airport-map-kit_&]:gap-1",
-    "[.airport-map-kit_&]:grid-rows-[11px_27px_10px]",
-    "[.airport-map-kit_&]:min-h-19",
-    "[.airport-map-kit_&]:p-3.5",
+    "[.airport-map-kit_&]:gap-0",
+    "[.airport-map-kit_&]:grid-rows-[9px_20px_8px]",
+    "[.airport-map-kit_&]:min-h-13",
+    "[.airport-map-kit_&]:p-2",
     // Active = dark liquid glass (Siri-capsule material): smoky ink
     // dissolving to translucent at the bottom, backdrop frost so the
     // panel behind diffuses through, specular sheen (::after), crisp
@@ -94,7 +94,7 @@ const cardVariants = cva(
           // Hover only tints non-active cards; active cards keep the
           // liquid-glass gradient (hover:bg sets background-color, which
           // the active `background` shorthand must win over explicitly).
-          "hover:bg-[var(--atc-control-hover-bg)]",
+          "hover:bg-[var(--atc-control-surface-muted)]",
           "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
           "focus:outline-none",
         ),
@@ -107,31 +107,31 @@ const cardVariants = cva(
 
 const valueClass = cn(
   "flex items-center justify-center",
-  "w-full max-w-full min-w-0 h-8.5 overflow-hidden whitespace-nowrap text-center",
+  "w-full max-w-full min-w-0 h-6 overflow-hidden whitespace-nowrap text-center",
   "font-[var(--font-display)] not-italic font-black text-atc-text",
-  "text-3xl leading-none tracking-normal",
+  "text-[22px] leading-none tracking-normal",
   // Active card — flip to the click foreground so the value reads
   // on the ink background. The parent <button> already sets this
   // color, but text-atc-text on <strong> shadows it.
   "group-data-[active=true]:text-[var(--atc-click-fg)]",
   // Compact in desktop map kit context.
-  "[.airport-map-kit_&]:text-[22px] [.airport-map-kit_&]:h-7",
+  "[.airport-map-kit_&]:text-[18px] [.airport-map-kit_&]:h-5",
 );
 
 const labelClass = cn(
-  "text-atc-faint uppercase text-[10px] font-bold leading-[1.1]",
+  "text-atc-faint uppercase text-[8px] font-bold leading-[1.1]",
   "tracking-normal",
   // Active card dims label + unit to --atc-click-muted to stay
   // legible against the ink background.
   "group-data-[active=true]:text-[var(--atc-click-muted)]",
-  "[.airport-map-kit_&]:text-[8px]",
+  "[.airport-map-kit_&]:text-[7px]",
 );
 
 const unitClass = cn(
-  "flex h-3 items-center justify-center text-atc-faint uppercase text-[10px] font-semibold",
+  "flex h-2 items-center justify-center text-atc-faint uppercase text-[8px] font-semibold",
   "tracking-normal leading-3",
   "group-data-[active=true]:text-[var(--atc-click-muted)]",
-  "[.airport-map-kit_&]:h-2.5 [.airport-map-kit_&]:text-[8px] [.airport-map-kit_&]:leading-2.5",
+  "[.airport-map-kit_&]:h-2 [.airport-map-kit_&]:text-[7px] [.airport-map-kit_&]:leading-2",
 );
 
 // Interactive tab card — same GSAP hover-lift + press-spring as
@@ -207,7 +207,7 @@ export function MetricCard({
       translate={valueTranslate ? undefined : "no"}
       className={cn(
         valueClass,
-        valueSize === "compact" && "text-[22px] [.airport-map-kit_&]:text-[18px]",
+        valueSize === "compact" && "text-[18px] [.airport-map-kit_&]:text-[16px]",
         contentLayout === "split" && "h-auto w-auto justify-end text-right",
         !valueTranslate && "notranslate",
       )}

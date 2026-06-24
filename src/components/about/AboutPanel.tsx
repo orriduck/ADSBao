@@ -33,15 +33,15 @@ export default function AboutPanel() {
 
   return (
     <div className="flex flex-none flex-col">
-      <div className="about-meta-grid dither-meta-flow mx-6 flex-none">
+      <div className="about-meta-grid dither-meta-flow mx-5 flex-none">
         {version ? (
-          <div className="about-meta-version relative flex items-end justify-between gap-4 py-4">
+          <div className="about-meta-version relative flex items-end justify-between gap-4 py-3.5">
             <div className="min-w-0">
-              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-atc-faint">
+              <span className="font-mono text-[8px] uppercase tracking-[0.14em] text-atc-faint">
                 <span>/&zwj;/</span>{" "}
                 {version.labelKey ? t(version.labelKey) : version.label}
               </span>
-              <p className="mt-1 truncate font-display text-[30px] font-black leading-none text-atc-text">
+              <p className="mt-1 truncate font-display text-[26px] font-black leading-none text-atc-text">
                 {resolveCopy(version, t)}
               </p>
             </div>
@@ -53,23 +53,23 @@ export default function AboutPanel() {
           {sections.map((section) => (
             <section
               key={section.label}
-              className="about-meta-section grid gap-2.5 py-3.5"
+              className="about-meta-section grid gap-1.5 py-2.5"
             >
-              <h2 className="font-mono text-[9px] uppercase tracking-[0.18em] text-atc-faint">
+              <h2 className="font-mono text-[8px] uppercase tracking-[0.14em] text-atc-faint">
                 <span>/&zwj;/</span>{" "}
                 {section.labelKey ? t(section.labelKey) : section.label}
               </h2>
               <ul
                 className={
                   section.layout === "compact-grid"
-                    ? "grid min-w-0 grid-cols-2 gap-x-4 gap-y-2"
-                    : "grid min-w-0 gap-2"
+                    ? "grid min-w-0 grid-cols-2 gap-x-4 gap-y-1.5"
+                    : "grid min-w-0 gap-1.5"
                 }
               >
                 {section.items.map((item) => (
                   <li
                     key={item}
-                    className={`min-w-0 text-[12px] font-semibold leading-snug text-atc-text ${
+                    className={`min-w-0 text-[10px] font-semibold leading-snug text-atc-text ${
                       section.layout === "compact-grid" ? "even:text-right" : ""
                     }`}
                   >
@@ -82,7 +82,7 @@ export default function AboutPanel() {
         </div>
       </div>
 
-      <div className="dither-section-header flex-none px-6 pt-6 pb-3">
+      <div className="dither-section-header flex-none px-5 pb-2 pt-4">
         <div className="atc-section-head">
           <span className="atc-kicker">{t("about.dataSources")}</span>
           <span className="atc-section-head__count">
@@ -91,7 +91,7 @@ export default function AboutPanel() {
         </div>
       </div>
 
-      <ol className="dither-list dither-list-flow mx-6 flex flex-col gap-1">
+      <ol className="dither-list dither-list-flow mx-5 flex flex-col gap-0.5">
         {ABOUT_DATA_SOURCES.map((source) => (
           <li key={source.host || source.title || source.glyph}>
             <TextPillListItem
@@ -111,21 +111,21 @@ export default function AboutPanel() {
         ))}
       </ol>
 
-      <div className="px-6 pb-6 pt-4 md:px-[19px]">
+      <div className="px-5 pb-4 pt-2 md:px-[16px]">
         <a
           {...getExternalLinkOpenTarget(ABOUT_REPOSITORY.href)}
           onClick={(event) => openExternalLink(event, ABOUT_REPOSITORY.href)}
-          className="group dither-repository-card flex items-center justify-between gap-3 rounded-[var(--atc-radius-card)] px-4 py-3.5 transition-colors hover:bg-[var(--atc-control-hover-bg)] md:gap-2.5 md:px-[13px] md:py-[11px]"
+          className="group dither-repository-card flex items-center justify-between gap-3 rounded-[calc(var(--atc-radius-card)-2px)] px-2 py-2 transition-colors hover:bg-[var(--atc-control-surface-muted)] md:gap-2.5 md:px-2 md:py-2"
         >
-          <div className="flex items-center gap-3">
-            <span className="grid h-8 w-8 place-items-center border border-atc-orange text-atc-orange">
-              <Github className="h-3.5 w-3.5" aria-hidden="true" />
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-6 w-6 place-items-center text-atc-faint group-hover:text-atc-text">
+              <Github className="h-3 w-3" aria-hidden="true" />
             </span>
             <div>
-              <strong className="block text-[13px] font-semibold text-atc-text">
+              <strong className="block text-[11px] font-semibold text-atc-text">
                 {ABOUT_REPOSITORY.name}
               </strong>
-              <small className="mt-0.5 block font-mono text-[11px] tracking-[0.06em] uppercase text-atc-dim">
+              <small className="mt-0.5 block font-mono text-[9px] tracking-normal uppercase text-atc-dim">
                 {ABOUT_REPOSITORY.licenseKey
                   ? t(ABOUT_REPOSITORY.licenseKey)
                   : ABOUT_REPOSITORY.license}

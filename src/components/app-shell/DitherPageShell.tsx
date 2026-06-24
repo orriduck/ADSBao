@@ -125,10 +125,10 @@ export default function DitherPageShell({
 
         {isCollapsed ? null : (
           <>
-            <div className="dither-page-header dither-page-header--copy-only flex-none px-6 pb-6 pt-2">
+            <div className="dither-page-header dither-page-header--copy-only flex-none px-5 pb-4 pt-1">
               <div className="dither-page-copy">
                 <h1
-                  className="atc-page-title mt-5 text-[30px] font-extrabold leading-[1.16] text-atc-text"
+                  className="atc-page-title mt-4 text-[26px] font-extrabold leading-[1.12] text-atc-text"
                   style={{
                     fontFamily: "var(--font-display)",
                     letterSpacing: "normal",
@@ -137,7 +137,7 @@ export default function DitherPageShell({
                   <span className="block break-words">{resolvedTitle}</span>
                 </h1>
                 {hasDescription ? (
-                  <p className="dither-page-description mt-3 text-[13px] leading-relaxed text-atc-dim">
+                  <p className="dither-page-description mt-2.5 text-[12px] leading-relaxed text-atc-dim">
                     {resolvedDescription}
                   </p>
                 ) : null}

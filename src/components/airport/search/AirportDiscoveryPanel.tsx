@@ -148,12 +148,12 @@ function DiscoverySectionHeader({
     <header className="min-w-0">
       <h2
         id={id}
-        className="truncate text-[15px] font-extrabold leading-tight text-atc-text"
+        className="truncate text-[13px] font-extrabold leading-tight text-atc-text"
       >
         {title}
       </h2>
       {description ? (
-        <p className="mt-2 text-[12px] leading-relaxed text-atc-dim">
+        <p className="mt-1.5 text-[11px] leading-relaxed text-atc-dim">
           {description}
         </p>
       ) : null}

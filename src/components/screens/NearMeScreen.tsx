@@ -280,29 +280,29 @@ function NearMePermissionPrompt({
 
   return (
     <div className="min-h-dvh bg-atc-bg text-atc-text">
-      <div className="mx-auto flex min-h-dvh max-w-md flex-col items-stretch justify-center gap-5 px-6 py-12">
-        <div className="flex items-center gap-3">
+      <div className="mx-auto flex min-h-dvh max-w-[360px] flex-col items-stretch justify-center gap-3.5 px-6 py-12">
+        <div className="flex items-center gap-2.5">
           <span
             aria-hidden="true"
-            className="inline-flex size-12 items-center justify-center rounded-full bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)] shadow-[inset_0_-8px_14px_color-mix(in_oklab,var(--atc-click-fg)_9%,transparent)]"
+            className="inline-flex size-10 items-center justify-center rounded-full bg-[var(--atc-click-bg)] text-[var(--atc-click-fg)] shadow-[inset_0_-5px_10px_color-mix(in_oklab,var(--atc-click-fg)_8%,transparent)]"
           >
-            <LocateFixed className="size-5" aria-hidden="true" />
+            <LocateFixed className="size-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h1 className="truncate text-[20px] font-extrabold leading-tight">
+            <h1 className="truncate text-[18px] font-extrabold leading-tight">
               {title}
             </h1>
-            <p className="mt-1 text-[12.5px] leading-snug text-atc-dim">
+            <p className="mt-0.5 text-[11px] leading-snug text-atc-dim">
               {hint}
             </p>
           </div>
         </div>
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2">
           <button
             type="button"
             onClick={onRequest}
             disabled={busy}
-            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-4 text-[13px] font-extrabold leading-none text-[var(--primary-ink)] shadow-[var(--atc-action-primary-shadow),0_8px_22px_rgba(14,15,16,0.18)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] bg-[var(--primary-bright)] px-3.5 text-[12px] font-extrabold leading-none text-[var(--primary-ink)] shadow-[0_6px_16px_rgba(14,15,16,0.14)] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
           >
             {busy
               ? t("nearMe.requestingCta")
@@ -313,7 +313,7 @@ function NearMePermissionPrompt({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] px-4 text-[13px] font-extrabold leading-none text-atc-text shadow-[var(--atc-control-inset-shadow),0_2px_6px_rgba(14,15,16,0.06)] transition hover:bg-[var(--atc-control-hover-bg)] active:scale-[0.98]"
+            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-[var(--atc-control-surface)] px-3.5 text-[12px] font-extrabold leading-none text-atc-text shadow-[var(--atc-control-inset-shadow-subtle)] transition hover:bg-[var(--atc-control-hover-bg)] active:scale-[0.98]"
           >
             {t("nearMe.back")}
           </button>

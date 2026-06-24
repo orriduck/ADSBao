@@ -97,7 +97,7 @@ export default function ChangelogPanel() {
 
   return (
     <>
-      <div className="dither-section-header flex-none px-6 pt-6 pb-3">
+      <div className="dither-section-header flex-none px-5 pt-5 pb-2.5">
         <div className="atc-section-head">
           <span className="atc-kicker">{t("changelog.releases")}</span>
           <span className="atc-section-head__count">
@@ -106,7 +106,7 @@ export default function ChangelogPanel() {
         </div>
       </div>
 
-      <ol className="dither-list dither-list-flow mx-6 mb-6 flex flex-none flex-col gap-2">
+      <ol className="dither-list dither-list-flow mx-5 mb-5 flex flex-none flex-col gap-1.5">
         {visibleReleases.map((release, index) => (
           <ChangelogEntry
             key={release.version}

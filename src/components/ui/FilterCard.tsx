@@ -34,17 +34,17 @@ function composeEventHandlers<Event>(
 const filterCardVariants = cva(
   cn(
     "group relative isolate w-full overflow-hidden",
-    "grid items-center justify-items-center gap-1.5",
-    "rounded-[var(--atc-radius-card)] border border-[var(--sidebar-tile-rest-border)] bg-clip-padding",
-    "bg-[var(--atc-control-surface-muted)]",
-    "shadow-[var(--atc-control-inset-shadow-subtle)]",
+    "grid items-center justify-items-center gap-0.5",
+    "rounded-[calc(var(--atc-radius-card)-2px)] border border-transparent bg-clip-padding",
+    "bg-transparent",
+    "shadow-none",
     "text-atc-text text-center cursor-pointer",
-    "px-3.5 py-3 min-w-0",
+    "px-2.5 py-2 min-w-0",
     "outline-none transition-[background,box-shadow,color] duration-150",
     // Hover — light dim of the card surface; active/open cards keep the
     // liquid-glass gradient instead (explicit override below since
     // hover:bg sets background-color under the `background` shorthand).
-    "hover:bg-[var(--atc-control-surface-hover)]",
+    "hover:bg-[var(--atc-control-surface-muted)]",
     "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
     "data-[state=open]:hover:[background:var(--atc-glass-active-bg)]",
     // Active / open = dark liquid glass (Siri-capsule material), matching
@@ -71,13 +71,13 @@ const filterCardVariants = cva(
     // it to the right edge so the label/value column stays a clean
     // stack and the card's outer shape matches non-select tiles.
     "[&>svg]:absolute [&>svg]:top-1/2 [&>svg]:-translate-y-1/2",
-    "[&>svg]:right-3 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:opacity-60",
+    "[&>svg]:right-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:opacity-60",
     "[.airport-map-kit_&]:[&>svg]:right-2 [.airport-map-kit_&]:[&>svg]:h-[9px] [.airport-map-kit_&]:[&>svg]:w-[9px]",
     // Chevron color follows the dimmed label when the select is open.
     "data-[state=open]:[&>svg]:text-[var(--atc-click-muted)]",
     // Compact spacing inside the desktop map kit sidebar.
-    "[.airport-map-kit_&]:gap-1",
-    "[.airport-map-kit_&]:px-3 [.airport-map-kit_&]:py-2.5",
+    "[.airport-map-kit_&]:gap-0",
+    "[.airport-map-kit_&]:px-2 [.airport-map-kit_&]:py-1.5",
     // Bottom-glow halo — same animation as MetricCard, fires on
     // [data-active=true] (filter chips that are on) and
     // [data-state=open] (open select menus). --sidebar-tile-bottom-glow
@@ -103,7 +103,7 @@ const filterCardVariants = cva(
         // the right inset without affecting content centering.
         select: cn(
           "grid-cols-[minmax(0,1fr)]",
-          "px-7 [.airport-map-kit_&]:px-6",
+        "px-5 [.airport-map-kit_&]:px-4",
         ),
       },
     },
@@ -190,7 +190,7 @@ export function FilterCardLabel({
   return (
     <span
       className={cn(
-        "uppercase text-[10px] font-bold leading-none tracking-normal",
+        "uppercase text-[8px] font-bold leading-none tracking-normal",
         "text-atc-faint",
         // When the parent FilterCard is active or its select is open,
         // dim the label to the muted-on-ink token. Uses ancestor
@@ -198,7 +198,7 @@ export function FilterCardLabel({
         // doesn't carry the `group` class through asChild.
         "[[data-active=true]_&]:text-[var(--atc-click-muted)]",
         "[[data-state=open]_&]:text-[var(--atc-click-muted)]",
-        "[.airport-map-kit_&]:text-[8px]",
+        "[.airport-map-kit_&]:text-[7px]",
         className,
       )}
       data-ui="filter-label"
@@ -214,13 +214,13 @@ export function FilterCardValue({
   return (
     <strong
       className={cn(
-        "uppercase text-xs font-extrabold leading-[1.2] tracking-normal",
+        "uppercase text-[10px] font-extrabold leading-[1.15] tracking-normal",
         "text-atc-text max-w-full break-words [overflow-wrap:anywhere]",
         // Promote to click-fg when the card flips to ink — same
         // ancestor-selector approach as FilterCardLabel above.
         "[[data-active=true]_&]:text-[var(--atc-click-fg)]",
         "[[data-state=open]_&]:text-[var(--atc-click-fg)]",
-        "[.airport-map-kit_&]:text-[10px]",
+        "[.airport-map-kit_&]:text-[8.5px]",
         className,
       )}
       data-ui="filter-value"
@@ -244,14 +244,12 @@ export function FilterCardGrid({
       role="group"
       data-ui="filter-grid"
       className={cn(
-        "grid gap-2 px-[var(--airport-sidebar-inset)] py-2.5",
-        "border-t border-b",
-        "border-t-[color-mix(in_oklab,var(--atc-line)_72%,transparent)]",
-        "border-b-[color-mix(in_oklab,var(--atc-line)_72%,transparent)]",
+        "grid gap-0 px-[var(--airport-sidebar-inset)] py-1.5",
+        "border-y border-y-[color-mix(in_oklab,var(--atc-line)_58%,transparent)]",
         columns === 2
           ? "grid-cols-[repeat(2,minmax(0,1fr))]"
           : "grid-cols-[repeat(3,minmax(0,1fr))]",
-        "[.airport-map-kit_&]:gap-1.5 [.airport-map-kit_&]:py-2",
+        "[.airport-map-kit_&]:gap-0 [.airport-map-kit_&]:py-1",
         className,
       )}
       {...props}

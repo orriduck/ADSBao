@@ -37,15 +37,15 @@ export default function MobilePreviewCard({
         "fixed z-popover",
         placement === "bottomRight"
           ? [
-              "bottom-[calc(12px+var(--mobile-preview-safe-bottom,var(--app-bottom-safe-area)))]",
-              "right-[calc(12px+var(--mobile-preview-safe-right,env(safe-area-inset-right)))]",
-              "w-[min(332px,calc(100vw-24px-var(--mobile-preview-safe-left,0px)-var(--mobile-preview-safe-right,0px)))]",
-              "max-w-[calc(100vw-24px-var(--mobile-preview-safe-left,0px)-var(--mobile-preview-safe-right,0px))]",
+              "bottom-[calc(10px+var(--mobile-preview-safe-bottom,var(--app-bottom-safe-area)))]",
+              "right-[calc(10px+var(--mobile-preview-safe-right,env(safe-area-inset-right)))]",
+              "w-[min(318px,calc(100vw-20px-var(--mobile-preview-safe-left,0px)-var(--mobile-preview-safe-right,0px)))]",
+              "max-w-[calc(100vw-20px-var(--mobile-preview-safe-left,0px)-var(--mobile-preview-safe-right,0px))]",
             ]
           : [
               "left-1/2",
-              "top-[calc(12px+env(safe-area-inset-top))]",
-              "w-[min(342px,calc(100vw-24px))] max-w-[calc(100vw-24px)]",
+              "top-[calc(10px+env(safe-area-inset-top))]",
+              "w-[min(326px,calc(100vw-20px))] max-w-[calc(100vw-20px)]",
             ],
         "isolate overflow-hidden select-none pointer-events-none",
         "app-preview-transition mobile-preview-card-enter",
@@ -58,10 +58,10 @@ export default function MobilePreviewCard({
         // Bottom padding matches the 14px horizontal inset on the
         // actions row so the gap around the Track button reads as
         // equal on the left, right, and bottom.
-        "flex flex-col gap-[3px] pb-[14px]",
+        "flex flex-col gap-[2px] pb-[12px]",
         compact && placement !== "bottomRight" &&
-          "top-[calc(10px+env(safe-area-inset-top))] w-[min(332px,calc(100vw-20px))] max-w-[calc(100vw-20px)] gap-0 pb-[10px]",
-        compact && placement === "bottomRight" && "gap-0 pb-[10px]",
+          "top-[calc(9px+env(safe-area-inset-top))] w-[min(316px,calc(100vw-18px))] max-w-[calc(100vw-18px)] gap-0 pb-[9px]",
+        compact && placement === "bottomRight" && "gap-0 pb-[9px]",
       )}
     >
       {children}
@@ -74,7 +74,7 @@ export default function MobilePreviewCard({
 // inside become tappable inside the otherwise pass-through card.
 export function MobilePreviewActions({ children }: Record<string, any>) {
   return (
-    <div className="pointer-events-auto mx-[14px] flex flex-col items-stretch gap-1 [[data-density=compact]_&]:mx-[12px] [[data-density=compact]_&]:gap-0.5">
+    <div className="pointer-events-auto mx-[12px] flex flex-col items-stretch gap-1 [[data-density=compact]_&]:mx-[10px] [[data-density=compact]_&]:gap-0.5">
       {children}
     </div>
   );
@@ -88,7 +88,7 @@ export function MobilePreviewContent({
   return (
     <div
       className={cn(
-        "relative z-[2] box-border flex w-full flex-col items-stretch gap-[6px] px-[14px] pb-[7px] pt-[10px] [[data-density=compact]_&]:gap-[4px] [[data-density=compact]_&]:px-[12px] [[data-density=compact]_&]:pb-[5px] [[data-density=compact]_&]:pt-[8px]",
+        "relative z-[2] box-border flex w-full flex-col items-stretch gap-[5px] px-[12px] pb-[6px] pt-[9px] [[data-density=compact]_&]:gap-[3px] [[data-density=compact]_&]:px-[10px] [[data-density=compact]_&]:pb-[4px] [[data-density=compact]_&]:pt-[7px]",
         className,
       )}
       {...props}
@@ -119,15 +119,15 @@ export function MobilePreviewIdentity({
         <span
           aria-label={label}
           title={label}
-          className="mb-[1px] grid size-[18px] flex-none place-items-center text-atc-dim"
+          className="mb-[1px] grid size-[16px] flex-none place-items-center text-atc-dim"
         >
-          <Icon aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+          <Icon aria-hidden="true" className="size-[14px]" strokeWidth={1.8} />
         </span>
         <span
           translate="no"
           className={cn(
-            "notranslate min-w-0 truncate whitespace-nowrap font-[var(--font-mono)] text-[20px] font-extrabold leading-none tracking-normal text-atc-text",
-            "[[data-density=compact]_&]:text-[18px]",
+            "notranslate min-w-0 truncate whitespace-nowrap font-[var(--font-mono)] text-[18px] font-extrabold leading-none tracking-normal text-atc-text",
+            "[[data-density=compact]_&]:text-[17px]",
             primaryClassName,
           )}
         >
@@ -138,7 +138,7 @@ export function MobilePreviewIdentity({
         <span
           translate="no"
           className={cn(
-            "notranslate max-w-[122px] truncate whitespace-nowrap text-right font-[var(--font-mono)] text-[10px] font-semibold leading-none tracking-normal text-atc-dim",
+            "notranslate max-w-[116px] truncate whitespace-nowrap text-right font-[var(--font-mono)] text-[9px] font-semibold leading-none tracking-normal text-atc-dim",
             secondaryClassName,
           )}
         >
@@ -158,7 +158,7 @@ export function MobilePreviewDetailRow({
       <span
         translate="no"
         className={cn(
-          "notranslate min-w-0 text-right text-[10px] font-medium leading-tight tracking-normal text-atc-dim",
+          "notranslate min-w-0 text-right text-[9px] font-medium leading-tight tracking-normal text-atc-dim",
           wrap ? "whitespace-normal break-words" : "truncate whitespace-nowrap",
         )}
       >
@@ -176,11 +176,11 @@ export function MobilePreviewRuleRow({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 items-baseline justify-between gap-3 border-t border-atc-line pt-[5px] font-[var(--font-mono)] [[data-density=compact]_&]:gap-2 [[data-density=compact]_&]:pt-[4px]">
-      <div className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-left text-[11px] font-semibold leading-none tracking-normal text-atc-text [[data-density=compact]_&]:text-[10px]">
+    <div className="flex min-w-0 items-baseline justify-between gap-2.5 border-t border-atc-line pt-[4px] font-[var(--font-mono)] [[data-density=compact]_&]:gap-2 [[data-density=compact]_&]:pt-[3px]">
+      <div className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-left text-[10px] font-semibold leading-none tracking-normal text-atc-text [[data-density=compact]_&]:text-[9px]">
         {left}
       </div>
-      <div className="flex min-w-0 shrink-0 items-baseline justify-end gap-[10px] overflow-hidden whitespace-nowrap text-right text-[11px] font-semibold leading-none tracking-normal text-atc-text [[data-density=compact]_&]:gap-[7px] [[data-density=compact]_&]:text-[10px]">
+      <div className="flex min-w-0 shrink-0 items-baseline justify-end gap-[8px] overflow-hidden whitespace-nowrap text-right text-[10px] font-semibold leading-none tracking-normal text-atc-text [[data-density=compact]_&]:gap-[6px] [[data-density=compact]_&]:text-[9px]">
         {right}
       </div>
     </div>
@@ -189,7 +189,7 @@ export function MobilePreviewRuleRow({
 
 export function MobilePreviewMetaChips({ children }: React.PropsWithChildren) {
   return (
-    <dl className="flex min-w-0 items-baseline gap-[10px] [[data-density=compact]_&]:gap-[7px]">
+    <dl className="flex min-w-0 items-baseline gap-[8px] [[data-density=compact]_&]:gap-[6px]">
       {children}
     </dl>
   );

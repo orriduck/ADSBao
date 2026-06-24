@@ -195,12 +195,12 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
   )}`;
 
   return (
-    <div className="flex flex-col gap-3 px-[var(--airport-sidebar-inset)] pb-6 pt-2">
-      <div className="flex items-baseline justify-between border-b border-atc-line pb-2">
-        <h2 className="text-[12px] font-bold uppercase tracking-normal text-atc-text">
+    <div className="flex flex-col gap-2.5 px-[var(--airport-sidebar-inset)] pb-5 pt-1.5">
+      <div className="flex items-baseline justify-between border-b border-atc-line pb-1.5">
+        <h2 className="text-[11px] font-bold uppercase tracking-normal text-atc-text">
           ATC Frequencies
         </h2>
-        <span className="font-mono text-[10px] font-semibold uppercase text-atc-faint">
+        <span className="font-mono text-[9px] font-semibold uppercase text-atc-faint">
           {frequencies.length} channels
         </span>
       </div>
@@ -209,13 +209,13 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           href={liveAtcHref}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="mt-1 mb-0.5 inline-flex items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card/50 px-3 py-2 text-center text-[11px] font-bold uppercase tracking-normal text-atc-text transition-colors hover:bg-[var(--atc-control-hover-bg)]"
+          className="mt-1 mb-0.5 inline-flex items-center justify-center gap-1.5 rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card/50 px-2.5 py-1.5 text-center text-[10px] font-bold uppercase tracking-normal text-atc-text transition-colors hover:bg-[var(--atc-control-hover-bg)]"
         >
           <span>Search {normalizedIcao} on LiveATC</span>
           <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2.3} />
         </a>
       ) : null}
-      <div className="app-list-motion grid gap-3">
+      <div className="app-list-motion grid gap-1.5">
         {frequencies.map((frequency) => (
           <TextPillListItem
             key={`${frequency.type}-${frequency.frequencyMHz}-${frequency.source}`}
@@ -253,16 +253,16 @@ function SpottingPanel({
   const countKey =
     spots.length === 1 ? "watcherMode.countOne" : "watcherMode.countMany";
   return (
-    <div className="flex flex-col gap-3 px-[var(--airport-sidebar-inset)] pb-6 pt-2">
-      <div className="flex items-baseline justify-between border-b border-atc-line pb-2">
-        <h2 className="text-[12px] font-bold uppercase tracking-normal text-atc-text">
+    <div className="flex flex-col gap-2.5 px-[var(--airport-sidebar-inset)] pb-5 pt-1.5">
+      <div className="flex items-baseline justify-between border-b border-atc-line pb-1.5">
+        <h2 className="text-[11px] font-bold uppercase tracking-normal text-atc-text">
           {t("watcherMode.cardsTitle")}
         </h2>
-        <span className="font-mono text-[10px] font-semibold uppercase text-atc-faint">
+        <span className="font-mono text-[9px] font-semibold uppercase text-atc-faint">
           {t(countKey, { count: spots.length })}
         </span>
       </div>
-      <div className="app-list-motion grid gap-2">
+      <div className="app-list-motion grid gap-1.5">
         {spots.map((spot) => {
           const active = Boolean(selectedSpotId && selectedSpotId === spot.id);
           return (
@@ -271,25 +271,25 @@ function SpottingPanel({
               key={spot.id}
               data-active={active ? "true" : undefined}
               onClick={() => onSelectSpot?.(spot.id)}
-              className="group rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card/70 p-3 text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:border-transparent data-[active=true]:bg-[var(--atc-click-bg)]"
+              className="group rounded-[var(--atc-radius-card)] border border-atc-line bg-atc-card/70 p-2.5 text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:border-transparent data-[active=true]:bg-[var(--atc-click-bg)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="truncate text-[11px] font-bold uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+                  <div className="truncate text-[10px] font-bold uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
                     {spot.name || spot.title || spot.category || "Spotter location"}
                   </div>
-                  <div className="mt-1 text-[11px] font-medium text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
+                  <div className="mt-1 text-[10px] font-medium text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
                     {spot.what || spot.category || spot.sourceLabel || "Photo guide"}
                   </div>
                 </div>
                 {spot.spotNumber ? (
-                  <span className="shrink-0 font-mono text-[10px] font-semibold text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
+                  <span className="shrink-0 font-mono text-[9px] font-semibold text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
                     #{spot.spotNumber}
                   </span>
                 ) : null}
               </div>
               {spot.focalLength || spot.when ? (
-                <div className="mt-2 font-mono text-[9px] font-semibold uppercase text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
+                <div className="mt-1.5 font-mono text-[8px] font-semibold uppercase text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
                   {[spot.focalLength, spot.when].filter(Boolean).join(" · ")}
                 </div>
               ) : null}

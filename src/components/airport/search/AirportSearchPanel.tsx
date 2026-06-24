@@ -45,13 +45,13 @@ export default function AirportSearchPanel({
     <>
       <form
         onSubmit={doSearch}
-        className="search-input mx-6 mb-4 flex-none flex items-center gap-3 px-4 py-3"
+        className="search-input mx-5 mb-3 flex-none flex items-center gap-2.5 px-3.5 py-2.5"
       >
-        <Search className="h-5 w-5 shrink-0 text-atc-orange" />
+        <Search className="h-4 w-4 shrink-0 text-atc-orange" />
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="min-w-0 flex-1 p-0 text-base font-semibold tracking-normal text-atc-text"
+          className="min-w-0 flex-1 p-0 text-[14px] font-semibold tracking-normal text-atc-text"
           placeholder={t("search.placeholder")}
         />
         <kbd className="atc-chip hidden shrink-0 sm:inline-flex">

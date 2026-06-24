@@ -58,19 +58,19 @@ export function TextPillListItem({
     <>
       <span
         className={cn(
-          "inline-flex min-w-14 items-center justify-center rounded-full px-2.5 py-1",
-          "bg-atc-text text-center text-[10px] font-black uppercase leading-none text-atc-bg",
+          "inline-flex min-w-11 items-center justify-start px-0 py-0.5",
+          "text-left text-[9px] font-black uppercase leading-none text-atc-text",
           "group-data-[active=true]:bg-[var(--atc-click-fg)] group-data-[active=true]:text-[var(--atc-click-bg)]",
         )}
       >
         {pill}
       </span>
       <span className="flex min-w-0 flex-col items-start">
-        <span className="block w-full min-w-0 truncate text-[13px] font-bold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+        <span className="block w-full min-w-0 truncate text-[11.5px] font-bold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
           {title}
         </span>
         {subtitle ? (
-          <span className="mt-0.5 block w-full min-w-0 truncate text-[11px] font-medium leading-snug text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
+          <span className="mt-0.5 block w-full min-w-0 truncate text-[9.5px] font-medium leading-snug text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
             {subtitle}
           </span>
         ) : null}
@@ -90,7 +90,7 @@ export function TextPillListItem({
 
   const classes = cn(
     "group relative isolate overflow-hidden text-left",
-    "grid w-full items-start gap-x-3.5",
+    "grid w-full items-start gap-x-2.5",
     trailing
       ? "grid-cols-[max-content_minmax(0,1fr)_max-content]"
       : "grid-cols-[max-content_minmax(0,1fr)]",
@@ -98,7 +98,7 @@ export function TextPillListItem({
     // aligned like the original — but always rounded, so the hover tint and
     // active capsule read as rounded glass (a square highlight clashes with
     // the rounded design language).
-    "rounded-[var(--atc-radius-card)] px-3.5 py-2.5",
+    "rounded-[calc(var(--atc-radius-card)-2px)] px-2 py-1.5",
     "transition-[background,border-color,box-shadow,color] duration-150",
     // Active = the shared liquid-glass capsule (dark in light theme, bright
     // in dark theme) — same material as MetricCard / SelectableCard.

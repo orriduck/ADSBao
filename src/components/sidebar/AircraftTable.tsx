@@ -243,11 +243,11 @@ export default function AircraftTable({
       className={cn("aircraft-table-shell flex flex-col", fill && "h-full")}
     >
       <div className="aircraft-table-controls flex-none">
-        <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pt-4 pb-2.5">
+        <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pb-1.5 pt-2">
           <span className="atc-kicker atc-kicker--lead">
             {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
           </span>
-          <div className="whitespace-nowrap font-mono text-[10px] tracking-[0.18em] text-atc-dim tabular-nums">
+          <div className="whitespace-nowrap font-mono text-[8px] tracking-normal text-atc-dim tabular-nums">
             <span>{filteredAircraft.length + filteredAirports.length}</span>
             <span> / </span>
             <span>
@@ -256,7 +256,7 @@ export default function AircraftTable({
           </div>
         </div>
 
-        <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-3">
+        <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-1.5">
           <label className="search-input aircraft-search">
             <Search size={13} aria-hidden="true" />
             <input
@@ -330,7 +330,7 @@ export default function AircraftTable({
           fill && "flex-1 min-h-0",
         )}
       >
-        <div className="aircraft-table-header aircraft-table-row-grid grid items-center border-b border-[var(--atc-line)] px-[var(--airport-sidebar-inset)] py-1.5 font-mono text-[9px] uppercase text-atc-faint">
+        <div className="aircraft-table-header aircraft-table-row-grid grid items-center px-[var(--airport-sidebar-inset)] py-0.5 font-mono text-[7px] uppercase text-atc-faint">
           <span aria-hidden="true" />
           <span>{t("sidebar.callsignOrRoute")}</span>
           <NumericHeader>{t("sidebar.distance")}</NumericHeader>
@@ -378,7 +378,7 @@ export default function AircraftTable({
           {listRows.length === 0 &&
           filteredAirports.length === 0 &&
           !pinnedAircraft ? (
-            <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-8 text-center text-[11px] font-semibold uppercase tracking-normal text-atc-faint">
+            <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-6 text-center text-[10px] font-semibold uppercase tracking-normal text-atc-faint">
               {aircraft.length + airports.length
                 ? t("sidebar.noMatches")
                 : t("sidebar.nothingInRange")}

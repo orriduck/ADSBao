@@ -41,9 +41,39 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 69;
+export const CHANGELOG_TOTAL_COUNT = 70;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.25.0",
+    kind: "feat",
+    title: {
+      en: "Minimal interface density pass",
+      zh: "极简界面密度重设",
+    },
+    summary: {
+      en: "The app interface now favors alignment, thin dividers, compact rows, and quieter surfaces over boxed panels, while preserving the existing typography and map toolbar model.",
+      zh: "全站界面改为以对齐、细分隔线、紧凑行和更克制的表面建立秩序，减少盒子式面板，同时保留现有字体与地图工具栏模型。",
+    },
+    highlights: [
+      {
+        en: "Home, about, mechanism, changelog, and location-permission pages now share a more compact static-page rhythm",
+        zh: "首页、关于、机制、更新日志和定位权限页统一到更紧凑的静态页节奏",
+      },
+      {
+        en: "Airport and aircraft sidebars now use line-first metric, filter, search, and nearby-list layouts",
+        zh: "机场与航班侧栏改用以线条和列对齐为主的指标、筛选、搜索和邻近列表布局",
+      },
+      {
+        en: "Map settings now reads like a dense command list instead of grouped option cards",
+        zh: "地图设置现在更像高密度命令列表，不再是成组的大号选项卡片",
+      },
+      {
+        en: "Mobile preview and sidebar surfaces keep the same toolbar model with less padding and softer elevation",
+        zh: "移动端预览与侧栏继续沿用原工具栏模型，但减少内边距并降低悬浮感",
+      },
+    ],
+  },
   {
     version: "v2.24.5",
     kind: "patch",
