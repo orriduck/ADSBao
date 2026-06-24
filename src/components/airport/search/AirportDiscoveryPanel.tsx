@@ -104,7 +104,7 @@ function NearMeDiscoverySection() {
         id="airport-discovery-nearby"
         title={t("search.discovery.nearby.title")}
       />
-      <ul className="mt-3 flex flex-col gap-1">
+      <ul className="dither-list mt-3 flex flex-col gap-1">
         <NearbyPromptRow onRequest={handleOpenNearMe} />
       </ul>
     </section>
@@ -125,7 +125,7 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
         description={t(topic.descriptionKey)}
       />
 
-      <ul className="mt-3 flex flex-col gap-1">
+      <ul className="dither-list mt-3 flex flex-col gap-1">
         {topic.airports.map((airport) => (
           <AirportDiscoveryAirportRow
             key={airport.icao || airport.code || airport.name}

@@ -5,7 +5,6 @@ import {
   createAirportSelection,
   getAirportDiscoveryTopics,
   getNearbyAirportDisplayItems,
-  getAirportResultCountLabel,
   mergeAirportSearchRows,
   resolveSubmittedAirport,
 } from "./airportSearchModel";
@@ -126,7 +125,3 @@ assert.equal(
   "KLAX",
 );
 assert.equal(resolveSubmittedAirport({ query: "", rows, staticAirports }), null);
-
-assert.equal(getAirportResultCountLabel({ loading: true, rowCount: 0 }), "loading");
-assert.equal(getAirportResultCountLabel({ loading: false, rowCount: 1 }), "1 result");
-assert.equal(getAirportResultCountLabel({ loading: false, rowCount: 3 }), "3 results");

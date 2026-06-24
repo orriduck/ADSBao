@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 75;
+export const CHANGELOG_TOTAL_COUNT = 76;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.4",
+    kind: "patch",
+    title: {
+      en: "Home list, search result, and toolbar polish",
+      zh: "首页列表、搜索结果与工具栏打磨",
+    },
+    summary: {
+      en: "Home discovery rows and search results now share the same list rail, localized result counts, and quieter toolbar grouping.",
+      zh: "首页发现列表与搜索结果现在共用同一条列表轨道，结果计数本地化，工具栏分组也更克制。",
+    },
+    highlights: [
+      {
+        en: "Home discovery rows and search result rows now align to the same outer rail as the search field",
+        zh: "首页发现列表和搜索结果列表现在与搜索框使用同一条外缘列线",
+      },
+      {
+        en: "Search result counts are localized, so Chinese no longer falls back to English result labels",
+        zh: "搜索结果计数改为本地化文案，中文界面不再出现英文 result 标签",
+      },
+      {
+        en: "Toolbar separators are shorter and lower contrast, and local Query Devtools is opt-in so review screenshots stay clean",
+        zh: "工具栏分隔符更短更淡，本地 Query Devtools 改为显式开启，让界面截图保持干净",
+      },
+    ],
+  },
   {
     version: "v2.26.3",
     kind: "patch",

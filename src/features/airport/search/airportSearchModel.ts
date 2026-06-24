@@ -58,11 +58,6 @@ type AirportSubmitOptions = {
   staticAirports?: AirportSearchAirport[];
 };
 
-type AirportResultCountOptions = {
-  loading?: boolean;
-  rowCount: number;
-};
-
 const normalizeAirportQuery = (value: unknown) =>
   String(value || "")
     .trim()
@@ -186,6 +181,3 @@ export function resolveSubmittedAirport({
     null
   );
 }
-
-export const getAirportResultCountLabel = ({ loading, rowCount }: AirportResultCountOptions) =>
-  loading ? "loading" : `${rowCount} result${rowCount === 1 ? "" : "s"}`;

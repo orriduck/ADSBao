@@ -482,6 +482,9 @@ const zhCN = {
     searchResults: "搜索结果",
     searchingAirports: "正在搜索机场…",
     searchedAirports: "机场已加载",
+    resultCountLoading: "加载中",
+    resultCountOne: "1 条结果",
+    resultCountMany: "{count} 条结果",
     searchAirportsError: "搜索失败",
     noAirportMatched: "没有匹配 \"{query}\" 的机场。",
     discovery: {

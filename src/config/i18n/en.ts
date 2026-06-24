@@ -491,6 +491,9 @@ const en = {
     searchResults: "Search results",
     searchingAirports: "Searching airports...",
     searchedAirports: "Airports loaded",
+    resultCountLoading: "Loading",
+    resultCountOne: "1 result",
+    resultCountMany: "{count} results",
     searchAirportsError: "Search failed",
     noAirportMatched: "No airport matched \"{query}\".",
     discovery: {

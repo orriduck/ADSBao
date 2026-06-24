@@ -141,8 +141,8 @@ export function ToolbarSeparator({
     <span
       aria-hidden="true"
       className={cn(
-        "flex-none self-center w-px h-4 opacity-50",
-        "bg-[var(--atc-line-strong)]",
+        "flex-none h-3.5 w-px self-center",
+        "bg-[color-mix(in_oklab,var(--atc-line-strong)_45%,transparent)]",
         className,
       )}
       {...props}

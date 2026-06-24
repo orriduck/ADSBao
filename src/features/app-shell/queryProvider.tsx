@@ -2,6 +2,9 @@ import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
+const SHOW_QUERY_DEVTOOLS =
+  import.meta.env.DEV && import.meta.env.VITE_QUERY_DEVTOOLS === "true";
+
 // Single QueryClient per browser session. Sensible defaults that match how
 // this app talks to its upstreams:
 //   - staleTime 60s: aircraft / metar polls overwrite this with shorter
@@ -36,7 +39,7 @@ export default function QueryProvider({ children }) {
   return (
     <QueryClientProvider client={client}>
       {children}
-      {process.env.NODE_ENV === "development" ? (
+      {SHOW_QUERY_DEVTOOLS ? (
         <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
       ) : null}
     </QueryClientProvider>

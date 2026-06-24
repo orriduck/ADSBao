@@ -8,7 +8,6 @@ import {
 } from "../../aviation/httpClient";
 import {
   getAirportDiscoveryTopics,
-  getAirportResultCountLabel,
   mergeAirportSearchRows,
 } from "./airportSearchModel";
 
@@ -44,11 +43,6 @@ export function useAirportSearch({
       }),
     [query, results, staticDiscoveryAirports],
   );
-
-  const countLabel = getAirportResultCountLabel({
-    loading,
-    rowCount: rows.length,
-  });
 
   useEffect(() => {
     const timer = setTimeout(
@@ -103,6 +97,5 @@ export function useAirportSearch({
     error,
     statusCode,
     searchCycle,
-    countLabel,
   };
 }

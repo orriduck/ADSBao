@@ -24,8 +24,12 @@ export default function AirportSearchPanel({
     error,
     statusCode,
     searchCycle,
-    countLabel,
   } = useAirportSearch();
+  const countLabel = loading
+    ? t("search.resultCountLoading")
+    : t(rows.length === 1 ? "search.resultCountOne" : "search.resultCountMany", {
+        count: rows.length,
+      });
 
   const openAirport = (airport) => {
     onOpenAirport(createAirportSelection(airport));

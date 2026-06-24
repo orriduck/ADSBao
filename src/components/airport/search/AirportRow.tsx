@@ -1,5 +1,10 @@
 import { useEffect, useRef, type CSSProperties } from "react";
-import { airportDisplayCode, airportDisplayName, airportSubtitle } from "@/utils/airport";
+import { ChevronRight } from "lucide-react";
+import {
+  airportDisplayCode,
+  airportDisplayName,
+  airportSubtitle,
+} from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { TextPillListItem } from "@/components/ui/TextPillListItem";
 
@@ -51,6 +56,7 @@ export default function AirportRow({
         pill={airportDisplayCode(airport)}
         title={airportDisplayName(airport, locale)}
         subtitle={airportSubtitle(airport, locale)}
+        trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}
       />
     </li>
   );

@@ -7405,9 +7405,9 @@ body {
 }
 
 .dither-section-flow [data-ui="text-pill-list-item"] {
-    margin-left: -8px;
-    margin-right: -8px;
-    width: calc(100% + 16px);
+    margin-left: -4px;
+    margin-right: -4px;
+    width: calc(100% + 8px);
 }
 
 .dither-list-flow [data-ui="text-pill-list-item"] {
@@ -7618,10 +7618,11 @@ body {
         padding: 0 var(--airport-sidebar-inset, 16px) 16px;
     }
 
+    .dither-section-flow [data-ui="text-pill-list-item"],
     .dither-list-flow [data-ui="text-pill-list-item"] {
-        margin-left: -7px;
-        margin-right: -7px;
-        width: calc(100% + 14px);
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
     }
 
     .dither-section-header {
