@@ -41,9 +41,35 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 6;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 92;
+export const CHANGELOG_TOTAL_COUNT = 93;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v2.26.21",
+    kind: "patch",
+    title: {
+      en: "Mechanism inline rails",
+      zh: "机制页内联 rail",
+    },
+    summary: {
+      en: "The mechanism page now uses one compact number rail for rows, flow labels, and expanded detail copy.",
+      zh: "机制页现在用一条紧凑编号 rail 组织行、流程标签和展开说明。",
+    },
+    highlights: [
+      {
+        en: "Mechanism row numbers are quiet rail labels instead of filled code capsules",
+        zh: "机制行编号改为安静 rail 标签，不再是填充 code capsule",
+      },
+      {
+        en: "Expanded flow labels and detail notes now read inline on the same content axis",
+        zh: "展开后的流程标签和说明现在沿同一条内容轴内联阅读",
+      },
+      {
+        en: "The accordion behavior and mechanism copy are unchanged",
+        zh: "折叠行为和机制页文案保持不变",
+      },
+    ],
+  },
   {
     version: "v2.26.20",
     kind: "patch",
@@ -171,32 +197,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Changelog highlight rows now use a quiet number rail instead of dot bullets",
         zh: "更新日志摘要行现在使用更安静的数字 rail，不再使用圆点符号",
-      },
-    ],
-  },
-  {
-    version: "v2.26.15",
-    kind: "patch",
-    title: {
-      en: "Quieter mechanism rows",
-      zh: "机制页展开行降噪",
-    },
-    summary: {
-      en: "The mechanism page now treats expanded rows as inline explanation instead of full selected cards.",
-      zh: "机制页现在把展开行处理成内联说明，而不是整块选中卡片。",
-    },
-    highlights: [
-      {
-        en: "Expanded mechanism rows no longer use the full glass capsule, shadow, or backdrop blur",
-        zh: "展开的机制行不再使用完整玻璃 capsule、阴影或背景模糊",
-      },
-      {
-        en: "The row order is carried by the number rail and text alignment while the default glass active state remains available elsewhere",
-        zh: "行秩序由数字 rail 和文字对齐承担，同时其他位置仍可使用默认玻璃选中态",
-      },
-      {
-        en: "This is display-only and leaves the accordion behavior and mechanism copy unchanged",
-        zh: "这次仅调整展示，不改变折叠行为和机制页文案",
       },
     ],
   },

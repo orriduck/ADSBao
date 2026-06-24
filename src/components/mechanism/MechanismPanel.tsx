@@ -1,5 +1,4 @@
 import { Fragment, useState } from "react";
-import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import { MECHANISM_ITEMS } from "@/config/mechanism";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
@@ -26,7 +25,7 @@ export default function MechanismPanel() {
         </p>
       </div>
 
-      <ol className="dither-list dither-list-flow mx-5 flex flex-col gap-0.5">
+      <ol className="mechanism-list dither-list dither-list-flow flex flex-col gap-0.5">
         {MECHANISM_ITEMS.map((item, index) => {
           const expanded = item.id === expandedId;
           const panelId = `mechanism-${item.id}`;
@@ -39,22 +38,33 @@ export default function MechanismPanel() {
           return (
             <Fragment key={item.id}>
               {showGroup ? (
-                <li className="px-2 pb-1 pt-3 first:pt-0">
-                  <span className="font-mono text-[8px] font-black uppercase leading-none tracking-normal text-atc-faint">
+                <li className="mechanism-group-label pb-1 pt-3 first:pt-0">
+                  <span>
                     {t(item.groupKey)}
                   </span>
                 </li>
               ) : null}
               <li key={item.id}>
-                <TextPillListItem
-                  as="button"
+                <button
+                  type="button"
+                  className="mechanism-row"
+                  data-expanded={expanded ? "true" : "false"}
                   aria-expanded={expanded}
                   aria-controls={panelId}
                   onClick={() => setExpandedId(expanded ? null : item.id)}
-                  pill={String(index + 1).padStart(2, "0")}
-                  title={t(item.titleKey)}
-                  subtitle={t(item.signalKey)}
-                />
+                >
+                  <span className="mechanism-row__index">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="mechanism-row__body">
+                    <span className="mechanism-row__title">
+                      {t(item.titleKey)}
+                    </span>
+                    <span className="mechanism-row__signal">
+                      {t(item.signalKey)}
+                    </span>
+                  </span>
+                </button>
 
                 <div
                   id={panelId}
@@ -66,21 +76,24 @@ export default function MechanismPanel() {
                   )}
                 >
                   <div className="min-h-0 overflow-hidden">
-                    <div className="px-2 pb-2 pt-2">
-                      <p className="text-[10px] leading-relaxed text-atc-dim">
+                    <div className="mechanism-detail">
+                      <p className="mechanism-detail__body">
                         {t(item.bodyKey)}
                       </p>
                       <MechanismFlow labels={flowLabels} />
-                      <div className="mt-2 grid gap-1 pl-0.5">
-                        {item.detailKeys.map((key) => (
-                          <p
+                      <ol className="mechanism-detail__list">
+                        {item.detailKeys.map((key, detailIndex) => (
+                          <li
                             key={key}
-                            className="text-[10px] leading-relaxed text-atc-dim"
+                            className="mechanism-detail__item"
                           >
-                            {t(key)}
-                          </p>
+                            <span className="mechanism-detail__index">
+                              {String(detailIndex + 1).padStart(2, "0")}
+                            </span>
+                            <span className="min-w-0">{t(key)}</span>
+                          </li>
                         ))}
-                      </div>
+                      </ol>
                     </div>
                   </div>
                 </div>
@@ -101,16 +114,16 @@ function MechanismFlow({
   if (!labels.length) return null;
 
   return (
-    <ol className="mt-2 flex flex-wrap gap-1">
+    <ol className="mechanism-flow">
       {labels.map((label, index) => (
         <li
           key={`${label}-${index}`}
-          className="inline-grid max-w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-1 rounded-[6px] bg-[color-mix(in_oklab,var(--atc-text)_7%,transparent)] px-1.5 py-1"
+          className="mechanism-flow__item"
         >
-          <span className="font-mono text-[7.5px] font-black leading-none text-atc-faint">
+          <span className="mechanism-flow__index">
             {String(index + 1).padStart(2, "0")}
           </span>
-          <span className="min-w-0 truncate text-[9px] font-semibold leading-none text-atc-dim">
+          <span className="min-w-0 truncate">
             {label}
           </span>
         </li>

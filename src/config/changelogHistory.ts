@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.26.15",
+    kind: "patch",
+    title: {
+      en: "Quieter mechanism rows",
+      zh: "机制页展开行降噪",
+    },
+    summary: {
+      en: "The mechanism page now treats expanded rows as inline explanation instead of full selected cards.",
+      zh: "机制页现在把展开行处理成内联说明，而不是整块选中卡片。",
+    },
+    highlights: [
+      {
+        en: "Expanded mechanism rows no longer use the full glass capsule, shadow, or backdrop blur",
+        zh: "展开的机制行不再使用完整玻璃 capsule、阴影或背景模糊",
+      },
+      {
+        en: "The row order is carried by the number rail and text alignment while the default glass active state remains available elsewhere",
+        zh: "行秩序由数字 rail 和文字对齐承担，同时其他位置仍可使用默认玻璃选中态",
+      },
+      {
+        en: "This is display-only and leaves the accordion behavior and mechanism copy unchanged",
+        zh: "这次仅调整展示，不改变折叠行为和机制页文案",
+      },
+    ],
+  },
+  {
     version: "v2.26.14",
     kind: "patch",
     title: {
