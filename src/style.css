@@ -6890,61 +6890,45 @@ body {
     background: var(--atc-signal-accent);
 }
 
-.plane-hunter-rainbow-btn {
-    --plane-hunter-surface: oklch(17% 0.018 260);
-    --plane-hunter-surface-strong: oklch(10% 0.014 260);
-    --plane-hunter-ink: oklch(98% 0.006 95);
-    position: relative;
-    isolation: isolate;
-    border: 1px solid transparent !important;
-    background:
-        linear-gradient(
-                180deg,
-                color-mix(in oklab, var(--plane-hunter-surface) 84%, white 16%),
-                var(--plane-hunter-surface-strong)
-            )
-            padding-box,
-        linear-gradient(
-                95deg,
-                oklch(74% 0.19 28),
-                oklch(78% 0.18 78),
-                oklch(82% 0.18 142),
-                oklch(76% 0.18 214),
-                oklch(72% 0.2 286),
-                oklch(74% 0.19 28)
-            )
-            border-box !important;
-    background-size: 100% 100%, 220% 100% !important;
-    box-shadow:
-        0 0 0 1px color-mix(in oklab, var(--atc-text) 8%, transparent),
-        0 10px 24px color-mix(in oklab, oklch(76% 0.18 286) 20%, transparent),
-        inset 0 1px 0 color-mix(in oklab, white 22%, transparent),
-        inset 0 -10px 20px color-mix(in oklab, black 30%, transparent) !important;
-    color: var(--plane-hunter-ink) !important;
-    text-shadow: 0 1px 10px color-mix(in oklab, white 24%, transparent);
-    animation: plane-hunter-rainbow-pan 4.8s linear infinite;
-    filter: saturate(1.08);
+/* Mobile sheet grabber — rides the open edge (bottom in portrait top-sheets,
+   top in landscape bottom-sheets). Drag past the threshold or tap to toggle. */
+.mobile-preview-grabber {
+    align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 18px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
 }
 
-.plane-hunter-rainbow-btn:hover {
-    box-shadow:
-        0 0 0 1px color-mix(in oklab, var(--atc-text) 12%, transparent),
-        0 12px 30px color-mix(in oklab, oklch(78% 0.18 214) 28%, transparent),
-        inset 0 1px 0 color-mix(in oklab, white 22%, transparent) !important;
-    filter: brightness(1.05) saturate(1.18);
+.mobile-preview-grabber[data-edge="bottom"] {
+    margin-top: 1px;
 }
 
-.plane-hunter-rainbow-btn:focus-visible {
-    outline: 2px solid oklch(82% 0.18 142);
+.mobile-preview-grabber[data-edge="top"] {
+    margin-bottom: 2px;
 }
 
-@keyframes plane-hunter-rainbow-pan {
-    0% {
-        background-position: 0 0, 0% 50%;
-    }
-    100% {
-        background-position: 0 0, 220% 50%;
-    }
+.mobile-preview-grabber:active {
+    cursor: grabbing;
+}
+
+.mobile-preview-grabber__bar {
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--atc-text) 22%, transparent);
+    transition: background-color 0.15s ease;
+}
+
+.mobile-preview-grabber:hover .mobile-preview-grabber__bar,
+[data-expanded="true"] .mobile-preview-grabber__bar {
+    background: color-mix(in oklab, var(--atc-text) 34%, transparent);
 }
 
 .aircraft-preview-card__trace-status {
@@ -7640,8 +7624,7 @@ body {
     .aircraft-preview-card--desktop-reveal > *,
     .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card,
     .aircraft-preview-card__media-slot,
-    .aircraft-preview-card__trace-status,
-    .plane-hunter-rainbow-btn {
+    .aircraft-preview-card__trace-status {
         transition: none;
         animation: none;
         clip-path: none;

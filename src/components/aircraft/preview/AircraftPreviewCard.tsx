@@ -1,7 +1,9 @@
 import { lazy, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
+import { Camera, Hand } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard";
+import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard";
 import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard";
@@ -16,8 +18,7 @@ import ReportingPointPreviewMetadataCard from "./ReportingPointPreviewMetadataCa
 import ReportingPointPreviewMobileCard from "./ReportingPointPreviewMobileCard";
 import MobilePreviewCard, {
   MobilePreviewActions,
-  MobilePreviewFeedbackLink,
-  MobilePreviewSecondaryButton,
+  MobilePreviewIconButton,
   MobilePreviewTrackButton,
 } from "./MobilePreviewCard";
 import RouteFeedbackModal from "./RouteFeedbackModal";
@@ -233,8 +234,8 @@ export default function AircraftPreviewCard({
     : isCandidateWatchingSpot
       ? t("preview.candidateWatchingSpotPreview")
     : alreadyTracking
-      ? t("preview.trackingTrace")
-      : t("preview.trackTrace");
+      ? t("preview.tracking")
+      : t("preview.track");
   const showMobileTrackButton =
     Boolean(cardTrackHref) && !(alreadyTracking && isAircraftPreview);
   const previewAriaLabel = isAirport
@@ -249,6 +250,34 @@ export default function AircraftPreviewCard({
         ? t("preview.candidateWatchingSpotPreview")
       : t("preview.aircraftPreview");
   const [planeHunterOpen, setPlaneHunterOpen] = useState(false);
+
+  // Only the aircraft mobile card is the compact, drag-to-expand sheet.
+  const mobileCompact =
+    !isAirport &&
+    !isNavaid &&
+    !isReportingPoint &&
+    !isAirspace &&
+    !isCandidateWatchingSpot;
+  // Revealed on expand: the photo + the HEX / Track / Distance identity rows
+  // (the same content the desktop card shows inline).
+  const mobileExpandedContent =
+    mobileCompact && isAircraftPreview ? (
+      <div className="pt-1">
+        {hasPhoto ? (
+          <div className="px-[12px] [[data-density=compact]_&]:px-[10px]">
+            <img
+              src={photo.src}
+              alt=""
+              draggable="false"
+              className="block max-h-[150px] w-full rounded-[12px] object-cover"
+            />
+          </div>
+        ) : null}
+        <div className="px-[12px] pb-1 pt-2 [[data-density=compact]_&]:px-[10px]">
+          <AircraftPreviewMetadata aircraft={aircraft} />
+        </div>
+      </div>
+    ) : null;
 
   return (
     <>
@@ -317,13 +346,10 @@ export default function AircraftPreviewCard({
         <MobilePreviewCard
           key={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
-          compact={
-            !isAirport &&
-            !isNavaid &&
-            !isReportingPoint &&
-            !isAirspace &&
-            !isCandidateWatchingSpot
-          }
+          compact={mobileCompact}
+          expandable={mobileCompact}
+          grabberLabel={previewAriaLabel}
+          expandedContent={mobileExpandedContent}
           placement={
             showPreferredMobilePreview ? "bottomRight" : "top"
           }
@@ -334,63 +360,43 @@ export default function AircraftPreviewCard({
               showMobileFeedbackTrigger ||
               showMobileSpotNavigationTrigger) ? (
               <MobilePreviewActions>
-                {showMobilePlaneHunterTrigger && showMobileTrackButton ? (
-                  <div className="grid grid-cols-2 gap-1">
-                    <MobilePreviewSecondaryButton
-                      onClick={() => setPlaneHunterOpen(true)}
-                      className="plane-hunter-rainbow-btn"
-                    >
-                      {t("preview.planeHunter")}
-                    </MobilePreviewSecondaryButton>
+                <div className="flex items-stretch gap-1.5">
+                  {showMobileTrackButton && (
                     <MobilePreviewTrackButton
+                      className="flex-1"
                       onClick={handleMobileTap}
                       disabled={alreadyTracking}
                     >
                       {mobileTrackLabel}
                     </MobilePreviewTrackButton>
-                    {showMobileFeedbackTrigger && (
-                      <MobilePreviewFeedbackLink
-                        onClick={() => setFeedbackModalOpen(true)}
-                        className="col-start-2"
-                      >
-                        {mobileFeedbackLabel}
-                      </MobilePreviewFeedbackLink>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    {showMobilePlaneHunterTrigger && (
-                      <MobilePreviewSecondaryButton
-                        onClick={() => setPlaneHunterOpen(true)}
-                        className="plane-hunter-rainbow-btn"
-                      >
-                        {t("preview.planeHunter")}
-                      </MobilePreviewSecondaryButton>
-                    )}
-                    {showMobileTrackButton && (
-                      <MobilePreviewTrackButton
-                        onClick={handleMobileTap}
-                        disabled={alreadyTracking}
-                      >
-                        {mobileTrackLabel}
-                      </MobilePreviewTrackButton>
-                    )}
-                    {showMobileSpotNavigationTrigger && (
-                      <MobilePreviewTrackButton
-                        onClick={onOpenCandidateWatchingSpotNavigation}
-                      >
-                        {t("preview.goToSpot")}
-                      </MobilePreviewTrackButton>
-                    )}
-                  </>
-                )}
-                {showMobileFeedbackTrigger && !(showMobilePlaneHunterTrigger && showMobileTrackButton) && (
-                  <MobilePreviewFeedbackLink
-                    onClick={() => setFeedbackModalOpen(true)}
-                  >
-                    {mobileFeedbackLabel}
-                  </MobilePreviewFeedbackLink>
-                )}
+                  )}
+                  {showMobileSpotNavigationTrigger && (
+                    <MobilePreviewTrackButton
+                      className="flex-1"
+                      onClick={onOpenCandidateWatchingSpotNavigation}
+                    >
+                      {t("preview.goToSpot")}
+                    </MobilePreviewTrackButton>
+                  )}
+                  {showMobilePlaneHunterTrigger && (
+                    <MobilePreviewIconButton
+                      onClick={() => setPlaneHunterOpen(true)}
+                      aria-label={t("preview.planeHunter")}
+                      title={t("preview.planeHunter")}
+                    >
+                      <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+                    </MobilePreviewIconButton>
+                  )}
+                  {showMobileFeedbackTrigger && (
+                    <MobilePreviewIconButton
+                      onClick={() => setFeedbackModalOpen(true)}
+                      aria-label={mobileFeedbackLabel}
+                      title={mobileFeedbackLabel}
+                    >
+                      <Hand aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+                    </MobilePreviewIconButton>
+                  )}
+                </div>
               </MobilePreviewActions>
             ) : null
           }

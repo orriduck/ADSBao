@@ -41,32 +41,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 95;
+export const CHANGELOG_TOTAL_COUNT = 96;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.28.4",
+    version: "v2.28.5",
     kind: "patch",
     title: {
-      en: "Mechanism redesign + Changelog type scale",
-      zh: "机制页重设计 + 更新日志字号统一",
+      en: "Aircraft preview card — clearer selection state",
+      zh: "飞机预览卡片——更清晰的选中态",
     },
     summary: {
-      en: "The Mechanism page adopts the Explorer/About design system, and the Changelog aligns to the same type scale. Both join the first-screen family with serif group labels and the accent title tick.",
-      zh: "机制页沿用机场探索 / 关于页的设计语言，更新日志对齐同一套字号。两页都归入首屏家族，配衬线分组标签与强调标题短线。",
+      en: "Tapping an aircraft now opens a refreshed frosted preview card on desktop and a drag-to-expand sheet on mobile, with one signal accent and no rainbow button.",
+      zh: "点选飞机后，桌面端打开焕新的磨砂预览卡片，移动端为可下拉展开的卡片；统一单一信号强调色，去掉彩虹按钮。",
     },
     highlights: [
       {
-        en: "Mechanism rows become numbered accordion entries (mono index, title + signal, chevron); the expanded row gets a faint neutral panel with the data flow drawn as a vertical node pipeline — only the final produced payload is the orange node",
-        zh: "机制行改为带编号的折叠条目（等宽序号、标题 + 信号、折叠箭头）；展开行为淡色面板，数据流以竖向节点管线呈现——仅最终产出的 payload 为橙色节点",
+        en: "Desktop card: a photo header with a 'tracking' pill, callsign + TYPE / CATEGORY (no registration), an ORIGIN ——✈—— DEST route line, accent vertical-speed, HEX / Track / Distance, and a Track button beside camera + suggest-correction icon buttons",
+        zh: "桌面卡片：带「追踪」徽标的照片头、呼号 + 机型 / 类别（不再显示注册号）、ORIGIN ——✈—— DEST 航路线、强调色垂直速度、HEX / 航向 / 距离，以及 Track 按钮搭配相机 + 建议纠正图标按钮",
       },
       {
-        en: "Mechanism group labels switch to the upright serif with an accent tick, and the title gains the accent underline tick + a quiet subtitle (kicker/count dropped)",
-        zh: "机制分组标签改用直立衬线并配强调短线，标题加上强调下划线短线与一行安静副标题（去掉旧的标签 / 计数头）",
+        en: "Mobile: a top-anchored drag-to-expand sheet (drag the grabber down) — collapsed shows callsign / type / telemetry / actions; expanded reveals the photo and identity rows. Landscape anchors to the bottom and expands up",
+        zh: "移动端：顶部吸附、可下拉展开的卡片（向下拖动把手）——收起时显示呼号 / 机型 / 参数 / 操作，展开后显示照片与身份信息；横屏改为底部吸附、向上展开",
       },
       {
-        en: "Changelog aligns to the shared type scale — 15px entry titles, 11.5px summaries, mono version, and FEAT/PATCH/BREAKING as the shared mono chip — with the accent title tick; structure unchanged",
-        zh: "更新日志对齐共享字号——15px 条目标题、11.5px 摘要、等宽版本号，FEAT/PATCH/BREAKING 采用共享的等宽芯片——并加上强调标题短线；结构不变",
+        en: "The list-row selection (orange wash + accent rail + accent glyph) and the single signal accent are reused throughout; the multicolour Plane Hunter button is gone",
+        zh: "沿用列表行选中态（橙色底色 + 强调导轨 + 强调图标）与单一信号强调色；移除多彩的拍机按钮",
       },
     ],
   },

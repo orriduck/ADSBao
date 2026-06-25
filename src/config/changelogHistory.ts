@@ -277,6 +277,32 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.28.4",
+    kind: "patch",
+    title: {
+      en: "Mechanism redesign + Changelog type scale",
+      zh: "机制页重设计 + 更新日志字号统一",
+    },
+    summary: {
+      en: "The Mechanism page adopts the Explorer/About design system, and the Changelog aligns to the same type scale. Both join the first-screen family with serif group labels and the accent title tick.",
+      zh: "机制页沿用机场探索 / 关于页的设计语言，更新日志对齐同一套字号。两页都归入首屏家族，配衬线分组标签与强调标题短线。",
+    },
+    highlights: [
+      {
+        en: "Mechanism rows become numbered accordion entries (mono index, title + signal, chevron); the expanded row gets a faint neutral panel with the data flow drawn as a vertical node pipeline — only the final produced payload is the orange node",
+        zh: "机制行改为带编号的折叠条目（等宽序号、标题 + 信号、折叠箭头）；展开行为淡色面板，数据流以竖向节点管线呈现——仅最终产出的 payload 为橙色节点",
+      },
+      {
+        en: "Mechanism group labels switch to the upright serif with an accent tick, and the title gains the accent underline tick + a quiet subtitle (kicker/count dropped)",
+        zh: "机制分组标签改用直立衬线并配强调短线，标题加上强调下划线短线与一行安静副标题（去掉旧的标签 / 计数头）",
+      },
+      {
+        en: "Changelog aligns to the shared type scale — 15px entry titles, 11.5px summaries, mono version, and FEAT/PATCH/BREAKING as the shared mono chip — with the accent title tick; structure unchanged",
+        zh: "更新日志对齐共享字号——15px 条目标题、11.5px 摘要、等宽版本号，FEAT/PATCH/BREAKING 采用共享的等宽芯片——并加上强调标题短线；结构不变",
+      },
+    ],
+  },
+  {
     version: "v2.28.3",
     kind: "patch",
     title: {
