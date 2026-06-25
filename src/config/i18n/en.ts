@@ -10,6 +10,7 @@ const en = {
     aboutTitle: "About",
     aboutSubtitle: "How ADSBao is built",
     mechanismTitle: "Mechanism & Architecture",
+    mechanismSubtitle: "How the realtime system fits together",
     siteDescription:
       "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
   },
@@ -121,6 +122,7 @@ const en = {
       "How ADSBao keeps map tracking, here mode, nearby lists, and realtime delivery coordinated.",
     sidebarLabel: "System profile",
     count: "{count} entries",
+    flowLabel: "Flow",
     groups: {
       architecture: "Core Architecture",
       mechanisms: "Core Mechanisms",

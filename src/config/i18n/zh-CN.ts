@@ -9,6 +9,7 @@ const zhCN = {
     aboutTitle: "关于",
     aboutSubtitle: "ADSBao 是如何构建的",
     mechanismTitle: "机制与架构",
+    mechanismSubtitle: "实时系统如何协同运作",
     siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场运行信息。",
   },
   brand: {
@@ -115,6 +116,7 @@ const zhCN = {
       "ADSBao 如何协调地图追踪、here 模式、附近列表与实时传递。",
     sidebarLabel: "系统剖面",
     count: "{count} 个条目",
+    flowLabel: "数据流",
     groups: {
       architecture: "核心架构",
       mechanisms: "核心机制",
