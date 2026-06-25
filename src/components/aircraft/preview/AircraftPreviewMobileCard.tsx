@@ -5,30 +5,26 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { getAircraftPreviewTypeDisplay } from "@/features/aircraft/preview/aircraftPreviewTypeModel";
 import { formatAltitude } from "@/utils/units";
-import { MobilePreviewTrackButton } from "./MobilePreviewCard";
+import { useMobilePreviewExpanded } from "./MobilePreviewCard";
 import type { AsyncStatusState } from "@/hooks/useAsyncStatus";
 
 type AircraftPreviewMobileCardProps = {
   aircraft?: Record<string, any> | null;
   photo?: { src?: string | null } | null;
   traceStatusState?: AsyncStatusState | null;
-  trackLabel?: string;
-  trackDisabled?: boolean;
-  onTrack?: () => void;
 };
 
-// Collapsed mobile card: [thumb][callsign + type · route][Track] over a single
-// telemetry line. The photo is a small thumbnail (the full reveal lives in the
-// expanded sheet); the vertical-speed is the one accent in the telemetry line.
+// Collapsed mobile card: [thumb][callsign + type · route] over a single
+// telemetry line; the action row (Track + camera + suggest) sits below in the
+// shared actions slot. The thumbnail hides when expanded so the larger photo
+// revealed there isn't a second copy. V/S is the one accent in the line.
 export default function AircraftPreviewMobileCard({
   aircraft,
   photo,
   traceStatusState = null,
-  trackLabel,
-  trackDisabled = false,
-  onTrack,
 }: AircraftPreviewMobileCardProps) {
   const { t } = useI18n();
+  const expanded = useMobilePreviewExpanded();
   const { preferences: units } = useUnitPreferences();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
@@ -51,7 +47,9 @@ export default function AircraftPreviewMobileCard({
   return (
     <div className="flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
       <div className="flex items-center gap-2.5">
-        {photo?.src ? (
+        {/* Hidden when expanded — the larger photo shows in the reveal, so the
+            thumbnail isn't a second copy. */}
+        {expanded ? null : photo?.src ? (
           <img
             src={photo.src}
             alt=""
@@ -101,15 +99,6 @@ export default function AircraftPreviewMobileCard({
             )}
           </div>
         </div>
-        {onTrack ? (
-          <MobilePreviewTrackButton
-            className="w-auto flex-none self-center px-5 border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
-            onClick={onTrack}
-            disabled={trackDisabled}
-          >
-            {trackLabel}
-          </MobilePreviewTrackButton>
-        ) : null}
       </div>
 
       <div className="flex flex-wrap items-baseline gap-x-[7px] gap-y-1 border-t border-atc-line pt-[7px] font-mono text-[13px] tabular-nums text-atc-text">
