@@ -1,5 +1,6 @@
+import type { CSSProperties, ReactNode } from "react";
 import { ArrowUpRight, Github } from "lucide-react";
-import { TextPillListItem } from "@/components/ui/TextPillListItem";
+import { AirportListRow } from "@/components/airport/search/AirportListRow";
 import {
   ABOUT_BUILD_META,
   ABOUT_DATA_SOURCES,
@@ -35,11 +36,22 @@ const SOURCE_CATEGORY: Record<string, string> = {
 };
 const CATEGORY_ORDER = ["traffic", "weather", "airport", "context"];
 const CATEGORY_LABEL: Record<string, { en: string; zh: string }> = {
-  traffic: { en: "Traffic", zh: "航迹" },
+  traffic: { en: "Tracks", zh: "航迹" },
   weather: { en: "Weather", zh: "天气" },
-  airport: { en: "Airport", zh: "机场" },
+  airport: { en: "Airports", zh: "机场" },
   context: { en: "Context", zh: "背景" },
 };
+
+// The source codes (ADS-B / ICONS / METAR / ROUTE) are wider than ICAO codes,
+// so the shared Explorer row gets a wider, slightly smaller chip here via its
+// CSS-var overrides — same chip style, different column.
+const SOURCE_CHIP_STYLE = {
+  "--lr-chip-col": "54px",
+  "--lr-chip-fs": "9.5px",
+} as CSSProperties;
+
+// Page content sits on the same horizontal inset as the page title.
+const INSET = "px-[var(--airport-sidebar-inset,20px)]";
 
 export default function AboutPanel() {
   const { locale, t } = useI18n();
@@ -57,59 +69,51 @@ export default function AboutPanel() {
     : [];
 
   return (
-    <div className="flex flex-none flex-col">
-      <div className="about-meta-grid dither-meta-flow dither-list-flow flex-none">
+    <div className="flex flex-none flex-col pb-2">
+      {/* Meta block — stacked label-over-value, left-aligned to the title.
+          Deliberately NOT a left-label/right-value rail (which competed with
+          the chip column below). */}
+      <div className={`flex flex-col gap-4 pt-1 ${INSET}`}>
         {version ? (
-          <div className="about-meta-row about-meta-version">
-            <span className="about-meta-label">
-              {version.labelKey ? t(version.labelKey) : version.label}
-            </span>
-            <span className="about-meta-value">
-              {resolveCopy(version, t)}
-            </span>
-          </div>
+          <MetaEntry
+            label={version.labelKey ? t(version.labelKey) : version.label}
+            value={
+              <span className="font-code">{resolveCopy(version, t)}</span>
+            }
+          />
         ) : null}
-
-        <div className="about-meta-sections">
-          {sections.map((section) => (
-            <section
-              key={section.label}
-              className="about-meta-row about-meta-section"
-            >
-              <h2 className="about-meta-label">
-                {section.labelKey ? t(section.labelKey) : section.label}
-              </h2>
-              <ul
-                className={
-                  section.layout === "compact-grid"
-                    ? "about-meta-list about-meta-list--grid"
-                    : "about-meta-list"
-                }
-              >
-                {section.items.map((item) => (
-                  <li
-                    key={item}
-                    className="min-w-0"
-                  >
-                    <span className="min-w-0">{resolveCopy(item, t)}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
+        {sections.map((section) => (
+          <MetaEntry
+            key={section.label}
+            label={section.labelKey ? t(section.labelKey) : section.label}
+            value={section.items
+              .map((item) => resolveCopy(item, t))
+              .join(" · ")}
+          />
+        ))}
       </div>
 
-      <div className="dither-section-header flex-none px-5 pb-2 pt-4">
-        <div className="atc-section-head">
-          <span className="atc-kicker">{t("about.dataSources")}</span>
-          <span className="atc-section-head__count">
-            {getDataSourceCountLabel(ABOUT_DATA_SOURCES, locale)}
-          </span>
-        </div>
+      {/* Hairline divider between the meta block and Data sources. */}
+      <div className="mx-[var(--airport-sidebar-inset,20px)] mt-5 mb-4 h-px bg-[color-mix(in_oklab,var(--atc-text)_11%,transparent)]" />
+
+      {/* Section header: serif + accent tick (the one accent here besides the
+          title tick) with a mono source count right-aligned. */}
+      <div className={`flex items-center justify-between gap-3 ${INSET}`}>
+        <h2
+          className={
+            "flex min-w-0 items-center gap-2 font-serif text-[15px] leading-snug text-atc-dim " +
+            "before:block before:h-[1.5px] before:w-[9px] before:shrink-0 before:rounded-full " +
+            "before:bg-[var(--atc-signal-accent)] before:content-['']"
+          }
+        >
+          {t("about.dataSources")}
+        </h2>
+        <span className="shrink-0 font-code text-[10px] [letter-spacing:0.4px] text-atc-faint">
+          {getDataSourceCountLabel(ABOUT_DATA_SOURCES, locale)}
+        </span>
       </div>
 
-      <div className="flex flex-col gap-5">
+      <div className="mt-3 flex flex-col gap-5">
         {CATEGORY_ORDER.map((category) => {
           const sources = ABOUT_DATA_SOURCES.filter(
             (source) => (SOURCE_CATEGORY[source.glyph] || "context") === category,
@@ -119,18 +123,22 @@ export default function AboutPanel() {
             CATEGORY_LABEL[category][locale === "zh-CN" ? "zh" : "en"];
           return (
             <section key={category} className="flex flex-col gap-1.5">
-              <span className="fs-eyebrow mx-[var(--airport-sidebar-inset,20px)]">
+              {/* Sub-group label: plain upright serif, no tick. */}
+              <h3
+                className={`font-serif text-[12px] leading-snug text-atc-dim ${INSET}`}
+              >
                 {label}
-              </span>
-              <ol className="dither-list dither-list-flow flex flex-col gap-1">
+              </h3>
+              <ol className={`flex flex-col gap-1 ${INSET}`}>
                 {sources.map((source) => (
                   <li key={source.host || source.title || source.glyph}>
-                    <TextPillListItem
+                    <AirportListRow
                       as="a"
-                      className="about-data-source-link"
+                      style={SOURCE_CHIP_STYLE}
                       {...getExternalLinkOpenTarget(source.href)}
                       onClick={(event) => openExternalLink(event, source.href)}
                       pill={source.glyph}
+                      trailingAlign="start"
                       title={source.titleKey ? t(source.titleKey) : source.title}
                       subtitle={
                         source.descriptionKey
@@ -149,7 +157,7 @@ export default function AboutPanel() {
         })}
       </div>
 
-      <div className="px-5 pb-4 pt-2 md:px-[16px]">
+      <div className="px-5 pb-4 pt-4 md:px-[16px]">
         <a
           {...getExternalLinkOpenTarget(ABOUT_REPOSITORY.href)}
           onClick={(event) => openExternalLink(event, ABOUT_REPOSITORY.href)}
@@ -178,6 +186,24 @@ export default function AboutPanel() {
           </span>
         </a>
       </div>
+    </div>
+  );
+}
+
+// Stacked meta field: a quiet uppercase micro-label over a regular-weight value.
+function MetaEntry({
+  label,
+  value,
+}: {
+  label: ReactNode;
+  value: ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <span className="text-[10px] uppercase [letter-spacing:1.4px] text-atc-faint">
+        {label}
+      </span>
+      <span className="text-[14px] leading-[1.4] text-atc-text">{value}</span>
     </div>
   );
 }

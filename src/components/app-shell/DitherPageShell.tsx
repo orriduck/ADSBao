@@ -164,9 +164,9 @@ function resolveRouteChrome(pathname, t) {
   if (segment === "about") {
     return {
       key: "about",
-      className: "",
+      className: "about-screen",
       title: t("app.aboutTitle"),
-      description: "",
+      description: t("app.aboutSubtitle"),
     };
   }
 

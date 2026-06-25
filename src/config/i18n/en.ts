@@ -8,6 +8,7 @@ const en = {
     live: "Live",
     airportExplorer: "Airports",
     aboutTitle: "About",
+    aboutSubtitle: "How ADSBao is built",
     mechanismTitle: "Mechanism & Architecture",
     siteDescription:
       "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
