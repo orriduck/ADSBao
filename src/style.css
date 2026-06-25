@@ -3048,34 +3048,39 @@ body:has(.dither-page-shell) {
          body    → expanded detail copy
          value   → meta value (version, stack item)
          desc    → page-level description under the H1                    */
+    /* Hierarchy comes from size + luminance, never weight: every role is
+       light/regular, so the primary (title) is markedly larger and inked while
+       secondary roles (eyebrow / sub) recede in size and contrast. The eyebrow
+       is a quiet tracked label; the title leads each row; the sub is small and
+       faint. Widen these ratios, don't reach for weight. */
     --fs-eyebrow-font: var(--font-display);
-    --fs-eyebrow-size: 11px;
-    --fs-eyebrow-weight: 800;
-    --fs-eyebrow-tracking: 0.12em;
+    --fs-eyebrow-size: 10px;
+    --fs-eyebrow-weight: var(--weight-regular);
+    --fs-eyebrow-tracking: 0.16em;
     --fs-eyebrow-color: var(--atc-faint);
 
     --fs-title-font: var(--font-sans);
-    --fs-title-size: 14px;
-    --fs-title-weight: 800;
-    --fs-title-leading: 1.2;
+    --fs-title-size: 15px;
+    --fs-title-weight: var(--weight-regular);
+    --fs-title-leading: 1.25;
     --fs-title-color: var(--atc-text);
 
-    --fs-sub-size: 11.5px;
-    --fs-sub-weight: 600;
-    --fs-sub-leading: 1.25;
-    --fs-sub-color: var(--atc-dim);
+    --fs-sub-size: 11px;
+    --fs-sub-weight: var(--weight-regular);
+    --fs-sub-leading: 1.3;
+    --fs-sub-color: var(--atc-faint);
 
     --fs-rail-font: var(--font-mono);
     --fs-rail-size: 11px;
-    --fs-rail-weight: 850;
+    --fs-rail-weight: var(--weight-regular);
     --fs-rail-color: var(--atc-faint);
 
     --fs-body-size: 11px;
-    --fs-body-leading: 1.5;
+    --fs-body-leading: 1.55;
     --fs-body-color: var(--atc-dim);
 
-    --fs-value-size: 13px;
-    --fs-value-weight: 850;
+    --fs-value-size: 14px;
+    --fs-value-weight: var(--weight-regular);
     --fs-value-color: var(--atc-text);
 
     --fs-desc-size: 12px;
@@ -7781,13 +7786,13 @@ body {
     padding: 0 var(--airport-sidebar-inset, 24px) 18px;
 }
 
-/* Each discovery section (after the first) is delimited by a hairline rule so
-   the eyebrow label unmistakably reads as a NEW group header, not another
-   gray content line. */
+/* Density is rhythm, not uniform compression: rows inside a group stay tight,
+   but a deliberately larger gap separates one group from the next so the
+   whitespace itself does the grouping (no dividing lines). The quiet eyebrow
+   label sits in that gap and reads as a new group header on its own. */
 .dither-content-stack > section + section {
-    border-top: 1px solid color-mix(in oklab, var(--app-frost-border) 85%, transparent);
-    margin-top: 4px;
-    padding-top: 14px;
+    margin-top: 10px;
+    padding-top: 22px;
 }
 
 .dither-list {

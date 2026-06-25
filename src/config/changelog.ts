@@ -80,6 +80,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "Nearby / weather / ATC stay unified under one quiet hero-stats segment — only one summary surface shows at a time, with a 240ms cross-fade and regular-weight numerals",
         zh: "邻近 / 天气 / ATC 统一在一个安静的主指标分段下切换——同一时刻只显示一个汇总面，配 240ms 交叉淡入与常规字重数字",
       },
+      {
+        en: "First-screen pages (Home / About / Mechanism / Changelog) gain real hierarchy — larger inked titles over smaller, fainter detail, groups separated by whitespace rhythm not dividing lines; search loading / empty / no-result are now designed states",
+        zh: "首屏各页（首页 / 关于 / 机制 / 更新日志）建立真正的层次——更大且着墨的标题搭配更小更淡的细节，分组以留白节奏而非分隔线区隔；搜索的加载 / 空 / 无结果改为有设计感的状态",
+      },
     ],
   },
   {
