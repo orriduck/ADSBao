@@ -76,6 +76,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "ATC frequencies render as a clean table — role left, channel in mono right-aligned — ordered by operational flow (ATIS → Clearance → Ground → Tower → Approach → Departure)",
         zh: "ATC 频率改为整洁表格：左侧角色、右侧等宽对齐的频道，并按运行流程排序（ATIS → Clearance → Ground → Tower → Approach → Departure）",
       },
+      {
+        en: "Nearby / weather / ATC stay unified under one quiet hero-stats segment — only one summary surface shows at a time, with a 240ms cross-fade and regular-weight numerals",
+        zh: "邻近 / 天气 / ATC 统一在一个安静的主指标分段下切换——同一时刻只显示一个汇总面，配 240ms 交叉淡入与常规字重数字",
+      },
     ],
   },
   {
