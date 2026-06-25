@@ -274,7 +274,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
         <div className="app-list-motion atc-freq-table flex flex-col">
           {rows.map((row, index) => (
             <div
-              key={row.id || `${row.type}-${row.frequencyMhz}-${index}`}
+              key={row.id || `${row.inferredRole}-${row.frequencyMhz}-${index}`}
               className="flex items-baseline justify-between gap-3 border-b border-[color-mix(in_oklab,var(--atc-line)_55%,transparent)] py-2 last:border-b-0"
             >
               <div className="min-w-0">

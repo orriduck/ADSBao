@@ -11,9 +11,12 @@ import {
 
 // Frosted "hero stats block": one joined rounded glass container with a big
 // headline metric (nearby flights) over a row of small footer cells
-// (weather / ATC / spotting / movement). Each segment doubles as the
-// view-switch control — the active segment shows the blue accent rail so
-// navigation is preserved while matching the redesign's single-block look.
+// (weather / ATC / spotting / movement). This is the single quiet segment that
+// switches every left-column view, so only one summary surface shows at a time.
+// Each segment doubles as the view-switch control — the active segment shows
+// the reserved orange accent rail + faint wash (DESIGN.md: row-selection,
+// trace, track button, and the active hero/telemetry segment). Hierarchy comes
+// from size and luminance, not weight — numerals stay regular.
 export default function SidebarViewSwitch({
   activeView = "briefing",
   onViewChange,
@@ -112,7 +115,7 @@ export default function SidebarViewSwitch({
             </span>
           </div>
           <div className="mt-[5px] flex items-baseline gap-2">
-            <span className="text-[33px] font-bold leading-none tracking-[-1px] tabular-nums text-atc-text">
+            <span className="text-[33px] font-normal leading-none tracking-[-1px] tabular-nums text-atc-text">
               <NumberFlow value={aircraft.length} />
             </span>
           </div>
@@ -138,7 +141,7 @@ function StatCell({ label, value, unit, active, onClick }) {
     >
       <div className="text-[10px] text-atc-faint">{label}</div>
       <div className="mt-[3px]">
-        <span className="text-[16px] font-bold tabular-nums text-atc-text">
+        <span className="text-[16px] font-normal tabular-nums text-atc-text">
           {value}
         </span>
         {unit ? (
