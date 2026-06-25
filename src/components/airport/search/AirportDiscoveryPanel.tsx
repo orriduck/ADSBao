@@ -144,8 +144,9 @@ function DiscoverySectionHeader({
 }) {
   // Decorative upright serif group label (regular weight, never bold) with a
   // small accent tick — one of the three places orange is allowed on this page.
+  // The tick sits flush with the search box's left edge; rows indent past it.
   return (
-    <header className="min-w-0 px-2.5">
+    <header className="min-w-0">
       <h2
         id={id}
         className={

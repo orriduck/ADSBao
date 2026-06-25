@@ -43,7 +43,7 @@ export function AirportListRow({
   const chip = (
     <span
       className={cn(
-        "inline-flex w-[46px] items-center justify-center self-center rounded-[6px] py-[3px]",
+        "mt-[2px] inline-flex w-[46px] items-center justify-center self-start rounded-[6px] py-[3px]",
         "whitespace-nowrap font-code text-[10px] leading-none [letter-spacing:0.6px]",
         accent
           ? cn(
