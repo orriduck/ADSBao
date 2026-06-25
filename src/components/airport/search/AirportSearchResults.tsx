@@ -1,6 +1,30 @@
+import { Loader2, Radar, SearchX } from "lucide-react";
 import AirportRow from "./AirportRow";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
+
+// Designed state for the search column — a quiet glyph over a primary line and
+// a faint supporting line, framed by whitespace rather than left bare. Shared
+// by the loading / error / no-result branches so each reads as a deliberate
+// state, not an afterthought.
+function SearchState({ icon, title, detail = null, spin = false }) {
+  return (
+    <div className="flex flex-col items-center gap-2.5 px-4 py-10 text-center">
+      <span
+        aria-hidden="true"
+        className={`flex size-9 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--atc-text)_6%,transparent)] text-atc-faint ${
+          spin ? "[&>svg]:animate-spin" : ""
+        }`}
+      >
+        {icon}
+      </span>
+      <span className="fs-title max-w-[24ch] text-atc-dim">{title}</span>
+      {detail ? (
+        <span className="fs-desc max-w-[28ch] text-atc-faint">{detail}</span>
+      ) : null}
+    </div>
+  );
+}
 
 export function AirportSearchResults({
   query,
@@ -41,17 +65,23 @@ export function AirportSearchResults({
         </div>
 
         {loading && !rows.length ? (
-          <div className="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
-            {t("search.searchingAirports")}
-          </div>
+          <SearchState
+            spin
+            icon={<Loader2 size={17} strokeWidth={2} />}
+            title={t("search.searchingAirports")}
+          />
         ) : error ? (
-          <div className="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
-            {error}
-          </div>
+          <SearchState
+            icon={<SearchX size={17} strokeWidth={2} />}
+            title={t("search.searchAirportsError")}
+            detail={error}
+          />
         ) : !rows.length ? (
-          <div className="py-7 text-center font-mono text-xs tracking-[0.6px] text-atc-dim">
-            {t("search.noAirportMatched", { query: query.trim() })}
-          </div>
+          <SearchState
+            icon={<Radar size={17} strokeWidth={2} />}
+            title={t("search.noAirportMatched", { query: query.trim() })}
+            detail={t("search.discovery.pageDescription")}
+          />
         ) : (
           <ul className="app-list-motion dither-list mt-3 flex flex-col gap-1">
             {rows.map((airport, index) => (
