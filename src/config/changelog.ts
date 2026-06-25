@@ -68,6 +68,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "Nearby list rows share one compact two-line form — callsign + distance over route + altitude — with a subtle climb/descend cue; rich detail stays in the preview card",
         zh: "邻近列表统一为紧凑两行：呼号 + 距离在上、航线 + 高度在下，并带轻量的爬升/下降指示；详细信息只留在预览卡片中",
       },
+      {
+        en: "Weather splits into a Local view (friendly current conditions + hourly) and a METAR view (flight-rules hero + raw report + decoded grid), switched by a quiet capsule segment",
+        zh: "天气拆分为 Local（友好的实时天况 + 逐时预报）与 METAR（飞行规则主指标 + 原始报文 + 解码网格）两个视图，由一个安静的玻璃胶囊分段切换",
+      },
     ],
   },
   {

@@ -6081,6 +6081,28 @@ body {
     padding: 0;
 }
 
+/* Quiet capsule segment that switches the weather column between the METAR
+   (operating-picture) view and the friendly Local view. Resting buttons are
+   transparent on a faint frosted track; the active button is the standard
+   glass capsule (--atc-glass-* via the data-[active] utilities on the JSX). */
+.weather-view-segment {
+    display: flex;
+    gap: 4px;
+    margin: 16px var(--airport-sidebar-inset) 2px;
+    padding: 3px;
+    border-radius: var(--atc-radius-pill);
+    background: color-mix(in oklab, var(--app-frost-tint) 28%, transparent);
+    border: 1px solid var(--app-frost-border);
+}
+
+/* Real box (not display:contents) so the app-panel-enter fade replays on each
+   view switch. The cards stack inside via their own border-bottom dividers, so
+   the grid-vs-block-flow difference is invisible. */
+.weather-view-panel {
+    display: block;
+    min-width: 0;
+}
+
 .airport-briefing-card {
     background: transparent;
     border: 0;
