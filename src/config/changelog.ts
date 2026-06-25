@@ -72,6 +72,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "Weather splits into a Local view (friendly current conditions + hourly) and a METAR view (flight-rules hero + raw report + decoded grid), switched by a quiet capsule segment",
         zh: "天气拆分为 Local（友好的实时天况 + 逐时预报）与 METAR（飞行规则主指标 + 原始报文 + 解码网格）两个视图，由一个安静的玻璃胶囊分段切换",
       },
+      {
+        en: "ATC frequencies render as a clean table — role left, channel in mono right-aligned — ordered by operational flow (ATIS → Clearance → Ground → Tower → Approach → Departure)",
+        zh: "ATC 频率改为整洁表格：左侧角色、右侧等宽对齐的频道，并按运行流程排序（ATIS → Clearance → Ground → Tower → Approach → Departure）",
+      },
     ],
   },
   {
