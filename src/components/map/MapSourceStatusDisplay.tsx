@@ -28,7 +28,7 @@ const lineClassName = cn(
 );
 
 const diamondClassName =
-  "inline-block size-[7px] flex-none rotate-45 bg-atc-orange [.airport-map-kit_&]:size-[5px] [.airport-map-menu--mobile_&]:size-1.5";
+  "inline-block size-[7px] flex-none rotate-45 bg-[var(--atc-dim)] [.airport-map-kit_&]:size-[5px] [.airport-map-menu--mobile_&]:size-1.5";
 
 const loadingClassName = cn(
   "min-h-0 max-w-[min(360px,calc(100vw-72px))] overflow-hidden whitespace-normal",
@@ -427,10 +427,10 @@ export default function MapSourceStatusDisplay({
         <span className={lineClassName}>
           {realtimeStatusLabel ? (
             <>
-              <StatusSpan className="inline-flex flex-none items-center gap-1.5 font-mono text-atc-orange">
+              <StatusSpan className="inline-flex flex-none items-center gap-1.5 font-mono text-atc-dim">
                 <span
                   aria-hidden="true"
-                  className="size-1.5 rounded-full bg-atc-orange opacity-80 motion-safe:animate-pulse [.airport-map-kit_&]:size-1"
+                  className="size-1.5 rounded-full bg-[var(--atc-dim)] opacity-80 motion-safe:animate-pulse [.airport-map-kit_&]:size-1"
                 />
                 <span>{realtimeStatusLabel}</span>
               </StatusSpan>
@@ -444,7 +444,7 @@ export default function MapSourceStatusDisplay({
           ) : null}
           {wakeLockActive ? (
             <>
-              <StatusSpan className="flex-none tabular-nums text-atc-orange">
+              <StatusSpan className="flex-none tabular-nums text-atc-dim">
                 ☕ Keep awake
               </StatusSpan>
               {(feedSource || updatedLabel) ? (

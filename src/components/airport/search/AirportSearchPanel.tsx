@@ -51,7 +51,7 @@ export default function AirportSearchPanel({
         onSubmit={doSearch}
         className="search-input mx-5 mb-3 flex-none flex items-center gap-2 px-3 py-1.5"
       >
-        <Search className="h-3.5 w-3.5 shrink-0 text-atc-orange" />
+        <Search className="h-3.5 w-3.5 shrink-0 text-atc-dim" />
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}

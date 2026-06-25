@@ -277,6 +277,86 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.28.0",
+    kind: "feat",
+    title: {
+      en: "Designed, not aligned — system pass",
+      zh: "为「设计感」而非「对齐」打磨",
+    },
+    summary: {
+      en: "A page-by-page pass applying ADSBao's existing material system with intentional hierarchy, density rhythm, and surface separation. Opens with a typographic foundation: hierarchy now comes from size and luminance, never weight.",
+      zh: "逐页打磨，让 ADSBao 既有的材质系统以更有层次、更有节奏、更分面的方式呈现。首先落地排版基线：层次来自字号与明度，而非字重。",
+    },
+    highlights: [
+      {
+        en: "Typography is light/regular only — no bold/semibold anywhere; weight utilities and tokens remapped at the source",
+        zh: "排版仅用 light/regular，全应用不再有粗体；字重工具类与 token 在源头统一重映射",
+      },
+      {
+        en: "Loaded font weights trimmed to 300/400 for a lighter, more editorial feel",
+        zh: "加载的字重收敛为 300/400，整体更轻、更具编排感",
+      },
+      {
+        en: "Nearby list rows share one compact two-line form — callsign + distance over route + altitude — with a subtle climb/descend cue; rich detail stays in the preview card",
+        zh: "邻近列表统一为紧凑两行：呼号 + 距离在上、航线 + 高度在下，并带轻量的爬升/下降指示；详细信息只留在预览卡片中",
+      },
+      {
+        en: "Weather splits into a Local view (friendly current conditions + hourly) and a METAR view (flight-rules hero + raw report + decoded grid), switched by a quiet capsule segment",
+        zh: "天气拆分为 Local（友好的实时天况 + 逐时预报）与 METAR（飞行规则主指标 + 原始报文 + 解码网格）两个视图，由一个安静的玻璃胶囊分段切换",
+      },
+      {
+        en: "ATC frequencies render as a clean table — role left, channel in mono right-aligned — ordered by operational flow (ATIS → Clearance → Ground → Tower → Approach → Departure)",
+        zh: "ATC 频率改为整洁表格：左侧角色、右侧等宽对齐的频道，并按运行流程排序（ATIS → Clearance → Ground → Tower → Approach → Departure）",
+      },
+      {
+        en: "Nearby / weather / ATC stay unified under one quiet hero-stats segment — only one summary surface shows at a time, with a 240ms cross-fade and regular-weight numerals",
+        zh: "邻近 / 天气 / ATC 统一在一个安静的主指标分段下切换——同一时刻只显示一个汇总面，配 240ms 交叉淡入与常规字重数字",
+      },
+      {
+        en: "First-screen pages (Home / About / Mechanism / Changelog) gain real hierarchy — larger inked titles over smaller, fainter detail, groups separated by whitespace rhythm not dividing lines; search loading / empty / no-result are now designed states",
+        zh: "首屏各页（首页 / 关于 / 机制 / 更新日志）建立真正的层次——更大且着墨的标题搭配更小更淡的细节，分组以留白节奏而非分隔线区隔；搜索的加载 / 空 / 无结果改为有设计感的状态",
+      },
+      {
+        en: "About page reads as a quiet label rail + content axis (version / stack / architecture aligned), and the data sources are grouped by concern — Traffic / Weather / Airport / Context",
+        zh: "关于页改为安静的标签轨 + 内容轴（版本 / 技术栈 / 架构对齐），数据源按主题分组——航迹 / 天气 / 机场 / 背景",
+      },
+      {
+        en: "Mechanism accordion groups separate by whitespace rhythm (no dividing lines); the number rail, expanded flow labels, and detail all read on one content axis",
+        zh: "机制手风琴分组以留白节奏区隔（不再有分隔线）；编号轨、展开的流程标签与细节统一在同一内容轴上",
+      },
+    ],
+  },
+  {
+    version: "v2.27.0",
+    kind: "feat",
+    title: {
+      en: "Frosted interface redesign",
+      zh: "Frosted 界面重构",
+    },
+    summary: {
+      en: "A whole-app frosted-glass visual system: theme-following chrome, one orange signal accent, a shared first-screen type scale, and consistent airport / aircraft / home / static surfaces.",
+      zh: "全应用 Frosted 玻璃视觉系统：跟随主题的界面、统一橙色信号强调色、共享首屏排版梯度，以及一致的机场 / 飞机 / 首页 / 静态页表面。",
+    },
+    highlights: [
+      {
+        en: "Chrome follows the theme — white frosted glass + ink in light, deep-gray glass + white in dark",
+        zh: "界面跟随主题——亮色白 frosted 玻璃 + 黑字，暗色深灰玻璃 + 白字",
+      },
+      {
+        en: "One orange signal accent for row selection, the tracked-flight trace, and the track button",
+        zh: "单一橙色信号色用于行选中、追踪航迹与追踪按钮",
+      },
+      {
+        en: "First-screen pages share one --fs-* type scale; flight telemetry leads with Speed + Altitude",
+        zh: "首屏各页共用一套 --fs-* 排版梯度；飞行遥测以速度 + 高度为主指标",
+      },
+      {
+        en: "Nearby list virtualizes on mobile; selected-row value columns stay aligned",
+        zh: "邻近列表在移动端虚拟化；选中行的数值列保持对齐",
+      },
+    ],
+  },
+  {
     version: "v2.26.17",
     kind: "patch",
     title: {
