@@ -16,6 +16,31 @@ const resolveCopy = (entry, t) => {
   return entry.valueKey ? t(entry.valueKey) : entry.value;
 };
 
+// Group the data-source list by concern so it reads as scannable clusters
+// rather than one long stack. Categories derive from each source's glyph code
+// (kept here so the static config stays untouched). Labels are bilingual
+// inline — the glyph codes themselves are already untranslated.
+const SOURCE_CATEGORY: Record<string, string> = {
+  "ADS-B": "traffic",
+  ICONS: "traffic",
+  ROUTE: "traffic",
+  METAR: "weather",
+  WX: "weather",
+  DIR: "airport",
+  RWY: "airport",
+  SPOT: "airport",
+  WIKI: "context",
+  MAP: "context",
+  VIDEO: "context",
+};
+const CATEGORY_ORDER = ["traffic", "weather", "airport", "context"];
+const CATEGORY_LABEL: Record<string, { en: string; zh: string }> = {
+  traffic: { en: "Traffic", zh: "航迹" },
+  weather: { en: "Weather", zh: "天气" },
+  airport: { en: "Airport", zh: "机场" },
+  context: { en: "Context", zh: "背景" },
+};
+
 export default function AboutPanel() {
   const { locale, t } = useI18n();
 
@@ -84,26 +109,45 @@ export default function AboutPanel() {
         </div>
       </div>
 
-      <ol className="dither-list dither-list-flow mx-5 flex flex-col gap-2.5">
-        {ABOUT_DATA_SOURCES.map((source) => (
-          <li key={source.host || source.title || source.glyph}>
-            <TextPillListItem
-              as="a"
-              className="about-data-source-link"
-              {...getExternalLinkOpenTarget(source.href)}
-              onClick={(event) => openExternalLink(event, source.href)}
-              pill={source.glyph}
-              title={source.titleKey ? t(source.titleKey) : source.title}
-              subtitle={
-                source.descriptionKey
-                  ? t(source.descriptionKey)
-                  : source.description
-              }
-              trailing={<ArrowUpRight className="h-4 w-4" aria-hidden="true" />}
-            />
-          </li>
-        ))}
-      </ol>
+      <div className="flex flex-col gap-5">
+        {CATEGORY_ORDER.map((category) => {
+          const sources = ABOUT_DATA_SOURCES.filter(
+            (source) => (SOURCE_CATEGORY[source.glyph] || "context") === category,
+          );
+          if (!sources.length) return null;
+          const label =
+            CATEGORY_LABEL[category][locale === "zh-CN" ? "zh" : "en"];
+          return (
+            <section key={category} className="flex flex-col gap-1.5">
+              <span className="fs-eyebrow mx-[var(--airport-sidebar-inset,20px)]">
+                {label}
+              </span>
+              <ol className="dither-list dither-list-flow flex flex-col gap-1">
+                {sources.map((source) => (
+                  <li key={source.host || source.title || source.glyph}>
+                    <TextPillListItem
+                      as="a"
+                      className="about-data-source-link"
+                      {...getExternalLinkOpenTarget(source.href)}
+                      onClick={(event) => openExternalLink(event, source.href)}
+                      pill={source.glyph}
+                      title={source.titleKey ? t(source.titleKey) : source.title}
+                      subtitle={
+                        source.descriptionKey
+                          ? t(source.descriptionKey)
+                          : source.description
+                      }
+                      trailing={
+                        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                      }
+                    />
+                  </li>
+                ))}
+              </ol>
+            </section>
+          );
+        })}
+      </div>
 
       <div className="px-5 pb-4 pt-2 md:px-[16px]">
         <a

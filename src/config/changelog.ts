@@ -84,6 +84,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "First-screen pages (Home / About / Mechanism / Changelog) gain real hierarchy — larger inked titles over smaller, fainter detail, groups separated by whitespace rhythm not dividing lines; search loading / empty / no-result are now designed states",
         zh: "首屏各页（首页 / 关于 / 机制 / 更新日志）建立真正的层次——更大且着墨的标题搭配更小更淡的细节，分组以留白节奏而非分隔线区隔；搜索的加载 / 空 / 无结果改为有设计感的状态",
       },
+      {
+        en: "About page reads as a quiet label rail + content axis (version / stack / architecture aligned), and the data sources are grouped by concern — Traffic / Weather / Airport / Context",
+        zh: "关于页改为安静的标签轨 + 内容轴（版本 / 技术栈 / 架构对齐），数据源按主题分组——航迹 / 天气 / 机场 / 背景",
+      },
     ],
   },
   {
