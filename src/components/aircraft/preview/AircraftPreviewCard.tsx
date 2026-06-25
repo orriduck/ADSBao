@@ -257,20 +257,8 @@ export default function AircraftPreviewCard({
     !isReportingPoint &&
     !isAirspace &&
     !isCandidateWatchingSpot;
-  // Revealed on expand: just the larger photo. The collapsed thumbnail hides
-  // while expanded (see AircraftPreviewMobileCard) so it isn't a second copy.
-  // The action buttons stay in the always-visible actions row below.
-  const mobileExpandedContent =
-    mobileCompact && isAircraftPreview && hasPhoto ? (
-      <div className="px-[12px] pb-1 pt-2 [[data-density=compact]_&]:px-[10px]">
-        <img
-          src={photo.src}
-          alt=""
-          draggable="false"
-          className="block max-h-[170px] w-full rounded-[12px] object-cover"
-        />
-      </div>
-    ) : null;
+  // The aircraft mobile card is a single compact card now (small top-right
+  // photo, all actions visible), so there is nothing to reveal on expand.
 
   return (
     <>
@@ -340,9 +328,6 @@ export default function AircraftPreviewCard({
           key={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
           compact={mobileCompact}
-          expandable={Boolean(mobileExpandedContent)}
-          grabberLabel={previewAriaLabel}
-          expandedContent={mobileExpandedContent}
           placement={
             showPreferredMobilePreview ? "bottomRight" : "top"
           }
