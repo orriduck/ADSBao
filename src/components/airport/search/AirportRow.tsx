@@ -6,7 +6,7 @@ import {
   airportSubtitle,
 } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { TextPillListItem } from "@/components/ui/TextPillListItem";
+import { AirportListRow } from "./AirportListRow";
 
 const PREFETCH_INTENT_DELAY_MS = 120;
 
@@ -37,9 +37,9 @@ export default function AirportRow({
 
   useEffect(() => cancelPrefetch, [airport, onPrefetch]);
 
-  // Search results render as the shared liquid-glass list tile (GSAP
-  // hover/press lives inside the primitive). The featured best-match row
-  // flips to the active glass capsule so it reads as the obvious pick.
+  // Search results share the home discovery row. The featured best-match row
+  // reads as the obvious pick through luminance only — a quiet inked wash and
+  // a fully-inked chip, not a color shift (orange stays the near-me CTA).
   return (
     <li
       style={motionStyle}
@@ -49,7 +49,7 @@ export default function AirportRow({
       onBlur={cancelPrefetch}
       onMouseDown={cancelPrefetch}
     >
-      <TextPillListItem
+      <AirportListRow
         as="button"
         active={featured}
         onClick={() => onOpen(airport)}

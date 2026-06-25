@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { TextPillListItem } from "@/components/ui/TextPillListItem";
+import { AirportListRow } from "./AirportListRow";
 import {
   airportDisplayCode,
   airportDisplayName,
@@ -104,7 +104,7 @@ function NearMeDiscoverySection() {
         id="airport-discovery-nearby"
         title={t("search.discovery.nearby.title")}
       />
-      <ul className="dither-list mt-2.5 flex flex-col gap-2.5">
+      <ul className="dither-list mt-2 flex flex-col gap-1">
         <NearbyPromptRow onRequest={handleOpenNearMe} />
       </ul>
     </section>
@@ -124,7 +124,7 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
         title={t(topic.titleKey)}
       />
 
-      <ul className="dither-list mt-2.5 flex flex-col gap-2.5">
+      <ul className="dither-list mt-2 flex flex-col gap-1">
         {topic.airports.map((airport) => (
           <AirportDiscoveryAirportRow
             key={airport.icao || airport.code || airport.name}
@@ -142,9 +142,18 @@ function DiscoverySectionHeader({
   id,
   title,
 }) {
+  // Decorative upright serif group label (regular weight, never bold) with a
+  // small accent tick — one of the three places orange is allowed on this page.
   return (
-    <header className="min-w-0">
-      <h2 id={id} className="fs-eyebrow block truncate">
+    <header className="min-w-0 px-2.5">
+      <h2
+        id={id}
+        className={
+          "flex min-w-0 items-center gap-2 font-serif text-[15px] leading-snug text-atc-dim " +
+          "before:block before:h-[1.5px] before:w-[9px] before:shrink-0 before:rounded-full " +
+          "before:bg-[var(--atc-signal-accent)] before:content-['']"
+        }
+      >
         {title}
       </h2>
     </header>
@@ -158,8 +167,9 @@ function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
 
   return (
     <li>
-      <TextPillListItem
+      <AirportListRow
         as="button"
+        tone="accent"
         onClick={onRequest}
         pill="HERE"
         title={title}
@@ -200,7 +210,7 @@ function AirportDiscoveryAirportRow({ airport, onOpen, onPrefetch }) {
       onBlur={cancelPrefetch}
       onMouseDown={cancelPrefetch}
     >
-      <TextPillListItem
+      <AirportListRow
         as="button"
         onClick={() => onOpen(airport)}
         pill={code}
