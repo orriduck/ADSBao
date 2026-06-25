@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import AircraftRow from "./AircraftRow";
@@ -67,15 +67,12 @@ export default function VirtualNearbyList({
     parentRef.current?.scrollTo({ top: 0 });
   }, [resetSignal]);
 
+  // Re-measure only when the list itself changes — NOT on selection. Selecting
+  // a row only swaps its background/rail colour (no height change), so forcing
+  // a full re-measure on every click was pure layout thrash.
   useEffect(() => {
     virtualizer.measure();
-  }, [
-    items.length,
-    resetSignal,
-    selectedAircraftId,
-    selectedAirportIcao,
-    virtualizer,
-  ]);
+  }, [items.length, resetSignal, virtualizer]);
 
   const virtualRows = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
@@ -88,6 +85,13 @@ export default function VirtualNearbyList({
         {virtualRows.map((virtualRow) => {
           const item = items[virtualRow.index];
           if (!item) return null;
+          // Resolve selection to a per-row boolean here so the memoized row
+          // only re-renders when ITS own selection flips — selecting a
+          // different row no longer re-renders every visible row.
+          const selected =
+            item.type === "aircraft"
+              ? item.id === selectedAircraftId
+              : item.data?.icao === selectedAirportIcao;
           return (
             <NearbyVirtualRow
               ref={virtualizer.measureElement}
@@ -96,8 +100,7 @@ export default function VirtualNearbyList({
               start={virtualRow.start}
               shouldAnimateEnter={enterFlags.get(item.id) === true}
               item={item}
-              selectedAircraftId={selectedAircraftId}
-              selectedAirportIcao={selectedAirportIcao}
+              selected={selected}
               onSelectAircraft={onSelectAircraft}
               onSelectAirport={onSelectAirport}
             />
@@ -108,14 +111,13 @@ export default function VirtualNearbyList({
   );
 }
 
-function NearbyVirtualRow({
+const NearbyVirtualRow = memo(function NearbyVirtualRow({
   ref,
   index,
   start,
   shouldAnimateEnter,
   item,
-  selectedAircraftId,
-  selectedAirportIcao,
+  selected,
   onSelectAircraft,
   onSelectAirport,
 }) {
@@ -164,17 +166,14 @@ function NearbyVirtualRow({
               <AircraftRow
                 aircraft={displayed.data}
                 aircraftId={displayed.id}
-                selected={
-                  swapState.phase !== "erasing" &&
-                  displayed.id === selectedAircraftId
-                }
+                selected={swapState.phase !== "erasing" && selected}
                 onSelectAircraft={onSelectAircraft}
               />
             ) : (
               <AirportRow
                 airport={displayed.data}
                 airportId={displayed.data?.icao}
-                selected={displayed.data?.icao === selectedAirportIcao}
+                selected={selected}
                 onSelectAirport={onSelectAirport}
               />
             )}
@@ -183,4 +182,4 @@ function NearbyVirtualRow({
       </CardFlipSlot>
     </div>
   );
-}
+});

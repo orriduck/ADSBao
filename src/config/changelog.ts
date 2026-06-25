@@ -41,28 +41,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 98;
+export const CHANGELOG_TOTAL_COUNT = 99;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.28.7",
+    version: "v2.28.8",
     kind: "patch",
     title: {
-      en: "Preview cards — airport / navaid / airspace match the aircraft card",
-      zh: "预览卡片——机场 / 导航台 / 空域与飞机卡片统一",
+      en: "Nearby list performance — desktop sidebar virtualizes again",
+      zh: "邻近列表性能——桌面侧栏恢复虚拟化",
     },
     summary: {
-      en: "The airport, navaid, reporting-point, airspace, and watching-spot preview cards adopt the aircraft card's typography on both desktop and mobile — a mono identity with a secondary on the right, the shared metadata rows, and an orange Track button.",
-      zh: "机场、导航台、报告点、空域、拍机点预览卡片在桌面和移动端都沿用飞机卡片的排版——等宽标识 + 右侧次级、共享的元数据行、橙色 Track 按钮。",
+      en: "On desktop the whole sidebar used to scroll, which left the nearby traffic list unbounded and defeated its virtualizer — every airport/flight page mounted all 80–100+ rows at once. Now the brand, identity, and filters stay fixed and only the list scrolls internally (matching the mobile layout), so it windows ~20 rows. Selecting a row no longer re-renders or re-measures the whole list.",
+      zh: "桌面端此前是整条侧栏一起滚动,导致邻近列表高度不受限、虚拟化被架空——每个机场/航班页都会一次性挂载全部 80–100+ 行。现在品牌、标识、筛选固定不动,只有列表内部滚动(与移动端一致),因此只渲染约 20 行。选中某行也不再重渲染或重新测量整张列表。",
     },
     highlights: [
       {
-        en: "All preview cards share one chrome — a primary identity (mono for codes, sans for names) over quiet sublines, the same label-left / value-right metadata rows, and a single dot-separated detail line on mobile; the kicker eyebrow, 28px bold heads, and entity icons are dropped",
-        zh: "所有预览卡片共用一套外观——主标识（代号用等宽、名称用无衬线）+ 安静的副行、同样的左标签 / 右值元数据行，移动端用一行点分隔参数；去掉了 kicker eyebrow、28px 粗标题与实体图标",
+        en: "Desktop airport + flight sidebars now have a fixed header with an internally-scrolling nearby list, so the virtualizer windows ~20 rows instead of mounting the full ~87",
+        zh: "桌面机场 + 航班侧栏改为固定表头 + 列表内部滚动,虚拟化只渲染约 20 行,而不是挂载全部约 87 行",
       },
       {
-        en: "The mobile Track button is the orange accent everywhere (matching desktop); the multi-airspace selector now advances exactly one card per swipe",
-        zh: "移动端 Track 按钮统一为橙色强调色（与桌面一致）；多空域选择器现在每次滑动只前进一张",
+        en: "Selecting an aircraft/airport only re-renders the affected rows (memoized) and skips the per-click full re-measure — clicking a row is noticeably snappier",
+        zh: "选中飞机/机场只重渲染受影响的行(memo 化),并跳过每次点击的整表重测量——点击明显更跟手",
       },
     ],
   },
