@@ -131,8 +131,9 @@ export const Toolbar = forwardRef(function Toolbar(
   );
 });
 
-// Spacing-only separator between toolbar groups. Grouping comes from
-// rhythm and icon alignment rather than another visible rule.
+// A thin 1px rule between toolbar groups — theme-aware (derives from
+// --atc-text so it stays faintly visible on both the dark map-kit pill
+// and the light page-nav pill). Matches the Frosted design's divider.
 export function ToolbarSeparator({
   className,
   ...props
@@ -141,7 +142,7 @@ export function ToolbarSeparator({
     <span
       aria-hidden="true"
       className={cn(
-        "flex-none h-3.5 w-1.5 self-center",
+        "mx-1 h-5 w-px flex-none self-center rounded-full bg-[color-mix(in_oklab,var(--atc-text)_20%,transparent)]",
         className,
       )}
       {...props}

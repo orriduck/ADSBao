@@ -20,7 +20,7 @@ export default function MechanismPanel() {
             {t("mechanism.count", { count: MECHANISM_ITEMS.length })}
           </span>
         </div>
-        <p className="mt-1 max-w-[36ch] text-[10px] leading-relaxed text-atc-dim">
+        <p className="fs-desc mt-2 max-w-[40ch]">
           {t("mechanism.description")}
         </p>
       </div>
@@ -120,9 +120,6 @@ function MechanismFlow({
           key={`${label}-${index}`}
           className="mechanism-flow__item"
         >
-          <span className="mechanism-flow__index">
-            {String(index + 1).padStart(2, "0")}
-          </span>
           <span className="min-w-0 truncate">
             {label}
           </span>

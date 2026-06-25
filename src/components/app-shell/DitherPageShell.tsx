@@ -137,7 +137,7 @@ export default function DitherPageShell({
                   <span className="block break-words">{resolvedTitle}</span>
                 </h1>
                 {hasDescription ? (
-                  <p className="dither-page-description mt-2.5 text-[12px] leading-relaxed text-atc-dim">
+                  <p className="dither-page-description fs-desc mt-2.5">
                     {resolvedDescription}
                   </p>
                 ) : null}

@@ -2,7 +2,6 @@ import { useState } from "react";
 import NumberFlow from "@number-flow/react";
 import AircraftTable from "./AircraftTable";
 import SidebarIdentityHero from "./SidebarIdentityHero";
-import { MetricCard as SidebarMetricCard, MetricGrid as SidebarMetricGrid } from "@/components/ui/MetricCard";
 import SidebarShell from "./SidebarShell";
 import {
   formatFlightRouteLabel,
@@ -54,7 +53,6 @@ export default function FlightSidebar({
   const isMobileOverlay = Boolean(onClose);
   const displayCallsign =
     (aircraft?.callsign || callsign || "").trim() || "—";
-  const hex = aircraft?.icao24 ? aircraft.icao24.toUpperCase() : "";
   const typeDisplay = resolveAircraftDisplayModel(aircraft || {});
   const route = formatFlightRouteLabel(aircraft?.flightRoute) || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
@@ -88,7 +86,6 @@ export default function FlightSidebar({
         track={track}
         onGround={onGround}
         trackingActive={trackingActive}
-        hex={hex}
       />
     </>
   );
@@ -121,7 +118,7 @@ export default function FlightSidebar({
           suppressSelectedAircraftDistance
           onSelectAircraft={onSelectAircraft}
           onSelectAirport={onSelectAirport}
-          fill={fillAircraftList && !isMobileOverlay}
+          fill={fillAircraftList}
         />
       ) : null}
     </SidebarShell>
@@ -198,7 +195,6 @@ function FlightTelemetryGrid({
   track,
   onGround,
   trackingActive,
-  hex,
 }) {
   const { t } = useI18n();
   // Local "highlighted metric" state — clicking any card toggles its
@@ -225,99 +221,137 @@ function FlightTelemetryGrid({
   });
   const trackDirectionKey = resolveTrackDirectionTranslationKey(track);
 
+  const altitudeValue = onGround
+    ? t("aircraft.gnd")
+    : altitudeDisplay
+      ? (
+          <MetricNumberFlow
+            value={altitudeDisplay.value}
+            suffix={altitudeDisplay.suffix}
+          />
+        )
+      : "—";
+  const trackValue =
+    track == null
+      ? "—"
+      : activeMetric === "track"
+        ? trackDirectionKey
+          ? t(trackDirectionKey)
+          : "—"
+        : (
+            <MetricNumberFlow
+              value={Math.round(track)}
+              suffix="°"
+              suffixPosition="sup"
+            />
+          );
+  const phaseValue = onGround
+    ? t("aircraft.ground")
+    : altitude != null || trackingActive
+      ? t("aircraft.airborne")
+      : "—";
+
+  // Speed + Altitude are the primary read; vertical speed / track / phase are
+  // auxiliary. One joined glass block (matching the airport hero stats block):
+  // two large metrics on top, a small three-up footer below.
   return (
-    <SidebarMetricGrid label={t("sidebar.flightTelemetry")}>
-      <SidebarMetricCard
-        label={t("metrics.speed")}
-        value={
-          speedDisplay ? (
-            <MetricNumberFlow
-              value={speedDisplay.value}
-              suffix={speedDisplay.suffix}
-            />
-          ) : (
-            "—"
-          )
-        }
-        active={activeMetric === "speed"}
-        onClick={() => toggle("speed")}
-      />
-      <SidebarMetricCard
-        label={t("metrics.altitude")}
-        value={
-          onGround
-            ? t("aircraft.gnd")
-            : altitudeDisplay
-              ? (
-                  <MetricNumberFlow
-                    value={altitudeDisplay.value}
-                    suffix={altitudeDisplay.suffix}
-                  />
-                )
-              : "—"
-        }
-        active={activeMetric === "altitude"}
-        onClick={() => toggle("altitude")}
-      />
-      <SidebarMetricCard
-        label={t("metrics.verticalSpeed")}
-        value={
-          verticalSpeedDisplay ? (
-            <MetricNumberFlow
-              value={verticalSpeedDisplay.value}
-              format={verticalSpeedDisplay.format}
-              suffix={verticalSpeedDisplay.suffix}
-            />
-          ) : (
-            "—"
-          )
-        }
-        active={activeMetric === "vs"}
-        onClick={() => toggle("vs")}
-      />
-      <SidebarMetricCard
-        label={t("metrics.track")}
-        value={
-          track != null ? (
-            activeMetric === "track" ? (
-              trackDirectionKey ? t(trackDirectionKey) : "—"
-            ) : (
-              <MetricNumberFlow
-                value={Math.round(track)}
-                suffix="°"
-                suffixPosition="sup"
-              />
-            )
-          ) : (
-            "—"
-          )
-        }
-        active={activeMetric === "track"}
-        onClick={() => toggle("track")}
-        valueTranslate={activeMetric === "track"}
-      />
-      <SidebarMetricCard
-        label={t("metrics.icao24")}
-        value={hex || "—"}
-        active={activeMetric === "hex"}
-        onClick={() => toggle("hex")}
-        valueSize="compact"
-      />
-      <SidebarMetricCard
-        label={t("metrics.flightPhase")}
-        value={
-          onGround
-            ? t("aircraft.ground")
-            : altitude != null || trackingActive
-              ? t("aircraft.airborne")
-              : "—"
-        }
-        active={activeMetric === "status"}
-        onClick={() => toggle("status")}
-        valueSize="compact"
-        valueTranslate
-      />
-    </SidebarMetricGrid>
+    <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
+      <div className="overflow-hidden rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] shadow-[var(--atc-control-inset-shadow-subtle)]">
+        <div className="grid grid-cols-2">
+          <TelemetryPrimary
+            label={t("metrics.speed")}
+            active={activeMetric === "speed"}
+            onClick={() => toggle("speed")}
+            value={
+              speedDisplay ? (
+                <MetricNumberFlow
+                  value={speedDisplay.value}
+                  suffix={speedDisplay.suffix}
+                />
+              ) : (
+                "—"
+              )
+            }
+          />
+          <TelemetryPrimary
+            divider
+            label={t("metrics.altitude")}
+            active={activeMetric === "altitude"}
+            onClick={() => toggle("altitude")}
+            value={altitudeValue}
+          />
+        </div>
+        <div className="flex border-t border-[var(--app-frost-border)]">
+          <TelemetryAux
+            label={t("metrics.verticalSpeed")}
+            active={activeMetric === "vs"}
+            onClick={() => toggle("vs")}
+            value={
+              verticalSpeedDisplay ? (
+                <MetricNumberFlow
+                  value={verticalSpeedDisplay.value}
+                  format={verticalSpeedDisplay.format}
+                  suffix={verticalSpeedDisplay.suffix}
+                />
+              ) : (
+                "—"
+              )
+            }
+          />
+          <TelemetryAux
+            divider
+            label={t("metrics.track")}
+            active={activeMetric === "track"}
+            onClick={() => toggle("track")}
+            value={trackValue}
+          />
+          <TelemetryAux
+            divider
+            label={t("metrics.flightPhase")}
+            active={activeMetric === "status"}
+            onClick={() => toggle("status")}
+            value={phaseValue}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const TELEMETRY_ACTIVE_CLASS =
+  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)]";
+
+function TelemetryPrimary({ label, value, active, onClick, divider = false }: FlightSidebarRecord) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      data-active={active ? "true" : undefined}
+      onClick={onClick}
+      className={`px-[15px] pb-[13px] pt-[13px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] ${TELEMETRY_ACTIVE_CLASS} ${divider ? "border-l border-[var(--app-frost-border)]" : ""}`}
+    >
+      <div className="text-[12px] font-medium text-atc-dim">{label}</div>
+      <div className="mt-1.5 text-[26px] font-bold leading-none tracking-[-0.5px] tabular-nums text-atc-text">
+        {value}
+      </div>
+    </button>
+  );
+}
+
+function TelemetryAux({ label, value, active, onClick, divider = false }: FlightSidebarRecord) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      data-active={active ? "true" : undefined}
+      onClick={onClick}
+      className={`min-w-0 flex-1 px-[13px] py-[9px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_0_2px_0_var(--atc-signal-accent)] ${divider ? "border-l border-[var(--app-frost-border)]" : ""}`}
+    >
+      <div className="truncate text-[10px] text-atc-faint">{label}</div>
+      <div className="mt-[3px] truncate text-[15px] font-bold tabular-nums text-atc-text">
+        {value}
+      </div>
+    </button>
   );
 }
 

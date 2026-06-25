@@ -315,9 +315,12 @@ function SingleAircraftTrace({
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const traceStyle = getTraceStyle(theme);
-    const lineColor = accentColor || traceStyle.lineColor;
-    const glowColor = accentColor || traceStyle.glowColor;
-    const dotColor = accentColor || traceStyle.pointColor;
+    // Always the single orange signal accent — the trace no longer borrows
+    // the plane's movement color, so every selected aircraft draws the same
+    // orange trail instead of some orange / some black-or-white.
+    const lineColor = traceStyle.lineColor;
+    const glowColor = traceStyle.glowColor;
+    const dotColor = traceStyle.pointColor;
     const layers = [];
     const gradientEls = [];
     const gradientBase = `${gradientIdPart(aircraftHex)}-${Date.now().toString(36)}`;

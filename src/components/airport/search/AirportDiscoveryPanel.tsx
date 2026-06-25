@@ -104,7 +104,7 @@ function NearMeDiscoverySection() {
         id="airport-discovery-nearby"
         title={t("search.discovery.nearby.title")}
       />
-      <ul className="dither-list mt-3 flex flex-col gap-1">
+      <ul className="dither-list mt-2.5 flex flex-col gap-2.5">
         <NearbyPromptRow onRequest={handleOpenNearMe} />
       </ul>
     </section>
@@ -125,7 +125,7 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
         description={t(topic.descriptionKey)}
       />
 
-      <ul className="dither-list mt-3 flex flex-col gap-1">
+      <ul className="dither-list mt-2.5 flex flex-col gap-2.5">
         {topic.airports.map((airport) => (
           <AirportDiscoveryAirportRow
             key={airport.icao || airport.code || airport.name}
@@ -142,21 +142,12 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
 function DiscoverySectionHeader({
   id,
   title,
-  description = "",
 }) {
   return (
     <header className="min-w-0">
-      <h2
-        id={id}
-        className="truncate text-[13px] font-extrabold leading-tight text-atc-text"
-      >
+      <h2 id={id} className="fs-eyebrow block truncate">
         {title}
       </h2>
-      {description ? (
-        <p className="mt-1.5 text-[11px] leading-relaxed text-atc-dim">
-          {description}
-        </p>
-      ) : null}
     </header>
   );
 }

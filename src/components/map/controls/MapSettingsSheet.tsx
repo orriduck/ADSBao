@@ -111,14 +111,14 @@ const LAYER_CONTROLS = [
 ];
 
 const sectionTitleClassName =
-  "mb-px px-0.5 text-[7.5px] font-bold uppercase tracking-normal text-atc-muted";
+  "mb-2 px-1 text-[9px] font-bold uppercase tracking-[0.1em] text-atc-faint";
 
 const settingsListGroupClassName =
-  "map-settings-list-group grid gap-0 overflow-visible";
+  "map-settings-list-group grid gap-0.5 overflow-visible";
 
 const settingsOptionRowClassName = cn(
-  "group map-settings-option-row grid min-h-[25px] w-full grid-cols-[16px_minmax(0,1fr)_3px] items-center gap-1",
-  "rounded-[4px] px-0 py-0.5 text-left text-atc-text transition-[background,color,opacity] duration-150",
+  "group map-settings-option-row grid min-h-[40px] w-full grid-cols-[20px_minmax(0,1fr)_4px] items-center gap-2.5",
+  "rounded-[var(--atc-radius-card)] px-2.5 py-2 text-left text-atc-text transition-[background,color,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
   "data-[active=true]:bg-transparent data-[active=true]:text-atc-text",
@@ -126,8 +126,8 @@ const settingsOptionRowClassName = cn(
 );
 
 const layerToggleRowClassName = cn(
-  "group grid min-h-[25px] w-full grid-cols-[16px_minmax(0,1fr)_22px] items-center gap-1",
-  "rounded-[4px] bg-transparent px-0 py-0.5 text-left text-atc-text",
+  "group grid min-h-[40px] w-full grid-cols-[20px_minmax(0,1fr)_26px] items-center gap-2.5",
+  "rounded-[var(--atc-radius-card)] bg-transparent px-2.5 py-2 text-left text-atc-text",
   "transition-[background,opacity] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
@@ -135,7 +135,7 @@ const layerToggleRowClassName = cn(
 );
 
 const unitSegmentButtonClassName = cn(
-  "min-h-4 rounded-[3px] px-1.5 text-[7.5px] font-semibold leading-none text-atc-muted",
+  "min-h-7 rounded-[6px] px-2.5 text-[10.5px] font-semibold leading-none text-atc-muted",
   "transition-[background,color,box-shadow] duration-150",
   "hover:bg-[var(--atc-control-surface-hover)]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
@@ -158,14 +158,14 @@ function SettingsOptionRow({
       data-active={active ? "true" : "false"}
       onClick={onClick}
     >
-      <span className="relative flex size-3.5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-2.5">
+      <span className="relative flex size-5 items-center justify-center rounded-[6px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-3.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[9.5px] font-semibold leading-[1.08] text-atc-text">
+        <span className="block text-[12px] font-semibold leading-tight text-atc-text">
           {title}
         </span>
-        <span className="block text-[7.5px] leading-[1.08] text-atc-muted">
+        <span className="mt-0.5 block text-[9.5px] leading-snug text-atc-muted">
           {description}
         </span>
       </span>
@@ -225,14 +225,14 @@ function LayerToggleRow({
       disabled={disabled}
       onClick={onClick}
     >
-      <span className="relative flex size-3.5 items-center justify-center rounded-[4px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-2.5">
+      <span className="relative flex size-5 items-center justify-center rounded-[6px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-3.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[9.5px] font-semibold leading-[1.08] text-atc-text">
+        <span className="block text-[12px] font-semibold leading-tight text-atc-text">
           {label}
         </span>
-        <span className="block text-[7.5px] leading-[1.08] text-atc-muted">
+        <span className="mt-0.5 block text-[9.5px] leading-snug text-atc-muted">
           {subtitle}
         </span>
       </span>
@@ -340,16 +340,16 @@ export default function MapSettingsSheet({
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <SheetHeader className="space-y-0.5 px-4 py-1.5 pr-11 text-left">
-            <SheetTitle className="text-[14px] font-semibold leading-tight text-atc-text">
+          <SheetHeader className="space-y-1 px-5 py-3.5 pr-11 text-left">
+            <SheetTitle className="text-[17px] font-semibold leading-tight text-atc-text">
               {t("mapSettings.title")}
             </SheetTitle>
-            <SheetDescription className="text-[9.5px] leading-snug text-atc-muted">
+            <SheetDescription className="text-[11px] leading-snug text-atc-muted">
               {t("mapSettings.description")}
             </SheetDescription>
           </SheetHeader>
 
-          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-1.5">
+          <div className="map-settings-body min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-3.5">
             <section
               className="map-settings-section"
               aria-labelledby={`${id}-base-map`}
@@ -505,9 +505,9 @@ export default function MapSettingsSheet({
                   return (
                     <div
                       key={group.key}
-                      className="map-settings-unit-row grid min-h-6 grid-cols-[minmax(0,1fr)_minmax(88px,auto)] items-center gap-1 px-0 py-0"
+                      className="map-settings-unit-row grid min-h-9 grid-cols-[minmax(0,1fr)_minmax(96px,auto)] items-center gap-2 px-0 py-0.5"
                     >
-                      <span className="min-w-0 text-[9.5px] font-semibold leading-tight text-atc-text">
+                      <span className="min-w-0 text-[12px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}
                       </span>
                       <div

@@ -68,11 +68,11 @@ export function TextPillListItem({
         {pill}
       </span>
       <span className="flex min-w-0 flex-col items-start self-center">
-        <span className="block w-full min-w-0 truncate text-[11.5px] font-bold leading-tight text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+        <span className="fs-title block w-full min-w-0 truncate group-data-[active=true]:text-[var(--atc-click-fg)]">
           {title}
         </span>
         {subtitle ? (
-          <span className="mt-0.5 block w-full min-w-0 truncate text-[9.5px] font-medium leading-snug text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
+          <span className="fs-sub mt-0.5 block w-full min-w-0 truncate group-data-[active=true]:text-[var(--atc-click-muted)]">
             {subtitle}
           </span>
         ) : null}

@@ -228,10 +228,14 @@ export function FilterCardGrid({
   columns = 3,
   ...props
 }: React.ComponentProps<"div"> & { columns?: number }) {
+  // `data-cols` lets the sidebar CSS layer collect the 2-up detail filter
+  // strip into one bordered glass block (de-clutter) while leaving the 3-up
+  // inline arrangement alone.
   return (
     <div
       role="group"
       data-ui="filter-grid"
+      data-cols={String(columns)}
       className={cn(
         "grid gap-0 px-[var(--airport-sidebar-inset)] py-1.5",
         columns === 2
