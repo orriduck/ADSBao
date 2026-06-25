@@ -344,11 +344,7 @@ export default function AircraftPreviewCard({
                 <div className="flex items-stretch gap-1.5">
                   {showMobileTrackButton && (
                     <MobilePreviewTrackButton
-                      className={`flex-1 ${
-                        mobileCompact
-                          ? "border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
-                          : ""
-                      }`}
+                      className="flex-1 border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
                       onClick={handleMobileTap}
                       disabled={alreadyTracking}
                     >
@@ -357,7 +353,7 @@ export default function AircraftPreviewCard({
                   )}
                   {showMobileSpotNavigationTrigger && (
                     <MobilePreviewTrackButton
-                      className="flex-1"
+                      className="flex-1 border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
                       onClick={onOpenCandidateWatchingSpotNavigation}
                     >
                       {t("preview.goToSpot")}

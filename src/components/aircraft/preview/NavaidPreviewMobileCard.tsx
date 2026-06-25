@@ -1,15 +1,7 @@
-import NumberFlow from "@number-flow/react";
-import { RadioTower } from "lucide-react";
 import { toFiniteNumber } from "@/utils/math";
 import { formatNavaidFrequency } from "./navaidPreviewFormat";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import {
-  MobilePreviewContent,
-  MobilePreviewIdentity,
-  MobilePreviewMetaChip,
-  MobilePreviewMetaChips,
-  MobilePreviewRuleRow,
-} from "./MobilePreviewCard";
+import { MobilePreviewHeader, MobilePreviewMetaLine } from "./previewCardChrome";
 
 type NavaidPreviewMobileCardProps = {
   navaid?: Record<string, any> | null;
@@ -21,79 +13,32 @@ export default function NavaidPreviewMobileCard({
   const { t } = useI18n();
   const ident = String(navaid?.ident || "").trim().toUpperCase() || "—";
   const type = String(navaid?.type || "").trim().toUpperCase();
-  const name = String(navaid?.name || ident).trim();
+  const name = String(navaid?.name || "").trim();
   const distance = toFiniteNumber(navaid?.distanceNm);
   const frequency = formatNavaidFrequency(navaid?.frequencyKhz);
   const dmeChannel = String(navaid?.dme?.channel || "").trim();
-  const hasStats = Boolean(distance != null || frequency || dmeChannel);
+
+  const items = [
+    frequency ? <span key="freq">{frequency}</span> : null,
+    distance != null ? (
+      <span key="dist" className="inline-flex items-baseline gap-[2px]">
+        {distance.toFixed(1)}
+        <span translate="no" className="notranslate text-[9px] text-atc-faint">
+          NM
+        </span>
+      </span>
+    ) : null,
+    dmeChannel ? <span key="dme">{dmeChannel}</span> : null,
+  ].filter(Boolean);
 
   return (
-    <MobilePreviewContent>
-      <MobilePreviewIdentity
-        icon={RadioTower}
-        label={t("preview.navaidPreview")}
+    <div className="flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
+      <MobilePreviewHeader
         primary={ident}
-        secondary={type}
+        secondary={type || undefined}
+        subline={name || undefined}
       />
-      {(name || hasStats) ? (
-        <MobilePreviewRuleRow
-          left={name ? <span className="block min-w-0 truncate whitespace-nowrap">{name}</span> : null}
-          right={
-            <MobilePreviewMetaChips>
-              {frequency ? (
-                <MobilePreviewMetaChip>
-                  <Stat plain={frequency} />
-                </MobilePreviewMetaChip>
-              ) : null}
-              {distance != null ? (
-                <MobilePreviewMetaChip>
-                  <Stat
-                    value={distance}
-                    unit="NM"
-                    format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
-                  />
-                </MobilePreviewMetaChip>
-              ) : null}
-              {dmeChannel ? (
-                <MobilePreviewMetaChip>
-                  <Stat plain={dmeChannel} />
-                </MobilePreviewMetaChip>
-              ) : null}
-            </MobilePreviewMetaChips>
-          }
-        />
-      ) : null}
-    </MobilePreviewContent>
-  );
-}
-
-function Stat({
-  value = 0,
-  unit = "",
-  plain = "",
-  format,
-}: Record<string, any>) {
-  if (plain) {
-    return (
-      <span className="notranslate tabular-nums">
-        {plain}
-      </span>
-    );
-  }
-
-  return (
-    <>
-      <NumberFlow
-        value={value}
-        format={format}
-        className="tabular-nums"
-      />
-      <span
-        translate="no"
-        className="notranslate text-[8px] font-medium uppercase text-atc-faint"
-      >
-        {unit}
-      </span>
-    </>
+      <MobilePreviewMetaLine items={items} />
+    </div>
   );
 }
