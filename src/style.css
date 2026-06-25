@@ -5326,6 +5326,19 @@ body {
     padding-block: 5px;
 }
 
+/* Two-line compact row: callsign + distance on top, route + altitude below.
+   Height grows from the single-line 42px to fit both lines; the metric column
+   shares one unit-width so distance and altitude align on their number/unit
+   split. The virtualizer measures the real height per element, so this min is
+   just a floor. */
+.aircraft-table-row-two {
+    --aircraft-table-unit-width: 16px;
+    height: auto;
+    min-height: 48px;
+    padding-block: 6px;
+    row-gap: 2px;
+}
+
 .aircraft-table-list-card {
     background: transparent;
     -webkit-backdrop-filter: none;

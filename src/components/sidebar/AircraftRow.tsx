@@ -13,6 +13,9 @@ import { useCardInteraction } from "@/animations/useCardInteraction";
 import { rowPropsEqual } from "./rowPropsEqual";
 
 const ROUTE_ENTER_MS = 300;
+// Vertical-rate deadband: below this the aircraft reads as level and gets no
+// climb/descend cue, so cruise noise doesn't flicker an arrow on every row.
+const VERTICAL_CUE_FPM = 64;
 
 // Tiny self-contained <img> that hides itself if the URL 404s. Avoids
 // stamped broken-image icons in dense list rows when the logo isn't
@@ -30,6 +33,13 @@ function AirlineLogo({ src, className }: Record<string, any>) {
       onError={() => setHidden(true)}
     />
   );
+}
+
+function verticalCue(aircraft: Record<string, any>) {
+  if (aircraft?.onGround) return "";
+  const rate = Number(aircraft?.baroRate);
+  if (!Number.isFinite(rate) || Math.abs(rate) < VERTICAL_CUE_FPM) return "";
+  return rate > 0 ? "▲" : "▼";
 }
 
 function AircraftRow({
@@ -50,6 +60,7 @@ function AircraftRow({
   const { preferences: units } = useUnitPreferences();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
   const route = aircraft.flightRouteLabel || "";
+  const registration = String(aircraft.registration || "").trim();
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft.flightRoute);
   const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft.flightRoute)
     ? t("aircraft.adsbdbRouteAccuracyNotice")
@@ -66,6 +77,7 @@ function AircraftRow({
   const altitudeDisplay = rawAltitude
     ? formatAltitude(aircraft.altitude, units.altitude, { kind: "cruise" })
     : null;
+  const cue = verticalCue(aircraft);
 
   return (
     <button
@@ -75,7 +87,7 @@ function AircraftRow({
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
-      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full items-center px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_12%,transparent)] data-[selected=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)] data-[selected=true]:hover:bg-[color-mix(in_oklab,var(--atc-signal-accent)_15%,transparent)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-signal-accent)] ${
+      className={`aircraft-table-card aircraft-table-row-two aircraft-table-row-shell flex w-full items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_12%,transparent)] data-[selected=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)] data-[selected=true]:hover:bg-[color-mix(in_oklab,var(--atc-signal-accent)_15%,transparent)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-signal-accent)] ${
         selected ? "aircraft-table-row--selected aircraft-table-row--active" : ""
       }`}
       aria-pressed={selected}
@@ -87,37 +99,33 @@ function AircraftRow({
       <AircraftIdentityCell
         callsign={callsign}
         route={route}
+        registration={registration}
         airlineIconUrl={airlineIconUrl}
         routeAccuracyNotice={routeAccuracyNotice}
+        distance={
+          !distanceDisplay ? (
+            <NumberWithUnit text="-" unit="" />
+          ) : distanceDisplay.text ? (
+            <NumberWithUnit text={distanceDisplay.text} unit={distanceDisplay.unit} />
+          ) : (
+            <NumberWithUnit value={distanceDisplay.value} unit={distanceDisplay.unit} />
+          )
+        }
+        altitude={
+          aircraft.onGround ? (
+            <NumberWithUnit text={t("aircraft.gnd")} unit="" />
+          ) : !altitudeDisplay ? (
+            <NumberWithUnit text="-" unit="" />
+          ) : (
+            <NumberWithUnit
+              value={altitudeDisplay.value}
+              unit={altitudeDisplay.unit.toUpperCase()}
+              prefix={altitudeDisplay.prefix}
+            />
+          )
+        }
+        verticalCue={cue}
       />
-      <div className="aircraft-table-cell aircraft-table-cell--distance text-right font-mono text-[12px] font-semibold text-atc-text">
-        {!distanceDisplay ? (
-          <NumberWithUnit text="-" unit="" />
-        ) : distanceDisplay.text ? (
-          <NumberWithUnit
-            text={distanceDisplay.text}
-            unit={distanceDisplay.unit}
-          />
-        ) : (
-          <NumberWithUnit
-            value={distanceDisplay.value}
-            unit={distanceDisplay.unit}
-          />
-        )}
-      </div>
-      <div className="aircraft-table-cell aircraft-table-cell--altitude text-right font-mono text-[12px] font-semibold text-atc-text">
-        {aircraft.onGround ? (
-          <NumberWithUnit text={t("aircraft.gnd")} unit="" />
-        ) : !altitudeDisplay ? (
-          <NumberWithUnit text="-" unit="" />
-        ) : (
-          <NumberWithUnit
-            value={altitudeDisplay.value}
-            unit={altitudeDisplay.unit.toUpperCase()}
-            prefix={altitudeDisplay.prefix}
-          />
-        )}
-      </div>
     </button>
   );
 }
@@ -132,10 +140,12 @@ export default memo(AircraftRow, (prev, next) =>
     nestedFields: [
       "callsign",
       "icao24",
+      "registration",
       "flightRouteLabel",
       "flightRoute",
       "distanceNm",
       "altitude",
+      "baroRate",
       "onGround",
       "flight_position_source",
       "positionQuality",
@@ -143,11 +153,18 @@ export default memo(AircraftRow, (prev, next) =>
   }),
 );
 
+// The compact two-line identity block. Line 1 pairs the callsign with the
+// distance; line 2 pairs the route (or registration) with the altitude. The
+// glyph sits to the left, vertically centred across both lines.
 function AircraftIdentityCell({
   callsign,
   route,
+  registration,
   airlineIconUrl,
   routeAccuracyNotice,
+  distance,
+  altitude,
+  verticalCue: cue,
 }: Record<string, any>) {
   const hasRoute = Boolean(route);
   const hadRoute = useRef(hasRoute);
@@ -169,45 +186,58 @@ function AircraftIdentityCell({
     return undefined;
   }, [hasRoute, route]);
 
-  if (!hasRoute) {
-    return (
-      <div className="aircraft-table-identity aircraft-table-identity--solo min-w-0">
-        <span
-          className="aircraft-table-callsign airport-sidebar-display-mono notranslate truncate text-[12px] font-semibold text-atc-text"
-          translate="no"
-        >
-          {callsign}
-        </span>
-      </div>
-    );
-  }
-
   const routeTitle = routeAccuracyNotice || route;
 
   return (
     <div
-      className={`aircraft-table-identity aircraft-table-identity--routed min-w-0 ${
+      className={`aircraft-table-identity aircraft-table-identity--routed grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-2.5 ${
         routeEntering ? "aircraft-table-identity--route-entering" : ""
       }`}
     >
-      <div className="aircraft-table-primary-line flex min-w-0 items-center gap-1.5">
-        <span
-          className="aircraft-table-callsign airport-sidebar-display-mono notranslate min-w-0 truncate text-[12px] font-semibold text-atc-text"
-          translate="no"
-        >
-          {callsign}
-        </span>
-        <AirlineLogo
-          src={airlineIconUrl}
-          className="aircraft-table-airline-logo"
-        />
-        <span
-          title={routeTitle}
-          className="aircraft-table-route-badge notranslate min-w-0 truncate"
-          translate="no"
-        >
-          {route}
-        </span>
+      <span
+        className="aircraft-table-callsign airport-sidebar-display-mono notranslate min-w-0 self-center truncate text-[12.5px] text-atc-text"
+        translate="no"
+      >
+        {callsign}
+      </span>
+      <div className="aircraft-table-metric aircraft-table-metric--distance self-center text-right font-mono text-[11px] text-atc-text">
+        {distance}
+      </div>
+
+      <div className="aircraft-table-subline flex min-h-[12px] min-w-0 items-center gap-1.5 self-center">
+        {hasRoute ? (
+          <>
+            <AirlineLogo
+              src={airlineIconUrl}
+              className="aircraft-table-airline-logo"
+            />
+            <span
+              title={routeTitle}
+              className="aircraft-table-route-badge notranslate min-w-0 truncate"
+              translate="no"
+            >
+              {route}
+            </span>
+          </>
+        ) : registration && registration !== callsign ? (
+          <span
+            className="notranslate min-w-0 truncate text-[10px] tracking-[0.04em] text-atc-faint"
+            translate="no"
+          >
+            {registration}
+          </span>
+        ) : null}
+      </div>
+      <div className="aircraft-table-metric aircraft-table-metric--altitude flex items-center justify-end gap-1 self-center text-right font-mono text-[11px] text-atc-dim">
+        {cue ? (
+          <span
+            aria-hidden="true"
+            className="aircraft-table-vcue text-[8px] leading-none text-atc-faint"
+          >
+            {cue}
+          </span>
+        ) : null}
+        {altitude}
       </div>
     </div>
   );
@@ -249,7 +279,7 @@ function NumberWithUnit({ value, unit, format, text, prefix }: Record<string, an
         <span className="block min-w-0 text-right">{displayText}</span>
       </span>
       <sub
-        className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] font-semibold leading-none text-atc-dim"
+        className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] leading-none text-atc-dim"
         translate="no"
       >
         {unit}
