@@ -339,6 +339,9 @@ const zhCN = {
     airportPlace: "位置",
     trackTrace: "追踪航迹",
     trackingTrace: "正在追踪航迹",
+    track: "追踪",
+    tracking: "追踪中",
+    trackingPill: "追踪中",
     loadingTrace: "正在加载航迹…",
     loadedTrace: "航迹已加载",
     traceLoadError: "航迹不可用",
@@ -347,6 +350,7 @@ const zhCN = {
     goToSpot: "前往",
     planeHunter: "开始拍机",
     creditPrefix: "图源@",
+    photoCreditPrefix: "照片 @ ",
   },
   planeHunter: {
     title: "拍机工作室",

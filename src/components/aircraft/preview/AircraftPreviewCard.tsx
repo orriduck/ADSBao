@@ -203,12 +203,11 @@ export default function AircraftPreviewCard({
   // outside the card so closing it doesn't reuse the preview reveal.
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const aircraftCallsign = (aircraft?.callsign || "").trim().toUpperCase();
-  const showMobileFeedbackTrigger =
-    showMobilePreview &&
-    !isAirport &&
-    !isNavaid &&
+  const feedbackAvailable =
+    isAircraftPreview &&
     Boolean(aircraftCallsign) &&
     typeof onApplyTemporaryRoute === "function";
+  const showMobileFeedbackTrigger = showMobilePreview && feedbackAvailable;
   const planeHunterDeviceAllowed =
     shouldEnablePlaneHunterForClientDeviceProfile(clientDeviceProfile);
   const showPlaneHunterTrigger =
@@ -297,12 +296,14 @@ export default function AircraftPreviewCard({
           ) : (
             <AircraftPreviewMetadataCard
               aircraft={aircraft}
-              photo={photo}
-              airportProfile={airportProfile}
-              onApplyTemporaryRoute={onApplyTemporaryRoute}
               onOpenPlaneHunter={
                 showPlaneHunterTrigger
                   ? () => setPlaneHunterOpen(true)
+                  : undefined
+              }
+              onSuggestCorrection={
+                feedbackAvailable
+                  ? () => setFeedbackModalOpen(true)
                   : undefined
               }
               traceStatusVisible={traceStatusVisible}
@@ -422,7 +423,7 @@ export default function AircraftPreviewCard({
           )}
         </MobilePreviewCard>
       )}
-      {showMobileFeedbackTrigger && (
+      {feedbackAvailable && (
         <RouteFeedbackModal
           aircraft={aircraft}
           airportProfile={airportProfile}
