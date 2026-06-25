@@ -19,7 +19,7 @@ export default function MechanismPanel() {
 
   return (
     <div className="flex flex-none flex-col pb-4">
-      <ol className="flex flex-col">
+      <ol className="flex flex-col gap-1">
         {MECHANISM_ITEMS.map((item, index) => {
           const expanded = item.id === expandedId;
           const panelId = `mechanism-${item.id}`;
