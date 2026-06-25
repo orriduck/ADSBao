@@ -486,7 +486,7 @@ function AirportExplorerContent({
     collapseEnabled: !isMobile,
     onCollapse: collapseSidebar,
     onExpand: expandSidebar,
-    fillAircraftList: false,
+    fillAircraftList: true,
   };
 
   return (

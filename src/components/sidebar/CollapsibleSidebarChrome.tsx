@@ -236,10 +236,14 @@ export function SidebarBrandDock({
     <div
       className={cn(
         "sidebar-brand-dock sticky top-0 z-[calc(var(--z-index-sticky)+1)] flex items-center justify-between gap-2 px-[var(--airport-sidebar-inset)] transition-[padding,background,box-shadow] duration-200 ease-out",
-        "bg-[color-mix(in_oklab,var(--app-frost-tint)_86%,transparent)] [backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
-        "shadow-[0_1px_0_color-mix(in_oklab,var(--atc-line)_56%,transparent)]",
+        // At rest the brand row floats transparently on the frosted sidebar
+        // (no separate opaque strip / hard divider). Only once content
+        // scrolls under it does a faint frost + hairline fade in to mask it.
+        compact
+          ? "bg-[color-mix(in_oklab,var(--app-frost-tint)_52%,transparent)] [backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)] shadow-[0_1px_0_color-mix(in_oklab,var(--app-frost-border)_70%,transparent)]"
+          : "bg-transparent shadow-none",
         compact ? "pb-2 pt-3" : "pb-3 pt-5",
-        "[[data-mobile-overlay=true]_&]:pt-[calc(24px+env(safe-area-inset-top))]",
+        "[[data-mobile-overlay=true]_&]:pb-1 [[data-mobile-overlay=true]_&]:pt-[calc(12px+env(safe-area-inset-top))]",
         className,
       )}
     >

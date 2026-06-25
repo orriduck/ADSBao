@@ -84,7 +84,7 @@ export default function AboutPanel() {
         </div>
       </div>
 
-      <ol className="dither-list dither-list-flow mx-5 flex flex-col gap-0.5">
+      <ol className="dither-list dither-list-flow mx-5 flex flex-col gap-2.5">
         {ABOUT_DATA_SOURCES.map((source) => (
           <li key={source.host || source.title || source.glyph}>
             <TextPillListItem

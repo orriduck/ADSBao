@@ -88,6 +88,10 @@ export default function SidebarShell({
         ? "airport-sidebar-panel--mobile"
         : "flight-sidebar-panel--mobile"
       : "",
+    // On the mobile overlay the panel becomes a fixed-height flex column:
+    // the brand/identity/filters stay put and ONLY the list scrolls (so it
+    // can virtualize instead of rendering 100+ rows at once).
+    isMobileOverlay ? "min-h-0 overflow-hidden" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -173,9 +177,21 @@ export default function SidebarShell({
             </div>
           ) : null}
 
-          <div className="sidebar-shell-body flex flex-none flex-col overflow-visible">
+          <div
+            className={
+              isMobileOverlay
+                ? "sidebar-shell-body flex min-h-0 flex-1 flex-col overflow-visible"
+                : "sidebar-shell-body flex flex-none flex-col overflow-visible"
+            }
+          >
             {header ? <div className="flex-none">{header}</div> : null}
-            <div className="sidebar-shell-main flex-none overflow-visible">
+            <div
+              className={
+                isMobileOverlay
+                  ? "sidebar-shell-main flex min-h-0 flex-1 flex-col overflow-visible"
+                  : "sidebar-shell-main flex-none overflow-visible"
+              }
+            >
               {children}
             </div>
           </div>

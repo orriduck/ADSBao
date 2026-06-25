@@ -153,7 +153,7 @@ export default function AirportSidebar({
         movementFilter={movementFilter}
         onSelectAircraft={onSelectAircraft}
         onSelectAirport={onSelectAirport}
-        fill={fillAircraftList && !isMobileOverlay}
+        fill={fillAircraftList}
       />
     );
 
@@ -178,7 +178,12 @@ export default function AirportSidebar({
         key={`${activeView}:${movementFilter}`}
         className={
           isMobileOverlay
-            ? "app-panel-transition"
+            ? // The traffic list owns its own (virtualized) scroll, so the
+              // overlay content area clips; every other view (weather / ATC /
+              // spotting) scrolls normally so its content is never cut off.
+              `airport-sidebar-content app-panel-transition flex min-h-0 flex-1 flex-col ${
+                activeView === "traffic" ? "overflow-hidden" : "overflow-y-auto"
+              }`
             : "airport-sidebar-content app-panel-transition flex min-h-0 flex-col"
         }
       >
@@ -214,6 +219,11 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           <span>Search {normalizedIcao} on LiveATC</span>
           <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2.3} />
         </a>
+      ) : null}
+      {frequencies.length === 0 ? (
+        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[11px] font-medium leading-snug text-atc-dim">
+          No published frequencies for this airport.
+        </p>
       ) : null}
       <div className="app-list-motion grid gap-1">
         {frequencies.map((frequency, index) => {
@@ -267,6 +277,11 @@ function SpottingPanel({
           {t(countKey, { count: spots.length })}
         </span>
       </div>
+      {spots.length === 0 ? (
+        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[11px] font-medium leading-snug text-atc-dim">
+          {t("watcherMode.empty")}
+        </p>
+      ) : null}
       <div className="app-list-motion grid gap-1">
         {spots.map((spot) => {
           const active = Boolean(selectedSpotId && selectedSpotId === spot.id);

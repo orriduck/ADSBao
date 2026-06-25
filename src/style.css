@@ -870,9 +870,9 @@
     --airspace-border: var(--airspace-controlled-stroke);
     --airspace-label-text: var(--airspace-boundary-label);
     --airspace-altitude-filtered-state: var(--airspace-info-fill);
-    --aviation-trace-line: #1a1a18;
-    --aviation-trace-glow: #55534e;
-    --aviation-trace-point: #1a1a18;
+    --aviation-trace-line: var(--atc-signal-accent);
+    --aviation-trace-glow: color-mix(in oklab, var(--atc-signal-accent) 58%, white);
+    --aviation-trace-point: var(--atc-signal-accent);
     --aviation-trace-stale-line: color-mix(
         in oklab,
         var(--aviation-trace-line) 54%,
@@ -1351,9 +1351,9 @@
     --airspace-border: var(--airspace-controlled-stroke);
     --airspace-label-text: var(--airspace-boundary-label);
     --airspace-altitude-filtered-state: var(--airspace-info-fill);
-    --aviation-trace-line: var(--primary-bright);
-    --aviation-trace-glow: var(--primary-bright);
-    --aviation-trace-point: var(--primary-bright);
+    --aviation-trace-line: var(--atc-signal-accent);
+    --aviation-trace-glow: color-mix(in oklab, var(--atc-signal-accent) 64%, white);
+    --aviation-trace-point: var(--atc-signal-accent);
     --aviation-trace-stale-line: color-mix(
         in oklab,
         var(--aviation-trace-line) 54%,
@@ -2997,11 +2997,73 @@ body:has(.dither-page-shell) {
     --app-sidebar-width: 20.75rem;
     /* Raycast density pass: keep ADSBao's two glass materials, but tighten
        the shape language into crisp command-panel chrome. */
-    --atc-radius-shell: 12px;
-    --atc-radius-panel: 8px;
-    --atc-radius-card: 6px;
+    /* Frosted geometry — soft, capsule-driven. The redesign uses 13–18px
+       on inner cards and 16–22px on panels/shell; bumped from the prior
+       6/8/12 so every floating surface reads as soft frosted glass. */
+    --atc-radius-shell: 16px;
+    --atc-radius-panel: 16px;
+    --atc-radius-card: 13px;
     --atc-radius-control: 999px;
     --atc-radius-pill: 999px;
+    /* Orange signal accent for the Frosted system (selection bars,
+       tracked-flight track + button, live-feed dot, active segments).
+       Theme-split: this is the LIGHT-theme value (a warm vivid orange on
+       white frost → reads as a light-orange wash at low alpha); the dark
+       theme overrides it to a brighter orange below. -soft/-strong derive
+       from the base so only the base flips per theme. */
+    --atc-signal-accent: oklch(0.66 0.16 50);
+    --atc-signal-accent-soft: color-mix(in oklab, var(--atc-signal-accent) 14%, transparent);
+    --atc-signal-accent-strong: color-mix(in oklab, var(--atc-signal-accent) 82%, black 4%);
+
+    /* ── First-screen sidebar type scale ───────────────────────────────
+       One typographic system shared by Home, About, Changelog and
+       Mechanism. Sizes / weights / tracking are theme-independent; the
+       colors resolve through --atc-text / -dim / -faint, which already
+       carry a light set (:root) and a dark set (dark-theme overrides) —
+       so this is "亮暗各一套" without duplicating the scale. Consume via
+       the .fs-* utility classes; tune here, never at the call site.
+
+       Roles:
+         eyebrow → section / group label (tracked, quiet)
+         title   → row / item heading (the prominent line)
+         sub     → row subtitle / signal
+         rail    → left-rail code or index (ICAO, 01, METAR)
+         body    → expanded detail copy
+         value   → meta value (version, stack item)
+         desc    → page-level description under the H1                    */
+    --fs-eyebrow-font: var(--font-display);
+    --fs-eyebrow-size: 11px;
+    --fs-eyebrow-weight: 800;
+    --fs-eyebrow-tracking: 0.12em;
+    --fs-eyebrow-color: var(--atc-faint);
+
+    --fs-title-font: var(--font-sans);
+    --fs-title-size: 14px;
+    --fs-title-weight: 800;
+    --fs-title-leading: 1.2;
+    --fs-title-color: var(--atc-text);
+
+    --fs-sub-size: 11.5px;
+    --fs-sub-weight: 600;
+    --fs-sub-leading: 1.25;
+    --fs-sub-color: var(--atc-dim);
+
+    --fs-rail-font: var(--font-mono);
+    --fs-rail-size: 11px;
+    --fs-rail-weight: 850;
+    --fs-rail-color: var(--atc-faint);
+
+    --fs-body-size: 11px;
+    --fs-body-leading: 1.5;
+    --fs-body-color: var(--atc-dim);
+
+    --fs-value-size: 13px;
+    --fs-value-weight: 850;
+    --fs-value-color: var(--atc-text);
+
+    --fs-desc-size: 12px;
+    --fs-desc-leading: 1.5;
+    --fs-desc-color: var(--atc-dim);
     /* Frosted-material blur. The single source of truth for every
        floating surface that sits over the map (toolbars, preview cards,
        dropdowns, sheets, desktop sidebar). Strong blur diffuses the map
@@ -3213,6 +3275,9 @@ body:has(.dither-page-shell) {
 }
 
 :root[data-theme="dark"] {
+    /* Brighter orange so the accent pops on the dark-gray canvas; the
+       low-alpha wash then reads as a deep-orange selected background. */
+    --atc-signal-accent: oklch(0.74 0.15 55);
     /* Faint cool-blue edge so frosted panels read as soft atmospheric
        material on the navy canvas rather than hard-bordered cards. */
     --app-frost-border: color-mix(in oklab, #97b6d3 15%, transparent);
@@ -3319,7 +3384,7 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-.dither-page-panel:not(.plane-hunter-panel) {
+:root[data-theme="dark"] .dither-page-panel:not(.plane-hunter-panel) {
     --atc-bg: oklch(0.17 0.003 100);
     --atc-card: color-mix(in oklab, oklch(0.235 0.003 100) 76%, transparent);
     --atc-elev: color-mix(in oklab, oklch(0.31 0.003 100) 48%, transparent);
@@ -3403,18 +3468,19 @@ body {
     );
 }
 
-.dither-page-panel:not(.plane-hunter-panel),
-:root[data-theme="dark"] .dither-page-panel:not(.plane-hunter-panel) {
+.dither-page-panel:not(.plane-hunter-panel) {
+    /* Theme-aware frosted panel: --app-frost-tint is near-white in light
+       theme and deep-gray in dark, so the static pages follow the theme. */
     background:
         radial-gradient(
             120% 70% at 16% 0%,
-            color-mix(in oklab, oklch(0.72 0.003 100) 13%, transparent),
+            color-mix(in oklab, white 18%, transparent),
             transparent 48%
         ),
         linear-gradient(
             180deg,
-            color-mix(in oklab, oklch(0.215 0.003 100) 88%, transparent),
-            color-mix(in oklab, oklch(0.145 0.003 100) 90%, transparent)
+            color-mix(in oklab, var(--app-frost-tint) 82%, transparent),
+            color-mix(in oklab, var(--app-frost-tint) 88%, transparent)
         );
     color: var(--atc-text);
 }
@@ -3523,6 +3589,12 @@ body {
     font-size: 16px;
 }
 
+/* Home discovery search sits two sizes down from the global 16px (which
+   stays elsewhere to guard against iOS focus-zoom on in-app search). */
+.search-screen .search-input input {
+    font-size: 13px;
+}
+
 .glass-panel {
     border-radius: var(--atc-radius-card);
     box-shadow: var(--app-card-shadow);
@@ -3565,11 +3637,40 @@ body {
     backdrop-filter: var(--app-frost-strong);
 }
 
+/* Light theme: the chrome follows the theme — a near-white frosted-glass
+   panel over the map (--app-frost-tint is near-white in light), inheriting
+   the base light tokens (milky surfaces, dark-smoke selected capsule). The
+   dark-theme block below overrides to deep-gray glass. */
 .airport-map-kit .airport-desktop-sidebar .sidebar-shell,
 .airport-map-kit .airport-desktop-sidebar .airport-sidebar-panel,
 .airport-map-kit .airport-desktop-sidebar .flight-sidebar-panel,
 .airport-map-kit .airport-sidebar-panel--mobile,
 .airport-map-kit .flight-sidebar-panel--mobile {
+    background:
+        radial-gradient(
+            120% 70% at 18% 0%,
+            color-mix(in oklab, white 26%, transparent),
+            transparent 46%
+        ),
+        linear-gradient(
+            180deg,
+            color-mix(in oklab, var(--app-frost-tint) 58%, transparent),
+            color-mix(in oklab, var(--app-frost-tint) 66%, transparent)
+        );
+    -webkit-backdrop-filter: saturate(1.5) blur(26px);
+    backdrop-filter: saturate(1.5) blur(26px);
+    border-right: 1px solid var(--app-frost-border);
+    box-shadow:
+        inset -1px 0 0 color-mix(in oklab, white 40%, transparent),
+        24px 0 60px -36px color-mix(in oklab, var(--atc-text) 20%, transparent);
+}
+
+/* Dark theme: deep-gray frosted glass with the bright-on-dark capsule. */
+:root[data-theme="dark"] .airport-map-kit .airport-desktop-sidebar .sidebar-shell,
+:root[data-theme="dark"] .airport-map-kit .airport-desktop-sidebar .airport-sidebar-panel,
+:root[data-theme="dark"] .airport-map-kit .airport-desktop-sidebar .flight-sidebar-panel,
+:root[data-theme="dark"] .airport-map-kit .airport-sidebar-panel--mobile,
+:root[data-theme="dark"] .airport-map-kit .flight-sidebar-panel--mobile {
     --atc-bg: oklch(0.17 0.003 100);
     --atc-card: color-mix(in oklab, oklch(0.235 0.003 100) 76%, transparent);
     --atc-elev: color-mix(in oklab, oklch(0.31 0.003 100) 48%, transparent);
@@ -3612,25 +3713,31 @@ body {
     --atc-control-inset-shadow:
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 12%, transparent),
         inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 7%, transparent);
+    /* Genuinely translucent frosted glass — the live map diffuses through
+       the panel (Frosted redesign), so the surface drops to ~0.56 alpha
+       and leans on a strong saturated blur for legibility instead of
+       opacity. An internal sheen catches light along the top-left. */
     background:
         radial-gradient(
             120% 70% at 18% 0%,
-            color-mix(in oklab, oklch(0.72 0.003 100) 16%, transparent),
+            color-mix(in oklab, oklch(0.72 0.003 100) 14%, transparent),
             transparent 46%
         ),
         linear-gradient(
             180deg,
-            color-mix(in oklab, oklch(0.215 0.003 100) 88%, transparent),
-            color-mix(in oklab, oklch(0.145 0.003 100) 90%, transparent)
+            color-mix(in oklab, oklch(0.215 0.003 100) 56%, transparent),
+            color-mix(in oklab, oklch(0.135 0.003 100) 62%, transparent)
         );
-    border-right: 1px solid color-mix(in oklab, var(--atc-text) 10%, transparent);
+    -webkit-backdrop-filter: saturate(1.7) blur(26px);
+    backdrop-filter: saturate(1.7) blur(26px);
+    border-right: 1px solid color-mix(in oklab, var(--atc-text) 9%, transparent);
     box-shadow:
         inset -1px 0 0 color-mix(in oklab, var(--atc-text) 6%, transparent),
-        0 18px 42px color-mix(in oklab, oklch(0.08 0.003 100) 32%, transparent);
+        24px 0 60px -36px rgba(0, 0, 0, 0.6);
 }
 
-.airport-map-kit [data-ui="toolbar"],
-.page-nav-dock [data-ui="toolbar"] {
+:root[data-theme="dark"] .airport-map-kit [data-ui="toolbar"],
+:root[data-theme="dark"] .page-nav-dock [data-ui="toolbar"] {
     --atc-bg: oklch(0.17 0.003 100);
     --atc-text: oklch(0.94 0.003 100);
     --atc-dim: color-mix(in oklab, var(--atc-text) 68%, transparent);
@@ -6619,17 +6726,17 @@ body {
     margin-top: 14px;
     padding: 11px 14px;
     border: 1px solid
-        color-mix(in oklab, var(--primary-bright) 88%, var(--primary-ink));
+        color-mix(in oklab, var(--atc-signal-accent) 88%, black 8%);
     border-radius: var(--atc-radius-control);
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--primary-bright) 96%, white 4%),
-        var(--primary-bright)
+        color-mix(in oklab, var(--atc-signal-accent) 92%, white 8%),
+        var(--atc-signal-accent)
     );
     box-shadow:
-        0 8px 18px color-mix(in oklab, var(--primary-bright) 22%, transparent),
-        inset 0 -2px 0 color-mix(in oklab, var(--primary-ink) 26%, transparent);
-    color: var(--primary-ink);
+        0 8px 18px color-mix(in oklab, var(--atc-signal-accent) 34%, transparent),
+        inset 0 -2px 0 color-mix(in oklab, black 18%, transparent);
+    color: #fff;
     font-family: var(--font-display);
     font-size: 13px;
     font-weight: 800;
@@ -6651,12 +6758,12 @@ body {
 }
 
 .aircraft-preview-card__track-btn:visited {
-    color: var(--primary-ink);
+    color: #fff;
 }
 
 :root[data-theme="dark"] .aircraft-preview-card__track-btn,
 :root[data-theme="dark"] .aircraft-preview-card__track-btn:visited {
-    color: var(--primary-ink);
+    color: #fff;
 }
 
 .aircraft-preview-card__track-btn:hover {
@@ -7121,6 +7228,65 @@ body {
     color: var(--atc-text);
 }
 
+/* First-screen type-scale utilities — every Home / About / Changelog /
+   Mechanism text role funnels through one of these so the four pages stay
+   in lockstep. Tune the --fs-* tokens, not these rules. */
+.fs-eyebrow {
+    color: var(--fs-eyebrow-color);
+    font-family: var(--fs-eyebrow-font);
+    font-size: var(--fs-eyebrow-size);
+    font-weight: var(--fs-eyebrow-weight);
+    letter-spacing: var(--fs-eyebrow-tracking);
+    line-height: 1;
+    text-transform: uppercase;
+}
+.fs-title {
+    color: var(--fs-title-color);
+    font-family: var(--fs-title-font);
+    font-size: var(--fs-title-size);
+    font-weight: var(--fs-title-weight);
+    line-height: var(--fs-title-leading);
+}
+.fs-sub {
+    color: var(--fs-sub-color);
+    font-size: var(--fs-sub-size);
+    font-weight: var(--fs-sub-weight);
+    line-height: var(--fs-sub-leading);
+}
+.fs-rail {
+    color: var(--fs-rail-color);
+    font-family: var(--fs-rail-font);
+    font-size: var(--fs-rail-size);
+    font-weight: var(--fs-rail-weight);
+    line-height: 1;
+}
+.fs-body {
+    color: var(--fs-body-color);
+    font-size: var(--fs-body-size);
+    line-height: var(--fs-body-leading);
+}
+.fs-value {
+    color: var(--fs-value-color);
+    font-size: var(--fs-value-size);
+    font-weight: var(--fs-value-weight);
+}
+.fs-desc {
+    color: var(--fs-desc-color);
+    font-size: var(--fs-desc-size);
+    line-height: var(--fs-desc-leading);
+}
+
+/* First-screen section-count headers adopt the eyebrow token too, so the
+   "Releases / Data sources / 系统剖面" labels match every group label.
+   Scoped to the dither pages so the airport sidebar kicker is untouched. */
+.dither-page-panel .atc-kicker {
+    font-family: var(--fs-eyebrow-font);
+    font-size: var(--fs-eyebrow-size);
+    font-weight: var(--fs-eyebrow-weight);
+    letter-spacing: var(--fs-eyebrow-tracking);
+    text-transform: uppercase;
+}
+
 .atc-section-head {
     align-items: baseline;
     border-bottom: 0;
@@ -7267,13 +7433,15 @@ body {
 .aircraft-table-row--selected.aircraft-table-row--active,
 .aircraft-table-pin .aircraft-table-row--selected,
 .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active {
-    background: var(--atc-glass-active-bg);
+    /* Frosted selected row: a faint blue wash + a 2px blue rail along the
+       left edge, not the smoke capsule. Text keeps its resting color. */
+    background: color-mix(in oklab, var(--atc-signal-accent) 12%, transparent);
     border-color: transparent;
-    border-radius: var(--atc-radius-card);
-    box-shadow: var(--atc-glass-rim-shadow);
-    color: var(--atc-click-fg);
-    -webkit-backdrop-filter: var(--atc-glass-active-frost);
-    backdrop-filter: var(--atc-glass-active-frost);
+    border-radius: 0;
+    box-shadow: inset 2px 0 0 var(--atc-signal-accent);
+    color: inherit;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 .aircraft-table-row--selected::before,
@@ -7287,13 +7455,7 @@ body {
 .aircraft-table-row--selected.aircraft-table-row--active::after,
 .aircraft-table-pin .aircraft-table-row--selected::after,
 .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active::after {
-    background: var(--atc-glass-sheen);
-    content: "";
-    inset: 0;
-    opacity: 0.88;
-    pointer-events: none;
-    position: absolute;
-    z-index: 0;
+    display: none;
 }
 
 .aircraft-table-row--selected > *,
@@ -7308,7 +7470,7 @@ body {
 .aircraft-table-row--selected.aircraft-table-row--active .text-atc-text,
 .aircraft-table-pin .aircraft-table-row--selected .text-atc-text,
 .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .text-atc-text {
-    color: var(--atc-click-fg);
+    color: var(--atc-text);
 }
 
 .aircraft-table-row--selected .text-atc-dim,
@@ -7323,16 +7485,16 @@ body {
 .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .text-atc-dim,
 .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .text-atc-faint,
 .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .aircraft-table-route-cycle {
-    color: var(--atc-click-muted);
+    color: var(--atc-dim);
 }
 
 .aircraft-table-row--selected .aircraft-table-row-glyph,
 .aircraft-table-row--selected.aircraft-table-row--active .aircraft-table-row-glyph,
 .aircraft-table-pin .aircraft-table-row--selected .aircraft-table-row-glyph,
 .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active .aircraft-table-row-glyph {
-    background: var(--atc-click-fg);
-    border-color: color-mix(in oklab, var(--atc-click-fg) 72%, transparent);
-    color: var(--atc-click-bg);
+    background: transparent;
+    border-color: transparent;
+    color: var(--atc-signal-accent);
 }
 
 @media (max-width: 767px) {
@@ -7453,10 +7615,14 @@ body {
    content axis so the list reads by alignment rather than chips/cards. */
 .changelog-entry {
     border-radius: 0;
-    column-gap: 5px;
+    column-gap: 8px;
     display: grid;
-    grid-template-columns: 46px minmax(0, 1fr);
-    padding: 5px 0;
+    grid-template-columns: 58px minmax(0, 1fr);
+    padding: 11px 0;
+}
+
+.changelog-entry + .changelog-entry {
+    border-top: 1px solid color-mix(in oklab, var(--app-frost-border) 70%, transparent);
 }
 
 .changelog-entry__rail {
@@ -7477,9 +7643,10 @@ body {
 }
 
 .changelog-entry__version {
-    color: var(--atc-dim);
-    font-size: 7.5px;
-    font-weight: 850;
+    color: var(--fs-rail-color);
+    font-family: var(--fs-rail-font);
+    font-size: var(--fs-rail-size);
+    font-weight: var(--fs-rail-weight);
 }
 
 .changelog-entry[data-current="true"] .changelog-entry__version {
@@ -7497,42 +7664,43 @@ body {
 }
 
 .changelog-entry__title {
-    color: var(--atc-text);
-    font-size: 10.5px;
-    font-weight: 700;
-    line-height: 1.2;
+    color: var(--fs-title-color);
+    font-family: var(--fs-title-font);
+    font-size: var(--fs-title-size);
+    font-weight: var(--fs-title-weight);
+    line-height: var(--fs-title-leading);
     margin: 0;
 }
 
 .changelog-entry__summary {
-    color: var(--atc-dim);
-    font-size: 9px;
-    line-height: 1.3;
-    margin-top: 3px;
+    color: var(--fs-sub-color);
+    font-size: var(--fs-sub-size);
+    line-height: var(--fs-sub-leading);
+    margin-top: 4px;
 }
 
 .changelog-entry__highlights {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    margin-top: 5px;
+    gap: 4px;
+    margin-top: 8px;
     padding: 0;
 }
 
 .changelog-entry__highlights li {
     align-items: baseline;
-    color: var(--atc-dim);
+    color: var(--fs-body-color);
     display: grid;
-    font-size: 8.5px;
-    gap: 3px;
-    grid-template-columns: 12px minmax(0, 1fr);
-    line-height: 1.34;
+    font-size: var(--fs-body-size);
+    gap: 5px;
+    grid-template-columns: 14px minmax(0, 1fr);
+    line-height: var(--fs-body-leading);
 }
 
 .changelog-entry__highlight-index {
     color: var(--atc-faint);
     font-family: var(--font-mono);
-    font-size: 6.5px;
+    font-size: 9px;
     font-weight: 800;
     letter-spacing: 0;
     line-height: 1;
@@ -7557,8 +7725,17 @@ body {
 }
 
 .dither-content-stack {
-    gap: 7px;
+    gap: 10px;
     padding: 0 var(--airport-sidebar-inset, 24px) 18px;
+}
+
+/* Each discovery section (after the first) is delimited by a hairline rule so
+   the eyebrow label unmistakably reads as a NEW group header, not another
+   gray content line. */
+.dither-content-stack > section + section {
+    border-top: 1px solid color-mix(in oklab, var(--app-frost-border) 85%, transparent);
+    margin-top: 4px;
+    padding-top: 14px;
 }
 
 .dither-list {
@@ -7604,10 +7781,10 @@ body {
 }
 
 .dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link {
-    column-gap: 4px;
-    grid-template-columns: 46px minmax(0, 1fr) 12px;
+    column-gap: 8px;
+    grid-template-columns: 50px minmax(0, 1fr) 16px;
     margin-inline: 0;
-    padding: 3px 0;
+    padding: 11px 0;
     width: 100%;
 }
 
@@ -7615,41 +7792,26 @@ body {
     background: transparent;
     border-radius: 0;
     align-self: start;
-    color: var(--atc-dim);
-    font-family: var(--font-mono);
-    font-size: 7.5px;
-    font-weight: 850;
+    color: var(--fs-rail-color);
+    font-family: var(--fs-rail-font);
+    font-size: var(--fs-rail-size);
+    font-weight: var(--fs-rail-weight);
     height: auto;
     justify-content: flex-start;
-    margin-top: 4px;
+    margin-top: 1px;
     padding: 0;
-    width: 46px;
+    width: 50px;
 }
 
 .dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link > span:nth-child(2) {
-    gap: 0;
-}
-
-.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link
-    > span:nth-child(2)
-    > span:first-child {
-    font-size: 10.5px;
-    line-height: 1.18;
-}
-
-.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link
-    > span:nth-child(2)
-    > span:nth-child(2) {
-    font-size: 8.5px;
-    line-height: 1.25;
-    margin-top: 1px;
+    gap: 2px;
 }
 
 .dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link > span:last-child {
     align-self: start;
-    margin-top: 5px;
+    margin-top: 3px;
     opacity: 0.55;
-    width: 12px;
+    width: 16px;
 }
 
 .dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link svg {
@@ -7675,10 +7837,10 @@ body {
     color: var(--atc-faint);
 }
 
-.dither-page-panel .sidebar-brand-dock {
-    background: color-mix(in oklab, var(--atc-bg) 72%, transparent) !important;
-    box-shadow: 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent) !important;
-}
+/* Brand dock visuals are owned by the SidebarBrandDock component
+   (transparent at rest, frost + hairline only once content scrolls under
+   it). The previous forced solid fill + bottom rule made the logo read as a
+   divided strip split from the page content — removed. */
 
 .dither-page-panel .brand-logo__mark {
     --brand-logo-disc: color-mix(in oklab, var(--atc-text) 12%, transparent);
@@ -7686,7 +7848,7 @@ body {
     --brand-logo-rim: color-mix(in oklab, var(--atc-text) 18%, transparent);
 }
 
-.map-settings-sheet {
+:root[data-theme="dark"] .map-settings-sheet {
     --atc-bg: oklch(0.17 0.003 100);
     --atc-card: color-mix(in oklab, oklch(0.235 0.003 100) 76%, transparent);
     --atc-elev: color-mix(in oklab, oklch(0.31 0.003 100) 48%, transparent);
@@ -7809,45 +7971,45 @@ body {
 }
 
 .about-meta-row {
-    column-gap: var(--about-meta-gap);
     display: grid;
-    grid-template-columns: var(--about-meta-rail) minmax(0, 1fr);
+    gap: 5px;
     min-width: 0;
-    padding-block: 5px;
+    padding-block: 7px;
 }
 
 .about-meta-label {
-    color: var(--atc-faint);
-    font-family: var(--font-mono);
-    font-size: 7px;
-    font-weight: 850;
-    letter-spacing: 0;
+    color: var(--fs-eyebrow-color);
+    font-family: var(--fs-eyebrow-font);
+    font-size: var(--fs-eyebrow-size);
+    font-weight: var(--fs-eyebrow-weight);
+    letter-spacing: var(--fs-eyebrow-tracking);
     line-height: 1.15;
     margin: 0;
     min-width: 0;
+    text-transform: uppercase;
 }
 
 .about-meta-value {
-    color: var(--atc-text);
-    font-size: 12px;
-    font-weight: 850;
-    line-height: 1;
+    color: var(--fs-value-color);
+    font-size: var(--fs-value-size);
+    font-weight: var(--fs-value-weight);
+    line-height: 1.1;
     min-width: 0;
 }
 
 .about-meta-sections {
     display: grid;
-    gap: 3px;
-    margin-top: 4px;
+    gap: 7px;
+    margin-top: 7px;
 }
 
 .about-meta-list {
     color: var(--atc-text);
     display: grid;
-    font-size: 10px;
+    font-size: var(--fs-sub-size);
     font-weight: 650;
-    gap: 3px;
-    line-height: 1.25;
+    gap: 4px;
+    line-height: 1.3;
     list-style: none;
     margin: 0;
     min-width: 0;
@@ -7864,16 +8026,27 @@ body {
 }
 
 .mechanism-group-label {
+    border-top: 1px solid color-mix(in oklab, var(--app-frost-border) 85%, transparent);
+    margin-top: 14px;
+    padding-bottom: 8px;
     padding-left: calc(var(--mechanism-rail) + var(--mechanism-gap));
+    padding-top: 20px;
+}
+
+.mechanism-group-label:first-child {
+    border-top: 0;
+    margin-top: 0;
+    padding-top: 2px;
 }
 
 .mechanism-group-label span {
-    color: var(--atc-faint);
-    font-family: var(--font-mono);
-    font-size: 8px;
-    font-weight: 850;
-    letter-spacing: 0;
+    color: var(--fs-eyebrow-color);
+    font-family: var(--fs-eyebrow-font);
+    font-size: var(--fs-eyebrow-size);
+    font-weight: var(--fs-eyebrow-weight);
+    letter-spacing: var(--fs-eyebrow-tracking);
     line-height: 1;
+    text-transform: uppercase;
 }
 
 .mechanism-row {
@@ -7884,7 +8057,7 @@ body {
     grid-template-columns: var(--mechanism-rail) minmax(0, 1fr);
     margin-inline: -8px;
     min-width: 0;
-    padding: 5px 8px;
+    padding: 11px 8px;
     text-align: left;
     transition:
         background-color 150ms ease,
@@ -7902,10 +8075,10 @@ body {
 }
 
 .mechanism-row__index {
-    color: var(--atc-faint);
-    font-family: var(--font-mono);
-    font-size: 8.5px;
-    font-weight: 850;
+    color: var(--fs-rail-color);
+    font-family: var(--fs-rail-font);
+    font-size: var(--fs-rail-size);
+    font-weight: var(--fs-rail-weight);
     line-height: 1;
 }
 
@@ -7916,23 +8089,24 @@ body {
 
 .mechanism-row__body {
     display: grid;
-    gap: 2px;
+    gap: 3px;
     min-width: 0;
 }
 
 .mechanism-row__title {
-    color: var(--atc-text);
-    font-size: 11.5px;
-    font-weight: 800;
-    line-height: 1.14;
+    color: var(--fs-title-color);
+    font-family: var(--fs-title-font);
+    font-size: var(--fs-title-size);
+    font-weight: var(--fs-title-weight);
+    line-height: var(--fs-title-leading);
     min-width: 0;
 }
 
 .mechanism-row__signal {
-    color: var(--atc-dim);
-    font-size: 9.5px;
-    font-weight: 600;
-    line-height: 1.18;
+    color: var(--fs-sub-color);
+    font-size: var(--fs-sub-size);
+    font-weight: var(--fs-sub-weight);
+    line-height: var(--fs-sub-leading);
     min-width: 0;
 }
 
@@ -7944,9 +8118,9 @@ body {
 .mechanism-detail__body,
 .mechanism-detail__item,
 .mechanism-flow {
-    color: var(--atc-dim);
-    font-size: 9.5px;
-    line-height: 1.38;
+    color: var(--fs-body-color);
+    font-size: var(--fs-body-size);
+    line-height: var(--fs-body-leading);
 }
 
 .mechanism-detail__body {
@@ -7956,26 +8130,31 @@ body {
 .mechanism-flow {
     display: flex;
     flex-wrap: wrap;
-    gap: 2px 10px;
+    gap: 6px;
     list-style: none;
-    margin: 6px 0 0;
+    margin: 12px 0 0;
     padding: 0;
 }
 
 .mechanism-flow__item {
-    align-items: baseline;
-    display: inline-grid;
-    gap: 3px;
-    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    background: color-mix(in oklab, var(--app-frost-tint) 26%, transparent);
+    border: 1px solid var(--app-frost-border);
+    border-radius: 999px;
+    color: var(--atc-dim);
+    display: inline-flex;
+    font-size: var(--fs-sub-size);
+    line-height: 1;
     max-width: 100%;
     min-width: 0;
+    padding: 5px 11px;
 }
 
 .mechanism-flow__index,
 .mechanism-detail__index {
     color: var(--atc-faint);
     font-family: var(--font-mono);
-    font-size: 7px;
+    font-size: 9px;
     font-weight: 850;
     letter-spacing: 0;
     line-height: 1;
@@ -7983,16 +8162,16 @@ body {
 
 .mechanism-detail__list {
     display: grid;
-    gap: 3px;
+    gap: 7px;
     list-style: none;
-    margin: 7px 0 0;
+    margin: 14px 0 0;
     padding: 0;
 }
 
 .mechanism-detail__item {
     display: grid;
-    gap: 5px;
-    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 7px;
+    grid-template-columns: 16px minmax(0, 1fr);
     margin: 0;
 }
 
@@ -8370,7 +8549,9 @@ body {
     column-gap: var(--home-list-column-gap);
     grid-template-columns: var(--home-list-code-column) minmax(0, 1fr) 16px;
     margin-inline: 0;
-    padding: 4px 8px 4px var(--home-list-rail-inset);
+    /* Roomier padding so the hover highlight breathes around the row text
+       and doesn't crowd the content or the neighbouring rows. */
+    padding: 11px 10px 11px var(--home-list-rail-inset);
     width: 100%;
 }
 
@@ -8562,15 +8743,15 @@ body {
     color: var(--atc-text);
 }
 
-.airport-map-kit .aircraft-table-card .text-atc-text {
+:root[data-theme="dark"] .airport-map-kit .aircraft-table-card .text-atc-text {
     color: oklch(0.94 0.003 100) !important;
 }
 
-.airport-map-kit .aircraft-table-card .text-atc-dim {
+:root[data-theme="dark"] .airport-map-kit .aircraft-table-card .text-atc-dim {
     color: color-mix(in oklab, oklch(0.94 0.003 100) 70%, transparent) !important;
 }
 
-.airport-map-kit .aircraft-table-card .text-atc-faint {
+:root[data-theme="dark"] .airport-map-kit .aircraft-table-card .text-atc-faint {
     color: color-mix(in oklab, oklch(0.94 0.003 100) 48%, transparent) !important;
 }
 
@@ -8637,6 +8818,19 @@ body {
     padding-top: 2px;
 }
 
+/* The 2-up detail filter strip is collected into one bordered glass block so
+   the four filters read as a single contained unit instead of loose chips —
+   matching the Frosted design and de-cluttering the sidebar. */
+.airport-sidebar-panel [data-ui="filter-grid"][data-cols="2"],
+.flight-sidebar-panel [data-ui="filter-grid"][data-cols="2"] {
+    background: color-mix(in oklab, var(--app-frost-tint) 22%, transparent);
+    border: 1px solid var(--app-frost-border);
+    border-radius: var(--atc-radius-card);
+    gap: 2px;
+    overflow: hidden;
+    padding: 4px;
+}
+
 .airport-sidebar-panel [data-ui="metric-card"],
 .airport-sidebar-panel [data-ui="filter-card"],
 .flight-sidebar-panel [data-ui="metric-card"],
@@ -8696,6 +8890,23 @@ body {
 .flight-sidebar-panel [data-ui="filter-card"][data-active="true"]::after,
 .flight-sidebar-panel [data-ui="filter-card"][data-state="open"]::after {
     opacity: 0;
+}
+
+/* The active filter tile is a subtle --atc-text wash (not the ink capsule),
+   so its value/label must stay in resting ink — NOT --atc-click-fg, which is
+   near-white and vanishes on the light wash in light theme. */
+.airport-sidebar-panel [data-ui="filter-card"][data-active="true"] [data-ui="filter-value"],
+.airport-sidebar-panel [data-ui="filter-card"][data-state="open"] [data-ui="filter-value"],
+.flight-sidebar-panel [data-ui="filter-card"][data-active="true"] [data-ui="filter-value"],
+.flight-sidebar-panel [data-ui="filter-card"][data-state="open"] [data-ui="filter-value"] {
+    color: var(--atc-text);
+}
+
+.airport-sidebar-panel [data-ui="filter-card"][data-active="true"] [data-ui="filter-label"],
+.airport-sidebar-panel [data-ui="filter-card"][data-state="open"] [data-ui="filter-label"],
+.flight-sidebar-panel [data-ui="filter-card"][data-active="true"] [data-ui="filter-label"],
+.flight-sidebar-panel [data-ui="filter-card"][data-state="open"] [data-ui="filter-label"] {
+    color: var(--atc-dim);
 }
 
 .airport-sidebar-panel [data-ui="metric-card"][data-layout="split"],

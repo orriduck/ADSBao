@@ -243,7 +243,7 @@ export default function AircraftTable({
       className={cn("aircraft-table-shell flex flex-col", fill && "h-full")}
     >
       <div className="aircraft-table-controls flex-none">
-        <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pb-1.5 pt-2">
+        <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pb-1.5 pt-4">
           <span className="atc-kicker atc-kicker--lead">
             {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
           </span>

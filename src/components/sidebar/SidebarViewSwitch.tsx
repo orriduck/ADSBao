@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import NumberFlow from "@number-flow/react";
-import { MetricCard as SidebarMetricCard, MetricGrid as SidebarMetricGrid } from "@/components/ui/MetricCard";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
@@ -10,6 +9,11 @@ import {
   temperatureUnitLabel,
 } from "@/utils/units";
 
+// Frosted "hero stats block": one joined rounded glass container with a big
+// headline metric (nearby flights) over a row of small footer cells
+// (weather / ATC / spotting / movement). Each segment doubles as the
+// view-switch control — the active segment shows the blue accent rail so
+// navigation is preserved while matching the redesign's single-block look.
 export default function SidebarViewSwitch({
   activeView = "briefing",
   onViewChange,
@@ -20,14 +24,7 @@ export default function SidebarViewSwitch({
   frequencies = [],
   candidateSpotCount = 0,
   onOpenSpotting,
-  // Near-me mode: the explorer is centered on the user's location
-  // (not an airport). Keep the metric surface to weather + nearby
-  // aircraft because airport-specific ATC, spotting, and movement
-  // buckets do not apply.
   nearMe = false,
-  // When feature flags haven't resolved yet, hold the layout stable
-  // at its pre-resolution state. Prevents dep/arr cards from
-  // appearing mid-flight when FlightAware flips from unresolved→true.
   featureFlagsResolved = true,
 }) {
   const { t } = useI18n();
@@ -42,9 +39,6 @@ export default function SidebarViewSwitch({
   const spottingCount = Number(candidateSpotCount) || 0;
   const showAtcCard = atcCount > 0;
 
-  // Pre-compute departure / arrival counts only when FlightAware is on.
-  // The aircraft.movement field is already resolved upstream by
-  // enrichAircraftWithRoutes, so this is just two filters.
   const { departureCount, arrivalCount } = useMemo(() => {
     if (routeProvider !== ROUTE_PROVIDER.FLIGHTAWARE) {
       return { departureCount: 0, arrivalCount: 0 };
@@ -58,80 +52,100 @@ export default function SidebarViewSwitch({
     return { departureCount: dep, arrivalCount: arr };
   }, [aircraft, routeProvider]);
 
-  if (nearMe) {
-    return (
-      <SidebarMetricGrid label={t("sidebar.airportViews")}>
-        <SidebarMetricCard
-          label={t("sidebar.weather")}
-          value={temperature.value}
-          unit={temperatureUnit}
-          contentLayout="split"
-          active={activeView === "briefing"}
-          onClick={() => onViewChange?.("briefing")}
-        />
-        <SidebarMetricCard
-          label={t("sidebar.nearby")}
-          value={<NumberFlow value={aircraft.length} />}
-          contentLayout="split"
-          active={activeView === "traffic"}
-          onClick={() => onViewChange?.("traffic")}
-        />
-      </SidebarMetricGrid>
-    );
+  const footerCells = [];
+  footerCells.push({
+    key: "briefing",
+    label: t("sidebar.weather"),
+    value: temperature.value,
+    unit: temperatureUnit,
+    active: activeView === "briefing",
+    onClick: () => onViewChange?.("briefing"),
+  });
+  if (showAtcCard) {
+    footerCells.push({
+      key: "atc",
+      label: t("sidebar.atc"),
+      value: <NumberFlow value={atcCount} />,
+      active: activeView === "atc",
+      onClick: () => onViewChange?.("atc"),
+    });
+  }
+  footerCells.push({
+    key: "spotting",
+    label: t("sidebar.spotting"),
+    value: <NumberFlow value={spottingCount} />,
+    active: activeView === "spotting",
+    onClick: onOpenSpotting,
+  });
+  if (showMovementCards) {
+    footerCells.push({
+      key: "departures",
+      label: t("sidebar.departures"),
+      value: <NumberFlow value={departureCount} />,
+      active: activeView === "departures",
+      onClick: () => onViewChange?.("departures"),
+    });
+    footerCells.push({
+      key: "arrivals",
+      label: t("sidebar.arrivals"),
+      value: <NumberFlow value={arrivalCount} />,
+      active: activeView === "arrivals",
+      onClick: () => onViewChange?.("arrivals"),
+    });
   }
 
+  const headlineLabel = nearMe ? t("sidebar.nearby") : t("sidebar.flights");
+
   return (
-    <SidebarMetricGrid label={t("sidebar.airportViews")}>
-      <SidebarMetricCard
-        label={t("sidebar.weather")}
-        value={temperature.value}
-        unit={temperatureUnit}
-        contentLayout="split"
-        active={activeView === "briefing"}
-        onClick={() => onViewChange?.("briefing")}
-      />
-      <SidebarMetricCard
-        label={t("sidebar.flights")}
-        value={<NumberFlow value={aircraft.length} />}
-        contentLayout="split"
-        active={activeView === "traffic"}
-        onClick={() => onViewChange?.("traffic")}
-      />
-      {showAtcCard && (
-        <SidebarMetricCard
-          label={t("sidebar.atc")}
-          value={<NumberFlow value={atcCount} />}
-          contentLayout="split"
-          active={activeView === "atc"}
-          onClick={() => onViewChange?.("atc")}
-        />
-      )}
-      <SidebarMetricCard
-        label={t("sidebar.spotting")}
-        value={<NumberFlow value={spottingCount} />}
-        contentLayout="split"
-        active={activeView === "spotting"}
-        onClick={onOpenSpotting}
-      />
-      {showMovementCards && (
-        <>
-          <SidebarMetricCard
-            label={t("sidebar.departures")}
-            value={<NumberFlow value={departureCount} />}
-            contentLayout="split"
-            active={activeView === "departures"}
-            onClick={() => onViewChange?.("departures")}
-          />
-          <SidebarMetricCard
-            label={t("sidebar.arrivals")}
-            value={<NumberFlow value={arrivalCount} />}
-            contentLayout="split"
-            active={activeView === "arrivals"}
-            onClick={() => onViewChange?.("arrivals")}
-          />
-        </>
-      )}
-    </SidebarMetricGrid>
+    <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
+      <div className="overflow-hidden rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] shadow-[var(--atc-control-inset-shadow-subtle)]">
+        <button
+          type="button"
+          data-active={activeView === "traffic" ? "true" : undefined}
+          onClick={() => onViewChange?.("traffic")}
+          aria-pressed={activeView === "traffic"}
+          className="block w-full px-[15px] pb-[11px] pt-[13px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-medium text-atc-dim">
+              {headlineLabel}
+            </span>
+          </div>
+          <div className="mt-[5px] flex items-baseline gap-2">
+            <span className="text-[33px] font-bold leading-none tracking-[-1px] tabular-nums text-atc-text">
+              <NumberFlow value={aircraft.length} />
+            </span>
+          </div>
+        </button>
+        <div className="flex border-t border-[var(--app-frost-border)]">
+          {footerCells.map((cell) => (
+            <StatCell key={cell.key} {...cell} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCell({ label, value, unit, active, onClick }) {
+  return (
+    <button
+      type="button"
+      data-active={active ? "true" : undefined}
+      onClick={onClick}
+      aria-pressed={active}
+      className="flex-1 px-[13px] py-[9px] text-left transition-colors [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_0_2px_0_var(--atc-signal-accent)]"
+    >
+      <div className="text-[10px] text-atc-faint">{label}</div>
+      <div className="mt-[3px]">
+        <span className="text-[16px] font-bold tabular-nums text-atc-text">
+          {value}
+        </span>
+        {unit ? (
+          <span className="ml-0.5 text-[10px] text-atc-faint">{unit}</span>
+        ) : null}
+      </div>
+    </button>
   );
 }
 

@@ -75,7 +75,7 @@ function AircraftRow({
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
-      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full items-center px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:[background:var(--atc-glass-active-bg)] data-[selected=true]:text-[var(--atc-click-fg)] data-[selected=true]:shadow-[var(--atc-glass-rim-shadow)] data-[selected=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)] data-[selected=true]:hover:[background:var(--atc-glass-active-bg)] data-[selected=true]:[&_.text-atc-text]:text-[var(--atc-click-fg)] data-[selected=true]:[&_.text-atc-dim]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.text-atc-faint]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-route-cycle]:text-[var(--atc-click-muted)] data-[selected=true]:[&_.aircraft-table-row-glyph]:bg-[var(--atc-click-fg)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-click-bg)] ${
+      className={`aircraft-table-card aircraft-table-row-grid aircraft-table-row-shell grid w-full items-center px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_12%,transparent)] data-[selected=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)] data-[selected=true]:hover:bg-[color-mix(in_oklab,var(--atc-signal-accent)_15%,transparent)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-signal-accent)] ${
         selected ? "aircraft-table-row--selected aircraft-table-row--active" : ""
       }`}
       aria-pressed={selected}
@@ -219,16 +219,21 @@ function NumberWithUnit({ value, unit, format, text, prefix }: Record<string, an
   const hasUnit = Boolean(unit);
 
   if (!hasUnit) {
+    // Mirror the unit branch's 2-column grid (number col + unit col) with an
+    // empty unit cell, so unitless values (— / GND, e.g. the focal aircraft
+    // after selecting it) right-align on the SAME axis as numeric values
+    // instead of shifting to the cell's far edge.
     return (
-      <span className="aircraft-table-number aircraft-table-number--unitless block w-full min-w-0 text-right tabular-nums">
-        {prefix ? (
-          <span className="notranslate text-atc-dim" translate="no">
-            {prefix}
-          </span>
-        ) : null}
-        <span className="notranslate" translate="no">
-          {displayText}
+      <span className="aircraft-table-number aircraft-table-number--unitless grid w-full min-w-0 grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
+        <span className="flex min-w-0 items-baseline justify-end">
+          {prefix ? (
+            <span className="notranslate flex-none text-atc-dim" translate="no">
+              {prefix}
+            </span>
+          ) : null}
+          <span className="block min-w-0 text-right">{displayText}</span>
         </span>
+        <span aria-hidden="true" />
       </span>
     );
   }

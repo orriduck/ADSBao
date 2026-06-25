@@ -20,6 +20,43 @@ soft light, deep blur, crisp dark type — not flat SaaS cards and not game UI.
 
 There are exactly **two materials**. Do not invent a third.
 
+## Frosted refinement (current)
+
+The map-context surfaces (`.airport-map-kit` sidebar + toolbars) read as
+genuinely **translucent frosted glass** — the live map diffuses through the
+panel rather than sitting behind an opaque wash. The panel drops to ~0.56
+alpha and leans on a strong saturated blur (`saturate(1.7) blur(26px)`) for
+legibility. Inner cards use the softened geometry tokens (`--atc-radius-card`
+13px, `--atc-radius-panel`/`--atc-radius-shell` 16px).
+
+There is **one orange signal accent** — `--atc-signal-accent`, **theme-split**:
+a warm vivid orange in light theme (`:root`, `oklch(0.66 0.16 50)`) and a
+brighter orange in dark theme (`:root[data-theme="dark"]`, `oklch(0.74 0.15
+55)`). At low alpha its wash reads as light-orange on white and deep-orange on
+the dark canvas. `-soft`/`-strong` derive from the base, so only the base flips
+per theme. It is the *only* chromatic accent in the operational UI and is
+reserved for three things:
+
+1. **List-row selection** — a faint orange wash (`--atc-signal-accent` ~12%)
+   plus a 2px orange rail down the left edge (`inset 2px 0 0`). Row text keeps
+   its resting color; the row glyph tints orange. This replaces the smoke
+   capsule for `.aircraft-table-row--selected` / `AircraftRow`.
+2. **The tracked-flight trace** — `--aviation-trace-line/-glow/-point` resolve
+   to the signal accent.
+3. **The primary "track" button** — `.aircraft-preview-card__track-btn` is a
+   solid orange capsule with white text.
+
+The sidebar's airport metrics are one **joined hero stats block** (a single
+rounded glass container: a big headline metric over a divider row of small
+footer cells), not separate metric cards. Each segment doubles as the
+view-switch control; the active segment shows an orange accent rail (left rail
+on the headline, top rail on a footer cell) + a faint orange wash.
+
+The glass capsule (Material 1) is still used for the remaining *control*
+selection (filter chips, toolbar buttons) — do not put the orange accent there.
+Keep the orange accent to: row-selection, the tracked trace, the track-button,
+and the active hero/telemetry segment.
+
 ## Material 1 — Selected: the glass capsule
 
 Used ONLY for selected/active states: selected metric cards (tabs), active
