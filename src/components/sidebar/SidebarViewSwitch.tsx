@@ -98,31 +98,51 @@ export default function SidebarViewSwitch({
   }
 
   const headlineLabel = nearMe ? t("sidebar.nearby") : t("sidebar.flights");
+  // The flight-count is the hero only on the traffic view. On the other
+  // sub-views it demotes to a compact summary row so it does not stack a
+  // second hero above that view's own hero (e.g. the weather flight-rules
+  // block). The headline stays a tab back to traffic; structure is unchanged.
+  const isTraffic = activeView === "traffic";
 
   return (
     <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
       <div className="overflow-hidden rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] shadow-[var(--atc-control-inset-shadow-subtle)]">
         <button
           type="button"
-          data-active={activeView === "traffic" ? "true" : undefined}
+          data-active={isTraffic ? "true" : undefined}
           onClick={() => onViewChange?.("traffic")}
-          aria-pressed={activeView === "traffic"}
-          className="block w-full px-[15px] pb-[11px] pt-[13px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)]"
+          aria-pressed={isTraffic}
+          className={`block w-full px-[15px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)] ${
+            isTraffic ? "pb-[11px] pt-[13px]" : "py-[9px]"
+          }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-medium text-atc-dim">
-              {headlineLabel}
-            </span>
-          </div>
-          <div className="mt-[5px] flex items-baseline gap-2">
-            <span className="text-[33px] font-normal leading-none tracking-[-1px] tabular-nums text-atc-text">
-              <NumberFlow value={aircraft.length} />
-            </span>
-          </div>
+          {isTraffic ? (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-medium text-atc-dim">
+                  {headlineLabel}
+                </span>
+              </div>
+              <div className="mt-[5px] flex items-baseline gap-2">
+                <span className="text-[33px] font-normal leading-none tracking-[-1px] tabular-nums text-atc-text">
+                  <NumberFlow value={aircraft.length} />
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[12px] font-medium text-atc-dim">
+                {headlineLabel}
+              </span>
+              <span className="text-[15px] font-normal tabular-nums text-atc-text">
+                <NumberFlow value={aircraft.length} />
+              </span>
+            </div>
+          )}
         </button>
         <div className="flex border-t border-[var(--app-frost-border)]">
-          {footerCells.map((cell) => (
-            <StatCell key={cell.key} {...cell} />
+          {footerCells.map(({ key, ...cell }) => (
+            <StatCell key={key} {...cell} />
           ))}
         </div>
       </div>
@@ -137,9 +157,9 @@ function StatCell({ label, value, unit, active, onClick }) {
       data-active={active ? "true" : undefined}
       onClick={onClick}
       aria-pressed={active}
-      className="flex-1 px-[13px] py-[9px] text-left transition-colors [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_0_2px_0_var(--atc-signal-accent)]"
+      className="min-w-0 flex-1 px-[11px] py-[9px] text-left transition-colors [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_0_2px_0_var(--atc-signal-accent)]"
     >
-      <div className="text-[10px] text-atc-faint">{label}</div>
+      <div className="truncate text-[10px] text-atc-faint">{label}</div>
       <div className="mt-[3px]">
         <span className="text-[16px] font-normal tabular-nums text-atc-text">
           {value}

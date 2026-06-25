@@ -740,11 +740,6 @@
         var(--primary-bright) 72%,
         white
     );
-    --atc-preview-accent-wash: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
-    );
     --atc-preview-card-inset: inset 0 1px 0
         color-mix(in oklab, var(--atc-text) 8%, transparent);
     --glass-card-top: color-mix(in oklab, var(--atc-bg) 50%, transparent);
@@ -1056,15 +1051,6 @@
     );
     --tone-orange-edge: color-mix(in oklab, var(--atc-orange) 78%, transparent);
 
-    /* Glow used by active tabs and filter cards. Light mode uses yellow here
-     * because near-black would read as a heavy shadow. */
-    --atc-tab-glow: linear-gradient(
-        to top,
-        color-mix(in oklab, var(--atc-orange) 20%, transparent) 0%,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent) 30%,
-        color-mix(in oklab, var(--atc-orange) 3%, transparent) 58%,
-        transparent 80%
-    );
     --tone-bg-soft: color-mix(in oklab, var(--atc-bg) 62%, transparent);
     --tone-line-soft: color-mix(in oklab, var(--atc-line) 50%, transparent);
     --tone-border-soft: color-mix(
@@ -1224,11 +1210,6 @@
         in oklab,
         var(--primary-bright) 72%,
         white
-    );
-    --atc-preview-accent-wash: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
     );
     --atc-preview-card-inset: inset 0 1px 0
         color-mix(in oklab, var(--atc-text) 8%, transparent);
@@ -1535,14 +1516,6 @@
     --sidebar-signal: var(--atc-orange);
     --sidebar-ring: var(--atc-accent);
 
-    /* Brighter glow stops for the dark canvas and yellow active state. */
-    --atc-tab-glow: linear-gradient(
-        to top,
-        color-mix(in oklab, var(--atc-accent) 32%, transparent) 0%,
-        color-mix(in oklab, var(--atc-accent) 14%, transparent) 28%,
-        color-mix(in oklab, var(--atc-accent) 4%, transparent) 58%,
-        transparent 85%
-    );
 }
 
 html {
@@ -2355,16 +2328,10 @@ body:has(.dither-page-shell) {
 /* Selectable rows — featured search rows + about data-source rows */
 
 .search-input {
-    background: linear-gradient(
-        145deg,
-        var(--tone-card-strong),
-        var(--tone-elev-strong)
-    );
+    background: var(--tone-card-strong);
     border: 1px solid var(--tone-border-firm);
     border-radius: min(14px, calc(var(--atc-radius-card) + 2px));
-    box-shadow:
-        0 26px 90px var(--tone-bg-soft),
-        inset 0 1px 0 var(--tone-border-soft);
+    box-shadow: inset 0 1px 0 var(--tone-border-soft);
 }
 
 .search-input:focus-within {
@@ -2620,16 +2587,11 @@ body:has(.dither-page-shell) {
 }
 
 .glass-panel {
-    background: linear-gradient(
-        145deg,
-        var(--glass-card-top),
-        var(--glass-card-bottom)
-    );
+    background: var(--glass-card-bottom);
     border: 1px solid var(--glass-card-border);
     border-radius: var(--atc-radius-panel);
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.18),
-        0 24px 64px rgba(0, 0, 0, 0.22),
         inset 0 1px 0 var(--glass-card-inset);
     max-height: 250px;
     min-width: 0;
@@ -3060,12 +3022,12 @@ body:has(.dither-page-shell) {
     --fs-eyebrow-color: var(--atc-faint);
 
     --fs-title-font: var(--font-sans);
-    --fs-title-size: 15px;
+    --fs-title-size: 16px;
     --fs-title-weight: var(--weight-regular);
     --fs-title-leading: 1.25;
     --fs-title-color: var(--atc-text);
 
-    --fs-sub-size: 11px;
+    --fs-sub-size: 10.5px;
     --fs-sub-weight: var(--weight-regular);
     --fs-sub-leading: 1.3;
     --fs-sub-color: var(--atc-faint);
@@ -4455,18 +4417,7 @@ body {
     align-items: center;
     -webkit-backdrop-filter: var(--app-frost-strong);
     backdrop-filter: var(--app-frost-strong);
-    background:
-        linear-gradient(
-            90deg,
-            color-mix(in oklab, var(--atc-orange) 12%, transparent),
-            transparent 34%,
-            color-mix(in oklab, var(--atc-accent) 8%, transparent)
-        ),
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--atc-elev) 48%, transparent),
-            color-mix(in oklab, var(--atc-bg) 96%, transparent)
-        );
+    background: var(--atc-toolbar-surface);
     border-bottom: 1px solid var(--atc-line-strong);
     box-sizing: border-box;
     display: flex;
@@ -4506,16 +4457,12 @@ body {
     align-items: center;
     backdrop-filter: var(--app-frost-strong);
     -webkit-backdrop-filter: var(--app-frost-strong);
-    background: linear-gradient(
-        145deg,
-        var(--glass-card-top),
-        var(--glass-card-bottom)
-    );
+    background: var(--atc-toolbar-surface);
     border: 1px solid var(--glass-card-border);
     border-radius: 18px;
     bottom: 14px;
     box-shadow:
-        0 12px 34px rgba(0, 0, 0, 0.24),
+        0 8px 20px rgba(0, 0, 0, 0.16),
         inset 0 1px 0 var(--glass-card-inset);
     box-sizing: border-box;
     display: none;
@@ -6363,11 +6310,7 @@ body {
     width: auto;
     min-height: 0;
     max-width: min(360px, calc(100vw - 32px));
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--atc-elev) 34%, transparent),
-        var(--tone-card-strong)
-    );
+    background: var(--tone-card-strong);
     border: 1px solid var(--tone-border-firm);
     border-radius: var(--atc-radius-panel);
     box-shadow:
@@ -6763,11 +6706,7 @@ body {
     padding: 18px;
     border: 1px solid var(--tone-border-firm);
     border-radius: var(--atc-radius-panel);
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--atc-card) 90%, transparent),
-        color-mix(in oklab, var(--atc-card) 82%, transparent)
-    );
+    background: color-mix(in oklab, var(--atc-card) 86%, transparent);
     box-shadow:
         var(--preview-card-shadow),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 9%, transparent);
@@ -7125,11 +7064,7 @@ body {
     overflow: hidden;
     border: 1px solid var(--tone-border-firm);
     border-radius: var(--atc-radius-panel);
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--atc-card) 82%, transparent),
-        color-mix(in oklab, var(--atc-card) 58%, transparent)
-    );
+    background: color-mix(in oklab, var(--atc-card) 70%, transparent);
     box-shadow:
         0 12px 30px color-mix(in oklab, var(--atc-bg) 64%, transparent),
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent);
@@ -8797,11 +8732,7 @@ body {
        through the sidebar as a soft frosted wash. */
     -webkit-backdrop-filter: var(--app-frost-strong);
     backdrop-filter: var(--app-frost-strong);
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--app-frost-tint) 84%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 87%, transparent)
-    );
+    background: color-mix(in oklab, var(--app-frost-tint) 86%, transparent);
     border: 0;
     box-shadow: var(--app-map-sidebar-shadow);
     color: var(--atc-text);
@@ -8882,17 +8813,19 @@ body {
     padding-top: 2px;
 }
 
-/* The 2-up detail filter strip is collected into one bordered glass block so
-   the four filters read as a single contained unit instead of loose chips —
-   matching the Frosted design and de-cluttering the sidebar. */
+/* The 2-up detail filter strip reads as an aligned rail group, not a boxed
+   table: no outer fill, border, or radius — the four filters track the same
+   sidebar inset as the metric grid and are delimited by a single top/bottom
+   hairline. "Rails, not boxes." */
 .airport-sidebar-panel [data-ui="filter-grid"][data-cols="2"],
 .flight-sidebar-panel [data-ui="filter-grid"][data-cols="2"] {
-    background: color-mix(in oklab, var(--app-frost-tint) 22%, transparent);
-    border: 1px solid var(--app-frost-border);
-    border-radius: var(--atc-radius-card);
+    background: transparent;
+    border: 0;
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 6%, transparent);
+    border-bottom: 1px solid color-mix(in oklab, var(--atc-text) 6%, transparent);
+    border-radius: 0;
     gap: 2px;
-    overflow: hidden;
-    padding: 4px;
+    padding: 4px 0;
 }
 
 .airport-sidebar-panel [data-ui="metric-card"],
