@@ -41,36 +41,36 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 92;
+export const CHANGELOG_TOTAL_COUNT = 93;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.28.1",
+    version: "v2.28.2",
     kind: "patch",
     title: {
-      en: "Material fidelity — flatter glass, quieter accent",
-      zh: "材质回正——更平的玻璃、更克制的强调色",
+      en: "Explorer sidebar — code chips, serif group labels",
+      zh: "机场探索侧栏——代号芯片、衬线分组标签",
     },
     summary: {
-      en: "A correction pass on the v2.28 surfaces: frosted panels go back to flat translucent tints instead of painted gradients, the orange signal is reserved for selection again, and the left-column hierarchy reads cleaner over a busy map.",
-      zh: "对 v2.28 表面的一次回正：磨砂面板回到平整的半透明色调而非渐变涂层，橙色信号色重新只用于选择态，左栏层次在繁忙地图上更清爽。",
+      en: "The home Explorer list trades flat gray text for real design: monospace ICAO chips, an upright serif for group labels, and one orange near-me CTA. Hierarchy comes from size and luminance, never weight.",
+      zh: "首页机场探索列表从扁平灰字升级为真正的设计语言：等宽 ICAO 代号芯片、衬线分组标签，以及唯一的橙色「附近」入口。层次来自字号与明度，而非字重。",
     },
     highlights: [
       {
-        en: "Frosted surfaces (search box, sidebar, preview cards, toolbars, toasts) drop linear-gradient fills and heavy ambient shadows for one flat tint + a single inset hairline — no more gray mud at the edges over the live map",
-        zh: "磨砂表面（搜索框、侧栏、预览卡片、工具条、提示）去掉线性渐变填充与厚重投影，改为单一平整色调 + 一道内描边——地图之上不再有灰浊边缘",
+        en: "ICAO codes become monospace chips (JetBrains Mono) with a hairline rim; the chip keeps one typeface/size/shape across states and changes color only when selected",
+        zh: "ICAO 代号变为带细描边的等宽芯片（JetBrains Mono）；芯片在各状态下保持同一字体/字号/形状，仅在选中时改变颜色",
       },
       {
-        en: "Orange is reserved for selection, the tracked trace, and the Track button again — removed from the search glyph, the map LIVE indicator, and the map menu wash; altitude trend stays glyph + luminance",
-        zh: "橙色重新只用于选择态、追踪轨迹与 Track 按钮——从搜索图标、地图 LIVE 指示与地图菜单底色中移除；高度趋势仍以箭头 + 明度表达",
+        en: "Group labels (Near me / Spotter favorites / hubs) use an upright serif (Fraunces) with a small accent tick; the page title stays in Manrope",
+        zh: "分组标签（附近 / 收藏 / 枢纽）改用直立衬线（Fraunces）并配一道强调短线；页面标题仍为 Manrope",
       },
       {
-        en: "Sidebar filters (targets / route / type / altitude) read as aligned rails instead of a boxed table",
-        zh: "侧栏筛选（目标 / 航路 / 机型 / 高度）改为对齐的导轨，而非方框表格",
+        en: "The near-me row is the one orange CTA — accent chip, faint wash, and a left rail; orange appears in exactly three places (title tick, group ticks, near-me row)",
+        zh: "「附近」行是唯一的橙色入口——强调芯片、淡底色与左侧导轨；橙色全页仅出现三处（标题短线、分组短线、附近行）",
       },
       {
-        en: "Stronger size contrast on Explorer / About list rows; weather view no longer stacks a flight-count hero above its flight-rules hero, and hero footer labels never wrap",
-        zh: "Explorer / About 列表行的字号对比更明确；天气视图不再在飞行规则主指标之上叠加航班数主指标，主指标底部标签不再换行",
+        en: "Airport names lead at a larger inked size and wrap instead of mid-word ellipsis; both light and dark themes retune through the existing signal-accent and ink tokens",
+        zh: "机场名以更大的深色字号领衔，超长时换行而非中途省略；明暗两套主题均通过既有的信号强调色与墨色令牌自动适配",
       },
     ],
   },

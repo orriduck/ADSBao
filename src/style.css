@@ -46,6 +46,13 @@
     --font-mono: var(--theme-font-mono);
     --font-nav: var(--theme-font-nav);
     --font-display: var(--theme-font-display);
+    /* Decorative families used by the Explorer (home) discovery sidebar
+       only: an upright serif for group labels and a true monospace for the
+       ICAO/HERE code chips. Named --font-code (not --font-mono-*) on purpose:
+       the global `[class*="font-mono"]` reset would otherwise force these
+       chips back onto Manrope. Telemetry stays on --font-mono (Manrope). */
+    --font-serif: var(--theme-font-serif);
+    --font-code: var(--theme-font-code);
 
     /* Typographic polarity: ADSBao uses only light (300) and regular (400).
        Hierarchy comes from size, color, tracking, and surface — never weight.
@@ -628,6 +635,10 @@
         "Manrope", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-display:
         "Manrope", "Noto Sans SC", system-ui, sans-serif;
+    --theme-font-serif:
+        "Fraunces", "Noto Serif SC", Georgia, "Songti SC", serif;
+    --theme-font-code:
+        "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
     --theme-primary-bright: oklch(0.22 0.02 165);
     --theme-primary-deep: oklch(0.22 0.02 165);
     --theme-primary-ink: oklch(0.975 0.005 165);
@@ -8482,14 +8493,14 @@ body {
     }
 }
 
-/* Home airport lists share one rail with the search input. Section labels,
-   airport names, and search text sit on the same axis; codes own the left rail. */
+/* Home search input rail. The discovery / search rows below own their own
+   grid (see AirportListRow); these vars now only drive the search field's
+   icon / input / enter-key columns. */
 .search-screen {
     --home-search-rail-inset: 8px;
     --home-list-rail-inset: 8px;
     --home-list-code-column: 28px;
     --home-list-column-gap: 5px;
-    --home-list-code-font: 8px;
 }
 
 .search-screen .dither-content-stack {
@@ -8517,15 +8528,24 @@ body {
     justify-self: end;
 }
 
-.search-screen .dither-section-flow > header {
-    column-gap: var(--home-list-column-gap);
-    display: grid;
-    grid-template-columns: var(--home-list-code-column) minmax(0, 1fr);
-    padding-left: var(--home-list-rail-inset);
+/* Title flourish: a short accent underline tick under the page title. The
+   title stays in Manrope (sitewide consistency); only the tick is home-scoped.
+   One of the three places orange appears on this page. */
+.search-screen .dither-page-copy .atc-page-title::after {
+    background: var(--atc-signal-accent);
+    border-radius: 1px;
+    content: "";
+    display: block;
+    height: 2px;
+    margin-top: 10px;
+    width: 26px;
 }
 
-.search-screen .dither-section-flow > header > * {
-    grid-column: 2;
+/* Group rhythm: whitespace does the grouping (no boxes / dividing lines) —
+   tight rows inside a group, a 22px gap between one group and the next. */
+.search-screen .dither-content-stack > section + section {
+    margin-top: 0;
+    padding-top: 22px;
 }
 
 .search-screen .dither-section-flow > .atc-section-head {
@@ -8544,43 +8564,14 @@ body {
     justify-self: end;
 }
 
-.search-screen .dither-section-flow [data-ui="text-pill-list-item"] {
-    column-gap: var(--home-list-column-gap);
-    grid-template-columns: var(--home-list-code-column) minmax(0, 1fr) 16px;
-    margin-inline: 0;
-    /* Roomier padding so the hover highlight breathes around the row text
-       and doesn't crowd the content or the neighbouring rows. */
-    padding: 11px 10px 11px var(--home-list-rail-inset);
-    width: 100%;
-}
-
-.search-screen .dither-section-flow [data-ui="text-pill-list-item"] > span:first-child {
-    align-self: center;
-    background: transparent;
-    border-radius: 0;
-    color: var(--atc-dim);
-    font-family: var(--font-mono);
-    font-size: var(--home-list-code-font);
-    font-weight: var(--weight-regular);
-    height: auto;
-    justify-content: flex-start;
-    padding: 0;
-    width: var(--home-list-code-column);
-}
-
 @media (min-width: 768px) {
     .search-screen {
         --home-list-code-column: 26px;
         --home-list-column-gap: 4px;
-        --home-list-code-font: 7.5px;
     }
 
     .search-screen .dither-content-stack {
         padding-inline: var(--airport-sidebar-inset, 16px);
-    }
-
-    .search-screen .dither-section-flow [data-ui="text-pill-list-item"] > span:first-child {
-        padding-inline: 0;
     }
 }
 
