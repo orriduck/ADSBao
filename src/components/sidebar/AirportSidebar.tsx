@@ -59,7 +59,6 @@ export default function AirportSidebar({
   fillAircraftList = true,
 }) {
   const { t } = useI18n();
-  const isMobileOverlay = Boolean(onClose);
   const [activeView, setActiveView] = useState("traffic");
   const atcFrequencies = Array.isArray(frequencies) ? frequencies : [];
   const spottingSpots = Array.isArray(candidateWatchingSpots)
@@ -176,14 +175,13 @@ export default function AirportSidebar({
       <div
         key={`${activeView}:${movementFilter}`}
         className={
-          isMobileOverlay
-            ? // The traffic list owns its own (virtualized) scroll, so the
-              // overlay content area clips; every other view (weather / ATC /
-              // spotting) scrolls normally so its content is never cut off.
-              `airport-sidebar-content app-panel-transition flex min-h-0 flex-1 flex-col ${
-                activeView === "traffic" ? "overflow-hidden" : "overflow-y-auto"
-              }`
-            : "airport-sidebar-content app-panel-transition flex min-h-0 flex-col"
+          // The traffic list owns its own (virtualized) scroll, so the content
+          // area clips and the list windows internally; every other view
+          // (weather / ATC / spotting) scrolls normally so its content is
+          // never cut off. Same on desktop and the mobile overlay.
+          `airport-sidebar-content app-panel-transition flex min-h-0 flex-1 flex-col ${
+            activeView === "traffic" ? "overflow-hidden" : "overflow-y-auto"
+          }`
         }
       >
         {activeViewContent}

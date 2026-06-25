@@ -3797,8 +3797,11 @@ body {
 .airport-desktop-sidebar > .h-full,
 .airport-desktop-sidebar .sidebar-shell {
     border-radius: var(--atc-radius-shell);
-    overflow-x: hidden;
-    overflow-y: auto;
+    /* The panel itself clips; the brand + identity + filters stay fixed and
+       only the nearby list scrolls internally, so the virtualizer can window
+       (render ~20 rows) instead of mounting the whole 100+ row list. Matches
+       the mobile-overlay layout. */
+    overflow: hidden;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
 }
