@@ -8022,16 +8022,22 @@ body {
 }
 
 .about-meta-grid {
-    --about-meta-rail: 46px;
-    --about-meta-gap: 5px;
+    --about-meta-rail: 88px;
+    --about-meta-gap: 16px;
     margin-inline: var(--airport-sidebar-inset, 20px);
 }
 
+/* One quiet label rail + content axis: the role label sits in a fixed-width
+   left column (quiet, tracked) and the value/list flows in the right axis, so
+   VERSION / STACK / ARCHITECTURE align as a single scannable rail rather than
+   stacking label-over-content. */
 .about-meta-row {
     display: grid;
-    gap: 5px;
+    grid-template-columns: var(--about-meta-rail) minmax(0, 1fr);
+    column-gap: var(--about-meta-gap);
+    align-items: baseline;
     min-width: 0;
-    padding-block: 7px;
+    padding-block: 8px;
 }
 
 .about-meta-label {
