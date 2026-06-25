@@ -7,6 +7,7 @@ const zhCN = {
     live: "实时",
     airportExplorer: "机场",
     aboutTitle: "关于",
+    aboutSubtitle: "ADSBao 是如何构建的",
     mechanismTitle: "机制与架构",
     siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场运行信息。",
   },

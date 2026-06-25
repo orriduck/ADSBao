@@ -10,6 +10,9 @@ type AirportListRowProps = {
   subtitle?: ReactNode;
   /** Trailing slot, e.g. a chevron on tappable rows. */
   trailing?: ReactNode;
+  /** Vertical placement of the trailing slot. "start" levels it with the
+   *  name's first line; "center" (default) centers it in the row. */
+  trailingAlign?: "center" | "start";
   /** "accent" paints the one orange CTA row (the near-me HERE entry). */
   tone?: Tone;
   /** Selected "best match" search row — differs by color/luminance only. */
@@ -23,11 +26,17 @@ type AirportListRowProps = {
 // + luminance, never weight: a mono code chip on the left rail, a near-black
 // name, and a faint subtitle. Whitespace groups the rows; there are no boxes.
 // The single orange accent (tone="accent") is reserved for the near-me CTA.
+//
+// The chip column width / font-size read CSS vars (--lr-chip-col, --lr-chip-fs)
+// with the Explorer defaults baked in as fallbacks, so the About page can pass
+// `style={{ "--lr-chip-col": "54px", "--lr-chip-fs": "9.5px" }}` for its wider
+// category codes without forking the component.
 export function AirportListRow({
   pill,
   title,
   subtitle,
   trailing,
+  trailingAlign = "center",
   tone = "default",
   active = false,
   as = "div",
@@ -43,8 +52,8 @@ export function AirportListRow({
   const chip = (
     <span
       className={cn(
-        "mt-[2px] inline-flex w-[46px] items-center justify-center self-start rounded-[6px] py-[3px]",
-        "whitespace-nowrap font-code text-[10px] leading-none [letter-spacing:0.6px]",
+        "mt-[2px] inline-flex w-[var(--lr-chip-col,46px)] items-center justify-center self-start rounded-[6px] py-[3px]",
+        "whitespace-nowrap font-code text-[length:var(--lr-chip-fs,10px)] leading-none [letter-spacing:0.6px]",
         accent
           ? cn(
               "text-[var(--atc-signal-accent-strong)]",
@@ -81,7 +90,10 @@ export function AirportListRow({
   const chevron = (
     <span
       className={cn(
-        "flex w-4 items-center justify-center self-center transition-transform duration-150",
+        "flex w-4 items-center justify-center transition-transform duration-150",
+        // Trailing icon sits centered in the row by default; "start" levels it
+        // with the name's first line (matching the chip) for tall, wrapping rows.
+        trailingAlign === "start" ? "mt-[2px] self-start" : "self-center",
         accent ? "text-[var(--atc-signal-accent)]" : "text-atc-faint",
         interactive && "group-hover:translate-x-0.5",
         interactive && !accent && "group-hover:text-atc-dim",
@@ -92,7 +104,7 @@ export function AirportListRow({
   );
 
   const classes = cn(
-    "group grid w-full grid-cols-[46px_minmax(0,1fr)_16px] items-center gap-x-3",
+    "group grid w-full grid-cols-[var(--lr-chip-col,46px)_minmax(0,1fr)_16px] items-center gap-x-3",
     "rounded-[10px] px-2.5 py-[9px] text-left",
     "transition-[background-color,box-shadow] duration-150",
     accent

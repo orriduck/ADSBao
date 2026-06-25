@@ -7783,45 +7783,6 @@ body {
     min-height: 0;
 }
 
-.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link {
-    column-gap: 8px;
-    grid-template-columns: 50px minmax(0, 1fr) 16px;
-    margin-inline: 0;
-    padding: 11px 0;
-    width: 100%;
-}
-
-.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link > span:first-child {
-    background: transparent;
-    border-radius: 0;
-    align-self: start;
-    color: var(--fs-rail-color);
-    font-family: var(--fs-rail-font);
-    font-size: var(--fs-rail-size);
-    font-weight: var(--fs-rail-weight);
-    height: auto;
-    justify-content: flex-start;
-    margin-top: 1px;
-    padding: 0;
-    width: 50px;
-}
-
-.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link > span:nth-child(2) {
-    gap: 2px;
-}
-
-.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link > span:last-child {
-    align-self: start;
-    margin-top: 3px;
-    opacity: 0.55;
-    width: 16px;
-}
-
-.dither-list-flow [data-ui="text-pill-list-item"].about-data-source-link svg {
-    height: 12px;
-    width: 12px;
-}
-
 .dither-page-panel .search-input {
     background: color-mix(in oklab, var(--atc-bg) 82%, var(--atc-text) 4%);
     -webkit-backdrop-filter: var(--app-frost);
@@ -7965,68 +7926,6 @@ body {
     .map-settings-persistence[data-status="saved"] {
         display: none;
     }
-}
-
-.about-meta-grid {
-    --about-meta-rail: 88px;
-    --about-meta-gap: 16px;
-    margin-inline: var(--airport-sidebar-inset, 20px);
-}
-
-/* One quiet label rail + content axis: the role label sits in a fixed-width
-   left column (quiet, tracked) and the value/list flows in the right axis, so
-   VERSION / STACK / ARCHITECTURE align as a single scannable rail rather than
-   stacking label-over-content. */
-.about-meta-row {
-    display: grid;
-    grid-template-columns: var(--about-meta-rail) minmax(0, 1fr);
-    column-gap: var(--about-meta-gap);
-    align-items: baseline;
-    min-width: 0;
-    padding-block: 8px;
-}
-
-.about-meta-label {
-    color: var(--fs-eyebrow-color);
-    font-family: var(--fs-eyebrow-font);
-    font-size: var(--fs-eyebrow-size);
-    font-weight: var(--fs-eyebrow-weight);
-    letter-spacing: var(--fs-eyebrow-tracking);
-    line-height: 1.15;
-    margin: 0;
-    min-width: 0;
-    text-transform: uppercase;
-}
-
-.about-meta-value {
-    color: var(--fs-value-color);
-    font-size: var(--fs-value-size);
-    font-weight: var(--fs-value-weight);
-    line-height: 1.1;
-    min-width: 0;
-}
-
-.about-meta-sections {
-    display: grid;
-    gap: 7px;
-    margin-top: 7px;
-}
-
-.about-meta-list {
-    color: var(--atc-text);
-    display: grid;
-    font-size: var(--fs-sub-size);
-    font-weight: var(--weight-regular);
-    gap: 4px;
-    line-height: 1.3;
-    list-style: none;
-    margin: 0;
-    min-width: 0;
-    padding: 0;
-}
-
-.about-meta-list--grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .mechanism-list {
@@ -8308,11 +8207,6 @@ body {
         font-size: 9px;
     }
 
-    .about-meta-grid {
-        --about-meta-gap: 4px;
-        margin-inline: var(--airport-sidebar-inset, 16px);
-    }
-
     .mechanism-list {
         --mechanism-gap: 5px;
         --mechanism-rail: 30px;
@@ -8529,9 +8423,10 @@ body {
 }
 
 /* Title flourish: a short accent underline tick under the page title. The
-   title stays in Manrope (sitewide consistency); only the tick is home-scoped.
-   One of the three places orange appears on this page. */
-.search-screen .dither-page-copy .atc-page-title::after {
+   title stays in Manrope (sitewide consistency); the tick is scoped to the
+   pages that opt in (Home + About). One of the few places orange appears. */
+.search-screen .dither-page-copy .atc-page-title::after,
+.about-screen .dither-page-copy .atc-page-title::after {
     background: var(--atc-signal-accent);
     border-radius: 1px;
     content: "";

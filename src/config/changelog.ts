@@ -41,36 +41,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 93;
+export const CHANGELOG_TOTAL_COUNT = 94;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.28.2",
+    version: "v2.28.3",
     kind: "patch",
     title: {
-      en: "Explorer sidebar — code chips, serif group labels",
-      zh: "机场探索侧栏——代号芯片、衬线分组标签",
+      en: "About page — same code chips and serif labels as Explorer",
+      zh: "关于页——与机场探索一致的代号芯片与衬线标签",
     },
     summary: {
-      en: "The home Explorer list trades flat gray text for real design: monospace ICAO chips, an upright serif for group labels, and one orange near-me CTA. Hierarchy comes from size and luminance, never weight.",
-      zh: "首页机场探索列表从扁平灰字升级为真正的设计语言：等宽 ICAO 代号芯片、衬线分组标签，以及唯一的橙色「附近」入口。层次来自字号与明度，而非字重。",
+      en: "The About sidebar adopts the Explorer design system. The build meta stacks label-over-value, and the data sources reuse the Explorer row with monospace category chips and serif group labels.",
+      zh: "关于页侧栏沿用机场探索的设计语言：构建信息改为标签在上、值在下的堆叠式，数据来源复用机场探索的行样式，配等宽分类芯片与衬线分组标签。",
     },
     highlights: [
       {
-        en: "ICAO codes become monospace chips (JetBrains Mono) with a hairline rim; the chip keeps one typeface/size/shape across states and changes color only when selected",
-        zh: "ICAO 代号变为带细描边的等宽芯片（JetBrains Mono）；芯片在各状态下保持同一字体/字号/形状，仅在选中时改变颜色",
+        en: "Version / Stack / Architecture become a stacked label-over-value meta block (no longer a left-label / right-value rail), separated from the sources by a hairline",
+        zh: "版本 / 技术栈 / 架构改为标签在上、值在下的堆叠式信息块（不再是左标签 / 右值的导轨），并以细线与数据来源分隔",
       },
       {
-        en: "Group labels (Near me / Spotter favorites / hubs) use an upright serif (Fraunces) with a small accent tick; the page title stays in Manrope",
-        zh: "分组标签（附近 / 收藏 / 枢纽）改用直立衬线（Fraunces）并配一道强调短线；页面标题仍为 Manrope",
+        en: "Data sources reuse the Explorer row exactly — monospace category chips (ADS-B / METAR / ROUTE) with a hairline rim and an external-link trailing icon",
+        zh: "数据来源完全复用机场探索的行样式——等宽分类芯片（ADS-B / METAR / ROUTE）带细描边，并配外链图标作为尾部",
       },
       {
-        en: "The near-me row is the one orange CTA — accent chip, faint wash, and a left rail; orange appears in exactly three places (title tick, group ticks, near-me row)",
-        zh: "「附近」行是唯一的橙色入口——强调芯片、淡底色与左侧导轨；橙色全页仅出现三处（标题短线、分组短线、附近行）",
-      },
-      {
-        en: "Airport names lead at a larger inked size and wrap instead of mid-word ellipsis; both light and dark themes retune through the existing signal-accent and ink tokens",
-        zh: "机场名以更大的深色字号领衔，超长时换行而非中途省略；明暗两套主题均通过既有的信号强调色与墨色令牌自动适配",
+        en: "Section and group labels use the upright serif; the title keeps Manrope with a small accent underline tick, and the data rows carry no orange",
+        zh: "区块与分组标签改用直立衬线；标题仍为 Manrope 并配一道强调下划线短线，数据行不含橙色",
       },
     ],
   },
