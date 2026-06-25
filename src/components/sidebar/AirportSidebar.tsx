@@ -5,7 +5,6 @@ import AirportIdentity from "./AirportIdentity";
 import SidebarShell from "./SidebarShell";
 import SidebarViewSwitch from "./SidebarViewSwitch";
 import WeatherBriefingStack from "./WeatherBriefingStack";
-import { TextPillListItem } from "@/components/ui/TextPillListItem";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
 
@@ -193,19 +192,66 @@ export default function AirportSidebar({
   );
 }
 
+// Frequencies are inherently a table: role on the left, the channel in mono
+// on the right. Ordered by the operational flow a pilot follows on the ground
+// and into the air (ATIS → Clearance → Ground → Tower → Approach → Departure).
+// The role is inferred from the callsign/description (the raw `type` field is
+// not a reliable canonical key across data sources).
+const ATC_ROLE_ORDER = [
+  "ATIS",
+  "Clearance",
+  "Ground",
+  "Tower",
+  "Approach",
+  "Departure",
+  "CTAF",
+  "UNICOM",
+  "Gate",
+];
+
+const atcRoleRank = (role: string) => {
+  const index = ATC_ROLE_ORDER.indexOf(role);
+  return index === -1 ? ATC_ROLE_ORDER.length : index;
+};
+
+const atcRoleOf = (frequency) =>
+  inferFrequencyType(frequency.description) ||
+  inferFrequencyType(frequency.callsign) ||
+  inferFrequencyType(String(frequency.type || "")) ||
+  "";
+
 function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
   const normalizedIcao = String(icao || "").trim().toUpperCase();
   const liveAtcHref = `https://www.liveatc.net/search/?icao=${encodeURIComponent(
     normalizedIcao,
   )}`;
+  const rows = [...frequencies]
+    .map((frequency) => {
+      const frequencyMhz = frequency.frequencyMHz ?? frequency.frequencyMhz;
+      const inferredRole = atcRoleOf(frequency);
+      const role =
+        inferredRole || formatFrequencyType(frequency.type, frequency.description);
+      const detail =
+        frequency.callsign && frequency.callsign !== role
+          ? frequency.callsign
+          : frequency.description && frequency.description !== role
+            ? frequency.description
+            : "";
+      return { id: frequency.id, role, inferredRole, detail, frequencyMhz };
+    })
+    .sort((left, right) => {
+      const rank = atcRoleRank(left.inferredRole) - atcRoleRank(right.inferredRole);
+      if (rank !== 0) return rank;
+      return (left.frequencyMhz ?? 0) - (right.frequencyMhz ?? 0);
+    });
 
   return (
-    <div className="flex flex-col gap-2 px-[var(--airport-sidebar-inset)] pb-5 pt-1">
+    <div className="flex flex-col gap-3 px-[var(--airport-sidebar-inset)] pb-5 pt-1">
       <div className="flex items-baseline justify-between pb-0.5">
-        <h2 className="text-[11px] font-bold uppercase tracking-normal text-atc-text">
+        <h2 className="text-[11px] uppercase tracking-normal text-atc-text">
           ATC Frequencies
         </h2>
-        <span className="font-mono text-[9px] font-semibold uppercase text-atc-faint">
+        <span className="font-mono text-[9px] uppercase text-atc-faint">
           {frequencies.length} channels
         </span>
       </div>
@@ -214,47 +260,41 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           href={liveAtcHref}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="inline-flex items-center justify-between gap-2 px-2 py-1 text-[9.5px] font-semibold uppercase tracking-normal text-atc-dim transition-colors hover:text-atc-text"
+          className="inline-flex items-center justify-between gap-2 text-[9.5px] uppercase tracking-normal text-atc-dim transition-colors hover:text-atc-text"
         >
           <span>Search {normalizedIcao} on LiveATC</span>
-          <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2.3} />
+          <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2} />
         </a>
       ) : null}
-      {frequencies.length === 0 ? (
-        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[11px] font-medium leading-snug text-atc-dim">
+      {rows.length === 0 ? (
+        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[11px] leading-snug text-atc-dim">
           No published frequencies for this airport.
         </p>
-      ) : null}
-      <div className="app-list-motion grid gap-1">
-        {frequencies.map((frequency, index) => {
-          const frequencyMhz = frequency.frequencyMHz ?? frequency.frequencyMhz;
-          return (
-            <TextPillListItem
-              key={frequency.id || `${frequency.type}-${frequencyMhz}-${index}`}
-              pill={
-                <span className="notranslate" translate="no">
-                  {formatFrequencyBadge(frequencyMhz)}
-                </span>
-              }
-              title={
-                frequency.callsign ||
-                frequency.description ||
-                formatFrequencyType(frequency.type)
-              }
-              subtitle={formatFrequencyType(frequency.type, frequency.description)}
-              meta={visibleFrequencySources(frequency)
-                .map((source) => (
-                  <span
-                    key={source}
-                    className="rounded-full border border-atc-line px-2 py-1 font-mono text-[7px] font-semibold uppercase leading-none text-atc-faint"
-                  >
-                    {source}
-                  </span>
-                ))}
-            />
-          );
-        })}
-      </div>
+      ) : (
+        <div className="app-list-motion atc-freq-table flex flex-col">
+          {rows.map((row, index) => (
+            <div
+              key={row.id || `${row.type}-${row.frequencyMhz}-${index}`}
+              className="flex items-baseline justify-between gap-3 border-b border-[color-mix(in_oklab,var(--atc-line)_55%,transparent)] py-2 last:border-b-0"
+            >
+              <div className="min-w-0">
+                <div className="truncate text-[11.5px] text-atc-text">{row.role}</div>
+                {row.detail ? (
+                  <div className="truncate text-[9px] uppercase tracking-[0.06em] text-atc-faint">
+                    {row.detail}
+                  </div>
+                ) : null}
+              </div>
+              <span
+                className="notranslate shrink-0 font-mono text-[12.5px] tabular-nums text-atc-text"
+                translate="no"
+              >
+                {formatFrequencyBadge(row.frequencyMhz)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -351,8 +391,3 @@ function inferFrequencyType(description) {
   return "";
 }
 
-function visibleFrequencySources(frequency) {
-  const sources = (frequency.sources || [frequency.source]).filter(Boolean);
-  if (sources.length === 1 && sources[0] === "openaip") return [];
-  return sources;
-}
