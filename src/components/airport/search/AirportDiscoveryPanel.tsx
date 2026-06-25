@@ -122,7 +122,6 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
       <DiscoverySectionHeader
         id={`airport-discovery-${topic.id}`}
         title={t(topic.titleKey)}
-        description={t(topic.descriptionKey)}
       />
 
       <ul className="dither-list mt-2.5 flex flex-col gap-2.5">

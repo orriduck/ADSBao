@@ -45,6 +45,28 @@ export const CHANGELOG_TOTAL_COUNT = 90;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.28.0",
+    kind: "feat",
+    title: {
+      en: "Designed, not aligned — system pass",
+      zh: "为「设计感」而非「对齐」打磨",
+    },
+    summary: {
+      en: "A page-by-page pass applying ADSBao's existing material system with intentional hierarchy, density rhythm, and surface separation. Opens with a typographic foundation: hierarchy now comes from size and luminance, never weight.",
+      zh: "逐页打磨，让 ADSBao 既有的材质系统以更有层次、更有节奏、更分面的方式呈现。首先落地排版基线：层次来自字号与明度，而非字重。",
+    },
+    highlights: [
+      {
+        en: "Typography is light/regular only — no bold/semibold anywhere; weight utilities and tokens remapped at the source",
+        zh: "排版仅用 light/regular，全应用不再有粗体；字重工具类与 token 在源头统一重映射",
+      },
+      {
+        en: "Loaded font weights trimmed to 300/400 for a lighter, more editorial feel",
+        zh: "加载的字重收敛为 300/400，整体更轻、更具编排感",
+      },
+    ],
+  },
+  {
     version: "v2.27.0",
     kind: "feat",
     title: {
