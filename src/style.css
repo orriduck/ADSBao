@@ -8088,16 +8088,17 @@ body {
     --mechanism-rail: 34px;
 }
 
+/* Whitespace groups, not lines: a deliberate gap separates one group from the
+   next (matching the Home / About rhythm) while the quiet eyebrow label sits on
+   the same content axis as the row titles. */
 .mechanism-group-label {
-    border-top: 1px solid color-mix(in oklab, var(--app-frost-border) 85%, transparent);
-    margin-top: 14px;
+    margin-top: 16px;
     padding-bottom: 8px;
     padding-left: calc(var(--mechanism-rail) + var(--mechanism-gap));
-    padding-top: 20px;
+    padding-top: 24px;
 }
 
 .mechanism-group-label:first-child {
-    border-top: 0;
     margin-top: 0;
     padding-top: 2px;
 }
