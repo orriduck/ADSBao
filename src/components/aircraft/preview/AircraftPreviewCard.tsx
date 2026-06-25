@@ -257,46 +257,37 @@ export default function AircraftPreviewCard({
     !isReportingPoint &&
     !isAirspace &&
     !isCandidateWatchingSpot;
-  // Revealed on expand: the photo (kept modest) plus the secondary actions —
-  // camera (Plane Hunter) and raise-hand (suggest correction). The dense
-  // HEX / Track / Distance rows are intentionally left off the mobile sheet.
-  const mobileExpandedContent =
-    mobileCompact && isAircraftPreview ? (
-      <div className="flex flex-col gap-2.5 px-[12px] pb-1 pt-2 [[data-density=compact]_&]:px-[10px]">
-        {hasPhoto ? (
-          <img
-            src={photo.src}
-            alt=""
-            draggable="false"
-            className="block max-h-[160px] w-full rounded-[12px] object-cover"
-          />
-        ) : null}
-        {showMobilePlaneHunterTrigger || showMobileFeedbackTrigger ? (
-          <div className="flex items-center gap-1.5">
-            {showMobilePlaneHunterTrigger ? (
-              <MobilePreviewIconButton
-                className="w-auto px-4"
-                onClick={() => setPlaneHunterOpen(true)}
-                aria-label={t("preview.planeHunter")}
-                title={t("preview.planeHunter")}
-              >
-                <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-              </MobilePreviewIconButton>
-            ) : null}
-            {showMobileFeedbackTrigger ? (
-              <MobilePreviewIconButton
-                className="w-auto px-4"
-                onClick={() => setFeedbackModalOpen(true)}
-                aria-label={mobileFeedbackLabel}
-                title={mobileFeedbackLabel}
-              >
-                <Hand aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-              </MobilePreviewIconButton>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-    ) : null;
+  // Revealed on expand: the secondary actions only — camera (Plane Hunter) and
+  // raise-hand (suggest correction). The photo already shows as the collapsed
+  // thumbnail (no second copy), and HEX / Track / Distance are left off mobile.
+  const mobileExtraActions =
+    mobileCompact &&
+    isAircraftPreview &&
+    (showMobilePlaneHunterTrigger || showMobileFeedbackTrigger);
+  const mobileExpandedContent = mobileExtraActions ? (
+    <div className="flex items-center gap-1.5 px-[12px] pb-1 pt-2 [[data-density=compact]_&]:px-[10px]">
+      {showMobilePlaneHunterTrigger ? (
+        <MobilePreviewIconButton
+          className="w-auto px-4"
+          onClick={() => setPlaneHunterOpen(true)}
+          aria-label={t("preview.planeHunter")}
+          title={t("preview.planeHunter")}
+        >
+          <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+        </MobilePreviewIconButton>
+      ) : null}
+      {showMobileFeedbackTrigger ? (
+        <MobilePreviewIconButton
+          className="w-auto px-4"
+          onClick={() => setFeedbackModalOpen(true)}
+          aria-label={mobileFeedbackLabel}
+          title={mobileFeedbackLabel}
+        >
+          <Hand aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+        </MobilePreviewIconButton>
+      ) : null}
+    </div>
+  ) : null;
 
   return (
     <>
@@ -366,7 +357,7 @@ export default function AircraftPreviewCard({
           key={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
           compact={mobileCompact}
-          expandable={mobileCompact}
+          expandable={Boolean(mobileExpandedContent)}
           grabberLabel={previewAriaLabel}
           expandedContent={mobileExpandedContent}
           placement={
