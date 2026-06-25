@@ -1,13 +1,9 @@
-import { ShieldAlert } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { resolveAirspacePreviewDisplay } from "@/features/airport/openaip/airspacePreviewDisplayModel";
-import {
-  MobilePreviewContent,
-  MobilePreviewDetailRow,
-} from "./MobilePreviewCard";
 import AirspacePreviewSelector, {
   useAirspaceCarouselSwipe,
 } from "./AirspacePreviewSelector";
+import { MobilePreviewHeader, MobilePreviewMetaLine } from "./previewCardChrome";
 
 type AirspacePreviewMobileCardProps = {
   airspace?: Record<string, any> | null;
@@ -34,49 +30,28 @@ export default function AirspacePreviewMobileCard({
     onSelectAirspace,
   });
 
+  const items = [
+    display.access ? <span key="access">{display.access}</span> : null,
+    display.vertical ? <span key="vertical">{display.vertical}</span> : null,
+  ].filter(Boolean);
+
   return (
-    <MobilePreviewContent
-      className="pointer-events-auto touch-pan-y gap-[3px] pb-[4px]"
+    <div
+      className="pointer-events-auto touch-pan-y flex flex-col gap-[6px] px-[12px] pb-[5px] pt-[10px] [[data-density=compact]_&]:px-[10px]"
       {...carouselSwipeHandlers}
     >
-      <div className="flex min-w-0 items-start gap-[6px]">
-        <span
-          aria-label={t("preview.airspacePreview")}
-          title={t("preview.airspacePreview")}
-          className="mt-[1px] grid size-[18px] flex-none place-items-center text-atc-dim"
-        >
-          <ShieldAlert aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <span
-            translate="no"
-            className="notranslate block min-w-0 whitespace-normal break-words font-[var(--font-mono)] text-[18px] font-extrabold leading-[1.05] tracking-normal text-atc-text"
-          >
-            {name}
-          </span>
-        </div>
-      </div>
-      {display.access ? (
-        <MobilePreviewDetailRow wrap>
-          {display.access}
-        </MobilePreviewDetailRow>
-      ) : null}
-      {typeAndClass ? (
-        <MobilePreviewDetailRow wrap>
-          {typeAndClass}
-        </MobilePreviewDetailRow>
-      ) : null}
-      {display.vertical ? (
-        <MobilePreviewDetailRow wrap>
-          {display.vertical}
-        </MobilePreviewDetailRow>
-      ) : null}
+      <MobilePreviewHeader
+        primary={name}
+        primaryMono={false}
+        secondary={typeAndClass || undefined}
+      />
+      <MobilePreviewMetaLine items={items} />
       <AirspacePreviewSelector
         airspaces={airspaces}
         selectedAirspaceId={selectedAirspaceId}
         onSelectAirspace={onSelectAirspace}
         compact
       />
-    </MobilePreviewContent>
+    </div>
   );
 }

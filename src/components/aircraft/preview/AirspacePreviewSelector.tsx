@@ -25,12 +25,9 @@ const AIRSPACE_CAROUSEL_SWIPE_MAX_VERTICAL_RATIO = 0.72;
 const AIRSPACE_CAROUSEL_SWIPE_MAX_DURATION_MS = 900;
 const AIRSPACE_CAROUSEL_WHEEL_MIN_DISTANCE_PX = 36;
 const AIRSPACE_CAROUSEL_WHEEL_MAX_VERTICAL_RATIO = 0.86;
+// A continuous trackpad swipe fires once; it only re-arms after this pause (or
+// a direction change) — so one swipe moves exactly one card.
 const AIRSPACE_CAROUSEL_WHEEL_RESET_MS = 180;
-const AIRSPACE_CAROUSEL_WHEEL_RESTART_GAP_MS = 140;
-const AIRSPACE_CAROUSEL_WHEEL_DECAY_DELTA_PX = 12;
-const AIRSPACE_CAROUSEL_WHEEL_REARM_MS = 120;
-const AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_MIN_DELTA_PX = 20;
-const AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_RATIO = 1.55;
 
 export default function AirspacePreviewSelector({
   airspaces = [],
@@ -120,10 +117,7 @@ export function useAirspaceCarouselSwipe({
     dy: 0,
     time: 0,
     triggered: false,
-    triggerTime: 0,
     direction: 0,
-    lastAbsDx: 0,
-    decayed: false,
   });
 
   const selectByDelta = (dx: number) => {
@@ -221,50 +215,24 @@ export function useAirspaceCarouselSwipe({
       const wheel = wheelRef.current;
       const direction = dx < 0 ? -1 : 1;
       const gap = event.timeStamp - wheel.time;
-      const timeSinceTrigger = event.timeStamp - wheel.triggerTime;
       const directionChanged =
         wheel.direction !== 0 && direction !== wheel.direction;
-      const secondSwipeAfterGap =
-        wheel.triggered &&
-        gap >= AIRSPACE_CAROUSEL_WHEEL_RESTART_GAP_MS &&
-        absDx >= AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_MIN_DELTA_PX;
-      const secondSwipeByAcceleration =
-        wheel.triggered &&
-        wheel.decayed &&
-        timeSinceTrigger >= AIRSPACE_CAROUSEL_WHEEL_REARM_MS &&
-        absDx >= AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_MIN_DELTA_PX &&
-        wheel.lastAbsDx > 0 &&
-        absDx >=
-          wheel.lastAbsDx * AIRSPACE_CAROUSEL_WHEEL_REACCELERATION_RATIO;
 
-      if (
-        gap > AIRSPACE_CAROUSEL_WHEEL_RESET_MS ||
-        directionChanged ||
-        secondSwipeAfterGap ||
-        secondSwipeByAcceleration
-      ) {
+      // Re-arm only after a clear pause or a direction change. A single
+      // continuous swipe therefore advances exactly one card; to move again
+      // the user lifts/pauses (gap > reset) and swipes once more.
+      if (gap > AIRSPACE_CAROUSEL_WHEEL_RESET_MS || directionChanged) {
         wheel.dx = 0;
         wheel.dy = 0;
         wheel.triggered = false;
-        wheel.triggerTime = 0;
-        wheel.decayed = false;
       }
 
-      if (wheel.triggered) {
-        if (absDx <= AIRSPACE_CAROUSEL_WHEEL_DECAY_DELTA_PX) {
-          wheel.decayed = true;
-        }
-        wheel.time = event.timeStamp;
-        wheel.direction = direction;
-        wheel.lastAbsDx = absDx;
-        return;
-      }
+      wheel.time = event.timeStamp;
+      wheel.direction = direction;
+      if (wheel.triggered) return;
 
       wheel.dx += dx;
       wheel.dy += dy;
-      wheel.time = event.timeStamp;
-      wheel.direction = direction;
-      wheel.lastAbsDx = absDx;
 
       const accumulatedAbsDx = Math.abs(wheel.dx);
       const accumulatedAbsDy = Math.abs(wheel.dy);
@@ -280,10 +248,7 @@ export function useAirspaceCarouselSwipe({
       selectByDelta(-wheel.dx);
       wheel.dx = 0;
       wheel.dy = 0;
-      wheel.time = event.timeStamp;
       wheel.triggered = true;
-      wheel.triggerTime = event.timeStamp;
-      wheel.decayed = false;
     },
   };
 }

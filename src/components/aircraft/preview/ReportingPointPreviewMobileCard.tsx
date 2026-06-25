@@ -1,12 +1,5 @@
-import { Signpost } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import {
-  MobilePreviewContent,
-  MobilePreviewIdentity,
-  MobilePreviewMetaChip,
-  MobilePreviewMetaChips,
-  MobilePreviewRuleRow,
-} from "./MobilePreviewCard";
+import { MobilePreviewHeader, MobilePreviewMetaLine } from "./previewCardChrome";
 
 type ReportingPointPreviewMobileCardProps = {
   point?: Record<string, any> | null;
@@ -24,29 +17,15 @@ export default function ReportingPointPreviewMobileCard({
     point?.source === "openaip" ? "OpenAIP" : String(point?.source || "");
   const country = String(point?.country || "");
 
+  const items = [
+    country ? <span key="country">{country}</span> : null,
+    source ? <span key="source">{source}</span> : null,
+  ].filter(Boolean);
+
   return (
-    <MobilePreviewContent>
-      <MobilePreviewIdentity
-        icon={Signpost}
-        label={t("preview.reportingPointPreview")}
-        primary={name}
-        primaryClassName="whitespace-normal break-words text-[18px] leading-[1.05]"
-        secondary={kind}
-      />
-      {(country || source) ? (
-        <MobilePreviewRuleRow
-          right={
-            <MobilePreviewMetaChips>
-              {country ? (
-                <MobilePreviewMetaChip>{country}</MobilePreviewMetaChip>
-              ) : null}
-              {source ? (
-                <MobilePreviewMetaChip>{source}</MobilePreviewMetaChip>
-              ) : null}
-            </MobilePreviewMetaChips>
-          }
-        />
-      ) : null}
-    </MobilePreviewContent>
+    <div className="flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
+      <MobilePreviewHeader primary={name} primaryMono={false} secondary={kind} />
+      <MobilePreviewMetaLine items={items} />
+    </div>
   );
 }

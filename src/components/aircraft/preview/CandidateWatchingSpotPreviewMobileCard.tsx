@@ -1,14 +1,10 @@
-import { Camera } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import {
-  MobilePreviewContent,
-  MobilePreviewIdentity,
-} from "./MobilePreviewCard";
 import {
   formatCandidateWatchingSpotCategory,
   formatCandidateWatchingSpotDistance,
   formatCandidateWatchingSpotName,
 } from "./candidateWatchingSpotPreviewFormat";
+import { MobilePreviewHeader, MobilePreviewMetaLine } from "./previewCardChrome";
 
 type CandidateWatchingSpotPreviewMobileCardProps = {
   spot?: Record<string, any> | null;
@@ -27,32 +23,24 @@ export default function CandidateWatchingSpotPreviewMobileCard({
   const category = formatCandidateWatchingSpotCategory(spot);
   const distance = formatCandidateWatchingSpotDistance(spot, t);
   const attribution = String(sourceAttribution || "").trim();
-  const summaryLabel = distance || category || null;
+
+  const items = [
+    distance ? <span key="distance">{distance}</span> : null,
+    attribution ? (
+      <span key="attribution" className="text-atc-faint">
+        {attribution}
+      </span>
+    ) : null,
+  ].filter(Boolean);
 
   return (
-    <MobilePreviewContent>
-      <div className="candidate-watching-spot-preview-motion flex min-w-0 flex-col items-stretch gap-[6px]">
-        <MobilePreviewIdentity
-          icon={Camera}
-          label={t("preview.candidateWatchingSpotPreview")}
-          primary={name}
-          primaryClassName="whitespace-normal break-words text-[18px] leading-[1.05]"
-          secondary={null}
-        />
-        <div className="flex min-w-0 items-baseline justify-between gap-3 font-[var(--font-mono)]">
-          <span
-            translate="no"
-            className="notranslate min-w-0 shrink-0 truncate whitespace-nowrap text-left text-[10px] font-semibold leading-tight tracking-normal text-atc-dim"
-          >
-            {summaryLabel}
-          </span>
-          {attribution ? (
-            <span className="min-w-0 truncate whitespace-nowrap text-right text-[10px] font-medium leading-tight tracking-normal text-atc-dim">
-              {attribution}
-            </span>
-          ) : null}
-        </div>
-      </div>
-    </MobilePreviewContent>
+    <div className="candidate-watching-spot-preview-motion flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
+      <MobilePreviewHeader
+        primary={name}
+        primaryMono={false}
+        secondary={category || undefined}
+      />
+      <MobilePreviewMetaLine items={items} />
+    </div>
   );
 }

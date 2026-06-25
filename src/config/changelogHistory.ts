@@ -277,6 +277,28 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.28.6",
+    kind: "patch",
+    title: {
+      en: "Mobile preview card — compact collapsed row",
+      zh: "移动预览卡片——更紧凑的收起态",
+    },
+    summary: {
+      en: "The collapsed mobile aircraft card tightens to a single glance: thumbnail, callsign + type, route, an inline orange Track button, and one telemetry line. The photo and secondary actions move into the expanded sheet.",
+      zh: "移动端飞机卡片的收起态收紧为一眼可读：缩略图、呼号 + 机型、航路、内联橙色 Track 按钮，以及一行参数。照片与次要操作移入展开层。",
+    },
+    highlights: [
+      {
+        en: "Collapsed row: [thumbnail] [callsign + TYPE / CATEGORY · ORIGIN → DEST] [inline Track], over a 'speed · alt · ↑V/S' line with the vertical-speed in the accent",
+        zh: "收起行：[缩略图] [呼号 + 机型 / 类别 · 起 → 降] [内联 Track]，下方为「速度 · 高度 · ↑垂直速度」一行，垂直速度用强调色",
+      },
+      {
+        en: "Drag the grabber down to reveal a modest photo plus the camera / suggest-correction actions; the dense HEX / Track / Distance rows are left off mobile",
+        zh: "向下拖动把手即可展开适中的照片，以及相机 / 建议纠正操作；移动端不再堆叠 HEX / 航向 / 距离等密集信息",
+      },
+    ],
+  },
+  {
     version: "v2.28.5",
     kind: "patch",
     title: {
