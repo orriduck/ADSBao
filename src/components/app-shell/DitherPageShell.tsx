@@ -173,9 +173,9 @@ function resolveRouteChrome(pathname, t) {
   if (segment === "mechanism") {
     return {
       key: "mechanism",
-      className: "",
+      className: "mechanism-screen",
       title: t("app.mechanismTitle"),
-      description: "",
+      description: t("app.mechanismSubtitle"),
     };
   }
 

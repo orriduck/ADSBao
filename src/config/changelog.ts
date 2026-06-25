@@ -41,32 +41,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 94;
+export const CHANGELOG_TOTAL_COUNT = 95;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.28.3",
+    version: "v2.28.4",
     kind: "patch",
     title: {
-      en: "About page — same code chips and serif labels as Explorer",
-      zh: "关于页——与机场探索一致的代号芯片与衬线标签",
+      en: "Mechanism redesign + Changelog type scale",
+      zh: "机制页重设计 + 更新日志字号统一",
     },
     summary: {
-      en: "The About sidebar adopts the Explorer design system. The build meta stacks label-over-value, and the data sources reuse the Explorer row with monospace category chips and serif group labels.",
-      zh: "关于页侧栏沿用机场探索的设计语言：构建信息改为标签在上、值在下的堆叠式，数据来源复用机场探索的行样式，配等宽分类芯片与衬线分组标签。",
+      en: "The Mechanism page adopts the Explorer/About design system, and the Changelog aligns to the same type scale. Both join the first-screen family with serif group labels and the accent title tick.",
+      zh: "机制页沿用机场探索 / 关于页的设计语言，更新日志对齐同一套字号。两页都归入首屏家族，配衬线分组标签与强调标题短线。",
     },
     highlights: [
       {
-        en: "Version / Stack / Architecture become a stacked label-over-value meta block (no longer a left-label / right-value rail), separated from the sources by a hairline",
-        zh: "版本 / 技术栈 / 架构改为标签在上、值在下的堆叠式信息块（不再是左标签 / 右值的导轨），并以细线与数据来源分隔",
+        en: "Mechanism rows become numbered accordion entries (mono index, title + signal, chevron); the expanded row gets a faint neutral panel with the data flow drawn as a vertical node pipeline — only the final produced payload is the orange node",
+        zh: "机制行改为带编号的折叠条目（等宽序号、标题 + 信号、折叠箭头）；展开行为淡色面板，数据流以竖向节点管线呈现——仅最终产出的 payload 为橙色节点",
       },
       {
-        en: "Data sources reuse the Explorer row exactly — monospace category chips (ADS-B / METAR / ROUTE) with a hairline rim and an external-link trailing icon",
-        zh: "数据来源完全复用机场探索的行样式——等宽分类芯片（ADS-B / METAR / ROUTE）带细描边，并配外链图标作为尾部",
+        en: "Mechanism group labels switch to the upright serif with an accent tick, and the title gains the accent underline tick + a quiet subtitle (kicker/count dropped)",
+        zh: "机制分组标签改用直立衬线并配强调短线，标题加上强调下划线短线与一行安静副标题（去掉旧的标签 / 计数头）",
       },
       {
-        en: "Section and group labels use the upright serif; the title keeps Manrope with a small accent underline tick, and the data rows carry no orange",
-        zh: "区块与分组标签改用直立衬线；标题仍为 Manrope 并配一道强调下划线短线，数据行不含橙色",
+        en: "Changelog aligns to the shared type scale — 15px entry titles, 11.5px summaries, mono version, and FEAT/PATCH/BREAKING as the shared mono chip — with the accent title tick; structure unchanged",
+        zh: "更新日志对齐共享字号——15px 条目标题、11.5px 摘要、等宽版本号，FEAT/PATCH/BREAKING 采用共享的等宽芯片——并加上强调标题短线；结构不变",
       },
     ],
   },
