@@ -1,197 +1,174 @@
-import { useState } from "react";
-import type { ComponentProps, ReactElement } from "react";
-import NumberFlow from "@number-flow/react";
-import { Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toFiniteNumber } from "@/utils/math";
-import {
-  getFlightRouteAccuracyNotice,
-  getFlightRouteAirlineIconUrl,
-} from "@/utils/flightRouteDisplay";
+import { getFlightRouteEndpoints } from "@/utils/flightRouteDisplay";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
-import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
+import { getAircraftPreviewTypeDisplay } from "@/features/aircraft/preview/aircraftPreviewTypeModel";
 import { formatAltitude } from "@/utils/units";
-import {
-  MobilePreviewContent,
-  MobilePreviewDetailRow,
-  MobilePreviewIdentity,
-  MobilePreviewMetaChip,
-  MobilePreviewMetaChips,
-  MobilePreviewRuleRow,
-} from "./MobilePreviewCard";
+import { MobilePreviewTrackButton } from "./MobilePreviewCard";
 import type { AsyncStatusState } from "@/hooks/useAsyncStatus";
 
-type NumberFlowFormat = ComponentProps<typeof NumberFlow>["format"];
-
-type AircraftPreviewMobileCardAircraft = {
-  callsign?: string | null;
-  icao24?: string | null;
-  type?: string | null;
-  desc?: string | null;
-  category?: string | null;
-  flightRouteLabel?: string | null;
-  flightRoute?: unknown;
-  velocity?: unknown;
-  altitude?: unknown;
-  baroRate?: unknown;
-  onGround?: boolean | null;
-};
-
 type AircraftPreviewMobileCardProps = {
-  aircraft?: AircraftPreviewMobileCardAircraft | null;
+  aircraft?: Record<string, any> | null;
+  photo?: { src?: string | null } | null;
   traceStatusState?: AsyncStatusState | null;
+  trackLabel?: string;
+  trackDisabled?: boolean;
+  onTrack?: () => void;
 };
 
-type AirlineLogoProps = {
-  src?: string | null;
-};
-
-type StatProps = {
-  value?: number;
-  unit?: string;
-  plain?: string;
-  prefix?: string;
-  format?: NumberFlowFormat;
-  accent?: boolean;
-};
-
-// Same self-hiding-on-error pattern as the list row's logo. Keeps the
-// mobile card tidy when an airline isn't covered by the icon CDN.
-function AirlineLogo({ src }: AirlineLogoProps) {
-  const [hidden, setHidden] = useState(false);
-  if (!src || hidden) return null;
-  return (
-    <img
-      src={src}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      onError={() => setHidden(true)}
-      className="h-3.5 w-[22px] flex-none rounded-[2px] bg-[var(--aviation-logo-plate)] object-contain px-[2px] py-[1px]"
-    />
-  );
-}
-
+// Collapsed mobile card: [thumb][callsign + type · route][Track] over a single
+// telemetry line. The photo is a small thumbnail (the full reveal lives in the
+// expanded sheet); the vertical-speed is the one accent in the telemetry line.
 export default function AircraftPreviewMobileCard({
   aircraft,
+  photo,
   traceStatusState = null,
+  trackLabel,
+  trackDisabled = false,
+  onTrack,
 }: AircraftPreviewMobileCardProps) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
-  const typeDisplay = resolveAircraftDisplayModel(aircraft || {});
-  const secondary =
-    typeDisplay.displayName === "N/A"
-      ? null
-      : (
-          <span className="inline-flex min-w-0 max-w-full items-center justify-end gap-1.5">
-            <span className="min-w-0 truncate">{typeDisplay.displayName}</span>
-            {typeDisplay.category ? (
-              <span className="flex-none rounded-[3px] border border-atc-line px-1 py-[1px] text-[9px] font-semibold leading-none text-atc-dim">
-                {typeDisplay.category}
-              </span>
-            ) : null}
-          </span>
-        );
-  const route = aircraft?.flightRouteLabel || "";
-  const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
-  const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft?.flightRoute)
-    ? t("aircraft.adsbdbRouteAccuracyNotice")
-    : "";
+  const typeDisplay = getAircraftPreviewTypeDisplay(aircraft);
+  const typeLabel = [typeDisplay.primary, typeDisplay.category]
+    .filter(Boolean)
+    .join(" / ");
+  const { origin, destination } = getFlightRouteEndpoints(aircraft?.flightRoute);
 
   const speed = toFiniteNumber(aircraft?.velocity);
   const altitude = toFiniteNumber(aircraft?.altitude);
   const vs = toFiniteNumber(aircraft?.baroRate);
   const onGround = Boolean(aircraft?.onGround);
-
-  const hasStats = speed != null || altitude != null || vs != null || onGround;
-
-  const stats: ReactElement[] = [];
-  if (speed != null) {
-    stats.push(
-      <Stat key="speed" value={Math.round(speed)} unit="kt" />,
-    );
-  }
-  if (altitude != null || onGround) {
-    const altDisplay =
-      altitude == null
-        ? null
-        : formatAltitude(altitude, units.altitude, { kind: "cruise" });
-    stats.push(
-      onGround ? (
-        <Stat key="alt" plain={t("aircraft.gnd")} />
-      ) : (
-        <Stat
-          key="alt"
-          value={altDisplay?.value ?? 0}
-          unit={altDisplay?.unit ?? "ft"}
-          prefix={altDisplay?.prefix}
-        />
-      ),
-    );
-  }
-  if (vs != null) {
-    stats.push(
-      <Stat
-        key="vs"
-        value={Math.round(vs)}
-        unit="fpm"
-        format={{ signDisplay: "exceptZero" }}
-        accent
-      />,
-    );
-  }
+  const altDisplay =
+    altitude == null
+      ? null
+      : formatAltitude(altitude, units.altitude, { kind: "cruise" });
+  const vsArrow = vs == null || vs === 0 ? "" : vs > 0 ? "↑" : "↓";
 
   return (
-    <MobilePreviewContent>
-      <MobilePreviewIdentity
-        icon={Plane}
-        label={t("preview.aircraftPreview")}
-        primary={
-          <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
-            <span className="min-w-0 truncate">{callsign}</span>
-            <TraceStatusDot
-              state={traceStatusState}
-              labels={{
-                pending: t("preview.loadingTrace"),
-                success: t("preview.loadedTrace"),
-                error: t("preview.traceLoadError"),
-              }}
-            />
-          </span>
-        }
-        secondary={secondary}
-        secondaryClassName="max-w-[min(47vw,176px)] text-[13px] font-extrabold text-atc-text"
-      />
-      {(route || hasStats) ? (
-        <MobilePreviewRuleRow
-          left={
-            route ? (
+    <div className="flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
+      <div className="flex items-center gap-2.5">
+        {photo?.src ? (
+          <img
+            src={photo.src}
+            alt=""
+            draggable="false"
+            className="size-[42px] flex-none rounded-[11px] object-cover"
+          />
+        ) : (
+          <span className="size-[42px] flex-none rounded-[11px] bg-[color-mix(in_oklab,var(--atc-text)_9%,transparent)]" />
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-baseline gap-2">
+            <span
+              className="notranslate inline-flex min-w-0 items-center gap-1.5 truncate font-mono text-[19px] leading-none text-atc-text"
+              translate="no"
+              title={callsign}
+            >
+              {callsign}
+              <TraceStatusDot
+                state={traceStatusState}
+                labels={{
+                  pending: t("preview.loadingTrace"),
+                  success: t("preview.loadedTrace"),
+                  error: t("preview.traceLoadError"),
+                }}
+              />
+            </span>
+            {typeLabel ? (
               <span
-                className="inline-flex min-w-0 max-w-full items-center gap-[6px] align-baseline"
-                title={routeAccuracyNotice || route}
+                className="notranslate flex-none whitespace-nowrap font-mono text-[12px] tracking-[0.04em] text-atc-dim"
+                translate="no"
               >
-                <AirlineLogo src={airlineIconUrl} />
-                <span className="min-w-0 truncate whitespace-nowrap">{route}</span>
+                {typeLabel}
               </span>
-            ) : null
-          }
-          right={
-            hasStats ? (
-              <MobilePreviewMetaChips>
-                {stats.map((stat, i) => (
-                  <MobilePreviewMetaChip key={stat.key || i}>
-                    {stat}
-                  </MobilePreviewMetaChip>
-                ))}
-              </MobilePreviewMetaChips>
-            ) : null
-          }
-        />
+            ) : null}
+          </div>
+          <div className="mt-[5px] font-mono text-[11.5px] tracking-[0.04em] text-atc-dim">
+            {origin && destination ? (
+              <span className="notranslate inline-flex items-center gap-1.5" translate="no">
+                {origin}
+                <span aria-hidden="true" className="text-[var(--atc-signal-accent)]">
+                  →
+                </span>
+                {destination}
+              </span>
+            ) : (
+              <span className="italic text-atc-faint">{t("aircraft.noRoute")}</span>
+            )}
+          </div>
+        </div>
+        {onTrack ? (
+          <MobilePreviewTrackButton
+            className="w-auto flex-none self-center px-5 border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
+            onClick={onTrack}
+            disabled={trackDisabled}
+          >
+            {trackLabel}
+          </MobilePreviewTrackButton>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap items-baseline gap-x-[7px] gap-y-1 border-t border-atc-line pt-[7px] font-mono text-[13px] tabular-nums text-atc-text">
+        <Metric value={speed != null ? Math.round(speed).toLocaleString() : "—"} unit="kt" />
+        <Separator />
+        {onGround ? (
+          <span className="tabular-nums">{t("aircraft.gnd")}</span>
+        ) : (
+          <Metric
+            prefix={altDisplay?.prefix}
+            value={altDisplay ? altDisplay.value.toLocaleString() : "—"}
+            unit={altDisplay?.unit ?? "ft"}
+          />
+        )}
+        {vs != null ? (
+          <>
+            <Separator />
+            <span className="inline-flex items-baseline gap-[3px] tabular-nums text-[var(--atc-signal-accent)]">
+              {vsArrow ? <span aria-hidden="true">{vsArrow}</span> : null}
+              {Math.abs(Math.round(vs)).toLocaleString()}
+            </span>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function Separator() {
+  return (
+    <span aria-hidden="true" className="text-atc-faint">
+      ·
+    </span>
+  );
+}
+
+function Metric({
+  value,
+  unit,
+  prefix,
+}: {
+  value: string;
+  unit?: string;
+  prefix?: string;
+}) {
+  return (
+    <span className="inline-flex items-baseline gap-[2px] tabular-nums">
+      {prefix ? (
+        <span className="notranslate text-atc-dim" translate="no">
+          {prefix}
+        </span>
       ) : null}
-    </MobilePreviewContent>
+      {value}
+      {unit ? (
+        <span translate="no" className="notranslate text-[9px] text-atc-faint">
+          {unit}
+        </span>
+      ) : null}
+    </span>
   );
 }
 
@@ -204,13 +181,13 @@ function TraceStatusDot({
 }) {
   if (!state || state.phase === "idle") return null;
 
-  const isErrorStatus =
-    state.statusCode != null && state.statusCode >= 400;
-  const tone = state.hasError || isErrorStatus
-    ? "error"
-    : state.phase === "pending"
-      ? "loading"
-      : "success";
+  const isErrorStatus = state.statusCode != null && state.statusCode >= 400;
+  const tone =
+    state.hasError || isErrorStatus
+      ? "error"
+      : state.phase === "pending"
+        ? "loading"
+        : "success";
   const label =
     tone === "loading"
       ? labels.pending
@@ -232,44 +209,5 @@ function TraceStatusDot({
       role="status"
       title={label}
     />
-  );
-}
-
-function Stat({ value = 0, unit, plain, prefix, format, accent = false }: StatProps) {
-  return (
-    <>
-      {plain != null ? (
-        <span className="tabular-nums">{plain}</span>
-      ) : (
-        <>
-          {prefix ? (
-            <span className="notranslate text-atc-dim" translate="no">
-              {prefix}
-            </span>
-          ) : null}
-          <NumberFlow
-            value={value}
-            format={format}
-            className={cn(
-              "tabular-nums",
-              accent && "text-[var(--atc-signal-accent)]",
-            )}
-          />
-        </>
-      )}
-      {unit && (
-        <span
-          translate="no"
-          className={cn(
-            "notranslate text-[8px] font-medium lowercase",
-            accent
-              ? "text-[color-mix(in_oklab,var(--atc-signal-accent)_68%,transparent)]"
-              : "text-atc-faint",
-          )}
-        >
-          {unit}
-        </span>
-      )}
-    </>
   );
 }

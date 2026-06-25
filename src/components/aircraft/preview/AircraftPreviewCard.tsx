@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import { Camera, Hand } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard";
-import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard";
 import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard";
@@ -258,24 +257,44 @@ export default function AircraftPreviewCard({
     !isReportingPoint &&
     !isAirspace &&
     !isCandidateWatchingSpot;
-  // Revealed on expand: the photo + the HEX / Track / Distance identity rows
-  // (the same content the desktop card shows inline).
+  // Revealed on expand: the photo (kept modest) plus the secondary actions —
+  // camera (Plane Hunter) and raise-hand (suggest correction). The dense
+  // HEX / Track / Distance rows are intentionally left off the mobile sheet.
   const mobileExpandedContent =
     mobileCompact && isAircraftPreview ? (
-      <div className="pt-1">
+      <div className="flex flex-col gap-2.5 px-[12px] pb-1 pt-2 [[data-density=compact]_&]:px-[10px]">
         {hasPhoto ? (
-          <div className="px-[12px] [[data-density=compact]_&]:px-[10px]">
-            <img
-              src={photo.src}
-              alt=""
-              draggable="false"
-              className="block max-h-[150px] w-full rounded-[12px] object-cover"
-            />
+          <img
+            src={photo.src}
+            alt=""
+            draggable="false"
+            className="block max-h-[160px] w-full rounded-[12px] object-cover"
+          />
+        ) : null}
+        {showMobilePlaneHunterTrigger || showMobileFeedbackTrigger ? (
+          <div className="flex items-center gap-1.5">
+            {showMobilePlaneHunterTrigger ? (
+              <MobilePreviewIconButton
+                className="w-auto px-4"
+                onClick={() => setPlaneHunterOpen(true)}
+                aria-label={t("preview.planeHunter")}
+                title={t("preview.planeHunter")}
+              >
+                <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+              </MobilePreviewIconButton>
+            ) : null}
+            {showMobileFeedbackTrigger ? (
+              <MobilePreviewIconButton
+                className="w-auto px-4"
+                onClick={() => setFeedbackModalOpen(true)}
+                aria-label={mobileFeedbackLabel}
+                title={mobileFeedbackLabel}
+              >
+                <Hand aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
+              </MobilePreviewIconButton>
+            ) : null}
           </div>
         ) : null}
-        <div className="px-[12px] pb-1 pt-2 [[data-density=compact]_&]:px-[10px]">
-          <AircraftPreviewMetadata aircraft={aircraft} />
-        </div>
       </div>
     ) : null;
 
@@ -355,10 +374,11 @@ export default function AircraftPreviewCard({
           }
           style={mobilePreviewSafeAreaStyle}
           actions={
-            (showMobileTrackButton ||
-              showMobilePlaneHunterTrigger ||
-              showMobileFeedbackTrigger ||
-              showMobileSpotNavigationTrigger) ? (
+            // Aircraft: Track lives inline in the collapsed card and the
+            // camera / suggest icons live in the expanded reveal, so the
+            // shared actions row is only for the other (non-compact) previews.
+            !mobileCompact &&
+            (showMobileTrackButton || showMobileSpotNavigationTrigger) ? (
               <MobilePreviewActions>
                 <div className="flex items-stretch gap-1.5">
                   {showMobileTrackButton && (
@@ -377,24 +397,6 @@ export default function AircraftPreviewCard({
                     >
                       {t("preview.goToSpot")}
                     </MobilePreviewTrackButton>
-                  )}
-                  {showMobilePlaneHunterTrigger && (
-                    <MobilePreviewIconButton
-                      onClick={() => setPlaneHunterOpen(true)}
-                      aria-label={t("preview.planeHunter")}
-                      title={t("preview.planeHunter")}
-                    >
-                      <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-                    </MobilePreviewIconButton>
-                  )}
-                  {showMobileFeedbackTrigger && (
-                    <MobilePreviewIconButton
-                      onClick={() => setFeedbackModalOpen(true)}
-                      aria-label={mobileFeedbackLabel}
-                      title={mobileFeedbackLabel}
-                    >
-                      <Hand aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-                    </MobilePreviewIconButton>
                   )}
                 </div>
               </MobilePreviewActions>
@@ -424,7 +426,11 @@ export default function AircraftPreviewCard({
           ) : (
             <AircraftPreviewMobileCard
               aircraft={aircraft}
+              photo={photo}
               traceStatusState={traceStatusVisible ? traceAsyncState : null}
+              trackLabel={mobileTrackLabel}
+              trackDisabled={alreadyTracking}
+              onTrack={showMobileTrackButton ? handleMobileTap : undefined}
             />
           )}
         </MobilePreviewCard>

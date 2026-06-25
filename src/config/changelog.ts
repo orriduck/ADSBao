@@ -41,32 +41,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 96;
+export const CHANGELOG_TOTAL_COUNT = 97;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.28.5",
+    version: "v2.28.6",
     kind: "patch",
     title: {
-      en: "Aircraft preview card — clearer selection state",
-      zh: "飞机预览卡片——更清晰的选中态",
+      en: "Mobile preview card — compact collapsed row",
+      zh: "移动预览卡片——更紧凑的收起态",
     },
     summary: {
-      en: "Tapping an aircraft now opens a refreshed frosted preview card on desktop and a drag-to-expand sheet on mobile, with one signal accent and no rainbow button.",
-      zh: "点选飞机后，桌面端打开焕新的磨砂预览卡片，移动端为可下拉展开的卡片；统一单一信号强调色，去掉彩虹按钮。",
+      en: "The collapsed mobile aircraft card tightens to a single glance: thumbnail, callsign + type, route, an inline orange Track button, and one telemetry line. The photo and secondary actions move into the expanded sheet.",
+      zh: "移动端飞机卡片的收起态收紧为一眼可读：缩略图、呼号 + 机型、航路、内联橙色 Track 按钮，以及一行参数。照片与次要操作移入展开层。",
     },
     highlights: [
       {
-        en: "Desktop card: a photo header with a 'tracking' pill, callsign + TYPE / CATEGORY (no registration), an ORIGIN ——✈—— DEST route line, accent vertical-speed, HEX / Track / Distance, and a Track button beside camera + suggest-correction icon buttons",
-        zh: "桌面卡片：带「追踪」徽标的照片头、呼号 + 机型 / 类别（不再显示注册号）、ORIGIN ——✈—— DEST 航路线、强调色垂直速度、HEX / 航向 / 距离，以及 Track 按钮搭配相机 + 建议纠正图标按钮",
+        en: "Collapsed row: [thumbnail] [callsign + TYPE / CATEGORY · ORIGIN → DEST] [inline Track], over a 'speed · alt · ↑V/S' line with the vertical-speed in the accent",
+        zh: "收起行：[缩略图] [呼号 + 机型 / 类别 · 起 → 降] [内联 Track]，下方为「速度 · 高度 · ↑垂直速度」一行，垂直速度用强调色",
       },
       {
-        en: "Mobile: a top-anchored drag-to-expand sheet (drag the grabber down) — collapsed shows callsign / type / telemetry / actions; expanded reveals the photo and identity rows. Landscape anchors to the bottom and expands up",
-        zh: "移动端：顶部吸附、可下拉展开的卡片（向下拖动把手）——收起时显示呼号 / 机型 / 参数 / 操作，展开后显示照片与身份信息；横屏改为底部吸附、向上展开",
-      },
-      {
-        en: "The list-row selection (orange wash + accent rail + accent glyph) and the single signal accent are reused throughout; the multicolour Plane Hunter button is gone",
-        zh: "沿用列表行选中态（橙色底色 + 强调导轨 + 强调图标）与单一信号强调色；移除多彩的拍机按钮",
+        en: "Drag the grabber down to reveal a modest photo plus the camera / suggest-correction actions; the dense HEX / Track / Distance rows are left off mobile",
+        zh: "向下拖动把手即可展开适中的照片，以及相机 / 建议纠正操作；移动端不再堆叠 HEX / 航向 / 距离等密集信息",
       },
     ],
   },
