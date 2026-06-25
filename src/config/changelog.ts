@@ -64,6 +64,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "Loaded font weights trimmed to 300/400 for a lighter, more editorial feel",
         zh: "加载的字重收敛为 300/400，整体更轻、更具编排感",
       },
+      {
+        en: "Nearby list rows share one compact two-line form — callsign + distance over route + altitude — with a subtle climb/descend cue; rich detail stays in the preview card",
+        zh: "邻近列表统一为紧凑两行：呼号 + 距离在上、航线 + 高度在下，并带轻量的爬升/下降指示；详细信息只留在预览卡片中",
+      },
     ],
   },
   {
