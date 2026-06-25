@@ -88,6 +88,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "About page reads as a quiet label rail + content axis (version / stack / architecture aligned), and the data sources are grouped by concern — Traffic / Weather / Airport / Context",
         zh: "关于页改为安静的标签轨 + 内容轴（版本 / 技术栈 / 架构对齐），数据源按主题分组——航迹 / 天气 / 机场 / 背景",
       },
+      {
+        en: "Mechanism accordion groups separate by whitespace rhythm (no dividing lines); the number rail, expanded flow labels, and detail all read on one content axis",
+        zh: "机制手风琴分组以留白节奏区隔（不再有分隔线）；编号轨、展开的流程标签与细节统一在同一内容轴上",
+      },
     ],
   },
   {
