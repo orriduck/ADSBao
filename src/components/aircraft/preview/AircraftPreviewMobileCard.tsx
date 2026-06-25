@@ -53,6 +53,7 @@ type StatProps = {
   plain?: string;
   prefix?: string;
   format?: NumberFlowFormat;
+  accent?: boolean;
 };
 
 // Same self-hiding-on-error pattern as the list row's logo. Keeps the
@@ -138,6 +139,7 @@ export default function AircraftPreviewMobileCard({
         value={Math.round(vs)}
         unit="fpm"
         format={{ signDisplay: "exceptZero" }}
+        accent
       />,
     );
   }
@@ -233,7 +235,7 @@ function TraceStatusDot({
   );
 }
 
-function Stat({ value = 0, unit, plain, prefix, format }: StatProps) {
+function Stat({ value = 0, unit, plain, prefix, format, accent = false }: StatProps) {
   return (
     <>
       {plain != null ? (
@@ -248,14 +250,22 @@ function Stat({ value = 0, unit, plain, prefix, format }: StatProps) {
           <NumberFlow
             value={value}
             format={format}
-            className="tabular-nums"
+            className={cn(
+              "tabular-nums",
+              accent && "text-[var(--atc-signal-accent)]",
+            )}
           />
         </>
       )}
       {unit && (
         <span
           translate="no"
-          className="notranslate text-[8px] font-medium lowercase text-atc-faint"
+          className={cn(
+            "notranslate text-[8px] font-medium lowercase",
+            accent
+              ? "text-[color-mix(in_oklab,var(--atc-signal-accent)_68%,transparent)]"
+              : "text-atc-faint",
+          )}
         >
           {unit}
         </span>

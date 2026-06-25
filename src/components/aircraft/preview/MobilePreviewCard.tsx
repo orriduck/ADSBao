@@ -15,6 +15,16 @@ import { cn } from "@/lib/utils";
 // the empty edges of the card; the Track button / suggest link
 // re-enable interaction inside `MobilePreviewActions`.
 
+// Whether the sheet is expanded — read by the variant content to reveal the
+// full detail. Provided by MobilePreviewCard.
+const MobilePreviewExpandedContext = React.createContext(false);
+export function useMobilePreviewExpanded() {
+  return React.useContext(MobilePreviewExpandedContext);
+}
+
+// Drag distance (px) past which the grabber flips collapsed <-> expanded.
+const SHEET_DRAG_THRESHOLD = 26;
+
 export default function MobilePreviewCard({
   ariaLabel,
   children,
@@ -22,15 +32,71 @@ export default function MobilePreviewCard({
   compact = false,
   placement = "top",
   style,
+  expandable = false,
+  grabberLabel,
+  expandedContent = null,
 }: Record<string, any>) {
   // NOTE: the enter animation replays on entity change via a `key` on the
   // *call site* (<MobilePreviewCard key=...>), not a prop here — a `key`
   // on this root <aside> would be a no-op (React reads key at the call site).
+  const [expanded, setExpanded] = React.useState(false);
+  const dragRef = React.useRef<{ y: number } | null>(null);
+  // Portrait = top sheet, drags DOWN to expand. Landscape = bottom sheet,
+  // drags UP to expand. expandDir is the sign of "open".
+  const isTop = placement !== "bottomRight";
+  const expandDir = isTop ? 1 : -1;
+
+  const onGrabberPointerDown = (event: React.PointerEvent) => {
+    dragRef.current = { y: event.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+  const onGrabberPointerMove = (event: React.PointerEvent) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    const delta = (event.clientY - drag.y) * expandDir;
+    if (delta > SHEET_DRAG_THRESHOLD) setExpanded(true);
+    else if (delta < -SHEET_DRAG_THRESHOLD) setExpanded(false);
+  };
+  const onGrabberPointerUp = (event: React.PointerEvent) => {
+    dragRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+  };
+
+  const grabber = expandable ? (
+    <button
+      type="button"
+      className="mobile-preview-grabber pointer-events-auto"
+      data-edge={isTop ? "bottom" : "top"}
+      aria-label={grabberLabel}
+      aria-expanded={expanded}
+      onClick={() => setExpanded((value) => !value)}
+      onPointerDown={onGrabberPointerDown}
+      onPointerMove={onGrabberPointerMove}
+      onPointerUp={onGrabberPointerUp}
+      onPointerCancel={onGrabberPointerUp}
+    >
+      <span aria-hidden="true" className="mobile-preview-grabber__bar" />
+    </button>
+  ) : null;
+
+  const reveal =
+    expandable && expandedContent ? (
+      <div
+        className={cn(
+          "pointer-events-auto grid transition-[grid-template-rows,opacity] duration-[var(--motion-ui-slow)] ease-[var(--motion-ease-out)] motion-reduce:transition-none",
+          expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">{expandedContent}</div>
+      </div>
+    ) : null;
+
   return (
     <aside
       aria-label={ariaLabel}
       data-density={compact ? "compact" : undefined}
       data-placement={placement === "bottomRight" ? "bottom-right" : "top"}
+      data-expanded={expanded ? "true" : undefined}
       data-ui="mobile-preview-card"
       style={style}
       className={cn(
@@ -64,8 +130,17 @@ export default function MobilePreviewCard({
         compact && placement === "bottomRight" && "gap-0 pb-[9px]",
       )}
     >
-      {children}
-      {actions}
+      <MobilePreviewExpandedContext.Provider value={expanded}>
+        {/* Landscape bottom-sheet: grabber rides the top edge (drag up). */}
+        {!isTop ? grabber : null}
+        {children}
+        {/* Expanded detail reveals between the collapsed content and the
+            actions so the action row stays put as the sheet grows. */}
+        {reveal}
+        {actions}
+        {/* Portrait top-sheet: grabber rides the bottom edge (drag down). */}
+        {isTop ? grabber : null}
+      </MobilePreviewExpandedContext.Provider>
     </aside>
   );
 }
@@ -260,6 +335,33 @@ export const MobilePreviewFeedbackLink = React.forwardRef(
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[color,opacity,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:text-atc-text hover:opacity-90 active:text-atc-text active:scale-[0.97]",
+          "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
+);
+
+// Square frosted icon button — camera (Plane Hunter) / raise-hand (suggest
+// correction) beside the Track pill. Neutral; the accent stays on Track.
+export const MobilePreviewIconButton = React.forwardRef(
+  function MobilePreviewIconButton(
+    { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
+    ref: React.ForwardedRef<HTMLButtonElement>,
+  ) {
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className={cn(
+          "pointer-events-auto flex aspect-square min-h-[34px] flex-none items-center justify-center cursor-pointer [[data-density=compact]_&]:min-h-[30px]",
+          "rounded-[calc(var(--atc-radius-card)-3px)] border border-atc-line",
+          "bg-[var(--atc-control-surface)] text-atc-dim",
+          "[-webkit-tap-highlight-color:transparent]",
+          "transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
+          "hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96]",
           "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
           className,
         )}

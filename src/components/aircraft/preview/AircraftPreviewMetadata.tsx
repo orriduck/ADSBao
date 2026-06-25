@@ -2,7 +2,6 @@ import type { ComponentProps, ReactNode } from "react";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
-import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDisplayModel";
 import { toFiniteNumber } from "@/utils/math";
 import { convertDistanceFromNm, distanceUnitLabel } from "@/utils/units";
 
@@ -42,12 +41,10 @@ export default function AircraftPreviewMetadata({ aircraft }: AircraftPreviewMet
   const distance = toFiniteNumber(aircraft?.distanceNm);
   const distanceConverted =
     distance == null ? null : convertDistanceFromNm(distance, units.distance);
-  const sourceBadge = getAircraftPositionSourceBadge(aircraft?.positionQuality);
 
   return (
     <dl className="aircraft-preview-metadata">
       <TextMeta label={t("metrics.hex")} value={hex} />
-      {sourceBadge ? <TextMeta label="Source" value={sourceBadge} /> : null}
       <NumericMeta
         label={t("metrics.track")}
         value={track != null ? Math.round(track) : null}

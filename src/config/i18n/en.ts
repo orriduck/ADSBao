@@ -345,6 +345,9 @@ const en = {
     airspaceSource: "Source",
     trackTrace: "Track trace",
     trackingTrace: "Tracking trace",
+    track: "Track",
+    tracking: "Tracking",
+    trackingPill: "tracking",
     loadingTrace: "Loading trace...",
     loadedTrace: "Trace loaded",
     traceLoadError: "Trace unavailable",
@@ -353,6 +356,7 @@ const en = {
     goToSpot: "Go",
     planeHunter: "Plane Hunter",
     creditPrefix: "credit@",
+    photoCreditPrefix: "photo @ ",
   },
   planeHunter: {
     title: "Plane Hunter",
