@@ -244,7 +244,7 @@ const zhCN = {
     route: "航路",
     aircraftType: "机型",
     altitudeFilter: "高度",
-    altitudeLayersMultiple: "多个高度层",
+    altitudeLayersMultiple: "多层",
     nothingInRange: "范围内暂无目标",
     noMatches: "暂无匹配项",
     typesCount: "{count} 种机型",

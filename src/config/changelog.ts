@@ -41,28 +41,36 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 99;
+export const CHANGELOG_TOTAL_COUNT = 100;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.28.8",
-    kind: "patch",
+    version: "v2.29.0",
+    kind: "feat",
     title: {
-      en: "Nearby list performance — desktop sidebar virtualizes again",
-      zh: "邻近列表性能——桌面侧栏恢复虚拟化",
+      en: "Airport sidebar redesign — one scroll, single-line traffic list",
+      zh: "机场侧栏改版——整体滚动、单行航班列表",
     },
     summary: {
-      en: "On desktop the whole sidebar used to scroll, which left the nearby traffic list unbounded and defeated its virtualizer — every airport/flight page mounted all 80–100+ rows at once. Now the brand, identity, and filters stay fixed and only the list scrolls internally (matching the mobile layout), so it windows ~20 rows. Selecting a row no longer re-renders or re-measures the whole list.",
-      zh: "桌面端此前是整条侧栏一起滚动,导致邻近列表高度不受限、虚拟化被架空——每个机场/航班页都会一次性挂载全部 80–100+ 行。现在品牌、标识、筛选固定不动,只有列表内部滚动(与移动端一致),因此只渲染约 20 行。选中某行也不再重渲染或重新测量整张列表。",
+      en: "The default airport sidebar is rebuilt on the frosted-glass language: a code-first identity (BOS · KBOS), a flat Flights hero with Wx / ATC / Spot cells, and a 2×2 filter grid where dropdowns carry a chevron and the Route toggle becomes an orange accent pill. Only the logo is pinned now — identity, hero, filters, and the nearby list scroll together as one region — while the list keeps windowing via scroll-margin virtualization, so the v2.28.8 performance win is preserved. Traffic rows collapse to a single fixed-height line: callsign · route on the left, distance and altitude grouped on the right and told apart by tone.",
+      zh: "默认机场侧栏按霜面玻璃语言重做:以代码为主的标识(BOS · KBOS)、扁平的航班数概览(Wx / ATC / Spot),以及 2×2 筛选网格——下拉项带箭头,Route 开关激活时变为橙色强调胶囊。现在只有 Logo 固定,标识、概览、筛选与邻近列表作为一个区域一起滚动;列表仍通过 scroll-margin 虚拟化窗口化,因此保留了 v2.28.8 的性能改进。航班行收为单行定高:左侧呼号 · 航路,右侧距离与高度并排并以明暗区分。",
     },
     highlights: [
       {
-        en: "Desktop airport + flight sidebars now have a fixed header with an internally-scrolling nearby list, so the virtualizer windows ~20 rows instead of mounting the full ~87",
-        zh: "桌面机场 + 航班侧栏改为固定表头 + 列表内部滚动,虚拟化只渲染约 20 行,而不是挂载全部约 87 行",
+        en: "Identity leads with the airport code; name and city/country · coordinates recede beneath it (no flag emoji)",
+        zh: "标识以机场代码为主,名称与城市/国家 · 坐标退居其下(无国旗 emoji)",
       },
       {
-        en: "Selecting an aircraft/airport only re-renders the affected rows (memoized) and skips the per-click full re-measure — clicking a row is noticeably snappier",
-        zh: "选中飞机/机场只重渲染受影响的行(memo 化),并跳过每次点击的整表重测量——点击明显更跟手",
+        en: "Flat Flights hero with a large count over Wx / ATC / Spot cells (Dep / Arr added only with FlightAware)",
+        zh: "扁平航班数概览:大号计数叠加 Wx / ATC / Spot 单元(仅在 FlightAware 下加入 Dep / Arr)",
+      },
+      {
+        en: "Logo is the only pinned element; everything below scrolls as one region with the nearby list still virtualized",
+        zh: "Logo 是唯一固定元素;其下内容作为一个区域滚动,邻近列表仍保持虚拟化",
+      },
+      {
+        en: "Single-line, fixed-height traffic rows — distance and altitude grouped on the right and separated by tone",
+        zh: "单行定高的航班行——距离与高度在右侧并排,并以明暗区分",
       },
     ],
   },

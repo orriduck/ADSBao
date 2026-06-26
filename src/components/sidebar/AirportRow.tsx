@@ -8,10 +8,10 @@ import { countryName, flagEmoji } from "@/utils/flag";
 import { formatAltitude } from "@/utils/units";
 import { rowPropsEqual } from "./rowPropsEqual";
 
-// Airport equivalent of AircraftRow — same two-line rhythm so an
-// "airports & aircraft" mixed list reads as one coherent table.
-// Line 1: ICAO · IATA + distance. Line 2: flag + country + elevation.
-// The full "City, Country" lives in the preview card, not the compact row.
+// Airport equivalent of AircraftRow — same single-line, fixed-height rhythm
+// so an "airports & aircraft" mixed list reads as one coherent table:
+// [glyph] ICAO·IATA  country … distance / elevation. The full "City, Country"
+// lives in the preview card, not the compact row.
 function AirportRow({
   airport,
   airportId,
@@ -42,7 +42,7 @@ function AirportRow({
   return (
     <button
       type="button"
-      className={`aircraft-table-card aircraft-table-row-two aircraft-table-row-shell flex w-full items-center gap-2 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_12%,transparent)] data-[selected=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)] data-[selected=true]:hover:bg-[color-mix(in_oklab,var(--atc-signal-accent)_15%,transparent)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-signal-accent)] ${
+      className={`aircraft-table-card aircraft-table-row-shell flex w-full items-center gap-2.5 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_12%,transparent)] data-[selected=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)] data-[selected=true]:hover:bg-[color-mix(in_oklab,var(--atc-signal-accent)_15%,transparent)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-signal-accent)] ${
         selected ? "aircraft-table-row--selected aircraft-table-row--active" : ""
       }`}
       data-selected={selected ? "true" : undefined}
@@ -52,45 +52,47 @@ function AirportRow({
       <span aria-hidden="true" className="aircraft-table-row-glyph">
         <TowerControl size={13} strokeWidth={2.4} />
       </span>
-      <div className="aircraft-table-identity grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-2.5">
+
+      <div className="flex min-w-0 flex-1 items-baseline gap-2">
         <span
-          className="aircraft-table-callsign airport-sidebar-display-mono notranslate min-w-0 self-center truncate text-[12.5px] text-atc-text"
+          className="aircraft-table-callsign airport-sidebar-display-mono notranslate shrink-0 text-[12.5px] text-atc-text"
           translate="no"
         >
           {code}
         </span>
-        <div className="aircraft-table-metric aircraft-table-metric--distance self-center text-right font-mono text-[11px] text-atc-text">
-          {!distanceDisplay ? (
-            <NumberWithUnit text="-" unit="" />
-          ) : distanceDisplay.text ? (
-            <NumberWithUnit text={distanceDisplay.text} unit={distanceDisplay.unit} />
-          ) : (
-            <NumberWithUnit value={distanceDisplay.value} unit={distanceDisplay.unit} />
-          )}
-        </div>
-
-        <div className="aircraft-table-subline flex min-h-[12px] min-w-0 items-center gap-1.5 self-center text-[10px] text-atc-faint">
+        <span className="flex min-w-0 items-baseline gap-1 text-[10.5px] text-atc-faint">
           {flag ? (
             <span aria-hidden="true" className="flex-none leading-none">
               {flag}
             </span>
           ) : null}
           {country ? <span className="min-w-0 truncate">{country}</span> : null}
-        </div>
-        <div className="aircraft-table-metric aircraft-table-metric--altitude self-center text-right font-mono text-[11px] text-atc-dim">
-          {endpointLabel ? (
-            <span className="text-[9px] uppercase tracking-normal text-atc-dim">
-              {endpointLabel}
+        </span>
+      </div>
+
+      <div className="flex flex-none items-baseline gap-2.5 font-mono tabular-nums">
+        <span className="text-[11px] text-atc-faint">
+          {distanceDisplay ? (distanceDisplay.text ?? distanceDisplay.value) : "—"}
+          {distanceDisplay?.unit ? (
+            <span className="ml-0.5 text-[7.5px] text-atc-faint">
+              {distanceDisplay.unit}
             </span>
-          ) : !elevationDisplay ? (
-            <NumberWithUnit text="-" unit="" />
-          ) : (
-            <NumberWithUnit
-              value={elevationDisplay.value}
-              unit={elevationDisplay.unit.toUpperCase()}
-            />
-          )}
-        </div>
+          ) : null}
+        </span>
+        {endpointLabel ? (
+          <span className="text-[9px] uppercase tracking-normal text-atc-dim">
+            {endpointLabel}
+          </span>
+        ) : (
+          <span className="text-[11px] text-atc-text">
+            {elevationDisplay ? elevationDisplay.value : "—"}
+            {elevationDisplay?.unit ? (
+              <span className="ml-0.5 text-[7.5px] text-atc-faint">
+                {elevationDisplay.unit.toUpperCase()}
+              </span>
+            ) : null}
+          </span>
+        )}
       </div>
     </button>
   );
@@ -112,23 +114,6 @@ export default memo(AirportRow, (prev, next) =>
     ],
   }),
 );
-
-function NumberWithUnit({ value, unit, format, text }: Record<string, any>) {
-  const displayText =
-    text ?? format?.format?.(Number(value)) ?? String(value ?? "");
-
-  return (
-    <span className="aircraft-table-number grid w-full grid-cols-[minmax(0,1fr)_var(--aircraft-table-unit-width,14px)] items-baseline gap-x-0.5 tabular-nums">
-      <span className="block min-w-0 text-right">{displayText}</span>
-      <sub
-        className="aircraft-table-unit notranslate relative top-[0.22em] block text-left text-[7px] leading-none text-atc-dim"
-        translate="no"
-      >
-        {unit}
-      </sub>
-    </span>
-  );
-}
 
 function toFiniteNumber(value: unknown) {
   const n = Number(value);

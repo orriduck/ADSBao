@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react";
-
-import SidebarIdentityHero from "./SidebarIdentityHero";
 import { countryName, flagEmoji } from "../../utils/flag";
 import {
   airportCityName,
@@ -8,7 +5,6 @@ import {
   airportDisplayName,
   cleanAirportCode,
 } from "../../utils/airport";
-import { resolveTimezone } from "../../utils/timezone";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 
@@ -63,7 +59,6 @@ export default function AirportIdentity({
   const codeLine = nearMe
     ? nearMeBadge
     : airportDisplayCodeLine({ icao: displayIcao, iata: displayIata });
-  const flag = nearMe ? "" : flagEmoji(country);
   const countryLabel = nearMe ? "" : countryName(country, locale) || country;
   const cityLabel = nearMe ? "" : airportCityName(city, locale);
   const displayName = nearMe
@@ -75,25 +70,37 @@ export default function AirportIdentity({
   const placeText = nearMe
     ? nearMeSubtitle
     : [cityLabel, countryLabel].filter(Boolean).join(", ");
-  const placeLine =
-    !nearMe && flag && placeText
-      ? `${flag} ${placeText}`
-      : placeText || flag;
   const coordLine = formatCoord(lat, lon);
-  const airportLocalTime = useLocalTime(country);
-  const deviceLocalTime = useDeviceLocalTime(nearMe);
-  const localTimeLine = nearMe ? deviceLocalTime : airportLocalTime;
+  // City/country and coordinates fold onto a single faint meta line —
+  // no country flag emoji, no separate local-time row (Frosted redesign).
+  const metaLine = [placeText, coordLine].filter(Boolean).join("  ·  ");
+  // The full name recedes to a 13px subtitle under the code. Suppress it
+  // when it would only echo the code/ICAO (e.g. before airport data loads,
+  // airportDisplayName falls back to the ICAO).
+  const nameLine =
+    displayName && displayName !== codeLine && displayName !== displayIcao
+      ? displayName
+      : "";
 
   return (
-    <SidebarIdentityHero
-      label={nearMe ? t("sidebar.nearMeLabel") : t("sidebar.airport")}
-      code={codeLine}
-    >
-      <h1 className="mt-4 text-[26px] font-semibold leading-[1.1] tracking-[-0.01em] text-atc-text">
-        {displayName || t("sidebar.unknownAirport")}
+    <div className="airport-sidebar-identity">
+      <span className="atc-kicker airport-sidebar-identity__kicker">
+        {(nearMe ? t("sidebar.nearMeLabel") : t("sidebar.airport")).toUpperCase()}
+      </span>
+      <h1 className="mt-3 text-[22px] font-normal leading-[1.08] text-atc-text">
+        <span className="airport-sidebar-display-mono notranslate" translate="no">
+          {codeLine || t("sidebar.unknownAirport")}
+        </span>
       </h1>
-      {placeLine ? (
-        <div className="mt-3 text-[13px] text-atc-dim">{placeLine}</div>
+      {nameLine ? (
+        <div className="mt-2 text-[13px] leading-snug text-atc-dim">
+          {nameLine}
+        </div>
+      ) : null}
+      {metaLine ? (
+        <div className="mt-1.5 font-mono text-[11px] leading-snug text-atc-faint">
+          {metaLine}
+        </div>
       ) : null}
       {nearMeRefresh && (
         <div className="mt-1.5 text-[11px] text-atc-faint">
@@ -111,49 +118,8 @@ export default function AirportIdentity({
           </button>
         </div>
       )}
-      {coordLine ? (
-        <div className="mt-1 font-mono text-[11px] text-atc-faint">
-          {coordLine}
-        </div>
-      ) : null}
-      {localTimeLine ? (
-        <div className="mt-1 font-mono text-[11px] text-atc-faint">
-          {localTimeLine}
-        </div>
-      ) : null}
-    </SidebarIdentityHero>
+    </div>
   );
-}
-
-// Device-local clock for near-me mode. Skips the country→timezone
-// lookup the airport variant does and just formats in the browser's
-// resolved timezone. Ticks once per minute alongside the airport
-// variant.
-function useDeviceLocalTime(active) {
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    if (!active) return undefined;
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, [active]);
-
-  if (!active) return "";
-  try {
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZoneName: "short",
-    });
-    const parts = formatter.formatToParts(now);
-    const hour = parts.find((p) => p.type === "hour")?.value || "??";
-    const minute = parts.find((p) => p.type === "minute")?.value || "??";
-    const zone = parts.find((p) => p.type === "timeZoneName")?.value || "";
-    return `${hour}:${minute}  /  ${zone}`;
-  } catch {
-    return "";
-  }
 }
 
 function formatCoord(lat, lon) {
@@ -164,36 +130,4 @@ function formatCoord(lat, lon) {
   const latStr = `${Math.abs(latNum).toFixed(2)}°${latNum >= 0 ? "N" : "S"}`;
   const lonStr = `${Math.abs(lonNum).toFixed(2)}°${lonNum >= 0 ? "E" : "W"}`;
   return `${latStr}  /  ${lonStr}`;
-}
-
-// Resolves the airport's local time from a real IANA timezone derived from
-// the ISO country code via `countries-and-timezones`. Returns "" when the
-// country can't be mapped so the caller hides the row entirely. Ticks once
-// per minute.
-function useLocalTime(country) {
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const timeZone = resolveTimezone(country);
-  if (!timeZone) return "";
-  try {
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZoneName: "short",
-    });
-    const parts = formatter.formatToParts(now);
-    const hour = parts.find((p) => p.type === "hour")?.value || "??";
-    const minute = parts.find((p) => p.type === "minute")?.value || "??";
-    const zone = parts.find((p) => p.type === "timeZoneName")?.value || "";
-    return `${hour}:${minute}  /  ${zone}`;
-  } catch {
-    return "";
-  }
 }

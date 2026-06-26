@@ -9,6 +9,7 @@ import {
   SidebarBrandDock,
   useCollapsibleSidebarPanel,
 } from "./CollapsibleSidebarChrome";
+import { SidebarScrollContext } from "./SidebarScrollContext";
 import {
   Toolbar,
   ToolbarAccountSlot,
@@ -88,10 +89,12 @@ export default function SidebarShell({
         ? "airport-sidebar-panel--mobile"
         : "flight-sidebar-panel--mobile"
       : "",
-    // The panel is a fixed-height flex column on BOTH desktop and the mobile
-    // overlay: the brand/identity/filters stay put and ONLY the list scrolls,
-    // so the virtualizer can window instead of rendering 100+ rows at once.
-    "min-h-0 overflow-hidden",
+    // The panel is the single scroll owner: the brand row pins via
+    // `position: sticky` while the identity, hero, filters, and nearby list
+    // scroll together as one region below it. The nearby list still windows —
+    // it virtualizes against THIS scroll element via a scroll-margin offset
+    // (see VirtualNearbyList) instead of owning a nested scroll container.
+    "min-h-0 overflow-y-auto",
   ]
     .filter(Boolean)
     .join(" ");
@@ -177,12 +180,14 @@ export default function SidebarShell({
             </div>
           ) : null}
 
-          <div className="sidebar-shell-body flex min-h-0 flex-1 flex-col overflow-visible">
-            {header ? <div className="flex-none">{header}</div> : null}
-            <div className="sidebar-shell-main flex min-h-0 flex-1 flex-col overflow-visible">
-              {children}
+          <SidebarScrollContext.Provider value={shellRef}>
+            <div className="sidebar-shell-body flex min-h-0 flex-1 flex-col overflow-visible">
+              {header ? <div className="flex-none">{header}</div> : null}
+              <div className="sidebar-shell-main flex min-h-0 flex-1 flex-col overflow-visible">
+                {children}
+              </div>
             </div>
-          </div>
+          </SidebarScrollContext.Provider>
         </>
       )}
     </div>

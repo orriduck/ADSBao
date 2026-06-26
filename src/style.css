@@ -3903,6 +3903,13 @@ body {
     color: var(--atc-faint);
 }
 
+/* Tracking for the "AIRPORT" / "POSITION" eyebrow. The text is uppercased
+   in JSX (the global .atc-kicker reset forces text-transform: none
+   !important), so only the letter-spacing needs an !important override. */
+.atc-kicker.airport-sidebar-identity__kicker {
+    letter-spacing: 0.15em !important;
+}
+
 .airport-sidebar-display-mono--hero,
 .airport-sidebar-display-mono--metric,
 .airport-sidebar-display-mono {
@@ -8662,6 +8669,22 @@ body {
     color: var(--atc-dim);
 }
 
+/* Route is a TOGGLE, not a dropdown. Its active state uses the reserved
+   orange signal accent — a faint accent wash + accent hairline + accent
+   value — so it reads differently from the neutral ink wash a dropdown
+   shows when it merely carries a non-default selection. */
+.airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"],
+.flight-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] {
+    background: color-mix(in oklab, var(--atc-signal-accent) 10%, transparent);
+    box-shadow: inset 0 0 0 1px
+        color-mix(in oklab, var(--atc-signal-accent) 32%, transparent);
+}
+
+.airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] [data-ui="filter-value"],
+.flight-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] [data-ui="filter-value"] {
+    color: var(--atc-signal-accent);
+}
+
 .airport-sidebar-panel [data-ui="metric-card"][data-layout="split"],
 .flight-sidebar-panel [data-ui="metric-card"][data-layout="split"] {
     align-content: center;
@@ -8800,19 +8823,22 @@ body {
         min-width: 20px;
     }
 
+    /* h1 is the CODE line (primary), the following div is the airport name
+       (recedes), and .font-mono carries the city/country · coordinates meta
+       line. */
     .airport-map-kit .airport-sidebar-identity h1 {
-        font-size: 18px;
-        line-height: 1.1;
-        margin-top: 9px;
+        font-size: 21px;
+        line-height: 1.08;
+        margin-top: 12px;
     }
 
     .airport-map-kit .airport-sidebar-identity h1 + div {
-        font-size: 9px;
-        margin-top: 6px;
+        font-size: 12.5px;
+        margin-top: 8px;
     }
 
     .airport-map-kit .airport-sidebar-identity .font-mono {
-        font-size: 8px;
+        font-size: 11px;
     }
 
     .airport-map-kit .aircraft-search {
@@ -9008,19 +9034,22 @@ body {
         min-width: 24px;
     }
 
+    /* h1 is the CODE line (primary), the following div is the airport name
+       (recedes), and .font-mono carries the city/country · coordinates meta
+       line. */
     .airport-map-kit .airport-sidebar-identity h1 {
-        font-size: 15px;
-        line-height: 1.15;
-        margin-top: 9px;
+        font-size: 21px;
+        line-height: 1.08;
+        margin-top: 12px;
     }
 
     .airport-map-kit .airport-sidebar-identity h1 + div {
-        font-size: 9px;
-        margin-top: 6px;
+        font-size: 12.5px;
+        margin-top: 8px;
     }
 
     .airport-map-kit .airport-sidebar-identity .font-mono {
-        font-size: 8px;
+        font-size: 11px;
     }
 
     .airport-map-kit .airport-desktop-sidebar {
