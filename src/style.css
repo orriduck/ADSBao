@@ -3073,8 +3073,17 @@ body:has(.dither-page-shell) {
        diffusion, not transparency. Applied via the `backdrop-filter`
        arbitrary on primitives and surface classes so the blur amount is
        tuned in one place. */
-    --app-frost: saturate(1.01) blur(7px);
-    --app-frost-strong: saturate(1.01) blur(10px);
+    /* One unified glass blur (8px) across every frosted surface — sidebar,
+       toolbars, preview cards, dither panels — with a touch more saturation so
+       they all read as the same lightly-tinted frosted material. */
+    --app-frost: saturate(1.3) blur(8px);
+    --app-frost-strong: saturate(1.4) blur(8px);
+    /* Faux-frost grain — a static, baked fractal-noise texture used to fake
+       the frosted-glass diffusion WITHOUT backdrop-filter. backdrop-filter
+       blur re-samples the live (animating) map every frame; this is a single
+       composited static layer, so a panel reads as frosted glass at ~zero
+       per-frame cost. Tune intensity via the rect opacity inside the SVG. */
+    --frost-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='fn'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fn)' opacity='0.16'/%3E%3C/svg%3E");
     /* Frosted-material base color — a distinct cool gray (light) / navy
        (dark) so floating panels read as gray frosted MATERIAL, not the
        warm near-white card. This is the key to the look: against a light
@@ -3630,13 +3639,15 @@ body {
 .airport-desktop-sidebar .sidebar-shell,
 .airport-desktop-sidebar .airport-sidebar-panel,
 .airport-desktop-sidebar .flight-sidebar-panel {
+    /* Translucent frosted glass + small blur (the airport-map-kit rule below
+       layers a sheen on top and tunes opacity for the full-bleed-map context). */
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, var(--app-frost-tint) 84%, transparent),
-        color-mix(in oklab, var(--app-frost-tint) 87%, transparent)
+        color-mix(in oklab, var(--app-frost-tint) 96%, transparent),
+        color-mix(in oklab, var(--app-frost-tint) 99%, transparent)
     );
-    -webkit-backdrop-filter: var(--app-frost-strong);
-    backdrop-filter: var(--app-frost-strong);
+    -webkit-backdrop-filter: saturate(1.4) blur(8px);
+    backdrop-filter: saturate(1.4) blur(8px);
 }
 
 /* Light theme: the chrome follows the theme — a near-white frosted-glass
@@ -3648,19 +3659,22 @@ body {
 .airport-map-kit .airport-desktop-sidebar .flight-sidebar-panel,
 .airport-map-kit .airport-sidebar-panel--mobile,
 .airport-map-kit .flight-sidebar-panel--mobile {
+    /* Translucent frosted glass over the now full-bleed map. A SMALL blur(8px)
+       (was 26px) keeps the live-map diffusion the user asked to see through the
+       panel, at roughly a third of the per-frame GPU cost of the old radius. */
     background:
         radial-gradient(
             120% 70% at 18% 0%,
-            color-mix(in oklab, white 26%, transparent),
+            color-mix(in oklab, white 32%, transparent),
             transparent 46%
         ),
         linear-gradient(
             180deg,
-            color-mix(in oklab, var(--app-frost-tint) 58%, transparent),
-            color-mix(in oklab, var(--app-frost-tint) 66%, transparent)
+            color-mix(in oklab, var(--app-frost-tint) 94%, transparent),
+            color-mix(in oklab, var(--app-frost-tint) 98%, transparent)
         );
-    -webkit-backdrop-filter: saturate(1.5) blur(26px);
-    backdrop-filter: saturate(1.5) blur(26px);
+    -webkit-backdrop-filter: saturate(1.4) blur(8px);
+    backdrop-filter: saturate(1.4) blur(8px);
     border-right: 1px solid var(--app-frost-border);
     box-shadow:
         inset -1px 0 0 color-mix(in oklab, white 40%, transparent),
@@ -3715,10 +3729,8 @@ body {
     --atc-control-inset-shadow:
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 12%, transparent),
         inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 7%, transparent);
-    /* Genuinely translucent frosted glass — the live map diffuses through
-       the panel (Frosted redesign), so the surface drops to ~0.56 alpha
-       and leans on a strong saturated blur for legibility instead of
-       opacity. An internal sheen catches light along the top-left. */
+    /* Translucent frosted glass (dark) over the full-bleed map — small blur(8px)
+       shows the live map diffused through the deep-gray panel. */
     background:
         radial-gradient(
             120% 70% at 18% 0%,
@@ -3727,11 +3739,11 @@ body {
         ),
         linear-gradient(
             180deg,
-            color-mix(in oklab, oklch(0.215 0.003 100) 56%, transparent),
-            color-mix(in oklab, oklch(0.135 0.003 100) 62%, transparent)
+            color-mix(in oklab, oklch(0.215 0.003 100) 92%, transparent),
+            color-mix(in oklab, oklch(0.135 0.003 100) 96%, transparent)
         );
-    -webkit-backdrop-filter: saturate(1.7) blur(26px);
-    backdrop-filter: saturate(1.7) blur(26px);
+    -webkit-backdrop-filter: saturate(1.5) blur(8px);
+    backdrop-filter: saturate(1.5) blur(8px);
     border-right: 1px solid color-mix(in oklab, var(--atc-text) 9%, transparent);
     box-shadow:
         inset -1px 0 0 color-mix(in oklab, var(--atc-text) 6%, transparent),
@@ -6265,8 +6277,15 @@ body {
 }
 
 .airport-map-kit .sidebar-brand-dock {
-    background: color-mix(in oklab, var(--atc-bg) 86%, transparent) !important;
-    box-shadow: 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent) !important;
+    /* The brand row's tone (--atc-bg) softly fades into the frosted sidebar
+       below — no hard strip, no hairline divider — so the logo melts into the
+       panel instead of sitting on a separate header bar. */
+    background: linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--atc-bg) 92%, transparent),
+        transparent
+    ) !important;
+    box-shadow: none !important;
 }
 
 .aircraft-search:focus-within {
@@ -9097,11 +9116,15 @@ body {
             14px 0 32px color-mix(in oklab, var(--atc-text) 5%, transparent);
     }
 
+    /* Full-bleed map: the plane spans the whole kit and sits UNDER the
+       floating sidebar (z:0 vs sidebar z:300), so the sidebar's translucent
+       glass reveals the live map behind it. mapViewportOffset.ts already
+       compensates the fit/center by the sidebar occlusion width, so the
+       airport focus stays clear of the panel. */
     .airport-map-kit .airport-map-stage {
-        flex: 1 1 auto;
-        height: 100%;
-        inset: auto;
-        position: relative;
+        height: auto;
+        inset: 0;
+        position: absolute;
         width: auto;
     }
 

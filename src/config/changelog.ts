@@ -45,52 +45,43 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.3",
+    kind: "patch",
+    title: {
+      en: "Lighter frosted glass, smoother sidebar",
+      zh: "更轻的磨砂玻璃,更流畅的侧栏",
+    },
+    summary: {
+      en: "Frosted panels now use one light blur over a full-bleed map and the sidebar header blends in seamlessly — less scroll and transition jank, with a consistent glass look across sidebars, preview cards, and toolbars.",
+      zh: "磨砂面板统一为叠在铺满地图上的单档轻模糊,侧栏顶部无缝融入——滚动与切换更少掉帧,侧栏、预览卡与工具栏玻璃质感一致。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.2",
     kind: "patch",
     title: {
-      en: "Airport flight-count card — stacked rows + tile transitions",
-      zh: "机场航班卡——分行排列与切换动效",
+      en: "Flight-count card — stacked rows + tile transitions",
+      zh: "航班卡——分行排列与切换动效",
     },
     summary: {
-      en: "The airport flight-count card restacks into rows under the count hero: departures / arrivals sit directly beneath the total as its breakdown, then weather / ATC / spotting form the context row. The demoted count keeps more height when another tile is selected, and selecting a tile now plays a designed transition — an accent bar that grows from the tile's centre with a soft spring, plus a tint that fades in — so focus lands on the chosen metric.",
-      zh: "机场航班卡改为分行排列:起飞 / 到达直接位于航班总数下方作为进出明细,天气 / ATC / 拍机点构成第三行的上下文。选中其他 tile 时航班数仍保留更舒展的行高;切换 tile 现在带有设计过的过渡——强调条从 tile 中心带轻微回弹地展开,底色淡入,使焦点落到所选指标上。",
+      en: "The flight-count card stacks into three rows — count, departures/arrivals, then weather/ATC/spotting — with a soft animated highlight when switching tiles.",
+      zh: "航班卡改为三行——航班数、起飞/到达、天气/ATC/拍机点——切换 tile 时带柔和的高亮动效。",
     },
-    highlights: [
-      {
-        en: "Flight count, departures/arrivals, and weather/ATC/spotting now stack as three rows instead of one dense strip.",
-        zh: "航班数、起飞/到达、天气/ATC/拍机点改为三行堆叠,取代原来的单行密排。",
-      },
-      {
-        en: "Selecting a tile animates an accent bar growing from centre with a soft spring and a fading tint.",
-        zh: "选中 tile 时强调条从中心带轻微回弹地展开,并伴随底色淡入。",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.30.1",
     kind: "patch",
     title: {
-      en: "Sidebar typography pass — tokenized sizes, sans headers",
-      zh: "侧栏排版微调——字号 token 化、标题改无衬线",
+      en: "Sidebar typography pass",
+      zh: "侧栏排版微调",
     },
     summary: {
-      en: "Every sidebar and dither-panel font size now flows through two scale tokens (titles ×0.8, body ×0.9) so identity names and section headers read tighter while the hierarchy stays fixed. Group headers drop the serif face for the regular sans at a heavier weight, the home airport explorer rail matches the detail sidebar width, and each group gives its first row more breathing room.",
-      zh: "所有侧栏与 dither 面板的字号现在统一走两个缩放 token(标题 ×0.8、正文 ×0.9),机场名与区块标题更紧凑,层级比例保持不变。分组标题去掉花体衬线、改用更重字重的常规无衬线;首页机场探索栏宽度与详情页侧栏对齐;每个分组的标题与首项之间留出更多间距。",
+      en: "Sidebar and panel font sizes run through two scale tokens for a tighter, fixed hierarchy, and section headers move from serif to a heavier sans.",
+      zh: "侧栏与面板字号统一走两个缩放 token,层级更紧凑且固定;区块标题由衬线改为更重的无衬线。",
     },
-    highlights: [
-      {
-        en: "Two sidebar font-scale tokens (--sb-title-scale / --sb-body-scale) replace ad-hoc px sizes across the airport, aircraft, about, mechanism, and changelog panels.",
-        zh: "两个侧栏字号缩放 token(--sb-title-scale / --sb-body-scale)取代散落的 px 字号,覆盖机场、航空器、关于、机制与更新日志面板。",
-      },
-      {
-        en: "Section headers switch from the serif face to the regular sans at a heavier weight.",
-        zh: "区块标题由衬线花体改为更重字重的常规无衬线。",
-      },
-      {
-        en: "Home explorer sidebar width aligns with the detail sidebar, and group header-to-first-row spacing is loosened.",
-        zh: "首页探索侧栏宽度与详情侧栏对齐,分组标题到首项的间距放宽。",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.30.0",
@@ -100,27 +91,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       zh: "机场天气改版——METAR 与实况两视图",
     },
     summary: {
-      en: "The airport weather state is rebuilt around one colour-encoded hero card per view over a quiet decoded metric area, switched by a neutral METAR / Local segmented control. METAR leads with a flight-rules hero whose rail, tint, and value are keyed to the category (VFR mint, MVFR blue, IFR red, LIFR magenta) above a decoded aviation grid, the raw report, and a ceiling/visibility read. Local leads with a temperature hero whose colour is mapped onto the temperature itself (teal → amber → orange) above an everyday-units grid — now including UV index and visibility — a next-hours strip, and a plain-language summary.",
-      zh: "机场天气状态重做:每个视图以一张颜色编码的主卡片领衔,下方是安静的解码参数区,由中性的 METAR / 实况分段控件切换。METAR 以飞行规则主卡片开场,其左栏、底色与数值都按类别着色(VFR 薄荷绿、MVFR 蓝、IFR 红、LIFR 品红),其下是解码后的航空参数网格、原始报文与云底/能见度读数。实况以温度主卡片开场,颜色随温度本身映射(青→琥珀→橙),其下是日常单位网格(新增紫外线与能见度)、未来数小时与白话总结。",
+      en: "Airport weather is rebuilt around one colour-coded hero card per view, switched by a METAR / Local control: flight-rules category colours for METAR, temperature-mapped colour for Local (now with UV index and visibility).",
+      zh: "机场天气以每视图一张颜色编码主卡片重做,由 METAR / 实况控件切换:METAR 按飞行规则类别着色,实况随温度映射(新增紫外线与能见度)。",
     },
-    highlights: [
-      {
-        en: "METAR flight-rules hero card colour-coded by category, over a decoded aviation grid (wind / vis / ceiling / temp-dew / altimeter / humidity), the raw report, and a ceiling-visibility interpretation",
-        zh: "METAR 飞行规则主卡片按类别着色,下接解码航空网格(风 / 能见度 / 云底 / 温度露点 / 高度表 / 湿度)、原始报文与云底-能见度解读",
-      },
-      {
-        en: "Local temperature hero card whose colour maps onto the temperature, over an everyday-units grid, a next-hours forecast strip, and a plain-language summary",
-        zh: "实况温度主卡片颜色随温度映射,下接日常单位网格、未来数小时预报条与白话总结",
-      },
-      {
-        en: "Neutral raised-chip segmented control switches METAR / Local; the airport header and Flights tab stay above",
-        zh: "中性凸起胶囊分段控件切换 METAR / 实况;机场标识与航班标签保留在上方",
-      },
-      {
-        en: "Open-Meteo now also fetches UV index and visibility for the Local view",
-        zh: "Open-Meteo 现在还为实况视图获取紫外线指数与能见度",
-      },
-    ],
+    highlights: [],
   },
 ];
 
