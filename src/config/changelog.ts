@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.4",
+    kind: "patch",
+    title: {
+      en: "Fix mobile sidebar list hiding under the toolbar",
+      zh: "修复移动端侧栏列表被工具栏遮挡",
+    },
+    summary: {
+      en: "On mobile, the last row of a sidebar view (e.g. the spotting list) could hide under the floating bottom toolbar; the scroll-end clearance now sits on the view content so the final row always clears the dock.",
+      zh: "移动端侧栏视图(如拍机点列表)的最后一行可能被底部浮动工具栏遮挡;底部留白改到视图内容上,最后一行现在总能清开工具栏。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.3",
     kind: "patch",
     title: {
