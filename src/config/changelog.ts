@@ -45,6 +45,28 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.2",
+    kind: "patch",
+    title: {
+      en: "Airport flight-count card — stacked rows + tile transitions",
+      zh: "机场航班卡——分行排列与切换动效",
+    },
+    summary: {
+      en: "The airport flight-count card restacks into rows under the count hero: departures / arrivals sit directly beneath the total as its breakdown, then weather / ATC / spotting form the context row. The demoted count keeps more height when another tile is selected, and selecting a tile now plays a designed transition — an accent bar that grows from the tile's centre with a soft spring, plus a tint that fades in — so focus lands on the chosen metric.",
+      zh: "机场航班卡改为分行排列:起飞 / 到达直接位于航班总数下方作为进出明细,天气 / ATC / 拍机点构成第三行的上下文。选中其他 tile 时航班数仍保留更舒展的行高;切换 tile 现在带有设计过的过渡——强调条从 tile 中心带轻微回弹地展开,底色淡入,使焦点落到所选指标上。",
+    },
+    highlights: [
+      {
+        en: "Flight count, departures/arrivals, and weather/ATC/spotting now stack as three rows instead of one dense strip.",
+        zh: "航班数、起飞/到达、天气/ATC/拍机点改为三行堆叠,取代原来的单行密排。",
+      },
+      {
+        en: "Selecting a tile animates an accent bar growing from centre with a soft spring and a fading tint.",
+        zh: "选中 tile 时强调条从中心带轻微回弹地展开,并伴随底色淡入。",
+      },
+    ],
+  },
+  {
     version: "v2.30.1",
     kind: "patch",
     title: {
