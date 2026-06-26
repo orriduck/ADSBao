@@ -20,6 +20,18 @@ const ROW_HEIGHT_ESTIMATE_PX = 42;
 const OVERSCAN_ROWS = 6;
 const ENTER_ANIMATION_MS = 300;
 
+// Progressive reveal: only the first slice of the (already filtered/sorted)
+// list is fed to the virtualizer, growing by a page as the user scrolls toward
+// the end. Virtualization still windows the rendered DOM, but capping the
+// stream keeps the per-render bookkeeping (enter flags, seen-ids, item keys)
+// and the virtualizer's own count bounded to what the user has actually
+// reached — most sessions never scroll past the first page.
+const INITIAL_VISIBLE_ROWS = 30;
+const VISIBLE_ROWS_STEP = 30;
+// Grow the slice once the rendered window comes within this many rows of the
+// current end, so more rows are ready before the user hits the bottom.
+const GROW_THRESHOLD_ROWS = 8;
+
 // Windowed render for the nearby list. Both aircraft and airport rows live in
 // a single scroll container so the virtualizer can manage them as one stream.
 // Stable per-item keys (icao for airports, callsign/icao24 for aircraft) let
@@ -41,6 +53,21 @@ export default function VirtualNearbyList({
   const scrollRef = useSidebarScrollRef();
   const listRef = useRef<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
+
+  // How many rows of `items` are currently revealed. Reset to the first page
+  // whenever the filter/selection context changes (resetSignal) so a fresh cut
+  // always starts at the top, then grows as the user scrolls toward the end.
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_ROWS);
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE_ROWS);
+  }, [resetSignal]);
+
+  const visibleItems = useMemo(
+    () =>
+      items.length <= visibleCount ? items : items.slice(0, visibleCount),
+    [items, visibleCount],
+  );
+  const hasMore = items.length > visibleItems.length;
 
   useLayoutEffect(() => {
     const scrollEl = scrollRef?.current;
@@ -73,14 +100,14 @@ export default function VirtualNearbyList({
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [scrollRef, items.length]);
+  }, [scrollRef, visibleItems.length]);
 
   const virtualizer = useVirtualizer({
-    count: items.length,
+    count: visibleItems.length,
     getScrollElement: () => scrollRef?.current ?? null,
     estimateSize: () => ROW_HEIGHT_ESTIMATE_PX,
     overscan: OVERSCAN_ROWS,
-    getItemKey: (index) => items[index]?.id ?? index,
+    getItemKey: (index) => visibleItems[index]?.id ?? index,
     scrollMargin,
   });
 
@@ -101,15 +128,15 @@ export default function VirtualNearbyList({
       lastResetRef.current = resetSignal;
     }
     const flags = new Map();
-    for (const item of items) {
+    for (const item of visibleItems) {
       flags.set(item.id, !seenIdsRef.current.has(item.id));
     }
     return flags;
-  }, [items, resetSignal]);
+  }, [visibleItems, resetSignal]);
 
   useEffect(() => {
-    seenIdsRef.current = new Set(items.map((item) => item.id));
-  }, [items]);
+    seenIdsRef.current = new Set(visibleItems.map((item) => item.id));
+  }, [visibleItems]);
 
   // On a filter/selection reset, snap back to the top of the list — but only
   // when the user has already scrolled down into it, so changing a filter
@@ -128,10 +155,23 @@ export default function VirtualNearbyList({
   // a full re-measure on every click was pure layout thrash.
   useEffect(() => {
     virtualizer.measure();
-  }, [items.length, resetSignal, virtualizer]);
+  }, [visibleItems.length, resetSignal, virtualizer]);
 
   const virtualRows = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
+
+  // Reveal the next page once the rendered window approaches the current end of
+  // the revealed slice. Reading the last virtual index keeps this tied to what
+  // the user has actually scrolled to, not raw scroll math.
+  const lastRenderedIndex = virtualRows.length
+    ? virtualRows[virtualRows.length - 1].index
+    : -1;
+  useEffect(() => {
+    if (!hasMore) return;
+    if (lastRenderedIndex >= visibleCount - GROW_THRESHOLD_ROWS) {
+      setVisibleCount((count) => count + VISIBLE_ROWS_STEP);
+    }
+  }, [hasMore, lastRenderedIndex, visibleCount]);
 
   return (
     <div
@@ -141,7 +181,7 @@ export default function VirtualNearbyList({
     >
       <div>
         {virtualRows.map((virtualRow) => {
-          const item = items[virtualRow.index];
+          const item = visibleItems[virtualRow.index];
           if (!item) return null;
           // Resolve selection to a per-row boolean here so the memoized row
           // only re-renders when ITS own selection flips — selecting a

@@ -34,7 +34,6 @@ export const ALTITUDE_LEVEL_VALUES = Object.freeze(
 export const DEFAULT_ALTITUDE_LEVELS = Object.freeze([
   "below-3000",
   "3000-10000",
-  "10000-20000",
 ]);
 
 const LEGACY_ALTITUDE_LEVELS = Object.freeze({
@@ -52,7 +51,9 @@ export const DEFAULT_AIRCRAFT_FILTERS = Object.freeze({
   //   "all"      — aircraft + nearby airports
   //   "airports" — nearby airports only
   //   "aircraft" — aircraft only
-  entityFilter: "all",
+  // Default to aircraft-only: the nearby list is primarily a traffic list, and
+  // dropping airports from the default cut keeps the list shorter and lighter.
+  entityFilter: "aircraft",
 });
 
 export const ENTITY_FILTER_OPTIONS = [

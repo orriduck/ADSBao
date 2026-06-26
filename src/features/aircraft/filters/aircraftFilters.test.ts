@@ -47,10 +47,10 @@ test("filters aircraft by airport movement", () => {
   );
 });
 
-test("defaults altitude filters to aircraft below 20,000 ft", () => {
+test("defaults altitude filters to aircraft below 10,000 ft", () => {
   assert.equal(aircraftMatchesFilters({ altitude: 2500 }), true);
   assert.equal(aircraftMatchesFilters({ altitude: 9999 }), true);
-  assert.equal(aircraftMatchesFilters({ altitude: 19999 }), true);
+  assert.equal(aircraftMatchesFilters({ altitude: 10000 }), false);
   assert.equal(aircraftMatchesFilters({ altitude: 20000 }), false);
 });
 

@@ -48,12 +48,12 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
     version: "v2.30.5",
     kind: "patch",
     title: {
-      en: "Mobile fixes — sidebar list clearance + first-screen entrance",
-      zh: "移动端修复——侧栏列表留白与首屏入场",
+      en: "Mobile fixes, first-screen entrance, and a lighter nearby list",
+      zh: "移动端修复、首屏入场与更轻的邻近列表",
     },
     summary: {
-      en: "Two mobile fixes: a sidebar view's last row (e.g. the spotting list) no longer hides under the floating toolbar, and the first-screen entrance fade is deferred until the main thread is idle so it plays smoothly instead of crawling in over ~0.5–1s while the page is still busy mounting.",
-      zh: "两个移动端修复:侧栏视图(如拍机点列表)的最后一行不再被底部浮动工具栏遮挡;首屏入场淡入改为等主线程空闲后再播放,避免页面挂载繁忙时动画被拖成 ~0.5–1s 的卡顿爬升。",
+      en: "Mobile sidebar lists no longer hide their last row under the floating toolbar, the first-screen fade waits for the main thread to settle so it plays smoothly, and the nearby list now defaults to aircraft below 10,000 ft and reveals a page at a time as you scroll for a shorter, lighter default cut.",
+      zh: "移动端侧栏列表的最后一行不再被底部工具栏遮挡;首屏淡入改为等主线程空闲后再播放以更顺滑;邻近列表默认只看 10000 英尺以下的航空器,并随滚动逐页展开,默认列表更短更轻。",
     },
     highlights: [],
   },
