@@ -245,10 +245,10 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
   return (
     <div className="flex flex-col gap-3 px-[var(--airport-sidebar-inset)] pb-5 pt-1">
       <div className="flex items-baseline justify-between pb-0.5">
-        <h2 className="text-[11px] uppercase tracking-normal text-atc-text">
+        <h2 className="text-[calc(11px*var(--sb-title-scale))] uppercase tracking-normal text-atc-text">
           ATC Frequencies
         </h2>
-        <span className="font-mono text-[9px] uppercase text-atc-faint">
+        <span className="font-mono text-[calc(9px*var(--sb-body-scale))] uppercase text-atc-faint">
           {frequencies.length} channels
         </span>
       </div>
@@ -257,14 +257,14 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           href={liveAtcHref}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="inline-flex items-center justify-between gap-2 text-[9.5px] uppercase tracking-normal text-atc-dim transition-colors hover:text-atc-text"
+          className="inline-flex items-center justify-between gap-2 text-[calc(9.5px*var(--sb-body-scale))] uppercase tracking-normal text-atc-dim transition-colors hover:text-atc-text"
         >
           <span>Search {normalizedIcao} on LiveATC</span>
           <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2} />
         </a>
       ) : null}
       {rows.length === 0 ? (
-        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[11px] leading-snug text-atc-dim">
+        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-dim">
           No published frequencies for this airport.
         </p>
       ) : (
@@ -275,15 +275,15 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
               className="flex items-baseline justify-between gap-3 border-b border-[color-mix(in_oklab,var(--atc-line)_55%,transparent)] py-2 last:border-b-0"
             >
               <div className="min-w-0">
-                <div className="truncate text-[11.5px] text-atc-text">{row.role}</div>
+                <div className="truncate text-[calc(11.5px*var(--sb-body-scale))] text-atc-text">{row.role}</div>
                 {row.detail ? (
-                  <div className="truncate text-[9px] uppercase tracking-[0.06em] text-atc-faint">
+                  <div className="truncate text-[calc(9px*var(--sb-body-scale))] uppercase tracking-[0.06em] text-atc-faint">
                     {row.detail}
                   </div>
                 ) : null}
               </div>
               <span
-                className="notranslate shrink-0 font-mono text-[12.5px] tabular-nums text-atc-text"
+                className="notranslate shrink-0 font-mono text-[calc(12.5px*var(--sb-body-scale))] tabular-nums text-atc-text"
                 translate="no"
               >
                 {formatFrequencyBadge(row.frequencyMhz)}
@@ -307,15 +307,15 @@ function SpottingPanel({
   return (
     <div className="flex flex-col gap-2 px-[var(--airport-sidebar-inset)] pb-5 pt-1">
       <div className="flex items-baseline justify-between pb-0.5">
-        <h2 className="text-[11px] font-bold uppercase tracking-normal text-atc-text">
+        <h2 className="text-[calc(11px*var(--sb-title-scale))] font-bold uppercase tracking-normal text-atc-text">
           {t("watcherMode.cardsTitle")}
         </h2>
-        <span className="font-mono text-[9px] font-semibold uppercase text-atc-faint">
+        <span className="font-mono text-[calc(9px*var(--sb-body-scale))] font-semibold uppercase text-atc-faint">
           {t(countKey, { count: spots.length })}
         </span>
       </div>
       {spots.length === 0 ? (
-        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[11px] font-medium leading-snug text-atc-dim">
+        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[calc(11px*var(--sb-body-scale))] font-medium leading-snug text-atc-dim">
           {t("watcherMode.empty")}
         </p>
       ) : null}
@@ -332,21 +332,21 @@ function SpottingPanel({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="truncate text-[10px] font-bold uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+                  <div className="truncate text-[calc(10px*var(--sb-body-scale))] font-bold uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
                     {spot.name || spot.title || spot.category || "Spotter location"}
                   </div>
-                  <div className="mt-1 text-[10px] font-medium text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
+                  <div className="mt-1 text-[calc(10px*var(--sb-body-scale))] font-medium text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
                     {spot.what || spot.category || spot.sourceLabel || "Photo guide"}
                   </div>
                 </div>
                 {spot.spotNumber ? (
-                  <span className="shrink-0 font-mono text-[9px] font-semibold text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
+                  <span className="shrink-0 font-mono text-[calc(9px*var(--sb-body-scale))] font-semibold text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
                     #{spot.spotNumber}
                   </span>
                 ) : null}
               </div>
               {spot.focalLength || spot.when ? (
-                <div className="mt-1.5 font-mono text-[8px] font-semibold uppercase text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
+                <div className="mt-1.5 font-mono text-[calc(8px*var(--sb-body-scale))] font-semibold uppercase text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
                   {[spot.focalLength, spot.when].filter(Boolean).join(" · ")}
                 </div>
               ) : null}

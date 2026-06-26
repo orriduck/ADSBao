@@ -150,7 +150,7 @@ function DiscoverySectionHeader({
       <h2
         id={id}
         className={
-          "flex min-w-0 items-center gap-2 font-serif text-[15px] leading-snug text-atc-dim " +
+          "flex min-w-0 items-center gap-2 [font-weight:600] text-[calc(15px*var(--sb-title-scale))] leading-snug text-atc-dim " +
           "before:block before:h-[1.5px] before:w-[9px] before:shrink-0 before:rounded-full " +
           "before:bg-[var(--atc-signal-accent)] before:content-['']"
         }

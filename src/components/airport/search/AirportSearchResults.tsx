@@ -58,7 +58,7 @@ export function AirportSearchResults({
               pendingLabel={t("search.searchingAirports")}
               successLabel={t("search.searchedAirports")}
               errorLabel={t("search.searchAirportsError")}
-              className="text-[9px]"
+              className="text-[calc(9px*var(--sb-body-scale))]"
             />
             <span className="atc-section-head__count">{countLabel}</span>
           </span>

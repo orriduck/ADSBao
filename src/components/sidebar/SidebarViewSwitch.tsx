@@ -118,22 +118,22 @@ export default function SidebarViewSwitch({
           {isTraffic ? (
             <>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-atc-faint">
+                <span className="text-[calc(10px*var(--sb-body-scale))] font-semibold uppercase tracking-[0.14em] text-atc-faint">
                   {headlineLabel}
                 </span>
               </div>
               <div className="mt-1.5 flex items-baseline gap-2">
-                <span className="text-[44px] font-normal leading-[0.9] tracking-[-0.02em] tabular-nums text-atc-text">
+                <span className="text-[calc(44px*var(--sb-body-scale))] font-normal leading-[0.9] tracking-[-0.02em] tabular-nums text-atc-text">
                   <NumberFlow value={aircraft.length} />
                 </span>
               </div>
             </>
           ) : (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-atc-faint">
+              <span className="text-[calc(10px*var(--sb-body-scale))] font-semibold uppercase tracking-[0.14em] text-atc-faint">
                 {headlineLabel}
               </span>
-              <span className="text-[16px] font-normal tabular-nums text-atc-text">
+              <span className="text-[calc(16px*var(--sb-body-scale))] font-normal tabular-nums text-atc-text">
                 <NumberFlow value={aircraft.length} />
               </span>
             </div>
@@ -158,13 +158,13 @@ function StatCell({ label, value, unit, active, onClick }) {
       aria-pressed={active}
       className="min-w-0 flex-1 px-[11px] py-[9px] text-left transition-colors [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_0_2px_0_var(--atc-signal-accent)]"
     >
-      <div className="truncate text-[10px] text-atc-faint">{label}</div>
+      <div className="truncate text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{label}</div>
       <div className="mt-[3px]">
-        <span className="text-[16px] font-normal tabular-nums text-atc-text">
+        <span className="text-[calc(16px*var(--sb-body-scale))] font-normal tabular-nums text-atc-text">
           {value}
         </span>
         {unit ? (
-          <span className="ml-0.5 text-[10px] text-atc-faint">{unit}</span>
+          <span className="ml-0.5 text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{unit}</span>
         ) : null}
       </div>
     </button>

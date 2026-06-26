@@ -55,7 +55,7 @@ export default function AirportSearchPanel({
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="h-6 min-w-0 flex-1 p-0 text-[11px] font-semibold tracking-normal text-atc-text"
+          className="h-6 min-w-0 flex-1 p-0 text-[calc(11px*var(--sb-body-scale))] font-semibold tracking-normal text-atc-text"
           placeholder={t("search.placeholder")}
         />
         <kbd className="atc-chip hidden shrink-0 sm:inline-flex">

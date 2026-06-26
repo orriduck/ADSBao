@@ -45,6 +45,32 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.1",
+    kind: "patch",
+    title: {
+      en: "Sidebar typography pass — tokenized sizes, sans headers",
+      zh: "侧栏排版微调——字号 token 化、标题改无衬线",
+    },
+    summary: {
+      en: "Every sidebar and dither-panel font size now flows through two scale tokens (titles ×0.8, body ×0.9) so identity names and section headers read tighter while the hierarchy stays fixed. Group headers drop the serif face for the regular sans at a heavier weight, the home airport explorer rail matches the detail sidebar width, and each group gives its first row more breathing room.",
+      zh: "所有侧栏与 dither 面板的字号现在统一走两个缩放 token(标题 ×0.8、正文 ×0.9),机场名与区块标题更紧凑,层级比例保持不变。分组标题去掉花体衬线、改用更重字重的常规无衬线;首页机场探索栏宽度与详情页侧栏对齐;每个分组的标题与首项之间留出更多间距。",
+    },
+    highlights: [
+      {
+        en: "Two sidebar font-scale tokens (--sb-title-scale / --sb-body-scale) replace ad-hoc px sizes across the airport, aircraft, about, mechanism, and changelog panels.",
+        zh: "两个侧栏字号缩放 token(--sb-title-scale / --sb-body-scale)取代散落的 px 字号,覆盖机场、航空器、关于、机制与更新日志面板。",
+      },
+      {
+        en: "Section headers switch from the serif face to the regular sans at a heavier weight.",
+        zh: "区块标题由衬线花体改为更重字重的常规无衬线。",
+      },
+      {
+        en: "Home explorer sidebar width aligns with the detail sidebar, and group header-to-first-row spacing is loosened.",
+        zh: "首页探索侧栏宽度与详情侧栏对齐,分组标题到首项的间距放宽。",
+      },
+    ],
+  },
+  {
     version: "v2.30.0",
     kind: "feat",
     title: {

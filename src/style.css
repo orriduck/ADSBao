@@ -2985,6 +2985,13 @@ body:has(.dither-page-shell) {
 
 :root {
     --app-sidebar-width: 20.75rem;
+    /* Sidebar typography scale — the single knob for sidebar font sizes.
+       Every sidebar font-size is written as calc(<base>px * <scale>) so the
+       hierarchy stays fixed and only these two numbers move it. Title-class
+       text (identity name + section headers) rides --sb-title-scale; all
+       body/content text rides --sb-body-scale. */
+    --sb-title-scale: 0.8;
+    --sb-body-scale: 0.9;
     /* Raycast density pass: keep ADSBao's two glass materials, but tighten
        the shape language into crisp command-panel chrome. */
     /* Frosted geometry — soft, capsule-driven. The redesign uses 13–18px
@@ -4879,7 +4886,7 @@ body {
 
 .aircraft-table-route-cycle {
     color: var(--atc-dim);
-    font-size: 10px;
+    font-size: calc(10px * var(--sb-body-scale));
     font-weight: var(--weight-regular);
     height: 14px;
     line-height: 14px;
@@ -4899,7 +4906,7 @@ body {
     color: var(--atc-dim);
     display: inline-flex;
     flex: 0 1 auto;
-    font-size: 8.5px;
+    font-size: calc(8.5px * var(--sb-body-scale));
     font-weight: var(--weight-regular);
     height: 14px;
     line-height: 1;
@@ -5768,12 +5775,12 @@ body {
 }
 
 .airport-sidebar-panel .metar-token-strip strong {
-    font-size: 17px;
+    font-size: calc(17px * var(--sb-body-scale));
     letter-spacing: normal;
 }
 
 .airport-sidebar-panel--mobile .metar-token-strip strong {
-    font-size: clamp(15px, 4.4vw, 17px);
+    font-size: clamp(calc(15px * var(--sb-body-scale)), 4.4vw, calc(17px * var(--sb-body-scale)));
 }
 
 .sidebar-shell {
@@ -7736,7 +7743,7 @@ body {
 .changelog-entry__version {
     color: var(--fs-rail-color);
     font-family: var(--font-code);
-    font-size: var(--fs-rail-size);
+    font-size: calc(var(--fs-rail-size) * var(--sb-body-scale));
     font-weight: var(--fs-rail-weight);
 }
 
@@ -7746,7 +7753,7 @@ body {
 
 .changelog-entry__current {
     color: var(--atc-faint);
-    font-size: 6.5px;
+    font-size: calc(6.5px * var(--sb-body-scale));
     font-weight: var(--weight-regular);
 }
 
@@ -7757,7 +7764,7 @@ body {
 .changelog-entry__title {
     color: var(--fs-title-color);
     font-family: var(--fs-title-font);
-    font-size: 15px;
+    font-size: calc(15px * var(--sb-title-scale));
     font-weight: var(--fs-title-weight);
     line-height: var(--fs-title-leading);
     margin: 0;
@@ -7765,7 +7772,7 @@ body {
 
 .changelog-entry__summary {
     color: color-mix(in oklab, var(--atc-text) 46%, transparent);
-    font-size: 11.5px;
+    font-size: calc(11.5px * var(--sb-body-scale));
     line-height: 1.45;
     margin-top: 5px;
 }
@@ -7782,7 +7789,7 @@ body {
     align-items: baseline;
     color: var(--fs-body-color);
     display: grid;
-    font-size: var(--fs-body-size);
+    font-size: calc(var(--fs-body-size) * var(--sb-body-scale));
     gap: 5px;
     grid-template-columns: 14px minmax(0, 1fr);
     line-height: var(--fs-body-leading);
@@ -7791,7 +7798,7 @@ body {
 .changelog-entry__highlight-index {
     color: var(--atc-faint);
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: calc(9px * var(--sb-body-scale));
     font-weight: var(--weight-regular);
     letter-spacing: 0;
     line-height: 1;
@@ -8018,7 +8025,10 @@ body {
 
 @media (min-width: 768px) {
     .dither-page-shell {
-        --app-sidebar-width: 17.5rem;
+        /* Match the detail page sidebar (.airport-map-kit stays at 18.8rem
+           from min-width:640px) so the rail width doesn't jump between the
+           first screen and airport/aircraft detail. */
+        --app-sidebar-width: 18.8rem;
         --atc-radius-shell: 8px;
         --atc-radius-panel: 6px;
         --atc-radius-card: 6px;
@@ -8049,13 +8059,13 @@ body {
     }
 
     .dither-page-header .atc-page-title {
-        font-size: 22px;
+        font-size: calc(22px * var(--sb-title-scale));
         line-height: 1.16;
         margin-top: 13px;
     }
 
     .dither-page-header .dither-page-description {
-        font-size: 10px;
+        font-size: calc(10px * var(--sb-body-scale));
         line-height: 1.65;
         margin-top: 10px;
     }
@@ -8095,9 +8105,12 @@ body {
         padding-bottom: 8px;
     }
 
-    .dither-page-panel .atc-kicker,
-    .dither-page-panel .atc-section-head__count {
+    .dither-page-panel .atc-kicker {
         font-size: 8px;
+    }
+
+    .dither-page-panel .atc-section-head__count {
+        font-size: calc(8px * var(--sb-body-scale));
     }
 
     .dither-page-panel .atc-kicker {
@@ -8318,6 +8331,13 @@ body {
 .search-screen .dither-content-stack > section + section {
     margin-top: 0;
     padding-top: 22px;
+}
+
+/* Breathing room between a group's header (tick + label) and its first row.
+   .dither-list zeroes margin-block globally, so scope the gap to the home
+   directory rather than fighting it with a utility class. */
+.search-screen .dither-section-flow > .dither-list {
+    margin-top: 12px;
 }
 
 .search-screen .dither-section-flow > .atc-section-head {
@@ -8713,7 +8733,7 @@ body {
 
 .airport-sidebar-panel [data-ui="metric-card"][data-layout="split"] [data-ui="metric-value"],
 .flight-sidebar-panel [data-ui="metric-card"][data-layout="split"] [data-ui="metric-value"] {
-    font-size: 15px;
+    font-size: calc(15px * var(--sb-body-scale));
     line-height: 0.95;
 }
 
@@ -8809,7 +8829,7 @@ body {
     }
 
     .airport-map-kit .airport-sidebar-display-mono--hero {
-        font-size: 20px;
+        font-size: calc(20px * var(--sb-title-scale));
         line-height: 0.95;
     }
 
@@ -8827,18 +8847,18 @@ body {
        (recedes), and .font-mono carries the city/country · coordinates meta
        line. */
     .airport-map-kit .airport-sidebar-identity h1 {
-        font-size: 21px;
+        font-size: calc(21px * var(--sb-title-scale));
         line-height: 1.08;
         margin-top: 12px;
     }
 
     .airport-map-kit .airport-sidebar-identity h1 + div {
-        font-size: 12.5px;
+        font-size: calc(12.5px * var(--sb-title-scale));
         margin-top: 8px;
     }
 
     .airport-map-kit .airport-sidebar-identity .font-mono {
-        font-size: 11px;
+        font-size: calc(11px * var(--sb-body-scale));
     }
 
     .airport-map-kit .aircraft-search {
@@ -8853,7 +8873,7 @@ body {
     }
 
     .airport-map-kit .aircraft-search input {
-        font-size: 13px;
+        font-size: calc(13px * var(--sb-body-scale));
     }
 
     .airport-map-kit .aircraft-table-row-grid {
@@ -8862,7 +8882,7 @@ body {
     }
 
     .airport-map-kit .aircraft-table-header {
-        font-size: 8px;
+        font-size: calc(8px * var(--sb-body-scale));
         min-height: 20px;
         padding-block: 1px;
     }
@@ -8885,11 +8905,11 @@ body {
     }
 
     .airport-map-kit .aircraft-table-callsign {
-        font-size: 10px !important;
+        font-size: calc(10px * var(--sb-body-scale)) !important;
     }
 
     .airport-map-kit .aircraft-table-cell {
-        font-size: 10px;
+        font-size: calc(10px * var(--sb-body-scale));
     }
 
     .airport-map-kit .aircraft-table-cell--distance {
@@ -8905,7 +8925,7 @@ body {
     }
 
     .airport-map-kit .aircraft-table-unit {
-        font-size: 6px;
+        font-size: calc(6px * var(--sb-body-scale));
     }
 
     .airport-map-kit .aircraft-table-route-slot,
@@ -8914,7 +8934,7 @@ body {
     }
 
     .airport-map-kit .aircraft-table-route-cycle {
-        font-size: 8px;
+        font-size: calc(8px * var(--sb-body-scale));
         line-height: 11px;
     }
 
@@ -8922,7 +8942,7 @@ body {
     .airport-map-kit
         .aircraft-table-identity
         > span:not(.aircraft-table-callsign) {
-        font-size: 8px !important;
+        font-size: calc(8px * var(--sb-body-scale)) !important;
     }
 
     .airport-map-kit .aircraft-table-airline-logo {
@@ -8932,7 +8952,7 @@ body {
     }
 
     .airport-map-kit .aircraft-table-route-badge {
-        font-size: 7.5px;
+        font-size: calc(7.5px * var(--sb-body-scale));
         height: 12px;
         max-width: min(70px, 45%);
         padding: 0 4px;
@@ -9020,7 +9040,7 @@ body {
     }
 
     .airport-map-kit .airport-sidebar-display-mono--hero {
-        font-size: 19px;
+        font-size: calc(19px * var(--sb-title-scale));
         line-height: 1;
     }
 
@@ -9038,18 +9058,18 @@ body {
        (recedes), and .font-mono carries the city/country · coordinates meta
        line. */
     .airport-map-kit .airport-sidebar-identity h1 {
-        font-size: 21px;
+        font-size: calc(21px * var(--sb-title-scale));
         line-height: 1.08;
         margin-top: 12px;
     }
 
     .airport-map-kit .airport-sidebar-identity h1 + div {
-        font-size: 12.5px;
+        font-size: calc(12.5px * var(--sb-title-scale));
         margin-top: 8px;
     }
 
     .airport-map-kit .airport-sidebar-identity .font-mono {
-        font-size: 11px;
+        font-size: calc(11px * var(--sb-body-scale));
     }
 
     .airport-map-kit .airport-desktop-sidebar {
@@ -9121,7 +9141,7 @@ body {
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .airport-sidebar-display-mono--hero {
-        font-size: 14px;
+        font-size: calc(14px * var(--sb-title-scale));
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
@@ -9238,7 +9258,7 @@ body {
 
     .airport-map-kit[data-client-orientation="landscape"]
         .airport-sidebar-display-mono--hero {
-        font-size: 14px;
+        font-size: calc(14px * var(--sb-title-scale));
     }
 
     .airport-map-kit[data-client-orientation="landscape"]

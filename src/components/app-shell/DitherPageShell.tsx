@@ -128,7 +128,7 @@ export default function DitherPageShell({
             <div className="dither-page-header dither-page-header--copy-only flex-none px-5 pb-4 pt-1">
               <div className="dither-page-copy">
                 <h1
-                  className="atc-page-title mt-4 text-[26px] font-extrabold leading-[1.12] text-atc-text"
+                  className="atc-page-title mt-4 text-[calc(26px*var(--sb-title-scale))] font-extrabold leading-[1.12] text-atc-text"
                   style={{
                     fontFamily: "var(--font-display)",
                     letterSpacing: "normal",
