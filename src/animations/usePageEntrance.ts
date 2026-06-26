@@ -1,17 +1,31 @@
 /**
- * usePageEntrance — GSAP-driven page shell entrance animation.
+ * usePageEntrance — page shell entrance animation.
  *
- * The reveal is deliberately deferred: the content is hidden before paint
- * (so there is no flash of un-animated layout) and the fade only plays once
- * the main thread is idle — i.e. everything else has mounted and there is
- * nothing left to recompute. The transition is therefore allowed to start a
- * beat late, but it always plays smoothly instead of being starved mid-tween
- * by a busy mount (which made the first screen crawl in over ~0.5–1s).
+ * The reveal is driven by CSS animations (see `.page-entrance-*` in style.css),
+ * NOT a JS rAF tween. opacity + transform composite off the main thread, so the
+ * fade plays at the correct speed even while the boot thread is saturated
+ * (Clerk, map, data hydration) — the earlier GSAP version got starved into a
+ * 0→1 crawl over ~0.5–1s on a cold first screen.
+ *
+ * Content is never hidden ahead of time: the elements paint as soon as React
+ * commits and fade in from there, so the first screen does not sit blank
+ * waiting for an idle frame. The hook only toggles classes and sets per-item
+ * animation-delay for the stagger; route changes replay by removing the
+ * classes, forcing a reflow, and re-adding them.
  */
 import { useLayoutEffect, useRef, useCallback } from "react";
-import gsap from "gsap";
 import { resetViewportScroll } from "@/features/app-shell/viewportScroll";
-import { MOTION, EASE, killTweensOf } from "./gsap";
+
+const ENTRANCE_CLASSES = [
+  "page-entrance-head",
+  "page-entrance-body",
+  "page-entrance-item",
+];
+
+// Item stagger: each subsequent item starts a touch later than the last, after
+// a small base delay so the header/body lead the list in.
+const ITEM_BASE_DELAY_S = 0.12;
+const ITEM_STAGGER_STEP_S = 0.025;
 
 interface PageEntranceOptions {
   /** CSS selector for the copy block. Default: ".dither-page-copy" */
@@ -22,28 +36,10 @@ interface PageEntranceOptions {
   itemSelector?: string;
   /** Replays the entrance animation when this key changes. */
   triggerKey?: string;
-  /** Delay before starting (seconds). Default: 0.02 */
-  delay?: number;
   /** Whether to reset sidebar scroll containers before animating. Default: true */
   resetScroll?: boolean;
   /** Whether to animate on mount / trigger. Default: true */
   enabled?: boolean;
-}
-
-type IdleHandle = { cancel: () => void };
-
-// Run `fn` once the main thread is idle (no pending work). Falls back to a
-// short timer where requestIdleCallback is unavailable. `timeout` guarantees
-// the fade still plays if the thread never fully settles.
-function runWhenIdle(fn: () => void, timeout = 1500): IdleHandle {
-  if (typeof window.requestIdleCallback === "function") {
-    const id = window.requestIdleCallback(fn, { timeout });
-    return {
-      cancel: () => window.cancelIdleCallback?.(id),
-    };
-  }
-  const id = window.setTimeout(fn, 80);
-  return { cancel: () => window.clearTimeout(id) };
 }
 
 export function usePageEntrance(
@@ -55,25 +51,32 @@ export function usePageEntrance(
     bodySelector = ".dither-page-body",
     itemSelector = ".app-list-motion > *, .gsap-stagger-item",
     triggerKey = "initial",
-    delay = 0.02,
     resetScroll = true,
     enabled = true,
   } = options;
 
-  const ctxRef = useRef<gsap.Context | null>(null);
-  const idleRef = useRef<IdleHandle | null>(null);
+  // Elements we've tagged this run, so a replay can clean them up first.
+  const taggedRef = useRef<HTMLElement[]>([]);
+
+  const clearTagged = useCallback(() => {
+    for (const el of taggedRef.current) {
+      el.classList.remove(...ENTRANCE_CLASSES);
+      el.style.removeProperty("animation-delay");
+    }
+    taggedRef.current = [];
+  }, []);
 
   const play = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    ctxRef.current?.revert();
-    idleRef.current?.cancel();
+    clearTagged();
 
     const header = container.querySelector<HTMLElement>(headerSelector);
     const body = container.querySelector<HTMLElement>(bodySelector);
-    const items = Array.from(container.querySelectorAll<HTMLElement>(itemSelector));
-    const animatedElements = [header, body, ...items].filter(Boolean);
+    const items = Array.from(
+      container.querySelectorAll<HTMLElement>(itemSelector),
+    );
 
     if (resetScroll) {
       resetViewportScroll(container);
@@ -87,64 +90,45 @@ export function usePageEntrance(
       }
     }
 
-    killTweensOf(animatedElements);
-
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      gsap.set(animatedElements, { clearProps: "opacity,transform" });
       return;
     }
 
-    // Hide synchronously (before paint, since this runs from a layout effect)
-    // so the page never flashes its un-animated content.
-    if (header) gsap.set(header, { opacity: 0, y: 8 });
-    if (body) gsap.set(body, { opacity: 0, y: 6 });
-    if (items.length > 0) gsap.set(items, { opacity: 0 });
+    // Force the just-removed classes to flush so re-adding them restarts the
+    // CSS animations from frame 0 (route-change replay).
+    void container.offsetWidth;
 
-    // Defer the actual fade until the thread is idle so it plays smoothly.
-    idleRef.current = runWhenIdle(() => {
-      ctxRef.current = gsap.context(() => {
-        const tl = gsap.timeline({ defaults: { overwrite: "auto" } });
-
-        if (header) {
-          tl.to(
-            header,
-            { opacity: 1, y: 0, duration: MOTION.slow, ease: EASE.snap },
-            delay,
-          );
-        }
-
-        if (body) {
-          tl.to(
-            body,
-            { opacity: 1, y: 0, duration: MOTION.med, ease: EASE.out },
-            header ? "-=0.16" : delay,
-          );
-        }
-
-        if (items.length > 0) {
-          tl.to(
-            items,
-            {
-              opacity: 1,
-              duration: MOTION.fast,
-              ease: EASE.out,
-              stagger: { each: 0.025, from: "start" },
-            },
-            "-=0.08",
-          );
-        }
-      }, container);
+    if (header) {
+      header.classList.add("page-entrance-head");
+      taggedRef.current.push(header);
+    }
+    if (body) {
+      body.classList.add("page-entrance-body");
+      taggedRef.current.push(body);
+    }
+    items.forEach((el, index) => {
+      el.style.animationDelay = `${
+        ITEM_BASE_DELAY_S + index * ITEM_STAGGER_STEP_S
+      }s`;
+      el.classList.add("page-entrance-item");
+      taggedRef.current.push(el);
     });
-  }, [containerRef, headerSelector, bodySelector, itemSelector, delay, resetScroll]);
+  }, [
+    containerRef,
+    clearTagged,
+    headerSelector,
+    bodySelector,
+    itemSelector,
+    resetScroll,
+  ]);
 
   useLayoutEffect(() => {
     if (!enabled) return undefined;
     play();
     return () => {
-      idleRef.current?.cancel();
-      ctxRef.current?.revert();
+      clearTagged();
     };
-  }, [enabled, play, triggerKey]);
+  }, [enabled, play, triggerKey, clearTagged]);
 
   return { play };
 }
