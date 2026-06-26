@@ -5,273 +5,166 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
     title: "Railway 单服务与可观测性",
     summary:
       "这一版线把应用收敛到 Railway 单服务，并补齐后端可观测性与迁移后的地图修复。",
-    highlights: [
-      "前端、API、WebSocket 和实时数据收敛到同一个 Railway 服务",
-      "机场地图、跑道灯和飞机预览在迁移后恢复稳定",
-      "后端日志和指标更容易排查",
-    ],
+    highlights: [],
   },
   "v2.5.0": {
     title: "Realtime 数据服务与工具栏打磨",
     summary:
       "实时交通切到 ADSBao 自有数据服务，地图工具栏与跟踪流程也一起收紧。",
-    highlights: [
-      "机场与附近视图改用自有 realtime 服务",
-      "应用持久化迁移到自有数据库",
-      "地图工具栏和精确航班跟踪更一致",
-    ],
+    highlights: [],
   },
   "v2.4.0": {
     title: "液态玻璃视觉系统",
     summary:
       "应用界面重建为液态玻璃视觉系统，并统一了浏览列表、工具栏、字体和机场名称显示。",
-    highlights: [
-      "浮层、卡片和工具栏统一到两套玻璃材质",
-      "首页、关于、机制和更新日志的浏览列表更一致",
-      "字体与机场名称显示更完整清晰",
-    ],
+    highlights: [],
   },
   "v2.3.0": {
     title: "屏幕常亮与追踪稳定性",
     summary:
       "地图页加入屏幕常亮控制，同时改善状态栏、加载稳定性和飞行跟踪韧性。",
-    highlights: [
-      "长时间看图时可以保持屏幕常亮",
-      "状态栏和列表反馈更清晰",
-      "飞行跟踪遇到慢数据源时更稳",
-    ],
+    highlights: [],
   },
   "v2.2.0": {
     title: "天气、地图细节与动效",
     summary:
       "天气卡片、我的位置体验、标准地图细节和全站动效一起升级。",
-    highlights: [
-      "本地天气增加逐时预报和明日摘要",
-      "我的位置页面更轻、更聚焦",
-      "标准底图和页面动效更有层次",
-    ],
+    highlights: [],
   },
   "v2.1.0": {
     title: "我的位置探索页 + 拍机打磨",
     summary:
       "新增 /here 页,以你的当前位置为中心,镜像机场详情页的体验,带实时位置追踪。拍机功能改用更简单的系统原生选择器,地图模板更紧凑。",
-    highlights: [
-      "/here:显示你周围的飞机、附近机场和空域,跟随你移动自动刷新",
-      "侧栏头部按你的实际位置显示城市 / 州 / 国家",
-      "拍机入口简化为系统相机 / 相册选择器;地图模板半径约 1 海里",
-      "细节修复 — 预览卡按方向滑入、长机型不再压到 callsign 上、航路只在上下文完整时显示",
-    ],
+    highlights: [],
   },
   "v2.0.0": {
     title: "拍机正式上线",
     summary:
       "拍机功能正式发布,两步式工作流:先拍照,再套模板,导出一张可分享的 PNG。新增「地图」模板,在照片上叠一张你所在位置的 OSM 拼贴。",
-    highlights: [
-      "两步流程 — 先拍照,再套模板 + 分享 / 保存 / 复制",
-      "调用系统原生相机或相册",
-      "新增「地图」模板 — 以你为中心的 OSM 瓦片,飞机在视野内会叠上去",
-      "入口限制移除,所有登录用户都能使用",
-    ],
+    highlights: [],
   },
   "v1.13.0": {
     title: "移动端底部浮动工具栏与设备感知设置",
     summary:
       "移动端所有页面都使用同一个底部固定的工具栏,登录用户可以分别保存桌面端和移动端的地图偏好。",
-    highlights: [
-      "移动端工具栏在所有页面浮动在底部居中",
-      "登录用户的桌面端和移动端地图设置独立保存",
-      "高空过境飞机不再被进近高度遮罩规则隐藏",
-    ],
+    highlights: [],
   },
   "v1.12.0": {
     title: "地图可读性与 badge 打磨",
     summary: "更安静的地形配色与带碰撞检测的统一 badge 体系。",
-    highlights: [
-      "亮暗主题都采用更平静的 hillshade 地形",
-      "机场 / 导航台 badge 重叠时自动避让并连出引线",
-      "点击重叠空域可循环切换",
-    ],
+    highlights: [],
   },
   "v1.11.0": {
     title: "全航迹地图上下文计数",
     summary: "全航迹在低缩放层级把密集导航台标签替换为缓存的 NAV 计数 badge。",
-    highlights: [
-      "低缩放时聚合导航台计数 tile",
-      "放大到细节阈值后仍显示完整标签",
-    ],
+    highlights: [],
   },
   "v1.10.0": {
     title: "机场设施数据与侧栏打磨",
     summary:
       "机场详情页在 OpenAIP 之外恢复了 OurAirports 设施数据,补齐 ATC 频率和导航台覆盖。",
-    highlights: [
-      "OurAirports 频率和导航台覆盖恢复",
-      "机场侧栏加入独立 ATC 与拍机点面板",
-    ],
+    highlights: [],
   },
   "v1.9.0": {
     title: "看客模式候选拍机点",
     summary: "看客模式基于跑道朝向和 OSM 数据为焦点机场生成候选拍机点。",
-    highlights: [
-      "候选拍机点来自跑道朝向 + OpenStreetMap",
-      "可点击的相机标记和带 OSM attribution 的预览卡",
-    ],
+    highlights: [],
   },
   "v1.8.0": {
     title: "机场空域与导航细节",
     summary:
       "机场地图加入 OpenAIP 空域，并补齐机型名称、导航细节和缩放层级减噪。",
-    highlights: [
-      "空域可在机场地图上直接查看和预览",
-      "机型名称与跨页导航更友好",
-      "机场缩放层级更安静",
-    ],
+    highlights: [],
   },
   "v1.7.0": {
     title: "OpenAIP 机场目录迁移",
     summary: "机场搜索与详情上下文改用 OpenAIP 作为主航空目录。",
-    highlights: [
-      "搜索、详情、频率、导航台、空域全部迁移到 OpenAIP",
-      "跑道阈值几何继续由 Postgres 持久化数据提供",
-    ],
+    highlights: [],
   },
   "v1.6.0": {
     title: "附近列表虚拟化与数据层接入",
     summary:
       "侧栏附近列表改为窗口化滚动,距离和高度数字滚动呈现;TanStack Query 开始接管客户端数据获取。",
-    highlights: [
-      "附近列表(飞机 + 机场)虚拟化,距离 / 高度 NumberFlow 数字滚动",
-      "页面 z-index 统一为命名 tier token",
-      "TanStack Query 接入应用骨架",
-    ],
+    highlights: [],
   },
   "v1.5.0": {
     title: "跟踪稳定性与地图标签优化",
     summary: "飞行跟踪区分实时、兜底、陈旧、缺失位置状态;地图标签更清晰。",
-    highlights: [
-      "跟踪航班使用明确的位置状态",
-      "预测航路改为虚线",
-      "地图地名跟随界面语言",
-    ],
+    highlights: [],
   },
   "v1.4.0": {
     title: "账号登录与更安静的信号丢失处理",
     summary:
       "从地图工具栏或导航菜单登录;丢失信号时,弹窗保留当前视图并在后台静默重试。",
-    highlights: [
-      "地图工具栏头像入口可登录注册",
-      "数据源恢复后自动续上,无需手动重试",
-    ],
+    highlights: [],
   },
   "v1.3.0": {
     title: "adsbdb 航路、社区反馈与完整跑道地图",
     summary:
       "航路查询迁移到 api.adsbdb.com,用户可提交临时航路修正,跑道地图从 OpenAIP 渲染所有跑道。",
-    highlights: [
-      "航路数据源切换到 api.adsbdb.com",
-      "带 `*` 的用户航路在 12 小时内优先",
-      "全球跑道地图来自 OpenAIP(含 VFR-only 跑道)",
-    ],
+    highlights: [],
   },
   "v1.2.0": {
     title: "主题化跑道进近、机首光束与比例尺",
     summary: "按主题切换进近可视化、暗色机首光束、常驻比例尺和应用主题 toast。",
-    highlights: [
-      "进近:暗色为发光楔形,亮色为虚线延长中心线",
-      "比例尺始终显示,背景模糊跟随主题",
-    ],
+    highlights: [],
   },
   "v1.1.0": {
     title: "距离环与地图比例尺",
     summary:
       "机场页同心距离环、进近缩放下自适应比例尺;附近搜索统一为 40 海里。",
-    highlights: [
-      "机场页:焦点机场每 3 海里一圈,最大 30 海里",
-      "进近缩放时左下角显示比例尺",
-    ],
+    highlights: [],
   },
   "v1.0.0": {
     title: "持久跟踪会话与上弹导航菜单",
     summary: "刷新后保留航迹、信号丢失覆盖层、新增 /changelog 页面。",
-    highlights: [
-      "12 小时跟踪会话锚点 + 24 小时本地航迹缓存",
-      "信号丢失覆盖层:保留、重试、返回首页",
-      "新增 /changelog 页面",
-    ],
+    highlights: [],
   },
   "v0.12.0": {
     title: "飞机跟踪页与多形态 explorer",
     summary:
       "/aircraft/[callsign] 路由,多形态侧栏与预览,适配航迹,多数据源 failover。",
-    highlights: [
-      "/aircraft/[callsign] 复用机场布局",
-      "多形态预览卡支持飞机与机场",
-      "路由重命名:/[icao] → /airport/[icao]",
-    ],
+    highlights: [],
   },
   "v0.11.0": {
     title: "选中飞机航迹与重新验证",
     summary: "焦点飞机实时航迹线、AeroDataBox 重验航路、ADS-B 数据源 failover。",
-    highlights: [
-      "渐变航迹线 + 淡入标签卡",
-      "ADS-B failover:5xx / 429 / timeout",
-    ],
+    highlights: [],
   },
   "v0.10.0": {
     title: "全球机场数据与更丰富的飞机轮廓",
     summary: "OpenAIP 提供全球搜索,178 种 ICAO 类型轮廓,首页与机场头部显示国旗。",
-    highlights: [
-      "OpenAIP 支撑 /api/search 和 /api/airport/[ident]",
-      "178 个飞机轮廓随仓库发布",
-    ],
+    highlights: [],
   },
   "v0.9.0": {
     title: "海军蓝跟踪控制台重设计",
     summary: "侧栏 + 地图布局、呼号优先交通表、深海军蓝配色、轮廓标记。",
-    highlights: [
-      "400 px 桌面侧栏 + 全高地图",
-      "ICAO 类型驱动的飞机轮廓标记",
-    ],
+    highlights: [],
   },
   "v0.8.0": {
     title: "Next.js Vercel 重构",
     summary: "应用从 Vue 3 / Vite 重建为 Next.js App Router 上的 React 应用。",
-    highlights: [
-      "React on Next.js App Router",
-      "通过 Next 集成接入 Vercel Analytics 与 Speed Insights",
-    ],
+    highlights: [],
   },
   "v0.7.0": {
     title: "飞行航路与交通上下文",
     summary: "机场感知航路标签、航路查询、双范围 ADS-B 轮询。",
-    highlights: [
-      "机场感知飞行航路标签",
-      "双范围轮询:广域 20 海里 + 近距 3 海里",
-    ],
+    highlights: [],
   },
   "v0.6.0": {
     title: "Vercel 可观测性与生产路由",
     summary: "Web Analytics、Speed Insights、强化代理与上游日志。",
-    highlights: [
-      "Vercel Web Analytics + Speed Insights",
-      "强化代理解析以防上游 HTML / error",
-    ],
+    highlights: [],
   },
   "v0.5.0": {
     title: "Vercel-first Web 架构",
     summary: "Vercel 部署配置、同源代理、移除 Electron 和 Homebrew。",
-    highlights: [
-      "METAR 与 ADS-B 上游同源代理",
-      "移除 Electron 与 Homebrew cask pipeline",
-    ],
+    highlights: [],
   },
   "v0.4.0": {
     title: "ADSBao Web 转向",
     summary: "重命名为 ADSBao,重新定位为机场 explorer,移除 LiveATC UI、播放器与转录。",
-    highlights: [
-      "项目重命名为 ADSBao",
-      "移除旧 LiveATC 前端 + 后端",
-    ],
+    highlights: [],
   },
 };
 
@@ -287,24 +180,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The default airport sidebar is rebuilt on the frosted-glass language: a code-first identity (BOS · KBOS), a flat Flights hero with Wx / ATC / Spot cells, and a 2×2 filter grid where dropdowns carry a chevron and the Route toggle becomes an orange accent pill. Only the logo is pinned now — identity, hero, filters, and the nearby list scroll together as one region — while the list keeps windowing via scroll-margin virtualization, so the v2.28.8 performance win is preserved. Traffic rows collapse to a single fixed-height line: callsign · route on the left, distance and altitude grouped on the right and told apart by tone.",
       zh: "默认机场侧栏按霜面玻璃语言重做:以代码为主的标识(BOS · KBOS)、扁平的航班数概览(Wx / ATC / Spot),以及 2×2 筛选网格——下拉项带箭头,Route 开关激活时变为橙色强调胶囊。现在只有 Logo 固定,标识、概览、筛选与邻近列表作为一个区域一起滚动;列表仍通过 scroll-margin 虚拟化窗口化,因此保留了 v2.28.8 的性能改进。航班行收为单行定高:左侧呼号 · 航路,右侧距离与高度并排并以明暗区分。",
     },
-    highlights: [
-      {
-        en: "Identity leads with the airport code; name and city/country · coordinates recede beneath it (no flag emoji)",
-        zh: "标识以机场代码为主,名称与城市/国家 · 坐标退居其下(无国旗 emoji)",
-      },
-      {
-        en: "Flat Flights hero with a large count over Wx / ATC / Spot cells (Dep / Arr added only with FlightAware)",
-        zh: "扁平航班数概览:大号计数叠加 Wx / ATC / Spot 单元(仅在 FlightAware 下加入 Dep / Arr)",
-      },
-      {
-        en: "Logo is the only pinned element; everything below scrolls as one region with the nearby list still virtualized",
-        zh: "Logo 是唯一固定元素;其下内容作为一个区域滚动,邻近列表仍保持虚拟化",
-      },
-      {
-        en: "Single-line, fixed-height traffic rows — distance and altitude grouped on the right and separated by tone",
-        zh: "单行定高的航班行——距离与高度在右侧并排,并以明暗区分",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.8",
@@ -317,16 +193,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "On desktop the whole sidebar used to scroll, which left the nearby traffic list unbounded and defeated its virtualizer — every airport/flight page mounted all 80–100+ rows at once. Now the brand, identity, and filters stay fixed and only the list scrolls internally (matching the mobile layout), so it windows ~20 rows. Selecting a row no longer re-renders or re-measures the whole list.",
       zh: "桌面端此前是整条侧栏一起滚动,导致邻近列表高度不受限、虚拟化被架空——每个机场/航班页都会一次性挂载全部 80–100+ 行。现在品牌、标识、筛选固定不动,只有列表内部滚动(与移动端一致),因此只渲染约 20 行。选中某行也不再重渲染或重新测量整张列表。",
     },
-    highlights: [
-      {
-        en: "Desktop airport + flight sidebars now have a fixed header with an internally-scrolling nearby list, so the virtualizer windows ~20 rows instead of mounting the full ~87",
-        zh: "桌面机场 + 航班侧栏改为固定表头 + 列表内部滚动,虚拟化只渲染约 20 行,而不是挂载全部约 87 行",
-      },
-      {
-        en: "Selecting an aircraft/airport only re-renders the affected rows (memoized) and skips the per-click full re-measure — clicking a row is noticeably snappier",
-        zh: "选中飞机/机场只重渲染受影响的行(memo 化),并跳过每次点击的整表重测量——点击明显更跟手",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.7",
@@ -339,16 +206,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The airport, navaid, reporting-point, airspace, and watching-spot preview cards adopt the aircraft card's typography on both desktop and mobile — a mono identity with a secondary on the right, the shared metadata rows, and an orange Track button.",
       zh: "机场、导航台、报告点、空域、拍机点预览卡片在桌面和移动端都沿用飞机卡片的排版——等宽标识 + 右侧次级、共享的元数据行、橙色 Track 按钮。",
     },
-    highlights: [
-      {
-        en: "All preview cards share one chrome — a primary identity (mono for codes, sans for names) over quiet sublines, the same label-left / value-right metadata rows, and a single dot-separated detail line on mobile; the kicker eyebrow, 28px bold heads, and entity icons are dropped",
-        zh: "所有预览卡片共用一套外观——主标识（代号用等宽、名称用无衬线）+ 安静的副行、同样的左标签 / 右值元数据行，移动端用一行点分隔参数；去掉了 kicker eyebrow、28px 粗标题与实体图标",
-      },
-      {
-        en: "The mobile Track button is the orange accent everywhere (matching desktop); the multi-airspace selector now advances exactly one card per swipe",
-        zh: "移动端 Track 按钮统一为橙色强调色（与桌面一致）；多空域选择器现在每次滑动只前进一张",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.6",
@@ -361,16 +219,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The collapsed mobile aircraft card tightens to a single glance: thumbnail, callsign + type, route, an inline orange Track button, and one telemetry line. The photo and secondary actions move into the expanded sheet.",
       zh: "移动端飞机卡片的收起态收紧为一眼可读：缩略图、呼号 + 机型、航路、内联橙色 Track 按钮，以及一行参数。照片与次要操作移入展开层。",
     },
-    highlights: [
-      {
-        en: "Collapsed row: [thumbnail] [callsign + TYPE / CATEGORY · ORIGIN → DEST] [inline Track], over a 'speed · alt · ↑V/S' line with the vertical-speed in the accent",
-        zh: "收起行：[缩略图] [呼号 + 机型 / 类别 · 起 → 降] [内联 Track]，下方为「速度 · 高度 · ↑垂直速度」一行，垂直速度用强调色",
-      },
-      {
-        en: "Drag the grabber down to reveal a modest photo plus the camera / suggest-correction actions; the dense HEX / Track / Distance rows are left off mobile",
-        zh: "向下拖动把手即可展开适中的照片，以及相机 / 建议纠正操作；移动端不再堆叠 HEX / 航向 / 距离等密集信息",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.5",
@@ -383,20 +232,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Tapping an aircraft now opens a refreshed frosted preview card on desktop and a drag-to-expand sheet on mobile, with one signal accent and no rainbow button.",
       zh: "点选飞机后，桌面端打开焕新的磨砂预览卡片，移动端为可下拉展开的卡片；统一单一信号强调色，去掉彩虹按钮。",
     },
-    highlights: [
-      {
-        en: "Desktop card: a photo header with a 'tracking' pill, callsign + TYPE / CATEGORY (no registration), an ORIGIN ——✈—— DEST route line, accent vertical-speed, HEX / Track / Distance, and a Track button beside camera + suggest-correction icon buttons",
-        zh: "桌面卡片：带「追踪」徽标的照片头、呼号 + 机型 / 类别（不再显示注册号）、ORIGIN ——✈—— DEST 航路线、强调色垂直速度、HEX / 航向 / 距离，以及 Track 按钮搭配相机 + 建议纠正图标按钮",
-      },
-      {
-        en: "Mobile: a top-anchored drag-to-expand sheet (drag the grabber down) — collapsed shows callsign / type / telemetry / actions; expanded reveals the photo and identity rows. Landscape anchors to the bottom and expands up",
-        zh: "移动端：顶部吸附、可下拉展开的卡片（向下拖动把手）——收起时显示呼号 / 机型 / 参数 / 操作，展开后显示照片与身份信息；横屏改为底部吸附、向上展开",
-      },
-      {
-        en: "The list-row selection (orange wash + accent rail + accent glyph) and the single signal accent are reused throughout; the multicolour Plane Hunter button is gone",
-        zh: "沿用列表行选中态（橙色底色 + 强调导轨 + 强调图标）与单一信号强调色；移除多彩的拍机按钮",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.4",
@@ -409,20 +245,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The Mechanism page adopts the Explorer/About design system, and the Changelog aligns to the same type scale. Both join the first-screen family with serif group labels and the accent title tick.",
       zh: "机制页沿用机场探索 / 关于页的设计语言，更新日志对齐同一套字号。两页都归入首屏家族，配衬线分组标签与强调标题短线。",
     },
-    highlights: [
-      {
-        en: "Mechanism rows become numbered accordion entries (mono index, title + signal, chevron); the expanded row gets a faint neutral panel with the data flow drawn as a vertical node pipeline — only the final produced payload is the orange node",
-        zh: "机制行改为带编号的折叠条目（等宽序号、标题 + 信号、折叠箭头）；展开行为淡色面板，数据流以竖向节点管线呈现——仅最终产出的 payload 为橙色节点",
-      },
-      {
-        en: "Mechanism group labels switch to the upright serif with an accent tick, and the title gains the accent underline tick + a quiet subtitle (kicker/count dropped)",
-        zh: "机制分组标签改用直立衬线并配强调短线，标题加上强调下划线短线与一行安静副标题（去掉旧的标签 / 计数头）",
-      },
-      {
-        en: "Changelog aligns to the shared type scale — 15px entry titles, 11.5px summaries, mono version, and FEAT/PATCH/BREAKING as the shared mono chip — with the accent title tick; structure unchanged",
-        zh: "更新日志对齐共享字号——15px 条目标题、11.5px 摘要、等宽版本号，FEAT/PATCH/BREAKING 采用共享的等宽芯片——并加上强调标题短线；结构不变",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.3",
@@ -435,20 +258,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The About sidebar adopts the Explorer design system. The build meta stacks label-over-value, and the data sources reuse the Explorer row with monospace category chips and serif group labels.",
       zh: "关于页侧栏沿用机场探索的设计语言：构建信息改为标签在上、值在下的堆叠式，数据来源复用机场探索的行样式，配等宽分类芯片与衬线分组标签。",
     },
-    highlights: [
-      {
-        en: "Version / Stack / Architecture become a stacked label-over-value meta block (no longer a left-label / right-value rail), separated from the sources by a hairline",
-        zh: "版本 / 技术栈 / 架构改为标签在上、值在下的堆叠式信息块（不再是左标签 / 右值的导轨），并以细线与数据来源分隔",
-      },
-      {
-        en: "Data sources reuse the Explorer row exactly — monospace category chips (ADS-B / METAR / ROUTE) with a hairline rim and an external-link trailing icon",
-        zh: "数据来源完全复用机场探索的行样式——等宽分类芯片（ADS-B / METAR / ROUTE）带细描边，并配外链图标作为尾部",
-      },
-      {
-        en: "Section and group labels use the upright serif; the title keeps Manrope with a small accent underline tick, and the data rows carry no orange",
-        zh: "区块与分组标签改用直立衬线；标题仍为 Manrope 并配一道强调下划线短线，数据行不含橙色",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.2",
@@ -461,24 +271,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The home Explorer list trades flat gray text for real design: monospace ICAO chips, an upright serif for group labels, and one orange near-me CTA. Hierarchy comes from size and luminance, never weight.",
       zh: "首页机场探索列表从扁平灰字升级为真正的设计语言：等宽 ICAO 代号芯片、衬线分组标签，以及唯一的橙色「附近」入口。层次来自字号与明度，而非字重。",
     },
-    highlights: [
-      {
-        en: "ICAO codes become monospace chips (JetBrains Mono) with a hairline rim; the chip keeps one typeface/size/shape across states and changes color only when selected",
-        zh: "ICAO 代号变为带细描边的等宽芯片（JetBrains Mono）；芯片在各状态下保持同一字体/字号/形状，仅在选中时改变颜色",
-      },
-      {
-        en: "Group labels (Near me / Spotter favorites / hubs) use an upright serif (Fraunces) with a small accent tick; the page title stays in Manrope",
-        zh: "分组标签（附近 / 收藏 / 枢纽）改用直立衬线（Fraunces）并配一道强调短线；页面标题仍为 Manrope",
-      },
-      {
-        en: "The near-me row is the one orange CTA — accent chip, faint wash, and a left rail; orange appears in exactly three places (title tick, group ticks, near-me row)",
-        zh: "「附近」行是唯一的橙色入口——强调芯片、淡底色与左侧导轨；橙色全页仅出现三处（标题短线、分组短线、附近行）",
-      },
-      {
-        en: "Airport names lead at a larger inked size and wrap instead of mid-word ellipsis; both light and dark themes retune through the existing signal-accent and ink tokens",
-        zh: "机场名以更大的深色字号领衔，超长时换行而非中途省略；明暗两套主题均通过既有的信号强调色与墨色令牌自动适配",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.1",
@@ -491,24 +284,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "A correction pass on the v2.28 surfaces: frosted panels go back to flat translucent tints instead of painted gradients, the orange signal is reserved for selection again, and the left-column hierarchy reads cleaner over a busy map.",
       zh: "对 v2.28 表面的一次回正：磨砂面板回到平整的半透明色调而非渐变涂层，橙色信号色重新只用于选择态，左栏层次在繁忙地图上更清爽。",
     },
-    highlights: [
-      {
-        en: "Frosted surfaces (search box, sidebar, preview cards, toolbars, toasts) drop linear-gradient fills and heavy ambient shadows for one flat tint + a single inset hairline — no more gray mud at the edges over the live map",
-        zh: "磨砂表面（搜索框、侧栏、预览卡片、工具条、提示）去掉线性渐变填充与厚重投影，改为单一平整色调 + 一道内描边——地图之上不再有灰浊边缘",
-      },
-      {
-        en: "Orange is reserved for selection, the tracked trace, and the Track button again — removed from the search glyph, the map LIVE indicator, and the map menu wash; altitude trend stays glyph + luminance",
-        zh: "橙色重新只用于选择态、追踪轨迹与 Track 按钮——从搜索图标、地图 LIVE 指示与地图菜单底色中移除；高度趋势仍以箭头 + 明度表达",
-      },
-      {
-        en: "Sidebar filters (targets / route / type / altitude) read as aligned rails instead of a boxed table",
-        zh: "侧栏筛选（目标 / 航路 / 机型 / 高度）改为对齐的导轨，而非方框表格",
-      },
-      {
-        en: "Stronger size contrast on Explorer / About list rows; weather view no longer stacks a flight-count hero above its flight-rules hero, and hero footer labels never wrap",
-        zh: "Explorer / About 列表行的字号对比更明确；天气视图不再在飞行规则主指标之上叠加航班数主指标，主指标底部标签不再换行",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.28.0",
@@ -521,44 +297,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "A page-by-page pass applying ADSBao's existing material system with intentional hierarchy, density rhythm, and surface separation. Opens with a typographic foundation: hierarchy now comes from size and luminance, never weight.",
       zh: "逐页打磨，让 ADSBao 既有的材质系统以更有层次、更有节奏、更分面的方式呈现。首先落地排版基线：层次来自字号与明度，而非字重。",
     },
-    highlights: [
-      {
-        en: "Typography is light/regular only — no bold/semibold anywhere; weight utilities and tokens remapped at the source",
-        zh: "排版仅用 light/regular，全应用不再有粗体；字重工具类与 token 在源头统一重映射",
-      },
-      {
-        en: "Loaded font weights trimmed to 300/400 for a lighter, more editorial feel",
-        zh: "加载的字重收敛为 300/400，整体更轻、更具编排感",
-      },
-      {
-        en: "Nearby list rows share one compact two-line form — callsign + distance over route + altitude — with a subtle climb/descend cue; rich detail stays in the preview card",
-        zh: "邻近列表统一为紧凑两行：呼号 + 距离在上、航线 + 高度在下，并带轻量的爬升/下降指示；详细信息只留在预览卡片中",
-      },
-      {
-        en: "Weather splits into a Local view (friendly current conditions + hourly) and a METAR view (flight-rules hero + raw report + decoded grid), switched by a quiet capsule segment",
-        zh: "天气拆分为 Local（友好的实时天况 + 逐时预报）与 METAR（飞行规则主指标 + 原始报文 + 解码网格）两个视图，由一个安静的玻璃胶囊分段切换",
-      },
-      {
-        en: "ATC frequencies render as a clean table — role left, channel in mono right-aligned — ordered by operational flow (ATIS → Clearance → Ground → Tower → Approach → Departure)",
-        zh: "ATC 频率改为整洁表格：左侧角色、右侧等宽对齐的频道，并按运行流程排序（ATIS → Clearance → Ground → Tower → Approach → Departure）",
-      },
-      {
-        en: "Nearby / weather / ATC stay unified under one quiet hero-stats segment — only one summary surface shows at a time, with a 240ms cross-fade and regular-weight numerals",
-        zh: "邻近 / 天气 / ATC 统一在一个安静的主指标分段下切换——同一时刻只显示一个汇总面，配 240ms 交叉淡入与常规字重数字",
-      },
-      {
-        en: "First-screen pages (Home / About / Mechanism / Changelog) gain real hierarchy — larger inked titles over smaller, fainter detail, groups separated by whitespace rhythm not dividing lines; search loading / empty / no-result are now designed states",
-        zh: "首屏各页（首页 / 关于 / 机制 / 更新日志）建立真正的层次——更大且着墨的标题搭配更小更淡的细节，分组以留白节奏而非分隔线区隔；搜索的加载 / 空 / 无结果改为有设计感的状态",
-      },
-      {
-        en: "About page reads as a quiet label rail + content axis (version / stack / architecture aligned), and the data sources are grouped by concern — Traffic / Weather / Airport / Context",
-        zh: "关于页改为安静的标签轨 + 内容轴（版本 / 技术栈 / 架构对齐），数据源按主题分组——航迹 / 天气 / 机场 / 背景",
-      },
-      {
-        en: "Mechanism accordion groups separate by whitespace rhythm (no dividing lines); the number rail, expanded flow labels, and detail all read on one content axis",
-        zh: "机制手风琴分组以留白节奏区隔（不再有分隔线）；编号轨、展开的流程标签与细节统一在同一内容轴上",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.27.0",
@@ -571,24 +310,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "A whole-app frosted-glass visual system: theme-following chrome, one orange signal accent, a shared first-screen type scale, and consistent airport / aircraft / home / static surfaces.",
       zh: "全应用 Frosted 玻璃视觉系统：跟随主题的界面、统一橙色信号强调色、共享首屏排版梯度，以及一致的机场 / 飞机 / 首页 / 静态页表面。",
     },
-    highlights: [
-      {
-        en: "Chrome follows the theme — white frosted glass + ink in light, deep-gray glass + white in dark",
-        zh: "界面跟随主题——亮色白 frosted 玻璃 + 黑字，暗色深灰玻璃 + 白字",
-      },
-      {
-        en: "One orange signal accent for row selection, the tracked-flight trace, and the track button",
-        zh: "单一橙色信号色用于行选中、追踪航迹与追踪按钮",
-      },
-      {
-        en: "First-screen pages share one --fs-* type scale; flight telemetry leads with Speed + Altitude",
-        zh: "首屏各页共用一套 --fs-* 排版梯度；飞行遥测以速度 + 高度为主指标",
-      },
-      {
-        en: "Nearby list virtualizes on mobile; selected-row value columns stay aligned",
-        zh: "邻近列表在移动端虚拟化；选中行的数值列保持对齐",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.17",
@@ -601,20 +323,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The about page data-source list now reads as aligned source rails instead of repeated badge rows.",
       zh: "关于页数据来源列表现在以对齐 source rail 阅读，不再依赖重复的 badge 行。",
     },
-    highlights: [
-      {
-        en: "Source type labels now sit in a fixed mono rail without filled mini badges",
-        zh: "来源类型标签现在位于固定 mono rail，不再使用填充小 badge",
-      },
-      {
-        en: "Provider names and descriptions keep one stable text axis on desktop and mobile",
-        zh: "供应方名称和说明在桌面端与移动端保持同一条稳定文字轴",
-      },
-      {
-        en: "External-link affordance remains, but the arrow is smaller and quieter",
-        zh: "外部链接提示仍然保留，但箭头更小、更安静",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.16",
@@ -627,20 +336,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Home airport sections now share the same text axis as the search input and airport row names.",
       zh: "首页机场分组现在与搜索输入文字和机场行名称共用同一条文字轴。",
     },
-    highlights: [
-      {
-        en: "Section headings and descriptions move onto the airport-name rail instead of starting in the code column",
-        zh: "分组标题和说明移到机场名 rail，不再从代码列起始",
-      },
-      {
-        en: "Desktop airport code tags gain a little width without moving the airport-name axis",
-        zh: "桌面端机场代码标签略微加宽，同时不移动机场名对齐轴",
-      },
-      {
-        en: "Changelog highlight rows now use a quiet number rail instead of dot bullets",
-        zh: "更新日志摘要行现在使用更安静的数字 rail，不再使用圆点符号",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.15",
@@ -653,20 +349,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The mechanism page now treats expanded rows as inline explanation instead of full selected cards.",
       zh: "机制页现在把展开行处理成内联说明，而不是整块选中卡片。",
     },
-    highlights: [
-      {
-        en: "Expanded mechanism rows no longer use the full glass capsule, shadow, or backdrop blur",
-        zh: "展开的机制行不再使用完整玻璃 capsule、阴影或背景模糊",
-      },
-      {
-        en: "The row order is carried by the number rail and text alignment while the default glass active state remains available elsewhere",
-        zh: "行秩序由数字 rail 和文字对齐承担，同时其他位置仍可使用默认玻璃选中态",
-      },
-      {
-        en: "This is display-only and leaves the accordion behavior and mechanism copy unchanged",
-        zh: "这次仅调整展示，不改变折叠行为和机制页文案",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.14",
@@ -679,20 +362,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Map settings now use lighter inline rows and compact unit controls so the panel reads by alignment instead of heavy capsules.",
       zh: "地图设置现在使用更轻的内联行和紧凑单位控件，让面板主要依靠对齐而不是厚重胶囊建立秩序。",
     },
-    highlights: [
-      {
-        en: "The active base-map row uses a quiet marker instead of a large glass highlight",
-        zh: "选中的底图行改用安静的行内标记，不再使用大块玻璃高光",
-      },
-      {
-        en: "Layer switches and unit selectors are smaller, flatter, and keep the same interaction behavior",
-        zh: "图层开关和单位选择器更小、更平，并保持原有交互行为",
-      },
-      {
-        en: "Settings persistence copy now separates by placement and weight instead of a hard divider line",
-        zh: "设置保存提示现在依靠位置和字重区分，不再使用硬分隔线",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.13",
@@ -705,20 +375,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The airport sidebar filter strip now relies on aligned controls instead of an enclosing grid box, and short landscape viewports use a tighter identity header.",
       zh: "机场侧栏过滤区现在依靠控件对齐而不是外层网格盒子，短横屏视口也使用更紧凑的机场身份头部。",
     },
-    highlights: [
-      {
-        en: "Filter controls keep their active glass capsule but lose the table-like parent border and internal rules",
-        zh: "过滤控件保留选中玻璃 capsule，但去掉表格式父级边框和内部线条",
-      },
-      {
-        en: "Short landscape airport pages collapse the identity block to the code rail so the traffic list enters the first screen",
-        zh: "短横屏机场页将身份块收缩到代码 rail，让航班列表进入首屏",
-      },
-      {
-        en: "The change is display-only and leaves filter behavior, route data, and map layers untouched",
-        zh: "这次仅调整展示，不改变过滤行为、航路数据或地图图层",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.12",
@@ -731,20 +388,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The home airport list now aligns row titles with the search input rail on mobile and desktop.",
       zh: "首页机场列表现在让机场名在移动端和桌面端都与搜索输入文字同轴。",
     },
-    highlights: [
-      {
-        en: "Airport code badges are narrower on the home screen so they no longer push names off the input rail",
-        zh: "首页机场代码标签更窄，不再把机场名推离搜索输入的对齐轴",
-      },
-      {
-        en: "Desktop and mobile use separate compact columns so each layout keeps the same visual rail",
-        zh: "桌面和移动端使用各自更紧凑的列宽，保持相同的视觉 rail",
-      },
-      {
-        en: "The shared list primitive stays unchanged for other pages",
-        zh: "其他页面共用的列表 primitive 保持不变",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.11",
@@ -757,20 +401,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Floating toolbars now separate icon groups with spacing instead of visible vertical rules, keeping the chrome quieter.",
       zh: "浮动工具栏现在用空距区分图标组，不再绘制可见竖向分隔线，让工具栏更安静。",
     },
-    highlights: [
-      {
-        en: "The shared toolbar separator is now a transparent spacer, so map, page, and sidebar toolbars all lose the extra rule",
-        zh: "共享工具栏分隔符现在是透明间隔，地图、页面和侧栏工具栏都会少一条显式线",
-      },
-      {
-        en: "Icon order and group rhythm stay intact without changing any toolbar action",
-        zh: "图标顺序和分组节奏保持不变，不改变任何工具栏操作",
-      },
-      {
-        en: "Desktop and mobile toolbars were checked in light and dark themes against the live KBOS map",
-        zh: "已在 KBOS 实时地图的桌面和移动端检查亮色与暗色工具栏",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.10",
@@ -783,20 +414,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The airport sidebar traffic list now relies on aligned columns instead of full-width divider lines, making the dense sidebar quieter.",
       zh: "机场侧栏航班列表改为依靠列对齐建立秩序，不再使用贯穿式分隔线，让密集侧栏更安静。",
     },
-    highlights: [
-      {
-        en: "Traffic rows, route endpoint rows, and virtualized nearby rows no longer draw table-like horizontal rules",
-        zh: "航班行、航路端点行和虚拟化附近行不再绘制表格式横线",
-      },
-      {
-        en: "The callsign, distance, and altitude columns keep their fixed alignment for fast scanning",
-        zh: "呼号、距离和高度列继续保持固定对齐，便于快速扫读",
-      },
-      {
-        en: "The list header is shorter and uses type hierarchy rather than a divider to mark the columns",
-        zh: "列表表头更短，改用文字层级而不是分隔线标记列结构",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.9",
@@ -809,20 +427,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The mechanism page now renders flow steps as compact inline chips instead of a vertical timeline, keeping the static page more open.",
       zh: "机制页流程步骤改为紧凑行内 chip，不再使用垂直时间线，让静态页保持更开放。",
     },
-    highlights: [
-      {
-        en: "The expanded first mechanism item is much shorter while preserving the same explanation and step labels",
-        zh: "展开的首个机制项明显变短，同时保留原有说明和步骤标签",
-      },
-      {
-        en: "Mobile now shows all five mechanism rows in the first screen after the selected detail",
-        zh: "移动端首屏现在能在选中详情后看到全部五个机制行",
-      },
-      {
-        en: "The GSAP-only timeline animation was removed from this static explainer because the inline layout carries the same state with less chrome",
-        zh: "移除这个静态说明页的 GSAP 时间线动画，用更少界面元素承载同样流程状态",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.8",
@@ -835,20 +440,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The mobile home screen now uses the same readable dark static-page panel as the other app pages instead of placing light text over a pale background.",
       zh: "移动端首页现在与其他静态页共用可读的深色面板，不再把浅色文字放在偏亮背景上。",
     },
-    highlights: [
-      {
-        en: "The home screen's mobile-only pale panel override was removed so headings, discovery rows, and search results keep strong contrast",
-        zh: "移除首页移动端专属浅色面板覆盖，让标题、发现列表和搜索结果保持足够对比度",
-      },
-      {
-        en: "Discovery and search-result row alignment stays on the 20 px mobile rail",
-        zh: "发现列表和搜索结果仍保持 20px 移动端列线",
-      },
-      {
-        en: "Mechanism and about pages remain visually unchanged because they already used the readable static-page surface",
-        zh: "机制页和关于页保持现状，因为它们已经使用可读的静态页表面",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.7",
@@ -861,20 +453,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The home airport picker now uses one shared rail for section headings, discovery rows, and search result rows.",
       zh: "首页机场选择器现在让分组标题、发现列表和搜索结果共用同一条列线。",
     },
-    highlights: [
-      {
-        en: "Discovery and search-result rows now anchor their airport code column to the same edge as the search field",
-        zh: "发现列表和搜索结果的机场代码列现在贴齐搜索框同一外缘",
-      },
-      {
-        en: "Airport row text and chevrons keep fixed columns while the row height is slightly tighter",
-        zh: "机场名称和右侧箭头保持固定列，同时行高更紧凑",
-      },
-      {
-        en: "The change is scoped to the home search screen so static-page list primitives keep their current rhythm",
-        zh: "调整只作用于首页搜索界面，静态页列表原语保持现有节奏",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.6",
@@ -887,20 +466,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The about page version metadata is now inline and quieter, removing a decorative status dot and bringing data sources higher on the page.",
       zh: "关于页版本元信息改为更安静的内联展示，移除无意义装饰圆点，让数据来源更早进入首屏。",
     },
-    highlights: [
-      {
-        en: "The version number now reads as an aligned value instead of a large standalone metric",
-        zh: "版本号现在作为对齐值展示，不再像独立的大号指标卡",
-      },
-      {
-        en: "The decorative muted dot beside the version field was removed because it did not carry state or meaning",
-        zh: "版本字段旁的灰色圆点没有状态含义，已移除",
-      },
-      {
-        en: "The data-source list starts higher on mobile while keeping the open, unboxed static-page layout",
-        zh: "移动端数据来源列表更早出现，同时保持静态页开放、无重盒子的布局",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.5",
@@ -913,20 +479,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The map settings sheet is narrower and denser, with lighter selected-row glass and less footer chrome in landscape.",
       zh: "地图设置面板变窄并提高密度，选中行玻璃感更轻，横屏底部提示也更少占位。",
     },
-    highlights: [
-      {
-        en: "The settings drawer width, close control, header, and footer are tightened so the map keeps more working space",
-        zh: "设置抽屉宽度、关闭按钮、标题区和底部提示都更紧凑，让地图保留更多工作空间",
-      },
-      {
-        en: "Settings rows now use a tighter inline grid and smaller switches without adding separators or table wrappers",
-        zh: "设置行改用更紧的行内网格和更小开关，不新增分隔符或表格式包裹",
-      },
-      {
-        en: "Phone landscape now shows seven complete settings rows before scrolling",
-        zh: "手机横屏首屏现在能完整显示七行设置项后再滚动",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.4",
@@ -939,20 +492,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Home discovery rows and search results now share the same list rail, localized result counts, and quieter toolbar grouping.",
       zh: "首页发现列表与搜索结果现在共用同一条列表轨道，结果计数本地化，工具栏分组也更克制。",
     },
-    highlights: [
-      {
-        en: "Home discovery rows and search result rows now align to the same outer rail as the search field",
-        zh: "首页发现列表和搜索结果列表现在与搜索框使用同一条外缘列线",
-      },
-      {
-        en: "Search result counts are localized, so Chinese no longer falls back to English result labels",
-        zh: "搜索结果计数改为本地化文案，中文界面不再出现英文 result 标签",
-      },
-      {
-        en: "Toolbar separators are shorter and lower contrast, and local Query Devtools is opt-in so review screenshots stay clean",
-        zh: "工具栏分隔符更短更淡，本地 Query Devtools 改为显式开启，让界面截图保持干净",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.3",
@@ -965,20 +505,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The home airport picker now uses a stricter inline row grid so airport codes, names, and right-side affordances stay aligned.",
       zh: "首页机场选择列表改用更严格的行内网格，让机场代码、名称和右侧控件保持同一列线。",
     },
-    highlights: [
-      {
-        en: "Airport rows now reserve a fixed code badge, text column, and trailing slot across discovery and search-result lists",
-        zh: "机场行现在在发现列表和搜索结果中统一保留固定代码 badge、正文列和右侧占位列",
-      },
-      {
-        en: "The code badge is subtle and token-driven, adding a column anchor without turning the list into boxed cards",
-        zh: "代码 badge 保持轻量并沿用 token，只提供列锚点，不把列表变成重盒子",
-      },
-      {
-        en: "The development Query Devtools button no longer covers the left sidebar during local UI review",
-        zh: "开发环境的 Query Devtools 按钮不再覆盖本地 UI 检查时的左侧栏",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.2",
@@ -991,20 +518,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The dark sidebar pass now removes heavier separators, neutralizes the chrome hue, tightens mobile landscape width, and restores readable ATC frequency rows.",
       zh: "深色侧栏继续减少厚重分隔符，收回 chrome 色相，压缩移动横屏宽度，并恢复 ATC 频率行的可读展示。",
     },
-    highlights: [
-      {
-        en: "Metric and filter groups use softer internal lines with smaller selected-state margins, so alignment carries more of the structure",
-        zh: "指标与筛选组改用更轻的内部线和更小的选中态留白，让结构更多依靠对齐呈现",
-      },
-      {
-        en: "ATC and spotting subviews drop heavy header rules and boxed links while keeping their rows compact and scannable",
-        zh: "ATC 与拍机点子页去掉厚重标题线和盒状链接，同时保留紧凑、可扫读的行布局",
-      },
-      {
-        en: "ATC frequency rows now read current frequency fields correctly and avoid duplicate row keys during live refreshes",
-        zh: "ATC 频率行现在正确读取当前频率字段，并避免实时刷新时出现重复行 key",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.1",
@@ -1017,20 +531,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The dark-glass interface now tightens first-screen list columns, airport detail search, table colors, and mobile landscape sidebar density.",
       zh: "深色玻璃界面继续收紧首屏列表列线、机场详情搜索框、表格字色，以及移动横屏侧栏密度。",
     },
-    highlights: [
-      {
-        en: "Home airport rows now use fixed code, title, and trailing columns so discovery lists align consistently",
-        zh: "首页机场行改为固定 code、标题与右侧箭头列，发现列表不再随机场代码长度漂移",
-      },
-      {
-        en: "Airport detail search is lighter and less pill-shaped, with table headers and row values sharing the same readable dark-sidebar text palette",
-        zh: "机场详情搜索框更轻、更少胶囊感，表头与行数据统一到深色侧栏上可读的字色",
-      },
-      {
-        en: "Mobile landscape sidebars spend less vertical space before the nearby table, bringing the header and first rows into the first screen",
-        zh: "移动横屏侧栏减少进入邻近表格前的纵向占用，让表头和首行进入首屏",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.26.0",
@@ -1043,20 +544,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Sidebars, static pages, toolbars, search fields, and settings now share a denser dark-glass interface language inspired by compact professional dashboards.",
       zh: "侧栏、静态页、工具栏、搜索框和设置面板统一到更紧凑的深色玻璃界面语言，接近专业仪表盘的克制密度。",
     },
-    highlights: [
-      {
-        en: "Airport and flight sidebars now use a continuous dark translucent shell with inline metric and filter readouts instead of heavier boxed surfaces",
-        zh: "机场和航班侧栏改为连续的深色半透明外壳，指标与筛选保留内联读数，不再依赖厚重盒子表面",
-      },
-      {
-        en: "Home, about, changelog, and other static pages now share the same dark sidebar rhythm while keeping their open list layout",
-        zh: "首页、关于、更新日志等静态页统一到同一套深色侧栏节奏，同时保留开放式列表布局",
-      },
-      {
-        en: "Toolbar buttons, search fields, and map settings now use local glass highlights and subtler recessed controls",
-        zh: "工具栏按钮、搜索框和地图设置改用局部玻璃高亮与更克制的内凹控件",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.25.1",
@@ -1069,20 +557,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The compact interface pass now tightens nearby rows, removes glass highlights from metric and filter selection states, and quiets search and table-header styling.",
       zh: "极简界面继续收紧邻近列表行，移除指标和筛选选中态的玻璃高光，并让搜索框与表头样式更克制。",
     },
-    highlights: [
-      {
-        en: "Nearby aircraft rows now keep callsign and route on one line, with route rendered as a small badge when route data is available",
-        zh: "邻近航班行现在把呼号与航路放在同一行，有航路数据时用小 badge 呈现",
-      },
-      {
-        en: "Metric and filter selected states use a solid compact fill instead of glass sheen or rim shadows",
-        zh: "指标与筛选选中态改为紧凑实底，不再使用玻璃高光或边缘阴影",
-      },
-      {
-        en: "Search boxes regain the lighter previous pill rhythm while table headers fall back to a single restrained divider",
-        zh: "搜索框恢复更接近之前的轻量胶囊节奏，表头则收回到单条克制分隔线",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.25.0",
@@ -1095,24 +570,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The app interface now favors alignment, thin dividers, compact rows, and quieter surfaces over boxed panels, while preserving the existing typography and map toolbar model.",
       zh: "全站界面改为以对齐、细分隔线、紧凑行和更克制的表面建立秩序，减少盒子式面板，同时保留现有字体与地图工具栏模型。",
     },
-    highlights: [
-      {
-        en: "Home, about, mechanism, changelog, and location-permission pages now share a more compact static-page rhythm",
-        zh: "首页、关于、机制、更新日志和定位权限页统一到更紧凑的静态页节奏",
-      },
-      {
-        en: "Airport and aircraft sidebars now use line-first metric, filter, search, and nearby-list layouts",
-        zh: "机场与航班侧栏改用以线条和列对齐为主的指标、筛选、搜索和邻近列表布局",
-      },
-      {
-        en: "Map settings now reads like a dense command list instead of grouped option cards",
-        zh: "地图设置现在更像高密度命令列表，不再是成组的大号选项卡片",
-      },
-      {
-        en: "Mobile preview and sidebar surfaces keep the same toolbar model with less padding and softer elevation",
-        zh: "移动端预览与侧栏继续沿用原工具栏模型，但减少内边距并降低悬浮感",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.24.5",
@@ -1125,24 +583,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Mobile home now loads the aircraft dot-matrix video from the PWA static shell, while landscape sidebars fit the safe area and nearby focused rows keep their numeric columns aligned.",
       zh: "移动端首页现在从 PWA 静态 shell 加载飞机点阵视频；横屏侧栏避开安全区并完整显示首屏内容，邻近列表 focused 行的数值列也保持对齐。",
     },
-    highlights: [
-      {
-        en: "The home aircraft video is visible on mobile and included in the PWA precache with its poster",
-        zh: "首页飞机点阵视频现在会在移动端显示，并与 poster 一起进入 PWA 预缓存",
-      },
-      {
-        en: "Mobile landscape airport sidebars fit inside safe-area bounds with the list header visible in the first screen",
-        zh: "移动横屏机场侧栏现在落在安全区内，列表表头也能进入首屏",
-      },
-      {
-        en: "Focused nearby rows align missing and unitless values to the same numeric column edge",
-        zh: "邻近列表 focused 行的空值和无单位值会对齐到同一数值列边界",
-      },
-      {
-        en: "Map settings now use compact sidebar-style row groups instead of large option cards",
-        zh: "地图设置改用更接近侧边栏的紧凑行组，不再是大号选项卡片",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.24.4",
@@ -1155,20 +596,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Mobile landscape airport pages now keep the sidebar scrollable, lighten first-paint motion, align nearby table values, and bring map settings back onto the liquid-glass surface system.",
       zh: "移动端横屏机场页现在保持侧栏可滚动，减少首屏动效负担，对齐邻近列表数值，并让地图设置回到液态玻璃表面系统。",
     },
-    highlights: [
-      {
-        en: "Mobile landscape sidebars keep their full scroll range with safe-area clearance",
-        zh: "移动横屏侧栏保留完整滚动范围，并避开安全区",
-      },
-      {
-        en: "Nearby distance and altitude columns align consistently across values and empty rows",
-        zh: "邻近列表中的距离与高度列在有值和空值时保持一致对齐",
-      },
-      {
-        en: "Map settings now reuse the current frosted glass material and compact control rhythm",
-        zh: "地图设置现在复用当前磨砂玻璃材质和更紧凑的控件节奏",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.24.3",
@@ -1181,20 +609,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Landscape sidebars regain the wider column on narrow devices, nearby altitude values align closer to the table edge, and every map scale now uses the vertical ruler style.",
       zh: "窄横屏设备上的侧栏恢复较宽列，邻近列表的高度值更贴近表格右侧，所有地图比例尺也统一为竖向样式。",
     },
-    highlights: [
-      {
-        en: "Mobile and narrow landscape views use the wider sidebar width again",
-        zh: "移动端与窄屏横向视图重新使用更宽的侧栏宽度",
-      },
-      {
-        en: "Nearby table altitude values sit closer to the right edge",
-        zh: "邻近列表中的高度值更贴近右侧边界",
-      },
-      {
-        en: "Desktop and mobile map scale indicators now share the vertical ruler treatment",
-        zh: "桌面与移动端地图比例尺现在统一为竖向标尺",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.24.2",
@@ -1207,32 +622,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Desktop and landscape views now keep the sidebar and main surface as separate left-right regions. Sidebar controls use full-cell two-column groups while preserving the metric-card glass selected state and large numeric values.",
       zh: "桌面与横屏现在将侧边栏和主界面保持为左右两个区域。侧栏控件改为铺满单元格的双列分组，同时保留 metric card 的玻璃选中态和大号数字。",
     },
-    highlights: [
-      {
-        en: "Airport view metrics now keep large values, with weather showing value and unit together while other metrics drop secondary unit labels",
-        zh: "机场视图指标继续保持大号数值，天气合并显示数值和单位，其它指标移除副单位文字",
-      },
-      {
-        en: "Desktop and landscape sidebars keep the original width while the map/page toolbar remains unchanged",
-        zh: "桌面与横屏侧边栏保持原来的宽度，地图/页面工具栏保持不变",
-      },
-      {
-        en: "Mobile portrait and landscape sidebar controls now share the same selected-state vocabulary",
-        zh: "移动端竖屏与横屏的侧栏控件现在使用同一套选中态语言",
-      },
-      {
-        en: "The sidebar aircraft search now matches the Home search pill while metric and filter groups read as distinct resting glass sections",
-        zh: "侧栏航班搜索现在与首页搜索胶囊保持一致，metric 与筛选组也更像独立的静态玻璃分区",
-      },
-      {
-        en: "Static pages keep open sections with aligned rounded rows, and no scroll-to-pill collapse",
-        zh: "首页等静态页保持开放式分段，条目圆角和缩进统一，并取消滚动收成 pill 的效果",
-      },
-      {
-        en: "Desktop and mobile preview cards now share the same frosted preview-card material",
-        zh: "桌面与移动端 preview card 现在共享同一套磨砂玻璃材质",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.24.1",
@@ -1245,20 +635,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Heading beam now rotates reliably on mobile. DeviceOrientation permission is requested proactively on airport entry. Location status block always visible in map settings.",
       zh: "罗盘光束在移动端可靠旋转。进入机场时主动请求 DeviceOrientation 权限。地图设置中始终显示位置状态。",
     },
-    highlights: [
-      {
-        en: "Heading beam rotates reliably on mobile",
-        zh: "罗盘光束在移动端可靠旋转",
-      },
-      {
-        en: "DeviceOrientation requested proactively on airport entry",
-        zh: "进入机场时主动请求 DeviceOrientation 权限",
-      },
-      {
-        en: "Location status always visible in map settings",
-        zh: "地图设置中始终显示位置状态",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.24.0",
@@ -1271,16 +648,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Map settings now show live location acquisition and compass heading status. A force re-acquire button appears when position is not yet ready.",
       zh: "地图设置中现在显示位置获取与罗盘朝向状态。当位置尚未就绪时显示强制重新获取按钮。",
     },
-    highlights: [
-      {
-        en: "Live location and compass heading status in map settings",
-        zh: "地图设置中实时显示位置与罗盘朝向状态",
-      },
-      {
-        en: "Force re-acquire location when position is not ready or permission was denied",
-        zh: "位置未就绪或权限被拒绝时可强制重新获取",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.23.5",
@@ -1293,12 +661,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Far-zoom spotting dots now use the same badge color: black in light theme, white in dark theme.",
       zh: "最远缩放下的拍机点圆点现在使用与 badge 一致的主题色:亮色主题为黑,暗色主题为白。",
     },
-    highlights: [
-      {
-        en: "Spotting dots at far zoom now match the badge foreground color per theme",
-        zh: "最远缩放下的拍机小点现在按主题匹配 badge 前景色",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.23.4",
@@ -1311,16 +674,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "When map location is enabled but browser permission is denied, a re-request button now appears in map settings.",
       zh: "开启地图定位但浏览器权限被拒绝时,地图设置中现在会显示重新请求权限的按钮。",
     },
-    highlights: [
-      {
-        en: "Re-request button shows in map settings when location toggle is on but permission is denied",
-        zh: "当「我的位置」开关开启但权限被拒绝时,地图设置中显示重新请求按钮",
-      },
-      {
-        en: "Cleaned up unused preset mode labels from map settings",
-        zh: "清理了地图设置中已废弃的预设模式标签",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.23.3",
@@ -1333,20 +687,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Photo locations now stay quieter at the farthest airport view, then switch to map badges at closer zoom levels without the sidebar metric changing zoom.",
       zh: "拍机点现在会在最远机场视图只显示小点,靠近后切换为地图 badge,侧栏拍机点卡片也不再改变缩放。",
     },
-    highlights: [
-      {
-        en: "The farthest airport zoom uses small white point markers for photo locations",
-        zh: "最远机场缩放下拍机点只显示小白点",
-      },
-      {
-        en: "Middle and near airport zooms use the shared airport/navaid badge style for photo locations",
-        zh: "中间和近景机场缩放下拍机点使用机场/导航台同款 badge",
-      },
-      {
-        en: "Clicking the spotting metric card opens the spotting panel without changing the current map zoom",
-        zh: "点击拍机点指标卡只打开拍机点面板,不会改变当前地图缩放",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.23.2",
@@ -1359,16 +700,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Airport photo locations now stay visible across map zoom levels, with compact map badges at the farthest view and a simpler navigation chooser.",
       zh: "机场拍机点现在会在各级地图缩放中保持显示,最远视图使用更紧凑的地图 badge,导航选择也更精简。",
     },
-    highlights: [
-      {
-        en: "Photo locations render as compact map badges at the farthest zoom and as direct camera markers when zoomed closer",
-        zh: "拍机点在最远缩放下以紧凑地图 badge 呈现,靠近后恢复为直接的相机点",
-      },
-      {
-        en: "The map-navigation modal now keeps only the spot name and icon-based map choices, without exposing coordinates",
-        zh: "地图导航弹窗现在只保留点名和图标化地图入口,不再展示坐标",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.23.1",
@@ -1381,12 +713,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Plane Hunter camera zoom now stays within practical 1x, 2x, and 4x controls instead of surfacing excessive digital magnification.",
       zh: "拍机相机倍率现在收敛到更实用的 1x、2x、4x,不再把过高的数码放大作为主控制。",
     },
-    highlights: [
-      {
-        en: "The live camera zoom shortcuts and slider now cap at 4x even when the browser reports a larger camera zoom range",
-        zh: "即使浏览器报告更大的相机缩放范围,实时相机的快捷倍率和滑杆也会限制在 4x",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.23.0",
@@ -1399,16 +726,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Plane Hunter's live camera now exposes camera selection when the browser provides multiple lenses, with clearer guidance about how zoom is applied.",
       zh: "拍机实时相机现在会在浏览器暴露多个镜头时提供镜头选择,并更清楚说明倍率如何作用在当前镜头上。",
     },
-    highlights: [
-      {
-        en: "Added a lens picker next to camera zoom for browsers that expose ultra-wide, wide, or telephoto inputs",
-        zh: "在相机倍率旁加入镜头选择,支持浏览器暴露的超广角、广角或长焦输入",
-      },
-      {
-        en: "Zoom controls now explain that magnification is based on the selected camera and may become digital crop when no separate lens is exposed",
-        zh: "倍率控件会说明倍率基于当前镜头,没有独立镜头可切时高倍率可能是数码裁切",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.18",
@@ -1421,20 +739,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Here mode now owns its location and compass prompt directly, while airport and flight detail maps wait for saved map settings before requesting my location.",
       zh: "here 模式现在自己请求位置和罗盘,机场与飞机详情地图会先等地图设置,只有我的位置开启后才请求定位。",
     },
-    highlights: [
-      {
-        en: "Entering /here requests location and compass without reading or saving the map setting",
-        zh: "进入 /here 会请求位置和罗盘,不读取也不保存地图里的我的位置设置",
-      },
-      {
-        en: "Airport and flight detail pages request location only after hydrated settings enable the layer",
-        zh: "机场和飞机详情页只会在设置加载完成且我的位置开启后请求定位",
-      },
-      {
-        en: "Turning my location on from map settings immediately saves the setting and starts the location plus compass request",
-        zh: "在地图设置里打开我的位置会立即保存设置,并开始请求定位和罗盘",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.17",
@@ -1447,20 +752,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Any map view that can show my location now keeps the marker coordinates and compass heading live, not only /here.",
       zh: "任何能显示我的位置的地图视图现在都会即时更新定位点坐标和罗盘朝向,不再只限于 /here。",
     },
-    highlights: [
-      {
-        en: "Airport maps reuse the same live compass heading path as here mode when my location is visible",
-        zh: "机场地图在显示我的位置时会复用 here 模式同一套实时罗盘朝向",
-      },
-      {
-        en: "GPS coordinate updates still arrive through the existing watchPosition flow",
-        zh: "GPS 坐标更新仍沿用现有 watchPosition 流程",
-      },
-      {
-        en: "Turning my location off now also stops the extra heading listener",
-        zh: "关闭我的位置时也会一起停止额外的朝向监听",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.16",
@@ -1473,24 +765,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The /here map keeps following the device live, and the mechanism and architecture notes now explain the current WebSocket, tracking, here-mode, and nearby-list model.",
       zh: "/here 地图继续实时跟随设备,机制与架构说明也更新为当前 WebSocket、追踪、here 模式和附近列表模型。",
     },
-    highlights: [
-      {
-        en: "Map position, GPS marker, and heading remain driven by the device feed",
-        zh: "地图位置、GPS 标记和朝向继续由设备实时驱动",
-      },
-      {
-        en: "Sidebar place lookup and nearby distance anchors refresh only after meaningful movement",
-        zh: "侧栏区域识别和附近距离锚点只在有明显移动后重新确定",
-      },
-      {
-        en: "Visual-traffic text no longer fades just because the viewing direction changes",
-        zh: "视距内状态文字不会再因为视角变化而触发淡入淡出",
-      },
-      {
-        en: "The mechanism and architecture pages now focus on WebSocket delivery, parallel pipelines, tracking anchors, here mode, and nearby-list rendering",
-        zh: "机制与架构页现在聚焦 WebSocket 传递、并行管线、追踪锚点、here 模式和附近列表渲染",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.15",
@@ -1503,20 +778,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The /here map now recovers more reliably after the browser has been hidden for a while.",
       zh: "/here 地图在浏览器长时间后台后会更可靠地恢复实时连接和底图。",
     },
-    highlights: [
-      {
-        en: "Realtime sockets that stay stuck while connecting are now replaced automatically",
-        zh: "卡在连接中的实时 socket 现在会自动替换",
-      },
-      {
-        en: "Returning from a long background pause refreshes and rebuilds the MapLibre tile layer",
-        zh: "长时间后台后返回会刷新并重建 MapLibre 底图层",
-      },
-      {
-        en: "Here-mode recovery is covered by focused realtime tests and local browser validation",
-        zh: "here 模式恢复已通过聚焦实时连接测试和本地浏览器验证",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.14",
@@ -1529,20 +791,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The /here heading arc now follows the phone compass instead of relying only on movement direction.",
       zh: "/here 的视角圆弧现在会跟随手机罗盘方向，不再只依赖移动方向。",
     },
-    highlights: [
-      {
-        en: "Phone rotation updates the current-location heading arc while standing still",
-        zh: "原地转动手机时，当前位置的视角圆弧会同步变化",
-      },
-      {
-        en: "iOS compass permission is requested from the here-view entry flow when available",
-        zh: "支持时会在进入 here 视图时请求 iOS 罗盘方向权限",
-      },
-      {
-        en: "GPS heading remains as a fallback when compass orientation is unavailable",
-        zh: "无法获得罗盘方向时，仍保留 GPS 移动航向作为兜底",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.13",
@@ -1555,20 +804,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The /here view now keeps the current-location heading arc in sync while using a tighter position filter.",
       zh: "/here 现在会让当前位置的视角圆弧跟随转身实时刷新，并使用更灵敏的位置防抖。",
     },
-    highlights: [
-      {
-        en: "The heading arc updates whenever the device heading changes",
-        zh: "设备朝向变化时，视角圆弧会同步转动",
-      },
-      {
-        en: "Here-mode position filtering now uses a 0.05 nm movement threshold",
-        zh: "here 模式的位置防抖阈值调整为 0.05 海里",
-      },
-      {
-        en: "The here-mode location refresh logic is covered by focused tests",
-        zh: "here 模式的位置刷新逻辑已补上聚焦测试",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.12",
@@ -1581,20 +817,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The /here view now shows its own current-location marker and heading independently of the map settings layer.",
       zh: "/here 现在会独立显示自己的当前位置点和朝向,不再依赖地图设置里的位置图层。",
     },
-    highlights: [
-      {
-        en: "Here mode uses the location it already requested as the map marker source",
-        zh: "here 模式直接使用自己已获取的位置作为地图定位点来源",
-      },
-      {
-        en: "The map settings user-location toggle no longer decides whether /here shows the user marker",
-        zh: "地图设置里的我的位置开关不再决定 /here 是否显示自己的定位点",
-      },
-      {
-        en: "Nearby visual-traffic status lines use the same here-mode location source",
-        zh: "视距内飞机状态行也使用同一份 here 模式位置来源",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.11",
@@ -1607,20 +830,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Sidebar altitude filtering is now multi-select, while my-location traffic status reads more clearly around nearby aircraft.",
       zh: "侧栏高度筛选改为多选，我的位置周边飞机状态也更清晰。",
     },
-    highlights: [
-      {
-        en: "Altitude filtering now uses four selectable bands, defaulting to traffic below 20,000 ft",
-        zh: "高度筛选现在使用四个可多选高度层，默认显示 20000 ft 以下飞机",
-      },
-      {
-        en: "The altitude trigger shows all, one selected band, or a multiple-bands state",
-        zh: "高度选项框会显示全部、单个高度层或多个高度层状态",
-      },
-      {
-        en: "My-location heading and visual-traffic status lines are steadier after the previous patch",
-        zh: "上一个补丁中的我的位置航向与视距内飞机状态行更稳定",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.10",
@@ -1633,20 +843,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Tracking, airspace previews, sidebar gestures, route lookups, and photo-location navigation are steadier as a group.",
       zh: "追踪、空域预览、侧栏手势、航路查询和拍机点导航整体更稳定。",
     },
-    highlights: [
-      {
-        en: "Tracking pages feel steadier while live routes, traces, and focused flights update",
-        zh: "追踪页在实时航线、轨迹和焦点航班更新时更稳定",
-      },
-      {
-        en: "Airspace previews and sidebar gestures are clearer on compact screens",
-        zh: "紧凑屏幕上的空域预览和侧栏手势更清晰",
-      },
-      {
-        en: "Route lookups and photo-location directions behave more predictably",
-        zh: "航路查询和拍机点导航行为更可预期",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.22.0",
@@ -1659,16 +856,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Route lookup and aircraft metadata flows now go through a protected backend boundary instead of browser-side upstream calls.",
       zh: "航路查询和飞机元数据现在走受保护的后端边界,不再由浏览器直接访问上游。",
     },
-    highlights: [
-      {
-        en: "Provider-specific work is isolated behind one backend boundary",
-        zh: "特定来源的工作统一收敛到后端边界",
-      },
-      {
-        en: "The public app keeps a single normalized route and metadata contract",
-        zh: "公共应用只保留归一化后的航路和元数据契约",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.21.0",
@@ -1681,16 +869,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Watcher Mode now uses curated airport photo locations, with a preview-first flow and direct handoff to map navigation.",
       zh: "看客模式现在使用精选机场拍机点，并提供先预览、再跳转地图导航的流程。",
     },
-    highlights: [
-      {
-        en: "Photo locations come from curated airport data instead of browser-side candidate files",
-        zh: "拍机点来自精选机场数据，不再依赖浏览器侧候选文件",
-      },
-      {
-        en: "Desktop and mobile users can preview a spot before choosing a navigation app",
-        zh: "桌面端和移动端都可以先预览拍机点，再选择导航应用",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.20.0",
@@ -1703,16 +882,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Airport lookups now resolve ICAO, IATA, OurAirports, and OpenAIP aliases through a shared canonical identity layer before reading source-specific data.",
       zh: "机场查询现在先通过共享的 canonical identity 层解析 ICAO、IATA、OurAirports 与 OpenAIP 别名，再读取各来源数据。",
     },
-    highlights: [
-      {
-        en: "ICAO, IATA, OurAirports, and OpenAIP identifiers resolve through one shared airport identity model",
-        zh: "ICAO、IATA、OurAirports 和 OpenAIP 标识统一通过同一套机场身份模型解析",
-      },
-      {
-        en: "Names, runways, frequencies, and related airport data now agree on the same place",
-        zh: "机场名称、跑道、频率和相关数据现在会指向同一座机场",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.19.6",
@@ -1725,20 +895,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Static pages feel cleaner through refreshed brand media, steadier sidebar spacing, and quieter page chrome.",
       zh: "静态页面通过新版品牌媒体、更稳定的侧栏留白和更安静的页面外观变得更干净。",
     },
-    highlights: [
-      {
-        en: "Static pages use refreshed brand media with a lighter feel",
-        zh: "静态页面使用更轻盈的新版品牌媒体",
-      },
-      {
-        en: "Mobile sidebars have more consistent bottom breathing room",
-        zh: "移动端侧栏底部留白更一致",
-      },
-      {
-        en: "Home, About, Mechanism, and Changelog read cleaner as a group",
-        zh: "首页、关于、机制与更新日志整体更干净统一",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.19.1",
@@ -1751,16 +908,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Airport maps can optionally show OpenAIP reporting points with their own icon treatment and desktop/mobile preview cards.",
       zh: "机场地图现在可按设置显示 OpenAIP 报告点，并使用独立图标样式与桌面端/移动端预览卡。",
     },
-    highlights: [
-      {
-        en: "Reporting points can be enabled when they are useful for airport context",
-        zh: "需要机场上下文时可以开启报告点",
-      },
-      {
-        en: "They get distinct map treatment and matching previews on desktop and mobile",
-        zh: "它们有独立的地图呈现，并在桌面端和移动端提供对应预览",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.19.0",
@@ -1773,16 +921,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Airport names now come from the OurAirports database table instead of OpenAIP, with no OpenAIP name fallback.",
       zh: "机场名称现在来自数据库里的 OurAirports 表，不再回退使用 OpenAIP 名称。",
     },
-    highlights: [
-      {
-        en: "/api/search, /api/airport, and nearby-airport payloads all apply the same OurAirports name lookup",
-        zh: "/api/search、/api/airport 和附近机场 payload 都使用同一套 OurAirports 名称查询",
-      },
-      {
-        en: "When an OurAirports name is missing, the API leaves the airport name blank instead of exposing the OpenAIP value",
-        zh: "缺少 OurAirports 名称时，API 会留空机场名称，而不是暴露 OpenAIP 值",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.18.0",
@@ -1795,16 +934,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The changelog became lighter by keeping recent releases in the shell and loading older history only when readers ask for it.",
       zh: "更新日志变得更轻：静态壳只带近期发布记录，更早历史在读者继续查看时再加载。",
     },
-    highlights: [
-      {
-        en: "Recent releases stay fast to open",
-        zh: "近期发布记录打开更快",
-      },
-      {
-        en: "Older release history loads progressively",
-        zh: "更早发布历史渐进加载",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.17.0",
@@ -1817,20 +947,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Static pages gained an offline shell and the mobile app handoff became steadier across updates and rotation.",
       zh: "静态页面加入离线壳，移动端在更新接管和旋转恢复上也更稳定。",
     },
-    highlights: [
-      {
-        en: "Home, About, Mechanism, and Changelog can reopen from the local shell",
-        zh: "首页、关于、机制和更新日志可从本地壳重新打开",
-      },
-      {
-        en: "Live aviation data stays online-only",
-        zh: "实时航空数据仍保持只走网络",
-      },
-      {
-        en: "Mobile static pages recover more cleanly after updates, scrolling, and rotation",
-        zh: "移动端静态页在更新、滚动和旋转后恢复更干净",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.16.0",
@@ -1843,20 +960,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Sidebars became more consistent across map and static pages, while common map controls felt faster and less jumpy.",
       zh: "地图页和静态页侧栏变得更一致，常用地图控件也更快、更少跳动。",
     },
-    highlights: [
-      {
-        en: "Airport, flight, Plane Hunter, and static-page sidebars share a tighter interaction model",
-        zh: "机场、航班、拍机入口和静态页面侧栏共享更紧凑的交互模型",
-      },
-      {
-        en: "Map selections and range controls respond with fewer surprise movements",
-        zh: "地图选择和视野控制减少了意外移动",
-      },
-      {
-        en: "Route behavior and static-page chrome were tightened in the same release line",
-        zh: "航路行为和静态页外观也在这一版线中收紧",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.15.0",
@@ -1869,20 +973,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Mobile landscape layouts became more reliable across safe areas, rotation recovery, previews, and shared device behavior.",
       zh: "移动横屏布局在安全区、旋转恢复、预览卡和共享设备判断上更可靠。",
     },
-    highlights: [
-      {
-        en: "Landscape phones and tablets get a more reliable cockpit layout",
-        zh: "手机和平板横屏获得更可靠的座舱布局",
-      },
-      {
-        en: "Rotation and safe-area recovery became steadier across airport, flight, and home surfaces",
-        zh: "机场、航班和首页在旋转与安全区恢复上更稳定",
-      },
-      {
-        en: "Preview cards, Plane Hunter, and layout decisions now follow one device model",
-        zh: "预览卡、拍机入口和布局判断现在跟随同一套设备模型",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.14.0",
@@ -1895,20 +986,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Airport surface maps became more resilient, and older runtime paths were cleaned up around the active Railway data-service.",
       zh: "机场地面图层更有韧性，同时围绕当前 Railway data-service 清理了旧运行时代码。",
     },
-    highlights: [
-      {
-        en: "Runway, taxiway, and apron detail appears sooner on large airports",
-        zh: "大型机场的跑道、滑行道和停机坪细节出现更快",
-      },
-      {
-        en: "Preview loading became less disruptive",
-        zh: "预览加载不再那么打断地图体验",
-      },
-      {
-        en: "Legacy runtime code was removed from the active app path",
-        zh: "旧运行时代码从当前应用路径中移除",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.13.0",
@@ -1921,20 +999,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The first screen and near-airport map detail became lighter, faster, and easier to read.",
       zh: "首屏和近场机场地图细节变得更轻、更快，也更容易读。",
     },
-    highlights: [
-      {
-        en: "Heavy visual modules wait until the main route is usable",
-        zh: "较重的视觉模块会等主路由可用后再加载",
-      },
-      {
-        en: "Airport night-map detail became more legible",
-        zh: "机场夜间细节图更清晰",
-      },
-      {
-        en: "Routine cleanup kept the release lean",
-        zh: "常规清理让这一版保持轻量",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.12.0",
@@ -1947,20 +1012,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Backend observability moved to Better Stack, and the in-app version prompt became less noisy.",
       zh: "后端可观测性迁移到 Better Stack，应用内版本提示也减少了误报。",
     },
-    highlights: [
-      {
-        en: "Railway data-service health is easier to inspect",
-        zh: "Railway data-service 状态更容易排查",
-      },
-      {
-        en: "Log and metric fields are friendlier to dashboards",
-        zh: "日志和指标字段更适合仪表盘使用",
-      },
-      {
-        en: "Refresh prompts now avoid false downgrade messages",
-        zh: "刷新提示会避免错误的降级提示",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.11.0",
@@ -1973,16 +1025,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Open ADSBao tabs now check the latest deployed build and show a persistent refresh toast when a newer version is available.",
       zh: "已打开的 ADSBao 页面现在会检查最新部署版本；当有新版可用时，会显示持续的刷新提示。",
     },
-    highlights: [
-      {
-        en: "The Vite build emits a no-store version manifest that old tabs can compare against their current bundle",
-        zh: "Vite 构建会产出 no-store 版本 manifest，旧页面可用它与当前 bundle 版本比较",
-      },
-      {
-        en: "A localized Sonner toast offers a one-click refresh action and re-checks after tab focus or visibility changes",
-        zh: "本地化 Sonner toast 提供一键刷新，并在页面重新聚焦或可见性变化后再次检查",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.10.0",
@@ -1995,20 +1038,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Airport detail, deferred context, surface maps, and aircraft photos now share TanStack-backed session data so repeat page switches reuse fresh payloads instead of restarting every request path.",
       zh: "机场详情、延迟上下文、地面图层和飞机照片现在共享 TanStack 会话数据，重复页面切换会复用新鲜 payload，而不是重新走一遍请求链路。",
     },
-    highlights: [
-      {
-        en: "Airport-to-airport transitions keep an immediate seeded profile while the full detail, context, and surface payloads hydrate through shared route queries",
-        zh: "机场到机场切换会先保留即时 seed profile，再通过共享 route query 补齐完整详情、上下文与地面 payload",
-      },
-      {
-        en: "Search result opens prefetch the target airport profile before navigation so common airport hops spend less time waiting on the next page",
-        zh: "从搜索结果打开机场时会在导航前预取目标机场 profile，常见机场跳转减少下一页等待时间",
-      },
-      {
-        en: "Aircraft photo lookups now reuse the same query cache across preview and aircraft-detail surfaces",
-        zh: "飞机照片查询现在在 preview 和飞机详情页面之间复用同一份 query cache",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.9.0",
@@ -2021,20 +1051,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Airport-to-airport, airport-to-aircraft, and aircraft-to-airport transitions now avoid duplicate payloads, keep more route shell state alive, and move heavy optional modules out of the first page switch.",
       zh: "机场到机场、机场到飞机、飞机回机场的切换现在会避免重复 payload，保留更多路由外壳状态，并把较重的可选模块移出首次页面切换。",
     },
-    highlights: [
-      {
-        en: "Airport detail now loads as a lightweight payload first, while large context and surface maps hydrate separately and are cached briefly for return transitions",
-        zh: "机场详情现在先加载轻量 payload，大型上下文与地面图层会分段补齐，并在短时间内缓存以加速返回切换",
-      },
-      {
-        en: "Airport pages no longer remount the full explorer shell on every airport-to-airport route change",
-        zh: "机场页在机场到机场跳转时不再按每个机场强制重建整套 explorer 外壳",
-      },
-      {
-        en: "Route modules and the Plane Hunter studio load on demand, reducing the JavaScript pulled into unrelated airport and aircraft transitions",
-        zh: "路由模块与拍机工作室改为按需加载，减少无关机场与飞机切换时需要拉取的 JavaScript",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.8.0",
@@ -2047,20 +1064,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "Airport and aircraft maps became quicker to reach, clearer when traces are missing, and steadier during nearby-airport navigation.",
       zh: "机场和飞机地图进入更快，航迹缺失时更清楚，附近机场跳转时也更稳定。",
     },
-    highlights: [
-      {
-        en: "Map loading waits for useful visual context without blocking too long",
-        zh: "地图加载会等待有用的视觉上下文，但不会卡太久",
-      },
-      {
-        en: "Trace and airport transitions report uncertainty more clearly",
-        zh: "航迹和机场跳转的不确定状态更清楚",
-      },
-      {
-        en: "View controls are faster for common range changes",
-        zh: "常用视野切换更快",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.7.0",
@@ -2073,20 +1077,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       en: "The app shed legacy client code, made the changelog bilingual, and improved runway, taxiway, and aircraft-light visuals.",
       zh: "应用清理了旧客户端代码，更新日志变为双语，并增强了跑道、滑行道和飞机灯光表现。",
     },
-    highlights: [
-      {
-        en: "Old client-side data paths were removed",
-        zh: "旧的客户端数据路径已移除",
-      },
-      {
-        en: "Runway and taxiway lighting became richer",
-        zh: "跑道与滑行道灯光更丰富",
-      },
-      {
-        en: "Aircraft icons gained clearer exterior-light treatment",
-        zh: "飞机图标加入更清晰的外部灯光表现",
-      },
-    ],
+    highlights: [],
   },
   {
     version: "v2.6.0",
@@ -2094,11 +1085,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Railway single-service and observability",
     summary:
       "The app converged on a Railway single-service architecture, with observability and migration polish folded into one release line.",
-    highlights: [
-      "Frontend, API, WebSocket, and realtime data moved onto one Railway service",
-      "Airport maps, runway lights, and aircraft previews recovered after the migration",
-      "Backend logs and metrics became easier to inspect",
-    ],
+    highlights: [],
   },
   {
     version: "v2.5.0",
@@ -2106,11 +1093,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Realtime data service and toolbar polish",
     summary:
       "Live traffic moved to ADSBao's own realtime service, while map toolbars and tracking flows became more consistent.",
-    highlights: [
-      "Airport and nearby traffic now use the app-owned realtime path",
-      "Persistence moved into the app-owned database",
-      "Map controls and precise callsign tracking became steadier",
-    ],
+    highlights: [],
   },
   {
     version: "v2.4.0",
@@ -2118,11 +1101,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Liquid glass visual system",
     summary:
       "The interface moved to a liquid-glass visual system, with cleaner browse lists, toolbar treatment, typography, and airport names.",
-    highlights: [
-      "Cards, controls, and toolbars share the same glass material language",
-      "Static-page browse lists and page toolbars became more consistent",
-      "Typography and full airport-name display were cleaned up",
-    ],
+    highlights: [],
   },
   {
     version: "v2.3.0",
@@ -2130,11 +1109,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Screen wake lock and tracking stability",
     summary:
       "The map gained a keep-awake control, while loading states, list feedback, and flight tracking became sturdier.",
-    highlights: [
-      "Long watching sessions can keep the screen awake",
-      "Status and list feedback became clearer",
-      "Flight tracking handles slow providers more gracefully",
-    ],
+    highlights: [],
   },
   {
     version: "v2.2.0",
@@ -2142,11 +1117,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Weather, map detail, and motion polish",
     summary:
       "Weather cards, near-me behavior, standard map detail, and app-wide motion all became richer.",
-    highlights: [
-      "Local weather added hourly and tomorrow views",
-      "Near-me weather became more focused",
-      "Standard maps and page motion gained more depth",
-    ],
+    highlights: [],
   },
   {
     version: "v2.1.0",
@@ -2154,12 +1125,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Near-me explorer + Plane Hunter polish",
     summary:
       "A new /here page mirrors the airport detail experience but centered on the user's location, with live position tracking. Plane Hunter gets a simpler native source picker and a tighter map template.",
-    highlights: [
-      "/here: live aircraft, nearby airports, and airspaces around your current position; auto-refreshes as you move",
-      "Sidebar hero shows your actual city / state / country via reverse geocoding",
-      "Plane Hunter capture simplified to a native camera / library picker; map template now ~1 NM radius",
-      "Misc UI fixes — preview card slides in directionally, long aircraft types no longer overlap the callsign, route line only appears when route context is complete",
-    ],
+    highlights: [],
   },
   {
     version: "v2.0.0",
@@ -2167,12 +1133,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Plane Hunter mode goes GA",
     summary:
       "Plane Hunter ships as a two-step capture studio that bakes the chosen template into a shareable PNG. A new Maps template overlays an OSM tile of your location.",
-    highlights: [
-      "Two-step flow — shoot the photo, then compose with templates and share / save / copy",
-      "Touch devices hand off to the OS camera or photo library",
-      "New Maps template centers an OSM tile on your location with the aircraft when it's in view",
-      "Entry restriction removed — Plane Hunter is on for every signed-in user",
-    ],
+    highlights: [],
   },
   {
     version: "v1.13.0",
@@ -2180,11 +1141,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Bottom-floating mobile toolbar + device-aware settings",
     summary:
       "Mobile gets a single bottom-pinned toolbar across every page, and signed-in users keep separate desktop and mobile map preferences.",
-    highlights: [
-      "Mobile toolbar floats at the bottom center on every page",
-      "Per-device map preferences for signed-in users",
-      "High-altitude overflights no longer hidden by the approach-mask rule",
-    ],
+    highlights: [],
   },
   {
     version: "v1.12.0",
@@ -2192,11 +1149,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Map readability + badge polish",
     summary:
       "Quieter terrain palette and a unified badge system with collision-aware stacking.",
-    highlights: [
-      "Calmer hillshade terrain in both themes",
-      "Collision-aware airport / navaid badges with leader lines",
-      "Click cycles through overlapping airspaces",
-    ],
+    highlights: [],
   },
   {
     version: "v1.11.0",
@@ -2204,10 +1157,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Full-trace nav count badges",
     summary:
       "Long routes stay readable — dense low-zoom navaid labels collapse into cached count badges.",
-    highlights: [
-      "Aggregate navaid count tiles at low zoom",
-      "Detailed labels return at the existing zoom threshold",
-    ],
+    highlights: [],
   },
   {
     version: "v1.10.0",
@@ -2215,10 +1165,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Airport facilities + sidebar polish",
     summary:
       "OurAirports facility data joins OpenAIP for better ATC frequency and nearby navaid coverage.",
-    highlights: [
-      "Restored ATC frequency + navaid coverage via OurAirports",
-      "Dedicated ATC and spotting panels in the airport sidebar",
-    ],
+    highlights: [],
   },
   {
     version: "v1.9.0",
@@ -2226,10 +1173,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Watcher Mode candidate photo spots",
     summary:
       "Watcher Mode generates and renders runway-aligned candidate plane-watching spots for the focused airport.",
-    highlights: [
-      "Candidate spots from runway alignment + OpenStreetMap data",
-      "Clickable camera markers + previews with OSM attribution",
-    ],
+    highlights: [],
   },
   {
     version: "v1.8.0",
@@ -2237,11 +1181,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Airport airspace and navigation polish",
     summary:
       "Airport maps gained OpenAIP airspace overlays, friendlier aircraft labels, navigation fixes, and quieter zoom behavior.",
-    highlights: [
-      "Airspaces can be viewed and previewed directly on airport maps",
-      "Aircraft labels and static-page navigation became friendlier",
-      "Airport zoom levels became less noisy",
-    ],
+    highlights: [],
   },
   {
     version: "v1.7.0",
@@ -2249,10 +1189,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "OpenAIP directory migration",
     summary:
       "Airport search and detail context now use OpenAIP as the primary aviation directory.",
-    highlights: [
-      "Search, details, frequencies, navaids, airspaces moved to OpenAIP",
-      "Postgres-backed runway threshold geometry retained for accurate overlays",
-    ],
+    highlights: [],
   },
   {
     version: "v1.6.0",
@@ -2260,11 +1197,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Virtualized nearby list + TanStack Query",
     summary:
       "Sidebar nearby list windows through a virtualizer with animated digit metrics; TanStack Query starts handling client-side data fetching.",
-    highlights: [
-      "Windowed nearby list (aircraft + airports) with NumberFlow digits",
-      "Page-level z-index unified into named tier tokens",
-      "TanStack Query mounted in the app shell",
-    ],
+    highlights: [],
   },
   {
     version: "v1.5.0",
@@ -2272,11 +1205,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Tracking stability + map label optimization",
     summary:
       "Flight tracking separates live, fallback, stale, and missing position states. Route overlays and map labels stay clearer.",
-    highlights: [
-      "Explicit position states for tracked flights",
-      "Predicted route arcs render as dashed lines",
-      "Map place labels follow the selected app language",
-    ],
+    highlights: [],
   },
   {
     version: "v1.4.0",
@@ -2284,10 +1213,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Account sign-in + cleaner lost-signal",
     summary:
       "Sign in from the map toolbar or nav menu. The lost-signal modal now retries silently in the background.",
-    highlights: [
-      "Account sign-in via the toolbar avatar",
-      "Silent background retry once the feed is back",
-    ],
+    highlights: [],
   },
   {
     version: "v1.3.0",
@@ -2295,11 +1221,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "adsbdb routes + community feedback + complete runway map",
     summary:
       "Route lookups move to api.adsbdb.com, users can submit temporary route corrections, and the runway map now renders every runway from OpenAIP.",
-    highlights: [
-      "Route data source switched to api.adsbdb.com",
-      "12 h community route overrides marked with `*`",
-      "Complete OpenAIP-sourced runway map (incl. VFR-only runways)",
-    ],
+    highlights: [],
   },
   {
     version: "v1.2.0",
@@ -2307,10 +1229,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Themed approach + nose beam + scale bar polish",
     summary:
       "Theme-aware runway approach visualization, dark-theme aircraft nose beam, always-on scale bar, and themed toasts.",
-    highlights: [
-      "Approach: dark = glowing wedge, light = dashed extended centerline",
-      "Always-on scale bar with theme-aware backdrop",
-    ],
+    highlights: [],
   },
   {
     version: "v1.1.0",
@@ -2318,10 +1237,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Distance rings + scale bar",
     summary:
       "Concentric distance rings on the airport page and an adaptive scale bar at approach zoom; nearby searches unified to a 40 NM radius.",
-    highlights: [
-      "Airport page: rings every 3 NM out to 30 NM",
-      "Scale bar in the bottom-left at approach zoom",
-    ],
+    highlights: [],
   },
   {
     version: "v1.0.0",
@@ -2329,11 +1245,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Persistent tracking + nav menu",
     summary:
       "Trace persists across refresh, a lost-signal overlay handles drops, and there's a new /changelog page.",
-    highlights: [
-      "12 h tracking session anchor + 24 h local trace cache",
-      "Lost-signal overlay with keep / retry / back-home",
-      "New /changelog page",
-    ],
+    highlights: [],
   },
   {
     version: "v0.12.0",
@@ -2341,11 +1253,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Aircraft tracking page + polymorphic explorer",
     summary:
       "/aircraft/[callsign] route with a polymorphic sidebar + preview, fit-to-trace, and multi-provider failover.",
-    highlights: [
-      "/aircraft/[callsign] mirrors the airport layout",
-      "Polymorphic preview card (aircraft + airport)",
-      "Route renamed /[icao] → /airport/[icao]",
-    ],
+    highlights: [],
   },
   {
     version: "v0.11.0",
@@ -2353,10 +1261,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Selected-aircraft trace + revalidation",
     summary:
       "Focused-aircraft live trace polyline, route revalidation via AeroDataBox, and ADS-B provider failover.",
-    highlights: [
-      "Gradient trace polyline with fade-in label cards",
-      "ADS-B failover on 5xx / 429 / timeout",
-    ],
+    highlights: [],
   },
   {
     version: "v0.10.0",
@@ -2364,10 +1269,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Global airport data + richer silhouettes",
     summary:
       "OpenAIP-backed global airport search, 178 ICAO-type silhouettes, and country flags on the home rows and airport headers.",
-    highlights: [
-      "OpenAIP backs /api/search and /api/airport/[ident]",
-      "178 aircraft silhouettes ship in-repo",
-    ],
+    highlights: [],
   },
   {
     version: "v0.9.0",
@@ -2375,10 +1277,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Navy tracking console redesign",
     summary:
       "Sidebar + map layout, callsign-first traffic table, deep navy palette, and aircraft silhouette markers.",
-    highlights: [
-      "400 px desktop sidebar alongside a full-height map",
-      "Aircraft silhouette markers driven by ICAO type",
-    ],
+    highlights: [],
   },
   {
     version: "v0.8.0",
@@ -2386,10 +1285,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Next.js Vercel refactor",
     summary:
       "Rebuilt the app from Vue 3 / Vite to React on the Next.js App Router.",
-    highlights: [
-      "React on the Next.js App Router",
-      "Vercel Analytics + Speed Insights via Next integrations",
-    ],
+    highlights: [],
   },
   {
     version: "v0.7.0",
@@ -2397,10 +1293,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Flight route + traffic context",
     summary:
       "Airport-aware route labels, route lookup, and dual-range ADS-B polling.",
-    highlights: [
-      "Airport-aware flight route labels",
-      "Dual-range polling (wide 20 NM + close 3 NM)",
-    ],
+    highlights: [],
   },
   {
     version: "v0.6.0",
@@ -2408,10 +1301,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Vercel observability + production routing",
     summary:
       "Web Analytics, Speed Insights, and hardened proxy + upstream logging.",
-    highlights: [
-      "Web Analytics + Speed Insights",
-      "Hardened proxy parsing against upstream HTML / errors",
-    ],
+    highlights: [],
   },
   {
     version: "v0.5.0",
@@ -2419,10 +1309,7 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "Vercel-first web architecture",
     summary:
       "Vercel deploy config, same-origin proxies, Electron + Homebrew dropped.",
-    highlights: [
-      "Same-origin proxies for METAR + ADS-B upstreams",
-      "Removed Electron and Homebrew cask pipelines",
-    ],
+    highlights: [],
   },
   {
     version: "v0.4.0",
@@ -2430,9 +1317,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     title: "ADSBao web pivot",
     summary:
       "Renamed to ADSBao and repositioned as an airport explorer; dropped LiveATC UI, player, and transcription scope.",
-    highlights: [
-      "Project renamed to ADSBao",
-      "Removed legacy LiveATC frontend + backend",
-    ],
+    highlights: [],
   },
 ];

@@ -477,8 +477,8 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
       });
     };
     update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update, { passive: true });
+    window.addEventListener("scroll", update, { capture: true, passive: true });
     return () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
@@ -704,8 +704,8 @@ function AircraftAltitudeFilterCard({
       });
     };
     update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", update, { passive: true });
+    window.addEventListener("scroll", update, { capture: true, passive: true });
     return () => {
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
