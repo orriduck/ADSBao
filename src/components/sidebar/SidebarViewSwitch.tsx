@@ -55,8 +55,29 @@ export default function SidebarViewSwitch({
     return { departureCount: dep, arrivalCount: arr };
   }, [aircraft, routeProvider]);
 
-  const footerCells = [];
-  footerCells.push({
+  // Footer stacks into rows under the flight-count hero: first the movement
+  // row (departures / arrivals) as the direct breakdown of the count, then
+  // the context row (weather / ATC / spotting). Each conditional cell simply
+  // drops out of its row when absent.
+  const movementCells = [];
+  if (showMovementCards) {
+    movementCells.push({
+      key: "departures",
+      label: t("sidebar.departures"),
+      value: <NumberFlow value={departureCount} />,
+      active: activeView === "departures",
+      onClick: () => onViewChange?.("departures"),
+    });
+    movementCells.push({
+      key: "arrivals",
+      label: t("sidebar.arrivals"),
+      value: <NumberFlow value={arrivalCount} />,
+      active: activeView === "arrivals",
+      onClick: () => onViewChange?.("arrivals"),
+    });
+  }
+  const restCells = [];
+  restCells.push({
     key: "briefing",
     label: t("sidebar.weather"),
     value: temperature.value,
@@ -65,7 +86,7 @@ export default function SidebarViewSwitch({
     onClick: () => onViewChange?.("briefing"),
   });
   if (showAtcCard) {
-    footerCells.push({
+    restCells.push({
       key: "atc",
       label: t("sidebar.atc"),
       value: <NumberFlow value={atcCount} />,
@@ -73,29 +94,13 @@ export default function SidebarViewSwitch({
       onClick: () => onViewChange?.("atc"),
     });
   }
-  footerCells.push({
+  restCells.push({
     key: "spotting",
     label: t("sidebar.spotting"),
     value: <NumberFlow value={spottingCount} />,
     active: activeView === "spotting",
     onClick: onOpenSpotting,
   });
-  if (showMovementCards) {
-    footerCells.push({
-      key: "departures",
-      label: t("sidebar.departures"),
-      value: <NumberFlow value={departureCount} />,
-      active: activeView === "departures",
-      onClick: () => onViewChange?.("departures"),
-    });
-    footerCells.push({
-      key: "arrivals",
-      label: t("sidebar.arrivals"),
-      value: <NumberFlow value={arrivalCount} />,
-      active: activeView === "arrivals",
-      onClick: () => onViewChange?.("arrivals"),
-    });
-  }
 
   const headlineLabel = nearMe ? t("sidebar.nearby") : t("sidebar.flights");
   // The flight-count is the hero only on the traffic view. On the other
@@ -112,7 +117,7 @@ export default function SidebarViewSwitch({
           onClick={() => onViewChange?.("traffic")}
           aria-pressed={isTraffic}
           className={`block w-full px-[16px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] ${
-            isTraffic ? "pb-3 pt-[15px]" : "py-[9px]"
+            isTraffic ? "pb-3 pt-[15px]" : "py-[14px]"
           }`}
         >
           {isTraffic ? (
@@ -139,8 +144,15 @@ export default function SidebarViewSwitch({
             </div>
           )}
         </button>
+        {movementCells.length > 0 ? (
+          <div className="flex border-t border-[var(--app-frost-border)]">
+            {movementCells.map(({ key, ...cell }) => (
+              <StatCell key={key} {...cell} />
+            ))}
+          </div>
+        ) : null}
         <div className="flex border-t border-[var(--app-frost-border)]">
-          {footerCells.map(({ key, ...cell }) => (
+          {restCells.map(({ key, ...cell }) => (
             <StatCell key={key} {...cell} />
           ))}
         </div>
@@ -156,7 +168,7 @@ function StatCell({ label, value, unit, active, onClick }) {
       data-active={active ? "true" : undefined}
       onClick={onClick}
       aria-pressed={active}
-      className="min-w-0 flex-1 px-[11px] py-[9px] text-left transition-colors [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_0_2px_0_var(--atc-signal-accent)]"
+      className="relative min-w-0 flex-1 px-[11px] py-[9px] text-left transition-[background-color] duration-200 ease-out [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:origin-center before:scale-x-0 before:bg-[var(--atc-signal-accent)] before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.34,1.3,0.64,1)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:before:scale-x-100"
     >
       <div className="truncate text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{label}</div>
       <div className="mt-[3px]">
