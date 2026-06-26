@@ -1435,8 +1435,10 @@ func openMeteoURL(lat, lon float64) string {
 	values := url.Values{}
 	values.Set("latitude", strconv.FormatFloat(lat, 'f', -1, 64))
 	values.Set("longitude", strconv.FormatFloat(lon, 'f', -1, 64))
-	values.Set("current", "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m")
-	values.Set("hourly", "temperature_2m,weather_code,precipitation_probability")
+	values.Set("current", "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index")
+	// `visibility` is hourly-only in Open-Meteo; the current value is read from
+	// the current hour by the client normalizer.
+	values.Set("hourly", "temperature_2m,weather_code,precipitation_probability,visibility")
 	values.Set("daily", "temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max")
 	values.Set("temperature_unit", "celsius")
 	values.Set("wind_speed_unit", "kn")

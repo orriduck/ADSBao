@@ -19,6 +19,7 @@ export function normalizeLocalWeather(payload) {
     windSpeedKt: toFinite(current.wind_speed_10m),
     windDirection: toFinite(current.wind_direction_10m),
     windGustKt: toFinite(current.wind_gusts_10m),
+    uvIndex: toFinite(current.uv_index),
     timezone: payload.timezone || "",
     source: "Open-Meteo",
   };
@@ -28,8 +29,11 @@ export function normalizeLocalWeather(payload) {
   const hours = normalizeHourlyForecast(payload);
   // Daily index 0 is today; index 1 is tomorrow.
   const tomorrow = normalizeDailyForecast(payload, 1);
+  // Open-Meteo exposes visibility only hourly (feet, per hourly_units); the
+  // "current" reading is the first (current-hour) slot of the forecast window.
+  const visibilityFt = hours[0]?.visibilityFt ?? null;
 
-  return { ...base, hourly: hours, tomorrow };
+  return { ...base, visibilityFt, hourly: hours, tomorrow };
 }
 
 // Normalize the hourly array — return at most 6 entries for the UI.
@@ -39,6 +43,7 @@ export function normalizeHourlyForecast(payload) {
   const temp = payload?.hourly?.temperature_2m ?? [];
   const code = payload?.hourly?.weather_code ?? [];
   const precip = payload?.hourly?.precipitation_probability ?? [];
+  const visibility = payload?.hourly?.visibility ?? [];
   const tz = payload?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const now = new Date();
@@ -66,6 +71,7 @@ export function normalizeHourlyForecast(payload) {
       temperatureC: toFinite(temp[i]),
       weatherCode: toFinite(code[i]),
       precipitationProbability: toFinite(precip[i]),
+      visibilityFt: toFinite(visibility[i]),
     });
   }
   return results;

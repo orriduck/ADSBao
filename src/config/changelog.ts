@@ -41,36 +41,36 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 100;
+export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.29.0",
+    version: "v2.30.0",
     kind: "feat",
     title: {
-      en: "Airport sidebar redesign — one scroll, single-line traffic list",
-      zh: "机场侧栏改版——整体滚动、单行航班列表",
+      en: "Airport weather redesign — METAR + Local views",
+      zh: "机场天气改版——METAR 与实况两视图",
     },
     summary: {
-      en: "The default airport sidebar is rebuilt on the frosted-glass language: a code-first identity (BOS · KBOS), a flat Flights hero with Wx / ATC / Spot cells, and a 2×2 filter grid where dropdowns carry a chevron and the Route toggle becomes an orange accent pill. Only the logo is pinned now — identity, hero, filters, and the nearby list scroll together as one region — while the list keeps windowing via scroll-margin virtualization, so the v2.28.8 performance win is preserved. Traffic rows collapse to a single fixed-height line: callsign · route on the left, distance and altitude grouped on the right and told apart by tone.",
-      zh: "默认机场侧栏按霜面玻璃语言重做:以代码为主的标识(BOS · KBOS)、扁平的航班数概览(Wx / ATC / Spot),以及 2×2 筛选网格——下拉项带箭头,Route 开关激活时变为橙色强调胶囊。现在只有 Logo 固定,标识、概览、筛选与邻近列表作为一个区域一起滚动;列表仍通过 scroll-margin 虚拟化窗口化,因此保留了 v2.28.8 的性能改进。航班行收为单行定高:左侧呼号 · 航路,右侧距离与高度并排并以明暗区分。",
+      en: "The airport weather state is rebuilt around one colour-encoded hero card per view over a quiet decoded metric area, switched by a neutral METAR / Local segmented control. METAR leads with a flight-rules hero whose rail, tint, and value are keyed to the category (VFR mint, MVFR blue, IFR red, LIFR magenta) above a decoded aviation grid, the raw report, and a ceiling/visibility read. Local leads with a temperature hero whose colour is mapped onto the temperature itself (teal → amber → orange) above an everyday-units grid — now including UV index and visibility — a next-hours strip, and a plain-language summary.",
+      zh: "机场天气状态重做:每个视图以一张颜色编码的主卡片领衔,下方是安静的解码参数区,由中性的 METAR / 实况分段控件切换。METAR 以飞行规则主卡片开场,其左栏、底色与数值都按类别着色(VFR 薄荷绿、MVFR 蓝、IFR 红、LIFR 品红),其下是解码后的航空参数网格、原始报文与云底/能见度读数。实况以温度主卡片开场,颜色随温度本身映射(青→琥珀→橙),其下是日常单位网格(新增紫外线与能见度)、未来数小时与白话总结。",
     },
     highlights: [
       {
-        en: "Identity leads with the airport code; name and city/country · coordinates recede beneath it (no flag emoji)",
-        zh: "标识以机场代码为主,名称与城市/国家 · 坐标退居其下(无国旗 emoji)",
+        en: "METAR flight-rules hero card colour-coded by category, over a decoded aviation grid (wind / vis / ceiling / temp-dew / altimeter / humidity), the raw report, and a ceiling-visibility interpretation",
+        zh: "METAR 飞行规则主卡片按类别着色,下接解码航空网格(风 / 能见度 / 云底 / 温度露点 / 高度表 / 湿度)、原始报文与云底-能见度解读",
       },
       {
-        en: "Flat Flights hero with a large count over Wx / ATC / Spot cells (Dep / Arr added only with FlightAware)",
-        zh: "扁平航班数概览:大号计数叠加 Wx / ATC / Spot 单元(仅在 FlightAware 下加入 Dep / Arr)",
+        en: "Local temperature hero card whose colour maps onto the temperature, over an everyday-units grid, a next-hours forecast strip, and a plain-language summary",
+        zh: "实况温度主卡片颜色随温度映射,下接日常单位网格、未来数小时预报条与白话总结",
       },
       {
-        en: "Logo is the only pinned element; everything below scrolls as one region with the nearby list still virtualized",
-        zh: "Logo 是唯一固定元素;其下内容作为一个区域滚动,邻近列表仍保持虚拟化",
+        en: "Neutral raised-chip segmented control switches METAR / Local; the airport header and Flights tab stay above",
+        zh: "中性凸起胶囊分段控件切换 METAR / 实况;机场标识与航班标签保留在上方",
       },
       {
-        en: "Single-line, fixed-height traffic rows — distance and altitude grouped on the right and separated by tone",
-        zh: "单行定高的航班行——距离与高度在右侧并排,并以明暗区分",
+        en: "Open-Meteo now also fetches UV index and visibility for the Local view",
+        zh: "Open-Meteo 现在还为实况视图获取紫外线指数与能见度",
       },
     ],
   },
