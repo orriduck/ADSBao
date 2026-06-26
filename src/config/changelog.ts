@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.7",
+    kind: "patch",
+    title: {
+      en: "Fix photo-locations overflow on mobile",
+      zh: "修复移动端拍机点横向溢出",
+    },
+    summary: {
+      en: "The airport photo-locations list no longer runs off the right edge on mobile — long spot descriptions now wrap inside the sidebar instead of pushing the list wider than the screen.",
+      zh: "机场拍机点列表在移动端不再冲出右边缘——长描述会在侧栏内换行,不再把列表撑得比屏幕还宽。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.6",
     kind: "patch",
     title: {
