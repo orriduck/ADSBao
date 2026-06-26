@@ -1,7 +1,7 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, Minus, Search } from "lucide-react";
+import { Check, ChevronDown, Minus, Search } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -21,7 +21,6 @@ import {
   MenuItemLabel,
   MenuItemCount,
 } from "@/components/ui/MenuPanel";
-import { cn } from "@/lib/utils";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useListReorderMotion } from "@/animations/useListReorderMotion";
@@ -240,7 +239,7 @@ export default function AircraftTable({
   return (
     <div
       data-has-pinned-aircraft={pinnedAircraft ? "true" : undefined}
-      className={cn("aircraft-table-shell flex flex-col", fill && "h-full")}
+      className="aircraft-table-shell flex flex-col"
     >
       <div className="aircraft-table-controls flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pb-1.5 pt-4">
@@ -284,6 +283,7 @@ export default function AircraftTable({
             <Tooltip>
               <TooltipTrigger asChild>
                 <FilterCard
+                  data-tone="accent"
                   active={trafficFilter === "routed"}
                   contentLayout="split"
                   aria-pressed={trafficFilter === "routed"}
@@ -293,7 +293,15 @@ export default function AircraftTable({
                     )
                   }
                 >
-                  <FilterCardLabel>{t("sidebar.route")}</FilterCardLabel>
+                  <FilterCardLabel className="flex items-center gap-1.5">
+                    {trafficFilter === "routed" ? (
+                      <span
+                        aria-hidden="true"
+                        className="size-1.5 shrink-0 rounded-full bg-[var(--atc-signal-accent)]"
+                      />
+                    ) : null}
+                    {t("sidebar.route")}
+                  </FilterCardLabel>
                   <FilterCardValue>
                     {trafficFilter === "routed" ? t("sidebar.routed") : t("sidebar.all")}
                   </FilterCardValue>
@@ -324,22 +332,7 @@ export default function AircraftTable({
         </FilterCardGrid>
       </div>
 
-      <div
-        className={cn(
-          "aircraft-table-list-card flex flex-col",
-          fill && "flex-1 min-h-0",
-        )}
-      >
-        <div className="aircraft-table-header flex items-center gap-2 px-[var(--airport-sidebar-inset)] py-0.5 font-mono text-[7px] uppercase text-atc-faint">
-          <span aria-hidden="true" className="w-[18px] flex-none" />
-          <span className="min-w-0 flex-1">{t("sidebar.callsignOrRoute")}</span>
-          <span className="whitespace-nowrap text-right">
-            {t("sidebar.distance")}
-            <span aria-hidden="true" className="mx-1 text-atc-faint/60">·</span>
-            {hasRouteEndpointAirports ? t("sidebar.endpoint") : t("sidebar.altitude")}
-          </span>
-        </div>
-
+      <div className="aircraft-table-list-card flex flex-col">
         {pinnedAircraft && (
           <div className="aircraft-table-pin">
             <AircraftSlot
@@ -370,12 +363,7 @@ export default function AircraftTable({
           </ul>
         ) : null}
 
-        <div
-          className={cn(
-            "aircraft-table-scroll-shell",
-            fill ? "flex-1 min-h-0" : "overflow-visible",
-          )}
-        >
+        <div className="aircraft-table-scroll-shell overflow-visible">
           {listRows.length === 0 &&
           filteredAirports.length === 0 &&
           !pinnedAircraft ? (
@@ -436,6 +424,32 @@ export default function AircraftTable({
         </div>
       </div>
     </div>
+  );
+}
+
+// The four filter pills share one structure: [label] … [value]. Dropdown
+// pills (Targets / Aircraft / Alt) end in a small chevron so they read as
+// "opens a menu"; the Route toggle omits it. The chevron rides in the same
+// right-hand grid cell as the value, so the presence/absence of the chevron
+// is the only visual difference and the 2×2 grid stays perfectly aligned.
+function FilterPillValue({
+  children,
+  dropdown = true,
+}: {
+  children: ReactNode;
+  dropdown?: boolean;
+}) {
+  return (
+    <span className="flex items-center gap-1 justify-self-end">
+      <FilterCardValue>{children}</FilterCardValue>
+      {dropdown ? (
+        <ChevronDown
+          aria-hidden="true"
+          strokeWidth={2.5}
+          className="size-2.5 shrink-0 text-atc-faint [[data-active=true]_&]:text-atc-dim [[data-state=open]_&]:text-atc-dim"
+        />
+      ) : null}
+    </span>
   );
 }
 
@@ -541,7 +555,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
         onClick={() => setOpen((value) => !value)}
       >
         <FilterCardLabel>{t("sidebar.aircraftType")}</FilterCardLabel>
-        <FilterCardValue>{displayValue}</FilterCardValue>
+        <FilterPillValue>{displayValue}</FilterPillValue>
       </FilterCard>
       {open && panelStyle && typeof document !== "undefined" && createPortal(
         <MenuPanel
@@ -647,7 +661,7 @@ function EntityFilterCycleCard({
       onClick={onValueChange}
     >
       <FilterCardLabel>{label}</FilterCardLabel>
-      <FilterCardValue>{displayValue}</FilterCardValue>
+      <FilterPillValue>{displayValue}</FilterPillValue>
     </FilterCard>
   );
 }
@@ -746,7 +760,7 @@ function AircraftAltitudeFilterCard({
         onClick={() => setOpen((value) => !value)}
       >
         <FilterCardLabel>{label}</FilterCardLabel>
-        <FilterCardValue>{displayValue}</FilterCardValue>
+        <FilterPillValue>{displayValue}</FilterPillValue>
       </FilterCard>
       {open && panelStyle && typeof document !== "undefined" && createPortal(
         <MenuPanel

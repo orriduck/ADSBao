@@ -106,35 +106,34 @@ export default function SidebarViewSwitch({
 
   return (
     <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
-      <div className="overflow-hidden rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] shadow-[var(--atc-control-inset-shadow-subtle)]">
+      <div className="overflow-hidden rounded-[var(--atc-radius-panel)] border border-[color-mix(in_oklab,var(--atc-text)_8%,transparent)] bg-[color-mix(in_oklab,var(--atc-text)_3.5%,transparent)]">
         <button
           type="button"
-          data-active={isTraffic ? "true" : undefined}
           onClick={() => onViewChange?.("traffic")}
           aria-pressed={isTraffic}
-          className={`block w-full px-[15px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)] ${
-            isTraffic ? "pb-[11px] pt-[13px]" : "py-[9px]"
+          className={`block w-full px-[16px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] ${
+            isTraffic ? "pb-3 pt-[15px]" : "py-[9px]"
           }`}
         >
           {isTraffic ? (
             <>
               <div className="flex items-center justify-between">
-                <span className="text-[12px] font-medium text-atc-dim">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-atc-faint">
                   {headlineLabel}
                 </span>
               </div>
-              <div className="mt-[5px] flex items-baseline gap-2">
-                <span className="text-[33px] font-normal leading-none tracking-[-1px] tabular-nums text-atc-text">
+              <div className="mt-1.5 flex items-baseline gap-2">
+                <span className="text-[44px] font-normal leading-[0.9] tracking-[-0.02em] tabular-nums text-atc-text">
                   <NumberFlow value={aircraft.length} />
                 </span>
               </div>
             </>
           ) : (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[12px] font-medium text-atc-dim">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-atc-faint">
                 {headlineLabel}
               </span>
-              <span className="text-[15px] font-normal tabular-nums text-atc-text">
+              <span className="text-[16px] font-normal tabular-nums text-atc-text">
                 <NumberFlow value={aircraft.length} />
               </span>
             </div>

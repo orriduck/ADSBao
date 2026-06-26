@@ -175,13 +175,12 @@ export default function AirportSidebar({
       <div
         key={`${activeView}:${movementFilter}`}
         className={
-          // The traffic list owns its own (virtualized) scroll, so the content
-          // area clips and the list windows internally; every other view
-          // (weather / ATC / spotting) scrolls normally so its content is
-          // never cut off. Same on desktop and the mobile overlay.
-          `airport-sidebar-content app-panel-transition flex min-h-0 flex-1 flex-col ${
-            activeView === "traffic" ? "overflow-hidden" : "overflow-y-auto"
-          }`
+          // The whole sidebar is ONE scroll region (owned by the shell panel),
+          // so this content area never owns a nested scroll: it flows at its
+          // natural height and the panel scrolls. The traffic list still
+          // windows — it virtualizes against the shared panel scroll element
+          // (see VirtualNearbyList). Same on desktop and the mobile overlay.
+          "airport-sidebar-content app-panel-transition flex min-h-0 flex-1 flex-col overflow-visible"
         }
       >
         {activeViewContent}
