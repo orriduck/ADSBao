@@ -5776,10 +5776,17 @@ body {
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
-    /* Explicit scroll-end placeholder for the bottom-pinned sidebar dock so
-       the last content row can clear the floating toolbar on mobile. */
-    padding-bottom: var(--sidebar-mobile-bottom-placeholder);
     scroll-padding-bottom: var(--sidebar-mobile-bottom-placeholder);
+}
+
+/* Scroll-end clearance for the bottom-pinned floating toolbar. It must live on
+   the content leaf that actually sizes to its own content (the view root),
+   because every wrapper above it is a flex-constrained, overflow:visible box —
+   padding on those sits inside their fixed box, above the overflowing content,
+   so the last row (e.g. the spotting list) stays hidden under the dock. */
+.airport-sidebar-panel--mobile .airport-sidebar-content > *,
+.flight-sidebar-panel--mobile .airport-sidebar-content > * {
+    padding-bottom: var(--sidebar-mobile-bottom-placeholder);
 }
 
 .airport-sidebar-panel--mobile .metar-token-strip {

@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.4",
+    kind: "patch",
+    title: {
+      en: "Mobile fixes — sidebar list clearance + instant first screen",
+      zh: "移动端修复——侧栏列表留白与首屏即时显示",
+    },
+    summary: {
+      en: "Two mobile fixes: a sidebar view's last row (e.g. the spotting list) no longer hides under the floating toolbar, and the first screen now shows its content the moment it renders instead of being held invisible behind the entrance animation while the page is still busy mounting.",
+      zh: "两个移动端修复:侧栏视图(如拍机点列表)的最后一行不再被底部浮动工具栏遮挡;首屏内容现在一渲染就显示,不再因入场动画在页面挂载繁忙时把内容隐藏起来。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.3",
     kind: "patch",
     title: {
