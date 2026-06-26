@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.8",
+    kind: "patch",
+    title: {
+      en: "Skip the brand background video on mobile",
+      zh: "移动端不再加载品牌背景视频",
+    },
+    summary: {
+      en: "Mobile devices no longer load and decode the looping brand background video — it was decorative behind the full-width panel but competed for the main thread during a cold first-screen boot.",
+      zh: "移动端不再加载和解码循环播放的品牌背景视频——它本来就藏在全宽面板后面只作装饰,却会在冷启动首屏时抢占主线程。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.7",
     kind: "patch",
     title: {
