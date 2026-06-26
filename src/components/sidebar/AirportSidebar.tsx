@@ -319,7 +319,7 @@ function SpottingPanel({
           {t("watcherMode.empty")}
         </p>
       ) : null}
-      <div className="app-list-motion grid gap-1">
+      <div className="app-list-motion grid grid-cols-1 gap-1">
         {spots.map((spot) => {
           const active = Boolean(selectedSpotId && selectedSpotId === spot.id);
           return (
