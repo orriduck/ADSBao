@@ -196,6 +196,45 @@
     }
 }
 
+/* Page-shell entrance — compositor-driven so it can't be starved into a crawl
+   by a busy boot thread (Clerk, map, data hydration). opacity + transform
+   animate off the main thread; usePageEntrance only adds/removes these classes
+   and sets per-item animation-delay for the stagger. Content is NOT hidden
+   ahead of time — it paints as soon as React commits and fades in from there,
+   so the first screen never sits blank waiting for an idle frame. */
+@keyframes page-entrance-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.page-entrance-head {
+    animation: app-route-enter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity, transform;
+}
+
+.page-entrance-body {
+    animation: app-route-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 0.05s;
+    will-change: opacity, transform;
+}
+
+.page-entrance-item {
+    animation: page-entrance-fade 0.32s ease-out both;
+    will-change: opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-entrance-head,
+    .page-entrance-body,
+    .page-entrance-item {
+        animation: none !important;
+    }
+}
+
 @keyframes app-row-enter {
     from {
         opacity: 0;

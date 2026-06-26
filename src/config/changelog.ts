@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.6",
+    kind: "patch",
+    title: {
+      en: "Smoother first-screen entrance",
+      zh: "更顺滑的首屏入场",
+    },
+    summary: {
+      en: "The first-screen entrance now fades in via a compositor animation, so it plays smoothly the moment content is ready instead of crawling in or sitting blank while the page is still busy mounting.",
+      zh: "首屏入场改为合成器动画淡入,内容就绪即顺滑播放,不再在页面挂载繁忙时被拖成爬升或白屏。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.5",
     kind: "patch",
     title: {
