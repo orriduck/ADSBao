@@ -1,10 +1,14 @@
 /**
  * usePageEntrance — GSAP-driven page shell entrance animation.
  *
- * Drives a staggered reveal: header text slides up first, then
- * child content fades in with a slight delay.
+ * The reveal is deliberately deferred: the content is hidden before paint
+ * (so there is no flash of un-animated layout) and the fade only plays once
+ * the main thread is idle — i.e. everything else has mounted and there is
+ * nothing left to recompute. The transition is therefore allowed to start a
+ * beat late, but it always plays smoothly instead of being starved mid-tween
+ * by a busy mount (which made the first screen crawl in over ~0.5–1s).
  */
-import { useEffect, useRef, useCallback } from "react";
+import { useLayoutEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { resetViewportScroll } from "@/features/app-shell/viewportScroll";
 import { MOTION, EASE, killTweensOf } from "./gsap";
@@ -26,6 +30,22 @@ interface PageEntranceOptions {
   enabled?: boolean;
 }
 
+type IdleHandle = { cancel: () => void };
+
+// Run `fn` once the main thread is idle (no pending work). Falls back to a
+// short timer where requestIdleCallback is unavailable. `timeout` guarantees
+// the fade still plays if the thread never fully settles.
+function runWhenIdle(fn: () => void, timeout = 1500): IdleHandle {
+  if (typeof window.requestIdleCallback === "function") {
+    const id = window.requestIdleCallback(fn, { timeout });
+    return {
+      cancel: () => window.cancelIdleCallback?.(id),
+    };
+  }
+  const id = window.setTimeout(fn, 80);
+  return { cancel: () => window.clearTimeout(id) };
+}
+
 export function usePageEntrance(
   containerRef: React.RefObject<HTMLElement | null>,
   options: PageEntranceOptions = {},
@@ -41,12 +61,14 @@ export function usePageEntrance(
   } = options;
 
   const ctxRef = useRef<gsap.Context | null>(null);
+  const idleRef = useRef<IdleHandle | null>(null);
 
   const play = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
 
     ctxRef.current?.revert();
+    idleRef.current?.cancel();
 
     const header = container.querySelector<HTMLElement>(headerSelector);
     const body = container.querySelector<HTMLElement>(bodySelector);
@@ -72,64 +94,54 @@ export function usePageEntrance(
       return;
     }
 
-    ctxRef.current = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { overwrite: "auto" } });
+    // Hide synchronously (before paint, since this runs from a layout effect)
+    // so the page never flashes its un-animated content.
+    if (header) gsap.set(header, { opacity: 0, y: 8 });
+    if (body) gsap.set(body, { opacity: 0, y: 6 });
+    if (items.length > 0) gsap.set(items, { opacity: 0 });
 
-      // Transform-only entrance: never gate visibility behind opacity. The
-      // content paints at full opacity the moment React renders it, and the
-      // animation is a non-blocking settle. If the main thread is busy on
-      // mount (Clerk init, etc.) and the tween is starved, the content is
-      // still fully visible (just briefly offset) instead of being held
-      // invisible at opacity:0 — which is what made the first screen look like
-      // it "waited" half a second to a second before showing content.
-      if (header) {
-        tl.fromTo(
-          header,
-          { y: 10 },
-          {
-            y: 0,
-            duration: MOTION.slow,
-            ease: EASE.snap,
-          },
-          delay,
-        );
-      }
+    // Defer the actual fade until the thread is idle so it plays smoothly.
+    idleRef.current = runWhenIdle(() => {
+      ctxRef.current = gsap.context(() => {
+        const tl = gsap.timeline({ defaults: { overwrite: "auto" } });
 
-      if (body) {
-        tl.fromTo(
-          body,
-          { y: 8 },
-          {
-            y: 0,
-            duration: MOTION.med,
-            ease: EASE.out,
-          },
-          header ? "-=0.16" : delay,
-        );
-      }
+        if (header) {
+          tl.to(
+            header,
+            { opacity: 1, y: 0, duration: MOTION.slow, ease: EASE.snap },
+            delay,
+          );
+        }
 
-      if (items.length > 0) {
-        tl.fromTo(
-          items,
-          { y: 6 },
-          {
-            y: 0,
-            duration: MOTION.fast,
-            ease: EASE.out,
-            stagger: { each: 0.025, from: "start" },
-          },
-          "-=0.08",
-        );
-      }
-    }, container);
+        if (body) {
+          tl.to(
+            body,
+            { opacity: 1, y: 0, duration: MOTION.med, ease: EASE.out },
+            header ? "-=0.16" : delay,
+          );
+        }
+
+        if (items.length > 0) {
+          tl.to(
+            items,
+            {
+              opacity: 1,
+              duration: MOTION.fast,
+              ease: EASE.out,
+              stagger: { each: 0.025, from: "start" },
+            },
+            "-=0.08",
+          );
+        }
+      }, container);
+    });
   }, [containerRef, headerSelector, bodySelector, itemSelector, delay, resetScroll]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled) return undefined;
-    // Small RAF delay lets the new route segment commit before GSAP reads it.
-    const raf = requestAnimationFrame(() => play());
+    play();
     return () => {
-      cancelAnimationFrame(raf);
+      idleRef.current?.cancel();
       ctxRef.current?.revert();
     };
   }, [enabled, play, triggerKey]);
