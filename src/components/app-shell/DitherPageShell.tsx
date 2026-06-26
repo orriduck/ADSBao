@@ -152,7 +152,11 @@ export default function DitherPageShell({
       </div>
 
       <div className="dither-page-background relative isolate flex-1 overflow-hidden">
-        <BrandingVideoBackground />
+        {/* Skip the looping brand video on mobile devices: decoding it during a
+            cold first-screen boot competes for the main thread and is the kind
+            of work that dragged the mobile entrance. The background area is
+            mostly behind the full-width panel on mobile anyway. */}
+        {clientDeviceLayout.isMobileDevice ? null : <BrandingVideoBackground />}
       </div>
     </div>
   );
