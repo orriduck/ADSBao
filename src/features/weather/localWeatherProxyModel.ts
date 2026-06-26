@@ -14,12 +14,16 @@ const OPEN_METEO_CURRENT_VARIABLES = [
   "wind_speed_10m",
   "wind_direction_10m",
   "wind_gusts_10m",
+  "uv_index",
 ].join(",");
 
+// `visibility` is an hourly-only Open-Meteo variable (meters); the current
+// reading is taken from the current hour in the normalizer.
 const OPEN_METEO_HOURLY_VARIABLES = [
   "temperature_2m",
   "weather_code",
   "precipitation_probability",
+  "visibility",
 ].join(",");
 
 const OPEN_METEO_DAILY_VARIABLES = [
