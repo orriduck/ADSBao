@@ -144,7 +144,7 @@ function FlightIdentity({
       {hasTypeDisplay && (
         <div className="mt-2 flex min-w-0 items-baseline gap-2">
           <span
-            className="notranslate min-w-0 truncate font-mono text-[13px] font-semibold italic text-atc-text"
+            className="notranslate min-w-0 truncate font-mono text-[calc(13px*var(--sb-body-scale))] font-semibold italic text-atc-text"
             translate="no"
             title={typeDisplay.displayName}
           >
@@ -163,7 +163,7 @@ function FlightIdentity({
       )}
       {route ? (
         <div
-          className="notranslate mt-2 flex items-center gap-2 font-mono text-[12px] tracking-[0.04em] text-atc-dim"
+          className="notranslate mt-2 flex items-center gap-2 font-mono text-[calc(12px*var(--sb-body-scale))] tracking-[0.04em] text-atc-dim"
           translate="no"
           title={routeAccuracyNotice || route}
         >
@@ -180,7 +180,7 @@ function FlightIdentity({
         </div>
       ) : null}
       {positionSourceBadge ? (
-        <div className="notranslate mt-2 inline-flex items-center rounded-[3px] border border-atc-line px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-normal text-atc-dim" translate="no">
+        <div className="notranslate mt-2 inline-flex items-center rounded-[3px] border border-atc-line px-1.5 py-0.5 font-mono text-[calc(10px*var(--sb-body-scale))] font-semibold uppercase tracking-normal text-atc-dim" translate="no">
           {positionSourceBadge}
         </div>
       ) : null}
@@ -330,8 +330,8 @@ function TelemetryPrimary({ label, value, active, onClick, divider = false }: Fl
       onClick={onClick}
       className={`px-[15px] pb-[13px] pt-[13px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] ${TELEMETRY_ACTIVE_CLASS} ${divider ? "border-l border-[var(--app-frost-border)]" : ""}`}
     >
-      <div className="text-[12px] font-medium text-atc-dim">{label}</div>
-      <div className="mt-1.5 text-[26px] font-bold leading-none tracking-[-0.5px] tabular-nums text-atc-text">
+      <div className="text-[calc(12px*var(--sb-body-scale))] font-medium text-atc-dim">{label}</div>
+      <div className="mt-1.5 text-[calc(26px*var(--sb-body-scale))] font-bold leading-none tracking-[-0.5px] tabular-nums text-atc-text">
         {value}
       </div>
     </button>
@@ -347,8 +347,8 @@ function TelemetryAux({ label, value, active, onClick, divider = false }: Flight
       onClick={onClick}
       className={`min-w-0 flex-1 px-[13px] py-[9px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_0_2px_0_var(--atc-signal-accent)] ${divider ? "border-l border-[var(--app-frost-border)]" : ""}`}
     >
-      <div className="truncate text-[10px] text-atc-faint">{label}</div>
-      <div className="mt-[3px] truncate text-[15px] font-bold tabular-nums text-atc-text">
+      <div className="truncate text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{label}</div>
+      <div className="mt-[3px] truncate text-[calc(15px*var(--sb-body-scale))] font-bold tabular-nums text-atc-text">
         {value}
       </div>
     </button>

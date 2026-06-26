@@ -101,14 +101,14 @@ export default function AboutPanel() {
       <div className={`flex items-center justify-between gap-3 ${INSET}`}>
         <h2
           className={
-            "flex min-w-0 items-center gap-2 font-serif text-[15px] leading-snug text-atc-dim " +
+            "flex min-w-0 items-center gap-2 [font-weight:600] text-[calc(15px*var(--sb-title-scale))] leading-snug text-atc-dim " +
             "before:block before:h-[1.5px] before:w-[9px] before:shrink-0 before:rounded-full " +
             "before:bg-[var(--atc-signal-accent)] before:content-['']"
           }
         >
           {t("about.dataSources")}
         </h2>
-        <span className="shrink-0 font-code text-[10px] [letter-spacing:0.4px] text-atc-faint">
+        <span className="shrink-0 font-code text-[calc(10px*var(--sb-body-scale))] [letter-spacing:0.4px] text-atc-faint">
           {getDataSourceCountLabel(ABOUT_DATA_SOURCES, locale)}
         </span>
       </div>
@@ -123,9 +123,9 @@ export default function AboutPanel() {
             CATEGORY_LABEL[category][locale === "zh-CN" ? "zh" : "en"];
           return (
             <section key={category} className="flex flex-col gap-1.5">
-              {/* Sub-group label: plain upright serif, no tick. */}
+              {/* Sub-group label: plain upright sans, semibold, no tick. */}
               <h3
-                className={`font-serif text-[12px] leading-snug text-atc-dim ${INSET}`}
+                className={`[font-weight:600] text-[calc(12px*var(--sb-title-scale))] leading-snug text-atc-dim ${INSET}`}
               >
                 {label}
               </h3>
@@ -168,10 +168,10 @@ export default function AboutPanel() {
               <Github className="h-3 w-3" aria-hidden="true" />
             </span>
             <div>
-              <strong className="block text-[11px] font-semibold text-atc-text">
+              <strong className="block text-[calc(11px*var(--sb-body-scale))] font-semibold text-atc-text">
                 {ABOUT_REPOSITORY.name}
               </strong>
-              <small className="mt-0.5 block font-mono text-[9px] tracking-normal uppercase text-atc-dim">
+              <small className="mt-0.5 block font-mono text-[calc(9px*var(--sb-body-scale))] tracking-normal uppercase text-atc-dim">
                 {ABOUT_REPOSITORY.licenseKey
                   ? t(ABOUT_REPOSITORY.licenseKey)
                   : ABOUT_REPOSITORY.license}
@@ -200,10 +200,10 @@ function MetaEntry({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <span className="text-[10px] uppercase [letter-spacing:1.4px] text-atc-faint">
+      <span className="text-[calc(10px*var(--sb-body-scale))] uppercase [letter-spacing:1.4px] text-atc-faint">
         {label}
       </span>
-      <span className="text-[14px] leading-[1.4] text-atc-text">{value}</span>
+      <span className="text-[calc(14px*var(--sb-body-scale))] leading-[1.4] text-atc-text">{value}</span>
     </div>
   );
 }

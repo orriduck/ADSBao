@@ -153,7 +153,7 @@ function ChangelogEntry({
         <span className="changelog-entry__version">{release.version}</span>
         {release.kind ? (
           // Same mono code chip as the ICAO / category chips; one shared style.
-          <span className="inline-flex w-fit items-center justify-center whitespace-nowrap rounded-[5px] px-[5px] py-[2.5px] font-code text-[8.5px] [letter-spacing:0.4px] text-atc-dim shadow-[inset_0_0_0_0.5px_var(--atc-line-strong)]">
+          <span className="inline-flex w-fit items-center justify-center whitespace-nowrap rounded-[5px] px-[5px] py-[2.5px] font-code text-[calc(8.5px*var(--sb-body-scale))] [letter-spacing:0.4px] text-atc-dim shadow-[inset_0_0_0_0.5px_var(--atc-line-strong)]">
             {release.kind.toUpperCase()}
           </span>
         ) : null}

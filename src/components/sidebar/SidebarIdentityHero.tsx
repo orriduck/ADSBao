@@ -19,7 +19,7 @@ export default function SidebarIdentityHero({
       <span className="atc-kicker">{label}</span>
       <div className="mt-3 flex items-baseline gap-3">
         <span
-          className={`airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[28px] font-extrabold text-atc-text ${codeClassName}`}
+          className={`airport-sidebar-display-mono airport-sidebar-display-mono--hero notranslate text-[calc(28px*var(--sb-title-scale))] font-extrabold text-atc-text ${codeClassName}`}
           translate="no"
         >
           {code}

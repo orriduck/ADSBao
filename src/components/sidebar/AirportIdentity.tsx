@@ -87,23 +87,23 @@ export default function AirportIdentity({
       <span className="atc-kicker airport-sidebar-identity__kicker">
         {(nearMe ? t("sidebar.nearMeLabel") : t("sidebar.airport")).toUpperCase()}
       </span>
-      <h1 className="mt-3 text-[22px] font-normal leading-[1.08] text-atc-text">
+      <h1 className="mt-3 text-[calc(22px*var(--sb-title-scale))] font-normal leading-[1.08] text-atc-text">
         <span className="airport-sidebar-display-mono notranslate" translate="no">
           {codeLine || t("sidebar.unknownAirport")}
         </span>
       </h1>
       {nameLine ? (
-        <div className="mt-2 text-[13px] leading-snug text-atc-dim">
+        <div className="mt-2 text-[calc(13px*var(--sb-title-scale))] leading-snug text-atc-dim">
           {nameLine}
         </div>
       ) : null}
       {metaLine ? (
-        <div className="mt-1.5 font-mono text-[11px] leading-snug text-atc-faint">
+        <div className="mt-1.5 font-mono text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-faint">
           {metaLine}
         </div>
       ) : null}
       {nearMeRefresh && (
-        <div className="mt-1.5 text-[11px] text-atc-faint">
+        <div className="mt-1.5 text-[calc(11px*var(--sb-body-scale))] text-atc-faint">
           {nearMeRefresh.lastTime
             ? t("nearMe.lastUpdated", { time: nearMeRefresh.lastTime })
             : ""}

@@ -88,7 +88,7 @@ function AircraftRow({
 
       <div className="flex min-w-0 flex-1 items-baseline gap-2">
         <span
-          className="aircraft-table-callsign airport-sidebar-display-mono notranslate shrink-0 text-[12.5px] text-atc-text"
+          className="aircraft-table-callsign airport-sidebar-display-mono notranslate shrink-0 text-[calc(12.5px*var(--sb-body-scale))] text-atc-text"
           translate="no"
         >
           {callsign}
@@ -96,14 +96,14 @@ function AircraftRow({
         {route ? (
           <span
             title={routeTitle}
-            className="notranslate min-w-0 truncate text-[10.5px] text-atc-faint"
+            className="notranslate min-w-0 truncate text-[calc(10.5px*var(--sb-body-scale))] text-atc-faint"
             translate="no"
           >
             {route}
           </span>
         ) : registration && registration !== callsign ? (
           <span
-            className="notranslate min-w-0 truncate text-[10px] tracking-[0.04em] text-atc-faint"
+            className="notranslate min-w-0 truncate text-[calc(10px*var(--sb-body-scale))] tracking-[0.04em] text-atc-faint"
             translate="no"
           >
             {registration}
@@ -112,19 +112,19 @@ function AircraftRow({
       </div>
 
       <div className="flex flex-none items-baseline gap-2.5 font-mono tabular-nums">
-        <span className="text-[11px] text-atc-faint">
+        <span className="text-[calc(11px*var(--sb-body-scale))] text-atc-faint">
           {distanceMain}
           {distanceUnit ? (
-            <span className="ml-0.5 text-[7.5px] text-atc-faint">
+            <span className="ml-0.5 text-[calc(7.5px*var(--sb-body-scale))] text-atc-faint">
               {distanceUnit}
             </span>
           ) : null}
         </span>
-        <span className="flex items-baseline gap-0.5 text-[11px] text-atc-text">
+        <span className="flex items-baseline gap-0.5 text-[calc(11px*var(--sb-body-scale))] text-atc-text">
           {cue ? (
             <span
               aria-hidden="true"
-              className="text-[8px] leading-none text-atc-faint"
+              className="text-[calc(8px*var(--sb-body-scale))] leading-none text-atc-faint"
             >
               {cue}
             </span>
@@ -141,7 +141,7 @@ function AircraftRow({
                 </span>
               ) : null}
               {altitudeDisplay.value}
-              <span className="ml-0.5 text-[7.5px] text-atc-faint">
+              <span className="ml-0.5 text-[calc(7.5px*var(--sb-body-scale))] text-atc-faint">
                 {String(altitudeDisplay.unit).toUpperCase()}
               </span>
             </>

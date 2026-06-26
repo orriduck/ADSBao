@@ -55,12 +55,12 @@ function AirportRow({
 
       <div className="flex min-w-0 flex-1 items-baseline gap-2">
         <span
-          className="aircraft-table-callsign airport-sidebar-display-mono notranslate shrink-0 text-[12.5px] text-atc-text"
+          className="aircraft-table-callsign airport-sidebar-display-mono notranslate shrink-0 text-[calc(12.5px*var(--sb-body-scale))] text-atc-text"
           translate="no"
         >
           {code}
         </span>
-        <span className="flex min-w-0 items-baseline gap-1 text-[10.5px] text-atc-faint">
+        <span className="flex min-w-0 items-baseline gap-1 text-[calc(10.5px*var(--sb-body-scale))] text-atc-faint">
           {flag ? (
             <span aria-hidden="true" className="flex-none leading-none">
               {flag}
@@ -71,23 +71,23 @@ function AirportRow({
       </div>
 
       <div className="flex flex-none items-baseline gap-2.5 font-mono tabular-nums">
-        <span className="text-[11px] text-atc-faint">
+        <span className="text-[calc(11px*var(--sb-body-scale))] text-atc-faint">
           {distanceDisplay ? (distanceDisplay.text ?? distanceDisplay.value) : "—"}
           {distanceDisplay?.unit ? (
-            <span className="ml-0.5 text-[7.5px] text-atc-faint">
+            <span className="ml-0.5 text-[calc(7.5px*var(--sb-body-scale))] text-atc-faint">
               {distanceDisplay.unit}
             </span>
           ) : null}
         </span>
         {endpointLabel ? (
-          <span className="text-[9px] uppercase tracking-normal text-atc-dim">
+          <span className="text-[calc(9px*var(--sb-body-scale))] uppercase tracking-normal text-atc-dim">
             {endpointLabel}
           </span>
         ) : (
-          <span className="text-[11px] text-atc-text">
+          <span className="text-[calc(11px*var(--sb-body-scale))] text-atc-text">
             {elevationDisplay ? elevationDisplay.value : "—"}
             {elevationDisplay?.unit ? (
-              <span className="ml-0.5 text-[7.5px] text-atc-faint">
+              <span className="ml-0.5 text-[calc(7.5px*var(--sb-body-scale))] text-atc-faint">
                 {elevationDisplay.unit.toUpperCase()}
               </span>
             ) : null}

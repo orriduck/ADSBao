@@ -53,7 +53,7 @@ export function AirportListRow({
     <span
       className={cn(
         "mt-[2px] inline-flex w-[var(--lr-chip-col,46px)] items-center justify-center self-start rounded-[6px] py-[3px]",
-        "whitespace-nowrap font-code text-[length:var(--lr-chip-fs,10px)] leading-none [letter-spacing:0.6px]",
+        "whitespace-nowrap font-code text-[length:var(--lr-chip-fs,calc(10px*var(--sb-body-scale)))] leading-none [letter-spacing:0.6px]",
         accent
           ? cn(
               "text-[var(--atc-signal-accent-strong)]",
@@ -78,9 +78,9 @@ export function AirportListRow({
   const text = (
     <span className="flex min-w-0 flex-col gap-0.5 self-center">
       {/* Primary line: 15.5px near-black, regular weight, wraps (no ellipsis). */}
-      <span className="text-[15.5px] leading-[1.25] text-atc-text">{title}</span>
+      <span className="text-[calc(15.5px*var(--sb-title-scale))] leading-[1.25] text-atc-text">{title}</span>
       {subtitle ? (
-        <span className="text-[11.5px] leading-[1.3] text-[color-mix(in_oklab,var(--atc-text)_46%,transparent)]">
+        <span className="text-[calc(11.5px*var(--sb-body-scale))] leading-[1.3] text-[color-mix(in_oklab,var(--atc-text)_46%,transparent)]">
           {subtitle}
         </span>
       ) : null}

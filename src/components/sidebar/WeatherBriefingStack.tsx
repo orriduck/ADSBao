@@ -127,7 +127,7 @@ function WeatherSegment({ view, onChange, t }) {
             aria-selected={active}
             data-active={active ? "true" : undefined}
             onClick={() => onChange(item.id)}
-            className="rounded-[calc(var(--atc-radius-pill)_-_4px)] px-3 py-1.5 text-center text-[12px] text-atc-dim transition-[background,color,box-shadow] duration-200 hover:text-atc-text data-[active=true]:bg-[var(--atc-control-surface)] data-[active=true]:text-atc-text data-[active=true]:shadow-[var(--atc-control-inset-shadow)]"
+            className="rounded-[calc(var(--atc-radius-pill)_-_4px)] px-3 py-1.5 text-center text-[calc(12px*var(--sb-body-scale))] text-atc-dim transition-[background,color,box-shadow] duration-200 hover:text-atc-text data-[active=true]:bg-[var(--atc-control-surface)] data-[active=true]:text-atc-text data-[active=true]:shadow-[var(--atc-control-inset-shadow)]"
           >
             {item.label}
           </button>
@@ -158,10 +158,10 @@ function HeroCard({ color, children }) {
 function MetricCell({ label, value }) {
   return (
     <div className="min-w-0">
-      <div className="text-[9.5px] text-atc-faint [letter-spacing:0.08em]">
+      <div className="text-[calc(9.5px*var(--sb-body-scale))] text-atc-faint [letter-spacing:0.08em]">
         {up(label)}
       </div>
-      <div className="notranslate mt-1 font-mono text-[15.5px] tabular-nums text-atc-text">
+      <div className="notranslate mt-1 font-mono text-[calc(15.5px*var(--sb-body-scale))] tabular-nums text-atc-text">
         {value}
       </div>
     </div>
@@ -231,13 +231,13 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
       <HeroCard color={color}>
         <div>
           <div
-            className="text-[40px] font-light leading-none"
+            className="text-[calc(40px*var(--sb-body-scale))] font-light leading-none"
             style={{ color }}
           >
             {category || "—"}
           </div>
           <div
-            className="mt-2 text-[13px] lowercase leading-snug"
+            className="mt-2 text-[calc(13px*var(--sb-body-scale))] lowercase leading-snug"
             style={{ color }}
           >
             {label}
@@ -255,7 +255,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
           ))}
         </div>
         {context ? (
-          <p className="mt-3.5 text-[12.5px] leading-snug text-atc-dim">
+          <p className="mt-3.5 text-[calc(12.5px*var(--sb-body-scale))] leading-snug text-atc-dim">
             {context}
           </p>
         ) : null}
@@ -275,16 +275,16 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
 
       <div>
         <div className="flex items-baseline justify-between">
-          <span className="text-[9.5px] text-atc-faint [letter-spacing:0.08em]">
+          <span className="text-[calc(9.5px*var(--sb-body-scale))] text-atc-faint [letter-spacing:0.08em]">
             {up(t("weather.rawReport"))}
           </span>
           {issued ? (
-            <span className="notranslate font-mono text-[10px] text-atc-faint">
+            <span className="notranslate font-mono text-[calc(10px*var(--sb-body-scale))] text-atc-faint">
               {issued}
             </span>
           ) : null}
         </div>
-        <code className="notranslate mt-2 block font-mono text-[11.5px] leading-relaxed text-atc-dim">
+        <code className="notranslate mt-2 block font-mono text-[calc(11.5px*var(--sb-body-scale))] leading-relaxed text-atc-dim">
           {metarRaw || t("weather.metarMissing")}
         </code>
       </div>
@@ -308,7 +308,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
             value={visValue}
           />
         </div>
-        <p className="mt-3 text-[12px] leading-snug text-atc-dim">
+        <p className="mt-3 text-[calc(12px*var(--sb-body-scale))] leading-snug text-atc-dim">
           {interpretation}
         </p>
       </div>
@@ -321,9 +321,9 @@ function IconStat({ icon, label, value }) {
     <div className="min-w-0">
       <div className="flex items-center gap-1.5 text-atc-faint">
         <span className="flex-none">{icon}</span>
-        <span className="text-[9px] [letter-spacing:0.08em]">{up(label)}</span>
+        <span className="text-[calc(9px*var(--sb-body-scale))] [letter-spacing:0.08em]">{up(label)}</span>
       </div>
-      <div className="notranslate mt-1 font-mono text-[14px] tabular-nums text-atc-text">
+      <div className="notranslate mt-1 font-mono text-[calc(14px*var(--sb-body-scale))] tabular-nums text-atc-text">
         {value}
       </div>
     </div>
@@ -385,12 +385,12 @@ function LocalView({ local, loading, t, units }) {
         <div className="flex items-start justify-between">
           <div className="flex items-baseline gap-1.5">
             <span
-              className="notranslate text-[44px] font-light leading-none"
+              className="notranslate text-[calc(44px*var(--sb-body-scale))] font-light leading-none"
               style={{ color }}
             >
               {tempValue}
             </span>
-            <span className="text-[14px]" style={{ color }}>
+            <span className="text-[calc(14px*var(--sb-body-scale))]" style={{ color }}>
               {unitLabel}
             </span>
           </div>
@@ -409,7 +409,7 @@ function LocalView({ local, loading, t, units }) {
             />
           ) : null}
         </div>
-        <p className="mt-3.5 text-[12.5px] leading-snug text-atc-dim">
+        <p className="mt-3.5 text-[calc(12.5px*var(--sb-body-scale))] leading-snug text-atc-dim">
           {heroLine}
           {trendKey ? `. ${t(trendKey)}` : heroLine ? "." : null}
         </p>
@@ -426,7 +426,7 @@ function LocalView({ local, loading, t, units }) {
 
       {hours.length > 0 ? (
         <div>
-          <div className="text-[9.5px] text-atc-faint [letter-spacing:0.08em]">
+          <div className="text-[calc(9.5px*var(--sb-body-scale))] text-atc-faint [letter-spacing:0.08em]">
             {up(t("weather.nextHours"))}
           </div>
           <div className="mt-2.5 grid grid-cols-6 gap-1">
@@ -435,7 +435,7 @@ function LocalView({ local, loading, t, units }) {
                 key={index}
                 className="flex flex-col items-center gap-1.5"
               >
-                <span className="text-[10px] text-atc-faint">
+                <span className="text-[calc(10px*var(--sb-body-scale))] text-atc-faint">
                   {index === 0 ? t("weather.now") : String(hour.time).split(":")[0]}
                 </span>
                 <WeatherGlyph
@@ -444,7 +444,7 @@ function LocalView({ local, loading, t, units }) {
                   strokeWidth={1.7}
                   className="text-atc-dim"
                 />
-                <span className="notranslate font-mono text-[12px] tabular-nums text-atc-text">
+                <span className="notranslate font-mono text-[calc(12px*var(--sb-body-scale))] tabular-nums text-atc-text">
                   {hour.temperatureC == null
                     ? "—"
                     : `${Math.round(convertTemperatureFromC(hour.temperatureC, units.temperature))}°`}
@@ -456,7 +456,7 @@ function LocalView({ local, loading, t, units }) {
       ) : null}
 
       {summary ? (
-        <p className="border-t border-[var(--atc-line)] pt-4 text-[12.5px] leading-snug text-atc-dim">
+        <p className="border-t border-[var(--atc-line)] pt-4 text-[calc(12.5px*var(--sb-body-scale))] leading-snug text-atc-dim">
           {summary}
         </p>
       ) : null}

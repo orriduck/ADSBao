@@ -33,10 +33,10 @@ export default function MechanismPanel() {
             <Fragment key={item.id}>
               {showGroup ? (
                 <li className={cn("pb-2 pt-[22px] first:pt-1", INSET)}>
-                  {/* Upright serif group label + accent tick — same as Explorer. */}
+                  {/* Upright sans group label (semibold) + accent tick — same as Explorer. */}
                   <h2
                     className={
-                      "flex min-w-0 items-center gap-2 font-serif text-[15px] leading-snug text-atc-dim " +
+                      "flex min-w-0 items-center gap-2 [font-weight:600] text-[calc(15px*var(--sb-title-scale))] leading-snug text-atc-dim " +
                       "before:block before:h-[1.5px] before:w-[9px] before:shrink-0 before:rounded-full " +
                       "before:bg-[var(--atc-signal-accent)] before:content-['']"
                     }
@@ -64,14 +64,14 @@ export default function MechanismPanel() {
                       "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-signal-accent)]",
                     )}
                   >
-                    <span className="mt-[1px] font-code text-[13px] leading-[1.3] text-atc-faint group-data-[expanded=true]:text-atc-text">
+                    <span className="mt-[1px] font-code text-[calc(13px*var(--sb-body-scale))] leading-[1.3] text-atc-faint group-data-[expanded=true]:text-atc-text">
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <span className="flex min-w-0 flex-col gap-[3px]">
-                      <span className="text-[15px] leading-[1.25] text-atc-text">
+                      <span className="text-[calc(15px*var(--sb-title-scale))] leading-[1.25] text-atc-text">
                         {t(item.titleKey)}
                       </span>
-                      <span className="text-[11.5px] leading-[1.3] text-[color-mix(in_oklab,var(--atc-text)_46%,transparent)]">
+                      <span className="text-[calc(11.5px*var(--sb-body-scale))] leading-[1.3] text-[color-mix(in_oklab,var(--atc-text)_46%,transparent)]">
                         {t(item.signalKey)}
                       </span>
                     </span>
@@ -92,7 +92,7 @@ export default function MechanismPanel() {
                   >
                     <div className="min-h-0 overflow-hidden">
                       <div className={cn("pb-3 pr-2.5", DETAIL_INDENT)}>
-                        <p className="text-[12px] leading-[1.55] text-[color-mix(in_oklab,var(--atc-text)_55%,transparent)]">
+                        <p className="text-[calc(12px*var(--sb-body-scale))] leading-[1.55] text-[color-mix(in_oklab,var(--atc-text)_55%,transparent)]">
                           {t(item.bodyKey)}
                         </p>
                         <MechanismFlow
@@ -105,10 +105,10 @@ export default function MechanismPanel() {
                               key={key}
                               className="grid grid-cols-[16px_minmax(0,1fr)] gap-2"
                             >
-                              <span className="font-code text-[10px] leading-[1.5] text-atc-faint">
+                              <span className="font-code text-[calc(10px*var(--sb-body-scale))] leading-[1.5] text-atc-faint">
                                 {String(detailIndex + 1).padStart(2, "0")}
                               </span>
-                              <span className="min-w-0 text-[11.5px] leading-[1.45] text-[color-mix(in_oklab,var(--atc-text)_55%,transparent)]">
+                              <span className="min-w-0 text-[calc(11.5px*var(--sb-body-scale))] leading-[1.45] text-[color-mix(in_oklab,var(--atc-text)_55%,transparent)]">
                                 {t(key)}
                               </span>
                             </li>
@@ -136,7 +136,7 @@ function MechanismFlow({ label, steps }: { label: string; steps: string[] }) {
   return (
     <div className="mt-3.5">
       {/* `uppercase` is globally disabled (modernization override), so cap in JS. */}
-      <span className="block font-code text-[9px] [letter-spacing:1.4px] text-atc-faint">
+      <span className="block font-code text-[calc(9px*var(--sb-body-scale))] [letter-spacing:1.4px] text-atc-faint">
         {label.toUpperCase()}
       </span>
       <ol className="relative mt-2 flex flex-col gap-2.5">
@@ -160,7 +160,7 @@ function MechanismFlow({ label, steps }: { label: string; steps: string[] }) {
                     : "bg-[color-mix(in_oklab,var(--atc-text)_32%,transparent)]",
                 )}
               />
-              <span className="min-w-0 truncate font-code text-[11.5px] leading-none text-atc-text">
+              <span className="min-w-0 truncate font-code text-[calc(11.5px*var(--sb-body-scale))] leading-none text-atc-text">
                 {step}
               </span>
             </li>
