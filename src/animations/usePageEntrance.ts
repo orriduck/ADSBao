@@ -75,12 +75,18 @@ export function usePageEntrance(
     ctxRef.current = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { overwrite: "auto" } });
 
+      // Transform-only entrance: never gate visibility behind opacity. The
+      // content paints at full opacity the moment React renders it, and the
+      // animation is a non-blocking settle. If the main thread is busy on
+      // mount (Clerk init, etc.) and the tween is starved, the content is
+      // still fully visible (just briefly offset) instead of being held
+      // invisible at opacity:0 — which is what made the first screen look like
+      // it "waited" half a second to a second before showing content.
       if (header) {
         tl.fromTo(
           header,
-          { opacity: 0, y: 8 },
+          { y: 10 },
           {
-            opacity: 1,
             y: 0,
             duration: MOTION.slow,
             ease: EASE.snap,
@@ -92,9 +98,8 @@ export function usePageEntrance(
       if (body) {
         tl.fromTo(
           body,
-          { opacity: 0, y: 6 },
+          { y: 8 },
           {
-            opacity: 1,
             y: 0,
             duration: MOTION.med,
             ease: EASE.out,
@@ -106,9 +111,9 @@ export function usePageEntrance(
       if (items.length > 0) {
         tl.fromTo(
           items,
-          { opacity: 0 },
+          { y: 6 },
           {
-            opacity: 1,
+            y: 0,
             duration: MOTION.fast,
             ease: EASE.out,
             stagger: { each: 0.025, from: "start" },
