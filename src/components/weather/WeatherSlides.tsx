@@ -536,7 +536,7 @@ function hourlyTemp(val, unit) {
 
 // One hourly cell. Pulled out of the map() so it can own a
 // useCardInteraction hook — same GSAP hover-lift + press-spring as the
-// MetricCard / SelectableCard glass cards. CSS owns the glass-capsule
+// SelectableCard glass cards. CSS owns the glass-capsule
 // background/box-shadow on [data-active]; GSAP owns transform only.
 function HourlyCell({ hour, active, onToggle, t, units }) {
   const {

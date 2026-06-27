@@ -3317,7 +3317,7 @@ body:has(.dither-page-shell) {
        bottom edge. The ::after sheen sweeps a wide diagonal light band
        across, and the rim shadow draws a crisp specular hairline along
        the top with a faint glass ring and a deep soft drop. Shared so
-       MetricCard / FilterCard / SelectableCard / ToolbarButton render
+       FilterCard / SelectableCard / ToolbarButton render
        the same selected material. Works in both themes — --atc-click-bg
        is dark ink in each. */
     /* Ink layer is a radial falloff anchored at the TOP-LEFT corner: the
@@ -3395,7 +3395,7 @@ body:has(.dither-page-shell) {
     --app-floating-edge-shadow: rgb(0 0 0 / 0.075);
     /* "Pressed tile" glow tokens — gradient + edge highlight applied
        to anything that flips to --atc-click-bg on active state. Lives
-       on :root so MetricCard / FilterCard inside the sidebar and
+       on :root so FilterCard / SelectableCard inside the sidebar and
        ToolbarButton inside the map control rail share one definition. */
     --sidebar-tile-bottom-glow: linear-gradient(
         to top,
@@ -4344,7 +4344,7 @@ body {
     -webkit-appearance: none;
     appearance: none;
     outline: none;
-    /* Liquid-glass top-light sheen — same material as MetricCard's
+    /* Liquid-glass top-light sheen — same material as SelectableCard's
        selected state; fades/slides in when the cell becomes active. */
     &::after {
         content: '';
@@ -6207,7 +6207,7 @@ body {
     transform: translateY(-0.7em);
 }
 
-/* When the MetricCard is in its active state, dim the NumberFlow
+/* When a sidebar metric tile is in its active state, dim the NumberFlow
    suffix the same way label / unit dim. */
 .group[data-active="true"] .sidebar-metric-number-flow::part(suffix) {
     color: var(--atc-click-muted);

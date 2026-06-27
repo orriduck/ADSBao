@@ -6,8 +6,8 @@ model doing UI work must follow it. The implementation lives in two places:
 - **Tokens**: `src/style.css` — search for `--atc-glass-`, `--atc-control-`,
   `--app-frost`, `--atc-click-`. Every material below is a token; change the
   token, never re-type a recipe at a use site.
-- **Reference components**: `src/components/ui/MetricCard.tsx`,
-  `FilterCard.tsx`, `SelectableCard.tsx`, `Toolbar.tsx`. New selected/resting
+- **Reference components**: `src/components/ui/SelectableCard.tsx`,
+  `FilterCard.tsx`, `Toolbar.tsx`. New selected/resting
   surfaces should copy their class patterns, not invent new ones.
 
 ## Overview

@@ -244,7 +244,7 @@ This project uses **Tailwind CSS v4**. When adding or changing styles, reach for
 - Theme polarity lives in the `--atc-click-bg` / `--atc-click-fg` pair (light theme: dark capsule; dark theme: bright capsule). Never fork the glass recipes per theme.
 - Gradient tokens are applied via the `background` shorthand (`[background:var(--atc-glass-active-bg)]`), not `bg-[...]`.
 - Active elements set `border-transparent` (the rim is light, not stroke) and need `data-[active=true]:hover:[background:var(--atc-glass-active-bg)]` so hover doesn't flatten the capsule back to a solid fill.
-- Reference implementations: `MetricCard.tsx`, `FilterCard.tsx`, `SelectableCard.tsx`, `Toolbar.tsx` under `src/components/ui/`.
+- Reference implementations: `SelectableCard.tsx`, `FilterCard.tsx`, `Toolbar.tsx` under `src/components/ui/` (the glass-capsule material); `StatTile.tsx` is the shared sidebar stat-cell primitive.
 
 ### Decision order
 
@@ -264,7 +264,7 @@ A pseudo-element (`::before` / `::after`) is **not** an automatic reason to writ
 
 Tailwind v4 expresses most "context overrides" without leaving JSX. The patterns this codebase already uses:
 
-- **Pseudo-elements** — `before:content-[''] before:absolute before:inset-0 before:[background:var(--sidebar-tile-bottom-glow)]`. Use the `background` shorthand (in `[...]`) when the token is a gradient; `bg-[...]` compiles to `background-color` which can't accept a gradient. See `MetricCard.tsx`.
+- **Pseudo-elements** — `before:content-[''] before:absolute before:inset-0 before:[background:var(--sidebar-tile-bottom-glow)]`. Use the `background` shorthand (in `[...]`) when the token is a gradient; `bg-[...]` compiles to `background-color` which can't accept a gradient. See `Toolbar.tsx`.
 - **Ancestor selectors** — `[.airport-map-kit_&]:min-h-[76px]` compiles to `.airport-map-kit .target { min-height: 76px }`. Use this for context-specific compact / spacious variants instead of writing `.airport-map-kit .my-card { ... }` in `style.css`. The `_` stands in for a space.
 - **Group / data attributes** — `data-[active=true]:[background:var(--atc-glass-active-bg)]`, `data-[state=open]:shadow-[...]`, `group-data-[active=true]:text-[var(--atc-click-fg)]`. Use these instead of `.my-card[data-active="true"] { ... }`.
 - **Compound ancestor + state** — `[[data-active=true]_&]:text-[var(--atc-click-muted)]` flips a child when any ancestor is active. Use this when the parent isn't tagged with `class="group"` (e.g. Radix's `SelectTrigger`, which drops props through `asChild`).
@@ -280,7 +280,7 @@ Tailwind v4 expresses most "context overrides" without leaving JSX. The patterns
 
 ### When you would have written CSS — try this instead
 
-- "The selected card needs the glass-capsule treatment." → `data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:shadow-[var(--atc-glass-rim-shadow)] data-[active=true]:border-transparent` on the cva base (see `MetricCard.tsx` for the full pattern incl. sheen + backdrop frost).
+- "The selected card needs the glass-capsule treatment." → `data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:shadow-[var(--atc-glass-rim-shadow)] data-[active=true]:border-transparent` on the cva base (see `SelectableCard.tsx` for the full pattern incl. sheen + backdrop frost).
 - "The card should be smaller inside the map kit." → `[.airport-map-kit_&]:min-h-[76px] [.airport-map-kit_&]:p-[14px]` on the card, not `.airport-map-kit .my-card { padding: 14px }` in `style.css`.
 - "I need a chevron pinned to the right." → `[&>svg]:absolute [&>svg]:right-3 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2` on the parent.
 - "The active filter should have no border." → `data-[active=true]:border-transparent`, not `.my-filter[data-active="true"] { border: 0 }`.
@@ -292,7 +292,7 @@ Tailwind v4 expresses most "context overrides" without leaving JSX. The patterns
 - Selectors that have to win over a third-party stylesheet (Clerk, Leaflet, Radix popover layers) where we can't add classes to the rendered element.
 - Container-level positioning wrappers that pre-exist and just hold the layout — `.airport-map-kit`, `.airport-map-menu`, `.sidebar-top-dock`, `.page-nav-dock`, `.map-ctrl-zone`. These keep their CSS because they wrap structure, not visual state.
 
-If you find yourself adding more than ~5 lines of CSS for a component you control, stop and convert it to inline variants instead. The recent `Toolbar` / `MetricCard` / `FilterCard` primitives replaced ~1000 lines of `style.css` with inline Tailwind by following this rule.
+If you find yourself adding more than ~5 lines of CSS for a component you control, stop and convert it to inline variants instead. The recent `Toolbar` / `SelectableCard` / `FilterCard` primitives replaced ~1000 lines of `style.css` with inline Tailwind by following this rule.
 
 When custom CSS is genuinely warranted, follow the existing DRY patterns:
 

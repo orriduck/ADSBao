@@ -167,7 +167,7 @@ const toolbarButtonVariants = cva(
     // the toolbar token so mobile can scale every toolbar icon together.
     // Keep the icon above the active-state ::after glow layer.
     "[&_svg]:size-[var(--atc-toolbar-icon-size)] [&_svg]:relative [&_svg]:z-[1]",
-    // Active-state bottom-glow gradient — same language as MetricCard /
+    // Active-state bottom-glow gradient — same language as SelectableCard /
     // FilterCard. Lives on ::after so it can fade in + slide up
     // independently of the box's background. --sidebar-tile-bottom-glow
     // is a linear-gradient, so use the `background` shorthand.
@@ -182,7 +182,7 @@ const toolbarButtonVariants = cva(
       tone: {
         // Pill button used by PageNavigationDock + SidebarShell mobile
         // toolbar — transparent base, hover/active tinted by the
-        // shared --atc-click-* tokens. Active state mirrors MetricCard /
+        // shared --atc-click-* tokens. Active state mirrors SelectableCard /
         // FilterCard: ink background + bottom inset edge-glow so the
         // pressed state reads as the same UI language across surfaces.
         soft: cn(
