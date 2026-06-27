@@ -696,7 +696,7 @@ function drawTemplate(
 
 // Shared chip style for every "choose one of these" surface in the
 // control panel — templates, meta fields, map positions. Uses the
-// same rounded-card radius as MetricCard / FilterCard / Map Settings
+// same rounded-card radius as FilterCard / Map Settings
 // tiles so the panel sits in the same visual system instead of using
 // pill-shaped controls that don't appear elsewhere in the app.
 const planeHunterPillClass = cn(
@@ -708,7 +708,7 @@ const planeHunterPillClass = cn(
   "hover:bg-[var(--atc-control-surface-hover)]",
   "active:scale-[0.97]",
   // Active — ink fill + active shadow stack. Identical treatment to
-  // FilterCard / MetricCard so the photographer's selected chip reads
+  // FilterCard / SelectableCard so the photographer's selected chip reads
   // as "the chosen option" instead of a hover effect.
   "data-[active=true]:border-transparent",
   "data-[active=true]:bg-[var(--atc-click-bg)]",

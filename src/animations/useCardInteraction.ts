@@ -1,6 +1,6 @@
 /**
  * useCardInteraction — GSAP-powered hover and active-state animations
- * for interactive card elements (SelectableCard, MetricCard, AircraftRow).
+ * for interactive card elements (SelectableCard, FilterCard, AircraftRow).
  *
  * Returns event handlers to attach to the card element.
  */

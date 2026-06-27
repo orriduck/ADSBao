@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import NumberFlow from "@number-flow/react";
+import StatTile from "@/components/ui/StatTile";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
@@ -205,63 +206,17 @@ export default function SidebarViewSwitch({
         {movementCells.length > 0 ? (
           <div className="flex border-t border-[var(--app-frost-border)]">
             {movementCells.map(({ key, ...cell }) => (
-              <StatCell key={key} {...cell} />
+              <StatTile key={key} {...cell} />
             ))}
           </div>
         ) : null}
         <div className="flex border-t border-[var(--app-frost-border)]">
           {restCells.map(({ key, ...cell }) => (
-            <StatCell key={key} {...cell} />
+            <StatTile key={key} {...cell} />
           ))}
         </div>
       </div>
     </div>
-  );
-}
-
-function StatCell({ label, value, unit, prefix, active, onClick, readOnly = false }) {
-  const body = (
-    <>
-      <div className="truncate text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{label}</div>
-      <div className="mt-[3px]">
-        {prefix ? (
-          <span
-            className="notranslate text-[calc(10px*var(--sb-body-scale))] text-atc-faint"
-            translate="no"
-          >
-            {prefix}
-          </span>
-        ) : null}
-        <span className="text-[calc(16px*var(--sb-body-scale))] font-normal tabular-nums text-atc-text">
-          {value}
-        </span>
-        {unit ? (
-          <span className="ml-0.5 text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{unit}</span>
-        ) : null}
-      </div>
-    </>
-  );
-
-  // Read-only stats (here-mode speed/altitude) are not view switches: render a
-  // plain cell with no hover/active affordance so they don't read as tappable.
-  if (readOnly) {
-    return (
-      <div className="relative min-w-0 flex-1 px-[11px] py-[9px] text-left [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)]">
-        {body}
-      </div>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      data-active={active ? "true" : undefined}
-      onClick={onClick}
-      aria-pressed={active}
-      className="relative min-w-0 flex-1 px-[11px] py-[9px] text-left transition-[background-color] duration-200 ease-out [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:origin-center before:scale-x-0 before:bg-[var(--atc-signal-accent)] before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.34,1.3,0.64,1)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:before:scale-x-100"
-    >
-      {body}
-    </button>
   );
 }
 

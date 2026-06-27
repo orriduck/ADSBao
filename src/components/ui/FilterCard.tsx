@@ -28,7 +28,7 @@ function composeEventHandlers<Event>(
 
 // Compact filter "tile" shared by the AircraftTable filter strip and
 // the AircraftTypeFilterCard / AircraftFilterCardSelect dropdowns.
-// Same dense cell language as MetricCard, with smaller padding + type ramps.
+// Same dense cell language as StatTile, with smaller padding + type ramps.
 
 const filterCardVariants = cva(
   cn(
@@ -45,7 +45,7 @@ const filterCardVariants = cva(
     "hover:bg-[var(--atc-control-surface-muted)]",
     "data-[active=true]:hover:[background:var(--atc-glass-active-bg)]",
     "data-[state=open]:hover:[background:var(--atc-glass-active-bg)]",
-    // Active / open = selected glass capsule, matching MetricCard.
+    // Active / open = selected glass capsule, matching SelectableCard.
     "data-[active=true]:[background:var(--atc-glass-active-bg)]",
     "data-[active=true]:border-transparent",
     "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)]",
@@ -124,7 +124,7 @@ export const FilterCard = forwardRef(function FilterCard(
   const Comp = asChild ? Slot : "button";
   const extraProps = asChild ? {} : { type: type || "button" };
 
-  // GSAP hover-lift + press-spring, matching MetricCard / SelectableCard.
+  // GSAP hover-lift + press-spring, matching SelectableCard.
   // CSS owns the active/open glass background; GSAP
   // owns transform only. The hook's callback ref is merged with the
   // forwarded ref so Radix (SelectTrigger via asChild) still gets the

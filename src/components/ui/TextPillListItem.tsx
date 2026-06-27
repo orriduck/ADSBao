@@ -102,7 +102,7 @@ export function TextPillListItem({
     "rounded-[calc(var(--atc-radius-card)_-_2px)] px-2 py-1.5",
     "transition-[background,border-color,box-shadow,color] duration-150",
     // Active = the shared liquid-glass capsule (dark in light theme, bright
-    // in dark theme) — same material as MetricCard / SelectableCard.
+    // in dark theme) — same material as SelectableCard.
     "data-[active=true]:[background:var(--atc-glass-active-bg)]",
     "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)] data-[active=true]:[-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
     "data-[active=true]:text-[var(--atc-click-fg)]",

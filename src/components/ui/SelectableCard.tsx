@@ -22,7 +22,8 @@ const selectableCardVariants = cva(
     "text-left text-atc-text shadow-none",
     "transition-[background,border-color,box-shadow,color,opacity] duration-150",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-    // Active = dark liquid glass (Siri-capsule material) — see MetricCard.
+    // Active = dark liquid glass (Siri-capsule material) — the canonical
+    // glass-capsule reference for the rest of the system.
     "data-[active=true]:[background:var(--atc-glass-active-bg)]",
     "data-[active=true]:border-transparent",
     "data-[active=true]:[backdrop-filter:var(--atc-glass-active-frost)]",
