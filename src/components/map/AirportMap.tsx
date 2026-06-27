@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapContext } from "./MapContext";
+import { PerfBoundary } from "@/components/devtools/PerfBoundary";
 import MapTileLayers from "./MapTileLayers";
 import AirportMarker from "./AirportMarker";
 import MapRangeLegend from "./MapRangeLegend";
@@ -67,7 +68,7 @@ const WEB_MERCATOR_BOUNDS = [
   [WEB_MERCATOR_MAX_LAT, 180],
 ] as any;
 
-export default function AirportMap({
+function AirportMapInner({
   icao = "",
   lat = null,
   lon = null,
@@ -750,4 +751,15 @@ function mapClickTargetsAirspace(event: any) {
   return document
     .elementsFromPoint(x, y)
     .some((element) => element.getAttribute?.("data-airspace-feature-id"));
+}
+
+// Default export wraps the map subtree in a dev-only Profiler (no-op unless
+// ?perf=1). The shared map is the heaviest per-tick subtree on both the
+// airport and flight-detail pages, so this is where commit cost is measured.
+export default function AirportMap(props: Parameters<typeof AirportMapInner>[0]) {
+  return (
+    <PerfBoundary id="AirportMap">
+      <AirportMapInner {...props} />
+    </PerfBoundary>
+  );
 }
