@@ -2,9 +2,15 @@
 // `CHANGELOG_RECENT`; older entries live in `changelogHistory.ts` so the
 // PWA shell can cache the condensed recent release set. Each release has a `kind`
 // ("feat" | "patch" | "breaking"), a one-line `summary`, and a small set of
-// high-level `highlights` bullets. Patch-only followups can be folded into the
-// latest representative entry. Keep entries terse — the long-form story belongs
-// in the PR.
+// high-level `highlights` bullets. Keep entries terse — the long-form story
+// belongs in the PR.
+//
+// ONE ENTRY PER MINOR. Don't add a new entry for every patch. Fold each patch
+// into the current minor's single rolling entry (update its `summary` and bump
+// its `version` to the new patch number, e.g. v2.30.16 -> v2.30.17). The
+// `version` keeps a patch digit ON PURPOSE: it must match `package.json` so the
+// AppUpdateToast's semver compare still fires on every release. Start a fresh
+// entry only when the minor digit changes (a real feature / milestone).
 
 export type LocalizedText = string | { en: string; zh: string };
 
@@ -41,188 +47,19 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 101;
+export const CHANGELOG_TOTAL_COUNT = 87;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.30.15",
-    kind: "patch",
+    version: "v2.30.16",
+    kind: "feat",
     title: {
-      en: "Solid sidebar logo bar with a fade scrim",
-      zh: "侧栏 logo 改为实色 + 渐变淡出",
+      en: "v2.30 — sidebar, landscape and performance polish",
+      zh: "v2.30——侧栏、横屏与性能打磨",
     },
     summary: {
-      en: "The sidebar logo row is now a solid strip with a soft gradient beneath it instead of a live backdrop blur — scrolling content fades out naturally under the logo, and there's no per-scroll blur to compute.",
-      zh: "侧栏 logo 那一条改为实色,下方加一道柔和渐变取代实时背景模糊——滚动内容在 logo 下自然淡出,也省去了每次滚动的模糊计算。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.14",
-    kind: "patch",
-    title: {
-      en: "Full-size logo in the landscape sidebar",
-      zh: "横屏侧栏 logo 恢复正常大小",
-    },
-    summary: {
-      en: "The ADSBao logo at the top of the mobile landscape sidebar renders at its normal size again instead of a shrunken variant.",
-      zh: "移动端横屏侧栏顶部的 ADSBao logo 恢复正常大小,不再是缩小版。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.13",
-    kind: "patch",
-    title: {
-      en: "Landscape sidebar — full identity, matched width, working logo",
-      zh: "横屏侧栏——完整信息、宽度对齐、logo 可点",
-    },
-    summary: {
-      en: "Three mobile-landscape fixes: the sidebar shows the full place identity again (name, region and coordinates, kept clear of the Dynamic Island), the first screen and detail page now use the same sidebar width, and tapping the logo reliably returns to the home screen.",
-      zh: "三个移动端横屏修复:侧栏重新完整显示地点信息(名称、地区与坐标,并避开灵动岛);首屏与详情页的侧栏宽度对齐;点击 logo 能稳定回到主页。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.12",
-    kind: "patch",
-    title: {
-      en: "Restore the airport name in the landscape sidebar",
-      zh: "横屏侧栏恢复机场名字标题",
-    },
-    summary: {
-      en: "The airport name title is shown again in the mobile landscape sidebar — it had been dropped to save space when the panel was narrower, but now that it's wider there's room for it.",
-      zh: "移动端横屏侧栏重新显示机场名字标题——之前面板较窄时为省空间隐藏了,现在加宽后有空间放回来。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.11",
-    kind: "patch",
-    title: {
-      en: "Map scale clears the sidebar on desktop too",
-      zh: "桌面端比例尺也避开侧栏",
-    },
-    summary: {
-      en: "The map's range scale is now offset clear of the sidebar on desktop and tablet as well — previously it sat hidden behind the panel except in mobile landscape.",
-      zh: "地图比例尺在桌面和平板上也移到侧栏右侧,之前只在移动横屏避让、其它情况被面板挡住。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.10",
-    kind: "patch",
-    title: {
-      en: "Keep the map scale clear of the landscape sidebar",
-      zh: "横屏下比例尺避开侧栏",
-    },
-    summary: {
-      en: "In mobile landscape the map's range scale is offset clear of the sidebar instead of hiding behind it.",
-      zh: "移动端横屏下,地图比例尺移到侧栏右侧,不再被侧栏遮住。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.9",
-    kind: "patch",
-    title: {
-      en: "Landscape sidebar — edge-to-edge glass, island-safe content",
-      zh: "横屏侧栏——玻璃铺到边缘、内容避让灵动岛",
-    },
-    summary: {
-      en: "In mobile landscape the sidebar's frosted background now runs to the screen edge while its content stays inset clear of the Dynamic Island, and the panel is a bit wider for more room.",
-      zh: "移动端横屏下,侧栏的磨砂背景铺到屏幕边缘,内容则内缩避开灵动岛;面板也加宽了一些,内容区更充裕。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.8",
-    kind: "patch",
-    title: {
-      en: "Skip the brand background video on mobile",
-      zh: "移动端不再加载品牌背景视频",
-    },
-    summary: {
-      en: "Mobile devices no longer load and decode the looping brand background video — it was decorative behind the full-width panel but competed for the main thread during a cold first-screen boot.",
-      zh: "移动端不再加载和解码循环播放的品牌背景视频——它本来就藏在全宽面板后面只作装饰,却会在冷启动首屏时抢占主线程。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.7",
-    kind: "patch",
-    title: {
-      en: "Fix photo-locations overflow on mobile",
-      zh: "修复移动端拍机点横向溢出",
-    },
-    summary: {
-      en: "The airport photo-locations list no longer runs off the right edge on mobile — long spot descriptions now wrap inside the sidebar instead of pushing the list wider than the screen.",
-      zh: "机场拍机点列表在移动端不再冲出右边缘——长描述会在侧栏内换行,不再把列表撑得比屏幕还宽。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.6",
-    kind: "patch",
-    title: {
-      en: "Smoother first-screen entrance",
-      zh: "更顺滑的首屏入场",
-    },
-    summary: {
-      en: "The first-screen entrance now fades in via a compositor animation, so it plays smoothly the moment content is ready instead of crawling in or sitting blank while the page is still busy mounting.",
-      zh: "首屏入场改为合成器动画淡入,内容就绪即顺滑播放,不再在页面挂载繁忙时被拖成爬升或白屏。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.5",
-    kind: "patch",
-    title: {
-      en: "Mobile fixes, first-screen entrance, and a lighter nearby list",
-      zh: "移动端修复、首屏入场与更轻的邻近列表",
-    },
-    summary: {
-      en: "Mobile sidebar lists no longer hide their last row under the floating toolbar, the first-screen fade waits for the main thread to settle so it plays smoothly, and the nearby list now defaults to aircraft below 10,000 ft and reveals a page at a time as you scroll for a shorter, lighter default cut.",
-      zh: "移动端侧栏列表的最后一行不再被底部工具栏遮挡;首屏淡入改为等主线程空闲后再播放以更顺滑;邻近列表默认只看 10000 英尺以下的航空器,并随滚动逐页展开,默认列表更短更轻。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.3",
-    kind: "patch",
-    title: {
-      en: "Lighter frosted glass, smoother sidebar",
-      zh: "更轻的磨砂玻璃,更流畅的侧栏",
-    },
-    summary: {
-      en: "Frosted panels now use one light blur over a full-bleed map and the sidebar header blends in seamlessly — less scroll and transition jank, with a consistent glass look across sidebars, preview cards, and toolbars.",
-      zh: "磨砂面板统一为叠在铺满地图上的单档轻模糊,侧栏顶部无缝融入——滚动与切换更少掉帧,侧栏、预览卡与工具栏玻璃质感一致。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.2",
-    kind: "patch",
-    title: {
-      en: "Flight-count card — stacked rows + tile transitions",
-      zh: "航班卡——分行排列与切换动效",
-    },
-    summary: {
-      en: "The flight-count card stacks into three rows — count, departures/arrivals, then weather/ATC/spotting — with a soft animated highlight when switching tiles.",
-      zh: "航班卡改为三行——航班数、起飞/到达、天气/ATC/拍机点——切换 tile 时带柔和的高亮动效。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.1",
-    kind: "patch",
-    title: {
-      en: "Sidebar typography pass",
-      zh: "侧栏排版微调",
-    },
-    summary: {
-      en: "Sidebar and panel font sizes run through two scale tokens for a tighter, fixed hierarchy, and section headers move from serif to a heavier sans.",
-      zh: "侧栏与面板字号统一走两个缩放 token,层级更紧凑且固定;区块标题由衬线改为更重的无衬线。",
+      en: "A run of refinements on top of the weather redesign. The frosted sidebar is quieter and lighter — an opaque logo bar with a fade scrim (no scroll blur), tightened typography, a smoother first-screen entrance and a shorter nearby list. Mobile landscape got a full pass: the panel runs edge-to-edge clear of the Dynamic Island, shows the full place identity at a width matched to the home screen, keeps the map scale clear of the sidebar, and the logo reliably returns home.",
+      zh: "在天气改版基础上的一系列打磨。磨砂侧栏更安静更轻——不透明 logo 条配渐变淡出（滚动无模糊）、排版收紧、首屏入场更顺滑、邻近列表更短。移动端横屏也过了一遍：面板铺到边缘并避开灵动岛、完整显示地点信息且宽度与首屏对齐、地图比例尺避开侧栏、logo 稳定回主页。",
     },
     highlights: [],
   },

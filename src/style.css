@@ -9253,14 +9253,6 @@ body {
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .sidebar-brand-dock {
-        height: auto;
-        min-height: 32px;
-        padding-bottom: 3px;
-        padding-top: 3px;
-    }
-
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .airport-sidebar-display-mono--hero {
         font-size: calc(14px * var(--sb-title-scale));
     }
@@ -9348,12 +9340,6 @@ body {
         padding-top: 5px;
     }
 
-    .airport-map-kit[data-client-orientation="landscape"]
-        .sidebar-brand-dock {
-        min-height: 32px;
-        padding-bottom: 3px;
-        padding-top: 3px;
-    }
 
     .airport-map-kit[data-client-orientation="landscape"]
         .airport-sidebar-display-mono--hero {
