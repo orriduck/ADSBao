@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.9",
+    version: "v2.32.10",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -93,6 +93,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Sidebar scroll performance: the desktop airport/flight sidebar dropped its live backdrop-filter blur for an opaque frosted tint. The sidebar IS the scroll container, so scrolling a long aircraft list under a live blur forced the GPU compositor to re-rasterize the whole panel every frame — a production trace showed ~86% of frames dropped while the main thread sat ~87% idle (the cost was entirely GPU compositing, not JS or React). The opaque tint keeps the frosted material read at zero per-frame GPU cost, so a busy airport's list scrolls smoothly again.",
         zh: "侧栏滚动性能:桌面机场/航班侧栏去掉了实时 backdrop-filter 毛玻璃,改用不透明磨砂底色。侧栏本身就是滚动容器,长长的飞机列表在实时模糊下滚动会迫使 GPU 合成器每帧重新光栅整块面板——一段生产 trace 显示约 86% 的帧被丢弃,而主线程约 87% 时间是空闲的(成本全在 GPU 合成,不是 JS/React)。不透明磨砂保留了磨砂质感、每帧零 GPU 成本,繁忙机场的列表重新顺滑滚动。",
+      },
+      {
+        en: "Aircraft marker motion is now rate-limited instead of moving every animation frame. Each marker is its own composited layer, so animating a busy map at 60fps kept the GPU compositor near saturation — leaving no headroom when the sidebar also needed to composite a scroll. Markers now move at most 30fps, and slower as you zoom out (markers barely move on-screen when far: ~10fps near, ~2fps mid, ~1fps far), while the focal / selected aircraft you're tracking keeps the full 30fps. The inferred/extrapolated positions are unchanged — only how often the marker is repainted.",
+        zh: "飞机 marker 的运动现在限频,不再每个动画帧都移动。每个 marker 都是独立的合成层,满载地图 60fps 动画会把 GPU 合成器压到接近满载——侧栏要合成滚动时就没有余量了。marker 现在最高 30fps 移动,且越缩小越慢(缩到最远时几乎不动:近 ~10fps、中 ~2fps、远 ~1fps),而你正在追踪的焦点/选中飞机仍保持满 30fps。推算/外推位置本身不变——只是 marker 重绘的频率降了。",
       },
     ],
   },

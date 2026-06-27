@@ -93,6 +93,26 @@ const getAircraftColor = (ac, showArrow) => {
   return AIRCRAFT_COLORS.unknown;
 };
 
+// Per-marker animation cadence. Moving every marker at the full 60fps keeps the
+// GPU compositor near saturation on a busy map (each marker is its own layer,
+// and at high DPR there's a lot to recomposite), so a sidebar scroll — which
+// also needs the compositor — tips it into dropped frames. Cap marker motion at
+// MAP_MOTION_MAX_FPS and coarsen it as you zoom out (markers barely move
+// on-screen when far), while the focal / selected "main target" keeps the full
+// 30fps so the one plane you're watching stays smooth.
+const MAP_MOTION_MAX_FPS = 30;
+const MAP_MOTION_MIN_INTERVAL_MS = 1000 / MAP_MOTION_MAX_FPS;
+
+function resolveMotionIntervalMs(map, isFocal) {
+  if (isFocal) return MAP_MOTION_MIN_INTERVAL_MS;
+  const zoom = typeof map?.getZoom === "function" ? map.getZoom() : 12;
+  let interval;
+  if (zoom >= 13) interval = 100; // near → ~10fps
+  else if (zoom >= 9) interval = 500; // mid → ~2fps
+  else interval = 1000; // far → ~1fps
+  return Math.max(MAP_MOTION_MIN_INTERVAL_MS, interval);
+}
+
 function AircraftPosition({
   aircraft,
   theme = "dark",
@@ -111,6 +131,12 @@ function AircraftPosition({
   const lastVisualPositionRef = useRef<{ lat: number; lon: number } | null>(
     null,
   );
+  const lastAppliedAtRef = useRef(0);
+  // Focal state read through a ref so applyMarkerPosition stays referentially
+  // stable — selecting an aircraft must not recreate the callback (and with it
+  // the Leaflet marker). The focal/selected plane animates at the full cap.
+  const focalRef = useRef(false);
+  focalRef.current = forceSilhouette || selected;
   const aircraftLat = aircraft?.lat;
   const aircraftLon = aircraft?.lon;
   const attitudeTrackerRef = useRef(null);
@@ -143,18 +169,30 @@ function AircraftPosition({
     if (!marker || !motion) return false;
 
     const shouldContinue = shouldAnimateInCurrentViewport(motion, now);
+    // Animated markers move at most at the zoom/focal-derived cadence (see
+    // resolveMotionIntervalMs) — the loop still wakes every frame, but the
+    // GPU-visible setLatLng is rate-limited. Settled / off-viewport markers
+    // (shouldContinue=false) skip the gate and just place once.
+    if (
+      shouldContinue &&
+      now - lastAppliedAtRef.current <
+        resolveMotionIntervalMs(map, focalRef.current)
+    ) {
+      return true;
+    }
     const pos = shouldContinue
       ? calculateAircraftVisualPosition(motion, now)
       : resolveAircraftLatLng(motion.lat, motion.lon);
     if (!pos) return false;
 
+    lastAppliedAtRef.current = now;
     const last = lastVisualPositionRef.current;
     if (!last || pos.lat !== last.lat || pos.lon !== last.lon) {
       marker.setLatLng([pos.lat, pos.lon]);
       lastVisualPositionRef.current = pos;
     }
     return shouldContinue;
-  }, [shouldAnimateInCurrentViewport]);
+  }, [shouldAnimateInCurrentViewport, map]);
   const stopMotionLoop = useCallback(() => {
     unsubscribeMotionFrameRef.current?.();
     unsubscribeMotionFrameRef.current = null;
