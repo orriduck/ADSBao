@@ -3478,17 +3478,11 @@ body {
         inset 0 1px 0 color-mix(in oklab, var(--atc-click-fg) 24%, transparent),
         inset 0 0 0 1px color-mix(in oklab, var(--atc-click-fg) 10%, transparent),
         0 8px 18px color-mix(in oklab, oklch(0.08 0.003 100) 28%, transparent);
-    background:
-        radial-gradient(
-            120% 70% at 16% 0%,
-            color-mix(in oklab, oklch(0.72 0.003 100) 13%, transparent),
-            transparent 48%
-        ),
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, oklch(0.215 0.003 100) 88%, transparent),
-            color-mix(in oklab, oklch(0.145 0.003 100) 90%, transparent)
-        );
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, oklch(0.215 0.003 100) 88%, transparent),
+        color-mix(in oklab, oklch(0.145 0.003 100) 90%, transparent)
+    );
     border-right: 1px solid color-mix(in oklab, var(--atc-text) 10%, transparent);
     box-shadow:
         inset -1px 0 0 color-mix(in oklab, var(--atc-text) 6%, transparent),
@@ -3777,17 +3771,11 @@ body {
         inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 7%, transparent);
     /* Translucent frosted glass (dark) over the full-bleed map — small blur(8px)
        shows the live map diffused through the deep-gray panel. */
-    background:
-        radial-gradient(
-            120% 70% at 18% 0%,
-            color-mix(in oklab, oklch(0.72 0.003 100) 14%, transparent),
-            transparent 46%
-        ),
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, oklch(0.215 0.003 100) 92%, transparent),
-            color-mix(in oklab, oklch(0.135 0.003 100) 96%, transparent)
-        );
+    background: linear-gradient(
+        180deg,
+        color-mix(in oklab, oklch(0.215 0.003 100) 92%, transparent),
+        color-mix(in oklab, oklch(0.135 0.003 100) 96%, transparent)
+    );
     -webkit-backdrop-filter: saturate(1.5) blur(8px);
     backdrop-filter: saturate(1.5) blur(8px);
     border-right: 1px solid color-mix(in oklab, var(--atc-text) 9%, transparent);
