@@ -47,28 +47,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 55;
+export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.31.8",
+    version: "v2.32.0",
     kind: "feat",
     title: {
-      en: "Flight route badges in the nearby list",
-      zh: "邻近列表加入航路徽章",
+      en: "Animated flight-rule glyph in the weather briefing",
+      zh: "天气简报中加入飞行规则动效图标",
     },
     summary: {
-      en: "Routed aircraft in the nearby list now carry a compact route badge — origin → destination in a frosted pill, with the airline's logo fading in at the left when one is available. Aircraft with no known route show no subline (the registration is no longer shown there).",
-      zh: "邻近列表中有航路的飞机现在带一枚紧凑的航路徽章——磨砂胶囊里显示起点 → 终点,有航司 logo 时在左侧淡入。没有已知航路的飞机不显示副标题(不再显示注册号)。",
+      en: "The METAR weather view's flight-rules hero now draws a little category glyph on the right of the VFR/MVFR/IFR/LIFR badge — eyes over a runway for the visual rules, graduating to a cockpit instrument for the instrument rules — and the level bar fills in to the current category right after it draws. Each category keeps its own color (mint → blue → red → magenta), and the whole entrance plays once and respects reduced-motion.",
+      zh: "METAR 天气视图的飞行规则主卡现在会在 VFR/MVFR/IFR/LIFR 标识右侧绘制一枚分类图标——目视规则是跑道上方的眼睛,逐级过渡到仪表规则的座舱仪表——图标绘制完成后,等级条随即填充到当前分类。每个分类保留自己的颜色(薄荷绿 → 蓝 → 红 → 品红),整段入场动画只播放一次,并遵循减弱动效设置。",
     },
     highlights: [
       {
-        en: "Nearby-list motion: when the list re-sorts, each row stays in place and its content cross-fades to the new aircraft (instead of rows sliding around), and a route badge eases in when its route resolves. Light, scroll-safe, and keeps the list's real-time feel.",
-        zh: "邻近列表动效:列表重新排序时每一行位置不动、内容就地交叉淡入切到新飞机(而非整行滑动),航路解析出来时徽章淡入登场。轻量、滚动安全,保持列表的实时手感。",
+        en: "New <FlightRuleGlyph> component: inline SVG with a stroke-dashoffset draw-on, sitting on the same row as the category abbreviation. Color is inherited, so it tracks the existing data-driven flight-rule color (never the orange signal accent).",
+        zh: "新增 <FlightRuleGlyph> 组件:内联 SVG,采用 stroke-dashoffset 描边绘制动画,与分类缩写同行排布。颜色继承自父级,因此沿用既有的数据驱动飞行规则配色(绝不使用橙色信号强调色)。",
       },
       {
-        en: "Airport sidebar polish: the Flights metric now eases open and closed (height + count) instead of snapping, the logo row blends into the frosted panel — now on mobile and the home panel too, where it had read as a separate band — and the Flights tile gets the same orange active state as the others.",
-        zh: "机场侧边栏细节:Flights 指标现在平滑展开/收起(高度与数字)而非生硬切换;logo 行融入磨砂面板——现在移动端和首页面板也一样(之前那里会显出一条分隔的色带);Flights 磁贴也获得与其它磁贴一致的橙色激活态。",
+        en: "The flat category rail became a progress bar that fills segment-by-segment up to the current rule, with a VFR/MVFR/IFR/LIFR label row beneath it and the active label lit.",
+        zh: "原本扁平的分类轨道升级为进度条,逐段填充至当前规则,下方配有 VFR/MVFR/IFR/LIFR 标签行,并点亮当前分类标签。",
       },
     ],
   },

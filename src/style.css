@@ -3015,6 +3015,89 @@ body:has(.dither-page-shell) {
     opacity: 1;
 }
 
+/* Flight-rules hero (sidebar METAR view) — category glyph draw-on +
+   progress-bar fill. Layout/colors live inline on the components
+   (FlightRuleGlyph.tsx / WeatherBriefingStack.tsx); only the keyframes and
+   reduced-motion fallback live here, per the styling decision order. The
+   per-category color is data-driven (flightRuleColor in weatherDisplayModel),
+   never the orange signal accent. Glyph classes are scoped under
+   .flight-rule-glyph so the short .dr/.d2/.d3/.pop names don't leak. */
+.flight-rule-glyph .dr {
+    stroke-dasharray: var(--len);
+    stroke-dashoffset: var(--len);
+    animation: flight-rule-draw 0.85s ease forwards;
+}
+
+.flight-rule-glyph .d2 {
+    animation-delay: 0.3s;
+}
+
+.flight-rule-glyph .d3 {
+    animation-delay: 0.55s;
+}
+
+.flight-rule-glyph .pop {
+    opacity: 0;
+    animation: flight-rule-pop 0.4s ease forwards;
+    animation-delay: 0.68s;
+}
+
+@keyframes flight-rule-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes flight-rule-pop {
+    to {
+        opacity: 1;
+    }
+}
+
+.frule-seg {
+    position: relative;
+    flex: 1;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--atc-text) 14%, transparent);
+}
+
+.frule-seg--on::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 2px;
+    background: var(--c);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: flight-rule-fill 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: var(--dl);
+}
+
+@keyframes flight-rule-fill {
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .flight-rule-glyph .dr {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+
+    .flight-rule-glyph .pop {
+        animation: none;
+        opacity: 1;
+    }
+
+    .frule-seg--on::after {
+        animation: none;
+        transform: scaleX(1);
+    }
+}
+
 .local-weather-glyph {
     align-items: center;
     background: color-mix(in oklab, var(--atc-accent) 9%, transparent);

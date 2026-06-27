@@ -13,6 +13,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
+import FlightRuleGlyph, { type FlightRule } from "@/components/weather/FlightRuleGlyph";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import {
@@ -182,6 +183,9 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
   const category = metar?.flightCategory || null;
   const rules = category ? FLIGHT_RULES[category] : null;
   const color = flightRuleColor(category);
+  // Index of the current category in the VFR→LIFR scale; -1 when unknown.
+  // Drives how far the progress bar fills.
+  const level = FLIGHT_RULE_SEQUENCE.findIndex((item) => item === category);
   const label = rules
     ? t(rules.labelKey)
     : metarLoading
@@ -229,30 +233,57 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
   return (
     <>
       <HeroCard color={color}>
-        <div>
-          <div
-            className="text-[calc(40px*var(--sb-body-scale))] font-light leading-none"
-            style={{ color }}
-          >
-            {category || "—"}
+        {/* Abbreviation + subtitle, with the category glyph drawing on to the right */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div
+              className="text-[calc(40px*var(--sb-body-scale))] font-light leading-none"
+              style={{ color }}
+            >
+              {category || "—"}
+            </div>
+            <div
+              className="mt-2 text-[calc(13px*var(--sb-body-scale))] lowercase leading-snug"
+              style={{ color }}
+            >
+              {label}
+            </div>
           </div>
-          <div
-            className="mt-2 text-[calc(13px*var(--sb-body-scale))] lowercase leading-snug"
-            style={{ color }}
-          >
-            {label}
-          </div>
+          {category && level >= 0 ? (
+            <span className="shrink-0" style={{ color }}>
+              <FlightRuleGlyph key={category} rule={category as FlightRule} />
+            </span>
+          ) : null}
         </div>
+        {/* Progress bar — fills to the current category's level after the glyph draws */}
         <div className="mt-3.5 flex gap-1.5" aria-hidden="true">
-          {FLIGHT_RULE_SEQUENCE.map((item) => (
-            <span
-              key={item}
-              className="h-1 flex-1 rounded-full"
-              style={{
-                background: item === category ? color : "var(--atc-line)",
-              }}
-            />
-          ))}
+          {FLIGHT_RULE_SEQUENCE.map((item, i) => {
+            const on = level >= 0 && i <= level;
+            return (
+              <span
+                key={item}
+                className={`frule-seg${on ? " frule-seg--on" : ""}`}
+                style={on ? { "--c": color, "--dl": `${0.5 + i * 0.08}s` } : undefined}
+              />
+            );
+          })}
+        </div>
+        <div
+          className="mt-[7px] flex justify-between text-[calc(9px*var(--sb-body-scale))] [letter-spacing:0.04em]"
+          aria-hidden="true"
+        >
+          {FLIGHT_RULE_SEQUENCE.map((item) => {
+            const active = item === category;
+            return (
+              <span
+                key={item}
+                className={active ? "" : "opacity-30"}
+                style={active ? { color } : undefined}
+              >
+                {item}
+              </span>
+            );
+          })}
         </div>
         {context ? (
           <p className="mt-3.5 text-[calc(12.5px*var(--sb-body-scale))] leading-snug text-atc-dim">
