@@ -272,54 +272,167 @@ function AircraftPosition({
     matchesFilters: selectionActive ? selected : matchesFilters,
     selected,
   });
-  const rot = Math.round(aircraft.track || 0);
+  // Quantize the continuously-drifting visual inputs so straight-and-level
+  // traffic produces a STABLE visualKey across position ticks: heading snaps
+  // to 2°, bank/pitch to 1° (sub-pixel on a 20px glyph), light state to coarse
+  // speed/altitude bands. Position is deliberately NOT part of the key — it is
+  // animated imperatively by the motion-frame loop (marker.setLatLng), outside
+  // React. That lets <AircraftMarkerContent> below skip the SVG/portal rebuild
+  // on the ~per-second WS ticks where only the position moved.
+  const rot = Math.round((Number(aircraft.track) || 0) / 2) * 2;
+  const roll = Math.round(attitude.roll);
+  const pitch = Math.round(attitude.pitch);
   const label = (aircraft.callsign || aircraft.icao24 || "").trim();
   const labelColor = color;
   const sourceBadge = getAircraftPositionSourceBadge(aircraft.positionQuality);
+  const showLabel = Boolean(
+    selected ||
+      forceSilhouette ||
+      (showCallsigns && !traceActive && emphasis.showLabel),
+  );
   const labelLeft = showArrow
     ? silhouette
       ? SILHOUETTE_SIZE_PX + 4
       : 22
     : SILHOUETTE_SIZE_PX;
+  const iconName = silhouette?.name ?? "";
+  const onGround = Boolean(aircraft.onGround);
+  const velocity = Number(aircraft.velocity ?? 0);
+  const baroAltitude = Number(aircraft.baroAltitude ?? 0);
+  const visualKey = [
+    selected ? 1 : 0,
+    showArrow ? 1 : 0,
+    color,
+    iconName,
+    sizeScale,
+    rot,
+    roll,
+    pitch,
+    theme,
+    showLabel ? 1 : 0,
+    label,
+    labelColor,
+    sourceBadge,
+    emphasis.opacity,
+    labelLeft,
+    onGround ? 1 : 0,
+    Math.round(velocity / 10),
+    Math.round(baroAltitude / 200),
+  ].join("|");
 
-  return createPortal(
-    <div
-      className={`aircraft-marker ${
-        selected ? "aircraft-marker--selected" : ""
-      }`}
-      style={{ opacity: emphasis.opacity }}
-    >
-      <span className="aircraft-marker-hit-target" aria-hidden="true" />
-      <Pointer
-        color={color}
-        rot={rot}
-        roll={attitude.roll}
-        pitch={attitude.pitch}
-        showArrow={showArrow}
-        silhouette={silhouette}
-        sizeScale={sizeScale}
-        theme={theme}
-        iconName={silhouette?.name ?? undefined}
-        aircraftState={{
-          onGround: aircraft.onGround,
-          velocity: Number(aircraft.velocity ?? 0),
-          baroAltitude: Number(aircraft.baroAltitude ?? 0),
-        }}
-      />
-      {(selected ||
-        forceSilhouette ||
-        (showCallsigns && !traceActive && emphasis.showLabel)) && (
-        <AircraftLabel
-          color={labelColor}
-          label={label}
-          sourceBadge={sourceBadge}
-          left={labelLeft}
-        />
-      )}
-    </div>,
-    container,
+  return (
+    <AircraftMarkerContent
+      container={container}
+      visualKey={visualKey}
+      color={color}
+      rot={rot}
+      roll={roll}
+      pitch={pitch}
+      showArrow={showArrow}
+      silhouette={silhouette}
+      sizeScale={sizeScale}
+      theme={theme}
+      iconName={iconName || undefined}
+      onGround={onGround}
+      velocity={velocity}
+      baroAltitude={baroAltitude}
+      selected={selected}
+      opacity={emphasis.opacity}
+      showLabel={showLabel}
+      label={label}
+      labelColor={labelColor}
+      sourceBadge={sourceBadge}
+      labelLeft={labelLeft}
+    />
   );
 }
+
+// The portal content is the expensive half of each marker — a masked
+// silhouette SVG (or fallback glyph) plus the callsign label. It is split out
+// and memoized on `visualKey` so that a position-only WS tick (the common
+// case) skips re-rendering all of it; only a genuine visual change (heading
+// step, colour band, selection, label, light state) re-renders. The parent
+// keeps re-rendering each tick to re-seed motionRef — that is cheap and is
+// what keeps the inferred/extrapolated position live.
+type AircraftMarkerContentProps = {
+  container: HTMLElement;
+  visualKey: string;
+  color: string;
+  rot: number;
+  roll: number;
+  pitch: number;
+  showArrow: boolean;
+  silhouette: any;
+  sizeScale: number;
+  theme: string;
+  iconName?: string;
+  onGround: boolean;
+  velocity: number;
+  baroAltitude: number;
+  selected: boolean;
+  opacity: number;
+  showLabel: boolean;
+  label: string;
+  labelColor: string;
+  sourceBadge: string;
+  labelLeft: number;
+};
+
+const AircraftMarkerContent = memo(
+  function AircraftMarkerContent({
+    container,
+    color,
+    rot,
+    roll,
+    pitch,
+    showArrow,
+    silhouette,
+    sizeScale,
+    theme,
+    iconName,
+    onGround,
+    velocity,
+    baroAltitude,
+    selected,
+    opacity,
+    showLabel,
+    label,
+    labelColor,
+    sourceBadge,
+    labelLeft,
+  }: AircraftMarkerContentProps) {
+    return createPortal(
+      <div
+        className={`aircraft-marker ${selected ? "aircraft-marker--selected" : ""}`}
+        style={{ opacity }}
+      >
+        <span className="aircraft-marker-hit-target" aria-hidden="true" />
+        <Pointer
+          color={color}
+          rot={rot}
+          roll={roll}
+          pitch={pitch}
+          showArrow={showArrow}
+          silhouette={silhouette}
+          sizeScale={sizeScale}
+          theme={theme}
+          iconName={iconName}
+          aircraftState={{ onGround, velocity, baroAltitude }}
+        />
+        {showLabel && (
+          <AircraftLabel
+            color={labelColor}
+            label={label}
+            sourceBadge={sourceBadge}
+            left={labelLeft}
+          />
+        )}
+      </div>,
+      container,
+    );
+  },
+  (prev, next) => prev.visualKey === next.visualKey && prev.container === next.container,
+);
 
 // Memoized: unchanged aircraft skip React/portal rebuilds. Moving aircraft
 // update motionRef from fresh snapshots, but only aircraft near the current
