@@ -170,6 +170,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.30.17",
+    kind: "feat",
+    title: {
+      en: "Airport weather redesign + sidebar & landscape polish",
+      zh: "机场天气改版 + 侧栏与横屏打磨",
+    },
+    summary: {
+      en: "Airport weather is rebuilt around one colour-coded hero card per view (METAR / Local, now with UV index and visibility). On top of that, a long polish run: a quieter frosted sidebar with an opaque logo bar (no scroll blur), tighter typography, a smoother first screen, and a full mobile-landscape pass — an edge-to-edge panel clear of the Dynamic Island, the full place identity at a home-matched width, and the map scale kept clear of the sidebar.",
+      zh: "机场天气以每视图一张颜色编码主卡片重做(METAR / 实况,新增紫外线与能见度)。在此基础上一轮长打磨:更安静的磨砂侧栏与不透明 logo 条(滚动无模糊)、排版更紧、首屏更顺滑,以及一整轮移动端横屏修整——面板铺到边缘并避开灵动岛、完整地点信息且宽度与首屏对齐、地图比例尺避开侧栏。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.29.0",
     kind: "feat",
     title: {

@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Plane } from "lucide-react";
-import { getFlightRouteAccuracyNotice } from "../../utils/flightRouteDisplay";
+import { routeBadgePropsFromRoute } from "../../utils/flightRouteDisplay";
+import RouteBadge from "@/components/ui/RouteBadge";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { formatFlightTelemetryMetric } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
@@ -42,12 +43,9 @@ function AircraftRow({
   });
   const { preferences: units } = useUnitPreferences();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
-  const route = aircraft.flightRouteLabel || "";
-  const registration = String(aircraft.registration || "").trim();
-  const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft.flightRoute)
-    ? t("aircraft.adsbdbRouteAccuracyNotice")
-    : "";
-  const routeTitle = routeAccuracyNotice || route;
+  // The subline is the route badge when a route exists, and nothing otherwise —
+  // the registration / N-number is never shown here.
+  const routeBadge = routeBadgePropsFromRoute(aircraft.flightRoute);
 
   const distValue = toNumber(aircraft.distanceNm);
   const distanceDisplay = formatNearbyDistanceDisplay(distValue, units.distance);
@@ -93,22 +91,7 @@ function AircraftRow({
         >
           {callsign}
         </span>
-        {route ? (
-          <span
-            title={routeTitle}
-            className="notranslate min-w-0 truncate text-[calc(10.5px*var(--sb-body-scale))] text-atc-faint"
-            translate="no"
-          >
-            {route}
-          </span>
-        ) : registration && registration !== callsign ? (
-          <span
-            className="notranslate min-w-0 truncate text-[calc(10px*var(--sb-body-scale))] tracking-[0.04em] text-atc-faint"
-            translate="no"
-          >
-            {registration}
-          </span>
-        ) : null}
+        {routeBadge ? <RouteBadge {...routeBadge} className="shrink-0" /> : null}
       </div>
 
       <div className="flex flex-none items-baseline gap-2.5 font-mono tabular-nums">
@@ -162,8 +145,6 @@ export default memo(AircraftRow, (prev, next) =>
     nestedFields: [
       "callsign",
       "icao24",
-      "registration",
-      "flightRouteLabel",
       "flightRoute",
       "distanceNm",
       "altitude",
