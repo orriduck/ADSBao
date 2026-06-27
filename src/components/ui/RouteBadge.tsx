@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { markAirlineLogoUnavailable } from "@/features/aviation/airlineLogoModel";
 import { cn } from "@/lib/utils";
 
 /**
@@ -61,10 +60,12 @@ export default function RouteBadge({
           aria-hidden="true"
           loading="lazy"
           decoding="async"
-          onError={() => {
-            markAirlineLogoUnavailable(airlineLogoUrl);
-            setLogoFailed(true);
-          }}
+          // Hide only THIS row's logo on error. Don't globally mark the airline
+          // unavailable — a single transient 404 (e.g. a backend blip) would
+          // otherwise permanently suppress that airline's logo across every row
+          // for the whole session. Other rows retry independently, and a fresh
+          // mount tries again.
+          onError={() => setLogoFailed(true)}
           className="pointer-events-none absolute left-0 top-0 z-[1] h-full w-[20.4px] object-cover object-left opacity-90 [-webkit-mask-image:var(--route-badge-logo-mask)] [mask-image:var(--route-badge-logo-mask)]"
           style={{ ["--route-badge-logo-mask" as string]: LOGO_MASK }}
         />
