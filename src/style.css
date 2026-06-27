@@ -9097,7 +9097,7 @@ body {
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"] {
-        --app-sidebar-width: 18rem;
+        --app-sidebar-width: 20rem;
     }
 
     .airport-map-kit .airport-sidebar-identity {
@@ -9178,13 +9178,29 @@ body {
         .airport-desktop-sidebar {
         box-sizing: border-box;
         left: auto;
-        padding-left: var(--app-safe-area-left, 0px);
+        /* Widen the panel by the Dynamic-Island inset so insetting the content
+           past the island below does not steal room from the content area. */
+        flex-basis: calc(
+            var(--app-sidebar-width) + var(--app-safe-area-left, 0px)
+        );
+        padding-left: 0;
     }
 
     .airport-map-kit[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
         .airport-desktop-sidebar
         > .h-full {
         width: 100% !important;
+    }
+
+    /* The frosted shell bleeds to the screen edge; only the content inside is
+       inset past the Dynamic Island. Padding on the frosted element keeps the
+       blur filling the safe-area strip while the logo/cards/text clear the
+       island. */
+    .airport-map-kit[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
+        .airport-desktop-sidebar
+        .sidebar-shell {
+        box-sizing: border-box;
+        padding-left: var(--app-safe-area-left, 0px);
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
