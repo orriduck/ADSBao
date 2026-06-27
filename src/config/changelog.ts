@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.13",
+    kind: "patch",
+    title: {
+      en: "Landscape sidebar — full identity, matched width, working logo",
+      zh: "横屏侧栏——完整信息、宽度对齐、logo 可点",
+    },
+    summary: {
+      en: "Three mobile-landscape fixes: the sidebar shows the full place identity again (name, region and coordinates, kept clear of the Dynamic Island), the first screen and detail page now use the same sidebar width, and tapping the logo reliably returns to the home screen.",
+      zh: "三个移动端横屏修复:侧栏重新完整显示地点信息(名称、地区与坐标,并避开灵动岛);首屏与详情页的侧栏宽度对齐;点击 logo 能稳定回到主页。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.12",
     kind: "patch",
     title: {
