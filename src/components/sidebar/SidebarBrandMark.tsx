@@ -25,14 +25,18 @@ export default function SidebarBrandMark({ className = "", compact = false }) {
         to={homeHref}
         aria-label={t("nav.homePage")}
         title={t("nav.homePage")}
-        className="inline-flex items-center rounded-[2px] text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-atc-accent"
+        className="inline-flex touch-manipulation items-center rounded-[2px] text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-atc-accent"
       >
         <BrandLogo
           height={logoHeight}
           wordmark={wordmark}
           ariaLabel={wordmark}
+          // The mark animates; without this, a tap landing on a moving SVG
+          // sub-element can fail to resolve to a click on touch (notably in the
+          // landscape sidebar's sticky, scrollable header). Routing all pointer
+          // events to the anchor keeps the tap target stable.
           className={cn(
-            "block w-auto transition-[height] duration-200 ease-out",
+            "pointer-events-none block w-auto transition-[height] duration-200 ease-out",
             compact ? "h-[22px]" : "h-[28px]",
           )}
           animated

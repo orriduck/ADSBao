@@ -3570,6 +3570,11 @@ body {
 
 .dither-page-shell[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
     .dither-page-panel {
+    /* Mirror the detail sidebar: widen the panel by the Dynamic-Island inset
+       and push the content clear of the island, so the first screen and detail
+       page render at the same width and inset. */
+    box-sizing: border-box;
+    width: calc(var(--app-sidebar-width) + var(--app-safe-area-left, 0px));
     padding-left: var(--app-safe-area-left, 0px);
 }
 
@@ -3579,7 +3584,9 @@ body {
     }
 
     .dither-page-shell[data-client-mobile-device="true"][data-client-orientation="landscape"] {
-        --app-sidebar-width: 18rem;
+        /* Match the airport detail sidebar width in landscape (.airport-map-kit
+           uses 20rem) so the first screen and detail page line up. */
+        --app-sidebar-width: 20rem;
     }
 }
 
@@ -9263,18 +9270,6 @@ body {
         margin-top: 3px;
     }
 
-    /* Keep the airport-name title (h1) visible in landscape now that the panel
-       is wider — only the secondary subtitle + coordinate line are dropped to
-       save vertical space. */
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .airport-sidebar-identity
-        h1
-        ~ div,
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .airport-sidebar-identity
-        .font-mono {
-        display: none;
-    }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         [data-ui="metric-grid"] {
@@ -9377,17 +9372,6 @@ body {
         margin-top: 3px;
     }
 
-    /* Keep the airport-name title (h1) visible in short landscape too; only the
-       secondary subtitle + coordinate line drop out to save vertical space. */
-    .airport-map-kit[data-client-orientation="landscape"]
-        .airport-sidebar-identity
-        h1
-        ~ div,
-    .airport-map-kit[data-client-orientation="landscape"]
-        .airport-sidebar-identity
-        .font-mono {
-        display: none;
-    }
 
     .airport-map-kit[data-client-orientation="landscape"]
         [data-ui="metric-grid"] {
