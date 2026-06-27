@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.11",
+    kind: "patch",
+    title: {
+      en: "Map scale clears the sidebar on desktop too",
+      zh: "桌面端比例尺也避开侧栏",
+    },
+    summary: {
+      en: "The map's range scale is now offset clear of the sidebar on desktop and tablet as well — previously it sat hidden behind the panel except in mobile landscape.",
+      zh: "地图比例尺在桌面和平板上也移到侧栏右侧,之前只在移动横屏避让、其它情况被面板挡住。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.10",
     kind: "patch",
     title: {
