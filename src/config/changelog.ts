@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.7",
+    version: "v2.32.8",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -85,6 +85,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Here mode (your location, not an airport) no longer shows the departures/arrivals split — that classification needs an airport anchor, so off-airport it was always 0/0 and opened empty views. Those two cells now read out your own motion from GPS instead: ground speed and altitude. Speed is a pedestrian/driver readout — never knots — that defaults to your own metric/imperial setting (km/h or mph) and flips to the other on tap; altitude follows your altitude unit. When the device reports no speed/altitude (common indoors or while still) the cell shows an em dash.",
         zh: "Here 模式(你的位置,不是机场)不再显示起飞/到达拆分——这个分类需要机场作为锚点,离开机场时它永远是 0/0,点进去也是空视图。这两格现在改为读出你自己的 GPS 运动数据:地速与海拔。速度是给行人/驾车看的——绝不用航空的节(kt)——默认跟随你自己的米制/英制设置(km/h 或 mph),点击切换到另一种;海拔则跟随你的海拔单位。当设备没有上报速度/海拔时(室内或静止时常见),该格显示破折号。",
+      },
+      {
+        en: "The tracked-flight telemetry grid (speed / altitude / vertical speed / track / phase) now shares one stat-tile primitive with the airport and here-mode hero stats. Its numbers drop to regular weight like everywhere else in the frosted UI — hierarchy comes from size and luminance, not bold — and the selected metric now shows the same orange top-rail used across the app instead of a one-off inset bar.",
+        zh: "被追踪航班的遥测面板(速度 / 高度 / 升降率 / 航向 / 阶段)现在与机场、here 模式的 hero 统计共用同一个 stat-tile 原语。数字改为与 frosted 界面其余部分一致的常规字重——层级靠字号与明度,而非加粗——选中的指标也改用全 app 统一的橙色顶条,取代原先一次性的 inset 边条。",
       },
     ],
   },
