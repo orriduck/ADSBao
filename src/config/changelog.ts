@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.9",
+    kind: "patch",
+    title: {
+      en: "Landscape sidebar — edge-to-edge glass, island-safe content",
+      zh: "横屏侧栏——玻璃铺到边缘、内容避让灵动岛",
+    },
+    summary: {
+      en: "In mobile landscape the sidebar's frosted background now runs to the screen edge while its content stays inset clear of the Dynamic Island, and the panel is a bit wider for more room.",
+      zh: "移动端横屏下,侧栏的磨砂背景铺到屏幕边缘,内容则内缩避开灵动岛;面板也加宽了一些,内容区更充裕。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.8",
     kind: "patch",
     title: {
