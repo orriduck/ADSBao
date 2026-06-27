@@ -15,7 +15,7 @@ function resolveVisiblePhotoHeight(photo) {
   return Math.round(CARD_WIDTH_PX * heightRatio * PHOTO_VISIBLE_HEIGHT_RATIO);
 }
 
-export default function AircraftPreviewMediaCard({ photo }) {
+export default function AircraftPreviewMediaCard({ photo, onError }) {
   const { t } = useI18n();
   const credit = photo?.photographer || photo?.source || "";
   const style = {
@@ -35,6 +35,7 @@ export default function AircraftPreviewMediaCard({ photo }) {
           height={photo.height || Math.round(CARD_WIDTH_PX * DEFAULT_PHOTO_ASPECT_HEIGHT_RATIO)}
           alt=""
           draggable="false"
+          onError={onError}
         />
       </div>
       <span className="aircraft-preview-tracking-pill" aria-hidden="true">

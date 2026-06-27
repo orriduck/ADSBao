@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.0",
+    version: "v2.32.1",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -69,6 +69,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The flat category rail became a progress bar that fills segment-by-segment up to the current rule, with a VFR/MVFR/IFR/LIFR label row beneath it and the active label lit.",
         zh: "原本扁平的分类轨道升级为进度条,逐段填充至当前规则,下方配有 VFR/MVFR/IFR/LIFR 标签行,并点亮当前分类标签。",
+      },
+      {
+        en: "Preview polish: aircraft photos that 404 or fail to decode now hide cleanly instead of leaving a broken-image frame, and the realtime feed's reconnecting state shows a tiny spinner in place of the wide RECONNECTING/CONNECTING label that used to flicker and crowd the status row.",
+        zh: "预览细节优化:飞机照片在 404 或解码失败时直接隐藏,不再留下破图占位;实时数据流重连状态改用一个极小的旋转图标,取代过去那段会闪烁、又挤占状态行排版的 RECONNECTING/CONNECTING 文字。",
       },
     ],
   },
