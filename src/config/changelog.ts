@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.14",
+    kind: "patch",
+    title: {
+      en: "Full-size logo in the landscape sidebar",
+      zh: "横屏侧栏 logo 恢复正常大小",
+    },
+    summary: {
+      en: "The ADSBao logo at the top of the mobile landscape sidebar renders at its normal size again instead of a shrunken variant.",
+      zh: "移动端横屏侧栏顶部的 ADSBao logo 恢复正常大小,不再是缩小版。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.13",
     kind: "patch",
     title: {
