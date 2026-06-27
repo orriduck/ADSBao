@@ -119,18 +119,17 @@ export default function VirtualNearbyList({
     // when the header grows it pushes the list down, which must recompute where
     // the list begins.
     if (listEl.parentElement) observer.observe(listEl.parentElement);
-    // Safety net: scrollMargin is scroll-invariant, but it can be measured
-    // stale when the header grows asynchronously after mount (e.g. the Flights
-    // card / airport name resolving) without resizing an observed element — the
-    // virtualizer would then window the wrong rows and leave a gap at the top.
-    // Re-validate on scroll; the >0.5px diff guard keeps it from re-rendering
-    // once it settles.
-    scrollEl.addEventListener("scroll", schedule, { passive: true });
+    // Deliberately NOT re-measured on scroll. scrollMargin is scroll-INVARIANT,
+    // so reading getBoundingClientRect every scroll frame was pure waste — a
+    // forced synchronous layout that stalls the compositor scroll (keeps the
+    // scroll "payload" on the CPU instead of the GPU). Header growth that shifts
+    // where the list starts (Flights card / airport name resolving) already
+    // resizes the observed .sidebar-shell-body / list parent, so the
+    // ResizeObserver above re-measures it off the scroll hot path.
     window.addEventListener("resize", measure);
     return () => {
       window.cancelAnimationFrame(raf);
       observer.disconnect();
-      scrollEl.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", measure);
     };
   }, [scrollRef, visibleItems.length]);
