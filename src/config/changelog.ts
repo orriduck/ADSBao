@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 55;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.31.4",
+    version: "v2.31.5",
     kind: "feat",
     title: {
       en: "Flight route badges in the nearby list",

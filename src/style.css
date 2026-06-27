@@ -6338,6 +6338,21 @@ body {
     pointer-events: none;
 }
 
+/* On the frosted explorer sidebar (translucent glass over the map) the solid
+   --atc-bg logo strip + scrim read as a separate, darker band. Give the logo
+   row the panel's OWN frosted material instead — transparent tint + the same
+   blur — so it melts into the panel, and drop the scrim band. The home/static
+   sidebars keep the opaque strip above (their panel is opaque, so it matches). */
+.airport-map-kit .sidebar-brand-dock.sticky {
+    background: transparent;
+    -webkit-backdrop-filter: saturate(1.4) blur(8px);
+    backdrop-filter: saturate(1.4) blur(8px);
+}
+
+.airport-map-kit .sidebar-brand-dock.sticky::after {
+    content: none;
+}
+
 .aircraft-search:focus-within {
     color: var(--atc-text);
     box-shadow:
