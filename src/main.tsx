@@ -14,7 +14,6 @@ import {
 } from "@/features/app-shell/i18n/i18nModel";
 import { UnitPreferencesProvider } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import WebMcpProvider from "@/features/webmcp/WebMcpProvider";
-import { startPerfProbe } from "@/features/devtools/perfProbe";
 import { runtimeEnvValue } from "@/platform/env/runtimeEnv";
 import { isConcreteTheme } from "@/utils/theme";
 import App from "./App";
@@ -71,7 +70,6 @@ if (!root) {
 
 const { initialTheme } = applyDocumentShell();
 registerAdsbaoServiceWorker();
-startPerfProbe();
 
 createRoot(root).render(
   <React.StrictMode>

@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from "react";
-import { PerfBoundary } from "@/components/devtools/PerfBoundary";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, Minus, Search } from "lucide-react";
@@ -53,7 +52,7 @@ import VirtualNearbyList from "./VirtualNearbyList";
 type AircraftLike = Record<string, any>;
 type AirportLike = Record<string, any>;
 
-function AircraftTableInner({
+export default function AircraftTable({
   aircraft = [],
   airports = [],
   focusLat = null,
@@ -849,17 +848,4 @@ function sortAircraftByAltitude(a: AircraftLike, b: AircraftLike) {
 function altitudeSortValue(aircraft: AircraftLike = {}) {
   if (aircraft.onGround) return -1;
   return toNumber(aircraft.altitude) ?? -2;
-}
-
-// Default export wraps the sidebar list in a dev-only Profiler (no-op unless the
-// perf probe is enabled) so the HUD can show its React commit cost during scroll
-// — the scroll-jank investigation needs to tell sidebar re-renders from paint.
-export default function AircraftTable(
-  props: Parameters<typeof AircraftTableInner>[0],
-) {
-  return (
-    <PerfBoundary id="AircraftTable">
-      <AircraftTableInner {...props} />
-    </PerfBoundary>
-  );
 }

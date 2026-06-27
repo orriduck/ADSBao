@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
-import { PerfBoundary } from "@/components/devtools/PerfBoundary";
 import {
   MapLoadingFallback,
   useMapLoadingOverlayText,
@@ -74,9 +73,7 @@ const TRACE_VIEW_ALL = "all";
 export default function FlightExplorer({ callsign = "" }) {
   return (
     <ExplorerUiProvider>
-      <PerfBoundary id="FlightExplorer">
-        <FlightExplorerContent callsign={callsign} />
-      </PerfBoundary>
+      <FlightExplorerContent callsign={callsign} />
     </ExplorerUiProvider>
   );
 }
