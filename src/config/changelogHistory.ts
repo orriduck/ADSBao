@@ -170,6 +170,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.32.13",
+    kind: "feat",
+    title: {
+      en: "Animated flight-rule glyph + live-map & sidebar-scroll performance",
+      zh: "飞行规则动效图标 + 实时地图与侧栏滚动性能",
+    },
+    summary: {
+      en: "The METAR weather view gained an animated flight-rules category glyph, and the 2.32 line landed a sustained live-map and sidebar-scroll performance run: aircraft markers stopped rebuilding their SVG on every tick and had their motion rate-limited, the desktop sidebar dropped its live backdrop blur for an opaque frosted tint, and a production trace pinned the residual scroll jank on forced synchronous layout — removed from both the marker motion loop and the nearby-list virtualizer.",
+      zh: "METAR 天气视图新增了飞行规则分类动效图标,2.32 这条线还做了一轮持续的实时地图与侧栏滚动性能优化:飞机 marker 不再每个 tick 重建 SVG 并对运动限频,桌面侧栏去掉实时背景模糊改用不透明磨砂,一段生产 trace 把残留的滚动卡顿定位到强制同步布局——从 marker 运动循环和附近列表虚拟化里一并移除。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.31.8",
     kind: "feat",
     title: {

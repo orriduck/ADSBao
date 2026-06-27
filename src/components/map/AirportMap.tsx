@@ -11,7 +11,7 @@ import NavaidCountLayer from "./NavaidCountLayer";
 import ReportingPointLabelLayer from "./ReportingPointLabelLayer";
 import MapBadgeCollisionLayer from "./MapBadgeCollisionLayer";
 import CandidateWatchingSpotsLayer from "./CandidateWatchingSpotsLayer";
-import AircraftPosition from "./AircraftPosition";
+import AircraftCanvasLayer from "./AircraftCanvasLayer";
 import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
@@ -128,6 +128,9 @@ export default function AirportMap({
   const mapEl = useRef(null);
   const mapRef = useRef(null);
   const sizeObs = useRef(null);
+  // Set by AircraftCanvasLayer; the map click handler hit-tests aircraft through
+  // it (the canvas pane is pointer-events:none, so clicks reach the map).
+  const aircraftHitTestRef = useRef<((cp: any) => string | null) | null>(null);
   const [mapInstance, setMapInstance] = useState(null);
   const [mapTilesReady, setMapTilesReady] = useState(false);
   const [visualContentReady, setVisualContentReady] = useState(false);
@@ -286,6 +289,14 @@ export default function AirportMap({
     if (!mapInstance) return undefined;
     const handleMapClick = (event: any) => {
       if (showAirspaces && mapClickTargetsAirspace(event)) return;
+      // Aircraft now live on a pointer-events:none canvas, so their clicks land
+      // here. Hit-test first: a plane hit selects it; otherwise the click is a
+      // bare-tile click and clears the current selections (old "trace mode off").
+      const hitAircraft = aircraftHitTestRef.current?.(event.containerPoint);
+      if (hitAircraft) {
+        if (typeof onSelectAircraft === "function") onSelectAircraft(hitAircraft);
+        return;
+      }
       if (selectedAircraftId && typeof onSelectAircraft === "function") {
         onSelectAircraft("");
       }
@@ -346,6 +357,11 @@ export default function AirportMap({
     nearbyAirports,
     zoom,
   ]);
+  const aircraftCanvasMatchesFilters = useCallback(
+    (ac: any) =>
+      aircraftMatchesFilters(ac, { trafficFilter, typeFilter, altitudeLevel }),
+    [trafficFilter, typeFilter, altitudeLevel],
+  );
   const selectedAircraft = useMemo(
     () =>
       visibleAircraft.find(
@@ -695,27 +711,18 @@ export default function AirportMap({
           <MapRangeLegend />
           <UserLocationMarker location={userLocation} />
           {children}
-          {visibleAircraft.map((ac) => (
-            <AircraftPosition
-              key={getAircraftIdentity(ac)}
-              aircraft={ac}
-              theme={currentTheme}
-              matchesFilters={aircraftMatchesFilters(ac, {
-                trafficFilter,
-                typeFilter,
-                altitudeLevel,
-              })}
-              selected={getAircraftIdentity(ac) === selectedAircraftId}
-              selectionActive={selectionActive}
-              traceActive={renderSelectedAircraftTrace}
-              forceSilhouette={
-                Boolean(focalAircraftId) &&
-                getAircraftIdentity(ac) === focalAircraftId
-              }
-              onSelectAircraft={onSelectAircraft}
-              showCallsigns={showCallsigns}
-            />
-          ))}
+          <AircraftCanvasLayer
+            aircraft={visibleAircraft}
+            theme={currentTheme}
+            selectedAircraftId={selectedAircraftId}
+            focalAircraftId={focalAircraftId}
+            selectionActive={selectionActive}
+            traceActive={renderSelectedAircraftTrace}
+            showCallsigns={showCallsigns}
+            matchesFilters={aircraftCanvasMatchesFilters}
+            onSelectAircraft={onSelectAircraft}
+            hitTestRef={aircraftHitTestRef}
+          />
         </MapContext.Provider>
       )}
 
