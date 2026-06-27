@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.6",
+    version: "v2.32.7",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -83,8 +83,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         zh: "实时地图性能:飞机 marker 不再每个位置 tick 都重建剪影 SVG + 标签。portal 内容拆成一个按量化视觉键 memo 的子组件,仅位置变化(最常见的情况)时跳过 React/SVG reconcile,而 marker 仍由运动循环命令式平滑移动——满载机场流量下 marker 与焦点航班详情页都更顺。繁忙机场的主线程卡顿峰值从约 82ms 降到约 59ms。视觉键在亮色主题下还会去掉仅暗色头灯才用的速度/高度输入,这样爬升、加速的飞机不再为地图根本没绘制的状态而重渲染。",
       },
       {
-        en: "Here mode (your location, not an airport) no longer shows the departures/arrivals split — that classification needs an airport anchor, so off-airport it was always 0/0 and opened empty views. Those two cells now read out your own motion from GPS instead: ground speed and altitude. Speed is a pedestrian/driver readout — km/h by default, tap to switch to mph, never knots — and altitude follows your altitude unit. When the device reports no speed/altitude (common indoors or while still) the cell shows an em dash.",
-        zh: "Here 模式(你的位置,不是机场)不再显示起飞/到达拆分——这个分类需要机场作为锚点,离开机场时它永远是 0/0,点进去也是空视图。这两格现在改为读出你自己的 GPS 运动数据:地速与海拔。速度是给行人/驾车看的——默认 km/h,点击切换 mph,绝不用航空的节(kt)——海拔则跟随你的海拔单位。当设备没有上报速度/海拔时(室内或静止时常见),该格显示破折号。",
+        en: "Here mode (your location, not an airport) no longer shows the departures/arrivals split — that classification needs an airport anchor, so off-airport it was always 0/0 and opened empty views. Those two cells now read out your own motion from GPS instead: ground speed and altitude. Speed is a pedestrian/driver readout — never knots — that defaults to your own metric/imperial setting (km/h or mph) and flips to the other on tap; altitude follows your altitude unit. When the device reports no speed/altitude (common indoors or while still) the cell shows an em dash.",
+        zh: "Here 模式(你的位置,不是机场)不再显示起飞/到达拆分——这个分类需要机场作为锚点,离开机场时它永远是 0/0,点进去也是空视图。这两格现在改为读出你自己的 GPS 运动数据:地速与海拔。速度是给行人/驾车看的——绝不用航空的节(kt)——默认跟随你自己的米制/英制设置(km/h 或 mph),点击切换到另一种;海拔则跟随你的海拔单位。当设备没有上报速度/海拔时(室内或静止时常见),该格显示破折号。",
       },
     ],
   },

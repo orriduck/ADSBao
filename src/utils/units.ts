@@ -200,6 +200,23 @@ export function groundSpeedUnitLabel(unit: GroundSpeedUnit) {
   return GROUND_SPEED_LABELS[unit] ?? GROUND_SPEED_LABELS.kmh;
 }
 
+// Here-mode speed has no preference of its own, so its *default* follows the
+// user's broader metric/imperial choice rather than being forced to km/h:
+// km/h when their units read metric, mph when imperial. Distance is the primary
+// signal (speed is distance over time); nautical miles — the aviation default,
+// which is neither system — falls back to the altitude unit. The here-mode tap
+// toggle still overrides this per session.
+export function defaultGroundSpeedUnit(units: {
+  distance: DistanceUnit;
+  altitude: AltitudeUnit;
+}): GroundSpeedUnit {
+  if (units.distance === "km") return "kmh";
+  if (units.distance === "mi") return "mph";
+  if (units.altitude === "m") return "kmh";
+  if (units.altitude === "ft") return "mph";
+  return "kmh";
+}
+
 export function convertSpeedFromMps(mps: number, unit: GroundSpeedUnit) {
   if (!Number.isFinite(mps)) return mps;
   return unit === "mph" ? mps * MS_TO_MPH : mps * MS_TO_KMH;

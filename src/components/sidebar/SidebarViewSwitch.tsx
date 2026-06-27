@@ -7,6 +7,7 @@ import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
 import { ARRIVAL, DEPARTURE } from "@/utils/aircraftMovement";
 import {
   convertTemperatureFromC,
+  defaultGroundSpeedUnit,
   formatAltitudeFromMeters,
   formatGroundSpeed,
   temperatureUnitLabel,
@@ -38,9 +39,11 @@ export default function SidebarViewSwitch({
 }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  // Here-mode ground speed has its own unit, independent of the aviation
-  // distance preference: km/h by default, tap to flip to mph.
-  const [groundSpeedUnit, setGroundSpeedUnit] = useState<GroundSpeedUnit>("kmh");
+  // Here-mode ground speed is km/h or mph (never knots). Its default follows the
+  // user's metric/imperial setting; a tap overrides it for the session.
+  const [speedUnitOverride, setSpeedUnitOverride] =
+    useState<GroundSpeedUnit | null>(null);
+  const groundSpeedUnit = speedUnitOverride ?? defaultGroundSpeedUnit(units);
   const temperature = metarLoading
     ? { value: "—", unit: temperatureUnitLabel(units.temperature) }
     : formatTemperature(metar, units.temperature);
@@ -68,10 +71,11 @@ export default function SidebarViewSwitch({
   }, [aircraft, routeProvider]);
 
   // Here mode centers on the user, not an airport, so the movement row reads
-  // out the user's OWN motion from GPS: ground speed (km/h, tap for mph) and
-  // altitude (following the altitude preference, kept ground-relative so it
-  // never reads as a flight level). Null — the common indoor/stationary case
-  // where the device reports no speed/altitude — shows an em dash.
+  // out the user's OWN motion from GPS: ground speed (defaults to the user's
+  // metric/imperial system — km/h or mph — tap to flip) and altitude (following
+  // the altitude preference, kept ground-relative so it never reads as a flight
+  // level). Null — the common indoor/stationary case where the device reports
+  // no speed/altitude — shows an em dash.
   const selfSpeedDisplay = nearMe
     ? formatGroundSpeed(nearMeSelfSpeedMps, groundSpeedUnit)
     : null;
@@ -115,7 +119,7 @@ export default function SidebarViewSwitch({
       ),
       unit: selfSpeedDisplay?.unit || undefined,
       onClick: () =>
-        setGroundSpeedUnit((current) => (current === "kmh" ? "mph" : "kmh")),
+        setSpeedUnitOverride(groundSpeedUnit === "kmh" ? "mph" : "kmh"),
     });
     movementCells.push({
       key: "selfAltitude",

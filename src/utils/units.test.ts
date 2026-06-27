@@ -4,6 +4,7 @@ import {
   convertDistanceFromNm,
   convertTemperatureFromC,
   convertAltitudeFromFt,
+  defaultGroundSpeedUnit,
   formatAltitude,
   formatAltitudeFromMeters,
   formatDistance,
@@ -111,6 +112,18 @@ assert.equal(formatDistance("oops", "km"), null);
     unit: "km/h",
     text: null,
   });
+}
+
+// --- Here-mode speed default follows the user's metric/imperial system
+{
+  // Distance is the primary signal.
+  assert.equal(defaultGroundSpeedUnit({ distance: "km", altitude: "ft" }), "kmh");
+  assert.equal(defaultGroundSpeedUnit({ distance: "mi", altitude: "m" }), "mph");
+  // Nautical miles (neither system) falls back to the altitude unit.
+  assert.equal(defaultGroundSpeedUnit({ distance: "nm", altitude: "ft" }), "mph");
+  assert.equal(defaultGroundSpeedUnit({ distance: "nm", altitude: "m" }), "kmh");
+  // Fully aviation prefs (nm + fl) default to metric.
+  assert.equal(defaultGroundSpeedUnit({ distance: "nm", altitude: "fl" }), "kmh");
 }
 
 // --- Altitude from metres (Geolocation API reports metres)
