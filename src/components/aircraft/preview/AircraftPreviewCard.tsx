@@ -61,7 +61,9 @@ export default function AircraftPreviewCard({
   const selectedTrace = useSelectedAircraftTrace();
   const photoState = useAircraftPhoto(aircraft);
   const photo = photoState.photo;
-  const hasPhoto = Boolean(photo?.src);
+  const photoSrc = photo?.src || "";
+  const [failedPhotoSrc, setFailedPhotoSrc] = useState("");
+  const hasPhoto = Boolean(photoSrc) && photoSrc !== failedPhotoSrc;
   const photoTone = usePhotoTone(photo?.src);
   const airspaceOptions = Array.isArray(airspaces)
     ? airspaces.filter(Boolean)
@@ -278,7 +280,10 @@ export default function AircraftPreviewCard({
                 className="aircraft-preview-card__media-slot"
                 key={`photo-${photo.src}`}
               >
-                <AircraftPreviewMediaCard photo={photo} />
+                <AircraftPreviewMediaCard
+                  photo={photo}
+                  onError={() => setFailedPhotoSrc(photoSrc)}
+                />
               </div>
             )
           )}

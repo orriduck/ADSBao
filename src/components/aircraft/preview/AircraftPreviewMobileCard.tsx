@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { toFiniteNumber } from "@/utils/math";
 import { getFlightRouteEndpoints } from "@/utils/flightRouteDisplay";
@@ -23,6 +24,9 @@ export default function AircraftPreviewMobileCard({
 }: AircraftPreviewMobileCardProps) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
+  const [failedPhotoSrc, setFailedPhotoSrc] = useState("");
+  const photoSrc = photo?.src || "";
+  const showPhoto = Boolean(photoSrc) && photoSrc !== failedPhotoSrc;
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
   const typeDisplay = getAircraftPreviewTypeDisplay(aircraft);
@@ -84,12 +88,13 @@ export default function AircraftPreviewMobileCard({
             )}
           </div>
         </div>
-        {photo?.src ? (
+        {showPhoto ? (
           <img
-            src={photo.src}
+            src={photoSrc}
             alt=""
             draggable="false"
             className="size-[46px] flex-none rounded-[11px] object-cover"
+            onError={() => setFailedPhotoSrc(photoSrc)}
           />
         ) : null}
       </div>
