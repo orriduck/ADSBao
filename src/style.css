@@ -8527,6 +8527,17 @@ body {
     left: calc(var(--map-kit-inset) + var(--app-safe-area-left, 0px));
 }
 
+/* In mobile landscape the sidebar spans the full height down the left, so the
+   bottom-left range scale would hide behind it. Offset it clear of the panel
+   (width + Dynamic-Island inset). Scoped to mobile landscape only — desktop and
+   portrait keep the default left-4 placement. */
+.airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+    .z-map-legend {
+    left: calc(
+        var(--app-sidebar-width) + var(--app-safe-area-left, 0px) + 16px
+    );
+}
+
 .airport-map-kit--sidebar-open .airport-desktop-sidebar {
     box-shadow: var(--app-map-sidebar-shadow);
 }
