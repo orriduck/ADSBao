@@ -2,8 +2,9 @@
 // longtask-based numbers miss the foreground cost of things like the 60fps
 // motion loop or a scroll repaint. This measures the real frame cadence (split
 // into idle vs scroll), the long-animation-frame script-vs-render breakdown,
-// the motion-loop cost, and React commit durations, paints a compact HUD
-// (bottom-right), and exposes a snapshot.
+// the motion-loop cost, and React commit durations — and keeps a rolling
+// per-second HISTORY so you read a trend over a whole gesture, not one noisy
+// instant. Paints a compact HUD (bottom-right) with sparklines.
 //
 // DEV DEFAULT: on. Opt out with `?perf=0` (persisted) or
 // `localStorage.adsbaoPerf = "0"`. Re-enable with `?perf=1`.
@@ -11,17 +12,31 @@
 // Backdoor — in dev, `window.__adsbaoPerf` is always present:
 //   __adsbaoPerf.enable()    start probe + HUD now (no reload)
 //   __adsbaoPerf.disable()   stop + hide
-//   __adsbaoPerf.snapshot()  latest 1s window as a plain object
+//   __adsbaoPerf.snapshot()  latest 1s window
+//   __adsbaoPerf.history()   array of recent per-second windows (a time series)
+//   __adsbaoPerf.summary()   idle-vs-scroll aggregates over the whole history
 //
 // Production pays nothing: everything is gated on import.meta.env.DEV (so it is
 // tree-shaken out), and the motion-loop hook is one boolean check per frame.
 
 const IS_DEV = Boolean(import.meta.env?.DEV);
 const SCROLL_ACTIVE_MS = 150;
+const HISTORY_CAP = 150;
+const SPARK = "▁▂▃▄▅▆▇█";
 
 let enabled = false;
 
 type CommitAgg = { count: number; total: number; max: number };
+type HistoryRow = {
+  fps: number;
+  sFps: number | null;
+  scr: boolean;
+  js: number;
+  pt: number;
+  p95: number;
+  ld: number;
+  at: number;
+};
 
 const win = {
   start: 0,
@@ -40,6 +55,7 @@ const win = {
   commits: new Map<string, CommitAgg>(),
 };
 
+const history: HistoryRow[] = [];
 let lastFrameTs = 0;
 let scrollActiveUntil = 0;
 let rafId = 0;
@@ -165,6 +181,54 @@ function buildSnapshot(now: number) {
   };
 }
 
+function pushHistory(s: NonNullable<typeof lastSnapshot>) {
+  history.push({
+    fps: s.fps,
+    sFps: s.scrollFps,
+    scr: s.scrolling,
+    js: s.loaf.scriptMs,
+    pt: s.loaf.renderMs,
+    p95: s.frameMs.p95,
+    ld: s.longFrames.gt50,
+    at: s.commits.find((c) => c.id === "AircraftTable")?.total ?? 0,
+  });
+  if (history.length > HISTORY_CAP) history.shift();
+}
+
+function median(values: number[]) {
+  if (!values.length) return null;
+  const a = values.slice().sort((x, y) => x - y);
+  return round(a[Math.floor(a.length / 2)], 1);
+}
+
+function mean(values: number[]) {
+  if (!values.length) return null;
+  return round(values.reduce((s, v) => s + v, 0) / values.length, 1);
+}
+
+// Aggregate the rolling history into idle-vs-scroll buckets. One read after a
+// scroll gesture gives a robust trend instead of a single noisy second.
+function summarize() {
+  const idle = history.filter((h) => !h.scr);
+  const scroll = history.filter((h) => h.scr);
+  return {
+    seconds: history.length,
+    idle: {
+      sec: idle.length,
+      fpsMed: median(idle.map((h) => h.fps)),
+      p95Med: median(idle.map((h) => h.p95)),
+    },
+    scroll: {
+      sec: scroll.length,
+      fpsMed: median(scroll.map((h) => h.fps)),
+      p95Med: median(scroll.map((h) => h.p95)),
+      jsMeanMsPerSec: mean(scroll.map((h) => h.js)),
+      paintMeanMsPerSec: mean(scroll.map((h) => h.pt)),
+      aircraftTableMeanMs: mean(scroll.map((h) => h.at)),
+    },
+  };
+}
+
 function ensureHud() {
   if (hud || typeof document === "undefined") return;
   hud = document.createElement("div");
@@ -199,35 +263,49 @@ function removeHud() {
 const lead = (label: string) => label.padEnd(7);
 const numL = (value: number | string, w: number) => String(value).padStart(w);
 
+// Colored unicode sparkline (HTML). `last` rows of `key`, scaled to `max`.
+function spark(key: keyof HistoryRow, max: number, color: (v: number) => string, last = 44) {
+  const rows = history.slice(-last);
+  if (!rows.length) return "";
+  return rows
+    .map((h) => {
+      const v = Number(h[key]) || 0;
+      const i = Math.max(0, Math.min(7, Math.round((v / max) * 7)));
+      return `<span style="color:${color(v)}">${SPARK[i]}</span>`;
+    })
+    .join("");
+}
+
+const fpsColor = (v: number) => (v >= 50 ? "#a6f5ba" : v >= 30 ? "#ffe39a" : "#ff9d9d");
+
 function paintHud(s: NonNullable<typeof lastSnapshot>) {
   if (!hud) return;
-  const fpsColor = s.fps >= 55 ? "#a6f5ba" : s.fps >= 40 ? "#ffe39a" : "#ff9d9d";
-  const scrollColor =
-    s.scrollFps == null ? "" : s.scrollFps >= 50 ? "#a6f5ba" : s.scrollFps >= 30 ? "#ffe39a" : "#ff9d9d";
   const scrollTag =
-    s.scrollFps == null
-      ? ""
-      : `   scroll ${s.scrollFps} (p95 ${s.scrollFrameMs.p95}ms)`;
+    s.scrollFps == null ? "" : `   scroll ${s.scrollFps} (p95 ${s.scrollFrameMs.p95}ms)`;
+  const pjMax = Math.max(
+    20,
+    ...history.slice(-44).map((h) => Math.max(h.js, h.pt)),
+  );
   const rows = [
     `${lead("perf")}${numL(s.fps, 3)} fps${scrollTag}`,
-    `${lead("frame")}${numL(s.frameMs.p50, 5)} ${numL(s.frameMs.p95, 5)} ${numL(s.frameMs.p99, 5)} ms  p50/95/99`,
-    `${lead("loaf")}${numL(s.loaf.count, 3)}f  js ${numL(s.loaf.scriptMs, 4)}  paint ${numL(s.loaf.renderMs, 4)} ms  ↑${s.loaf.worstMs}`,
-    `${lead("jank")}${numL(s.longFrames.gt16, 5)} ${numL(s.longFrames.gt32, 5)} ${numL(s.longFrames.gt50, 5)}    >16/32/50`,
+    `${lead("fps↕")}${spark("fps", 60, fpsColor)}  60s`,
+    `${lead("frame")}${numL(s.frameMs.p50, 5)} ${numL(s.frameMs.p95, 5)} ${numL(s.frameMs.p99, 5)} ms p50/95/99`,
+    `${lead("loaf")}${numL(s.loaf.count, 3)}f js${numL(s.loaf.scriptMs, 4)} paint${numL(s.loaf.renderMs, 4)} ↑${s.loaf.worstMs}`,
+    `${lead("js↕")}${spark("js", pjMax, () => "#9ac8ff")}`,
+    `${lead("paint↕")}${spark("pt", pjMax, () => "#ff9ad8")}`,
     `${lead("motion")}${numL(s.motion.avgMarkers, 5)} mk ${numL(s.motion.msPerFrame, 6)} ms/f ${numL(s.motion.msPerSec, 4)} ms/s`,
   ];
-  if (s.loaf.worstAttr) {
-    rows.push(`  ↑src  ${s.loaf.worstAttr.slice(0, 30)}`);
-  }
+  if (s.loaf.worstAttr) rows.push(`  ↑src  ${s.loaf.worstAttr.slice(0, 30)}`);
   if (s.commits.length) {
-    rows.push("react   commit/s   avg  /  max ms");
+    rows.push("react   commit/s   avg / max ms");
     for (const c of s.commits.slice(0, 4)) {
       rows.push(
         `  ${c.id.slice(0, 13).padEnd(13)}${numL(c.count, 3)}× ${numL(c.avg, 5)} / ${numL(c.max, 5)}`,
       );
     }
   }
-  hud.textContent = rows.join("\n");
-  hud.style.borderColor = `${scrollColor || fpsColor}40`;
+  hud.innerHTML = rows.join("\n");
+  hud.style.borderColor = `${fpsColor(s.scrollFps ?? s.fps)}40`;
 }
 
 function loop(ts: number) {
@@ -239,6 +317,7 @@ function loop(ts: number) {
   lastFrameTs = ts;
   if (ts - win.start >= 1000) {
     lastSnapshot = buildSnapshot(ts);
+    pushHistory(lastSnapshot);
     paintHud(lastSnapshot);
     resetWindow(ts);
   }
@@ -307,9 +386,10 @@ function enable() {
   if (!IS_DEV || enabled) return;
   enabled = true;
   persist("1");
+  history.length = 0;
   ensureHud();
   startLoop();
-  console.info("[adsbaoPerf] on — HUD bottom-right · window.__adsbaoPerf.snapshot()");
+  console.info("[adsbaoPerf] on — HUD bottom-right · __adsbaoPerf.summary() after a scroll");
 }
 
 function disable() {
@@ -336,6 +416,12 @@ function readInitialFlag() {
 // default) unless the flag was turned off.
 export function startPerfProbe() {
   if (!IS_DEV || typeof window === "undefined") return;
-  (window as any).__adsbaoPerf = { enable, disable, snapshot: () => lastSnapshot };
+  (window as any).__adsbaoPerf = {
+    enable,
+    disable,
+    snapshot: () => lastSnapshot,
+    history: () => history.slice(),
+    summary: () => summarize(),
+  };
   if (readInitialFlag()) enable();
 }
