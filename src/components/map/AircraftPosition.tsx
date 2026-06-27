@@ -299,6 +299,15 @@ function AircraftPosition({
   const onGround = Boolean(aircraft.onGround);
   const velocity = Number(aircraft.velocity ?? 0);
   const baroAltitude = Number(aircraft.baroAltitude ?? 0);
+  // The exterior headlight only renders in dark theme, so its phase inputs
+  // (ground / speed / altitude) belong in the key ONLY then. In light theme
+  // they would needlessly churn the key for climbing/accelerating traffic —
+  // onGround's other visual effects (ground colour, no silhouette) are already
+  // captured by `color` and `iconName`, and velocity by `showArrow`.
+  const lightKey =
+    theme === "dark"
+      ? `${onGround ? 1 : 0}:${Math.round(velocity / 10)}:${Math.round(baroAltitude / 200)}`
+      : "";
   const visualKey = [
     selected ? 1 : 0,
     showArrow ? 1 : 0,
@@ -315,9 +324,7 @@ function AircraftPosition({
     sourceBadge,
     emphasis.opacity,
     labelLeft,
-    onGround ? 1 : 0,
-    Math.round(velocity / 10),
-    Math.round(baroAltitude / 200),
+    lightKey,
   ].join("|");
 
   return (

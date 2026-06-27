@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.3",
+    version: "v2.32.4",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -79,8 +79,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         zh: "统一了各个玻璃侧边栏(首页、桌面浏览、移动详情)顶部吸附的 Logo 行。它的静止态外观改由单一 token 规则驱动,取代此前已各自漂移的三份按面板覆盖样式——会把滚动行糊成一条带子的实时背景模糊被移除,改用面板自身的色调加一层干净的渐隐遮罩,内容滚到 Logo 下方自然消失,不再有接缝或透字。",
       },
       {
-        en: "Live-map performance: aircraft markers no longer rebuild their silhouette SVG + label on every position tick. The portal content is split into a content component memoized on a quantized visual key, so a position-only update (the common case) skips the React/SVG reconcile while the marker keeps animating imperatively — markers and the focal-flight detail page stay smooth under a full airport's worth of traffic. Peak main-thread hitch on a busy airport dropped from ~82ms to ~59ms.",
-        zh: "实时地图性能:飞机 marker 不再每个位置 tick 都重建剪影 SVG + 标签。portal 内容拆成一个按量化视觉键 memo 的子组件,仅位置变化(最常见的情况)时跳过 React/SVG reconcile,而 marker 仍由运动循环命令式平滑移动——满载机场流量下 marker 与焦点航班详情页都更顺。繁忙机场的主线程卡顿峰值从约 82ms 降到约 59ms。",
+        en: "Live-map performance: aircraft markers no longer rebuild their silhouette SVG + label on every position tick. The portal content is split into a content component memoized on a quantized visual key, so a position-only update (the common case) skips the React/SVG reconcile while the marker keeps animating imperatively — markers and the focal-flight detail page stay smooth under a full airport's worth of traffic. Peak main-thread hitch on a busy airport dropped from ~82ms to ~59ms. The visual key also drops the dark-only headlight inputs (speed/altitude) in light theme, so climbing and accelerating traffic stop re-rendering for state the map isn't even drawing.",
+        zh: "实时地图性能:飞机 marker 不再每个位置 tick 都重建剪影 SVG + 标签。portal 内容拆成一个按量化视觉键 memo 的子组件,仅位置变化(最常见的情况)时跳过 React/SVG reconcile,而 marker 仍由运动循环命令式平滑移动——满载机场流量下 marker 与焦点航班详情页都更顺。繁忙机场的主线程卡顿峰值从约 82ms 降到约 59ms。视觉键在亮色主题下还会去掉仅暗色头灯才用的速度/高度输入,这样爬升、加速的飞机不再为地图根本没绘制的状态而重渲染。",
       },
     ],
   },
