@@ -43,17 +43,36 @@ function resolveAircraftLatLng(latValue, lonValue) {
   return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
 }
 
-function resolveMotionBounds(map) {
+// The padded viewport bounds are identical for every marker within a single
+// animation frame, but computing them reads the map (getBounds) and the
+// container `clientWidth` — a forced layout. Doing that per-marker interleaves
+// reads with each marker's setLatLng write, so the browser re-runs layout for
+// every aircraft: classic thrashing (~N forced reflows per frame on a busy
+// map). Cache by frame key — the shared `now` the motion-frame loop hands every
+// marker that frame — so the read happens once, before the batch of writes.
+let cachedBoundsMap: any = null;
+let cachedBoundsFrameKey = Number.NaN;
+let cachedBounds: any = null;
+
+function resolveMotionBounds(map, frameKey: number) {
+  if (map === cachedBoundsMap && Object.is(frameKey, cachedBoundsFrameKey)) {
+    return cachedBounds;
+  }
   const bounds = safeGetMapBounds(map, {
     label: "AircraftPosition",
     logger: silentLeafletLogger,
   });
-  if (!bounds) return null;
-  const width = Number(map?.getContainer?.()?.clientWidth);
-  const padRatio = Number.isFinite(width) && width <= MOBILE_VIEWPORT_WIDTH_PX
-    ? 0.06
-    : 0.18;
-  return typeof bounds.pad === "function" ? bounds.pad(padRatio) : bounds;
+  let padded = null;
+  if (bounds) {
+    const width = Number(map?.getContainer?.()?.clientWidth);
+    const padRatio =
+      Number.isFinite(width) && width <= MOBILE_VIEWPORT_WIDTH_PX ? 0.06 : 0.18;
+    padded = typeof bounds.pad === "function" ? bounds.pad(padRatio) : bounds;
+  }
+  cachedBoundsMap = map;
+  cachedBoundsFrameKey = frameKey;
+  cachedBounds = padded;
+  return padded;
 }
 
 function positionInBounds(bounds, position) {
@@ -106,7 +125,7 @@ function AircraftPosition({
   });
   const shouldAnimateInCurrentViewport = useCallback((motion, now) => {
     if (!map || !shouldAnimateAircraftVisualPosition(motion, now)) return false;
-    const bounds = resolveMotionBounds(map);
+    const bounds = resolveMotionBounds(map, now);
     if (!bounds) return true;
 
     const visual = calculateAircraftVisualPosition(motion, now);
