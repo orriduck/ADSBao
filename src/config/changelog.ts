@@ -51,28 +51,15 @@ export const CHANGELOG_TOTAL_COUNT = 55;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.30.17",
+    version: "v2.31.0",
     kind: "feat",
     title: {
-      en: "v2.30 — sidebar, landscape and performance polish",
-      zh: "v2.30——侧栏、横屏与性能打磨",
+      en: "Flight route badges in the nearby list",
+      zh: "邻近列表加入航路徽章",
     },
     summary: {
-      en: "A run of refinements on top of the weather redesign. The frosted sidebar is quieter and lighter — an opaque logo bar with a fade scrim (no scroll blur), tightened typography, a smoother first-screen entrance and a shorter nearby list; the dark sidebar also drops a stray top-left glow for a cleaner black. Mobile landscape got a full pass: the panel runs edge-to-edge clear of the Dynamic Island, shows the full place identity at a width matched to the home screen, keeps the map scale clear of the sidebar, and the logo reliably returns home.",
-      zh: "在天气改版基础上的一系列打磨。磨砂侧栏更安静更轻——不透明 logo 条配渐变淡出（滚动无模糊）、排版收紧、首屏入场更顺滑、邻近列表更短；暗色侧栏也去掉了左上角多余的渐变光,更纯净的黑。移动端横屏也过了一遍：面板铺到边缘并避开灵动岛、完整显示地点信息且宽度与首屏对齐、地图比例尺避开侧栏、logo 稳定回主页。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.30.0",
-    kind: "feat",
-    title: {
-      en: "Airport weather redesign — METAR + Local views",
-      zh: "机场天气改版——METAR 与实况两视图",
-    },
-    summary: {
-      en: "Airport weather is rebuilt around one colour-coded hero card per view, switched by a METAR / Local control: flight-rules category colours for METAR, temperature-mapped colour for Local (now with UV index and visibility).",
-      zh: "机场天气以每视图一张颜色编码主卡片重做,由 METAR / 实况控件切换:METAR 按飞行规则类别着色,实况随温度映射(新增紫外线与能见度)。",
+      en: "Routed aircraft in the nearby list now carry a compact route badge — origin → destination in a frosted pill, with the airline's logo fading in at the left when one is available. Aircraft with no known route show no subline (the registration is no longer shown there).",
+      zh: "邻近列表中有航路的飞机现在带一枚紧凑的航路徽章——磨砂胶囊里显示起点 → 终点,有航司 logo 时在左侧淡入。没有已知航路的飞机不显示副标题(不再显示注册号)。",
     },
     highlights: [],
   },

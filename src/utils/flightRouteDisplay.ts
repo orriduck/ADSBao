@@ -1,4 +1,6 @@
-export { getFlightRouteAirlineIconUrl } from '../features/aviation/airlineLogoModel'
+import { getFlightRouteAirlineIconUrl } from '../features/aviation/airlineLogoModel'
+
+export { getFlightRouteAirlineIconUrl }
 
 const airportCode = (airport) =>
   String(airport?.iata || airport?.icao || '').trim().toUpperCase()
@@ -56,3 +58,23 @@ export const getFlightRouteAccuracyNotice = (route) =>
   normalizedRouteSource(route) === 'adsbdb'
     ? "This route may be inaccurate: adsbdb uses callsign reference data that may not match today's actual origin and destination."
     : ''
+
+// ICAO-first airport code (KBOS), falling back to IATA. RouteBadge renders the
+// 4-letter ICAO identifiers to match the rest of the app's airport language.
+const airportIcaoCode = (airport) =>
+  String(airport?.icao || airport?.iata || '').trim().toUpperCase()
+
+// Resolve <RouteBadge> props from a flight route. Returns null when the route
+// is incomplete or circular (same airport) — the badge should render nothing.
+// `uncertain` flags adsbdb-sourced routes so the badge can show a faint marker.
+export const routeBadgePropsFromRoute = (route) => {
+  const from = airportIcaoCode(route?.origin)
+  const to = airportIcaoCode(route?.destination)
+  if (!from || !to || sameAirport(route?.origin, route?.destination)) return null
+  return {
+    from,
+    to,
+    airlineLogoUrl: getFlightRouteAirlineIconUrl(route) || undefined,
+    uncertain: normalizedRouteSource(route) === 'adsbdb',
+  }
+}

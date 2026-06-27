@@ -7,6 +7,14 @@ import {
   normalizeFeatureFlags,
 } from "../feature-flags/userFeatureFlagsModel";
 
+// Local-dev gate: force the FlightAware path ON in `vite dev` so the feature can
+// be exercised without a Clerk login + grant. `import.meta.env.DEV` is false in
+// production builds, so this compiles out and the real Clerk-grant gate is the
+// only thing that runs in prod (the product guardrail is untouched). Committed
+// on purpose — local dev needs zero per-run setup. Flip to `false` to exercise
+// the adsbdb path locally.
+const DEV_FORCE_FLIGHTAWARE = Boolean(import.meta.env?.DEV);
+
 // Module-scoped dedupe key for the dev log. Every consumer of the hook
 // would otherwise re-emit the same line on every render and the
 // console gets buried. Keyed on the full signature so a *change* in
@@ -99,10 +107,11 @@ export function usePlaneHunterCameraStudioEnabled() {
 
 export function useFlightAwareEnabled() {
   const { email, flags, hasUser, user, resolved } = useUserFeatureFlags();
-  const enabled = isFeatureFlagEnabled(
+  const granted = isFeatureFlagEnabled(
     flags,
     FEATURE_FLAGS.FLIGHTAWARE_ENABLED,
   );
+  const enabled = DEV_FORCE_FLIGHTAWARE || granted;
 
   // Dev-only trace, deduped across the whole app: each consumer of the
   // hook re-renders independently, and several of them re-run on every
@@ -122,5 +131,5 @@ export function useFlightAwareEnabled() {
     }
   }, [email, enabled, flags, hasUser, user]);
 
-  return { enabled, resolved };
+  return { enabled, resolved: DEV_FORCE_FLIGHTAWARE || resolved };
 }
