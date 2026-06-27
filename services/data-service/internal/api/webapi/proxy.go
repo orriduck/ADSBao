@@ -357,8 +357,11 @@ func (h *Handler) handleAirlineLogo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if h.flightAwareServiceBaseURL == "" {
+		// Not a genuine "this airline has no logo" — the service just isn't
+		// configured. Never cache this, or a misconfigured window poisons
+		// client caches for an hour.
 		writeJSONWithHeaders(w, http.StatusNotFound, map[string]any{"error": "Airline logo not found"}, map[string]string{
-			"Cache-Control": "public, max-age=3600",
+			"Cache-Control": "no-store",
 			"X-Data-Source": "flightaware",
 		})
 		return
@@ -370,8 +373,15 @@ func (h *Handler) handleAirlineLogo(w http.ResponseWriter, r *http.Request) {
 	}
 	body, contentType, status, err := h.fetchImageWithHeaders(r.Context(), upstream, headers)
 	if err != nil || status < 200 || status >= 300 {
+		// Only a genuine upstream 404 (the airline truly has no logo) is worth
+		// caching. A transport error or a 5xx is transient — serve it
+		// no-store so a blip doesn't hide the logo until the cache expires.
+		cacheControl := "public, max-age=3600"
+		if err != nil || status == 0 || status >= 500 {
+			cacheControl = "no-store"
+		}
 		writeJSONWithHeaders(w, statusOr(status, http.StatusNotFound), map[string]any{"error": "Airline logo not found"}, map[string]string{
-			"Cache-Control": "public, max-age=3600",
+			"Cache-Control": cacheControl,
 			"X-Data-Source": "flightaware",
 		})
 		return

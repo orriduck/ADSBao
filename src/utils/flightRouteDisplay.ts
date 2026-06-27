@@ -64,6 +64,18 @@ export const getFlightRouteAccuracyNotice = (route) =>
 const airportIcaoCode = (airport) =>
   String(airport?.icao || airport?.iata || '').trim().toUpperCase()
 
+// Airline-logo URL for the badge, built straight from the route's airline code.
+// Deliberately does NOT consult the shared `unavailable` set (unlike
+// getFlightRouteAirlineIconUrl): one transient 404 elsewhere must not suppress
+// the logo across every nearby-list row. The <RouteBadge> hides its own image
+// on error instead, and retries on the next mount.
+const airlineLogoUrlForBadge = (route) => {
+  const code = String(route?.airlineIcao || route?.airline?.icao || '')
+    .trim()
+    .toUpperCase()
+  return /^[A-Z]{2,3}$/.test(code) ? `/api/proxy/airlines/${code}` : undefined
+}
+
 // Resolve <RouteBadge> props from a flight route. Returns null when the route
 // is incomplete or circular (same airport) — the badge should render nothing.
 // `uncertain` flags adsbdb-sourced routes so the badge can show a faint marker.
@@ -74,7 +86,7 @@ export const routeBadgePropsFromRoute = (route) => {
   return {
     from,
     to,
-    airlineLogoUrl: getFlightRouteAirlineIconUrl(route) || undefined,
+    airlineLogoUrl: airlineLogoUrlForBadge(route),
     uncertain: normalizedRouteSource(route) === 'adsbdb',
   }
 }
