@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 55;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.31.7",
+    version: "v2.31.8",
     kind: "feat",
     title: {
       en: "Flight route badges in the nearby list",
@@ -67,8 +67,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         zh: "邻近列表动效:列表重新排序时每一行位置不动、内容就地交叉淡入切到新飞机(而非整行滑动),航路解析出来时徽章淡入登场。轻量、滚动安全,保持列表的实时手感。",
       },
       {
-        en: "Airport sidebar polish: the Flights metric now eases open and closed (height + count) instead of snapping, the logo row blends into the frosted panel, and the Flights tile gets the same orange active state as the others.",
-        zh: "机场侧边栏细节:Flights 指标现在平滑展开/收起(高度与数字)而非生硬切换,logo 行融入磨砂面板,Flights 磁贴也获得与其它磁贴一致的橙色激活态。",
+        en: "Airport sidebar polish: the Flights metric now eases open and closed (height + count) instead of snapping, the logo row blends into the frosted panel — now on mobile and the home panel too, where it had read as a separate band — and the Flights tile gets the same orange active state as the others.",
+        zh: "机场侧边栏细节:Flights 指标现在平滑展开/收起(高度与数字)而非生硬切换;logo 行融入磨砂面板——现在移动端和首页面板也一样(之前那里会显出一条分隔的色带);Flights 磁贴也获得与其它磁贴一致的橙色激活态。",
       },
     ],
   },

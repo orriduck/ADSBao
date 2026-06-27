@@ -6360,18 +6360,31 @@ body {
     pointer-events: none;
 }
 
-/* On the frosted explorer sidebar (translucent glass over the map) the solid
-   --atc-bg logo strip + scrim read as a separate, darker band. Give the logo
-   row the panel's OWN frosted material instead — transparent tint + the same
-   blur — so it melts into the panel, and drop the scrim band. The home/static
-   sidebars keep the opaque strip above (their panel is opaque, so it matches). */
-.airport-map-kit .sidebar-brand-dock.sticky {
+/* On the frosted panels (translucent glass + warm bottom-wash) the solid
+   --atc-bg logo strip + its fade-to-transparent scrim read as a separate band,
+   and the flat scrim colour can't track the panel's tint per theme. Give the
+   logo row the panel's OWN frosted material instead — transparent tint + the
+   same blur — so it melts into the panel, and drop the scrim band. Covers the
+   desktop explorer (.airport-map-kit), the mobile detail shell
+   (.app-detail-shell — airport + flight), and the home panel
+   (.dither-page-panel, which uses the stronger --app-frost-strong). Only the
+   collapsed/static pill keeps the opaque strip. */
+.airport-map-kit .sidebar-brand-dock.sticky,
+.app-detail-shell .sidebar-brand-dock.sticky {
     background: transparent;
     -webkit-backdrop-filter: saturate(1.4) blur(8px);
     backdrop-filter: saturate(1.4) blur(8px);
 }
 
-.airport-map-kit .sidebar-brand-dock.sticky::after {
+.dither-page-panel .sidebar-brand-dock.sticky {
+    background: transparent;
+    -webkit-backdrop-filter: var(--app-frost-strong);
+    backdrop-filter: var(--app-frost-strong);
+}
+
+.airport-map-kit .sidebar-brand-dock.sticky::after,
+.app-detail-shell .sidebar-brand-dock.sticky::after,
+.dither-page-panel .sidebar-brand-dock.sticky::after {
     content: none;
 }
 
