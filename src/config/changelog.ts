@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.8",
+    version: "v2.32.9",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -89,6 +89,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The tracked-flight telemetry grid (speed / altitude / vertical speed / track / phase) now shares one stat-tile primitive with the airport and here-mode hero stats. Its numbers drop to regular weight like everywhere else in the frosted UI — hierarchy comes from size and luminance, not bold — and the selected metric now shows the same orange top-rail used across the app instead of a one-off inset bar.",
         zh: "被追踪航班的遥测面板(速度 / 高度 / 升降率 / 航向 / 阶段)现在与机场、here 模式的 hero 统计共用同一个 stat-tile 原语。数字改为与 frosted 界面其余部分一致的常规字重——层级靠字号与明度,而非加粗——选中的指标也改用全 app 统一的橙色顶条,取代原先一次性的 inset 边条。",
+      },
+      {
+        en: "Sidebar scroll performance: the desktop airport/flight sidebar dropped its live backdrop-filter blur for an opaque frosted tint. The sidebar IS the scroll container, so scrolling a long aircraft list under a live blur forced the GPU compositor to re-rasterize the whole panel every frame — a production trace showed ~86% of frames dropped while the main thread sat ~87% idle (the cost was entirely GPU compositing, not JS or React). The opaque tint keeps the frosted material read at zero per-frame GPU cost, so a busy airport's list scrolls smoothly again.",
+        zh: "侧栏滚动性能:桌面机场/航班侧栏去掉了实时 backdrop-filter 毛玻璃,改用不透明磨砂底色。侧栏本身就是滚动容器,长长的飞机列表在实时模糊下滚动会迫使 GPU 合成器每帧重新光栅整块面板——一段生产 trace 显示约 86% 的帧被丢弃,而主线程约 87% 时间是空闲的(成本全在 GPU 合成,不是 JS/React)。不透明磨砂保留了磨砂质感、每帧零 GPU 成本,繁忙机场的列表重新顺滑滚动。",
       },
     ],
   },

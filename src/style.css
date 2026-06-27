@@ -3804,22 +3804,19 @@ body {
 .airport-map-kit .airport-desktop-sidebar .flight-sidebar-panel,
 .airport-map-kit .airport-sidebar-panel--mobile,
 .airport-map-kit .flight-sidebar-panel--mobile {
-    /* Translucent frosted glass over the now full-bleed map. A SMALL blur(8px)
-       (was 26px) keeps the live-map diffusion the user asked to see through the
-       panel, at roughly a third of the per-frame GPU cost of the old radius. */
+    /* OPAQUE frosted tint — NO backdrop-filter. This element is the sidebar
+       SCROLL container; scrolling its content under a live blur forced a full
+       re-raster + recomposite of the panel every frame. A production trace
+       pinned exactly this as the scroll jank: GPU VizCompositorThread saturated
+       + ~86% of frames dropped while the main thread sat ~87% idle. An opaque
+       tint keeps the frosted material read with zero per-frame GPU cost. */
     background:
         radial-gradient(
             120% 70% at 18% 0%,
             color-mix(in oklab, white 32%, transparent),
             transparent 46%
         ),
-        linear-gradient(
-            180deg,
-            color-mix(in oklab, var(--app-frost-tint) 94%, transparent),
-            color-mix(in oklab, var(--app-frost-tint) 98%, transparent)
-        );
-    -webkit-backdrop-filter: saturate(1.4) blur(8px);
-    backdrop-filter: saturate(1.4) blur(8px);
+        var(--app-frost-tint);
     border-right: 1px solid var(--app-frost-border);
     box-shadow:
         inset -1px 0 0 color-mix(in oklab, white 40%, transparent),
@@ -3874,15 +3871,13 @@ body {
     --atc-control-inset-shadow:
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 12%, transparent),
         inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 7%, transparent);
-    /* Translucent frosted glass (dark) over the full-bleed map — small blur(8px)
-       shows the live map diffused through the deep-gray panel. */
+    /* Opaque dark frosted tint — NO backdrop-filter (see the light rule above:
+       a scrolling sidebar can't carry a live blur without GPU-compositor jank). */
     background: linear-gradient(
         180deg,
-        color-mix(in oklab, oklch(0.215 0.003 100) 92%, transparent),
-        color-mix(in oklab, oklch(0.135 0.003 100) 96%, transparent)
+        oklch(0.215 0.003 100),
+        oklch(0.135 0.003 100)
     );
-    -webkit-backdrop-filter: saturate(1.5) blur(8px);
-    backdrop-filter: saturate(1.5) blur(8px);
     border-right: 1px solid color-mix(in oklab, var(--atc-text) 9%, transparent);
     box-shadow:
         inset -1px 0 0 color-mix(in oklab, var(--atc-text) 6%, transparent),
