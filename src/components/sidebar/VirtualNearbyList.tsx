@@ -94,10 +94,23 @@ export default function VirtualNearbyList({
     // recompute where the list starts.
     const body = scrollEl.querySelector(".sidebar-shell-body");
     if (body) observer.observe(body);
+    // The mobile panel has no .sidebar-shell-body — its header (identity + hero
+    // + filters) lives beside the list, so observe the list's own container too:
+    // when the header grows it pushes the list down, which must recompute where
+    // the list begins.
+    if (listEl.parentElement) observer.observe(listEl.parentElement);
+    // Safety net: scrollMargin is scroll-invariant, but it can be measured
+    // stale when the header grows asynchronously after mount (e.g. the Flights
+    // card / airport name resolving) without resizing an observed element — the
+    // virtualizer would then window the wrong rows and leave a gap at the top.
+    // Re-validate on scroll; the >0.5px diff guard keeps it from re-rendering
+    // once it settles.
+    scrollEl.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", measure);
     return () => {
       window.cancelAnimationFrame(raf);
       observer.disconnect();
+      scrollEl.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", measure);
     };
   }, [scrollRef, visibleItems.length]);
