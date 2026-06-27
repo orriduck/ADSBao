@@ -43,21 +43,31 @@ function resolveAircraftLatLng(latValue, lonValue) {
   return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
 }
 
-// The padded viewport bounds are identical for every marker within a single
-// animation frame, but computing them reads the map (getBounds) and the
-// container `clientWidth` — a forced layout. Doing that per-marker interleaves
-// reads with each marker's setLatLng write, so the browser re-runs layout for
-// every aircraft: classic thrashing (~N forced reflows per frame on a busy
-// map). Cache by frame key — the shared `now` the motion-frame loop hands every
-// marker that frame — so the read happens once, before the batch of writes.
+// Computing the padded viewport bounds reads the map (getBounds) and the
+// container `clientWidth` — a FORCED SYNCHRONOUS LAYOUT. The bounds only change
+// when the MAP itself moves (pan / zoom / resize), which is rare — the airport
+// map is non-interactive (dragging off) and otherwise static. So cache the
+// bounds and invalidate ONLY on map move/zoom/resize, instead of recomputing
+// every animation frame. That keeps the forced layout off the per-frame hot
+// path entirely (it was the top remaining cost during a sidebar scroll, since
+// the motion loop runs concurrently and read it every frame), while staying
+// correct during a follow-pan (each move invalidates → fresh bounds next read,
+// so no marker is ever culled against stale bounds).
 let cachedBoundsMap: any = null;
-let cachedBoundsFrameKey = Number.NaN;
 let cachedBounds: any = null;
+let boundsDirty = true;
+const invalidateMotionBounds = () => {
+  boundsDirty = true;
+};
 
-function resolveMotionBounds(map, frameKey: number) {
-  if (map === cachedBoundsMap && Object.is(frameKey, cachedBoundsFrameKey)) {
-    return cachedBounds;
+function resolveMotionBounds(map) {
+  if (map !== cachedBoundsMap) {
+    cachedBoundsMap?.off?.("move zoom resize", invalidateMotionBounds);
+    map?.on?.("move zoom resize", invalidateMotionBounds);
+    cachedBoundsMap = map;
+    boundsDirty = true;
   }
+  if (!boundsDirty && cachedBounds !== null) return cachedBounds;
   const bounds = safeGetMapBounds(map, {
     label: "AircraftPosition",
     logger: silentLeafletLogger,
@@ -69,9 +79,8 @@ function resolveMotionBounds(map, frameKey: number) {
       Number.isFinite(width) && width <= MOBILE_VIEWPORT_WIDTH_PX ? 0.06 : 0.18;
     padded = typeof bounds.pad === "function" ? bounds.pad(padRatio) : bounds;
   }
-  cachedBoundsMap = map;
-  cachedBoundsFrameKey = frameKey;
   cachedBounds = padded;
+  boundsDirty = false;
   return padded;
 }
 
@@ -151,7 +160,7 @@ function AircraftPosition({
   });
   const shouldAnimateInCurrentViewport = useCallback((motion, now) => {
     if (!map || !shouldAnimateAircraftVisualPosition(motion, now)) return false;
-    const bounds = resolveMotionBounds(map, now);
+    const bounds = resolveMotionBounds(map);
     if (!bounds) return true;
 
     const visual = calculateAircraftVisualPosition(motion, now);
