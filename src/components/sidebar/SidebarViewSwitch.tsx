@@ -3,16 +3,11 @@ import NumberFlow from "@number-flow/react";
 import StatTile from "@/components/ui/StatTile";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
-import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
-import { ARRIVAL, DEPARTURE } from "@/utils/aircraftMovement";
 import {
-  convertTemperatureFromC,
-  defaultGroundSpeedUnit,
-  formatAltitudeFromMeters,
-  formatGroundSpeed,
-  temperatureUnitLabel,
-  type GroundSpeedUnit,
-} from "@/utils/units";
+  buildSidebarStats,
+  type SidebarStat,
+} from "@/features/airport/explorer/sidebarStatsModel";
+import { defaultGroundSpeedUnit, type GroundSpeedUnit } from "@/utils/units";
 
 // Frosted "hero stats block": one joined rounded glass container with a big
 // headline metric (nearby flights) over a row of small footer cells
@@ -44,121 +39,84 @@ export default function SidebarViewSwitch({
   const [speedUnitOverride, setSpeedUnitOverride] =
     useState<GroundSpeedUnit | null>(null);
   const groundSpeedUnit = speedUnitOverride ?? defaultGroundSpeedUnit(units);
-  const temperature = metarLoading
-    ? { value: "—", unit: temperatureUnitLabel(units.temperature) }
-    : formatTemperature(metar, units.temperature);
-  const temperatureUnit = temperature.value === "—" ? undefined : temperature.unit;
-  // In here mode the user's position is not an airport, so departure/arrival
-  // classification is meaningless (everything resolves to UNKNOWN). The movement
-  // row is replaced by the user's own GPS speed/altitude readouts instead.
-  const showMovementCards =
-    !nearMe && featureFlagsResolved && routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
   const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
   const spottingCount = Number(candidateSpotCount) || 0;
-  const showAtcCard = atcCount > 0;
 
-  const { departureCount, arrivalCount } = useMemo(() => {
-    if (routeProvider !== ROUTE_PROVIDER.FLIGHTAWARE) {
-      return { departureCount: 0, arrivalCount: 0 };
+  // The footer's product rules — which cells show, what they read, and how they
+  // behave (here mode swaps departures/arrivals for the user's own GPS
+  // speed/altitude, the movement row only exists on FlightAware, ATC only when
+  // there are frequencies) — live in a pure, tested model. This component only
+  // maps each descriptor to a <StatTile>.
+  const stats = useMemo(
+    () =>
+      buildSidebarStats({
+        nearMe,
+        routeProvider,
+        featureFlagsResolved,
+        aircraft,
+        selfSpeedMps: nearMeSelfSpeedMps,
+        selfAltitudeMeters: nearMeSelfAltitudeMeters,
+        groundSpeedUnit,
+        metar,
+        metarLoading,
+        units,
+        atcCount,
+        spottingCount,
+      }),
+    [
+      nearMe,
+      routeProvider,
+      featureFlagsResolved,
+      aircraft,
+      nearMeSelfSpeedMps,
+      nearMeSelfAltitudeMeters,
+      groundSpeedUnit,
+      metar,
+      metarLoading,
+      units,
+      atcCount,
+      spottingCount,
+    ],
+  );
+
+  const renderStat = (stat: SidebarStat) => {
+    const { id, labelKey, value, display, unit, prefix, interaction } = stat;
+    let active: boolean | undefined;
+    let onClick: (() => void) | undefined;
+    let readOnly = false;
+    if (interaction.kind === "view") {
+      active = activeView === interaction.view;
+      onClick = () => onViewChange?.(interaction.view);
+    } else if (interaction.kind === "spotting") {
+      active = activeView === "spotting";
+      onClick = onOpenSpotting;
+    } else if (interaction.kind === "groundSpeedToggle") {
+      onClick = () =>
+        setSpeedUnitOverride(groundSpeedUnit === "kmh" ? "mph" : "kmh");
+    } else {
+      readOnly = true;
     }
-    let dep = 0;
-    let arr = 0;
-    for (const item of aircraft) {
-      if (item?.movement === DEPARTURE) dep += 1;
-      else if (item?.movement === ARRIVAL) arr += 1;
-    }
-    return { departureCount: dep, arrivalCount: arr };
-  }, [aircraft, routeProvider]);
-
-  // Here mode centers on the user, not an airport, so the movement row reads
-  // out the user's OWN motion from GPS: ground speed (defaults to the user's
-  // metric/imperial system — km/h or mph — tap to flip) and altitude (following
-  // the altitude preference, kept ground-relative so it never reads as a flight
-  // level). Null — the common indoor/stationary case where the device reports
-  // no speed/altitude — shows an em dash.
-  const selfSpeedDisplay = nearMe
-    ? formatGroundSpeed(nearMeSelfSpeedMps, groundSpeedUnit)
-    : null;
-  const selfAltitudeDisplay = nearMe
-    ? formatAltitudeFromMeters(nearMeSelfAltitudeMeters, units.altitude, {
-        kind: "ground",
-      })
-    : null;
-
-  // Footer stacks into rows under the flight-count hero: first the movement
-  // row (departures / arrivals) as the direct breakdown of the count, then
-  // the context row (weather / ATC / spotting). Each conditional cell simply
-  // drops out of its row when absent. In here mode the movement row carries the
-  // user's own speed/altitude instead: speed is a tap target that toggles its
-  // unit (km/h ⇄ mph), altitude is a static readOnly cell.
-  const movementCells = [];
-  if (showMovementCards) {
-    movementCells.push({
-      key: "departures",
-      label: t("sidebar.departures"),
-      value: <NumberFlow value={departureCount} />,
-      active: activeView === "departures",
-      onClick: () => onViewChange?.("departures"),
-    });
-    movementCells.push({
-      key: "arrivals",
-      label: t("sidebar.arrivals"),
-      value: <NumberFlow value={arrivalCount} />,
-      active: activeView === "arrivals",
-      onClick: () => onViewChange?.("arrivals"),
-    });
-  } else if (nearMe) {
-    // Speed is a tap target (km/h ⇄ mph); altitude is a plain readout.
-    movementCells.push({
-      key: "selfSpeed",
-      label: t("sidebar.speed"),
-      value: selfSpeedDisplay ? (
-        <NumberFlow value={selfSpeedDisplay.value} />
-      ) : (
+    const rendered =
+      value == null ? (
         "—"
-      ),
-      unit: selfSpeedDisplay?.unit || undefined,
-      onClick: () =>
-        setSpeedUnitOverride(groundSpeedUnit === "kmh" ? "mph" : "kmh"),
-    });
-    movementCells.push({
-      key: "selfAltitude",
-      label: t("sidebar.altitude"),
-      value: selfAltitudeDisplay ? (
-        <NumberFlow value={selfAltitudeDisplay.value} />
+      ) : display === "numberFlow" ? (
+        <NumberFlow value={value as number} />
       ) : (
-        "—"
-      ),
-      unit: selfAltitudeDisplay?.unit || undefined,
-      prefix: selfAltitudeDisplay?.prefix,
-      readOnly: true,
-    });
-  }
-  const restCells = [];
-  restCells.push({
-    key: "briefing",
-    label: t("sidebar.weather"),
-    value: temperature.value,
-    unit: temperatureUnit,
-    active: activeView === "briefing",
-    onClick: () => onViewChange?.("briefing"),
-  });
-  if (showAtcCard) {
-    restCells.push({
-      key: "atc",
-      label: t("sidebar.atc"),
-      value: <NumberFlow value={atcCount} />,
-      active: activeView === "atc",
-      onClick: () => onViewChange?.("atc"),
-    });
-  }
-  restCells.push({
-    key: "spotting",
-    label: t("sidebar.spotting"),
-    value: <NumberFlow value={spottingCount} />,
-    active: activeView === "spotting",
-    onClick: onOpenSpotting,
-  });
+        value
+      );
+    return (
+      <StatTile
+        key={id}
+        label={t(labelKey)}
+        value={rendered}
+        unit={unit || undefined}
+        prefix={prefix}
+        active={active}
+        onClick={onClick}
+        readOnly={readOnly}
+      />
+    );
+  };
 
   const headlineLabel = nearMe ? t("sidebar.nearby") : t("sidebar.flights");
   // The flight-count is the hero only on the traffic view. On the other
@@ -207,26 +165,15 @@ export default function SidebarViewSwitch({
             </span>
           </div>
         </button>
-        {movementCells.length > 0 ? (
+        {stats.movementRow.length > 0 ? (
           <div className="flex border-t border-[var(--app-frost-border)]">
-            {movementCells.map(({ key, ...cell }) => (
-              <StatTile key={key} {...cell} />
-            ))}
+            {stats.movementRow.map(renderStat)}
           </div>
         ) : null}
         <div className="flex border-t border-[var(--app-frost-border)]">
-          {restCells.map(({ key, ...cell }) => (
-            <StatTile key={key} {...cell} />
-          ))}
+          {stats.contextRow.map(renderStat)}
         </div>
       </div>
     </div>
   );
-}
-
-function formatTemperature(metar, unit) {
-  const temp = Number(metar?.rawTemp);
-  const label = temperatureUnitLabel(unit);
-  if (!Number.isFinite(temp)) return { value: "—", unit: label };
-  return { value: Math.round(convertTemperatureFromC(temp, unit)), unit: label };
 }
