@@ -1,30 +1,22 @@
-// Dev-only in-app performance probe. Establishes a real foreground baseline
-// the headless preview can't (its rAF is throttled): it measures the actual
-// frame cadence, the imperative aircraft motion-loop cost, and React commit
-// durations, and paints a small HUD plus a `window.__adsbaoPerf` snapshot.
+// Dev-only in-app performance probe. The headless preview throttles rAF, so
+// longtask-based numbers miss the foreground cost of the 60fps aircraft motion
+// loop. This measures the real frame cadence, the motion-loop cost, and React
+// commit durations, paints a compact HUD (bottom-right), and exposes a snapshot.
 //
-// Zero-cost in production (gated on import.meta.env.DEV) and when the flag is
-// off. Enable with `?perf=1` in the URL (persists to localStorage so it
-// survives SPA navigation) or `localStorage.adsbaoPerf = "1"`. Disable with
-// `?perf=0` or by clearing the key.
+// Enable from the URL with `?perf=1` (persisted to localStorage so it survives
+// SPA navigation), or `localStorage.adsbaoPerf = "1"`.
+//
+// Backdoor — in dev, `window.__adsbaoPerf` is ALWAYS present, even when off:
+//   __adsbaoPerf.enable()    start probe + HUD now (no reload)
+//   __adsbaoPerf.disable()   stop + hide
+//   __adsbaoPerf.snapshot()  latest 1s window as a plain object
+//
+// Production pays nothing: everything is gated on import.meta.env.DEV (so it is
+// tree-shaken out), and the motion-loop hook is one boolean check per frame.
+
+const IS_DEV = Boolean(import.meta.env?.DEV);
 
 let enabled = false;
-try {
-  if (import.meta.env?.DEV && typeof window !== "undefined") {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has("perf")) {
-      const value = params.get("perf");
-      window.localStorage.setItem("adsbaoPerf", value === "0" ? "0" : "1");
-    }
-    enabled = window.localStorage.getItem("adsbaoPerf") === "1";
-  }
-} catch {
-  enabled = false;
-}
-
-export function perfProbeEnabled() {
-  return enabled;
-}
 
 type CommitAgg = { count: number; total: number; max: number };
 
@@ -41,7 +33,11 @@ const win = {
 let lastFrameTs = 0;
 let rafId = 0;
 let hud: HTMLDivElement | null = null;
-let lastSnapshot: unknown = null;
+let lastSnapshot: ReturnType<typeof buildSnapshot> | null = null;
+
+export function perfProbeEnabled() {
+  return enabled;
+}
 
 export function recordMotionFrame(callbackCount: number, durationMs: number) {
   if (!enabled) return;
@@ -127,58 +123,120 @@ function ensureHud() {
   hud.id = "adsbao-perf-hud";
   hud.style.cssText = [
     "position:fixed",
-    "left:8px",
-    "bottom:8px",
+    "right:10px",
+    "bottom:10px",
     "z-index:2147483647",
     "pointer-events:none",
-    "font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace",
+    "font:9px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace",
+    "letter-spacing:0.2px",
     "white-space:pre",
-    "color:#d8ffd8",
-    "background:rgba(8,12,10,0.82)",
-    "padding:7px 9px",
+    "color:rgba(220,238,228,0.92)",
+    "background:rgba(10,14,12,0.46)",
+    "-webkit-backdrop-filter:blur(7px)",
+    "backdrop-filter:blur(7px)",
+    "padding:6px 9px",
     "border-radius:8px",
-    "border:1px solid rgba(120,255,160,0.25)",
-    "box-shadow:0 6px 24px rgba(0,0,0,0.4)",
-    "max-width:46ch",
+    "border:1px solid rgba(150,255,190,0.16)",
+    "box-shadow:0 4px 18px rgba(0,0,0,0.32)",
+    "text-align:left",
   ].join(";");
   document.body.appendChild(hud);
 }
 
-function paintHud(s: ReturnType<typeof buildSnapshot>) {
-  if (!hud) return;
-  const top = s.commits
-    .slice(0, 4)
-    .map((c) => `  ${c.id}: ${c.count}× avg${c.avg} max${c.max} Σ${c.total}`)
-    .join("\n");
-  const fpsColor = s.fps >= 55 ? "#9dffb0" : s.fps >= 40 ? "#ffe08a" : "#ff9a9a";
-  hud.style.color = fpsColor;
-  hud.textContent =
-    `FPS ${s.fps}  frame p50 ${s.frameMs.p50} p95 ${s.frameMs.p95} p99 ${s.frameMs.p99} max ${s.frameMs.max}\n` +
-    `long >16:${s.longFrames.gt16} >32:${s.longFrames.gt32} >50:${s.longFrames.gt50}\n` +
-    `motion ${s.motion.framesPerSec}fps  mk avg${s.motion.avgMarkers} max${s.motion.maxMarkers}  ${s.motion.msPerFrame}ms/f  ${s.motion.msPerSec}ms/s\n` +
-    `react commits/s:\n${top || "  (none)"}`;
+function removeHud() {
+  hud?.remove();
+  hud = null;
 }
 
-function tick(ts: number) {
+const lead = (label: string) => label.padEnd(7);
+const numL = (value: number | string, w: number) => String(value).padStart(w);
+
+function paintHud(s: NonNullable<typeof lastSnapshot>) {
+  if (!hud) return;
+  const fpsColor = s.fps >= 55 ? "#a6f5ba" : s.fps >= 40 ? "#ffe39a" : "#ff9d9d";
+  const rows = [
+    `${lead("perf")}${numL(s.fps, 3)} fps`,
+    `${lead("frame")}${numL(s.frameMs.p50, 5)} ${numL(s.frameMs.p95, 5)} ${numL(s.frameMs.p99, 5)} ms  p50/95/99`,
+    `${lead("jank")}${numL(s.longFrames.gt16, 5)} ${numL(s.longFrames.gt32, 5)} ${numL(s.longFrames.gt50, 5)}    >16/32/50`,
+    `${lead("motion")}${numL(s.motion.avgMarkers, 5)} mk ${numL(s.motion.msPerFrame, 6)} ms/f ${numL(s.motion.msPerSec, 4)} ms/s`,
+  ];
+  if (s.commits.length) {
+    rows.push("react   commit/s   avg  /  max ms");
+    for (const c of s.commits.slice(0, 4)) {
+      rows.push(
+        `  ${c.id.slice(0, 13).padEnd(13)}${numL(c.count, 3)}× ${numL(c.avg, 5)} / ${numL(c.max, 5)}`,
+      );
+    }
+  }
+  hud.style.color = "rgba(220,238,228,0.92)";
+  hud.textContent = rows.join("\n");
+  // Color just the fps figure by tinting the border so the row stays legible.
+  hud.style.borderColor = `${fpsColor}40`;
+}
+
+function loop(ts: number) {
   if (lastFrameTs) win.frames.push(ts - lastFrameTs);
   lastFrameTs = ts;
   if (ts - win.start >= 1000) {
-    const snapshot = buildSnapshot(ts);
-    lastSnapshot = snapshot;
-    (window as any).__adsbaoPerf = { snapshot: () => lastSnapshot };
-    paintHud(snapshot);
+    lastSnapshot = buildSnapshot(ts);
+    paintHud(lastSnapshot);
     resetWindow(ts);
   }
-  rafId = requestAnimationFrame(tick);
+  rafId = requestAnimationFrame(loop);
 }
 
-export function startPerfProbe() {
-  if (!enabled || rafId || typeof window === "undefined") return;
-  ensureHud();
-  win.start = performance.now();
+function startLoop() {
+  if (rafId) return;
+  resetWindow(performance.now());
   lastFrameTs = 0;
-  (window as any).__adsbaoPerf = { snapshot: () => lastSnapshot };
-  rafId = requestAnimationFrame(tick);
+  rafId = requestAnimationFrame(loop);
+}
 
-  console.info("[adsbaoPerf] probe on — HUD bottom-left, window.__adsbaoPerf.snapshot()");
+function stopLoop() {
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = 0;
+}
+
+function persist(value: "1" | "0") {
+  try {
+    window.localStorage.setItem("adsbaoPerf", value);
+  } catch {
+    /* ignore */
+  }
+}
+
+function enable() {
+  if (!IS_DEV || enabled) return;
+  enabled = true;
+  persist("1");
+  ensureHud();
+  startLoop();
+  console.info("[adsbaoPerf] on — HUD bottom-right · window.__adsbaoPerf.snapshot()");
+}
+
+function disable() {
+  enabled = false;
+  persist("0");
+  stopLoop();
+  removeHud();
+  console.info("[adsbaoPerf] off");
+}
+
+function readInitialFlag() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("perf")) persist(params.get("perf") === "0" ? "0" : "1");
+    return window.localStorage.getItem("adsbaoPerf") === "1";
+  } catch {
+    return false;
+  }
+}
+
+// Called once at startup. In dev the backdoor is always installed so the probe
+// can be flipped on from the console without a reload; it auto-starts when the
+// flag is already set.
+export function startPerfProbe() {
+  if (!IS_DEV || typeof window === "undefined") return;
+  (window as any).__adsbaoPerf = { enable, disable, snapshot: () => lastSnapshot };
+  if (readInitialFlag()) enable();
 }
