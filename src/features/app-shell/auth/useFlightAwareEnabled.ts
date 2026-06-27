@@ -92,9 +92,13 @@ export function useUserFeatureFlags() {
   };
 }
 
+// Same local-dev gate as DEV_FORCE_FLIGHTAWARE, generalised: every feature flag
+// resolves ON in `vite dev` so gated surfaces (Plane Hunter studio, etc.) can be
+// exercised without a Clerk login + grant. Compiles out of production builds.
 export function useFeatureFlagEnabled(flagKey) {
   const featureFlags = useUserFeatureFlags();
-  const enabled = isFeatureFlagEnabled(featureFlags.flags, flagKey);
+  const enabled =
+    DEV_FORCE_FLIGHTAWARE || isFeatureFlagEnabled(featureFlags.flags, flagKey);
   return { ...featureFlags, enabled };
 }
 

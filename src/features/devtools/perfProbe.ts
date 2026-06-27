@@ -1,12 +1,14 @@
 // Dev-only in-app performance probe. The headless preview throttles rAF, so
-// longtask-based numbers miss the foreground cost of the 60fps aircraft motion
-// loop. This measures the real frame cadence, the motion-loop cost, and React
-// commit durations, paints a compact HUD (bottom-right), and exposes a snapshot.
+// longtask-based numbers miss the foreground cost of things like the 60fps
+// motion loop or a scroll repaint. This measures the real frame cadence (split
+// into idle vs scroll), the long-animation-frame script-vs-render breakdown,
+// the motion-loop cost, and React commit durations, paints a compact HUD
+// (bottom-right), and exposes a snapshot.
 //
-// Enable from the URL with `?perf=1` (persisted to localStorage so it survives
-// SPA navigation), or `localStorage.adsbaoPerf = "1"`.
+// DEV DEFAULT: on. Opt out with `?perf=0` (persisted) or
+// `localStorage.adsbaoPerf = "0"`. Re-enable with `?perf=1`.
 //
-// Backdoor — in dev, `window.__adsbaoPerf` is ALWAYS present, even when off:
+// Backdoor — in dev, `window.__adsbaoPerf` is always present:
 //   __adsbaoPerf.enable()    start probe + HUD now (no reload)
 //   __adsbaoPerf.disable()   stop + hide
 //   __adsbaoPerf.snapshot()  latest 1s window as a plain object
@@ -15,6 +17,7 @@
 // tree-shaken out), and the motion-loop hook is one boolean check per frame.
 
 const IS_DEV = Boolean(import.meta.env?.DEV);
+const SCROLL_ACTIVE_MS = 150;
 
 let enabled = false;
 
@@ -23,17 +26,29 @@ type CommitAgg = { count: number; total: number; max: number };
 const win = {
   start: 0,
   frames: [] as number[],
+  scrollFrames: [] as number[],
   motionFrames: 0,
   motionCallbacks: 0,
   motionTime: 0,
   motionMaxCallbacks: 0,
+  loafCount: 0,
+  loafBlocking: 0,
+  loafScript: 0,
+  loafRender: 0,
+  loafWorst: 0,
+  loafWorstAttr: "",
   commits: new Map<string, CommitAgg>(),
 };
 
 let lastFrameTs = 0;
+let scrollActiveUntil = 0;
 let rafId = 0;
 let hud: HTMLDivElement | null = null;
 let lastSnapshot: ReturnType<typeof buildSnapshot> | null = null;
+let loafObserver: PerformanceObserver | null = null;
+const onScroll = () => {
+  scrollActiveUntil = performance.now() + SCROLL_ACTIVE_MS;
+};
 
 export function perfProbeEnabled() {
   return enabled;
@@ -66,10 +81,17 @@ export function perfSnapshot() {
 function resetWindow(now: number) {
   win.start = now;
   win.frames = [];
+  win.scrollFrames = [];
   win.motionFrames = 0;
   win.motionCallbacks = 0;
   win.motionTime = 0;
   win.motionMaxCallbacks = 0;
+  win.loafCount = 0;
+  win.loafBlocking = 0;
+  win.loafScript = 0;
+  win.loafRender = 0;
+  win.loafWorst = 0;
+  win.loafWorstAttr = "";
   win.commits = new Map();
 }
 
@@ -78,12 +100,21 @@ function round(value: number, digits = 0) {
   return Math.round(value * factor) / factor;
 }
 
+function fpsFrom(frames: number[]) {
+  if (!frames.length) return 0;
+  const mean = frames.reduce((a, b) => a + b, 0) / frames.length;
+  return mean > 0 ? round(1000 / mean) : 0;
+}
+
+function pctFrom(frames: number[], p: number) {
+  if (!frames.length) return 0;
+  const sorted = frames.slice().sort((a, b) => a - b);
+  return round(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))], 1);
+}
+
 function buildSnapshot(now: number) {
-  const frames = win.frames.slice().sort((a, b) => a - b);
-  const fc = frames.length;
+  const frames = win.frames;
   const elapsedSec = (now - win.start) / 1000 || 1;
-  const pct = (p: number) =>
-    fc ? round(frames[Math.min(fc - 1, Math.floor(fc * p))], 1) : 0;
   const commits = [...win.commits.entries()]
     .map(([id, a]) => ({
       id,
@@ -94,17 +125,34 @@ function buildSnapshot(now: number) {
     }))
     .sort((a, b) => b.total - a.total);
   return {
-    fps: round(fc / elapsedSec),
+    fps: fpsFrom(frames),
+    scrollFps: win.scrollFrames.length ? fpsFrom(win.scrollFrames) : null,
+    scrolling: win.scrollFrames.length > 2,
     frameMs: {
-      p50: pct(0.5),
-      p95: pct(0.95),
-      p99: pct(0.99),
-      max: fc ? round(frames[fc - 1], 1) : 0,
+      p50: pctFrom(frames, 0.5),
+      p95: pctFrom(frames, 0.95),
+      p99: pctFrom(frames, 0.99),
+      max: frames.length ? round(Math.max(...frames), 1) : 0,
+    },
+    scrollFrameMs: {
+      p95: pctFrom(win.scrollFrames, 0.95),
+      max: win.scrollFrames.length ? round(Math.max(...win.scrollFrames), 1) : 0,
     },
     longFrames: {
       gt16: frames.filter((x) => x > 16.7).length,
       gt32: frames.filter((x) => x > 32).length,
       gt50: frames.filter((x) => x > 50).length,
+    },
+    // Long Animation Frames: splits the wall-clock of each >50ms frame into the
+    // scripting portion (React/JS) vs the rendering portion (style + layout +
+    // paint + composite). A scroll repaint shows up as render >> script.
+    loaf: {
+      count: win.loafCount,
+      blockingMs: round(win.loafBlocking),
+      scriptMs: round(win.loafScript),
+      renderMs: round(win.loafRender),
+      worstMs: round(win.loafWorst),
+      worstAttr: win.loafWorstAttr,
     },
     motion: {
       framesPerSec: round(win.motionFrames / elapsedSec),
@@ -154,12 +202,22 @@ const numL = (value: number | string, w: number) => String(value).padStart(w);
 function paintHud(s: NonNullable<typeof lastSnapshot>) {
   if (!hud) return;
   const fpsColor = s.fps >= 55 ? "#a6f5ba" : s.fps >= 40 ? "#ffe39a" : "#ff9d9d";
+  const scrollColor =
+    s.scrollFps == null ? "" : s.scrollFps >= 50 ? "#a6f5ba" : s.scrollFps >= 30 ? "#ffe39a" : "#ff9d9d";
+  const scrollTag =
+    s.scrollFps == null
+      ? ""
+      : `   scroll ${s.scrollFps} (p95 ${s.scrollFrameMs.p95}ms)`;
   const rows = [
-    `${lead("perf")}${numL(s.fps, 3)} fps`,
+    `${lead("perf")}${numL(s.fps, 3)} fps${scrollTag}`,
     `${lead("frame")}${numL(s.frameMs.p50, 5)} ${numL(s.frameMs.p95, 5)} ${numL(s.frameMs.p99, 5)} ms  p50/95/99`,
+    `${lead("loaf")}${numL(s.loaf.count, 3)}f  js ${numL(s.loaf.scriptMs, 4)}  paint ${numL(s.loaf.renderMs, 4)} ms  ↑${s.loaf.worstMs}`,
     `${lead("jank")}${numL(s.longFrames.gt16, 5)} ${numL(s.longFrames.gt32, 5)} ${numL(s.longFrames.gt50, 5)}    >16/32/50`,
     `${lead("motion")}${numL(s.motion.avgMarkers, 5)} mk ${numL(s.motion.msPerFrame, 6)} ms/f ${numL(s.motion.msPerSec, 4)} ms/s`,
   ];
+  if (s.loaf.worstAttr) {
+    rows.push(`  ↑src  ${s.loaf.worstAttr.slice(0, 30)}`);
+  }
   if (s.commits.length) {
     rows.push("react   commit/s   avg  /  max ms");
     for (const c of s.commits.slice(0, 4)) {
@@ -168,14 +226,16 @@ function paintHud(s: NonNullable<typeof lastSnapshot>) {
       );
     }
   }
-  hud.style.color = "rgba(220,238,228,0.92)";
   hud.textContent = rows.join("\n");
-  // Color just the fps figure by tinting the border so the row stays legible.
-  hud.style.borderColor = `${fpsColor}40`;
+  hud.style.borderColor = `${scrollColor || fpsColor}40`;
 }
 
 function loop(ts: number) {
-  if (lastFrameTs) win.frames.push(ts - lastFrameTs);
+  if (lastFrameTs) {
+    const delta = ts - lastFrameTs;
+    win.frames.push(delta);
+    if (ts < scrollActiveUntil) win.scrollFrames.push(delta);
+  }
   lastFrameTs = ts;
   if (ts - win.start >= 1000) {
     lastSnapshot = buildSnapshot(ts);
@@ -185,16 +245,54 @@ function loop(ts: number) {
   rafId = requestAnimationFrame(loop);
 }
 
+function recordLoaf(entry: any) {
+  if (!enabled) return;
+  const start = entry.startTime;
+  const duration = entry.duration;
+  const renderStart = entry.renderStart || 0;
+  const script = renderStart > start ? renderStart - start : duration;
+  const render = renderStart > start ? start + duration - renderStart : 0;
+  win.loafCount += 1;
+  win.loafBlocking += entry.blockingDuration || 0;
+  win.loafScript += script;
+  win.loafRender += render;
+  if (duration > win.loafWorst) {
+    win.loafWorst = duration;
+    const scripts = Array.isArray(entry.scripts) ? entry.scripts : [];
+    const top = scripts.reduce(
+      (best: any, s: any) => (!best || s.duration > best.duration ? s : best),
+      null,
+    );
+    win.loafWorstAttr = top
+      ? String(top.sourceFunctionName || top.invoker || top.name || "")
+      : render > script
+        ? "(render/paint)"
+        : "";
+  }
+}
+
 function startLoop() {
   if (rafId) return;
   resetWindow(performance.now());
   lastFrameTs = 0;
   rafId = requestAnimationFrame(loop);
+  window.addEventListener("scroll", onScroll, { capture: true, passive: true });
+  try {
+    loafObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) recordLoaf(entry);
+    });
+    loafObserver.observe({ type: "long-animation-frame", buffered: false } as any);
+  } catch {
+    loafObserver = null;
+  }
 }
 
 function stopLoop() {
   if (rafId) cancelAnimationFrame(rafId);
   rafId = 0;
+  window.removeEventListener("scroll", onScroll, { capture: true } as any);
+  loafObserver?.disconnect();
+  loafObserver = null;
 }
 
 function persist(value: "1" | "0") {
@@ -222,19 +320,20 @@ function disable() {
   console.info("[adsbaoPerf] off");
 }
 
+// Dev default: ON unless explicitly turned off (?perf=0 / localStorage "0").
 function readInitialFlag() {
   try {
     const params = new URLSearchParams(window.location.search);
     if (params.has("perf")) persist(params.get("perf") === "0" ? "0" : "1");
-    return window.localStorage.getItem("adsbaoPerf") === "1";
+    return window.localStorage.getItem("adsbaoPerf") !== "0";
   } catch {
-    return false;
+    return true;
   }
 }
 
 // Called once at startup. In dev the backdoor is always installed so the probe
-// can be flipped on from the console without a reload; it auto-starts when the
-// flag is already set.
+// can be flipped on from the console without a reload; it auto-starts (dev
+// default) unless the flag was turned off.
 export function startPerfProbe() {
   if (!IS_DEV || typeof window === "undefined") return;
   (window as any).__adsbaoPerf = { enable, disable, snapshot: () => lastSnapshot };
