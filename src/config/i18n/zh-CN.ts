@@ -222,6 +222,26 @@ const zhCN = {
             "行级动效绑定距离和进入/离开状态,不会因为地图视角或 heading 微调反复重播。",
         },
       },
+      canvasAircraftRendering: {
+        title: "Canvas 飞机渲染",
+        signal: "一块 canvas 画全部飞机",
+        body:
+          "全部飞机在一个绘制循环里画进同一块 <canvas> 叠加层,而不是每架一个 DOM marker——再密的地图也只是一个合成层,没有逐架的 React 或强制布局。",
+        flow: {
+          motion: "外推位置",
+          project: "经纬度→像素",
+          sprite: "着色 sprite",
+          paint: "Canvas 绘制",
+        },
+        details: {
+          singleLayer:
+            "所有飞机共用一块独立地图 pane 里的 canvas,把约 80 个合成 DOM marker 收敛为一个图层,去掉逐 marker 的 React 子树和强制布局。",
+          projection:
+            "每帧把视口内每架飞机的外推经纬度投影成图层像素(纯计算、不触发重排),画出按航向旋转、已着色并烘焙投影阴影的剪影 sprite。",
+          throttle:
+            "整层共用一套随缩放自适应的节流(焦点目标 30fps,越远越粗),把 GPU 留给平滑的平移和侧栏滚动。",
+        },
+      },
     },
   },
   sidebar: {

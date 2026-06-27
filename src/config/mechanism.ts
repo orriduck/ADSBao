@@ -89,4 +89,22 @@ export const MECHANISM_ITEMS = [
       "mechanism.items.nearbyListRendering.flow.paint",
     ],
   },
+  {
+    id: "canvasAircraftRendering",
+    groupKey: "mechanism.groups.mechanisms",
+    titleKey: "mechanism.items.canvasAircraftRendering.title",
+    bodyKey: "mechanism.items.canvasAircraftRendering.body",
+    signalKey: "mechanism.items.canvasAircraftRendering.signal",
+    detailKeys: [
+      "mechanism.items.canvasAircraftRendering.details.singleLayer",
+      "mechanism.items.canvasAircraftRendering.details.projection",
+      "mechanism.items.canvasAircraftRendering.details.throttle",
+    ],
+    flowKeys: [
+      "mechanism.items.canvasAircraftRendering.flow.motion",
+      "mechanism.items.canvasAircraftRendering.flow.project",
+      "mechanism.items.canvasAircraftRendering.flow.sprite",
+      "mechanism.items.canvasAircraftRendering.flow.paint",
+    ],
+  },
 ] as const;

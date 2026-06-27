@@ -228,6 +228,26 @@ const en = {
             "Rows compare rendered fields by value and use stable keys, so live updates change the right cells without replaying every row animation.",
         },
       },
+      canvasAircraftRendering: {
+        title: "Canvas aircraft rendering",
+        signal: "One canvas, every plane",
+        body:
+          "Every aircraft draws into a single <canvas> overlay in one loop instead of one DOM marker each, so a busy map stays a single composited layer with no per-plane React or forced layout.",
+        flow: {
+          motion: "Extrapolated position",
+          project: "Lat/lon → pixels",
+          sprite: "Tinted sprite",
+          paint: "Canvas paint",
+        },
+        details: {
+          singleLayer:
+            "All planes share one canvas in a dedicated map pane, collapsing ~80 composited DOM markers to one layer and removing per-marker React subtrees and forced layout.",
+          projection:
+            "Each frame projects every visible plane's extrapolated lat/lon to layer pixels — pure math, no reflow — and draws a tinted, shadow-baked silhouette sprite rotated to heading.",
+          throttle:
+            "The whole layer shares one zoom-aware cadence (the focal target at 30fps, coarser as you zoom out), keeping the GPU free for smooth panning and sidebar scrolling.",
+        },
+      },
     },
   },
   sidebar: {

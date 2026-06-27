@@ -26,6 +26,12 @@ export const AIRPORT_MAP_PANES = {
     name: "airport-map-candidate-spot",
     zIndex: 430,
   },
+  // Single canvas for all aircraft glyphs. Sits above the trace/badge panes so
+  // planes draw on top of their own trail, matching the old marker pane (~600).
+  aircraft: {
+    name: "airport-map-aircraft",
+    zIndex: 600,
+  },
 };
 
 // Color values intentionally resolve through CSS variables so each
