@@ -6,6 +6,7 @@ import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
 import { ARRIVAL, DEPARTURE } from "@/utils/aircraftMovement";
 import {
   convertTemperatureFromC,
+  formatAltitude,
   temperatureUnitLabel,
 } from "@/utils/units";
 
@@ -36,8 +37,12 @@ export default function SidebarViewSwitch({
     ? { value: "—", unit: temperatureUnitLabel(units.temperature) }
     : formatTemperature(metar, units.temperature);
   const temperatureUnit = temperature.value === "—" ? undefined : temperature.unit;
+  // In here mode the user's position is not an airport, so departure/arrival
+  // classification is meaningless (everything resolves to UNKNOWN). The movement
+  // row is replaced by ambient traffic readouts: the average speed and altitude
+  // of the airborne aircraft around the user.
   const showMovementCards =
-    featureFlagsResolved && routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
+    !nearMe && featureFlagsResolved && routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
   const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
   const spottingCount = Number(candidateSpotCount) || 0;
   const showAtcCard = atcCount > 0;
@@ -55,10 +60,40 @@ export default function SidebarViewSwitch({
     return { departureCount: dep, arrivalCount: arr };
   }, [aircraft, routeProvider]);
 
+  // Ambient here-mode stats: mean speed/altitude across airborne aircraft only
+  // (on-ground aircraft have no meaningful cruise altitude and drag the speed
+  // mean toward zero). Null when no airborne aircraft carry the field.
+  const { avgSpeed, avgAltitude } = useMemo(() => {
+    if (!nearMe) return { avgSpeed: null, avgAltitude: null };
+    let speedSum = 0;
+    let speedCount = 0;
+    let altSum = 0;
+    let altCount = 0;
+    for (const item of aircraft) {
+      if (item?.onGround) continue;
+      const speed = Number(item?.velocity);
+      if (Number.isFinite(speed)) {
+        speedSum += speed;
+        speedCount += 1;
+      }
+      const altitude = Number(item?.altitude);
+      if (Number.isFinite(altitude)) {
+        altSum += altitude;
+        altCount += 1;
+      }
+    }
+    return {
+      avgSpeed: speedCount ? speedSum / speedCount : null,
+      avgAltitude: altCount ? altSum / altCount : null,
+    };
+  }, [aircraft, nearMe]);
+
   // Footer stacks into rows under the flight-count hero: first the movement
   // row (departures / arrivals) as the direct breakdown of the count, then
   // the context row (weather / ATC / spotting). Each conditional cell simply
-  // drops out of its row when absent.
+  // drops out of its row when absent. In here mode the movement row carries the
+  // ambient speed/altitude readouts instead — they are pure stats, not views,
+  // so they render as static cells (no view switch, no active rail).
   const movementCells = [];
   if (showMovementCards) {
     movementCells.push({
@@ -74,6 +109,26 @@ export default function SidebarViewSwitch({
       value: <NumberFlow value={arrivalCount} />,
       active: activeView === "arrivals",
       onClick: () => onViewChange?.("arrivals"),
+    });
+  } else if (nearMe) {
+    const altitudeDisplay =
+      avgAltitude == null
+        ? null
+        : formatAltitude(avgAltitude, units.altitude, { kind: "cruise" });
+    movementCells.push({
+      key: "avgSpeed",
+      label: t("sidebar.avgSpeed"),
+      value: avgSpeed == null ? "—" : <NumberFlow value={Math.round(avgSpeed)} />,
+      unit: avgSpeed == null ? undefined : "kt",
+      readOnly: true,
+    });
+    movementCells.push({
+      key: "avgAltitude",
+      label: t("sidebar.avgAltitude"),
+      value: altitudeDisplay ? <NumberFlow value={altitudeDisplay.value} /> : "—",
+      unit: altitudeDisplay?.unit || undefined,
+      prefix: altitudeDisplay?.prefix,
+      readOnly: true,
     });
   }
   const restCells = [];
@@ -166,7 +221,39 @@ export default function SidebarViewSwitch({
   );
 }
 
-function StatCell({ label, value, unit, active, onClick }) {
+function StatCell({ label, value, unit, prefix, active, onClick, readOnly = false }) {
+  const body = (
+    <>
+      <div className="truncate text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{label}</div>
+      <div className="mt-[3px]">
+        {prefix ? (
+          <span
+            className="notranslate text-[calc(10px*var(--sb-body-scale))] text-atc-faint"
+            translate="no"
+          >
+            {prefix}
+          </span>
+        ) : null}
+        <span className="text-[calc(16px*var(--sb-body-scale))] font-normal tabular-nums text-atc-text">
+          {value}
+        </span>
+        {unit ? (
+          <span className="ml-0.5 text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{unit}</span>
+        ) : null}
+      </div>
+    </>
+  );
+
+  // Read-only stats (here-mode speed/altitude) are not view switches: render a
+  // plain cell with no hover/active affordance so they don't read as tappable.
+  if (readOnly) {
+    return (
+      <div className="relative min-w-0 flex-1 px-[11px] py-[9px] text-left [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)]">
+        {body}
+      </div>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -175,15 +262,7 @@ function StatCell({ label, value, unit, active, onClick }) {
       aria-pressed={active}
       className="relative min-w-0 flex-1 px-[11px] py-[9px] text-left transition-[background-color] duration-200 ease-out [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:origin-center before:scale-x-0 before:bg-[var(--atc-signal-accent)] before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.34,1.3,0.64,1)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:before:scale-x-100"
     >
-      <div className="truncate text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{label}</div>
-      <div className="mt-[3px]">
-        <span className="text-[calc(16px*var(--sb-body-scale))] font-normal tabular-nums text-atc-text">
-          {value}
-        </span>
-        {unit ? (
-          <span className="ml-0.5 text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{unit}</span>
-        ) : null}
-      </div>
+      {body}
     </button>
   );
 }
