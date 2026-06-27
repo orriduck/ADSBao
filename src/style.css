@@ -9263,12 +9263,9 @@ body {
         margin-top: 3px;
     }
 
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .airport-sidebar-identity
-        h1 {
-        display: none;
-    }
-
+    /* Keep the airport-name title (h1) visible in landscape now that the panel
+       is wider — only the secondary subtitle + coordinate line are dropped to
+       save vertical space. */
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .airport-sidebar-identity
         h1
@@ -9380,9 +9377,8 @@ body {
         margin-top: 3px;
     }
 
-    .airport-map-kit[data-client-orientation="landscape"]
-        .airport-sidebar-identity
-        h1,
+    /* Keep the airport-name title (h1) visible in short landscape too; only the
+       secondary subtitle + coordinate line drop out to save vertical space. */
     .airport-map-kit[data-client-orientation="landscape"]
         .airport-sidebar-identity
         h1

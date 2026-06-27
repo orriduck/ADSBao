@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.12",
+    kind: "patch",
+    title: {
+      en: "Restore the airport name in the landscape sidebar",
+      zh: "横屏侧栏恢复机场名字标题",
+    },
+    summary: {
+      en: "The airport name title is shown again in the mobile landscape sidebar — it had been dropped to save space when the panel was narrower, but now that it's wider there's room for it.",
+      zh: "移动端横屏侧栏重新显示机场名字标题——之前面板较窄时为省空间隐藏了,现在加宽后有空间放回来。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.11",
     kind: "patch",
     title: {
