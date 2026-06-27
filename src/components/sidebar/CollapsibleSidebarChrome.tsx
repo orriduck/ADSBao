@@ -235,13 +235,12 @@ export function SidebarBrandDock({
   return (
     <div
       className={cn(
-        "sidebar-brand-dock sticky top-0 z-[calc(var(--z-index-sticky)+1)] flex items-center justify-between gap-2 px-[var(--airport-sidebar-inset)] transition-[padding,background,box-shadow] duration-200 ease-out",
-        // At rest the brand row floats transparently on the frosted sidebar
-        // (no separate opaque strip / hard divider). Only once content
-        // scrolls under it does a faint frost + hairline fade in to mask it.
-        compact
-          ? "bg-[color-mix(in_oklab,var(--app-frost-tint)_52%,transparent)] [backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)] shadow-[0_1px_0_color-mix(in_oklab,var(--app-frost-border)_70%,transparent)]"
-          : "bg-transparent shadow-none",
+        "sidebar-brand-dock sticky top-0 z-[calc(var(--z-index-sticky)+1)] flex items-center justify-between gap-2 px-[var(--airport-sidebar-inset)] transition-[padding] duration-200 ease-out",
+        // The brand row is an OPAQUE strip (no backdrop-filter — that blur was
+        // a per-scroll cost). A gradient scrim rendered just below it (see
+        // .sidebar-brand-dock::after in style.css) fades scrolling content out
+        // before it reaches the logo, so content disappears naturally without
+        // any live blur.
         compact ? "pb-2 pt-3" : "pb-3 pt-5",
         "[[data-mobile-overlay=true]_&]:pb-1 [[data-mobile-overlay=true]_&]:pt-[calc(12px+env(safe-area-inset-top))]",
         className,
