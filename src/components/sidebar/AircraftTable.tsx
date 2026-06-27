@@ -46,7 +46,6 @@ import {
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent";
 import AircraftList from "./AircraftList";
-import AircraftSlot from "./AircraftSlot";
 import AirportSlot from "./AirportSlot";
 import VirtualNearbyList from "./VirtualNearbyList";
 
@@ -164,26 +163,10 @@ export default function AircraftTable({
     [filteredAirports],
   );
   const endpointAirportRows = hasRouteEndpointAirports ? filteredAirports : [];
-  // Pinned aircraft sits above the scrolling list and stays visible even
-  // when filters would otherwise exclude it. Look in the full nearby set,
-  // not the filtered rows, so a user can keep watching a selection without
-  // losing it to a stray filter toggle.
-  const pinnedAircraft = useMemo(() => {
-    if (!selectedAircraftId) return null;
-    return (
-      aircraftWithDist.find(
-        (item) => getAircraftIdentity(item) === selectedAircraftId,
-      ) ||
-      null
-    );
-  }, [aircraftWithDist, selectedAircraftId]);
-  // Don't duplicate the pinned aircraft inside the scroll list.
-  const listRows = useMemo(() => {
-    if (!pinnedAircraft) return filteredAircraft;
-    return filteredAircraft.filter(
-      (item) => getAircraftIdentity(item) !== selectedAircraftId,
-    );
-  }, [pinnedAircraft, filteredAircraft, selectedAircraftId]);
+  // Selecting an aircraft highlights its row in place (data-selected styling).
+  // It is no longer hoisted into a pinned header slot — that reorder cost a
+  // list reflow on every selection, and the in-place focus reads clearly enough.
+  const listRows = filteredAircraft;
   const combinedRows = useMemo(() => {
     const out = [];
     for (const aircraftItem of listRows) {
@@ -237,10 +220,7 @@ export default function AircraftTable({
   });
 
   return (
-    <div
-      data-has-pinned-aircraft={pinnedAircraft ? "true" : undefined}
-      className="aircraft-table-shell flex flex-col"
-    >
+    <div className="aircraft-table-shell flex flex-col">
       <div className="aircraft-table-controls flex-none">
         <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pb-1.5 pt-4">
           <span className="atc-kicker atc-kicker--lead">
@@ -333,17 +313,6 @@ export default function AircraftTable({
       </div>
 
       <div className="aircraft-table-list-card flex flex-col">
-        {pinnedAircraft && (
-          <div className="aircraft-table-pin">
-            <AircraftSlot
-              aircraft={pinnedAircraft}
-              cascadeOrder={0}
-              flipStaggerStep={0}
-              selectedAircraftId={selectedAircraftId}
-              onSelectAircraft={onSelectAircraft}
-            />
-          </div>
-        )}
         {endpointAirportRows.length > 0 ? (
           <ul>
             {endpointAirportRows.map((airport, index) => (
@@ -364,9 +333,7 @@ export default function AircraftTable({
         ) : null}
 
         <div className="aircraft-table-scroll-shell overflow-visible">
-          {listRows.length === 0 &&
-          filteredAirports.length === 0 &&
-          !pinnedAircraft ? (
+          {listRows.length === 0 && filteredAirports.length === 0 ? (
             <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-6 text-center text-[calc(10px*var(--sb-body-scale))] font-semibold uppercase tracking-normal text-atc-faint">
               {aircraft.length + airports.length
                 ? t("sidebar.noMatches")
