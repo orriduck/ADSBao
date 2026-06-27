@@ -34,9 +34,11 @@ const GROW_THRESHOLD_ROWS = 8;
 
 // Windowed render for the nearby list. Both aircraft and airport rows live in
 // a single scroll container so the virtualizer can manage them as one stream.
-// Stable per-item keys (icao for airports, callsign/icao24 for aircraft) let
-// React preserve component identity across scrolls so rows do not remount while
-// the user scrolls dense airport lists.
+// Rows are keyed by POSITION (index), not identity: each slot stays fixed at
+// its index and, when the list re-sorts, its occupant (CardFlipSlot's swapKey =
+// item.id) changes and the content cross-fades in place — rows never physically
+// slide. Scrolling only shifts which indices render, so a persisting slot keeps
+// its occupant and never spuriously swaps.
 export default function VirtualNearbyList({
   items,
   selectedAircraftId = "",
@@ -120,7 +122,10 @@ export default function VirtualNearbyList({
     getScrollElement: () => scrollRef?.current ?? null,
     estimateSize: () => ROW_HEIGHT_ESTIMATE_PX,
     overscan: OVERSCAN_ROWS,
-    getItemKey: (index) => visibleItems[index]?.id ?? index,
+    // Key by POSITION, not identity: a slot stays put at its index and its
+    // occupant changes when the list re-sorts (see CardFlipSlot), so rows never
+    // physically slide — the content cross-fades in place instead.
+    getItemKey: (index) => index,
     scrollMargin,
   });
 
@@ -206,7 +211,7 @@ export default function VirtualNearbyList({
           return (
             <NearbyVirtualRow
               ref={virtualizer.measureElement}
-              key={item.id}
+              key={virtualRow.index}
               index={virtualRow.index}
               start={virtualRow.start - scrollMargin}
               shouldAnimateEnter={enterFlags.get(item.id) === true}

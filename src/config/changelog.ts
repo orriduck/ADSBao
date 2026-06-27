@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 55;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.31.6",
+    version: "v2.31.7",
     kind: "feat",
     title: {
       en: "Flight route badges in the nearby list",
@@ -62,6 +62,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       zh: "邻近列表中有航路的飞机现在带一枚紧凑的航路徽章——磨砂胶囊里显示起点 → 终点,有航司 logo 时在左侧淡入。没有已知航路的飞机不显示副标题(不再显示注册号)。",
     },
     highlights: [
+      {
+        en: "Nearby-list motion: when the list re-sorts, each row stays in place and its content cross-fades to the new aircraft (instead of rows sliding around), and a route badge eases in when its route resolves. Light, scroll-safe, and keeps the list's real-time feel.",
+        zh: "邻近列表动效:列表重新排序时每一行位置不动、内容就地交叉淡入切到新飞机(而非整行滑动),航路解析出来时徽章淡入登场。轻量、滚动安全,保持列表的实时手感。",
+      },
       {
         en: "Airport sidebar polish: the Flights metric now eases open and closed (height + count) instead of snapping, the logo row blends into the frosted panel, and the Flights tile gets the same orange active state as the others.",
         zh: "机场侧边栏细节:Flights 指标现在平滑展开/收起(高度与数字)而非生硬切换,logo 行融入磨砂面板,Flights 磁贴也获得与其它磁贴一致的橙色激活态。",
