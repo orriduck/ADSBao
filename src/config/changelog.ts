@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 55;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.31.5",
+    version: "v2.31.6",
     kind: "feat",
     title: {
       en: "Flight route badges in the nearby list",
@@ -61,7 +61,12 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       en: "Routed aircraft in the nearby list now carry a compact route badge — origin → destination in a frosted pill, with the airline's logo fading in at the left when one is available. Aircraft with no known route show no subline (the registration is no longer shown there).",
       zh: "邻近列表中有航路的飞机现在带一枚紧凑的航路徽章——磨砂胶囊里显示起点 → 终点,有航司 logo 时在左侧淡入。没有已知航路的飞机不显示副标题(不再显示注册号)。",
     },
-    highlights: [],
+    highlights: [
+      {
+        en: "Airport sidebar polish: the Flights metric now eases open and closed (height + count) instead of snapping, the logo row blends into the frosted panel, and the Flights tile gets the same orange active state as the others.",
+        zh: "机场侧边栏细节:Flights 指标现在平滑展开/收起(高度与数字)而非生硬切换,logo 行融入磨砂面板,Flights 磁贴也获得与其它磁贴一致的橙色激活态。",
+      },
+    ],
   },
 ];
 
