@@ -47,7 +47,7 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 87;
+export const CHANGELOG_TOTAL_COUNT = 55;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
