@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.4",
+    version: "v2.32.5",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -81,6 +81,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Live-map performance: aircraft markers no longer rebuild their silhouette SVG + label on every position tick. The portal content is split into a content component memoized on a quantized visual key, so a position-only update (the common case) skips the React/SVG reconcile while the marker keeps animating imperatively — markers and the focal-flight detail page stay smooth under a full airport's worth of traffic. Peak main-thread hitch on a busy airport dropped from ~82ms to ~59ms. The visual key also drops the dark-only headlight inputs (speed/altitude) in light theme, so climbing and accelerating traffic stop re-rendering for state the map isn't even drawing.",
         zh: "实时地图性能:飞机 marker 不再每个位置 tick 都重建剪影 SVG + 标签。portal 内容拆成一个按量化视觉键 memo 的子组件,仅位置变化(最常见的情况)时跳过 React/SVG reconcile,而 marker 仍由运动循环命令式平滑移动——满载机场流量下 marker 与焦点航班详情页都更顺。繁忙机场的主线程卡顿峰值从约 82ms 降到约 59ms。视觉键在亮色主题下还会去掉仅暗色头灯才用的速度/高度输入,这样爬升、加速的飞机不再为地图根本没绘制的状态而重渲染。",
+      },
+      {
+        en: "Here mode (your location, not an airport) no longer shows the departures/arrivals split — that classification needs an airport anchor, so off-airport it was always 0/0 and opened empty views. Those two cells now read out the ambient traffic instead: the average speed and altitude of the airborne aircraft around you.",
+        zh: "Here 模式(你的位置,不是机场)不再显示起飞/到达拆分——这个分类需要机场作为锚点,离开机场时它永远是 0/0,点进去也是空视图。这两格现在改为读出周围空情:你身边在飞的飞机的平均速度与平均高度。",
       },
     ],
   },

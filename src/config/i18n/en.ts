@@ -267,6 +267,8 @@ const en = {
     nearMeSubtitle: "Live aircraft around you",
     departures: "Dep",
     arrivals: "Arr",
+    avgSpeed: "Speed",
+    avgAltitude: "Alt.",
     atc: "ATC",
     spotting: "Spot",
     metricUnits: {
