@@ -3,6 +3,7 @@ import NumberFlow from "@number-flow/react";
 import AircraftTable from "./AircraftTable";
 import SidebarIdentityHero from "./SidebarIdentityHero";
 import SidebarShell from "./SidebarShell";
+import StatTile from "@/components/ui/StatTile";
 import {
   formatFlightRouteLabel,
   getFlightRouteAccuracyNotice,
@@ -258,7 +259,8 @@ function FlightTelemetryGrid({
     <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
       <div className="overflow-hidden rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] shadow-[var(--atc-control-inset-shadow-subtle)]">
         <div className="grid grid-cols-2">
-          <TelemetryPrimary
+          <StatTile
+            size="lg"
             label={t("metrics.speed")}
             active={activeMetric === "speed"}
             onClick={() => toggle("speed")}
@@ -273,8 +275,8 @@ function FlightTelemetryGrid({
               )
             }
           />
-          <TelemetryPrimary
-            divider
+          <StatTile
+            size="lg"
             label={t("metrics.altitude")}
             active={activeMetric === "altitude"}
             onClick={() => toggle("altitude")}
@@ -282,7 +284,7 @@ function FlightTelemetryGrid({
           />
         </div>
         <div className="flex border-t border-[var(--app-frost-border)]">
-          <TelemetryAux
+          <StatTile
             label={t("metrics.verticalSpeed")}
             active={activeMetric === "vs"}
             onClick={() => toggle("vs")}
@@ -298,15 +300,13 @@ function FlightTelemetryGrid({
               )
             }
           />
-          <TelemetryAux
-            divider
+          <StatTile
             label={t("metrics.track")}
             active={activeMetric === "track"}
             onClick={() => toggle("track")}
             value={trackValue}
           />
-          <TelemetryAux
-            divider
+          <StatTile
             label={t("metrics.flightPhase")}
             active={activeMetric === "status"}
             onClick={() => toggle("status")}
@@ -315,43 +315,6 @@ function FlightTelemetryGrid({
         </div>
       </div>
     </div>
-  );
-}
-
-const TELEMETRY_ACTIVE_CLASS =
-  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)]";
-
-function TelemetryPrimary({ label, value, active, onClick, divider = false }: FlightSidebarRecord) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      data-active={active ? "true" : undefined}
-      onClick={onClick}
-      className={`px-[15px] pb-[13px] pt-[13px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] ${TELEMETRY_ACTIVE_CLASS} ${divider ? "border-l border-[var(--app-frost-border)]" : ""}`}
-    >
-      <div className="text-[calc(12px*var(--sb-body-scale))] font-medium text-atc-dim">{label}</div>
-      <div className="mt-1.5 text-[calc(26px*var(--sb-body-scale))] font-bold leading-none tracking-[-0.5px] tabular-nums text-atc-text">
-        {value}
-      </div>
-    </button>
-  );
-}
-
-function TelemetryAux({ label, value, active, onClick, divider = false }: FlightSidebarRecord) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      data-active={active ? "true" : undefined}
-      onClick={onClick}
-      className={`min-w-0 flex-1 px-[13px] py-[9px] text-left transition-colors hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:shadow-[inset_0_2px_0_var(--atc-signal-accent)] ${divider ? "border-l border-[var(--app-frost-border)]" : ""}`}
-    >
-      <div className="truncate text-[calc(10px*var(--sb-body-scale))] text-atc-faint">{label}</div>
-      <div className="mt-[3px] truncate text-[calc(15px*var(--sb-body-scale))] font-bold tabular-nums text-atc-text">
-        {value}
-      </div>
-    </button>
   );
 }
 
