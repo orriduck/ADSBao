@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Plane } from "lucide-react";
 import { routeBadgePropsFromRoute } from "../../utils/flightRouteDisplay";
 import RouteBadge from "@/components/ui/RouteBadge";
@@ -46,6 +46,29 @@ function AircraftRow({
   // The subline is the route badge when a route exists, and nothing otherwise —
   // the registration / N-number is never shown here.
   const routeBadge = routeBadgePropsFromRoute(aircraft.flightRoute);
+  const hasRoute = Boolean(routeBadge);
+
+  // Play the badge reveal ONLY when a route resolves while the SAME aircraft is
+  // already mounted and on screen — the route lookup lands well after the row
+  // paints. prevRoute.mounted gates out the first render; the id check gates out
+  // a slot's occupant changing on a re-sort (rows are position-keyed, so the
+  // slot's aircraft swaps in place — that's CardFlipSlot's cross-fade, not a
+  // route appearing). Only a genuine same-aircraft no-route -> route fires it.
+  const [revealRoute, setRevealRoute] = useState(false);
+  const prevRouteRef = useRef({ id: aircraftId, mounted: false, had: hasRoute });
+  useEffect(() => {
+    const prev = prevRouteRef.current;
+    const sameAircraft = prev.id === aircraftId;
+    if (prev.mounted && sameAircraft && hasRoute && !prev.had) {
+      setRevealRoute(true);
+    }
+    prevRouteRef.current = { id: aircraftId, mounted: true, had: hasRoute };
+  }, [aircraftId, hasRoute]);
+  useEffect(() => {
+    if (!revealRoute) return undefined;
+    const timer = window.setTimeout(() => setRevealRoute(false), 320);
+    return () => window.clearTimeout(timer);
+  }, [revealRoute]);
 
   const distValue = toNumber(aircraft.distanceNm);
   const distanceDisplay = formatNearbyDistanceDisplay(distValue, units.distance);
@@ -91,7 +114,12 @@ function AircraftRow({
         >
           {callsign}
         </span>
-        {routeBadge ? <RouteBadge {...routeBadge} className="shrink-0" /> : null}
+        {routeBadge ? (
+          <RouteBadge
+            {...routeBadge}
+            className={`shrink-0 ${revealRoute ? "route-badge-reveal" : ""}`}
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-none items-baseline gap-2.5 font-mono tabular-nums">
