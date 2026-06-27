@@ -236,11 +236,12 @@ export function SidebarBrandDock({
     <div
       className={cn(
         "sidebar-brand-dock sticky top-0 z-[calc(var(--z-index-sticky)+1)] flex items-center justify-between gap-2 px-[var(--airport-sidebar-inset)] transition-[padding] duration-200 ease-out",
-        // The brand row is an OPAQUE strip (no backdrop-filter — that blur was
-        // a per-scroll cost). A gradient scrim rendered just below it (see
-        // .sidebar-brand-dock::after in style.css) fades scrolling content out
-        // before it reaches the logo, so content disappears naturally without
-        // any live blur.
+        // The sticky brand row's resting surface (near-opaque panel tint +
+        // fade scrim, no backdrop-filter) is owned by a single token-driven
+        // rule — .sidebar-brand-dock.sticky in style.css, keyed off
+        // --app-frost-tint so every glass sidebar shares one appearance. A
+        // gradient scrim just below it fades scrolling content out before it
+        // reaches the logo, so content disappears naturally without a live blur.
         compact ? "pb-2 pt-3" : "pb-3 pt-5",
         "[[data-mobile-overlay=true]_&]:pb-1 [[data-mobile-overlay=true]_&]:pt-[calc(12px+env(safe-area-inset-top))]",
         className,

@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.1",
+    version: "v2.32.2",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -73,6 +73,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Preview polish: aircraft photos that 404 or fail to decode now hide cleanly instead of leaving a broken-image frame, and the realtime feed's reconnecting state shows a tiny spinner in place of the wide RECONNECTING/CONNECTING label that used to flicker and crowd the status row.",
         zh: "预览细节优化:飞机照片在 404 或解码失败时直接隐藏,不再留下破图占位;实时数据流重连状态改用一个极小的旋转图标,取代过去那段会闪烁、又挤占状态行排版的 RECONNECTING/CONNECTING 文字。",
+      },
+      {
+        en: "Unified the sticky sidebar logo row across every glass sidebar (home, desktop explorer, mobile detail). Its resting surface now comes from one token-driven rule instead of three per-panel overrides that had drifted apart — the live backdrop-blur that smeared scrolling rows into a band is gone, replaced by the panel's own tint plus a clean fade-out scrim, so content disappears under the wordmark without a seam or bleed-through.",
+        zh: "统一了各个玻璃侧边栏(首页、桌面浏览、移动详情)顶部吸附的 Logo 行。它的静止态外观改由单一 token 规则驱动,取代此前已各自漂移的三份按面板覆盖样式——会把滚动行糊成一条带子的实时背景模糊被移除,改用面板自身的色调加一层干净的渐隐遮罩,内容滚到 Logo 下方自然消失,不再有接缝或透字。",
       },
     ],
   },
