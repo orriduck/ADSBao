@@ -168,18 +168,20 @@ function AircraftPosition({
     const motion = motionRef.current;
     if (!marker || !motion) return false;
 
-    const shouldContinue = shouldAnimateInCurrentViewport(motion, now);
-    // Animated markers move at most at the zoom/focal-derived cadence (see
-    // resolveMotionIntervalMs) — the loop still wakes every frame, but the
-    // GPU-visible setLatLng is rate-limited. Settled / off-viewport markers
-    // (shouldContinue=false) skip the gate and just place once.
+    // Throttle BEFORE touching the map. shouldAnimateInCurrentViewport →
+    // resolveMotionBounds reads map.getBounds() + the container's clientWidth —
+    // a FORCED SYNCHRONOUS LAYOUT. Running that every frame interleaves with the
+    // sidebar scroll's own layout and thrashes the pipeline (low CPU/GPU yet low
+    // fps). During the zoom/focal throttle window we do ZERO per-frame layout —
+    // just keep the loop alive; viewport + position are re-evaluated only when
+    // the cadence interval elapses.
     if (
-      shouldContinue &&
       now - lastAppliedAtRef.current <
-        resolveMotionIntervalMs(map, focalRef.current)
+      resolveMotionIntervalMs(map, focalRef.current)
     ) {
       return true;
     }
+    const shouldContinue = shouldAnimateInCurrentViewport(motion, now);
     const pos = shouldContinue
       ? calculateAircraftVisualPosition(motion, now)
       : resolveAircraftLatLng(motion.lat, motion.lon);
