@@ -170,6 +170,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.31.8",
+    kind: "feat",
+    title: {
+      en: "Flight route badges in the nearby list",
+      zh: "邻近列表加入航路徽章",
+    },
+    summary: {
+      en: "Routed aircraft in the nearby list now carry a compact route badge — origin → destination in a frosted pill, with the airline's logo fading in at the left when one is available. When the list re-sorts, each row stays in place and its content cross-fades to the new aircraft instead of sliding around, and the Flights metric and logo row in the airport sidebar got matching motion and blend polish.",
+      zh: "邻近列表中有航路的飞机现在带一枚紧凑的航路徽章——磨砂胶囊里显示起点 → 终点,有航司 logo 时在左侧淡入。列表重新排序时每一行位置不动、内容就地交叉淡入切到新飞机(而非整行滑动);机场侧边栏的 Flights 指标与 logo 行也获得了配套的动效与融合打磨。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.17",
     kind: "feat",
     title: {
