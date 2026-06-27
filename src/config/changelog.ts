@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.10",
+    kind: "patch",
+    title: {
+      en: "Keep the map scale clear of the landscape sidebar",
+      zh: "横屏下比例尺避开侧栏",
+    },
+    summary: {
+      en: "In mobile landscape the map's range scale is offset clear of the sidebar instead of hiding behind it.",
+      zh: "移动端横屏下,地图比例尺移到侧栏右侧,不再被侧栏遮住。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.9",
     kind: "patch",
     title: {
