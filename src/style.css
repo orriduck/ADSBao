@@ -8527,11 +8527,27 @@ body {
     left: calc(var(--map-kit-inset) + var(--app-safe-area-left, 0px));
 }
 
-/* In mobile landscape the sidebar spans the full height down the left, so the
-   bottom-left range scale would hide behind it. Offset it clear of the panel
-   (width + Dynamic-Island inset). Scoped to mobile landscape only — desktop and
-   portrait keep the default left-4 placement. */
-.airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
+/* The bottom-left range scale is positioned against the full-bleed map, so it
+   hides behind the sidebar wherever the panel is shown down the left edge —
+   desktop/tablet (≥768) and mobile landscape. Offset it clear of the panel
+   (width + Dynamic-Island inset, which is 0 without an island). A collapsed
+   sidebar is a small pill that doesn't occlude the scale, so :has() keeps the
+   default left-4 placement in that case. Portrait (<768) uses a bottom-sheet
+   sidebar that never covers the bottom-left, so it is excluded. */
+@media (min-width: 768px) {
+    .airport-map-kit:has(.airport-desktop-sidebar:not([data-collapsed="true"]))
+        .z-map-legend {
+        left: calc(
+            var(--app-sidebar-width) + var(--app-safe-area-left, 0px) + 16px
+        );
+    }
+}
+
+/* Landscape phones below 768px still show the desktop sidebar via the mobile
+   landscape exception, so offset there too. */
+.airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]:has(
+        .airport-desktop-sidebar:not([data-collapsed="true"])
+    )
     .z-map-legend {
     left: calc(
         var(--app-sidebar-width) + var(--app-safe-area-left, 0px) + 16px
