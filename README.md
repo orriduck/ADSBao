@@ -52,6 +52,10 @@ airspace, runway, route, and map data as reference context only.
 - **Route lookup and correction feedback**: Resolve callsign routes through
   same-origin server routes, with adsbdb as the public route source and
   account-gated FlightAware fallback for enabled users.
+- **Browser-agent tools (WebMCP)**: Expose a small browser-native WebMCP
+  surface so in-browser agents can search airports, open airport and aircraft
+  pages, and read the current page context. Browsers without WebMCP simply skip
+  it and the normal UI stays the source of truth.
 
 ## Live Examples
 
@@ -83,9 +87,9 @@ data-service origin.
 | `/api/search` | OpenAIP Core API | Airport search |
 | `/api/airport/[ident]` | OpenAIP Core API + OurAirports static facilities | Airport detail, runways, frequencies, navaids, airspaces, reporting points, obstacles, runway map |
 | `/api/proxy/metar/:icao` | AviationWeather | METAR weather context |
-| `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol | Nearby aircraft |
-| `/api/proxy/aircraft/callsign/:callsign` | ADS-B callsign providers | Tracked aircraft state |
-| `/api/proxy/aircraft/trace/:hex` | ADS-B trace providers | Recent and full aircraft trace |
+| `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol, airplanes.live, adsb.fi (failover) | Nearby aircraft |
+| `/api/proxy/aircraft/callsign/:callsign` | adsb.lol, airplanes.live, adsb.fi (failover) | Tracked aircraft state |
+| `/api/proxy/aircraft/trace/:hex` | adsb.lol, airplanes.live, adsb.fi (failover) | Recent and full aircraft trace |
 | `/api/proxy/flight-routes/callsign/:callsign` | adsbdb, route feedback, optional FlightAware fallback | Callsign route labels |
 | `/api/proxy/airports/nearby` | OpenAIP Core API | Nearby airport overlays |
 
@@ -107,7 +111,7 @@ data-service origin.
 
 ### Prerequisites
 
-- Node.js 24+
+- Node.js 22+
 - pnpm
 - Go 1.26+ for `services/data-service`
 
@@ -242,7 +246,8 @@ ADSBao/
 │   │   ├── aviation/      # Shared aviation clients and route mechanisms
 │   │   ├── weather/       # Weather models and METAR/local-weather integration
 │   │   ├── about/         # About-page view models
-│   │   └── app-shell/     # Theme, locale, auth, and feature-flag helpers
+│   │   ├── app-shell/     # Theme, locale, auth, and feature-flag helpers
+│   │   └── webmcp/        # Browser-native WebMCP tool registration for agents
 │   ├── hooks/             # Shared React hooks
 │   ├── config/            # Runtime, release, map, weather, and provider configuration
 │   ├── constants/         # Shared product constants
