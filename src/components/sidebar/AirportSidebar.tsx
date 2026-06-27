@@ -43,6 +43,8 @@ export default function AirportSidebar({
   // The identity hero swaps to a "Your location" header and the
   // metric cards collapse to weather + nearby traffic.
   nearMe = false,
+  nearMeSelfSpeedMps = null,
+  nearMeSelfAltitudeMeters = null,
   nearMeRefresh,
   onSelectAircraft,
   onSelectAirport,
@@ -109,6 +111,8 @@ export default function AirportSidebar({
         candidateSpotCount={spottingSpots.length}
         onOpenSpotting={handleSpottingView}
         nearMe={nearMe}
+        nearMeSelfSpeedMps={nearMeSelfSpeedMps}
+        nearMeSelfAltitudeMeters={nearMeSelfAltitudeMeters}
         featureFlagsResolved={flightAwareResolved}
       />
     </>

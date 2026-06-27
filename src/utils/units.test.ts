@@ -5,7 +5,9 @@ import {
   convertTemperatureFromC,
   convertAltitudeFromFt,
   formatAltitude,
+  formatAltitudeFromMeters,
   formatDistance,
+  formatGroundSpeed,
   formatTemperature,
 } from "./units";
 
@@ -85,6 +87,46 @@ assert.equal(formatDistance("oops", "km"), null);
   assert.ok(meters);
   assert.equal(meters.unit, "m");
   assert.equal(Math.round(meters.value as number), 305);
+}
+
+// --- Here-mode ground speed (km/h default, mph on toggle; never knots)
+{
+  // 10 m/s = 36 km/h, and the same speed in mph.
+  assert.deepEqual(formatGroundSpeed(10, "kmh"), {
+    value: 36,
+    unit: "km/h",
+    text: null,
+  });
+  assert.deepEqual(formatGroundSpeed(10, "mph"), {
+    value: 22,
+    unit: "mph",
+    text: null,
+  });
+  // No fix / negative / non-finite collapses to null (em dash at the call site).
+  assert.equal(formatGroundSpeed(null, "kmh"), null);
+  assert.equal(formatGroundSpeed(-1, "kmh"), null);
+  // A stationary device reporting 0 is a real reading, not "no fix".
+  assert.deepEqual(formatGroundSpeed(0, "kmh"), {
+    value: 0,
+    unit: "km/h",
+    text: null,
+  });
+}
+
+// --- Altitude from metres (Geolocation API reports metres)
+{
+  // ~305 m ≈ 1000 ft.
+  const feet = formatAltitudeFromMeters(304.8, "ft");
+  assert.deepEqual(feet, { value: 1000, unit: "ft", text: null });
+  // Metres preference round-trips back to metres.
+  const meters = formatAltitudeFromMeters(305, "m");
+  assert.ok(meters);
+  assert.equal(meters.unit, "m");
+  assert.equal(Math.round(meters.value as number), 305);
+  // Ground kind keeps a pedestrian off flight levels.
+  const fl = formatAltitudeFromMeters(304.8, "fl", { kind: "ground" });
+  assert.deepEqual(fl, { value: 1000, unit: "ft", text: null });
+  assert.equal(formatAltitudeFromMeters(null, "ft"), null);
 }
 
 console.log("units.test.ts ok");

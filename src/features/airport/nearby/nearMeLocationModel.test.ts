@@ -13,6 +13,8 @@ const baseLocation: NearMeLocation = {
   lon: -71.0096,
   accuracyMeters: 12,
   headingDeg: 10,
+  speedMps: null,
+  altitudeMeters: null,
   updatedAt: 1_000,
 };
 
@@ -147,6 +149,38 @@ assert.equal(resolveNearMeDeviceHeading({ absolute: true, alpha: null }), null);
     updatedAt: 2_000,
   };
 
+  assert.equal(shouldUpdateNearMeLocation(previous, next), false);
+}
+
+// Geolocation speed/altitude are captured; a negative speed (no fix) collapses
+// to null so a stationary device never shows a bogus value.
+{
+  const location = buildNearMeLocationFromCoords(
+    { latitude: 42.36, longitude: -71.01, speed: 5.4, altitude: 30 },
+    1_000,
+  );
+  assert.equal(location?.speedMps, 5.4);
+  assert.equal(location?.altitudeMeters, 30);
+}
+{
+  const location = buildNearMeLocationFromCoords(
+    { latitude: 42.36, longitude: -71.01, speed: -1, altitude: null },
+    1_000,
+  );
+  assert.equal(location?.speedMps, null);
+  assert.equal(location?.altitudeMeters, null);
+}
+
+// A whole-unit speed change refreshes the live readout even when the position
+// is unchanged; sub-unit jitter does not.
+{
+  const previous = { ...baseLocation, speedMps: 0 };
+  const next = { ...baseLocation, speedMps: 5, updatedAt: 2_000 };
+  assert.equal(shouldUpdateNearMeLocation(previous, next), true);
+}
+{
+  const previous = { ...baseLocation, speedMps: 5.1 };
+  const next = { ...baseLocation, speedMps: 5.2, updatedAt: 2_000 };
   assert.equal(shouldUpdateNearMeLocation(previous, next), false);
 }
 

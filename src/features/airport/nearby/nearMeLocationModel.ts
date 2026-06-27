@@ -10,6 +10,11 @@ export type NearMeLocation = {
   lon: number;
   accuracyMeters: number | null;
   headingDeg: number | null;
+  // The user's own GPS-reported motion, surfaced by here mode. Speed is in
+  // metres/second and altitude in metres above the ellipsoid; both are null on
+  // devices/fixes that don't report them (common indoors and on desktop).
+  speedMps: number | null;
+  altitudeMeters: number | null;
   updatedAt: number;
 };
 
@@ -18,6 +23,8 @@ type NearMeCoords = {
   longitude?: unknown;
   accuracy?: unknown;
   heading?: unknown;
+  speed?: unknown;
+  altitude?: unknown;
 };
 
 type NearMeDeviceOrientationEvent = {
@@ -81,11 +88,17 @@ export function buildNearMeLocationFromCoords(
   const lon = toFiniteNumber(coords?.longitude);
   if (lat == null || lon == null) return null;
 
+  const speedMps = toFiniteNumber(coords?.speed);
+
   return {
     lat,
     lon,
     accuracyMeters: toFiniteNumber(coords?.accuracy),
     headingDeg: normalizeNearMeHeadingDeg(coords?.heading),
+    // Geolocation speed is non-negative when present; treat a negative reading
+    // as "no fix" so a stationary phone never shows a bogus speed.
+    speedMps: speedMps != null && speedMps >= 0 ? speedMps : null,
+    altitudeMeters: toFiniteNumber(coords?.altitude),
     updatedAt,
   };
 }
@@ -98,6 +111,12 @@ export function shouldUpdateNearMeLocation(
 
   if (previous.lat !== next.lat || previous.lon !== next.lon) return true;
   if (previous.accuracyMeters !== next.accuracyMeters) return true;
+  // Refresh on a whole-unit speed change so the here-mode readout stays live
+  // even when the user is moving in place (e.g. slowing to a stop) without
+  // crossing the position threshold.
+  if (Math.round(previous.speedMps ?? -1) !== Math.round(next.speedMps ?? -1)) {
+    return true;
+  }
 
   if (previous.headingDeg == null) return next.headingDeg != null;
   if (next.headingDeg == null) return false;

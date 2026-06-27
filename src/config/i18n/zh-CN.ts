@@ -261,8 +261,7 @@ const zhCN = {
     nearMeSubtitle: "查看我周围的飞机",
     departures: "起飞",
     arrivals: "到达",
-    avgSpeed: "速度",
-    avgAltitude: "高度",
+    speed: "速度",
     atc: "ATC",
     spotting: "拍机点",
     metricUnits: {
