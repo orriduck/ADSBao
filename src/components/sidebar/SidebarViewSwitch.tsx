@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import NumberFlow from "@number-flow/react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
@@ -6,8 +6,10 @@ import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
 import { ARRIVAL, DEPARTURE } from "@/utils/aircraftMovement";
 import {
   convertTemperatureFromC,
-  formatAltitude,
+  formatAltitudeFromMeters,
+  formatGroundSpeed,
   temperatureUnitLabel,
+  type GroundSpeedUnit,
 } from "@/utils/units";
 
 // Frosted "hero stats block": one joined rounded glass container with a big
@@ -29,18 +31,22 @@ export default function SidebarViewSwitch({
   candidateSpotCount = 0,
   onOpenSpotting,
   nearMe = false,
+  nearMeSelfSpeedMps = null,
+  nearMeSelfAltitudeMeters = null,
   featureFlagsResolved = true,
 }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
+  // Here-mode ground speed has its own unit, independent of the aviation
+  // distance preference: km/h by default, tap to flip to mph.
+  const [groundSpeedUnit, setGroundSpeedUnit] = useState<GroundSpeedUnit>("kmh");
   const temperature = metarLoading
     ? { value: "—", unit: temperatureUnitLabel(units.temperature) }
     : formatTemperature(metar, units.temperature);
   const temperatureUnit = temperature.value === "—" ? undefined : temperature.unit;
   // In here mode the user's position is not an airport, so departure/arrival
   // classification is meaningless (everything resolves to UNKNOWN). The movement
-  // row is replaced by ambient traffic readouts: the average speed and altitude
-  // of the airborne aircraft around the user.
+  // row is replaced by the user's own GPS speed/altitude readouts instead.
   const showMovementCards =
     !nearMe && featureFlagsResolved && routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
   const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
@@ -60,40 +66,26 @@ export default function SidebarViewSwitch({
     return { departureCount: dep, arrivalCount: arr };
   }, [aircraft, routeProvider]);
 
-  // Ambient here-mode stats: mean speed/altitude across airborne aircraft only
-  // (on-ground aircraft have no meaningful cruise altitude and drag the speed
-  // mean toward zero). Null when no airborne aircraft carry the field.
-  const { avgSpeed, avgAltitude } = useMemo(() => {
-    if (!nearMe) return { avgSpeed: null, avgAltitude: null };
-    let speedSum = 0;
-    let speedCount = 0;
-    let altSum = 0;
-    let altCount = 0;
-    for (const item of aircraft) {
-      if (item?.onGround) continue;
-      const speed = Number(item?.velocity);
-      if (Number.isFinite(speed)) {
-        speedSum += speed;
-        speedCount += 1;
-      }
-      const altitude = Number(item?.altitude);
-      if (Number.isFinite(altitude)) {
-        altSum += altitude;
-        altCount += 1;
-      }
-    }
-    return {
-      avgSpeed: speedCount ? speedSum / speedCount : null,
-      avgAltitude: altCount ? altSum / altCount : null,
-    };
-  }, [aircraft, nearMe]);
+  // Here mode centers on the user, not an airport, so the movement row reads
+  // out the user's OWN motion from GPS: ground speed (km/h, tap for mph) and
+  // altitude (following the altitude preference, kept ground-relative so it
+  // never reads as a flight level). Null — the common indoor/stationary case
+  // where the device reports no speed/altitude — shows an em dash.
+  const selfSpeedDisplay = nearMe
+    ? formatGroundSpeed(nearMeSelfSpeedMps, groundSpeedUnit)
+    : null;
+  const selfAltitudeDisplay = nearMe
+    ? formatAltitudeFromMeters(nearMeSelfAltitudeMeters, units.altitude, {
+        kind: "ground",
+      })
+    : null;
 
   // Footer stacks into rows under the flight-count hero: first the movement
   // row (departures / arrivals) as the direct breakdown of the count, then
   // the context row (weather / ATC / spotting). Each conditional cell simply
   // drops out of its row when absent. In here mode the movement row carries the
-  // ambient speed/altitude readouts instead — they are pure stats, not views,
-  // so they render as static cells (no view switch, no active rail).
+  // user's own speed/altitude instead: speed is a tap target that toggles its
+  // unit (km/h ⇄ mph), altitude is a static readOnly cell.
   const movementCells = [];
   if (showMovementCards) {
     movementCells.push({
@@ -111,23 +103,29 @@ export default function SidebarViewSwitch({
       onClick: () => onViewChange?.("arrivals"),
     });
   } else if (nearMe) {
-    const altitudeDisplay =
-      avgAltitude == null
-        ? null
-        : formatAltitude(avgAltitude, units.altitude, { kind: "cruise" });
+    // Speed is a tap target (km/h ⇄ mph); altitude is a plain readout.
     movementCells.push({
-      key: "avgSpeed",
-      label: t("sidebar.avgSpeed"),
-      value: avgSpeed == null ? "—" : <NumberFlow value={Math.round(avgSpeed)} />,
-      unit: avgSpeed == null ? undefined : "kt",
-      readOnly: true,
+      key: "selfSpeed",
+      label: t("sidebar.speed"),
+      value: selfSpeedDisplay ? (
+        <NumberFlow value={selfSpeedDisplay.value} />
+      ) : (
+        "—"
+      ),
+      unit: selfSpeedDisplay?.unit || undefined,
+      onClick: () =>
+        setGroundSpeedUnit((current) => (current === "kmh" ? "mph" : "kmh")),
     });
     movementCells.push({
-      key: "avgAltitude",
-      label: t("sidebar.avgAltitude"),
-      value: altitudeDisplay ? <NumberFlow value={altitudeDisplay.value} /> : "—",
-      unit: altitudeDisplay?.unit || undefined,
-      prefix: altitudeDisplay?.prefix,
+      key: "selfAltitude",
+      label: t("sidebar.altitude"),
+      value: selfAltitudeDisplay ? (
+        <NumberFlow value={selfAltitudeDisplay.value} />
+      ) : (
+        "—"
+      ),
+      unit: selfAltitudeDisplay?.unit || undefined,
+      prefix: selfAltitudeDisplay?.prefix,
       readOnly: true,
     });
   }

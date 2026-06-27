@@ -7,6 +7,18 @@ import type {
 const NM_TO_KM = 1.852;
 const NM_TO_MI = 1.15077945;
 const FT_TO_M = 0.3048;
+const MS_TO_KMH = 3.6;
+const MS_TO_MPH = 2.2369362921;
+
+// Here-mode ground speed is a pedestrian/driver readout, deliberately decoupled
+// from the aviation distance unit: it has its own two-state toggle, km/h by
+// default and mph on tap, and never knots.
+export type GroundSpeedUnit = "kmh" | "mph";
+
+const GROUND_SPEED_LABELS: Record<GroundSpeedUnit, string> = {
+  kmh: "km/h",
+  mph: "mph",
+};
 
 const DISTANCE_LABELS: Record<DistanceUnit, string> = {
   nm: "NM",
@@ -165,6 +177,46 @@ export function formatAltitude(
   return {
     value: Math.round(numeric),
     unit: altitudeUnitLabel("ft"),
+    text: null,
+  };
+}
+
+// Altitude as reported by the Geolocation API is in metres above the WGS84
+// ellipsoid; reuse the foot-based formatter (and its unit handling) by
+// converting first. Returns null for the common indoor/desktop case where the
+// device reports no altitude.
+export function formatAltitudeFromMeters(
+  meters: unknown,
+  unit: AltitudeUnit,
+  options: FormatAltitudeOptions = {},
+): FormattedValue | null {
+  if (meters == null || meters === "") return null;
+  const numeric = Number(meters);
+  if (!Number.isFinite(numeric)) return null;
+  return formatAltitude(numeric / FT_TO_M, unit, options);
+}
+
+export function groundSpeedUnitLabel(unit: GroundSpeedUnit) {
+  return GROUND_SPEED_LABELS[unit] ?? GROUND_SPEED_LABELS.kmh;
+}
+
+export function convertSpeedFromMps(mps: number, unit: GroundSpeedUnit) {
+  if (!Number.isFinite(mps)) return mps;
+  return unit === "mph" ? mps * MS_TO_MPH : mps * MS_TO_KMH;
+}
+
+// Formats a ground speed measured in metres per second (Geolocation API) into
+// the here-mode km/h or mph readout. Negative/no-fix speeds collapse to null.
+export function formatGroundSpeed(
+  mps: unknown,
+  unit: GroundSpeedUnit,
+): FormattedValue | null {
+  if (mps == null || mps === "") return null;
+  const numeric = Number(mps);
+  if (!Number.isFinite(numeric) || numeric < 0) return null;
+  return {
+    value: Math.round(convertSpeedFromMps(numeric, unit)),
+    unit: groundSpeedUnitLabel(unit),
     text: null,
   };
 }

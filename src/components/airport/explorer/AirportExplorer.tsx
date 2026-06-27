@@ -91,6 +91,8 @@ function normalizeNearMeLocation(location) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   const accuracyMeters = Number(location?.accuracyMeters);
   const headingDeg = Number(location?.headingDeg);
+  const speedMps = Number(location?.speedMps);
+  const altitudeMeters = Number(location?.altitudeMeters);
   return {
     lat,
     lon,
@@ -99,6 +101,8 @@ function normalizeNearMeLocation(location) {
       Number.isFinite(headingDeg) && headingDeg >= 0
         ? ((headingDeg % 360) + 360) % 360
         : null,
+    speedMps: Number.isFinite(speedMps) && speedMps >= 0 ? speedMps : null,
+    altitudeMeters: Number.isFinite(altitudeMeters) ? altitudeMeters : null,
     updatedAt: Number(location?.updatedAt) || Date.now(),
   };
 }
@@ -189,6 +193,13 @@ function AirportExplorerContent({
     if (!nearMe) return null;
     return normalizeNearMeLocation(nearMeSidebarLocation) || nearMeMapUserLocation;
   }, [nearMe, nearMeMapUserLocation, nearMeSidebarLocation]);
+  // The here-mode speed/altitude readout follows the user's own motion, so it
+  // reads from the live position (not the distance-thresholded sidebar one) and
+  // survives hiding the map marker.
+  const nearMeSelfLocation = useMemo(
+    () => (nearMe ? normalizeNearMeLocation(nearMeUserLocation) : null),
+    [nearMe, nearMeUserLocation],
+  );
   const nearbyAirportsFocus = nearMeSidebarUserLocation || airportProfile;
   // Nearby-airports list runs first in near-me mode so we can borrow
   // the closest airport's ICAO for the METAR temperature fetch — the
@@ -474,6 +485,10 @@ function AirportExplorerContent({
     flightAwareResolved: traffic.flightAwareResolved,
     loadingStatus: sourceLoadingStatus,
     nearMe,
+    nearMeSelfSpeedMps: nearMe ? nearMeSelfLocation?.speedMps ?? null : null,
+    nearMeSelfAltitudeMeters: nearMe
+      ? nearMeSelfLocation?.altitudeMeters ?? null
+      : null,
     nearMeRefresh,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
