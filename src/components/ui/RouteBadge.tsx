@@ -30,7 +30,7 @@ export interface RouteBadgeProps {
 // U-shaped radial mask: solid at the left edge, fading inward so only the
 // logo's edge-anchored center shows and it never sits under the codes.
 const LOGO_MASK =
-  "radial-gradient(ellipse 140% 120% at 0% 50%, #000 0%, #000 32%, transparent 82%)";
+  "radial-gradient(ellipse 140% 120% at 0% 50%, #000 0%, #000 24%, transparent 68%)";
 
 export default function RouteBadge({
   from,
