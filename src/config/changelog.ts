@@ -45,6 +45,19 @@ export const CHANGELOG_TOTAL_COUNT = 101;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.30.15",
+    kind: "patch",
+    title: {
+      en: "Solid sidebar logo bar with a fade scrim",
+      zh: "侧栏 logo 改为实色 + 渐变淡出",
+    },
+    summary: {
+      en: "The sidebar logo row is now a solid strip with a soft gradient beneath it instead of a live backdrop blur — scrolling content fades out naturally under the logo, and there's no per-scroll blur to compute.",
+      zh: "侧栏 logo 那一条改为实色,下方加一道柔和渐变取代实时背景模糊——滚动内容在 logo 下自然淡出,也省去了每次滚动的模糊计算。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.30.14",
     kind: "patch",
     title: {

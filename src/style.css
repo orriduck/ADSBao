@@ -6329,16 +6329,25 @@ body {
     box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--atc-text) 28%, transparent);
 }
 
-.airport-map-kit .sidebar-brand-dock {
-    /* The brand row's tone (--atc-bg) softly fades into the frosted sidebar
-       below — no hard strip, no hairline divider — so the logo melts into the
-       panel instead of sitting on a separate header bar. */
-    background: linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--atc-bg) 92%, transparent),
-        transparent
-    ) !important;
-    box-shadow: none !important;
+/* The sticky brand row (every sidebar) is an OPAQUE strip — no backdrop-filter,
+   so there is no per-scroll blur to compute. A gradient scrim rendered just
+   below it (::after) fades scrolling content out before it reaches the logo, so
+   content disappears naturally as it scrolls up. The collapsed pill variant
+   (.static, a glass Toolbar) is intentionally excluded. */
+.sidebar-brand-dock.sticky {
+    background: var(--atc-bg);
+    box-shadow: none;
+}
+
+.sidebar-brand-dock.sticky::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 28px;
+    background: linear-gradient(to bottom, var(--atc-bg), transparent);
+    pointer-events: none;
 }
 
 .aircraft-search:focus-within {
