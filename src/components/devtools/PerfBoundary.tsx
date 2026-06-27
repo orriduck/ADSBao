@@ -1,11 +1,12 @@
 import { Profiler, type ReactNode } from "react";
-import { perfProbeEnabled, recordCommit } from "@/features/devtools/perfProbe";
+import { recordCommit } from "@/features/devtools/perfProbe";
 
-// Wraps a subtree in a React Profiler that reports commit cost to the dev perf
-// probe — but ONLY when the probe is enabled (?perf=1). When off it returns the
-// children untouched, so production and normal dev pay nothing.
+// In dev, always wrap in a Profiler so the probe can be toggled at runtime
+// (window.__adsbaoPerf.enable()) without remounting the subtree — recordCommit
+// is a no-op until the probe is enabled, so an idle Profiler is the only cost.
+// In production the whole branch is statically dropped (import.meta.env.DEV).
 export function PerfBoundary({ id, children }: { id: string; children: ReactNode }) {
-  if (!perfProbeEnabled()) return <>{children}</>;
+  if (!import.meta.env.DEV) return <>{children}</>;
   return (
     <Profiler id={id} onRender={(profilerId, _phase, actualDuration) => recordCommit(profilerId, actualDuration)}>
       {children}
