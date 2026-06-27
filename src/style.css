@@ -6422,13 +6422,24 @@ body {
     box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--atc-text) 28%, transparent);
 }
 
-/* The sticky brand row (every sidebar) is an OPAQUE strip — no backdrop-filter,
-   so there is no per-scroll blur to compute. A gradient scrim rendered just
-   below it (::after) fades scrolling content out before it reaches the logo, so
-   content disappears naturally as it scrolls up. The collapsed pill variant
-   (.static, a glass Toolbar) is intentionally excluded. */
+/* SINGLE source of truth for the sticky brand/logo row, shared by every glass
+   sidebar (desktop explorer .airport-map-kit, mobile detail shell
+   .app-detail-shell, home panel .dither-page-panel). They all standardise on
+   --app-frost-tint, so the row derives its resting surface from that ONE token
+   rather than each panel re-specifying it per ancestor (which is exactly what
+   let the surfaces drift apart).
+
+   - Back the logo with the panel's OWN tint (theme-aware via --app-frost-tint),
+     near-opaque so scrolling rows are hidden behind the wordmark.
+   - NO backdrop-filter: a live blur on a sticky row smeared the scrolling
+     rows/search into a frosted band under the logo.
+   - A matching tinted scrim (::after) just below fades content out cleanly as
+     it scrolls up — no smear, no foreign-colour seam.
+
+   The collapsed/static pill (.static) is a glass Toolbar and owns its own
+   surface, so it is intentionally untouched here. */
 .sidebar-brand-dock.sticky {
-    background: var(--atc-bg);
+    background: color-mix(in oklab, var(--app-frost-tint) 96%, transparent);
     box-shadow: none;
 }
 
@@ -6439,36 +6450,12 @@ body {
     left: 0;
     right: 0;
     height: 28px;
-    background: linear-gradient(to bottom, var(--atc-bg), transparent);
+    background: linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--app-frost-tint) 96%, transparent),
+        transparent
+    );
     pointer-events: none;
-}
-
-/* On the frosted panels (translucent glass + warm bottom-wash) the solid
-   --atc-bg logo strip + its fade-to-transparent scrim read as a separate band,
-   and the flat scrim colour can't track the panel's tint per theme. Give the
-   logo row the panel's OWN frosted material instead — transparent tint + the
-   same blur — so it melts into the panel, and drop the scrim band. Covers the
-   desktop explorer (.airport-map-kit), the mobile detail shell
-   (.app-detail-shell — airport + flight), and the home panel
-   (.dither-page-panel, which uses the stronger --app-frost-strong). Only the
-   collapsed/static pill keeps the opaque strip. */
-.airport-map-kit .sidebar-brand-dock.sticky,
-.app-detail-shell .sidebar-brand-dock.sticky {
-    background: transparent;
-    -webkit-backdrop-filter: saturate(1.4) blur(8px);
-    backdrop-filter: saturate(1.4) blur(8px);
-}
-
-.dither-page-panel .sidebar-brand-dock.sticky {
-    background: transparent;
-    -webkit-backdrop-filter: var(--app-frost-strong);
-    backdrop-filter: var(--app-frost-strong);
-}
-
-.airport-map-kit .sidebar-brand-dock.sticky::after,
-.app-detail-shell .sidebar-brand-dock.sticky::after,
-.dither-page-panel .sidebar-brand-dock.sticky::after {
-    content: none;
 }
 
 .aircraft-search:focus-within {
