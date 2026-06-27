@@ -47,10 +47,10 @@ export default function RouteBadge({
   return (
     <span
       className={cn(
-        "relative inline-flex h-4 select-none items-center overflow-hidden rounded-full font-sans",
+        "relative inline-flex h-[13.6px] select-none items-center overflow-hidden rounded-full font-sans",
         "bg-[color-mix(in_oklab,var(--atc-text)_5%,transparent)]",
         "shadow-[inset_0_0_0_0.5px_color-mix(in_oklab,var(--atc-text)_12%,transparent)]",
-        hasLogo ? "pl-[18px] pr-2" : "px-2",
+        hasLogo ? "pl-[15.3px] pr-[6.8px]" : "px-[6.8px]",
         className,
       )}
     >
@@ -65,13 +65,13 @@ export default function RouteBadge({
             markAirlineLogoUnavailable(airlineLogoUrl);
             setLogoFailed(true);
           }}
-          className="pointer-events-none absolute left-0 top-0 z-[1] h-full w-[24px] object-cover object-left opacity-90 [-webkit-mask-image:var(--route-badge-logo-mask)] [mask-image:var(--route-badge-logo-mask)]"
+          className="pointer-events-none absolute left-0 top-0 z-[1] h-full w-[20.4px] object-cover object-left opacity-90 [-webkit-mask-image:var(--route-badge-logo-mask)] [mask-image:var(--route-badge-logo-mask)]"
           style={{ ["--route-badge-logo-mask" as string]: LOGO_MASK }}
         />
       ) : null}
 
       <span
-        className="notranslate relative z-[2] inline-flex items-baseline gap-1 text-[calc(9.5px*var(--sb-body-scale,1))] font-normal leading-none tracking-[0.2px] text-atc-text"
+        className="notranslate relative z-[2] inline-flex items-baseline gap-1 text-[calc(8.1px*var(--sb-body-scale,1))] font-normal leading-none tracking-[0.2px] text-atc-text"
         translate="no"
       >
         {from}
