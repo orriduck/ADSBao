@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.11",
+    version: "v2.32.12",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
