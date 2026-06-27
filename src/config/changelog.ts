@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 56;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.32.10",
+    version: "v2.32.11",
     kind: "feat",
     title: {
       en: "Animated flight-rule glyph in the weather briefing",
@@ -97,6 +97,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Aircraft marker motion is now rate-limited instead of moving every animation frame. Each marker is its own composited layer, so animating a busy map at 60fps kept the GPU compositor near saturation — leaving no headroom when the sidebar also needed to composite a scroll. Markers now move at most 30fps, and slower as you zoom out (markers barely move on-screen when far: ~10fps near, ~2fps mid, ~1fps far), while the focal / selected aircraft you're tracking keeps the full 30fps. The inferred/extrapolated positions are unchanged — only how often the marker is repainted.",
         zh: "飞机 marker 的运动现在限频,不再每个动画帧都移动。每个 marker 都是独立的合成层,满载地图 60fps 动画会把 GPU 合成器压到接近满载——侧栏要合成滚动时就没有余量了。marker 现在最高 30fps 移动,且越缩小越慢(缩到最远时几乎不动:近 ~10fps、中 ~2fps、远 ~1fps),而你正在追踪的焦点/选中飞机仍保持满 30fps。推算/外推位置本身不变——只是 marker 重绘的频率降了。",
+      },
+      {
+        en: "Sidebar scroll, take two: a production trace showed the real cost wasn't CPU or GPU (both mostly idle) but a stalled render pipeline — forced synchronous layout (reading clientWidth / getBoundingClientRect every scroll frame) thrashing against the scroll. Two sources were removed: the aircraft motion loop now rate-limits BEFORE reading the map bounds (so a throttled frame does zero layout), and the nearby list virtualizes at a measured fixed row height instead of attaching a per-row ResizeObserver that re-measured on every scroll frame.",
+        zh: "侧栏滚动第二弹:一段生产 trace 显示真正的成本既不在 CPU 也不在 GPU(两者大都空闲),而是渲染流水线被卡住——每个滚动帧都在读 clientWidth / getBoundingClientRect(强制同步布局),与滚动相互踩踏。移除了两个来源:飞机运动循环现在在读取地图 bounds **之前**就限频(被限的帧零布局开销),附近列表改用测得的定长行高做虚拟化,不再为每行挂一个会在每个滚动帧重新测量的 ResizeObserver。",
       },
     ],
   },

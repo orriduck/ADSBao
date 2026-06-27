@@ -55,6 +55,14 @@ export default function VirtualNearbyList({
   const scrollRef = useSidebarScrollRef();
   const listRef = useRef<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
+  // Rows are a fixed height PER VIEWPORT (42px normally, ~51px where the
+  // .airport-map-kit override compresses them). Measure it ONCE (and on resize,
+  // in the same effect that tracks scrollMargin) and feed it as a fixed
+  // estimateSize — instead of attaching a per-row ResizeObserver via
+  // virtualizer.measureElement, whose getBoundingClientRect read on every
+  // scroll frame is a forced synchronous layout (a top contributor to the
+  // scroll-time pipeline stall).
+  const [rowHeight, setRowHeight] = useState(ROW_HEIGHT_ESTIMATE_PX);
 
   // How many rows of `items` are currently revealed. Reset to the first page
   // whenever the filter/selection context changes (resetSignal) so a fresh cut
@@ -82,6 +90,16 @@ export default function VirtualNearbyList({
         scrollEl.getBoundingClientRect().top +
         scrollEl.scrollTop;
       setScrollMargin((prev) => (Math.abs(prev - top) > 0.5 ? top : prev));
+      // Re-read the fixed row height from a rendered row. Rounded + compared
+      // exactly so sub-pixel noise never flips it — it only changes on a real
+      // viewport/context height change, replacing the per-row measurement.
+      const firstRow = listEl.querySelector("[data-index]");
+      const height = firstRow
+        ? Math.round(firstRow.getBoundingClientRect().height)
+        : 0;
+      if (height > 0) {
+        setRowHeight((prev) => (prev !== height ? height : prev));
+      }
     };
     measure();
     const schedule = () => {
@@ -120,7 +138,7 @@ export default function VirtualNearbyList({
   const virtualizer = useVirtualizer({
     count: visibleItems.length,
     getScrollElement: () => scrollRef?.current ?? null,
-    estimateSize: () => ROW_HEIGHT_ESTIMATE_PX,
+    estimateSize: () => rowHeight,
     overscan: OVERSCAN_ROWS,
     // Key by POSITION, not identity: a slot stays put at its index and its
     // occupant changes when the list re-sorts (see CardFlipSlot), so rows never
@@ -173,7 +191,7 @@ export default function VirtualNearbyList({
   // a full re-measure on every click was pure layout thrash.
   useEffect(() => {
     virtualizer.measure();
-  }, [visibleItems.length, resetSignal, virtualizer]);
+  }, [visibleItems.length, resetSignal, rowHeight, virtualizer]);
 
   const virtualRows = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
@@ -210,7 +228,6 @@ export default function VirtualNearbyList({
               : item.data?.icao === selectedAirportIcao;
           return (
             <NearbyVirtualRow
-              ref={virtualizer.measureElement}
               key={virtualRow.index}
               index={virtualRow.index}
               start={virtualRow.start - scrollMargin}
@@ -228,7 +245,6 @@ export default function VirtualNearbyList({
 }
 
 const NearbyVirtualRow = memo(function NearbyVirtualRow({
-  ref,
   index,
   start,
   shouldAnimateEnter,
@@ -264,7 +280,6 @@ const NearbyVirtualRow = memo(function NearbyVirtualRow({
   // card from 64px down to 51px.
   return (
     <div
-      ref={ref}
       data-index={index}
       className="absolute left-0 top-0 w-full"
       style={{
