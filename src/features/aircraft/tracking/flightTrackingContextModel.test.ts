@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   getFlightTrackingContextPosition,
   hasFiniteFlightPosition,
+  resolveFlightFocalLifecycle,
+  resolveFlightTerminalReason,
   shouldShowFlightTrackingLoadingOverlay,
 } from "./flightTrackingContextModel";
 
@@ -28,36 +30,18 @@ assert.deepEqual(
   },
 );
 
+// ── shouldShowFlightTrackingLoadingOverlay (loading-state wrapper) ──────────
+// Not settled, no focal yet → loading.
 assert.equal(
   shouldShowFlightTrackingLoadingOverlay({
     hasActiveFlight: true,
     trackedAircraftSettled: false,
     trackedLoadingOverlayActive: false,
+    hasFocalPosition: false,
   }),
   true,
 );
-
-assert.equal(
-  shouldShowFlightTrackingLoadingOverlay({
-    hasActiveFlight: true,
-    trackedAircraftSettled: true,
-    trackedLoadingOverlayActive: true,
-  }),
-  true,
-);
-
-assert.equal(
-  shouldShowFlightTrackingLoadingOverlay({
-    hasActiveFlight: true,
-    trackedAircraftSettled: true,
-    trackedLoadingOverlayActive: false,
-    nearbyAircraftSettled: false,
-    nearbyAirportsSettled: false,
-    nearbyLoadingOverlayActive: true,
-  }),
-  false,
-);
-
+// No active flight → never a loading overlay.
 assert.equal(
   shouldShowFlightTrackingLoadingOverlay({
     hasActiveFlight: false,
@@ -66,20 +50,16 @@ assert.equal(
   }),
   false,
 );
-
-// Settled with a focal position → overlay lifts (map reveals on the aircraft).
+// Settled with a focal position → not loading (map reveals on the aircraft).
 assert.equal(
   shouldShowFlightTrackingLoadingOverlay({
     hasActiveFlight: true,
     trackedAircraftSettled: true,
-    trackedLoadingOverlayActive: false,
     hasFocalPosition: true,
   }),
   false,
 );
-
-// Settled but no focal position yet → overlay stays up so the fallback-centered
-// map never flashes (e.g. right after navigating between tracked flights).
+// Settled, no focal, not loading → NOT loading (it's terminal now, not a spinner).
 assert.equal(
   shouldShowFlightTrackingLoadingOverlay({
     hasActiveFlight: true,
@@ -87,5 +67,27 @@ assert.equal(
     trackedLoadingOverlayActive: false,
     hasFocalPosition: false,
   }),
-  true,
+  false,
 );
+
+// ── resolveFlightFocalLifecycle (loading / position / terminal) ────────────
+const lc = (over: Record<string, unknown>) =>
+  resolveFlightFocalLifecycle({ hasActiveFlight: true, ...over });
+// A focal position always wins, even before resolve (cached/last-known reveal).
+assert.equal(lc({ hasFocalPosition: true, resolved: false }), "position");
+// No focal + not resolved → loading.
+assert.equal(lc({ hasFocalPosition: false, resolved: false }), "loading");
+// No focal + resolved (settled OR grace timed out) → terminal.
+assert.equal(lc({ hasFocalPosition: false, resolved: true }), "terminal");
+// No active flight → safe loading default.
+assert.equal(resolveFlightFocalLifecycle({ hasActiveFlight: false }), "loading");
+
+// ── resolveFlightTerminalReason (copy selection) ───────────────────────────
+assert.equal(
+  resolveFlightTerminalReason({ trackingStatus: "flightaware_terminal" }),
+  "terminal",
+);
+assert.equal(resolveFlightTerminalReason({ lostSignal: true }), "lost");
+assert.equal(resolveFlightTerminalReason({ trackingStatus: "stale" }), "lost");
+assert.equal(resolveFlightTerminalReason({ trackingStatus: "missing" }), "missing");
+assert.equal(resolveFlightTerminalReason({}), "missing");

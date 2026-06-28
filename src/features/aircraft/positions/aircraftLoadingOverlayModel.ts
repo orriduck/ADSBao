@@ -23,6 +23,9 @@ type AircraftLoadingOverlayStateOptions = {
   nearbyAirportsLoading?: boolean;
   routeLoadingCount?: number;
   traceLoading?: boolean;
+  /** Flight page only: "" = not terminal; otherwise the terminal reason
+   *  ("terminal" | "lost" | "missing") to render a static no-position card. */
+  flightTerminalReason?: string;
 };
 
 type MapLoadingPresentationOptions = {
@@ -94,7 +97,13 @@ export function resolveAircraftLoadingOverlayState({
   nearbyAirportsLoading = false,
   routeLoadingCount = 0,
   traceLoading = false,
+  flightTerminalReason = "",
 }: AircraftLoadingOverlayStateOptions = {}) {
+  // Terminal (no live position, settled) wins over everything: a static covering
+  // card, never a spinner, never the fallback map. Reason drives the copy.
+  if (flightTerminalReason) {
+    return { active: true, mode: "terminal", reason: flightTerminalReason };
+  }
   if (!mapReady) return { active: true, mode: "map", reason: "map" };
 
   const isFlight = variant === "flight";
@@ -118,7 +127,8 @@ export function resolveMapLoadingPresentation({
   mode = "idle",
   reason = "",
 }: MapLoadingPresentationOptions = {}) {
-  const overlayActive = Boolean(active && mode === "map");
+  // "map" (loading) and "terminal" (no-position card) both COVER the map surface.
+  const overlayActive = Boolean(active && (mode === "map" || mode === "terminal"));
   return {
     overlayActive,
     sourceStatusActive: Boolean(active && reason && !overlayActive),

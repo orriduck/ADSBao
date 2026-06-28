@@ -231,6 +231,30 @@ assert.deepEqual(
   { active: false, mode: "idle", reason: "" },
 );
 
+// Terminal (no live position, settled) wins over mapReady AND feed sources.
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: true,
+    variant: "flight",
+    trackedAircraftLoading: true,
+    flightTerminalReason: "missing",
+  }),
+  { active: true, mode: "terminal", reason: "missing" },
+);
+assert.deepEqual(
+  resolveAircraftLoadingOverlayState({
+    mapReady: false,
+    variant: "flight",
+    flightTerminalReason: "lost",
+  }),
+  { active: true, mode: "terminal", reason: "lost" },
+);
+// Terminal mode COVERS the map surface (like "map", unlike "feed").
+assert.deepEqual(
+  resolveMapLoadingPresentation({ active: true, mode: "terminal", reason: "missing" }),
+  { overlayActive: true, sourceStatusActive: false },
+);
+
 assert.deepEqual(
   resolveMapLoadingPresentation({
     active: true,

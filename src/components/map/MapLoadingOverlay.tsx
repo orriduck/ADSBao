@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Plane, PlaneLanding, RadioTower } from "lucide-react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import {
   getLoadingOverlayExitDelay,
@@ -7,23 +8,47 @@ import {
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
+// reason → i18n key stem for the terminal (no live position) card.
+const TERMINAL_COPY_KEY: Record<string, string> = {
+  terminal: "flightTerminal",
+  lost: "flightSignalLost",
+  missing: "flightNoPosition",
+};
+
 export function useMapLoadingOverlayText({
   mode = "feed",
+  reason = "",
   variant = "airport",
+  callsign = "",
 }: Record<string, any> = {}): Record<string, any> {
   const { t } = useI18n();
   const isFlight = variant === "flight";
 
-  if (mode === "map") {
+  if (mode === "terminal") {
+    const stem = TERMINAL_COPY_KEY[reason] || TERMINAL_COPY_KEY.missing;
     return {
-      ariaLabel: t("map.loadingMapAria"),
+      mode,
+      terminalReason: reason,
+      ariaLabel: t(`map.${stem}Title`),
+      title: t(`map.${stem}Title`),
+      subtext: t(`map.${stem}Subtext`, { callsign }),
     };
   }
 
+  const loadingLabel = isFlight
+    ? t("map.loadingTrackedAircraftLabel", { callsign })
+    : t("map.loadingAircraftLabel");
+
+  if (mode === "map") {
+    return { mode, ariaLabel: t("map.loadingMapAria"), loadingLabel };
+  }
+
   return {
+    mode,
     ariaLabel: isFlight
       ? t("map.loadingTrackedAircraftAria")
       : t("map.loadingAircraftAria"),
+    loadingLabel,
   };
 }
 
@@ -47,6 +72,11 @@ export default function MapLoadingOverlay({
   sidebarAware = false,
   ariaLabel,
   onVisibleChange,
+  mode = "feed",
+  title = "",
+  subtext = "",
+  loadingLabel = "",
+  terminalReason = "",
 }: Record<string, any>) {
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
@@ -155,10 +185,48 @@ export default function MapLoadingOverlay({
       role="status"
       style={{ display: visible ? undefined : "none" }}
     >
-      <div key={playbackCycle} className="adsb-loading-grid" aria-hidden="true">
-        <span className="adsb-loading-grid__matrix" />
-      </div>
+      {mode === "terminal" ? (
+        <div className="relative z-[1] flex max-w-[260px] flex-col items-center gap-2 px-6 text-center">
+          <TerminalIcon reason={terminalReason} />
+          <div className="text-[15px] leading-snug text-atc-text">{title}</div>
+          {subtext ? (
+            <div className="text-[12px] leading-snug text-atc-dim">{subtext}</div>
+          ) : null}
+        </div>
+      ) : (
+        <>
+          <div
+            key={playbackCycle}
+            className="adsb-loading-grid"
+            aria-hidden="true"
+          >
+            <span className="adsb-loading-grid__matrix" />
+          </div>
+          {loadingLabel ? (
+            <div className="relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">
+              <span
+                className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
+                aria-hidden="true"
+              />
+              <span>{loadingLabel}</span>
+            </div>
+          ) : null}
+        </>
+      )}
     </div>
+  );
+}
+
+function TerminalIcon({ reason = "" }: { reason?: string }) {
+  const Icon =
+    reason === "terminal" ? PlaneLanding : reason === "lost" ? RadioTower : Plane;
+  return (
+    <span
+      className="flex h-9 w-9 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--atc-text)_8%,transparent)] text-atc-dim"
+      aria-hidden="true"
+    >
+      <Icon size={18} strokeWidth={1.6} />
+    </span>
   );
 }
 

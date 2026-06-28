@@ -120,6 +120,7 @@ export default function AirportMap({
   loadingOverlayVariant = "airport",
   loadingOverlayCallsign = "",
   loadingOverlaySources = {},
+  flightTerminalReason = "",
   userLocation = null,
   children = null,
 }: Record<string, any>) {
@@ -578,7 +579,7 @@ export default function AirportMap({
     mapReady: overlayMapReady,
     variant: loadingOverlayVariant,
     active: loadingOverlayActive,
-    sources: loadingOverlaySources,
+    sources: { ...loadingOverlaySources, flightTerminalReason },
   });
   const loadingPresentation =
     resolveMapLoadingPresentation(loadingOverlayState as any);

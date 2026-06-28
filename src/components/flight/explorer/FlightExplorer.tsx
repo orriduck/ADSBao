@@ -1,4 +1,13 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
@@ -21,8 +30,10 @@ import {
 } from "@/features/aircraft/tracking/flightAwareFallbackTrackingModel";
 import {
   getFlightTrackingContextPosition,
-  shouldShowFlightTrackingLoadingOverlay,
+  resolveFlightFocalLifecycle,
+  resolveFlightTerminalReason,
 } from "@/features/aircraft/tracking/flightTrackingContextModel";
+import { logFlightMapLifecycle } from "@/features/aircraft/tracking/flightMapLifecycleLog";
 import {
   resolveTrackedAircraftSelectionSync,
   resolveFlightTrackingDisplayContext,
@@ -69,6 +80,10 @@ const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const FOCAL_VISUAL_POSITION_TICK_MS = 500;
 const TRACE_VIEW_SESSION = "session";
 const TRACE_VIEW_ALL = "all";
+// Max wait for a focal position before the flight map resolves to the terminal
+// "no live position" card (covers flights that never settle, e.g. an oceanic
+// leg with no ADS-B and no FlightAware).
+const FLIGHT_NO_POSITION_GRACE_MS = 9000;
 
 export default function FlightExplorer({ callsign = "" }) {
   return (
@@ -81,6 +96,19 @@ export default function FlightExplorer({ callsign = "" }) {
 function FlightExplorerContent({ callsign }) {
   const navigate = useNavigate();
   const { t } = useI18n();
+  // Flight → flight navigation does a HARD reload to the new URL rather than an
+  // in-place SPA swap. Each tracking page is then a guaranteed clean slate
+  // (fresh map + fresh realtime socket; the previous socket is torn down by the
+  // page unload), which is far simpler and more stable than reconciling a reused
+  // map/tracking lifecycle across navigations. The layout effect runs before
+  // paint so the stale (previous-flight) frame never shows. Covers links AND
+  // browser back/forward.
+  const mountCallsignRef = useRef(callsign);
+  useLayoutEffect(() => {
+    if (mountCallsignRef.current !== callsign) {
+      window.location.reload();
+    }
+  }, [callsign]);
   const {
     enabled: flightAwareEnabled,
     resolved: flightAwareResolved,
@@ -145,7 +173,6 @@ function FlightExplorerContent({ callsign }) {
     aircraft: trackedAircraft,
     feedSource,
     lastUpdated,
-    loadingOverlayActive: trackedLoadingOverlayActive,
     settled: trackedAircraftSettled,
     lostSignal,
     pollVersion: trackedPollVersion,
@@ -793,15 +820,61 @@ function FlightExplorerContent({ callsign }) {
 
   const handleBack = () => navigate("/");
 
-  const flightTrackingLoadingActive = shouldShowFlightTrackingLoadingOverlay({
+  // Single source of truth for what the flight map shows:
+  //  - "loading"  → covering loading animation (key data not ready)
+  //  - "position" → reveal the map centered on the aircraft
+  //  - "terminal" → covering static card (no live position; never spinner / LAX)
+  const flightTrackingStatus = trackingState?.status || "";
+  const hasFocalPosition = focalLat != null && focalLon != null;
+  // Some flights never "settle" (e.g. a trans-oceanic leg with no ADS-B and no
+  // FlightAware never emits a realtime event). Bound the wait: after a grace with
+  // no focal position the lifecycle resolves to the terminal card instead of an
+  // endless spinner.
+  const [loadingGraceExpired, setLoadingGraceExpired] = useState(false);
+  useEffect(() => {
+    if (hasFocalPosition) {
+      setLoadingGraceExpired(false);
+      return undefined;
+    }
+    setLoadingGraceExpired(false);
+    const timer = window.setTimeout(
+      () => setLoadingGraceExpired(true),
+      FLIGHT_NO_POSITION_GRACE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [callsign, hasFocalPosition]);
+  const flightLifecycle = resolveFlightFocalLifecycle({
     hasActiveFlight: Boolean(callsign),
-    trackedAircraftSettled,
-    trackedLoadingOverlayActive,
-    // The map centers on focalLat/focalLon; while those are absent (e.g. just
-    // after navigating to another flight, before its position resolves) keep the
-    // loading overlay covering the fallback-centered map instead of flashing it.
-    hasFocalPosition: focalLat != null && focalLon != null,
+    resolved: trackedAircraftSettled || loadingGraceExpired,
+    hasFocalPosition,
   });
+  const flightTrackingLoadingActive = flightLifecycle === "loading";
+  const flightTerminalReason =
+    flightLifecycle === "terminal"
+      ? resolveFlightTerminalReason({
+          lostSignal,
+          trackingStatus: flightTrackingStatus,
+        })
+      : "";
+  useEffect(() => {
+    logFlightMapLifecycle({
+      callsign,
+      lifecycle: flightLifecycle,
+      focalLat,
+      focalLon,
+      settled: trackedAircraftSettled,
+      lostSignal,
+      trackingStatus: flightTrackingStatus,
+    });
+  }, [
+    callsign,
+    flightLifecycle,
+    focalLat,
+    focalLon,
+    trackedAircraftSettled,
+    lostSignal,
+    flightTrackingStatus,
+  ]);
   const loadingOverlaySources = {
     trackedAircraftLoading: flightTrackingLoadingActive,
     trafficLoading:
@@ -1000,6 +1073,7 @@ function FlightExplorerContent({ callsign }) {
               loadingOverlayVariant="flight"
               loadingOverlayCallsign={callsign}
               loadingOverlaySources={loadingOverlaySources}
+              flightTerminalReason={flightTerminalReason}
               userLocation={userLocationLayer.userLocation}
             >
               <FlightAwareRouteArc path={focalRoutePath} />

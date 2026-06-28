@@ -21,6 +21,25 @@ type FlightTrackingLoadingOverlayOptions = {
   hasFocalPosition?: boolean;
 };
 
+/** Reason shown on the flight map's terminal (no-live-position) card. */
+export type FlightTerminalReason = "terminal" | "lost" | "missing";
+
+/** The three lifecycle states the flight map can be in. */
+export type FlightFocalLifecycle = "loading" | "position" | "terminal";
+
+type FlightTerminalReasonOptions = {
+  lostSignal?: boolean;
+  trackingStatus?: string;
+};
+
+type FlightFocalLifecycleOptions = {
+  hasActiveFlight?: boolean;
+  // "resolved" = the realtime feed settled OR the loading grace timed out. Once
+  // resolved, a flight with no focal position is terminal (not an endless spinner).
+  resolved?: boolean;
+  hasFocalPosition?: boolean;
+};
+
 export function normalizeLatitude(value: unknown) {
   if (value == null || value === "") return null;
   const coordinate = toFiniteNumber(value);
@@ -56,22 +75,50 @@ export function getFlightTrackingContextPosition({
   };
 }
 
+// Map the tracked-flight signal onto the copy shown on the terminal card.
+// - flightaware_terminal → the flight ended (landed / arrived / cancelled)
+// - lostSignal / stale     → we had it but the live signal dropped
+// - everything else        → no live position at all
+export function resolveFlightTerminalReason({
+  lostSignal = false,
+  trackingStatus = "",
+}: FlightTerminalReasonOptions = {}): FlightTerminalReason {
+  const status = String(trackingStatus || "")
+    .trim()
+    .toLowerCase();
+  if (status === "flightaware_terminal") return "terminal";
+  if (lostSignal || status === "stale") return "lost";
+  return "missing";
+}
+
+// Single source of truth for what the flight map shows. Once the feed has
+// RESOLVED (settled, or the loading grace timed out — some flights, e.g. a
+// trans-oceanic leg with no ADS-B and no FlightAware, never settle), a flight
+// with no plottable focal position is a TERMINAL state (a static card) — never
+// an indefinite spinner and never the fallback center.
+export function resolveFlightFocalLifecycle({
+  hasActiveFlight = false,
+  resolved = false,
+  hasFocalPosition = false,
+}: FlightFocalLifecycleOptions = {}): FlightFocalLifecycle {
+  if (!hasActiveFlight) return "loading";
+  if (hasFocalPosition) return "position";
+  if (resolved) return "terminal";
+  return "loading";
+}
+
 export function shouldShowFlightTrackingLoadingOverlay({
   hasActiveFlight = false,
   trackedAircraftSettled = false,
-  trackedLoadingOverlayActive = false,
   hasFocalPosition = true,
 }: FlightTrackingLoadingOverlayOptions = {}) {
-  // Keep the overlay up while the flight has no plottable focal position so the
-  // map (which still initializes on a fallback center) stays hidden behind the
-  // loading state instead of revealing the unrelated fallback location. The
-  // moment a live or cached position exists the overlay can lift and the map
-  // re-centers on the aircraft.
-  return Boolean(
-    hasActiveFlight &&
-      (!trackedAircraftSettled ||
-        trackedLoadingOverlayActive ||
-        !hasFocalPosition),
+  if (!hasActiveFlight) return false;
+  return (
+    resolveFlightFocalLifecycle({
+      hasActiveFlight,
+      resolved: trackedAircraftSettled,
+      hasFocalPosition,
+    }) === "loading"
   );
 }
 

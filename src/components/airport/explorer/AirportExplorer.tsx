@@ -1,4 +1,13 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { CSSProperties } from "react";
 import AirportSidebar from "@/components/sidebar/AirportSidebar";
 import AirportExplorerDesktopSidebar from "./AirportExplorerDesktopSidebar";
@@ -123,6 +132,18 @@ function AirportExplorerContent({
   nearMeRefresh,
 }) {
   const nearMe = mode === "nearMe";
+  // Airport → airport navigation does a HARD reload to the new URL (same policy
+  // as flight → flight): a reused map across an airport switch can get stuck not
+  // reloading tiles, so a clean mount per page is simpler and stable. Only the
+  // standard airport-detail mode (route /airport/:icao); nearMe follows the user
+  // location and must not reload as the nearest airport changes. Runs before
+  // paint, covers links AND browser back/forward.
+  const mountIcaoRef = useRef(icao);
+  useLayoutEffect(() => {
+    if (mode === "airport" && mountIcaoRef.current !== icao) {
+      window.location.reload();
+    }
+  }, [icao, mode]);
   const { t } = useI18n();
   const {
     desktopSidebarWidth,
