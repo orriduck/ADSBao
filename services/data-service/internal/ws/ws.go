@@ -86,6 +86,14 @@ func IsAllowedOrigin(origin string, extraAllowedOrigins []string) bool {
 	if normalized == "" {
 		return false
 	}
+	// Any loopback origin (localhost / 127.0.0.1 / [::1] on any port) is allowed
+	// so local dev — including Vite preview servers on a random autoPort — can
+	// open the realtime socket without enumerating every port in the allowlist.
+	// A real cross-site attacker cannot present a loopback Origin; production
+	// domains stay gated by defaultAllowedOrigins / ALLOWED_WS_ORIGINS.
+	if isLoopbackOrigin(origin) {
+		return true
+	}
 	if defaultAllowedOrigins[normalized] {
 		return true
 	}
@@ -408,6 +416,22 @@ func normalizeOrigin(origin string) string {
 		return ""
 	}
 	return parsed.Scheme + "://" + parsed.Host
+}
+
+// isLoopbackOrigin reports whether origin's host is a loopback address
+// (localhost, 127.0.0.1, or [::1]) on any port. Hostname() strips the port and
+// IPv6 brackets, so only the host is compared.
+func isLoopbackOrigin(origin string) bool {
+	parsed, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	switch parsed.Hostname() {
+	case "localhost", "127.0.0.1", "::1":
+		return true
+	default:
+		return false
+	}
 }
 
 func (c *clientConn) String() string {

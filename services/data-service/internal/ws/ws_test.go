@@ -183,9 +183,14 @@ func TestAllowedOriginRules(t *testing.T) {
 	cases := map[string]bool{
 		"":                      true,
 		"http://localhost:3000": true,
-		"https://adsbao.dev":    true,
+		// Loopback origins on any port (e.g. a Vite preview autoPort) are allowed.
+		"http://localhost:61875":         true,
+		"http://127.0.0.1:54321":         true,
+		"https://adsbao.dev":             true,
 		"https://adsbao-preview.example": false,
 		"https://evil.example":           false,
+		// A non-loopback host that merely contains "localhost" must still fail.
+		"https://localhost.evil.example": false,
 	}
 	for origin, want := range cases {
 		if got := IsAllowedOrigin(origin, nil); got != want {
