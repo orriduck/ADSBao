@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 63;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.39.3",
+    version: "v2.39.4",
     kind: "feat",
     title: {
       en: "Faster, more complete trace & route on busy airports",
@@ -77,6 +77,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Busy airports show more routes: FlightAware lookups are now concurrency-bounded so each stays ~fast instead of ballooning to 5–10s under a burst, with a longer timeout and a few quick retries as backstops — valid commercial routes that used to silently drop now resolve.",
         zh: "繁忙机场显示更多航线:FlightAware 查询现在限制了并发,每次都保持较快,不再在突发下膨胀到 5–10 秒,并以更长超时和几次快速重试兜底——以前会悄悄丢掉的商业航线现在能解析出来。",
+      },
+      {
+        en: "Here-mode weather no longer flickers: the local-weather card now refreshes only when you move into a new place (city/area) instead of on every GPS micro-update.",
+        zh: "Here 模式天气不再频繁闪烁:本地天气卡现在只在你移动到新的地点(城市/地区)时才刷新,而不是每次 GPS 微小抖动都重新请求。",
       },
     ],
   },

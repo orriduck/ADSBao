@@ -13,6 +13,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
+import { useStablePlaceWeatherCoords } from "@/hooks/useStablePlaceWeatherCoords";
 import FlightRuleGlyph, { type FlightRule } from "@/components/weather/FlightRuleGlyph";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
@@ -68,12 +69,19 @@ export default function WeatherBriefingStack({
   airportLon = 0,
   nearMe = false,
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { preferences: units } = useUnitPreferences();
   const [view, setView] = useState("metar");
+  // In here-mode the device position streams in continuously; gate the weather
+  // fetch on the reverse-geocoded place name so it only refreshes when we cross
+  // into a new place, not on every GPS micro-update. Fixed airports pass through.
+  const weatherCoords = useStablePlaceWeatherCoords(airportLat, airportLon, {
+    enabled: nearMe,
+    language: locale,
+  });
   const { weather: local, loading: localLoading } = useLocalWeather(
-    airportLat,
-    airportLon,
+    weatherCoords.lat,
+    weatherCoords.lon,
   );
   const effectiveView = nearMe ? "local" : view;
 
