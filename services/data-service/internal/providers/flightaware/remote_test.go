@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestRemoteClientUsesPrivateService(t *testing.T) {
@@ -73,5 +74,45 @@ func TestRemoteClientFetchesPrivateRoute(t *testing.T) {
 	codes := route["route"].(map[string]any)
 	if route["source"] != "flightaware" || codes["iata"] != "BOS-LAX" {
 		t.Fatalf("route = %#v", route)
+	}
+}
+
+// Route lookups must use the longer routeTimeout, not the callsign-fallback
+// timeout — FlightAware route scrapes routinely run several seconds and were
+// being cut off, dropping valid routes on busy airports.
+func TestRemoteClientRouteUsesRouteTimeout(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(120 * time.Millisecond)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"callsign":"AAL1234","route":{"origin":{"icao":"KBOS","lat":42.3,"lon":-71.0},"destination":{"icao":"KLAX","lat":33.9,"lon":-118.4},"source":"flightaware"}}`))
+	}))
+	defer server.Close()
+
+	// A tight callsign timeout would have killed this scrape; the generous
+	// route timeout lets it complete.
+	client := NewRemoteClient(RemoteOptions{
+		BaseURL:      server.URL,
+		Token:        "secret",
+		HTTPClient:   server.Client(),
+		Timeout:      20 * time.Millisecond,
+		RouteTimeout: 2 * time.Second,
+	})
+	route, err := client.Route(context.Background(), "AAL1234", nil)
+	if err != nil {
+		t.Fatalf("Route returned error despite generous route timeout: %v", err)
+	}
+	if route["source"] != "flightaware" {
+		t.Fatalf("route = %#v", route)
+	}
+
+	// And a too-tight route timeout still surfaces a timeout error.
+	tight := NewRemoteClient(RemoteOptions{
+		BaseURL:      server.URL,
+		Token:        "secret",
+		HTTPClient:   server.Client(),
+		RouteTimeout: 10 * time.Millisecond,
+	})
+	if _, err := tight.Route(context.Background(), "AAL1234", nil); err == nil {
+		t.Fatalf("expected a timeout error when routeTimeout is shorter than the scrape")
 	}
 }
