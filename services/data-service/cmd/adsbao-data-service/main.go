@@ -96,6 +96,7 @@ func main() {
 		},
 		MinInterval:       cfg.MinPollInterval,
 		MaxInterval:       cfg.MaxPollInterval,
+		IdleGracePeriod:   cfg.ChannelIdleGracePeriod,
 		MaxActiveChannels: cfg.MaxActiveChannels,
 		JitterRatio:       cfg.PollJitterRatio,
 		Metrics:           registry,

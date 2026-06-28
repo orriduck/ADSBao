@@ -420,4 +420,57 @@ assert.equal(
   assert.equal(socket.readyState, FakeSocket.CLOSED);
 }
 
+// 订阅级 idle grace:反复开关同一 callsign 详情,只应发出一次 subscribe、
+// (grace 到期后)一次 unsubscribe。窗口内的再订阅原地复用,不发任何消息。
+{
+  FakeSocket.instances = [];
+  const timers = createTimerHost();
+  const client = new AdsbaoRealtimeClient("ws://example.test/ws", {
+    WebSocketCtor: FakeSocket as any,
+    timerHost: timers.host as any,
+    heartbeatIntervalMs: 0,
+    idleDisconnectMs: 10_000,
+    subscriptionIdleGraceMs: 3_000,
+  });
+
+  const unsubFirst = client.subscribe({
+    channel: "callsign:UAL123",
+    listener: () => {},
+  });
+  const socket = FakeSocket.instances[0];
+  socket.open();
+  const messageTypes = () => socket.sent.map((p) => JSON.parse(p).type);
+  assert.deepEqual(messageTypes(), ["subscribe"]);
+
+  // 关闭详情:退订被推迟,不立即发 unsubscribe;订阅仍在,socket 保持。
+  unsubFirst();
+  assert.deepEqual(messageTypes(), ["subscribe"]);
+  assert.equal(socket.readyState, FakeSocket.OPEN);
+  assert.equal(timers.timeoutCount, 1, "exactly one pending teardown timer");
+
+  // 窗口内重新打开同一架:取消待退订、原地复用,不发新的 subscribe。
+  const unsubSecond = client.subscribe({
+    channel: "callsign:UAL123",
+    listener: () => {},
+  });
+  assert.deepEqual(messageTypes(), ["subscribe"], "no resubscribe within grace");
+  assert.equal(timers.timeoutCount, 0, "pending teardown cancelled on reuse");
+
+  // 再次关闭并让 grace 到期:此时才真正发出唯一一次 unsubscribe。
+  unsubSecond();
+  assert.equal(timers.timeoutCount, 1);
+  timers.runNextTimeout();
+  assert.deepEqual(messageTypes(), ["subscribe", "unsubscribe"]);
+  assert.equal(
+    messageTypes().filter((t) => t === "subscribe").length,
+    1,
+    "at most one subscribe across open/close churn",
+  );
+  assert.equal(
+    messageTypes().filter((t) => t === "unsubscribe").length,
+    1,
+    "at most one unsubscribe after grace",
+  );
+}
+
 console.log("adsbaoRealtimeClient.test.ts ok");
