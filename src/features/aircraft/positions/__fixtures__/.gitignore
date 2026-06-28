@@ -1,0 +1,4 @@
+# Intermediate raw capture from scripts/record-aircraft-fixtures.mjs.
+# The curated per-target fixtures (built by scripts/build-aircraft-fixtures.mjs)
+# are committed; the multi-MB raw blob is not.
+raw-capture.json

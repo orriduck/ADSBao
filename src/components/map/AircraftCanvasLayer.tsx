@@ -16,6 +16,7 @@ import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
 import {
   beginAircraftMotionState,
   calculateAircraftVisualPosition,
+  peekAircraftDisplayedPosition,
   shouldAnimateAircraftVisualPosition,
 } from "../../utils/aircraftMotion";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel";
@@ -86,7 +87,6 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._drawList = [] as AircraftDrawDescriptor[];
     this._motion = new Map();
     this._heading = new Map();
-    this._lastPos = new Map();
     this._hitPoints = [];
     this._lastDraw = 0;
     this._anyAnimating = false;
@@ -205,6 +205,7 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     ctx.clearRect(b.min.x, b.min.y, size.x, size.y);
 
     const map = this._map;
+    const zoom = typeof map?.getZoom === "function" ? map.getZoom() : undefined;
     const palette: AircraftCanvasPalette = this._palette;
     const reducedMotion = Boolean(this._reducedMotion);
     const dpr = this._dpr;
@@ -217,11 +218,13 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
       const motion = this._motion.get(d.id);
       if (!motion) continue;
       const animating = shouldAnimateAircraftVisualPosition(motion, now);
+      // Always advance the eased position (cheap; keeps off-screen planes
+      // correct when they re-enter); peek when fully settled to avoid resetting
+      // lastStepMs needlessly.
       const pos = animating
-        ? calculateAircraftVisualPosition(motion, now)
-        : latLngFinite(motion.lat, motion.lon);
+        ? calculateAircraftVisualPosition(motion, now, zoom)
+        : peekAircraftDisplayedPosition(motion);
       if (!pos) continue;
-      this._lastPos.set(d.id, pos);
       const lp = map.latLngToLayerPoint([pos.lat, pos.lon]);
       if (!b.contains(lp)) {
         if (animating) anyAnimating = true;
@@ -270,22 +273,15 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
       const id = getAircraftIdentity(ac);
       if (!id || !latLngFinite(ac?.lat, ac?.lon)) continue;
       liveIds.add(id);
-      // Seed from the last visual position (like the old marker.getLatLng())
-      // so overshoot-hold / correction smoothing carries across data updates.
-      const prevPos = this._lastPos.get(id);
-      nextMotion.set(
-        id,
-        prevPos
-          ? beginAircraftMotionState(ac, now, prevPos)
-          : beginAircraftMotionState(ac, now),
-      );
+      // Carry the previous motion state (displayed position + easing clock) so
+      // a new fix only moves the anchor — the marker never teleports and the
+      // critically-damped easing stays continuous across data updates.
+      const prevState = this._motion.get(id);
+      nextMotion.set(id, beginAircraftMotionState(ac, now, prevState));
     }
     this._motion = nextMotion;
     for (const id of Array.from(this._heading.keys()) as string[]) {
       if (!liveIds.has(id)) this._heading.delete(id);
-    }
-    for (const id of Array.from(this._lastPos.keys()) as string[]) {
-      if (!liveIds.has(id)) this._lastPos.delete(id);
     }
 
     this._startLoop();
@@ -296,15 +292,13 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
   // positions so it matches what's on screen even between throttled draws.
   hitTest(containerPoint: any) {
     if (!this._map) return null;
-    const now = Date.now();
     const points: { id: string; x: number; y: number }[] = [];
     for (let i = 0; i < this._drawList.length; i += 1) {
       const d: AircraftDrawDescriptor = this._drawList[i];
       const motion = this._motion.get(d.id);
       if (!motion) continue;
-      const pos = shouldAnimateAircraftVisualPosition(motion, now)
-        ? calculateAircraftVisualPosition(motion, now)
-        : latLngFinite(motion.lat, motion.lon);
+      // Read-only: hit testing must never advance the easing.
+      const pos = peekAircraftDisplayedPosition(motion);
       if (!pos) continue;
       const cp = this._map.latLngToContainerPoint([pos.lat, pos.lon]);
       points.push({ id: d.id, x: cp.x, y: cp.y });

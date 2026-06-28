@@ -47,32 +47,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 58;
+export const CHANGELOG_TOTAL_COUNT = 59;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.34.1",
+    version: "v2.35.0",
     kind: "feat",
     title: {
-      en: "Crisp-line airport night lighting",
-      zh: "细线机场夜间灯光",
+      en: "Adaptive aircraft position smoothing",
+      zh: "自适应飞机位置平滑",
     },
     summary: {
-      en: "The airport runway/taxiway lighting is rebuilt as a performance-safe, crisp-line night system. The old look drew 1,500–2,000 colored point markers per airport; the new one draws a handful of thin SVG lines — white dashed runway edges with amber caution zones at both ends, a faint dashed centerline, white end bars, flashing REIL, and green/blue lit taxiways — with no GPU blur, glow, or dimming layer. Lights render only at the detail zoom and only in dark theme, and the geometry is static so panning and zooming stay smooth. At the medium zoom the runway is drawn as a thin clean bar instead of a thick block.",
-      zh: "机场跑道/滑行道灯光重做成一套性能安全的细线夜间系统。旧版每个机场要画 1500–2000 个彩色点 marker;新版只画少量细 SVG 线——白色虚线跑道边灯、两端 amber 警戒段、淡虚线中线、白色端横杠、闪烁 REIL,以及绿/蓝点亮的滑行道——不用任何 GPU 模糊、辉光或压暗层。灯光只在详情 zoom、且暗色主题下渲染,几何是静态的,平移缩放都保持顺滑。中间 zoom 档跑道改为细线而非粗块。",
+      en: "Aircraft marker movement between ADS-B fixes is rebuilt as an adaptive dead-reckoning + critically-damped easing system. Each fix becomes an anchor positioned by its own source timestamp (position age), so multi-source updates align on one timeline. Targets are extrapolated forward only above a speed threshold (off for slow/taxiing aircraft, where the per-update displacement is the same size as ADS-B noise — the old cause of high-zoom \"drift\"), and the displayed marker eases toward the target with a frame-rate-independent low-pass filter whose time constant adapts to zoom (smoother when zoomed in, tighter when zoomed out). A new fix only moves the anchor, so the marker never teleports, and source switches are absorbed by the easing instead of jumping.",
+      zh: "飞机标记在两次 ADS-B 定位之间的运动重做成一套自适应航位推算 + 临界阻尼缓动系统。每次定位成为一个 anchor,按其数据源自身的时间戳(位置年龄)定位,因此多源更新对齐在同一条时间线上。只有速度超过阈值才向前外推(慢速/滑行飞机关闭——这时每次更新的位移和 ADS-B 噪声同量级,正是旧版高 zoom “漂移”的根因);显示标记以与帧率无关的低通滤波缓动逼近目标,其时间常数随 zoom 自适应(放大更顺、缩小更跟手)。新定位只移动 anchor,标记永不瞬移,数据源切换被缓动吸收而非跳变。",
     },
     highlights: [
       {
-        en: "“Edge lights” are a single dashed line, not a row of markers — the cheap trick that keeps the night look without the old point-field cost. Runway edges, centerline, end bars and taxiways are plain themed SVG lines; only the few REIL points animate, on one shared ~1.5 Hz timer that respects reduced-motion.",
-        zh: "“边灯”是一条虚线而非一排 marker——既保留夜景观感又免去旧点阵开销的廉价做法。跑道边灯、中线、端杠和滑行道都是普通的主题化 SVG 线;只有少数 REIL 点闪烁,共用一个约 1.5Hz 定时器并遵循 reduced-motion。",
+        en: "Slow/taxiing aircraft no longer drift the wrong way then snap back at high zoom (extrapolation gates off below ~8–25kt and on the ground); steady targets sit visually still at far/mid zoom (per-frame jitter ~0).",
+        zh: "慢速/滑行飞机在高 zoom 下不再先朝错误方向漂移再回弹(约 8–25kt 以下及地面时关闭外推);稳定目标在远/中 zoom 下视觉上保持静止(逐帧抖动 ~0)。",
       },
       {
-        en: "Zoom-gated to the detail view (nothing built or drawn below it) and dark-theme only; daytime keeps the tan runway/taxiway surfaces. The old per-point FAA model, its canvas renderer, the LOD-band system and ~790 net lines of code are removed.",
-        zh: "灯光门控在详情 zoom(以下不构建不绘制)且仅暗色主题;白天保留 tan 色跑道/滑行道铺面。旧的逐点 FAA 模型、其 canvas 渲染器、LOD 分级系统及净约 790 行代码已移除。",
+        en: "Runs inside the existing single-canvas render loop — a few float ops per aircraft per frame (~0.16µs/plane), no new map layers or repaints. Tuning constants live in one POSITION_SMOOTHING config block.",
+        zh: "运行在现有单 canvas 渲染循环内——每架飞机每帧几次浮点运算(约 0.16µs/架),不新增地图图层或重绘。调参常量集中在一个 POSITION_SMOOTHING 配置块。",
       },
       {
-        en: "v2.34.1: airport buildings now show at the detail zoom. The OSM lookup widened from terminals + hangars to all buildings, filtered to inside the aerodrome polygon (aeroway=aerodrome) so surrounding city blocks are excluded, and the runway is drawn as a thin clean bar at the medium zoom.",
-        zh: "v2.34.1:机场建筑现在在详情 zoom 显示。OSM 取数从航站楼+机库扩到全部建筑,并过滤到机场边界多边形(aeroway=aerodrome)以内,排除周边城市街区;中间 zoom 档跑道改为细线。",
+        en: "Proven before wiring to the display: real KLAX fix sequences (slow, fast-cruise, and source-switching targets) were recorded and replayed through an offline harness that asserts jitter, lag, drift, and source-switch thresholds across far/mid/high zoom. Fixtures and harness are committed for repeatability.",
+        zh: "接入显示前先证明:录制真实 KLAX 定位序列(慢速、巡航、跨源切换目标)并通过离线 harness 重放,在远/中/高 zoom 下对抖动、滞后、漂移、源切换阈值逐一断言。fixtures 与 harness 已入库可复跑。",
       },
     ],
   },

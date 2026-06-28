@@ -1,0 +1,82 @@
+[
+  {
+    "name": "slow-a085a4",
+    "hex": "a085a4",
+    "callsign": "UAL1195",
+    "category": "slow",
+    "medGs": 0,
+    "maxGs": 0,
+    "fixes": 273,
+    "sourceSwitches": 28
+  },
+  {
+    "name": "slow-7c4927",
+    "hex": "7c4927",
+    "callsign": "VHOQH",
+    "category": "slow",
+    "medGs": 0,
+    "maxGs": 3,
+    "fixes": 273,
+    "sourceSwitches": 28
+  },
+  {
+    "name": "slow-c8809d",
+    "hex": "c8809d",
+    "callsign": "DQFAJ",
+    "category": "slow",
+    "medGs": 6,
+    "maxGs": 13,
+    "fixes": 273,
+    "sourceSwitches": 28
+  },
+  {
+    "name": "fast-0c20f4",
+    "hex": "0c20f4",
+    "callsign": "CMP409",
+    "category": "fast",
+    "medGs": 485,
+    "maxGs": 487,
+    "fixes": 228,
+    "sourceSwitches": 22
+  },
+  {
+    "name": "fast-a84e0c",
+    "hex": "a84e0c",
+    "callsign": "QXE2213",
+    "category": "fast",
+    "medGs": 475,
+    "maxGs": 481,
+    "fixes": 191,
+    "sourceSwitches": 17
+  },
+  {
+    "name": "fast-aaad49",
+    "hex": "aaad49",
+    "callsign": "SWA4513",
+    "category": "fast",
+    "medGs": 473,
+    "maxGs": 479,
+    "fixes": 273,
+    "sourceSwitches": 28
+  },
+  {
+    "name": "source-switch-a1388c",
+    "hex": "a1388c",
+    "callsign": "SKW3260",
+    "category": "source-switch",
+    "medGs": 261,
+    "maxGs": 311,
+    "fixes": 273,
+    "sourceSwitches": 28
+  },
+  {
+    "name": "source-switch-a16ff1",
+    "hex": "a16ff1",
+    "callsign": "DAL463",
+    "category": "source-switch",
+    "medGs": 273,
+    "maxGs": 310,
+    "fixes": 273,
+    "sourceSwitches": 28
+  }
+]
