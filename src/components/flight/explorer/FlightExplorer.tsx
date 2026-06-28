@@ -153,7 +153,11 @@ function FlightExplorerContent({ callsign }) {
     mapFollowsAircraft,
   } = useExplorerUi();
   const [wakeLockState, toggleWakeLock] = useWakeLock();
-  const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_SESSION);
+  // Default the tracked flight to its FULL recorded history (all points), not
+  // just the since-you-opened session window — the focal aircraft should show
+  // the most history. Clicked/other aircraft stay on recent (handled in the
+  // trace provider). Users can still switch back to the session view.
+  const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_ALL);
   const pendingTraceFitRef = useRef(false);
 
   // Default-on location labels for the flight page: when tracking a

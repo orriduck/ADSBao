@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 62;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.38.0",
+    version: "v2.38.1",
     kind: "feat",
     title: {
       en: "Frosted map labels, colour-coded targets, steadier flight pages",
@@ -73,6 +73,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Stable detail-page navigation: each flight/airport page loads fresh on navigation (the old realtime connection is torn down), with a clear loading animation and an explicit no-live-position / signal-lost / flight-ended state instead of a stuck spinner or fallback map.",
         zh: "更稳的详情页跳转:跳转时每个飞机/机场页都全新加载(旧实时连接被切断),配清晰的加载动画,以及明确的「暂无实时位置 / 信号丢失 / 航班已结束」状态,而非卡住的转圈或兜底地图。",
+      },
+      {
+        en: "The tracked flight now defaults to its full recorded trace (all available history), not just the trail since you opened the page; clicked aircraft still show their recent trail.",
+        zh: "被追踪航班现在默认显示完整记录航迹(全部可用历史),而不只是你打开页面之后的那一段;点选的飞机仍显示最近航迹。",
       },
     ],
   },
