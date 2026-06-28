@@ -41,7 +41,6 @@ import {
   shouldRenderSelectedAircraftTrace,
 } from "../../features/airport/map/airportMapModel";
 import {
-  MAP_DEFERRED_FOCAL_CENTER_CUTOFF_MS,
   MAP_VISUAL_CONTENT_POLL_MS,
   MAP_VISUAL_CONTENT_READY_CUTOFF_MS,
   hasActiveMapLoadingSource,
@@ -136,8 +135,6 @@ export default function AirportMap({
   const [mapTilesReady, setMapTilesReady] = useState(false);
   const [visualContentReady, setVisualContentReady] = useState(false);
   const [initialVisualReady, setInitialVisualReady] = useState(false);
-  const [deferredFocalCutoffReached, setDeferredFocalCutoffReached] =
-    useState(false);
   const [leafletZoom, setLeafletZoom] = useState(zoom);
   const [loadingOverlayPlayback, setLoadingOverlayPlayback] = useState({
     visible: true,
@@ -149,20 +146,14 @@ export default function AirportMap({
     () => resolveAirportMapFocalCenter({ lat, lon }),
     [lat, lon],
   );
-  useEffect(() => {
-    if (!deferUntilFocal || focalCenter) {
-      setDeferredFocalCutoffReached(false);
-      return undefined;
-    }
-
-    setDeferredFocalCutoffReached(false);
-    const timer = window.setTimeout(() => {
-      setDeferredFocalCutoffReached(true);
-    }, MAP_DEFERRED_FOCAL_CENTER_CUTOFF_MS);
-    return () => window.clearTimeout(timer);
-  }, [deferUntilFocal, focalCenter]);
-  const shouldDeferInitialCenter =
-    Boolean(deferUntilFocal && !deferredFocalCutoffReached);
+  // The flight page (the only deferUntilFocal consumer) keeps the map deferred
+  // until the tracked aircraft has a plottable position. While deferred the map
+  // never initializes, so the loading overlay — always active when the map is
+  // not ready — stays up instead of briefly revealing the unrelated fallback
+  // center (the old 2.2s cutoff flashed the LAX map for slow/position-less
+  // flights). resolveAirportMapInitialCenter still returns the focal center the
+  // moment it exists, so a normal flight reveals the map as soon as it resolves.
+  const shouldDeferInitialCenter = Boolean(deferUntilFocal);
   const initialCenter = useMemo(
     () =>
       resolveAirportMapInitialCenter({

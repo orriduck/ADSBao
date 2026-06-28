@@ -123,7 +123,14 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
   // Size the canvas to the padded view and translate the context so we can draw
   // in layer-pixel coordinates. (Mirrors L.Canvas._update.)
   _update() {
-    if (this._map?._animatingZoom && this._bounds) return;
+    // Guard against a map that is mid-teardown / not yet laid out: a remount
+    // race (e.g. the explorer-context split + realtime resubscribe churn) can
+    // fire onAdd → _update against a map whose panes are gone, and the bare
+    // super._update() then throws on `_mapPane._leaflet_pos`, crashing the whole
+    // map subtree. Bail quietly; a later _update runs once the map settles.
+    const map = this._map;
+    if (!map || !map._loaded || !map._mapPane) return;
+    if (map._animatingZoom && this._bounds) return;
     (L as any).Renderer.prototype._update.call(this);
     const b = this._bounds;
     const size = b.getSize();

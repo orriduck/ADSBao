@@ -28,6 +28,17 @@ export default function UserLocationMarker({
     if (!map || !container || locationLat == null || locationLon == null) {
       return undefined;
     }
+    // A remount race (explorer-context split + realtime resubscribe churn) can
+    // run this effect against a map that is mid-teardown / not laid out, where
+    // marker.addTo() throws on a missing markerPane and crashes the map subtree.
+    // Skip this transient mount; the effect re-runs with a settled map.
+    if (
+      (map as any)._loaded !== true ||
+      typeof map.getPane !== "function" ||
+      !map.getPane("markerPane")
+    ) {
+      return undefined;
+    }
 
     const marker = L.marker([locationLat, locationLon], {
       interactive: false,
