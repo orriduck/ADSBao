@@ -51,15 +51,15 @@ export const CHANGELOG_TOTAL_COUNT = 63;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.39.1",
+    version: "v2.39.2",
     kind: "feat",
     title: {
       en: "Faster, more complete trace & route on busy airports",
       zh: "繁忙机场的航迹与航线更快、更全",
     },
     summary: {
-      en: "Returning to a flight you just left is quicker, and busy airports now show far more routes. The data-service keeps a short-lived (5-minute) shared cache of each flight's recent trace and route, so revisiting a flight (detail-page navigation fully reloads the page) serves them straight from the cache instead of re-fetching from the rate-limited upstreams (adsb.lol traces, adsbdb / FlightAware routes); a just-expired entry is shown instantly and refreshed in the background. We also fixed a cause of missing routes on busy airports: a FlightAware route scrape can take 5–10s under a burst of many simultaneous lookups, and the data-service was cutting them off at 7s — dropping a large share of valid commercial routes. Route lookups now get a longer timeout, so they complete instead of being killed. Live aircraft position is unaffected and stays real-time.",
-      zh: "刚离开又点回来的航班加载更快了,繁忙机场也能显示出多得多的航线。数据服务为每个航班的最近航迹和航线保留一份短时(5 分钟)共享缓存,重访航班(详情页跳转是整页重载)时直接从缓存返回,而不再向限流上游(adsb.lol 航迹、adsbdb / FlightAware 航线)重拉;刚过期的条目会立即返回并在后台刷新。同时修了繁忙机场漏航线的一个成因:一次性大量并发查询时,单次 FlightAware 航线抓取要 5–10 秒,而数据服务在 7 秒处就把它掐断,丢掉了一大批有效的商业航线。现在航线查询有了更长的超时,能跑完而不被提前掐断。飞机实时位置不受影响,仍保持实时。",
+      en: "Returning to a flight you just left is quicker, and busy airports now show far more routes. The data-service keeps a short-lived (5-minute) shared cache of each flight's recent trace and route, so revisiting a flight (detail-page navigation fully reloads the page) serves them straight from the cache instead of re-fetching from the rate-limited upstreams (adsb.lol traces, adsbdb / FlightAware routes); a just-expired entry is shown instantly and refreshed in the background. We also fixed a cause of missing routes on busy airports: a FlightAware route scrape is fast on its own (~0.6s) but balloons to 5–10s when dozens fire at once, and those were being cut off at 7s — dropping a large share of valid commercial routes. We now cap how many FlightAware lookups run at once (so each stays fast) and give the rest a longer timeout, so valid routes complete instead of being dropped. Live aircraft position is unaffected and stays real-time.",
+      zh: "刚离开又点回来的航班加载更快了,繁忙机场也能显示出多得多的航线。数据服务为每个航班的最近航迹和航线保留一份短时(5 分钟)共享缓存,重访航班(详情页跳转是整页重载)时直接从缓存返回,而不再向限流上游(adsb.lol 航迹、adsbdb / FlightAware 航线)重拉;刚过期的条目会立即返回并在后台刷新。同时修了繁忙机场漏航线的一个成因:单次 FlightAware 航线抓取本身很快(~0.6 秒),但几十个一起打就会膨胀到 5–10 秒,这些会在 7 秒处被掐断,丢掉一大批有效的商业航线。现在我们给 FlightAware 查询限制了并发(让每次都保持快),其余的也给了更长的超时,有效航线能跑完而不被丢弃。飞机实时位置不受影响,仍保持实时。",
     },
     highlights: [
       {
@@ -75,8 +75,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         zh: "FlightAware 与 adsbdb 航线分开缓存、绝不混用;数据库不可用时自动回退为直连上游。",
       },
       {
-        en: "Busy airports show more routes: slow FlightAware route scrapes (5–10s under load) are no longer cut off at 7s, so valid commercial routes that used to silently drop now resolve.",
-        zh: "繁忙机场显示更多航线:慢的 FlightAware 航线抓取(高并发下 5–10 秒)不再被 7 秒掐断,以前会悄悄丢掉的商业航线现在能解析出来。",
+        en: "Busy airports show more routes: FlightAware lookups are now concurrency-bounded so each stays ~fast instead of ballooning to 5–10s under a burst, with a longer timeout as a backstop — valid commercial routes that used to silently drop now resolve.",
+        zh: "繁忙机场显示更多航线:FlightAware 查询现在限制了并发,每次都保持较快,不再在突发下膨胀到 5–10 秒,并以更长超时兜底——以前会悄悄丢掉的商业航线现在能解析出来。",
       },
     ],
   },

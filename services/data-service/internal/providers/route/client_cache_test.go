@@ -3,9 +3,11 @@ package route
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -115,6 +117,45 @@ func TestRouteCacheServesStaleOnUpstreamError(t *testing.T) {
 	}
 	if event.Data.(map[string]any)["route"] == nil {
 		t.Fatalf("expected last-known route on upstream failure")
+	}
+}
+
+func TestFlightAwareConcurrencyIsBounded(t *testing.T) {
+	const cap = 2
+	var cur, maxObserved int32
+	fetcher := func(ctx context.Context, callsign string, m realtime.MetricsSink) (map[string]any, error) {
+		n := atomic.AddInt32(&cur, 1)
+		for {
+			prev := atomic.LoadInt32(&maxObserved)
+			if n <= prev || atomic.CompareAndSwapInt32(&maxObserved, prev, n) {
+				break
+			}
+		}
+		time.Sleep(25 * time.Millisecond)
+		atomic.AddInt32(&cur, -1)
+		return map[string]any{
+			"origin":      map[string]any{"icao": "KBOS", "lat": 42.3, "lon": -71.0},
+			"destination": map[string]any{"icao": "KLAX", "lat": 33.9, "lon": -118.4},
+			"source":      "flightaware",
+		}, nil
+	}
+	client := NewClient(Options{FlightAwareRouteFetcher: fetcher, MaxFlightAwareConcurrency: cap, QueueInterval: 0})
+
+	var wg sync.WaitGroup
+	for i := 0; i < 12; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			_, _ = client.Fetch(context.Background(), routeInput(fmt.Sprintf("route:FA%d", i), fmt.Sprintf("FAT%d", i), "flightaware"))
+		}(i)
+	}
+	wg.Wait()
+
+	if got := atomic.LoadInt32(&maxObserved); got > cap {
+		t.Fatalf("observed %d concurrent FlightAware scrapes, cap is %d", got, cap)
+	}
+	if atomic.LoadInt32(&maxObserved) == 0 {
+		t.Fatalf("fetcher was never invoked")
 	}
 }
 
