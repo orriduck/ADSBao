@@ -20,23 +20,31 @@ const remoteUserAgent = "ADSBao data-service/1.0 (+https://adsbao.dev; flightawa
 
 const (
 	defaultTimeout = 7 * time.Second
-	maxBodyBytes   = 2 * 1024 * 1024
+	// Route lookups scrape FlightAware and, on a busy airport, routinely run
+	// 5–10s under burst load (the callsign-fallback live-position path is more
+	// latency-sensitive and keeps the tighter default). 7s used to cut off the
+	// slow half, dropping otherwise-valid routes; the route cache makes a longer
+	// wait a one-time cost.
+	defaultRouteTimeout = 12 * time.Second
+	maxBodyBytes        = 2 * 1024 * 1024
 )
 
 var normalizedCallsignPattern = regexp.MustCompile(`^[A-Z][A-Z0-9]{2,7}$`)
 
 type RemoteOptions struct {
-	BaseURL    string
-	Token      string
-	HTTPClient *http.Client
-	Timeout    time.Duration
+	BaseURL      string
+	Token        string
+	HTTPClient   *http.Client
+	Timeout      time.Duration
+	RouteTimeout time.Duration
 }
 
 type RemoteClient struct {
-	baseURL    string
-	token      string
-	httpClient *http.Client
-	timeout    time.Duration
+	baseURL      string
+	token        string
+	httpClient   *http.Client
+	timeout      time.Duration
+	routeTimeout time.Duration
 }
 
 type remoteRequestError struct {
@@ -61,11 +69,16 @@ func NewRemoteClient(options RemoteOptions) *RemoteClient {
 	if timeout <= 0 {
 		timeout = defaultTimeout
 	}
+	routeTimeout := options.RouteTimeout
+	if routeTimeout <= 0 {
+		routeTimeout = defaultRouteTimeout
+	}
 	return &RemoteClient{
-		baseURL:    strings.TrimRight(strings.TrimSpace(options.BaseURL), "/"),
-		token:      strings.TrimSpace(options.Token),
-		httpClient: httpClient,
-		timeout:    timeout,
+		baseURL:      strings.TrimRight(strings.TrimSpace(options.BaseURL), "/"),
+		token:        strings.TrimSpace(options.Token),
+		httpClient:   httpClient,
+		timeout:      timeout,
+		routeTimeout: routeTimeout,
 	}
 }
 
@@ -83,7 +96,7 @@ func (c *RemoteClient) ByCallsign(ctx context.Context, callsign string, metrics 
 		return errorResult("invalid_callsign", fetchedAt, "", nil), nil
 	}
 	var result adsb.FallbackResult
-	err := c.getJSON(ctx, "callsign", "/api/flightaware/callsign/"+url.PathEscape(normalized), &result, metrics)
+	err := c.getJSON(ctx, c.timeout, "callsign", "/api/flightaware/callsign/"+url.PathEscape(normalized), &result, metrics)
 	if err != nil {
 		var remoteErr remoteRequestError
 		if errors.As(err, &remoteErr) {
@@ -106,16 +119,16 @@ func (c *RemoteClient) Route(ctx context.Context, callsign string, metrics realt
 		return nil, errors.New("Invalid FlightAware route callsign")
 	}
 	var payload map[string]any
-	if err := c.getJSON(ctx, "route", "/api/flightaware/route/"+url.PathEscape(normalized), &payload, metrics); err != nil {
+	if err := c.getJSON(ctx, c.routeTimeout, "route", "/api/flightaware/route/"+url.PathEscape(normalized), &payload, metrics); err != nil {
 		return nil, err
 	}
 	return asMap(payload["route"]), nil
 }
 
-func (c *RemoteClient) getJSON(ctx context.Context, endpoint, path string, out any, metrics realtime.MetricsSink) error {
+func (c *RemoteClient) getJSON(ctx context.Context, timeout time.Duration, endpoint, path string, out any, metrics realtime.MetricsSink) error {
 	requestURL := c.baseURL + path
 	started := time.Now()
-	requestCtx, cancel := context.WithTimeout(ctx, c.timeout)
+	requestCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(requestCtx, http.MethodGet, requestURL, nil)
 	if err != nil {
