@@ -107,4 +107,22 @@ export const MECHANISM_ITEMS = [
       "mechanism.items.canvasAircraftRendering.flow.paint",
     ],
   },
+  {
+    id: "flightTrackingLifecycle",
+    groupKey: "mechanism.groups.mechanisms",
+    titleKey: "mechanism.items.flightTrackingLifecycle.title",
+    bodyKey: "mechanism.items.flightTrackingLifecycle.body",
+    signalKey: "mechanism.items.flightTrackingLifecycle.signal",
+    detailKeys: [
+      "mechanism.items.flightTrackingLifecycle.details.reload",
+      "mechanism.items.flightTrackingLifecycle.details.states",
+      "mechanism.items.flightTrackingLifecycle.details.trace",
+    ],
+    flowKeys: [
+      "mechanism.items.flightTrackingLifecycle.flow.open",
+      "mechanism.items.flightTrackingLifecycle.flow.reload",
+      "mechanism.items.flightTrackingLifecycle.flow.acquire",
+      "mechanism.items.flightTrackingLifecycle.flow.resolve",
+    ],
+  },
 ] as const;

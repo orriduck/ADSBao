@@ -248,6 +248,26 @@ const en = {
             "The whole layer shares one zoom-aware cadence (the focal target at 30fps, coarser as you zoom out), keeping the GPU free for smooth panning and sidebar scrolling.",
         },
       },
+      flightTrackingLifecycle: {
+        title: "Flight tracking lifecycle",
+        signal: "Fresh page, three states",
+        body:
+          "Opening a flight loads a fresh page — its own map and realtime socket, with the previous one torn down — so navigating between flights never carries over stale map state. The map then settles into one of three states: acquiring a signal, the live position, or a card when there's no live position.",
+        flow: {
+          open: "Open a flight",
+          reload: "Fresh page load",
+          acquire: "Acquire signal",
+          resolve: "Position or card",
+        },
+        details: {
+          reload:
+            "Navigating between detail pages does a full reload to the new URL, so each flight/airport page is a clean slate with no carried-over map and the previous realtime connection closed.",
+          states:
+            "The flight map is loading (acquiring), position (centered on the aircraft), or terminal — a static 'no live position / signal lost / flight ended' card, including a trans-oceanic leg with no coverage — instead of an endless spinner or an unrelated fallback map.",
+          trace:
+            "The tracked flight draws its full recorded trace (all available history); a clicked aircraft shows only its recent trail.",
+        },
+      },
     },
   },
   sidebar: {
