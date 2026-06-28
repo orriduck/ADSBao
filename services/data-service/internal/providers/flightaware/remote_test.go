@@ -77,10 +77,10 @@ func TestRemoteClientFetchesPrivateRoute(t *testing.T) {
 	}
 }
 
-// Route lookups must use the longer routeTimeout, not the callsign-fallback
-// timeout — FlightAware route scrapes routinely run several seconds and were
-// being cut off, dropping valid routes on busy airports.
-func TestRemoteClientRouteUsesRouteTimeout(t *testing.T) {
+// The route layer owns the route timeout (via the caller's ctx deadline), not
+// remote.go. Route must honor that deadline rather than imposing the tighter
+// callsign-fallback timeout on the scrape.
+func TestRemoteClientRouteHonorsCallerDeadline(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(120 * time.Millisecond)
 		w.Header().Set("Content-Type", "application/json")
@@ -88,31 +88,28 @@ func TestRemoteClientRouteUsesRouteTimeout(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// A tight callsign timeout would have killed this scrape; the generous
-	// route timeout lets it complete.
+	// The tight 20ms callsign-fallback timeout must NOT apply to route scrapes; a
+	// generous caller deadline lets this one complete.
 	client := NewRemoteClient(RemoteOptions{
-		BaseURL:      server.URL,
-		Token:        "secret",
-		HTTPClient:   server.Client(),
-		Timeout:      20 * time.Millisecond,
-		RouteTimeout: 2 * time.Second,
+		BaseURL:    server.URL,
+		Token:      "secret",
+		HTTPClient: server.Client(),
+		Timeout:    20 * time.Millisecond,
 	})
-	route, err := client.Route(context.Background(), "AAL1234", nil)
+	okCtx, cancelOK := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelOK()
+	route, err := client.Route(okCtx, "AAL1234", nil)
 	if err != nil {
-		t.Fatalf("Route returned error despite generous route timeout: %v", err)
+		t.Fatalf("Route returned error despite a generous caller deadline: %v", err)
 	}
 	if route["source"] != "flightaware" {
 		t.Fatalf("route = %#v", route)
 	}
 
-	// And a too-tight route timeout still surfaces a timeout error.
-	tight := NewRemoteClient(RemoteOptions{
-		BaseURL:      server.URL,
-		Token:        "secret",
-		HTTPClient:   server.Client(),
-		RouteTimeout: 10 * time.Millisecond,
-	})
-	if _, err := tight.Route(context.Background(), "AAL1234", nil); err == nil {
-		t.Fatalf("expected a timeout error when routeTimeout is shorter than the scrape")
+	// A tight caller deadline is honored and surfaces a timeout.
+	tightCtx, cancelTight := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancelTight()
+	if _, err := client.Route(tightCtx, "AAL1234", nil); err == nil {
+		t.Fatalf("expected a deadline error from a tight caller context")
 	}
 }

@@ -19,18 +19,33 @@ import (
 
 const (
 	defaultADSBDBBaseURL = "https://api.adsbdb.com/v0"
-	defaultTimeout       = 9 * time.Second
 	defaultMaxBytes      = 2 * 1024 * 1024
-	defaultQueueInterval = 500 * time.Millisecond
-	// FlightAware route scrapes are fast in isolation (~0.6s) but degrade sharply
-	// under concurrency (≈2s at 10-way, 5–10s at 40-way), which is how busy
-	// airports used to blow past the timeout. Cap how many run at once so each
-	// stays fast and we don't hammer the scraper into rate-limiting. adsbdb keeps
-	// its own serial interval queue instead — a strict serial queue would be far
-	// too slow for the dozens of FlightAware lookups a busy airport fires.
+	userAgent            = "ADSBao data-service/1.0 (+https://adsbao.dev)"
+
+	// Per-provider access config. Both providers run through the same pipeline
+	// (cache → limiter → timeout+retry → cache); only these knobs differ.
+	//
+	// adsbdb is a JSON API with a request-rate limit, so it is throttled by a
+	// minimum interval between starts (concurrency is left unbounded). FlightAware
+	// is a scrape that is fast alone (~0.6s) but degrades under concurrency (~2s
+	// at 10-way, 5–10s at 40-way), so it is throttled by a concurrency cap
+	// instead — a strict serial interval queue would be far too slow for the
+	// dozens of lookups a busy airport fires.
+	defaultADSBDBTimeout          = 9 * time.Second
+	defaultADSBDBInterval         = 500 * time.Millisecond
+	defaultFlightAwareTimeout     = 12 * time.Second
 	defaultFlightAwareConcurrency = 8
-	userAgent                     = "ADSBao data-service/1.0 (+https://adsbao.dev)"
 )
+
+// defaultRetryBackoffs retries a failed lookup 3 times, sleeping 200/400/600ms
+// before each retry, so a transient upstream blip resolves within one poll
+// instead of waiting for the scheduler's next re-poll. A "not found" is not an
+// error and is never retried.
+var defaultRetryBackoffs = []time.Duration{
+	200 * time.Millisecond,
+	400 * time.Millisecond,
+	600 * time.Millisecond,
+}
 
 // Cache is a best-effort persistent route cache keyed by callsign+provider.
 // A nil Cache disables caching entirely.
@@ -44,25 +59,24 @@ type Options struct {
 	HTTPClient                *http.Client
 	ADSBDBBaseURL             string
 	FlightAwareRouteFetcher   func(context.Context, string, realtime.MetricsSink) (map[string]any, error)
-	Timeout                   time.Duration
-	MaxBytes                  int64
-	QueueInterval             time.Duration
-	DisableQueue              bool
 	Cache                     Cache
-	MaxFlightAwareConcurrency int
+	Timeout                   time.Duration // adsbdb upstream timeout
+	FlightAwareTimeout        time.Duration // FlightAware upstream timeout
+	MaxBytes                  int64
+	QueueInterval             time.Duration   // adsbdb minimum interval between starts
+	DisableQueue              bool            // disable the adsbdb interval
+	MaxFlightAwareConcurrency int             // FlightAware in-flight cap
+	RetryBackoffs             []time.Duration // per-retry backoff; nil → default, empty → no retry
 }
 
 type Client struct {
 	httpClient              *http.Client
 	adsbdbBaseURL           string
 	flightAwareRouteFetcher func(context.Context, string, realtime.MetricsSink) (map[string]any, error)
-	timeout                 time.Duration
 	maxBytes                int64
-	queueInterval           time.Duration
 	cache                   Cache
-	faSem                   chan struct{}
-	mu                      sync.Mutex
-	lastStarted             time.Time
+	adsbdb                  *providerSpec
+	flightAware             *providerSpec
 }
 
 func NewClient(options Options) *Client {
@@ -74,79 +88,149 @@ func NewClient(options Options) *Client {
 	if adsbdbBase == "" {
 		adsbdbBase = defaultADSBDBBaseURL
 	}
-	timeout := options.Timeout
-	if timeout <= 0 {
-		timeout = defaultTimeout
-	}
 	maxBytes := options.MaxBytes
 	if maxBytes <= 0 {
 		maxBytes = defaultMaxBytes
 	}
-	queueInterval := options.QueueInterval
-	if queueInterval == 0 && !options.DisableQueue {
-		queueInterval = defaultQueueInterval
+	adsbdbTimeout := options.Timeout
+	if adsbdbTimeout <= 0 {
+		adsbdbTimeout = defaultADSBDBTimeout
+	}
+	adsbdbInterval := options.QueueInterval
+	if adsbdbInterval == 0 && !options.DisableQueue {
+		adsbdbInterval = defaultADSBDBInterval
+	}
+	faTimeout := options.FlightAwareTimeout
+	if faTimeout <= 0 {
+		faTimeout = defaultFlightAwareTimeout
 	}
 	faConcurrency := options.MaxFlightAwareConcurrency
 	if faConcurrency <= 0 {
 		faConcurrency = defaultFlightAwareConcurrency
 	}
-	return &Client{
+	backoffs := options.RetryBackoffs
+	if backoffs == nil {
+		backoffs = defaultRetryBackoffs
+	}
+
+	c := &Client{
 		httpClient:              httpClient,
 		adsbdbBaseURL:           adsbdbBase,
 		flightAwareRouteFetcher: options.FlightAwareRouteFetcher,
-		timeout:                 timeout,
 		maxBytes:                maxBytes,
-		queueInterval:           queueInterval,
 		cache:                   options.Cache,
-		faSem:                   make(chan struct{}, faConcurrency),
 	}
+	c.adsbdb = &providerSpec{
+		name:     "adsbdb",
+		limiter:  newLimiter(0, adsbdbInterval),
+		timeout:  adsbdbTimeout,
+		backoffs: backoffs,
+		fetch:    c.fetchADSBDB,
+	}
+	c.flightAware = &providerSpec{
+		name:     "flightaware",
+		limiter:  newLimiter(faConcurrency, 0),
+		timeout:  faTimeout,
+		backoffs: backoffs,
+		fetch:    c.fetchFlightAware,
+	}
+	return c
+}
+
+// providerSpec bundles everything that differs between route upstreams: how it
+// is throttled, how long a request may take, how it retries, and the call
+// itself. Both providers run through the identical pipeline in Fetch/resolve.
+type providerSpec struct {
+	name     string
+	limiter  *limiter
+	timeout  time.Duration
+	backoffs []time.Duration
+	fetch    func(context.Context, realtime.FetchInput) (map[string]any, error)
 }
 
 func (c *Client) Fetch(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
 	if input.Target.Kind != "route" {
 		return realtime.Event{}, errors.New("Expected route polling target")
 	}
-	provider := "adsbdb"
+	// The FlightAware grant (resolved upstream into Target.RouteProvider) gates
+	// which provider runs; each provider carries its own queue, timeout/retry,
+	// and cache partition (keyed by provider name).
+	spec := c.adsbdb
 	if input.Target.RouteProvider == "flightaware" {
-		provider = "flightaware"
+		spec = c.flightAware
 	}
 	callsign := input.Target.Callsign
 
-	// Serve a fresh cached route without touching the upstream (also skips the
-	// adsbdb rate-limit queue). Provider is part of the key, so a FlightAware
-	// lookup never reads an adsbdb row and vice versa.
+	// Serve a fresh cached route without touching the upstream. Provider is part
+	// of the cache key, so a FlightAware lookup never reads an adsbdb row.
 	if c.cache != nil && callsign != "" {
-		if raw, age, ok := c.cache.GetRoute(ctx, callsign, provider); ok && age < c.cache.TTL() {
-			return cachedRouteEvent(input.Channel, provider, callsign, raw), nil
+		if raw, age, ok := c.cache.GetRoute(ctx, callsign, spec.name); ok && age < c.cache.TTL() {
+			return cachedRouteEvent(input.Channel, spec.name, callsign, raw), nil
 		}
 	}
 
-	event, err := c.fetchUpstream(ctx, input, provider)
+	route, err := c.resolve(ctx, spec, input)
 	if err != nil {
-		// Upstream failed — fall back to the last-known route if we have one
-		// (stale-while-revalidate), rather than surfacing an empty/error route.
+		// Upstream failed after retries — fall back to the last-known route
+		// (stale-while-revalidate) rather than surfacing an empty/error route.
 		if c.cache != nil && callsign != "" {
-			if raw, _, ok := c.cache.GetRoute(ctx, callsign, provider); ok {
-				return cachedRouteEvent(input.Channel, provider, callsign, raw), nil
+			if raw, _, ok := c.cache.GetRoute(ctx, callsign, spec.name); ok {
+				return cachedRouteEvent(input.Channel, spec.name, callsign, raw), nil
 			}
 		}
-		return event, err
+		return realtime.Event{}, err
 	}
 
+	event := routeEvent(input.Channel, spec.name, callsign, route)
 	// Cache only successful lookups that actually resolved a route.
 	if c.cache != nil && callsign != "" {
 		if raw := routeJSONFromEvent(event); raw != nil {
-			c.cache.PutRoute(ctx, callsign, provider, raw)
+			c.cache.PutRoute(ctx, callsign, spec.name, raw)
 		}
 	}
 	return event, nil
 }
 
-func (c *Client) fetchUpstream(ctx context.Context, input realtime.FetchInput, provider string) (realtime.Event, error) {
-	if provider == "flightaware" {
-		return c.fetchFlightAware(ctx, input)
+// resolve runs one provider's lookup through its limiter and timeout, retrying
+// transient failures on the provider's backoff schedule. A nil route with no
+// error means "no route found" — a success, never retried. The limiter slot is
+// held only for the actual call, not across the retry backoff.
+func (c *Client) resolve(ctx context.Context, spec *providerSpec, input realtime.FetchInput) (map[string]any, error) {
+	var lastErr error
+	for attempt := 0; attempt <= len(spec.backoffs); attempt++ {
+		if attempt > 0 {
+			if err := sleepContext(ctx, spec.backoffs[attempt-1]); err != nil {
+				return nil, err
+			}
+		}
+		release, err := spec.limiter.acquire(ctx)
+		if err != nil {
+			return nil, err
+		}
+		fetchCtx, cancel := context.WithTimeout(ctx, spec.timeout)
+		route, err := spec.fetch(fetchCtx, input)
+		cancel()
+		release()
+		if err == nil {
+			return route, nil
+		}
+		lastErr = err
 	}
-	return c.fetchADSBDB(ctx, input)
+	return nil, lastErr
+}
+
+func sleepContext(ctx context.Context, d time.Duration) error {
+	if d <= 0 {
+		return nil
+	}
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func cachedRouteEvent(channel, source, callsign string, raw json.RawMessage) realtime.Event {
@@ -183,95 +267,114 @@ func routeJSONFromEvent(event realtime.Event) json.RawMessage {
 	return raw
 }
 
-func (c *Client) fetchADSBDB(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
-	if err := c.waitForTurn(ctx); err != nil {
-		return realtime.Event{}, err
-	}
+// fetchADSBDB returns the normalized route, or (nil, nil) when the callsign has
+// no route (adsbdb 404). The limiter/timeout/retry are applied by resolve.
+func (c *Client) fetchADSBDB(ctx context.Context, input realtime.FetchInput) (map[string]any, error) {
 	requestURL := c.adsbdbBaseURL + "/callsign/" + url.PathEscape(input.Target.Callsign)
 	started := time.Now()
-	status := any(nil)
-	resp, cancel, err := c.do(ctx, requestURL, "application/json", userAgent)
+	resp, err := c.do(ctx, requestURL, "application/json", userAgent)
 	if err != nil {
 		c.recordExternal(input, "adsbdb", "error", "ERR", requestURL, err.Error(), started)
-		return realtime.Event{}, err
+		return nil, err
 	}
-	defer cancel()
 	defer resp.Body.Close()
-	status = resp.StatusCode
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		if resp.StatusCode != http.StatusNotFound {
 			message := fmt.Sprintf("HTTP %d", resp.StatusCode)
-			c.recordExternal(input, "adsbdb", "error", status, requestURL, message, started)
-			return realtime.Event{}, fmt.Errorf("adsbdb route HTTP %d", resp.StatusCode)
+			c.recordExternal(input, "adsbdb", "error", resp.StatusCode, requestURL, message, started)
+			return nil, fmt.Errorf("adsbdb route HTTP %d", resp.StatusCode)
 		}
-		c.recordExternal(input, "adsbdb", "success", status, requestURL, "", started)
-		return routeEvent(input.Channel, "adsbdb", input.Target.Callsign, nil), nil
+		c.recordExternal(input, "adsbdb", "success", resp.StatusCode, requestURL, "", started)
+		return nil, nil
 	}
 	body, err := c.readBody(resp)
 	if err != nil {
 		c.recordExternal(input, "adsbdb", "error", "ERR", requestURL, err.Error(), started)
-		return realtime.Event{}, err
+		return nil, err
 	}
 	var payload map[string]any
 	if err := json.Unmarshal(body, &payload); err != nil {
 		c.recordExternal(input, "adsbdb", "error", "PARSE", requestURL, "Invalid ADSBDB JSON", started)
-		return realtime.Event{}, err
+		return nil, err
 	}
-	c.recordExternal(input, "adsbdb", "success", status, requestURL, "", started)
-	return routeEvent(input.Channel, "adsbdb", input.Target.Callsign, normalizeADSBDBRoute(input.Target.Callsign, payload)), nil
+	c.recordExternal(input, "adsbdb", "success", resp.StatusCode, requestURL, "", started)
+	return normalizeADSBDBRoute(input.Target.Callsign, payload), nil
 }
 
-func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {
+// fetchFlightAware returns the route from the private FlightAware service, or
+// (nil, nil) when the service is not configured. The limiter/timeout/retry are
+// applied by resolve.
+func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput) (map[string]any, error) {
 	if c.flightAwareRouteFetcher == nil {
-		return routeEvent(input.Channel, "flightaware", input.Target.Callsign, nil), nil
+		return nil, nil
 	}
-	// Bound how many scrapes hit FlightAware at once so a busy airport's burst of
-	// lookups doesn't inflate each one into a multi-second, timeout-prone request.
-	if err := c.acquireFlightAware(ctx); err != nil {
-		return realtime.Event{}, err
+	return c.flightAwareRouteFetcher(ctx, input.Target.Callsign, input.Metrics)
+}
+
+// limiter throttles upstream access with two knobs that together cover both
+// providers: a max-concurrency semaphore (FlightAware) and a minimum interval
+// between starts (adsbdb). Either may be disabled (zero).
+type limiter struct {
+	sem       chan struct{}
+	mu        sync.Mutex
+	interval  time.Duration
+	lastStart time.Time
+}
+
+func newLimiter(maxConcurrency int, interval time.Duration) *limiter {
+	var sem chan struct{}
+	if maxConcurrency > 0 {
+		sem = make(chan struct{}, maxConcurrency)
 	}
-	defer c.releaseFlightAware()
-	route, err := c.flightAwareRouteFetcher(ctx, input.Target.Callsign, input.Metrics)
+	return &limiter{sem: sem, interval: interval}
+}
+
+// acquire blocks until a concurrency slot is free and the minimum interval has
+// elapsed, returning a release func.
+func (l *limiter) acquire(ctx context.Context) (func(), error) {
+	if l.sem != nil {
+		select {
+		case l.sem <- struct{}{}:
+		case <-ctx.Done():
+			return func() {}, ctx.Err()
+		}
+	}
+	if l.interval > 0 {
+		if err := l.waitInterval(ctx); err != nil {
+			if l.sem != nil {
+				<-l.sem
+			}
+			return func() {}, err
+		}
+	}
+	return func() {
+		if l.sem != nil {
+			<-l.sem
+		}
+	}, nil
+}
+
+func (l *limiter) waitInterval(ctx context.Context) error {
+	l.mu.Lock()
+	wait := l.interval - time.Since(l.lastStart)
+	if wait < 0 {
+		wait = 0
+	}
+	l.lastStart = time.Now().Add(wait)
+	l.mu.Unlock()
+	return sleepContext(ctx, wait)
+}
+
+// do issues the request against the caller's ctx — resolve owns the timeout via
+// the per-provider deadline, so do no longer imposes its own.
+func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
-		return realtime.Event{}, err
-	}
-	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, route), nil
-}
-
-func (c *Client) acquireFlightAware(ctx context.Context) error {
-	if c.faSem == nil {
-		return nil
-	}
-	select {
-	case c.faSem <- struct{}{}:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-func (c *Client) releaseFlightAware() {
-	if c.faSem == nil {
-		return
-	}
-	<-c.faSem
-}
-
-func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, context.CancelFunc, error) {
-	requestCtx, cancel := context.WithTimeout(ctx, c.timeout)
-	req, err := http.NewRequestWithContext(requestCtx, http.MethodGet, requestURL, nil)
-	if err != nil {
-		cancel()
-		return nil, nil, err
+		return nil, err
 	}
 	req.Header.Set("Accept", accept)
 	req.Header.Set("User-Agent", ua)
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		cancel()
-		return nil, nil, err
-	}
-	return resp, cancel, nil
+	return c.httpClient.Do(req)
 }
 
 func (c *Client) readBody(resp *http.Response) ([]byte, error) {
@@ -283,30 +386,6 @@ func (c *Client) readBody(resp *http.Response) ([]byte, error) {
 		return nil, errors.New("Route response too large")
 	}
 	return body, nil
-}
-
-func (c *Client) waitForTurn(ctx context.Context) error {
-	if c.queueInterval <= 0 {
-		return nil
-	}
-	c.mu.Lock()
-	wait := c.queueInterval - time.Since(c.lastStarted)
-	if wait < 0 {
-		wait = 0
-	}
-	c.lastStarted = time.Now().Add(wait)
-	c.mu.Unlock()
-	if wait == 0 {
-		return nil
-	}
-	timer := time.NewTimer(wait)
-	defer timer.Stop()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
 }
 
 func (c *Client) recordExternal(input realtime.FetchInput, provider, result string, status any, requestURL, errorText string, started time.Time) {
