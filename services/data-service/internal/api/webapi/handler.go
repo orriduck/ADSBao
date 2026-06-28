@@ -38,9 +38,18 @@ type Options struct {
 	Metrics                   realtime.MetricsSink
 	Authenticator             *ClerkAuthenticator
 	UserDataStore             *UserDataStore
+	TraceCache                TraceCache
 	FlightAwareServiceBaseURL string
 	FlightAwareServiceToken   string
 	FeatureFlags              map[string]bool
+}
+
+// TraceCache is a best-effort persistent cache for the rolling recent aircraft
+// trace, keyed by hex. A nil TraceCache disables caching.
+type TraceCache interface {
+	GetTrace(ctx context.Context, hex string) (json.RawMessage, time.Duration, bool)
+	PutTrace(ctx context.Context, hex string, response json.RawMessage)
+	TTL() time.Duration
 }
 
 type Handler struct {
@@ -54,6 +63,9 @@ type Handler struct {
 	metrics                   realtime.MetricsSink
 	authenticator             *ClerkAuthenticator
 	userDataStore             *UserDataStore
+	traceCache                TraceCache
+	traceRefreshMu            sync.Mutex
+	traceRefreshing           map[string]bool
 	flightAwareServiceBaseURL string
 	flightAwareServiceToken   string
 	featureFlags              map[string]bool
@@ -94,6 +106,8 @@ func New(options Options) *Handler {
 		metrics:                   options.Metrics,
 		authenticator:             options.Authenticator,
 		userDataStore:             options.UserDataStore,
+		traceCache:                options.TraceCache,
+		traceRefreshing:           map[string]bool{},
 		flightAwareServiceBaseURL: strings.TrimRight(strings.TrimSpace(options.FlightAwareServiceBaseURL), "/"),
 		flightAwareServiceToken:   strings.TrimSpace(options.FlightAwareServiceToken),
 		featureFlags:              cloneFeatureFlags(options.FeatureFlags),

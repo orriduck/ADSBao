@@ -213,18 +213,30 @@ func (h *Handler) handleAircraftTrace(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid aircraft trace query"})
 		return
 	}
-	lower := strings.ToLower(strings.TrimPrefix(hex, "~"))
-	suffix := lower
-	if len(suffix) > 2 {
-		suffix = suffix[len(suffix)-2:]
+	full := r.URL.Query().Get("full") == "1"
+
+	// Only the rolling recent trace is cached. Full traces run multi-MB and are
+	// seeded client-side, so they always go straight to the upstream.
+	if !full && h.traceCache != nil {
+		if raw, age, ok := h.traceCache.GetTrace(r.Context(), hex); ok {
+			cacheState := "fresh"
+			if age >= h.traceCache.TTL() {
+				// Stale-while-revalidate: serve the cached copy now, refresh in
+				// the background so the next reader gets fresh data.
+				cacheState = "stale"
+				h.refreshTraceAsync(hex)
+			}
+			writeRawJSONWithHeaders(w, http.StatusOK, raw, map[string]string{
+				"Cache-Control": "no-store",
+				"X-Data-Source": "adsb.lol",
+				"X-Cache":       cacheState,
+			})
+			return
+		}
 	}
-	name := "trace_recent_" + lower + ".json"
-	if r.URL.Query().Get("full") == "1" {
-		name = "trace_full_" + lower + ".json"
-	}
-	upstream := fmt.Sprintf("https://adsb.lol/data/traces/%s/%s?_=%d", url.PathEscape(suffix), url.PathEscape(name), time.Now().UnixMilli())
-	payload, status, err := h.fetchJSONAnyWithTimeout(r.Context(), upstream, adsbHeaders(), aircraftTraceTimeout)
-	if err != nil || status < 200 || status >= 300 {
+
+	payload, status, err, ok := h.fetchAircraftTrace(r.Context(), hex, full)
+	if !ok {
 		writeJSONWithHeaders(w, http.StatusOK, emptyAircraftTracePayload(hex, status, err), map[string]string{
 			"Cache-Control":       "no-store",
 			"X-Data-Source":       "adsb.lol",
@@ -233,15 +245,100 @@ func (h *Handler) handleAircraftTrace(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	writeJSONWithHeaders(w, http.StatusOK, map[string]any{
+	response := map[string]any{
 		"hex":    hex,
 		"recent": payload,
 		"source": "adsb.lol",
-	}, map[string]string{
+	}
+	headers := map[string]string{
 		"Cache-Control":       "no-store",
 		"X-Data-Source":       "adsb.lol",
 		"X-Provider-Attempts": "adsb.lol:200",
-	})
+	}
+	if !full && h.traceCache != nil && traceHasPoints(payload) {
+		headers["X-Cache"] = "miss"
+		if raw, marshalErr := json.Marshal(response); marshalErr == nil {
+			h.traceCache.PutTrace(r.Context(), hex, raw)
+		}
+	}
+	writeJSONWithHeaders(w, http.StatusOK, response, headers)
+}
+
+// fetchAircraftTrace pulls a recent or full trace from adsb.lol. ok is false on
+// any transport error or non-2xx upstream status.
+func (h *Handler) fetchAircraftTrace(ctx context.Context, hex string, full bool) (any, int, error, bool) {
+	lower := strings.ToLower(strings.TrimPrefix(hex, "~"))
+	suffix := lower
+	if len(suffix) > 2 {
+		suffix = suffix[len(suffix)-2:]
+	}
+	name := "trace_recent_" + lower + ".json"
+	if full {
+		name = "trace_full_" + lower + ".json"
+	}
+	upstream := fmt.Sprintf("https://adsb.lol/data/traces/%s/%s?_=%d", url.PathEscape(suffix), url.PathEscape(name), time.Now().UnixMilli())
+	payload, status, err := h.fetchJSONAnyWithTimeout(ctx, upstream, adsbHeaders(), aircraftTraceTimeout)
+	if err != nil || status < 200 || status >= 300 {
+		return nil, status, err, false
+	}
+	return payload, status, nil, true
+}
+
+// refreshTraceAsync revalidates a stale recent-trace entry in the background.
+// At most one refresh per hex runs at a time so concurrent readers don't
+// stampede the upstream.
+func (h *Handler) refreshTraceAsync(hex string) {
+	if h.traceCache == nil {
+		return
+	}
+	h.traceRefreshMu.Lock()
+	if h.traceRefreshing == nil {
+		h.traceRefreshing = map[string]bool{}
+	}
+	if h.traceRefreshing[hex] {
+		h.traceRefreshMu.Unlock()
+		return
+	}
+	h.traceRefreshing[hex] = true
+	h.traceRefreshMu.Unlock()
+
+	go func() {
+		defer func() {
+			h.traceRefreshMu.Lock()
+			delete(h.traceRefreshing, hex)
+			h.traceRefreshMu.Unlock()
+		}()
+		ctx, cancel := context.WithTimeout(context.Background(), aircraftTraceTimeout)
+		defer cancel()
+		payload, _, _, ok := h.fetchAircraftTrace(ctx, hex, false)
+		if !ok || !traceHasPoints(payload) {
+			return
+		}
+		response := map[string]any{"hex": hex, "recent": payload, "source": "adsb.lol"}
+		if raw, err := json.Marshal(response); err == nil {
+			h.traceCache.PutTrace(ctx, hex, raw)
+		}
+	}()
+}
+
+// traceHasPoints reports whether an adsb.lol recent payload carries at least
+// one trace sample. Empty payloads are not worth caching.
+func traceHasPoints(payload any) bool {
+	record, ok := payload.(map[string]any)
+	if !ok {
+		return false
+	}
+	trace, ok := record["trace"].([]any)
+	return ok && len(trace) > 0
+}
+
+func writeRawJSONWithHeaders(w http.ResponseWriter, status int, raw json.RawMessage, headers map[string]string) {
+	for key, value := range headers {
+		w.Header().Set(key, value)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	_, _ = w.Write(raw)
 }
 
 func (h *Handler) handleAircraftPhoto(w http.ResponseWriter, r *http.Request) {
