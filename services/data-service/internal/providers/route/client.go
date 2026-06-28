@@ -22,7 +22,14 @@ const (
 	defaultTimeout       = 9 * time.Second
 	defaultMaxBytes      = 2 * 1024 * 1024
 	defaultQueueInterval = 500 * time.Millisecond
-	userAgent            = "ADSBao data-service/1.0 (+https://adsbao.dev)"
+	// FlightAware route scrapes are fast in isolation (~0.6s) but degrade sharply
+	// under concurrency (≈2s at 10-way, 5–10s at 40-way), which is how busy
+	// airports used to blow past the timeout. Cap how many run at once so each
+	// stays fast and we don't hammer the scraper into rate-limiting. adsbdb keeps
+	// its own serial interval queue instead — a strict serial queue would be far
+	// too slow for the dozens of FlightAware lookups a busy airport fires.
+	defaultFlightAwareConcurrency = 8
+	userAgent                     = "ADSBao data-service/1.0 (+https://adsbao.dev)"
 )
 
 // Cache is a best-effort persistent route cache keyed by callsign+provider.
@@ -34,14 +41,15 @@ type Cache interface {
 }
 
 type Options struct {
-	HTTPClient              *http.Client
-	ADSBDBBaseURL           string
-	FlightAwareRouteFetcher func(context.Context, string, realtime.MetricsSink) (map[string]any, error)
-	Timeout                 time.Duration
-	MaxBytes                int64
-	QueueInterval           time.Duration
-	DisableQueue            bool
-	Cache                   Cache
+	HTTPClient                *http.Client
+	ADSBDBBaseURL             string
+	FlightAwareRouteFetcher   func(context.Context, string, realtime.MetricsSink) (map[string]any, error)
+	Timeout                   time.Duration
+	MaxBytes                  int64
+	QueueInterval             time.Duration
+	DisableQueue              bool
+	Cache                     Cache
+	MaxFlightAwareConcurrency int
 }
 
 type Client struct {
@@ -52,6 +60,7 @@ type Client struct {
 	maxBytes                int64
 	queueInterval           time.Duration
 	cache                   Cache
+	faSem                   chan struct{}
 	mu                      sync.Mutex
 	lastStarted             time.Time
 }
@@ -77,6 +86,10 @@ func NewClient(options Options) *Client {
 	if queueInterval == 0 && !options.DisableQueue {
 		queueInterval = defaultQueueInterval
 	}
+	faConcurrency := options.MaxFlightAwareConcurrency
+	if faConcurrency <= 0 {
+		faConcurrency = defaultFlightAwareConcurrency
+	}
 	return &Client{
 		httpClient:              httpClient,
 		adsbdbBaseURL:           adsbdbBase,
@@ -85,6 +98,7 @@ func NewClient(options Options) *Client {
 		maxBytes:                maxBytes,
 		queueInterval:           queueInterval,
 		cache:                   options.Cache,
+		faSem:                   make(chan struct{}, faConcurrency),
 	}
 }
 
@@ -211,11 +225,36 @@ func (c *Client) fetchFlightAware(ctx context.Context, input realtime.FetchInput
 	if c.flightAwareRouteFetcher == nil {
 		return routeEvent(input.Channel, "flightaware", input.Target.Callsign, nil), nil
 	}
+	// Bound how many scrapes hit FlightAware at once so a busy airport's burst of
+	// lookups doesn't inflate each one into a multi-second, timeout-prone request.
+	if err := c.acquireFlightAware(ctx); err != nil {
+		return realtime.Event{}, err
+	}
+	defer c.releaseFlightAware()
 	route, err := c.flightAwareRouteFetcher(ctx, input.Target.Callsign, input.Metrics)
 	if err != nil {
 		return realtime.Event{}, err
 	}
 	return routeEvent(input.Channel, "flightaware", input.Target.Callsign, route), nil
+}
+
+func (c *Client) acquireFlightAware(ctx context.Context) error {
+	if c.faSem == nil {
+		return nil
+	}
+	select {
+	case c.faSem <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (c *Client) releaseFlightAware() {
+	if c.faSem == nil {
+		return
+	}
+	<-c.faSem
 }
 
 func (c *Client) do(ctx context.Context, requestURL, accept, ua string) (*http.Response, context.CancelFunc, error) {
