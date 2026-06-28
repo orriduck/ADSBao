@@ -45,6 +45,13 @@ import {
   writeStoredMapSettings,
 } from "@/features/airport/map-settings/mapSettingsStorage";
 const ExplorerUiContext = createContext(null);
+// 按变更频率/关注点拆出的聚焦切片 context。只读某一组状态的消费者(如 AircraftTable
+// 只读 filters、MapFitToTraceController 只读 selection)订阅对应切片,即可在无关字段
+// (selection / mapZoom / 图层开关 等)变化时跳过重渲染——前提是该消费者本身被 memo
+// 化,从而不被父组件级联重渲染。useExplorerUi() 仍提供完整聚合(facade),读取面广的
+// 消费者(AirportExplorer / ExplorerMapMenu / FlightExplorer)无需改动。
+const ExplorerFilterContext = createContext(null);
+const ExplorerSelectionContext = createContext(null);
 const DEFAULT_USER_LOCATION_PREFERENCES =
   mapSettingsToUserLocationPreferences(DEFAULT_MAP_SETTINGS);
 
@@ -1077,9 +1084,92 @@ export function ExplorerUiProvider({ children }) {
     ],
   );
 
+  // 切片:filters。回调都是 useCallback 稳定引用,因此本 memo 实际只在筛选状态变化时
+  // 产生新对象 → 订阅它的 AircraftTable 不再因 selection/zoom/图层变化而重渲染。
+  const filterValue = useMemo(
+    () => ({
+      trafficFilter,
+      typeFilter,
+      altitudeLevel,
+      entityFilter,
+      setTrafficFilter,
+      setTypeFilter,
+      setAltitudeLevel,
+      setEntityFilter,
+    }),
+    [
+      trafficFilter,
+      typeFilter,
+      altitudeLevel,
+      entityFilter,
+      setTrafficFilter,
+      setTypeFilter,
+      setAltitudeLevel,
+      setEntityFilter,
+    ],
+  );
+
+  // 切片:selection(选中实体 + 选择/fit/follow 回调)。只在选中相关状态变化时更新。
+  const selectionValue = useMemo(
+    () => ({
+      selectedAircraftId,
+      selectedAirportIcao,
+      selectedNavaidKey,
+      selectedReportingPointKey,
+      selectedAirspaceId,
+      selectedAirspaceIds,
+      selectedCandidateWatchingSpotId,
+      fitToTraceSignal,
+      mapFollowsAircraft,
+      selectAircraft,
+      setSelectedAircraftId,
+      selectAirport,
+      selectNavaid,
+      setSelectedNavaidKey,
+      selectReportingPoint,
+      setSelectedReportingPointKey,
+      selectAirspace,
+      setSelectedAirspaceId,
+      selectCandidateWatchingSpot,
+      setSelectedCandidateWatchingSpotId,
+      clearAllPreviewSelections,
+      fitToTrace,
+      suspendMapFollow,
+    }),
+    [
+      selectedAircraftId,
+      selectedAirportIcao,
+      selectedNavaidKey,
+      selectedReportingPointKey,
+      selectedAirspaceId,
+      selectedAirspaceIds,
+      selectedCandidateWatchingSpotId,
+      fitToTraceSignal,
+      mapFollowsAircraft,
+      selectAircraft,
+      setSelectedAircraftId,
+      selectAirport,
+      selectNavaid,
+      setSelectedNavaidKey,
+      selectReportingPoint,
+      setSelectedReportingPointKey,
+      selectAirspace,
+      setSelectedAirspaceId,
+      selectCandidateWatchingSpot,
+      setSelectedCandidateWatchingSpotId,
+      clearAllPreviewSelections,
+      fitToTrace,
+      suspendMapFollow,
+    ],
+  );
+
   return (
     <ExplorerUiContext.Provider value={value}>
-      {children}
+      <ExplorerFilterContext.Provider value={filterValue}>
+        <ExplorerSelectionContext.Provider value={selectionValue}>
+          {children}
+        </ExplorerSelectionContext.Provider>
+      </ExplorerFilterContext.Provider>
     </ExplorerUiContext.Provider>
   );
 }
@@ -1089,6 +1179,26 @@ export function useExplorerUi() {
   if (!context) {
     throw new Error(
       "useExplorerUi must be used within ExplorerUiProvider",
+    );
+  }
+  return context;
+}
+
+// 聚焦切片 hook:只订阅 filters,避免无关字段变化造成的重渲染(配合 memo 化的消费者)。
+export function useExplorerFilters() {
+  const context = useContext(ExplorerFilterContext);
+  if (!context) {
+    throw new Error("useExplorerFilters must be used within ExplorerUiProvider");
+  }
+  return context;
+}
+
+// 聚焦切片 hook:只订阅 selection。
+export function useExplorerSelection() {
+  const context = useContext(ExplorerSelectionContext);
+  if (!context) {
+    throw new Error(
+      "useExplorerSelection must be used within ExplorerUiProvider",
     );
   }
   return context;

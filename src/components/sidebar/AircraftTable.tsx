@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, Minus, Search } from "lucide-react";
 import {
@@ -21,7 +21,7 @@ import {
   MenuItemLabel,
   MenuItemCount,
 } from "@/components/ui/MenuPanel";
-import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
+import { useExplorerFilters } from "@/components/explorer/ExplorerUiContext";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useListReorderMotion } from "@/animations/useListReorderMotion";
 import {
@@ -52,7 +52,7 @@ import VirtualNearbyList from "./VirtualNearbyList";
 type AircraftLike = Record<string, any>;
 type AirportLike = Record<string, any>;
 
-export default function AircraftTable({
+function AircraftTable({
   aircraft = [],
   airports = [],
   focusLat = null,
@@ -76,7 +76,7 @@ export default function AircraftTable({
     setTypeFilter,
     setAltitudeLevel,
     setEntityFilter,
-  } = useExplorerUi();
+  } = useExplorerFilters();
   const [query, setQuery] = useState("");
   const selectedTypes = useMemo(
     () => (Array.isArray(typeFilter) ? typeFilter : []),
@@ -853,3 +853,8 @@ function altitudeSortValue(aircraft: AircraftLike = {}) {
   if (aircraft.onGround) return -1;
   return toNumber(aircraft.altitude) ?? -2;
 }
+
+// memo 化容器:配合 useExplorerFilters() 切片订阅,使无关的高频更新(mapZoom、图层
+// 开关、sidebar、mapSettings)在父组件级联重渲染时被浅比较拦下——AircraftTable 只在
+// 自身 props(aircraft / 选中 / focus)或筛选状态变化时才重新渲染这条最热的列表。
+export default memo(AircraftTable);
