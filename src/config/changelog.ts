@@ -47,32 +47,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 61;
+export const CHANGELOG_TOTAL_COUNT = 62;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.37.0",
+    version: "v2.38.0",
     kind: "feat",
     title: {
-      en: "Lighter Explorer re-renders",
-      zh: "更轻的 Explorer 重渲染",
+      en: "Frosted map labels, colour-coded targets, steadier flight pages",
+      zh: "磨砂地图标签、目标配色与更稳的飞行页",
     },
     summary: {
-      en: "The airport Explorer's UI state used to live in one large context object: any change — selecting an aircraft, panning, zooming, toggling a map layer — produced a new object and re-rendered every consumer, including the busy aircraft list. The context is now split into focused slices so a component can subscribe to just what it reads (the aircraft list subscribes only to the list filters), and the list itself is memoized. High-frequency updates that the list doesn't care about — zooming and map-layer toggles — no longer re-run the list's rendering work, while genuine changes (new traffic data, selecting a row) still update only what changed.",
-      zh: "机场 Explorer 的 UI 状态过去集中在一个大 context 对象里:任何变化——选中飞机、平移、缩放、切换地图图层——都会生成新对象并重渲染所有消费者,包括繁忙的航班列表。现在 context 拆成聚焦切片,组件只订阅自己读取的部分(航班列表只订阅列表筛选项),列表本身也做了 memo 化。列表不关心的高频更新——缩放、图层开关——不再触发列表的渲染工作;而真正的变化(新流量数据、选中某行)仍只更新发生变化的部分。",
+      en: "The map's labels for airports, navaids and reporting points are now the same frosted-glass pill as the toolbar, so the whole map reads as one material. Targets gain a clear colour hierarchy: the page's primary target — the focal airport, or the tracked aircraft — is the orange signal accent, while an aircraft you click is a high-contrast neutral, so the two are distinct at a glance. Flight tracking pages are also far more stable: navigating between detail pages now loads each page fresh (no stale map, no leftover connections), the map shows a clear loading animation while acquiring a signal, and a flight with no live position — including a trans-oceanic leg with no coverage — shows an explicit card (\"no live position\" / \"signal lost\" / \"flight ended\") instead of an endless spinner or an unrelated fallback map.",
+      zh: "地图上机场、导航台、报告点的标签现在统一为和工具栏一致的磨砂玻璃胶囊,整张地图读起来是同一种材质。目标有了清晰的颜色层级:页面的首要目标——所在机场,或被追踪的飞机——用橙色信号强调色,而你点选的飞机是高对比中性色,一眼就能区分。飞行追踪页也更稳定:在详情页之间跳转现在会整页全新加载(没有残留地图、没有残留连接),获取信号时地图显示清晰的加载动画,而没有实时位置的航班——包括无覆盖的跨洋航段——会显示明确的卡片(\"暂无实时位置\"/\"信号丢失\"/\"航班已结束\"),而不是无尽转圈或一张不相干的兜底地图。",
     },
     highlights: [
       {
-        en: "ExplorerUiContext is split into focused slices (filters, selection) alongside the full aggregate, so consumers re-render on their slice rather than on every unrelated field.",
-        zh: "ExplorerUiContext 在保留完整聚合的同时拆出聚焦切片(filters、selection),消费者只在自己的切片变化时重渲染,而非任何无关字段。",
+        en: "Airport / navaid / reporting-point map labels and the navaid count marker are now the toolbar's frosted-glass pill — one consistent material across the map.",
+        zh: "机场 / 导航台 / 报告点的地图标签以及导航台计数标记,现在都是工具栏那种磨砂玻璃胶囊——全图统一材质。",
       },
       {
-        en: "The aircraft list is memoized and subscribes only to the list filters: zooming and map-layer toggles no longer re-render it (≈3× fewer list re-renders during a zoom versus a full-context consumer).",
-        zh: "航班列表 memo 化并只订阅列表筛选项:缩放和图层开关不再触发它重渲染(缩放期间列表重渲染约为全量 context 消费者的 1/3)。",
+        en: "Map target colours: the primary target (focal airport or tracked aircraft) uses the orange accent; a clicked aircraft uses a high-contrast neutral — distinct at a glance, theme-aware in light and dark.",
+        zh: "地图目标配色:首要目标(所在机场或被追踪飞机)用橙色强调色;点选的飞机用高对比中性色——一眼可分,明暗主题各自适配。",
       },
       {
-        en: "Selecting an aircraft still updates only the changed rows, not the whole list (existing per-row memoization), and the map canvas continues to own per-frame aircraft motion — no per-frame React work was added.",
-        zh: "选中飞机仍只更新变化的行、而非整列表(沿用既有逐行 memo);逐帧的飞机运动依旧由地图 canvas 负责——没有新增任何逐帧 React 工作。",
+        en: "Stable detail-page navigation: each flight/airport page loads fresh on navigation (the old realtime connection is torn down), with a clear loading animation and an explicit no-live-position / signal-lost / flight-ended state instead of a stuck spinner or fallback map.",
+        zh: "更稳的详情页跳转:跳转时每个飞机/机场页都全新加载(旧实时连接被切断),配清晰的加载动画,以及明确的「暂无实时位置 / 信号丢失 / 航班已结束」状态,而非卡住的转圈或兜底地图。",
       },
     ],
   },
