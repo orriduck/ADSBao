@@ -330,6 +330,12 @@ function resolveAircraftCanvasPalette(
     arrival: read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0"),
     unknown: read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0"),
     ground: read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab"),
+    // PRIMARY (focal/tracked) target = orange signal accent; SECONDARY
+    // (clicked) target = a high-contrast NEUTRAL (near-white grey on the dark
+    // canvas, near-black grey on the light canvas) — distinguished by luminance
+    // only, no second hue. Fallbacks mirror the tokens if the CSS var can't be read.
+    focal: read("--atc-signal-accent", dark ? "#e8893f" : "#cf6a1e"),
+    selected: read("--atc-signal-secondary", dark ? "#e4e2db" : "#4a4945"),
     // Contrast halo replaces the dropped plate disc — light-on-dark / dark-on-light.
     halo: dark ? "rgba(244,242,236,0.55)" : "rgba(24,24,22,0.42)",
     labelGlow: read(

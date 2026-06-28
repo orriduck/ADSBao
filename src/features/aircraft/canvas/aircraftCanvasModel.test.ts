@@ -7,6 +7,10 @@ import {
   pickAircraftAtPoint,
   type DescriptorContext,
 } from "./aircraftCanvasModel";
+import {
+  colorFor,
+  type AircraftCanvasPalette,
+} from "./aircraftCanvasDraw";
 import { DEPARTURE, ARRIVAL } from "../../../utils/aircraftMovement";
 
 const baseCtx: DescriptorContext = {
@@ -168,5 +172,35 @@ assert.equal(
   ),
   "over",
 );
+
+// ── colorFor: target emphasis precedence ─────────────────────────────────
+// PRIMARY (focal) → orange accent, SECONDARY (selected) → high-contrast
+// neutral, else movement tone; focal outranks selected when a plane is both
+// the page subject and the clicked marker.
+const palette = {
+  departure: "dep",
+  arrival: "arr",
+  ground: "gnd",
+  unknown: "unk",
+  focal: "orange",
+  selected: "neutral",
+} as unknown as AircraftCanvasPalette;
+const drawn = (over: Partial<Record<string, unknown>>) =>
+  ({
+    colorKey: "departure",
+    focal: false,
+    selected: false,
+    ...over,
+  }) as any;
+assert.equal(colorFor(drawn({}), palette), "dep");
+assert.equal(colorFor(drawn({ selected: true }), palette), "neutral");
+assert.equal(colorFor(drawn({ focal: true }), palette), "orange");
+// focal wins even when also selected.
+assert.equal(
+  colorFor(drawn({ focal: true, selected: true }), palette),
+  "orange",
+);
+// ground keeps its neutral tone when neither target flag is set.
+assert.equal(colorFor(drawn({ colorKey: "ground" }), palette), "gnd");
 
 console.log("aircraftCanvasModel.test.ts passed");

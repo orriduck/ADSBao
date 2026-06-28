@@ -80,8 +80,10 @@ export function buildAircraftDrawDescriptor(
       ? "arrow"
       : "dot";
   const sizeScale = showArrow ? resolveAircraftSizeScale(aircraft) : 1;
+  // The focal (page-subject) target is never dimmed — it always renders at
+  // full opacity so the orange primary stays prominent regardless of filters.
   const emphasis = resolveAircraftContextEmphasis({
-    matchesFilters: selectionActive ? selected : matchesFilters,
+    matchesFilters: focal || (selectionActive ? selected : matchesFilters),
     selected,
   });
   const label = String(aircraft?.callsign || aircraft?.icao24 || "").trim();

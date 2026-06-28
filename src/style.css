@@ -1960,15 +1960,15 @@ body:has(.dither-page-shell) {
 
 .navaid-count-marker {
     align-items: center;
-    background: color-mix(
-        in oklab,
-        var(--navaid-frequency-badge) 88%,
-        transparent
-    );
-    border: 1px solid color-mix(in oklab, var(--navaid-marker) 42%, transparent);
+    background: var(--atc-toolbar-surface);
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
+    border: 1px solid var(--app-frost-border);
     border-radius: 999px;
-    box-shadow: 0 8px 22px rgb(0 0 0 / 0.18);
-    color: var(--navaid-label-text);
+    box-shadow:
+        var(--atc-toolbar-inset-shadow),
+        0 6px 16px color-mix(in oklab, var(--atc-bg) 32%, transparent);
+    color: var(--atc-text);
     display: inline-flex;
     font-family: var(--font-mono);
     gap: 3px;
@@ -1976,7 +1976,7 @@ body:has(.dither-page-shell) {
     justify-content: center;
     min-width: 48px;
     padding: 0 8px;
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.22);
+    text-shadow: none;
 }
 
 .navaid-count-marker--enter {
@@ -1991,7 +1991,7 @@ body:has(.dither-page-shell) {
 }
 
 .navaid-count-marker span {
-    color: var(--navaid-label-muted);
+    color: var(--atc-dim);
     font-size: 7px;
     font-weight: var(--weight-regular);
     letter-spacing: normal;
@@ -1999,8 +1999,8 @@ body:has(.dither-page-shell) {
 }
 
 .navaid-count-icon--light .navaid-count-marker {
-    background: color-mix(in oklab, var(--atc-card) 94%, transparent);
-    box-shadow: 0 7px 18px rgb(15 23 42 / 0.14);
+    /* Material is now theme-aware via --atc-toolbar-surface, so the light
+       variant inherits the same milky pill — no per-theme override needed. */
     text-shadow: none;
 }
 
@@ -3140,6 +3140,15 @@ body:has(.dither-page-shell) {
     --atc-signal-accent: oklch(0.66 0.16 50);
     --atc-signal-accent-soft: color-mix(in oklab, var(--atc-signal-accent) 14%, transparent);
     --atc-signal-accent-strong: color-mix(in oklab, var(--atc-signal-accent) 82%, black 4%);
+    /* Foreground on a SOLID signal-accent fill — white on the mid-orange light
+       canvas (near-black override on the brighter dark-canvas orange below). */
+    --atc-signal-accent-fg: #fff;
+    /* SECONDARY target (clicked) — a high-contrast NEUTRAL, not a hue: the
+       orange primary stays the only added colour, and the selected target is
+       told apart purely by luminance. Theme-split: a near-black dark grey on
+       the white canvas (here) and a near-white light grey on the dark canvas
+       (override in :root[data-theme="dark"] below). */
+    --atc-signal-secondary: oklch(0.3 0.005 100);
 
     /* ── First-screen sidebar type scale ───────────────────────────────
        One typographic system shared by Home, About, Changelog and
@@ -3418,6 +3427,11 @@ body:has(.dither-page-shell) {
     /* Brighter orange so the accent pops on the dark-gray canvas; the
        low-alpha wash then reads as a deep-orange selected background. */
     --atc-signal-accent: oklch(0.74 0.15 55);
+    /* Near-white light grey so the clicked target pops on the dark canvas,
+       mirroring the near-black dark grey used on the light canvas. */
+    --atc-signal-secondary: oklch(0.9 0.005 100);
+    /* Near-black ink reads better than white on the brighter dark-canvas orange. */
+    --atc-signal-accent-fg: oklch(0.22 0.03 55);
     /* Faint cool-blue edge so frosted panels read as soft atmospheric
        material on the navy canvas rather than hard-bordered cards. */
     --app-frost-border: color-mix(in oklab, #97b6d3 15%, transparent);
@@ -5592,12 +5606,22 @@ body {
     opacity: 1;
 }
 
+/* Contextual map badges (navaid / nearby airport / reporting point /
+   candidate spot) read as the same milky frosted pill as the Toolbar —
+   full capsule, near-opaque luminous surface, backdrop blur, bright inner
+   hairline + soft drop. They are reference markers, so they stay NEUTRAL;
+   the orange primary / blue secondary signals are reserved for targets. */
 .airport-overlay-label--map-badge .airport-overlay-label__code.atc-code-pill,
 .airport-overlay-label--map-badge .airport-overlay-label__detail {
-    background: var(--map-entity-badge-bg);
-    border: 1px solid var(--map-entity-badge-edge);
-    box-shadow: var(--map-entity-badge-shadow);
-    color: var(--map-entity-badge-fg);
+    background: var(--atc-toolbar-surface);
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
+    border: 1px solid var(--app-frost-border);
+    border-radius: 999px;
+    box-shadow:
+        var(--atc-toolbar-inset-shadow),
+        0 2px 6px color-mix(in oklab, var(--atc-bg) 38%, transparent);
+    color: var(--atc-text);
     text-shadow: none;
 }
 
@@ -5620,7 +5644,26 @@ body {
 }
 
 .airport-overlay-label--map-badge .airport-overlay-label__detail {
-    color: var(--map-entity-badge-muted);
+    color: var(--atc-dim);
+}
+
+/* Focal airport = the page's PRIMARY target. Same frosted-glass pill material
+   as the contextual milky badges (so the whole map speaks one material), but
+   colour-coded ORANGE — a signal-accent tint in the glass, an orange rim, and
+   orange text/icon — to mark it as the primary target and tie it to the
+   tracked-aircraft glyph + trace. -accent-strong tracks the theme (deep on the
+   light canvas, bright on the dark canvas) so it stays legible either way. */
+.airport-overlay-label:not(.airport-overlay-label--map-badge)
+    .airport-overlay-label__code.atc-code-pill {
+    background: color-mix(in oklab, var(--atc-signal-accent) 76%, transparent);
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
+    border: 0;
+    border-radius: 999px;
+    box-shadow:
+        var(--atc-toolbar-inset-shadow),
+        0 2px 6px color-mix(in oklab, var(--atc-bg) 40%, transparent);
+    color: var(--atc-signal-accent-fg);
 }
 
 .airport-overlay-label--navaid .airport-overlay-label__code.atc-code-pill {
