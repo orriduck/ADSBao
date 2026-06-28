@@ -58,6 +58,7 @@ type AdsbaoRealtimeClientOptions = {
   heartbeatIntervalMs?: number;
   heartbeatTimeoutMs?: number;
   authTokenFetcher?: RealtimeAuthTokenFetcher | null;
+  idleDisconnectMs?: number;
 };
 
 type RealtimeLocationLike = {
@@ -169,9 +170,11 @@ export class AdsbaoRealtimeClient {
   private readonly heartbeatIntervalMs: number;
   private readonly heartbeatTimeoutMs: number;
   private readonly authTokenFetcher: RealtimeAuthTokenFetcher | null;
+  private readonly idleDisconnectMs: number;
   private socket: RealtimeSocket | null = null;
   private connectionState: ConnectionState;
   private reconnectTimer: number | null = null;
+  private idleDisconnectTimer: number | null = null;
   private connectTimeoutTimer: number | null = null;
   private connectStartedAt = 0;
   private heartbeatIntervalTimer: number | null = null;
@@ -205,6 +208,7 @@ export class AdsbaoRealtimeClient {
       options.authTokenFetcher === undefined
         ? fetchRealtimeAuthToken
         : options.authTokenFetcher;
+    this.idleDisconnectMs = options.idleDisconnectMs ?? 0;
     this.connectionState = url ? "closed" : "disabled";
     this.installLifecycleReconnectHandlers();
     this.syncDebug({
@@ -280,6 +284,7 @@ export class AdsbaoRealtimeClient {
   }
 
   disconnect() {
+    this.cancelIdleDisconnect();
     if (this.reconnectTimer && this.timerHost) {
       this.timerHost.clearTimeout(this.reconnectTimer);
     }
@@ -299,6 +304,31 @@ export class AdsbaoRealtimeClient {
     }
     this.intentionalClose = false;
     this.setState(this.url ? "closed" : "disabled");
+  }
+
+  // Don't close the socket the instant subscriptions hit zero. SPA navigation
+  // tears down a page's subscriptions before the next page adds its own, which
+  // would otherwise close + reconnect (with backoff + per-channel re-auth) on
+  // every route change — leaving routes (WS-only, no HTTP fallback) blank until
+  // the reconnect lands. Hold the warm socket for idleDisconnectMs; a new
+  // subscription within the window cancels the close.
+  private scheduleIdleDisconnect() {
+    if (this.idleDisconnectMs <= 0 || !this.timerHost) {
+      this.disconnect();
+      return;
+    }
+    this.cancelIdleDisconnect();
+    this.idleDisconnectTimer = this.timerHost.setTimeout(() => {
+      this.idleDisconnectTimer = null;
+      if (this.subscriptions.size === 0) this.disconnect();
+    }, this.idleDisconnectMs);
+  }
+
+  private cancelIdleDisconnect() {
+    if (this.idleDisconnectTimer && this.timerHost) {
+      this.timerHost.clearTimeout(this.idleDisconnectTimer);
+    }
+    this.idleDisconnectTimer = null;
   }
 
   subscribe({
@@ -324,6 +354,9 @@ export class AdsbaoRealtimeClient {
       lastSubscribeParams: params,
       subscriptionCount: this.subscriptions.size,
     });
+    // A fresh subscription cancels any pending idle-disconnect so SPA
+    // navigation reuses the warm socket instead of churning a reconnect.
+    this.cancelIdleDisconnect();
     this.connect();
     if (!existing) {
       this.sendSubscribe({ channel, params });
@@ -341,7 +374,7 @@ export class AdsbaoRealtimeClient {
         });
         this.send({ type: "unsubscribe", channel, params: current.params });
         if (this.subscriptions.size === 0) {
-          this.disconnect();
+          this.scheduleIdleDisconnect();
         }
       }
     };
@@ -648,6 +681,7 @@ export class AdsbaoRealtimeClient {
 let singleton: AdsbaoRealtimeClient | null = null;
 
 export function getAdsbaoRealtimeClient() {
-  if (!singleton) singleton = new AdsbaoRealtimeClient();
+  if (!singleton)
+    singleton = new AdsbaoRealtimeClient(undefined, { idleDisconnectMs: 10_000 });
   return singleton;
 }

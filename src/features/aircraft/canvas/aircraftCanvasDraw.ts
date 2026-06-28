@@ -20,9 +20,9 @@ export interface AircraftCanvasPalette {
   halo: string;
   /** Glow behind label text for legibility on the basemap. */
   labelGlow: string;
-  /** Selected accent ring. */
-  selected: string;
   monoFont: string;
+  /** Label font weight — tracks the global `--weight-regular` token. */
+  labelWeight: string;
 }
 
 function colorFor(d: AircraftDrawDescriptor, palette: AircraftCanvasPalette) {
@@ -98,25 +98,6 @@ export function drawAircraftGlyph(
   ctx.restore();
 }
 
-/** Minimal selected treatment: a thin contrasting ring around the glyph. */
-export function drawSelectedAccent(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  d: AircraftDrawDescriptor,
-  palette: AircraftCanvasPalette,
-) {
-  const r = (AIRCRAFT_GLYPH_BASE_PX / 2) * (d.sizeScale || 1) + 4;
-  ctx.save();
-  ctx.globalAlpha = 0.9;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.strokeStyle = palette.selected;
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.restore();
-}
-
 /** Draw the callsign label (+ optional source badge) to the right of the glyph. */
 export function drawAircraftLabel(
   ctx: CanvasRenderingContext2D,
@@ -136,14 +117,14 @@ export function drawAircraftLabel(
   ctx.shadowColor = palette.labelGlow;
   ctx.shadowBlur = 4;
 
-  ctx.font = `10px ${palette.monoFont}`;
+  ctx.font = `${palette.labelWeight} 10px ${palette.monoFont}`;
   ctx.fillStyle = color;
   ctx.fillText(d.label, lx, y + 1);
 
   if (d.sourceBadge) {
     const w = ctx.measureText(d.label).width;
     ctx.globalAlpha = d.opacity * 0.7;
-    ctx.font = `8px ${palette.monoFont}`;
+    ctx.font = `${palette.labelWeight} 8px ${palette.monoFont}`;
     ctx.fillText(d.sourceBadge, lx + w + 3, y + 1);
   }
   ctx.restore();

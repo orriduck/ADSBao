@@ -236,12 +236,16 @@ export default function AircraftTable({
         </div>
 
         <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-1.5">
-          <label className="search-input aircraft-search">
-            <Search size={13} aria-hidden="true" />
+          <label className="search-input flex items-center gap-2 px-3 py-1.5">
+            <Search
+              className="h-3.5 w-3.5 shrink-0 text-atc-dim"
+              aria-hidden="true"
+            />
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              className="h-6 min-w-0 flex-1 p-0 text-[calc(11px*var(--sb-body-scale))] font-semibold tracking-normal text-atc-text"
               placeholder={t("sidebar.searchPlaceholder")}
               aria-label={t("sidebar.searchAria")}
             />

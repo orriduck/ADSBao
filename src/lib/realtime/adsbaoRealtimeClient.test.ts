@@ -379,4 +379,45 @@ assert.equal(
   assert.deepEqual(received, ["adsbdb", "flightaware"]);
 }
 
+// idleDisconnectMs holds the socket warm across SPA-style nav churn: the last
+// unsubscribe DEFERS the close, a fresh subscription within the window cancels
+// it and reuses the same socket, and only an idle timeout actually disconnects.
+{
+  FakeSocket.instances = [];
+  const timers = createTimerHost();
+  const client = new AdsbaoRealtimeClient("ws://example.test/ws", {
+    WebSocketCtor: FakeSocket as any,
+    timerHost: timers.host as any,
+    heartbeatIntervalMs: 0,
+    idleDisconnectMs: 5_000,
+  });
+
+  const unsubFirst = client.subscribe({
+    channel: "traffic:center:42.4:-71:40",
+    listener: () => {},
+  });
+  const socket = FakeSocket.instances[0];
+  socket.open();
+  unsubFirst();
+
+  // Deferred, not closed now.
+  assert.equal(socket.readyState, FakeSocket.OPEN);
+  assert.equal(timers.timeoutCount, 1);
+
+  // A fresh subscription cancels the close and reuses the warm socket.
+  const unsubSecond = client.subscribe({
+    channel: "callsign:DAL58",
+    listener: () => {},
+  });
+  assert.equal(timers.timeoutCount, 0);
+  assert.equal(socket.readyState, FakeSocket.OPEN);
+  assert.equal(FakeSocket.instances.length, 1);
+
+  // Idle again + timer fires → actually disconnects.
+  unsubSecond();
+  assert.equal(timers.timeoutCount, 1);
+  timers.runNextTimeout();
+  assert.equal(socket.readyState, FakeSocket.CLOSED);
+}
+
 console.log("adsbaoRealtimeClient.test.ts ok");

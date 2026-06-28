@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 57;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.33.0",
+    version: "v2.33.1",
     kind: "feat",
     title: {
       en: "Canvas aircraft rendering",
@@ -73,6 +73,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Clicking a plane on the map still selects it (canvas hit-testing replaces the per-marker DOM target), the pointer cursor still appears over a plane, and the selected aircraft's trace is unchanged. The old AircraftPosition marker, its label, the 3D-attitude and headlight models, and their CSS are removed.",
         zh: "在地图上点击飞机仍可选中(canvas 命中测试取代逐 marker 的 DOM 目标),悬停飞机仍显示手型光标,选中飞机的航迹保持不变。旧的 AircraftPosition marker、它的标签、3D 姿态与航行灯模型及相关 CSS 一并移除。",
+      },
+      {
+        en: "v2.33.1 polish + a realtime fix: the focal flight drops its selection ring, global type weight steps up, map clicks prioritise aircraft over airspace, the hero stat label aligns to the grid, and the flight search box adopts the home airport-search style. The realtime WebSocket is now held warm across page navigation so routes (WS-only, no fallback) don't blank on every view change.",
+        zh: "v2.33.1 打磨 + 一处实时修复:焦点航班去掉选中圈,全局字重上调,地图点击优先飞机而非空域,hero 统计标签与下方网格对齐,航班搜索框改用首屏机场搜索样式。实时 WebSocket 现在跨页导航保持温热,避免航路(仅走 WS、无兜底)每次切页变空。",
       },
     ],
   },

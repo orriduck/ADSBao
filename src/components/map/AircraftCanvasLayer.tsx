@@ -29,7 +29,6 @@ import {
 import {
   drawAircraftGlyph,
   drawAircraftLabel,
-  drawSelectedAccent,
   type AircraftCanvasPalette,
 } from "../../features/aircraft/canvas/aircraftCanvasDraw";
 import {
@@ -229,7 +228,6 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
         continue;
       }
       const heading = this._ease(d.id, d.headingDeg, reducedMotion);
-      if (d.selected) drawSelectedAccent(ctx, lp.x, lp.y, d, palette);
       drawAircraftGlyph(ctx, d, lp.x, lp.y, heading, palette, dpr);
       if (d.showLabel) drawAircraftLabel(ctx, d, lp.x, lp.y, palette);
       drawn += 1;
@@ -344,11 +342,11 @@ function resolveAircraftCanvasPalette(
       "--map-label-glow",
       dark ? "rgba(0,0,0,0.72)" : "rgba(255,255,255,0.82)",
     ),
-    selected: dark ? "rgba(246,244,238,0.9)" : "rgba(22,22,20,0.82)",
     monoFont: read(
       "--font-mono",
       "ui-monospace, SFMono-Regular, Menlo, monospace",
     ),
+    labelWeight: read("--weight-regular", "600"),
   };
 }
 

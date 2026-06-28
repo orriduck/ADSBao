@@ -59,8 +59,8 @@
        Every Tailwind weight utility (font-medium…font-black) collapses to 400;
        font-light/font-thin stay 300. Tune here, never re-type weights at call
        sites. The two raw tokens below are reused by hand-authored CSS rules. */
-    --weight-light: 300;
-    --weight-regular: 400;
+    --weight-light: 500;
+    --weight-regular: 600;
     --font-weight-thin: var(--weight-light);
     --font-weight-extralight: var(--weight-light);
     --font-weight-light: var(--weight-light);
@@ -715,7 +715,7 @@
 :root {
     font-family: var(--theme-font-sans);
     line-height: 1.5;
-    font-weight: 400;
+    font-weight: 600;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -4487,7 +4487,7 @@ body {
 
 .forecast-tomorrow__sep {
     color: var(--atc-faint);
-    font-weight: 400;
+    font-weight: 600;
     margin: 0 1px;
 }
 
@@ -6242,43 +6242,6 @@ body {
 
 /* Sidebar search mirrors the home search field, compressed for the dense
  * airport table controls. */
-.aircraft-search {
-    align-items: center;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: color-mix(
-        in oklab,
-        var(--atc-control-surface-muted) 68%,
-        var(--atc-bg) 32%
-    );
-    box-shadow:
-        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 7%, transparent),
-        inset 0 0 0 1px color-mix(in oklab, var(--atc-line) 42%, transparent);
-    color: var(--atc-faint);
-    display: flex;
-    gap: 8px;
-    min-height: 36px;
-    min-width: 0;
-    padding: 7px 10px;
-    -webkit-backdrop-filter: var(--app-frost);
-    backdrop-filter: var(--app-frost);
-    transition:
-        box-shadow 150ms ease,
-        color 150ms ease;
-}
-
-.airport-map-kit .aircraft-search {
-    background: transparent;
-    border-color: transparent;
-    border-radius: 4px;
-    box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--atc-text) 12%, transparent);
-    color: var(--atc-dim);
-}
-
-.airport-map-kit .aircraft-search:focus-within {
-    box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--atc-text) 28%, transparent);
-}
-
 /* SINGLE source of truth for the sticky brand/logo row, shared by every glass
    sidebar (desktop explorer .airport-map-kit, mobile detail shell
    .app-detail-shell, home panel .dither-page-panel). They all standardise on
@@ -6315,33 +6278,25 @@ body {
     pointer-events: none;
 }
 
-.aircraft-search:focus-within {
-    color: var(--atc-text);
-    box-shadow:
-        inset 0 0 0 1.5px color-mix(in oklab, var(--atc-text) 30%, transparent);
-}
-
-.aircraft-search svg {
-    height: 13px;
-    width: 13px;
-}
-
-.aircraft-search input {
+/* The sidebar flight search reuses the home airport-search look: the milky
+   .search-input box plus a reset and a FIXED 13px input — matching that box's
+   typography exactly (the home search is `.search-screen .search-input input`,
+   a fixed 13px, NOT scaled by --sb-body-scale). The global default is 16px and
+   there's no .search-screen ancestor here, so this rule sets it directly. */
+.aircraft-table-search-bar .search-input input {
     background: transparent;
     border: 0;
     color: var(--atc-text);
     font-family: var(--airport-sidebar-sans);
     font-size: 13px;
-    font-weight: var(--weight-regular);
     min-width: 0;
     outline: none;
     width: 100%;
 }
 
-.aircraft-search input::placeholder {
+.aircraft-table-search-bar .search-input input::placeholder {
     color: var(--atc-dim);
     opacity: 0.86;
-    text-transform: uppercase;
 }
 
 /* Override carousel slide flex to fit narrower sidebar column */
@@ -8934,21 +8889,6 @@ body {
         font-size: calc(11px * var(--sb-body-scale));
     }
 
-    .airport-map-kit .aircraft-search {
-        gap: 8px;
-        min-height: 34px;
-        padding-block: 6px;
-    }
-
-    .airport-map-kit .aircraft-search svg {
-        height: 13px;
-        width: 13px;
-    }
-
-    .airport-map-kit .aircraft-search input {
-        font-size: calc(13px * var(--sb-body-scale));
-    }
-
     .airport-map-kit .aircraft-table-row-grid {
         column-gap: 6px;
         grid-template-columns: 14px minmax(0, 1fr) 48px 48px;
@@ -9259,13 +9199,6 @@ body {
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .aircraft-search {
-        min-height: 30px;
-        padding-bottom: 4px;
-        padding-top: 4px;
-    }
-
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         [data-ui="filter-card"] {
         min-height: 32px;
     }
@@ -9343,13 +9276,6 @@ body {
     .airport-map-kit[data-client-orientation="landscape"]
         .aircraft-table-search-bar {
         padding-bottom: 2px;
-    }
-
-    .airport-map-kit[data-client-orientation="landscape"]
-        .aircraft-search {
-        min-height: 30px;
-        padding-bottom: 4px;
-        padding-top: 4px;
     }
 
     .airport-map-kit[data-client-orientation="landscape"]
