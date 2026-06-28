@@ -37,8 +37,6 @@ export const FLIGHT_RULES = {
   },
 };
 
-export const FLIGHT_RULE_ORDER = ["VFR", "MVFR", "IFR", "LIFR"];
-
 export const WEATHER_CODES = {
   0: "Clear",
   1: "Mainly clear",

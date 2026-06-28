@@ -16,7 +16,7 @@ import {
   computeTargetPosition,
 } from "../../../utils/aircraftMotion";
 
-export type ReplayFix = {
+type ReplayFix = {
   receiveTime: number;
   positionTime: number;
   source: string;
@@ -47,14 +47,14 @@ export type ReplayFrame = {
 };
 
 // Mirrors resolveMotionIntervalMs() in AircraftCanvasLayer for non-focal planes.
-export const motionIntervalForZoom = (zoom: number) => {
+const motionIntervalForZoom = (zoom: number) => {
   if (zoom >= 13) return 100;
   if (zoom >= 9) return 500;
   return 1000;
 };
 
 // Web-mercator ground resolution (meters per CSS pixel) at a latitude/zoom.
-export const metersPerPixel = (lat: number, zoom: number) =>
+const metersPerPixel = (lat: number, zoom: number) =>
   (156543.03392 * Math.cos((lat * Math.PI) / 180)) / 2 ** zoom;
 
 const metersBetween = (aLat: number, aLon: number, bLat: number, bLon: number) => {

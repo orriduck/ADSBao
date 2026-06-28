@@ -1,4 +1,4 @@
-import { toFiniteNumber } from './math'
+import { clamp, toFiniteNumber } from './math'
 
 // Adaptive dead-reckoning + critically-damped easing for aircraft markers.
 //
@@ -51,9 +51,6 @@ export const POSITION_SMOOTHING = {
   // animation loop may stop for it (protects frame rate for idle/slow planes).
   SETTLE_EPSILON_M: 0.2,
 } as const
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max)
 
 const smoothstep = (edge0: number, edge1: number, x: number) => {
   if (edge1 <= edge0) return x >= edge1 ? 1 : 0

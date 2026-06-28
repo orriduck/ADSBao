@@ -1,8 +1,12 @@
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
-import { toFiniteNumber } from "@/utils/math";
+import {
+  normalizeDegrees,
+  normalizeHeadingDeg,
+  toFiniteNumber,
+} from "@/utils/math";
 
-export const NEAR_ME_POSITION_REFRESH_THRESHOLD_NM = 0.05;
-export const NEAR_ME_SIDEBAR_REFRESH_THRESHOLD_NM =
+const NEAR_ME_POSITION_REFRESH_THRESHOLD_NM = 0.05;
+const NEAR_ME_SIDEBAR_REFRESH_THRESHOLD_NM =
   NEAR_ME_POSITION_REFRESH_THRESHOLD_NM;
 
 export type NearMeLocation = {
@@ -37,13 +41,7 @@ type ShouldUpdateNearMeLocationOptions = {
   positionThresholdNm?: number;
 };
 
-const normalizeDegrees = (degrees: number) => ((degrees % 360) + 360) % 360;
-
-export const normalizeNearMeHeadingDeg = (value: unknown) => {
-  const heading = toFiniteNumber(value);
-  if (heading == null || heading < 0) return null;
-  return normalizeDegrees(heading);
-};
+export const normalizeNearMeHeadingDeg = normalizeHeadingDeg;
 
 export function resolveNearMeDeviceHeading(
   event?: NearMeDeviceOrientationEvent | null,

@@ -1,8 +1,6 @@
-import { toFiniteNumber } from './math'
+import { toFiniteNumber, toRadians } from './math'
 
 const EARTH_RADIUS_NM = 3440.065
-
-const toRadians = (degrees) => (degrees * Math.PI) / 180
 
 export const getDistanceNm = (fromLat, fromLon, toLat, toLon) => {
   const lat1 = toFiniteNumber(fromLat)

@@ -218,8 +218,6 @@ export function FilterCardValue({
   );
 }
 
-export { filterCardVariants };
-
 // Container row of filter cards. `columns` toggles the layout
 // between the 3-up "Show / Traffic / Route" arrangement and the
 // 2×2 four-filter grid used on the detail pages.

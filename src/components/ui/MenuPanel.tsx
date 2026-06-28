@@ -165,5 +165,3 @@ export function MenuItemCount({
     />
   );
 }
-
-export { menuItemVariants };

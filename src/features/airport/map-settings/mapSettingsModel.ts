@@ -31,15 +31,7 @@ const PERSISTED_MAP_LAYER_KEYS = Object.freeze([
 ]);
 
 
-export const CUSTOM_MAP_MODE_OPTION = Object.freeze({
-  id: MAP_MODE_IDS.CUSTOM,
-  labelKey: "mapSettings.modes.custom",
-  descriptionKey: "mapSettings.modeDescriptions.custom",
-  iconKey: "slidersHorizontal",
-  layers: Object.freeze({}),
-});
-
-export const DISABLED_MAP_MODE_IDS = Object.freeze([]);
+const DISABLED_MAP_MODE_IDS = Object.freeze([]);
 
 // Base map vector style the map renders underneath every other layer.
 // `terrain` keeps the current readable-topo treatment (hillshade +
@@ -115,7 +107,7 @@ export const PRE_HYDRATION_VISUAL_LAYERS = Object.freeze({
   showCallsigns: false,
 });
 
-export const MAP_SETTINGS_DEVICE_TYPES = Object.freeze({
+const MAP_SETTINGS_DEVICE_TYPES = Object.freeze({
   DESKTOP: "desktop",
   MOBILE: "mobile",
 });
@@ -135,10 +127,6 @@ function isMapModeId(value) {
 
 export function isSelectableMapModeId(_value: unknown) {
   return false;
-}
-
-export function getSelectableMapModeOptions() {
-  return [];
 }
 
 export function normalizeMapSettingsDevice(value: unknown) {

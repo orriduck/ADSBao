@@ -1,5 +1,4 @@
 import * as React from "react";
-import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Shared shell for the bottom-of-screen mobile preview card. Both the
@@ -14,13 +13,6 @@ import { cn } from "@/lib/utils";
 // `pointer-events-none` on the card surface lets map taps flow through
 // the empty edges of the card; the Track button / suggest link
 // re-enable interaction inside `MobilePreviewActions`.
-
-// Whether the sheet is expanded — read by the variant content to reveal the
-// full detail. Provided by MobilePreviewCard.
-const MobilePreviewExpandedContext = React.createContext(false);
-export function useMobilePreviewExpanded() {
-  return React.useContext(MobilePreviewExpandedContext);
-}
 
 // Drag distance (px) past which the grabber flips collapsed <-> expanded.
 const SHEET_DRAG_THRESHOLD = 26;
@@ -130,17 +122,15 @@ export default function MobilePreviewCard({
         compact && placement === "bottomRight" && "gap-0 pb-[9px]",
       )}
     >
-      <MobilePreviewExpandedContext.Provider value={expanded}>
-        {/* Landscape bottom-sheet: grabber rides the top edge (drag up). */}
-        {!isTop ? grabber : null}
-        {children}
-        {/* Expanded detail reveals between the collapsed content and the
-            actions so the action row stays put as the sheet grows. */}
-        {reveal}
-        {actions}
-        {/* Portrait top-sheet: grabber rides the bottom edge (drag down). */}
-        {isTop ? grabber : null}
-      </MobilePreviewExpandedContext.Provider>
+      {/* Landscape bottom-sheet: grabber rides the top edge (drag up). */}
+      {!isTop ? grabber : null}
+      {children}
+      {/* Expanded detail reveals between the collapsed content and the
+          actions so the action row stays put as the sheet grows. */}
+      {reveal}
+      {actions}
+      {/* Portrait top-sheet: grabber rides the bottom edge (drag down). */}
+      {isTop ? grabber : null}
     </aside>
   );
 }
@@ -151,136 +141,6 @@ export function MobilePreviewActions({ children }: Record<string, any>) {
   return (
     <div className="pointer-events-auto mx-[12px] flex flex-col items-stretch gap-1 [[data-density=compact]_&]:mx-[10px] [[data-density=compact]_&]:gap-0.5">
       {children}
-    </div>
-  );
-}
-
-export function MobilePreviewContent({
-  children,
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn(
-        "relative z-[2] box-border flex w-full flex-col items-stretch gap-[5px] px-[12px] pb-[6px] pt-[9px] [[data-density=compact]_&]:gap-[3px] [[data-density=compact]_&]:px-[10px] [[data-density=compact]_&]:pb-[4px] [[data-density=compact]_&]:pt-[7px]",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
-
-export function MobilePreviewIdentity({
-  icon: Icon,
-  label,
-  primary,
-  primaryClassName,
-  secondary = null,
-  secondaryClassName,
-}: {
-  icon: LucideIcon;
-  label: string;
-  primary: React.ReactNode;
-  primaryClassName?: string;
-  secondary?: React.ReactNode;
-  secondaryClassName?: string;
-}) {
-  return (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-end gap-2 [[data-density=compact]_&]:gap-1.5">
-      <div className="flex min-w-0 items-end gap-[6px]">
-        <span
-          aria-label={label}
-          title={label}
-          className="mb-[1px] grid size-[16px] flex-none place-items-center text-atc-dim"
-        >
-          <Icon aria-hidden="true" className="size-[14px]" strokeWidth={1.8} />
-        </span>
-        <span
-          translate="no"
-          className={cn(
-            "notranslate min-w-0 truncate whitespace-nowrap font-[var(--font-mono)] text-[18px] font-extrabold leading-none tracking-normal text-atc-text",
-            "[[data-density=compact]_&]:text-[17px]",
-            primaryClassName,
-          )}
-        >
-          {primary}
-        </span>
-      </div>
-      {secondary ? (
-        <span
-          translate="no"
-          className={cn(
-            "notranslate max-w-[116px] truncate whitespace-nowrap text-right font-[var(--font-mono)] text-[9px] font-semibold leading-none tracking-normal text-atc-dim",
-            secondaryClassName,
-          )}
-        >
-          {secondary}
-        </span>
-      ) : null}
-    </div>
-  );
-}
-
-export function MobilePreviewDetailRow({
-  wrap = false,
-  children,
-}: React.PropsWithChildren<{ wrap?: boolean }>) {
-  return (
-    <div className="flex min-w-0 items-baseline justify-end font-[var(--font-mono)]">
-      <span
-        translate="no"
-        className={cn(
-          "notranslate min-w-0 text-right text-[9px] font-medium leading-tight tracking-normal text-atc-dim",
-          wrap ? "whitespace-normal break-words" : "truncate whitespace-nowrap",
-        )}
-      >
-        {children}
-      </span>
-    </div>
-  );
-}
-
-export function MobilePreviewRuleRow({
-  left = null,
-  right = null,
-}: {
-  left?: React.ReactNode;
-  right?: React.ReactNode;
-}) {
-  return (
-    <div className="flex min-w-0 items-baseline justify-between gap-2.5 border-t border-atc-line pt-[4px] font-[var(--font-mono)] [[data-density=compact]_&]:gap-2 [[data-density=compact]_&]:pt-[3px]">
-      <div className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-left text-[10px] font-semibold leading-none tracking-normal text-atc-text [[data-density=compact]_&]:text-[9px]">
-        {left}
-      </div>
-      <div className="flex min-w-0 shrink-0 items-baseline justify-end gap-[8px] overflow-hidden whitespace-nowrap text-right text-[10px] font-semibold leading-none tracking-normal text-atc-text [[data-density=compact]_&]:gap-[6px] [[data-density=compact]_&]:text-[9px]">
-        {right}
-      </div>
-    </div>
-  );
-}
-
-export function MobilePreviewMetaChips({ children }: React.PropsWithChildren) {
-  return (
-    <dl className="flex min-w-0 items-baseline gap-[8px] [[data-density=compact]_&]:gap-[6px]">
-      {children}
-    </dl>
-  );
-}
-
-export function MobilePreviewMetaChip({
-  children,
-}: React.PropsWithChildren) {
-  return (
-    <div className="flex min-w-0">
-      <dd
-        translate="no"
-        className="notranslate flex min-w-0 items-baseline gap-[2px] overflow-hidden whitespace-nowrap"
-      >
-        {children}
-      </dd>
     </div>
   );
 }
@@ -317,33 +177,6 @@ export const MobilePreviewTrackButton = React.forwardRef(
   },
 );
 
-// Secondary text affordance — quiet so it doesn't compete with the
-// Track button for taps.
-export const MobilePreviewFeedbackLink = React.forwardRef(
-  function MobilePreviewFeedbackLink(
-    { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
-    ref: React.ForwardedRef<HTMLButtonElement>,
-  ) {
-    return (
-      <button
-        ref={ref}
-        type="button"
-        className={cn(
-          "flex w-full min-h-[20px] items-center justify-center px-0 py-1 [[data-density=compact]_&]:min-h-[15px] [[data-density=compact]_&]:py-0.5",
-          "border-0 bg-transparent text-atc-dim cursor-pointer",
-          "font-sans text-[10px] font-bold tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[9px]",
-          "[-webkit-tap-highlight-color:transparent]",
-          "transition-[color,opacity,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
-          "hover:text-atc-text hover:opacity-90 active:text-atc-text active:scale-[0.97]",
-          "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
-          className,
-        )}
-        {...props}
-      />
-    );
-  },
-);
-
 // Square frosted icon button — camera (Plane Hunter) / raise-hand (suggest
 // correction) beside the Track pill. Neutral; the accent stays on Track.
 export const MobilePreviewIconButton = React.forwardRef(
@@ -362,32 +195,6 @@ export const MobilePreviewIconButton = React.forwardRef(
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96]",
-          "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
-          className,
-        )}
-        {...props}
-      />
-    );
-  },
-);
-
-export const MobilePreviewSecondaryButton = React.forwardRef(
-  function MobilePreviewSecondaryButton(
-    { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
-    ref: React.ForwardedRef<HTMLButtonElement>,
-  ) {
-    return (
-      <button
-        ref={ref}
-        type="button"
-        className={cn(
-          "min-h-[32px] w-full px-[10px] cursor-pointer [[data-density=compact]_&]:min-h-[30px] [[data-density=compact]_&]:px-2",
-          "rounded-[calc(var(--atc-radius-card)-3px)] border border-atc-line",
-          "bg-[color-mix(in_oklab,var(--atc-card)_72%,var(--primary-bright)_10%)] text-atc-text",
-          "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
-          "[-webkit-tap-highlight-color:transparent]",
-          "transition-[background-color,border-color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
-          "hover:border-atc-line-strong hover:bg-[var(--tone-card-strong)] active:scale-[0.97]",
           "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
           className,
         )}

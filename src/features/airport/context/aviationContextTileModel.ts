@@ -1,3 +1,5 @@
+import { clamp } from "@/utils/math";
+
 type ContextTileRecord = Record<string, any>;
 type ContextTile = {
   z: number;
@@ -28,9 +30,6 @@ const numberOrNull = (value: unknown) => {
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 };
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, value));
 
 function longitudeToTileX(lon: number, z: number) {
   return Math.floor(((lon + 180) / 360) * 2 ** z);

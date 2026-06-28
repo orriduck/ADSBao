@@ -62,7 +62,7 @@ function latLngFinite(lat: any, lon: any) {
   return Number.isFinite(a) && Number.isFinite(b) ? { lat: a, lon: b } : null;
 }
 
-export interface AircraftCanvasSetData {
+interface AircraftCanvasSetData {
   aircraft: any[];
   selectedId: string;
   focalId: string;

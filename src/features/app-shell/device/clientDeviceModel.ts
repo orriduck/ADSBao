@@ -8,7 +8,7 @@ type ClientMediaDevices = {
   getUserMedia?: unknown;
 };
 
-export type ClientDeviceSystem =
+type ClientDeviceSystem =
   | "ios"
   | "ipados"
   | "android"
@@ -17,7 +17,7 @@ export type ClientDeviceSystem =
   | "linux"
   | "unknown";
 
-export type ClientDeviceClass = "phone" | "tablet" | "desktop" | "unknown";
+type ClientDeviceClass = "phone" | "tablet" | "desktop" | "unknown";
 export type ClientDeviceOrientation = "portrait" | "landscape" | "unknown";
 export type ClientLayoutMode = "mobile" | "desktop";
 

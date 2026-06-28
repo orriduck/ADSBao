@@ -5,7 +5,7 @@ import {
   resolveClientDeviceProfile,
 } from "./clientDeviceModel";
 
-export const getCurrentClientDeviceProfile = (includeSafeAreaInsets = false) =>
+const getCurrentClientDeviceProfile = (includeSafeAreaInsets = false) =>
   resolveClientDeviceProfile(
     getClientDeviceSnapshot({ includeSafeAreaInsets }),
   );
