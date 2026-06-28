@@ -18,7 +18,7 @@ import {
 // component stays dumb: it maps each item to a <StatTile>, resolving the i18n
 // label, NumberFlow wrapping, and click handler from these descriptors.
 
-export type SidebarStatInteraction =
+type SidebarStatInteraction =
   // A view switch (active when activeView === view); the component wires it to
   // onViewChange.
   | { kind: "view"; view: string }

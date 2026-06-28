@@ -19,7 +19,7 @@ import {
 } from "../../airport/context/airportContextUiModel";
 import { getAircraftPositionSourceBadge } from "../../aviation/sourceDisplayModel";
 
-export type AircraftDrawKind = "silhouette" | "arrow" | "dot";
+type AircraftDrawKind = "silhouette" | "arrow" | "dot";
 export type AircraftColorKey = "departure" | "arrival" | "ground" | "unknown";
 
 export interface AircraftDrawDescriptor {

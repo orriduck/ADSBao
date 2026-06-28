@@ -1,3 +1,5 @@
+import { toDegrees, toRadians } from "@/utils/math";
+
 type GeoPointInput = {
   lat?: unknown;
   lon?: unknown;
@@ -15,8 +17,6 @@ type GreatCirclePathOptions = {
   segments?: unknown;
 };
 
-const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
-const toDegrees = (radians: number) => (radians * 180) / Math.PI;
 
 function toPoint(value: GeoPointInput | null | undefined) {
   if (value?.lat == null || value?.lon == null) return null;

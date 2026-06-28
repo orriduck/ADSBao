@@ -1,13 +1,10 @@
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
 
 const USER_LOCATION_MAX_DISTANCE_NM = 80;
-export const USER_LOCATION_MODES = {
+const USER_LOCATION_MODES = {
   OFF: "off",
   LOCATION: "location",
 } as const;
-
-export type UserLocationMode =
-  (typeof USER_LOCATION_MODES)[keyof typeof USER_LOCATION_MODES];
 
 type UserLocationCoords = {
   latitude?: unknown;

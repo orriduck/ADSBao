@@ -1,10 +1,11 @@
 import { RUNWAY_APPROACH_BEAM_CONFIG } from "../../../config/airportMap";
 import { ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
+import { clamp } from "../../../utils/math";
 import { shouldShowRunwayEndLabelsForZoom } from "./airportMapZoomFeatures";
 
 const METERS_PER_DEGREE_LATITUDE = 111_320;
 const STATUTE_MILE_METERS = 1_609.344;
-export const FEET_TO_METERS = 0.3048;
+const FEET_TO_METERS = 0.3048;
 const DEFAULT_RUNWAY_WIDTH_METERS = 45;
 const MIN_RUNWAY_LIGHT_WIDTH_METERS = 18;
 const MAX_RUNWAY_LIGHT_WIDTH_METERS = 80;
@@ -54,8 +55,6 @@ type CanonicalSurfaceRunwayFeature = RunwayAnnotationRecord & {
 const metersPerDegreeLongitude = (latitude: number) =>
   METERS_PER_DEGREE_LATITUDE * Math.cos((latitude * Math.PI) / 180);
 
-export const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
 const interpolate = (from: number, to: number, progress: number) => from + (to - from) * progress;
 
 const isCoordinate2D = (value: unknown): value is Coordinate2D =>
@@ -98,7 +97,7 @@ const normalizedRunwayMapById = (runwayMap: RunwayAnnotationRecord) => {
   return byId;
 };
 
-export const metersBetweenCoordinates = (left: Coordinate2D, right: Coordinate2D) => {
+const metersBetweenCoordinates = (left: Coordinate2D, right: Coordinate2D) => {
   const lonMeters = metersPerDegreeLongitude((left[1] + right[1]) / 2);
   const dx = (right[0] - left[0]) * lonMeters;
   const dy = (right[1] - left[1]) * METERS_PER_DEGREE_LATITUDE;
@@ -501,7 +500,7 @@ const scaleRunwayBeamProfile = (profile: RunwayAnnotationRecord, distanceScale =
   nearWidth: profile.nearWidth * distanceScale,
 });
 
-export const runwayEndVector = (end: RunwayAnnotationRecord, oppositeEnd: RunwayAnnotationRecord) => {
+const runwayEndVector = (end: RunwayAnnotationRecord, oppositeEnd: RunwayAnnotationRecord) => {
   const lonMeters = metersPerDegreeLongitude(end.lat);
   const dx = (end.lon - oppositeEnd.lon) * lonMeters;
   const dy = (end.lat - oppositeEnd.lat) * METERS_PER_DEGREE_LATITUDE;
@@ -527,7 +526,7 @@ const offsetPoint = ({ end, vector, distance, halfWidth, side }: RunwayAnnotatio
   ];
 };
 
-export const coordinateFromVectorMeters = ({ end, vector, distance }: RunwayAnnotationRecord) => [
+const coordinateFromVectorMeters = ({ end, vector, distance }: RunwayAnnotationRecord) => [
   end.lon + (vector.x * distance) / vector.lonMeters,
   end.lat + (vector.y * distance) / METERS_PER_DEGREE_LATITUDE,
 ];

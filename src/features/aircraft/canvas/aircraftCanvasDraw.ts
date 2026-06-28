@@ -7,7 +7,7 @@
 import type { AircraftDrawDescriptor } from "./aircraftCanvasModel";
 import { getAircraftSprite } from "./aircraftSpriteCache";
 
-export const AIRCRAFT_GLYPH_BASE_PX = 20;
+const AIRCRAFT_GLYPH_BASE_PX = 20;
 const DOT_RADIUS_PX = 3.5;
 const FALLBACK_SHADOW_BLUR_PX = 2.2;
 

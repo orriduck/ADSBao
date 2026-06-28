@@ -1,5 +1,10 @@
 import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
-import { toFiniteNumber } from "@/utils/math";
+import {
+  normalizeDegrees,
+  normalizeHeadingDeg,
+  signedBearingDelta,
+  toFiniteNumber,
+} from "@/utils/math";
 
 const DEFAULT_LIMIT = 3;
 const VISUAL_TRAFFIC_MAX_DISTANCE_NM = 3;
@@ -41,21 +46,6 @@ export function getUserLocationVisualTrafficStatusAnimationKey(
   const distanceBucket = getUserLocationVisualTrafficDistanceBucket(item.distanceNm);
   return `${lineKey}:distance:${distanceBucket}`;
 }
-
-const normalizeDegrees = (degrees: number) => ((degrees % 360) + 360) % 360;
-
-const normalizeHeadingDeg = (value: unknown) => {
-  const heading = toFiniteNumber(value);
-  if (heading == null || heading < 0) return null;
-  return normalizeDegrees(heading);
-};
-
-const signedBearingDelta = (fromDeg: number, toDeg: number) => {
-  let delta = normalizeDegrees(toDeg) - normalizeDegrees(fromDeg);
-  if (delta > 180) delta -= 360;
-  if (delta <= -180) delta += 360;
-  return delta;
-};
 
 const resolveAircraftId = (aircraft: UserLocationVisualTrafficRecord) =>
   String(aircraft?.icao24 || aircraft?.hex || aircraft?.callsign || "");
