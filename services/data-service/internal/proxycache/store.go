@@ -107,11 +107,22 @@ func (s *Store) Cleanup(ctx context.Context, retention time.Duration) {
 		`delete from runtime.flight_route_cache where fetched_at < $1`, cutoff)
 }
 
-// RunJanitor blocks running Cleanup on an interval until ctx is cancelled.
-func (s *Store) RunJanitor(ctx context.Context, interval, retention time.Duration) {
-	if s == nil || s.db == nil || interval <= 0 {
+// RunJanitor keeps the tables to roughly the live working set: it deletes rows
+// that have aged to 2×TTL — well past the freshness window, where they no longer
+// serve a fresh hit (a stale row would be re-fetched on access anyway, and the
+// browser keeps its own route cache). Retention tracks the TTL instead of being
+// an independent knob, so the two can't drift. Cleans immediately on start
+// (clears any backlog on deploy), then every TTL/2. Blocks until ctx is done.
+func (s *Store) RunJanitor(ctx context.Context) {
+	if s == nil || s.db == nil {
 		return
 	}
+	retention := 2 * s.ttl
+	interval := s.ttl / 2
+	if interval < 30*time.Second {
+		interval = 30 * time.Second
+	}
+	s.Cleanup(ctx, retention)
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 	for {
