@@ -170,6 +170,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.34.1",
+    kind: "feat",
+    title: {
+      en: "Crisp-line airport night lighting",
+      zh: "细线机场夜间灯光",
+    },
+    summary: {
+      en: "The airport runway/taxiway lighting is rebuilt as a performance-safe, crisp-line night system — a handful of thin themed SVG lines (dashed runway edges with amber caution zones, faint centerline, white end bars, flashing REIL, lit taxiways) instead of 1,500–2,000 colored point markers per airport, with no GPU blur or dimming layer. Zoom-gated to the detail view and dark theme; v2.34.1 also shows aerodrome-polygon buildings at the detail zoom and draws the runway as a thin clean bar at the medium zoom.",
+      zh: "机场跑道/滑行道灯光重做成一套性能安全的细线夜间系统——少量主题化细 SVG 线(虚线跑道边灯与 amber 警戒段、淡中线、白色端横杠、闪烁 REIL、点亮滑行道),取代每机场 1500–2000 个彩色点 marker,不用 GPU 模糊或压暗层。门控在详情 zoom 与暗色主题;v2.34.1 还在详情 zoom 显示机场边界多边形内的建筑,并把中间 zoom 档跑道画成细线。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.33.1",
     kind: "feat",
     title: {
