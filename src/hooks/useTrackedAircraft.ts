@@ -12,20 +12,12 @@ import {
 import {
   getAdsbaoRealtimeClient,
 } from "../lib/realtime/adsbaoRealtimeClient";
+import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
 import { useAircraftTrackingRealtime } from "./useRealtimeAircraftChannel";
 
-function normalizeRealtimeTrackedPayload(data: unknown) {
-  if (data && typeof data === "object" && Array.isArray((data as any).ac)) {
-    return data as Record<string, any>;
-  }
-  if (Array.isArray(data)) return { ac: data };
-  return { ac: [] };
-}
-
-function normalizeTrackedPayload(data: unknown) {
-  return normalizeRealtimeTrackedPayload(data);
-}
+// 与 useAircraftPositions 共用同一份规整逻辑(Part D 去重)。
+const normalizeTrackedPayload = normalizeRealtimeAircraftPayload;
 
 export function useTrackedAircraft(
   callsign: unknown,

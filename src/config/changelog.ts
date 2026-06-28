@@ -47,32 +47,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 59;
+export const CHANGELOG_TOTAL_COUNT = 60;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.35.0",
+    version: "v2.36.0",
     kind: "feat",
     title: {
-      en: "Adaptive aircraft position smoothing",
-      zh: "自适应飞机位置平滑",
+      en: "Steadier realtime aircraft subscriptions",
+      zh: "更稳的实时航空器订阅",
     },
     summary: {
-      en: "Aircraft marker movement between ADS-B fixes is rebuilt as an adaptive dead-reckoning + critically-damped easing system. Each fix becomes an anchor positioned by its own source timestamp (position age), so multi-source updates align on one timeline. Targets are extrapolated forward only above a speed threshold (off for slow/taxiing aircraft, where the per-update displacement is the same size as ADS-B noise — the old cause of high-zoom \"drift\"), and the displayed marker eases toward the target with a frame-rate-independent low-pass filter whose time constant adapts to zoom (smoother when zoomed in, tighter when zoomed out). A new fix only moves the anchor, so the marker never teleports, and source switches are absorbed by the easing instead of jumping.",
-      zh: "飞机标记在两次 ADS-B 定位之间的运动重做成一套自适应航位推算 + 临界阻尼缓动系统。每次定位成为一个 anchor,按其数据源自身的时间戳(位置年龄)定位,因此多源更新对齐在同一条时间线上。只有速度超过阈值才向前外推(慢速/滑行飞机关闭——这时每次更新的位移和 ADS-B 噪声同量级,正是旧版高 zoom “漂移”的根因);显示标记以与帧率无关的低通滤波缓动逼近目标,其时间常数随 zoom 自适应(放大更顺、缩小更跟手)。新定位只移动 anchor,标记永不瞬移,数据源切换被缓动吸收而非跳变。",
+      en: "The realtime aircraft pipeline now resists subscription churn end-to-end. Rapidly opening and closing an aircraft detail no longer tears down and rebuilds its WebSocket subscription (and, for FlightAware, re-authenticates) on every toggle: the client holds callsign/aircraft subscriptions for a short grace window and reuses them if you come back, and the Go data-service mirrors that with a configurable idle grace before it stops a channel's polling loop — so a returning subscriber keeps the same warm loop with no rebuild or re-fetch spike. Switching between aircraft also stops flickering: the previous aircraft's data stays on screen until the new channel delivers instead of blanking instantly.",
+      zh: "实时航空器数据管线现在端到端地抵抗订阅抖动。快速开关某架飞机详情,不再每次都拆掉并重建它的 WebSocket 订阅(FlightAware 还要重新鉴权):客户端会把 callsign/aircraft 订阅保留一个短的 grace 窗口,期间再次进入则原地复用;Go 数据服务以一个可配置的 idle grace 镜像同样行为——最后一个订阅者离开后延迟停止该频道的轮询循环,于是 grace 窗口内返回的订阅者续用同一个热循环,无重建、无重取尖峰。切换不同飞机也不再闪烁:上一架的数据会保留到新频道送来数据,而不是瞬间清空。",
     },
     highlights: [
       {
-        en: "Slow/taxiing aircraft no longer drift the wrong way then snap back at high zoom (extrapolation gates off below ~8–25kt and on the ground); steady targets sit visually still at far/mid zoom (per-frame jitter ~0).",
-        zh: "慢速/滑行飞机在高 zoom 下不再先朝错误方向漂移再回弹(约 8–25kt 以下及地面时关闭外推);稳定目标在远/中 zoom 下视觉上保持静止(逐帧抖动 ~0)。",
+        en: "Opening/closing the same aircraft repeatedly now sends at most one subscribe and one unsubscribe (after the grace), instead of a churn of teardown/rebuild messages.",
+        zh: "反复开关同一架飞机,现在最多发出一次 subscribe、一次 unsubscribe(grace 之后),而不再是一连串拆除/重建消息。",
       },
       {
-        en: "Runs inside the existing single-canvas render loop — a few float ops per aircraft per frame (~0.16µs/plane), no new map layers or repaints. Tuning constants live in one POSITION_SMOOTHING config block.",
-        zh: "运行在现有单 canvas 渲染循环内——每架飞机每帧几次浮点运算(约 0.16µs/架),不新增地图图层或重绘。调参常量集中在一个 POSITION_SMOOTHING 配置块。",
+        en: "Switching between aircraft details no longer blanks the view — the previous aircraft stays until the new channel delivers, killing the detail-switch flicker.",
+        zh: "在不同飞机详情间切换不再清空视图——上一架会保留到新频道送达,消除了切换闪烁。",
       },
       {
-        en: "Proven before wiring to the display: real KLAX fix sequences (slow, fast-cruise, and source-switching targets) were recorded and replayed through an offline harness that asserts jitter, lag, drift, and source-switch thresholds across far/mid/high zoom. Fixtures and harness are committed for repeatability.",
-        zh: "接入显示前先证明:录制真实 KLAX 定位序列(慢速、巡航、跨源切换目标)并通过离线 harness 重放,在远/中/高 zoom 下对抖动、滞后、漂移、源切换阈值逐一断言。fixtures 与 harness 已入库可复跑。",
+        en: "Backend symmetry: the data-service keeps a channel's polling loop alive for a configurable idle grace (CHANNEL_IDLE_GRACE_PERIOD_MS) after the last unsubscribe, while still guaranteeing the loop stops once the grace expires.",
+        zh: "前后端对称:数据服务在最后退订后,会按可配置的 idle grace(CHANNEL_IDLE_GRACE_PERIOD_MS)保留频道的轮询循环;grace 到期后仍保证循环停止。",
       },
     ],
   },

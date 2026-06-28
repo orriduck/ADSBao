@@ -10,6 +10,7 @@ type Config struct {
 	Port                          int
 	MinPollInterval               time.Duration
 	MaxPollInterval               time.Duration
+	ChannelIdleGracePeriod        time.Duration
 	MaxActiveChannels             int
 	PollJitterRatio               float64
 	MaxSocketSubscriptions        int
@@ -44,6 +45,9 @@ func FromEnv(lookup LookupFunc) Config {
 		Port:                          intValue(lookup("PORT"), 8080),
 		MinPollInterval:               durationMS(lookup("MIN_POLL_INTERVAL_MS"), time.Second),
 		MaxPollInterval:               durationMS(lookup("MAX_POLL_INTERVAL_MS"), 30*time.Minute),
+		// 频道最后一个订阅者离开后,轮询循环再保留多久才停止(订阅抖动的后端兜底:
+		// 窗口内若有新订阅者到达,循环不中断、无重建/重取)。
+		ChannelIdleGracePeriod:        durationMS(lookup("CHANNEL_IDLE_GRACE_PERIOD_MS"), 5*time.Second),
 		MaxActiveChannels:             intValue(lookup("MAX_ACTIVE_CHANNELS"), 250),
 		PollJitterRatio:               floatValue(lookup("POLL_JITTER_RATIO"), 0.1),
 		MaxSocketSubscriptions:        intValue(lookup("MAX_SOCKET_SUBSCRIPTIONS"), 96),

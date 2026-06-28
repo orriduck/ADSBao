@@ -12,7 +12,11 @@ import {
   normalizeLongitude,
 } from "../features/aircraft/tracking/flightTrackingContextModel";
 import { createAircraftPositionClient } from "../features/aircraft/positions/aircraftPositionClient";
-import { useRealtimeAircraftChannel } from "./useRealtimeAircraftChannel";
+import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
+import {
+  EMPTY_REALTIME_PARAMS,
+  useRealtimeAircraftChannel,
+} from "./useRealtimeAircraftChannel";
 import { buildAircraftTrafficChannel } from "../lib/realtime/realtimeChannels";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
 
@@ -23,14 +27,6 @@ const normalizeAircraftRangeNm = (value: unknown) => {
   if (!Number.isFinite(number)) return AIRCRAFT_TRAFFIC_CONFIG.rangeNm;
   return Math.max(1, Math.min(MAX_AIRCRAFT_RANGE_NM, number));
 };
-
-function normalizeRealtimeAircraftPayload(data: unknown) {
-  if (Array.isArray(data)) return { ac: data };
-  if (data && typeof data === "object" && Array.isArray((data as any).ac)) {
-    return data as Record<string, any>;
-  }
-  return { ac: [] };
-}
 
 function sourceFromAircraftPayload(payload: Record<string, any>) {
   if (typeof payload.source === "string" && payload.source.trim()) {
@@ -69,7 +65,11 @@ export function useAircraftPositions(
 
   const realtime = useRealtimeAircraftChannel({
     channel: realtimeRequest?.channel || "",
-    params: realtimeRequest?.params || {},
+    // 关键:用稳定的 frozen 常量兜底,避免 `|| {}` 每次 render 都 mint 新对象。
+    // params 是 useRealtimeAircraftChannel 里订阅 effect 的依赖,引用一变就会
+    // 触发 unsubscribe+resubscribe(订阅抖动)。realtimeRequest 非空时其 params
+    // 已在 useMemo 内稳定。
+    params: realtimeRequest?.params ?? EMPTY_REALTIME_PARAMS,
     enabled: hasActiveQuery && realtimeEnabled,
   });
   const channelKey = realtimeRequest?.channel || "";

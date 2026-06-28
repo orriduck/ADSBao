@@ -59,6 +59,7 @@ type AdsbaoRealtimeClientOptions = {
   heartbeatTimeoutMs?: number;
   authTokenFetcher?: RealtimeAuthTokenFetcher | null;
   idleDisconnectMs?: number;
+  subscriptionIdleGraceMs?: number;
 };
 
 type RealtimeLocationLike = {
@@ -171,6 +172,7 @@ export class AdsbaoRealtimeClient {
   private readonly heartbeatTimeoutMs: number;
   private readonly authTokenFetcher: RealtimeAuthTokenFetcher | null;
   private readonly idleDisconnectMs: number;
+  private readonly subscriptionIdleGraceMs: number;
   private socket: RealtimeSocket | null = null;
   private connectionState: ConnectionState;
   private reconnectTimer: number | null = null;
@@ -182,6 +184,13 @@ export class AdsbaoRealtimeClient {
   private intentionalClose = false;
   private reconnectAttempt = 0;
   private readonly subscriptions = new Map<string, StoredRealtimeSubscription>();
+  // 订阅级 idle grace 的待退订定时器(key → timer id)。callsign:/aircraft: 频道
+  // 最后一个 listener 离开后,退订被推迟到这里;窗口内同 key 再订阅会取消它。
+  private readonly pendingTeardownTimers = new Map<string, number>();
+  // churn 计数器(仅 dev 经 syncDebug 暴露到 window.__adsbaoRealtimeDebug,供验收)。
+  private subscribeMessages = 0;
+  private unsubscribeMessages = 0;
+  private gracefulReuses = 0;
   private readonly listeners = new Set<(event: AdsbaoRealtimeEvent) => void>();
   private readonly stateListeners = new Set<(state: ConnectionState) => void>();
   private readonly handleWindowReconnect = () => this.reconnectIfNeeded("window");
@@ -209,6 +218,7 @@ export class AdsbaoRealtimeClient {
         ? fetchRealtimeAuthToken
         : options.authTokenFetcher;
     this.idleDisconnectMs = options.idleDisconnectMs ?? 0;
+    this.subscriptionIdleGraceMs = options.subscriptionIdleGraceMs ?? 0;
     this.connectionState = url ? "closed" : "disabled";
     this.installLifecycleReconnectHandlers();
     this.syncDebug({
@@ -338,6 +348,10 @@ export class AdsbaoRealtimeClient {
   }: RealtimeSubscription): () => void {
     if (!channel) return () => {};
     const key = realtimeSubscriptionKey(channel, params);
+    // 若该 key 正处于退订 grace 窗口(订阅仍在表中、只是等待延迟退订),
+    // 取消待退订定时器并复用现有订阅:不发任何 subscribe/unsubscribe 消息。
+    // 这正是「反复开关同一架飞机详情」时消除订阅抖动的关键。
+    this.cancelPendingTeardown(key);
     const existing = this.subscriptions.get(key);
     if (existing) {
       existing.listeners.add(listener);
@@ -359,25 +373,80 @@ export class AdsbaoRealtimeClient {
     this.cancelIdleDisconnect();
     this.connect();
     if (!existing) {
+      this.subscribeMessages += 1;
+      this.syncDebug({ subscribeMessages: this.subscribeMessages });
       this.sendSubscribe({ channel, params });
     }
     return () => {
       const current = this.subscriptions.get(key);
       if (!current) return;
       current.listeners.delete(listener);
-      if (current.listeners.size === 0) {
-        this.subscriptions.delete(key);
-        this.syncDebug({
-          lastUnsubscribeAt: new Date().toISOString(),
-          lastUnsubscribeChannel: channel,
-          subscriptionCount: this.subscriptions.size,
-        });
-        this.send({ type: "unsubscribe", channel, params: current.params });
-        if (this.subscriptions.size === 0) {
-          this.scheduleIdleDisconnect();
-        }
+      if (current.listeners.size > 0) return;
+      // callsign:/aircraft: 这类单订阅频道:延迟退订(订阅级 idle grace);
+      // 其它频道(traffic: 已靠 grid 量化稳定)维持「最后退订即退」。
+      if (this.shouldDeferUnsubscribe(channel)) {
+        this.scheduleSubscriptionTeardown(key);
+      } else {
+        this.teardownSubscription(key);
       }
     };
+  }
+
+  // callsign:/aircraft: 频道通常只有一个订阅者,开关详情会立刻 unsubscribe 把后端
+  // 轮询循环拆掉、再订阅又重建+重取(+FlightAware re-auth)。延迟退订让窗口内的
+  // 再订阅原地复用,把这类抖动消除。traffic: 频道不走此路径。
+  private shouldDeferUnsubscribe(channel: string) {
+    return (
+      this.subscriptionIdleGraceMs > 0 &&
+      this.timerHost != null &&
+      (channel.startsWith("callsign:") || channel.startsWith("aircraft:"))
+    );
+  }
+
+  // 立即拆除订阅:从订阅表删除、发 unsubscribe、若无任何订阅再进入 socket 空闲断连。
+  private teardownSubscription(key: string) {
+    const current = this.subscriptions.get(key);
+    if (!current) return;
+    this.subscriptions.delete(key);
+    this.unsubscribeMessages += 1;
+    this.syncDebug({
+      lastUnsubscribeAt: new Date().toISOString(),
+      lastUnsubscribeChannel: current.channel,
+      subscriptionCount: this.subscriptions.size,
+      unsubscribeMessages: this.unsubscribeMessages,
+    });
+    this.send({ type: "unsubscribe", channel: current.channel, params: current.params });
+    if (this.subscriptions.size === 0) {
+      this.scheduleIdleDisconnect();
+    }
+  }
+
+  // 订阅级 idle grace:推迟退订 subscriptionIdleGraceMs;到期时若仍无 listener 才
+  // 真正退订(窗口内若有新订阅,cancelPendingTeardown 会取消本定时器)。
+  private scheduleSubscriptionTeardown(key: string) {
+    if (!this.timerHost || this.subscriptionIdleGraceMs <= 0) {
+      this.teardownSubscription(key);
+      return;
+    }
+    const existingTimer = this.pendingTeardownTimers.get(key);
+    if (existingTimer != null) this.timerHost.clearTimeout(existingTimer);
+    const timer = this.timerHost.setTimeout(() => {
+      this.pendingTeardownTimers.delete(key);
+      const current = this.subscriptions.get(key);
+      if (current && current.listeners.size === 0) {
+        this.teardownSubscription(key);
+      }
+    }, this.subscriptionIdleGraceMs);
+    this.pendingTeardownTimers.set(key, timer);
+  }
+
+  private cancelPendingTeardown(key: string) {
+    const timer = this.pendingTeardownTimers.get(key);
+    if (timer == null) return;
+    if (this.timerHost) this.timerHost.clearTimeout(timer);
+    this.pendingTeardownTimers.delete(key);
+    this.gracefulReuses += 1;
+    this.syncDebug({ gracefulReuses: this.gracefulReuses });
   }
 
   onMessage(listener: (event: AdsbaoRealtimeEvent) => void) {
@@ -407,6 +476,8 @@ export class AdsbaoRealtimeClient {
 
   private resubscribeAll() {
     for (const subscription of this.subscriptions.values()) {
+      // 处于退订 grace 窗口的订阅(已无 listener)不在重连时复活。
+      if (subscription.listeners.size === 0) continue;
       this.sendSubscribe(subscription);
     }
   }
@@ -682,6 +753,10 @@ let singleton: AdsbaoRealtimeClient | null = null;
 
 export function getAdsbaoRealtimeClient() {
   if (!singleton)
-    singleton = new AdsbaoRealtimeClient(undefined, { idleDisconnectMs: 10_000 });
+    singleton = new AdsbaoRealtimeClient(undefined, {
+      idleDisconnectMs: 10_000,
+      // callsign:/aircraft: 频道退订前的 grace,镜像 socket 级 idleDisconnectMs。
+      subscriptionIdleGraceMs: 3_000,
+    });
   return singleton;
 }

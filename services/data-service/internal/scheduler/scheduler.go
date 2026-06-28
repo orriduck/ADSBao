@@ -18,6 +18,7 @@ type Options struct {
 	Fetch             realtime.FetchFunc
 	MinInterval       time.Duration
 	MaxInterval       time.Duration
+	IdleGracePeriod   time.Duration
 	MaxActiveChannels int
 	JitterRatio       float64
 	CacheTTL          time.Duration
@@ -28,6 +29,7 @@ type Scheduler struct {
 	fetch             realtime.FetchFunc
 	minInterval       time.Duration
 	maxInterval       time.Duration
+	idleGracePeriod   time.Duration
 	maxActiveChannels int
 	jitterRatio       float64
 	cacheTTL          time.Duration
@@ -56,6 +58,9 @@ type channelState struct {
 	subscribers         map[int64]func(realtime.Event)
 	ctx                 context.Context
 	cancel              context.CancelFunc
+	// idle grace 待停定时器:最后一个订阅者离开后启动,到期才真正停轮询;
+	// 窗口内有新订阅者命中本 state 时会被 Stop。
+	graceTimer *time.Timer
 }
 
 type cacheEntry struct {
@@ -84,6 +89,8 @@ func New(options Options) *Scheduler {
 		fetch:             options.Fetch,
 		minInterval:       minInterval,
 		maxInterval:       maxInterval,
+		// 默认 0 = 保持「最后退订即停」的既有语义;>0 才启用 idle grace。
+		idleGracePeriod:   options.IdleGracePeriod,
 		maxActiveChannels: maxActive,
 		jitterRatio:       options.JitterRatio,
 		cacheTTL:          cacheTTL,
@@ -133,6 +140,11 @@ func (s *Scheduler) Subscribe(channel string, params realtime.SubscribeParams, s
 		}
 		s.channels[key] = state
 		go s.run(state)
+	} else if state.graceTimer != nil {
+		// 命中处于 idle grace 窗口的频道:取消待停定时器,轮询循环原地续用,
+		// 不重建 goroutine、不触发重取(消除订阅抖动的后端兜底)。
+		state.graceTimer.Stop()
+		state.graceTimer = nil
 	}
 	s.subscriberID++
 	id := s.subscriberID
@@ -179,6 +191,9 @@ func (s *Scheduler) Dispose() {
 	s.cache = map[string]cacheEntry{}
 	s.mu.Unlock()
 	for _, state := range states {
+		if state.graceTimer != nil {
+			state.graceTimer.Stop()
+		}
 		state.cancel()
 	}
 }
@@ -192,10 +207,45 @@ func (s *Scheduler) unsubscribe(key string, id int64) {
 	}
 	delete(state.subscribers, id)
 	if len(state.subscribers) == 0 {
-		delete(s.channels, key)
-		state.cancel()
+		if s.idleGracePeriod <= 0 {
+			s.stopChannelLocked(state)
+		} else {
+			s.scheduleGraceStopLocked(state)
+		}
 	}
 	s.mu.Unlock()
+}
+
+// 立即停止频道:从活动表移除并取消轮询 goroutine。须在持有 s.mu 时调用。
+func (s *Scheduler) stopChannelLocked(state *channelState) {
+	if state.graceTimer != nil {
+		state.graceTimer.Stop()
+		state.graceTimer = nil
+	}
+	delete(s.channels, state.key)
+	state.cancel()
+}
+
+// idle grace:最后一个订阅者离开后,等 idleGracePeriod 再停。窗口内若有新订阅者
+// 到达(Subscribe 命中同一 state 并 Stop 本定时器),轮询循环全程不中断。
+// 到期回调里复检:仍是同一 state 且确无订阅者,才真正停止——从而保证 grace 过后
+// 「最后退订即停」的既有保证依然成立。
+func (s *Scheduler) scheduleGraceStopLocked(state *channelState) {
+	if state.graceTimer != nil {
+		state.graceTimer.Stop()
+	}
+	state.graceTimer = time.AfterFunc(s.idleGracePeriod, func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.channels[state.key] != state {
+			return
+		}
+		state.graceTimer = nil
+		if len(state.subscribers) == 0 {
+			delete(s.channels, state.key)
+			state.cancel()
+		}
+	})
 }
 
 func (s *Scheduler) run(state *channelState) {
@@ -212,8 +262,11 @@ func (s *Scheduler) run(state *channelState) {
 		}
 		s.poll(state)
 		s.mu.Lock()
+		// 只看频道是否还在活动表里:idle grace 期间订阅者已归零但 state 仍在表中,
+		// 循环继续轮询以便窗口内的新订阅者能立刻拿到新鲜数据;grace 到期会把 state
+		// 从表中删除并 cancel,届时这里 active=false 退出(或 delay 等待时被 ctx 唤醒)。
 		_, active := s.channels[state.key]
-		if !active || len(state.subscribers) == 0 {
+		if !active {
 			s.mu.Unlock()
 			return
 		}
