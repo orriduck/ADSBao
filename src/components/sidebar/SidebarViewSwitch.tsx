@@ -139,7 +139,7 @@ export default function SidebarViewSwitch({
           data-active={isTraffic ? "true" : undefined}
           onClick={() => onViewChange?.("traffic")}
           aria-pressed={isTraffic}
-          className={`relative block w-full px-[16px] text-left transition-[background-color,padding] duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:origin-center before:scale-x-0 before:bg-[var(--atc-signal-accent)] before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.34,1.3,0.64,1)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:before:scale-x-100 ${
+          className={`relative block w-full px-[11px] text-left transition-[background-color,padding] duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:origin-center before:scale-x-0 before:bg-[var(--atc-signal-accent)] before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.34,1.3,0.64,1)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:before:scale-x-100 ${
             isTraffic ? "pb-3 pt-[15px]" : "py-[14px]"
           }`}
         >

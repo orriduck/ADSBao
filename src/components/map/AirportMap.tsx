@@ -288,15 +288,18 @@ export default function AirportMap({
   useEffect(() => {
     if (!mapInstance) return undefined;
     const handleMapClick = (event: any) => {
-      if (showAirspaces && mapClickTargetsAirspace(event)) return;
-      // Aircraft now live on a pointer-events:none canvas, so their clicks land
-      // here. Hit-test first: a plane hit selects it; otherwise the click is a
-      // bare-tile click and clears the current selections (old "trace mode off").
+      // Click priority follows the z-order: aircraft > airport / navaid (their
+      // own badge handlers, in a pane above airspace) > airspace. Aircraft live
+      // on a pointer-events:none canvas, so their clicks land here — hit-test
+      // them FIRST, before the airspace check, so a plane sitting over an OPEN
+      // airspace still wins (the airspace fill underneath would otherwise grab
+      // it). A miss falls through to airspace, then to a bare-tile clear.
       const hitAircraft = aircraftHitTestRef.current?.(event.containerPoint);
       if (hitAircraft) {
         if (typeof onSelectAircraft === "function") onSelectAircraft(hitAircraft);
         return;
       }
+      if (showAirspaces && mapClickTargetsAirspace(event)) return;
       if (selectedAircraftId && typeof onSelectAircraft === "function") {
         onSelectAircraft("");
       }
