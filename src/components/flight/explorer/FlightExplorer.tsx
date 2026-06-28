@@ -309,6 +309,13 @@ function FlightExplorerContent({ callsign }) {
     };
   }
   useEffect(() => {
+    // Clear the carried-over focal position on flight switch. Without resetting
+    // lastKnownRef the new flight's focalLat would inherit the PREVIOUS flight's
+    // last position (or the fallback center), so the map briefly recenters on the
+    // wrong location — and hasFocalPosition reads true too early, lifting the
+    // loading overlay onto that stale view. Cleared, the overlay holds until the
+    // new flight's own (cached or live) position resolves.
+    lastKnownRef.current = { lat: null, lon: null };
     visualFocalPositionRef.current = { lat: null, lon: null };
     focalMotionRef.current = null;
     setVisualFocalPosition({ lat: null, lon: null });
@@ -790,6 +797,10 @@ function FlightExplorerContent({ callsign }) {
     hasActiveFlight: Boolean(callsign),
     trackedAircraftSettled,
     trackedLoadingOverlayActive,
+    // The map centers on focalLat/focalLon; while those are absent (e.g. just
+    // after navigating to another flight, before its position resolves) keep the
+    // loading overlay covering the fallback-centered map instead of flashing it.
+    hasFocalPosition: focalLat != null && focalLon != null,
   });
   const loadingOverlaySources = {
     trackedAircraftLoading: flightTrackingLoadingActive,

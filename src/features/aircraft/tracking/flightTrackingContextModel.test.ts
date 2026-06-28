@@ -66,3 +66,26 @@ assert.equal(
   }),
   false,
 );
+
+// Settled with a focal position → overlay lifts (map reveals on the aircraft).
+assert.equal(
+  shouldShowFlightTrackingLoadingOverlay({
+    hasActiveFlight: true,
+    trackedAircraftSettled: true,
+    trackedLoadingOverlayActive: false,
+    hasFocalPosition: true,
+  }),
+  false,
+);
+
+// Settled but no focal position yet → overlay stays up so the fallback-centered
+// map never flashes (e.g. right after navigating between tracked flights).
+assert.equal(
+  shouldShowFlightTrackingLoadingOverlay({
+    hasActiveFlight: true,
+    trackedAircraftSettled: true,
+    trackedLoadingOverlayActive: false,
+    hasFocalPosition: false,
+  }),
+  true,
+);

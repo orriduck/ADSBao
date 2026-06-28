@@ -18,6 +18,7 @@ type FlightTrackingLoadingOverlayOptions = {
   nearbyAirportsSettled?: boolean;
   trackedLoadingOverlayActive?: boolean;
   nearbyLoadingOverlayActive?: boolean;
+  hasFocalPosition?: boolean;
 };
 
 export function normalizeLatitude(value: unknown) {
@@ -59,9 +60,18 @@ export function shouldShowFlightTrackingLoadingOverlay({
   hasActiveFlight = false,
   trackedAircraftSettled = false,
   trackedLoadingOverlayActive = false,
+  hasFocalPosition = true,
 }: FlightTrackingLoadingOverlayOptions = {}) {
+  // Keep the overlay up while the flight has no plottable focal position so the
+  // map (which still initializes on a fallback center) stays hidden behind the
+  // loading state instead of revealing the unrelated fallback location. The
+  // moment a live or cached position exists the overlay can lift and the map
+  // re-centers on the aircraft.
   return Boolean(
-    hasActiveFlight && (!trackedAircraftSettled || trackedLoadingOverlayActive),
+    hasActiveFlight &&
+      (!trackedAircraftSettled ||
+        trackedLoadingOverlayActive ||
+        !hasFocalPosition),
   );
 }
 
