@@ -22,11 +22,15 @@ const shouldShowAirportSurfaceForZoom = (zoom: unknown) => {
 const shouldRenderAirportSurfaceFeature = (
   feature: Record<string, any>,
   nightLighting: boolean,
+  detailZoom: boolean,
 ) => {
   const kind = String(feature?.properties?.kind || "");
   // At night, taxiways are drawn as lit green/blue lines by
   // AirportGroundLightingLayer — suppress the generic pavement line here.
   if (nightLighting && (kind === "taxiway" || kind === "taxilane")) return false;
+  // Buildings/terminals are detail-zoom only — at wider zoom they're clutter,
+  // and the aerodrome-filtered set can be large.
+  if ((kind === "building" || kind === "terminal") && !detailZoom) return false;
   return (
     kind === "runway" ||
     kind === "taxiway" ||
@@ -135,7 +139,8 @@ export default function AirportSurfaceLayer({
   // Night lighting is on in the dark theme at airport-detail zoom and closer;
   // taxiway pavement lines are then suppressed (the lighting layer draws lit
   // green/blue taxiways) and the runway pavement dims under the bright edges.
-  const nightLighting = theme === "dark" && Number(zoom) >= ZOOM_DETAIL;
+  const detailZoom = Number(zoom) >= ZOOM_DETAIL;
+  const nightLighting = theme === "dark" && detailZoom;
   // Second-level ("airport") zoom band, between the wide approach view and the
   // detail view — the runway is drawn as a thin clean bar here.
   const midZoom =
@@ -161,6 +166,7 @@ export default function AirportSurfaceLayer({
         return shouldRenderAirportSurfaceFeature(
           feature as Record<string, any>,
           nightLighting,
+          detailZoom,
         );
       },
       style(feature) {
@@ -185,7 +191,7 @@ export default function AirportSurfaceLayer({
       renderer.remove();
       layerRef.current = null;
     };
-  }, [map, surfaceFeatures, theme, surfaceVisible, nightLighting, midZoom]);
+  }, [map, surfaceFeatures, theme, surfaceVisible, nightLighting, midZoom, detailZoom]);
 
   return null;
 }

@@ -58,13 +58,13 @@ func TestBuildAirportSurfaceStructuresOverpassQuery(t *testing.T) {
 		east:  -70.986,
 	})
 
-	if !strings.Contains(query, `way["aeroway"="terminal"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+	if !strings.Contains(query, `way["aeroway"="aerodrome"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+		!strings.Contains(query, `rel["aeroway"="aerodrome"](42.344000,-71.031000,42.385000,-70.986000);`) ||
+		!strings.Contains(query, `.ad map_to_area->.adarea;`) ||
+		!strings.Contains(query, `way["building"](area.adarea);`) ||
+		!strings.Contains(query, `way["aeroway"="terminal"](42.344000,-71.031000,42.385000,-70.986000);`) ||
 		!strings.Contains(query, `way["building"="hangar"](42.344000,-71.031000,42.385000,-70.986000);`) ||
-		strings.Contains(query, `way["building"](42.344000,-71.031000,42.385000,-70.986000);`) ||
 		strings.Contains(query, `transportation`) ||
-		strings.Contains(query, `relation`) ||
-		strings.Contains(query, `map_to_area`) ||
-		strings.Contains(query, `aerodrome`) ||
 		strings.Contains(query, `taxiway`) {
 		t.Fatalf("unexpected structures query:\n%s", query)
 	}
@@ -364,10 +364,10 @@ func TestAirportSurfaceScopesKeepPavementSeparateFromStructures(t *testing.T) {
 				strings.Contains(data, `taxiway`) {
 				t.Fatalf("second query should be structures-only: %s", data)
 			}
-			if strings.Contains(data, `transportation`) ||
-				strings.Contains(data, `relation`) ||
-				strings.Contains(data, `map_to_area`) {
-				t.Fatalf("second query should be narrow bbox structures: %s", data)
+			if !strings.Contains(data, `aeroway"="aerodrome"`) ||
+				!strings.Contains(data, `map_to_area`) ||
+				!strings.Contains(data, `building"](area.adarea)`) {
+				t.Fatalf("structures query should filter buildings to the aerodrome area: %s", data)
 			}
 			w.Header().Set("Content-Type", "application/json")
 			_, _ = w.Write([]byte(`{"elements":[{
