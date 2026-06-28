@@ -166,7 +166,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	if proxyCache != nil {
-		go proxyCache.RunJanitor(ctx, 15*time.Minute, time.Hour)
+		go proxyCache.RunJanitor(ctx)
 	}
 	go reportMetrics(ctx, registry, started, cfg.MetricsReportInterval, polling.DebugChannels)
 	go logForwarder.Run(ctx, cfg.LogsReportInterval)
