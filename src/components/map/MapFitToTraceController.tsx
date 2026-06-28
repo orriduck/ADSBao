@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
-import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
+import { useExplorerSelection } from "@/components/explorer/ExplorerUiContext";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import {
   buildTraceFitPoints,
@@ -40,7 +40,7 @@ export default function MapFitToTraceController({
   onAutoFit,
 }: Record<string, any>) {
   const map = useMapInstance();
-  const { fitToTraceSignal } = useExplorerUi();
+  const { fitToTraceSignal } = useExplorerSelection();
   const { traces } = useSelectedAircraftTrace();
   const lastSignalRef = useRef(0);
   const lastAutoFitKeyRef = useRef("");

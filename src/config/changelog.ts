@@ -47,32 +47,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 60;
+export const CHANGELOG_TOTAL_COUNT = 61;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.36.0",
+    version: "v2.37.0",
     kind: "feat",
     title: {
-      en: "Steadier realtime aircraft subscriptions",
-      zh: "更稳的实时航空器订阅",
+      en: "Lighter Explorer re-renders",
+      zh: "更轻的 Explorer 重渲染",
     },
     summary: {
-      en: "The realtime aircraft pipeline now resists subscription churn end-to-end. Rapidly opening and closing an aircraft detail no longer tears down and rebuilds its WebSocket subscription (and, for FlightAware, re-authenticates) on every toggle: the client holds callsign/aircraft subscriptions for a short grace window and reuses them if you come back, and the Go data-service mirrors that with a configurable idle grace before it stops a channel's polling loop — so a returning subscriber keeps the same warm loop with no rebuild or re-fetch spike. Switching between aircraft also stops flickering: the previous aircraft's data stays on screen until the new channel delivers instead of blanking instantly.",
-      zh: "实时航空器数据管线现在端到端地抵抗订阅抖动。快速开关某架飞机详情,不再每次都拆掉并重建它的 WebSocket 订阅(FlightAware 还要重新鉴权):客户端会把 callsign/aircraft 订阅保留一个短的 grace 窗口,期间再次进入则原地复用;Go 数据服务以一个可配置的 idle grace 镜像同样行为——最后一个订阅者离开后延迟停止该频道的轮询循环,于是 grace 窗口内返回的订阅者续用同一个热循环,无重建、无重取尖峰。切换不同飞机也不再闪烁:上一架的数据会保留到新频道送来数据,而不是瞬间清空。",
+      en: "The airport Explorer's UI state used to live in one large context object: any change — selecting an aircraft, panning, zooming, toggling a map layer — produced a new object and re-rendered every consumer, including the busy aircraft list. The context is now split into focused slices so a component can subscribe to just what it reads (the aircraft list subscribes only to the list filters), and the list itself is memoized. High-frequency updates that the list doesn't care about — zooming and map-layer toggles — no longer re-run the list's rendering work, while genuine changes (new traffic data, selecting a row) still update only what changed.",
+      zh: "机场 Explorer 的 UI 状态过去集中在一个大 context 对象里:任何变化——选中飞机、平移、缩放、切换地图图层——都会生成新对象并重渲染所有消费者,包括繁忙的航班列表。现在 context 拆成聚焦切片,组件只订阅自己读取的部分(航班列表只订阅列表筛选项),列表本身也做了 memo 化。列表不关心的高频更新——缩放、图层开关——不再触发列表的渲染工作;而真正的变化(新流量数据、选中某行)仍只更新发生变化的部分。",
     },
     highlights: [
       {
-        en: "Opening/closing the same aircraft repeatedly now sends at most one subscribe and one unsubscribe (after the grace), instead of a churn of teardown/rebuild messages.",
-        zh: "反复开关同一架飞机,现在最多发出一次 subscribe、一次 unsubscribe(grace 之后),而不再是一连串拆除/重建消息。",
+        en: "ExplorerUiContext is split into focused slices (filters, selection) alongside the full aggregate, so consumers re-render on their slice rather than on every unrelated field.",
+        zh: "ExplorerUiContext 在保留完整聚合的同时拆出聚焦切片(filters、selection),消费者只在自己的切片变化时重渲染,而非任何无关字段。",
       },
       {
-        en: "Switching between aircraft details no longer blanks the view — the previous aircraft stays until the new channel delivers, killing the detail-switch flicker.",
-        zh: "在不同飞机详情间切换不再清空视图——上一架会保留到新频道送达,消除了切换闪烁。",
+        en: "The aircraft list is memoized and subscribes only to the list filters: zooming and map-layer toggles no longer re-render it (≈3× fewer list re-renders during a zoom versus a full-context consumer).",
+        zh: "航班列表 memo 化并只订阅列表筛选项:缩放和图层开关不再触发它重渲染(缩放期间列表重渲染约为全量 context 消费者的 1/3)。",
       },
       {
-        en: "Backend symmetry: the data-service keeps a channel's polling loop alive for a configurable idle grace (CHANNEL_IDLE_GRACE_PERIOD_MS) after the last unsubscribe, while still guaranteeing the loop stops once the grace expires.",
-        zh: "前后端对称:数据服务在最后退订后,会按可配置的 idle grace(CHANNEL_IDLE_GRACE_PERIOD_MS)保留频道的轮询循环;grace 到期后仍保证循环停止。",
+        en: "Selecting an aircraft still updates only the changed rows, not the whole list (existing per-row memoization), and the map canvas continues to own per-frame aircraft motion — no per-frame React work was added.",
+        zh: "选中飞机仍只更新变化的行、而非整列表(沿用既有逐行 memo);逐帧的飞机运动依旧由地图 canvas 负责——没有新增任何逐帧 React 工作。",
       },
     ],
   },
