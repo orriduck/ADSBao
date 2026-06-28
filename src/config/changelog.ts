@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 58;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.34.0",
+    version: "v2.34.1",
     kind: "feat",
     title: {
       en: "Crisp-line airport night lighting",
@@ -69,6 +69,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Zoom-gated to the detail view (nothing built or drawn below it) and dark-theme only; daytime keeps the tan runway/taxiway surfaces. The old per-point FAA model, its canvas renderer, the LOD-band system and ~790 net lines of code are removed.",
         zh: "灯光门控在详情 zoom(以下不构建不绘制)且仅暗色主题;白天保留 tan 色跑道/滑行道铺面。旧的逐点 FAA 模型、其 canvas 渲染器、LOD 分级系统及净约 790 行代码已移除。",
+      },
+      {
+        en: "v2.34.1: airport buildings now show at the detail zoom. The OSM lookup widened from terminals + hangars to all buildings, filtered to inside the aerodrome polygon (aeroway=aerodrome) so surrounding city blocks are excluded, and the runway is drawn as a thin clean bar at the medium zoom.",
+        zh: "v2.34.1:机场建筑现在在详情 zoom 显示。OSM 取数从航站楼+机库扩到全部建筑,并过滤到机场边界多边形(aeroway=aerodrome)以内,排除周边城市街区;中间 zoom 档跑道改为细线。",
       },
     ],
   },

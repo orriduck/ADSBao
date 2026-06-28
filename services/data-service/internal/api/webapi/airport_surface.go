@@ -22,7 +22,10 @@ const (
 	defaultAirportSurfaceOSMMapBaseURL = "https://api.openstreetmap.org/api/0.6/map"
 	defaultAirportSurfaceCacheTTL      = 6 * time.Hour
 	airportSurfaceRequestTimeout       = 3 * time.Second
-	airportSurfaceOSMMapRequestTimeout = 12 * time.Second
+	// Structures use an aerodrome-area Overpass filter, which is heavier than
+	// the flat-bbox pavement query, so they get more headroom.
+	airportSurfaceStructuresRequestTimeout = 12 * time.Second
+	airportSurfaceOSMMapRequestTimeout     = 12 * time.Second
 	airportSurfaceBBoxPaddingMeters    = 400
 	airportSurfaceCenterRadiusMeters   = 1200
 	airportSurfaceFallbackRadiusMeters = 4500
@@ -190,8 +193,12 @@ func (h *Handler) fetchAirportSurfacePayload(
 		return nil, false
 	}
 
+	timeout := airportSurfaceRequestTimeout
+	if normalizeAirportSurfaceScope(mode) == airportSurfaceScopeStructures {
+		timeout = airportSurfaceStructuresRequestTimeout
+	}
 	var payload map[string]any
-	status, err := h.fetchAirportSurfaceJSON(ctx, requestURL.String(), query, &payload)
+	status, err := h.fetchAirportSurfaceJSON(ctx, requestURL.String(), query, timeout, &payload)
 	if err != nil || status < 200 || status >= 300 {
 		log.Printf("airport surface fetch failed airport=%s mode=%s status=%d error=%v", airport, mode, status, err)
 		return nil, false
@@ -199,8 +206,8 @@ func (h *Handler) fetchAirportSurfacePayload(
 	return payload, true
 }
 
-func (h *Handler) fetchAirportSurfaceJSON(ctx context.Context, upstream string, query string, out any) (int, error) {
-	ctx, cancel := context.WithTimeout(ctx, airportSurfaceRequestTimeout)
+func (h *Handler) fetchAirportSurfaceJSON(ctx context.Context, upstream string, query string, timeout time.Duration, out any) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	body := strings.NewReader(url.Values{"data": {query}}.Encode())
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, upstream, body)
@@ -357,12 +364,23 @@ func buildAirportSurfaceStructuresOverpassQuery(bbox airportSurfaceBBox) string 
 		formatBBoxCoordinate(bbox.east),
 	}, ",")
 
-	return fmt.Sprintf(`[out:json][timeout:3];
+	// Buildings are filtered to inside the aerodrome polygon (aeroway=aerodrome,
+	// mapped to an area) so surrounding city buildings are excluded. Terminals
+	// and hangars are also matched directly in the bbox as a safety net for
+	// airports whose aerodrome polygon is missing (the area set is then empty
+	// and the area-filtered building selector simply yields nothing).
+	return fmt.Sprintf(`[out:json][timeout:25];
+(
+  way["aeroway"="aerodrome"](%s);
+  rel["aeroway"="aerodrome"](%s);
+)->.ad;
+.ad map_to_area->.adarea;
 (
   way["aeroway"="terminal"](%s);
   way["building"="hangar"](%s);
+  way["building"](area.adarea);
 );
-out tags geom;`, formatted, formatted)
+out tags geom;`, formatted, formatted, formatted, formatted)
 }
 
 func buildAirportSurfaceOverpassQuery(bbox airportSurfaceBBox, scope string) string {
