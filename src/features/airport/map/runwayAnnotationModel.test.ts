@@ -2,12 +2,10 @@ import assert from "node:assert/strict";
 
 import {
   buildRenderableAirportSurfaceFeatureCollection,
-  buildRunwayApproachLightCollection,
   buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
   buildRunwayMapFromSurfaceMap,
-  buildRunwayLightCollection,
   resolveRunwayAnnotationVisibility,
 } from "./runwayAnnotationModel";
 import {
@@ -147,45 +145,6 @@ const nightVisualization = buildRunwayApproachVisualization(runwayMap, {
 });
 assert.equal(nightVisualization.kind, "approach-beams");
 
-const runwayLights = buildRunwayLightCollection(runwayMap);
-assert.equal(runwayLights.features.length, 45);
-const runwayStartCoordinate = runwayMap.runways[0].centerline.geometry
-  .coordinates[0] as [any, any];
-assert.deepEqual(
-  [...new Set(runwayLights.features.map((feature) => feature.properties.side))],
-  ["left", "right", "center"],
-);
-assert.equal(runwayLights.features[0].properties.progress, 0);
-assert.equal(runwayLights.features.at(-1).properties.progress, 1);
-assert.equal(runwayLights.features.at(-1).properties.kind, "centerline");
-assert.ok(
-  metersBetween(
-    runwayLights.features[0].geometry.coordinates,
-    runwayStartCoordinate,
-  ) >= 20,
-);
-assert.ok(
-  metersBetween(
-    runwayLights.features[0].geometry.coordinates,
-    runwayStartCoordinate,
-  ) <= 26,
-);
-const approachLights = buildRunwayApproachLightCollection(runwayMap, {
-  zoom: ZOOM_AIRPORT,
-});
-assert.equal(approachLights.features.length, 8);
-assert.deepEqual(
-  [...new Set(approachLights.features.map((feature) => feature.properties.runwayEnd))],
-  ["04R", "22L"],
-);
-assert.equal(approachLights.features[0].properties.kind, "approach");
-assert.ok(
-  metersBetween(
-    approachLights.features[0].geometry.coordinates,
-    runwayStartCoordinate,
-  ) > 90,
-);
-
 const surfaceMapFixture = {
   airport: "KBOS",
   source: "OpenStreetMap",
@@ -277,7 +236,6 @@ assert.deepEqual(
     [-70.9991, 42.3773],
   ],
 );
-assert.ok(buildRunwayLightCollection(surfaceRunwayMap).features.length > 0);
 const renderableSurface =
   buildRenderableAirportSurfaceFeatureCollection(surfaceMapFixture, runwayMap);
 assert.deepEqual(

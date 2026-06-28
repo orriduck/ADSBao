@@ -2,11 +2,9 @@ import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
 import { AIRPORT_MAP_PANES } from "../../config/airportMap";
+import { ZOOM_DETAIL } from "../../utils/airportMapDisplay";
 import { ensureAirportMapPane } from "../../features/airport/map/mapPane";
 import { buildRenderableAirportSurfaceFeatureCollection } from "../../features/airport/map/runwayAnnotationModel";
-import { buildTaxiwayLightCollection } from "../../features/airport/map/runwayLightingModel";
-import { runwayLightingLodForZoom } from "../../features/airport/map/airportMapZoomFeatures";
-import { buildRunwayLightCanvasLayer } from "../../features/airport/map/runwayLightCanvas";
 import {
   safeAddToMap,
   safeRemoveFromMap,
@@ -23,8 +21,12 @@ const shouldShowAirportSurfaceForZoom = (zoom: unknown) => {
 
 const shouldRenderAirportSurfaceFeature = (
   feature: Record<string, any>,
+  nightLighting: boolean,
 ) => {
   const kind = String(feature?.properties?.kind || "");
+  // At night, taxiways are drawn as lit green/blue lines by
+  // AirportGroundLightingLayer — suppress the generic pavement line here.
+  if (nightLighting && (kind === "taxiway" || kind === "taxilane")) return false;
   return (
     kind === "runway" ||
     kind === "taxiway" ||
@@ -38,7 +40,8 @@ const shouldRenderAirportSurfaceFeature = (
 const airportSurfaceStyle = (
   feature: Record<string, any>,
   theme: string,
-  lightsActive: boolean,
+  nightLighting: boolean,
+  midZoom: boolean,
 ) => {
   const kind = String(feature?.properties?.kind || "");
   const geometryType = String(feature?.geometry?.type || "");
@@ -46,11 +49,19 @@ const airportSurfaceStyle = (
   const isLight = theme === "light";
 
   if (kind === "runway") {
-    // When FAA lights are rendered (mid/near band), the thick runway stroke
-    // fills the narrow runway into a solid "bar" that competes with the lights.
-    // Thin and dim it so the lights define the runway; keep the full stroke at
-    // far zoom, where it is the only runway indicator.
+    // Runway stroke graduates with zoom:
+    //   far  (<= approach)      full stroke — the runway is the only cue
+    //   mid  (approach..detail) thin clean bar — a wide bar reads unnatural here
+    //   detail dark (night)     dim full-width body under the bright dashed edges
     const baseWeight = isLight ? (polygon ? 1.8 : 2.4) : polygon ? 5.6 : 6.2;
+    let weight = baseWeight;
+    let opacity = isLight ? 0.28 : 0.68;
+    if (nightLighting) {
+      opacity = 0.34;
+    } else if (midZoom) {
+      weight = isLight ? 1.4 : 1.8;
+      opacity = isLight ? 0.42 : 0.6;
+    }
     return {
       className: airportSurfaceClassName(kind),
       color: "var(--airport-surface-runway-stroke)",
@@ -59,9 +70,9 @@ const airportSurfaceStyle = (
       fillOpacity: 0,
       lineCap: "round",
       lineJoin: "round",
-      opacity: lightsActive ? (isLight ? 0.22 : 0.46) : isLight ? 0.28 : 0.68,
+      opacity,
       stroke: true,
-      weight: lightsActive ? (isLight ? 0.9 : 1.35) : baseWeight,
+      weight,
     };
   }
 
@@ -121,8 +132,14 @@ export default function AirportSurfaceLayer({
     () => buildRenderableAirportSurfaceFeatureCollection(surfaceMap, runwayMap),
     [runwayMap, surfaceMap],
   );
-  const lightingBand = useMemo(() => runwayLightingLodForZoom(zoom), [zoom]);
-  const lightsActive = lightingBand !== "far";
+  // Night lighting is on in the dark theme at airport-detail zoom and closer;
+  // taxiway pavement lines are then suppressed (the lighting layer draws lit
+  // green/blue taxiways) and the runway pavement dims under the bright edges.
+  const nightLighting = theme === "dark" && Number(zoom) >= ZOOM_DETAIL;
+  // Second-level ("airport") zoom band, between the wide approach view and the
+  // detail view — the runway is drawn as a thin clean bar here.
+  const midZoom =
+    Number(zoom) > AIRPORT_MAP_ZOOM.approach && Number(zoom) < ZOOM_DETAIL;
   const surfaceVisible = useMemo(
     () => shouldShowAirportSurfaceForZoom(zoom),
     [zoom],
@@ -141,10 +158,18 @@ export default function AirportSurfaceLayer({
       interactive: false,
       renderer,
       filter(feature) {
-        return shouldRenderAirportSurfaceFeature(feature as Record<string, any>);
+        return shouldRenderAirportSurfaceFeature(
+          feature as Record<string, any>,
+          nightLighting,
+        );
       },
       style(feature) {
-        return airportSurfaceStyle(feature as Record<string, any>, theme, lightsActive);
+        return airportSurfaceStyle(
+          feature as Record<string, any>,
+          theme,
+          nightLighting,
+          midZoom,
+        );
       },
     } as any);
 
@@ -160,27 +185,7 @@ export default function AirportSurfaceLayer({
       renderer.remove();
       layerRef.current = null;
     };
-  }, [map, surfaceFeatures, theme, surfaceVisible, lightsActive]);
-
-  // Taxiway lights (green centerline + blue edge) on a shared canvas. Near band
-  // only — taxiway lights are dense and low-value when zoomed out. Rebuilds only
-  // on band crossing / airport / theme change, not on every fractional zoom.
-  useEffect(() => {
-    if (!map || !surfaceFeatures?.features?.length) return undefined;
-    if (lightingBand !== "near") return undefined;
-
-    const lights = buildTaxiwayLightCollection(surfaceFeatures, { band: lightingBand });
-    if (!lights.features.length) return undefined;
-
-    const { layer, renderer } = buildRunwayLightCanvasLayer({ data: lights, map });
-    renderer.addTo(map);
-    layer.addTo(map);
-
-    return () => {
-      layer.remove();
-      renderer.remove();
-    };
-  }, [map, surfaceFeatures, lightingBand, theme]);
+  }, [map, surfaceFeatures, theme, surfaceVisible, nightLighting, midZoom]);
 
   return null;
 }

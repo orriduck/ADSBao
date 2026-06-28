@@ -11,16 +11,9 @@ import {
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
 } from "../../features/airport/map/runwayAnnotationModel";
-import { buildRunwayFaaLightCollection } from "../../features/airport/map/runwayLightingModel";
-import {
-  buildRunwayLightCanvasLayer,
-  startReilFlashTimer,
-} from "../../features/airport/map/runwayLightCanvas";
 import {
   shouldShowNearbyAirportRunwaysForZoom,
   shouldShowRunwayEndLabelsForZoom,
-  runwayLightingLodForZoom,
-  type RunwayLightingLodBand,
 } from "../../features/airport/map/airportMapZoomFeatures";
 import { airportLabelBadgeHtml } from "@/components/ui/AirportLabelBadge";
 import { airportDisplayCode } from "@/utils/airport";
@@ -144,9 +137,6 @@ export default function NearbyAirportLayer({
   const showNearbyRunwayEndLabels =
     showRunwayBadges && shouldShowRunwayEndLabelsForZoom(zoom);
   const runwayLayerLabelZoom = showNearbyRunwayEndLabels ? zoom : null;
-  const lightingBand = runwayLightingLodForZoom(zoom);
-  const nearbyLightingBand: RunwayLightingLodBand =
-    lightingBand === "near" ? "mid" : lightingBand;
   const airportMarkersInteractive = Boolean(onSelectAirport);
 
   useEffect(() => {
@@ -246,45 +236,6 @@ export default function NearbyAirportLayer({
       setAirportMarkerSelectedClass(marker, Boolean(selectedIcao && icao === selectedIcao));
     });
   }, [selectedIcao]);
-
-  // --- FAA runway point lights for nearby airports ---
-  // Shared canvas renderer avoids thousands of DOM nodes. Capped at "mid"
-  // band (edge + threshold/end + ALS, decimated centerline) — nearby airports
-  // never get the full "near" density (TDZL, REIL, taxiway lights).
-  useEffect(() => {
-    if (!map || !map.getContainer || !map.getPane) return undefined;
-    if (nearbyLightingBand === "far") return undefined;
-
-    const allFeatures: any[] = [];
-    for (const airport of airports) {
-      if (!airport?.runwayMap?.runways?.length) continue;
-      const collection = buildRunwayFaaLightCollection(airport.runwayMap, {
-        band: nearbyLightingBand,
-      });
-      if (collection.features?.length) {
-        allFeatures.push(...collection.features);
-      }
-    }
-    if (!allFeatures.length) return undefined;
-
-    const data = {
-      type: "FeatureCollection",
-      features: allFeatures,
-    };
-    const { layer, renderer, reilMarkers } = buildRunwayLightCanvasLayer({
-      data,
-      map,
-    });
-    renderer.addTo(map);
-    layer.addTo(map);
-    const stopReilFlash = startReilFlashTimer(reilMarkers);
-
-    return () => {
-      stopReilFlash();
-      layer.remove();
-      renderer.remove();
-    };
-  }, [map, airports, nearbyLightingBand, theme]);
 
   return null;
 }

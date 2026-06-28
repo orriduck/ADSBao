@@ -16,6 +16,7 @@ import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
 import AirportSurfaceLayer from "./AirportSurfaceLayer";
+import AirportGroundLightingLayer from "./AirportGroundLightingLayer";
 import { resolveRunwayAnnotationVisibility } from "../../features/airport/map/runwayAnnotationModel";
 import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap";
 import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
@@ -625,6 +626,12 @@ export default function AirportMap({
             onSelectAirspace={onSelectAirspace}
           />
           <AirportSurfaceLayer
+            runwayMap={runwayMap}
+            surfaceMap={surfaceMap}
+            theme={currentTheme}
+            zoom={zoom}
+          />
+          <AirportGroundLightingLayer
             runwayMap={runwayMap}
             surfaceMap={surfaceMap}
             theme={currentTheme}

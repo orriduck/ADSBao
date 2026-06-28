@@ -970,14 +970,14 @@
     --aviation-runway-light-core: #fff0a8;
     --aviation-runway-light: #ffd36a;
     --aviation-runway-light-glow: rgba(255, 207, 93, 0.36);
-    /* FAA AIM Ch.2 §3 light colors (dark basemap): warm white, amber caution,
-       red end, green threshold, blue taxiway. Consumed by the canvas renderer
-       via getComputedStyle — keep these as the source of truth. */
-    --atc-runway-light-white: #fff2c0;
-    --atc-runway-light-amber: #ffce4d;
-    --atc-runway-light-red: #ff5a52;
-    --atc-runway-light-green: #54e08a;
-    --atc-runway-light-blue: #5aa6ff;
+    /* Crisp night runway/taxiway light colors (dark basemap): white edge,
+       amber caution ends, green taxiway centerline, blue taxiway edge. Applied
+       directly as SVG stroke colors by AirportGroundLightingLayer — the source
+       of truth for the night look. */
+    --atc-runway-light-white: #ffffff;
+    --atc-runway-light-amber: #ffc23d;
+    --atc-runway-light-green: #46ff8c;
+    --atc-runway-light-blue: #3f86ff;
     --aviation-runway-night-line: rgba(255, 211, 106, 0.48);
     --aviation-runway-night-beam: #ffd36a;
     --aviation-nearby-runway-line: #24231f;
@@ -1433,13 +1433,6 @@
     --aviation-runway-light-core: oklch(96% 0.042 94);
     --aviation-runway-light: oklch(91% 0.095 91);
     --aviation-runway-light-glow: oklch(86% 0.12 88 / 0.42);
-    /* FAA light colors tuned for the bright basemap: deeper, higher-saturation
-       so white/amber/green stay legible without a dark backdrop. */
-    --atc-runway-light-white: #6b6450;
-    --atc-runway-light-amber: #d98a00;
-    --atc-runway-light-red: #d42f29;
-    --atc-runway-light-green: #1f9d57;
-    --atc-runway-light-blue: #1f6fd4;
     --aircraft-trace-line: var(--aviation-trace-line);
     --aircraft-trace-glow: var(--aviation-trace-glow);
     --aircraft-trace-point: var(--aviation-trace-point);
