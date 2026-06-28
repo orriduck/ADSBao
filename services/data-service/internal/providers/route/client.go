@@ -25,6 +25,14 @@ const (
 	userAgent            = "ADSBao data-service/1.0 (+https://adsbao.dev)"
 )
 
+// Cache is a best-effort persistent route cache keyed by callsign+provider.
+// A nil Cache disables caching entirely.
+type Cache interface {
+	GetRoute(ctx context.Context, callsign, provider string) (json.RawMessage, time.Duration, bool)
+	PutRoute(ctx context.Context, callsign, provider string, route json.RawMessage)
+	TTL() time.Duration
+}
+
 type Options struct {
 	HTTPClient              *http.Client
 	ADSBDBBaseURL           string
@@ -33,6 +41,7 @@ type Options struct {
 	MaxBytes                int64
 	QueueInterval           time.Duration
 	DisableQueue            bool
+	Cache                   Cache
 }
 
 type Client struct {
@@ -42,6 +51,7 @@ type Client struct {
 	timeout                 time.Duration
 	maxBytes                int64
 	queueInterval           time.Duration
+	cache                   Cache
 	mu                      sync.Mutex
 	lastStarted             time.Time
 }
@@ -74,6 +84,7 @@ func NewClient(options Options) *Client {
 		timeout:                 timeout,
 		maxBytes:                maxBytes,
 		queueInterval:           queueInterval,
+		cache:                   options.Cache,
 	}
 }
 
@@ -81,10 +92,81 @@ func (c *Client) Fetch(ctx context.Context, input realtime.FetchInput) (realtime
 	if input.Target.Kind != "route" {
 		return realtime.Event{}, errors.New("Expected route polling target")
 	}
+	provider := "adsbdb"
 	if input.Target.RouteProvider == "flightaware" {
+		provider = "flightaware"
+	}
+	callsign := input.Target.Callsign
+
+	// Serve a fresh cached route without touching the upstream (also skips the
+	// adsbdb rate-limit queue). Provider is part of the key, so a FlightAware
+	// lookup never reads an adsbdb row and vice versa.
+	if c.cache != nil && callsign != "" {
+		if raw, age, ok := c.cache.GetRoute(ctx, callsign, provider); ok && age < c.cache.TTL() {
+			return cachedRouteEvent(input.Channel, provider, callsign, raw), nil
+		}
+	}
+
+	event, err := c.fetchUpstream(ctx, input, provider)
+	if err != nil {
+		// Upstream failed — fall back to the last-known route if we have one
+		// (stale-while-revalidate), rather than surfacing an empty/error route.
+		if c.cache != nil && callsign != "" {
+			if raw, _, ok := c.cache.GetRoute(ctx, callsign, provider); ok {
+				return cachedRouteEvent(input.Channel, provider, callsign, raw), nil
+			}
+		}
+		return event, err
+	}
+
+	// Cache only successful lookups that actually resolved a route.
+	if c.cache != nil && callsign != "" {
+		if raw := routeJSONFromEvent(event); raw != nil {
+			c.cache.PutRoute(ctx, callsign, provider, raw)
+		}
+	}
+	return event, nil
+}
+
+func (c *Client) fetchUpstream(ctx context.Context, input realtime.FetchInput, provider string) (realtime.Event, error) {
+	if provider == "flightaware" {
 		return c.fetchFlightAware(ctx, input)
 	}
 	return c.fetchADSBDB(ctx, input)
+}
+
+func cachedRouteEvent(channel, source, callsign string, raw json.RawMessage) realtime.Event {
+	var route map[string]any
+	if len(raw) > 0 {
+		_ = json.Unmarshal(raw, &route)
+	}
+	return realtime.Event{
+		Type:      "route:update",
+		Channel:   channel,
+		Source:    source,
+		FetchedAt: time.Now().UTC().Format(time.RFC3339Nano),
+		Stale:     false,
+		Data: map[string]any{
+			"callsign": callsign,
+			"route":    route,
+		},
+	}
+}
+
+func routeJSONFromEvent(event realtime.Event) json.RawMessage {
+	data, ok := event.Data.(map[string]any)
+	if !ok {
+		return nil
+	}
+	route, ok := data["route"].(map[string]any)
+	if !ok || route == nil {
+		return nil
+	}
+	raw, err := json.Marshal(route)
+	if err != nil {
+		return nil
+	}
+	return raw
 }
 
 func (c *Client) fetchADSBDB(ctx context.Context, input realtime.FetchInput) (realtime.Event, error) {

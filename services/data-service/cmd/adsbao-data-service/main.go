@@ -25,6 +25,7 @@ import (
 	"github.com/adsbao/adsbao/services/data-service/internal/providers/adsb"
 	"github.com/adsbao/adsbao/services/data-service/internal/providers/flightaware"
 	"github.com/adsbao/adsbao/services/data-service/internal/providers/route"
+	"github.com/adsbao/adsbao/services/data-service/internal/proxycache"
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 	"github.com/adsbao/adsbao/services/data-service/internal/scheduler"
 	"github.com/adsbao/adsbao/services/data-service/internal/ws"
@@ -60,6 +61,15 @@ func main() {
 	if db != nil {
 		defer db.Close()
 	}
+	// Short-lived shared cache for upstream trace + route lookups. Nil when
+	// there is no database — every call site then falls back to direct fetches.
+	proxyCache := proxycache.New(db, 5*time.Minute, registry)
+	var routeCache route.Cache
+	var traceCache webapi.TraceCache
+	if proxyCache != nil {
+		routeCache = proxyCache
+		traceCache = proxyCache
+	}
 
 	remoteFlightAware := flightaware.NewRemoteClient(flightaware.RemoteOptions{
 		BaseURL:    cfg.FlightAwareServiceBaseURL,
@@ -81,6 +91,7 @@ func main() {
 	routeClient := route.NewClient(route.Options{
 		HTTPClient:              providerHTTPClient,
 		FlightAwareRouteFetcher: flightAwareRouteFetcher,
+		Cache:                   routeCache,
 	})
 	polling := scheduler.New(scheduler.Options{
 		Fetch: func(input realtime.FetchInput) (realtime.Event, error) {
@@ -133,6 +144,7 @@ func main() {
 			cfg.ClerkAPIBaseURL,
 		),
 		UserDataStore: webapi.NewUserDataStore(db, cfg.FeatureFlagsEnvironment, registry),
+		TraceCache:    traceCache,
 		FeatureFlags:  defaultFeatureFlags,
 	})
 	handler := instrumentHTTPHandler(registry, httpapi.New(httpapi.ServerOptions{
@@ -153,6 +165,9 @@ func main() {
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+	if proxyCache != nil {
+		go proxyCache.RunJanitor(ctx, 15*time.Minute, time.Hour)
+	}
 	go reportMetrics(ctx, registry, started, cfg.MetricsReportInterval, polling.DebugChannels)
 	go logForwarder.Run(ctx, cfg.LogsReportInterval)
 	serverErr := make(chan error, 1)
