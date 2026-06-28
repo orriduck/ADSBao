@@ -18,12 +18,16 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/adsbao-home.jpg" alt="ADSBao airport search for airport weather, METAR, and ADS-B traffic dashboards" width="100%" />
+  <img src="docs/screenshots/adsbao-home.jpg" alt="ADSBao airport explorer home for searching airports and opening live weather and ADS-B traffic dashboards" width="100%" />
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/adsbao-airport-kbos.jpg" alt="ADSBao KBOS Boston Logan airport traffic map with nearby aircraft, runways, weather, and airspace overlays" width="49%" />
-  <img src="docs/screenshots/adsbao-aircraft-dal176.jpg" alt="ADSBao flight tracker page with aircraft telemetry, route context, and ADS-B trace" width="49%" />
+  <img src="docs/screenshots/adsbao-airport-kbos.jpg" alt="ADSBao KBOS Boston Logan airport traffic map with nearby aircraft, runway and taxiway overlays, and plane-spotting locations" width="49%" />
+  <img src="docs/screenshots/adsbao-aircraft.jpg" alt="ADSBao flight tracker page following a selected aircraft with telemetry, route context, and ADS-B trace" width="49%" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/adsbao-airport-weather.jpg" alt="ADSBao airport weather dashboard with METAR-derived flight rules, wind, visibility, ceiling, and raw METAR alongside a tracked flight trace" width="100%" />
 </p>
 
 ## Why ADSBao
@@ -43,9 +47,12 @@ airspace, runway, route, and map data as reference context only.
   visibility, ceiling, pressure, local weather, and raw METAR text.
 - **Live ADS-B traffic map**: See nearby aircraft around the airport with
   altitude, speed, heading, route hints, and aircraft-type display.
-- **Runway and aviation overlays**: Explore runway geometry, range rings,
-  nearby airports, airspaces, reporting points, obstacles, frequencies, and
-  navaids where data is available.
+- **Runway and aviation overlays**: Explore runway geometry, taxiway and apron
+  detail, range rings, nearby airports, airspaces, reporting points, obstacles,
+  frequencies, and navaids where data is available.
+- **Plane-spotting locations**: Surface curated photo and spotting points
+  around the airport on the map so spotters can plan where to shoot, with
+  source attribution where available.
 - **Flight tracker pages**: Open `/aircraft/[callsign]` to follow a selected
   aircraft with live position state, telemetry, recent trace, nearby traffic,
   route labels, and last-known behavior when a signal drops.
@@ -85,7 +92,7 @@ data-service origin.
 | Path | Source | Purpose |
 |---|---|---|
 | `/api/search` | OpenAIP Core API | Airport search |
-| `/api/airport/[ident]` | OpenAIP Core API + OurAirports static facilities | Airport detail, runways, frequencies, navaids, airspaces, reporting points, obstacles, runway map |
+| `/api/airport/[ident]` | OpenAIP Core API + OurAirports static facilities + Postgres augmentation | Airport detail, runways, frequencies, navaids, airspaces, reporting points, obstacles, runway map, and plane-spotting locations |
 | `/api/proxy/metar/:icao` | AviationWeather | METAR weather context |
 | `/api/proxy/aircraft/positions/:lat/:lon/:dist` | adsb.lol, airplanes.live, adsb.fi (failover) | Nearby aircraft |
 | `/api/proxy/aircraft/callsign/:callsign` | adsb.lol, airplanes.live, adsb.fi (failover) | Tracked aircraft state |
@@ -96,7 +103,8 @@ data-service origin.
 ## Stack
 
 - **Frontend**: React, Vite, React Router, Tailwind CSS v4, and Lucide.
-- **Maps**: Leaflet plus MapLibre-backed tiles and custom aircraft/runway layers.
+- **Maps**: Leaflet plus MapLibre-backed tiles, with a single-canvas aircraft
+  renderer and custom runway/taxiway and night-lighting layers.
 - **Data layer**: OpenAIP served through same-origin Go API routes with
   Railway Postgres persistence for static augmentation tables and user-scoped
   settings. OurAirports augments runway threshold geometry, ATC frequencies,
