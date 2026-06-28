@@ -14,12 +14,6 @@ import {
   buildRunwayEndLabels,
   buildRunwayMapFromSurfaceMap,
 } from "../../features/airport/map/runwayAnnotationModel";
-import { buildRunwayFaaLightCollection } from "../../features/airport/map/runwayLightingModel";
-import { runwayLightingLodForZoom } from "../../features/airport/map/airportMapZoomFeatures";
-import {
-  buildRunwayLightCanvasLayer,
-  startReilFlashTimer,
-} from "../../features/airport/map/runwayLightCanvas";
 
 const escapeHtml = (value: unknown) =>
   String(value).replace(/[&<>"']/g, (character) => {
@@ -136,10 +130,6 @@ export default function RunwayAnnotationLayer({
     () => surfaceRunwayMap || runwayMap,
     [surfaceRunwayMap, runwayMap],
   );
-  // Level-of-detail band for point lights. Derived from zoom but only changes
-  // at the breakpoints, so the canvas light effect rebuilds on band crossings
-  // (far→mid→near) — not on every fractional zoomend.
-  const lightingBand = useMemo(() => runwayLightingLodForZoom(zoom), [zoom]);
 
   useEffect(() => {
     if (!map || !annotationRunwayMap?.runways?.length) return undefined;
@@ -240,34 +230,6 @@ export default function RunwayAnnotationLayer({
     showBadges,
     showCenterlines,
   ]);
-
-  // FAA point lights on a single shared canvas. Separate effect so it rebuilds
-  // only when the LOD band crosses a breakpoint (far→mid→near), the airport, or
-  // the theme changes — not on every fractional zoom. Within a band, Leaflet
-  // reprojects the canvas on zoom without a rebuild.
-  useEffect(() => {
-    if (!map || !annotationRunwayMap?.runways?.length) return undefined;
-    if (lightingBand === "far") return undefined;
-
-    const lights = buildRunwayFaaLightCollection(annotationRunwayMap, {
-      band: lightingBand,
-    });
-    if (!lights.features.length) return undefined;
-
-    const { layer, renderer, reilMarkers } = buildRunwayLightCanvasLayer({
-      data: lights,
-      map,
-    });
-    renderer.addTo(map);
-    layer.addTo(map);
-    const stopReilFlash = startReilFlashTimer(reilMarkers);
-
-    return () => {
-      stopReilFlash();
-      layer.remove();
-      renderer.remove();
-    };
-  }, [map, annotationRunwayMap, lightingBand, theme]);
 
   return null;
 }

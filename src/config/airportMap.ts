@@ -10,6 +10,12 @@ export const AIRPORT_MAP_PANES = {
     name: "airport-map-surface-overlay",
     zIndex: 360,
   },
+  // Crisp-line runway/taxiway night lighting, just above the runway/taxiway
+  // surfaces and below airspace.
+  runwayLights: {
+    name: "airport-map-runway-lights",
+    zIndex: 380,
+  },
   airspace: {
     name: "airport-map-airspace",
     zIndex: 395,
@@ -94,60 +100,6 @@ export const RUNWAY_APPROACH_BEAM_CONFIG = {
     },
   ],
 };
-
-// FAA AIM Ch.2 §3 lighting geometry. Spacing/zone distances are in feet
-// (FAA spec units); the model converts to meters. Colors are NOT here — the
-// renderer maps each light's semantic color role to a CSS variable so themes
-// stay the source of truth (see --atc-runway-light-* in style.css).
-export const RUNWAY_FAA_LIGHTING_CONFIG = {
-  // Longitudinal spacing along the runway. Near zoom intentionally reads as a
-  // dense night-light diagram: smaller points with tighter spacing, plus a
-  // fine surface line underneath. Color ZONES below stay distance-exact (in
-  // feet), so the FAA color pattern is preserved regardless of spacing.
-  edgeSpacingFt: 260,
-  centerlineSpacingFt: 170,
-  // Symmetric color zones, measured from the nearer threshold.
-  edgeCautionFt: 700, // compact amber cue near the runway ends
-  centerlineRedFt: 420, // compact red cue near the threshold/end
-  centerlineAltFt: 1100, // short red/white transition so white stays dominant
-  // Touchdown zone lights: from `tdzStartFt` past the (displaced) threshold,
-  // extending up to `tdzLengthFt` or the runway midpoint, whichever is less.
-  tdzStartFt: 100,
-  tdzLengthFt: 3000,
-  tdzBarSpacingFt: 500, // widened for legibility (real ~100ft)
-  tdzBarHalfCount: 2, // lights per side of a single TDZ bar
-  // Threshold / runway-end bar: number of lights across the runway width.
-  endBarLightCount: 5,
-  endSideLightCount: 3,
-  endSideLightSpacingFt: 75,
-  endSideLightOffsetFt: 14,
-  // REIL: a pair of synchronized flashing strobes flanking each threshold.
-  reilOffsetFt: 40, // lateral offset outboard of the runway edge
-  // Taxiway lights (OSM geometry; width is estimated since OSM rarely has it).
-  // Tightened so Near zoom forms the dense blue/green airfield network seen in
-  // night-map references without requiring full real-world 50ft spacing.
-  taxiwayCenterlineSpacingFt: 170,
-  taxiwayEdgeSpacingFt: 230,
-  taxiwayDefaultHalfWidthFt: 38, // ~11.5m assumed half-width for blue edge offset
-  // Per-band decimation: keep mid-zoom point counts sane.
-  midCenterlineDecimation: 2, // render every Nth centerline light at mid band
-  // Canvas point radius (screen px) per color role bucket — the core dot.
-  // Keep these sub-pixel at Near zoom so the airport reads as a dense
-  // night-light point field instead of large map markers.
-  radius: {
-    edge: 0.34,
-    centerline: 0.22,
-    tdz: 0.22,
-    endBar: 0.34,
-    reil: 0.44,
-    approach: 0.25,
-    taxiway: 0.12,
-  },
-  glow: {
-    multiplier: 2, // glow halo radius = core radius × this
-    fillOpacity: 0.1,
-  },
-} as const;
 
 export const RUNWAY_ANNOTATION_STYLE_CONFIG = {
   lineStyles: {

@@ -170,6 +170,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.33.1",
+    kind: "feat",
+    title: {
+      en: "Canvas aircraft rendering",
+      zh: "Canvas 飞机渲染",
+    },
+    summary: {
+      en: "Every aircraft on the map now draws into a single <canvas> overlay in one loop, replacing the old per-plane DOM markers. A busy airport collapses from ~80 composited layers to one, freeing the GPU so the map stays smooth while you scroll the sidebar list; live extrapolated positions, selection, click-to-track, filtering, and per-target frame-rate are preserved, with a cleaner flat glyph.",
+      zh: "地图上的每架飞机现在都在一个绘制循环里画进同一块 <canvas> 叠加层,取代旧的每架一个 DOM marker。繁忙机场从约 80 个合成层收敛为一个,把 GPU 解放出来,让你滚动侧栏列表时地图保持顺滑;实时外推位置、选中、点击追踪、筛选和按目标的帧率都保留,字形改为更干净的扁平剪影。",
+    },
+    highlights: [],
+  },
+  {
     version: "v2.32.13",
     kind: "feat",
     title: {
