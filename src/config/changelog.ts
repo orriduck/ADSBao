@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 63;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.39.2",
+    version: "v2.39.3",
     kind: "feat",
     title: {
       en: "Faster, more complete trace & route on busy airports",
@@ -75,8 +75,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         zh: "FlightAware 与 adsbdb 航线分开缓存、绝不混用;数据库不可用时自动回退为直连上游。",
       },
       {
-        en: "Busy airports show more routes: FlightAware lookups are now concurrency-bounded so each stays ~fast instead of ballooning to 5–10s under a burst, with a longer timeout as a backstop — valid commercial routes that used to silently drop now resolve.",
-        zh: "繁忙机场显示更多航线:FlightAware 查询现在限制了并发,每次都保持较快,不再在突发下膨胀到 5–10 秒,并以更长超时兜底——以前会悄悄丢掉的商业航线现在能解析出来。",
+        en: "Busy airports show more routes: FlightAware lookups are now concurrency-bounded so each stays ~fast instead of ballooning to 5–10s under a burst, with a longer timeout and a few quick retries as backstops — valid commercial routes that used to silently drop now resolve.",
+        zh: "繁忙机场显示更多航线:FlightAware 查询现在限制了并发,每次都保持较快,不再在突发下膨胀到 5–10 秒,并以更长超时和几次快速重试兜底——以前会悄悄丢掉的商业航线现在能解析出来。",
       },
     ],
   },

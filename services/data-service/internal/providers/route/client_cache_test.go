@@ -105,15 +105,26 @@ func TestRouteCacheServesStaleOnUpstreamError(t *testing.T) {
 	cache.entries[cache.key("DAL123", "adsbdb")] =
 		json.RawMessage(`{"origin":{"icao":"KATL"},"destination":{"icao":"KBOS"},"source":"adsbdb"}`)
 
+	calls := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
 
-	client := NewClient(Options{ADSBDBBaseURL: server.URL + "/v0", QueueInterval: 0, Cache: cache})
+	// Disable retries so this exercises only the stale-fallback path.
+	client := NewClient(Options{
+		ADSBDBBaseURL: server.URL + "/v0",
+		QueueInterval: 0,
+		Cache:         cache,
+		RetryBackoffs: []time.Duration{},
+	})
 	event, err := client.Fetch(context.Background(), routeInput("route:DAL123", "DAL123", ""))
 	if err != nil {
 		t.Fatalf("expected stale fallback, got error: %v", err)
+	}
+	if calls != 1 {
+		t.Fatalf("expected exactly 1 upstream attempt with retries disabled, got %d", calls)
 	}
 	if event.Data.(map[string]any)["route"] == nil {
 		t.Fatalf("expected last-known route on upstream failure")
