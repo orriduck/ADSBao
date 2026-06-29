@@ -7,6 +7,7 @@ import {
 } from "../../utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
+import DecodeText from "@/components/ui/DecodeText";
 
 export default function AirportIdentity({
   icao = "",
@@ -89,12 +90,16 @@ export default function AirportIdentity({
       </span>
       <h1 className="mt-3 text-[calc(22px*var(--sb-title-scale))] font-normal leading-[1.08] text-atc-text">
         <span className="airport-sidebar-display-mono notranslate" translate="no">
-          {codeLine || t("sidebar.unknownAirport")}
+          {nearMe ? (
+            <DecodeText text={codeLine || t("sidebar.unknownAirport")} />
+          ) : (
+            codeLine || t("sidebar.unknownAirport")
+          )}
         </span>
       </h1>
       {nameLine ? (
         <div className="mt-2 text-[calc(13px*var(--sb-title-scale))] leading-snug text-atc-dim">
-          {nameLine}
+          {nearMe ? <DecodeText text={nameLine} /> : nameLine}
         </div>
       ) : null}
       {metaLine ? (
