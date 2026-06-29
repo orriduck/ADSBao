@@ -118,9 +118,17 @@ function getAircraftLabels(
     normalizeLabel(aircraft?.type) ||
     normalizeLabel(aircraft?.category, "AIRCRAFT");
   const registration = normalizeLabel(aircraft?.registration).toUpperCase();
-  const speed = normalizeNumber(aircraft?.gs ?? aircraft?.speed);
-  const altitude = normalizeNumber(aircraft?.alt_baro ?? aircraft?.altitude);
-  const verticalRate = normalizeNumber(aircraft?.baro_rate ?? aircraft?.verticalRate);
+  // Normalized aircraft entities use velocity / baroRate (camelCase); raw
+  // ADS-B feeds use gs / baro_rate. Read both so speed + vertical rate resolve.
+  const speed = normalizeNumber(
+    aircraft?.velocity ?? aircraft?.gs ?? aircraft?.speed,
+  );
+  const altitude = normalizeNumber(
+    aircraft?.altitude ?? aircraft?.alt_baro ?? aircraft?.alt_geom,
+  );
+  const verticalRate = normalizeNumber(
+    aircraft?.baroRate ?? aircraft?.baro_rate ?? aircraft?.verticalRate,
+  );
   const lat = normalizeNumber(aircraft?.lat ?? aircraft?.latitude);
   const lon = normalizeNumber(aircraft?.lon ?? aircraft?.lng ?? aircraft?.longitude);
   const track = normalizeNumber(
@@ -1275,6 +1283,8 @@ function PlaneHunterCompass({ direction }: { direction: PlaneDirection }) {
 
 function PlaneHunterLiveCameraView({
   labels,
+  planeLat,
+  planeLon,
   videoRef,
   captureAreaRef,
   cameraReady,
@@ -1296,6 +1306,8 @@ function PlaneHunterLiveCameraView({
   t,
 }: {
   labels: AircraftLabels;
+  planeLat: number | null;
+  planeLon: number | null;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   captureAreaRef: React.RefObject<HTMLDivElement | null>;
   cameraReady: boolean;
@@ -1316,7 +1328,7 @@ function PlaneHunterLiveCameraView({
   onClose: () => void;
   t: PlaneHunterTranslator;
 }) {
-  const direction = usePlaneDirection(labels.lat, labels.lon);
+  const direction = usePlaneDirection(planeLat, planeLon);
   return (
     <div className="absolute inset-0 overflow-hidden bg-black">
       {/* Live feed fills the frame; the chrome floats over it so only the
@@ -1522,9 +1534,24 @@ export default function PlaneHunterStudio({
       return next;
     });
   }, []);
+  // Snapshot the aircraft when the studio opens so the template (callsign,
+  // type, speed, altitude, …) stays stable for the photo even as the live feed
+  // keeps refreshing underneath. Only re-snapshots on an open transition.
+  const [frozenAircraft, setFrozenAircraft] = useState(aircraft);
+  useEffect(() => {
+    if (open) setFrozenAircraft(aircraft);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   const labels = useMemo(
-    () => getAircraftLabels(aircraft, enabledFields, { flightAwareEnabled }),
-    [aircraft, enabledFields, flightAwareEnabled],
+    () =>
+      getAircraftLabels(frozenAircraft, enabledFields, { flightAwareEnabled }),
+    [frozenAircraft, enabledFields, flightAwareEnabled],
+  );
+  // The compass tracks the LIVE aircraft position (not the frozen snapshot) so
+  // it keeps pointing at the plane as it moves.
+  const livePlaneLat = normalizeNumber(aircraft?.lat ?? aircraft?.latitude);
+  const livePlaneLon = normalizeNumber(
+    aircraft?.lon ?? aircraft?.lng ?? aircraft?.longitude,
   );
 
   // Read a selected photo-library file into the captured-image state.
@@ -1868,6 +1895,8 @@ export default function PlaneHunterStudio({
           ) : (
             <PlaneHunterLiveCameraView
               labels={labels}
+              planeLat={livePlaneLat}
+              planeLon={livePlaneLon}
               videoRef={videoRef}
               captureAreaRef={captureAreaRef}
               cameraReady={Boolean(cameraStream)}
