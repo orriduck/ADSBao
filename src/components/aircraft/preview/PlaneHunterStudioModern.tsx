@@ -17,6 +17,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
@@ -92,6 +93,26 @@ function normalizeNumber(value: unknown) {
   return Number.isFinite(numberValue) ? numberValue : null;
 }
 
+// Sticky merge: each field takes the latest NON-EMPTY value. Lets the studio
+// hold a stable aircraft snapshot through live-feed churn while still letting
+// late-arriving fields (e.g. a resolved type) pop in and never blanking a value
+// on a momentary null.
+function mergeStickyAircraft(
+  prev: Record<string, any> | null | undefined,
+  next: Record<string, any> | null | undefined,
+): Record<string, any> | null {
+  if (!next) return prev ?? null;
+  if (!prev) return next;
+  const merged: Record<string, any> = { ...prev };
+  for (const key of Object.keys(next)) {
+    const value = next[key];
+    if (value !== null && value !== undefined && value !== "") {
+      merged[key] = value;
+    }
+  }
+  return merged;
+}
+
 function getAircraftLabels(
   aircraft: Record<string, any> | null | undefined,
   enabledFields: Set<MetaField> = DEFAULT_META_FIELDS,
@@ -113,10 +134,15 @@ function getAircraftLabels(
         .filter(Boolean)
         .join(" - ")
     : "";
+  // Resolve the aircraft type through the shared display model (same source the
+  // preview cards use) so it reads t / type / icaoType / desc consistently —
+  // a bare `aircraft?.type` misses the ICAO `t` field on live entities.
+  const typeDisplay = resolveAircraftDisplayModel(aircraft ?? {});
   const type =
-    normalizeLabel(aircraft?.desc) ||
-    normalizeLabel(aircraft?.type) ||
-    normalizeLabel(aircraft?.category, "AIRCRAFT");
+    typeDisplay.icaoType ||
+    typeDisplay.shortName ||
+    typeDisplay.category ||
+    "";
   const registration = normalizeLabel(aircraft?.registration).toUpperCase();
   // Normalized aircraft entities use velocity / baroRate (camelCase); raw
   // ADS-B feeds use gs / baro_rate. Read both so speed + vertical rate resolve.
@@ -603,7 +629,8 @@ function drawTemplate(
     const dataRight = statusX - ip;
     const cols = [
       labels.callsign,
-      codes ? codes[1] : labels.type,
+      labels.type,
+      codes ? codes[1] : null,
       labels.altitudeLabel,
       labels.speedLabel,
     ].filter(Boolean);
@@ -1399,12 +1426,16 @@ function PlaneHunterLiveCameraView({
 // the bottom in portrait and on the trailing side in landscape.
 function PlaneHunterReviewView({
   image,
+  template,
+  onSelectTemplate,
   onRetake,
   onShare,
   onClose,
   t,
 }: {
   image: string;
+  template: PlaneHunterTemplate;
+  onSelectTemplate: (next: PlaneHunterTemplate) => void;
   onRetake: () => void;
   onShare: () => void;
   onClose: () => void;
@@ -1436,7 +1467,25 @@ function PlaneHunterReviewView({
             draggable="false"
           />
         </div>
-        <div className="flex flex-none items-center justify-center gap-4 border-t border-[rgba(242,243,238,0.1)] bg-[color-mix(in_oklab,black_55%,transparent)] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 backdrop-blur-2xl landscape:h-full landscape:flex-col landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pr-[max(12px,env(safe-area-inset-right))]">
+        <div className="flex flex-none items-center justify-center gap-3 border-t border-[rgba(242,243,238,0.1)] bg-[color-mix(in_oklab,black_55%,transparent)] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 backdrop-blur-2xl landscape:h-full landscape:flex-col landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pr-[max(12px,env(safe-area-inset-right))]">
+          {/* Switch the template on the already-captured shot (re-bakes). */}
+          <button
+            type="button"
+            onClick={() => {
+              const index = TEMPLATES.indexOf(template);
+              onSelectTemplate(TEMPLATES[(index + 1) % TEMPLATES.length]);
+            }}
+            aria-label={t(`planeHunter.templates.${template}`)}
+            title={t(`planeHunter.templates.${template}`)}
+            className={cn(
+              "inline-flex min-h-12 items-center justify-center rounded-full border border-[rgba(242,243,238,0.16)] bg-[rgba(242,243,238,0.08)] px-4 text-[13px] font-black shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95",
+              template === "none"
+                ? "text-[rgba(242,243,238,0.7)]"
+                : "text-[rgb(255,221,119)]",
+            )}
+          >
+            {t(`planeHunter.templateUnits.${template}`)}
+          </button>
           <button
             type="button"
             onClick={onRetake}
@@ -1482,8 +1531,11 @@ export default function PlaneHunterStudio({
   );
   const [cameraDevices, setCameraDevices] = useState<CameraDeviceOption[]>([]);
   const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState("");
+  // capturedFrame = the raw photo (no template); capturedImage = the same frame
+  // with the current template baked on. Keeping the raw frame lets the review
+  // re-bake when the template is switched without retaking.
+  const [capturedFrame, setCapturedFrame] = useState("");
   const [capturedImage, setCapturedImage] = useState("");
-  const [previewImage, setPreviewImage] = useState("");
   const [template, setTemplate] = useState<PlaneHunterTemplate>("previewCard");
   const [mapPosition, setMapPosition] = useState<MapPosition>("bottomRight");
   const [userLocation, setUserLocation] = useState<{
@@ -1497,7 +1549,7 @@ export default function PlaneHunterStudio({
   const [enabledFields, setEnabledFields] = useState<Set<MetaField>>(
     () => new Set<MetaField>(DEFAULT_META_FIELDS),
   );
-  const captured = Boolean(capturedImage);
+  const captured = Boolean(capturedFrame);
 
   const stopCamera = useCallback(() => {
     setCameraStream((current) => {
@@ -1534,18 +1586,29 @@ export default function PlaneHunterStudio({
       return next;
     });
   }, []);
-  // Snapshot the aircraft when the studio opens so the template (callsign,
-  // type, speed, altitude, …) stays stable for the photo even as the live feed
-  // keeps refreshing underneath. Only re-snapshots on an open transition.
-  const [frozenAircraft, setFrozenAircraft] = useState(aircraft);
+  // Sticky snapshot while open: keeps the template (callsign, type, speed, …)
+  // stable through live-feed churn, but lets late-arriving fields (e.g. the
+  // resolved type) pop in and never blanks a value on a momentary null. Resets
+  // each time the studio opens.
+  const [stableAircraft, setStableAircraft] = useState(aircraft);
+  const sessionStartedRef = useRef(false);
   useEffect(() => {
-    if (open) setFrozenAircraft(aircraft);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+    if (!open) {
+      sessionStartedRef.current = false;
+      return;
+    }
+    setStableAircraft((prev) => {
+      if (!sessionStartedRef.current) {
+        sessionStartedRef.current = true;
+        return aircraft ?? prev;
+      }
+      return mergeStickyAircraft(prev, aircraft);
+    });
+  }, [open, aircraft]);
   const labels = useMemo(
     () =>
-      getAircraftLabels(frozenAircraft, enabledFields, { flightAwareEnabled }),
-    [frozenAircraft, enabledFields, flightAwareEnabled],
+      getAircraftLabels(stableAircraft, enabledFields, { flightAwareEnabled }),
+    [stableAircraft, enabledFields, flightAwareEnabled],
   );
   // The compass tracks the LIVE aircraft position (not the frozen snapshot) so
   // it keeps pointing at the plane as it moves.
@@ -1553,6 +1616,47 @@ export default function PlaneHunterStudio({
   const livePlaneLon = normalizeNumber(
     aircraft?.lon ?? aircraft?.lng ?? aircraft?.longitude,
   );
+
+  // Re-bake the captured frame with the selected template whenever either
+  // changes, so the review can switch templates without retaking.
+  useEffect(() => {
+    if (!capturedFrame) {
+      setCapturedImage("");
+      return undefined;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const image = await loadImage(capturedFrame);
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+        const context = canvas.getContext("2d");
+        if (!context) return;
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        await ensureTemplateFonts();
+        if (template !== "none") {
+          drawTemplate(
+            context,
+            template,
+            labels,
+            canvas.width,
+            canvas.height,
+            mapPosition,
+            null,
+            "",
+            "",
+          );
+        }
+        if (!cancelled) setCapturedImage(canvas.toDataURL("image/png"));
+      } catch {
+        if (!cancelled) setCapturedImage(capturedFrame);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [capturedFrame, template, labels, mapPosition]);
 
   // Read a selected photo-library file into the captured-image state.
   // Live camera frames use captureCameraFrame instead.
@@ -1592,26 +1696,15 @@ export default function PlaneHunterStudio({
           reader.readAsDataURL(file);
         });
         if (!dataUrl) return;
-        const image = await loadImage(dataUrl);
-        const cw = image.naturalWidth || image.width;
-        const ch = image.naturalHeight || image.height;
-        const canvas = document.createElement("canvas");
-        canvas.width = cw;
-        canvas.height = ch;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.drawImage(image, 0, 0, cw, ch);
-        await ensureTemplateFonts();
-        if (template !== "none") {
-          drawTemplate(ctx, template, labels, cw, ch, mapPosition, null, "", "");
-        }
-        setCapturedImage(canvas.toDataURL("image/png"));
+        // Use the chosen photo as the raw frame; the re-bake effect lays the
+        // template over it (and lets the review switch templates).
+        setCapturedFrame(dataUrl);
         stopCamera();
       } catch {
         setStatus(t("planeHunter.saveFailed"));
       }
     },
-    [labels, mapPosition, stopCamera, t, template],
+    [stopCamera, t],
   );
 
   const handleFileInput = useCallback(
@@ -1637,8 +1730,8 @@ export default function PlaneHunterStudio({
 
     try {
       stopCamera();
+      setCapturedFrame("");
       setCapturedImage("");
-      setPreviewImage("");
       setStatus("");
       const normalizedDeviceId = String(deviceId || "").trim();
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -1791,20 +1884,18 @@ export default function PlaneHunterStudio({
         return;
       }
       // Cover-crop the video into the capture area (matches the live view).
+      // Store the RAW frame — the template is baked by the re-bake effect so it
+      // can still be switched in the review.
       const scale = Math.max(cw / vw, ch / vh);
       const dw = vw * scale;
       const dh = vh * scale;
       context.drawImage(video, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
-      await ensureTemplateFonts();
-      if (template !== "none") {
-        drawTemplate(context, template, labels, cw, ch, mapPosition, null, "", "");
-      }
-      setCapturedImage(canvas.toDataURL("image/png"));
+      setCapturedFrame(canvas.toDataURL("image/png"));
       stopCamera();
     } catch {
       setStatus(t("planeHunter.saveFailed"));
     }
-  }, [labels, mapPosition, stopCamera, t, template]);
+  }, [stopCamera, t]);
 
   // Share the frozen review image via the OS share sheet.
   const shareCapturedImage = useCallback(async () => {
@@ -1834,8 +1925,8 @@ export default function PlaneHunterStudio({
   const close = useCallback(() => {
     cameraStartAttemptedRef.current = false;
     stopCamera();
+    setCapturedFrame("");
     setCapturedImage("");
-    setPreviewImage("");
     setStatus("");
     onOpenChange(false);
   }, [onOpenChange, stopCamera]);
@@ -1866,8 +1957,8 @@ export default function PlaneHunterStudio({
 
   const retake = useCallback(() => {
     cameraStartAttemptedRef.current = false;
+    setCapturedFrame("");
     setCapturedImage("");
-    setPreviewImage("");
     setStatus("");
   }, []);
 
@@ -1886,7 +1977,9 @@ export default function PlaneHunterStudio({
         >
           {captured ? (
             <PlaneHunterReviewView
-              image={capturedImage}
+              image={capturedImage || capturedFrame}
+              template={template}
+              onSelectTemplate={setTemplate}
               onRetake={retake}
               onShare={shareCapturedImage}
               onClose={close}
