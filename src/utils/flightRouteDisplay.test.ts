@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import {
   formatFlightRouteLabel,
   formatFlightRouteMunicipalityLabel,
+  formatRoutePlaceLabel,
   getFlightRouteAccuracyNotice,
+  getFlightRouteEndpointIcaos,
 } from './flightRouteDisplay'
 
 {
@@ -118,5 +120,64 @@ import {
   assert.equal(
     formatFlightRouteMunicipalityLabel(communityRoute),
     'New York -> Boston',
+  )
+}
+
+// formatRoutePlaceLabel: country flag + city for the carousel's place face.
+assert.equal(
+  formatRoutePlaceLabel({ city: 'Boston', countryCode: 'US' }),
+  '🇺🇸 Boston',
+)
+assert.equal(
+  formatRoutePlaceLabel({ city: 'London', countryCode: 'GB' }),
+  '🇬🇧 London',
+)
+// No / invalid country code → bare city, no flag.
+assert.equal(formatRoutePlaceLabel({ city: 'Boston' }), 'Boston')
+assert.equal(formatRoutePlaceLabel({ city: 'Boston', countryCode: 'XX?' }), 'Boston')
+// No city → empty (caller keeps the static IATA face).
+assert.equal(formatRoutePlaceLabel({ countryCode: 'US' }), '')
+assert.equal(formatRoutePlaceLabel({}), '')
+assert.equal(formatRoutePlaceLabel(), '')
+
+// getFlightRouteEndpointIcaos: ICAO per endpoint for the city lookup; ICAO-first
+// with IATA fallback, empty pair when missing, same airport, or no route.
+{
+  const icaos = getFlightRouteEndpointIcaos({
+    origin: { iata: 'BOS', icao: 'KBOS' },
+    destination: { iata: 'LAX', icao: 'KLAX' },
+  })
+  assert.deepEqual(icaos, { origin: 'KBOS', destination: 'KLAX' })
+}
+
+{
+  // ICAO missing on one side falls back to its IATA code.
+  const icaos = getFlightRouteEndpointIcaos({
+    origin: { icao: 'KBOS' },
+    destination: { iata: 'LAX' },
+  })
+  assert.deepEqual(icaos, { origin: 'KBOS', destination: 'LAX' })
+}
+
+{
+  // No identifier on either side → empty pair.
+  assert.deepEqual(
+    getFlightRouteEndpointIcaos({
+      origin: {},
+      destination: { icao: 'KLAX' },
+    }),
+    { origin: '', destination: '' },
+  )
+  assert.deepEqual(getFlightRouteEndpointIcaos(null), { origin: '', destination: '' })
+}
+
+{
+  // Same airport (circular) → empty pair.
+  assert.deepEqual(
+    getFlightRouteEndpointIcaos({
+      origin: { icao: 'KBOS' },
+      destination: { icao: 'KBOS' },
+    }),
+    { origin: '', destination: '' },
   )
 }
