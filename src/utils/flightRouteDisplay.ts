@@ -1,4 +1,5 @@
 import { getFlightRouteAirlineIconUrl } from '../features/aviation/airlineLogoModel'
+import { flagEmoji } from './flag'
 
 export { getFlightRouteAirlineIconUrl }
 
@@ -7,6 +8,17 @@ const airportCode = (airport) =>
 
 const airportMunicipality = (airport) =>
   String(airport?.municipality || airportCode(airport)).trim()
+
+// Country flag + city, e.g. "🇺🇸 New York". The flag carries the country and
+// the text the city. Returns '' when no city is known so the caller can keep
+// the static IATA face. Route endpoints only carry codes, so the city/country
+// are resolved separately (looked up by ICAO in the airport-city table).
+export const formatRoutePlaceLabel = ({ city, countryCode } = {}) => {
+  const name = String(city || '').trim()
+  if (!name) return ''
+  const flag = flagEmoji(countryCode)
+  return flag ? `${flag} ${name}` : name
+}
 
 const airportCodes = (airport) =>
   new Set(
@@ -48,6 +60,18 @@ export const formatFlightRouteMunicipalityLabel = (route) => {
 export const getFlightRouteEndpoints = (route) => {
   const origin = airportCode(route?.origin)
   const destination = airportCode(route?.destination)
+  if (!origin || !destination || sameAirport(route?.origin, route?.destination)) {
+    return { origin: '', destination: '' }
+  }
+  return { origin, destination }
+}
+
+// ICAO identifiers for each endpoint, used to look up the served city in the
+// airport-city table. Empty strings on an incomplete or same-airport
+// (circular) route so the caller skips the place carousel entirely.
+export const getFlightRouteEndpointIcaos = (route) => {
+  const origin = airportIcaoCode(route?.origin)
+  const destination = airportIcaoCode(route?.destination)
   if (!origin || !destination || sameAirport(route?.origin, route?.destination)) {
     return { origin: '', destination: '' }
   }

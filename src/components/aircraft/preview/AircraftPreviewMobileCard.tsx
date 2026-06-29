@@ -2,6 +2,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { toFiniteNumber } from "@/utils/math";
 import { getFlightRouteEndpoints } from "@/utils/flightRouteDisplay";
+import { useCrossfadeCycle } from "@/components/effects/useCrossfadeCycle";
+import { useRouteEndpointPlaces } from "@/hooks/useRouteEndpointPlaces";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { getAircraftPreviewTypeDisplay } from "@/features/aircraft/preview/aircraftPreviewTypeModel";
@@ -34,6 +36,12 @@ export default function AircraftPreviewMobileCard({
     .filter(Boolean)
     .join(" / ");
   const { origin, destination } = getFlightRouteEndpoints(aircraft?.flightRoute);
+  const places = useRouteEndpointPlaces(aircraft?.flightRoute);
+  const hasPlaces = Boolean(places.origin && places.destination);
+  const { face, fadeClass, style } = useCrossfadeCycle({ enabled: hasPlaces });
+  const showPlaces = hasPlaces && face === 1;
+  const originLabel = showPlaces ? places.origin : origin;
+  const destinationLabel = showPlaces ? places.destination : destination;
 
   const speed = toFiniteNumber(aircraft?.velocity);
   const altitude = toFiniteNumber(aircraft?.altitude);
@@ -76,12 +84,16 @@ export default function AircraftPreviewMobileCard({
           </div>
           <div className="mt-[5px] font-mono text-[11.5px] tracking-[0.04em] text-atc-dim">
             {origin && destination ? (
-              <span className="notranslate inline-flex items-center gap-1.5" translate="no">
-                {origin}
+              <span
+                className={`notranslate inline-flex items-center gap-1.5 ${fadeClass}`}
+                translate="no"
+                style={style}
+              >
+                {originLabel}
                 <span aria-hidden="true" className="text-[var(--atc-signal-accent)]">
                   →
                 </span>
-                {destination}
+                {destinationLabel}
               </span>
             ) : (
               <span className="italic text-atc-faint">{t("aircraft.noRoute")}</span>
