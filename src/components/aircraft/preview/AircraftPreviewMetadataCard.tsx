@@ -5,6 +5,7 @@ import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry";
 import { AsyncStatusLineDisplay } from "@/components/ui/AsyncStatusLine";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { buildAircraftDetailHref } from "@/lib/realtime/realtimeChannels";
 
 export default function AircraftPreviewMetadataCard({
   aircraft,
@@ -17,9 +18,12 @@ export default function AircraftPreviewMetadataCard({
   const { t } = useI18n();
   const { pathname } = useLocation();
   const trackCallsign = (aircraft?.callsign || "").trim().toUpperCase();
+  // 比对只看路径,与带 ?icao= 提示的 trackHref 无关。
   const alreadyTracking =
     Boolean(trackCallsign) && pathname === `/aircraft/${trackCallsign}`;
-  const trackHref = trackCallsign ? `/aircraft/${trackCallsign}` : null;
+  const trackHref = trackCallsign
+    ? buildAircraftDetailHref(trackCallsign, aircraft?.icao24 || aircraft?.hex)
+    : null;
 
   return (
     <div className="aircraft-preview-metadata-card">

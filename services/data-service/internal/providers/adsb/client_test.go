@@ -2,6 +2,7 @@ package adsb
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -477,5 +478,200 @@ func TestPositionProviderCooldownSkipsRecentlyFailingProvider(t *testing.T) {
 	}
 	if third.Source != "adsb.lol" || adsbLolRequests != 2 || airplanesRequests != 2 {
 		t.Fatalf("recovery source=%q adsb=%d airplanes=%d", third.Source, adsbLolRequests, airplanesRequests)
+	}
+}
+
+func TestCallsignEmptyFallsBackToHexIndex(t *testing.T) {
+	var hexRequested int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.Path, "/pos/"):
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"a1b2c3","flight":"RANGER6 ","lat":51.4,"lon":-0.4}]}`))
+		case strings.Contains(r.URL.Path, "/callsign/"):
+			_, _ = w.Write([]byte(`{"ac":[]}`))
+		case strings.Contains(r.URL.Path, "/hex/"):
+			hexRequested++
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"a1b2c3","flight":"RANGER6 ","lat":51.42,"lon":-0.41}]}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		Providers: []Provider{
+			{
+				ID:          "adsb.lol",
+				PositionURL: func(lat, lon float64, distNM int) string { return server.URL + "/pos/" },
+				CallsignURL: func(callsign string) string { return server.URL + "/callsign/" + callsign },
+				AircraftURL: func(hex string) string { return server.URL + "/hex/" + hex },
+			},
+		},
+	})
+
+	// 1) 先抓一次地理快照,把 RANGER6→A1B2C3 采进 callsign→hex 索引。
+	if _, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel: "traffic:center:51.4:-0.4:40",
+		Target:  realtime.PollingTarget{Kind: "positions", Lat: 51.4, Lon: -0.4, DistNM: 40},
+	}); err != nil {
+		t.Fatalf("positions fetch: %v", err)
+	}
+
+	// 2) /callsign/ 上游为空 → 经 hex 索引兜底到 /hex/。
+	event, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "callsign:RANGER6",
+		ChannelType: realtime.ChannelCallsign,
+		Target:      realtime.PollingTarget{Kind: "callsign", Callsign: "RANGER6"},
+	})
+	if err != nil {
+		t.Fatalf("callsign fetch: %v", err)
+	}
+	data := event.Data.(map[string]any)
+	if data["hexFallback"] != true {
+		t.Fatalf("expected hexFallback marker, data=%#v", data)
+	}
+	ac, _ := data["ac"].([]any)
+	if len(ac) != 1 {
+		t.Fatalf("expected 1 aircraft via hex, got %#v", data["ac"])
+	}
+	if hexRequested != 1 {
+		t.Fatalf("expected exactly 1 /hex/ request, got %d", hexRequested)
+	}
+	attempts := data["attempts"].([]string)
+	foundHex := false
+	for _, a := range attempts {
+		if a == "hex-fallback:A1B2C3" {
+			foundHex = true
+		}
+	}
+	if !foundHex {
+		t.Fatalf("attempts missing hex-fallback marker: %#v", attempts)
+	}
+}
+
+func TestHarvestedIndexResolvesEmbeddedSpaceCallsign(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.Path, "/pos/"):
+			// 上游 flight 字段内嵌空格 "LEADER 3"。
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"43bfec","flight":"LEADER 3","lat":51.5,"lon":-0.3}]}`))
+		case strings.Contains(r.URL.Path, "/callsign/"):
+			_, _ = w.Write([]byte(`{"ac":[]}`))
+		case strings.Contains(r.URL.Path, "/hex/"):
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"43bfec","flight":"LEADER 3","lat":51.5,"lon":-0.3}]}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		Providers: []Provider{
+			{
+				ID:          "adsb.lol",
+				PositionURL: func(lat, lon float64, distNM int) string { return server.URL + "/pos/" },
+				CallsignURL: func(callsign string) string { return server.URL + "/callsign/" + callsign },
+				AircraftURL: func(hex string) string { return server.URL + "/hex/" + hex },
+			},
+		},
+	})
+
+	if _, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel: "traffic:center:51.5:-0.3:40",
+		Target:  realtime.PollingTarget{Kind: "positions", Lat: 51.5, Lon: -0.3, DistNM: 40},
+	}); err != nil {
+		t.Fatalf("positions fetch: %v", err)
+	}
+
+	// 频道键是去空格的 "LEADER3"——必须命中采进的 "LEADER 3"。
+	event, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "callsign:LEADER3",
+		ChannelType: realtime.ChannelCallsign,
+		Target:      realtime.PollingTarget{Kind: "callsign", Callsign: "LEADER3"},
+	})
+	if err != nil {
+		t.Fatalf("callsign fetch: %v", err)
+	}
+	data := event.Data.(map[string]any)
+	if data["hexFallback"] != true {
+		t.Fatalf("embedded-space callsign did not resolve via hex: %#v", data)
+	}
+}
+
+func TestHexFallbackDoesNotOverrideNonEmptyCallsign(t *testing.T) {
+	var hexRequested int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.Contains(r.URL.Path, "/callsign/"):
+			_, _ = w.Write([]byte(`{"ac":[{"hex":"a1b2c3","flight":"DAL58 ","lat":40.0,"lon":-73.0}]}`))
+		case strings.Contains(r.URL.Path, "/hex/"):
+			hexRequested++
+			_, _ = w.Write([]byte(`{"ac":[]}`))
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(Options{
+		Providers: []Provider{
+			{
+				ID:          "adsb.lol",
+				CallsignURL: func(callsign string) string { return server.URL + "/callsign/" + callsign },
+				AircraftURL: func(hex string) string { return server.URL + "/hex/" + hex },
+			},
+		},
+	})
+
+	event, err := client.Fetch(context.Background(), realtime.FetchInput{
+		Channel:     "callsign:DAL58",
+		ChannelType: realtime.ChannelCallsign,
+		Target:      realtime.PollingTarget{Kind: "callsign", Callsign: "DAL58"},
+	})
+	if err != nil {
+		t.Fatalf("callsign fetch: %v", err)
+	}
+	data := event.Data.(map[string]any)
+	if _, marked := data["hexFallback"]; marked {
+		t.Fatalf("non-empty callsign should not be tagged as hex fallback")
+	}
+	if hexRequested != 0 {
+		t.Fatalf("hex endpoint should not be queried when callsign is non-empty, got %d", hexRequested)
+	}
+}
+
+func TestCallsignHexIndexEvictsExpiredAndCapsSize(t *testing.T) {
+	now := time.Now()
+	client := NewClient(Options{
+		Providers:      []Provider{{ID: "x"}},
+		CallsignHexTTL: 60 * time.Second,
+		Now:            func() time.Time { return now },
+	})
+
+	client.harvestCallsignHex(map[string]any{"ac": []any{
+		map[string]any{"flight": "ABC123", "hex": "a1b2c3", "lat": 1.0, "lon": 2.0},
+	}})
+	if hex, ok := client.lookupCallsignHex("abc123"); !ok || hex != "A1B2C3" {
+		t.Fatalf("lookup = %q, %v", hex, ok)
+	}
+
+	// TTL 过期后查不到。
+	now = now.Add(61 * time.Second)
+	if _, ok := client.lookupCallsignHex("ABC123"); ok {
+		t.Fatalf("expected expired entry to be evicted")
+	}
+
+	// 容量上限:采集超过上限后,索引大小不超过 maxCallsignHexEntries。
+	now = time.Now()
+	ac := make([]any, 0, maxCallsignHexEntries+50)
+	for i := 0; i < maxCallsignHexEntries+50; i++ {
+		ac = append(ac, map[string]any{
+			"flight": fmt.Sprintf("CS%d", i),
+			"hex":    fmt.Sprintf("%06X", i),
+		})
+	}
+	client.harvestCallsignHex(map[string]any{"ac": ac})
+	if got := len(client.callsignHexIndex); got > maxCallsignHexEntries {
+		t.Fatalf("index size %d exceeds cap %d", got, maxCallsignHexEntries)
 	}
 }

@@ -29,6 +29,7 @@ import {
 import { useAircraftTraceAsyncStatus } from "@/features/aircraft/trace/useAircraftTraceAsyncStatus";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { buildAircraftDetailHref } from "@/lib/realtime/realtimeChannels";
 import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
 
 const PHOTO_TONE_DARK = "dark";
@@ -135,10 +136,12 @@ export default function AircraftPreviewCard({
       ? `/airport/${airport.icao.toUpperCase()}`
       : null
     : aircraft?.callsign
-      ? `/aircraft/${aircraft.callsign.trim().toUpperCase()}`
+      ? buildAircraftDetailHref(aircraft.callsign, aircraft.icao24 || aircraft.hex)
       : null;
   const cardTrackHref = trackHref;
-  const alreadyTracking = cardTrackHref && pathname === cardTrackHref;
+  // 比对只看路径,忽略 ?icao= 提示,否则「已在追踪」抑制会被 query 破坏。
+  const alreadyTracking =
+    cardTrackHref && pathname === cardTrackHref.split("?")[0];
   const showMobile =
     isMobile &&
     !sidebarOpen &&

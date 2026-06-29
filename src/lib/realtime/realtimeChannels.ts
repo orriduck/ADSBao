@@ -44,7 +44,7 @@ function normalizeAirportCode(value: unknown) {
   return /^[A-Z][A-Z0-9]{3}$/.test(code) ? code : "";
 }
 
-function normalizeAircraftHex(value: unknown) {
+export function normalizeAircraftHex(value: unknown) {
   const hex = String(value || "").trim().toUpperCase();
   return /^[A-F0-9]{6}$/.test(hex) ? hex : "";
 }
@@ -90,6 +90,24 @@ export function buildAircraftTrafficChannel({
 export function buildCallsignChannel(callsign: unknown) {
   const normalized = normalizeCallsign(callsign);
   return normalized ? `callsign:${normalized}` : "";
+}
+
+// 按 ICAO24 订阅单机位置(上游 /hex/ 端点)。它和 callsign: 通道读的是
+// 不同的上游索引——/hex/ 比 /callsign/ 稳得多,详情页据此做位置兜底。
+export function buildAircraftChannel(hex: unknown) {
+  const normalized = normalizeAircraftHex(hex);
+  return normalized ? `aircraft:${normalized}` : "";
+}
+
+// 详情页链接。把 UI 手里已有的 hex 作为 ?icao= 提示带上,让详情页在
+// /callsign/ 上游索引缺这架时回落到稳定的 /hex/ 源。hex 缺失/非法则退回
+// 纯路径(零行为变化)。callsign 仅做 trim+upper,与既有 /aircraft 链接一致。
+export function buildAircraftDetailHref(callsign: unknown, hex?: unknown) {
+  const cs = String(callsign || "").trim().toUpperCase();
+  if (!cs) return "";
+  const base = `/aircraft/${cs}`;
+  const normalizedHex = normalizeAircraftHex(hex);
+  return normalizedHex ? `${base}?icao=${normalizedHex}` : base;
 }
 
 function normalizeRouteContext(routeContext: Record<string, unknown> = {}) {

@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,7 +25,14 @@ const (
 	defaultPositionCacheTTL = 20 * time.Second
 	maxBodyBytes            = 2 * 1024 * 1024
 	userAgent               = "ADSBao data-service/1.0 (+https://adsbao.dev)"
+	// callsign→hex 兜底索引:从每次成功快照采集,/callsign/ 上游索引缺某架时
+	// 用它解析出 hex 走稳定的 /hex/。TTL 短(hex↔callsign 绑定远比这稳,只为
+	// 限制陈旧),容量有上限防内存膨胀。
+	defaultCallsignHexTTL = 120 * time.Second
+	maxCallsignHexEntries = 4096
 )
+
+var hexAddressPattern = regexp.MustCompile(`^[A-F0-9]{6}$`)
 
 type URLBuilder func(string) string
 
@@ -46,6 +54,7 @@ type Options struct {
 	ProviderCooldown    time.Duration
 	PositionHedgeDelay  time.Duration
 	PositionCacheTTL    time.Duration
+	CallsignHexTTL      time.Duration
 	Now                 func() time.Time
 	FlightAwareFallback func(context.Context, string, realtime.MetricsSink) (FallbackResult, error)
 }
@@ -58,11 +67,18 @@ type Client struct {
 	providerCooldown    time.Duration
 	positionHedgeDelay  time.Duration
 	positionCacheTTL    time.Duration
+	callsignHexTTL      time.Duration
 	now                 func() time.Time
 	flightAwareFallback func(context.Context, string, realtime.MetricsSink) (FallbackResult, error)
 	mu                  sync.Mutex
 	cooldowns           map[string]time.Time
 	positionCache       map[string]cachedProviderResult
+	callsignHexIndex    map[string]callsignHexEntry
+}
+
+type callsignHexEntry struct {
+	hex string
+	ts  time.Time
 }
 
 type FallbackResult struct {
@@ -125,6 +141,10 @@ func NewClient(options Options) *Client {
 	if positionCacheTTL <= 0 {
 		positionCacheTTL = defaultPositionCacheTTL
 	}
+	callsignHexTTL := options.CallsignHexTTL
+	if callsignHexTTL <= 0 {
+		callsignHexTTL = defaultCallsignHexTTL
+	}
 	now := options.Now
 	if now == nil {
 		now = time.Now
@@ -141,10 +161,12 @@ func NewClient(options Options) *Client {
 		providerCooldown:    providerCooldown,
 		positionHedgeDelay:  positionHedgeDelay,
 		positionCacheTTL:    positionCacheTTL,
+		callsignHexTTL:      callsignHexTTL,
 		now:                 now,
 		flightAwareFallback: options.FlightAwareFallback,
 		cooldowns:           map[string]time.Time{},
 		positionCache:       map[string]cachedProviderResult{},
+		callsignHexIndex:    map[string]callsignHexEntry{},
 	}
 }
 
@@ -230,12 +252,129 @@ func (c *Client) fetchPositions(ctx context.Context, input realtime.FetchInput) 
 }
 
 func (c *Client) fetchCallsign(ctx context.Context, input realtime.FetchInput) (providerResult, error) {
-	return c.fetchWithFallback(ctx, input, "callsign", true, func(provider Provider) (string, bool) {
+	result, err := c.fetchWithFallback(ctx, input, "callsign", true, func(provider Provider) (string, bool) {
 		if provider.CallsignURL == nil {
 			return "", false
 		}
 		return provider.CallsignURL(input.Target.Callsign), true
 	})
+	if err != nil || !isEmptyAircraftPayload(result.payload) {
+		return result, err
+	}
+	// /callsign/ 三家上游索引都缺这架,但它可能正在某个地理快照里广播位置
+	// (经 fetchProviderPayload 采进 callsign→hex 索引)。用稳定的 /hex/ 兜底。
+	// 这一步在 FlightAware 兜底之前——默认/未授权用户也能获得真实位置。
+	if hexResult, ok := c.fetchCallsignViaHex(ctx, input, result); ok {
+		return hexResult, nil
+	}
+	return result, nil
+}
+
+func (c *Client) fetchCallsignViaHex(ctx context.Context, input realtime.FetchInput, emptyResult providerResult) (providerResult, bool) {
+	hex, ok := c.lookupCallsignHex(input.Target.Callsign)
+	if !ok {
+		return providerResult{}, false
+	}
+	hexInput := input
+	hexInput.Target = realtime.PollingTarget{Kind: "aircraft", Hex: hex}
+	hexResult, err := c.fetchAircraft(ctx, hexInput)
+	if err != nil || isEmptyAircraftPayload(hexResult.payload) {
+		return providerResult{}, false
+	}
+	attempts := append([]string{}, emptyResult.attempts...)
+	attempts = append(attempts, "hex-fallback:"+hex)
+	attempts = append(attempts, hexResult.attempts...)
+	payload := cloneMap(hexResult.payload)
+	// 诊断标记。位置源/质量不改:/hex/ 返回的真实 provider 源经前端
+	// normalizeAdsbAircraft 已如实解析为 ads-b,徽章正确显示,不冒充实时态。
+	payload["hexFallback"] = true
+	return providerResult{provider: hexResult.provider, payload: payload, attempts: attempts}, true
+}
+
+// harvestCallsignHex 从任意成功快照(positions/callsign/aircraft)采集
+// callsign→hex,键归一化与 channels.normalizeCallsignValue 保持一致(去内嵌
+// 空格 + 大写),这样 "LEADER 3" 采进 "LEADER3",和 fetchCallsign 查的键对得上。
+func (c *Client) harvestCallsignHex(payload map[string]any) {
+	if c.callsignHexTTL <= 0 {
+		return
+	}
+	ac, ok := payload["ac"].([]any)
+	if !ok || len(ac) == 0 {
+		return
+	}
+	now := c.now()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, entry := range ac {
+		record, ok := entry.(map[string]any)
+		if !ok {
+			continue
+		}
+		callsign := normalizeCallsignKey(record["flight"])
+		hex := normalizeHexValue(record["hex"])
+		if callsign == "" || hex == "" {
+			continue
+		}
+		c.callsignHexIndex[callsign] = callsignHexEntry{hex: hex, ts: now}
+	}
+	c.pruneCallsignHexLocked(now)
+}
+
+func (c *Client) lookupCallsignHex(callsign string) (string, bool) {
+	if c.callsignHexTTL <= 0 {
+		return "", false
+	}
+	key := normalizeCallsignKey(callsign)
+	if key == "" {
+		return "", false
+	}
+	now := c.now()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	entry, ok := c.callsignHexIndex[key]
+	if !ok {
+		return "", false
+	}
+	if now.Sub(entry.ts) > c.callsignHexTTL {
+		delete(c.callsignHexIndex, key)
+		return "", false
+	}
+	return entry.hex, true
+}
+
+func (c *Client) pruneCallsignHexLocked(now time.Time) {
+	for key, entry := range c.callsignHexIndex {
+		if now.Sub(entry.ts) > c.callsignHexTTL {
+			delete(c.callsignHexIndex, key)
+		}
+	}
+	for len(c.callsignHexIndex) > maxCallsignHexEntries {
+		var oldestKey string
+		var oldestTS time.Time
+		first := true
+		for key, entry := range c.callsignHexIndex {
+			if first || entry.ts.Before(oldestTS) {
+				oldestKey, oldestTS, first = key, entry.ts, false
+			}
+		}
+		delete(c.callsignHexIndex, oldestKey)
+	}
+}
+
+// normalizeCallsignKey 必须与 internal/channels.normalizeCallsignValue 等价。
+func normalizeCallsignKey(value any) string {
+	return strings.Join(strings.Fields(strings.ToUpper(strings.TrimSpace(fmt.Sprint(value)))), "")
+}
+
+func normalizeHexValue(value any) string {
+	if value == nil {
+		return ""
+	}
+	hex := strings.ToUpper(strings.TrimSpace(fmt.Sprint(value)))
+	if !hexAddressPattern.MatchString(hex) {
+		return ""
+	}
+	return hex
 }
 
 func (c *Client) fetchAircraft(ctx context.Context, input realtime.FetchInput) (providerResult, error) {
@@ -632,6 +771,7 @@ func (c *Client) fetchProviderPayload(ctx context.Context, input realtime.FetchI
 		return nil, providerError{message: "Invalid aircraft payload", status: "SHAPE"}
 	}
 	c.recordExternal(input, provider.ID, endpoint, "success", status, requestURL, "", started)
+	c.harvestCallsignHex(payload)
 	return payload, nil
 }
 
