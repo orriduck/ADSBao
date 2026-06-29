@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 63;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.39.4",
+    version: "v2.39.5",
     kind: "feat",
     title: {
       en: "Faster, more complete trace & route on busy airports",
@@ -81,6 +81,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Here-mode weather no longer flickers: the local-weather card now refreshes only when you move into a new place (city/area) instead of on every GPS micro-update.",
         zh: "Here 模式天气不再频繁闪烁:本地天气卡现在只在你移动到新的地点(城市/地区)时才刷新,而不是每次 GPS 微小抖动都重新请求。",
+      },
+      {
+        en: "Crossing into a new place in here-mode now plays a decode-text transition on the place name (city/state) instead of a hard cut; respects reduced-motion.",
+        zh: "Here 模式下走进新地点时,地点名(城市/州省)会以解码文字的动效过渡,而不是硬切换;尊重系统的减少动态设置。",
       },
     ],
   },
