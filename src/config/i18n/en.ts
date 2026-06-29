@@ -414,6 +414,11 @@ const en = {
     cameraLensCount: "{count} lenses",
     currentLens: "Current lens",
     cameraOption: "Camera {number}",
+    switchCamera: "Switch camera",
+    switchCameraSingle: "Only one camera available",
+    chooseCamera: "Choose camera",
+    zoomLabel: "Zoom {value}",
+    dismiss: "Dismiss",
     cameraPickerUnavailable: "Your browser exposed only the current camera.",
     zoomInfoTitle: "About zoom",
     zoomInfoBody:

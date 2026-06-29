@@ -47,36 +47,36 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 64;
+export const CHANGELOG_TOTAL_COUNT = 65;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.40.1",
+    version: "v2.41.0",
     kind: "feat",
     title: {
-      en: "Aircraft cards reveal the city behind each airport code",
-      zh: "飞机卡片在机场代码旁轮播出发/到达城市",
+      en: "Plane Hunter: live templates, a compass, and one-tap capture",
+      zh: "拍机工作室:实时套模板 + 罗盘指向 + 一键拍照分享",
     },
     summary: {
-      en: "Tap an aircraft and its route line now crossfades between the airport codes (e.g. PHL — BOS) and the cities they serve (🇺🇸 Philadelphia — 🇺🇸 Boston), so you can read a flight's route without knowing every code. The city + country come from a built-in OurAirports lookup keyed by airport identifier, so it's the airport's actual served city (PHL → Philadelphia) rather than the township the runway physically sits in. Works on both the desktop and mobile preview cards, respects reduced-motion (no carousel, just the codes), and adds no network calls — the lookup ships with the app.",
-      zh: "点开一架飞机,航线行现在会在机场代码(如 PHL — BOS)和它们服务的城市(🇺🇸 Philadelphia — 🇺🇸 Boston)之间淡入淡出轮播,不用记住每个代码也能读懂航线。城市+国家来自内置的 OurAirports 机场表(按机场代码查),给的是机场真正服务的城市(PHL → Philadelphia),而不是跑道物理所在的乡镇。桌面和移动端预览卡都生效,尊重系统的减少动态设置(不轮播、只显示代码),且不增加任何网络请求——查表随应用一起打包。",
+      en: "Plane Hunter is now one screen. The overlay template renders live on the viewfinder as you frame — pick a preset and the shot updates instantly — so what you see is exactly what you save. The top of the frame became a compass ribbon: a heading tape with degree ticks, cardinals, and an aircraft marker driven by the device compass and the plane's bearing, so you can see whether to pan left or right; it reads out the offset (e.g. L 15°) and turns green and snaps to centre once you're aligned. The shutter freezes the shot straight to a Retake / Share pair (no settings step), the template presets collapse to a single tap-to-cycle button, and the whole flow works in portrait and landscape. The two templates were redesigned around our own data: a boarding-pass Card (callsign hero, flight data, an orange aircraft-type block bled into the corner) and a departure-board Brief (a single flush-bottom strip), both in Manrope with the design-system signal-orange accent.",
+      zh: "拍机工作室合并成一屏。取景时模板就实时渲染在画面上——切预设即时更新——所见即所得。顶部变成一条罗盘带:带刻度、东西南北和飞机 marker 的航向尺,由设备指南针 + 你到飞机的方位角驱动,告诉你该往左还是往右转;它读出偏移角(如 L 15°),对准时变绿并归中。快门把画面冻结后直接进重拍/分享(没有设置步骤),模板预设收成一个点按循环的按钮,整套流程横竖屏都支持。两个模板按我们自己的数据重做:登机牌式 Card(航班号主体 + 飞航数据 + 贴角的橙色机型块)和离港牌式 Brief(贴底单条),都用 Manrope 字体 + 设计系统的信号橙主色。",
     },
     highlights: [
       {
-        en: "Preview-card route line crossfades between airport codes and 🇺🇸 City place labels every few seconds, on both desktop and mobile.",
-        zh: "预览卡航线行每隔几秒在机场代码与 🇺🇸 城市标签之间淡入淡出,桌面与移动端均生效。",
+        en: "Live template overlay on the viewfinder — the framing you see is the framing you save; capture composites the exact capture area and shares it.",
+        zh: "取景器上实时套模板——看到的就是保存的;拍照合成的正是取景区并直接分享。",
       },
       {
-        en: "Served city comes from a bundled OurAirports ICAO→city table (~8.7k airports), lazy-loaded only when a route card opens — accurate (PHL → Philadelphia) with no extra requests or database dependency.",
-        zh: "服务城市来自打包的 OurAirports ICAO→城市表(约 8700 个机场),仅在打开航线卡片时懒加载——准确(PHL → Philadelphia)且不增加请求或数据库依赖。",
+        en: "Compass ribbon up top: heading tape + degree readout + aircraft marker that points you left/right and turns green when the plane is centred.",
+        zh: "顶部罗盘带:航向尺 + 度数读数 + 飞机 marker,指引你左右,飞机居中时变绿。",
       },
       {
-        en: "Reduced-motion users see the static airport codes with no carousel; routes without a known city stay code-only.",
-        zh: "开启减少动态的用户只看到静态机场代码、不轮播;查不到城市的航线保持只显示代码。",
+        en: "Shutter → Retake / Share, a single tap-to-cycle template button, and full portrait + landscape support.",
+        zh: "快门 → 重拍/分享,单个点按循环的模板按钮,横竖屏完整支持。",
       },
       {
-        en: "Fixed an intermittent case where an aircraft visible on the map showed “no broadcast position” on its tracking page: the detail page now falls back to the aircraft's ICAO24 (hex) feed when the callsign feed lags, and the data-service resolves callsign→hex from recent snapshots — so a flight you can see on the map reliably shows its position when you open it.",
-        zh: "修复了一个偶发问题:地图上明明能看到的飞机,点进追踪页却显示「没有广播位置」。详情页现在会在呼号源滞后时回落到该机的 ICAO24(hex)源,数据服务也会从近期快照里把呼号解析成 hex——这样在地图上能看到的航班,点开后能稳定显示位置。",
+        en: "Redesigned Card (boarding-pass) and Brief (departure-board) templates in Manrope with the design-system orange accent; legacy settings/compose UI removed.",
+        zh: "重做的 Card(登机牌)与 Brief(离港牌)模板,Manrope 字体 + 设计系统橙色;移除了旧的设置/编辑界面。",
       },
     ],
   },

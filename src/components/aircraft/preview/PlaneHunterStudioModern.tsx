@@ -1,7 +1,6 @@
 import {
   Camera,
   Check,
-  ChevronDown,
   CircleHelp,
   ImageIcon,
   RotateCcw,
@@ -22,7 +21,7 @@ import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareE
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
-const TEMPLATES = ["none", "previewCard", "lowerThird", "maps"] as const;
+const TEMPLATES = ["none", "previewCard", "lowerThird"] as const;
 type PlaneHunterTemplate = (typeof TEMPLATES)[number];
 
 // Metadata fields the photographer can toggle on/off. Order in the
@@ -55,10 +54,13 @@ type CameraZoomRange = {
   supported: boolean;
 };
 
+type CameraFacing = "user" | "environment" | "unknown";
+
 type CameraDeviceOption = {
   deviceId: string;
   label: string;
   index: number;
+  facing: CameraFacing;
 };
 
 const DEFAULT_CAMERA_ZOOM_RANGE: CameraZoomRange = {
@@ -68,30 +70,6 @@ const DEFAULT_CAMERA_ZOOM_RANGE: CameraZoomRange = {
   supported: false,
 };
 const CAMERA_ZOOM_UI_MAX = 4;
-
-// Web Mercator slippy-tile math (zoom + tile {x,y}, and the fractional
-// pixel offset of a (lat, lon) within that tile). Used both by the
-// on-screen overlay and the canvas export so the marker dot lines up
-// with the same coordinates in both renderings.
-// Convert lat/lon to *fractional* tile coordinates at a given zoom.
-// `tx` / `ty` are continuous floats (not floored), which makes the
-// stitching math below simpler — we treat the world as one continuous
-// raster and just slice the rectangle we want.
-function getFractionalTile(lat: number, lon: number, zoom: number) {
-  const n = 2 ** zoom;
-  const tx = ((lon + 180) / 360) * n;
-  const latRad = (lat * Math.PI) / 180;
-  const ty =
-    ((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2) * n;
-  return { tx, ty, zoom };
-}
-
-function buildTileUrl(zoom: number, x: number, y: number) {
-  // OSM standard tiles ship Access-Control-Allow-Origin: * so we can
-  // load them with crossOrigin="anonymous" and draw them into the
-  // export canvas without tainting it.
-  return `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
-}
 
 const TILE_PX = 256;
 // Zoom 14 puts ~1.85 km (≈ 1 NM) across a single 256-tile at mid
@@ -167,7 +145,23 @@ function getAircraftLabels(
     // and skip the route line entirely instead of rendering a hint.
     route: resolvedRoute,
     type: type.toUpperCase(),
+    // 组别: ICAO emitter category (e.g. A3), kept separate from 机型 so the
+    // metadata bar can surface both. Empty when the feed omits it.
+    category: normalizeLabel(aircraft?.category).toUpperCase(),
     registration,
+    speedLabel: speed !== null ? `${Math.round(speed)} KT` : "",
+    altitudeLabel:
+      altitude !== null ? `${Math.round(altitude).toLocaleString()} FT` : "",
+    // Flight phase derived from vertical rate — drives the board template's
+    // status block. Empty when vertical rate is unknown.
+    phase:
+      verticalRate === null
+        ? ""
+        : verticalRate > 256
+          ? "CLIMB"
+          : verticalRate < -256
+            ? "DESCENT"
+            : "CRUISE",
     metadata,
     lat,
     lon,
@@ -232,7 +226,20 @@ function getPrimaryVideoTrack(stream: MediaStream | null) {
   return (stream?.getVideoTracks()[0] || null) as ZoomableVideoTrack | null;
 }
 
-async function listCameraDeviceOptions() {
+// Best-effort front/back detection: prefer the platform-reported facingMode
+// capability, fall back to label keywords. enumerateDevices only fills labels
+// after a camera grant, so this resolves meaningfully once the stream is live.
+function detectCameraFacing(device: MediaDeviceInfo): CameraFacing {
+  const facingModes = (device as InputDeviceInfo).getCapabilities?.().facingMode;
+  const reported = Array.isArray(facingModes) ? facingModes[0] : undefined;
+  if (reported === "user" || reported === "environment") return reported;
+  const label = String(device.label || "").toLowerCase();
+  if (/front|user|face\s?time|selfie|前/.test(label)) return "user";
+  if (/back|rear|environment|world|后/.test(label)) return "environment";
+  return "unknown";
+}
+
+async function listCameraDeviceOptions(): Promise<CameraDeviceOption[]> {
   if (
     typeof navigator === "undefined" ||
     !navigator.mediaDevices?.enumerateDevices
@@ -246,7 +253,19 @@ async function listCameraDeviceOptions() {
       deviceId: device.deviceId,
       label: String(device.label || "").trim(),
       index: index + 1,
+      facing: detectCameraFacing(device),
     }));
+}
+
+// Cameras the tap-to-cycle and picker offer. Drop front cameras when we can
+// identify a rear/unknown one, so the studio only cycles between back lenses
+// and never lands on a selfie cam — but fall back to the full list when every
+// device reads as front-facing, to avoid stranding the user with no options.
+function selectSwitchableCameras(
+  devices: CameraDeviceOption[],
+): CameraDeviceOption[] {
+  const nonFront = devices.filter((device) => device.facing !== "user");
+  return nonFront.length > 0 ? nonFront : devices;
 }
 
 function resolveSystemCameraZoomRange(
@@ -290,98 +309,6 @@ function getCameraZoomStops(range: CameraZoomRange) {
     .filter((value) => value >= range.min && value <= range.max)
     .map((value) => Number(value.toFixed(1)));
   return Array.from(new Set(stops));
-}
-
-// Compose a MAP_RENDER_PX × MAP_RENDER_PX canvas centered on the
-// photographer's location at MAP_TILE_ZOOM, stitching whichever 2–4
-// OSM tiles cover the window. Falls back to a plane-centered view if
-// geolocation is unavailable. Returned image is a CanvasImageSource
-// the export canvas can draw directly.
-async function loadMapTile({
-  userLat,
-  userLon,
-  planeLat,
-  planeLon,
-  planeHeading,
-}: LoadMapTileArgs): Promise<MapTileSnapshot | null> {
-  const hasUser = isFiniteCoord(userLat) && isFiniteCoord(userLon);
-  const hasPlane = isFiniteCoord(planeLat) && isFiniteCoord(planeLon);
-  const centerLat = hasUser ? userLat : hasPlane ? planeLat : null;
-  const centerLon = hasUser ? userLon : hasPlane ? planeLon : null;
-  if (!isFiniteCoord(centerLat) || !isFiniteCoord(centerLon)) return null;
-
-  // World tile-space (continuous). The window we want to render is
-  // MAP_RENDER_PX wide in screen pixels, which at TILE_PX = 256 means
-  // (MAP_RENDER_PX / TILE_PX) tiles in each axis.
-  const center = getFractionalTile(centerLat, centerLon, MAP_TILE_ZOOM);
-  const tileSpan = MAP_RENDER_PX / TILE_PX;
-  const minTx = center.tx - tileSpan / 2;
-  const maxTx = center.tx + tileSpan / 2;
-  const minTy = center.ty - tileSpan / 2;
-  const maxTy = center.ty + tileSpan / 2;
-
-  const tx0 = Math.floor(minTx);
-  const tx1 = Math.floor(maxTx);
-  const ty0 = Math.floor(minTy);
-  const ty1 = Math.floor(maxTy);
-
-  const canvas = document.createElement("canvas");
-  canvas.width = MAP_RENDER_PX;
-  canvas.height = MAP_RENDER_PX;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-
-  // Default-tile-flat background so any failed tiles leave a neutral
-  // surface instead of a transparent gap.
-  ctx.fillStyle = "rgb(214, 218, 222)";
-  ctx.fillRect(0, 0, MAP_RENDER_PX, MAP_RENDER_PX);
-
-  const tilePromises: Array<Promise<void>> = [];
-  for (let tx = tx0; tx <= tx1; tx++) {
-    for (let ty = ty0; ty <= ty1; ty++) {
-      const sx = (tx - minTx) * TILE_PX;
-      const sy = (ty - minTy) * TILE_PX;
-      tilePromises.push(
-        loadImage(buildTileUrl(MAP_TILE_ZOOM, tx, ty), {
-          crossOrigin: "anonymous",
-        })
-          .then((tileImage) => {
-            ctx.drawImage(tileImage, sx, sy, TILE_PX, TILE_PX);
-          })
-          .catch(() => {
-            // Leave the neutral fill in place for missing tiles.
-          }),
-      );
-    }
-  }
-  await Promise.all(tilePromises);
-
-  const fractionalFromTile = (tx: number, ty: number) => ({
-    fx: (tx - minTx) / tileSpan,
-    fy: (ty - minTy) / tileSpan,
-  });
-
-  let user: MapMarker | null = null;
-  if (hasUser) user = fractionalFromTile(center.tx, center.ty);
-
-  let plane: PlaneMarker | null = null;
-  if (hasPlane) {
-    const planeTile = getFractionalTile(planeLat, planeLon, MAP_TILE_ZOOM);
-    const within =
-      planeTile.tx >= minTx &&
-      planeTile.tx <= maxTx &&
-      planeTile.ty >= minTy &&
-      planeTile.ty <= maxTy;
-    if (within) {
-      const pos = fractionalFromTile(planeTile.tx, planeTile.ty);
-      plane = {
-        ...pos,
-        heading: isFiniteCoord(planeHeading) ? planeHeading : null,
-      };
-    }
-  }
-
-  return { image: canvas, user, plane };
 }
 
 async function canvasToBlob(canvas: HTMLCanvasElement) {
@@ -439,6 +366,10 @@ function formatCameraZoom(value: number) {
 const PH_RATIOS = {
   pad: 0.022,        // outer inset → cqi: 2.2cqi
   cornerR: 0.018,    // rounded corner radius
+  // Redesigned templates (boarding-pass card + departure board). Heights are
+  // a fraction of the panel width so they stay consistent across photo aspect.
+  cardAspect: 0.34,  // card height / card width
+  barAspect: 0.255,  // board height / board width
   // Preview card
   cardW: 0.34,
   cardH: 0.105,
@@ -465,179 +396,51 @@ const PH_RATIOS = {
   mapMarkerR: 0.012,
 } as const;
 
-function drawDiamondPath(
+// Shared template palette — frosted paper / ink surfaces plus the
+// design-system signal accent (--atc-signal-accent, dark-theme value
+// oklch(0.74 0.15 55)) flattened to sRGB for canvas. Font matches the app's
+// Manrope. Canvas needs literal colors / loaded fonts (no CSS vars).
+const TPL_PAPER = "rgb(245, 243, 238)";
+const TPL_INK = "rgb(24, 24, 22)";
+const TPL_ORANGE = "rgb(243, 142, 66)";
+const TPL_FONT = '"Manrope", "Noto Sans SC", system-ui, sans-serif';
+
+// Split a route label ("SFO → EWR", "SFO - EWR") into [origin, dest] codes so
+// the templates can render the airport pair as a bold headline.
+function splitRoute(route: string): [string, string] | null {
+  if (!route) return null;
+  const parts = route
+    .split(/→|—|–|-|>/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  if (parts.length < 2) return null;
+  return [parts[0], parts[parts.length - 1]];
+}
+
+// Rounded rect with independent corner radii — lets a highlight block bleed
+// flush to a panel edge while still matching the panel's rounded corner.
+function roundedRectCorners(
   context: CanvasRenderingContext2D,
   x: number,
   y: number,
-  radius: number,
+  w: number,
+  h: number,
+  tl: number,
+  tr: number,
+  br: number,
+  bl: number,
 ) {
   context.beginPath();
-  context.moveTo(x, y - radius);
-  context.lineTo(x + radius, y);
-  context.lineTo(x, y + radius);
-  context.lineTo(x - radius, y);
+  context.moveTo(x + tl, y);
+  context.lineTo(x + w - tr, y);
+  context.arcTo(x + w, y, x + w, y + tr, tr);
+  context.lineTo(x + w, y + h - br);
+  context.arcTo(x + w, y + h, x + w - br, y + h, br);
+  context.lineTo(x + bl, y + h);
+  context.arcTo(x, y + h, x, y + h - bl, bl);
+  context.lineTo(x, y + tl);
+  context.arcTo(x, y, x + tl, y, tl);
   context.closePath();
-}
-
-// "I'm here" marker on the maps template. Rendered as a diamond
-// (菱形) so it reads as a distinct shape from the plane glyph — sharp
-// corners signal a fixed reference point rather than a moving aircraft.
-function drawUserDot(
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  radius: number,
-) {
-  // Soft diamond halo
-  drawDiamondPath(context, x, y, radius * 2.3);
-  context.fillStyle = "rgba(255, 196, 80, 0.26)";
-  context.fill();
-
-  // Solid diamond marker with a dark stroke for contrast against any
-  // tile background.
-  drawDiamondPath(context, x, y, radius);
-  context.fillStyle = "rgb(255, 196, 80)";
-  context.fill();
-  context.strokeStyle = "rgba(14, 15, 16, 0.85)";
-  context.lineWidth = Math.max(1.5, radius * 0.32);
-  context.lineJoin = "miter";
-  context.stroke();
-}
-
-function drawPlaneGlyph(
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  size: number,
-  headingDeg: number | null,
-) {
-  // Simple plane silhouette: a triangular fuselage with swept wings.
-  // Drawn pointing "up" then rotated to the heading so the nose lines
-  // up with the track angle (0° = north).
-  const s = size; // total length of the glyph
-  context.save();
-  context.translate(x, y);
-  if (headingDeg != null) context.rotate((headingDeg * Math.PI) / 180);
-
-  // White outline below the ink for legibility on dark tiles
-  const drawShape = () => {
-    context.beginPath();
-    context.moveTo(0, -s * 0.5);              // nose
-    context.lineTo(s * 0.5, s * 0.25);        // right wingtip
-    context.lineTo(s * 0.12, s * 0.1);        // right inner fuselage
-    context.lineTo(s * 0.18, s * 0.5);        // right tail
-    context.lineTo(0, s * 0.36);              // tail center
-    context.lineTo(-s * 0.18, s * 0.5);       // left tail
-    context.lineTo(-s * 0.12, s * 0.1);       // left inner fuselage
-    context.lineTo(-s * 0.5, s * 0.25);       // left wingtip
-    context.closePath();
-  };
-  drawShape();
-  context.strokeStyle = "rgba(242, 243, 238, 0.96)";
-  context.lineWidth = Math.max(2, s * 0.16);
-  context.lineJoin = "round";
-  context.stroke();
-  context.fillStyle = "rgb(14, 15, 16)";
-  context.fill();
-  context.restore();
-}
-
-function drawMapMini(
-  context: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  position: MapPosition,
-  tile: MapTileSnapshot | null,
-  missingLabel: string,
-  attributionLabel: string,
-) {
-  const pad = width * PH_RATIOS.pad;
-  // Cap raised in tandem with the PH_RATIOS.mapSize bump so the
-  // map can actually grow on larger captures instead of clamping
-  // back to the old 280px ceiling.
-  const size = Math.min(width * PH_RATIOS.mapSize, 460);
-  const cornerR = width * PH_RATIOS.mapCornerR;
-  let x: number;
-  let y: number;
-  switch (position) {
-    case "topLeft":
-      x = pad;
-      y = pad;
-      break;
-    case "topRight":
-      x = width - size - pad;
-      y = pad;
-      break;
-    case "bottomLeft":
-      x = pad;
-      y = height - size - pad;
-      break;
-    case "bottomRight":
-    default:
-      x = width - size - pad;
-      y = height - size - pad;
-      break;
-  }
-
-  context.save();
-  roundedRect(context, x, y, size, size, cornerR);
-  context.clip();
-
-  context.fillStyle = "rgba(10, 11, 12, 0.94)";
-  context.fillRect(x, y, size, size);
-
-  if (tile) {
-    context.drawImage(tile.image, x, y, size, size);
-
-    const dotR = Math.max(5, width * PH_RATIOS.mapMarkerR);
-    if (tile.user) {
-      drawUserDot(
-        context,
-        x + tile.user.fx * size,
-        y + tile.user.fy * size,
-        dotR,
-      );
-    }
-    if (tile.plane) {
-      drawPlaneGlyph(
-        context,
-        x + tile.plane.fx * size,
-        y + tile.plane.fy * size,
-        size * 0.16,
-        tile.plane.heading,
-      );
-    }
-
-    // Attribution pill bottom-left of the mini.
-    const attrH = size * 0.16;
-    const attrW = size * 0.36;
-    context.fillStyle = "rgba(10, 11, 12, 0.62)";
-    context.fillRect(x, y + size - attrH, attrW, attrH);
-    context.fillStyle = "rgba(242, 243, 238, 0.92)";
-    context.font = `700 ${size * 0.085}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.textAlign = "left";
-    context.textBaseline = "alphabetic";
-    context.fillText(
-      attributionLabel,
-      x + size * 0.045,
-      y + size - attrH * 0.32,
-    );
-  } else {
-    context.fillStyle = "rgba(242, 243, 238, 0.78)";
-    context.font = `700 ${size * 0.1}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(missingLabel, x + size / 2, y + size / 2);
-  }
-
-  context.restore();
-
-  context.save();
-  context.strokeStyle = "rgba(242, 243, 238, 0.88)";
-  context.lineWidth = Math.max(1, size * 0.012);
-  roundedRect(context, x, y, size, size, cornerR);
-  context.stroke();
-  context.restore();
 }
 
 function drawTemplate(
@@ -653,739 +456,839 @@ function drawTemplate(
 ) {
   const r = PH_RATIOS;
   const pad = width * r.pad;
-  const cornerR = width * r.cornerR;
-  const routeLabel = labels.route;
-  const metaLabel = labels.metadata.slice(0, 3).join(" · ");
 
   context.save();
   context.textBaseline = "alphabetic";
 
   if (template === "previewCard") {
-    const panelWidth = Math.min(width - pad * 2, width * r.cardW);
-    const panelHeight = width * r.cardH;
-    const panelY = height - panelHeight - pad;
-    const inner = width * r.cardInner;
-    const titleSize = width * r.titleSize;
-    const bodySize = width * r.bodySize;
-    const smallSize = width * r.smallSize;
-    // Reserve ~52% of the panel width for the callsign block; the
-    // type column lives in the remaining slot and gets clipped by
-    // fillText's maxWidth so long types ("BOEING 787-8 DREAMLINER")
-    // can no longer overlap the callsign.
-    const innerWidth = panelWidth - inner * 2;
-    const typeMaxWidth = Math.max(innerWidth * 0.45, innerWidth - innerWidth * 0.52);
+    // Compact card. Hierarchy: callsign (hero) → flight data (one line) →
+    // route (only with FlightAware). The orange type block bleeds flush into
+    // the card's bottom-left corner.
+    const cardW = Math.min(width - pad * 2, width * 0.34);
+    const ip = cardW * 0.06;
+    const innerW = cardW - ip * 2;
+    const radius = width * r.cornerR;
 
-    context.fillStyle = "rgba(242, 243, 238, 0.92)";
-    roundedRect(context, pad, panelY, panelWidth, panelHeight, cornerR);
+    const creditSize = cardW * 0.046;
+    const nameSize = cardW * 0.155;
+    const routeSize = cardW * 0.058;
+    const blockW = cardW * 0.3;
+    const bandH = cardW * 0.19;
+    const gap = cardW * 0.034;
+    const hasRoute = Boolean(labels.route);
+
+    let panelH = ip;
+    panelH += creditSize;
+    panelH += gap + nameSize * 0.72;
+    if (hasRoute) panelH += gap * 0.7 + routeSize;
+    panelH += gap + bandH;
+
+    const panelX = pad;
+    const panelY = height - panelH - pad;
+    const left = panelX + ip;
+    const right = panelX + cardW - ip;
+
+    context.fillStyle = TPL_PAPER;
+    roundedRect(context, panelX, panelY, cardW, panelH, radius);
     context.fill();
-
-    context.strokeStyle = "rgba(14, 15, 16, 0.16)";
-    context.lineWidth = Math.max(1, width * 0.001);
-    roundedRect(context, pad, panelY, panelWidth, panelHeight, cornerR);
+    context.strokeStyle = "rgba(20, 20, 18, 0.10)";
+    context.lineWidth = Math.max(1, width * 0.0008);
+    roundedRect(context, panelX, panelY, cardW, panelH, radius);
     context.stroke();
 
-    context.fillStyle = "rgba(14, 15, 16, 0.92)";
-    context.font = `800 ${titleSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(
-      labels.callsign,
-      pad + inner,
-      panelY + width * r.titleY,
-      // Cap the callsign so a long synthetic callsign can't push the
-      // type off the right edge either.
-      innerWidth * 0.52,
-    );
-
-    context.textAlign = "right";
-    context.font = `760 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(
-      labels.type,
-      pad + panelWidth - inner,
-      panelY + width * r.titleY,
-      typeMaxWidth,
-    );
-
     context.textAlign = "left";
-    context.fillStyle = "rgba(14, 15, 16, 0.56)";
-    context.fillRect(
-      pad + inner,
-      panelY + width * 0.053,
-      innerWidth,
-      Math.max(1, width * 0.001),
-    );
 
-    if (routeLabel) {
-      context.fillStyle = "rgba(14, 15, 16, 0.78)";
-      context.font = `720 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-      context.fillText(routeLabel, pad + inner, panelY + width * r.routeY, innerWidth);
+    // Credit watermark
+    let y = panelY + ip + creditSize;
+    context.fillStyle = "rgba(20, 20, 18, 0.46)";
+    context.font = `400 ${creditSize}px ${TPL_FONT}`;
+    context.letterSpacing = `${creditSize * 0.16}px`;
+    context.fillText("✈ ADSBAO", left, y, innerW);
+    context.letterSpacing = "0px";
+
+    // Callsign (hero)
+    y += gap + nameSize * 0.72;
+    context.fillStyle = TPL_INK;
+    context.font = `800 ${nameSize}px ${TPL_FONT}`;
+    context.fillText(labels.callsign, left, y, innerW);
+
+    // Route (lowest priority — only when present)
+    if (hasRoute) {
+      y += gap * 0.7 + routeSize;
+      context.fillStyle = "rgba(20, 20, 18, 0.5)";
+      context.font = `400 ${routeSize}px ${TPL_FONT}`;
+      context.fillText(labels.route, left, y, innerW);
     }
 
-    context.fillStyle = "rgba(14, 15, 16, 0.54)";
-    context.font = `800 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    // Without a route line, slide the meta line up to keep the card's
-    // visual rhythm tight instead of leaving a gap.
-    const metaY = routeLabel ? width * r.metaY : width * r.routeY;
-    context.fillText(
-      metaLabel || labels.capturedAt,
-      pad + inner,
-      panelY + metaY,
-      innerWidth,
+    // Band: orange type block (flush bottom-left corner) + one-line data
+    const bandTop = panelY + panelH - bandH;
+    context.fillStyle = TPL_ORANGE;
+    roundedRectCorners(
+      context,
+      panelX,
+      bandTop,
+      blockW,
+      bandH,
+      0,
+      radius * 0.7,
+      0,
+      radius,
     );
+    context.fill();
+    if (labels.type) {
+      context.fillStyle = TPL_INK;
+      context.textAlign = "center";
+      context.font = `400 ${bandH * 0.46}px ${TPL_FONT}`;
+      context.fillText(
+        labels.type,
+        panelX + blockW / 2,
+        bandTop + bandH * 0.66,
+        blockW * 0.84,
+      );
+      context.textAlign = "left";
+    }
+    const flightLine = [labels.speedLabel, labels.altitudeLabel, labels.category]
+      .filter(Boolean)
+      .join("  ·  ");
+    if (flightLine) {
+      const dataX = panelX + blockW + ip * 0.9;
+      context.fillStyle = "rgba(20, 20, 18, 0.82)";
+      context.font = `400 ${bandH * 0.28}px ${TPL_FONT}`;
+      context.fillText(flightLine, dataX, bandTop + bandH * 0.64, right - dataX);
+    }
   }
 
   if (template === "lowerThird") {
-    const frameInset = width * r.barInset;
-    const barHeight = width * r.barH;
-    const barY = height - barHeight - frameInset;
-    const barWidth = width - frameInset * 2;
-    const callsignWidth = barWidth * r.barCallsignFrac;
-    const callsignSize = width * r.barCallsignSize;
-    const bodySize = width * r.bodySize;
-    const smallSize = width * r.smallSize;
-    const blockInner = width * 0.02;
+    // Departure-board lower third: full-width bar flush to the bottom edge
+    // (no gap), gold header, column readout, and a gold flight-phase block.
+    const barW = width;
+    const barH = width * 0.07;
+    const barX = 0;
+    const barY = height - barH;
+    const ip = width * 0.03;
+    const left = barX + ip;
+    const codes = splitRoute(labels.route);
 
-    context.fillStyle = "rgba(242, 243, 238, 0.95)";
-    context.fillRect(frameInset, barY, callsignWidth, barHeight);
+    context.fillStyle = "rgb(20, 20, 19)";
+    context.fillRect(barX, barY, barW, barH);
+    context.fillStyle = "rgba(255, 255, 255, 0.08)";
+    context.fillRect(barX, barY, barW, Math.max(1, width * 0.0012));
 
-    context.fillStyle = "rgba(14, 15, 16, 0.94)";
-    context.fillRect(
-      frameInset + callsignWidth,
-      barY,
-      barWidth - callsignWidth,
-      barHeight,
-    );
+    // Status block — orange, flush to the right edge, full bar height.
+    const statusW = barW * 0.2;
+    const statusX = barW - statusW;
+    const phase = labels.phase || (codes ? "EN ROUTE" : "TRACKING");
+    context.fillStyle = TPL_ORANGE;
+    context.fillRect(statusX, barY, statusW, barH);
+    context.fillStyle = TPL_INK;
+    context.textAlign = "center";
+    context.font = `400 ${barH * 0.32}px ${TPL_FONT}`;
+    context.fillText(phase, statusX + statusW / 2, barY + barH * 0.65, statusW * 0.86);
+    context.textAlign = "left";
 
-    const callsignBlockWidth = callsignWidth - blockInner * 2;
-    const rightBlockWidth = barWidth - callsignWidth - blockInner * 2;
-
-    context.fillStyle = "rgba(14, 15, 16, 0.95)";
-    context.font = `850 ${callsignSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    context.fillText(
+    // Single line: ✈ then values only — no header, no labels.
+    const valueY = barY + barH * 0.65;
+    context.fillStyle = TPL_ORANGE;
+    context.font = `400 ${barH * 0.42}px ${TPL_FONT}`;
+    context.fillText("✈", left, valueY);
+    const dataLeft = left + barH * 0.55;
+    const dataRight = statusX - ip;
+    const cols = [
       labels.callsign,
-      frameInset + blockInner,
-      barY + barHeight * 0.62,
-      callsignBlockWidth,
-    );
-
-    if (routeLabel) {
-      context.fillStyle = "rgba(242, 243, 238, 0.96)";
-      context.font = `780 ${bodySize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-      context.fillText(
-        routeLabel,
-        frameInset + callsignWidth + blockInner,
-        barY + barHeight * 0.42,
-        rightBlockWidth,
-      );
-    }
-
-    context.fillStyle = "rgba(242, 243, 238, 0.66)";
-    context.font = `760 ${smallSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
-    // Without a route line, center the meta line vertically in the
-    // right block so the news bar doesn't look bottom-heavy.
-    const metaBaselineY = routeLabel ? barY + barHeight * 0.78 : barY + barHeight * 0.62;
-    context.fillText(
-      metaLabel || labels.capturedAt,
-      frameInset + callsignWidth + blockInner,
-      metaBaselineY,
-      rightBlockWidth,
-    );
-  }
-
-  if (template === "maps") {
-    drawMapMini(
-      context,
-      width,
-      height,
-      mapPosition,
-      mapTile,
-      mapMissingLabel,
-      mapAttributionLabel,
-    );
+      codes ? codes[1] : labels.type,
+      labels.altitudeLabel,
+      labels.speedLabel,
+    ].filter(Boolean);
+    const colW = (dataRight - dataLeft) / Math.max(cols.length, 1);
+    cols.forEach((value, index) => {
+      context.fillStyle = TPL_PAPER;
+      // Only the callsign (first value) keeps a bold weight.
+      context.font = `${index === 0 ? 800 : 400} ${barH * 0.36}px ${TPL_FONT}`;
+      context.fillText(value, dataLeft + colW * index, valueY, colW - ip * 0.4);
+    });
   }
 
   context.restore();
 }
 
-const planeHunterPillClass = cn(
-  "group relative isolate inline-flex select-none items-center justify-center gap-1.5 overflow-hidden border bg-clip-padding",
-  "rounded-[18px]",
-  "border-[rgba(242,243,238,0.12)] bg-[rgba(242,243,238,0.08)] text-[rgba(242,243,238,0.78)]",
-  "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_5px_16px_rgba(0,0,0,0.18)]",
-  "transition-[background,border-color,box-shadow,color] duration-150",
-  "hover:bg-[rgba(242,243,238,0.13)]",
-  "active:scale-[0.97]",
-  "data-[active=true]:border-[rgba(255,210,92,0.72)]",
-  "data-[active=true]:bg-[rgba(255,210,92,0.18)]",
-  "data-[active=true]:text-[rgb(255,221,119)]",
-  "data-[active=true]:shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_8px_22px_rgba(255,194,56,0.18)]",
-  "after:content-[''] after:absolute after:inset-0 after:pointer-events-none",
-  "after:bg-[linear-gradient(180deg,rgba(255,255,255,0.10),transparent_58%)]",
-  "after:opacity-0 after:transition-opacity after:duration-200",
-  "data-[active=true]:after:opacity-100",
-  "[&>*]:relative [&>*]:z-[1]",
-);
-
-function PlaneHunterPill({
-  active,
-  onClick,
-  children,
-  size = "md",
-  ariaLabel,
-  fullWidth = false,
+// Shared tap-vs-hold gesture: a quick tap fires onTap; holding past `delay`
+// fires onHold and suppresses the tap on release. Used by the camera and zoom
+// chips so both behave identically (tap = cycle, hold = open picker).
+function useLongPress({
+  onTap,
+  onHold,
+  disabled = false,
+  delay = 450,
 }: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  size?: "sm" | "md";
-  ariaLabel?: string;
-  fullWidth?: boolean;
+  onTap: () => void;
+  onHold: () => void;
+  disabled?: boolean;
+  delay?: number;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      data-active={active ? "true" : undefined}
-      aria-pressed={active}
-      aria-label={ariaLabel}
-      className={cn(
-        planeHunterPillClass,
-        fullWidth ? "flex w-full min-w-0" : "",
-        size === "sm"
-          ? "min-h-8 px-3 text-[11px] font-extrabold leading-none"
-          : "min-h-[58px] min-w-[92px] px-3 text-[12px] font-extrabold leading-none md:min-h-[64px] md:min-w-[116px] md:px-4 md:text-[13px]",
-      )}
-    >
-      {children}
-    </button>
-  );
+  const heldRef = useRef(false);
+  const timerRef = useRef<number | null>(null);
+  const clear = useCallback(() => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+  useEffect(() => clear, [clear]);
+  return {
+    onPointerDown: () => {
+      if (disabled) return;
+      heldRef.current = false;
+      clear();
+      timerRef.current = window.setTimeout(() => {
+        heldRef.current = true;
+        onHold();
+      }, delay);
+    },
+    onPointerUp: () => {
+      if (disabled) return;
+      clear();
+      if (heldRef.current) {
+        heldRef.current = false;
+        return;
+      }
+      onTap();
+    },
+    onPointerLeave: () => {
+      clear();
+      heldRef.current = false;
+    },
+    onPointerCancel: () => {
+      clear();
+      heldRef.current = false;
+    },
+    onContextMenu: (event: { preventDefault: () => void }) =>
+      event.preventDefault(),
+  };
 }
 
-function PlaneHunterTabBar({
-  activeTab,
-  onChange,
-  t,
-}: {
-  activeTab: SettingsTab;
-  onChange: (next: SettingsTab) => void;
-  t: PlaneHunterTranslator;
-}) {
-  return (
-    <div
-      role="tablist"
-      aria-label={t("planeHunter.title")}
-      className="inline-flex w-full justify-center gap-5 text-[12px] font-extrabold leading-none md:text-[13px]"
-    >
-      {SETTINGS_TABS.map((tab) => {
-        const active = activeTab === tab;
-        return (
-          <button
-            key={tab}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            data-active={active ? "true" : undefined}
-            onClick={() => onChange(tab)}
-            className={cn(
-              "relative px-1 py-1 text-[rgba(242,243,238,0.58)] transition-colors duration-150",
-              "hover:text-[rgba(242,243,238,0.9)]",
-              "data-[active=true]:text-[rgb(255,221,119)]",
-              "after:absolute after:-bottom-1 after:left-1/2 after:h-[2px] after:w-5 after:-translate-x-1/2 after:rounded-full",
-              "after:bg-[rgb(255,221,119)] after:opacity-0 after:transition-opacity after:duration-150",
-              "data-[active=true]:after:opacity-100",
-            )}
-          >
-            <span>{t(`planeHunter.tabs.${tab}`)}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+const PLANE_HUNTER_CHIP =
+  "inline-flex size-11 shrink-0 select-none items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgba(242,243,238,0.86)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.16)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:active:scale-100";
 
-function PlaneHunterTemplatePills({
-  template,
-  onSelect,
-  t,
-}: {
-  template: PlaneHunterTemplate;
-  onSelect: (next: PlaneHunterTemplate) => void;
-  t: PlaneHunterTranslator;
-}) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label={t("planeHunter.tabs.templates")}
-      className="-mx-3 flex snap-x snap-mandatory gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-    >
-      {TEMPLATES.map((item) => (
-        <PlaneHunterPill
-          key={item}
-          active={template === item}
-          onClick={() => onSelect(item)}
-        >
-          <span className="flex min-w-0 flex-col items-center gap-1">
-            <span translate="no" className="notranslate truncate">
-              {t(`planeHunter.templateUnits.${item}`)}
-            </span>
-            <span className="truncate text-[10px] font-bold text-[rgba(242,243,238,0.48)] group-data-[active=true]:text-[rgba(255,236,174,0.72)]">
-              {t(`planeHunter.templates.${item}`)}
-            </span>
-          </span>
-        </PlaneHunterPill>
-      ))}
-    </div>
-  );
-}
-
-// Metadata field toggles — lives inside the Settings tab. Pill row
-// stays compact so it leaves room below for the map-position picker
-// when the maps template is active.
-function PlaneHunterSectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="px-1 text-[11px] font-extrabold leading-none text-[rgba(242,243,238,0.58)] md:text-[12px]">
-      {children}
-    </span>
-  );
-}
-
-function PlaneHunterMetaToggles({
-  enabledFields,
-  onToggle,
-  t,
-}: {
-  enabledFields: Set<MetaField>;
-  onToggle: (field: MetaField) => void;
-  t: PlaneHunterTranslator;
-}) {
-  return (
-    <div className="flex min-w-full snap-start flex-col gap-2">
-      <PlaneHunterSectionLabel>
-        {t("planeHunter.metaToggle")}
-      </PlaneHunterSectionLabel>
-      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {META_FIELDS.map((field) => (
-          <PlaneHunterPill
-            key={field}
-            size="sm"
-            active={enabledFields.has(field)}
-            onClick={() => onToggle(field)}
-          >
-            <span className="whitespace-nowrap">
-              {t(`planeHunter.metaFields.${field}`)}
-            </span>
-          </PlaneHunterPill>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Tiny 16x16 corner glyph showing which quadrant a position pill
-// represents. Reads at-a-glance compared to text-only labels, even
-// when localized.
-function MapPositionGlyph({
-  position,
-  className,
-}: {
-  position: MapPosition;
-  className?: string;
-}) {
-  const cornerX = position === "topLeft" || position === "bottomLeft" ? 2 : 10;
-  const cornerY = position === "topLeft" || position === "topRight" ? 2 : 10;
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      aria-hidden="true"
-      className={cn("h-3.5 w-3.5", className)}
-      fill="none"
-    >
-      <rect
-        x="1.4"
-        y="1.4"
-        width="13.2"
-        height="13.2"
-        rx="2.6"
-        stroke="currentColor"
-        strokeOpacity="0.55"
-        strokeWidth="1"
-      />
-      <rect
-        x={cornerX}
-        y={cornerY}
-        width="4"
-        height="4"
-        rx="1"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
-function PlaneHunterMapPositionPicker({
-  mapPosition,
-  onSelect,
-  t,
-}: {
-  mapPosition: MapPosition;
-  onSelect: (next: MapPosition) => void;
-  t: PlaneHunterTranslator;
-}) {
-  return (
-    <div className="flex min-w-full snap-start flex-col gap-2">
-      <PlaneHunterSectionLabel>
-        {t("planeHunter.mapPosition")}
-      </PlaneHunterSectionLabel>
-      <div
-        role="radiogroup"
-        aria-label={t("planeHunter.mapPosition")}
-        className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {MAP_POSITIONS.map((position) => (
-          <PlaneHunterPill
-            key={position}
-            size="sm"
-            active={mapPosition === position}
-            onClick={() => onSelect(position)}
-            ariaLabel={t(`planeHunter.mapPositions.${position}`)}
-          >
-            <MapPositionGlyph position={position} />
-            <span className="whitespace-nowrap">
-              {t(`planeHunter.mapPositions.${position}`)}
-            </span>
-          </PlaneHunterPill>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PlaneHunterActionStack({
-  onRetake,
-  onShare,
-  t,
-}: {
-  onRetake: () => void;
-  onShare: () => void;
-  t: PlaneHunterTranslator;
-}) {
-  const actionClass = cn(
-    "inline-flex size-12 items-center justify-center rounded-full",
-    "transition hover:scale-[1.02] active:scale-95",
-    "md:size-[52px]",
-  );
-  const primaryClass = cn(
-    actionClass,
-    "bg-[rgb(242,243,238)] text-[rgb(14,15,16)]",
-    "shadow-[0_10px_28px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.72)]",
-  );
-  const secondaryClass = cn(
-    actionClass,
-    "border border-[rgba(242,243,238,0.13)] bg-[rgba(242,243,238,0.08)] text-[rgba(242,243,238,0.9)]",
-    "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_22px_rgba(0,0,0,0.2)]",
-    "hover:bg-[rgba(242,243,238,0.14)]",
-  );
-
-  return (
-    <div className="flex items-center justify-center gap-4">
-      <button
-        type="button"
-        onClick={onRetake}
-        className={secondaryClass}
-        aria-label={t("planeHunter.retake")}
-        title={t("planeHunter.retake")}
-      >
-        <RotateCcw aria-hidden="true" className="size-5" />
-      </button>
-      <button
-        type="button"
-        onClick={onShare}
-        className={primaryClass}
-        aria-label={t("planeHunter.share")}
-        title={t("planeHunter.share")}
-      >
-        <Share2 aria-hidden="true" className="size-5" />
-      </button>
-    </div>
-  );
-}
-
-function PlaneHunterControlPanel({
-  template,
-  onSelectTemplate,
-  enabledFields,
-  onToggleField,
-  mapPosition,
-  onSelectMapPosition,
-  status,
-  onRetake,
-  onShare,
-  t,
-}: {
-  template: PlaneHunterTemplate;
-  onSelectTemplate: (next: PlaneHunterTemplate) => void;
-  enabledFields: Set<MetaField>;
-  onToggleField: (field: MetaField) => void;
-  mapPosition: MapPosition;
-  onSelectMapPosition: (next: MapPosition) => void;
-  status: string;
-  onRetake: () => void;
-  onShare: () => void;
-  t: PlaneHunterTranslator;
-}) {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("templates");
-  return (
-    <div className="flex flex-col gap-3">
-      <PlaneHunterTabBar activeTab={activeTab} onChange={setActiveTab} t={t} />
-      {activeTab === "templates" ? (
-        <PlaneHunterTemplatePills
-          template={template}
-          onSelect={onSelectTemplate}
-          t={t}
-        />
-      ) : (
-        <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <PlaneHunterMetaToggles
-            enabledFields={enabledFields}
-            onToggle={onToggleField}
-            t={t}
-          />
-          {template === "maps" && (
-            <PlaneHunterMapPositionPicker
-              mapPosition={mapPosition}
-              onSelect={onSelectMapPosition}
-              t={t}
-            />
-          )}
-        </div>
-      )}
-      {status && (
-        <p
-          role="status"
-          aria-live="polite"
-          className="rounded-[18px] border border-[rgba(242,243,238,0.12)] bg-[rgba(242,243,238,0.08)] px-3 py-2 text-[11px] font-semibold leading-snug text-[rgba(242,243,238,0.72)]"
-        >
-          {status}
-        </p>
-      )}
-      <PlaneHunterActionStack
-        onRetake={onRetake}
-        onShare={onShare}
-        t={t}
-      />
-    </div>
-  );
-}
-
-function PlaneHunterMetadataBar({
-  labels,
-  onClose,
-  t,
-}: {
-  labels: AircraftLabels;
-  onClose: () => void;
-  t: PlaneHunterTranslator;
-}) {
-  const metadata = labels.metadata.slice(0, 3);
-  return (
-    <header className="flex flex-none items-center gap-3 border-b border-[rgba(242,243,238,0.08)] bg-[color-mix(in_oklab,black_66%,transparent)] px-3 pb-3 pt-[max(12px,env(safe-area-inset-top))] text-[rgb(242,243,238)] shadow-[0_12px_32px_rgba(0,0,0,0.22)] backdrop-blur-2xl md:px-5 md:pb-4">
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label={t("planeHunter.closeStudio")}
-        className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgba(242,243,238,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[rgba(242,243,238,0.16)] active:scale-95"
-      >
-        <X aria-hidden="true" className="size-4" />
-      </button>
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-baseline gap-2">
-          <strong
-            translate="no"
-            className="notranslate truncate text-[18px] font-black leading-none md:text-[24px]"
-          >
-            {labels.callsign}
-          </strong>
-          {labels.type && (
-            <span className="truncate text-[11px] font-extrabold leading-none text-[rgba(242,243,238,0.6)] md:text-[13px]">
-              {labels.type}
-            </span>
-          )}
-        </div>
-        <div className="mt-2 flex min-w-0 items-center gap-1.5 overflow-hidden">
-          {labels.route && (
-            <span className="min-w-0 truncate rounded-full bg-[rgba(242,243,238,0.1)] px-2 py-1 text-[10.5px] font-extrabold leading-none text-[rgba(242,243,238,0.78)]">
-              {labels.route}
-            </span>
-          )}
-          {metadata.map((item) => (
-            <span
-              key={item}
-              className="shrink-0 rounded-full bg-[rgba(242,243,238,0.08)] px-2 py-1 text-[10.5px] font-bold leading-none text-[rgba(242,243,238,0.62)]"
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function PlaneHunterCameraZoomControl({
+// Floating control dock: switch / zoom / help chips in one row, plus the
+// library + shutter capture row. Sits at the bottom in portrait and on the
+// trailing side in landscape (it reflows with the viewport, so glyphs always
+// stay upright whichever way the phone is turned).
+function PlaneHunterControlDock({
   zoom,
-  range,
+  zoomRange,
   cameraDevices,
   selectedCameraDeviceId,
-  onChange,
+  cameraReady,
+  template,
+  onSelectTemplate,
+  onZoomChange,
+  onZoomCycle,
   onCameraDeviceSelect,
+  onCameraCycle,
+  onCapture,
+  onStartCamera,
+  onChooseLibrary,
   t,
 }: {
   zoom: number;
-  range: CameraZoomRange;
+  zoomRange: CameraZoomRange;
   cameraDevices: CameraDeviceOption[];
   selectedCameraDeviceId: string;
-  onChange: (nextZoom: number) => void;
+  cameraReady: boolean;
+  template: PlaneHunterTemplate;
+  onSelectTemplate: (next: PlaneHunterTemplate) => void;
+  onZoomChange: (nextZoom: number) => void;
+  onZoomCycle: () => void;
   onCameraDeviceSelect: (deviceId: string) => void;
+  onCameraCycle: () => void;
+  onCapture: () => void;
+  onStartCamera: () => void;
+  onChooseLibrary: () => void;
   t: PlaneHunterTranslator;
 }) {
-  const [devicePickerOpen, setDevicePickerOpen] = useState(false);
-  const [zoomHelpOpen, setZoomHelpOpen] = useState(false);
-  const stops = getCameraZoomStops(range);
-  const selectedDevice =
-    cameraDevices.find((device) => device.deviceId === selectedCameraDeviceId) ||
-    cameraDevices[0] ||
-    null;
-  const selectedLabel = selectedDevice?.label || t("planeHunter.currentLens");
-  const deviceCountLabel =
-    cameraDevices.length > 1
-      ? t("planeHunter.cameraLensCount", { count: cameraDevices.length })
-      : t("planeHunter.currentLens");
+  const [cameraSheetOpen, setCameraSheetOpen] = useState(false);
+  const [zoomSheetOpen, setZoomSheetOpen] = useState(false);
+  const [infoSheetOpen, setInfoSheetOpen] = useState(false);
+  const stops = getCameraZoomStops(zoomRange);
+  const canSwitchCamera = cameraDevices.length > 1;
+  const canZoom = zoomRange.supported && zoomRange.max > zoomRange.min;
   const displayDeviceLabel = (device: CameraDeviceOption) =>
     device.label || t("planeHunter.cameraOption", { number: device.index });
+
+  const switchGesture = useLongPress({
+    onTap: onCameraCycle,
+    onHold: () => setCameraSheetOpen(true),
+    disabled: !canSwitchCamera,
+  });
+  const zoomGesture = useLongPress({
+    onTap: onZoomCycle,
+    onHold: () => setZoomSheetOpen(true),
+    disabled: !canZoom,
+  });
+
+  useEffect(() => {
+    if (!canSwitchCamera) setCameraSheetOpen(false);
+  }, [canSwitchCamera]);
+
+  // Pull-up above the dock in portrait, slide out beside it in landscape.
+  const sheetPosition =
+    "absolute inset-x-2 bottom-[calc(100%+10px)] z-20 landscape:inset-x-auto landscape:bottom-auto landscape:right-[calc(100%+12px)] landscape:top-1/2 landscape:w-[280px] landscape:-translate-y-1/2";
+  const sheetSurface =
+    "overflow-hidden rounded-[24px] border border-[rgba(242,243,238,0.12)] bg-[rgba(8,8,8,0.92)] text-[rgb(242,243,238)] shadow-[0_20px_44px_rgba(0,0,0,0.46),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl";
+
   return (
-    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-3 rounded-[28px] border border-[rgba(242,243,238,0.1)] bg-[rgba(0,0,0,0.34)] px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_28px_rgba(0,0,0,0.2)]">
-      <div className="flex items-center gap-2">
-        <div className="relative min-w-0 flex-1">
-          <button
-            type="button"
-            onClick={() => setDevicePickerOpen((open) => !open)}
-            aria-expanded={devicePickerOpen}
-            className="flex min-h-11 w-full items-center gap-2 rounded-full bg-[rgba(242,243,238,0.1)] px-3 text-left text-[rgba(242,243,238,0.88)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[rgba(242,243,238,0.14)] active:scale-[0.99]"
-          >
-            <SwitchCamera aria-hidden="true" className="size-[18px] shrink-0 text-[rgb(255,221,119)]" />
-            <span className="min-w-0 flex-1">
-              <span className="block text-[10px] font-black uppercase leading-none text-[rgba(242,243,238,0.48)]">
-                {deviceCountLabel}
-              </span>
-              <span className="mt-1 block truncate text-[12px] font-black leading-none">
-                {selectedLabel}
-              </span>
-            </span>
-            <ChevronDown
-              aria-hidden="true"
-              className={cn(
-                "size-4 shrink-0 text-[rgba(242,243,238,0.58)] transition",
-                devicePickerOpen && "rotate-180",
-              )}
-            />
-          </button>
-          {devicePickerOpen && (
-            <div className="absolute inset-x-0 bottom-[calc(100%+8px)] z-10 overflow-hidden rounded-[22px] border border-[rgba(242,243,238,0.12)] bg-[rgba(8,8,8,0.9)] p-1.5 text-[rgb(242,243,238)] shadow-[0_18px_38px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl">
-              {cameraDevices.length > 0 ? (
-                <div className="max-h-[168px] overflow-y-auto">
-                  {cameraDevices.map((device) => {
-                    const selected = device.deviceId === selectedCameraDeviceId;
-                    return (
-                      <button
-                        key={device.deviceId}
-                        type="button"
-                        onClick={() => {
-                          setDevicePickerOpen(false);
-                          onCameraDeviceSelect(device.deviceId);
-                        }}
-                        data-active={selected ? "true" : undefined}
-                        className="flex min-h-10 w-full items-center gap-2 rounded-[18px] px-3 text-left text-[12px] font-bold text-[rgba(242,243,238,0.82)] transition hover:bg-[rgba(242,243,238,0.1)] data-[active=true]:bg-[rgb(255,221,119)] data-[active=true]:text-[rgb(14,15,16)]"
-                      >
-                        <span className="min-w-0 flex-1 truncate">
-                          {displayDeviceLabel(device)}
-                        </span>
-                        {selected && <Check aria-hidden="true" className="size-4 shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="px-3 py-2 text-[12px] font-bold leading-snug text-[rgba(242,243,238,0.68)]">
-                  {t("planeHunter.cameraPickerUnavailable")}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+    <div className="pointer-events-auto relative flex flex-col items-center gap-4 border-t border-[rgba(242,243,238,0.1)] bg-[color-mix(in_oklab,black_55%,transparent)] px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-4 backdrop-blur-2xl landscape:h-full landscape:justify-center landscape:gap-6 landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pb-3 landscape:pr-[max(12px,env(safe-area-inset-right))] landscape:pt-3">
+      <div className="flex items-center justify-center gap-2.5 landscape:flex-col">
+        {/* Template — tap to cycle the preset; the live overlay updates. */}
         <button
           type="button"
-          onClick={() => setZoomHelpOpen((open) => !open)}
+          onClick={() => {
+            const index = TEMPLATES.indexOf(template);
+            onSelectTemplate(TEMPLATES[(index + 1) % TEMPLATES.length]);
+          }}
+          aria-label={t(`planeHunter.templates.${template}`)}
+          title={t(`planeHunter.templates.${template}`)}
+          className={cn(
+            PLANE_HUNTER_CHIP,
+            "w-auto min-w-11 px-3 text-[12px] font-black",
+            template === "none"
+              ? "text-[rgba(242,243,238,0.7)]"
+              : "text-[rgb(255,221,119)]",
+          )}
+        >
+          {t(`planeHunter.templateUnits.${template}`)}
+        </button>
+        <button
+          type="button"
+          disabled={!canSwitchCamera}
+          {...switchGesture}
+          aria-haspopup="menu"
+          aria-expanded={cameraSheetOpen}
+          aria-label={
+            canSwitchCamera
+              ? t("planeHunter.switchCamera")
+              : t("planeHunter.switchCameraSingle")
+          }
+          title={
+            canSwitchCamera
+              ? t("planeHunter.switchCamera")
+              : t("planeHunter.switchCameraSingle")
+          }
+          className={PLANE_HUNTER_CHIP}
+        >
+          <SwitchCamera
+            aria-hidden="true"
+            className={cn(
+              "size-[19px]",
+              canSwitchCamera
+                ? "text-[rgb(255,221,119)]"
+                : "text-[rgba(242,243,238,0.5)]",
+            )}
+          />
+        </button>
+        <button
+          type="button"
+          disabled={!canZoom}
+          {...zoomGesture}
+          aria-haspopup="menu"
+          aria-expanded={zoomSheetOpen}
+          aria-label={t("planeHunter.zoomLabel", {
+            value: formatCameraZoom(zoom),
+          })}
+          title={t("planeHunter.zoomLabel", { value: formatCameraZoom(zoom) })}
+          className={cn(
+            PLANE_HUNTER_CHIP,
+            "text-[13px] font-black",
+            canZoom ? "text-[rgb(255,221,119)]" : "text-[rgba(242,243,238,0.5)]",
+          )}
+        >
+          {formatCameraZoom(zoom)}
+        </button>
+        <button
+          type="button"
+          onClick={() => setInfoSheetOpen((open) => !open)}
+          aria-haspopup="menu"
+          aria-expanded={infoSheetOpen}
           aria-label={t("planeHunter.zoomInfoTitle")}
-          aria-expanded={zoomHelpOpen}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgba(242,243,238,0.78)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95"
+          className={cn(PLANE_HUNTER_CHIP, "text-[rgba(242,243,238,0.78)]")}
         >
           <CircleHelp aria-hidden="true" className="size-[19px]" />
         </button>
       </div>
-      {zoomHelpOpen && (
-        <div className="rounded-[20px] border border-[rgba(242,243,238,0.1)] bg-[rgba(242,243,238,0.08)] px-3 py-2 text-[11.5px] font-bold leading-snug text-[rgba(242,243,238,0.72)] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          <span className="mb-1 block text-[10px] font-black uppercase leading-none text-[rgb(255,221,119)]">
-            {t("planeHunter.zoomInfoTitle")}
-          </span>
-          {t("planeHunter.zoomInfoBody")}
-        </div>
-      )}
-      <div className="flex items-center justify-center gap-3">
-        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgb(255,221,119)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-          <ZoomIn aria-hidden="true" className="size-[18px]" />
-        </span>
-        <div className="flex min-w-0 rounded-full bg-[rgba(242,243,238,0.08)] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-          {stops.map((stop) => {
-            const active = Math.abs(zoom - stop) < Math.max(range.step, 0.1);
-            return (
-              <button
-                key={stop}
-                type="button"
-                onClick={() => onChange(stop)}
-                data-active={active ? "true" : undefined}
-                className="min-h-9 min-w-[50px] rounded-full px-3 text-[13px] font-black leading-none text-[rgba(242,243,238,0.7)] transition data-[active=true]:bg-[rgb(255,221,119)] data-[active=true]:text-[rgb(14,15,16)] data-[active=true]:shadow-[0_8px_18px_rgba(255,197,59,0.18)]"
-              >
-                {formatCameraZoom(stop)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      {range.supported && (
-        <input
-          type="range"
-          min={range.min}
-          max={range.max}
-          step={range.step}
-          value={zoom}
-          onChange={(event) => onChange(Number(event.currentTarget.value))}
-          aria-label="Camera zoom"
-          className="h-2 w-full accent-[rgb(255,221,119)]"
+      <div className="grid w-full max-w-[420px] grid-cols-[1fr_auto_1fr] items-center gap-3 landscape:flex landscape:w-auto landscape:flex-col landscape:gap-5">
+        <button
+          type="button"
+          onClick={onChooseLibrary}
+          aria-label={t("planeHunter.chooseLibrary")}
+          title={t("planeHunter.chooseLibrary")}
+          className="inline-flex size-[52px] items-center justify-center justify-self-start rounded-full border border-[rgba(242,243,238,0.13)] bg-[rgba(242,243,238,0.08)] text-[rgba(242,243,238,0.86)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_22px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95 landscape:order-2"
+        >
+          <ImageIcon aria-hidden="true" className="size-5" />
+        </button>
+        <button
+          type="button"
+          onClick={cameraReady ? onCapture : onStartCamera}
+          aria-label={
+            cameraReady ? t("planeHunter.takePhoto") : t("planeHunter.tryAgain")
+          }
+          className="size-[74px] justify-self-center rounded-full border-[5px] border-[rgba(242,243,238,0.92)] bg-[rgba(242,243,238,0.18)] shadow-[0_10px_30px_rgba(0,0,0,0.34),inset_0_0_0_4px_rgba(0,0,0,0.84)] transition active:scale-95 landscape:order-1"
         />
+        <span aria-hidden="true" className="landscape:hidden" />
+      </div>
+
+      {cameraSheetOpen && canSwitchCamera && (
+        <>
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={t("planeHunter.dismiss")}
+            onClick={() => setCameraSheetOpen(false)}
+            className="fixed inset-0 z-10 cursor-default bg-transparent"
+          />
+          <div role="menu" className={cn(sheetPosition, sheetSurface, "p-2")}>
+            <div className="px-2 pb-2 pt-1 text-[10px] font-black uppercase leading-none tracking-wide text-[rgba(242,243,238,0.5)]">
+              {t("planeHunter.chooseCamera")}
+            </div>
+            <div className="max-h-[208px] overflow-y-auto">
+              {cameraDevices.map((device) => {
+                const selected = device.deviceId === selectedCameraDeviceId;
+                return (
+                  <button
+                    key={device.deviceId}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={selected}
+                    onClick={() => {
+                      setCameraSheetOpen(false);
+                      onCameraDeviceSelect(device.deviceId);
+                    }}
+                    data-active={selected ? "true" : undefined}
+                    className="flex min-h-11 w-full items-center gap-2 rounded-[18px] px-3 text-left text-[12.5px] font-bold text-[rgba(242,243,238,0.82)] transition hover:bg-[rgba(242,243,238,0.1)] data-[active=true]:bg-[rgb(255,221,119)] data-[active=true]:text-[rgb(14,15,16)]"
+                  >
+                    <span className="min-w-0 flex-1 truncate">
+                      {displayDeviceLabel(device)}
+                    </span>
+                    {selected && <Check aria-hidden="true" className="size-4 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
+      {zoomSheetOpen && canZoom && (
+        <>
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={t("planeHunter.dismiss")}
+            onClick={() => setZoomSheetOpen(false)}
+            className="fixed inset-0 z-10 cursor-default bg-transparent"
+          />
+          <div role="menu" className={cn(sheetPosition, sheetSurface, "p-3")}>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgb(255,221,119)]">
+                <ZoomIn aria-hidden="true" className="size-4" />
+              </span>
+              <span className="text-[10px] font-black uppercase leading-none tracking-wide text-[rgba(242,243,238,0.5)]">
+                {t("planeHunter.zoomLabel", { value: formatCameraZoom(zoom) })}
+              </span>
+            </div>
+            <div className="flex rounded-full bg-[rgba(242,243,238,0.08)] p-1">
+              {stops.map((stop) => {
+                const active =
+                  Math.abs(zoom - stop) < Math.max(zoomRange.step, 0.1);
+                return (
+                  <button
+                    key={stop}
+                    type="button"
+                    onClick={() => onZoomChange(stop)}
+                    data-active={active ? "true" : undefined}
+                    className="min-h-9 flex-1 rounded-full px-3 text-[13px] font-black leading-none text-[rgba(242,243,238,0.7)] transition data-[active=true]:bg-[rgb(255,221,119)] data-[active=true]:text-[rgb(14,15,16)]"
+                  >
+                    {formatCameraZoom(stop)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
+      {infoSheetOpen && (
+        <>
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={t("planeHunter.dismiss")}
+            onClick={() => setInfoSheetOpen(false)}
+            className="fixed inset-0 z-10 cursor-default bg-transparent"
+          />
+          <div role="menu" className={cn(sheetPosition, sheetSurface, "p-3")}>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgb(255,221,119)]">
+                <CircleHelp aria-hidden="true" className="size-4" />
+              </span>
+              <span className="text-[10px] font-black uppercase leading-none tracking-wide text-[rgba(242,243,238,0.5)]">
+                {t("planeHunter.zoomInfoTitle")}
+              </span>
+            </div>
+            <p className="text-[11.5px] font-bold leading-snug text-[rgba(242,243,238,0.72)]">
+              {t("planeHunter.zoomInfoBody")}
+            </p>
+          </div>
+        </>
       )}
     </div>
   );
+}
+
+// Canvas text silently falls back if a weight isn't loaded yet — make sure
+// the Manrope weights the templates use are ready before drawing.
+async function ensureTemplateFonts() {
+  if (typeof document === "undefined" || !document.fonts?.load) return;
+  await Promise.all(
+    ["400", "500", "800"].map((weight) =>
+      document.fonts.load(`${weight} 24px Manrope`).catch(() => undefined),
+    ),
+  );
+}
+
+// Live template overlay — draws the selected template onto a canvas sized to
+// its parent (the capture area) so the framing the photographer sees is the
+// framing they save. Redraws on template / data / size change.
+function PlaneHunterLiveTemplate({
+  template,
+  labels,
+}: {
+  template: PlaneHunterTemplate;
+  labels: AircraftLabels;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const parent = canvas?.parentElement;
+    if (!canvas || !parent) return undefined;
+    let raf = 0;
+    const draw = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      const w = parent.clientWidth;
+      const h = parent.clientHeight;
+      if (w <= 0 || h <= 0) return;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (template === "none") return;
+      drawTemplate(
+        ctx,
+        template,
+        labels,
+        canvas.width,
+        canvas.height,
+        "bottomRight",
+        null,
+        "",
+        "",
+      );
+    };
+    void ensureTemplateFonts().then(draw);
+    draw();
+    const observer = new ResizeObserver(() => {
+      window.cancelAnimationFrame(raf);
+      raf = window.requestAnimationFrame(draw);
+    });
+    observer.observe(parent);
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(raf);
+    };
+  }, [template, labels]);
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 h-full w-full"
+    />
+  );
+}
+
+// Great-circle initial bearing from (lat1,lon1) to (lat2,lon2) in degrees.
+function bearingDeg(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const phi1 = toRad(lat1);
+  const phi2 = toRad(lat2);
+  const dLon = toRad(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(phi2);
+  const x =
+    Math.cos(phi1) * Math.sin(phi2) -
+    Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLon);
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
+type PlaneDirection = {
+  available: boolean;
+  side: "left" | "right" | "ahead";
+  intensity: number;
+  aligned: boolean;
+  heading: number; // device compass heading (deg)
+  relative: number; // plane bearing − heading, normalized to [-180,180]
+};
+
+const PLANE_DIRECTION_ALIGNED_DEG = 8;
+
+// Compass-relative left/right of the aircraft: combines geolocation (where I
+// am), the device heading (where the camera points), and the aircraft's
+// position to tell the photographer which way to pan.
+function usePlaneDirection(
+  planeLat: number | null,
+  planeLon: number | null,
+): PlaneDirection {
+  const [direction, setDirection] = useState<PlaneDirection>({
+    available: false,
+    side: "ahead",
+    intensity: 0,
+    aligned: false,
+    heading: 0,
+    relative: 0,
+  });
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const userRef = { current: null as { lat: number; lon: number } | null };
+    const headingRef = { current: null as number | null };
+
+    const recompute = () => {
+      const user = userRef.current;
+      const heading = headingRef.current;
+      if (
+        !user ||
+        heading == null ||
+        planeLat == null ||
+        planeLon == null ||
+        !Number.isFinite(planeLat) ||
+        !Number.isFinite(planeLon)
+      ) {
+        setDirection((prev) =>
+          prev.available ? { ...prev, available: false } : prev,
+        );
+        return;
+      }
+      const bearing = bearingDeg(user.lat, user.lon, planeLat, planeLon);
+      const relative = ((bearing - heading + 540) % 360) - 180; // >0 = right
+      const magnitude = Math.abs(relative);
+      const aligned = magnitude <= PLANE_DIRECTION_ALIGNED_DEG;
+      const next: PlaneDirection = {
+        available: true,
+        side: aligned ? "ahead" : relative > 0 ? "right" : "left",
+        intensity: Math.min(magnitude / 75, 1),
+        aligned,
+        heading,
+        relative,
+      };
+      setDirection((prev) =>
+        prev.available === next.available &&
+        prev.aligned === next.aligned &&
+        Math.abs(prev.heading - next.heading) < 0.5 &&
+        Math.abs(prev.relative - next.relative) < 0.5
+          ? prev
+          : next,
+      );
+    };
+
+    const onOrientation = (event: DeviceOrientationEvent) => {
+      const compass = (event as { webkitCompassHeading?: number })
+        .webkitCompassHeading;
+      const heading =
+        typeof compass === "number"
+          ? compass
+          : typeof event.alpha === "number"
+            ? (360 - event.alpha) % 360
+            : null;
+      if (heading != null) {
+        headingRef.current = heading;
+        recompute();
+      }
+    };
+    const addOrientation = () =>
+      window.addEventListener("deviceorientation", onOrientation, true);
+
+    const orientationApi = window.DeviceOrientationEvent as
+      | (typeof DeviceOrientationEvent & {
+          requestPermission?: () => Promise<string>;
+        })
+      | undefined;
+    if (orientationApi && typeof orientationApi.requestPermission === "function") {
+      // iOS — needs a user gesture; best-effort, falls back to unavailable.
+      orientationApi
+        .requestPermission()
+        .then((result) => {
+          if (result === "granted") addOrientation();
+        })
+        .catch(() => undefined);
+    } else {
+      addOrientation();
+    }
+
+    let watchId: number | null = null;
+    if (navigator.geolocation?.watchPosition) {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          userRef.current = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          };
+          recompute();
+        },
+        () => undefined,
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 },
+      );
+    }
+
+    return () => {
+      window.removeEventListener("deviceorientation", onOrientation, true);
+      if (watchId != null) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [planeLat, planeLon]);
+  return direction;
+}
+
+// Compass ribbon: a heading tape (ticks + degrees + cardinals) with a marker
+// for where the aircraft is relative to the camera. The marker turns green and
+// snaps to centre once aligned, so the photographer knows to shoot.
+function PlaneHunterCompass({ direction }: { direction: PlaneDirection }) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const parent = canvas?.parentElement;
+    if (!canvas || !parent) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    const w = parent.clientWidth;
+    const h = parent.clientHeight;
+    if (w <= 0 || h <= 0) return;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W / 2;
+    const font = (px: number, weight = 400) => `${weight} ${px}px ${TPL_FONT}`;
+    ctx.clearRect(0, 0, W, H);
+
+    if (!direction.available) {
+      ctx.fillStyle = "rgba(242,243,238,0.4)";
+      ctx.font = font(H * 0.15);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Compass unavailable", cx, H * 0.6);
+      return;
+    }
+
+    const SPAN = 55; // degrees visible each side of centre
+    const pxPerDeg = W / 2 / SPAN;
+    const heading = direction.heading;
+    const baseline = H * 0.82;
+
+    // Heading tape — ticks every 5°, labels/cardinals every 30°.
+    ctx.textAlign = "center";
+    const startDeg = Math.ceil((heading - SPAN) / 2) * 2;
+    for (let d = startDeg; d <= heading + SPAN; d += 2) {
+      const norm = ((d % 360) + 360) % 360;
+      const x = cx + (d - heading) * pxPerDeg;
+      const major = norm % 30 === 0;
+      const cardinal = norm % 90 === 0;
+      const tickH = major ? H * 0.16 : H * 0.075;
+      ctx.strokeStyle = major
+        ? "rgba(242,243,238,0.7)"
+        : "rgba(242,243,238,0.28)";
+      ctx.lineWidth = Math.max(1, dpr);
+      ctx.beginPath();
+      ctx.moveTo(x, baseline);
+      ctx.lineTo(x, baseline - tickH);
+      ctx.stroke();
+      if (major) {
+        const label = cardinal ? ["N", "E", "S", "W"][norm / 90] : String(norm);
+        ctx.fillStyle = cardinal
+          ? "rgba(242,243,238,0.92)"
+          : "rgba(242,243,238,0.55)";
+        ctx.font = font(cardinal ? H * 0.19 : H * 0.14, cardinal ? 700 : 400);
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText(label, x, baseline - tickH - H * 0.05);
+      }
+    }
+
+    // Centre (camera) indicator — a thin marker line + triangle.
+    ctx.fillStyle = "rgba(242,243,238,0.5)";
+    ctx.beginPath();
+    ctx.moveTo(cx, baseline + H * 0.04);
+    ctx.lineTo(cx - H * 0.06, baseline + H * 0.16);
+    ctx.lineTo(cx + H * 0.06, baseline + H * 0.16);
+    ctx.closePath();
+    ctx.fill();
+
+    // Aircraft marker at the relative bearing (clamped to the visible range).
+    const aligned = direction.aligned;
+    const markerColor = aligned ? "rgb(82,220,140)" : TPL_ORANGE;
+    const clamped = Math.abs(direction.relative) > SPAN;
+    const mx = Math.max(
+      H * 0.16,
+      Math.min(W - H * 0.16, cx + direction.relative * pxPerDeg),
+    );
+    const my = H * 0.42;
+    ctx.strokeStyle = markerColor;
+    ctx.lineWidth = Math.max(2, dpr * 1.4);
+    ctx.beginPath();
+    ctx.moveTo(mx, my + H * 0.11);
+    ctx.lineTo(mx, baseline - H * 0.02);
+    ctx.stroke();
+    ctx.fillStyle = markerColor;
+    ctx.beginPath();
+    ctx.arc(mx, my, H * 0.13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "rgb(20,20,18)";
+    ctx.font = font(H * 0.15, 700);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("✈", mx, my + H * 0.005);
+
+    // Relative-angle readout.
+    const angle = Math.round(Math.abs(direction.relative));
+    const label = aligned
+      ? "AHEAD"
+      : `${direction.relative > 0 ? "R" : "L"} ${angle}°${clamped ? " ›" : ""}`;
+    ctx.fillStyle = markerColor;
+    ctx.font = font(H * 0.16, 800);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(label, cx, H * 0.2);
+
+    return;
+  }, [direction]);
+  return <canvas ref={canvasRef} aria-hidden="true" className="h-full w-full" />;
 }
 
 function PlaneHunterLiveCameraView({
   labels,
   videoRef,
+  captureAreaRef,
   cameraReady,
   zoom,
   zoomRange,
   cameraDevices,
   selectedCameraDeviceId,
   status,
+  template,
+  onSelectTemplate,
   onZoomChange,
+  onZoomCycle,
   onCameraDeviceSelect,
+  onCameraCycle,
   onCapture,
   onStartCamera,
   onChooseLibrary,
@@ -1394,121 +1297,152 @@ function PlaneHunterLiveCameraView({
 }: {
   labels: AircraftLabels;
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  captureAreaRef: React.RefObject<HTMLDivElement | null>;
   cameraReady: boolean;
   zoom: number;
   zoomRange: CameraZoomRange;
   cameraDevices: CameraDeviceOption[];
   selectedCameraDeviceId: string;
   status: string;
+  template: PlaneHunterTemplate;
+  onSelectTemplate: (next: PlaneHunterTemplate) => void;
   onZoomChange: (nextZoom: number) => void;
+  onZoomCycle: () => void;
   onCameraDeviceSelect: (deviceId: string) => void;
+  onCameraCycle: () => void;
   onCapture: () => void;
   onStartCamera: () => void;
   onChooseLibrary: () => void;
   onClose: () => void;
   t: PlaneHunterTranslator;
 }) {
+  const direction = usePlaneDirection(labels.lat, labels.lon);
   return (
-    <div className="absolute inset-0 flex flex-col bg-black">
-      <PlaneHunterMetadataBar labels={labels} onClose={onClose} t={t} />
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
-        {cameraReady ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="grid h-full w-full place-items-center bg-[radial-gradient(circle_at_50%_34%,rgba(242,243,238,0.11),transparent_36%),linear-gradient(180deg,rgba(242,243,238,0.03),transparent_30%),rgb(4,4,4)]">
-            <span className="inline-flex size-20 items-center justify-center rounded-full border border-[rgba(242,243,238,0.1)] bg-[rgba(242,243,238,0.05)] text-[rgba(242,243,238,0.5)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-              <Camera aria-hidden="true" className="size-8" />
-            </span>
-          </div>
-        )}
-        {status && (
-          <div className="absolute inset-x-3 top-3 mx-auto max-w-[420px] rounded-full bg-[rgba(0,0,0,0.52)] px-3 py-2 text-center text-[11px] font-bold leading-snug text-[rgba(242,243,238,0.82)] backdrop-blur-md">
-            {status}
-          </div>
-        )}
-      </div>
-      <footer className="flex flex-none flex-col gap-4 border-t border-[rgba(242,243,238,0.08)] bg-[color-mix(in_oklab,black_72%,transparent)] px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-4 text-[rgb(242,243,238)] shadow-[0_-18px_42px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:px-6">
-        <PlaneHunterCameraZoomControl
-          zoom={zoom}
-          range={zoomRange}
-          cameraDevices={cameraDevices}
-          selectedCameraDeviceId={selectedCameraDeviceId}
-          onChange={onZoomChange}
-          onCameraDeviceSelect={onCameraDeviceSelect}
-          t={t}
+    <div className="absolute inset-0 overflow-hidden bg-black">
+      {/* Live feed fills the frame; the chrome floats over it so only the
+          clear middle is the capture area and the rest dims the feed. */}
+      {cameraReady ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-          <button
-            type="button"
-            onClick={onChooseLibrary}
-            aria-label={t("planeHunter.chooseLibrary")}
-            title={t("planeHunter.chooseLibrary")}
-            className="inline-flex size-[52px] items-center justify-center justify-self-start rounded-full border border-[rgba(242,243,238,0.13)] bg-[rgba(242,243,238,0.08)] text-[rgba(242,243,238,0.86)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_22px_rgba(0,0,0,0.2)] transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95"
-          >
-            <ImageIcon aria-hidden="true" className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={cameraReady ? onCapture : onStartCamera}
-            aria-label={cameraReady ? t("planeHunter.takePhoto") : t("planeHunter.tryAgain")}
-            className="size-[74px] rounded-full border-[5px] border-[rgba(242,243,238,0.92)] bg-[rgba(242,243,238,0.18)] shadow-[0_10px_30px_rgba(0,0,0,0.34),inset_0_0_0_4px_rgba(0,0,0,0.84)] transition active:scale-95"
-          />
-          <span className="justify-self-center rounded-full bg-[rgba(242,243,238,0.08)] px-3 py-2 text-[11px] font-black text-[rgba(242,243,238,0.68)]">
-            {zoomRange.supported
-              ? `Max ${formatCameraZoom(zoomRange.max)}`
-              : t("planeHunter.cameraZoomUnsupported")}
+      ) : (
+        <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_34%,rgba(242,243,238,0.11),transparent_36%),linear-gradient(180deg,rgba(242,243,238,0.03),transparent_30%),rgb(4,4,4)]">
+          <span className="inline-flex size-20 items-center justify-center rounded-full border border-[rgba(242,243,238,0.1)] bg-[rgba(242,243,238,0.05)] text-[rgba(242,243,238,0.5)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+            <Camera aria-hidden="true" className="size-8" />
           </span>
         </div>
-      </footer>
+      )}
+      {/* Compass ribbon — where the aircraft is relative to the camera. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[max(84px,calc(env(safe-area-inset-top)+72px))] bg-[linear-gradient(180deg,rgba(0,0,0,0.5),transparent)] px-14 pb-2 pt-[max(8px,env(safe-area-inset-top))]">
+        <PlaneHunterCompass direction={direction} />
+      </div>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t("planeHunter.closeStudio")}
+        className="pointer-events-auto absolute left-3 top-[max(12px,env(safe-area-inset-top))] z-30 inline-flex size-10 items-center justify-center rounded-full bg-[rgba(0,0,0,0.42)] text-[rgba(242,243,238,0.92)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(0,0,0,0.56)] active:scale-95"
+      >
+        <X aria-hidden="true" className="size-4" />
+      </button>
+      {status && (
+        <div className="pointer-events-none absolute inset-x-0 top-[max(64px,calc(env(safe-area-inset-top)+56px))] z-30 flex justify-center px-4">
+          <span className="rounded-full bg-[rgba(0,0,0,0.55)] px-3 py-2 text-center text-[11px] font-bold leading-snug text-[rgba(242,243,238,0.85)] backdrop-blur-md">
+            {status}
+          </span>
+        </div>
+      )}
+      <div className="pointer-events-none absolute inset-0 flex flex-col landscape:flex-row">
+        {/* Capture area — the live template overlay renders here, and the
+            shutter grabs exactly this region (WYSIWYG). */}
+        <div ref={captureAreaRef} className="relative min-h-0 min-w-0 flex-1">
+          <PlaneHunterLiveTemplate template={template} labels={labels} />
+        </div>
+        <PlaneHunterControlDock
+          template={template}
+          onSelectTemplate={onSelectTemplate}
+          zoom={zoom}
+          zoomRange={zoomRange}
+          cameraDevices={cameraDevices}
+          selectedCameraDeviceId={selectedCameraDeviceId}
+          cameraReady={cameraReady}
+          onZoomChange={onZoomChange}
+          onZoomCycle={onZoomCycle}
+          onCameraDeviceSelect={onCameraDeviceSelect}
+          onCameraCycle={onCameraCycle}
+          onCapture={onCapture}
+          onStartCamera={onStartCamera}
+          onChooseLibrary={onChooseLibrary}
+          t={t}
+        />
+      </div>
     </div>
   );
 }
 
-function PlaneHunterComposeView({
-  labels,
-  previewImage,
-  capturedImage,
-  controlPanel,
+// Post-capture review: the frozen shot with retake / share. Action bar sits at
+// the bottom in portrait and on the trailing side in landscape.
+function PlaneHunterReviewView({
+  image,
+  onRetake,
+  onShare,
   onClose,
   t,
 }: {
-  labels: AircraftLabels;
-  previewImage: string;
-  capturedImage: string;
-  controlPanel: React.ReactNode;
+  image: string;
+  onRetake: () => void;
+  onShare: () => void;
   onClose: () => void;
   t: PlaneHunterTranslator;
 }) {
-  const imageSrc = previewImage || capturedImage;
   return (
-    <div className="absolute inset-0 flex flex-col bg-black">
-      <PlaneHunterMetadataBar labels={labels} onClose={onClose} t={t} />
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
-        <div className="absolute inset-0 overflow-hidden bg-black">
+    <div className="absolute inset-0 overflow-hidden bg-black">
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t("planeHunter.closeStudio")}
+        className="absolute left-3 top-[max(12px,env(safe-area-inset-top))] z-30 inline-flex size-10 items-center justify-center rounded-full bg-[rgba(0,0,0,0.42)] text-[rgba(242,243,238,0.92)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(0,0,0,0.56)] active:scale-95"
+      >
+        <X aria-hidden="true" className="size-4" />
+      </button>
+      <div className="absolute inset-0 flex flex-col landscape:flex-row">
+        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
           <img
-            src={imageSrc}
+            src={image}
             alt=""
             aria-hidden="true"
             className="absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-2xl"
             draggable="false"
           />
           <img
-            src={imageSrc}
+            src={image}
             alt=""
             className="relative z-[1] h-full w-full object-contain"
             draggable="false"
           />
         </div>
+        <div className="flex flex-none items-center justify-center gap-4 border-t border-[rgba(242,243,238,0.1)] bg-[color-mix(in_oklab,black_55%,transparent)] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 backdrop-blur-2xl landscape:h-full landscape:flex-col landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pr-[max(12px,env(safe-area-inset-right))]">
+          <button
+            type="button"
+            onClick={onRetake}
+            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[rgba(242,243,238,0.16)] bg-[rgba(242,243,238,0.08)] px-5 text-[13px] font-extrabold text-[rgba(242,243,238,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95"
+          >
+            <RotateCcw aria-hidden="true" className="size-4" />
+            {t("planeHunter.retake")}
+          </button>
+          <button
+            type="button"
+            onClick={onShare}
+            className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[rgb(242,243,238)] px-6 text-[13px] font-black text-[rgb(20,20,18)] shadow-[0_8px_22px_rgba(0,0,0,0.3)] transition hover:bg-white active:scale-95"
+          >
+            <Share2 aria-hidden="true" className="size-4" />
+            {t("planeHunter.share")}
+          </button>
+        </div>
       </div>
-      <footer className="flex flex-none flex-col border-t border-[rgba(242,243,238,0.08)] bg-[color-mix(in_oklab,black_72%,transparent)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 text-[rgb(242,243,238)] shadow-[0_-18px_42px_rgba(0,0,0,0.34)] backdrop-blur-2xl md:px-6 md:pb-[max(16px,env(safe-area-inset-bottom))] md:pt-4">
-        <div className="mx-auto w-full max-w-[760px]">{controlPanel}</div>
-      </footer>
     </div>
   );
 }
@@ -1527,6 +1461,7 @@ export default function PlaneHunterStudio({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const captureAreaRef = useRef<HTMLDivElement | null>(null);
   const cameraStartAttemptedRef = useRef(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [cameraZoom, setCameraZoom] = useState(1);
@@ -1579,39 +1514,6 @@ export default function PlaneHunterStudio({
     }
   }, []);
 
-  // Lazy-request the photographer's location when the maps template is
-  // chosen — keeps the studio from prompting for geolocation up front
-  // and only asks when the user actively wants the map centered on
-  // themselves. Stays idle for the other templates.
-  useEffect(() => {
-    if (!open || template !== "maps" || userLocationStatus !== "idle") return;
-    if (
-      typeof navigator === "undefined" ||
-      !navigator.geolocation?.getCurrentPosition
-    ) {
-      setUserLocationStatus("unavailable");
-      return;
-    }
-    setUserLocationStatus("requesting");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
-          setUserLocation({ lat: latitude, lon: longitude });
-          setUserLocationStatus("granted");
-        } else {
-          setUserLocationStatus("unavailable");
-        }
-      },
-      (error) => {
-        setUserLocationStatus(
-          error?.code === error?.PERMISSION_DENIED ? "denied" : "unavailable",
-        );
-      },
-      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
-    );
-  }, [open, template, userLocationStatus]);
-
   const toggleField = useCallback((field: MetaField) => {
     setEnabledFields((current) => {
       const next = new Set(current);
@@ -1627,23 +1529,63 @@ export default function PlaneHunterStudio({
 
   // Read a selected photo-library file into the captured-image state.
   // Live camera frames use captureCameraFrame instead.
-  const ingestFile = useCallback(async (file: File) => {
-    try {
-      stopCamera();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ""));
-        reader.onerror = () => reject(reader.error || new Error("read failed"));
-        reader.readAsDataURL(file);
+  // Bake the final canvas (photo + template) and hand it to the OS share
+  // sheet — used by both the shutter and the library picker.
+  const shareCanvas = useCallback(
+    async (canvas: HTMLCanvasElement) => {
+      const blob = await canvasToBlob(canvas);
+      const filename = `adsbao-plane-hunter-${labels.callsign.toLowerCase()}.png`;
+      const file = new File([blob], filename, {
+        type: blob.type || "image/png",
       });
-      if (!dataUrl) return;
-      setPreviewImage("");
-      setCapturedImage(dataUrl);
-      setStatus("");
-    } catch {
-      setStatus(t("planeHunter.saveFailed"));
-    }
-  }, [stopCamera, t]);
+      if (
+        typeof navigator === "undefined" ||
+        typeof navigator.share !== "function" ||
+        (typeof navigator.canShare === "function" &&
+          !navigator.canShare({ files: [file] }))
+      ) {
+        setStatus(t("planeHunter.shareUnsupported"));
+        return;
+      }
+      await navigator.share({ files: [file] });
+      setStatus(t("planeHunter.shared"));
+    },
+    [labels.callsign, t],
+  );
+
+  // Library photo → bake the template at the image's native size, share.
+  const ingestFile = useCallback(
+    async (file: File) => {
+      try {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () =>
+            reject(reader.error || new Error("read failed"));
+          reader.readAsDataURL(file);
+        });
+        if (!dataUrl) return;
+        const image = await loadImage(dataUrl);
+        const cw = image.naturalWidth || image.width;
+        const ch = image.naturalHeight || image.height;
+        const canvas = document.createElement("canvas");
+        canvas.width = cw;
+        canvas.height = ch;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(image, 0, 0, cw, ch);
+        await ensureTemplateFonts();
+        if (template !== "none") {
+          drawTemplate(ctx, template, labels, cw, ch, mapPosition, null, "", "");
+        }
+        setCapturedImage(canvas.toDataURL("image/png"));
+        stopCamera();
+      } catch {
+        setStatus(t("planeHunter.saveFailed"));
+      }
+    },
+    [labels, mapPosition, stopCamera, t, template],
+  );
 
   const handleFileInput = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -1765,28 +1707,95 @@ export default function PlaneHunterStudio({
     [selectedCameraDeviceId, startSystemCamera],
   );
 
-  const captureCameraFrame = useCallback(() => {
+  const switchableCameraDevices = useMemo(
+    () => selectSwitchableCameras(cameraDevices),
+    [cameraDevices],
+  );
+
+  // Tap-to-cycle: advance to the next switchable (back) camera, wrapping
+  // around. A current id outside the list (e.g. a filtered-out front cam)
+  // resolves to the first entry.
+  const handleCameraDeviceCycle = useCallback(() => {
+    const list = switchableCameraDevices;
+    if (list.length <= 1) return;
+    const currentIndex = list.findIndex(
+      (device) => device.deviceId === selectedCameraDeviceId,
+    );
+    const next = list[(currentIndex + 1) % list.length] ?? list[0];
+    if (next) handleCameraDeviceSelect(next.deviceId);
+  }, [switchableCameraDevices, selectedCameraDeviceId, handleCameraDeviceSelect]);
+
+  // Tap-to-cycle zoom: step to the next preset stop (1x → 2x → 4x → …),
+  // wrapping around. A continuous value between stops resolves to the first.
+  const handleZoomCycle = useCallback(() => {
+    const stops = getCameraZoomStops(cameraZoomRange);
+    if (stops.length <= 1) return;
+    const currentIndex = stops.findIndex(
+      (stop) => Math.abs(stop - cameraZoom) < Math.max(cameraZoomRange.step, 0.1),
+    );
+    const next = stops[(currentIndex + 1) % stops.length] ?? stops[0];
+    handleCameraZoomChange(next);
+  }, [cameraZoom, cameraZoomRange, handleCameraZoomChange]);
+
+  // Shutter: grab exactly the capture area (video cover-cropped to it) with
+  // the live template baked on, then share straight away — no edit step.
+  // Shutter: grab exactly the capture area (video cover-cropped to it) with the
+  // template baked on, then freeze it for the retake / share review.
+  const captureToReview = useCallback(async () => {
     const video = videoRef.current;
-    const width = video?.videoWidth || 0;
-    const height = video?.videoHeight || 0;
-    if (!video || width <= 0 || height <= 0) {
+    const area = captureAreaRef.current;
+    const vw = video?.videoWidth || 0;
+    const vh = video?.videoHeight || 0;
+    if (!video || vw <= 0 || vh <= 0 || !area) {
       setStatus(t("planeHunter.cameraUnavailable"));
       return;
     }
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext("2d");
-    if (!context) {
-      setStatus(t("planeHunter.cameraUnavailable"));
-      return;
+    try {
+      const rect = area.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      const cw = Math.max(2, Math.round((rect.width || vw) * dpr));
+      const ch = Math.max(2, Math.round((rect.height || vh) * dpr));
+      const canvas = document.createElement("canvas");
+      canvas.width = cw;
+      canvas.height = ch;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        setStatus(t("planeHunter.cameraUnavailable"));
+        return;
+      }
+      // Cover-crop the video into the capture area (matches the live view).
+      const scale = Math.max(cw / vw, ch / vh);
+      const dw = vw * scale;
+      const dh = vh * scale;
+      context.drawImage(video, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+      await ensureTemplateFonts();
+      if (template !== "none") {
+        drawTemplate(context, template, labels, cw, ch, mapPosition, null, "", "");
+      }
+      setCapturedImage(canvas.toDataURL("image/png"));
+      stopCamera();
+    } catch {
+      setStatus(t("planeHunter.saveFailed"));
     }
-    context.drawImage(video, 0, 0, width, height);
-    setPreviewImage("");
-    setCapturedImage(canvas.toDataURL("image/png"));
-    setStatus("");
-    stopCamera();
-  }, [stopCamera, t]);
+  }, [labels, mapPosition, stopCamera, t, template]);
+
+  // Share the frozen review image via the OS share sheet.
+  const shareCapturedImage = useCallback(async () => {
+    if (!capturedImage) return;
+    try {
+      const image = await loadImage(capturedImage);
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth || image.width;
+      canvas.height = image.naturalHeight || image.height;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      await shareCanvas(canvas);
+    } catch (error) {
+      if ((error as Error | undefined)?.name === "AbortError") return;
+      setStatus(t("planeHunter.saveFailed"));
+    }
+  }, [capturedImage, shareCanvas, t]);
 
   const triggerLibraryPicker = useCallback(() => {
     const input = fileInputRef.current;
@@ -1835,119 +1844,7 @@ export default function PlaneHunterStudio({
     setStatus("");
   }, []);
 
-  const renderFinalCanvas = useCallback(async () => {
-    if (!capturedImage) return null;
-    const image = await loadImage(capturedImage);
-    const canvas = document.createElement("canvas");
-    canvas.width = image.naturalWidth || image.width;
-    canvas.height = image.naturalHeight || image.height;
-    const context = canvas.getContext("2d");
-    if (!context) return null;
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    const mapTile =
-      template === "maps"
-        ? await loadMapTile({
-            userLat: userLocation?.lat ?? null,
-            userLon: userLocation?.lon ?? null,
-            planeLat: labels.lat,
-            planeLon: labels.lon,
-            planeHeading: labels.track,
-          })
-        : null;
-    const mapMissingLabel =
-      userLocationStatus === "requesting"
-        ? t("planeHunter.mapLocating")
-        : userLocationStatus === "denied"
-          ? t("planeHunter.mapLocationDenied")
-          : t("planeHunter.mapMissingPosition");
-    drawTemplate(
-      context,
-      template,
-      labels,
-      canvas.width,
-      canvas.height,
-      mapPosition,
-      mapTile,
-      mapMissingLabel,
-      t("planeHunter.mapAttribution"),
-    );
-    return canvas;
-  }, [
-    capturedImage,
-    labels,
-    mapPosition,
-    t,
-    template,
-    userLocation,
-    userLocationStatus,
-  ]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!capturedImage) {
-      setPreviewImage("");
-      return undefined;
-    }
-
-    renderFinalCanvas()
-      .then((canvas) => {
-        if (cancelled) return;
-        setPreviewImage(canvas?.toDataURL("image/png") || capturedImage);
-      })
-      .catch(() => {
-        if (!cancelled) setPreviewImage(capturedImage);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [capturedImage, renderFinalCanvas]);
-
-  const shareImage = useCallback(async () => {
-    try {
-      const canvas = await renderFinalCanvas();
-      if (!canvas) return;
-      const blob = await canvasToBlob(canvas);
-      const filename = `adsbao-plane-hunter-${labels.callsign.toLowerCase()}.png`;
-      const file = new File([blob], filename, {
-        type: blob.type || "image/png",
-      });
-
-      if (
-        typeof navigator === "undefined" ||
-        typeof navigator.share !== "function" ||
-        (typeof navigator.canShare === "function" &&
-          !navigator.canShare({ files: [file] }))
-      ) {
-        setStatus(t("planeHunter.shareUnsupported"));
-        return;
-      }
-
-      await navigator.share({ files: [file] });
-      setStatus(t("planeHunter.shared"));
-    } catch (error) {
-      if ((error as Error | undefined)?.name === "AbortError") return;
-      setStatus(t("planeHunter.saveFailed"));
-    }
-  }, [labels.callsign, renderFinalCanvas, t]);
-
   if (!open) return null;
-
-  const controlPanel = (
-    <PlaneHunterControlPanel
-      template={template}
-      onSelectTemplate={setTemplate}
-      enabledFields={enabledFields}
-      onToggleField={toggleField}
-      mapPosition={mapPosition}
-      onSelectMapPosition={setMapPosition}
-      status={status}
-      onRetake={retake}
-      onShare={shareImage}
-      t={t}
-    />
-  );
 
   return (
     <div
@@ -1961,11 +1858,10 @@ export default function PlaneHunterStudio({
           className="dither-page-background plane-hunter-stage relative min-h-0 flex-1 overflow-hidden bg-black"
         >
           {captured ? (
-            <PlaneHunterComposeView
-              labels={labels}
-              previewImage={previewImage}
-              capturedImage={capturedImage}
-              controlPanel={controlPanel}
+            <PlaneHunterReviewView
+              image={capturedImage}
+              onRetake={retake}
+              onShare={shareCapturedImage}
               onClose={close}
               t={t}
             />
@@ -1973,15 +1869,20 @@ export default function PlaneHunterStudio({
             <PlaneHunterLiveCameraView
               labels={labels}
               videoRef={videoRef}
+              captureAreaRef={captureAreaRef}
               cameraReady={Boolean(cameraStream)}
               zoom={cameraZoom}
               zoomRange={cameraZoomRange}
-              cameraDevices={cameraDevices}
+              cameraDevices={switchableCameraDevices}
               selectedCameraDeviceId={selectedCameraDeviceId}
               status={status}
+              template={template}
+              onSelectTemplate={setTemplate}
               onZoomChange={handleCameraZoomChange}
+              onZoomCycle={handleZoomCycle}
               onCameraDeviceSelect={handleCameraDeviceSelect}
-              onCapture={captureCameraFrame}
+              onCameraCycle={handleCameraDeviceCycle}
+              onCapture={captureToReview}
               onStartCamera={() => startSystemCamera(selectedCameraDeviceId)}
               onChooseLibrary={triggerLibraryPicker}
               onClose={close}

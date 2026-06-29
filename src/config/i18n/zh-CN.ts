@@ -407,6 +407,11 @@ const zhCN = {
     cameraLensCount: "{count} 个镜头",
     currentLens: "当前镜头",
     cameraOption: "镜头 {number}",
+    switchCamera: "切换摄像头",
+    switchCameraSingle: "仅有一个可用摄像头",
+    chooseCamera: "选择摄像头",
+    zoomLabel: "缩放 {value}",
+    dismiss: "关闭",
     cameraPickerUnavailable: "浏览器目前只暴露了当前镜头。",
     zoomInfoTitle: "关于倍率",
     zoomInfoBody:
