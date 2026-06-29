@@ -85,15 +85,15 @@ const TRACE_VIEW_ALL = "all";
 // leg with no ADS-B and no FlightAware).
 const FLIGHT_NO_POSITION_GRACE_MS = 9000;
 
-export default function FlightExplorer({ callsign = "" }) {
+export default function FlightExplorer({ callsign = "", icaoHint = "" }) {
   return (
     <ExplorerUiProvider>
-      <FlightExplorerContent callsign={callsign} />
+      <FlightExplorerContent callsign={callsign} icaoHint={icaoHint} />
     </ExplorerUiProvider>
   );
 }
 
-function FlightExplorerContent({ callsign }) {
+function FlightExplorerContent({ callsign, icaoHint = "" }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   // Flight → flight navigation does a HARD reload to the new URL rather than an
@@ -186,6 +186,7 @@ function FlightExplorerContent({ callsign }) {
   } = useTrackedAircraft(callsign, {
     flightAwareEnabled,
     flightAwareResolved,
+    icaoHint,
   });
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
   const [contextTiles, setContextTiles] = useState({

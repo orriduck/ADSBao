@@ -4,8 +4,10 @@ import {
   Route,
   Routes,
   useParams,
+  useSearchParams,
 } from "react-router-dom";
 import { normalizeCallsign } from "@/utils/callsign";
+import { normalizeAircraftHex } from "@/lib/realtime/realtimeChannels";
 
 const DitherPageShell = lazy(() => import("@/components/app-shell/DitherPageShell"));
 const AboutPanel = lazy(() => import("@/components/about/AboutPanel"));
@@ -17,7 +19,13 @@ const NearMeScreen = lazy(() => import("@/components/screens/NearMeScreen"));
 
 function FlightRoute() {
   const { callsign = "" } = useParams();
-  return <FlightScreen callsign={normalizeCallsign(callsign)} />;
+  const [searchParams] = useSearchParams();
+  // ?icao= 提示:从地图/侧栏点进来时带上的 ICAO24,让详情页在 /callsign/
+  // 上游索引缺这架时回落到稳定的 /hex/ 源。冷链接没有它则照旧。
+  const icaoHint = normalizeAircraftHex(searchParams.get("icao"));
+  return (
+    <FlightScreen callsign={normalizeCallsign(callsign)} icaoHint={icaoHint} />
+  );
 }
 
 function RouteBoundary({ children }: { children: ReactNode }) {

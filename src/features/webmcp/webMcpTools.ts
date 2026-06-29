@@ -83,8 +83,18 @@ const aircraftNavigationSchema = {
       type: "string",
       description: "Aircraft callsign to open, such as DAL123 or AFR331E.",
     },
+    icao: {
+      type: "string",
+      description:
+        "Optional ICAO24 hex address (6 hex chars) of the aircraft. Improves position reliability when the callsign index lags.",
+    },
   },
   required: ["callsign"],
+};
+
+const normalizeHexHint = (value: unknown) => {
+  const hex = String(value || "").trim().toUpperCase();
+  return /^[A-F0-9]{6}$/.test(hex) ? hex : "";
 };
 
 const normalizeAirportIdent = (value: unknown) =>
@@ -203,7 +213,10 @@ export function createAdsbaoWebMcpTools(runtime: WebMcpRuntime): WebMcpTool[] {
       execute(input = {}) {
         const callsign = normalizeCallsign(input.callsign);
         if (!callsign) return toolResult("Aircraft navigation requires a callsign.");
-        const path = `/aircraft/${encodeURIComponent(callsign)}`;
+        const hex = normalizeHexHint(input.icao);
+        const path = `/aircraft/${encodeURIComponent(callsign)}${
+          hex ? `?icao=${hex}` : ""
+        }`;
         runtime.navigate(path);
         return toolResult(`Opening aircraft ${callsign}.`, { path, callsign });
       },
