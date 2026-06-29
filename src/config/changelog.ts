@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 65;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.41.2",
+    version: "v2.41.3",
     kind: "feat",
     title: {
       en: "Plane Hunter: live templates, a compass, and one-tap capture",

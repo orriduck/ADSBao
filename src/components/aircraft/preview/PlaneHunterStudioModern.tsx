@@ -37,6 +37,10 @@ const META_FIELDS = [
 type MetaField = (typeof META_FIELDS)[number];
 const DEFAULT_META_FIELDS = new Set<MetaField>(META_FIELDS);
 
+// Hard cap on the displayed aircraft type so an over-long model name can't
+// overflow or squash the compact template type block.
+const PLANE_HUNTER_TYPE_MAX_LEN = 14;
+
 const MAP_POSITIONS = [
   "bottomRight",
   "bottomLeft",
@@ -138,11 +142,17 @@ function getAircraftLabels(
   // preview cards use) so it reads t / type / icaoType / desc consistently —
   // a bare `aircraft?.type` misses the ICAO `t` field on live entities.
   const typeDisplay = resolveAircraftDisplayModel(aircraft ?? {});
-  const type =
+  const resolvedType =
     typeDisplay.icaoType ||
     typeDisplay.shortName ||
     typeDisplay.category ||
     "";
+  // Cap long type names (some desc-derived models run very long) so they don't
+  // overflow / shrink to unreadable in the compact template blocks.
+  const type =
+    resolvedType.length > PLANE_HUNTER_TYPE_MAX_LEN
+      ? `${resolvedType.slice(0, PLANE_HUNTER_TYPE_MAX_LEN - 1).trimEnd()}…`
+      : resolvedType;
   const registration = normalizeLabel(aircraft?.registration).toUpperCase();
   // Normalized aircraft entities use velocity / baroRate (camelCase); raw
   // ADS-B feeds use gs / baro_rate. Read both so speed + vertical rate resolve.
