@@ -51,6 +51,36 @@ export const CHANGELOG_TOTAL_COUNT = 65;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
+    version: "v2.42.0",
+    kind: "feat",
+    title: {
+      en: "A zoom slider for the map, and clearer building footprints",
+      zh: "地图缩放滑条 + 更清晰的建筑轮廓",
+    },
+    summary: {
+      en: "The map's Far / Medium / Near zoom menu became a single magnifier button that shows the current level (e.g. 13x) and opens a slider — drag from 10x to 15x, snapping at each whole step, while the map stays centred on the airport instead of jumping between three fixed levels. On the flight-tracking page the full-trace and all-points view toggles fold into that same submenu so the toolbar stays short. Separately, building footprints on the standard map now read with more contrast, so the surrounding city stays legible at neighbourhood zoom.",
+      zh: "地图的 远 / 中 / 近 三档缩放菜单,变成一个显示当前倍数(如 13x)的放大镜按钮,点开是一根滑条——从 10x 拖到 15x、每一级吸附,缩放时地图始终以机场为中心,不再在三个固定档位间跳。飞机追踪页的「完整航迹 / 所有记录点」也收进同一个子菜单,工具栏更短。另外,标准地图的建筑轮廓提高了对比度,放大到街区级时周边城市更清晰。",
+    },
+    highlights: [
+      {
+        en: "Zoom is a slider now (10x–15x, snaps each step) on a magnifier button that shows the current level — replacing the three fixed Far / Medium / Near presets.",
+        zh: "缩放改成滑条(10x–15x、逐级吸附),放大镜按钮上显示当前倍数——取代原来的 远 / 中 / 近 三档。",
+      },
+      {
+        en: "Zooming keeps the airport centred; the map no longer jumps between fixed levels.",
+        zh: "缩放时机场始终居中,不再在固定档位间跳变。",
+      },
+      {
+        en: "Flight page: the full-trace / all-points toggles fold into the same zoom submenu, shortening the toolbar.",
+        zh: "飞机页:完整航迹 / 所有记录点 收进同一个缩放子菜单,工具栏更短。",
+      },
+      {
+        en: "Standard-map building footprints get more contrast for legibility at neighbourhood zoom.",
+        zh: "标准地图建筑轮廓提高对比度,街区级缩放更清晰。",
+      },
+    ],
+  },
+  {
     version: "v2.41.3",
     kind: "feat",
     title: {

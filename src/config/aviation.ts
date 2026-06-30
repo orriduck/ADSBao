@@ -4,6 +4,10 @@ export const AIRPORT_MAP_ZOOM = {
   detail: 13.5,
 };
 
+// 机场地图自由缩放范围(Leaflet zoom)。预设作为滑条上的吸附点。
+export const AIRPORT_MAP_ZOOM_MIN = 10;
+export const AIRPORT_MAP_ZOOM_MAX = 15;
+
 export const AIRPORT_EXPLORER_UI_CONFIG = {
   desktopSidebarWidth: "var(--app-sidebar-width)",
   mobileBreakpointPx: 768,
