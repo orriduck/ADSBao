@@ -51,20 +51,20 @@ export const CHANGELOG_TOTAL_COUNT = 65;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.42.0",
+    version: "v2.42.1",
     kind: "feat",
     title: {
       en: "A zoom slider for the map, and clearer building footprints",
       zh: "地图缩放滑条 + 更清晰的建筑轮廓",
     },
     summary: {
-      en: "The map's Far / Medium / Near zoom menu became a single magnifier button that shows the current level (e.g. 13x) and opens a slider — drag from 10x to 15x, snapping at each whole step, while the map stays centred on the airport instead of jumping between three fixed levels. On the flight-tracking page the full-trace and all-points view toggles fold into that same submenu so the toolbar stays short. Separately, building footprints on the standard map now read with more contrast, so the surrounding city stays legible at neighbourhood zoom.",
-      zh: "地图的 远 / 中 / 近 三档缩放菜单,变成一个显示当前倍数(如 13x)的放大镜按钮,点开是一根滑条——从 10x 拖到 15x、每一级吸附,缩放时地图始终以机场为中心,不再在三个固定档位间跳。飞机追踪页的「完整航迹 / 所有记录点」也收进同一个子菜单,工具栏更短。另外,标准地图的建筑轮廓提高了对比度,放大到街区级时周边城市更清晰。",
+      en: "The map's Far / Medium / Near zoom menu became a single compact viewfinder button that frames the current level (e.g. 13) and opens a slider — drag from 10x to 15x, snapping at each whole step, while the map stays centred on the airport instead of jumping between three fixed levels. The button stays the same compact size as the rest of the toolbar. On the flight-tracking page the full-trace and all-points view toggles fold into that same submenu so the toolbar stays short. Separately, building footprints on the standard map now read with more contrast, so the surrounding city stays legible at neighbourhood zoom.",
+      zh: "地图的 远 / 中 / 近 三档缩放菜单,变成一个把当前倍数(如 13)框在取景框里的紧凑按钮,点开是一根滑条——从 10x 拖到 15x、每一级吸附,缩放时地图始终以机场为中心,不再在三个固定档位间跳。按钮与工具栏其他按钮一样紧凑等宽。飞机追踪页的「完整航迹 / 所有记录点」也收进同一个子菜单,工具栏更短。另外,标准地图的建筑轮廓提高了对比度,放大到街区级时周边城市更清晰。",
     },
     highlights: [
       {
-        en: "Zoom is a slider now (10x–15x, snaps each step) on a magnifier button that shows the current level — replacing the three fixed Far / Medium / Near presets.",
-        zh: "缩放改成滑条(10x–15x、逐级吸附),放大镜按钮上显示当前倍数——取代原来的 远 / 中 / 近 三档。",
+        en: "Zoom is a slider now (10x–15x, snaps each step) on a compact viewfinder button that frames the current level — replacing the three fixed Far / Medium / Near presets.",
+        zh: "缩放改成滑条(10x–15x、逐级吸附),紧凑的取景框按钮里显示当前倍数——取代原来的 远 / 中 / 近 三档。",
       },
       {
         en: "Zooming keeps the airport centred; the map no longer jumps between fixed levels.",
