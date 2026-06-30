@@ -53,7 +53,10 @@ func FromEnv(lookup LookupFunc) Config {
 		MaxSocketSubscriptions:        intValue(lookup("MAX_SOCKET_SUBSCRIPTIONS"), 96),
 		AllowedWSOrigins:              csv(lookup("ALLOWED_WS_ORIGINS")),
 		FlightAwareFallbackEnabled:    !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
-		FlightAwareAccessEnabled:      trueString(lookup("FLIGHTAWARE_ACCESS_ENABLED")),
+		// INTERNAL_ACCESS_ENABLED gates the private/secret service path. Falls
+		// back to the legacy FLIGHTAWARE_ACCESS_ENABLED name so existing deploys
+		// keep working until the env var is renamed in every environment.
+		FlightAwareAccessEnabled:      trueString(firstNonEmpty(lookup("INTERNAL_ACCESS_ENABLED"), lookup("FLIGHTAWARE_ACCESS_ENABLED"))),
 		FlightAwareServiceBaseURL:     strings.TrimRight(strings.TrimSpace(lookup("FLIGHTAWARE_SERVICE_BASE_URL")), "/"),
 		FlightAwareServiceToken:       strings.TrimSpace(lookup("FLIGHTAWARE_SERVICE_TOKEN")),
 		RealtimeAuthSecret:            strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),

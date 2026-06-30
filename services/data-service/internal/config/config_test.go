@@ -16,7 +16,7 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 		"MAX_SOCKET_SUBSCRIPTIONS":         "7",
 		"ALLOWED_WS_ORIGINS":               "https://staging.example, https://preview.example",
 		"FLIGHTAWARE_FALLBACK_ENABLED":     "false",
-		"FLIGHTAWARE_ACCESS_ENABLED":       "true",
+		"INTERNAL_ACCESS_ENABLED":          "true",
 		"FLIGHTAWARE_SERVICE_BASE_URL":     "https://flightaware-private.example/",
 		"FLIGHTAWARE_SERVICE_TOKEN":        "remote-token",
 		"ADSBAO_REALTIME_AUTH_SECRET":      "shared-secret",

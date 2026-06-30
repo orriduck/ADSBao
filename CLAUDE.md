@@ -7,24 +7,34 @@ Local dev needs **two services** running simultaneously. Vite proxies `/api`,
 
 | Service | Port | Start command |
 |---|---|---|
-| Go data-service | 8081 | `cd services/data-service && go run ./cmd/adsbao-data-service` |
+| Go data-service | 8081 | `./services/data-service/run-local.sh` (sources `.env.local`) |
 | Vite frontend | 3000 | `pnpm run dev` |
 
 ### Quick start (both services)
 
 ```bash
-# 1. Go data-service (port 8081) — must set PATH for arm64 binaries
-cd /Users/ruyyi/Devs/ADSBao/services/data-service
-export PATH="/opt/homebrew/bin:$PATH"
-PORT=8081 \
-FLIGHTAWARE_ACCESS_ENABLED=true \
-ADSBAO_REALTIME_AUTH_SECRET=any-random-string-works-locally \
-  go run ./cmd/adsbao-data-service &
+# 1. Go data-service (port 8081). run-local.sh sets PATH for arm64, sources
+#    .env.local (OPENAIP_API_KEY + DATABASE_URL + ADSBAO_REALTIME_AUTH_SECRET),
+#    frees :8081 if busy, then starts. A fresh start "just works" with real
+#    OurAirports runway geometry. Without OPENAIP_API_KEY airport endpoints 503;
+#    without DATABASE_URL runway geometry falls back to inferred (overlapping /
+#    phantom runways — the "black star").
+./services/data-service/run-local.sh &
 
 # 2. Vite frontend (port 3000)
 cd /Users/ruyyi/Devs/ADSBao
 export PATH="/opt/homebrew/bin:$PATH"
 pnpm run dev &
+```
+
+Manual alternative (explicit env, e.g. without `.env.local`):
+
+```bash
+cd services/data-service && export PATH="/opt/homebrew/bin:$PATH"
+PORT=8081 INTERNAL_ACCESS_ENABLED=true \
+ADSBAO_REALTIME_AUTH_SECRET=any-random-string-works-locally \
+OPENAIP_API_KEY=... DATABASE_URL=... \
+  go run ./cmd/adsbao-data-service &
 ```
 
 **Verify both:**
@@ -36,19 +46,20 @@ curl -s http://localhost:3000/                          # → 200 SPA homepage
 
 ### Go data-service env vars
 
-The Go service reads these from the environment (not `.env.local`). Required
-runtime secrets are set on Railway production; local `go run` must include them
-explicitly when exercising the same paths.
+The Go service reads these from the environment (it does **not** auto-load
+`.env.local`). `run-local.sh` sources `.env.local` and injects them; a manual
+`go run` must pass them explicitly. Required runtime secrets are set on Railway
+production.
 
 | Variable | Required | Default | Why |
 |---|---|---|---|
 | `PORT` | **Yes** | 8080 | Vite proxy targets 8081 → must override |
-| `FLIGHTAWARE_ACCESS_ENABLED` | **Yes** | `false` | Without it, `resolveRouteProvider()` falls back to adsbdb regardless of Clerk login |
+| `INTERNAL_ACCESS_ENABLED` | **Yes** | `false` | Gates the private/secret service path. Without it, `resolveRouteProvider()` falls back to adsbdb regardless of Clerk login. Legacy name `FLIGHTAWARE_ACCESS_ENABLED` is still read as a fallback. |
 | `FLIGHTAWARE_SERVICE_BASE_URL` | FlightAware paths | `""` | Private FlightAware service origin for callsign fallback, route lookup, and airline logos. Same-project Railway private URLs are supported, but a separate Railway project or other protected HTTPS origin is also valid when reachable with `FLIGHTAWARE_SERVICE_TOKEN`. |
 | `FLIGHTAWARE_SERVICE_TOKEN` | FlightAware paths | `""` | Bearer token sent to the private FlightAware service |
 | `ADSBAO_REALTIME_AUTH_SECRET` | **Yes** | `""` | HMAC key for `/api/realtime/auth?provider=flightaware`. Any non-empty string works locally. Missing → 503 |
-| `OPENAIP_API_KEY` | No | — | Airport data |
-| `DATABASE_URL` | No | — | Postgres for user settings |
+| `OPENAIP_API_KEY` | **Yes (local)** | — | Airport data. Missing → `/api/airport/*` returns 503 |
+| `DATABASE_URL` | **Yes (local)** | — | Postgres. Real OurAirports runway geometry + user settings + spotter data. Missing → runways fall back to inferred (overlapping / phantom runways) and spotter data is empty. Use the Railway Postgres `DATABASE_PUBLIC_URL` locally. |
 
 ## Product direction guardrails
 
@@ -95,8 +106,9 @@ Feature-flag gating is part of the contract:
 - FlightAware realtime/WebSocket subscriptions require
   `/api/realtime/auth?provider=flightaware` and
   `ADSBAO_REALTIME_AUTH_SECRET`.
-- `FLIGHTAWARE_ACCESS_ENABLED` and user feature flags open the FlightAware path;
-  they do not permit mixed-provider fallback.
+- `INTERNAL_ACCESS_ENABLED` (legacy: `FLIGHTAWARE_ACCESS_ENABLED`) and user
+  feature flags open the FlightAware path; they do not permit mixed-provider
+  fallback.
 
 FlightAware and adsbdb route lookup are mutually exclusive providers. When
 `routeProvider` is `flightaware`, do not subscribe to adsbdb route channels, do
