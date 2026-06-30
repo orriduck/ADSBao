@@ -5,11 +5,13 @@ import { useMetar } from "@/hooks/useMetar";
 import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
 import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel";
 import { resolveRouteLookupEnabled } from "@/features/aviation/flight-routes/flightRouteLookupModel";
+import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { normalizeCallsign } from "@/utils/callsign";
 import { enrichAircraftWithRoutes } from "./airportExplorerModel";
 
 export function useAirportExplorerData(
   airportProfile,
-  options: { metarIcao?: string } = {},
+  options: { metarIcao?: string; selectedAircraftId?: string } = {},
 ) {
   const { enabled: flightAwareEnabled, resolved: flightAwareResolved } = useFlightAwareEnabled();
   const routeProvider = resolveRouteProvider({ flightAwareEnabled });
@@ -45,6 +47,17 @@ export function useAirportExplorerData(
     airportProfile.lat,
     airportProfile.lon,
   );
+  // Fetch the focused/selected aircraft's route first. selectedAircraftId is
+  // an aircraft identity (hex, or callsign as fallback), so resolve it back to
+  // a callsign against the live list before handing it to the priority queue.
+  const priorityCallsigns = useMemo(() => {
+    if (!options.selectedAircraftId) return undefined;
+    const selected = aircraft.find(
+      (item) => getAircraftIdentity(item) === options.selectedAircraftId,
+    );
+    const callsign = selected ? normalizeCallsign(selected.callsign) : "";
+    return callsign ? [callsign] : undefined;
+  }, [aircraft, options.selectedAircraftId]);
   const {
     routesByCallsign,
     loadingCount: routeLoadingCount,
@@ -55,6 +68,7 @@ export function useAirportExplorerData(
       featureFlagsResolved: flightAwareResolved,
     }),
     routeProvider,
+    priorityCallsigns,
   });
 
   const aircraftWithRoutes = useMemo(

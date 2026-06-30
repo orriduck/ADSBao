@@ -54,6 +54,14 @@ export function useFlightRoutes(
     null,
   );
   const routeUnsubscribersRef = useRef(new Map<string, () => void>());
+  // Priority hints reorder the pending-lookup queue so a focused/selected
+  // aircraft is fetched ahead of the rest; they never feed cache keys or
+  // channel names (see buildRouteCacheKey / normalizeRouteContext), only the
+  // scheduler's queue ordering. Key the memo on the joined string so a fresh
+  // priority array each position poll doesn't churn routeContext.
+  const priorityCallsignsKey = Array.isArray(routeContextInput?.priorityCallsigns)
+    ? routeContextInput.priorityCallsigns.filter(Boolean).map(String).join("|")
+    : "";
   const routeContext = useMemo(
     () => ({
       icao: routeContextInput?.icao,
@@ -61,6 +69,9 @@ export function useFlightRoutes(
       lat: Number(routeContextInput?.lat),
       lon: Number(routeContextInput?.lon),
       routeProvider: routeContextInput?.routeProvider,
+      priorityCallsigns: priorityCallsignsKey
+        ? priorityCallsignsKey.split("|")
+        : undefined,
     }),
     [
       routeContextInput?.iata,
@@ -68,6 +79,7 @@ export function useFlightRoutes(
       routeContextInput?.lat,
       routeContextInput?.lon,
       routeContextInput?.routeProvider,
+      priorityCallsignsKey,
     ],
   );
   const routeTransport = useMemo(

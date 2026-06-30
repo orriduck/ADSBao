@@ -235,6 +235,7 @@ function AirportExplorerContent({
     : airportProfile.icao;
   const { weather, traffic } = useAirportExplorerData(airportProfile, {
     metarIcao,
+    selectedAircraftId,
   });
   const effectiveUserLocation =
     (nearMe ? null : userLocationLayer.userLocation) || nearMeMapUserLocation;
