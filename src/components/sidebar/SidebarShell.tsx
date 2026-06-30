@@ -152,7 +152,6 @@ export default function SidebarShell({
                     menuPlacement="bottom"
                     menuAlign="center"
                   />
-                  <ToolbarSeparator />
                   {!isLoaded ? (
                     <ToolbarAccountSlot aria-hidden="true" />
                   ) : showSignedIn ? (

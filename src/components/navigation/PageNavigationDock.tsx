@@ -116,8 +116,6 @@ export default function PageNavigationDock() {
           menuAlign="right"
         />
 
-        <ToolbarSeparator />
-
         {!isLoaded ? (
           <ToolbarAccountSlot aria-hidden="true" />
         ) : showSignedIn ? (

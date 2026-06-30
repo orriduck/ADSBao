@@ -54,50 +54,40 @@ export default function MapControlRail({
   return (
     <Toolbar className="isolate">
       {showSidebarToggle ? (
-        <>
-          <ToolbarButton
-            tone="rail"
-            title={t("map.openDetails")}
-            aria-label={t("map.openDetails")}
-            onClick={onToggleSidebar}
-          >
-            <MapControlIcon iconKey="panelsTopLeft" />
-          </ToolbarButton>
-          <ToolbarSeparator />
-        </>
+        <ToolbarButton
+          tone="rail"
+          title={t("map.openDetails")}
+          aria-label={t("map.openDetails")}
+          onClick={onToggleSidebar}
+        >
+          <MapControlIcon iconKey="panelsTopLeft" />
+        </ToolbarButton>
       ) : null}
 
       {showMapButton ? (
-        <>
-          <ToolbarButton
-            tone="rail"
-            title={t("nav.map")}
-            aria-label={t("nav.map")}
-            onClick={onMap}
-          >
-            <MapControlIcon iconKey="map" />
-          </ToolbarButton>
-          <ToolbarSeparator />
-        </>
+        <ToolbarButton
+          tone="rail"
+          title={t("nav.map")}
+          aria-label={t("nav.map")}
+          onClick={onMap}
+        >
+          <MapControlIcon iconKey="map" />
+        </ToolbarButton>
       ) : null}
 
       {/* 缩放滑条 + 航迹视图(完整航迹/所有记录点)全部收进这一个按钮的子菜单,
           避免工具栏过长。航迹两项只在飞机追踪页有。缩放与设置只在能看到地图时才有
-          意义,所以移动端 sidebar(surface="sidebar")里隐藏它们(连同其后的分隔符)。 */}
+          意义,所以移动端 sidebar(surface="sidebar")里隐藏它们。 */}
       {showZoom ? (
-        <>
-          <ZoomSliderButton
-            activeZoom={activeZoom}
-            min={zoomMin}
-            max={zoomMax}
-            disabled={zoomDisabled}
-            onZoom={onZoom}
-            traceItems={traceItems}
-            menuPlacement={menuPlacement}
-          />
-
-          <ToolbarSeparator />
-        </>
+        <ZoomSliderButton
+          activeZoom={activeZoom}
+          min={zoomMin}
+          max={zoomMax}
+          disabled={zoomDisabled}
+          onZoom={onZoom}
+          traceItems={traceItems}
+          menuPlacement={menuPlacement}
+        />
       ) : null}
 
       {showSettings ? (
@@ -144,8 +134,6 @@ export default function MapControlRail({
         menuPlacement={menuPlacement}
         menuAlign="center"
       />
-
-      <ToolbarSeparator />
 
       {/* Clerk auth — signed-in users get the UserButton avatar /
           dropdown, signed-out users get a Sign-in CTA styled like the

@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 66;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.42.3",
+    version: "v2.42.4",
     kind: "feat",
     title: {
       en: "A zoom slider for the map, and clearer building footprints",
@@ -85,6 +85,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "On mobile, opening the detail sidebar now hides the zoom and map-settings buttons from its toolbar — they only apply to the map, which isn't visible there.",
         zh: "移动端打开详情侧栏时,工具栏不再显示缩放和地图设置按钮——它们只对地图生效,而此时看不到地图。",
+      },
+      {
+        en: "Toolbars are less busy: every toolbar (map controls, page nav, sidebar) now keeps a single divider before the language/theme/account cluster instead of one between every group.",
+        zh: "工具栏更清爽:各处工具栏(地图控制、页面导航、侧栏)只在语言/主题/账号这一组前保留一条分隔符,不再每组之间都放一条。",
       },
     ],
   },
