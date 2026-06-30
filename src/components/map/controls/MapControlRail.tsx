@@ -38,6 +38,8 @@ export default function MapControlRail({
   settingsSheetId,
   showSidebarToggle = true,
   showMapButton = false,
+  showZoom = true,
+  showSettings = true,
   wakeLockActive = false,
   wakeLockSupported = false,
   onToggleSidebar,
@@ -80,30 +82,37 @@ export default function MapControlRail({
       ) : null}
 
       {/* 缩放滑条 + 航迹视图(完整航迹/所有记录点)全部收进这一个按钮的子菜单,
-          避免工具栏过长。航迹两项只在飞机追踪页有。 */}
-      <ZoomSliderButton
-        activeZoom={activeZoom}
-        min={zoomMin}
-        max={zoomMax}
-        disabled={zoomDisabled}
-        onZoom={onZoom}
-        traceItems={traceItems}
-        menuPlacement={menuPlacement}
-      />
+          避免工具栏过长。航迹两项只在飞机追踪页有。缩放与设置只在能看到地图时才有
+          意义,所以移动端 sidebar(surface="sidebar")里隐藏它们(连同其后的分隔符)。 */}
+      {showZoom ? (
+        <>
+          <ZoomSliderButton
+            activeZoom={activeZoom}
+            min={zoomMin}
+            max={zoomMax}
+            disabled={zoomDisabled}
+            onZoom={onZoom}
+            traceItems={traceItems}
+            menuPlacement={menuPlacement}
+          />
 
-      <ToolbarSeparator />
+          <ToolbarSeparator />
+        </>
+      ) : null}
 
-      <ToolbarButton
-        tone="rail"
-        active={settingsOpen}
-        aria-expanded={settingsOpen}
-        aria-controls={settingsSheetId}
-        title={t("map.settings")}
-        aria-label={t("map.settings")}
-        onClick={onToggleSettings}
-      >
-        <MapControlIcon iconKey={SETTINGS_ICON_KEY} />
-      </ToolbarButton>
+      {showSettings ? (
+        <ToolbarButton
+          tone="rail"
+          active={settingsOpen}
+          aria-expanded={settingsOpen}
+          aria-controls={settingsSheetId}
+          title={t("map.settings")}
+          aria-label={t("map.settings")}
+          onClick={onToggleSettings}
+        >
+          <MapControlIcon iconKey={SETTINGS_ICON_KEY} />
+        </ToolbarButton>
+      ) : null}
 
       <ToolbarButton
         tone="rail"
