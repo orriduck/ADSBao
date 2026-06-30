@@ -79,6 +79,11 @@ export default function MapControlBar({
     setSettingsOpen((value) => !value);
   };
 
+  // Zoom + settings only make sense while the map is visible. In the mobile
+  // sidebar surface the map isn't shown, so hide both controls (and the now
+  // unreachable settings sheet).
+  const showMapViewControls = surface !== "sidebar";
+
   return (
     <div
       ref={controlZone}
@@ -87,7 +92,8 @@ export default function MapControlBar({
         surface === "sidebar" && "map-ctrl-zone--sidebar",
       )}
     >
-      <MapSettingsSheet
+      {showMapViewControls && (
+        <MapSettingsSheet
         id={MAP_SETTINGS_SHEET_ID}
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
@@ -119,7 +125,8 @@ export default function MapControlBar({
         onToggleCandidateWatchingSpots={onToggleCandidateWatchingSpots}
         onToggleShowCallsigns={onToggleShowCallsigns}
         onToggleUserLocation={onToggleUserLocation}
-      />
+        />
+      )}
 
       <MapControlRail
         menuPlacement={menuPlacement}
@@ -136,6 +143,8 @@ export default function MapControlBar({
         settingsSheetId={MAP_SETTINGS_SHEET_ID}
         showSidebarToggle={showSidebarToggle}
         showMapButton={showMapButton}
+        showZoom={showMapViewControls}
+        showSettings={showMapViewControls}
         wakeLockActive={wakeLockActive}
         wakeLockSupported={wakeLockSupported}
         onToggleSidebar={onToggleSidebar}

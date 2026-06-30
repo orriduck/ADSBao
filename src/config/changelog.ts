@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 66;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.42.2",
+    version: "v2.42.3",
     kind: "feat",
     title: {
       en: "A zoom slider for the map, and clearer building footprints",
@@ -81,6 +81,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Selecting an aircraft on any tracking page now fetches its route first, so the focused flight's origin/destination fills in ahead of the surrounding traffic.",
         zh: "在任意追踪页选中一架飞机,现在会优先拉取它的航线,聚焦航班的出发/到达会先于周边交通显示出来。",
+      },
+      {
+        en: "On mobile, opening the detail sidebar now hides the zoom and map-settings buttons from its toolbar — they only apply to the map, which isn't visible there.",
+        zh: "移动端打开详情侧栏时,工具栏不再显示缩放和地图设置按钮——它们只对地图生效,而此时看不到地图。",
       },
     ],
   },
