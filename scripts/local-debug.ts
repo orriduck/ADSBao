@@ -285,6 +285,7 @@ function localServiceEnv(port: number) {
       "CLERK_JWKS_URL",
       "CLERK_SECRET_KEY",
       "DATABASE_URL",
+      "INTERNAL_ACCESS_ENABLED",
       "FLIGHTAWARE_ACCESS_ENABLED",
       "FLIGHTAWARE_FALLBACK_ENABLED",
       "OPENAIP_API_KEY",

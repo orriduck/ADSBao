@@ -8,6 +8,14 @@ fallback, health/debug endpoints, and Better Stack telemetry reporting.
 
 ```bash
 go test ./...
+
+# Recommended: sources repo-root .env.local (OPENAIP_API_KEY + DATABASE_URL +
+# ADSBAO_REALTIME_AUTH_SECRET), frees :8081, then starts on :8081. Without
+# DATABASE_URL runway geometry falls back to inferred endpoints; without
+# OPENAIP_API_KEY airport endpoints 503.
+./run-local.sh
+
+# Or a bare run with explicit env:
 PORT=8080 go run ./cmd/adsbao-data-service
 ```
 

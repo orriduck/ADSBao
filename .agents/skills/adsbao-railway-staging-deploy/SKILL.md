@@ -73,7 +73,7 @@ node -e 'const ws=new WebSocket("wss://adsbao-staging-production.up.railway.app/
 For env validation, only print presence or known non-secret values:
 
 ```bash
-railway run --service adsbao-staging --environment production -- sh -lc 'printf "FEATURE_FLAGS_ENV=%s\nFLIGHTAWARE_ACCESS_ENABLED=%s\nDATABASE_URL_SET=%s\n" "$FEATURE_FLAGS_ENV" "$FLIGHTAWARE_ACCESS_ENABLED" "$([ -n "$DATABASE_URL" ] && echo yes || echo no)"'
+railway run --service adsbao-staging --environment production -- sh -lc 'printf "FEATURE_FLAGS_ENV=%s\nINTERNAL_ACCESS_ENABLED=%s\nDATABASE_URL_SET=%s\n" "$FEATURE_FLAGS_ENV" "${INTERNAL_ACCESS_ENABLED:-$FLIGHTAWARE_ACCESS_ENABLED}" "$([ -n "$DATABASE_URL" ] && echo yes || echo no)"'
 ```
 
 Finish by restoring the default local CLI target:
