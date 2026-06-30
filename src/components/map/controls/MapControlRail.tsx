@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
-import { Check, LogIn, Search } from "lucide-react";
+import { Check, LogIn, Scan } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
@@ -275,12 +275,18 @@ function ZoomSliderButton({
         aria-label={title}
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="w-auto gap-1 px-2"
         onClick={() => setOpen((value) => !value)}
       >
-        <Search aria-hidden="true" />
-        <span className="text-[11px] font-semibold leading-none tabular-nums">
-          {current}x
+        {/* Viewfinder frame as anchor; current zoom is a decorative read-out
+            centered in the open frame (the real value is read by opening the
+            menu). The frame's hollow center clears the corner brackets, so the
+            glyph has room and never crowds the strokes — semantically still a
+            "map range / framing" control. */}
+        <span className="relative inline-flex items-center justify-center">
+          <Scan aria-hidden="true" />
+          <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
+            {current}
+          </span>
         </span>
       </ToolbarButton>
     </div>
