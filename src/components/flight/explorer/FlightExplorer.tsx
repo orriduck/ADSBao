@@ -519,12 +519,24 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
       nearbyAircraft,
     });
   }, [showNearbyTrafficContext, trackedAircraftForDisplay, nearbyAircraft]);
+  // Whatever the user has focused/selected gets its route fetched first, then
+  // the tracked aircraft, then the URL callsign. selectedAircraftId is an
+  // identity (hex, or callsign fallback), so resolve it to a callsign against
+  // the raw list before it reaches the priority queue.
+  const selectedPriorityCallsign = useMemo(() => {
+    if (!selectedAircraftId) return "";
+    const selected = rawAircraft.find(
+      (item) => getAircraftIdentity(item) === selectedAircraftId,
+    );
+    return selected ? normalizeCallsign(selected.callsign) : "";
+  }, [rawAircraft, selectedAircraftId]);
   const routePriorityCallsigns = useMemo(
     () => [
+      selectedPriorityCallsign,
       trackedAircraftForDisplay?.callsign,
       callsign,
     ],
-    [callsign, trackedAircraftForDisplay?.callsign],
+    [callsign, selectedPriorityCallsign, trackedAircraftForDisplay?.callsign],
   );
 
   // Look up routes for the tracked aircraft and any nearby traffic the user
