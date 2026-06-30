@@ -1,11 +1,11 @@
 import { useMemo, useRef, useState } from "react";
-import { MAP_ZOOM_OPTIONS } from "../../config/mapControls";
+import {
+  AIRPORT_MAP_ZOOM_MAX,
+  AIRPORT_MAP_ZOOM_MIN,
+} from "../../config/aviation";
 import { useThemePreference } from "../../features/app-shell/useThemePreference";
 import MapControlRail from "@/components/map/controls/MapControlRail";
 import MapSettingsSheet from "@/components/map/controls/MapSettingsSheet";
-import {
-  resolveZoomOption,
-} from "../../features/airport/map-controls/mapControlModel";
 import { ZOOM_AIRPORT } from "../../utils/airportMapDisplay";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -66,23 +66,6 @@ export default function MapControlBar({
     selectTheme,
   } = useThemePreference();
 
-  const currentZoomOption = useMemo(
-    () => resolveZoomOption(activeZoom, MAP_ZOOM_OPTIONS),
-    [activeZoom],
-  );
-
-  const zoomViewItems = useMemo(
-    () =>
-      MAP_ZOOM_OPTIONS.map((option) => ({
-        id: `zoom:${option.value}`,
-        label: t(option.labelKey),
-        iconKey: option.iconKey,
-        active: zoomActive && !zoomDisabled && option.value === activeZoom,
-        disabled: zoomDisabled,
-        onSelect: () => onZoom?.(option.value),
-      })),
-    [activeZoom, onZoom, t, zoomActive, zoomDisabled],
-  );
   const normalizedTraceViewItems = useMemo(
     () =>
       traceViewItems.map((item) => ({
@@ -91,16 +74,6 @@ export default function MapControlBar({
       })),
     [t, traceViewItems],
   );
-  const viewItems = useMemo(
-    () => [...zoomViewItems, ...normalizedTraceViewItems],
-    [normalizedTraceViewItems, zoomViewItems],
-  );
-  const currentZoomViewItem =
-    zoomViewItems.find((item) => item.id === `zoom:${activeZoom}`) ||
-    zoomViewItems[0] ||
-    null;
-  const activeViewItem =
-    viewItems.find((item) => item.active) || currentZoomViewItem;
 
   const toggleSettings = () => {
     setSettingsOpen((value) => !value);
@@ -150,11 +123,12 @@ export default function MapControlBar({
 
       <MapControlRail
         menuPlacement={menuPlacement}
-        currentZoomOption={currentZoomOption}
-        zoomViewItems={zoomViewItems}
-        currentZoomViewItem={currentZoomViewItem}
-        viewItems={viewItems}
-        activeViewItem={activeViewItem}
+        activeZoom={activeZoom}
+        zoomMin={AIRPORT_MAP_ZOOM_MIN}
+        zoomMax={AIRPORT_MAP_ZOOM_MAX}
+        zoomDisabled={zoomDisabled}
+        onZoom={onZoom}
+        traceItems={normalizedTraceViewItems}
         currentTheme={themePreference}
         themeTitle={themeTitle}
         onSelectTheme={selectTheme}

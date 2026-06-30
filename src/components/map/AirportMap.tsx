@@ -19,7 +19,11 @@ import AirportSurfaceLayer from "./AirportSurfaceLayer";
 import AirportGroundLightingLayer from "./AirportGroundLightingLayer";
 import { resolveRunwayAnnotationVisibility } from "../../features/airport/map/runwayAnnotationModel";
 import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap";
-import { AIRPORT_MAP_ZOOM } from "../../config/aviation";
+import {
+  AIRPORT_MAP_ZOOM,
+  AIRPORT_MAP_ZOOM_MAX,
+  AIRPORT_MAP_ZOOM_MIN,
+} from "../../config/aviation";
 import MapAttribution from "./MapAttribution";
 import MapLoadingOverlay, {
   useMapLoadingOverlayText,
@@ -204,10 +208,14 @@ export default function AirportMap({
     const map = L.map(mapEl.current, {
       center: [initialCenter.lat, initialCenter.lon],
       zoom,
+      minZoom: AIRPORT_MAP_ZOOM_MIN,
+      maxZoom: AIRPORT_MAP_ZOOM_MAX,
       zoomSnap: 0.25,
       zoomDelta: 0.5,
       zoomControl: false,
       attributionControl: false,
+      // 缩放只由工具栏滑条驱动(setMapZoom → setView),地图本身锁定直接交互,
+      // 中心不变。min/max 仅用于 setView 钳制滑条范围。
       scrollWheelZoom: false,
       dragging: false,
       touchZoom: false,

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
-import { Check, LogIn } from "lucide-react";
+import { Check, LogIn, Search } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
@@ -20,17 +20,17 @@ import {
 import { MapControlIcon } from "./mapControlIcons";
 
 const SETTINGS_ICON_KEY = "slidersHorizontal";
-const VIEW_MENU_LONG_PRESS_MS = 480;
 
 const RAIL_BUTTON_CLASS = toolbarButtonVariants({ tone: "rail" });
 
 export default function MapControlRail({
   menuPlacement = "bottom",
-  currentZoomOption,
-  zoomViewItems = [],
-  currentZoomViewItem = null,
-  viewItems = [],
-  activeViewItem = null,
+  activeZoom = 10,
+  zoomMin = 10,
+  zoomMax = 15,
+  zoomDisabled = false,
+  onZoom,
+  traceItems = [],
   currentTheme,
   themeTitle,
   onSelectTheme,
@@ -79,11 +79,15 @@ export default function MapControlRail({
         </>
       ) : null}
 
-      <ViewMenuButton
-        items={viewItems}
-        activeItem={activeViewItem || currentZoomOption}
-        cycleItems={zoomViewItems}
-        cycleActiveItem={currentZoomViewItem}
+      {/* 缩放滑条 + 航迹视图(完整航迹/所有记录点)全部收进这一个按钮的子菜单,
+          避免工具栏过长。航迹两项只在飞机追踪页有。 */}
+      <ZoomSliderButton
+        activeZoom={activeZoom}
+        min={zoomMin}
+        max={zoomMax}
+        disabled={zoomDisabled}
+        onZoom={onZoom}
+        traceItems={traceItems}
         menuPlacement={menuPlacement}
       />
 
@@ -168,31 +172,24 @@ export default function MapControlRail({
   );
 }
 
-function ViewMenuButton({
-  items = [],
-  activeItem = null,
-  cycleItems = [],
-  cycleActiveItem = null,
+// 缩放控件:工具栏按钮显示「放大镜 + Nx」(当前 zoom 倍数),点击直接打开一个
+// 子菜单,内含一级一级吸附(整数)的滑条。无长按、无点击循环。
+function ZoomSliderButton({
+  activeZoom = 10,
+  min = 10,
+  max = 15,
+  disabled = false,
+  onZoom,
+  traceItems = [],
   menuPlacement = "bottom",
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
-  const longPressTimerRef = useRef(null);
-  const pressActiveRef = useRef(false);
-  const longPressOpenedRef = useRef(false);
   const placementClass =
     menuPlacement === "bottom" ? "top-full mt-2" : "bottom-full mb-2";
-  const selectedItem =
-    items.find((item) => item?.active) ||
-    activeItem ||
-    items.find((item) => !item?.disabled) ||
-    items[0] ||
-    null;
-  const selectedLabel = selectedItem?.label || t("map.viewMenu");
-  const title = t("map.viewMenuTitle", { label: selectedLabel });
-  const enabledCycleItems = cycleItems.filter((item) => !item?.disabled);
-  const canCycle = enabledCycleItems.length > 0;
+  const current = Math.max(min, Math.min(max, Math.round(Number(activeZoom)) || min));
+  const title = t("map.viewMenuTitle", { label: `${current}x` });
 
   useEffect(() => {
     if (!open) return undefined;
@@ -210,139 +207,82 @@ function ViewMenuButton({
     };
   }, [open]);
 
-  const clearLongPressTimer = () => {
-    if (!longPressTimerRef.current) return;
-    window.clearTimeout(longPressTimerRef.current);
-    longPressTimerRef.current = null;
-  };
-
-  useEffect(
-    () => () => {
-      clearLongPressTimer();
-      pressActiveRef.current = false;
-    },
-    [],
-  );
-
-  const openMenuFromLongPress = () => {
-    longPressOpenedRef.current = true;
-    setOpen(true);
-  };
-
-  const startLongPress = (event) => {
-    if (!items.length) return;
-    if ("button" in event && event.button !== 0) return;
-    if (pressActiveRef.current) return;
-    pressActiveRef.current = true;
-    longPressOpenedRef.current = false;
-    clearLongPressTimer();
-    // ponytail: long press opens the menu; no progress animation on every tap.
-    longPressTimerRef.current = window.setTimeout(
-      openMenuFromLongPress,
-      VIEW_MENU_LONG_PRESS_MS,
-    );
-  };
-
-  const endLongPress = () => {
-    if (!pressActiveRef.current) return;
-    pressActiveRef.current = false;
-    clearLongPressTimer();
-  };
-
-  const handleSelect = (item) => {
-    if (item?.disabled) return;
-    setOpen(false);
-    // ponytail: let the tap paint before heavier map fit/zoom work runs.
-    window.setTimeout(() => item?.onSelect?.(), 0);
-  };
-
-  const handleCycle = () => {
-    if (!canCycle) return;
-    const activeCycleItem =
-      enabledCycleItems.find((item) => item?.id === cycleActiveItem?.id) ||
-      enabledCycleItems.find((item) => item?.active) ||
-      enabledCycleItems[0];
-    const currentIndex = enabledCycleItems.findIndex(
-      (item) => item?.id === activeCycleItem?.id,
-    );
-    const nextIndex = (currentIndex + 1) % enabledCycleItems.length;
-    handleSelect(enabledCycleItems[nextIndex]);
-  };
-
-  const handleClick = (event) => {
-    if (longPressOpenedRef.current) {
-      event.preventDefault();
-      longPressOpenedRef.current = false;
-      return;
-    }
-    handleCycle();
-  };
-
-  const handleContextMenu = (event) => {
-    if (!items.length) return;
-    event.preventDefault();
-    longPressOpenedRef.current = true;
-    pressActiveRef.current = false;
-    clearLongPressTimer();
-    setOpen(true);
-  };
-
-  const handleKeyDown = (event) => {
-    if (!items.length) return;
-    if (event.key !== "ArrowDown") return;
-    event.preventDefault();
-    setOpen((value) => !value);
-  };
-
   return (
     <div ref={containerRef} className="relative isolate z-dropdown inline-flex">
       {open ? (
         <MenuPanel
-          role="menu"
+          role="group"
           aria-label={t("map.viewMenu")}
-          className={`absolute left-1/2 z-dropdown min-w-[178px] -translate-x-1/2 ${placementClass}`}
+          className={`absolute left-1/2 z-dropdown min-w-[176px] -translate-x-1/2 px-3 py-2.5 ${placementClass}`}
         >
-          {items.map((item) => (
-            <MenuItem
-              key={item.id}
-              role="menuitemradio"
-              aria-checked={Boolean(item.active)}
-              selected={Boolean(item.active)}
-              disabled={Boolean(item.disabled)}
-              onClick={() => handleSelect(item)}
-              className="justify-between disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-transparent"
-            >
-              <span className="inline-flex min-w-0 items-center gap-2">
-                <span className="flex-none [&_svg]:size-3.5">
-                  <MapControlIcon iconKey={item.iconKey} />
-                </span>
-                <MenuItemLabel>{item.label}</MenuItemLabel>
-              </span>
-              {item.active ? <Check className="h-3 w-3" aria-hidden="true" /> : null}
-            </MenuItem>
-          ))}
+          <div className="flex items-center gap-2">
+            <span className="w-7 flex-none text-right text-[11px] tabular-nums text-atc-muted">
+              {min}x
+            </span>
+            <input
+              type="range"
+              min={min}
+              max={max}
+              step={1}
+              value={current}
+              disabled={disabled}
+              onChange={(event) => onZoom?.(Number(event.target.value))}
+              aria-label={t("map.viewMenu")}
+              className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-[color-mix(in_oklab,var(--atc-text)_18%,transparent)] accent-[var(--atc-click-bg)]"
+            />
+            <span className="w-7 flex-none text-[11px] tabular-nums text-atc-muted">
+              {max}x
+            </span>
+          </div>
+          <div className="mt-1.5 text-center text-[12px] font-semibold tabular-nums text-atc-text">
+            {current}x
+          </div>
+
+          {/* 航迹视图(完整航迹 / 所有记录点)—— 只在飞机追踪页有。 */}
+          {traceItems.length > 0 ? (
+            <div className="mt-2 border-t border-[color-mix(in_oklab,var(--atc-text)_12%,transparent)] pt-1.5">
+              {traceItems.map((item) => (
+                <MenuItem
+                  key={item.id}
+                  role="menuitemradio"
+                  aria-checked={Boolean(item.active)}
+                  selected={Boolean(item.active)}
+                  disabled={Boolean(item.disabled)}
+                  onClick={() => item.onSelect?.()}
+                  className="justify-between"
+                >
+                  <span className="inline-flex min-w-0 items-center gap-2">
+                    <span className="flex-none [&_svg]:size-3.5">
+                      <MapControlIcon iconKey={item.iconKey} />
+                    </span>
+                    <MenuItemLabel>{item.label}</MenuItemLabel>
+                  </span>
+                  {item.active ? (
+                    <Check className="h-3 w-3" aria-hidden="true" />
+                  ) : null}
+                </MenuItem>
+              ))}
+            </div>
+          ) : null}
         </MenuPanel>
       ) : null}
 
-      <div className="relative inline-flex">
-        <ToolbarButton
-          tone="rail"
-          active={open || Boolean(selectedItem?.active)}
-          title={title}
-          aria-label={title}
-          aria-expanded={open}
-          aria-haspopup="menu"
-          onClick={handleClick}
-          onContextMenu={handleContextMenu}
-          onKeyDown={handleKeyDown}
-          onPointerCancel={endLongPress}
-          onPointerDown={startLongPress}
-          onPointerLeave={endLongPress}
-          onPointerUp={endLongPress}
-        >
-          <MapControlIcon iconKey={selectedItem?.iconKey || "mapPinned"} />
-        </ToolbarButton>
-      </div>
+      <ToolbarButton
+        tone="rail"
+        active={open}
+        disabled={disabled}
+        title={title}
+        aria-label={title}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        className="w-auto gap-1 px-2"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <Search aria-hidden="true" />
+        <span className="text-[11px] font-semibold leading-none tabular-nums">
+          {current}x
+        </span>
+      </ToolbarButton>
     </div>
   );
 }
