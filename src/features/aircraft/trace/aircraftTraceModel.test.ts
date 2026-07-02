@@ -5,6 +5,7 @@ import {
   composeAircraftTrace,
   downsampleTracePoints,
   isAircraftTraceUnavailable,
+  mergeRecentTracePoints,
   normalizeAdsbTracePayload,
   createAircraftTraceTracker,
   segmentTracePoints,
@@ -505,6 +506,44 @@ import {
     unclipped.points.length,
     2,
     "clipToLeg=false (all recorded points view) keeps the whole history",
+  );
+}
+
+{
+  // Re-fetched rolling sources UNION with the buffer: trace_recent is a
+  // sliding window, so a refresh mid-flight no longer contains the
+  // takeoff — those rolled-out points must survive, while the overlap
+  // takes the fresh window's (possibly corrected) samples.
+  const point = (timestampMs: number, altitude: number) => ({
+    lat: 40 + timestampMs / 3_600_000,
+    lon: -73,
+    timestampMs,
+    altitude,
+  });
+  const initial = [point(0, 600), point(60_000, 2_000), point(120_000, 5_000)];
+  const freshWindow = [point(120_000, 5_100), point(180_000, 8_000)];
+
+  const merged = mergeRecentTracePoints(initial, freshWindow);
+  assert.deepEqual(
+    merged.map((p) => [p.timestampMs, p.altitude]),
+    [
+      [0, 600],
+      [60_000, 2_000],
+      [120_000, 5_100],
+      [180_000, 8_000],
+    ],
+    "rolled-out history survives; the overlap takes the fresh samples",
+  );
+
+  assert.deepEqual(
+    mergeRecentTracePoints(initial, []),
+    initial,
+    "an empty refresh keeps the existing buffer",
+  );
+  assert.deepEqual(
+    mergeRecentTracePoints([], freshWindow),
+    freshWindow,
+    "a cold buffer takes the fresh window as-is",
   );
 }
 

@@ -65,7 +65,7 @@ export function SelectedAircraftTraceProvider({
   // detail page so the user sees the whole flight on load — not just
   // the rolling tail. `focalClipToLeg` clips the historical sources to
   // the current flight leg so earlier legs (or yesterday's
-  // same-callsign trail) stay out of the session view. The persist key
+  // same-callsign trail) stay out of the focal views. The persist key
   // (callsign) keeps the merged trace in localStorage so refreshes
   // don't blank the trail. Secondary (clicked) traces stick with
   // recent + no clipping + no persistence.

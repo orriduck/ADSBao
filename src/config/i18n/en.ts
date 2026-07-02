@@ -265,7 +265,7 @@ const en = {
           states:
             "The flight map is loading (acquiring), position (centered on the aircraft), or terminal — a static 'no live position / signal lost / flight ended' card, including a trans-oceanic leg with no coverage — instead of an endless spinner or an unrelated fallback map.",
           trace:
-            "The tracked flight draws the current leg's full trace — earlier legs and yesterday's same-callsign trail are clipped away, with an 'all recorded points' view to see everything; a clicked aircraft shows only its recent trail.",
+            "The tracked flight draws the current leg's trace — earlier legs and yesterday's same-callsign trail are clipped away. 'Full trace' is the flight-path view (with the origin→destination path when the internal grant is active); 'all recorded points' shows the leg's recorded samples regardless of grant. A clicked aircraft shows only its recent trail.",
         },
       },
     },

@@ -3,6 +3,7 @@ import { createAircraftTraceClient } from "../features/aircraft/trace/aircraftTr
 import {
   composeAircraftTrace,
   isAircraftTraceUnavailable,
+  mergeRecentTracePoints,
   normalizeAdsbTracePayload,
 } from "../features/aircraft/trace/aircraftTraceModel";
 import {
@@ -189,9 +190,9 @@ export function useAircraftTrace(
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
   // Clip historical sources (full/persisted/recent) to the current
-  // flight leg. On the detail page's session view this keeps earlier
-  // legs and yesterday's same-callsign trail out of the trace; the
-  // "all recorded points" view passes false.
+  // flight leg, keeping earlier legs and yesterday's same-callsign
+  // trail out of the trace. The flight detail page enables this for
+  // both of its trace views.
   const clipToLeg = Boolean(options?.clipToLeg);
   // When set (typically the focal callsign on /aircraft/[callsign]) the
   // hook reads/writes the merged trace to localStorage so refreshes
@@ -329,7 +330,10 @@ export function useAircraftTrace(
   // loading flags — and an empty or failed response never replaces
   // points we already have: a rate-limited upstream returns an empty
   // payload with HTTP 200, and wiping the trail with it is exactly the
-  // "new points lost" failure mode.
+  // "new points lost" failure mode. Non-empty responses UNION with the
+  // existing buffer (see mergeRecentTracePoints) — trace_recent is a
+  // sliding window and a plain replace would drop the flight's earlier
+  // points once they roll out of it.
   useEffect(() => {
     const sources = resolveAircraftTraceRefreshSources({
       refreshKey: traceRefreshKey,
@@ -350,9 +354,9 @@ export function useAircraftTrace(
         .then(({ points }) => {
           if (disposed || points.length === 0) return;
           if (full) {
-            setFullPoints(points);
+            setFullPoints((prev) => mergeRecentTracePoints(prev, points));
           } else {
-            setRecentPoints(points);
+            setRecentPoints((prev) => mergeRecentTracePoints(prev, points));
           }
         })
         .catch((error) => {
