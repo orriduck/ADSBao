@@ -204,9 +204,11 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
     [cachedTrackedMetadata, trackedAircraft],
   );
 
-  // Trace clipping to the current flight leg happens inside the trace
-  // composition (see traceLegModel) — the session view enables it via
-  // focalClipToLeg below; the "all recorded points" view disables it.
+  // Both trace views are scoped to the CURRENT leg (see traceLegModel)
+  // and share the persisted trail: "Full trace" is the flight-path view
+  // (origin→destination arc overlays when the FlightAware grant is
+  // resolved), "All recorded points" shows the leg's recorded samples.
+  // The toggles differ in map fitting, never in what data is kept.
   const requestTraceView = useCallback(
     (mode) => {
       if (traceViewMode === mode) {
@@ -946,10 +948,8 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
       focalAircraft={enrichedTrackedAircraft}
       fullTraceForFocal={flightDisplayContext.fullTraceForFocal}
       showSelectedTrace={showNearbyMapContext}
-      focalClipToLeg={traceViewMode !== TRACE_VIEW_ALL}
-      focalPersistKey={
-        traceViewMode === TRACE_VIEW_ALL ? null : callsign || null
-      }
+      focalClipToLeg
+      focalPersistKey={callsign || null}
       focalTraceRefreshKey={focalTraceRefreshKey}
     >
       <AircraftPreviewCard

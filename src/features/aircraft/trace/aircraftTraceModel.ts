@@ -226,6 +226,31 @@ function traceBucket(timestampMs: number, bucketMs: number) {
   return Math.floor(timestampMs / bucketMs);
 }
 
+// Union a re-fetched rolling source with what we already had. adsb.lol's
+// trace_recent is a sliding window: a refresh 10 minutes into a flight no
+// longer contains the takeoff. Replacing the buffer with the fresh window
+// would silently drop that history (and right after UTC midnight the full
+// day-file can still be YESTERDAY's, so nothing else covers it). Keep the
+// points that rolled out of the fresh window, take the fresh window for
+// the overlap (it may carry corrections), and cap the buffer.
+const RECENT_TRACE_UNION_MAX_POINTS = 5_000;
+
+export function mergeRecentTracePoints(
+  previous: TraceRecord[] = [],
+  fresh: TraceRecord[] = [],
+) {
+  const freshPoints = Array.isArray(fresh) ? fresh : [];
+  const previousPoints = Array.isArray(previous) ? previous : [];
+  if (freshPoints.length === 0) return previousPoints;
+  if (previousPoints.length === 0) return freshPoints;
+  const freshStartMs = Number(freshPoints[0]?.timestampMs);
+  if (!Number.isFinite(freshStartMs)) return previousPoints;
+  const kept = previousPoints.filter(
+    (point) => Number(point?.timestampMs) < freshStartMs,
+  );
+  return [...kept, ...freshPoints].slice(-RECENT_TRACE_UNION_MAX_POINTS);
+}
+
 export function dedupeTracePointsByMinuteLatest(points = []) {
   const buckets = new Map();
   if (!Array.isArray(points)) return [];

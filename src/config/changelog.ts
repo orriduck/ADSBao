@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.43.0",
+    version: "v2.43.1",
     kind: "feat",
     title: {
       en: "Steadier tracking: current-leg traces, routes that survive navigation, resilient feeds",
@@ -63,8 +63,12 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
     },
     highlights: [
       {
-        en: "Flight traces clip to the current leg by default — multi-leg days and yesterday's flight under the same callsign stay out; cruise-altitude ocean gaps are kept, so transatlantic traces stay whole.",
-        zh: "航迹默认按当前航段裁剪——同日多段和昨天同呼号的航班不再混入;巡航高度的海洋空洞会保留,跨洋航迹保持完整。",
+        en: "Flight traces clip to the current leg — multi-leg days and yesterday's flight under the same callsign stay out; cruise-altitude ocean gaps are kept, so transatlantic traces stay whole. 'Full trace' is the flight-path view; 'all recorded points' shows the leg's recorded samples.",
+        zh: "航迹按当前航段裁剪——同日多段和昨天同呼号的航班不再混入;巡航高度的海洋空洞会保留,跨洋航迹保持完整。「完整航迹」是航路视图,「所有记录点」展示本航段已记录的点。",
+      },
+      {
+        en: "Trace refreshes union with what's already recorded instead of replacing it — the rolling recent window no longer drops the takeoff segment mid-flight (notably right after UTC midnight, when the upstream day-file can lag).",
+        zh: "航迹刷新与已记录点求并集而非整体替换——滚动窗口不再在航程中丢掉起飞段(尤其 UTC 午夜后上游日文件滞后时)。",
       },
       {
         en: "Real live fixes are appended and persisted while you watch; the inferred marker head stays display-only.",
