@@ -33,4 +33,15 @@ assert.deepEqual(
   ],
 );
 
+// The steady heartbeat never re-pulls the multi-MB uncached full trace.
+assert.deepEqual(
+  resolveAircraftTraceRefreshSources({
+    refreshKey: "steady:3",
+    fullTrace: true,
+  }),
+  [
+    { source: "recent", full: false },
+  ],
+);
+
 console.log("aircraftTraceRefreshModel.test.ts ok");

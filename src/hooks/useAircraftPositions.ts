@@ -13,6 +13,7 @@ import {
 } from "../features/aircraft/tracking/flightTrackingContextModel";
 import { createAircraftPositionClient } from "../features/aircraft/positions/aircraftPositionClient";
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
+import { resolveNextPollDelayMs } from "../features/aircraft/positions/pollBackoffModel";
 import {
   EMPTY_REALTIME_PARAMS,
   useRealtimeAircraftChannel,
@@ -131,6 +132,7 @@ export function useAircraftPositions(
 
     let cancelled = false;
     let timer: number | null = null;
+    let consecutiveFailures = 0;
     const client = createAircraftPositionClient();
 
     const load = async () => {
@@ -158,15 +160,26 @@ export function useAircraftPositions(
           );
         }
         setSettled(true);
+        consecutiveFailures = 0;
       } catch (error) {
         if (!cancelled) {
+          consecutiveFailures += 1;
           setFeedStatus("error");
           setSettled(true);
           console.warn("[aircraft-positions] realtime fallback failed", error);
         }
       } finally {
         if (!cancelled) {
-          timer = window.setTimeout(load, AIRCRAFT_TRAFFIC_CONFIG.pollMs);
+          // Exponential backoff on repeated failures so an unavailable or
+          // rate-limited upstream is not hammered at the live cadence.
+          timer = window.setTimeout(
+            load,
+            resolveNextPollDelayMs({
+              baseMs: AIRCRAFT_TRAFFIC_CONFIG.pollMs,
+              maxMs: AIRCRAFT_TRAFFIC_CONFIG.pollBackoffMaxMs,
+              consecutiveFailures,
+            }),
+          );
         }
       }
     };

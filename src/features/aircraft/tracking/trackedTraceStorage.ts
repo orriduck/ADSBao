@@ -1,19 +1,17 @@
 // Browser-local cache that persists the merged trace points for each
-// callsign the user is actively tracking. Pairs with
-// `trackedFlightStorage` — that module remembers WHEN tracking started
-// (the firstTrackedAt anchor); this one remembers WHAT trace points
-// have been seen so a refresh doesn't drop the accumulated trail.
+// callsign the user is actively tracking, so a refresh doesn't drop the
+// accumulated trail.
 //
-// The persisted set is the union of trace_full + trace_recent + live
-// polls already clipped to the lookback cutoff. On reload the hook
-// seeds this as a low-priority source so the trace is visible
-// instantly; the fresh full/recent fetches then overlay corrections,
-// and live polls overlay the leading edge.
+// The persisted set is the union of trace_full + trace_recent + real
+// live fixes already clipped to the current flight leg (see
+// traceLegModel). On reload the hook seeds this as a low-priority
+// source so the trace is visible instantly; the fresh full/recent
+// fetches then overlay corrections, and live fixes overlay the leading
+// edge. Same-callsign flights from a previous day inside the TTL are
+// handled by the leg clipping, not by this store.
 
 const STORAGE_KEY = "adsbao:tracked-trace";
 
-// Keep aligned with TRACKING_TTL_MS — once the tracking session expires
-// the trace cache for that callsign is meaningless.
 const TRACE_STORAGE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Soft cap to keep the localStorage payload reasonable. At the standard

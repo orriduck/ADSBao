@@ -6,14 +6,6 @@ export function isOceanicAdscTracking(trackingState) {
   return String(trackingState?.status || "").trim() === "oceanic_adsc";
 }
 
-export function getFlightAwareFallbackTraceStartAtMs({
-  trackingState = null,
-  defaultTraceStartAtMs = null,
-} = {}) {
-  if (isFlightAwareFallbackTracking(trackingState)) return null;
-  return defaultTraceStartAtMs;
-}
-
 export function getFlightAwareFallbackAutoFitKey({
   trackingState = null,
   callsign = "",

@@ -60,6 +60,7 @@ export function getTrackedFlightTraceRefreshKey({
   trackingState = null,
   pollMs = 3_000,
   flightAwareTraceRefreshMs = 60_000,
+  steadyRefreshMs = 180_000,
 } = {}) {
   const visibilityVersion = Number(visibilityRefreshVersion);
   if (Number.isFinite(visibilityVersion) && visibilityVersion > 0) {
@@ -72,12 +73,31 @@ export function getTrackedFlightTraceRefreshKey({
     flightAwareTraceRefreshMs,
   });
   if (flightAwareKey) return flightAwareKey;
-  return getLostSignalTraceRefreshKey({
+  const lostSignalKey = getLostSignalTraceRefreshKey({
     lostSignal,
     pollVersion,
     pollMs,
     flightAwareTraceRefreshMs,
   });
+  if (lostSignalKey) return lostSignalKey;
+  return getSteadyTraceRefreshKey({ pollVersion, pollMs, steadyRefreshMs });
+}
+
+// Healthy-tracking heartbeat: periodically re-pull the rolling recent
+// trace so upstream corrections land even when the realtime feed is the
+// only thing appending points. The server caches recent traces per hex
+// (stale-while-revalidate), so this cadence stays rate-limit friendly.
+function getSteadyTraceRefreshKey({
+  pollVersion = 0,
+  pollMs = 3_000,
+  steadyRefreshMs = 180_000,
+} = {}) {
+  const version = Number(pollVersion);
+  if (!Number.isFinite(version) || version <= 0) return "";
+  const intervalMs = Math.max(1, Number(pollMs) || 1);
+  const refreshMs = Math.max(intervalMs, Number(steadyRefreshMs) || intervalMs);
+  const bucket = Math.floor((version * intervalMs) / refreshMs);
+  return bucket > 0 ? `steady:${bucket}` : "";
 }
 
 function getFlightAwareTraceRefreshKey({

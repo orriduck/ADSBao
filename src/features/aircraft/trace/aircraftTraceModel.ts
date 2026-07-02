@@ -1,4 +1,5 @@
 import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
+import { resolveTraceLegCutoffMs } from "./traceLegModel";
 
 const DEFAULT_TRACE_MAX_SAMPLES = 36;
 const DEFAULT_TRACE_MAX_AGE_MS = 3 * 60 * 1000;
@@ -194,7 +195,12 @@ export function normalizeAdsbTracePayload(payload: TraceRecord = {}) {
         lat,
         lon,
         altitude: normalizeTraceAltitude(entry[3]),
-        onGround: entry[3] === "ground" || entry[6] === 1,
+        // entry[6] is the readsb flags BITFIELD (1=stale position, 2=new
+        // leg, ...), not a ground indicator — the altitude field is the
+        // only ground signal in trace files. Treating flags===1 as
+        // onGround used to mark the last pre-gap sample of oceanic legs
+        // as grounded, which broke leg-boundary detection.
+        onGround: entry[3] === "ground",
         velocity: isFiniteNumber(entry[4]) ? Number(entry[4]) : null,
         track: isFiniteNumber(entry[5]) ? Number(entry[5]) : null,
         baroRate: isFiniteNumber(entry[7]) ? Number(entry[7]) : null,
@@ -394,44 +400,65 @@ export function composeAircraftTrace({
   sources = {},
   recentLoading = false,
   fullLoading = false,
-  fullCutoffMs = null,
+  clipToLeg = false,
 }: {
   mode?: string;
   sources?: TraceRecord;
   recentLoading?: boolean;
   fullLoading?: boolean;
-  fullCutoffMs?: number | null;
+  clipToLeg?: boolean;
 } = {}) {
   const isFocusMode = mode === "focus";
-  const fullPoints = isFocusMode
-    ? clipTracePointsBefore(sources.full, fullCutoffMs)
-    : [];
   const livePoints = Array.isArray(sources.live) ? sources.live : [];
-  const recentPoints = Array.isArray(sources.recent) ? sources.recent : [];
-  const persistedPoints = isFocusMode && Array.isArray(sources.persisted)
-    ? sources.persisted
+  const visualHeadPoints = Array.isArray(sources.visualHead)
+    ? sources.visualHead
     : [];
+  const recentRaw = Array.isArray(sources.recent) ? sources.recent : [];
+  const fullRaw =
+    isFocusMode && Array.isArray(sources.full) ? sources.full : [];
+  const persistedRaw =
+    isFocusMode && Array.isArray(sources.persisted) ? sources.persisted : [];
+  // Historical sources can span several flights: the adsb.lol full trace
+  // covers the whole UTC day and the persisted trail survives 24h. Clip
+  // every non-live source to the current leg so earlier legs (or
+  // yesterday's same-callsign flight) never bleed into the focus trace.
+  const legCutoffMs =
+    isFocusMode && clipToLeg
+      ? resolveTraceLegCutoffMs([...fullRaw, ...persistedRaw, ...recentRaw])
+      : null;
+  const fullPoints = clipTracePointsBefore(fullRaw, legCutoffMs);
+  const persistedPoints = clipTracePointsBefore(persistedRaw, legCutoffMs);
+  const recentPoints = isFocusMode
+    ? clipTracePointsBefore(recentRaw, legCutoffMs)
+    : recentRaw;
+  // The visual head is the dead-reckoned marker position. It rides along
+  // as display-only leading edge (bucketMs 1 → never collides with real
+  // samples) and must not suppress real data, so it stays separate from
+  // the authoritative live-fix source.
+  const visualHeadSource = {
+    name: "visual-head",
+    points: visualHeadPoints,
+    priority: 4,
+    bucketMs: 1,
+  };
+  const liveSource = {
+    name: "live",
+    points: livePoints,
+    priority: 3,
+    bucketMs: TRACE_LIVE_BUCKET_MS,
+    suppressesMinuteBucket: true,
+  };
   const modeSources = isFocusMode
     ? [
-        {
-          name: "live",
-          points: livePoints,
-          priority: 3,
-          bucketMs: TRACE_LIVE_BUCKET_MS,
-          suppressesMinuteBucket: true,
-        },
+        visualHeadSource,
+        liveSource,
         { name: "recent", points: recentPoints, priority: 2 },
         { name: "full", points: fullPoints, priority: 1 },
         { name: "persisted", points: persistedPoints, priority: 0 },
       ]
     : [
-        {
-          name: "live",
-          points: livePoints,
-          priority: 3,
-          bucketMs: TRACE_LIVE_BUCKET_MS,
-          suppressesMinuteBucket: true,
-        },
+        visualHeadSource,
+        liveSource,
         { name: "recent", points: recentPoints, priority: 2 },
         { name: "local", points: sources.local, priority: 1 },
       ];
@@ -459,9 +486,9 @@ export function isAircraftTraceUnavailable({
   );
 }
 
-// Drop trace points older than the cutoff. Applied before merge so only
-// the focus-flight full/persisted source honors the full-history lower
-// bound; selected airport traces stay recent+live only.
+// Drop trace points older than the cutoff. Applied per source before
+// merge so the focus-flight historical sources honor the current-leg
+// lower bound; selected airport traces stay recent+live only.
 function clipTracePointsBefore(points, cutoffMs) {
   const cutoff = Number(cutoffMs);
   if (!Number.isFinite(cutoff) || !Array.isArray(points)) return points || [];

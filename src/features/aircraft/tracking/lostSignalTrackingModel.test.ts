@@ -115,6 +115,41 @@ assert.equal(
   "",
 );
 
+// Healthy tracking emits the steady heartbeat once a full interval of
+// polls has elapsed (180s / 3s = 60 polls per bucket by default).
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: false,
+    pollVersion: 59,
+    trackingState: { status: "adsb_live" },
+  }),
+  "",
+);
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: false,
+    pollVersion: 60,
+    trackingState: { status: "adsb_live" },
+  }),
+  "steady:1",
+);
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: false,
+    pollVersion: 121,
+    trackingState: { status: "adsb_live" },
+  }),
+  "steady:2",
+);
+// Event-driven keys still take precedence over the steady heartbeat.
+assert.equal(
+  getTrackedFlightTraceRefreshKey({
+    lostSignal: true,
+    pollVersion: 60,
+  }),
+  "lost-signal:3",
+);
+
 assert.deepEqual(
   getTrackedAircraftSignalState({
     matchesLength: 0,

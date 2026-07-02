@@ -2,11 +2,8 @@ import assert from "node:assert/strict";
 
 import {
   getFlightAwareFallbackAutoFitKey,
-  getFlightAwareFallbackTraceStartAtMs,
   isFlightAwareFallbackTracking,
 } from "./flightAwareFallbackTrackingModel";
-
-const cutoff = Date.parse("2026-05-25T03:00:00.000Z");
 
 assert.equal(
   isFlightAwareFallbackTracking({ status: "flightaware_active" }),
@@ -19,21 +16,6 @@ assert.equal(
 assert.equal(
   isFlightAwareFallbackTracking({ status: "flightaware_terminal" }),
   false,
-);
-
-assert.equal(
-  getFlightAwareFallbackTraceStartAtMs({
-    trackingState: { status: "flightaware_active" },
-    defaultTraceStartAtMs: cutoff,
-  }),
-  null,
-);
-assert.equal(
-  getFlightAwareFallbackTraceStartAtMs({
-    trackingState: { status: "adsb_live" },
-    defaultTraceStartAtMs: cutoff,
-  }),
-  cutoff,
 );
 
 assert.equal(

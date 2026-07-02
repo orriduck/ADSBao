@@ -47,48 +47,44 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 66;
+export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.42.4",
+    version: "v2.43.0",
     kind: "feat",
     title: {
-      en: "A zoom slider for the map, and clearer building footprints",
-      zh: "地图缩放滑条 + 更清晰的建筑轮廓",
+      en: "Steadier tracking: current-leg traces, routes that survive navigation, resilient feeds",
+      zh: "更稳的追踪:当前航段航迹、跨页不丢的航线、更抗故障的数据流",
     },
     summary: {
-      en: "The map's Far / Medium / Near zoom menu became a single compact viewfinder button that frames the current level (e.g. 13) and opens a slider — drag from 10x to 15x, snapping at each whole step, while the map stays centred on the airport instead of jumping between three fixed levels. The button stays the same compact size as the rest of the toolbar. On the flight-tracking page the full-trace and all-points view toggles fold into that same submenu so the toolbar stays short. Separately, building footprints on the standard map now read with more contrast, so the surrounding city stays legible at neighbourhood zoom.",
-      zh: "地图的 远 / 中 / 近 三档缩放菜单,变成一个把当前倍数(如 13)框在取景框里的紧凑按钮,点开是一根滑条——从 10x 拖到 15x、每一级吸附,缩放时地图始终以机场为中心,不再在三个固定档位间跳。按钮与工具栏其他按钮一样紧凑等宽。飞机追踪页的「完整航迹 / 所有记录点」也收进同一个子菜单,工具栏更短。另外,标准地图的建筑轮廓提高了对比度,放大到街区级时周边城市更清晰。",
+      en: "The three core tracking mechanisms got a stability pass. Traces: the flight page now clips history to the current leg — earlier legs and yesterday's same-callsign trail no longer bleed in, while transoceanic coverage holes at cruise are correctly kept (the 'all recorded points' view still shows everything); the watched session's real position fixes are now genuinely saved (a starved debounce meant they often weren't), and a failed or rate-limited background trace refresh keeps what you already have instead of wiping the trail. Routes: resolved origin/destination pairs persist in the browser, so opening a flight's detail page reuses the route the map already fetched instead of re-asking upstream. Positions: when the realtime socket falls back to polling, repeated upstream failures now back off exponentially instead of hammering every 3 seconds.",
+      zh: "对三大核心追踪机制做了一轮稳定性改造。航迹:飞机页历史现在按当前航段裁剪——更早的航段和昨天同呼号的旧航迹不再混入,而巡航高度上的跨洋覆盖空洞会被正确保留(「所有记录点」视图仍可看全部);追踪期间的真实位置点现在会切实存下来(原先的防抖被持续更新饿死,经常根本没写入),后台航迹刷新失败或被限流时保留已有数据,不再清空轨迹。航线:已解析的出发/到达在浏览器本地持久化,打开航班详情页直接复用地图页已取到的航线,不再重复请求上游。位置:实时连接退化为轮询时,上游连续失败会指数退避,不再每 3 秒硬砸。",
     },
     highlights: [
       {
-        en: "Zoom is a slider now (10x–15x, snaps each step) on a compact viewfinder button that frames the current level — replacing the three fixed Far / Medium / Near presets.",
-        zh: "缩放改成滑条(10x–15x、逐级吸附),紧凑的取景框按钮里显示当前倍数——取代原来的 远 / 中 / 近 三档。",
+        en: "Flight traces clip to the current leg by default — multi-leg days and yesterday's flight under the same callsign stay out; cruise-altitude ocean gaps are kept, so transatlantic traces stay whole.",
+        zh: "航迹默认按当前航段裁剪——同日多段和昨天同呼号的航班不再混入;巡航高度的海洋空洞会保留,跨洋航迹保持完整。",
       },
       {
-        en: "Zooming keeps the airport centred; the map no longer jumps between fixed levels.",
-        zh: "缩放时机场始终居中,不再在固定档位间跳变。",
+        en: "Real live fixes are appended and persisted while you watch; the inferred marker head stays display-only.",
+        zh: "追踪时真实位置点持续入轨并持久化;推断的视觉头仅用于显示。",
       },
       {
-        en: "Flight page: the full-trace / all-points toggles fold into the same zoom submenu, shortening the toolbar.",
-        zh: "飞机页:完整航迹 / 所有记录点 收进同一个缩放子菜单,工具栏更短。",
+        en: "A failed/empty trace refresh never wipes points you already have, and the recent trace re-pulls every ~3 minutes so upstream corrections land.",
+        zh: "航迹刷新失败/为空不再清掉已有点;最近航迹每约 3 分钟静默补拉,上游修正能落地。",
       },
       {
-        en: "Standard-map building footprints get more contrast for legibility at neighbourhood zoom.",
-        zh: "标准地图建筑轮廓提高对比度,街区级缩放更清晰。",
+        en: "Routes persist across page navigations (provider-partitioned, hits only), so detail pages show origin/destination instantly.",
+        zh: "航线跨页持久化(按提供方分区、只存命中),详情页即时显示出发/到达。",
       },
       {
-        en: "Selecting an aircraft on any tracking page now fetches its route first, so the focused flight's origin/destination fills in ahead of the surrounding traffic.",
-        zh: "在任意追踪页选中一架飞机,现在会优先拉取它的航线,聚焦航班的出发/到达会先于周边交通显示出来。",
+        en: "Position polling backs off exponentially (3s → 30s) on repeated upstream failures.",
+        zh: "位置轮询在上游连续失败时指数退避(3s → 30s)。",
       },
       {
-        en: "On mobile, opening the detail sidebar now hides the zoom and map-settings buttons from its toolbar — they only apply to the map, which isn't visible there.",
-        zh: "移动端打开详情侧栏时,工具栏不再显示缩放和地图设置按钮——它们只对地图生效,而此时看不到地图。",
-      },
-      {
-        en: "Toolbars are less busy: every toolbar (map controls, page nav, sidebar) now keeps a single divider before the language/theme/account cluster instead of one between every group.",
-        zh: "工具栏更清爽:各处工具栏(地图控制、页面导航、侧栏)只在语言/主题/账号这一组前保留一条分隔符,不再每组之间都放一条。",
+        en: "Fixed: readsb trace flags were misread as 'on ground', which broke leg detection right at oceanic coverage holes.",
+        zh: "修复:readsb 航迹 flags 位被误读为「在地面」,恰好在跨洋空洞处破坏航段判定。",
       },
     ],
   },

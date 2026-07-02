@@ -18,15 +18,10 @@ import {
 } from "@/components/map/MapLoadingOverlay";
 import LostSignalToast from "@/components/aircraft/tracking/LostSignalToast";
 import {
-  getOrCreateTrackedFlight,
-  getTraceCutoffMs,
-} from "@/features/aircraft/tracking/trackedFlightStorage";
-import {
   getTrackedFlightTraceRefreshKey,
 } from "@/features/aircraft/tracking/lostSignalTrackingModel";
 import {
   getFlightAwareFallbackAutoFitKey,
-  getFlightAwareFallbackTraceStartAtMs,
 } from "@/features/aircraft/tracking/flightAwareFallbackTrackingModel";
 import {
   getFlightTrackingContextPosition,
@@ -153,11 +148,12 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
     mapFollowsAircraft,
   } = useExplorerUi();
   const [wakeLockState, toggleWakeLock] = useWakeLock();
-  // Default the tracked flight to its FULL recorded history (all points), not
-  // just the since-you-opened session window — the focal aircraft should show
-  // the most history. Clicked/other aircraft stay on recent (handled in the
-  // trace provider). Users can still switch back to the session view.
-  const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_ALL);
+  // Default the tracked flight to the session view: the CURRENT leg's
+  // full trace, leg-clipped so earlier legs and yesterday's
+  // same-callsign trail stay out (see traceLegModel), with the
+  // localStorage trail persistence active. The "all recorded points"
+  // view remains a toggle for seeing the full unclipped history.
+  const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_SESSION);
   const pendingTraceFitRef = useRef(false);
 
   // Default-on location labels for the flight page: when tracking a
@@ -208,32 +204,9 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
     [cachedTrackedMetadata, trackedAircraft],
   );
 
-  // Anchor the tracking session as soon as we have a callsign so the
-  // 12h TTL starts ticking on first load — the hex is recorded once it
-  // becomes available so the cache captures the icao24 we anchored on.
-  // The cutoff (firstTrackedAt - 30 min) drives trace clipping for the
-  // focal aircraft below.
-  const [trackingSession, setTrackingSession] = useState(null);
-  useEffect(() => {
-    if (!callsign) {
-      setTrackingSession(null);
-      return;
-    }
-    const session = getOrCreateTrackedFlight(callsign, {
-      hex: trackedAircraftForDisplay?.icao24 || null,
-    });
-    if (session) setTrackingSession(session);
-  }, [callsign, trackedAircraftForDisplay?.icao24]);
-  const sessionTraceStartAtMs = useMemo(
-    () =>
-      getFlightAwareFallbackTraceStartAtMs({
-        trackingState,
-        defaultTraceStartAtMs: getTraceCutoffMs(trackingSession),
-      }),
-    [trackingSession, trackingState],
-  );
-  const focalTraceStartAtMs =
-    traceViewMode === TRACE_VIEW_ALL ? null : sessionTraceStartAtMs;
+  // Trace clipping to the current flight leg happens inside the trace
+  // composition (see traceLegModel) — the session view enables it via
+  // focalClipToLeg below; the "all recorded points" view disables it.
   const requestTraceView = useCallback(
     (mode) => {
       if (traceViewMode === mode) {
@@ -306,6 +279,7 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
         pollMs: AIRCRAFT_TRAFFIC_CONFIG.pollMs,
         flightAwareTraceRefreshMs:
           AIRCRAFT_TRAFFIC_CONFIG.flightAwareTraceRefreshMs,
+        steadyRefreshMs: AIRCRAFT_TRAFFIC_CONFIG.traceSteadyRefreshMs,
       }),
     [
       lostSignal,
@@ -972,7 +946,7 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
       focalAircraft={enrichedTrackedAircraft}
       fullTraceForFocal={flightDisplayContext.fullTraceForFocal}
       showSelectedTrace={showNearbyMapContext}
-      focalTraceStartAtMs={focalTraceStartAtMs}
+      focalClipToLeg={traceViewMode !== TRACE_VIEW_ALL}
       focalPersistKey={
         traceViewMode === TRACE_VIEW_ALL ? null : callsign || null
       }
