@@ -457,4 +457,78 @@ import {
   assert.deepEqual(segmented.connectors, []);
 }
 
+{
+  // clipToLeg drops earlier legs from every historical source. Yesterday's
+  // persisted trail and the morning leg in trace_full both end near the
+  // ground before a long gap, so only the current leg survives.
+  const HOUR = 3_600_000;
+  const legTwoStart = 6 * HOUR;
+  const composed = composeAircraftTrace({
+    mode: "focus",
+    clipToLeg: true,
+    sources: {
+      persisted: [
+        { lat: 41.0, lon: -74.0, timestampMs: 1 * HOUR, altitude: 30_000 },
+        { lat: 41.5, lon: -73.5, timestampMs: 2 * HOUR, altitude: 400, onGround: false },
+      ],
+      full: [
+        { lat: 41.5, lon: -73.5, timestampMs: 2 * HOUR + 60_000, altitude: 0, onGround: true },
+        { lat: 41.6, lon: -73.4, timestampMs: legTwoStart, altitude: 2_000 },
+        { lat: 41.7, lon: -73.3, timestampMs: legTwoStart + 10 * 60_000, altitude: 15_000 },
+        { lat: 42.0, lon: -73.0, timestampMs: legTwoStart + HOUR, altitude: 30_000 },
+      ],
+      recent: [
+        { lat: 42.5, lon: -72.5, timestampMs: legTwoStart + 2 * HOUR, altitude: 32_000 },
+      ],
+    },
+  });
+
+  assert.ok(
+    composed.points.every((point) => point.timestampMs >= legTwoStart),
+    "clipToLeg should drop every point before the current leg",
+  );
+  assert.equal(composed.points.length, 4);
+
+  const unclipped = composeAircraftTrace({
+    mode: "focus",
+    clipToLeg: false,
+    sources: {
+      persisted: [
+        { lat: 41.0, lon: -74.0, timestampMs: 1 * HOUR, altitude: 30_000 },
+      ],
+      full: [
+        { lat: 42.0, lon: -73.0, timestampMs: legTwoStart + HOUR, altitude: 30_000 },
+      ],
+    },
+  });
+  assert.equal(
+    unclipped.points.length,
+    2,
+    "clipToLeg=false (all recorded points view) keeps the whole history",
+  );
+}
+
+{
+  // The visual head rides along as display-only leading edge: it must
+  // not suppress the real same-minute samples the way live fixes do.
+  const composed = composeAircraftTrace({
+    mode: "focus",
+    sources: {
+      recent: [{ lat: 42.0, lon: -71.0, timestampMs: 60_000, altitude: 5_000 }],
+      visualHead: [
+        { lat: 42.001, lon: -71.001, timestampMs: 90_000, inferred: true },
+      ],
+    },
+  });
+
+  assert.deepEqual(
+    composed.points.map((point) => [point.timestampMs, Boolean(point.inferred)]),
+    [
+      [60_000, false],
+      [90_000, true],
+    ],
+    "visual head should append after real samples without suppressing them",
+  );
+}
+
 console.log("aircraftTraceModel.test.ts ok");

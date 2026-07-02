@@ -22,11 +22,12 @@ import {
   shouldAnimateAircraftVisualPosition,
 } from "../utils/aircraftMotion";
 
-// How long to wait after the last merged-trace change before writing to
-// localStorage. Live polls land every 3s, so a short debounce lets a
-// burst of updates collapse into one write without putting the user
-// more than a tick behind on the persisted set.
-const PERSIST_DEBOUNCE_MS = 750;
+// Fixed cadence for persisting the merged trace to localStorage. A
+// trailing debounce starves here: the visual-head tick (1s) and the
+// realtime position stream (~1s) interleave, so the merged trace often
+// changes faster than any debounce window and the write never fires.
+// An interval with a dirty-check is deterministic instead.
+const PERSIST_INTERVAL_MS = 2_000;
 const TRACE_VISUAL_TICK_MS = 1_000;
 const LIVE_TRACE_MAX_POINTS = 120;
 const TRACE_LIVE_BUCKET_MS = 15_000;
@@ -160,20 +161,23 @@ function localTraceHistoryToTracePoints(aircraft: AircraftTraceHookRecord | null
 
 // Resolves the displayed trace from independent sources through
 // `composeAircraftTrace`: selected airport traces directly stitch
-// recent+live; focus-flight traces directly stitch clipped full,
+// recent+live; focus-flight traces directly stitch leg-clipped full,
 // recent, live, and persisted points.
 //
-// Priority order inside a valid stitch is: live polled position >
+// Priority order inside a valid stitch is: real live fixes >
 // trace_recent > trace_full > localStorage-persisted points (`persistKey`).
 //   - trace_full is fetched only when `fullTrace` is set (aircraft
 //     detail page). It provides the historical baseline.
 //   - trace_recent is always fetched. It is a rolling tail of the same
 //     stream and may include late corrections, so it wins over full on
 //     overlap.
-//   - The live point grows the trail forward in real time and is the
-//     freshest source, so it wins over both. We append it as a new entry
-//     on every selectedAircraft tick — the priority merge keeps only the
-//     latest point for each minute.
+//   - Real live fixes grow the trail forward in real time: every new
+//     upstream position sample (a fresh positionTime) is appended as an
+//     authoritative point, so the watched session is persisted rather
+//     than reconstructed from later fetches.
+//   - The dead-reckoned marker position rides along as a single
+//     display-only "visual head" point (inferred, never persisted) so
+//     the trace tip follows inferred movement between fixes.
 //   - The persisted source seeds the trail instantly on reload so a
 //     refresh of /aircraft/[callsign] doesn't blank the trace while the
 //     fresh fetches resolve. It sits at the lowest priority because the
@@ -184,12 +188,11 @@ export function useAircraftTrace(
 ) {
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
-  // Optional lower bound on trace timestamps. The aircraft detail page
-  // sets this to (firstTrackedAt - 30min) so the full trace shows the
-  // current flight rather than days of historical loops.
-  const traceStartAtMs = Number.isFinite(Number(options?.traceStartAtMs))
-    ? Number(options.traceStartAtMs)
-    : null;
+  // Clip historical sources (full/persisted/recent) to the current
+  // flight leg. On the detail page's session view this keeps earlier
+  // legs and yesterday's same-callsign trail out of the trace; the
+  // "all recorded points" view passes false.
+  const clipToLeg = Boolean(options?.clipToLeg);
   // When set (typically the focal callsign on /aircraft/[callsign]) the
   // hook reads/writes the merged trace to localStorage so refreshes
   // keep the accumulated trail.
@@ -206,6 +209,8 @@ export function useAircraftTrace(
   const [fullPoints, setFullPoints] = useState([]);
   const [recentPoints, setRecentPoints] = useState([]);
   const [livePoints, setLivePoints] = useState([]);
+  const [visualHeadPoint, setVisualHeadPoint] =
+    useState<AircraftTraceHookRecord | null>(null);
   const [persistedPoints, setPersistedPoints] = useState([]);
   const [activeHex, setActiveHex] = useState("");
   const [recentLoading, setRecentLoading] = useState(false);
@@ -216,6 +221,7 @@ export function useAircraftTrace(
   const cycleRef = useRef(0);
   const traceMotionRef = useRef<AircraftTraceHookRecord | null>(null);
   const latestVisualTracePointRef = useRef<AircraftTraceHookRecord | null>(null);
+  const lastLiveFixTimeRef = useRef<number | null>(null);
   const [traceCycle, setTraceCycle] = useState(0);
   const localTracePoints = useMemo(
     () => localTraceHistoryToTracePoints(selectedAircraft),
@@ -232,8 +238,10 @@ export function useAircraftTrace(
       setFullPoints([]);
       setRecentPoints([]);
       setLivePoints([]);
+      setVisualHeadPoint(null);
       traceMotionRef.current = null;
       latestVisualTracePointRef.current = null;
+      lastLiveFixTimeRef.current = null;
       setRecentLoading(false);
       setFullLoading(false);
       setRecentTraceUnavailable(false);
@@ -244,8 +252,10 @@ export function useAircraftTrace(
     const label = traceLabel;
     setActiveHex(hex);
     setLivePoints([]);
+    setVisualHeadPoint(null);
     traceMotionRef.current = null;
     latestVisualTracePointRef.current = null;
+    lastLiveFixTimeRef.current = null;
     setRecentPoints([]);
     setRecentLoading(true);
     setTraceError(null);
@@ -314,9 +324,12 @@ export function useAircraftTrace(
     };
   }, [hex, fullTrace, traceLabel]);
 
-  // While the tracked-flight page is resuming from a background tab (or
-  // keeping the lost-signal overlay alive), silently refresh the upstream
-  // trace sources so browser sleep does not leave a gap in the active path.
+  // Background refreshes: resume-from-tab, lost-signal, FlightAware
+  // fallback, and the steady periodic tick. These are silent — no
+  // loading flags — and an empty or failed response never replaces
+  // points we already have: a rate-limited upstream returns an empty
+  // payload with HTTP 200, and wiping the trail with it is exactly the
+  // "new points lost" failure mode.
   useEffect(() => {
     const sources = resolveAircraftTraceRefreshSources({
       refreshKey: traceRefreshKey,
@@ -326,8 +339,6 @@ export function useAircraftTrace(
 
     let disposed = false;
     const label = traceLabel;
-    if (sources.some((source) => source.full)) setFullLoading(true);
-    if (sources.some((source) => !source.full)) setRecentLoading(true);
 
     sources.forEach(({ source, full }) => {
       fetchTraceSource({
@@ -337,7 +348,7 @@ export function useAircraftTrace(
         full,
       })
         .then(({ points }) => {
-          if (disposed) return;
+          if (disposed || points.length === 0) return;
           if (full) {
             setFullPoints(points);
           } else {
@@ -351,14 +362,6 @@ export function useAircraftTrace(
               error,
             );
           }
-        })
-        .finally(() => {
-          if (disposed) return;
-          if (full) {
-            setFullLoading(false);
-          } else {
-            setRecentLoading(false);
-          }
         });
     });
 
@@ -367,10 +370,12 @@ export function useAircraftTrace(
     };
   }, [hex, traceRefreshKey, fullTrace, traceLabel]);
 
-  // Append the latest polled position so the trail extends forward in
-  // real time. Use the same visual motion model as aircraft markers so
-  // the trace head follows inferred movement without rebuilding on every
-  // animation frame.
+  // Grow the trail with REAL fixes: every fresh upstream position sample
+  // (a new positionTime) appends an authoritative, persistable point at
+  // the raw reported coordinates. The dead-reckoned marker position is
+  // tracked separately below — mixing the two used to make the whole
+  // live trail inferred/display-only, so a watched session was never
+  // actually persisted.
   useEffect(() => {
     if (!hex) return;
     const now = Date.now();
@@ -385,18 +390,25 @@ export function useAircraftTrace(
       now,
       currentVisual,
     );
-    const point = liveAircraftToTracePoint(selectedAircraft, {
-      position: calculateAircraftVisualPosition(traceMotionRef.current, now),
-      timestampMs: now,
-      inferred: true,
-    });
-    if (!point) return;
-    latestVisualTracePointRef.current = point;
-    setLivePoints((current) => {
-      return appendLiveTracePoint(current, point);
-    });
+
+    const positionTime = Number(selectedAircraft?.positionTime);
+    if (
+      Number.isFinite(positionTime) &&
+      positionTime !== lastLiveFixTimeRef.current
+    ) {
+      const fix = liveAircraftToTracePoint(selectedAircraft, {
+        timestampMs: positionTime,
+      });
+      if (fix) {
+        lastLiveFixTimeRef.current = positionTime;
+        setLivePoints((current) => appendLiveTracePoint(current, fix));
+      }
+    }
   }, [hex, selectedAircraft]);
 
+  // The visual head follows the same motion model as the aircraft marker
+  // so the trace tip tracks inferred movement between fixes. It is a
+  // single display-only point (inferred → filtered from persistence).
   useEffect(() => {
     if (!hex || typeof window === "undefined") return undefined;
 
@@ -411,7 +423,7 @@ export function useAircraftTrace(
       });
       if (!point) return;
       latestVisualTracePointRef.current = point;
-      setLivePoints((current) => appendLiveTracePoint(current, point));
+      setVisualHeadPoint(point);
     };
 
     tick();
@@ -438,6 +450,7 @@ export function useAircraftTrace(
       mode: fullTrace ? "focus" : "selected",
       sources: {
         live: livePoints,
+        visualHead: visualHeadPoint ? [visualHeadPoint] : [],
         recent: recentPoints,
         local: localTracePoints,
         full: fullPoints,
@@ -445,20 +458,21 @@ export function useAircraftTrace(
       },
       recentLoading,
       fullLoading,
-      fullCutoffMs: traceStartAtMs,
+      clipToLeg,
     });
   }, [
     activeHex,
     hex,
     fullTrace,
     livePoints,
+    visualHeadPoint,
     recentPoints,
     localTracePoints,
     fullPoints,
     persistedPoints,
     recentLoading,
     fullLoading,
-    traceStartAtMs,
+    clipToLeg,
   ]);
   const tracePoints = composedTrace.points;
   const persistedTracePoints = useMemo(
@@ -471,17 +485,31 @@ export function useAircraftTrace(
     tracePointCount: tracePoints.length,
   });
 
-  // Persist the clipped trace back to localStorage. Debounced so a burst
-  // of live polls collapses into one write. Inferred visual-head points
-  // stay display-only; the persisted trace remains actual provider/local
-  // samples.
+  // Persist the clipped trace back to localStorage on a fixed cadence
+  // (skipping unchanged snapshots). Inferred visual-head points stay
+  // display-only; the persisted trace remains actual provider/local
+  // samples. pagehide and unmount flush immediately — detail-page
+  // navigation is a hard reload, and a pending write would otherwise
+  // drop the newest fixes.
+  const persistSnapshotRef = useRef<AircraftTraceHookRecord[]>([]);
+  persistSnapshotRef.current = persistedTracePoints;
   useEffect(() => {
-    if (!persistKey || persistedTracePoints.length === 0) return undefined;
-    const timer = window.setTimeout(() => {
-      writeTrackedTrace(persistKey, persistedTracePoints);
-    }, PERSIST_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [persistKey, persistedTracePoints]);
+    if (!persistKey || typeof window === "undefined") return undefined;
+    let lastWritten: AircraftTraceHookRecord[] | null = null;
+    const flush = () => {
+      const points = persistSnapshotRef.current;
+      if (points.length === 0 || points === lastWritten) return;
+      lastWritten = points;
+      writeTrackedTrace(persistKey, points);
+    };
+    const timer = window.setInterval(flush, PERSIST_INTERVAL_MS);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, [persistKey]);
 
   // Memoize the returned object so its identity is stable when the fields
   // are unchanged — the SelectedAircraftTrace context keys a memo on this

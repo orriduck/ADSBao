@@ -16,10 +16,12 @@ export const AIRPORT_EXPLORER_UI_CONFIG = {
 
 export const AIRCRAFT_TRAFFIC_CONFIG = {
   pollMs: 3_000,
+  pollBackoffMaxMs: 30_000,
   rangeNm: 40,
   hiddenPollGraceMs: 5_000,
   hiddenPollMaxMs: 30_000,
   flightAwareTraceRefreshMs: 60_000,
+  traceSteadyRefreshMs: 180_000,
 };
 
 export const AVIATION_PROXY_BASES = {
