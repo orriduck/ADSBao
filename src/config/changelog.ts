@@ -47,48 +47,36 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 67;
+export const CHANGELOG_TOTAL_COUNT = 65;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v2.43.1",
+    version: "v3.0.0",
     kind: "feat",
     title: {
-      en: "Steadier tracking: current-leg traces, routes that survive navigation, resilient feeds",
-      zh: "更稳的追踪:当前航段航迹、跨页不丢的航线、更抗故障的数据流",
+      en: "Plane Hunter for everyone: one-screen capture studio, no flag",
+      zh: "拍机工作室面向所有人:一屏拍照,不再内测",
     },
     summary: {
-      en: "The three core tracking mechanisms got a stability pass. Traces: the flight page now clips history to the current leg — earlier legs and yesterday's same-callsign trail no longer bleed in, while transoceanic coverage holes at cruise are correctly kept (the 'all recorded points' view still shows everything); the watched session's real position fixes are now genuinely saved (a starved debounce meant they often weren't), and a failed or rate-limited background trace refresh keeps what you already have instead of wiping the trail. Routes: resolved origin/destination pairs persist in the browser, so opening a flight's detail page reuses the route the map already fetched instead of re-asking upstream. Positions: when the realtime socket falls back to polling, repeated upstream failures now back off exponentially instead of hammering every 3 seconds.",
-      zh: "对三大核心追踪机制做了一轮稳定性改造。航迹:飞机页历史现在按当前航段裁剪——更早的航段和昨天同呼号的旧航迹不再混入,而巡航高度上的跨洋覆盖空洞会被正确保留(「所有记录点」视图仍可看全部);追踪期间的真实位置点现在会切实存下来(原先的防抖被持续更新饿死,经常根本没写入),后台航迹刷新失败或被限流时保留已有数据,不再清空轨迹。航线:已解析的出发/到达在浏览器本地持久化,打开航班详情页直接复用地图页已取到的航线,不再重复请求上游。位置:实时连接退化为轮询时,上游连续失败会指数退避,不再每 3 秒硬砸。",
+      en: "The Plane Hunter camera studio graduates from internal testing to everyone. It's a single screen: pick an aircraft, frame it in the live viewfinder with the overlay template rendering as you shoot, follow the compass ribbon up top to line the plane up (it turns green and snaps to centre when aligned), then one tap to capture and share. The two data-driven templates — a boarding-pass Card and a departure-board Brief — ship in Manrope with the design-system signal-orange accent. The old feature gate and the legacy two-step compose flow are both gone: there's now one modern studio for every user, on every supported device.",
+      zh: "拍机相机工作室从内测正式面向所有人。整个流程就在一屏:选一架飞机,在实时取景器里取景——模板边拍边实时渲染,跟着顶部的罗盘带把飞机对准(对齐时变绿并归中),一键拍照分享。两个数据驱动的模板——登机牌式 Card 和离港牌式 Brief——都用 Manrope 字体 + 设计系统的信号橙主色。旧的功能开关和旧版两步式编辑流程都已移除:现在所有用户、所有受支持设备上都是同一个 modern 工作室。",
     },
     highlights: [
       {
-        en: "Flight traces clip to the current leg — multi-leg days and yesterday's flight under the same callsign stay out; cruise-altitude ocean gaps are kept, so transatlantic traces stay whole. 'Full trace' is the flight-path view; 'all recorded points' shows the leg's recorded samples.",
-        zh: "航迹按当前航段裁剪——同日多段和昨天同呼号的航班不再混入;巡航高度的海洋空洞会保留,跨洋航迹保持完整。「完整航迹」是航路视图,「所有记录点」展示本航段已记录的点。",
+        en: "The internal feature flag that gated the studio is removed — every user gets the modern one-screen Plane Hunter, with no legacy fallback.",
+        zh: "门控工作室的内部 feature flag 已移除——所有用户都进 modern 一屏式拍机,没有旧版回落。",
       },
       {
-        en: "Trace refreshes union with what's already recorded instead of replacing it — the rolling recent window no longer drops the takeoff segment mid-flight (notably right after UTC midnight, when the upstream day-file can lag).",
-        zh: "航迹刷新与已记录点求并集而非整体替换——滚动窗口不再在航程中丢掉起飞段(尤其 UTC 午夜后上游日文件滞后时)。",
+        en: "Live template overlay on the viewfinder — what you frame is what you save; capture composites the exact capture area and shares it.",
+        zh: "取景器上实时套模板——所见即所存;拍照合成的正是取景区并直接分享。",
       },
       {
-        en: "Real live fixes are appended and persisted while you watch; the inferred marker head stays display-only.",
-        zh: "追踪时真实位置点持续入轨并持久化;推断的视觉头仅用于显示。",
+        en: "Compass ribbon up top: heading tape + degree readout + aircraft marker that points you left/right and turns green when the plane is centred.",
+        zh: "顶部罗盘带:航向尺 + 度数读数 + 飞机 marker,指引你左右,飞机居中时变绿。",
       },
       {
-        en: "A failed/empty trace refresh never wipes points you already have, and the recent trace re-pulls every ~3 minutes so upstream corrections land.",
-        zh: "航迹刷新失败/为空不再清掉已有点;最近航迹每约 3 分钟静默补拉,上游修正能落地。",
-      },
-      {
-        en: "Routes persist across page navigations (provider-partitioned, hits only), so detail pages show origin/destination instantly.",
-        zh: "航线跨页持久化(按提供方分区、只存命中),详情页即时显示出发/到达。",
-      },
-      {
-        en: "Position polling backs off exponentially (3s → 30s) on repeated upstream failures.",
-        zh: "位置轮询在上游连续失败时指数退避(3s → 30s)。",
-      },
-      {
-        en: "Fixed: readsb trace flags were misread as 'on ground', which broke leg detection right at oceanic coverage holes.",
-        zh: "修复:readsb 航迹 flags 位被误读为「在地面」,恰好在跨洋空洞处破坏航段判定。",
+        en: "Shutter → Retake / Share, a single tap-to-cycle template button, and full portrait + landscape support.",
+        zh: "快门 → 重拍/分享,单个点按循环的模板按钮,横竖屏完整支持。",
       },
     ],
   },

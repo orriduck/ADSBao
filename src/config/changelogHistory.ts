@@ -170,6 +170,48 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v2.43.1",
+    kind: "feat",
+    title: {
+      en: "Steadier tracking: current-leg traces, routes that survive navigation, resilient feeds",
+      zh: "更稳的追踪:当前航段航迹、跨页不丢的航线、更抗故障的数据流",
+    },
+    summary: {
+      en: "The three core tracking mechanisms got a stability pass. Traces: the flight page now clips history to the current leg — earlier legs and yesterday's same-callsign trail no longer bleed in, while transoceanic coverage holes at cruise are correctly kept (the 'all recorded points' view still shows everything); the watched session's real position fixes are now genuinely saved (a starved debounce meant they often weren't), and a failed or rate-limited background trace refresh keeps what you already have instead of wiping the trail. Routes: resolved origin/destination pairs persist in the browser, so opening a flight's detail page reuses the route the map already fetched instead of re-asking upstream. Positions: when the realtime socket falls back to polling, repeated upstream failures now back off exponentially instead of hammering every 3 seconds.",
+      zh: "对三大核心追踪机制做了一轮稳定性改造。航迹:飞机页历史现在按当前航段裁剪——更早的航段和昨天同呼号的旧航迹不再混入,而巡航高度上的跨洋覆盖空洞会被正确保留(「所有记录点」视图仍可看全部);追踪期间的真实位置点现在会切实存下来(原先的防抖被持续更新饿死,经常根本没写入),后台航迹刷新失败或被限流时保留已有数据,不再清空轨迹。航线:已解析的出发/到达在浏览器本地持久化,打开航班详情页直接复用地图页已取到的航线,不再重复请求上游。位置:实时连接退化为轮询时,上游连续失败会指数退避,不再每 3 秒硬砸。",
+    },
+    highlights: [
+      {
+        en: "Flight traces clip to the current leg — multi-leg days and yesterday's flight under the same callsign stay out; cruise-altitude ocean gaps are kept, so transatlantic traces stay whole. 'Full trace' is the flight-path view; 'all recorded points' shows the leg's recorded samples.",
+        zh: "航迹按当前航段裁剪——同日多段和昨天同呼号的航班不再混入;巡航高度的海洋空洞会保留,跨洋航迹保持完整。「完整航迹」是航路视图,「所有记录点」展示本航段已记录的点。",
+      },
+      {
+        en: "Trace refreshes union with what's already recorded instead of replacing it — the rolling recent window no longer drops the takeoff segment mid-flight (notably right after UTC midnight, when the upstream day-file can lag).",
+        zh: "航迹刷新与已记录点求并集而非整体替换——滚动窗口不再在航程中丢掉起飞段(尤其 UTC 午夜后上游日文件滞后时)。",
+      },
+      {
+        en: "Real live fixes are appended and persisted while you watch; the inferred marker head stays display-only.",
+        zh: "追踪时真实位置点持续入轨并持久化;推断的视觉头仅用于显示。",
+      },
+      {
+        en: "A failed/empty trace refresh never wipes points you already have, and the recent trace re-pulls every ~3 minutes so upstream corrections land.",
+        zh: "航迹刷新失败/为空不再清掉已有点;最近航迹每约 3 分钟静默补拉,上游修正能落地。",
+      },
+      {
+        en: "Routes persist across page navigations (provider-partitioned, hits only), so detail pages show origin/destination instantly.",
+        zh: "航线跨页持久化(按提供方分区、只存命中),详情页即时显示出发/到达。",
+      },
+      {
+        en: "Position polling backs off exponentially (3s → 30s) on repeated upstream failures.",
+        zh: "位置轮询在上游连续失败时指数退避(3s → 30s)。",
+      },
+      {
+        en: "Fixed: readsb trace flags were misread as 'on ground', which broke leg detection right at oceanic coverage holes.",
+        zh: "修复:readsb 航迹 flags 位被误读为「在地面」,恰好在跨洋空洞处破坏航段判定。",
+      },
+    ],
+  },
+  {
     version: "v2.42.4",
     kind: "feat",
     title: {
@@ -208,36 +250,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       {
         en: "Toolbars are less busy: every toolbar (map controls, page nav, sidebar) now keeps a single divider before the language/theme/account cluster instead of one between every group.",
         zh: "工具栏更清爽:各处工具栏(地图控制、页面导航、侧栏)只在语言/主题/账号这一组前保留一条分隔符,不再每组之间都放一条。",
-      },
-    ],
-  },
-  {
-    version: "v2.41.3",
-    kind: "feat",
-    title: {
-      en: "Plane Hunter: live templates, a compass, and one-tap capture",
-      zh: "拍机工作室:实时套模板 + 罗盘指向 + 一键拍照分享",
-    },
-    summary: {
-      en: "Plane Hunter is now one screen. The overlay template renders live on the viewfinder as you frame — pick a preset and the shot updates instantly — so what you see is exactly what you save. The top of the frame became a compass ribbon: a heading tape with degree ticks, cardinals, and an aircraft marker driven by the device compass and the plane's bearing, so you can see whether to pan left or right; it reads out the offset (e.g. L 15°) and turns green and snaps to centre once you're aligned. The shutter freezes the shot straight to a Retake / Share pair (no settings step), the template presets collapse to a single tap-to-cycle button, and the whole flow works in portrait and landscape. The two templates were redesigned around our own data: a boarding-pass Card (callsign hero, flight data, an orange aircraft-type block bled into the corner) and a departure-board Brief (a single flush-bottom strip), both in Manrope with the design-system signal-orange accent.",
-      zh: "拍机工作室合并成一屏。取景时模板就实时渲染在画面上——切预设即时更新——所见即所得。顶部变成一条罗盘带:带刻度、东西南北和飞机 marker 的航向尺,由设备指南针 + 你到飞机的方位角驱动,告诉你该往左还是往右转;它读出偏移角(如 L 15°),对准时变绿并归中。快门把画面冻结后直接进重拍/分享(没有设置步骤),模板预设收成一个点按循环的按钮,整套流程横竖屏都支持。两个模板按我们自己的数据重做:登机牌式 Card(航班号主体 + 飞航数据 + 贴角的橙色机型块)和离港牌式 Brief(贴底单条),都用 Manrope 字体 + 设计系统的信号橙主色。",
-    },
-    highlights: [
-      {
-        en: "Live template overlay on the viewfinder — the framing you see is the framing you save; capture composites the exact capture area and shares it.",
-        zh: "取景器上实时套模板——看到的就是保存的;拍照合成的正是取景区并直接分享。",
-      },
-      {
-        en: "Compass ribbon up top: heading tape + degree readout + aircraft marker that points you left/right and turns green when the plane is centred.",
-        zh: "顶部罗盘带:航向尺 + 度数读数 + 飞机 marker,指引你左右,飞机居中时变绿。",
-      },
-      {
-        en: "Shutter → Retake / Share, a single tap-to-cycle template button, and full portrait + landscape support.",
-        zh: "快门 → 重拍/分享,单个点按循环的模板按钮,横竖屏完整支持。",
-      },
-      {
-        en: "Redesigned Card (boarding-pass) and Brief (departure-board) templates in Manrope with the design-system orange accent; legacy settings/compose UI removed.",
-        zh: "重做的 Card(登机牌)与 Brief(离港牌)模板,Manrope 字体 + 设计系统橙色;移除了旧的设置/编辑界面。",
       },
     ],
   },
@@ -561,19 +573,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     highlights: [],
   },
   {
-    version: "v2.23.5",
-    kind: "feat",
-    title: {
-      en: "Plane Hunter lenses and photo-spot map",
-      zh: "拍机镜头与拍机点地图",
-    },
-    summary: {
-      en: "Plane Hunter's live camera exposes lens selection when the browser provides multiple cameras, with clearer zoom guidance and the magnification capped to practical 1x, 2x, and 4x. Airport photo locations stay visible across zoom levels — quiet dots at the farthest view, theme-correct badges and a simpler navigation chooser closer in. Map settings also regain a permission re-request button when location is denied.",
-      zh: "拍机实时相机会在浏览器暴露多个镜头时提供镜头选择,倍率说明更清楚,并收敛到实用的 1x、2x、4x。机场拍机点在各级缩放下保持显示——最远视图为安静小点,靠近后切换为主题正确的 badge 与更精简的导航选择。位置被拒绝时,地图设置也恢复重新请求权限的按钮。",
-    },
-    highlights: [],
-  },
-  {
     version: "v2.22.18",
     kind: "feat",
     title: {
@@ -583,19 +582,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     summary: {
       en: "Route lookup and aircraft metadata now flow through a protected backend boundary instead of browser-side upstream calls. A sustained run hardens the /here experience: its own live location marker, a heading arc that follows the phone compass, tighter position filtering, and more reliable recovery after the browser has been backgrounded. Live marker coordinates and compass heading now update across every map view that can show my location, sidebar altitude filtering goes multi-select, and tracking, airspace, gesture, and photo-navigation paths get steadier.",
       zh: "航路查询和飞机元数据现在走受保护的后端边界,不再由浏览器直接访问上游。一轮持续工作强化了 /here 体验:独立的实时定位点、跟随手机罗盘的视角圆弧、更灵敏的位置防抖,以及浏览器长时间后台后更可靠的恢复。任何能显示我的位置的地图视图都会即时更新定位点坐标与罗盘朝向,侧栏高度筛选改为多选,追踪、空域、手势与拍机点导航路径也更稳定。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v2.21.0",
-    kind: "feat",
-    title: {
-      en: "Curated photo locations and navigation",
-      zh: "机场拍机点与导航",
-    },
-    summary: {
-      en: "Watcher Mode now uses curated airport photo locations, with a preview-first flow and direct handoff to map navigation.",
-      zh: "看客模式现在使用精选机场拍机点，并提供先预览、再跳转地图导航的流程。",
     },
     highlights: [],
   },

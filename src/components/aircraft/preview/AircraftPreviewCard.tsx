@@ -34,7 +34,7 @@ import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
 
 const PHOTO_TONE_DARK = "dark";
 const PHOTO_TONE_LIGHT = "light";
-const PlaneHunterStudio = lazy(() => import("./PlaneHunterStudio"));
+const PlaneHunterStudio = lazy(() => import("./PlaneHunterStudioModern"));
 
 export default function AircraftPreviewCard({
   aircraft = null,
