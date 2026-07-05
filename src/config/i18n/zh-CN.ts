@@ -681,6 +681,7 @@ const zhCN = {
     baseMapSection: "底图",
     layersSection: "显示",
     unitsSection: "单位",
+    notificationsSection: "通知",
     units: {
       distance: {
         title: "距离",
@@ -712,6 +713,30 @@ const zhCN = {
     baseLayerDescriptions: {
       standard: "干净的街道底图,无地形渲染。",
       terrain: "在底图下方叠加山体阴影和地势起伏。",
+    },
+  },
+  notifications: {
+    permissionUnsupported: "此浏览器不支持系统通知。",
+    permissionDenied: "系统通知权限已被拒绝,请在浏览器设置中开启后重试。",
+    radiusLabel: "提醒范围",
+    airport: {
+      label: "附近机场提醒",
+      subtitleOn: "进入范围内有机场时提醒一次",
+      subtitleOff: "不提醒附近机场",
+      hint: "仅在「我的位置」模式下生效,每次开启只提醒一次",
+    },
+    aircraft: {
+      label: "附近飞机提醒",
+      subtitleOn: "飞机进入范围时提醒呼号和机型",
+      subtitleOff: "不提醒附近飞机",
+    },
+    airportAlert: {
+      title: "附近有机场:{name}",
+      body: "距你约 {distance}{unit} · {icao}",
+    },
+    aircraftAlert: {
+      title: "{callsign} 正在接近",
+      body: "{type} · 距你约 {distance}{unit}",
     },
   },
   watcherMode: {

@@ -42,6 +42,10 @@ import { useUserLocationLayer } from "@/hooks/useUserLocationLayer";
 import { useCandidateWatchingSpots } from "@/features/airport/watcher/useCandidateWatchingSpots";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useWakeLock } from "@/hooks/useWakeLock";
+import { useNotificationPreferences } from "@/features/notifications/NotificationPreferencesProvider";
+import { useNotificationPermission } from "@/features/notifications/useNotificationPermission";
+import { useAirportProximityNotifier } from "@/features/notifications/useAirportProximityNotifier";
+import { useAircraftProximityNotifier } from "@/features/notifications/useAircraftProximityNotifier";
 
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
@@ -236,6 +240,27 @@ function AirportExplorerContent({
   const { weather, traffic } = useAirportExplorerData(airportProfile, {
     metarIcao,
     selectedAircraftId,
+  });
+  // Proximity alerts: airport alert is here-mode only and fires once per
+  // enabled session; aircraft alert runs in every mode (here + airport
+  // detail) and re-fires per aircraft on each new approach. Both stay fully
+  // inert unless the user both opted in AND already granted the browser
+  // Notification permission — no permission-request side effect lives here.
+  const { preferences: notificationPreferences } = useNotificationPreferences();
+  const { permission: notificationPermission } = useNotificationPermission();
+  const notificationsGranted = notificationPermission === "granted";
+  useAirportProximityNotifier({
+    enabled:
+      nearMe &&
+      notificationsGranted &&
+      notificationPreferences.nearbyAirportEnabled,
+    airports: nearbyAirports.airports,
+    radiusNm: notificationPreferences.nearbyAirportRadiusNm,
+  });
+  useAircraftProximityNotifier({
+    enabled: notificationsGranted && notificationPreferences.nearbyAircraftEnabled,
+    aircraft: traffic.aircraft,
+    radiusNm: notificationPreferences.nearbyAircraftRadiusNm,
   });
   const effectiveUserLocation =
     (nearMe ? null : userLocationLayer.userLocation) || nearMeMapUserLocation;

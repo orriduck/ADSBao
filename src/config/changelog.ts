@@ -47,40 +47,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 65;
+export const CHANGELOG_TOTAL_COUNT = 66;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.0.1",
+    version: "v3.1.1",
     kind: "feat",
     title: {
-      en: "Plane Hunter for everyone: one-screen capture studio, no flag",
-      zh: "拍机工作室面向所有人:一屏拍照,不再内测",
+      en: "Proximity alerts: airport nearby (Here mode) and aircraft closing in",
+      zh: "接近提醒:附近机场(我的位置模式)与飞机接近",
     },
     summary: {
-      en: "The Plane Hunter camera studio graduates from internal testing to everyone. It's a single screen: pick an aircraft, frame it in the live viewfinder with the overlay template rendering as you shoot, follow the compass ribbon up top to line the plane up (it turns green and snaps to centre when aligned), then one tap to capture and share. The two data-driven templates — a boarding-pass Card and a departure-board Brief — ship in Manrope with the design-system signal-orange accent. The old feature gate and the legacy two-step compose flow are both gone: there's now one modern studio for every user, on every supported device.",
-      zh: "拍机相机工作室从内测正式面向所有人。整个流程就在一屏:选一架飞机,在实时取景器里取景——模板边拍边实时渲染,跟着顶部的罗盘带把飞机对准(对齐时变绿并归中),一键拍照分享。两个数据驱动的模板——登机牌式 Card 和离港牌式 Brief——都用 Manrope 字体 + 设计系统的信号橙主色。旧的功能开关和旧版两步式编辑流程都已移除:现在所有用户、所有受支持设备上都是同一个 modern 工作室。",
+      en: "A new Notifications section in map settings adds two opt-in system-notification alerts, both off by default. In Here mode, turning on the airport alert pings you once — with the airport's name and distance — the first time you wander within your chosen range (3/5/10/20 NM); it goes quiet after that until you toggle it off and back on. The aircraft alert works everywhere (Here mode and airport pages) and fires per plane, with its callsign and aircraft type, each time one crosses into your chosen range (2/5/10/20 NM) — not on every refresh while it lingers, and it fires again if it leaves and comes back. Both need the browser's notification permission; the settings sheet shows a clear note if that's blocked or unsupported.",
+      zh: "地图设置新增「通知」分区,两个默认关闭的可选系统通知。在「我的位置」模式下打开机场提醒后,第一次进入你设定的范围(3/5/10/20 海里)会弹出一条提醒(机场名称 + 距离),之后保持安静,直到你关闭再重新打开。飞机提醒在任何模式下都生效(我的位置和机场详情页),每架飞机每次进入你设定的范围(2/5/10/20 海里)都会带着呼号和机型提醒一次——停留期间不会反复提醒,离开后再次接近会重新提醒。两者都需要浏览器的系统通知权限;权限被拒绝或浏览器不支持时,设置面板会给出明确提示。",
     },
     highlights: [
       {
-        en: "The internal feature flag that gated the studio is removed — every user gets the modern one-screen Plane Hunter, with no legacy fallback.",
-        zh: "门控工作室的内部 feature flag 已移除——所有用户都进 modern 一屏式拍机,没有旧版回落。",
+        en: "Here-mode airport alert: one system notification with the airport's name and distance the first time you're within range; quiet after that until re-enabled.",
+        zh: "「我的位置」机场提醒:进入范围后弹出一次机场名称 + 距离的系统通知,之后保持安静,直到重新开启。",
       },
       {
-        en: "Live template overlay on the viewfinder — what you frame is what you save; capture composites the exact capture area and shares it.",
-        zh: "取景器上实时套模板——所见即所存;拍照合成的正是取景区并直接分享。",
+        en: "Aircraft alert (all modes): a system notification per aircraft — callsign and type — on each new approach into range, never repeating while it just lingers nearby.",
+        zh: "飞机提醒(全部模式):每架飞机每次新进入范围都弹一次呼号 + 机型的系统通知,停留附近期间不会重复。",
       },
       {
-        en: "Compass ribbon up top: heading tape + degree readout + aircraft marker that points you left/right and turns green when the plane is centred.",
-        zh: "顶部罗盘带:航向尺 + 度数读数 + 飞机 marker,指引你左右,飞机居中时变绿。",
-      },
-      {
-        en: "Shutter → Retake / Share, a single tap-to-cycle template button, and full portrait + landscape support.",
-        zh: "快门 → 重拍/分享,单个点按循环的模板按钮,横竖屏完整支持。",
-      },
-      {
-        en: "Here mode's stat row now reads out your device-compass bearing instead of an always-empty spot count; compass and speed show an em dash (—) when the sensor has no signal, never a bogus 0.",
-        zh: "「我的位置」的指标行现在显示设备罗盘方位角,取代恒为空的拍机点计数;罗盘和速度在传感器无信号时显示 em dash(—),不再是误导性的 0。",
+        en: "Both alerts default OFF and each has its own adjustable range preset; a clear note appears if the browser's notification permission is blocked or unsupported.",
+        zh: "两个提醒默认关闭,各自有独立可调的范围预设;浏览器通知权限被拒绝或不支持时,会显示明确提示。",
       },
     ],
   },
