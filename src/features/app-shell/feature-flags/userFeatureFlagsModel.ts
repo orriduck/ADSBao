@@ -1,6 +1,5 @@
 export const FEATURE_FLAGS = Object.freeze({
   FLIGHTAWARE_ENABLED: "flightAwareEnabled",
-  PLANE_HUNTER_CAMERA_STUDIO: "planeHunterCameraStudio",
 });
 
 const FEATURE_FLAG_ENVIRONMENTS = Object.freeze({
