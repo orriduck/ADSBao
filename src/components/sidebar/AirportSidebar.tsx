@@ -45,6 +45,7 @@ export default function AirportSidebar({
   nearMe = false,
   nearMeSelfSpeedMps = null,
   nearMeSelfAltitudeMeters = null,
+  nearMeSelfHeadingDeg = null,
   nearMeRefresh,
   onSelectAircraft,
   onSelectAirport,
@@ -113,6 +114,7 @@ export default function AirportSidebar({
         nearMe={nearMe}
         nearMeSelfSpeedMps={nearMeSelfSpeedMps}
         nearMeSelfAltitudeMeters={nearMeSelfAltitudeMeters}
+        nearMeSelfHeadingDeg={nearMeSelfHeadingDeg}
         featureFlagsResolved={flightAwareResolved}
       />
     </>

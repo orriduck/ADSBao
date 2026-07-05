@@ -511,6 +511,7 @@ function AirportExplorerContent({
     nearMeSelfAltitudeMeters: nearMe
       ? nearMeSelfLocation?.altitudeMeters ?? null
       : null,
+    nearMeSelfHeadingDeg: nearMe ? nearMeSelfLocation?.headingDeg ?? null : null,
     nearMeRefresh,
     onSelectAircraft: selectAircraft,
     onSelectAirport: selectAirport,
