@@ -308,6 +308,7 @@ const en = {
     departures: "Dep",
     arrivals: "Arr",
     speed: "Speed",
+    heading: "Heading",
     atc: "ATC",
     spotting: "Spot",
     metricUnits: {

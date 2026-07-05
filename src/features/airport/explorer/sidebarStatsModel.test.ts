@@ -17,6 +17,7 @@ function makeInput(
     aircraft: [],
     selfSpeedMps: null,
     selfAltitudeMeters: null,
+    selfHeadingDeg: null,
     groundSpeedUnit: "kmh",
     metar: null,
     metarLoading: false,
@@ -108,8 +109,8 @@ const ids = (row: { id: string }[]) => row.map((item) => item.id);
   assert.equal(noFix.movementRow[1].value, null);
 }
 
-// Context row: briefing always present; ATC only with frequencies; spotting
-// always present and routed to the dedicated open handler.
+// Context row (airport mode): briefing always present; ATC only with
+// frequencies; spotting always present and routed to the dedicated open handler.
 {
   const noAtc = buildSidebarStats(makeInput());
   assert.deepEqual(ids(noAtc.contextRow), ["briefing", "spotting"]);
@@ -118,6 +119,34 @@ const ids = (row: { id: string }[]) => row.map((item) => item.id);
   assert.deepEqual(ids(withAtc.contextRow), ["briefing", "atc", "spotting"]);
   const spotting = withAtc.contextRow.find((item) => item.id === "spotting");
   assert.equal(spotting?.interaction.kind, "spotting");
+}
+
+// Here mode replaces the (always-empty) spotting cell with the user's compass
+// bearing: padded to 3 digits with a degree unit, read-only, and an em dash
+// when the device compass has no signal.
+{
+  const withHeading = buildSidebarStats(
+    makeInput({ nearMe: true, selfHeadingDeg: 5 }),
+  );
+  assert.deepEqual(ids(withHeading.contextRow), ["briefing", "heading"]);
+  const heading = withHeading.contextRow.find((item) => item.id === "heading");
+  assert.equal(heading?.value, "005");
+  assert.equal(heading?.unit, "°");
+  assert.equal(heading?.interaction.kind, "readonly");
+
+  // Wraps past 360 and rounds.
+  assert.equal(
+    buildSidebarStats(makeInput({ nearMe: true, selfHeadingDeg: 359.6 }))
+      .contextRow.find((item) => item.id === "heading")?.value,
+    "000",
+  );
+
+  // No compass signal → em dash, no unit (never a bogus 0°).
+  const noCompass = buildSidebarStats(
+    makeInput({ nearMe: true, selfHeadingDeg: null }),
+  ).contextRow.find((item) => item.id === "heading");
+  assert.equal(noCompass?.value, null);
+  assert.equal(noCompass?.unit, undefined);
 }
 
 // Briefing temperature comes from the METAR raw temp; loading shows an em dash

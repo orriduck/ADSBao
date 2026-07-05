@@ -53,6 +53,8 @@ export type BuildSidebarStatsInput = {
   aircraft: Array<{ movement?: string }>;
   selfSpeedMps: number | null;
   selfAltitudeMeters: number | null;
+  // Device-compass heading in degrees, or null when the compass has no signal.
+  selfHeadingDeg: number | null;
   groundSpeedUnit: GroundSpeedUnit;
   metar: { rawTemp?: unknown } | null;
   metarLoading: boolean;
@@ -95,6 +97,7 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
     aircraft,
     selfSpeedMps,
     selfAltitudeMeters,
+    selfHeadingDeg,
     groundSpeedUnit,
     metar,
     metarLoading,
@@ -175,13 +178,34 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
       interaction: { kind: "view", view: "atc" },
     });
   }
-  contextRow.push({
-    id: "spotting",
-    labelKey: "sidebar.spotting",
-    value: spottingCount,
-    display: "numberFlow",
-    interaction: { kind: "spotting" },
-  });
+  if (nearMe) {
+    // Here mode has no airport, so there are never candidate spots to count —
+    // the cell becomes the user's own compass bearing instead. No signal → em
+    // dash (never a bogus 0°). Padded to the app's 3-digit bearing convention.
+    const bearing =
+      selfHeadingDeg == null || !Number.isFinite(selfHeadingDeg)
+        ? null
+        : String(((Math.round(selfHeadingDeg) % 360) + 360) % 360).padStart(
+            3,
+            "0",
+          );
+    contextRow.push({
+      id: "heading",
+      labelKey: "sidebar.heading",
+      value: bearing,
+      display: "text",
+      unit: bearing == null ? undefined : "°",
+      interaction: { kind: "readonly" },
+    });
+  } else {
+    contextRow.push({
+      id: "spotting",
+      labelKey: "sidebar.spotting",
+      value: spottingCount,
+      display: "numberFlow",
+      interaction: { kind: "spotting" },
+    });
+  }
 
   return { movementRow, contextRow };
 }

@@ -30,6 +30,7 @@ export default function SidebarViewSwitch({
   nearMe = false,
   nearMeSelfSpeedMps = null,
   nearMeSelfAltitudeMeters = null,
+  nearMeSelfHeadingDeg = null,
   featureFlagsResolved = true,
 }) {
   const { t } = useI18n();
@@ -56,6 +57,7 @@ export default function SidebarViewSwitch({
         aircraft,
         selfSpeedMps: nearMeSelfSpeedMps,
         selfAltitudeMeters: nearMeSelfAltitudeMeters,
+        selfHeadingDeg: nearMeSelfHeadingDeg,
         groundSpeedUnit,
         metar,
         metarLoading,
@@ -70,6 +72,7 @@ export default function SidebarViewSwitch({
       aircraft,
       nearMeSelfSpeedMps,
       nearMeSelfAltitudeMeters,
+      nearMeSelfHeadingDeg,
       groundSpeedUnit,
       metar,
       metarLoading,

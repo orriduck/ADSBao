@@ -302,6 +302,7 @@ const zhCN = {
     departures: "起飞",
     arrivals: "到达",
     speed: "速度",
+    heading: "方位角",
     atc: "ATC",
     spotting: "拍机点",
     metricUnits: {

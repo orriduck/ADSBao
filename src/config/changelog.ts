@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 65;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.0.0",
+    version: "v3.0.1",
     kind: "feat",
     title: {
       en: "Plane Hunter for everyone: one-screen capture studio, no flag",
@@ -77,6 +77,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Shutter → Retake / Share, a single tap-to-cycle template button, and full portrait + landscape support.",
         zh: "快门 → 重拍/分享,单个点按循环的模板按钮,横竖屏完整支持。",
+      },
+      {
+        en: "Here mode's stat row now reads out your device-compass bearing instead of an always-empty spot count; compass and speed show an em dash (—) when the sensor has no signal, never a bogus 0.",
+        zh: "「我的位置」的指标行现在显示设备罗盘方位角,取代恒为空的拍机点计数;罗盘和速度在传感器无信号时显示 em dash(—),不再是误导性的 0。",
       },
     ],
   },
