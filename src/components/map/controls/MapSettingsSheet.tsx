@@ -20,6 +20,12 @@ import {
   DISTANCE_UNITS,
   TEMPERATURE_UNITS,
 } from "@/features/app-shell/unitPreferences/unitPreferencesModel";
+import { useNotificationPreferences } from "@/features/notifications/NotificationPreferencesProvider";
+import { useNotificationPermission } from "@/features/notifications/useNotificationPermission";
+import {
+  NEARBY_AIRCRAFT_RADIUS_PRESETS_NM,
+  NEARBY_AIRPORT_RADIUS_PRESETS_NM,
+} from "@/features/notifications/notificationPreferencesModel";
 import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 import { MapControlIcon } from "./mapControlIcons";
 
@@ -241,6 +247,34 @@ function LayerToggleRow({
   );
 }
 
+// Distance-radius picker for a notification toggle — same segmented-button
+// visual language as the unit preferences below, just scoped to one row
+// instead of the whole units section.
+function RadiusPresetRow({ ariaLabel, options, unitLabel, value, onSelect }) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label={ariaLabel}
+      className="map-settings-segmented-control mt-1 grid auto-cols-fr grid-flow-col gap-0.5 rounded-none border-0 bg-transparent p-0 shadow-none"
+    >
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          role="radio"
+          aria-checked={value === option}
+          data-active={value === option ? "true" : "false"}
+          className={unitSegmentButtonClassName}
+          onClick={() => onSelect(option)}
+        >
+          {option}
+          {unitLabel}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function MapSettingsSheet({
   id,
   open,
@@ -277,6 +311,35 @@ export default function MapSettingsSheet({
   const { t } = useI18n();
   const { preferences: unitPreferences, setPreferences: setUnitPreferences } =
     useUnitPreferences();
+  const {
+    preferences: notificationPreferences,
+    setPreferences: setNotificationPreferences,
+  } = useNotificationPreferences();
+  const { permission: notificationPermission, request: requestNotificationPermission } =
+    useNotificationPermission();
+  const notificationsUnsupported = notificationPermission === "unsupported";
+  const notificationsDenied = notificationPermission === "denied";
+  const distanceUnitLabel = t(
+    `mapSettings.units.distance.options.${unitPreferences.distance}`,
+  );
+  // Flipping a toggle on always flips the stored preference — permission is a
+  // separate concern surfaced via the note below — but the FIRST time a user
+  // opts in with no permission decision yet, ask right away instead of making
+  // them dig for it.
+  const toggleAirportAlert = () => {
+    const next = !notificationPreferences.nearbyAirportEnabled;
+    setNotificationPreferences({ nearbyAirportEnabled: next });
+    if (next && notificationPermission === "default") {
+      requestNotificationPermission();
+    }
+  };
+  const toggleAircraftAlert = () => {
+    const next = !notificationPreferences.nearbyAircraftEnabled;
+    setNotificationPreferences({ nearbyAircraftEnabled: next });
+    if (next && notificationPermission === "default") {
+      requestNotificationPermission();
+    }
+  };
   const { isLoaded, isSignedIn } = useUser();
   const settings = normalizeMapSettings(mapSettings);
   const baseLayerOptions = getMapBaseLayerOptions();
@@ -536,6 +599,95 @@ export default function MapSettingsSheet({
                     </div>
                   );
                 })}
+              </div>
+            </section>
+
+            <section
+              className="map-settings-section"
+              aria-labelledby={`${id}-notifications`}
+            >
+              <h3
+                id={`${id}-notifications`}
+                className={sectionTitleClassName}
+              >
+                {t("mapSettings.notificationsSection")}
+              </h3>
+              <div className={settingsListGroupClassName}>
+                <LayerToggleRow
+                  active={notificationPreferences.nearbyAirportEnabled}
+                  ariaLabel={t("notifications.airport.label")}
+                  disabled={notificationsUnsupported}
+                  iconKey="towerControl"
+                  label={t("notifications.airport.label")}
+                  subtitle={
+                    notificationPreferences.nearbyAirportEnabled
+                      ? t("notifications.airport.subtitleOn")
+                      : t("notifications.airport.subtitleOff")
+                  }
+                  onClick={toggleAirportAlert}
+                />
+                {notificationPreferences.nearbyAirportEnabled ? (
+                  <RadiusPresetRow
+                    ariaLabel={t("notifications.radiusLabel")}
+                    options={NEARBY_AIRPORT_RADIUS_PRESETS_NM}
+                    unitLabel={distanceUnitLabel}
+                    value={notificationPreferences.nearbyAirportRadiusNm}
+                    onSelect={(radius) =>
+                      setNotificationPreferences({
+                        nearbyAirportRadiusNm: radius,
+                      })
+                    }
+                  />
+                ) : null}
+
+                <LayerToggleRow
+                  active={notificationPreferences.nearbyAircraftEnabled}
+                  ariaLabel={t("notifications.aircraft.label")}
+                  disabled={notificationsUnsupported}
+                  iconKey="radar"
+                  label={t("notifications.aircraft.label")}
+                  subtitle={
+                    notificationPreferences.nearbyAircraftEnabled
+                      ? t("notifications.aircraft.subtitleOn")
+                      : t("notifications.aircraft.subtitleOff")
+                  }
+                  onClick={toggleAircraftAlert}
+                />
+                {notificationPreferences.nearbyAircraftEnabled ? (
+                  <RadiusPresetRow
+                    ariaLabel={t("notifications.radiusLabel")}
+                    options={NEARBY_AIRCRAFT_RADIUS_PRESETS_NM}
+                    unitLabel={distanceUnitLabel}
+                    value={notificationPreferences.nearbyAircraftRadiusNm}
+                    onSelect={(radius) =>
+                      setNotificationPreferences({
+                        nearbyAircraftRadiusNm: radius,
+                      })
+                    }
+                  />
+                ) : null}
+              </div>
+              <div className="mt-1 space-y-1">
+                <div className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-atc-muted shadow-none">
+                  {t("notifications.airport.hint")}
+                </div>
+                {notificationsUnsupported ? (
+                  <div
+                    className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-[var(--atc-interaction-danger)] shadow-none"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {t("notifications.permissionUnsupported")}
+                  </div>
+                ) : notificationsDenied ? (
+                  <div
+                    className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-[var(--atc-interaction-danger)] shadow-none"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {t("notifications.permissionDenied")}
+                  </div>
+                ) : null}
               </div>
             </section>
           </div>

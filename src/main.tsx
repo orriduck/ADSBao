@@ -13,6 +13,7 @@ import {
   resolveLocaleFromSearchParams,
 } from "@/features/app-shell/i18n/i18nModel";
 import { UnitPreferencesProvider } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
+import { NotificationPreferencesProvider } from "@/features/notifications/NotificationPreferencesProvider";
 import WebMcpProvider from "@/features/webmcp/WebMcpProvider";
 import { runtimeEnvValue } from "@/platform/env/runtimeEnv";
 import { isConcreteTheme } from "@/utils/theme";
@@ -78,11 +79,13 @@ createRoot(root).render(
         <I18nProvider initialLocale={resolveInitialLocale()}>
           <QueryProvider>
             <UnitPreferencesProvider>
-              <WebMcpProvider />
-              <AppUpdateToast />
-              <div className="min-h-dvh bg-atc-bg text-atc-text">
-                <App />
-              </div>
+              <NotificationPreferencesProvider>
+                <WebMcpProvider />
+                <AppUpdateToast />
+                <div className="min-h-dvh bg-atc-bg text-atc-text">
+                  <App />
+                </div>
+              </NotificationPreferencesProvider>
             </UnitPreferencesProvider>
           </QueryProvider>
         </I18nProvider>

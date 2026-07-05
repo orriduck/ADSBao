@@ -691,6 +691,7 @@ const en = {
     baseMapSection: "Base map",
     layersSection: "Display",
     unitsSection: "Units",
+    notificationsSection: "Notifications",
     units: {
       distance: {
         title: "Distance",
@@ -722,6 +723,31 @@ const en = {
     baseLayerDescriptions: {
       standard: "Clean street map with no terrain shading.",
       terrain: "Hillshade and topographic relief under the base map.",
+    },
+  },
+  notifications: {
+    permissionUnsupported: "This browser doesn't support system notifications.",
+    permissionDenied:
+      "System notifications are blocked — enable them in your browser settings and try again.",
+    radiusLabel: "Alert range",
+    airport: {
+      label: "Nearby airport alert",
+      subtitleOn: "Notify once when an airport is in range",
+      subtitleOff: "No airport alerts",
+      hint: "Only active in Here mode, and only once per time it's turned on",
+    },
+    aircraft: {
+      label: "Nearby aircraft alert",
+      subtitleOn: "Notify with callsign and type when a plane is in range",
+      subtitleOff: "No aircraft alerts",
+    },
+    airportAlert: {
+      title: "Airport nearby: {name}",
+      body: "About {distance}{unit} away · {icao}",
+    },
+    aircraftAlert: {
+      title: "{callsign} is nearby",
+      body: "{type} · about {distance}{unit} away",
     },
   },
   watcherMode: {
