@@ -4,9 +4,13 @@ import {
   relativeLightAngleDeg,
   resolveAircraftLightBucket,
   resolveLightBucketWithHysteresis,
+  resolveTimeOfDayBucket,
   resolveWeatherMood,
   simplifiedLightBearingDeg,
 } from "./aircraftAmbientModel";
+
+const dateMs = (hour: number, minute = 0) =>
+  new Date(2026, 0, 15, hour, minute, 0, 0).getTime();
 
 // --- resolveWeatherMood ----------------------------------------------------
 
@@ -33,15 +37,27 @@ import {
 // --- simplifiedLightBearingDeg ---------------------------------------------
 
 {
-  const dateMs = (hour: number, minute = 0) => {
-    const d = new Date(2026, 0, 15, hour, minute, 0, 0);
-    return d.getTime();
-  };
   assert.equal(simplifiedLightBearingDeg(dateMs(3)), 90); // before dawn, clamped
   assert.equal(simplifiedLightBearingDeg(dateMs(6)), 90); // dawn
   assert.equal(simplifiedLightBearingDeg(dateMs(12)), 180); // solar noon-ish, midway
   assert.equal(simplifiedLightBearingDeg(dateMs(18)), 270); // dusk
   assert.equal(simplifiedLightBearingDeg(dateMs(22)), 270); // after dusk, clamped
+}
+
+// --- resolveTimeOfDayBucket -------------------------------------------------
+
+{
+  assert.equal(resolveTimeOfDayBucket(dateMs(2)), "night");
+  assert.equal(resolveTimeOfDayBucket(dateMs(4, 59)), "night");
+  assert.equal(resolveTimeOfDayBucket(dateMs(5)), "dawn");
+  assert.equal(resolveTimeOfDayBucket(dateMs(7, 30)), "dawn");
+  assert.equal(resolveTimeOfDayBucket(dateMs(8)), "day");
+  assert.equal(resolveTimeOfDayBucket(dateMs(12)), "day");
+  assert.equal(resolveTimeOfDayBucket(dateMs(16, 59)), "day");
+  assert.equal(resolveTimeOfDayBucket(dateMs(17)), "dusk");
+  assert.equal(resolveTimeOfDayBucket(dateMs(19, 59)), "dusk");
+  assert.equal(resolveTimeOfDayBucket(dateMs(20)), "night");
+  assert.equal(resolveTimeOfDayBucket(dateMs(23, 59)), "night");
 }
 
 // --- relativeLightAngleDeg + lightBucketForRelativeAngle -------------------

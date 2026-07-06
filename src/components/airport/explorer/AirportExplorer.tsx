@@ -264,15 +264,16 @@ function AirportExplorerContent({
     aircraft: traffic.aircraft,
     radiusNm: notificationPreferences.nearbyAircraftRadiusNm,
   });
-  // Ambient map ombiance: aircraft glyphs pick up a weather-driven "mood"
+  // Ambient map ambiance: aircraft glyphs combine a weather-driven "mood"
   // (clear/overcast/severe, from the flight-rules category already fetched
-  // above) and a simplified light-direction shading (see
-  // aircraftAmbientModel.ts — not a real day/night terminator).
+  // above; sets chroma/lightness) with a time-of-day colour temperature
+  // (dawn/day/dusk/night; sets hue) plus a simplified light-direction shading
+  // (see aircraftAmbientModel.ts — none of this is a real day/night terminator).
   const weatherMood = useMemo(
     () => resolveWeatherMood(weather.metar?.flightCategory),
     [weather.metar],
   );
-  const lightBearingDeg = useSimplifiedLightBearing();
+  const { lightBearingDeg, timeOfDay } = useSimplifiedLightBearing();
   const effectiveUserLocation =
     (nearMe ? null : userLocationLayer.userLocation) || nearMeMapUserLocation;
   const userLocationActive = Boolean(effectiveUserLocation);
@@ -692,6 +693,7 @@ function AirportExplorerContent({
               loadingOverlaySources={loadingOverlaySources}
               userLocation={effectiveUserLocation}
               weatherMood={weatherMood}
+              timeOfDay={timeOfDay}
               lightBearingDeg={lightBearingDeg}
             />
           </Suspense>

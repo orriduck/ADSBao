@@ -39,6 +39,7 @@ import {
 import { recordAircraftCanvasFrame } from "../../features/aircraft/canvas/aircraftCanvasPerfMonitor";
 import {
   resolveAircraftLightBucket,
+  type TimeOfDay,
   type WeatherMood,
 } from "../../features/aircraft/canvas/aircraftAmbientModel";
 
@@ -339,32 +340,63 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
   },
 });
 
-// Weather-mood tints for the "at rest" glyph colours (departure/arrival/
-// unknown/ground) only — deliberately hand-picked hex, not a runtime colour
-// blend (canvas has no CSS `color-mix()`, and these change rarely enough that
-// a small lookup table is simpler and cheaper than any blending math). Kept
-// muted/desaturated on purpose: this is ambient atmosphere, not a status
-// alert, and must never compete with the single orange (focal) / blue
-// (selected) accent colours below, which mood never touches.
-const MOOD_REST_COLOR: Record<
-  Exclude<WeatherMood, "clear">,
-  { dark: string; light: string }
-> = {
-  overcast: { dark: "#33383c", light: "#c9cdd2" },
-  severe: { dark: "#403f45", light: "#b8b4bd" },
+// Ambient tint for the "at rest" glyph colours (departure/arrival/unknown/
+// ground) — weather mood sets chroma + lightness (how vivid / how dim),
+// time-of-day sets hue (colour temperature), and the two combine into one
+// oklch() string per aircraft. Composed at mood/time-of-day CHANGE time
+// (a handful of times an hour), never per-frame or per-aircraft, so this
+// stays a cheap lookup-and-format, not runtime colour blending. Kept away
+// from the single orange (focal) / blue (selected) accent colours below,
+// which neither dimension ever touches.
+//
+// Tuned deliberately more saturated than a first pass that turned out
+// imperceptible at 20px glyph size — small colour chips need MORE chroma to
+// read at a glance, not less.
+const TIME_OF_DAY_HUE: Record<TimeOfDay, number> = {
+  dawn: 55, // warm amber sunrise
+  day: 95, // neutral, closest to the old flat aircraft grey
+  dusk: 35, // warm orange-red sunset
+  night: 250, // cool blue
 };
-const MOOD_GROUND_COLOR: Record<
-  Exclude<WeatherMood, "clear">,
-  { dark: string; light: string }
-> = {
-  overcast: { dark: "#4a4e52", light: "#a9adb2" },
-  severe: { dark: "#524f57", light: "#9d99a3" },
+const MOOD_CHROMA: Record<WeatherMood, number> = {
+  clear: 0.13,
+  overcast: 0.07,
+  severe: 0.035,
 };
+const MOOD_LIGHTNESS_DARK: Record<WeatherMood, number> = {
+  clear: 0.4,
+  overcast: 0.34,
+  severe: 0.28,
+};
+const MOOD_LIGHTNESS_LIGHT: Record<WeatherMood, number> = {
+  clear: 0.78,
+  overcast: 0.72,
+  severe: 0.66,
+};
+// Ground traffic sits at one fixed mid lightness regardless of theme (it
+// always read as "duller than airborne" in both themes before this — this
+// keeps that cue while still carrying the mood/time-of-day hue+chroma).
+const GROUND_LIGHTNESS = 0.5;
+const GROUND_CHROMA_SCALE = 0.6;
+
+function resolveAmbientRestColor(mood: WeatherMood, timeOfDay: TimeOfDay, dark: boolean) {
+  const hue = TIME_OF_DAY_HUE[timeOfDay];
+  const chroma = MOOD_CHROMA[mood];
+  const lightness = dark ? MOOD_LIGHTNESS_DARK[mood] : MOOD_LIGHTNESS_LIGHT[mood];
+  return `oklch(${lightness} ${chroma} ${hue})`;
+}
+
+function resolveAmbientGroundColor(mood: WeatherMood, timeOfDay: TimeOfDay) {
+  const hue = TIME_OF_DAY_HUE[timeOfDay];
+  const chroma = MOOD_CHROMA[mood] * GROUND_CHROMA_SCALE;
+  return `oklch(${GROUND_LIGHTNESS} ${chroma} ${hue})`;
+}
 
 function resolveAircraftCanvasPalette(
   map: any,
   theme: string,
   mood: WeatherMood = "clear",
+  timeOfDay: TimeOfDay = "day",
 ): AircraftCanvasPalette {
   const dark = theme !== "light";
   let read = (_name: string, fallback: string) => fallback;
@@ -375,22 +407,13 @@ function resolveAircraftCanvasPalette(
   } catch {
     /* keep fallbacks */
   }
-  // "clear" keeps reading the theme's CSS variables unchanged (today's exact
-  // behaviour); overcast/severe swap in the mood lookup instead of trying to
-  // blend the CSS-variable value at runtime.
-  const restColor =
-    mood === "clear"
-      ? null
-      : (MOOD_REST_COLOR[mood][dark ? "dark" : "light"] as string);
-  const groundColor =
-    mood === "clear"
-      ? null
-      : (MOOD_GROUND_COLOR[mood][dark ? "dark" : "light"] as string);
+  const restColor = resolveAmbientRestColor(mood, timeOfDay, dark);
+  const groundColor = resolveAmbientGroundColor(mood, timeOfDay);
   return {
-    departure: restColor ?? read("--aircraft-departure", dark ? "#2a2a26" : "#dcd9d0"),
-    arrival: restColor ?? read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0"),
-    unknown: restColor ?? read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0"),
-    ground: groundColor ?? read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab"),
+    departure: restColor,
+    arrival: restColor,
+    unknown: restColor,
+    ground: groundColor,
     // PRIMARY (focal/tracked) target = orange signal accent; SECONDARY
     // (clicked) target = a high-contrast NEUTRAL (near-white grey on the dark
     // canvas, near-black grey on the light canvas) — distinguished by luminance
@@ -424,6 +447,8 @@ export interface AircraftCanvasLayerProps {
   hitTestRef?: { current: ((containerPoint: any) => string | null) | null };
   /** Ambient weather mood for the "at rest" glyph colours; defaults to "clear". */
   weatherMood?: WeatherMood;
+  /** Ambient time-of-day colour temperature; defaults to "day". */
+  timeOfDay?: TimeOfDay;
   /** Simplified light-source bearing (deg); null disables the light-mask overlay entirely. */
   lightBearingDeg?: number | null;
 }
@@ -440,6 +465,7 @@ export default function AircraftCanvasLayer({
   onSelectAircraft,
   hitTestRef,
   weatherMood = "clear",
+  timeOfDay = "day",
   lightBearingDeg = null,
 }: AircraftCanvasLayerProps) {
   const map = useMapInstance();
@@ -501,7 +527,7 @@ export default function AircraftCanvasLayer({
       traceActive,
       showCallsigns,
       matchesFilters,
-      palette: resolveAircraftCanvasPalette(map, theme, weatherMood),
+      palette: resolveAircraftCanvasPalette(map, theme, weatherMood, timeOfDay),
       reducedMotion,
       lightBearingDeg,
     });
@@ -516,6 +542,7 @@ export default function AircraftCanvasLayer({
     showCallsigns,
     matchesFilters,
     weatherMood,
+    timeOfDay,
     lightBearingDeg,
   ]);
 

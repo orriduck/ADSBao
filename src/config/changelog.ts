@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.2",
+    version: "v3.2.3",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -81,6 +81,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Fixed: the weather mood always read as \"clear\" regardless of the real METAR — a wrong property path silently swallowed the flight-rules category. Confirmed live: aircraft now correctly shift tone as conditions change.",
         zh: "修复:天气氛围色调之前恒为「clear」,与真实 METAR 无关——一处属性路径写错,悄悄吞掉了飞行规则类别。已用真实天气变化现场验证修复生效。",
+      },
+      {
+        en: "The ambient tint got a lot more visible, and gained a time-of-day dimension: hue now shifts through the day — warm amber at dawn, neutral at midday, warm amber-red at dusk, cool blue at night — layered with the weather mood (which now sets vividness/dimness instead of hue alone). The first pass was too subtle to read at 20px; this one is a clear, deliberate colour, confirmed visible at real map scale.",
+        zh: "氛围色调的辨识度大幅提升,并新增了时间维度:色相随一天时间变化——黎明暖橙、正午中性、黄昏暖橙红、夜晚冷蓝——与天气 mood(现在决定鲜艳度/暗淡度,而不再单独决定色相)有机叠加。第一版在 20px 图标上太细微看不出来;这一版是明确、刻意的颜色,已在真实地图比例下确认可见。",
       },
     ],
   },
