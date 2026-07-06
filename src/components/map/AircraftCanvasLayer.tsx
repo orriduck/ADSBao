@@ -345,23 +345,27 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
 // time-of-day sets hue (colour temperature), and the two combine into one
 // oklch() string per aircraft. Composed at mood/time-of-day CHANGE time
 // (a handful of times an hour), never per-frame or per-aircraft, so this
-// stays a cheap lookup-and-format, not runtime colour blending. Kept away
-// from the single orange (focal) / blue (selected) accent colours below,
-// which neither dimension ever touches.
+// stays a cheap lookup-and-format, not runtime colour blending.
 //
-// Tuned deliberately more saturated than a first pass that turned out
-// imperceptible at 20px glyph size — small colour chips need MORE chroma to
-// read at a glance, not less.
+// Hue MUST stay clear of --atc-signal-accent (oklch(0.66 0.16 50), the
+// single reserved orange for focal/tracked targets) — an earlier pass used
+// warm hues near 35-55 for dawn/dusk and, in production, painted the ENTIRE
+// map (every aircraft + label) the same orange as the one thing that's
+// supposed to stand out, destroying the whole "one accent colour" hierarchy.
+// This palette is built around a >=60deg hue gap from 50 in every direction:
+// a sky-colour progression (dawn blush -> daytime cyan -> twilight violet ->
+// night blue) that reads as "time of day" without ever competing with orange.
+// Chroma is also dialed back from that pass — visible without being loud.
 const TIME_OF_DAY_HUE: Record<TimeOfDay, number> = {
-  dawn: 55, // warm amber sunrise
-  day: 95, // neutral, closest to the old flat aircraft grey
-  dusk: 35, // warm orange-red sunset
-  night: 250, // cool blue
+  dawn: 350, // soft rose/blush sunrise sky
+  day: 180, // cool daytime cyan-sky
+  dusk: 290, // twilight violet
+  night: 240, // night blue
 };
 const MOOD_CHROMA: Record<WeatherMood, number> = {
-  clear: 0.13,
-  overcast: 0.07,
-  severe: 0.035,
+  clear: 0.09,
+  overcast: 0.05,
+  severe: 0.025,
 };
 const MOOD_LIGHTNESS_DARK: Record<WeatherMood, number> = {
   clear: 0.4,

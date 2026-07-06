@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.3",
+    version: "v3.2.4",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -85,6 +85,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The ambient tint got a lot more visible, and gained a time-of-day dimension: hue now shifts through the day — warm amber at dawn, neutral at midday, warm amber-red at dusk, cool blue at night — layered with the weather mood (which now sets vividness/dimness instead of hue alone). The first pass was too subtle to read at 20px; this one is a clear, deliberate colour, confirmed visible at real map scale.",
         zh: "氛围色调的辨识度大幅提升,并新增了时间维度:色相随一天时间变化——黎明暖橙、正午中性、黄昏暖橙红、夜晚冷蓝——与天气 mood(现在决定鲜艳度/暗淡度,而不再单独决定色相)有机叠加。第一版在 20px 图标上太细微看不出来;这一版是明确、刻意的颜色,已在真实地图比例下确认可见。",
+      },
+      {
+        en: "Fixed: dawn/dusk's warm amber hues sat right next to the single orange accent reserved for the tracked target — in production this painted every aircraft and label the same orange as the one thing meant to stand out. Replaced with a sky-colour palette (dawn blush, daytime cyan, twilight violet, night blue) that keeps a wide hue gap from the accent in every direction, and dialed back overall vividness to stay ambient rather than loud.",
+        zh: "修复:黎明/黄昏的暖橙色调和唯一保留给追踪目标的橙色强调色挨得太近——生产环境里把所有飞机和标签都染成了本该用来突出重点的那个橙色。换成一套天空色调色板(黎明淡粉、白天青色、黄昏紫罗兰、夜晚蓝),在各个方向都和强调色保持足够色相距离,整体饱和度也调低,保持氛围感而不刺眼。",
       },
     ],
   },
