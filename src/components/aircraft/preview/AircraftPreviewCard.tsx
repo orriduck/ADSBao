@@ -368,13 +368,14 @@ export default function AircraftPreviewCard({
                     </MobilePreviewTrackButton>
                   )}
                   {showMobilePlaneHunterTrigger && (
-                    <MobilePreviewIconButton
+                    <MobilePreviewTrackButton
+                      className="flex flex-1 items-center justify-center border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
                       onClick={() => setPlaneHunterOpen(true)}
                       aria-label={t("preview.planeHunter")}
                       title={t("preview.planeHunter")}
                     >
                       <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-                    </MobilePreviewIconButton>
+                    </MobilePreviewTrackButton>
                   )}
                   {showMobileFeedbackTrigger && (
                     <MobilePreviewIconButton

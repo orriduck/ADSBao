@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 66;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.1.1",
+    version: "v3.1.2",
     kind: "feat",
     title: {
       en: "Proximity alerts: airport nearby (Here mode) and aircraft closing in",
@@ -73,6 +73,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Both alerts default OFF and each has its own adjustable range preset; a clear note appears if the browser's notification permission is blocked or unsupported.",
         zh: "两个提醒默认关闭,各自有独立可调的范围预设;浏览器通知权限被拒绝或不支持时,会显示明确提示。",
+      },
+      {
+        en: "Aircraft preview card: the Plane Hunter camera button is now the same size as Track (both primary), leaving only the suggest-correction button as a small icon button.",
+        zh: "飞机预览卡片:拍机相机按钮现在和追踪按钮同大小(都是 primary 样式),只有反馈建议按钮保留为小图标按钮。",
       },
     ],
   },
