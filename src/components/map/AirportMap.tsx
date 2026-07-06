@@ -126,6 +126,8 @@ export default function AirportMap({
   loadingOverlaySources = {},
   flightTerminalReason = "",
   userLocation = null,
+  weatherMood = "clear",
+  lightBearingDeg = null,
   children = null,
 }: Record<string, any>) {
   const { locale } = useI18n();
@@ -749,6 +751,8 @@ export default function AirportMap({
             matchesFilters={aircraftCanvasMatchesFilters}
             onSelectAircraft={onSelectAircraft}
             hitTestRef={aircraftHitTestRef}
+            weatherMood={weatherMood}
+            lightBearingDeg={lightBearingDeg}
           />
         </MapContext.Provider>
       )}
