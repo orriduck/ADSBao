@@ -46,6 +46,8 @@ import { useNotificationPreferences } from "@/features/notifications/Notificatio
 import { useNotificationPermission } from "@/features/notifications/useNotificationPermission";
 import { useAirportProximityNotifier } from "@/features/notifications/useAirportProximityNotifier";
 import { useAircraftProximityNotifier } from "@/features/notifications/useAircraftProximityNotifier";
+import { resolveWeatherMood } from "@/features/aircraft/canvas/aircraftAmbientModel";
+import { useSimplifiedLightBearing } from "@/hooks/useSimplifiedLightBearing";
 
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
@@ -262,6 +264,15 @@ function AirportExplorerContent({
     aircraft: traffic.aircraft,
     radiusNm: notificationPreferences.nearbyAircraftRadiusNm,
   });
+  // Ambient map ombiance: aircraft glyphs pick up a weather-driven "mood"
+  // (clear/overcast/severe, from the flight-rules category already fetched
+  // above) and a simplified light-direction shading (see
+  // aircraftAmbientModel.ts — not a real day/night terminator).
+  const weatherMood = useMemo(
+    () => resolveWeatherMood(weather.metar?.parsed?.flightCategory),
+    [weather.metar],
+  );
+  const lightBearingDeg = useSimplifiedLightBearing();
   const effectiveUserLocation =
     (nearMe ? null : userLocationLayer.userLocation) || nearMeMapUserLocation;
   const userLocationActive = Boolean(effectiveUserLocation);
@@ -680,6 +691,8 @@ function AirportExplorerContent({
               loadingOverlayActive={loadingOverlayActive}
               loadingOverlaySources={loadingOverlaySources}
               userLocation={effectiveUserLocation}
+              weatherMood={weatherMood}
+              lightBearingDeg={lightBearingDeg}
             />
           </Suspense>
 

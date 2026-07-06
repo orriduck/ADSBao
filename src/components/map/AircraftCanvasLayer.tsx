@@ -37,6 +37,10 @@ import {
   aircraftSpriteCacheSize,
 } from "../../features/aircraft/canvas/aircraftSpriteCache";
 import { recordAircraftCanvasFrame } from "../../features/aircraft/canvas/aircraftCanvasPerfMonitor";
+import {
+  resolveAircraftLightBucket,
+  type WeatherMood,
+} from "../../features/aircraft/canvas/aircraftAmbientModel";
 
 const HIT_RADIUS_PX = 17; // matches the old 34px invisible hit target
 const HEADING_EASE = 0.25; // per-draw catch-up toward target heading
@@ -72,6 +76,7 @@ interface AircraftCanvasSetData {
   matchesFilters: (aircraft: any) => boolean;
   palette: AircraftCanvasPalette;
   reducedMotion: boolean;
+  lightBearingDeg?: number | null;
 }
 
 const AircraftCanvasRenderer = (L as any).Renderer.extend({
@@ -87,6 +92,8 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._drawList = [] as AircraftDrawDescriptor[];
     this._motion = new Map();
     this._heading = new Map();
+    this._lightBucket = new Map();
+    this._lightBearingDeg = null;
     this._hitPoints = [];
     this._lastDraw = 0;
     this._anyAnimating = false;
@@ -238,7 +245,16 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
         continue;
       }
       const heading = this._ease(d.id, d.headingDeg, reducedMotion);
-      drawAircraftGlyph(ctx, d, lp.x, lp.y, heading, palette, dpr);
+      const lightBucket =
+        this._lightBearingDeg == null
+          ? null
+          : resolveAircraftLightBucket(
+              this._lightBearingDeg,
+              heading,
+              this._lightBucket.get(d.id) ?? null,
+            );
+      if (lightBucket != null) this._lightBucket.set(d.id, lightBucket);
+      drawAircraftGlyph(ctx, d, lp.x, lp.y, heading, palette, dpr, lightBucket);
       if (d.showLabel) drawAircraftLabel(ctx, d, lp.x, lp.y, palette);
       drawn += 1;
       if (animating) anyAnimating = true;
@@ -264,6 +280,7 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._focalId = data.focalId;
     this._palette = data.palette;
     this._reducedMotion = data.reducedMotion;
+    this._lightBearingDeg = data.lightBearingDeg ?? null;
     this._drawList = buildDrawList(data.aircraft, {
       selectedId: data.selectedId,
       focalId: data.focalId,
@@ -289,6 +306,9 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._motion = nextMotion;
     for (const id of Array.from(this._heading.keys()) as string[]) {
       if (!liveIds.has(id)) this._heading.delete(id);
+    }
+    for (const id of Array.from(this._lightBucket.keys()) as string[]) {
+      if (!liveIds.has(id)) this._lightBucket.delete(id);
     }
 
     this._startLoop();
@@ -319,9 +339,32 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
   },
 });
 
+// Weather-mood tints for the "at rest" glyph colours (departure/arrival/
+// unknown/ground) only — deliberately hand-picked hex, not a runtime colour
+// blend (canvas has no CSS `color-mix()`, and these change rarely enough that
+// a small lookup table is simpler and cheaper than any blending math). Kept
+// muted/desaturated on purpose: this is ambient atmosphere, not a status
+// alert, and must never compete with the single orange (focal) / blue
+// (selected) accent colours below, which mood never touches.
+const MOOD_REST_COLOR: Record<
+  Exclude<WeatherMood, "clear">,
+  { dark: string; light: string }
+> = {
+  overcast: { dark: "#33383c", light: "#c9cdd2" },
+  severe: { dark: "#403f45", light: "#b8b4bd" },
+};
+const MOOD_GROUND_COLOR: Record<
+  Exclude<WeatherMood, "clear">,
+  { dark: string; light: string }
+> = {
+  overcast: { dark: "#4a4e52", light: "#a9adb2" },
+  severe: { dark: "#524f57", light: "#9d99a3" },
+};
+
 function resolveAircraftCanvasPalette(
   map: any,
   theme: string,
+  mood: WeatherMood = "clear",
 ): AircraftCanvasPalette {
   const dark = theme !== "light";
   let read = (_name: string, fallback: string) => fallback;
@@ -332,11 +375,22 @@ function resolveAircraftCanvasPalette(
   } catch {
     /* keep fallbacks */
   }
+  // "clear" keeps reading the theme's CSS variables unchanged (today's exact
+  // behaviour); overcast/severe swap in the mood lookup instead of trying to
+  // blend the CSS-variable value at runtime.
+  const restColor =
+    mood === "clear"
+      ? null
+      : (MOOD_REST_COLOR[mood][dark ? "dark" : "light"] as string);
+  const groundColor =
+    mood === "clear"
+      ? null
+      : (MOOD_GROUND_COLOR[mood][dark ? "dark" : "light"] as string);
   return {
-    departure: read("--aircraft-departure", dark ? "#2a2a26" : "#dcd9d0"),
-    arrival: read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0"),
-    unknown: read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0"),
-    ground: read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab"),
+    departure: restColor ?? read("--aircraft-departure", dark ? "#2a2a26" : "#dcd9d0"),
+    arrival: restColor ?? read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0"),
+    unknown: restColor ?? read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0"),
+    ground: groundColor ?? read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab"),
     // PRIMARY (focal/tracked) target = orange signal accent; SECONDARY
     // (clicked) target = a high-contrast NEUTRAL (near-white grey on the dark
     // canvas, near-black grey on the light canvas) — distinguished by luminance
@@ -368,6 +422,10 @@ export interface AircraftCanvasLayerProps {
   matchesFilters: (aircraft: any) => boolean;
   onSelectAircraft?: (id: string) => void;
   hitTestRef?: { current: ((containerPoint: any) => string | null) | null };
+  /** Ambient weather mood for the "at rest" glyph colours; defaults to "clear". */
+  weatherMood?: WeatherMood;
+  /** Simplified light-source bearing (deg); null disables the light-mask overlay entirely. */
+  lightBearingDeg?: number | null;
 }
 
 export default function AircraftCanvasLayer({
@@ -381,6 +439,8 @@ export default function AircraftCanvasLayer({
   matchesFilters,
   onSelectAircraft,
   hitTestRef,
+  weatherMood = "clear",
+  lightBearingDeg = null,
 }: AircraftCanvasLayerProps) {
   const map = useMapInstance();
   const rendererRef = useRef<any>(null);
@@ -441,8 +501,9 @@ export default function AircraftCanvasLayer({
       traceActive,
       showCallsigns,
       matchesFilters,
-      palette: resolveAircraftCanvasPalette(map, theme),
+      palette: resolveAircraftCanvasPalette(map, theme, weatherMood),
       reducedMotion,
+      lightBearingDeg,
     });
   }, [
     map,
@@ -454,6 +515,8 @@ export default function AircraftCanvasLayer({
     traceActive,
     showCallsigns,
     matchesFilters,
+    weatherMood,
+    lightBearingDeg,
   ]);
 
   return null;

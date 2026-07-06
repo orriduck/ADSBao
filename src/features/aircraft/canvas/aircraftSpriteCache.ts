@@ -12,7 +12,13 @@
 
 const SHADOW_BLUR_PX = 2.2;
 const SHADOW_OFFSET_Y_PX = 0.5;
-const MAX_SPRITES = 280;
+// Bumped from 280: the weather-mood palette (AircraftCanvasLayer.tsx) triples
+// the distinct "at rest" colour strings that can feed this cache (clear /
+// overcast / severe), so the realistic (icon x colour) key space grew
+// proportionally. The light-direction gradient deliberately does NOT touch
+// this cache (see aircraftLightMask.ts) — it composites a bucket-independent
+// mask at draw time instead, so it doesn't multiply this number further.
+const MAX_SPRITES = 500;
 
 export interface AircraftSprite {
   canvas: HTMLCanvasElement;

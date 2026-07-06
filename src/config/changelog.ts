@@ -47,36 +47,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 66;
+export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.1.2",
+    version: "v3.2.0",
     kind: "feat",
     title: {
-      en: "Proximity alerts: airport nearby (Here mode) and aircraft closing in",
-      zh: "接近提醒:附近机场(我的位置模式)与飞机接近",
+      en: "Aircraft blend into the weather and light",
+      zh: "飞机融入天气与光照氛围",
     },
     summary: {
-      en: "A new Notifications section in map settings adds two opt-in system-notification alerts, both off by default. In Here mode, turning on the airport alert pings you once — with the airport's name and distance — the first time you wander within your chosen range (3/5/10/20 NM); it goes quiet after that until you toggle it off and back on. The aircraft alert works everywhere (Here mode and airport pages) and fires per plane, with its callsign and aircraft type, each time one crosses into your chosen range (2/5/10/20 NM) — not on every refresh while it lingers, and it fires again if it leaves and comes back. Both need the browser's notification permission; the settings sheet shows a clear note if that's blocked or unsupported.",
-      zh: "地图设置新增「通知」分区,两个默认关闭的可选系统通知。在「我的位置」模式下打开机场提醒后,第一次进入你设定的范围(3/5/10/20 海里)会弹出一条提醒(机场名称 + 距离),之后保持安静,直到你关闭再重新打开。飞机提醒在任何模式下都生效(我的位置和机场详情页),每架飞机每次进入你设定的范围(2/5/10/20 海里)都会带着呼号和机型提醒一次——停留期间不会反复提醒,离开后再次接近会重新提醒。两者都需要浏览器的系统通知权限;权限被拒绝或浏览器不支持时,设置面板会给出明确提示。",
+      en: "The aircraft on the map now carry a bit of ambient atmosphere. Their at-rest colour shifts with the current flight-rules weather at that airport — clear, overcast, or low-visibility each read as a subtly different, muted tone (the orange tracked-target and blue clicked-target colours never change, so the one-accent rule holds). Each aircraft also gets a soft highlight/shadow gradient from a simplified light direction that sweeps east to west over the day (not real solar position — a deliberate simplification, not a claim of astronomical accuracy). Both effects are pure lookups and a handful of cached gradient overlays, so drawing hundreds of aircraft at once costs the same as before.",
+      zh: "地图上的飞机现在带上了一点环境氛围。它们的静息态颜色会随当前机场的飞行规则天气变化——晴朗、多云或低能见度各自呈现一个略有差异的低饱和度色调(追踪目标的橙色和点选目标的蓝色不受影响,全局单一强调色的规则不变)。每架飞机还会有一层柔和的高光/阴影渐变,来自一个简化的光源方向——沿东西轴随一天时间摆动(不是真实太阳位置计算,是刻意的简化,不追求天文精度)。两个效果都只是查表加几张缓存好的渐变蒙版,同屏渲染几百架飞机的开销和之前完全一样。",
     },
     highlights: [
       {
-        en: "Here-mode airport alert: one system notification with the airport's name and distance the first time you're within range; quiet after that until re-enabled.",
-        zh: "「我的位置」机场提醒:进入范围后弹出一次机场名称 + 距离的系统通知,之后保持安静,直到重新开启。",
+        en: "Aircraft colour shifts with the airport's current flight-rules category (clear / overcast / low-visibility) — muted, ambient tones that never touch the orange (tracked) or blue (clicked) accent colours.",
+        zh: "飞机颜色随机场当前飞行规则(晴朗/多云/低能见度)变化——低饱和度的氛围色调,不影响橙色(追踪目标)与蓝色(点选目标)强调色。",
       },
       {
-        en: "Aircraft alert (all modes): a system notification per aircraft — callsign and type — on each new approach into range, never repeating while it just lingers nearby.",
-        zh: "飞机提醒(全部模式):每架飞机每次新进入范围都弹一次呼号 + 机型的系统通知,停留附近期间不会重复。",
+        en: "A subtle highlight/shadow gradient follows a simplified light direction that sweeps east to west over the day; the highlight side holds steady (with hysteresis) instead of flickering as a plane's heading wobbles near a boundary.",
+        zh: "柔和的高光/阴影渐变跟随一个沿东西轴随时间摆动的简化光源方向;高光朝向带滞后判定,不会因航向在边界附近轻微抖动而闪烁。",
       },
       {
-        en: "Both alerts default OFF and each has its own adjustable range preset; a clear note appears if the browser's notification permission is blocked or unsupported.",
-        zh: "两个提醒默认关闭,各自有独立可调的范围预设;浏览器通知权限被拒绝或不支持时,会显示明确提示。",
-      },
-      {
-        en: "Aircraft preview card: the Plane Hunter camera button is now the same size as Track (both primary), leaving only the suggest-correction button as a small icon button.",
-        zh: "飞机预览卡片:拍机相机按钮现在和追踪按钮同大小(都是 primary 样式),只有反馈建议按钮保留为小图标按钮。",
+        en: "Both effects are cache-friendly by design — mood tints reuse the existing sprite cache, and the light gradient is a handful of pre-baked masks composited on draw, not a new per-aircraft cache dimension.",
+        zh: "两个效果都对缓存友好——天气色调复用现有的 sprite 缓存,光照渐变则是几张预先烘焙好的蒙版在绘制时合成,不会给每架飞机新增缓存维度。",
       },
     ],
   },
