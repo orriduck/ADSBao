@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.0",
+    version: "v3.2.1",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -73,6 +73,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Both effects are cache-friendly by design — mood tints reuse the existing sprite cache, and the light gradient is a handful of pre-baked masks composited on draw, not a new per-aircraft cache dimension.",
         zh: "两个效果都对缓存友好——天气色调复用现有的 sprite 缓存,光照渐变则是几张预先烘焙好的蒙版在绘制时合成,不会给每架飞机新增缓存维度。",
+      },
+      {
+        en: "Here mode's stat row: Nearby and Speed are now equally-weighted primary tiles (matching the tracked-flight sidebar's speed/altitude pair), instead of one large hero over a demoted speed cell.",
+        zh: "「我的位置」的指标行:附近和速度现在是同权重的主要 tile(和飞行追踪侧栏的速度/高度那对一致),不再是一个大 hero 压着一个被降级的速度格。",
       },
     ],
   },
