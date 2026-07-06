@@ -269,7 +269,7 @@ function AirportExplorerContent({
   // above) and a simplified light-direction shading (see
   // aircraftAmbientModel.ts — not a real day/night terminator).
   const weatherMood = useMemo(
-    () => resolveWeatherMood(weather.metar?.parsed?.flightCategory),
+    () => resolveWeatherMood(weather.metar?.flightCategory),
     [weather.metar],
   );
   const lightBearingDeg = useSimplifiedLightBearing();
