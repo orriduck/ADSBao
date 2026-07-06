@@ -53,6 +53,32 @@ export function simplifiedLightBearingDeg(nowMs: number): number {
   return DAWN_BEARING_DEG + t * (DUSK_BEARING_DEG - DAWN_BEARING_DEG);
 }
 
+export type TimeOfDay = "dawn" | "day" | "dusk" | "night";
+
+// Time-of-day colour-temperature bucket — a SEPARATE ambient dimension from
+// the light-direction bearing above (that one drives the highlight/shadow
+// mask; this one drives hue, so aircraft actually read as "morning gold" /
+// "midday neutral" / "sunset amber" / "night blue" at a glance, layered with
+// the weather mood in AircraftCanvasLayer's colour table). Local clock hours,
+// same simplification stance as simplifiedLightBearingDeg — not tied to
+// actual sunrise/sunset for the map's location.
+const TIME_OF_DAY_BOUNDARIES: Array<[number, TimeOfDay]> = [
+  [5, "night"],
+  [8, "dawn"],
+  [17, "day"],
+  [20, "dusk"],
+  [24, "night"],
+];
+
+export function resolveTimeOfDayBucket(nowMs: number): TimeOfDay {
+  const date = new Date(nowMs);
+  const hour = date.getHours() + date.getMinutes() / 60;
+  for (const [beforeHour, bucket] of TIME_OF_DAY_BOUNDARIES) {
+    if (hour < beforeHour) return bucket;
+  }
+  return "night";
+}
+
 function normalizeDeg(deg: number): number {
   return ((deg % 360) + 360) % 360;
 }

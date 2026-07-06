@@ -127,6 +127,7 @@ export default function AirportMap({
   flightTerminalReason = "",
   userLocation = null,
   weatherMood = "clear",
+  timeOfDay = "day",
   lightBearingDeg = null,
   children = null,
 }: Record<string, any>) {
@@ -752,6 +753,7 @@ export default function AirportMap({
             onSelectAircraft={onSelectAircraft}
             hitTestRef={aircraftHitTestRef}
             weatherMood={weatherMood}
+            timeOfDay={timeOfDay}
             lightBearingDeg={lightBearingDeg}
           />
         </MapContext.Provider>
