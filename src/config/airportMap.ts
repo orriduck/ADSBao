@@ -6,6 +6,15 @@ export const AIRPORT_MAP_FALLBACK_CENTER = {
 };
 
 export const AIRPORT_MAP_PANES = {
+  // Ambient time-of-day/weather colour wash over the raw tile imagery only —
+  // sits just above the (Leaflet default z=200) tile pane and below every
+  // other annotation pane here, so it never tints runway surfaces, airspace
+  // fills, badges, trace, or aircraft (whose orange/blue accent colours must
+  // stay uncontaminated).
+  ambientWash: {
+    name: "airport-map-ambient-wash",
+    zIndex: 250,
+  },
   surface: {
     name: "airport-map-surface-overlay",
     zIndex: 360,

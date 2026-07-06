@@ -12,6 +12,7 @@ import ReportingPointLabelLayer from "./ReportingPointLabelLayer";
 import MapBadgeCollisionLayer from "./MapBadgeCollisionLayer";
 import CandidateWatchingSpotsLayer from "./CandidateWatchingSpotsLayer";
 import AircraftCanvasLayer from "./AircraftCanvasLayer";
+import AmbientWashLayer from "./AmbientWashLayer";
 import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
@@ -636,6 +637,11 @@ export default function AirportMap({
             baseLayer={baseLayer}
             selectionActive={selectionActive}
             onReadinessChange={handleMapTileReadinessChange}
+          />
+          <AmbientWashLayer
+            theme={currentTheme}
+            weatherMood={weatherMood}
+            timeOfDay={timeOfDay}
           />
           <AirspaceLayer
             airspaces={renderedAirspaces}

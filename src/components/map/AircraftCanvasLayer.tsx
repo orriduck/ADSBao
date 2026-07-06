@@ -39,6 +39,7 @@ import {
 import { recordAircraftCanvasFrame } from "../../features/aircraft/canvas/aircraftCanvasPerfMonitor";
 import {
   resolveAircraftLightBucket,
+  TIME_OF_DAY_HUE,
   type TimeOfDay,
   type WeatherMood,
 } from "../../features/aircraft/canvas/aircraftAmbientModel";
@@ -78,6 +79,7 @@ interface AircraftCanvasSetData {
   palette: AircraftCanvasPalette;
   reducedMotion: boolean;
   lightBearingDeg?: number | null;
+  timeOfDay?: TimeOfDay;
 }
 
 const AircraftCanvasRenderer = (L as any).Renderer.extend({
@@ -95,6 +97,7 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._heading = new Map();
     this._lightBucket = new Map();
     this._lightBearingDeg = null;
+    this._timeOfDay = "day";
     this._hitPoints = [];
     this._lastDraw = 0;
     this._anyAnimating = false;
@@ -255,7 +258,17 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
               this._lightBucket.get(d.id) ?? null,
             );
       if (lightBucket != null) this._lightBucket.set(d.id, lightBucket);
-      drawAircraftGlyph(ctx, d, lp.x, lp.y, heading, palette, dpr, lightBucket);
+      drawAircraftGlyph(
+        ctx,
+        d,
+        lp.x,
+        lp.y,
+        heading,
+        palette,
+        dpr,
+        lightBucket,
+        this._timeOfDay,
+      );
       if (d.showLabel) drawAircraftLabel(ctx, d, lp.x, lp.y, palette);
       drawn += 1;
       if (animating) anyAnimating = true;
@@ -282,6 +295,7 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._palette = data.palette;
     this._reducedMotion = data.reducedMotion;
     this._lightBearingDeg = data.lightBearingDeg ?? null;
+    this._timeOfDay = data.timeOfDay ?? "day";
     this._drawList = buildDrawList(data.aircraft, {
       selectedId: data.selectedId,
       focalId: data.focalId,
@@ -342,26 +356,11 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
 
 // Ambient tint for the "at rest" glyph colours (departure/arrival/unknown/
 // ground) — weather mood sets chroma + lightness (how vivid / how dim),
-// time-of-day sets hue (colour temperature), and the two combine into one
-// oklch() string per aircraft. Composed at mood/time-of-day CHANGE time
-// (a handful of times an hour), never per-frame or per-aircraft, so this
-// stays a cheap lookup-and-format, not runtime colour blending.
-//
-// Hue MUST stay clear of --atc-signal-accent (oklch(0.66 0.16 50), the
-// single reserved orange for focal/tracked targets) — an earlier pass used
-// warm hues near 35-55 for dawn/dusk and, in production, painted the ENTIRE
-// map (every aircraft + label) the same orange as the one thing that's
-// supposed to stand out, destroying the whole "one accent colour" hierarchy.
-// This palette is built around a >=60deg hue gap from 50 in every direction:
-// a sky-colour progression (dawn blush -> daytime cyan -> twilight violet ->
-// night blue) that reads as "time of day" without ever competing with orange.
-// Chroma is also dialed back from that pass — visible without being loud.
-const TIME_OF_DAY_HUE: Record<TimeOfDay, number> = {
-  dawn: 350, // soft rose/blush sunrise sky
-  day: 180, // cool daytime cyan-sky
-  dusk: 290, // twilight violet
-  night: 240, // night blue
-};
+// time-of-day sets hue (colour temperature, shared with the map-level wash
+// via TIME_OF_DAY_HUE), and the two combine into one oklch() string per
+// aircraft. Composed at mood/time-of-day CHANGE time (a handful of times an
+// hour), never per-frame or per-aircraft, so this stays a cheap
+// lookup-and-format, not runtime colour blending.
 const MOOD_CHROMA: Record<WeatherMood, number> = {
   clear: 0.09,
   overcast: 0.05,
@@ -534,6 +533,7 @@ export default function AircraftCanvasLayer({
       palette: resolveAircraftCanvasPalette(map, theme, weatherMood, timeOfDay),
       reducedMotion,
       lightBearingDeg,
+      timeOfDay,
     });
   }, [
     map,

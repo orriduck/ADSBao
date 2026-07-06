@@ -79,6 +79,82 @@ export function resolveTimeOfDayBucket(nowMs: number): TimeOfDay {
   return "night";
 }
 
+// Shared hue-per-time-of-day table for every ambient colour derived from
+// TimeOfDay (aircraft rest colour AND the map-level wash below) so both read
+// as the same "sky colour" progression instead of two uncoordinated palettes.
+//
+// Hue MUST stay clear of --atc-signal-accent (oklch(0.66 0.16 50), the single
+// reserved orange for focal/tracked targets) — an earlier pass used warm hues
+// near 35-55 for dawn/dusk and, in production, painted the ENTIRE map (every
+// aircraft + label) the same orange as the one thing that's supposed to stand
+// out, destroying the whole "one accent colour" hierarchy. This palette keeps
+// a >=60deg hue gap from 50 in every direction: dawn blush -> daytime cyan ->
+// twilight violet -> night blue.
+export const TIME_OF_DAY_HUE: Record<TimeOfDay, number> = {
+  dawn: 350, // soft rose/blush sunrise sky
+  day: 180, // cool daytime cyan-sky
+  dusk: 290, // twilight violet
+  night: 240, // night blue
+};
+
+// Map-level ambient wash: a colour tint over the base map imagery only (see
+// AmbientWashLayer.tsx — it renders in a pane just above the tile layer and
+// below every annotation/aircraft pane), so the whole viewport picks up the
+// same time-of-day/weather atmosphere instead of leaving it confined to the
+// tiny aircraft glyphs. A first pass here used much lower chroma/alpha on the
+// theory that a full-viewport wash needs less than a 20px glyph — verified by
+// compositing over a representative terrain colour, that came out within a
+// few RGB units across every combination and read as flatly invisible, the
+// same mistake the aircraft tint made before ITS chroma got raised. These
+// values are tuned so adjacent combinations differ by double-digit RGB units
+// once composited (checked numerically, not just by eye), while staying a
+// wash rather than a solid colour cast — severe weather still tops out well
+// under 50% alpha.
+const OVERLAY_MOOD_CHROMA: Record<WeatherMood, number> = {
+  clear: 0.09,
+  overcast: 0.06,
+  severe: 0.035,
+};
+const OVERLAY_LIGHTNESS_DARK: Record<WeatherMood, number> = {
+  clear: 0.36,
+  overcast: 0.3,
+  severe: 0.24,
+};
+const OVERLAY_LIGHTNESS_LIGHT: Record<WeatherMood, number> = {
+  clear: 0.86,
+  overcast: 0.8,
+  severe: 0.72,
+};
+// Overcast/severe read as heavier (more atmosphere-in-the-way), not just a
+// hue change — mirrors how the aircraft mood chroma already dims for worse
+// weather, applied here as opacity since this wash's chroma stays modest.
+const OVERLAY_MOOD_ALPHA: Record<WeatherMood, number> = {
+  clear: 0.24,
+  overcast: 0.32,
+  severe: 0.42,
+};
+
+export interface AmbientOverlayColor {
+  /** Opaque oklch() colour string — pass as fillColor, not as a CSS background alone. */
+  color: string;
+  /** Separate 0-1 alpha — kept apart from `color` so callers can't accidentally double-apply alpha. */
+  opacity: number;
+}
+
+export function resolveAmbientOverlayColor(
+  mood: WeatherMood,
+  timeOfDay: TimeOfDay,
+  dark: boolean,
+): AmbientOverlayColor {
+  const hue = TIME_OF_DAY_HUE[timeOfDay];
+  const chroma = OVERLAY_MOOD_CHROMA[mood];
+  const lightness = dark ? OVERLAY_LIGHTNESS_DARK[mood] : OVERLAY_LIGHTNESS_LIGHT[mood];
+  return {
+    color: `oklch(${lightness} ${chroma} ${hue})`,
+    opacity: OVERLAY_MOOD_ALPHA[mood],
+  };
+}
+
 function normalizeDeg(deg: number): number {
   return ((deg % 360) + 360) % 360;
 }

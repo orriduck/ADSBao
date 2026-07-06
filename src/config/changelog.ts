@@ -90,6 +90,14 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "Fixed: dawn/dusk's warm amber hues sat right next to the single orange accent reserved for the tracked target — in production this painted every aircraft and label the same orange as the one thing meant to stand out. Replaced with a sky-colour palette (dawn blush, daytime cyan, twilight violet, night blue) that keeps a wide hue gap from the accent in every direction, and dialed back overall vividness to stay ambient rather than loud.",
         zh: "修复:黎明/黄昏的暖橙色调和唯一保留给追踪目标的橙色强调色挨得太近——生产环境里把所有飞机和标签都染成了本该用来突出重点的那个橙色。换成一套天空色调色板(黎明淡粉、白天青色、黄昏紫罗兰、夜晚蓝),在各个方向都和强调色保持足够色相距离,整体饱和度也调低,保持氛围感而不刺眼。",
       },
+      {
+        en: "The atmosphere now extends past the aircraft to the map itself: a soft colour wash over the base imagery (same sky-colour palette, well clear of the orange accent) so the whole view — not just the tiny glyphs — reads as dawn, day, dusk, or night. It sits below every label, badge, and aircraft, so nothing legible gets tinted.",
+        zh: "氛围感现在从飞机延伸到了地图本身:在底图之上叠加一层柔和色调遮罩(同一套天空色板,与橙色强调色保持距离),让整个视野——而不只是飞机小图标——读出黎明、白天、黄昏或夜晚的感觉。这层遮罩位于所有标签、徽标和飞机之下,不会染到任何需要看清的内容。",
+      },
+      {
+        en: "The aircraft's highlight/shadow gradient now also carries time-of-day colour instead of plain white/black — warm gold highlight with a cool violet shadow at dawn/dusk, cool blue-white at night, neutral at midday — so it reads more like real light (golden hour, moonlight) instead of a colourless sheen.",
+        zh: "飞机的高光/阴影渐变现在也带上了对应时间的色彩,不再是单纯的黑白——黎明/黄昏是暖金高光配冷紫阴影,夜晚是冷蓝白,正午则保持中性——让光影观感更接近真实光照(黄金时刻、月光),而不是一层无色的浮光。",
+      },
     ],
   },
 ];
