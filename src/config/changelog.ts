@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.1",
+    version: "v3.2.2",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -77,6 +77,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Here mode's stat row: Nearby and Speed are now equally-weighted primary tiles (matching the tracked-flight sidebar's speed/altitude pair), instead of one large hero over a demoted speed cell.",
         zh: "「我的位置」的指标行:附近和速度现在是同权重的主要 tile(和飞行追踪侧栏的速度/高度那对一致),不再是一个大 hero 压着一个被降级的速度格。",
+      },
+      {
+        en: "Fixed: the weather mood always read as \"clear\" regardless of the real METAR — a wrong property path silently swallowed the flight-rules category. Confirmed live: aircraft now correctly shift tone as conditions change.",
+        zh: "修复:天气氛围色调之前恒为「clear」,与真实 METAR 无关——一处属性路径写错,悄悄吞掉了飞行规则类别。已用真实天气变化现场验证修复生效。",
       },
     ],
   },
