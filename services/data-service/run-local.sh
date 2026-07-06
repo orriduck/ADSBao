@@ -45,6 +45,7 @@ done
 
 echo "starting adsbao-data-service on :$PORT (OPENAIP=$([ -n "${OPENAIP_API_KEY:-}" ] && echo set || echo MISSING), DB=$([ -n "${DATABASE_URL:-}" ] && echo set || echo MISSING))"
 
+cd "$SCRIPT_DIR"
 PORT="$PORT" \
 INTERNAL_ACCESS_ENABLED="${INTERNAL_ACCESS_ENABLED:-${FLIGHTAWARE_ACCESS_ENABLED:-true}}" \
 ADSBAO_REALTIME_AUTH_SECRET="${ADSBAO_REALTIME_AUTH_SECRET:-local-dev-secret}" \
