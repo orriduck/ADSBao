@@ -24,14 +24,21 @@ import type { TimeOfDay } from "./aircraftAmbientModel";
 
 const MASK_SIZE_PX = 48;
 
+// Alpha bumped ~1.6x from the original pass (0.20-0.32) — numerically
+// verified (source-atop composite over a real 20px-scale aircraft fill,
+// sampling the actual corner pixels the gradient reaches) that the original
+// alpha only moved the highlight/shadow corners by single-digit RGB units at
+// real glyph size, reading as "flat" rather than "lit from a direction".
+// These values move the corners by 20-40 RGB units, a difference that's
+// clearly perceptible even on a small icon.
 const TIME_OF_DAY_MASK_COLORS: Record<
   TimeOfDay,
   { highlight: string; shadow: string }
 > = {
-  dawn: { highlight: "rgba(255,214,170,0.30)", shadow: "rgba(70,60,120,0.22)" },
-  day: { highlight: "rgba(255,255,255,0.26)", shadow: "rgba(0,0,0,0.20)" },
-  dusk: { highlight: "rgba(255,178,120,0.32)", shadow: "rgba(55,48,110,0.24)" },
-  night: { highlight: "rgba(190,210,255,0.22)", shadow: "rgba(5,5,25,0.30)" },
+  dawn: { highlight: "rgba(255,214,170,0.48)", shadow: "rgba(70,60,120,0.36)" },
+  day: { highlight: "rgba(255,255,255,0.42)", shadow: "rgba(0,0,0,0.34)" },
+  dusk: { highlight: "rgba(255,178,120,0.50)", shadow: "rgba(55,48,110,0.38)" },
+  night: { highlight: "rgba(190,210,255,0.36)", shadow: "rgba(5,5,25,0.46)" },
 };
 
 const masks = new Map<string, HTMLCanvasElement>();
