@@ -1,4 +1,5 @@
 import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
+import { cleanAirportCode } from "../../../utils/airport";
 import { airportGroundTrafficHideRadiusNmForZoom } from "./airportMapZoomFeatures";
 
 type AirportMapCoordinate = {
@@ -64,10 +65,18 @@ export const getMapOverlayTheme = (theme: unknown) =>
         attributionColor: "var(--map-attribution)",
       };
 
+// Only label airports that carry a real ICAO or IATA code. OpenAIP also returns
+// small FAA-local-code fields (e.g. "NH14", "6B6", "8MA4") whose only identifier
+// is a local id; those clutter the map without being useful spotting targets.
+export const airportHasStandardCode = (airport: AirportMapCoordinate) =>
+  Boolean(cleanAirportCode(airport?.icao) || cleanAirportCode(airport?.iata));
+
 export const resolveNearbyAirportLayerDisplay = ({
   nearbyAirports = [],
 }: NearbyAirportLayerDisplayOptions = {}) => ({
-  airports: Array.isArray(nearbyAirports) ? nearbyAirports : [],
+  airports: (Array.isArray(nearbyAirports) ? nearbyAirports : []).filter(
+    airportHasStandardCode,
+  ),
   showAirportBadges: true,
   showRunwayBadges: false,
 });
