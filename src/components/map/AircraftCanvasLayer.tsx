@@ -361,10 +361,25 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
 // aircraft. Composed at mood/time-of-day CHANGE time (a handful of times an
 // hour), never per-frame or per-aircraft, so this stays a cheap
 // lookup-and-format, not runtime colour blending.
-const MOOD_CHROMA: Record<WeatherMood, number> = {
-  clear: 0.09,
-  overcast: 0.05,
-  severe: 0.025,
+// Chroma is split by theme (not just mood) because oklch's in-gamut sRGB
+// ceiling depends heavily on lightness, and dark/light use very different
+// lightness bands. Verified per (theme, mood, every TIME_OF_DAY_HUE) combo by
+// rendering each oklch() string to a canvas and checking for a clipped 0/255
+// channel: dark theme's ~0.28-0.4 lightness band has a MUCH lower safe
+// ceiling (the cyan "day" hue clips past ~0.07-0.08) than light theme's
+// ~0.66-0.78 band (safe past 0.11-0.13) — so light theme got a bigger bump.
+// Pushing past a hue's own ceiling isn't harmful (the browser gamut-maps
+// gracefully, not a visible break), but it's wasted precision, hence the
+// per-theme split instead of one shared number chasing the tightest hue.
+const MOOD_CHROMA_DARK: Record<WeatherMood, number> = {
+  clear: 0.1,
+  overcast: 0.07,
+  severe: 0.04,
+};
+const MOOD_CHROMA_LIGHT: Record<WeatherMood, number> = {
+  clear: 0.11,
+  overcast: 0.08,
+  severe: 0.05,
 };
 const MOOD_LIGHTNESS_DARK: Record<WeatherMood, number> = {
   clear: 0.4,
@@ -384,14 +399,14 @@ const GROUND_CHROMA_SCALE = 0.6;
 
 function resolveAmbientRestColor(mood: WeatherMood, timeOfDay: TimeOfDay, dark: boolean) {
   const hue = TIME_OF_DAY_HUE[timeOfDay];
-  const chroma = MOOD_CHROMA[mood];
+  const chroma = dark ? MOOD_CHROMA_DARK[mood] : MOOD_CHROMA_LIGHT[mood];
   const lightness = dark ? MOOD_LIGHTNESS_DARK[mood] : MOOD_LIGHTNESS_LIGHT[mood];
   return `oklch(${lightness} ${chroma} ${hue})`;
 }
 
-function resolveAmbientGroundColor(mood: WeatherMood, timeOfDay: TimeOfDay) {
+function resolveAmbientGroundColor(mood: WeatherMood, timeOfDay: TimeOfDay, dark: boolean) {
   const hue = TIME_OF_DAY_HUE[timeOfDay];
-  const chroma = MOOD_CHROMA[mood] * GROUND_CHROMA_SCALE;
+  const chroma = (dark ? MOOD_CHROMA_DARK[mood] : MOOD_CHROMA_LIGHT[mood]) * GROUND_CHROMA_SCALE;
   return `oklch(${GROUND_LIGHTNESS} ${chroma} ${hue})`;
 }
 
@@ -424,7 +439,7 @@ function resolveAircraftCanvasPalette(
     ? departure
     : read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0");
   const ground = ambientEnabled
-    ? resolveAmbientGroundColor(mood, timeOfDay)
+    ? resolveAmbientGroundColor(mood, timeOfDay, dark)
     : read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab");
   return {
     departure,

@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.4",
+    version: "v3.2.5",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -113,6 +113,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "New \"Ambient colour\" setting (Map settings): Weather & time (default) ties the map wash, aircraft tint, sidebar, and toolbar together into one coordinated look; Theme colour turns all of it off at once, back to the plain pre-ambient appearance — no mixed half-tinted state either way.",
         zh: "新增「氛围配色」设置(地图设置):「天气与时间」(默认)把地图遮罩、飞机色调、侧栏和工具栏统一成一套联动的观感;「主题色」则一次性全部关闭,回到氛围功能之前的朴素外观——不会出现两种状态混杂的中间态。",
+      },
+      {
+        en: "Turned up the vividness across the board after feedback that the colour difference and light-direction shading still weren't obvious enough at real map scale: the aircraft highlight/shadow gradient, the aircraft weather/time tint, and the map wash are all noticeably stronger now, verified pixel-by-pixel so it's a deliberate boost rather than a guess.",
+        zh: "根据「颜色区别和光影还不够明显」的反馈,整体调高了鲜艳度:飞机的高光/阴影渐变、飞机的天气/时间色调、地图遮罩现在都明显更强了——逐像素核对过具体数值,不是凭感觉调的。",
       },
     ],
   },

@@ -140,10 +140,13 @@ const OVERLAY_LIGHTNESS_LIGHT: Record<WeatherMood, number> = {
 // Overcast/severe read as heavier (more atmosphere-in-the-way), not just a
 // hue change — mirrors how the aircraft mood chroma already dims for worse
 // weather, applied here as opacity since this wash's chroma stays modest.
+// Bumped again after user feedback that the map/aircraft colour difference
+// still wasn't obvious enough at real map scale — severe still stays under
+// ~55% so it reads as an atmospheric wash, not a solid colour cast.
 const OVERLAY_MOOD_ALPHA: Record<WeatherMood, number> = {
-  clear: 0.24,
-  overcast: 0.32,
-  severe: 0.42,
+  clear: 0.3,
+  overcast: 0.4,
+  severe: 0.52,
 };
 
 export interface AmbientOverlayColor {
