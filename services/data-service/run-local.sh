@@ -45,8 +45,17 @@ done
 
 echo "starting adsbao-data-service on :$PORT (OPENAIP=$([ -n "${OPENAIP_API_KEY:-}" ] && echo set || echo MISSING), DB=$([ -n "${DATABASE_URL:-}" ] && echo set || echo MISSING))"
 
+# Only default INTERNAL_ACCESS_ENABLED on when a FlightAware secret-service URL
+# is actually configured. Defaulting it to true unconditionally used to make
+# /api/feature-flags report flightAwareEnabled: true with no secret service
+# behind it — the Go layer degrades gracefully (no crash), but the frontend
+# believes a path is available that structurally isn't. An explicit
+# INTERNAL_ACCESS_ENABLED / FLIGHTAWARE_ACCESS_ENABLED in .env.local still wins.
+DEFAULT_INTERNAL_ACCESS_ENABLED="false"
+[ -n "${FLIGHTAWARE_SERVICE_BASE_URL:-}" ] && DEFAULT_INTERNAL_ACCESS_ENABLED="true"
+
 cd "$SCRIPT_DIR"
 PORT="$PORT" \
-INTERNAL_ACCESS_ENABLED="${INTERNAL_ACCESS_ENABLED:-${FLIGHTAWARE_ACCESS_ENABLED:-true}}" \
+INTERNAL_ACCESS_ENABLED="${INTERNAL_ACCESS_ENABLED:-${FLIGHTAWARE_ACCESS_ENABLED:-$DEFAULT_INTERNAL_ACCESS_ENABLED}}" \
 ADSBAO_REALTIME_AUTH_SECRET="${ADSBAO_REALTIME_AUTH_SECRET:-local-dev-secret}" \
   exec go run ./cmd/adsbao-data-service
