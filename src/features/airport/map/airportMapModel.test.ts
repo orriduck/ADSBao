@@ -162,3 +162,16 @@ assert.deepEqual(
     showRunwayBadges: false,
   },
 );
+
+// FAA-local-code fields (no ICAO and no IATA) are dropped from the label layer,
+// while IATA-only and ICAO-only airports are kept.
+const mixedCodeAirports = [
+  { icao: "KBED", lat: 42.47, lon: -71.29 },
+  { icao: "", iata: "LWM", lat: 42.72, lon: -71.12 },
+  { icao: "", iata: "", code: "6B6", localCode: "6B6", lat: 42.46, lon: -71.52 },
+  { icao: "", iata: "", code: "NH14", localCode: "NH14", lat: 42.9, lon: -71.4 },
+];
+assert.deepEqual(
+  resolveNearbyAirportLayerDisplay({ nearbyAirports: mixedCodeAirports }).airports,
+  [mixedCodeAirports[0], mixedCodeAirports[1]],
+);

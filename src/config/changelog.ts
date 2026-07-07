@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.5",
+    version: "v3.2.6",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -117,6 +117,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Turned up the vividness across the board after feedback that the colour difference and light-direction shading still weren't obvious enough at real map scale: the aircraft highlight/shadow gradient, the aircraft weather/time tint, and the map wash are all noticeably stronger now, verified pixel-by-pixel so it's a deliberate boost rather than a guess.",
         zh: "根据「颜色区别和光影还不够明显」的反馈,整体调高了鲜艳度:飞机的高光/阴影渐变、飞机的天气/时间色调、地图遮罩现在都明显更强了——逐像素核对过具体数值,不是凭感觉调的。",
+      },
+      {
+        en: "Decluttered the airport map: nearby fields carrying only an FAA local code (no ICAO and no IATA) — the \"6B6 / 8MA4 / NH14\"-style labels — are no longer drawn. Only airports with a real ICAO or IATA identifier get a badge now.",
+        zh: "地图机场标注瘦身:附近那些只有 FAA 本地码、既没有 ICAO 也没有 IATA 的小场(如「6B6 / 8MA4 / NH14」这类)不再标注,只有拥有真实 ICAO 或 IATA 代码的机场才显示徽标。",
       },
     ],
   },
