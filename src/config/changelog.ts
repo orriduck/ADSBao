@@ -102,6 +102,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "The sidebar's map-facing border and the floating toolbar's existing glow now pick up a faint hint of the same ambiance too, so the effect doesn't stop dead at the map's edge — both stay a background-only accent well behind the text and icons, so nothing gets harder to read.",
         zh: "侧栏朝向地图那一侧的边框、以及浮动工具栏本身的既有光晕,现在也会带上一点同样的氛围色调,让效果不会在地图边缘戛然而止——两处都只是文字和图标背后的一层背景点缀,不会影响任何内容的可读性。",
       },
+      {
+        en: "The sidebar and toolbar's own surface now blends in a stronger hint of the same weather/time colour too, not just their edge — and a new \"Sidebar & toolbar colour\" setting (Map settings) lets you pick Weather & time (default) or plain Theme colour if you'd rather the chrome stay static.",
+        zh: "侧栏和工具栏本身的底色现在也会融入更明显一点的同款天气/时间色调,不再只是边缘——地图设置里新增了「侧栏与工具栏配色」选项,可以选择「天气与时间」(默认)或「主题色」,想要界面保持纯色不变也可以。",
+      },
     ],
   },
 ];

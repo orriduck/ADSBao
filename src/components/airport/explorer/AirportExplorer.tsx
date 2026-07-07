@@ -48,6 +48,7 @@ import { useAirportProximityNotifier } from "@/features/notifications/useAirport
 import { useAircraftProximityNotifier } from "@/features/notifications/useAircraftProximityNotifier";
 import {
   resolveAmbientChromeEdgeColor,
+  resolveAmbientChromeSurfaceTint,
   resolveWeatherMood,
 } from "@/features/aircraft/canvas/aircraftAmbientModel";
 import { useSimplifiedLightBearing } from "@/hooks/useSimplifiedLightBearing";
@@ -298,10 +299,24 @@ function AirportExplorerContent({
     });
     return () => observer.disconnect();
   }, []);
+  // "Sidebar & toolbar colour" map setting: "theme" opts out of both the edge
+  // glow and the surface tint below, falling back to the plain pre-ambient
+  // look — the map wash and aircraft tint are a separate, always-on system
+  // this setting does not touch.
+  const chromeAmbientEnabled = mapSettings?.chromeAmbientMode !== "theme";
   const ambientChromeEdgeColor = useMemo(
     () =>
-      resolveAmbientChromeEdgeColor(weatherMood, timeOfDay, currentTheme !== "light"),
-    [weatherMood, timeOfDay, currentTheme],
+      chromeAmbientEnabled
+        ? resolveAmbientChromeEdgeColor(weatherMood, timeOfDay, currentTheme !== "light")
+        : null,
+    [chromeAmbientEnabled, weatherMood, timeOfDay, currentTheme],
+  );
+  const ambientChromeSurfaceTint = useMemo(
+    () =>
+      chromeAmbientEnabled
+        ? resolveAmbientChromeSurfaceTint(weatherMood, timeOfDay, currentTheme !== "light")
+        : null,
+    [chromeAmbientEnabled, weatherMood, timeOfDay, currentTheme],
   );
   const effectiveUserLocation =
     (nearMe ? null : userLocationLayer.userLocation) || nearMeMapUserLocation;
@@ -539,9 +554,17 @@ function AirportExplorerContent({
   const mapShellStyle = {
     ...(clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined),
     // Overrides Toolbar.tsx's map-kit halo token (and feeds the matching
-    // sidebar edge glow below) with the current weather/time ambiance —
-    // scoped selectors mean this is a no-op anywhere else in the app.
-    "--app-floating-edge-shadow": ambientChromeEdgeColor,
+    // sidebar edge glow) and blends a tint into the toolbar/sidebar surface
+    // itself (Toolbar.tsx / SidebarShell.tsx) with the current weather/time
+    // ambiance — scoped selectors mean this is a no-op anywhere else in the
+    // app. Left unset entirely when the "Sidebar & toolbar colour" setting
+    // is "theme", so both fall back to their plain pre-ambient CSS values.
+    ...(ambientChromeEdgeColor
+      ? { "--app-floating-edge-shadow": ambientChromeEdgeColor }
+      : {}),
+    ...(ambientChromeSurfaceTint
+      ? { "--app-ambient-chrome-tint": ambientChromeSurfaceTint }
+      : {}),
   } as CSSProperties;
   const sidebarProps = {
     icao: airportProfile.icao,

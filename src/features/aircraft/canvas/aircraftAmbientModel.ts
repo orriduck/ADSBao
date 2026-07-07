@@ -201,6 +201,23 @@ export function resolveAmbientChromeEdgeColor(
   return `oklch(${lightness} ${chroma} ${hue} / ${alpha})`;
 }
 
+// Chrome surface tint: an opaque colour meant to be `color-mix()`ed into the
+// toolbar/sidebar's own surface token at a modest, fixed percentage (the
+// call site controls "how much", this controls "which colour") — a
+// stronger, more literal reading of "match the map's colour" than the edge
+// accent above, which only glows at the rim. Deliberately reuses the map
+// wash's own tuning (resolveAmbientOverlayColor) rather than a third table:
+// it's already a theme-aware, mood-scaled tint built for blending OVER a
+// surface, which is exactly this job too — same "sky colour" family reads
+// as one coordinated system instead of the chrome inventing its own look.
+export function resolveAmbientChromeSurfaceTint(
+  mood: WeatherMood,
+  timeOfDay: TimeOfDay,
+  dark: boolean,
+): string {
+  return resolveAmbientOverlayColor(mood, timeOfDay, dark).color;
+}
+
 function normalizeDeg(deg: number): number {
   return ((deg % 360) + 360) % 360;
 }

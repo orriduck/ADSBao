@@ -679,6 +679,7 @@ const zhCN = {
     title: "地图设置",
     description: "微调这个机场地图显示的图层。",
     baseMapSection: "底图",
+    chromeAmbientSection: "侧栏与工具栏配色",
     layersSection: "显示",
     unitsSection: "单位",
     notificationsSection: "通知",
@@ -713,6 +714,14 @@ const zhCN = {
     baseLayerDescriptions: {
       standard: "干净的街道底图,无地形渲染。",
       terrain: "在底图下方叠加山体阴影和地势起伏。",
+    },
+    chromeAmbient: {
+      ambient: "天气与时间",
+      theme: "主题色",
+    },
+    chromeAmbientDescriptions: {
+      ambient: "侧栏和工具栏会带上一点当前机场天气与时间的色调。",
+      theme: "侧栏和工具栏保持纯色主题,不随天气/时间变化。",
     },
   },
   notifications: {
