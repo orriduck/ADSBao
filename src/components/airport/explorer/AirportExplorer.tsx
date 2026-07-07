@@ -46,8 +46,12 @@ import { useNotificationPreferences } from "@/features/notifications/Notificatio
 import { useNotificationPermission } from "@/features/notifications/useNotificationPermission";
 import { useAirportProximityNotifier } from "@/features/notifications/useAirportProximityNotifier";
 import { useAircraftProximityNotifier } from "@/features/notifications/useAircraftProximityNotifier";
-import { resolveWeatherMood } from "@/features/aircraft/canvas/aircraftAmbientModel";
+import {
+  resolveAmbientChromeEdgeColor,
+  resolveWeatherMood,
+} from "@/features/aircraft/canvas/aircraftAmbientModel";
 import { useSimplifiedLightBearing } from "@/hooks/useSimplifiedLightBearing";
+import { resolveDocumentTheme } from "@/features/airport/map/airportMapModel";
 
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
@@ -274,6 +278,31 @@ function AirportExplorerContent({
     [weather.metar],
   );
   const { lightBearingDeg, timeOfDay } = useSimplifiedLightBearing();
+  // Chrome edge glow: lets the floating toolbar's existing map-kit halo
+  // (Toolbar.tsx) and the sidebar's map-facing border pick up a hint of the
+  // same weather/time ambiance, without tinting either surface's own
+  // background or content — see resolveAmbientChromeEdgeColor's comment.
+  const [currentTheme, setCurrentTheme] = useState(() =>
+    typeof document !== "undefined"
+      ? resolveDocumentTheme(document.documentElement)
+      : "dark",
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const next = resolveDocumentTheme(document.documentElement);
+      setCurrentTheme((current) => (current === next ? current : next));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
+  }, []);
+  const ambientChromeEdgeColor = useMemo(
+    () =>
+      resolveAmbientChromeEdgeColor(weatherMood, timeOfDay, currentTheme !== "light"),
+    [weatherMood, timeOfDay, currentTheme],
+  );
   const effectiveUserLocation =
     (nearMe ? null : userLocationLayer.userLocation) || nearMeMapUserLocation;
   const userLocationActive = Boolean(effectiveUserLocation);
@@ -507,8 +536,13 @@ function AirportExplorerContent({
       {...toolbarContextProps}
     />
   );
-  const mapShellStyle =
-    clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined;
+  const mapShellStyle = {
+    ...(clientDeviceLayout.safeAreaCssVariables as CSSProperties | undefined),
+    // Overrides Toolbar.tsx's map-kit halo token (and feeds the matching
+    // sidebar edge glow below) with the current weather/time ambiance —
+    // scoped selectors mean this is a no-op anywhere else in the app.
+    "--app-floating-edge-shadow": ambientChromeEdgeColor,
+  } as CSSProperties;
   const sidebarProps = {
     icao: airportProfile.icao,
     iata: airportProfile.iata,

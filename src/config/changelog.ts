@@ -98,6 +98,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         en: "The aircraft's highlight/shadow gradient now also carries time-of-day colour instead of plain white/black — warm gold highlight with a cool violet shadow at dawn/dusk, cool blue-white at night, neutral at midday — so it reads more like real light (golden hour, moonlight) instead of a colourless sheen.",
         zh: "飞机的高光/阴影渐变现在也带上了对应时间的色彩,不再是单纯的黑白——黎明/黄昏是暖金高光配冷紫阴影,夜晚是冷蓝白,正午则保持中性——让光影观感更接近真实光照(黄金时刻、月光),而不是一层无色的浮光。",
       },
+      {
+        en: "The sidebar's map-facing border and the floating toolbar's existing glow now pick up a faint hint of the same ambiance too, so the effect doesn't stop dead at the map's edge — both stay a background-only accent well behind the text and icons, so nothing gets harder to read.",
+        zh: "侧栏朝向地图那一侧的边框、以及浮动工具栏本身的既有光晕,现在也会带上一点同样的氛围色调,让效果不会在地图边缘戛然而止——两处都只是文字和图标背后的一层背景点缀,不会影响任何内容的可读性。",
+      },
     ],
   },
 ];

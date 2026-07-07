@@ -155,6 +155,52 @@ export function resolveAmbientOverlayColor(
   };
 }
 
+// Chrome edge accent: feeds the existing --app-floating-edge-shadow token
+// (Toolbar.tsx's map-kit halo) and a matching sidebar-edge glow, so the
+// floating toolbar and the sidebar's map-facing border pick up a hint of
+// the same ambiance. This is deliberately the most restrained consumer of
+// the hue table — it sits as a low-lightness "coloured shadow" behind
+// chrome that already has to stay legible, not a wash over content. Both
+// call sites additionally apply their own ~45% opacity multiplier on top
+// (matching the existing toolbar halo), so the effective alpha ends up
+// noticeably fainter than the numbers below alone suggest.
+const CHROME_EDGE_CHROMA: Record<WeatherMood, number> = {
+  clear: 0.07,
+  overcast: 0.045,
+  severe: 0.025,
+};
+const CHROME_EDGE_LIGHTNESS: Record<WeatherMood, number> = {
+  clear: 0.32,
+  overcast: 0.26,
+  severe: 0.2,
+};
+// Dark theme reads a colour glow at a similar strength to its pre-existing
+// near-black halo (32% alpha); light theme stays as subtle as its
+// pre-existing near-black shadow (7.5% alpha) — a colour cast that loud
+// against a light background would compete with legibility.
+const CHROME_EDGE_ALPHA_DARK: Record<WeatherMood, number> = {
+  clear: 0.3,
+  overcast: 0.36,
+  severe: 0.42,
+};
+const CHROME_EDGE_ALPHA_LIGHT: Record<WeatherMood, number> = {
+  clear: 0.12,
+  overcast: 0.16,
+  severe: 0.2,
+};
+
+export function resolveAmbientChromeEdgeColor(
+  mood: WeatherMood,
+  timeOfDay: TimeOfDay,
+  dark: boolean,
+): string {
+  const hue = TIME_OF_DAY_HUE[timeOfDay];
+  const chroma = CHROME_EDGE_CHROMA[mood];
+  const lightness = CHROME_EDGE_LIGHTNESS[mood];
+  const alpha = dark ? CHROME_EDGE_ALPHA_DARK[mood] : CHROME_EDGE_ALPHA_LIGHT[mood];
+  return `oklch(${lightness} ${chroma} ${hue} / ${alpha})`;
+}
+
 function normalizeDeg(deg: number): number {
   return ((deg % 360) + 360) % 360;
 }
