@@ -5,9 +5,22 @@
 // mapping and hysteresis math are unit-testable without a browser.
 //
 // This is a distinct, narrower thing than a real day/night terminator: the
-// light bearing here is a linear East->West sweep over the browser's local
+// light bearing here is a linear East->West sweep over the LOCATION's local
 // clock, not a solar-position calculation. That's an explicit, user-approved
 // simplification for this ambient glyph-shading effect only.
+//
+// "Location's local clock" — not the browser's. Every time-of-day input here
+// takes a longitude and derives local time from UTC + a coarse 15deg-per-hour
+// offset (no timezone/DST database, another deliberate simplification). Using
+// the viewer's own device timezone was a real bug: an airport on the other
+// side of the world would render "night" colours just because the viewer's
+// clock said so, regardless of what time it actually was there.
+function resolveLocalHour(nowMs: number, lonDeg: number): number {
+  const date = new Date(nowMs);
+  const utcHour = date.getUTCHours() + date.getUTCMinutes() / 60;
+  const offsetHours = lonDeg / 15;
+  return (((utcHour + offsetHours) % 24) + 24) % 24;
+}
 
 export type WeatherMood = "clear" | "overcast" | "severe";
 
@@ -39,14 +52,14 @@ const DAWN_BEARING_DEG = 90;
 const DUSK_BEARING_DEG = 270;
 
 // Simplified light source bearing: sweeps linearly from due-east at dawn to
-// due-west at dusk using the browser's local clock, clamping outside that
-// window. Not solar-accurate (no latitude/season/declination) — that
-// precision belongs to a real day/night terminator overlay, a separate,
-// deferred feature. This is intentionally just "does the sun feel like it's
-// behind me or ahead of me right now".
-export function simplifiedLightBearingDeg(nowMs: number): number {
-  const date = new Date(nowMs);
-  const hour = date.getHours() + date.getMinutes() / 60;
+// due-west at dusk using the LOCATION's local clock (derived from longitude —
+// see resolveLocalHour above), clamping outside that window. Not
+// solar-accurate (no latitude/season/declination) — that precision belongs
+// to a real day/night terminator overlay, a separate, deferred feature. This
+// is intentionally just "does the sun feel like it's behind me or ahead of
+// me right now, at this location".
+export function simplifiedLightBearingDeg(nowMs: number, lonDeg = 0): number {
+  const hour = resolveLocalHour(nowMs, lonDeg);
   if (hour <= DAWN_HOUR) return DAWN_BEARING_DEG;
   if (hour >= DUSK_HOUR) return DUSK_BEARING_DEG;
   const t = (hour - DAWN_HOUR) / (DUSK_HOUR - DAWN_HOUR);
@@ -59,9 +72,9 @@ export type TimeOfDay = "dawn" | "day" | "dusk" | "night";
 // the light-direction bearing above (that one drives the highlight/shadow
 // mask; this one drives hue, so aircraft actually read as "morning gold" /
 // "midday neutral" / "sunset amber" / "night blue" at a glance, layered with
-// the weather mood in AircraftCanvasLayer's colour table). Local clock hours,
-// same simplification stance as simplifiedLightBearingDeg — not tied to
-// actual sunrise/sunset for the map's location.
+// the weather mood in AircraftCanvasLayer's colour table). Location-local
+// hours (see resolveLocalHour), same simplification stance as
+// simplifiedLightBearingDeg — not tied to actual sunrise/sunset times.
 const TIME_OF_DAY_BOUNDARIES: Array<[number, TimeOfDay]> = [
   [5, "night"],
   [8, "dawn"],
@@ -70,13 +83,151 @@ const TIME_OF_DAY_BOUNDARIES: Array<[number, TimeOfDay]> = [
   [24, "night"],
 ];
 
-export function resolveTimeOfDayBucket(nowMs: number): TimeOfDay {
-  const date = new Date(nowMs);
-  const hour = date.getHours() + date.getMinutes() / 60;
+export function resolveTimeOfDayBucket(nowMs: number, lonDeg = 0): TimeOfDay {
+  const hour = resolveLocalHour(nowMs, lonDeg);
   for (const [beforeHour, bucket] of TIME_OF_DAY_BOUNDARIES) {
     if (hour < beforeHour) return bucket;
   }
   return "night";
+}
+
+// Shared hue-per-time-of-day table for every ambient colour derived from
+// TimeOfDay (aircraft rest colour AND the map-level wash below) so both read
+// as the same "sky colour" progression instead of two uncoordinated palettes.
+//
+// Hue MUST stay clear of --atc-signal-accent (oklch(0.66 0.16 50), the single
+// reserved orange for focal/tracked targets) — an earlier pass used warm hues
+// near 35-55 for dawn/dusk and, in production, painted the ENTIRE map (every
+// aircraft + label) the same orange as the one thing that's supposed to stand
+// out, destroying the whole "one accent colour" hierarchy. This palette keeps
+// a >=60deg hue gap from 50 in every direction: dawn blush -> daytime cyan ->
+// twilight violet -> night blue.
+export const TIME_OF_DAY_HUE: Record<TimeOfDay, number> = {
+  dawn: 350, // soft rose/blush sunrise sky
+  day: 180, // cool daytime cyan-sky
+  dusk: 290, // twilight violet
+  night: 240, // night blue
+};
+
+// Map-level ambient wash: a colour tint over the base map imagery only (see
+// AmbientWashLayer.tsx — it renders in a pane just above the tile layer and
+// below every annotation/aircraft pane), so the whole viewport picks up the
+// same time-of-day/weather atmosphere instead of leaving it confined to the
+// tiny aircraft glyphs. A first pass here used much lower chroma/alpha on the
+// theory that a full-viewport wash needs less than a 20px glyph — verified by
+// compositing over a representative terrain colour, that came out within a
+// few RGB units across every combination and read as flatly invisible, the
+// same mistake the aircraft tint made before ITS chroma got raised. These
+// values are tuned so adjacent combinations differ by double-digit RGB units
+// once composited (checked numerically, not just by eye), while staying a
+// wash rather than a solid colour cast — severe weather still tops out well
+// under 50% alpha.
+const OVERLAY_MOOD_CHROMA: Record<WeatherMood, number> = {
+  clear: 0.09,
+  overcast: 0.06,
+  severe: 0.035,
+};
+const OVERLAY_LIGHTNESS_DARK: Record<WeatherMood, number> = {
+  clear: 0.36,
+  overcast: 0.3,
+  severe: 0.24,
+};
+const OVERLAY_LIGHTNESS_LIGHT: Record<WeatherMood, number> = {
+  clear: 0.86,
+  overcast: 0.8,
+  severe: 0.72,
+};
+// Overcast/severe read as heavier (more atmosphere-in-the-way), not just a
+// hue change — mirrors how the aircraft mood chroma already dims for worse
+// weather, applied here as opacity since this wash's chroma stays modest.
+const OVERLAY_MOOD_ALPHA: Record<WeatherMood, number> = {
+  clear: 0.24,
+  overcast: 0.32,
+  severe: 0.42,
+};
+
+export interface AmbientOverlayColor {
+  /** Opaque oklch() colour string — pass as fillColor, not as a CSS background alone. */
+  color: string;
+  /** Separate 0-1 alpha — kept apart from `color` so callers can't accidentally double-apply alpha. */
+  opacity: number;
+}
+
+export function resolveAmbientOverlayColor(
+  mood: WeatherMood,
+  timeOfDay: TimeOfDay,
+  dark: boolean,
+): AmbientOverlayColor {
+  const hue = TIME_OF_DAY_HUE[timeOfDay];
+  const chroma = OVERLAY_MOOD_CHROMA[mood];
+  const lightness = dark ? OVERLAY_LIGHTNESS_DARK[mood] : OVERLAY_LIGHTNESS_LIGHT[mood];
+  return {
+    color: `oklch(${lightness} ${chroma} ${hue})`,
+    opacity: OVERLAY_MOOD_ALPHA[mood],
+  };
+}
+
+// Chrome edge accent: feeds the existing --app-floating-edge-shadow token
+// (Toolbar.tsx's map-kit halo) and a matching sidebar-edge glow, so the
+// floating toolbar and the sidebar's map-facing border pick up a hint of
+// the same ambiance. This is deliberately the most restrained consumer of
+// the hue table — it sits as a low-lightness "coloured shadow" behind
+// chrome that already has to stay legible, not a wash over content. Both
+// call sites additionally apply their own ~45% opacity multiplier on top
+// (matching the existing toolbar halo), so the effective alpha ends up
+// noticeably fainter than the numbers below alone suggest.
+const CHROME_EDGE_CHROMA: Record<WeatherMood, number> = {
+  clear: 0.07,
+  overcast: 0.045,
+  severe: 0.025,
+};
+const CHROME_EDGE_LIGHTNESS: Record<WeatherMood, number> = {
+  clear: 0.32,
+  overcast: 0.26,
+  severe: 0.2,
+};
+// Dark theme reads a colour glow at a similar strength to its pre-existing
+// near-black halo (32% alpha); light theme stays as subtle as its
+// pre-existing near-black shadow (7.5% alpha) — a colour cast that loud
+// against a light background would compete with legibility.
+const CHROME_EDGE_ALPHA_DARK: Record<WeatherMood, number> = {
+  clear: 0.3,
+  overcast: 0.36,
+  severe: 0.42,
+};
+const CHROME_EDGE_ALPHA_LIGHT: Record<WeatherMood, number> = {
+  clear: 0.12,
+  overcast: 0.16,
+  severe: 0.2,
+};
+
+export function resolveAmbientChromeEdgeColor(
+  mood: WeatherMood,
+  timeOfDay: TimeOfDay,
+  dark: boolean,
+): string {
+  const hue = TIME_OF_DAY_HUE[timeOfDay];
+  const chroma = CHROME_EDGE_CHROMA[mood];
+  const lightness = CHROME_EDGE_LIGHTNESS[mood];
+  const alpha = dark ? CHROME_EDGE_ALPHA_DARK[mood] : CHROME_EDGE_ALPHA_LIGHT[mood];
+  return `oklch(${lightness} ${chroma} ${hue} / ${alpha})`;
+}
+
+// Chrome surface tint: an opaque colour meant to be `color-mix()`ed into the
+// toolbar/sidebar's own surface token at a modest, fixed percentage (the
+// call site controls "how much", this controls "which colour") — a
+// stronger, more literal reading of "match the map's colour" than the edge
+// accent above, which only glows at the rim. Deliberately reuses the map
+// wash's own tuning (resolveAmbientOverlayColor) rather than a third table:
+// it's already a theme-aware, mood-scaled tint built for blending OVER a
+// surface, which is exactly this job too — same "sky colour" family reads
+// as one coordinated system instead of the chrome inventing its own look.
+export function resolveAmbientChromeSurfaceTint(
+  mood: WeatherMood,
+  timeOfDay: TimeOfDay,
+  dark: boolean,
+): string {
+  return resolveAmbientOverlayColor(mood, timeOfDay, dark).color;
 }
 
 function normalizeDeg(deg: number): number {

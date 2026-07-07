@@ -6,9 +6,13 @@ import {
   MAP_MODE_IDS,
   buildCustomMapSettings,
   buildMapSettingsFromLayerState,
+  buildMapSettingsWithAmbientMode,
   getAlternateMapSettingsDevice,
+  getAmbientModeOptions,
+  isKnownAmbientMode,
   mapSettingsToExplorerLayers,
   mergeMapSettings,
+  normalizeAmbientMode,
   normalizeMapSettings,
   normalizeMapSettingsDevice,
   resolveMapSettingsDeviceForClientDeviceProfile,
@@ -396,6 +400,45 @@ import {
     first,
     layerChange,
     "real layer changes should still mark map settings dirty",
+  );
+}
+
+{
+  assert.equal(isKnownAmbientMode("theme"), true);
+  assert.equal(isKnownAmbientMode("ambient"), true);
+  assert.equal(isKnownAmbientMode("bogus"), false);
+  assert.equal(normalizeAmbientMode("theme"), "theme");
+  assert.equal(
+    normalizeAmbientMode("bogus"),
+    "ambient",
+    "unknown values fall back to the ambient default",
+  );
+  assert.equal(
+    normalizeMapSettings({}).ambientMode,
+    "ambient",
+    "default settings should default to the ambient chrome mode",
+  );
+  const optionIds = getAmbientModeOptions().map((option) => option.id);
+  assert.deepEqual(optionIds.slice().sort(), ["ambient", "theme"]);
+}
+
+{
+  const withTheme = buildMapSettingsWithAmbientMode({
+    settings: normalizeMapSettings({}),
+    ambientMode: "theme",
+    now: "2026-07-06T12:00:00.000Z",
+  });
+  assert.equal(withTheme.ambientMode, "theme");
+  assert.equal(withTheme.updatedAt, "2026-07-06T12:00:00.000Z");
+
+  const merged = mergeMapSettings({
+    settings: withTheme,
+    updates: { layerOverrides: { [MAP_LAYER_KEYS.AIRSPACES]: true } },
+  });
+  assert.equal(
+    merged.ambientMode,
+    "theme",
+    "unrelated setting updates should preserve the chosen chrome ambient mode",
   );
 }
 

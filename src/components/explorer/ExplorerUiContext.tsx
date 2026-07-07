@@ -30,6 +30,8 @@ import {
   PRE_HYDRATION_VISUAL_LAYERS,
   buildCustomMapSettings,
   buildMapSettingsWithBaseLayer,
+  buildMapSettingsWithAmbientMode,
+  isKnownAmbientMode,
   isKnownMapBaseLayer,
   mapSettingsToExplorerLayers,
   mapSettingsToUserLocationPreferences,
@@ -231,6 +233,18 @@ function airportExplorerUiReducer(state, action) {
         buildMapSettingsWithBaseLayer({
           settings: state.mapSettings,
           baseLayer: action.baseLayer,
+        }),
+      );
+    case "setAmbientMode":
+      if (!isKnownAmbientMode(action.ambientMode)) return state;
+      if (state.mapSettings?.ambientMode === action.ambientMode) {
+        return state;
+      }
+      return applyMapSettingsToUiState(
+        state,
+        buildMapSettingsWithAmbientMode({
+          settings: state.mapSettings,
+          ambientMode: action.ambientMode,
         }),
       );
     case "hydrateMapSettings":
@@ -854,6 +868,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "setMapBaseLayer", baseLayer });
   }, []);
 
+  const setAmbientMode = useCallback((ambientMode) => {
+    dispatch({ type: "setAmbientMode", ambientMode });
+  }, []);
+
   const setUserLocationPreferences = useCallback(
     ({ userLocationEnabled }) => {
       dispatch({
@@ -997,6 +1015,7 @@ export function ExplorerUiProvider({ children }) {
       toggleCandidateWatchingSpots,
       toggleShowCallsigns,
       setMapBaseLayer,
+      setAmbientMode,
       setUserLocationPreferences,
       selectAircraft,
       setSelectedAircraftId,
@@ -1066,6 +1085,7 @@ export function ExplorerUiProvider({ children }) {
       toggleCandidateWatchingSpots,
       toggleShowCallsigns,
       setMapBaseLayer,
+      setAmbientMode,
       setUserLocationPreferences,
       selectAircraft,
       setSelectedAircraftId,

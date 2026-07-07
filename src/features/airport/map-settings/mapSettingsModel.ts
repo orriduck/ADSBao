@@ -81,11 +81,58 @@ export function getMapBaseLayerOptions() {
   return MAP_BASE_LAYER_OPTIONS;
 }
 
+// Whether the whole ambient system — map wash, aircraft weather/time tint +
+// light-mask colour, sidebar panel, and floating toolbar — follows the
+// static pre-ambient theme, or picks up the airport's current weather and
+// local time of day (see aircraftAmbientModel.ts's resolvers). One switch
+// for all of it, so the map never ends up in an inconsistent state (e.g. a
+// tinted map with plain aircraft).
+const AMBIENT_MODE_IDS = Object.freeze({
+  THEME: "theme",
+  AMBIENT: "ambient",
+});
+
+export const DEFAULT_AMBIENT_MODE = AMBIENT_MODE_IDS.AMBIENT;
+
+const AMBIENT_MODE_OPTIONS = [
+  {
+    id: AMBIENT_MODE_IDS.AMBIENT,
+    labelKey: "mapSettings.ambient.ambient",
+    descriptionKey: "mapSettings.ambientDescriptions.ambient",
+    iconKey: "sunMoon",
+  },
+  {
+    id: AMBIENT_MODE_IDS.THEME,
+    labelKey: "mapSettings.ambient.theme",
+    descriptionKey: "mapSettings.ambientDescriptions.theme",
+    iconKey: "palette",
+  },
+] as const;
+
+const AMBIENT_MODE_ID_SET: Set<string> = new Set(
+  Object.values(AMBIENT_MODE_IDS),
+);
+
+export function isKnownAmbientMode(value: unknown) {
+  return typeof value === "string" && AMBIENT_MODE_ID_SET.has(value);
+}
+
+export function normalizeAmbientMode(value: unknown) {
+  return isKnownAmbientMode(value)
+    ? (value as string)
+    : DEFAULT_AMBIENT_MODE;
+}
+
+export function getAmbientModeOptions() {
+  return AMBIENT_MODE_OPTIONS;
+}
+
 export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
   selectedMode: MAP_MODE_IDS.CUSTOM,
   baseMode: MAP_MODE_IDS.CUSTOM,
   layerOverrides: Object.freeze({}),
   baseLayer: DEFAULT_MAP_BASE_LAYER,
+  ambientMode: DEFAULT_AMBIENT_MODE,
   audioEnabled: false,
   hasSelectedMode: false,
   updatedAt: "",
@@ -190,6 +237,9 @@ export function normalizeMapSettings(
     baseMode,
     layerOverrides: normalizeMapLayerOverrides(settings?.layerOverrides),
     baseLayer: normalizeMapBaseLayer(settings?.baseLayer ?? settings?.base_layer),
+    ambientMode: normalizeAmbientMode(
+      settings?.ambientMode ?? settings?.ambient_mode,
+    ),
     audioEnabled: settings?.audioEnabled === true,
     hasSelectedMode:
       settings?.hasSelectedMode === true || settings?.has_selected_mode === true,
@@ -300,6 +350,13 @@ export function mergeMapSettings({
             updateRecord.baseLayer ?? updateRecord.base_layer,
           )
         : normalized.baseLayer,
+    ambientMode:
+      hasOwnSetting(updateRecord, "ambientMode") ||
+      hasOwnSetting(updateRecord, "ambient_mode")
+        ? normalizeAmbientMode(
+            updateRecord.ambientMode ?? updateRecord.ambient_mode,
+          )
+        : normalized.ambientMode,
     audioEnabled: hasOwnSetting(updateRecord, "audioEnabled")
       ? updateRecord.audioEnabled === true
       : normalized.audioEnabled,
@@ -328,6 +385,23 @@ export function buildMapSettingsWithBaseLayer({
   return mergeMapSettings({
     settings,
     updates: { baseLayer: normalizeMapBaseLayer(baseLayer), updatedAt: now },
+  });
+}
+
+// Build a settings record with a swapped chrome ambient mode, preserving the
+// rest of the user's selections. Used by the Ambient chrome switcher in the
+// settings sheet.
+export function buildMapSettingsWithAmbientMode({
+  settings = DEFAULT_MAP_SETTINGS,
+  ambientMode = DEFAULT_AMBIENT_MODE,
+  now = new Date().toISOString(),
+}: MapSettingsOptions = {}) {
+  return mergeMapSettings({
+    settings,
+    updates: {
+      ambientMode: normalizeAmbientMode(ambientMode),
+      updatedAt: now,
+    },
   });
 }
 

@@ -3809,13 +3809,20 @@ body {
        pinned exactly this as the scroll jank: GPU VizCompositorThread saturated
        + ~86% of frames dropped while the main thread sat ~87% idle. An opaque
        tint keeps the frosted material read with zero per-frame GPU cost. */
+    /* The base frost tint blends in a hint of --app-ambient-chrome-tint (set
+       by AirportExplorer's "Sidebar & toolbar colour" setting) so the panel
+       matches the floating toolbar's own ambient tint (Toolbar.tsx). The
+       self-referencing fallback (var(--app-ambient-chrome-tint,
+       var(--app-frost-tint))) makes this a no-op wherever the variable isn't
+       set — the "theme" setting, or pages that share this wrapper class but
+       never compute the tint (e.g. flight). */
     background:
         radial-gradient(
             120% 70% at 18% 0%,
             color-mix(in oklab, white 32%, transparent),
             transparent 46%
         ),
-        var(--app-frost-tint);
+        color-mix(in oklab, var(--app-ambient-chrome-tint, var(--app-frost-tint)) 16%, var(--app-frost-tint));
     border-right: 1px solid var(--app-frost-border);
     box-shadow:
         inset -1px 0 0 color-mix(in oklab, white 40%, transparent),
@@ -3871,11 +3878,15 @@ body {
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 12%, transparent),
         inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 7%, transparent);
     /* Opaque dark frosted tint — NO backdrop-filter (see the light rule above:
-       a scrolling sidebar can't carry a live blur without GPU-compositor jank). */
+       a scrolling sidebar can't carry a live blur without GPU-compositor jank).
+       Each stop blends in --app-ambient-chrome-tint (see the light rule's
+       comment above for the self-referencing-fallback no-op mechanism); this
+       block hardcodes its own colours instead of --app-frost-tint, so the
+       fallback here is the literal stop colour rather than that token. */
     background: linear-gradient(
         180deg,
-        oklch(0.215 0.003 100),
-        oklch(0.135 0.003 100)
+        color-mix(in oklab, var(--app-ambient-chrome-tint, oklch(0.215 0.003 100)) 16%, oklch(0.215 0.003 100)),
+        color-mix(in oklab, var(--app-ambient-chrome-tint, oklch(0.135 0.003 100)) 16%, oklch(0.135 0.003 100))
     );
     border-right: 1px solid color-mix(in oklab, var(--atc-text) 9%, transparent);
     box-shadow:

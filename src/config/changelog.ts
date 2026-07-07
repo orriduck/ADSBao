@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.3",
+    version: "v3.2.4",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -85,6 +85,34 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The ambient tint got a lot more visible, and gained a time-of-day dimension: hue now shifts through the day — warm amber at dawn, neutral at midday, warm amber-red at dusk, cool blue at night — layered with the weather mood (which now sets vividness/dimness instead of hue alone). The first pass was too subtle to read at 20px; this one is a clear, deliberate colour, confirmed visible at real map scale.",
         zh: "氛围色调的辨识度大幅提升,并新增了时间维度:色相随一天时间变化——黎明暖橙、正午中性、黄昏暖橙红、夜晚冷蓝——与天气 mood(现在决定鲜艳度/暗淡度,而不再单独决定色相)有机叠加。第一版在 20px 图标上太细微看不出来;这一版是明确、刻意的颜色,已在真实地图比例下确认可见。",
+      },
+      {
+        en: "Fixed: dawn/dusk's warm amber hues sat right next to the single orange accent reserved for the tracked target — in production this painted every aircraft and label the same orange as the one thing meant to stand out. Replaced with a sky-colour palette (dawn blush, daytime cyan, twilight violet, night blue) that keeps a wide hue gap from the accent in every direction, and dialed back overall vividness to stay ambient rather than loud.",
+        zh: "修复:黎明/黄昏的暖橙色调和唯一保留给追踪目标的橙色强调色挨得太近——生产环境里把所有飞机和标签都染成了本该用来突出重点的那个橙色。换成一套天空色调色板(黎明淡粉、白天青色、黄昏紫罗兰、夜晚蓝),在各个方向都和强调色保持足够色相距离,整体饱和度也调低,保持氛围感而不刺眼。",
+      },
+      {
+        en: "The atmosphere now extends past the aircraft to the map itself: a soft colour wash over the base imagery (same sky-colour palette, well clear of the orange accent) so the whole view — not just the tiny glyphs — reads as dawn, day, dusk, or night. It sits below every label, badge, and aircraft, so nothing legible gets tinted.",
+        zh: "氛围感现在从飞机延伸到了地图本身:在底图之上叠加一层柔和色调遮罩(同一套天空色板,与橙色强调色保持距离),让整个视野——而不只是飞机小图标——读出黎明、白天、黄昏或夜晚的感觉。这层遮罩位于所有标签、徽标和飞机之下,不会染到任何需要看清的内容。",
+      },
+      {
+        en: "The aircraft's highlight/shadow gradient now also carries time-of-day colour instead of plain white/black — warm gold highlight with a cool violet shadow at dawn/dusk, cool blue-white at night, neutral at midday — so it reads more like real light (golden hour, moonlight) instead of a colourless sheen.",
+        zh: "飞机的高光/阴影渐变现在也带上了对应时间的色彩,不再是单纯的黑白——黎明/黄昏是暖金高光配冷紫阴影,夜晚是冷蓝白,正午则保持中性——让光影观感更接近真实光照(黄金时刻、月光),而不是一层无色的浮光。",
+      },
+      {
+        en: "The sidebar's map-facing border and the floating toolbar's existing glow now pick up a faint hint of the same ambiance too, so the effect doesn't stop dead at the map's edge — both stay a background-only accent well behind the text and icons, so nothing gets harder to read.",
+        zh: "侧栏朝向地图那一侧的边框、以及浮动工具栏本身的既有光晕,现在也会带上一点同样的氛围色调,让效果不会在地图边缘戛然而止——两处都只是文字和图标背后的一层背景点缀,不会影响任何内容的可读性。",
+      },
+      {
+        en: "The sidebar and toolbar's own surface now blends in a stronger hint of the same weather/time colour too, not just their edge.",
+        zh: "侧栏和工具栏本身的底色现在也会融入更明显一点的同款天气/时间色调,不再只是边缘。",
+      },
+      {
+        en: "Fixed: time of day was read from the viewer's own device clock, so an airport on the other side of the world could render \"night\" colours just because the viewer's own local clock said so. Now derived from the airport's longitude instead, independent of who's looking at it or from where.",
+        zh: "修复:时间氛围之前读取的是查看者自己设备的时钟,导致地球另一端的机场可能仅仅因为查看者本地是晚上,就被染成「夜间」色调。现在改为根据机场自身经度推算当地时间,不再受查看者所在地影响。",
+      },
+      {
+        en: "New \"Ambient colour\" setting (Map settings): Weather & time (default) ties the map wash, aircraft tint, sidebar, and toolbar together into one coordinated look; Theme colour turns all of it off at once, back to the plain pre-ambient appearance — no mixed half-tinted state either way.",
+        zh: "新增「氛围配色」设置(地图设置):「天气与时间」(默认)把地图遮罩、飞机色调、侧栏和工具栏统一成一套联动的观感;「主题色」则一次性全部关闭,回到氛围功能之前的朴素外观——不会出现两种状态混杂的中间态。",
       },
     ],
   },

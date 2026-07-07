@@ -16,6 +16,7 @@ import {
   MonitorCheck,
   Moon,
   Mountain,
+  Palette,
   PanelsTopLeft,
   Plane,
   PlaneLanding,
@@ -27,6 +28,7 @@ import {
   SlidersHorizontal,
   Spotlight,
   Sun,
+  SunMoon,
   Telescope,
   Text,
   Type,
@@ -68,6 +70,8 @@ export function MapControlIcon({ iconKey }) {
       return <Moon />;
     case "mountain":
       return <Mountain />;
+    case "palette":
+      return <Palette />;
     case "panelsTopLeft":
       return <PanelsTopLeft />;
     case "plane":
@@ -88,6 +92,8 @@ export function MapControlIcon({ iconKey }) {
       return <Spotlight />;
     case "sun":
       return <Sun />;
+    case "sunMoon":
+      return <SunMoon />;
     case "telescope":
       return <Telescope />;
     case "text":

@@ -76,6 +76,17 @@ const mapKitGlow = cn(
   "[.airport-map-kit_&]:after:bg-[radial-gradient(ellipse_at_center,var(--app-floating-edge-shadow),transparent_72%)]",
 );
 
+// Ambient surface tint — blends a hint of the current weather/time colour
+// (--app-ambient-chrome-tint, set by AirportExplorer's "Sidebar & toolbar
+// colour" setting) into the toolbar's own surface, not just its edge halo
+// above. The self-referencing fallback (var(--app-ambient-chrome-tint,
+// var(--atc-toolbar-surface))) makes this a mathematical no-op — mixing a
+// colour with itself — whenever the tint variable isn't set (setting =
+// "theme", or any toolbar outside .airport-map-kit), so this never needs a
+// second "is ambient enabled" check here.
+const mapKitAmbientSurfaceTint =
+  "[.airport-map-kit_&]:[background:color-mix(in_oklab,var(--app-ambient-chrome-tint,var(--atc-toolbar-surface))_16%,var(--atc-toolbar-surface))]";
+
 const toolbarVariants = cva(
   cn(
     "relative items-center isolate",
@@ -96,6 +107,7 @@ const toolbarVariants = cva(
     // Tailwind spacing scale; only the fixed shell/cell dimensions are tokens.
     "min-h-[var(--atc-toolbar-shell-min-height)] gap-1 p-1",
     mapKitGlow,
+    mapKitAmbientSurfaceTint,
   ),
   {
     variants: {

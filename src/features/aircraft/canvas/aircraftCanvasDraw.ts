@@ -12,6 +12,7 @@
 // above — it doesn't change the glyph's shape, rotation, or the "flat" spec.
 
 import type { AircraftDrawDescriptor } from "./aircraftCanvasModel";
+import type { TimeOfDay } from "./aircraftAmbientModel";
 import { getAircraftSprite } from "./aircraftSpriteCache";
 import { getLightMask } from "./aircraftLightMask";
 
@@ -72,9 +73,10 @@ function applyLightMask(
   ctx: CanvasRenderingContext2D,
   lightBucket: number | null | undefined,
   sizePx: number,
+  timeOfDay: TimeOfDay,
 ) {
   if (lightBucket == null) return;
-  const mask = getLightMask(lightBucket);
+  const mask = getLightMask(lightBucket, timeOfDay);
   if (!mask) return;
   ctx.save();
   ctx.globalCompositeOperation = "source-atop";
@@ -92,6 +94,7 @@ export function drawAircraftGlyph(
   palette: AircraftCanvasPalette,
   dpr: number,
   lightBucket: number | null = null,
+  timeOfDay: TimeOfDay = "day",
 ) {
   const color = colorFor(d, palette);
   ctx.save();
@@ -127,7 +130,7 @@ export function drawAircraftGlyph(
     // Sprite already carries the baked drop-shadow — plain drawImage, no shadow.
     const s = sprite.sizeCss * scale;
     ctx.drawImage(sprite.canvas, -s / 2, -s / 2, s, s);
-    applyLightMask(ctx, lightBucket, s);
+    applyLightMask(ctx, lightBucket, s, timeOfDay);
   } else {
     // Arrow fallback (no silhouette, or sprite still loading). Gets the same
     // ambient mask so there's no flat-colour -> gradient pop the moment the
@@ -141,7 +144,7 @@ export function drawAircraftGlyph(
     // state applies to any subsequent draw, and would otherwise blur-shadow
     // the mask rectangle itself).
     ctx.shadowBlur = 0;
-    applyLightMask(ctx, lightBucket, AIRCRAFT_GLYPH_BASE_PX * scale);
+    applyLightMask(ctx, lightBucket, AIRCRAFT_GLYPH_BASE_PX * scale, timeOfDay);
   }
   ctx.restore();
 }
