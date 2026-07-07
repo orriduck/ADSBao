@@ -6,13 +6,13 @@ import {
   MAP_MODE_IDS,
   buildCustomMapSettings,
   buildMapSettingsFromLayerState,
-  buildMapSettingsWithChromeAmbientMode,
+  buildMapSettingsWithAmbientMode,
   getAlternateMapSettingsDevice,
-  getChromeAmbientModeOptions,
-  isKnownChromeAmbientMode,
+  getAmbientModeOptions,
+  isKnownAmbientMode,
   mapSettingsToExplorerLayers,
   mergeMapSettings,
-  normalizeChromeAmbientMode,
+  normalizeAmbientMode,
   normalizeMapSettings,
   normalizeMapSettingsDevice,
   resolveMapSettingsDeviceForClientDeviceProfile,
@@ -404,31 +404,31 @@ import {
 }
 
 {
-  assert.equal(isKnownChromeAmbientMode("theme"), true);
-  assert.equal(isKnownChromeAmbientMode("ambient"), true);
-  assert.equal(isKnownChromeAmbientMode("bogus"), false);
-  assert.equal(normalizeChromeAmbientMode("theme"), "theme");
+  assert.equal(isKnownAmbientMode("theme"), true);
+  assert.equal(isKnownAmbientMode("ambient"), true);
+  assert.equal(isKnownAmbientMode("bogus"), false);
+  assert.equal(normalizeAmbientMode("theme"), "theme");
   assert.equal(
-    normalizeChromeAmbientMode("bogus"),
+    normalizeAmbientMode("bogus"),
     "ambient",
     "unknown values fall back to the ambient default",
   );
   assert.equal(
-    normalizeMapSettings({}).chromeAmbientMode,
+    normalizeMapSettings({}).ambientMode,
     "ambient",
     "default settings should default to the ambient chrome mode",
   );
-  const optionIds = getChromeAmbientModeOptions().map((option) => option.id);
+  const optionIds = getAmbientModeOptions().map((option) => option.id);
   assert.deepEqual(optionIds.slice().sort(), ["ambient", "theme"]);
 }
 
 {
-  const withTheme = buildMapSettingsWithChromeAmbientMode({
+  const withTheme = buildMapSettingsWithAmbientMode({
     settings: normalizeMapSettings({}),
-    chromeAmbientMode: "theme",
+    ambientMode: "theme",
     now: "2026-07-06T12:00:00.000Z",
   });
-  assert.equal(withTheme.chromeAmbientMode, "theme");
+  assert.equal(withTheme.ambientMode, "theme");
   assert.equal(withTheme.updatedAt, "2026-07-06T12:00:00.000Z");
 
   const merged = mergeMapSettings({
@@ -436,7 +436,7 @@ import {
     updates: { layerOverrides: { [MAP_LAYER_KEYS.AIRSPACES]: true } },
   });
   assert.equal(
-    merged.chromeAmbientMode,
+    merged.ambientMode,
     "theme",
     "unrelated setting updates should preserve the chosen chrome ambient mode",
   );

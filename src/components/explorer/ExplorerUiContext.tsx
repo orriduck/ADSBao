@@ -30,8 +30,8 @@ import {
   PRE_HYDRATION_VISUAL_LAYERS,
   buildCustomMapSettings,
   buildMapSettingsWithBaseLayer,
-  buildMapSettingsWithChromeAmbientMode,
-  isKnownChromeAmbientMode,
+  buildMapSettingsWithAmbientMode,
+  isKnownAmbientMode,
   isKnownMapBaseLayer,
   mapSettingsToExplorerLayers,
   mapSettingsToUserLocationPreferences,
@@ -235,16 +235,16 @@ function airportExplorerUiReducer(state, action) {
           baseLayer: action.baseLayer,
         }),
       );
-    case "setChromeAmbientMode":
-      if (!isKnownChromeAmbientMode(action.chromeAmbientMode)) return state;
-      if (state.mapSettings?.chromeAmbientMode === action.chromeAmbientMode) {
+    case "setAmbientMode":
+      if (!isKnownAmbientMode(action.ambientMode)) return state;
+      if (state.mapSettings?.ambientMode === action.ambientMode) {
         return state;
       }
       return applyMapSettingsToUiState(
         state,
-        buildMapSettingsWithChromeAmbientMode({
+        buildMapSettingsWithAmbientMode({
           settings: state.mapSettings,
-          chromeAmbientMode: action.chromeAmbientMode,
+          ambientMode: action.ambientMode,
         }),
       );
     case "hydrateMapSettings":
@@ -868,8 +868,8 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "setMapBaseLayer", baseLayer });
   }, []);
 
-  const setChromeAmbientMode = useCallback((chromeAmbientMode) => {
-    dispatch({ type: "setChromeAmbientMode", chromeAmbientMode });
+  const setAmbientMode = useCallback((ambientMode) => {
+    dispatch({ type: "setAmbientMode", ambientMode });
   }, []);
 
   const setUserLocationPreferences = useCallback(
@@ -1015,7 +1015,7 @@ export function ExplorerUiProvider({ children }) {
       toggleCandidateWatchingSpots,
       toggleShowCallsigns,
       setMapBaseLayer,
-      setChromeAmbientMode,
+      setAmbientMode,
       setUserLocationPreferences,
       selectAircraft,
       setSelectedAircraftId,
@@ -1085,7 +1085,7 @@ export function ExplorerUiProvider({ children }) {
       toggleCandidateWatchingSpots,
       toggleShowCallsigns,
       setMapBaseLayer,
-      setChromeAmbientMode,
+      setAmbientMode,
       setUserLocationPreferences,
       selectAircraft,
       setSelectedAircraftId,

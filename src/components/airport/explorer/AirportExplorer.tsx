@@ -278,7 +278,9 @@ function AirportExplorerContent({
     () => resolveWeatherMood(weather.metar?.flightCategory),
     [weather.metar],
   );
-  const { lightBearingDeg, timeOfDay } = useSimplifiedLightBearing();
+  const { lightBearingDeg, timeOfDay } = useSimplifiedLightBearing(
+    airportProfile.lon,
+  );
   // Chrome edge glow: lets the floating toolbar's existing map-kit halo
   // (Toolbar.tsx) and the sidebar's map-facing border pick up a hint of the
   // same weather/time ambiance, without tinting either surface's own
@@ -299,24 +301,25 @@ function AirportExplorerContent({
     });
     return () => observer.disconnect();
   }, []);
-  // "Sidebar & toolbar colour" map setting: "theme" opts out of both the edge
-  // glow and the surface tint below, falling back to the plain pre-ambient
-  // look — the map wash and aircraft tint are a separate, always-on system
-  // this setting does not touch.
-  const chromeAmbientEnabled = mapSettings?.chromeAmbientMode !== "theme";
+  // "Ambient colour" map setting: "theme" opts the WHOLE ambient system out
+  // (map wash, aircraft weather/time tint + light-mask colour, sidebar edge
+  // glow + surface tint, floating toolbar edge glow + surface tint) back to
+  // the plain pre-ambient look, so the map is never left in an inconsistent
+  // half-tinted state.
+  const ambientEnabled = mapSettings?.ambientMode !== "theme";
   const ambientChromeEdgeColor = useMemo(
     () =>
-      chromeAmbientEnabled
+      ambientEnabled
         ? resolveAmbientChromeEdgeColor(weatherMood, timeOfDay, currentTheme !== "light")
         : null,
-    [chromeAmbientEnabled, weatherMood, timeOfDay, currentTheme],
+    [ambientEnabled, weatherMood, timeOfDay, currentTheme],
   );
   const ambientChromeSurfaceTint = useMemo(
     () =>
-      chromeAmbientEnabled
+      ambientEnabled
         ? resolveAmbientChromeSurfaceTint(weatherMood, timeOfDay, currentTheme !== "light")
         : null,
-    [chromeAmbientEnabled, weatherMood, timeOfDay, currentTheme],
+    [ambientEnabled, weatherMood, timeOfDay, currentTheme],
   );
   const effectiveUserLocation =
     (nearMe ? null : userLocationLayer.userLocation) || nearMeMapUserLocation;
@@ -751,7 +754,8 @@ function AirportExplorerContent({
               userLocation={effectiveUserLocation}
               weatherMood={weatherMood}
               timeOfDay={timeOfDay}
-              lightBearingDeg={lightBearingDeg}
+              lightBearingDeg={ambientEnabled ? lightBearingDeg : null}
+              ambientEnabled={ambientEnabled}
             />
           </Suspense>
 

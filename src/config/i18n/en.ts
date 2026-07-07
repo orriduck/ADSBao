@@ -689,7 +689,7 @@ const en = {
     title: "Map settings",
     description: "Fine-tune the layers shown on this airport map.",
     baseMapSection: "Base map",
-    chromeAmbientSection: "Sidebar & toolbar colour",
+    ambientSection: "Ambient colour",
     layersSection: "Display",
     unitsSection: "Units",
     notificationsSection: "Notifications",
@@ -725,13 +725,13 @@ const en = {
       standard: "Clean street map with no terrain shading.",
       terrain: "Hillshade and topographic relief under the base map.",
     },
-    chromeAmbient: {
+    ambient: {
       ambient: "Weather & time",
       theme: "Theme colour",
     },
-    chromeAmbientDescriptions: {
-      ambient: "Sidebar and toolbar pick up a hint of the airport's current weather and time of day.",
-      theme: "Sidebar and toolbar stay a plain, static colour.",
+    ambientDescriptions: {
+      ambient: "The map, aircraft, sidebar, and toolbar all pick up a hint of the airport's current weather and local time of day.",
+      theme: "The map, aircraft, sidebar, and toolbar stay a plain, static colour.",
     },
   },
   notifications: {

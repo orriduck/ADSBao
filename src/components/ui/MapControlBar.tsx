@@ -51,7 +51,7 @@ export default function MapControlBar({
   onToggleCandidateWatchingSpots,
   onToggleShowCallsigns,
   onSelectBaseLayer,
-  onSelectChromeAmbientMode,
+  onSelectAmbientMode,
   onMap = null,
   onToggleUserLocation = null,
   onToggleSidebar,
@@ -118,7 +118,7 @@ export default function MapControlBar({
         userLocationPositionReady={userLocationPositionReady}
         userLocationCompassHeadingDeg={userLocationCompassHeadingDeg}
         onSelectBaseLayer={onSelectBaseLayer}
-        onSelectChromeAmbientMode={onSelectChromeAmbientMode}
+        onSelectAmbientMode={onSelectAmbientMode}
         onToggleMapLabels={onToggleMapLabels}
         onToggleBeams={onToggleRunwayBeams}
         onToggleNavaidMarkers={onToggleNavaidMarkers}

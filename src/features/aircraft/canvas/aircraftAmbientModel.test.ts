@@ -9,8 +9,12 @@ import {
   simplifiedLightBearingDeg,
 } from "./aircraftAmbientModel";
 
+// UTC-based construction (not the local-time Date constructor) so these
+// tests are deterministic regardless of the machine's own timezone — the
+// whole point of resolveLocalHour is to derive time from longitude instead
+// of the runtime's local clock.
 const dateMs = (hour: number, minute = 0) =>
-  new Date(2026, 0, 15, hour, minute, 0, 0).getTime();
+  Date.UTC(2026, 0, 15, hour, minute, 0, 0);
 
 // --- resolveWeatherMood ----------------------------------------------------
 
@@ -58,6 +62,30 @@ const dateMs = (hour: number, minute = 0) =>
   assert.equal(resolveTimeOfDayBucket(dateMs(19, 59)), "dusk");
   assert.equal(resolveTimeOfDayBucket(dateMs(20)), "night");
   assert.equal(resolveTimeOfDayBucket(dateMs(23, 59)), "night");
+}
+
+// --- longitude-derived local time (the actual bug fix) ---------------------
+// Time-of-day must follow the LOCATION (via longitude), not the machine
+// running the code. UTC 00:00 is night at lon=0, but broad daylight on the
+// other side of the world — the exact bug a device-local clock would get
+// wrong for an airport far from the viewer.
+
+{
+  const utcMidnight = dateMs(0);
+  assert.equal(resolveTimeOfDayBucket(utcMidnight, 0), "night");
+  // lon=150 (~East Asia, UTC+10): local hour = 0 + 10 = 10 -> day.
+  assert.equal(resolveTimeOfDayBucket(utcMidnight, 150), "day");
+  // lon=-120 (~US Pacific, UTC-8): local hour = 0 - 8 = 16 -> day.
+  assert.equal(resolveTimeOfDayBucket(utcMidnight, -120), "day");
+
+  const utcNoon = dateMs(12);
+  assert.equal(resolveTimeOfDayBucket(utcNoon, 0), "day");
+  // lon=180: local hour = 12 + 12 = 24 -> wraps to 0 -> night.
+  assert.equal(resolveTimeOfDayBucket(utcNoon, 180), "night");
+
+  assert.equal(simplifiedLightBearingDeg(utcMidnight, 0), 90, "clamped before dawn at lon 0");
+  // lon=150: local hour 10 (mid-morning) -> partway from dawn (90) to dusk (270).
+  assert.equal(simplifiedLightBearingDeg(utcMidnight, 150), 150, "local mid-morning at lon 150");
 }
 
 // --- relativeLightAngleDeg + lightBucketForRelativeAngle -------------------

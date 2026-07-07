@@ -103,8 +103,16 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         zh: "侧栏朝向地图那一侧的边框、以及浮动工具栏本身的既有光晕,现在也会带上一点同样的氛围色调,让效果不会在地图边缘戛然而止——两处都只是文字和图标背后的一层背景点缀,不会影响任何内容的可读性。",
       },
       {
-        en: "The sidebar and toolbar's own surface now blends in a stronger hint of the same weather/time colour too, not just their edge — and a new \"Sidebar & toolbar colour\" setting (Map settings) lets you pick Weather & time (default) or plain Theme colour if you'd rather the chrome stay static.",
-        zh: "侧栏和工具栏本身的底色现在也会融入更明显一点的同款天气/时间色调,不再只是边缘——地图设置里新增了「侧栏与工具栏配色」选项,可以选择「天气与时间」(默认)或「主题色」,想要界面保持纯色不变也可以。",
+        en: "The sidebar and toolbar's own surface now blends in a stronger hint of the same weather/time colour too, not just their edge.",
+        zh: "侧栏和工具栏本身的底色现在也会融入更明显一点的同款天气/时间色调,不再只是边缘。",
+      },
+      {
+        en: "Fixed: time of day was read from the viewer's own device clock, so an airport on the other side of the world could render \"night\" colours just because the viewer's own local clock said so. Now derived from the airport's longitude instead, independent of who's looking at it or from where.",
+        zh: "修复:时间氛围之前读取的是查看者自己设备的时钟,导致地球另一端的机场可能仅仅因为查看者本地是晚上,就被染成「夜间」色调。现在改为根据机场自身经度推算当地时间,不再受查看者所在地影响。",
+      },
+      {
+        en: "New \"Ambient colour\" setting (Map settings): Weather & time (default) ties the map wash, aircraft tint, sidebar, and toolbar together into one coordinated look; Theme colour turns all of it off at once, back to the plain pre-ambient appearance — no mixed half-tinted state either way.",
+        zh: "新增「氛围配色」设置(地图设置):「天气与时间」(默认)把地图遮罩、飞机色调、侧栏和工具栏统一成一套联动的观感;「主题色」则一次性全部关闭,回到氛围功能之前的朴素外观——不会出现两种状态混杂的中间态。",
       },
     ],
   },

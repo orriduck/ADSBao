@@ -130,6 +130,7 @@ export default function AirportMap({
   weatherMood = "clear",
   timeOfDay = "day",
   lightBearingDeg = null,
+  ambientEnabled = true,
   children = null,
 }: Record<string, any>) {
   const { locale } = useI18n();
@@ -638,11 +639,13 @@ export default function AirportMap({
             selectionActive={selectionActive}
             onReadinessChange={handleMapTileReadinessChange}
           />
-          <AmbientWashLayer
-            theme={currentTheme}
-            weatherMood={weatherMood}
-            timeOfDay={timeOfDay}
-          />
+          {ambientEnabled && (
+            <AmbientWashLayer
+              theme={currentTheme}
+              weatherMood={weatherMood}
+              timeOfDay={timeOfDay}
+            />
+          )}
           <AirspaceLayer
             airspaces={renderedAirspaces}
             selectableAirspaceIds={selectableAirspaceIds}
@@ -761,6 +764,7 @@ export default function AirportMap({
             weatherMood={weatherMood}
             timeOfDay={timeOfDay}
             lightBearingDeg={lightBearingDeg}
+            ambientEnabled={ambientEnabled}
           />
         </MapContext.Provider>
       )}

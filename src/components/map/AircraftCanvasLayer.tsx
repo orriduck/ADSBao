@@ -400,6 +400,7 @@ function resolveAircraftCanvasPalette(
   theme: string,
   mood: WeatherMood = "clear",
   timeOfDay: TimeOfDay = "day",
+  ambientEnabled: boolean = true,
 ): AircraftCanvasPalette {
   const dark = theme !== "light";
   let read = (_name: string, fallback: string) => fallback;
@@ -410,13 +411,26 @@ function resolveAircraftCanvasPalette(
   } catch {
     /* keep fallbacks */
   }
-  const restColor = resolveAmbientRestColor(mood, timeOfDay, dark);
-  const groundColor = resolveAmbientGroundColor(mood, timeOfDay);
+  // "Theme colour" ambient-mode setting: revert to the original flat neutral
+  // palette that predates the weather/time tint (still theme-aware via these
+  // same CSS vars, just no mood/time hue) instead of the ambient resolvers.
+  const departure = ambientEnabled
+    ? resolveAmbientRestColor(mood, timeOfDay, dark)
+    : read("--aircraft-departure", dark ? "#2a2a26" : "#dcd9d0");
+  const arrival = ambientEnabled
+    ? departure
+    : read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0");
+  const unknown = ambientEnabled
+    ? departure
+    : read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0");
+  const ground = ambientEnabled
+    ? resolveAmbientGroundColor(mood, timeOfDay)
+    : read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab");
   return {
-    departure: restColor,
-    arrival: restColor,
-    unknown: restColor,
-    ground: groundColor,
+    departure,
+    arrival,
+    unknown,
+    ground,
     // PRIMARY (focal/tracked) target = orange signal accent; SECONDARY
     // (clicked) target = a high-contrast NEUTRAL (near-white grey on the dark
     // canvas, near-black grey on the light canvas) — distinguished by luminance
@@ -454,6 +468,8 @@ export interface AircraftCanvasLayerProps {
   timeOfDay?: TimeOfDay;
   /** Simplified light-source bearing (deg); null disables the light-mask overlay entirely. */
   lightBearingDeg?: number | null;
+  /** "Ambient colour" map setting: false reverts to the original flat neutral palette. */
+  ambientEnabled?: boolean;
 }
 
 export default function AircraftCanvasLayer({
@@ -470,6 +486,7 @@ export default function AircraftCanvasLayer({
   weatherMood = "clear",
   timeOfDay = "day",
   lightBearingDeg = null,
+  ambientEnabled = true,
 }: AircraftCanvasLayerProps) {
   const map = useMapInstance();
   const rendererRef = useRef<any>(null);
@@ -530,7 +547,13 @@ export default function AircraftCanvasLayer({
       traceActive,
       showCallsigns,
       matchesFilters,
-      palette: resolveAircraftCanvasPalette(map, theme, weatherMood, timeOfDay),
+      palette: resolveAircraftCanvasPalette(
+        map,
+        theme,
+        weatherMood,
+        timeOfDay,
+        ambientEnabled,
+      ),
       reducedMotion,
       lightBearingDeg,
       timeOfDay,
@@ -548,6 +571,7 @@ export default function AircraftCanvasLayer({
     weatherMood,
     timeOfDay,
     lightBearingDeg,
+    ambientEnabled,
   ]);
 
   return null;

@@ -1,9 +1,9 @@
 import { useUser } from "@/platform/auth/clerkClient";
 import {
-  DEFAULT_CHROME_AMBIENT_MODE,
+  DEFAULT_AMBIENT_MODE,
   DEFAULT_MAP_BASE_LAYER,
   MAP_LAYER_KEYS,
-  getChromeAmbientModeOptions,
+  getAmbientModeOptions,
   getMapBaseLayerOptions,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
@@ -298,7 +298,7 @@ export default function MapSettingsSheet({
   userLocationPositionReady = false,
   userLocationCompassHeadingDeg = null,
   onSelectBaseLayer,
-  onSelectChromeAmbientMode,
+  onSelectAmbientMode,
   onToggleMapLabels,
   onToggleBeams,
   onToggleNavaidMarkers,
@@ -347,9 +347,9 @@ export default function MapSettingsSheet({
   const settings = normalizeMapSettings(mapSettings);
   const baseLayerOptions = getMapBaseLayerOptions();
   const activeBaseLayerId = settings.baseLayer || DEFAULT_MAP_BASE_LAYER;
-  const chromeAmbientModeOptions = getChromeAmbientModeOptions();
-  const activeChromeAmbientModeId =
-    settings.chromeAmbientMode || DEFAULT_CHROME_AMBIENT_MODE;
+  const ambientModeOptions = getAmbientModeOptions();
+  const activeAmbientModeId =
+    settings.ambientMode || DEFAULT_AMBIENT_MODE;
   const state = {
     showMapLabels,
     showBeams,
@@ -454,11 +454,11 @@ export default function MapSettingsSheet({
                 id={`${id}-chrome-ambient`}
                 className={sectionTitleClassName}
               >
-                {t("mapSettings.chromeAmbientSection")}
+                {t("mapSettings.ambientSection")}
               </h3>
               <div className={settingsListGroupClassName}>
-                {chromeAmbientModeOptions.map((option) => {
-                  const active = activeChromeAmbientModeId === option.id;
+                {ambientModeOptions.map((option) => {
+                  const active = activeAmbientModeId === option.id;
                   return (
                     <SettingsOptionRow
                       key={option.id}
@@ -466,7 +466,7 @@ export default function MapSettingsSheet({
                       iconKey={option.iconKey}
                       title={t(option.labelKey)}
                       description={t(option.descriptionKey)}
-                      onClick={() => onSelectChromeAmbientMode?.(option.id)}
+                      onClick={() => onSelectAmbientMode?.(option.id)}
                     />
                   );
                 })}
